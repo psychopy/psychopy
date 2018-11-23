@@ -8,8 +8,9 @@
 """Helper functions in PsychoPy for interacting with Pavlovia.org
 """
 from future.builtins import object
-import glob
-import os, time, socket
+import glob, copy
+import sys, os, time, socket
+from os.path import abspath, join
 import traceback
 import subprocess
 
@@ -21,8 +22,8 @@ import requests
 import gitlab
 import gitlab.v4.objects
 
-# lazy import git
-import git  # handled by lazy_import module at psychopy.__init__
+import dulwich
+import dulwich.porcelain as git
 
 # for authentication
 from . import sshkeys
@@ -68,6 +69,16 @@ permissions = {  # for ref see https://docs.gitlab.com/ee/user/permissions.html
 MISSING_REMOTE = -1
 OK = 1
 
+# find a copy of git if possible to do push/pull as needed
+# the pure-python dulwich lib can do everything else but merged push/pull
+# isn't currently possible (e.g. pull overwrites any local commits!)
+# see https://github.com/dulwich/dulwich/issues/666
+_environ = copy.copy(os.environ)
+_osxStandalone = abspath(join(sys.executable, '..', '..', 'Resources'))
+for p in [_osxStandalone]:
+    if os.path.exists(p):
+        _environ["PATH"] = "{}:".format(p) + _environ["PATH"]
+
 
 def getAuthURL():
     state = str(uuid4())  # create a private "state" based on uuid
@@ -94,7 +105,7 @@ def login(tokenOrUsername, rememberMe=True):
     else:
         token = tokenOrUsername
     # it might still be a dict that *contains* the token
-    if type(token)==dict and 'token' in token:
+    if type(token) == dict and 'token' in token:
         token = token['token']
 
     # try actually logging in with token
@@ -137,7 +148,6 @@ class User(object):
         if gitlabData and not localData:
             if gitlabData.username in knownUsers:
                 self.data = knownUsers[gitlabData.username]
-
 
         # then try again to populate fields
         if gitlabData and not localData:
@@ -321,7 +331,6 @@ class PavloviaSession:
             if 'has already been taken' in str(e.error_message):
                 gitlabProj = "{}/{}".format(namespace, name)
             else:
-                print('something bad happended!')
                 raise e
         pavProject = PavloviaProject(gitlabProj, localRoot=localRoot)
         return pavProject
@@ -490,7 +499,7 @@ class PavloviaProject(dict):
         elif self.id in knownProjects:
             self.localRoot = knownProjects[self.id]['localRoot']
         elif self.repo:
-            self.localRoot = repo.working_dir
+            self.localRoot = repo.path
             self.configGitLocal()
         else:
             self.localRoot = localRoot  # which is probably ''
@@ -575,6 +584,22 @@ class PavloviaProject(dict):
             return self.pavlovia.attributes['id']
 
     @property
+    def remoteWithToken(self):
+        """The remote for git sync using an oauth token (always as a bytes obj)
+        """
+        currentSession = getCurrentSession()
+        rawHTTPS = self['remoteHTTPS']
+        if rawHTTPS:
+            remote = rawHTTPS.replace('https://gitlab.pavlovia.org/',
+                                      'https://oauth2:{}@gitlab.pavlovia.org/'
+                                      .format(currentSession.token))
+        else:
+            remote = None
+        # if remote and type(remote) != bytes:
+        #     remote = remote.encode('utf-8')
+        return remote
+
+    @property
     def group(self):
         if self.pavlovia:
             namespaceName = self.id.split('/')[0]
@@ -597,35 +622,33 @@ class PavloviaProject(dict):
         """
         return self.tag_list
 
-    def sync(self, syncPanel=None, progressHandler=None):
+    def sync(self, infoStream=None):
         """Performs a pull-and-push operation on the remote
 
         Will check for a local folder and whether that is already (in) a repo.
         If we have a local folder and it is not a git project already then
         this function will also clone the remote to that local folder
 
-        Optional params syncPanel and progressHandler are both needed if you
+        Optional params infoStream is needed if you
         want to update a sync window/panel
         """
-        self.repo = self.getRepo(forceRefresh=True)
+        self.repo = self.getRepo(forceRefresh=True, infoStream=infoStream)
         if not self.repo:  # if we haven't been given a local copy of repo then find
-            self.getRepo(progressHandler=progressHandler)
+            self.getRepo(infoStream=infoStream)
             # if cloned in last 2s then it was a fresh clone
             if time.time() < self._lastKnownSync + 2:
                 return 1
         # pull first then push
         t0 = time.time()
         if self.emptyRemote:  # we don't have a repo there yet to do a 1st push
-            self.firstPush()
+            self.firstPush(infoStream=infoStream)
         else:
-            status = self.pull(syncPanel=syncPanel,
-                               progressHandler=progressHandler)
+            status = self.pull(infoStream=infoStream)
             if status == MISSING_REMOTE:
                 return -1
-            self.repo = git.Repo(self.localRoot)  # get a new copy of repo (
+            # self.repo = dulwich.repo.Repo(self.localRoot)
             time.sleep(0.1)
-            status = self.push(syncPanel=syncPanel,
-                               progressHandler=progressHandler)
+            status = self.push(infoStream=infoStream)
             if status == MISSING_REMOTE:
                 return -1
 
@@ -633,81 +656,87 @@ class PavloviaProject(dict):
         msg = ("Successful sync at: {}, took {:.3f}s"
                .format(time.strftime("%H:%M:%S", time.localtime()), t1 - t0))
         logging.info(msg)
-        if syncPanel:
-            syncPanel.statusAppend("\n" + msg)
+        if infoStream:
+            infoStream.write("\n" + msg)
             time.sleep(0.5)
         return 1
 
-    def pull(self, syncPanel=None, progressHandler=None):
+    def pull(self, infoStream=None):
         """Pull from remote to local copy of the repository
 
         Parameters
         ----------
-        syncPanel
-        progressHandler
+        infoStream
 
         Returns
         -------
             1 if successful
             -1 if project is deleted on remote
         """
-        if syncPanel:
-            syncPanel.statusAppend("\nPulling changes from remote...")
-        origin = self.repo.remotes.origin
-        try:
-            info = self.repo.git.pull()  # progress=progressHandler
-        except git.exc.GitCommandError as e:
-            if ("The project you were looking for could not be found" in
-                    traceback.format_exc()):
-                # we are pointing to a project at pavlovia but it doesn't exist
-                # suggest we create it
-                logging.warning("Project not found on gitlab.pavlovia.org")
-                return MISSING_REMOTE
-            else:
-                raise e
+        if infoStream:
+            infoStream.write("\nPulling changes from remote...")
 
-        logging.debug('pull report: {}'.format(info))
-        if syncPanel:
-            syncPanel.statusAppend("done")
-            if info:
-                syncPanel.statusAppend("\n{}".format(info))
+        proc = subprocess.Popen(['git', 'pull', self.remoteWithToken, 'master'],
+                                stdout=subprocess.PIPE,
+                                stderr=subprocess.PIPE,
+                                cwd=self.localRoot, env=_environ)
+        stdoutData, stderrData = proc.communicate()
+        if stdoutData:
+            if type(stdoutData) is bytes:
+                stdoutData = stdoutData.decode('utf-8')
+            infoStream.write("\n{}".format(stdoutData))
+        if stderrData:
+            if type(stderrData) is bytes:
+                stderrData = stderrData.decode('utf-8')
+            infoStream.write("\n{}".format(stderrData))
+
+        logging.debug('pull complete: {}'.format(self.remoteHTTPS))
+        if infoStream:
+            infoStream.write("done")
         return 1
 
-    def push(self, syncPanel=None, progressHandler=None):
+    def push(self, infoStream=None):
         """Push to remote from local copy of the repository
 
         Parameters
         ----------
-        syncPanel
-        progressHandler
+        infoStream
 
         Returns
         -------
             1 if successful
             -1 if project deleted on remote
         """
-        if syncPanel:
-            syncPanel.statusAppend("\nPushing changes to remote...")
-        origin = self.repo.remotes.origin
+        if infoStream:
+            infoStream.write("\nPushing changes to remote...")
         try:
-            info = self.repo.git.push()  # progress=progressHandler
-        except git.exc.GitCommandError as e:
+            out = subprocess.check_output(
+                    ['git', 'push', self.remoteWithToken, 'master'],
+                    cwd=self.localRoot, env=_environ)
+            if out:
+                infoStream.write("\n{}".format(out))
+        except subprocess.CalledProcessError as e:
             if ("The project you were looking for could not be found" in
                     traceback.format_exc()):
                 # we are pointing to a project at pavlovia but it doesn't exist
                 # suggest we create it
                 logging.warning("Project not found on gitlab.pavlovia.org")
                 return MISSING_REMOTE
+            elif hasattr(e, 'stdout'):
+                if e.stdout:
+                    print('GitPush_stdout:', e.stdout)
+                if e.stderr:
+                    print('GitPush_stderr:', e.stderr)
+                print(e)
+                return -2
             else:
                 raise e
-        logging.debug('push report: {}'.format(info))
-        if syncPanel:
-            syncPanel.statusAppend("done")
-            if info:
-                syncPanel.statusAppend("\n{}".format(info))
+        logging.debug('push complete: {}'.format(self.remoteHTTPS))
+        if infoStream:
+            infoStream.write("done")
         return 1
 
-    def getRepo(self, syncPanel=None, progressHandler=None, forceRefresh=False,
+    def getRepo(self, infoStream=None, forceRefresh=False,
                 newRemote=False):
         """Will always try to return a valid local git repo
 
@@ -720,7 +749,7 @@ class PavloviaProject(dict):
         gitRoot = getGitRoot(self.localRoot)
 
         if gitRoot is None:
-            self.newRepo(progressHandler)
+            self.newRepo(infoStream=infoStream)
         elif gitRoot != self.localRoot:
             # this indicates that the requested root is inside another repo
             raise AttributeError("The requested local path for project\n\t{}\n"
@@ -742,7 +771,7 @@ class PavloviaProject(dict):
             with open(gitIgnorePath, 'w') as f:
                 f.write(gitIgnoreText)
 
-    def newRepo(self, progressHandler=None):
+    def newRepo(self, infoStream=None):
         """Will either git.init and git.push or git.clone depending on state
         of local files.
 
@@ -754,25 +783,28 @@ class PavloviaProject(dict):
         if not self.localRoot:
             raise AttributeError("Cannot fetch a PavloviaProject until we have "
                                  "chosen a local folder.")
+        if not os.path.exists(self.localRoot):
+            os.mkdirs(self.localRoot)
         if localFiles and self._newRemote:  # existing folder
-            self.repo = git.Repo.init(self.localRoot)
+            self.repo = dulwich.repo.Repo.init(self.localRoot)
             self.configGitLocal()  # sets user.email and user.name
             # add origin remote and master branch (but no push)
-            self.repo.create_remote('origin', url=self['remoteHTTPS'])
-            self.repo.git.checkout(b="master")
+            git.remote_add(self.repo, name='origin', url=self['remoteHTTPS'])
+            # self.repo.git.checkout(b="master")
             self.writeGitIgnore()
             self.stageFiles(['.gitignore'])
-            self.commit(['Create repository (including .gitignore)'])
+            self.commit('Create repository (including .gitignore)')
             self._newRemote = True
         else:
             # no files locally so safe to try and clone from remote
-            self.cloneRepo(progressHandler)
+            self.cloneRepo(infoStream=infoStream)
             # TODO: add the further case where there are remote AND local files!
 
-    def firstPush(self):
-        self.repo.git.push('-u', 'origin', 'master')
+    def firstPush(self, infoStream):
+        git.push(self.repo, self.remoteWithToken, 'master',
+                 errstream=infoStream, outstream=infoStream)
 
-    def cloneRepo(self, progressHandler=None):
+    def cloneRepo(self, infoStream=None):
         """Gets the git.Repo object for this project, creating one if needed
 
         Will check for a local folder and whether that is already (in) a repo.
@@ -781,7 +813,7 @@ class PavloviaProject(dict):
 
         Parameters
         ----------
-        progressHandler is subclassed from gitlab.remote.RemoteProgress
+        infoStream
 
         Returns
         -------
@@ -795,15 +827,17 @@ class PavloviaProject(dict):
         if not self.localRoot:
             raise AttributeError("Cannot fetch a PavloviaProject until we have "
                                  "chosen a local folder.")
-        if progressHandler:
-            progressHandler.setStatus("Cloning from remote...")
-            progressHandler.syncPanel.Refresh()
-            progressHandler.syncPanel.Layout()
-        repo = git.Repo.clone_from(
-                self.remoteHTTPS,
-                self.localRoot,
-                # progress=progressHandler,
+        if infoStream:
+            infoStream.SetValue("Cloning from remote...")
+        repo = git.clone(
+                source=self.remoteWithToken,
+                target=self.localRoot,
+                outstream=infoStream,
+                errstream=infoStream,
         )
+        config = repo.get_config()
+        config.set(('remote', 'origin'), 'url', self.remoteHTTPS)
+        config.write_to_path()
         self._lastKnownSync = time.time()
         self.repo = repo
         self._newRemote = False
@@ -816,13 +850,23 @@ class PavloviaProject(dict):
         None
         """
         session = getCurrentSession()
-        localConfig = self.repo.git.config(l=True, local=True)  # list local
-        if session.user.email in localConfig:
-                return  # we already have it set up so can return
-        # set the local config
-        with self.repo.config_writer() as config:
-            config.set_value("user", "email", session.user.email)
-            config.set_value("user", "name", session.user.name)
+
+        config = self.repo.get_config()
+
+        # write any user entries that don't exist
+        needSave = False
+        try:
+            email = config.get(('user',), 'email')
+        except KeyError:
+            config.set(('user',), 'email', session.user.email)
+            needSave = True
+        try:
+            name = config.get(('user',), 'name')
+        except KeyError:
+            config.set(('user',), 'name', session.user.name)
+            needSave = True
+        if needSave:
+            config.write_to_path()
 
     def forkTo(self, groupName=None, projectName=None):
         """forks this project to a new namespace and (potentially) project name"""
@@ -842,27 +886,22 @@ class PavloviaProject(dict):
     def getChanges(self):
         """Find all the not-yet-committed changes in the repository"""
         changeDict = {}
-        changeDict['untracked'] = self.repo.untracked_files
-        changeDict['changed'] = []
-        changeDict['deleted'] = []
-        changeDict['renamed'] = []
-        for this in self.repo.index.diff(None):
-            # change type, identifying possible ways a blob can have changed
-            # A = Added
-            # D = Deleted
-            # R = Renamed
-            # M = Modified
-            # T = Changed in the type
-            if this.change_type == 'D':
-                changeDict['deleted'].append(this.b_path)
-            elif this.change_type == 'R':  # only if git rename had been called?
-                changeDict['renamed'].append((this.rename_from, this.rename_to))
-            elif this.change_type == 'M':
-                changeDict['changed'].append(this.b_path)
-            else:
-                raise (
-                    "Found an unexpected change_type '{}' in gitpython Diff"
-                        .format(this.change_type))
+
+        # annoyingly in dulwich.status we get the type of file for changes once
+        # staged but not for changes to be staged (those are just a flat list
+        # irrespective of whether they're add/remove/modify)
+        status = git.status(self.repo)
+        # now to work out the type of change we need to stage the changes
+        self.repo.stage(status.unstaged)
+        self.repo.stage(status.untracked)
+
+        # print(status.staged)
+        # print(status.unstaged)
+        # print(status.untracked)
+
+        changeDict['untracked'] = status.staged['add']
+        changeDict['changed'] = status.staged['modify']
+        changeDict['deleted'] = status.staged['delete']
         changeList = []
         for categ in changeDict:
             changeList.extend(changeDict[categ])
@@ -880,36 +919,38 @@ class PavloviaProject(dict):
                 raise TypeError(
                         'The `files` provided to PavloviaProject.stageFiles '
                         'should be a list not a {}'.format(type(files)))
-            self.repo.git.add(files)
+            git.add(self.repo, files)  # or could be self.repo.stage(files)
         else:
             diffsDict, diffsList = self.getChanges()
             if diffsDict['untracked']:
-                self.repo.git.add(diffsDict['untracked'])
+                git.add(self.repo, diffsDict['untracked'])
             if diffsDict['deleted']:
-                self.repo.git.add(diffsDict['deleted'])
+                git.add(self.repo, diffsDict['deleted'])
             if diffsDict['changed']:
-                self.repo.git.add(diffsDict['changed'])
+                git.add(self.repo, diffsDict['changed'])
 
     def getStagedFiles(self):
         """Retrieves the files that are already staged ready for commit"""
-        return self.repo.index.diff("HEAD")
+        return git.status(self.repo).staged
 
     def unstageFiles(self, files):
         """Removes changed files from the stage (index) preventing their commit.
         The files in question can be new/changed/deleted
         """
-        self.repo.git.reset('--', files)
+        git.remove(self.repo, files)
 
     def commit(self, message):
         """Commits the staged changes"""
-        self.repo.git.commit('-m', message)
+        git.commit(self.repo, message)
         time.sleep(0.1)
         # then get a new copy of the repo
-        self.repo = git.Repo(self.localRoot)
+        self.repo = dulwich.repo.Repo(self.localRoot)
 
     def save(self):
         """Saves the metadata to gitlab.pavlovia.org"""
         self.pavlovia.save()
+        # note that saving info locally about known projects is done
+        # by the knownProjects DictStorage class
 
     @property
     def pavloviaStatus(self):
@@ -973,31 +1014,16 @@ class PavloviaProject(dict):
 
 def getGitRoot(p):
     """Return None or the root path of the repository"""
-    if not os.path.isdir(p):
-        p = [
-            os.path.split(p)[0] if len(os.path.split(p)[0]) > 0 else None].pop()
-    if subprocess.call(["git", "branch"],
-                       stderr=subprocess.STDOUT, stdout=open(os.devnull, 'w'),
-                       cwd=p) != 0:
+    try:
+        return dulwich.repo.Repo.discover(p).path
+    except dulwich.errors.NotGitRepository:
         return None
-    else:
-        out = subprocess.check_output(["git", "rev-parse", "--show-toplevel"],
-                                      cwd=p)
-        return out.strip().decode('utf-8')
 
 
 def getProject(filename):
     """Will try to find (locally synced) pavlovia Project for the filename
     """
-    try:
-        git
-        haveGit = True
-    except ImportError:
-        haveGit = False
-    if not haveGit:
-        logging.error(
-            "You need to install git to connect with Pavlovia projects")
-        return None
+
     gitRoot = getGitRoot(filename)
     if gitRoot in knownProjects:
         return knownProjects[gitRoot]
@@ -1006,8 +1032,10 @@ def getProject(filename):
         logging.info("Investigating repo at {}".format(gitRoot))
         localRepo = git.Repo(gitRoot)
         proj = None
-        for remote in localRepo.remotes:
-            for url in remote.urls:
+        config = localRepo.get_config()
+        for sectionType in config:
+            if sectionType[0] == b'remote':
+                url = config.get(sectionType, b'url').decode('utf-8')
                 if "gitlab.pavlovia.org/" in url:
                     namespaceName = url.split('gitlab.pavlovia.org/')[1]
                     namespaceName = namespaceName.replace('.git', '')
@@ -1018,8 +1046,8 @@ def getProject(filename):
                         if proj.pavlovia == 0:
                             logging.warning(
                                     _translate(
-                                        "We found a repository pointing to {} "
-                                        "but ") +
+                                            "We found a repository pointing to {} "
+                                            "but ") +
                                     _translate("no project was found there ("
                                                "deleted?)")
                                     .format(url))
@@ -1027,11 +1055,11 @@ def getProject(filename):
                     else:
                         logging.warning(
                                 _translate(
-                                    "We found a repository pointing to {} "
-                                    "but ") +
+                                        "We found a repository pointing to {} "
+                                        "but ") +
                                 _translate(
-                                    "no user is logged in for us to check "
-                                    "it")
+                                        "no user is logged in for us to check "
+                                        "it")
                                 .format(url))
                     return proj
         if proj == None:

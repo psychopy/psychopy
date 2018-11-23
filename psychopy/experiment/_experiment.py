@@ -130,7 +130,7 @@ class Experiment(object):
 
         if target == "PsychoPy":
             self.settings.writeInitCode(script, self.psychopyVersion, localDateTime)
-            self.settings.writeStartCode(script)  # present info, make logfile
+            self.settings.writeStartCode(script, self.psychopyVersion)  # present info, make logfile
             # writes any components with a writeStartCode()
             self.flow.writeStartCode(script)
             self.settings.writeWindowCode(script)  # create our visual.Window()
@@ -144,7 +144,7 @@ class Experiment(object):
             script.oneIndent = "  "  # use 2 spaces rather than python 4
             self.settings.writeInitCodeJS(script, self.psychopyVersion, localDateTime, modular)
             self.flow.writeFlowSchedulerJS(script)
-            self.settings.writeExpSetupCodeJS(script)
+            self.settings.writeExpSetupCodeJS(script, self.psychopyVersion)
 
             # initialise the components for all Routines in a single function
             script.writeIndentedLines("\nfunction experimentInit() {")
