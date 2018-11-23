@@ -16,10 +16,9 @@ from subprocess import CalledProcessError
 import re
 import psychopy  # for currently loaded version
 from psychopy import prefs
-from psychopy import logging, tools, web
-from psychopy.constants import PY3
+from psychopy import logging, tools, web, constants
 
-if PY3:
+if constants.PY3:
     from importlib import reload
 
 USERDIR = prefs.paths['userPrefsDir']
@@ -87,7 +86,7 @@ def useVersion(requestedVersion):
     if not os.path.isdir(VERSIONSDIR):
         _clone(requestedVersion)  # Allow the versions subdirectory to be built
 
-    if PY3:
+    if constants.PY3:
         py3Compatible = [ver for ver in availableVersions() if not re.search('(0|1).(7|8)', ver)]
         py3Compatible.reverse()
         if reqdMajorMinorPatch not in py3Compatible:
@@ -195,7 +194,8 @@ def _localVersions(forceCheck=False):
             return [psychopy.__version__]
         else:
             cmd = 'git tag'
-            tagInfo = subprocess.check_output(cmd.split(), cwd=VERSIONSDIR).decode('UTF-8')
+            tagInfo = subprocess.check_output(cmd.split(), cwd=VERSIONSDIR,
+                                              env=constants.ENVIRON).decode('UTF-8')
             allTags = tagInfo.splitlines()
             _localVersionsCache = sorted(allTags, reverse=True)
     return _localVersionsCache
@@ -207,11 +207,12 @@ def _remoteVersions(forceCheck=False):
         try:
             cmd = 'git ls-remote --tags https://github.com/psychopy/versions'
             tagInfo = subprocess.check_output(cmd.split(),
+                                              env=constants.ENVIRON,
                                               stderr=subprocess.PIPE)
         except (CalledProcessError, OSError):
             pass
         else:
-            if PY3:
+            if constants.PY3:
                 allTags = [line.split('refs/tags/')[1]
                            for line in tagInfo.decode().splitlines()
                            if '^{}' not in line]
@@ -267,7 +268,8 @@ def currentTag():
     """Returns the current tag name from the version repository
     """
     cmd = 'git describe --always --tag'.split()
-    tag = subprocess.check_output(cmd, cwd=VERSIONSDIR).decode('UTF-8').split('-')[0]
+    tag = subprocess.check_output(cmd, cwd=VERSIONSDIR,
+                                  env=constants.ENVIRON).decode('UTF-8').split('-')[0]
     return tag
 
 
@@ -284,7 +286,8 @@ def _checkout(requestedVersion):
         msg = _translate("Couldn't find version {} locally. Trying github...")
         logging.info(msg.format(requestedVersion))
         subprocess.check_output('git fetch github --tags'.split(),
-                                cwd=VERSIONSDIR).decode('UTF-8')
+                                cwd=VERSIONSDIR,
+                                env=constants.ENVIRON).decode('UTF-8')
         # is requested here now? forceCheck to refresh cache
         if requestedVersion not in _localVersions(forceCheck=True):
             msg = _translate("{} is not currently available.")
@@ -295,7 +298,8 @@ def _checkout(requestedVersion):
     cmd = ['git', 'checkout', requestedVersion]
     out = subprocess.check_output(cmd,
                                   stderr=subprocess.STDOUT,
-                                  cwd=VERSIONSDIR).decode('UTF-8')
+                                  cwd=VERSIONSDIR,
+                                  env=constants.ENVIRON).decode('UTF-8')
     logging.debug(out)
     logging.exp('Success:  ' + ' '.join(cmd))
     return requestedVersion
@@ -310,7 +314,8 @@ def _clone(requestedVersion):
     cmd = ('git clone -o github https://github.com/psychopy/versions ' +
            VER_SUBDIR)
     print(cmd)
-    subprocess.check_output(cmd.split(), cwd=USERDIR).decode('UTF-8')
+    subprocess.check_output(cmd.split(), cwd=USERDIR,
+                            env=constants.ENVIRON).decode('UTF-8')
 
     return _checkout(requestedVersion)
 
@@ -320,7 +325,8 @@ def _gitPresent():
     """
     try:
         gitvers = subprocess.check_output('git --version'.split(),
-                                          stderr=subprocess.PIPE).decode('UTF-8')
+                                          stderr=subprocess.PIPE,
+                                          env=constants.ENVIRON).decode('UTF-8')
     except (CalledProcessError, OSError):
         gitvers = ''
     return bool(gitvers.startswith('git version'))
