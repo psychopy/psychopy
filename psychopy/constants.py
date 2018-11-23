@@ -48,6 +48,6 @@ if sys.platform == 'darwin':
     if os.path.exists(_gitStandalonePath):
         ENVIRON["PATH"] = "{}:".format(_gitStandalonePath) + ENVIRON["PATH"]
 elif sys.platform == 'win32':
-    _gitStandalonePath = abspath(join(sys.executable, '..', 'PortableGit'))
+    _gitStandalonePath = abspath(join(sys.executable, '..', 'MinGit', 'cmd'))
     if os.path.exists(_gitStandalonePath):
         ENVIRON["PATH"] = "{};".format(_gitStandalonePath) + ENVIRON["PATH"]
