@@ -44,7 +44,9 @@ PSYCHOPY_USERAGENT = ("PsychoPy: open-source Psychology & Neuroscience tools; "
 # see https://github.com/dulwich/dulwich/issues/666
 ENVIRON = copy.copy(os.environ)
 if sys.platform == 'darwin':
-    _gitStandalonePath = abspath(join(sys.executable, '..', '..', 'Resources'))
+    _gitStandalonePath = abspath(join(sys.executable,
+                                      '..', '..', 'Resources',
+                                      'git-core'))
     if os.path.exists(_gitStandalonePath):
         ENVIRON["PATH"] = "{}:".format(_gitStandalonePath) + ENVIRON["PATH"]
 elif sys.platform == 'win32':
