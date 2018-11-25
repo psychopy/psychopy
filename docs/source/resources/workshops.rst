@@ -3,11 +3,11 @@
 PsychoPy official workshops
 ===============================
 
-The following workshop is currently planned for 2018:
+The following workshop is currently planned for **2019**:
 
- - 16-18 Apr 2018: :ref:`PEP1`
+ - 30 Apr - 2 May 2019 (inclusive): :ref:`PEP1`
 
-You can now `book your place on this 3 day Python workshop <http://store.nottingham.ac.uk/conferences-and-events/conferences/schools-and-departments/psychology/pep-2018-programming-experiments-in-python-beginners>`_
+You can now `book your place on this 3 day Python workshop <https://store.nottingham.ac.uk/conferences-and-events/conferences/schools-and-departments/psychology/pep-2019-programming-experiments-in-python-beginners>`_
 
 Do you want to get started using Python_ (and PsychoPy_) for your studies in behavioural sciences? Maybe you keep meaning to switch from another applications and haven't gotten around to it. These workshops, run by the creators of PsychoPy, will get you off the ground with building and analysing your experiments using Python.
 
@@ -28,15 +28,15 @@ For queries about any of these please email me at `jonathan.peirce at nottingham
 PEP1: Programming Experiments in Python (Beginners)
 ---------------------------------------------------------
 
-`Book onto Programming Experiments in Python workshop now <http://store.nottingham.ac.uk/conferences-and-events/conferences/schools-and-departments/psychology/pep-2018-programming-experiments-in-python-beginners>`_
+`Book onto Programming Experiments in Python workshop now <http://store.nottingham.ac.uk/conferences-and-events/conferences/schools-and-departments/psychology/pep-2019-programming-experiments-in-python-beginners>`_
 
 Details
 ~~~~~~~~~~~~
 
-    :When: 16-18 April 2018 (inclusive)
+    :When: 30 Apr - 2 May 2019 (inclusive)
     :Where: School of Psychology, University of Nottingham
     :Cost: £350
-    :Includes: Refreshments and lunch. There is an accommodation package too, costing £50 per night including bed, full breakfast and free wifi
+    :Includes: Refreshments and lunch. There is an accommodation package too, costing £53 per night including bed, full breakfast and free wifi
     :Content:
         Material will cover *Python* programming basics as well as PsychoPy-specific coding. Note that this is not a workshop about PsychoPy Builder; we'll really be focussing on programming.
 
