@@ -47,7 +47,7 @@ def saveKeyPair(filepath, comment=''):
                                           b'-f', filepath,
                                           b'-P', b''])
         # then read it back in to pass back
-        public_key = getPublicKey(filepath + ".pub")
+        public_key = getPublicKey(filepath + b".pub")
     except subprocess.CalledProcessError:
         # generate private/public key pair
         key = rsa.generate_private_key(backend=default_backend(),
