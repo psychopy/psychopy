@@ -181,6 +181,7 @@ class ProjectListCtrl(wx.ListCtrl, listmixin.ListCtrlAutoWidthMixin):
         wx.ListCtrl.__init__(self, parent, wx.ID_ANY,
                              style=wx.LC_REPORT | wx.LC_SINGLE_SEL)
         listmixin.ListCtrlAutoWidthMixin.__init__(self)
+        self.AlwaysShowScrollbars(True)
         self.parent = parent
         if frame is None:
             self.frame = parent
@@ -204,7 +205,7 @@ class ProjectListCtrl(wx.ListCtrl, listmixin.ListCtrlAutoWidthMixin):
 
         # after creating columns we can create the sort mixin
         # listmixin.ColumnSorterMixin.__init__(self, len(columnList))
-
+        self.SetAutoLayout(True)
         self.Bind(wx.EVT_LIST_COL_CLICK, self.onColumnClick)
         self.Bind(wx.EVT_LIST_ITEM_SELECTED, self.onChangeSelection)
 
@@ -235,14 +236,16 @@ class ProjectListCtrl(wx.ListCtrl, listmixin.ListCtrlAutoWidthMixin):
                         thisProj['Group'], thisProj['Name'],
                         thisProj['Description'])
                 self.Append(data)  # append to the wx table
+        self.resizeCols(finalOnly=False)
+        self.Update()
+
+    def resizeCols(self, finalOnly):
         # resize the columns
         for n in range(self.ColumnCount):
-            self.SetColumnWidth(n, wx.LIST_AUTOSIZE_USEHEADER)
-            if self.GetColumnWidth(n) > 200:
-                self.SetColumnWidth(n, 200)
-                # NB the final column (description) will resize to available space
-                # due to listmixin.ListCtrlAutoWidthMixin
-        self.Update()
+            if not finalOnly:
+                self.SetColumnWidth(n, wx.LIST_AUTOSIZE_USEHEADER)
+                if self.GetColumnWidth(n) > 200:
+                    self.SetColumnWidth(n, 200)
 
     def onChangeSelection(self, event):
         proj = self.projList[event.GetIndex()]
@@ -256,6 +259,7 @@ class ProjectListCtrl(wx.ListCtrl, listmixin.ListCtrlAutoWidthMixin):
         projs = sortProjects(self.projList, self.columnNames[col],
                              reverse=self._currentSortRev)
         self.setContents(projs)
+
 
 def sortProjects(seq, name, reverse=False):
     return sorted(seq, key=lambda k: k[name], reverse=reverse)

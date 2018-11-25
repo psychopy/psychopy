@@ -8,10 +8,8 @@
 """Helper functions in PsychoPy for interacting with Pavlovia.org
 """
 from future.builtins import object
-import glob, copy
-import sys, os, time, socket
-from os.path import abspath, join
-import traceback
+import glob
+import os, time, socket
 import subprocess
 
 from psychopy import logging, prefs, constants
@@ -68,20 +66,6 @@ permissions = {  # for ref see https://docs.gitlab.com/ee/user/permissions.html
 
 MISSING_REMOTE = -1
 OK = 1
-
-# find a copy of git if possible to do push/pull as needed
-# the pure-python dulwich lib can do everything else but merged push/pull
-# isn't currently possible (e.g. pull overwrites any local commits!)
-# see https://github.com/dulwich/dulwich/issues/666
-_environ = copy.copy(os.environ)
-if sys.platform == 'darwin':
-    _gitStandalonePath = abspath(join(sys.executable, '..', '..', 'Resources'))
-    if os.path.exists(_gitStandalonePath):
-        _environ["PATH"] = "{}:".format(_gitStandalonePath) + _environ["PATH"]
-elif sys.platform == 'win32':
-    _gitStandalonePath = abspath(join(sys.executable, '..', 'PortableGit'))
-    if os.path.exists(_gitStandalonePath):
-        _environ["PATH"] = "{};".format(_gitStandalonePath) + _environ["PATH"]
 
 
 def getAuthURL():
@@ -683,7 +667,7 @@ class PavloviaProject(dict):
         proc = subprocess.Popen(['git', 'pull', self.remoteWithToken, 'master'],
                                 stdout=subprocess.PIPE,
                                 stderr=subprocess.PIPE,
-                                cwd=self.localRoot, env=_environ)
+                                cwd=self.localRoot, env=constants.ENVIRON)
         stdoutData, stderrData = proc.communicate()
         for out in [stdoutData, stderrData]:
             if out:
@@ -717,7 +701,7 @@ class PavloviaProject(dict):
         proc = subprocess.Popen(['git', 'push', self.remoteWithToken, 'master'],
                                 stdout=subprocess.PIPE,
                                 stderr=subprocess.PIPE,
-                                cwd=self.localRoot, env=_environ)
+                                cwd=self.localRoot, env=constants.ENVIRON)
         stdoutData, stderrData = proc.communicate()
         for out in [stdoutData, stderrData]:
             if out:

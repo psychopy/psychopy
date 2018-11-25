@@ -1366,174 +1366,174 @@ ImageComponent.units.staticUpdater:None
 ImageComponent.units.updates:None
 ImageComponent.units.val:from exp settings
 ImageComponent.units.valType:str
-JoyButtonsComponent.order:['forceEndRoutine', 'allowedKeys', 'store', 'storeCorrect', 'correctAns', 'deviceNumber']
-JoyButtonsComponent.allowedKeys.default:0,1,2,3,4
-JoyButtonsComponent.allowedKeys.allowedTypes:[]
-JoyButtonsComponent.allowedKeys.allowedUpdates:['constant', 'set every repeat']
-JoyButtonsComponent.allowedKeys.allowedVals:[]
-JoyButtonsComponent.allowedKeys.categ:Basic
-JoyButtonsComponent.allowedKeys.hint:A comma-separated list of button numbers, such as 0,1,2,3,4
-JoyButtonsComponent.allowedKeys.label:Allowed buttons
-JoyButtonsComponent.allowedKeys.readOnly:False
-JoyButtonsComponent.allowedKeys.staticUpdater:None
-JoyButtonsComponent.allowedKeys.updates:constant
-JoyButtonsComponent.allowedKeys.val:0,1,2,3,4
-JoyButtonsComponent.allowedKeys.valType:code
-JoyButtonsComponent.correctAns.default:''
-JoyButtonsComponent.correctAns.allowedTypes:[]
-JoyButtonsComponent.correctAns.allowedUpdates:None
-JoyButtonsComponent.correctAns.allowedVals:[]
-JoyButtonsComponent.correctAns.categ:Basic
-JoyButtonsComponent.correctAns.hint:What is the 'correct' key? Might be helpful to add a correctAns column and use $correctAns to compare to the key press.
-JoyButtonsComponent.correctAns.label:Correct answer
-JoyButtonsComponent.correctAns.readOnly:False
-JoyButtonsComponent.correctAns.staticUpdater:None
-JoyButtonsComponent.correctAns.updates:constant
-JoyButtonsComponent.correctAns.val:
-JoyButtonsComponent.correctAns.valType:str
-JoyButtonsComponent.deviceNumber.default:0
-JoyButtonsComponent.deviceNumber.allowedTypes:[]
-JoyButtonsComponent.deviceNumber.allowedUpdates:[]
-JoyButtonsComponent.deviceNumber.allowedVals:[]
-JoyButtonsComponent.deviceNumber.categ:Advanced
-JoyButtonsComponent.deviceNumber.hint:Device number, if you have multiple devices which one do you want (0, 1, 2...)
-JoyButtonsComponent.deviceNumber.label:Device number
-JoyButtonsComponent.deviceNumber.readOnly:False
-JoyButtonsComponent.deviceNumber.staticUpdater:None
-JoyButtonsComponent.deviceNumber.updates:constant
-JoyButtonsComponent.deviceNumber.val:0
-JoyButtonsComponent.deviceNumber.valType:code
-JoyButtonsComponent.durationEstim.default:
-JoyButtonsComponent.durationEstim.allowedTypes:[]
-JoyButtonsComponent.durationEstim.allowedUpdates:None
-JoyButtonsComponent.durationEstim.allowedVals:[]
-JoyButtonsComponent.durationEstim.categ:Basic
-JoyButtonsComponent.durationEstim.hint:(Optional) expected duration (s), purely for representing in the timeline
-JoyButtonsComponent.durationEstim.label:Expected duration (s)
-JoyButtonsComponent.durationEstim.readOnly:False
-JoyButtonsComponent.durationEstim.staticUpdater:None
-JoyButtonsComponent.durationEstim.updates:None
-JoyButtonsComponent.durationEstim.val:
-JoyButtonsComponent.durationEstim.valType:code
-JoyButtonsComponent.forceEndRoutine.default:True
-JoyButtonsComponent.forceEndRoutine.allowedTypes:[]
-JoyButtonsComponent.forceEndRoutine.allowedUpdates:None
-JoyButtonsComponent.forceEndRoutine.allowedVals:[]
-JoyButtonsComponent.forceEndRoutine.categ:Basic
-JoyButtonsComponent.forceEndRoutine.hint:Should a response force the end of the Routine (e.g end the trial)?
-JoyButtonsComponent.forceEndRoutine.label:Force end of Routine
-JoyButtonsComponent.forceEndRoutine.readOnly:False
-JoyButtonsComponent.forceEndRoutine.staticUpdater:None
-JoyButtonsComponent.forceEndRoutine.updates:constant
-JoyButtonsComponent.forceEndRoutine.val:True
-JoyButtonsComponent.forceEndRoutine.valType:bool
-JoyButtonsComponent.name.default:button_resp
-JoyButtonsComponent.name.allowedTypes:[]
-JoyButtonsComponent.name.allowedUpdates:None
-JoyButtonsComponent.name.allowedVals:[]
-JoyButtonsComponent.name.categ:Basic
-JoyButtonsComponent.name.hint:Name of this component (alpha-numeric or _, no spaces)
-JoyButtonsComponent.name.label:Name
-JoyButtonsComponent.name.readOnly:False
-JoyButtonsComponent.name.staticUpdater:None
-JoyButtonsComponent.name.val:button_resp
-JoyButtonsComponent.name.valType:code
-JoyButtonsComponent.startEstim.default:
-JoyButtonsComponent.startEstim.allowedTypes:[]
-JoyButtonsComponent.startEstim.allowedUpdates:None
-JoyButtonsComponent.startEstim.allowedVals:[]
-JoyButtonsComponent.startEstim.categ:Basic
-JoyButtonsComponent.startEstim.hint:(Optional) expected start (s), purely for representing in the timeline
-JoyButtonsComponent.startEstim.label:Expected start (s)
-JoyButtonsComponent.startEstim.readOnly:False
-JoyButtonsComponent.startEstim.staticUpdater:None
-JoyButtonsComponent.startEstim.updates:None
-JoyButtonsComponent.startEstim.val:
-JoyButtonsComponent.startEstim.valType:code
-JoyButtonsComponent.startType.default:'time (s)'
-JoyButtonsComponent.startType.allowedTypes:[]
-JoyButtonsComponent.startType.allowedUpdates:None
-JoyButtonsComponent.startType.allowedVals:['time (s)', 'frame N', 'condition']
-JoyButtonsComponent.startType.categ:Basic
-JoyButtonsComponent.startType.hint:How do you want to define your start point?
-JoyButtonsComponent.startType.label:start type
-JoyButtonsComponent.startType.readOnly:False
-JoyButtonsComponent.startType.staticUpdater:None
-JoyButtonsComponent.startType.updates:None
-JoyButtonsComponent.startType.val:time (s)
-JoyButtonsComponent.startType.valType:str
-JoyButtonsComponent.startVal.default:0.0
-JoyButtonsComponent.startVal.allowedTypes:[]
-JoyButtonsComponent.startVal.allowedUpdates:None
-JoyButtonsComponent.startVal.allowedVals:[]
-JoyButtonsComponent.startVal.categ:Basic
-JoyButtonsComponent.startVal.hint:When does the component start?
-JoyButtonsComponent.startVal.label:Start
-JoyButtonsComponent.startVal.readOnly:False
-JoyButtonsComponent.startVal.staticUpdater:None
-JoyButtonsComponent.startVal.updates:None
-JoyButtonsComponent.startVal.val:0.0
-JoyButtonsComponent.startVal.valType:code
-JoyButtonsComponent.stopType.default:'duration (s)'
-JoyButtonsComponent.stopType.allowedTypes:[]
-JoyButtonsComponent.stopType.allowedUpdates:None
-JoyButtonsComponent.stopType.allowedVals:['duration (s)', 'duration (frames)', 'time (s)', 'frame N', 'condition']
-JoyButtonsComponent.stopType.categ:Basic
-JoyButtonsComponent.stopType.hint:How do you want to define your end point?
-JoyButtonsComponent.stopType.label:stop type
-JoyButtonsComponent.stopType.readOnly:False
-JoyButtonsComponent.stopType.staticUpdater:None
-JoyButtonsComponent.stopType.updates:None
-JoyButtonsComponent.stopType.val:duration (s)
-JoyButtonsComponent.stopType.valType:str
-JoyButtonsComponent.stopVal.default:
-JoyButtonsComponent.stopVal.allowedTypes:[]
-JoyButtonsComponent.stopVal.allowedUpdates:[]
-JoyButtonsComponent.stopVal.allowedVals:[]
-JoyButtonsComponent.stopVal.categ:Basic
-JoyButtonsComponent.stopVal.hint:When does the component end? (blank is endless)
-JoyButtonsComponent.stopVal.label:Stop
-JoyButtonsComponent.stopVal.readOnly:False
-JoyButtonsComponent.stopVal.staticUpdater:None
-JoyButtonsComponent.stopVal.updates:constant
-JoyButtonsComponent.stopVal.val:
-JoyButtonsComponent.stopVal.valType:code
-JoyButtonsComponent.store.default:'last key'
-JoyButtonsComponent.store.allowedTypes:[]
-JoyButtonsComponent.store.allowedUpdates:None
-JoyButtonsComponent.store.allowedVals:['last key', 'first key', 'all keys', 'nothing']
-JoyButtonsComponent.store.categ:Basic
-JoyButtonsComponent.store.hint:Choose which (if any) responses to store at the end of a trial
-JoyButtonsComponent.store.label:Store
-JoyButtonsComponent.store.readOnly:False
-JoyButtonsComponent.store.staticUpdater:None
-JoyButtonsComponent.store.updates:constant
-JoyButtonsComponent.store.val:last key
-JoyButtonsComponent.store.valType:str
-JoyButtonsComponent.storeCorrect.default:False
-JoyButtonsComponent.storeCorrect.allowedTypes:[]
-JoyButtonsComponent.storeCorrect.allowedUpdates:None
-JoyButtonsComponent.storeCorrect.allowedVals:[]
-JoyButtonsComponent.storeCorrect.categ:Basic
-JoyButtonsComponent.storeCorrect.hint:Do you want to save the response as correct/incorrect?
-JoyButtonsComponent.storeCorrect.label:Store correct
-JoyButtonsComponent.storeCorrect.readOnly:False
-JoyButtonsComponent.storeCorrect.staticUpdater:None
-JoyButtonsComponent.storeCorrect.updates:constant
-JoyButtonsComponent.storeCorrect.val:False
-JoyButtonsComponent.storeCorrect.valType:bool
-JoyButtonsComponent.syncScreenRefresh.default:True
-JoyButtonsComponent.syncScreenRefresh.allowedTypes:[]
-JoyButtonsComponent.syncScreenRefresh.allowedUpdates:None
-JoyButtonsComponent.syncScreenRefresh.allowedVals:[]
-JoyButtonsComponent.syncScreenRefresh.categ:Basic
-JoyButtonsComponent.syncScreenRefresh.hint:A reaction time to a visual stimulus should be based on when the screen flipped
-JoyButtonsComponent.syncScreenRefresh.label:sync RT with screen
-JoyButtonsComponent.syncScreenRefresh.readOnly:False
-JoyButtonsComponent.syncScreenRefresh.staticUpdater:None
-JoyButtonsComponent.syncScreenRefresh.updates:constant
-JoyButtonsComponent.syncScreenRefresh.val:True
-JoyButtonsComponent.syncScreenRefresh.valType:bool
+JoystickComponent.order:['forceEndRoutineOnPress', 'saveJoystickState', 'timeRelativeTo', 'clickable', 'saveParamsClickable', 'deviceNumber', 'allowedButtons']
+JoystickComponent.allowedButtons.default:
+JoystickComponent.allowedButtons.allowedTypes:[]
+JoystickComponent.allowedButtons.allowedUpdates:[]
+JoystickComponent.allowedButtons.allowedVals:[]
+JoystickComponent.allowedButtons.categ:Advanced
+JoystickComponent.allowedButtons.hint:Buttons to be read (blank for any) numbers separated by commas
+JoystickComponent.allowedButtons.label:Allowed Buttons
+JoystickComponent.allowedButtons.readOnly:False
+JoystickComponent.allowedButtons.staticUpdater:None
+JoystickComponent.allowedButtons.updates:constant
+JoystickComponent.allowedButtons.val:
+JoystickComponent.allowedButtons.valType:code
+JoystickComponent.clickable.default:
+JoystickComponent.clickable.allowedTypes:[]
+JoystickComponent.clickable.allowedUpdates:None
+JoystickComponent.clickable.allowedVals:[]
+JoystickComponent.clickable.categ:Basic
+JoystickComponent.clickable.hint:A comma-separated list of your stimulus names that can be "clicked" by the participant. e.g. target, foil
+JoystickComponent.clickable.label:Clickable stimuli
+JoystickComponent.clickable.readOnly:False
+JoystickComponent.clickable.staticUpdater:None
+JoystickComponent.clickable.updates:constant
+JoystickComponent.clickable.val:
+JoystickComponent.clickable.valType:code
+JoystickComponent.deviceNumber.default:0
+JoystickComponent.deviceNumber.allowedTypes:[]
+JoystickComponent.deviceNumber.allowedUpdates:[]
+JoystickComponent.deviceNumber.allowedVals:[]
+JoystickComponent.deviceNumber.categ:Advanced
+JoystickComponent.deviceNumber.hint:Device number, if you have multiple devices which one do you want (0, 1, 2...)
+JoystickComponent.deviceNumber.label:Device number
+JoystickComponent.deviceNumber.readOnly:False
+JoystickComponent.deviceNumber.staticUpdater:None
+JoystickComponent.deviceNumber.updates:constant
+JoystickComponent.deviceNumber.val:0
+JoystickComponent.deviceNumber.valType:code
+JoystickComponent.durationEstim.default:
+JoystickComponent.durationEstim.allowedTypes:[]
+JoystickComponent.durationEstim.allowedUpdates:None
+JoystickComponent.durationEstim.allowedVals:[]
+JoystickComponent.durationEstim.categ:Basic
+JoystickComponent.durationEstim.hint:(Optional) expected duration (s), purely for representing in the timeline
+JoystickComponent.durationEstim.label:Expected duration (s)
+JoystickComponent.durationEstim.readOnly:False
+JoystickComponent.durationEstim.staticUpdater:None
+JoystickComponent.durationEstim.updates:None
+JoystickComponent.durationEstim.val:
+JoystickComponent.durationEstim.valType:code
+JoystickComponent.forceEndRoutineOnPress.default:'any click'
+JoystickComponent.forceEndRoutineOnPress.allowedTypes:[]
+JoystickComponent.forceEndRoutineOnPress.allowedUpdates:None
+JoystickComponent.forceEndRoutineOnPress.allowedVals:['never', 'any click', 'valid click']
+JoystickComponent.forceEndRoutineOnPress.categ:Basic
+JoystickComponent.forceEndRoutineOnPress.hint:Should a button press force the end of the routine (e.g end the trial)?
+JoystickComponent.forceEndRoutineOnPress.label:End Routine on press
+JoystickComponent.forceEndRoutineOnPress.readOnly:False
+JoystickComponent.forceEndRoutineOnPress.staticUpdater:None
+JoystickComponent.forceEndRoutineOnPress.updates:constant
+JoystickComponent.forceEndRoutineOnPress.val:any click
+JoystickComponent.forceEndRoutineOnPress.valType:str
+JoystickComponent.name.default:joystick
+JoystickComponent.name.allowedTypes:[]
+JoystickComponent.name.allowedUpdates:None
+JoystickComponent.name.allowedVals:[]
+JoystickComponent.name.categ:Basic
+JoystickComponent.name.hint:Name of this component (alpha-numeric or _, no spaces)
+JoystickComponent.name.label:Name
+JoystickComponent.name.readOnly:False
+JoystickComponent.name.staticUpdater:None
+JoystickComponent.name.val:joystick
+JoystickComponent.name.valType:code
+JoystickComponent.saveJoystickState.default:'final'
+JoystickComponent.saveJoystickState.allowedTypes:[]
+JoystickComponent.saveJoystickState.allowedUpdates:None
+JoystickComponent.saveJoystickState.allowedVals:['final', 'on click', 'every frame', 'never']
+JoystickComponent.saveJoystickState.categ:Basic
+JoystickComponent.saveJoystickState.hint:How often should the joystick state (x,y,buttons) be stored? On every video frame, every click or just at the end of the Routine?
+JoystickComponent.saveJoystickState.label:Save joystick state
+JoystickComponent.saveJoystickState.readOnly:False
+JoystickComponent.saveJoystickState.staticUpdater:None
+JoystickComponent.saveJoystickState.updates:None
+JoystickComponent.saveJoystickState.val:final
+JoystickComponent.saveJoystickState.valType:str
+JoystickComponent.saveParamsClickable.default:name,
+JoystickComponent.saveParamsClickable.allowedTypes:[]
+JoystickComponent.saveParamsClickable.allowedUpdates:[]
+JoystickComponent.saveParamsClickable.allowedVals:[]
+JoystickComponent.saveParamsClickable.categ:Basic
+JoystickComponent.saveParamsClickable.hint:The params (e.g. name, text), for which you want to store the current value, for the stimulus that was"clicked" by the joystick. Make sure that all the clickable objects have all these params.
+JoystickComponent.saveParamsClickable.label:Store params for clicked
+JoystickComponent.saveParamsClickable.readOnly:False
+JoystickComponent.saveParamsClickable.staticUpdater:None
+JoystickComponent.saveParamsClickable.updates:constant
+JoystickComponent.saveParamsClickable.val:name,
+JoystickComponent.saveParamsClickable.valType:code
+JoystickComponent.startEstim.default:
+JoystickComponent.startEstim.allowedTypes:[]
+JoystickComponent.startEstim.allowedUpdates:None
+JoystickComponent.startEstim.allowedVals:[]
+JoystickComponent.startEstim.categ:Basic
+JoystickComponent.startEstim.hint:(Optional) expected start (s), purely for representing in the timeline
+JoystickComponent.startEstim.label:Expected start (s)
+JoystickComponent.startEstim.readOnly:False
+JoystickComponent.startEstim.staticUpdater:None
+JoystickComponent.startEstim.updates:None
+JoystickComponent.startEstim.val:
+JoystickComponent.startEstim.valType:code
+JoystickComponent.startType.default:'time (s)'
+JoystickComponent.startType.allowedTypes:[]
+JoystickComponent.startType.allowedUpdates:None
+JoystickComponent.startType.allowedVals:['time (s)', 'frame N', 'condition']
+JoystickComponent.startType.categ:Basic
+JoystickComponent.startType.hint:How do you want to define your start point?
+JoystickComponent.startType.label:start type
+JoystickComponent.startType.readOnly:False
+JoystickComponent.startType.staticUpdater:None
+JoystickComponent.startType.updates:None
+JoystickComponent.startType.val:time (s)
+JoystickComponent.startType.valType:str
+JoystickComponent.startVal.default:0.0
+JoystickComponent.startVal.allowedTypes:[]
+JoystickComponent.startVal.allowedUpdates:None
+JoystickComponent.startVal.allowedVals:[]
+JoystickComponent.startVal.categ:Basic
+JoystickComponent.startVal.hint:When does the component start?
+JoystickComponent.startVal.label:Start
+JoystickComponent.startVal.readOnly:False
+JoystickComponent.startVal.staticUpdater:None
+JoystickComponent.startVal.updates:None
+JoystickComponent.startVal.val:0.0
+JoystickComponent.startVal.valType:code
+JoystickComponent.stopType.default:'duration (s)'
+JoystickComponent.stopType.allowedTypes:[]
+JoystickComponent.stopType.allowedUpdates:None
+JoystickComponent.stopType.allowedVals:['duration (s)', 'duration (frames)', 'time (s)', 'frame N', 'condition']
+JoystickComponent.stopType.categ:Basic
+JoystickComponent.stopType.hint:How do you want to define your end point?
+JoystickComponent.stopType.label:stop type
+JoystickComponent.stopType.readOnly:False
+JoystickComponent.stopType.staticUpdater:None
+JoystickComponent.stopType.updates:None
+JoystickComponent.stopType.val:duration (s)
+JoystickComponent.stopType.valType:str
+JoystickComponent.stopVal.default:1.0
+JoystickComponent.stopVal.allowedTypes:[]
+JoystickComponent.stopVal.allowedUpdates:[]
+JoystickComponent.stopVal.allowedVals:[]
+JoystickComponent.stopVal.categ:Basic
+JoystickComponent.stopVal.hint:When does the component end? (blank is endless)
+JoystickComponent.stopVal.label:Stop
+JoystickComponent.stopVal.readOnly:False
+JoystickComponent.stopVal.staticUpdater:None
+JoystickComponent.stopVal.updates:constant
+JoystickComponent.stopVal.val:1.0
+JoystickComponent.stopVal.valType:code
+JoystickComponent.timeRelativeTo.default:'joystick onset'
+JoystickComponent.timeRelativeTo.allowedTypes:[]
+JoystickComponent.timeRelativeTo.allowedUpdates:None
+JoystickComponent.timeRelativeTo.allowedVals:['joystick onset', 'experiment', 'routine']
+JoystickComponent.timeRelativeTo.categ:Basic
+JoystickComponent.timeRelativeTo.hint:What should the values of joystick.time should be relative to?
+JoystickComponent.timeRelativeTo.label:Time relative to
+JoystickComponent.timeRelativeTo.readOnly:False
+JoystickComponent.timeRelativeTo.staticUpdater:None
+JoystickComponent.timeRelativeTo.updates:constant
+JoystickComponent.timeRelativeTo.val:joystick onset
+JoystickComponent.timeRelativeTo.valType:str
 KeyboardComponent.order:['forceEndRoutine', 'allowedKeys', 'store', 'storeCorrect', 'correctAns']
 KeyboardComponent.allowedKeys.default:'y','n','left','right','space'
 KeyboardComponent.allowedKeys.allowedTypes:[]
@@ -2558,7 +2558,7 @@ ParallelOutComponent.order:['address', 'startData', 'stopData']
 ParallelOutComponent.address.default:'0x0378'
 ParallelOutComponent.address.allowedTypes:[]
 ParallelOutComponent.address.allowedUpdates:None
-ParallelOutComponent.address.allowedVals:['0x0378', '0x03BC', 'LabJack U3']
+ParallelOutComponent.address.allowedVals:[u'0x0378', u'0x03BC', u'/dev/parport0', u'/dev/parport1', u'LabJack U3']
 ParallelOutComponent.address.categ:Basic
 ParallelOutComponent.address.hint:Parallel port to be used (you can change these options in preferences>general)
 ParallelOutComponent.address.label:Port address
@@ -3713,7 +3713,7 @@ SettingsComponent.Units.valType:str
 SettingsComponent.Use version.default:''
 SettingsComponent.Use version.allowedTypes:[]
 SettingsComponent.Use version.allowedUpdates:None
-SettingsComponent.Use version.allowedVals:['latest', '1', '1.90', '1.85', '1.84', '1.83', '1.82', '1.81', '1.80', '1.79', '1.78', '1.77', '1.76', '', '1.90.2', '1.90.1', '1.90.0', '1.85.6', '1.85.4', '1.85.3', '1.85.2', '1.85.1', '1.85.0', '1.84.2', '1.84.1', '1.84.0', '1.83.04', '1.83.03', '1.83.01', '1.83.00', '1.82.01', '1.82.00', '1.81.03', '1.81.02', '1.81.01', '1.81.00', '1.80.06', '1.80.05', '1.80.03', '1.80.02', '1.80.01', '1.80.00', '1.79.00', '1.78.01', '1.78.00', '1.77.02', '1.77.01', '1.77.00', '1.76.00']
+SettingsComponent.Use version.allowedVals:['latest', u'1', u'1.90', u'1.85', u'1.84', u'1.83', u'1.82', u'1.81', u'1.80', u'1.79', u'1.78', u'1.77', u'1.76', '', u'1.90.2', u'1.90.1', u'1.90.0', u'1.85.6', u'1.85.4', u'1.85.3', u'1.85.2', u'1.85.1', u'1.85.0', u'1.84.2', u'1.84.1', u'1.84.0', u'1.83.04', u'1.83.03', u'1.83.01', u'1.83.00', u'1.82.01', u'1.82.00', u'1.81.03', u'1.81.02', u'1.81.01', u'1.81.00', u'1.80.06', u'1.80.05', u'1.80.03', u'1.80.02', u'1.80.01', u'1.80.00', u'1.79.00', u'1.78.01', u'1.78.00', u'1.77.02', u'1.77.01', u'1.77.00', u'1.76.00']
 SettingsComponent.Use version.categ:Basic
 SettingsComponent.Use version.hint:The version of PsychoPy to use when running the experiment.
 SettingsComponent.Use version.label:Use PsychoPy version
