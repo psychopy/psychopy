@@ -28,6 +28,6 @@ pytest-cov
 pytest-xdist
 coveralls
 python-gitlab
+gitpython
 astunparse
 esprima
-dulwich
