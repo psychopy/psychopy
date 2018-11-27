@@ -32,13 +32,9 @@ import bdist_mpkg
 import py2app
 resources = glob.glob('psychopy/app/Resources/*')
 resources.append('/Library/Frameworks/Python.framework/Versions/2.7/include/python2.7/pyconfig.h')
-resources.append('/usr/local/bin/git')
 frameworks = ["libavbin.dylib", "/usr/lib/libxml2.2.dylib", #"libyaml.dylib",
               "libevent.dylib", "libffi.dylib",
               "libmp3lame.0.dylib",
-              "/usr/local/bin/git", "/usr/local/bin/git-shell",
-              "/usr/local/bin/git-credential-osxkeychain",
-              "/usr/local/bin/git-upload-pack",
               ]
 opencvLibs = glob.glob(os.path.join(sys.exec_prefix, 'lib', 'libopencv*.2.4.dylib'))
 frameworks.extend(opencvLibs)
