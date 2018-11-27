@@ -445,7 +445,7 @@ def syncProject(parent, project=None, closeFrameWhenDone=False):
         time.sleep(0.001)
         # git push -u origin master
         try:
-            project.firstPush()
+            project.firstPush(infoStream=syncFrame.syncPanel)
             project._newRemote = False
         except Exception as e:
             closeFrameWhenDone = False
