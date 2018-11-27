@@ -8,7 +8,8 @@ import time
 import os
 import traceback
 
-from .functions import setLocalPath, showCommitDialog, logInPavlovia
+from .functions import (setLocalPath, showCommitDialog, logInPavlovia,
+                        checkGitPresent)
 from psychopy.localization import _translate
 from psychopy.projects import pavlovia
 from psychopy import logging
@@ -311,6 +312,7 @@ class DetailsPanel(scrlpanel.ScrolledPanel):
         self.Layout()
 
     def onSyncButton(self, event):
+        checkGitPresent(self.parent)
 
         if self.project is None:
             raise AttributeError("User pressed the sync button with no "
@@ -374,6 +376,7 @@ def syncProject(parent, project=None, closeFrameWhenDone=False):
         0 for fail
         -1 for cancel at some point in the process
     """
+    checkGitPresent(parent)
 
     isCoder = hasattr(parent, 'currentDoc')
     if not project and "BuilderFrame" in repr(parent):
@@ -423,6 +426,7 @@ def syncProject(parent, project=None, closeFrameWhenDone=False):
             return
 
     # a sync will be necessary so can create syncFrame
+    checkGitPresent(parent)
     syncFrame = sync.SyncFrame(parent=parent, id=wx.ID_ANY, project=project)
 
     if project._newRemote:
@@ -441,7 +445,7 @@ def syncProject(parent, project=None, closeFrameWhenDone=False):
         time.sleep(0.001)
         # git push -u origin master
         try:
-            project.firstPush()
+            project.firstPush(infoStream=syncFrame.syncPanel)
             project._newRemote = False
         except Exception as e:
             closeFrameWhenDone = False

@@ -95,7 +95,7 @@ packages = ['wx', 'psychopy',
             # for Py3 compatibility
             'future', 'past', 'lib2to3',
             'json_tricks',  # allows saving arrays/dates in json
-            'dulwich', 'gitlab',
+            'git', 'gitlab',
             'astunparse', 'esprima',  # for translating/adapting py/JS
             'pylsl', 'pygaze',
             ]

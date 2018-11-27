@@ -43,13 +43,20 @@ PSYCHOPY_USERAGENT = ("PsychoPy: open-source Psychology & Neuroscience tools; "
 # isn't currently possible (e.g. pull overwrites any local commits!)
 # see https://github.com/dulwich/dulwich/issues/666
 ENVIRON = copy.copy(os.environ)
+gitExe = None
 if sys.platform == 'darwin':
-    _gitStandalonePath = abspath(join(sys.executable,
-                                      '..', '..', 'Resources',
-                                      'git-core'))
+    _gitStandalonePath = abspath(join(sys.executable, '..', '..',
+                                      'Resources', 'git-core'))
     if os.path.exists(_gitStandalonePath):
         ENVIRON["PATH"] = "{}:".format(_gitStandalonePath) + ENVIRON["PATH"]
+        gitExe = join(_gitStandalonePath, 'git')
+
 elif sys.platform == 'win32':
     _gitStandalonePath = abspath(join(sys.executable, '..', 'MinGit', 'cmd'))
     if os.path.exists(_gitStandalonePath):
         ENVIRON["PATH"] = "{};".format(_gitStandalonePath) + ENVIRON["PATH"]
+        os.environ["GIT_PYTHON_GIT_EXECUTABLE"] = _gitStandalonePath
+        gitExe = join(_gitStandalonePath, 'git.exe')
+
+if gitExe:
+    os.environ["GIT_PYTHON_GIT_EXECUTABLE"] = gitExe

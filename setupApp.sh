@@ -36,7 +36,7 @@ for i in todo; do
 
     ${pythons[$i]} setupApp.py py2app || { echo 'setupApp.py failed' ; exit 1; }
     # copy over git-core folder
-    cp -R /usr/local/git/libexec/git-core dist/${names[$i]}.app/Contents/Resources/git-core
+    cp -R -L /usr/local/git/libexec/git-core dist/${names[$i]}.app/Contents/Resources/git-core
 
     # remove matplotlib tests (45mb)
     rm -r dist/${names[$i]}.app/Contents/Resources/lib/python2.7/matplotlib/tests

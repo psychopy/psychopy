@@ -10,7 +10,7 @@ dependencies:
 - cffi
 - codecov
 - coveralls
-- dulwich
+- gitpython
 - ffmpeg
 - freetype
 - future

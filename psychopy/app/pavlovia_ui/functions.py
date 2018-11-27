@@ -11,6 +11,7 @@ import os
 import wx
 
 from ._base import PavloviaMiniBrowser
+from psychopy import constants  # needed to set exec path for git-python
 from psychopy.projects import pavlovia
 from psychopy.localization import _translate
 
@@ -19,6 +20,7 @@ try:
 except ImportError:
     wxhl = wx  # in wx 3.0.2
 
+import git
 
 def setLocalPath(parent, project=None, path=""):
     """Open a DirDialog and set the project local folder to that specified
@@ -96,7 +98,7 @@ def showCommitDialog(parent, project, initMsg=""):
         return 0
 
     infoStr = "Changes to commit:\n"
-    for categ in ['untracked', 'changed', 'deleted']:
+    for categ in ['untracked', 'changed', 'deleted', 'renamed']:
         changes = changeDict[categ]
         if categ == 'untracked':
             categ = 'New'
@@ -143,7 +145,46 @@ def showCommitDialog(parent, project, initMsg=""):
     commitMsg = commitTitleCtrl.GetValue()
     if commitDescrCtrl.GetValue():
         commitMsg += "\n\n" + commitDescrCtrl.GetValue()
-    #    project.stageFiles(changeList)  # in dulwich the staging occurs during getChanges
-
+    project.stageFiles(changeList)  # NB not needed in dulwich
     project.commit(commitMsg)
     return 1
+
+
+def checkGitPresent(parent):
+    try:
+        git
+        haveGit = True
+    except Exception as e:
+        print(e)
+        haveGit = False
+    if not haveGit:
+        noGitWarning(parent)
+        return 0
+
+
+def noGitWarning(parent):
+    """Raise a simpler warning dialog that the user needs to install git first"""
+    dlg = wx.Dialog(parent=parent, style=wx.ICON_ERROR | wx.OK | wx.STAY_ON_TOP)
+
+    errorBitmap = wx.ArtProvider.GetBitmap(wx.ART_ERROR, wx.ART_MESSAGE_BOX)
+    errorBitmapCtrl = wx.StaticBitmap(dlg, -1)
+    errorBitmapCtrl.SetBitmap(errorBitmap)
+
+    msg = wx.StaticText(dlg, label=_translate(
+            "You need to install git to use Pavlovia projects"))
+    link = wxhl.HyperlinkCtrl(dlg, url="https://git-scm.com/")
+    OK = wx.Button(dlg, wx.ID_OK, label="OK")
+    msgsSizer = wx.BoxSizer(wx.VERTICAL)
+    msgsSizer.Add(msg, 1, flag=wx.ALIGN_RIGHT | wx.ALL | wx.EXPAND, border=5)
+    msgsSizer.Add(link, 1, flag=wx.ALIGN_RIGHT | wx.ALL | wx.EXPAND, border=5)
+    msgsAndIcon = wx.BoxSizer(wx.HORIZONTAL)
+    msgsAndIcon.Add(errorBitmapCtrl, 0, flag=wx.ALIGN_RIGHT | wx.ALL, border=5)
+    msgsAndIcon.Add(msgsSizer, 1, flag=wx.ALIGN_RIGHT | wx.ALL | wx.EXPAND,
+                    border=5)
+    mainSizer = wx.BoxSizer(wx.VERTICAL)
+    mainSizer.Add(msgsAndIcon, 0, flag=wx.ALIGN_RIGHT | wx.ALL, border=5)
+    mainSizer.Add(OK, 0, flag=wx.ALIGN_RIGHT | wx.ALL, border=5)
+
+    dlg.SetSizerAndFit(mainSizer)
+    dlg.Layout()
+    dlg.ShowModal()
