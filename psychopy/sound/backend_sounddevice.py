@@ -203,7 +203,7 @@ class _SoundStream(object):
                 toSpk[:len(dat), 0] += dat  # add to out stream
             # check if that was a short block (sound is finished)
             if len(dat) < len(toSpk[:, :]):
-                self.sounds.remove(thisSound)
+                self.remove(thisSound)
                 thisSound._EOS()
                 # check if that took a long time
                 # t1 = time.time()
