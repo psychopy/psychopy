@@ -149,29 +149,29 @@ class User(object):
             self.avatar = gitlabData.attributes['avatar_url']
 
         # check and/or create SSH keys
-        sshIdPath = os.path.join(prefs.paths['userPrefsDir'],
-                                 "ssh", self.username)
-        if os.path.isfile(sshIdPath):
-            self.publicSSH = sshkeys.getPublicKey(sshIdPath + ".pub")
-        else:
-            self.publicSSH = sshkeys.saveKeyPair(sshIdPath,
-                                                 comment=gitlabData.email)
-        # convert bytes to unicode if needed
-        if type(self.publicSSH) == bytes:
-            self.publicSSH = self.publicSSH.decode('utf-8')
+        # sshIdPath = os.path.join(prefs.paths['userPrefsDir'],
+        #                          "ssh", self.username)
+        # if os.path.isfile(sshIdPath):
+        #     self.publicSSH = sshkeys.getPublicKey(sshIdPath + ".pub")
+        # else:
+        #     self.publicSSH = sshkeys.saveKeyPair(sshIdPath,
+        #                                          comment=gitlabData.email)
+        # # convert bytes to unicode if needed
+        # if type(self.publicSSH) == bytes:
+        #     self.publicSSH = self.publicSSH.decode('utf-8')
         # push that key to gitlab.pavlovia if possible/needed
-        if gitlabData:
-            keys = gitlabData.keys.list()
-            keyName = '{}@{}'.format(
-                    self.username, socket.gethostname().strip(".local"))
-            remoteKey = None
-            for thisKey in keys:
-                if thisKey.title == keyName:
-                    remoteKey = thisKey
-                    break
-            if not remoteKey:
-                remoteKey = gitlabData.keys.create({'title': keyName,
-                                                    'key': self.publicSSH})
+        # if gitlabData:
+        #     keys = gitlabData.keys.list()
+        #     keyName = '{}@{}'.format(
+        #             self.username, socket.gethostname().strip(".local"))
+        #     remoteKey = None
+        #     for thisKey in keys:
+        #         if thisKey.title == keyName:
+        #             remoteKey = thisKey
+        #             break
+        #     if not remoteKey:
+        #         remoteKey = gitlabData.keys.create({'title': keyName,
+        #                                             'key': self.publicSSH})
         if rememberMe:
             self.saveLocal()
 
