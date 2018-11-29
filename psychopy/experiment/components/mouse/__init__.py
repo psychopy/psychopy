@@ -295,20 +295,20 @@ class MouseComponent(BaseComponent):
             buff.writeIndentedLines(code % self.params)
             buff.setIndentLevel(1, relative=True)
             dedent += 1
+            if self.params['clickable'].val:
+                self._writeClickableObjectsCode(buff)
             return buff, dedent
 
         # No mouse tracking, end routine on any or valid click
         if self.params['saveMouseState'].val == 'never' and forceEnd in ['any click', 'valid click']:
             buff, dedentAtEnd = _buttonPressCode(buff, dedentAtEnd)
+
             if forceEnd == 'valid click':
-                if self.params['clickable'].val:
-                    self._writeClickableObjectsCode(buff)
                     # does valid response end the trial?
-                    if forceEnd == 'valid click':
-                        code = ("if gotValidClick:  # abort routine on response\n"
-                                "    continueRoutine = False\n")
-                        buff.writeIndentedLines(code)
-                        buff.setIndentLevel(-dedentAtEnd, relative=True)
+                    code = ("if gotValidClick:  # abort routine on response\n"
+                            "    continueRoutine = False\n")
+                    buff.writeIndentedLines(code)
+                    buff.setIndentLevel(-dedentAtEnd, relative=True)
             else:
                 buff.writeIndented('continueRoutine = False')
                 buff.setIndentLevel(-dedentAtEnd, relative=True)
@@ -341,7 +341,6 @@ class MouseComponent(BaseComponent):
                     buff.writeIndentedLines(mouseCode)
                 # also write code about clicked objects if needed.
                 if self.params['clickable'].val:
-                    self._writeClickableObjectsCode(buff)
                     # does valid response end the trial?
                     if forceEnd == 'valid click':
                         code = ("if gotValidClick:  # abort routine on response\n"
@@ -445,7 +444,7 @@ class MouseComponent(BaseComponent):
             code += ("%s.time.push(%s.getTime());\n" % (self.params['name'], self.clockStr))
             buff.writeIndentedLines(code)
 
-            # also write code about clicked objects if needed.
+        # also write code about clicked objects if needed.
         if self.params['clickable'].val:
             self._writeClickableObjectsCodeJS(buff)
 
