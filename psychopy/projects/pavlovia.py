@@ -13,15 +13,20 @@ import os, time, socket
 import subprocess
 import traceback
 
-from psychopy import logging, prefs, constants
+from psychopy import logging, prefs, constants, exceptions
 from psychopy.tools.filetools import DictStorage
 from psychopy import app
 from psychopy.localization import _translate
+
+try:
+    import git  # must import psychopy constants before this (custom git path)
+    haveGit = True
+except ImportError:
+    haveGit = False
+
 import requests
 import gitlab
 import gitlab.v4.objects
-
-import git  # must import psychopy constants before this (custom git path)
 
 # for authentication
 from . import sshkeys
@@ -86,7 +91,7 @@ def login(tokenOrUsername, rememberMe=True):
     """
     currentSession = getCurrentSession()
     if not currentSession:
-        raise ConnectionError("Failed to connect to Pavlovia.org. No network?")
+        raise exceptions.ConnectionError("Failed to connect to Pavlovia.org. No network?")
     # would be nice here to test whether this is a token or username
     logging.debug('pavloviaTokensCurrently: {}'.format(knownUsers))
     if tokenOrUsername in knownUsers:
@@ -292,7 +297,7 @@ class PavloviaSession:
 
         """
         if not self.user:
-            raise NoUserError("Tried to create project with no user logged in")
+            raise exceptions.NoUserError("Tried to create project with no user logged in")
         # NB gitlab also supports "internal" (public to registered users)
         if type(visibility) == bool and visibility:
             visibility = 'public'
@@ -1003,6 +1008,10 @@ class PavloviaProject(dict):
 
 def getGitRoot(p):
     """Return None or the root path of the repository"""
+    if not haveGit:
+        raise exceptions.DependencyError(
+                "gitpython and a git installation required for getGitRoot()")
+
     if not os.path.isdir(p):
         p = [os.path.split(p)[0]
              if len(os.path.split(p)[0]) > 0
@@ -1019,6 +1028,9 @@ def getGitRoot(p):
 def getProject(filename):
     """Will try to find (locally synced) pavlovia Project for the filename
     """
+    if not haveGit:
+        raise exceptions.DependencyError(
+                "gitpython and a git installation required for getProject()")
 
     gitRoot = getGitRoot(filename)
     if gitRoot in knownProjects:
@@ -1094,14 +1106,3 @@ def refreshSession():
         _existingSession = PavloviaSession()
     return _existingSession
 
-
-class NoUserError(Exception):
-    pass
-
-
-class ConnectionError(Exception):
-    pass
-
-
-class NoGitError(Exception):
-    pass
