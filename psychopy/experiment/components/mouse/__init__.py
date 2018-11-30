@@ -603,7 +603,7 @@ class MouseComponent(BaseComponent):
                     "psychoJS.experiment.addData('{mouseName}.leftButton', buttons[0]);\n"
                     "psychoJS.experiment.addData('{mouseName}.midButton', buttons[1]);\n"
                     "psychoJS.experiment.addData('{mouseName}.rightButton', buttons[2]);\n"
-                    "psychoJS.experiment.addData('{mouseName}.RT', {mouseName}.time );\n".format(mouseName=name)
+                    "psychoJS.experiment.addData('{mouseName}.time', {mouseName}.time );\n".format(mouseName=name)
                 )
                 buff.writeIndentedLines(code)
 
