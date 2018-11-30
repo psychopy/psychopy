@@ -603,8 +603,9 @@ class MouseComponent(BaseComponent):
                     "psychoJS.experiment.addData('{mouseName}.leftButton', buttons[0]);\n"
                     "psychoJS.experiment.addData('{mouseName}.midButton', buttons[1]);\n"
                     "psychoJS.experiment.addData('{mouseName}.rightButton', buttons[2]);\n"
-                    "psychoJS.experiment.addData('{mouseName}.RT', %s.time );\n" % self.params['name']
+                    "psychoJS.experiment.addData('{mouseName}.RT', {mouseName}.time );\n".format(mouseName=name)
                 )
+                buff.writeIndentedLines(code)
 
                 # then add `trials.addData('mouse.clicked_name',.....)`
                 if self.params['clickable'].val:
