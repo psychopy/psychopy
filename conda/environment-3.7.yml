@@ -34,9 +34,11 @@ dependencies:
 - pyosf
 - pyqt
 - pyserial
+- pysoundfile
 - pytest
 - pytest-cov
 - python-bidi
+- python-sounddevice
 - pyyaml
 - pyzmq
 - requests
@@ -64,5 +66,3 @@ dependencies:
   - pyglet
   - pyparallel
   - python-gitlab
-  - sounddevice
-  - soundfile
