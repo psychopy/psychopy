@@ -56,7 +56,7 @@ dependencies:
 - yaml
 - lzo
 - pytables
-- wxpython
+- wxpython!=4.0.2,!=4.0.3
 - zlib
 - pip:
   - arabic_reshaper
