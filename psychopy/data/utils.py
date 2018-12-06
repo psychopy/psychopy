@@ -234,6 +234,11 @@ def importConditions(fileName, returnFieldNames=False, selection=""):
         """
         # convert the resulting dataframe to a numpy recarray
         trialsArr = dataframe.to_records(index=False)
+        # Check for new line characters in strings, and replace escaped characters
+        for record in trialsArr:
+            for idx, element in enumerate(record):
+                if isinstance(element, str):
+                    record[idx] = element.replace('\\n', '\n')
         if trialsArr.shape == ():
             # convert 0-D to 1-D with one element:
             trialsArr = trialsArr[np.newaxis]
