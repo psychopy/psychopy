@@ -803,7 +803,7 @@ class PavloviaProject(dict):
             # TODO: add the further case where there are remote AND local files!
 
     def firstPush(self, infoStream):
-        self.repo.git.push('-u', 'origin', 'master')
+        self.repo.git.push('-u', self.remoteWithToken, 'master')
         
     def cloneRepo(self, infoStream=None):
         """Gets the git.Repo object for this project, creating one if needed
