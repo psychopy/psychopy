@@ -60,7 +60,7 @@ dependencies:
 - pytest
 - pytest-cov
 - python-sounddevice
-- wxpython
+- wxpython!=4.0.2,!=4.0.3
 - zlib
 - pip:
   - arabic_reshaper
