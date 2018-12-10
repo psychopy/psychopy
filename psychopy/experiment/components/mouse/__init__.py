@@ -580,21 +580,11 @@ class MouseComponent(BaseComponent):
 
         buff.writeIndentedLines(code)
 
-        if store == 'final':  # for the o
-            # buff.writeIndented("# get info about the %(name)s\n"
-            # %(self.params))
-            code = ("const xys = %(name)s.getPos();\n"
-                    "const buttons = %(name)s.getPressed();\n" %
-                    self.params)
-            code += ("%s.time = %s.getTime();\n" %
-                     (self.params['name'], self.clockStr))
-            # also write code about clicked objects if needed.
-            # if self.params['clickable'].val:
-            #     buff.writeIndented("if (buttons.reduce((a, b) => a + b, 0) > 0) \n")
-            #     buff.setIndentLevel(+1, relative=True)
-            #     self._writeClickableObjectsCodeJS(buff)
-            #     buff.setIndentLevel(-1, relative=True)
+        if store == 'final':
 
+            code = ("const xys = {name}.getPos();\n"
+                    "const buttons = {name}.getPressed();\n"
+                    "{name}.time = {clockStr}.getTime();\n")
 
             if currLoop.type != 'StairHandler':
                 code += (
@@ -603,22 +593,20 @@ class MouseComponent(BaseComponent):
                     "psychoJS.experiment.addData('{mouseName}.leftButton', buttons[0]);\n"
                     "psychoJS.experiment.addData('{mouseName}.midButton', buttons[1]);\n"
                     "psychoJS.experiment.addData('{mouseName}.rightButton', buttons[2]);\n"
-                    "psychoJS.experiment.addData('{mouseName}.RT', %s.time );\n" % self.params['name']
+                    "psychoJS.experiment.addData('{name}.time', {name}.time );\n"
                 )
-
-                # then add `trials.addData('mouse.clicked_name',.....)`
+                buff.writeIndentedLines(code.format(name=self.params['name'],
+                                                    clockStr=self.clockStr,
+                                                    mouseName=name))
+                # For clicked objects...
                 if self.params['clickable'].val:
                     for paramName in self._clickableParamsList:
                         code = (
                             "if ({mouseName}.clicked_{param}.length > 0) {{\n"
                             "  psychoJS.experiment.addData('{mouseName}.clicked_{param}', "
-                            "{mouseName}.clicked_{param}[0]);\n"
-                            "}}"
-                        )
-                        buff.writeIndentedLines(
-                            code.format(loopName=currLoop.params['name'],
-                                        mouseName=name,
-                                        param=paramName))
+                            "{mouseName}.clicked_{param}[0]);}}\n".format(mouseName=name,
+                                                                          param=paramName))
+                        buff.writeIndentedLines(code)
 
         elif store != 'never':
             # buff.writeIndented("# save %(name)s data\n" %(self.params))
