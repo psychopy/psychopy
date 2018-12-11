@@ -448,7 +448,7 @@ def syncProject(parent, project=None, closeFrameWhenDone=False):
         time.sleep(0.001)
         # git push -u origin master
         try:
-            project.firstPush(infoStream=syncFrame.syncPanel)
+            project.firstPush(infoStream=syncFrame.syncPanel.infoStream)
             project._newRemote = False
         except Exception as e:
             closeFrameWhenDone = False
@@ -456,7 +456,7 @@ def syncProject(parent, project=None, closeFrameWhenDone=False):
     else:
         # existing remote which we should sync (or clone)
         try:
-            ok = project.getRepo(syncFrame.syncPanel)
+            ok = project.getRepo(syncFrame.syncPanel.infoStream)
             if not ok:
                 closeFrameWhenDone = False
         except Exception as e:
