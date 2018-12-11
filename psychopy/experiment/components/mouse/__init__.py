@@ -506,27 +506,27 @@ class MouseComponent(BaseComponent):
 
             if currLoop.type != 'StairHandler':
                 code = (
-                    "{loopName}.addData('{mouseName}.x', x)\n" 
-                    "{loopName}.addData('{mouseName}.y', y)\n" 
-                    "{loopName}.addData('{mouseName}.leftButton', buttons[0])\n" 
-                    "{loopName}.addData('{mouseName}.midButton', buttons[1])\n" 
-                    "{loopName}.addData('{mouseName}.rightButton', buttons[2])\n"
-                    "{loopName}.addData('{mouseName}.time', {mouseName}.time)\n"
+                    "{loopName}.addData('{name}.x', x)\n" 
+                    "{loopName}.addData('{name}.y', y)\n" 
+                    "{loopName}.addData('{name}.leftButton', buttons[0])\n" 
+                    "{loopName}.addData('{name}.midButton', buttons[1])\n" 
+                    "{loopName}.addData('{name}.rightButton', buttons[2])\n"
+                    "{loopName}.addData('{name}.time', {name}.time)\n"
                 )
                 buff.writeIndentedLines(
                     code.format(loopName=currLoop.params['name'],
-                                mouseName=name))
+                                name=name))
                 # then add `trials.addData('mouse.clicked_name',.....)`
                 if self.params['clickable'].val:
                     for paramName in self._clickableParamsList:
                         code = (
-                            "if len({mouseName}.clicked_{param}):\n"
-                            "    {loopName}.addData('{mouseName}.clicked_{param}', " 
-                            "{mouseName}.clicked_{param}[0])\n"
+                            "if len({name}.clicked_{param}):\n"
+                            "    {loopName}.addData('{name}.clicked_{param}', " 
+                            "{name}.clicked_{param}[0])\n"
                         )
                         buff.writeIndentedLines(
                             code.format(loopName=currLoop.params['name'],
-                                        mouseName=name,
+                                        name=name,
                                         param=paramName))
 
         elif store != 'never':
@@ -588,24 +588,23 @@ class MouseComponent(BaseComponent):
 
             if currLoop.type != 'StairHandler':
                 code += (
-                    "psychoJS.experiment.addData('{mouseName}.x', xys[0]);\n"
-                    "psychoJS.experiment.addData('{mouseName}.y', xys[1]);\n"
-                    "psychoJS.experiment.addData('{mouseName}.leftButton', buttons[0]);\n"
-                    "psychoJS.experiment.addData('{mouseName}.midButton', buttons[1]);\n"
-                    "psychoJS.experiment.addData('{mouseName}.rightButton', buttons[2]);\n"
+                    "psychoJS.experiment.addData('{name}.x', xys[0]);\n"
+                    "psychoJS.experiment.addData('{name}.y', xys[1]);\n"
+                    "psychoJS.experiment.addData('{name}.leftButton', buttons[0]);\n"
+                    "psychoJS.experiment.addData('{name}.midButton', buttons[1]);\n"
+                    "psychoJS.experiment.addData('{name}.rightButton', buttons[2]);\n"
                     "psychoJS.experiment.addData('{name}.time', {name}.time );\n"
                 )
-                buff.writeIndentedLines(code.format(name=self.params['name'],
-                                                    clockStr=self.clockStr,
-                                                    mouseName=name))
+                buff.writeIndentedLines(code.format(clockStr=self.clockStr,
+                                                    name=name))
                 # For clicked objects...
                 if self.params['clickable'].val:
                     for paramName in self._clickableParamsList:
                         code = (
-                            "if ({mouseName}.clicked_{param}.length > 0) {{\n"
-                            "  psychoJS.experiment.addData('{mouseName}.clicked_{param}', "
-                            "{mouseName}.clicked_{param}[0]);}}\n".format(mouseName=name,
-                                                                          param=paramName))
+                            "if ({name}.clicked_{param}.length > 0) {{\n"
+                            "  psychoJS.experiment.addData('{name}.clicked_{param}', "
+                            "{name}.clicked_{param}[0]);}}\n".format(name=name,
+                                                                     param=paramName))
                         buff.writeIndentedLines(code)
 
         elif store != 'never':
