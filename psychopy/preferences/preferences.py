@@ -81,6 +81,7 @@ class Preferences(object):
         thisFileAbsPath = os.path.abspath(__file__)
         prefSpecDir = os.path.split(thisFileAbsPath)[0]
         dirPsychoPy = os.path.split(prefSpecDir)[0]
+        exePath = sys.executable
 
         # path to Resources (icons etc)
         dirApp = join(dirPsychoPy, 'app')
@@ -95,6 +96,11 @@ class Preferences(object):
         self.paths['demos'] = join(dirPsychoPy, 'demos')
         self.paths['resources'] = dirResources
         self.paths['tests'] = join(dirPsychoPy, 'tests')
+        # path to libs/frameworks
+        if 'PsychoPy2.app/Contents' in exePath:
+            self.paths['libs'] = exePath.replace("MacOS/python", "Frameworks")
+        else:
+            self.paths['libs'] = ''  # we don't know where else to look!
 
         if sys.platform == 'win32':
             self.paths['prefsSpecFile'] = join(prefSpecDir, 'Windows.spec')
