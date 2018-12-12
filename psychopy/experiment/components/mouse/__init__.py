@@ -493,9 +493,7 @@ class MouseComponent(BaseComponent):
             # buff.writeIndented("# get info about the %(name)s\n"
             # %(self.params))
             code = ("x, y = {name}.getPos()\n"
-                    "buttons = {name}.getPressed()\n" 
-                    "{name}.time = {clock}.getTime()\n").format(name=self.params['name'],
-                                                                clock=self.clockStr)
+                    "buttons = {name}.getPressed()\n").format(name=self.params['name'])
             # also write code about clicked objects if needed.
             buff.writeIndentedLines(code)
             if self.params['clickable'].val:
@@ -511,7 +509,6 @@ class MouseComponent(BaseComponent):
                     "{loopName}.addData('{name}.leftButton', buttons[0])\n" 
                     "{loopName}.addData('{name}.midButton', buttons[1])\n" 
                     "{loopName}.addData('{name}.rightButton', buttons[2])\n"
-                    "{loopName}.addData('{name}.time', {name}.time)\n"
                 )
                 buff.writeIndentedLines(
                     code.format(loopName=currLoop.params['name'],
@@ -583,8 +580,7 @@ class MouseComponent(BaseComponent):
         if store == 'final':
 
             code = ("const xys = {name}.getPos();\n"
-                    "const buttons = {name}.getPressed();\n"
-                    "{name}.time = {clockStr}.getTime();\n")
+                    "const buttons = {name}.getPressed();\n")
 
             if currLoop.type != 'StairHandler':
                 code += (
@@ -593,10 +589,9 @@ class MouseComponent(BaseComponent):
                     "psychoJS.experiment.addData('{name}.leftButton', buttons[0]);\n"
                     "psychoJS.experiment.addData('{name}.midButton', buttons[1]);\n"
                     "psychoJS.experiment.addData('{name}.rightButton', buttons[2]);\n"
-                    "psychoJS.experiment.addData('{name}.time', {name}.time );\n"
                 )
-                buff.writeIndentedLines(code.format(clockStr=self.clockStr,
-                                                    name=name))
+                buff.writeIndentedLines(code.format(name=name))
+
                 # For clicked objects...
                 if self.params['clickable'].val:
                     for paramName in self._clickableParamsList:
