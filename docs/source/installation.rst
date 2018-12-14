@@ -55,7 +55,7 @@ Dependencies
 ~~~~~~~~~~~~~~~~~~~~~~
 
 You need a copy of Python itself, and wxPython and probably pyo (or use an alternative audio library listed below). None of these support `pip install` yet so you need to download them:
-  * Python itself: http://www.python.org/download/ (**version 3.6 is preferred, although 2.7 also emains supported for the time being** )
+  * Python itself: http://www.python.org/download/ (**version 3.6 is preferred, although 2.7 also remains supported for the time being** )
   * wxPython: https://wxpython.org/download.php
   * pyo audio: http://ajaxsoundstudio.com/software/pyo/
   * PyQt4 or PyQt5 are handy but not required and need manual installation
