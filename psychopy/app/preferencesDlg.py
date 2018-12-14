@@ -20,7 +20,7 @@ from psychopy.localization import _translate
 from pkg_resources import parse_version
 
 # this will be overridden by the size of the scrolled panel making the prefs
-dlgSize = (520, 600)
+dlgSize = (600, 600)
 
 # labels mappings for display:
 _localized = {
@@ -29,6 +29,7 @@ _localized = {
     'app': _translate('App'),
     'builder': "Builder",  # not localized
     'coder': "Coder",  # not localized
+    'hardware': _translate('Hardware'),
     'connections': _translate('Connections'),
     'keyBindings': _translate('Key bindings'),
     # pref labels:
@@ -172,7 +173,7 @@ class PreferencesDlg(wx.Dialog):
 
         self.ctrls = {}
         sectionOrdering = ['general', 'app', 'builder', 'coder',
-                           'connections', 'keyBindings']
+                           'hardware', 'connections', 'keyBindings']
         for section in sectionOrdering:
             prefsPage = self.makePrefPage(parent=self.nb,
                                           sectionName=section,
@@ -475,6 +476,7 @@ class PrefCtrls(object):
         else:
             l = errmsg
         return l
+
 
 if __name__ == '__main__':
     from psychopy import preferences
