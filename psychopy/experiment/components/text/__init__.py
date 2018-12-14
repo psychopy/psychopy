@@ -107,6 +107,7 @@ class TextComponent(BaseVisualComponent):
         inits = getInitVals(self.params, 'PsychoPy')
         if self.params['wrapWidth'].val in ['', 'None', 'none']:
             inits['wrapWidth'] = 'None'
+
         code = ("%(name)s = visual.TextStim(win=win, "
                 "name='%(name)s',\n"
                 "    text=%(text)s,\n"
@@ -144,6 +145,9 @@ class TextComponent(BaseVisualComponent):
 
         if self.params['wrapWidth'].val in ['', 'None', 'none']:
             inits['wrapWidth'] = 'undefined'
+        if self.params['text'].val in ['', 'None', 'none']:
+            inits['text'] = "''"
+
         code = ("%(name)s = new visual.TextStim({\n"
                 "  win : psychoJS.window,\n"
                 "  name : '%(name)s',\n"
