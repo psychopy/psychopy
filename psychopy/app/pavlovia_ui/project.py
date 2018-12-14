@@ -388,6 +388,17 @@ def syncProject(parent, project=None, closeFrameWhenDone=False):
         project = parent.project  # type: pavlovia.PavloviaProject
 
     if not project:  # ask the user to create one
+
+        # if we're going to create a project we need user to be logged in
+        pavSession = pavlovia.getCurrentSession()
+        try:
+            username = pavSession.user.username
+        except:
+            username = logInPavlovia(parent)
+        if not username:
+            return -1  # never logged in
+
+        # create project dialog
         msg = _translate("This file doesn't belong to any existing project.")
         style = wx.OK | wx.CANCEL | wx.CENTER
         dlg = wx.MessageDialog(parent=parent, message=msg, style=style)

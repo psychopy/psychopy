@@ -804,10 +804,11 @@ class PavloviaProject(dict):
 
     def firstPush(self, infoStream):
         if infoStream:
-            infoStream.write("Pushing project online for the first time...")
+            infoStream.write("\nPushing to Pavlovia for the first time...")
         info = self.repo.git.push('-u', self.remoteWithToken, 'master')
         if infoStream:
             infoStream.write("\n{}".format(info))
+            infoStream.write("\nSuccess!".format(info))
         
     def cloneRepo(self, infoStream=None):
         """Gets the git.Repo object for this project, creating one if needed
