@@ -318,7 +318,7 @@ class KeyboardComponent(BaseComponent):
 
         if store != 'nothing':
             if self.params['syncScreenRefresh'].val:
-                code = ("psychoJS.window.callOnFlip(%(name)s.clock.reset)"
+                code = ("psychoJS.window.callOnFlip(function(){ %(name)s.clock.reset(); });"
                         " // t = 0 on screen flip\n") % self.params
             else:
                 code = "%(name)s.clock.reset();  // now t=0\n" % self.params
@@ -329,14 +329,15 @@ class KeyboardComponent(BaseComponent):
             buff.writeIndented("psychoJS.eventManager.clearEvents({eventType:'keyboard'});\n")
         # to get out of the if statement
         buff.setIndentLevel(-1, relative=True)
-        buff.writeIndented("}\n")
+        buff.writeIndented("}\n\n")
 
         # test for stop (only if there was some setting for duration or stop)
         if self.params['stopVal'].val not in ['', None, -1, 'None']:
             # writes an if statement to determine whether to draw etc
             self.writeStopTestCodeJS(buff)
             buff.writeIndented("%(name)s.status = PsychoJS.Status.STOPPED;\n"
-                               "  }\n" % self.params)
+                               "  }\n"
+                               "\n" % self.params)
             # to get out of the if statement
             buff.setIndentLevel(-1, relative=True)
 
@@ -363,10 +364,10 @@ class KeyboardComponent(BaseComponent):
         buff.writeIndented("let theseKeys = psychoJS.eventManager.getKeys(%s);\n" % keyListStr)
 
         if self.exp.settings.params['Enable Escape'].val:
-            code = ('\n// check for quit:\n'
-                    'if ("escape" in theseKeys) {\n'
-                    '    psychoJS.experiment.experimentEnded = true;\n'
-                    '}\n')
+            code = ("\n// check for quit:\n"
+                    "if (theseKeys.indexOf('escape') > -1) {\n"
+                    "    psychoJS.experiment.experimentEnded = true;\n"
+                    "}\n")
             buff.writeIndentedLines(code)
 
         # how do we store it?
@@ -379,7 +380,7 @@ class KeyboardComponent(BaseComponent):
             dedentAtEnd += 1  # indent by 1
 
         if store == 'first key':  # then see if a key has already been pressed
-            code = ("if (%(name)s.keys.length == 0) {"
+            code = ("if (%(name)s.keys.length === 0) {"
                     "  // then this was the first keypress\n") % self.params
             buff.writeIndented(code)
 
@@ -488,11 +489,11 @@ class KeyboardComponent(BaseComponent):
             currLoop = self.exp._expHandler
 
         # write the actual code
-        code = ("// check responses\n"
+        code = ("\n// check responses\n"
                 "if (['', [], undefined].indexOf(%(name)s.keys) >= 0) {"
                 "    // No response was made\n"
                 "    %(name)s.keys = undefined;\n"
-                "}\n")
+                "}\n\n")
         buff.writeIndentedLines(code % self.params)
 
         if self.params['storeCorrect'].val:  # check for correct NON-repsonse
@@ -522,11 +523,11 @@ class KeyboardComponent(BaseComponent):
                 buff.writeIndented("psychoJS.experiment.addData('%(name)s.corr', %(name)s.corr);\n" % self.params)
 
             # only add an RT if we had a response
-            code = ("if ({name}.keys != undefined) {{  // we had a response\n"
+            code = ("if ({name}.keys !== undefined) {{  // we had a response\n"
                     "    psychoJS.experiment.addData('{name}.rt', {name}.rt);\n")
             if forceEnd:
                 code += ("    routineTimer.reset();\n"
-                         "    }}\n")
+                         "    }}\n\n")
             else:
-                code += "    }}\n"
+                code += "    }}\n\n"
             buff.writeIndentedLines(code.format(loopName=currLoop.params['name'], name=name))

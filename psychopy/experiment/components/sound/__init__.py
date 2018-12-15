@@ -167,11 +167,10 @@ class SoundComponent(BaseComponent):
         # do this EVERY frame, even before/after playing?
         self.writeParamUpdates(buff, 'set every frame')
         self.writeStartTestCodeJS(buff)
-        # if self.params['syncScreenRefresh'].val:
-        #     # TODO: Check callOnFlip for sound exists with JS
-        #     code = ("psychoJS.window.callOnFlip(%(name)s.play);  // screen flip\n") % self.params
-        # else:
-        code = "%(name)s.play();  // start the sound (it finishes automatically)\n" % self.params
+        if self.params['syncScreenRefresh'].val:
+            code = ("psychoJS.window.callOnFlip(function(){ %(name)s.play(); });  // screen flip\n") % self.params
+        else:
+            code = "%(name)s.play();  // start the sound (it finishes automatically)\n" % self.params
         buff.writeIndented(code)
         # because of the 'if' statement of the time test
         buff.setIndentLevel(-1, relative=True)
