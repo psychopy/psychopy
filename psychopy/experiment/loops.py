@@ -184,7 +184,6 @@ class TrialHandler(object):
         # create the variable "thisTrial" from "trials"
         makeLoopIndex = self.exp.namespace.makeLoopIndex
         self.thisName = makeLoopIndex(self.params['name'].val)
-        inits = getInitVals(self.params)
 
         # seed might be undefined
         seed = self.params['random seed'].val or 'undefined'
