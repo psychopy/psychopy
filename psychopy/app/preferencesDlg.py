@@ -20,7 +20,7 @@ from psychopy.localization import _translate
 from pkg_resources import parse_version
 
 # this will be overridden by the size of the scrolled panel making the prefs
-dlgSize = (600, 600)
+dlgSize = (600, 500)
 
 # labels mappings for display:
 _localized = {
