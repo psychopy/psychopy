@@ -88,6 +88,7 @@ from psychopy import core, logging
 
 from psychopy.tools.arraytools import val2array
 from psychopy.tools.attributetools import logAttrib, setAttribute
+from psychopy.tools.filetools import path_to_string
 from psychopy.visual.basevisual import BaseVisualStim, ContainerMixin
 from psychopy.clock import Clock
 from psychopy.constants import FINISHED, NOT_STARTED, PAUSED, PLAYING, STOPPED
@@ -233,7 +234,7 @@ class MovieStim2(BaseVisualStim, ContainerMixin):
             logging.warning("FrameRate could not be supplied by psychopy; "
                             "defaulting to 60.0")
             self._retracerate = 60.0
-        self.filename = filename
+        self.filename = path_to_string(filename)
         self.loop = loop
         self.flipVert = flipVert
         self.flipHoriz = flipHoriz
@@ -325,6 +326,7 @@ class MovieStim2(BaseVisualStim, ContainerMixin):
         After the file is loaded MovieStim.duration is updated with the movie
         duration (in seconds).
         """
+        filename = path_to_string(filename)
         self._unload()
         self._reset()
         if self._no_audio is False:

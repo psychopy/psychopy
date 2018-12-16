@@ -21,6 +21,7 @@ from pkg_resources import parse_version
 
 from psychopy import logging
 from psychopy.constants import PY3
+from psychopy.tools.filetools import path_to_string
 
 try:
     import openpyxl
@@ -220,6 +221,7 @@ def importConditions(fileName, returnFieldNames=False, selection=""):
                 raise ValueError('Conditions file %s: %s%s"%s"' %
                                   (fileName, msg, os.linesep * 2, name))
 
+    filename = path_to_string(filename)
     if fileName in ['None', 'none', None]:
         if returnFieldNames:
             return [], []

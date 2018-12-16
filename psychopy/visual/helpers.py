@@ -22,6 +22,7 @@ from psychopy import logging, colors
 # (JWP has no idea why!)
 from psychopy.tools.arraytools import val2array
 from psychopy.tools.attributetools import setAttribute
+from psychopy.tools.filetools import path_to_string
 
 import numpy as np
 
@@ -322,6 +323,7 @@ def findImageFile(filename):
     alternatives (e.g. extensions .jpg .tif...)
     """
     # if user supplied correct path then reutnr quickly
+    filename = path_to_string(filename)
     isfile = os.path.isfile
     if isfile(filename):
         return filename
