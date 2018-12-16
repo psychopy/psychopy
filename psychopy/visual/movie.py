@@ -51,6 +51,7 @@ import psychopy.event
 from psychopy.tools.arraytools import val2array
 from psychopy.tools.attributetools import logAttrib, setAttribute
 from psychopy.visual.basevisual import BaseVisualStim, ContainerMixin
+from psychopy.tools.filetools import path_to_string
 
 if sys.platform == 'win32' and not haveAvbin:
     logging.warning("avbin.dll failed to load. "
@@ -144,7 +145,7 @@ class MovieStim(BaseVisualStim, ContainerMixin):
             # pyglet 1.1.4?
             self._player_default_on_eos = self._player._on_eos
 
-        self.filename = filename
+        self.filename = path_to_string(filename)
         self.duration = None
         self.loop = loop
         if loop and pyglet.version >= '1.2':
@@ -199,6 +200,7 @@ class MovieStim(BaseVisualStim, ContainerMixin):
         After the file is loaded MovieStim.duration is updated with the movie
         duration (in seconds).
         """
+        filename = path_to_string(filename)
         try:
             self._movie = pyglet.media.load(filename, streaming=True)
         except Exception as e:

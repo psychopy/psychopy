@@ -42,6 +42,7 @@ import numpy as np
 from scipy.io import wavfile
 from psychopy import core, logging, sound, web, prefs
 from psychopy.constants import NOT_STARTED, PLAYING, PSYCHOPY_USERAGENT
+from psychopy.tools.filetools import path_to_string
 # import pyo is done within switchOn to better encapsulate it, can be very
 # slow and don't want to delay up to 3 sec when importing microphone
 # downside: to make this work requires some trickiness with globals
@@ -109,6 +110,7 @@ class AudioCapture(object):
 
         def run(self, filename, sec, sampletype=0, buffering=16,
                 chnl=0, chnls=2):
+            filename = path_to_string(filename)
             self.running = True
             # chnl from psychopy.sound.backend.get_input_devices()
             inputter = pyo.Input(chnl=chnl, mul=1)
@@ -151,6 +153,7 @@ class AudioCapture(object):
                                   ' before AudioCapture or AdvancedCapture')
         self.name = name
         self.saveDir = saveDir
+        filename = path_to_string(filename)
         if filename:
             self.wavOutFilename = filename
         else:
@@ -219,6 +222,7 @@ class AudioCapture(object):
         return self._record(sec, filename=filename, block=block)
 
     def _record(self, sec, filename='', block=True, log=True):
+        filename = path_to_string(filename)
         while self.recorder.running:
             pass
         self.duration = float(sec)
@@ -396,7 +400,7 @@ class AdvAudioCapture(AudioCapture):
     def setFile(self, filename):
         """Sets the name of the file to work with.
         """
-        self.filename = filename
+        self.filename = path_to_string(filename)
 
     def setMarker(self, tone=19000, secs=0.015, volume=0.03, log=True):
         """Sets the onset marker, where `tone` is either in hz or a custom
@@ -562,6 +566,7 @@ def getMarkerOnset(filename, chunk=128, secs=0.5, marker_hz=19000,
 def readWavFile(filename):
     """Return (data, sampleRate) as read from a wav file, expects int16 data.
     """
+    filename = path_to_string(filename)
     try:
         sampleRate, data = wavfile.read(filename)
     except Exception:
@@ -884,6 +889,7 @@ class Speech2Text(object):
                     flac compression level (0 less compression but fastest)
         """
         # set up some key parameters:
+        filename = path_to_string(filename)
         results = 5  # how many words wanted
         self.timeout = timeout
         useragent = PSYCHOPY_USERAGENT
@@ -1061,6 +1067,7 @@ def flac2wav(path, keep=True):
 
     `keep` to retain the original .flac file(s), default `True`.
     """
+    path = path_to_string(path)
     flac_path = _getFlacPath()
     flac_files = []
     if path.endswith('.flac'):
@@ -1097,6 +1104,7 @@ def wav2flac(path, keep=True, level=5):
     `level` is compression level: 0 is fastest but larger,
         8 is slightly smaller but much slower.
     """
+    path = path_to_string(path)
     flac_path = _getFlacPath()
     wav_files = []
     if path.endswith('.wav'):
