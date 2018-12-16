@@ -34,7 +34,7 @@ def toFile(filename, data):
 
     simple wrapper of the cPickle module in core python
     """
-    f = open(filename, "wb")
+    f = open(filename, 'wb')
     pickle.dump(data, f)
     f.close()
 
@@ -42,15 +42,15 @@ def toFile(filename, data):
 def fromFile(filename):
     """Load data from a pickle or JSON file.
     """
-    if filename.endswith(".psydat"):
-        with open(filename, "rb") as f:
+    if filename.endswith('.psydat'):
+        with open(filename, 'rb') as f:
             contents = pickle.load(f)
             # if loading an experiment file make sure we don't save further
             # copies using __del__
-            if hasattr(contents, "abort"):
+            if hasattr(contents, 'abort'):
                 contents.abort()
-    elif filename.endswith(".json"):
-        with open(filename, "r") as f:
+    elif filename.endswith('.json'):
+        with open(filename, 'r') as f:
             contents = json_tricks.load(f)
 
             # Restore RNG if we load a TrialHandler2 object.
@@ -92,9 +92,8 @@ def mergeFolder(src, dst, pattern=None):
                 print(why)
 
 
-def openOutputFile(
-    fileName=None, append=False, fileCollisionMethod="rename", encoding="utf-8"
-):
+def openOutputFile(fileName=None, append=False, fileCollisionMethod='rename', 
+                   encoding='utf-8'):
     """Open an output file (or standard output) for writing.
 
     :Parameters:
@@ -123,30 +122,30 @@ def openOutputFile(
         A writable file handle.
 
     """
-    if (fileName is None) or (fileName == "stdout"):
+    if (fileName is None) or (fileName == 'stdout'):
         return sys.stdout
 
     if append:
-        mode = "a"
+        mode = 'a'
     else:
-        if fileName.endswith((".psydat", ".npy")):
-            mode = "wb"
+        if fileName.endswith(('.psydat', '.npy')):
+            mode = 'wb'
         else:
-            mode = "w"
+            mode = 'w'
 
         # Rename the output file if a file of that name already exists
         # and it should not be appended.
         if os.path.exists(fileName) and not append:
             fileName = handleFileCollision(
-                fileName, fileCollisionMethod=fileCollisionMethod
-            )
+                fileName, 
+                fileCollisionMethod=fileCollisionMethod)
 
     # Do not use encoding when writing a binary file.
-    if "b" in mode:
+    if 'b' in mode:
         encoding = None
 
-    if os.path.exists(fileName) and mode in ["w", "wb"]:
-        logging.warning("Data file %s will be overwritten!" % fileName)
+    if os.path.exists(fileName) and mode in ['w', 'wb']:
+        logging.warning('Data file %s will be overwritten!' % fileName)
 
     # The file wil always be opened in binary writing mode,
     # see https://docs.python.org/2/library/codecs.html#codecs.open
@@ -170,10 +169,10 @@ def genDelimiter(fileName):
         character otherwise.
 
     """
-    if fileName.endswith((".csv", ".CSV")):
-        delim = ","
+    if fileName.endswith(('.csv', '.CSV')):
+        delim = ','
     else:
-        delim = "\t"
+        delim = '\t'
 
     return delim
 
@@ -181,27 +180,15 @@ def genDelimiter(fileName):
 def genFilenameFromDelimiter(filename, delim):
     # If no known filename extension was specified, derive a one from the
     # delimiter.
-    if not filename.endswith(
-        (
-            ".dlm",
-            ".DLM",
-            ".tsv",
-            ".TSV",
-            ".txt",
-            ".TXT",
-            ".csv",
-            ".CSV",
-            ".psydat",
-            ".npy",
-            ".json",
-        )
-    ):
-        if delim == ",":
-            filename += ".csv"
-        elif delim == "\t":
-            filename += ".tsv"
+    if not filename.endswith(('.dlm', '.DLM', '.tsv', '.TSV', '.txt',
+                              '.TXT', '.csv', '.CSV', '.psydat', '.npy',
+                              '.json')):
+        if delim == ',':
+            filename += '.csv'
+        elif delim == '\t':
+            filename += '.tsv'
         else:
-            filename += ".txt"
+            filename += '.txt'
 
     return filename
 
@@ -224,7 +211,7 @@ class DictStorage(dict):
         if filename is None:
             filename = self.filename
         if os.path.isfile(filename):
-            with open(filename, "r") as f:
+            with open(filename, 'r') as f:
                 try:
                     self.update(json.load(f))
                 except ValueError:
@@ -244,10 +231,10 @@ class DictStorage(dict):
         if not os.path.isdir(folder):
             os.makedirs(folder)
         # save the file as json
-        with open(filename, "wb") as f:
+        with open(filename, 'wb') as f:
             json_str = json.dumps(self, indent=2, sort_keys=True)
             if constants.PY3:
-                f.write(bytes(json_str, "UTF-8"))
+                f.write(bytes(json_str, 'UTF-8'))
             else:
                 f.write(json_str)
 
@@ -276,6 +263,6 @@ def path_to_string(filepath):
     filepath : string or same as passed object
         file system path coerced into a string type
     """
-    if hasattr(filepath, "__fspath__"):
+    if hasattr(filepath, '__fspath__'):
         return filepath.__fspath__()
     return filepath
