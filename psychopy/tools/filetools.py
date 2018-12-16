@@ -57,12 +57,13 @@ def fromFile(filename):
             # We also need to remove the 'temporary' ._rng_state attribute that
             # was saved with it.
             from psychopy.data import TrialHandler2
+
             if isinstance(contents, TrialHandler2):
                 contents._rng = np.random.RandomState(seed=contents.seed)
                 contents._rng.set_state(contents._rng_state)
                 del contents._rng_state
     else:
-        msg = "Don't know how to handle this file type, aborting."
+        msg = 'Don't know how to handle this file type, aborting.'
         raise ValueError(msg)
 
     return contents
@@ -91,8 +92,9 @@ def mergeFolder(src, dst, pattern=None):
                 print(why)
 
 
-def openOutputFile(fileName=None, append=False, fileCollisionMethod='rename',
-                   encoding='utf-8'):
+def openOutputFile(
+    fileName=None, append=False, fileCollisionMethod='rename', encoding='utf-8'
+):
     """Open an output file (or standard output) for writing.
 
     :Parameters:
@@ -136,8 +138,8 @@ def openOutputFile(fileName=None, append=False, fileCollisionMethod='rename',
         # and it should not be appended.
         if os.path.exists(fileName) and not append:
             fileName = handleFileCollision(
-                fileName,
-                fileCollisionMethod=fileCollisionMethod)
+                fileName, fileCollisionMethod=fileCollisionMethod
+            )
 
     # Do not use encoding when writing a binary file.
     if 'b' in mode:
@@ -179,9 +181,21 @@ def genDelimiter(fileName):
 def genFilenameFromDelimiter(filename, delim):
     # If no known filename extension was specified, derive a one from the
     # delimiter.
-    if not filename.endswith(('.dlm', '.DLM', '.tsv', '.TSV', '.txt',
-                              '.TXT', '.csv', '.CSV', '.psydat', '.npy',
-                              '.json')):
+    if not filename.endswith(
+        (
+            '.dlm',
+            '.DLM',
+            '.tsv',
+            '.TSV',
+            '.txt',
+            '.TXT',
+            '.csv',
+            '.CSV',
+            '.psydat',
+            '.npy',
+            '.json',
+        )
+    ):
         if delim == ',':
             filename += '.csv'
         elif delim == '\t':
@@ -214,9 +228,10 @@ class DictStorage(dict):
                 try:
                     self.update(json.load(f))
                 except ValueError:
-                    logging.error("Tried to load %s but it wasn't valid "
-                                  "JSON format"
-                                  %filename)
+                    logging.error(
+                        'Tried to load %s but it wasn't valid '
+                        'JSON format' % filename
+                    )
 
     def save(self, filename=None):
         """Save all tokens from a given filename
@@ -241,3 +256,26 @@ class DictStorage(dict):
             self.save()
         self._deleted = True
 
+
+def path_to_string(filepath):
+    """
+    Coerces pathlib Path objects to a string (only python version 3.6+)
+    any other objects passed to this function will be returned as is.
+    This WILL NOT work with on Python 3.4, 3.5 since the __fspath__ dunder
+    method did not exist in those verisions, however psychopy does not support
+    these versions of python anyways.
+
+    :Parameters:
+
+    filepath : string or pathlib Path object
+        file system path that needs to be coerced into a string to
+        use by Psychopy's internals
+
+    :Returns:
+    
+    filepath : string or same as passed object
+        file system path coerced into a string type
+    """
+    if hasattr(filepath, '__fspath__'):
+        return filepath.__fspath__()
+    return filepath
