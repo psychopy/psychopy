@@ -42,6 +42,7 @@ def toFile(filename, data):
 def fromFile(filename):
     """Load data from a pickle or JSON file.
     """
+    filename = path_to_string(filename)
     if filename.endswith('.psydat'):
         with open(filename, 'rb') as f:
             contents = pickle.load(f)
@@ -121,6 +122,7 @@ def openOutputFile(fileName=None, append=False, fileCollisionMethod='rename',
         A writable file handle.
 
     """
+    fileName = path_to_string(fileName)
     if (fileName is None) or (fileName == 'stdout'):
         return sys.stdout
 
@@ -168,6 +170,7 @@ def genDelimiter(fileName):
         character otherwise.
 
     """
+    fileName = path_to_string(fileName)
     if fileName.endswith(('.csv', '.CSV')):
         delim = ','
     else:
@@ -179,6 +182,7 @@ def genDelimiter(fileName):
 def genFilenameFromDelimiter(filename, delim):
     # If no known filename extension was specified, derive a one from the
     # delimiter.
+    filename = path_to_string(filename)
     if not filename.endswith(('.dlm', '.DLM', '.tsv', '.TSV', '.txt',
                               '.TXT', '.csv', '.CSV', '.psydat', '.npy',
                               '.json')):
@@ -248,12 +252,15 @@ def path_to_string(filepath):
     This WILL NOT work with on Python 3.4, 3.5 since the __fspath__ dunder
     method did not exist in those verisions, however psychopy does not support
     these versions of python anyways.
-     :Parameters:
-     filepath : string or pathlib Path object
+
+    :Parameters:
+
+    filepath : string or pathlib Path object
         file system path that needs to be coerced into a string to
         use by Psychopy's internals
-     :Returns:
-    
+
+    :Returns:
+
     filepath : string or same as passed object
         file system path coerced into a string type
     """
