@@ -85,7 +85,7 @@ def expression2js(expr):
     # Would be better to convert a Tuple node into a List node with same
     # and then the JS would work fine!
     # Further, numbers with unary operators are converted to tuples, inconsistent with
-    # numbers without unary operators existing as lists. Now, elements of list/tuple with unary operators
+    # numbers in tuples with unary operators existing as lists. Now, elements of list/tuple with unary operators
     # are converted to nested list, unless a binary operator exists.
     if wasTuple:
         jsStr = jsStr.replace('(', '[').replace(')', ']')
