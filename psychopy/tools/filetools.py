@@ -63,7 +63,7 @@ def fromFile(filename):
                 contents._rng.set_state(contents._rng_state)
                 del contents._rng_state
     else:
-        msg = "Don't know how to handle this file type, aborting."
+        msg = 'Don't know how to handle this file type, aborting.'
         raise ValueError(msg)
 
     return contents
@@ -92,8 +92,14 @@ def mergeFolder(src, dst, pattern=None):
                 print(why)
 
 
+<<<<<<< HEAD
 def openOutputFile(fileName=None, append=False, fileCollisionMethod='rename', 
                    encoding='utf-8'):
+=======
+def openOutputFile(
+    fileName=None, append=False, fileCollisionMethod='rename', encoding='utf-8'
+):
+>>>>>>> ac9cfa394b5dff19a645ac555f3360f484aaf9a7
     """Open an output file (or standard output) for writing.
 
     :Parameters:
@@ -137,8 +143,13 @@ def openOutputFile(fileName=None, append=False, fileCollisionMethod='rename',
         # and it should not be appended.
         if os.path.exists(fileName) and not append:
             fileName = handleFileCollision(
+<<<<<<< HEAD
                 fileName, 
                 fileCollisionMethod=fileCollisionMethod)
+=======
+                fileName, fileCollisionMethod=fileCollisionMethod
+            )
+>>>>>>> ac9cfa394b5dff19a645ac555f3360f484aaf9a7
 
     # Do not use encoding when writing a binary file.
     if 'b' in mode:
@@ -180,9 +191,21 @@ def genDelimiter(fileName):
 def genFilenameFromDelimiter(filename, delim):
     # If no known filename extension was specified, derive a one from the
     # delimiter.
-    if not filename.endswith(('.dlm', '.DLM', '.tsv', '.TSV', '.txt',
-                              '.TXT', '.csv', '.CSV', '.psydat', '.npy',
-                              '.json')):
+    if not filename.endswith(
+        (
+            '.dlm',
+            '.DLM',
+            '.tsv',
+            '.TSV',
+            '.txt',
+            '.TXT',
+            '.csv',
+            '.CSV',
+            '.psydat',
+            '.npy',
+            '.json',
+        )
+    ):
         if delim == ',':
             filename += '.csv'
         elif delim == '\t':
@@ -216,8 +239,13 @@ class DictStorage(dict):
                     self.update(json.load(f))
                 except ValueError:
                     logging.error(
+<<<<<<< HEAD
                         "Tried to load %s but it wasn't valid "
                         "JSON format" % filename
+=======
+                        'Tried to load %s but it wasn't valid '
+                        'JSON format' % filename
+>>>>>>> ac9cfa394b5dff19a645ac555f3360f484aaf9a7
                     )
 
     def save(self, filename=None):
