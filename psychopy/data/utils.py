@@ -21,6 +21,7 @@ from pkg_resources import parse_version
 
 from psychopy import logging
 from psychopy.constants import PY3
+from psychopy.tools.filetools import path_to_string
 
 try:
     import openpyxl
@@ -208,6 +209,7 @@ def importConditions(fileName, returnFieldNames=False, selection=""):
         """screens a list of names as candidate variable names. if all
         names are OK, return silently; else raise  with msg
         """
+        fileName = path_to_string(fileName)
         if not all(fieldNames):
             msg = ('Conditions file %s: Missing parameter name(s); '
                    'empty cell(s) in the first row?')
