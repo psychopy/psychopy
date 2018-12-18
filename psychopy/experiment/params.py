@@ -239,8 +239,11 @@ def toList(val):
     """
     # we really just need to check if they need parentheses
     stripped = val.strip()
-    if not ((stripped.startswith('(') and stripped.endswith(')')) \
-            or ((stripped.startswith('[') and stripped.endswith(']')))):
+
+    if (stripped.startswith('(') and stripped.endswith(')')) and utils.scriptTarget == "PsychoJS":
+        return py2js.expression2js(stripped)
+    elif not ((stripped.startswith('(') and stripped.endswith(')')) \
+              or ((stripped.startswith('[') and stripped.endswith(']')))):
         return "[{}]".format(stripped)
     else:
         return stripped
