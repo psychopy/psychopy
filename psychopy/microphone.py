@@ -20,7 +20,7 @@ import os
 import glob
 import threading
 from psychopy.constants import PY3
-from psychopy.tools.filetools import path_to_string
+from psychopy.tools.filetools import pathToString
 
 if PY3:
     import urllib.request
@@ -110,7 +110,7 @@ class AudioCapture(object):
 
         def run(self, filename, sec, sampletype=0, buffering=16,
                 chnl=0, chnls=2):
-            filename = path_to_string(filename)
+            filename = pathToString(filename)
             self.running = True
             # chnl from psychopy.sound.backend.get_input_devices()
             inputter = pyo.Input(chnl=chnl, mul=1)
@@ -153,7 +153,7 @@ class AudioCapture(object):
                                   ' before AudioCapture or AdvancedCapture')
         self.name = name
         self.saveDir = saveDir
-        filename = path_to_string(filename)
+        filename = pathToString(filename)
         if filename:
             self.wavOutFilename = filename
         else:
@@ -222,7 +222,7 @@ class AudioCapture(object):
         return self._record(sec, filename=filename, block=block)
 
     def _record(self, sec, filename='', block=True, log=True):
-        filename = path_to_string(filename)
+        filename = pathToString(filename)
         while self.recorder.running:
             pass
         self.duration = float(sec)
@@ -566,7 +566,7 @@ def getMarkerOnset(filename, chunk=128, secs=0.5, marker_hz=19000,
 def readWavFile(filename):
     """Return (data, sampleRate) as read from a wav file, expects int16 data.
     """
-    filename = path_to_string(filename)
+    filename = pathToString(filename)
     try:
         sampleRate, data = wavfile.read(filename)
     except Exception:
@@ -1068,7 +1068,7 @@ def flac2wav(path, keep=True):
     """
     flac_path = _getFlacPath()
     flac_files = []
-    path = path_to_string(path)
+    path = pathToString(path)
     if path.endswith('.flac'):
         flac_files = [path]
     elif type(path) == str and os.path.isdir(path):
@@ -1105,7 +1105,7 @@ def wav2flac(path, keep=True, level=5):
     """
     flac_path = _getFlacPath()
     wav_files = []
-    path = path_to_string(path)
+    path = pathToString(path)
     if path.endswith('.wav'):
         wav_files = [path]
     elif type(path) == str and os.path.isdir(path):

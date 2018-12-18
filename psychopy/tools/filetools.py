@@ -42,7 +42,7 @@ def toFile(filename, data):
 def fromFile(filename):
     """Load data from a pickle or JSON file.
     """
-    filename = path_to_string(filename)
+    filename = pathToString(filename)
     if filename.endswith('.psydat'):
         with open(filename, 'rb') as f:
             contents = pickle.load(f)
@@ -122,7 +122,7 @@ def openOutputFile(fileName=None, append=False, fileCollisionMethod='rename',
         A writable file handle.
 
     """
-    fileName = path_to_string(fileName)
+    fileName = pathToString(fileName)
     if (fileName is None) or (fileName == 'stdout'):
         return sys.stdout
 
@@ -170,7 +170,7 @@ def genDelimiter(fileName):
         character otherwise.
 
     """
-    fileName = path_to_string(fileName)
+    fileName = pathToString(fileName)
     if fileName.endswith(('.csv', '.CSV')):
         delim = ','
     else:
@@ -182,7 +182,7 @@ def genDelimiter(fileName):
 def genFilenameFromDelimiter(filename, delim):
     # If no known filename extension was specified, derive a one from the
     # delimiter.
-    filename = path_to_string(filename)
+    filename = pathToString(filename)
     if not filename.endswith(('.dlm', '.DLM', '.tsv', '.TSV', '.txt',
                               '.TXT', '.csv', '.CSV', '.psydat', '.npy',
                               '.json')):
@@ -245,7 +245,7 @@ class DictStorage(dict):
             self.save()
         self._deleted = True
 
-def path_to_string(filepath):
+def pathToString(filepath):
     """
     Coerces pathlib Path objects to a string (only python version 3.6+)
     any other objects passed to this function will be returned as is.

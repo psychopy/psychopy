@@ -16,7 +16,7 @@ from os import path
 from psychopy import logging
 from psychopy.constants import (STARTED, PLAYING, PAUSED, FINISHED, STOPPED,
                                 NOT_STARTED, FOREVER)
-from psychopy.tools.filetools import path_to_string
+from psychopy.tools.filetools import pathToString
 from sys import platform
 
 
@@ -160,7 +160,7 @@ class _SoundBase(object):
         self._snd = None
 
         # Coerces pathlib obj to string, else returns inputted value
-        value = path_to_string(value)
+        value = pathToString(value)
         try:
             # could be '440' meaning 440
             value = float(value)
