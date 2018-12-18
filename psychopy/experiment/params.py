@@ -240,7 +240,7 @@ def toList(val):
     # we really just need to check if they need parentheses
     stripped = val.strip()
 
-    if (stripped.startswith('(') and stripped.endswith(')')):  # If tuple, return list
+    if (stripped.startswith('(') and stripped.endswith(')')) and utils.scriptTarget == "PsychoJS":
         return py2js.expression2js(stripped)
     elif not ((stripped.startswith('(') and stripped.endswith(')')) \
               or ((stripped.startswith('[') and stripped.endswith(']')))):
