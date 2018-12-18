@@ -46,5 +46,8 @@ class Test_PY2JS_Compile(object):
                   '[(- 0.7), ((- 0.7) * 7)]']
 
         for idx, expr in enumerate(input):
-            assert py2js.expression2js(expr) == output[idx]
-            
+            # check whether direct match or at least a match when spaces removed
+
+            assert (py2js.expression2js(expr) == output[idx] or
+            py2js.expression2js(expr).replace(" ", "") == output[idx].replace(" ", ""))
+

@@ -76,8 +76,13 @@ def expression2js(expr):
             wasList = True
         if isinstance(node, ast.UnaryOp):
             onlyUnary.append(True)
+        if not PY3:
+            if isinstance(node, ast.Num):
+                if node.n < 0:  # If unary operator not identified by ast parse
+                    onlyUnary.append(True)
         if isinstance(node, ast.BinOp):
             onlyUnary.append(False)
+
     jsStr = unparse(syntaxTree).strip()
     # if the code contained a tuple (anywhere) convert parenths to be list
     # NB this won't be good for compounds like `(2*(4, 5))` where the inner
