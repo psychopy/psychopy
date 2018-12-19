@@ -81,6 +81,21 @@ def getLatestVersionInfo():
     return latest
 
 
+def getNewsItems(app=None):
+    url = newsURL+"news_items.json"
+    resp = requests.get(url)
+    if resp.status_code == 200:
+        try:
+            items = resp.json()
+        except Exception as e:
+            logging.warning("Found, but failed to parse '{}'".format(url))
+            print(str(e))
+    else:
+        logging.debug("failed to connect to '{}'".format(url))
+    if app:
+        app.news = items["news"]
+    return items["news"]
+
 class Updater(object):
 
     def __init__(self, app=None, runningVersion=None):
