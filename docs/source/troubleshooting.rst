@@ -22,12 +22,12 @@ If resetting the preferences files doesn't help then we need to get to an error 
     
     #. Did you get an error message that "This application failed to start because the application configuration is incorrect. Reinstalling the application may fix the problem"? If so that indicates you need to `update your .NET installation to SP1 <http://www.microsoft.com/download/en/details.aspx?id=33>`_ .
 
-    #. open a DOS Command Prompt (terminal): 
+    #. open a Command Prompt (terminal):
         #. go to the Windows Start menu
         #. select Run... and type in cmd <Return>
-    #. paste the following into that window (Ctrl-V doesn't work but you can right-click and select Paste). Replace VERSION with your version number (e.g. 1.61.03)::
-    
-        "C:\Program Files\PsychoPy2\python.exe" "C:\Program Files\PsychoPy2\Lib\site-packages\PsychoPy-VERSION-py2.6.egg\psychopy\app\psychopyApp.py"
+    #. paste the following into that window (Ctrl-V doesn't work in Cmd.exe but you can right-click and select Paste)
+
+        "C:\Program Files\PsychoPy2\python.exe" -m psychopy.app.psychopyApp
     #. when you hit <return> you will hopefully get a moderately useful error message that you can :ref:`contribForum`
     
 *Mac users*:   
@@ -66,11 +66,11 @@ PsychoPy comes with all the source code included. You may not think you're much 
 To have a look at the source code do one of the following:
     - when you get an error message in the :ref:`coder` click on the hyperlinked error lines to see the relevant code
     - on Windows
-        - go to `Program Files\\PsychoPy2\\Lib\\site-packages\\Psychopy`
+        - go to `<location of PsychoPy app>\\Lib\\site-packages\\psychopy`
         - have a look at some of the files there
     - on Mac
         - right click the PsychoPy app and select `Show Package Contents`
-        - navigate to `Contents/Resources/lib/python2.6/psychopy`
+        - navigate to `Contents/Resources/lib/pythonX.X/psychopy`
         
 .. _cleanPrefs:
 
@@ -78,16 +78,16 @@ Cleaning preferences and app data
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Every time you shut down PsychoPy (by normal means) your current preferences and the state of the application (the location and state of the windows) are saved to disk. If PsychoPy is crashing during startup you may need to edit those files or delete them completely. 
 
-On macOS and Linux the files are::
-    
-    ~/.psychopy2/appData.cfg
-    ~/.psychopy2/userPrefs.cfg
+The exact location of those files varies by machine but on windows it will be something like `%APPDATA%\psychopy3` and on Linux/MacOS
+it will be something like `~/.psychopy3`. You can find it running this in the commandline (if you have multiple Python installations then make sure you change `python` to the appropriate one for PsychoPy::
 
-On Windows they are::
+    python -c "from psychopy import prefs; print(prefs.paths['userPrefsDir'])"
 
-    ${DOCS AND SETTINGS}\{USER}\Application Data\psychopy2\appData.cfg
-    ${DOCS AND SETTINGS}\{USER}\Application Data\psychopy2\userPrefs.cfg
+Within that folder you will find `userPrefs.cfg` and `appData.cfg`.
+The files are simple text, which you should be able to edit in any text editor.
 
-The files are simple text, which you should be able to edit in any text editor. Particular changes that you might need to make:
-
-If the problem is that you have a corrupt experiment file or script that is trying and failing to load on startup, you could simply delete the `appData.cfg` file. Please *also* :ref:`contribForum` a copy of the file that isn't working so that the underlying cause of the problem can be investigated (google first to see if it's a known issue).
+If the problem is that you have a corrupt experiment file or script that is trying
+and failing to load on startup, you could simply delete the `appData.cfg` file.
+Please *also* :ref:`contribForum` a copy of the file that isn't working so that
+the underlying cause of the problem can be investigated (google first to see if
+it's a known issue).

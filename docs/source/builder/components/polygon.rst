@@ -1,4 +1,4 @@
-.. _patch:
+.. _polygonComponent:
 
 Polygon (shape) Component
 -------------------------------
