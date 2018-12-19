@@ -38,7 +38,7 @@ import os
 from psychopy import logging, prefs #adding prefs to be able to check sound lib -JK
 from psychopy.tools.arraytools import val2array
 from psychopy.tools.attributetools import logAttrib, setAttribute
-from psychopy.tools.filetools import path_to_string
+from psychopy.tools.filetools import pathToString
 from psychopy.visual.basevisual import BaseVisualStim, ContainerMixin, TextureMixin
 
 from moviepy.video.io.VideoFileClip import VideoFileClip
@@ -113,7 +113,7 @@ class MovieStim3(BaseVisualStim, ContainerMixin, TextureMixin):
                             "defaulting to 60.0")
             retraceRate = 60.0
         self._retraceInterval = 1.0/retraceRate
-        self.filename = path_to_string(filename)
+        self.filename = pathToString(filename)
         self.loop = loop
         self.flipVert = flipVert
         self.flipHoriz = flipHoriz
@@ -174,7 +174,7 @@ class MovieStim3(BaseVisualStim, ContainerMixin, TextureMixin):
         After the file is loaded MovieStim.duration is updated with the movie
         duration (in seconds).
         """
-        filename = path_to_string(filename)
+        filename = pathToString(filename)
         self.reset()  # set status and timestamps etc
 
         # Create Video Stream stuff
