@@ -178,5 +178,3 @@ if __name__ == '__main__':
                  '[-.7, -.7]',  # A list with unary operators returns list with nested tuple
                  '[-.7, (-.7 * 7)]']:  # List with unary operators and nested tuple with operations returns list + tuple
         print("{} -> {}".format(repr(expr), repr(expression2js(expr))))
-
-#'("string", [1,2],3,-4, (1,2,3,4), 1, 2, 3,)'
