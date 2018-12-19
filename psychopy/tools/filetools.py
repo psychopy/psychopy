@@ -255,13 +255,13 @@ def pathToString(filepath):
 
     :Parameters:
 
-    filepath : string or pathlib Path object
+    filepath : str or pathlib.Path
         file system path that needs to be coerced into a string to
         use by Psychopy's internals
 
     :Returns:
 
-    filepath : string or same as passed object
+    filepath : str or same as input object
         file system path coerced into a string type
     """
     if hasattr(filepath, "__fspath__"):
