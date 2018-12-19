@@ -24,7 +24,6 @@ import random
 import sys
 import time
 from numpy import *
-from scipy import stats
 
 
 class PsiObject(object):
@@ -32,6 +31,9 @@ class PsiObject(object):
     """Special class to handle internal array and functions of Psi adaptive psychophysical method (Kontsevich & Tyler, 1999)."""
     
     def __init__(self, x, alpha, beta, xPrecision, aPrecision, bPrecision, delta=0, stepType='lin', TwoAFC=False, prior=None):
+        global stats
+        from scipy import stats  # takes a while to load so do it lazy
+
         self._TwoAFC = TwoAFC
         #Save dimensions
         if stepType == 'lin':
