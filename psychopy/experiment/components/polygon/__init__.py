@@ -216,7 +216,7 @@ class PolygonComponent(BaseVisualComponent):
         "  lineWidth: 1, lineColor: new util.Color({lineColor}),\n"
         "  fillColor: new util.Color({fillColor}),\n"
         "  opacity: 1, depth: -1.0, interpolate: true,\n"
-        "}});\n")
+        "}});\n\n")
         buff.writeIndentedLines(code.format(name=self.params['name'],
                                             pos=self.params['pos'],
                                             size=self.params['size'],

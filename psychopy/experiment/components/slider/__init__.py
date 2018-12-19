@@ -55,6 +55,7 @@ class SliderComponent(BaseVisualComponent):
     def __init__(self, exp, parentName,
                  name='slider',
                  labels='',
+                 labelHeight=.05,
                  ticks="(1, 2, 3, 4, 5)",
                  size='(1.0, 0.1)',
                  pos='(0, -0.4)',
@@ -81,7 +82,7 @@ class SliderComponent(BaseVisualComponent):
         # params
         self.order = ['name',
                       'size', 'pos',
-                      'ticks', 'labels', 'granularity',
+                      'ticks', 'labels', 'labelHeight', 'granularity',
                       'font','flip','color','styles',
                       ]
 
@@ -101,6 +102,12 @@ class SliderComponent(BaseVisualComponent):
                 hint=_translate("Labels for the tick marks on the scale, "
                                 "separated by commas"),
                 label=_localized['labels'])
+        self.params['labelHeight'] = Param(
+            labelHeight, valType='code', allowedTypes=[],
+            updates='constant',
+            allowedUpdates=['constant', 'set every repeat', 'set every frame'],
+            hint=_translate("Specifies the text height of labels"),
+            label=_translate('labelHeight'))
         self.params['granularity'] = Param(
                 granularity, valType='code', allowedTypes=[],
                 updates='constant',
@@ -160,6 +167,7 @@ class SliderComponent(BaseVisualComponent):
                         "Font for the labels"),
                 label=_translate('Font'),
                 categ='Appearance')
+
         self.params['styles'] = Param(
                 style, valType='fixedList',
                 updates='constant', allowedVals=knownStyles,
@@ -195,7 +203,7 @@ class SliderComponent(BaseVisualComponent):
         # build up an initialization string for Slider():
         initStr = ("{name} = visual.Slider(win=win, name='{name}',\n"
                    "    size={size}, pos={pos},\n"
-                   "    labels={labels}, ticks={ticks},\n"
+                   "    labels={labels}, ticks={ticks}, labelHeight={labelHeight},\n"
                    "    granularity={granularity}, style={styles},\n"
                    "    color={color}, font={font},\n"
                    "    flip={flip})\n"
@@ -207,12 +215,12 @@ class SliderComponent(BaseVisualComponent):
         # build up an initialization string for Slider():
         initStr = ("{name} = new visual.Slider({{\n"
                    "  win: psychoJS.window, name: '{name}',\n"
-                   "  size={size}, pos={pos},\n"
-                   "  labels={labels}, ticks={ticks},\n"
-                   "  granularity={granularity}, style={styles},\n"
-                   "  color=new util.Color({color}), font={font},\n"
-                   "  flip={flip},\n"
-                   "}});\n"
+                   "  size: {size}, pos: {pos},\n"
+                   "  labels: {labels}, ticks: {ticks}, labelHeight: {labelHeight},\n"
+                   "  granularity: {granularity}, style: {styles},\n"
+                   "  color: new util.Color({color}), font: {font},\n"
+                   "  flip: {flip},\n"
+                   "}});\n\n"
                    .format(**inits))
         buff.writeIndentedLines(initStr)
 
@@ -236,7 +244,7 @@ class SliderComponent(BaseVisualComponent):
         forceEnd = self.params['forceEndRoutine'].val
         if forceEnd:
             code = ("\n// Check %(name)s for response to end routine\n"
-                    "if (%(name)s.getRating() != 'undefined' && %(name)s.status === PsychoJS.Status.STARTED) {\n"
+                    "if (%(name)s.getRating() !== 'undefined' && %(name)s.status === PsychoJS.Status.STARTED) {\n"
                     "  continueRoutine = false; }\n")
             buff.writeIndentedLines(code % (self.params))
 
