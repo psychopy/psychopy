@@ -25,9 +25,10 @@ If resetting the preferences files doesn't help then we need to get to an error 
     #. open a Command Prompt (terminal):
         #. go to the Windows Start menu
         #. select Run... and type in cmd <Return>
-    #. paste the following into that window (Ctrl-V doesn't work in Cmd.exe but you can right-click and select Paste)
+    #. paste the following into that window (Ctrl-V doesn't work in Cmd.exe but you can right-click and select Paste)::
 
         "C:\Program Files\PsychoPy2\python.exe" -m psychopy.app.psychopyApp
+
     #. when you hit <return> you will hopefully get a moderately useful error message that you can :ref:`contribForum`
     
 *Mac users*:   
