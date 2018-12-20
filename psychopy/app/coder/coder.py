@@ -2296,31 +2296,22 @@ class CoderFrame(wx.Frame):
         else:
             wildcard = _translate("Python scripts (*.py)|*.py|Text file "
                                   "(*.txt)|*.txt|Any file (*.*)|*")
-        # open dlg
+
         dlg = wx.FileDialog(
             self, message=_translate("Save file as ..."), defaultDir=initPath,
-            defaultFile=filename, style=wx.FD_SAVE, wildcard=wildcard)
+            defaultFile=filename, style=wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT,
+            wildcard=wildcard)
+
         if dlg.ShowModal() == wx.ID_OK:
             newPath = dlg.GetPath()
-            # if the file already exists, query whether it should be
-            # overwritten (default = yes)
-            msg = _translate("File '%s' already exists.\n    OK to overwrite?")
-            dlg2 = dialogs.MessageDialog(self, message=msg % newPath,
-                                         type='Warning')
-            if not os.path.exists(newPath) or dlg2.ShowModal() == wx.ID_YES:
-                doc.filename = newPath
-                self.fileSave(event=None, filename=newPath, doc=doc)
-                path, shortName = os.path.split(newPath)
-                self.notebook.SetPageText(docId, shortName)
-                self.setFileModified(False)
-                # JRG: 'doc.filename' should = newPath = dlg.getPath()
-                doc.fileModTime = os.path.getmtime(doc.filename)
-                try:
-                    dlg2.destroy()
-                except Exception:
-                    pass
-            else:
-                print("'Save-as' canceled; existing file NOT overwritten.\n")
+            doc.filename = newPath
+            self.fileSave(event=None, filename=newPath, doc=doc)
+            path, shortName = os.path.split(newPath)
+            self.notebook.SetPageText(docId, shortName)
+            self.setFileModified(False)
+            # JRG: 'doc.filename' should = newPath = dlg.getPath()
+            doc.fileModTime = os.path.getmtime(doc.filename)
+
         try:  # this seems correct on PC, but can raise errors on mac
             dlg.destroy()
         except Exception:
