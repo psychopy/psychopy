@@ -142,15 +142,15 @@ class EyetrackerComponent(BaseComponent):
             # writes an if statement to determine whether to draw etc
             self.writeStopTestCode(buff)
 
-            code = ("%(name)s.status = STOPPED\n"
+            code = ("%(name)s.status = FINISHED\n"
                     "%(name)s.setRecordingState(False)\n")
             buff.writeIndentedLines(code % self.params)
 
             # to get out of the if statement
             buff.setIndentLevel(-1, relative=True)
 
-        # if STARTED and not STOPPED!
-        code = "if %(name)s.status == STARTED:  # only update if started and not stopped!\n" % self.params
+        # if STARTED and not FINISHED!
+        code = "if %(name)s.status == STARTED:  # only update if started and not finished!\n" % self.params
         buff.writeIndented(code)
 
         buff.setIndentLevel(1, relative=True)  # to get out of the if statement
@@ -199,7 +199,7 @@ class EyetrackerComponent(BaseComponent):
                     "%s.addData('%s.%s', %s.%s)\n" %
                     (currLoop.params['name'], name, property, name, property))
 
-        # make sure eyetracking stops recording (in case it hsn't stopped
+        # make sure eyetracking stops recording (in case it hasn't stopped
         # already)
         buff.writeIndented("eyetracker.setRecordingState(False)\n")
 

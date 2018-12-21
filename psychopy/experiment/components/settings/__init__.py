@@ -373,9 +373,17 @@ class SettingsComponent(object):
 
         self.writeUseVersion(buff)
 
+        psychopyImports = []
+        customImports = []
+        for import_ in self.exp.requiredImports:
+            if import_.importFrom == 'psychopy':
+                psychopyImports.append(import_.importName)
+            else:
+                customImports.append(import_)
+
         buff.write(
             "from psychopy import locale_setup, "
-            "%s\n" % ', '.join(self.exp.psychopyLibs) +
+            "%s\n" % ', '.join(psychopyImports) +
             "from psychopy.constants import (NOT_STARTED, STARTED, PLAYING,"
             " PAUSED,\n"
             "                                STOPPED, FINISHED, PRESSED, "
@@ -388,6 +396,26 @@ class SettingsComponent(object):
             "import os  # handy system and path functions\n" +
             "import sys  # to get file system encoding\n"
             "\n")
+
+        for import_ in customImports:
+            # Write custom import statements, line by line.
+            importName = import_.importName
+            importFrom = import_.importFrom
+            importAs = import_.importAs
+
+            statement = ''
+            if importFrom:
+                statement += "from %s " % importFrom
+
+            statement += "import %s" % importName
+
+            if importAs:
+                statement += " as %s" % importAs
+
+            statement += "\n"
+            buff.write(statement)
+
+        buff.write("\n")
 
     def prepareResourcesJS(self):
         """Sets up the resources folder and writes the info.php file for PsychoJS
@@ -668,7 +696,12 @@ class SettingsComponent(object):
         code = code.rstrip(', \n') + ')\n'
         buff.writeIndentedLines(code % self.params)
 
-        if 'microphone' in self.exp.psychopyLibs:  # need a pyo Server
+        # Import here to avoid circular dependency!
+        from psychopy.experiment._experiment import RequiredImport
+        microphoneImport = RequiredImport(importName='microphone',
+                                          importFrom='psychopy',
+                                          importAs='')
+        if microphoneImport in self.exp.requiredImports:  # need a pyo Server
             buff.writeIndentedLines("\n# Enable sound input/output:\n"
                                     "microphone.switchOn()\n")
 
@@ -733,9 +766,9 @@ class SettingsComponent(object):
                     "    };\n"
                     "}\n")
         buff.writeIndentedLines(recordLoopIterationFunc)
-        quitFunc = ("\nfunction quitPsychoJS(isCompleted) {\n"
+        quitFunc = ("\nfunction quitPsychoJS(message, isCompleted) {\n"
                     "  psychoJS.window.close();\n"
-                    "  psychoJS.quit({isCompleted});\n\n"
+                    "  psychoJS.quit({message, isCompleted});\n\n"
                     "  return Scheduler.Event.QUIT;\n"
                     "}")
         buff.writeIndentedLines(quitFunc)

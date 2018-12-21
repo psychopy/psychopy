@@ -474,8 +474,7 @@ class BaseVisualComponent(BaseComponent):
             startType=startType, startVal=startVal,
             stopType=stopType, stopVal=stopVal,
             startEstim=startEstim, durationEstim=durationEstim)
-
-        self.psychopyLibs = ['visual']  # needs this psychopy lib to operate
+        self.exp.requirePsychopyLibs(['visual'])  # needs this psychopy lib to operate
 
         msg = _translate("Units of dimensions for this stimulus")
         self.params['units'] = Param(
@@ -578,7 +577,7 @@ class BaseVisualComponent(BaseComponent):
         buff.writeIndented("%(name)s.setAutoDraw(true);\n" % self.params)
         # to get out of the if statement
         buff.setIndentLevel(-1, relative=True)
-        buff.writeIndented("}\n")
+        buff.writeIndented("}\n\n")
 
         # test for stop (only if there was some setting for duration or stop)
         if self.params['stopVal'].val not in ('', None, -1, 'None'):

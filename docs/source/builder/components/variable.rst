@@ -1,4 +1,4 @@
-.. _text:
+.. _vairableComponent:
 
 Variable Component
 -------------------------------

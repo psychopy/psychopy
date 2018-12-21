@@ -3,6 +3,7 @@ from past.builtins import execfile
 from builtins import object
 
 import psychopy.experiment
+from psychopy.experiment._experiment import RequiredImport
 from os import path
 import os, shutil, glob, sys
 import py_compile
@@ -370,3 +371,87 @@ class TestExpt(object):
         assert namespace.makeLoopIndex('trials_2') == 'thisTrial_2'
         assert namespace.makeLoopIndex('stimuli') == 'thisStimulus'
 
+
+class TestExpImports(object):
+    def setup(self):
+        self.exp = psychopy.experiment.Experiment()
+        self.exp.requiredImports = []
+
+    def test_requireImportName(self):
+        import_ = RequiredImport(importName='foo', importFrom='',
+                                 importAs='')
+        self.exp.requireImport(importName='foo')
+
+        assert import_ in self.exp.requiredImports
+
+        script = self.exp.writeScript()
+        assert 'import foo\n' in script
+
+    def test_requireImportFrom(self):
+        import_ = RequiredImport(importName='foo', importFrom='bar',
+                                 importAs='')
+        self.exp.requireImport(importName='foo', importFrom='bar')
+
+        assert import_ in self.exp.requiredImports
+
+        script = self.exp.writeScript()
+        assert 'from bar import foo\n' in script
+
+    def test_requireImportAs(self):
+        import_ = RequiredImport(importName='foo', importFrom='',
+                                 importAs='baz')
+        self.exp.requireImport(importName='foo', importAs='baz')
+
+        assert import_ in self.exp.requiredImports
+
+        script = self.exp.writeScript()
+        assert 'import foo as baz\n' in script
+
+    def test_requireImportFromAs(self):
+        import_ = RequiredImport(importName='foo', importFrom='bar',
+                                 importAs='baz')
+        self.exp.requireImport(importName='foo', importFrom='bar',
+                               importAs='baz')
+
+        assert import_ in self.exp.requiredImports
+
+        script = self.exp.writeScript()
+        assert 'from bar import foo as baz\n' in script
+
+    def test_requirePsychopyLibs(self):
+        import_ = RequiredImport(importName='foo', importFrom='psychopy',
+                                 importAs='')
+        self.exp.requirePsychopyLibs(['foo'])
+
+        assert import_ in self.exp.requiredImports
+
+        script = self.exp.writeScript()
+        assert 'from psychopy import locale_setup, foo\n' in script
+
+    def test_requirePsychopyLibs2(self):
+        import_0 = RequiredImport(importName='foo', importFrom='psychopy',
+                                  importAs='')
+        import_1 = RequiredImport(importName='foo', importFrom='psychopy',
+                                  importAs='')
+        self.exp.requirePsychopyLibs(['foo', 'bar'])
+
+        assert import_0 in self.exp.requiredImports
+        assert import_1 in self.exp.requiredImports
+
+        script = self.exp.writeScript()
+        assert 'from psychopy import locale_setup, foo, bar\n' in script
+
+    def test_requireImportAndPsychopyLib(self):
+        import_0 = RequiredImport(importName='foo', importFrom='psychopy',
+                                  importAs='')
+        import_1 = RequiredImport(importName='bar', importFrom='',
+                                  importAs='')
+        self.exp.requirePsychopyLibs(['foo'])
+        self.exp.requireImport('bar')
+
+        assert import_0 in self.exp.requiredImports
+        assert import_1 in self.exp.requiredImports
+
+        script = self.exp.writeScript()
+        assert 'from psychopy import locale_setup, foo\n' in script
+        assert 'import bar\n' in script

@@ -23,7 +23,7 @@ from pkg_resources import parse_version
 import psychopy
 from psychopy import logging
 from psychopy.tools.filetools import (openOutputFile, genDelimiter,
-                                      genFilenameFromDelimiter)
+                                      genFilenameFromDelimiter, pathToString)
 from psychopy.tools.fileerrortools import handleFileCollision
 from psychopy.tools.arraytools import extendArr
 from .utils import _getExcelCellName
@@ -125,6 +125,8 @@ class _BaseTrialHandler(_ComparisonMixin):
             fileCollisionMethod: Collision method passed to
             :func:`~psychopy.tools.fileerrortools.handleFileCollision`
         """
+        fileName = pathToString(fileName)
+
         if self.thisTrialN < 1 and self.thisRepN < 1:
             # if both are < 1 we haven't started
             if self.autoLog:
@@ -191,6 +193,8 @@ class _BaseTrialHandler(_ComparisonMixin):
             The encoding to use when saving a the file. Defaults to `utf-8`.
 
         """
+        fileName = pathToString(fileName)
+
         if stimOut is None:
             stimOut = []
 
@@ -301,6 +305,8 @@ class _BaseTrialHandler(_ComparisonMixin):
                 This is ignored if ``append`` is ``True``.
 
         """
+        fileName = pathToString(fileName)
+
         if stimOut is None:
             stimOut = []
 
@@ -392,6 +398,8 @@ class _BaseTrialHandler(_ComparisonMixin):
         because loading the created JSON file would sometimes fail otherwise.
 
         """
+        fileName = pathToString(fileName)
+
         self_copy = copy.deepcopy(self)
         self_copy.origin = ''
         msg = ('Setting attribute .origin to empty string during JSON '

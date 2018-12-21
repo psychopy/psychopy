@@ -42,6 +42,7 @@ def toFile(filename, data):
 def fromFile(filename):
     """Load data from a pickle or JSON file.
     """
+    filename = pathToString(filename)
     if filename.endswith('.psydat'):
         with open(filename, 'rb') as f:
             contents = pickle.load(f)
@@ -121,6 +122,7 @@ def openOutputFile(fileName=None, append=False, fileCollisionMethod='rename',
         A writable file handle.
 
     """
+    fileName = pathToString(fileName)
     if (fileName is None) or (fileName == 'stdout'):
         return sys.stdout
 
@@ -168,6 +170,7 @@ def genDelimiter(fileName):
         character otherwise.
 
     """
+    fileName = pathToString(fileName)
     if fileName.endswith(('.csv', '.CSV')):
         delim = ','
     else:
@@ -179,6 +182,7 @@ def genDelimiter(fileName):
 def genFilenameFromDelimiter(filename, delim):
     # If no known filename extension was specified, derive a one from the
     # delimiter.
+    filename = pathToString(filename)
     if not filename.endswith(('.dlm', '.DLM', '.tsv', '.TSV', '.txt',
                               '.TXT', '.csv', '.CSV', '.psydat', '.npy',
                               '.json')):
@@ -241,3 +245,25 @@ class DictStorage(dict):
             self.save()
         self._deleted = True
 
+def pathToString(filepath):
+    """
+    Coerces pathlib Path objects to a string (only python version 3.6+)
+    any other objects passed to this function will be returned as is.
+    This WILL NOT work with on Python 3.4, 3.5 since the __fspath__ dunder
+    method did not exist in those verisions, however psychopy does not support
+    these versions of python anyways.
+
+    :Parameters:
+
+    filepath : str or pathlib.Path
+        file system path that needs to be coerced into a string to
+        use by Psychopy's internals
+
+    :Returns:
+
+    filepath : str or same as input object
+        file system path coerced into a string type
+    """
+    if hasattr(filepath, "__fspath__"):
+        return filepath.__fspath__()
+    return filepath

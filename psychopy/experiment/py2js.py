@@ -77,19 +77,9 @@ def expression2js(expr):
     # This works by running an ast transformer class to swap the contents of the tuple
     # into a list for the number of tuples in the expression.
 
-    tups = 0
     syntaxTree = ast.parse(expr)
     for node in ast.walk(syntaxTree):
-        if isinstance(node, ast.Tuple):
-            tups += 1
-    for tup in range(tups):
-        syntaxTree = ast.parse(expr)
-        TupleTransformer().visit(syntaxTree)
-        syntaxTree = ast.fix_missing_locations(syntaxTree)
-        expr = unparse(syntaxTree).strip()
-
-    syntaxTree = ast.parse(expr)
-    for node in ast.walk(syntaxTree):
+        TupleTransformer().visit(node)  # Transform tuples to list
         if isinstance(node, ast.Str) and node.s.startswith("u'"):
             node.s = node.s[1:]
             print(node.s)
@@ -98,9 +88,7 @@ def expression2js(expr):
                 continue
             node.id = namesJS[node.id]
     jsStr = unparse(syntaxTree).strip()
-
     return jsStr
-
 
 def snippet2js(expr):
     """Convert several lines (e.g. a Code Component) Python to JS"""
@@ -171,7 +159,7 @@ def addVariableDeclarations(inputProgram):
 if __name__ == '__main__':
     for expr in ['sin(t)', 't*5',
                  '(3, 4)', '(5*-2)',  # tuple and not tuple
-                 '(1,(2,3))', '2*(2, 3)',  # combinations
+                 '(1,(2,3), (1,2,3), (-4,-5,-6))', '2*(2, 3)',  # combinations
                  '[1, (2*2)]',  # List with nested operations returns list + nested tuple
                  '(.7, .7)',  # A tuple returns list
                  '(-.7, .7)',  # A tuple with unary operators returns nested lists

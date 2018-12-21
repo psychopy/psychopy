@@ -25,17 +25,19 @@ except ImportError:
 
 import psychopy
 from . import dialogs
+import requests
 from psychopy.localization import _translate
 from psychopy import logging
 from psychopy import web
-from psychopy.constants import PY3
-if PY3:
+from psychopy import constants
+if constants.PY3:
     import io
 else:
     import StringIO as io
 urllib = web.urllib
 
 versionURL = "http://www.psychopy.org/version.txt"
+newsURL = "http://news.psychopy.org/"
 
 """The Updater class checks for updates and suggests that an update is carried
 out if a new version is found. The actual updating is handled by
@@ -55,9 +57,10 @@ def makeConnections(app):
         sendUsageStats()
     if app.prefs.connections['checkForUpdates']:
         app._latestAvailableVersion = getLatestVersionInfo()
+    app.news = getNewsItems()
 
 
-def getLatestVersionInfo():
+def getLatestVersionInfo(app=None):
     """
     Fetch info about the latest available version.
     Returns -1 if fails to make a connection
@@ -71,14 +74,32 @@ def getLatestVersionInfo():
     for line in page.readlines():
         # in some odd circumstances (wifi hotspots) you can fetch a
         # page that is not the correct URL but a redirect
-        if PY3:
+        if constants.PY3:
             line = line.decode()  # convert from a byte to a str
         if line.find(':') == -1:
             return -1
             # this will succeed if every line has a key
         key, keyInfo = line.split(':')
         latest[key] = keyInfo.replace('\n', '').replace('\r', '')
+    if app:
+        app._latestAvailableVersion = latest
     return latest
+
+
+def getNewsItems(app=None):
+    url = newsURL+"news_items.json"
+    resp = requests.get(url)
+    if resp.status_code == 200:
+        try:
+            items = resp.json()
+        except Exception as e:
+            logging.warning("Found, but failed to parse '{}'".format(url))
+            print(str(e))
+    else:
+        logging.debug("failed to connect to '{}'".format(url))
+    if app:
+        app.news = items["news"]
+    return items["news"]
 
 
 class Updater(object):
@@ -456,7 +477,7 @@ class InstallUpdateDialog(wx.Dialog):
         otherwise try and retrieve a version number from zip file name
         """
         info = ""  # return this at the end
-        if PY3:
+        if constants.PY3:
             zfileIsName = type(zfile) == str
         else:
             zfileIsName = type(zfile) in (str, unicode)
@@ -611,7 +632,7 @@ class InstallUpdateDialog(wx.Dialog):
         return nUpdates, info
 
 
-def sendUsageStats():
+def sendUsageStats(app=None):
     """Sends anonymous, very basic usage stats to psychopy server:
       the version of PsychoPy
       the system used (platform and version)
@@ -651,3 +672,4 @@ def sendUsageStats():
         logging.warning("Couldn't connect to psychopy.org\n"
                         "Check internet settings (and proxy "
                         "setting in PsychoPy Preferences.")
+
