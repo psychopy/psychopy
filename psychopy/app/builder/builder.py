@@ -1622,40 +1622,27 @@ class BuilderFrame(wx.Frame):
         returnVal = False
         dlg = wx.FileDialog(
             self, message=_translate("Save file as ..."), defaultDir=initPath,
-            defaultFile=filename, style=wx.FD_SAVE, wildcard=wildcard)
+            defaultFile=filename, style=wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT,
+            wildcard=wildcard)
+
         if dlg.ShowModal() == wx.ID_OK:
             newPath = dlg.GetPath()
             # update exp name
-            # if the file already exists, query whether it should be
-            # overwritten (default = yes)
-            okToSave = True
-            if os.path.exists(newPath):
-                msg = _translate("File '%s' already exists.\n"
-                                 "    OK to overwrite?") % newPath
-                dg2 = dialogs.MessageDialog(self, message=msg, type='Warning')
-                ok = dg2.ShowModal()
-                if ok != wx.ID_YES:
-                    okToSave = False
-                try:
-                    dg2.destroy()
-                except Exception:
-                    pass
-            if okToSave:
-                # if user has not manually renamed experiment
-                if usingDefaultName:
-                    newShortName = os.path.splitext(
-                        os.path.split(newPath)[1])[0]
-                    self.exp.setExpName(newShortName)
-                # actually save
-                self.fileSave(event=None, filename=newPath)
-                self.filename = newPath
-                returnVal = 1
-            else:
-                print("'Save-as' cancelled; existing file NOT overwritten.\n")
+            # if user has not manually renamed experiment
+            if usingDefaultName:
+                newShortName = os.path.splitext(
+                    os.path.split(newPath)[1])[0]
+                self.exp.setExpName(newShortName)
+            # actually save
+            self.fileSave(event=None, filename=newPath)
+            self.filename = newPath
+            returnVal = 1
+
         try:  # this seems correct on PC, but not on mac
             dlg.destroy()
         except Exception:
             pass
+
         self.updateWindowTitle()
         return returnVal
 
