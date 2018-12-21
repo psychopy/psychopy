@@ -2179,7 +2179,7 @@ class BuilderFrame(wx.Frame):
             self.routinePanel.GetSelection()).routine
         oldName = routine.name
         msg = _translate("What is the new name for the Routine?")
-        dlg = wx.TextEntryDialog(self, message=msg,
+        dlg = wx.TextEntryDialog(self, message=msg, value=oldName,
                                  caption=_translate('Rename'))
         exp = self.exp
         if dlg.ShowModal() == wx.ID_OK:
