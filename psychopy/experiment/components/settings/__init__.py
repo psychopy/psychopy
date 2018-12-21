@@ -766,9 +766,9 @@ class SettingsComponent(object):
                     "    };\n"
                     "}\n")
         buff.writeIndentedLines(recordLoopIterationFunc)
-        quitFunc = ("\nfunction quitPsychoJS(isCompleted) {\n"
+        quitFunc = ("\nfunction quitPsychoJS(message, isCompleted) {\n"
                     "  psychoJS.window.close();\n"
-                    "  psychoJS.quit({isCompleted});\n\n"
+                    "  psychoJS.quit({message, isCompleted});\n\n"
                     "  return Scheduler.Event.QUIT;\n"
                     "}")
         buff.writeIndentedLines(quitFunc)
