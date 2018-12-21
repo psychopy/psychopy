@@ -52,6 +52,9 @@ class QmixPumpComponent(BaseComponent):
         self.url = 'http://www.psychopy.org/builder/components/pump.html'
         self.categories = ['I/O']
 
+        self.exp.requireImport(importName='qmix',
+                               importFrom='psychopy.hardware')
+
         # Order in which the user-settable parameters will be displayed
         # in the component's properties window.
         self.order = ['pumpIndex', 'syringeType', 'pumpAction',
@@ -113,7 +116,6 @@ class QmixPumpComponent(BaseComponent):
                 '# far. This ensures that `_init_all_pumps() is only run \n'
                 '# once, even if multiple Pump Components are used in the \n'
                 '# experiment.\n'
-                'from psychopy.hardware import qmix\n'
                 'if not qmix.pumps:\n'
                 '    qmix._init_all_pumps()'
                 % self.params)
