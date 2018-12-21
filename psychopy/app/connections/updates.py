@@ -11,8 +11,6 @@ from builtins import object
 import sys
 import re
 import glob
-import time
-import platform
 import zipfile
 import os
 from pkg_resources import parse_version
@@ -24,8 +22,7 @@ except ImportError:
     import wx.lib.hyperlink as wxhl # <3.0.2
 
 import psychopy
-from . import dialogs
-import requests
+from .. import dialogs
 from psychopy.localization import _translate
 from psychopy import logging
 from psychopy import web
@@ -37,27 +34,11 @@ else:
 urllib = web.urllib
 
 versionURL = "http://www.psychopy.org/version.txt"
-newsURL = "http://news.psychopy.org/"
 
 """The Updater class checks for updates and suggests that an update is carried
 out if a new version is found. The actual updating is handled by
 InstallUpdateDialog (via Updater.doUpdate() ).
 """
-
-
-def makeConnections(app):
-    """A helper function to be launched from a thread. Will setup proxies and
-    check for updates. Run from a thread while the program continues to load.
-    """
-    if web.proxies is None:
-        web.setupProxy()
-    if web.proxies == 0:
-        return
-    if app.prefs.connections['allowUsageStats']:
-        sendUsageStats()
-    if app.prefs.connections['checkForUpdates']:
-        app._latestAvailableVersion = getLatestVersionInfo()
-    app.news = getNewsItems()
 
 
 def getLatestVersionInfo(app=None):
@@ -84,22 +65,6 @@ def getLatestVersionInfo(app=None):
     if app:
         app._latestAvailableVersion = latest
     return latest
-
-
-def getNewsItems(app=None):
-    url = newsURL+"news_items.json"
-    resp = requests.get(url)
-    if resp.status_code == 200:
-        try:
-            items = resp.json()
-        except Exception as e:
-            logging.warning("Found, but failed to parse '{}'".format(url))
-            print(str(e))
-    else:
-        logging.debug("failed to connect to '{}'".format(url))
-    if app:
-        app.news = items["news"]
-    return items["news"]
 
 
 class Updater(object):
@@ -630,46 +595,3 @@ class InstallUpdateDialog(wx.Dialog):
                     info += 'Failed to update PsychoPy path in %s' % filename
                     return -1, info
         return nUpdates, info
-
-
-def sendUsageStats(app=None):
-    """Sends anonymous, very basic usage stats to psychopy server:
-      the version of PsychoPy
-      the system used (platform and version)
-      the date
-    """
-
-    v = psychopy.__version__
-    dateNow = time.strftime("%Y-%m-%d_%H:%M")
-    miscInfo = ''
-
-    # urllib.install_opener(opener)
-    # check for proxies
-    if web.proxies is None:
-        web.setupProxy()
-
-    # get platform-specific info
-    if sys.platform == 'darwin':
-        OSXver, junk, architecture = platform.mac_ver()
-        systemInfo = "OSX_%s_%s" % (OSXver, architecture)
-    elif sys.platform.startswith('linux'):
-        systemInfo = '%s_%s_%s' % (
-            'Linux',
-            ':'.join([x for x in platform.dist() if x != '']),
-            platform.release())
-        if len(systemInfo) > 30:  # if it's too long PHP/SQL fails to store!?
-            systemInfo = systemInfo[0:30]
-    elif sys.platform == 'win32':
-        systemInfo = "win32_v" + platform.version()
-    else:
-        systemInfo = platform.system() + platform.release()
-    u = "http://www.psychopy.org/usage.php?date=%s&sys=%s&version=%s&misc=%s"
-    URL = u % (dateNow, systemInfo, v, miscInfo)
-    try:
-        req = urllib.request.Request(URL)
-        page = urllib.request.urlopen(req)  # proxies
-    except Exception:
-        logging.warning("Couldn't connect to psychopy.org\n"
-                        "Check internet settings (and proxy "
-                        "setting in PsychoPy Preferences.")
-

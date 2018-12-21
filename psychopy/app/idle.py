@@ -101,7 +101,7 @@ def doIdleTasks(app=None):
             currentTask = thisTask
             currentTask['tStart'] = time.time() - _t0
             currentTask['status'] = STARTED
-            logging.info('finished {} at {}'.format(taskName,
+            logging.info('Started {} at {}'.format(taskName,
                                                     currentTask['tStart']))
             _doTask(taskName, app)
             return 0  # something is in motion
@@ -111,12 +111,13 @@ def doIdleTasks(app=None):
                 currentTask['status'] = FINISHED
                 currentTask['thread'] = None
                 currentTask['tEnd'] = time.time() - _t0
-                logging.info('finished {} at {}'.format(taskName,
+                logging.info('Finished {} at {}'.format(taskName,
                                                         currentTask['tEnd']))
                 currentTask = None
                 continue
             else:
                 return 0
+    logging.flush()
 
     return 1
 
