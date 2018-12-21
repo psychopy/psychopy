@@ -2316,7 +2316,7 @@ class ReadmeFrame(wx.Frame):
         self.Bind(wx.EVT_CLOSE, self.onClose)
         self.Hide()
         self.makeMenus()
-        self.ctrl = wx.TextCtrl(self, style=wx.TE_MULTILINE)
+        self.ctrl = wx.TextCtrl(self, style=wx.TE_MULTILINE | wx.TE_READONLY)
 
     def onClose(self, evt=None):
         """
