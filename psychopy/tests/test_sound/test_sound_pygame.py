@@ -5,7 +5,7 @@ from __future__ import division
 from builtins import object
 from past.utils import old_div
 from psychopy import prefs, core
-prefs.general['audioLib'] = ['pygame']
+prefs.hardware['audioLib'] = ['pygame']
 
 import pytest
 from scipy.io import wavfile
