@@ -363,13 +363,13 @@ class JoystickComponent(BaseComponent):
         if self.params['stopVal'].val not in ['', None, -1, 'None']:
             # writes an if statement to determine whether to draw etc
             self.writeStopTestCode(buff)
-            buff.writeIndented("%(name)s.status = STOPPED\n" % self.params)
+            buff.writeIndented("%(name)s.status = FINISHED\n" % self.params)
             # to get out of the if statement
             buff.setIndentLevel(-1, relative=True)
 
-        # if STARTED and not STOPPED!
+        # if STARTED and not FINISHED!
         code = ("if %(name)s.status == STARTED:  "
-                "# only update if started and not stopped!\n") % self.params
+                "# only update if started and not finished!\n") % self.params
         buff.writeIndented(code)
         buff.setIndentLevel(1, relative=True)  # to get out of if statement
         dedentAtEnd = 1  # keep track of how far to dedent later
