@@ -734,6 +734,9 @@ class PsychoPyApp(wx.App):
         if not self.testMode:
             showAbout(info)
 
+    def showNews(self, event=None):
+        connections.showNews(self, checkPrev=False)
+
     def followLink(self, event=None, url=None):
         """Follow either an event id (= a key to an url defined in urls.py)
         or follow a complete url (a string beginning "http://")

@@ -6,10 +6,15 @@
 # Distributed under the terms of the GNU General Public License (GPL).
 
 import requests
-from psychopy import logging
-
+from psychopy import logging, prefs
+import wx
 
 newsURL = "http://news.psychopy.org/"
+
+CRITICAL = 50
+ANNOUNCE = 40
+TIP = 30
+JOKE = 20
 
 
 def getNewsItems(app=None):
@@ -28,6 +33,56 @@ def getNewsItems(app=None):
     return items["news"]
 
 
-class NewsFrame():
-    def __init__(self, app=None):
-        pass
+def showNews(app=None, checkPrev=True):
+    """Brings up an internal html viewer and show the latest psychopy news
+
+    :Returns:
+        itemShown : bool
+
+    """
+    if checkPrev and app.news:
+        toShow = None
+        if 'lastNewsDate' in prefs.appData['lastNewsDate']:
+            lastNewsDate = prefs.appData['lastNewsDate']
+        else:
+            lastNewsDate = ""
+        for item in app.news:
+            if item['importance'] >= ANNOUNCE and item['date'] > lastNewsDate:
+                toShow = item
+                break
+        if not toShow:
+            return 0
+
+    dlg = wx.Dialog(None, style=wx.DEFAULT_DIALOG_STYLE | wx.RESIZE_BORDER,
+                    size=(800, 400))
+    browser = wx.html2.WebView.New(dlg)
+
+    # do layout
+    sizer = wx.BoxSizer(wx.VERTICAL)
+    sizer.Add(browser, 1, wx.EXPAND, 10)
+    dlg.SetSizer(sizer)
+
+    browser.LoadURL(newsURL)
+    dlg.Show()
+    return 1
+
+
+#
+# class NewsFrame(wx.Dialog):
+#     """This class is used by to open an internal browser for the user stuff
+#     """
+#     style =
+#
+#     def __init__(self, parent, style=style, *args, **kwargs):
+#         # create the dialog
+#         wx.Dialog.__init__(self, parent, style=style, *args, **kwargs)
+#         # create browser window for authentication
+#         self.browser = wx.html2.WebView.New(self)
+#
+#         # do layout
+#         sizer = wx.BoxSizer(wx.VERTICAL)
+#         sizer.Add(self.browser, 1, wx.EXPAND, 10)
+#         self.SetSizer(sizer)
+#
+#         self.browser.LoadURL(newsURL)
+#         self.Show()

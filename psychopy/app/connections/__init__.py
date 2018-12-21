@@ -6,5 +6,5 @@
 # Distributed under the terms of the GNU General Public License (GPL).
 
 from .updates import *  # pylint: disable=W0401
-from .news import getNewsItems, NewsFrame  # pylint: disable=W0401
+from .news import getNewsItems, showNews
 from .sendusage import sendUsageStats
