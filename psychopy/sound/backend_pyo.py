@@ -31,7 +31,7 @@ audioDriver = None
 def _bestDriver(devNames, devIDs):
     """Find ASIO or Windows sound drivers
     """
-    preferredDrivers = prefs.general['audioDriver']
+    preferredDrivers = prefs.hardware['audioDriver']
     outputID = None
     audioDriver = None
     for prefDriver in preferredDrivers:
@@ -216,7 +216,7 @@ def init(rate=44100, stereo=True, buffer=128):
                 duplex = False
         # for other platforms set duplex to True (if microphone is available)
         else:
-            audioDriver = prefs.general['audioDriver'][0]
+            audioDriver = prefs.hardware['audioDriver'][0]
             maxInputChnls = pyo.pa_get_input_max_channels(
                 pyo.pa_get_default_input())
             maxOutputChnls = pyo.pa_get_output_max_channels(
