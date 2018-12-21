@@ -474,8 +474,7 @@ class BaseVisualComponent(BaseComponent):
             startType=startType, startVal=startVal,
             stopType=stopType, stopVal=stopVal,
             startEstim=startEstim, durationEstim=durationEstim)
-
-        self.psychopyLibs = ['visual']  # needs this psychopy lib to operate
+        self.exp.requirePsychopyLibs(['visual'])  # needs this psychopy lib to operate
 
         msg = _translate("Units of dimensions for this stimulus")
         self.params['units'] = Param(
