@@ -286,17 +286,17 @@ class Routine(list):
                 "if (!continueRoutine) {"
                 "  // a component has requested a forced-end of Routine\n"
                 "  return Scheduler.Event.NEXT;\n"
-                "}\n"
+                "}\n\n"
                 "continueRoutine = false;"
                 "// reverts to True if at least one component still running\n"
                 "for (const thisComponent of %(name)sComponents)\n"
-                "  if ('status' in thisComponent && thisComponent.status != PsychoJS.Status.FINISHED) {\n"
+                "  if ('status' in thisComponent && thisComponent.status !== PsychoJS.Status.FINISHED) {\n"
                 "    continueRoutine = true;\n"
                 "    break;\n"
-                "  }\n"
+                "  }\n\n"
                 "// check for quit (the Esc key)\n"
                 "if (psychoJS.experiment.experimentEnded || psychoJS.eventManager.getKeys({keyList:['escape']}).length > 0) {\n"
-                "  psychoJS.quit('The [Escape] key was pressed. Goodbye!');\n"
+                "  return psychoJS.quit('The [Escape] key was pressed. Goodbye!', false);\n"
                 "}\n")
         buff.writeIndentedLines(code % self.params)
 
