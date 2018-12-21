@@ -1,4 +1,4 @@
-.. _text:
+.. _textComponent:
 
 Text Component
 -------------------------------
