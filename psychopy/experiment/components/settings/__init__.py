@@ -418,8 +418,9 @@ class SettingsComponent(object):
         buff.write("\n")
 
         # Write "run once" code.
-        buff.write("\n".join(self.exp._runOnce))
-        buff.write("\n\n")
+        if self.exp._runOnce:
+            buff.write("\n".join(self.exp._runOnce))
+            buff.write("\n\n")
 
     def prepareResourcesJS(self):
         """Sets up the resources folder and writes the info.php file for PsychoJS
