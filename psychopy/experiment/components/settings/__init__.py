@@ -397,8 +397,8 @@ class SettingsComponent(object):
             "import sys  # to get file system encoding\n"
             "\n")
 
+        # Write custom import statements, line by line.
         for import_ in customImports:
-            # Write custom import statements, line by line.
             importName = import_.importName
             importFrom = import_.importFrom
             importAs = import_.importAs
@@ -416,6 +416,10 @@ class SettingsComponent(object):
             buff.write(statement)
 
         buff.write("\n")
+
+        # Write "run once" code.
+        buff.write("\n".join(self.exp._runOnce))
+        buff.write("\n\n")
 
     def prepareResourcesJS(self):
         """Sets up the resources folder and writes the info.php file for PsychoJS

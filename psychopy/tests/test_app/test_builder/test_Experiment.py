@@ -455,3 +455,37 @@ class TestExpImports(object):
         script = self.exp.writeScript()
         assert 'from psychopy import locale_setup, foo\n' in script
         assert 'import bar\n' in script
+
+
+class TestRunOnce(object):
+    def setup(self):
+        self.exp = psychopy.experiment.Experiment()
+
+    def test_runOnceSingleLine(self):
+        code = 'foo bar baz'
+        self.exp.runOnce(code)
+        assert code in self.exp._runOnce
+
+        script = self.exp.writeScript()
+        assert code + '\n' in script
+
+    def test_runOnceMultiLine(self):
+        code = 'foo bar baz\nbla bla bla'
+        self.exp.runOnce(code)
+        assert code in self.exp._runOnce
+
+        script = self.exp.writeScript()
+        assert code + '\n' in script
+
+    def test_runOnceMultipleStatements(self):
+        code_0 = 'foo bar baz'
+        self.exp.runOnce(code_0)
+
+        code_1 = 'bla bla bla'
+        self.exp.runOnce(code_1)
+
+        assert code_0 in self.exp._runOnce
+        assert code_1 in self.exp._runOnce
+
+        script = self.exp.writeScript()
+        assert (code_0 + '\n' + code_1 + '\n') in script
