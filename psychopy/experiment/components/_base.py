@@ -93,18 +93,20 @@ class BaseComponent(object):
 
         self.order = ['name']  # name first, then timing, then others
 
+    def writeInitCode(self, buff):
+        """Write any code that a component needs that should only ever be done
+        at start of an experiment, BEFORE window creation.
+        """
+        pass
+
     def writeStartCode(self, buff):
         """Write any code that a component needs that should only ever be done
-        at start of an experiment (done once only)
+        at start of an experiment, AFTER window creation.
         """
         # e.g., create a data subdirectory unique to that component type.
         # Note: settings.writeStartCode() is done first, then
         # Routine.writeStartCode() will call this method for each component in
         # each routine
-        pass
-
-    def writeInitCode(self, buff):
-        """Doesn't seem to do much of anything"""
         pass
 
     def writeFrameCode(self, buff):
