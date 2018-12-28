@@ -16,7 +16,7 @@ from wx.lib import platebtn, scrolledpanel
 
 try:
     from wx import aui
-except Exception:
+except ImportError:
     import wx.lib.agw.aui as aui  # some versions of phoenix
 try:
     from wx.adv import PseudoDC

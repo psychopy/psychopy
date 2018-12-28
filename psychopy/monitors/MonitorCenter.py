@@ -689,10 +689,12 @@ class MainFrame(wx.Frame):
         response = dlg.ShowModal()
         dlg.Destroy()
         if response == wx.ID_YES:
-            # delete it
-            monitorFileName = os.path.join(monitors.monitorFolder,
-                                           monToDel + ".calib")
-            os.remove(monitorFileName)
+            # delete it (try to remove both calib and json files)
+            for fileEnding in ['.calib', '.json']:
+                monitorFileName = os.path.join(monitors.monitorFolder,
+                                               monToDel + fileEnding)
+                if os.path.exists(monitorFileName):
+                    os.remove(monitorFileName)
             self.currentMon = None
             self.currentMonName = None
             self.updateMonList()
@@ -749,7 +751,7 @@ class MainFrame(wx.Frame):
         if self.currentMon.getSizePix() is None:
             self.currentMon.setSizePix([0,0])
         newVal = unicodeToFloat(self.ctrlScrPixHoriz.GetValue())
-        this['sizePix'] = (newVal, this['sizePix'][1])
+        this['sizePix'] = [newVal, this['sizePix'][1]]
         self.unSavedMonitor = True
 
     def onChangeScrPixVert(self, event):
@@ -757,7 +759,7 @@ class MainFrame(wx.Frame):
         if self.currentMon.getSizePix() is None:
             self.currentMon.setSizePix([0,0])
         newVal = unicodeToFloat(self.ctrlScrPixVert.GetValue())
-        this['sizePix'] = (this['sizePix'][0], newVal)
+        this['sizePix'] = [this['sizePix'][0], newVal]
         self.unSavedMonitor = True
 
     # calib callbacks
