@@ -82,6 +82,8 @@ class Experiment(object):
                 'logging', 'clock')
         self.requirePsychopyLibs(libs=libs)
 
+        self._runOnce = []
+
         _settingsComp = getComponents(fetchIcons=False)['SettingsComponent']
         self.settings = _settingsComp(parentName='', exp=self)
         # this will be the xml.dom.minidom.doc object for saving
@@ -112,8 +114,7 @@ class Experiment(object):
                                importFrom='psychopy')
 
     def requireImport(self, importName, importFrom='', importAs=''):
-        """
-        Add a top-level import to the experiment.
+        """Add a top-level import to the experiment.
 
         Parameters
         ----------
@@ -130,6 +131,29 @@ class Experiment(object):
 
         if import_ not in self.requiredImports:
             self.requiredImports.append(import_)
+
+    def runOnce(self, code):
+        """Add code to the experiment that is only run exactly once, after
+        all `import`s were done.
+
+        Parameters
+        ----------
+        code : str
+            The code to run. May include newline characters to wrtie several
+            lines of code at once.
+
+        Notes
+        -----
+        For running an `import`, use meth:~`Experiment.requireImport` or
+        :meth:~`Experiment.requirePsychopyLibs` instead.
+
+        See also
+        --------
+        :meth:~`Experiment.requireImport`,
+        :meth:~`Experiment.requirePsychopyLibs`
+        """
+        if code not in self._runOnce:
+            self._runOnce.append(code)
 
     def addRoutine(self, routineName, routine=None):
         """Add a Routine to the current list of them.

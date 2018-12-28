@@ -5,7 +5,7 @@
 
 By default PsychoPy will try to use the following Libs, in this order, for
 sound reproduction but you can alter the order in
-preferences > general > audioLib:
+preferences > hardware > audioLib:
     ['sounddevice', 'pygame', 'pyo']
 For portaudio-based backends (all except for pygame) there is also a
 choice of the underlying sound driver (e.g. ASIO, CoreAudio etc).
@@ -65,9 +65,9 @@ _audioLibs = ['sounddevice', 'pyo', 'pysoundcard', 'pygame']
 travisCI = bool(str(os.environ.get('TRAVIS')).lower() == 'true')
 if travisCI:
     # for sounddevice we built in some TravisCI protection but not in pyo
-    prefs.general['audioLib'] = ['sounddevice']
+    prefs.hardware['audioLib'] = ['sounddevice']
 
-for thisLibName in prefs.general['audioLib']:
+for thisLibName in prefs.hardware['audioLib']:
 
     try:
         if thisLibName == 'pyo':
@@ -104,7 +104,7 @@ if audioLib is None:
     raise exceptions.DependencyError(
             "No sound libs could be loaded. Tried: {}\n"
             "Check whether the necessary sound libs are installed"
-            .format(prefs.general['audioLib']))
+            .format(prefs.hardware['audioLib']))
 
 # function to set the device (if current lib allows it)
 def setDevice(dev, kind=None):
@@ -133,14 +133,14 @@ def setDevice(dev, kind=None):
 
 # Set the device according to user prefs (if current lib allows it)
 if hasattr(backend, 'defaultOutput'):
-    pref = prefs.general['audioDevice']
+    pref = prefs.hardware['audioDevice']
     # is it a list or a simple string?
-    if type(prefs.general['audioDevice'])==list:
+    if type(prefs.hardware['audioDevice'])==list:
         # multiple options so use zeroth
-        dev = prefs.general['audioDevice'][0]
+        dev = prefs.hardware['audioDevice'][0]
     else:
         # a single option
-        dev = prefs.general['audioDevice']
+        dev = prefs.hardware['audioDevice']
     # is it simply "default" (do nothing)
     if dev=='default' or travisCI:
         pass  # do nothing

@@ -34,16 +34,8 @@
     version = string(default='')
     # Add paths here to your custom Python modules
     paths=list(default=list())
-    # choice of audio library
-    audioLib = list(default=list('sounddevice', 'pyo', 'pygame'))
-    # audio driver to use
-    audioDriver = list(default=list('portaudio'))
-    # audio device to use (if audioLib allows control)
-    audioDevice = list(default=list('default'))
     # path to flac (lossless audio compression) on this operating system
     flac = string(default='')
-    # a list of parallel ports
-    parallelPorts = list(default=list('0x0378', '0x03BC'))
     # Shutdown keys, following the pyglet naming scheme.
     shutdownKey = string(default='')
     # Modifier keys for shutdown keys
@@ -111,6 +103,18 @@
     alwaysShowReadme = boolean(default=True)
     # Upper limit on how many components can be in favorites
     maxFavorites = integer(default=10)
+
+[hardware]
+    # choice of audio library
+    audioLib = list(default=list('sounddevice', 'pyo', 'pygame'))
+    # audio driver to use
+    audioDriver = list(default=list('portaudio'))
+    # audio device to use (if audioLib allows control)
+    audioDevice = list(default=list('default'))
+    # a list of parallel ports
+    parallelPorts = list(default=list('0x0378', '0x03BC'))
+    # The name of the Qmix pump configuration to use
+    qmixConfiguration = string(default='qmix_config')
 
 # Settings for connections
 [connections]
