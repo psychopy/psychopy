@@ -51,7 +51,7 @@ def fromFile(filename):
             if hasattr(contents, 'abort'):
                 contents.abort()
     elif filename.endswith('.json'):
-        with open(filename, 'r') as f:
+        with codecs.open(filename, 'r', encoding='utf-8-sig') as f:
             contents = json_tricks.load(f)
 
             # Restore RNG if we load a TrialHandler2 object.
@@ -93,7 +93,7 @@ def mergeFolder(src, dst, pattern=None):
 
 
 def openOutputFile(fileName=None, append=False, fileCollisionMethod='rename',
-                   encoding='utf-8'):
+                   encoding='utf-8-sig'):
     """Open an output file (or standard output) for writing.
 
     :Parameters:

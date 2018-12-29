@@ -51,14 +51,14 @@ class TestOpenOutputFile(object):
 
     def test_default_parameters(self):
         f = openOutputFile(self.baseFileName)
-        assert f.encoding == 'utf-8'
+        assert f.encoding == 'utf-8-sig'
         assert f.closed is False
         assert f.stream.mode == 'wb'
         f.close()
 
     def test_append(self):
         f = openOutputFile(self.baseFileName, append=True)
-        assert f.encoding == 'utf-8'
+        assert f.encoding == 'utf-8-sig'
         assert f.closed is False
         assert f.stream.mode == 'ab'
         f.close()

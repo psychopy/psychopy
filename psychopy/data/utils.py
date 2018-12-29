@@ -259,7 +259,7 @@ def importConditions(fileName, returnFieldNames=False, selection=""):
                         # val = eval('%s' %unicode(val.decode('utf8')))
                         val = eval(val)
                 elif type(val) == np.string_:
-                    val = str(val.decode('utf-8'))
+                    val = str(val.decode('utf-8-sig'))
                     # if it looks like a list, convert it:
                     if val.startswith('[') and val.endswith(']'):
                         # val = eval('%s' %unicode(val.decode('utf8')))
@@ -270,19 +270,15 @@ def importConditions(fileName, returnFieldNames=False, selection=""):
             trialList.append(thisTrial)
         return trialList, fieldNames
 
-    if fileName.endswith('.csv'):
-        with open(fileName, 'rU') as fileUniv:
-            # use pandas reader, which can handle commas in fields, etc
-            trialsArr = pd.read_csv(fileUniv, encoding='utf-8')
+    if fileName.endswith('.csv') or (fileName.endswith(('.xlsx','.xls'))
+                                     and haveXlrd):
+        if fileName.endswith('.csv'):
+            trialsArr = pd.read_csv(fileName, encoding='utf-8-sig')
             logging.debug(u"Read csv file with pandas: {}".format(fileName))
-            unnamed = trialsArr.columns.to_series().str.contains('^Unnamed: ')
-            trialsArr = trialsArr.loc[:, ~unnamed]  # clear unnamed cols
-            logging.debug(u"Clearing unnamed columns from {}".format(fileName))
-            trialList, fieldNames = pandasToDictList(trialsArr)
+        else:
+            trialsArr = pd.read_excel(fileName)
+            logging.debug(u"Read Excel file with pandas: {}".format(fileName))
 
-    elif fileName.endswith(('.xlsx','.xls')) and haveXlrd:
-        trialsArr = pd.read_excel(fileName)
-        logging.debug(u"Read excel file with pandas: {}".format(fileName))
         unnamed = trialsArr.columns.to_series().str.contains('^Unnamed: ')
         trialsArr = trialsArr.loc[:, ~unnamed]  # clear unnamed cols
         logging.debug(u"Clearing unnamed columns from {}".format(fileName))
