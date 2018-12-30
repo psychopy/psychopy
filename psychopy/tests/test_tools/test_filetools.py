@@ -8,13 +8,14 @@ import os
 import sys
 import json
 import pickle
+import codecs
 import pytest
 
 from builtins import zip
 from builtins import object
 from tempfile import mkdtemp, mkstemp
 from psychopy.tools.filetools import (genDelimiter, genFilenameFromDelimiter,
-                                      openOutputFile)
+                                      openOutputFile, fromFile)
 from psychopy.constants import PY3
 
 
@@ -50,18 +51,16 @@ class TestOpenOutputFile(object):
         shutil.rmtree(self.temp_dir)
 
     def test_default_parameters(self):
-        f = openOutputFile(self.baseFileName)
-        assert f.encoding == 'utf-8-sig'
-        assert f.closed is False
-        assert f.stream.mode == 'wb'
-        f.close()
+        with openOutputFile(self.baseFileName) as f:
+            assert f.encoding == 'utf-8-sig'
+            assert f.closed is False
+            assert f.stream.mode == 'wb'
 
     def test_append(self):
-        f = openOutputFile(self.baseFileName, append=True)
-        assert f.encoding == 'utf-8-sig'
-        assert f.closed is False
-        assert f.stream.mode == 'ab'
-        f.close()
+        with openOutputFile(self.baseFileName, append=True) as f:
+            assert f.encoding == 'utf-8-sig'
+            assert f.closed is False
+            assert f.stream.mode == 'ab'
 
     def test_stdout(self):
         f = openOutputFile(None)
@@ -102,6 +101,28 @@ class TestFromFile(object):
             loaded_data = json.load(f)
 
         assert test_data == loaded_data
+
+    def test_json_encoding(self):
+        _, path_0 = mkstemp(dir=self.tmp_dir, suffix='.json')
+        _, path_1 = mkstemp(dir=self.tmp_dir, suffix='.json')
+        encoding_0 = 'utf-8'
+        encoding_1 = 'utf-8-sig'
+
+        test_data = 'Test'
+
+        if PY3:
+            with open(path_0, 'w', encoding=encoding_0) as f:
+                json.dump(test_data, f)
+            with open(path_1, 'w', encoding=encoding_1) as f:
+                json.dump(test_data, f)
+        else:
+            with codecs.open(path_0, 'w', encoding=encoding_0) as f:
+                json.dump(test_data, f)
+            with codecs.open(path_1, 'w', encoding=encoding_1) as f:
+                json.dump(test_data, f)
+
+        assert test_data == fromFile(path_0, encoding=encoding_0)
+        assert test_data == fromFile(path_1, encoding=encoding_1)
 
     def test_pickle(self):
         _, path = mkstemp(dir=self.tmp_dir, suffix='.psydat')

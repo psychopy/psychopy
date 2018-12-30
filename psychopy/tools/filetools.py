@@ -39,8 +39,15 @@ def toFile(filename, data):
     f.close()
 
 
-def fromFile(filename):
+def fromFile(filename, encoding='utf-8'):
     """Load data from a pickle or JSON file.
+
+    Parameters
+    ----------
+    encoding : str
+        The encoding to use when reading a JSON file. This parameter will be
+        ignored for any other file type.
+
     """
     filename = pathToString(filename)
     if filename.endswith('.psydat'):
@@ -51,7 +58,7 @@ def fromFile(filename):
             if hasattr(contents, 'abort'):
                 contents.abort()
     elif filename.endswith('.json'):
-        with codecs.open(filename, 'r', encoding='utf-8') as f:
+        with codecs.open(filename, 'r', encoding=encoding) as f:
             contents = json_tricks.load(f)
 
             # Restore RNG if we load a TrialHandler2 object.
