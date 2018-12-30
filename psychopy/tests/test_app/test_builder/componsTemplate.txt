@@ -3794,6 +3794,18 @@ SettingsComponent.exportHTML.staticUpdater:None
 SettingsComponent.exportHTML.updates:None
 SettingsComponent.exportHTML.val:on Sync
 SettingsComponent.exportHTML.valType:str
+SettingsComponent.flipAfterRoutine.default:True
+SettingsComponent.flipAfterRoutine.allowedTypes:[]
+SettingsComponent.flipAfterRoutine.allowedUpdates:None
+SettingsComponent.flipAfterRoutine.allowedVals:[]
+SettingsComponent.flipAfterRoutine.categ:Screen
+SettingsComponent.flipAfterRoutine.hint:Clear (flip) the screen after the last component of a Routine has finished
+SettingsComponent.flipAfterRoutine.label:Flip at Routine end
+SettingsComponent.flipAfterRoutine.readOnly:False
+SettingsComponent.flipAfterRoutine.staticUpdater:None
+SettingsComponent.flipAfterRoutine.updates:None
+SettingsComponent.flipAfterRoutine.val:True
+SettingsComponent.flipAfterRoutine.valType:bool
 SettingsComponent.logging level.default:exp
 SettingsComponent.logging level.allowedTypes:[]
 SettingsComponent.logging level.allowedUpdates:None

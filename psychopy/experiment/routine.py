@@ -188,11 +188,15 @@ class Routine(list):
                     'if endExpNow or event.getKeys(keyList=["escape"]):\n'
                     '    core.quit()\n')
             buff.writeIndentedLines(code)
+
         # update screen
-        code = ('\n# refresh the screen\n'
-                "if continueRoutine:  # don't flip if this routine is over "
-                "or we'll get a blank screen\n"
-                '    win.flip()\n')
+        if self.exp.settings.params['flipAfterRoutine'].val:
+            code = ('\n# refresh the screen\n'
+                    'win.flip()\n')
+        else:
+            code = ("\n# refresh the screen\n"
+                    "if continueRoutine:  # don't flip if this routine is over\n"
+                    "    win.flip()\n")
         buff.writeIndentedLines(code)
 
         # that's done decrement indent to end loop

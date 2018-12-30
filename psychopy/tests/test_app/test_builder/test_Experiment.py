@@ -3,6 +3,8 @@ from past.builtins import execfile
 from builtins import object
 
 import psychopy.experiment
+from psychopy.experiment.routine import Routine
+from psychopy.experiment.flow import Flow
 from psychopy.experiment._experiment import RequiredImport
 from os import path
 import os, shutil, glob, sys
@@ -489,3 +491,32 @@ class TestRunOnce(object):
 
         script = self.exp.writeScript()
         assert (code_0 + '\n' + code_1 + '\n') in script
+
+
+class TestFlipAfterRoutine(object):
+    def setup(self):
+        self.exp = psychopy.experiment.Experiment()
+        self.routine = Routine(name='TestRoutine', exp=self.exp)
+        self.flow = Flow(self.exp)
+        self.flow.addRoutine(self.routine, pos=0)
+        self.exp.flow = self.flow
+
+    def test_default(self):
+        assert self.exp.settings.params['flipAfterRoutine'].val is True
+
+    def test_true(self):
+        self.exp.settings.params['flipAfterRoutine'].val = True
+        script = self.exp.writeScript()
+        print(script)
+        code = ('    # refresh the screen\n'
+                '    win.flip()\n')
+        assert code in script
+
+    def test_false(self):
+        self.exp.settings.params['flipAfterRoutine'].val = False
+
+        script = self.exp.writeScript()
+        code = ("    # refresh the screen\n"
+                "    if continueRoutine:  # don't flip if this routine is over\n"
+                "        win.flip()\n")
+        assert code in script

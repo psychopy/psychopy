@@ -49,6 +49,7 @@ _localized = {'expName': _translate("Experiment name"),
               'colorSpace':  _translate("Color space"),
               'Units':  _translate("Units"),
               'blendMode':   _translate("Blend mode"),
+              'flipAfterRoutine': _translate("Flip at Routine end"),
               'Show mouse':  _translate("Show mouse"),
               'Save log file':  _translate("Save log file"),
               'Save wide csv file':
@@ -85,6 +86,7 @@ thisFolder = os.path.split(__file__)[0]
 #     def allowedVals(self, allowed):
 #         pass
 
+
 class SettingsComponent(object):
     """This component stores general info about how to run the experiment
     """
@@ -95,7 +97,7 @@ class SettingsComponent(object):
                  expInfo="{'participant':'', 'session':'001'}",
                  units='use prefs', logging='exp',
                  color='$[0,0,0]', colorSpace='rgb', enableEscape=True,
-                 blendMode='avg',
+                 blendMode='avg', flipAfterRoutine=True,
                  saveXLSXFile=False, saveCSVFile=False,
                  saveWideCSVFile=True, savePsydatFile=True,
                  savedDataFolder='',
@@ -125,7 +127,8 @@ class SettingsComponent(object):
                       'Save log file', 'logging level',
                       'Monitor', 'Screen', 'Full-screen window',
                       'Window size (pixels)',
-                      'color', 'colorSpace', 'Units', 'HTML path']
+                      'color', 'colorSpace', 'Units', 'blendMode',
+                      'Show mouse', 'flipAfterRoutine', 'HTML path']
         # basic params
         self.params['expName'] = Param(
             expName, valType='str', allowedTypes=[],
@@ -207,6 +210,11 @@ class SettingsComponent(object):
             showMouse, valType='bool', allowedTypes=[],
             hint=_translate("Should the mouse be visible on screen?"),
             label=_localized["Show mouse"], categ='Screen')
+        self.params['flipAfterRoutine'] = Param(
+            flipAfterRoutine, valType='bool', allowedTypes=[],
+            hint=_translate('Clear (flip) the screen after the last component '
+                            'of a Routine has finished'),
+            label=_localized['flipAfterRoutine'], categ='Screen')
 
         # data params
         self.params['Data filename'] = Param(
