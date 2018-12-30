@@ -725,7 +725,7 @@ class TrialHandler(_BaseTrialHandler):
 
     def saveAsJson(self,
                    fileName=None,
-                   encoding='utf-8-sig',
+                   encoding='utf-8',
                    fileCollisionMethod='rename'):
         raise NotImplementedError('Not implemented for TrialHandler.')
 
@@ -1125,7 +1125,7 @@ class TrialHandler2(_BaseTrialHandler):
 
     def saveAsJson(self,
                    fileName=None,
-                   encoding='utf-8-sig',
+                   encoding='utf-8',
                    fileCollisionMethod='rename'):
         """
         Serialize the object to the JSON format.
@@ -1894,6 +1894,6 @@ class TrialHandlerExt(TrialHandler):
 
     def saveAsJson(self,
                    fileName=None,
-                   encoding='utf-8-sig',
+                   encoding='utf-8',
                    fileCollisionMethod='rename'):
         raise NotImplementedError('Not implemented for TrialHandlerExt.')

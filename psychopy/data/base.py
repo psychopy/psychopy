@@ -369,7 +369,7 @@ class _BaseTrialHandler(_ComparisonMixin):
 
     def saveAsJson(self,
                    fileName=None,
-                   encoding='utf-8-sig',
+                   encoding='utf-8',
                    fileCollisionMethod='rename'):
         """
         Serialize the object to the JSON format.

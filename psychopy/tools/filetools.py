@@ -51,7 +51,7 @@ def fromFile(filename):
             if hasattr(contents, 'abort'):
                 contents.abort()
     elif filename.endswith('.json'):
-        with codecs.open(filename, 'r', encoding='utf-8-sig') as f:
+        with codecs.open(filename, 'r', encoding='utf-8') as f:
             contents = json_tricks.load(f)
 
             # Restore RNG if we load a TrialHandler2 object.
