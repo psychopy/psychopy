@@ -78,31 +78,7 @@ class TestFromFile(object):
     def teardown(self):
         shutil.rmtree(self.tmp_dir)
 
-    def test_text(self):
-        _, path = mkstemp(dir=self.tmp_dir, suffix='.txt')
-
-        test_data = 'Test'
-        with open(path, 'w') as f:
-            f.write(test_data)
-
-        with open(path, 'r') as f:
-            loaded_data = f.read()
-
-        assert test_data == loaded_data
-
-    def test_json(self):
-        _, path = mkstemp(dir=self.tmp_dir, suffix='.json')
-
-        test_data = 'Test'
-        with open(path, 'w') as f:
-            json.dump(test_data, f)
-
-        with open(path, 'r') as f:
-            loaded_data = json.load(f)
-
-        assert test_data == loaded_data
-
-    def test_json_encoding(self):
+    def test_json_with_encoding(self):
         _, path_0 = mkstemp(dir=self.tmp_dir, suffix='.json')
         _, path_1 = mkstemp(dir=self.tmp_dir, suffix='.json')
         encoding_0 = 'utf-8'
@@ -131,10 +107,7 @@ class TestFromFile(object):
         with open(path, 'wb') as f:
             pickle.dump(test_data, f)
 
-        with open(path, 'rb') as f:
-            loaded_data = pickle.load(f)
-
-        assert test_data == loaded_data
+        assert test_data == fromFile(path)
 
     def test_cPickle(self):
         if PY3:
@@ -148,10 +121,7 @@ class TestFromFile(object):
         with open(path, 'wb') as f:
             cPickle.dump(test_data, f)
 
-        with open(path, 'rb') as f:
-            loaded_data = cPickle.load(f)
-
-        assert test_data == loaded_data
+        assert test_data == fromFile(path)
 
 
 if __name__ == '__main__':
