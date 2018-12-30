@@ -507,14 +507,12 @@ class TestFlipAfterRoutine(object):
     def test_true(self):
         self.exp.settings.params['flipAfterRoutine'].val = True
         script = self.exp.writeScript()
-        print(script)
         code = ('    # refresh the screen\n'
                 '    win.flip()\n')
         assert code in script
 
     def test_false(self):
         self.exp.settings.params['flipAfterRoutine'].val = False
-
         script = self.exp.writeScript()
         code = ("    # refresh the screen\n"
                 "    if continueRoutine:  # don't flip if this routine is over\n"
