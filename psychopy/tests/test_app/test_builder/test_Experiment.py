@@ -327,7 +327,6 @@ class TestExpt(object):
             f.write(text)
 
         self.exp.loadFromXML(expfile)  # reload the edited file
-        self.exp.settings.params['logging level'].val = 'error'
         script = self.exp.writeScript()
 
         # reposition its window out from under splashscreen (can't do easily from .psyexp):
@@ -342,8 +341,7 @@ class TestExpt(object):
 
         # run:
         stdout, stderr = core.shellCall([sys.executable, lastrun], stderr=True)
-        assert not len(stderr), stderr  # printing stderr if it's greater than zero
-
+        assert not stderr
 
     def test_Exp_AddRoutine(self):
         self.exp.addRoutine('instructions')
