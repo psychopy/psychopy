@@ -12,19 +12,19 @@ matrix:
 #      env: DISPLAY=:99.0 AUDIODEV=null
 
     - os: linux
-      env: ANACONDA=true PYTHON_VERSION=2.7 WXPYTHON=3 OPENPYXL=2.4 DISPLAY=:99.0 AUDIODEV=null
+      env: CONDA=true PYTHON_VERSION=2.7 WXPYTHON=3 OPENPYXL=2.4 DISPLAY=:99.0 AUDIODEV=null
 
     - os: linux
-      env: ANACONDA=true PYTHON_VERSION=2.7 WXPYTHON=4 OPENPYXL=2.4 DISPLAY=:99.0 AUDIODEV=null
+      env: CONDA=true PYTHON_VERSION=2.7 WXPYTHON=4 OPENPYXL=2.4 DISPLAY=:99.0 AUDIODEV=null
 
     - os: linux
-      env: ANACONDA=true PYTHON_VERSION=2.7 WXPYTHON=3 OPENPYXL=2.5 DISPLAY=:99.0 AUDIODEV=null
+      env: CONDA=true PYTHON_VERSION=2.7 WXPYTHON=3 OPENPYXL=2.5 DISPLAY=:99.0 AUDIODEV=null
 
     - os: linux
-      env: ANACONDA=true PYTHON_VERSION=3.6 DISPLAY=:99.0 AUDIODEV=null
+      env: CONDA=true PYTHON_VERSION=3.6 DISPLAY=:99.0 AUDIODEV=null
 
     - os: linux
-      env: ANACONDA=true PYTHON_VERSION=3.7 DISPLAY=:99.0 AUDIODEV=null
+      env: CONDA=true PYTHON_VERSION=3.7 DISPLAY=:99.0 AUDIODEV=null
 
 #  allow_failures:
 #    - python: "2.7_with_system_site_packages"
@@ -36,7 +36,7 @@ before_install:
 
   # Install & activate conda environment if requested; otherwise,
   # install system Python dependencies.
-  - if [ -n "$ANACONDA" ]; then
+  - if [ -n "$CONDA" ]; then
       ./travis/20_install_miniconda_python.sh;
       source ~/miniconda/bin/activate psychopy-conda;
     else
