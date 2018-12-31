@@ -4,15 +4,17 @@ channels:
 - defaults
 dependencies:
 - python=2.7
+- arabic_reshaper
 - astunparse
 - backports
 - bzip2
 - cffi
 - codecov
 - coveralls
+- esprima-python
 - gitpython
 - ffmpeg
-- freetype
+- freetype-py
 - future
 - gevent
 - greenlet
@@ -52,6 +54,7 @@ dependencies:
 - six
 - pyglet>=1.3
 - pytables
+- python-gitlab
 - urllib3
 - wheel
 - xlrd
@@ -65,11 +68,7 @@ dependencies:
 - wxpython!=4.0.2,!=4.0.3
 - zlib
 - pip:
-  - arabic_reshaper
-  - esprima
   - et-xmlfile
-  - freetype-py
   - prompt-toolkit
   - pygame
   - pyparallel
-  - python-gitlab
