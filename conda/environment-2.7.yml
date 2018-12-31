@@ -68,7 +68,5 @@ dependencies:
 - wxpython!=4.0.2,!=4.0.3
 - zlib
 - pip:
-  - et-xmlfile
-  - prompt-toolkit
   - pygame
   - pyparallel
