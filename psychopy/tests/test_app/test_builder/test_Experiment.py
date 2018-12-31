@@ -4,6 +4,7 @@ from builtins import object
 
 import psychopy.experiment
 from psychopy.experiment._experiment import RequiredImport
+from psychopy.tests.utils import TESTS_FONT
 from os import path
 import os, shutil, glob, sys
 import py_compile
@@ -15,7 +16,7 @@ import pytest
 import locale
 from lxml import etree
 import numpy
-
+import sys
 
 # Jeremy Gray March 2011
 
@@ -304,45 +305,45 @@ class TestExpt(object):
         dat = numpy.recfromcsv(f, case_sensitive=True)
         f.close()
         assert len(dat)==8 # because 4 'blocks' with 2 trials each (3 stims per trial)
+
     def test_Run_FastStroopPsyExp(self):
         # start from a psyexp file, loadXML, execute, get keypresses from a emulator thread
-
-        pytest.skip()  # test is stalling, hangs up before any text is displayed
-
         if sys.platform.startswith('linux'):
             pytest.skip("response emulation thread not working on linux yet")
 
         expfile = path.join(self.exp.prefsPaths['tests'], 'data', 'ghost_stroop.psyexp')
-        f = codecs.open(file, 'r', 'utf-8')
-        text = f.read()
-        f.close()
+        with codecs.open(expfile, 'r', encoding='utf-8') as f:
+            text = f.read()
 
         # copy conditions file to tmp_dir
         shutil.copyfile(os.path.join(self.exp.prefsPaths['tests'], 'data', 'ghost_trialTypes.xlsx'),
                         os.path.join(self.tmp_dir,'ghost_trialTypes.xlsx'))
 
         # edit the file, to have a consistent font:
-        text = text.replace("'Arial'","'"+tests.utils.TESTS_FONT+"'")
-        #text = text.replace("Arial",tests.utils.TESTS_FONT) # fails
+        text = text.replace("'Arial'", "'" + TESTS_FONT +"'")
 
         expfile = path.join(self.tmp_dir, 'ghost_stroop.psyexp')
-        f = codecs.open(expfile, 'w', 'utf-8')
-        f.write(text)
-        f.close()
+        with codecs.open(expfile, 'w', encoding='utf-8') as f:
+            f.write(text)
 
-        self.exp.loadFromXML(expfile) # reload the edited file
-        lastrun = path.join(self.tmp_dir, 'ghost_stroop_lastrun.py')
-        script = self.exp.writeScript(expPath=file)
+        self.exp.loadFromXML(expfile)  # reload the edited file
+        self.exp.settings.params['logging level'].val = 'error'
+        script = self.exp.writeScript()
 
         # reposition its window out from under splashscreen (can't do easily from .psyexp):
-        text = script.replace('fullscr=False,','pos=(40,40), fullscr=False,')
-        f = codecs.open(lastrun, 'w', 'utf-8')
-        f.write(text)
-        f.close()
+        script = script.replace('fullscr=False,','pos=(40,40), fullscr=False,')
+        # Only log errors.
+        script = script.replace('logging.console.setLevel(logging.WARNING',
+                                'logging.console.setLevel(logging.ERROR')
+
+        lastrun = path.join(self.tmp_dir, 'ghost_stroop_lastrun.py')
+        with codecs.open(lastrun, 'w', encoding='utf-8') as f:
+            f.write(script)
 
         # run:
-        stdout, stderr = core.shellCall('python '+lastrun, stderr=True)
-        assert not len(stderr), stderr # printing stderr if it's greater than zero
+        stdout, stderr = core.shellCall([sys.executable, lastrun], stderr=True)
+        assert not len(stderr), stderr  # printing stderr if it's greater than zero
+
 
     def test_Exp_AddRoutine(self):
         self.exp.addRoutine('instructions')
