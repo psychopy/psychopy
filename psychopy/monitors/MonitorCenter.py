@@ -260,21 +260,21 @@ class MainFrame(wx.Frame):
         self.btnNewMon = wx.Button(parent, idBtnNewMon, _translate('New...'))
         self.Bind(wx.EVT_BUTTON, self.onNewMon, self.btnNewMon)
         monButtonsBox.Add(self.btnNewMon)
-        self.btnNewMon.SetToolTipString(
-            _translate("Create a new monitor"))
+        self.btnNewMon.SetToolTip(wx.ToolTip(
+            _translate("Create a new monitor")))
 
         self.btnSaveMon = wx.Button(parent, idBtnSaveMon, _translate('Save'))
         self.Bind(wx.EVT_BUTTON, self.onSaveMon, self.btnSaveMon)
         monButtonsBox.Add(self.btnSaveMon)
         msg = _translate("Save all calibrations for this monitor")
-        self.btnSaveMon.SetToolTipString(msg)
+        self.btnSaveMon.SetToolTip(wx.ToolTip(msg))
 
         self.btnDeleteMon = wx.Button(parent, idBtnDeleteMon,
                                       _translate('Delete'))
         self.Bind(wx.EVT_BUTTON, self.onDeleteMon, self.btnDeleteMon)
         monButtonsBox.Add(self.btnDeleteMon)
         msg = _translate("Delete this monitor entirely")
-        self.btnDeleteMon.SetToolTipString(msg)
+        self.btnDeleteMon.SetToolTip(wx.ToolTip(msg))
 
         self.ctrlCalibList = wx.ListBox(parent, idCtrlCalibList,
                                         choices=[''],
@@ -288,7 +288,7 @@ class MainFrame(wx.Frame):
         self.Bind(wx.EVT_BUTTON, self.onCopyCalib, self.btnCopyCalib)
         calibButtonsBox.Add(self.btnCopyCalib)
         msg = _translate("Creates a new calibration entry for this monitor")
-        self.btnCopyCalib.SetToolTipString(msg)
+        self.btnCopyCalib.SetToolTip(wx.ToolTip(msg))
 
         self.btnDeleteCalib = wx.Button(
             parent, idBtnDeleteCalib, _translate('Delete'))
@@ -296,7 +296,7 @@ class MainFrame(wx.Frame):
         calibButtonsBox.Add(self.btnDeleteCalib)
         msg = _translate("Remove this calibration entry (finalized when "
                          "monitor is saved)")
-        self.btnDeleteCalib.SetToolTipString(msg)
+        self.btnDeleteCalib.SetToolTip(wx.ToolTip(msg))
 
         # add controls to box
         adminBoxMainSizer = wx.FlexGridSizer(cols=2, hgap=6, vgap=6)
