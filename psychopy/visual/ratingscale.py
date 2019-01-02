@@ -702,7 +702,7 @@ class RatingScale(MinimalStim):
                     int(self.tickMarks) % 10 == 0):
                 self.autoRescaleFactor = 10
                 self.tickMarks /= self.autoRescaleFactor
-            tickMarkPositions = numpy.linspace(0, 1, self.tickMarks + 1)
+            tickMarkPositions = numpy.linspace(0, 1, int(self.tickMarks) + 1)
         self.scaledPrecision = float(self.precision * self.autoRescaleFactor)
 
         # how far a left or right key will move the marker, in tick units:
