@@ -12,7 +12,6 @@ source ./travis/travis_retry.bash
 
 travis_retry sudo apt-get install -qq xvfb xauth libgl1-mesa-dri libavbin0
 travis_retry sudo apt-get install -qq libportaudio2
-travis_retry sudo apt-get install -qq libav-tools  # this install ffmpeg
 travis_retry sudo apt-get install -qq libwebkitgtk-1.0-0
 
 # Locales
