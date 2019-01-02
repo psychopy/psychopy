@@ -17,6 +17,7 @@ import wx
 from wx import grid
 from wx.lib import intctrl
 
+from psychopy import constants
 from psychopy.localization import _translate
 from psychopy import monitors, hardware, logging
 from psychopy.app import dialogs
@@ -63,6 +64,8 @@ def unicodeToFloat(val):
     if val == 'None':
         val = None
     else:
+        if not constants.PY3 and type(val) == unicode:
+            val = val.encode('utf-8')
         try:
             val = locale.atof(val)
         except ValueError:
