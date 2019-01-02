@@ -9,6 +9,7 @@ source ./travis/travis_retry.bash
 # upgrade pip to 9.0.x because 10.0.x says cannot uninstall distutils so --upgrade fails
 travis_retry sudo pip install --upgrade -qq pip==9.0.3
 echo "Installing PsychoPy dependencies via apt..."
+travis_retry sudo apt-get install -qq flac
 travis_retry sudo apt-get install -qq python-xlib python-pygame python-opengl
 travis_retry sudo apt-get install -qq python-numpy python-scipy python-matplotlib python-pandas
 travis_retry sudo apt-get install -qq python-yaml python-lxml python-configobj
