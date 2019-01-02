@@ -1142,7 +1142,7 @@ class BuilderFrame(wx.Frame):
         stopBmp = wx.Bitmap(join(rc, 'stop%i.png' % tbSize), PNG)
         runBmp = wx.Bitmap(join(rc, 'run%i.png' % tbSize), PNG)
         compileBmp = wx.Bitmap(join(rc, 'compile%i.png' % tbSize), PNG)
-        settingsBmp = wx.Bitmap(join(rc, 'settingsExp%i.png' % tbSize), PNG)
+        settingsBmp = wx.Bitmap(join(rc, 'cogwindow%i.png' % tbSize), PNG)
         preferencesBmp = wx.Bitmap(join(rc, 'preferences%i.png' % tbSize),
                                    PNG)
         monitorsBmp = wx.Bitmap(join(rc, 'monitors%i.png' % tbSize), PNG)
