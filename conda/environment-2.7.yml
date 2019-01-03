@@ -18,6 +18,7 @@ dependencies:
 - greenlet
 - json_tricks
 - libffi
+- libflac
 - lxml
 - matplotlib
 - moviepy
