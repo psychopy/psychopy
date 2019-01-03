@@ -1,0 +1,170 @@
+/*!
+ * PsychoPy Boostrap CSS based on the Modern Business template
+ * Copyright 2013-2017 Start Bootstrap
+ * Licensed under MIT (https://github.com/BlackrockDigital/startbootstrap-logomodern-business-nav/blob/master/LICENSE)
+ */
+@import url("./bootswatch-3.3.7/readable/bootstrap.min.css");
+@import url("./bootstrap-sphinx.css");
+@import url("https://use.fontawesome.com/releases/v5.6.3/css/all.css");
+@import url("https://use.fontawesome.com/releases/v5.6.3/css/brands.css");
+@import url("https://use.fontawesome.com/releases/v5.6.3/css/fontawesome.css");
+
+body {
+  padding-top: 54px;
+}
+
+.large-logo img {
+	position: absolute;
+	top: -84px;
+	left: 20px;
+	width: 180px!important;
+  height: auto;
+}
+
+.small-logo img {
+	display: none;
+	height: 60px;
+	top: 14px;
+	width: auto!important;
+}
+
+@media (max-width: 768px) {
+  .large-logo {
+    display: none;
+  }
+  .small-logo img {
+    display: block;
+  }
+  .social-bar {
+    display: none;
+  }
+  body {
+    padding-top: 80px;
+  }
+  .container {
+    padding-right: 15px;
+    padding-left: 15px;
+  }
+}
+
+@media (min-width: 769px) {
+  .large-logo {
+    display: block;
+  }
+  .small-logo img {
+    display: none;
+  }
+  .social-bar {
+    display: block;
+  }
+  body {
+    padding-top: 80px;
+  }
+  .container {
+    padding-right: 100px;
+    padding-left: 100px;
+  }
+}
+
+/* @media (min-width: 992px) {
+  body {
+    padding-top: 56px;
+  }
+} */
+
+.carousel-item {
+  height: 65vh;
+  min-height: 300px;
+  background: no-repeat center center scroll;
+  -webkit-background-size: cover;
+  -moz-background-size: cover;
+  -o-background-size: cover;
+  background-size: cover;
+}
+
+.portfolio-item {
+  margin-bottom: 30px;
+}
+
+/* Fixed/sticky icon bar (vertically aligned 50% from the top of the screen) */
+.social-bar {
+  position: fixed;
+  right: 0;
+  top: 150px;
+  -webkit-transform: translateY(-50%);
+  -ms-transform: translateY(-50%);
+  transform: translateY(-50%);
+}
+
+/* Style the icon bar links */
+.social-bar a {
+  display: block;
+  text-align: center;
+  padding-right: 16px;
+  padding-top: 8px;
+  padding-bottom: 8px;
+  transition: all 0.3s ease;
+  font-size: 20px;
+}
+
+/* Style the social media icons with color, if you want */
+.icon-bar a:hover {
+  background-color: #000;
+}
+
+.facebook {
+  /* background: white; */
+  color: #3B5998;
+}
+
+.twitter {
+  /* background: white; */
+  color: #55ACEE;
+}
+
+.google {
+  /* background: white; */
+  color: #dd4b39;
+}
+
+.github {
+  /* background: white; */
+  color: black;
+}
+
+.youtube {
+  /* background: white; */
+  color: #bb0000;
+}
+
+/* override the bootstrap max-widths to prevent jerky expanding */
+
+@media (max-width: 576px) {
+  .container {
+    max-width: 90%;
+  }
+}
+
+@media (min-width: 576px) {
+  .container {
+    max-width: 90%;
+  }
+}
+
+@media (min-width: 768px) {
+  .container {
+    max-width: 90%;
+  }
+}
+
+@media (min-width: 992px) {
+  .container {
+    max-width: 90%;
+  }
+}
+
+@media (min-width: 1200px) {
+  .container {
+    max-width: 100%;
+  }
+}

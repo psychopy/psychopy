@@ -1,4 +1,8 @@
 
+.. raw:: html
+
+	<br><br>
+
 PsychoPy is an open-source application allowing you run a wide range of neuroscience, psychology and psychophysics experiments. It's a free, powerful alternative to Presentation |TM| or e-Prime |TM|, written in Python (a free alternative to Matlab |TM| ).
 
 PsychoPy provides a unique choice of interface: use the **Builder interface** to build rich, flexible experiments easily or use the **Coder interface** to write extremely powerful experiments in the widely-used Python programming language. The best of both worlds!
@@ -39,8 +43,8 @@ Contents
 .. toctree::
    :maxdepth: 1
 
-   About PsychoPy (features, screenshots etc.) <about/index>
-   * Documentation * <documentation>
+   Features <about/index>
+   documentation
    api/api
    changelog
    resources/resources
