@@ -55,6 +55,7 @@ class SliderComponent(BaseVisualComponent):
     def __init__(self, exp, parentName,
                  name='slider',
                  labels='',
+                 labelHeight=.05,
                  ticks="(1, 2, 3, 4, 5)",
                  size='(1.0, 0.1)',
                  pos='(0, -0.4)',
@@ -76,11 +77,12 @@ class SliderComponent(BaseVisualComponent):
         self.type = 'SliderComponent'
         self.url = "http://www.psychopy.org/builder/components/slidercomponent.html"
         self.exp.requirePsychopyLibs(['visual', 'event'])
+        self.targets = ['PsychoPy', 'PsychoJS']
 
         # params
         self.order = ['name',
                       'size', 'pos',
-                      'ticks', 'labels', 'granularity',
+                      'ticks', 'labels', 'labelHeight', 'granularity',
                       'font','flip','color','styles',
                       ]
 
@@ -100,6 +102,12 @@ class SliderComponent(BaseVisualComponent):
                 hint=_translate("Labels for the tick marks on the scale, "
                                 "separated by commas"),
                 label=_localized['labels'])
+        self.params['labelHeight'] = Param(
+            labelHeight, valType='code', allowedTypes=[],
+            updates='constant',
+            allowedUpdates=['constant', 'set every repeat', 'set every frame'],
+            hint=_translate("Specifies the text height of labels"),
+            label=_translate('labelHeight'))
         self.params['granularity'] = Param(
                 granularity, valType='code', allowedTypes=[],
                 updates='constant',
@@ -159,6 +167,7 @@ class SliderComponent(BaseVisualComponent):
                         "Font for the labels"),
                 label=_translate('Font'),
                 categ='Appearance')
+
         self.params['styles'] = Param(
                 style, valType='fixedList',
                 updates='constant', allowedVals=knownStyles,
@@ -194,14 +203,31 @@ class SliderComponent(BaseVisualComponent):
         # build up an initialization string for Slider():
         initStr = ("{name} = visual.Slider(win=win, name='{name}',\n"
                    "    size={size}, pos={pos},\n"
-                   "    labels={labels}, ticks={ticks},\n"
+                   "    labels={labels}, ticks={ticks}, labelHeight={labelHeight},\n"
                    "    granularity={granularity}, style={styles},\n"
                    "    color={color}, font={font},\n"
                    "    flip={flip})\n"
                    .format(**inits))
         buff.writeIndented(initStr)
 
+    def writeInitCodeJS(self, buff):
+        inits = getInitVals(self.params)
+        # build up an initialization string for Slider():
+        initStr = ("{name} = new visual.Slider({{\n"
+                   "  win: psychoJS.window, name: '{name}',\n"
+                   "  size: {size}, pos: {pos},\n"
+                   "  labels: {labels}, ticks: {ticks}, labelHeight: {labelHeight},\n"
+                   "  granularity: {granularity}, style: {styles},\n"
+                   "  color: new util.Color({color}), font: {font},\n"
+                   "  flip: {flip},\n"
+                   "}});\n\n"
+                   .format(**inits))
+        buff.writeIndentedLines(initStr)
+
     def writeRoutineStartCode(self, buff):
+        buff.writeIndented("%(name)s.reset()\n" % (self.params))
+
+    def writeRoutineStartCodeJS(self, buff):
         buff.writeIndented("%(name)s.reset()\n" % (self.params))
 
     def writeFrameCode(self, buff):
@@ -211,6 +237,15 @@ class SliderComponent(BaseVisualComponent):
             code = ("\n# Check %(name)s for response to end routine\n"
                     "if %(name)s.getRating() is not None and %(name)s.status == STARTED:\n"
                     "    continueRoutine = False")
+            buff.writeIndentedLines(code % (self.params))
+
+    def writeFrameCodeJS(self, buff):
+        super(SliderComponent, self).writeFrameCodeJS(buff)  # Write basevisual frame code
+        forceEnd = self.params['forceEndRoutine'].val
+        if forceEnd:
+            code = ("\n// Check %(name)s for response to end routine\n"
+                    "if (%(name)s.getRating() !== 'undefined' && %(name)s.status === PsychoJS.Status.STARTED) {\n"
+                    "  continueRoutine = false; }\n")
             buff.writeIndentedLines(code % (self.params))
 
     def writeRoutineEndCode(self, buff):
@@ -242,3 +277,33 @@ class SliderComponent(BaseVisualComponent):
             if self.params['storeHistory'].val == True:
                 code = "%s.addData('%s.history', %s.getHistory())\n"
                 buff.writeIndented(code % (loopName, name, name))
+
+    def writeRoutineEndCodeJS(self, buff):
+        name = self.params['name']
+        if len(self.exp.flow._loopList):
+            currLoop = self.exp.flow._loopList[-1]  # last (outer-most) loop
+        else:
+            currLoop = self.exp._expHandler
+
+        # write the actual code
+        storeTime = self.params['storeRatingTime'].val
+        if self.params['storeRating'].val or storeTime:
+            if currLoop.type in ['StairHandler', 'QuestHandler']:
+                msg = ("/* NB PsychoPy doesn't handle a 'correct answer' "
+                       "for Slider events so doesn't know what to "
+                       "tell a StairHandler (or QuestHandler)*/\n")
+                buff.writeIndented(msg)
+            elif currLoop.type in ['TrialHandler', 'ExperimentHandler']:
+                loopName = currLoop.params['name']
+            else:
+                loopName = 'thisExp'
+
+            if self.params['storeRating'].val == True:
+                code = "psychoJS.experiment.addData('%s.response', %s.getRating());\n"
+                buff.writeIndented(code % (name, name))
+            if self.params['storeRatingTime'].val == True:
+                code = "psychoJS.experiment.addData('%s.rt', %s.getRT());\n"
+                buff.writeIndented(code % (name, name))
+            if self.params['storeHistory'].val == True:
+                code = "psychoJS.experiment.addData('%s.history', %s.getHistory());\n"
+                buff.writeIndented(code % (name, name))

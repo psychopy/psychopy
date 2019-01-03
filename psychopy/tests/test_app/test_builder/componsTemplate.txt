@@ -3881,7 +3881,7 @@ SettingsComponent.Units.valType:str
 SettingsComponent.Use version.default:''
 SettingsComponent.Use version.allowedTypes:[]
 SettingsComponent.Use version.allowedUpdates:None
-SettingsComponent.Use version.allowedVals:['latest', u'1', u'1.90', u'1.85', u'1.84', u'1.83', u'1.82', u'1.81', u'1.80', u'1.79', u'1.78', u'1.77', u'1.76', '', u'1.90.2', u'1.90.1', u'1.90.0', u'1.85.6', u'1.85.4', u'1.85.3', u'1.85.2', u'1.85.1', u'1.85.0', u'1.84.2', u'1.84.1', u'1.84.0', u'1.83.04', u'1.83.03', u'1.83.01', u'1.83.00', u'1.82.01', u'1.82.00', u'1.81.03', u'1.81.02', u'1.81.01', u'1.81.00', u'1.80.06', u'1.80.05', u'1.80.03', u'1.80.02', u'1.80.01', u'1.80.00', u'1.79.00', u'1.78.01', u'1.78.00', u'1.77.02', u'1.77.01', u'1.77.00', u'1.76.00']
+SettingsComponent.Use version.allowedVals:['latest', '1', '1.90', '1.85', '1.84', '1.83', '1.82', '1.81', '1.80', '1.79', '1.78', '1.77', '1.76', '', '1.90.2', '1.90.1', '1.90.0', '1.85.6', '1.85.4', '1.85.3', '1.85.2', '1.85.1', '1.85.0', '1.84.2', '1.84.1', '1.84.0', '1.83.04', '1.83.03', '1.83.01', '1.83.00', '1.82.01', '1.82.00', '1.81.03', '1.81.02', '1.81.01', '1.81.00', '1.80.06', '1.80.05', '1.80.03', '1.80.02', '1.80.01', '1.80.00', '1.79.00', '1.78.01', '1.78.00', '1.77.02', '1.77.01', '1.77.00', '1.76.00']
 SettingsComponent.Use version.categ:Basic
 SettingsComponent.Use version.hint:The version of PsychoPy to use when running the experiment.
 SettingsComponent.Use version.label:Use PsychoPy version
@@ -3974,7 +3974,7 @@ SettingsComponent.logging level.staticUpdater:None
 SettingsComponent.logging level.updates:None
 SettingsComponent.logging level.val:exp
 SettingsComponent.logging level.valType:code
-SliderComponent.order:['name', 'size', 'pos', 'ticks', 'labels', 'granularity', 'font', 'flip', 'color', 'styles']
+SliderComponent.order:['name', 'size', 'pos', 'ticks', 'labels', 'labelHeight', 'granularity', 'font', 'flip', 'color', 'styles']
 SliderComponent.color.default:'LightGray'
 SliderComponent.color.allowedTypes:[]
 SliderComponent.color.allowedUpdates:['constant', 'set every repeat', 'set every frame']
@@ -4059,6 +4059,18 @@ SliderComponent.granularity.staticUpdater:None
 SliderComponent.granularity.updates:constant
 SliderComponent.granularity.val:0
 SliderComponent.granularity.valType:code
+SliderComponent.labelHeight.default:0.05
+SliderComponent.labelHeight.allowedTypes:[]
+SliderComponent.labelHeight.allowedUpdates:['constant', 'set every repeat', 'set every frame']
+SliderComponent.labelHeight.allowedVals:[]
+SliderComponent.labelHeight.categ:Basic
+SliderComponent.labelHeight.hint:Specifies the text height of labels
+SliderComponent.labelHeight.label:labelHeight
+SliderComponent.labelHeight.readOnly:False
+SliderComponent.labelHeight.staticUpdater:None
+SliderComponent.labelHeight.updates:constant
+SliderComponent.labelHeight.val:0.05
+SliderComponent.labelHeight.valType:code
 SliderComponent.labels.default:[]
 SliderComponent.labels.allowedTypes:[]
 SliderComponent.labels.allowedUpdates:['constant', 'set every repeat']
@@ -4229,7 +4241,7 @@ SliderComponent.storeRatingTime.valType:bool
 SliderComponent.styles.default:['rating']
 SliderComponent.styles.allowedTypes:[]
 SliderComponent.styles.allowedUpdates:None
-SliderComponent.styles.allowedVals:['slider', 'rating', 'labels45', 'whiteOnBlack', 'triangleMarker']
+SliderComponent.styles.allowedVals:['slider', 'rating', 'radio', 'labels45', 'whiteOnBlack', 'triangleMarker']
 SliderComponent.styles.categ:Appearance
 SliderComponent.styles.hint:Styles determine the appearance of the slider
 SliderComponent.styles.label:Styles
