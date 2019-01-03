@@ -87,7 +87,8 @@ def useVersion(requestedVersion):
         _clone(requestedVersion)  # Allow the versions subdirectory to be built
 
     if constants.PY3:
-        py3Compatible = [ver for ver in availableVersions() if not re.search('(0|1).(7|8)', ver)]
+        py3Compatible = _versionFilter(versionOptions())
+        py3Compatible += _versionFilter(availableVersions())
         py3Compatible.reverse()
         if reqdMajorMinorPatch not in py3Compatible:
             msg = _translate("Please request a version of PsychoPy that is compatible with Python 3.\n"
