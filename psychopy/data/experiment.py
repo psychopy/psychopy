@@ -251,7 +251,7 @@ class ExperimentHandler(_ComparisonMixin):
                        delim=None,
                        matrixOnly=False,
                        appendFile=False,
-                       encoding='utf-8',
+                       encoding='utf-8-sig',
                        fileCollisionMethod='rename',
                        sortColumns=False):
         """Saves a long, wide-format text file, with one line representing
@@ -286,7 +286,7 @@ class ExperimentHandler(_ComparisonMixin):
 
             encoding:
                 The encoding to use when saving a the file.
-                Defaults to `utf-8`.
+                Defaults to `utf-8-sig`.
 
             fileCollisionMethod:
                 Collision method passed to

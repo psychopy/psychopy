@@ -16,7 +16,7 @@ from wx.lib import platebtn, scrolledpanel
 
 try:
     from wx import aui
-except Exception:
+except ImportError:
     import wx.lib.agw.aui as aui  # some versions of phoenix
 try:
     from wx.adv import PseudoDC
@@ -1142,7 +1142,7 @@ class BuilderFrame(wx.Frame):
         stopBmp = wx.Bitmap(join(rc, 'stop%i.png' % tbSize), PNG)
         runBmp = wx.Bitmap(join(rc, 'run%i.png' % tbSize), PNG)
         compileBmp = wx.Bitmap(join(rc, 'compile%i.png' % tbSize), PNG)
-        settingsBmp = wx.Bitmap(join(rc, 'settingsExp%i.png' % tbSize), PNG)
+        settingsBmp = wx.Bitmap(join(rc, 'cogwindow%i.png' % tbSize), PNG)
         preferencesBmp = wx.Bitmap(join(rc, 'preferences%i.png' % tbSize),
                                    PNG)
         monitorsBmp = wx.Bitmap(join(rc, 'monitors%i.png' % tbSize), PNG)
@@ -1350,6 +1350,7 @@ class BuilderFrame(wx.Frame):
         self.viewMenu = wx.Menu()
         menuBar.Append(self.viewMenu, _translate('&View'))
         menu = self.viewMenu
+
         item = menu.Append(wx.ID_ANY,
                            _translate("&Open Coder view\t%s") % keys[
                                'switchToCoder'],
@@ -1456,6 +1457,7 @@ class BuilderFrame(wx.Frame):
         self.helpMenu = wx.Menu()
         menuBar.Append(self.helpMenu, _translate('&Help'))
         menu = self.helpMenu
+
         item = menu.Append(wx.ID_ANY,
                            _translate("&PsychoPy Homepage"),
                            _translate("Go to the PsychoPy homepage"))
@@ -1473,6 +1475,13 @@ class BuilderFrame(wx.Frame):
         menu.Append(wx.ID_ABOUT, _translate(
             "&About..."), _translate("About PsychoPy"))
         self.Bind(wx.EVT_MENU, self.app.showAbout, id=wx.ID_ABOUT)
+
+        menu.AppendSeparator()
+
+        item = menu.Append(wx.ID_ANY,
+                           _translate("&News..."),
+                           _translate("News"))
+        self.Bind(wx.EVT_MENU, self.app.showNews, id=item.GetId())
 
         self.SetMenuBar(menuBar)
 

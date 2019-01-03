@@ -44,45 +44,59 @@ if prefs.connections['allowUsageStats']:
         'status': NOT_STARTED,
         'func': connections.sendUsageStats,
         'tstart': None, 'tEnd': None,
+        'thread': True,
     }
 else:
     tasks['sendUsageStats'] = {
         'status': SKIP,
         'func': connections.sendUsageStats,
         'tstart': None, 'tEnd': None,
+        'thread': True,
     }
 if prefs.connections['checkForUpdates']:
     tasks['checkForUpdates'] = {
         'status': SKIP,
         'func': connections.getLatestVersionInfo,
         'tstart': None, 'tEnd': None,
+        'thread': True,
     }
 else:
     tasks['checkForUpdates'] = {
         'status': SKIP,
         'func': connections.getLatestVersionInfo,
         'tstart': None, 'tEnd': None,
+        'thread': True,
     }
 
 tasks['checkNews'] = {
     'status': NOT_STARTED,
     'func': connections.getNewsItems,
     'tstart': None, 'tEnd': None,
+    'thread': True,
 }
 tasks['showTips'] = {
     'status': NOT_STARTED,
     'func': None,
     'tstart': None, 'tEnd': None,
+    'thread': True,
 }
 tasks['checkFFMPG'] = {
     'status': NOT_STARTED,
     'func': checkFFMPEG,
     'tstart': None, 'tEnd': None,
+    'thread': True,
 }
 tasks['updateVersionChooser'] = {
     'status': NOT_STARTED,
     'func': vc._remoteVersions,
     'tstart': None, 'tEnd': None,
+    'thread': True,
+}
+tasks['showNews'] = {
+    'status': NOT_STARTED,
+    'func': connections.showNews,
+    'tstart': None, 'tEnd': None,
+    'thread': False,
 }
 
 currentTask = None
@@ -91,7 +105,9 @@ currentTask = None
 def doIdleTasks(app=None):
     global currentTask
 
-    if currentTask and currentTask['thread'].is_alive():
+    if currentTask and currentTask['thread'] and \
+            currentTask['thread'].is_alive():
+        # is currently tunning in a thread
         return 0
 
     for taskName in tasks:
@@ -101,22 +117,24 @@ def doIdleTasks(app=None):
             currentTask = thisTask
             currentTask['tStart'] = time.time() - _t0
             currentTask['status'] = STARTED
-            logging.info('finished {} at {}'.format(taskName,
+            logging.debug('Started {} at {}'.format(taskName,
                                                     currentTask['tStart']))
             _doTask(taskName, app)
             return 0  # something is in motion
         elif thisStatus == STARTED:
-            if not currentTask['thread'].is_alive():
+            if not currentTask['thread'] \
+                    or not currentTask['thread'].is_alive():
                 # task finished so take note and pick another
                 currentTask['status'] = FINISHED
                 currentTask['thread'] = None
                 currentTask['tEnd'] = time.time() - _t0
-                logging.info('finished {} at {}'.format(taskName,
-                                                        currentTask['tEnd']))
+                logging.debug('Finished {} at {}'.format(taskName,
+                                                         currentTask['tEnd']))
                 currentTask = None
                 continue
             else:
                 return 0
+    logging.flush()
 
     return 1
 
@@ -130,7 +148,16 @@ def _doTask(taskName, app):
     else:
         args = (app,)
 
-    currentTask['thread'] = threading.Thread(
-            target=currentTask['func'], args=args)
-    # currentTask['thread'].daemon = True  # kill if the app quits
-    currentTask['thread'].start()
+    # if we need a thread then create one and keep track of it
+    if currentTask['thread'] == True:
+        currentTask['thread'] = threading.Thread(
+                target=currentTask['func'], args=args)
+        # currentTask['thread'].daemon = True  # kill if the app quits
+        currentTask['thread'].start()
+
+    else:  # otherwise run immediately
+        currentTask['func'](*args)
+        currentTask['status'] = FINISHED
+        currentTask['tEnd'] = time.time() - _t0
+        logging.debug('Finished {} at {}'.format(taskName,
+                                                 currentTask['tEnd']))
