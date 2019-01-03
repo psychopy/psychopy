@@ -225,6 +225,26 @@ def _remoteVersions(forceCheck=False):
     return _remoteVersionsCache
 
 
+def _versionFilter(versions):
+    """Returns all versions that are compatible with the Python version running PsychoPy
+
+    Parameters
+    ----------
+
+    versions: list
+        All available (valid) selections for the version to be chosen
+
+    Returns
+    -------
+    list
+        All valid selections for the version to be chosen that are compatible with Python version used
+    """
+
+    if constants.PY3:
+        return [V for V in versions if V == 'latest' or float(V[:3]) >= 1.9]
+    return versions
+
+
 def availableVersions(local=True, forceCheck=False):
     """Return all available (valid) selections for the version to be chosen.
     Use local=False to obtain those only available via download
@@ -232,6 +252,7 @@ def availableVersions(local=True, forceCheck=False):
 
     Everything returned has the form Major.minor.patchLevel, as strings.
     """
+
     if local:
         return _localVersions(forceCheck)
     else:
