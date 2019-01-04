@@ -34,9 +34,11 @@ dependencies:
 - pyosf
 - pyqt
 - pyserial
+- pysoundfile
 - pytest
 - pytest-cov
 - python-bidi
+- python-sounddevice
 - pyyaml
 - pyzmq
 - requests
@@ -44,6 +46,7 @@ dependencies:
 - setuptools
 - sip
 - six
+- pyglet>=1.3
 - pytables
 - urllib3
 - wheel
@@ -61,8 +64,5 @@ dependencies:
   - esprima
   - freetype-py
   - pygame
-  - pyglet
   - pyparallel
   - python-gitlab
-  - sounddevice
-  - soundfile

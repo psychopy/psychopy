@@ -16,6 +16,7 @@ and initialize an instance using the attributes of the Window.
 from __future__ import absolute_import, print_function
 import atexit
 import sys, os
+import glob
 import numpy as np
 from psychopy import logging, event, prefs
 from psychopy.tools.attributetools import attributeSetter
@@ -23,6 +24,12 @@ from .gamma import createLinearRamp
 from .. import globalVars
 from ._base import BaseBackend
 from PIL import Image
+
+# on mac Standalone app check for packaged libglfw dylib
+if prefs.paths['libs']:
+    _possLibPaths = glob.glob(os.path.join(self.paths['libs'], 'libglfw*'))
+    if _possLibPaths:
+        os.environ['PYGLFW_LIBRARY'] = _possLibPaths[0]
 
 import glfw
 # initialize the GLFW library on import

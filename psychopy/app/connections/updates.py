@@ -11,8 +11,6 @@ from builtins import object
 import sys
 import re
 import glob
-import time
-import platform
 import zipfile
 import os
 from pkg_resources import parse_version
@@ -24,12 +22,12 @@ except ImportError:
     import wx.lib.hyperlink as wxhl # <3.0.2
 
 import psychopy
-from . import dialogs
+from .. import dialogs
 from psychopy.localization import _translate
 from psychopy import logging
 from psychopy import web
-from psychopy.constants import PY3
-if PY3:
+from psychopy import constants
+if constants.PY3:
     import io
 else:
     import StringIO as io
@@ -43,21 +41,7 @@ InstallUpdateDialog (via Updater.doUpdate() ).
 """
 
 
-def makeConnections(app):
-    """A helper function to be launched from a thread. Will setup proxies and
-    check for updates. Run from a thread while the program continues to load.
-    """
-    if web.proxies is None:
-        web.setupProxy()
-    if web.proxies == 0:
-        return
-    if app.prefs.connections['allowUsageStats']:
-        sendUsageStats()
-    if app.prefs.connections['checkForUpdates']:
-        app._latestAvailableVersion = getLatestVersionInfo()
-
-
-def getLatestVersionInfo():
+def getLatestVersionInfo(app=None):
     """
     Fetch info about the latest available version.
     Returns -1 if fails to make a connection
@@ -71,13 +55,15 @@ def getLatestVersionInfo():
     for line in page.readlines():
         # in some odd circumstances (wifi hotspots) you can fetch a
         # page that is not the correct URL but a redirect
-        if PY3:
+        if constants.PY3:
             line = line.decode()  # convert from a byte to a str
         if line.find(':') == -1:
             return -1
             # this will succeed if every line has a key
         key, keyInfo = line.split(':')
         latest[key] = keyInfo.replace('\n', '').replace('\r', '')
+    if app:
+        app._latestAvailableVersion = latest
     return latest
 
 
@@ -456,7 +442,7 @@ class InstallUpdateDialog(wx.Dialog):
         otherwise try and retrieve a version number from zip file name
         """
         info = ""  # return this at the end
-        if PY3:
+        if constants.PY3:
             zfileIsName = type(zfile) == str
         else:
             zfileIsName = type(zfile) in (str, unicode)
@@ -642,7 +628,7 @@ def sendUsageStats():
         systemInfo = "win32_v" + platform.version()
     else:
         systemInfo = platform.system() + platform.release()
-    u = "http://lplwwppy01.nottingham.ac.uk/usage.php?date=%s&sys=%s&version=%s&misc=%s"
+    u = "http://www.psychopy.org/usage.php?date=%s&sys=%s&version=%s&misc=%s"
     URL = u % (dateNow, systemInfo, v, miscInfo)
     try:
         req = urllib.request.Request(URL)

@@ -388,6 +388,17 @@ def syncProject(parent, project=None, closeFrameWhenDone=False):
         project = parent.project  # type: pavlovia.PavloviaProject
 
     if not project:  # ask the user to create one
+
+        # if we're going to create a project we need user to be logged in
+        pavSession = pavlovia.getCurrentSession()
+        try:
+            username = pavSession.user.username
+        except:
+            username = logInPavlovia(parent)
+        if not username:
+            return -1  # never logged in
+
+        # create project dialog
         msg = _translate("This file doesn't belong to any existing project.")
         style = wx.OK | wx.CANCEL | wx.CENTER
         dlg = wx.MessageDialog(parent=parent, message=msg, style=style)
@@ -448,7 +459,7 @@ def syncProject(parent, project=None, closeFrameWhenDone=False):
         time.sleep(0.001)
         # git push -u origin master
         try:
-            project.firstPush(infoStream=syncFrame.syncPanel)
+            project.firstPush(infoStream=syncFrame.syncPanel.infoStream)
             project._newRemote = False
         except Exception as e:
             closeFrameWhenDone = False
@@ -456,7 +467,7 @@ def syncProject(parent, project=None, closeFrameWhenDone=False):
     else:
         # existing remote which we should sync (or clone)
         try:
-            ok = project.getRepo(syncFrame.syncPanel)
+            ok = project.getRepo(syncFrame.syncPanel.infoStream)
             if not ok:
                 closeFrameWhenDone = False
         except Exception as e:

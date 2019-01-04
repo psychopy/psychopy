@@ -171,7 +171,6 @@ class JoystickComponent(BaseComponent):
                 "%(name)s.device = None\n"
                 "%(name)s.device_number = %(deviceNumber)s\n"
                 "%(name)s.joystickClock = core.Clock()\n"
-                "%(name)s.buttons = []\n"
                 "%(name)s.xFactor = 1\n"
                 "%(name)s.yFactor = 1\n"
                 "\n"
@@ -230,7 +229,6 @@ class JoystickComponent(BaseComponent):
                 "%(name)s.clock = core.Clock()\n"
                 "%(name)s.numButtons = %(name)s.device.getNumButtons()\n"
                 "%(name)s.getNumButtons = %(name)s.device.getNumButtons\n"
-                "%(name)s.oldButtonState = %(name)s.device.getAllButtons()[:]\n"
                 "%(name)s.getAllButtons = %(name)s.device.getAllButtons\n"
                 "%(name)s.getX = lambda: %(name)s.xFactor * %(name)s.device.getX()\n"
                 "%(name)s.getY = lambda: %(name)s.yFactor * %(name)s.device.getY()\n"
@@ -242,6 +240,9 @@ class JoystickComponent(BaseComponent):
     def writeRoutineStartCode(self, buff):
         """Write the code that will be called at the start of the routine
         """
+
+        code = ("{name}.oldButtonState = {name}.device.getAllButtons()[:]\n")
+        buff.writeIndentedLines(code.format(**self.params))
 
         allowedButtons = self.params['allowedButtons'].val.strip()
         allowedButtonsIsVar = (valid_var_re.match(str(allowedButtons)) and not
@@ -362,13 +363,13 @@ class JoystickComponent(BaseComponent):
         if self.params['stopVal'].val not in ['', None, -1, 'None']:
             # writes an if statement to determine whether to draw etc
             self.writeStopTestCode(buff)
-            buff.writeIndented("%(name)s.status = STOPPED\n" % self.params)
+            buff.writeIndented("%(name)s.status = FINISHED\n" % self.params)
             # to get out of the if statement
             buff.setIndentLevel(-1, relative=True)
 
-        # if STARTED and not STOPPED!
+        # if STARTED and not FINISHED!
         code = ("if %(name)s.status == STARTED:  "
-                "# only update if started and not stopped!\n") % self.params
+                "# only update if started and not finished!\n") % self.params
         buff.writeIndented(code)
         buff.setIndentLevel(1, relative=True)  # to get out of if statement
         dedentAtEnd = 1  # keep track of how far to dedent later

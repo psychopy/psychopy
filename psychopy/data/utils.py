@@ -21,6 +21,7 @@ from pkg_resources import parse_version
 
 from psychopy import logging
 from psychopy.constants import PY3
+from psychopy.tools.filetools import pathToString
 
 try:
     import openpyxl
@@ -208,6 +209,7 @@ def importConditions(fileName, returnFieldNames=False, selection=""):
         """screens a list of names as candidate variable names. if all
         names are OK, return silently; else raise  with msg
         """
+        fileName = pathToString(fileName)
         if not all(fieldNames):
             msg = ('Conditions file %s: Missing parameter name(s); '
                    'empty cell(s) in the first row?')
@@ -234,6 +236,11 @@ def importConditions(fileName, returnFieldNames=False, selection=""):
         """
         # convert the resulting dataframe to a numpy recarray
         trialsArr = dataframe.to_records(index=False)
+        # Check for new line characters in strings, and replace escaped characters
+        for record in trialsArr:
+            for idx, element in enumerate(record):
+                if isinstance(element, str):
+                    record[idx] = element.replace('\\n', '\n')
         if trialsArr.shape == ():
             # convert 0-D to 1-D with one element:
             trialsArr = trialsArr[np.newaxis]

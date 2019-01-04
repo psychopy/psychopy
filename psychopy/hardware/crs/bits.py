@@ -1268,6 +1268,7 @@ class BitsSharp(BitsPlusPlus, serialdevice.SerialDevice):
             while msg:
                 msg=self.read(timeout=0.1)
             self.sendMessage('$VideoFrameRate\r')
+            self.pause()
             msg=self.read(timeout=0.1)
             msg2 = msg.split(b';')
             self.frameRate = float(msg2[1])

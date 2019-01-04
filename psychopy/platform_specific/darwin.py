@@ -81,7 +81,7 @@ if importCtypesFailed == False:
 
 def syncSwapBuffers(n):
     """syncSwapBuffers(n)
-    if n==1 then buffers will sync, otherwise sync will bee turned off.
+    if n==1 then buffers will sync, otherwise sync will be turned off.
     """
     try:
         # set v to 1 to enable vsync, 0 to disable vsync

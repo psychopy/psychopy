@@ -1,4 +1,4 @@
-.. _joystick:
+.. _joystickComponent:
 
 Joystick Component
 -------------------------------
@@ -26,14 +26,14 @@ Use the joystick to record the location of a button press
 
 Use the joystick to control stimulus parameters
     Imagine you want to use your joystick to make your 'patch'_ bigger or smaller and save the final size.
-    Call your `joystick`_ 'joystick', set it to save its state at the end of the trial and set the button press to
+    Call your `joystickComponent`_ 'joystick', set it to save its state at the end of the trial and set the button press to
     end the Routine. Then for the size setting of your Patch stimulus insert `$joystick.getX()` to use the
     x position of the joystick to control the size or `$joystick.getY()` to use the y position.
 
 Tracking the entire path of the joystick during a period
 
 Parameters Basic
-~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~
 
 Name : string
     Everything in a PsychoPy experiment needs a unique name. The name should contain only letters, numbers and underscores (no punctuation marks or spaces).
@@ -65,7 +65,7 @@ Store params for clicked
     Make sure that all the clickable objects have all these params.
 
 Parameters Advanced
-~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~
 
 Device Number
     If you have multiple joystick/gamepad devices which one do you want (0, 1, 2, ...).

@@ -16,5 +16,5 @@ ls -la ./conda/environment-$PYTHON_VERSION.yml
 conda env create -n psychopy-conda -f ./conda/environment-$PYTHON_VERSION.yml
 conda env list
 source activate psychopy-conda
-if [ -n "$WXPYTHON" ]; then conda install wxpython=$WXPYTHON; fi
-if [ -n "$OPENPYXL" ]; then conda install openpyxl=$OPENPYXL; fi
+if [ -n "$WXPYTHON" ]; then conda install -c conda-forge wxpython=$WXPYTHON; fi
+if [ -n "$OPENPYXL" ]; then conda install -c conda-forge openpyxl=$OPENPYXL; fi
