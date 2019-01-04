@@ -28,6 +28,8 @@ body {
 	width: auto!important;
 }
 
+/* manage scaling for smaller devices */
+
 @media (max-width: 768px) {
   .large-logo {
     display: none;
@@ -108,9 +110,9 @@ body {
 }
 
 /* Style the social media icons with color, if you want */
-.icon-bar a:hover {
+/* .social-bar a:hover {
   background-color: #000;
-}
+} */
 
 .facebook {
   /* background: white; */
