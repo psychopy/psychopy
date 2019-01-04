@@ -25,8 +25,6 @@ Not all components are currently supported. Keep an eye on the :ref:`onlineStatu
 How does this compare with jsPsych?
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The PsychoPy team doesn't don't know much about the underlying technology of `jsPsych <http://docs.jspsych.org/>`_ (e.g. its timing of stimuli and use of advanced graphics like WebGL) but one notable difference is the additional flexibility that PsychoPy provides in terms of creating your trials. In jsPsych you use one of the pre-programmed "types" of trial (like single stimulus or 2-alternative-forced-choice) and you have rather little flexibility over how that gets conducted. If you wanted to alter the positioning of the stimuli, for instance, in a 2-alternative-force-choice task or you wanted a stimulus to change in time (appear gradually or move location) then you would need to write a new trial "type" using raw javascript.
+In jsPsych you use one of the pre-programmed "types" of trial (like single stimulus or 2-alternative-forced-choice) and you have rather little flexibility over how that gets conducted. If you wanted to alter the positioning of the stimuli, for instance, in a 2-alternative-force-choice task or you wanted a stimulus to change in time (appear gradually or move location) then you would need to write a new trial "type" using raw javascript.
 
 PsychoPy, by comparison, is designed to give you total flexibility. You decide what constitutes a "trial" and how things should operate in time. We think that control is very important to creating a wide range of studies.
-
-Also, of course, there's no Builder interface for jsPsych as far as we know, so you'll need to know how to program in JavaScript.

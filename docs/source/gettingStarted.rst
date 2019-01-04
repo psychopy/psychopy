@@ -1,3 +1,5 @@
+.. _gettingStarted:
+
 Getting Started
 ===============
 
@@ -5,15 +7,17 @@ As an application, PsychoPy has two main views: the :doc:`Builder <builder/build
 
 #. :doc:`Builder <builder/builder>`. You can generate a wide range of experiments easily from the Builder using its intuitive, graphical user interface (GUI). This might be all you ever need to do. But you can always compile your experiment into a python script for fine-tuning, and this is a quick way for experienced programmers to explore some of PsychoPy's libraries and conventions.
 
-    .. figure:: images/builder_sm.png
-      :width: 40%
-      :alt: The Builder view
-      
-#. :doc:`Coder <coder/coder>`. For those comfortable with programming, the Coder view provides a basic code editor with syntax highlighting, code folding, and so on. Importantly, it has its own output window and Demo menu. The demos illustrate how to do specific tasks or use specific features; they are not whole experiments. The :doc:`Coder tutorials <coder/coder>` should help get you going, and the :doc:`API reference <api/api>` will give you the details. 
+.. figure:: images/builder_sm.png
+  :width: 80%
+  :align: center
+  :alt: The Builder view
 
-    .. figure:: images/coder.png
-      :width: 40%
-      :alt: The Coder view
+#. :doc:`Coder <coder/coder>`. For those comfortable with programming, the Coder view provides a basic code editor with syntax highlighting, code folding, and so on. Importantly, it has its own output window and Demo menu. The demos illustrate how to do specific tasks or use specific features; they are not whole experiments. The :doc:`Coder tutorials <coder/coder>` should help get you going, and the :doc:`API reference <api/api>` will give you the details.
+
+.. figure:: images/coder.png
+  :width: 80%
+  :align: center
+  :alt: The Coder view
 
 .. _python : http://www.python.org
 
@@ -30,24 +34,29 @@ A first program
 ~~~~~~~~~~~~~~~
 
 Start PsychoPy, and be sure to be in the Builder view.
-    
+
 * If you have poked around a bit in the Builder already, be sure to start with a clean slate. To get a new Builder view, type `Ctrl-N` on Windows or Linux, or `Cmd-N` on Mac.
 * Click on a Text component
-    .. image:: ../../psychopy/experiment/components/text/text.png
-  
-  and a Text Properties dialog will pop up.
-    .. image:: images/textdialog.png
-      :width: 220
+
+.. image:: ../../psychopy/experiment/components/text/text.png
+
+and a Text Properties dialog will pop up.
+  .. image:: images/textdialog.png
+    :width: 80%
+    :align: center
 
 * In the `Text` field, replace the default text with your message. When you run the program, the text you type here will be shown on the screen.
 * Click OK (near the bottom of the dialog box). (Properties dialogs have a link to online help---an icon at the bottom, near the OK button.)
 * Your text component now resides in a routine called `trial`. You can click on it to view or edit it. (Components, Routines, and other Builder concepts are explained in the :doc:`Builder documentation <builder/builder>`.)
 * Back in the main Builder, type `Ctrl-R` (Windows, Linux) or `Cmd-R` (Mac), or use the mouse to click the `Run` icon.
-    .. image:: ../../psychopy/app/Resources/run32.png
+
+.. image:: ../../psychopy/app/Resources/run32.png
 
 Assuming you typed in "Hello world!", your screen should have looked like this (briefly):
-      .. image:: images/helloworld.png
-        :width: 220
+
+.. image:: images/helloworld.png
+  :width: 80%
+  :align: center
 
 If nothing happens or it looks wrong, recheck all the steps above; be sure to start from a new Builder view.
 
@@ -79,7 +88,8 @@ To get a better feel for what was happening "behind the scenes" in the Builder p
 
 * In the Builder, load or recreate your "hello world" program.
 * Instead of running the program, explicitly convert it into python: Type `F5`, or click the `Compile` icon:
-    .. image:: ../../psychopy/app/Resources/compile32.png
+
+.. image:: ../../psychopy/app/Resources/compile32.png
 
 The view will automatically switch to the Coder, and display the python code. If you then save and run this code, it would look the same as running it directly from the Builder.
 
@@ -98,12 +108,12 @@ If you are not in the Coder, switch to it now.
 
 * Start a new code document: `Ctrl-N` / `Cmd-N`.
 * Type (or copy & paste) the following::
-  
+
     from psychopy import visual, core
-    
+
     win = visual.Window()
     msg = visual.TextStim(win, text=u"\u00A1Hola mundo!")
-    
+
     msg.draw()
     win.flip()
     core.wait(1)
@@ -120,7 +130,7 @@ Note that the same events happen on-screen with this code version, despite the c
 The shell provides an interactive python interpreter, which means you can enter commands here to try them out. This provides yet another way to send your salutations to the world. By default, the Coder's output window is shown at the bottom of the Coder window. Click on the Shell tab, and you should see python's interactive prompt, `>>>`::
 
     PyShell in PsychoPy - type some commands!
-  
+
     Type "help", "copyright", "credits" or "license" for more information.
     >>>
 
