@@ -80,8 +80,6 @@ dataExtensions = ['*.txt', '*.ico', '*.jpg', '*.gif', '*.png', '*.mov',
                   '*.spec', '*.csv', '*.psyexp', '*.xlsx', '.zip']
 dataFiles = []
 
-# post_install only needs installing on win32 but needs packaging in the zip
-scripts = ['psychopy_post_inst.py']
 if platform == 'win32':
     pass
 elif platform == 'darwin':
@@ -95,7 +93,6 @@ elif platform == 'posix':
 
 setup(name='PsychoPy',
       packages=packages,
-      scripts=scripts,
       include_package_data=True,
       package_data={
           # If any package contains *.txt or *.rst files, include them:
