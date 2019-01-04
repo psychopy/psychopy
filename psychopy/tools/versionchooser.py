@@ -13,7 +13,6 @@ import os
 import sys
 import subprocess  # for git commandline invocation
 from subprocess import CalledProcessError
-import re
 import psychopy  # for currently loaded version
 from psychopy import prefs
 from psychopy import logging, tools, web, constants
