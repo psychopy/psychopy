@@ -41,11 +41,6 @@ if 'CONDA_PREFIX' in os.environ:
 if PY3 and 'CONDA_PREFIX' in os.environ:
     required.remove('pyqt5; python_version >= "3"')
 
-# for dev you also want:
-# 'sphinx','pytest'
-# 'lxml', 'pyopengl'
-
-
 # compress psychojs to a zip file for packaging
 # only takes 0.5s but could skip if you prefer
 if ('-noJS' in argv) or not exists('psychojs') or ('clean' in argv):
@@ -73,8 +68,9 @@ if writeNewInit:
             dist = 'sdist'
     createInitFile.createInitFile(dist=dist)
 
-# define the extensions to compile if necess
 packages = find_packages()
+
+# define the extensions to compile if necessary
 # for the source dist this doesn't work - use the manifest.in file
 dataExtensions = ['*.txt', '*.ico', '*.jpg', '*.gif', '*.png', '*.mov',
                   '*.spec', '*.csv', '*.psyexp', '*.xlsx', '.zip']
@@ -90,7 +86,6 @@ elif platform == 'posix':
                   ('share/pixmaps',
                    ['psychopy/app/Resources/psychopy.png'])]
 
-
 setup(name='PsychoPy',
       packages=packages,
       include_package_data=True,
@@ -105,4 +100,3 @@ setup(name='PsychoPy',
 # remove unwanted info about this system post-build
 if writeNewInit:
     createInitFile.createInitFile(dist=None)
-
