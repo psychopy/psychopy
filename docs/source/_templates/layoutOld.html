@@ -170,7 +170,7 @@ changed: sidebar, rootrellink, header, footer,
     <link rel="shortcut icon" href="{{ pathto('_static/' + favicon, 1) }}"/>
     {%- endif %}
     {%- endif %}
-{%- block linktags %}
+<!-- {%- block linktags %}
     {%- if hasdoc('about') %}
     <link rel="author" title="{{ _('About these documents') }}" href="{{ pathto('about') }}" />
     {%- endif %}
@@ -193,19 +193,13 @@ changed: sidebar, rootrellink, header, footer,
     {%- if prev %}
     <link rel="prev" title="{{ prev.title|striptags }}" href="{{ prev.link|e }}" />
     {%- endif %}
-{%- endblock %}
+{%- endblock %} -->
 {%- block extrahead %} {% endblock %}
   </head>
   <body>
 
 {% block header %}
 <div id="header"  style="background-color: white">
-<table width="100%" cellpadding="10">
-<tr><td style="text-align:left;vertical-align:middle">
-<a href='http://www.psychopy.org'><img src="{{ pathto("_static/psychopyDocBanner2.gif", 1) }}" alt="PsychoPy logo" /></a>
-</td><td style="text-align:right;vertical-align:middle">
-<a href='http://www.nottingham.ac.uk'><img src={{ pathto("_static/UoN_Supported_RGBsm.png", 1) }} alt="University of Nottingham" /></a>
-</td></table>
 </div>
 {% endblock %}
 

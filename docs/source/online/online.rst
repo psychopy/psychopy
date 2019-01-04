@@ -7,9 +7,9 @@ In 2016 we wrote a proof-of-principle that PsychoPy could generate studies for o
 
 The key steps to this are basically to:
 
-	- export your experiment to JavaScript, ready to run online
-	- upload it to Pavlovia.org (or potentially your own server) to be launched
-	- distribute the web address (URL) needed to run the study
+- export your experiment to JavaScript, ready to run online
+- upload it to Pavlovia.org to be launched
+- distribute the web address (URL) needed to run the study
 
 Information on how to carry out those steps is below, as well as technical information regarding the precision, about how the project actually works, and about the status of the work.
 
@@ -18,7 +18,7 @@ Information on how to carry out those steps is below, as well as technical infor
     :align: center
 
 Creating an account on Pavlovia
-===============================
+-----------------------------------
 
 To create and log in to your account on `Pavlovia <https://www.pavlovia.org>`_, you will need an active internet connection. If you have not created your account, you can either 1) go to `Pavlovia <https://www.pavlovia.org>`_ and create your account, or 2) click the login button highlighted in Figure 1, and create an account through the dialog box. Once you have an account on `Pavlovia <https://www.pavlovia.org>`_, check to see that you are logged in via Builder by clicking button (4) highlighted below, in Figure 1.
 
@@ -30,7 +30,7 @@ To create and log in to your account on `Pavlovia <https://www.pavlovia.org>`_, 
 *Figure 1*. PsychoPy 3 Builder icons for building and running online studies
 
 Creating projects and uploading to Pavlovia.org
-================================================
+--------------------------------------------------
 
 Creating your project repository is your first step to running your experiment from `Pavlovia <https://www.pavlovia.org>`_. To create your project, first make sure that you have an internet connection and are logged in to `Pavlovia <https://www.pavlovia.org>`_. Once you are logged in create your project repository by syncing your project with the server using button (1) in Figure 1.
 
@@ -63,8 +63,9 @@ Use this window to add information to store your project on Pavlovia:
 
 When you have completed all fields in the Project window, click “Create project on Pavlovia” button to push your experiment up to the online repository. Click “Cancel” if you wish to return to your experiment in Builder.
 
-Viewing your experiment on `Pavlovia <https://www.pavlovia.org>`_
-==================================================================
+Viewing your experiment on Pavlovia.org
+--------------------------------------------------
+
 After you have uploaded your project to `Pavlovia <https://www.pavlovia.org>`_ via Builder, you can go and have a look at your project online. To view your project, go to `www.pavlovia.org <https://www.pavlovia.org>`_. From the `Pavlovia <https://www.pavlovia.org>`_ home page, you can explore your own existing projects, or other users public projects that have been made available to all users. To find your study, click the Explore tab on the home page (see Figure 4)
 
 .. figure:: /images/pavlovHome.png
@@ -98,15 +99,15 @@ When you have found your project, you have several options (see Figure 6).
 
 *Figure 6*. Projects on `Pavlovia <https://www.pavlovia.org>`_
 
-Running your experiment on `Pavlovia <https://www.pavlovia.org>`_ from Builder
-==============================================================================
+Running your experiment on Pavlovia.org from Builder
+-----------------------------------------------------
 
 If you wish to run your experiment online, in a web-browser, you have two options. You can run your experiment directly from pavlovia.org, as described above, or you can run your experiment directly from Builder. (There is also the option to send your experiment URL – more on that later in Recruitment Pools).
 
 To run your experiment on `Pavlovia <https://www.pavlovia.org>`_ via Builder, you must first ensure you have a valid internet connection, are logged in, and have created a repository for your project on `Pavlovia <https://www.pavlovia.org>`_. Once you have completed these steps, simply click button (2) in the Builder frame, as shown in Figure 1 above.
 
-Searching for experiments on `Pavlovia <https://www.pavlovia.org>`_ from Builder
-================================================================================
+Searching for experiments from Builder
+--------------------------------------------------
 
 If you wish to search for your own existing projects on `Pavlovia <https://www.pavlovia.org>`_, or other users public projects, you can do this via the Builder interface. To search for a project, click button (3) on the Builder Frame in Figure 1. Following this, a search dialog will appear, see Figure 7. The search dialog presents several options that allow users to search, fork and synchronize projects.
 
@@ -129,18 +130,16 @@ Contents:
 
 :maxdepth: 1
 
-       fromBuilder
+   fromBuilder
 
 .. toctree::
 
 :maxdepth: 1
 
-       status
-       tech
-       psychojsCode
-       syncOSF
-       cautions
+   status
+	 tech
+	 psychojsCode
+	 cautions
 
 .. _PsychoJS: https://github.com/psychopy/psychojs
 .. _pavlovia: https://pavlovia.org
-

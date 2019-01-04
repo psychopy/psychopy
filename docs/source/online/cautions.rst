@@ -5,7 +5,7 @@ Caveats and cautions
 
 The first caution to be aware of here is that PsychoJS was only written in 2016. It hasn't been widely battle-tested and almost certainly has some rough edges. Use it carefully and check your study does what you expect.
 
-For an in-depth examination of the pros and cons of running studies online (including a consideration of timing issues) see `Woods et al (2015) https://peerj.com/articles/1058/`_`
+For an in-depth examination of the pros and cons of running studies online (including a consideration of timing issues) see `Woods et al (2015) https://peerj.com/articles/1058/`_
 
 Differences between PsychoPy and PsychoJS studies
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -37,16 +37,16 @@ We'd recommend running on an updated browser but pretty much any modern browser 
 
 Specifically, these support Canvas (minimum requirement):
 
-  - IE 9+ (released in 2011)
-  - FF 10+ (released 2012)
-  - Chrome 11+ (2011)
-  - Safari 2.0+ (2005)
-  - Opera 12+ (2011)
+- IE 9+ (released in 2011)
+- FF 10+ (released 2012)
+- Chrome 11+ (2011)
+- Safari 2.0+ (2005)
+- Opera 12+ (2011)
 
 Browsers supporting WebGL (hardware-accelerated graphics in the browser):
 
-  - IE 11+ (2013)
-  - FF 15+ (2012)
-  - Chrome 11+ (2011)
-  - Safari 5.1+ (2011/12?)
-  - Opera 19+
+- IE 11+ (2013)
+- FF 15+ (2012)
+- Chrome 11+ (2011)
+- Safari 5.1+ (2011/12?)
+- Opera 19+
