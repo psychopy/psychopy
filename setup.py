@@ -81,8 +81,7 @@ dataExtensions = ['*.txt', '*.ico', '*.jpg', '*.gif', '*.png', '*.mov',
 dataFiles = []
 
 # post_install only needs installing on win32 but needs packaging in the zip
-scripts = ['psychopy/app/psychopyApp.py',
-           'psychopy_post_inst.py']
+scripts = ['psychopy_post_inst.py']
 if platform == 'win32':
     pass
 elif platform == 'darwin':

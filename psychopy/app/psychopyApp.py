@@ -29,7 +29,7 @@ def start_app():
     app.MainLoop()
 
 
-if __name__ == '__main__':
+def main():
     if '-x' in sys.argv:
         # run a .py script from the command line using StandAlone python
         targetScript = sys.argv[sys.argv.index('-x') + 1]
@@ -98,3 +98,7 @@ Options:
             start_app()
     else:
         start_app()
+
+
+if __name__ == '__main__':
+    main()
