@@ -2558,7 +2558,7 @@ ParallelOutComponent.order:['address', 'startData', 'stopData']
 ParallelOutComponent.address.default:'0x0378'
 ParallelOutComponent.address.allowedTypes:[]
 ParallelOutComponent.address.allowedUpdates:None
-ParallelOutComponent.address.allowedVals:['0x0378', '0x03BC', '/dev/parport0', '/dev/parport1', 'LabJack U3']
+ParallelOutComponent.address.allowedVals:['0x0378', '0x03BC', 'LabJack U3']
 ParallelOutComponent.address.categ:Basic
 ParallelOutComponent.address.hint:Parallel port to be used (you can change these options in preferences>general)
 ParallelOutComponent.address.label:Port address
@@ -3974,7 +3974,7 @@ SettingsComponent.logging level.staticUpdater:None
 SettingsComponent.logging level.updates:None
 SettingsComponent.logging level.val:exp
 SettingsComponent.logging level.valType:code
-SliderComponent.order:['name', 'size', 'pos', 'ticks', 'labels', 'labelHeight', 'granularity', 'font', 'flip', 'color', 'styles']
+SliderComponent.order:['name', 'size', 'pos', 'ticks', 'labels', 'granularity', 'font', 'flip', 'color', 'styles']
 SliderComponent.color.default:'LightGray'
 SliderComponent.color.allowedTypes:[]
 SliderComponent.color.allowedUpdates:['constant', 'set every repeat', 'set every frame']
@@ -4059,18 +4059,6 @@ SliderComponent.granularity.staticUpdater:None
 SliderComponent.granularity.updates:constant
 SliderComponent.granularity.val:0
 SliderComponent.granularity.valType:code
-SliderComponent.labelHeight.default:0.05
-SliderComponent.labelHeight.allowedTypes:[]
-SliderComponent.labelHeight.allowedUpdates:['constant', 'set every repeat', 'set every frame']
-SliderComponent.labelHeight.allowedVals:[]
-SliderComponent.labelHeight.categ:Basic
-SliderComponent.labelHeight.hint:Specifies the text height of labels
-SliderComponent.labelHeight.label:labelHeight
-SliderComponent.labelHeight.readOnly:False
-SliderComponent.labelHeight.staticUpdater:None
-SliderComponent.labelHeight.updates:constant
-SliderComponent.labelHeight.val:0.05
-SliderComponent.labelHeight.valType:code
 SliderComponent.labels.default:[]
 SliderComponent.labels.allowedTypes:[]
 SliderComponent.labels.allowedUpdates:['constant', 'set every repeat']

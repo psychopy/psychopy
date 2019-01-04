@@ -11,6 +11,7 @@ from os import path
 from psychopy.experiment.components import BaseVisualComponent, Param, \
     getInitVals, _translate
 from psychopy.visual import slider
+from psychopy.experiment import py2js
 
 __author__ = 'Jon Peirce'
 
@@ -55,7 +56,6 @@ class SliderComponent(BaseVisualComponent):
     def __init__(self, exp, parentName,
                  name='slider',
                  labels='',
-                 labelHeight=.05,
                  ticks="(1, 2, 3, 4, 5)",
                  size='(1.0, 0.1)',
                  pos='(0, -0.4)',
@@ -82,7 +82,7 @@ class SliderComponent(BaseVisualComponent):
         # params
         self.order = ['name',
                       'size', 'pos',
-                      'ticks', 'labels', 'labelHeight', 'granularity',
+                      'ticks', 'labels',  'granularity',
                       'font','flip','color','styles',
                       ]
 
@@ -102,12 +102,6 @@ class SliderComponent(BaseVisualComponent):
                 hint=_translate("Labels for the tick marks on the scale, "
                                 "separated by commas"),
                 label=_localized['labels'])
-        self.params['labelHeight'] = Param(
-            labelHeight, valType='code', allowedTypes=[],
-            updates='constant',
-            allowedUpdates=['constant', 'set every repeat', 'set every frame'],
-            hint=_translate("Specifies the text height of labels"),
-            label=_translate('labelHeight'))
         self.params['granularity'] = Param(
                 granularity, valType='code', allowedTypes=[],
                 updates='constant',
@@ -203,7 +197,7 @@ class SliderComponent(BaseVisualComponent):
         # build up an initialization string for Slider():
         initStr = ("{name} = visual.Slider(win=win, name='{name}',\n"
                    "    size={size}, pos={pos},\n"
-                   "    labels={labels}, ticks={ticks}, labelHeight={labelHeight},\n"
+                   "    labels={labels}, ticks={ticks},\n"
                    "    granularity={granularity}, style={styles},\n"
                    "    color={color}, font={font},\n"
                    "    flip={flip})\n"
@@ -212,13 +206,23 @@ class SliderComponent(BaseVisualComponent):
 
     def writeInitCodeJS(self, buff):
         inits = getInitVals(self.params)
+        sliderStyles = {'slider': 'SLIDER',
+                        'rating': 'RATING',
+                        'radio': 'RADIO',
+                        'labels45': 'LABELS_45',
+                        'whiteOnBlack': 'WHITE_ON_BLACK',
+                        'triangleMarker': 'TRIANGLE_MARKER'}
+        inits['styles'].val = ', '.join(["visual.Slider.Style.{}".
+                                        format(sliderStyles[style]) for style in inits['styles'].val])
+        inits['styles'].val = py2js.expression2js(inits['styles'].val)
         # build up an initialization string for Slider():
         initStr = ("{name} = new visual.Slider({{\n"
                    "  win: psychoJS.window, name: '{name}',\n"
                    "  size: {size}, pos: {pos},\n"
-                   "  labels: {labels}, ticks: {ticks}, labelHeight: {labelHeight},\n"
+                   "  labels: {labels}, ticks: {ticks},\n"
                    "  granularity: {granularity}, style: {styles},\n"
-                   "  color: new util.Color({color}), font: {font},\n"
+                   "  color: new util.Color({color}), \n"
+                   "  fontFamily: {font}, fontSize: 20, bold: true, italic: false, \n"
                    "  flip: {flip},\n"
                    "}});\n\n"
                    .format(**inits))
@@ -241,12 +245,12 @@ class SliderComponent(BaseVisualComponent):
 
     def writeFrameCodeJS(self, buff):
         super(SliderComponent, self).writeFrameCodeJS(buff)  # Write basevisual frame code
-        forceEnd = self.params['forceEndRoutine'].val
-        if forceEnd:
-            code = ("\n// Check %(name)s for response to end routine\n"
-                    "if (%(name)s.getRating() !== 'undefined' && %(name)s.status === PsychoJS.Status.STARTED) {\n"
-                    "  continueRoutine = false; }\n")
-            buff.writeIndentedLines(code % (self.params))
+        # forceEnd = self.params['forceEndRoutine'].val
+        # if forceEnd:
+        #     code = ("\n// Check %(name)s for response to end routine\n"
+        #             "if (%(name)s.getRating() !== 'undefined' && %(name)s.status === PsychoJS.Status.STARTED) {\n"
+        #             "  continueRoutine = false; }\n")
+        #     buff.writeIndentedLines(code % (self.params))
 
     def writeRoutineEndCode(self, buff):
         name = self.params['name']
