@@ -297,10 +297,6 @@ class SliderComponent(BaseVisualComponent):
                        "for Slider events so doesn't know what to "
                        "tell a StairHandler (or QuestHandler)*/\n")
                 buff.writeIndented(msg)
-            elif currLoop.type in ['TrialHandler', 'ExperimentHandler']:
-                loopName = currLoop.params['name']
-            else:
-                loopName = 'thisExp'
 
             if self.params['storeRating'].val == True:
                 code = "psychoJS.experiment.addData('%s.response', %s.getRating());\n"
