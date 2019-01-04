@@ -87,9 +87,10 @@ def useVersion(requestedVersion):
         _clone(requestedVersion)  # Allow the versions subdirectory to be built
 
     if constants.PY3:
-        py3Compatible = _versionFilter(versionOptions())
-        py3Compatible += _versionFilter(availableVersions())
-        py3Compatible.reverse()
+        py3Compatible = _versionFilter(versionOptions(local=False))
+        py3Compatible += _versionFilter(availableVersions(local=False))
+        py3Compatible.sort(reverse=True)
+
         if reqdMajorMinorPatch not in py3Compatible:
             msg = _translate("Please request a version of PsychoPy that is compatible with Python 3.\n"
                              "You can choose from the following versions: {}.\n"
@@ -150,6 +151,7 @@ def _switchToVersion(requestedVersion):
     a site-packages directory, which should *not* be removed as it may
     contain other relevant and needed packages.
     """
+
     if not os.path.exists(prefs.paths['userPrefsDir']):
         os.mkdir(prefs.paths['userPrefsDir'])
     try:
@@ -258,7 +260,7 @@ def availableVersions(local=True, forceCheck=False):
         return _localVersions(forceCheck)
     else:
         return sorted(
-            list(set(_localVersions(forceCheck) + _remoteVersions(
+            list(set([psychopy.__version__] + _localVersions(forceCheck) + _remoteVersions(
                 forceCheck))),
             reverse=True)
 
