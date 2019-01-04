@@ -7,23 +7,23 @@ Download
 
 For the easiest installation download and install the Standalone package for your system:
 
-The latest stable release (the version we recommend you install is 1.90.1) and you can get that here:
+For the **latest stable release** (the version we recommend you install):
 
-  * `PsychoPy 1.90.1 <https://github.com/psychopy/psychopy/releases>`_
-  * Ubuntu or debian-based systems:
+* `PsychoPy 3.0.0 <https://github.com/psychopy/psychopy/releases>`_
+* Ubuntu or debian-based systems:
 
-    * `sudo apt-get install psychopy`
-    * NB: the neurodebian package has newer versions than the default debian package: http://neuro.debian.net/
+  * `sudo apt-get install psychopy`
+  * NB: the neurodebian package has newer versions than the default debian package: http://neuro.debian.net/
 
 **For previous recent versions** see the `PsychoPy releases on github <https://github.com/psychopy/psychopy/releases>`_
 
-See below for options:
+See below for options if you don't want to use the Standalone releases:
 
-  * :ref:`manual_install`
-  * :ref:`conda`
-  * :ref:`neurodebian`
-  * :ref:`macports_install`
-  * :ref:`gentoo`
+* :ref:`manual_install`
+* :ref:`conda`
+* :ref:`neurodebian`
+* :ref:`macports_install`
+* :ref:`gentoo`
 
 Notes on OpenGL drivers
 ~~~~~~~~~~~~~~~~~~~~~~~~

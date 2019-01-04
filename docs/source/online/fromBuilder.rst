@@ -60,9 +60,9 @@ Technically you could upload your html folder to any server but by far the easie
 
 All you need to do to get your files online is press the sync button. Depending on which steps you've already completed PsychoPy will then walk you though:
 
-  1. register/login to the Pavlovia site
-  2. create a project to sync with and choose the local folder as the root of that project
-  3. sync the files
+  #. register/login to the Pavlovia site
+  #. create a project to sync with and choose the local folder as the root of that project
+  #. sync the files
 
     - each time you add/change files locally PsychoPy will ask you to give a title and description for that set of changes (a `git commit` in the underlying version control)
     - each time participants run online, if you're using `csv` files for storage, then the new file(s) will also be added to the repository on Pavlovia
@@ -71,9 +71,9 @@ All you need to do to get your files online is press the sync button. Depending 
 
 Merges and conflicts:
 
-    - if changes are made concurrently these will typically be merged by git
-    - if two people change the *same file* then changes will still be combined if possible (e.g. you each make a change to a different parameter in the PsychoPy experiment)
-    - if 2 they strictly conflict (you both change the same parameter to a different value) then a merge conflict in git will result. Currently we aren't providing a way to resolve these and you will need to find out enough about git to handle it locally
+- if changes are made concurrently these will typically be merged by git
+- if two people change the *same file* then changes will still be combined if possible (e.g. you each make a change to a different parameter in the PsychoPy experiment)
+- if 2 they strictly conflict (you both change the same parameter to a different value) then a merge conflict in git will result. Currently we aren't providing a way to resolve these and you will need to find out enough about git to handle it locally
 
 .. _onlineUploadServer:
 
