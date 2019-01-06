@@ -8,27 +8,187 @@
 @import url("https://use.fontawesome.com/releases/v5.6.3/css/all.css");
 @import url("https://use.fontawesome.com/releases/v5.6.3/css/brands.css");
 @import url("https://use.fontawesome.com/releases/v5.6.3/css/fontawesome.css");
-
+@import url("https://use.fontawesome.com/releases/v5.6.3/css/fontawesome.css");
+@import url("//fonts.googleapis.com/css?family=Indie+Flower");
 body {
   padding-top: 54px;
 }
-
+html, body { 
+  height: 100%; /* needed for the full-height sections to work*/
+}
+p {
+  font-family: sans-serif;
+}
+/* logos (big and small) in top left */
 .large-logo img {
 	position: absolute;
-	top: -84px;
-	left: 20px;
-	width: 180px!important;
-  height: auto;
+	/*top: -84px;*/
+  top: 5px;
+	left: 10px;
+	width: auto;
+  height: 120px;
 }
 
 .small-logo img {
 	display: none;
 	height: 60px;
-	top: 14px;
+	top: 5px;
 	width: auto!important;
 }
 
-/* manage scaling for smaller devices */
+/* Logo with straplines in center of landing page */
+.central-logo {
+  object-fit: cover;
+  align-content: center;
+  position: relative;
+  width: 90%;
+  padding: 50px;
+  height: auto;
+}
+.central-logo .img-layer {
+  position: absolute;
+  object-fit: cover;
+  top: 25px;
+  left: 0px;
+  width: 90%;
+  height: auto;
+}
+.central-logo .icon3-layer{
+  position: absolute;
+  font-family: 'Indie Flower';
+  color: red;
+  font-size: 8vw;
+  top: 2vw;
+  left: 83vw;
+}
+.central-logo .text-layer {
+  position: absolute;
+  top: 40%;
+  left: 40%;
+  font-family: sans-serif;
+  font-size: 2vw;
+}
+.central-logo .text-layer-abbr {
+  position: absolute;
+  top: 40%;
+  left: 40%;
+  font-family: sans-serif;
+  font-size: 3vw; /*bigger font but few words*/
+}
+.delay0s {
+  opacity: 0;    
+  animation: fadeIn 2s;
+  animation-fill-mode: forwards;
+}
+.delay1s {
+  opacity: 0;    
+  animation: fadeIn 2s;
+  animation-delay: 1s;
+  animation-fill-mode: forwards;
+}
+.delay2s {
+  opacity: 0;    
+  animation: fadeIn 2s;
+  animation-delay: 2s;
+  animation-fill-mode: forwards;
+}
+.delay3s {
+  opacity: 0;    
+  animation: fadeIn 2s;
+  animation-delay: 3s;
+  animation-fill-mode: forwards;
+}
+.delay4s {
+  opacity: 0;    
+  animation: fadeIn 2s;
+  animation-delay: 4s;
+  animation-fill-mode: forwards;
+}
+
+/* to set a section to be the height of the browser window*/
+
+.full-height {
+  height: 100%;
+}
+/* @media (min-width: 992px) {
+  body {
+    padding-top: 56px;
+  }
+} */
+
+.carousel-item {
+  height: 65vh;
+  min-height: 300px;
+  background: no-repeat center center scroll;
+  -webkit-background-size: cover;
+  -moz-background-size: cover;
+  -o-background-size: cover;
+  background-size: cover;
+}
+
+.portfolio-item {
+  margin-bottom: 30px;
+}
+
+/* Fixed/sticky icon bar (vertically aligned 50% from the top of the screen) */
+.social-bar {
+  background-color: white;
+  position: fixed;
+  right: 0;
+  top: 150px;
+  -webkit-transform: translateY(-50%);
+  -ms-transform: translateY(-50%);
+  transform: translateY(-50%);
+}
+
+/* Style the icon bar links */
+.social-bar a {
+  display: block;
+  text-align: center;
+  padding: 8px;
+  transition: all 0.3s ease;
+  font-size: 20px;
+}
+
+/* Style the social media icons with color, if you want */
+.icon-bar a:hover {
+  background-color: #000;
+}
+
+.facebook {
+   background: white; 
+  color: #3B5998;
+}
+
+.twitter {
+  /* background: white; */
+  color: #55ACEE;
+}
+
+.google {
+  /* background: white; */
+  color: #dd4b39;
+}
+
+.github {
+  /* background: white; */
+  color: black;
+}
+
+.youtube {
+  /* background: white; */
+  color: #bb0000;
+}
+
+
+/* landing page transitions */
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+/* set our responsive mode controls */
 
 @media (max-width: 768px) {
   .large-logo {
@@ -67,90 +227,22 @@ body {
     padding-left: 100px;
   }
 }
-
-/* @media (min-width: 992px) {
-  body {
-    padding-top: 56px;
-  }
-} */
-
-.carousel-item {
-  height: 65vh;
-  min-height: 300px;
-  background: no-repeat center center scroll;
-  -webkit-background-size: cover;
-  -moz-background-size: cover;
-  -o-background-size: cover;
-  background-size: cover;
-}
-
-.portfolio-item {
-  margin-bottom: 30px;
-}
-
-/* Fixed/sticky icon bar (vertically aligned 50% from the top of the screen) */
-.social-bar {
-  position: fixed;
-  right: 0;
-  top: 150px;
-  -webkit-transform: translateY(-50%);
-  -ms-transform: translateY(-50%);
-  transform: translateY(-50%);
-}
-
-/* Style the icon bar links */
-.social-bar a {
-  display: block;
-  text-align: center;
-  padding-right: 16px;
-  padding-top: 8px;
-  padding-bottom: 8px;
-  transition: all 0.3s ease;
-  font-size: 20px;
-}
-
-/* Style the social media icons with color, if you want */
-/* .social-bar a:hover {
-  background-color: #000;
-} */
-
-.facebook {
-  /* background: white; */
-  color: #3B5998;
-}
-
-.twitter {
-  /* background: white; */
-  color: #55ACEE;
-}
-
-.google {
-  /* background: white; */
-  color: #dd4b39;
-}
-
-.github {
-  /* background: white; */
-  color: black;
-}
-
-.youtube {
-  /* background: white; */
-  color: #bb0000;
-}
-
 /* override the bootstrap max-widths to prevent jerky expanding */
 
 @media (max-width: 576px) {
-  .container {
-    max-width: 90%;
-  }
+  .container { max-width: 90% }
+  .text-layer { display: none }
+  .text-layer-abbr { display: block }
 }
 
 @media (min-width: 576px) {
   .container {
     max-width: 90%;
   }
+  .text-layer { 
+    display: block;
+   }
+  .text-layer-abbr { display: none }
 }
 
 @media (min-width: 768px) {
