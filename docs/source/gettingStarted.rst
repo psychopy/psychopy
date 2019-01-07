@@ -7,7 +7,7 @@ As an application, PsychoPy has two main views: the :doc:`Builder <builder/build
 
 #. :doc:`Builder <builder/builder>`. You can generate a wide range of experiments easily from the Builder using its intuitive, graphical user interface (GUI). This might be all you ever need to do. But you can always compile your experiment into a python script for fine-tuning, and this is a quick way for experienced programmers to explore some of PsychoPy's libraries and conventions.
 
-.. figure:: images/builder_sm.png
+.. figure:: images/builder.png
   :width: 80%
   :align: center
   :alt: The Builder view

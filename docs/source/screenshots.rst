@@ -13,7 +13,7 @@ PsychoPy is one of very few packages that allows a choice of interface. Use the 
 
 and the :ref:`builder` view for those that don't:
 
-.. image:: images/builder_small.jpg
+.. image:: images/builder.png
    :target: builder/builder.html
    :alt: The Builder view
    
