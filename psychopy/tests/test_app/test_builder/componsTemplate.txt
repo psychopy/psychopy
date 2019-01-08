@@ -874,7 +874,7 @@ EnvGratingComponent.units.staticUpdater:None
 EnvGratingComponent.units.updates:None
 EnvGratingComponent.units.val:from exp settings
 EnvGratingComponent.units.valType:str
-FormComponent.order:['name', 'Items', 'Text Height', 'Size', 'Pos', 'Item Padding', 'Data Format']
+FormComponent.order:['name', 'Items', 'Text Height', 'Randomize', 'Size', 'Pos', 'Item Padding', 'Data Format']
 FormComponent.Data Format.default:'rows'
 FormComponent.Data Format.allowedTypes:[]
 FormComponent.Data Format.allowedUpdates:None
@@ -923,6 +923,18 @@ FormComponent.Pos.staticUpdater:None
 FormComponent.Pos.updates:constant
 FormComponent.Pos.val:(0, 0)
 FormComponent.Pos.valType:code
+FormComponent.Randomize.default:False
+FormComponent.Randomize.allowedTypes:[]
+FormComponent.Randomize.allowedUpdates:None
+FormComponent.Randomize.allowedVals:[]
+FormComponent.Randomize.categ:Basic
+FormComponent.Randomize.hint:Do you want to randomize the order of your questions?
+FormComponent.Randomize.label:Randomize
+FormComponent.Randomize.readOnly:False
+FormComponent.Randomize.staticUpdater:None
+FormComponent.Randomize.updates:constant
+FormComponent.Randomize.val:False
+FormComponent.Randomize.valType:bool
 FormComponent.Size.default:(1, 0.7)
 FormComponent.Size.allowedTypes:[]
 FormComponent.Size.allowedUpdates:None
@@ -940,7 +952,7 @@ FormComponent.Text Height.allowedTypes:[]
 FormComponent.Text Height.allowedUpdates:None
 FormComponent.Text Height.allowedVals:[]
 FormComponent.Text Height.categ:Basic
-FormComponent.Text Height.hint:x,y position of the form on screen
+FormComponent.Text Height.hint:The size of the item text for Form
 FormComponent.Text Height.label:Text Height
 FormComponent.Text Height.readOnly:False
 FormComponent.Text Height.staticUpdater:None

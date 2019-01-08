@@ -20,6 +20,7 @@ tooltip = _translate('Form: a Psychopy survey tool')
 # only use _localized values for label values, nothing functional:
 _localized = {'Items': _translate('Items'),
               'Text Height': _translate('Text Height'),
+              'Randomize': _translate('Randomize'),
               'Size': _translate('Size'),
               'Pos': _translate('Pos'),
               'Item Padding': _translate('Item Padding'),
@@ -35,6 +36,7 @@ class FormComponent(BaseComponent):
                  name='form',
                  items='.csv',
                  textHeight=.03,
+                 randomize=False,
                  size=(1, .7),
                  pos=(0, 0),
                  itemPadding=0.05,
@@ -56,6 +58,7 @@ class FormComponent(BaseComponent):
         self.order = ['name',
                       'Items',
                       'Text Height',
+                      'Randomize',
                       'Size', 'Pos',
                       'Item Padding',
                       'Data Format',
@@ -87,8 +90,14 @@ class FormComponent(BaseComponent):
         self.params['Text Height'] = Param(
             textHeight, valType='code', allowedTypes=[],
             updates='constant',
-            hint=_translate("x,y position of the form on screen"),
+            hint=_translate("The size of the item text for Form"),
             label=_localized['Text Height'])
+
+        self.params['Randomize'] = Param(
+            randomize, valType='bool', allowedTypes=[],
+            updates='constant',
+            hint=_translate("Do you want to randomize the order of your questions?"),
+            label=_localized['Randomize'])
 
         self.params['Item Padding'] = Param(
             itemPadding, valType='code', allowedTypes=[],
@@ -111,6 +120,7 @@ class FormComponent(BaseComponent):
                    "{name} = visual.Form(win=win, name='{name}',\n"
                    "    items={Items},\n"
                    "    textHeight={Text Height},\n"
+                   "    randomize={Randomize},\n"
                    "    size={Size},\n"
                    "    pos={Pos},\n"
                    "    itemPadding={Item Padding})\n".format(**inits))
