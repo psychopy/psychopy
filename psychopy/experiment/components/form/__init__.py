@@ -20,11 +20,11 @@ tooltip = _translate('Form: a Psychopy survey tool')
 # only use _localized values for label values, nothing functional:
 _localized = {'Items': _translate('Items'),
               'Text Height': _translate('Text Height'),
-              'Randomize': _translate('Randomize'),
               'Size': _translate('Size'),
               'Pos': _translate('Pos'),
               'Item Padding': _translate('Item Padding'),
-              'Data Format': _translate('Data Format')
+              'Data Format': _translate('Data Format'),
+              'Randomize': _translate('Randomize')
               }
 
 class FormComponent(BaseComponent):
@@ -58,10 +58,10 @@ class FormComponent(BaseComponent):
         self.order = ['name',
                       'Items',
                       'Text Height',
-                      'Randomize',
                       'Size', 'Pos',
                       'Item Padding',
                       'Data Format',
+                      'Randomize',
                       ]
 
         # normal params:
@@ -136,15 +136,15 @@ class FormComponent(BaseComponent):
         if self.params['Data Format'] == 'rows':
             code = ("{name}Data = {name}.getData()\n"
                     "while {name}Data['questions']:\n"
-                    "   for dataTypes in {name}Data.keys():\n"
-                    "       thisExp.addData(dataTypes, {name}Data[dataTypes].popleft())\n"
-                    "   thisExp.nextEntry()\n".format(**self.params))
+                    "    for dataTypes in {name}Data.keys():\n"
+                    "        thisExp.addData(dataTypes, {name}Data[dataTypes].popleft())\n"
+                    "    thisExp.nextEntry()\n".format(**self.params))
         elif self.params['Data Format'] == 'columns':
             code = ("{name}Data = {name}.getData()\n"
                     "for dataTypes in {name}Data.keys():\n"
-                    "   for index, items in enumerate({name}Data[dataTypes]):\n"
-                    "       thisExp.addData('{name}.' + str(index), items)\n"
-                    "   thisExp.nextEntry()\n".format(**self.params))
+                    "    for index, items in enumerate({name}Data[dataTypes]):\n"
+                    "        thisExp.addData('{name}.' + str(index), items)\n"
+                    "    thisExp.nextEntry()\n".format(**self.params))
         buff.writeIndented(code)
 
 

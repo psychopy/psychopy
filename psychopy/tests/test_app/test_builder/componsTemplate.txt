@@ -874,7 +874,7 @@ EnvGratingComponent.units.staticUpdater:None
 EnvGratingComponent.units.updates:None
 EnvGratingComponent.units.val:from exp settings
 EnvGratingComponent.units.valType:str
-FormComponent.order:['name', 'Items', 'Text Height', 'Randomize', 'Size', 'Pos', 'Item Padding', 'Data Format']
+FormComponent.order:['name', 'Items', 'Text Height', 'Size', 'Pos', 'Item Padding', 'Data Format', 'Randomize']
 FormComponent.Data Format.default:'rows'
 FormComponent.Data Format.allowedTypes:[]
 FormComponent.Data Format.allowedUpdates:None
