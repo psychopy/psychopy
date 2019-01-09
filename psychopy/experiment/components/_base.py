@@ -184,6 +184,11 @@ class BaseComponent(object):
                 "%(name)s.tStart = t\n"
                 "%(name)s.frameNStart = frameN  # exact frame index\n")
         buff.writeIndentedLines(code % self.params)
+        
+        code = (
+            "# Log the start time for the component\n"
+            "thisExp.addData('%(name)s.startTime', core.monotonicClock.getTime())\n")
+        buff.writeIndentedLines(code % self.params)
 
     def writeStartTestCodeJS(self, buff):
         """Test whether we need to start
@@ -246,6 +251,10 @@ class BaseComponent(object):
 
         buff.writeIndentedLines(code % self.params)
         buff.setIndentLevel(+1, relative=True)
+        code = ("# Log the stop time for the component\n"
+                "thisExp.addData('%(name)s.stopTime',"
+                "core.monotonicClock.getTime())\n")
+        buff.writeIndentedLines(code % self.params)
 
     def writeStopTestCodeJS(self, buff):
         """Test whether we need to stop
