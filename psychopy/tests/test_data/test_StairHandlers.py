@@ -582,9 +582,6 @@ class TestQuestHandler(_BaseTestStairHandler):
 
 class TestPsiHandler(_BaseTestStairHandler):
     def test_comparison_equals(self):
-        if _travisTesting:
-            pytest.skip()
-
         p1 = data.PsiHandler(nTrials=10, intensRange=[0.1, 10],
                              alphaRange=[0.1, 10], betaRange=[0.1, 3],
                              intensPrecision=0.1, alphaPrecision=0.1,
@@ -598,9 +595,6 @@ class TestPsiHandler(_BaseTestStairHandler):
         assert p1 == p2
 
     def test_comparison_equals_after_iteration(self):
-        if _travisTesting:
-            pytest.skip()
-
         p1 = data.PsiHandler(nTrials=10, intensRange=[0.1, 10],
                              alphaRange=[0.1, 10], betaRange=[0.1, 3],
                              intensPrecision=0.1, alphaPrecision=0.1,
@@ -616,9 +610,6 @@ class TestPsiHandler(_BaseTestStairHandler):
         assert p1 == p2
 
     def test_comparison_not_equal(self):
-        if _travisTesting:
-            pytest.skip()
-
         p1 = data.PsiHandler(nTrials=10, intensRange=[0.1, 10],
                              alphaRange=[0.1, 10], betaRange=[0.1, 3],
                              intensPrecision=0.1, alphaPrecision=0.1,
@@ -632,9 +623,6 @@ class TestPsiHandler(_BaseTestStairHandler):
         assert p1 != p2
 
     def test_comparison_not_equal_after_iteration(self):
-        if _travisTesting:
-            pytest.skip()
-
         p1 = data.PsiHandler(nTrials=10, intensRange=[0.1, 10],
                              alphaRange=[0.1, 10], betaRange=[0.1, 3],
                              intensPrecision=0.1, alphaPrecision=0.1,
@@ -650,9 +638,6 @@ class TestPsiHandler(_BaseTestStairHandler):
         assert p1 != p2
 
     def test_json_dump(self):
-        if _travisTesting:
-            pytest.skip()
-
         p = data.PsiHandler(nTrials=10, intensRange=[0.1, 10],
                             alphaRange=[0.1, 10], betaRange=[0.1, 3],
                             intensPrecision=1, alphaPrecision=1,
@@ -663,9 +648,6 @@ class TestPsiHandler(_BaseTestStairHandler):
         assert p == json_tricks.loads(dump)
 
     def test_json_dump_with_data(self):
-        if _travisTesting:
-            pytest.skip()
-
         p = data.PsiHandler(nTrials=10, intensRange=[0.1, 10],
                             alphaRange=[0.1, 10], betaRange=[0.1, 3],
                             intensPrecision=1, alphaPrecision=1,
@@ -678,9 +660,6 @@ class TestPsiHandler(_BaseTestStairHandler):
         assert p == json_tricks.loads(dump)
 
     def test_json_dump_after_iteration(self):
-        if _travisTesting:
-            pytest.skip()
-
         p = data.PsiHandler(nTrials=10, intensRange=[0.1, 10],
                             alphaRange=[0.1, 10], betaRange=[0.1, 3],
                             intensPrecision=1, alphaPrecision=1,
@@ -692,9 +671,6 @@ class TestPsiHandler(_BaseTestStairHandler):
         assert p == json_tricks.loads(dump)
 
     def test_json_dump_with_data_after_iteration(self):
-        if _travisTesting:
-            pytest.skip()
-
         p = data.PsiHandler(nTrials=10, intensRange=[0.1, 10],
                             alphaRange=[0.1, 10], betaRange=[0.1, 3],
                             intensPrecision=1, alphaPrecision=1,
@@ -708,9 +684,6 @@ class TestPsiHandler(_BaseTestStairHandler):
         assert p == json_tricks.loads(dump)
 
     def test_json_dump_to_file(self):
-        if _travisTesting:
-            pytest.skip()
-
         _, path = mkstemp(dir=self.tmp_dir, suffix='.json')
         p = data.PsiHandler(nTrials=10, intensRange=[0.1, 10],
                             alphaRange=[0.1, 10], betaRange=[0.1, 3],
@@ -719,9 +692,6 @@ class TestPsiHandler(_BaseTestStairHandler):
         p.saveAsJson(fileName=path, fileCollisionMethod='overwrite')
 
     def test_json_dump_and_reopen_file(self):
-        if _travisTesting:
-            pytest.skip()
-
         p = data.PsiHandler(nTrials=10, intensRange=[0.1, 10],
                             alphaRange=[0.1, 10], betaRange=[0.1, 3],
                             intensPrecision=1, alphaPrecision=1,
