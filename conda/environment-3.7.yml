@@ -61,7 +61,6 @@ dependencies:
 - zlib
 - pip:
   - arabic_reshaper
-  - https://github.com/DiffSK/configobj/archive/master.zip
   - esprima
   - freetype-py
   - pygame
