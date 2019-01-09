@@ -60,7 +60,7 @@ def compileScript(infile=None, version=None, outfile=None):
 
     # Output script to file
     for scripts in scriptDict:
-        with codecs.open(eval(scripts), 'w', 'utf-8') as f:
+        with codecs.open(eval(scripts), 'w', encoding='utf-8-sig') as f:
             f.write(scriptDict[scripts])
         f.close()
 

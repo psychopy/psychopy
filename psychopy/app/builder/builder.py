@@ -2372,7 +2372,7 @@ class ReadmeFrame(wx.Frame):
             return False
         # attempt to open
         try:
-            f = codecs.open(filename, 'r', 'utf-8')
+            f = codecs.open(filename, 'r', 'utf-8-sig')
         except IOError as err:
             msg = ("Found readme file for %s and appear to have"
                    " permissions, but can't open")
@@ -2399,9 +2399,8 @@ class ReadmeFrame(wx.Frame):
             logging.warning(
                 'readme file has been changed by another programme?')
         txt = self.ctrl.GetValue()
-        f = codecs.open(self.filename, 'w', 'utf-8')
-        f.write(txt)
-        f.close()
+        with codecs.open(self.filename, 'w', 'utf-8-sig') as f:
+            f.write(txt)
 
     def toggleVisible(self, evt=None):
         """Defines visibility toggle for readme frame"""
