@@ -39,9 +39,17 @@ def toFile(filename, data):
     f.close()
 
 
-def fromFile(filename):
+def fromFile(filename, encoding='utf-8'):
     """Load data from a pickle or JSON file.
+
+    Parameters
+    ----------
+    encoding : str
+        The encoding to use when reading a JSON file. This parameter will be
+        ignored for any other file type.
+
     """
+    filename = pathToString(filename)
     if filename.endswith('.psydat'):
         with open(filename, 'rb') as f:
             contents = pickle.load(f)
@@ -50,7 +58,7 @@ def fromFile(filename):
             if hasattr(contents, 'abort'):
                 contents.abort()
     elif filename.endswith('.json'):
-        with open(filename, 'r') as f:
+        with codecs.open(filename, 'r', encoding=encoding) as f:
             contents = json_tricks.load(f)
 
             # Restore RNG if we load a TrialHandler2 object.
@@ -92,7 +100,7 @@ def mergeFolder(src, dst, pattern=None):
 
 
 def openOutputFile(fileName=None, append=False, fileCollisionMethod='rename',
-                   encoding='utf-8'):
+                   encoding='utf-8-sig'):
     """Open an output file (or standard output) for writing.
 
     :Parameters:
@@ -121,6 +129,7 @@ def openOutputFile(fileName=None, append=False, fileCollisionMethod='rename',
         A writable file handle.
 
     """
+    fileName = pathToString(fileName)
     if (fileName is None) or (fileName == 'stdout'):
         return sys.stdout
 
@@ -168,6 +177,7 @@ def genDelimiter(fileName):
         character otherwise.
 
     """
+    fileName = pathToString(fileName)
     if fileName.endswith(('.csv', '.CSV')):
         delim = ','
     else:
@@ -179,6 +189,7 @@ def genDelimiter(fileName):
 def genFilenameFromDelimiter(filename, delim):
     # If no known filename extension was specified, derive a one from the
     # delimiter.
+    filename = pathToString(filename)
     if not filename.endswith(('.dlm', '.DLM', '.tsv', '.TSV', '.txt',
                               '.TXT', '.csv', '.CSV', '.psydat', '.npy',
                               '.json')):
@@ -241,3 +252,25 @@ class DictStorage(dict):
             self.save()
         self._deleted = True
 
+def pathToString(filepath):
+    """
+    Coerces pathlib Path objects to a string (only python version 3.6+)
+    any other objects passed to this function will be returned as is.
+    This WILL NOT work with on Python 3.4, 3.5 since the __fspath__ dunder
+    method did not exist in those verisions, however psychopy does not support
+    these versions of python anyways.
+
+    :Parameters:
+
+    filepath : str or pathlib.Path
+        file system path that needs to be coerced into a string to
+        use by Psychopy's internals
+
+    :Returns:
+
+    filepath : str or same as input object
+        file system path coerced into a string type
+    """
+    if hasattr(filepath, "__fspath__"):
+        return filepath.__fspath__()
+    return filepath

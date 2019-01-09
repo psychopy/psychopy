@@ -93,18 +93,20 @@ class BaseComponent(object):
 
         self.order = ['name']  # name first, then timing, then others
 
+    def writeInitCode(self, buff):
+        """Write any code that a component needs that should only ever be done
+        at start of an experiment, BEFORE window creation.
+        """
+        pass
+
     def writeStartCode(self, buff):
         """Write any code that a component needs that should only ever be done
-        at start of an experiment (done once only)
+        at start of an experiment, AFTER window creation.
         """
         # e.g., create a data subdirectory unique to that component type.
         # Note: settings.writeStartCode() is done first, then
         # Routine.writeStartCode() will call this method for each component in
         # each routine
-        pass
-
-    def writeInitCode(self, buff):
-        """Doesn't seem to do much of anything"""
         pass
 
     def writeFrameCode(self, buff):
@@ -474,8 +476,7 @@ class BaseVisualComponent(BaseComponent):
             startType=startType, startVal=startVal,
             stopType=stopType, stopVal=stopVal,
             startEstim=startEstim, durationEstim=durationEstim)
-
-        self.psychopyLibs = ['visual']  # needs this psychopy lib to operate
+        self.exp.requirePsychopyLibs(['visual'])  # needs this psychopy lib to operate
 
         msg = _translate("Units of dimensions for this stimulus")
         self.params['units'] = Param(
@@ -578,7 +579,7 @@ class BaseVisualComponent(BaseComponent):
         buff.writeIndented("%(name)s.setAutoDraw(true);\n" % self.params)
         # to get out of the if statement
         buff.setIndentLevel(-1, relative=True)
-        buff.writeIndented("}\n")
+        buff.writeIndented("}\n\n")
 
         # test for stop (only if there was some setting for duration or stop)
         if self.params['stopVal'].val not in ('', None, -1, 'None'):

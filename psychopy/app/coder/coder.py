@@ -1003,7 +1003,7 @@ class CodeEditor(BaseCodeEditor):
             if self.coder.modulesLoaded:
                 for thisLine in importStatements:
                     # check what file we're importing from
-                    tryImport = ALLOW_MODULE_IMPORTS
+                    tryImport = True
                     words = thisLine.split()
                     # don't import from files in this folder (user files)
                     for word in words:
@@ -1598,7 +1598,9 @@ class CoderFrame(wx.Frame):
         self.sourceAsstChk.Check(self.prefs['showSourceAsst'])
         self.Bind(wx.EVT_MENU, self.setSourceAsst,
                   id=self.sourceAsstChk.GetId())
+
         menu.AppendSeparator()
+
         key = self.app.keys['switchToBuilder']
         item = menu.Append(wx.ID_ANY,
                            _translate("Go to &Builder view\t%s") % key,
@@ -1613,6 +1615,7 @@ class CoderFrame(wx.Frame):
         #   "Open an IPython notebook (unconnected in a browser)")
         # self.Bind(wx.EVT_MENU, self.app.openIPythonNotebook,
         #    id=self.IDs.openIPythonNotebook)
+
 
         self.demosMenu = wx.Menu()
         self.demos = {}
@@ -1692,6 +1695,11 @@ class CoderFrame(wx.Frame):
                              _translate("&About..."),
                              _translate("About PsychoPy"))
         self.Bind(wx.EVT_MENU, self.app.showAbout, id=wx.ID_ABOUT)
+
+        item = self.helpMenu.Append(wx.ID_ANY,
+                           _translate("&News..."),
+                           _translate("News"))
+        self.Bind(wx.EVT_MENU, self.app.showNews, id=item.GetId())
 
         self.SetMenuBar(menuBar)
 
@@ -2296,31 +2304,22 @@ class CoderFrame(wx.Frame):
         else:
             wildcard = _translate("Python scripts (*.py)|*.py|Text file "
                                   "(*.txt)|*.txt|Any file (*.*)|*")
-        # open dlg
+
         dlg = wx.FileDialog(
             self, message=_translate("Save file as ..."), defaultDir=initPath,
-            defaultFile=filename, style=wx.FD_SAVE, wildcard=wildcard)
+            defaultFile=filename, style=wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT,
+            wildcard=wildcard)
+
         if dlg.ShowModal() == wx.ID_OK:
             newPath = dlg.GetPath()
-            # if the file already exists, query whether it should be
-            # overwritten (default = yes)
-            msg = _translate("File '%s' already exists.\n    OK to overwrite?")
-            dlg2 = dialogs.MessageDialog(self, message=msg % newPath,
-                                         type='Warning')
-            if not os.path.exists(newPath) or dlg2.ShowModal() == wx.ID_YES:
-                doc.filename = newPath
-                self.fileSave(event=None, filename=newPath, doc=doc)
-                path, shortName = os.path.split(newPath)
-                self.notebook.SetPageText(docId, shortName)
-                self.setFileModified(False)
-                # JRG: 'doc.filename' should = newPath = dlg.getPath()
-                doc.fileModTime = os.path.getmtime(doc.filename)
-                try:
-                    dlg2.destroy()
-                except Exception:
-                    pass
-            else:
-                print("'Save-as' canceled; existing file NOT overwritten.\n")
+            doc.filename = newPath
+            self.fileSave(event=None, filename=newPath, doc=doc)
+            path, shortName = os.path.split(newPath)
+            self.notebook.SetPageText(docId, shortName)
+            self.setFileModified(False)
+            # JRG: 'doc.filename' should = newPath = dlg.getPath()
+            doc.fileModTime = os.path.getmtime(doc.filename)
+
         try:  # this seems correct on PC, but can raise errors on mac
             dlg.destroy()
         except Exception:

@@ -6,6 +6,7 @@ flowSize = integer(0,2,default=2)
 routineSize = integer(0,2,default=2)
 showLoopInfoInFlow = boolean(default=False)
 testSubset = string(default='all tests')
+lastNewsDate = string(default="2018-12-21T12:00:00.000Z")
 
 [coder]
 winX = integer(default=100)

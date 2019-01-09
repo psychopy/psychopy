@@ -262,10 +262,15 @@ class Monitor(object):
         """Returns the size of the current calibration in pixels,
         or None if not defined
         """
+        size = None
         if 'sizePix' in self.currentCalib:
-            return self.currentCalib['sizePix']
-        else:
+            size = self.currentCalib['sizePix']
+        # check various invalid sizes
+        if not hasattr(size, '__iter__') or len(size)!=2:
             return None
+        # make sure it's a list (not tuple) with no None vals
+        sizeOut = [(val or 0) for val in size]
+        return sizeOut
 
     def getWidth(self):
         """Of the viewable screen in cm, or None if not known

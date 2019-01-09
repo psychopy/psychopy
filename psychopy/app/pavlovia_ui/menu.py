@@ -42,7 +42,7 @@ class PavloviaMenu(wx.Menu):
         self.userMenu = wx.Menu()
         # if a user was previously logged in then set them as current
         lastPavUser = PavloviaMenu.appData['pavloviaUser']
-        if lastPavUser not in pavlovia.knownUsers:
+        if pavlovia.knownUsers and (lastPavUser not in pavlovia.knownUsers):
             lastPavUser = None
         if lastPavUser and not PavloviaMenu.currentUser:
             self.setUser(PavloviaMenu.appData['pavloviaUser'])

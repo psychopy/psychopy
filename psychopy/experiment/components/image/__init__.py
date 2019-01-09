@@ -156,7 +156,7 @@ class ImageComponent(BaseVisualComponent):
                 "  name : '{inits[name]}', {units}\n"
                 "  image : {inits[image]}, mask : {inits[mask]},\n"
                 "  ori : {inits[ori]}, pos : {inits[pos]}, size : {inits[size]},\n"
-                "  color : new util.Color ({inits[color]}), opacity : {inits[opacity]},\n"
+                "  color : new util.Color({inits[color]}), opacity : {inits[opacity]},\n"
                 "  flipHoriz : {inits[flipHoriz]}, flipVert : {inits[flipVert]},\n"
                 # no newline - start optional parameters
                 "  texRes : {inits[texture resolution]}"

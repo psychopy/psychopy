@@ -11,8 +11,7 @@ import os
 import wx
 
 from ._base import PavloviaMiniBrowser
-from psychopy import constants  # needed to set exec path for git-python
-from psychopy.projects import pavlovia
+from psychopy.projects import pavlovia  # NB pavlovia will set gitpython path
 from psychopy.localization import _translate
 
 try:
@@ -20,7 +19,9 @@ try:
 except ImportError:
     wxhl = wx  # in wx 3.0.2
 
-import git
+if pavlovia.haveGit:
+    import git
+
 
 def setLocalPath(parent, project=None, path=""):
     """Open a DirDialog and set the project local folder to that specified
@@ -148,18 +149,6 @@ def showCommitDialog(parent, project, initMsg=""):
     project.stageFiles(changeList)  # NB not needed in dulwich
     project.commit(commitMsg)
     return 1
-
-
-def checkGitPresent(parent):
-    try:
-        git
-        haveGit = True
-    except Exception as e:
-        print(e)
-        haveGit = False
-    if not haveGit:
-        noGitWarning(parent)
-        return 0
 
 
 def noGitWarning(parent):

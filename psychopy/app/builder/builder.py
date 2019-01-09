@@ -16,7 +16,7 @@ from wx.lib import platebtn, scrolledpanel
 
 try:
     from wx import aui
-except Exception:
+except ImportError:
     import wx.lib.agw.aui as aui  # some versions of phoenix
 try:
     from wx.adv import PseudoDC
@@ -1142,7 +1142,7 @@ class BuilderFrame(wx.Frame):
         stopBmp = wx.Bitmap(join(rc, 'stop%i.png' % tbSize), PNG)
         runBmp = wx.Bitmap(join(rc, 'run%i.png' % tbSize), PNG)
         compileBmp = wx.Bitmap(join(rc, 'compile%i.png' % tbSize), PNG)
-        settingsBmp = wx.Bitmap(join(rc, 'settingsExp%i.png' % tbSize), PNG)
+        settingsBmp = wx.Bitmap(join(rc, 'cogwindow%i.png' % tbSize), PNG)
         preferencesBmp = wx.Bitmap(join(rc, 'preferences%i.png' % tbSize),
                                    PNG)
         monitorsBmp = wx.Bitmap(join(rc, 'monitors%i.png' % tbSize), PNG)
@@ -1350,6 +1350,7 @@ class BuilderFrame(wx.Frame):
         self.viewMenu = wx.Menu()
         menuBar.Append(self.viewMenu, _translate('&View'))
         menu = self.viewMenu
+
         item = menu.Append(wx.ID_ANY,
                            _translate("&Open Coder view\t%s") % keys[
                                'switchToCoder'],
@@ -1456,6 +1457,7 @@ class BuilderFrame(wx.Frame):
         self.helpMenu = wx.Menu()
         menuBar.Append(self.helpMenu, _translate('&Help'))
         menu = self.helpMenu
+
         item = menu.Append(wx.ID_ANY,
                            _translate("&PsychoPy Homepage"),
                            _translate("Go to the PsychoPy homepage"))
@@ -1473,6 +1475,13 @@ class BuilderFrame(wx.Frame):
         menu.Append(wx.ID_ABOUT, _translate(
             "&About..."), _translate("About PsychoPy"))
         self.Bind(wx.EVT_MENU, self.app.showAbout, id=wx.ID_ABOUT)
+
+        menu.AppendSeparator()
+
+        item = menu.Append(wx.ID_ANY,
+                           _translate("&News..."),
+                           _translate("News"))
+        self.Bind(wx.EVT_MENU, self.app.showNews, id=item.GetId())
 
         self.SetMenuBar(menuBar)
 
@@ -1622,40 +1631,27 @@ class BuilderFrame(wx.Frame):
         returnVal = False
         dlg = wx.FileDialog(
             self, message=_translate("Save file as ..."), defaultDir=initPath,
-            defaultFile=filename, style=wx.FD_SAVE, wildcard=wildcard)
+            defaultFile=filename, style=wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT,
+            wildcard=wildcard)
+
         if dlg.ShowModal() == wx.ID_OK:
             newPath = dlg.GetPath()
             # update exp name
-            # if the file already exists, query whether it should be
-            # overwritten (default = yes)
-            okToSave = True
-            if os.path.exists(newPath):
-                msg = _translate("File '%s' already exists.\n"
-                                 "    OK to overwrite?") % newPath
-                dg2 = dialogs.MessageDialog(self, message=msg, type='Warning')
-                ok = dg2.ShowModal()
-                if ok != wx.ID_YES:
-                    okToSave = False
-                try:
-                    dg2.destroy()
-                except Exception:
-                    pass
-            if okToSave:
-                # if user has not manually renamed experiment
-                if usingDefaultName:
-                    newShortName = os.path.splitext(
-                        os.path.split(newPath)[1])[0]
-                    self.exp.setExpName(newShortName)
-                # actually save
-                self.fileSave(event=None, filename=newPath)
-                self.filename = newPath
-                returnVal = 1
-            else:
-                print("'Save-as' cancelled; existing file NOT overwritten.\n")
+            # if user has not manually renamed experiment
+            if usingDefaultName:
+                newShortName = os.path.splitext(
+                    os.path.split(newPath)[1])[0]
+                self.exp.setExpName(newShortName)
+            # actually save
+            self.fileSave(event=None, filename=newPath)
+            self.filename = newPath
+            returnVal = 1
+
         try:  # this seems correct on PC, but not on mac
             dlg.destroy()
         except Exception:
             pass
+
         self.updateWindowTitle()
         return returnVal
 
@@ -2179,7 +2175,7 @@ class BuilderFrame(wx.Frame):
             self.routinePanel.GetSelection()).routine
         oldName = routine.name
         msg = _translate("What is the new name for the Routine?")
-        dlg = wx.TextEntryDialog(self, message=msg,
+        dlg = wx.TextEntryDialog(self, message=msg, value=oldName,
                                  caption=_translate('Rename'))
         exp = self.exp
         if dlg.ShowModal() == wx.ID_OK:

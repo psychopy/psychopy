@@ -166,7 +166,7 @@ class ioLabsButtonBoxComponent(KeyboardComponent):
         if self.params['stopVal'].val not in ['', None, -1, 'None']:
             # writes an if statement to determine whether to draw etc
             self.writeStopTestCode(buff)
-            buff.writeIndented("%(name)s.status = STOPPED\n" % self.params)
+            buff.writeIndented("%(name)s.status = FINISHED\n" % self.params)
             buff.setIndentLevel(-1, True)
 
         buff.writeIndented("if %(name)s.status == STARTED:\n" % self.params)

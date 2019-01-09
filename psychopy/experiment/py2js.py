@@ -37,6 +37,17 @@ namesJS['rand'] = 'Math.random'
 namesJS['random'] = 'Math.random'
 
 
+class TupleTransformer(ast.NodeTransformer):
+    """ An ast subclass that walks the abstract syntax tree and
+    allows modification of nodes.
+
+    This class transforms a tuple to a list.
+
+    :returns node
+    """
+    def visit_Tuple(self, node):
+        return ast.List(node.elts, node.ctx)
+
 class Unparser(astunparse.Unparser):
     """astunparser had buried the future_imports option underneath its init()
     so we need to override that method and change it."""
@@ -59,9 +70,16 @@ def unparse(tree):
 
 def expression2js(expr):
     """Convert a short expression (e.g. a Component Parameter) Python to JS"""
+
+    # if the code contains a tuple (anywhere), convert parenths to be list.
+    # This now works for compounds like `(2*(4, 5))` where the inner
+    # parenths becomes a list and the outer parens indicate priority.
+    # This works by running an ast transformer class to swap the contents of the tuple
+    # into a list for the number of tuples in the expression.
+
     syntaxTree = ast.parse(expr)
-    wasTuple = False
     for node in ast.walk(syntaxTree):
+        TupleTransformer().visit(node)  # Transform tuples to list
         if isinstance(node, ast.Str) and node.s.startswith("u'"):
             node.s = node.s[1:]
             print(node.s)
@@ -69,18 +87,8 @@ def expression2js(expr):
             if node.id == 'undefined':
                 continue
             node.id = namesJS[node.id]
-        if isinstance(node, ast.Tuple):
-            wasTuple = True
     jsStr = unparse(syntaxTree).strip()
-    # if the code contained a tuple (anywhere) convert parenths to be list
-    # NB this won't be good for compounds like `(2*(4, 5))` where the inner
-    # parenths are a list and the outer parens are indicating priority.
-    # Would be better to convert a Tuple node into a List node with same
-    # and then the JS would work fine!
-    if wasTuple:
-        jsStr = jsStr.replace('(', '[').replace(')', ']')
     return jsStr
-
 
 def snippet2js(expr):
     """Convert several lines (e.g. a Code Component) Python to JS"""
@@ -150,6 +158,11 @@ def addVariableDeclarations(inputProgram):
 
 if __name__ == '__main__':
     for expr in ['sin(t)', 't*5',
-                 '(3, 4)', '(5*2)',  # tuple and not tuple
-                 '(1,(2,3))', '2*(2, 3)']:  # combinations
+                 '(3, 4)', '(5*-2)',  # tuple and not tuple
+                 '(1,(2,3), (1,2,3), (-4,-5,-6))', '2*(2, 3)',  # combinations
+                 '[1, (2*2)]',  # List with nested operations returns list + nested tuple
+                 '(.7, .7)',  # A tuple returns list
+                 '(-.7, .7)',  # A tuple with unary operators returns nested lists
+                 '[-.7, -.7]',  # A list with unary operators returns list with nested tuple
+                 '[-.7, (-.7 * 7)]']:  # List with unary operators and nested tuple with operations returns list + tuple
         print("{} -> {}".format(repr(expr), repr(expression2js(expr))))

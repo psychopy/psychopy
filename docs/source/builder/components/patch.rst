@@ -1,4 +1,4 @@
-.. _patch:
+.. _patchComponent:
 
 Patch (image) Component
 -------------------------------

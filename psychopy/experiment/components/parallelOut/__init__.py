@@ -48,7 +48,7 @@ class ParallelOutComponent(BaseComponent):
         self.order = ['address', 'startData', 'stopData']
 
         # main parameters
-        addressOptions = prefs.general['parallelPorts'] + [u'LabJack U3']
+        addressOptions = prefs.hardware['parallelPorts'] + [u'LabJack U3']
         if not address:
             address = addressOptions[0]
 
@@ -114,7 +114,7 @@ class ParallelOutComponent(BaseComponent):
         if self.params['stopVal'].val not in ['', None, -1, 'None']:
             # writes an if statement to determine whether to draw etc
             self.writeStopTestCode(buff)
-            buff.writeIndented("%(name)s.status = STOPPED\n" % self.params)
+            buff.writeIndented("%(name)s.status = FINISHED\n" % self.params)
 
             if not self.params['syncScreen'].val:
                 code = "%(name)s.setData(int(%(stopData)s))\n" % self.params

@@ -9,6 +9,9 @@ from __future__ import absolute_import, division, print_function
 
 from builtins import str
 from builtins import object
+
+profiling = False  # turning on will save profile files in currDir
+
 import sys
 import psychopy
 from pkg_resources import parse_version
@@ -52,7 +55,6 @@ from psychopy import projects
 from . import connections
 from .utils import FileDropTarget
 import os
-import threading
 import weakref
 
 # knowing if the user has admin priv is generally a good idea for security.
@@ -70,6 +72,7 @@ class MenuFrame(wx.Frame):
     """
 
     def __init__(self, parent=None, ID=-1, app=None, title="PsychoPy3"):
+
         wx.Frame.__init__(self, parent, ID, title, size=(1, 1))
         self.app = app
 
@@ -145,6 +148,12 @@ class PsychoPyApp(wx.App):
         """With a wx.App some things get done here, before App.__init__
         then some further code is launched in OnInit() which occurs after
         """
+        if profiling:
+            import cProfile, time
+            profile = cProfile.Profile()
+            profile.enable()
+            t0 = time.time()
+
         self._appLoaded = False  # set to true when all frames are created
         self.coder = None
         self.version = psychopy.__version__
@@ -179,6 +188,11 @@ class PsychoPyApp(wx.App):
         self.locale.AddCatalog(self.GetAppName())
 
         self.onInit(testMode=testMode, **kwargs)
+        if profiling:
+            profile.disable()
+            print("time to load app = {:.2f}".format(time.time()-t0))
+            profile.dump_stats('profileLaunchApp.profile')
+
 
     def onInit(self, showSplash=True, testMode=False):
         """This is launched immediately *after* the app initialises with wx
@@ -320,32 +334,10 @@ class PsychoPyApp(wx.App):
         # please don't disable this, it's important for PsychoPy's development
         self._latestAvailableVersion = None
         self.updater = None
+        self.news = None
+        self.tasks = None
+
         prefsConn = self.prefs.connections
-        if prefsConn['checkForUpdates'] or prefsConn['allowUsageStats']:
-            connectThread = threading.Thread(
-                target=connections.makeConnections, args=(self,))
-            connectThread.start()
-        # query github in the background to populate a local cache about
-        # what versions are available for download:
-        from psychopy.tools import versionchooser as vc
-        versionsThread = threading.Thread(target=vc._remoteVersions,
-                                          args=(True,))
-        versionsThread.start()
-
-        try:
-            import imageio
-            haveImageio = True
-        except ImportError:
-            haveImageio = False
-
-        if haveImageio:
-            # Use pre-installed ffmpeg if available.
-            # Otherwise, download ffmpeg binary.
-            try:
-                imageio.plugins.ffmpeg.get_exe()
-            except imageio.core.NeedDownloadError:
-                ffmpegDownloader = threading.Thread(target=imageio.plugins.ffmpeg.download)
-                ffmpegDownloader.start()
 
         ok, msg = checkCompatibility(last, self.version, self.prefs, fix=True)
         # tell the user what has changed
@@ -372,10 +364,7 @@ class PsychoPyApp(wx.App):
             self.prefs.app['showStartupTips'] = showTip
             self.prefs.saveUserPrefs()
 
-        if self.prefs.connections['checkForUpdates']:
-            self.Bind(wx.EVT_IDLE, self.checkUpdates)
-        else:
-            self.Bind(wx.EVT_IDLE, self.onIdle)
+        self.Bind(wx.EVT_IDLE, self.onIdle)
 
         # doing this once subsequently enables the app to open & switch among
         # wx-windows on some platforms (Mac 10.9.4) with wx-3.0:
@@ -453,9 +442,6 @@ class PsychoPyApp(wx.App):
             self.updater = connections.Updater(app=self)
             self.updater.latest = self._latestAvailableVersion
             self.updater.suggestUpdate(confirmationDlg=False)
-        evt.Skip()
-
-    def onIdle(self, evt):
         evt.Skip()
 
     def getPrimaryDisplaySize(self):
@@ -748,6 +734,9 @@ class PsychoPyApp(wx.App):
         if not self.testMode:
             showAbout(info)
 
+    def showNews(self, event=None):
+        connections.showNews(self, checkPrev=False)
+
     def followLink(self, event=None, url=None):
         """Follow either an event id (= a key to an url defined in urls.py)
         or follow a complete url (a string beginning "http://")
@@ -785,6 +774,11 @@ class PsychoPyApp(wx.App):
         for entry in self._allFrames:
             if entry() == frame:  # is a weakref
                 self._allFrames.remove(entry)
+
+    def onIdle(self, evt):
+        from . import idle
+        idle.doIdleTasks(app=self)
+        evt.Skip()
 
 
 if __name__ == '__main__':

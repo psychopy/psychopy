@@ -184,12 +184,18 @@ class TrialHandler(object):
         # create the variable "thisTrial" from "trials"
         makeLoopIndex = self.exp.namespace.makeLoopIndex
         self.thisName = makeLoopIndex(self.params['name'].val)
+
         # seed might be undefined
         seed = self.params['random seed'].val or 'undefined'
-        if self.params['conditionsFile'].val == '':
+        if self.params['conditionsFile'].val in ['None', None, 'none', '']:
             trialList='undefined'
+        elif self.params['Selected rows'].val in ['None', None, 'none', '']:
+            trialList = self.params['conditionsFile']
         else:
-            trialList=self.params['conditionsFile']
+            trialList = ("TrialHandler.importConditions"
+                         "(psychoJS.serverManager, {}, {})"
+                         ).format(self.params['conditionsFile'],
+                                  self.params['Selected rows'])
 
         code = ("\nfunction {funName}LoopBegin(thisScheduler) {{\n"
                 "  // set up handler to look after randomisation of conditions etc\n"

@@ -1,4 +1,4 @@
-.. _microphone:
+.. _microphoneComponent:
 
 Microphone Component
 -------------------------------

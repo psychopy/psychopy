@@ -40,7 +40,12 @@ from psychopy.localization import _translate
 import locale
 
 # standard_library.install_aliases()
-from collections import OrderedDict
+
+from collections import OrderedDict, namedtuple
+RequiredImport = namedtuple('RequiredImport',
+                            field_names=('importName',
+                                         'importFrom',
+                                         'importAs'))
 
 
 class Experiment(object):
@@ -70,9 +75,15 @@ class Experiment(object):
         # this can be checked by the builder that this is an experiment and a
         # compatible version
         self.psychopyVersion = __version__
+
         # What libs are needed (make sound come first)
-        self.psychopyLibs = ['sound', 'gui', 'visual', 'core',
-                             'data', 'event', 'logging', 'clock']
+        self.requiredImports = []
+        libs = ('sound', 'gui', 'visual', 'core', 'data', 'event',
+                'logging', 'clock')
+        self.requirePsychopyLibs(libs=libs)
+
+        self._runOnce = []
+
         _settingsComp = getComponents(fetchIcons=False)['SettingsComponent']
         self.settings = _settingsComp(parentName='', exp=self)
         # this will be the xml.dom.minidom.doc object for saving
@@ -93,12 +104,56 @@ class Experiment(object):
     def requirePsychopyLibs(self, libs=()):
         """Add a list of top-level psychopy libs that the experiment
         will need. e.g. [visual, event]
+
+        Notes
+        -----
+        This is a convenience method for `requireImport()`.
         """
-        if not isinstance(libs, list):
-            libs = list(libs)
         for lib in libs:
-            if lib not in self.psychopyLibs:
-                self.psychopyLibs.append(lib)
+            self.requireImport(importName=lib,
+                               importFrom='psychopy')
+
+    def requireImport(self, importName, importFrom='', importAs=''):
+        """Add a top-level import to the experiment.
+
+        Parameters
+        ----------
+        importName : str
+            Name of the package or module to import.
+        importFrom : str
+            Where to import ``from``.
+        importAs : str
+            Import ``as`` this name.
+        """
+        import_ = RequiredImport(importName=importName,
+                                 importFrom=importFrom,
+                                 importAs=importAs)
+
+        if import_ not in self.requiredImports:
+            self.requiredImports.append(import_)
+
+    def runOnce(self, code):
+        """Add code to the experiment that is only run exactly once, after
+        all `import`s were done.
+
+        Parameters
+        ----------
+        code : str
+            The code to run. May include newline characters to wrtie several
+            lines of code at once.
+
+        Notes
+        -----
+        For running an `import`, use meth:~`Experiment.requireImport` or
+        :meth:~`Experiment.requirePsychopyLibs` instead.
+
+        See also
+        --------
+        :meth:~`Experiment.requireImport`,
+        :meth:~`Experiment.requirePsychopyLibs`
+        """
+        if code not in self._runOnce:
+            self._runOnce.append(code)
 
     def addRoutine(self, routineName, routine=None):
         """Add a Routine to the current list of them.

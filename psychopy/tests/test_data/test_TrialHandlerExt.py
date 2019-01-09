@@ -13,6 +13,7 @@ from os.path import join as pjoin
 import shutil
 from tempfile import mkdtemp, mkstemp
 import numpy as np
+import codecs
 import pytest
 
 from psychopy import data
@@ -49,10 +50,11 @@ class TestTrialHandlerExt(object):
         # Make sure the header line is correct
         # We open the file with universal newline support (PEP-278).
         if PY3:
-            with open(data_filename, 'r', newline=None) as f:
+            with open(data_filename, 'r', newline=None,
+                      encoding='utf-8-sig') as f:
                 header = f.readline()
         else:
-            with open(data_filename, 'rU') as f:
+            with codecs.open(data_filename, 'rU', encoding='utf-8-sig') as f:
                 header = f.readline()
 
         expected_header = u'n,with_underscore_mean,with_underscore_raw,with_underscore_std,order\n'
@@ -254,10 +256,12 @@ class TestTrialHandlerOutput(object):
 
         # Universal newline support.
         if PY3:
-            with open(path + expected_suffix, 'r', newline=None) as f:
+            with open(path + expected_suffix, 'r', newline=None,
+                      encoding='utf-8-sig') as f:
                 header = f.readline()
         else:
-            with open(path + expected_suffix, 'rU') as f:
+            with codecs.open(path + expected_suffix, 'rU',
+                             encoding='utf-8-sig') as f:
                 header = f.readline()
 
         assert header == expected_header
@@ -277,10 +281,12 @@ class TestTrialHandlerOutput(object):
 
         # Universal newline support.
         if PY3:
-            with open(path + expected_suffix, 'r', newline=None) as f:
+            with open(path + expected_suffix, 'r', newline=None,
+                      encoding='utf-8-sig') as f:
                 header = f.readline()
         else:
-            with open(path + expected_suffix, 'rU') as f:
+            with codecs.open(path + expected_suffix, 'rU',
+                             encoding='utf-8-sig') as f:
                 header = f.readline()
 
         assert header == expected_header
@@ -300,10 +306,12 @@ class TestTrialHandlerOutput(object):
 
         # Universal newline support.
         if PY3:
-            with open(path + expected_suffix, 'r', newline=None) as f:
+            with open(path + expected_suffix, 'r', newline=None,
+                      encoding='utf-8-sig') as f:
                 header = f.readline()
         else:
-            with open(path + expected_suffix, 'rU') as f:
+            with codecs.open(path + expected_suffix, 'rU',
+                             encoding='utf-8-sig') as f:
                 header = f.readline()
 
         assert header == expected_header
@@ -323,10 +331,12 @@ class TestTrialHandlerOutput(object):
 
         # Universal newline support.
         if PY3:
-            with open(path + expected_suffix, 'r', newline=None) as f:
+            with open(path + expected_suffix, 'r', newline=None,
+                      encoding='utf-8-sig') as f:
                 header = f.readline()
         else:
-            with open(path + expected_suffix, 'rU') as f:
+            with codecs.open(path + expected_suffix, 'rU',
+                             encoding='utf-8-sig') as f:
                 header = f.readline()
 
         assert header == expected_header
@@ -344,10 +354,10 @@ class TestTrialHandlerOutput(object):
 
         # Universal newline support.
         if PY3:
-            with open(path, 'r', newline=None) as f:
+            with open(path, 'r', newline=None, encoding='utf-8-sig') as f:
                 header = f.readline()
         else:
-            with open(path, 'rU') as f:
+            with codecs.open(path, 'rU', encoding='utf-8-sig') as f:
                 header = f.readline()
 
         assert header == expected_header
@@ -368,10 +378,12 @@ class TestTrialHandlerOutput(object):
 
         # Universal newline support.
         if PY3:
-            with open(path + expected_suffix, 'r', newline=None) as f:
+            with open(path + expected_suffix, 'r', newline=None,
+                      encoding='utf-8-sig') as f:
                 header = f.readline()
         else:
-            with open(path + expected_suffix, 'rU') as f:
+            with codecs.open(path + expected_suffix, 'rU',
+                             encoding='utf-8-sig') as f:
                 header = f.readline()
 
         assert header == expected_header
@@ -391,10 +403,10 @@ class TestTrialHandlerOutput(object):
 
         # Universal newline support.
         if PY3:
-            with open(path, 'r', newline=None) as f:
+            with open(path, 'r', newline=None, encoding='utf-8-sig') as f:
                 header = f.readline()
         else:
-            with open(path, 'rU') as f:
+            with codecs.open(path, 'rU', encoding='utf-8-sig') as f:
                 header = f.readline()
 
         assert header == expected_header

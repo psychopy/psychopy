@@ -11,8 +11,6 @@ from builtins import object
 import sys
 import re
 import glob
-import time
-import platform
 import zipfile
 import os
 from pkg_resources import parse_version
@@ -24,12 +22,12 @@ except ImportError:
     import wx.lib.hyperlink as wxhl # <3.0.2
 
 import psychopy
-from . import dialogs
+from .. import dialogs
 from psychopy.localization import _translate
 from psychopy import logging
 from psychopy import web
-from psychopy.constants import PY3
-if PY3:
+from psychopy import constants
+if constants.PY3:
     import io
 else:
     import StringIO as io
@@ -43,21 +41,7 @@ InstallUpdateDialog (via Updater.doUpdate() ).
 """
 
 
-def makeConnections(app):
-    """A helper function to be launched from a thread. Will setup proxies and
-    check for updates. Run from a thread while the program continues to load.
-    """
-    if web.proxies is None:
-        web.setupProxy()
-    if web.proxies == 0:
-        return
-    if app.prefs.connections['allowUsageStats']:
-        sendUsageStats()
-    if app.prefs.connections['checkForUpdates']:
-        app._latestAvailableVersion = getLatestVersionInfo()
-
-
-def getLatestVersionInfo():
+def getLatestVersionInfo(app=None):
     """
     Fetch info about the latest available version.
     Returns -1 if fails to make a connection
@@ -71,13 +55,15 @@ def getLatestVersionInfo():
     for line in page.readlines():
         # in some odd circumstances (wifi hotspots) you can fetch a
         # page that is not the correct URL but a redirect
-        if PY3:
+        if constants.PY3:
             line = line.decode()  # convert from a byte to a str
         if line.find(':') == -1:
             return -1
             # this will succeed if every line has a key
         key, keyInfo = line.split(':')
         latest[key] = keyInfo.replace('\n', '').replace('\r', '')
+    if app:
+        app._latestAvailableVersion = latest
     return latest
 
 
@@ -456,7 +442,7 @@ class InstallUpdateDialog(wx.Dialog):
         otherwise try and retrieve a version number from zip file name
         """
         info = ""  # return this at the end
-        if PY3:
+        if constants.PY3:
             zfileIsName = type(zfile) == str
         else:
             zfileIsName = type(zfile) in (str, unicode)
@@ -609,45 +595,3 @@ class InstallUpdateDialog(wx.Dialog):
                     info += 'Failed to update PsychoPy path in %s' % filename
                     return -1, info
         return nUpdates, info
-
-
-def sendUsageStats():
-    """Sends anonymous, very basic usage stats to psychopy server:
-      the version of PsychoPy
-      the system used (platform and version)
-      the date
-    """
-
-    v = psychopy.__version__
-    dateNow = time.strftime("%Y-%m-%d_%H:%M")
-    miscInfo = ''
-
-    # urllib.install_opener(opener)
-    # check for proxies
-    if web.proxies is None:
-        web.setupProxy()
-
-    # get platform-specific info
-    if sys.platform == 'darwin':
-        OSXver, junk, architecture = platform.mac_ver()
-        systemInfo = "OSX_%s_%s" % (OSXver, architecture)
-    elif sys.platform.startswith('linux'):
-        systemInfo = '%s_%s_%s' % (
-            'Linux',
-            ':'.join([x for x in platform.dist() if x != '']),
-            platform.release())
-        if len(systemInfo) > 30:  # if it's too long PHP/SQL fails to store!?
-            systemInfo = systemInfo[0:30]
-    elif sys.platform == 'win32':
-        systemInfo = "win32_v" + platform.version()
-    else:
-        systemInfo = platform.system() + platform.release()
-    u = "http://www.psychopy.org/usage.php?date=%s&sys=%s&version=%s&misc=%s"
-    URL = u % (dateNow, systemInfo, v, miscInfo)
-    try:
-        req = urllib.request.Request(URL)
-        page = urllib.request.urlopen(req)  # proxies
-    except Exception:
-        logging.warning("Couldn't connect to psychopy.org\n"
-                        "Check internet settings (and proxy "
-                        "setting in PsychoPy Preferences.")

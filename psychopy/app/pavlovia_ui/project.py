@@ -9,7 +9,7 @@ import os
 import traceback
 
 from .functions import (setLocalPath, showCommitDialog, logInPavlovia,
-                        checkGitPresent)
+                        noGitWarning)
 from psychopy.localization import _translate
 from psychopy.projects import pavlovia
 from psychopy import logging
@@ -312,7 +312,9 @@ class DetailsPanel(scrlpanel.ScrolledPanel):
         self.Layout()
 
     def onSyncButton(self, event):
-        checkGitPresent(self.parent)
+        if not pavlovia.haveGit:
+            noGitWarning(parent=self.parent)
+            return 0
 
         if self.project is None:
             raise AttributeError("User pressed the sync button with no "
@@ -376,7 +378,9 @@ def syncProject(parent, project=None, closeFrameWhenDone=False):
         0 for fail
         -1 for cancel at some point in the process
     """
-    checkGitPresent(parent)
+    if not pavlovia.haveGit:
+        noGitWarning(parent)
+        return 0
 
     isCoder = hasattr(parent, 'currentDoc')
     if not project and "BuilderFrame" in repr(parent):
@@ -384,6 +388,17 @@ def syncProject(parent, project=None, closeFrameWhenDone=False):
         project = parent.project  # type: pavlovia.PavloviaProject
 
     if not project:  # ask the user to create one
+
+        # if we're going to create a project we need user to be logged in
+        pavSession = pavlovia.getCurrentSession()
+        try:
+            username = pavSession.user.username
+        except:
+            username = logInPavlovia(parent)
+        if not username:
+            return -1  # never logged in
+
+        # create project dialog
         msg = _translate("This file doesn't belong to any existing project.")
         style = wx.OK | wx.CANCEL | wx.CENTER
         dlg = wx.MessageDialog(parent=parent, message=msg, style=style)
@@ -426,7 +441,6 @@ def syncProject(parent, project=None, closeFrameWhenDone=False):
             return
 
     # a sync will be necessary so can create syncFrame
-    checkGitPresent(parent)
     syncFrame = sync.SyncFrame(parent=parent, id=wx.ID_ANY, project=project)
 
     if project._newRemote:
@@ -445,7 +459,7 @@ def syncProject(parent, project=None, closeFrameWhenDone=False):
         time.sleep(0.001)
         # git push -u origin master
         try:
-            project.firstPush(infoStream=syncFrame.syncPanel)
+            project.firstPush(infoStream=syncFrame.syncPanel.infoStream)
             project._newRemote = False
         except Exception as e:
             closeFrameWhenDone = False
@@ -453,7 +467,7 @@ def syncProject(parent, project=None, closeFrameWhenDone=False):
     else:
         # existing remote which we should sync (or clone)
         try:
-            ok = project.getRepo(syncFrame.syncPanel)
+            ok = project.getRepo(syncFrame.syncPanel.infoStream)
             if not ok:
                 closeFrameWhenDone = False
         except Exception as e:

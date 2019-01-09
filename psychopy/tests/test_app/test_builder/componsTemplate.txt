@@ -2726,7 +2726,7 @@ ParallelOutComponent.order:['address', 'startData', 'stopData']
 ParallelOutComponent.address.default:'0x0378'
 ParallelOutComponent.address.allowedTypes:[]
 ParallelOutComponent.address.allowedUpdates:None
-ParallelOutComponent.address.allowedVals:['0x0378', '0x03BC', 'LabJack U3']
+ParallelOutComponent.address.allowedVals:['0x0378', '0x03BC', '/dev/parport0', '/dev/parport1', 'LabJack U3']
 ParallelOutComponent.address.categ:Basic
 ParallelOutComponent.address.hint:Parallel port to be used (you can change these options in preferences>general)
 ParallelOutComponent.address.label:Port address
@@ -3335,6 +3335,174 @@ PolygonComponent.units.staticUpdater:None
 PolygonComponent.units.updates:None
 PolygonComponent.units.val:from exp settings
 PolygonComponent.units.valType:str
+QmixPumpComponent.order:['pumpIndex', 'syringeType', 'pumpAction', 'flowRate', 'flowRateUnit', 'switchValveWhenDone', 'syncToScreen']
+QmixPumpComponent.durationEstim.default:
+QmixPumpComponent.durationEstim.allowedTypes:[]
+QmixPumpComponent.durationEstim.allowedUpdates:None
+QmixPumpComponent.durationEstim.allowedVals:[]
+QmixPumpComponent.durationEstim.categ:Basic
+QmixPumpComponent.durationEstim.hint:(Optional) expected duration (s), purely for representing in the timeline
+QmixPumpComponent.durationEstim.label:Expected duration (s)
+QmixPumpComponent.durationEstim.readOnly:False
+QmixPumpComponent.durationEstim.staticUpdater:None
+QmixPumpComponent.durationEstim.updates:None
+QmixPumpComponent.durationEstim.val:
+QmixPumpComponent.durationEstim.valType:code
+QmixPumpComponent.flowRate.default:1.0
+QmixPumpComponent.flowRate.allowedTypes:[]
+QmixPumpComponent.flowRate.allowedUpdates:None
+QmixPumpComponent.flowRate.allowedVals:[]
+QmixPumpComponent.flowRate.categ:Basic
+QmixPumpComponent.flowRate.hint:The flow rate
+QmixPumpComponent.flowRate.label:Flow rate
+QmixPumpComponent.flowRate.readOnly:False
+QmixPumpComponent.flowRate.staticUpdater:None
+QmixPumpComponent.flowRate.updates:None
+QmixPumpComponent.flowRate.val:1.0
+QmixPumpComponent.flowRate.valType:code
+QmixPumpComponent.flowRateUnit.default:'mL/s'
+QmixPumpComponent.flowRateUnit.allowedTypes:[]
+QmixPumpComponent.flowRateUnit.allowedUpdates:None
+QmixPumpComponent.flowRateUnit.allowedVals:['mL/s', 'mL/min']
+QmixPumpComponent.flowRateUnit.categ:Basic
+QmixPumpComponent.flowRateUnit.hint:The unit of the flow rate
+QmixPumpComponent.flowRateUnit.label:Flow rate unit
+QmixPumpComponent.flowRateUnit.readOnly:False
+QmixPumpComponent.flowRateUnit.staticUpdater:None
+QmixPumpComponent.flowRateUnit.updates:None
+QmixPumpComponent.flowRateUnit.val:mL/s
+QmixPumpComponent.flowRateUnit.valType:str
+QmixPumpComponent.name.default:pump
+QmixPumpComponent.name.allowedTypes:[]
+QmixPumpComponent.name.allowedUpdates:None
+QmixPumpComponent.name.allowedVals:[]
+QmixPumpComponent.name.categ:Basic
+QmixPumpComponent.name.hint:Name of this component (alpha-numeric or _, no spaces)
+QmixPumpComponent.name.label:Name
+QmixPumpComponent.name.readOnly:False
+QmixPumpComponent.name.staticUpdater:None
+QmixPumpComponent.name.val:pump
+QmixPumpComponent.name.valType:code
+QmixPumpComponent.pumpAction.default:'dispense'
+QmixPumpComponent.pumpAction.allowedTypes:[]
+QmixPumpComponent.pumpAction.allowedUpdates:None
+QmixPumpComponent.pumpAction.allowedVals:['aspirate', 'dispense']
+QmixPumpComponent.pumpAction.categ:Basic
+QmixPumpComponent.pumpAction.hint:Whether the syringe should be filled (aspirate) or emptied (dispense
+QmixPumpComponent.pumpAction.label:Pump action
+QmixPumpComponent.pumpAction.readOnly:False
+QmixPumpComponent.pumpAction.staticUpdater:None
+QmixPumpComponent.pumpAction.updates:None
+QmixPumpComponent.pumpAction.val:dispense
+QmixPumpComponent.pumpAction.valType:str
+QmixPumpComponent.pumpIndex.default:0
+QmixPumpComponent.pumpIndex.allowedTypes:[]
+QmixPumpComponent.pumpIndex.allowedUpdates:None
+QmixPumpComponent.pumpIndex.allowedVals:[]
+QmixPumpComponent.pumpIndex.categ:Basic
+QmixPumpComponent.pumpIndex.hint:The index of the pump(s) (first pump is 0).
+QmixPumpComponent.pumpIndex.label:Pump index
+QmixPumpComponent.pumpIndex.readOnly:False
+QmixPumpComponent.pumpIndex.staticUpdater:None
+QmixPumpComponent.pumpIndex.updates:None
+QmixPumpComponent.pumpIndex.val:0
+QmixPumpComponent.pumpIndex.valType:code
+QmixPumpComponent.startEstim.default:
+QmixPumpComponent.startEstim.allowedTypes:[]
+QmixPumpComponent.startEstim.allowedUpdates:None
+QmixPumpComponent.startEstim.allowedVals:[]
+QmixPumpComponent.startEstim.categ:Basic
+QmixPumpComponent.startEstim.hint:(Optional) expected start (s), purely for representing in the timeline
+QmixPumpComponent.startEstim.label:Expected start (s)
+QmixPumpComponent.startEstim.readOnly:False
+QmixPumpComponent.startEstim.staticUpdater:None
+QmixPumpComponent.startEstim.updates:None
+QmixPumpComponent.startEstim.val:
+QmixPumpComponent.startEstim.valType:code
+QmixPumpComponent.startType.default:'time (s)'
+QmixPumpComponent.startType.allowedTypes:[]
+QmixPumpComponent.startType.allowedUpdates:None
+QmixPumpComponent.startType.allowedVals:['time (s)', 'frame N', 'condition']
+QmixPumpComponent.startType.categ:Basic
+QmixPumpComponent.startType.hint:How do you want to define your start point?
+QmixPumpComponent.startType.label:start type
+QmixPumpComponent.startType.readOnly:False
+QmixPumpComponent.startType.staticUpdater:None
+QmixPumpComponent.startType.updates:None
+QmixPumpComponent.startType.val:time (s)
+QmixPumpComponent.startType.valType:str
+QmixPumpComponent.startVal.default:0.0
+QmixPumpComponent.startVal.allowedTypes:[]
+QmixPumpComponent.startVal.allowedUpdates:None
+QmixPumpComponent.startVal.allowedVals:[]
+QmixPumpComponent.startVal.categ:Basic
+QmixPumpComponent.startVal.hint:When does the component start?
+QmixPumpComponent.startVal.label:Start
+QmixPumpComponent.startVal.readOnly:False
+QmixPumpComponent.startVal.staticUpdater:None
+QmixPumpComponent.startVal.updates:None
+QmixPumpComponent.startVal.val:0.0
+QmixPumpComponent.startVal.valType:code
+QmixPumpComponent.stopType.default:'duration (s)'
+QmixPumpComponent.stopType.allowedTypes:[]
+QmixPumpComponent.stopType.allowedUpdates:None
+QmixPumpComponent.stopType.allowedVals:['duration (s)', 'duration (frames)', 'time (s)', 'frame N', 'condition']
+QmixPumpComponent.stopType.categ:Basic
+QmixPumpComponent.stopType.hint:How do you want to define your end point?
+QmixPumpComponent.stopType.label:stop type
+QmixPumpComponent.stopType.readOnly:False
+QmixPumpComponent.stopType.staticUpdater:None
+QmixPumpComponent.stopType.updates:None
+QmixPumpComponent.stopType.val:duration (s)
+QmixPumpComponent.stopType.valType:str
+QmixPumpComponent.stopVal.default:1.0
+QmixPumpComponent.stopVal.allowedTypes:[]
+QmixPumpComponent.stopVal.allowedUpdates:[]
+QmixPumpComponent.stopVal.allowedVals:[]
+QmixPumpComponent.stopVal.categ:Basic
+QmixPumpComponent.stopVal.hint:When does the component end? (blank is endless)
+QmixPumpComponent.stopVal.label:Stop
+QmixPumpComponent.stopVal.readOnly:False
+QmixPumpComponent.stopVal.staticUpdater:None
+QmixPumpComponent.stopVal.updates:constant
+QmixPumpComponent.stopVal.val:1.0
+QmixPumpComponent.stopVal.valType:code
+QmixPumpComponent.switchValveWhenDone.default:True
+QmixPumpComponent.switchValveWhenDone.allowedTypes:[]
+QmixPumpComponent.switchValveWhenDone.allowedUpdates:None
+QmixPumpComponent.switchValveWhenDone.allowedVals:[True, False]
+QmixPumpComponent.switchValveWhenDone.categ:Basic
+QmixPumpComponent.switchValveWhenDone.hint:Switch the valve after pump operation
+QmixPumpComponent.switchValveWhenDone.label:Switch valve after dosing
+QmixPumpComponent.switchValveWhenDone.readOnly:False
+QmixPumpComponent.switchValveWhenDone.staticUpdater:None
+QmixPumpComponent.switchValveWhenDone.updates:None
+QmixPumpComponent.switchValveWhenDone.val:True
+QmixPumpComponent.switchValveWhenDone.valType:bool
+QmixPumpComponent.syncToScreen.default:True
+QmixPumpComponent.syncToScreen.allowedTypes:[]
+QmixPumpComponent.syncToScreen.allowedUpdates:None
+QmixPumpComponent.syncToScreen.allowedVals:[True, False]
+QmixPumpComponent.syncToScreen.categ:Basic
+QmixPumpComponent.syncToScreen.hint:Sync pump onset to the screen refresh
+QmixPumpComponent.syncToScreen.label:Sync to screen
+QmixPumpComponent.syncToScreen.readOnly:False
+QmixPumpComponent.syncToScreen.staticUpdater:None
+QmixPumpComponent.syncToScreen.updates:None
+QmixPumpComponent.syncToScreen.val:True
+QmixPumpComponent.syncToScreen.valType:bool
+QmixPumpComponent.syringeType.default:'50 mL glass'
+QmixPumpComponent.syringeType.allowedTypes:[]
+QmixPumpComponent.syringeType.allowedUpdates:None
+QmixPumpComponent.syringeType.allowedVals:['25 mL glass', '50 mL glass']
+QmixPumpComponent.syringeType.categ:Basic
+QmixPumpComponent.syringeType.hint:Syringe type and dimensions
+QmixPumpComponent.syringeType.label:Syringe type
+QmixPumpComponent.syringeType.readOnly:False
+QmixPumpComponent.syringeType.staticUpdater:None
+QmixPumpComponent.syringeType.updates:None
+QmixPumpComponent.syringeType.val:50 mL glass
+QmixPumpComponent.syringeType.valType:str
 RatingScaleComponent.order:['name', 'visualAnalogScale', 'categoryChoices', 'scaleDescription', 'low', 'high', 'labels', 'markerStart', 'size', 'pos', 'tickHeight']
 RatingScaleComponent.categoryChoices.default:''
 RatingScaleComponent.categoryChoices.allowedTypes:[]
