@@ -23,7 +23,8 @@ _localized = {'Items': _translate('Items'),
               'Size': _translate('Size'),
               'Pos': _translate('Pos'),
               'Item Padding': _translate('Item Padding'),
-              'Data Format': _translate('Data Format')
+              'Data Format': _translate('Data Format'),
+              'Randomize': _translate('Randomize')
               }
 
 class FormComponent(BaseComponent):
@@ -35,6 +36,7 @@ class FormComponent(BaseComponent):
                  name='form',
                  items='.csv',
                  textHeight=.03,
+                 randomize=False,
                  size=(1, .7),
                  pos=(0, 0),
                  itemPadding=0.05,
@@ -59,6 +61,7 @@ class FormComponent(BaseComponent):
                       'Size', 'Pos',
                       'Item Padding',
                       'Data Format',
+                      'Randomize',
                       ]
 
         # normal params:
@@ -87,8 +90,14 @@ class FormComponent(BaseComponent):
         self.params['Text Height'] = Param(
             textHeight, valType='code', allowedTypes=[],
             updates='constant',
-            hint=_translate("x,y position of the form on screen"),
+            hint=_translate("The size of the item text for Form"),
             label=_localized['Text Height'])
+
+        self.params['Randomize'] = Param(
+            randomize, valType='bool', allowedTypes=[],
+            updates='constant',
+            hint=_translate("Do you want to randomize the order of your questions?"),
+            label=_localized['Randomize'])
 
         self.params['Item Padding'] = Param(
             itemPadding, valType='code', allowedTypes=[],
@@ -111,6 +120,7 @@ class FormComponent(BaseComponent):
                    "{name} = visual.Form(win=win, name='{name}',\n"
                    "    items={Items},\n"
                    "    textHeight={Text Height},\n"
+                   "    randomize={Randomize},\n"
                    "    size={Size},\n"
                    "    pos={Pos},\n"
                    "    itemPadding={Item Padding})\n".format(**inits))
@@ -126,15 +136,15 @@ class FormComponent(BaseComponent):
         if self.params['Data Format'] == 'rows':
             code = ("{name}Data = {name}.getData()\n"
                     "while {name}Data['questions']:\n"
-                    "   for dataTypes in {name}Data.keys():\n"
-                    "       thisExp.addData(dataTypes, {name}Data[dataTypes].popleft())\n"
-                    "   thisExp.nextEntry()\n".format(**self.params))
+                    "    for dataTypes in {name}Data.keys():\n"
+                    "        thisExp.addData(dataTypes, {name}Data[dataTypes].popleft())\n"
+                    "    thisExp.nextEntry()\n".format(**self.params))
         elif self.params['Data Format'] == 'columns':
             code = ("{name}Data = {name}.getData()\n"
                     "for dataTypes in {name}Data.keys():\n"
-                    "   for index, items in enumerate({name}Data[dataTypes]):\n"
-                    "       thisExp.addData('{name}.' + str(index), items)\n"
-                    "   thisExp.nextEntry()\n".format(**self.params))
+                    "    for index, items in enumerate({name}Data[dataTypes]):\n"
+                    "        thisExp.addData('{name}.' + str(index), items)\n"
+                    "    thisExp.nextEntry()\n".format(**self.params))
         buff.writeIndented(code)
 
 

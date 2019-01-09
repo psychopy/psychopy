@@ -65,6 +65,7 @@ class Slider(MinimalStim):
                  depth=0,
                  name=None,
                  labelHeight=None,
+                 labelWrapWidth=None,
                  autoDraw=False,
                  autoLog=True):
         """
@@ -164,6 +165,7 @@ class Slider(MinimalStim):
         self.tickLocs = None
         self.labelLocs = None
         self.labelHeight = labelHeight
+        self.labelWrapWidth = labelWrapWidth
         self._lineAspectRatio = 0.01
         self._updateMarkerPos = True
         self._dragging = False
@@ -282,7 +284,7 @@ class Slider(MinimalStim):
                                alignHoriz=alignHoriz, alignVert=alignVert,
                                units=self.units, color=self.color,
                                pos=self.labelLocs[tickN, :],
-                               height=self.labelHeight)
+                               height=self.labelHeight, wrapWidth=self.labelWrapWidth)
                 self.labelObjs.append(obj)
 
         if self.units == 'norm':
@@ -621,9 +623,3 @@ class Slider(MinimalStim):
             self.tickLines.colors = 'lightgray'
             # marker must be smalle than a "tick" circle
             self.marker.size = self._tickL*0.7
-
-            # Change orientation if horizontal labels can overlap
-            if self.horiz and len(self.ticks) > 3:
-                for label in self.labelObjs:
-                    label.alignHoriz = 'left'
-                    label.ori = -45

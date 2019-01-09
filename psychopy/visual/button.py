@@ -128,15 +128,3 @@ class ButtonStim(BaseShapeStim):
                 # is up and was already up - move along
                 return None
 
-if __name__ == "__main__":
-    pass
-    # win = psychopy.visual.Window(units='height', allowStencil=True)
-    # button1 = ButtonStim(win, pos=(.3, -.3))
-    # button2 = ButtonStim(win, pos=(-.3, -.3))
-    #
-    # for n in range(600):
-    #     button1.draw()
-    #     button2.draw()
-    #     if n > 100:
-    #         button1.buttonEnabled = True
-    #     win.flip()
