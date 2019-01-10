@@ -522,7 +522,7 @@ class SettingsComponent(object):
                     "import * as util from './lib/util-{version}.js';\n"
                     "import * as visual from './lib/visual-{version}.js';\n"
                     "import {{ Sound }} from './lib/sound-{version}.js';\n"
-                    "\n").format(version='3.0.0')
+                    "\n").format(version=version)
             buff.writeIndentedLines(code)
 
         # Write window code
