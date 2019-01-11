@@ -37,7 +37,7 @@ from psychopy.localization import _translate
 from ... import experiment
 from .. import stdOutRich, dialogs
 from ..icons import getAllIcons
-from psychopy import logging, constants
+from psychopy import logging, constants, __version__
 from psychopy.tools.filetools import mergeFolder
 from .dialogs import (DlgComponentProperties, DlgExperimentProperties,
                       DlgCodeComponentProperties)
@@ -2231,7 +2231,7 @@ class BuilderFrame(wx.Frame):
                '-o', experimentPath]
         # if version is not specified then don't touch useVersion at all
         version = self.exp.settings.params['Use version'].val
-        if version not in [None, 'None', '']:
+        if version not in [None, 'None', '', __version__]:
             cmd.extend(['-v', version])
             logging.info(' '.join(cmd))
             out = subprocess.check_output(cmd)

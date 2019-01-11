@@ -13,7 +13,6 @@ import os
 import sys
 import subprocess  # for git commandline invocation
 from subprocess import CalledProcessError
-import re
 import psychopy  # for currently loaded version
 from psychopy import prefs
 from psychopy import logging, tools, web, constants
@@ -87,8 +86,10 @@ def useVersion(requestedVersion):
         _clone(requestedVersion)  # Allow the versions subdirectory to be built
 
     if constants.PY3:
-        py3Compatible = [ver for ver in availableVersions() if not re.search('(0|1).(7|8)', ver)]
-        py3Compatible.reverse()
+        py3Compatible = _versionFilter(versionOptions(local=False))
+        py3Compatible += _versionFilter(availableVersions(local=False))
+        py3Compatible.sort(reverse=True)
+
         if reqdMajorMinorPatch not in py3Compatible:
             msg = _translate("Please request a version of PsychoPy that is compatible with Python 3.\n"
                              "You can choose from the following versions: {}.\n"
@@ -149,6 +150,7 @@ def _switchToVersion(requestedVersion):
     a site-packages directory, which should *not* be removed as it may
     contain other relevant and needed packages.
     """
+
     if not os.path.exists(prefs.paths['userPrefsDir']):
         os.mkdir(prefs.paths['userPrefsDir'])
     try:
@@ -225,6 +227,26 @@ def _remoteVersions(forceCheck=False):
     return _remoteVersionsCache
 
 
+def _versionFilter(versions):
+    """Returns all versions that are compatible with the Python version running PsychoPy
+
+    Parameters
+    ----------
+
+    versions: list
+        All available (valid) selections for the version to be chosen
+
+    Returns
+    -------
+    list
+        All valid selections for the version to be chosen that are compatible with Python version used
+    """
+
+    if constants.PY3:
+        return [V for V in versions if V == 'latest' or float(V[:3]) >= 1.9]
+    return versions
+
+
 def availableVersions(local=True, forceCheck=False):
     """Return all available (valid) selections for the version to be chosen.
     Use local=False to obtain those only available via download
@@ -232,11 +254,12 @@ def availableVersions(local=True, forceCheck=False):
 
     Everything returned has the form Major.minor.patchLevel, as strings.
     """
+
     if local:
         return _localVersions(forceCheck)
     else:
         return sorted(
-            list(set(_localVersions(forceCheck) + _remoteVersions(
+            list(set([psychopy.__version__] + _localVersions(forceCheck) + _remoteVersions(
                 forceCheck))),
             reverse=True)
 
