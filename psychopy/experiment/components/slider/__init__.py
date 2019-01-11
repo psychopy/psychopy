@@ -11,6 +11,7 @@ from os import path
 from psychopy.experiment.components import BaseVisualComponent, Param, \
     getInitVals, _translate
 from psychopy.visual import slider
+from psychopy.experiment import py2js
 
 __author__ = 'Jon Peirce'
 
@@ -76,11 +77,12 @@ class SliderComponent(BaseVisualComponent):
         self.type = 'SliderComponent'
         self.url = "http://www.psychopy.org/builder/components/slidercomponent.html"
         self.exp.requirePsychopyLibs(['visual', 'event'])
+        self.targets = ['PsychoPy', 'PsychoJS']
 
         # params
         self.order = ['name',
                       'size', 'pos',
-                      'ticks', 'labels', 'granularity',
+                      'ticks', 'labels',  'granularity',
                       'font','flip','color','styles',
                       ]
 
@@ -159,6 +161,7 @@ class SliderComponent(BaseVisualComponent):
                         "Font for the labels"),
                 label=_translate('Font'),
                 categ='Appearance')
+
         self.params['styles'] = Param(
                 style, valType='fixedList',
                 updates='constant', allowedVals=knownStyles,
@@ -201,7 +204,34 @@ class SliderComponent(BaseVisualComponent):
                    .format(**inits))
         buff.writeIndented(initStr)
 
+    def writeInitCodeJS(self, buff):
+        inits = getInitVals(self.params)
+        sliderStyles = {'slider': 'SLIDER',
+                        'rating': 'RATING',
+                        'radio': 'RADIO',
+                        'labels45': 'LABELS_45',
+                        'whiteOnBlack': 'WHITE_ON_BLACK',
+                        'triangleMarker': 'TRIANGLE_MARKER'}
+        inits['styles'].val = ', '.join(["visual.Slider.Style.{}".
+                                        format(sliderStyles[style]) for style in inits['styles'].val])
+        inits['styles'].val = py2js.expression2js(inits['styles'].val)
+        # build up an initialization string for Slider():
+        initStr = ("{name} = new visual.Slider({{\n"
+                   "  win: psychoJS.window, name: '{name}',\n"
+                   "  size: {size}, pos: {pos},\n"
+                   "  labels: {labels}, ticks: {ticks},\n"
+                   "  granularity: {granularity}, style: {styles},\n"
+                   "  color: new util.Color({color}), \n"
+                   "  fontFamily: {font}, fontSize: 20, bold: true, italic: false, \n"
+                   "  flip: {flip},\n"
+                   "}});\n\n"
+                   .format(**inits))
+        buff.writeIndentedLines(initStr)
+
     def writeRoutineStartCode(self, buff):
+        buff.writeIndented("%(name)s.reset()\n" % (self.params))
+
+    def writeRoutineStartCodeJS(self, buff):
         buff.writeIndented("%(name)s.reset()\n" % (self.params))
 
     def writeFrameCode(self, buff):
@@ -212,6 +242,15 @@ class SliderComponent(BaseVisualComponent):
                     "if %(name)s.getRating() is not None and %(name)s.status == STARTED:\n"
                     "    continueRoutine = False")
             buff.writeIndentedLines(code % (self.params))
+
+    def writeFrameCodeJS(self, buff):
+        super(SliderComponent, self).writeFrameCodeJS(buff)  # Write basevisual frame code
+        # forceEnd = self.params['forceEndRoutine'].val
+        # if forceEnd:
+        #     code = ("\n// Check %(name)s for response to end routine\n"
+        #             "if (%(name)s.getRating() !== 'undefined' && %(name)s.status === PsychoJS.Status.STARTED) {\n"
+        #             "  continueRoutine = false; }\n")
+        #     buff.writeIndentedLines(code % (self.params))
 
     def writeRoutineEndCode(self, buff):
         name = self.params['name']
@@ -242,3 +281,29 @@ class SliderComponent(BaseVisualComponent):
             if self.params['storeHistory'].val == True:
                 code = "%s.addData('%s.history', %s.getHistory())\n"
                 buff.writeIndented(code % (loopName, name, name))
+
+    def writeRoutineEndCodeJS(self, buff):
+        name = self.params['name']
+        if len(self.exp.flow._loopList):
+            currLoop = self.exp.flow._loopList[-1]  # last (outer-most) loop
+        else:
+            currLoop = self.exp._expHandler
+
+        # write the actual code
+        storeTime = self.params['storeRatingTime'].val
+        if self.params['storeRating'].val or storeTime:
+            if currLoop.type in ['StairHandler', 'QuestHandler']:
+                msg = ("/* NB PsychoPy doesn't handle a 'correct answer' "
+                       "for Slider events so doesn't know what to "
+                       "tell a StairHandler (or QuestHandler)*/\n")
+                buff.writeIndented(msg)
+
+            if self.params['storeRating'].val == True:
+                code = "psychoJS.experiment.addData('%s.response', %s.getRating());\n"
+                buff.writeIndented(code % (name, name))
+            if self.params['storeRatingTime'].val == True:
+                code = "psychoJS.experiment.addData('%s.rt', %s.getRT());\n"
+                buff.writeIndented(code % (name, name))
+            if self.params['storeHistory'].val == True:
+                code = "psychoJS.experiment.addData('%s.history', %s.getHistory());\n"
+                buff.writeIndented(code % (name, name))
