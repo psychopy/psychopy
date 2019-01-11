@@ -1,5 +1,5 @@
 # these are only needed for for development/testing
 codecov
-pytest
+pytest <4.1
 sphinx
 cython
