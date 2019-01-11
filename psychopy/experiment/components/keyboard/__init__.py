@@ -392,7 +392,7 @@ class KeyboardComponent(BaseComponent):
                     "%(name)s.rt = %(name)s.clock.getTime();\n")
             buff.writeIndentedLines(code % self.params)
         elif store == 'last key':
-            code = ("%(name)s.keys = theseKeys[theseKeys.length-1]"
+            code = ("%(name)s.keys = theseKeys[theseKeys.length-1];"
                     "  // just the last key pressed\n"
                     "%(name)s.rt = %(name)s.clock.getTime();\n")
             buff.writeIndentedLines(code % self.params)
