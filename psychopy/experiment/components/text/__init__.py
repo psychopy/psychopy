@@ -143,20 +143,20 @@ class TextComponent(BaseVisualComponent):
         # replaces variable params with sensible defaults
         inits = getInitVals(self.params, 'PsychoJS')
 
-        if self.params['wrapWidth'].val in ['', 'None', 'none']:
+        if self.params['wrapWidth'].val in ['', None, 'None', 'none']:
             inits['wrapWidth'] = 'undefined'
-        if self.params['text'].val in ['', 'None', 'none']:
+        if self.params['text'].val in ['', None, 'None', 'none']:
             inits['text'] = "''"
 
         code = ("%(name)s = new visual.TextStim({\n"
-                "  win : psychoJS.window,\n"
-                "  name : '%(name)s',\n"
-                "  text : %(text)s,\n"
-                "  font : %(font)s,\n" + unitsStr +
-                "  pos : %(pos)s, height : %(letterHeight)s,"
-                "  wrapWidth : %(wrapWidth)s, ori: %(ori)s,\n"
-                "  color : new util.Color(%(color)s),"
-                "  opacity : %(opacity)s,")
+                "  win: psychoJS.window,\n"
+                "  name: '%(name)s',\n"
+                "  text: %(text)s,\n"
+                "  font: %(font)s,\n" + unitsStr +
+                "  pos: %(pos)s, height: %(letterHeight)s,"
+                "  wrapWidth: %(wrapWidth)s, ori: %(ori)s,\n"
+                "  color: new util.Color(%(color)s),"
+                "  opacity: %(opacity)s,")
         buff.writeIndentedLines(code % inits)
         flip = self.params['flip'].val.strip()
         if flip == 'horiz':
@@ -170,6 +170,6 @@ class TextComponent(BaseVisualComponent):
         else:
             flipStr = ''
         depth = -self.getPosInRoutine()
-        code = ("  %sdepth : %.1f \n"
+        code = ("  %sdepth: %.1f \n"
                 "});\n\n" % (flipStr, depth))
         buff.writeIndentedLines(code)
