@@ -58,7 +58,7 @@ dependencies:
 - yaml
 - lzo
 - pytables
-- pytest
+- pytest<4.1
 - pytest-cov
 - python-sounddevice
 - wxpython!=4.0.2,!=4.0.3
