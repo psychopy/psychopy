@@ -1366,6 +1366,174 @@ ImageComponent.units.staticUpdater:None
 ImageComponent.units.updates:None
 ImageComponent.units.val:from exp settings
 ImageComponent.units.valType:str
+JoyButtonsComponent.order:['forceEndRoutine', 'allowedKeys', 'store', 'storeCorrect', 'correctAns', 'deviceNumber']
+JoyButtonsComponent.allowedKeys.default:0,1,2,3,4
+JoyButtonsComponent.allowedKeys.allowedTypes:[]
+JoyButtonsComponent.allowedKeys.allowedUpdates:['constant', 'set every repeat']
+JoyButtonsComponent.allowedKeys.allowedVals:[]
+JoyButtonsComponent.allowedKeys.categ:Basic
+JoyButtonsComponent.allowedKeys.hint:A comma-separated list of button numbers, such as 0,1,2,3,4
+JoyButtonsComponent.allowedKeys.label:Allowed buttons
+JoyButtonsComponent.allowedKeys.readOnly:False
+JoyButtonsComponent.allowedKeys.staticUpdater:None
+JoyButtonsComponent.allowedKeys.updates:constant
+JoyButtonsComponent.allowedKeys.val:0,1,2,3,4
+JoyButtonsComponent.allowedKeys.valType:code
+JoyButtonsComponent.correctAns.default:''
+JoyButtonsComponent.correctAns.allowedTypes:[]
+JoyButtonsComponent.correctAns.allowedUpdates:None
+JoyButtonsComponent.correctAns.allowedVals:[]
+JoyButtonsComponent.correctAns.categ:Basic
+JoyButtonsComponent.correctAns.hint:What is the 'correct' key? Might be helpful to add a correctAns column and use $correctAns to compare to the key press.
+JoyButtonsComponent.correctAns.label:Correct answer
+JoyButtonsComponent.correctAns.readOnly:False
+JoyButtonsComponent.correctAns.staticUpdater:None
+JoyButtonsComponent.correctAns.updates:constant
+JoyButtonsComponent.correctAns.val:
+JoyButtonsComponent.correctAns.valType:str
+JoyButtonsComponent.deviceNumber.default:0
+JoyButtonsComponent.deviceNumber.allowedTypes:[]
+JoyButtonsComponent.deviceNumber.allowedUpdates:[]
+JoyButtonsComponent.deviceNumber.allowedVals:[]
+JoyButtonsComponent.deviceNumber.categ:Advanced
+JoyButtonsComponent.deviceNumber.hint:Device number, if you have multiple devices which one do you want (0, 1, 2...)
+JoyButtonsComponent.deviceNumber.label:Device number
+JoyButtonsComponent.deviceNumber.readOnly:False
+JoyButtonsComponent.deviceNumber.staticUpdater:None
+JoyButtonsComponent.deviceNumber.updates:constant
+JoyButtonsComponent.deviceNumber.val:0
+JoyButtonsComponent.deviceNumber.valType:code
+JoyButtonsComponent.durationEstim.default:
+JoyButtonsComponent.durationEstim.allowedTypes:[]
+JoyButtonsComponent.durationEstim.allowedUpdates:None
+JoyButtonsComponent.durationEstim.allowedVals:[]
+JoyButtonsComponent.durationEstim.categ:Basic
+JoyButtonsComponent.durationEstim.hint:(Optional) expected duration (s), purely for representing in the timeline
+JoyButtonsComponent.durationEstim.label:Expected duration (s)
+JoyButtonsComponent.durationEstim.readOnly:False
+JoyButtonsComponent.durationEstim.staticUpdater:None
+JoyButtonsComponent.durationEstim.updates:None
+JoyButtonsComponent.durationEstim.val:
+JoyButtonsComponent.durationEstim.valType:code
+JoyButtonsComponent.forceEndRoutine.default:True
+JoyButtonsComponent.forceEndRoutine.allowedTypes:[]
+JoyButtonsComponent.forceEndRoutine.allowedUpdates:None
+JoyButtonsComponent.forceEndRoutine.allowedVals:[]
+JoyButtonsComponent.forceEndRoutine.categ:Basic
+JoyButtonsComponent.forceEndRoutine.hint:Should a response force the end of the Routine (e.g end the trial)?
+JoyButtonsComponent.forceEndRoutine.label:Force end of Routine
+JoyButtonsComponent.forceEndRoutine.readOnly:False
+JoyButtonsComponent.forceEndRoutine.staticUpdater:None
+JoyButtonsComponent.forceEndRoutine.updates:constant
+JoyButtonsComponent.forceEndRoutine.val:True
+JoyButtonsComponent.forceEndRoutine.valType:bool
+JoyButtonsComponent.name.default:button_resp
+JoyButtonsComponent.name.allowedTypes:[]
+JoyButtonsComponent.name.allowedUpdates:None
+JoyButtonsComponent.name.allowedVals:[]
+JoyButtonsComponent.name.categ:Basic
+JoyButtonsComponent.name.hint:Name of this component (alpha-numeric or _, no spaces)
+JoyButtonsComponent.name.label:Name
+JoyButtonsComponent.name.readOnly:False
+JoyButtonsComponent.name.staticUpdater:None
+JoyButtonsComponent.name.val:button_resp
+JoyButtonsComponent.name.valType:code
+JoyButtonsComponent.startEstim.default:
+JoyButtonsComponent.startEstim.allowedTypes:[]
+JoyButtonsComponent.startEstim.allowedUpdates:None
+JoyButtonsComponent.startEstim.allowedVals:[]
+JoyButtonsComponent.startEstim.categ:Basic
+JoyButtonsComponent.startEstim.hint:(Optional) expected start (s), purely for representing in the timeline
+JoyButtonsComponent.startEstim.label:Expected start (s)
+JoyButtonsComponent.startEstim.readOnly:False
+JoyButtonsComponent.startEstim.staticUpdater:None
+JoyButtonsComponent.startEstim.updates:None
+JoyButtonsComponent.startEstim.val:
+JoyButtonsComponent.startEstim.valType:code
+JoyButtonsComponent.startType.default:'time (s)'
+JoyButtonsComponent.startType.allowedTypes:[]
+JoyButtonsComponent.startType.allowedUpdates:None
+JoyButtonsComponent.startType.allowedVals:['time (s)', 'frame N', 'condition']
+JoyButtonsComponent.startType.categ:Basic
+JoyButtonsComponent.startType.hint:How do you want to define your start point?
+JoyButtonsComponent.startType.label:start type
+JoyButtonsComponent.startType.readOnly:False
+JoyButtonsComponent.startType.staticUpdater:None
+JoyButtonsComponent.startType.updates:None
+JoyButtonsComponent.startType.val:time (s)
+JoyButtonsComponent.startType.valType:str
+JoyButtonsComponent.startVal.default:0.0
+JoyButtonsComponent.startVal.allowedTypes:[]
+JoyButtonsComponent.startVal.allowedUpdates:None
+JoyButtonsComponent.startVal.allowedVals:[]
+JoyButtonsComponent.startVal.categ:Basic
+JoyButtonsComponent.startVal.hint:When does the component start?
+JoyButtonsComponent.startVal.label:Start
+JoyButtonsComponent.startVal.readOnly:False
+JoyButtonsComponent.startVal.staticUpdater:None
+JoyButtonsComponent.startVal.updates:None
+JoyButtonsComponent.startVal.val:0.0
+JoyButtonsComponent.startVal.valType:code
+JoyButtonsComponent.stopType.default:'duration (s)'
+JoyButtonsComponent.stopType.allowedTypes:[]
+JoyButtonsComponent.stopType.allowedUpdates:None
+JoyButtonsComponent.stopType.allowedVals:['duration (s)', 'duration (frames)', 'time (s)', 'frame N', 'condition']
+JoyButtonsComponent.stopType.categ:Basic
+JoyButtonsComponent.stopType.hint:How do you want to define your end point?
+JoyButtonsComponent.stopType.label:stop type
+JoyButtonsComponent.stopType.readOnly:False
+JoyButtonsComponent.stopType.staticUpdater:None
+JoyButtonsComponent.stopType.updates:None
+JoyButtonsComponent.stopType.val:duration (s)
+JoyButtonsComponent.stopType.valType:str
+JoyButtonsComponent.stopVal.default:
+JoyButtonsComponent.stopVal.allowedTypes:[]
+JoyButtonsComponent.stopVal.allowedUpdates:[]
+JoyButtonsComponent.stopVal.allowedVals:[]
+JoyButtonsComponent.stopVal.categ:Basic
+JoyButtonsComponent.stopVal.hint:When does the component end? (blank is endless)
+JoyButtonsComponent.stopVal.label:Stop
+JoyButtonsComponent.stopVal.readOnly:False
+JoyButtonsComponent.stopVal.staticUpdater:None
+JoyButtonsComponent.stopVal.updates:constant
+JoyButtonsComponent.stopVal.val:
+JoyButtonsComponent.stopVal.valType:code
+JoyButtonsComponent.store.default:'last key'
+JoyButtonsComponent.store.allowedTypes:[]
+JoyButtonsComponent.store.allowedUpdates:None
+JoyButtonsComponent.store.allowedVals:['last key', 'first key', 'all keys', 'nothing']
+JoyButtonsComponent.store.categ:Basic
+JoyButtonsComponent.store.hint:Choose which (if any) responses to store at the end of a trial
+JoyButtonsComponent.store.label:Store
+JoyButtonsComponent.store.readOnly:False
+JoyButtonsComponent.store.staticUpdater:None
+JoyButtonsComponent.store.updates:constant
+JoyButtonsComponent.store.val:last key
+JoyButtonsComponent.store.valType:str
+JoyButtonsComponent.storeCorrect.default:False
+JoyButtonsComponent.storeCorrect.allowedTypes:[]
+JoyButtonsComponent.storeCorrect.allowedUpdates:None
+JoyButtonsComponent.storeCorrect.allowedVals:[]
+JoyButtonsComponent.storeCorrect.categ:Basic
+JoyButtonsComponent.storeCorrect.hint:Do you want to save the response as correct/incorrect?
+JoyButtonsComponent.storeCorrect.label:Store correct
+JoyButtonsComponent.storeCorrect.readOnly:False
+JoyButtonsComponent.storeCorrect.staticUpdater:None
+JoyButtonsComponent.storeCorrect.updates:constant
+JoyButtonsComponent.storeCorrect.val:False
+JoyButtonsComponent.storeCorrect.valType:bool
+JoyButtonsComponent.syncScreenRefresh.default:True
+JoyButtonsComponent.syncScreenRefresh.allowedTypes:[]
+JoyButtonsComponent.syncScreenRefresh.allowedUpdates:None
+JoyButtonsComponent.syncScreenRefresh.allowedVals:[]
+JoyButtonsComponent.syncScreenRefresh.categ:Basic
+JoyButtonsComponent.syncScreenRefresh.hint:A reaction time to a visual stimulus should be based on when the screen flipped
+JoyButtonsComponent.syncScreenRefresh.label:sync RT with screen
+JoyButtonsComponent.syncScreenRefresh.readOnly:False
+JoyButtonsComponent.syncScreenRefresh.staticUpdater:None
+JoyButtonsComponent.syncScreenRefresh.updates:constant
+JoyButtonsComponent.syncScreenRefresh.val:True
+JoyButtonsComponent.syncScreenRefresh.valType:bool
 JoystickComponent.order:['forceEndRoutineOnPress', 'saveJoystickState', 'timeRelativeTo', 'clickable', 'saveParamsClickable', 'deviceNumber', 'allowedButtons']
 JoystickComponent.allowedButtons.default:
 JoystickComponent.allowedButtons.allowedTypes:[]
@@ -2558,7 +2726,7 @@ ParallelOutComponent.order:['address', 'startData', 'stopData']
 ParallelOutComponent.address.default:'0x0378'
 ParallelOutComponent.address.allowedTypes:[]
 ParallelOutComponent.address.allowedUpdates:None
-ParallelOutComponent.address.allowedVals:['0x0378', '0x03BC', 'LabJack U3']
+ParallelOutComponent.address.allowedVals:['0x0378', '0x03BC', '/dev/parport0', '/dev/parport1', 'LabJack U3']
 ParallelOutComponent.address.categ:Basic
 ParallelOutComponent.address.hint:Parallel port to be used (you can change these options in preferences>general)
 ParallelOutComponent.address.label:Port address
@@ -3167,174 +3335,6 @@ PolygonComponent.units.staticUpdater:None
 PolygonComponent.units.updates:None
 PolygonComponent.units.val:from exp settings
 PolygonComponent.units.valType:str
-QmixPumpComponent.order:['pumpIndex', 'syringeType', 'pumpAction', 'flowRate', 'flowRateUnit', 'switchValveWhenDone', 'syncToScreen']
-QmixPumpComponent.durationEstim.default:
-QmixPumpComponent.durationEstim.allowedTypes:[]
-QmixPumpComponent.durationEstim.allowedUpdates:None
-QmixPumpComponent.durationEstim.allowedVals:[]
-QmixPumpComponent.durationEstim.categ:Basic
-QmixPumpComponent.durationEstim.hint:(Optional) expected duration (s), purely for representing in the timeline
-QmixPumpComponent.durationEstim.label:Expected duration (s)
-QmixPumpComponent.durationEstim.readOnly:False
-QmixPumpComponent.durationEstim.staticUpdater:None
-QmixPumpComponent.durationEstim.updates:None
-QmixPumpComponent.durationEstim.val:
-QmixPumpComponent.durationEstim.valType:code
-QmixPumpComponent.flowRate.default:1.0
-QmixPumpComponent.flowRate.allowedTypes:[]
-QmixPumpComponent.flowRate.allowedUpdates:None
-QmixPumpComponent.flowRate.allowedVals:[]
-QmixPumpComponent.flowRate.categ:Basic
-QmixPumpComponent.flowRate.hint:The flow rate
-QmixPumpComponent.flowRate.label:Flow rate
-QmixPumpComponent.flowRate.readOnly:False
-QmixPumpComponent.flowRate.staticUpdater:None
-QmixPumpComponent.flowRate.updates:None
-QmixPumpComponent.flowRate.val:1.0
-QmixPumpComponent.flowRate.valType:code
-QmixPumpComponent.flowRateUnit.default:'mL/s'
-QmixPumpComponent.flowRateUnit.allowedTypes:[]
-QmixPumpComponent.flowRateUnit.allowedUpdates:None
-QmixPumpComponent.flowRateUnit.allowedVals:['mL/s', 'mL/min']
-QmixPumpComponent.flowRateUnit.categ:Basic
-QmixPumpComponent.flowRateUnit.hint:The unit of the flow rate
-QmixPumpComponent.flowRateUnit.label:Flow rate unit
-QmixPumpComponent.flowRateUnit.readOnly:False
-QmixPumpComponent.flowRateUnit.staticUpdater:None
-QmixPumpComponent.flowRateUnit.updates:None
-QmixPumpComponent.flowRateUnit.val:mL/s
-QmixPumpComponent.flowRateUnit.valType:str
-QmixPumpComponent.name.default:pump
-QmixPumpComponent.name.allowedTypes:[]
-QmixPumpComponent.name.allowedUpdates:None
-QmixPumpComponent.name.allowedVals:[]
-QmixPumpComponent.name.categ:Basic
-QmixPumpComponent.name.hint:Name of this component (alpha-numeric or _, no spaces)
-QmixPumpComponent.name.label:Name
-QmixPumpComponent.name.readOnly:False
-QmixPumpComponent.name.staticUpdater:None
-QmixPumpComponent.name.val:pump
-QmixPumpComponent.name.valType:code
-QmixPumpComponent.pumpAction.default:'dispense'
-QmixPumpComponent.pumpAction.allowedTypes:[]
-QmixPumpComponent.pumpAction.allowedUpdates:None
-QmixPumpComponent.pumpAction.allowedVals:['aspirate', 'dispense']
-QmixPumpComponent.pumpAction.categ:Basic
-QmixPumpComponent.pumpAction.hint:Whether the syringe should be filled (aspirate) or emptied (dispense
-QmixPumpComponent.pumpAction.label:Pump action
-QmixPumpComponent.pumpAction.readOnly:False
-QmixPumpComponent.pumpAction.staticUpdater:None
-QmixPumpComponent.pumpAction.updates:None
-QmixPumpComponent.pumpAction.val:dispense
-QmixPumpComponent.pumpAction.valType:str
-QmixPumpComponent.pumpIndex.default:0
-QmixPumpComponent.pumpIndex.allowedTypes:[]
-QmixPumpComponent.pumpIndex.allowedUpdates:None
-QmixPumpComponent.pumpIndex.allowedVals:[]
-QmixPumpComponent.pumpIndex.categ:Basic
-QmixPumpComponent.pumpIndex.hint:The index of the pump(s) (first pump is 0).
-QmixPumpComponent.pumpIndex.label:Pump index
-QmixPumpComponent.pumpIndex.readOnly:False
-QmixPumpComponent.pumpIndex.staticUpdater:None
-QmixPumpComponent.pumpIndex.updates:None
-QmixPumpComponent.pumpIndex.val:0
-QmixPumpComponent.pumpIndex.valType:code
-QmixPumpComponent.startEstim.default:
-QmixPumpComponent.startEstim.allowedTypes:[]
-QmixPumpComponent.startEstim.allowedUpdates:None
-QmixPumpComponent.startEstim.allowedVals:[]
-QmixPumpComponent.startEstim.categ:Basic
-QmixPumpComponent.startEstim.hint:(Optional) expected start (s), purely for representing in the timeline
-QmixPumpComponent.startEstim.label:Expected start (s)
-QmixPumpComponent.startEstim.readOnly:False
-QmixPumpComponent.startEstim.staticUpdater:None
-QmixPumpComponent.startEstim.updates:None
-QmixPumpComponent.startEstim.val:
-QmixPumpComponent.startEstim.valType:code
-QmixPumpComponent.startType.default:'time (s)'
-QmixPumpComponent.startType.allowedTypes:[]
-QmixPumpComponent.startType.allowedUpdates:None
-QmixPumpComponent.startType.allowedVals:['time (s)', 'frame N', 'condition']
-QmixPumpComponent.startType.categ:Basic
-QmixPumpComponent.startType.hint:How do you want to define your start point?
-QmixPumpComponent.startType.label:start type
-QmixPumpComponent.startType.readOnly:False
-QmixPumpComponent.startType.staticUpdater:None
-QmixPumpComponent.startType.updates:None
-QmixPumpComponent.startType.val:time (s)
-QmixPumpComponent.startType.valType:str
-QmixPumpComponent.startVal.default:0.0
-QmixPumpComponent.startVal.allowedTypes:[]
-QmixPumpComponent.startVal.allowedUpdates:None
-QmixPumpComponent.startVal.allowedVals:[]
-QmixPumpComponent.startVal.categ:Basic
-QmixPumpComponent.startVal.hint:When does the component start?
-QmixPumpComponent.startVal.label:Start
-QmixPumpComponent.startVal.readOnly:False
-QmixPumpComponent.startVal.staticUpdater:None
-QmixPumpComponent.startVal.updates:None
-QmixPumpComponent.startVal.val:0.0
-QmixPumpComponent.startVal.valType:code
-QmixPumpComponent.stopType.default:'duration (s)'
-QmixPumpComponent.stopType.allowedTypes:[]
-QmixPumpComponent.stopType.allowedUpdates:None
-QmixPumpComponent.stopType.allowedVals:['duration (s)', 'duration (frames)', 'time (s)', 'frame N', 'condition']
-QmixPumpComponent.stopType.categ:Basic
-QmixPumpComponent.stopType.hint:How do you want to define your end point?
-QmixPumpComponent.stopType.label:stop type
-QmixPumpComponent.stopType.readOnly:False
-QmixPumpComponent.stopType.staticUpdater:None
-QmixPumpComponent.stopType.updates:None
-QmixPumpComponent.stopType.val:duration (s)
-QmixPumpComponent.stopType.valType:str
-QmixPumpComponent.stopVal.default:1.0
-QmixPumpComponent.stopVal.allowedTypes:[]
-QmixPumpComponent.stopVal.allowedUpdates:[]
-QmixPumpComponent.stopVal.allowedVals:[]
-QmixPumpComponent.stopVal.categ:Basic
-QmixPumpComponent.stopVal.hint:When does the component end? (blank is endless)
-QmixPumpComponent.stopVal.label:Stop
-QmixPumpComponent.stopVal.readOnly:False
-QmixPumpComponent.stopVal.staticUpdater:None
-QmixPumpComponent.stopVal.updates:constant
-QmixPumpComponent.stopVal.val:1.0
-QmixPumpComponent.stopVal.valType:code
-QmixPumpComponent.switchValveWhenDone.default:True
-QmixPumpComponent.switchValveWhenDone.allowedTypes:[]
-QmixPumpComponent.switchValveWhenDone.allowedUpdates:None
-QmixPumpComponent.switchValveWhenDone.allowedVals:[True, False]
-QmixPumpComponent.switchValveWhenDone.categ:Basic
-QmixPumpComponent.switchValveWhenDone.hint:Switch the valve after pump operation
-QmixPumpComponent.switchValveWhenDone.label:Switch valve after dosing
-QmixPumpComponent.switchValveWhenDone.readOnly:False
-QmixPumpComponent.switchValveWhenDone.staticUpdater:None
-QmixPumpComponent.switchValveWhenDone.updates:None
-QmixPumpComponent.switchValveWhenDone.val:True
-QmixPumpComponent.switchValveWhenDone.valType:bool
-QmixPumpComponent.syncToScreen.default:True
-QmixPumpComponent.syncToScreen.allowedTypes:[]
-QmixPumpComponent.syncToScreen.allowedUpdates:None
-QmixPumpComponent.syncToScreen.allowedVals:[True, False]
-QmixPumpComponent.syncToScreen.categ:Basic
-QmixPumpComponent.syncToScreen.hint:Sync pump onset to the screen refresh
-QmixPumpComponent.syncToScreen.label:Sync to screen
-QmixPumpComponent.syncToScreen.readOnly:False
-QmixPumpComponent.syncToScreen.staticUpdater:None
-QmixPumpComponent.syncToScreen.updates:None
-QmixPumpComponent.syncToScreen.val:True
-QmixPumpComponent.syncToScreen.valType:bool
-QmixPumpComponent.syringeType.default:'50 mL glass'
-QmixPumpComponent.syringeType.allowedTypes:[]
-QmixPumpComponent.syringeType.allowedUpdates:None
-QmixPumpComponent.syringeType.allowedVals:['25 mL glass', '50 mL glass']
-QmixPumpComponent.syringeType.categ:Basic
-QmixPumpComponent.syringeType.hint:Syringe type and dimensions
-QmixPumpComponent.syringeType.label:Syringe type
-QmixPumpComponent.syringeType.readOnly:False
-QmixPumpComponent.syringeType.staticUpdater:None
-QmixPumpComponent.syringeType.updates:None
-QmixPumpComponent.syringeType.val:50 mL glass
-QmixPumpComponent.syringeType.valType:str
 RatingScaleComponent.order:['name', 'visualAnalogScale', 'categoryChoices', 'scaleDescription', 'low', 'high', 'labels', 'markerStart', 'size', 'pos', 'tickHeight']
 RatingScaleComponent.categoryChoices.default:''
 RatingScaleComponent.categoryChoices.allowedTypes:[]
