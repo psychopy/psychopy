@@ -42,7 +42,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'PsychoPy'
-copyright = u'2018, Jonathan Peirce'
+copyright = u'2019, Jonathan Peirce'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -88,7 +88,7 @@ add_module_names = True
 pygments_style = 'sphinx'
 
 # A list of ignored prefixes for module index sorting.
-#modindex_common_prefix =
+# modindex_common_prefix =
 
 # NumPy-style doc settings.
 napoleon_numpy_docstring = True
@@ -100,15 +100,13 @@ napoleon_include_special_with_doc = False
 
 # The theme to use for HTML and HTML Help pages.  Major themes that come with
 # Sphinx are currently 'default' and 'sphinxdoc'.
-html_theme = 'sphinxdoc'
+html_theme_path = ["../themes"]
+html_theme = 'psychopy_bootstrap'
 
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
 # documentation.
 #html_theme_options = {}
-
-# Add any paths that contain custom themes here, relative to this directory.
-#html_theme_path = []
 
 # The name for this set of Sphinx documents.  If None, it defaults to
 # "<project> v<release> documentation".

@@ -21,6 +21,8 @@ from importlib import import_module  # helps python 2.7 -> 3.x migration
 from ._base import BaseVisualComponent, BaseComponent
 from ..params import Param
 from psychopy.localization import _translate
+from psychopy.experiment import py2js
+
 
 excludeComponents = ['BaseComponent', 'BaseVisualComponent',  # templates only
                      'EyetrackerComponent']  # this one isn't ready yet
@@ -188,9 +190,9 @@ def getInitVals(params, target="PsychoPy"):
         if target == "PsychoJS":
             # convert (0,0.5) to [0,0.5] but don't convert "rand()" to "rand[]"
             valStr = str(inits[name].val).strip()
+
             if valStr.startswith("(") and valStr.endswith(")"):
-                inits[name].val = inits[name].val.replace("(", "[", 1)
-                inits[name].val = inits[name].val[::-1].replace(")", "]", 1)[::-1]  # replace from right
+                inits[name].val = py2js.expression2js(inits[name].val)
             # filenames (e.g. for image) need to be loaded from resources
             if name in ["sound"]:
                 val = str(inits[name].val)

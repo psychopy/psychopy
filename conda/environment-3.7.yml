@@ -36,7 +36,7 @@ dependencies:
 - pyqt
 - pyserial
 - pysoundfile
-- pytest
+- pytest<4.1
 - pytest-cov
 - python-bidi
 - python-sounddevice

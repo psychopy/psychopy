@@ -1,5 +1,5 @@
 <?xml version="1.0" ?>
-<PsychoPy2experiment encoding="utf-8" version="3.0.0b12">
+<PsychoPy2experiment encoding="utf-8" version="3.0.1">
   <Settings>
     <Param name="Completed URL" updates="None" val="" valType="str"/>
     <Param name="Data filename" updates="None" val="u'data/%s_%s_%s' % (expInfo['participant'], expName, expInfo['date'])" valType="code"/>
@@ -30,39 +30,44 @@
     <Param name="logging level" updates="None" val="exp" valType="code"/>
   </Settings>
   <Routines>
-    <Routine name="fill">
-      <QmixPumpComponent name="pump_0_4">
+    <Routine name="instruction_1">
+      <TextComponent name="instruction_start">
+        <Param name="color" updates="constant" val="white" valType="str"/>
+        <Param name="colorSpace" updates="constant" val="rgb" valType="str"/>
         <Param name="durationEstim" updates="None" val="" valType="code"/>
-        <Param name="flowRate" updates="None" val="1.0" valType="code"/>
-        <Param name="flowRateUnit" updates="None" val="mL/s" valType="str"/>
-        <Param name="name" updates="None" val="pump_0_4" valType="code"/>
-        <Param name="pumpAction" updates="None" val="aspirate" valType="str"/>
-        <Param name="pumpIndex" updates="None" val="0" valType="code"/>
+        <Param name="flip" updates="constant" val="" valType="str"/>
+        <Param name="font" updates="constant" val="Arial" valType="str"/>
+        <Param name="languageStyle" updates="None" val="LTR" valType="str"/>
+        <Param name="letterHeight" updates="constant" val="0.1" valType="code"/>
+        <Param name="name" updates="None" val="instruction_start" valType="code"/>
+        <Param name="opacity" updates="constant" val="1" valType="code"/>
+        <Param name="ori" updates="constant" val="0" valType="code"/>
+        <Param name="pos" updates="constant" val="(0, 0)" valType="code"/>
         <Param name="startEstim" updates="None" val="" valType="code"/>
         <Param name="startType" updates="None" val="time (s)" valType="str"/>
         <Param name="startVal" updates="None" val="0.0" valType="code"/>
         <Param name="stopType" updates="None" val="duration (s)" valType="str"/>
-        <Param name="stopVal" updates="constant" val="20" valType="code"/>
-        <Param name="switchValveWhenDone" updates="None" val="True" valType="bool"/>
-        <Param name="syncToScreen" updates="None" val="True" valType="bool"/>
-        <Param name="syringeType" updates="None" val="50 mL glass" valType="str"/>
-      </QmixPumpComponent>
-      <QmixPumpComponent name="pump_1_4">
+        <Param name="stopVal" updates="constant" val="" valType="code"/>
+        <Param name="text" updates="constant" val="Remove the spray head if attached, and insert the inlet tubes into stimulus their respective stimulus reservoir.&amp;#10;&amp;#10;Press the spacebar when done.&amp;#10;" valType="str"/>
+        <Param name="units" updates="None" val="from exp settings" valType="str"/>
+        <Param name="wrapWidth" updates="constant" val="" valType="code"/>
+      </TextComponent>
+      <KeyboardComponent name="keyboard">
+        <Param name="allowedKeys" updates="constant" val="'space'" valType="code"/>
+        <Param name="correctAns" updates="constant" val="" valType="str"/>
+        <Param name="discard previous" updates="constant" val="True" valType="bool"/>
         <Param name="durationEstim" updates="None" val="" valType="code"/>
-        <Param name="flowRate" updates="None" val="1.0" valType="code"/>
-        <Param name="flowRateUnit" updates="None" val="mL/s" valType="str"/>
-        <Param name="name" updates="None" val="pump_1_4" valType="code"/>
-        <Param name="pumpAction" updates="None" val="aspirate" valType="str"/>
-        <Param name="pumpIndex" updates="None" val="1" valType="code"/>
+        <Param name="forceEndRoutine" updates="constant" val="True" valType="bool"/>
+        <Param name="name" updates="None" val="keyboard" valType="code"/>
         <Param name="startEstim" updates="None" val="" valType="code"/>
         <Param name="startType" updates="None" val="time (s)" valType="str"/>
         <Param name="startVal" updates="None" val="0.0" valType="code"/>
         <Param name="stopType" updates="None" val="duration (s)" valType="str"/>
-        <Param name="stopVal" updates="constant" val="20" valType="code"/>
-        <Param name="switchValveWhenDone" updates="None" val="True" valType="bool"/>
-        <Param name="syncToScreen" updates="None" val="True" valType="bool"/>
-        <Param name="syringeType" updates="None" val="50 mL glass" valType="str"/>
-      </QmixPumpComponent>
+        <Param name="stopVal" updates="constant" val="" valType="code"/>
+        <Param name="store" updates="constant" val="nothing" valType="str"/>
+        <Param name="storeCorrect" updates="constant" val="False" valType="bool"/>
+        <Param name="syncScreenRefresh" updates="constant" val="False" valType="bool"/>
+      </KeyboardComponent>
     </Routine>
     <Routine name="instruction_2">
       <TextComponent name="instruction_air">
@@ -103,113 +108,6 @@
         <Param name="syncScreenRefresh" updates="constant" val="False" valType="bool"/>
       </KeyboardComponent>
     </Routine>
-    <Routine name="empty">
-      <QmixPumpComponent name="pump_0_3">
-        <Param name="durationEstim" updates="None" val="" valType="code"/>
-        <Param name="flowRate" updates="None" val="1.0" valType="code"/>
-        <Param name="flowRateUnit" updates="None" val="mL/s" valType="str"/>
-        <Param name="name" updates="None" val="pump_0_3" valType="code"/>
-        <Param name="pumpAction" updates="None" val="dispense" valType="str"/>
-        <Param name="pumpIndex" updates="None" val="0" valType="code"/>
-        <Param name="startEstim" updates="None" val="" valType="code"/>
-        <Param name="startType" updates="None" val="time (s)" valType="str"/>
-        <Param name="startVal" updates="None" val="0.0" valType="code"/>
-        <Param name="stopType" updates="None" val="duration (s)" valType="str"/>
-        <Param name="stopVal" updates="constant" val="20" valType="code"/>
-        <Param name="switchValveWhenDone" updates="None" val="True" valType="bool"/>
-        <Param name="syncToScreen" updates="None" val="True" valType="bool"/>
-        <Param name="syringeType" updates="None" val="50 mL glass" valType="str"/>
-      </QmixPumpComponent>
-      <QmixPumpComponent name="pump_1_3">
-        <Param name="durationEstim" updates="None" val="" valType="code"/>
-        <Param name="flowRate" updates="None" val="1.0" valType="code"/>
-        <Param name="flowRateUnit" updates="None" val="mL/s" valType="str"/>
-        <Param name="name" updates="None" val="pump_1_3" valType="code"/>
-        <Param name="pumpAction" updates="None" val="dispense" valType="str"/>
-        <Param name="pumpIndex" updates="None" val="1" valType="code"/>
-        <Param name="startEstim" updates="None" val="" valType="code"/>
-        <Param name="startType" updates="None" val="time (s)" valType="str"/>
-        <Param name="startVal" updates="None" val="0.0" valType="code"/>
-        <Param name="stopType" updates="None" val="duration (s)" valType="str"/>
-        <Param name="stopVal" updates="constant" val="20" valType="code"/>
-        <Param name="switchValveWhenDone" updates="None" val="True" valType="bool"/>
-        <Param name="syncToScreen" updates="None" val="True" valType="bool"/>
-        <Param name="syringeType" updates="None" val="50 mL glass" valType="str"/>
-      </QmixPumpComponent>
-    </Routine>
-    <Routine name="instruction_1">
-      <TextComponent name="instruction_start">
-        <Param name="color" updates="constant" val="white" valType="str"/>
-        <Param name="colorSpace" updates="constant" val="rgb" valType="str"/>
-        <Param name="durationEstim" updates="None" val="" valType="code"/>
-        <Param name="flip" updates="constant" val="" valType="str"/>
-        <Param name="font" updates="constant" val="Arial" valType="str"/>
-        <Param name="languageStyle" updates="None" val="LTR" valType="str"/>
-        <Param name="letterHeight" updates="constant" val="0.1" valType="code"/>
-        <Param name="name" updates="None" val="instruction_start" valType="code"/>
-        <Param name="opacity" updates="constant" val="1" valType="code"/>
-        <Param name="ori" updates="constant" val="0" valType="code"/>
-        <Param name="pos" updates="constant" val="(0, 0)" valType="code"/>
-        <Param name="startEstim" updates="None" val="" valType="code"/>
-        <Param name="startType" updates="None" val="time (s)" valType="str"/>
-        <Param name="startVal" updates="None" val="0.0" valType="code"/>
-        <Param name="stopType" updates="None" val="duration (s)" valType="str"/>
-        <Param name="stopVal" updates="constant" val="" valType="code"/>
-        <Param name="text" updates="constant" val="Remove the spray head if attached, and insert the inlet tubes into stimulus their respective stimulus reservoir.&amp;#10;&amp;#10;Press the spacebar when done.&amp;#10;" valType="str"/>
-        <Param name="units" updates="None" val="from exp settings" valType="str"/>
-        <Param name="wrapWidth" updates="constant" val="" valType="code"/>
-      </TextComponent>
-      <KeyboardComponent name="keyboard">
-        <Param name="allowedKeys" updates="constant" val="'space'" valType="code"/>
-        <Param name="correctAns" updates="constant" val="" valType="str"/>
-        <Param name="discard previous" updates="constant" val="True" valType="bool"/>
-        <Param name="durationEstim" updates="None" val="" valType="code"/>
-        <Param name="forceEndRoutine" updates="constant" val="True" valType="bool"/>
-        <Param name="name" updates="None" val="keyboard" valType="code"/>
-        <Param name="startEstim" updates="None" val="" valType="code"/>
-        <Param name="startType" updates="None" val="time (s)" valType="str"/>
-        <Param name="startVal" updates="None" val="0.0" valType="code"/>
-        <Param name="stopType" updates="None" val="duration (s)" valType="str"/>
-        <Param name="stopVal" updates="constant" val="" valType="code"/>
-        <Param name="store" updates="constant" val="nothing" valType="str"/>
-        <Param name="storeCorrect" updates="constant" val="False" valType="bool"/>
-        <Param name="syncScreenRefresh" updates="constant" val="False" valType="bool"/>
-      </KeyboardComponent>
-    </Routine>
-    <Routine name="aspirate_air">
-      <QmixPumpComponent name="pump_0_1">
-        <Param name="durationEstim" updates="None" val="" valType="code"/>
-        <Param name="flowRate" updates="None" val="1.0" valType="code"/>
-        <Param name="flowRateUnit" updates="None" val="mL/s" valType="str"/>
-        <Param name="name" updates="None" val="pump_0_1" valType="code"/>
-        <Param name="pumpAction" updates="None" val="aspirate" valType="str"/>
-        <Param name="pumpIndex" updates="None" val="0" valType="code"/>
-        <Param name="startEstim" updates="None" val="" valType="code"/>
-        <Param name="startType" updates="None" val="time (s)" valType="str"/>
-        <Param name="startVal" updates="None" val="0.0" valType="code"/>
-        <Param name="stopType" updates="None" val="duration (s)" valType="str"/>
-        <Param name="stopVal" updates="constant" val="10" valType="code"/>
-        <Param name="switchValveWhenDone" updates="None" val="True" valType="bool"/>
-        <Param name="syncToScreen" updates="None" val="True" valType="bool"/>
-        <Param name="syringeType" updates="None" val="50 mL glass" valType="str"/>
-      </QmixPumpComponent>
-      <QmixPumpComponent name="pump_1_1">
-        <Param name="durationEstim" updates="None" val="" valType="code"/>
-        <Param name="flowRate" updates="None" val="1.0" valType="code"/>
-        <Param name="flowRateUnit" updates="None" val="mL/s" valType="str"/>
-        <Param name="name" updates="None" val="pump_1_1" valType="code"/>
-        <Param name="pumpAction" updates="None" val="aspirate" valType="str"/>
-        <Param name="pumpIndex" updates="None" val="1" valType="code"/>
-        <Param name="startEstim" updates="None" val="" valType="code"/>
-        <Param name="startType" updates="None" val="time (s)" valType="str"/>
-        <Param name="startVal" updates="None" val="0.0" valType="code"/>
-        <Param name="stopType" updates="None" val="duration (s)" valType="str"/>
-        <Param name="stopVal" updates="constant" val="10" valType="code"/>
-        <Param name="switchValveWhenDone" updates="None" val="True" valType="bool"/>
-        <Param name="syncToScreen" updates="None" val="True" valType="bool"/>
-        <Param name="syringeType" updates="None" val="50 mL glass" valType="str"/>
-      </QmixPumpComponent>
-    </Routine>
     <Routine name="instruction_3">
       <TextComponent name="instruction_liquid">
         <Param name="color" updates="constant" val="white" valType="str"/>
@@ -249,74 +147,6 @@
         <Param name="syncScreenRefresh" updates="constant" val="False" valType="bool"/>
       </KeyboardComponent>
     </Routine>
-    <Routine name="aspirate_liquid_1">
-      <QmixPumpComponent name="pump_0_0">
-        <Param name="durationEstim" updates="None" val="" valType="code"/>
-        <Param name="flowRate" updates="None" val="1.0" valType="code"/>
-        <Param name="flowRateUnit" updates="None" val="mL/s" valType="str"/>
-        <Param name="name" updates="None" val="pump_0_0" valType="code"/>
-        <Param name="pumpAction" updates="None" val="aspirate" valType="str"/>
-        <Param name="pumpIndex" updates="None" val="0" valType="code"/>
-        <Param name="startEstim" updates="None" val="" valType="code"/>
-        <Param name="startType" updates="None" val="time (s)" valType="str"/>
-        <Param name="startVal" updates="None" val="0" valType="code"/>
-        <Param name="stopType" updates="None" val="duration (s)" valType="str"/>
-        <Param name="stopVal" updates="constant" val="30" valType="code"/>
-        <Param name="switchValveWhenDone" updates="None" val="True" valType="bool"/>
-        <Param name="syncToScreen" updates="None" val="True" valType="bool"/>
-        <Param name="syringeType" updates="None" val="50 mL glass" valType="str"/>
-      </QmixPumpComponent>
-      <QmixPumpComponent name="pump_1_0">
-        <Param name="durationEstim" updates="None" val="" valType="code"/>
-        <Param name="flowRate" updates="None" val="1.0" valType="code"/>
-        <Param name="flowRateUnit" updates="None" val="mL/s" valType="str"/>
-        <Param name="name" updates="None" val="pump_1_0" valType="code"/>
-        <Param name="pumpAction" updates="None" val="aspirate" valType="str"/>
-        <Param name="pumpIndex" updates="None" val="1" valType="code"/>
-        <Param name="startEstim" updates="None" val="" valType="code"/>
-        <Param name="startType" updates="None" val="time (s)" valType="str"/>
-        <Param name="startVal" updates="None" val="0.0" valType="code"/>
-        <Param name="stopType" updates="None" val="duration (s)" valType="str"/>
-        <Param name="stopVal" updates="constant" val="30" valType="code"/>
-        <Param name="switchValveWhenDone" updates="None" val="True" valType="bool"/>
-        <Param name="syncToScreen" updates="None" val="True" valType="bool"/>
-        <Param name="syringeType" updates="None" val="50 mL glass" valType="str"/>
-      </QmixPumpComponent>
-    </Routine>
-    <Routine name="aspirate_liquid_2">
-      <QmixPumpComponent name="pump_0_2">
-        <Param name="durationEstim" updates="None" val="" valType="code"/>
-        <Param name="flowRate" updates="None" val="1.0" valType="code"/>
-        <Param name="flowRateUnit" updates="None" val="mL/s" valType="str"/>
-        <Param name="name" updates="None" val="pump_0_2" valType="code"/>
-        <Param name="pumpAction" updates="None" val="aspirate" valType="str"/>
-        <Param name="pumpIndex" updates="None" val="0" valType="code"/>
-        <Param name="startEstim" updates="None" val="" valType="code"/>
-        <Param name="startType" updates="None" val="time (s)" valType="str"/>
-        <Param name="startVal" updates="None" val="0.0" valType="code"/>
-        <Param name="stopType" updates="None" val="duration (s)" valType="str"/>
-        <Param name="stopVal" updates="constant" val="10" valType="code"/>
-        <Param name="switchValveWhenDone" updates="None" val="True" valType="bool"/>
-        <Param name="syncToScreen" updates="None" val="True" valType="bool"/>
-        <Param name="syringeType" updates="None" val="50 mL glass" valType="str"/>
-      </QmixPumpComponent>
-      <QmixPumpComponent name="pump_1_2">
-        <Param name="durationEstim" updates="None" val="" valType="code"/>
-        <Param name="flowRate" updates="None" val="1.0" valType="code"/>
-        <Param name="flowRateUnit" updates="None" val="mL/s" valType="str"/>
-        <Param name="name" updates="None" val="pump_1_2" valType="code"/>
-        <Param name="pumpAction" updates="None" val="aspirate" valType="str"/>
-        <Param name="pumpIndex" updates="None" val="1" valType="code"/>
-        <Param name="startEstim" updates="None" val="" valType="code"/>
-        <Param name="startType" updates="None" val="time (s)" valType="str"/>
-        <Param name="startVal" updates="None" val="0.0" valType="code"/>
-        <Param name="stopType" updates="None" val="duration (s)" valType="str"/>
-        <Param name="stopVal" updates="constant" val="10" valType="code"/>
-        <Param name="switchValveWhenDone" updates="None" val="True" valType="bool"/>
-        <Param name="syncToScreen" updates="None" val="True" valType="bool"/>
-        <Param name="syringeType" updates="None" val="50 mL glass" valType="str"/>
-      </QmixPumpComponent>
-    </Routine>
     <Routine name="finished">
       <TextComponent name="instruction_end">
         <Param name="color" updates="constant" val="white" valType="str"/>
@@ -355,6 +185,176 @@
         <Param name="storeCorrect" updates="constant" val="False" valType="bool"/>
         <Param name="syncScreenRefresh" updates="constant" val="False" valType="bool"/>
       </KeyboardComponent>
+    </Routine>
+    <Routine name="aspirate_liquid_2">
+      <UnknownComponent name="pump_0_2">
+        <Param name="durationEstim" updates="None" val="" valType="code"/>
+        <Param name="flowRate" updates="None" val="1.0" valType="code"/>
+        <Param name="flowRateUnit" updates="None" val="mL/s" valType="str"/>
+        <Param name="name" updates="None" val="pump_0_2" valType="code"/>
+        <Param name="pumpAction" updates="None" val="aspirate" valType="str"/>
+        <Param name="pumpIndex" updates="None" val="0" valType="code"/>
+        <Param name="startEstim" updates="None" val="" valType="code"/>
+        <Param name="startType" updates="None" val="time (s)" valType="str"/>
+        <Param name="startVal" updates="None" val="0.0" valType="code"/>
+        <Param name="stopType" updates="None" val="duration (s)" valType="str"/>
+        <Param name="stopVal" updates="constant" val="10" valType="code"/>
+        <Param name="switchValveWhenDone" updates="None" val="True" valType="bool"/>
+        <Param name="syncToScreen" updates="None" val="True" valType="bool"/>
+        <Param name="syringeType" updates="None" val="50 mL glass" valType="str"/>
+      </UnknownComponent>
+      <UnknownComponent name="pump_1_2">
+        <Param name="durationEstim" updates="None" val="" valType="code"/>
+        <Param name="flowRate" updates="None" val="1.0" valType="code"/>
+        <Param name="flowRateUnit" updates="None" val="mL/s" valType="str"/>
+        <Param name="name" updates="None" val="pump_1_2" valType="code"/>
+        <Param name="pumpAction" updates="None" val="aspirate" valType="str"/>
+        <Param name="pumpIndex" updates="None" val="1" valType="code"/>
+        <Param name="startEstim" updates="None" val="" valType="code"/>
+        <Param name="startType" updates="None" val="time (s)" valType="str"/>
+        <Param name="startVal" updates="None" val="0.0" valType="code"/>
+        <Param name="stopType" updates="None" val="duration (s)" valType="str"/>
+        <Param name="stopVal" updates="constant" val="10" valType="code"/>
+        <Param name="switchValveWhenDone" updates="None" val="True" valType="bool"/>
+        <Param name="syncToScreen" updates="None" val="True" valType="bool"/>
+        <Param name="syringeType" updates="None" val="50 mL glass" valType="str"/>
+      </UnknownComponent>
+    </Routine>
+    <Routine name="aspirate_air">
+      <UnknownComponent name="pump_0_1">
+        <Param name="durationEstim" updates="None" val="" valType="code"/>
+        <Param name="flowRate" updates="None" val="1.0" valType="code"/>
+        <Param name="flowRateUnit" updates="None" val="mL/s" valType="str"/>
+        <Param name="name" updates="None" val="pump_0_1" valType="code"/>
+        <Param name="pumpAction" updates="None" val="aspirate" valType="str"/>
+        <Param name="pumpIndex" updates="None" val="0" valType="code"/>
+        <Param name="startEstim" updates="None" val="" valType="code"/>
+        <Param name="startType" updates="None" val="time (s)" valType="str"/>
+        <Param name="startVal" updates="None" val="0.0" valType="code"/>
+        <Param name="stopType" updates="None" val="duration (s)" valType="str"/>
+        <Param name="stopVal" updates="constant" val="10" valType="code"/>
+        <Param name="switchValveWhenDone" updates="None" val="True" valType="bool"/>
+        <Param name="syncToScreen" updates="None" val="True" valType="bool"/>
+        <Param name="syringeType" updates="None" val="50 mL glass" valType="str"/>
+      </UnknownComponent>
+      <UnknownComponent name="pump_1_1">
+        <Param name="durationEstim" updates="None" val="" valType="code"/>
+        <Param name="flowRate" updates="None" val="1.0" valType="code"/>
+        <Param name="flowRateUnit" updates="None" val="mL/s" valType="str"/>
+        <Param name="name" updates="None" val="pump_1_1" valType="code"/>
+        <Param name="pumpAction" updates="None" val="aspirate" valType="str"/>
+        <Param name="pumpIndex" updates="None" val="1" valType="code"/>
+        <Param name="startEstim" updates="None" val="" valType="code"/>
+        <Param name="startType" updates="None" val="time (s)" valType="str"/>
+        <Param name="startVal" updates="None" val="0.0" valType="code"/>
+        <Param name="stopType" updates="None" val="duration (s)" valType="str"/>
+        <Param name="stopVal" updates="constant" val="10" valType="code"/>
+        <Param name="switchValveWhenDone" updates="None" val="True" valType="bool"/>
+        <Param name="syncToScreen" updates="None" val="True" valType="bool"/>
+        <Param name="syringeType" updates="None" val="50 mL glass" valType="str"/>
+      </UnknownComponent>
+    </Routine>
+    <Routine name="aspirate_liquid_1">
+      <UnknownComponent name="pump_0_0">
+        <Param name="durationEstim" updates="None" val="" valType="code"/>
+        <Param name="flowRate" updates="None" val="1.0" valType="code"/>
+        <Param name="flowRateUnit" updates="None" val="mL/s" valType="str"/>
+        <Param name="name" updates="None" val="pump_0_0" valType="code"/>
+        <Param name="pumpAction" updates="None" val="aspirate" valType="str"/>
+        <Param name="pumpIndex" updates="None" val="0" valType="code"/>
+        <Param name="startEstim" updates="None" val="" valType="code"/>
+        <Param name="startType" updates="None" val="time (s)" valType="str"/>
+        <Param name="startVal" updates="None" val="0" valType="code"/>
+        <Param name="stopType" updates="None" val="duration (s)" valType="str"/>
+        <Param name="stopVal" updates="constant" val="30" valType="code"/>
+        <Param name="switchValveWhenDone" updates="None" val="True" valType="bool"/>
+        <Param name="syncToScreen" updates="None" val="True" valType="bool"/>
+        <Param name="syringeType" updates="None" val="50 mL glass" valType="str"/>
+      </UnknownComponent>
+      <UnknownComponent name="pump_1_0">
+        <Param name="durationEstim" updates="None" val="" valType="code"/>
+        <Param name="flowRate" updates="None" val="1.0" valType="code"/>
+        <Param name="flowRateUnit" updates="None" val="mL/s" valType="str"/>
+        <Param name="name" updates="None" val="pump_1_0" valType="code"/>
+        <Param name="pumpAction" updates="None" val="aspirate" valType="str"/>
+        <Param name="pumpIndex" updates="None" val="1" valType="code"/>
+        <Param name="startEstim" updates="None" val="" valType="code"/>
+        <Param name="startType" updates="None" val="time (s)" valType="str"/>
+        <Param name="startVal" updates="None" val="0.0" valType="code"/>
+        <Param name="stopType" updates="None" val="duration (s)" valType="str"/>
+        <Param name="stopVal" updates="constant" val="30" valType="code"/>
+        <Param name="switchValveWhenDone" updates="None" val="True" valType="bool"/>
+        <Param name="syncToScreen" updates="None" val="True" valType="bool"/>
+        <Param name="syringeType" updates="None" val="50 mL glass" valType="str"/>
+      </UnknownComponent>
+    </Routine>
+    <Routine name="empty">
+      <UnknownComponent name="pump_0_3">
+        <Param name="durationEstim" updates="None" val="" valType="code"/>
+        <Param name="flowRate" updates="None" val="1.0" valType="code"/>
+        <Param name="flowRateUnit" updates="None" val="mL/s" valType="str"/>
+        <Param name="name" updates="None" val="pump_0_3" valType="code"/>
+        <Param name="pumpAction" updates="None" val="dispense" valType="str"/>
+        <Param name="pumpIndex" updates="None" val="0" valType="code"/>
+        <Param name="startEstim" updates="None" val="" valType="code"/>
+        <Param name="startType" updates="None" val="time (s)" valType="str"/>
+        <Param name="startVal" updates="None" val="0.0" valType="code"/>
+        <Param name="stopType" updates="None" val="duration (s)" valType="str"/>
+        <Param name="stopVal" updates="constant" val="20" valType="code"/>
+        <Param name="switchValveWhenDone" updates="None" val="True" valType="bool"/>
+        <Param name="syncToScreen" updates="None" val="True" valType="bool"/>
+        <Param name="syringeType" updates="None" val="50 mL glass" valType="str"/>
+      </UnknownComponent>
+      <UnknownComponent name="pump_1_3">
+        <Param name="durationEstim" updates="None" val="" valType="code"/>
+        <Param name="flowRate" updates="None" val="1.0" valType="code"/>
+        <Param name="flowRateUnit" updates="None" val="mL/s" valType="str"/>
+        <Param name="name" updates="None" val="pump_1_3" valType="code"/>
+        <Param name="pumpAction" updates="None" val="dispense" valType="str"/>
+        <Param name="pumpIndex" updates="None" val="1" valType="code"/>
+        <Param name="startEstim" updates="None" val="" valType="code"/>
+        <Param name="startType" updates="None" val="time (s)" valType="str"/>
+        <Param name="startVal" updates="None" val="0.0" valType="code"/>
+        <Param name="stopType" updates="None" val="duration (s)" valType="str"/>
+        <Param name="stopVal" updates="constant" val="20" valType="code"/>
+        <Param name="switchValveWhenDone" updates="None" val="True" valType="bool"/>
+        <Param name="syncToScreen" updates="None" val="True" valType="bool"/>
+        <Param name="syringeType" updates="None" val="50 mL glass" valType="str"/>
+      </UnknownComponent>
+    </Routine>
+    <Routine name="fill">
+      <UnknownComponent name="pump_0_4">
+        <Param name="durationEstim" updates="None" val="" valType="code"/>
+        <Param name="flowRate" updates="None" val="1.0" valType="code"/>
+        <Param name="flowRateUnit" updates="None" val="mL/s" valType="str"/>
+        <Param name="name" updates="None" val="pump_0_4" valType="code"/>
+        <Param name="pumpAction" updates="None" val="aspirate" valType="str"/>
+        <Param name="pumpIndex" updates="None" val="0" valType="code"/>
+        <Param name="startEstim" updates="None" val="" valType="code"/>
+        <Param name="startType" updates="None" val="time (s)" valType="str"/>
+        <Param name="startVal" updates="None" val="0.0" valType="code"/>
+        <Param name="stopType" updates="None" val="duration (s)" valType="str"/>
+        <Param name="stopVal" updates="constant" val="20" valType="code"/>
+        <Param name="switchValveWhenDone" updates="None" val="True" valType="bool"/>
+        <Param name="syncToScreen" updates="None" val="True" valType="bool"/>
+        <Param name="syringeType" updates="None" val="50 mL glass" valType="str"/>
+      </UnknownComponent>
+      <UnknownComponent name="pump_1_4">
+        <Param name="durationEstim" updates="None" val="" valType="code"/>
+        <Param name="flowRate" updates="None" val="1.0" valType="code"/>
+        <Param name="flowRateUnit" updates="None" val="mL/s" valType="str"/>
+        <Param name="name" updates="None" val="pump_1_4" valType="code"/>
+        <Param name="pumpAction" updates="None" val="aspirate" valType="str"/>
+        <Param name="pumpIndex" updates="None" val="1" valType="code"/>
+        <Param name="startEstim" updates="None" val="" valType="code"/>
+        <Param name="startType" updates="None" val="time (s)" valType="str"/>
+        <Param name="startVal" updates="None" val="0.0" valType="code"/>
+        <Param name="stopType" updates="None" val="duration (s)" valType="str"/>
+        <Param name="stopVal" updates="constant" val="20" valType="code"/>
+        <Param name="switchValveWhenDone" updates="None" val="True" valType="bool"/>
+        <Param name="syncToScreen" updates="None" val="True" valType="bool"/>
+        <Param name="syringeType" updates="None" val="50 mL glass" valType="str"/>
+      </UnknownComponent>
     </Routine>
   </Routines>
   <Flow>
