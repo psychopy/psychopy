@@ -3,6 +3,7 @@
 
 from __future__ import division
 
+import os
 import pytest
 from pandas import DataFrame
 from psychopy.visual.window import Window
@@ -11,6 +12,10 @@ from psychopy.visual.text import TextStim
 from psychopy.visual.slider import Slider
 from psychopy import constants
 
+thisDir, _ = os.path.split(os.path.abspath(__file__))
+fixturesPath = os.path.join(thisDir, '..', 'data')
+fileName_xlsx = os.path.join(fixturesPath, 'items.xlsx')
+fileName_csv = os.path.join(fixturesPath, 'items.csv')
 
 class Test_Form(object):
     """Test suite for Form component"""
@@ -40,25 +45,7 @@ class Test_Form(object):
             self.questions.append(entry)
         self.survey = Form(self.win, items=self.questions, size=(1.0, 0.3), pos=(0.0, 0.0), autoLog=False)
 
-    @pytest.fixture(scope="session")
-    def create_file(self, tmpdir_factory, type, data, dirName):
-        if type == 'csv':
-            csvFile = DataFrame(data)
-            formData = tmpdir_factory.mkdir(dirName).join("formData.csv")
-            csvFile.to_csv(formData, index=False)
-            return str(formData)
-        elif type == 'xlsx':
-            xlsxFile = DataFrame(data)
-            formData = tmpdir_factory.mkdir(dirName).join("formData.xlsx")
-            xlsxFile.to_excel(formData, index=False)
-            return str(formData)
-        elif type == 'txt':
-            txtFile = DataFrame(data)
-            formData = tmpdir_factory.mkdir(dirName).join("formData.txt")
-            txtFile.to_csv(formData, index=False)
-            return str(formData)
-
-    def test_importItems(self, tmpdir):
+    def test_importItems(self):
         wrongFields = [{"a": "What is your gender?",
                       "b": 0.7,
                       "c": "radio",
@@ -74,6 +61,10 @@ class Test_Form(object):
                       "layout": 'vert',
                       "index": 0}]
 
+        df = DataFrame(self.questions)
+        df.to_excel(fileName_xlsx, index=False)
+        df.to_csv(fileName_csv, index=False)
+
         # Check wrong field error
         with pytest.raises(NameError):
             self.survey = Form(self.win, items=wrongFields, size=(1.0, 0.3), pos=(0.0, 0.0), autoLog=False)
@@ -83,11 +74,10 @@ class Test_Form(object):
             self.survey = Form(self.win, items=wrongOptions, size=(1.0, 0.3), pos=(0.0, 0.0), autoLog=False)
 
         # Check csv
-        self.survey = Form(self.win, items=self.create_file(tmpdir, 'csv', self.questions, 'checkCSV'),
+        self.survey = Form(self.win, items=fileName_csv,
                            size=(1.0, 0.3), pos=(0.0, 0.0), autoLog=False)
-
         # Check Excel
-        self.survey = Form(self.win, items=self.create_file(tmpdir, 'xlsx', self.questions, 'checkExcel'),
+        self.survey = Form(self.win, items=fileName_xlsx,
                            size=(1.0, 0.3), pos=(0.0, 0.0), randomize=False, autoLog=False)
 
 
@@ -179,6 +169,7 @@ class Test_Form(object):
 
     def teardown_class(self):
         self.win.close()
+
 
 if __name__ == "__main__":
     test = Test_Form()
