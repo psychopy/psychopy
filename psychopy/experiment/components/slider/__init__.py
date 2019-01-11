@@ -238,9 +238,7 @@ class SliderComponent(BaseVisualComponent):
                    "  color: new util.Color({color}), \n"
                    "  fontFamily: {font}, bold: true, italic: false, \n"
                    "  flip: {convertedFlip},\n"
-                   "}});\n\n"
-                   .format(**inits,
-                           convertedFlip=boolConverter[inits['flip'].val]))
+                   "}});\n\n").format(**inits, convertedFlip=boolConverter[inits['flip'].val])
         buff.writeIndentedLines(initStr)
 
     def writeRoutineStartCode(self, buff):
