@@ -2684,7 +2684,7 @@ class CoderFrame(wx.Frame):
         self.currentDoc.FoldAll()
 
     # def unfoldAll(self, event):
-    # self.currentDoc.ToggleFoldAll(expand = False)
+    #   self.currentDoc.ToggleFoldAll(expand = False)
 
     def setOutputWindow(self, event=None, value=None):
         # show/hide the output window (from the view menu control)
@@ -2750,11 +2750,11 @@ class CoderFrame(wx.Frame):
         self.SetStatusText(_translate('ready'))
 
     # def setAnalyseAuto(self, event):
-    # set autoanalysis (from the check control in the tools menu)
-    # if self.analyseAutoChk.IsChecked():
-    #    self.prefs['analyseAuto']=True
-    # else:
-    #    self.prefs['analyseAuto']=False
+    #     set autoanalysis (from the check control in the tools menu)
+    #     if self.analyseAutoChk.IsChecked():
+    #        self.prefs['analyseAuto']=True
+    #     else:
+    #        self.prefs['analyseAuto']=False
 
     def loadDemo(self, event):
         self.setCurrentDoc(self.demos[event.GetId()])
