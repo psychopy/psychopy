@@ -22,6 +22,7 @@ dependencies:
 - lxml
 - matplotlib
 - moviepy
+- msgpack-numpy
 - msgpack-python
 - numexpr
 - numpy
