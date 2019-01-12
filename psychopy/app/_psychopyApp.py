@@ -33,17 +33,6 @@ try:
 except ImportError:  # if it's not there locally, try the wxPython lib.
     import wx.lib.agw.advancedsplash as AS
 
-""" Aug 2017: for now we want to turn off warning for AddSimpleTool
-The warning says we should use this in wx4.0:
-    item = tb.AddTool(
-        wx.ID_ANY, bitmap=newBmp,
-        labe=key.replace('Ctrl+', ctrlKey),
-        shortHelp=_translate("Create new python file"))
-BUT in 3.0.2 that raises an error so it's too early to switch.
-"""
-import warnings
-warnings.filterwarnings(message='.*AddTool.*', action='ignore')
-
 from psychopy.localization import _translate
 # NB keep imports to a minimum here because splash screen has not yet shown
 # e.g. coder and builder are imported during app.__init__ because they

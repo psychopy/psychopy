@@ -1155,68 +1155,173 @@ class BuilderFrame(wx.Frame):
         keys = {k: self.app.keys[k].replace('Ctrl+', ctrlKey)
                 for k in self.app.keys}
 
-        item = tb.AddSimpleTool(wx.ID_ANY, newBmp,
-                                _translate("New [%s]") % keys['new'],
-                                _translate("Create new experiment file"))
+        if 'phoenix' in wx.PlatformInfo:
+            item = tb.AddTool(wx.ID_ANY,
+                              _translate("New [%s]") % keys['new'],
+                              newBmp,
+                              _translate("Create new experiment file"))
+        else:
+            item = tb.AddSimpleTool(wx.ID_ANY,
+                                    newBmp,
+                                    _translate("New [%s]") % keys['new'],
+                                    _translate("Create new experiment file"))
         tb.Bind(wx.EVT_TOOL, self.app.newBuilderFrame, item)
-        item = tb.AddSimpleTool(wx.ID_ANY, openBmp,
-                                _translate("Open [%s]") % keys['open'],
-                                _translate("Open an existing experiment file"))
+
+        if 'phoenix' in wx.PlatformInfo:
+            item = tb.AddTool(wx.ID_ANY,
+                              _translate("Open [%s]") % keys['open'],
+                              openBmp,
+                              _translate("Open an existing experiment file"))
+        else:
+            item = tb.AddSimpleTool(wx.ID_ANY,
+                                    openBmp,
+                                    _translate("Open [%s]") % keys['open'],
+                                    _translate("Open an existing experiment file"))
         tb.Bind(wx.EVT_TOOL, self.fileOpen, item)
-        self.bldrBtnSave = tb.AddSimpleTool(-1, saveBmp,
-                                            _translate("Save [%s]") % keys[
-                                                'save'],
-                                            _translate(
-                                                "Save current experiment file"))
+
+        if 'phoenix' in wx.PlatformInfo:
+            self.bldrBtnSave = tb.AddTool(
+                -1,
+                _translate("Save [%s]") % keys['save'],
+                saveBmp,
+                _translate("Save current experiment file"))
+        else:
+            self.bldrBtnSave = tb.AddSimpleTool(
+                -1,
+                saveBmp,
+                _translate("Save [%s]") % keys['save'],
+                _translate("Save current experiment file"))
         self.toolbar.EnableTool(self.bldrBtnSave.Id, False)
         tb.Bind(wx.EVT_TOOL, self.fileSave, self.bldrBtnSave)
-        item = tb.AddSimpleTool(wx.ID_ANY, saveAsBmp,
-                                _translate("Save As... [%s]") % keys['saveAs'],
-                                _translate(
-                                    "Save current experiment file as..."))
+
+        if 'phoenix' in wx.PlatformInfo:
+            item = tb.AddTool(
+                wx.ID_ANY,
+                _translate("Save As... [%s]") % keys['saveAs'],
+                saveAsBmp,
+                _translate("Save current experiment file as..."))
+        else:
+            item = tb.AddSimpleTool(
+                wx.ID_ANY,
+                saveAsBmp,
+                _translate("Save As... [%s]") % keys['saveAs'],
+                _translate("Save current experiment file as..."))
         tb.Bind(wx.EVT_TOOL, self.fileSaveAs, item)
-        self.bldrBtnUndo = tb.AddSimpleTool(wx.ID_ANY, undoBmp,
-                                            _translate("Undo [%s]") % keys[
-                                                'undo'],
-                                            _translate("Undo last action"))
+
+        if 'phoenix' in wx.PlatformInfo:
+            self.bldrBtnUndo = tb.AddTool(
+                wx.ID_ANY,
+                _translate("Undo [%s]") % keys['undo'],
+                undoBmp,
+                _translate("Undo last action"))
+        else:
+            self.bldrBtnUndo = tb.AddSimpleTool(
+                wx.ID_ANY,
+                undoBmp,
+                _translate("Undo [%s]") % keys['undo'],
+                _translate("Undo last action"))
         tb.Bind(wx.EVT_TOOL, self.undo, self.bldrBtnUndo)
-        self.bldrBtnRedo = tb.AddSimpleTool(wx.ID_ANY, redoBmp,
-                                            _translate("Redo [%s]") % keys[
-                                                'redo'],
-                                            _translate("Redo last action"))
+
+        if 'phoenix' in wx.PlatformInfo:
+            self.bldrBtnRedo = tb.AddTool(
+                wx.ID_ANY,
+                _translate("Redo [%s]") % keys['redo'],
+                redoBmp,
+                _translate("Redo last action"))
+        else:
+            self.bldrBtnRedo = tb.AddSimpleTool(
+                wx.ID_ANY,
+                redoBmp,
+                _translate("Redo [%s]") % keys['redo'],
+                _translate("Redo last action"))
         tb.Bind(wx.EVT_TOOL, self.redo, self.bldrBtnRedo)
 
         tb.AddSeparator()
-        self.bldrBtnPrefs = tb.AddSimpleTool(wx.ID_ANY, preferencesBmp,
-                                             _translate("Preferences"),
-                                             _translate(
-                                                 "Application preferences"))
+
+        if 'phoenix' in wx.PlatformInfo:
+            self.bldrBtnPrefs = tb.AddTool(
+                wx.ID_ANY,
+                _translate("Preferences"),
+                preferencesBmp,
+                _translate("Application preferences"))
+        else:
+            self.bldrBtnPrefs = tb.AddSimpleTool(
+                wx.ID_ANY,
+                preferencesBmp,
+                _translate("Preferences"),
+                _translate("Application preferences"))
         tb.Bind(wx.EVT_TOOL, self.app.showPrefs, self.bldrBtnPrefs)
-        item = tb.AddSimpleTool(wx.ID_ANY, monitorsBmp,
-                                _translate("Monitor Center"),
-                                _translate("Monitor settings and calibration"))
-        tb.Bind(wx.EVT_TOOL, self.app.openMonitorCenter,
-                id=item.GetId())
+
+        if 'phoenix' in wx.PlatformInfo:
+            item = tb.AddTool(
+                wx.ID_ANY,
+                _translate("Monitor Center"),
+                monitorsBmp,
+                _translate("Monitor settings and calibration"))
+        else:
+            item = tb.AddSimpleTool(
+                wx.ID_ANY,
+                monitorsBmp,
+                _translate("Monitor Center"),
+                _translate("Monitor settings and calibration"))
+        tb.Bind(wx.EVT_TOOL, self.app.openMonitorCenter, id=item.GetId())
 
         tb.AddSeparator()
-        item = tb.AddSimpleTool(wx.ID_ANY, settingsBmp,
-                                _translate("Experiment Settings"),
-                                _translate("Settings for this exp"))
+
+        if 'phoenix' in wx.PlatformInfo:
+            item = tb.AddTool(
+                wx.ID_ANY,
+                _translate("Experiment Settings"),
+                settingsBmp,
+                _translate("Settings for this exp"))
+        else:
+            item = tb.AddSimpleTool(
+                wx.ID_ANY,
+                settingsBmp,
+                _translate("Experiment Settings"),
+                _translate("Settings for this exp"))
         tb.Bind(wx.EVT_TOOL, self.setExperimentSettings, item)
-        item = tb.AddSimpleTool(wx.ID_ANY, compileBmp,
-                                _translate("Compile Script [%s]") %
-                                keys['compileScript'],
-                                _translate("Compile to script"))
+
+        if 'phoenix' in wx.PlatformInfo:
+            item = tb.AddTool(
+                wx.ID_ANY,
+                _translate("Compile Script [%s]") % keys['compileScript'],
+                compileBmp,
+                _translate("Compile to script"))
+        else:
+            item = tb.AddSimpleTool(
+                wx.ID_ANY,
+                compileBmp,
+                _translate("Compile Script [%s]") % keys['compileScript'],
+                _translate("Compile to script"))
         tb.Bind(wx.EVT_TOOL, self.compileScript, item)
-        self.bldrBtnRun = tb.AddSimpleTool(wx.ID_ANY, runBmp,
-                                           _translate("Run [%s]") % keys[
-                                               'runScript'],
-                                           _translate("Run experiment"))
+
+        if 'phoenix' in wx.PlatformInfo:
+            self.bldrBtnRun = tb.AddTool(
+                wx.ID_ANY,
+                _translate("Run [%s]") % keys['runScript'],
+                runBmp,
+                _translate("Run experiment"))
+        else:
+            self.bldrBtnRun = tb.AddSimpleTool(
+                wx.ID_ANY,
+                runBmp,
+                _translate("Run [%s]") % keys['runScript'],
+                _translate("Run experiment"))
         tb.Bind(wx.EVT_TOOL, self.runFile, self.bldrBtnRun)
-        self.bldrBtnStop = tb.AddSimpleTool(wx.ID_ANY, stopBmp,
-                                            _translate("Stop [%s]") % keys[
-                                                'stopScript'],
-                                            _translate("Stop experiment"))
+
+        if 'phoenix' in wx.PlatformInfo:
+            self.bldrBtnStop = tb.AddTool(
+                wx.ID_ANY,
+                _translate("Stop [%s]") % keys['stopScript'],
+                stopBmp,
+                _translate("Stop experiment"))
+        else:
+            self.bldrBtnStop = tb.AddSimpleTool(
+                wx.ID_ANY,
+                stopBmp,
+                _translate("Stop [%s]") % keys['stopScript'],
+                _translate("Stop experiment"))
         tb.Bind(wx.EVT_TOOL, self.stopFile, self.bldrBtnStop)
         self.toolbar.EnableTool(self.bldrBtnStop.Id, False)
 
@@ -2282,7 +2387,7 @@ class BuilderFrame(wx.Frame):
                 self.fileExport()
             if noProject or noHtmlFolder:
                 pavlovia_ui.syncProject(parent=self, project=self.project,
-                                    closeFrameWhenDone=False)
+                                        closeFrameWhenDone=False)
 
         if self.project:
             self.project.pavloviaStatus = 'ACTIVATED'
@@ -2307,6 +2412,7 @@ class BuilderFrame(wx.Frame):
     @project.setter
     def project(self, project):
         self.__dict__['project'] = project
+
 
 class ReadmeFrame(wx.Frame):
     """Defines construction of the Readme Frame"""
