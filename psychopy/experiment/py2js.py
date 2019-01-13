@@ -80,9 +80,11 @@ def expression2js(expr):
     syntaxTree = ast.parse(expr)
     for node in ast.walk(syntaxTree):
         TupleTransformer().visit(node)  # Transform tuples to list
-        if isinstance(node, ast.Str) and node.s.startswith("u'"):
+        # for py2 using 'unicode_literals' we don't want
+        if isinstance(node, ast.Str) and type(node.s)==bytes:
+            node.s = unicode(node.s, 'utf-8')
+        elif isinstance(node, ast.Str) and node.s.startswith("u'"):
             node.s = node.s[1:]
-            print(node.s)
         if isinstance(node, ast.Name):
             if node.id == 'undefined':
                 continue

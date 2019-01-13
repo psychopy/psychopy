@@ -533,7 +533,7 @@ class Slider(MinimalStim):
         self._mouseStateXY = xy
 
 
-    knownStyles = ['slider', 'rating', 'labels45', 'whiteOnBlack',
+    knownStyles = ['slider', 'rating', 'radio', 'labels45', 'whiteOnBlack',
                    'triangleMarker']
 
     @attributeSetter
@@ -620,6 +620,5 @@ class Slider(MinimalStim):
             # ticks are circles
             self.tickLines.sizes = (self._tickL, self._tickL)
             self.tickLines.elementMask = 'circle'
-            self.tickLines.colors = 'lightgray'
             # marker must be smalle than a "tick" circle
             self.marker.size = self._tickL*0.7
