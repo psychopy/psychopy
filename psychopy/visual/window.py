@@ -703,9 +703,9 @@ class Window(object):
                 if obj has this
         """
         if hasattr(obj, attrib):
-            setattr(obj, attrib, self.lastFrameT)
+            setattr(obj, attrib, self._frameTime)
         elif isinstance(obj, dict):
-            obj[attrib] = self.lastFrameT
+            obj[attrib] = self._frameTime
         else:
             raise TypeError("Window.getTimeOnFlip() should be called with an "
                             "object and its attribute or a dict and its key. "
@@ -824,7 +824,12 @@ class Window(object):
             GL.glFinish()
 
         # get timestamp
-        now = logging.defaultClock.getTime()
+        self._frameTime = now = logging.defaultClock.getTime()
+
+        # run other functions immediately after flip completes
+        for callEntry in self._toCall:
+            callEntry['function'](*callEntry['args'], **callEntry['kwargs'])
+        del self._toCall[:]
 
         # do bookkeeping
         if self.recordFrameIntervals:
@@ -845,11 +850,6 @@ class Window(object):
                         logging.warning("Multiple dropped frames have "
                                         "occurred - I'll stop bothering you "
                                         "about them!")
-
-        # run other functions immediately after flip completes
-        for callEntry in self._toCall:
-            callEntry['function'](*callEntry['args'], **callEntry['kwargs'])
-        del self._toCall[:]
 
         # log events
         for logEntry in self._toLog:

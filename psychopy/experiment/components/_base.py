@@ -144,8 +144,7 @@ class BaseComponent(object):
         """Write the code that will be called at the end of
         a routine (e.g. to save data)
         """
-        if self.params['saveOnsetOffset']:
-
+        if 'saveStartStop' in self.params and self.params['saveStartStop']:
             # what loop are we in (or thisExp)?
             if len(self.exp.flow._loopList):
                 currLoop = self.exp.flow._loopList[-1]  # last (outer-most) loop
@@ -154,15 +153,15 @@ class BaseComponent(object):
 
             if self.params['syncScreenRefresh']:
                 code = (
-                    "thisExp.addData('{name}.started', {name}.tStartRefresh\n"
-                    "thisExp.addData('{name}.stopped', {name}.tStopRefresh\n"
+                    "{loop}.addData('{name}.started', {name}.tStartRefresh)\n"
+                    "{loop}.addData('{name}.stopped', {name}.tStopRefresh)\n"
                 )
             else:
                 code = (
-                    "{loop}.addData('{name}.started', {name}.tStart\n"
-                    "{loop}.addData('{name}.stopped', {name}.tStop\n"
+                    "{loop}.addData('{name}.started', {name}.tStart)\n"
+                    "{loop}.addData('{name}.stopped', {name}.tStop)\n"
                 )
-            buff.writeIndentedLines(code.format(loop=currLoop,
+            buff.writeIndentedLines(code.format(loop=currLoop.params['name'],
                                                 name=self.params['name']))
 
     def writeRoutineEndCodeJS(self, buff):
