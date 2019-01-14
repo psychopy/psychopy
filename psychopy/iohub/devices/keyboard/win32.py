@@ -3,7 +3,11 @@
 # Copyright (C) 2012-2016 iSolver Software Solutions
 # Distributed under the terms of the GNU General Public License (GPL).
 
-import pyHook
+try:
+    import pyHook
+except ImportError:
+    import pyWinhook as pyHook
+
 import ctypes
 from unicodedata import category as ucategory
 from . import ioHubKeyboardDevice
