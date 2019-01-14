@@ -24,7 +24,7 @@ try:
 except ImportError:
     from wx.adv import PseudoDC
 
-if 'phoenix' not in wx.PlatformInfo:
+if parse_version(wx.__version__) < parse_version('4.0.3'):
     wx.NewIdRef = wx.NewId
 
 from psychopy import logging, data

@@ -12,12 +12,13 @@ from builtins import range
 import time
 import os
 import locale
+from pkg_resources import parse_version
 
 import wx
 from wx import grid
 from wx.lib import intctrl
 
-if 'phoenix' not in wx.PlatformInfo:
+if parse_version(wx.__version__) < parse_version('4.0.3'):
     wx.NewIdRef = wx.NewId
 
 from psychopy import constants

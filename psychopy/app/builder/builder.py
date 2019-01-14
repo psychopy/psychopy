@@ -10,6 +10,7 @@ Distributed under the terms of the GNU General Public License (GPL).
 
 from __future__ import absolute_import, division, print_function
 
+from pkg_resources import parse_version
 import wx
 import wx.stc
 from wx.lib import platebtn, scrolledpanel
@@ -23,7 +24,7 @@ try:
 except ImportError:
     from wx import PseudoDC
 
-if 'phoenix' not in wx.PlatformInfo:
+if parse_version(wx.__version__) < parse_version('4.0.3'):
     wx.NewIdRef = wx.NewId
 
 import sys
