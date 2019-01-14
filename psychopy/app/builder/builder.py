@@ -23,6 +23,9 @@ try:
 except ImportError:
     from wx import PseudoDC
 
+if 'phoenix' not in wx.PlatformInfo:
+    wx.NewIdRef = wx.NewId
+
 import sys
 import os
 import subprocess
@@ -143,7 +146,7 @@ class RoutineCanvas(wx.ScrolledWindow):
         self.contextItemFromID = {}
         self.contextIDFromItem = {}
         for item in self.contextMenuItems:
-            id = wx.NewId()
+            id = wx.NewIdRef()
             self.contextItemFromID[id] = item
             self.contextIDFromItem[item] = id
 
@@ -321,7 +324,7 @@ class RoutineCanvas(wx.ScrolledWindow):
         xSt = self.timeXposStart
         xEnd = self.timeXposEnd
 
-        # dc.SetId(wx.NewId())
+        # dc.SetId(wx.NewIdRef())
         dc.SetPen(wx.Pen(wx.Colour(0, 0, 0, 150)))
         # draw horizontal lines on top and bottom
         dc.DrawLine(x1=xSt, y1=yPosTop,
@@ -376,7 +379,7 @@ class RoutineCanvas(wx.ScrolledWindow):
             if self.componentFromID[key] == component:
                 id = key
         if not id:  # then create one and add to the dict
-            id = wx.NewId()
+            id = wx.NewIdRef()
             self.componentFromID[id] = component
         dc.SetId(id)
         # deduce start and stop times if possible
@@ -424,7 +427,7 @@ class RoutineCanvas(wx.ScrolledWindow):
             if self.componentFromID[key] == component:
                 id = key
         if not id:  # then create one and add to the dict
-            id = wx.NewId()
+            id = wx.NewIdRef()
             self.componentFromID[id] = component
         dc.SetId(id)
 
@@ -829,7 +832,7 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
             msg = "Remove from favorites"
             clickFunc = self.onRemFromFavorites
         menu = wx.Menu()
-        id = wx.NewId()
+        id = wx.NewIdRef()
         menu.Append(id, _localized[msg])
         menu.Bind(wx.EVT_MENU, clickFunc, id=id)
         # where to put the context menu
@@ -2101,7 +2104,7 @@ class BuilderFrame(wx.Frame):
             return
         # list available demos
         demoList = sorted(glob.glob(os.path.join(unpacked, '*')))
-        self.demos = {wx.NewId(): demoList[n]
+        self.demos = {wx.NewIdRef(): demoList[n]
                       for n in range(len(demoList))}
         for thisID in self.demos:
             junk, shortname = os.path.split(self.demos[thisID])
