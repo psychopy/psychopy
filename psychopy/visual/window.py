@@ -678,6 +678,41 @@ class Window(object):
                              'args': args,
                              'kwargs': kwargs})
 
+    def timeOnFlip(self, obj, attrib):
+        """Retrieves the time on the next flip and assigns it to the attrib
+        for this obj.
+
+        usage:
+            win.getTimeOnFlip(myTimingDict, 'tStartRefresh')
+
+        :parameters:
+            - obj:
+                must be a mutable object (usually a dict of class instance)
+            - attrib: str
+                if obj has this
+        """
+        self.callOnFlip(self._assignFlipTime, obj, attrib)
+
+    def _assignFlipTime(self, obj, attrib):
+        """Helper function to assign the time of last flip to the obj.attrib
+
+        :parameters:
+            - obj:
+                must be a mutable object (usually a dict of class instance)
+            - attrib: str
+                if obj has this
+        """
+        if hasattr(obj, attrib):
+            setattr(obj, attrib, self.lastFrameT)
+        elif isinstance(obj, dict):
+            obj[attrib] = self.lastFrameT
+        else:
+            raise TypeError("Window.getTimeOnFlip() should be called with an "
+                            "object and its attribute or a dict and its key. "
+                            "In this case it was called with obj={}"
+                            .format(repr(obj)))
+
+
     @classmethod
     def dispatchAllWindowEvents(cls):
         """
@@ -791,11 +826,6 @@ class Window(object):
         # get timestamp
         now = logging.defaultClock.getTime()
 
-        # run other functions immediately after flip completes
-        for callEntry in self._toCall:
-            callEntry['function'](*callEntry['args'], **callEntry['kwargs'])
-        del self._toCall[:]
-
         # do bookkeeping
         if self.recordFrameIntervals:
             self.frames += 1
@@ -815,6 +845,11 @@ class Window(object):
                         logging.warning("Multiple dropped frames have "
                                         "occurred - I'll stop bothering you "
                                         "about them!")
+
+        # run other functions immediately after flip completes
+        for callEntry in self._toCall:
+            callEntry['function'](*callEntry['args'], **callEntry['kwargs'])
+        del self._toCall[:]
 
         # log events
         for logEntry in self._toLog:
