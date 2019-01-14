@@ -1,0 +1,354 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:xlink="http://www.w3.org/1999/xlink"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   width="542.56671"
+   height="230"
+   viewBox="0 0 542.56671 230"
+   id="svg2"
+   version="1.1"
+   inkscape:version="0.92.2 5c3e80d, 2017-08-06"
+   sodipodi:docname="psychopyEasy.svg">
+  <defs
+     id="defs4">
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient3853"
+       id="linearGradient3054"
+       gradientUnits="userSpaceOnUse"
+       x1="404.85583"
+       y1="692.75299"
+       x2="497.16815"
+       y2="814.81799" />
+    <linearGradient
+       id="linearGradient3853"
+       inkscape:collect="always">
+      <stop
+         id="stop3855"
+         offset="0"
+         style="stop-color:#808080;stop-opacity:1" />
+      <stop
+         id="stop3857"
+         offset="1"
+         style="stop-color:#ffffff;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient3841"
+       id="linearGradient3056"
+       gradientUnits="userSpaceOnUse"
+       x1="404.85583"
+       y1="692.75299"
+       x2="497.16815"
+       y2="814.81799" />
+    <linearGradient
+       inkscape:collect="always"
+       id="linearGradient3841">
+      <stop
+         style="stop-color:#666666;stop-opacity:1"
+         offset="0"
+         id="stop3843" />
+      <stop
+         style="stop-color:#ffffff;stop-opacity:1"
+         offset="1"
+         id="stop3845" />
+    </linearGradient>
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient3750"
+       id="linearGradient3058"
+       gradientUnits="userSpaceOnUse"
+       spreadMethod="reflect"
+       x1="423.71222"
+       y1="782.60333"
+       x2="441.418"
+       y2="793.06329" />
+    <linearGradient
+       id="linearGradient3750">
+      <stop
+         id="stop3752"
+         offset="0"
+         style="stop-color:#000000;stop-opacity:1;" />
+      <stop
+         style="stop-color:#141414;stop-opacity:1;"
+         offset="0.12876198"
+         id="stop3762" />
+      <stop
+         id="stop3764"
+         offset="0.22307248"
+         style="stop-color:#262626;stop-opacity:1;" />
+      <stop
+         style="stop-color:#393939;stop-opacity:1;"
+         offset="0.31924155"
+         id="stop3766" />
+      <stop
+         id="stop3768"
+         offset="0.42719939"
+         style="stop-color:#4f4f4f;stop-opacity:1;" />
+      <stop
+         style="stop-color:#bbbbbb;stop-opacity:1;"
+         offset="0.64108545"
+         id="stop3760" />
+      <stop
+         style="stop-color:#d0d0d0;stop-opacity:1;"
+         offset="0.72748369"
+         id="stop3758" />
+      <stop
+         style="stop-color:#e5e5e5;stop-opacity:1;"
+         offset="0.81589973"
+         id="stop3756" />
+      <stop
+         id="stop3754"
+         offset="1"
+         style="stop-color:#f7f7f7;stop-opacity:1;" />
+    </linearGradient>
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient3714"
+       id="linearGradient3060"
+       gradientUnits="userSpaceOnUse"
+       x1="365.3989"
+       y1="486.5683"
+       x2="408.96875"
+       y2="614.06213" />
+    <linearGradient
+       inkscape:collect="always"
+       id="linearGradient3714">
+      <stop
+         style="stop-color:#ffffff;stop-opacity:1;"
+         offset="0"
+         id="stop3716" />
+      <stop
+         style="stop-color:#ffffff;stop-opacity:0;"
+         offset="1"
+         id="stop3718" />
+    </linearGradient>
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient3772"
+       id="linearGradient3062"
+       gradientUnits="userSpaceOnUse"
+       x1="471.34607"
+       y1="873.54211"
+       x2="467.4519"
+       y2="766.62939" />
+    <linearGradient
+       inkscape:collect="always"
+       id="linearGradient3772">
+      <stop
+         style="stop-color:#222222;stop-opacity:1;"
+         offset="0"
+         id="stop3774" />
+      <stop
+         style="stop-color:#222222;stop-opacity:0;"
+         offset="1"
+         id="stop3776" />
+    </linearGradient>
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient3831"
+       id="linearGradient3064"
+       gradientUnits="userSpaceOnUse"
+       gradientTransform="matrix(0.98832452,0,0,0.98832452,-44.22406,-133.90409)"
+       spreadMethod="reflect"
+       x1="411.04434"
+       y1="691.27911"
+       x2="476.58185"
+       y2="762.19476" />
+    <linearGradient
+       inkscape:collect="always"
+       id="linearGradient3831">
+      <stop
+         style="stop-color:#b3b3b3;stop-opacity:1"
+         offset="0"
+         id="stop3833" />
+      <stop
+         style="stop-color:#ffffff;stop-opacity:1"
+         offset="1"
+         id="stop3835" />
+    </linearGradient>
+  </defs>
+  <sodipodi:namedview
+     id="base"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:pageopacity="0.0"
+     inkscape:pageshadow="2"
+     inkscape:zoom="1.4"
+     inkscape:cx="252.2241"
+     inkscape:cy="48.850355"
+     inkscape:document-units="px"
+     inkscape:current-layer="layer1"
+     showgrid="false"
+     units="px"
+     inkscape:window-width="1440"
+     inkscape:window-height="856"
+     inkscape:window-x="114"
+     inkscape:window-y="3"
+     inkscape:window-maximized="0"
+     fit-margin-top="5"
+     fit-margin-left="5"
+     fit-margin-right="5"
+     fit-margin-bottom="5" />
+  <metadata
+     id="metadata7">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title></dc:title>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <g
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     id="layer1"
+     transform="translate(0.85711817,-821.79074)"
+     style="display:none">
+    <g
+       transform="matrix(1.3380543,0,0,1.3380543,-433.1521,124.15007)"
+       id="g3859"
+       inkscape:export-xdpi="328.43149"
+       inkscape:export-ydpi="328.43149"
+       inkscape:export-filename="/home/lpzjwp/Dropbox/resources/logos/psychopy/main icon/psychopy600dpi.png"
+       inkscape:label="logo"
+       style="display:none">
+      <circle
+         r="81.573997"
+         cy="749.99072"
+         cx="458.60153"
+         style="fill:#999999;fill-opacity:1;stroke:none"
+         id="path3794"
+         transform="matrix(1.0077834,0,0,1.0077834,-53.148013,-148.49809)" />
+      <circle
+         r="81.573997"
+         cy="749.99072"
+         cx="458.60153"
+         style="fill:url(#linearGradient3054);fill-opacity:1;stroke:none"
+         id="path3849"
+         transform="matrix(-1.0038917,0,0,-1.0038917,869.4093,1360.2396)" />
+      <circle
+         r="81.573997"
+         cy="749.99072"
+         cx="458.60153"
+         transform="matrix(0.93384114,0,0,0.93384114,-19.237984,-93.042077)"
+         id="path3837"
+         style="fill:url(#linearGradient3056);fill-opacity:1;stroke:none" />
+      <circle
+         r="81.573997"
+         cy="749.99072"
+         cx="458.60153"
+         style="fill:url(#linearGradient3058);fill-opacity:1;stroke:#616161;stroke-width:1.11514485;stroke-linecap:round;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:0.65098039"
+         id="path3627"
+         transform="matrix(0.89674453,0,0,0.89674453,-2.22543,-65.219961)" />
+      <path
+         inkscape:connector-curvature="0"
+         id="path3692"
+         d="m 409.03125,534.1875 c -40.4002,0 -73.15625,32.75605 -73.15625,73.15625 0,6.44798 0.83978,12.70002 2.40625,18.65625 19.41506,-25.1435 49.8382,-41.34375 84.0625,-41.34375 22.13372,0 42.7086,6.75694 59.71875,18.34375 -2.23978,-38.38544 -34.08407,-68.8125 -73.03125,-68.8125 z"
+         style="fill:url(#linearGradient3060);fill-opacity:1;stroke:none" />
+      <circle
+         r="81.573997"
+         cy="749.99072"
+         cx="458.60153"
+         transform="matrix(0.89674453,0,0,0.89674453,-2.22543,-65.219961)"
+         id="path3770"
+         style="fill:url(#linearGradient3062);fill-opacity:1;stroke:none" />
+      <path
+         inkscape:connector-curvature="0"
+         id="path2853"
+         d="m 409.03144,526.70387 c -44.52607,0 -80.64007,36.114 -80.64007,80.64007 0,44.52607 36.114,80.60844 80.64007,80.60844 44.52607,0 80.60844,-36.08237 80.60844,-80.60844 0,-44.52607 -36.08237,-80.64007 -80.60844,-80.64007 z m 0,5.62899 c 41.41541,0 74.97945,33.59566 74.97945,75.01108 0,41.41541 -33.56404,74.97945 -74.97945,74.97945 -41.41542,0 -75.01108,-33.56404 -75.01108,-74.97945 0,-41.41542 33.59566,-75.01108 75.01108,-75.01108 z"
+         style="fill:url(#linearGradient3064);fill-opacity:1;stroke:none" />
+    </g>
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-weight:normal;line-height:0%;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;display:none;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       x="207.28572"
+       y="895.54639"
+       id="text4218"
+       inkscape:label="PsychoPy"><tspan
+         sodipodi:role="line"
+         id="tspan4220"
+         x="207.28572"
+         y="895.54639"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:80px;line-height:1.25;font-family:'Monotype Corsiva';-inkscape-font-specification:'Monotype Corsiva';letter-spacing:2px"
+         dy="0 0 0 0 0 0 0 0">PsychoPy </tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-weight:normal;line-height:0%;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;display:none;fill:#d20a0a;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       x="495.85715"
+       y="876.54626"
+       id="text4255"
+       inkscape:label="3"><tspan
+         sodipodi:role="line"
+         id="tspan4257"
+         x="495.85715"
+         y="876.54626"
+         style="font-style:italic;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:60px;line-height:1.25;font-family:'Indie Flower';-inkscape-font-specification:'Indie Flower Italic';fill:#d20a0a;fill-opacity:1">3</tspan></text>
+  </g>
+  <g
+     inkscape:groupmode="layer"
+     id="layer2"
+     inkscape:label="Taglines"
+     style="display:none">
+    <text
+       id="text896"
+       y="165.17426"
+       x="256.72379"
+       style="font-style:normal;font-weight:normal;font-size:40px;line-height:1.25;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;display:none;fill:#000000;fill-opacity:1;stroke:none"
+       xml:space="preserve"
+       inkscape:label="flexible"><tspan
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:16px;font-family:sans-serif;-inkscape-font-specification:'sans-serif, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:start;writing-mode:lr-tb;text-anchor:start"
+         y="165.17426"
+         x="256.72379"
+         id="tspan894"
+         sodipodi:role="line">Flexible enough for everything else</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-weight:normal;font-size:40px;line-height:1.25;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;display:none;fill:#000000;fill-opacity:1;stroke:none"
+       x="231.40543"
+       y="116.3727"
+       id="text892"
+       inkscape:label="precise"><tspan
+         sodipodi:role="line"
+         id="tspan890"
+         x="231.40543"
+         y="116.3727"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:16px;font-family:sans-serif;-inkscape-font-specification:sans-serif;font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:start;writing-mode:lr-tb;text-anchor:start">Precise enough for psychophysics</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-weight:normal;font-size:40px;line-height:1.25;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;display:inline;fill:#000000;fill-opacity:1;stroke:none"
+       x="244.06461"
+       y="140.77348"
+       id="text863"
+       inkscape:label="easy"><tspan
+         sodipodi:role="line"
+         id="tspan861"
+         x="244.06461"
+         y="140.77348"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:16px;font-family:sans-serif;-inkscape-font-specification:'sans-serif, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:start;writing-mode:lr-tb;text-anchor:start">Easy enough for teaching</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;line-height:0%;font-family:SignPainter;-inkscape-font-specification:SignPainter;letter-spacing:0px;word-spacing:0px;display:none;fill:#d20a0a;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       x="270.38687"
+       y="187.56332"
+       id="text4243"
+       inkscape:label="nowOnline"><tspan
+         sodipodi:role="line"
+         id="tspan4245"
+         x="270.38687"
+         y="187.56332"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:20px;line-height:1.25;font-family:'Indie Flower';-inkscape-font-specification:'Indie Flower';fill:#d20a0a;fill-opacity:1">Now running studies online </tspan></text>
+  </g>
+</svg>

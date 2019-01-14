@@ -595,3 +595,45 @@ class InstallUpdateDialog(wx.Dialog):
                     info += 'Failed to update PsychoPy path in %s' % filename
                     return -1, info
         return nUpdates, info
+
+
+def sendUsageStats():
+    """Sends anonymous, very basic usage stats to psychopy server:
+      the version of PsychoPy
+      the system used (platform and version)
+      the date
+    """
+
+    v = psychopy.__version__
+    dateNow = time.strftime("%Y-%m-%d_%H:%M")
+    miscInfo = ''
+
+    # urllib.install_opener(opener)
+    # check for proxies
+    if web.proxies is None:
+        web.setupProxy()
+
+    # get platform-specific info
+    if sys.platform == 'darwin':
+        OSXver, junk, architecture = platform.mac_ver()
+        systemInfo = "OSX_%s_%s" % (OSXver, architecture)
+    elif sys.platform.startswith('linux'):
+        systemInfo = '%s_%s_%s' % (
+            'Linux',
+            ':'.join([x for x in platform.dist() if x != '']),
+            platform.release())
+        if len(systemInfo) > 30:  # if it's too long PHP/SQL fails to store!?
+            systemInfo = systemInfo[0:30]
+    elif sys.platform == 'win32':
+        systemInfo = "win32_v" + platform.version()
+    else:
+        systemInfo = platform.system() + platform.release()
+    u = "http://www.psychopy.org/usage.php?date=%s&sys=%s&version=%s&misc=%s"
+    URL = u % (dateNow, systemInfo, v, miscInfo)
+    try:
+        req = urllib.request.Request(URL)
+        page = urllib.request.urlopen(req)  # proxies
+    except Exception:
+        logging.warning("Couldn't connect to psychopy.org\n"
+                        "Check internet settings (and proxy "
+                        "setting in PsychoPy Preferences.")

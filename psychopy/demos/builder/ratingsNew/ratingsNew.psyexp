@@ -1,6 +1,7 @@
 <?xml version="1.0" ?>
-<PsychoPy2experiment encoding="utf-8" version="3.0.0b6">
+<PsychoPy2experiment encoding="utf-8" version="3.0.1">
   <Settings>
+    <Param name="Completed URL" updates="None" val="" valType="str"/>
     <Param name="Completion URL" updates="None" val="completionURL" valType="str"/>
     <Param name="Data filename" updates="None" val="u'data/%s_%s_%s' % (expInfo['participant'], expName, expInfo['date'])" valType="code"/>
     <Param name="Enable Escape" updates="None" val="True" valType="bool"/>
@@ -8,6 +9,7 @@
     <Param name="Force stereo" updates="None" val="True" valType="bool"/>
     <Param name="Full-screen window" updates="None" val="False" valType="bool"/>
     <Param name="HTML path" updates="None" val="html" valType="str"/>
+    <Param name="Incomplete URL" updates="None" val="" valType="str"/>
     <Param name="JS libs" updates="None" val="packaged" valType="str"/>
     <Param name="Monitor" updates="None" val="testMonitor" valType="str"/>
     <Param name="OSF Project ID" updates="None" val="" valType="str"/>
@@ -165,7 +167,7 @@
         <Param name="storeHistory" updates="constant" val="False" valType="bool"/>
         <Param name="storeRating" updates="constant" val="True" valType="bool"/>
         <Param name="storeRatingTime" updates="constant" val="True" valType="bool"/>
-        <Param name="styles" updates="constant" val="(u'slider',)" valType="fixedList"/>
+        <Param name="styles" updates="constant" val="[u'slider']" valType="fixedList"/>
         <Param name="ticks" updates="constant" val="(0, 45, 90, 135, 180)" valType="list"/>
         <Param name="units" updates="None" val="from exp settings" valType="str"/>
       </SliderComponent>
@@ -212,7 +214,7 @@
         <Param name="storeHistory" updates="constant" val="False" valType="bool"/>
         <Param name="storeRating" updates="constant" val="True" valType="bool"/>
         <Param name="storeRatingTime" updates="constant" val="True" valType="bool"/>
-        <Param name="styles" updates="constant" val="(u'slider',)" valType="fixedList"/>
+        <Param name="styles" updates="constant" val="[u'slider']" valType="fixedList"/>
         <Param name="ticks" updates="constant" val="0.1, 0.2, 0.3, 0.4, 0.5" valType="list"/>
         <Param name="units" updates="None" val="from exp settings" valType="str"/>
       </SliderComponent>
@@ -372,7 +374,7 @@
         <Param name="storeHistory" updates="constant" val="False" valType="bool"/>
         <Param name="storeRating" updates="constant" val="True" valType="bool"/>
         <Param name="storeRatingTime" updates="constant" val="True" valType="bool"/>
-        <Param name="styles" updates="constant" val="(u'rating',)" valType="fixedList"/>
+        <Param name="styles" updates="constant" val="[u'rating']" valType="fixedList"/>
         <Param name="ticks" updates="constant" val="" valType="list"/>
         <Param name="units" updates="None" val="from exp settings" valType="str"/>
       </SliderComponent>
@@ -420,7 +422,7 @@
         <Param name="storeHistory" updates="constant" val="False" valType="bool"/>
         <Param name="storeRating" updates="constant" val="True" valType="bool"/>
         <Param name="storeRatingTime" updates="constant" val="True" valType="bool"/>
-        <Param name="styles" updates="constant" val="(u'labels45', u'whiteOnBlack')" valType="fixedList"/>
+        <Param name="styles" updates="constant" val="[u'labels45', u'whiteOnBlack']" valType="fixedList"/>
         <Param name="ticks" updates="constant" val="(1, 2, 3, 4, 5, 6, 7)" valType="list"/>
         <Param name="units" updates="None" val="from exp settings" valType="str"/>
       </SliderComponent>
@@ -446,7 +448,7 @@
         <Param name="storeHistory" updates="constant" val="False" valType="bool"/>
         <Param name="storeRating" updates="constant" val="True" valType="bool"/>
         <Param name="storeRatingTime" updates="constant" val="True" valType="bool"/>
-        <Param name="styles" updates="constant" val="(u'labels45', u'triangleMarker')" valType="fixedList"/>
+        <Param name="styles" updates="constant" val="[u'labels45', u'triangleMarker']" valType="fixedList"/>
         <Param name="ticks" updates="constant" val="(1, 2, 3, 4, 5, 6, 7)" valType="list"/>
         <Param name="units" updates="None" val="from exp settings" valType="str"/>
       </SliderComponent>
@@ -486,7 +488,7 @@
         <Param name="storeHistory" updates="constant" val="False" valType="bool"/>
         <Param name="storeRating" updates="constant" val="True" valType="bool"/>
         <Param name="storeRatingTime" updates="constant" val="True" valType="bool"/>
-        <Param name="styles" updates="constant" val="(u'whiteOnBlack',)" valType="fixedList"/>
+        <Param name="styles" updates="constant" val="[u'whiteOnBlack']" valType="fixedList"/>
         <Param name="ticks" updates="constant" val="0, 1" valType="list"/>
         <Param name="units" updates="None" val="from exp settings" valType="str"/>
       </SliderComponent>

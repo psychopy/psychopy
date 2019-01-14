@@ -2726,7 +2726,7 @@ ParallelOutComponent.order:['address', 'startData', 'stopData']
 ParallelOutComponent.address.default:'0x0378'
 ParallelOutComponent.address.allowedTypes:[]
 ParallelOutComponent.address.allowedUpdates:None
-ParallelOutComponent.address.allowedVals:['0x0378', '0x03BC', '/dev/parport0', '/dev/parport1', 'LabJack U3']
+ParallelOutComponent.address.allowedVals:['0x0378', '0x03BC', 'LabJack U3']
 ParallelOutComponent.address.categ:Basic
 ParallelOutComponent.address.hint:Parallel port to be used (you can change these options in preferences>general)
 ParallelOutComponent.address.label:Port address
@@ -4397,7 +4397,7 @@ SliderComponent.storeRatingTime.valType:bool
 SliderComponent.styles.default:['rating']
 SliderComponent.styles.allowedTypes:[]
 SliderComponent.styles.allowedUpdates:None
-SliderComponent.styles.allowedVals:['slider', 'rating', 'labels45', 'whiteOnBlack', 'triangleMarker']
+SliderComponent.styles.allowedVals:['slider', 'rating', 'radio', 'labels45', 'whiteOnBlack', 'triangleMarker']
 SliderComponent.styles.categ:Appearance
 SliderComponent.styles.hint:Styles determine the appearance of the slider
 SliderComponent.styles.label:Styles
