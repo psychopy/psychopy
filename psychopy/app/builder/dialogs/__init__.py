@@ -116,6 +116,8 @@ class ParamCtrls(object):
                 options = vc._versionFilter(vc.versionOptions(local=False))
                 versions = vc._versionFilter(vc.availableVersions(local=False))
                 param.allowedVals = (options + [''] + versions)
+        if fieldName == 'Use JS version':
+            param.allowedVals = vc.psychojsVersionOptions()
         if fieldName in ['text', 'customize_everything', 'customize']:
             # for text input we need a bigger (multiline) box
             if fieldName == 'customize_everything':

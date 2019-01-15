@@ -75,7 +75,6 @@ class Experiment(object):
         # this can be checked by the builder that this is an experiment and a
         # compatible version
         self.psychopyVersion = __version__
-
         # What libs are needed (make sound come first)
         self.requiredImports = []
         libs = ('sound', 'gui', 'visual', 'core', 'data', 'event',
@@ -197,7 +196,7 @@ class Experiment(object):
             script = script.getvalue()
         elif target == "PsychoJS":
             script.oneIndent = "  "  # use 2 spaces rather than python 4
-            self.settings.writeInitCodeJS(script, self.psychopyVersion, localDateTime, modular)
+            self.settings.writeInitCodeJS(script, localDateTime, modular)
             self.flow.writeFlowSchedulerJS(script)
             self.settings.writeExpSetupCodeJS(script, self.psychopyVersion)
 

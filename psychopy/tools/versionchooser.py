@@ -170,6 +170,17 @@ def _switchToVersion(requestedVersion):
     sys.path = [VERSIONSDIR] + sys.path
     logging.exp('Prepended `{}` to sys.path'.format(VERSIONSDIR))
 
+def psychojsVersionOptions():
+    """
+    Generates list of PsychoJS versions
+    TODO: Retrieve list of versions from remote repo
+
+    Returns
+    -------
+    list
+        A list of available PsychoJS versions
+    """
+    return ['3.0.1', '3.0.0']
 
 def versionOptions(local=True):
     """Available major.minor versions suitable for a drop-down list.

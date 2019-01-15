@@ -10,7 +10,7 @@ import re
 import psychopy
 from psychopy import logging
 from psychopy.experiment.components import BaseComponent, Param, _translate
-from psychopy.tools.versionchooser import versionOptions, availableVersions
+from psychopy.tools.versionchooser import versionOptions, availableVersions, psychojsVersionOptions
 from psychopy.constants import PY3
 
 # for creating html output folders:
@@ -58,6 +58,7 @@ _localized = {'expName': _translate("Experiment name"),
               'Save psydat file':  _translate("Save psydat file"),
               'logging level': _translate("Logging level"),
               'Use version': _translate("Use PsychoPy version"),
+              'Use JS version': _translate("Use PsychoJS version"),
               'Completed URL': _translate("Completed URL"),
               'Incomplete URL': _translate("Incomplete URL"),
               'Output path': _translate("Output path"),
@@ -99,7 +100,7 @@ class SettingsComponent(object):
                  saveXLSXFile=False, saveCSVFile=False,
                  saveWideCSVFile=True, savePsydatFile=True,
                  savedDataFolder='',
-                 useVersion='',
+                 useVersion='', useJSVersion='',
                  filename=None, exportHTML='on Sync'):
         self.type = 'Settings'
         self.exp = exp  # so we can access the experiment if necess
@@ -154,6 +155,13 @@ class SettingsComponent(object):
             hint=_translate("The version of PsychoPy to use when running "
                             "the experiment."),
             label=_localized["Use version"], categ='Basic')
+        self.params['Use JS version'] = Param(
+            useJSVersion, valType='str',
+            # search for options locally only by default, otherwise sluggish
+            allowedVals=psychojsVersionOptions(),
+            hint=_translate("The version of PsychoJS to use when running "
+                            "the online experiment."),
+            label=_localized["Use JS version"], categ='Basic')
         self.params['Force stereo'] = Param(
             enableEscape, valType='bool', allowedTypes=[],
             hint=_translate("Force audio to stereo (2-channel) output"),
@@ -489,15 +497,15 @@ class SettingsComponent(object):
                 os.makedirs(dstFolder)
             shutil.copy2(srcFile['abs'], dstAbs)
 
-    def writeInitCodeJS(self, buff, version, localDateTime, modular=True):
+    def writeInitCodeJS(self, buff, localDateTime, modular=True):
         # create resources folder
         self.prepareResourcesJS()
-
         # html header
         template = readTextFile("JS_htmlHeader.tmpl")
         header = template.format(
                    name=self.params['expName'].val,  # prevent repr() conversion
-                   params=self.params)
+                   version=self.params['Use JS version'].val,
+                   params=self.params,)
         jsFile = self.exp.expPath
         folder = os.path.dirname(jsFile)
         if not os.path.isdir(folder):
@@ -522,7 +530,7 @@ class SettingsComponent(object):
                     "import * as util from './lib/util-{version}.js';\n"
                     "import * as visual from './lib/visual-{version}.js';\n"
                     "import {{ Sound }} from './lib/sound-{version}.js';\n"
-                    "\n").format(version=version)
+                    "\n").format(version=self.params['Use JS version'].val)
             buff.writeIndentedLines(code)
 
         # Write window code

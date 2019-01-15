@@ -4,7 +4,7 @@ from builtins import object
 import os
 import psychopy
 import pytest
-from psychopy.tools.versionchooser import useVersion
+from psychopy.tools.versionchooser import useVersion, psychojsVersionOptions
 from psychopy import prefs
 from psychopy import constants
 
@@ -49,8 +49,11 @@ class Test_Incompatible_Version(_baseVersionChooser):
     def test_compatible(self):
         assert (useVersion('1.90.0'))
 
+class Test_PsychoJS_Version(_baseVersionChooser):
+    """Test available psychoJS options"""
 
-
+    def test_version_options(self):
+        assert (isinstance(psychojsVersionOptions(), list))
 """
 
 TODO: Tests to write:
