@@ -21,7 +21,7 @@ A new item needs to have a (numeric) ID so that `wx` can keep track of it. Here,
 
     tbIncrRoutineSize=180
 
-It's possible that, instead of hard-coding it like this, it's better to make a call to `wx.NewId()` -- wx will take care of avoiding duplicate IDs, presumably.
+It's possible that, instead of hard-coding it like this, it's better to make a call to `wx.NewIdRef()` -- wx will take care of avoiding duplicate IDs, presumably.
 
 3. Key-binding prefs
 --------------------------
