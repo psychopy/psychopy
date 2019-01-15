@@ -496,8 +496,9 @@ class SettingsComponent(object):
         # html header
         template = readTextFile("JS_htmlHeader.tmpl")
         header = template.format(
-                   name=self.params['expName'].val,  # prevent repr() conversion
-                   params=self.params)
+            name=self.params['expName'].val,  # prevent repr() conversion
+            version=version,
+            params=self.params)
         jsFile = self.exp.expPath
         folder = os.path.dirname(jsFile)
         if not os.path.isdir(folder):
