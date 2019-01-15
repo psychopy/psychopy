@@ -47,6 +47,8 @@ def compileScript(infile=None, version=None, outfile=None):
             from psychopy import useVersion
             useVersion(version)
 
+        global logging
+
         from psychopy import logging
 
         if __name__ != '__main__' and version not in [None, 'None', 'none', '']:
@@ -71,7 +73,6 @@ def compileScript(infile=None, version=None, outfile=None):
             The experiment object used for generating the experiment script
 
         """
-
         # import PsychoPy experiment and write script with useVersion active
         from psychopy.app.builder import experiment
         # Check infile type
@@ -131,21 +132,24 @@ def compileScript(infile=None, version=None, outfile=None):
             except TypeError as err:
                 msg = ("You cannot compile JavaScript experiments with this version of PsychoPy.\n"
                        "Please use version 3.0.0 or higher")
-                raise Exception("{}: {}".format(err, msg))
+                logging.warning("{}: {}".format(err, msg))
+                return 0
         else:
             script = thisExp.writeScript(outfile, target=targetOutput)
             scriptDict = {'outfile': script}
 
         # Output script to file
         for scripts in scriptDict:
-            if type(scriptDict[scripts]) in (str, type(u'')):
+            if not type(scriptDict[scripts]) in (str, type(u'')):
                 # We have a stringBuffer not plain string/text
                 scriptText = scriptDict[scripts].getvalue()
             else:
                 # We already have the text
                 scriptText = scriptDict[scripts]
-            with io.open(eval(scripts), 'w', 'utf-8-sig') as f:
+            with io.open(eval(scripts), 'w', encoding='utf-8-sig') as f:
                 f.write(scriptText)
+
+        return 1
 
     ###### Write script #####
     version = _setVersion(version)
