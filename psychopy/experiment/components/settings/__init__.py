@@ -7,10 +7,11 @@ from builtins import str
 from builtins import object
 import os
 import re
+import wx.__version__
 import psychopy
 from psychopy import logging
 from psychopy.experiment.components import BaseComponent, Param, _translate
-from psychopy.tools.versionchooser import versionOptions, availableVersions
+from psychopy.tools.versionchooser import versionOptions, availableVersions, _versionFilter
 from psychopy.constants import PY3
 
 # for creating html output folders:
@@ -150,7 +151,9 @@ class SettingsComponent(object):
         self.params['Use version'] = Param(
             useVersion, valType='str',
             # search for options locally only by default, otherwise sluggish
-            allowedVals=versionOptions() + [''] + availableVersions(),
+            allowedVals=_versionFilter(versionOptions(), wx.__version__)
+                        + ['']
+                        + _versionFilter(availableVersions(), wx.__version__),
             hint=_translate("The version of PsychoPy to use when running "
                             "the experiment."),
             label=_localized["Use version"], categ='Basic')

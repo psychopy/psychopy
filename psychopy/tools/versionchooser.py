@@ -86,15 +86,16 @@ def useVersion(requestedVersion):
         _clone(requestedVersion)  # Allow the versions subdirectory to be built
 
     if constants.PY3:
-        py3Compatible = _versionFilter(versionOptions(local=False))
-        py3Compatible += _versionFilter(availableVersions(local=False))
+        py3Compatible = _versionFilter(versionOptions(local=False), None)
+        py3Compatible += _versionFilter(availableVersions(local=False), None)
         py3Compatible.sort(reverse=True)
 
         if reqdMajorMinorPatch not in py3Compatible:
-            msg = _translate("Please request a version of PsychoPy that is compatible with Python 3.\n"
-                             "You can choose from the following versions: {}.\n"
-                             "Alternatively, run PsychoPy versions < v.1.9.0 with Python 2.\n\n")
-            raise RuntimeError(msg.format(py3Compatible))
+            msg = _translate("Please request a version of PsychoPy that is compatible with Python 3. "
+                             "You can choose from the following versions: {}. "
+                             "Alternatively, run a Python 2 installation of PsychoPy < v1.9.0.\n")
+            logging.error(msg.format(py3Compatible))
+            return
 
     if psychopy.__version__ != reqdMajorMinorPatch:
         # Switching required, so make sure `git` is available.
@@ -227,8 +228,8 @@ def _remoteVersions(forceCheck=False):
     return _remoteVersionsCache
 
 
-def _versionFilter(versions):
-    """Returns all versions that are compatible with the Python version running PsychoPy
+def _versionFilter(versions, wxVersion):
+    """Returns all versions that are compatible with the Python and WX running PsychoPy
 
     Parameters
     ----------
@@ -241,6 +242,38 @@ def _versionFilter(versions):
     list
         All valid selections for the version to be chosen that are compatible with Python version used
     """
+
+    def _getWxCompatible(versions, wxVersion):
+        """Filters PsychoPy version that are compatible with installed version of wxpython"""
+        compatibleWX = 4.0
+        if float(wxVersion[:3]) >= compatibleWX:
+            msg = _translate("wx version: {}. Filtering versions of "
+                             "PsychoPy only compatible with wx >= version {}".format(wxVersion,
+                                                                                  compatibleWX))
+            logging.info(msg)
+            # Create dict of lowest compatible PsychoPy versions as ints
+            lowestCompatible = {'1': 1,
+                                '2': 18,
+                                '3': 185,
+                                '4': 1854,
+                                '5': 18504}
+
+            filteredVersions = []
+            for version in versions:
+                if version == 'latest':
+                    filteredVersions.append(version)
+                    continue
+                ver = ''.join(version.split('.'))  # Create int from version for testing
+                for lowest in lowestCompatible:
+                    if len(ver) == int(lowest):
+                        if int(ver) >= lowestCompatible[str(lowest)]:
+                            filteredVersions.append(version)
+            return filteredVersions
+        return versions
+
+    # Get list of PsychoPy versions compatible with WX
+    if wxVersion is not None:
+        versions = _getWxCompatible(versions, wxVersion)
 
     if constants.PY3:
         return [V for V in versions if V == 'latest' or float(V[:3]) >= 1.9]
