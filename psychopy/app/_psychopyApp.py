@@ -16,6 +16,7 @@ import sys
 import psychopy
 from pkg_resources import parse_version
 from psychopy.constants import PY3
+import io
 from . import urls
 from . import frametracker
 
@@ -398,11 +399,8 @@ class PsychoPyApp(wx.App):
         reportPath = os.path.join(
             self.prefs.paths['userPrefsDir'], 'firstrunReport.html')
         if os.path.exists(reportPath):
-            if PY3:
-                report = open(reportPath, 'r', encoding='utf-8').read()
-            else:
-                import codecs
-                report = codecs.open(reportPath, 'r', encoding='utf-8').read()
+            with io.open(reportPath, 'r', encoding='utf-8-sig') as f:
+                report = f.read()
             if 'Configuration problem' in report:
                 # fatal error was encountered (currently only if bad drivers)
                 # ensure wizard will be triggered again:
@@ -697,8 +695,10 @@ class PsychoPyApp(wx.App):
     def showAbout(self, event):
         logging.debug('PsychoPyApp: Showing about dlg')
 
-        license = open(os.path.join(self.prefs.paths['psychopy'],
-                                    'LICENSE.txt'), 'rU').read()
+        with io.open(os.path.join(self.prefs.paths['psychopy'],'LICENSE.txt'),
+                     'r', encoding='utf-8-sig') as f:
+            license = f.read()
+
         msg = _translate(
             "For stimulus generation and experimental control in python.\n"
             "PsychoPy depends on your feedback. If something doesn't work\n"

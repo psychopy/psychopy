@@ -74,9 +74,8 @@ def toPickle(filename, data):
 
     simple wrapper of the cPickle module in core python
     """
-    f = open(filename, 'w')
-    pickle.dump(data, f)
-    f.close()
+    with io.open(filename, 'wb') as f:
+        pickle.dump(data, f)
 
 
 def fromPickle(filename):
@@ -84,9 +83,9 @@ def fromPickle(filename):
 
     simple wrapper of the cPickle module in core python
     """
-    f = open(filename)
-    contents = pickle.load(f)
-    f.close()
+    with io.open(filename, 'rb') as f:
+        contents = pickle.load(f)
+
     return contents
 
 
@@ -2076,14 +2075,9 @@ class CoderFrame(wx.Frame):
             # load text from document
             if os.path.isfile(filename):
                 try:
-                    if PY3:
-                        with open(filename, 'rU', encoding='utf8') as f:
-                            self.currentDoc.SetText(f.read())
-                            self.currentDoc.newlines = f.newlines
-                    else:
-                        with open(filename, 'rU') as f:
-                            self.currentDoc.SetText(f.read().decode('utf8'))
-                            self.currentDoc.newlines = f.newlines
+                    with io.open(filename, 'r', encoding='utf-8-sig') as f:
+                        self.currentDoc.SetText(f.read())
+                        self.currentDoc.newlines = f.newlines
                 except UnicodeDecodeError:
                     dlg = dialogs.MessageDialog(self, message=_translate(
                         'Failed to open {}. Make sure that encoding of '
