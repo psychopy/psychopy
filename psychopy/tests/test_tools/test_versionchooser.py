@@ -3,10 +3,8 @@
 from builtins import object
 import os
 import psychopy
-import pytest
 from psychopy.tools.versionchooser import useVersion
 from psychopy import prefs
-from psychopy import constants
 
 USERDIR = prefs.paths['userPrefsDir']
 VER_SUBDIR = 'versions'
@@ -37,8 +35,6 @@ class Test_Older_Version(_baseVersionChooser):
 
     def test_older_version(self):
         assert(useVersion(self.requested))
-
-
 
 
 """
