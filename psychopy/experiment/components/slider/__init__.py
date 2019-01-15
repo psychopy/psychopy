@@ -6,6 +6,7 @@
 # Distributed under the terms of the GNU General Public License (GPL).
 
 from __future__ import absolute_import, print_function
+from builtins import super  # provides Py3-style super() using python-future
 
 from os import path
 from psychopy.experiment.components import BaseVisualComponent, Param, \
@@ -242,3 +243,6 @@ class SliderComponent(BaseVisualComponent):
             if self.params['storeHistory'].val == True:
                 code = "%s.addData('%s.history', %s.getHistory())\n"
                 buff.writeIndented(code % (loopName, name, name))
+
+        # get parent to write code too (e.g. store onset/offset times)
+        super().writeRoutineEndCode(buff)
