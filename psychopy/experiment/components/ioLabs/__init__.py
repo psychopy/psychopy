@@ -6,6 +6,8 @@
 # Distributed under the terms of the GNU General Public License (GPL).
 
 from __future__ import absolute_import, print_function
+from builtins import super  # provides Py3-style super() using python-future
+
 from os import path
 
 from psychopy.experiment.components.keyboard import KeyboardComponent, Param, _translate
@@ -267,6 +269,9 @@ class ioLabsButtonBoxComponent(KeyboardComponent):
             code = ("if %(name)s.btns != None:  # add RTs if there are responses\n" % self.params +
                     "    %s.addData('%s.rt', %s.rt)\n" % loopnamename)
             buff.writeIndentedLines(code)
+
+        # get parent to write code too (e.g. store onset/offset times)
+        super().writeRoutineEndCode(buff)
 
         if currLoop.params['name'].val == self.exp._expHandler.name:
             buff.writeIndented("%s.nextEntry()\n" % self.exp._expHandler.name)

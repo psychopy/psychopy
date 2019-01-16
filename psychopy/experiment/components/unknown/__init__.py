@@ -21,7 +21,7 @@ _localized = {'name': _translate('Name')}
 
 class UnknownComponent(BaseComponent):
     """This is used by Builder to represent a component that was not known
-    by thecurrent installed version of PsychoPy (most likely from the future).
+    by the current installed version of PsychoPy (most likely from the future).
     We want this to be loaded, represented and saved but not used in any
     script-outputs. It should have nothing but a name - other params will be
     added by the loader
