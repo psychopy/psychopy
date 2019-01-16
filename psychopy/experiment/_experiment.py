@@ -302,9 +302,10 @@ class Experiment(object):
         # then write to file
         if not filename.endswith(".psyexp"):
             filename += ".psyexp"
-        f = codecs.open(filename, 'wb', 'utf-8')
-        f.write(pretty)
-        f.close()
+
+        with codecs.open(filename, 'wb', encoding='utf-8-sig') as f:
+            f.write(pretty)
+
         self.filename = filename
         return filename  # this may have been updated to include an extension
 

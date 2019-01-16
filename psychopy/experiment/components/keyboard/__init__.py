@@ -320,7 +320,7 @@ class KeyboardComponent(BaseComponent):
 
         if store != 'nothing':
             if self.params['syncScreenRefresh'].val:
-                code = ("psychoJS.window.callOnFlip(function(){ %(name)s.clock.reset(); });"
+                code = ("psychoJS.window.callOnFlip(function() { %(name)s.clock.reset(); });"
                         " // t = 0 on screen flip\n") % self.params
             else:
                 code = "%(name)s.clock.reset();  // now t=0\n" % self.params
@@ -394,7 +394,7 @@ class KeyboardComponent(BaseComponent):
                     "%(name)s.rt = %(name)s.clock.getTime();\n")
             buff.writeIndentedLines(code % self.params)
         elif store == 'last key':
-            code = ("%(name)s.keys = theseKeys[theseKeys.length-1]"
+            code = ("%(name)s.keys = theseKeys[theseKeys.length-1];"
                     "  // just the last key pressed\n"
                     "%(name)s.rt = %(name)s.clock.getTime();\n")
             buff.writeIndentedLines(code % self.params)
@@ -528,7 +528,7 @@ class KeyboardComponent(BaseComponent):
                 buff.writeIndented("psychoJS.experiment.addData('%(name)s.corr', %(name)s.corr);\n" % self.params)
 
             # only add an RT if we had a response
-            code = ("if ({name}.keys !== undefined) {{  // we had a response\n"
+            code = ("if (typeof {name}.keys !== 'undefined') {{  // we had a response\n"
                     "    psychoJS.experiment.addData('{name}.rt', {name}.rt);\n")
             if forceEnd:
                 code += ("    routineTimer.reset();\n"

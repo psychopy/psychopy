@@ -18,6 +18,20 @@ at the Pavlovia.org experiment server. Many of the features here are relatively
 new and, although we have spent hundreds of hours developing and testing them
 you should be more cautious than ever checking your experiment and data outputs.
 
+PsychoPy 3.0.1
+~~~~~~~~~~~~~~~~~~~~~~
+
+FIXED:
+
+- JS outputs were connecting to outdated PsychoJS version (3.0.0b11 instead of 3.0.0)
+- updated numpy (to 1.15.4) and scipy (to 1.2.0) for windows installs using https://www.lfd.uci.edu/~gohlke/pythonlibs/ in the hope of fixing numpy problems for some windows boxes
+- JS string values in Py27 were being convert to b'theString' in JS outputs which obviously broke JS
+-
+
+ADDED:
+
+- Slider support from JS outputs
+
 PsychoPy 3.0.0
 ~~~~~~~~~~~~~~~~~~~~~~
 

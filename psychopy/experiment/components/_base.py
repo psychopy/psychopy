@@ -419,6 +419,9 @@ class BaseComponent(object):
                 buff.writeIndented("%s.setColor(new util.Color(%s)" % (
                     compName, params['color']))
                 buff.write("%s)%s\n" % (loggingStr, endStr))
+            elif paramName == 'fillColor':
+                buff.writeIndented("%s.setFillColor(new util.Color(%s)" % (compName, params['fillColor']))
+                buff.write("%s)%s\n" % (loggingStr, endStr))
             elif paramName == 'sound':
                 stopVal = params['stopVal']
                 if stopVal in ['', None, -1, 'None']:

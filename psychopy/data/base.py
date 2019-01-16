@@ -151,7 +151,7 @@ class _BaseTrialHandler(_ComparisonMixin):
                    appendFile=True,
                    summarised=True,
                    fileCollisionMethod='rename',
-                   encoding='utf-8'):
+                   encoding='utf-8-sig'):
         """
         Write a text file with the data and various chosen stimulus attributes
 
@@ -190,7 +190,7 @@ class _BaseTrialHandler(_ComparisonMixin):
             :func:`~psychopy.tools.fileerrortools.handleFileCollision`
 
         encoding:
-            The encoding to use when saving a the file. Defaults to `utf-8`.
+            The encoding to use when saving a the file. Defaults to `utf-8-sig`.
 
         """
         fileName = pathToString(fileName)
@@ -382,9 +382,7 @@ class _BaseTrialHandler(_ComparisonMixin):
             in-memory JSON object.
 
         encoding : string, optional
-            The encoding to use when writing the file. This parameter will be
-            ignored if `append` is `False` and `fileName` ends with `.psydat`
-            or `.npy` (i.e. if a binary file is to be written).
+            The encoding to use when writing the file.
 
         fileCollisionMethod : string
             Collision method passed to
@@ -440,7 +438,8 @@ class _BaseTrialHandler(_ComparisonMixin):
                                   "inspect.getouterframes")
                 return '', ''
         if os.path.isfile(originPath):  # do we NOW have a path?
-            origin = codecs.open(originPath, "r", encoding="utf-8").read()
+            with codecs.open(originPath, "r", encoding="utf-8-sig") as f:
+                origin = f.read()
         else:
             origin = None
         return originPath, origin

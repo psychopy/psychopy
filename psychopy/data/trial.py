@@ -565,7 +565,7 @@ class TrialHandler(_BaseTrialHandler):
                        delim=None,
                        matrixOnly=False,
                        appendFile=True,
-                       encoding='utf-8',
+                       encoding='utf-8-sig',
                        fileCollisionMethod='rename'):
         """Write a text file with the session, stimulus, and data values
         from each trial in chronological order. Also, return a
@@ -613,7 +613,7 @@ class TrialHandler(_BaseTrialHandler):
 
             encoding:
                 The encoding to use when saving a the file.
-                Defaults to `utf-8`.
+                Defaults to `utf-8-sig`.
 
         """
         if self.thisTrialN < 1 and self.thisRepN < 1:
@@ -1047,7 +1047,7 @@ class TrialHandler2(_BaseTrialHandler):
                        delim=None,
                        matrixOnly=False,
                        appendFile=True,
-                       encoding='utf-8',
+                       encoding='utf-8-sig',
                        fileCollisionMethod='rename'):
         """Write a text file with the session, stimulus, and data values
         from each trial in chronological order. Also, return a
@@ -1095,7 +1095,7 @@ class TrialHandler2(_BaseTrialHandler):
 
             encoding:
                 The encoding to use when saving a the file.
-                Defaults to `utf-8`.
+                Defaults to `utf-8-sig`.
 
         """
         if self.thisTrialN < 1 and self.thisRepN < 1:
@@ -1138,9 +1138,7 @@ class TrialHandler2(_BaseTrialHandler):
             in-memory JSON object.
 
         encoding : string, optional
-            The encoding to use when writing the file. This parameter will be
-            ignored if `append` is `False` and `fileName` ends with `.psydat`
-            or `.npy` (i.e. if a binary file is to be written).
+            The encoding to use when writing the file.
 
         fileCollisionMethod : string
             Collision method passed to
@@ -1741,7 +1739,7 @@ class TrialHandlerExt(TrialHandler):
                        delim='\t',
                        matrixOnly=False,
                        appendFile=True,
-                       encoding='utf-8',
+                       encoding='utf-8-sig',
                        fileCollisionMethod='rename'):
         """Write a text file with the session, stimulus, and data values
         from each trial in chronological order.
@@ -1788,7 +1786,7 @@ class TrialHandlerExt(TrialHandler):
 
             encoding:
                 The encoding to use when saving a the file.
-                Defaults to `utf-8`.
+                Defaults to `utf-8-sig`.
 
         """
         if self.thisTrialN < 1 and self.thisRepN < 1:

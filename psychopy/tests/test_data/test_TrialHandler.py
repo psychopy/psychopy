@@ -9,12 +9,13 @@ from os.path import join as pjoin
 import shutil
 from tempfile import mkdtemp, mkstemp
 import numpy as np
+import io
 import pytest
 
 from psychopy import data
 from psychopy.tools.filetools import fromFile
 from psychopy.tests import utils
-from psychopy.constants import PY3
+
 
 thisPath = os.path.split(__file__)[0]
 fixturesPath = os.path.join(thisPath, '..', 'data')
@@ -42,14 +43,8 @@ class TestTrialHandler(object):
         data_filename = base_data_filename + '.csv'
         assert os.path.exists(data_filename), "File not found: %s" %os.path.abspath(data_filename)
 
-        # Make sure the header line is correct
-        # We open the file with universal newline support (PEP-278).
-        if PY3:
-            with open(data_filename, 'r', newline=None) as f:
-                header = f.readline()
-        else:
-            with open(data_filename, 'rU') as f:
-                header = f.readline()
+        with io.open(data_filename, 'r', encoding='utf-8-sig') as f:
+            header = f.readline()
 
         expected_header = u'n,with_underscore_mean,with_underscore_raw,with_underscore_std,order\n'
         if expected_header != header:
@@ -228,13 +223,8 @@ class TestTrialHandlerOutput(object):
         expected_header.extend(self.trials.data.dataTypes)
         expected_header = expected_delim.join(expected_header) + '\n'
 
-        # Universal newline support.
-        if PY3:
-            with open(path + expected_suffix, 'r', newline=None) as f:
-                header = f.readline()
-        else:
-            with open(path + expected_suffix, 'rU') as f:
-                header = f.readline()
+        with io.open(path + expected_suffix, 'r', encoding='utf-8-sig') as f:
+            header = f.readline()
 
         assert header == expected_header
 
@@ -251,13 +241,8 @@ class TestTrialHandlerOutput(object):
         expected_header.extend(self.trials.data.dataTypes)
         expected_header = delim.join(expected_header) + '\n'
 
-        # Universal newline support.
-        if PY3:
-            with open(path + expected_suffix, 'r', newline=None) as f:
-                header = f.readline()
-        else:
-            with open(path + expected_suffix, 'rU') as f:
-                header = f.readline()
+        with io.open(path + expected_suffix, 'r', encoding='utf-8-sig') as f:
+            header = f.readline()
 
         assert header == expected_header
 
@@ -274,13 +259,8 @@ class TestTrialHandlerOutput(object):
         expected_header.extend(self.trials.data.dataTypes)
         expected_header = delim.join(expected_header) + '\n'
 
-        # Universal newline support.
-        if PY3:
-            with open(path + expected_suffix, 'r', newline=None) as f:
-                header = f.readline()
-        else:
-            with open(path + expected_suffix, 'rU') as f:
-                header = f.readline()
+        with io.open(path + expected_suffix, 'r', encoding='utf-8-sig') as f:
+            header = f.readline()
 
         assert header == expected_header
 
@@ -297,13 +277,8 @@ class TestTrialHandlerOutput(object):
         expected_header.extend(self.trials.data.dataTypes)
         expected_header = delim.join(expected_header) + '\n'
 
-        # Universal newline support.
-        if PY3:
-            with open(path + expected_suffix, 'r', newline=None) as f:
-                header = f.readline()
-        else:
-            with open(path + expected_suffix, 'rU') as f:
-                header = f.readline()
+        with io.open(path + expected_suffix, 'r', encoding='utf-8-sig') as f:
+            header = f.readline()
 
         assert header == expected_header
 
@@ -318,13 +293,8 @@ class TestTrialHandlerOutput(object):
         expected_header.extend(self.trials.data.dataTypes)
         expected_header = expected_delim.join(expected_header) + '\n'
 
-        # Universal newline support.
-        if PY3:
-            with open(path, 'r', newline=None) as f:
-                header = f.readline()
-        else:
-            with open(path, 'rU') as f:
-                header = f.readline()
+        with io.open(path, 'r', encoding='utf-8-sig') as f:
+            header = f.readline()
 
         assert header == expected_header
 
@@ -342,13 +312,8 @@ class TestTrialHandlerOutput(object):
         expected_header.extend(self.trials.data.dataTypes)
         expected_header = expected_delim.join(expected_header) + '\n'
 
-        # Universal newline support.
-        if PY3:
-            with open(path + expected_suffix, 'r', newline=None) as f:
-                header = f.readline()
-        else:
-            with open(path + expected_suffix, 'rU') as f:
-                header = f.readline()
+        with io.open(path + expected_suffix, 'r', encoding='utf-8-sig') as f:
+            header = f.readline()
 
         assert header == expected_header
 
@@ -365,13 +330,8 @@ class TestTrialHandlerOutput(object):
         expected_header.extend(self.trials.data.dataTypes)
         expected_header = expected_delim.join(expected_header) + '\n'
 
-        # Universal newline support.
-        if PY3:
-            with open(path, 'r', newline=None) as f:
-                header = f.readline()
-        else:
-            with open(path, 'rU') as f:
-                header = f.readline()
+        with io.open(path, 'r', encoding='utf-8-sig') as f:
+            header = f.readline()
 
         assert header == expected_header
 

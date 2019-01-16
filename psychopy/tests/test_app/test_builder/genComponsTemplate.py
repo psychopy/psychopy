@@ -1,5 +1,7 @@
 from __future__ import print_function
-import sys, os
+import sys
+import os
+import io
 
 from pkg_resources import parse_version
 import wx
@@ -40,7 +42,9 @@ exp = experiment.Experiment()
 relPath = os.path.join(os.path.split(__file__)[0], 'componsTemplate.txt')
 
 if not '--out' in sys.argv:
-    target = open(relPath, 'rU').read()
+    with io.open(relPath, 'r', encoding='utf-8-sig') as f:
+        target = f.read()
+
     targetLines = target.splitlines()
     targetTag = {}
     for line in targetLines:

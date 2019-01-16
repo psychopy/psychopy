@@ -1,26 +1,30 @@
-name: anaconda-py3.7
+name: conda-py3.7
 channels:
 - conda-forge
 - defaults
 dependencies:
 - python=3.7
+- arabic_reshaper
 - astunparse
 - backports
 - bzip2
 - cffi
 - codecov
 - coveralls
+- esprima-python
 - gitpython
 - ffmpeg
-- freetype
+- freetype-py
 - future
 - gevent
 - greenlet
 - hdf5
 - json_tricks
+- libflac
 - lxml
 - matplotlib
 - moviepy
+- msgpack-numpy
 - msgpack-python
 - numexpr
 - numpy
@@ -35,7 +39,7 @@ dependencies:
 - pyqt
 - pyserial
 - pysoundfile
-- pytest
+- pytest<4.1
 - pytest-cov
 - python-bidi
 - python-sounddevice
@@ -48,6 +52,7 @@ dependencies:
 - six
 - pyglet>=1.3
 - pytables
+- python-gitlab
 - urllib3
 - wheel
 - x264
@@ -55,14 +60,8 @@ dependencies:
 - xz
 - yaml
 - lzo
-- pytables
 - wxpython
 - zlib
 - pip:
-  - arabic_reshaper
-  - https://github.com/DiffSK/configobj/archive/master.zip
-  - esprima
-  - freetype-py
   - pygame
   - pyparallel
-  - python-gitlab

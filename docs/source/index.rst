@@ -20,7 +20,7 @@ Supporting online studies and announcing our own experiment server at `Pavlovia.
 
 **3-day workshop on Python Programming at Nottingham in Apr/May 2019**
 
-Come and join us for 3 days of pure programming bliss. For further details and bookings see the :ref:`officialWorshops` page
+Come and join us for 3 days of pure programming bliss. For further details and bookings see the :ref:`officialWorkshops` page
 
 **Buy the official book!**
 

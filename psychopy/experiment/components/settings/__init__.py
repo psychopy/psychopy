@@ -496,8 +496,9 @@ class SettingsComponent(object):
         # html header
         template = readTextFile("JS_htmlHeader.tmpl")
         header = template.format(
-                   name=self.params['expName'].val,  # prevent repr() conversion
-                   params=self.params)
+            name=self.params['expName'].val,  # prevent repr() conversion
+            version=version,
+            params=self.params)
         jsFile = self.exp.expPath
         folder = os.path.dirname(jsFile)
         if not os.path.isdir(folder):
@@ -522,7 +523,7 @@ class SettingsComponent(object):
                     "import * as util from './lib/util-{version}.js';\n"
                     "import * as visual from './lib/visual-{version}.js';\n"
                     "import {{ Sound }} from './lib/sound-{version}.js';\n"
-                    "\n").format(version='3.0.0b11')
+                    "\n").format(version=version)
             buff.writeIndentedLines(code)
 
         # Write window code

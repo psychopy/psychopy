@@ -18,10 +18,11 @@ translation _translate():
 import gettext
 import os
 import glob
-import codecs
+import io
 from psychopy import logging, prefs, constants
 import wx
 import locale as locale_pkg
+
 
 def setLocaleWX():
     """Sets up the locale for the wx application. Only call this after the app
@@ -71,16 +72,18 @@ winmap = {'en_US': 'ENU'}
 locname = {'en_US': u'English (U.S.)'}
 reverseMap = {u'English (U.S.)': 'en_US'}
 mappings = os.path.join(os.path.dirname(__file__), 'mappings.txt')
-for line in codecs.open(mappings, 'rU', 'utf8').readlines():
-    try:
-        # canonical, windows, name-with-spaces
-        can, win, name = line.strip().split(' ', 2)
-    except ValueError:
-        can, win = line.strip().split(' ', 1)
-        name = can
-    winmap[can] = win
-    locname[can] = name
-    reverseMap[name] = can
+
+with io.open(mappings, 'r', encoding='utf-8-sig') as f:
+    for line in f.readlines():
+        try:
+            # canonical, windows, name-with-spaces
+            can, win, name = line.strip().split(' ', 2)
+        except ValueError:
+            can, win = line.strip().split(' ', 1)
+            name = can
+        winmap[can] = win
+        locname[can] = name
+        reverseMap[name] = can
 
 # what are the available translations? available languages on the OS?
 expr = os.path.join(os.path.dirname(__file__), '..', 'app', 'locale', '*')

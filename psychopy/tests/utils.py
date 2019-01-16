@@ -6,6 +6,7 @@ from os.path import abspath, basename, dirname, isfile, join as pjoin
 import os.path
 import shutil
 import numpy as np
+import codecs
 from psychopy import logging
 
 try:
@@ -66,8 +67,10 @@ def compareScreenshot(fileName, win, crit=5.0):
             "RMS=%.3g at threshold=%.3g. Local copy in %s" % (rms, crit, filenameLocal)
 
 
-def compareTextFiles(pathToActual, pathToCorrect, delim=None):
-    """Compare the text of two files, ignoring EOL differences, and save a copy if they differ
+def compareTextFiles(pathToActual, pathToCorrect, delim=None,
+                     encoding='utf-8-sig'):
+    """Compare the text of two files, ignoring EOL differences,
+    and save a copy if they differ
     """
     if not os.path.isfile(pathToCorrect):
         logging.warning('There was no comparison ("correct") file available, saving current file as the comparison:%s' %pathToCorrect)
@@ -83,8 +86,12 @@ def compareTextFiles(pathToActual, pathToCorrect, delim=None):
 
     try:
         #we have the necessary file
-        txtActual = open(pathToActual, 'r').readlines()
-        txtCorrect = open(pathToCorrect, 'r').readlines()
+        with codecs.open(pathToActual, 'r', encoding='utf-8-sig') as f:
+            txtActual = f.readlines()
+
+        with codecs.open(pathToCorrect, 'r', encoding='utf-8-sig') as f:
+            txtCorrect = f.readlines()
+
         assert len(txtActual)==len(txtCorrect), "The data file has the wrong number of lines"
         for lineN in range(len(txtActual)):
             if delim is None:

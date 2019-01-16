@@ -37,13 +37,13 @@ class PsiObject(object):
         self._TwoAFC = TwoAFC
         #Save dimensions
         if stepType == 'lin':
-            self.x = linspace(x[0], x[1], round((x[1]-x[0])/xPrecision)+1, True)
+            self.x = linspace(x[0], x[1], int(round((x[1]-x[0])/xPrecision)+1), True)
         elif stepType == 'log':
             self.x = logspace(log10(x[0]), log10(x[1]), xPrecision, True)
         else:
             raise RuntimeError('Invalid step type. Unable to initialize PsiObject.')
-        self.alpha = linspace(alpha[0], alpha[1], round((alpha[1]-alpha[0])/aPrecision)+1, True)
-        self.beta = linspace(beta[0], beta[1], round((beta[1]-beta[0])/bPrecision)+1, True)
+        self.alpha = linspace(alpha[0], alpha[1], int(round((alpha[1]-alpha[0])/aPrecision)+1), True)
+        self.beta = linspace(beta[0], beta[1], int(round((beta[1]-beta[0])/bPrecision)+1), True)
         self.r = array(list(range(2)))
         self.delta = delta
         

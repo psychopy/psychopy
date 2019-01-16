@@ -7,13 +7,30 @@ from builtins import object
 import os
 import sys
 import platform
-import configobj
-from configobj import ConfigObj
+from psychopy.constants import PY3
+from pkg_resources import parse_version
+
 
 try:
-    import validate
+    import configobj
+    if (PY3 and sys.version_info.minor >= 7 and
+            parse_version(configobj.__version__) < parse_version('5.1.0')):
+        raise ImportError('Installed configobj does not support Python 3.7+')
+    _haveConfigobj = True
 except ImportError:
-    from configobj import validate
+    _haveConfigobj = False
+
+
+if _haveConfigobj:  # Use the "global" installation.
+    from configobj import ConfigObj
+    try:
+        from configobj import validate
+    except ImportError:  # Older versions of configobj
+        import validate
+else:  # Use our contrib package if configobj is not installed or too old.
+    from psychopy.contrib import configobj
+    from psychopy.contrib.configobj import ConfigObj
+    from psychopy.contrib.configobj import validate
 
 join = os.path.join
 
