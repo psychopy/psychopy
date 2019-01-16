@@ -38,7 +38,6 @@ class CodeComponent(BaseComponent):
                  beginExp="", beginRoutine="", eachFrame="", endRoutine="",
                  endExperiment="", codeType="Py"):
         super(CodeComponent, self).__init__(exp, parentName, name)
-
         self.type = 'Code'
         self.targets = ['PsychoPy', 'PsychoJS']
         self.url = "http://www.psychopy.org/builder/components/code.html"
@@ -147,8 +146,10 @@ class CodeComponent(BaseComponent):
 
         # these inherited params are harmless but might as well trim:
         for p in ('startType', 'startVal', 'startEstim', 'stopVal',
-                  'stopType', 'durationEstim'):
-            del self.params[p]
+                  'stopType', 'durationEstim',
+                  'saveStartStop', 'syncScreenRefresh'):
+            if p in self.params:
+                del self.params[p]
 
 
     def writeInitCode(self, buff):
