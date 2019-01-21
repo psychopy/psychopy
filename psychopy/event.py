@@ -157,13 +157,16 @@ def _onPygletText(text, emulated=False):
     global useText
     if not useText:  # _onPygletKey has handled the input
         return
+    # This is needed because sometimes the execution
+    # sequence is messed up (somehow)
+    useText = False
     # capture when the key was pressed:
     keyTime = psychopy.core.getTime()
     if emulated:
         keySource = 'EmulatedKey'
     else:
         keySource = 'KeyPress'
-    _keyBuffer.append((text, keyTime))
+    _keyBuffer.append((text.lower(), lastModifiers, keyTime))
     logging.data("%s: %s" % (keySource, text))
 
 
@@ -188,7 +191,7 @@ def _onPygletKey(symbol, modifiers, emulated=False):
     M Cutone 2018: Added GLFW backend support.
 
     """
-    global useText
+    global useText, lastModifiers
 
     keyTime = psychopy.core.getTime()  # capture when the key was pressed
     if emulated:
@@ -207,6 +210,7 @@ def _onPygletKey(symbol, modifiers, emulated=False):
         # to handle the input.
         if 'user_key' in thisKey:
             useText = True
+            lastModifiers = modifiers
             return
         useText = False
         thisKey = thisKey.lstrip('_').lstrip('NUM_')
