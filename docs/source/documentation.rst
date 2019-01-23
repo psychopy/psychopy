@@ -44,5 +44,5 @@ For developers:
     Indices
     -----------
 
-        * :ref:`glossary`
-        * :ref:`genindex`
+    * :ref:`glossary`
+    * :ref:`genindex`

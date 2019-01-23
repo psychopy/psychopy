@@ -11,7 +11,7 @@ from __future__ import absolute_import, print_function
 from builtins import range
 from builtins import object
 from textwrap import TextWrapper
-import codecs
+import io
 import os
 from collections import deque
 from weakref import proxy
@@ -21,9 +21,8 @@ class ParsedTextDocument(object):
 
     def __init__(self, text_data, text_grid):
         if os.path.isfile(text_data):
-            tfile = codecs.open(text_data, 'rU', 'utf-8')
-            text_data = tfile.read()
-            tfile.close()
+            with io.open(text_data, 'r', encoding='utf-8-sig') as f:
+                text_data = f.read()
 
         self._text_grid = proxy(text_grid)
         self._num_columns, self._max_visible_rows = text_grid._shape

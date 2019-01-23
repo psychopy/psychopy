@@ -8,6 +8,7 @@ Distributed under the terms of the GNU General Public License (GPL).
 """
 
 from __future__ import absolute_import, print_function
+from builtins import super  # provides Py3-style super() using python-future
 
 from os import path
 from psychopy.experiment.components import BaseComponent, Param, getInitVals, _translate
@@ -192,6 +193,8 @@ class SoundComponent(BaseComponent):
     def writeRoutineEndCode(self, buff):
         code = "%s.stop()  # ensure sound has stopped at end of routine\n"
         buff.writeIndented(code % self.params['name'])
+        # get parent to write code too (e.g. store onset/offset times)
+        super().writeRoutineEndCode(buff)
 
     def writeRoutineEndCodeJS(self, buff):
         code = "%s.stop();  // ensure sound has stopped at end of routine\n"

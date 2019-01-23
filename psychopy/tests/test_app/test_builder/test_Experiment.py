@@ -135,9 +135,9 @@ class TestExpt(object):
         assert len(script) > 1500  # default empty script is ~2200 chars
 
         # save the script:
-        f = codecs.open(py_file, 'w', 'utf-8')
-        f.write(script)
-        f.close()
+        with codecs.open(py_file, 'w', 'utf-8-sig') as f:
+            f.write(script)
+
         return py_file, psyexp_file
 
     def _checkCompile(self, py_file):
@@ -269,9 +269,9 @@ class TestExpt(object):
         script = self.exp.writeScript(expPath=expfile)
         py_file = os.path.join(self.tmp_dir, 'testFutureFile.py')
         # save the script:
-        f = codecs.open(py_file, 'w', 'utf-8')
-        f.write(script)
-        f.close()
+        with codecs.open(py_file, 'w', 'utf-8-sig') as f:
+            f.write(script)
+
         #check that files compiles too
         self._checkCompile(py_file)
 
@@ -289,11 +289,12 @@ class TestExpt(object):
         #write the script from the experiment
         script = self.exp.writeScript(expPath=expfile)
         py_file = os.path.join(self.tmp_dir, 'testLoopBlocks.py')
+
         # save it
-        f = codecs.open(py_file, 'w', 'utf-8')
-        f.write(script.replace("core.quit()", "pass"))
-        f.write("del thisExp\n") #garbage collect the experiment so files are auto-saved
-        f.close()
+        with codecs.open(py_file, 'w', 'utf-8-sig') as f:
+            f.write(script.replace("core.quit()", "pass"))
+            f.write("del thisExp\n") #garbage collect the experiment so files are auto-saved
+
         #run the file (and make sure we return to this location afterwards)
         wd = os.getcwd()
         execfile(py_file)
@@ -312,7 +313,7 @@ class TestExpt(object):
             pytest.skip("response emulation thread not working on linux yet")
 
         expfile = path.join(self.exp.prefsPaths['tests'], 'data', 'ghost_stroop.psyexp')
-        with codecs.open(expfile, 'r', encoding='utf-8') as f:
+        with codecs.open(expfile, 'r', encoding='utf-8-sig') as f:
             text = f.read()
 
         # copy conditions file to tmp_dir
@@ -323,7 +324,7 @@ class TestExpt(object):
         text = text.replace("'Arial'", "'" + TESTS_FONT +"'")
 
         expfile = path.join(self.tmp_dir, 'ghost_stroop.psyexp')
-        with codecs.open(expfile, 'w', encoding='utf-8') as f:
+        with codecs.open(expfile, 'w', encoding='utf-8-sig') as f:
             f.write(text)
 
         self.exp.loadFromXML(expfile)  # reload the edited file
@@ -336,7 +337,7 @@ class TestExpt(object):
                                 'logging.console.setLevel(logging.ERROR')
 
         lastrun = path.join(self.tmp_dir, 'ghost_stroop_lastrun.py')
-        with codecs.open(lastrun, 'w', encoding='utf-8') as f:
+        with codecs.open(lastrun, 'w', encoding='utf-8-sig') as f:
             f.write(script)
 
         # run:

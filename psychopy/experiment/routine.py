@@ -138,6 +138,10 @@ class Routine(list):
                              if 'startType' in c.params])
         buff.writeIndented('%sComponents = [%s]\n' % (self.name, compStr))
         code = ("for thisComponent in %sComponents:\n"
+                "    thisComponent.tStart = None\n"
+                "    thisComponent.tStop = None\n"
+                "    thisComponent.tStartRefresh = None\n"
+                "    thisComponent.tStopRefresh = None\n"
                 "    if hasattr(thisComponent, 'status'):\n"
                 "        thisComponent.status = NOT_STARTED\n"
                 '\n# -------Start Routine "%s"-------\n')
@@ -167,6 +171,13 @@ class Routine(list):
         for event in self.getStatics():
             event.writeFrameCode(buff)
 
+        # allow subject to quit via Esc key?
+        if self.exp.settings.params['Enable Escape'].val:
+            code = ('\n# check for quit (typically the Esc key)\n'
+                    'if endExpNow or event.getKeys(keyList=["escape"]):\n'
+                    '    core.quit()\n')
+            buff.writeIndentedLines(code)
+
         # are we done yet?
         code = (
             '\n# check if all components have finished\n'
@@ -182,12 +193,6 @@ class Routine(list):
             '        break  # at least one component has not yet finished\n')
         buff.writeIndentedLines(code % self.name)
 
-        # allow subject to quit via Esc key?
-        if self.exp.settings.params['Enable Escape'].val:
-            code = ('\n# check for quit (the Esc key)\n'
-                    'if endExpNow or event.getKeys(keyList=["escape"]):\n'
-                    '    core.quit()\n')
-            buff.writeIndentedLines(code)
         # update screen
         code = ('\n# refresh the screen\n'
                 "if continueRoutine:  # don't flip if this routine is over "
@@ -282,7 +287,11 @@ class Routine(list):
                 comp.writeFrameCodeJS(buff)
 
         # are we done yet?
-        code = ("\n// check if the Routine should terminate\n"
+        code = ("// check for quit (typically the Esc key)\n"
+                "if (psychoJS.experiment.experimentEnded || psychoJS.eventManager.getKeys({keyList:['escape']}).length > 0) {\n"
+                "  return psychoJS.quit('The [Escape] key was pressed. Goodbye!', false);\n"
+                "}\n"
+                "\n// check if the Routine should terminate\n"
                 "if (!continueRoutine) {"
                 "  // a component has requested a forced-end of Routine\n"
                 "  return Scheduler.Event.NEXT;\n"

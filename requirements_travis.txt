@@ -13,6 +13,7 @@ lxml
 openpyxl
 gevent
 psutil
+msgpack-numpy
 msgpack-python
 pyserial
 pyparallel

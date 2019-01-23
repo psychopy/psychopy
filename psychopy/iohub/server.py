@@ -674,7 +674,10 @@ class ioServer(object):
         hookManager = self._hookManager
         if dev_cls_name in ('Mouse', 'Keyboard'):
             if Computer.platform == 'win32':
-                import pyHook
+                try:
+                    import pyHook
+                except ImportError:
+                    import pyWinhook as pyHook
                 if hookManager is None:
                     iohub.log('Creating pyHook HookManager....')
                     hookManager = self._hookManager = pyHook.HookManager()

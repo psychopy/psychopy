@@ -6,6 +6,7 @@
 # Distributed under the terms of the GNU General Public License (GPL).
 
 from __future__ import absolute_import, print_function
+from builtins import super  # provides Py3-style super() using python-future
 
 from os import path
 from psychopy.experiment.components import BaseVisualComponent, Param, \
@@ -206,15 +207,29 @@ class SliderComponent(BaseVisualComponent):
 
     def writeInitCodeJS(self, buff):
         inits = getInitVals(self.params)
+        for param in inits:
+            if inits[param].val in ['', None, 'None', 'none']:
+                inits[param].val = 'undefined'
+        boolConverter = {False: 'false', True: 'true'}
         sliderStyles = {'slider': 'SLIDER',
+                        '()': 'RATING',
                         'rating': 'RATING',
                         'radio': 'RADIO',
                         'labels45': 'LABELS_45',
                         'whiteOnBlack': 'WHITE_ON_BLACK',
                         'triangleMarker': 'TRIANGLE_MARKER'}
+
+        # If no style given, set default 'rating' as list
+        if len(inits['styles'].val) == 0:
+            inits['styles'].val = ['rating']
+
+        # reformat styles for JS
         inits['styles'].val = ', '.join(["visual.Slider.Style.{}".
                                         format(sliderStyles[style]) for style in inits['styles'].val])
+        # add comma so is treated as tuple in py2js and converted to list, as required
+        inits['styles'].val += ','
         inits['styles'].val = py2js.expression2js(inits['styles'].val)
+
         # build up an initialization string for Slider():
         initStr = ("{name} = new visual.Slider({{\n"
                    "  win: psychoJS.window, name: '{name}',\n"
@@ -222,10 +237,10 @@ class SliderComponent(BaseVisualComponent):
                    "  labels: {labels}, ticks: {ticks},\n"
                    "  granularity: {granularity}, style: {styles},\n"
                    "  color: new util.Color({color}), \n"
-                   "  fontFamily: {font}, fontSize: 20, bold: true, italic: false, \n"
-                   "  flip: {flip},\n"
-                   "}});\n\n"
-                   .format(**inits))
+                   "  fontFamily: {font}, bold: true, italic: false, \n"
+                   ).format(**inits)
+        initStr += ("  flip: {flip},\n"
+                    "}});\n\n").format(flip=boolConverter[inits['flip'].val])
         buff.writeIndentedLines(initStr)
 
     def writeRoutineStartCode(self, buff):
@@ -281,6 +296,9 @@ class SliderComponent(BaseVisualComponent):
             if self.params['storeHistory'].val == True:
                 code = "%s.addData('%s.history', %s.getHistory())\n"
                 buff.writeIndented(code % (loopName, name, name))
+
+            # get parent to write code too (e.g. store onset/offset times)
+            super().writeRoutineEndCode(buff)
 
     def writeRoutineEndCodeJS(self, buff):
         name = self.params['name']
