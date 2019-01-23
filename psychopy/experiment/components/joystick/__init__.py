@@ -36,7 +36,7 @@ class JoystickComponent(BaseComponent):
 
     def __init__(self, exp, parentName, name='joystick',
                  startType='time (s)', startVal=0.0,
-                 stopType='duration (s)', stopVal=1.0,
+                 stopType='duration (s)', stopVal='',
                  startEstim='', durationEstim='',
                  save='final', forceEndRoutineOnPress="any click",
                  timeRelativeTo='joystick onset', deviceNumber='0', allowedButtons=''):
@@ -184,8 +184,34 @@ class JoystickComponent(BaseComponent):
         buff.writeIndentedLines(code % self.params)
 
         buff.setIndentLevel(+1, relative=True)
-        code = ("%(name)s.device = joysticklib.Joystick(%(deviceNumber)s)\n"
-                "if win.units == 'height':\n")
+        code = ("try:\n")
+        buff.writeIndentedLines(code % self.params)
+
+        buff.setIndentLevel(+1, relative=True)
+        code = ("joystickCache\n")
+        buff.writeIndentedLines(code % self.params)
+
+        buff.setIndentLevel(-1, relative=True)
+        code = ("except NameError:\n")
+        buff.writeIndentedLines(code % self.params)
+
+        buff.setIndentLevel(+1, relative=True)
+        code = ("joystickCache={}\n")
+        buff.writeIndentedLines(code % self.params)
+
+        buff.setIndentLevel(-1, relative=True)
+        code = ("if not %(deviceNumber)s in joystickCache:\n")
+        buff.writeIndentedLines(code % self.params)
+
+        buff.setIndentLevel(+1, relative=True)
+        code = ("joystickCache[%(deviceNumber)s] = joysticklib.Joystick(%(deviceNumber)s)\n")
+        buff.writeIndentedLines(code % self.params)
+
+        buff.setIndentLevel(-1, relative=True)
+        code = ("%(name)s.device = joystickCache[%(deviceNumber)s]\n")
+        buff.writeIndentedLines(code % self.params)
+
+        code = ("if win.units == 'height':\n")
         buff.writeIndentedLines(code % self.params)
 
         buff.setIndentLevel(1, relative=True)
@@ -266,7 +292,8 @@ class JoystickComponent(BaseComponent):
             buff.writeIndentedLines(code.format(allowedButtons))
 
             buff.setIndentLevel(-1, relative=True)
-            code = ("elif not isinstance({0}, str):\n")
+            code = ("elif not (isinstance({0}, str) "
+                    "or isinstance({0}, unicode)):\n")
             buff.writeIndentedLines(code.format(allowedButtons))
 
             buff.setIndentLevel(1, relative=True)
