@@ -301,7 +301,8 @@ class CodeBox(BaseCodeEditor):
             # prcoess end of line and then do smart indentation
             event.Skip(False)
             self.CmdKeyExecute(wx.stc.STC_CMD_NEWLINE)
-            self.smartIdentThisLine(self.params['Code Type'].val)
+            if self.params is not None:
+                self.smartIdentThisLine(self.params['Code Type'].val)
             return  # so that we don't reach the skip line at end
 
         event.Skip()
