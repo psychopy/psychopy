@@ -250,7 +250,7 @@ def _versionFilter(versions, wxVersion):
 
     # Get WX Compatibility
     compatibleWX = '4.0'
-    if parse_version(wxVersion) >= parse_version(compatibleWX):
+    if wxVersion is not None and (wxVersion) >= parse_version(compatibleWX):
         msg = _translate("wx version: {}. Filtering versions of "
                          "PsychoPy only compatible with wx >= version {}".format(wxVersion,
                                                                               compatibleWX))
