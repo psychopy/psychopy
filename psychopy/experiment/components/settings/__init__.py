@@ -532,9 +532,9 @@ class SettingsComponent(object):
         # Write window code
         self.writeWindowCodeJS(buff)
         code = ("\n// store info about the experiment session:\n"
-                "let expName = %(expName)s;  // from the Builder filename that created this script\n"
-                "let expInfo = %(Experiment info)s;\n"
-                "\n" % self.params)
+                "let expName = %s;  // from the Builder filename that created this script\n"
+                "let expInfo = %s;\n"
+                "\n" % (self.params['expName'], self.getInfo()))
         buff.writeIndentedLines(code)
 
     def writeExpSetupCodeJS(self, buff, version):
