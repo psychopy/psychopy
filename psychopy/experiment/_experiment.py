@@ -201,7 +201,6 @@ class Experiment(object):
             self.settings.writeInitCodeJS(script, self.psychopyVersion, localDateTime, modular)
             self.flow.writeFlowSchedulerJS(script)
             self.settings.writeExpSetupCodeJS(script, self.psychopyVersion)
-
             # initialise the components for all Routines in a single function
             script.writeIndentedLines("\nfunction experimentInit() {")
             script.setIndentLevel(1, relative=True)
@@ -229,15 +228,25 @@ class Experiment(object):
             # functions that may or may not get called later.
             # Do the Routines of the experiment first
             routinesToWrite = list(self.routines)
+            loopNames = []
             for thisItem in self.flow:
                 if thisItem.getType() in ['LoopInitiator', 'LoopTerminator']:
                     self.flow.writeLoopHandlerJS(script)
+                    # Get names of loops and pass to nested routines, for controlling loops
+                    if thisItem.getType() == 'LoopInitiator':
+                        loopNames.append(thisItem.loop.params['name'].val)
+                    elif thisItem.getType() == 'LoopTerminator':
+                        loopNames.pop()  # step out of loop
                 elif thisItem.name in routinesToWrite:
+                    currentLoopName = None
+                    if len(loopNames):
+                        currentLoopName = loopNames[-1]  # Use current loop
                     self._currentRoutine = self.routines[thisItem.name]
                     self._currentRoutine.writeRoutineBeginCodeJS(script)
-                    self._currentRoutine.writeEachFrameCodeJS(script)
+                    self._currentRoutine.writeEachFrameCodeJS(script, currentLoopName)
                     self._currentRoutine.writeRoutineEndCodeJS(script)
                     routinesToWrite.remove(thisItem.name)
+
             self.settings.writeEndCodeJS(script)
             try:
                 script = py2js.addVariableDeclarations(script.getvalue())

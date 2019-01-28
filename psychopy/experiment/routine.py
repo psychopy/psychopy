@@ -260,7 +260,7 @@ class Routine(list):
         buff.writeIndentedLines("}\n")
 
 
-    def writeEachFrameCodeJS(self, buff):
+    def writeEachFrameCodeJS(self, buff, loopName=None):
         # can we use non-slip timing?
         maxTime, useNonSlip = self.getMaxTime()
 
@@ -309,6 +309,14 @@ class Routine(list):
                 "}\n")
         buff.writeIndentedLines(code % self.params)
 
+        # Allow user to control loop, if in loop
+        if loopName is not None:
+            code = ("// did user ask to end loop '{loopName}'\n"
+                    "if ({loopName}.finished === true) {{\n"
+                    "  return Scheduler.Event.NEXT;\n"
+                    "}}\n")
+            buff.writeIndentedLines(code.format(loopName=loopName))
+
         buff.writeIndentedLines("\n// refresh the screen if continuing\n")
         if useNonSlip:
             buff.writeIndentedLines("if (continueRoutine "
@@ -355,6 +363,7 @@ class Routine(list):
         buff.writeIndented('return Scheduler.Event.NEXT;\n')
         buff.setIndentLevel(-1, relative=True)
         buff.writeIndentedLines("}\n")
+
 
     def writeExperimentEndCode(self, buff):
         """Some components have
