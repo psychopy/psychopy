@@ -8,6 +8,7 @@
 # Author: Jeremy R. Gray, 2012
 
 from __future__ import absolute_import, print_function
+from builtins import super  # provides Py3-style super() using python-future
 
 from os import path
 from psychopy.experiment.components import BaseComponent, Param, getInitVals, _translate
@@ -106,6 +107,10 @@ class MicrophoneComponent(BaseComponent):
         # always add saved file name
         buff.writeIndented("%s.addData('%s.filename', %s.savedFile)\n" %
                            (currLoop.params['name'], name, name))
+
+        # get parent to write code too (e.g. store onset/offset times)
+        super().writeRoutineEndCode(buff)
+
         if currLoop.params['name'].val == self.exp._expHandler.name:
             buff.writeIndented("%s.nextEntry()\n" % self.exp._expHandler.name)
         # best not to do loudness / rms or other processing here

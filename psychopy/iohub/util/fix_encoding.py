@@ -148,7 +148,7 @@ def fix_win_codec():
         return False
     except LookupError:
         codecs.register(
-            lambda name: name == 'cp65001' and codecs.lookup('utf-8') or None)
+            lambda name: name == 'cp65001' and codecs.lookup('utf-8-sig') or None)
         return True
 
 

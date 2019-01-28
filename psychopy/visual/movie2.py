@@ -114,9 +114,11 @@ except Exception as err:
         bits = 64
     else:
         bits = 32
-    if "wrong architecture" in err.message:
-        raise OSError("Failed to import vlc module for MovieStim2.\n"
-          "You're using %i-bit python. Is your VLC install the same?" % bits)
+    if "wrong architecture" in err:
+        msg = ("Failed to import vlc module for MovieStim2.\n"
+               "You're using %i-bit python. Is your VLC install the same?"
+               % bits)
+        raise OSError(msg)
     else:
         raise err
 

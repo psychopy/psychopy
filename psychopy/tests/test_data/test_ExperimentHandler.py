@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
 
 from builtins import object
-import codecs
 from psychopy import data, logging
 import numpy as np
 import os, glob, shutil
+import io
 from tempfile import mkdtemp
 
 logging.console.setLevel(logging.DEBUG)
@@ -95,8 +95,8 @@ class TestExperimentHandler(object):
         exp.saveAsWideText(exp.dataFileName+'.csv', delim=',')
 
         # get data file contents:
-        contents = codecs.open(exp.dataFileName+'.csv', 'rU',
-                               encoding='utf-8-sig').read()
+        with io.open(exp.dataFileName + '.csv', 'r', encoding='utf-8-sig') as f:
+            contents = f.read()
         assert contents == "mutable,\n[1],\n[9999],\n"
 
     def test_unicode_conditions(self):

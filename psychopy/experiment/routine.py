@@ -138,6 +138,10 @@ class Routine(list):
                              if 'startType' in c.params])
         buff.writeIndented('%sComponents = [%s]\n' % (self.name, compStr))
         code = ("for thisComponent in %sComponents:\n"
+                "    thisComponent.tStart = None\n"
+                "    thisComponent.tStop = None\n"
+                "    thisComponent.tStartRefresh = None\n"
+                "    thisComponent.tStopRefresh = None\n"
                 "    if hasattr(thisComponent, 'status'):\n"
                 "        thisComponent.status = NOT_STARTED\n"
                 '\n# -------Start Routine "%s"-------\n')

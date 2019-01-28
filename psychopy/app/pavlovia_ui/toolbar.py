@@ -26,11 +26,20 @@ class PavloviaButtons:
         for buttonName in buttons:
             emblem = info[buttonName]['emblem']
             btnFunc = info[buttonName]['func']
-            self.btnHandles[buttonName] = self.toolbar.AddSimpleTool(
-                wx.ID_ANY,
-                icons.combineImageEmblem(
-                    main=join(rc, 'globe%i.png' % self.tbSize),
-                    emblem=join(rc, emblem), pos='bottom_right'))
+
+            if 'phoenix' in wx.PlatformInfo:
+                self.btnHandles[buttonName] = self.toolbar.AddTool(
+                    wx.ID_ANY,
+                    '',
+                    icons.combineImageEmblem(
+                        main=join(rc, 'globe%i.png' % self.tbSize),
+                        emblem=join(rc, emblem), pos='bottom_right'))
+            else:
+                self.btnHandles[buttonName] = self.toolbar.AddSimpleTool(
+                    wx.ID_ANY,
+                    icons.combineImageEmblem(
+                        main=join(rc, 'globe%i.png' % self.tbSize),
+                        emblem=join(rc, emblem), pos='bottom_right'))
             self.toolbar.Bind(wx.EVT_TOOL, btnFunc, self.btnHandles[buttonName])
 
     def onPavloviaSync(self, evt=None):
