@@ -2032,10 +2032,8 @@ class CoderFrame(wx.Frame):
 
         # is the file still there
         if os.path.isfile(filename):
-            if PY3:
-                doc.SetText(open(filename).read())
-            else:
-                doc.SetText(open(filename).read().decode('utf8'))
+            with io.open(filename, 'r', encoding='utf-8-sig') as f:
+                doc.SetText(f.read())
             doc.fileModTime = os.path.getmtime(filename)
             doc.EmptyUndoBuffer()
             doc.Colourise(0, -1)
