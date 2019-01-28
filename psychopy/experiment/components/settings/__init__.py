@@ -723,17 +723,25 @@ class SettingsComponent(object):
         buff.writeIndentedLines(code)
 
     def writeWindowCodeJS(self, buff):
+        """Setup the JS window code.
+        """
+        # Replace instances of 'use prefs'
+        units = self.params['Units'].val
+        if units == 'use prefs':
+            units = 'height'
+
         code = ("// init psychoJS:\n"
-        "var psychoJS = new PsychoJS({{\n"
-        "  debug: true\n"
-        "}});\n\n"
-        "// open window:\n"
-        "psychoJS.openWindow({{\n"
-        "  fullscr: {fullScr},\n"
-        "  color: new util.Color({params[color]}),\n"
-        "  units: {params[Units]}\n"
-        "}});\n").format(fullScr=str(self.params['Full-screen window']).lower(),
-            params=self.params)
+                "var psychoJS = new PsychoJS({{\n"
+                "  debug: true\n"
+                "}});\n\n"
+                "// open window:\n"
+                "psychoJS.openWindow({{\n"
+                "  fullscr: {fullScr},\n"
+                "  color: new util.Color({params[color]}),\n"
+                "  units: '{units}'\n"
+                "}});\n").format(fullScr=str(self.params['Full-screen window']).lower(),
+                                 params=self.params,
+                                 units=units)
         buff.writeIndentedLines(code)
 
     def writeEndCode(self, buff):
