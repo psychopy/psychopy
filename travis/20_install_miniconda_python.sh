@@ -18,3 +18,4 @@ conda env list
 source activate psychopy-conda
 if [ -n "$WXPYTHON" ]; then conda install --freeze-installed -c conda-forge wxpython=$WXPYTHON; fi
 if [ -n "$OPENPYXL" ]; then conda install --freeze-installed -c conda-forge openpyxl=$OPENPYXL; fi
+conda list # Display all installed packages.
