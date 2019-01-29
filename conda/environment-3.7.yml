@@ -32,7 +32,7 @@ dependencies:
 - openpyxl
 - pandas
 - pillow
-- pip
+- pip<19.0
 - psutil
 - pyopengl
 - pyosf
