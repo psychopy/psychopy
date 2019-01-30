@@ -38,7 +38,7 @@ before_install:
   # install system Python dependencies.
   - if [ -n "$CONDA" ]; then
       ./travis/20_install_miniconda_python.sh;
-      source ~/miniconda/etc/profile.d/conda.sh # Initialize shell.
+      source ~/miniconda/etc/profile.d/conda.sh; # Initialize shell.
       conda activate psychopy-conda;
     else
       ./travis/20_install_system_python.sh;
