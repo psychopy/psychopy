@@ -36,12 +36,13 @@ before_install:
 
   # Install & activate conda environment, if requested; otherwise,
   # install system Python dependencies.
-  - if [ -n "$CONDA" ]; then
-      ./travis/20_install_miniconda_python.sh;
-      source ~/miniconda/etc/profile.d/conda.sh; # Initialize shell.
-      conda activate psychopy-conda;
+  - |
+    if [ -n "$CONDA" ]; then
+      ./travis/20_install_miniconda_python.sh
+      source ~/miniconda/etc/profile.d/conda.sh # Initialize shell.
+      conda activate psychopy-conda
     else
-      ./travis/20_install_system_python.sh;
+      ./travis/20_install_system_python.sh
     fi
 
   - echo $PATH
@@ -70,8 +71,9 @@ install:
   - rm -rf build/ dist/
 
 before_script:
-  - if [ "${TRAVIS_OS_NAME}" == "linux" ]; then
-       /sbin/start-stop-daemon --start --quiet --pidfile /tmp/custom_xvfb_99.pid --make-pidfile --background --exec /usr/bin/Xvfb -- :99 -screen 0 1024x768x24 -ac +extension GLX +extension RANDR +render -noreset;
+  - |
+    if [ "${TRAVIS_OS_NAME}" == "linux" ]; then
+       /sbin/start-stop-daemon --start --quiet --pidfile /tmp/custom_xvfb_99.pid --make-pidfile --background --exec /usr/bin/Xvfb -- :99 -screen 0 1024x768x24 -ac +extension GLX +extension RANDR +render -noreset
     fi
 
   # To enable core.rush() functionality, we need to set capabilities on the Python
