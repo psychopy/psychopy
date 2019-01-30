@@ -18,6 +18,7 @@ from ._base import _SoundBase, HammingWindow
 
 try:
     import sounddevice as sd
+    import readline  # Work around GH-2230.
 except Exception:
     raise DependencyError("sounddevice not working")
 try:
