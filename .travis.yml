@@ -34,11 +34,12 @@ before_install:
   - ./travis/00_set_up_packaging_system.sh
   - ./travis/10_install_system_dependencies.sh
 
-  # Install & activate conda environment if requested; otherwise,
+  # Install & activate conda environment, if requested; otherwise,
   # install system Python dependencies.
   - if [ -n "$CONDA" ]; then
       ./travis/20_install_miniconda_python.sh;
-      source ~/miniconda/bin/activate psychopy-conda;
+      source ~/miniconda/etc/profile.d/conda.sh # Initialize shell.
+      conda activate psychopy-conda;
     else
       ./travis/20_install_system_python.sh;
     fi
