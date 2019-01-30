@@ -1238,8 +1238,8 @@ class ioHubConnection(object):
     def _shutDownServer(self):
         if self._shutdown_attempted is False:
             try:
-                import psychopy
-                psychopy.visual.window.IOHUB_ACTIVE = False
+                from psychopy.visual import window
+                window.IOHUB_ACTIVE = False
             except ImportError:
                 pass
 
