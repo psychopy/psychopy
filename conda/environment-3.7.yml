@@ -1,7 +1,6 @@
 name: conda-py3.7
 channels:
 - conda-forge
-- defaults
 dependencies:
 - python=3.7
 - arabic_reshaper
