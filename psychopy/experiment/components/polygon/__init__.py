@@ -75,7 +75,7 @@ class PolygonComponent(BaseVisualComponent):
                          "can set number of vertices")
         self.params['shape'] = Param(
             shape, valType='str',
-            allowedVals=["line", "triangle", "rectangle", "cross",
+            allowedVals=["line", "triangle", "rectangle", "cross", "star",
                          "regular polygon..."],
             updates='constant',
             allowedUpdates=['constant'],
@@ -180,7 +180,7 @@ class PolygonComponent(BaseVisualComponent):
                     "    width=%(size)s[0], height=%(size)s[1],\n" % inits)
         elif vertices in ['star']:
             code = ("%s = visual.ShapeStim(\n" % inits['name'] +
-                    "    win=win, name='%s', vertices='star',%s\n" % (inits['name'], unitsStr) +
+                    "    win=win, name='%s', vertices='star7',%s\n" % (inits['name'], unitsStr) +
                     "    size=%(size)s,\n" % inits)
         elif vertices in ['cross']:
             code = ("%s = visual.ShapeStim(\n" % inits['name'] +
