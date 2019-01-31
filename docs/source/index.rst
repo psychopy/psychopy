@@ -12,8 +12,7 @@ PsychoPy provides a unique choice of interface: use the **Builder interface** to
 News
 ====================
 
-**Latest version**: 3.0.0 Jan 2019
-
+**Latest version**: 3.0.3 Jan 2019
 
 Supporting online studies and announcing our own experiment server at `Pavlovia.org <https://pavlovia.org>`_ See the launch video at https://www.youtube.com/watch?v=bprYeBzkUc8 to get more info.
 
@@ -21,6 +20,7 @@ Supporting online studies and announcing our own experiment server at `Pavlovia.
 **3-day workshop on Python Programming at Nottingham in Apr/May 2019**
 
 Come and join us for 3 days of pure programming bliss. For further details and bookings see the :ref:`officialWorkshops` page
+
 
 **Buy the official book!**
 
