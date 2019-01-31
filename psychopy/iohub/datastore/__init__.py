@@ -95,6 +95,9 @@ class DataStoreFile(object):
         else:
             self.loadTableMappings()
 
+    def loadTableMappings(self):
+        raise NotImplementedError
+
     def buildOutTemplate(self):
         self.emrtFile.title = DATA_FILE_TITLE
         self.emrtFile.FILE_VERSION = FILE_VERSION
