@@ -258,7 +258,6 @@ class PolygonComponent(BaseVisualComponent):
                     "  win: psychoJS.window, name: '{name}',\n"
                     "  units: {unitsStr},\n"
                     "  vertices: [[-{size}[0]/2.0, -{size}[1]/2.0], [+{size}[0]/2.0, -{size}[1]/2.0], [0, {size}[1]/2.0]],\n")
-
         elif vertices in ['rectangle', '4']:
             code = ("{name} = new visual.Rect ({{\n"
                     "  win: psychoJS.window, name: '{name}',\n"
