@@ -1,7 +1,6 @@
 name: conda-py3.6
 channels:
 - conda-forge
-- defaults
 dependencies:
 - python=3.6
 - arabic_reshaper
@@ -32,7 +31,7 @@ dependencies:
 - openpyxl
 - pandas
 - pillow
-- pip
+- pip<19.0
 - psutil
 - pyopengl
 - pyosf

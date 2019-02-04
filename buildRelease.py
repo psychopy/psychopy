@@ -22,6 +22,10 @@ from createInitFile import createInitFile
 MAIN = os.path.abspath(os.path.split(__file__)[0])
 VERSIONS = join(MAIN, '..', 'versions')
 
+if sys.platform == "darwin":
+    gitgui = ["git", "gui"]
+else:
+    gitgui = ["cola"]
 
 def getSHA(cwd='.'):
     if cwd == '.':
@@ -46,7 +50,7 @@ def buildRelease(versionStr, noCommit=False, interactive=True):
     shutil.copytree("psychopy", dest, symlinks=False, ignore=ignores)
 
     # todo: would be nice to check here that we didn't accidentally add anything large (check new folder size)
-    Mb = float(subprocess.check_output(["du", "-bsc", dest]).split()[0])/10**6
+    Mb = float(subprocess.check_output(["du", "-sck", dest]).split()[0])/10**3
     print("size for '%s' will be: %.2f Mb" %(versionStr, Mb))
     if noCommit:
         return False
@@ -60,7 +64,7 @@ def buildRelease(versionStr, noCommit=False, interactive=True):
     print('updating: git add --all')
     output = subprocess.check_output(["git", "add", "--all"], cwd=VERSIONS)
     if interactive:
-        ok = subprocess.call(["cola"], cwd=VERSIONS)
+        ok = subprocess.call(gitgui, cwd=VERSIONS)
         if lastSHA == getSHA():
             # we didn't commit the changes so quit
             print("no git commit was made: exiting")
@@ -78,12 +82,12 @@ def buildRelease(versionStr, noCommit=False, interactive=True):
 
     print("'versions' tags are now:", subprocess.check_output(
         ["git","tag"], cwd=VERSIONS).split())
-    ok = subprocess.call(["git", "push", "%s" % versionStr],
+    ok = subprocess.call(["git", "push", "origin", "%s" % versionStr],
                          cwd=VERSIONS)
     if ok:
-        print("Successfully pushed tag %s upstream" %versionStr)
+        print("Successfully pushed tag %s to origin" %versionStr)
     else:
-        print("Failed to push tag %s upstream" %versionStr)
+        print("Failed to push tag %s origin" %versionStr)
 
     # revert the __init__ file to non-ditribution state
     print('reverting the main master branch: git reset --hard HEAD')

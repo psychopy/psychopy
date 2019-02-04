@@ -495,7 +495,7 @@ class KeyboardComponent(BaseComponent):
 
         # write the actual code
         code = ("\n// check responses\n"
-                "if (['', [], undefined].indexOf(%(name)s.keys) >= 0) {"
+                "if (%(name)s.keys === undefined || %(name)s.keys.length === 0) {"
                 "    // No response was made\n"
                 "    %(name)s.keys = undefined;\n"
                 "}\n\n")
@@ -503,8 +503,8 @@ class KeyboardComponent(BaseComponent):
 
         if self.params['storeCorrect'].val:  # check for correct NON-repsonse
             code = ("// was no response the correct answer?!\n"
-                    "if (%(name)s.keys == undefined) {\n"
-                    "  if (psychoJS.str(%(correctAns)s).toLowerCase() == 'none') {\n"
+                    "if (%(name)s.keys === undefined) {\n"
+                    "  if (['None','none',undefined].includes(%(correctAns)s)) {\n"
                     "     %(name)s.corr = 1  // correct non-response\n"
                     "  } else {\n"
                     "     %(name)s.corr = 0  // failed to respond (incorrectly)\n"
