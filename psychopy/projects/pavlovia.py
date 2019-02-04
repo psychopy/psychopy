@@ -727,8 +727,11 @@ class PavloviaProject(dict):
         """Will always try to return a valid local git repo
 
         Will try to clone if local is empty and remote is not"""
+
+        # refresh our representation of the local
         if self.repo and not forceRefresh:
             return self.repo
+
         if not self.localRoot:
             raise AttributeError("Cannot fetch a PavloviaProject until we have "
                                  "chosen a local folder.")
@@ -748,6 +751,10 @@ class PavloviaProject(dict):
             self.configGitLocal()
 
         self.writeGitIgnore()
+        # also refresh our representation of the remote
+        if self.pavlovia and forceRefresh:
+            self.pavlovia = getCurrentSession().gitlab.projects.get(self.id)
+
         return self.repo
 
     def writeGitIgnore(self):
@@ -809,7 +816,7 @@ class PavloviaProject(dict):
         if infoStream:
             infoStream.write("\n{}".format(info))
             infoStream.write("\nSuccess!".format(info))
-        
+
     def cloneRepo(self, infoStream=None):
         """Gets the git.Repo object for this project, creating one if needed
 
