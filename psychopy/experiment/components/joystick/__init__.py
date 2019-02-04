@@ -162,7 +162,7 @@ class JoystickComponent(BaseComponent):
         code = ("from psychopy.hardware import joystick as joysticklib  "
                 "# joystick/gamepad accsss\n"
                 "from psychopy.experiment.components.joystick import "
-                "mouseJoystick as fakejoysticklib\n")
+                "virtualJoystick as virtualjoysticklib\n")
         buff.writeIndentedLines(code % self.params)
 
     def writeInitCode(self, buff):
@@ -226,7 +226,7 @@ class JoystickComponent(BaseComponent):
         buff.writeIndentedLines(code % self.params)
 
         buff.setIndentLevel(+1, relative=True)
-        code = ("%(name)s.device = fakejoysticklib.Joystick(%(deviceNumber)s)\n"
+        code = ("%(name)s.device = virtualjoysticklib.VirtualJoystick(%(deviceNumber)s)\n"
                 "logging.warning(\"joystick_{}: "
                 "Using keyboard+mouse emulation 'ctrl' "
                 "+ 'Alt' + digit.\".format(%(name)s.device_number))\n")

@@ -5,20 +5,20 @@
 # Copyright (C) 2018 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
-# Support for fake joystick/gamepad during devlopment
+# Support for fake joystick/gamepad during development
 # if no 'real' joystick/gamepad is available use keyboard emulation
 # 'ctrl' + 'alt' + numberKey
 
 from __future__ import absolute_import, division, print_function
 from psychopy import event
 
-class Joystick(object):
+
+class VirtualJoystick(object):
     def __init__(self, device_number):
         self.device_number = device_number
-        self.numberKeys=['0','1','2','3','4','5','6','7','8','9']
-        self.modifierKeys=['ctrl','alt']
+        self.numberKeys = ['0','1','2','3','4','5','6','7','8','9']
+        self.modifierKeys = ['ctrl','alt']
         self.mouse = event.Mouse()
-        event.Mouse(visible=False)
 
     def getNumButtons(self):
         return(len(self.numberKeys))
@@ -30,3 +30,11 @@ class Joystick(object):
         mouseButtons = self.mouse.getPressed()
         self.state[:len(mouseButtons)] = [a or b != 0 for (a,b) in zip(self.state, mouseButtons)]
         return(self.state)
+
+    def getX(self):
+        (x, y) = self.mouse.getPos()
+        return x
+
+    def getY(self):
+        (x, y) = self.mouse.getPos()
+        return y
