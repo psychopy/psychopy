@@ -434,7 +434,7 @@ def syncProject(parent, project=None, closeFrameWhenDone=False):
         # project didn't exist at Pavlovia (deleted?)
         recreatorDlg = ProjectRecreator(parent=parent, project=project)
         ok = recreatorDlg.ShowModal()
-        if ok is not None:
+        if ok > 0:
             project = recreatorDlg.project
         else:
             logging.error("Failed to recreate project to sync with")
@@ -578,5 +578,7 @@ class ProjectRecreator(wx.Dialog):
             elif choice == 2:
                 raise NotImplementedError("Deleting the local git repo is not "
                                           "yet implemented")
+            elif choice == 3:
+                return -1  # user aborted
         else:
             return -1
