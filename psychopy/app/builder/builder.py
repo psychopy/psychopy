@@ -2264,7 +2264,10 @@ class BuilderFrame(wx.Frame):
     def onPavloviaSync(self, evt=None):
         if self._getExportPref('on sync'):
             self.fileExport(htmlPath=self._getHtmlPath(self.filename))
+
+        self.togglePavloviaButton('pavloviaRun', 0)
         pavlovia_ui.syncProject(parent=self, project=self.project)
+        self.togglePavloviaButton('pavloviaRun', 1)
 
     def onPavloviaRun(self, evt=None):
         if self._getExportPref('on save'):
@@ -2289,6 +2292,9 @@ class BuilderFrame(wx.Frame):
             self.project.pavloviaStatus = 'ACTIVATED'
             url = "https://pavlovia.org/run/{}/html".format(self.project.id)
             wx.LaunchDefaultBrowser(url)
+
+    def togglePavloviaButton(self, name, state):
+        self.toolbar.EnableTool(self.btnHandles[name].GetId(), state)
 
     def setPavloviaUser(self, user):
         # TODO: update user icon on button to user avatar
