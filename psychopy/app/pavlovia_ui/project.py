@@ -434,7 +434,7 @@ def syncProject(parent, project=None, closeFrameWhenDone=False):
         # project didn't exist at Pavlovia (deleted?)
         recreatorDlg = ProjectRecreator(parent=parent, project=project)
         ok = recreatorDlg.ShowModal()
-        if ok > 0:
+        if ok is not None:
             project = recreatorDlg.project
         else:
             logging.error("Failed to recreate project to sync with")
