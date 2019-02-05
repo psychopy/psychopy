@@ -129,7 +129,7 @@ class JoyButtonsComponent(BaseComponent):
         code = ("from psychopy.hardware import joystick as joysticklib  "
                 "# joystick/gamepad accsss\n"
                 "from psychopy.experiment.components.joyButtons import "
-                "keyboardJoystick as fakejoysticklib\n")
+                "virtualJoyButtons as virtualjoybuttonslib\n")
         buff.writeIndentedLines(code % self.params)
 
     def writeInitCode(self, buff):
@@ -184,7 +184,7 @@ class JoyButtonsComponent(BaseComponent):
         buff.writeIndentedLines(code % self.params)
 
         buff.setIndentLevel(+1, relative=True)
-        code = ("%(name)s.device = fakejoysticklib.Joystick(%(deviceNumber)s)\n"
+        code = ("%(name)s.device = virtualjoybuttonslib.VirtualJoyButtons(%(deviceNumber)s)\n"
                 "logging.warning(\"joystick_{}: "
                 "Using keyboard emulation 'ctrl' + 'Alt' + digit.\".format(%(name)s.device_number))\n")
         buff.writeIndentedLines(code % self.params)
@@ -296,7 +296,7 @@ class JoyButtonsComponent(BaseComponent):
         if self.params['stopVal'].val not in ['', None, -1, 'None']:
             # writes an if statement to determine whether to draw etc
             self.writeStopTestCode(buff)
-            buff.writeIndented("%(name)s.status = STOPPED\n" % self.params)
+            buff.writeIndented("%(name)s.status = FINISHED\n" % self.params)
             # to get out of the if statement
             buff.setIndentLevel(-1, relative=True)
 
