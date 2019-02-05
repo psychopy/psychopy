@@ -19,7 +19,10 @@ JOKE = 20
 
 def getNewsItems(app=None):
     url = newsURL + "news_items.json"
-    resp = requests.get(url)
+    try:
+        resp = requests.get(url, timeout=0.5)
+    except requests.ConnectionError:
+        return None
     if resp.status_code == 200:
         try:
             items = resp.json()
@@ -52,6 +55,8 @@ def showNews(app=None, checkPrev=True):
                 break
         if not toShow:
             return 0
+    else:
+        return 0
 
     dlg = wx.Dialog(None, style=wx.DEFAULT_DIALOG_STYLE | wx.RESIZE_BORDER,
                     size=(800, 400))
