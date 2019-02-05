@@ -344,7 +344,7 @@ class JoyButtonsComponent(BaseComponent):
                 buff.writeIndentedLines(code1.format(allowedKeys, **self.params))
                 buff.setIndentLevel(+1, relative=True)
                 buff.writeIndentedLines(code2.format(
-                    "{name}.buttonNumbers".format(**self.params), **self.params))
+                    "range({name}.numButtons)".format(**self.params), **self.params))
                 buff.setIndentLevel(-1, relative=True)
             else:
                 buff.writeIndentedLines(code1.format(allowedKeys, **self.params))
