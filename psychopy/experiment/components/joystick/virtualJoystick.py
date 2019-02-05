@@ -12,13 +12,13 @@
 from __future__ import absolute_import, division, print_function
 from psychopy import event
 
-
 class VirtualJoystick(object):
     def __init__(self, device_number):
         self.device_number = device_number
         self.numberKeys = ['0','1','2','3','4','5','6','7','8','9']
         self.modifierKeys = ['ctrl','alt']
         self.mouse = event.Mouse()
+        event.Mouse(visible=False)
 
     def getNumButtons(self):
         return(len(self.numberKeys))
