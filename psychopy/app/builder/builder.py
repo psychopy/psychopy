@@ -2265,9 +2265,11 @@ class BuilderFrame(wx.Frame):
         if self._getExportPref('on sync'):
             self.fileExport(htmlPath=self._getHtmlPath(self.filename))
 
-        self.togglePavloviaButton('pavloviaRun', 0)
-        pavlovia_ui.syncProject(parent=self, project=self.project)
-        self.togglePavloviaButton('pavloviaRun', 1)
+        self.enablePavloviaButton('pavloviaRun', False)
+        try:
+            pavlovia_ui.syncProject(parent=self, project=self.project)
+        finally:
+            self.enablePavloviaButton('pavloviaRun', True)
 
     def onPavloviaRun(self, evt=None):
         if self._getExportPref('on save'):
@@ -2293,8 +2295,18 @@ class BuilderFrame(wx.Frame):
             url = "https://pavlovia.org/run/{}/html".format(self.project.id)
             wx.LaunchDefaultBrowser(url)
 
-    def togglePavloviaButton(self, name, state):
-        self.toolbar.EnableTool(self.btnHandles[name].GetId(), state)
+    def enablePavloviaButton(self, name, enable):
+        """
+        Enables or disables Pavlovia buttons.
+
+        Parameters
+        ----------
+        name: string
+            Works for buttons 'pavloviaSync', 'pavloviaRun', 'pavloviaSearch', or 'pavloviaUser'.
+        enable: bool
+            True enables and False disables the button
+        """
+        self.toolbar.EnableTool(self.btnHandles[name].GetId(), enable)
 
     def setPavloviaUser(self, user):
         # TODO: update user icon on button to user avatar
