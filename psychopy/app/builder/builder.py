@@ -2345,7 +2345,8 @@ class BuilderFrame(wx.Frame):
             logging.info(' '.join(cmd))
             out = subprocess.check_output(cmd)
             if len(out):
-                print(out)  # so that any errors messages in compile are printed
+                out = out.decode('utf-8-sig').split('\n')
+                [print(line) for line in out] # so that any errors messages in compile are printed
         else:
             psyexpCompile.compileScript(infile=self.exp, version=None, outfile=experimentPath)
 
@@ -2372,7 +2373,12 @@ class BuilderFrame(wx.Frame):
     def onPavloviaSync(self, evt=None):
         if self._getExportPref('on sync'):
             self.fileExport(htmlPath=self._getHtmlPath(self.filename))
-        pavlovia_ui.syncProject(parent=self, project=self.project)
+
+        self.enablePavloviaButton(['pavloviaSync', 'pavloviaRun'], False)
+        try:
+            pavlovia_ui.syncProject(parent=self, project=self.project)
+        finally:
+            self.enablePavloviaButton(['pavloviaSync', 'pavloviaRun'], True)
 
     def onPavloviaRun(self, evt=None):
         if self._getExportPref('on save'):
@@ -2397,6 +2403,24 @@ class BuilderFrame(wx.Frame):
             self.project.pavloviaStatus = 'ACTIVATED'
             url = "https://pavlovia.org/run/{}/html".format(self.project.id)
             wx.LaunchDefaultBrowser(url)
+
+    def enablePavloviaButton(self, buttons, enable):
+        """
+        Enables or disables Pavlovia buttons.
+
+        Parameters
+        ----------
+        name: string, list
+            Takes single buttons 'pavloviaSync', 'pavloviaRun', 'pavloviaSearch', 'pavloviaUser',
+            or multiple buttons in string 'pavloviaSync, pavloviaRun',
+            or comma separated list of strings ['pavloviaSync', 'pavloviaRun', ...].
+        enable: bool
+            True enables and False disables the button
+        """
+        if isinstance(buttons, str):
+            buttons = buttons.split(',')
+        for button in buttons:
+            self.toolbar.EnableTool(self.btnHandles[button.strip(' ')].GetId(), enable)
 
     def setPavloviaUser(self, user):
         # TODO: update user icon on button to user avatar
