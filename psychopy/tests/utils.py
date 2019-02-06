@@ -43,6 +43,8 @@ def compareScreenshot(fileName, win, crit=5.0):
     win.movieFrames=[]
     #if the file exists run a test, if not save the file
     if not isfile(fileName):
+        frame = frame.resize((int(frame.size[0]/2), int(frame.size[1]/2)),
+                             resample=Image.LANCZOS)
         frame.save(fileName, optimize=1)
         skip("Created %s" % basename(fileName))
     else:
@@ -86,8 +88,12 @@ def compareTextFiles(pathToActual, pathToCorrect, delim=None,
 
     try:
         #we have the necessary file
-        txtActual = codecs.open(pathToActual, 'r', encoding='utf-8-sig').readlines()
-        txtCorrect = codecs.open(pathToCorrect, 'r', encoding='utf-8-sig').readlines()
+        with codecs.open(pathToActual, 'r', encoding='utf-8-sig') as f:
+            txtActual = f.readlines()
+
+        with codecs.open(pathToCorrect, 'r', encoding='utf-8-sig') as f:
+            txtCorrect = f.readlines()
+
         assert len(txtActual)==len(txtCorrect), "The data file has the wrong number of lines"
         for lineN in range(len(txtActual)):
             if delim is None:

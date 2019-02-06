@@ -6,6 +6,7 @@
 # Distributed under the terms of the GNU General Public License (GPL).
 
 from __future__ import absolute_import, print_function
+from builtins import super  # provides Py3-style super() using python-future
 
 from os import path
 from psychopy.experiment.components import BaseVisualComponent, Param, \
@@ -259,12 +260,12 @@ class SliderComponent(BaseVisualComponent):
 
     def writeFrameCodeJS(self, buff):
         super(SliderComponent, self).writeFrameCodeJS(buff)  # Write basevisual frame code
-        # forceEnd = self.params['forceEndRoutine'].val
-        # if forceEnd:
-        #     code = ("\n// Check %(name)s for response to end routine\n"
-        #             "if (%(name)s.getRating() !== 'undefined' && %(name)s.status === PsychoJS.Status.STARTED) {\n"
-        #             "  continueRoutine = false; }\n")
-        #     buff.writeIndentedLines(code % (self.params))
+        forceEnd = self.params['forceEndRoutine'].val
+        if forceEnd:
+            code = ("\n// Check %(name)s for response to end routine\n"
+                    "if (%(name)s.getRating() !== 'undefined' && %(name)s.status === PsychoJS.Status.STARTED) {\n"
+                    "  continueRoutine = false; }\n")
+            buff.writeIndentedLines(code % (self.params))
 
     def writeRoutineEndCode(self, buff):
         name = self.params['name']
@@ -295,6 +296,9 @@ class SliderComponent(BaseVisualComponent):
             if self.params['storeHistory'].val == True:
                 code = "%s.addData('%s.history', %s.getHistory())\n"
                 buff.writeIndented(code % (loopName, name, name))
+
+            # get parent to write code too (e.g. store onset/offset times)
+            super().writeRoutineEndCode(buff)
 
     def writeRoutineEndCodeJS(self, buff):
         name = self.params['name']

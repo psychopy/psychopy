@@ -12,19 +12,19 @@ matrix:
 #      env: DISPLAY=:99.0 AUDIODEV=null
 
     - os: linux
-      env: ANACONDA=true PYTHON_VERSION=2.7 WXPYTHON=3 OPENPYXL=2.4 DISPLAY=:99.0 AUDIODEV=null
+      env: CONDA=true PYTHON_VERSION=2.7 WXPYTHON=3 OPENPYXL=2.4 DISPLAY=:99.0 AUDIODEV=null
 
     - os: linux
-      env: ANACONDA=true PYTHON_VERSION=2.7 WXPYTHON=4 OPENPYXL=2.4 DISPLAY=:99.0 AUDIODEV=null
+      env: CONDA=true PYTHON_VERSION=2.7 WXPYTHON=4 OPENPYXL=2.4 DISPLAY=:99.0 AUDIODEV=null
 
     - os: linux
-      env: ANACONDA=true PYTHON_VERSION=2.7 WXPYTHON=3 OPENPYXL=2.5 DISPLAY=:99.0 AUDIODEV=null
+      env: CONDA=true PYTHON_VERSION=2.7 WXPYTHON=3 OPENPYXL=2.5 DISPLAY=:99.0 AUDIODEV=null
 
     - os: linux
-      env: ANACONDA=true PYTHON_VERSION=3.6 DISPLAY=:99.0 AUDIODEV=null
+      env: CONDA=true PYTHON_VERSION=3.6 DISPLAY=:99.0 AUDIODEV=null
 
     - os: linux
-      env: ANACONDA=true PYTHON_VERSION=3.7 DISPLAY=:99.0 AUDIODEV=null
+      env: CONDA=true PYTHON_VERSION=3.7 DISPLAY=:99.0 AUDIODEV=null
 
 #  allow_failures:
 #    - python: "2.7_with_system_site_packages"
@@ -34,13 +34,15 @@ before_install:
   - ./travis/00_set_up_packaging_system.sh
   - ./travis/10_install_system_dependencies.sh
 
-  # Install & activate conda environment if requested; otherwise,
+  # Install & activate conda environment, if requested; otherwise,
   # install system Python dependencies.
-  - if [ -n "$ANACONDA" ]; then
-      ./travis/20_install_miniconda_python.sh;
-      source ~/miniconda/bin/activate psychopy-conda;
+  - |
+    if [ -n "$CONDA" ]; then
+      ./travis/20_install_miniconda_python.sh
+      source ~/miniconda/etc/profile.d/conda.sh # Initialize shell.
+      conda activate psychopy-conda
     else
-      ./travis/20_install_system_python.sh;
+      ./travis/20_install_system_python.sh
     fi
 
   - echo $PATH
@@ -69,9 +71,24 @@ install:
   - rm -rf build/ dist/
 
 before_script:
-  - if [ "${TRAVIS_OS_NAME}" == "linux" ]; then
-       /sbin/start-stop-daemon --start --quiet --pidfile /tmp/custom_xvfb_99.pid --make-pidfile --background --exec /usr/bin/Xvfb -- :99 -screen 0 1024x768x24 -ac +extension GLX +extension RANDR +render -noreset;
+  - |
+    if [ "${TRAVIS_OS_NAME}" == "linux" ]; then
+       /sbin/start-stop-daemon --start --quiet --pidfile /tmp/custom_xvfb_99.pid --make-pidfile --background --exec /usr/bin/Xvfb -- :99 -screen 0 1024x768x24 -ac +extension GLX +extension RANDR +render -noreset
     fi
+
+  # To enable core.rush() functionality, we need to set capabilities on the Python
+  # executable. However, setcap'd binaries ignore LD_LIBRARY_PATH; this will
+  # break conda Python. The solution is to add the conda libraries to the "global"
+  # library search paths in /etc/ld.so.conf.d, and update the caches by calling
+  # ldconfig. Then, the capabilities can be set using setcap. Note that `python`
+  # in a conda env is merely a symlink to the actual binary; therefore, setcap
+  # will refuse work on it. Solution is to find find the "real"
+  # path to the Python binary by resolving the symlink via `os.path.realpath()`.
+  - echo $HOME/miniconda/envs/psychopy-conda/lib | sudo tee /etc/ld.so.conf.d/psychopy-conda-lib.conf
+  - sudo ldconfig
+  - export PYTHON_EXECUTABLE=`python -c "import os; import sys; print(os.path.realpath(sys.executable))"`
+  - sudo setcap cap_sys_nice+ep ${PYTHON_EXECUTABLE}
+  - getcap ${PYTHON_EXECUTABLE}
 
 # This might come in handy once we switch to Trusty
 #  - if [ "${TRAVIS_OS_NAME}" == "linux" ]; then

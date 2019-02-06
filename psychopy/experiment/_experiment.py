@@ -170,6 +170,7 @@ class Experiment(object):
     def writeScript(self, expPath=None, target="PsychoPy", modular=True):
         """Write a PsychoPy script for the experiment
         """
+        self.psychopyVersion = psychopy.__version__  # make sure is current
         # set this so that params write for approp target
         utils.scriptTarget = target
         self.flow._prescreenValues()
@@ -248,6 +249,7 @@ class Experiment(object):
         return script
 
     def saveToXML(self, filename):
+        self.psychopyVersion = psychopy.__version__  # make sure is current
         # create the dom object
         self.xmlRoot = xml.Element("PsychoPy2experiment")
         self.xmlRoot.set('version', __version__)
@@ -302,9 +304,10 @@ class Experiment(object):
         # then write to file
         if not filename.endswith(".psyexp"):
             filename += ".psyexp"
-        f = codecs.open(filename, 'wb', 'utf-8')
-        f.write(pretty)
-        f.close()
+
+        with codecs.open(filename, 'wb', encoding='utf-8-sig') as f:
+            f.write(pretty)
+
         self.filename = filename
         return filename  # this may have been updated to include an extension
 

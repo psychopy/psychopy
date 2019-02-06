@@ -23,7 +23,6 @@ from .text import TextStim
 from ..tools.attributetools import logAttrib, setAttribute, attributeSetter
 from ..constants import FINISHED, STARTED, NOT_STARTED
 
-
 defaultSizes = {'norm': [1.0, 0.1]}
 
 
@@ -183,7 +182,7 @@ class Slider(MinimalStim):
         self.status = NOT_STARTED
         self.responseClock = core.Clock()
 
-        #set the style when everything else is set
+        # set the style when everything else is set
         self.style = style
 
     def __repr__(self, complete=False):
@@ -246,13 +245,15 @@ class Slider(MinimalStim):
             lineSize = self._lineW, self._lineL
             tickSize = self._tickL, self._lineW
         self.line = GratingStim(win=self.win, pos=self.pos, color=self.color,
-                                size=lineSize, sf=0, units=self.units)
+                                size=lineSize, sf=0, units=self.units,
+                                autoLog=False)
         self.tickLines = ElementArrayStim(win=self.win, units=self.units,
                                           nElements=len(self.ticks),
                                           xys=self.tickLocs,
                                           elementMask=None,
                                           colors=self.color,
-                                          sizes=tickSize, sfs=0)
+                                          sizes=tickSize, sfs=0,
+                                          autoLog=False)
 
         self.labelObjs = []
         if self.labels is not None:
@@ -282,7 +283,8 @@ class Slider(MinimalStim):
                                alignHoriz=alignHoriz, alignVert=alignVert,
                                units=self.units, color=self.color,
                                pos=self.labelLocs[tickN, :],
-                               height=self.labelHeight)
+                               height=self.labelHeight,
+                               autoLog=False)
                 self.labelObjs.append(obj)
 
         if self.units == 'norm':
@@ -294,14 +296,17 @@ class Slider(MinimalStim):
 
         self.marker = Circle(self.win, units=self.units,
                              size=markerSize,
-                             color='red')
+                             color='red',
+                             autoLog=False)
 
         # create a rectangle to check for clicks
         self.validArea = Rect(self.win, units=self.units,
                               pos=self.pos,
                               width=self.size[0] * 1.1,
                               height=self.size[1] * 1.1,
-                              lineColor='DarkGrey')
+                              lineColor='DarkGrey',
+                              autoLog=False)
+
     @attributeSetter
     def pos(self, newPos):
         """Set position of slider
@@ -373,8 +378,8 @@ class Slider(MinimalStim):
         if not self.labels:
             self.labelLocs = []
             return
-        labelFractions = np.arange(len(self.labels))/(len(self.labels)-1)
-        tickIndices = np.round(labelFractions * (len(self.tickLocs)-1))
+        labelFractions = np.arange(len(self.labels)) / (len(self.labels) - 1)
+        tickIndices = np.round(labelFractions * (len(self.tickLocs) - 1))
         self.labelLocs = self.tickLocs[tickIndices.astype('int')]
 
     def _granularRating(self, rating):
@@ -406,7 +411,7 @@ class Slider(MinimalStim):
         Also note that this position is in scale units, not in coordinates"""
         rating = self._granularRating(rating)
         if ('markerPos' not in self.__dict__ or not np.alltrue(
-                    self.__dict__['markerPos'] == rating)):
+                self.__dict__['markerPos'] == rating)):
             self.__dict__['markerPos'] = rating
             self._updateMarkerPos = True
 
@@ -530,7 +535,6 @@ class Slider(MinimalStim):
 
         self._mouseStateXY = xy
 
-
     knownStyles = ['slider', 'rating', 'radio', 'labels45', 'whiteOnBlack',
                    'triangleMarker']
 
@@ -572,11 +576,12 @@ class Slider(MinimalStim):
 
             markerSize = min(self.size) * 2
             self.marker = ShapeStim(self.win, units=self.units,
-                                    vertices=[[0,0],[0.5,0.5],[0.5,-0.5]],
+                                    vertices=[[0, 0], [0.5, 0.5], [0.5, -0.5]],
                                     size=markerSize,
                                     ori=ori,
                                     fillColor='DarkRed',
-                                    lineColor='DarkRed')
+                                    lineColor='DarkRed',
+                                    autoLog=False)
 
         if 'slider' in style:
             # make it more like a slider using a box instead of line
@@ -585,19 +590,21 @@ class Slider(MinimalStim):
                              width=self.size[0],
                              height=self.size[1],
                              fillColor='DarkGray',
-                             lineColor='LightGray')
+                             lineColor='LightGray',
+                             autoLog=False)
             if self.horiz:
-                markerW = self.size[0]*0.1
-                markerH = self.size[1]*0.8
+                markerW = self.size[0] * 0.1
+                markerH = self.size[1] * 0.8
             else:
-                markerW = self.size[0]*0.8
-                markerH = self.size[1]*0.1
+                markerW = self.size[0] * 0.8
+                markerH = self.size[1] * 0.1
 
             self.marker = Rect(self.win, units=self.units,
-                               width= markerW,
-                               height= markerH,
+                               width=markerW,
+                               height=markerH,
                                fillColor='DarkSlateGray',
-                               lineColor='GhostWhite')
+                               lineColor='GhostWhite',
+                               autoLog=False)
 
         if 'whiteOnBlack' in style:
             self.line.color = 'black'
@@ -619,4 +626,4 @@ class Slider(MinimalStim):
             self.tickLines.sizes = (self._tickL, self._tickL)
             self.tickLines.elementMask = 'circle'
             # marker must be smalle than a "tick" circle
-            self.marker.size = self._tickL*0.7
+            self.marker.size = self._tickL * 0.7

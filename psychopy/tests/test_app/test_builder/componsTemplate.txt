@@ -34,6 +34,18 @@ ApertureComponent.pos.staticUpdater:None
 ApertureComponent.pos.updates:constant
 ApertureComponent.pos.val:(0, 0)
 ApertureComponent.pos.valType:code
+ApertureComponent.saveStartStop.default:True
+ApertureComponent.saveStartStop.allowedTypes:[]
+ApertureComponent.saveStartStop.allowedUpdates:None
+ApertureComponent.saveStartStop.allowedVals:[]
+ApertureComponent.saveStartStop.categ:Data
+ApertureComponent.saveStartStop.hint:Store the onset/offset times in the data file (as well as in the log file).
+ApertureComponent.saveStartStop.label:Save onset/offset times
+ApertureComponent.saveStartStop.readOnly:False
+ApertureComponent.saveStartStop.staticUpdater:None
+ApertureComponent.saveStartStop.updates:None
+ApertureComponent.saveStartStop.val:True
+ApertureComponent.saveStartStop.valType:bool
 ApertureComponent.size.default:1
 ApertureComponent.size.allowedTypes:[]
 ApertureComponent.size.allowedUpdates:['constant', 'set every repeat', 'set every frame']
@@ -106,6 +118,18 @@ ApertureComponent.stopVal.staticUpdater:None
 ApertureComponent.stopVal.updates:constant
 ApertureComponent.stopVal.val:1.0
 ApertureComponent.stopVal.valType:code
+ApertureComponent.syncScreenRefresh.default:True
+ApertureComponent.syncScreenRefresh.allowedTypes:[]
+ApertureComponent.syncScreenRefresh.allowedUpdates:None
+ApertureComponent.syncScreenRefresh.allowedVals:[]
+ApertureComponent.syncScreenRefresh.categ:Data
+ApertureComponent.syncScreenRefresh.hint:Synchronize times with screen refresh (good for visual stimuli and responses based on them)
+ApertureComponent.syncScreenRefresh.label:Sync timing with screen refresh
+ApertureComponent.syncScreenRefresh.readOnly:True
+ApertureComponent.syncScreenRefresh.staticUpdater:None
+ApertureComponent.syncScreenRefresh.updates:None
+ApertureComponent.syncScreenRefresh.val:True
+ApertureComponent.syncScreenRefresh.valType:bool
 ApertureComponent.units.default:'norm'
 ApertureComponent.units.allowedTypes:[]
 ApertureComponent.units.allowedUpdates:None
@@ -262,6 +286,30 @@ CodeComponent.name.readOnly:False
 CodeComponent.name.staticUpdater:None
 CodeComponent.name.val:code
 CodeComponent.name.valType:code
+CodeComponent.saveStartStop.default:True
+CodeComponent.saveStartStop.allowedTypes:[]
+CodeComponent.saveStartStop.allowedUpdates:None
+CodeComponent.saveStartStop.allowedVals:[]
+CodeComponent.saveStartStop.categ:Data
+CodeComponent.saveStartStop.hint:Store the onset/offset times in the data file (as well as in the log file).
+CodeComponent.saveStartStop.label:Save onset/offset times
+CodeComponent.saveStartStop.readOnly:False
+CodeComponent.saveStartStop.staticUpdater:None
+CodeComponent.saveStartStop.updates:None
+CodeComponent.saveStartStop.val:True
+CodeComponent.saveStartStop.valType:bool
+CodeComponent.syncScreenRefresh.default:False
+CodeComponent.syncScreenRefresh.allowedTypes:[]
+CodeComponent.syncScreenRefresh.allowedUpdates:None
+CodeComponent.syncScreenRefresh.allowedVals:[]
+CodeComponent.syncScreenRefresh.categ:Data
+CodeComponent.syncScreenRefresh.hint:Synchronize times with screen refresh (good for visual stimuli and responses based on them)
+CodeComponent.syncScreenRefresh.label:Sync timing with screen refresh
+CodeComponent.syncScreenRefresh.readOnly:False
+CodeComponent.syncScreenRefresh.staticUpdater:None
+CodeComponent.syncScreenRefresh.updates:None
+CodeComponent.syncScreenRefresh.val:False
+CodeComponent.syncScreenRefresh.valType:bool
 DotsComponent.order:['name']
 DotsComponent.coherence.default:1.0
 DotsComponent.coherence.allowedTypes:[]
@@ -442,6 +490,18 @@ DotsComponent.refreshDots.staticUpdater:None
 DotsComponent.refreshDots.updates:None
 DotsComponent.refreshDots.val:repeat
 DotsComponent.refreshDots.valType:str
+DotsComponent.saveStartStop.default:True
+DotsComponent.saveStartStop.allowedTypes:[]
+DotsComponent.saveStartStop.allowedUpdates:None
+DotsComponent.saveStartStop.allowedVals:[]
+DotsComponent.saveStartStop.categ:Data
+DotsComponent.saveStartStop.hint:Store the onset/offset times in the data file (as well as in the log file).
+DotsComponent.saveStartStop.label:Save onset/offset times
+DotsComponent.saveStartStop.readOnly:False
+DotsComponent.saveStartStop.staticUpdater:None
+DotsComponent.saveStartStop.updates:None
+DotsComponent.saveStartStop.val:True
+DotsComponent.saveStartStop.valType:bool
 DotsComponent.signalDots.default:'same'
 DotsComponent.signalDots.allowedTypes:[]
 DotsComponent.signalDots.allowedUpdates:None
@@ -526,6 +586,18 @@ DotsComponent.stopVal.staticUpdater:None
 DotsComponent.stopVal.updates:constant
 DotsComponent.stopVal.val:1.0
 DotsComponent.stopVal.valType:code
+DotsComponent.syncScreenRefresh.default:True
+DotsComponent.syncScreenRefresh.allowedTypes:[]
+DotsComponent.syncScreenRefresh.allowedUpdates:None
+DotsComponent.syncScreenRefresh.allowedVals:[]
+DotsComponent.syncScreenRefresh.categ:Data
+DotsComponent.syncScreenRefresh.hint:Synchronize times with screen refresh (good for visual stimuli and responses based on them)
+DotsComponent.syncScreenRefresh.label:Sync timing with screen refresh
+DotsComponent.syncScreenRefresh.readOnly:True
+DotsComponent.syncScreenRefresh.staticUpdater:None
+DotsComponent.syncScreenRefresh.updates:None
+DotsComponent.syncScreenRefresh.val:True
+DotsComponent.syncScreenRefresh.valType:bool
 DotsComponent.units.default:'from exp settings'
 DotsComponent.units.allowedTypes:[]
 DotsComponent.units.allowedUpdates:None
@@ -766,6 +838,18 @@ EnvGratingComponent.pos.staticUpdater:None
 EnvGratingComponent.pos.updates:constant
 EnvGratingComponent.pos.val:(0, 0)
 EnvGratingComponent.pos.valType:code
+EnvGratingComponent.saveStartStop.default:True
+EnvGratingComponent.saveStartStop.allowedTypes:[]
+EnvGratingComponent.saveStartStop.allowedUpdates:None
+EnvGratingComponent.saveStartStop.allowedVals:[]
+EnvGratingComponent.saveStartStop.categ:Data
+EnvGratingComponent.saveStartStop.hint:Store the onset/offset times in the data file (as well as in the log file).
+EnvGratingComponent.saveStartStop.label:Save onset/offset times
+EnvGratingComponent.saveStartStop.readOnly:False
+EnvGratingComponent.saveStartStop.staticUpdater:None
+EnvGratingComponent.saveStartStop.updates:None
+EnvGratingComponent.saveStartStop.val:True
+EnvGratingComponent.saveStartStop.valType:bool
 EnvGratingComponent.sf.default:1.0
 EnvGratingComponent.sf.allowedTypes:[]
 EnvGratingComponent.sf.allowedUpdates:['constant', 'set every repeat', 'set every frame']
@@ -850,6 +934,18 @@ EnvGratingComponent.stopVal.staticUpdater:None
 EnvGratingComponent.stopVal.updates:constant
 EnvGratingComponent.stopVal.val:1.0
 EnvGratingComponent.stopVal.valType:code
+EnvGratingComponent.syncScreenRefresh.default:True
+EnvGratingComponent.syncScreenRefresh.allowedTypes:[]
+EnvGratingComponent.syncScreenRefresh.allowedUpdates:None
+EnvGratingComponent.syncScreenRefresh.allowedVals:[]
+EnvGratingComponent.syncScreenRefresh.categ:Data
+EnvGratingComponent.syncScreenRefresh.hint:Synchronize times with screen refresh (good for visual stimuli and responses based on them)
+EnvGratingComponent.syncScreenRefresh.label:Sync timing with screen refresh
+EnvGratingComponent.syncScreenRefresh.readOnly:True
+EnvGratingComponent.syncScreenRefresh.staticUpdater:None
+EnvGratingComponent.syncScreenRefresh.updates:None
+EnvGratingComponent.syncScreenRefresh.val:True
+EnvGratingComponent.syncScreenRefresh.valType:bool
 EnvGratingComponent.texture resolution.default:128
 EnvGratingComponent.texture resolution.allowedTypes:[]
 EnvGratingComponent.texture resolution.allowedUpdates:[]
@@ -1006,6 +1102,18 @@ GratingComponent.pos.staticUpdater:None
 GratingComponent.pos.updates:constant
 GratingComponent.pos.val:(0, 0)
 GratingComponent.pos.valType:code
+GratingComponent.saveStartStop.default:True
+GratingComponent.saveStartStop.allowedTypes:[]
+GratingComponent.saveStartStop.allowedUpdates:None
+GratingComponent.saveStartStop.allowedVals:[]
+GratingComponent.saveStartStop.categ:Data
+GratingComponent.saveStartStop.hint:Store the onset/offset times in the data file (as well as in the log file).
+GratingComponent.saveStartStop.label:Save onset/offset times
+GratingComponent.saveStartStop.readOnly:False
+GratingComponent.saveStartStop.staticUpdater:None
+GratingComponent.saveStartStop.updates:None
+GratingComponent.saveStartStop.val:True
+GratingComponent.saveStartStop.valType:bool
 GratingComponent.sf.default:None
 GratingComponent.sf.allowedTypes:[]
 GratingComponent.sf.allowedUpdates:['constant', 'set every repeat', 'set every frame']
@@ -1090,6 +1198,18 @@ GratingComponent.stopVal.staticUpdater:None
 GratingComponent.stopVal.updates:constant
 GratingComponent.stopVal.val:1.0
 GratingComponent.stopVal.valType:code
+GratingComponent.syncScreenRefresh.default:True
+GratingComponent.syncScreenRefresh.allowedTypes:[]
+GratingComponent.syncScreenRefresh.allowedUpdates:None
+GratingComponent.syncScreenRefresh.allowedVals:[]
+GratingComponent.syncScreenRefresh.categ:Data
+GratingComponent.syncScreenRefresh.hint:Synchronize times with screen refresh (good for visual stimuli and responses based on them)
+GratingComponent.syncScreenRefresh.label:Sync timing with screen refresh
+GratingComponent.syncScreenRefresh.readOnly:True
+GratingComponent.syncScreenRefresh.staticUpdater:None
+GratingComponent.syncScreenRefresh.updates:None
+GratingComponent.syncScreenRefresh.val:True
+GratingComponent.syncScreenRefresh.valType:bool
 GratingComponent.tex.default:'sin'
 GratingComponent.tex.allowedTypes:[]
 GratingComponent.tex.allowedUpdates:['constant', 'set every repeat', 'set every frame']
@@ -1270,6 +1390,18 @@ ImageComponent.pos.staticUpdater:None
 ImageComponent.pos.updates:constant
 ImageComponent.pos.val:(0, 0)
 ImageComponent.pos.valType:code
+ImageComponent.saveStartStop.default:True
+ImageComponent.saveStartStop.allowedTypes:[]
+ImageComponent.saveStartStop.allowedUpdates:None
+ImageComponent.saveStartStop.allowedVals:[]
+ImageComponent.saveStartStop.categ:Data
+ImageComponent.saveStartStop.hint:Store the onset/offset times in the data file (as well as in the log file).
+ImageComponent.saveStartStop.label:Save onset/offset times
+ImageComponent.saveStartStop.readOnly:False
+ImageComponent.saveStartStop.staticUpdater:None
+ImageComponent.saveStartStop.updates:None
+ImageComponent.saveStartStop.val:True
+ImageComponent.saveStartStop.valType:bool
 ImageComponent.size.default:(0.5, 0.5)
 ImageComponent.size.allowedTypes:[]
 ImageComponent.size.allowedUpdates:['constant', 'set every repeat', 'set every frame']
@@ -1342,6 +1474,18 @@ ImageComponent.stopVal.staticUpdater:None
 ImageComponent.stopVal.updates:constant
 ImageComponent.stopVal.val:1.0
 ImageComponent.stopVal.valType:code
+ImageComponent.syncScreenRefresh.default:True
+ImageComponent.syncScreenRefresh.allowedTypes:[]
+ImageComponent.syncScreenRefresh.allowedUpdates:None
+ImageComponent.syncScreenRefresh.allowedVals:[]
+ImageComponent.syncScreenRefresh.categ:Data
+ImageComponent.syncScreenRefresh.hint:Synchronize times with screen refresh (good for visual stimuli and responses based on them)
+ImageComponent.syncScreenRefresh.label:Sync timing with screen refresh
+ImageComponent.syncScreenRefresh.readOnly:True
+ImageComponent.syncScreenRefresh.staticUpdater:None
+ImageComponent.syncScreenRefresh.updates:None
+ImageComponent.syncScreenRefresh.val:True
+ImageComponent.syncScreenRefresh.valType:bool
 ImageComponent.texture resolution.default:128
 ImageComponent.texture resolution.allowedTypes:[]
 ImageComponent.texture resolution.allowedUpdates:[]
@@ -1462,6 +1606,18 @@ JoystickComponent.saveParamsClickable.staticUpdater:None
 JoystickComponent.saveParamsClickable.updates:constant
 JoystickComponent.saveParamsClickable.val:name,
 JoystickComponent.saveParamsClickable.valType:code
+JoystickComponent.saveStartStop.default:True
+JoystickComponent.saveStartStop.allowedTypes:[]
+JoystickComponent.saveStartStop.allowedUpdates:None
+JoystickComponent.saveStartStop.allowedVals:[]
+JoystickComponent.saveStartStop.categ:Data
+JoystickComponent.saveStartStop.hint:Store the onset/offset times in the data file (as well as in the log file).
+JoystickComponent.saveStartStop.label:Save onset/offset times
+JoystickComponent.saveStartStop.readOnly:False
+JoystickComponent.saveStartStop.staticUpdater:None
+JoystickComponent.saveStartStop.updates:None
+JoystickComponent.saveStartStop.val:True
+JoystickComponent.saveStartStop.valType:bool
 JoystickComponent.startEstim.default:
 JoystickComponent.startEstim.allowedTypes:[]
 JoystickComponent.startEstim.allowedUpdates:None
@@ -1522,6 +1678,18 @@ JoystickComponent.stopVal.staticUpdater:None
 JoystickComponent.stopVal.updates:constant
 JoystickComponent.stopVal.val:1.0
 JoystickComponent.stopVal.valType:code
+JoystickComponent.syncScreenRefresh.default:False
+JoystickComponent.syncScreenRefresh.allowedTypes:[]
+JoystickComponent.syncScreenRefresh.allowedUpdates:None
+JoystickComponent.syncScreenRefresh.allowedVals:[]
+JoystickComponent.syncScreenRefresh.categ:Data
+JoystickComponent.syncScreenRefresh.hint:Synchronize times with screen refresh (good for visual stimuli and responses based on them)
+JoystickComponent.syncScreenRefresh.label:Sync timing with screen refresh
+JoystickComponent.syncScreenRefresh.readOnly:False
+JoystickComponent.syncScreenRefresh.staticUpdater:None
+JoystickComponent.syncScreenRefresh.updates:None
+JoystickComponent.syncScreenRefresh.val:False
+JoystickComponent.syncScreenRefresh.valType:bool
 JoystickComponent.timeRelativeTo.default:'joystick onset'
 JoystickComponent.timeRelativeTo.allowedTypes:[]
 JoystickComponent.timeRelativeTo.allowedUpdates:None
@@ -1606,6 +1774,18 @@ KeyboardComponent.name.readOnly:False
 KeyboardComponent.name.staticUpdater:None
 KeyboardComponent.name.val:key_resp
 KeyboardComponent.name.valType:code
+KeyboardComponent.saveStartStop.default:True
+KeyboardComponent.saveStartStop.allowedTypes:[]
+KeyboardComponent.saveStartStop.allowedUpdates:None
+KeyboardComponent.saveStartStop.allowedVals:[]
+KeyboardComponent.saveStartStop.categ:Data
+KeyboardComponent.saveStartStop.hint:Store the onset/offset times in the data file (as well as in the log file).
+KeyboardComponent.saveStartStop.label:Save onset/offset times
+KeyboardComponent.saveStartStop.readOnly:False
+KeyboardComponent.saveStartStop.staticUpdater:None
+KeyboardComponent.saveStartStop.updates:None
+KeyboardComponent.saveStartStop.val:True
+KeyboardComponent.saveStartStop.valType:bool
 KeyboardComponent.startEstim.default:
 KeyboardComponent.startEstim.allowedTypes:[]
 KeyboardComponent.startEstim.allowedUpdates:None
@@ -1696,7 +1876,7 @@ KeyboardComponent.syncScreenRefresh.allowedUpdates:None
 KeyboardComponent.syncScreenRefresh.allowedVals:[]
 KeyboardComponent.syncScreenRefresh.categ:Basic
 KeyboardComponent.syncScreenRefresh.hint:A reaction time to a visual stimulus should be based on when the screen flipped
-KeyboardComponent.syncScreenRefresh.label:sync RT with screen
+KeyboardComponent.syncScreenRefresh.label:Sync timing with screen
 KeyboardComponent.syncScreenRefresh.readOnly:False
 KeyboardComponent.syncScreenRefresh.staticUpdater:None
 KeyboardComponent.syncScreenRefresh.updates:constant
@@ -1726,6 +1906,18 @@ MicrophoneComponent.name.readOnly:False
 MicrophoneComponent.name.staticUpdater:None
 MicrophoneComponent.name.val:mic_1
 MicrophoneComponent.name.valType:code
+MicrophoneComponent.saveStartStop.default:True
+MicrophoneComponent.saveStartStop.allowedTypes:[]
+MicrophoneComponent.saveStartStop.allowedUpdates:None
+MicrophoneComponent.saveStartStop.allowedVals:[]
+MicrophoneComponent.saveStartStop.categ:Data
+MicrophoneComponent.saveStartStop.hint:Store the onset/offset times in the data file (as well as in the log file).
+MicrophoneComponent.saveStartStop.label:Save onset/offset times
+MicrophoneComponent.saveStartStop.readOnly:False
+MicrophoneComponent.saveStartStop.staticUpdater:None
+MicrophoneComponent.saveStartStop.updates:None
+MicrophoneComponent.saveStartStop.val:True
+MicrophoneComponent.saveStartStop.valType:bool
 MicrophoneComponent.startEstim.default:
 MicrophoneComponent.startEstim.allowedTypes:[]
 MicrophoneComponent.startEstim.allowedUpdates:None
@@ -1798,6 +1990,18 @@ MicrophoneComponent.stopVal.staticUpdater:None
 MicrophoneComponent.stopVal.updates:constant
 MicrophoneComponent.stopVal.val:2.0
 MicrophoneComponent.stopVal.valType:code
+MicrophoneComponent.syncScreenRefresh.default:False
+MicrophoneComponent.syncScreenRefresh.allowedTypes:[]
+MicrophoneComponent.syncScreenRefresh.allowedUpdates:None
+MicrophoneComponent.syncScreenRefresh.allowedVals:[]
+MicrophoneComponent.syncScreenRefresh.categ:Data
+MicrophoneComponent.syncScreenRefresh.hint:Synchronize times with screen refresh (good for visual stimuli and responses based on them)
+MicrophoneComponent.syncScreenRefresh.label:Sync timing with screen refresh
+MicrophoneComponent.syncScreenRefresh.readOnly:False
+MicrophoneComponent.syncScreenRefresh.staticUpdater:None
+MicrophoneComponent.syncScreenRefresh.updates:None
+MicrophoneComponent.syncScreenRefresh.val:False
+MicrophoneComponent.syncScreenRefresh.valType:bool
 MouseComponent.order:['name', 'forceEndRoutineOnPress', 'saveMouseState', 'timeRelativeTo', 'newClicksOnly', 'clickable', 'saveParamsClickable']
 MouseComponent.clickable.default:
 MouseComponent.clickable.allowedTypes:[]
@@ -1882,6 +2086,18 @@ MouseComponent.saveParamsClickable.staticUpdater:None
 MouseComponent.saveParamsClickable.updates:constant
 MouseComponent.saveParamsClickable.val:name,
 MouseComponent.saveParamsClickable.valType:code
+MouseComponent.saveStartStop.default:True
+MouseComponent.saveStartStop.allowedTypes:[]
+MouseComponent.saveStartStop.allowedUpdates:None
+MouseComponent.saveStartStop.allowedVals:[]
+MouseComponent.saveStartStop.categ:Data
+MouseComponent.saveStartStop.hint:Store the onset/offset times in the data file (as well as in the log file).
+MouseComponent.saveStartStop.label:Save onset/offset times
+MouseComponent.saveStartStop.readOnly:False
+MouseComponent.saveStartStop.staticUpdater:None
+MouseComponent.saveStartStop.updates:None
+MouseComponent.saveStartStop.val:True
+MouseComponent.saveStartStop.valType:bool
 MouseComponent.startEstim.default:
 MouseComponent.startEstim.allowedTypes:[]
 MouseComponent.startEstim.allowedUpdates:None
@@ -1942,6 +2158,18 @@ MouseComponent.stopVal.staticUpdater:None
 MouseComponent.stopVal.updates:constant
 MouseComponent.stopVal.val:1.0
 MouseComponent.stopVal.valType:code
+MouseComponent.syncScreenRefresh.default:False
+MouseComponent.syncScreenRefresh.allowedTypes:[]
+MouseComponent.syncScreenRefresh.allowedUpdates:None
+MouseComponent.syncScreenRefresh.allowedVals:[]
+MouseComponent.syncScreenRefresh.categ:Data
+MouseComponent.syncScreenRefresh.hint:Synchronize times with screen refresh (good for visual stimuli and responses based on them)
+MouseComponent.syncScreenRefresh.label:Sync timing with screen refresh
+MouseComponent.syncScreenRefresh.readOnly:False
+MouseComponent.syncScreenRefresh.staticUpdater:None
+MouseComponent.syncScreenRefresh.updates:None
+MouseComponent.syncScreenRefresh.val:False
+MouseComponent.syncScreenRefresh.valType:bool
 MouseComponent.timeRelativeTo.default:'mouse onset'
 MouseComponent.timeRelativeTo.allowedTypes:[]
 MouseComponent.timeRelativeTo.allowedUpdates:None
@@ -2062,6 +2290,18 @@ MovieComponent.pos.staticUpdater:None
 MovieComponent.pos.updates:constant
 MovieComponent.pos.val:(0, 0)
 MovieComponent.pos.valType:code
+MovieComponent.saveStartStop.default:True
+MovieComponent.saveStartStop.allowedTypes:[]
+MovieComponent.saveStartStop.allowedUpdates:None
+MovieComponent.saveStartStop.allowedVals:[]
+MovieComponent.saveStartStop.categ:Data
+MovieComponent.saveStartStop.hint:Store the onset/offset times in the data file (as well as in the log file).
+MovieComponent.saveStartStop.label:Save onset/offset times
+MovieComponent.saveStartStop.readOnly:False
+MovieComponent.saveStartStop.staticUpdater:None
+MovieComponent.saveStartStop.updates:None
+MovieComponent.saveStartStop.val:True
+MovieComponent.saveStartStop.valType:bool
 MovieComponent.size.default:
 MovieComponent.size.allowedTypes:[]
 MovieComponent.size.allowedUpdates:['constant', 'set every repeat', 'set every frame']
@@ -2134,6 +2374,18 @@ MovieComponent.stopVal.staticUpdater:None
 MovieComponent.stopVal.updates:constant
 MovieComponent.stopVal.val:1.0
 MovieComponent.stopVal.valType:code
+MovieComponent.syncScreenRefresh.default:True
+MovieComponent.syncScreenRefresh.allowedTypes:[]
+MovieComponent.syncScreenRefresh.allowedUpdates:None
+MovieComponent.syncScreenRefresh.allowedVals:[]
+MovieComponent.syncScreenRefresh.categ:Data
+MovieComponent.syncScreenRefresh.hint:Synchronize times with screen refresh (good for visual stimuli and responses based on them)
+MovieComponent.syncScreenRefresh.label:Sync timing with screen refresh
+MovieComponent.syncScreenRefresh.readOnly:True
+MovieComponent.syncScreenRefresh.staticUpdater:None
+MovieComponent.syncScreenRefresh.updates:None
+MovieComponent.syncScreenRefresh.val:True
+MovieComponent.syncScreenRefresh.valType:bool
 MovieComponent.units.default:'from exp settings'
 MovieComponent.units.allowedTypes:[]
 MovieComponent.units.allowedUpdates:None
@@ -2446,6 +2698,18 @@ NoiseStimComponent.pos.staticUpdater:None
 NoiseStimComponent.pos.updates:constant
 NoiseStimComponent.pos.val:(0, 0)
 NoiseStimComponent.pos.valType:code
+NoiseStimComponent.saveStartStop.default:True
+NoiseStimComponent.saveStartStop.allowedTypes:[]
+NoiseStimComponent.saveStartStop.allowedUpdates:None
+NoiseStimComponent.saveStartStop.allowedVals:[]
+NoiseStimComponent.saveStartStop.categ:Data
+NoiseStimComponent.saveStartStop.hint:Store the onset/offset times in the data file (as well as in the log file).
+NoiseStimComponent.saveStartStop.label:Save onset/offset times
+NoiseStimComponent.saveStartStop.readOnly:False
+NoiseStimComponent.saveStartStop.staticUpdater:None
+NoiseStimComponent.saveStartStop.updates:None
+NoiseStimComponent.saveStartStop.val:True
+NoiseStimComponent.saveStartStop.valType:bool
 NoiseStimComponent.sf.default:None
 NoiseStimComponent.sf.allowedTypes:[]
 NoiseStimComponent.sf.allowedUpdates:['constant', 'set every repeat', 'set every frame']
@@ -2530,6 +2794,18 @@ NoiseStimComponent.stopVal.staticUpdater:None
 NoiseStimComponent.stopVal.updates:constant
 NoiseStimComponent.stopVal.val:1.0
 NoiseStimComponent.stopVal.valType:code
+NoiseStimComponent.syncScreenRefresh.default:True
+NoiseStimComponent.syncScreenRefresh.allowedTypes:[]
+NoiseStimComponent.syncScreenRefresh.allowedUpdates:None
+NoiseStimComponent.syncScreenRefresh.allowedVals:[]
+NoiseStimComponent.syncScreenRefresh.categ:Data
+NoiseStimComponent.syncScreenRefresh.hint:Synchronize times with screen refresh (good for visual stimuli and responses based on them)
+NoiseStimComponent.syncScreenRefresh.label:Sync timing with screen refresh
+NoiseStimComponent.syncScreenRefresh.readOnly:True
+NoiseStimComponent.syncScreenRefresh.staticUpdater:None
+NoiseStimComponent.syncScreenRefresh.updates:None
+NoiseStimComponent.syncScreenRefresh.val:True
+NoiseStimComponent.syncScreenRefresh.valType:bool
 NoiseStimComponent.texture resolution.default:128
 NoiseStimComponent.texture resolution.allowedTypes:[]
 NoiseStimComponent.texture resolution.allowedUpdates:[]
@@ -2558,7 +2834,7 @@ ParallelOutComponent.order:['address', 'startData', 'stopData']
 ParallelOutComponent.address.default:'0x0378'
 ParallelOutComponent.address.allowedTypes:[]
 ParallelOutComponent.address.allowedUpdates:None
-ParallelOutComponent.address.allowedVals:['0x0378', '0x03BC', 'LabJack U3']
+ParallelOutComponent.address.allowedVals:['0x0378', '0x03BC', '/dev/parport0', '/dev/parport1', 'LabJack U3']
 ParallelOutComponent.address.categ:Basic
 ParallelOutComponent.address.hint:Parallel port to be used (you can change these options in preferences>general)
 ParallelOutComponent.address.label:Port address
@@ -2590,6 +2866,18 @@ ParallelOutComponent.name.readOnly:False
 ParallelOutComponent.name.staticUpdater:None
 ParallelOutComponent.name.val:p_port
 ParallelOutComponent.name.valType:code
+ParallelOutComponent.saveStartStop.default:True
+ParallelOutComponent.saveStartStop.allowedTypes:[]
+ParallelOutComponent.saveStartStop.allowedUpdates:None
+ParallelOutComponent.saveStartStop.allowedVals:[]
+ParallelOutComponent.saveStartStop.categ:Data
+ParallelOutComponent.saveStartStop.hint:Store the onset/offset times in the data file (as well as in the log file).
+ParallelOutComponent.saveStartStop.label:Save onset/offset times
+ParallelOutComponent.saveStartStop.readOnly:False
+ParallelOutComponent.saveStartStop.staticUpdater:None
+ParallelOutComponent.saveStartStop.updates:None
+ParallelOutComponent.saveStartStop.val:True
+ParallelOutComponent.saveStartStop.valType:bool
 ParallelOutComponent.startData.default:1
 ParallelOutComponent.startData.allowedTypes:[]
 ParallelOutComponent.startData.allowedUpdates:None
@@ -2686,6 +2974,18 @@ ParallelOutComponent.syncScreen.staticUpdater:None
 ParallelOutComponent.syncScreen.updates:constant
 ParallelOutComponent.syncScreen.val:True
 ParallelOutComponent.syncScreen.valType:bool
+ParallelOutComponent.syncScreenRefresh.default:False
+ParallelOutComponent.syncScreenRefresh.allowedTypes:[]
+ParallelOutComponent.syncScreenRefresh.allowedUpdates:None
+ParallelOutComponent.syncScreenRefresh.allowedVals:[]
+ParallelOutComponent.syncScreenRefresh.categ:Data
+ParallelOutComponent.syncScreenRefresh.hint:Synchronize times with screen refresh (good for visual stimuli and responses based on them)
+ParallelOutComponent.syncScreenRefresh.label:Sync timing with screen refresh
+ParallelOutComponent.syncScreenRefresh.readOnly:False
+ParallelOutComponent.syncScreenRefresh.staticUpdater:None
+ParallelOutComponent.syncScreenRefresh.updates:None
+ParallelOutComponent.syncScreenRefresh.val:False
+ParallelOutComponent.syncScreenRefresh.valType:bool
 PatchComponent.order:['name']
 PatchComponent.color.default:[1,1,1]
 PatchComponent.color.allowedTypes:[]
@@ -2818,6 +3118,18 @@ PatchComponent.pos.staticUpdater:None
 PatchComponent.pos.updates:constant
 PatchComponent.pos.val:(0, 0)
 PatchComponent.pos.valType:code
+PatchComponent.saveStartStop.default:True
+PatchComponent.saveStartStop.allowedTypes:[]
+PatchComponent.saveStartStop.allowedUpdates:None
+PatchComponent.saveStartStop.allowedVals:[]
+PatchComponent.saveStartStop.categ:Data
+PatchComponent.saveStartStop.hint:Store the onset/offset times in the data file (as well as in the log file).
+PatchComponent.saveStartStop.label:Save onset/offset times
+PatchComponent.saveStartStop.readOnly:False
+PatchComponent.saveStartStop.staticUpdater:None
+PatchComponent.saveStartStop.updates:None
+PatchComponent.saveStartStop.val:True
+PatchComponent.saveStartStop.valType:bool
 PatchComponent.sf.default:None
 PatchComponent.sf.allowedTypes:[]
 PatchComponent.sf.allowedUpdates:['constant', 'set every repeat', 'set every frame']
@@ -2902,6 +3214,18 @@ PatchComponent.stopVal.staticUpdater:None
 PatchComponent.stopVal.updates:constant
 PatchComponent.stopVal.val:1.0
 PatchComponent.stopVal.valType:code
+PatchComponent.syncScreenRefresh.default:True
+PatchComponent.syncScreenRefresh.allowedTypes:[]
+PatchComponent.syncScreenRefresh.allowedUpdates:None
+PatchComponent.syncScreenRefresh.allowedVals:[]
+PatchComponent.syncScreenRefresh.categ:Data
+PatchComponent.syncScreenRefresh.hint:Synchronize times with screen refresh (good for visual stimuli and responses based on them)
+PatchComponent.syncScreenRefresh.label:Sync timing with screen refresh
+PatchComponent.syncScreenRefresh.readOnly:True
+PatchComponent.syncScreenRefresh.staticUpdater:None
+PatchComponent.syncScreenRefresh.updates:None
+PatchComponent.syncScreenRefresh.val:True
+PatchComponent.syncScreenRefresh.valType:bool
 PatchComponent.texture resolution.default:128
 PatchComponent.texture resolution.allowedTypes:[]
 PatchComponent.texture resolution.allowedUpdates:[]
@@ -3070,6 +3394,18 @@ PolygonComponent.pos.staticUpdater:None
 PolygonComponent.pos.updates:constant
 PolygonComponent.pos.val:(0, 0)
 PolygonComponent.pos.valType:code
+PolygonComponent.saveStartStop.default:True
+PolygonComponent.saveStartStop.allowedTypes:[]
+PolygonComponent.saveStartStop.allowedUpdates:None
+PolygonComponent.saveStartStop.allowedVals:[]
+PolygonComponent.saveStartStop.categ:Data
+PolygonComponent.saveStartStop.hint:Store the onset/offset times in the data file (as well as in the log file).
+PolygonComponent.saveStartStop.label:Save onset/offset times
+PolygonComponent.saveStartStop.readOnly:False
+PolygonComponent.saveStartStop.staticUpdater:None
+PolygonComponent.saveStartStop.updates:None
+PolygonComponent.saveStartStop.val:True
+PolygonComponent.saveStartStop.valType:bool
 PolygonComponent.shape.default:'triangle'
 PolygonComponent.shape.allowedTypes:[]
 PolygonComponent.shape.allowedUpdates:['constant']
@@ -3155,6 +3491,18 @@ PolygonComponent.stopVal.staticUpdater:None
 PolygonComponent.stopVal.updates:constant
 PolygonComponent.stopVal.val:1.0
 PolygonComponent.stopVal.valType:code
+PolygonComponent.syncScreenRefresh.default:True
+PolygonComponent.syncScreenRefresh.allowedTypes:[]
+PolygonComponent.syncScreenRefresh.allowedUpdates:None
+PolygonComponent.syncScreenRefresh.allowedVals:[]
+PolygonComponent.syncScreenRefresh.categ:Data
+PolygonComponent.syncScreenRefresh.hint:Synchronize times with screen refresh (good for visual stimuli and responses based on them)
+PolygonComponent.syncScreenRefresh.label:Sync timing with screen refresh
+PolygonComponent.syncScreenRefresh.readOnly:True
+PolygonComponent.syncScreenRefresh.staticUpdater:None
+PolygonComponent.syncScreenRefresh.updates:None
+PolygonComponent.syncScreenRefresh.val:True
+PolygonComponent.syncScreenRefresh.valType:bool
 PolygonComponent.units.default:'from exp settings'
 PolygonComponent.units.allowedTypes:[]
 PolygonComponent.units.allowedUpdates:None
@@ -3479,6 +3827,18 @@ RatingScaleComponent.pos.staticUpdater:None
 RatingScaleComponent.pos.updates:constant
 RatingScaleComponent.pos.val:0, -0.4
 RatingScaleComponent.pos.valType:str
+RatingScaleComponent.saveStartStop.default:True
+RatingScaleComponent.saveStartStop.allowedTypes:[]
+RatingScaleComponent.saveStartStop.allowedUpdates:None
+RatingScaleComponent.saveStartStop.allowedVals:[]
+RatingScaleComponent.saveStartStop.categ:Data
+RatingScaleComponent.saveStartStop.hint:Store the onset/offset times in the data file (as well as in the log file).
+RatingScaleComponent.saveStartStop.label:Save onset/offset times
+RatingScaleComponent.saveStartStop.readOnly:False
+RatingScaleComponent.saveStartStop.staticUpdater:None
+RatingScaleComponent.saveStartStop.updates:None
+RatingScaleComponent.saveStartStop.val:True
+RatingScaleComponent.saveStartStop.valType:bool
 RatingScaleComponent.scaleDescription.default:''
 RatingScaleComponent.scaleDescription.allowedTypes:[]
 RatingScaleComponent.scaleDescription.allowedUpdates:[]
@@ -3623,6 +3983,18 @@ RatingScaleComponent.storeRatingTime.staticUpdater:None
 RatingScaleComponent.storeRatingTime.updates:constant
 RatingScaleComponent.storeRatingTime.val:True
 RatingScaleComponent.storeRatingTime.valType:bool
+RatingScaleComponent.syncScreenRefresh.default:False
+RatingScaleComponent.syncScreenRefresh.allowedTypes:[]
+RatingScaleComponent.syncScreenRefresh.allowedUpdates:None
+RatingScaleComponent.syncScreenRefresh.allowedVals:[]
+RatingScaleComponent.syncScreenRefresh.categ:Data
+RatingScaleComponent.syncScreenRefresh.hint:Synchronize times with screen refresh (good for visual stimuli and responses based on them)
+RatingScaleComponent.syncScreenRefresh.label:Sync timing with screen refresh
+RatingScaleComponent.syncScreenRefresh.readOnly:False
+RatingScaleComponent.syncScreenRefresh.staticUpdater:None
+RatingScaleComponent.syncScreenRefresh.updates:None
+RatingScaleComponent.syncScreenRefresh.val:False
+RatingScaleComponent.syncScreenRefresh.valType:bool
 RatingScaleComponent.tickHeight.default:''
 RatingScaleComponent.tickHeight.allowedTypes:[]
 RatingScaleComponent.tickHeight.allowedUpdates:[]
@@ -4118,6 +4490,18 @@ SliderComponent.pos.staticUpdater:None
 SliderComponent.pos.updates:constant
 SliderComponent.pos.val:(0, -0.4)
 SliderComponent.pos.valType:code
+SliderComponent.saveStartStop.default:True
+SliderComponent.saveStartStop.allowedTypes:[]
+SliderComponent.saveStartStop.allowedUpdates:None
+SliderComponent.saveStartStop.allowedVals:[]
+SliderComponent.saveStartStop.categ:Data
+SliderComponent.saveStartStop.hint:Store the onset/offset times in the data file (as well as in the log file).
+SliderComponent.saveStartStop.label:Save onset/offset times
+SliderComponent.saveStartStop.readOnly:False
+SliderComponent.saveStartStop.staticUpdater:None
+SliderComponent.saveStartStop.updates:None
+SliderComponent.saveStartStop.val:True
+SliderComponent.saveStartStop.valType:bool
 SliderComponent.size.default:(1.0, 0.1)
 SliderComponent.size.allowedTypes:[]
 SliderComponent.size.allowedUpdates:['constant', 'set every repeat', 'set every frame']
@@ -4238,6 +4622,18 @@ SliderComponent.styles.staticUpdater:None
 SliderComponent.styles.updates:constant
 SliderComponent.styles.val:['rating']
 SliderComponent.styles.valType:fixedList
+SliderComponent.syncScreenRefresh.default:True
+SliderComponent.syncScreenRefresh.allowedTypes:[]
+SliderComponent.syncScreenRefresh.allowedUpdates:None
+SliderComponent.syncScreenRefresh.allowedVals:[]
+SliderComponent.syncScreenRefresh.categ:Data
+SliderComponent.syncScreenRefresh.hint:Synchronize times with screen refresh (good for visual stimuli and responses based on them)
+SliderComponent.syncScreenRefresh.label:Sync timing with screen refresh
+SliderComponent.syncScreenRefresh.readOnly:True
+SliderComponent.syncScreenRefresh.staticUpdater:None
+SliderComponent.syncScreenRefresh.updates:None
+SliderComponent.syncScreenRefresh.val:True
+SliderComponent.syncScreenRefresh.valType:bool
 SliderComponent.ticks.default:(1, 2, 3, 4, 5)
 SliderComponent.ticks.allowedTypes:[]
 SliderComponent.ticks.allowedUpdates:['constant', 'set every repeat']
@@ -4286,6 +4682,18 @@ SoundComponent.name.readOnly:False
 SoundComponent.name.staticUpdater:None
 SoundComponent.name.val:sound_1
 SoundComponent.name.valType:code
+SoundComponent.saveStartStop.default:True
+SoundComponent.saveStartStop.allowedTypes:[]
+SoundComponent.saveStartStop.allowedUpdates:None
+SoundComponent.saveStartStop.allowedVals:[]
+SoundComponent.saveStartStop.categ:Data
+SoundComponent.saveStartStop.hint:Store the onset/offset times in the data file (as well as in the log file).
+SoundComponent.saveStartStop.label:Save onset/offset times
+SoundComponent.saveStartStop.readOnly:False
+SoundComponent.saveStartStop.staticUpdater:None
+SoundComponent.saveStartStop.updates:None
+SoundComponent.saveStartStop.val:True
+SoundComponent.saveStartStop.valType:bool
 SoundComponent.sound.default:'A'
 SoundComponent.sound.allowedTypes:[]
 SoundComponent.sound.allowedUpdates:['constant', 'set every repeat']
@@ -4418,6 +4826,18 @@ StaticComponent.name.readOnly:False
 StaticComponent.name.staticUpdater:None
 StaticComponent.name.val:ISI
 StaticComponent.name.valType:code
+StaticComponent.saveStartStop.default:True
+StaticComponent.saveStartStop.allowedTypes:[]
+StaticComponent.saveStartStop.allowedUpdates:None
+StaticComponent.saveStartStop.allowedVals:[]
+StaticComponent.saveStartStop.categ:Data
+StaticComponent.saveStartStop.hint:Store the onset/offset times in the data file (as well as in the log file).
+StaticComponent.saveStartStop.label:Save onset/offset times
+StaticComponent.saveStartStop.readOnly:False
+StaticComponent.saveStartStop.staticUpdater:None
+StaticComponent.saveStartStop.updates:None
+StaticComponent.saveStartStop.val:True
+StaticComponent.saveStartStop.valType:bool
 StaticComponent.startEstim.default:
 StaticComponent.startEstim.allowedTypes:[]
 StaticComponent.startEstim.allowedUpdates:None
@@ -4478,6 +4898,18 @@ StaticComponent.stopVal.staticUpdater:None
 StaticComponent.stopVal.updates:constant
 StaticComponent.stopVal.val:0.5
 StaticComponent.stopVal.valType:code
+StaticComponent.syncScreenRefresh.default:False
+StaticComponent.syncScreenRefresh.allowedTypes:[]
+StaticComponent.syncScreenRefresh.allowedUpdates:None
+StaticComponent.syncScreenRefresh.allowedVals:[]
+StaticComponent.syncScreenRefresh.categ:Data
+StaticComponent.syncScreenRefresh.hint:Synchronize times with screen refresh (good for visual stimuli and responses based on them)
+StaticComponent.syncScreenRefresh.label:Sync timing with screen refresh
+StaticComponent.syncScreenRefresh.readOnly:False
+StaticComponent.syncScreenRefresh.staticUpdater:None
+StaticComponent.syncScreenRefresh.updates:None
+StaticComponent.syncScreenRefresh.val:False
+StaticComponent.syncScreenRefresh.valType:bool
 TextComponent.order:['name']
 TextComponent.color.default:'white'
 TextComponent.color.allowedTypes:[]
@@ -4610,6 +5042,18 @@ TextComponent.pos.staticUpdater:None
 TextComponent.pos.updates:constant
 TextComponent.pos.val:(0, 0)
 TextComponent.pos.valType:code
+TextComponent.saveStartStop.default:True
+TextComponent.saveStartStop.allowedTypes:[]
+TextComponent.saveStartStop.allowedUpdates:None
+TextComponent.saveStartStop.allowedVals:[]
+TextComponent.saveStartStop.categ:Data
+TextComponent.saveStartStop.hint:Store the onset/offset times in the data file (as well as in the log file).
+TextComponent.saveStartStop.label:Save onset/offset times
+TextComponent.saveStartStop.readOnly:False
+TextComponent.saveStartStop.staticUpdater:None
+TextComponent.saveStartStop.updates:None
+TextComponent.saveStartStop.val:True
+TextComponent.saveStartStop.valType:bool
 TextComponent.startEstim.default:
 TextComponent.startEstim.allowedTypes:[]
 TextComponent.startEstim.allowedUpdates:None
@@ -4670,6 +5114,18 @@ TextComponent.stopVal.staticUpdater:None
 TextComponent.stopVal.updates:constant
 TextComponent.stopVal.val:1.0
 TextComponent.stopVal.valType:code
+TextComponent.syncScreenRefresh.default:True
+TextComponent.syncScreenRefresh.allowedTypes:[]
+TextComponent.syncScreenRefresh.allowedUpdates:None
+TextComponent.syncScreenRefresh.allowedVals:[]
+TextComponent.syncScreenRefresh.categ:Data
+TextComponent.syncScreenRefresh.hint:Synchronize times with screen refresh (good for visual stimuli and responses based on them)
+TextComponent.syncScreenRefresh.label:Sync timing with screen refresh
+TextComponent.syncScreenRefresh.readOnly:True
+TextComponent.syncScreenRefresh.staticUpdater:None
+TextComponent.syncScreenRefresh.updates:None
+TextComponent.syncScreenRefresh.val:True
+TextComponent.syncScreenRefresh.valType:bool
 TextComponent.text.default:'Any text\n\nincluding line breaks'
 TextComponent.text.allowedTypes:[]
 TextComponent.text.allowedUpdates:['constant', 'set every repeat', 'set every frame']
@@ -4804,6 +5260,18 @@ VariableComponent.saveStartRoutine.staticUpdater:None
 VariableComponent.saveStartRoutine.updates:constant
 VariableComponent.saveStartRoutine.val:False
 VariableComponent.saveStartRoutine.valType:bool
+VariableComponent.saveStartStop.default:True
+VariableComponent.saveStartStop.allowedTypes:[]
+VariableComponent.saveStartStop.allowedUpdates:None
+VariableComponent.saveStartStop.allowedVals:[]
+VariableComponent.saveStartStop.categ:Data
+VariableComponent.saveStartStop.hint:Store the onset/offset times in the data file (as well as in the log file).
+VariableComponent.saveStartStop.label:Save onset/offset times
+VariableComponent.saveStartStop.readOnly:False
+VariableComponent.saveStartStop.staticUpdater:None
+VariableComponent.saveStartStop.updates:None
+VariableComponent.saveStartStop.val:True
+VariableComponent.saveStartStop.valType:bool
 VariableComponent.startEstim.default:
 VariableComponent.startEstim.allowedTypes:[]
 VariableComponent.startEstim.allowedUpdates:None
@@ -4900,6 +5368,18 @@ VariableComponent.stopVal.staticUpdater:None
 VariableComponent.stopVal.updates:constant
 VariableComponent.stopVal.val:
 VariableComponent.stopVal.valType:code
+VariableComponent.syncScreenRefresh.default:False
+VariableComponent.syncScreenRefresh.allowedTypes:[]
+VariableComponent.syncScreenRefresh.allowedUpdates:None
+VariableComponent.syncScreenRefresh.allowedVals:[]
+VariableComponent.syncScreenRefresh.categ:Data
+VariableComponent.syncScreenRefresh.hint:Synchronize times with screen refresh (good for visual stimuli and responses based on them)
+VariableComponent.syncScreenRefresh.label:Sync timing with screen refresh
+VariableComponent.syncScreenRefresh.readOnly:False
+VariableComponent.syncScreenRefresh.staticUpdater:None
+VariableComponent.syncScreenRefresh.updates:None
+VariableComponent.syncScreenRefresh.val:False
+VariableComponent.syncScreenRefresh.valType:bool
 cedrusButtonBoxComponent.order:['forceEndRoutine', 'allowedKeys', 'store', 'storeCorrect', 'correctAns']
 cedrusButtonBoxComponent.allowedKeys.default:
 cedrusButtonBoxComponent.allowedKeys.allowedTypes:[]
@@ -4984,6 +5464,18 @@ cedrusButtonBoxComponent.name.readOnly:False
 cedrusButtonBoxComponent.name.staticUpdater:None
 cedrusButtonBoxComponent.name.val:buttonBox
 cedrusButtonBoxComponent.name.valType:code
+cedrusButtonBoxComponent.saveStartStop.default:True
+cedrusButtonBoxComponent.saveStartStop.allowedTypes:[]
+cedrusButtonBoxComponent.saveStartStop.allowedUpdates:None
+cedrusButtonBoxComponent.saveStartStop.allowedVals:[]
+cedrusButtonBoxComponent.saveStartStop.categ:Data
+cedrusButtonBoxComponent.saveStartStop.hint:Store the onset/offset times in the data file (as well as in the log file).
+cedrusButtonBoxComponent.saveStartStop.label:Save onset/offset times
+cedrusButtonBoxComponent.saveStartStop.readOnly:False
+cedrusButtonBoxComponent.saveStartStop.staticUpdater:None
+cedrusButtonBoxComponent.saveStartStop.updates:None
+cedrusButtonBoxComponent.saveStartStop.val:True
+cedrusButtonBoxComponent.saveStartStop.valType:bool
 cedrusButtonBoxComponent.startEstim.default:
 cedrusButtonBoxComponent.startEstim.allowedTypes:[]
 cedrusButtonBoxComponent.startEstim.allowedUpdates:None
@@ -5074,7 +5566,7 @@ cedrusButtonBoxComponent.syncScreenRefresh.allowedUpdates:None
 cedrusButtonBoxComponent.syncScreenRefresh.allowedVals:[]
 cedrusButtonBoxComponent.syncScreenRefresh.categ:Basic
 cedrusButtonBoxComponent.syncScreenRefresh.hint:A reaction time to a visual stimulus should be based on when the screen flipped
-cedrusButtonBoxComponent.syncScreenRefresh.label:sync RT with screen
+cedrusButtonBoxComponent.syncScreenRefresh.label:Sync timing with screen
 cedrusButtonBoxComponent.syncScreenRefresh.readOnly:False
 cedrusButtonBoxComponent.syncScreenRefresh.staticUpdater:None
 cedrusButtonBoxComponent.syncScreenRefresh.updates:constant
@@ -5188,6 +5680,18 @@ ioLabsButtonBoxComponent.name.readOnly:False
 ioLabsButtonBoxComponent.name.staticUpdater:None
 ioLabsButtonBoxComponent.name.val:bbox
 ioLabsButtonBoxComponent.name.valType:code
+ioLabsButtonBoxComponent.saveStartStop.default:True
+ioLabsButtonBoxComponent.saveStartStop.allowedTypes:[]
+ioLabsButtonBoxComponent.saveStartStop.allowedUpdates:None
+ioLabsButtonBoxComponent.saveStartStop.allowedVals:[]
+ioLabsButtonBoxComponent.saveStartStop.categ:Data
+ioLabsButtonBoxComponent.saveStartStop.hint:Store the onset/offset times in the data file (as well as in the log file).
+ioLabsButtonBoxComponent.saveStartStop.label:Save onset/offset times
+ioLabsButtonBoxComponent.saveStartStop.readOnly:False
+ioLabsButtonBoxComponent.saveStartStop.staticUpdater:None
+ioLabsButtonBoxComponent.saveStartStop.updates:None
+ioLabsButtonBoxComponent.saveStartStop.val:True
+ioLabsButtonBoxComponent.saveStartStop.valType:bool
 ioLabsButtonBoxComponent.startEstim.default:
 ioLabsButtonBoxComponent.startEstim.allowedTypes:[]
 ioLabsButtonBoxComponent.startEstim.allowedUpdates:None
@@ -5278,7 +5782,7 @@ ioLabsButtonBoxComponent.syncScreenRefresh.allowedUpdates:None
 ioLabsButtonBoxComponent.syncScreenRefresh.allowedVals:[]
 ioLabsButtonBoxComponent.syncScreenRefresh.categ:Basic
 ioLabsButtonBoxComponent.syncScreenRefresh.hint:A reaction time to a visual stimulus should be based on when the screen flipped
-ioLabsButtonBoxComponent.syncScreenRefresh.label:sync RT with screen
+ioLabsButtonBoxComponent.syncScreenRefresh.label:Sync timing with screen
 ioLabsButtonBoxComponent.syncScreenRefresh.readOnly:False
 ioLabsButtonBoxComponent.syncScreenRefresh.staticUpdater:None
 ioLabsButtonBoxComponent.syncScreenRefresh.updates:constant

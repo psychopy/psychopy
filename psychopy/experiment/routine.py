@@ -138,6 +138,10 @@ class Routine(list):
                              if 'startType' in c.params])
         buff.writeIndented('%sComponents = [%s]\n' % (self.name, compStr))
         code = ("for thisComponent in %sComponents:\n"
+                "    thisComponent.tStart = None\n"
+                "    thisComponent.tStop = None\n"
+                "    thisComponent.tStartRefresh = None\n"
+                "    thisComponent.tStopRefresh = None\n"
                 "    if hasattr(thisComponent, 'status'):\n"
                 "        thisComponent.status = NOT_STARTED\n"
                 '\n# -------Start Routine "%s"-------\n')
@@ -298,11 +302,7 @@ class Routine(list):
                 "  if ('status' in thisComponent && thisComponent.status !== PsychoJS.Status.FINISHED) {\n"
                 "    continueRoutine = true;\n"
                 "    break;\n"
-                "  }\n\n"
-                "// check for quit (the Esc key)\n"
-                "if (psychoJS.experiment.experimentEnded || psychoJS.eventManager.getKeys({keyList:['escape']}).length > 0) {\n"
-                "  return quitPsychoJS('The [Escape] key was pressed. Goodbye!', false);\n"
-                "}\n")
+                "  }\n\n")
         buff.writeIndentedLines(code % self.params)
 
         buff.writeIndentedLines("\n// refresh the screen if continuing\n")

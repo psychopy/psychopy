@@ -6,6 +6,7 @@
 # Distributed under the terms of the GNU General Public License (GPL).
 
 from __future__ import absolute_import, print_function
+from builtins import super  # provides Py3-style super() using python-future
 
 from os import path
 from psychopy.experiment.components import BaseComponent, Param, _translate
@@ -187,3 +188,6 @@ class QmixPumpComponent(BaseComponent):
                     '    %(name)s.stop()\n\n' % self.params)
 
         buff.writeIndentedLines(code)
+
+        # get parent to write code too (e.g. store onset/offset times)
+        super().writeRoutineEndCode(buff)

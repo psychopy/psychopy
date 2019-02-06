@@ -489,9 +489,8 @@ class BaseWizard(object):
 
     def save(self):
         """Save the html text as a file."""
-        f = codecs.open(self.reportPath, 'wb', 'UTF8')
-        f.write(self.reportText)
-        f.close()
+        with codecs.open(self.reportPath, 'wb', encoding='utf-8-sig') as f:
+            f.write(self.reportText)
 
 class ConfigWizard(BaseWizard):
     """Walk through configuration diagnostics & generate report.

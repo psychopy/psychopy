@@ -16,7 +16,7 @@ from subprocess import CalledProcessError
 import psychopy  # for currently loaded version
 from psychopy import prefs
 from psychopy import logging, tools, web, constants
-
+from pkg_resources import parse_version
 if constants.PY3:
     from importlib import reload
 
@@ -86,15 +86,16 @@ def useVersion(requestedVersion):
         _clone(requestedVersion)  # Allow the versions subdirectory to be built
 
     if constants.PY3:
-        py3Compatible = _versionFilter(versionOptions(local=False))
-        py3Compatible += _versionFilter(availableVersions(local=False))
+        py3Compatible = _versionFilter(versionOptions(local=False), None)
+        py3Compatible += _versionFilter(availableVersions(local=False), None)
         py3Compatible.sort(reverse=True)
 
         if reqdMajorMinorPatch not in py3Compatible:
-            msg = _translate("Please request a version of PsychoPy that is compatible with Python 3.\n"
-                             "You can choose from the following versions: {}.\n"
-                             "Alternatively, run PsychoPy versions < v.1.9.0 with Python 2.\n\n")
-            raise RuntimeError(msg.format(py3Compatible))
+            msg = _translate("Please request a version of PsychoPy that is compatible with Python 3. "
+                             "You can choose from the following versions: {}. "
+                             "Alternatively, run a Python 2 installation of PsychoPy < v1.9.0.\n")
+            logging.error(msg.format(py3Compatible))
+            return
 
     if psychopy.__version__ != reqdMajorMinorPatch:
         # Switching required, so make sure `git` is available.
@@ -227,12 +228,11 @@ def _remoteVersions(forceCheck=False):
     return _remoteVersionsCache
 
 
-def _versionFilter(versions):
-    """Returns all versions that are compatible with the Python version running PsychoPy
+def _versionFilter(versions, wxVersion):
+    """Returns all versions that are compatible with the Python and WX running PsychoPy
 
     Parameters
     ----------
-
     versions: list
         All available (valid) selections for the version to be chosen
 
@@ -242,8 +242,20 @@ def _versionFilter(versions):
         All valid selections for the version to be chosen that are compatible with Python version used
     """
 
+    # Get Python 3 Compatibility
     if constants.PY3:
-        return [V for V in versions if V == 'latest' or float(V[:3]) >= 1.9]
+        msg = _translate("Filtering versions of PsychoPy only compatible with Python 3.")
+        logging.info(msg)
+        versions = [ver for ver in versions if ver == 'latest' or parse_version(ver) >= parse_version('1.90')]
+
+    # Get WX Compatibility
+    compatibleWX = '4.0'
+    if wxVersion is not None and parse_version(wxVersion) >= parse_version(compatibleWX):
+        msg = _translate("wx version: {}. Filtering versions of "
+                         "PsychoPy only compatible with wx >= version {}".format(wxVersion,
+                                                                              compatibleWX))
+        logging.info(msg)
+        return [ver for ver in versions if ver == 'latest' or parse_version(ver) > parse_version('1.85.04')]
     return versions
 
 
