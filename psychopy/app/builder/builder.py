@@ -2265,11 +2265,11 @@ class BuilderFrame(wx.Frame):
         if self._getExportPref('on sync'):
             self.fileExport(htmlPath=self._getHtmlPath(self.filename))
 
-        self.enablePavloviaButton('pavloviaRun', False)
+        self.enablePavloviaButton(['pavloviaSync', 'pavloviaRun'], False)
         try:
             pavlovia_ui.syncProject(parent=self, project=self.project)
         finally:
-            self.enablePavloviaButton('pavloviaRun', True)
+            self.enablePavloviaButton(['pavloviaSync', 'pavloviaRun'], True)
 
     def onPavloviaRun(self, evt=None):
         if self._getExportPref('on save'):
@@ -2295,18 +2295,23 @@ class BuilderFrame(wx.Frame):
             url = "https://pavlovia.org/run/{}/html".format(self.project.id)
             wx.LaunchDefaultBrowser(url)
 
-    def enablePavloviaButton(self, name, enable):
+    def enablePavloviaButton(self, buttons, enable):
         """
         Enables or disables Pavlovia buttons.
 
         Parameters
         ----------
-        name: string
-            Works for buttons 'pavloviaSync', 'pavloviaRun', 'pavloviaSearch', or 'pavloviaUser'.
+        name: string, list
+            Takes single buttons 'pavloviaSync', 'pavloviaRun', 'pavloviaSearch', 'pavloviaUser',
+            or multiple buttons in string 'pavloviaSync, pavloviaRun',
+            or comma separated list of strings ['pavloviaSync', 'pavloviaRun', ...].
         enable: bool
             True enables and False disables the button
         """
-        self.toolbar.EnableTool(self.btnHandles[name].GetId(), enable)
+        if isinstance(buttons, str):
+            buttons = buttons.split(',')
+        for button in buttons:
+            self.toolbar.EnableTool(self.btnHandles[button.strip(' ')].GetId(), enable)
 
     def setPavloviaUser(self, user):
         # TODO: update user icon on button to user avatar
