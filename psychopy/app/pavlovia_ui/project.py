@@ -450,7 +450,8 @@ def syncProject(parent, project=None, closeFrameWhenDone=False):
             project.newRepo(syncFrame)
         # add the local files and commit them
         ok = showCommitDialog(parent=parent, project=project,
-                              initMsg="First commit")
+                              initMsg="First commit",
+                              infoStream=syncFrame.syncPanel.infoStream)
         if ok == -1:  # cancelled
             syncFrame.Destroy()
             return -1
@@ -474,7 +475,8 @@ def syncProject(parent, project=None, closeFrameWhenDone=False):
             closeFrameWhenDone = False
             syncFrame.syncPanel.statusAppend(traceback.format_exc())
         # check for anything to commit before pull/push
-        outcome = showCommitDialog(parent, project)
+        outcome = showCommitDialog(parent, project,
+                                   infoStream=syncFrame.syncPanel.infoStream)
         # 0=nothing to do, 1=OK, -1=cancelled
         if outcome == -1:  # user cancelled
             syncFrame.Destroy()
