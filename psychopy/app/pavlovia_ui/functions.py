@@ -84,7 +84,7 @@ def logOutPavlovia(parent, event=None):
     dlg.Destroy()
 
 
-def showCommitDialog(parent, project, initMsg=""):
+def showCommitDialog(parent, project, initMsg="", infoStream=None):
     """Brings up a commit dialog (if there is anything to commit
 
     Returns
@@ -146,7 +146,7 @@ def showCommitDialog(parent, project, initMsg=""):
     commitMsg = commitTitleCtrl.GetValue()
     if commitDescrCtrl.GetValue():
         commitMsg += "\n\n" + commitDescrCtrl.GetValue()
-    project.stageFiles(changeList)  # NB not needed in dulwich
+    project.stageFiles(changeList, infoStream=infoStream)  # NB not needed in dulwich
     project.commit(commitMsg)
     return 1
 
