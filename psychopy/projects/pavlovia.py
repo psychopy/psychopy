@@ -927,7 +927,7 @@ class PavloviaProject(dict):
                         'should be a list not a {}'.format(type(files)))
             try:
                 self.repo.git.add(files)
-            except:
+            except git.exc.GitCommandError:
                 if infoStream:
                     infoStream.SetValue(traceback.format_exc())
         else:
