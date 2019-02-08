@@ -1904,7 +1904,8 @@ class CoderFrame(wx.Frame):
 
         self.toolbar.AddSeparator()
         pavButtons = pavlovia_ui.toolbar.PavloviaButtons(self, toolbar=tb, tbSize=size)
-        pavButtons.addPavloviaTools(buttons=['pavloviaSync', 'pavloviaSearch', 'pavloviaUser', ])
+        pavButtons.addPavloviaTools(
+                buttons=['pavloviaSync', 'pavloviaSearch', 'pavloviaUser'])
         self.btnHandles.update(pavButtons.btnHandles)
 
         tb.Realize()

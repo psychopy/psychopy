@@ -173,10 +173,12 @@ class ProjectEditor(wx.Dialog):
 class DetailsPanel(scrlpanel.ScrolledPanel):
 
     def __init__(self, parent, noTitle=False,
-                 style=wx.VSCROLL | wx.NO_BORDER):
+                 style=wx.VSCROLL | wx.NO_BORDER,
+                 project={}):
+
         scrlpanel.ScrolledPanel.__init__(self, parent, -1, style=style)
         self.parent = parent
-        self.project = {}  # type: PavloviaProject
+        self.project = project  # type: PavloviaProject
         self.noTitle = noTitle
         self.localFolder = ''
 
@@ -217,18 +219,18 @@ class DetailsPanel(scrlpanel.ScrolledPanel):
         # layout
         # sizers: on the right we have detail
         self.sizer = wx.BoxSizer(wx.VERTICAL)
-        self.sizer.Add(wx.StaticText(self, -1, _translate("Project Info")),
-                       flag=wx.ALL,
-                       border=5)
+        # self.sizer.Add(wx.StaticText(self, -1, _translate("Project Info")),
+        #                flag=wx.ALL,
+        #                border=5)
         if not noTitle:
             self.sizer.Add(self.title, border=5,
                            flag=wx.ALL | wx.ALIGN_CENTER)
         self.sizer.Add(self.url, border=5,
-                       flag=wx.ALL | wx.CENTER)
+                       flag=wx.ALL | wx.ALIGN_CENTER)
         self.sizer.Add(self.localFolderCtrl, border=5,
                              flag=wx.ALL | wx.EXPAND),
         self.sizer.Add(self.browseLocalBtn, border=5,
-                             flag=wx.ALL | wx.LEFT)
+                             flag=wx.ALL | wx.ALIGN_LEFT)
         self.sizer.Add(self.tags, border=5, flag=wx.ALL | wx.EXPAND)
         self.sizer.Add(self.visibility, border=5, flag=wx.ALL | wx.EXPAND)
         self.sizer.Add(wx.StaticLine(self, -1, style=wx.LI_HORIZONTAL),
@@ -238,12 +240,16 @@ class DetailsPanel(scrlpanel.ScrolledPanel):
         self.sizer.Add(wx.StaticLine(self, -1, style=wx.LI_HORIZONTAL),
                        flag=wx.ALL | wx.EXPAND)
         self.sizer.Add(self.syncButton,
-                       flag=wx.ALL | wx.RIGHT, border=5)
+                       flag=wx.ALL | wx.ALIGN_RIGHT, border=5)
 
-        self.SetSizer(self.sizer)
+        if self.project:
+            self.setProject(self.project)
+
+        self.SetAutoLayout(True)
+        self.SetSizerAndFit(self.sizer)
         self.SetupScrolling()
-        self.Layout()
         self.Bind(wx.EVT_SIZE, self.onResize)
+
 
     def setProject(self, project, localRoot=''):
         if not isinstance(project, pavlovia.PavloviaProject):
@@ -368,6 +374,35 @@ class DetailsPanel(scrlpanel.ScrolledPanel):
         self.Layout()
         self.parent.Raise()
 
+
+
+class ProjectFrame(wx.Dialog):
+
+    def __init__(self, app, parent=None, style=None,
+                 pos=wx.DefaultPosition, project=None):
+        if style is None:
+            style = (wx.DEFAULT_DIALOG_STYLE | wx.CENTER |
+                     wx.TAB_TRAVERSAL | wx.RESIZE_BORDER)
+        if project:
+            title = project.title
+        else:
+            title = _translate("Project info")
+        self.frameType = 'ProjectInfo'
+        wx.Dialog.__init__(self, parent, -1, title=title, style=style,
+                           size=(700, 500), pos=pos)
+        self.app = app
+        self.project = project
+        self.parent = parent
+
+        # on the right
+        self.detailsPanel = DetailsPanel(parent=self, project=self.project)
+        self.mainSizer = wx.BoxSizer(wx.HORIZONTAL)
+        self.mainSizer.Add(self.detailsPanel, 1, wx.EXPAND | wx.ALL, 5)
+        self.SetSizerAndFit(self.mainSizer)
+
+        if self.parent:
+            self.CenterOnParent()
+        self.Layout()
 
 def syncProject(parent, project=None, closeFrameWhenDone=False):
     """A function to sync the current project (if there is one)
