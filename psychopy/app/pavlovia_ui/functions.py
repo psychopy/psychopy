@@ -38,11 +38,9 @@ def setLocalPath(parent, project=None, path=""):
     else:
         origPath = ""
     # create the dialog
-    dlg = wx.DirDialog(
-            parent,
-            defaultPath=origPath,
-            message=_translate(
-                    "Choose/create the root location for the synced project"))
+    dlg = wx.DirDialog(parent,
+                       defaultPath=origPath,
+                       message=_translate("Choose/create the root location for the synced project"))
     if dlg.ShowModal() == wx.ID_OK:
         newPath = dlg.GetPath()
         if os.path.isfile(newPath):
@@ -107,11 +105,14 @@ def showCommitDialog(parent, project, initMsg=""):
             changeInfo += "\t{}: {} files\n".format(categ.title(), len(changes))
     
     dlg = PavloviaCommitDialog(parent, id=wx.ID_ANY, title="Committing changes", changeInfo=changeInfo)
+
     retVal = dlg.ShowCommitDlg()
+    commitMsg = dlg.getCommitMsg()
+    dlg.Destroy()
+
     if retVal == wx.ID_CANCEL:
         return -1
 
-    commitMsg = dlg.getCommitMsg()
     project.stageFiles(changeList)  # NB not needed in dulwich
     project.commit(commitMsg)
     return 1

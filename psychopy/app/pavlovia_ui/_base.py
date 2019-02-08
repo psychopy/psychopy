@@ -7,7 +7,6 @@
 
 import wx
 import wx.html2
-import wx.lib.agw.balloontip as BT
 
 from psychopy.localization import _translate
 from psychopy.projects import pavlovia
@@ -147,25 +146,30 @@ class PavloviaCommitDialog(wx.Dialog):
     """This class will be used to brings up a commit dialog
     (if there is anything to commit)"""
 
-    def __init__(self, *args, initMsg='Write your commit message here...', changeInfo='', **kwargs):
+    def __init__(self, *args, **kwargs):
+
+        # pop kwargs for Py2 compatibility
+        changeInfo = kwargs.pop('changeInfo', '')
+        initMsg = kwargs.pop('initMsg', 'Write your commit message here...')
+
         super(PavloviaCommitDialog, self).__init__(*args, **kwargs)
 
         # Set Text widgets
-        self.dlg = wx.Dialog(None, id=wx.ID_ANY, title="Committing changes")
-        self.updatesInfo = wx.StaticText(self.dlg, label=changeInfo)
-        self.commitTitleLbl = wx.StaticText(self.dlg, label='Summary of changes')
-        self.commitTitleCtrl = wx.TextCtrl(self.dlg, size=(500, -1), value=initMsg)
-        self.commitDescrLbl = wx.StaticText(self.dlg, label='Details of changes\n (optional)')
-        self.commitDescrCtrl = wx.TextCtrl(self.dlg, size=(500, 200), style=wx.TE_MULTILINE | wx.TE_AUTO_URL)
+        wx.Dialog(None, id=wx.ID_ANY, title="Committing changes")
+        self.updatesInfo = wx.StaticText(self, label=changeInfo)
+        self.commitTitleLbl = wx.StaticText(self, label='Summary of changes')
+        self.commitTitleCtrl = wx.TextCtrl(self, size=(500, -1), value=initMsg)
+        self.commitDescrLbl = wx.StaticText(self, label='Details of changes\n (optional)')
+        self.commitDescrCtrl = wx.TextCtrl(self, size=(500, 200), style=wx.TE_MULTILINE | wx.TE_AUTO_URL)
 
         # Set buttons
-        self.btnOK = wx.Button(self.dlg, wx.ID_OK)
-        self.btnCancel = wx.Button(self.dlg, wx.ID_CANCEL)
+        self.btnOK = wx.Button(self, wx.ID_OK)
+        self.btnCancel = wx.Button(self, wx.ID_CANCEL)
 
         # Format elements
         self.setBindings()
         self.setToolTips()
-        self.setSizers()
+        self.setDlgSizers()
 
     def setBindings(self):
         """Set the bindings for the dialog widgets"""
@@ -181,7 +185,7 @@ class PavloviaCommitDialog(wx.Dialog):
             wx.ToolTip(
                 _translate("Optional further details about the changes you're making in these files")))
 
-    def setSizers(self):
+    def setDlgSizers(self):
         """
         Set the commit dialog sizers and layout.
         """
@@ -199,8 +203,8 @@ class PavloviaCommitDialog(wx.Dialog):
         mainSizer.Add(self.updatesInfo, 0, wx.ALL | wx.EXPAND, border=5)
         mainSizer.Add(commitSizer, 1, wx.ALL | wx.EXPAND, border=5)
         mainSizer.Add(buttonSizer, 0, wx.ALL | wx.ALIGN_RIGHT, border=5)
-        self.dlg.SetSizerAndFit(mainSizer)
-        self.dlg.Layout()
+        self.SetSizerAndFit(mainSizer)
+        self.Layout()
 
     def ShowCommitDlg(self):
         """Show the commit application-modal dialog
@@ -209,7 +213,7 @@ class PavloviaCommitDialog(wx.Dialog):
         -------
         wx event
         """
-        return self.dlg.ShowModal()
+        return self.ShowModal()
 
     def enableButton(self, evt):
         """
