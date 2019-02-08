@@ -170,7 +170,6 @@ class PavloviaCommitDialog(wx.Dialog):
     def setBindings(self):
         """Set the bindings for the dialog widgets"""
         # Bind button event to textbox
-        self.commitTitleCtrl.Bind(wx.EVT_CHAR, self.enableButton)
         self.commitTitleCtrl.Bind(wx.EVT_UPDATE_UI, self.enableButton)
 
     def setToolTips(self):
