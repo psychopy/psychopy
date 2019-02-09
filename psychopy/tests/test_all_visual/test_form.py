@@ -104,7 +104,7 @@ class Test_Form(object):
             assert self.survey._responseTextWrap(item) == size * self.survey.size[0] / len(options)
 
     def test_set_questions(self):
-        survey = Form(self.win, items=[], size=(1.0, 0.3), pos=(0.0, 0.0), autoLog=False)
+        survey = Form(self.win, items=[self.genderItem], size=(1.0, 0.3), pos=(0.0, 0.0), autoLog=False)
         textStim, questionHeight, questionWidth = survey._setQuestion(self.genderItem)
 
         assert type(textStim) == TextStim
@@ -112,7 +112,7 @@ class Test_Form(object):
         assert type(questionWidth) == float
 
     def test_set_response(self):
-        survey = Form(self.win, items=[], size=(1.0, 0.3), pos=(0.0, 0.0), autoLog=False)
+        survey = Form(self.win, items=[self.genderItem], size=(1.0, 0.3), pos=(0.0, 0.0), autoLog=False)
         textStim, questionHeight, questionWidth = survey._setQuestion(self.genderItem)
         sliderStim, respHeight = survey._setResponse(self.genderItem, textStim)
 
