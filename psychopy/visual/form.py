@@ -52,18 +52,20 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
         Space or padding between form items.
     units : str
         units for stimuli - Currently, Form class only operates with 'height' units.
+    randomize : bool
+        Randomize order of Form elements
     """
 
     def __init__(self,
                  win,
                  name='default',
                  items=None,
-                 randomize=False,
                  textHeight=.02,
                  size=(.5, .5),
                  pos=(0, 0),
                  itemPadding=0.05,
                  units='height',
+                 randomize=False,
                  autoLog=True,
                  ):
 
