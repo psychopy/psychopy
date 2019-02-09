@@ -95,6 +95,9 @@ class DataStoreFile(object):
         else:
             self.loadTableMappings()
 
+    def loadTableMappings(self):
+        raise NotImplementedError
+
     def buildOutTemplate(self):
         self.emrtFile.title = DATA_FILE_TITLE
         self.emrtFile.FILE_VERSION = FILE_VERSION
@@ -102,21 +105,11 @@ class DataStoreFile(object):
         self.emrtFile.SCHEMA_MODIFIED = SCHEMA_MODIFIED_DATE
 
         #CREATE GROUPS
-        froot = self.emrtFile.root
-        ttitle = 'ioHub DeviceEvent Class to DataStore Table Mappings.'
-        self.TABLES['CLASS_TABLE_MAPPINGS'] = self.emrtFile.createTable(froot,
-                                                        'class_table_mapping',
-                                                        ClassTableMappings,
-                                                        title=ttitle)
-
-        #getattr(self.emrtFile, create_group)(self.emrtFile.root, 'analysis', title='Data Analysis Files, notebooks, scripts and saved results tables.')
-
         self.TABLES['CLASS_TABLE_MAPPINGS'] = getattr(self.emrtFile, create_table)(
             self.emrtFile.root,
             'class_table_mapping',
             ClassTableMappings,
-            title='Mapping of ioHub DeviceEvent Classes to ioHub DataStore Tables.'
-        )
+            title='ioHub DeviceEvent Class to DataStore Table Mappings.')
 
         getattr(self.emrtFile, create_group)(
             self.emrtFile.root,
@@ -199,7 +192,7 @@ class DataStoreFile(object):
                 event_table_label = event_cls.IOHUB_DATA_TABLE
                 if event_table_label not in self.TABLES:
                     try:
-                        self.TABLES[event_table_label] = self.emrtFile.createTable(
+                        self.TABLES[event_table_label] = getattr(self.emrtFile, create_table)(
                             self.groupNodeForEvent(event_cls),
                             self.eventTableLabel2ClassName(event_table_label),
                             event_cls.NUMPY_DTYPE,

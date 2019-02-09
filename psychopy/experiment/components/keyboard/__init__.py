@@ -9,7 +9,9 @@ from __future__ import absolute_import, print_function
 
 from builtins import str
 from builtins import range
+from builtins import super  # provides Py3-style super() using python-future
 from past.builtins import basestring
+
 from os import path
 
 from psychopy.experiment.components import BaseComponent, Param, _translate
@@ -27,7 +29,7 @@ _localized = {'allowedKeys': _translate('Allowed keys'),
               'forceEndRoutine': _translate('Force end of Routine'),
               'storeCorrect': _translate('Store correct'),
               'correctAns': _translate('Correct answer'),
-              'syncScreenRefresh': _translate('sync RT with screen')}
+              'syncScreenRefresh': _translate('Sync timing with screen')}
 
 
 class KeyboardComponent(BaseComponent):
@@ -436,7 +438,7 @@ class KeyboardComponent(BaseComponent):
                 "    %(name)s.keys=None\n")
         buff.writeIndentedLines(code % self.params)
 
-        if self.params['storeCorrect'].val:  # check for correct NON-repsonse
+        if self.params['storeCorrect'].val:  # check for correct NON-response
             code = ("    # was no response the correct answer?!\n"
                     "    if str(%(correctAns)s).lower() == 'none':\n"
                     "       %(name)s.corr = 1;  # correct non-response\n"
@@ -473,6 +475,9 @@ class KeyboardComponent(BaseComponent):
                     (currLoop.params['name'], name, name))
             buff.writeIndentedLines(code)
 
+        # get parent to write code too (e.g. store onset/offset times)
+        super().writeRoutineEndCode(buff)
+
         if currLoop.params['name'].val == self.exp._expHandler.name:
             buff.writeIndented("%s.nextEntry()\n" % self.exp._expHandler.name)
 
@@ -490,7 +495,7 @@ class KeyboardComponent(BaseComponent):
 
         # write the actual code
         code = ("\n// check responses\n"
-                "if (['', [], undefined].indexOf(%(name)s.keys) >= 0) {"
+                "if (%(name)s.keys === undefined || %(name)s.keys.length === 0) {"
                 "    // No response was made\n"
                 "    %(name)s.keys = undefined;\n"
                 "}\n\n")
@@ -498,8 +503,8 @@ class KeyboardComponent(BaseComponent):
 
         if self.params['storeCorrect'].val:  # check for correct NON-repsonse
             code = ("// was no response the correct answer?!\n"
-                    "if (%(name)s.keys == undefined) {\n"
-                    "  if (psychoJS.str(%(correctAns)s).toLowerCase() == 'none') {\n"
+                    "if (%(name)s.keys === undefined) {\n"
+                    "  if (['None','none',undefined].includes(%(correctAns)s)) {\n"
                     "     %(name)s.corr = 1  // correct non-response\n"
                     "  } else {\n"
                     "     %(name)s.corr = 0  // failed to respond (incorrectly)\n"

@@ -7,10 +7,11 @@ from builtins import str
 from builtins import object
 import os
 import re
+import wx.__version__
 import psychopy
 from psychopy import logging
 from psychopy.experiment.components import BaseComponent, Param, _translate
-from psychopy.tools.versionchooser import versionOptions, availableVersions
+from psychopy.tools.versionchooser import versionOptions, availableVersions, _versionFilter
 from psychopy.constants import PY3
 
 # for creating html output folders:
@@ -150,7 +151,9 @@ class SettingsComponent(object):
         self.params['Use version'] = Param(
             useVersion, valType='str',
             # search for options locally only by default, otherwise sluggish
-            allowedVals=versionOptions() + [''] + availableVersions(),
+            allowedVals=_versionFilter(versionOptions(), wx.__version__)
+                        + ['']
+                        + _versionFilter(availableVersions(), wx.__version__),
             hint=_translate("The version of PsychoPy to use when running "
                             "the experiment."),
             label=_localized["Use version"], categ='Basic')
@@ -496,8 +499,9 @@ class SettingsComponent(object):
         # html header
         template = readTextFile("JS_htmlHeader.tmpl")
         header = template.format(
-                   name=self.params['expName'].val,  # prevent repr() conversion
-                   params=self.params)
+            name=self.params['expName'].val,  # prevent repr() conversion
+            version=version,
+            params=self.params)
         jsFile = self.exp.expPath
         folder = os.path.dirname(jsFile)
         if not os.path.isdir(folder):
@@ -528,9 +532,9 @@ class SettingsComponent(object):
         # Write window code
         self.writeWindowCodeJS(buff)
         code = ("\n// store info about the experiment session:\n"
-                "let expName = %(expName)s;  // from the Builder filename that created this script\n"
-                "let expInfo = %(Experiment info)s;\n"
-                "\n" % self.params)
+                "let expName = %s;  // from the Builder filename that created this script\n"
+                "let expInfo = %s;\n"
+                "\n" % (self.params['expName'], self.getInfo()))
         buff.writeIndentedLines(code)
 
     def writeExpSetupCodeJS(self, buff, version):
@@ -719,17 +723,25 @@ class SettingsComponent(object):
         buff.writeIndentedLines(code)
 
     def writeWindowCodeJS(self, buff):
+        """Setup the JS window code.
+        """
+        # Replace instances of 'use prefs'
+        units = self.params['Units'].val
+        if units == 'use prefs':
+            units = 'height'
+
         code = ("// init psychoJS:\n"
-        "var psychoJS = new PsychoJS({{\n"
-        "  debug: true\n"
-        "}});\n\n"
-        "// open window:\n"
-        "psychoJS.openWindow({{\n"
-        "  fullscr: {fullScr},\n"
-        "  color: new util.Color({params[color]}),\n"
-        "  units: {params[Units]}\n"
-        "}});\n").format(fullScr=str(self.params['Full-screen window']).lower(),
-            params=self.params)
+                "var psychoJS = new PsychoJS({{\n"
+                "  debug: true\n"
+                "}});\n\n"
+                "// open window:\n"
+                "psychoJS.openWindow({{\n"
+                "  fullscr: {fullScr},\n"
+                "  color: new util.Color({params[color]}),\n"
+                "  units: '{units}'\n"
+                "}});\n").format(fullScr=str(self.params['Full-screen window']).lower(),
+                                 params=self.params,
+                                 units=units)
         buff.writeIndentedLines(code)
 
     def writeEndCode(self, buff):

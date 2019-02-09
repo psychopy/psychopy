@@ -12,7 +12,7 @@
 import os
 import sys
 
-__version__ = '3.0.1'
+__version__ = '3.0.3'
 __license__ = 'GNU GPLv3 (or more recent equivalent)'
 __author__ = 'Jonathan Peirce'
 __author_email__ = 'jon.peirce@gmail.com'

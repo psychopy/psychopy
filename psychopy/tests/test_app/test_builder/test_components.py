@@ -2,11 +2,10 @@ from __future__ import print_function
 
 from builtins import object
 import os
+import io
 import pytest
 
-from psychopy import prefs
 from psychopy import constants
-from psychopy.app import builder
 from psychopy.experiment import getAllComponents
 from psychopy import experiment
 from pkg_resources import parse_version
@@ -63,7 +62,8 @@ class TestComponents(object):
         pass
 
     def test_component_attribs(self):
-        target = open(self.baselineProfile, 'rU').read()
+        with io.open(self.baselineProfile, 'r', encoding='utf-8-sig') as f:
+            target = f.read()
         targetLines = target.splitlines()
         targetTag = {}
         for line in targetLines:

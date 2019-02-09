@@ -1,18 +1,19 @@
-name: anaconda-py3.6
+name: conda-py3.6
 channels:
 - conda-forge
-- defaults
 dependencies:
 - python=3.6
+- arabic_reshaper
 - astunparse
 - backports
 - bzip2
 - cffi
 - codecov
 - coveralls
+- esprima-python
 - gitpython
 - ffmpeg
-- freetype
+- freetype-py
 - future
 - gevent
 - greenlet
@@ -22,6 +23,7 @@ dependencies:
 - lxml
 - matplotlib
 - moviepy
+- msgpack-numpy
 - msgpack-python
 - numexpr
 - numpy
@@ -29,7 +31,7 @@ dependencies:
 - openpyxl
 - pandas
 - pillow
-- pip
+- pip<19.0
 - psutil
 - pyopengl
 - pyosf
@@ -49,6 +51,7 @@ dependencies:
 - six
 - pyglet>=1.3
 - pytables
+- python-gitlab
 - urllib3
 - wheel
 - x264
@@ -60,9 +63,5 @@ dependencies:
 - wxpython!=4.0.2,!=4.0.3
 - zlib
 - pip:
-  - arabic_reshaper
-  - esprima
-  - freetype-py
   - pygame
   - pyparallel
-  - python-gitlab
