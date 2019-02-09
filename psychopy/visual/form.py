@@ -628,9 +628,24 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
         lowerRange = -self.size[1]
         return (item.pos[1] < upperRange and item.pos[1] > lowerRange)
 
+    def _drawElements(self, items):
+        """Draw elements on form within border range.
+
+        Parameters
+        ----------
+        items : List
+            List of TextStim or Slider item from survey
+        """
+        for idx, item in enumerate(items):
+            item.pos = item.pos[0], self.size[1] / 2 + self._baseYpositions[idx] - self._getScrollOffset()
+            if self._inRange(item):
+                item.draw()
+
     def draw(self):
-        """Draw items on form within border area"""
-        decorations = [self.border]  # add scrollbar if it's needed
+        """Draw all form elements"""
+        
+        # add scrollbar if it's needed
+        decorations = [self.border]
         fractionVisible = self.size[1]/(-self.virtualHeight)
         if fractionVisible < 1.0:
             decorations.append(self.scrollbar)
@@ -643,14 +658,11 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
         for decoration in decorations:
             decoration.draw()
 
-        # draw the items
-        for element in self.formElements.keys():
-            if element != 'itemIndex':
-                for idx, items in enumerate(self.formElements[element]):
-                    items.pos = (items.pos[0], self.size[1] / 2 + self._baseYpositions[idx] - self._getScrollOffset())
-                    # Only draw if within border range for efficiency
-                    if self._inRange(items):
-                        items.draw()
+        # Draw question and response objects
+        self._drawElements(self.formElements['question'])
+        self._drawElements(self.formElements['response'])
+
+        # disable aperture
         self.aperture.disable()
 
     def getData(self):
