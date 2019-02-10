@@ -35,7 +35,7 @@ try:
         from openpyxl.utils.cell import get_column_letter
     else:
         from openpyxl.cell import get_column_letter
-    from openpyxl.reader.excel import load_workbook, Workbook
+    from openpyxl import load_workbook, Workbook
     haveOpenpyxl = True
 except ImportError:
     haveOpenpyxl = False
