@@ -545,20 +545,23 @@ class ProjectRecreator(wx.Dialog):
         choices = [_translate("(Re)create a project"),
                    "{} ({})".format(_translate("Point to an different location"),
                                     _translate("not yet supported")),
-                   _translate("Forget the local git repository (deletes history keeps files)"),
-                   _translate("Do nothing and abort the sync")]
+                   _translate("Forget the local git repository (deletes history keeps files)")]
         self.radioCtrl = wx.RadioBox(self, label='RadioBox', choices=choices,
                                      majorDimension=1)
         self.radioCtrl.EnableItem(1, False)
         self.radioCtrl.EnableItem(2, False)
 
         mainSizer = wx.BoxSizer(wx.VERTICAL)
-        mainSizer.Add(msg, 1, wx.ALL, 5)
-        mainSizer.Add(self.radioCtrl, 1, wx.ALL, 5)
-        mainSizer.Add(wx.Button(self, id=wx.ID_OK, label=_translate("OK")),
+        buttonSizer = wx.BoxSizer(wx.HORIZONTAL)
+        buttonSizer.Add(wx.Button(self, id=wx.ID_OK, label=_translate("OK")),
                       1, wx.ALL | wx.ALIGN_RIGHT, 5)
+        buttonSizer.Add(wx.Button(self, id=wx.ID_CANCEL, label=_translate("Cancel")),
+                      1, wx.ALL | wx.ALIGN_RIGHT, 5)
+        mainSizer.Add(msg, 1, wx.ALL, 5)
+        mainSizer.Add(self.radioCtrl, 1, wx.ALL | wx.ALIGN_CENTER_HORIZONTAL, 5)
+        mainSizer.Add(buttonSizer, 1, wx.ALL | wx.ALIGN_RIGHT, 1)
 
-        self.SetSizerAndFit(mainSizer)
+        self.SetSizer(mainSizer)
         self.Layout()
 
     def ShowModal(self):

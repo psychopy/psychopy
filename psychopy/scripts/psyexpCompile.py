@@ -129,10 +129,11 @@ def compileScript(infile=None, version=None, outfile=None):
                 scriptNoModule = thisExp.writeScript(outfileNoModule, target=targetOutput, modular=False)
                 # Store scripts in list
                 scriptDict = {'outfile': script, 'outfileNoModule': scriptNoModule}
-            except TypeError as err:
-                msg = ("You cannot compile JavaScript experiments with this version of PsychoPy.\n"
-                       "Please use version 3.0.0 or higher")
-                logging.warning("{}: {}".format(err, msg))
+            except Exception as err:
+                if "writeScript()" in '{}'.format(err):  # the exception comes from this module
+                    err = ("You cannot compile JavaScript experiments with this version of PsychoPy. "
+                           "Please use version 3.0.0 or higher.")
+                logging.error("\t{}".format(err))
                 return 0
         else:
             script = thisExp.writeScript(outfile, target=targetOutput)
