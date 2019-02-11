@@ -2376,6 +2376,7 @@ class BuilderFrame(wx.Frame):
         self.enablePavloviaButton(['pavloviaSync', 'pavloviaRun'], False)
         try:
             pavlovia_ui.syncProject(parent=self, project=self.project)
+            pavlovia.knownProjects.save()  # update projects.json
         finally:
             self.enablePavloviaButton(['pavloviaSync', 'pavloviaRun'], True)
 
