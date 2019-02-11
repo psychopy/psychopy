@@ -330,13 +330,13 @@ def pointToNdc(wcsPos, viewMatrix, projectionMatrix):
     --------
     Determine if a point is visible::
         point = (0.0, 0.0, 10.0)  # behind the observer
-        ndc = pointToNDC(point, win.viewMatrix, win.projectionMatrix)
+        ndc = pointToNdc(point, win.viewMatrix, win.projectionMatrix)
         isVisible = not np.any((ndc > 1.0) | (ndc < -1.0))
 
     Convert NDC to viewport (or pixel) coordinates::
         scrRes = (1920, 1200)
         point = (0.0, 0.0, -5.0)  # forward -5.0 from eye
-        x, y, z = pointToNDC(point, win.viewMatrix, win.projectionMatrix)
+        x, y, z = pointToNdc(point, win.viewMatrix, win.projectionMatrix)
         pixelX = ((x + 1.0) / 2.0) * scrRes[0])
         pixelY = ((y + 1.0) / 2.0) * scrRes[1])
         # object at point will appear at (pixelX, pixelY)
