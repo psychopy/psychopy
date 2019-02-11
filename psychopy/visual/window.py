@@ -341,8 +341,7 @@ class Window(object):
         # being used.
         # NB - attribute checks needed for Rift compatibility
         if not hasattr(self, '_viewMatrix'):
-            self._viewMatrix = numpy.zeros((4,4,), numpy.float32)
-            numpy.fill_diagonal(self._viewMatrix, 1.0)  # identity
+            self._viewMatrix = numpy.identity(4, dtype=numpy.float32)
 
         if not hasattr(self, '_projectionMatrix'):
             self._projectionMatrix = viewtools.orthoProjectionMatrix(-1, 1, -1, 1, -1, 1)
@@ -1077,15 +1076,15 @@ class Window(object):
         # apply the projection and view transformations
         GL.glMatrixMode(GL.GL_PROJECTION)
         GL.glLoadIdentity()
-        projMat = numpy.asfortranarray(self._projectionMatrix).ctypes.data_as(
+        projMat = self._projectionMatrix.T.ctypes.data_as(
             ctypes.POINTER(ctypes.c_float))
-        GL.glMultMatrixf(projMat)
+        GL.glLoadMatrixf(projMat)
 
         GL.glMatrixMode(GL.GL_MODELVIEW)
         GL.glLoadIdentity()
-        viewMat = numpy.asfortranarray(self._viewMatrix).ctypes.data_as(
+        viewMat = self._viewMatrix.T.ctypes.data_as(
             ctypes.POINTER(ctypes.c_float))
-        GL.glMultMatrixf(viewMat)
+        GL.glLoadMatrixf(viewMat)
 
         if clearDepth:
             #GL.glDepthMask(GL.GL_TRUE)
