@@ -295,7 +295,7 @@ def lookAt(eyePos, centerPos, upVec):
     return np.matmul(rotMat, transMat)
 
 
-def pointToNDC(wcsPos, viewMatrix, projectionMatrix):
+def pointToNdc(wcsPos, viewMatrix, projectionMatrix):
     """Map the position of a point in world space to normalized device
     coordinates/space.
 
