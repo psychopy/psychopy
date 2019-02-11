@@ -920,7 +920,7 @@ class PavloviaProject(dict):
             changeList.extend(changeDict[categ])
         return changeDict, changeList
 
-    def stageFiles(self, files=None):
+    def stageFiles(self, files=None, infoStream=None):
         """Adds changed files to the stage (index) ready for commit.
 
         The files is a list and can include new/changed/deleted
@@ -932,7 +932,11 @@ class PavloviaProject(dict):
                 raise TypeError(
                         'The `files` provided to PavloviaProject.stageFiles '
                         'should be a list not a {}'.format(type(files)))
-            self.repo.git.add(files)
+            try:
+                self.repo.git.add(files)
+            except git.exc.GitCommandError:
+                if infoStream:
+                    infoStream.SetValue(traceback.format_exc())
         else:
             diffsDict, diffsList = self.getChanges()
             if diffsDict['untracked']:
