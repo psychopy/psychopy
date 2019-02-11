@@ -154,8 +154,7 @@ def generalizedPerspectiveProjection(posBottomLeft,
     rotMat[2, :3] = vn
     rotMat[3, 3] = 1.0
 
-    transMat = np.zeros((4, 4), np.float32)
-    np.fill_diagonal(transMat, 1.0)
+    transMat = np.identity(4, np.float32)
     transMat[:3, 3] = -eyePos
 
     return projMat, np.matmul(rotMat, transMat)
