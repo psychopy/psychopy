@@ -407,7 +407,7 @@ class BlackBoxToolkit(serialdevice.SerialDevice):
         else:
             self.sendMessage(b'PATT')  # Set to exact port trigger match
         self.pause()
-        if testDuration:
+        if int(testDuration) >= 0:
             self.sendMessage(b'TIML')
             self.pause()
             self.sendMessage(b"%i" % int(testDuration * 1000000))
@@ -417,7 +417,10 @@ class BlackBoxToolkit(serialdevice.SerialDevice):
             time.sleep(5)
         self.sendMessage(b'PCCR')  # Sequence complete
         self.pause()
-        self.sendMessage(b'RUCR')  # run sequennce
+        if int(testDuration) == 0:
+            self.sendMessage(b'RUSR')  # DSRE
+        else:
+            self.sendMessage(b'RUCR')  # DSCAR
         self.pause()
 
 if __name__ == "__main__":

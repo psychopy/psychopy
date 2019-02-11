@@ -55,6 +55,7 @@ runScripts = 'process'
 
 try:  # needed for wx.py shell
     import code
+
     haveCode = True
 except Exception:
     haveCode = False
@@ -74,9 +75,8 @@ def toPickle(filename, data):
 
     simple wrapper of the cPickle module in core python
     """
-    f = open(filename, 'w')
-    pickle.dump(data, f)
-    f.close()
+    with io.open(filename, 'wb') as f:
+        pickle.dump(data, f)
 
 
 def fromPickle(filename):
@@ -84,9 +84,9 @@ def fromPickle(filename):
 
     simple wrapper of the cPickle module in core python
     """
-    f = open(filename)
-    contents = pickle.load(f)
-    f.close()
+    with io.open(filename, 'rb') as f:
+        contents = pickle.load(f)
+
     return contents
 
 
@@ -198,7 +198,6 @@ class PsychoDebugger(bdb.Bdb):
 
 
 class UnitTestFrame(wx.Frame):
-
     class _unitTestOutRich(stdOutRich.StdOutRich):
         """richTextCtrl window for unit test output"""
 
@@ -684,7 +683,7 @@ class CodeEditor(BaseCodeEditor):
                             # does it have known attributes?
                             if type(attrs) == list and len(attrs) >= 1:
                                 subList = [s for s in attrs if
-                                    currWord.lower() in s.lower()]
+                                           currWord.lower() in s.lower()]
                     # for objects show simple completions
                     else:  # there was no preceding '.'
                         # start trying after 2 characters
@@ -743,6 +742,7 @@ class CodeEditor(BaseCodeEditor):
             self.BraceBadLight(braceAtCaret)
         else:
             self.BraceHighlight(braceAtCaret, braceOpposite)
+
     #
     # The code to handle the Source Assistant (using introspect) was broken and removed in 1.90.0
     #     if self.coder.prefs['showSourceAsst']:
@@ -997,7 +997,7 @@ class CodeEditor(BaseCodeEditor):
             successfulParse = False
         buffer.close()
 
-    #     # if we parsed the tokens then process them
+        #     # if we parsed the tokens then process them
         if successfulParse:
             # import the libs used by the script
             if self.coder.modulesLoaded:
@@ -1084,9 +1084,9 @@ class CodeEditor(BaseCodeEditor):
         that will be converted to use the right STC_LEXER_XXXX value
         """
         try:
-            lex = getattr(wx.stc, "STC_LEX_%s" %(lexer.upper()))
+            lex = getattr(wx.stc, "STC_LEX_%s" % (lexer.upper()))
         except AttributeError:
-            logging.warn("Unknown lexer %r. Using 'python' instead" %lexer)
+            logging.warn("Unknown lexer %r. Using 'python' instead" % lexer)
             lex = wx.stc.STC_LEX_PYTHON
             lexer = 'python'
         # then actually set it
@@ -1308,7 +1308,7 @@ class CoderFrame(wx.Frame):
                     import IPython.gui.wx.ipython_view
                     # IPython shell is nice, but crashes if you draw stimuli
                     self.shell = IPython.gui.wx.ipython_view.IPShellWidget(
-                        parent=self, background_color='WHITE',)
+                        parent=self, background_color='WHITE', )
                     useDefaultShell = False
                 except Exception:
                     msg = _translate('IPython failed as shell, using pyshell'
@@ -1616,7 +1616,6 @@ class CoderFrame(wx.Frame):
         # self.Bind(wx.EVT_MENU, self.app.openIPythonNotebook,
         #    id=self.IDs.openIPythonNotebook)
 
-
         self.demosMenu = wx.Menu()
         self.demos = {}
         menuBar.Append(self.demosMenu, _translate('&Demos'))
@@ -1675,18 +1674,18 @@ class CoderFrame(wx.Frame):
         self.helpMenu = wx.Menu()
         menuBar.Append(self.helpMenu, _translate('&Help'))
         item = self.helpMenu.Append(wx.ID_ANY,
-                             _translate("&PsychoPy Homepage"),
-                             _translate("Go to the PsychoPy homepage"))
+                                    _translate("&PsychoPy Homepage"),
+                                    _translate("Go to the PsychoPy homepage"))
         self.Bind(wx.EVT_MENU, self.app.followLink, id=item.GetId())
         self.app.urls[item.GetId()] = self.app.urls['psychopyHome']
         item = self.helpMenu.Append(wx.ID_ANY,
-                             _translate("&PsychoPy Coder Tutorial"),
-                             _translate("Go to the online PsychoPy tutorial"))
+                                    _translate("&PsychoPy Coder Tutorial"),
+                                    _translate("Go to the online PsychoPy tutorial"))
         self.Bind(wx.EVT_MENU, self.app.followLink, id=item.GetId())
         self.app.urls[item.GetId()] = self.app.urls['coderTutorial']
         item = self.helpMenu.Append(wx.ID_ANY,
-                             _translate("&PsychoPy API (reference)"),
-                             _translate("Go to the online PsychoPy reference manual"))
+                                    _translate("&PsychoPy API (reference)"),
+                                    _translate("Go to the online PsychoPy reference manual"))
         self.Bind(wx.EVT_MENU, self.app.followLink, id=item.GetId())
         self.app.urls[item.GetId()] = self.app.urls['psychopyReference']
         self.helpMenu.AppendSeparator()
@@ -1697,8 +1696,8 @@ class CoderFrame(wx.Frame):
         self.Bind(wx.EVT_MENU, self.app.showAbout, id=wx.ID_ABOUT)
 
         item = self.helpMenu.Append(wx.ID_ANY,
-                           _translate("&News..."),
-                           _translate("News"))
+                                    _translate("&News..."),
+                                    _translate("News"))
         self.Bind(wx.EVT_MENU, self.app.showNews, id=item.GetId())
 
         self.SetMenuBar(menuBar)
@@ -1740,63 +1739,166 @@ class CoderFrame(wx.Frame):
         else:
             ctrlKey = 'Ctrl+'
         tb = self.toolbar
-        key = _translate("New [%s]") % self.app.keys['new']
 
-        item = tb.AddSimpleTool(wx.ID_ANY, newBmp,
-                                key.replace('Ctrl+', ctrlKey),
-                                _translate("Create new python file"))
+        key = _translate("New [%s]") % self.app.keys['new']
+        if 'phoenix' in wx.PlatformInfo:
+            item = tb.AddTool(wx.ID_ANY,
+                              key.replace('Ctrl+', ctrlKey),
+                              newBmp,
+                              _translate("Create new python file"))
+        else:
+            item = tb.AddSimpleTool(wx.ID_ANY,
+                                    newBmp,
+                                    key.replace('Ctrl+', ctrlKey),
+                                    _translate("Create new python file"))
         tb.Bind(wx.EVT_TOOL, self.fileNew, id=item.GetId())
+
         key = _translate("Open [%s]") % self.app.keys['open']
-        item = tb.AddSimpleTool(wx.ID_ANY, openBmp,
-                         key.replace('Ctrl+', ctrlKey),
-                         _translate("Open an existing file"))
+        if 'phoenix' in wx.PlatformInfo:
+            item = tb.AddTool(wx.ID_ANY,
+                              key.replace('Ctrl+', ctrlKey),
+                              openBmp,
+                              _translate("Open an existing file"))
+        else:
+            item = tb.AddSimpleTool(wx.ID_ANY,
+                                    openBmp,
+                                    key.replace('Ctrl+', ctrlKey),
+                                    _translate("Open an existing file"))
         tb.Bind(wx.EVT_TOOL, self.fileOpen, id=item.GetId())
+
         key = _translate("Save [%s]") % self.app.keys['save']
-        self.IDs.cdrBtnSave = tb.AddSimpleTool(wx.ID_ANY, saveBmp,
-                         key.replace('Ctrl+', ctrlKey),
-                         _translate("Save current file")).GetId()
+        if 'phoenix' in wx.PlatformInfo:
+            self.IDs.cdrBtnSave = tb.AddTool(
+                wx.ID_ANY,
+                key.replace('Ctrl+', ctrlKey),
+                saveBmp,
+                _translate("Save current file")).GetId()
+        else:
+            self.IDs.cdrBtnSave = tb.AddSimpleTool(
+                wx.ID_ANY,
+                saveBmp,
+                key.replace('Ctrl+', ctrlKey),
+                _translate("Save current file")).GetId()
         tb.EnableTool(self.IDs.cdrBtnSave, False)
         tb.Bind(wx.EVT_TOOL, self.fileSave, id=self.IDs.cdrBtnSave)
+
         key = _translate("Save As... [%s]") % self.app.keys['saveAs']
-        item = tb.AddSimpleTool(wx.ID_ANY, saveAsBmp,
-                         key.replace('Ctrl+', ctrlKey),
-                         _translate("Save current python file as..."))
+        if 'phoenix' in wx.PlatformInfo:
+            item = tb.AddTool(
+                wx.ID_ANY,
+                key.replace('Ctrl+', ctrlKey),
+                saveAsBmp,
+                _translate("Save current python file as..."))
+        else:
+            item = tb.AddSimpleTool(
+                wx.ID_ANY,
+                saveAsBmp,
+                key.replace('Ctrl+', ctrlKey),
+                _translate("Save current python file as..."))
         tb.Bind(wx.EVT_TOOL, self.fileSaveAs, id=item.GetId())
+
         key = _translate("Undo [%s]") % self.app.keys['undo']
-        self.IDs.cdrBtUndo = tb.AddSimpleTool(wx.ID_ANY, undoBmp,
-                         key.replace('Ctrl+', ctrlKey),
-                         _translate("Undo last action")).GetId()
+        if 'phoenix' in wx.PlatformInfo:
+            self.IDs.cdrBtUndo = tb.AddTool(
+                wx.ID_ANY,
+                key.replace('Ctrl+', ctrlKey),
+                undoBmp,
+                _translate("Undo last action")).GetId()
+        else:
+            self.IDs.cdrBtUndo = tb.AddSimpleTool(
+                wx.ID_ANY,
+                undoBmp,
+                key.replace('Ctrl+', ctrlKey),
+                _translate("Undo last action")).GetId()
         tb.Bind(wx.EVT_TOOL, self.undo, id=self.IDs.cdrBtUndo)
+
         key = _translate("Redo [%s]") % self.app.keys['redo']
-        self.IDs.cdrBtRedo = tb.AddSimpleTool(wx.ID_ANY, redoBmp,
-                         key.replace('Ctrl+', ctrlKey),
-                         _translate("Redo last action")).GetId()
+        if 'phoenix' in wx.PlatformInfo:
+            self.IDs.cdrBtRedo = tb.AddTool(
+                wx.ID_ANY,
+                key.replace('Ctrl+', ctrlKey),
+                redoBmp,
+                _translate("Redo last action")).GetId()
+        else:
+            self.IDs.cdrBtRedo = tb.AddSimpleTool(
+                wx.ID_ANY,
+                redoBmp,
+                key.replace('Ctrl+', ctrlKey),
+                _translate("Redo last action")).GetId()
         tb.Bind(wx.EVT_TOOL, self.redo, id=self.IDs.cdrBtRedo)
 
         tb.AddSeparator()
-        item = tb.AddSimpleTool(wx.ID_ANY, preferencesBmp,
-                         _translate("Preferences"),
-                         _translate("Application preferences"))
+
+        if 'phoenix' in wx.PlatformInfo:
+            item = tb.AddTool(wx.ID_ANY,
+                              _translate("Preferences"),
+                              preferencesBmp,
+                              _translate("Application preferences"))
+        else:
+            item = tb.AddSimpleTool(wx.ID_ANY,
+                                    preferencesBmp,
+                                    _translate("Preferences"),
+                                    _translate("Application preferences"))
         tb.Bind(wx.EVT_TOOL, self.app.showPrefs, id=item.GetId())
-        item = tb.AddSimpleTool(wx.ID_ANY, monitorsBmp,
-                         _translate("Monitor Center"),
-                         _translate("Monitor settings and calibration"))
+
+        if 'phoenix' in wx.PlatformInfo:
+            item = tb.AddTool(
+                wx.ID_ANY,
+                _translate("Monitor Center"),
+                monitorsBmp,
+                _translate("Monitor settings and calibration"))
+        else:
+            item = tb.AddSimpleTool(
+                wx.ID_ANY,
+                monitorsBmp,
+                _translate("Monitor Center"),
+                _translate("Monitor settings and calibration"))
         tb.Bind(wx.EVT_TOOL, self.app.openMonitorCenter, id=item.GetId())
-        item = tb.AddSimpleTool(wx.ID_ANY, colorpickerBmp,
-                         _translate("Color Picker -> clipboard"),
-                         _translate("Color Picker -> clipboard"))
+
+        if 'phoenix' in wx.PlatformInfo:
+            item = tb.AddTool(
+                wx.ID_ANY,
+                _translate("Color Picker -> clipboard"),
+                colorpickerBmp,
+                _translate("Color Picker -> clipboard"))
+        else:
+            item = tb.AddSimpleTool(
+                wx.ID_ANY,
+                colorpickerBmp,
+                _translate("Color Picker -> clipboard"),
+                _translate("Color Picker -> clipboard"))
         tb.Bind(wx.EVT_TOOL, self.app.colorPicker, id=item.GetId())
 
         self.toolbar.AddSeparator()
+
         key = _translate("Run [%s]") % self.app.keys['runScript']
-        self.IDs.cdrBtnRun = self.toolbar.AddSimpleTool(wx.ID_ANY, runBmp,
-                                   key.replace('Ctrl+', ctrlKey),
-                                   _translate("Run current script")).GetId()
+        if 'phoenix' in wx.PlatformInfo:
+            self.IDs.cdrBtnRun = self.toolbar.AddTool(
+                wx.ID_ANY,
+                key.replace('Ctrl+', ctrlKey),
+                runBmp,
+                _translate("Run current script")).GetId()
+        else:
+            self.IDs.cdrBtnRun = self.toolbar.AddSimpleTool(
+                wx.ID_ANY,
+                runBmp,
+                key.replace('Ctrl+', ctrlKey),
+                _translate("Run current script")).GetId()
         self.toolbar.Bind(wx.EVT_TOOL, self.runFile, id=self.IDs.cdrBtnRun)
+
         key = _translate("Stop [%s]") % self.app.keys['stopScript']
-        self.IDs.cdrBtnStop = self.toolbar.AddSimpleTool(wx.ID_ANY, stopBmp,
-                                   key.replace('Ctrl+', ctrlKey),
-                                   _translate("Stop current script")).GetId()
+        if 'phoenix' in wx.PlatformInfo:
+            self.IDs.cdrBtnStop = self.toolbar.AddTool(
+                wx.ID_ANY,
+                key.replace('Ctrl+', ctrlKey),
+                stopBmp,
+                _translate("Stop current script")).GetId()
+        else:
+            self.IDs.cdrBtnStop = self.toolbar.AddSimpleTool(
+                wx.ID_ANY,
+                stopBmp,
+                key.replace('Ctrl+', ctrlKey),
+                _translate("Stop current script")).GetId()
         tb.Bind(wx.EVT_TOOL, self.stopFile, id=self.IDs.cdrBtnStop)
         tb.EnableTool(self.IDs.cdrBtnStop, False)
 
@@ -2032,10 +2134,8 @@ class CoderFrame(wx.Frame):
 
         # is the file still there
         if os.path.isfile(filename):
-            if PY3:
-                doc.SetText(open(filename).read())
-            else:
-                doc.SetText(open(filename).read().decode('utf8'))
+            with io.open(filename, 'r', encoding='utf-8-sig') as f:
+                doc.SetText(f.read())
             doc.fileModTime = os.path.getmtime(filename)
             doc.EmptyUndoBuffer()
             doc.Colourise(0, -1)
@@ -2076,14 +2176,9 @@ class CoderFrame(wx.Frame):
             # load text from document
             if os.path.isfile(filename):
                 try:
-                    if PY3:
-                        with open(filename, 'rU', encoding='utf8') as f:
-                            self.currentDoc.SetText(f.read())
-                            self.currentDoc.newlines = f.newlines
-                    else:
-                        with open(filename, 'rU') as f:
-                            self.currentDoc.SetText(f.read().decode('utf8'))
-                            self.currentDoc.newlines = f.newlines
+                    with io.open(filename, 'r', encoding='utf-8-sig') as f:
+                        self.currentDoc.SetText(f.read())
+                        self.currentDoc.newlines = f.newlines
                 except UnicodeDecodeError:
                     dlg = dialogs.MessageDialog(self, message=_translate(
                         'Failed to open {}. Make sure that encoding of '
@@ -2388,7 +2483,7 @@ class CoderFrame(wx.Frame):
         # setup a debugger and then runFileAsImport
         fullPath = self.currentDoc.filename
         path, scriptName = os.path.split(fullPath)
-        #importName, ext = os.path.splitext(scriptName)
+        # importName, ext = os.path.splitext(scriptName)
         # set the directory and add to path
         os.chdir(path)  # try to rewrite to avoid doing chdir in the coder
 
@@ -2398,7 +2493,7 @@ class CoderFrame(wx.Frame):
     def _runFileAsProcess(self):
         fullPath = self.currentDoc.filename
         path, scriptName = os.path.split(fullPath)
-        #importName, ext = os.path.splitext(scriptName)
+        # importName, ext = os.path.splitext(scriptName)
         # set the directory and add to path
         # try to rewrite to avoid doing chdir in the coder; do through
         # wx.Shell?
@@ -2579,8 +2674,9 @@ class CoderFrame(wx.Frame):
 
     def foldAll(self, event):
         self.currentDoc.FoldAll()
+
     # def unfoldAll(self, event):
-        # self.currentDoc.ToggleFoldAll(expand = False)
+    #   self.currentDoc.ToggleFoldAll(expand = False)
 
     def setOutputWindow(self, event=None, value=None):
         # show/hide the output window (from the view menu control)
@@ -2646,11 +2742,11 @@ class CoderFrame(wx.Frame):
         self.SetStatusText(_translate('ready'))
 
     # def setAnalyseAuto(self, event):
-        # set autoanalysis (from the check control in the tools menu)
-        # if self.analyseAutoChk.IsChecked():
-        #    self.prefs['analyseAuto']=True
-        # else:
-        #    self.prefs['analyseAuto']=False
+    #     set autoanalysis (from the check control in the tools menu)
+    #     if self.analyseAutoChk.IsChecked():
+    #        self.prefs['analyseAuto']=True
+    #     else:
+    #        self.prefs['analyseAuto']=False
 
     def loadDemo(self, event):
         self.setCurrentDoc(self.demos[event.GetId()])

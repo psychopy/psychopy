@@ -1,18 +1,19 @@
-name: anaconda-py2.7
+name: conda-py2.7
 channels:
 - conda-forge
-- defaults
 dependencies:
 - python=2.7
+- arabic_reshaper
 - astunparse
 - backports
 - bzip2
 - cffi
 - codecov
 - coveralls
+- esprima-python
 - gitpython
 - ffmpeg
-- freetype
+- freetype-py
 - future
 - gevent
 - greenlet
@@ -22,6 +23,7 @@ dependencies:
 - lxml
 - matplotlib
 - moviepy
+- msgpack-numpy
 - msgpack-python
 - numexpr
 - numpy
@@ -29,7 +31,7 @@ dependencies:
 - openpyxl
 - pandas
 - pillow
-- pip
+- pip<19.0
 - pixman
 - prompt_toolkit
 - psutil
@@ -51,6 +53,7 @@ dependencies:
 - six
 - pyglet>=1.3
 - pytables
+- python-gitlab
 - urllib3
 - wheel
 - xlrd
@@ -64,11 +67,5 @@ dependencies:
 - wxpython!=4.0.2,!=4.0.3
 - zlib
 - pip:
-  - arabic_reshaper
-  - esprima
-  - et-xmlfile
-  - freetype-py
-  - prompt-toolkit
   - pygame
   - pyparallel
-  - python-gitlab

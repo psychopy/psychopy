@@ -384,7 +384,7 @@ class PavloviaSession:
         projs = []
         projIDs = []
         for proj in own + group:
-            if proj.id and proj.id not in projIDs:
+            if proj.id not in projIDs and proj.id not in projs:
                 projs.append(PavloviaProject(proj))
                 projIDs.append(proj.id)
         return projs
@@ -424,14 +424,14 @@ class PavloviaSession:
                         "Trying to login with token {} which is shorter "
                         "than expected length ({} not 64) for gitlab token"
                             .format(repr(token), len(token)))
-            self.gitlab = gitlab.Gitlab(rootURL, oauth_token=token, timeout=2)
+            self.gitlab = gitlab.Gitlab(rootURL, oauth_token=token, timeout=2, per_page=100)
             self.gitlab.auth()
             self.username = self.user.username
             self.userID = self.user.id  # populate when token property is set
             self.userFullName = self.user.name
             self.authenticated = True
         else:
-            self.gitlab = gitlab.Gitlab(rootURL, timeout=1)
+            self.gitlab = gitlab.Gitlab(rootURL, timeout=1, per_page=100)
 
     @property
     def user(self):
@@ -727,8 +727,11 @@ class PavloviaProject(dict):
         """Will always try to return a valid local git repo
 
         Will try to clone if local is empty and remote is not"""
+
+        # refresh our representation of the local
         if self.repo and not forceRefresh:
             return self.repo
+
         if not self.localRoot:
             raise AttributeError("Cannot fetch a PavloviaProject until we have "
                                  "chosen a local folder.")
@@ -748,6 +751,10 @@ class PavloviaProject(dict):
             self.configGitLocal()
 
         self.writeGitIgnore()
+        # also refresh our representation of the remote
+        if self.pavlovia and forceRefresh:
+            self.pavlovia = getCurrentSession().gitlab.projects.get(self.id)
+
         return self.repo
 
     def writeGitIgnore(self):
@@ -809,7 +816,7 @@ class PavloviaProject(dict):
         if infoStream:
             infoStream.write("\n{}".format(info))
             infoStream.write("\nSuccess!".format(info))
-        
+
     def cloneRepo(self, infoStream=None):
         """Gets the git.Repo object for this project, creating one if needed
 
@@ -1051,28 +1058,34 @@ def getProject(filename):
                     namespaceName = url.split('gitlab.pavlovia.org/')[1]
                     namespaceName = namespaceName.replace('.git', '')
                     pavSession = getCurrentSession()
+                    if not pavSession.user:
+                        nameSpace = namespaceName.split('/')[0]
+                        if nameSpace in knownUsers:  # Log in if user is known
+                            login(nameSpace, rememberMe=True)
+                        else:  # Check whether project repo is found in any of the known users accounts
+                            for user in knownUsers:
+                                login(user)
+                                foundProject = False
+                                for repo in pavSession.findUserProjects():
+                                    if namespaceName in repo['id']:
+                                        foundProject = True
+                                        logging.info("Logging in as {}".format(user))
+                                        break
+                                if not foundProject:
+                                    logging.warning("Could not find {namespace} in your Pavlovia accounts. "
+                                                    "Logging in as {user}.".format(namespace=namespaceName,
+                                                                                   user=user))
                     if pavSession.user:
                         proj = pavSession.getProject(namespaceName,
                                                      repo=localRepo)
                         if proj.pavlovia == 0:
-                            logging.warning(
-                                    _translate(
-                                            "We found a repository pointing to {} "
-                                            "but ") +
-                                    _translate("no project was found there ("
-                                               "deleted?)")
-                                    .format(url))
-
+                            logging.warning(_translate("We found a repository pointing to {} "
+                                                       "but no project was found there (deleted?)").format(url))
                     else:
-                        logging.warning(
-                                _translate(
-                                        "We found a repository pointing to {} "
-                                        "but ") +
-                                _translate(
-                                        "no user is logged in for us to check "
-                                        "it")
-                                .format(url))
+                        logging.warning(_translate("We found a repository pointing to {} "
+                                                   "but no user is logged in for us to check it".format(url)))
                     return proj
+
         if proj == None:
             logging.warning("We found a repository at {} but it "
                             "doesn't point to gitlab.pavlovia.org. "

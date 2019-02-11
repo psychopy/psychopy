@@ -54,7 +54,8 @@ class Test_PsychoJS_from_Builder(object):
 
     def writeScript(self, exp, outFolder):
         script = exp.writeScript(expPath=outFolder, target="PsychoJS")
-        with codecs.open(join(outFolder,'index.html'), 'w', 'utf-8') as f:
+        with codecs.open(join(outFolder,'index.html'), 'w',
+                         encoding='utf-8-sig') as f:
             f.write(script)
 
     def compileScript(self, infile=None, version=None, outfile=None):

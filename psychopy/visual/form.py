@@ -5,7 +5,7 @@
 # Part of the PsychoPy library
 # Copyright (C) 2018 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
-
+from __future__ import division
 from collections import deque
 import psychopy
 from .text import TextStim
@@ -52,18 +52,20 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
         Space or padding between form items.
     units : str
         units for stimuli - Currently, Form class only operates with 'height' units.
+    randomize : bool
+        Randomize order of Form elements
     """
 
     def __init__(self,
                  win,
                  name='default',
                  items=None,
-                 randomize=False,
                  textHeight=.02,
                  size=(.5, .5),
                  pos=(0, 0),
                  itemPadding=0.05,
                  units='height',
+                 randomize=False,
                  autoLog=True,
                  ):
 
@@ -87,7 +89,7 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
         self.rightEdge = None
         self.topEdge = None
         self.virtualHeight = 0  # Virtual height determines pos from boundary box
-
+        self._decorations = []
         # Check units - only works with height units for now
         if self.win.units != 'height':
             psychopy.logging.warning("Form currently only formats correctly using height units. "
@@ -136,7 +138,6 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
 
             Raises ValueError if n Options not > 1
             """
-
             allowedTypes = ['rating', 'slider', 'textbox', 'radio']
             itemDiff = set([types])-set(allowedTypes)
             if len(itemDiff) > 0:
@@ -213,7 +214,6 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
         int
             Scroll speed, calculated using N items by multiplier
         """
-
         return len(items) * multiplier
 
     def _questionTextWrap(self, size):
@@ -382,7 +382,6 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
         respHeight
             The height of the response object as type float
         """
-
         # Slider dict
         sliderType = {'slider': {'ticks': range(0, len(item['options'])), 'style': 'slider', 'granularity': 0},
                       'rating': {'ticks': range(0, len(item['options'])), 'style': 'rating', 'granularity': 1},
@@ -491,7 +490,6 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
         float
             The height of the response object
         """
-
         longest = max(item['options'], key=len)  # Get longest response item
         LongestIndex = item['options'].index(longest)  # index longest item
         tempText = TextStim(self.win,
@@ -518,8 +516,10 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
         psychopy.visual.slider.Slider
             The Slider object for scroll bar
         """
-        return psychopy.visual.Slider(win=self.win, size=self._scrollBarSize,
-                                      ticks=[0, 1], style='slider',
+        return psychopy.visual.Slider(win=self.win,
+                                      size=self._scrollBarSize,
+                                      ticks=[0, 1],
+                                      style='slider',
                                       pos=(self.rightEdge-.008, self.pos[1]),
                                       autoLog=False)
 
@@ -531,8 +531,12 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
         psychopy.visual.Rect
             The border for the survey
         """
-        return psychopy.visual.Rect(win=self.win, units=self.units, pos=self.pos,
-                                    width=self.size[0], height=self.size[1], autoLog=False)
+        return psychopy.visual.Rect(win=self.win,
+                                    units=self.units,
+                                    pos=self.pos,
+                                    width=self.size[0],
+                                    height=self.size[1],
+                                    autoLog=False)
 
     def _setAperture(self):
         """Blocks text beyond border using Aperture
@@ -542,10 +546,14 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
         psychopy.visual.Aperture
             The aperture setting viewable area for forms
         """
-        return psychopy.visual.Aperture(win=self.win, name='aperture',
-                               units=self.units, shape='square',
-                               size=self.size, pos=(0, 0),
-                               autoLog=False)
+        return psychopy.visual.Aperture(win=self.win,
+                                        name='aperture',
+                                        units=self.units,
+                                        shape='square',
+                                        size=self.size,
+                                        pos=(0, 0),
+                                        autoLog=False)
+
     def _getScrollOffset(self):
         """Calculate offset position of items in relation to markerPos
 
@@ -572,7 +580,6 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
         layout : string
             The layout of the Form item - vert or horiz
         """
-
         # Append item height
         self._baseYpositions.append(self.virtualHeight
                                     - max(respHeight, questionHeight)  # Positionining based on larger of the two
@@ -584,7 +591,6 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
 
     def _doLayout(self):
         """Define layout of form"""
-
         # Define boundaries of form
         if self.autoLog:
             psychopy.logging.info("Setting layout of Form: {}.".format(self.name))
@@ -607,9 +613,18 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
         self.scrollbar.markerPos = 1  # Set scrollbar to start position
         self.border = self._setBorder()
         self.aperture = self._setAperture()
+        self._setDecorations()
 
         if self.autoLog:
             psychopy.logging.info("Layout set for Form: {}.".format(self.name))
+
+    def _setDecorations(self):
+        """Sets Form decorations i.e., Border and scrollbar"""
+        # add scrollbar if it's needed
+        self._decorations = [self.border]
+        fractionVisible = self.size[1] / (-self.virtualHeight)
+        if fractionVisible < 1.0:
+            self._decorations.append(self.scrollbar)
 
     def _inRange(self, item):
         """Check whether item position falls within border area
@@ -628,29 +643,35 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
         lowerRange = -self.size[1]
         return (item.pos[1] < upperRange and item.pos[1] > lowerRange)
 
-    def draw(self):
-        """Draw items on form within border area"""
-        decorations = [self.border]  # add scrollbar if it's needed
-        fractionVisible = self.size[1]/(-self.virtualHeight)
-        if fractionVisible < 1.0:
-            decorations.append(self.scrollbar)
+    def _drawDecorations(self):
+        """Draw decorations on form."""
+        [decoration.draw() for decoration in self._decorations]
 
+    def _drawElements(self, items):
+        """Draw elements on form within border range.
+
+        Parameters
+        ----------
+        items : List
+            List of TextStim or Slider item from survey
+        """
+        for idx, item in enumerate(items):
+            item.pos = item.pos[0], self.size[1] / 2 + self._baseYpositions[idx] - self._getScrollOffset()
+            if self._inRange(item):
+                item.draw()
+
+    def draw(self):
+        """Draw all form elements"""
         # Check mouse wheel
         self.scrollbar.markerPos += self.scrollbar.mouse.getWheelRel()[1] / self.scrollSpeed
-
-        # draw the box and scrollbar
+        # enable aperture
         self.aperture.enable()
-        for decoration in decorations:
-            decoration.draw()
-
-        # draw the items
-        for element in self.formElements.keys():
-            if element != 'itemIndex':
-                for idx, items in enumerate(self.formElements[element]):
-                    items.pos = (items.pos[0], self.size[1] / 2 + self._baseYpositions[idx] - self._getScrollOffset())
-                    # Only draw if within border range for efficiency
-                    if self._inRange(items):
-                        items.draw()
+        # draw the box and scrollbar
+        self._drawDecorations()
+        # Draw question and response objects
+        self._drawElements(self.formElements['question'])
+        self._drawElements(self.formElements['response'])
+        # disable aperture
         self.aperture.disable()
 
     def getData(self):

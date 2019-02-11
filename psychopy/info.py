@@ -16,6 +16,7 @@ from builtins import str
 import sys
 import os
 import platform
+import io
 
 from pyglet.gl import gl_info, GLint, glGetIntegerv, GL_MAX_ELEMENTS_VERTICES
 import numpy
@@ -168,7 +169,7 @@ class RunTimeInfo(dict):
         if not author or not version:
             lines = ''
             if os.path.isfile(sys.argv[0]):
-                with open(sys.argv[0], 'rU') as f:
+                with io.open(sys.argv[0], 'r', encoding='utf-8-sig') as f:
                     lines = f.read()
             if not author and '__author__' in lines:
                 linespl = lines.splitlines()

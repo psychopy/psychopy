@@ -438,7 +438,8 @@ class _BaseTrialHandler(_ComparisonMixin):
                                   "inspect.getouterframes")
                 return '', ''
         if os.path.isfile(originPath):  # do we NOW have a path?
-            origin = codecs.open(originPath, "r", encoding="utf-8-sig").read()
+            with codecs.open(originPath, "r", encoding="utf-8-sig") as f:
+                origin = f.read()
         else:
             origin = None
         return originPath, origin

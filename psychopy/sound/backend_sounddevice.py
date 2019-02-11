@@ -18,6 +18,7 @@ from ._base import _SoundBase, HammingWindow
 
 try:
     import sounddevice as sd
+    import readline  # Work around GH-2230.
 except Exception:
     raise DependencyError("sounddevice not working")
 try:
@@ -189,7 +190,7 @@ class _SoundStream(object):
         t0 = time.time()
         self.frameN += 1
         toSpk.fill(0)
-        for thisSound in self.sounds.copy():
+        for thisSound in list(self.sounds): # copy (Py2 doesn't have list.copy)
             dat = thisSound._nextBlock()  # fetch the next block of data
             dat *= thisSound.volume  # Set the volume block by block
             if self.channels == 2 and len(dat.shape) == 2:

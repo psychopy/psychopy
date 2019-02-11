@@ -10,6 +10,7 @@ from __future__ import absolute_import, print_function
 from builtins import str
 from os import path
 from psychopy.experiment.components import BaseVisualComponent, Param, getInitVals, _translate
+from psychopy import logging
 
 # the absolute path to the folder containing this path
 thisFolder = path.abspath(path.dirname(__file__))
@@ -152,6 +153,7 @@ class PolygonComponent(BaseVisualComponent):
 
     def writeInitCode(self, buff):
         # do we need units code?
+
         if self.params['units'].val == 'from exp settings':
             unitsStr = ""
         else:
@@ -159,8 +161,8 @@ class PolygonComponent(BaseVisualComponent):
 
         # replace variable params with defaults
         inits = getInitVals(self.params)
-        if inits['size'].val == '1.0':
-            inits['size'].val = '(1.0, 1.0)'
+        if inits['size'].val in ['1.0', '1']:
+            inits['size'].val = '[1.0, 1.0]'
 
         if self.params['shape'] == 'regular polygon...':
             vertices = self.params['nVertices']
@@ -208,17 +210,81 @@ class PolygonComponent(BaseVisualComponent):
         buff.writeIndentedLines(code)
 
     def writeInitCodeJS(self, buff):
-        code = ("{name} = new visual.Rect ({{\n"
-        "  win: psychoJS.window, name: '{name}',\n"
-        "  units: psychoJS.window.units,\n"
-        "  width: {size}[0], height: {size}[1],\n"
-        "  ori: 0, pos: {pos},\n"
-        "  lineWidth: 1, lineColor: new util.Color({lineColor}),\n"
-        "  fillColor: new util.Color({fillColor}),\n"
-        "  opacity: 1, depth: -1.0, interpolate: true,\n"
-        "}});\n\n")
-        buff.writeIndentedLines(code.format(name=self.params['name'],
-                                            pos=self.params['pos'],
-                                            size=self.params['size'],
-                                            lineColor=self.params['lineColor'],
-                                            fillColor=self.params['fillColor']))
+
+        # Check for unsupported units
+        if self.params['units'].val in ['from exp settings', 'cm', 'deg', 'degFlatPos', 'degFlat']:
+            msg = "'{units}' units for your '{name}' shape is not currently supported for PsychoJS: " \
+                  "switching units to 'height'."
+            logging.warning(msg.format(units=self.params['units'].val,
+                                       name=self.params['name'].val,))
+            unitsStr = "'height'"
+        else:
+            unitsStr = self.params['units']
+
+        # replace variable params with defaults
+        inits = getInitVals(self.params)
+
+        # check for NoneTypes
+        for param in inits:
+            if inits[param] in [None, 'None', 'none', '']:
+                inits[param].val = 'undefined'
+
+        if inits['size'].val in ['1.0', '1']:
+            inits['size'].val = '[1.0, 1.0]'
+
+        if self.params['shape'] == 'regular polygon...':
+            vertices = self.params['nVertices']
+        else:
+            vertices = self.params['shape']
+
+        # Temporary checks to catch use of unsupported shapes/polygons
+        if vertices in ['cross', 'star']:
+            msg = "{} shape is in development. Not currently supported in PsychoJS.".format(vertices)
+            raise NotImplementedError(msg)
+
+        elif self.params['shape'] == 'regular polygon...' and self.params['nVertices'].val not in ['2', '3', '4']:
+            msg = ("Regular polygon is currently in development "
+                   "and not yet supported in PsychoJS.".
+                   format(vertices))
+            raise NotImplementedError(msg)
+
+        if vertices in ['line', '2']:
+            code = ("{name} = new visual.ShapeStim ({{\n"
+                    "  win: psychoJS.window, name: '{name}',\n"
+                    "  units: {unitsStr},\n"
+                    "  vertices: [[-{size}[0]/2.0, 0], [+{size}[0]/2.0, 0]],\n")
+        elif vertices in ['triangle', '3']:
+            code = ("{name} = new visual.ShapeStim ({{\n"
+                    "  win: psychoJS.window, name: '{name}',\n"
+                    "  units: {unitsStr},\n"
+                    "  vertices: [[-{size}[0]/2.0, -{size}[1]/2.0], [+{size}[0]/2.0, -{size}[1]/2.0], [0, {size}[1]/2.0]],\n")
+        elif vertices in ['rectangle', '4']:
+            code = ("{name} = new visual.Rect ({{\n"
+                    "  win: psychoJS.window, name: '{name}',\n"
+                    "  units: {unitsStr},\n"
+                    "  width: {size}[0], height: {size}[1],\n")
+
+        depth = -self.getPosInRoutine()
+
+        interpolate = 'true'
+        if self.params['interpolate'].val != 'linear':
+            interpolate = 'false'
+
+        code += ("  ori: {ori}, pos: {pos},\n"
+                 "  lineWidth: {lineWidth}, lineColor: new util.Color({lineColor}),\n"
+                 "  fillColor: new util.Color({fillColor}),\n"
+                 "  opacity: {opacity}, depth: {depth}, interpolate: {interpolate},\n"
+                 "}});\n\n")
+
+        buff.writeIndentedLines(code.format(name=inits['name'],
+                                            unitsStr=unitsStr,
+                                            lineWidth=inits['lineWidth'],
+                                            size=inits['size'],
+                                            ori=inits['ori'],
+                                            pos=inits['pos'],
+                                            lineColor=inits['lineColor'],
+                                            fillColor=inits['fillColor'],
+                                            opacity=inits['opacity'],
+                                            depth=depth,
+                                            interpolate=interpolate,
+                                            ))

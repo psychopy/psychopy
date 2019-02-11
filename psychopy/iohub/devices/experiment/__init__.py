@@ -3,6 +3,7 @@
 # Copyright (C) 2012-2016 iSolver Software Solutions
 # Distributed under the terms of the GNU General Public License (GPL).
 
+from past.types import basestring
 import numpy as N
 from .. import Device, DeviceEvent, Computer, Device
 from ...constants import DeviceConstants, EventConstants

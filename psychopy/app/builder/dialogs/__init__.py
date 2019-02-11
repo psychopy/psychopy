@@ -113,8 +113,8 @@ class ParamCtrls(object):
             # settings. If remote info has become available in the meantime,
             # now populate with that as well
             if vc._remoteVersionsCache:
-                options = vc._versionFilter(vc.versionOptions(local=False))
-                versions = vc._versionFilter(vc.availableVersions(local=False))
+                options = vc._versionFilter(vc.versionOptions(local=False), wx.__version__)
+                versions = vc._versionFilter(vc.availableVersions(local=False), wx.__version__)
                 param.allowedVals = (options + [''] + versions)
         if fieldName in ['text', 'customize_everything', 'customize']:
             # for text input we need a bigger (multiline) box

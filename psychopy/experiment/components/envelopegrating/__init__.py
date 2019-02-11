@@ -6,6 +6,7 @@
 # Distributed under the terms of the GNU General Public License (GPL).
 
 from __future__ import absolute_import, print_function
+from builtins import super  # provides Py3-style super() using python-future
 
 from os import path
 from psychopy.experiment.components import BaseVisualComponent, Param, getInitVals, _translate
@@ -46,7 +47,7 @@ class EnvGratingComponent(BaseVisualComponent):
                  startType='time (s)', startVal=0.0,
                  stopType='duration (s)', stopVal=1.0,
                  startEstim='', durationEstim=''):
-        super(EnvGratingComponent, self).__init__(
+        super().__init__(
             exp, parentName, name=name, units=units,
             color=color, colorSpace=colorSpace,
             pos=pos, size=size, ori=ori,
@@ -232,7 +233,7 @@ class EnvGratingComponent(BaseVisualComponent):
         buff.writeIndentedLines(code)
 
     def writeRoutineStartCode(self,buff):
-        super(EnvGratingComponent, self).writeRoutineStartCode(buff)
+        super().writeRoutineStartCode(buff)
         #if self.params['blendmode'].val!='default':
             #buff.writeIndented("__allEnvSaveBlendMode=win.blendMode #required to clean up after %(name)s\n" %self.params)
 
@@ -270,7 +271,7 @@ class EnvGratingComponent(BaseVisualComponent):
             buff.setIndentLevel(-1, relative=True)  # to exit the if block
 
     def writeRoutineEndCode(self, buff):
-        super(EnvGratingComponent, self).writeRoutineEndCode(buff)
+        super().writeRoutineEndCode(buff)  # adds start/stop times to data
         #if self.params['blendmode'].val!='default':
             #buff.writeIndented("win.blendMode=__allEnvSaveBlendMode #clean up for %(name)s\n" %self.params)
 

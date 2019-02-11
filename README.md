@@ -1,18 +1,36 @@
 # PsychoPy
+
 [![Travis-CI status](https://img.shields.io/travis/psychopy/psychopy.svg)](https://travis-ci.org/psychopy/psychopy)
 [![Coveralls status](https://img.shields.io/coveralls/psychopy/psychopy.svg)](https://coveralls.io/r/psychopy/psychopy)
 [![PyPI version](https://img.shields.io/pypi/v/psychopy.svg)](https://pypi.python.org/pypi/PsychoPy)
 
-PsychoPy is an open-source package for creating psychology stimuli in Python (A real and free alternative to Matlab). PsychoPy combines the graphical strengths of OpenGL with the easy Python syntax to give psychophysics a free and simple stimulus presentation and control package.
+PsychoPy is an open-source package for creating experiments in behavioral science. It aims to provide a single package that is:
 
-The goal is to provide, for the busy scientist (including me!), tools to control timing and windowing and a simple set of pre-packaged stimuli and methods. The code is platform independent, using Python and C libraries that are widely available.
+* precise enough for psychophysics
+* easy enough for teaching
+* flexible enough for everything else
+* able to run experiments in a local Python script or online in JavaScript
+
+To meet these goals PsychoPy provides a choice of interface - you can use a
+simple graphical user interface called Builder, or write your experiments in
+Python code. The entire application and library are written in Python and is
+platform independent.
+
+There is a range of documentation at:
+
+* (PsychoPy Homepage)[https://www.psychopy.org]
+* (Youtube)[https://www.youtube.com/playlist?list=PLFB5A1BE51964D587]
+* The textbook, (Building Experiments in PsychoPy)[https://uk.sagepub.com/en-gb/eur/building-experiments-in-psychopy/book253480]
+* (The discourse user forum)[https://discourse.psychopy.org]
 
 ## Contributions
 
-To contribute, please fork the repository, hack in a feature branch, and send a pull request.  For more, see `CONTRIBUTING.md` and http://www.psychopy.org/developers/repository.html.
+To contribute, please fork the repository, hack in a feature branch, and send a
+pull request.  For more, see and the developers documentation at
+http://www.psychopy.org/developers
 
 ## More information
 
-- Homepage: http://www.psychopy.org
-- Forum: https://discourse.psychopy.org
-- Issue tracker: https://github.com/psychopy/psychopy/issues
+* Homepage: https://www.psychopy.org
+* Forum: https://discourse.psychopy.org
+* Issue tracker: https://github.com/psychopy/psychopy/issues

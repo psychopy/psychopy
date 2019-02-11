@@ -12,10 +12,14 @@ from builtins import range
 import time
 import os
 import locale
+from pkg_resources import parse_version
 
 import wx
 from wx import grid
 from wx.lib import intctrl
+
+if parse_version(wx.__version__) < parse_version('4.0.3'):
+    wx.NewIdRef = wx.NewId
 
 from psychopy import constants
 from psychopy.localization import _translate
@@ -47,7 +51,7 @@ if not hasattr(wx.grid, 'EVT_GRID_CELL_CHANGED'):
 
 # wx IDs for menu items
 def newIds(n):
-    return [wx.NewId() for i in range(n)]
+    return [wx.NewIdRef() for i in range(n)]
 
 [idMenuSave] = newIds(1)
 # wx IDs for controllers (admin panel)
@@ -65,7 +69,7 @@ def unicodeToFloat(val):
         val = None
     else:
         if not constants.PY3 and type(val) == unicode:
-            val = val.encode('utf-8')
+            val = val.encode('utf-8-sig')
         try:
             val = locale.atof(val)
         except ValueError:
@@ -235,7 +239,7 @@ class MainFrame(wx.Frame):
 
         # Edit
         editMenu = wx.Menu()
-        id = wx.NewId()
+        id = wx.NewIdRef()
         _hint = _translate("Copy the current monitor's name to clipboard")
         editMenu.Append(id, _translate('Copy\tCtrl+C'), _hint)
         self.Bind(wx.EVT_MENU, self.onCopyMon, id=id)

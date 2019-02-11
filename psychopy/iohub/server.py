@@ -21,6 +21,7 @@ except ImportError:
     pass
 
 from past.builtins import basestring, unicode
+from psychopy.constants import PY3
 from . import _pkgroot
 from . import IOHUB_DIRECTORY, EXP_SCRIPT_DIRECTORY, _DATA_STORE_AVAILABLE
 from .errors import print2err, printExceptionDetailsToStdErr, ioHubError
@@ -376,6 +377,9 @@ class udpServer(DatagramServer):
                     self.iohub._pyglet_window_hnds.remove(wh)
 
     def createExperimentSessionEntry(self, sessionInfoDict):
+        if PY3:
+            sessionInfoDict = {str(k, 'utf-8'): str(v, 'utf-8')
+                               for k, v in sessionInfoDict.items()}
         self.iohub.sessionInfoDict = sessionInfoDict
         dsfile = self.iohub.dsfile
         if dsfile:
@@ -674,7 +678,10 @@ class ioServer(object):
         hookManager = self._hookManager
         if dev_cls_name in ('Mouse', 'Keyboard'):
             if Computer.platform == 'win32':
-                import pyHook
+                try:
+                    import pyHook
+                except ImportError:
+                    import pyWinhook as pyHook
                 if hookManager is None:
                     iohub.log('Creating pyHook HookManager....')
                     hookManager = self._hookManager = pyHook.HookManager()
