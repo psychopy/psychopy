@@ -61,7 +61,7 @@ Helper functions:
 
   * :ref:`psychopy.visual.filters` for creating grating textures and Gaussian masks etc.
   * :ref:`psychopy.tools.visualhelperfunctions` for tests about whether one stimulus contains another
-  * :mod:`psychopy.tools.unittools` to convert deg<->radians
-  * :mod:`psychopy.tools.monitorunittools` to convert cm<->pix<->deg etc.
-  * :mod:`psychopy.tools.colorspacetools` to convert between supported color spaces
-  * :mod:`psychopy.tools.viewtools` to work with view projections
+  * :mod:`~psychopy.tools.unittools` to convert deg<->radians
+  * :mod:`~psychopy.tools.monitorunittools` to convert cm<->pix<->deg etc.
+  * :mod:`~psychopy.tools.colorspacetools` to convert between supported color spaces
+  * :mod:`~psychopy.tools.viewtools` to work with view projections
