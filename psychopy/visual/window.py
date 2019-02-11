@@ -126,12 +126,16 @@ openWindows = core.openWindows = OpenWinList()  # core needs this for wait()
 
 class Window(object):
     """Used to set up a context in which to draw objects,
-    using either `pyglet <http://www.pyglet.org>`_ or
-    `pygame <http://www.pygame.org>`_
+    using either `pyglet <http://www.pyglet.org>`_,
+    `pygame <http://www.pygame.org>`_, or `glfw <https://www.glfw.org/>_`.
 
     The pyglet backend allows multiple windows to be created, allows the user
     to specify which screen to use (if more than one is available, duh!) and
     allows movies to be rendered.
+
+    The glfw backend is a new addition which provides most of the same features
+    as pyglet, but provides greater flexibility for complex display
+    configurations.
 
     Pygame may still work for you but it's officially deprecated in this
     project (we won't be fixing pygame-specific bugs).
