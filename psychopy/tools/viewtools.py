@@ -290,8 +290,7 @@ def lookAt(eyePos, centerPos, upVec):
     rotMat[2, :3] = -f
     rotMat[3, 3] = 1.0
 
-    transMat = np.zeros((4, 4), np.float32)
-    np.fill_diagonal(transMat, 1.0)
+    transMat = np.identity(4, np.float32)
     transMat[:3, 3] = -eyePos
 
     return np.matmul(rotMat, transMat)
@@ -358,8 +357,8 @@ def pointToNDC(wcsPos, viewMatrix, projectionMatrix):
 
     clipCoords = viewProjMatrix.dot(wcsVec)  # convert to clipping space
 
-    # handle the singularity case when the point falls on the eye
-    if np.isclose(clipCoords[3], 0.0):
+    # handle the singularity where perspective division will fail
+    if clipCoords[3] < 0.0001:
         clipCoords[3] = np.finfo(np.float32).eps
 
     return clipCoords[:3] / clipCoords[3]  # xyz / w
