@@ -1331,8 +1331,7 @@ class BuilderFrame(wx.Frame):
 
         self.toolbar.AddSeparator()
         pavButtons = pavlovia_ui.toolbar.PavloviaButtons(self, toolbar=tb, tbSize=tbSize)
-        pavButtons.addPavloviaTools(buttons=['pavloviaSync', 'pavloviaRun',
-                                             'pavloviaSearch', 'pavloviaUser'])
+        pavButtons.addPavloviaTools()
         self.btnHandles.update(pavButtons.btnHandles)
 
         # Finished setup. Make it happen
@@ -2377,6 +2376,7 @@ class BuilderFrame(wx.Frame):
         self.enablePavloviaButton(['pavloviaSync', 'pavloviaRun'], False)
         try:
             pavlovia_ui.syncProject(parent=self, project=self.project)
+            pavlovia.knownProjects.save()  # update projects.json
         finally:
             self.enablePavloviaButton(['pavloviaSync', 'pavloviaRun'], True)
 

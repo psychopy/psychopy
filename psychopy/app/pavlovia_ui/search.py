@@ -36,7 +36,7 @@ class SearchFrame(wx.Dialog):
         title = _translate("Search for projects online")
         self.frameType = 'ProjectSearch'
         wx.Dialog.__init__(self, parent, -1, title=title, style=style,
-                           size=(700, 500), pos=pos)
+                           size=(800, 500), pos=pos)
 
         self.app = app
         self.project = None
@@ -92,7 +92,7 @@ class SearchFrame(wx.Dialog):
         self.mainSizer.Add(self.leftSizer, 1, wx.EXPAND | wx.ALL, 5)
         self.mainSizer.Add(self.detailsPanel, 1, wx.EXPAND | wx.ALL, 5)
 
-        self.SetSizer(self.mainSizer)
+        self.SetSizer(self.mainSizer)  # don't fit until search is populated
         if self.parent:
             self.CenterOnParent()
         self.Layout()
@@ -244,8 +244,8 @@ class ProjectListCtrl(wx.ListCtrl, listmixin.ListCtrlAutoWidthMixin):
         for n in range(self.ColumnCount):
             if not finalOnly:
                 self.SetColumnWidth(n, wx.LIST_AUTOSIZE_USEHEADER)
-                if self.GetColumnWidth(n) > 200:
-                    self.SetColumnWidth(n, 200)
+                if self.GetColumnWidth(n) > 100:
+                    self.SetColumnWidth(n, 100)
 
     def onChangeSelection(self, event):
         proj = self.projList[event.GetIndex()]
