@@ -18,6 +18,8 @@ dependencies:
 - gevent
 - greenlet
 - hdf5
+- imageio
+- imageio-ffmpeg
 - json_tricks
 - libflac
 - lxml

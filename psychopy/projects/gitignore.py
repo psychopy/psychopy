@@ -8,6 +8,9 @@ __pycache__/
 
 # Backup files
 *.bak
+~$*.xls*
+~$*.doc*
+~$*.ppt*
 
 # Jupyter Notebook
 .ipynb_checkpoints
@@ -32,4 +35,7 @@ Icon?
 *.orig
 old
 Thumbs.db
+.Spotlight-V100
+.Trashes
+
 """

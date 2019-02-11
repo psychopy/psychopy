@@ -12,6 +12,7 @@ import glob
 import os, time, socket
 import subprocess
 import traceback
+from pkg_resources import parse_version
 
 from psychopy import logging, prefs, constants, exceptions
 from psychopy.tools.filetools import DictStorage
@@ -424,14 +425,20 @@ class PavloviaSession:
                         "Trying to login with token {} which is shorter "
                         "than expected length ({} not 64) for gitlab token"
                             .format(repr(token), len(token)))
-            self.gitlab = gitlab.Gitlab(rootURL, oauth_token=token, timeout=2, per_page=100)
+            if parse_version(gitlab.__version__) > parse_version("1.4"):
+                self.gitlab = gitlab.Gitlab(rootURL, oauth_token=token, timeout=2, per_page=100)
+            else:
+                self.gitlab = gitlab.Gitlab(rootURL, oauth_token=token, timeout=2)
             self.gitlab.auth()
             self.username = self.user.username
             self.userID = self.user.id  # populate when token property is set
             self.userFullName = self.user.name
             self.authenticated = True
         else:
-            self.gitlab = gitlab.Gitlab(rootURL, timeout=1, per_page=100)
+            if parse_version(gitlab.__version__) > parse_version("1.4"):
+                self.gitlab = gitlab.Gitlab(rootURL, timeout=1, per_page=100)
+            else:
+                self.gitlab = gitlab.Gitlab(rootURL, timeout=1)
 
     @property
     def user(self):
