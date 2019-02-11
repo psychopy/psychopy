@@ -65,6 +65,37 @@ def computeFrustum(scrWidth,
     for screen distance. These offsets MUST be applied to the MODELVIEW matrix,
     not the PROJECTION matrix! Doing so may break lighting calculations.
 
+    Examples
+    --------
+
+    Creating a frustum and setting a window's projection matrix::
+
+        scrWidth = 0.5  # screen width in meters
+        scrAspect = win.size[0] / win.size[1]
+        scrDist = win.scrDistCM * 100.0  # monitor setting, can be anything
+        frustum = viewtools.computeFrustum(scrWidth, scrAspect, scrDist)
+        # convert frustum to projection matrix
+        win.projectionMatrix = viewtools.perspectiveProjectionMatrix(*frustum)
+        # set your view matrix to account for the screen distance!!!
+        win.applyEyeTransform()  # call before drawing
+
+    Off-axis frustums for stereo rendering::
+
+        # compute view matrix for each eye, these value usually don't change
+        eyeOffset = (-0.035, 0.035)  # +/- IOD / 2.0
+        leftProjMatrix = viewtools.perspectiveProjectionMatrix(
+            viewtools.computeFrustum(
+                scrWidth, scrAspect, scrDist, eyeOffset[0]))
+        rightProjMatrix = viewtools.computeFrustum(
+            viewtools.computeFrustum(
+                scrWidth, scrAspect, scrDist, eyeOffset[1]))
+        # ... after calling 'setBuffer('left')' ...
+        win.projectionMatrix = leftProjMatrix
+        # setup your view matrix accordingly, must account for screen distance
+        # and eye offset
+        win.applyViewTransform()  # call before drawing
+        # do the same for 'setBuffer('right')' using the other matrix ...
+
     """
     d = scrWidth * (convergeOffset + scrDist)
     ratio = nearClip / float((convergeOffset + scrDist))
