@@ -9,7 +9,7 @@ For the easiest installation download and install the Standalone package for you
 
 For the **latest stable release** (the version we recommend you install):
 
-* `PsychoPy 3.0.0 <https://github.com/psychopy/psychopy/releases>`_
+* `PsychoPy 3.0.3 <https://github.com/psychopy/psychopy/releases>`_
 * Ubuntu or debian-based systems:
 
   * `sudo apt-get install psychopy`
