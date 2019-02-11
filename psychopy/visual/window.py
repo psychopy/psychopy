@@ -1737,12 +1737,12 @@ class Window(object):
         They may vary in appearance and hot spot location across platforms. The
         following names are valid on most platforms:
 
-                'arrow' : Default pointer
-                'ibeam' : Indicates text can be edited
-            'crosshair' : Crosshair with hot-spot at center
-                 'hand' : A pointing hand
-              'hresize' : Double arrows pointing horizontally
-              'vresize' : Double arrows pointing vertically
+        - 'arrow' : Default pointer
+        - 'ibeam' : Indicates text can be edited
+        - 'crosshair' : Crosshair with hot-spot at center
+        - 'hand' : A pointing hand
+        - 'hresize' : Double arrows pointing horizontally
+        - 'vresize' : Double arrows pointing vertically
 
         Requires the GLFW backend, otherwise this function does nothing! Note,
         on Windows the 'crosshair' option is XORed with the background color. It
