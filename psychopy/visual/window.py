@@ -1050,8 +1050,7 @@ class Window(object):
         self._projectionMatrix = viewtools.perspectiveProjectionMatrix(*frustum)
 
         # translate away from screen
-        self._viewMatrix = numpy.zeros((4, 4), dtype=numpy.float32)
-        numpy.fill_diagonal(self._viewMatrix, 1.0)  # identity matrix
+        self._viewMatrix = numpy.identity(4, dtype=numpy.float32)
         self._viewMatrix[2, 3] = -scrDistM  # displace scene away from viewer
 
         if applyTransform:
