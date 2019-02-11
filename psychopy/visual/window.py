@@ -1075,13 +1075,13 @@ class Window(object):
 
         # apply the projection and view transformations
         GL.glMatrixMode(GL.GL_PROJECTION)
-        GL.glLoadIdentity()
+        #GL.glLoadIdentity()
         projMat = self._projectionMatrix.T.ctypes.data_as(
             ctypes.POINTER(ctypes.c_float))
         GL.glLoadMatrixf(projMat)
 
         GL.glMatrixMode(GL.GL_MODELVIEW)
-        GL.glLoadIdentity()
+        #GL.glLoadIdentity()
         viewMat = self._viewMatrix.T.ctypes.data_as(
             ctypes.POINTER(ctypes.c_float))
         GL.glLoadMatrixf(viewMat)
