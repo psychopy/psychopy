@@ -286,30 +286,6 @@ CodeComponent.name.readOnly:False
 CodeComponent.name.staticUpdater:None
 CodeComponent.name.val:code
 CodeComponent.name.valType:code
-CodeComponent.saveStartStop.default:True
-CodeComponent.saveStartStop.allowedTypes:[]
-CodeComponent.saveStartStop.allowedUpdates:None
-CodeComponent.saveStartStop.allowedVals:[]
-CodeComponent.saveStartStop.categ:Data
-CodeComponent.saveStartStop.hint:Store the onset/offset times in the data file (as well as in the log file).
-CodeComponent.saveStartStop.label:Save onset/offset times
-CodeComponent.saveStartStop.readOnly:False
-CodeComponent.saveStartStop.staticUpdater:None
-CodeComponent.saveStartStop.updates:None
-CodeComponent.saveStartStop.val:True
-CodeComponent.saveStartStop.valType:bool
-CodeComponent.syncScreenRefresh.default:False
-CodeComponent.syncScreenRefresh.allowedTypes:[]
-CodeComponent.syncScreenRefresh.allowedUpdates:None
-CodeComponent.syncScreenRefresh.allowedVals:[]
-CodeComponent.syncScreenRefresh.categ:Data
-CodeComponent.syncScreenRefresh.hint:Synchronize times with screen refresh (good for visual stimuli and responses based on them)
-CodeComponent.syncScreenRefresh.label:Sync timing with screen refresh
-CodeComponent.syncScreenRefresh.readOnly:False
-CodeComponent.syncScreenRefresh.staticUpdater:None
-CodeComponent.syncScreenRefresh.updates:None
-CodeComponent.syncScreenRefresh.val:False
-CodeComponent.syncScreenRefresh.valType:bool
 DotsComponent.order:['name']
 DotsComponent.coherence.default:1.0
 DotsComponent.coherence.allowedTypes:[]
@@ -1078,6 +1054,18 @@ FormComponent.name.readOnly:False
 FormComponent.name.staticUpdater:None
 FormComponent.name.val:form
 FormComponent.name.valType:code
+FormComponent.saveStartStop.default:True
+FormComponent.saveStartStop.allowedTypes:[]
+FormComponent.saveStartStop.allowedUpdates:None
+FormComponent.saveStartStop.allowedVals:[]
+FormComponent.saveStartStop.categ:Data
+FormComponent.saveStartStop.hint:Store the onset/offset times in the data file (as well as in the log file).
+FormComponent.saveStartStop.label:Save onset/offset times
+FormComponent.saveStartStop.readOnly:False
+FormComponent.saveStartStop.staticUpdater:None
+FormComponent.saveStartStop.updates:None
+FormComponent.saveStartStop.val:True
+FormComponent.saveStartStop.valType:bool
 FormComponent.startEstim.default:
 FormComponent.startEstim.allowedTypes:[]
 FormComponent.startEstim.allowedUpdates:None
@@ -1138,6 +1126,18 @@ FormComponent.stopVal.staticUpdater:None
 FormComponent.stopVal.updates:constant
 FormComponent.stopVal.val:
 FormComponent.stopVal.valType:code
+FormComponent.syncScreenRefresh.default:False
+FormComponent.syncScreenRefresh.allowedTypes:[]
+FormComponent.syncScreenRefresh.allowedUpdates:None
+FormComponent.syncScreenRefresh.allowedVals:[]
+FormComponent.syncScreenRefresh.categ:Data
+FormComponent.syncScreenRefresh.hint:Synchronize times with screen refresh (good for visual stimuli and responses based on them)
+FormComponent.syncScreenRefresh.label:Sync timing with screen refresh
+FormComponent.syncScreenRefresh.readOnly:False
+FormComponent.syncScreenRefresh.staticUpdater:None
+FormComponent.syncScreenRefresh.updates:None
+FormComponent.syncScreenRefresh.val:False
+FormComponent.syncScreenRefresh.valType:bool
 GratingComponent.order:['tex', 'mask']
 GratingComponent.blendmode.default:'avg'
 GratingComponent.blendmode.allowedTypes:[]
@@ -3002,7 +3002,7 @@ ParallelOutComponent.order:['address', 'startData', 'stopData']
 ParallelOutComponent.address.default:'0x0378'
 ParallelOutComponent.address.allowedTypes:[]
 ParallelOutComponent.address.allowedUpdates:None
-ParallelOutComponent.address.allowedVals:['0x0378', '0x03BC', '/dev/parport0', '/dev/parport1', 'LabJack U3']
+ParallelOutComponent.address.allowedVals:[u'0x0378', u'0x03BC', u'LabJack U3']
 ParallelOutComponent.address.categ:Basic
 ParallelOutComponent.address.hint:Parallel port to be used (you can change these options in preferences>general)
 ParallelOutComponent.address.label:Port address
@@ -3755,6 +3755,18 @@ QmixPumpComponent.pumpIndex.staticUpdater:None
 QmixPumpComponent.pumpIndex.updates:None
 QmixPumpComponent.pumpIndex.val:0
 QmixPumpComponent.pumpIndex.valType:code
+QmixPumpComponent.saveStartStop.default:True
+QmixPumpComponent.saveStartStop.allowedTypes:[]
+QmixPumpComponent.saveStartStop.allowedUpdates:None
+QmixPumpComponent.saveStartStop.allowedVals:[]
+QmixPumpComponent.saveStartStop.categ:Data
+QmixPumpComponent.saveStartStop.hint:Store the onset/offset times in the data file (as well as in the log file).
+QmixPumpComponent.saveStartStop.label:Save onset/offset times
+QmixPumpComponent.saveStartStop.readOnly:False
+QmixPumpComponent.saveStartStop.staticUpdater:None
+QmixPumpComponent.saveStartStop.updates:None
+QmixPumpComponent.saveStartStop.val:True
+QmixPumpComponent.saveStartStop.valType:bool
 QmixPumpComponent.startEstim.default:
 QmixPumpComponent.startEstim.allowedTypes:[]
 QmixPumpComponent.startEstim.allowedUpdates:None
@@ -3827,6 +3839,18 @@ QmixPumpComponent.switchValveWhenDone.staticUpdater:None
 QmixPumpComponent.switchValveWhenDone.updates:None
 QmixPumpComponent.switchValveWhenDone.val:True
 QmixPumpComponent.switchValveWhenDone.valType:bool
+QmixPumpComponent.syncScreenRefresh.default:False
+QmixPumpComponent.syncScreenRefresh.allowedTypes:[]
+QmixPumpComponent.syncScreenRefresh.allowedUpdates:None
+QmixPumpComponent.syncScreenRefresh.allowedVals:[]
+QmixPumpComponent.syncScreenRefresh.categ:Data
+QmixPumpComponent.syncScreenRefresh.hint:Synchronize times with screen refresh (good for visual stimuli and responses based on them)
+QmixPumpComponent.syncScreenRefresh.label:Sync timing with screen refresh
+QmixPumpComponent.syncScreenRefresh.readOnly:False
+QmixPumpComponent.syncScreenRefresh.staticUpdater:None
+QmixPumpComponent.syncScreenRefresh.updates:None
+QmixPumpComponent.syncScreenRefresh.val:False
+QmixPumpComponent.syncScreenRefresh.valType:bool
 QmixPumpComponent.syncToScreen.default:True
 QmixPumpComponent.syncToScreen.allowedTypes:[]
 QmixPumpComponent.syncToScreen.allowedUpdates:None
@@ -3842,7 +3866,7 @@ QmixPumpComponent.syncToScreen.valType:bool
 QmixPumpComponent.syringeType.default:'50 mL glass'
 QmixPumpComponent.syringeType.allowedTypes:[]
 QmixPumpComponent.syringeType.allowedUpdates:None
-QmixPumpComponent.syringeType.allowedVals:['25 mL glass', '50 mL glass']
+QmixPumpComponent.syringeType.allowedVals:['50 mL glass', '25 mL glass']
 QmixPumpComponent.syringeType.categ:Basic
 QmixPumpComponent.syringeType.hint:Syringe type and dimensions
 QmixPumpComponent.syringeType.label:Syringe type
@@ -4421,7 +4445,7 @@ SettingsComponent.Units.valType:str
 SettingsComponent.Use version.default:''
 SettingsComponent.Use version.allowedTypes:[]
 SettingsComponent.Use version.allowedUpdates:None
-SettingsComponent.Use version.allowedVals:['latest', '1', '1.90', '1.85', '1.84', '1.83', '1.82', '1.81', '1.80', '1.79', '1.78', '1.77', '1.76', '', '1.90.2', '1.90.1', '1.90.0', '1.85.6', '1.85.4', '1.85.3', '1.85.2', '1.85.1', '1.85.0', '1.84.2', '1.84.1', '1.84.0', '1.83.04', '1.83.03', '1.83.01', '1.83.00', '1.82.01', '1.82.00', '1.81.03', '1.81.02', '1.81.01', '1.81.00', '1.80.06', '1.80.05', '1.80.03', '1.80.02', '1.80.01', '1.80.00', '1.79.00', '1.78.01', '1.78.00', '1.77.02', '1.77.01', '1.77.00', '1.76.00']
+SettingsComponent.Use version.allowedVals:['latest', u'3', u'3.0', u'1.90', '', u'3.0.3', u'3.0.2', u'3.0.1', u'3.0.0', u'1.90.2', u'1.90.1', u'1.90.0', u'1.85.6']
 SettingsComponent.Use version.categ:Basic
 SettingsComponent.Use version.hint:The version of PsychoPy to use when running the experiment.
 SettingsComponent.Use version.label:Use PsychoPy version
