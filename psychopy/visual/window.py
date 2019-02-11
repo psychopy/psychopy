@@ -725,9 +725,17 @@ class Window(object):
         frame. (This replaces the win.update() method, better reflecting what
         is happening underneath).
 
-        win.flip(clearBuffer=True)  # results in a clear screen after flipping
-        win.flip(clearBuffer=False)  # the screen is not cleared (so represent
-                                     # the previous screen)
+        Examples
+        --------
+
+        Results in a clear screen after flipping::
+
+            win.flip(clearBuffer=True)
+
+        The screen is not cleared (so represent the previous screen)::
+
+            win.flip(clearBuffer=False)
+
         """
         for thisStim in self._toDraw:
             thisStim.draw()
