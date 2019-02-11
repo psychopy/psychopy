@@ -11,6 +11,7 @@ from __future__ import absolute_import, print_function
 
 from os import path
 from psychopy.experiment.components import BaseComponent, Param, getInitVals, _translate
+from psychopy.sound._base import knownNoteNames
 
 # the absolute path to the folder containing this path
 thisFolder = path.abspath(path.dirname(__file__))
@@ -168,26 +169,36 @@ class SoundComponent(BaseComponent):
         self.writeParamUpdates(buff, 'set every frame')
         self.writeStartTestCodeJS(buff)
         if self.params['syncScreenRefresh'].val:
-            code = ("psychoJS.window.callOnFlip(function(){ %(name)s.play(); });  // screen flip\n") % self.params
+            code = ("psychoJS.window.callOnFlip(function(){ %(name)s.play(); });  // screen flip\n")
         else:
-            code = "%(name)s.play();  // start the sound (it finishes automatically)\n" % self.params
-        buff.writeIndented(code)
+            code = "%(name)s.play();  // start the sound (it finishes automatically)\n"
+        code += "%(name)s.status = PsychoJS.Status.STARTED;\n"
+        buff.writeIndentedLines(code % self.params)
         # because of the 'if' statement of the time test
         buff.setIndentLevel(-1, relative=True)
         buff.writeIndentedLines('}\n')
-        if not self.params['stopVal'].val in ['', None, -1, 'None']:
-            if '$' in self.params['stopVal'].val:
-                code = ('if t >= %(stopVal)s && %(name)s.status === PsychoJS.Status.STARTED: {\n'
-                        '  %(name)s.stop()  // stop the sound (if longer than duration)\n'
-                        '}\n')
+        knownNote = (self.params['sound'] in knownNoteNames) or (self.params['sound'].val.isdigit())
+        if self.params['stopVal'].val in [None, 'None', '']:
+            code = ('if (t >= (%(name)s.getDuration() + %(name)s.tStart) '
+                    '&& %(name)s.status === PsychoJS.Status.STARTED) {\n'
+                    '  %(name)s.stop();  // stop the sound (if longer than duration)\n'
+                    '  %(name)s.status = PsychoJS.Status.FINISHED;\n'
+                    '}\n')
+            if not knownNote:  # Known notes have no getDuration function because duration is infinite or not None
                 buff.writeIndentedLines(code % self.params)
-            elif not float(self.params['stopVal'].val) < 2:  # Reduce spectral splatter but not stopping short sounds
-                self.writeStopTestCodeJS(buff)
-                code = "%s.stop();  // stop the sound (if longer than duration)\n"
-                buff.writeIndented(code % self.params['name'])
-                # because of the 'if' statement of the time test
-                buff.setIndentLevel(-1, relative=True)
-                buff.writeIndented('}\n')
+        elif '$' in self.params['stopVal'].val:
+            code = ('if (t >= (%(stopVal)s && %(name)s.status === PsychoJS.Status.STARTED)) {\n'
+                    '  %(name)s.stop();  // stop the sound (if longer than duration)\n'
+                    '  %(name)s.status = PsychoJS.Status.FINISHED;\n'
+                    '}\n')
+            buff.writeIndentedLines(code % self.params)
+        elif not float(self.params['stopVal'].val) < 2:  # Reduce spectral splatter but not stopping short sounds
+            self.writeStopTestCodeJS(buff)
+            code = "%s.stop();  // stop the sound (if longer than duration)\n"
+            buff.writeIndented(code % self.params['name'])
+            # because of the 'if' statement of the time test
+            buff.setIndentLevel(-1, relative=True)
+            buff.writeIndented('}\n')
 
     def writeRoutineEndCode(self, buff):
         code = "%s.stop()  # ensure sound has stopped at end of routine\n"
