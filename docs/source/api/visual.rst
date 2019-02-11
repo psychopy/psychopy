@@ -14,7 +14,7 @@ Windows and and display devices:
 
     * :class:`.Window` is the main class to display objects
     * :class:`.Warper` for non-flat projection screens
-    * :class:`.ProjectorFramePacker` for handling displays with
+    * :class:`.ProjectorFramePacker` for handling displays with 'structured light mode' to achieve high framerates
     * :class:`.Rift` for Oculus Rift support (Windows 64bit only)
 
 Commonly used:
