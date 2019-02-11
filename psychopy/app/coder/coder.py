@@ -1904,8 +1904,7 @@ class CoderFrame(wx.Frame):
 
         self.toolbar.AddSeparator()
         pavButtons = pavlovia_ui.toolbar.PavloviaButtons(self, toolbar=tb, tbSize=size)
-        pavButtons.addPavloviaTools(
-                buttons=['pavloviaSync', 'pavloviaSearch', 'pavloviaUser'])
+        pavButtons.addPavloviaTools(buttons=['pavloviaSync', 'pavloviaSearch', 'pavloviaUser',])
         self.btnHandles.update(pavButtons.btnHandles)
 
         tb.Realize()
@@ -2135,7 +2134,7 @@ class CoderFrame(wx.Frame):
 
         # is the file still there
         if os.path.isfile(filename):
-            with io.open(filename, 'r', encoding='utf-8-sig') as f:
+            with io.open(filename, 'r', encoding='utf-8-sig', newline=self.getEOLPrefs()) as f:
                 doc.SetText(f.read())
             doc.fileModTime = os.path.getmtime(filename)
             doc.EmptyUndoBuffer()
@@ -2155,6 +2154,24 @@ class CoderFrame(wx.Frame):
             if self.notebook.GetPage(ii).filename == filename:
                 return ii
         return -1
+
+    def getEOLPrefs(self):
+        """
+        Returns the current new line convention preferences from Preferences
+
+        Returns
+        -------
+        basestring
+            Current new line convention preferences from Preferences
+        """
+
+        if self.prefs['newlineConvention'] == 'keep':
+            newlines = None
+        elif self.prefs['newlineConvention'] == 'dos':
+            newlines = '\r\n'
+        elif self.prefs['newlineConvention'] == 'unix':
+            newlines = '\n'
+        return newlines
 
     def setCurrentDoc(self, filename, keepHidden=False):
         # check if this file is already open
@@ -2177,7 +2194,7 @@ class CoderFrame(wx.Frame):
             # load text from document
             if os.path.isfile(filename):
                 try:
-                    with io.open(filename, 'r', encoding='utf-8-sig') as f:
+                    with io.open(filename, 'r', encoding='utf-8-sig', newline=self.getEOLPrefs()) as f:
                         self.currentDoc.SetText(f.read())
                         self.currentDoc.newlines = f.newlines
                 except UnicodeDecodeError:
