@@ -2311,6 +2311,9 @@ class BuilderFrame(wx.Frame):
         self.app.showCoder()  # make sure coder is visible
         self.app.coder.fileNew(filepath=fullPath)
         self.app.coder.fileReload(event=None, filename=fullPath)
+        EOL = self.app.coder.getEOL()
+        if EOL is not None:
+            self.app.coder.currentDoc.ConvertEOLs(EOL)
 
     def generateScript(self, experimentPath, target="PsychoPy"):
         """Generates python script from the current builder experiment"""
