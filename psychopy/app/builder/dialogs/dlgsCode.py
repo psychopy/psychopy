@@ -283,7 +283,11 @@ class CodeBox(BaseCodeEditor):
         # 4 means 'tabs are bad'; 1 means 'flag inconsistency'
         self.SetProperty("tab.timmy.whinge.level", "4")
         self.SetViewWhiteSpace(self.prefs.appData['coder']['showWhitespace'])
-        self.SetViewEOL(False)
+        self.SetViewEOL(self.prefs.appData['coder']['showEOLs'])
+        # Set EOL mode of editor from prefs
+        EOL = self.getEOL(self.prefs.coder['newlineConvention'])
+        if EOL is not None:
+            self.SetEOLMode(EOL)
 
         self.Bind(wx.stc.EVT_STC_MARGINCLICK, self.OnMarginClick)
         self.SetIndentationGuides(False)
@@ -413,20 +417,3 @@ class CodeBox(BaseCodeEditor):
                         self.Expand(lineClicked, True, True, 100)
                 else:
                     self.ToggleFold(lineClicked)
-
-    def Paste(self, event=None):
-        dataObj = wx.TextDataObject()
-        clip = wx.Clipboard().Get()
-        clip.Open()
-        success = clip.GetData(dataObj)
-        clip.Close()
-        if success:
-            txt = dataObj.GetText()
-            if not constants.PY3:
-                try:
-                    # if we can decode/encode to utf-8 then all is good
-                    txt.decode('utf-8')
-                except:
-                    # if not then wx conversion broke so get raw data instead
-                    txt = dataObj.GetDataHere()
-            self.ReplaceSelection(txt)
