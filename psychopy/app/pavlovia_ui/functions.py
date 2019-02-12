@@ -10,7 +10,7 @@ from __future__ import absolute_import, print_function
 import os
 import wx
 
-from ._base import PavloviaMiniBrowser
+from ._base import PavloviaMiniBrowser, PavloviaCommitDialog
 from psychopy.projects import pavlovia  # NB pavlovia will set gitpython path
 from psychopy.localization import _translate
 
@@ -84,7 +84,7 @@ def logOutPavlovia(parent, event=None):
     dlg.Destroy()
 
 
-def showCommitDialog(parent, project, initMsg=""):
+def showCommitDialog(parent, project, initMsg="", infoStream=None):
     """Brings up a commit dialog (if there is anything to commit
 
     Returns
@@ -98,58 +98,26 @@ def showCommitDialog(parent, project, initMsg=""):
     if not changeList:
         return 0
 
-    infoStr = "Changes to commit:\n"
+    changeInfo = "Changes to commit:\n"
     for categ in ['untracked', 'changed', 'deleted', 'renamed']:
         changes = changeDict[categ]
         if categ == 'untracked':
             categ = 'New'
         if changes:
-            infoStr += "\t{}: {} files\n".format(categ.title(), len(changes))
+            changeInfo += "\t{}: {} files\n".format(categ.title(), len(changes))
     
-    dlg = wx.Dialog(parent, id=wx.ID_ANY, title="Committing changes")
-    
-    updatesInfo = wx.StaticText(dlg, label=infoStr)
-    
-    commitTitleLbl = wx.StaticText(dlg, label='Summary of changes')
-    commitTitleCtrl = wx.TextCtrl(dlg, size=(500, -1), value=initMsg)
-    commitTitleCtrl.SetToolTip(wx.ToolTip(_translate(
-        "A title summarizing the changes you're making in these files"
-        )))
-    commitDescrLbl = wx.StaticText(dlg, label='Details of changes\n (optional)')
-    commitDescrCtrl = wx.TextCtrl(dlg, size=(500, 200),
-                                  style=wx.TE_MULTILINE | wx.TE_AUTO_URL)
-    commitDescrCtrl.SetToolTip(wx.ToolTip(_translate(
-        "Optional further details about the changes you're making in these files"
-        )))
-    commitSizer = wx.FlexGridSizer(cols=2, rows=2, vgap=5, hgap=5)
-    commitSizer.AddMany([(commitTitleLbl, 0, wx.ALIGN_RIGHT),
-                       commitTitleCtrl,
-                       (commitDescrLbl, 0, wx.ALIGN_RIGHT),
-                       commitDescrCtrl
-                       ])
+    dlg = PavloviaCommitDialog(parent, id=wx.ID_ANY, title="Committing changes", changeInfo=changeInfo)
 
-    btnOK  = wx.Button(dlg, wx.ID_OK)
-    btnCancel  = wx.Button(dlg, wx.ID_CANCEL)
-    buttonSizer = wx.BoxSizer(wx.HORIZONTAL)
-    buttonSizer.AddMany([btnCancel, btnOK])
+    retVal = dlg.ShowCommitDlg()
+    commitMsg = dlg.getCommitMsg()
+    dlg.Destroy()
 
-    # main sizer and layout
-    mainSizer = wx.BoxSizer(wx.VERTICAL)
-    mainSizer.Add(updatesInfo, 0, wx.ALL, border=5)
-    mainSizer.Add(commitSizer, 1, wx.ALL | wx.EXPAND, border=5)
-    mainSizer.Add(buttonSizer, 0, wx.ALL | wx.ALIGN_RIGHT, border=5)
-    dlg.SetSizerAndFit(mainSizer)
-    dlg.Layout()
-    if dlg.ShowModal() == wx.ID_CANCEL:
+    if retVal == wx.ID_CANCEL:
         return -1
 
-    commitMsg = commitTitleCtrl.GetValue()
-    if commitDescrCtrl.GetValue():
-        commitMsg += "\n\n" + commitDescrCtrl.GetValue()
     project.stageFiles(changeList)  # NB not needed in dulwich
     project.commit(commitMsg)
     return 1
-
 
 def noGitWarning(parent):
     """Raise a simpler warning dialog that the user needs to install git first"""

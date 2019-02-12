@@ -12,6 +12,7 @@
     orthoProjectionMatrix
     perspectiveProjectionMatrix
     lookAt
+    pointToNdc
     
 Function details
 ~~~~~~~~~~~~~~~~~~~~~~~
@@ -21,3 +22,4 @@ Function details
 .. autofunction:: orthoProjectionMatrix
 .. autofunction:: perspectiveProjectionMatrix
 .. autofunction:: lookAt
+.. autofunction:: pointToNdc

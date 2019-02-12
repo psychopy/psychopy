@@ -144,14 +144,14 @@ class BaseComponent(object):
         """Write the code that will be called at the end of
         a routine (e.g. to save data)
         """
-        if 'saveStartStop' in self.params and self.params['saveStartStop']:
+        if 'saveStartStop' in self.params and self.params['saveStartStop'].val:
             # what loop are we in (or thisExp)?
             if len(self.exp.flow._loopList):
                 currLoop = self.exp.flow._loopList[-1]  # last (outer-most) loop
             else:
                 currLoop = self.exp._expHandler
 
-            if self.params['syncScreenRefresh']:
+            if self.params['syncScreenRefresh'].val:
                 code = (
                     "{loop}.addData('{name}.started', {name}.tStartRefresh)\n"
                     "{loop}.addData('{name}.stopped', {name}.tStopRefresh)\n"
