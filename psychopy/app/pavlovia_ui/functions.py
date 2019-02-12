@@ -38,11 +38,9 @@ def setLocalPath(parent, project=None, path=""):
     else:
         origPath = ""
     # create the dialog
-    dlg = wx.DirDialog(
-            parent,
-            defaultPath=origPath,
-            message=_translate(
-                    "Choose/create the root location for the synced project"))
+    dlg = wx.DirDialog(parent,
+                       defaultPath=origPath,
+                       message=_translate("Choose/create the root location for the synced project"))
     if dlg.ShowModal() == wx.ID_OK:
         newPath = dlg.GetPath()
         if os.path.isfile(newPath):
