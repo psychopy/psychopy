@@ -241,8 +241,9 @@ class BaseCodeEditor(wx.stc.StyledTextCtrl):
                 newIndent = 0
             self.SetLineIndentation(lineN, newIndent)
 
-    def getEOL(self, prefs='keep'):
-        """Gets EOL mode from preferences.
+    @staticmethod
+    def getEOL(prefs='keep'):
+        """Gets EOL mode from preferences for setting EOL mode in Coder and code component.
         CRLF    : Windows
         CR      : Legacy Mac
         LF      : Unix

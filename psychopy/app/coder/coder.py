@@ -2153,7 +2153,7 @@ class CoderFrame(wx.Frame):
             else:
                 self.setCurrentDoc(filename)
                 self.setFileModified(False)
-        EOL = BaseCodeEditor.getEOL(None, self.prefs['newlineConvention'])
+        EOL = BaseCodeEditor.getEOL(self.prefs['newlineConvention'])
         if EOL is not None:
             self.currentDoc.ConvertEOLs(EOL)
         self.SetStatusText('')
@@ -2544,7 +2544,7 @@ class CoderFrame(wx.Frame):
         foc = self.FindFocus()
         if hasattr(foc, 'Paste'):
             foc.Paste()
-        self.currentDoc.ConvertEOLs(BaseCodeEditor.getEOL(None, self.prefs['newlineConvention']))
+        self.currentDoc.ConvertEOLs(BaseCodeEditor.getEOL(self.prefs['newlineConvention']))
 
     def undo(self, event):
         self.currentDoc.Undo()
