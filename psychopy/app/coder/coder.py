@@ -507,6 +507,10 @@ class CodeEditor(BaseCodeEditor):
         self.coder = frame
         self.SetViewWhiteSpace(self.coder.appData['showWhitespace'])
         self.SetViewEOL(self.coder.appData['showEOLs'])
+        # Set EOL mode of editor from prefs
+        EOL = self.getEOL(self.coder.prefs['newlineConvention'])
+        if EOL is not None:
+            self.SetEOLMode(EOL)
 
         self.Bind(wx.EVT_DROP_FILES, self.coder.filesDropped)
         self.Bind(wx.stc.EVT_STC_MODIFIED, self.onModified)
@@ -954,24 +958,6 @@ class CodeEditor(BaseCodeEditor):
                 lineText = lineText[1:]
             newText = newText + lineText
         self._ReplaceSelectedLines(newText)
-
-    def Paste(self, event=None):
-        dataObj = wx.TextDataObject()
-        clip = wx.Clipboard().Get()
-        clip.Open()
-        success = clip.GetData(dataObj)
-        clip.Close()
-        if success:
-            txt = dataObj.GetText()
-            # dealing with unicode error in wx3 for Mac
-            if wx.__version__[0] == '3' and sys.platform == 'darwin':
-                try:
-                    # if we can decode from utf-8 then all is good
-                    txt.decode('utf-8')
-                except:
-                    # if not then wx conversion broke so get raw data instead
-                    txt = dataObj.GetDataHere()
-            self.ReplaceSelection(txt)
 
     def increaseFontSize(self):
         self.SetZoom(self.GetZoom() + 1)
@@ -2143,21 +2129,6 @@ class CoderFrame(wx.Frame):
         if readonly:
             self.currentDoc.SetReadOnly(True)
 
-    def getEOL(self):
-        """Gets EOL mode from preferences.
-        CRLF    : Windows
-        CR      : Legacy Mac
-        LF      : Unix
-        None    : Preferences are to be kept same.
-
-        Returns
-        -------
-        int
-            0 = CRLF, 1 = CR, and  2 = LF, None
-        """
-        EOL = {'keep': None, 'dos': 0, 'LegacyMac': 1, 'unix': 2}
-        return EOL[self.prefs['newlineConvention']]
-
     def fileOpen(self, event=None, filename=None):
         if not filename:
             # get path of current file (empty if current file is '')
@@ -2182,7 +2153,7 @@ class CoderFrame(wx.Frame):
             else:
                 self.setCurrentDoc(filename)
                 self.setFileModified(False)
-        EOL = self.getEOL()
+        EOL = BaseCodeEditor.getEOL(None, self.prefs['newlineConvention'])
         if EOL is not None:
             self.currentDoc.ConvertEOLs(EOL)
         self.SetStatusText('')
@@ -2573,6 +2544,7 @@ class CoderFrame(wx.Frame):
         foc = self.FindFocus()
         if hasattr(foc, 'Paste'):
             foc.Paste()
+        self.currentDoc.ConvertEOLs(BaseCodeEditor.getEOL(None, self.prefs['newlineConvention']))
 
     def undo(self, event):
         self.currentDoc.Undo()

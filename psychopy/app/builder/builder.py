@@ -49,6 +49,7 @@ from psychopy.app import pavlovia_ui
 from psychopy.projects import pavlovia
 
 from psychopy.scripts import psyexpCompile
+from psychopy.app.coder import BaseCodeEditor
 
 canvasColor = [200, 200, 200]  # in prefs? ;-)
 routineTimeColor = wx.Colour(50, 100, 200, 200)
@@ -2202,7 +2203,8 @@ class BuilderFrame(wx.Frame):
         self.app.showCoder()  # make sure coder is visible
         self.app.coder.fileNew(filepath=fullPath)
         self.app.coder.fileReload(event=None, filename=fullPath)
-        EOL = self.app.coder.getEOL()
+        # Convert EOL of currentDoc based on prefs
+        EOL = BaseCodeEditor.getEOL(None, self.app.prefs.coder['newlineConvention'])
         if EOL is not None:
             self.app.coder.currentDoc.ConvertEOLs(EOL)
 
