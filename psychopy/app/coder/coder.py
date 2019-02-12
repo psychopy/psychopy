@@ -2143,6 +2143,21 @@ class CoderFrame(wx.Frame):
         if readonly:
             self.currentDoc.SetReadOnly(True)
 
+    def getEOL(self):
+        """Gets EOL mode from preferences.
+        CRLF    : Windows
+        CR      : Legacy Mac
+        LF      : Unix
+        None    : Preferences are to be kept same.
+
+        Returns
+        -------
+        int
+            0 = CRLF, 1 = CR, and  2 = LF, None
+        """
+        EOL = {'keep': None, 'dos': 0, 'LegacyMac': 1, 'unix': 2}
+        return EOL[self.prefs['newlineConvention']]
+
     def fileOpen(self, event=None, filename=None):
         if not filename:
             # get path of current file (empty if current file is '')
@@ -2167,7 +2182,9 @@ class CoderFrame(wx.Frame):
             else:
                 self.setCurrentDoc(filename)
                 self.setFileModified(False)
-
+        EOL = self.getEOL()
+        if EOL is not None:
+            self.currentDoc.ConvertEOLs(EOL)
         self.SetStatusText('')
         # self.fileHistory.AddFileToHistory(newPath)  # this is done by
         # setCurrentDoc
@@ -2255,6 +2272,8 @@ class CoderFrame(wx.Frame):
                         newlines = '\r\n'
                     elif self.prefs['newlineConvention'] == 'unix':
                         newlines = '\n'
+                    elif self.prefs['newlineConvention'] == 'LegacyMac':
+                        newlines = '\r'
                 except Exception:
                     pass
 
