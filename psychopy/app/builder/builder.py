@@ -2236,7 +2236,8 @@ class BuilderFrame(wx.Frame):
             logging.info(' '.join(cmd))
             out = subprocess.check_output(cmd)
             if len(out):
-                print(out)  # so that any errors messages in compile are printed
+                out = out.decode('utf-8-sig').split('\n')
+                [print(line) for line in out] # so that any errors messages in compile are printed
         else:
             psyexpCompile.compileScript(infile=self.exp, version=None, outfile=experimentPath)
 
