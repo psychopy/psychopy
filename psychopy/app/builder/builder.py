@@ -2313,7 +2313,7 @@ class BuilderFrame(wx.Frame):
         self.app.coder.fileNew(filepath=fullPath)
         self.app.coder.fileReload(event=None, filename=fullPath)
         # Convert EOL of currentDoc based on prefs
-        EOL = BaseCodeEditor.getEOL(None, self.app.prefs.coder['newlineConvention'])
+        EOL = BaseCodeEditor.getEOL(self.app.prefs.coder['newlineConvention'])
         if EOL is not None:
             self.app.coder.currentDoc.ConvertEOLs(EOL)
 
