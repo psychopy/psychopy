@@ -181,9 +181,7 @@ class DetailsPanel(scrlpanel.ScrolledPanel):
         self.project = project  # type: PavloviaProject
         self.noTitle = noTitle
         self.localFolder = ''
-
-        # self.syncPanel = SyncStatusPanel(parent=self, id=wx.ID_ANY)
-        # self.syncPanel.Hide()
+        self.syncPanel = None
 
         if not noTitle:
             self.title = wx.StaticText(parent=self, id=-1,
@@ -215,6 +213,7 @@ class DetailsPanel(scrlpanel.ScrolledPanel):
         self.syncButton = wx.Button(self, -1, _translate("Sync..."))
         self.syncButton.Enable(False)
         self.syncButton.Bind(wx.EVT_BUTTON, self.onSyncButton)
+        self.syncPanel = sync.SyncStatusPanel(parent=self, id=wx.ID_ANY)
 
         # layout
         # sizers: on the right we have detail
@@ -241,9 +240,15 @@ class DetailsPanel(scrlpanel.ScrolledPanel):
                        flag=wx.ALL | wx.EXPAND)
         self.sizer.Add(self.syncButton,
                        flag=wx.ALL | wx.ALIGN_RIGHT, border=5)
+        self.sizer.Add(self.syncPanel, border=5, proportion=1,
+                       flag=wx.ALL | wx.RIGHT | wx.EXPAND)
 
         if self.project:
             self.setProject(self.project)
+            self.syncPanel.setStatus(_translate("Ready to sync"))
+        else:
+            self.syncPanel.setStatus(
+                    _translate("This file doesn't belong to a project yet"))
 
         self.SetAutoLayout(True)
         self.SetSizerAndFit(self.sizer)
@@ -355,14 +360,8 @@ class DetailsPanel(scrlpanel.ScrolledPanel):
             self.Layout()
             self.Raise()
 
-        syncPanel = sync.SyncStatusPanel(parent=self, id=wx.ID_ANY)
-        self.sizer.Add(syncPanel, border=5, proportion=1,
-                       flag=wx.ALL | wx.RIGHT | wx.EXPAND)
-        self.sizer.Layout()
-        wx.Yield()
-        self.project.sync(infoStream=syncPanel.infoStream)
-        syncPanel.Destroy()
-        self.sizer.Layout()
+        self.syncPanel.setStatus(_translate("Synchronizing..."))
+        self.project.sync(infoStream=self.syncPanel.infoStream)
         self.parent.Raise()
 
     def onBrowseLocalFolder(self, evt):
