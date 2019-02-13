@@ -2643,7 +2643,7 @@ class CoderFrame(wx.Frame):
             foc.Paste()
         EOL = BaseCodeEditor.getEOL(self.prefs['newlineConvention'])
         if EOL is not None:
-            self.currentDoc.ConvertEOLs()
+            self.currentDoc.ConvertEOLs(EOL)
 
     def undo(self, event):
         self.currentDoc.Undo()
