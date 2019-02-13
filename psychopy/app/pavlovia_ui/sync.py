@@ -12,7 +12,7 @@ import wx
 class SyncFrame(wx.Frame):
     def __init__(self, parent, id, project):
         title = "{} / {}".format(project.group, project.title)
-        style = wx.DEFAULT_FRAME_STYLE ^ wx.RESIZE_BORDER
+        style = wx.DEFAULT_FRAME_STYLE | wx.RESIZE_BORDER
         wx.Frame.__init__(self, parent=None, id=id, style=style,
                           title=title)
         self.parent = parent

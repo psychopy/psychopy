@@ -126,12 +126,16 @@ openWindows = core.openWindows = OpenWinList()  # core needs this for wait()
 
 class Window(object):
     """Used to set up a context in which to draw objects,
-    using either `pyglet <http://www.pyglet.org>`_ or
-    `pygame <http://www.pygame.org>`_
+    using either `pyglet <http://www.pyglet.org>`_,
+    `pygame <http://www.pygame.org>`_, or `glfw <https://www.glfw.org/>_`.
 
     The pyglet backend allows multiple windows to be created, allows the user
     to specify which screen to use (if more than one is available, duh!) and
     allows movies to be rendered.
+
+    The glfw backend is a new addition which provides most of the same features
+    as pyglet, but provides greater flexibility for complex display
+    configurations.
 
     Pygame may still work for you but it's officially deprecated in this
     project (we won't be fixing pygame-specific bugs).
@@ -341,8 +345,7 @@ class Window(object):
         # being used.
         # NB - attribute checks needed for Rift compatibility
         if not hasattr(self, '_viewMatrix'):
-            self._viewMatrix = numpy.zeros((4,4,), numpy.float32)
-            numpy.fill_diagonal(self._viewMatrix, 1.0)  # identity
+            self._viewMatrix = numpy.identity(4, dtype=numpy.float32)
 
         if not hasattr(self, '_projectionMatrix'):
             self._projectionMatrix = viewtools.orthoProjectionMatrix(-1, 1, -1, 1, -1, 1)
@@ -726,9 +729,17 @@ class Window(object):
         frame. (This replaces the win.update() method, better reflecting what
         is happening underneath).
 
-        win.flip(clearBuffer=True)  # results in a clear screen after flipping
-        win.flip(clearBuffer=False)  # the screen is not cleared (so represent
-                                     # the previous screen)
+        Examples
+        --------
+
+        Results in a clear screen after flipping::
+
+            win.flip(clearBuffer=True)
+
+        The screen is not cleared (so represent the previous screen)::
+
+            win.flip(clearBuffer=False)
+
         """
         for thisStim in self._toDraw:
             thisStim.draw()
@@ -1050,8 +1061,7 @@ class Window(object):
         self._projectionMatrix = viewtools.perspectiveProjectionMatrix(*frustum)
 
         # translate away from screen
-        self._viewMatrix = numpy.zeros((4, 4), dtype=numpy.float32)
-        numpy.fill_diagonal(self._viewMatrix, 1.0)  # identity matrix
+        self._viewMatrix = numpy.identity(4, dtype=numpy.float32)
         self._viewMatrix[2, 3] = -scrDistM  # displace scene away from viewer
 
         if applyTransform:
@@ -1077,16 +1087,16 @@ class Window(object):
 
         # apply the projection and view transformations
         GL.glMatrixMode(GL.GL_PROJECTION)
-        GL.glLoadIdentity()
-        projMat = numpy.asfortranarray(self._projectionMatrix).ctypes.data_as(
+        #GL.glLoadIdentity()
+        projMat = self._projectionMatrix.T.ctypes.data_as(
             ctypes.POINTER(ctypes.c_float))
-        GL.glMultMatrixf(projMat)
+        GL.glLoadMatrixf(projMat)
 
         GL.glMatrixMode(GL.GL_MODELVIEW)
-        GL.glLoadIdentity()
-        viewMat = numpy.asfortranarray(self._viewMatrix).ctypes.data_as(
+        #GL.glLoadIdentity()
+        viewMat = self._viewMatrix.T.ctypes.data_as(
             ctypes.POINTER(ctypes.c_float))
-        GL.glMultMatrixf(viewMat)
+        GL.glLoadMatrixf(viewMat)
 
         if clearDepth:
             #GL.glDepthMask(GL.GL_TRUE)
@@ -1738,12 +1748,12 @@ class Window(object):
         They may vary in appearance and hot spot location across platforms. The
         following names are valid on most platforms:
 
-                'arrow' : Default pointer
-                'ibeam' : Indicates text can be edited
-            'crosshair' : Crosshair with hot-spot at center
-                 'hand' : A pointing hand
-              'hresize' : Double arrows pointing horizontally
-              'vresize' : Double arrows pointing vertically
+        - 'arrow' : Default pointer
+        - 'ibeam' : Indicates text can be edited
+        - 'crosshair' : Crosshair with hot-spot at center
+        - 'hand' : A pointing hand
+        - 'hresize' : Double arrows pointing horizontally
+        - 'vresize' : Double arrows pointing vertically
 
         Requires the GLFW backend, otherwise this function does nothing! Note,
         on Windows the 'crosshair' option is XORed with the background color. It
