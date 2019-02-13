@@ -65,6 +65,37 @@ def computeFrustum(scrWidth,
     for screen distance. These offsets MUST be applied to the MODELVIEW matrix,
     not the PROJECTION matrix! Doing so may break lighting calculations.
 
+    Examples
+    --------
+
+    Creating a frustum and setting a window's projection matrix::
+
+        scrWidth = 0.5  # screen width in meters
+        scrAspect = win.size[0] / win.size[1]
+        scrDist = win.scrDistCM * 100.0  # monitor setting, can be anything
+        frustum = viewtools.computeFrustum(scrWidth, scrAspect, scrDist)
+        # convert frustum to projection matrix
+        win.projectionMatrix = viewtools.perspectiveProjectionMatrix(*frustum)
+        # set your view matrix to account for the screen distance!!!
+        win.applyEyeTransform()  # call before drawing
+
+    Off-axis frustums for stereo rendering::
+
+        # compute view matrix for each eye, these value usually don't change
+        eyeOffset = (-0.035, 0.035)  # +/- IOD / 2.0
+        leftProjMatrix = viewtools.perspectiveProjectionMatrix(
+            viewtools.computeFrustum(
+                scrWidth, scrAspect, scrDist, eyeOffset[0]))
+        rightProjMatrix = viewtools.computeFrustum(
+            viewtools.computeFrustum(
+                scrWidth, scrAspect, scrDist, eyeOffset[1]))
+        # ... after calling 'setBuffer('left')' ...
+        win.projectionMatrix = leftProjMatrix
+        # setup your view matrix accordingly, must account for screen distance
+        # and eye offset
+        win.applyViewTransform()  # call before drawing
+        # do the same for 'setBuffer('right')' using the other matrix ...
+
     """
     d = scrWidth * (convergeOffset + scrDist)
     ratio = nearClip / float((convergeOffset + scrDist))
@@ -154,8 +185,7 @@ def generalizedPerspectiveProjection(posBottomLeft,
     rotMat[2, :3] = vn
     rotMat[3, 3] = 1.0
 
-    transMat = np.zeros((4, 4), np.float32)
-    np.fill_diagonal(transMat, 1.0)
+    transMat = np.identity(4, np.float32)
     transMat[:3, 3] = -eyePos
 
     return projMat, np.matmul(rotMat, transMat)
@@ -290,14 +320,13 @@ def lookAt(eyePos, centerPos, upVec):
     rotMat[2, :3] = -f
     rotMat[3, 3] = 1.0
 
-    transMat = np.zeros((4, 4), np.float32)
-    np.fill_diagonal(transMat, 1.0)
+    transMat = np.identity(4, np.float32)
     transMat[:3, 3] = -eyePos
 
     return np.matmul(rotMat, transMat)
 
 
-def pointToNDC(wcsPos, viewMatrix, projectionMatrix):
+def pointToNdc(wcsPos, viewMatrix, projectionMatrix):
     """Map the position of a point in world space to normalized device
     coordinates/space.
 
@@ -332,13 +361,13 @@ def pointToNDC(wcsPos, viewMatrix, projectionMatrix):
     --------
     Determine if a point is visible::
         point = (0.0, 0.0, 10.0)  # behind the observer
-        ndc = pointToNDC(point, win.viewMatrix, win.projectionMatrix)
+        ndc = pointToNdc(point, win.viewMatrix, win.projectionMatrix)
         isVisible = not np.any((ndc > 1.0) | (ndc < -1.0))
 
     Convert NDC to viewport (or pixel) coordinates::
         scrRes = (1920, 1200)
         point = (0.0, 0.0, -5.0)  # forward -5.0 from eye
-        x, y, z = pointToNDC(point, win.viewMatrix, win.projectionMatrix)
+        x, y, z = pointToNdc(point, win.viewMatrix, win.projectionMatrix)
         pixelX = ((x + 1.0) / 2.0) * scrRes[0])
         pixelY = ((y + 1.0) / 2.0) * scrRes[1])
         # object at point will appear at (pixelX, pixelY)
@@ -358,8 +387,8 @@ def pointToNDC(wcsPos, viewMatrix, projectionMatrix):
 
     clipCoords = viewProjMatrix.dot(wcsVec)  # convert to clipping space
 
-    # handle the singularity case when the point falls on the eye
-    if np.isclose(clipCoords[3], 0.0):
+    # handle the singularity where perspective division will fail
+    if clipCoords[3] < 0.0001:
         clipCoords[3] = np.finfo(np.float32).eps
 
     return clipCoords[:3] / clipCoords[3]  # xyz / w

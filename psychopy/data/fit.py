@@ -5,7 +5,8 @@ from __future__ import absolute_import, division, print_function
 
 from builtins import object
 import numpy as np
-from scipy import optimize, special
+from scipy import special
+# from scipy import optimize  # DON'T. It's slow and crashes on some machines
 
 
 class _baseFunctionFit(object):
@@ -18,6 +19,8 @@ class _baseFunctionFit(object):
     def __init__(self, xx, yy, sems=1.0, guess=None, display=1,
                  expectedMin=0.5, optimize_kws=None):
         super(_baseFunctionFit, self).__init__()
+
+
         self.xx = np.array(xx)
         self.yy = np.array(yy)
         self.sems = np.array(sems)
@@ -44,6 +47,9 @@ class _baseFunctionFit(object):
         #    (self.xx,self.yy,self.sems),disp=self.display)
         # self.params = optimize.fmin_bfgs(self._getErr, self.params, None,
         #    (self.xx,self.yy,self.sems),disp=self.display)
+        from scipy import optimize
+        # don't import optimize at top of script. Slow and not always present!
+
         global _chance
         _chance = self.expectedMin
         if len(self.sems) == 1:

@@ -94,7 +94,7 @@ class SettingsComponent(object):
                  winSize=(1024, 768), screen=1, monitor='testMonitor',
                  showMouse=False, saveLogFile=True, showExpInfo=True,
                  expInfo="{'participant':'', 'session':'001'}",
-                 units='use prefs', logging='exp',
+                 units='height', logging='exp',
                  color='$[0,0,0]', colorSpace='rgb', enableEscape=True,
                  blendMode='avg',
                  saveXLSXFile=False, saveCSVFile=False,

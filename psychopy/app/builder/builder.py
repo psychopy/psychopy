@@ -53,6 +53,7 @@ from psychopy.app import pavlovia_ui
 from psychopy.projects import pavlovia
 
 from psychopy.scripts import psyexpCompile
+from psychopy.app.coder import BaseCodeEditor
 
 canvasColor = [200, 200, 200]  # in prefs? ;-)
 routineTimeColor = wx.Colour(50, 100, 200, 200)
@@ -1331,8 +1332,7 @@ class BuilderFrame(wx.Frame):
 
         self.toolbar.AddSeparator()
         pavButtons = pavlovia_ui.toolbar.PavloviaButtons(self, toolbar=tb, tbSize=tbSize)
-        pavButtons.addPavloviaTools(buttons=['pavloviaSync', 'pavloviaRun',
-                                             'pavloviaSearch', 'pavloviaUser'])
+        pavButtons.addPavloviaTools()
         self.btnHandles.update(pavButtons.btnHandles)
 
         # Finished setup. Make it happen
@@ -2312,6 +2312,10 @@ class BuilderFrame(wx.Frame):
         self.app.showCoder()  # make sure coder is visible
         self.app.coder.fileNew(filepath=fullPath)
         self.app.coder.fileReload(event=None, filename=fullPath)
+        # Convert EOL of currentDoc based on prefs
+        EOL = BaseCodeEditor.getEOL(self.app.prefs.coder['newlineConvention'])
+        if EOL is not None:
+            self.app.coder.currentDoc.ConvertEOLs(EOL)
 
     def generateScript(self, experimentPath, target="PsychoPy"):
         """Generates python script from the current builder experiment"""
@@ -2377,6 +2381,7 @@ class BuilderFrame(wx.Frame):
         self.enablePavloviaButton(['pavloviaSync', 'pavloviaRun'], False)
         try:
             pavlovia_ui.syncProject(parent=self, project=self.project)
+            pavlovia.knownProjects.save()  # update projects.json
         finally:
             self.enablePavloviaButton(['pavloviaSync', 'pavloviaRun'], True)
 

@@ -162,7 +162,7 @@ class Slider(MinimalStim):
         self.tickLines = []
         self.tickLocs = None
         self.labelLocs = None
-        self.labelHeight = labelHeight
+        self.labelHeight = labelHeight or min(self._size)
         self._lineAspectRatio = 0.01
         self._updateMarkerPos = True
         self._dragging = False

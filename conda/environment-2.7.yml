@@ -17,6 +17,7 @@ dependencies:
 - future
 - gevent
 - greenlet
+- imageio<2.5
 - json_tricks
 - libffi
 - libflac
