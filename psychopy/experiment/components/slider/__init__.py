@@ -263,7 +263,7 @@ class SliderComponent(BaseVisualComponent):
         forceEnd = self.params['forceEndRoutine'].val
         if forceEnd:
             code = ("\n// Check %(name)s for response to end routine\n"
-                    "if (%(name)s.getRating() !== 'undefined' && %(name)s.status === PsychoJS.Status.STARTED) {\n"
+                    "if (%(name)s.getRating() !== undefined && %(name)s.status === PsychoJS.Status.STARTED) {\n"
                     "  continueRoutine = false; }\n")
             buff.writeIndentedLines(code % (self.params))
 
