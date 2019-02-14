@@ -18,6 +18,29 @@ at the Pavlovia.org experiment server. Many of the features here are relatively
 new and, although we have spent hundreds of hours developing and testing them
 you should be more cautious than ever checking your experiment and data outputs.
 
+PsychoPy 3.0.4
+~~~~~~~~~~~~~~~~~~~~~~
+
+FIXED:
+
+- fixes to prevent stalled "Synchronizing..." message by preventing behaviours that would cause it #8cadce02d
+- workaround to stop `sounddevice` backend from silencing `input()` #1422fd7c9
+- prevent JS experiments being compiled with units of "use prefs" #a686dbf52
+- cleaner ioHub shutdown #7a7751ca5 and datastore #209c4047f
+- Slider in JS allows forceEndRoutine #0694027b2
+- better error reporting when compiling scripts #a01cb2982
+- don't crash the app if no internet #84b7602c3
+- don't crash if scipy.optimize doesn't load #0f8038629
+- set Slider label height to match tick height by default #f8bdf2341
+- online sounds were never ending if duration was blank (now ends at end of file) #6d91b3186
+- problem converting EOLs between different formats when pasting code
+
+ADDED:
+
+- New Builder Pavlovia button to examine properties of current project
+- Added star to ShapeStim (currently only in Python) #8e6c40993
+- Added tooltips for Pavlovia buttons
+
 PsychoPy 3.0.3
 ~~~~~~~~~~~~~~~~~~~~~~
 

@@ -5,7 +5,6 @@ from __future__ import absolute_import, division, print_function
 
 from builtins import object
 import numpy as np
-from scipy import special
 # from scipy import optimize  # DON'T. It's slow and crashes on some machines
 
 
@@ -224,6 +223,7 @@ class FitCumNormal(_baseFunctionFit):
     # optimise.curve_fit
     @staticmethod
     def _eval(xx, xShift, sd):
+        from scipy import special
         global _chance
         xx = np.asarray(xx)
         # NB np.special.erf() goes from -1:1
@@ -233,6 +233,7 @@ class FitCumNormal(_baseFunctionFit):
 
     @staticmethod
     def _inverse(yy, xShift, sd):
+        from scipy import special
         global _chance
         yy = np.asarray(yy)
         # xx = (special.erfinv((yy-chance)/(1-chance)*2.0-1)+xShift)/xScale
