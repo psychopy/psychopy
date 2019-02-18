@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: PsychoPy 1.81.00\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2019-02-13 20:44+0900\n"
-"PO-Revision-Date: 2019-02-13 20:45+0900\n"
+"PO-Revision-Date: 2019-02-18 18:50+0900\n"
 "Last-Translator: Hiroyuki Sogo <hsogo12600@gmail.com>\n"
 "Language-Team: Hiroyuki Sogo <hsogo12600@gmail.com>\n"
 "Language: ja\n"
@@ -1170,7 +1170,7 @@ msgstr "有効なクリック"
 
 #: psychopy/app/builder/localizedStrings.py:84
 msgid "mouse onset"
-msgstr "マウスオンセット"
+msgstr "Mouseコンポーネント初期化時"
 
 #: psychopy/app/builder/localizedStrings.py:85
 msgid "Routine"
@@ -3603,8 +3603,8 @@ msgid ""
 "If the mouse button is already down when we startchecking then wait for it "
 "to be released beforerecording as a new click."
 msgstr ""
-"ルーチン開始時にすでにマウスのボタンが押されていた場合、ボタンがいったん離さ"
-"れてからボタン押しのチェックを開始します"
+"ボタンが押され続けていた場合、ボタンがいったん離されてからボタン押しのチェッ"
+"クを開始します"
 
 #: psychopy/experiment/components/mouse/__init__.py:111
 msgid ""
