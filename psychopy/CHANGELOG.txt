@@ -18,6 +18,14 @@ at the Pavlovia.org experiment server. Many of the features here are relatively
 new and, although we have spent hundreds of hours developing and testing them
 you should be more cautious than ever checking your experiment and data outputs.
 
+PsychoPy 3.0.5
+~~~~~~~~~~~~~~~~~~~~~~
+
+FIXED:
+
+- sounddevice backend not importing on systems that don't have readline
+- better automated Pavlovia logging in for users, based on project
+
 PsychoPy 3.0.4
 ~~~~~~~~~~~~~~~~~~~~~~
 
