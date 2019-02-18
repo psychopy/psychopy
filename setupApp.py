@@ -62,7 +62,7 @@ includes = ['Tkinter', 'tkFileDialog',
             'hid',
             'pyo', 'greenlet', 'zmq', 'tornado',
             'psutil',  # for iohub
-            'pysoundcard', 'soundfile', 'sounddevice',
+            'pysoundcard', 'soundfile', 'sounddevice', 'readline',
             'cv2', 'hid',
             'xlwt',  # writes excel files for pandas
             'vlc',  # install with pip install python-vlc
@@ -73,7 +73,7 @@ packages = ['wx', 'psychopy',
             'pyglet', 'pygame',  'pytz', 'OpenGL', 'glfw',
             'scipy', 'matplotlib', 'lxml', 'xml', 'openpyxl',
             'moviepy', 'imageio', 'imageio_ffmpeg',
-            '_sounddevice_data', '_soundfile_data', 'readline',
+            '_sounddevice_data', '_soundfile_data',
             'cffi','pycparser',
             'PIL',  # 'Image',
             'objc', 'Quartz', 'AppKit', 'QTKit', 'Cocoa',
