@@ -9,7 +9,10 @@ import sys
 import os
 import time
 import re
-import readline  # Work around GH-2230
+try:
+    import readline  # Work around GH-2230
+except ImportError:
+    pass  # all that will happen is the stderr/stdout might get redirected
 
 from psychopy import logging, exceptions
 from psychopy.constants import (PLAYING, PAUSED, FINISHED, STOPPED,
