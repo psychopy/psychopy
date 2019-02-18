@@ -85,7 +85,7 @@
     # for coder shell window, which shell to use
     preferredShell = option('ipython','pyshell',default='pyshell')
     # newline for python files: unix = \n, dos = \r\n
-    newlineConvention = option('keep','unix','dos','LegacyMac',default='keep')
+    newlineConvention = option('keep','unix','dos',default='keep')
 
 # Settings for the Builder window
 [builder]
