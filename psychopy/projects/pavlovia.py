@@ -933,7 +933,7 @@ class PavloviaProject(dict):
                         'The `files` provided to PavloviaProject.stageFiles '
                         'should be a list not a {}'.format(type(files)))
             try:
-                self.repo.git.add(files)
+            self.repo.git.add(files)
             except git.exc.GitCommandError:
                 if infoStream:
                     infoStream.SetValue(traceback.format_exc())
