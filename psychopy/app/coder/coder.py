@@ -506,11 +506,6 @@ class CodeEditor(BaseCodeEditor):
         self.coder = frame
         self.SetViewWhiteSpace(self.coder.appData['showWhitespace'])
         self.SetViewEOL(self.coder.appData['showEOLs'])
-        # Set EOL mode of editor from prefs
-        EOL = self.getEOL(self.coder.prefs['newlineConvention'])
-        if EOL is not None:
-            self.SetEOLMode(EOL)
-
         self.Bind(wx.EVT_DROP_FILES, self.coder.filesDropped)
         self.Bind(wx.stc.EVT_STC_MODIFIED, self.onModified)
         # self.Bind(wx.stc.EVT_STC_UPDATEUI, self.OnUpdateUI)
@@ -958,6 +953,24 @@ class CodeEditor(BaseCodeEditor):
                 lineText = lineText[1:]
             newText = newText + lineText
         self._ReplaceSelectedLines(newText)
+
+    def Paste(self, event=None):
+        dataObj = wx.TextDataObject()
+        clip = wx.Clipboard().Get()
+        clip.Open()
+        success = clip.GetData(dataObj)
+        clip.Close()
+        if success:
+            txt = dataObj.GetText()
+            # dealing with unicode error in wx3 for Mac
+            if wx.__version__[0] == '3' and sys.platform == 'darwin':
+                try:
+                    # if we can decode from utf-8 then all is good
+                    txt.decode('utf-8')
+                except:
+                    # if not then wx conversion broke so get raw data instead
+                    txt = dataObj.GetDataHere()
+            self.ReplaceSelection(txt)
 
     def increaseFontSize(self):
         self.SetZoom(self.GetZoom() + 1)
@@ -2250,9 +2263,6 @@ class CoderFrame(wx.Frame):
             else:
                 self.setCurrentDoc(filename)
                 self.setFileModified(False)
-        EOL = BaseCodeEditor.getEOL(self.prefs['newlineConvention'])
-        if EOL is not None:
-            self.currentDoc.ConvertEOLs(EOL)
         self.SetStatusText('')
         # self.fileHistory.AddFileToHistory(newPath)  # this is done by
         # setCurrentDoc
@@ -2340,8 +2350,7 @@ class CoderFrame(wx.Frame):
                         newlines = '\r\n'
                     elif self.prefs['newlineConvention'] == 'unix':
                         newlines = '\n'
-                    elif self.prefs['newlineConvention'] == 'LegacyMac':
-                        newlines = '\r'
+
                 except Exception:
                     pass
 
@@ -2641,9 +2650,6 @@ class CoderFrame(wx.Frame):
         foc = self.FindFocus()
         if hasattr(foc, 'Paste'):
             foc.Paste()
-        EOL = BaseCodeEditor.getEOL(self.prefs['newlineConvention'])
-        if EOL is not None:
-            self.currentDoc.ConvertEOLs(EOL)
 
     def undo(self, event):
         self.currentDoc.Undo()
