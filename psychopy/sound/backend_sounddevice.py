@@ -9,6 +9,7 @@ import sys
 import os
 import time
 import re
+import readline  # Work around GH-2230
 
 from psychopy import logging, exceptions
 from psychopy.constants import (PLAYING, PAUSED, FINISHED, STOPPED,
@@ -18,7 +19,6 @@ from ._base import _SoundBase, HammingWindow
 
 try:
     import sounddevice as sd
-    import readline  # Work around GH-2230.
 except Exception:
     raise DependencyError("sounddevice not working")
 try:
