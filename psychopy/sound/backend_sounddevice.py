@@ -9,6 +9,10 @@ import sys
 import os
 import time
 import re
+try:
+    import readline  # Work around GH-2230
+except ImportError:
+    pass  # all that will happen is the stderr/stdout might get redirected
 
 from psychopy import logging, exceptions
 from psychopy.constants import (PLAYING, PAUSED, FINISHED, STOPPED,
@@ -18,7 +22,6 @@ from ._base import _SoundBase, HammingWindow
 
 try:
     import sounddevice as sd
-    import readline  # Work around GH-2230.
 except Exception:
     raise DependencyError("sounddevice not working")
 try:

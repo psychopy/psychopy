@@ -16,7 +16,7 @@ News
 
 Peirce, J. W., Gray, J. R., Simpson, S., MacAskill, M. R., Höchenberger, R., Sogo, H., Kastman, E., Lindeløv, J. (2019). `PsychoPy2: experiments in behavior made easy. <https://dx.doi.org/10.3758/s13428-018-01193-y>`_ Behavior Research Methods. 10.3758/s13428-018-01193-y
 
-**Latest version**: 3.0.3 Jan 2019
+**Latest version**: 3.0.5 Jan 2019
 
 Supporting online studies and announcing our own experiment server at `Pavlovia.org <https://pavlovia.org>`_ See the launch video at https://www.youtube.com/watch?v=bprYeBzkUc8 to get more info.
 
