@@ -88,6 +88,7 @@ _localizedDialogs = {
     'triangle': _translate('triangle'),
     'rectangle': _translate('rectangle'),
     'cross': _translate('cross'),
+    'star': _translate('star'),
     'regular polygon...': _translate('regular polygon...'),
     # Variable component
     'first': _translate('first'),
