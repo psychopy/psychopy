@@ -29,7 +29,8 @@ class BaseComponent(object):
     def __init__(self, exp, parentName, name='',
                  startType='time (s)', startVal='',
                  stopType='duration (s)', stopVal='',
-                 startEstim='', durationEstim=''):
+                 startEstim='', durationEstim='',
+                 saveStartStop=True, syncScreenRefresh=False):
         self.type = 'Base'
         self.exp = exp  # so we can access the experiment if necess
         self.parentName = parentName  # to access the routine too if needed
@@ -91,20 +92,36 @@ class BaseComponent(object):
             hint=msg,
             label=_localized['durationEstim'])
 
+        msg = _translate("Store the onset/offset times in the data file "
+                         "(as well as in the log file).")
+        self.params['saveStartStop'] = Param(
+            saveStartStop, valType='bool', allowedTypes=[],
+            hint=msg, categ="Data",
+            label=_translate('Save onset/offset times'))
+
+        msg = _translate("Synchronize times with screen refresh (good for "
+                         "visual stimuli and responses based on them)")
+        self.params['syncScreenRefresh'] = Param(
+            syncScreenRefresh, valType='bool', allowedTypes=[],
+            hint=msg, categ="Data",
+            label=_translate('Sync timing with screen refresh'))
+
         self.order = ['name']  # name first, then timing, then others
+
+    def writeInitCode(self, buff):
+        """Write any code that a component needs that should only ever be done
+        at start of an experiment, BEFORE window creation.
+        """
+        pass
 
     def writeStartCode(self, buff):
         """Write any code that a component needs that should only ever be done
-        at start of an experiment (done once only)
+        at start of an experiment, AFTER window creation.
         """
         # e.g., create a data subdirectory unique to that component type.
         # Note: settings.writeStartCode() is done first, then
         # Routine.writeStartCode() will call this method for each component in
         # each routine
-        pass
-
-    def writeInitCode(self, buff):
-        """Doesn't seem to do much of anything"""
         pass
 
     def writeFrameCode(self, buff):
@@ -127,7 +144,25 @@ class BaseComponent(object):
         """Write the code that will be called at the end of
         a routine (e.g. to save data)
         """
-        pass
+        if 'saveStartStop' in self.params and self.params['saveStartStop'].val:
+            # what loop are we in (or thisExp)?
+            if len(self.exp.flow._loopList):
+                currLoop = self.exp.flow._loopList[-1]  # last (outer-most) loop
+            else:
+                currLoop = self.exp._expHandler
+
+            if self.params['syncScreenRefresh'].val:
+                code = (
+                    "{loop}.addData('{name}.started', {name}.tStartRefresh)\n"
+                    "{loop}.addData('{name}.stopped', {name}.tStopRefresh)\n"
+                )
+            else:
+                code = (
+                    "{loop}.addData('{name}.started', {name}.tStart)\n"
+                    "{loop}.addData('{name}.stopped', {name}.tStop)\n"
+                )
+            buff.writeIndentedLines(code.format(loop=currLoop.params['name'],
+                                                name=self.params['name']))
 
     def writeRoutineEndCodeJS(self, buff):
         """Write the code that will be called at the end of
@@ -147,8 +182,9 @@ class BaseComponent(object):
         writeEndTestCode
         """
         # unused internally; deprecated March 2016 v1.83.x, will remove 1.85
-        logging.warning('Deprecation warning: writeTimeTestCode() is not supported;\n'
-                        'will be removed. Please use writeStartTestCode() instead')
+        logging.warning(
+            'Deprecation warning: writeTimeTestCode() is not supported;\n'
+            'will be removed. Please use writeStartTestCode() instead')
         if self.params['duration'].val == '':
             code = "if %(startTime)s <= t:\n"
         else:
@@ -179,8 +215,10 @@ class BaseComponent(object):
 
         buff.setIndentLevel(+1, relative=True)
         code = ("# keep track of start time/frame for later\n"
-                "%(name)s.tStart = t\n"
-                "%(name)s.frameNStart = frameN  # exact frame index\n")
+                "%(name)s.tStart = t  # not accounting for scr refresh\n"
+                "%(name)s.frameNStart = frameN  # exact frame index\n"
+                "win.timeOnFlip(%(name)s, 'tStartRefresh')"
+                "  # time at next scr refresh\n")
         buff.writeIndentedLines(code % self.params)
 
     def writeStartTestCodeJS(self, buff):
@@ -244,6 +282,12 @@ class BaseComponent(object):
 
         buff.writeIndentedLines(code % self.params)
         buff.setIndentLevel(+1, relative=True)
+        code = ("# keep track of stop time/frame for later\n"
+                "%(name)s.tStop = t  # not accounting for scr refresh\n"
+                "%(name)s.frameNStop = frameN  # exact frame index\n"
+                "win.timeOnFlip(%(name)s, 'tStopRefresh')"
+                "  # time at next scr refresh\n")
+        buff.writeIndentedLines(code % self.params)
 
     def writeStopTestCodeJS(self, buff):
         """Test whether we need to stop
@@ -338,10 +382,12 @@ class BaseComponent(object):
             valStr = str(val).strip()
             if valStr.startswith("(") and valStr.endswith(")"):
                 valStr = valStr.replace("(", "[", 1)
-                valStr = valStr[::-1].replace(")", "]", 1)[::-1]  # replace from right
+                valStr = valStr[::-1].replace(")", "]", 1)[
+                         ::-1]  # replace from right
             # filenames (e.g. for image) need to be loaded from resources
             if paramName in ["sound"]:
-                valStr = ("psychoJS.resourceManager.getResource({})".format(valStr))
+                valStr = (
+                    "psychoJS.resourceManager.getResource({})".format(valStr))
         else:
             endStr = ''
 
@@ -354,7 +400,8 @@ class BaseComponent(object):
         if target == 'PsychoPy':
             if paramName == 'color':
                 buff.writeIndented("%s.setColor(%s, colorSpace=%s" %
-                                   (compName, params['color'], params['colorSpace']))
+                                   (compName, params['color'],
+                                    params['colorSpace']))
                 buff.write("%s)%s\n" % (loggingStr, endStr))
             elif paramName == 'sound':
                 stopVal = params['stopVal'].val
@@ -364,11 +411,16 @@ class BaseComponent(object):
                                    (compName, params['sound'], stopVal, endStr))
             else:
                 buff.writeIndented("%s.set%s(%s%s)%s\n" %
-                                   (compName, paramCaps, val, loggingStr, endStr))
+                                   (compName, paramCaps, val, loggingStr,
+                                    endStr))
         elif target == 'PsychoJS':
-        # write the line
+            # write the line
             if paramName == 'color':
-                buff.writeIndented("%s.setColor(new util.Color(%s)" % (compName, params['color']))
+                buff.writeIndented("%s.setColor(new util.Color(%s)" % (
+                    compName, params['color']))
+                buff.write("%s)%s\n" % (loggingStr, endStr))
+            elif paramName == 'fillColor':
+                buff.writeIndented("%s.setFillColor(new util.Color(%s)" % (compName, params['fillColor']))
                 buff.write("%s)%s\n" % (loggingStr, endStr))
             elif paramName == 'sound':
                 stopVal = params['stopVal']
@@ -378,7 +430,8 @@ class BaseComponent(object):
                                    (compName, params['sound'], stopVal, endStr))
             else:
                 buff.writeIndented("%s.set%s(%s%s)%s\n" %
-                                   (compName, paramCaps, val, loggingStr, endStr))
+                                   (compName, paramCaps, val, loggingStr,
+                                    endStr))
 
     def checkNeedToUpdate(self, updateType):
         """Determine whether this component has any parameters set to repeat
@@ -468,14 +521,19 @@ class BaseVisualComponent(BaseComponent):
                  pos=(0, 0), size=(0, 0), ori=0, colorSpace='rgb', opacity=1,
                  startType='time (s)', startVal='',
                  stopType='duration (s)', stopVal='',
-                 startEstim='', durationEstim=''):
+                 startEstim='', durationEstim='',
+                 saveStartStop=True, syncScreenRefresh=True):
+
         super(BaseVisualComponent, self).__init__(
             exp, parentName, name,
             startType=startType, startVal=startVal,
             stopType=stopType, stopVal=stopVal,
-            startEstim=startEstim, durationEstim=durationEstim)
+            startEstim=startEstim, durationEstim=durationEstim,
+            saveStartStop=saveStartStop,
+            syncScreenRefresh=syncScreenRefresh)
 
-        self.psychopyLibs = ['visual']  # needs this psychopy lib to operate
+        self.exp.requirePsychopyLibs(
+            ['visual'])  # needs this psychopy lib to operate
 
         msg = _translate("Units of dimensions for this stimulus")
         self.params['units'] = Param(
@@ -536,6 +594,8 @@ class BaseVisualComponent(BaseComponent):
             hint=_translate("Orientation of this stimulus (in deg)"),
             label=_localized['ori'])
 
+        self.params['syncScreenRefresh'].readOnly = True
+
     def writeFrameCode(self, buff):
         """Write the code that will be called every frame
         """
@@ -578,7 +638,7 @@ class BaseVisualComponent(BaseComponent):
         buff.writeIndented("%(name)s.setAutoDraw(true);\n" % self.params)
         # to get out of the if statement
         buff.setIndentLevel(-1, relative=True)
-        buff.writeIndented("}\n")
+        buff.writeIndented("}\n\n")
 
         # test for stop (only if there was some setting for duration or stop)
         if self.params['stopVal'].val not in ('', None, -1, 'None'):

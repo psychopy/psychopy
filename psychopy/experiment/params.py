@@ -213,6 +213,13 @@ class Param(object):
         """
         return self.val != other
 
+    def __bool__(self):
+        """Return a bool, so we can do `if thisParam`
+        rather than `if thisParam.val`"""
+        return bool(self.val)
+
+    __nonzero__ = __bool__  # for python2 compatibility
+
 
 def getCodeFromParamStr(val):
     """Convert a Param.val string to its intended python code
@@ -225,6 +232,7 @@ def getCodeFromParamStr(val):
     if utils.scriptTarget=='PsychoJS':
         out = py2js.expression2js(out)
     return out
+
 
 def toList(val):
     """
@@ -239,8 +247,10 @@ def toList(val):
     """
     # we really just need to check if they need parentheses
     stripped = val.strip()
-    if not ((stripped.startswith('(') and stripped.endswith(')')) \
-            or ((stripped.startswith('[') and stripped.endswith(']')))):
+    if utils.scriptTarget == "PsychoJS":
+        return py2js.expression2js(stripped)
+    elif not ((stripped.startswith('(') and stripped.endswith(')')) \
+              or ((stripped.startswith('[') and stripped.endswith(']')))):
         return "[{}]".format(stripped)
     else:
         return stripped

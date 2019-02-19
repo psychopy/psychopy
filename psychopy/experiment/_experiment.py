@@ -40,7 +40,12 @@ from psychopy.localization import _translate
 import locale
 
 # standard_library.install_aliases()
-from collections import OrderedDict
+
+from collections import OrderedDict, namedtuple
+RequiredImport = namedtuple('RequiredImport',
+                            field_names=('importName',
+                                         'importFrom',
+                                         'importAs'))
 
 
 class Experiment(object):
@@ -70,9 +75,15 @@ class Experiment(object):
         # this can be checked by the builder that this is an experiment and a
         # compatible version
         self.psychopyVersion = __version__
+
         # What libs are needed (make sound come first)
-        self.psychopyLibs = ['sound', 'gui', 'visual', 'core',
-                             'data', 'event', 'logging', 'clock']
+        self.requiredImports = []
+        libs = ('sound', 'gui', 'visual', 'core', 'data', 'event',
+                'logging', 'clock')
+        self.requirePsychopyLibs(libs=libs)
+
+        self._runOnce = []
+
         _settingsComp = getComponents(fetchIcons=False)['SettingsComponent']
         self.settings = _settingsComp(parentName='', exp=self)
         # this will be the xml.dom.minidom.doc object for saving
@@ -93,12 +104,56 @@ class Experiment(object):
     def requirePsychopyLibs(self, libs=()):
         """Add a list of top-level psychopy libs that the experiment
         will need. e.g. [visual, event]
+
+        Notes
+        -----
+        This is a convenience method for `requireImport()`.
         """
-        if not isinstance(libs, list):
-            libs = list(libs)
         for lib in libs:
-            if lib not in self.psychopyLibs:
-                self.psychopyLibs.append(lib)
+            self.requireImport(importName=lib,
+                               importFrom='psychopy')
+
+    def requireImport(self, importName, importFrom='', importAs=''):
+        """Add a top-level import to the experiment.
+
+        Parameters
+        ----------
+        importName : str
+            Name of the package or module to import.
+        importFrom : str
+            Where to import ``from``.
+        importAs : str
+            Import ``as`` this name.
+        """
+        import_ = RequiredImport(importName=importName,
+                                 importFrom=importFrom,
+                                 importAs=importAs)
+
+        if import_ not in self.requiredImports:
+            self.requiredImports.append(import_)
+
+    def runOnce(self, code):
+        """Add code to the experiment that is only run exactly once, after
+        all `import`s were done.
+
+        Parameters
+        ----------
+        code : str
+            The code to run. May include newline characters to wrtie several
+            lines of code at once.
+
+        Notes
+        -----
+        For running an `import`, use meth:~`Experiment.requireImport` or
+        :meth:~`Experiment.requirePsychopyLibs` instead.
+
+        See also
+        --------
+        :meth:~`Experiment.requireImport`,
+        :meth:~`Experiment.requirePsychopyLibs`
+        """
+        if code not in self._runOnce:
+            self._runOnce.append(code)
 
     def addRoutine(self, routineName, routine=None):
         """Add a Routine to the current list of them.
@@ -115,6 +170,7 @@ class Experiment(object):
     def writeScript(self, expPath=None, target="PsychoPy", modular=True):
         """Write a PsychoPy script for the experiment
         """
+        self.psychopyVersion = psychopy.__version__  # make sure is current
         # set this so that params write for approp target
         utils.scriptTarget = target
         self.flow._prescreenValues()
@@ -130,7 +186,7 @@ class Experiment(object):
 
         if target == "PsychoPy":
             self.settings.writeInitCode(script, self.psychopyVersion, localDateTime)
-            self.settings.writeStartCode(script)  # present info, make logfile
+            self.settings.writeStartCode(script, self.psychopyVersion)  # present info, make logfile
             # writes any components with a writeStartCode()
             self.flow.writeStartCode(script)
             self.settings.writeWindowCode(script)  # create our visual.Window()
@@ -144,7 +200,7 @@ class Experiment(object):
             script.oneIndent = "  "  # use 2 spaces rather than python 4
             self.settings.writeInitCodeJS(script, self.psychopyVersion, localDateTime, modular)
             self.flow.writeFlowSchedulerJS(script)
-            self.settings.writeExpSetupCodeJS(script)
+            self.settings.writeExpSetupCodeJS(script, self.psychopyVersion)
 
             # initialise the components for all Routines in a single function
             script.writeIndentedLines("\nfunction experimentInit() {")
@@ -193,6 +249,7 @@ class Experiment(object):
         return script
 
     def saveToXML(self, filename):
+        self.psychopyVersion = psychopy.__version__  # make sure is current
         # create the dom object
         self.xmlRoot = xml.Element("PsychoPy2experiment")
         self.xmlRoot.set('version', __version__)
@@ -247,9 +304,10 @@ class Experiment(object):
         # then write to file
         if not filename.endswith(".psyexp"):
             filename += ".psyexp"
-        f = codecs.open(filename, 'wb', 'utf-8')
-        f.write(pretty)
-        f.close()
+
+        with codecs.open(filename, 'wb', encoding='utf-8-sig') as f:
+            f.write(pretty)
+
         self.filename = filename
         return filename  # this may have been updated to include an extension
 

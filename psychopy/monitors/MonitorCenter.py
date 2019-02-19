@@ -12,11 +12,16 @@ from builtins import range
 import time
 import os
 import locale
+from pkg_resources import parse_version
 
 import wx
 from wx import grid
 from wx.lib import intctrl
 
+if parse_version(wx.__version__) < parse_version('4.0.3'):
+    wx.NewIdRef = wx.NewId
+
+from psychopy import constants
 from psychopy.localization import _translate
 from psychopy import monitors, hardware, logging
 from psychopy.app import dialogs
@@ -46,7 +51,7 @@ if not hasattr(wx.grid, 'EVT_GRID_CELL_CHANGED'):
 
 # wx IDs for menu items
 def newIds(n):
-    return [wx.NewId() for i in range(n)]
+    return [wx.NewIdRef() for i in range(n)]
 
 [idMenuSave] = newIds(1)
 # wx IDs for controllers (admin panel)
@@ -63,6 +68,8 @@ def unicodeToFloat(val):
     if val == 'None':
         val = None
     else:
+        if not constants.PY3 and type(val) == unicode:
+            val = val.encode('utf-8-sig')
         try:
             val = locale.atof(val)
         except ValueError:
@@ -232,7 +239,7 @@ class MainFrame(wx.Frame):
 
         # Edit
         editMenu = wx.Menu()
-        id = wx.NewId()
+        id = wx.NewIdRef()
         _hint = _translate("Copy the current monitor's name to clipboard")
         editMenu.Append(id, _translate('Copy\tCtrl+C'), _hint)
         self.Bind(wx.EVT_MENU, self.onCopyMon, id=id)
@@ -257,21 +264,21 @@ class MainFrame(wx.Frame):
         self.btnNewMon = wx.Button(parent, idBtnNewMon, _translate('New...'))
         self.Bind(wx.EVT_BUTTON, self.onNewMon, self.btnNewMon)
         monButtonsBox.Add(self.btnNewMon)
-        self.btnNewMon.SetToolTipString(
-            _translate("Create a new monitor"))
+        self.btnNewMon.SetToolTip(wx.ToolTip(
+            _translate("Create a new monitor")))
 
         self.btnSaveMon = wx.Button(parent, idBtnSaveMon, _translate('Save'))
         self.Bind(wx.EVT_BUTTON, self.onSaveMon, self.btnSaveMon)
         monButtonsBox.Add(self.btnSaveMon)
         msg = _translate("Save all calibrations for this monitor")
-        self.btnSaveMon.SetToolTipString(msg)
+        self.btnSaveMon.SetToolTip(wx.ToolTip(msg))
 
         self.btnDeleteMon = wx.Button(parent, idBtnDeleteMon,
                                       _translate('Delete'))
         self.Bind(wx.EVT_BUTTON, self.onDeleteMon, self.btnDeleteMon)
         monButtonsBox.Add(self.btnDeleteMon)
         msg = _translate("Delete this monitor entirely")
-        self.btnDeleteMon.SetToolTipString(msg)
+        self.btnDeleteMon.SetToolTip(wx.ToolTip(msg))
 
         self.ctrlCalibList = wx.ListBox(parent, idCtrlCalibList,
                                         choices=[''],
@@ -285,7 +292,7 @@ class MainFrame(wx.Frame):
         self.Bind(wx.EVT_BUTTON, self.onCopyCalib, self.btnCopyCalib)
         calibButtonsBox.Add(self.btnCopyCalib)
         msg = _translate("Creates a new calibration entry for this monitor")
-        self.btnCopyCalib.SetToolTipString(msg)
+        self.btnCopyCalib.SetToolTip(wx.ToolTip(msg))
 
         self.btnDeleteCalib = wx.Button(
             parent, idBtnDeleteCalib, _translate('Delete'))
@@ -293,7 +300,7 @@ class MainFrame(wx.Frame):
         calibButtonsBox.Add(self.btnDeleteCalib)
         msg = _translate("Remove this calibration entry (finalized when "
                          "monitor is saved)")
-        self.btnDeleteCalib.SetToolTipString(msg)
+        self.btnDeleteCalib.SetToolTip(wx.ToolTip(msg))
 
         # add controls to box
         adminBoxMainSizer = wx.FlexGridSizer(cols=2, hgap=6, vgap=6)
@@ -689,10 +696,12 @@ class MainFrame(wx.Frame):
         response = dlg.ShowModal()
         dlg.Destroy()
         if response == wx.ID_YES:
-            # delete it
-            monitorFileName = os.path.join(monitors.monitorFolder,
-                                           monToDel + ".calib")
-            os.remove(monitorFileName)
+            # delete it (try to remove both calib and json files)
+            for fileEnding in ['.calib', '.json']:
+                monitorFileName = os.path.join(monitors.monitorFolder,
+                                               monToDel + fileEnding)
+                if os.path.exists(monitorFileName):
+                    os.remove(monitorFileName)
             self.currentMon = None
             self.currentMonName = None
             self.updateMonList()
@@ -745,17 +754,19 @@ class MainFrame(wx.Frame):
         self.unSavedMonitor = True
 
     def onChangeScrPixHoriz(self, event):
+        this = self.currentMon.currentCalib
         if self.currentMon.getSizePix() is None:
             self.currentMon.setSizePix([0,0])
         newVal = unicodeToFloat(self.ctrlScrPixHoriz.GetValue())
-        self.currentMon.currentCalib['sizePix'][0] = newVal
+        this['sizePix'] = [newVal, this['sizePix'][1]]
         self.unSavedMonitor = True
 
     def onChangeScrPixVert(self, event):
+        this = self.currentMon.currentCalib
         if self.currentMon.getSizePix() is None:
             self.currentMon.setSizePix([0,0])
         newVal = unicodeToFloat(self.ctrlScrPixVert.GetValue())
-        self.currentMon.currentCalib['sizePix'][1] = newVal
+        this['sizePix'] = [this['sizePix'][0], newVal]
         self.unSavedMonitor = True
 
     # calib callbacks

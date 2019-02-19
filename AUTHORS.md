@@ -27,6 +27,7 @@ PsychoPy:
 * Cameron Riddell
 * Carlos Correa
 * Cezary Biele
+* Chris Gallagher
 * Chris Markiewicz
 * Christopher J. Bailey
 * Christopher J. Markiewicz
@@ -58,6 +59,7 @@ PsychoPy:
 * Hrvoje Stojic
 * Ian Eisenberg
 * Ian Hussey
+* Ingo Marquardt
 * Jakub Kaczmarzyk
 * James McMurray
 * Jan Freyberg
@@ -101,6 +103,7 @@ PsychoPy:
 * Nwokedi C. Idika
 * Oliver Clark
 * Pablo Prietz
+* Pan Bartosz
 * Philipp Wiesemann
 * Pierce Edmiston
 * Pieter Moors
@@ -114,6 +117,7 @@ PsychoPy:
 * Saizo Aoyagi
 * Sebastiaan Mathot
 * Sol Simpson
+* Stefan Appelhoff
 * Stefan Repplinger
 * Suddha Sourav
 * Thomas Emmerling
@@ -127,8 +131,9 @@ PsychoPy:
 * Yaroslav Halchenko
 * Yu-Han Luo
 * Zhili Zheng
+* luz.paz
 
 ---
 *This list was auto-generated via `gen_authors.py`. Do not edit manually.*
 
-*Last updated on August 19, 2018 (UTC).*
+*Last updated on December 15, 2018 (UTC).*

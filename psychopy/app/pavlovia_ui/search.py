@@ -36,7 +36,7 @@ class SearchFrame(wx.Dialog):
         title = _translate("Search for projects online")
         self.frameType = 'ProjectSearch'
         wx.Dialog.__init__(self, parent, -1, title=title, style=style,
-                           size=(700, 500), pos=pos)
+                           size=(800, 500), pos=pos)
 
         self.app = app
         self.project = None
@@ -92,7 +92,7 @@ class SearchFrame(wx.Dialog):
         self.mainSizer.Add(self.leftSizer, 1, wx.EXPAND | wx.ALL, 5)
         self.mainSizer.Add(self.detailsPanel, 1, wx.EXPAND | wx.ALL, 5)
 
-        self.SetSizer(self.mainSizer)
+        self.SetSizer(self.mainSizer)  # don't fit until search is populated
         if self.parent:
             self.CenterOnParent()
         self.Layout()
@@ -181,6 +181,7 @@ class ProjectListCtrl(wx.ListCtrl, listmixin.ListCtrlAutoWidthMixin):
         wx.ListCtrl.__init__(self, parent, wx.ID_ANY,
                              style=wx.LC_REPORT | wx.LC_SINGLE_SEL)
         listmixin.ListCtrlAutoWidthMixin.__init__(self)
+        self.AlwaysShowScrollbars(True)
         self.parent = parent
         if frame is None:
             self.frame = parent
@@ -204,7 +205,7 @@ class ProjectListCtrl(wx.ListCtrl, listmixin.ListCtrlAutoWidthMixin):
 
         # after creating columns we can create the sort mixin
         # listmixin.ColumnSorterMixin.__init__(self, len(columnList))
-
+        self.SetAutoLayout(True)
         self.Bind(wx.EVT_LIST_COL_CLICK, self.onColumnClick)
         self.Bind(wx.EVT_LIST_ITEM_SELECTED, self.onChangeSelection)
 
@@ -235,14 +236,16 @@ class ProjectListCtrl(wx.ListCtrl, listmixin.ListCtrlAutoWidthMixin):
                         thisProj['Group'], thisProj['Name'],
                         thisProj['Description'])
                 self.Append(data)  # append to the wx table
+        self.resizeCols(finalOnly=False)
+        self.Update()
+
+    def resizeCols(self, finalOnly):
         # resize the columns
         for n in range(self.ColumnCount):
-            self.SetColumnWidth(n, wx.LIST_AUTOSIZE_USEHEADER)
-            if self.GetColumnWidth(n) > 200:
-                self.SetColumnWidth(n, 200)
-                # NB the final column (description) will resize to available space
-                # due to listmixin.ListCtrlAutoWidthMixin
-        self.Update()
+            if not finalOnly:
+                self.SetColumnWidth(n, wx.LIST_AUTOSIZE_USEHEADER)
+                if self.GetColumnWidth(n) > 100:
+                    self.SetColumnWidth(n, 100)
 
     def onChangeSelection(self, event):
         proj = self.projList[event.GetIndex()]
@@ -256,6 +259,7 @@ class ProjectListCtrl(wx.ListCtrl, listmixin.ListCtrlAutoWidthMixin):
         projs = sortProjects(self.projList, self.columnNames[col],
                              reverse=self._currentSortRev)
         self.setContents(projs)
+
 
 def sortProjects(seq, name, reverse=False):
     return sorted(seq, key=lambda k: k[name], reverse=reverse)

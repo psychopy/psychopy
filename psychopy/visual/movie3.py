@@ -38,6 +38,7 @@ import os
 from psychopy import logging, prefs #adding prefs to be able to check sound lib -JK
 from psychopy.tools.arraytools import val2array
 from psychopy.tools.attributetools import logAttrib, setAttribute
+from psychopy.tools.filetools import pathToString
 from psychopy.visual.basevisual import BaseVisualStim, ContainerMixin, TextureMixin
 
 from moviepy.video.io.VideoFileClip import VideoFileClip
@@ -112,7 +113,7 @@ class MovieStim3(BaseVisualStim, ContainerMixin, TextureMixin):
                             "defaulting to 60.0")
             retraceRate = 60.0
         self._retraceInterval = 1.0/retraceRate
-        self.filename = filename
+        self.filename = pathToString(filename)
         self.loop = loop
         self.flipVert = flipVert
         self.flipHoriz = flipHoriz
@@ -173,6 +174,7 @@ class MovieStim3(BaseVisualStim, ContainerMixin, TextureMixin):
         After the file is loaded MovieStim.duration is updated with the movie
         duration (in seconds).
         """
+        filename = pathToString(filename)
         self.reset()  # set status and timestamps etc
 
         # Create Video Stream stuff
@@ -236,7 +238,7 @@ class MovieStim3(BaseVisualStim, ContainerMixin, TextureMixin):
         if self.status == PLAYING:
             self.status = PAUSED
             if self._audioStream:
-                if prefs.general['audioLib'] == ['sounddevice']:
+                if prefs.hardware['audioLib'] == ['sounddevice']:
                     self._audioStream.pause() #sounddevice has a "pause" function -JK
                 else:
                     self._audioStream.stop()
@@ -256,9 +258,9 @@ class MovieStim3(BaseVisualStim, ContainerMixin, TextureMixin):
         the movie.
         """
         if self.status != STOPPED:
-            self.status = STOPPED
             self._unload()
             self.reset()
+            self.status = STOPPED # set status to STOPPED after _unload
             if log and self.autoLog:
                 self.win.logOnFlip("Set %s stopped" % (self.name),
                                    level=logging.EXP, obj=self)
@@ -452,7 +454,7 @@ class MovieStim3(BaseVisualStim, ContainerMixin, TextureMixin):
             return  # do nothing
         #check if sounddevice  is being used. If so we can use seek. If not we have to 
         #reload the audio stream and begin at the new loc
-        if prefs.general['audioLib'] == ['sounddevice']:
+        if prefs.hardware['audioLib'] == ['sounddevice']:
             self._audioStream.seek(t)
         else:
             self._audioStream.stop()

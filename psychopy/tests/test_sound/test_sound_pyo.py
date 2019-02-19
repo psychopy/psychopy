@@ -19,7 +19,7 @@ from psychopy.constants import PY3
 if PY3:
     from importlib import reload
 
-origSoundPref = prefs.general['audioLib']
+origSoundPref = prefs.hardware['audioLib']
 
 # py.test --cov-report term-missing --cov sound.py tests/test_sound/test_sound_pyo.py
 
@@ -28,7 +28,7 @@ origSoundPref = prefs.general['audioLib']
 class TestPyo(object):
     @classmethod
     def setup_class(self):
-        prefs.general['audioLib'] = ['pyo']
+        prefs.hardware['audioLib'] = ['pyo']
         reload(sound)  # to force our new preference to be used
         self.contextName='pyo'
         try:
@@ -50,7 +50,7 @@ class TestPyo(object):
 
     @classmethod
     def teardown_class(self):
-        prefs.general['audioLib'] = origSoundPref
+        prefs.hardware['audioLib'] = origSoundPref
 
         if hasattr(self, 'tmp'):
             shutil.rmtree(self.tmp, ignore_errors=True)

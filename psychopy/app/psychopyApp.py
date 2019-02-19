@@ -29,7 +29,7 @@ def start_app():
     app.MainLoop()
 
 
-if __name__ == '__main__':
+def main():
     if '-x' in sys.argv:
         # run a .py script from the command line using StandAlone python
         targetScript = sys.argv[sys.argv.index('-x') + 1]
@@ -88,9 +88,17 @@ Options:
             if '--no-splash' in sys.argv:
                 cmd.append('--no-splash')
 
-            core.shellCall(cmd, env=dict(env, PYTHONW='True'))
+            stdout, stderr = core.shellCall(cmd,
+                                            env=dict(env, PYTHONW='True'),
+                                            stderr=True)
+            print(stdout, file=sys.stdout)
+            print(stderr, file=sys.stderr)
             sys.exit()
         else:
             start_app()
     else:
         start_app()
+
+
+if __name__ == '__main__':
+    main()

@@ -156,7 +156,7 @@ class StaticComponent(BaseComponent):
                     prms = compName.params  # it's already a compon so get params
                 else:
                     # it's a name so get compon and then get params
-                    prms = self.exp.getComponentFromName(bytes(compName)).params
+                    prms = self.exp.getComponentFromName(str(compName)).params
                 self.writeParamUpdate(buff, compName=compName,
                                       paramName=fieldName,
                                       val=prms[fieldName],

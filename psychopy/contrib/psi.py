@@ -24,7 +24,6 @@ import random
 import sys
 import time
 from numpy import *
-from scipy import stats
 
 
 class PsiObject(object):
@@ -32,16 +31,19 @@ class PsiObject(object):
     """Special class to handle internal array and functions of Psi adaptive psychophysical method (Kontsevich & Tyler, 1999)."""
     
     def __init__(self, x, alpha, beta, xPrecision, aPrecision, bPrecision, delta=0, stepType='lin', TwoAFC=False, prior=None):
+        global stats
+        from scipy import stats  # takes a while to load so do it lazy
+
         self._TwoAFC = TwoAFC
         #Save dimensions
         if stepType == 'lin':
-            self.x = linspace(x[0], x[1], round((x[1]-x[0])/xPrecision)+1, True)
+            self.x = linspace(x[0], x[1], int(round((x[1]-x[0])/xPrecision)+1), True)
         elif stepType == 'log':
             self.x = logspace(log10(x[0]), log10(x[1]), xPrecision, True)
         else:
             raise RuntimeError('Invalid step type. Unable to initialize PsiObject.')
-        self.alpha = linspace(alpha[0], alpha[1], round((alpha[1]-alpha[0])/aPrecision)+1, True)
-        self.beta = linspace(beta[0], beta[1], round((beta[1]-beta[0])/bPrecision)+1, True)
+        self.alpha = linspace(alpha[0], alpha[1], int(round((alpha[1]-alpha[0])/aPrecision)+1), True)
+        self.beta = linspace(beta[0], beta[1], int(round((beta[1]-beta[0])/bPrecision)+1), True)
         self.r = array(list(range(2)))
         self.delta = delta
         

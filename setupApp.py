@@ -34,7 +34,8 @@ resources = glob.glob('psychopy/app/Resources/*')
 resources.append('/Library/Frameworks/Python.framework/Versions/2.7/include/python2.7/pyconfig.h')
 frameworks = ["libavbin.dylib", "/usr/lib/libxml2.2.dylib", #"libyaml.dylib",
               "libevent.dylib", "libffi.dylib",
-              "libmp3lame.0.dylib"
+              "libmp3lame.0.dylib",
+              "/usr/local/Cellar/glfw/3.2.1/lib/libglfw.3.2.dylib",
               ]
 opencvLibs = glob.glob(os.path.join(sys.exec_prefix, 'lib', 'libopencv*.2.4.dylib'))
 frameworks.extend(opencvLibs)
@@ -71,7 +72,7 @@ includes = ['Tkinter', 'tkFileDialog',
 packages = ['wx', 'psychopy',
             'pyglet', 'pygame',  'pytz', 'OpenGL', 'glfw',
             'scipy', 'matplotlib', 'lxml', 'xml', 'openpyxl',
-            'moviepy', 'imageio',
+            'moviepy', 'imageio', 'imageio_ffmpeg',
             '_sounddevice_data','_soundfile_data',
             'cffi','pycparser',
             'PIL',  # 'Image',
@@ -95,8 +96,9 @@ packages = ['wx', 'psychopy',
             # for Py3 compatibility
             'future', 'past', 'lib2to3',
             'json_tricks',  # allows saving arrays/dates in json
-            'git', 'gitlab', 'lazy_import',
+            'git', 'gitlab',
             'astunparse', 'esprima',  # for translating/adapting py/JS
+            'pylsl', 'pygaze',
             ]
 
 if sys.version_info.major >= 3:

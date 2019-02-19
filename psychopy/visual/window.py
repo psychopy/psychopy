@@ -77,6 +77,7 @@ from . import backends
 from psychopy.tools.attributetools import attributeSetter, setAttribute
 from psychopy.tools.arraytools import val2array
 from psychopy.tools.monitorunittools import convertToPix
+import psychopy.tools.viewtools as viewtools
 from .text import TextStim
 from .grating import GratingStim
 from .helpers import setColor
@@ -125,12 +126,16 @@ openWindows = core.openWindows = OpenWinList()  # core needs this for wait()
 
 class Window(object):
     """Used to set up a context in which to draw objects,
-    using either `pyglet <http://www.pyglet.org>`_ or
-    `pygame <http://www.pygame.org>`_
+    using either `pyglet <http://www.pyglet.org>`_,
+    `pygame <http://www.pygame.org>`_, or `glfw <https://www.glfw.org/>_`.
 
     The pyglet backend allows multiple windows to be created, allows the user
     to specify which screen to use (if more than one is available, duh!) and
     allows movies to be rendered.
+
+    The glfw backend is a new addition which provides most of the same features
+    as pyglet, but provides greater flexibility for complex display
+    configurations.
 
     Pygame may still work for you but it's officially deprecated in this
     project (we won't be fixing pygame-specific bugs).
@@ -336,6 +341,15 @@ class Window(object):
         self.dkl_rgb = self.monitor.getDKL_RGB()
         self.lms_rgb = self.monitor.getLMS_RGB()
 
+        # Projection and view matrices, these can be lists if multiple views are
+        # being used.
+        # NB - attribute checks needed for Rift compatibility
+        if not hasattr(self, '_viewMatrix'):
+            self._viewMatrix = numpy.identity(4, dtype=numpy.float32)
+
+        if not hasattr(self, '_projectionMatrix'):
+            self._projectionMatrix = viewtools.orthoProjectionMatrix(-1, 1, -1, 1, -1, 1)
+
         # set screen color
         self.__dict__['colorSpace'] = colorSpace
         if rgb is not None:
@@ -394,6 +408,10 @@ class Window(object):
                     winhwnds.append(self._hw_handle)
                 conn = ioHubConnection.ACTIVE_CONNECTION
                 conn.registerWindowHandles(*winhwnds)
+
+        # near and far clipping planes
+        self._nearClip = 0.1
+        self._farClip = 100.0
 
         # check whether shaders are supported
         # also will need to check for ARB_float extension,
@@ -663,6 +681,41 @@ class Window(object):
                              'args': args,
                              'kwargs': kwargs})
 
+    def timeOnFlip(self, obj, attrib):
+        """Retrieves the time on the next flip and assigns it to the attrib
+        for this obj.
+
+        usage:
+            win.getTimeOnFlip(myTimingDict, 'tStartRefresh')
+
+        :parameters:
+            - obj:
+                must be a mutable object (usually a dict of class instance)
+            - attrib: str
+                if obj has this
+        """
+        self.callOnFlip(self._assignFlipTime, obj, attrib)
+
+    def _assignFlipTime(self, obj, attrib):
+        """Helper function to assign the time of last flip to the obj.attrib
+
+        :parameters:
+            - obj:
+                must be a mutable object (usually a dict of class instance)
+            - attrib: str
+                if obj has this
+        """
+        if hasattr(obj, attrib):
+            setattr(obj, attrib, self._frameTime)
+        elif isinstance(obj, dict):
+            obj[attrib] = self._frameTime
+        else:
+            raise TypeError("Window.getTimeOnFlip() should be called with an "
+                            "object and its attribute or a dict and its key. "
+                            "In this case it was called with obj={}"
+                            .format(repr(obj)))
+
+
     @classmethod
     def dispatchAllWindowEvents(cls):
         """
@@ -676,14 +729,23 @@ class Window(object):
         frame. (This replaces the win.update() method, better reflecting what
         is happening underneath).
 
-        win.flip(clearBuffer=True)  # results in a clear screen after flipping
-        win.flip(clearBuffer=False)  # the screen is not cleared (so represent
-                                     # the previous screen)
+        Examples
+        --------
+
+        Results in a clear screen after flipping::
+
+            win.flip(clearBuffer=True)
+
+        The screen is not cleared (so represent the previous screen)::
+
+            win.flip(clearBuffer=False)
+
         """
         for thisStim in self._toDraw:
             thisStim.draw()
 
         flipThisFrame = self._startOfFlip()
+        self.resetEyeTransform(False)  # reset transformations
         if self.useFBO:
             if flipThisFrame:
                 self._prepareFBOrender()
@@ -773,7 +835,7 @@ class Window(object):
             GL.glFinish()
 
         # get timestamp
-        now = logging.defaultClock.getTime()
+        self._frameTime = now = logging.defaultClock.getTime()
 
         # run other functions immediately after flip completes
         for callEntry in self._toCall:
@@ -924,6 +986,150 @@ class Window(object):
         """
         # reset returned buffer for next frame
         GL.glClear(GL.GL_COLOR_BUFFER_BIT)
+
+    @property
+    def nearClip(self):
+        """Distance to the near clipping plane in meters."""
+        # internally stored as meters, but PsychoPy uses centimeters elsewhere
+        # so let's keep that consistent.
+        return self._nearClip
+
+    @nearClip.setter
+    def nearClip(self, value):
+        self._nearClip = value
+
+    @property
+    def farClip(self):
+        """Distance to the far clipping plane in meters."""
+        return self._farClip
+
+    @farClip.setter
+    def farClip(self, value):
+        self._farClip = value
+
+    @property
+    def projectionMatrix(self):
+        """Projection matrix defined as a 4x4 numpy array."""
+        return self._projectionMatrix
+
+    @projectionMatrix.setter
+    def projectionMatrix(self, value):
+        self._projectionMatrix = numpy.asarray(value, numpy.float32)
+
+    @property
+    def viewMatrix(self):
+        """View matrix defined as a 4x4 numpy array."""
+        return self._viewMatrix
+
+    @viewMatrix.setter
+    def viewMatrix(self, value):
+        self._viewMatrix = numpy.asarray(value, numpy.float32)
+
+    def setPerspectiveView(self, applyTransform=True, **kwargs):
+        """Set the projection and view matrix to render with perspective.
+        Matrices are computed using values specified in the monitor
+        configuration with the scene origin on the screen plane. Calculations
+        assume units are in meters.
+
+        Note that the values of 'projectionMatrix' and 'viewMatrix' will be
+        replaced when calling this function.
+
+        Parameters
+        ----------
+        applyTransform : bool
+            Apply transformations after computing them in immediate mode. Same
+            as calling 'applyEyeTransform' afterwards.
+        **kwargs
+            Additional arguments to pass to 'applyEyeTransform()'
+
+        Returns
+        -------
+        None
+
+        """
+        # NB - we should eventually compute these matrices lazily since they may
+        # not change over the course of an experiment under most circumstances.
+        #
+        scrDistM = self.scrDistCM / 100.0
+        frustum = viewtools.computeFrustum(
+            self.scrWidthCM / 100.0,  # width of screen
+            self.size[0] / self.size[1],  # aspect ratio
+            scrDistM,  # distance to screen
+            nearClip=self._nearClip,
+            farClip=self._farClip)
+
+        self._projectionMatrix = viewtools.perspectiveProjectionMatrix(*frustum)
+
+        # translate away from screen
+        self._viewMatrix = numpy.identity(4, dtype=numpy.float32)
+        self._viewMatrix[2, 3] = -scrDistM  # displace scene away from viewer
+
+        if applyTransform:
+            self.applyEyeTransform(**kwargs)
+
+    def applyEyeTransform(self, clearDepth=True):
+        """Apply the current view and projection matrices specified by
+        'viewMatrix' and 'projectionMatrix' using 'immediate mode' OpenGL.
+        Subsequent drawing operations will be affected until 'flip()' is called.
+
+        All transformations in GL_PROJECTION and GL_MODELVIEW matrix stacks will
+        be cleared (set to identity) prior to applying.
+
+        Parameters
+        ----------
+        clearDepth : bool
+            Clear the depth buffer. This may be required prior to rendering 3D
+            objects.
+
+        """
+        GL.glViewport(0, 0, self.size[0], self.size[1])
+        GL.glScissor(0, 0, self.size[0], self.size[1])
+
+        # apply the projection and view transformations
+        GL.glMatrixMode(GL.GL_PROJECTION)
+        #GL.glLoadIdentity()
+        projMat = self._projectionMatrix.T.ctypes.data_as(
+            ctypes.POINTER(ctypes.c_float))
+        GL.glLoadMatrixf(projMat)
+
+        GL.glMatrixMode(GL.GL_MODELVIEW)
+        #GL.glLoadIdentity()
+        viewMat = self._viewMatrix.T.ctypes.data_as(
+            ctypes.POINTER(ctypes.c_float))
+        GL.glLoadMatrixf(viewMat)
+
+        if clearDepth:
+            #GL.glDepthMask(GL.GL_TRUE)
+            GL.glClear(GL.GL_DEPTH_BUFFER_BIT)
+
+    def resetEyeTransform(self, clearDepth=True):
+        """Restore the default projection and view settings to PsychoPy
+        defaults. Call this prior to drawing 2D stimuli objects (i.e.
+        GratingStim, ImageStim, Rect, etc.) if any eye transformations were
+        applied for the stimuli to be drawn correctly.
+
+        Returns
+        -------
+        None
+
+        Notes
+        -----
+        Calling 'flip()' automatically resets the view and projection to
+        defaults. So you don't need to call this unless you are mixing views.
+
+        """
+        # should eventually have the same effect as calling _onResize(), so we
+        # need to add the retina mode stuff eventually
+        GL.glViewport(0, 0, self.size[0], self.size[1])
+        GL.glScissor(0, 0, self.size[0], self.size[1])
+        GL.glMatrixMode(GL.GL_PROJECTION)
+        GL.glLoadIdentity()
+        GL.glOrtho(-1, 1, -1, 1, -1, 1)
+        GL.glMatrixMode(GL.GL_MODELVIEW)
+        GL.glLoadIdentity()
+
+        if clearDepth:
+            GL.glClear(GL.GL_DEPTH_BUFFER_BIT)
 
     def getMovieFrame(self, buffer='front'):
         """Capture the current Window as an image.
@@ -1492,6 +1698,10 @@ class Window(object):
                                     GL.GL_DEPTH24_STENCIL8_EXT,
                                     int(self.size[0]), int(self.size[1]))
         GL.glFramebufferRenderbufferEXT(GL.GL_FRAMEBUFFER_EXT,
+                                        GL.GL_DEPTH_ATTACHMENT_EXT,
+                                        GL.GL_RENDERBUFFER_EXT,
+                                        self._stencilTexture)
+        GL.glFramebufferRenderbufferEXT(GL.GL_FRAMEBUFFER_EXT,
                                         GL.GL_STENCIL_ATTACHMENT_EXT,
                                         GL.GL_RENDERBUFFER_EXT,
                                         self._stencilTexture)
@@ -1538,12 +1748,12 @@ class Window(object):
         They may vary in appearance and hot spot location across platforms. The
         following names are valid on most platforms:
 
-                'arrow' : Default pointer
-                'ibeam' : Indicates text can be edited
-            'crosshair' : Crosshair with hot-spot at center
-                 'hand' : A pointing hand
-              'hresize' : Double arrows pointing horizontally
-              'vresize' : Double arrows pointing vertically
+        - 'arrow' : Default pointer
+        - 'ibeam' : Indicates text can be edited
+        - 'crosshair' : Crosshair with hot-spot at center
+        - 'hand' : A pointing hand
+        - 'hresize' : Double arrows pointing horizontally
+        - 'vresize' : Double arrows pointing vertically
 
         Requires the GLFW backend, otherwise this function does nothing! Note,
         on Windows the 'crosshair' option is XORed with the background color. It

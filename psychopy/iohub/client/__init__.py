@@ -1130,7 +1130,7 @@ class ioHubConnection(object):
             raise ioHubError(result)
 
         # Otherwise return the result
-        if constants.PY3 and not result is None:
+        if constants.PY3 and result is not None:
             if isinstance(result, list):
                 for ind, items in enumerate(result):
                     if isinstance(items, list) and not items is None:
@@ -1238,8 +1238,8 @@ class ioHubConnection(object):
     def _shutDownServer(self):
         if self._shutdown_attempted is False:
             try:
-                import psychopy
-                psychopy.visual.window.IOHUB_ACTIVE = False
+                from psychopy.visual import window
+                window.IOHUB_ACTIVE = False
             except ImportError:
                 pass
 

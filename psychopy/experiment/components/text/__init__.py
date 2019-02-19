@@ -107,6 +107,7 @@ class TextComponent(BaseVisualComponent):
         inits = getInitVals(self.params, 'PsychoPy')
         if self.params['wrapWidth'].val in ['', 'None', 'none']:
             inits['wrapWidth'] = 'None'
+
         code = ("%(name)s = visual.TextStim(win=win, "
                 "name='%(name)s',\n"
                 "    text=%(text)s,\n"
@@ -142,18 +143,24 @@ class TextComponent(BaseVisualComponent):
         # replaces variable params with sensible defaults
         inits = getInitVals(self.params, 'PsychoJS')
 
-        if self.params['wrapWidth'].val in ['', 'None', 'none']:
-            inits['wrapWidth'] = 'undefined'
+        # check for NoneTypes
+        for param in inits:
+            if inits[param] in [None, 'None', '']:
+                inits[param].val = 'undefined'
+                if param == 'text':
+                    inits[param].val = "''"
+
         code = ("%(name)s = new visual.TextStim({\n"
-                "  win : psychoJS.window,\n"
-                "  name : '%(name)s',\n"
-                "  text : %(text)s,\n"
-                "  font : %(font)s,\n" + unitsStr +
-                "  pos : %(pos)s, height : %(letterHeight)s,"
-                "  wrapWidth : %(wrapWidth)s, ori: %(ori)s,\n"
-                "  color : new util.Color(%(color)s),"
-                "  opacity : %(opacity)s,")
+                "  win: psychoJS.window,\n"
+                "  name: '%(name)s',\n"
+                "  text: %(text)s,\n"
+                "  font: %(font)s,\n" + unitsStr +
+                "  pos: %(pos)s, height: %(letterHeight)s,"
+                "  wrapWidth: %(wrapWidth)s, ori: %(ori)s,\n"
+                "  color: new util.Color(%(color)s),"
+                "  opacity: %(opacity)s,")
         buff.writeIndentedLines(code % inits)
+
         flip = self.params['flip'].val.strip()
         if flip == 'horiz':
             flipStr = 'flipHoriz : true, '
@@ -166,6 +173,6 @@ class TextComponent(BaseVisualComponent):
         else:
             flipStr = ''
         depth = -self.getPosInRoutine()
-        code = ("  %sdepth : %.1f \n"
+        code = ("  %sdepth: %.1f \n"
                 "});\n\n" % (flipStr, depth))
         buff.writeIndentedLines(code)

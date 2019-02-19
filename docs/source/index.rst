@@ -12,11 +12,18 @@ PsychoPy provides a unique choice of interface: use the **Builder interface** to
 News
 ====================
 
-**Latest version**: 3.0.0 beta (multiple versions) released July 2018
+**New PsychoPy paper**: Please cite this if you use PsychoPy Builder in your studies
 
-See the launch video at https://www.youtube.com/watch?v=bprYeBzkUc8 to get more info.
+Peirce, J. W., Gray, J. R., Simpson, S., MacAskill, M. R., Höchenberger, R., Sogo, H., Kastman, E., Lindeløv, J. (2019). `PsychoPy2: experiments in behavior made easy. <https://dx.doi.org/10.3758/s13428-018-01193-y>`_ Behavior Research Methods. 10.3758/s13428-018-01193-y
 
-Supporting online studies and announcing our own experiment server at Pavlovia.org
+**Latest version**: 3.0.3 Jan 2019
+
+Supporting online studies and announcing our own experiment server at `Pavlovia.org <https://pavlovia.org>`_ See the launch video at https://www.youtube.com/watch?v=bprYeBzkUc8 to get more info.
+
+
+**3-day workshop on Python Programming at Nottingham in Apr/May 2019**
+
+Come and join us for 3 days of pure programming bliss. For further details and bookings see the :ref:`officialWorkshops` page
 
 
 **Buy the official book!**
@@ -25,9 +32,9 @@ You can now :red:`buy the book`, `Building Experiments in PsychoPy <https://uk.s
 
 300 pages of great advice on how to create better experiments with a combination of Builder and some code snippets! Suitable for a wide range of audiences, with separate sections for:
 
-  - beginners (suitable for undergraduate teaching)
-  - professionals (more technical detail for the afficionado)
-  - and specialists (with particular use cases like EEG, fMRI, psychophysics).
+- beginners (suitable for undergraduate teaching)
+- professionals (more technical detail for the afficionado)
+- and specialists (with particular use cases like EEG, fMRI, psychophysics).
 
 See the full :doc:`changelog`
 
@@ -36,14 +43,20 @@ See the full :doc:`changelog`
 
 Contents
 ====================
+
 .. toctree::
    :maxdepth: 1
 
-   About PsychoPy (features, screenshots etc.) <about/index>
-   * Documentation * <documentation>
+   All docs <documentation>
+   About <about/index>
+   gettingStarted
+   builder/builder
+   coder/coder
    api/api
    changelog
    resources/resources
+   developers/developers
+   troubleshooting
 
 Please remember to :ref:`cite PsychoPy <citingPsychoPy>`
 

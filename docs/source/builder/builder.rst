@@ -11,9 +11,8 @@ You can now see a `youtube PsychoPy tutorial <http://www.youtube.com/watch?v=VV6
 
     The Builder view is now (at version 1.75) fairly well-developed and should be able to construct a wide variety of studies. But you should still check carefully that the stimuli and response collection are as expected.
 
-.. image:: ../images/builder_sm.png
+.. image:: ../images/builder.png
     :width: 100%
-    :target: ../images/builder.png
     :alt: The Builder view
 
 

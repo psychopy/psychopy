@@ -3,6 +3,8 @@ from past.builtins import execfile
 from builtins import object
 
 import psychopy.experiment
+from psychopy.experiment._experiment import RequiredImport
+from psychopy.tests.utils import TESTS_FONT
 from os import path
 import os, shutil, glob, sys
 import py_compile
@@ -14,7 +16,7 @@ import pytest
 import locale
 from lxml import etree
 import numpy
-
+import sys
 
 # Jeremy Gray March 2011
 
@@ -133,9 +135,9 @@ class TestExpt(object):
         assert len(script) > 1500  # default empty script is ~2200 chars
 
         # save the script:
-        f = codecs.open(py_file, 'w', 'utf-8')
-        f.write(script)
-        f.close()
+        with codecs.open(py_file, 'w', 'utf-8-sig') as f:
+            f.write(script)
+
         return py_file, psyexp_file
 
     def _checkCompile(self, py_file):
@@ -267,9 +269,9 @@ class TestExpt(object):
         script = self.exp.writeScript(expPath=expfile)
         py_file = os.path.join(self.tmp_dir, 'testFutureFile.py')
         # save the script:
-        f = codecs.open(py_file, 'w', 'utf-8')
-        f.write(script)
-        f.close()
+        with codecs.open(py_file, 'w', 'utf-8-sig') as f:
+            f.write(script)
+
         #check that files compiles too
         self._checkCompile(py_file)
 
@@ -287,11 +289,12 @@ class TestExpt(object):
         #write the script from the experiment
         script = self.exp.writeScript(expPath=expfile)
         py_file = os.path.join(self.tmp_dir, 'testLoopBlocks.py')
+
         # save it
-        f = codecs.open(py_file, 'w', 'utf-8')
-        f.write(script.replace("core.quit()", "pass"))
-        f.write("del thisExp\n") #garbage collect the experiment so files are auto-saved
-        f.close()
+        with codecs.open(py_file, 'w', 'utf-8-sig') as f:
+            f.write(script.replace("core.quit()", "pass"))
+            f.write("del thisExp\n") #garbage collect the experiment so files are auto-saved
+
         #run the file (and make sure we return to this location afterwards)
         wd = os.getcwd()
         execfile(py_file)
@@ -303,45 +306,43 @@ class TestExpt(object):
         dat = numpy.recfromcsv(f, case_sensitive=True)
         f.close()
         assert len(dat)==8 # because 4 'blocks' with 2 trials each (3 stims per trial)
+
     def test_Run_FastStroopPsyExp(self):
         # start from a psyexp file, loadXML, execute, get keypresses from a emulator thread
-
-        pytest.skip()  # test is stalling, hangs up before any text is displayed
-
         if sys.platform.startswith('linux'):
             pytest.skip("response emulation thread not working on linux yet")
 
         expfile = path.join(self.exp.prefsPaths['tests'], 'data', 'ghost_stroop.psyexp')
-        f = codecs.open(file, 'r', 'utf-8')
-        text = f.read()
-        f.close()
+        with codecs.open(expfile, 'r', encoding='utf-8-sig') as f:
+            text = f.read()
 
         # copy conditions file to tmp_dir
         shutil.copyfile(os.path.join(self.exp.prefsPaths['tests'], 'data', 'ghost_trialTypes.xlsx'),
                         os.path.join(self.tmp_dir,'ghost_trialTypes.xlsx'))
 
         # edit the file, to have a consistent font:
-        text = text.replace("'Arial'","'"+tests.utils.TESTS_FONT+"'")
-        #text = text.replace("Arial",tests.utils.TESTS_FONT) # fails
+        text = text.replace("'Arial'", "'" + TESTS_FONT +"'")
 
         expfile = path.join(self.tmp_dir, 'ghost_stroop.psyexp')
-        f = codecs.open(expfile, 'w', 'utf-8')
-        f.write(text)
-        f.close()
+        with codecs.open(expfile, 'w', encoding='utf-8-sig') as f:
+            f.write(text)
 
-        self.exp.loadFromXML(expfile) # reload the edited file
-        lastrun = path.join(self.tmp_dir, 'ghost_stroop_lastrun.py')
-        script = self.exp.writeScript(expPath=file)
+        self.exp.loadFromXML(expfile)  # reload the edited file
+        script = self.exp.writeScript()
 
         # reposition its window out from under splashscreen (can't do easily from .psyexp):
-        text = script.replace('fullscr=False,','pos=(40,40), fullscr=False,')
-        f = codecs.open(lastrun, 'w', 'utf-8')
-        f.write(text)
-        f.close()
+        script = script.replace('fullscr=False,','pos=(40,40), fullscr=False,')
+        # Only log errors.
+        script = script.replace('logging.console.setLevel(logging.WARNING',
+                                'logging.console.setLevel(logging.ERROR')
+
+        lastrun = path.join(self.tmp_dir, 'ghost_stroop_lastrun.py')
+        with codecs.open(lastrun, 'w', encoding='utf-8-sig') as f:
+            f.write(script)
 
         # run:
-        stdout, stderr = core.shellCall('python '+lastrun, stderr=True)
-        assert not len(stderr), stderr # printing stderr if it's greater than zero
+        stdout, stderr = core.shellCall([sys.executable, lastrun], stderr=True)
+        assert not stderr
 
     def test_Exp_AddRoutine(self):
         self.exp.addRoutine('instructions')
@@ -370,3 +371,121 @@ class TestExpt(object):
         assert namespace.makeLoopIndex('trials_2') == 'thisTrial_2'
         assert namespace.makeLoopIndex('stimuli') == 'thisStimulus'
 
+
+class TestExpImports(object):
+    def setup(self):
+        self.exp = psychopy.experiment.Experiment()
+        self.exp.requiredImports = []
+
+    def test_requireImportName(self):
+        import_ = RequiredImport(importName='foo', importFrom='',
+                                 importAs='')
+        self.exp.requireImport(importName='foo')
+
+        assert import_ in self.exp.requiredImports
+
+        script = self.exp.writeScript()
+        assert 'import foo\n' in script
+
+    def test_requireImportFrom(self):
+        import_ = RequiredImport(importName='foo', importFrom='bar',
+                                 importAs='')
+        self.exp.requireImport(importName='foo', importFrom='bar')
+
+        assert import_ in self.exp.requiredImports
+
+        script = self.exp.writeScript()
+        assert 'from bar import foo\n' in script
+
+    def test_requireImportAs(self):
+        import_ = RequiredImport(importName='foo', importFrom='',
+                                 importAs='baz')
+        self.exp.requireImport(importName='foo', importAs='baz')
+
+        assert import_ in self.exp.requiredImports
+
+        script = self.exp.writeScript()
+        assert 'import foo as baz\n' in script
+
+    def test_requireImportFromAs(self):
+        import_ = RequiredImport(importName='foo', importFrom='bar',
+                                 importAs='baz')
+        self.exp.requireImport(importName='foo', importFrom='bar',
+                               importAs='baz')
+
+        assert import_ in self.exp.requiredImports
+
+        script = self.exp.writeScript()
+        assert 'from bar import foo as baz\n' in script
+
+    def test_requirePsychopyLibs(self):
+        import_ = RequiredImport(importName='foo', importFrom='psychopy',
+                                 importAs='')
+        self.exp.requirePsychopyLibs(['foo'])
+
+        assert import_ in self.exp.requiredImports
+
+        script = self.exp.writeScript()
+        assert 'from psychopy import locale_setup, foo\n' in script
+
+    def test_requirePsychopyLibs2(self):
+        import_0 = RequiredImport(importName='foo', importFrom='psychopy',
+                                  importAs='')
+        import_1 = RequiredImport(importName='foo', importFrom='psychopy',
+                                  importAs='')
+        self.exp.requirePsychopyLibs(['foo', 'bar'])
+
+        assert import_0 in self.exp.requiredImports
+        assert import_1 in self.exp.requiredImports
+
+        script = self.exp.writeScript()
+        assert 'from psychopy import locale_setup, foo, bar\n' in script
+
+    def test_requireImportAndPsychopyLib(self):
+        import_0 = RequiredImport(importName='foo', importFrom='psychopy',
+                                  importAs='')
+        import_1 = RequiredImport(importName='bar', importFrom='',
+                                  importAs='')
+        self.exp.requirePsychopyLibs(['foo'])
+        self.exp.requireImport('bar')
+
+        assert import_0 in self.exp.requiredImports
+        assert import_1 in self.exp.requiredImports
+
+        script = self.exp.writeScript()
+        assert 'from psychopy import locale_setup, foo\n' in script
+        assert 'import bar\n' in script
+
+
+class TestRunOnce(object):
+    def setup(self):
+        self.exp = psychopy.experiment.Experiment()
+
+    def test_runOnceSingleLine(self):
+        code = 'foo bar baz'
+        self.exp.runOnce(code)
+        assert code in self.exp._runOnce
+
+        script = self.exp.writeScript()
+        assert code + '\n' in script
+
+    def test_runOnceMultiLine(self):
+        code = 'foo bar baz\nbla bla bla'
+        self.exp.runOnce(code)
+        assert code in self.exp._runOnce
+
+        script = self.exp.writeScript()
+        assert code + '\n' in script
+
+    def test_runOnceMultipleStatements(self):
+        code_0 = 'foo bar baz'
+        self.exp.runOnce(code_0)
+
+        code_1 = 'bla bla bla'
+        self.exp.runOnce(code_1)
+
+        assert code_0 in self.exp._runOnce
+        assert code_1 in self.exp._runOnce
+
+        script = self.exp.writeScript()
+        assert (code_0 + '\n' + code_1 + '\n') in script

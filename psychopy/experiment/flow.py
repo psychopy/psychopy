@@ -316,10 +316,10 @@ class Flow(list):
                     loopStack.remove(thisEntry.loop)
             script.writeIndentedLines(code)
         # quit when all routines are finished
-        script.writeIndented("flowScheduler.add(quitPsychoJS, true);\n")
+        script.writeIndented("flowScheduler.add(quitPsychoJS, '', true);\n")
         # handled all the flow entries
         code = ("\n// quit if user presses Cancel in dialog box:\n"
-                "dialogCancelScheduler.add(quitPsychoJS, false);\n"
+                "dialogCancelScheduler.add(quitPsychoJS, '', false);\n"
                 "\npsychoJS.start({configURL: 'config.json', expInfo: expInfo});\n")
         script.writeIndentedLines(code)
         script.setIndentLevel(-1, relative=True)

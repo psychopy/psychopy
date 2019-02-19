@@ -18,7 +18,7 @@ from psychopy.constants import PY3
 if PY3:
     from importlib import reload
 
-origSoundPref = prefs.general['audioLib']
+origSoundPref = prefs.hardware['audioLib']
 
 # py.test --cov-report term-missing --cov sound.py tests/test_sound/test_sound_pyo.py
 
@@ -29,7 +29,7 @@ class TestSoundDevice(object):
     @classmethod
     def setup_class(self):
         self.contextName='sounddevice'
-        prefs.general['audioLib'] = ['sounddevice']
+        prefs.hardware['audioLib'] = ['sounddevice']
         reload(sound)
         self.tmp = mkdtemp(prefix='psychopy-tests-sound')
 
@@ -38,7 +38,7 @@ class TestSoundDevice(object):
 
     @classmethod
     def teardown_class(self):
-        prefs.general['audioLib'] = origSoundPref
+        prefs.hardware['audioLib'] = origSoundPref
         if hasattr(self, 'tmp'):
             shutil.rmtree(self.tmp, ignore_errors=True)
 

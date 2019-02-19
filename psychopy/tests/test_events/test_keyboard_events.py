@@ -67,6 +67,34 @@ class TestKeyboardEvents(object):
         with pytest.raises(ValueError):
             event._onPygletKey(key, modifiers, emulated=True)
 
+    def test_german_characters(self):
+        """Test that event can handle German characters"""
+        # 824633720832 = ö as pyglet symbol string
+        # need to use emulated = False to execute the lines that actually
+        # fix the German characters handling
+        event._onPygletKey(824633720832, 0, emulated=False)
+        event._onPygletText('ö', emulated=True)
+        keys = event.getKeys(modifiers=False, timeStamped=True)
+        assert len(keys) == 1
+        assert len(keys[0]) == 2
+        assert keys[0][0] == 'ö'
+        assert isinstance(keys[0][1], float)
+
+    def test_german_characters_with_modifiers(self):
+        """Test that event can handle German characters with modifiers"""
+        # 824633720832 = ö as pyglet symbol string
+        # need to use emulated = False to execute the lines that actually
+        # fix the German characters handling
+        event._onPygletKey(824633720832, MOD_SHIFT | MOD_SCROLLLOCK, emulated=False)
+        event._onPygletText('ö', emulated=True)
+        keys = event.getKeys(modifiers=True, timeStamped=True)
+        assert len(keys) == 1
+        assert len(keys[0]) == 3
+        assert keys[0][0] == 'ö'
+        assert keys[0][1]['shift']
+        assert keys[0][1]['scrolllock']
+        assert isinstance(keys[0][2], float)
+
 
 @pytest.mark.keyboard
 class TestGLobalEventKeys(object):

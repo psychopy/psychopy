@@ -14,7 +14,7 @@ Windows and and display devices:
 
     * :class:`.Window` is the main class to display objects
     * :class:`.Warper` for non-flat projection screens
-    * :class:`.ProjectorFramePacker` for handling displays with
+    * :class:`.ProjectorFramePacker` for handling displays with 'structured light mode' to achieve high framerates
     * :class:`.Rift` for Oculus Rift support (Windows 64bit only)
 
 Commonly used:
@@ -60,7 +60,8 @@ Meta stimuli (stimuli that operate on other stimuli):
 Helper functions:
 
   * :ref:`psychopy.visual.filters` for creating grating textures and Gaussian masks etc.
-  * :ref:`visualhelperfunctions` for tests about whether one stimulus contains another
+  * :ref:`psychopy.tools.visualhelperfunctions` for tests about whether one stimulus contains another
   * :mod:`~psychopy.tools.unittools` to convert deg<->radians
   * :mod:`~psychopy.tools.monitorunittools` to convert cm<->pix<->deg etc.
-  * :mod:`psychopy.tools.colorspacetools` to convert between supported color spaces
+  * :mod:`~psychopy.tools.colorspacetools` to convert between supported color spaces
+  * :mod:`~psychopy.tools.viewtools` to work with view projections

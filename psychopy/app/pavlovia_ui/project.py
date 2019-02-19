@@ -8,14 +8,13 @@ import time
 import os
 import traceback
 
-from .functions import setLocalPath, showCommitDialog, logInPavlovia, noGitWarning
+from .functions import (setLocalPath, showCommitDialog, logInPavlovia,
+                        noGitWarning)
 from psychopy.localization import _translate
 from psychopy.projects import pavlovia
 from psychopy import logging
 
-import lazy_import
-sync = lazy_import.lazy_module("psychopy.app.pavlovia_ui.sync")
-import git  # will be lazy due to psychopy.__init__
+from psychopy.app.pavlovia_ui import sync
 
 import wx
 from wx.lib import scrolledpanel as scrlpanel
@@ -174,15 +173,15 @@ class ProjectEditor(wx.Dialog):
 class DetailsPanel(scrlpanel.ScrolledPanel):
 
     def __init__(self, parent, noTitle=False,
-                 style=wx.VSCROLL | wx.NO_BORDER):
+                 style=wx.VSCROLL | wx.NO_BORDER,
+                 project={}):
+
         scrlpanel.ScrolledPanel.__init__(self, parent, -1, style=style)
         self.parent = parent
-        self.project = {}  # type: PavloviaProject
+        self.project = project  # type: PavloviaProject
         self.noTitle = noTitle
         self.localFolder = ''
-
-        # self.syncPanel = SyncStatusPanel(parent=self, id=wx.ID_ANY)
-        # self.syncPanel.Hide()
+        self.syncPanel = None
 
         if not noTitle:
             self.title = wx.StaticText(parent=self, id=-1,
@@ -214,22 +213,23 @@ class DetailsPanel(scrlpanel.ScrolledPanel):
         self.syncButton = wx.Button(self, -1, _translate("Sync..."))
         self.syncButton.Enable(False)
         self.syncButton.Bind(wx.EVT_BUTTON, self.onSyncButton)
+        self.syncPanel = sync.SyncStatusPanel(parent=self, id=wx.ID_ANY)
 
         # layout
         # sizers: on the right we have detail
         self.sizer = wx.BoxSizer(wx.VERTICAL)
-        self.sizer.Add(wx.StaticText(self, -1, _translate("Project Info")),
-                       flag=wx.ALL,
-                       border=5)
+        # self.sizer.Add(wx.StaticText(self, -1, _translate("Project Info")),
+        #                flag=wx.ALL,
+        #                border=5)
         if not noTitle:
             self.sizer.Add(self.title, border=5,
                            flag=wx.ALL | wx.ALIGN_CENTER)
         self.sizer.Add(self.url, border=5,
-                       flag=wx.ALL | wx.CENTER)
+                       flag=wx.ALL | wx.ALIGN_CENTER)
         self.sizer.Add(self.localFolderCtrl, border=5,
                              flag=wx.ALL | wx.EXPAND),
         self.sizer.Add(self.browseLocalBtn, border=5,
-                             flag=wx.ALL | wx.LEFT)
+                             flag=wx.ALL | wx.ALIGN_LEFT)
         self.sizer.Add(self.tags, border=5, flag=wx.ALL | wx.EXPAND)
         self.sizer.Add(self.visibility, border=5, flag=wx.ALL | wx.EXPAND)
         self.sizer.Add(wx.StaticLine(self, -1, style=wx.LI_HORIZONTAL),
@@ -239,12 +239,22 @@ class DetailsPanel(scrlpanel.ScrolledPanel):
         self.sizer.Add(wx.StaticLine(self, -1, style=wx.LI_HORIZONTAL),
                        flag=wx.ALL | wx.EXPAND)
         self.sizer.Add(self.syncButton,
-                       flag=wx.ALL | wx.RIGHT, border=5)
+                       flag=wx.ALL | wx.ALIGN_RIGHT, border=5)
+        self.sizer.Add(self.syncPanel, border=5, proportion=1,
+                       flag=wx.ALL | wx.RIGHT | wx.EXPAND)
 
-        self.SetSizer(self.sizer)
+        if self.project:
+            self.setProject(self.project)
+            self.syncPanel.setStatus(_translate("Ready to sync"))
+        else:
+            self.syncPanel.setStatus(
+                    _translate("This file doesn't belong to a project yet"))
+
+        self.SetAutoLayout(True)
+        self.SetSizerAndFit(self.sizer)
         self.SetupScrolling()
-        self.Layout()
         self.Bind(wx.EVT_SIZE, self.onResize)
+
 
     def setProject(self, project, localRoot=''):
         if not isinstance(project, pavlovia.PavloviaProject):
@@ -313,14 +323,9 @@ class DetailsPanel(scrlpanel.ScrolledPanel):
         self.Layout()
 
     def onSyncButton(self, event):
-        try:
-            git
-            haveGit = True
-        except ImportError:
-            haveGit = False
-        if not haveGit:
+        if not pavlovia.haveGit:
             noGitWarning(parent=self.parent)
-            return
+            return 0
 
         if self.project is None:
             raise AttributeError("User pressed the sync button with no "
@@ -355,15 +360,8 @@ class DetailsPanel(scrlpanel.ScrolledPanel):
             self.Layout()
             self.Raise()
 
-        syncPanel = sync.SyncStatusPanel(parent=self, id=wx.ID_ANY)
-        self.sizer.Add(syncPanel, border=5,
-                       flag=wx.ALL | wx.RIGHT)
-        self.sizer.Layout()
-        progHandler = sync.ProgressHandler(syncPanel=syncPanel)
-        wx.Yield()
-        self.project.sync(syncPanel=syncPanel, progressHandler=progHandler)
-        syncPanel.Destroy()
-        self.sizer.Layout()
+        self.syncPanel.setStatus(_translate("Synchronizing..."))
+        self.project.sync(infoStream=self.syncPanel.infoStream)
         self.parent.Raise()
 
     def onBrowseLocalFolder(self, evt):
@@ -376,7 +374,36 @@ class DetailsPanel(scrlpanel.ScrolledPanel):
         self.parent.Raise()
 
 
-def syncProject(parent, project=None):
+
+class ProjectFrame(wx.Dialog):
+
+    def __init__(self, app, parent=None, style=None,
+                 pos=wx.DefaultPosition, project=None):
+        if style is None:
+            style = (wx.DEFAULT_DIALOG_STYLE | wx.CENTER |
+                     wx.TAB_TRAVERSAL | wx.RESIZE_BORDER)
+        if project:
+            title = project.title
+        else:
+            title = _translate("Project info")
+        self.frameType = 'ProjectInfo'
+        wx.Dialog.__init__(self, parent, -1, title=title, style=style,
+                           size=(700, 500), pos=pos)
+        self.app = app
+        self.project = project
+        self.parent = parent
+
+        # on the right
+        self.detailsPanel = DetailsPanel(parent=self, project=self.project)
+        self.mainSizer = wx.BoxSizer(wx.HORIZONTAL)
+        self.mainSizer.Add(self.detailsPanel, 1, wx.EXPAND | wx.ALL, 5)
+        self.SetSizerAndFit(self.mainSizer)
+
+        if self.parent:
+            self.CenterOnParent()
+        self.Layout()
+
+def syncProject(parent, project=None, closeFrameWhenDone=False):
     """A function to sync the current project (if there is one)
 
     Returns
@@ -385,14 +412,7 @@ def syncProject(parent, project=None):
         0 for fail
         -1 for cancel at some point in the process
     """
-    closeFrameWhenDone = True
-    try:
-        a = sync.SyncFrame
-        haveGit = True
-    except Exception as e:
-        print(e)
-        haveGit = False
-    if not haveGit:
+    if not pavlovia.haveGit:
         noGitWarning(parent)
         return 0
 
@@ -402,6 +422,17 @@ def syncProject(parent, project=None):
         project = parent.project  # type: pavlovia.PavloviaProject
 
     if not project:  # ask the user to create one
+
+        # if we're going to create a project we need user to be logged in
+        pavSession = pavlovia.getCurrentSession()
+        try:
+            username = pavSession.user.username
+        except:
+            username = logInPavlovia(parent)
+        if not username:
+            return -1  # never logged in
+
+        # create project dialog
         msg = _translate("This file doesn't belong to any existing project.")
         style = wx.OK | wx.CANCEL | wx.CENTER
         dlg = wx.MessageDialog(parent=parent, message=msg, style=style)
@@ -444,50 +475,48 @@ def syncProject(parent, project=None):
             return
 
     # a sync will be necessary so can create syncFrame
-    # if not possible then lazy import of git has failed
-    try:
-        syncFrame = sync.SyncFrame(parent=parent, id=wx.ID_ANY, project=project)
-        haveGit = True
-    except ValueError:
-        haveGit = False
-    if not haveGit:
-        noGitWarning(parent=parent)
-        return
+    syncFrame = sync.SyncFrame(parent=parent, id=wx.ID_ANY, project=project)
 
     if project._newRemote:
         # new remote so this will be a first push
         if project.getRepo(forceRefresh=True) is None:
             # no local repo yet so create one
-            project.newRepo(syncFrame.progHandler)
+            project.newRepo(syncFrame)
         # add the local files and commit them
-        showCommitDialog(parent=parent, project=project,
-                         initMsg="First commit")
+        ok = showCommitDialog(parent=parent, project=project,
+                              initMsg="First commit",
+                              infoStream=syncFrame.syncPanel.infoStream)
+        if ok == -1:  # cancelled
+            syncFrame.Destroy()
+            return -1
         syncFrame.syncPanel.setStatus("Pushing files to Pavlovia")
         wx.Yield()
         time.sleep(0.001)
         # git push -u origin master
         try:
-            project.firstPush()
+            project.firstPush(infoStream=syncFrame.syncPanel.infoStream)
             project._newRemote = False
         except Exception as e:
             closeFrameWhenDone = False
             syncFrame.syncPanel.statusAppend(traceback.format_exc())
     else:
-        # existing remote which we should clone
+        # existing remote which we should sync (or clone)
         try:
-            ok = project.getRepo(syncFrame.syncPanel, syncFrame.progHandler)
+            ok = project.getRepo(syncFrame.syncPanel.infoStream)
             if not ok:
                 closeFrameWhenDone = False
         except Exception as e:
             closeFrameWhenDone = False
             syncFrame.syncPanel.statusAppend(traceback.format_exc())
         # check for anything to commit before pull/push
-        outcome = showCommitDialog(parent, project)
+        outcome = showCommitDialog(parent, project,
+                                   infoStream=syncFrame.syncPanel.infoStream)
         # 0=nothing to do, 1=OK, -1=cancelled
         if outcome == -1:  # user cancelled
+            syncFrame.Destroy()
             return -1
         try:
-            status = project.sync(syncFrame.syncPanel, syncFrame.progHandler)
+            status = project.sync(syncFrame.syncPanel.infoStream)
             if status == -1:
                 syncFrame.syncPanel.statusAppend("Couldn't sync")
         except Exception:  # not yet sure what errors might occur
@@ -552,20 +581,23 @@ class ProjectRecreator(wx.Dialog):
         choices = [_translate("(Re)create a project"),
                    "{} ({})".format(_translate("Point to an different location"),
                                     _translate("not yet supported")),
-                   _translate("Forget the local git repository (deletes history keeps files)"),
-                   _translate("Do nothing and abort the sync")]
+                   _translate("Forget the local git repository (deletes history keeps files)")]
         self.radioCtrl = wx.RadioBox(self, label='RadioBox', choices=choices,
                                      majorDimension=1)
         self.radioCtrl.EnableItem(1, False)
         self.radioCtrl.EnableItem(2, False)
 
         mainSizer = wx.BoxSizer(wx.VERTICAL)
-        mainSizer.Add(msg, 1, wx.ALL, 5)
-        mainSizer.Add(self.radioCtrl, 1, wx.ALL, 5)
-        mainSizer.Add(wx.Button(self, id=wx.ID_OK, label=_translate("OK")),
+        buttonSizer = wx.BoxSizer(wx.HORIZONTAL)
+        buttonSizer.Add(wx.Button(self, id=wx.ID_OK, label=_translate("OK")),
                       1, wx.ALL | wx.ALIGN_RIGHT, 5)
+        buttonSizer.Add(wx.Button(self, id=wx.ID_CANCEL, label=_translate("Cancel")),
+                      1, wx.ALL | wx.ALIGN_RIGHT, 5)
+        mainSizer.Add(msg, 1, wx.ALL, 5)
+        mainSizer.Add(self.radioCtrl, 1, wx.ALL | wx.ALIGN_CENTER_HORIZONTAL, 5)
+        mainSizer.Add(buttonSizer, 1, wx.ALL | wx.ALIGN_RIGHT, 1)
 
-        self.SetSizerAndFit(mainSizer)
+        self.SetSizer(mainSizer)
         self.Layout()
 
     def ShowModal(self):

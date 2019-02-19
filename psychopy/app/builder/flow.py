@@ -24,8 +24,10 @@ try:
 except ImportError:
     from wx.adv import PseudoDC
 
+if parse_version(wx.__version__) < parse_version('4.0.3'):
+    wx.NewIdRef = wx.NewId
+
 from psychopy import logging, data
-from psychopy.app.utils import FileDropTarget
 from .dialogs import DlgLoopProperties
 from .. import dialogs
 from psychopy.localization import _translate
@@ -98,7 +100,7 @@ class FlowPanel(wx.ScrolledWindow):
         self.contextItemFromID = {}
         self.contextIDFromItem = {}
         for item in self.contextMenuItems:
-            id = wx.NewId()
+            id = wx.NewIdRef()
             self.contextItemFromID[id] = item
             self.contextIDFromItem[item] = id
 
@@ -132,7 +134,7 @@ class FlowPanel(wx.ScrolledWindow):
         self.Bind(wx.EVT_BUTTON, self.setLoopPoint1, self.btnInsertLoop)
         self.Bind(wx.EVT_PAINT, self.OnPaint)
 
-        idClear = wx.NewId()
+        idClear = wx.NewIdRef()
         self.Bind(wx.EVT_MENU, self.clearMode, id=idClear)
         aTable = wx.AcceleratorTable([
             (wx.ACCEL_NORMAL, wx.WXK_ESCAPE, idClear)
@@ -186,12 +188,12 @@ class FlowPanel(wx.ScrolledWindow):
             "Select a Routine to insert (Esc to exit)"))
         menu = wx.Menu()
         self.routinesFromID = {}
-        id = wx.NewId()
+        id = wx.NewIdRef()
         menu.Append(id, '(new)')
         self.routinesFromID[id] = '(new)'
         menu.Bind(wx.EVT_MENU, self.insertNewRoutine, id=id)
         for routine in self.frame.exp.routines:
-            id = wx.NewId()
+            id = wx.NewIdRef()
             menu.Append(id, routine)
             self.routinesFromID[id] = routine
             menu.Bind(wx.EVT_MENU, self.onInsertRoutineSelect, id=id)
@@ -589,7 +591,7 @@ class FlowPanel(wx.ScrolledWindow):
 
         # step through components in flow, get spacing from text size, etc
         currX = self.linePos[0]
-        lineId = wx.NewId()
+        lineId = wx.NewIdRef()
         pdc.DrawLine(x1=self.linePos[0] - gap, y1=self.linePos[1],
                      x2=self.linePos[0], y2=self.linePos[1])
         # NB the loop is itself the key, value is further info about it
@@ -666,7 +668,7 @@ class FlowPanel(wx.ScrolledWindow):
         for n, pos in enumerate(posList):
             if n >= len(self.entryPointPosList):
                 # draw for first time
-                id = wx.NewId()
+                id = wx.NewIdRef()
                 self.entryPointIDlist.append(id)
                 self.pdc.SetId(id)
                 self.pdc.SetBrush(wx.Brush(wx.Colour(0, 0, 0, 255)))
@@ -713,7 +715,7 @@ class FlowPanel(wx.ScrolledWindow):
 
     def drawLineEnd(self, dc, pos):
         # draws arrow at end of timeline
-        # tmpId = wx.NewId()
+        # tmpId = wx.NewIdRef()
         # dc.SetId(tmpId)
         dc.SetBrush(wx.Brush(wx.Colour(0, 0, 0, 255)))
         dc.SetPen(wx.Pen(wx.Colour(0, 0, 0, 255)))
@@ -723,7 +725,7 @@ class FlowPanel(wx.ScrolledWindow):
     def drawLoopEnd(self, dc, pos, downwards=True):
         # define the right side of a loop but draw nothing
         # idea: might want an ID for grabbing and relocating the loop endpoint
-        tmpId = wx.NewId()
+        tmpId = wx.NewIdRef()
         dc.SetId(tmpId)
         # dc.SetBrush(wx.Brush(wx.Colour(0,0,0, 250)))
         # dc.SetPen(wx.Pen(wx.Colour(0,0,0, 255)))
@@ -740,7 +742,7 @@ class FlowPanel(wx.ScrolledWindow):
 
     def drawLoopStart(self, dc, pos, downwards=True):
         # draws direction arrow on left side of a loop
-        tmpId = wx.NewId()
+        tmpId = wx.NewIdRef()
         dc.SetId(tmpId)
         dc.SetBrush(wx.Brush(wx.Colour(0, 0, 0, 250)))
         dc.SetPen(wx.Pen(wx.Colour(0, 0, 0, 255)))
@@ -826,7 +828,7 @@ class FlowPanel(wx.ScrolledWindow):
             up = +1
 
         # draw loop itself, as transparent rect with curved corners
-        tmpId = wx.NewId()
+        tmpId = wx.NewIdRef()
         dc.SetId(tmpId)
         # extra distance, in both h and w for curve
         curve = (6, 11, 15)[self.appData['flowSize']]

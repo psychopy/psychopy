@@ -4,6 +4,7 @@
 <head>
     <title>{name} [PsychoPy]</title>
     <meta charset="UTF-8">
+    <meta name="viewport" content="user-scalable=no">
 
     <!-- external libraries -->
     <script type="text/javascript" src="lib/vendors/jquery-2.2.0.min.js"></script>
@@ -15,6 +16,7 @@
     <script type="text/javascript" src="lib/vendors/xlsx.full.min.js"></script>
     <script type="text/javascript" src="lib/vendors/log4javascript.min.js"></script>
     <script type="text/javascript" src="lib/vendors/Tone.min.js"></script>
+    <script type="text/javascript" src="lib/vendors/howler.min.js"></script>
 
     <!-- styles -->
     <link href="lib/vendors/jquery-ui.min.css" rel="stylesheet">
@@ -25,8 +27,8 @@
     <div id="root"/>
     <script type='module' src='./{name}.js'></script>
 
-    <script nomodule type="text/javascript" src="lib/psychojs-3.0.0b11.js"></script>
+    <script nomodule type="text/javascript" src="lib/psychojs-{version}.js"></script>
     <script nomodule type="text/javascript" src="./{name}NoModule.js"></script>
-<body>
+</body>
 
 </html>
