@@ -326,7 +326,10 @@ class Experiment(object):
         thisChild = xml.SubElement(parent, thisType)
         thisChild.set('name', name)
         if hasattr(param, 'val'):
-            thisChild.set('val', u"{}".format(param.val).replace("\n", "&#10;"))
+            if hasattr(parent, 'tag') and parent.tag == 'CodeComponent':  # set EOLs for CodeComponent
+                thisChild.set('val', u"{}".format(param.val).replace("\r", "&#13;").replace("\n", "&#10;"))
+            else:
+                thisChild.set('val', u"{}".format(param.val).replace("\n", "&#10;"))
         if hasattr(param, 'valType'):
             thisChild.set('valType', param.valType)
         if hasattr(param, 'updates'):
@@ -344,8 +347,10 @@ class Experiment(object):
         val = paramNode.get('val')
         # many components need web char newline replacement
         if not name == 'advancedParams':
-            val = val.replace("&#10;", "\n")
-
+            if hasattr(componentNode, 'tag') and componentNode.tag == 'CodeComponent':  # set EOLs for CodeComponent
+                val = val.replace("&#13;", "\r").replace("&#10;", "\n")
+            else:
+                val = val.replace("&#10;", "\n")
         # custom settings (to be used when
         if valType == 'fixedList':  # convert the string to a list
             params[name].val = eval('list({})'.format(val))

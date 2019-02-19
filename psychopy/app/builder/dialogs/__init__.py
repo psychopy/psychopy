@@ -128,6 +128,7 @@ class ParamCtrls(object):
             self.valueCtrl = CodeBox(parent, -1, pos=wx.DefaultPosition,
                                      size=wx.Size(sx, sy), style=0,
                                      prefs=appPrefs)
+            self.valueCtrl.SetEOLMode(wx.stc.STC_EOL_LF)  # Because text uses \n EOLs (also resets for rating scale)
             if len(param.val):
                 self.valueCtrl.AddText(str(param.val))
             if fieldName == 'text':
