@@ -14,6 +14,8 @@ import wx
 import sys
 from pkg_resources import parse_version
 from psychopy.constants import PY3
+from psychopy import logging
+
 
 class BaseCodeEditor(wx.stc.StyledTextCtrl):
     """Provides base class for code editors
@@ -235,8 +237,8 @@ class BaseCodeEditor(wx.stc.StyledTextCtrl):
                 try:
                     # if we can decode from utf-8 then all is good
                     txt.decode('utf-8')
-                except:
+                except Exception as e:
+                    logging.error(str(e))
                     # if not then wx conversion broke so get raw data instead
                     txt = dataObj.GetDataHere()
-            self.ReplaceSelection(txt)
-            self.ConvertEOLs(wx.stc.STC_EOL_LF)
+            self.ReplaceSelection(txt.replace("\r\n", "\n").replace("\r", "\n"))
