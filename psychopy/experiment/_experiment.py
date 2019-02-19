@@ -139,7 +139,7 @@ class Experiment(object):
         Parameters
         ----------
         code : str
-            The code to run. May include newline characters to wrtie several
+            The code to run. May include newline characters to write several
             lines of code at once.
 
         Notes
