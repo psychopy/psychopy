@@ -954,24 +954,6 @@ class CodeEditor(BaseCodeEditor):
             newText = newText + lineText
         self._ReplaceSelectedLines(newText)
 
-    def Paste(self, event=None):
-        dataObj = wx.TextDataObject()
-        clip = wx.Clipboard().Get()
-        clip.Open()
-        success = clip.GetData(dataObj)
-        clip.Close()
-        if success:
-            txt = dataObj.GetText()
-            # dealing with unicode error in wx3 for Mac
-            if wx.__version__[0] == '3' and sys.platform == 'darwin':
-                try:
-                    # if we can decode from utf-8 then all is good
-                    txt.decode('utf-8')
-                except:
-                    # if not then wx conversion broke so get raw data instead
-                    txt = dataObj.GetDataHere()
-            self.ReplaceSelection(txt)
-
     def increaseFontSize(self):
         self.SetZoom(self.GetZoom() + 1)
 
@@ -2333,27 +2315,7 @@ class CoderFrame(wx.Frame):
                 if failToSave:
                     raise IOError
                 self.SetStatusText(_translate('Saving file'))
-                newlines = None  # system default, os.linesep
-                try:
-                    # this will fail when doc.newlines was not set (new file)
-                    if self.prefs['newlineConvention'] == 'keep':
-                        if doc.GetText().lstrip(u'\ufeff').startswith("#!"):
-                            # document has shebang (ignore byte-order-marker)
-                            newlines = '\n'
-                        elif doc.newlines == '\r\n':
-                            # document had '\r\n' newline on load
-                            newlines = '\r\n'
-                        else:
-                            # None, \n, tuple
-                            newlines = '\n'
-                    elif self.prefs['newlineConvention'] == 'dos':
-                        newlines = '\r\n'
-                    elif self.prefs['newlineConvention'] == 'unix':
-                        newlines = '\n'
-
-                except Exception:
-                    pass
-
+                newlines = '\n'  # system default, os.linesep
                 with io.open(filename, 'w', encoding='utf-8', newline=newlines) as f:
                     f.write(doc.GetText())
                 self.setFileModified(False)
