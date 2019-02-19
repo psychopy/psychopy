@@ -2,8 +2,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PsychoPy 1.81.00\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-02-13 20:44+0900\n"
-"PO-Revision-Date: 2019-02-18 21:07+0900\n"
+"POT-Creation-Date: 2019-02-19 17:38+0900\n"
+"PO-Revision-Date: 2019-02-19 17:39+0900\n"
 "Last-Translator: Hiroyuki Sogo <hsogo12600@gmail.com>\n"
 "Language-Team: Hiroyuki Sogo <hsogo12600@gmail.com>\n"
 "Language: ja\n"
@@ -682,7 +682,7 @@ msgstr "%(routineName)sの%(staticName)sの間に更新"
 
 #: psychopy/app/builder/dialogs/__init__.py:256
 #: psychopy/app/pavlovia_ui/project.py:77
-#: psychopy/app/pavlovia_ui/project.py:199
+#: psychopy/app/pavlovia_ui/project.py:197
 msgid "Browse..."
 msgstr "選択..."
 
@@ -1128,7 +1128,7 @@ msgid "add"
 msgstr "加算"
 
 #: psychopy/app/builder/localizedStrings.py:69
-#: psychopy/app/builder/localizedStrings.py:96
+#: psychopy/app/builder/localizedStrings.py:97
 msgid "average"
 msgstr "平均"
 
@@ -1193,18 +1193,22 @@ msgid "cross"
 msgstr "十字"
 
 #: psychopy/app/builder/localizedStrings.py:91
+msgid "star"
+msgstr "星"
+
+#: psychopy/app/builder/localizedStrings.py:92
 msgid "regular polygon..."
 msgstr "正多角形..."
 
-#: psychopy/app/builder/localizedStrings.py:93
+#: psychopy/app/builder/localizedStrings.py:94
 msgid "first"
 msgstr "最初"
 
-#: psychopy/app/builder/localizedStrings.py:94
+#: psychopy/app/builder/localizedStrings.py:95
 msgid "last"
 msgstr "最後"
 
-#: psychopy/app/builder/localizedStrings.py:95
+#: psychopy/app/builder/localizedStrings.py:96
 msgid "all"
 msgstr "すべて"
 
@@ -1322,7 +1326,7 @@ msgstr "テストの実行"
 
 #: psychopy/app/coder/coder.py:360 psychopy/app/dialogs.py:53
 #: psychopy/app/pavlovia_ui/project.py:98
-#: psychopy/app/pavlovia_ui/project.py:595 psychopy/app/preferencesDlg.py:206
+#: psychopy/app/pavlovia_ui/project.py:594 psychopy/app/preferencesDlg.py:206
 msgid "Cancel"
 msgstr "キャンセル"
 
@@ -1989,7 +1993,7 @@ msgstr "情報"
 msgid "No"
 msgstr "いいえ"
 
-#: psychopy/app/dialogs.py:65 psychopy/app/pavlovia_ui/project.py:593
+#: psychopy/app/dialogs.py:65 psychopy/app/pavlovia_ui/project.py:592
 #: psychopy/app/pavlovia_ui/user.py:71 psychopy/app/preferencesDlg.py:199
 msgid "OK"
 msgstr "OK"
@@ -2076,83 +2080,95 @@ msgstr "Pavlovia上でプロジェクトを作成"
 msgid "Submit changes to Pavlovia"
 msgstr "Pavloviaに変更を送信"
 
-#: psychopy/app/pavlovia_ui/project.py:197
+#: psychopy/app/pavlovia_ui/project.py:195
 msgid "Local root: "
 msgstr "ローカル ルートフォルダ: "
 
-#: psychopy/app/pavlovia_ui/project.py:209
+#: psychopy/app/pavlovia_ui/project.py:207
 msgid "Select a project for details"
 msgstr "詳細を表示するにはプロジェクトを選択してください"
 
-#: psychopy/app/pavlovia_ui/project.py:215
-#: psychopy/app/pavlovia_ui/project.py:297
+#: psychopy/app/pavlovia_ui/project.py:213
+#: psychopy/app/pavlovia_ui/project.py:302
 msgid "Sync..."
 msgstr "同期..."
 
-#: psychopy/app/pavlovia_ui/project.py:275
+#: psychopy/app/pavlovia_ui/project.py:248
+msgid "Ready to sync"
+msgstr ""
+
+#: psychopy/app/pavlovia_ui/project.py:251
+msgid "This file doesn't belong to a project yet"
+msgstr "このファイルはプロジェクトに属していません"
+
+#: psychopy/app/pavlovia_ui/project.py:280
 msgid "User not logged in!"
 msgstr "ログインしていません"
 
-#: psychopy/app/pavlovia_ui/project.py:280
+#: psychopy/app/pavlovia_ui/project.py:285
 msgid "Visibility: {}"
 msgstr "公開範囲: {}"
 
-#: psychopy/app/pavlovia_ui/project.py:285
+#: psychopy/app/pavlovia_ui/project.py:290
 msgid "<not yet synced>"
 msgstr "<まだ同期していません>"
 
-#: psychopy/app/pavlovia_ui/project.py:286
-#: psychopy/app/pavlovia_ui/project.py:353
-#: psychopy/app/pavlovia_ui/project.py:372
+#: psychopy/app/pavlovia_ui/project.py:291
+#: psychopy/app/pavlovia_ui/project.py:358
+#: psychopy/app/pavlovia_ui/project.py:371
 msgid "Local root: {}"
 msgstr "ローカル ルートフォルダ: {}"
 
-#: psychopy/app/pavlovia_ui/project.py:293
+#: psychopy/app/pavlovia_ui/project.py:298
 msgid "Log in to sync..."
 msgstr "ログインして同期..."
 
-#: psychopy/app/pavlovia_ui/project.py:295
+#: psychopy/app/pavlovia_ui/project.py:300
 msgid "Fork + sync..."
 msgstr "Forkして同期..."
 
-#: psychopy/app/pavlovia_ui/project.py:302
+#: psychopy/app/pavlovia_ui/project.py:307
 msgid "Tags:"
 msgstr "タグ:"
 
-#: psychopy/app/pavlovia_ui/project.py:389
+#: psychopy/app/pavlovia_ui/project.py:363
+msgid "Synchronizing..."
+msgstr "同期中..."
+
+#: psychopy/app/pavlovia_ui/project.py:388
 msgid "Project info"
 msgstr "プロジェクトの情報"
 
-#: psychopy/app/pavlovia_ui/project.py:437
+#: psychopy/app/pavlovia_ui/project.py:436
 msgid "This file doesn't belong to any existing project."
 msgstr "このファイルは既存のプロジェクトに属していません"
 
-#: psychopy/app/pavlovia_ui/project.py:440
+#: psychopy/app/pavlovia_ui/project.py:439
 msgid "Create a project"
 msgstr "プロジェクトを作成"
 
-#: psychopy/app/pavlovia_ui/project.py:579
+#: psychopy/app/pavlovia_ui/project.py:578
 msgid "points to a remote that doesn't exist (deleted?)."
 msgstr ""
 "存在しないリモートプロジェクトを指しています(削除された可能性があります)"
 
-#: psychopy/app/pavlovia_ui/project.py:580
+#: psychopy/app/pavlovia_ui/project.py:579
 msgid "What shall we do?"
 msgstr "どうしますか？"
 
-#: psychopy/app/pavlovia_ui/project.py:582
+#: psychopy/app/pavlovia_ui/project.py:581
 msgid "(Re)create a project"
 msgstr "プロジェクトを(再)作成"
 
-#: psychopy/app/pavlovia_ui/project.py:583
+#: psychopy/app/pavlovia_ui/project.py:582
 msgid "Point to an different location"
 msgstr "異なる場所を指定"
 
-#: psychopy/app/pavlovia_ui/project.py:584
+#: psychopy/app/pavlovia_ui/project.py:583
 msgid "not yet supported"
 msgstr "まだサポートされていません"
 
-#: psychopy/app/pavlovia_ui/project.py:585
+#: psychopy/app/pavlovia_ui/project.py:584
 msgid "Forget the local git repository (deletes history keeps files)"
 msgstr ""
 "ローカルなgitレポジトリを無視する(履歴は削除されるがファイルはそのまま)"
