@@ -11,6 +11,9 @@
 # Distributed under the terms of the GNU General Public License (GPL).
 
 import wx
+import sys
+from pkg_resources import parse_version
+from psychopy.constants import PY3
 
 class BaseCodeEditor(wx.stc.StyledTextCtrl):
     """Provides base class for code editors
@@ -218,3 +221,22 @@ class BaseCodeEditor(wx.stc.StyledTextCtrl):
             if newIndent < 0:
                 newIndent = 0
             self.SetLineIndentation(lineN, newIndent)
+
+    def Paste(self, event=None):
+        dataObj = wx.TextDataObject()
+        clip = wx.Clipboard().Get()
+        clip.Open()
+        success = clip.GetData(dataObj)
+        clip.Close()
+        if success:
+            txt = dataObj.GetText()
+            # dealing with unicode error in wx3 for Mac
+            if parse_version(wx.__version__) >= parse_version('3') and sys.platform == 'darwin' and not PY3:
+                try:
+                    # if we can decode from utf-8 then all is good
+                    txt.decode('utf-8')
+                except:
+                    # if not then wx conversion broke so get raw data instead
+                    txt = dataObj.GetDataHere()
+            self.ReplaceSelection(txt)
+            self.ConvertEOLs(wx.stc.STC_EOL_LF)
