@@ -85,7 +85,7 @@ class BaseCodeEditor(wx.stc.StyledTextCtrl):
                               'Cut': {'id': None, 'item': '', 'method': self.onCut, 'enabled': self.CanCut},
                               'Copy': {'id': None, 'item': '', 'method': self.onCopy, 'enabled': self.CanCopy},
                               'Paste': {'id': None, 'item': '', 'method': self.onPaste, 'enabled': self.CanPaste},
-                              'Delete': {'id': None, 'item': '', 'method': self.onDelete,'enabled': self.CanCopy},
+                              'Delete': {'id': None, 'item': '', 'method': self.onDelete, 'enabled': self.CanCopy},
                               'Select All': {'id': None, 'item': '', 'method': self.onSelectAll, 'enabled': None},}
 
         if not hasattr(self, "UndoID"):
