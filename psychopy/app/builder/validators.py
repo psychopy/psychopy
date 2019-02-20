@@ -195,7 +195,7 @@ class CodeSnippetValidator(BaseValidator):
             potentialVars = list(set(keyList) - set(allKeyBoardKeys))  # Elements of keyList not in allKeyBoardKeys
             _highlightParamVal(parent, bool(potentialVars))
             if len(potentialVars):
-                msg = "It looks like your 'Correct answer' contains a variable - prepend variables with '$' e.g. ${val}"
+                msg = _translate("It looks like your 'Correct answer' contains a variable - prepend variables with '$' e.g. ${val}")
                 msg = msg.format(val=potentialVars[0].lower())
 
         if codeWanted or isCodeField:
