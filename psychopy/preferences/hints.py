@@ -91,9 +91,6 @@ _translate("reload previously opened files after start")
 # baseNoArch.spec,[coder],line85
 _translate("for coder shell window, which shell to use")
 
-# baseNoArch.spec,[coder],line87
-_translate("newline for python files: unix = \\n, dos = \\r\\n")
-
 # baseNoArch.spec,[coder],line89
 _translate("whether to automatically reload a previously open experiment")
 

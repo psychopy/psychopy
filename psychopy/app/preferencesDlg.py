@@ -63,7 +63,6 @@ _localized = {
     'showOutput': _translate('show output'),
     'reloadPrevFiles': _translate('reload previous files'),
     'preferredShell': _translate('preferred shell'),
-    'newlineConvention': _translate('newline convention'),
     'reloadPrevExp': _translate('reload previous exp'),
     'unclutteredNamespace': _translate('uncluttered namespace'),
     'componentsFolders': _translate('components folders'),

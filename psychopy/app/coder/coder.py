@@ -506,11 +506,6 @@ class CodeEditor(BaseCodeEditor):
         self.coder = frame
         self.SetViewWhiteSpace(self.coder.appData['showWhitespace'])
         self.SetViewEOL(self.coder.appData['showEOLs'])
-        # Set EOL mode of editor from prefs
-        EOL = self.getEOL(self.coder.prefs['newlineConvention'])
-        if EOL is not None:
-            self.SetEOLMode(EOL)
-
         self.Bind(wx.EVT_DROP_FILES, self.coder.filesDropped)
         self.Bind(wx.stc.EVT_STC_MODIFIED, self.onModified)
         # self.Bind(wx.stc.EVT_STC_UPDATEUI, self.OnUpdateUI)
@@ -2250,9 +2245,6 @@ class CoderFrame(wx.Frame):
             else:
                 self.setCurrentDoc(filename)
                 self.setFileModified(False)
-        EOL = BaseCodeEditor.getEOL(self.prefs['newlineConvention'])
-        if EOL is not None:
-            self.currentDoc.ConvertEOLs(EOL)
         self.SetStatusText('')
         # self.fileHistory.AddFileToHistory(newPath)  # this is done by
         # setCurrentDoc
@@ -2323,28 +2315,7 @@ class CoderFrame(wx.Frame):
                 if failToSave:
                     raise IOError
                 self.SetStatusText(_translate('Saving file'))
-                newlines = None  # system default, os.linesep
-                try:
-                    # this will fail when doc.newlines was not set (new file)
-                    if self.prefs['newlineConvention'] == 'keep':
-                        if doc.GetText().lstrip(u'\ufeff').startswith("#!"):
-                            # document has shebang (ignore byte-order-marker)
-                            newlines = '\n'
-                        elif doc.newlines == '\r\n':
-                            # document had '\r\n' newline on load
-                            newlines = '\r\n'
-                        else:
-                            # None, \n, tuple
-                            newlines = '\n'
-                    elif self.prefs['newlineConvention'] == 'dos':
-                        newlines = '\r\n'
-                    elif self.prefs['newlineConvention'] == 'unix':
-                        newlines = '\n'
-                    elif self.prefs['newlineConvention'] == 'LegacyMac':
-                        newlines = '\r'
-                except Exception:
-                    pass
-
+                newlines = '\n'  # system default, os.linesep
                 with io.open(filename, 'w', encoding='utf-8', newline=newlines) as f:
                     f.write(doc.GetText())
                 self.setFileModified(False)
@@ -2641,9 +2612,6 @@ class CoderFrame(wx.Frame):
         foc = self.FindFocus()
         if hasattr(foc, 'Paste'):
             foc.Paste()
-        EOL = BaseCodeEditor.getEOL(self.prefs['newlineConvention'])
-        if EOL is not None:
-            self.currentDoc.ConvertEOLs(EOL)
 
     def undo(self, event):
         self.currentDoc.Undo()
