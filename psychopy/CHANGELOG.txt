@@ -23,8 +23,11 @@ PsychoPy 3.0.5
 
 FIXED:
 
-- sounddevice backend not importing on systems that don't have readline
-- better automated Pavlovia logging in for users, based on project
+- sounddevice backend not importing on systems that don't have readline #a9bbe98b3
+- better automated Pavlovia logging-in for users, based on project #460889e5d
+- faster auto-logging for changes involving numpy arrays (e.g. elexment arrays XYs) #e5dfc9e7d
+- fix paste when using legacy macOS end-of-lines (convert them to '\n' always) #94c5ee6a2
+- updated Japanese translations #2292
 
 PsychoPy 3.0.4
 ~~~~~~~~~~~~~~~~~~~~~~
