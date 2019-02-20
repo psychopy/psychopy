@@ -21,23 +21,6 @@ from psychopy.tools import versionchooser as vc
 _t0 = time.time()
 
 
-def checkFFMPEG(app=None):
-    """Helper function for checking imageio ffmpeg support"""
-    try:
-        import imageio
-        haveImageio = True
-    except ImportError:
-        haveImageio = False
-
-    if haveImageio:
-        # Use pre-installed ffmpeg if available.
-        # Otherwise, download ffmpeg binary.
-        try:
-            imageio.plugins.ffmpeg.get_exe()
-        except imageio.core.NeedDownloadError:
-            imageio.plugins.ffmpeg.download()
-
-
 tasks = OrderedDict()
 if prefs.connections['allowUsageStats']:
     tasks['sendUsageStats'] = {
@@ -55,7 +38,7 @@ else:
     }
 if prefs.connections['checkForUpdates']:
     tasks['checkForUpdates'] = {
-        'status': SKIP,
+        'status': NOT_STARTED,
         'func': connections.getLatestVersionInfo,
         'tstart': None, 'tEnd': None,
         'thread': True,
@@ -77,12 +60,6 @@ tasks['checkNews'] = {
 tasks['showTips'] = {
     'status': NOT_STARTED,
     'func': None,
-    'tstart': None, 'tEnd': None,
-    'thread': True,
-}
-tasks['checkFFMPG'] = {
-    'status': NOT_STARTED,
-    'func': checkFFMPEG,
     'tstart': None, 'tEnd': None,
     'thread': True,
 }

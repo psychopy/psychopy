@@ -284,10 +284,6 @@ class CodeBox(BaseCodeEditor):
         self.SetProperty("tab.timmy.whinge.level", "4")
         self.SetViewWhiteSpace(self.prefs.appData['coder']['showWhitespace'])
         self.SetViewEOL(self.prefs.appData['coder']['showEOLs'])
-        # Set EOL mode of editor from prefs
-        EOL = self.getEOL(self.prefs.coder['newlineConvention'])
-        if EOL is not None:
-            self.SetEOLMode(EOL)
 
         self.Bind(wx.stc.EVT_STC_MARGINCLICK, self.OnMarginClick)
         self.SetIndentationGuides(False)

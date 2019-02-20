@@ -11,6 +11,11 @@
 # Distributed under the terms of the GNU General Public License (GPL).
 
 import wx
+import sys
+from pkg_resources import parse_version
+from psychopy.constants import PY3
+from psychopy import logging
+
 
 class BaseCodeEditor(wx.stc.StyledTextCtrl):
     """Provides base class for code editors
@@ -69,28 +74,6 @@ class BaseCodeEditor(wx.stc.StyledTextCtrl):
 
     def OnKeyPressed(self, event):
         pass
-
-    def Paste(self, event=None):
-        import sys
-        from pkg_resources import parse_version
-        from psychopy import constants
-
-        dataObj = wx.TextDataObject()
-        clip = wx.Clipboard().Get()
-        clip.Open()
-        success = clip.GetData(dataObj)
-        clip.Close()
-        if success:
-            txt = dataObj.GetText()
-            # dealing with unicode error in wx3 for Mac
-            if parse_version(wx.__version__) >= parse_version('3') and sys.platform == 'darwin' and not constants.PY3:
-                try:
-                    # if we can decode from utf-8 then all is good
-                    txt.decode('utf-8')
-                except Exception as err:
-                    # if not then wx conversion broke so get raw data instead
-                    txt = dataObj.GetDataHere()
-            self.ReplaceSelection(txt)
 
     def HashtagCounter(self, text, nTags=0):
         # Hashtag counter - counts lines beginning with hashtags in selected text
@@ -241,21 +224,21 @@ class BaseCodeEditor(wx.stc.StyledTextCtrl):
                 newIndent = 0
             self.SetLineIndentation(lineN, newIndent)
 
-    @staticmethod
-    def getEOL(prefs='keep'):
-        """Gets EOL mode from preferences for setting EOL mode in Coder and code component.
-        CRLF    : Windows
-        CR      : Legacy Mac
-        LF      : Unix
-        None    : Preferences are to be kept same.
-
-        Returns
-        -------
-        int
-            None, 0 = CRLF, 1 = CR, and  2 = LF
-        """
-        EOL = {'keep': None,
-               'dos': 0,
-               'LegacyMac': 1,
-               'unix': 2}
-        return EOL[prefs]
+    def Paste(self, event=None):
+        dataObj = wx.TextDataObject()
+        clip = wx.Clipboard().Get()
+        clip.Open()
+        success = clip.GetData(dataObj)
+        clip.Close()
+        if success:
+            txt = dataObj.GetText()
+            # dealing with unicode error in wx3 for Mac
+            if parse_version(wx.__version__) >= parse_version('3') and sys.platform == 'darwin' and not PY3:
+                try:
+                    # if we can decode from utf-8 then all is good
+                    txt.decode('utf-8')
+                except Exception as e:
+                    logging.error(str(e))
+                    # if not then wx conversion broke so get raw data instead
+                    txt = dataObj.GetDataHere()
+            self.ReplaceSelection(txt.replace("\r\n", "\n").replace("\r", "\n"))
