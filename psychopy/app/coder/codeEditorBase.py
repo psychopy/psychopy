@@ -78,7 +78,6 @@ class BaseCodeEditor(wx.stc.StyledTextCtrl):
     def OnContextMenu(self, event):
         """Sets the context menu for components using base code editor"""
 
-
         if not hasattr(self, "_menuDict"):
             # Create menu item dict
             self._menuDict = {'Undo': {'id': None, '': '', 'method': self.onUndo, 'enabled': self.CanUndo},
