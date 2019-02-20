@@ -72,6 +72,83 @@ class BaseCodeEditor(wx.stc.StyledTextCtrl):
         self.MarkerDefine(wx.stc.STC_MARKNUM_FOLDERMIDTAIL,
                           wx.stc.STC_MARK_TCORNER, "white", "#808080")
 
+        # Bind context menu
+        self.Bind(wx.EVT_CONTEXT_MENU, self.OnContextMenu)
+
+    def OnContextMenu(self, event):
+        """Sets the context menu for components using base code editor"""
+        menuDict = {'Undo': {'id': None, '': '', 'method': self.onUndo, 'enabled': self.CanUndo()},
+                    'Redo': {'id': None, 'item': '', 'method': self.onRedo, 'enabled': self.CanRedo()},
+                    'Cut': {'id': None, 'item': '', 'method': self.onCut, 'enabled': self.CanCut()},
+                    'Copy': {'id': None, 'item': '', 'method': self.onCopy, 'enabled': self.CanCopy()},
+                    'Paste': {'id': None, 'item': '', 'method': self.onPaste, 'enabled': self.CanPaste()},
+                    'Delete': {'id': None, 'item': '', 'method': self.onDelete, 'enabled': True},
+                    'Select All': {'id': None, 'item': '', 'method': self.onSelectAll, 'enabled': True},}
+
+        menu = wx.Menu()
+        separators = ['Redo', 'Paste']  # Add separators after these menu items
+
+        if menuDict['Undo'].get("id") is None:
+            for menuItem in menuDict.keys():
+                # For each item, create a new ID
+                menuDict[menuItem]['id'] = wx.NewId()
+                # Bind each item to relevant method
+                self.Bind(wx.EVT_MENU, menuDict[menuItem]['method'], id=menuDict[menuItem]['id'])
+                # Create each menu item
+                menuDict[menuItem]['item'] = wx.MenuItem(menu, menuDict[menuItem]['id'], menuItem)
+                # Check whether item should be enabled
+                menuDict[menuItem]['item'].Enable(menuDict[menuItem]['enabled'])
+                # Append item to menu
+                menu.Append(menuDict[menuItem]['item'])
+                # Add separator if needed
+                if menuItem in separators:
+                    menu.AppendSeparator()
+
+        self.PopupMenu(menu)
+        menu.Destroy()
+
+    def onUndo(self, event):
+        """For context menu Undo"""
+        foc = self.FindFocus()
+        if hasattr(foc, 'Undo'):
+            foc.Undo()
+
+    def onRedo(self, event):
+        """For context menu Redo"""
+        foc = self.FindFocus()
+        if hasattr(foc, 'Redo'):
+            foc.Redo()
+
+    def onCut(self, event):
+        """For context menu Cut"""
+        foc = self.FindFocus()
+        if hasattr(foc, 'Cut'):
+            foc.Cut()
+
+    def onCopy(self, event):
+        """For context menu Copy"""
+        foc = self.FindFocus()
+        if hasattr(foc, 'Copy'):
+            foc.Copy()
+
+    def onPaste(self, event):
+        """For context menu Paste"""
+        foc = self.FindFocus()
+        if hasattr(foc, 'Paste'):
+            foc.Paste()
+
+    def onSelectAll(self, event):
+        """For context menu Select All"""
+        foc = self.FindFocus()
+        if hasattr(foc, 'SelectAll'):
+            foc.SelectAll()
+
+    def onDelete(self, event):
+        """For context menu Delete"""
+        foc = self.FindFocus()
+        if hasattr(foc, 'DeleteBack'):
+            foc.DeleteBack()
+
     def OnKeyPressed(self, event):
         pass
 
