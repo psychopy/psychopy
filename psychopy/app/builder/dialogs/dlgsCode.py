@@ -289,16 +289,23 @@ class CodeBox(BaseCodeEditor):
         self.SetIndentationGuides(False)
 
         self.Bind(wx.EVT_KEY_DOWN, self.OnKeyPressed)
+
         self.setupStyles()
 
     def OnKeyPressed(self, event):
         keyCode = event.GetKeyCode()
         _mods = event.GetModifiers()
+
+        # Check combination keys
         if keyCode == ord('/') and wx.MOD_CONTROL == _mods:
-            self.toggleCommentLines(self.params['Code Type'].val)
+            if self.params is not None:
+                self.toggleCommentLines(self.params['Code Type'].val)
+        elif keyCode == ord('V') and wx.MOD_CONTROL == _mods:
+            self.Paste()
+            return  # so that we don't reach the skip line at end
 
         if keyCode == wx.WXK_RETURN and not self.AutoCompActive():
-            # prcoess end of line and then do smart indentation
+            # process end of line and then do smart indentation
             event.Skip(False)
             self.CmdKeyExecute(wx.stc.STC_CMD_NEWLINE)
             if self.params is not None:

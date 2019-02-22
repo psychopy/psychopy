@@ -72,6 +72,105 @@ class BaseCodeEditor(wx.stc.StyledTextCtrl):
         self.MarkerDefine(wx.stc.STC_MARKNUM_FOLDERMIDTAIL,
                           wx.stc.STC_MARK_TCORNER, "white", "#808080")
 
+        # Bind context menu
+        self.Bind(wx.EVT_CONTEXT_MENU, self.OnContextMenu)
+
+    def OnContextMenu(self, event):
+        """Sets the context menu for components using code editor base class"""
+
+        if not hasattr(self, "UndoID"):
+            # Create a new ID for all items
+            self.UndoID = wx.NewId()
+            self.RedoID = wx.NewId()
+            self.CutID = wx.NewId()
+            self.CopyID = wx.NewId()
+            self.PasteID = wx.NewId()
+            self.DeleteID = wx.NewId()
+            self.SelectAllID = wx.NewId()
+
+        # Bind items to relevant method
+        self.Bind(wx.EVT_MENU, self.onUndo, id=self.UndoID)
+        self.Bind(wx.EVT_MENU, self.onRedo, id=self.RedoID)
+        self.Bind(wx.EVT_MENU, self.onCut, id=self.CutID)
+        self.Bind(wx.EVT_MENU, self.onCopy, id=self.CopyID)
+        self.Bind(wx.EVT_MENU, self.onPaste, id=self.PasteID)
+        self.Bind(wx.EVT_MENU, self.onDelete, id=self.DeleteID)
+        self.Bind(wx.EVT_MENU, self.onSelectAll, id=self.SelectAllID)
+
+        # Create menu and menu items
+        menu = wx.Menu()
+        undoItem = wx.MenuItem(menu, self.UndoID, "Undo")
+        redoItem = wx.MenuItem(menu, self.RedoID, "Redo")
+        cutItem = wx.MenuItem(menu, self.CutID, "Cut")
+        copyItem = wx.MenuItem(menu, self.CopyID, "Copy")
+        pasteItem = wx.MenuItem(menu, self.PasteID, "Paste")
+        deleteItem = wx.MenuItem(menu, self.DeleteID, "Delete")
+        selectItem = wx.MenuItem(menu, self.SelectAllID, "Select All")
+
+        # Check whether items should be enabled
+        undoItem.Enable(self.CanUndo())
+        redoItem.Enable(self.CanRedo())
+        cutItem.Enable(self.CanCut())
+        copyItem.Enable(self.CanCopy())
+        pasteItem.Enable(self.CanPaste())
+        deleteItem.Enable(self.CanCopy())
+
+        # Append items to menu
+        menu.Append(undoItem)
+        menu.Append(redoItem)
+        menu.AppendSeparator()
+        menu.Append(cutItem)
+        menu.Append(copyItem)
+        menu.Append(pasteItem)
+        menu.AppendSeparator()
+        menu.Append(deleteItem)
+        menu.Append(selectItem)
+
+        self.PopupMenu(menu)
+        menu.Destroy()
+
+    def onUndo(self, event):
+        """For context menu Undo"""
+        foc = self.FindFocus()
+        if hasattr(foc, 'Undo'):
+            foc.Undo()
+
+    def onRedo(self, event):
+        """For context menu Redo"""
+        foc = self.FindFocus()
+        if hasattr(foc, 'Redo'):
+            foc.Redo()
+
+    def onCut(self, event):
+        """For context menu Cut"""
+        foc = self.FindFocus()
+        if hasattr(foc, 'Cut'):
+            foc.Cut()
+
+    def onCopy(self, event):
+        """For context menu Copy"""
+        foc = self.FindFocus()
+        if hasattr(foc, 'Copy'):
+            foc.Copy()
+
+    def onPaste(self, event):
+        """For context menu Paste"""
+        foc = self.FindFocus()
+        if hasattr(foc, 'Paste'):
+            foc.Paste()
+
+    def onSelectAll(self, event):
+        """For context menu Select All"""
+        foc = self.FindFocus()
+        if hasattr(foc, 'SelectAll'):
+            foc.SelectAll()
+
+    def onDelete(self, event):
+        """For context menu Delete"""
+        foc = self.FindFocus()
+        if hasattr(foc, 'DeleteBack'):
+            foc.DeleteBack()
+
     def OnKeyPressed(self, event):
         pass
 
