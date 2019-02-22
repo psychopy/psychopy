@@ -234,11 +234,11 @@ class ParamCtrls(object):
             allowedUpdates = copy.copy(param.allowedUpdates)
             for routineName, routine in list(self.exp.routines.items()):
                 for static in routine.getStatics():
-                    msg = _translate(
-                        "set during: %(routineName)s.%(staticName)s")
+                    msg = "set during: %(routineName)s.%(staticName)s"
+                    localizedMsg = _translate(msg)
                     vals = {'routineName': routineName,
                             'staticName': static.params['name']}
-                    updateLabels.append(msg % vals)
+                    updateLabels.append(localizedMsg % vals)
                     allowedUpdates.append(msg % vals)
             self.updateCtrl = wx.Choice(parent, choices=updateLabels)
             # stash non-localized choices to allow retrieval by index:
