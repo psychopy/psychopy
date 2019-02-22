@@ -235,7 +235,11 @@ class ParamCtrls(object):
             for routineName, routine in list(self.exp.routines.items()):
                 for static in routine.getStatics():
                     msg = "set during: %(routineName)s.%(staticName)s"
-                    localizedMsg = _translate(msg)
+                    # Note: replacing following line with
+                    # "localizedMsg = _translate(msg)",
+                    # poedit would not able to find this message.
+                    localizedMsg = _translate(
+                        "set during: %(routineName)s.%(staticName)s")
                     vals = {'routineName': routineName,
                             'staticName': static.params['name']}
                     updateLabels.append(localizedMsg % vals)
