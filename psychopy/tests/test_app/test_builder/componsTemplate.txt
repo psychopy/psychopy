@@ -1979,9 +1979,16 @@ MicrophoneComponent.syncScreenRefresh.updates:None
 MicrophoneComponent.syncScreenRefresh.val:False
 MicrophoneComponent.syncScreenRefresh.valType:bool
 MicrophoneComponent.channel.default:0
+MicrophoneComponent.channel.allowedTypes:[]
+MicrophoneComponent.channel.allowedUpdates:[]
+MicrophoneComponent.channel.allowedVals:[]
+MicrophoneComponent.channel.val:0
 MicrophoneComponent.channel.valType:str
 MicrophoneComponent.channel.label:Channel
+MicrophoneComponent.channel.readOnly:False
 MicrophoneComponent.channel.hint:Enter a channel number. Default value is 0. If unsure, run 'sound.backend.get_input_devices()' to locate the system's selected device/channel
+MicrophoneComponent.channel.staticUpdater:None
+MicrophoneComponent.channel.updates:None
 MouseComponent.order:['name', 'forceEndRoutineOnPress', 'saveMouseState', 'timeRelativeTo', 'newClicksOnly', 'clickable', 'saveParamsClickable']
 MouseComponent.clickable.default:
 MouseComponent.clickable.allowedTypes:[]
