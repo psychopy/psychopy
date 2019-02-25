@@ -1980,8 +1980,9 @@ MicrophoneComponent.syncScreenRefresh.val:False
 MicrophoneComponent.syncScreenRefresh.valType:bool
 MicrophoneComponent.channel.default:0
 MicrophoneComponent.channel.allowedTypes:[]
-MicrophoneComponent.channel.allowedUpdates:[]
+MicrophoneComponent.channel.allowedUpdates:None
 MicrophoneComponent.channel.allowedVals:[]
+MicrophoneComponent.channel.categ:Basic
 MicrophoneComponent.channel.val:0
 MicrophoneComponent.channel.valType:str
 MicrophoneComponent.channel.label:Channel
