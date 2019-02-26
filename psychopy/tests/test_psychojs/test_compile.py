@@ -31,6 +31,7 @@ thisDir = split(__file__)[0]
 psychoRoot = join(thisDir, '..', '..')
 demosDir = join(psychoRoot, 'demos')
 
+
 class Test_PsychoJS_from_Builder(object):
     """Some tests just for the window - we don't really care about what's drawn inside it
     """

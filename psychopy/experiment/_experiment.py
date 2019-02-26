@@ -24,6 +24,7 @@ import os
 import codecs
 import xml.etree.ElementTree as xml
 from xml.dom import minidom
+from copy import deepcopy
 
 import psychopy
 from psychopy import data, __version__, logging
@@ -184,32 +185,46 @@ class Experiment(object):
         else:
             localDateTime = data.getDateStr(format="%B %d, %Y, at %H:%M")
 
+        # Remove disabled components, but leave original experiment unchanged.
+        self_copy = deepcopy(self)
+        for _, routine in list(self_copy.routines.items()):  # PY2/3 compat
+            for component in routine:
+                try:
+                    if component.params['disabled'].val:
+                        routine.removeComponent(component)
+                except KeyError:
+                    pass
+
         if target == "PsychoPy":
-            self.settings.writeInitCode(script, self.psychopyVersion, localDateTime)
-            self.settings.writeStartCode(script, self.psychopyVersion)  # present info, make logfile
+            self_copy.settings.writeInitCode(script, self_copy.psychopyVersion,
+                                             localDateTime)
+            # present info, make logfile
+            self_copy.settings.writeStartCode(script, self_copy.psychopyVersion)
             # writes any components with a writeStartCode()
-            self.flow.writeStartCode(script)
-            self.settings.writeWindowCode(script)  # create our visual.Window()
+            self_copy.flow.writeStartCode(script)
+            self_copy.settings.writeWindowCode(script)  # create our visual.Window()
             # for JS the routine begin/frame/end code are funcs so write here
 
             # write the rest of the code for the components
-            self.flow.writeBody(script)
-            self.settings.writeEndCode(script)  # close log file
+            self_copy.flow.writeBody(script)
+            self_copy.settings.writeEndCode(script)  # close log file
             script = script.getvalue()
         elif target == "PsychoJS":
             script.oneIndent = "  "  # use 2 spaces rather than python 4
-            self.settings.writeInitCodeJS(script, self.psychopyVersion, localDateTime, modular)
-            self.flow.writeFlowSchedulerJS(script)
-            self.settings.writeExpSetupCodeJS(script, self.psychopyVersion)
+            self_copy.settings.writeInitCodeJS(script,self_copy.psychopyVersion,
+                                               localDateTime, modular)
+            self_copy.flow.writeFlowSchedulerJS(script)
+            self_copy.settings.writeExpSetupCodeJS(script,
+                                                   self_copy.psychopyVersion)
 
             # initialise the components for all Routines in a single function
             script.writeIndentedLines("\nfunction experimentInit() {")
             script.setIndentLevel(1, relative=True)
 
             # routine init sections
-            for entry in self.flow:
+            for entry in self_copy.flow:
                 # NB each entry is a routine or LoopInitiator/Terminator
-                self._currentRoutine = entry
+                self_copy._currentRoutine = entry
                 if hasattr(entry, 'writeInitCodeJS'):
                     entry.writeInitCodeJS(script)
 
@@ -228,23 +243,26 @@ class Experiment(object):
             # Routines once (whether or not they get used) because we're using
             # functions that may or may not get called later.
             # Do the Routines of the experiment first
-            routinesToWrite = list(self.routines)
-            for thisItem in self.flow:
+            routinesToWrite = list(self_copy.routines)
+            for thisItem in self_copy.flow:
                 if thisItem.getType() in ['LoopInitiator', 'LoopTerminator']:
-                    self.flow.writeLoopHandlerJS(script)
+                    self_copy.flow.writeLoopHandlerJS(script)
                 elif thisItem.name in routinesToWrite:
-                    self._currentRoutine = self.routines[thisItem.name]
-                    self._currentRoutine.writeRoutineBeginCodeJS(script)
-                    self._currentRoutine.writeEachFrameCodeJS(script)
-                    self._currentRoutine.writeRoutineEndCodeJS(script)
+                    self_copy._currentRoutine = self_copy.routines[thisItem.name]
+                    self_copy._currentRoutine.writeRoutineBeginCodeJS(script)
+                    self_copy._currentRoutine.writeEachFrameCodeJS(script)
+                    self_copy._currentRoutine.writeRoutineEndCodeJS(script)
                     routinesToWrite.remove(thisItem.name)
-            self.settings.writeEndCodeJS(script)
+            self_copy.settings.writeEndCodeJS(script)
+
             try:
                 script = py2js.addVariableDeclarations(script.getvalue())
             except py2js.esprima.error_handler.Error:
                 script = script.getvalue()
                 print("Failed to parse as JS by esprima")
-            self.flow._resetLoopController()  # Reset loop controller ready for next call to writeScript
+
+            # Reset loop controller ready for next call to writeScript
+            self_copy.flow._resetLoopController()
 
         return script
 

@@ -58,6 +58,7 @@ from psychopy.scripts import psyexpCompile
 canvasColor = [200, 200, 200]  # in prefs? ;-)
 routineTimeColor = wx.Colour(50, 100, 200, 200)
 staticTimeColor = wx.Colour(200, 50, 50, 100)
+disabledTimeColor = wx.Colour(127, 127, 127, 100)
 nonSlipFill = wx.Colour(150, 200, 150, 255)
 nonSlipEdge = wx.Colour(0, 100, 0, 255)
 relTimeFill = wx.Colour(200, 150, 150, 255)
@@ -397,7 +398,12 @@ class RoutineCanvas(wx.ScrolledWindow):
         # calculate rectangle for component
         xScale = self.getSecsPerPixel()
         dc.SetPen(wx.Pen(wx.Colour(200, 100, 100, 0), style=wx.TRANSPARENT))
-        dc.SetBrush(wx.Brush(staticTimeColor))
+
+        if component.params['disabled'].val:
+            dc.SetBrush(wx.Brush(disabledTimeColor))
+        else:
+            dc.SetBrush(wx.Brush(staticTimeColor))
+
         xSt = self.timeXposStart + startTime // xScale
         w = duration // xScale + 1  # +1 b/c border alpha=0 in dc.SetPen
         w = max(min(w, 10000), 2)  # ensure 2..10000 pixels
@@ -462,7 +468,12 @@ class RoutineCanvas(wx.ScrolledWindow):
             xScale = self.getSecsPerPixel()
             dc.SetPen(wx.Pen(wx.Colour(200, 100, 100, 0),
                              style=wx.TRANSPARENT))
-            dc.SetBrush(wx.Brush(routineTimeColor))
+
+            if component.params['disabled'].val:
+                dc.SetBrush(wx.Brush(disabledTimeColor))
+            else:
+                dc.SetBrush(wx.Brush(routineTimeColor))
+
             hSize = (3.5, 2.75, 2)[self.drawSize]
             yOffset = (3, 3, 0)[self.drawSize]
             h = self.componentStep // hSize
@@ -519,6 +530,7 @@ class RoutineCanvas(wx.ScrolledWindow):
         else:
             helpUrl = None
         old_name = component.params['name'].val
+        old_disabled = component.params['disabled'].val
         # check current timing settings of component (if it changes we
         # need to update views)
         initialTimings = component.getStartAndDuration()
@@ -540,6 +552,8 @@ class RoutineCanvas(wx.ScrolledWindow):
                 # self.frame.flowPanel.Refresh()
             elif component.params['name'].val != old_name:
                 self.redrawRoutine()  # need to refresh name
+            elif component.params['disabled'].val != old_disabled:
+                self.redrawRoutine()  # need to refresh color
             self.frame.exp.namespace.remove(old_name)
             self.frame.exp.namespace.add(component.params['name'].val)
             self.frame.addToUndoStack("EDIT `%s`" %
