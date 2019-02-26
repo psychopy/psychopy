@@ -1257,19 +1257,6 @@ class BuilderFrame(wx.Frame):
 
         tb.AddSeparator()
 
-        if 'phoenix' in wx.PlatformInfo:
-            self.bldrBtnPrefs = tb.AddTool(
-                wx.ID_ANY,
-                _translate("Preferences"),
-                preferencesBmp,
-                _translate("Application preferences"))
-        else:
-            self.bldrBtnPrefs = tb.AddSimpleTool(
-                wx.ID_ANY,
-                preferencesBmp,
-                _translate("Preferences"),
-                _translate("Application preferences"))
-        tb.Bind(wx.EVT_TOOL, self.app.showPrefs, self.bldrBtnPrefs)
 
         if 'phoenix' in wx.PlatformInfo:
             item = tb.AddTool(
