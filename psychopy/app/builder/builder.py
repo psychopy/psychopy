@@ -1257,7 +1257,6 @@ class BuilderFrame(wx.Frame):
 
         tb.AddSeparator()
 
-
         if 'phoenix' in wx.PlatformInfo:
             item = tb.AddTool(
                 wx.ID_ANY,
@@ -1272,21 +1271,21 @@ class BuilderFrame(wx.Frame):
                 _translate("Monitor settings and calibration"))
         tb.Bind(wx.EVT_TOOL, self.app.openMonitorCenter, id=item.GetId())
 
-        tb.AddSeparator()
-
         if 'phoenix' in wx.PlatformInfo:
             item = tb.AddTool(
                 wx.ID_ANY,
                 _translate("Experiment Settings"),
                 settingsBmp,
-                _translate("Settings for this exp"))
+                _translate("Experiment settings"))
         else:
             item = tb.AddSimpleTool(
                 wx.ID_ANY,
                 settingsBmp,
                 _translate("Experiment Settings"),
-                _translate("Settings for this exp"))
+                _translate("Experiment settings"))
         tb.Bind(wx.EVT_TOOL, self.setExperimentSettings, item)
+
+        tb.AddSeparator()
 
         if 'phoenix' in wx.PlatformInfo:
             item = tb.AddTool(
