@@ -912,9 +912,7 @@ class PavloviaProject(dict):
             elif this.change_type == 'M':
                 changeDict['changed'].append(this.b_path)
             else:
-                raise (
-                    "Found an unexpected change_type '{}' in gitpython Diff"
-                        .format(this.change_type))
+                raise ValueError("Found an unexpected change_type '{}' in gitpython Diff".format(this.change_type))
         changeList = []
         for categ in changeDict:
             changeList.extend(changeDict[categ])
