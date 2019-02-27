@@ -990,7 +990,7 @@ class _GlobalEventKeys(MutableMapping):
 
     _valid_keys = set(string.ascii_lowercase + string.digits
                       + string.punctuation + ' \t')
-    _valid_keys.update(['escape', 'left', 'right', 'up', 'down', 'space']) # add spacebar here to valid_keys
+    _valid_keys.update(['escape', 'left', 'right', 'up', 'down', 'space'])
 
     _valid_modifiers = {'shift', 'ctrl', 'alt', 'capslock',
                         'scrolllock', 'command', 'option', 'windows'}
