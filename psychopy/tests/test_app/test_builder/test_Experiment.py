@@ -528,3 +528,33 @@ class TestDisabledComponents(object):
 
         # Original routine should be unchanged.
         assert self.text in self.routine
+
+
+class TestDisabledRoutines(object):
+    def setup(self):
+        self.exp = psychopy.experiment.Experiment()
+        self.exp.addRoutine(routineName='Test Routine')
+        self.routine = self.exp.routines['Test Routine']
+        self.exp.flow.addRoutine(self.routine, 0)
+
+    def test_routine_not_disabled_by_default(self):
+        assert self.routine.params['disabled'] is False
+
+    def test_routine_is_written_to_script(self):
+        script = self.exp.writeScript()
+        assert 'Test Routine' in script
+
+    def test_disabled_routine_is_not_written_to_script(self):
+        self.routine.params['disabled'] = True
+        script = self.exp.writeScript()
+        assert 'Test Routine' not in script
+
+    def test_disabling_routine_does_not_remove_it_from_original_experiment(self):
+        self.routine.params['disabled'] = True
+
+        # This drops the disabled routine -- if working correctly, only from
+        # a copy though, leaving the original unchanged!
+        self.exp.writeScript()
+
+        # Original routine should be unchanged.
+        assert self.routine in self.exp.flow

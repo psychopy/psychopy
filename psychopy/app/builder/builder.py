@@ -2288,6 +2288,12 @@ class BuilderFrame(wx.Frame):
         """
         self.routinePanel.createNewRoutine()
 
+    def toggleRoutineDisabled(self):
+        routine = (self.routinePanel.GetPage(self.routinePanel.GetSelection())
+                   .routine)
+        routine.params['disabled'] = not routine.params['disabled']
+        return routine.params['disabled']
+
     def renameRoutine(self, name, event=None, returnName=True):
         """Defines ability to rename routine in the routine panel
         """
