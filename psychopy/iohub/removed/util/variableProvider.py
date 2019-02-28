@@ -1,5 +1,7 @@
 __author__ = 'Sol'
 
+from past.builtins import xrange
+
 import numpy as np
 import json
 from  ..devices import Computer
