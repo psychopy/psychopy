@@ -234,12 +234,15 @@ class ParamCtrls(object):
             allowedUpdates = copy.copy(param.allowedUpdates)
             for routineName, routine in list(self.exp.routines.items()):
                 for static in routine.getStatics():
-                    msg = _translate(
-                        "set during: %(routineName)s.%(staticName)s")
-                    vals = {'routineName': routineName,
-                            'staticName': static.params['name']}
-                    updateLabels.append(msg % vals)
-                    allowedUpdates.append(msg % vals)
+                    # Note: replacing following line with
+                    # "localizedMsg = _translate(msg)",
+                    # poedit would not able to find this message.
+                    msg = "set during: "
+                    localizedMsg = _translate("set during: ")
+                    fullName = "{}.{}".format(
+                        routineName, static.params['name'])
+                    allowedUpdates.append(msg + fullName)
+                    updateLabels.append(localizedMsg + fullName)
             self.updateCtrl = wx.Choice(parent, choices=updateLabels)
             # stash non-localized choices to allow retrieval by index:
             self.updateCtrl._choices = copy.copy(allowedUpdates)
