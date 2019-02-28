@@ -251,6 +251,8 @@ class DlgCodeComponentProperties(wx.Dialog):
                 param.val = self.componentName.GetValue()
             elif fieldName == 'Code Type':
                 param.val = self.codeTypeMenu.GetStringSelection()
+            elif fieldName == 'disabled':
+                pass
             else:
                 codeBox = self.codeBoxes[fieldName]
                 param.val = codeBox.GetText()
