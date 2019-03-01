@@ -101,9 +101,13 @@ class KeyPress(object):
     """Class to store key"""
     def __init__(self, code, tDown):
         self.code = code
-        self.name = keyNames[code]
         self.tDown = tDown
         self.duration = None
+        if code not in keyNames:
+            logging.warning('Keypress was given unknown key code ({})'.format(code))
+            self.name = 'unknown'
+        else:
+            self.name = keyNames[code]
 
     def __eq__(self, other):
         return self.name == other
@@ -247,7 +251,30 @@ class _VirtualKeyBuffer():
 
 _keyBuffers = _KeyBuffers()
 
-keyNames = {
+keyNamesWin = {
+    49: '1', 50: '2', 51: '3', 52: '4', 53: '5',
+    54: '6', 55: '7', 56: '8', 57: '9', 48: '0',
+    97: 'end', 98: 'down', 99: 'pagedown',
+    100: 'left', 101: 'right', 102: 'right', 103: 'home',
+    104: 'up', 105: 'pageup', 96: 'insert',
+    112: 'f1', 113: 'f2', 114: 'f3', 115: 'f4', 116: 'f5',
+    117: 'f6', 118: 'f7', 119: 'f8', 120: 'f9', 121: 'f10',
+    122: 'f11', 123: 'f12',
+    145: 'scrolllock', 19: 'pause', 36: 'home', 35: 'end',
+    45: 'insert', 33: 'pageup', 46: 'delete', 34: 'pagedown',
+    37: 'left', 40: 'down', 38: 'up', 39: 'right', 27: 'escape',
+    144: 'numlock', 111: 'num_divide', 106: 'num_multiply',
+    8: 'backspace', 109: 'num_subtract', 107: 'num_add',
+    13: 'return', 222: 'pound', 161: 'lshift', 163: 'rctrl',
+    92: 'rwindows', 165: 'lctrl', 32: 'space', 164: 'lalt',
+    91: 'lwindows', 93: 'menu', 162: 'lctrl', 160: 'lshift',
+    20: 'capslock', 9: 'tab', 223: 'quoteleft', 220: 'backslash',
+    188: 'comma', 190: 'period', 191: 'slash', 186: 'semicolon',
+    192: 'apostrophe', 219: 'bracketleft', 221: 'bracketright',
+    189: 'minus', 187: 'equal'
+}
+
+keyNamesMac = {
     4: 'a', 5: 'b', 6: 'c', 7: 'd', 8: 'e', 9: 'f', 10: 'g', 11: 'h', 12: 'i',
     13: 'j', 14: 'k', 15: 'l', 16: 'm', 17: 'n', 18: 'o', 19: 'p', 20: 'q',
     21: 'r', 22: 's', 23: 't', 24: 'u', 25: 'v', 26: 'w', 27: 'x', 28: 'y',
