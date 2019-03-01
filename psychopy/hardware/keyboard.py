@@ -43,7 +43,8 @@ class Keyboard:
 
     """
 
-    def __init__(self, device=-1, bufferSize=10000, waitForStart=False):
+    def __init__(self, device=-1, bufferSize=10000, waitForStart=False,
+                 clock=None):
         """Create the device (default keyboard or select one)
 
         Parameters
@@ -60,20 +61,45 @@ class Keyboard:
 
         """
         self.status = NOT_STARTED
-        # we won't need the PTB keyboard object itself (is handled by buffer)
-        self.evtBuffer = _keyBuffers.getBuffer(device)  # type: _KeyEventBuffer
-        self._devs = []
+        self.clock = clock
+
+        # get the necessary keyboard buffer(s)
+        allInds, allNames, allKBs = hid.get_keyboard_indices()
+        if device == -1:
+            self._ids = allInds
+        elif type(device) == list:
+            self._ids = device
+        else:
+            self._ids = [device]
+        # now we have a list of device IDs to monitor
+        self._buffers = {}
+        self._devs = {}
+        for devId in self._ids:
+            if devId in allInds:
+                buffer = _keyBuffers.getBuffer(devId, bufferSize)
+                print(buffer.dev)
+                self._buffers[devId] = buffer
+                self._devs[devId] = buffer.dev
+
         if not waitForStart:
             self.start()
 
     def start(self):
-        self.evtBuffer.start()
+        """Start recording with any unstarted key buffers"""
+        for buffer in self._buffers.values():
+            buffer.start()
 
     def stop(self):
-        self.evtBuffer.stop()
+        logging.warning("Stopping key buffers but this could be dangerous if"
+                        "other keyboards rely on the same.")
+        for buffer in self._buffers.values():
+            buffer.stop()
 
     def getKeys(self, keyList=None, includeDuration=True, clear=True):
-        return self.evtBuffer.getKeys(keyList, includeDuration, clear)
+        keyList = []
+        for buffer in self._buffers.values():
+            keyList.extend(buffer.getKeys(keyList, includeDuration, clear))
+        return keyList
 
     def waitKeys(maxWait=None, keyList=None, includeDuration=True, clear=True):
         keys = []
@@ -99,8 +125,14 @@ class BuilderKeyResponse(object):
 
 class KeyPress(object):
     """Class to store key"""
+
     def __init__(self, code, tDown):
         self.code = code
+        if code not in keyNames:
+            self.name = 'n/a'
+            logging.warning("Got keycode {} but that code isn't yet known")
+        else:
+            self.name = keyNames[code]
         self.tDown = tDown
         self.duration = None
         if code not in keyNames:
@@ -123,18 +155,19 @@ class _KeyBuffers(dict):
     now we are clearing when we poll so we need to make sure we have a single
     virtual buffer."""
 
-    def getBuffer(self, kb_id):
+    def getBuffer(self, kb_id, bufferSize=defaultBufferSize):
         if kb_id not in self:
-            self[kb_id] = _VirtualKeyBuffer(bufferSize=defaultBufferSize,
-                                          kb_id=kb_id)
+            self[kb_id] = _KeyBuffer(bufferSize=bufferSize,
+                                     kb_id=kb_id)
         return self[kb_id]
 
 
-class _VirtualKeyBuffer():
+class _KeyBuffer(object):
     """This is our own local buffer of events with more control over clearing.
 
-    It can store events from a single physical device or several devices
-    combined (e.g. all keyboard objects)
+    The user shouldn't use this directly. It is fetched from the _keybuffers
+
+    It stores events from a single physical device
 
     It's built on a collections.deque which is like a more efficient list
     that also supports a max length
@@ -146,38 +179,28 @@ class _VirtualKeyBuffer():
 
         # create the PTB keyboard object and corresponding queue
         allInds, names, keyboards = hid.get_keyboard_indices()
-        if kb_id == -1:
-            self._ids = allInds
-        elif type(kb_id)==list:
-            self._ids = kb_id
-        else:
-            self._ids = [kb_id]
-        self._devs = []
+
         self._keys = []
         self._keysStillDown = []
 
-        for id in self._ids:
-            if id in allInds:
-                device = hid.Keyboard(kb_id)  # a PTB keyboard object
-                self._devs.append(device)
-                device._create_queue(bufferSize)
+        self.dev = hid.Keyboard(kb_id)  # a PTB keyboard object
+        self.dev._create_queue(bufferSize)
 
     def flush(self):
         self._processEvts()
 
     def _flushEvts(self):
-        for device in self._devs:
-            while device.flush():
-                evt, remaining = device.queue_get_event()
-                key = {}
-                key['keycode'] = int(evt['Keycode'])
-                if evt['CookedKey']:
-                    key['keyname'] = chr(int(evt['CookedKey']))
-                else:
-                    key['keyname'] = symbol_string(evt['Keycode'])
-                key['down'] = bool(evt['Pressed'])
-                key['time'] = evt['Time']
-                self._evts.append(key)
+        while self.dev.flush():
+            evt, remaining = self.dev.queue_get_event()
+            key = {}
+            key['keycode'] = int(evt['Keycode'])
+            if evt['CookedKey']:
+                key['keyname'] = chr(int(evt['CookedKey']))
+            else:
+                key['keyname'] = symbol_string(evt['Keycode'])
+            key['down'] = bool(evt['Pressed'])
+            key['time'] = evt['Time']
+            self._evts.append(key)
 
     def getKeys(self, keyList=[], includeDuration=True, clear=True):
         """Return the KeyPress objects
@@ -221,11 +244,10 @@ class _VirtualKeyBuffer():
         self._evts.clear()
 
     def start(self):
-        for dev in self._devs:
-            dev.queue_start()
+        self.dev.queue_start()
 
     def stop(self):
-            dev.queue_stop()
+        self.dev.queue_stop()
 
     def _processEvts(self):
         """Take a list of events and convert to a list of keyPresses with
@@ -281,15 +303,29 @@ keyNamesMac = {
     29: 'z',
     30: '1', 31: '2', 32: '3', 33: '4', 34: '5', 35: '6', 36: '7',
     37: '8', 38: '9', 39: '0',
-    40: 'return', 41: 'escape', 42: 'backspace', 43: 'escape',
+    40: 'return', 41: 'escape', 42: 'backspace', 43: 'escape', 44: 'space',
     45: 'minus', 46: 'equal',
     47: 'bracketleft', 48: 'bracketright', 49: 'backslash', 51: 'semicolon',
     52: 'apostrophe', 53: 'grave', 54: 'comma', 55: 'period', 56: 'slash',
     57: 'lshift',
     58: 'f1', 59: 'f2', 60: 'f3', 61: 'f4', 62: 'f5', 63: 'f6', 64: 'f7',
-    65: 'f8', 66: 'f9', 67: 'f10', 68: 'f12', 69: 'f12',
+    65: 'f8', 66: 'f9', 67: 'f10', 68: 'f11', 69: 'f12',
+    104: 'f13', 105: 'f14', 106: 'f15',
+    107: 'f16', 108: 'f17', 109: 'f18', 110: 'f19',
     79: 'right', 80: 'left', 81: 'down', 82: 'up',
     224: 'lctrl', 225: 'lshift', 226: 'loption', 227: 'lcommand',
-    100: 'function', 229: 'rshift', 230: 'roption', 231: 'rcommand'
+    100: 'function', 229: 'rshift', 230: 'roption', 231: 'rcommand',
+    83: 'numlock', 103: 'num_equal', 84: 'num_divide', 85: 'num_multiply',
+    86: 'num_subtract', 87: 'num_add', 88: 'num_enter', 99: 'num_decimal',
+    98: 'num_0', 89: 'num_1', 90: 'num_2', 91: 'num_3', 92: 'num_4',
+    93: 'num_5', 94: 'num_6', 95: 'num_7', 96: 'num_8', 97: 'num_9',
+    74: 'home', 75: 'pageup', 76: 'delete', 77: 'end', 78: 'pagedown',
 }
 
+if sys.platform == 'darwin':
+    keyNames = keyNamesMac
+elif sys.platform == 'win32':
+    keyNames = keyNamesWin
+else:
+    keyNames = {}
+    
