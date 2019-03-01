@@ -18,9 +18,8 @@ import psychopy.core
 from psychopy import logging
 from psychopy.constants import NOT_STARTED
 
+import psychtoolbox as ptb
 from psychtoolbox import hid
-# to convert key codes into key names
-from pyglet.window.key import symbol_string
 
 defaultBufferSize = 10000
 
@@ -190,14 +189,11 @@ class _KeyBuffer(object):
         self._processEvts()
 
     def _flushEvts(self):
+        ptb.WaitSecs('YieldSecs', 0.00001)
         while self.dev.flush():
             evt, remaining = self.dev.queue_get_event()
             key = {}
             key['keycode'] = int(evt['Keycode'])
-            if evt['CookedKey']:
-                key['keyname'] = chr(int(evt['CookedKey']))
-            else:
-                key['keyname'] = symbol_string(evt['Keycode'])
             key['down'] = bool(evt['Pressed'])
             key['time'] = evt['Time']
             self._evts.append(key)
@@ -276,6 +272,11 @@ _keyBuffers = _KeyBuffers()
 keyNamesWin = {
     49: '1', 50: '2', 51: '3', 52: '4', 53: '5',
     54: '6', 55: '7', 56: '8', 57: '9', 48: '0',
+    65: 'a', 66: 'b', 67: 'c', 68: 'd', 69: 'e', 70: 'f',
+    71: 'g', 72: 'h', 73: 'i', 74: 'j', 75: 'k', 76: 'l',
+    77: 'm', 78: 'n', 79: 'o', 80: 'p', 81: 'q', 82: 'r',
+    83: 's', 84: 't', 85: 'u', 86: 'v', 87: 'w', 88: 'x',
+    89: 'y', 90: 'z',
     97: 'end', 98: 'down', 99: 'pagedown',
     100: 'left', 101: 'right', 102: 'right', 103: 'home',
     104: 'up', 105: 'pageup', 96: 'insert',
@@ -287,8 +288,8 @@ keyNamesWin = {
     37: 'left', 40: 'down', 38: 'up', 39: 'right', 27: 'escape',
     144: 'numlock', 111: 'num_divide', 106: 'num_multiply',
     8: 'backspace', 109: 'num_subtract', 107: 'num_add',
-    13: 'return', 222: 'pound', 161: 'lshift', 163: 'rctrl',
-    92: 'rwindows', 165: 'lctrl', 32: 'space', 164: 'lalt',
+    13: 'num_enter', 222: 'pound', 161: 'lshift', 163: 'rctrl',
+    92: 'rwindows', 32: 'space', 164: 'lalt', 165: 'ralt',
     91: 'lwindows', 93: 'menu', 162: 'lctrl', 160: 'lshift',
     20: 'capslock', 9: 'tab', 223: 'quoteleft', 220: 'backslash',
     188: 'comma', 190: 'period', 191: 'slash', 186: 'semicolon',
