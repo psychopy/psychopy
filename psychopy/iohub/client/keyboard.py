@@ -88,10 +88,9 @@ class KeyboardEvent(ioEvent):
         return self._modifiers
 
     def __str__(self):
-        return '%s, key: %s char: %s, modifiers: %s' % (
-            ioEvent.__str__(self), unicode(self.key, 'utf-8'),
-            unicode(self.char, 'utf-8'),
-            unicode(self.modifiers, 'utf-8'))
+        pstr = ioEvent.__str__(self)
+        return '{}, key: {} char: {}, modifiers: {}'.format(pstr, self.key,
+                self.char, self.modifiers)
 
     def __eq__(self, v):
         if isinstance(v, KeyboardEvent):
