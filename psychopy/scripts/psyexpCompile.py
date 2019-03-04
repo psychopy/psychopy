@@ -110,7 +110,25 @@ def compileScript(infile=None, version=None, outfile=None):
         # Leave original experiment unchanged.
         exp = deepcopy(exp)
 
-        for _, routine in list(exp.routines.items()):  # PY2/3 compat
+        for routine_name, routine in list(exp.routines.items()):  # PY2/3 compat
+            if routine.params['disabled']:
+                # We remove all occurrences of this routine from the flow --
+                # there might be multiple ones!
+                #
+                # First, get all routines from the flow except the current
+                # (disabled) one.
+                routines = list(filter(lambda routine_:
+                                       routine_.name != routine_name,
+                                       exp.flow))
+
+                # We now replace the list of routines in the flow with the
+                # "cleaned" list of routines.
+                exp.flow[:] = routines
+
+                # We dropped an entire routine -- no need to look at individual
+                # components here anymore!
+                break
+
             for component in routine:
                 try:
                     if component.params['disabled'].val:

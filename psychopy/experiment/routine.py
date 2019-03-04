@@ -26,7 +26,8 @@ class Routine(list):
 
     def __init__(self, name, exp, components=()):
         super(Routine, self).__init__()
-        self.params = {'name': name}
+        self.params = {'name': name,
+                       'disabled': False}
         self.name = name
         self.exp = exp
         self._clockName = None  # for scripts e.g. "t = trialClock.GetTime()"
@@ -40,6 +41,7 @@ class Routine(list):
     @property
     def name(self):
         return self.params['name']
+
     @name.setter
     def name(self, name):
         self.params['name'] = name
