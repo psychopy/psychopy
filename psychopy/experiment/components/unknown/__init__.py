@@ -5,10 +5,12 @@ from __future__ import absolute_import, print_function
 
 from os import path
 from psychopy.experiment.components import BaseComponent, Param, _translate
+from psychopy import prefs
 
 # the absolute path to the folder containing this path
 thisFolder = path.abspath(path.dirname(__file__))
-iconFile = path.join(thisFolder, '../base.png')
+
+iconFile = path.join(prefs.paths['resources'], 'base.png')
 tooltip = _translate('Unknown: A component that is not known by the current '
                      'installed version of PsychoPy\n(most likely from the '
                      'future)')
@@ -19,7 +21,7 @@ _localized = {'name': _translate('Name')}
 
 class UnknownComponent(BaseComponent):
     """This is used by Builder to represent a component that was not known
-    by thecurrent installed version of PsychoPy (most likely from the future).
+    by the current installed version of PsychoPy (most likely from the future).
     We want this to be loaded, represented and saved but not used in any
     script-outputs. It should have nothing but a name - other params will be
     added by the loader

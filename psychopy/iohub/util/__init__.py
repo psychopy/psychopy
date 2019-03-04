@@ -337,12 +337,12 @@ class NumPyRingBuffer(object):
         if isinstance(indexs, (list, tuple)):
             rarray = []
             for i in indexs:
-                if isinstance(i, (int, int)):
+                if isinstance(i, int):
                     rarray.append(current_array[i])
                 elif isinstance(i, slice):
                     rarray.extend(current_array[i])
             return numpy.asarray(rarray, dtype=self._dtype)
-        elif isinstance(indexs, (int, int, slice)):
+        elif isinstance(indexs, (int, slice)):
             return current_array[indexs]
         else:
             raise TypeError()

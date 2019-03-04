@@ -251,8 +251,9 @@ class ExperimentHandler(_ComparisonMixin):
                        delim=None,
                        matrixOnly=False,
                        appendFile=False,
-                       encoding='utf-8',
-                       fileCollisionMethod='rename'):
+                       encoding='utf-8-sig',
+                       fileCollisionMethod='rename',
+                       sortColumns=False):
         """Saves a long, wide-format text file, with one line representing
         the attributes and data for a single trial. Suitable for analysis
         in R and SPSS.
@@ -285,11 +286,14 @@ class ExperimentHandler(_ComparisonMixin):
 
             encoding:
                 The encoding to use when saving a the file.
-                Defaults to `utf-8`.
+                Defaults to `utf-8-sig`.
 
             fileCollisionMethod:
                 Collision method passed to
                 :func:`~psychopy.tools.fileerrortools.handleFileCollision`
+
+            sortColumns:
+                will sort columns alphabetically by header name if True
 
         """
         # set default delimiter if none given
@@ -306,6 +310,9 @@ class ExperimentHandler(_ComparisonMixin):
         names.extend(self.dataNames)
         # names from the extraInfo dictionary
         names.extend(self._getExtraInfo()[0])
+        # sort names if requested
+        if sortColumns:
+            names.sort()
         # write a header line
         if not matrixOnly:
             for heading in names:

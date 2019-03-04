@@ -4,7 +4,7 @@
 """Basic functions, including timing, rush (imported), quit
 """
 # Part of the PsychoPy library
-# Copyright (C) 2015 Jonathan Peirce
+# Copyright (C) 2018 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
 from __future__ import absolute_import, division, print_function
@@ -72,17 +72,13 @@ def quit():
     """
     # pygame.quit()  # safe even if pygame was never initialised
     logging.flush()
-    
+
     for thisThread in threading.enumerate():
         if hasattr(thisThread, 'stop') and hasattr(thisThread, 'running'):
             # this is one of our event threads - kill it and wait for success
             thisThread.stop()
             while thisThread.running == 0:
                 pass  # wait until it has properly finished polling
-
-    # call terminate() on GLFW if available
-    if haveGLFW:
-        glfw.terminate()
 
     sys.exit(0)  # quits the python session entirely
 
@@ -126,7 +122,7 @@ def shellCall(shellCmd, stdin='', stderr=False, env=None, encoding=None):
     """
     if encoding is None:
         encoding = locale.getpreferredencoding()
-    
+
     if type(shellCmd) == str:
         # safely split into cmd+list-of-args, no pipes here
         shellCmdList = shlex.split(shellCmd)

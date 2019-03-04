@@ -2,10 +2,11 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2015 Jonathan Peirce
+# Copyright (C) 2018 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
 from __future__ import absolute_import, print_function
+from builtins import super  # provides Py3-style super() using python-future
 
 from os import path
 from psychopy.experiment.components import BaseVisualComponent, getInitVals, _translate
@@ -103,3 +104,6 @@ class ApertureComponent(BaseVisualComponent):
     def writeRoutineEndCode(self, buff):
         msg = "%(name)s.enabled = False  # just in case it was left enabled\n"
         buff.writeIndented(msg % self.params)
+
+        # get parent to write code too (e.g. store onset/offset times)
+        super().writeRoutineEndCode(buff)

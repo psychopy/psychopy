@@ -4,7 +4,7 @@
 """A class for getting numeric or categorical ratings, e.g., a 1-to-7 scale."""
 
 # Part of the PsychoPy library
-# Copyright (C) 2015 Jonathan Peirce
+# Copyright (C) 2018 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
 from __future__ import absolute_import, division, print_function
@@ -702,7 +702,7 @@ class RatingScale(MinimalStim):
                     int(self.tickMarks) % 10 == 0):
                 self.autoRescaleFactor = 10
                 self.tickMarks /= self.autoRescaleFactor
-            tickMarkPositions = numpy.linspace(0, 1, self.tickMarks + 1)
+            tickMarkPositions = numpy.linspace(0, 1, int(self.tickMarks) + 1)
         self.scaledPrecision = float(self.precision * self.autoRescaleFactor)
 
         # how far a left or right key will move the marker, in tick units:

@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2015 Jonathan Peirce
+# Copyright (C) 2018 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
 from __future__ import absolute_import, division, print_function
@@ -16,6 +16,7 @@ from os import path
 from psychopy import logging
 from psychopy.constants import (STARTED, PLAYING, PAUSED, FINISHED, STOPPED,
                                 NOT_STARTED, FOREVER)
+from psychopy.tools.filetools import pathToString
 from sys import platform
 
 
@@ -158,6 +159,8 @@ class _SoundBase(object):
         # Re-init sound to ensure bad values will raise error during setting:
         self._snd = None
 
+        # Coerces pathlib obj to string, else returns inputted value
+        value = pathToString(value)
         try:
             # could be '440' meaning 440
             value = float(value)

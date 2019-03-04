@@ -1,4 +1,3 @@
-from __future__ import division
 # -*- coding: utf-8 -*-
 # Part of the psychopy.iohub library.
 # Copyright (C) 2012-2016 iSolver Software Solutions
@@ -6,6 +5,7 @@ from __future__ import division
 # .. fileauthor:: Martin Guest
 # .. fileauthor:: Sol Simpson
 
+from __future__ import division
 from ......errors import print2err, printExceptionDetailsToStdErr
 from ......constants import EventConstants, EyeTrackerConstants
 from ..... import Computer, Device

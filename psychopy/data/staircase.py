@@ -425,7 +425,7 @@ class StairHandler(_BaseTrialHandler):
                    delim=None,
                    matrixOnly=False,
                    fileCollisionMethod='rename',
-                   encoding='utf-8'):
+                   encoding='utf-8-sig'):
         """Write a text file with the data
 
         :Parameters:
@@ -448,7 +448,7 @@ class StairHandler(_BaseTrialHandler):
 
             encoding:
                 The encoding to use when saving a the file.
-                Defaults to `utf-8`.
+                Defaults to `utf-8-sig`.
 
         """
 
@@ -1648,7 +1648,7 @@ class MultiStairHandler(_BaseTrialHandler):
                    delim=None,
                    matrixOnly=False,
                    fileCollisionMethod='rename',
-                   encoding='utf-8'):
+                   encoding='utf-8-sig'):
         """Write out text files with the data.
 
         For MultiStairHandler this will output one file for each staircase
@@ -1676,7 +1676,7 @@ class MultiStairHandler(_BaseTrialHandler):
 
             encoding:
                 The encoding to use when saving a the file.
-                Defaults to `utf-8`.
+                Defaults to `utf-8-sig`.
 
         """
         if self.totalTrials < 1:

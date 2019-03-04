@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2015 Jonathan Peirce
+# Copyright (C) 2018 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
 """Extensible set of components for the PsychoPy Builder view
@@ -21,6 +21,8 @@ from importlib import import_module  # helps python 2.7 -> 3.x migration
 from ._base import BaseVisualComponent, BaseComponent
 from ..params import Param
 from psychopy.localization import _translate
+from psychopy.experiment import py2js
+
 
 excludeComponents = ['BaseComponent', 'BaseVisualComponent',  # templates only
                      'EyetrackerComponent']  # this one isn't ready yet
@@ -143,9 +145,12 @@ def getComponents(folder=None, fetchIcons=True):
             explicit_rel_path = pkg + '.' + cmpfile[:-3]
         else:
             explicit_rel_path = pkg + '.' + cmpfile
-        module = import_module(explicit_rel_path, package=pkg)
+        try:
+            module = import_module(explicit_rel_path, package=pkg)
+        except ImportError:
+            continue  # not a valid module (no __init__.py?)
         # check for orphaned pyc files (__file__ is not a .py file)
-        if module.__file__.endswith('.pyc'):
+        if hasattr(module, '__file__') and module.__file__.endswith('.pyc'):
             if not os.path.isfile(module.__file__[:-1]):
                 continue  # looks like an orphaned pyc file
         # give a default category
@@ -185,13 +190,13 @@ def getInitVals(params, target="PsychoPy"):
         if target == "PsychoJS":
             # convert (0,0.5) to [0,0.5] but don't convert "rand()" to "rand[]"
             valStr = str(inits[name].val).strip()
+
             if valStr.startswith("(") and valStr.endswith(")"):
-                inits[name].val = inits[name].val.replace("(", "[", 1)
-                inits[name].val = inits[name].val[::-1].replace(")", "]", 1)[::-1]  # replace from right
+                inits[name].val = py2js.expression2js(inits[name].val)
             # filenames (e.g. for image) need to be loaded from resources
-            if name in ["image", "mask", "sound"]:
+            if name in ["sound"]:
                 val = str(inits[name].val)
-                if val != "None":
+                if val not in [None, 'None', 'none', '']:
                     inits[name].val = ("psychoJS.resourceManager.getResource({})"
                                        .format(inits[name]))
                     inits[name].valType = 'code'
@@ -212,8 +217,11 @@ def getInitVals(params, target="PsychoPy"):
         elif name in ['pos', 'fieldPos']:
             inits[name].val = '[0,0]'
             inits[name].valType = 'code'
+        elif name is 'color':
+            inits[name].val = 'white'
+            inits[name].valType = 'str'
         elif name in ['ori', 'sf', 'size', 'height', 'letterHeight',
-                      'color', 'lineColor', 'fillColor',
+                      'lineColor', 'fillColor',
                       'phase', 'opacity',
                       'volume',  # sounds
                       'coherence', 'nDots', 'fieldSize', 'dotSize', 'dotLife',

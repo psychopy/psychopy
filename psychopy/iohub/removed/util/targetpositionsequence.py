@@ -472,9 +472,9 @@ class TargetPosSequenceStim(object):
     binocular_sample_message_element = [
         ('targ_pos_ix', np.int),
         ('last_msg_time', np.float32),
-        ('last_msg_type', np.str, max_msg_type_length),
+        ('last_msg_type', '|S%d'%(max_msg_type_length)),
         ('next_msg_time', np.float32),
-        ('next_msg_type', np.str, max_msg_type_length),
+        ('next_msg_type', '|S%d'%(max_msg_type_length)),
         ('targ_pos_x', np.float32),
         ('targ_pos_y', np.float32),
         ('targ_state', np.int),
@@ -491,9 +491,9 @@ class TargetPosSequenceStim(object):
     monocular_sample_message_element = [
         ('targ_pos_ix', np.int),
         ('last_msg_time', np.float32),
-        ('last_msg_type', np.str, max_msg_type_length),
+        ('last_msg_type', '|S%d'%(max_msg_type_length)),
         ('next_msg_time', np.float32),
-        ('next_msg_type', np.str, max_msg_type_length),
+        ('next_msg_type', '|S%d'%(max_msg_type_length)),
         ('targ_pos_x', np.float32),
         ('targ_pos_y', np.float32),
         ('targ_state', np.int),

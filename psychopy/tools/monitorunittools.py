@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2015 Jonathan Peirce
+# Copyright (C) 2018 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
 """Functions and classes related to unit conversion respective to a particular
@@ -198,7 +198,7 @@ def deg2cm(degrees, monitor, correctFlat=False):
 
 
 def cm2pix(cm, monitor):
-    """Convert size in degrees to size in pixels for a given Monitor object
+    """Convert size in cm to size in pixels for a given Monitor object.
     """
     # check we have a monitor
     if not isinstance(monitor, monitors.Monitor):

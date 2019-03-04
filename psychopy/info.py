@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2015 Jonathan Peirce
+# Copyright (C) 2018 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
 """This module has tools for fetching data about the system or the
@@ -16,6 +16,7 @@ from builtins import str
 import sys
 import os
 import platform
+import io
 
 from pyglet.gl import gl_info, GLint, glGetIntegerv, GL_MAX_ELEMENTS_VERTICES
 import numpy
@@ -85,7 +86,7 @@ class RunTimeInfo(dict):
                 True = assess without a visual
 
             userProcsDetailed: *False*, True
-                get details about concurrent user's processses
+                get details about concurrent user's processes
                 (command, process-ID)
 
         :Returns:
@@ -168,7 +169,7 @@ class RunTimeInfo(dict):
         if not author or not version:
             lines = ''
             if os.path.isfile(sys.argv[0]):
-                with open(sys.argv[0], 'rU') as f:
+                with io.open(sys.argv[0], 'r', encoding='utf-8-sig') as f:
                     lines = f.read()
             if not author and '__author__' in lines:
                 linespl = lines.splitlines()
@@ -570,7 +571,7 @@ class RunTimeInfo(dict):
         """Return a string that is a legal python (dict), and close
         to YAML, .ini, and configObj syntax
         """
-        info = '{\n#[ PsychoPy2 RuntimeInfoStart ]\n'
+        info = '{\n#[ PsychoPy3 RuntimeInfoStart ]\n'
         sections = ['PsychoPy', 'Experiment',
                     'System', 'Window', 'Python', 'OpenGL']
         for sect in sections:
@@ -580,7 +581,7 @@ class RunTimeInfo(dict):
             # get keys for items matching this section label;
             #  use reverse-alpha order if easier to read:
             revSet = ('PsychoPy', 'Window', 'Python', 'OpenGL')
-            sectKeys.sort(key=str.lower, reverse=bool(sect in revSet))
+            sectKeys.sort(reverse=bool(sect in revSet))
             for k in sectKeys:
                 selfk = self[k]  # alter a copy for display purposes
                 try:
@@ -609,7 +610,7 @@ class RunTimeInfo(dict):
                 # in an archive
                 if k != 'systemUserProcFlaggedPID':
                     info += '    "%s": "%s",\n' % (k, selfk)
-        info += '#[ PsychoPy2 RuntimeInfoEnd ]\n}\n'
+        info += '#[ PsychoPy3 RuntimeInfoEnd ]\n}\n'
         return info
 
     def __str__(self):

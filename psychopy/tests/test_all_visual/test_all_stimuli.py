@@ -20,7 +20,7 @@ To add a new stimulus test use _base so that it gets tested in all contexts
 
 # are we testing on Travis and is it Anaconda or system python?
 _travisTesting = bool("{}".format(os.environ.get('TRAVIS')).lower() == 'true')
-_anacondaTesting = bool("{}".format(os.environ.get('ANACONDA')).lower() == 'true')
+_anacondaTesting = bool("{}".format(os.environ.get('CONDA')).lower() == 'true')
 # the ffmpeg doesn't seem to work on Travis system python (using 12.04)
 # upgrading to trusty (14.04) we could get ffmpeg to work but then test_bitsShaders
 # stopped working on conda and system python setup would even build with all the
@@ -262,6 +262,21 @@ class _baseVisualTest(object):
         utils.compareScreenshot('numpyLowContr_%s.png' %(self.contextName), win)
         win.flip()
 
+    def test_hexColors(self):
+        win = self.win
+        circle = visual.Circle(win, fillColor='#0000FF',
+                               lineColor=None,
+                               size=2* self.scaleFactor)
+        circle.draw()
+        grat = visual.GratingStim(win, ori=20, color='#00AAFF',
+            pos=[0.6 * self.scaleFactor, -0.6 * self.scaleFactor],
+            sf=3.0 / self.scaleFactor, size=2 * self.scaleFactor,
+            interpolate=True)
+        grat.draw()
+        utils.compareScreenshot('circleHex_%s.png' %(self.contextName), win)
+        win.flip()
+
+
     def test_gabor(self):
         win = self.win
         #using init
@@ -351,7 +366,8 @@ class _baseVisualTest(object):
         "{}".format(stim) #check that str(xxx) is working
         if self.win.winType != 'pygame':
             #compare with a LIBERAL criterion (fonts do differ)
-            utils.compareScreenshot('text2_%s.png' %(self.contextName), win, crit=20)
+            utils.compareScreenshot('text2_%s.png' %self.contextName,
+                                    win, crit=20)
 
     def test_text_with_add(self):
         # pyglet text will reset the blendMode to 'avg' so check that we are
@@ -363,27 +379,31 @@ class _baseVisualTest(object):
                                    pos=[0.3,0.0], ori=45, sf=2*self.scaleFactor)
         grat2 = visual.GratingStim(win, size=2 * self.scaleFactor,
                                    opacity=0.5,
-                                   pos=[-0.3,0.0], ori=-45, sf=2*self.scaleFactor)
+                                   pos=[-0.3, 0.0], ori=-45,
+                                   sf=2*self.scaleFactor)
 
         text.draw()
         grat1.draw()
         grat2.draw()
         utils.skip_under_travis()
         if self.win.winType != 'pygame':
-            utils.compareScreenshot('blend_add_%s.png' %(self.contextName), win, crit=20)
+            utils.compareScreenshot('blend_add_%s.png' %self.contextName,
+                                    win, crit=20)
 
     def test_mov(self):
         win = self.win
         if self.win.winType == 'pygame':
             pytest.skip("movies only available for pyglet backend")
         elif _travisTesting and not _anacondaTesting:
-            pytest.skip("Travis with system Python doesn't seem to have a working ffmpeg")
+            pytest.skip("Travis with system Python doesn't seem to have a "
+                        "working ffmpeg")
         win.flip()
         #construct full path to the movie file
         fileName = os.path.join(utils.TESTS_DATA_PATH, 'testMovie.mp4')
         #check if present
         if not os.path.isfile(fileName):
-            raise IOError('Could not find movie file: %s' % os.path.abspath(fileName))
+            raise IOError('Could not find movie file: %s'
+                          % os.path.abspath(fileName))
         #then do actual drawing
         pos = [0.6*self.scaleFactor, -0.6*self.scaleFactor]
         mov = visual.MovieStim3(win, fileName, pos=pos, noAudio=True)
@@ -392,7 +412,8 @@ class _baseVisualTest(object):
         for frameN in range(10):
             mov.draw()
             if frameN==0:
-                utils.compareScreenshot('movFrame1_%s.png' %(self.contextName), win)
+                utils.compareScreenshot('movFrame1_%s.png' %self.contextName,
+                                        win, crit=10)
             win.flip()
         "{}".format(mov) #check that str(xxx) is working
 
@@ -635,16 +656,26 @@ class _baseVisualTest(object):
 class TestPygletNorm(_baseVisualTest):
     @classmethod
     def setup_class(self):
-        self.win = visual.Window([128,128], winType='pyglet', pos=[50,50], allowStencil=True, autoLog=False)
+        self.win = visual.Window([128,128], winType='pyglet', pos=[50,50],
+                                 allowStencil=True, autoLog=False)
         self.contextName='norm'
         self.scaleFactor=1#applied to size/pos values
 
+class TestPygletHexColor(_baseVisualTest):
+    @classmethod
+    def setup_class(self):
+        self.win = visual.Window([128,128], winType='pyglet', pos=[50,50],
+                                 color="#FF0099",
+                                 allowStencil=True, autoLog=False)
+        self.contextName='normHexbackground'
+        self.scaleFactor=1#applied to size/pos values
 
 if not _travisTesting:
     class TestPygletBlendAdd(_baseVisualTest):
         @classmethod
         def setup_class(self):
-            self.win = visual.Window([128,128], winType='pyglet', pos=[50,50], blendMode='add', useFBO=True)
+            self.win = visual.Window([128,128], winType='pyglet', pos=[50,50],
+                                     blendMode='add', useFBO=True)
             self.contextName='normAddBlend'
             self.scaleFactor=1#applied to size/pos values
 
@@ -652,7 +683,8 @@ if not _travisTesting:
 class TestPygletNormFBO(_baseVisualTest):
     @classmethod
     def setup_class(self):
-        self.win = visual.Window([128,128], winType='pyglet', pos=[50,50], allowStencil=True, autoLog=False, useFBO=True)
+        self.win = visual.Window([128,128], winType='pyglet', pos=[50,50],
+                                 allowStencil=True, autoLog=False, useFBO=True)
         self.contextName='norm'
         self.scaleFactor=1#applied to size/pos values
 
@@ -660,7 +692,8 @@ class TestPygletNormFBO(_baseVisualTest):
 class TestPygletHeight(_baseVisualTest):
     @classmethod
     def setup_class(self):
-        self.win = visual.Window([128,64], winType='pyglet', pos=[50,50], allowStencil=False, autoLog=False)
+        self.win = visual.Window([128,64], winType='pyglet', pos=[50,50],
+                                 allowStencil=False, autoLog=False)
         self.contextName='height'
         self.scaleFactor=1#applied to size/pos values
 
@@ -668,7 +701,9 @@ class TestPygletHeight(_baseVisualTest):
 class TestPygletNormNoShaders(_baseVisualTest):
     @classmethod
     def setup_class(self):
-        self.win = visual.Window([128,128], monitor='testMonitor', winType='pyglet', pos=[50,50], allowStencil=True, autoLog=False)
+        self.win = visual.Window([128,128], monitor='testMonitor',
+                                 winType='pyglet', pos=[50,50],
+                                 allowStencil=True, autoLog=False)
         self.win._haveShaders=False
         self.contextName='normNoShade'
         self.scaleFactor=1#applied to size/pos values
@@ -677,7 +712,9 @@ class TestPygletNormNoShaders(_baseVisualTest):
 class TestPygletNormStencil(_baseVisualTest):
     @classmethod
     def setup_class(self):
-        self.win = visual.Window([128,128], monitor='testMonitor', winType='pyglet', pos=[50,50], allowStencil=True, autoLog=False)
+        self.win = visual.Window([128,128], monitor='testMonitor',
+                                 winType='pyglet', pos=[50,50],
+                                 allowStencil=True, autoLog=False)
         self.contextName='stencil'
         self.scaleFactor=1#applied to size/pos values
 

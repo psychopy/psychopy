@@ -8,6 +8,9 @@ import sys
 from sys import platform
 from distutils.core import setup
 from pkg_resources import parse_version
+# import versioneer
+import psychopy
+version = psychopy.__version__
 
 # regenerate __init__.py only if we're in the source repos (not in a zip file)
 try:
@@ -17,14 +20,13 @@ except:
     writeNewInit=False
 if writeNewInit:
     vStr = createInitFile.createInitFile(dist='bdist')
-    exec(vStr)#create variables __version__, __author__ etc
 
 #define the extensions to compile if necess
 packageData = []
 requires = []
 
 if platform != 'darwin':
-    raise RuntimeError("As of Aug 2013, setupApp.py is strictly for building the Mac Standalone bundle")
+    raise RuntimeError("setupApp.py is only for building Mac Standalone bundle")
 
 import bdist_mpkg
 import py2app
@@ -32,13 +34,14 @@ resources = glob.glob('psychopy/app/Resources/*')
 resources.append('/Library/Frameworks/Python.framework/Versions/2.7/include/python2.7/pyconfig.h')
 frameworks = ["libavbin.dylib", "/usr/lib/libxml2.2.dylib", #"libyaml.dylib",
               "libevent.dylib", "libffi.dylib",
+              "libmp3lame.0.dylib",
+              "/usr/local/Cellar/glfw/3.2.1/lib/libglfw.3.2.dylib",
               ]
 opencvLibs = glob.glob(os.path.join(sys.exec_prefix, 'lib', 'libopencv*.2.4.dylib'))
 frameworks.extend(opencvLibs)
 
-
 import macholib
-#print("~"*60 + "macholib verion: "+macholib.__version__)
+#print("~"*60 + "macholib version: "+macholib.__version__)
 
 if parse_version(macholib.__version__) <= parse_version('1.7'):
     print("Applying macholib patch...")
@@ -59,23 +62,25 @@ includes = ['Tkinter', 'tkFileDialog',
             'hid',
             'pyo', 'greenlet', 'zmq', 'tornado',
             'psutil',  # for iohub
-            'pysoundcard', 'soundfile', 'sounddevice',
+            'pysoundcard', 'soundfile', 'sounddevice', 'readline',
             'cv2', 'hid',
             'xlwt',  # writes excel files for pandas
             'vlc',  # install with pip install python-vlc
+            'msgpack_numpy',
+            'configparser',
             ]
 packages = ['wx', 'psychopy',
             'pyglet', 'pygame',  'pytz', 'OpenGL', 'glfw',
             'scipy', 'matplotlib', 'lxml', 'xml', 'openpyxl',
-            'moviepy', 'imageio',
-            '_sounddevice_data','_soundfile_data',
+            'moviepy', 'imageio', 'imageio_ffmpeg',
+            '_sounddevice_data', '_soundfile_data',
             'cffi','pycparser',
             'PIL',  # 'Image',
             'objc', 'Quartz', 'AppKit', 'QTKit', 'Cocoa',
             'Foundation', 'CoreFoundation',
-            'pkg_resources', #needed for objc
+            'pkg_resources',  # needed for objc
             'pyolib',
-            'requests', 'certifi',  # for up/downloading to servers
+            'requests', 'certifi', 'cryptography',
             'pyosf',
             # for unit testing
             'coverage',
@@ -91,6 +96,9 @@ packages = ['wx', 'psychopy',
             # for Py3 compatibility
             'future', 'past', 'lib2to3',
             'json_tricks',  # allows saving arrays/dates in json
+            'git', 'gitlab',
+            'astunparse', 'esprima',  # for translating/adapting py/JS
+            'pylsl', 'pygaze',
             ]
 
 if sys.version_info.major >= 3:
@@ -119,16 +127,19 @@ setup(
             iconfile='psychopy/app/Resources/psychopy.icns',
             plist=dict(
                   CFBundleIconFile='psychopy.icns',
-                  CFBundleName               = "PsychoPy2",
-                  CFBundleShortVersionString = __version__,  # must be in X.X.X format
-                  CFBundleGetInfoString      = "PsychoPy2 "+__version__,
-                  CFBundleExecutable         = "PsychoPy2",
-                  CFBundleIdentifier         = "org.psychopy.PsychoPy2",
+                  CFBundleName               = "PsychoPy3",
+                  CFBundleShortVersionString = version,  # must be in X.X.X format
+                  CFBundleGetInfoString      = "PsychoPy3 "+version,
+                  CFBundleExecutable         = "PsychoPy3",
+                  CFBundleIdentifier         = "org.psychopy.PsychoPy3",
                   CFBundleLicense            = "GNU GPLv3+",
                   CFBundleDocumentTypes=[dict(CFBundleTypeExtensions=['*'],
                                               CFBundleTypeRole='Editor')],
-                  ),
-              )))
+                  LSEnvironment=dict(PATH="/usr/local/git/bin:/usr/local/bin:"
+                                          "/usr/local:/usr/bin:/usr/sbin"),
+            ),
+    ))  # end of the options dict
+)
 
 
 # ugly hack for opencv2:
@@ -137,7 +148,7 @@ setup(
 # 'lib' to the rpath as well. These were fine for the packaged
 # framework python but the libs in an app bundle are different.
 # So, create symlinks so they appear in the same place as in framework python
-rpath = "dist/PsychoPy2.app/Contents/Resources/"
+rpath = "dist/PsychoPy3.app/Contents/Resources/"
 for libPath in opencvLibs:
     libname = os.path.split(libPath)[-1]
     realPath = "../../Frameworks/"+libname  # relative path (w.r.t. the fake)
@@ -153,4 +164,4 @@ if writeNewInit:
     createInitFile.createInitFile(dist=None)
 
 # running testApp from within the app raises wx errors
-# shutil.rmtree("dist/PsychoPy2.app/Contents/Resources/lib/python2.6/psychopy/tests/testTheApp")
+# shutil.rmtree("dist/PsychoPy3.app/Contents/Resources/lib/python2.6/psychopy/tests/testTheApp")

@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2015 Jonathan Peirce
+# Copyright (C) 2018 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
 """Functions and classes related to attribute handling
@@ -150,12 +150,19 @@ def logAttrib(obj, log, attrib, value=None):
     If value=None, it will take the value of self.attrib.
     """
     # Default to autoLog if log isn't set explicitly
-    if log or log is None and obj.autoLog:
+    if log or log is None and obj.autoLog == True:
         if value is None:
             value = getattr(obj, attrib)
 
-        # Log on next flip
-        message = "%s: %s = %s" % (obj.name, attrib, value.__repr__())
+        # for numpy arrays bigger than 2x2 repr is slow (up to 1ms) so just
+        # say it was an array
+        if isinstance(value, numpy.ndarray) \
+                and (value.ndim > 2 or len(value) > 2):
+            valStr = repr(type(value))
+        else:
+            valStr = value.__repr__()
+        message = "%s: %s = %s" % (obj.name, attrib, valStr)
+
         try:
             obj.win.logOnFlip(message, level=logging.EXP, obj=obj)
         except AttributeError:

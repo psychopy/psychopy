@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2015 Jonathan Peirce
+# Copyright (C) 2018 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
 """Experiment classes:
@@ -23,7 +23,9 @@ from builtins import object
 
 import re
 
+from psychopy import logging
 from . import utils
+from . import py2js
 
 # standard_library.install_aliases()
 
@@ -58,6 +60,8 @@ class Param(object):
     '[3,4]'
     >>> print(Param(val=[3,4], valType='code'))
     [3, 4]
+    >>> print(Param(val='"yes", "no"', valType='list'))
+    ["yes", "no"]
 
     >>> #### auto str -> code:  at least one non-escaped '$' triggers
     >>> print(Param('[x,y]','str')) # str normally returns string
@@ -135,7 +139,6 @@ class Param(object):
         self.readOnly = False
 
     def __str__(self):
-
         if self.valType == 'num':
             try:
                 # will work if it can be represented as a float
@@ -169,15 +172,29 @@ class Param(object):
         elif self.valType in ['code', 'extendedCode']:
             isStr = isinstance(self.val, basestring)
             if isStr and self.val.startswith("$"):
-                # a $ in a code parameter is unecessary so remove it
-                return "%s" % self.val[1:]
+                # a $ in a code parameter is unnecessary so remove it
+                val = "%s" % self.val[1:]
             elif isStr and self.val.startswith("\$"):
                 # the user actually wanted just the $
-                return "%s" % self.val[1:]
+                val = "%s" % self.val[1:]
             elif isStr:
-                return "%s" % self.val
+                val = "%s" % self.val
             else:  # if val was a tuple it needs converting to a string first
-                return "%s" % repr(self.val)
+                val = "%s" % repr(self.val)
+            if utils.scriptTarget == "PsychoJS":
+                if self.valType == 'code':
+                    valJS = py2js.expression2js(val)
+                elif self.valType == 'extendedCode':
+                    valJS = py2js.snippet2js(val)
+                if val != valJS:
+                    logging.info("py2js: {} -> {}".format(val, valJS))
+                return valJS
+            else:
+                return val
+        elif self.valType == 'list':
+            return "%s" %(toList(self.val))
+        elif self.valType == 'fixedList':
+            return "{}".format(self.val)
         elif self.valType == 'bool':
             return "%s" % self.val
         else:
@@ -196,6 +213,13 @@ class Param(object):
         """
         return self.val != other
 
+    def __bool__(self):
+        """Return a bool, so we can do `if thisParam`
+        rather than `if thisParam.val`"""
+        return bool(self.val)
+
+    __nonzero__ = __bool__  # for python2 compatibility
+
 
 def getCodeFromParamStr(val):
     """Convert a Param.val string to its intended python code
@@ -204,4 +228,29 @@ def getCodeFromParamStr(val):
     tmp = re.sub(r"^(\$)+", '', val)  # remove leading $, if any
     # remove all nonescaped $, squash $$$$$
     tmp2 = re.sub(r"([^\\])(\$)+", r"\1", tmp)
-    return re.sub(r"[\\]\$", '$', tmp2)  # remove \ from all \$
+    out = re.sub(r"[\\]\$", '$', tmp2)  # remove \ from all \$
+    if utils.scriptTarget=='PsychoJS':
+        out = py2js.expression2js(out)
+    return out
+
+
+def toList(val):
+    """
+
+    Parameters
+    ----------
+    val
+
+    Returns
+    -------
+    A list of entries in the string value
+    """
+    # we really just need to check if they need parentheses
+    stripped = val.strip()
+    if utils.scriptTarget == "PsychoJS":
+        return py2js.expression2js(stripped)
+    elif not ((stripped.startswith('(') and stripped.endswith(')')) \
+              or ((stripped.startswith('[') and stripped.endswith(']')))):
+        return "[{}]".format(stripped)
+    else:
+        return stripped

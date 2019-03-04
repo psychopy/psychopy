@@ -7,7 +7,201 @@ Changelog
   In general, when a new feature is added the second number is incremented (e.g. 1.00.05 -> 1.01.00). Those releases might break previous code you've written because new features often need slight changes to other things.
   Changes to the final digit (1.00.05 -> 1.00.06) indicate a bug-fixing release or very minor new features that shouldn't require code changes from the user.
 
-CHANGES, which are identified in blue text, typically indicate things that alter the PsychoPy behaviour in a way that could break compatibility. Be especially wary of those!
+CHANGES, which are identified in this dark red text, typically indicate things that alter the PsychoPy behaviour in a way that could break compatibility. Be especially wary of those!
+
+
+PsychoPy 3.0
+----------------
+
+PsychoPy3 is the new phase of development including support for online studies
+at the Pavlovia.org experiment server. Many of the features here are relatively
+new and, although we have spent hundreds of hours developing and testing them
+you should be more cautious than ever checking your experiment and data outputs.
+
+PsychoPy 3.0.5
+~~~~~~~~~~~~~~~~~~~~~~
+
+FIXED:
+
+- sounddevice backend not importing on systems that don't have readline
+- better automated Pavlovia logging in for users, based on project
+
+PsychoPy 3.0.4
+~~~~~~~~~~~~~~~~~~~~~~
+
+FIXED:
+
+- fixes to prevent stalled "Synchronizing..." message by preventing behaviours that would cause it #8cadce02d
+- workaround to stop `sounddevice` backend from silencing `input()` #1422fd7c9
+- prevent JS experiments being compiled with units of "use prefs" #a686dbf52
+- cleaner ioHub shutdown #7a7751ca5 and datastore #209c4047f
+- Slider in JS allows forceEndRoutine #0694027b2
+- better error reporting when compiling scripts #a01cb2982
+- don't crash the app if no internet #84b7602c3
+- don't crash if scipy.optimize doesn't load #0f8038629
+- set Slider label height to match tick height by default #f8bdf2341
+- online sounds were never ending if duration was blank (now ends at end of file) #6d91b3186
+- problem converting EOLs between different formats when pasting code
+
+ADDED:
+
+- New Builder Pavlovia button to examine properties of current project
+- Added star to ShapeStim (currently only in Python) #8e6c40993
+- Added tooltips for Pavlovia buttons
+
+PsychoPy 3.0.3
+~~~~~~~~~~~~~~~~~~~~~~
+
+CHANGED: Slight change to creation of *new* experiments, which will now default to
+the units of 'height' rather than 'use preferences' (which led to potential confusion
+when the experiment moved to a different computer)
+
+FIXED:
+
+- Force End Routine wasn't working with Slider when online #a0ca2e312
+- Fix to the online error about units: if an experiment is given units of "use preferences"
+this will switch to height during HTML export #a686dbf52
+- First push of a new project to Pavlovia didn't note that remote now exists, so
+tried to "first push" again #f4134a670
+- fixed detection of correct non-response in JavaScript outputs (so no-go works online) #0c3cea2b2
+- added workaround for strange clash of `sounddevice` with `input()` #f99bef4a9
+- various small fixes to iohub for Py3 #e6a2169d6 #4ca503399 #cf432bc3c
+
+ADDED:
+
+- star available as a Shape in Builder (but not online yet)
+- experiment info dialog now supports drop-downs to constrain options (e.g. ['male','female','other'] )
+- BBTK now supports mode Digital Stimulus Response Echo #5da328fcf
+
+PsychoPy 3.0.2
+~~~~~~~~~~~~~~~~~~~~~~
+
+FIXED:
+
+- Builder's PsychoJS outputs were not updating their versions (pointing to the version the script was first created in, not the version currently used) #789d24ee45aa
+- sounddevice under Python2 had a bug with being unable to copy() #c1317b6b6355e
+- now prevent the user from accessing `useVersion` if that version can't be supported by the current install (e.g. incompatible Python version or wx version)
+- Windows Standalone version now includes dependency for [pyqmix](https://github.com/psyfood/pyqmix) pumps
+
+PsychoPy 3.0.1
+~~~~~~~~~~~~~~~~~~~~~~
+
+FIXED:
+
+- JS outputs were connecting to outdated PsychoJS version (3.0.0b11 instead of 3.0.0)
+- updated numpy (to 1.15.4) and scipy (to 1.2.0) for windows installs using https://www.lfd.uci.edu/~gohlke/pythonlibs/ in the hope of fixing numpy problems for some windows boxes
+- JS string values in Py27 were being convert to b'theString' in JS outputs which obviously broke JS
+
+ADDED:
+
+- Slider support from JS outputs
+
+PsychoPy 3.0.0
+~~~~~~~~~~~~~~~~~~~~~~
+
+Although there were several beta versions preceding this, the changes described
+below are the *broader* changes since 1.90.3 (the previous "stable" version).
+
+NEW:
+
+- supports heavily revamped PsychoJS library:
+    - new PsychoJS supports text, images, keyboards, mouse, sounds, movies, sliders
+    - you can also now include Builder Code Components that include both
+      Python and JavaScript optional code so your components will work
+      online too
+
+- PsychoPy can search, sync and create experiments on Pavlovia.org:
+    - search for existing studies
+    - create your own
+    - run (and collect data into csv files or mongoDB)
+    - sync, including (push changes to the server and fetch back data)
+
+- Additional new features:
+  - Slider class, recommended replacement for RatingScale (more efficient, more
+  flexible and simpler to use)
+  - support for Oculus Rift (only on Windows 64bit Python 3) all due to Matthew
+  Cutone
+
+Many bugs have also been fixed, notably in terms of audio library problems and
+memory problems with MovieStim3.
+
+
+PsychoPy 3.0.0b7
+~~~~~~~~~~~~~~~~~~~~~~
+
+FIXED:
+
+- New rating scale (Slider) handles color properly #1944 and better handling of button drag #1945
+- 'newRating' Builder demo has been fixed (forceEndRoutine shouldn't have been happening)
+- timeByFrames now renders the graph into the PsychoPy window (was sometimes hanging on mac otherwise)
+
+PsychoPy 3.0.0b6
+~~~~~~~~~~~~~~~~~~~~~~
+
+FIXED:
+
+- several sync problems with pavlovia.org: #1f0d8bcab50c1528291adb3a689e95f6e3bf7fc5
+    - sync when an empty project already exists is now fine
+    - after creating the project, changing a file and repeating sync, it didn't detect the changed file
+    - sync to a project that has been deleted remotely now asks if you want to recreate the project
+    - better reporting of error if sync fails
+
+- further fix to memory leak in MovieStim3 #9d0c127d8e6dfd6efba5f285bed93685980cd443
+- fix to PsychoJS output code: loops were not being compiled correctly #6a8e700a350b660b6f588c5b902b04a736b023d2
+- when compiling to JS we now detect tuples and convert to lists for params (JS only has one sequence, with `[ ]` )
+
+PsychoPy 3.0.0b4
+~~~~~~~~~~~~~~~~~~~~~~
+
+FIXED:
+
+- some packaging issues on both Windows and Mac (e.g. updates to Pillow=5.2.0, soundfile=0.10.2) also fixes libsndfile error on Mac_Py2 standalone
+- when the localRoot has been set for a project (before sync) we should get back the sync window
+- clicking "runOnline" before creating/syncing your project with Pavlovia now does the right thing
+- fix to MovieStim3 unloading of movies #1917
+
+PsychoPy 3.0.0b3
+~~~~~~~~~~~~~~~~~~~~~~
+
+FIXED:
+
+- a further issue with the app not starting on some machines (due to the
+  first-run wizard)
+- searching pavlovia projects now support stars and forks in sorting
+- Slider forceEndRoutine was having no effect
+- sounddevice problem when playing a mono sound to stereo stream or vice-versa
+
+ADDED:
+
+- support for Oculus Rift (only on Windows 64bit Python 3) all due to Matthew Cutone
+- Japanese translations to many of the new features/controls
+
+PsychoPy 3.0.0b2
+~~~~~~~~~~~~~~~~~~~~~~
+
+FIXED: an issue with the app not starting (if git not installed)
+
+PsychoPy 3.0.0b1
+~~~~~~~~~~~~~~~~~~~~~~
+
+PsychoPy3 is the new phase of development including support for online studies
+at the Pavlovia.org experiment server. Right now this is BETA SOFTWARE. It WILL
+contain bugs but we're fixing them as fast as we/you can find them!
+
+NEW:
+
+- supports heavily revamped PsychoJS library
+    - new PsychoJS supports text, images, keboards, mouse and sounds
+    - you can also now include Builder Code Components that include both
+      Python and JavaScript optional code so your components will work
+      online too
+
+- PsychoPy can search, sync and create experiments on Pavlovia.org
+    - search for existing studies
+    - create your own
+    - run (and collect data into csv files)
+    - sync, including (push changes to the server and fetch back data)
+
 
 PsychoPy 1.90
 ------------------------------
@@ -24,6 +218,42 @@ Stick to Python 2.7 if you want your script to break less. If you upgrade to
 Python 3 then you'll need to change any print statements to include brackets
 and you may also get some new errors springing up about unicode/bytes objects.
 
+PsychoPy 1.90.3
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Released July 2018
+
+FIXED:
+
+* Fixes event code creation for Black Box ToolKit #1830
+* Removed redundant 'apply' button in preferences #1832
+* Fixes problem with setting gamma with pyglet v1.3+ #1834
+* Removes 'unknown color space' warning if user is using named colors #1836
+* Fixes refcount error, raised when monitor centre was closed #1838
+* For Py3, JSON calibration files are now loaded into monitor list #1839
+* Fixes layout problem with RTL locale causing broken dialogs in the app #1840
+* Anti-buzzing fix applied to sounddevice backend #1847
+* Implements checks for variable name clashes between builder and conditions file  #1852
+* Reduced code redundancy for _getRegionOfFrame, and can get single pixels from front buffer #1854
+* Hex color space can now be specified as a window setting in Experiment Settings #1857
+* Sound duration can now be specified in conditions files #1858
+
+PsychoPy 1.90.2
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Released May 2018
+
+FIXED:
+
+* TextStim now working GLFW backend #a909c95f
+* better checks for existing ffmpeg before trying to download #a909c95f
+* CRS Bits boxes bugs with Python3 #ff5a4ab7
+* Fixes to window position for Retina displays #e7b111cc #0d4538de
+* Fixes to sound component with duration=None #9b46ff0c
+* Fix to Hex-specified colors #6ffa413a
+* print(RunTimeInfo()) not working due to unicode/str error #29de9501
+* sounddevice stereo auto-detection wasn't working for wav files #b07f8fb1
+
 PsychoPy 1.90.1
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -31,17 +261,17 @@ Released April 2018
 
 ADDED:
 
-  * Option to move Y position of `RatingScale` in code #1776
-  * Added option of providing extra arguments to `scipy.optimize` functions when fitting from `psychopy.data` #1772
+* Option to move Y position of `RatingScale` in code #1776
+* Added option of providing extra arguments to `scipy.optimize` functions when fitting from `psychopy.data` #1772
 
 FIXED:
 
-  * Problem with icon path in GLFW backend on linux #bbf51521664
-  * PUINT didn't exist in older `win32` package but was expected by `pyglet`
-  * Better handling of conditions file with empty columns (from Excel adding them or from missing headers)
-  * Several fixes to ioHub in Python3 #1770 #1771 and #1775
-  * Mouse reporting incorrect position when using Mac Retina display #54ced9c2644e
-  * `sounddevice` was failing to find `portaudio.dylib` on Mac
+* Problem with icon path in GLFW backend on linux #bbf51521664
+* PUINT didn't exist in older `win32` package but was expected by `pyglet`
+* Better handling of conditions file with empty columns (from Excel adding them or from missing headers)
+* Several fixes to ioHub in Python3 #1770 #1771 and #1775
+* Mouse reporting incorrect position when using Mac Retina display #54ced9c2644e
+* `sounddevice` was failing to find `portaudio.dylib` on Mac
 
 
 PsychoPy 1.90.0
@@ -51,17 +281,17 @@ Released March 2018
 
 ADDED:
 
-  * Standalone distributions for Python 3.6 as well as Python 2.7
-  * Using `pip install psychopy` now installs all the necessary dependencies, making it much easier to install to your own Python installation
-  * Noise stimuli for presenting filtered noise in vision studies (thanks Andrew Schofield)
-  * Second order stimuli for contrast modulated gratings (thanks Andrew Schofield)
-  * Builder: Mouse now allows stimuli to be "clickable" turning them in to buttons
-  * Builder: ShapeStim now handles additional shapes, like Cross (also takes names for shapes rather than just n vertices)
-  * Monitors calibration files can now be saved/loaded in JSON format
+* Standalone distributions for Python 3.6 as well as Python 2.7
+* Using `pip install psychopy` now installs all the necessary dependencies, making it much easier to install to your own Python installation
+* Noise stimuli for presenting filtered noise in vision studies (thanks Andrew Schofield)
+* Second order stimuli for contrast modulated gratings (thanks Andrew Schofield)
+* Builder: Mouse now allows stimuli to be "clickable" turning them in to buttons
+* Builder: ShapeStim now handles additional shapes, like Cross (also takes names for shapes rather than just n vertices)
+* Monitors calibration files can now be saved/loaded in JSON format
 
 CHANGED:
 
-  * Image stimuli given an image of None (or blank in Builder) will now not display anything, whereas they previously showed a blank white (or colored) patch. To get that behaviour you can set the image to be `color` (in Builder) or "color" (in code).
+* Image stimuli given an image of None (or blank in Builder) will now not display anything, whereas they previously showed a blank white (or colored) patch. To get that behaviour you can set the image to be `color` (in Builder) or "color" (in code).
 
 
 PsychoPy 1.85
@@ -72,21 +302,20 @@ PsychoPy 1.85.6
 
 A bug-fix release to solve a few machine-specific issues.
 
-* FIXED:
-
-  * on some computers the data weren't being saved if user pressed 'Esc' during experiment. #193ce541
-  * fix for the "Unable to share contexts" error on machines that don't support OpenGL shadow_window #a1c29d3a
-  * pyo not always closing properly #1614
-  * problem with non-ascii characters in conditions file name #32204a200
-  * loading of preferences was failing if the audio backend wasn't a valid option #c2d11477b5
-  * Builder demo images_blocks had wrong units for images #1601
-  * no longer tell people to upgrade if their version is *newer* than the "latest" #1567
-  * added support for newer PST box in ioHub (with 7 buttons not 5) #b9534a28896
-  * Monitor.linearizeLums() was raising an error due to a change in import name
-  * stimuli not switching correctly to desired window in multi-window setups #1514
-  * opencv movie backend had an error that `'float' object cannot be interpreted as an index` #1510
-  * cedrus box had error `AttributeError: 'ResponseDevice' object has no attribute 'status'` #1493
-  * retina displays had some bad scaling. Now strongly recommend using `retina=True` #08163f78a9c8ab9b
+FIXED:
+    * on some computers the data weren't being saved if user pressed 'Esc' during experiment. #193ce541
+    * fix for the "Unable to share contexts" error on machines that don't support OpenGL shadow_window #a1c29d3a
+    * pyo not always closing properly #1614
+    * problem with non-ascii characters in conditions file name #32204a200
+    * loading of preferences was failing if the audio backend wasn't a valid option #c2d11477b5
+    * Builder demo images_blocks had wrong units for images #1601
+    * no longer tell people to upgrade if their version is *newer* than the "latest" #1567
+    * added support for newer PST box in ioHub (with 7 buttons not 5) #b9534a28896
+    * Monitor.linearizeLums() was raising an error due to a change in import name
+    * stimuli not switching correctly to desired window in multi-window setups #1514
+    * opencv movie backend had an error that `'float' object cannot be interpreted as an index` #1510
+    * cedrus box had error `AttributeError: 'ResponseDevice' object has no attribute 'status'` #1493
+    * retina displays had some bad scaling. Now strongly recommend using `retina=True` #08163f78a9c8ab9b
 
 
 PsychoPy 1.85.4
@@ -105,88 +334,78 @@ Released: Aug 2017
 
 This release fixes several bugs but it does also add 2 new dependencies:
 
-  * `json_tricks` and `future` are bother required for this version
-  * these are paving the way for updating Python3 (which will be enabled in 1.86.x series of releases)
+* `json_tricks` and `future` are bother required for this version
+* these are paving the way for updating Python3 (which will be enabled in 1.86.x series of releases)
 
 FIXED:
-
-  * Problem with text stimuli on Windows not rendering if large (was a bug in pyglet, fixed in 1.3.0b1)
-  * Whitespace/indentation guides were not toggling on/off correctly in Coder #4ebbdb9c5468beebb50d817697c0665450e9a5ad
-  * Added status property to labjack U3 in Builder scripts #b4d16d3d6319d0edeb7a95e774ff60c0ea51a1cf
-  * Fix to iohub.launchHubServer() under Linux #a9392f62e5e819788e77553583b6776d5992b849
-  * Fix to config file for iViewX on ioHub #590fb20de193fd85f66655c0983107a561f3f2d1
+    * Problem with text stimuli on Windows not rendering if large (was a bug in pyglet, fixed in 1.3.0b1)
+    * Whitespace/indentation guides were not toggling on/off correctly in Coder #4ebbdb9c5468beebb50d817697c0665450e9a5ad
+    * Added status property to labjack U3 in Builder scripts #b4d16d3d6319d0edeb7a95e774ff60c0ea51a1cf
+    * Fix to iohub.launchHubServer() under Linux #a9392f62e5e819788e77553583b6776d5992b849
+    * Fix to config file for iViewX on ioHub #590fb20de193fd85f66655c0983107a561f3f2d1
 
 PsychoPy 1.85.2
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Released: June 2017
 
-* FIXED:
+FIXED:
+    * several errors with **PsychoJS** outputs from Builder (mostly thanks to Jon Roberts at Colorado):
+        * nReps and randomisation now being handled correctly by PsychoJS #ad9a931
+        * "correct" responses were being overwritten by non-responses #f903210
+        * Text components that were static caused a crash (were erroneously given two single-quotes) #b399a50
 
-  * several errors with **PsychoJS** outputs from Builder (mostly thanks to Jon Roberts at Colorado):
-
-    * nReps and randomisation now being handled correctly by PsychoJS #ad9a931
-    * "correct" responses were being overwritten by non-responses #f903210
-    * Text components that were static caused a crash (were erroneously given two single-quotes) #b399a50
-
-  * Staircase would finish prematurely if nReversals was None #7148cad
-  * PsychoPy would crash if sound device contained a unicode character #c1ff68f
-  * FrameBufferObject not working correctly for dual-window setups #5e1c045
-  * removed some annoying junk messages about sounddevice #e5ae2fc
+    * Staircase would finish prematurely if nReversals was None #7148cad
+    * PsychoPy would crash if sound device contained a unicode character #c1ff68f
+    * FrameBufferObject not working correctly for dual-window setups #5e1c045
+    * removed some annoying junk messages about sounddevice #e5ae2fc
 
 PsychoPy 1.85.1
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Released: April 2017
 
-* FIXED:
+FIXED:
+    * several errors with **PsychoJS** outputs from Builder
+        * early termination of experiments #f1bd15047
+        * incorrect blank email field in info.php #d68c36bf9
+        * incorrect component name sin endRoutine #e47d90a36
+        * incorrect default units for image stims #8c32d1c9a
 
-  * several errors with **PsychoJS** outputs from Builder
+    * several problems with **sound**
+        * pyo not loading #1365
+        * searching for 'auto' instead of 'default' device #d54d14fe
+        * fixed duration calculation (bug in soundfile) for sounddevice #e0e01ad
 
-    * early termination of experiments #f1bd15047
-    * incorrect blank email field in info.php #d68c36bf9
-    * incorrect component name sin endRoutine #e47d90a36
-    * incorrect default units for image stims #8c32d1c9a
-
-  * several problems with **sound**
-
-    * pyo not loading #1365
-    * searching for 'auto' instead of 'default' device #d54d14fe
-    * fixed duration calculation (bug in soundfile) for sounddevice #e0e01ad
-
-  * textbox v textstim demo wasn't working #b2913c12476
-  * error with colors when using TextStim with blendmode='add'
-  * errors in installer package:
-
-    * windows installer could overwrite system path setting rather than append (NSIS short-string problem came back!)
-    * freetype 32 bit dll is being provided again (was in matplotlib before but disappeared?)
+    * textbox v textstim demo wasn't working #b2913c12476
+    * error with colors when using TextStim with blendmode='add'
+    * errors in installer package:
+        * windows installer could overwrite system path setting rather than append (NSIS short-string problem came back!)
+        * freetype 32 bit dll is being provided again (was in matplotlib before but disappeared?)
 
 PsychoPy 1.85.0
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Released: Feb 2017
 
-* ADDED:
+ADDED:
+    * `Online experiments now supported <http://www.psychopy.org/online/online.html>`_ using new `PsychoJS library <https://github.com/psychopy/psychopy/tree/master/psychojs>`_. See what is supported so far at `PsychoPy online status <http://www.psychopy.org/online/status.html>`_
+    * New sound engine using `sounddevice <https://github.com/spatialaudio/python-sounddevice/>`_
+    * Checking of image paths for stimuli (did you forget to add ".jpg"?)
+    * Copy/paste of a Component is now possible in Builder (right-click the component to copy, use the Experiment menu to paste). This essentially duplicates the component.
 
-  * `Online experiments now supported <http://www.psychopy.org/online/online.html>`_ using new `PsychoJS library <https://github.com/psychopy/psychopy/tree/master/psychojs>`_. See what is supported so far at `PsychoPy online status <http://www.psychopy.org/online/status.html>`_
-  * New sound engine using `sounddevice <https://github.com/spatialaudio/python-sounddevice/>`_
-  * Checking of image paths for stimuli (did you forget to add ".jpg"?)
-  * Copy/paste of a Component is now possible in Builder (right-click the component to copy, use the Experiment menu to paste). This essentially duplicates the component.
+FIXED:
+    * crash when increasing size of Flow in Builder #1272
+    * bug in pysoundcard backend preventing file-based sounds playing #1299
+    * excel outputs were failing to save on new versions of openpyxl #1276
+    * `useVersion()` was not fetching new (uninstalled) versions correctly #1301
+    * DotStim now has the option to reset the dots at the beginning of a trial #db6f53d50
+    * better handling of blank cells in Excel conditions files (and xls files now supported)
+    * Excel conditions files now import the "value" of a cell rather than the formula #7f753f5
 
-* FIXED:
-
-  * crash when increasing size of Flow in Builder #1272
-  * bug in pysoundcard backend preventing file-based sounds playing #1299
-  * excel outputs were failing to save on new versions of openpyxl #1276
-  * `useVersion()` was not fetching new (uninstalled) versions correctly #1301
-  * DotStim now has the option to reset the dots at the beginning of a trial #db6f53d50
-  * better handling of blank cells in Excel conditions files (and xls files now supported)
-  * Excel conditions files now import the "value" of a cell rather than the formula #7f753f5
-
-* DEPENDENCIES/PACKAGING:
-
-  * pyserial and pyxid were incompatible versions
-  * now packaging 1.2-maintenance branch of pyglet including Text memory fixes
+DEPENDENCIES/PACKAGING:
+    * pyserial and pyxid were incompatible versions
+    * now packaging 1.2-maintenance branch of pyglet including Text memory fixes
 
 PsychoPy 1.84
 ------------------------------
@@ -196,63 +415,57 @@ PsychoPy 1.84.2
 
 Released: Sept 2016
 
-* FIXED:
+FIXED:
+    * Problem with renaming of Routines preventing experiment from re-loading #1248
+    * Several bugs with Builder code generation since PEP8 refactoring:
+        * Static Components gave error compiling script
+        * some Keyboard Components (with variable "allowed keys" settings) gave error compiling script #1245
+        * Mouse Component with "Save state at end of trial" gave indentation error #1253
+        * Loops gave error compiling script if conditions file was a formatted string #1253
 
-  * Problem with renaming of Routines preventing experiment from re-loading #1248
-  * Several bugs with Builder code generation since PEP8 refactoring:
+    * Standalone distributions were not including the correct `pylink 1.1.0.4` and `pyxid` packages
 
-    * Static Components gave error compiling script
-    * some Keyboard Components (with variable "allowed keys" settings) gave error compiling script #1245
-    * Mouse Component with "Save state at end of trial" gave indentation error #1253
-    * Loops gave error compiling script if conditions file was a formatted string #1253
-
-  * Standalone distributions were not including the correct `pylink 1.1.0.4` and `pyxid` packages
-
-* ADDED:
-
-  * Keyfinder demo to Builder view #1252
-  * Support for key modifiers using `event.getKeys()` #1242
+ADDED:
+    * Keyfinder demo to Builder view #1252
+    * Support for key modifiers using `event.getKeys()` #1242
 
 PsychoPy 1.84.1
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Released: Sept 2016
 
-* FIXED:
+FIXED:
+    * Builder Keyboard component was treating non-response as correct answer. #1230 Thanks Jarrod
+    * MovieStim2 (opencv) now compatible with newer versions of opencv (v3.x) #1223
+    * SSL certificates for OS X causing failure to connect to osf.io for projects
+    * dependencies added/updated in Standalone packages:
 
-  * Builder Keyboard component was treating non-response as correct answer. #1230 Thanks Jarrod
-  * MovieStim2 (opencv) now compatible with newer versions of opencv (v3.x) #1223
-  * SSL certificates for OS X causing failure to connect to osf.io for projects
-  * dependencies added/updated in Standalone packages:
+        * pyHook, pygame, pylink 0.3.2,  (win32)
+        * pysoundcard (OS X)
 
-    * pyHook, pygame, pylink 0.3.2,  (win32)
-    * pysoundcard (OS X)
+    * hello_world demo crashing the app on load
 
-  * hello_world demo crashing the app on load
-
-* ADDED:
-
-  * Movie **outputs** in gif, mp4, mov formats automatically, using moviepy #1228
+ADDED:
+    * Movie **outputs** in gif, mp4, mov formats automatically, using moviepy #1228
 
 PsychoPy 1.84.0
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Released: Aug 2016
 
-* ADDED:
+ADDED:
+    * :ref:`Projects menu <projects>`, which can sync files with Open Science Framework
+    * Movies in Builder can now avoid loading audio (i.e. mute). As well as meaning your movie is genuinely silent this saves processing for the computer, so do it unless you need the sound!
+    * menu item to create a .csv (data) file from a .psydat file; see Coder > Tools menu (also: Coder > Demo menu)
+    * Builder experiments force a save before the end of the study so pressing the red stop button is less likely to lose data for you
+    * You can now **rename a Routine** #1136
+    * a Builder experiment setting to specify the version of PsychoPy to be used when running the experiment #1137
 
-  * :ref:`Projects menu <projects>`, which can sync files with Open Science Framework
-  * Movies in Builder can now avoid loading audio (i.e. mute). As well as meaning your movie is genuinely silent this saves processing for the computer, so do it unless you need the sound!
-  * menu item to create a .csv (data) file from a .psydat file; see Coder > Tools menu (also: Coder > Demo menu)
-  * Builder experiments force a save before the end of the study so pressing the red stop button is less likely to lose data for you
-  * You can now **rename a Routine** #1136
-  * a Builder experiment setting to specify the version of PsychoPy to be used when running the experiment #1137
+CHANGED:
 
-* CHANGED:
-
-  * MAJOR REFACTOR: A lot of code has been refactored to be more in line with a thing called PEP8. If that doesn't mean anything to you don't worry, it shouldn't affect you. If you like that sort of thing, sorry we didn't got further and get rid of camelCase. ;-)
-  * setting ShapeStim vertices dynamically now requires an explicit assignment of the new vertex list to shape.vertices; this can be slow for filled shapes with many vertices. See shapes.py, selfx example.
-  * Some file names and locations have changed. To update, replace OLD form in your scripts with NEW form:
+    * MAJOR REFACTOR: A lot of code has been refactored to be more in line with a thing called PEP8. If that doesn't mean anything to you don't worry, it shouldn't affect you. If you like that sort of thing, sorry we didn't got further and get rid of camelCase. ;-)
+    * setting ShapeStim vertices dynamically now requires an explicit assignment of the new vertex list to shape.vertices; this can be slow for filled shapes with many vertices. See shapes.py, selfx example.
+    * Some file names and locations have changed. To update, replace OLD form in your scripts with NEW form:
 
       * OLD form --> NEW form
       * Deprecated since 2012, must now update:
@@ -266,27 +479,25 @@ Released: Aug 2016
       * API change (only affects people who write their own Builder components):
         * `from psychopy.app.builder.components._visual import VisualComponent` --> `from psychopy.app.builder.components._base import BaseVisualComponent`
 
-  * PyQt is now default over wx for dialog boxes (if either PyQt4 or PyQt5 are installed). Also fixed bug to support PyQt5
-  * No Static Components are created by default (e.g. ISI). Have to add them manually
+    * PyQt is now default over wx for dialog boxes (if either PyQt4 or PyQt5 are installed). Also fixed bug to support PyQt5
+    * No Static Components are created by default (e.g. ISI). Have to add them manually
 
-* IMPROVED:
+IMPROVED:
+    * ShapeStim can properly fill arbitrary shapes (using tessellation); see new shapes.py Coder demo for examples.
+    * Coder view now has better support for Retina display on OSX. visual.Window also has a new option to use retina for rendering in the experiment (off by default)
+    * better warnings about VLC being wrong architecture for this python install
+    * Code Components now indicate which ones actually contain code. #1204
 
-  * ShapeStim can properly fill arbitrary shapes (using tessellation); see new shapes.py Coder demo for examples.
-  * Coder view now has better support for Retina display on OSX. visual.Window also has a new option to use retina for rendering in the experiment (off by default)
-  * better warnings about VLC being wrong architecture for this python install
-  * Code Components now indicate which ones actually contain code. #1204
-
-* FIXED:
-
-  * bug with Monitor center not creating/saving monitor due to lack of SizePix #1208
-  * window viewScale and viewPos combine correctly; viewScale handles negative values, mirror-image flips the window correctly (except for Text)
-  * Builder experiments will always add their extension (to stop people overwriting them with the python script of the same experiment)
-  * faster writing of multiple lines (bits) to the LabJack
-  * sampling rate when using binocular mode in eyelink 1000 #1146
-  * Aperture now supports infinite durations in Builder #1122
-  * ColorCal II now supports newer pyserial version #1138
-  * Erroneous extra data column added if experiment was aborted #1115
-  * Ubuntu buglet with importing iohub devices caused by outdated psutils #1172
+FIXED:
+    * bug with Monitor center not creating/saving monitor due to lack of SizePix #1208
+    * window viewScale and viewPos combine correctly; viewScale handles negative values, mirror-image flips the window correctly (except for Text)
+    * Builder experiments will always add their extension (to stop people overwriting them with the python script of the same experiment)
+    * faster writing of multiple lines (bits) to the LabJack
+    * sampling rate when using binocular mode in eyelink 1000 #1146
+    * Aperture now supports infinite durations in Builder #1122
+    * ColorCal II now supports newer pyserial version #1138
+    * Erroneous extra data column added if experiment was aborted #1115
+    * Ubuntu buglet with importing iohub devices caused by outdated psutils #1172
 
 PsychoPy 1.83
 ------------------------------
@@ -329,7 +540,7 @@ Released: Oct 2015
   * new bug with pygame sounds giving fileName not defined
   * several RatingScale bugs; reduce the memory leak (due to pyglet as used in TextStim)
   *
-* ADDED: voice-key capability, e.g., for word-naming studies; includes a demo, auxillary functions (smoothing, zero-crossing, etc), and file-format options (all those supported by pyo)
+* ADDED: voice-key capability, e.g., for word-naming studies; includes a demo, auxiliary functions (smoothing, zero-crossing, etc), and file-format options (all those supported by pyo)
 * CHANGED: remove support for google's speech to text (the new google API is for chrome / chromium developers only)
 * CHANGED: deprecate psychopy.web.upload(); use the requests package instead: requests.post()
 
@@ -512,7 +723,7 @@ Released: Sept 2014
 * IMPROVED: logging
 
     * CHANGED: `log=None` and `autoLog=None` inherits from parents, with `visual.Window` at the top of the hierarchy. None is now default for all stimuli and setter methods.
-    * FIXED: removed unneccessary (e.g. duplicate) logging.
+    * FIXED: removed unnecessary (e.g. duplicate) logging.
     * IMPROVED: unnamed stimuli are now given a default name in the logs for easier identification, e.g. "unnamed ShapeStim".
 
 * IMPROVED: you can now specify the standard deviation (default=3) for gaussian mask in various stimuli by setting e.g. `maskParams={'sd':5}` during init or after init.
@@ -529,7 +740,7 @@ Released: Sept 2014
       Note: This release is not backwards compatible with earlier versions of the ioHub Keyboard device or event data file.
       Please see documentation for details.
     * Backend integration between iohub and psychopy continues to improve.
-    * ioHub can now be used in OS X 10.9 with PsychoPy2 Coder. NOTE: Must add Coder app to accessibility list.
+    * ioHub can now be used in OS X 10.9 with PsychoPy Coder. NOTE: Must add Coder app to accessibility list.
     * Several bug fixes.
 
 * FIXED: several other minor bugs (that would have given exceptions if encountered). Thanks particularly to Philip Wiesemann for finding several of these
@@ -885,7 +1096,7 @@ PsychoPy 1.75.01
 PsychoPy 1.75.00
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-* CHANGED: New Builder experiments will, by default, save a single csv file, a single psydat file and a single log file. Was previously also saving an Excel file (wiht one sheet per loop) and many psydat files (one per loop). Psydat files can still be used to re-output any format of data file.
+* CHANGED: New Builder experiments will, by default, save a single csv file, a single psydat file and a single log file. Was previously also saving an Excel file (with one sheet per loop) and many psydat files (one per loop). Psydat files can still be used to re-output any format of data file.
 * IMPROVED: Experiment info dialog box easier to control now from experiment settings (user doesn't need to write a dictionary by hand any more)
 * IMPROVED: Components in the Builder are now arranged in categories, including a special 'Favorites' category
 * IMPROVED: Code Components now support full syntax highlighting and code folding (but still aren't quite big enough!)
@@ -1324,7 +1535,7 @@ Released: Jan 2011
     for a frame flip). Thanks Dave Britton
 * FIXED bug with filters.makeGrating: gratType='sqr' was not using ori and phase
 * FIXED bug with fetching version info for autoupdate (was sometimes causing a crash on startup
-    if users selected 'skip ths version')
+    if users selected 'skip this version')
 * CHANGED optimisation routine from fmin_powell to fmin_bfgs. It seems more robust to starting params.
 
 PsychoPy 1.63.00
@@ -1463,7 +1674,7 @@ PsychoPy 1.61.01
 Patch Released: May 2010
 
 * FIXED: Bug in coder spitting out lots of errors about no method BeginTextColor
-* FIXED: Buglet in rendering of pygame text withour shaders
+* FIXED: Buglet in rendering of pygame text with our shaders
 * FIXED: broken link for >Help>Api (reference) menuitem
 
 PsychoPy 1.61.00
@@ -1637,7 +1848,7 @@ PsychoPy 1.00.04
 (Released: Jul 09)
 
 * DotStim can have fieldShape of 'sqr', 'square' or 'circle' (the first two are equiv)
-* CHANGED intepreters in all .py scripts to be the same (#!/usr/bin/env python). Use PATH env variable to choose non-default python version for your Python scripts
+* CHANGED interpreters in all .py scripts to be the same (#!/usr/bin/env python). Use PATH env variable to choose non-default python version for your Python scripts
 * CHANGED pyglet textures to use numpy->ctypes rather than numpy->string
 * FIXED systemInfo assigned on Linux systems
 
@@ -1695,7 +1906,7 @@ PsychoPy 0.97.01:
 * IMPROVED detection of the (truly) dropped frames using log.console.setLevel(log.WARNING)
 * FIXED bug that was preventing bits++ from detecting LUT on the Mac (ensure screen gamma is 1.0 first)
 * FIXED buglet with .setRGB on stimuli - that method should require an operation argument (def=None)
-* ADDED fieldDepth and depths (for elements, releative to fieldDepth) as separate arguments to the ElementArrayStim
+* ADDED fieldDepth and depths (for elements, relative to fieldDepth) as separate arguments to the ElementArrayStim
 
 PsychoP 0.97.00:
 ~~~~~~~~~~~~~~~~~~~~~~
@@ -1933,14 +2144,14 @@ PsychoPy 0.92.1
 PsychoPy 0.92.0:
 ~~~~~~~~~~~~~~~~~~~~~~
 * 'sequential' ordering now implemented for data.TrialHandler (thx Ben Webb)
-* moved to pygame fonts (with unicode support and any TT font onthe system). The switch will break any code that was using TextStim with lineWidth or letterWidth as args. Users wanting to continue using the previous TextStim can call textStimGLUT instead (although I think the new pygame fonts are superior in every way).
+* moved to pygame fonts (with unicode support and any TT font on the system). The switch will break any code that was using TextStim with lineWidth or letterWidth as args. Users wanting to continue using the previous TextStim can call textStimGLUT instead (although I think the new pygame fonts are superior in every way).
 * improved IDE handling of previous size (to cope with being closed in the maximised or minimised state, which previously caused the window not to return)
 
 PsychoPy 0.91.5:
 ~~~~~~~~~~~~~~~~~~~~~~
 * fixed minor bug in using numpy.array as a mask (was only working if array was 128x128)
 * faster startup for IDE (added threading class for importing modules)
-* fixed very minor bug in IDE when searching for attributes that dont exist
+* fixed very minor bug in IDE when searching for attributes that don't exist
 * fixed minor bug where scripts with syntax errors didn't run but didn't complain either
 * IDE FileOpen now tries the folder that the current file is in first
 * IDE removed threading class for running scripts

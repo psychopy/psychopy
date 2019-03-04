@@ -2,10 +2,11 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2015 Jonathan Peirce
+# Copyright (C) 2018 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
 from __future__ import absolute_import, print_function
+from builtins import super  # provides Py3-style super() using python-future
 
 from builtins import str
 from builtins import map
@@ -340,3 +341,6 @@ class RatingScaleComponent(BaseComponent):
             else:
                 buff.writeIndented("# RatingScaleComponent: unknown loop "
                                    "type, not saving any data.\n")
+
+        # get parent to write code too (e.g. store onset/offset times)
+        super().writeRoutineEndCode(buff)

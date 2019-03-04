@@ -18,6 +18,9 @@
        <xsd:enumeration value="extendedCode"/>
        <xsd:enumeration value="num"/>
        <xsd:enumeration value="str"/>
+       <xsd:enumeration value="int"/>
+       <xsd:enumeration value="list"/>
+       <xsd:enumeration value="fixedList"/>
      </xsd:restriction>
   </xsd:simpleType>
 
@@ -72,11 +75,15 @@
       <xsd:element name="MouseComponent" type="Component"/>
       <xsd:element name="MovieComponent" type="Component"/>
       <xsd:element name="ParallelOutComponent" type="Component"/>
+      <xsd:element name="QmixPumpComponent" type="Component"/>
       <xsd:element name="PolygonComponent" type="Component"/>
       <xsd:element name="RatingScaleComponent" type="Component"/>
       <xsd:element name="SoundComponent" type="Component"/>
       <xsd:element name="StaticComponent" type="Component"/>
       <xsd:element name="TextComponent" type="Component"/>
+      <xsd:element name="SliderComponent" type="Component"/>
+      <xsd:element name="NoiseStimComponent" type="Component"/>
+      <xsd:element name="EnvGratingComponent" type="Component"/>
     </xsd:choice>
   </xsd:group>
 

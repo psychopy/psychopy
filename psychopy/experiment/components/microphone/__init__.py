@@ -2,12 +2,13 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2015 Jonathan Peirce
+# Copyright (C) 2018 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
 # Author: Jeremy R. Gray, 2012
 
 from __future__ import absolute_import, print_function
+from builtins import super  # provides Py3-style super() using python-future
 
 from os import path
 from psychopy.experiment.components import BaseComponent, Param, getInitVals, _translate
@@ -18,7 +19,7 @@ iconFile = path.join(thisFolder, 'microphone.png')
 tooltip = _translate('Microphone: basic sound capture (fixed onset & '
                      'duration), okay for spoken words')
 
-_localized = {'stereo': _translate('Stereo')}
+_localized = {'stereo': _translate('Stereo'),'channel': _translate('Channel')}
 
 
 class MicrophoneComponent(BaseComponent):
@@ -28,7 +29,7 @@ class MicrophoneComponent(BaseComponent):
     def __init__(self, exp, parentName, name='mic_1',
                  startType='time (s)', startVal=0.0,
                  stopType='duration (s)', stopVal=2.0, startEstim='',
-                 durationEstim='', stereo=False):
+                 durationEstim='', stereo=False, channel=0):
         super(MicrophoneComponent, self).__init__(
             exp, parentName, name=name,
             startType=startType, startVal=startVal,
@@ -53,6 +54,9 @@ class MicrophoneComponent(BaseComponent):
             'The duration of the recording in seconds; blank = 0 sec')
         self.params['stopType'].hint = msg
 
+        msg = _translate("Enter a channel number. Default value is 0. If unsure, run 'sound.backend.get_input_devices()' to locate the system's selected device/channel.")
+
+        self.params['channel'] = Param(channel, valType='str', hint=msg, label=_localized['channel'])
     def writeStartCode(self, buff):
         # filename should have date_time, so filename_wav should be unique
         buff.writeIndented("wavDirName = filename + '_wav'\n")
@@ -63,7 +67,7 @@ class MicrophoneComponent(BaseComponent):
     def writeRoutineStartCode(self, buff):
         inits = getInitVals(self.params)
         code = ("%(name)s = microphone.AdvAudioCapture(name='%(name)s', "
-                "saveDir=wavDirName, stereo=%(stereo)s)\n")
+                "saveDir=wavDirName, stereo=%(stereo)s, chnl=%(channel)s)\n")
         buff.writeIndented(code % inits)
 
     def writeFrameCode(self, buff):
@@ -106,6 +110,10 @@ class MicrophoneComponent(BaseComponent):
         # always add saved file name
         buff.writeIndented("%s.addData('%s.filename', %s.savedFile)\n" %
                            (currLoop.params['name'], name, name))
+
+        # get parent to write code too (e.g. store onset/offset times)
+        super().writeRoutineEndCode(buff)
+
         if currLoop.params['name'].val == self.exp._expHandler.name:
             buff.writeIndented("%s.nextEntry()\n" % self.exp._expHandler.name)
         # best not to do loudness / rms or other processing here

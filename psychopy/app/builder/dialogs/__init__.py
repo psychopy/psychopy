@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2015 Jonathan Peirce
+# Copyright (C) 2018 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
 """Dialog classes for the Builder, including ParamCtrls
@@ -113,13 +113,15 @@ class ParamCtrls(object):
             # settings. If remote info has become available in the meantime,
             # now populate with that as well
             if vc._remoteVersionsCache:
-                options = vc.versionOptions(local=False)
-                versions = vc.availableVersions(local=False)
+                options = vc._versionFilter(vc.versionOptions(local=False), wx.__version__)
+                versions = vc._versionFilter(vc.availableVersions(local=False), wx.__version__)
                 param.allowedVals = (options + [''] + versions)
-        if fieldName in ['text', 'customize_everything']:
+        if fieldName in ['text', 'customize_everything', 'customize']:
             # for text input we need a bigger (multiline) box
             if fieldName == 'customize_everything':
                 sx, sy = 300, 400
+            elif fieldName == 'customize':
+                sx, sy = 300, 200
             else:
                 sx, sy = 100, 200
             # set viewer small, then it SHOULD increase with wx.aui control
@@ -137,8 +139,7 @@ class ParamCtrls(object):
                 parent, val, order=['Field', 'Default'])
         elif param.valType == 'extendedCode':
             # set viewer small, then it will increase with wx.aui control
-            _pos = wx.DefaultPosition
-            self.valueCtrl = CodeBox(parent, -1, pos=_pos,
+            self.valueCtrl = CodeBox(parent, -1, pos=wx.DefaultPosition,
                                      size=wx.Size(100, 100), style=0,
                                      prefs=appPrefs)
             if len(param.val):
@@ -147,6 +148,11 @@ class ParamCtrls(object):
             # self.valueCtrl = wx.TextCtrl(parent,-1,unicode(param.val),
             #    style=wx.TE_MULTILINE,
             #    size=wx.Size(self.valueWidth*2,160))
+        elif param.valType == 'fixedList':
+            self.valueCtrl = wx.CheckListBox(parent, -1, pos=wx.DefaultPosition,
+                                             size=wx.Size(100, 200),
+                                             choices=param.allowedVals)
+            self.valueCtrl.SetCheckedStrings(param.val)
         elif param.valType == 'bool':
             # only True or False - use a checkbox
             self.valueCtrl = wx.CheckBox(parent,
@@ -193,7 +199,12 @@ class ParamCtrls(object):
                            'scaleDescription', 'Begin Routine')
             if fieldName in focusFields:
                 self.valueCtrl.SetFocus()
-        self.valueCtrl.SetToolTipString(_translate(param.hint))
+
+        try:
+            self.valueCtrl.SetToolTip(wx.ToolTip(_translate(param.hint)))
+        except AttributeError as e:
+            self.valueCtrl.SetToolTipString(_translate(param.hint))
+
         if len(param.allowedVals) == 1 or param.readOnly:
             self.valueCtrl.Disable()  # visible but can't be changed
 
@@ -223,12 +234,15 @@ class ParamCtrls(object):
             allowedUpdates = copy.copy(param.allowedUpdates)
             for routineName, routine in list(self.exp.routines.items()):
                 for static in routine.getStatics():
-                    msg = _translate(
-                        "set during: %(routineName)s.%(staticName)s")
-                    vals = {'routineName': routineName,
-                            'staticName': static.params['name']}
-                    updateLabels.append(msg % vals)
-                    allowedUpdates.append(msg % vals)
+                    # Note: replacing following line with
+                    # "localizedMsg = _translate(msg)",
+                    # poedit would not able to find this message.
+                    msg = "set during: "
+                    localizedMsg = _translate("set during: ")
+                    fullName = "{}.{}".format(
+                        routineName, static.params['name'])
+                    allowedUpdates.append(msg + fullName)
+                    updateLabels.append(localizedMsg + fullName)
             self.updateCtrl = wx.Choice(parent, choices=updateLabels)
             # stash non-localized choices to allow retrieval by index:
             self.updateCtrl._choices = copy.copy(allowedUpdates)
@@ -264,6 +278,8 @@ class ParamCtrls(object):
             if isinstance(self.valueCtrl, dialogs.ListWidget):
                 val = self.expInfoFromListWidget(val)
             return val
+        elif hasattr(ctrl, 'GetCheckedStrings'):
+            return ctrl.GetCheckedStrings()
         elif hasattr(ctrl, 'GetSelection'):  # for wx.Choice
             # _choices is defined during __init__ for all wx.Choice() ctrls
             # NOTE: add untranslated value to _choices if
@@ -477,7 +493,10 @@ class _BaseParamsDlg(wx.Dialog):
                       'Advanced': _translate('Advanced'),
                       'Custom': _translate('Custom'),
                       'Carrier': _translate('Carrier'),
-                      'Envelope': _translate('Envelope')}
+                      'Envelope': _translate('Envelope'),
+                      'Appearance': _translate('Appearance'),
+                      'Save': _translate('Save'),
+                      'Online':_translate('Online')}
         for categName in categNames:
             theseParams = categs[categName]
             page = wx.Panel(self.ctrls, -1)
@@ -624,18 +643,18 @@ class _BaseParamsDlg(wx.Dialog):
         _choices = list(map(_translate, startTypeParam.allowedVals))
         self.startTypeCtrl = wx.Choice(parent, choices=_choices)
         self.startTypeCtrl.SetStringSelection(_translate(startTypeParam.val))
-        self.startTypeCtrl.SetToolTipString(
-                _translate(self.params['startType'].hint))
+        self.startTypeCtrl.SetToolTip(wx.ToolTip(
+                _translate(self.params['startType'].hint)))
         # the value to be used as the start/stop
         _start = str(startValParam.val)
         self.startValCtrl = wx.TextCtrl(parent, -1, _start)
-        self.startValCtrl.SetToolTipString(
-                _translate(self.params['startVal'].hint))
+        self.startValCtrl.SetToolTip(wx.ToolTip(
+                _translate(self.params['startVal'].hint)))
         # the value to estimate start/stop if not numeric
         _est = str(self.params['startEstim'].val)
         self.startEstimCtrl = wx.TextCtrl(parent, -1, _est)
-        self.startEstimCtrl.SetToolTipString(
-                _translate(self.params['startEstim'].hint))
+        self.startEstimCtrl.SetToolTip(wx.ToolTip(
+                _translate(self.params['startEstim'].hint)))
         # add the controls to a new line
         startSizer = wx.BoxSizer(orient=wx.HORIZONTAL)
         startSizer.Add(self.startTypeCtrl)
@@ -669,17 +688,17 @@ class _BaseParamsDlg(wx.Dialog):
         _choices = list(map(_translate, stopTypeParam.allowedVals))
         self.stopTypeCtrl = wx.Choice(parent, choices=_choices)
         self.stopTypeCtrl.SetStringSelection(_translate(stopTypeParam.val))
-        self.stopTypeCtrl.SetToolTipString(
-                _translate(self.params['stopType'].hint))
+        self.stopTypeCtrl.SetToolTip(wx.ToolTip(
+                _translate(self.params['stopType'].hint)))
         # the value to be used as the start/stop
         self.stopValCtrl = wx.TextCtrl(parent, -1, str(stopValParam.val))
-        self.stopValCtrl.SetToolTipString(
-                _translate(self.params['stopVal'].hint))
+        self.stopValCtrl.SetToolTip(wx.ToolTip(
+                _translate(self.params['stopVal'].hint)))
         # the value to estimate start/stop if not numeric
         _est = str(self.params['durationEstim'].val)
         self.durationEstimCtrl = wx.TextCtrl(parent, -1, _est)
-        self.durationEstimCtrl.SetToolTipString(
-                _translate(self.params['durationEstim'].hint))
+        self.durationEstimCtrl.SetToolTip(wx.ToolTip(
+                _translate(self.params['durationEstim'].hint)))
         # add the controls to a new line
         stopSizer = wx.BoxSizer(orient=wx.HORIZONTAL)
         stopSizer.Add(self.stopTypeCtrl)
@@ -1562,6 +1581,23 @@ class DlgLoopProperties(_BaseParamsDlg):
                 self.conditionsFile = self.conditionsFileOrig
                 self.conditions = self.conditionsOrig
                 return  # no update or display changes
+            
+            # check for Builder variables
+            builderVariables = []
+            for condName in self.condNamesInFile:
+                if condName in self.exp.namespace.builder:
+                    builderVariables.append(condName)
+            if builderVariables:
+                msg = _translate('Builder variable(s) ({}) in file:{}'.format(
+                    ','.join(builderVariables), newFullPath.split(os.path.sep)[-1]))
+                self.currentCtrls['conditions'].setValue(msg)
+                msg = 'Rejected Builder variable(s) ({}) in file:{}'.format(
+                    ','.join(builderVariables), newFullPath.split(os.path.sep)[-1])
+                logging.error(msg)
+                self.conditionsFile = self.conditionsFileOrig
+                self.conditions = self.conditionsOrig
+                return  # no update or display changes
+            
             duplCondNames = []
             if len(self.condNamesInFile):
                 for condName in self.condNamesInFile:

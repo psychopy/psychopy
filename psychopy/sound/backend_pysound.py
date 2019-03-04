@@ -27,7 +27,7 @@ def init(rate=44100, stereo=True, buffer=128):
     # for compatibility with other backends but not needed
 
 def getDevices(kind=None):
-    """Returns a dict of dict of audio devices of sepcified `kind`
+    """Returns a dict of dict of audio devices of specified `kind`
 
     The dict keys are names and items are dicts of properties
     """
@@ -36,7 +36,9 @@ def getDevices(kind=None):
         if (dev['max_output_channels']==0 and kind=='output' or
                 dev['max_input_channels']==0 and kind=='input'):
             continue
-        devs[dev['name']] = dev
+        # newline characters must be removed
+        devName = dev['name'].replace('\r\n','')
+        devs[devName] = dev
         dev['id'] = ii
     return devs
 

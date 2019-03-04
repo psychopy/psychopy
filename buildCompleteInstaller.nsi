@@ -44,8 +44,8 @@ var ICONS_GROUP
 
 ; MUI end ------
 
-Name "${PRODUCT_NAME} ${PRODUCT_VERSION}"
-OutFile "Standalone${PRODUCT_NAME}-${PRODUCT_VERSION}-win32.exe"
+Name "${PRODUCT_NAME} ${PRODUCT_VERSION} ${ARCH}"
+OutFile "Standalone${PRODUCT_NAME}-${PRODUCT_VERSION}-${ARCH}.exe"
 InstallDir "$PROGRAMFILES\${PRODUCT_NAME}"
 ;InstallDirRegKey HKLM "${PRODUCT_DIR_REGKEY}" ""
 ShowInstDetails show

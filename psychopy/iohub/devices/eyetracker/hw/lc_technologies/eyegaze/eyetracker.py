@@ -1,4 +1,5 @@
 """ioHub Common Eye Tracker Interface for LC Technologies Eye Trackers"""
+from __future__ import absolute_import
 # -*- coding: utf-8 -*-
 # Part of the psychopy.iohub library.
 # Copyright (C) 2012-2016 iSolver Software Solutions
@@ -10,7 +11,7 @@ from ..... import Computer, Device
 from .... import EyeTrackerDevice
 from ....eye_events import *
 
-import pEyeGaze
+from . import pEyeGaze
 
 import sys
 from ctypes import byref, sizeof

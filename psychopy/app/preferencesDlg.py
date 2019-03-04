@@ -20,7 +20,7 @@ from psychopy.localization import _translate
 from pkg_resources import parse_version
 
 # this will be overridden by the size of the scrolled panel making the prefs
-dlgSize = (520, 600)
+dlgSize = (600, 500)
 
 # labels mappings for display:
 _localized = {
@@ -29,6 +29,7 @@ _localized = {
     'app': _translate('App'),
     'builder': "Builder",  # not localized
     'coder': "Coder",  # not localized
+    'hardware': _translate('Hardware'),
     'connections': _translate('Connections'),
     'keyBindings': _translate('Key bindings'),
     # pref labels:
@@ -39,8 +40,10 @@ _localized = {
     'paths': _translate('paths'),
     'audioLib': _translate("audio library"),
     'audioDriver': _translate("audio driver"),
+    'audioDevice': _translate("audio device"),
     'flac': _translate('flac audio compression'),
     'parallelPorts': _translate("parallel ports"),
+    'qmixConfiguration': _translate("Qmix configuration"),
     'shutdownKey': _translate("shutdown key"),
     'shutdownKeyModifiers': _translate("shutdown key modifier keys"),
     'showStartupTips': _translate("show start-up tips"),
@@ -60,7 +63,6 @@ _localized = {
     'showOutput': _translate('show output'),
     'reloadPrevFiles': _translate('reload previous files'),
     'preferredShell': _translate('preferred shell'),
-    'newlineConvention': _translate('newline convention'),
     'reloadPrevExp': _translate('reload previous exp'),
     'unclutteredNamespace': _translate('uncluttered namespace'),
     'componentsFolders': _translate('components folders'),
@@ -122,6 +124,8 @@ _localized = {
     'smallerRoutine': _translate('smaller routine'),
     'toggleReadme': _translate('toggle readme'),
     'projectsLogIn': _translate('login to projects'),
+    'pavlovia_logIn': _translate('login to pavlovia'),
+    'OSF_logIn': _translate('login to OSF'),
     'projectsSync': _translate('sync projects'),
     'projectsFind': _translate('find projects'),
     'projectsOpen': _translate('open projects'),
@@ -169,7 +173,7 @@ class PreferencesDlg(wx.Dialog):
 
         self.ctrls = {}
         sectionOrdering = ['general', 'app', 'builder', 'coder',
-                           'connections', 'keyBindings']
+                           'hardware', 'connections', 'keyBindings']
         for section in sectionOrdering:
             prefsPage = self.makePrefPage(parent=self.nb,
                                           sectionName=section,
@@ -202,12 +206,6 @@ class PreferencesDlg(wx.Dialog):
         btn.SetHelpText(_translate("Cancel any changes (to any panel)"))
         btn.Bind(wx.EVT_BUTTON, self.onCancel)
         btnsizer.AddButton(btn)
-        # apply
-        btn = wx.Button(self, wx.ID_APPLY, _translate('Apply'))
-        btn.SetHelpText(_translate("Apply these prefs (in all sections) and "
-                                   "continue"))
-        btn.Bind(wx.EVT_BUTTON, self.onApply)
-        btnsizer.AddButton(btn)
         # help
         btn = wx.Button(self, wx.ID_HELP, _translate('Help'))
         btn.SetHelpText(_translate("Get help on prefs"))
@@ -234,16 +232,12 @@ class PreferencesDlg(wx.Dialog):
             url = self.app.urls["prefs"]
         self.app.followLink(url=url)
 
-    def onApply(self, event=None):
-        self.setPrefsFromCtrls()
-        self.app.prefs.pageCurrent = self.nb.GetSelection()
-        # don't set locale here; need to restart app anyway
-
     def onCancel(self, event=None):
         self.Destroy()
 
     def onOK(self, event=None):
-        self.onApply(event=event)
+        self.setPrefsFromCtrls()
+        self.app.prefs.pageCurrent = self.nb.GetSelection()
         self.Destroy()
 
     def makePrefPage(self, parent, sectionName, prefsSection, specSection):
@@ -279,7 +273,8 @@ class PreferencesDlg(wx.Dialog):
 
             # create the actual controls
             self.ctrls[ctrlName] = ctrls = PrefCtrls(
-                parent=panel, name=pLabel, value=thisPref, spec=thisSpec)
+                parent=panel, name=prefName, value=thisPref,
+                spec=thisSpec, plabel=pLabel)
             ctrlSizer = wx.BoxSizer(wx.HORIZONTAL)
             ctrlSizer.Add(ctrls.nameCtrl, 0, wx.ALL, 5)
             ctrlSizer.Add(ctrls.valueCtrl, 0, wx.ALL, 5)
@@ -290,9 +285,9 @@ class PreferencesDlg(wx.Dialog):
             if len(hints):
                 # use only one comment line, from right above the pref
                 hint = hints[-1].lstrip().lstrip('#').lstrip()
-                ctrls.valueCtrl.SetToolTipString(_translate(hint))
+                ctrls.valueCtrl.SetToolTip(wx.ToolTip(_translate(hint)))
             else:
-                ctrls.valueCtrl.SetToolTipString('')
+                ctrls.valueCtrl.SetToolTip(wx.ToolTip(''))
 
             vertBox.Add(ctrlSizer)
         # size the panel and setup scrolling
@@ -365,7 +360,7 @@ class PreferencesDlg(wx.Dialog):
 
 class PrefCtrls(object):
 
-    def __init__(self, parent, name, value, spec):
+    def __init__(self, parent, name, value, spec, plabel):
         """Create a set of ctrls for a particular preference entry
         """
         super(PrefCtrls, self).__init__()
@@ -377,7 +372,7 @@ class PrefCtrls(object):
         self.nameCtrl = self.valueCtrl = None
 
         _style = wx.ALIGN_RIGHT | wx.ALIGN_CENTER_VERTICAL
-        self.nameCtrl = wx.StaticText(self.parent, -1, name,
+        self.nameCtrl = wx.StaticText(self.parent, -1, plabel,
                                       size=(labelWidth, -1), style=_style)
         if type(value) == bool:
             # only True or False - use a checkbox
@@ -393,7 +388,8 @@ class PrefCtrls(object):
                     devices = sounddevice.query_devices()
                     for device in devices:
                         if device['max_output_channels'] > 0:
-                            thisDevName = device['name']
+                            # newline characters must be removed
+                            thisDevName = device['name'].replace('\r\n','')
                             if thisDevName not in options:
                                 options.append(thisDevName)
                 except (ValueError, OSError, ImportError):
@@ -480,6 +476,7 @@ class PrefCtrls(object):
         else:
             l = errmsg
         return l
+
 
 if __name__ == '__main__':
     from psychopy import preferences

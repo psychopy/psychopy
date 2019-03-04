@@ -1,93 +1,49 @@
 # vim ft=yaml
 # travis-ci.org and coveralls definition for PsychoPy tests
-dist: precise  # the default (trusty) causing problem with SSL as of Aug 2017
+dist: trusty  # trusty is giving an error on bitsShaders test (glReadpixels()?)
 sudo: true
 
 language: python
 
 matrix:
   include:
-    - os: linux
-      python: "2.7_with_system_site_packages"
-      env: DISPLAY=:99.0 AUDIODEV=null
+#    - os: linux
+#      python: "2.7_with_system_site_packages"
+#      env: DISPLAY=:99.0 AUDIODEV=null
 
     - os: linux
-      python: 2.7
-      env: ANACONDA=true WXPYTHON=3 OPENPYXL=2.4 DISPLAY=:99.0 AUDIODEV=null
+      env: CONDA=true PYTHON_VERSION=2.7 WXPYTHON=3 OPENPYXL=2.4 DISPLAY=:99.0 AUDIODEV=null
 
     - os: linux
-      python: 2.7
-      env: ANACONDA=true WXPYTHON=4 OPENPYXL=2.4 DISPLAY=:99.0 AUDIODEV=null
+      env: CONDA=true PYTHON_VERSION=2.7 WXPYTHON=4 OPENPYXL=2.4 DISPLAY=:99.0 AUDIODEV=null
 
     - os: linux
-      python: 2.7
-      env: ANACONDA=true WXPYTHON=3 OPENPYXL=2.5 DISPLAY=:99.0 AUDIODEV=null
+      env: CONDA=true PYTHON_VERSION=2.7 WXPYTHON=3 OPENPYXL=2.5 DISPLAY=:99.0 AUDIODEV=null
 
     - os: linux
-      python: 3.6
-      env: ANACONDA=true DISPLAY=:99.0 AUDIODEV=null
+      env: CONDA=true PYTHON_VERSION=3.6 DISPLAY=:99.0 AUDIODEV=null
+
+    - os: linux
+      env: CONDA=true PYTHON_VERSION=3.7 DISPLAY=:99.0 AUDIODEV=null
+
+#  allow_failures:
+#    - python: "2.7_with_system_site_packages"
 
 before_install:
-  # System setup
-  - travis_retry sudo apt-get update -qq
-  - travis_retry sudo apt-get install -qq lsb-release
-  - source /etc/lsb-release
-  - echo ${DISTRIB_CODENAME}
-  - wget -O- http://neuro.debian.net/lists/${DISTRIB_CODENAME}.us-nh.full | sudo tee /etc/apt/sources.list.d/neurodebian.sources.list
-  - wget -q -O- http://neuro.debian.net/_static/neuro.debian.net.asc | sudo apt-key add -
-  - travis_retry sudo apt-get update -qq
-  - sudo apt-cache policy  # What is actually available?
+  - pwd
+  - ./travis/00_set_up_packaging_system.sh
+  - ./travis/10_install_system_dependencies.sh
 
-  # This might come in handy once we switch to Trusty, as its Xvfb
-  # doesn't properly support the RANDR extension
-  # - travis_retry sudo apt-get install -qq xpra xserver-xorg-video-dummy
-
-  - travis_retry sudo apt-get install -qq xvfb xauth libgl1-mesa-dri libavbin0
-  - travis_retry sudo apt-get install -qq libportaudio2
-  - travis_retry sudo apt-get install -qq flac
-  - travis_retry sudo apt-get install -qq libav-tools  # this install ffmpeg
-  - flac -version
-
-  # Locales
-  # - travis_retry sudo apt-get install -qq language-pack-en-base  # English locales
-  - travis_retry sudo apt-get install -qq language-pack-ja-base  # Japanese locale
-  # - sudo dpkg-reconfigure locales
-  # - locale -a  # list available locales
-
-  - travis_retry sudo apt-get install -qq libasound2-dev alsa-utils alsa-oss
-  - sudo modprobe snd-dummy
-  - sudo lsmod
-
-  - if [ -z $ANACONDA ]; then
-      echo "Installing PsychoPy dependencies via apt...";
-      travis_retry sudo apt-get install -qq python-xlib python-pygame python-opengl;
-      travis_retry sudo apt-get install -qq python-numpy python-scipy python-matplotlib python-pandas;
-      travis_retry sudo apt-get install -qq python-yaml python-lxml python-configobj;
-      travis_retry sudo apt-get install -qq python-imaging python-mock;
-      travis_retry sudo apt-get install -qq python-qt4 python-wxgtk2.8;
-      travis_retry sudo apt-get install -qq python-pyo python-opencv;
-      travis_retry sudo apt-get install -qq python-mock;
-      echo "Installing PsychoPy dependencies via pip...";
-      travis_retry sudo pip install --upgrade -force-reinstall -qq pip;
-      travis_retry sudo pip install --upgrade -force-reinstall -qq -r requirements_travis.txt;
+  # Install & activate conda environment, if requested; otherwise,
+  # install system Python dependencies.
+  - |
+    if [ -n "$CONDA" ]; then
+      ./travis/20_install_miniconda_python.sh
+      source ~/miniconda/etc/profile.d/conda.sh # Initialize shell.
+      conda activate psychopy-conda
+    else
+      ./travis/20_install_system_python.sh
     fi
-  - if [ -n "$ANACONDA" ]; then
-      echo "Installing Miniconda environment...";
-      wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh;
-      bash miniconda.sh -b -p $HOME/miniconda;
-      export PATH="$HOME/miniconda/bin:$PATH";
-      hash -r;
-      conda config --set always_yes yes --set changeps1 no;
-    fi
-
-  - if [ -n "$ANACONDA" ]; then conda update -q conda; fi
-  - if [ -n "$ANACONDA" ]; then conda info -a; fi
-  - if [ -n "$ANACONDA" ]; then ls -la ./conda/environment-$TRAVIS_PYTHON_VERSION.yml; fi
-  - if [ -n "$ANACONDA" ]; then conda env create -n psychopy-conda -f ./conda/environment-$TRAVIS_PYTHON_VERSION.yml; fi
-  - if [ -n "$ANACONDA" ]; then conda env list; fi
-  - if [ -n "$ANACONDA" ]; then source activate psychopy-conda; fi
-  - if [ -n "$ANACONDA" ]; then if [ -n "$WXPYTHON" ]; then conda install wxpython=$WXPYTHON; fi; fi
-  - if [ -n "$ANACONDA" ]; then if [ -n "$OPENPYXL" ]; then conda install openpyxl=$OPENPYXL; fi; fi
 
   - echo $PATH
   - which python
@@ -101,12 +57,38 @@ before_install:
 
 install:
   - python setup.py build
-  - python setup.py install
+
+  # Build & install sdist.
+  - python setup.py sdist
+  - pip install --no-deps dist/PsychoPy-*.tar.gz
+  - pip uninstall --yes psychopy
+
+  # Build & install wheel.
+  - python setup.py bdist_wheel
+  - pip install --no-deps dist/PsychoPy-*.whl
+  - pip uninstall --yes psychopy
+
+  - rm -rf build/ dist/
 
 before_script:
-  - if [ "${TRAVIS_OS_NAME}" == "linux" ]; then
-       /sbin/start-stop-daemon --start --quiet --pidfile /tmp/custom_xvfb_99.pid --make-pidfile --background --exec /usr/bin/Xvfb -- :99 -screen 0 1024x768x24 -ac +extension GLX +extension RANDR +render -noreset;
+  - |
+    if [ "${TRAVIS_OS_NAME}" == "linux" ]; then
+       /sbin/start-stop-daemon --start --quiet --pidfile /tmp/custom_xvfb_99.pid --make-pidfile --background --exec /usr/bin/Xvfb -- :99 -screen 0 1024x768x24 -ac +extension GLX +extension RANDR +render -noreset
     fi
+
+  # To enable core.rush() functionality, we need to set capabilities on the Python
+  # executable. However, setcap'd binaries ignore LD_LIBRARY_PATH; this will
+  # break conda Python. The solution is to add the conda libraries to the "global"
+  # library search paths in /etc/ld.so.conf.d, and update the caches by calling
+  # ldconfig. Then, the capabilities can be set using setcap. Note that `python`
+  # in a conda env is merely a symlink to the actual binary; therefore, setcap
+  # will refuse work on it. Solution is to find find the "real"
+  # path to the Python binary by resolving the symlink via `os.path.realpath()`.
+  - echo $HOME/miniconda/envs/psychopy-conda/lib | sudo tee /etc/ld.so.conf.d/psychopy-conda-lib.conf
+  - sudo ldconfig
+  - export PYTHON_EXECUTABLE=`python -c "import os; import sys; print(os.path.realpath(sys.executable))"`
+  - sudo setcap cap_sys_nice+ep ${PYTHON_EXECUTABLE}
+  - getcap ${PYTHON_EXECUTABLE}
 
 # This might come in handy once we switch to Trusty
 #  - if [ "${TRAVIS_OS_NAME}" == "linux" ]; then

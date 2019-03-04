@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2015 Jonathan Peirce
+# Copyright (C) 2018 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
 # set the gamma LUT using platform-specific hardware calls
@@ -80,7 +80,7 @@ def setGammaRamp(screenID, newRamp, nAttempts=3, xDisplay=None):
     if newRamp.shape[0] != 3 and newRamp.shape[1] == 3:
         newRamp = numpy.ascontiguousarray(newRamp.transpose())
     if sys.platform == 'win32':
-        newRamp = (255.0 * newRamp).astype(numpy.uint16)
+        newRamp = (numpy.around(255.0 * newRamp)).astype(numpy.uint16)
         # necessary, according to pyglet post from Martin Spacek
         newRamp.byteswap(True)
         for n in range(nAttempts):
@@ -100,7 +100,7 @@ def setGammaRamp(screenID, newRamp, nAttempts=3, xDisplay=None):
         assert not error, 'CGSetDisplayTransferByTable failed'
 
     if sys.platform.startswith('linux') and not _TravisTesting:
-        newRamp = (65535 * newRamp).astype(numpy.uint16)
+        newRamp = (numpy.around(65535 * newRamp)).astype(numpy.uint16)
         success = xf86vm.XF86VidModeSetGammaRamp(
             xDisplay, screenID, LUTlength,
             newRamp[0, :].ctypes,
@@ -126,7 +126,8 @@ def getGammaRamp(screenID, xDisplay=None):
             screenID, origramps.ctypes)  # FB 504
         if not success:
             raise AssertionError('GetDeviceGammaRamp failed')
-        origramps = origramps/65535.0  # rescale to 0:1
+        origramps.byteswap(True)  # back to 0:255
+        origramps = origramps/255.0  # rescale to 0:1
 
     if sys.platform == 'darwin':
         # init R, G, and B ramps
@@ -220,13 +221,13 @@ def createLinearRamp(rampType=None, rampSize=256, driver=None):
                         rampType = 1
 
                 # non-nvidia
-                else:  # is ATI or unkown manufacturer, default to (1:256)/256
+                else:  # is ATI or unknown manufacturer, default to (1:256)/256
                     # this is certainly correct for radeon2600 on 10.5.8 and
                     # radeonX1600 on 10.4.9
                     rampType = 1
 
             # no driver info given
-            else:  # is ATI or unkown manufacturer, default to (1:256)/256
+            else:  # is ATI or unknown manufacturer, default to (1:256)/256
                 # this is certainly correct for radeon2600 on 10.5.8 and
                 # radeonX1600 on 10.4.9
                 rampType = 1
@@ -282,6 +283,13 @@ def getGammaRampSize(screenID, xDisplay=None):
         rampSize = 256
 
     if rampSize == 0:
-        raise RuntimeError("Gamma ramp size is reported as 0.")
+
+        logging.warn(
+            "The size of the gamma ramp was reported as 0. This can " +
+            "mean that gamma settings have no effect. Proceeding with " +
+            "a default gamma ramp size."
+        )
+
+        rampSize = 256
 
     return rampSize

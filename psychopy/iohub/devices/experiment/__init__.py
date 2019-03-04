@@ -3,6 +3,7 @@
 # Copyright (C) 2012-2016 iSolver Software Solutions
 # Distributed under the terms of the GNU General Public License (GPL).
 
+from past.types import basestring
 import numpy as N
 from .. import Device, DeviceEvent, Computer, Device
 from ...constants import DeviceConstants, EventConstants
@@ -121,8 +122,8 @@ class MessageEvent(DeviceEvent):
 
     _newDataTypes = [
         ('msg_offset', N.float32),
-        ('category', N.str, 32),
-        ('text', N.str, 128)
+        ('category','|S32'),
+        ('text', '|S128')
     ]
     __slots__ = [e[0] for e in _newDataTypes]
 
@@ -243,7 +244,7 @@ class LogEvent(DeviceEvent):
 
     _newDataTypes = [
         ('log_level', N.uint8),
-        ('text', N.str, 128)
+        ('text', '|S128')
     ]
     __slots__ = [e[0] for e in _newDataTypes]
 

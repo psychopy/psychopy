@@ -19,7 +19,7 @@ examples::
 
 Colors by name
 ----------------
-Any of the `web/X11 color names <http://www.w3schools.com/html/html_colornames.asp>`_ can be used to specify a color. These are then converted into RGB space by PsychoPy.
+Any of the `web/X11 color names <https://www.w3schools.com/Colors/colors_names.asp>`_ can be used to specify a color. These are then converted into RGB space by PsychoPy.
 
 These are not case sensitive, but should not include any spaces.
 

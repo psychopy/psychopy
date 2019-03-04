@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2015 Jonathan Peirce
+# Copyright (C) 2018 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
 """Provides functions for logging error and other messages to one or more
@@ -192,7 +192,7 @@ class LogFile(object):
         self.logger._calcLowestTarget()
 
     def write(self, txt):
-        """Write directy to the log file (without using logging functions).
+        """Write directly to the log file (without using logging functions).
         Useful to send messages that only this file receives
         """
         # find the current stdout if we're the console logger

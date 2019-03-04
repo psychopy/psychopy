@@ -4,7 +4,7 @@
 ioHub monitors for device events in parallel with the PsychoPy experiment
 execution by running in a separate process than the main PsychoPy script. This
 means, for instance, that keyboard and mouse event timing is not quantized
-by the rate at which the window.swap() method is called.
+by the rate at which the window.flip() method is called.
 
 ioHub reports device events to the PsychoPy experiment runtime as they occur.
 Optionally, events can be saved to a `HDF5 <http://www.hdfgroup.org/HDF5/>`_
@@ -35,4 +35,3 @@ Using psychopy.iohub:
    iohub/requirements
    iohub/starting
    iohub/devices
-

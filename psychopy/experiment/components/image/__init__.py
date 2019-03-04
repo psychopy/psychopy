@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2015 Jonathan Peirce
+# Copyright (C) 2018 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
 from __future__ import absolute_import, print_function
@@ -28,7 +28,7 @@ _localized = {'image': _translate('Image'),
 class ImageComponent(BaseVisualComponent):
     """An event class for presenting image-based stimuli"""
 
-    def __init__(self, exp, parentName, name='image', image='', mask='None',
+    def __init__(self, exp, parentName, name='image', image='None', mask='None',
                  interpolate='linear', units='from exp settings',
                  color='$[1,1,1]', colorSpace='rgb', pos=(0, 0),
                  size=(0.5, 0.5), ori=0, texRes='128', flipVert=False,
@@ -140,29 +140,34 @@ class ImageComponent(BaseVisualComponent):
 
         # replace variable params with defaults
         inits = getInitVals(self.params, 'PsychoJS')
+
         for paramName in inits:
             val = inits[paramName].val
             if val is True:
                 inits[paramName] = 'true'
             elif val is False:
                 inits[paramName] = 'false'
-            elif val in [None, 'None', 'none']:
-                inits[paramName] = 'undefined'
+            elif val in [None, 'None', 'none', '', 'sin']:
+                inits[paramName].valType = 'code'
+                inits[paramName].val = 'undefined'
 
-        code = ("{inits[name]} = new psychoJS.visual.ImageStim({{\n"
-                "    win : win, name : '{inits[name]}',{units}\n"
-                "    image : {inits[image]}, mask : {inits[mask]},\n"
-                "    ori : {inits[ori]}, pos : {inits[pos]}, size : {inits[size]},\n"
-                "    color : {inits[color]}, colorSpace : {inits[colorSpace]}, opacity : {inits[opacity]},\n"
-                "    flipHoriz : {inits[flipHoriz]}, flipVert : {inits[flipVert]},\n"
+        code = ("{inits[name]} = new visual.ImageStim({{\n"
+                "  win : psychoJS.window,\n"
+                "  name : '{inits[name]}', {units}\n"
+                "  image : {inits[image]}, mask : {inits[mask]},\n"
+                "  ori : {inits[ori]}, pos : {inits[pos]}, size : {inits[size]},\n"
+                "  color : new util.Color({inits[color]}), opacity : {inits[opacity]},\n"
+                "  flipHoriz : {inits[flipHoriz]}, flipVert : {inits[flipVert]},\n"
                 # no newline - start optional parameters
-                "    texRes : {inits[texture resolution]}"
-                .format(inits=inits, units=unitsStr))
+                "  texRes : {inits[texture resolution]}"
+                .format(inits=inits,
+                        units=unitsStr))
 
         if self.params['interpolate'].val == 'linear':
             code += ", interpolate : true"
         else:
             code += ", interpolate : false"
+
         depth = -self.getPosInRoutine()
         code += (", depth : %.1f \n"
                  "});\n" % (depth)

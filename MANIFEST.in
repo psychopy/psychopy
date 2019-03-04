@@ -9,7 +9,8 @@ recursive-include psychopy/app/Resources *.ttf
 recursive-include psychopy/app/Resources *.desktop
 recursive-include psychopy/app/locale *.mo
 recursive-include psychopy/app *.spec *.xsd
-recursive-include psychopy/app *.tmpl
+
+recursive-include psychopy/experiment *.tmpl
 
 recursive-include psychopy/monitors *.ico
 
@@ -32,3 +33,6 @@ recursive-include docs/source/_templates *.html
 prune docs/build
 prune docs/source/nonSphinx
 prune windlls
+include versioneer.py
+include psychopy/_version.py
+include version

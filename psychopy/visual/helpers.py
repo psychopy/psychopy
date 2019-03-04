@@ -5,7 +5,7 @@
 """
 
 # Part of the PsychoPy library
-# Copyright (C) 2015 Jonathan Peirce
+# Copyright (C) 2018 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
 from __future__ import absolute_import, division, print_function
@@ -22,6 +22,7 @@ from psychopy import logging, colors
 # (JWP has no idea why!)
 from psychopy.tools.arraytools import val2array
 from psychopy.tools.attributetools import setAttribute
+from psychopy.tools.filetools import pathToString
 
 import numpy as np
 
@@ -211,7 +212,7 @@ def setColor(obj, color, colorSpace=None, operation='',
             return
         elif color[0] == '#' or color[0:2] == '0x':
             # e.g. obj.rgb=[0,0,0]
-            setattr(obj, rgbAttrib, np.array(colors.hex2rgb255(color))- [1,1,1])
+            setattr(obj, rgbAttrib, np.array(colors.hex2rgb255(color)))
             obj.__dict__[colorSpaceAttrib] = 'hex'  # eg obj.colorSpace='hex'
             obj.__dict__[colorAttrib] = color  # eg Qr='#000000'
             setTexIfNoShaders(obj)
@@ -302,6 +303,8 @@ def setColor(obj, color, colorSpace=None, operation='',
         setattr(obj, rgbAttrib, colors.lms2rgb(newColor, lms_rgb))
     elif colorSpace == 'hsv':
         setattr(obj, rgbAttrib, colors.hsv2rgb(np.asarray(newColor)))
+    elif colorSpace is None:
+        pass  # probably using named colors?
     else:
         logging.error('Unknown colorSpace: %s' % colorSpace)
     # store name of colorSpace for future ref and for drawing
@@ -320,6 +323,7 @@ def findImageFile(filename):
     alternatives (e.g. extensions .jpg .tif...)
     """
     # if user supplied correct path then reutnr quickly
+    filename = pathToString(filename)
     isfile = os.path.isfile
     if isfile(filename):
         return filename

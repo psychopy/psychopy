@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2015 Jonathan Peirce
+# Copyright (C) 2018 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
 """PhotoResearch spectrophotometers
@@ -59,7 +59,7 @@ class PR650(object):
             logging.console.setLevel(logging.DEBUG)  # log all communications
 
         If you're using a keyspan adapter (at least on macOS) be aware that
-        it needs a driver installed. Otherwise no ports wil be found.
+        it needs a driver installed. Otherwise no ports will be found.
 
         Also note that the attempt to connect to the PR650 must occur within
         the first few seconds after turning it on.
@@ -133,7 +133,7 @@ class PR650(object):
         logging.error(msg)
 
     def sendMessage(self, message, timeout=0.5, DEBUG=False):
-        """Send a command to the photometer and wait an alloted
+        """Send a command to the photometer and wait an allotted
         timeout for a response (Timeout should be long for low
         light measurements)
         """
@@ -371,7 +371,7 @@ class PR655(PR650):
         return _stripLineEnds(reply.split(',')[-1])  # last element
 
     def sendMessage(self, message, timeout=0.5, DEBUG=False):
-        """Send a command to the photometer and wait an alloted
+        """Send a command to the photometer and wait an allotted
         timeout for a response (Timeout should be long for low
         light measurements)
         """

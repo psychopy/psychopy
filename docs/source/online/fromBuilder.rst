@@ -23,8 +23,6 @@ Check if your study is fully supported
 
 Keep checking the :ref:`onlineStatus` to see what is supported. You might want to sign up to the `PsychoPy forum <http://discourse.psychopy.org>`_ and turn on "watching" for the `Online Studies <http://discourse.psychopy.org/c/online>`_ category to get updates. That way you'll know if we update/improve something and you'll see if other people are having issues.
 
-If some critical part of your study is not yet support then get in touch. If your department has a small amount of money we may be able to put it in place for you. Gradually, with people chipping in, we'll make this thing complete (and completely amazing)! :-)
-
 .. _onlineExpSettings:
 
 Check your experiment settings
@@ -32,15 +30,11 @@ Check your experiment settings
 
 In your Experiment Settings there is an "Online" tab to control the settings.
 
-**Output path** is the location the files will be saved to (relative to the current experiment file). You might set this to `html` to save your web files to `html` folder right next to your `psyexp` file.
+Path: When you upload your study to Pavlovia it will expect to find an 'html' folder in the root of the repository, so you want to set this up with that in mind. By default the output path will be for a folder called html next to the experiment file. So if that is in the root of the folder you sync online then you'll be good to go! Usually you would have a folder structure something like this and :ref:`sync that entire folder with pavlovia.org <pavloviaSync>`:
 
-**JS libs** sets whether you the necessary dependencies are packaged along with the experiment online or whether they point to a remote version. If 'packaged' this will be handled for you automatically by PsychoPy (they will be added to your output path as mentioned above) and this has the advantage that the version being used will be the same always (updates to the lib can't break your experiment). The advantage of not packaging is the opposite; the JavaScript libs will always be the most recent but that means they can change without you knowing.
+.. figure:: /images/foldersStimHTML.png
+  :alt: Folder structure with the experiment (`blockedTrials.psyexp`), a `stims` folder in which the stimuli are stored, some conditions files and an `html` folder containing the code for the study to run online.
 
-**OSF user ID:** allows you to choose the username (an email address) for Open Science Framework. It needs to be a user that has logged in from this computer (see the PsychoPy `Projects` menu) and has set PsychoPy to remember their login. Otherwise data could not be synced with the project for you.
-
-**OSF Project ID:** allows you to specify the project on OSF that the experiment should sync with.
-
-**Email address:** this doesn't currently do anything but it will be used to send you error reports if something goes wrong.
 
 .. _onlineExportHTML:
 
@@ -49,27 +43,53 @@ Export the HTML files
 
 Once you've checked your settings you can simply go to `>File>Export HTML` from the Builder view with your experiment open.
 
-This will allow you to update/check the folder that the files will be saved to (based on the settings above). When you press OK the folder will be created with a number of files inside. It should be extremely quick to do this unless you have very many stimulus files.
+That will generate all the necessary files (HTML and JS) that you need for your study
 
-You will find the following inside:
 
-  - index.html: is the main experiment file
-  - resources: contains all the additional files (conditions files and stimuli etc. exactly as you had specified them)
-  - server.php: this is a special file that allows the html file to "talk" to the web server to save data into your 'data' folder and push files to OSF.io if you had set that to occur. Don't worry that your email address (if set) and the 'key' to the OSF project is included in this file. Web users (e.g. participants) cannot read the contents of this file like they can read the contents of an html file. The only people with access to it are those that have direct file access to the server (e.g. your web server admin team)
-  - js and php folders: if you selected "packaged" as the setting for the "JS libs" then these will also appear in this folder.
+.. _onlineSyncPavlovia:
+
+Sync your files with Pavlovia.org
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Technically you could upload your html folder to any server but by far the easiest way to get your study running is to synchronise with Pavlovia.org. Pavlovia:
+
+  - allows really easy to synchronize from within PsychoPy
+  - is secure, using encrypted communication at all times
+  - is reliable, fast and automatically backed-up
+  - allows version control via `Git` (your experiment will be stored in a git repository locally and pushed/pulled with the server)
+
+All you need to do to get your files online is press the sync button. Depending on which steps you've already completed PsychoPy will then walk you though:
+
+  #. register/login to the Pavlovia site
+  #. create a project to sync with and choose the local folder as the root of that project
+  #. sync the files
+
+    - each time you add/change files locally PsychoPy will ask you to give a title and description for that set of changes (a `git commit` in the underlying version control)
+    - each time participants run online, if you're using `csv` files for storage, then the new file(s) will also be added to the repository on Pavlovia
+    - when you press sync a two-way sync will occur
+    - this can be used to sync easily with any other machine or collaborator
+
+Merges and conflicts:
+
+- if changes are made concurrently these will typically be merged by git
+- if two people change the *same file* then changes will still be combined if possible (e.g. you each make a change to a different parameter in the PsychoPy experiment)
+- if 2 they strictly conflict (you both change the same parameter to a different value) then a merge conflict in git will result. Currently we aren't providing a way to resolve these and you will need to find out enough about git to handle it locally
 
 .. _onlineUploadServer:
 
-Upload your files to a web server
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Uploading files to your own server
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-For this you need access to some web server. Most departments have the ability to provide a web page so hopefully you have a local contact that can help you with this. Does the server need anything special? No, not really. It needs to support PHP but nearly all web servers do that!
+We really don't recommend this and can only provide limited help if you go this route. If you do want to use your own server:
 
-You need to copy the entire folder that you created above (including the `js` and `resources` subfolders) to your web server with any name you like. For example, if I have the stroop experiment on my computer but I called the output folder `html` then I would move that entire html folder to my web server (e.g. containing www.psychopy.org) but I would rename the folder to `stroop`.
+  - You will need some way to save the data. PsychoJS can output to either:
 
-In order to save data you also need to make sure that the permissions of the folder on the server are correct. The web server user (usually called 'www') needs to have write access to the folder or it won't be able to create your data folder and the CSV files when the experiment is run. You may need to talk to your web admin team for this (and feel free to suggest some more explicit instructions for this section of the docs!)
+    - `csv` files in `../data` (i.e. a folder called `data` next to the html folder). You'll need this to have permissions so that the web server can write to it
+    - a relational database
 
-In the future we may provide server options at psychopy.org, but we would need to charge for that and we aren't currently sure if people want/need such a service.
+  - You should make sure your server is using https to encrypt the data you collect from your participants, in keeping with GDPR legislation
+  - You will need to install the server-side script
+  - You will need to adapt PsychoPy Builder's output scripts (`index.html` and the `<experimentName>.js`) so that the references to `lib/` and `lib/vendors` are pointing to valid library locations (which you will either need to create, or point to original online sources)
 
 .. _onlineDebugging:
 
@@ -78,9 +98,16 @@ Debug your online experiments
 
 This is going to be trickier for now than the PsychoPy/Python scripts. The starting point is that, as in Python, you need to be able to see the error messages (if there are any) being generated. To do this your browser you can hopefully show you the javascript "console" and you can see various logging messages and error messages there. If it doesn't make any sense to you then you could try sending it to the PsychoPy forum in the `Online` category.
 
+.. _activateRecruitment:
+
+Activate on Pavlovia
+~~~~~~~~~~~~~~~~~~~~~~~
+
+This is needed
+
 .. _onlineParticipants:
 
-Getting participants
+Recruiting participants
 ~~~~~~~~~~~~~~~~~~~~~~~
 
 Once you've uploaded your folder with the correct permissions you can simply provide that as a URL/link to your prospective participants. When they go to this link they'll see the info dialog box (with the same settings as the one you use in your standard PsychoPy study locally, but a little prettier). That dialog box may show a progress bar while the resources (e.g. image files) are downloading to the local computer. When they've finished downloading the 'OK' button will be available and the participant can carry on to your study.

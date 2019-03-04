@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2015 Jonathan Peirce
+# Copyright (C) 2018 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
 """Dialog classes for the Builder Code component
@@ -12,8 +12,9 @@ from __future__ import absolute_import, division, print_function
 from builtins import str
 
 import keyword
-import re
 import wx
+from collections import OrderedDict
+
 try:
     from wx.lib.agw import flatnotebook
 except ImportError:  # was here wx<4.0:
@@ -22,7 +23,7 @@ except ImportError:  # was here wx<4.0:
 from .... import constants
 from .. import validators
 from psychopy.localization import _translate
-
+from psychopy.app.coder.codeEditorBase import BaseCodeEditor
 
 class DlgCodeComponentProperties(wx.Dialog):
     _style = (wx.DEFAULT_DIALOG_STYLE | wx.RESIZE_BORDER
@@ -48,7 +49,9 @@ class DlgCodeComponentProperties(wx.Dialog):
         self.warningsDict = {}  # to store warnings for all fields
         # keep localized title to update dialog's properties later.
         self.localizedTitle = localizedTitle
-        self.codeGuiElements = {}
+        self.codeBoxes = {}
+        self.tabs = OrderedDict()
+
         if not editing and 'name' in self.params:
             # then we're adding a new component so ensure a valid name:
             makeValid = self.frame.exp.namespace.makeValid
@@ -61,41 +64,52 @@ class DlgCodeComponentProperties(wx.Dialog):
         if hasattr(flatnotebook, "FNB_NO_TAB_FOCUS"):
             # not available in wxPython 2.8.10
             agwStyle |= flatnotebook.FNB_NO_TAB_FOCUS
-        self.codeSections = flatnotebook.FlatNotebook(self, wx.ID_ANY,
+        self.codeNotebook = flatnotebook.FlatNotebook(self, wx.ID_ANY,
                                                       style=agwStyle)
 
-        openToPage = 0
-        for idx, pkey in enumerate(self.order):
-            param = self.params.get(pkey)
-            if pkey == 'name':
+        openToPage = None
+        tabN = -1
+        for paramN, paramName in enumerate(self.order):
+            param = self.params.get(paramName)
+            if paramName == 'name':
                 self.nameLabel = wx.StaticText(self, wx.ID_ANY,
                                                _translate(param.label))
                 _style = wx.TE_PROCESS_ENTER | wx.TE_PROCESS_TAB
                 self.componentName = wx.TextCtrl(self, wx.ID_ANY,
                                                  str(param.val),
                                                  style=_style)
-                self.componentName.SetToolTipString(
-                        _translate(param.hint))
+                self.componentName.SetToolTip(wx.ToolTip(
+                        _translate(param.hint)))
                 self.componentName.SetValidator(validators.NameValidator())
                 self.nameOKlabel = wx.StaticText(self, -1, '',
                                                  style=wx.ALIGN_RIGHT)
                 self.nameOKlabel.SetForegroundColour(wx.RED)
+            elif paramName == 'Code Type':
+                _codeTypes = self.params['Code Type'].allowedVals
+                self.codeTypeMenu = wx.Choice(self, choices=_codeTypes)
+                self.codeTypeMenu.SetSelection(
+                    _codeTypes.index(self.params['Code Type']))
+                self.codeTypeMenu.Bind(wx.EVT_CHOICE, self.OnCodeChoice)
+                self.codeTypeName = wx.StaticText(self, wx.ID_ANY,
+                                                  _translate(param.label))
             else:
-                guikey = pkey.replace(' ', '_')
-                _param = self.codeGuiElements.setdefault(guikey, dict())
+                tabName = paramName.replace("JS ", "")
+                if tabName in self.tabs:
+                    _panel = self.tabs[tabName]
+                else:
+                    _panel = wx.Panel(self.codeNotebook, wx.ID_ANY)
+                    self.tabs[tabName] = _panel
+                    tabN += 1
 
-                _section = wx.Panel(self.codeSections, wx.ID_ANY)
-                _panel = _param.setdefault(guikey + '_panel', _section)
-                _codeBox = _param.setdefault(guikey + '_codebox',
-                                             CodeBox(_panel, wx.ID_ANY,
-                                                     pos=wx.DefaultPosition,
-                                                     style=0,
-                                                     prefs=self.app.prefs))
-                if len(param.val):
-                    _codeBox.AddText(str(param.val))
-                if len(param.val.strip()) and not openToPage:
+                self.codeBoxes[paramName] = CodeBox(_panel, wx.ID_ANY,
+                                                    pos=wx.DefaultPosition,
+                                                    style=0,
+                                                    prefs=self.app.prefs,
+                                                    params=params)
+                self.codeBoxes[paramName].AddText(param.val)
+                if len(param.val.strip()) and openToPage is None:
                     # index of first non-blank page
-                    openToPage = idx
+                    openToPage = tabN
 
         if self.helpUrl is not None:
             self.helpButton = wx.Button(self, wx.ID_HELP,
@@ -108,8 +122,10 @@ class DlgCodeComponentProperties(wx.Dialog):
                                       _translate(" Cancel "))
         self.__set_properties()
         self.__do_layout()
-        self.codeSections.SetSelection(max(0, openToPage - 1))
-
+        if openToPage is None:
+            openToPage = 0
+        self.codeNotebook.SetSelection(openToPage)
+        self.Update()
         self.Bind(wx.EVT_BUTTON, self.helpButtonHandler, self.helpButton)
 
         if self.timeout:
@@ -127,6 +143,46 @@ class DlgCodeComponentProperties(wx.Dialog):
         else:
             self.OK = False
 
+    def OnCodeChoice(self, event):
+        """Set code to JS or Python.
+        Calls onKeyEvent to show/hide duplicate window.
+        """
+        param = self.params['Code Type']
+        formerCodeType = param.val
+        param.val = param.allowedVals[self.codeTypeMenu.GetSelection()]
+        if param == "Both":
+            self.updateVisibleCode(event, formerCodeType, 'Show')
+            return
+        self.updateVisibleCode(event, formerCodeType, 'Hide')
+
+    def updateVisibleCode(self, event=None, formerCodeType=None, winControl='Hide', ):
+        """Receives keyboard events and code menu choice events.
+        On choice events, the code is stored for python or JS parameters,
+        and written to panel depending on choice of code. The duplicate panel
+        is shown/hidden depending on code choice. When duplicate is shown, Python and JS
+        code are shown in codeBox(left panel) and codeBoxDup (right panel), respectively.
+        """
+        codeType = self.params['Code Type'].val
+        for boxName in self.codeBoxes:
+            if codeType.lower() == 'both':
+                self.codeBoxes[boxName].Show()
+            elif codeType == 'JS':
+                # user only wants JS code visible
+                if 'JS' in boxName:
+                    self.codeBoxes[boxName].Show()
+                else:
+                    self.codeBoxes[boxName].Hide()
+            else:
+                # user only wants Py code visible
+                if 'JS' in boxName:
+                    self.codeBoxes[boxName].Hide()
+                else:
+                    self.codeBoxes[boxName].Show()
+        for thisTabname in self.tabs:
+            self.tabs[thisTabname].Layout()
+        if event:
+            event.Skip()
+
     def onEnter(self, evt=None, retval=wx.ID_OK):
         self.EndModal(retval)
 
@@ -141,22 +197,23 @@ class DlgCodeComponentProperties(wx.Dialog):
         self.SetTitle(self.localizedTitle)  # use localized title
         self.SetSize((640, 480))
 
-    def __do_layout(self):
-        for paramName in self.order:
-            if paramName.lower() != 'name':
-                guikey = paramName.replace(' ', '_')
-                paramGuiDict = self.codeGuiElements.get(guikey)
-                asizer = paramGuiDict.setdefault(
-                    guikey + '_sizer', wx.BoxSizer(wx.VERTICAL))
-                asizer.Add(paramGuiDict.get(
-                    guikey + '_codebox'), 1, wx.EXPAND, 0)
-                paramGuiDict.get(guikey + '_panel').SetSizer(asizer)
-                tabLabel = _translate(paramName)
-                # Add a visual indicator when tab contains code
-                if self.params.get(guikey.replace('_',' ')).val:
-                    tabLabel += ' *'
-                self.codeSections.AddPage(paramGuiDict.get(
-                    guikey + '_panel'), tabLabel)
+    def __do_layout(self, show=False):
+        self.updateVisibleCode()
+        for tabName in self.tabs:
+            pyName = tabName
+            jsName = pyName.replace(" ", " JS ")
+            panel = self.tabs[tabName]
+            sizer = wx.BoxSizer(wx.HORIZONTAL)
+            pyBox = self.codeBoxes[pyName]
+            jsBox = self.codeBoxes[jsName]
+            sizer.Add(pyBox, 1, wx.EXPAND, 2)
+            sizer.Add(jsBox, 1, wx.EXPAND, 2)
+            panel.SetSizer(sizer)
+            tabLabel = _translate(tabName)
+            # Add a visual indicator when tab contains code
+            if (self.params.get(pyName).val or self.params.get(jsName).val):
+                tabLabel += ' *'
+            self.codeNotebook.AddPage(panel, tabLabel)
 
         nameSizer = wx.BoxSizer(wx.HORIZONTAL)
         nameSizer.Add(self.nameLabel, 0, wx.ALL | wx.ALIGN_CENTER_VERTICAL, 10)
@@ -164,11 +221,14 @@ class DlgCodeComponentProperties(wx.Dialog):
                       flag=wx.EXPAND | wx.ALL | wx.ALIGN_CENTER_VERTICAL,
                       border=10, proportion=1)
         nameSizer.Add(self.nameOKlabel, 0, wx.ALL, 10)
+        nameSizer.Add(self.codeTypeName,
+                      flag=wx.TOP | wx.RIGHT, border=13, proportion=0)
+        nameSizer.Add(self.codeTypeMenu, 0, wx.ALIGN_CENTER_VERTICAL, 0)
 
         mainSizer = wx.BoxSizer(wx.VERTICAL)
         buttonSizer = wx.BoxSizer(wx.HORIZONTAL)
         mainSizer.Add(nameSizer)
-        mainSizer.Add(self.codeSections, 1, wx.EXPAND | wx.ALL, 10)
+        mainSizer.Add(self.codeNotebook, 1, wx.EXPAND | wx.ALL, 10)
         buttonSizer.Add(self.helpButton, 0, wx.RIGHT, 10)
         buttonSizer.Add(self.okButton, 0, wx.LEFT, 10)
         buttonSizer.Add(self.cancelButton, 0, 0, 0)
@@ -189,12 +249,13 @@ class DlgCodeComponentProperties(wx.Dialog):
             param = self.params[fieldName]
             if fieldName == 'name':
                 param.val = self.componentName.GetValue()
+            elif fieldName == 'Code Type':
+                param.val = self.codeTypeMenu.GetStringSelection()
+            elif fieldName == 'disabled':
+                pass
             else:
-                guikey = fieldName.replace(' ', '_')
-                codeBox = guikey + '_codebox'
-                if guikey in self.codeGuiElements:
-                    gkey = self.codeGuiElements.get(guikey)
-                    param.val = gkey.get(codeBox).GetText()
+                codeBox = self.codeBoxes[fieldName]
+                param.val = codeBox.GetText()
         return self.params
 
     def helpButtonHandler(self, event):
@@ -203,33 +264,19 @@ class DlgCodeComponentProperties(wx.Dialog):
         self.app.followLink(url=self.helpUrl)
 
 
-class CodeBox(wx.stc.StyledTextCtrl):
+class CodeBox(BaseCodeEditor):
     # this comes mostly from the wxPython demo styledTextCtrl 2
 
     def __init__(self, parent, ID, prefs,
                  # set the viewer to be small, then it will increase with
                  # wx.aui control
                  pos=wx.DefaultPosition, size=wx.Size(100, 160),
-                 style=0):
-        wx.stc.StyledTextCtrl.__init__(self, parent, ID, pos, size, style)
-        # JWP additions
-        self.notebook = parent
+                 style=0,
+                 params=None):
+        BaseCodeEditor.__init__(self, parent, ID, pos, size, style)
+
         self.prefs = prefs
-        self.UNSAVED = False
-        self.filename = ""
-        self.fileModTime = None  # check if file modified outside CodeEditor
-        self.AUTOCOMPLETE = True
-        self.autoCompleteDict = {}
-        # self.analyseScript()  # no - analyse after loading so that window
-        # doesn't pause strangely
-        self.locals = None  # will contain the local environment of the script
-        self.prevWord = None
-        # remove some annoying stc key commands
-        CTRL = wx.stc.STC_SCMOD_CTRL
-        self.CmdKeyClear(ord('['), CTRL)
-        self.CmdKeyClear(ord(']'), CTRL)
-        self.CmdKeyClear(ord('/'), CTRL)
-        self.CmdKeyClear(ord('/'), CTRL | wx.stc.STC_SCMOD_SHIFT)
+        self.params = params
 
         self.SetLexer(wx.stc.STC_LEX_PYTHON)
         self.SetKeyWords(0, " ".join(keyword.kwlist))
@@ -237,56 +284,37 @@ class CodeBox(wx.stc.StyledTextCtrl):
         self.SetProperty("fold", "1")
         # 4 means 'tabs are bad'; 1 means 'flag inconsistency'
         self.SetProperty("tab.timmy.whinge.level", "4")
-        self.SetMargins(0, 0)
-        self.SetUseTabs(False)
-        self.SetTabWidth(4)
-        self.SetIndent(4)
         self.SetViewWhiteSpace(self.prefs.appData['coder']['showWhitespace'])
-        self.SetBufferedDraw(False)
-        self.SetViewEOL(False)
-        self.SetEOLMode(wx.stc.STC_EOL_LF)
-        # self.SetUseHorizontalScrollBar(True)
-        # self.SetUseVerticalScrollBar(True)
+        self.SetViewEOL(self.prefs.appData['coder']['showEOLs'])
 
-        # self.SetEdgeMode(wx.stc.STC_EDGE_BACKGROUND)
-        # self.SetEdgeMode(wx.stc.STC_EDGE_LINE)
-        # self.SetEdgeColumn(78)
-
-        # Setup a margin to hold fold markers
-        self.SetMarginType(2, wx.stc.STC_MARGIN_SYMBOL)
-        self.SetMarginMask(2, wx.stc.STC_MASK_FOLDERS)
-        self.SetMarginSensitive(2, True)
-        self.SetMarginWidth(2, 12)
         self.Bind(wx.stc.EVT_STC_MARGINCLICK, self.OnMarginClick)
-
         self.SetIndentationGuides(False)
 
-        # Like a flattened tree control using square headers
-        white = "white"
-        self.MarkerDefine(wx.stc.STC_MARKNUM_FOLDEROPEN,
-                          wx.stc.STC_MARK_BOXMINUS, white, "#808080")
-        self.MarkerDefine(wx.stc.STC_MARKNUM_FOLDER,
-                          wx.stc.STC_MARK_BOXPLUS, white, "#808080")
-        self.MarkerDefine(wx.stc.STC_MARKNUM_FOLDERSUB,
-                          wx.stc.STC_MARK_VLINE, white, "#808080")
-        self.MarkerDefine(wx.stc.STC_MARKNUM_FOLDERTAIL,
-                          wx.stc.STC_MARK_LCORNER, white, "#808080")
-        self.MarkerDefine(wx.stc.STC_MARKNUM_FOLDEREND,
-                          wx.stc.STC_MARK_BOXPLUSCONNECTED, white, "#808080")
-        self.MarkerDefine(wx.stc.STC_MARKNUM_FOLDEROPENMID,
-                          wx.stc.STC_MARK_BOXMINUSCONNECTED, white, "#808080")
-        self.MarkerDefine(wx.stc.STC_MARKNUM_FOLDERMIDTAIL,
-                          wx.stc.STC_MARK_TCORNER, white, "#808080")
-
-        # self.DragAcceptFiles(True)
-        # self.Bind(wx.EVT_DROP_FILES, self.coder.filesDropped)
-        # self.Bind(wx.stc.EVT_STC_MODIFIED, self.onModified)
-        # # self.Bind(wx.stc.EVT_STC_UPDATEUI, self.OnUpdateUI)
-        # self.Bind(wx.stc.EVT_STC_MARGINCLICK, self.OnMarginClick)
-        # self.Bind(wx.EVT_KEY_DOWN, self.OnKeyPressed)
-        # self.SetDropTarget(FileDropTarget(coder = self.coder))
+        self.Bind(wx.EVT_KEY_DOWN, self.OnKeyPressed)
 
         self.setupStyles()
+
+    def OnKeyPressed(self, event):
+        keyCode = event.GetKeyCode()
+        _mods = event.GetModifiers()
+
+        # Check combination keys
+        if keyCode == ord('/') and wx.MOD_CONTROL == _mods:
+            if self.params is not None:
+                self.toggleCommentLines(self.params['Code Type'].val)
+        elif keyCode == ord('V') and wx.MOD_CONTROL == _mods:
+            self.Paste()
+            return  # so that we don't reach the skip line at end
+
+        if keyCode == wx.WXK_RETURN and not self.AutoCompActive():
+            # process end of line and then do smart indentation
+            event.Skip(False)
+            self.CmdKeyExecute(wx.stc.STC_CMD_NEWLINE)
+            if self.params is not None:
+                self.smartIdentThisLine(self.params['Code Type'].val)
+            return  # so that we don't reach the skip line at end
+
+        event.Skip()
 
     def setupStyles(self):
 
@@ -394,21 +422,3 @@ class CodeBox(wx.stc.StyledTextCtrl):
                         self.Expand(lineClicked, True, True, 100)
                 else:
                     self.ToggleFold(lineClicked)
-
-    def Paste(self, event=None):
-        dataObj = wx.TextDataObject()
-        clip = wx.Clipboard().Get()
-        clip.Open()
-        success = clip.GetData(dataObj)
-        clip.Close()
-        if success:
-            txt = dataObj.GetText()
-            if not constants.PY3:
-                try:
-                    # if we can decode/encode to utf-8 then all is good
-                    txt.decode('utf-8')
-                except:
-                    # if not then wx conversion broke so get raw data instead
-                    txt = dataObj.GetDataHere()
-            self.ReplaceSelection(txt)
-

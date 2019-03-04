@@ -2,18 +2,23 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2015 Jonathan Peirce
+# Copyright (C) 2018 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
 from __future__ import absolute_import, division, print_function
 
 from builtins import str
 from builtins import object
+
+profiling = False  # turning on will save profile files in currDir
+
 import sys
 import psychopy
 from pkg_resources import parse_version
 from psychopy.constants import PY3
+import io
 from . import urls
+from . import frametracker
 
 if not hasattr(sys, 'frozen'):
     try:
@@ -29,19 +34,6 @@ try:
 except ImportError:  # if it's not there locally, try the wxPython lib.
     import wx.lib.agw.advancedsplash as AS
 
-""" Aug 2017: for now we want to turn off warning for AddSimpleTool
-The warning says we should use this in wx4.0:
-    item = tb.AddTool(
-        wx.ID_ANY, bitmap=newBmp,
-        labe=key.replace('Ctrl+', ctrlKey),
-        shortHelp=_translate("Create new python file"))
-BUT in 3.0.2 that raises an error so it's too early to switch.
-"""
-import warnings
-warnings.filterwarnings(message='.*AddTool.*', action='ignore')
-warnings.filterwarnings(message='.*SetToolTip.*', action='ignore')
-
-
 from psychopy.localization import _translate
 # NB keep imports to a minimum here because splash screen has not yet shown
 # e.g. coder and builder are imported during app.__init__ because they
@@ -49,23 +41,28 @@ from psychopy.localization import _translate
 
 # needed by splash screen for the path to resources/psychopySplash.png
 from psychopy import preferences, logging, __version__
+from psychopy import projects
 from . import connections
-from . import projects
 from .utils import FileDropTarget
 import os
-import threading
 import weakref
 
 # knowing if the user has admin priv is generally a good idea for security.
 # not actually needed; psychopy should never need anything except normal user
 # see older versions for code to detect admin (e.g., v 1.80.00)
 
+if not PY3 and sys.platform == 'darwin':
+    blockTips = True
+else:
+    blockTips = False
+
 
 class MenuFrame(wx.Frame):
     """A simple empty frame with a menubar, should be last frame closed on mac
     """
 
-    def __init__(self, parent=None, ID=-1, app=None, title="PsychoPy2"):
+    def __init__(self, parent=None, ID=-1, app=None, title="PsychoPy3"):
+
         wx.Frame.__init__(self, parent, ID, title, size=(1, 1))
         self.app = app
 
@@ -141,6 +138,13 @@ class PsychoPyApp(wx.App):
         """With a wx.App some things get done here, before App.__init__
         then some further code is launched in OnInit() which occurs after
         """
+        if profiling:
+            import cProfile, time
+            profile = cProfile.Profile()
+            profile.enable()
+            t0 = time.time()
+
+        self._appLoaded = False  # set to true when all frames are created
         self.coder = None
         self.version = psychopy.__version__
         # set default paths and prefs
@@ -158,11 +162,12 @@ class PsychoPyApp(wx.App):
         if self.prefs.app['debugMode']:
             logging.console.setLevel(logging.DEBUG)
         # indicates whether we're running for testing purposes
-        self.osf_session = None
+        self.osfSession = None
+        self.pavloviaSession = None
 
         self.copiedRoutine = None
         self.copiedCompon = None
-        self._allFrames = []  # ordered; order updated with self.onNewTopWindow
+        self._allFrames = frametracker.openFrames  # ordered; order updated with self.onNewTopWindow
 
         wx.App.__init__(self, arg)
 
@@ -173,35 +178,42 @@ class PsychoPyApp(wx.App):
         self.locale.AddCatalog(self.GetAppName())
 
         self.onInit(testMode=testMode, **kwargs)
+        if profiling:
+            profile.disable()
+            print("time to load app = {:.2f}".format(time.time()-t0))
+            profile.dump_stats('profileLaunchApp.profile')
+
 
     def onInit(self, showSplash=True, testMode=False):
         """This is launched immediately *after* the app initialises with wx
         :Parameters:
 
           testMode: bool
-            If set to True then startup wizard won't appear and stdout/stderr
-            won't be redirected to the Coder
         """
-        self.SetAppName('PsychoPy2')
+        self.SetAppName('PsychoPy3')
 
-        if showSplash:
+        if False:
             # show splash screen
             splashFile = os.path.join(
                 self.prefs.paths['resources'], 'psychopySplash.png')
-            splashBitmap = wx.Image(name=splashFile).ConvertToBitmap()
-            splash = AS.AdvancedSplash(None, bitmap=splashBitmap,
+            splashImage = wx.Image(name=splashFile)
+            splashImage.ConvertAlphaToMask()
+            splash = AS.AdvancedSplash(None, bitmap=splashImage.ConvertToBitmap(),
                                        timeout=3000,
                                        agwStyle=AS.AS_TIMEOUT | AS.AS_CENTER_ON_SCREEN,
-                                       shadowcolour=wx.RED)  # transparency?
-            splash.SetTextPosition((10, 240))
-            splash.SetText(_translate("  Loading libraries..."))
+                                       )  # transparency?
+            w, h = splashImage.GetSize()
+            splash.SetTextPosition((int(w-130), h-20))
+            splash.SetText(_translate("Loading libraries..."))
+            wx.Yield()
         else:
             splash = None
 
         # SLOW IMPORTS - these need to be imported after splash screen starts
         # but then that they end up being local so keep track in self
         if splash:
-            splash.SetText(_translate("  Loading PsychoPy2..."))
+            splash.SetText(_translate("Loading PsychoPy3..."))
+            wx.Yield()
         from psychopy.compatibility import checkCompatibility
         # import coder and builder here but only use them later
         from psychopy.app import coder, builder, dialogs
@@ -217,7 +229,7 @@ class PsychoPyApp(wx.App):
             last = self.prefs.appData['lastVersion']
 
         if self.firstRun and not self.testMode:
-            self.firstrunWizard()
+            pass
 
         # setup links for URLs
         # on a mac, don't exit when the last frame is deleted, just show menu
@@ -280,7 +292,15 @@ class PsychoPyApp(wx.App):
             self._mainFont = wx.SystemSettings.GetFont(wx.SYS_DEFAULT_GUI_FONT)
         else:
             self._mainFont = wx.SystemSettings.GetFont(wx.SYS_ANSI_FIXED_FONT)
-        self._codeFont = wx.SystemSettings.GetFont(wx.SYS_ANSI_FIXED_FONT)
+
+        try:
+            self._codeFont = wx.SystemSettings.GetFont(wx.SYS_ANSI_FIXED_FONT)
+        except wx._core.wxAssertionError:
+            # if no SYS_ANSI_FIXED_FONT then try generic FONTFAMILY_MODERN
+            self._codeFont = wx.Font(self._mainFont.GetPointSize(),
+                                     wx.FONTFAMILY_MODERN,
+                                     wx.FONTSTYLE_NORMAL,
+                                     wx.FONTWEIGHT_NORMAL)
         self._codeFont.SetFaceName(self.prefs.coder['codeFont'])
 
         # removed Aug 2017: on newer versions of wx (at least on mac)
@@ -304,28 +324,10 @@ class PsychoPyApp(wx.App):
         # please don't disable this, it's important for PsychoPy's development
         self._latestAvailableVersion = None
         self.updater = None
-        prefsConn = self.prefs.connections
-        if prefsConn['checkForUpdates'] or prefsConn['allowUsageStats']:
-            connectThread = threading.Thread(
-                target=connections.makeConnections, args=(self,))
-            connectThread.start()
-        # query github in the background to populate a local cache about
-        # what versions are available for download:
-        from psychopy.tools import versionchooser as vc
-        versionsThread = threading.Thread(target=vc._remoteVersions,
-                                          args=(True,))
-        versionsThread.start()
+        self.news = None
+        self.tasks = None
 
-        # if we have imageio then try to download ffmpeg
-        try:
-            import imageio
-            haveImageio = True
-        except:
-            haveImageio = False
-        if haveImageio:
-            # download() returns immediately if we have it already
-            ffmpegDownloader = threading.Thread(target=imageio.plugins.ffmpeg.download)
-            ffmpegDownloader.start()
+        prefsConn = self.prefs.connections
 
         ok, msg = checkCompatibility(last, self.version, self.prefs, fix=True)
         # tell the user what has changed
@@ -335,7 +337,8 @@ class PsychoPyApp(wx.App):
                                         title=title)
             dlg.ShowModal()
 
-        if self.prefs.app['showStartupTips'] and not self.testMode:
+        if (self.prefs.app['showStartupTips']
+                and not self.testMode and not blockTips):
             tipFile = os.path.join(
                 self.prefs.paths['resources'], _translate("tips.txt"))
             tipIndex = self.prefs.appData['tipIndex']
@@ -351,10 +354,7 @@ class PsychoPyApp(wx.App):
             self.prefs.app['showStartupTips'] = showTip
             self.prefs.saveUserPrefs()
 
-        if self.prefs.connections['checkForUpdates']:
-            self.Bind(wx.EVT_IDLE, self.checkUpdates)
-        else:
-            self.Bind(wx.EVT_IDLE, self.onIdle)
+        self.Bind(wx.EVT_IDLE, self.onIdle)
 
         # doing this once subsequently enables the app to open & switch among
         # wx-windows on some platforms (Mac 10.9.4) with wx-3.0:
@@ -367,7 +367,10 @@ class PsychoPyApp(wx.App):
                     self.showBuilder()
                 else:
                     self.showCoder()
-
+        # after all windows are created (so errors flushed) create output
+        self._appLoaded = True
+        if self.coder:
+            self.coder.setOutputWindow()  # takes control of sys.stdout
         return True
 
     def _wizard(self, selector, arg=''):
@@ -385,11 +388,8 @@ class PsychoPyApp(wx.App):
         reportPath = os.path.join(
             self.prefs.paths['userPrefsDir'], 'firstrunReport.html')
         if os.path.exists(reportPath):
-            if PY3:
-                report = open(reportPath, 'r', encoding='utf-8').read()
-            else:
-                import codecs
-                report = codecs.open(reportPath, 'r', encoding='utf-8').read()
+            with io.open(reportPath, 'r', encoding='utf-8-sig') as f:
+                report = f.read()
             if 'Configuration problem' in report:
                 # fatal error was encountered (currently only if bad drivers)
                 # ensure wizard will be triggered again:
@@ -429,9 +429,6 @@ class PsychoPyApp(wx.App):
             self.updater = connections.Updater(app=self)
             self.updater.latest = self._latestAvailableVersion
             self.updater.suggestUpdate(confirmationDlg=False)
-        evt.Skip()
-
-    def onIdle(self, evt):
         evt.Skip()
 
     def getPrimaryDisplaySize(self):
@@ -477,19 +474,18 @@ class PsychoPyApp(wx.App):
         # have to reimport because it is ony local to __init__ so far
         from . import coder
         if self.coder is None:
-            title = "PsychoPy2 Coder (IDE) (v%s)"
+            title = "PsychoPy3 Coder (IDE) (v%s)"
             self.coder = coder.CoderFrame(None, -1,
                                           title=title % self.version,
                                           files=fileList, app=self)
         self.coder.Show(True)
         self.SetTopWindow(self.coder)
         self.coder.Raise()
-        self.coder.setOutputWindow()  # takes control of sys.stdout
 
     def newBuilderFrame(self, event=None, fileName=None):
         # have to reimport because it is ony local to __init__ so far
         from .builder.builder import BuilderFrame
-        title = "PsychoPy2 Experiment Builder (v%s)"
+        title = "PsychoPy3 Experiment Builder (v%s)"
         thisFrame = BuilderFrame(None, -1,
                                          title=title % self.version,
                                          fileName=fileName, app=self)
@@ -573,7 +569,7 @@ class PsychoPyApp(wx.App):
                 dlg.GetColourData().SetChooseFull(True)
                 if dlg.ShowModal() == wx.ID_OK:
                     data = dlg.GetColourData()
-                    rgb = data.GetColour().Get()
+                    rgb = data.GetColour().Get(includeAlpha=False)
                     rgb = map(lambda x: "%.3f" %
                               ((x - 127.5) / 127.5), list(rgb))
                     rgb = '[' + ','.join(rgb) + ']'
@@ -594,14 +590,14 @@ class PsychoPyApp(wx.App):
     def openMonitorCenter(self, event):
         from psychopy.monitors import MonitorCenter
         self.monCenter = MonitorCenter.MainFrame(
-            None, 'PsychoPy2 Monitor Center')
+            None, 'PsychoPy3 Monitor Center')
         self.monCenter.Show(True)
 
     def terminateHubProcess(self):
         """
         Send a UDP message to iohub informing it to exit.
 
-        Use this when force quiting the experiment script process so iohub
+        Use this when force quitting the experiment script process so iohub
         knows to exit as well.
 
         If message is not sent within 1 second, or the iohub server
@@ -640,7 +636,9 @@ class PsychoPyApp(wx.App):
     def quit(self, event=None):
         logging.debug('PsychoPyApp: Quitting...')
         self.quitting = True
-        projects.projectCatalog = None  # garbage collect the projects before sys.exit
+        # garbage collect the projects before sys.exit
+        projects.pavlovia.knownUsers = None
+        projects.pavlovia.knownProjects = None
         # see whether any files need saving
         for frame in self.getAllFrames():
             try:  # will fail if the frame has been shut somehow elsewhere
@@ -686,8 +684,10 @@ class PsychoPyApp(wx.App):
     def showAbout(self, event):
         logging.debug('PsychoPyApp: Showing about dlg')
 
-        license = open(os.path.join(self.prefs.paths['psychopy'],
-                                    'LICENSE.txt'), 'rU').read()
+        with io.open(os.path.join(self.prefs.paths['psychopy'],'LICENSE.txt'),
+                     'r', encoding='utf-8-sig') as f:
+            license = f.read()
+
         msg = _translate(
             "For stimulus generation and experimental control in python.\n"
             "PsychoPy depends on your feedback. If something doesn't work\n"
@@ -705,7 +705,7 @@ class PsychoPyApp(wx.App):
         info.SetVersion('v' + psychopy.__version__)
         info.SetDescription(msg)
 
-        info.SetCopyright('(C) 2002-2015 Jonathan Peirce')
+        info.SetCopyright('(C) 2002-2018 Jonathan Peirce')
         info.SetWebSite('http://www.psychopy.org')
         info.SetLicence(license)
         info.AddDeveloper('Jonathan Peirce')
@@ -722,6 +722,9 @@ class PsychoPyApp(wx.App):
         info.AddTranslator('Hiroyuki Sogo')
         if not self.testMode:
             showAbout(info)
+
+    def showNews(self, event=None):
+        connections.showNews(self, checkPrev=False)
 
     def followLink(self, event=None, url=None):
         """Follow either an event id (= a key to an url defined in urls.py)
@@ -760,6 +763,11 @@ class PsychoPyApp(wx.App):
         for entry in self._allFrames:
             if entry() == frame:  # is a weakref
                 self._allFrames.remove(entry)
+
+    def onIdle(self, evt):
+        from . import idle
+        idle.doIdleTasks(app=self)
+        evt.Skip()
 
 
 if __name__ == '__main__':

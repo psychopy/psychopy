@@ -4,6 +4,8 @@
 # Distributed under the terms of the GNU General Public License (GPL).
 from __future__ import division, absolute_import
 
+from past.builtins import xrange
+
 import os
 import sys
 from operator import itemgetter
@@ -21,6 +23,7 @@ except ImportError:
     pass
 
 from past.builtins import basestring, unicode
+from psychopy.constants import PY3
 from . import _pkgroot
 from . import IOHUB_DIRECTORY, EXP_SCRIPT_DIRECTORY, _DATA_STORE_AVAILABLE
 from .errors import print2err, printExceptionDetailsToStdErr, ioHubError
@@ -376,6 +379,9 @@ class udpServer(DatagramServer):
                     self.iohub._pyglet_window_hnds.remove(wh)
 
     def createExperimentSessionEntry(self, sessionInfoDict):
+        if PY3:
+            sessionInfoDict = {str(k, 'utf-8'): str(v, 'utf-8')
+                               for k, v in sessionInfoDict.items()}
         self.iohub.sessionInfoDict = sessionInfoDict
         dsfile = self.iohub.dsfile
         if dsfile:
@@ -480,10 +486,10 @@ class DeviceMonitor(Greenlet):
             stime = ctime()
             self.device._poll()
             i = self.sleep_interval - (ctime() - stime)
-            if i > 0.0:
+            if i > 0.001:
                 gevent.sleep(i)
             else:
-                gevent.sleep(0.0)
+                gevent.sleep(0.001)
 
     def __del__(self):
         self.device = None
@@ -619,7 +625,7 @@ class ioServer(object):
                 self._running = False
                 break
             dur = sleep_interval - (Computer.getTime() - stime)
-            gevent.sleep(max(0.0, dur))
+            gevent.sleep(max(0.001, dur))
 
     def createNewMonitoredDevice(self, dev_cls_name, dev_conf):
         self._all_dev_conf_errors = dict()
@@ -674,7 +680,10 @@ class ioServer(object):
         hookManager = self._hookManager
         if dev_cls_name in ('Mouse', 'Keyboard'):
             if Computer.platform == 'win32':
-                import pyHook
+                try:
+                    import pyHook
+                except ImportError:
+                    import pyWinhook as pyHook
                 if hookManager is None:
                     iohub.log('Creating pyHook HookManager....')
                     hookManager = self._hookManager = pyHook.HookManager()
@@ -860,7 +869,7 @@ class ioServer(object):
             stime = Computer.getTime()
             self.processDeviceEvents()
             dur = sleep_interval - (Computer.getTime() - stime)
-            gevent.sleep(max(0.0, dur))
+            gevent.sleep(max(0.001, dur))
 
     def processDeviceEvents(self):
         for device in self.devices:

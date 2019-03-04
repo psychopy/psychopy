@@ -27,7 +27,7 @@ monitor_devices:
         event_buffer_length: 512
         # Tell Eyegaze whether to display the full 640x480 camera image in a separate window.
         display_camera_image: True
-        # Tell Eyegaze where to display the camera image window on the scrren.
+        # Tell Eyegaze where to display the camera image window on the screen.
         # Options are UPPER_RIGHT or UPPER_LEFT
         camera_image_screen_position: UPPER_RIGHT
         # connection_type: Possible values for the EyeGaze are one of three config lists:

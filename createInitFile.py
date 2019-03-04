@@ -5,42 +5,51 @@
 """
 
 from __future__ import absolute_import, print_function
-from past.builtins import str
+from setuptools.config import read_configuration
 import os, copy, platform, subprocess
 thisLoc = os.path.split(__file__)[0]
+# import versioneer
+# get version from file
+with open('version') as f:
+    version = f.read().strip()
 
 
 def createInitFile(dist=None, version=None, sha=None):
-    """Write the version file to psychopy/version.py
+    """Create psychopy/__init__.py
 
     :param:`dist` can be:
         None:
             writes __version__
         'sdist':
-            for python setup.py sdist - writes __version__ and git id (__git_sha__)
+            for python setup.py sdist - writes git id (__git_sha__)
         'bdist':
-            for python setup.py bdist - writes __version__, git id (__git_sha__)
+            for python setup.py bdist - writes git id (__git_sha__)
             and __build_platform__
     """
     # get default values if None
     if version is None:
         with open(os.path.join(thisLoc,'version')) as f:
-            version = f.read()
-            version = version.replace("\n", "")
+            version = f.read().strip()
     if sha is None:
         sha = _getGitShaString(dist)
     platformStr = _getPlatformString(dist)
 
-    infoDict = {'version' : version,
-                'shaStr' : sha,
-                'platform' : platformStr,
-                }
+    metadata = read_configuration('setup.cfg')['metadata']
+    infoDict = {'version': version,
+                'author': metadata['author'],
+                'author_email': metadata['author_email'],
+                'maintainer_email': metadata['maintainer_email'],
+                'url': metadata['url'],
+                'download_url': metadata['download_url'],
+                'license': metadata['license'],
+                'shaStr': sha,
+                'platform': platformStr}
 
     # write it
     with open(os.path.join(thisLoc, 'psychopy','__init__.py'), 'w') as f:
         outStr = template.format(**infoDict)
         f.write(outStr)
-    print('wrote init for', version, sha)
+    print('wrote init for ', version, sha)
     # and return it
     return outStr
 
@@ -48,7 +57,7 @@ template = """#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2015 Jonathan Peirce
+# Copyright (C) 2018 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
 # --------------------------------------------------------------------------
@@ -58,15 +67,13 @@ template = """#!/usr/bin/env python
 import os
 import sys
 
-# version info for PsychoPy
 __version__ = '{version}'
-__license__ = 'GNU GPLv3 (or more recent equivalent)'
-__author__ = 'Jonathan Peirce'
-__author_email__ = 'jon@peirce.org.uk'
-__maintainer_email__ = 'psychopy-dev@googlegroups.com'
-__users_email__ = 'psychopy-users@googlegroups.com'
-__url__ = 'http://www.psychopy.org'
-__downloadUrl__ = 'https://github.com/psychopy/psychopy/releases/'
+__license__ = '{license}'
+__author__ = '{author}'
+__author_email__ = '{author_email}'
+__maintainer_email__ = '{maintainer_email}'
+__url__ = '{url}'
+__download_url__ = '{download_url}'
 __git_sha__ = '{shaStr}'
 __build_platform__ = '{platform}'
 
@@ -94,6 +101,7 @@ if 'installing' not in locals():
         sys.path.append(pathName)
     
     from psychopy.tools.versionchooser import useVersion, ensureMinimal
+
 """
 
 
@@ -109,7 +117,9 @@ def _getGitShaString(dist=None, sha=None):
         repo_commit, _ = proc.communicate()
         del proc  # to get rid of the background process
         if repo_commit:
-            shaStr = str(repo_commit.strip())  # remove final linefeed
+            shaStr = "{}".format(repo_commit.strip())
+            if shaStr.startswith("b'"):
+                shaStr = shaStr.replace("b'", "").replace("'", "")
         else:
             shaStr = 'n/a'
         #this looks neater but raises errors on win32

@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2015 Jonathan Peirce
+# Copyright (C) 2018 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
 """Dialog classes for the Builder
@@ -11,7 +11,6 @@
 from __future__ import absolute_import, division, print_function
 
 from builtins import str
-import re
 import sys
 
 from pkg_resources import parse_version
@@ -24,14 +23,18 @@ try:
 except ImportError:
     from wx.adv import PseudoDC
 
+if parse_version(wx.__version__) < parse_version('4.0.3'):
+    wx.NewIdRef = wx.NewId
+
 from psychopy import logging, data
-from psychopy.app.utils import FileDropTarget
 from .dialogs import DlgLoopProperties
 from .. import dialogs
 from psychopy.localization import _translate
 
 
 canvasColor = [200, 200, 200]  # in prefs? ;-)
+disabledRoutineFill = wx.Colour(127, 127, 127, 100)
+disabledRoutineEdge = wx.Colour(127, 127, 127, 255)
 routineTimeColor = wx.Colour(50, 100, 200, 200)
 staticTimeColor = wx.Colour(200, 50, 50, 100)
 nonSlipFill = wx.Colour(150, 200, 150, 255)
@@ -46,7 +49,6 @@ codeSyntaxOkay = wx.Colour(220, 250, 220, 255)  # light green
 
 
 class FlowPanel(wx.ScrolledWindow):
-
     def __init__(self, frame, id=-1):
         """A panel that shows how the routines will fit together
         """
@@ -92,13 +94,14 @@ class FlowPanel(wx.ScrolledWindow):
         # the component (loop or routine)
         self.componentFromID = {}
         self.contextMenuLabels = {
-            'remove': _translate('remove'),
-            'rename': _translate('rename')}
-        self.contextMenuItems = ['remove', 'rename']
+            'rename': _translate('rename'),
+            'toggleDisabled': _translate('disable'),
+            'remove': _translate('remove')}
+        self.contextMenuItems = ['rename', 'toggleDisabled', 'remove']
         self.contextItemFromID = {}
         self.contextIDFromItem = {}
         for item in self.contextMenuItems:
-            id = wx.NewId()
+            id = wx.NewIdRef()
             self.contextItemFromID[id] = item
             self.contextIDFromItem[item] = id
 
@@ -132,7 +135,7 @@ class FlowPanel(wx.ScrolledWindow):
         self.Bind(wx.EVT_BUTTON, self.setLoopPoint1, self.btnInsertLoop)
         self.Bind(wx.EVT_PAINT, self.OnPaint)
 
-        idClear = wx.NewId()
+        idClear = wx.NewIdRef()
         self.Bind(wx.EVT_MENU, self.clearMode, id=idClear)
         aTable = wx.AcceleratorTable([
             (wx.ACCEL_NORMAL, wx.WXK_ESCAPE, idClear)
@@ -186,12 +189,12 @@ class FlowPanel(wx.ScrolledWindow):
             "Select a Routine to insert (Esc to exit)"))
         menu = wx.Menu()
         self.routinesFromID = {}
-        id = wx.NewId()
+        id = wx.NewIdRef()
         menu.Append(id, '(new)')
         self.routinesFromID[id] = '(new)'
         menu.Bind(wx.EVT_MENU, self.insertNewRoutine, id=id)
         for routine in self.frame.exp.routines:
-            id = wx.NewId()
+            id = wx.NewIdRef()
             menu.Append(id, routine)
             self.routinesFromID[id] = routine
             menu.Bind(wx.EVT_MENU, self.onInsertRoutineSelect, id=id)
@@ -473,8 +476,17 @@ class FlowPanel(wx.ScrolledWindow):
             self.removeComponent(component, compID)
             self.frame.addToUndoStack(
                 "REMOVE `%s` from Flow" % component.params['name'])
-        if op == 'rename':
+        elif op == 'rename':
             self.frame.renameRoutine(component)
+        elif op == 'toggleDisabled':
+            isNowDisabled = self.frame.toggleRoutineDisabled()
+            if isNowDisabled:
+                menuEntry = _translate('enable')
+            else:
+                menuEntry = _translate('disable')
+
+            self.contextMenuLabels['toggleDisabled'] = menuEntry
+            self.clearMode()  # Redraw.
 
     def removeComponent(self, component, compID):
         """Remove either a Routine or a Loop from the Flow
@@ -589,7 +601,7 @@ class FlowPanel(wx.ScrolledWindow):
 
         # step through components in flow, get spacing from text size, etc
         currX = self.linePos[0]
-        lineId = wx.NewId()
+        lineId = wx.NewIdRef()
         pdc.DrawLine(x1=self.linePos[0] - gap, y1=self.linePos[1],
                      x2=self.linePos[0], y2=self.linePos[1])
         # NB the loop is itself the key, value is further info about it
@@ -666,7 +678,7 @@ class FlowPanel(wx.ScrolledWindow):
         for n, pos in enumerate(posList):
             if n >= len(self.entryPointPosList):
                 # draw for first time
-                id = wx.NewId()
+                id = wx.NewIdRef()
                 self.entryPointIDlist.append(id)
                 self.pdc.SetId(id)
                 self.pdc.SetBrush(wx.Brush(wx.Colour(0, 0, 0, 255)))
@@ -713,7 +725,7 @@ class FlowPanel(wx.ScrolledWindow):
 
     def drawLineEnd(self, dc, pos):
         # draws arrow at end of timeline
-        # tmpId = wx.NewId()
+        # tmpId = wx.NewIdRef()
         # dc.SetId(tmpId)
         dc.SetBrush(wx.Brush(wx.Colour(0, 0, 0, 255)))
         dc.SetPen(wx.Pen(wx.Colour(0, 0, 0, 255)))
@@ -723,7 +735,7 @@ class FlowPanel(wx.ScrolledWindow):
     def drawLoopEnd(self, dc, pos, downwards=True):
         # define the right side of a loop but draw nothing
         # idea: might want an ID for grabbing and relocating the loop endpoint
-        tmpId = wx.NewId()
+        tmpId = wx.NewIdRef()
         dc.SetId(tmpId)
         # dc.SetBrush(wx.Brush(wx.Colour(0,0,0, 250)))
         # dc.SetPen(wx.Pen(wx.Colour(0,0,0, 255)))
@@ -740,7 +752,7 @@ class FlowPanel(wx.ScrolledWindow):
 
     def drawLoopStart(self, dc, pos, downwards=True):
         # draws direction arrow on left side of a loop
-        tmpId = wx.NewId()
+        tmpId = wx.NewIdRef()
         dc.SetId(tmpId)
         dc.SetBrush(wx.Brush(wx.Colour(0, 0, 0, 250)))
         dc.SetPen(wx.Pen(wx.Colour(0, 0, 0, 255)))
@@ -779,7 +791,10 @@ class FlowPanel(wx.ScrolledWindow):
             font.SetPointSize(1000 / self.dpi - fontSizeDelta)
 
         maxTime, nonSlip = routine.getMaxTime()
-        if nonSlip:
+        if routine.params['disabled']:
+            rgbFill = disabledRoutineFill
+            rgbEdge = disabledRoutineEdge
+        elif nonSlip:
             rgbFill = nonSlipFill
             rgbEdge = nonSlipEdge
         else:
@@ -826,7 +841,7 @@ class FlowPanel(wx.ScrolledWindow):
             up = +1
 
         # draw loop itself, as transparent rect with curved corners
-        tmpId = wx.NewId()
+        tmpId = wx.NewIdRef()
         dc.SetId(tmpId)
         # extra distance, in both h and w for curve
         curve = (6, 11, 15)[self.appData['flowSize']]

@@ -3,10 +3,10 @@
 
 """Stimulus object for drawing arbitrary bitmap carriers with an arbitrary
 second order envelope carrier and envelope can vary independently for
-orienation, frequencyand phase. Also does beat stimuli. """
+orientation, frequencyand phase. Also does beat stimuli. """
 
 # Part of the PsychoPy library
-# Copyright (C) 2015 Jonathan Peirce
+# Copyright (C) 2018 Jonathan Peirce
 # some code provided by Andrew Schofield
 # Distributed under the terms of the GNU General Public License (GPL).
 
@@ -287,7 +287,7 @@ class NoiseStim(GratingStim):
         
     @attributeSetter
     def noiseBWO(self, value):
-        """Orientaion bandwidth for Gabor noise, full width at half height in degrees
+        """Orientation bandwidth for Gabor noise, full width at half height in degrees
         """
         
         self.__dict__['noiseBWO'] = value

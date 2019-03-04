@@ -4,7 +4,7 @@
 """Create geometric (vector) shapes by defining vertex locations."""
 
 # Part of the PsychoPy library
-# Copyright (C) 2015 Jonathan Peirce
+# Copyright (C) 2018 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL)
 
 from __future__ import absolute_import, print_function
@@ -95,7 +95,9 @@ class BaseShapeStim(BaseVisualStim, ColorMixin, ContainerMixin):
                  fillRGB=None,
                  name=None,
                  autoLog=None,
-                 autoDraw=False):
+                 autoDraw=False,
+                 color=None,
+                 colorSpace=None):
         """ """  # all doc is in the attributes
         # what local vars are defined (these are the init params) for use by
         # __repr__
@@ -106,9 +108,6 @@ class BaseShapeStim(BaseVisualStim, ColorMixin, ContainerMixin):
         # later
         super(BaseShapeStim, self).__init__(win, units=units,
                                             name=name, autoLog=False)
-        self.__dict__['setColor'] = None
-        self.__dict__['color'] = None
-        self.__dict__['colorSpace'] = None
 
         self.contrast = float(contrast)
         self.opacity = float(opacity)
@@ -118,23 +117,35 @@ class BaseShapeStim(BaseVisualStim, ColorMixin, ContainerMixin):
         self.interpolate = interpolate
 
         # Color stuff
-        self.useShaders = False  # don't ned to combine textures with colors
+        self.useShaders = False  # don't need to combine textures with colors
+        # set color first but then potentially override
+        self.__dict__['colorSpace'] = colorSpace
         self.__dict__['lineColorSpace'] = lineColorSpace
         self.__dict__['fillColorSpace'] = fillColorSpace
 
-        if lineRGB != None:
+        if lineRGB is not None:
             logging.warning("Use of rgb arguments to stimuli are deprecated."
                             " Please use color and colorSpace args instead")
             self.setLineColor(lineRGB, colorSpace='rgb', log=None)
+        elif color is not None and lineColor is None:
+            pass  # user has set color but not lineColor. Don't override that
         else:
             self.setLineColor(lineColor, colorSpace=lineColorSpace, log=None)
 
-        if fillRGB != None:
+        if fillRGB is not None:
             logging.warning("Use of rgb arguments to stimuli are deprecated."
                             " Please use color and colorSpace args instead")
             self.setFillColor(fillRGB, colorSpace='rgb', log=None)
+        elif color is not None and fillColor is None:
+            pass  # user has set color but not fillColor. Don't override that
         else:
             self.setFillColor(fillColor, colorSpace=fillColorSpace, log=None)
+
+        # if the fillColor and lineColor are not set but color is
+        # then the user probably wants color applied to both
+        if (lineColor==(1.0, 1.0, 1.0) and fillColor is None
+                and color is not None):
+            self.color = color
 
         # Other stuff
         self.depth = depth
@@ -180,6 +191,11 @@ class BaseShapeStim(BaseVisualStim, ColorMixin, ContainerMixin):
         self.__dict__['interpolate'] = value
 
     @attributeSetter
+    def color(self, color):
+        self.fillColor = color
+        self.lineColor = color
+
+    @attributeSetter
     def fillColor(self, color):
         """Sets the color of the shape fill.
 
@@ -214,13 +230,11 @@ class BaseShapeStim(BaseVisualStim, ColorMixin, ContainerMixin):
         """
         self.__dict__['lineColorSpace'] = value
 
-    def setColor(self, color, colorSpace=None, operation=''):
-        """For ShapeStim use :meth:`~ShapeStim.lineColor` or
-        :meth:`~ShapeStim.fillColor`
+    def setColor(self, color, colorSpace=None, operation='', log=None):
+        """Sets both the line and fill to be the same color
         """
-        msg = ('ShapeStim does not support setColor method. '
-               'Please use setFillColor or setLineColor instead')
-        raise AttributeError(msg)
+        self.setLineColor(color, colorSpace, operation, log)
+        self.setFillColor(color, colorSpace, operation, log)
 
     def setLineRGB(self, value, operation=''):
         """DEPRECATED since v1.60.05: Please use :meth:`~ShapeStim.lineColor`

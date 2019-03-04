@@ -20,7 +20,7 @@ Timing
 -------
 
 - 48 bit MCU usec timer, so MCU clock rolls every 8.9 years.
-- Uses Cristian’s Algorithm (http://en.wikipedia.org/wiki/Cristian’s_algorithm)
+- Uses Cristian's Algorithm (http://en.wikipedia.org/wiki/Cristian's_algorithm)
   to convert MCU times to ioHub times, correcting for offset and drift between
   the time bases.
 
@@ -79,7 +79,7 @@ getTime = Computer.getTime
 class MCU(Device):
     """"""
     DEVICE_TIMEBASE_TO_SEC = 1.0
-    _newDataTypes = [('serial_port', np.str, 32),
+    _newDataTypes = [('serial_port', '|S32'),
                      ('time_sync_interval', np.float32)]
     EVENT_CLASS_NAMES = [
         'AnalogInputEvent',

@@ -76,13 +76,16 @@ psychopy/tests/*Out.*
 psychopy/tests/data/*_local.png
 psychopy/tests/*htmlcov*
 
+# compile from psychopy/changelog.txt
 docs/source/changelog.rst
+docs/source/changelog.md
 
 /iohub_docs/*.bat
 /iohub_docs/*.txt
 
 sitePrefs.cfg
 appData.cfg
+gource_psychopy.mkv
 
 *lastrun.py
 *.iohpid

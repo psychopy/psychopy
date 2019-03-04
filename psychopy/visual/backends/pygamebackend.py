@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2015 Jonathan Peirce
+# Copyright (C) 2018 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
 """A Backend class defines the core low-level functions required by a Window
@@ -147,3 +147,8 @@ class PygameBackend(BaseBackend):
         # use pygame's own function for this
         pygame.display.set_gamma_ramp(
                 gammaRamp[:, 0], gammaRamp[:, 1], gammaRamp[:, 2])
+
+    def setFullScr(self, value):
+        """Sets the window to/from full-screen mode"""
+        raise NotImplementedError("Toggling fullscreen mode is not currently "
+                             "supported on pygame windows")

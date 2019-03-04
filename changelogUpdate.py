@@ -18,10 +18,10 @@ def repl_commit(m):
     g = m.group(1)
     return g.replace('#', '`commit:')[:18] +  " <https://github.com/psychopy/psychopy/commit/" + g.strip(' (#') + ">`_"
 
-def repl_blue(m):
+def repl_noncompat(m):
     g = m.group(1)
     g = g.replace('`', "'")
-    return g.replace('CHANGE', ':blue:`CHANGE') + "`\n"
+    return g.replace('CHANGE', ':noncompat:`CHANGE') + "`\n"
 
 # raw .txt form of changelog:
 txt = open(input_path, "rU").read()
@@ -35,16 +35,16 @@ hashtag = re.compile(r"([ (]#[0-9a-f]{6,})\b")
 print("found %i commit tags" %(len(hashtag.findall(txt_hash))))
 txt_hash = hashtag.sub(repl_commit, txt_hash)
 
-blue = re.compile(r"(CHANGE.*)\n")
-print("found %i CHANGE" %(len(blue.findall(txt_hash))))
-txt_hashblue = blue.sub(repl_blue, txt_hash)
+noncompat = re.compile(r"(CHANGE.*)\n")
+print("found %i CHANGE" %(len(noncompat.findall(txt_hash))))
+txt_hash_noncompat = noncompat.sub(repl_noncompat, txt_hash)
 
 # one-off specific .rst directives:
-newRST = txt_hashblue.replace('.. note::', """.. raw:: html
+newRST = txt_hash_noncompat.replace('.. note::', """.. raw:: html
 
-    <style> .blue {color:blue} </style>
+    <style> .noncompat {color:red} </style>
 
-.. role:: blue
+.. role:: noncompat
 
 .. note::""", 1)
 

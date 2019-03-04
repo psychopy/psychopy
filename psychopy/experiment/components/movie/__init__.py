@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2015 Jonathan Peirce
+# Copyright (C) 2018 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
 from __future__ import absolute_import, print_function
@@ -44,6 +44,7 @@ class MovieComponent(BaseVisualComponent):
         self.url = "http://www.psychopy.org/builder/components/movie.html"
         # comes immediately after name and timing params
         self.order = ['forceEndRoutine']
+        self.targets = ['PsychoPy', 'PsychoJS']
 
         # params
         self.params['stopVal'].hint = _translate(
@@ -137,6 +138,37 @@ class MovieComponent(BaseVisualComponent):
             # create the code using init vals
             self._writeCreationCode(buff, useInits=True)
 
+    def writeInitCodeJS(self, buff):
+        inits = getInitVals(self.params)
+        noAudio = '{}'.format(inits['No audio'].val).lower()
+        for param in inits:
+            if inits[param] in ['', None, 'None', 'none']:
+                inits[param] = 'undefined'
+
+        code = "{name}Clock = new util.Clock();\n".format(**inits)
+        buff.writeIndented(code)
+
+        code = ("{name} = new visual.MovieStim({{\n"
+                "  win: psychoJS.window,\n"
+                "  name: '{name}',\n"
+                "  movie: {movie},\n"
+                "  units: {units},\n"
+                "  pos: {pos},\n"
+                "  size: {size},\n"
+                "  ori: {ori},\n"
+                "  opacity: {opacity},\n"
+                "  loop: false,\n"
+                "  noAudio: {noAudio},\n"
+                "  }});\n").format(name = inits['name'],
+                                movie = inits['movie'],
+                                units = inits['units'],
+                                pos = inits['pos'],
+                                size = inits['size'],
+                                ori = inits['ori'],
+                                opacity = inits['opacity'],
+                                noAudio=noAudio)
+        buff.writeIndentedLines(code)
+
     def writeRoutineStartCode(self, buff):
         # If needed then use _writeCreationCode()
         # Movie could be created here or in writeInitCode()
@@ -177,4 +209,41 @@ class MovieComponent(BaseVisualComponent):
             code = ("if %s.status == FINISHED:  # force-end the routine\n"
                     "    continueRoutine = False\n" %
                     self.params['name'])
+            buff.writeIndentedLines(code)
+
+    def writeFrameCodeJS(self, buff):
+        """Write the code that will be called every frame
+        """
+        buff.writeIndented("\n")
+        buff.writeIndented("// *{name}* updates\n".format(**self.params))
+        # writes an if statement to determine whether to draw etc
+        self.writeStartTestCodeJS(buff)
+
+        buff.writeIndentedLines("{name}.setAutoDraw(true);\n".format(**self.params))
+        # because of the 'if' statement of the time test
+        buff.setIndentLevel(-1, relative=True)
+        buff.writeIndented("}\n\n")
+        if self.params['stopVal'].val not in ['', None, -1, 'None']:
+            # writes an if statement to determine whether to draw etc
+            self.writeStopTestCodeJS(buff)
+            buff.writeIndentedLines("{name}.setAutoDraw(false);\n".format(**self.params))
+            # to get out of the if statement
+            buff.setIndentLevel(-1, relative=True)
+            buff.writeIndented("}\n\n")
+        # set parameters that need updating every frame
+        # do any params need updating? (this method inherited from _base)
+        if self.checkNeedToUpdate('set every frame'):
+            code = ("if ({name}.status === PsychoJS.Status.STARTED)  {{"
+                    "  // only update if being drawn\n").format(**self.params)
+            buff.writeIndentedLines(code)
+
+            buff.setIndentLevel(+1, relative=True)  # to enter the if block
+            self.writeParamUpdatesJS(buff, 'set every frame')
+            buff.setIndentLevel(-1, relative=True)  # to exit the if block
+            buff.writeIndentedLines("}\n")
+        # do force end of trial code
+        if self.params['forceEndRoutine'].val is True:
+            code = ("if ({name}.status === FINISHED) {{  // force-end the routine\n"
+                    "    continueRoutine = false;\n"
+                    "}}\n".format(**self.params))
             buff.writeIndentedLines(code)

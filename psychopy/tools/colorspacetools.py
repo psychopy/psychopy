@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2015 Jonathan Peirce
+# Copyright (C) 2018 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
 """Functions and classes related to color space conversion
@@ -38,7 +38,7 @@ def unpackColors(colors):
     if orig_dim == 1 and orig_shape[0] == 3:
         colors = numpy.array(colors, ndmin=2)
     elif orig_dim == 2 and orig_shape[1] == 3:
-        pass
+        pass  # NOP, already in correct format
     elif orig_dim == 3 and orig_shape[2] == 3:
         colors = numpy.reshape(colors, (-1, 3))
     else:
@@ -121,30 +121,29 @@ def cielab2rgb(lab,
                transferFunc=None,
                clip=False,
                **kwargs):
-    """Transform CIEL*a*b* (1976) color space coordinates to RGB tristimulus
+    """Transform CIE L*a*b* (1976) color space coordinates to RGB tristimulus
     values.
 
-    CIEL*a*b* are first transformed into CIE XYZ (1931) color space, then the
+    CIE L*a*b* are first transformed into CIE XYZ (1931) color space, then the
     RGB conversion is applied. By default, the sRGB conversion matrix is used
     with a reference D65 white point. You may specify your own RGB conversion
     matrix and white point (in CIE XYZ) appropriate for your display.
 
     Parameters
     ----------
-
-    :param lab: tuple, list or ndarray
-        1-, 2-, 3-D vector of CIEL*a*b* coordinates to convert. The last
+    lab : tuple, list or ndarray
+        1-, 2-, 3-D vector of CIE L*a*b* coordinates to convert. The last
         dimension should be length-3 in all cases specifying a single
         coordinate.
-    :param whiteXYZ: tuple, list or ndarray
+    whiteXYZ : tuple, list or ndarray
         1-D vector coordinate of the white point in CIE-XYZ color space. Must be
         the same white point needed by the conversion matrix. The default
         white point is D65 if None is specified, defined as:
             X, Y, Z = 0.9505, 1.0000, 1.0890
-    :param conversionMatrix: tuple, list or ndarray
+    conversionMatrix : tuple, list or ndarray
         3x3 conversion matrix to transform CIE-XYZ to linear RGB values. The
         default matrix is sRGB with a D65 white point if None is specified.
-    :param transferFunc: pyfunc or None
+    transferFunc : pyfunc or None
         Signature of the transfer function to use. If None, values are kept as
         linear RGB (it's assumed your display is gamma corrected via the
         hardware CLUT). The TF must be appropriate for the conversion matrix
@@ -152,14 +151,17 @@ def cielab2rgb(lab,
         be passed by specifying them as keyword arguments. Gamma functions that
         come with PsychoPy are 'srgbTF' and 'rec709TF', see their docs for more
         information.
-    :param clip: boolean
+    clip : boolean
         Make all output values representable by the display. However, colors
         outside of the display's gamut may not be valid!
-    :return: array of RGB tristimulus values, or None
+
+    Returns
+    -------
+    ndarray
+        array of RGB tristimulus values
 
     Example
     -------
-
     import psychopy.tools.colorspacetools as cst
     cielabColor = (53.0, -20.0, 0.0)  # greenish color (L*, a*, b*)
     # convert a CIEL*a*b* color to signed RGB with sRGB transfer function
@@ -225,6 +227,73 @@ def cielab2rgb(lab,
         rgb_out = numpy.reshape(rgb_out, orig_shape)
 
     return rgb_out * 2.0 - 1.0
+
+
+def cielch2rgb(lch,
+               whiteXYZ=None,
+               conversionMatrix=None,
+               transferFunc=None,
+               clip=False,
+               **kwargs):
+    """Transform CIE L*C*h* to CIE L*a*b (1976) color space, then convert the
+    coordinates to RGB tristimulus values. The hue component (h*) is expected to
+    be in degrees.
+
+    Parameters
+    ----------
+    lch : tuple, list or ndarray
+        1-, 2-, 3-D vector of CIE L*C*h* coordinates to convert. The last
+        dimension should be length-3 in all cases specifying a single
+        coordinate. The hue angle *h is expected in degrees.
+    whiteXYZ : tuple, list or ndarray
+        1-D vector coordinate of the white point in CIE-XYZ color space. Must be
+        the same white point needed by the conversion matrix. The default
+        white point is D65 if None is specified, defined as:
+            X, Y, Z = 0.9505, 1.0000, 1.0890
+    conversionMatrix : tuple, list or ndarray
+        3x3 conversion matrix to transform CIE-XYZ to linear RGB values. The
+        default matrix is sRGB with a D65 white point if None is specified.
+    transferFunc : pyfunc or None
+        Signature of the transfer function to use. If None, values are kept as
+        linear RGB (it's assumed your display is gamma corrected via the
+        hardware CLUT). The TF must be appropriate for the conversion matrix
+        supplied (default is sRGB). Additional arguments to 'transferFunc' can
+        be passed by specifying them as keyword arguments. Gamma functions that
+        come with PsychoPy are 'srgbTF' and 'rec709TF', see their docs for more
+        information.
+    clip : boolean
+        Make all output values representable by the display. However, colors
+        outside of the display's gamut may not be valid!
+
+    Returns
+    -------
+    ndarray
+        array of RGB tristimulus values
+
+    """
+    lch, orig_shape, orig_dim = unpackColors(lch)
+
+    # convert values to L*a*b*
+    lab = numpy.empty(lch.shape, dtype=lch.dtype)
+    lab[:, 0] = lch[:, 0]
+    lab[:, 1] = lch[:, 1] * numpy.math.cos(numpy.math.radians(lch[:, 2]))
+    lab[:, 2] = lch[:, 1] * numpy.math.sin(numpy.math.radians(lch[:, 2]))
+
+    # convert to RGB using the CIE L*a*b* function
+    rgb_out = cielab2rgb(lab,
+                         whiteXYZ=whiteXYZ,
+                         conversionMatrix=conversionMatrix,
+                         transferFunc=transferFunc,
+                         clip=clip,
+                         **kwargs)
+
+    # make the output match the dimensions/shape of input
+    if orig_dim == 1:
+        rgb_out = rgb_out[0]
+    elif orig_dim == 3:
+        rgb_out = numpy.reshape(rgb_out, orig_shape)
+
+    return rgb_out  # don't do signed RGB conversion, done by cielab2rgb
 
 
 def dkl2rgb(dkl, conversionMatrix=None):

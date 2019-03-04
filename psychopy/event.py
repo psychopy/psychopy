@@ -6,7 +6,7 @@ pygame to be installed).
 See demo_mouse.py and i{demo_joystick.py} for examples
 """
 # Part of the PsychoPy library
-# Copyright (C) 2015 Jonathan Peirce
+# Copyright (C) 2018 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
 # 01/2011 modified by Dave Britton to get mouse event timing
@@ -157,13 +157,16 @@ def _onPygletText(text, emulated=False):
     global useText
     if not useText:  # _onPygletKey has handled the input
         return
+    # This is needed because sometimes the execution
+    # sequence is messed up (somehow)
+    useText = False
     # capture when the key was pressed:
     keyTime = psychopy.core.getTime()
     if emulated:
         keySource = 'EmulatedKey'
     else:
         keySource = 'KeyPress'
-    _keyBuffer.append((text, keyTime))
+    _keyBuffer.append((text.lower(), lastModifiers, keyTime))
     logging.data("%s: %s" % (keySource, text))
 
 
@@ -188,7 +191,7 @@ def _onPygletKey(symbol, modifiers, emulated=False):
     M Cutone 2018: Added GLFW backend support.
 
     """
-    global useText
+    global useText, lastModifiers
 
     keyTime = psychopy.core.getTime()  # capture when the key was pressed
     if emulated:
@@ -207,6 +210,7 @@ def _onPygletKey(symbol, modifiers, emulated=False):
         # to handle the input.
         if 'user_key' in thisKey:
             useText = True
+            lastModifiers = modifiers
             return
         useText = False
         thisKey = thisKey.lstrip('_').lstrip('NUM_')
@@ -221,14 +225,16 @@ def _onPygletKey(symbol, modifiers, emulated=False):
 
 
 def _process_global_event_key(key, modifiers):
-    # The statement can be simplified to:
-    # `if modifiers == 0` once PR #1373 is merged.
-    if (modifiers is None) or (modifiers == 0):
+    if modifiers == 0:
         modifier_keys = ()
     else:
         modifier_keys = ['%s' % m.strip('MOD_').lower() for m in
                          (pyglet.window.key.modifiers_string(modifiers)
                           .split('|'))]
+
+        # Ignore Num Lock.
+        if 'numlock' in modifier_keys:
+            modifier_keys.remove('numlock')
 
     index_key = globalKeys._gen_index_key((key, modifier_keys))
 
@@ -824,7 +830,7 @@ class Mouse(object):
         """Returns `True` if the mouse is currently inside the shape and
         one of the mouse buttons is pressed. The default is that any of
         the 3 buttons can indicate a click; for only a left-click,
-        specifiy `buttons=[0]`::
+        specify `buttons=[0]`::
 
             if mouse.isPressedIn(shape):
             if mouse.isPressedIn(shape, buttons=[0]):  # left-clicks only
@@ -984,9 +990,9 @@ class _GlobalEventKeys(MutableMapping):
 
     _valid_keys = set(string.ascii_lowercase + string.digits
                       + string.punctuation + ' \t')
-    _valid_keys.update(['escape', 'left', 'right', 'up', 'down'])
+    _valid_keys.update(['escape', 'left', 'right', 'up', 'down', 'space'])
 
-    _valid_modifiers = {'shift', 'ctrl', 'alt', 'capslock', 'numlock',
+    _valid_modifiers = {'shift', 'ctrl', 'alt', 'capslock',
                         'scrolllock', 'command', 'option', 'windows'}
 
     def __init__(self):
@@ -1071,8 +1077,10 @@ class _GlobalEventKeys(MutableMapping):
 
         modifiers : collection of strings
             Modifier keys. Valid keys are:
-            'shift', 'ctrl', 'alt' (not on macOS), 'capslock', 'numlock',
+            'shift', 'ctrl', 'alt' (not on macOS), 'capslock',
             'scrolllock', 'command' (macOS only), 'option' (macOS only)
+
+            Num Lock is not supported.
 
         name : string
             The name of the event. Will be used for logging. If None,
@@ -1164,6 +1172,7 @@ def _onGLFWKey(*args, **kwargs):
     _keyBuffer.append((key_name, modifiers, keyTime))  # tuple
     logging.data("%s: %s" % (keySource, key_name))
 
+
 def _onGLFWText(*args, **kwargs):
     """Handle unicode character events if _onGLFWKey() cannot.
 
@@ -1180,10 +1189,10 @@ def _onGLFWText(*args, **kwargs):
     global useText
     if not useText:  # _onPygletKey has handled the input
         return
-    print("got funny char")
     keySource = 'KeyPress'
     _keyBuffer.append((text, keyTime))
     logging.data("%s: %s" % (keySource, text))
+
 
 def _onGLFWMouseButton(*args, **kwargs):
     """Callback for mouse press events. Both press and release actions are
@@ -1218,6 +1227,7 @@ def _onGLFWMouseButton(*args, **kwargs):
         elif button == glfw.MOUSE_BUTTON_RIGHT:
             mouseButtons[2] = 0
 
+
 def _onGLFWMouseScroll(*args, **kwargs):
     """Callback for mouse scrolling events. For most computer mice with scroll
     wheels, only the vertical (Y-offset) is relevant.
@@ -1229,17 +1239,20 @@ def _onGLFWMouseScroll(*args, **kwargs):
     msg = "Mouse: wheel shift=(%i,%i)"
     logging.data(msg % (x_offset, y_offset))
 
+
 def _getGLFWJoystickButtons(*args, **kwargs):
     """
     :return:
     """
     pass
 
+
 def _getGLFWJoystickAxes(*args, **kwargs):
     """
     :return:
     """
     pass
+
 
 if havePyglet:
     globalKeys = _GlobalEventKeys()

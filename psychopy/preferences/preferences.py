@@ -7,9 +7,30 @@ from builtins import object
 import os
 import sys
 import platform
-import configobj
-from configobj import ConfigObj
-import validate
+from psychopy.constants import PY3
+from pkg_resources import parse_version
+
+
+try:
+    import configobj
+    if (PY3 and sys.version_info.minor >= 7 and
+            parse_version(configobj.__version__) < parse_version('5.1.0')):
+        raise ImportError('Installed configobj does not support Python 3.7+')
+    _haveConfigobj = True
+except ImportError:
+    _haveConfigobj = False
+
+
+if _haveConfigobj:  # Use the "global" installation.
+    from configobj import ConfigObj
+    try:
+        from configobj import validate
+    except ImportError:  # Older versions of configobj
+        import validate
+else:  # Use our contrib package if configobj is not installed or too old.
+    from psychopy.contrib import configobj
+    from psychopy.contrib.configobj import ConfigObj
+    from psychopy.contrib.configobj import validate
 
 join = os.path.join
 
@@ -20,7 +41,7 @@ class Preferences(object):
     or, within a script, preferences can be controlled like this::
 
         import psychopy
-        psychopy.prefs.general['audioLib'] = ['pyo','pygame']
+        psychopy.prefs.hardware['audioLib'] = ['pyo','pygame']
         print(prefs)
         # prints the location of the user prefs file and all the current vals
 
@@ -77,6 +98,7 @@ class Preferences(object):
         thisFileAbsPath = os.path.abspath(__file__)
         prefSpecDir = os.path.split(thisFileAbsPath)[0]
         dirPsychoPy = os.path.split(prefSpecDir)[0]
+        exePath = sys.executable
 
         # path to Resources (icons etc)
         dirApp = join(dirPsychoPy, 'app')
@@ -91,16 +113,21 @@ class Preferences(object):
         self.paths['demos'] = join(dirPsychoPy, 'demos')
         self.paths['resources'] = dirResources
         self.paths['tests'] = join(dirPsychoPy, 'tests')
+        # path to libs/frameworks
+        if 'PsychoPy2.app/Contents' in exePath:
+            self.paths['libs'] = exePath.replace("MacOS/python", "Frameworks")
+        else:
+            self.paths['libs'] = ''  # we don't know where else to look!
 
         if sys.platform == 'win32':
             self.paths['prefsSpecFile'] = join(prefSpecDir, 'Windows.spec')
             self.paths['userPrefsDir'] = join(os.environ['APPDATA'],
-                                              'psychopy2')
+                                              'psychopy3')
         else:
             self.paths['prefsSpecFile'] = join(prefSpecDir,
                                                platform.system() + '.spec')
             self.paths['userPrefsDir'] = join(os.environ['HOME'],
-                                              '.psychopy2')
+                                              '.psychopy3')
 
         # avoid silent fail-to-launch-app if bad permissions:
         if os.path.exists(self.paths['userPrefsDir']):
@@ -114,7 +141,7 @@ class Preferences(object):
                 open(tmp).read()
                 os.remove(tmp)
             except Exception:  # OSError, WindowsError, ...?
-                msg = 'PsychoPy2 error: need read-write permissions for `%s`'
+                msg = 'PsychoPy3 error: need read-write permissions for `%s`'
                 sys.exit(msg % self.paths['userPrefsDir'])
 
     def loadAll(self):
@@ -144,6 +171,7 @@ class Preferences(object):
         self.app = self.userPrefsCfg['app']
         self.coder = self.userPrefsCfg['coder']
         self.builder = self.userPrefsCfg['builder']
+        self.hardware = self.userPrefsCfg['hardware']
         self.connections = self.userPrefsCfg['connections']
         self.keys = self.userPrefsCfg['keyBindings']
         self.appData = self.appDataCfg

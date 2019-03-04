@@ -58,7 +58,7 @@ Testing has only been done on Windows and Linux so far.
 """
 
 # Part of the PsychoPy library
-# Copyright (C) 2015 Jonathan Peirce
+# Copyright (C) 2018 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 #
 # Contributed by Sol Simpson, April 2014.
@@ -88,6 +88,7 @@ from psychopy import core, logging
 
 from psychopy.tools.arraytools import val2array
 from psychopy.tools.attributetools import logAttrib, setAttribute
+from psychopy.tools.filetools import pathToString
 from psychopy.visual.basevisual import BaseVisualStim, ContainerMixin
 from psychopy.clock import Clock
 from psychopy.constants import FINISHED, NOT_STARTED, PAUSED, PLAYING, STOPPED
@@ -113,9 +114,11 @@ except Exception as err:
         bits = 64
     else:
         bits = 32
-    if "wrong architecture" in err.message:
-        raise OSError("Failed to import vlc module for MovieStim2.\n"
-          "You're using %i-bit python. Is your VLC install the same?" % bits)
+    if "wrong architecture" in err:
+        msg = ("Failed to import vlc module for MovieStim2.\n"
+               "You're using %i-bit python. Is your VLC install the same?"
+               % bits)
+        raise OSError(msg)
     else:
         raise err
 
@@ -233,7 +236,7 @@ class MovieStim2(BaseVisualStim, ContainerMixin):
             logging.warning("FrameRate could not be supplied by psychopy; "
                             "defaulting to 60.0")
             self._retracerate = 60.0
-        self.filename = filename
+        self.filename = pathToString(filename)
         self.loop = loop
         self.flipVert = flipVert
         self.flipHoriz = flipHoriz
@@ -325,6 +328,7 @@ class MovieStim2(BaseVisualStim, ContainerMixin):
         After the file is loaded MovieStim.duration is updated with the movie
         duration (in seconds).
         """
+        filename = pathToString(filename)
         self._unload()
         self._reset()
         if self._no_audio is False:

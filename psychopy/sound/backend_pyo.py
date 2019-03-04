@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2015 Jonathan Peirce
+# Copyright (C) 2018 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
 from __future__ import absolute_import, division, print_function
@@ -24,13 +24,14 @@ import sounddevice
 
 import atexit
 import threading
+from numpy import float64
 pyoSndServer = None
 audioDriver = None
 
 def _bestDriver(devNames, devIDs):
     """Find ASIO or Windows sound drivers
     """
-    preferredDrivers = prefs.general['audioDriver']
+    preferredDrivers = prefs.hardware['audioDriver']
     outputID = None
     audioDriver = None
     for prefDriver in preferredDrivers:
@@ -97,7 +98,7 @@ def get_input_devices():
     return (names, ids)
 
 def getDevices(kind=None):
-    """Returns a dict of dict of audio devices of sepcified `kind`
+    """Returns a dict of dict of audio devices of specified `kind`
 
     The dict keys are names and items are dicts of properties
     """
@@ -112,7 +113,8 @@ def getDevices(kind=None):
     devs = {}
     for ii in allDevs:  # in pyo this is a dict but keys are ii ! :-/
         dev = allDevs[ii]
-        devName = dev['name']
+        # newline characters must be removed
+        devName = dev['name'].replace('\r\n','')
         devs[devName] = dev
         dev['id'] = ii
     return devs
@@ -214,7 +216,7 @@ def init(rate=44100, stereo=True, buffer=128):
                 duplex = False
         # for other platforms set duplex to True (if microphone is available)
         else:
-            audioDriver = prefs.general['audioDriver'][0]
+            audioDriver = prefs.hardware['audioDriver'][0]
             maxInputChnls = pyo.pa_get_input_max_channels(
                 pyo.pa_get_default_input())
             maxOutputChnls = pyo.pa_get_output_max_channels(
@@ -251,7 +253,7 @@ def init(rate=44100, stereo=True, buffer=128):
         # do other config here as needed (setDuplex? setOutputDevice?)
         pyoSndServer.setDuplex(duplex)
         pyoSndServer.boot()
-    core.wait(0.5)  # wait for server to boot before starting te sound stream
+    core.wait(0.5)  # wait for server to boot before starting the sound stream
     pyoSndServer.start()
     
     #atexit is filo, will call stop then shutdown upon closing
@@ -415,6 +417,8 @@ class SoundPyo(_SoundBase):
     def _updateSnd(self):
         self.needsUpdate = False
         doLoop = bool(self.loops != 0)  # if True, end it via threading.Timer
+        if type(self.volume) == float64:
+            self.volume = self.volume.item()
         self._snd = pyo.TableRead(self._sndTable,
                                   freq=self._sndTable.getRate(),
                                   loop=doLoop, mul=self.volume)

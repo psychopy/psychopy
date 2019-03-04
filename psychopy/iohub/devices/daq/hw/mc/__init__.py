@@ -3,7 +3,9 @@
 # Copyright (C) 2012-2016 iSolver Software Solutions
 # Distributed under the terms of the GNU General Public License (GPL).
 
+from past.builtins import xrange
 import sys
+
 from ... import AnalogInputDevice, MultiChannelAnalogInputEvent
 from .... import ioDeviceError, Computer, Device
 

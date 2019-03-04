@@ -91,9 +91,6 @@ _translate("reload previously opened files after start")
 # baseNoArch.spec,[coder],line85
 _translate("for coder shell window, which shell to use")
 
-# baseNoArch.spec,[coder],line87
-_translate("newline for python files: unix = \\n, dos = \\r\\n")
-
 # baseNoArch.spec,[coder],line89
 _translate("whether to automatically reload a previously open experiment")
 
@@ -279,16 +276,22 @@ _translate("decrease display size of Routines")
 _translate("show or hide the readme (info) for this experiment if possible")
 
 # baseNoArch.spec,[keyBindings],line216
-_translate("Projects: Log in")
+_translate("Projects: Log in to pavlovia")
 
 # baseNoArch.spec,[keyBindings],line218
-_translate("Projects: Sync project")
+_translate("Projects: Log in to OSF")
 
 # baseNoArch.spec,[keyBindings],line220
-_translate("Projects: Find projects")
+_translate("Projects: Sync project")
 
 # baseNoArch.spec,[keyBindings],line222
-_translate("Projects: Open project")
+_translate("Projects: Find projects")
 
 # baseNoArch.spec,[keyBindings],line224
+_translate("Projects: Open project")
+
+# baseNoArch.spec,[keyBindings],line227
 _translate("Projects: Create new project")
+
+# Darwin.spec,[keyBindings],line220
+_translate("Projects: Log in")

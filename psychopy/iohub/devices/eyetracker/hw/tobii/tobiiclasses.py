@@ -1,4 +1,5 @@
 """ioHub Common Eye Tracker Interface for Tobii (C) Eye Tracking System."""
+from __future__ import print_function
 # -*- coding: utf-8 -*-
 # Part of the psychopy.iohub library.
 # Copyright (C) 2012-2016 iSolver Software Solutions
@@ -338,7 +339,7 @@ class TobiiTracker(object):
                     elif hasattr(self._eyetracker.events, 'OnTrackBoxChanged'):
                         self._eyetracker.events.OnTrackBoxChanged += self.on_head_box_change
                     else:
-                        print 'WARNING: TobiiClasses could not set callback hook for "self.on_head_box_change".'
+                        print('WARNING: TobiiClasses could not set callback hook for "self.on_head_box_change".')
                     self._eyetracker.events.OnXConfigurationChanged += self.on_x_series_physical_config_change
 
                     break
@@ -637,7 +638,7 @@ class TobiiTracker(object):
                 return imode
             return self._eyetracker.getIlluminationMode()
         else:
-            print 'WARNING: setIlluminationMode is not supported by either your Tobii model, or the version of the Tobii SDK being used.'
+            print('WARNING: setIlluminationMode is not supported by either your Tobii model, or the version of the Tobii SDK being used.')
 
     def getHeadBox(self):
         hb = None

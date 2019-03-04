@@ -6,7 +6,7 @@ the resolution and color in the file (subject to gamma correction if set).
 """
 
 # Part of the PsychoPy library
-# Copyright (C) 2015 Jonathan Peirce
+# Copyright (C) 2018 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
 from __future__ import absolute_import, division, print_function
@@ -29,6 +29,7 @@ from psychopy import core, logging
 from psychopy.tools.arraytools import val2array
 from psychopy.tools.monitorunittools import convertToPix
 from psychopy.tools.attributetools import setAttribute, attributeSetter
+from psychopy.tools.filetools import pathToString
 from psychopy.visual.basevisual import MinimalStim, WindowMixin
 from . import globalVars
 
@@ -255,6 +256,7 @@ class SimpleImageStim(MinimalStim, WindowMixin):
         can be any format that the Python Imaging Library can import
         (almost any). Can also be an image already loaded by PIL.
         """
+        filename = pathToString(filename)
         self.__dict__['image'] = filename
         if isinstance(filename, basestring):
             # is a string - see if it points to a file
@@ -289,4 +291,5 @@ class SimpleImageStim(MinimalStim, WindowMixin):
         """Usually you can use 'stim.attribute = value' syntax instead,
         but use this method if you need to suppress the log message.
         """
+        filename = pathToString(filename)
         setAttribute(self, 'image', filename, log)

@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2015 Jonathan Peirce
+# Copyright (C) 2018 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
 from __future__ import absolute_import, print_function
@@ -20,7 +20,8 @@ _localized = {'text': _translate('Text'),
               'font': _translate('Font'),
               'letterHeight': _translate('Letter height'),
               'wrapWidth': _translate('Wrap width'),
-              'flip': _translate('Flip (mirror)')}
+              'flip': _translate('Flip (mirror)'),
+              'languageStyle': _translate('Language style')}
 
 
 class TextComponent(BaseVisualComponent):
@@ -37,7 +38,8 @@ class TextComponent(BaseVisualComponent):
                  pos=(0, 0), letterHeight=0.1, ori=0,
                  startType='time (s)', startVal=0.0,
                  stopType='duration (s)', stopVal=1.0,
-                 flip='', startEstim='', durationEstim='', wrapWidth=''):
+                 flip='', startEstim='', durationEstim='', wrapWidth='',
+                 languageStyle='LTR'):
         super(TextComponent, self).__init__(exp, parentName, name=name,
                                             units=units,
                                             color=color,
@@ -85,8 +87,13 @@ class TextComponent(BaseVisualComponent):
             hint=_translate("horiz = left-right reversed; vert = up-down"
                             " reversed; $var = variable"),
             label=_localized['flip'])
+        self.params['languageStyle'] = Param(
+            languageStyle, valType='str',
+            allowedVals=['LTR', 'RTL', 'Arabic'],
+            hint=_translate("Handle right-to-left (RTL) languages and Arabic reshaping"),
+            label=_localized['languageStyle'])
         for prm in ('ori', 'opacity', 'colorSpace', 'units', 'wrapWidth',
-                    'flip'):
+                    'flip', 'languageStyle'):
             self.params[prm].categ = 'Advanced'
 
     def writeInitCode(self, buff):
@@ -100,6 +107,7 @@ class TextComponent(BaseVisualComponent):
         inits = getInitVals(self.params, 'PsychoPy')
         if self.params['wrapWidth'].val in ['', 'None', 'none']:
             inits['wrapWidth'] = 'None'
+
         code = ("%(name)s = visual.TextStim(win=win, "
                 "name='%(name)s',\n"
                 "    text=%(text)s,\n"
@@ -108,7 +116,8 @@ class TextComponent(BaseVisualComponent):
                 "pos=%(pos)s, height=%(letterHeight)s, "
                 "wrapWidth=%(wrapWidth)s, ori=%(ori)s, \n"
                 "    color=%(color)s, colorSpace=%(colorSpace)s, "
-                "opacity=%(opacity)s,")
+                "opacity=%(opacity)s, \n"
+                "    languageStyle=%(languageStyle)s,")
         buff.writeIndentedLines(code % inits)
         flip = self.params['flip'].val.strip()
         if flip == 'horiz':
@@ -129,23 +138,29 @@ class TextComponent(BaseVisualComponent):
         if self.params['units'].val == 'from exp settings':
             unitsStr = ""
         else:
-            unitsStr = "units : %(units)s, " % self.params
+            unitsStr = "  units : %(units)s, " % self.params
         # do writing of init
         # replaces variable params with sensible defaults
         inits = getInitVals(self.params, 'PsychoJS')
 
-        if self.params['wrapWidth'].val in ['', 'None', 'none']:
-            inits['wrapWidth'] = 'undefined'
-        code = ("%(name)s = new psychoJS.visual.TextStim({win : win, "
-                "name : '%(name)s',\n"
-                "    text : %(text)s,\n"
-                "    font : %(font)s,\n"
-                "    " + unitsStr +
-                "pos : %(pos)s, height : %(letterHeight)s, "
-                "wrapWidth : %(wrapWidth)s, ori:%(ori)s, \n"
-                "    color : %(color)s, colorSpace:%(colorSpace)s, "
-                "opacity : %(opacity)s,")
+        # check for NoneTypes
+        for param in inits:
+            if inits[param] in [None, 'None', '']:
+                inits[param].val = 'undefined'
+                if param == 'text':
+                    inits[param].val = "''"
+
+        code = ("%(name)s = new visual.TextStim({\n"
+                "  win: psychoJS.window,\n"
+                "  name: '%(name)s',\n"
+                "  text: %(text)s,\n"
+                "  font: %(font)s,\n" + unitsStr +
+                "  pos: %(pos)s, height: %(letterHeight)s,"
+                "  wrapWidth: %(wrapWidth)s, ori: %(ori)s,\n"
+                "  color: new util.Color(%(color)s),"
+                "  opacity: %(opacity)s,")
         buff.writeIndentedLines(code % inits)
+
         flip = self.params['flip'].val.strip()
         if flip == 'horiz':
             flipStr = 'flipHoriz : true, '
@@ -158,6 +173,6 @@ class TextComponent(BaseVisualComponent):
         else:
             flipStr = ''
         depth = -self.getPosInRoutine()
-        code = ("    %sdepth : %.1f \n"
-                "});\n" % (flipStr, depth))
+        code = ("  %sdepth: %.1f \n"
+                "});\n\n" % (flipStr, depth))
         buff.writeIndentedLines(code)
