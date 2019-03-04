@@ -185,9 +185,28 @@ class Experiment(object):
         else:
             localDateTime = data.getDateStr(format="%B %d, %Y, at %H:%M")
 
-        # Remove disabled components, but leave original experiment unchanged.
+        # Remove disabled routines and components, but leave original
+        # experiment unchanged.
         self_copy = deepcopy(self)
-        for _, routine in list(self_copy.routines.items()):  # PY2/3 compat
+        for routine_name, routine in list(self_copy.routines.items()):  # PY2/3 compat
+            if routine.params['disabled']:
+                # We remove all occurrences of this routine from the flow --
+                # there might be multiple ones!
+                #
+                # First, get all routines from the flow except the current
+                # (disabled) one.
+                routines = list(filter(lambda routine_:
+                                       routine_.name != routine_name,
+                                       self_copy.flow))
+
+                # We now replace the list of routines in the flow with the
+                # "cleaned" list of routines.
+                self_copy.flow[:] = routines
+
+                # We dropped an entire routine -- no need to look at individual
+                # components here anymore!
+                break
+
             for component in routine:
                 try:
                     if component.params['disabled'].val:
@@ -282,8 +301,15 @@ class Experiment(object):
         routinesNode = xml.SubElement(self.xmlRoot, 'Routines')
         # routines is a dict of routines
         for routineName, routine in self.routines.items():
-            routineNode = self._setXMLparam(
-                parent=routinesNode, param=routine, name=routineName)
+            routineNode = self._setXMLparam(parent=routinesNode,
+                                            param=routine,
+                                            name=routineName)
+
+            self._setXMLparam(parent=routineNode,
+                              param=Param(val=routine.params['disabled'],
+                                          valType='bool'),
+                              name='disabled')
+
             # a routine is based on a list of components
             for component in routine:
                 componentNode = self._setXMLparam(
@@ -569,12 +595,27 @@ class Experiment(object):
             if routineGoodName != routineNode.get('name'):
                 modifiedNames.append(routineNode.get('name'))
             self.namespace.user.append(routineGoodName)
+
             routine = Routine(name=routineGoodName, exp=self)
+
             # self._getXMLparam(params=routine.params, paramNode=routineNode)
             self.routines[routineNode.get('name')] = routine
-            for componentNode in routineNode:
 
+            for componentNode in routineNode:
                 componentType = componentNode.tag
+                if componentType == 'Param':
+                    # This is a top-level "Param" node in this routine node,
+                    # not an actual component!
+                    #
+                    # We can retrieve the `disabled` parameter of this routine
+                    # from here.
+                    params = dict()
+                    self._getXMLparam(params=params,
+                                      paramNode=componentNode)
+                    routine.params['disabled'] = params['disabled'].val
+                    del params
+                    break
+
                 if componentType in allCompons:
                     # create an actual component of that type
                     component = allCompons[componentType](
@@ -585,6 +626,7 @@ class Experiment(object):
                     component = allCompons['UnknownComponent'](
                         name=componentNode.get('name'),
                         parentName=routineNode.get('name'), exp=self)
+
                 # check for components that were absent in older versions of
                 # the builder and change the default behavior
                 # (currently only the new behavior of choices for RatingScale,
