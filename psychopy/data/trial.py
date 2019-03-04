@@ -41,7 +41,7 @@ class TrialType(dict):
 class TrialHandler(_BaseTrialHandler):
     """Class to handle trial sequencing and data storage.
 
-    Calls to .next() will fetch the next trial object given to this handler,
+    Calls to .__next__() will fetch the next trial object given to this handler,
     according to the method specified (random, sequential, fullRandom).
     Calls will raise a StopIteration error if trials have finished.
 
@@ -247,12 +247,12 @@ class TrialHandler(_BaseTrialHandler):
              [3 3 3 3 3]
              [4 4 4 4 4]
              [5 5 5 5 5]]
-        These 30 trials will be returned by .next() in the order:
+        These 30 trials will be returned by .__next__() in the order:
             0, 1, 2, 3, 4, 5,   0, 1, 2, ...  ... 3, 4, 5
 
         To add a new type of sequence (as of v1.65.02):
         - add the sequence generation code here
-        - adjust "if self.method in [ ...]:" in both __init__ and .next()
+        - adjust "if self.method in [ ...]:" in both __init__ and .__next__()
         - adjust allowedVals in experiment.py -> shows up in DlgLoopProperties
         Note that users can make any sequence whatsoever outside of PsychoPy,
         and specify sequential order; any order is possible this way.
@@ -328,7 +328,7 @@ class TrialHandler(_BaseTrialHandler):
             trials = data.TrialHandler(.......)
             while True:  # ie forever
                 try:
-                    thisTrial = trials.next()
+                    thisTrial = trials.__next__()
                 except StopIteration:  # we got a StopIteration error
                     break #break out of the forever loop
                 # do stuff here for the trial
@@ -740,7 +740,7 @@ class TrialHandler(_BaseTrialHandler):
 class TrialHandler2(_BaseTrialHandler):
     """Class to handle trial sequencing and data storage.
 
-    Calls to .next() will fetch the next trial object given to this handler,
+    Calls to .__next__() will fetch the next trial object given to this handler,
     according to the method specified (random, sequential, fullRandom).
     Calls will raise a StopIteration error if trials have finished.
 
@@ -961,7 +961,7 @@ class TrialHandler2(_BaseTrialHandler):
             trials = data.TrialHandler(.......)
             while True:  # ie forever
                 try:
-                    thisTrial = trials.next()
+                    thisTrial = trials.__next__()
                 except StopIteration:  # we got a StopIteration error
                     break  # break out of the forever loop
                 # do stuff here for the trial
@@ -1201,7 +1201,7 @@ class TrialHandlerExt(TrialHandler):
     For experimenters using an excel or csv file for trial list, a column
     called weight is appropriate for this purpose.
 
-    Calls to .next() will fetch the next trial object given to this handler,
+    Calls to .__next__() will fetch the next trial object given to this handler,
     according to the method specified (random, sequential, fullRandom).
     Calls will raise a StopIteration error when all trials are exhausted.
 
@@ -1377,7 +1377,7 @@ class TrialHandlerExt(TrialHandler):
              [3 3 3 3 3]
              [4 4 4 4 4]
              [5 5 5 5 5]]
-        These 30 trials will be returned by .next() in the order:
+        These 30 trials will be returned by .__next__() in the order:
             0, 1, 2, 3, 4, 5,   0, 1, 2, ...  ... 3, 4, 5
 
         Example: random, with 3 trialtypes, where the weights of
@@ -1390,13 +1390,13 @@ class TrialHandlerExt(TrialHandler):
              [2 0 1 0 2]
              [1 1 0 2 0]]
 
-        These 30 trials will be returned by .next() in the order:
+        These 30 trials will be returned by .__next__() in the order:
             0, 1, 0, 0, 2, 1,   1, 0, 2, 0, 0, 1, ...
             ... 0, 2, 0  *stopIteration*
 
         To add a new type of sequence (as of v1.65.02):
         - add the sequence generation code here
-        - adjust "if self.method in [ ...]:" in both __init__ and .next()
+        - adjust "if self.method in [ ...]:" in both __init__ and .__next__()
         - adjust allowedVals in experiment.py -> shows up in DlgLoopProperties
         Note that users can make any sequence whatsoever outside of PsychoPy,
         and specify sequential order; any order is possible this way.
@@ -1461,7 +1461,7 @@ class TrialHandlerExt(TrialHandler):
             trials = data.TrialHandler(.......)
             while True:  # ie forever
                 try:
-                    thisTrial = trials.next()
+                    thisTrial = trials.__next__()
                 except StopIteration:  # we got a StopIteration error
                     break  # break out of the forever loop
                 # do stuff here for the trial
