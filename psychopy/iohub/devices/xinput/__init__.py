@@ -689,7 +689,7 @@ class GamepadStateChangeEvent(DeviceEvent):
         # Use buttons to get a list of the text representation for
         # each button that was pressed in list form
         # placeholder for button name list when event is viewed as NamedTuple
-        ('buttons', N.str, 1),
+        ('buttons', '|S1'),
 
         # Thumbsticks are represented in normalized units between 0.0 and 1.0 for x direction, y direction
         # and magnitude of the thumbstick. x and y are the horizontal and vertical position of the stick

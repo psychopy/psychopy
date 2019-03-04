@@ -79,7 +79,7 @@ getTime = Computer.getTime
 class MCU(Device):
     """"""
     DEVICE_TIMEBASE_TO_SEC = 1.0
-    _newDataTypes = [('serial_port', np.str, 32),
+    _newDataTypes = [('serial_port', '|S32'),
                      ('time_sync_interval', np.float32)]
     EVENT_CLASS_NAMES = [
         'AnalogInputEvent',

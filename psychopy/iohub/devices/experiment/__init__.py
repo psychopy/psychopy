@@ -122,8 +122,8 @@ class MessageEvent(DeviceEvent):
 
     _newDataTypes = [
         ('msg_offset', N.float32),
-        ('category', N.str, 32),
-        ('text', N.str, 128)
+        ('category','|S32'),
+        ('text', '|S128')
     ]
     __slots__ = [e[0] for e in _newDataTypes]
 
@@ -244,7 +244,7 @@ class LogEvent(DeviceEvent):
 
     _newDataTypes = [
         ('log_level', N.uint8),
-        ('text', N.str, 128)
+        ('text', '|S128')
     ]
     __slots__ = [e[0] for e in _newDataTypes]
 
