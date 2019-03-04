@@ -336,8 +336,6 @@ class DataStoreFile(object):
             data = temp
             try:
                 etable = self.TABLES['EXP_CV']
-                #print2err('data: ',data,' ',type(data))
-
                 for i, d in enumerate(data):
                     if isinstance(d, (list, tuple)):
                         data[i] = tuple(d)
@@ -409,7 +407,6 @@ class DataStoreFile(object):
                 np_events.append(tuple(event))
 
             np_array = np.array(np_events, dtype=eventClass.NUMPY_DTYPE)
-            #ioHub.print2err('np_array:',np_array)
             etable.append(np_array)
             self.bufferedFlush(len(np_events))
         except ioHubError as e:
@@ -503,48 +500,3 @@ class SessionMetaData(tables.IsDescription):
     comments  = StringCol(256, pos=5)
     user_variables = StringCol(2048, pos=6) # will hold json encoded version of user variable dict for session
 
-
-"""
-# NEEDS TO BE COMPLETED
-class ParticipantMetaData(IsDescription):
-    participant_id = UInt32Col(pos=1)
-    participant_code = StringCol(8,pos=2)
-
-# NEEDS TO BE COMPLETED
-class SiteMetaData(IsDescription):
-    site_id = UInt32Col(pos=1)
-    site_code = StringCol(8,pos=2)
-
-# NEEDS TO BE COMPLETED
-class MemberMetaData(IsDescription):
-    member_id =UInt32Col(pos=1)
-    username = StringCol(16,pos=2)
-    password = StringCol(16,pos=3)
-    email = StringCol(32,pos=4)
-    secretPhrase = StringCol(64,pos=5)
-    dateAdded = Int64Col(pos=6)
-
-# NEEDS TO BE COMPLETED
-class DeviceInformation(IsDescription):
-    device_id = UInt32Col(pos=1)
-    device_code = StringCol(7,pos=2)
-    name =StringCol(32,pos=3)
-    manufacturer =StringCol(32,pos=3)
-
-# NEEDS TO BE COMPLETED
-class CalibrationAreaInformation(IsDescription):
-    cal_id = UInt32Col(pos=1)
-
-# NEEDS TO BE COMPLETED
-class EyeTrackerInformation(IsDescription):
-    et_id = UInt32Col(pos=1)
-
-# NEEDS TO BE COMPLETED
-class EyeTrackerSessionConfiguration(IsDescription):
-    et_config_id = UInt32Col(pos=1)
-
-# NEEDS TO BE COMPLETED
-class ApparatusSetupMetaData(IsDescription):
-    app_setup_id = UInt32Col(pos=1)
-
-"""

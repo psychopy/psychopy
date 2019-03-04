@@ -173,33 +173,33 @@ class Device(ioObject):
     _baseDataTypes = ioObject._baseDataTypes
     _newDataTypes = [
         # The name given to this device instance. User Defined. Should be
-        ('name', np.str, 24),
+        ('name', '|S24'),
         # unique within all devices of the same type_id for a given experiment.
         # For devices that support multiple connected to the computer at once,
         # with some devices the device_number can be used to select which
         # device ot use.
         ('device_number', np.uint8),
         # The name of the manufacturer for the device being used.
-        ('manufacturer_name', np.str_, 64),
+        ('manufacturer_name', '|S64'),
         # The string name of the device model being used. Some devices support
         # different models.
-        ('model_name', np.str_, 32),
+        ('model_name', '|S32'),
         # The device model number being used. Some devices support different
         # models.
-        ('model_number', np.str_, 32),
+        ('model_number', '|S32'),
         # Used to optionally store the devices software / API version being
         # used by the ioHub Device
-        ('software_version', np.str_, 8),
+        ('software_version', '|S8'),
         # Used to optionally store the devices hardware version
-        ('hardware_version', np.str_, 8),
+        ('hardware_version', '|S8'),
         # Used to optionally store the devices firmware
-        ('firmware_version', np.str_, 8),
+        ('firmware_version', '|S8'),
         # The serial number for the device being used. Serial numbers 'should'
         # be unique across all devices of the same brand and model.
-        ('serial_number', np.str_, 32),
+        ('serial_number', '|S32'),
         # The serial number for the device being used. Serial numbers 'should'
         # be unique across all devices of the same brand and model.
-        ('manufacture_date', np.str_, 10),
+        ('manufacture_date', '|S10'),
         # The maximum size of the device level event buffer for this
         ('event_buffer_length', np.uint16)
         # device instance. If the buffer becomes full, when a new event
