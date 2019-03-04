@@ -486,10 +486,10 @@ class DeviceMonitor(Greenlet):
             stime = ctime()
             self.device._poll()
             i = self.sleep_interval - (ctime() - stime)
-            if i > 0.0:
+            if i > 0.001:
                 gevent.sleep(i)
             else:
-                gevent.sleep(0.0)
+                gevent.sleep(0.001)
 
     def __del__(self):
         self.device = None
@@ -625,7 +625,7 @@ class ioServer(object):
                 self._running = False
                 break
             dur = sleep_interval - (Computer.getTime() - stime)
-            gevent.sleep(max(0.0, dur))
+            gevent.sleep(max(0.001, dur))
 
     def createNewMonitoredDevice(self, dev_cls_name, dev_conf):
         self._all_dev_conf_errors = dict()
@@ -869,7 +869,7 @@ class ioServer(object):
             stime = Computer.getTime()
             self.processDeviceEvents()
             dur = sleep_interval - (Computer.getTime() - stime)
-            gevent.sleep(max(0.0, dur))
+            gevent.sleep(max(0.001, dur))
 
     def processDeviceEvents(self):
         for device in self.devices:
