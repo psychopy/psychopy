@@ -18,6 +18,18 @@ at the Pavlovia.org experiment server. Many of the features here are relatively
 new and, although we have spent hundreds of hours developing and testing them
 you should be more cautious than ever checking your experiment and data outputs.
 
+PsychoPy 3.0.6
+~~~~~~~~~~~~~~~~~~~~~~
+
+FIXED:
+
+- `TrialHandler.next()` was acidentally removed by Python3 conversion and now added back in #c44621ab072ad
+- various fixes to iohub Python3 compatibility (especially for datastore)
+- permit reading "xlsm" files as conditions files (Excel files with macros although these will be ignored by Python) #9e11bfd61
+- added space key to the GlobalEventKeys #2310
+- fix to pating into Code Component with windows EOLs
+- fixes to Japanese translation (and bug around saving Static Components in Japanese locale)
+
 PsychoPy 3.0.5
 ~~~~~~~~~~~~~~~~~~~~~~
 
