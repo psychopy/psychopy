@@ -3,6 +3,7 @@ from past.builtins import execfile
 from builtins import object
 
 import psychopy.experiment
+from psychopy.experiment.components.text import TextComponent
 from psychopy.experiment._experiment import RequiredImport
 from psychopy.tests.utils import TESTS_FONT
 from os import path
@@ -489,3 +490,71 @@ class TestRunOnce(object):
 
         script = self.exp.writeScript()
         assert (code_0 + '\n' + code_1 + '\n') in script
+
+
+class TestDisabledComponents(object):
+    def setup(self):
+        self.exp = psychopy.experiment.Experiment()
+        self.exp.addRoutine(routineName='Test Routine')
+        self.routine = self.exp.routines['Test Routine']
+        self.exp.flow.addRoutine(self.routine, 0)
+
+    def test_component_not_disabled_by_default(self):
+        self.text = TextComponent(exp=self.exp, parentName='Test Routine')
+        assert self.text.params['disabled'].val is False
+
+    def test_component_is_written_to_script(self):
+        self.text = TextComponent(exp=self.exp, parentName='Test Routine')
+        self.routine.addComponent(self.text)
+        script = self.exp.writeScript()
+        assert 'visual.TextStim' in script
+
+    def test_disabled_component_is_not_written_to_script(self):
+        self.text = TextComponent(exp=self.exp, parentName='Test Routine')
+        self.text.params['disabled'].val = True
+
+        self.routine.addComponent(self.text)
+        script = self.exp.writeScript()
+        assert 'visual.TextStim' not in script
+
+    def test_disabling_component_does_not_remove_it_from_original_routine(self):
+        self.text = TextComponent(exp=self.exp, parentName='Test Routine')
+        self.text.params['disabled'].val = True
+        self.routine.addComponent(self.text)
+
+        # This drops the disabled component -- if working correctly, only from
+        # a copy though, leaving the original unchanged!
+        self.exp.writeScript()
+
+        # Original routine should be unchanged.
+        assert self.text in self.routine
+
+
+class TestDisabledRoutines(object):
+    def setup(self):
+        self.exp = psychopy.experiment.Experiment()
+        self.exp.addRoutine(routineName='Test Routine')
+        self.routine = self.exp.routines['Test Routine']
+        self.exp.flow.addRoutine(self.routine, 0)
+
+    def test_routine_not_disabled_by_default(self):
+        assert self.routine.params['disabled'] is False
+
+    def test_routine_is_written_to_script(self):
+        script = self.exp.writeScript()
+        assert 'Test Routine' in script
+
+    def test_disabled_routine_is_not_written_to_script(self):
+        self.routine.params['disabled'] = True
+        script = self.exp.writeScript()
+        assert 'Test Routine' not in script
+
+    def test_disabling_routine_does_not_remove_it_from_original_experiment(self):
+        self.routine.params['disabled'] = True
+
+        # This drops the disabled routine -- if working correctly, only from
+        # a copy though, leaving the original unchanged!
+        self.exp.writeScript()
+
+        # Original routine should be unchanged.
+        assert self.routine in self.exp.flow

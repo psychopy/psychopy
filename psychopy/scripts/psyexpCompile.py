@@ -7,6 +7,7 @@
 
 import argparse
 import io
+from copy import deepcopy
 
 # parse args for subprocess
 parser = argparse.ArgumentParser(description='Compile your python file from here')
@@ -85,6 +86,58 @@ def compileScript(infile=None, version=None, outfile=None):
 
         return thisExp
 
+    def _removeDisabledComponents(exp):
+        """
+        Drop disabled components, if any.
+
+        Paramters
+        ---------
+        exp : psychopy.experiment.Experiment
+            The experiment from which to remove all components that have been
+            marked `disabled`.
+
+        Returns
+        -------
+        exp : psychopy.experiment.Experiment
+            The experiment with the disabled components removed.
+
+        Notes
+        -----
+        This function leaves the original experiment unchanged as it always
+        only works on (and returns) a copy.
+
+        """
+        # Leave original experiment unchanged.
+        exp = deepcopy(exp)
+
+        for routine_name, routine in list(exp.routines.items()):  # PY2/3 compat
+            if routine.params['disabled']:
+                # We remove all occurrences of this routine from the flow --
+                # there might be multiple ones!
+                #
+                # First, get all routines from the flow except the current
+                # (disabled) one.
+                routines = list(filter(lambda routine_:
+                                       routine_.name != routine_name,
+                                       exp.flow))
+
+                # We now replace the list of routines in the flow with the
+                # "cleaned" list of routines.
+                exp.flow[:] = routines
+
+                # We dropped an entire routine -- no need to look at individual
+                # components here anymore!
+                break
+
+            for component in routine:
+                try:
+                    if component.params['disabled'].val:
+                        routine.removeComponent(component)
+                except KeyError:
+                    pass
+
+        return exp
+
     def _setTarget(outfile):
         """
 
@@ -155,8 +208,10 @@ def compileScript(infile=None, version=None, outfile=None):
     ###### Write script #####
     version = _setVersion(version)
     thisExp = _getExperiment(infile, version)
+    thisExp = _removeDisabledComponents(thisExp)
     targetOutput = _setTarget(outfile)
     _makeTarget(thisExp, outfile, targetOutput)
+
 
 if __name__ == "__main__":
     # define args

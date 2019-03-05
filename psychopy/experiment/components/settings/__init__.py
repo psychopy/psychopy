@@ -495,11 +495,11 @@ class SettingsComponent(object):
     def writeInitCodeJS(self, buff, version, localDateTime, modular=True):
         # create resources folder
         self.prepareResourcesJS()
-
+        jsFilename = os.path.basename(os.path.splitext(self.exp.filename)[0])
         # html header
         template = readTextFile("JS_htmlHeader.tmpl")
         header = template.format(
-            name=self.params['expName'].val,  # prevent repr() conversion
+            name=jsFilename,
             version=version,
             params=self.params)
         jsFile = self.exp.expPath
@@ -511,11 +511,11 @@ class SettingsComponent(object):
         html.close()
 
         # Write header comment
-        starLen = "*"*(len(self.params['expName'].val)+9)
+        starLen = "*"*(len(jsFilename) + 9)
         code = ("/%s \n"
                " * %s Test *\n" 
                " %s/\n\n")
-        buff.writeIndentedLines(code % (starLen, self.params['expName'].val.title(), starLen))
+        buff.writeIndentedLines(code % (starLen, jsFilename.title(), starLen))
 
         # Write imports if modular
         if modular:
@@ -532,9 +532,9 @@ class SettingsComponent(object):
         # Write window code
         self.writeWindowCodeJS(buff)
         code = ("\n// store info about the experiment session:\n"
-                "let expName = %s;  // from the Builder filename that created this script\n"
+                "let expName = '%s';  // from the Builder filename that created this script\n"
                 "let expInfo = %s;\n"
-                "\n" % (self.params['expName'], self.getInfo()))
+                "\n" % (jsFilename, self.getInfo()))
         buff.writeIndentedLines(code)
 
     def writeExpSetupCodeJS(self, buff, version):

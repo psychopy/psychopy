@@ -177,8 +177,8 @@ class Touch(TouchDevice):
         self._tx(qpkt._packet_bytes)
         return qpkt
 
-    def _rx(self, async=False, num_bytes=10):
-        if async:
+    def _rx(self, rasync=False, num_bytes=10):
+        if rasync:
             while self._serial_port_hw.inWaiting() > 0:
                 self._rx_data += self._serial_port_hw.read(
                     self._serial_port_hw.inWaiting())

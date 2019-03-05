@@ -13,7 +13,17 @@ try:
     from psychopy.gui.wxgui import ProgressBarDialog
 except ImportError:
     ProgressBarDialog = None
-    
+
+try:
+    unicode
+except NameError:
+    unicode = str
+
+try:
+    basestring
+except NameError:
+    basestring = str
+
 from ......constants import EventConstants, EyeTrackerConstants
 from ...... import EXP_SCRIPT_DIRECTORY
 from ......errors import print2err, printExceptionDetailsToStdErr
@@ -148,7 +158,7 @@ class EyeTracker(EyeTrackerDevice):
             if default_native_data_file_name:
                 if isinstance(default_native_data_file_name, (str, unicode)):
                     r = default_native_data_file_name.rfind('.')
-                    if default_native_data_file_name > 0:
+                    if r > 0:
                         if default_native_data_file_name[r:] == 'edf'.lower():
                             default_native_data_file_name = default_native_data_file_name[
                                 :r]

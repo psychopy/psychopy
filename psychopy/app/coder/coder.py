@@ -1278,7 +1278,10 @@ class CoderFrame(wx.Frame):
             fontSize=self.prefs['outputFontSize'])
         self.outputWindow.write(_translate('Welcome to PsychoPy3!') + '\n')
         self.outputWindow.write("v%s\n" % self.app.version)
+        # Add context manager to output window
+        self.outputWindow.Bind(wx.EVT_CONTEXT_MENU, self.outputContextMenu)
         self.shelf.AddPage(self.outputWindow, _translate('Output'))
+
         if self.app._appLoaded:
             self.setOutputWindow()
 
@@ -1336,6 +1339,45 @@ class CoderFrame(wx.Frame):
             self.paneManager.Update()
         self.SendSizeEvent()
         self.app.trackFrame(self)
+
+    def outputContextMenu(self, event):
+        """Custom context menu for output window.
+
+        Provides menu items to clear all, select all and copy selected text."""
+        if not hasattr(self, "outputMenuID1"):
+            self.outputMenuID1 = wx.NewId()
+            self.outputMenuID2 = wx.NewId()
+            self.outputMenuID3 = wx.NewId()
+
+            self.Bind(wx.EVT_MENU, self.outputClear, id=self.outputMenuID1)
+            self.Bind(wx.EVT_MENU, self.outputSelectAll, id=self.outputMenuID2)
+            self.Bind(wx.EVT_MENU, self.outputCopy, id=self.outputMenuID3)
+
+        menu = wx.Menu()
+        itemClear = wx.MenuItem(menu, self.outputMenuID1, "Clear All")
+        itemSelect = wx.MenuItem(menu, self.outputMenuID2, "Select All")
+        itemCopy = wx.MenuItem(menu, self.outputMenuID3, "Copy")
+
+        menu.Append(itemClear)
+        menu.AppendSeparator()
+        menu.Append(itemSelect)
+        menu.Append(itemCopy)
+        # Popup the menu.  If an item is selected then its handler
+        # will be called before PopupMenu returns.
+        self.PopupMenu(menu)
+        menu.Destroy()
+
+    def outputClear(self, event):
+        """Clears the output window in Coder"""
+        self.outputWindow.Clear()
+
+    def outputSelectAll(self, event):
+        """Selects all text from the output window in Coder"""
+        self.outputWindow.SelectAll()
+
+    def outputCopy(self, event):
+        """Copies all text from the output window in Coder"""
+        self.outputWindow.Copy()
 
     def makeMenus(self):
         # ---Menus---#000000#FFFFFF-------------------------------------------
