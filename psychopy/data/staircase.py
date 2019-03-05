@@ -393,6 +393,8 @@ class StairHandler(_BaseTrialHandler):
         else:
             self._terminate()
 
+    next = __next__  # allows user to call without a loop `val = trials.next()`
+
     def _intensityInc(self):
         """increment the current intensity and reset counter
         """
@@ -1035,6 +1037,8 @@ class QuestHandler(StairHandler):
         else:
             self._terminate()
 
+    next = __next__  # allows user to call without a loop `val = trials.next()`
+
     def _checkFinished(self):
         """checks if we are finished
         Updates attribute: `finished`
@@ -1241,6 +1245,8 @@ class PsiHandler(StairHandler):
             return self._psi.nextIntensity
         else:
             self._terminate()
+
+    next = __next__  # allows user to call without a loop `val = trials.next()`
 
     def _checkFinished(self):
         """checks if we are finished
@@ -1512,6 +1518,8 @@ class MultiStairHandler(_BaseTrialHandler):
             return self._nextIntensity, self.currentStaircase.condition
         else:
             raise StopIteration
+
+    next = __next__  # allows user to call without a loop `val = trials.next()`
 
     def _startNewPass(self):
         """Create a new iteration of the running staircases for this pass.
