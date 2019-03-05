@@ -362,6 +362,8 @@ class TrialHandler(_BaseTrialHandler):
             logging.exp(msg % vals, obj=self.thisTrial)
         return self.thisTrial
 
+    next = __next__  # allows user to call without a loop `val = trials.next()`
+
     def getFutureTrial(self, n=1):
         """Returns the condition for n trials into the future,
         without advancing the trials. A negative n returns a previous (past)
@@ -1020,6 +1022,8 @@ class TrialHandler2(_BaseTrialHandler):
             logging.exp(msg % vals, obj=self.thisTrial)
         return self.thisTrial
 
+    next = __next__  # allows user to call without a loop `val = trials.next()`
+
     def getFutureTrial(self, n=1):
         """Returns the condition for n trials into the future, without
         advancing the trials. Returns 'None' if attempting to go beyond
@@ -1515,6 +1519,8 @@ class TrialHandlerExt(TrialHandler):
             vals = (self.thisRepN, self.thisTrialN, self.thisTrial)
             logging.exp(msg % vals, obj=self.thisTrial)
         return self.thisTrial
+
+    next = __next__  # allows user to call without a loop `val = trials.next()`
 
     def getCurrentTrialPosInDataHandler(self):
         # if there's no trial weights, then the current position is simply
