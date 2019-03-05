@@ -12,7 +12,7 @@ PsychoPy provides a unique choice of interface: use the **Builder interface** to
 News
 ====================
 
-**Latest version**: 3.0.5 Feb 2019
+**Latest version**: 3.0.6 March 2019
 
 Supporting online studies and announcing our own experiment server at `Pavlovia.org <https://pavlovia.org>`_ See the launch video at https://www.youtube.com/watch?v=bprYeBzkUc8 to get more info.
 
