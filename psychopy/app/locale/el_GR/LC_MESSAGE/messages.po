@@ -15,8 +15,6 @@ msgstr ""
 "X-Generator: Poedit 1.6.7\n"
 "X-Poedit-SourceCharset: UTF-8\n"
 "X-Poedit-Basepath: ../../../../../\n"
-"POT-Creation-Date: \n"
-"PO-Revision-Date: \n"
 "X-Poedit-SearchPath-0: psychopy/\n"
 
 #: __init__.py:48
