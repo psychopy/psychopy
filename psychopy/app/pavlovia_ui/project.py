@@ -608,6 +608,8 @@ class ProjectRecreator(wx.Dialog):
                                        localRoot=self.project.localRoot)
                 if editor.ShowModal() == wx.ID_OK:
                     self.project = editor.project
+                    # Update git config with new remote URL
+                    self.project.repo.git.remote("set-url", "origin", "{}".format(self.project['remoteHTTPS']))
                     return 1  # success!
                 else:
                     return -1  # user cancelled
