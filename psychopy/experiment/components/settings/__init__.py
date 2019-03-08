@@ -747,6 +747,11 @@ class SettingsComponent(object):
     def writeEndCode(self, buff):
         """Write code for end of experiment (e.g. close log file).
         """
+        code = ('\n# Flip one final time so any remaining win.callOnFlip() \n'
+                '# and win.timeOnFlip() tasks get executed before quitting\n'
+                'win.flip()\n\n')
+        buff.writeIndentedLines(code)
+
         buff.writeIndented("# these shouldn't be strictly necessary "
                            "(should auto-save)\n")
         if self.params['Save wide csv file'].val:
