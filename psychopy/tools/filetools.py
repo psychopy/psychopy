@@ -263,7 +263,7 @@ class KnownProjects(DictStorage):
                 toPurge.append(projname)
         for projname in toPurge:
             del self[projname]
-        super().save(filename)
+        DictStorage.save(self, filename)
 
 
 def pathToString(filepath):
