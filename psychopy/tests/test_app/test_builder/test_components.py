@@ -162,3 +162,11 @@ class TestComponents(object):
                             print(mismatch.encode('utf8'))
 
         assert not err
+
+
+@pytest.mark.components
+def test_flip_before_shutdown_in_settings_component():
+    exp = experiment.Experiment()
+    script = exp.writeScript()
+
+    assert 'Flip one final time' in script
