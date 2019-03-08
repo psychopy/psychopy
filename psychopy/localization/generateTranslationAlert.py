@@ -1,9 +1,22 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+# Generate template of translation file (.po) from source tree.
+# preferences/generateHints.py is automatically invoked to update 
+# localization of popup hints on the Preference Dialog.
+# 
+#
+
+from __future__ import absolute_import, print_function
+
 import os
 import subprocess
 import codecs
 import shutil
 import babel.messages.frontend
 import babel.messages.pofile
+
+from psychopy import __version__ as psychopy_version
 
 #
 # hints.py must be updated to find new hints
@@ -20,6 +33,8 @@ current_pot_filename = 'messages.pot'
 
 argv = ['pybabel', '-q', 'extract',
         '--input-dirs=..',
+        '--project=PsychoPy',
+        '--version='+psychopy_version,
         '-k', '_translate',
         '-o', new_pot_filename]
 
@@ -93,9 +108,13 @@ for locale_identifier, n in n_untranslated_locale:
 print(alert_message)
 
 #
-# Update current pot file
+# Update current pot file only if new strings were found.
 #
 
-os.remove(current_pot_filename)
-os.rename(new_pot_filename, current_pot_filename)
-
+if len(untranslated_new) > 0:
+    # replace current pot file with new one.
+    os.remove(current_pot_filename)
+    os.rename(new_pot_filename, current_pot_filename)
+else:
+    # keep current pot file and remove new one.
+    os.remove(new_pot_filename)
