@@ -1026,7 +1026,6 @@ class PavloviaProject(dict):
             perms = None  # not sure if this ever occurs when logged in
         return perms
 
-
 def getGitRoot(p):
     """Return None or the root path of the repository"""
     if not haveGit:
@@ -1045,6 +1044,8 @@ def getGitRoot(p):
         out = subprocess.check_output(["git", "rev-parse", "--show-toplevel"],
                                       cwd=p)
         return out.strip().decode('utf-8')
+
+
 
 def getProject(filename):
     """Will try to find (locally synced) pavlovia Project for the filename
@@ -1067,23 +1068,7 @@ def getProject(filename):
                     namespaceName = url.split('gitlab.pavlovia.org/')[1]
                     namespaceName = namespaceName.replace('.git', '')
                     pavSession = getCurrentSession()
-                    if not pavSession.user:
-                        nameSpace = namespaceName.split('/')[0]
-                        if nameSpace in knownUsers:  # Log in if user is known
-                            login(nameSpace, rememberMe=True)
-                        else:  # Check whether project repo is found in any of the known users accounts
-                            for user in knownUsers:
-                                login(user)
-                                foundProject = False
-                                for repo in pavSession.findUserProjects():
-                                    if namespaceName in repo['id']:
-                                        foundProject = True
-                                        logging.info("Logging in as {}".format(user))
-                                        break
-                                if not foundProject:
-                                    logging.warning("Could not find {namespace} in your Pavlovia accounts. "
-                                                    "Logging in as {user}.".format(namespace=namespaceName,
-                                                                                   user=user))
+
                     if pavSession.user:
                         proj = pavSession.getProject(namespaceName,
                                                      repo=localRepo)

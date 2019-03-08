@@ -2398,6 +2398,11 @@ class BuilderFrame(wx.Frame):
             return True
 
     def onPavloviaSync(self, evt=None):
+        user = self.getPavloviaUser()
+        if not user:
+            logging.error("Log in to sync a project from Builder.")
+            return
+
         if self._getExportPref('on sync'):
             self.fileExport(htmlPath=self._getHtmlPath(self.filename))
 
@@ -2408,7 +2413,13 @@ class BuilderFrame(wx.Frame):
         finally:
             self.enablePavloviaButton(['pavloviaSync', 'pavloviaRun'], True)
 
+
     def onPavloviaRun(self, evt=None):
+        user = self.getPavloviaUser()
+        if not user:
+            logging.error("Log in to run a project from Builder.")
+            return
+
         if self._getExportPref('on save'):
             self.fileSave()
             pavlovia_ui.syncProject(parent=self, project=self.project,
@@ -2449,6 +2460,24 @@ class BuilderFrame(wx.Frame):
             buttons = buttons.split(',')
         for button in buttons:
             self.toolbar.EnableTool(self.btnHandles[button.strip(' ')].GetId(), enable)
+
+    def getPavloviaUser(self):
+        """Check user is logged in. If not, create dlg for user to log in.
+
+        Returns
+        -------
+        bool
+            True if session exists or log in successful, False otherwise
+        """
+        pavSession = pavlovia.getCurrentSession()
+        if not pavSession.user:
+            userDlg = pavlovia_ui.user.UserEditor()
+            if userDlg.user:
+                logging.info("Logged in as: {}".format(userDlg.user.username))
+                return True
+            return False
+        logging.info("Logged in as: {}".format(pavSession.username))
+        return True
 
     def setPavloviaUser(self, user):
         # TODO: update user icon on button to user avatar

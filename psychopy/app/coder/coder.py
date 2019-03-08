@@ -2813,6 +2813,11 @@ class CoderFrame(wx.Frame):
 
     def onPavloviaSync(self, evt=None):
         """Push changes to project repo, or create new proj if proj is None"""
+        user = self.getPavloviaUser()
+        if not user:
+            logging.error("Log in to sync a project from Coder.")
+            return
+
         self.project = pavlovia.getProject(self.currentDoc.filename)
         self.fileSave(self.currentDoc.filename)  # Must save on sync else changes not pushed
         pavlovia_ui.syncProject(parent=self, project=self.project)
@@ -2821,6 +2826,25 @@ class CoderFrame(wx.Frame):
         # TODO: Allow user to run project from coder
         pass
 
+    def getPavloviaUser(self):
+        """Check user is logged in. If not, create dlg for user to log in.
+
+        Returns
+        -------
+        bool
+            True if session exists or log in successful, False otherwise
+        """
+        pavSession = pavlovia.getCurrentSession()
+        if not pavSession.user:
+            userDlg = pavlovia_ui.user.UserEditor()
+            if userDlg.user:
+                logging.info("Logged in as: {}".format(userDlg.user.username))
+                return True
+            return False
+        logging.info("Logged in as: {}".format(pavSession.username))
+        return True
+
     def setPavloviaUser(self, user):
         # TODO: update user icon on button to user avatar
         pass
+
