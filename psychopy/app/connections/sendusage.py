@@ -43,7 +43,8 @@ def sendUsageStats(app=None):
     u = "http://www.psychopy.org/usage.php?date=%s&sys=%s&version=%s&misc=%s"
     URL = u % (dateNow, systemInfo, v, miscInfo)
     try:
-        page = requests.get(URL, proxies=web.proxies)  # proxies
+        req = web.urllib.request.Request(URL)
+        page = web.urllib.request.urlopen(req)  # proxies
     except Exception:
         logging.warning("Couldn't connect to psychopy.org\n"
                         "Check internet settings (and proxy "
