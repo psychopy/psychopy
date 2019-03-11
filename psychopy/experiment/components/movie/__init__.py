@@ -139,6 +139,12 @@ class MovieComponent(BaseVisualComponent):
             self._writeCreationCode(buff, useInits=True)
 
     def writeInitCodeJS(self, buff):
+
+        if self.params['units'].val == 'from exp settings':
+            unitsStr = 'undefined'
+        else:
+            unitsStr = "%(units)s" % self.params
+
         inits = getInitVals(self.params)
         noAudio = '{}'.format(inits['No audio'].val).lower()
         for param in inits:
@@ -161,7 +167,7 @@ class MovieComponent(BaseVisualComponent):
                 "  noAudio: {noAudio},\n"
                 "  }});\n").format(name = inits['name'],
                                 movie = inits['movie'],
-                                units = inits['units'],
+                                units = unitsStr,
                                 pos = inits['pos'],
                                 size = inits['size'],
                                 ori = inits['ori'],
