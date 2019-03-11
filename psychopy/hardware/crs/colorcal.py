@@ -149,9 +149,6 @@ class ColorCAL(object):
                 continue
             else:
                 # line without any eol chars
-                #myLine=thisLine.encode('ascii')
-                #myLine=thisLine.rstrip(eol.encode('ascii'))
-                #lines.append(thisLine)
                 lines.append(thisLine.rstrip(eol.encode('ascii')))
                 nEmpty = 0
 
@@ -180,7 +177,7 @@ class ColorCAL(object):
         """
         # use a long timeout for measurement:
         val = self.sendMessage(b'MES', timeout=5)
-        valstrip=val.strip(b'\n\r>')
+        valstrip = val.strip(b'\n\r>')
         vals = valstrip.split(b',')
         ok = (vals[0] == 'OK00')
         # transform raw x,y,z by calibration matrix
@@ -210,15 +207,14 @@ class ColorCAL(object):
 
         """
         val = self.sendMessage(b'IDR')
-        valstrip=val.strip(b'\n\r>')
-        val=valstrip.split(b',')
+        valstrip = val.strip(b'\n\r>')
+        val = valstrip.split(b',')
         ok = (val[0] == b'OK00')
         if ok:
             firmware = val[2]
             serialNum = val[4]
             firmBuild = val[-1]
         else:
-            print('not ok')
             firmware = 0
             serialNum = 0
             firmBuild = 0
@@ -290,7 +286,7 @@ class ColorCAL(object):
         for rowN in range(3):
             rowName = 'r0%i' % (rowN + 1)
             val = self.sendMessage(rowName.encode('ascii'), timeout=1.0)
-            valstrip=val.strip(b'\n\r>')
+            valstrip = val.strip(b'\n\r>')
             vals = valstrip.split(b',')  # convert to list of values
             if vals[0] == b'OK00' and len(vals) > 1:
                 # convert to numpy array
