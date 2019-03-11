@@ -21,6 +21,7 @@ from psychopy import constants
 from psychopy.localization import _translate
 from psychopy import monitors, hardware, logging
 from psychopy.app import dialogs
+import numpy
 
 DEBUG = False
 NOTEBOOKSTYLE = False
@@ -655,7 +656,7 @@ class MainFrame(wx.Frame):
             'Name of this calibration (for monitor "%(name)s") will be:)')
         infoStr = msg % {'name': self.currentMon.name}
         dlg = wx.TextEntryDialog(self, message=infoStr,
-                                 defaultValue=calibTimeStr,
+                                 value=calibTimeStr,
                                  caption=_translate('Input text'))
         if dlg.ShowModal() == wx.ID_OK:
             newCalibName = dlg.GetValue()
@@ -881,7 +882,7 @@ class MainFrame(wx.Frame):
         else:
             self.currentMon.setLineariseMethod(1)
         self.unSavedMonitor = True
-        if self.currentMon.getLumsPre() != None:
+        if self.currentMon.getLumsPre().any() != None:
             self.doGammaFits(self.currentMon.getLevelsPre(),
                              self.currentMon.getLumsPre())
 
@@ -1018,15 +1019,15 @@ class MainFrame(wx.Frame):
         figure = Figure(figsize=(5, 5), dpi=80)
         figureCanvas = FigureCanvas(plotWindow, -1, figure)
         plt = figure.add_subplot(111)
-        plt.hold('off')
+        plt.cla()
 
         gammaGrid = self.currentMon.getGammaGrid()
         lumsPre = self.currentMon.getLumsPre()
         levelsPre = self.currentMon.getLevelsPre()
         lumsPost = self.currentMon.getLumsPost()
-        if lumsPre != None:
+        if lumsPre.any() != None:
             colors = 'krgb'
-            xxSmooth = monitors.numpy.arange(0, 255.5, 0.5)
+            xxSmooth = numpy.arange(0, 255.5, 0.5)
             eq = self.currentMon.getLinearizeMethod()
             for gun in range(4):  # includes lum
                 gamma = gammaGrid[gun, 2]
@@ -1082,12 +1083,11 @@ class MainFrame(wx.Frame):
         figure = Figure(figsize=(5, 5), dpi=80)
         figureCanvas = FigureCanvas(plotWindow, -1, figure)
         plt = figure.add_subplot(111)
-        plt.hold('off')
+        plt.cla()
 
         nm, spectraRGB = self.currentMon.getSpectra()
         if nm != None:
             plt.plot(nm, spectraRGB[0, :], 'r-', linewidth=1.5)
-            plt.hold('on')
             plt.plot(nm, spectraRGB[1, :], 'g-', linewidth=2)
             plt.plot(nm, spectraRGB[2, :], 'b-', linewidth=2)
         figureCanvas.draw()  # update the canvas
