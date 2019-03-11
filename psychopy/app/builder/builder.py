@@ -2289,13 +2289,6 @@ class BuilderFrame(wx.Frame):
         self.routinePanel.createNewRoutine()
 
     def toggleRoutineDisabled(self):
-        """Toggle the `disabled` parameter of a routine.
-
-        Returns
-        -------
-        bool
-            The new state of the `disabled` paramter after toggling.
-        """
         routine = (self.routinePanel.GetPage(self.routinePanel.GetSelection())
                    .routine)
         routine.params['disabled'] = not routine.params['disabled']
