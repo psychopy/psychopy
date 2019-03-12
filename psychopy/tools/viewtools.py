@@ -124,8 +124,7 @@ def generalizedPerspectiveProjection(posBottomLeft,
                                      nearClip=0.01,
                                      farClip=100.0):
     """Generalized derivation of projection and view matrices based on the
-    physical configuration of the display system. This is useful for cases where
-    the screen and observer and not necessarily
+    physical configuration of the display system.
 
     This implementation is based on Robert Kooima's 'Generalized Perspective
     Projection' method [1]_.
@@ -164,6 +163,20 @@ def generalizedPerspectiveProjection(posBottomLeft,
     ----------
     .. [1] Kooima, R. (2009). Generalized perspective projection. J. Sch.
     Electron. Eng. Comput. Sci.
+
+    Examples
+    --------
+
+    Computing a projection and view matrix::
+
+        # eyePos can come from motion capture data or is fixed
+        projMatrix, viewMatrix = viewtools.generalizedPerspectiveProjection(
+            posBottomLeft, posBottomRight, posTopLeft, eyePos)
+        # set the window matrices
+        win.projectionMatrix = projMatrix
+        win.viewMatrix = viewMatrix
+        # before rendering
+        win.applyEyeTransform()
 
     """
     # convert everything to numpy arrays
