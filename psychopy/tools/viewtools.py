@@ -195,7 +195,7 @@ def generalizedPerspectiveProjection(posBottomLeft,
         # create projection and view matrices
         leftProjMatrix, leftViewMatrix = generalizedPerspectiveProjection(
             posBottomLeft, posBottomRight, posTopLeft, posLeftEye)
-        rightProjMatrix, rightViewMatrix = = generalizedPerspectiveProjection(
+        rightProjMatrix, rightViewMatrix = generalizedPerspectiveProjection(
             posBottomLeft, posBottomRight, posTopLeft, posRightEye)
 
     """
