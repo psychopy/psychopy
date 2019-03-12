@@ -171,7 +171,7 @@ def generalizedPerspectiveProjection(posBottomLeft,
     Examples
     --------
 
-    Computing a projection and view matrices::
+    Computing a projection and view matrices for a window::
 
         projMatrix, viewMatrix = viewtools.generalizedPerspectiveProjection(
             posBottomLeft, posBottomRight, posTopLeft, eyePos)
