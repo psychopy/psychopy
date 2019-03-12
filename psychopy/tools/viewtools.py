@@ -331,7 +331,7 @@ def perspectiveProjectionMatrix(left, right, bottom, top, nearClip, farClip):
     return projMat
 
 
-def lookAt(eyePos, centerPos, upVec):
+def lookAt(eyePos, centerPos, upVec=(0.0, 1.0, 0.0)):
     """Create a transformation matrix to orient a view towards some point. Based
     on the same algorithm as 'gluLookAt'. This does not generate a projection
     matrix, but rather the matrix to transform the observer's view in the scene.
@@ -345,8 +345,8 @@ def lookAt(eyePos, centerPos, upVec):
         Eye position in the scene.
     centerPos : list of float or ndarray
         Position of the object center in the scene.
-    upVec : list of float or ndarray
-        Vector defining the up vector.
+    upVec : list of float or ndarray, optional
+        Vector defining the up vector. Default is +Y is up.
 
     Returns
     -------
@@ -445,7 +445,7 @@ def pointToNdc(wcsPos, viewMatrix, projectionMatrix):
     clipCoords = viewProjMatrix.dot(wcsVec)  # convert to clipping space
 
     # handle the singularity where perspective division will fail
-    if clipCoords[3] < 0.0001:
-        clipCoords[3] = np.finfo(np.float32).eps
+    if clipCoords[3] < 1e-05:
+        clipCoords[3] = 1e-05
 
     return clipCoords[:3] / clipCoords[3]  # xyz / w
