@@ -110,6 +110,7 @@ def computeFrustum(scrWidth,
         win.applyViewTransform()  # call before drawing
 
     """
+    # mdc - uses display size instead of the horizontal FOV gluPerspective needs
     d = scrWidth * (convergeOffset + scrDist)
     ratio = nearClip / float((convergeOffset + scrDist))
 
