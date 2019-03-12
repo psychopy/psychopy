@@ -167,9 +167,8 @@ def generalizedPerspectiveProjection(posBottomLeft,
     Examples
     --------
 
-    Computing a projection and view matrix::
+    Computing a projection and view matrices::
 
-        # eyePos can come from motion capture data or is fixed
         projMatrix, viewMatrix = viewtools.generalizedPerspectiveProjection(
             posBottomLeft, posBottomRight, posTopLeft, eyePos)
         # set the window matrices
@@ -177,6 +176,20 @@ def generalizedPerspectiveProjection(posBottomLeft,
         win.viewMatrix = viewMatrix
         # before rendering
         win.applyEyeTransform()
+
+    Stereo-pair rendering example from Kooima (2009)::
+
+        # configuration of screen and eyes
+        posBottomLeft = [-1.5, -0.75, -18.0]
+        posBottomRight = [1.5, -0.75, -18.0]
+        posTopLeft = [-1.5, 0.75, -18.0]
+        posLeftEye = [-1.25, 0.0, 0.0]
+        posRightEye = [1.25, 0.0, 0.0]
+        # create projection and view matrices
+        leftProjMatrix, leftViewMatrix = generalizedPerspectiveProjection(
+            posBottomLeft, posBottomRight, posTopLeft, posLeftEye)
+        rightProjMatrix, rightViewMatrix = = generalizedPerspectiveProjection(
+            posBottomLeft, posBottomRight, posTopLeft, posRightEye)
 
     """
     # convert everything to numpy arrays
