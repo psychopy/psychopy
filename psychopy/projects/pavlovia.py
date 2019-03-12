@@ -15,7 +15,7 @@ import traceback
 from pkg_resources import parse_version
 
 from psychopy import logging, prefs, constants, exceptions
-from psychopy.tools.filetools import DictStorage
+from psychopy.tools.filetools import DictStorage, KnownProjects
 from psychopy import app
 from psychopy.localization import _translate
 
@@ -58,7 +58,7 @@ knownUsers = DictStorage(
         filename=os.path.join(pavloviaPrefsDir, 'users.json'))
 
 # knownProjects is a dict stored by id ("namespace/name")
-knownProjects = DictStorage(
+knownProjects = KnownProjects(
         filename=os.path.join(pavloviaPrefsDir, 'projects.json'))
 # knownProjects stores the gitlab id to check if it's the same exact project
 # We add to the knownProjects when project.local is set (ie when we have a

@@ -2274,19 +2274,6 @@ class BuilderFrame(wx.Frame):
         """
         self.routinePanel.createNewRoutine()
 
-    def toggleRoutineDisabled(self):
-        """Toggle the `disabled` parameter of a routine.
-
-        Returns
-        -------
-        bool
-            The new state of the `disabled` paramter after toggling.
-        """
-        routine = (self.routinePanel.GetPage(self.routinePanel.GetSelection())
-                   .routine)
-        routine.params['disabled'] = not routine.params['disabled']
-        return routine.params['disabled']
-
     def renameRoutine(self, name, event=None, returnName=True):
         """Defines ability to rename routine in the routine panel
         """
