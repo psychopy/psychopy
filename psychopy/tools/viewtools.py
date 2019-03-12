@@ -62,8 +62,9 @@ def computeFrustum(scrWidth,
     The view point must be transformed for objects to appear correctly. Offsets
     in the X-direction must be applied +/- eyeOffset to account for inter-ocular
     separation. A transformation in the Z-direction must be applied to account
-    for screen distance. These offsets MUST be applied to the MODELVIEW matrix,
-    not the PROJECTION matrix! Doing so may break lighting calculations.
+    for screen distance. These offsets MUST be applied to the GL_MODELVIEW
+    matrix, not the GL_PROJECTION matrix! Doing so may break lighting
+    calculations.
 
     Examples
     --------
@@ -74,27 +75,35 @@ def computeFrustum(scrWidth,
         scrAspect = win.size[0] / win.size[1]
         scrDist = win.scrDistCM * 100.0  # monitor setting, can be anything
         frustum = viewtools.computeFrustum(scrWidth, scrAspect, scrDist)
-        # convert frustum to projection matrix
-        win.projectionMatrix = viewtools.perspectiveProjectionMatrix(*frustum)
-        # set your view matrix to account for the screen distance!!!
-        win.applyEyeTransform()  # call before drawing
+
+    Accessing frustum parameters::
+
+        left, right, bottom, top, nearVal, farVal = frustum
+        # ... or ...
+        left = frustum.left
 
     Off-axis frustums for stereo rendering::
 
         # compute view matrix for each eye, these value usually don't change
         eyeOffset = (-0.035, 0.035)  # +/- IOD / 2.0
-        leftProjMatrix = viewtools.perspectiveProjectionMatrix(
-            viewtools.computeFrustum(
-                scrWidth, scrAspect, scrDist, eyeOffset[0]))
-        rightProjMatrix = viewtools.computeFrustum(
-            viewtools.computeFrustum(
-                scrWidth, scrAspect, scrDist, eyeOffset[1]))
-        # ... after calling 'setBuffer('left')' ...
-        win.projectionMatrix = leftProjMatrix
-        # setup your view matrix accordingly, must account for screen distance
-        # and eye offset
+        scrDist = 0.50  # 50cm
+        scrWidth = 0.53  # 53cm
+        scrAspect = 1.778
+        leftFrustum = viewtools.computeFrustum(scrWidth, scrAspect, scrDist, eyeOffset[0])
+        rightFrustum = viewtools.computeFrustum(scrWidth, scrAspect, scrDist, eyeOffset[1])
+        # make sure your view matrix accounts for the screen distance and eye offsets!
+
+    Using computed view frustums with a window::
+
+        win.projectionMatrix = viewtools.perspectiveProjectionMatrix(*frustum)
+        # generate a view matrix looking ahead with correct viewing distance,
+        # origin is at the center of the screen. Assumes eye is centered with
+        # the screen.
+        eyePos = [0.0, 0.0, scrDist]
+        screenPos = [0.0, 0.0, 0.0]  # look at screen center
+        eyeUp = [0.0, 1.0, 0.0]
+        win.viewMatrix = viewtools.lookAt(eyePos, screenPos, eyeUp)
         win.applyViewTransform()  # call before drawing
-        # do the same for 'setBuffer('right')' using the other matrix ...
 
     """
     d = scrWidth * (convergeOffset + scrDist)
@@ -118,8 +127,8 @@ def generalizedPerspectiveProjection(posBottomLeft,
     physical configuration of the display system.
 
     This implementation is based on Robert Kooima's 'Generalized Perspective
-    Projection' (see http://csc.lsu.edu/~kooima/articles/genperspective/)
-    method.
+    Projection' method
+    (see http://csc.lsu.edu/~kooima/articles/genperspective/).
 
     Parameters
     ----------
@@ -140,6 +149,10 @@ def generalizedPerspectiveProjection(posBottomLeft,
     -------
     tuple
         The 4x4 projection and view matrix.
+
+    See Also
+    --------
+    computeFrustum : Compute frustum parameters.
 
     Notes
     -----
@@ -215,6 +228,10 @@ def orthoProjectionMatrix(left, right, bottom, top, nearClip, farClip):
     ndarray
         4x4 projection matrix
 
+    See Also
+    --------
+    perspectiveProjectionMatrix : Compute a perspective projection matrix.
+
     Notes
     -----
     The returned matrix is row-major. Values are floats with 32-bits of
@@ -257,6 +274,10 @@ def perspectiveProjectionMatrix(left, right, bottom, top, nearClip, farClip):
     ndarray
         4x4 projection matrix
 
+    See Also
+    --------
+    orthoProjectionMatrix : Compute a orthographic projection matrix.
+
     Notes
     -----
     The returned matrix is row-major. Values are floats with 32-bits of
@@ -276,9 +297,9 @@ def perspectiveProjectionMatrix(left, right, bottom, top, nearClip, farClip):
 
 
 def lookAt(eyePos, centerPos, upVec):
-    """Create a transformation matrix to orient towards some point. Based on the
-    same algorithm as 'gluLookAt'. This does not generate a projection matrix,
-    but rather the matrix to transform the observer's view in the scene.
+    """Create a transformation matrix to orient a view towards some point. Based
+    on the same algorithm as 'gluLookAt'. This does not generate a projection
+    matrix, but rather the matrix to transform the observer's view in the scene.
 
     For more information see:
     https://www.khronos.org/registry/OpenGL-Refpages/gl2.1/xhtml/gluLookAt.xml
@@ -359,12 +380,15 @@ def pointToNdc(wcsPos, viewMatrix, projectionMatrix):
 
     Examples
     --------
+
     Determine if a point is visible::
+
         point = (0.0, 0.0, 10.0)  # behind the observer
         ndc = pointToNdc(point, win.viewMatrix, win.projectionMatrix)
         isVisible = not np.any((ndc > 1.0) | (ndc < -1.0))
 
     Convert NDC to viewport (or pixel) coordinates::
+
         scrRes = (1920, 1200)
         point = (0.0, 0.0, -5.0)  # forward -5.0 from eye
         x, y, z = pointToNdc(point, win.viewMatrix, win.projectionMatrix)
