@@ -63,12 +63,13 @@ def computeFrustum(scrWidth,
 
     Notes
     -----
-    The view point must be transformed for objects to appear correctly. Offsets
-    in the X-direction must be applied +/- eyeOffset to account for inter-ocular
-    separation. A transformation in the Z-direction must be applied to account
-    for screen distance. These offsets MUST be applied to the GL_MODELVIEW
-    matrix, not the GL_PROJECTION matrix! Doing so may break lighting
-    calculations.
+
+    * The view point must be transformed for objects to appear correctly.
+      Offsets in the X-direction must be applied +/- eyeOffset to account for
+      inter-ocular separation. A transformation in the Z-direction must be
+      applied to accountfor screen distance. These offsets MUST be applied to
+      the GL_MODELVIEW matrix, not the GL_PROJECTION matrix! Doing so may break
+      lighting calculations.
 
     Examples
     --------
@@ -160,9 +161,11 @@ def generalizedPerspectiveProjection(posBottomLeft,
 
     Notes
     -----
-    The resulting projection frustums are off-axis relative to the center of the
-    display. The returned matrices are row-major. Values are floats with 32-bits
-    of precision stored as a contiguous (C-order) array.
+    * The resulting projection frustums are off-axis relative to the center of
+      the display.
+
+    * The returned matrices are row-major. Values are floats with 32-bits
+      of precision stored as a contiguous (C-order) array.
 
     References
     ----------
@@ -171,7 +174,6 @@ def generalizedPerspectiveProjection(posBottomLeft,
 
     Examples
     --------
-
     Computing a projection and view matrices for a window::
 
         projMatrix, viewMatrix = viewtools.generalizedPerspectiveProjection(
@@ -270,8 +272,9 @@ def orthoProjectionMatrix(left, right, bottom, top, nearClip, farClip):
 
     Notes
     -----
-    The returned matrix is row-major. Values are floats with 32-bits of
-    precision stored as a contiguous (C-order) array.
+
+    * The returned matrix is row-major. Values are floats with 32-bits of
+      precision stored as a contiguous (C-order) array.
 
     """
     projMat = np.zeros((4, 4), np.float32)
@@ -316,8 +319,9 @@ def perspectiveProjectionMatrix(left, right, bottom, top, nearClip, farClip):
 
     Notes
     -----
-    The returned matrix is row-major. Values are floats with 32-bits of
-    precision stored as a contiguous (C-order) array.
+
+    * The returned matrix is row-major. Values are floats with 32-bits of
+      precision stored as a contiguous (C-order) array.
 
     """
     projMat = np.zeros((4, 4), np.float32)
@@ -356,8 +360,9 @@ def lookAt(eyePos, centerPos, upVec=(0.0, 1.0, 0.0)):
 
     Notes
     -----
-    The returned matrix is row-major. Values are floats with 32-bits of
-    precision stored as a contiguous (C-order) array.
+
+    * The returned matrix is row-major. Values are floats with 32-bits of
+      precision stored as a contiguous (C-order) array.
 
     """
     eyePos = np.asarray(eyePos, np.float32)
@@ -403,15 +408,17 @@ def pointToNdc(wcsPos, viewMatrix, projectionMatrix):
 
     Notes
     -----
-        - The point is not visible, falling outside of the viewing frustum, if
-        the returned coordinates fall outside of -1 and 1 along any dimension.
-        - In the rare instance the point falls directly on the eye in world
-        space where the frustum converges to a point (singularity), the divisor
-        will be zero during perspective division. To avoid this, the divisor is
-        'bumped' to machine epsilon for the 'float32' type.
-        - This function assumes the display area is rectilinear. Any distortion
-        or warping applied in normalized device or viewport space is not
-        considered.
+
+    * The point is not visible, falling outside of the viewing frustum, if the
+      returned coordinates fall outside of -1 and 1 along any dimension.
+
+    * In the rare instance the point falls directly on the eye in world
+      space where the frustum converges to a point (singularity), the divisor
+      will be zero during perspective division. To avoid this, the divisor is
+      'bumped' to 1e-5.
+
+    * This function assumes the display area is rectilinear. Any distortion or
+      warping applied in normalized device or viewport space is not considered.
 
     Examples
     --------
