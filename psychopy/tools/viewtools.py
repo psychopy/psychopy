@@ -124,11 +124,11 @@ def generalizedPerspectiveProjection(posBottomLeft,
                                      nearClip=0.01,
                                      farClip=100.0):
     """Generalized derivation of projection and view matrices based on the
-    physical configuration of the display system.
+    physical configuration of the display system. This is useful for cases where
+    the screen and observer and not necessarily
 
     This implementation is based on Robert Kooima's 'Generalized Perspective
-    Projection' method
-    (see http://csc.lsu.edu/~kooima/articles/genperspective/).
+    Projection' method [1]_.
 
     Parameters
     ----------
@@ -159,6 +159,11 @@ def generalizedPerspectiveProjection(posBottomLeft,
     The resulting projection frustums are off-axis relative to the center of the
     display. The returned matrices are row-major. Values are floats with 32-bits
     of precision stored as a contiguous (C-order) array.
+
+    References
+    ----------
+    .. [1] Kooima, R. (2009). Generalized perspective projection. J. Sch.
+    Electron. Eng. Comput. Sci.
 
     """
     # convert everything to numpy arrays
@@ -367,20 +372,18 @@ def pointToNdc(wcsPos, viewMatrix, projectionMatrix):
 
     Notes
     -----
-    The point is not visible, falling outside of the viewing frustum, if the
-    returned coordinates fall outside of -1 and 1 along any dimension.
-
-    In the rare instance the point falls directly on the eye in world space
-    where the frustum converges to a point (singularity), the divisor will be
-    zero during perspective division. To avoid this, the divisor is 'bumped' to
-    machine epsilon for the 'float32' type.
-
-    This function assumes the display area is rectilinear. Any distortion or
-    warping applied in normalized device or viewport space is not considered.
+        - The point is not visible, falling outside of the viewing frustum, if
+        the returned coordinates fall outside of -1 and 1 along any dimension.
+        - In the rare instance the point falls directly on the eye in world
+        space where the frustum converges to a point (singularity), the divisor
+        will be zero during perspective division. To avoid this, the divisor is
+        'bumped' to machine epsilon for the 'float32' type.
+        - This function assumes the display area is rectilinear. Any distortion
+        or warping applied in normalized device or viewport space is not
+        considered.
 
     Examples
     --------
-
     Determine if a point is visible::
 
         point = (0.0, 0.0, 10.0)  # behind the observer
