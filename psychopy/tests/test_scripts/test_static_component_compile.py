@@ -38,6 +38,8 @@ class TestStaticComponentCompiled(object):
         for routine in self.exp.routines:
             for component in self.exp.routines[routine]:
                 if component.getType() == "StaticComponent":
+                    # Check component name
+                    assert component.params['name'] == 'ISI'
                     # Check init code
                     component.writeInitCode(self.script)
                     assert "StaticPeriod" in self.script.getvalue()
