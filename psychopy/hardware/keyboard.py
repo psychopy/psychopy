@@ -64,9 +64,7 @@ class Keyboard:
 
         # get the necessary keyboard buffer(s)
         allInds, allNames, allKBs = hid.get_keyboard_indices()
-        if device == -1:
-            self._ids = allInds
-        elif type(device) == list:
+        if type(device) in [list, tuple]:
             self._ids = device
         else:
             self._ids = [device]
@@ -74,9 +72,8 @@ class Keyboard:
         self._buffers = {}
         self._devs = {}
         for devId in self._ids:
-            if devId in allInds:
+            if devId==-1 or devId in allInds:
                 buffer = _keyBuffers.getBuffer(devId, bufferSize)
-                print(buffer.dev)
                 self._buffers[devId] = buffer
                 self._devs[devId] = buffer.dev
 
@@ -182,7 +179,10 @@ class _KeyBuffer(object):
         self._keys = []
         self._keysStillDown = []
 
-        self.dev = hid.Keyboard(kb_id)  # a PTB keyboard object
+        if kb_id == -1:
+            self.dev = hid.Keyboard()  # a PTB keyboard object
+        else:
+            self.dev = hid.Keyboard(kb_id)  # a PTB keyboard object
         self.dev._create_queue(bufferSize)
 
     def flush(self):
