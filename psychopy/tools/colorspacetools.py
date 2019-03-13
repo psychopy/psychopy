@@ -21,17 +21,23 @@ def unpackColors(colors):
 
     Many color conversion routines operate on color data in Nx3 format, where
     rows are color space coordinates. 1x3 and NxNx3 input are converted to Nx3
-    format.
+    format. The original shape and dimensions are also returned, allowing the
+    color values to be returned to their original format using 'reshape'.
 
-    :param colors:
+    Parameters
+    ----------
+    colors : ndarray, list or tuple of floats
         Nx3 or NxNx3 array of colors, last dim must be size == 3 specifying each
         color coordinate.
-    :return: Nx3 ndarray of converted colors, original shape, original dims
+
+    Returns
+    -------
+    tuple
+        Nx3 ndarray of converted colors, original shape, original dims
 
     """
     # handle the various data types and shapes we might get as input
-    if isinstance(colors, (list, tuple,)):
-        colors = numpy.asarray(colors)
+    colors = numpy.asarray(colors, dtype=float)
 
     orig_shape = colors.shape
     orig_dim = colors.ndim
@@ -49,17 +55,23 @@ def unpackColors(colors):
 
 
 def srgbTF(rgb, reverse=False, **kwargs):
-    """Apply sRGB transfer function (or gamma) to RGB values.
+    """Apply sRGB transfer function (or gamma) to linear RGB values.
 
     Input values must have been transformed using a conversion matrix derived
     from sRGB primaries relative to D65.
 
-    :param rgb: tuple, list or ndarray of floats
+    Parameters
+    ----------
+    rgb : tuple, list or ndarray of floats
         Nx3 or NxNx3 array of linear RGB values, last dim must be size == 3
         specifying RBG values.
-    :param reverse: boolean
-        If True, the reverse transfer function will convert sRGB -> linear RGB
-    :return: ndarray with same shape as input
+    reverse : boolean
+        If True, the reverse transfer function will convert sRGB -> linear RGB.
+
+    Returns
+    -------
+    ndarray
+        Array of transformed colors with same shape as input.
 
     """
     rgb, orig_shape, orig_dim = unpackColors(rgb)
@@ -93,10 +105,16 @@ def rec709TF(rgb, **kwargs):
     document (http://www.itu.int/rec/R-REC-BT.709-6-201506-I/en) and is
     commonly used with HDTV televisions.
 
-    :param rgb: tuple, list or ndarray of floats
+    Parameters
+    ----------
+    rgb : tuple, list or ndarray of floats
         Nx3 or NxNx3 array of linear RGB values, last dim must be size == 3
         specifying RBG values.
-    :return: ndarray with same shape as input
+
+    Returns
+    -------
+    ndarray
+        Array of transformed colors with same shape as input.
 
     """
     rgb, orig_shape, orig_dim = unpackColors(rgb)
@@ -138,11 +156,13 @@ def cielab2rgb(lab,
     whiteXYZ : tuple, list or ndarray
         1-D vector coordinate of the white point in CIE-XYZ color space. Must be
         the same white point needed by the conversion matrix. The default
-        white point is D65 if None is specified, defined as:
-            X, Y, Z = 0.9505, 1.0000, 1.0890
+        white point is D65 if None is specified, defined as X, Y, Z = 0.9505,
+        1.0000, 1.0890.
     conversionMatrix : tuple, list or ndarray
-        3x3 conversion matrix to transform CIE-XYZ to linear RGB values. The
-        default matrix is sRGB with a D65 white point if None is specified.
+        3x3 conversion matrix to transform CIE-XYZ to RGB values. The default
+        matrix is sRGB with a D65 white point if None is specified. Note that
+        values must be gamma corrected to appear correctly according to the sRGB
+        standard.
     transferFunc : pyfunc or None
         Signature of the transfer function to use. If None, values are kept as
         linear RGB (it's assumed your display is gamma corrected via the
@@ -158,14 +178,19 @@ def cielab2rgb(lab,
     Returns
     -------
     ndarray
-        array of RGB tristimulus values
+        Array of RGB tristimulus values.
 
     Example
     -------
-    import psychopy.tools.colorspacetools as cst
-    cielabColor = (53.0, -20.0, 0.0)  # greenish color (L*, a*, b*)
-    # convert a CIEL*a*b* color to signed RGB with sRGB transfer function
-    rgbColor = cst.cielab2rgb(cielabColor, transferFunc=cst.srgbTF)
+    Converting a CIE L*a*b* color to linear RGB::
+
+        import psychopy.tools.colorspacetools as cst
+        cielabColor = (53.0, -20.0, 0.0)  # greenish color (L*, a*, b*)
+        rgbColor = cst.cielab2rgb(cielabColor)
+
+    Using a transfer function to convert to sRGB::
+
+        rgbColor = cst.cielab2rgb(cielabColor, transferFunc=cst.srgbTF)
 
     """
     lab, orig_shape, orig_dim = unpackColors(lab)
@@ -235,9 +260,7 @@ def cielch2rgb(lch,
                transferFunc=None,
                clip=False,
                **kwargs):
-    """Transform CIE L*C*h* to CIE L*a*b (1976) color space, then convert the
-    coordinates to RGB tristimulus values. The hue component (h*) is expected to
-    be in degrees.
+    """Transform CIE L*C*h* coordinates to RGB tristimulus values.
 
     Parameters
     ----------
@@ -248,18 +271,20 @@ def cielch2rgb(lch,
     whiteXYZ : tuple, list or ndarray
         1-D vector coordinate of the white point in CIE-XYZ color space. Must be
         the same white point needed by the conversion matrix. The default
-        white point is D65 if None is specified, defined as:
-            X, Y, Z = 0.9505, 1.0000, 1.0890
+        white point is D65 if None is specified, defined as X, Y, Z = 0.9505,
+        1.0000, 1.0890
     conversionMatrix : tuple, list or ndarray
-        3x3 conversion matrix to transform CIE-XYZ to linear RGB values. The
-        default matrix is sRGB with a D65 white point if None is specified.
+        3x3 conversion matrix to transform CIE-XYZ to RGB values. The default
+        matrix is sRGB with a D65 white point if None is specified. Note that
+        values must be gamma corrected to appear correctly according to the sRGB
+        standard.
     transferFunc : pyfunc or None
         Signature of the transfer function to use. If None, values are kept as
         linear RGB (it's assumed your display is gamma corrected via the
         hardware CLUT). The TF must be appropriate for the conversion matrix
-        supplied (default is sRGB). Additional arguments to 'transferFunc' can
-        be passed by specifying them as keyword arguments. Gamma functions that
-        come with PsychoPy are 'srgbTF' and 'rec709TF', see their docs for more
+        supplied. Additional arguments to 'transferFunc' can be passed by
+        specifying them as keyword arguments. Gamma functions that come with
+        PsychoPy are 'srgbTF' and 'rec709TF', see their docs for more
         information.
     clip : boolean
         Make all output values representable by the display. However, colors
