@@ -462,6 +462,11 @@ class Window(object):
 
         self.lastFrameT = core.getTime()
         self.waitBlanking = waitBlanking
+
+        # set the swap interval if using GLFW
+        if self.winType == 'glfw':
+            self.backend.setSwapInterval(int(waitBlanking))
+
         self.refreshThreshold = 1.0  # initial val needed by flip()
 
         # over several frames with no drawing
