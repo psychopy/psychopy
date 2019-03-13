@@ -144,8 +144,6 @@ class GLFWBackend(BaseBackend):
             Framebuffer (back buffer) depth bits.
         stencilBits : int
             Framebuffer (back buffer) stencil bits.
-        swapInterval : int
-            Screen updates before swapping buffers.
         winTitle : str
             Optional window title string.
         *args
@@ -180,7 +178,7 @@ class GLFWBackend(BaseBackend):
         win.refreshHz = int(kwargs.get('refreshHz', 60))
         win.depthBits = int(kwargs.get('depthBits', 8))
         win.stencilBits = int(kwargs.get('stencilBits', 8))
-        win.swapInterval = int(kwargs.get('swapInterval', 1))  # vsync ON if 1
+        # win.swapInterval = int(kwargs.get('swapInterval', 1))  # vsync ON if 1
 
         # get monitors, with GLFW the primary display is ALWAYS at index 0
         allScrs = glfw.get_monitors()
@@ -341,7 +339,7 @@ class GLFWBackend(BaseBackend):
         glfw.set_char_mods_callback(self.winHandle, event._onGLFWText)
 
         # set swap interval to manual setting, independent of waitBlanking
-        self.setSwapInterval(win.swapInterval)
+        self.setSwapInterval(int(kwargs.get('swapInterval', 1)))
 
         # give the window class GLFW specific methods
         win.setMouseType = self.setMouseType
