@@ -182,7 +182,7 @@ def compileScript(infile=None, version=None, outfile=None):
             else:
                 # We already have the text
                 scriptText = scriptDict[scripts]
-            with io.open(eval(scripts), 'w', encoding='utf-8-sig') as f:
+            with io.open(eval(scripts), 'w', encoding='utf-8-sig', newline='\n') as f:
                 f.write(scriptText)
 
         return 1
