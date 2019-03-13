@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 """
 This experiment was created using PsychoPy3 Experiment Builder (v3.0.6),
-    on March 12, 2019, at 17:33
+    on March 13, 2019, at 09:20
 If you publish work using this script please cite the PsychoPy publications:
     Peirce, JW (2007) PsychoPy - Psychophysics software in Python.
         Journal of Neuroscience Methods, 162(1-2), 8-13.
@@ -22,12 +22,6 @@ import os  # handy system and path functions
 import sys  # to get file system encoding
 
 from psychopy.hardware import qmix
-
-# Initialize all pumps so they are ready to be used when we
-# need them later – this enables us to dynamically select
-# pumps during the experiment without worrying about their
-# initialization.
-qmix._init_all_pumps()
 
 # Ensure that relative paths start from the same directory as this script
 _thisDir = os.path.dirname(os.path.abspath(__file__))

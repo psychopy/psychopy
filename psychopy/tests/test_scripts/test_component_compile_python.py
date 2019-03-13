@@ -39,8 +39,10 @@ class TestComponentCompilerPython(object):
 
     def clear_components(self):
         """Clears the exp object of components"""
+
         for component in self.exp.routines['trial']:
             self.exp.routines['trial'].removeComponent(component)
+            self.exp._runOnce = []  # Clears code set by previous component using runOnce
 
     def add_components(self, compName):
         """Add components to routine"""
