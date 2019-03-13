@@ -35,7 +35,7 @@ def unpackColors(colors):  # used internally, not exported by __all__
     Returns
     -------
     tuple
-        Nx3 ndarray of converted colors, original shape, original dims
+        Nx3 ndarray of converted colors, original shape, original dims.
 
     """
     # handle the various data types and shapes we might get as input
@@ -173,7 +173,7 @@ def cielab2rgb(lab,
         be passed by specifying them as keyword arguments. Gamma functions that
         come with PsychoPy are 'srgbTF' and 'rec709TF', see their docs for more
         information.
-    clip : boolean
+    clip : bool
         Make all output values representable by the display. However, colors
         outside of the display's gamut may not be valid!
 
