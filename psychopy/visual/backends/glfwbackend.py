@@ -142,6 +142,8 @@ class GLFWBackend(BaseBackend):
             Refresh rate in Hertz.
         depthBits : int,
             Framebuffer (back buffer) depth bits.
+        swapInterval : int
+            Swap interval for the current OpenGL context.
         stencilBits : int
             Framebuffer (back buffer) stencil bits.
         winTitle : str
