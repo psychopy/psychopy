@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 """
 This experiment was created using PsychoPy3 Experiment Builder (v3.0.6),
-    on March 13, 2019, at 09:20
+    on March 13, 2019, at 13:27
 If you publish work using this script please cite the PsychoPy publications:
     Peirce, JW (2007) PsychoPy - Psychophysics software in Python.
         Journal of Neuroscience Methods, 162(1-2), 8-13.
@@ -11,7 +11,7 @@ If you publish work using this script please cite the PsychoPy publications:
 """
 
 from __future__ import absolute_import, division
-from psychopy import locale_setup, sound, gui, visual, core, data, event, logging, clock, hardware, microphone, parallel
+from psychopy import locale_setup, sound, gui, visual, core, data, event, logging, clock
 from psychopy.constants import (NOT_STARTED, STARTED, PLAYING, PAUSED,
                                 STOPPED, FINISHED, PRESSED, RELEASED, FOREVER)
 import numpy as np  # whole numpy lib is available, prepend 'np.'
@@ -21,7 +21,6 @@ from numpy.random import random, randint, normal, shuffle
 import os  # handy system and path functions
 import sys  # to get file system encoding
 
-from psychopy.hardware import qmix
 
 # Ensure that relative paths start from the same directory as this script
 _thisDir = os.path.dirname(os.path.abspath(__file__))
@@ -62,9 +61,6 @@ win = visual.Window(
     monitor='testMonitor', color=[0,0,0], colorSpace='rgb',
     blendMode='avg', useFBO=True,
     units='height')
-
-# Enable sound input/output:
-microphone.switchOn()
 # store frame rate of monitor if we can measure it
 expInfo['frameRate'] = win.getActualFrameRate()
 if expInfo['frameRate'] != None:
@@ -74,14 +70,13 @@ else:
 
 # Initialize components for Routine "trial"
 trialClock = core.Clock()
-ISI = clock.StaticPeriod(win=win, screenHz=expInfo['frameRate'], name='ISI')
 text = visual.TextStim(win=win, name='text',
     text='Any text\n\nincluding line breaks',
     font='Arial',
     pos=(0, 0), height=0.1, wrapWidth=None, ori=0, 
     color='white', colorSpace='rgb', opacity=1, 
     languageStyle='LTR',
-    depth=-1.0);
+    depth=0.0);
 
 # Create some handy timers
 globalClock = core.Clock()  # to track the time since experiment started
@@ -95,7 +90,7 @@ continueRoutine = True
 routineTimer.add(1.000000)
 # update component parameters for each repeat
 # keep track of which components have finished
-trialComponents = [ISI, text]
+trialComponents = [text]
 for thisComponent in trialComponents:
     thisComponent.tStart = None
     thisComponent.tStop = None
@@ -125,15 +120,6 @@ while continueRoutine and routineTimer.getTime() > 0:
         text.frameNStop = frameN  # exact frame index
         win.timeOnFlip(text, 'tStopRefresh')  # time at next scr refresh
         text.setAutoDraw(False)
-    # *ISI* period
-    if t >= 0.0 and ISI.status == NOT_STARTED:
-        # keep track of start time/frame for later
-        ISI.tStart = t  # not accounting for scr refresh
-        ISI.frameNStart = frameN  # exact frame index
-        win.timeOnFlip(ISI, 'tStartRefresh')  # time at next scr refresh
-        ISI.start(0.5)
-    elif ISI.status == STARTED:  # one frame should pass before updating params and completing
-        ISI.complete()  # finish the static period
     
     # check for quit (typically the Esc key)
     if endExpNow or event.getKeys(keyList=["escape"]):
@@ -156,8 +142,6 @@ while continueRoutine and routineTimer.getTime() > 0:
 for thisComponent in trialComponents:
     if hasattr(thisComponent, "setAutoDraw"):
         thisComponent.setAutoDraw(False)
-thisExp.addData('ISI.started', ISI.tStart)
-thisExp.addData('ISI.stopped', ISI.tStop)
 thisExp.addData('text.started', text.tStartRefresh)
 thisExp.addData('text.stopped', text.tStopRefresh)
 

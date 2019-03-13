@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 """
 This experiment was created using PsychoPy3 Experiment Builder (v3.0.6),
-    on March 13, 2019, at 09:20
+    on March 13, 2019, at 13:27
 If you publish work using this script please cite the PsychoPy publications:
     Peirce, JW (2007) PsychoPy - Psychophysics software in Python.
         Journal of Neuroscience Methods, 162(1-2), 8-13.
@@ -11,7 +11,7 @@ If you publish work using this script please cite the PsychoPy publications:
 """
 
 from __future__ import absolute_import, division
-from psychopy import locale_setup, sound, gui, visual, core, data, event, logging, clock, hardware, microphone, parallel
+from psychopy import locale_setup, sound, gui, visual, core, data, event, logging, clock
 from psychopy.constants import (NOT_STARTED, STARTED, PLAYING, PAUSED,
                                 STOPPED, FINISHED, PRESSED, RELEASED, FOREVER)
 import numpy as np  # whole numpy lib is available, prepend 'np.'
@@ -21,7 +21,6 @@ from numpy.random import random, randint, normal, shuffle
 import os  # handy system and path functions
 import sys  # to get file system encoding
 
-from psychopy.hardware import qmix
 
 # Ensure that relative paths start from the same directory as this script
 _thisDir = os.path.dirname(os.path.abspath(__file__))
@@ -62,9 +61,6 @@ win = visual.Window(
     monitor='testMonitor', color=[0,0,0], colorSpace='rgb',
     blendMode='avg', useFBO=True,
     units='height')
-
-# Enable sound input/output:
-microphone.switchOn()
 # store frame rate of monitor if we can measure it
 expInfo['frameRate'] = win.getActualFrameRate()
 if expInfo['frameRate'] != None:
@@ -74,13 +70,6 @@ else:
 
 # Initialize components for Routine "trial"
 trialClock = core.Clock()
-text = visual.TextStim(win=win, name='text',
-    text='Any text\n\nincluding line breaks',
-    font='Arial',
-    pos=(0, 0), height=0.1, wrapWidth=None, ori=0, 
-    color='white', colorSpace='rgb', opacity=1, 
-    languageStyle='LTR',
-    depth=0.0);
 # Set experiment start values for variable component var1
 var1 = ''
 var1Container = []
@@ -96,7 +85,7 @@ frameN = -1
 continueRoutine = True
 # update component parameters for each repeat
 # keep track of which components have finished
-trialComponents = [text, var1]
+trialComponents = [var1]
 for thisComponent in trialComponents:
     thisComponent.tStart = None
     thisComponent.tStop = None
@@ -111,21 +100,6 @@ while continueRoutine:
     t = trialClock.getTime()
     frameN = frameN + 1  # number of completed frames (so 0 is the first frame)
     # update/draw components on each frame
-    
-    # *text* updates
-    if t >= 0.0 and text.status == NOT_STARTED:
-        # keep track of start time/frame for later
-        text.tStart = t  # not accounting for scr refresh
-        text.frameNStart = frameN  # exact frame index
-        win.timeOnFlip(text, 'tStartRefresh')  # time at next scr refresh
-        text.setAutoDraw(True)
-    frameRemains = 0.0 + 1.0- win.monitorFramePeriod * 0.75  # most of one frame period left
-    if text.status == STARTED and t >= frameRemains:
-        # keep track of stop time/frame for later
-        text.tStop = t  # not accounting for scr refresh
-        text.frameNStop = frameN  # exact frame index
-        win.timeOnFlip(text, 'tStopRefresh')  # time at next scr refresh
-        text.setAutoDraw(False)
     
     # check for quit (typically the Esc key)
     if endExpNow or event.getKeys(keyList=["escape"]):
@@ -148,8 +122,6 @@ while continueRoutine:
 for thisComponent in trialComponents:
     if hasattr(thisComponent, "setAutoDraw"):
         thisComponent.setAutoDraw(False)
-thisExp.addData('text.started', text.tStartRefresh)
-thisExp.addData('text.stopped', text.tStopRefresh)
 # the Routine "trial" was not non-slip safe, so reset the non-slip timer
 routineTimer.reset()
 

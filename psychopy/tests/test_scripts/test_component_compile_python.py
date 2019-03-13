@@ -9,8 +9,6 @@ from psychopy.scripts import psyexpCompile
 class TestComponentCompilerPython(object):
     """A class for testing the Python code compiler for all components"""
     def setup(self):
-        """This setup is done for each test individually
-        """
         self.temp_dir = mkdtemp()
         self.allComp = getAllComponents(fetchIcons=False)
         self.exp = Experiment() # create once, not every test
@@ -21,10 +19,11 @@ class TestComponentCompilerPython(object):
         shutil.rmtree(self.temp_dir)
 
     def test_all_components(self):
+        """Test all component code outputs, except for Settings and Unknown"""
         for compName in self.allComp:
             if compName not in ['SettingsComponent', 'UnknownComponent']:
                 # reset exp
-                self.clear_components()
+                self.reset_experiment()
                 # Add components
                 self.add_components(compName)
                 # Create output script
@@ -33,16 +32,15 @@ class TestComponentCompilerPython(object):
                 correctPath = os.path.join(TESTS_DATA_PATH, 'correct{}.py'.format(compName))
                 # Compare files, raising assertions on fails above tolerance (%)
                 try:
-                    compareTextFiles('new{}.py'.format(compName), correctPath, tolerance=5)
-                except FileNotFoundError as err:
-                    compareTextFiles('new{}.py'.format(compName), correctPath, tolerance=5)
+                    compareTextFiles('new{}.py'.format(compName), correctPath, tolerance=3)
+                except IOError as err:
+                    compareTextFiles('new{}.py'.format(compName), correctPath, tolerance=3)
 
-    def clear_components(self):
-        """Clears the exp object of components"""
-
-        for component in self.exp.routines['trial']:
-            self.exp.routines['trial'].removeComponent(component)
-            self.exp._runOnce = []  # Clears code set by previous component using runOnce
+    def reset_experiment(self):
+        """Resets the exp object for each component"""
+        self.exp = Experiment()  # create once, not every test
+        self.exp.addRoutine('trial')
+        self.exp.flow.addRoutine(self.exp.routines['trial'], pos=0)
 
     def add_components(self, compName):
         """Add components to routine"""

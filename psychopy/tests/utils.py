@@ -6,7 +6,7 @@ from os.path import abspath, basename, dirname, isfile, join as pjoin
 import os.path
 import shutil
 import numpy as np
-import codecs
+import io
 from psychopy import logging
 
 try:
@@ -84,7 +84,10 @@ def compareTextFiles(pathToActual, pathToCorrect, delim=None,
                         .format(pathToActual=pathToActual,
                                 pathToCorrect=pathToCorrect))
         shutil.copyfile(pathToActual, pathToCorrect)
-        raise FileNotFoundError  # deliberately raise an error to see the warning message, but also to create file
+        raise IOError("File not found")  # deliberately raise an error to see the warning message, but also to create file
+
+    allowLines = 0
+    lineDiff = True
 
     if delim is None:
         if pathToCorrect.endswith('.csv'):
@@ -93,27 +96,35 @@ def compareTextFiles(pathToActual, pathToCorrect, delim=None,
             delim='\t'
 
     try:
-        #we have the necessary file
-        with codecs.open(pathToActual, 'r', encoding='utf-8-sig') as f:
+        # we have the necessary file
+        with io.open(pathToActual, 'r', encoding='utf-8-sig', newline=None) as f:
             txtActual = f.readlines()
 
-        with codecs.open(pathToCorrect, 'r', encoding='utf-8-sig') as f:
+        with io.open(pathToCorrect, 'r', encoding='utf-8-sig', newline=None) as f:
             txtCorrect = f.readlines()
 
         if tolerance is not None:
             # Set number of lines allowed to fail
             allowLines = round((tolerance * len(txtCorrect)) / 100, 0)
 
-        assert len(txtActual)==len(txtCorrect), "The data file has the wrong number of lines"
+        # Check number of lines per document for equality
+        lineDiff = len(txtActual) == len(txtCorrect)
+        assert lineDiff
+
         for lineN in range(len(txtActual)):
             if delim is None:
                 lineActual = txtActual[lineN]
                 lineCorrect = txtCorrect[lineN]
-                #just compare the entire line
-                assert lineActual==lineCorrect
-            else:#word by word instead
+
+                # just compare the entire line
+                if not lineActual == lineCorrect:
+                    allowLines -= 1
+                assert allowLines >= 0
+
+            else:  # word by word instead
                 lineActual=txtActual[lineN].split(delim)
                 lineCorrect=txtCorrect[lineN].split(delim)
+
                 for wordN in range(len(lineActual)):
                     wordActual=lineActual[wordN]
                     wordCorrect=lineCorrect[wordN]
@@ -139,21 +150,22 @@ def compareTextFiles(pathToActual, pathToCorrect, delim=None,
                             print(lineCorrect)
                         assert wordActual==wordCorrect, "Values at (%i,%i) differ: %s != %s " \
                             %(lineN, wordN, repr(wordActual), repr(wordCorrect))
+
     except AssertionError as err:
         pathToLocal, ext = os.path.splitext(pathToCorrect)
         pathToLocal = pathToLocal+'_local'+ext
 
-        if tolerance is not None:
-            allowLines -= 1
-            if allowLines < 0:  # Only fail if tolerance reached
-                msg = 'Number of differences in {failed} exceeds the {tol}% tolerance'.format(failed=pathToActual,
-                                                                                              tol=tolerance)
-                logging.error(msg)
-                raise AssertionError(err)
+        # Set assertion type
+        if not lineDiff:  # Fail if number of lines not equal
+            msg = "{} has the wrong number of lines".format(pathToActual)
+        elif allowLines < 0:  # Fail if tolerance reached
+            msg = 'Number of differences in {failed} exceeds the {tol}% tolerance'.format(failed=pathToActual,
+                                                                                          tol=tolerance or 0)
         else:
             shutil.copyfile(pathToActual,pathToLocal)
-            print("txtActual!=txtCorr: Saving local copy to %s" % pathToLocal)
-            raise AssertionError(err)
+            msg = "txtActual != txtCorr: Saving local copy to {}".format(pathToLocal)
+        logging.error(msg)
+        raise AssertionError(err)
 
 def compareXlsxFiles(pathToActual, pathToCorrect):
     from openpyxl.reader.excel import load_workbook
