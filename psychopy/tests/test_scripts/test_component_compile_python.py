@@ -14,6 +14,9 @@ class TestComponentCompilerPython(object):
         self.exp = Experiment() # create once, not every test
         self.exp.addRoutine('trial')
         self.exp.flow.addRoutine(self.exp.routines['trial'], pos=0)
+        # Create correctScript subdir for holding correct scripts
+        if not os.path.isdir(os.path.join(TESTS_DATA_PATH, "correctScript")):
+            os.mkdir(os.path.join(TESTS_DATA_PATH, "correctScript"))
 
     def teardown(self):
         shutil.rmtree(self.temp_dir)
@@ -29,7 +32,7 @@ class TestComponentCompilerPython(object):
                 # Create output script
                 self.create_component_output(compName)
                 # Get correct script path
-                correctPath = os.path.join(TESTS_DATA_PATH, 'correct{}.py'.format(compName))
+                correctPath = os.path.join(TESTS_DATA_PATH, "correctScript", 'correct{}.py'.format(compName))
                 # Compare files, raising assertions on fails above tolerance (%)
                 try:
                     compareTextFiles('new{}.py'.format(compName), correctPath, tolerance=3)
