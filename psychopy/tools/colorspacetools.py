@@ -9,14 +9,16 @@
 """
 from __future__ import absolute_import, division, print_function
 
+__all__ = ['srgbTF', 'rec709TF', 'cielab2rgb', 'cielch2rgb', 'dkl2rgb',
+           'dklCart2rgb', 'rgb2dklCart', 'hsv2rgb', 'rgb2lms', 'lms2rgb']
+
 from past.utils import old_div
 import numpy
-
 from psychopy import logging
 from psychopy.tools.coordinatetools import sph2cart
 
 
-def unpackColors(colors):
+def unpackColors(colors):  # used internally, not exported by __all__
     """Reshape an array of color values to Nx3 format.
 
     Many color conversion routines operate on color data in Nx3 format, where
