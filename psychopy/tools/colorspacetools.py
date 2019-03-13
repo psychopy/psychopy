@@ -5,7 +5,7 @@
 # Copyright (C) 2018 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
-"""Functions and classes related to color space conversion
+"""Functions and classes related to color space conversion.
 """
 from __future__ import absolute_import, division, print_function
 
