@@ -13,8 +13,10 @@ from __future__ import absolute_import, division, print_function
 
 from collections import deque
 import sys
+import copy
 
 import psychopy.core
+import psychopy.clock
 from psychopy import logging
 from psychopy.constants import NOT_STARTED
 
@@ -60,7 +62,10 @@ class Keyboard:
 
         """
         self.status = NOT_STARTED
-        self.clock = clock
+        if clock:
+            self.clock = clock
+        else:
+            self.clock = psychopy.clock.Clock()
 
         # get the necessary keyboard buffer(s)
         allInds, allNames, allKBs = hid.get_keyboard_indices()
@@ -91,13 +96,17 @@ class Keyboard:
         for buffer in self._buffers.values():
             buffer.stop()
 
-    def getKeys(self, keyList=None, includeDuration=True, clear=True):
+    def getKeys(self, keyList=None, waitRelease=True, clear=True):
         keyList = []
         for buffer in self._buffers.values():
-            keyList.extend(buffer.getKeys(keyList, includeDuration, clear))
+            for origKey in buffer.getKeys(keyList, waitRelease, clear):
+                # calculate rt from time and self.timer
+                thisKey = copy.copy(origKey)  # don't alter the original
+                thisKey.rt = thisKey.tDown - self.clock.getLastResetTime()
+                keyList.append(thisKey)
         return keyList
 
-    def waitKeys(maxWait=None, keyList=None, includeDuration=True, clear=True):
+    def waitKeys(maxWait=None, keyList=None, waitRelease=True, clear=True):
         keys = []
         raise NotImplementedError
 
@@ -116,6 +125,7 @@ class BuilderKeyResponse(object):
         self.keys = []  # the key(s) pressed
         self.corr = 0  # was the resp correct this trial? (0=no, 1=yes)
         self.rt = []  # response time(s)
+        self.time = []
         self.clock = psychopy.core.Clock()  # we'll use this to measure the rt
 
 
@@ -136,6 +146,7 @@ class KeyPress(object):
             self.name = 'unknown'
         else:
             self.name = keyNames[code]
+        self.rt = None  # can only be assigned by the keyboard object on return
 
     def __eq__(self, other):
         return self.name == other
@@ -198,13 +209,13 @@ class _KeyBuffer(object):
             key['time'] = evt['Time']
             self._evts.append(key)
 
-    def getKeys(self, keyList=[], includeDuration=True, clear=True):
+    def getKeys(self, keyList=[], waitRelease=True, clear=True):
         """Return the KeyPress objects
 
         Parameters
         ----------
         keys : list of key(name)s of interest
-        includeDuration : if True then only process keys that are also released
+        waitRelease : if True then only process keys that are also released
         clear : clear any keys (that have been returned in this call)
 
         Returns
@@ -213,7 +224,7 @@ class _KeyBuffer(object):
         """
         self._processEvts()
         # if no conditions then no need to loop through
-        if not keyList and not includeDuration:
+        if not keyList and not waitRelease:
             keyPresses = deque(self._keys)
             if clear:
                 self._keys = deque()
@@ -223,7 +234,7 @@ class _KeyBuffer(object):
         # otherwise loop through and check each key
         keyPresses = deque()
         for keyPress in self._keys:
-            if includeDuration and not keyPress.duration:
+            if waitRelease and not keyPress.duration:
                 continue
             if keyList and keyPress.name not in keyList:
                 continue
