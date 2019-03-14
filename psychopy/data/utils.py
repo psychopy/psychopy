@@ -270,7 +270,7 @@ def importConditions(fileName, returnFieldNames=False, selection=""):
             trialList.append(thisTrial)
         return trialList, fieldNames
 
-    if fileName.endswith('.csv') or (fileName.endswith(('.xlsx','.xls'))
+    if fileName.endswith('.csv') or (fileName.endswith(('.xlsx','.xls','.xlsm'))
                                      and haveXlrd):
         if fileName.endswith('.csv'):
             trialsArr = pd.read_csv(fileName, encoding='utf-8-sig')
@@ -284,7 +284,7 @@ def importConditions(fileName, returnFieldNames=False, selection=""):
         logging.debug(u"Clearing unnamed columns from {}".format(fileName))
         trialList, fieldNames = pandasToDictList(trialsArr)
 
-    elif fileName.endswith('.xlsx'):
+    elif fileName.endswith(('.xlsx','.xlsm')):
         if not haveOpenpyxl:
             raise ImportError('openpyxl or xlrd is required for loading excel '
                               'files, but neither was found.')
@@ -309,7 +309,11 @@ def importConditions(fileName, returnFieldNames=False, selection=""):
         # get parameter names from the first row header
         fieldNames = []
         for colN in range(nCols):
-            fieldName = ws.cell(_getExcelCellName(col=colN, row=0)).value
+            if parse_version(openpyxl.__version__) < parse_version('2.0'):
+                fieldName = ws.cell(_getExcelCellName(col=colN, row=0)).value
+            else:
+                # From 2.0, cells are referenced with 1-indexing: A1 == cell(row=1, column=1)
+                fieldName = ws.cell(row=1, column=colN + 1).value
             fieldNames.append(fieldName)
         _assertValidVarNames(fieldNames, fileName)
 
@@ -318,7 +322,11 @@ def importConditions(fileName, returnFieldNames=False, selection=""):
         for rowN in range(1, nRows):  # skip header first row
             thisTrial = {}
             for colN in range(nCols):
-                val = ws.cell(_getExcelCellName(col=colN, row=rowN)).value
+                if parse_version(openpyxl.__version__) < parse_version('2.0'):
+                    val = ws.cell(_getExcelCellName(col=colN, row=0)).value
+                else:
+                    # From 2.0, cells are referenced with 1-indexing: A1 == cell(row=1, column=1)
+                    val = ws.cell(row=rowN + 1, column=colN + 1).value
                 # if it looks like a list or tuple, convert it
                 if (isinstance(val, basestring) and
                         (val.startswith('[') and val.endswith(']') or

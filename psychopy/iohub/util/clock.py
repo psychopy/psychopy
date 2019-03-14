@@ -39,14 +39,24 @@ else:
         def _getTime():
             libc.clock_gettime(CLOCK_MONOTONIC, byref(_ctime))
             return _ctime.tv_sec + _ctime.tv_nsec / 1000000000.0
-    else:
-        curPyver = sys.version_info
-        if curPyver[0] == 2 and curPyver[1] <= 6:
-            import time
-            _getTime = time.time
-        else:
-            import timeit
-            _getTime = timeit.default_timer
+    elif sys.platform == "darwin":
+        # Monotonic getTime with absolute origin. Suggested by @aforren1, and
+        # copied from github.com/aforren1/toon/blob/master/toon/input/mac_clock.py 
+        import ctypes
+        _libc = ctypes.CDLL('/usr/lib/libc.dylib', use_errno=True)
+        
+        class mach_timebase_info_data_t(ctypes.Structure):
+            _fields_ = (('numer', ctypes.c_uint32), ('denom', ctypes.c_uint32))
+        
+        _mach_absolute_time = _libc.mach_absolute_time
+        _mach_absolute_time.restype = ctypes.c_uint64
+        
+        _timebase = mach_timebase_info_data_t()
+        _libc.mach_timebase_info(ctypes.byref(_timebase))
+        _ticks_per_second = _timebase.numer / _timebase.denom * 1.0e9
+        
+        def getTime():
+            return _mach_absolute_time() / _ticks_per_second
 
     class MonotonicClock(object):
         """A convenient class to keep track of time in your experiments using a

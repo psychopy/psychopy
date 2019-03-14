@@ -163,4 +163,11 @@ class StaticComponent(BaseComponent):
                                       updateType=prms[fieldName].updates,
                                       params=prms)
             code = "# component updates done\n"
-            buff.writeIndented(code)
+
+            # Write custom code
+            if self.params['code']:
+                code += ("# Adding custom code for {name}\n"
+                         "{code}\n".format(name=self.params['name'],
+                                           code=self.params['code']))
+
+            buff.writeIndentedLines(code)

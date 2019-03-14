@@ -8,7 +8,6 @@ Keyboard Reaction Time Calculation shown within a line length matching task.
 
 Initial Version: May 6th, 2013, Sol Simpson
 """
-
 from __future__ import absolute_import, division, print_function
 
 from psychopy import  core,  visual
@@ -18,8 +17,7 @@ from math import fabs
 io = launchHubServer(psychopy_monitor_name='default')
 display = io.devices.display
 win = visual.Window(display.getPixelResolution(), monitor='default',
-    units='pix', #color=[128, 128, 128], colorSpace='rgb255',
-    fullscr=True, allowGUI=False)
+    units='pix', fullscr=True, allowGUI=False)
 
 # save some 'dots' during the trial loop
 keyboard = io.devices.keyboard
@@ -66,11 +64,8 @@ while spacebar_rt == 0.0 or last_len >=  win.size[0]:
 
     for s in stim:
         s.draw()
-    # Clear all events from the ioHub Global event buffer only.
-    io.clearEvents()
+        
     win.flip()
-
-io.clearEvents('all')
 
 results = "Did you Forget to Press the Spacebar?\n"
 if spacebar_rt > 0.0:
@@ -86,10 +81,7 @@ for s in stim:
     s.draw()
 win.flip()
 
-io.clearEvents('all')
-while not keyboard.getPresses():
-    io.wait(0.05)
-    io.clearEvents()
+keyboard.waitForPresses(maxWait=10.0)
 
 win.close()
 core.quit()

@@ -30,7 +30,8 @@ class BaseComponent(object):
                  startType='time (s)', startVal='',
                  stopType='duration (s)', stopVal='',
                  startEstim='', durationEstim='',
-                 saveStartStop=True, syncScreenRefresh=False):
+                 saveStartStop=True, syncScreenRefresh=False,
+                 disabled=False):
         self.type = 'Base'
         self.exp = exp  # so we can access the experiment if necess
         self.parentName = parentName  # to access the routine too if needed
@@ -105,6 +106,12 @@ class BaseComponent(object):
             syncScreenRefresh, valType='bool', allowedTypes=[],
             hint=msg, categ="Data",
             label=_translate('Sync timing with screen refresh'))
+
+        msg = _translate("Disable this component")
+        self.params['disabled'] = Param(
+            disabled, valType='bool', allowedTypes=[],
+            hint=msg, categ="Testing",
+            label=_translate('Disable component'))
 
         self.order = ['name']  # name first, then timing, then others
 
