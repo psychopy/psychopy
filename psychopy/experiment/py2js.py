@@ -13,8 +13,10 @@ import ast
 import astunparse
 import esprima
 from psychopy.constants import PY3
+from psychopy import logging
 
 if PY3:
+    from past.builtins import unicode
     from io import StringIO
 else:
     from StringIO import StringIO
@@ -76,8 +78,12 @@ def expression2js(expr):
     # parenths becomes a list and the outer parens indicate priority.
     # This works by running an ast transformer class to swap the contents of the tuple
     # into a list for the number of tuples in the expression.
+    try:
+        syntaxTree = ast.parse(expr)
+    except Exception as err:
+        logging.error(err)
+        syntaxTree = ast.parse(unicode(expr))
 
-    syntaxTree = ast.parse(expr)
     for node in ast.walk(syntaxTree):
         TupleTransformer().visit(node)  # Transform tuples to list
         # for py2 using 'unicode_literals' we don't want

@@ -30,7 +30,7 @@ def compileScript(infile=None, version=None, outfile=None):
         Warning: Cannot set version if module imported. Set version from
         command line interface only.
     outfile: string
-        The output file to be generated (defaults to Python script.
+        The output file to be generated (defaults to Python script).
     """
 
     def _setVersion(version):
@@ -90,7 +90,7 @@ def compileScript(infile=None, version=None, outfile=None):
         """
         Drop disabled components, if any.
 
-        Paramters
+        Parameters
         ---------
         exp : psychopy.experiment.Experiment
             The experiment from which to remove all components that have been

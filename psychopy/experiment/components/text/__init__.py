@@ -29,7 +29,6 @@ class TextComponent(BaseVisualComponent):
     """
     categories = ['Stimuli']
     targets = ['PsychoPy', 'PsychoJS']
-
     def __init__(self, exp, parentName, name='text',
                  # effectively just a display-value
                  text=_translate('Any text\n\nincluding line breaks'),
@@ -136,9 +135,9 @@ class TextComponent(BaseVisualComponent):
     def writeInitCodeJS(self, buff):
         # do we need units code?
         if self.params['units'].val == 'from exp settings':
-            unitsStr = ""
+            unitsStr = "  units : undefined, \n"
         else:
-            unitsStr = "  units : %(units)s, " % self.params
+            unitsStr = "  units : %(units)s, \n" % self.params
         # do writing of init
         # replaces variable params with sensible defaults
         inits = getInitVals(self.params, 'PsychoJS')
