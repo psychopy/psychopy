@@ -142,10 +142,10 @@ class GLFWBackend(BaseBackend):
             Refresh rate in Hertz.
         depthBits : int,
             Framebuffer (back buffer) depth bits.
+        swapInterval : int
+            Swap interval for the current OpenGL context.
         stencilBits : int
             Framebuffer (back buffer) stencil bits.
-        swapInterval : int
-            Screen updates before swapping buffers.
         winTitle : str
             Optional window title string.
         *args
@@ -180,9 +180,7 @@ class GLFWBackend(BaseBackend):
         win.refreshHz = int(kwargs.get('refreshHz', 60))
         win.depthBits = int(kwargs.get('depthBits', 8))
         win.stencilBits = int(kwargs.get('stencilBits', 8))
-
-        # TODO - make waitBlanking set this too, independent right now
-        win.swapInterval = int(kwargs.get('swapInterval', 1))  # vsync ON if 1
+        # win.swapInterval = int(kwargs.get('swapInterval', 1))  # vsync ON if 1
 
         # get monitors, with GLFW the primary display is ALWAYS at index 0
         allScrs = glfw.get_monitors()
@@ -342,9 +340,8 @@ class GLFWBackend(BaseBackend):
         glfw.set_key_callback(self.winHandle, event._onGLFWKey)
         glfw.set_char_mods_callback(self.winHandle, event._onGLFWText)
 
-        # Enable vsync, GLFW has additional setting for this that might be
-        # useful.
-        glfw.swap_interval(win.swapInterval)
+        # set swap interval to manual setting, independent of waitBlanking
+        self.setSwapInterval(int(kwargs.get('swapInterval', 1)))
 
         # give the window class GLFW specific methods
         win.setMouseType = self.setMouseType
@@ -355,6 +352,10 @@ class GLFWBackend(BaseBackend):
         #self.winHandle.on_resize = _onResize  # avoid circular reference
 
         # TODO - handle window resizing
+
+    def setSwapInterval(self, interval):
+        """Set the swap interval for the current GLFW context."""
+        glfw.swap_interval(interval)
 
     @property
     def shadersSupported(self):
