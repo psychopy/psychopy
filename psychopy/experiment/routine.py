@@ -288,7 +288,7 @@ class Routine(list):
 
         # are we done yet?
         code = ("// check for quit (typically the Esc key)\n"
-                "if (psychoJS.experiment.experimentEnded || psychoJS.eventManager.getKeys({keyList:['escape']}).length > 0) {\n"
+                "if (psychoJS.experiment.experimentEnded) {\n"
                 "  return psychoJS.quit('The [Escape] key was pressed. Goodbye!', false);\n"
                 "}\n"
                 "\n// check if the Routine should terminate\n"

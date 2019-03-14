@@ -360,6 +360,8 @@ class KeyboardComponent(BaseComponent):
                 keyList = list(keyList)
             elif isinstance(keyList, basestring):  # a single string/key
                 keyList = [keyList]
+            if self.exp.settings.params['Enable Escape'].val and 'escape' not in keyList:
+                keyList.append('escape')
             keyListStr = "{keyList:%s}" % repr(keyList)
 
         # check for keypresses
@@ -368,7 +370,7 @@ class KeyboardComponent(BaseComponent):
         if self.exp.settings.params['Enable Escape'].val:
             code = ("\n// check for quit:\n"
                     "if (theseKeys.indexOf('escape') > -1) {\n"
-                    "    psychoJS.experiment.experimentEnded = true;\n"
+                    "  psychoJS.experiment.experimentEnded = true;\n"
                     "}\n")
             buff.writeIndentedLines(code)
 
