@@ -68,19 +68,24 @@ class Keyboard:
             self.clock = psychopy.clock.Clock()
 
         # get the necessary keyboard buffer(s)
-        allInds, allNames, allKBs = hid.get_keyboard_indices()
-        if type(device) in [list, tuple]:
-            self._ids = device
+        if sys.platform=='win32':
+            self._ids = [-1]  # no indexing possible so get the combo keyboard
         else:
-            self._ids = [device]
-        # now we have a list of device IDs to monitor
-        self._buffers = {}
-        self._devs = {}
-        for devId in self._ids:
-            if devId==-1 or devId in allInds:
-                buffer = _keyBuffers.getBuffer(devId, bufferSize)
-                self._buffers[devId] = buffer
-                self._devs[devId] = buffer.dev
+            allInds, allNames, allKBs = hid.get_keyboard_indices()
+            if device==-1:
+                self._ids = allInds
+            elif type(device) in [list, tuple]:
+                self._ids = device
+            else:
+                self._ids = [device]
+            # now we have a list of device IDs to monitor
+            self._buffers = {}
+            self._devs = {}
+            for devId in self._ids:
+                if devId==-1 or devId in allInds:
+                    buffer = _keyBuffers.getBuffer(devId, bufferSize)
+                    self._buffers[devId] = buffer
+                    self._devs[devId] = buffer.dev
 
         if not waitForStart:
             self.start()
@@ -340,4 +345,3 @@ elif sys.platform == 'win32':
     keyNames = keyNamesWin
 else:
     keyNames = {}
-    
