@@ -53,15 +53,24 @@ getTime = None
 #     2) On other OS's, if the Python version being used is 2.6 or lower,
 #        time.time is used. For Python 2.7 and above, the timeit.default_timer
 #        function is used.
+try:
+    import psychtoolbox
+    havePTB = True
+except ImportError:
+    havePTB = False
 
-if sys.platform == 'win32':
+if havePTB:
+    # def getTime():
+        # secs, wallTime, error = psychtoolbox.GetSecs('allclocks')
+        # return wallTime
+    getTime = psychtoolbox.GetSecs
+elif sys.platform == 'win32':
     from ctypes import byref, c_int64, windll
     _fcounter = c_int64()
     _qpfreq = c_int64()
     windll.Kernel32.QueryPerformanceFrequency(byref(_qpfreq))
     _qpfreq = float(_qpfreq.value)
     _winQPC = windll.Kernel32.QueryPerformanceCounter
-
     def getTime():
         _winQPC(byref(_fcounter))
         return _fcounter.value / _qpfreq
@@ -70,17 +79,17 @@ elif sys.platform == "darwin":
     # copied from github.com/aforren1/toon/blob/master/toon/input/mac_clock.py 
     import ctypes
     _libc = ctypes.CDLL('/usr/lib/libc.dylib', use_errno=True)
-    
+    # create helper class to store data
     class mach_timebase_info_data_t(ctypes.Structure):
         _fields_ = (('numer', ctypes.c_uint32), ('denom', ctypes.c_uint32))
-    
+    # get function and set response type
     _mach_absolute_time = _libc.mach_absolute_time
     _mach_absolute_time.restype = ctypes.c_uint64
-    
+    # calculate timebase
     _timebase = mach_timebase_info_data_t()
     _libc.mach_timebase_info(ctypes.byref(_timebase))
     _ticks_per_second = _timebase.numer / _timebase.denom * 1.0e9
-    
+    #then define getTime func
     def getTime():
         return _mach_absolute_time() / _ticks_per_second
 else:

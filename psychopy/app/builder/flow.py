@@ -11,6 +11,7 @@
 from __future__ import absolute_import, division, print_function
 
 from builtins import str
+import re
 import sys
 
 from pkg_resources import parse_version
@@ -33,8 +34,6 @@ from psychopy.localization import _translate
 
 
 canvasColor = [200, 200, 200]  # in prefs? ;-)
-disabledRoutineFill = wx.Colour(127, 127, 127, 100)
-disabledRoutineEdge = wx.Colour(127, 127, 127, 255)
 routineTimeColor = wx.Colour(50, 100, 200, 200)
 staticTimeColor = wx.Colour(200, 50, 50, 100)
 nonSlipFill = wx.Colour(150, 200, 150, 255)
@@ -49,6 +48,7 @@ codeSyntaxOkay = wx.Colour(220, 250, 220, 255)  # light green
 
 
 class FlowPanel(wx.ScrolledWindow):
+
     def __init__(self, frame, id=-1):
         """A panel that shows how the routines will fit together
         """
@@ -94,10 +94,9 @@ class FlowPanel(wx.ScrolledWindow):
         # the component (loop or routine)
         self.componentFromID = {}
         self.contextMenuLabels = {
-            'rename': _translate('rename'),
-            'toggleDisabled': _translate('disable'),
-            'remove': _translate('remove')}
-        self.contextMenuItems = ['rename', 'toggleDisabled', 'remove']
+            'remove': _translate('remove'),
+            'rename': _translate('rename')}
+        self.contextMenuItems = ['remove', 'rename']
         self.contextItemFromID = {}
         self.contextIDFromItem = {}
         for item in self.contextMenuItems:
@@ -476,17 +475,8 @@ class FlowPanel(wx.ScrolledWindow):
             self.removeComponent(component, compID)
             self.frame.addToUndoStack(
                 "REMOVE `%s` from Flow" % component.params['name'])
-        elif op == 'rename':
+        if op == 'rename':
             self.frame.renameRoutine(component)
-        elif op == 'toggleDisabled':
-            isNowDisabled = self.frame.toggleRoutineDisabled()
-            if isNowDisabled:
-                menuEntry = _translate('enable')
-            else:
-                menuEntry = _translate('disable')
-
-            self.contextMenuLabels['toggleDisabled'] = menuEntry
-            self.clearMode()  # Redraw.
 
     def removeComponent(self, component, compID):
         """Remove either a Routine or a Loop from the Flow
@@ -791,10 +781,7 @@ class FlowPanel(wx.ScrolledWindow):
             font.SetPointSize(1000 / self.dpi - fontSizeDelta)
 
         maxTime, nonSlip = routine.getMaxTime()
-        if routine.params['disabled']:
-            rgbFill = disabledRoutineFill
-            rgbEdge = disabledRoutineEdge
-        elif nonSlip:
+        if nonSlip:
             rgbFill = nonSlipFill
             rgbEdge = nonSlipEdge
         else:
