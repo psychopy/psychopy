@@ -126,6 +126,12 @@ function trialRoutineEachFrame() {
 
   if (key_resp.status === PsychoJS.Status.STARTED) {
     let theseKeys = psychoJS.eventManager.getKeys({keyList:['y', 'n', 'left', 'right', 'space']});
+    
+    // check for quit:
+    if (theseKeys.indexOf('escape') > -1) {
+      psychoJS.experiment.experimentEnded = true;
+    }
+    
     if (theseKeys.length > 0) {  // at least one key was pressed
       key_resp.keys = theseKeys[theseKeys.length-1];  // just the last key pressed
       key_resp.rt = key_resp.clock.getTime();
