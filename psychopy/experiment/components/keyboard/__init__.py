@@ -136,7 +136,7 @@ class KeyboardComponent(BaseComponent):
             return
 
     def writeRoutineStartCodeJS(self, buff):
-        code = "%(name)s = new core.BuilderKeyResponse(psychoJS);\n"
+        code = "%(name)s = new core.BuilderKeyResponse(psychoJS);\n\n"
         buff.writeIndentedLines(code % self.params)
 
         if (self.params['store'].val == 'nothing' and
@@ -360,18 +360,16 @@ class KeyboardComponent(BaseComponent):
                 keyList = list(keyList)
             elif isinstance(keyList, basestring):  # a single string/key
                 keyList = [keyList]
-            if self.exp.settings.params['Enable Escape'].val and 'escape' not in keyList:
-                keyList.append('escape')
             keyListStr = "{keyList:%s}" % repr(keyList)
 
         # check for keypresses
         buff.writeIndented("let theseKeys = psychoJS.eventManager.getKeys(%s);\n" % keyListStr)
 
-        if self.exp.settings.params['Enable Escape'].val:
+        if self.exp.settings.params['Enable Escape'].val and 'escape' in keyList:
             code = ("\n// check for quit:\n"
                     "if (theseKeys.indexOf('escape') > -1) {\n"
                     "  psychoJS.experiment.experimentEnded = true;\n"
-                    "}\n")
+                    "}\n\n")
             buff.writeIndentedLines(code)
 
         # how do we store it?
@@ -422,6 +420,7 @@ class KeyboardComponent(BaseComponent):
         for dedents in range(dedentAtEnd):
             buff.setIndentLevel(-1, relative=True)
             buff.writeIndented("}\n")
+        buff.writeIndented("\n")
 
     def writeRoutineEndCode(self, buff):
         # some shortcuts
