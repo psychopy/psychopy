@@ -13,7 +13,7 @@ dependencies:
 - esprima-python
 - gitpython
 - ffmpeg
-- freetype-py
+- freetype-py<2.10.0
 - future
 - gevent
 - greenlet
