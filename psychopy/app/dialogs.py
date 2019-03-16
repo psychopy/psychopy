@@ -387,6 +387,7 @@ class GlobSizer(wx.GridBagSizer):
 
     def ShiftRowsDown(self, startRow, endRow=None, startCol=None,
                       endCol=None):
+
         if endCol is None:
             endCol = self.GetCols()
         else:
@@ -399,12 +400,13 @@ class GlobSizer(wx.GridBagSizer):
             startCol = 0
         for c in range(startCol, endCol):
             for r in range(endRow, startRow - 1, -1):
-                item = self.FindItemAtPosition((r, c))
-                if item:
-                    w = item.GetWindow()
-                    if w:
-                        self.SetItemPosition(w, (r + 1, c))
-                        w.Refresh()
+                if r != startRow:  # Do not move startRow down
+                    item = self.FindItemAtPosition((r, c))
+                    if item:
+                        w = item.GetWindow()
+                        if w:
+                            self.SetItemPosition(w, (r + 1, c))
+                            w.Refresh()
 
     def ShiftColsLeft(self, startCol, endCol=None, startRow=None,
                       endRow=None):
@@ -565,7 +567,7 @@ class ListWidget(GlobSizer):
         newEntry = {}
         for fieldName in self.fieldNames:
             newEntry[fieldName] = ""
-        self.addEntryCtrls(row, newEntry)
+        self.addEntryCtrls(row + 1, newEntry)
         self.Layout()
         self.parent.Fit()
 
