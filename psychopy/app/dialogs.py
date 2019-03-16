@@ -399,14 +399,13 @@ class GlobSizer(wx.GridBagSizer):
         if startCol is None:
             startCol = 0
         for c in range(startCol, endCol):
-            for r in range(endRow, startRow - 1, -1):
-                if r != startRow:  # Do not move startRow down
-                    item = self.FindItemAtPosition((r, c))
-                    if item:
-                        w = item.GetWindow()
-                        if w:
-                            self.SetItemPosition(w, (r + 1, c))
-                            w.Refresh()
+            for r in range(endRow, startRow, -1):
+                item = self.FindItemAtPosition((r, c))
+                if item:
+                    w = item.GetWindow()
+                    if w:
+                        self.SetItemPosition(w, (r + 1, c))
+                        w.Refresh()
 
     def ShiftColsLeft(self, startCol, endCol=None, startRow=None,
                       endRow=None):
