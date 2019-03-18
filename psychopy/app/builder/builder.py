@@ -1258,20 +1258,6 @@ class BuilderFrame(wx.Frame):
         tb.AddSeparator()
 
         if 'phoenix' in wx.PlatformInfo:
-            self.bldrBtnPrefs = tb.AddTool(
-                wx.ID_ANY,
-                _translate("Preferences"),
-                preferencesBmp,
-                _translate("Application preferences"))
-        else:
-            self.bldrBtnPrefs = tb.AddSimpleTool(
-                wx.ID_ANY,
-                preferencesBmp,
-                _translate("Preferences"),
-                _translate("Application preferences"))
-        tb.Bind(wx.EVT_TOOL, self.app.showPrefs, self.bldrBtnPrefs)
-
-        if 'phoenix' in wx.PlatformInfo:
             item = tb.AddTool(
                 wx.ID_ANY,
                 _translate("Monitor Center"),
@@ -1285,21 +1271,21 @@ class BuilderFrame(wx.Frame):
                 _translate("Monitor settings and calibration"))
         tb.Bind(wx.EVT_TOOL, self.app.openMonitorCenter, id=item.GetId())
 
-        tb.AddSeparator()
-
         if 'phoenix' in wx.PlatformInfo:
             item = tb.AddTool(
                 wx.ID_ANY,
                 _translate("Experiment Settings"),
                 settingsBmp,
-                _translate("Settings for this exp"))
+                _translate("Experiment settings"))
         else:
             item = tb.AddSimpleTool(
                 wx.ID_ANY,
                 settingsBmp,
                 _translate("Experiment Settings"),
-                _translate("Settings for this exp"))
+                _translate("Experiment settings"))
         tb.Bind(wx.EVT_TOOL, self.setExperimentSettings, item)
+
+        tb.AddSeparator()
 
         if 'phoenix' in wx.PlatformInfo:
             item = tb.AddTool(
@@ -2287,19 +2273,6 @@ class BuilderFrame(wx.Frame):
         """Defines ability to add routine in the routine panel
         """
         self.routinePanel.createNewRoutine()
-
-    def toggleRoutineDisabled(self):
-        """Toggle the `disabled` parameter of a routine.
-
-        Returns
-        -------
-        bool
-            The new state of the `disabled` paramter after toggling.
-        """
-        routine = (self.routinePanel.GetPage(self.routinePanel.GetSelection())
-                   .routine)
-        routine.params['disabled'] = not routine.params['disabled']
-        return routine.params['disabled']
 
     def renameRoutine(self, name, event=None, returnName=True):
         """Defines ability to rename routine in the routine panel

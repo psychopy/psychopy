@@ -6,7 +6,7 @@ from os.path import abspath, basename, dirname, isfile, join as pjoin
 import os.path
 import shutil
 import numpy as np
-import codecs
+import io
 from psychopy import logging
 
 try:
@@ -70,16 +70,25 @@ def compareScreenshot(fileName, win, crit=5.0):
 
 
 def compareTextFiles(pathToActual, pathToCorrect, delim=None,
-                     encoding='utf-8-sig'):
+                     encoding='utf-8-sig', tolerance=None):
     """Compare the text of two files, ignoring EOL differences,
     and save a copy if they differ
+
+    State a tolerance, or percentage of errors allowed,
+    to account for differences in version numbers, datetime, etc
     """
+
     if not os.path.isfile(pathToCorrect):
-        logging.warning('There was no comparison ("correct") file available, saving current file as the comparison:%s' %pathToCorrect)
-        foundComparisonFile=False
-        shutil.copyfile(pathToActual,pathToCorrect)
-        assert foundComparisonFile #deliberately raise an error to see the warning message
-        return
+        logging.warning('There was no comparison ("correct") file available, for path "{pathToActual}"\n'
+                        '\t\t\tSaving current file as the comparison: {pathToCorrect}'
+                        .format(pathToActual=pathToActual,
+                                pathToCorrect=pathToCorrect))
+        shutil.copyfile(pathToActual, pathToCorrect)
+        raise IOError("File not found")  # deliberately raise an error to see the warning message, but also to create file
+
+    allowLines = 0
+    lineDiff = True
+
     if delim is None:
         if pathToCorrect.endswith('.csv'):
             delim=','
@@ -87,21 +96,35 @@ def compareTextFiles(pathToActual, pathToCorrect, delim=None,
             delim='\t'
 
     try:
-        #we have the necessary file
-        with codecs.open(pathToActual, 'r', encoding='utf-8-sig') as f:
+        # we have the necessary file
+        with io.open(pathToActual, 'r', encoding='utf-8-sig', newline=None) as f:
             txtActual = f.readlines()
 
-        with codecs.open(pathToCorrect, 'r', encoding='utf-8-sig') as f:
+        with io.open(pathToCorrect, 'r', encoding='utf-8-sig', newline=None) as f:
             txtCorrect = f.readlines()
 
-        assert len(txtActual)==len(txtCorrect), "The data file has the wrong number of lines"
+        if tolerance is not None:
+            # Set number of lines allowed to fail
+            allowLines = round((tolerance * len(txtCorrect)) / 100, 0)
+
+        # Check number of lines per document for equality
+        lineDiff = len(txtActual) == len(txtCorrect)
+        assert lineDiff
+
         for lineN in range(len(txtActual)):
             if delim is None:
-                #just compare the entire line
-                assert lineActual==lineCorrect
-            else:#word by word instead
+                lineActual = txtActual[lineN]
+                lineCorrect = txtCorrect[lineN]
+
+                # just compare the entire line
+                if not lineActual == lineCorrect:
+                    allowLines -= 1
+                assert allowLines >= 0
+
+            else:  # word by word instead
                 lineActual=txtActual[lineN].split(delim)
                 lineCorrect=txtCorrect[lineN].split(delim)
+
                 for wordN in range(len(lineActual)):
                     wordActual=lineActual[wordN]
                     wordCorrect=lineCorrect[wordN]
@@ -127,11 +150,21 @@ def compareTextFiles(pathToActual, pathToCorrect, delim=None,
                             print(lineCorrect)
                         assert wordActual==wordCorrect, "Values at (%i,%i) differ: %s != %s " \
                             %(lineN, wordN, repr(wordActual), repr(wordCorrect))
+
     except AssertionError as err:
         pathToLocal, ext = os.path.splitext(pathToCorrect)
         pathToLocal = pathToLocal+'_local'+ext
-        shutil.copyfile(pathToActual,pathToLocal)
-        print("txtActual!=txtCorr: Saving local copy to %s" %pathToLocal)
+
+        # Set assertion type
+        if not lineDiff:  # Fail if number of lines not equal
+            msg = "{} has the wrong number of lines".format(pathToActual)
+        elif allowLines < 0:  # Fail if tolerance reached
+            msg = 'Number of differences in {failed} exceeds the {tol}% tolerance'.format(failed=pathToActual,
+                                                                                          tol=tolerance or 0)
+        else:
+            shutil.copyfile(pathToActual,pathToLocal)
+            msg = "txtActual != txtCorr: Saving local copy to {}".format(pathToLocal)
+        logging.error(msg)
         raise AssertionError(err)
 
 def compareXlsxFiles(pathToActual, pathToCorrect):

@@ -118,7 +118,7 @@ class ImageComponent(BaseVisualComponent):
                 "    image=%(image)s, mask=%(mask)s,\n" % inits +
                 "    ori=%(ori)s, pos=%(pos)s, size=%(size)s,\n" % inits +
                 "    color=%(color)s, colorSpace=%(colorSpace)s, " % inits +
-                "opacity=%(opacity)s,\n" % inits +
+                "    opacity=%(opacity)s,\n" % inits +
                 "    flipHoriz=%(flipHoriz)s, flipVert=%(flipVert)s,\n" % inits +
                 # no newline - start optional parameters
                 "    texRes=%(texture resolution)s" % inits)
@@ -134,7 +134,7 @@ class ImageComponent(BaseVisualComponent):
     def writeInitCodeJS(self, buff):
         # do we need units code?
         if self.params['units'].val == 'from exp settings':
-            unitsStr = ""
+            unitsStr = "units : undefined, "
         else:
             unitsStr = "units : %(units)s, " % self.params
 

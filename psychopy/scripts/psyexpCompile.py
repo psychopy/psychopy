@@ -30,7 +30,7 @@ def compileScript(infile=None, version=None, outfile=None):
         Warning: Cannot set version if module imported. Set version from
         command line interface only.
     outfile: string
-        The output file to be generated (defaults to Python script.
+        The output file to be generated (defaults to Python script).
     """
 
     def _setVersion(version):
@@ -90,7 +90,7 @@ def compileScript(infile=None, version=None, outfile=None):
         """
         Drop disabled components, if any.
 
-        Paramters
+        Parameters
         ---------
         exp : psychopy.experiment.Experiment
             The experiment from which to remove all components that have been
@@ -110,25 +110,7 @@ def compileScript(infile=None, version=None, outfile=None):
         # Leave original experiment unchanged.
         exp = deepcopy(exp)
 
-        for routine_name, routine in list(exp.routines.items()):  # PY2/3 compat
-            if routine.params['disabled']:
-                # We remove all occurrences of this routine from the flow --
-                # there might be multiple ones!
-                #
-                # First, get all routines from the flow except the current
-                # (disabled) one.
-                routines = list(filter(lambda routine_:
-                                       routine_.name != routine_name,
-                                       exp.flow))
-
-                # We now replace the list of routines in the flow with the
-                # "cleaned" list of routines.
-                exp.flow[:] = routines
-
-                # We dropped an entire routine -- no need to look at individual
-                # components here anymore!
-                break
-
+        for _, routine in list(exp.routines.items()):  # PY2/3 compat
             for component in routine:
                 try:
                     if component.params['disabled'].val:

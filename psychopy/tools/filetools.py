@@ -252,6 +252,20 @@ class DictStorage(dict):
             self.save()
         self._deleted = True
 
+
+class KnownProjects(DictStorage):
+    def save(self, filename=None):
+        """Purge unnecessary projects (without a local root) and save"""
+        toPurge = []
+        for projname in self:
+            proj = self[projname]
+            if not proj['localRoot']:
+                toPurge.append(projname)
+        for projname in toPurge:
+            del self[projname]
+        DictStorage.save(self, filename)
+
+
 def pathToString(filepath):
     """
     Coerces pathlib Path objects to a string (only python version 3.6+)

@@ -12,19 +12,16 @@ from builtins import range
 import time
 import os
 import locale
-from pkg_resources import parse_version
 
 import wx
 from wx import grid
 from wx.lib import intctrl
 
-if parse_version(wx.__version__) < parse_version('4.0.3'):
-    wx.NewIdRef = wx.NewId
-
 from psychopy import constants
 from psychopy.localization import _translate
 from psychopy import monitors, hardware, logging
 from psychopy.app import dialogs
+import numpy
 
 DEBUG = False
 NOTEBOOKSTYLE = False
@@ -51,7 +48,7 @@ if not hasattr(wx.grid, 'EVT_GRID_CELL_CHANGED'):
 
 # wx IDs for menu items
 def newIds(n):
-    return [wx.NewIdRef() for i in range(n)]
+    return [wx.NewId() for i in range(n)]
 
 [idMenuSave] = newIds(1)
 # wx IDs for controllers (admin panel)
@@ -69,7 +66,7 @@ def unicodeToFloat(val):
         val = None
     else:
         if not constants.PY3 and type(val) == unicode:
-            val = val.encode('utf-8-sig')
+            val = val.encode('utf-8')
         try:
             val = locale.atof(val)
         except ValueError:
@@ -239,7 +236,7 @@ class MainFrame(wx.Frame):
 
         # Edit
         editMenu = wx.Menu()
-        id = wx.NewIdRef()
+        id = wx.NewId()
         _hint = _translate("Copy the current monitor's name to clipboard")
         editMenu.Append(id, _translate('Copy\tCtrl+C'), _hint)
         self.Bind(wx.EVT_MENU, self.onCopyMon, id=id)
@@ -659,7 +656,7 @@ class MainFrame(wx.Frame):
             'Name of this calibration (for monitor "%(name)s") will be:)')
         infoStr = msg % {'name': self.currentMon.name}
         dlg = wx.TextEntryDialog(self, message=infoStr,
-                                 defaultValue=calibTimeStr,
+                                 value=calibTimeStr,
                                  caption=_translate('Input text'))
         if dlg.ShowModal() == wx.ID_OK:
             newCalibName = dlg.GetValue()
@@ -885,7 +882,7 @@ class MainFrame(wx.Frame):
         else:
             self.currentMon.setLineariseMethod(1)
         self.unSavedMonitor = True
-        if self.currentMon.getLumsPre() != None:
+        if self.currentMon.getLumsPre().any() != None:
             self.doGammaFits(self.currentMon.getLevelsPre(),
                              self.currentMon.getLumsPre())
 
@@ -1022,15 +1019,15 @@ class MainFrame(wx.Frame):
         figure = Figure(figsize=(5, 5), dpi=80)
         figureCanvas = FigureCanvas(plotWindow, -1, figure)
         plt = figure.add_subplot(111)
-        plt.hold('off')
+        plt.cla()
 
         gammaGrid = self.currentMon.getGammaGrid()
         lumsPre = self.currentMon.getLumsPre()
         levelsPre = self.currentMon.getLevelsPre()
         lumsPost = self.currentMon.getLumsPost()
-        if lumsPre != None:
+        if lumsPre.any() != None:
             colors = 'krgb'
-            xxSmooth = monitors.numpy.arange(0, 255.5, 0.5)
+            xxSmooth = numpy.arange(0, 255.5, 0.5)
             eq = self.currentMon.getLinearizeMethod()
             for gun in range(4):  # includes lum
                 gamma = gammaGrid[gun, 2]
@@ -1086,12 +1083,11 @@ class MainFrame(wx.Frame):
         figure = Figure(figsize=(5, 5), dpi=80)
         figureCanvas = FigureCanvas(plotWindow, -1, figure)
         plt = figure.add_subplot(111)
-        plt.hold('off')
+        plt.cla()
 
         nm, spectraRGB = self.currentMon.getSpectra()
         if nm != None:
             plt.plot(nm, spectraRGB[0, :], 'r-', linewidth=1.5)
-            plt.hold('on')
             plt.plot(nm, spectraRGB[1, :], 'g-', linewidth=2)
             plt.plot(nm, spectraRGB[2, :], 'b-', linewidth=2)
         figureCanvas.draw()  # update the canvas

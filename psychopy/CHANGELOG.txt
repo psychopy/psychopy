@@ -18,13 +18,29 @@ at the Pavlovia.org experiment server. Many of the features here are relatively
 new and, although we have spent hundreds of hours developing and testing them
 you should be more cautious than ever checking your experiment and data outputs.
 
+PsychoPy 3.0.6
+~~~~~~~~~~~~~~~~~~~~~~
+
+FIXED:
+
+- `TrialHandler.next()` was accidentally removed by Python3 conversion and now added back in #c44621ab072ad
+- various fixes to iohub Python3 compatibility (especially for datastore)
+- permit reading "xlsm" files as conditions files (Excel files with macros although these will be ignored by Python) #9e11bfd61
+- added space key to the GlobalEventKeys #2310
+- fix to pating into Code Component with windows EOLs
+- fixes to Japanese translation (and bug around saving Static Components in Japanese locale)
+- packaging: PyQt package inside one of the Standalone distros was broken
+
 PsychoPy 3.0.5
 ~~~~~~~~~~~~~~~~~~~~~~
 
 FIXED:
 
-- sounddevice backend not importing on systems that don't have readline
-- better automated Pavlovia logging in for users, based on project
+- sounddevice backend not importing on systems that don't have readline #a9bbe98b3
+- better automated Pavlovia logging-in for users, based on project #460889e5d
+- faster auto-logging for changes involving numpy arrays (e.g. elexment arrays XYs) #e5dfc9e7d
+- fix paste when using legacy macOS end-of-lines (convert them to '\n' always) #94c5ee6a2
+- updated Japanese translations #2292
 
 PsychoPy 3.0.4
 ~~~~~~~~~~~~~~~~~~~~~~

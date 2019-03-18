@@ -1853,18 +1853,6 @@ class CoderFrame(wx.Frame):
         tb.AddSeparator()
 
         if 'phoenix' in wx.PlatformInfo:
-            item = tb.AddTool(wx.ID_ANY,
-                              _translate("Preferences"),
-                              preferencesBmp,
-                              _translate("Application preferences"))
-        else:
-            item = tb.AddSimpleTool(wx.ID_ANY,
-                                    preferencesBmp,
-                                    _translate("Preferences"),
-                                    _translate("Application preferences"))
-        tb.Bind(wx.EVT_TOOL, self.app.showPrefs, id=item.GetId())
-
-        if 'phoenix' in wx.PlatformInfo:
             item = tb.AddTool(
                 wx.ID_ANY,
                 _translate("Monitor Center"),
