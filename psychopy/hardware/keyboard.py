@@ -78,14 +78,15 @@ class Keyboard:
                 self._ids = device
             else:
                 self._ids = [device]
-            # now we have a list of device IDs to monitor
+
+        # now create the buffers for those IDs
+        for devId in self._ids:
             self._buffers = {}
             self._devs = {}
-            for devId in self._ids:
-                if devId==-1 or devId in allInds:
-                    buffer = _keyBuffers.getBuffer(devId, bufferSize)
-                    self._buffers[devId] = buffer
-                    self._devs[devId] = buffer.dev
+            if devId==-1 or devId in allInds:
+                buffer = _keyBuffers.getBuffer(devId, bufferSize)
+                self._buffers[devId] = buffer
+                self._devs[devId] = buffer.dev
 
         if not waitForStart:
             self.start()
