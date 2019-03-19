@@ -64,3 +64,14 @@ class TestComponentCompilerPython(object):
     def create_component_output(self, compName):
         """Create the Python script"""
         psyexpCompile.compileScript(infile=self.exp, outfile='new{}.py'.format(compName))
+
+    def test_component_type_in_experiment(self):
+        for compName in self.allComp:
+            if compName not in ['SettingsComponent', 'UnknownComponent']:
+                # reset exp
+                self.reset_experiment()
+                # Add components
+                self.add_components(compName)
+                # Check component in exp
+                component = compName.split('Component')[0]
+                assert self.exp.getComponentFromType(component)
