@@ -17,7 +17,7 @@ while True:
     txt = ''
     pygKey = event.waitKeys()[0]
     # wait for the key to be raised
-    keys = kb.getKeys(includeDuration=False)
+    keys = kb.getKeys(waitRelease=False)
     for key in keys:
         keyCode = key.code
         txt += "{}: {} guess:{}\n".format(keyCode, pygKey, key.name)

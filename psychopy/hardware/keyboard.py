@@ -339,9 +339,30 @@ keyNamesMac = {
     74: 'home', 75: 'pageup', 76: 'delete', 77: 'end', 78: 'pagedown',
 }
 
+keyNamesLinux={
+    66: 'space', 68: 'f1', 69: 'f2', 70: 'f3', 71: 'f4', 72: 'f5',
+    73: 'f6', 74: 'f7', 75: 'f8', 76: 'f9', 77: 'f10', 96: 'f11', 97: 'f12',
+    79: 'scrolllock', 153: 'scrolllock', 128: 'pause', 119: 'insert', 111: 'home',
+    120: 'delete', 116: 'end', 113: 'pageup', 118: 'pagedown', 136: 'menu', 112: 'up',
+    114: 'left', 117: 'down', 115: 'right', 50: 'quoteleft',
+    11: '1', 12: '2', 13: '3', 14: '4', 15: '5', 16: '6', 17: '7', 18: '8', 19: '9', 20: '0',
+    21: 'minus', 22: 'equal', 23: 'backspace', 24: 'tab', 25: 'q', 26: 'w', 27: 'e', 28: 'r',
+    29: 't', 30: 'y', 31: 'u', 32: 'i', 33: 'o', 34: 'p', 35: 'bracketleft', 36: 'bracketright',
+    37: 'return', 67: 'capslock', 39: 'a', 40: 's', 41: 'd', 42: 'f', 43: 'g', 44: 'h', 45: 'j',
+    46: 'k', 47: 'l', 48: 'semicolon', 49: 'apostrophe', 52: 'backslash', 51: 'lshift',
+    95: 'less', 53: 'z', 54: 'x', 55: 'c', 56: 'v', 57: 'b', 58: 'n', 59: 'm',
+    60: 'comma', 61: 'period', 62: 'slash', 63: 'rshift', 38: 'lctrl', 65: 'lalt',
+    109: 'ralt', 106: 'rctrl', 78: 'numlock', 107: 'num_divide', 64: 'num_multiply',
+    83: 'num_subtract', 80: 'num_7', 81: 'num_8', 82: 'num_9', 87: 'num_add', 84: 'num_4',
+    85: 'num_5', 86: 'num_6', 88: 'num_1', 89: 'num_2', 90: 'num_3',
+    105: 'num_enter', 91: 'num_0', 92: 'num_decimal', 10: 'escape'
+    }
+
+
+
 if sys.platform == 'darwin':
     keyNames = keyNamesMac
 elif sys.platform == 'win32':
     keyNames = keyNamesWin
 else:
-    keyNames = {}
+    keyNames = keyNamesLinux
