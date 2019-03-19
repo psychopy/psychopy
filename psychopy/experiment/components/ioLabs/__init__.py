@@ -60,7 +60,7 @@ class ioLabsButtonBoxComponent(KeyboardComponent):
 
         # Remove inherited import from keyboard
         for idx, imports in enumerate(self.exp.requiredImports):
-            if imports.importName == 'keyboard':
+            if imports.importName == 'keyboard' and not self.exp.getComponentFromType('Keyboard'):
                 del self.exp.requiredImports[idx]
 
         self.exp.requirePsychopyLibs(['hardware'])

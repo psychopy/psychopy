@@ -376,6 +376,12 @@ class Routine(list):
                 return comp
         return None
 
+    def getComponentFromType(self, type):
+        for comp in self:
+            if comp.type == type:
+                return comp
+        return None
+
     def hasOnlyStaticComp(self):
         return all([comp.type == 'Static' for comp in self])
 
