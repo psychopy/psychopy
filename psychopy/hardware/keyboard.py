@@ -20,8 +20,16 @@ import psychopy.clock
 from psychopy import logging
 from psychopy.constants import NOT_STARTED
 
-import psychtoolbox as ptb
-from psychtoolbox import hid
+try:
+    import psychtoolbox as ptb
+    from psychtoolbox import hid
+    havePTB = True
+except ImportError as err:
+    logging.warning(("Import Error: "
+                     + err.args[0]
+                     + ". Using event module for keyboard component."))
+    from psychopy import event
+    havePTB = False
 
 defaultBufferSize = 10000
 
@@ -62,34 +70,41 @@ class Keyboard:
 
         """
         self.status = NOT_STARTED
+        # Initiate containers for storing responses
+        self.keys = []  # the key(s) pressed
+        self.corr = 0  # was the resp correct this trial? (0=no, 1=yes)
+        self.rt = []  # response time(s)
+        self.time = []  # Epoch
+
         if clock:
             self.clock = clock
         else:
             self.clock = psychopy.clock.Clock()
 
-        # get the necessary keyboard buffer(s)
-        if sys.platform=='win32':
-            self._ids = [-1]  # no indexing possible so get the combo keyboard
-        else:
-            allInds, allNames, allKBs = hid.get_keyboard_indices()
-            if device==-1:
-                self._ids = allInds
-            elif type(device) in [list, tuple]:
-                self._ids = device
+        if havePTB:
+            # get the necessary keyboard buffer(s)
+            if sys.platform=='win32':
+                self._ids = [-1]  # no indexing possible so get the combo keyboard
             else:
-                self._ids = [device]
+                allInds, allNames, allKBs = hid.get_keyboard_indices()
+                if device==-1:
+                    self._ids = allInds
+                elif type(device) in [list, tuple]:
+                    self._ids = device
+                else:
+                    self._ids = [device]
 
-        # now create the buffers for those IDs
-        for devId in self._ids:
-            self._buffers = {}
-            self._devs = {}
-            if devId==-1 or devId in allInds:
-                buffer = _keyBuffers.getBuffer(devId, bufferSize)
-                self._buffers[devId] = buffer
-                self._devs[devId] = buffer.dev
+            for devId in self._ids:
+                # now we have a list of device IDs to monitor
+                self._buffers = {}
+                self._devs = {}
+                if devId==-1 or devId in allInds:
+                    buffer = _keyBuffers.getBuffer(devId, bufferSize)
+                    self._buffers[devId] = buffer
+                    self._devs[devId] = buffer.dev
 
-        if not waitForStart:
-            self.start()
+            if not waitForStart:
+                self.start()
 
     def start(self):
         """Start recording with any unstarted key buffers"""
@@ -102,57 +117,57 @@ class Keyboard:
         for buffer in self._buffers.values():
             buffer.stop()
 
-    def getKeys(self, keyList=None, waitRelease=True, clear=True):
-        keyList = []
-        for buffer in self._buffers.values():
-            for origKey in buffer.getKeys(keyList, waitRelease, clear):
-                # calculate rt from time and self.timer
-                thisKey = copy.copy(origKey)  # don't alter the original
-                thisKey.rt = thisKey.tDown - self.clock.getLastResetTime()
-                keyList.append(thisKey)
-        return keyList
+    def getKeys(self, keyList=None, modifiers=False, timeStamped=False, waitRelease=True, clear=True):
+        keys = []
+        if havePTB:
+            for buffer in self._buffers.values():
+                for origKey in buffer.getKeys(keyList, waitRelease, clear):
+                    # calculate rt from time and self.timer
+                    thisKey = copy.copy(origKey)  # don't alter the original
+                    thisKey.rt = thisKey.tDown - self.clock.getLastResetTime()
+                    keys.append(thisKey)
+        else:
+            name = event.getKeys(keyList, modifiers, timeStamped)
+            rt = self.clock.getTime()
+            if len(name):
+                thisKey = KeyPress(code=None, tDown=rt, name=name[0])
+                keys.append(thisKey)
+        return keys
 
     def waitKeys(maxWait=None, keyList=None, waitRelease=True, clear=True):
         keys = []
         raise NotImplementedError
 
-    def clear(self):
-        self.evtBuffer.clearAll()
-
-
-class BuilderKeyResponse(object):
-    """Used in scripts created by the builder to keep track of a clock and
-    the current status (whether or not we are currently checking the keyboard)
-    """
-
-    def __init__(self):
-        super(BuilderKeyResponse, self).__init__()
-        self.status = NOT_STARTED
-        self.keys = []  # the key(s) pressed
-        self.corr = 0  # was the resp correct this trial? (0=no, 1=yes)
-        self.rt = []  # response time(s)
-        self.time = []
-        self.clock = psychopy.core.Clock()  # we'll use this to measure the rt
-
+    def clearEvents(self, eventType):
+        if havePTB:
+            for buffer in self._buffers.values():
+                buffer._clearEvents()
+        else:
+            event.clearEvents(eventType)
 
 class KeyPress(object):
     """Class to store key"""
 
-    def __init__(self, code, tDown):
+    def __init__(self, code, tDown, name=None):
         self.code = code
-        if code not in keyNames:
-            self.name = 'n/a'
-            logging.warning("Got keycode {} but that code isn't yet known")
+
+        if name is not None:  # we have event.getKeys()
+            self.name = name
+            self.rt = tDown
         else:
-            self.name = keyNames[code]
+            if code not in keyNames:
+                self.name = 'n/a'
+                logging.warning("Got keycode {} but that code isn't yet known")
+            else:
+                self.name = keyNames[code]
+            if code not in keyNames:
+                logging.warning('Keypress was given unknown key code ({})'.format(code))
+                self.name = 'unknown'
+            else:
+                self.name = keyNames[code]
+            self.rt = None  # can only be assigned by the keyboard object on return
         self.tDown = tDown
         self.duration = None
-        if code not in keyNames:
-            logging.warning('Keypress was given unknown key code ({})'.format(code))
-            self.name = 'unknown'
-        else:
-            self.name = keyNames[code]
-        self.rt = None  # can only be assigned by the keyboard object on return
 
     def __eq__(self, other):
         return self.name == other
@@ -220,7 +235,7 @@ class _KeyBuffer(object):
 
         Parameters
         ----------
-        keys : list of key(name)s of interest
+        keyList : list of key(name)s of interest
         waitRelease : if True then only process keys that are also released
         clear : clear any keys (that have been returned in this call)
 
