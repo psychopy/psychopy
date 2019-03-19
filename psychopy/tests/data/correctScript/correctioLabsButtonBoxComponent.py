@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 """
 This experiment was created using PsychoPy3 Experiment Builder (v3.0.6),
-    on March 13, 2019, at 13:27
+    on March 19, 2019, at 15:30
 If you publish work using this script please cite the PsychoPy publications:
     Peirce, JW (2007) PsychoPy - Psychophysics software in Python.
         Journal of Neuroscience Methods, 162(1-2), 8-13.
@@ -163,7 +163,7 @@ if bbox.btns != None:  # add RTs if there are responses
     thisExp.addData('bbox.rt', bbox.rt)
 # check responses
 if bbox.keys in ['', [], None]:  # No response was made
-    bbox.keys=None
+    bbox.keys = None
 thisExp.addData('bbox.keys',bbox.keys)
 if bbox.keys != None:  # we had a response
     thisExp.addData('bbox.rt', bbox.rt)
