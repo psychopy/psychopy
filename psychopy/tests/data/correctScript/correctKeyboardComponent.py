@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 """
 This experiment was created using PsychoPy3 Experiment Builder (v3.0.6),
-    on March 19, 2019, at 16:29
+    on March 19, 2019, at 23:29
 If you publish work using this script please cite the PsychoPy publications:
     Peirce, JW (2007) PsychoPy - Psychophysics software in Python.
         Journal of Neuroscience Methods, 162(1-2), 8-13.
@@ -116,7 +116,7 @@ while continueRoutine:
             theseKeys = theseKeys[0]  # at least one key was pressed
             
             # check for quit:
-            if "escape" in theseKeys:
+            if "escape" == theseKeys:
                 endExpNow = True
             key_resp.keys = theseKeys.name  # just the last key pressed
             key_resp.rt = theseKeys.rt
