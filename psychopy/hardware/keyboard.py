@@ -94,8 +94,8 @@ class Keyboard:
                 else:
                     self._ids = [device]
 
-			self._buffers = {}
-			self._devs = {}
+            self._buffers = {}
+            self._devs = {}
             for devId in self._ids:
                 # now we have a list of device IDs to monitor
                 if devId==-1 or devId in allInds:
