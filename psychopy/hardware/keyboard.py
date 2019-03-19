@@ -80,9 +80,9 @@ class Keyboard:
                 self._ids = [device]
 
         # now create the buffers for those IDs
+        self._buffers = {}
+        self._devs = {}
         for devId in self._ids:
-            self._buffers = {}
-            self._devs = {}
             if devId==-1 or devId in allInds:
                 buffer = _keyBuffers.getBuffer(devId, bufferSize)
                 self._buffers[devId] = buffer
