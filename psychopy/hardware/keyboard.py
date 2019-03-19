@@ -130,9 +130,8 @@ class Keyboard:
             name = event.getKeys(keyList, modifiers, timeStamped)
             rt = self.clock.getTime()
             if len(name):
-                # create response object on the fly
-                thisKey = type('thisKey', (), {'name': name[0], 'rt': rt})
-                keys.append(thisKey())
+                thisKey = KeyPress(code=None, tDown=rt, name=name[0])
+                keys.append(thisKey)
         return keys
 
     def waitKeys(maxWait=None, keyList=None, waitRelease=True, clear=True):
@@ -149,21 +148,26 @@ class Keyboard:
 class KeyPress(object):
     """Class to store key"""
 
-    def __init__(self, code, tDown):
+    def __init__(self, code, tDown, name=None):
         self.code = code
-        if code not in keyNames:
-            self.name = 'n/a'
-            logging.warning("Got keycode {} but that code isn't yet known")
+
+        if name is not None:  # we have event.getKeys()
+            self.name = name
+            self.rt = tDown
         else:
-            self.name = keyNames[code]
+            if code not in keyNames:
+                self.name = 'n/a'
+                logging.warning("Got keycode {} but that code isn't yet known")
+            else:
+                self.name = keyNames[code]
+            if code not in keyNames:
+                logging.warning('Keypress was given unknown key code ({})'.format(code))
+                self.name = 'unknown'
+            else:
+                self.name = keyNames[code]
+            self.rt = None  # can only be assigned by the keyboard object on return
         self.tDown = tDown
         self.duration = None
-        if code not in keyNames:
-            logging.warning('Keypress was given unknown key code ({})'.format(code))
-            self.name = 'unknown'
-        else:
-            self.name = keyNames[code]
-        self.rt = None  # can only be assigned by the keyboard object on return
 
     def __eq__(self, other):
         return self.name == other
