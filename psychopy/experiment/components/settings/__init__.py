@@ -691,14 +691,17 @@ class SettingsComponent(object):
             screenNumber = requestedScreenNumber - 1
 
         size = self.params['Window size (pixels)']
-        code = ("win = visual.Window(\n    size=%s, fullscr=%s, screen=%s,"
-                "\n    allowGUI=%s, allowStencil=%s,\n")
-        vals = (size, fullScr, screenNumber, allowGUI, allowStencil)
+        winType = self.exp.prefsGeneral['winType']
+
+        code = ("win = visual.Window(\n    size=%s, fullscr=%s, screen=%s, "
+                "\n    winType='%s', allowGUI=%s, allowStencil=%s,\n")
+        vals = (size, fullScr, screenNumber, winType, allowGUI, allowStencil)
         buff.writeIndented(code % vals)
+
         code = ("    monitor=%(Monitor)s, color=%(color)s, "
                 "colorSpace=%(colorSpace)s,\n")
         if self.params['blendMode'].val:
-            code += "    blendMode=%(blendMode)s, useFBO=True,\n"
+            code += "    blendMode=%(blendMode)s, useFBO=True, \n"
 
         if self.params['Units'].val != 'use prefs':
             code += "    units=%(Units)s"
