@@ -94,10 +94,10 @@ class Keyboard:
                 else:
                     self._ids = [device]
 
+            self._buffers = {}
+            self._devs = {}
             for devId in self._ids:
                 # now we have a list of device IDs to monitor
-                self._buffers = {}
-                self._devs = {}
                 if devId==-1 or devId in allInds:
                     buffer = _keyBuffers.getBuffer(devId, bufferSize)
                     self._buffers[devId] = buffer
