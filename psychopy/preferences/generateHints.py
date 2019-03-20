@@ -27,8 +27,8 @@ locations_all = []
 specfiles = ('baseNoArch.spec', 'Darwin.spec',
              'FreeBSD.spec', 'Linux.spec', 'Windows.spec')
 # list of sections to parse.
-prefsDlgSections = ('[general]', '[app]', '[coder]',
-                    '[builder]', '[connections]', '[keyBindings]')
+prefsDlgSections = ('[general]', '[app]', '[coder]', '[builder]', 
+                    '[hardware]', '[connections]', '[keyBindings]')
 # regular expression to extract comment text (as in-lined in .spec files)
 commentObj = re.compile('\#\s*(\S.*$)')
 

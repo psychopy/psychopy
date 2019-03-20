@@ -20,8 +20,16 @@ import psychopy.clock
 from psychopy import logging
 from psychopy.constants import NOT_STARTED
 
-import psychtoolbox as ptb
-from psychtoolbox import hid
+try:
+    import psychtoolbox as ptb
+    from psychtoolbox import hid
+    havePTB = True
+except ImportError as err:
+    logging.warning(("Import Error: "
+                     + err.args[0]
+                     + ". Using event module for keyboard component."))
+    from psychopy import event
+    havePTB = False
 
 defaultBufferSize = 10000
 
@@ -62,28 +70,41 @@ class Keyboard:
 
         """
         self.status = NOT_STARTED
+        # Initiate containers for storing responses
+        self.keys = []  # the key(s) pressed
+        self.corr = 0  # was the resp correct this trial? (0=no, 1=yes)
+        self.rt = []  # response time(s)
+        self.time = []  # Epoch
+
         if clock:
             self.clock = clock
         else:
             self.clock = psychopy.clock.Clock()
 
-        # get the necessary keyboard buffer(s)
-        allInds, allNames, allKBs = hid.get_keyboard_indices()
-        if type(device) in [list, tuple]:
-            self._ids = device
-        else:
-            self._ids = [device]
-        # now we have a list of device IDs to monitor
-        self._buffers = {}
-        self._devs = {}
-        for devId in self._ids:
-            if devId==-1 or devId in allInds:
-                buffer = _keyBuffers.getBuffer(devId, bufferSize)
-                self._buffers[devId] = buffer
-                self._devs[devId] = buffer.dev
+        if havePTB:
+            # get the necessary keyboard buffer(s)
+            if sys.platform=='win32':
+                self._ids = [-1]  # no indexing possible so get the combo keyboard
+            else:
+                allInds, allNames, allKBs = hid.get_keyboard_indices()
+                if device==-1:
+                    self._ids = allInds
+                elif type(device) in [list, tuple]:
+                    self._ids = device
+                else:
+                    self._ids = [device]
 
-        if not waitForStart:
-            self.start()
+            self._buffers = {}
+            self._devs = {}
+            for devId in self._ids:
+                # now we have a list of device IDs to monitor
+                if devId==-1 or devId in allInds:
+                    buffer = _keyBuffers.getBuffer(devId, bufferSize)
+                    self._buffers[devId] = buffer
+                    self._devs[devId] = buffer.dev
+
+            if not waitForStart:
+                self.start()
 
     def start(self):
         """Start recording with any unstarted key buffers"""
@@ -96,57 +117,57 @@ class Keyboard:
         for buffer in self._buffers.values():
             buffer.stop()
 
-    def getKeys(self, keyList=None, waitRelease=True, clear=True):
-        keyList = []
-        for buffer in self._buffers.values():
-            for origKey in buffer.getKeys(keyList, waitRelease, clear):
-                # calculate rt from time and self.timer
-                thisKey = copy.copy(origKey)  # don't alter the original
-                thisKey.rt = thisKey.tDown - self.clock.getLastResetTime()
-                keyList.append(thisKey)
-        return keyList
+    def getKeys(self, keyList=None, modifiers=False, timeStamped=False, waitRelease=True, clear=True):
+        keys = []
+        if havePTB:
+            for buffer in self._buffers.values():
+                for origKey in buffer.getKeys(keyList, waitRelease, clear):
+                    # calculate rt from time and self.timer
+                    thisKey = copy.copy(origKey)  # don't alter the original
+                    thisKey.rt = thisKey.tDown - self.clock.getLastResetTime()
+                    keys.append(thisKey)
+        else:
+            name = event.getKeys(keyList, modifiers, timeStamped)
+            rt = self.clock.getTime()
+            if len(name):
+                thisKey = KeyPress(code=None, tDown=rt, name=name[0])
+                keys.append(thisKey)
+        return keys
 
     def waitKeys(maxWait=None, keyList=None, waitRelease=True, clear=True):
         keys = []
         raise NotImplementedError
 
-    def clear(self):
-        self.evtBuffer.clearAll()
-
-
-class BuilderKeyResponse(object):
-    """Used in scripts created by the builder to keep track of a clock and
-    the current status (whether or not we are currently checking the keyboard)
-    """
-
-    def __init__(self):
-        super(BuilderKeyResponse, self).__init__()
-        self.status = NOT_STARTED
-        self.keys = []  # the key(s) pressed
-        self.corr = 0  # was the resp correct this trial? (0=no, 1=yes)
-        self.rt = []  # response time(s)
-        self.time = []
-        self.clock = psychopy.core.Clock()  # we'll use this to measure the rt
-
+    def clearEvents(self, eventType):
+        if havePTB:
+            for buffer in self._buffers.values():
+                buffer._clearEvents()
+        else:
+            event.clearEvents(eventType)
 
 class KeyPress(object):
     """Class to store key"""
 
-    def __init__(self, code, tDown):
+    def __init__(self, code, tDown, name=None):
         self.code = code
-        if code not in keyNames:
-            self.name = 'n/a'
-            logging.warning("Got keycode {} but that code isn't yet known")
+
+        if name is not None:  # we have event.getKeys()
+            self.name = name
+            self.rt = tDown
         else:
-            self.name = keyNames[code]
+            if code not in keyNames:
+                self.name = 'n/a'
+                logging.warning("Got keycode {} but that code isn't yet known")
+            else:
+                self.name = keyNames[code]
+            if code not in keyNames:
+                logging.warning('Keypress was given unknown key code ({})'.format(code))
+                self.name = 'unknown'
+            else:
+                self.name = keyNames[code]
+            self.rt = None  # can only be assigned by the keyboard object on return
         self.tDown = tDown
         self.duration = None
-        if code not in keyNames:
-            logging.warning('Keypress was given unknown key code ({})'.format(code))
-            self.name = 'unknown'
-        else:
-            self.name = keyNames[code]
-        self.rt = None  # can only be assigned by the keyboard object on return
 
     def __eq__(self, other):
         return self.name == other
@@ -214,7 +235,7 @@ class _KeyBuffer(object):
 
         Parameters
         ----------
-        keys : list of key(name)s of interest
+        keyList : list of key(name)s of interest
         waitRelease : if True then only process keys that are also released
         clear : clear any keys (that have been returned in this call)
 
@@ -334,10 +355,30 @@ keyNamesMac = {
     74: 'home', 75: 'pageup', 76: 'delete', 77: 'end', 78: 'pagedown',
 }
 
+keyNamesLinux={
+    66: 'space', 68: 'f1', 69: 'f2', 70: 'f3', 71: 'f4', 72: 'f5',
+    73: 'f6', 74: 'f7', 75: 'f8', 76: 'f9', 77: 'f10', 96: 'f11', 97: 'f12',
+    79: 'scrolllock', 153: 'scrolllock', 128: 'pause', 119: 'insert', 111: 'home',
+    120: 'delete', 116: 'end', 113: 'pageup', 118: 'pagedown', 136: 'menu', 112: 'up',
+    114: 'left', 117: 'down', 115: 'right', 50: 'quoteleft',
+    11: '1', 12: '2', 13: '3', 14: '4', 15: '5', 16: '6', 17: '7', 18: '8', 19: '9', 20: '0',
+    21: 'minus', 22: 'equal', 23: 'backspace', 24: 'tab', 25: 'q', 26: 'w', 27: 'e', 28: 'r',
+    29: 't', 30: 'y', 31: 'u', 32: 'i', 33: 'o', 34: 'p', 35: 'bracketleft', 36: 'bracketright',
+    37: 'return', 67: 'capslock', 39: 'a', 40: 's', 41: 'd', 42: 'f', 43: 'g', 44: 'h', 45: 'j',
+    46: 'k', 47: 'l', 48: 'semicolon', 49: 'apostrophe', 52: 'backslash', 51: 'lshift',
+    95: 'less', 53: 'z', 54: 'x', 55: 'c', 56: 'v', 57: 'b', 58: 'n', 59: 'm',
+    60: 'comma', 61: 'period', 62: 'slash', 63: 'rshift', 38: 'lctrl', 65: 'lalt',
+    109: 'ralt', 106: 'rctrl', 78: 'numlock', 107: 'num_divide', 64: 'num_multiply',
+    83: 'num_subtract', 80: 'num_7', 81: 'num_8', 82: 'num_9', 87: 'num_add', 84: 'num_4',
+    85: 'num_5', 86: 'num_6', 88: 'num_1', 89: 'num_2', 90: 'num_3',
+    105: 'num_enter', 91: 'num_0', 92: 'num_decimal', 10: 'escape'
+    }
+
+
+
 if sys.platform == 'darwin':
     keyNames = keyNamesMac
 elif sys.platform == 'win32':
     keyNames = keyNamesWin
 else:
-    keyNames = {}
-    
+    keyNames = keyNamesLinux

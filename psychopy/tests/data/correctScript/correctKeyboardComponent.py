@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 """
 This experiment was created using PsychoPy3 Experiment Builder (v3.0.6),
-    on March 13, 2019, at 13:27
+    on March 20, 2019, at 07:57
 If you publish work using this script please cite the PsychoPy publications:
     Peirce, JW (2007) PsychoPy - Psychophysics software in Python.
         Journal of Neuroscience Methods, 162(1-2), 8-13.
@@ -21,6 +21,7 @@ from numpy.random import random, randint, normal, shuffle
 import os  # handy system and path functions
 import sys  # to get file system encoding
 
+from psychopy.hardware import keyboard
 
 # Ensure that relative paths start from the same directory as this script
 _thisDir = os.path.dirname(os.path.abspath(__file__))
@@ -56,10 +57,10 @@ endExpNow = False  # flag for 'escape' or other condition => quit the exp
 
 # Setup the Window
 win = visual.Window(
-    size=(1024, 768), fullscr=True, screen=0,
-    allowGUI=False, allowStencil=False,
+    size=(1024, 768), fullscr=True, screen=0, 
+    winType='pyglet', allowGUI=False, allowStencil=False,
     monitor='testMonitor', color=[0,0,0], colorSpace='rgb',
-    blendMode='avg', useFBO=True,
+    blendMode='avg', useFBO=True, 
     units='height')
 # store frame rate of monitor if we can measure it
 expInfo['frameRate'] = win.getActualFrameRate()
@@ -81,7 +82,7 @@ trialClock.reset()  # clock
 frameN = -1
 continueRoutine = True
 # update component parameters for each repeat
-key_resp = event.BuilderKeyResponse()
+key_resp = keyboard.Keyboard()
 # keep track of which components have finished
 trialComponents = [key_resp]
 for thisComponent in trialComponents:
@@ -108,16 +109,17 @@ while continueRoutine:
         key_resp.status = STARTED
         # keyboard checking is just starting
         win.callOnFlip(key_resp.clock.reset)  # t=0 on next screen flip
-        event.clearEvents(eventType='keyboard')
+        key_resp.clearEvents(eventType='keyboard')
     if key_resp.status == STARTED:
-        theseKeys = event.getKeys(keyList=['y', 'n', 'left', 'right', 'space'])
-        
-        # check for quit:
-        if "escape" in theseKeys:
-            endExpNow = True
-        if len(theseKeys) > 0:  # at least one key was pressed
-            key_resp.keys = theseKeys[-1]  # just the last key pressed
-            key_resp.rt = key_resp.clock.getTime()
+        theseKeys = key_resp.getKeys(keyList=['y', 'n', 'left', 'right', 'space'], waitRelease=False)
+        if len(theseKeys):
+            theseKeys = theseKeys[0]  # at least one key was pressed
+            
+            # check for quit:
+            if "escape" in theseKeys:
+                endExpNow = True
+            key_resp.keys = theseKeys.name  # just the last key pressed
+            key_resp.rt = theseKeys.rt
             # a response ends the routine
             continueRoutine = False
     
@@ -144,7 +146,7 @@ for thisComponent in trialComponents:
         thisComponent.setAutoDraw(False)
 # check responses
 if key_resp.keys in ['', [], None]:  # No response was made
-    key_resp.keys=None
+    key_resp.keys = None
 thisExp.addData('key_resp.keys',key_resp.keys)
 if key_resp.keys != None:  # we had a response
     thisExp.addData('key_resp.rt', key_resp.rt)

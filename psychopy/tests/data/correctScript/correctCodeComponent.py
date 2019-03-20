@@ -56,10 +56,10 @@ endExpNow = False  # flag for 'escape' or other condition => quit the exp
 
 # Setup the Window
 win = visual.Window(
-    size=(1024, 768), fullscr=True, screen=0,
-    allowGUI=False, allowStencil=False,
+    size=(1024, 768), fullscr=True, screen=0, 
+    winType='pyglet', allowGUI=False, allowStencil=False,
     monitor='testMonitor', color=[0,0,0], colorSpace='rgb',
-    blendMode='avg', useFBO=True,
+    blendMode='avg', useFBO=True, 
     units='height')
 # store frame rate of monitor if we can measure it
 expInfo['frameRate'] = win.getActualFrameRate()

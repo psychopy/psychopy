@@ -122,7 +122,7 @@ class NameSpace(object):
         self.keywords = keyword.kwlist + dir(__builtins__)
         # these are based on a partial test, known to be incomplete:
         self.psychopy = psychopy.__all__ + ['psychopy', 'os'] + dir(constants)
-        self.builder = ['KeyResponse', 'key_resp', 'buttons',
+        self.builder = ['KeyResponse', 'keyboard', 'buttons',
                         'continueRoutine', 'expInfo', 'expName', 'thisExp',
                         'filename', 'logFile', 'paramName',
                         't', 'frameN', 'currentLoop', 'dlg', '_thisDir',

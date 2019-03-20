@@ -291,11 +291,10 @@ class HookManager(threading.Thread):
             print2err(
                 'pyXlib: * received swapped protocol data, cowardly ignored')
             return
-        if not len(reply.data) or ord(reply.data[0]) < 2:
+        if not len(reply.data):# or ord(reply.data[0]) < 2:
             # not an event
             return
         data = reply.data
-
         while len(data):
             event, data = rq.EventField(None).parse_binary_value(
                 data, self.record_dpy.display, None, None)
@@ -370,7 +369,7 @@ class HookManager(threading.Thread):
         char = ''
         ucat = ''
         if count > 0:
-            char = u'' + self._charbuf[0:count]
+            char = u'' + self._charbuf[0:count].decode('utf-8')
             ucat = unicodedata.category(char)
             char = char.encode('utf-8')
 
@@ -391,7 +390,7 @@ class HookManager(threading.Thread):
         key = _xlib.XKeysymToString(keysym)
         if key:
             key = key.lower()
-            if key and key.startswith('kp_'):
+            if key and key.startswith(b'kp_'):
                 key = 'num_%s' % (key[3:])
             elif key in key_mappings:
                 key = key_mappings[key]
@@ -404,7 +403,7 @@ class HookManager(threading.Thread):
                         self._tmp_compose))
                 key = ''
                 if count > 0:
-                    key = u'' + self._charbuf[0:count]
+                    key = u'' + self._charbuf[0:count].decode('utf-8')
                     key = key.encode('utf-8')
         else:
             key = ''
