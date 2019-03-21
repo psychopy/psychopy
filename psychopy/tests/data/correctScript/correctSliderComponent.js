@@ -151,7 +151,6 @@ function trialRoutineEachFrame() {
       break;
     }
   
-  
   // refresh the screen if continuing
   if (continueRoutine) {
     return Scheduler.Event.FLIP_REPEAT;

@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 """
 This experiment was created using PsychoPy3 Experiment Builder (v3.0.6),
-    on March 20, 2019, at 07:57
+    on March 15, 2019, at 15:22
 If you publish work using this script please cite the PsychoPy publications:
     Peirce, JW (2007) PsychoPy - Psychophysics software in Python.
         Journal of Neuroscience Methods, 162(1-2), 8-13.
@@ -71,7 +71,8 @@ else:
 # Initialize components for Routine "trial"
 trialClock = core.Clock()
 image = visual.ImageStim(
-    win=win, name='image',
+    win=win,
+    name='image', 
     image=None, mask=None,
     ori=0, pos=(0, 0), size=(0.5, 0.5),
     color=[1,1,1], colorSpace='rgb',     opacity=1,

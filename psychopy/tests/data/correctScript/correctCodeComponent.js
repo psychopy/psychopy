@@ -74,7 +74,6 @@ var routineTimer;
 function experimentInit() {
   // Initialize components for Routine "trial"
   trialClock = new util.Clock();
-  
   // Create some handy timers
   globalClock = new util.Clock();  // to track the time since experiment started
   routineTimer = new util.CountdownTimer();  // to track time remaining of each (non-slip) routine
@@ -91,7 +90,6 @@ function trialRoutineBegin() {
   trialClock.reset(); // clock
   frameN = -1;
   // update component parameters for each repeat
-  
   // keep track of which components have finished
   trialComponents = [];
   
@@ -110,7 +108,6 @@ function trialRoutineEachFrame() {
   t = trialClock.getTime();
   frameN = frameN + 1;// number of completed frames (so 0 is the first frame)
   // update/draw components on each frame
-  
   // check for quit (typically the Esc key)
   if (psychoJS.experiment.experimentEnded || psychoJS.eventManager.getKeys({keyList:['escape']}).length > 0) {
     return psychoJS.quit('The [Escape] key was pressed. Goodbye!', false);
@@ -127,7 +124,6 @@ function trialRoutineEachFrame() {
       continueRoutine = true;
       break;
     }
-  
   
   // refresh the screen if continuing
   if (continueRoutine) {
@@ -146,7 +142,6 @@ function trialRoutineEnd() {
       thisComponent.setAutoDraw(false);
     }
   }
-  
   // the Routine "trial" was not non-slip safe, so reset the non-slip timer
   routineTimer.reset();
   

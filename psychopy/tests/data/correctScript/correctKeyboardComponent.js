@@ -92,6 +92,7 @@ function trialRoutineBegin() {
   frameN = -1;
   // update component parameters for each repeat
   key_resp = new core.BuilderKeyResponse(psychoJS);
+  
   // keep track of which components have finished
   trialComponents = [];
   trialComponents.push(key_resp);
@@ -128,8 +129,9 @@ function trialRoutineEachFrame() {
     
     // check for quit:
     if (theseKeys.indexOf('escape') > -1) {
-        psychoJS.experiment.experimentEnded = true;
+      psychoJS.experiment.experimentEnded = true;
     }
+    
     if (theseKeys.length > 0) {  // at least one key was pressed
       key_resp.keys = theseKeys[theseKeys.length-1];  // just the last key pressed
       key_resp.rt = key_resp.clock.getTime();
@@ -137,6 +139,7 @@ function trialRoutineEachFrame() {
       continueRoutine = false;
     }
   }
+  
   // check for quit (typically the Esc key)
   if (psychoJS.experiment.experimentEnded || psychoJS.eventManager.getKeys({keyList:['escape']}).length > 0) {
     return psychoJS.quit('The [Escape] key was pressed. Goodbye!', false);
@@ -153,7 +156,6 @@ function trialRoutineEachFrame() {
       continueRoutine = true;
       break;
     }
-  
   
   // refresh the screen if continuing
   if (continueRoutine) {
