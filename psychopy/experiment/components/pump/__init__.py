@@ -49,7 +49,7 @@ class QmixPumpComponent(BaseComponent):
             stopType=stopType, stopVal=stopVal,
             startEstim=startEstim, durationEstim=durationEstim)
 
-        self.type = 'Qmix pump'
+        self.type = 'QmixPump'
         self.url = 'http://www.psychopy.org/builder/components/pump.html'
         self.categories = ['I/O']
 

@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 """
 This experiment was created using PsychoPy3 Experiment Builder (v3.0.6),
-    on March 20, 2019, at 07:57
+    on March 21, 2019, at 13:45
 If you publish work using this script please cite the PsychoPy publications:
     Peirce, JW (2007) PsychoPy - Psychophysics software in Python.
         Journal of Neuroscience Methods, 162(1-2), 8-13.
@@ -11,7 +11,7 @@ If you publish work using this script please cite the PsychoPy publications:
 """
 
 from __future__ import absolute_import, division
-from psychopy import locale_setup, sound, gui, visual, core, data, event, logging, clock
+from psychopy import locale_setup, sound, gui, visual, core, data, event, logging, clock, hardware
 from psychopy.constants import (NOT_STARTED, STARTED, PLAYING, PAUSED,
                                 STOPPED, FINISHED, PRESSED, RELEASED, FOREVER)
 import numpy as np  # whole numpy lib is available, prepend 'np.'
@@ -21,6 +21,7 @@ from numpy.random import random, randint, normal, shuffle
 import os  # handy system and path functions
 import sys  # to get file system encoding
 
+from psychopy.hardware import keyboard
 
 # Ensure that relative paths start from the same directory as this script
 _thisDir = os.path.dirname(os.path.abspath(__file__))
@@ -43,7 +44,7 @@ filename = _thisDir + os.sep + u'data/%s_%s_%s' % (expInfo['participant'], expNa
 # An ExperimentHandler isn't essential but helps with data saving
 thisExp = data.ExperimentHandler(name=expName, version='',
     extraInfo=expInfo, runtimeInfo=None,
-    originPath='newNoiseStimComponent.py',
+    originPath='newioLabsButtonBoxComponent.py',
     savePickle=True, saveWideText=True,
     dataFileName=filename)
 # save a log file for detail verbose info
@@ -53,6 +54,9 @@ logging.console.setLevel(logging.WARNING)  # this outputs to the screen, not a f
 endExpNow = False  # flag for 'escape' or other condition => quit the exp
 
 # Start Code - component code to be run before the window creation
+# connect to ioLabs bbox, turn lights off
+from psychopy.hardware import iolab
+iolab.ButtonBox().standby()
 
 # Setup the Window
 win = visual.Window(
@@ -70,15 +74,7 @@ else:
 
 # Initialize components for Routine "trial"
 trialClock = core.Clock()
-noise = visual.NoiseStim(
-    win=win, name='noise',
-    noiseImage=None, mask=None,
-    ori=0, pos=(0, 0), size=(0.5, 0.5), sf=None, phase=0.0,
-    color=[1,1,1], colorSpace='rgb', opacity=1, blendmode='avg', contrast=1.0,
-    texRes=128,
-    noiseType='Binary', noiseElementSize=0.0625, noiseBaseSf=8.0,
-    noiseBW=1, noiseBWO=1, noiseFractalPower=0.0,noiseFilterLower=1.0, noiseFilterUpper=8.0, noiseFilterOrder=0.0, noiseClip=3.0, interpolate=False, depth=0.0)
-noise.buildNoise()
+bbox = iolab.ButtonBox()
 
 # Create some handy timers
 globalClock = core.Clock()  # to track the time since experiment started
@@ -91,8 +87,14 @@ frameN = -1
 continueRoutine = True
 routineTimer.add(1.000000)
 # update component parameters for each repeat
+bbox.clearEvents()
+bbox.active = (0,1,2,3,4,5,6,7)  # tuple or list of int 0..7
+bbox.setEnabled(bbox.active)
+bbox.setLights(bbox.active)
+bbox.btns = []  # responses stored in .btns and .rt
+bbox.rt = []
 # keep track of which components have finished
-trialComponents = [noise]
+trialComponents = [bbox]
 for thisComponent in trialComponents:
     thisComponent.tStart = None
     thisComponent.tStop = None
@@ -107,27 +109,34 @@ while continueRoutine and routineTimer.getTime() > 0:
     t = trialClock.getTime()
     frameN = frameN + 1  # number of completed frames (so 0 is the first frame)
     # update/draw components on each frame
-    
-    # *noise* updates
-    if t >= 0.0 and noise.status == NOT_STARTED:
+    # *bbox* updates
+    if t >= 0.0 and bbox.status == NOT_STARTED:
         # keep track of start time/frame for later
-        noise.tStart = t  # not accounting for scr refresh
-        noise.frameNStart = frameN  # exact frame index
-        win.timeOnFlip(noise, 'tStartRefresh')  # time at next scr refresh
-        noise.setAutoDraw(True)
+        bbox.tStart = t  # not accounting for scr refresh
+        bbox.frameNStart = frameN  # exact frame index
+        win.timeOnFlip(bbox, 'tStartRefresh')  # time at next scr refresh
+        bbox.status = STARTED
+        bbox.clearEvents()
+        # buttonbox checking is just starting
+        bbox.resetClock()  # set bbox hardware internal clock to 0.000; ms accuracy
     frameRemains = 0.0 + 1.0- win.monitorFramePeriod * 0.75  # most of one frame period left
-    if noise.status == STARTED and t >= frameRemains:
+    if bbox.status == STARTED and t >= frameRemains:
         # keep track of stop time/frame for later
-        noise.tStop = t  # not accounting for scr refresh
-        noise.frameNStop = frameN  # exact frame index
-        win.timeOnFlip(noise, 'tStopRefresh')  # time at next scr refresh
-        noise.setAutoDraw(False)
-    if noise.status == STARTED:
-        if noise._needBuild:
-            noise.buildNoise()
+        bbox.tStop = t  # not accounting for scr refresh
+        bbox.frameNStop = frameN  # exact frame index
+        win.timeOnFlip(bbox, 'tStopRefresh')  # time at next scr refresh
+        bbox.status = FINISHED
+    if bbox.status == STARTED:
+        theseButtons = bbox.getEvents()
+        if theseButtons:  # at least one button was pressed this frame
+            if bbox.btns == []:  # True if the first
+                bbox.btns = theseButtons[0].key  # just the first button
+                bbox.rt = theseButtons[0].rt
+                # a response forces the end of the routine
+                continueRoutine = False
     
     # check for quit (typically the Esc key)
-    if endExpNow or event.getKeys(keyList=["escape"]):
+    if endExpNow or keyboard.Keyboard().getKeys(keyList=["escape"]):
         core.quit()
     
     # check if all components have finished
@@ -147,8 +156,23 @@ while continueRoutine and routineTimer.getTime() > 0:
 for thisComponent in trialComponents:
     if hasattr(thisComponent, "setAutoDraw"):
         thisComponent.setAutoDraw(False)
-thisExp.addData('noise.started', noise.tStartRefresh)
-thisExp.addData('noise.stopped', noise.tStopRefresh)
+# store ioLabs bbox data for bbox (ExperimentHandler)
+if len(bbox.btns) == 0:  # no ioLabs responses
+    bbox.btns = None
+thisExp.addData('bbox.btns', bbox.btns)
+if bbox.btns != None:  # add RTs if there are responses
+    thisExp.addData('bbox.rt', bbox.rt)
+# check responses
+if bbox.keys in ['', [], None]:  # No response was made
+    bbox.keys = None
+thisExp.addData('bbox.keys',bbox.keys)
+if bbox.keys != None:  # we had a response
+    thisExp.addData('bbox.rt', bbox.rt)
+thisExp.addData('bbox.started', bbox.tStartRefresh)
+thisExp.addData('bbox.stopped', bbox.tStopRefresh)
+thisExp.nextEntry()
+thisExp.nextEntry()
+bbox.standby()  # lights out etc
 
 # Flip one final time so any remaining win.callOnFlip() 
 # and win.timeOnFlip() tasks get executed before quitting

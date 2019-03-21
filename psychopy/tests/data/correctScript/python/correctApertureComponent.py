@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 """
 This experiment was created using PsychoPy3 Experiment Builder (v3.0.6),
-    on March 20, 2019, at 07:57
+    on March 21, 2019, at 13:45
 If you publish work using this script please cite the PsychoPy publications:
     Peirce, JW (2007) PsychoPy - Psychophysics software in Python.
         Journal of Neuroscience Methods, 162(1-2), 8-13.
@@ -21,6 +21,7 @@ from numpy.random import random, randint, normal, shuffle
 import os  # handy system and path functions
 import sys  # to get file system encoding
 
+from psychopy.hardware import keyboard
 
 # Ensure that relative paths start from the same directory as this script
 _thisDir = os.path.dirname(os.path.abspath(__file__))
@@ -43,7 +44,7 @@ filename = _thisDir + os.sep + u'data/%s_%s_%s' % (expInfo['participant'], expNa
 # An ExperimentHandler isn't essential but helps with data saving
 thisExp = data.ExperimentHandler(name=expName, version='',
     extraInfo=expInfo, runtimeInfo=None,
-    originPath='newTextComponent.py',
+    originPath='newApertureComponent.py',
     savePickle=True, saveWideText=True,
     dataFileName=filename)
 # save a log file for detail verbose info
@@ -57,7 +58,7 @@ endExpNow = False  # flag for 'escape' or other condition => quit the exp
 # Setup the Window
 win = visual.Window(
     size=(1024, 768), fullscr=True, screen=0, 
-    winType='pyglet', allowGUI=False, allowStencil=False,
+    winType='pyglet', allowGUI=False, allowStencil=True,
     monitor='testMonitor', color=[0,0,0], colorSpace='rgb',
     blendMode='avg', useFBO=True, 
     units='height')
@@ -70,13 +71,10 @@ else:
 
 # Initialize components for Routine "trial"
 trialClock = core.Clock()
-text = visual.TextStim(win=win, name='text',
-    text='Any text\n\nincluding line breaks',
-    font='Arial',
-    pos=(0, 0), height=0.1, wrapWidth=None, ori=0, 
-    color='white', colorSpace='rgb', opacity=1, 
-    languageStyle='LTR',
-    depth=0.0);
+aperture = visual.Aperture(
+    win=win, name='aperture',
+    units='norm', size=1, pos=(0, 0))
+aperture.disable()  # disable until its actually used
 
 # Create some handy timers
 globalClock = core.Clock()  # to track the time since experiment started
@@ -90,7 +88,7 @@ continueRoutine = True
 routineTimer.add(1.000000)
 # update component parameters for each repeat
 # keep track of which components have finished
-trialComponents = [text]
+trialComponents = [aperture]
 for thisComponent in trialComponents:
     thisComponent.tStart = None
     thisComponent.tStop = None
@@ -106,23 +104,23 @@ while continueRoutine and routineTimer.getTime() > 0:
     frameN = frameN + 1  # number of completed frames (so 0 is the first frame)
     # update/draw components on each frame
     
-    # *text* updates
-    if t >= 0.0 and text.status == NOT_STARTED:
+    # *aperture* updates
+    if t >= 0.0 and aperture.status == NOT_STARTED:
         # keep track of start time/frame for later
-        text.tStart = t  # not accounting for scr refresh
-        text.frameNStart = frameN  # exact frame index
-        win.timeOnFlip(text, 'tStartRefresh')  # time at next scr refresh
-        text.setAutoDraw(True)
+        aperture.tStart = t  # not accounting for scr refresh
+        aperture.frameNStart = frameN  # exact frame index
+        win.timeOnFlip(aperture, 'tStartRefresh')  # time at next scr refresh
+        aperture.enabled = True
     frameRemains = 0.0 + 1.0- win.monitorFramePeriod * 0.75  # most of one frame period left
-    if text.status == STARTED and t >= frameRemains:
+    if aperture.status == STARTED and t >= frameRemains:
         # keep track of stop time/frame for later
-        text.tStop = t  # not accounting for scr refresh
-        text.frameNStop = frameN  # exact frame index
-        win.timeOnFlip(text, 'tStopRefresh')  # time at next scr refresh
-        text.setAutoDraw(False)
+        aperture.tStop = t  # not accounting for scr refresh
+        aperture.frameNStop = frameN  # exact frame index
+        win.timeOnFlip(aperture, 'tStopRefresh')  # time at next scr refresh
+        aperture.enabled = False
     
     # check for quit (typically the Esc key)
-    if endExpNow or event.getKeys(keyList=["escape"]):
+    if endExpNow or keyboard.Keyboard().getKeys(keyList=["escape"]):
         core.quit()
     
     # check if all components have finished
@@ -142,8 +140,9 @@ while continueRoutine and routineTimer.getTime() > 0:
 for thisComponent in trialComponents:
     if hasattr(thisComponent, "setAutoDraw"):
         thisComponent.setAutoDraw(False)
-thisExp.addData('text.started', text.tStartRefresh)
-thisExp.addData('text.stopped', text.tStopRefresh)
+aperture.enabled = False  # just in case it was left enabled
+thisExp.addData('aperture.started', aperture.tStartRefresh)
+thisExp.addData('aperture.stopped', aperture.tStopRefresh)
 
 # Flip one final time so any remaining win.callOnFlip() 
 # and win.timeOnFlip() tasks get executed before quitting

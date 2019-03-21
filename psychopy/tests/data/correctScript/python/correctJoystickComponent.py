@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 """
 This experiment was created using PsychoPy3 Experiment Builder (v3.0.6),
-    on March 20, 2019, at 07:57
+    on March 21, 2019, at 13:45
 If you publish work using this script please cite the PsychoPy publications:
     Peirce, JW (2007) PsychoPy - Psychophysics software in Python.
         Journal of Neuroscience Methods, 162(1-2), 8-13.
@@ -21,6 +21,7 @@ from numpy.random import random, randint, normal, shuffle
 import os  # handy system and path functions
 import sys  # to get file system encoding
 
+from psychopy.hardware import keyboard
 
 # Ensure that relative paths start from the same directory as this script
 _thisDir = os.path.dirname(os.path.abspath(__file__))
@@ -43,7 +44,7 @@ filename = _thisDir + os.sep + u'data/%s_%s_%s' % (expInfo['participant'], expNa
 # An ExperimentHandler isn't essential but helps with data saving
 thisExp = data.ExperimentHandler(name=expName, version='',
     extraInfo=expInfo, runtimeInfo=None,
-    originPath='newSoundComponent.py',
+    originPath='newJoystickComponent.py',
     savePickle=True, saveWideText=True,
     dataFileName=filename)
 # save a log file for detail verbose info
@@ -53,6 +54,8 @@ logging.console.setLevel(logging.WARNING)  # this outputs to the screen, not a f
 endExpNow = False  # flag for 'escape' or other condition => quit the exp
 
 # Start Code - component code to be run before the window creation
+from psychopy.hardware import joystick as joysticklib  # joystick/gamepad accsss
+from psychopy.experiment.components.joystick import mouseJoystick as fakejoysticklib
 
 # Setup the Window
 win = visual.Window(
@@ -70,8 +73,39 @@ else:
 
 # Initialize components for Routine "trial"
 trialClock = core.Clock()
-sound_1 = sound.Sound('A', secs=1.0, stereo=True)
-sound_1.setVolume(1)
+x, y = [None, None]
+joystick = type('', (), {})() # Create an object to use as a name space
+joystick.device = None
+joystick.device_number = 0
+joystick.joystickClock = core.Clock()
+joystick.xFactor = 1
+joystick.yFactor = 1
+
+try:
+    numJoysticks = joysticklib.getNumJoysticks()
+    if numJoysticks > 0:
+        joystick.device = joysticklib.Joystick(0)
+        if win.units == 'height':
+            joystick.xFactor = 0.5 * win.size[0]/win.size[1]
+            joystick.yFactor = 0.5
+    else:
+        joystick.device = fakejoysticklib.Joystick(0)
+        logging.warning("joystick_{}: Using keyboard+mouse emulation 'ctrl' + 'Alt' + digit.".format(joystick.device_number))
+except Exception:
+    pass
+    
+if not joystick.device:
+    logging.error('No joystick/gamepad device found.')
+    core.quit()
+
+joystick.status = None
+joystick.clock = core.Clock()
+joystick.numButtons = joystick.device.getNumButtons()
+joystick.getNumButtons = joystick.device.getNumButtons
+joystick.getAllButtons = joystick.device.getAllButtons
+joystick.getX = lambda: joystick.xFactor * joystick.device.getX()
+joystick.getY = lambda: joystick.yFactor * joystick.device.getY()
+
 
 # Create some handy timers
 globalClock = core.Clock()  # to track the time since experiment started
@@ -84,10 +118,12 @@ frameN = -1
 continueRoutine = True
 routineTimer.add(1.000000)
 # update component parameters for each repeat
-sound_1.setSound('A', secs=1.0)
-sound_1.setVolume(1, log=False)
+joystick.oldButtonState = joystick.device.getAllButtons()[:]
+joystick.activeButtons=[i for i in range(joystick.numButtons)]
+# setup some python lists for storing info about the joystick
+gotValidClick = False  # until a click is received
 # keep track of which components have finished
-trialComponents = [sound_1]
+trialComponents = [joystick]
 for thisComponent in trialComponents:
     thisComponent.tStart = None
     thisComponent.tStop = None
@@ -102,16 +138,36 @@ while continueRoutine and routineTimer.getTime() > 0:
     t = trialClock.getTime()
     frameN = frameN + 1  # number of completed frames (so 0 is the first frame)
     # update/draw components on each frame
-    # start/stop sound_1
-    if t >= 0.0 and sound_1.status == NOT_STARTED:
+    # *joystick* updates
+    if t >= 0.0 and joystick.status == NOT_STARTED:
         # keep track of start time/frame for later
-        sound_1.tStart = t  # not accounting for scr refresh
-        sound_1.frameNStart = frameN  # exact frame index
-        win.timeOnFlip(sound_1, 'tStartRefresh')  # time at next scr refresh
-        win.callOnFlip(sound_1.play)  # screen flip
+        joystick.tStart = t  # not accounting for scr refresh
+        joystick.frameNStart = frameN  # exact frame index
+        win.timeOnFlip(joystick, 'tStartRefresh')  # time at next scr refresh
+        joystick.status = STARTED
+        joystick.joystickClock.reset()
+    frameRemains = 0.0 + 1.0- win.monitorFramePeriod * 0.75  # most of one frame period left
+    if joystick.status == STARTED and t >= frameRemains:
+        # keep track of stop time/frame for later
+        joystick.tStop = t  # not accounting for scr refresh
+        joystick.frameNStop = frameN  # exact frame index
+        win.timeOnFlip(joystick, 'tStopRefresh')  # time at next scr refresh
+        joystick.status = FINISHED
+    if joystick.status == STARTED:  # only update if started and not finished!
+        joystick.newButtonState = joystick.getAllButtons()[:]
+        if joystick.newButtonState != joystick.oldButtonState: # New button press
+            joystick.pressedButtons = [i for i in range(joystick.numButtons) if joystick.newButtonState[i] and not joystick.oldButtonState[i]]
+            joystick.releasedButtons = [i for i in range(joystick.numButtons) if not joystick.newButtonState[i] and joystick.oldButtonState[i]]
+            joystick.newPressedButtons = [i for i in joystick.activeButtons if i in joystick.pressedButtons]
+            joystick.oldButtonState = joystick.newButtonState
+            joystick.buttons = joystick.newPressedButtons
+            [logging.data("joystick_{}_button: {}, pos=({:1.4f},{:1.4f})".format(joystick.device_number, i, joystick.getX(), joystick.getY())) for i in joystick.pressedButtons]
+            if len(joystick.buttons) > 0:  # state changed to a new click
+                # abort routine on response
+                continueRoutine = False
     
     # check for quit (typically the Esc key)
-    if endExpNow or event.getKeys(keyList=["escape"]):
+    if endExpNow or keyboard.Keyboard().getKeys(keyList=["escape"]):
         core.quit()
     
     # check if all components have finished
@@ -131,9 +187,19 @@ while continueRoutine and routineTimer.getTime() > 0:
 for thisComponent in trialComponents:
     if hasattr(thisComponent, "setAutoDraw"):
         thisComponent.setAutoDraw(False)
-sound_1.stop()  # ensure sound has stopped at end of routine
-thisExp.addData('sound_1.started', sound_1.tStartRefresh)
-thisExp.addData('sound_1.stopped', sound_1.tStopRefresh)
+# store data for thisExp (ExperimentHandler)
+# store data for thisExp (ExperimentHandler)
+x, y = joystick.getX(), joystick.getY()
+joystick.newButtonState = joystick.getAllButtons()[:]
+joystick.pressedState = [joystick.newButtonState[i] for i in range(joystick.numButtons)]
+joystick.time = joystick.joystickClock.getTime()
+thisExp.addData('joystick.x', x)
+thisExp.addData('joystick.y', y)
+[thisExp.addData('joystick.button_{0}'.format(i), int(joystick.pressedState[i])) for i in joystick.activeButtons]
+thisExp.addData('joystick.time', joystick.time)
+thisExp.addData('joystick.started', joystick.tStart)
+thisExp.addData('joystick.stopped', joystick.tStop)
+thisExp.nextEntry()
 
 # Flip one final time so any remaining win.callOnFlip() 
 # and win.timeOnFlip() tasks get executed before quitting

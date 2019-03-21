@@ -174,7 +174,7 @@ class Routine(list):
         # allow subject to quit via Esc key?
         if self.exp.settings.params['Enable Escape'].val:
             code = ('\n# check for quit (typically the Esc key)\n'
-                    'if endExpNow or event.getKeys(keyList=["escape"]):\n'
+                    'if endExpNow or keyboard.Keyboard().getKeys(keyList=["escape"]):\n'
                     '    core.quit()\n')
             buff.writeIndentedLines(code)
 
@@ -377,6 +377,12 @@ class Routine(list):
     def getComponentFromName(self, name):
         for comp in self:
             if comp.params['name'].val == name:
+                return comp
+        return None
+
+    def getComponentFromType(self, type):
+        for comp in self:
+            if comp.type == type:
                 return comp
         return None
 

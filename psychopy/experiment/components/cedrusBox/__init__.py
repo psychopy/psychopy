@@ -62,11 +62,6 @@ class cedrusButtonBoxComponent(KeyboardComponent):
         self.type = 'cedrusButtonBox'
         self.url = "http://www.psychopy.org/builder/components/cedrusButtonBox.html"
 
-        # Remove inherited import from keyboard
-        for idx, imports in enumerate(self.exp.requiredImports):
-            if imports.importName == 'keyboard':
-                del self.exp.requiredImports[idx]
-
         self.exp.requirePsychopyLibs(['hardware'])
 
         self.params['correctAns'].hint = _translate(

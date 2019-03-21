@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 """
 This experiment was created using PsychoPy3 Experiment Builder (v3.0.6),
-    on March 20, 2019, at 07:57
+    on March 21, 2019, at 13:45
 If you publish work using this script please cite the PsychoPy publications:
     Peirce, JW (2007) PsychoPy - Psychophysics software in Python.
         Journal of Neuroscience Methods, 162(1-2), 8-13.
@@ -11,7 +11,7 @@ If you publish work using this script please cite the PsychoPy publications:
 """
 
 from __future__ import absolute_import, division
-from psychopy import locale_setup, sound, gui, visual, core, data, event, logging, clock
+from psychopy import locale_setup, sound, gui, visual, core, data, event, logging, clock, microphone
 from psychopy.constants import (NOT_STARTED, STARTED, PLAYING, PAUSED,
                                 STOPPED, FINISHED, PRESSED, RELEASED, FOREVER)
 import numpy as np  # whole numpy lib is available, prepend 'np.'
@@ -21,13 +21,7 @@ from numpy.random import random, randint, normal, shuffle
 import os  # handy system and path functions
 import sys  # to get file system encoding
 
-from psychopy.hardware import qmix
-
-# Initialize all pumps so they are ready to be used when we
-# need them later. This enables us to dynamically select
-# pumps during the experiment without worrying about their
-# initialization.
-qmix._init_all_pumps()
+from psychopy.hardware import keyboard
 
 # Ensure that relative paths start from the same directory as this script
 _thisDir = os.path.dirname(os.path.abspath(__file__))
@@ -50,7 +44,7 @@ filename = _thisDir + os.sep + u'data/%s_%s_%s' % (expInfo['participant'], expNa
 # An ExperimentHandler isn't essential but helps with data saving
 thisExp = data.ExperimentHandler(name=expName, version='',
     extraInfo=expInfo, runtimeInfo=None,
-    originPath='newQmixPumpComponent.py',
+    originPath='newMicrophoneComponent.py',
     savePickle=True, saveWideText=True,
     dataFileName=filename)
 # save a log file for detail verbose info
@@ -60,6 +54,9 @@ logging.console.setLevel(logging.WARNING)  # this outputs to the screen, not a f
 endExpNow = False  # flag for 'escape' or other condition => quit the exp
 
 # Start Code - component code to be run before the window creation
+wavDirName = filename + '_wav'
+if not os.path.isdir(wavDirName):
+    os.makedirs(wavDirName)  # to hold .wav files
 
 # Setup the Window
 win = visual.Window(
@@ -68,6 +65,9 @@ win = visual.Window(
     monitor='testMonitor', color=[0,0,0], colorSpace='rgb',
     blendMode='avg', useFBO=True, 
     units='height')
+
+# Enable sound input/output:
+microphone.switchOn()
 # store frame rate of monitor if we can measure it
 expInfo['frameRate'] = win.getActualFrameRate()
 if expInfo['frameRate'] != None:
@@ -87,18 +87,11 @@ t = 0
 trialClock.reset()  # clock
 frameN = -1
 continueRoutine = True
-routineTimer.add(1.000000)
+routineTimer.add(2.000000)
 # update component parameters for each repeat
-
-# Select the correct pre-initialized pump, and set the 
-# syringe type according to the Pumo Component properties.
-_pumpInstance = qmix.pumps[0]
-pump = qmix._PumpWrapperForBuilderComponent(_pumpInstance)
-pump.syringeType = '50 mL glass'
-pump.flowRateUnit = 'mL/s'
-pump.status = None
+mic_1 = microphone.AdvAudioCapture(name='mic_1', saveDir=wavDirName, stereo=False, chnl=0)
 # keep track of which components have finished
-trialComponents = [pump]
+trialComponents = [mic_1]
 for thisComponent in trialComponents:
     thisComponent.tStart = None
     thisComponent.tStop = None
@@ -113,26 +106,21 @@ while continueRoutine and routineTimer.getTime() > 0:
     t = trialClock.getTime()
     frameN = frameN + 1  # number of completed frames (so 0 is the first frame)
     # update/draw components on each frame
-    # *pump* updates
-    if t >= 0.0 and pump.status == NOT_STARTED:
+    
+    # *mic_1* updates
+    if t >= 0.0 and mic_1.status == NOT_STARTED:
         # keep track of start time/frame for later
-        pump.tStart = t  # not accounting for scr refresh
-        pump.frameNStart = frameN  # exact frame index
-        win.timeOnFlip(pump, 'tStartRefresh')  # time at next scr refresh
-        pump.status = STARTED
-        win.callOnFlip(pump.empty, flowRate=1.0)
-    frameRemains = 0.0 + 1.0- win.monitorFramePeriod * 0.75  # most of one frame period left
-    if pump.status == STARTED and t >= frameRemains:
-        # keep track of stop time/frame for later
-        pump.tStop = t  # not accounting for scr refresh
-        pump.frameNStop = frameN  # exact frame index
-        win.timeOnFlip(pump, 'tStopRefresh')  # time at next scr refresh
-        pump.status = FINISHED
-        win.callOnFlip(pump.stop)
-        win.callOnFlip(pump.switchValvePosition)
+        mic_1.tStart = t  # not accounting for scr refresh
+        mic_1.frameNStart = frameN  # exact frame index
+        win.timeOnFlip(mic_1, 'tStartRefresh')  # time at next scr refresh
+        mic_1.status = STARTED
+        mic_1.record(sec=2.0, block=False)  # start the recording thread
+    
+    if mic_1.status == STARTED and not mic_1.recorder.running:
+        mic_1.status = FINISHED
     
     # check for quit (typically the Esc key)
-    if endExpNow or event.getKeys(keyList=["escape"]):
+    if endExpNow or keyboard.Keyboard().getKeys(keyList=["escape"]):
         core.quit()
     
     # check if all components have finished
@@ -152,13 +140,15 @@ while continueRoutine and routineTimer.getTime() > 0:
 for thisComponent in trialComponents:
     if hasattr(thisComponent, "setAutoDraw"):
         thisComponent.setAutoDraw(False)
-
-if pump.status == STARTED:
-    pump.stop()
-    pump.switchValvePosition()
-
-thisExp.addData('pump.started', pump.tStart)
-thisExp.addData('pump.stopped', pump.tStop)
+# mic_1 stop & responses
+mic_1.stop()  # sometimes helpful
+if not mic_1.savedFile:
+    mic_1.savedFile = None
+# store data for thisExp (ExperimentHandler)
+thisExp.addData('mic_1.filename', mic_1.savedFile)
+thisExp.addData('mic_1.started', mic_1.tStart)
+thisExp.addData('mic_1.stopped', mic_1.tStop)
+thisExp.nextEntry()
 
 # Flip one final time so any remaining win.callOnFlip() 
 # and win.timeOnFlip() tasks get executed before quitting

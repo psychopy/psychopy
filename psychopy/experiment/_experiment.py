@@ -82,7 +82,8 @@ class Experiment(object):
         libs = ('sound', 'gui', 'visual', 'core', 'data', 'event',
                 'logging', 'clock')
         self.requirePsychopyLibs(libs=libs)
-
+        self.requireImport(importName='keyboard',
+                           importFrom='psychopy.hardware')
         self._runOnce = []
 
         _settingsComp = getComponents(fetchIcons=False)['SettingsComponent']
@@ -719,6 +720,18 @@ class Experiment(object):
             if comp:
                 return comp
         return None
+
+    def getComponentFromType(self, type):
+        """Searches all the Routines in the Experiment for a matching component type
+
+        :param name: str type of a component e.g., 'KeyBoard'
+        :return: True if component exists in experiment
+        """
+        for routine in self.routines.values():
+            exists = routine.getComponentFromType(type)
+            if exists:
+                return True
+        return False
 
     def getResourceFiles(self):
         """Returns a list of known files needed for the experiment

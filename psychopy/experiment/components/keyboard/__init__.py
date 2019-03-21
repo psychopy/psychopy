@@ -59,8 +59,6 @@ class KeyboardComponent(BaseComponent):
         self.type = 'Keyboard'
         self.url = "http://www.psychopy.org/builder/components/keyboard.html"
         self.exp.requirePsychopyLibs(['gui'])
-        self.exp.requireImport(importName='keyboard',
-                               importFrom='psychopy.hardware')
 
         # params
 
@@ -243,7 +241,7 @@ class KeyboardComponent(BaseComponent):
 
         if self.exp.settings.params['Enable Escape'].val:
             code = ('\n# check for quit:\n'
-                    'if "escape" in theseKeys:\n'
+                    'if "escape" == theseKeys:\n'
                     '    endExpNow = True\n')
             buff.writeIndentedLines(code)
 
@@ -261,7 +259,7 @@ class KeyboardComponent(BaseComponent):
                         "%(name)s.rt = theseKeys.rt\n")
                 buff.writeIndentedLines(code % self.params)
             elif store == 'all keys':
-                code = ("%(name)s.keys.extend(theseKeys.name)  # storing all keys\n"
+                code = ("%(name)s.keys.append(theseKeys.name)  # storing all keys\n"
                         "%(name)s.rt.append(theseKeys.rt)\n")
                 buff.writeIndentedLines(code % self.params)
 

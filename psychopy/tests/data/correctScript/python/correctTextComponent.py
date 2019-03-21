@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 """
 This experiment was created using PsychoPy3 Experiment Builder (v3.0.6),
-    on March 20, 2019, at 07:57
+    on March 21, 2019, at 13:45
 If you publish work using this script please cite the PsychoPy publications:
     Peirce, JW (2007) PsychoPy - Psychophysics software in Python.
         Journal of Neuroscience Methods, 162(1-2), 8-13.
@@ -21,6 +21,7 @@ from numpy.random import random, randint, normal, shuffle
 import os  # handy system and path functions
 import sys  # to get file system encoding
 
+from psychopy.hardware import keyboard
 
 # Ensure that relative paths start from the same directory as this script
 _thisDir = os.path.dirname(os.path.abspath(__file__))
@@ -43,7 +44,7 @@ filename = _thisDir + os.sep + u'data/%s_%s_%s' % (expInfo['participant'], expNa
 # An ExperimentHandler isn't essential but helps with data saving
 thisExp = data.ExperimentHandler(name=expName, version='',
     extraInfo=expInfo, runtimeInfo=None,
-    originPath='newDotsComponent.py',
+    originPath='newTextComponent.py',
     savePickle=True, saveWideText=True,
     dataFileName=filename)
 # save a log file for detail verbose info
@@ -70,14 +71,13 @@ else:
 
 # Initialize components for Routine "trial"
 trialClock = core.Clock()
-dots = visual.DotStim(
-    win=win, name='dots',
-    nDots=100, dotSize=2,
-    speed=0.1, dir=0.0, coherence=1.0,
-    fieldPos=(0.0, 0.0), fieldSize=1.0,fieldShape='circle',
-    signalDots='same', noiseDots='direction',dotLife=3,
-    color=[1.0,1.0,1.0], colorSpace='rgb', opacity=1,
-    depth=0.0)
+text = visual.TextStim(win=win, name='text',
+    text='Any text\n\nincluding line breaks',
+    font='Arial',
+    pos=(0, 0), height=0.1, wrapWidth=None, ori=0, 
+    color='white', colorSpace='rgb', opacity=1, 
+    languageStyle='LTR',
+    depth=0.0);
 
 # Create some handy timers
 globalClock = core.Clock()  # to track the time since experiment started
@@ -90,9 +90,8 @@ frameN = -1
 continueRoutine = True
 routineTimer.add(1.000000)
 # update component parameters for each repeat
-dots.refreshDots()
 # keep track of which components have finished
-trialComponents = [dots]
+trialComponents = [text]
 for thisComponent in trialComponents:
     thisComponent.tStart = None
     thisComponent.tStop = None
@@ -108,23 +107,23 @@ while continueRoutine and routineTimer.getTime() > 0:
     frameN = frameN + 1  # number of completed frames (so 0 is the first frame)
     # update/draw components on each frame
     
-    # *dots* updates
-    if t >= 0.0 and dots.status == NOT_STARTED:
+    # *text* updates
+    if t >= 0.0 and text.status == NOT_STARTED:
         # keep track of start time/frame for later
-        dots.tStart = t  # not accounting for scr refresh
-        dots.frameNStart = frameN  # exact frame index
-        win.timeOnFlip(dots, 'tStartRefresh')  # time at next scr refresh
-        dots.setAutoDraw(True)
+        text.tStart = t  # not accounting for scr refresh
+        text.frameNStart = frameN  # exact frame index
+        win.timeOnFlip(text, 'tStartRefresh')  # time at next scr refresh
+        text.setAutoDraw(True)
     frameRemains = 0.0 + 1.0- win.monitorFramePeriod * 0.75  # most of one frame period left
-    if dots.status == STARTED and t >= frameRemains:
+    if text.status == STARTED and t >= frameRemains:
         # keep track of stop time/frame for later
-        dots.tStop = t  # not accounting for scr refresh
-        dots.frameNStop = frameN  # exact frame index
-        win.timeOnFlip(dots, 'tStopRefresh')  # time at next scr refresh
-        dots.setAutoDraw(False)
+        text.tStop = t  # not accounting for scr refresh
+        text.frameNStop = frameN  # exact frame index
+        win.timeOnFlip(text, 'tStopRefresh')  # time at next scr refresh
+        text.setAutoDraw(False)
     
     # check for quit (typically the Esc key)
-    if endExpNow or event.getKeys(keyList=["escape"]):
+    if endExpNow or keyboard.Keyboard().getKeys(keyList=["escape"]):
         core.quit()
     
     # check if all components have finished
@@ -144,8 +143,8 @@ while continueRoutine and routineTimer.getTime() > 0:
 for thisComponent in trialComponents:
     if hasattr(thisComponent, "setAutoDraw"):
         thisComponent.setAutoDraw(False)
-thisExp.addData('dots.started', dots.tStartRefresh)
-thisExp.addData('dots.stopped', dots.tStopRefresh)
+thisExp.addData('text.started', text.tStartRefresh)
+thisExp.addData('text.stopped', text.tStopRefresh)
 
 # Flip one final time so any remaining win.callOnFlip() 
 # and win.timeOnFlip() tasks get executed before quitting
