@@ -82,7 +82,8 @@ class Experiment(object):
         libs = ('sound', 'gui', 'visual', 'core', 'data', 'event',
                 'logging', 'clock')
         self.requirePsychopyLibs(libs=libs)
-
+        self.requireImport(importName='keyboard',
+                           importFrom='psychopy.hardware')
         self._runOnce = []
 
         _settingsComp = getComponents(fetchIcons=False)['SettingsComponent']

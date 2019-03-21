@@ -138,7 +138,7 @@ class Keyboard:
         keys = []
         raise NotImplementedError
 
-    def clearEvents(self, eventType):
+    def clearEvents(self, eventType=None):
         if havePTB:
             for buffer in self._buffers.values():
                 buffer._clearEvents()

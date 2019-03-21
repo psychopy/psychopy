@@ -58,11 +58,6 @@ class ioLabsButtonBoxComponent(KeyboardComponent):
         self.type = 'ioLabsButtonBox'
         self.url = "http://www.psychopy.org/builder/components/ioLabs.html"
 
-        # Remove inherited import from keyboard
-        for idx, imports in enumerate(self.exp.requiredImports):
-            if imports.importName == 'keyboard' and not self.exp.getComponentFromType('Keyboard'):
-                del self.exp.requiredImports[idx]
-
         self.exp.requirePsychopyLibs(['hardware'])
         del self.params['allowedKeys']
 
