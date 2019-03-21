@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 """
 This experiment was created using PsychoPy3 Experiment Builder (v3.0.6),
-    on March 20, 2019, at 07:57
+    on March 21, 2019, at 13:45
 If you publish work using this script please cite the PsychoPy publications:
     Peirce, JW (2007) PsychoPy - Psychophysics software in Python.
         Journal of Neuroscience Methods, 162(1-2), 8-13.
@@ -21,6 +21,7 @@ from numpy.random import random, randint, normal, shuffle
 import os  # handy system and path functions
 import sys  # to get file system encoding
 
+from psychopy.hardware import keyboard
 
 # Ensure that relative paths start from the same directory as this script
 _thisDir = os.path.dirname(os.path.abspath(__file__))
@@ -43,7 +44,7 @@ filename = _thisDir + os.sep + u'data/%s_%s_%s' % (expInfo['participant'], expNa
 # An ExperimentHandler isn't essential but helps with data saving
 thisExp = data.ExperimentHandler(name=expName, version='',
     extraInfo=expInfo, runtimeInfo=None,
-    originPath='newEnvGratingComponent.py',
+    originPath='newPolygonComponent.py',
     savePickle=True, saveWideText=True,
     dataFileName=filename)
 # save a log file for detail verbose info
@@ -70,14 +71,13 @@ else:
 
 # Initialize components for Routine "trial"
 trialClock = core.Clock()
-env_grating = visual.EnvelopeGrating(
-    win=win, name='env_grating',
-    carrier='sin', mask=None,
-    ori=0, pos=(0, 0), size=(0.5, 0.5), sf=1.0, phase=0.0,
-    color=[1,1,1], colorSpace='rgb', opacity=1, contrast=0.5,
-    texRes=128,
-    envelope='sin', envori=0.0,
-    envsf=1.0, envphase=0.0, moddepth=1.0, blendmode='avg', beat=False, interpolate=True, depth=0.0)
+polygon = visual.ShapeStim(
+    win=win, name='polygon',
+    vertices=[[-(0.5, 0.5)[0]/2.0,-(0.5, 0.5)[1]/2.0], [+(0.5, 0.5)[0]/2.0,-(0.5, 0.5)[1]/2.0], [0,(0.5, 0.5)[1]/2.0]],
+    ori=0, pos=(0, 0),
+    lineWidth=1, lineColor=[1,1,1], lineColorSpace='rgb',
+    fillColor=[1,1,1], fillColorSpace='rgb',
+    opacity=1, depth=0.0, interpolate=True)
 
 # Create some handy timers
 globalClock = core.Clock()  # to track the time since experiment started
@@ -91,7 +91,7 @@ continueRoutine = True
 routineTimer.add(1.000000)
 # update component parameters for each repeat
 # keep track of which components have finished
-trialComponents = [env_grating]
+trialComponents = [polygon]
 for thisComponent in trialComponents:
     thisComponent.tStart = None
     thisComponent.tStop = None
@@ -107,23 +107,23 @@ while continueRoutine and routineTimer.getTime() > 0:
     frameN = frameN + 1  # number of completed frames (so 0 is the first frame)
     # update/draw components on each frame
     
-    # *env_grating* updates
-    if t >= 0.0 and env_grating.status == NOT_STARTED:
+    # *polygon* updates
+    if t >= 0.0 and polygon.status == NOT_STARTED:
         # keep track of start time/frame for later
-        env_grating.tStart = t  # not accounting for scr refresh
-        env_grating.frameNStart = frameN  # exact frame index
-        win.timeOnFlip(env_grating, 'tStartRefresh')  # time at next scr refresh
-        env_grating.setAutoDraw(True)
+        polygon.tStart = t  # not accounting for scr refresh
+        polygon.frameNStart = frameN  # exact frame index
+        win.timeOnFlip(polygon, 'tStartRefresh')  # time at next scr refresh
+        polygon.setAutoDraw(True)
     frameRemains = 0.0 + 1.0- win.monitorFramePeriod * 0.75  # most of one frame period left
-    if env_grating.status == STARTED and t >= frameRemains:
+    if polygon.status == STARTED and t >= frameRemains:
         # keep track of stop time/frame for later
-        env_grating.tStop = t  # not accounting for scr refresh
-        env_grating.frameNStop = frameN  # exact frame index
-        win.timeOnFlip(env_grating, 'tStopRefresh')  # time at next scr refresh
-        env_grating.setAutoDraw(False)
+        polygon.tStop = t  # not accounting for scr refresh
+        polygon.frameNStop = frameN  # exact frame index
+        win.timeOnFlip(polygon, 'tStopRefresh')  # time at next scr refresh
+        polygon.setAutoDraw(False)
     
     # check for quit (typically the Esc key)
-    if endExpNow or event.getKeys(keyList=["escape"]):
+    if endExpNow or keyboard.Keyboard().getKeys(keyList=["escape"]):
         core.quit()
     
     # check if all components have finished
@@ -143,8 +143,8 @@ while continueRoutine and routineTimer.getTime() > 0:
 for thisComponent in trialComponents:
     if hasattr(thisComponent, "setAutoDraw"):
         thisComponent.setAutoDraw(False)
-thisExp.addData('env_grating.started', env_grating.tStartRefresh)
-thisExp.addData('env_grating.stopped', env_grating.tStopRefresh)
+thisExp.addData('polygon.started', polygon.tStartRefresh)
+thisExp.addData('polygon.stopped', polygon.tStopRefresh)
 
 # Flip one final time so any remaining win.callOnFlip() 
 # and win.timeOnFlip() tasks get executed before quitting

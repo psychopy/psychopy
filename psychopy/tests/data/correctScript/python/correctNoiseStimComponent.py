@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 """
 This experiment was created using PsychoPy3 Experiment Builder (v3.0.6),
-    on March 20, 2019, at 07:57
+    on March 21, 2019, at 13:45
 If you publish work using this script please cite the PsychoPy publications:
     Peirce, JW (2007) PsychoPy - Psychophysics software in Python.
         Journal of Neuroscience Methods, 162(1-2), 8-13.
@@ -11,7 +11,7 @@ If you publish work using this script please cite the PsychoPy publications:
 """
 
 from __future__ import absolute_import, division
-from psychopy import locale_setup, sound, gui, visual, core, data, event, logging, clock, microphone
+from psychopy import locale_setup, sound, gui, visual, core, data, event, logging, clock
 from psychopy.constants import (NOT_STARTED, STARTED, PLAYING, PAUSED,
                                 STOPPED, FINISHED, PRESSED, RELEASED, FOREVER)
 import numpy as np  # whole numpy lib is available, prepend 'np.'
@@ -21,6 +21,7 @@ from numpy.random import random, randint, normal, shuffle
 import os  # handy system and path functions
 import sys  # to get file system encoding
 
+from psychopy.hardware import keyboard
 
 # Ensure that relative paths start from the same directory as this script
 _thisDir = os.path.dirname(os.path.abspath(__file__))
@@ -43,7 +44,7 @@ filename = _thisDir + os.sep + u'data/%s_%s_%s' % (expInfo['participant'], expNa
 # An ExperimentHandler isn't essential but helps with data saving
 thisExp = data.ExperimentHandler(name=expName, version='',
     extraInfo=expInfo, runtimeInfo=None,
-    originPath='newMicrophoneComponent.py',
+    originPath='newNoiseStimComponent.py',
     savePickle=True, saveWideText=True,
     dataFileName=filename)
 # save a log file for detail verbose info
@@ -53,9 +54,6 @@ logging.console.setLevel(logging.WARNING)  # this outputs to the screen, not a f
 endExpNow = False  # flag for 'escape' or other condition => quit the exp
 
 # Start Code - component code to be run before the window creation
-wavDirName = filename + '_wav'
-if not os.path.isdir(wavDirName):
-    os.makedirs(wavDirName)  # to hold .wav files
 
 # Setup the Window
 win = visual.Window(
@@ -64,9 +62,6 @@ win = visual.Window(
     monitor='testMonitor', color=[0,0,0], colorSpace='rgb',
     blendMode='avg', useFBO=True, 
     units='height')
-
-# Enable sound input/output:
-microphone.switchOn()
 # store frame rate of monitor if we can measure it
 expInfo['frameRate'] = win.getActualFrameRate()
 if expInfo['frameRate'] != None:
@@ -76,6 +71,15 @@ else:
 
 # Initialize components for Routine "trial"
 trialClock = core.Clock()
+noise = visual.NoiseStim(
+    win=win, name='noise',
+    noiseImage=None, mask=None,
+    ori=0, pos=(0, 0), size=(0.5, 0.5), sf=None, phase=0.0,
+    color=[1,1,1], colorSpace='rgb', opacity=1, blendmode='avg', contrast=1.0,
+    texRes=128,
+    noiseType='Binary', noiseElementSize=0.0625, noiseBaseSf=8.0,
+    noiseBW=1, noiseBWO=1, noiseFractalPower=0.0,noiseFilterLower=1.0, noiseFilterUpper=8.0, noiseFilterOrder=0.0, noiseClip=3.0, interpolate=False, depth=0.0)
+noise.buildNoise()
 
 # Create some handy timers
 globalClock = core.Clock()  # to track the time since experiment started
@@ -86,11 +90,10 @@ t = 0
 trialClock.reset()  # clock
 frameN = -1
 continueRoutine = True
-routineTimer.add(2.000000)
+routineTimer.add(1.000000)
 # update component parameters for each repeat
-mic_1 = microphone.AdvAudioCapture(name='mic_1', saveDir=wavDirName, stereo=False, chnl=0)
 # keep track of which components have finished
-trialComponents = [mic_1]
+trialComponents = [noise]
 for thisComponent in trialComponents:
     thisComponent.tStart = None
     thisComponent.tStop = None
@@ -106,20 +109,26 @@ while continueRoutine and routineTimer.getTime() > 0:
     frameN = frameN + 1  # number of completed frames (so 0 is the first frame)
     # update/draw components on each frame
     
-    # *mic_1* updates
-    if t >= 0.0 and mic_1.status == NOT_STARTED:
+    # *noise* updates
+    if t >= 0.0 and noise.status == NOT_STARTED:
         # keep track of start time/frame for later
-        mic_1.tStart = t  # not accounting for scr refresh
-        mic_1.frameNStart = frameN  # exact frame index
-        win.timeOnFlip(mic_1, 'tStartRefresh')  # time at next scr refresh
-        mic_1.status = STARTED
-        mic_1.record(sec=2.0, block=False)  # start the recording thread
-    
-    if mic_1.status == STARTED and not mic_1.recorder.running:
-        mic_1.status = FINISHED
+        noise.tStart = t  # not accounting for scr refresh
+        noise.frameNStart = frameN  # exact frame index
+        win.timeOnFlip(noise, 'tStartRefresh')  # time at next scr refresh
+        noise.setAutoDraw(True)
+    frameRemains = 0.0 + 1.0- win.monitorFramePeriod * 0.75  # most of one frame period left
+    if noise.status == STARTED and t >= frameRemains:
+        # keep track of stop time/frame for later
+        noise.tStop = t  # not accounting for scr refresh
+        noise.frameNStop = frameN  # exact frame index
+        win.timeOnFlip(noise, 'tStopRefresh')  # time at next scr refresh
+        noise.setAutoDraw(False)
+    if noise.status == STARTED:
+        if noise._needBuild:
+            noise.buildNoise()
     
     # check for quit (typically the Esc key)
-    if endExpNow or event.getKeys(keyList=["escape"]):
+    if endExpNow or keyboard.Keyboard().getKeys(keyList=["escape"]):
         core.quit()
     
     # check if all components have finished
@@ -139,15 +148,8 @@ while continueRoutine and routineTimer.getTime() > 0:
 for thisComponent in trialComponents:
     if hasattr(thisComponent, "setAutoDraw"):
         thisComponent.setAutoDraw(False)
-# mic_1 stop & responses
-mic_1.stop()  # sometimes helpful
-if not mic_1.savedFile:
-    mic_1.savedFile = None
-# store data for thisExp (ExperimentHandler)
-thisExp.addData('mic_1.filename', mic_1.savedFile)
-thisExp.addData('mic_1.started', mic_1.tStart)
-thisExp.addData('mic_1.stopped', mic_1.tStop)
-thisExp.nextEntry()
+thisExp.addData('noise.started', noise.tStartRefresh)
+thisExp.addData('noise.stopped', noise.tStopRefresh)
 
 # Flip one final time so any remaining win.callOnFlip() 
 # and win.timeOnFlip() tasks get executed before quitting

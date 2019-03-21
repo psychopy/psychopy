@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 """
 This experiment was created using PsychoPy3 Experiment Builder (v3.0.6),
-    on March 20, 2019, at 07:57
+    on March 21, 2019, at 13:45
 If you publish work using this script please cite the PsychoPy publications:
     Peirce, JW (2007) PsychoPy - Psychophysics software in Python.
         Journal of Neuroscience Methods, 162(1-2), 8-13.
@@ -11,7 +11,7 @@ If you publish work using this script please cite the PsychoPy publications:
 """
 
 from __future__ import absolute_import, division
-from psychopy import locale_setup, sound, gui, visual, core, data, event, logging, clock, hardware
+from psychopy import locale_setup, sound, gui, visual, core, data, event, logging, clock
 from psychopy.constants import (NOT_STARTED, STARTED, PLAYING, PAUSED,
                                 STOPPED, FINISHED, PRESSED, RELEASED, FOREVER)
 import numpy as np  # whole numpy lib is available, prepend 'np.'
@@ -21,6 +21,7 @@ from numpy.random import random, randint, normal, shuffle
 import os  # handy system and path functions
 import sys  # to get file system encoding
 
+from psychopy.hardware import keyboard
 
 # Ensure that relative paths start from the same directory as this script
 _thisDir = os.path.dirname(os.path.abspath(__file__))
@@ -43,7 +44,7 @@ filename = _thisDir + os.sep + u'data/%s_%s_%s' % (expInfo['participant'], expNa
 # An ExperimentHandler isn't essential but helps with data saving
 thisExp = data.ExperimentHandler(name=expName, version='',
     extraInfo=expInfo, runtimeInfo=None,
-    originPath='newcedrusButtonBoxComponent.py',
+    originPath='newCodeComponent.py',
     savePickle=True, saveWideText=True,
     dataFileName=filename)
 # save a log file for detail verbose info
@@ -53,7 +54,6 @@ logging.console.setLevel(logging.WARNING)  # this outputs to the screen, not a f
 endExpNow = False  # flag for 'escape' or other condition => quit the exp
 
 # Start Code - component code to be run before the window creation
-import pyxid  # to use the Cedrus response box
 
 # Setup the Window
 win = visual.Window(
@@ -71,19 +71,7 @@ else:
 
 # Initialize components for Routine "trial"
 trialClock = core.Clock()
-buttonBox = None
-for n in range(10):  # doesn't always work first time!
-    try:
-        devices = pyxid.get_xid_devices()
-        core.wait(0.1)
-        buttonBox = devices[0]
-        break  # found a device so can break the loop
-    except Exception:
-        pass
-if not buttonBox:
-    logging.error('could not find a Cedrus device.')
-    core.quit()
-buttonBox.clock = core.Clock()
+
 
 # Create some handy timers
 globalClock = core.Clock()  # to track the time since experiment started
@@ -94,13 +82,10 @@ t = 0
 trialClock.reset()  # clock
 frameN = -1
 continueRoutine = True
-routineTimer.add(1.000000)
 # update component parameters for each repeat
-buttonBox.keys = []  # to store response values
-buttonBox.rt = []
-buttonBox.status = None
+
 # keep track of which components have finished
-trialComponents = [buttonBox]
+trialComponents = []
 for thisComponent in trialComponents:
     thisComponent.tStart = None
     thisComponent.tStop = None
@@ -110,52 +95,15 @@ for thisComponent in trialComponents:
         thisComponent.status = NOT_STARTED
 
 # -------Start Routine "trial"-------
-while continueRoutine and routineTimer.getTime() > 0:
+while continueRoutine:
     # get current time
     t = trialClock.getTime()
     frameN = frameN + 1  # number of completed frames (so 0 is the first frame)
     # update/draw components on each frame
-    # *buttonBox* updates
-    if t >= 0.0 and buttonBox.status == NOT_STARTED:
-        # keep track of start time/frame for later
-        buttonBox.tStart = t  # not accounting for scr refresh
-        buttonBox.frameNStart = frameN  # exact frame index
-        win.timeOnFlip(buttonBox, 'tStartRefresh')  # time at next scr refresh
-        buttonBox.status = STARTED
-        buttonBox.clock.reset()  # now t=0
-        # clear buttonBox responses (in a loop - the Cedrus own function doesn't work well)
-        buttonBox.poll_for_response()
-        while len(buttonBox.response_queue):
-            buttonBox.clear_response_queue()
-            buttonBox.poll_for_response() #often there are more resps waiting!
-    frameRemains = 0.0 + 1.0- win.monitorFramePeriod * 0.75  # most of one frame period left
-    if buttonBox.status == STARTED and t >= frameRemains:
-        # keep track of stop time/frame for later
-        buttonBox.tStop = t  # not accounting for scr refresh
-        buttonBox.frameNStop = frameN  # exact frame index
-        win.timeOnFlip(buttonBox, 'tStopRefresh')  # time at next scr refresh
-        buttonBox.status = FINISHED
-    if buttonBox.status == STARTED:
-        theseKeys=[]
-        theseRTs=[]
-        # check for key presses
-        buttonBox.poll_for_response()
-        while len(buttonBox.response_queue):
-            evt = buttonBox.get_next_response()
-            if evt['pressed']:
-              theseKeys.append(evt['key'])
-              theseRTs.append(buttonBox.clock.getTime())
-            buttonBox.poll_for_response()
-        buttonBox.clear_response_queue()  # don't process again
-        if len(theseKeys) > 0:  # at least one key was pressed
-            if buttonBox.keys == []:  # then this is first keypress
-                buttonBox.keys = theseKeys[0]  # the first key pressed
-                buttonBox.rt = theseRTs[0]
-                # a response ends the routine
-                continueRoutine = False
+    
     
     # check for quit (typically the Esc key)
-    if endExpNow or event.getKeys(keyList=["escape"]):
+    if endExpNow or keyboard.Keyboard().getKeys(keyList=["escape"]):
         core.quit()
     
     # check if all components have finished
@@ -175,15 +123,10 @@ while continueRoutine and routineTimer.getTime() > 0:
 for thisComponent in trialComponents:
     if hasattr(thisComponent, "setAutoDraw"):
         thisComponent.setAutoDraw(False)
-# check responses
-if buttonBox.keys in ['', [], None]:  # No response was made
-    buttonBox.keys = None
-thisExp.addData('buttonBox.keys',buttonBox.keys)
-if buttonBox.keys != None:  # we had a response
-    thisExp.addData('buttonBox.rt', buttonBox.rt)
-thisExp.addData('buttonBox.started', buttonBox.tStartRefresh)
-thisExp.addData('buttonBox.stopped', buttonBox.tStopRefresh)
-thisExp.nextEntry()
+
+# the Routine "trial" was not non-slip safe, so reset the non-slip timer
+routineTimer.reset()
+
 
 # Flip one final time so any remaining win.callOnFlip() 
 # and win.timeOnFlip() tasks get executed before quitting

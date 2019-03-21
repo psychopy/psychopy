@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 """
 This experiment was created using PsychoPy3 Experiment Builder (v3.0.6),
-    on March 20, 2019, at 07:57
+    on March 21, 2019, at 13:45
 If you publish work using this script please cite the PsychoPy publications:
     Peirce, JW (2007) PsychoPy - Psychophysics software in Python.
         Journal of Neuroscience Methods, 162(1-2), 8-13.
@@ -11,7 +11,7 @@ If you publish work using this script please cite the PsychoPy publications:
 """
 
 from __future__ import absolute_import, division
-from psychopy import locale_setup, sound, gui, visual, core, data, event, logging, clock
+from psychopy import locale_setup, sound, gui, visual, core, data, event, logging, clock, microphone
 from psychopy.constants import (NOT_STARTED, STARTED, PLAYING, PAUSED,
                                 STOPPED, FINISHED, PRESSED, RELEASED, FOREVER)
 import numpy as np  # whole numpy lib is available, prepend 'np.'
@@ -21,6 +21,7 @@ from numpy.random import random, randint, normal, shuffle
 import os  # handy system and path functions
 import sys  # to get file system encoding
 
+from psychopy.hardware import keyboard
 
 # Ensure that relative paths start from the same directory as this script
 _thisDir = os.path.dirname(os.path.abspath(__file__))
@@ -43,7 +44,7 @@ filename = _thisDir + os.sep + u'data/%s_%s_%s' % (expInfo['participant'], expNa
 # An ExperimentHandler isn't essential but helps with data saving
 thisExp = data.ExperimentHandler(name=expName, version='',
     extraInfo=expInfo, runtimeInfo=None,
-    originPath='newRatingScaleComponent.py',
+    originPath='newMicrophoneComponent.py',
     savePickle=True, saveWideText=True,
     dataFileName=filename)
 # save a log file for detail verbose info
@@ -53,14 +54,20 @@ logging.console.setLevel(logging.WARNING)  # this outputs to the screen, not a f
 endExpNow = False  # flag for 'escape' or other condition => quit the exp
 
 # Start Code - component code to be run before the window creation
+wavDirName = filename + '_wav'
+if not os.path.isdir(wavDirName):
+    os.makedirs(wavDirName)  # to hold .wav files
 
 # Setup the Window
 win = visual.Window(
     size=(1024, 768), fullscr=True, screen=0, 
-    winType='pyglet', allowGUI=True, allowStencil=False,
+    winType='pyglet', allowGUI=False, allowStencil=False,
     monitor='testMonitor', color=[0,0,0], colorSpace='rgb',
     blendMode='avg', useFBO=True, 
     units='height')
+
+# Enable sound input/output:
+microphone.switchOn()
 # store frame rate of monitor if we can measure it
 expInfo['frameRate'] = win.getActualFrameRate()
 if expInfo['frameRate'] != None:
@@ -70,7 +77,6 @@ else:
 
 # Initialize components for Routine "trial"
 trialClock = core.Clock()
-rating = visual.RatingScale(win=win, name='rating', marker='triangle', size=1.0, pos=[0.0, -0.4], low=1, high=7, labels=[''], scale='')
 
 # Create some handy timers
 globalClock = core.Clock()  # to track the time since experiment started
@@ -81,10 +87,11 @@ t = 0
 trialClock.reset()  # clock
 frameN = -1
 continueRoutine = True
+routineTimer.add(2.000000)
 # update component parameters for each repeat
-rating.reset()
+mic_1 = microphone.AdvAudioCapture(name='mic_1', saveDir=wavDirName, stereo=False, chnl=0)
 # keep track of which components have finished
-trialComponents = [rating]
+trialComponents = [mic_1]
 for thisComponent in trialComponents:
     thisComponent.tStart = None
     thisComponent.tStop = None
@@ -94,22 +101,26 @@ for thisComponent in trialComponents:
         thisComponent.status = NOT_STARTED
 
 # -------Start Routine "trial"-------
-while continueRoutine:
+while continueRoutine and routineTimer.getTime() > 0:
     # get current time
     t = trialClock.getTime()
     frameN = frameN + 1  # number of completed frames (so 0 is the first frame)
     # update/draw components on each frame
-    # *rating* updates
-    if t >= 0.0 and rating.status == NOT_STARTED:
+    
+    # *mic_1* updates
+    if t >= 0.0 and mic_1.status == NOT_STARTED:
         # keep track of start time/frame for later
-        rating.tStart = t  # not accounting for scr refresh
-        rating.frameNStart = frameN  # exact frame index
-        win.timeOnFlip(rating, 'tStartRefresh')  # time at next scr refresh
-        rating.setAutoDraw(True)
-    continueRoutine &= rating.noResponse  # a response ends the trial
+        mic_1.tStart = t  # not accounting for scr refresh
+        mic_1.frameNStart = frameN  # exact frame index
+        win.timeOnFlip(mic_1, 'tStartRefresh')  # time at next scr refresh
+        mic_1.status = STARTED
+        mic_1.record(sec=2.0, block=False)  # start the recording thread
+    
+    if mic_1.status == STARTED and not mic_1.recorder.running:
+        mic_1.status = FINISHED
     
     # check for quit (typically the Esc key)
-    if endExpNow or event.getKeys(keyList=["escape"]):
+    if endExpNow or keyboard.Keyboard().getKeys(keyList=["escape"]):
         core.quit()
     
     # check if all components have finished
@@ -129,14 +140,15 @@ while continueRoutine:
 for thisComponent in trialComponents:
     if hasattr(thisComponent, "setAutoDraw"):
         thisComponent.setAutoDraw(False)
+# mic_1 stop & responses
+mic_1.stop()  # sometimes helpful
+if not mic_1.savedFile:
+    mic_1.savedFile = None
 # store data for thisExp (ExperimentHandler)
-thisExp.addData('rating.response', rating.getRating())
-thisExp.addData('rating.rt', rating.getRT())
+thisExp.addData('mic_1.filename', mic_1.savedFile)
+thisExp.addData('mic_1.started', mic_1.tStart)
+thisExp.addData('mic_1.stopped', mic_1.tStop)
 thisExp.nextEntry()
-thisExp.addData('rating.started', rating.tStart)
-thisExp.addData('rating.stopped', rating.tStop)
-# the Routine "trial" was not non-slip safe, so reset the non-slip timer
-routineTimer.reset()
 
 # Flip one final time so any remaining win.callOnFlip() 
 # and win.timeOnFlip() tasks get executed before quitting

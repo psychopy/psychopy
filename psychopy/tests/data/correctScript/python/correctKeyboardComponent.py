@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 """
 This experiment was created using PsychoPy3 Experiment Builder (v3.0.6),
-    on March 20, 2019, at 07:57
+    on March 21, 2019, at 13:45
 If you publish work using this script please cite the PsychoPy publications:
     Peirce, JW (2007) PsychoPy - Psychophysics software in Python.
         Journal of Neuroscience Methods, 162(1-2), 8-13.
@@ -11,7 +11,7 @@ If you publish work using this script please cite the PsychoPy publications:
 """
 
 from __future__ import absolute_import, division
-from psychopy import locale_setup, sound, gui, visual, core, data, event, logging, clock, parallel
+from psychopy import locale_setup, sound, gui, visual, core, data, event, logging, clock
 from psychopy.constants import (NOT_STARTED, STARTED, PLAYING, PAUSED,
                                 STOPPED, FINISHED, PRESSED, RELEASED, FOREVER)
 import numpy as np  # whole numpy lib is available, prepend 'np.'
@@ -21,6 +21,7 @@ from numpy.random import random, randint, normal, shuffle
 import os  # handy system and path functions
 import sys  # to get file system encoding
 
+from psychopy.hardware import keyboard
 
 # Ensure that relative paths start from the same directory as this script
 _thisDir = os.path.dirname(os.path.abspath(__file__))
@@ -43,7 +44,7 @@ filename = _thisDir + os.sep + u'data/%s_%s_%s' % (expInfo['participant'], expNa
 # An ExperimentHandler isn't essential but helps with data saving
 thisExp = data.ExperimentHandler(name=expName, version='',
     extraInfo=expInfo, runtimeInfo=None,
-    originPath='newParallelOutComponent.py',
+    originPath='newKeyboardComponent.py',
     savePickle=True, saveWideText=True,
     dataFileName=filename)
 # save a log file for detail verbose info
@@ -70,7 +71,6 @@ else:
 
 # Initialize components for Routine "trial"
 trialClock = core.Clock()
-p_port = parallel.ParallelPort(address='0x0378')
 
 # Create some handy timers
 globalClock = core.Clock()  # to track the time since experiment started
@@ -81,10 +81,10 @@ t = 0
 trialClock.reset()  # clock
 frameN = -1
 continueRoutine = True
-routineTimer.add(1.000000)
 # update component parameters for each repeat
+key_resp = keyboard.Keyboard()
 # keep track of which components have finished
-trialComponents = [p_port]
+trialComponents = [key_resp]
 for thisComponent in trialComponents:
     thisComponent.tStart = None
     thisComponent.tStop = None
@@ -94,30 +94,37 @@ for thisComponent in trialComponents:
         thisComponent.status = NOT_STARTED
 
 # -------Start Routine "trial"-------
-while continueRoutine and routineTimer.getTime() > 0:
+while continueRoutine:
     # get current time
     t = trialClock.getTime()
     frameN = frameN + 1  # number of completed frames (so 0 is the first frame)
     # update/draw components on each frame
-    # *p_port* updates
-    if t >= 0.0 and p_port.status == NOT_STARTED:
+    
+    # *key_resp* updates
+    if t >= 0.0 and key_resp.status == NOT_STARTED:
         # keep track of start time/frame for later
-        p_port.tStart = t  # not accounting for scr refresh
-        p_port.frameNStart = frameN  # exact frame index
-        win.timeOnFlip(p_port, 'tStartRefresh')  # time at next scr refresh
-        p_port.status = STARTED
-        win.callOnFlip(p_port.setData, int(1))
-    frameRemains = 0.0 + 1.0- win.monitorFramePeriod * 0.75  # most of one frame period left
-    if p_port.status == STARTED and t >= frameRemains:
-        # keep track of stop time/frame for later
-        p_port.tStop = t  # not accounting for scr refresh
-        p_port.frameNStop = frameN  # exact frame index
-        win.timeOnFlip(p_port, 'tStopRefresh')  # time at next scr refresh
-        p_port.status = FINISHED
-        win.callOnFlip(p_port.setData, int(0))
+        key_resp.tStart = t  # not accounting for scr refresh
+        key_resp.frameNStart = frameN  # exact frame index
+        win.timeOnFlip(key_resp, 'tStartRefresh')  # time at next scr refresh
+        key_resp.status = STARTED
+        # keyboard checking is just starting
+        win.callOnFlip(key_resp.clock.reset)  # t=0 on next screen flip
+        key_resp.clearEvents(eventType='keyboard')
+    if key_resp.status == STARTED:
+        theseKeys = key_resp.getKeys(keyList=['y', 'n', 'left', 'right', 'space'], waitRelease=False)
+        if len(theseKeys):
+            theseKeys = theseKeys[0]  # at least one key was pressed
+            
+            # check for quit:
+            if "escape" == theseKeys:
+                endExpNow = True
+            key_resp.keys = theseKeys.name  # just the last key pressed
+            key_resp.rt = theseKeys.rt
+            # a response ends the routine
+            continueRoutine = False
     
     # check for quit (typically the Esc key)
-    if endExpNow or event.getKeys(keyList=["escape"]):
+    if endExpNow or keyboard.Keyboard().getKeys(keyList=["escape"]):
         core.quit()
     
     # check if all components have finished
@@ -137,10 +144,17 @@ while continueRoutine and routineTimer.getTime() > 0:
 for thisComponent in trialComponents:
     if hasattr(thisComponent, "setAutoDraw"):
         thisComponent.setAutoDraw(False)
-if p_port.status == STARTED:
-    win.callOnFlip(p_port.setData, int(0))
-thisExp.addData('p_port.started', p_port.tStart)
-thisExp.addData('p_port.stopped', p_port.tStop)
+# check responses
+if key_resp.keys in ['', [], None]:  # No response was made
+    key_resp.keys = None
+thisExp.addData('key_resp.keys',key_resp.keys)
+if key_resp.keys != None:  # we had a response
+    thisExp.addData('key_resp.rt', key_resp.rt)
+thisExp.addData('key_resp.started', key_resp.tStartRefresh)
+thisExp.addData('key_resp.stopped', key_resp.tStopRefresh)
+thisExp.nextEntry()
+# the Routine "trial" was not non-slip safe, so reset the non-slip timer
+routineTimer.reset()
 
 # Flip one final time so any remaining win.callOnFlip() 
 # and win.timeOnFlip() tasks get executed before quitting

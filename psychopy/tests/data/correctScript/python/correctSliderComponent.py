@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 """
 This experiment was created using PsychoPy3 Experiment Builder (v3.0.6),
-    on March 20, 2019, at 07:57
+    on March 21, 2019, at 13:45
 If you publish work using this script please cite the PsychoPy publications:
     Peirce, JW (2007) PsychoPy - Psychophysics software in Python.
         Journal of Neuroscience Methods, 162(1-2), 8-13.
@@ -21,6 +21,7 @@ from numpy.random import random, randint, normal, shuffle
 import os  # handy system and path functions
 import sys  # to get file system encoding
 
+from psychopy.hardware import keyboard
 
 # Ensure that relative paths start from the same directory as this script
 _thisDir = os.path.dirname(os.path.abspath(__file__))
@@ -43,7 +44,7 @@ filename = _thisDir + os.sep + u'data/%s_%s_%s' % (expInfo['participant'], expNa
 # An ExperimentHandler isn't essential but helps with data saving
 thisExp = data.ExperimentHandler(name=expName, version='',
     extraInfo=expInfo, runtimeInfo=None,
-    originPath='newCodeComponent.py',
+    originPath='newSliderComponent.py',
     savePickle=True, saveWideText=True,
     dataFileName=filename)
 # save a log file for detail verbose info
@@ -70,7 +71,12 @@ else:
 
 # Initialize components for Routine "trial"
 trialClock = core.Clock()
-
+slider = visual.Slider(win=win, name='slider',
+    size=(1.0, 0.1), pos=(0, -0.4),
+    labels=None, ticks=(1, 2, 3, 4, 5),
+    granularity=0, style=['rating'],
+    color='LightGray', font='HelveticaBold',
+    flip=False)
 
 # Create some handy timers
 globalClock = core.Clock()  # to track the time since experiment started
@@ -82,9 +88,9 @@ trialClock.reset()  # clock
 frameN = -1
 continueRoutine = True
 # update component parameters for each repeat
-
+slider.reset()
 # keep track of which components have finished
-trialComponents = []
+trialComponents = [slider]
 for thisComponent in trialComponents:
     thisComponent.tStart = None
     thisComponent.tStop = None
@@ -100,9 +106,20 @@ while continueRoutine:
     frameN = frameN + 1  # number of completed frames (so 0 is the first frame)
     # update/draw components on each frame
     
+    # *slider* updates
+    if t >= 0.0 and slider.status == NOT_STARTED:
+        # keep track of start time/frame for later
+        slider.tStart = t  # not accounting for scr refresh
+        slider.frameNStart = frameN  # exact frame index
+        win.timeOnFlip(slider, 'tStartRefresh')  # time at next scr refresh
+        slider.setAutoDraw(True)
+    
+    # Check slider for response to end routine
+    if slider.getRating() is not None and slider.status == STARTED:
+        continueRoutine = False
     
     # check for quit (typically the Esc key)
-    if endExpNow or event.getKeys(keyList=["escape"]):
+    if endExpNow or keyboard.Keyboard().getKeys(keyList=["escape"]):
         core.quit()
     
     # check if all components have finished
@@ -122,10 +139,12 @@ while continueRoutine:
 for thisComponent in trialComponents:
     if hasattr(thisComponent, "setAutoDraw"):
         thisComponent.setAutoDraw(False)
-
+thisExp.addData('slider.response', slider.getRating())
+thisExp.addData('slider.rt', slider.getRT())
+thisExp.addData('slider.started', slider.tStartRefresh)
+thisExp.addData('slider.stopped', slider.tStopRefresh)
 # the Routine "trial" was not non-slip safe, so reset the non-slip timer
 routineTimer.reset()
-
 
 # Flip one final time so any remaining win.callOnFlip() 
 # and win.timeOnFlip() tasks get executed before quitting

@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 """
 This experiment was created using PsychoPy3 Experiment Builder (v3.0.6),
-    on March 20, 2019, at 07:57
+    on March 21, 2019, at 13:45
 If you publish work using this script please cite the PsychoPy publications:
     Peirce, JW (2007) PsychoPy - Psychophysics software in Python.
         Journal of Neuroscience Methods, 162(1-2), 8-13.
@@ -11,7 +11,7 @@ If you publish work using this script please cite the PsychoPy publications:
 """
 
 from __future__ import absolute_import, division
-from psychopy import locale_setup, sound, gui, visual, core, data, event, logging, clock, hardware
+from psychopy import locale_setup, sound, gui, visual, core, data, event, logging, clock
 from psychopy.constants import (NOT_STARTED, STARTED, PLAYING, PAUSED,
                                 STOPPED, FINISHED, PRESSED, RELEASED, FOREVER)
 import numpy as np  # whole numpy lib is available, prepend 'np.'
@@ -21,6 +21,14 @@ from numpy.random import random, randint, normal, shuffle
 import os  # handy system and path functions
 import sys  # to get file system encoding
 
+from psychopy.hardware import keyboard
+from psychopy.hardware import qmix
+
+# Initialize all pumps so they are ready to be used when we
+# need them later. This enables us to dynamically select
+# pumps during the experiment without worrying about their
+# initialization.
+qmix._init_all_pumps()
 
 # Ensure that relative paths start from the same directory as this script
 _thisDir = os.path.dirname(os.path.abspath(__file__))
@@ -43,7 +51,7 @@ filename = _thisDir + os.sep + u'data/%s_%s_%s' % (expInfo['participant'], expNa
 # An ExperimentHandler isn't essential but helps with data saving
 thisExp = data.ExperimentHandler(name=expName, version='',
     extraInfo=expInfo, runtimeInfo=None,
-    originPath='newioLabsButtonBoxComponent.py',
+    originPath='newQmixPumpComponent.py',
     savePickle=True, saveWideText=True,
     dataFileName=filename)
 # save a log file for detail verbose info
@@ -53,9 +61,6 @@ logging.console.setLevel(logging.WARNING)  # this outputs to the screen, not a f
 endExpNow = False  # flag for 'escape' or other condition => quit the exp
 
 # Start Code - component code to be run before the window creation
-# connect to ioLabs bbox, turn lights off
-from psychopy.hardware import iolab
-iolab.ButtonBox().standby()
 
 # Setup the Window
 win = visual.Window(
@@ -73,7 +78,6 @@ else:
 
 # Initialize components for Routine "trial"
 trialClock = core.Clock()
-bbox = iolab.ButtonBox()
 
 # Create some handy timers
 globalClock = core.Clock()  # to track the time since experiment started
@@ -86,14 +90,16 @@ frameN = -1
 continueRoutine = True
 routineTimer.add(1.000000)
 # update component parameters for each repeat
-bbox.clearEvents()
-bbox.active = (0,1,2,3,4,5,6,7)  # tuple or list of int 0..7
-bbox.setEnabled(bbox.active)
-bbox.setLights(bbox.active)
-bbox.btns = []  # responses stored in .btns and .rt
-bbox.rt = []
+
+# Select the correct pre-initialized pump, and set the 
+# syringe type according to the Pumo Component properties.
+_pumpInstance = qmix.pumps[0]
+pump = qmix._PumpWrapperForBuilderComponent(_pumpInstance)
+pump.syringeType = '50 mL glass'
+pump.flowRateUnit = 'mL/s'
+pump.status = None
 # keep track of which components have finished
-trialComponents = [bbox]
+trialComponents = [pump]
 for thisComponent in trialComponents:
     thisComponent.tStart = None
     thisComponent.tStop = None
@@ -108,34 +114,26 @@ while continueRoutine and routineTimer.getTime() > 0:
     t = trialClock.getTime()
     frameN = frameN + 1  # number of completed frames (so 0 is the first frame)
     # update/draw components on each frame
-    # *bbox* updates
-    if t >= 0.0 and bbox.status == NOT_STARTED:
+    # *pump* updates
+    if t >= 0.0 and pump.status == NOT_STARTED:
         # keep track of start time/frame for later
-        bbox.tStart = t  # not accounting for scr refresh
-        bbox.frameNStart = frameN  # exact frame index
-        win.timeOnFlip(bbox, 'tStartRefresh')  # time at next scr refresh
-        bbox.status = STARTED
-        bbox.clearEvents()
-        # buttonbox checking is just starting
-        bbox.resetClock()  # set bbox hardware internal clock to 0.000; ms accuracy
+        pump.tStart = t  # not accounting for scr refresh
+        pump.frameNStart = frameN  # exact frame index
+        win.timeOnFlip(pump, 'tStartRefresh')  # time at next scr refresh
+        pump.status = STARTED
+        win.callOnFlip(pump.empty, flowRate=1.0)
     frameRemains = 0.0 + 1.0- win.monitorFramePeriod * 0.75  # most of one frame period left
-    if bbox.status == STARTED and t >= frameRemains:
+    if pump.status == STARTED and t >= frameRemains:
         # keep track of stop time/frame for later
-        bbox.tStop = t  # not accounting for scr refresh
-        bbox.frameNStop = frameN  # exact frame index
-        win.timeOnFlip(bbox, 'tStopRefresh')  # time at next scr refresh
-        bbox.status = FINISHED
-    if bbox.status == STARTED:
-        theseButtons = bbox.getEvents()
-        if theseButtons:  # at least one button was pressed this frame
-            if bbox.btns == []:  # True if the first
-                bbox.btns = theseButtons[0].key  # just the first button
-                bbox.rt = theseButtons[0].rt
-                # a response forces the end of the routine
-                continueRoutine = False
+        pump.tStop = t  # not accounting for scr refresh
+        pump.frameNStop = frameN  # exact frame index
+        win.timeOnFlip(pump, 'tStopRefresh')  # time at next scr refresh
+        pump.status = FINISHED
+        win.callOnFlip(pump.stop)
+        win.callOnFlip(pump.switchValvePosition)
     
     # check for quit (typically the Esc key)
-    if endExpNow or event.getKeys(keyList=["escape"]):
+    if endExpNow or keyboard.Keyboard().getKeys(keyList=["escape"]):
         core.quit()
     
     # check if all components have finished
@@ -155,23 +153,13 @@ while continueRoutine and routineTimer.getTime() > 0:
 for thisComponent in trialComponents:
     if hasattr(thisComponent, "setAutoDraw"):
         thisComponent.setAutoDraw(False)
-# store ioLabs bbox data for bbox (ExperimentHandler)
-if len(bbox.btns) == 0:  # no ioLabs responses
-    bbox.btns = None
-thisExp.addData('bbox.btns', bbox.btns)
-if bbox.btns != None:  # add RTs if there are responses
-    thisExp.addData('bbox.rt', bbox.rt)
-# check responses
-if bbox.keys in ['', [], None]:  # No response was made
-    bbox.keys = None
-thisExp.addData('bbox.keys',bbox.keys)
-if bbox.keys != None:  # we had a response
-    thisExp.addData('bbox.rt', bbox.rt)
-thisExp.addData('bbox.started', bbox.tStartRefresh)
-thisExp.addData('bbox.stopped', bbox.tStopRefresh)
-thisExp.nextEntry()
-thisExp.nextEntry()
-bbox.standby()  # lights out etc
+
+if pump.status == STARTED:
+    pump.stop()
+    pump.switchValvePosition()
+
+thisExp.addData('pump.started', pump.tStart)
+thisExp.addData('pump.stopped', pump.tStop)
 
 # Flip one final time so any remaining win.callOnFlip() 
 # and win.timeOnFlip() tasks get executed before quitting
