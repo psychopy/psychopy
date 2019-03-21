@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 """
 This experiment was created using PsychoPy3 Experiment Builder (v3.0.6),
-    on March 21, 2019, at 13:45
+    on March 21, 2019, at 14:53
 If you publish work using this script please cite the PsychoPy publications:
     Peirce, JW (2007) PsychoPy - Psychophysics software in Python.
         Journal of Neuroscience Methods, 162(1-2), 8-13.
@@ -76,7 +76,7 @@ image = visual.ImageStim(
     name='image', 
     image=None, mask=None,
     ori=0, pos=(0, 0), size=(0.5, 0.5),
-    color=[1,1,1], colorSpace='rgb',     opacity=1,
+    color=[1,1,1], colorSpace='rgb', opacity=1,
     flipHoriz=False, flipVert=False,
     texRes=128, interpolate=True, depth=0.0)
 
