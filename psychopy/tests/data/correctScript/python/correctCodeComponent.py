@@ -72,7 +72,6 @@ else:
 # Initialize components for Routine "trial"
 trialClock = core.Clock()
 
-
 # Create some handy timers
 globalClock = core.Clock()  # to track the time since experiment started
 routineTimer = core.CountdownTimer()  # to track time remaining of each (non-slip) routine 
@@ -83,7 +82,6 @@ trialClock.reset()  # clock
 frameN = -1
 continueRoutine = True
 # update component parameters for each repeat
-
 # keep track of which components have finished
 trialComponents = []
 for thisComponent in trialComponents:
@@ -100,7 +98,6 @@ while continueRoutine:
     t = trialClock.getTime()
     frameN = frameN + 1  # number of completed frames (so 0 is the first frame)
     # update/draw components on each frame
-    
     
     # check for quit (typically the Esc key)
     if endExpNow or keyboard.Keyboard().getKeys(keyList=["escape"]):
@@ -123,10 +120,8 @@ while continueRoutine:
 for thisComponent in trialComponents:
     if hasattr(thisComponent, "setAutoDraw"):
         thisComponent.setAutoDraw(False)
-
 # the Routine "trial" was not non-slip safe, so reset the non-slip timer
 routineTimer.reset()
-
 
 # Flip one final time so any remaining win.callOnFlip() 
 # and win.timeOnFlip() tasks get executed before quitting

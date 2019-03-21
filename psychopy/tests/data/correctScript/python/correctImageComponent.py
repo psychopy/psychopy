@@ -72,7 +72,8 @@ else:
 # Initialize components for Routine "trial"
 trialClock = core.Clock()
 image = visual.ImageStim(
-    win=win, name='image',
+    win=win,
+    name='image', 
     image=None, mask=None,
     ori=0, pos=(0, 0), size=(0.5, 0.5),
     color=[1,1,1], colorSpace='rgb',     opacity=1,
