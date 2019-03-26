@@ -596,9 +596,9 @@ class BaseVisualComponent(BaseComponent):
         # set parameters that need updating every frame
         # do any params need updating? (this method inherited from _base)
         if self.checkNeedToUpdate('set every frame'):
-            code = ("if (%(name)s.status === PsychoJS.Status.STARTED){ "
+            code = ("\nif (%(name)s.status === PsychoJS.Status.STARTED){ "
                     "// only update if being drawn\n")
-            buff.writeIndented(code % self.params)
+            buff.writeIndentedLines(code % self.params)
             buff.setIndentLevel(+1, relative=True)  # to enter the if block
             self.writeParamUpdatesJS(buff, 'set every frame')
             buff.setIndentLevel(-1, relative=True)  # to exit the if block

@@ -282,12 +282,16 @@ class Routine(list):
             if "PsychoJS" in comp.targets:
                 comp.writeFrameCodeJS(buff)
 
+        if self.exp.settings.params['Enable Escape'].val:
+            code = ("// check for quit (typically the Esc key)\n"
+                    "if (psychoJS.experiment.experimentEnded "
+                    "|| psychoJS.eventManager.getKeys({keyList:['escape']}).length > 0) {\n"
+                    "  return psychoJS.quit('The [Escape] key was pressed. Goodbye!', false);\n"
+                    "}\n\n")
+            buff.writeIndentedLines(code)
+
         # are we done yet?
-        code = ("// check for quit (typically the Esc key)\n"
-                "if (psychoJS.experiment.experimentEnded || psychoJS.eventManager.getKeys({keyList:['escape']}).length > 0) {\n"
-                "  return psychoJS.quit('The [Escape] key was pressed. Goodbye!', false);\n"
-                "}\n"
-                "\n// check if the Routine should terminate\n"
+        code = ("// check if the Routine should terminate\n"
                 "if (!continueRoutine) {"
                 "  // a component has requested a forced-end of Routine\n"
                 "  return Scheduler.Event.NEXT;\n"
@@ -298,11 +302,7 @@ class Routine(list):
                 "  if ('status' in thisComponent && thisComponent.status !== PsychoJS.Status.FINISHED) {\n"
                 "    continueRoutine = true;\n"
                 "    break;\n"
-                "  }\n\n"
-                "// check for quit (the Esc key)\n"
-                "if (psychoJS.experiment.experimentEnded || psychoJS.eventManager.getKeys({keyList:['escape']}).length > 0) {\n"
-                "  return quitPsychoJS('The [Escape] key was pressed. Goodbye!', false);\n"
-                "}\n")
+                "  }\n")
         buff.writeIndentedLines(code % self.params)
 
         buff.writeIndentedLines("\n// refresh the screen if continuing\n")

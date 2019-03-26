@@ -113,15 +113,17 @@ class ImageComponent(BaseVisualComponent):
 
         # replace variable params with defaults
         inits = getInitVals(self.params, 'PsychoPy')
-        code = ("%s = visual.ImageStim(\n" % inits['name'] +
-                "    win=win, name='%s',%s\n" % (inits['name'], unitsStr) +
-                "    image=%(image)s, mask=%(mask)s,\n" % inits +
-                "    ori=%(ori)s, pos=%(pos)s, size=%(size)s,\n" % inits +
-                "    color=%(color)s, colorSpace=%(colorSpace)s, " % inits +
-                "opacity=%(opacity)s,\n" % inits +
-                "    flipHoriz=%(flipHoriz)s, flipVert=%(flipVert)s,\n" % inits +
+        code = ("{inits[name]} = visual.ImageStim(\n"
+                "    win=win,\n"
+                "    name='{inits[name]}', {units}\n"
+                "    image={inits[image]}, mask={inits[mask]},\n"
+                "    ori={inits[ori]}, pos={inits[pos]}, size={inits[size]},\n"
+                "    color={inits[color]}, colorSpace={inits[colorSpace]}, opacity={inits[opacity]},\n"
+                "    flipHoriz={inits[flipHoriz]}, flipVert={inits[flipVert]},\n"
                 # no newline - start optional parameters
-                "    texRes=%(texture resolution)s" % inits)
+                "    texRes={inits[texture resolution]}"
+                .format(inits=inits,
+                        units=unitsStr))
 
         if self.params['interpolate'].val == 'linear':
             code += ", interpolate=True"
@@ -134,7 +136,7 @@ class ImageComponent(BaseVisualComponent):
     def writeInitCodeJS(self, buff):
         # do we need units code?
         if self.params['units'].val == 'from exp settings':
-            unitsStr = ""
+            unitsStr = "units : undefined, "
         else:
             unitsStr = "units : %(units)s, " % self.params
 
