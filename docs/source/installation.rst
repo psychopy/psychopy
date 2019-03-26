@@ -1,6 +1,27 @@
 Installation
 ===============
 
+.. raw:: html
+
+   <script>
+    let name;
+    let url;
+    let version='3.0.7'
+    if (navigator.platform === 'Win32') {
+      name = '  Standalone PsychoPy '+version+' for 64bit Windows';
+      url = 'https://github.com/psychopy/psychopy/releases/download/'+version+'/StandalonePsychoPy3-'+version+'-win64.exe';
+    }
+    else if (navigator.platform === 'MacIntel') {
+      name = '  Standalone PsychoPy '+version+' for MacOS';
+      url = 'https://github.com/psychopy/psychopy/releases/download/'+version+'/StandalonePsychoPy3-'+version+'-MacOS.dmg';
+    }
+    if (navigator.platform === 'Win32' || navigator.platform === 'MacIntel') {
+      document.write( "For your detected platform ("+navigator.platform+") we recommend");
+      document.write( "<button class='btn' onclick='window.location.href=url'><i class='fa fa-download'></i>" + name + "</button>" );
+    }
+   </script>
+
+
 
 Download
 ~~~~~~~~~~~~~~~~~~~~~~
