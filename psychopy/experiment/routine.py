@@ -174,7 +174,7 @@ class Routine(list):
         # allow subject to quit via Esc key?
         if self.exp.settings.params['Enable Escape'].val:
             code = ('\n# check for quit (typically the Esc key)\n'
-                    'if endExpNow or event.getKeys(keyList=["escape"]):\n'
+                    'if endExpNow or keyboard.Keyboard().getKeys(keyList=["escape"]):\n'
                     '    core.quit()\n')
             buff.writeIndentedLines(code)
 
@@ -286,12 +286,16 @@ class Routine(list):
             if "PsychoJS" in comp.targets:
                 comp.writeFrameCodeJS(buff)
 
+        if self.exp.settings.params['Enable Escape'].val:
+            code = ("// check for quit (typically the Esc key)\n"
+                    "if (psychoJS.experiment.experimentEnded "
+                    "|| psychoJS.eventManager.getKeys({keyList:['escape']}).length > 0) {\n"
+                    "  return psychoJS.quit('The [Escape] key was pressed. Goodbye!', false);\n"
+                    "}\n\n")
+            buff.writeIndentedLines(code)
+
         # are we done yet?
-        code = ("// check for quit (typically the Esc key)\n"
-                "if (psychoJS.experiment.experimentEnded || psychoJS.eventManager.getKeys({keyList:['escape']}).length > 0) {\n"
-                "  return psychoJS.quit('The [Escape] key was pressed. Goodbye!', false);\n"
-                "}\n"
-                "\n// check if the Routine should terminate\n"
+        code = ("// check if the Routine should terminate\n"
                 "if (!continueRoutine) {"
                 "  // a component has requested a forced-end of Routine\n"
                 "  return Scheduler.Event.NEXT;\n"
@@ -302,7 +306,7 @@ class Routine(list):
                 "  if ('status' in thisComponent && thisComponent.status !== PsychoJS.Status.FINISHED) {\n"
                 "    continueRoutine = true;\n"
                 "    break;\n"
-                "  }\n\n")
+                "  }\n")
         buff.writeIndentedLines(code % self.params)
 
         buff.writeIndentedLines("\n// refresh the screen if continuing\n")
@@ -373,6 +377,12 @@ class Routine(list):
     def getComponentFromName(self, name):
         for comp in self:
             if comp.params['name'].val == name:
+                return comp
+        return None
+
+    def getComponentFromType(self, type):
+        for comp in self:
+            if comp.type == type:
                 return comp
         return None
 

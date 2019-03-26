@@ -105,7 +105,7 @@ newline convention (newlineConvention):
 General settings (General)
 --------------------------
 window type (winType):
-    PsychoPy can use one of two 'backends' for creating windows and drawing; pygame and pyglet. Here you can set the default backend to be used.
+    PsychoPy can use one of two 'backends' for creating windows and drawing; pygame, pyglet and glfw. Here you can set the default backend to be used.
     
 units (units):
     Default units for windows and visual stimuli ('deg', 'norm', 'cm', 'pix'). See :ref:`units`.  Can be overridden by individual experiments.

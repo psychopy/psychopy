@@ -61,6 +61,7 @@ class cedrusButtonBoxComponent(KeyboardComponent):
 
         self.type = 'cedrusButtonBox'
         self.url = "http://www.psychopy.org/builder/components/cedrusButtonBox.html"
+
         self.exp.requirePsychopyLibs(['hardware'])
 
         self.params['correctAns'].hint = _translate(
