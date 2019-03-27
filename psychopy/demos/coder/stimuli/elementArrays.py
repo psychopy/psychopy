@@ -62,9 +62,9 @@ globForm.oris = makeCoherentOris(globForm.xys, coherence, 45)
 # Give each element a life of 10 frames, and give it a new position after that
 lives = random(N) * 10  # this will be the current life of each element
 while not event.getKeys():
-    # take a copy of the current xy and ori values
-    newXYs = globForm.xys
-    newOris = globForm.oris
+    # take a copy of the current xys and ori values
+    newXYs = globForm.xys.copy() 
+    newOris = globForm.oris.copy() 
 
     # find the dead elemnts and reset their life
     deadElements = (lives > 10)  # numpy vector, not standard python
@@ -80,7 +80,7 @@ while not event.getKeys():
 
     # update the oris and xys of the new elements
     globForm.xys = newXYs
-    globForm.pris = newOris
+    globForm.oris = newOris
 
     globForm.draw()
 
