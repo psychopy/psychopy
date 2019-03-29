@@ -14,6 +14,7 @@ from past.builtins import basestring
 
 from os import path
 
+from psychopy.constants import PY3
 from psychopy.experiment.components import BaseComponent, Param, _translate
 from psychopy.experiment import CodeGenerationException, valid_var_re
 from pkgutil import find_loader
@@ -169,13 +170,14 @@ class KeyboardComponent(BaseComponent):
         if allowedKeysIsVar:
             # if it looks like a variable, check that the variable is suitable
             # to eval at run-time
+            stringType = '{}'.format(['basestring', 'str'][PY3])
             code = ("# AllowedKeys looks like a variable named `{0}`\n"
                     "if not type({0}) in [list, tuple, np.ndarray]:\n"
-                    "    if not isinstance({0}, basestring):\n"
+                    "    if not isinstance({0}, {1}):\n"
                     "        logging.error('AllowedKeys variable `{0}` is "
                     "not string- or list-like.')\n"
                     "        core.quit()\n"
-                    .format(allowedKeys))
+                    .format(allowedKeys, stringType))
 
             code += (
                 "    elif not ',' in {0}: {0} = ({0},)\n"
