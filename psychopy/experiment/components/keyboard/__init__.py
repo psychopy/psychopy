@@ -180,12 +180,14 @@ class KeyboardComponent(BaseComponent):
                     .format(allowedKeys, stringType))
 
             code += (
-                "    elif not ',' in {0}: {0} = ({0},)\n"
-                "    else:  {0} = eval({0})\n"
+                "    elif not ',' in {0}:\n"
+                "        {0} = ({0},)\n"
+                "    else:\n"
+                "        {0} = eval({0})\n"
                 .format(allowedKeys))
             buff.writeIndentedLines(code)
 
-            keyListStr = "keyList=list(%s)" % allowedKeys  # eval at run time
+            keyListStr = "list(%s)" % allowedKeys  # eval at run time
 
         buff.writeIndented("# keyboard checking is just starting\n")
 
@@ -229,10 +231,10 @@ class KeyboardComponent(BaseComponent):
                 keyList = list(keyList)
             elif isinstance(keyList, basestring):  # a single string/key
                 keyList = [keyList]
-            keyListStr = "keyList=%s" % repr(keyList)
+            keyListStr = "%s" % repr(keyList)
 
         # check for keypresses
-        code = "theseKeys = %s.getKeys(%s, waitRelease=False)\n" % (self.params['name'], keyListStr)
+        code = "theseKeys = %s.getKeys(keyList=%s, waitRelease=False)\n" % (self.params['name'], (keyListStr or None))
         buff.writeIndented(code)
 
         # Check for response
