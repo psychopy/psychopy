@@ -14,6 +14,7 @@ from past.builtins import basestring
 
 from os import path
 
+from psychopy.constants import PY3
 from psychopy.experiment.components import BaseComponent, Param, _translate
 from psychopy.experiment import CodeGenerationException, valid_var_re
 from pkgutil import find_loader
@@ -169,21 +170,24 @@ class KeyboardComponent(BaseComponent):
         if allowedKeysIsVar:
             # if it looks like a variable, check that the variable is suitable
             # to eval at run-time
+            stringType = '{}'.format(['basestring', 'str'][PY3])
             code = ("# AllowedKeys looks like a variable named `{0}`\n"
                     "if not type({0}) in [list, tuple, np.ndarray]:\n"
-                    "    if not isinstance({0}, basestring):\n"
+                    "    if not isinstance({0}, {1}):\n"
                     "        logging.error('AllowedKeys variable `{0}` is "
                     "not string- or list-like.')\n"
                     "        core.quit()\n"
-                    .format(allowedKeys))
+                    .format(allowedKeys, stringType))
 
             code += (
-                "    elif not ',' in {0}: {0} = ({0},)\n"
-                "    else:  {0} = eval({0})\n"
+                "    elif not ',' in {0}:\n"
+                "        {0} = ({0},)\n"
+                "    else:\n"
+                "        {0} = eval({0})\n"
                 .format(allowedKeys))
             buff.writeIndentedLines(code)
 
-            keyListStr = "keyList=list(%s)" % allowedKeys  # eval at run time
+            keyListStr = "list(%s)" % allowedKeys  # eval at run time
 
         buff.writeIndented("# keyboard checking is just starting\n")
 
@@ -227,10 +231,10 @@ class KeyboardComponent(BaseComponent):
                 keyList = list(keyList)
             elif isinstance(keyList, basestring):  # a single string/key
                 keyList = [keyList]
-            keyListStr = "keyList=%s" % repr(keyList)
+            keyListStr = "%s" % repr(keyList)
 
         # check for keypresses
-        code = "theseKeys = %s.getKeys(%s, waitRelease=False)\n" % (self.params['name'], keyListStr)
+        code = "theseKeys = %s.getKeys(keyList=%s, waitRelease=False)\n" % (self.params['name'], (keyListStr or None))
         buff.writeIndented(code)
 
         # Check for response
