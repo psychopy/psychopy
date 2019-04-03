@@ -14,6 +14,7 @@ from past.builtins import basestring
 
 from os import path
 
+from psychopy.constants import PY3
 from psychopy.experiment.components import BaseComponent, Param, _translate
 from psychopy.experiment import CodeGenerationException, valid_var_re
 from pkgutil import find_loader
@@ -59,8 +60,6 @@ class KeyboardComponent(BaseComponent):
         self.type = 'Keyboard'
         self.url = "http://www.psychopy.org/builder/components/keyboard.html"
         self.exp.requirePsychopyLibs(['gui'])
-        self.exp.requireImport(importName='keyboard',
-                               importFrom='psychopy.hardware')
 
         # params
 
@@ -142,7 +141,7 @@ class KeyboardComponent(BaseComponent):
             return
 
     def writeRoutineStartCodeJS(self, buff):
-        code = "%(name)s = new core.BuilderKeyResponse(psychoJS);\n"
+        code = "%(name)s = new core.BuilderKeyResponse(psychoJS);\n\n"
         buff.writeIndentedLines(code % self.params)
 
         if (self.params['store'].val == 'nothing' and
@@ -171,21 +170,24 @@ class KeyboardComponent(BaseComponent):
         if allowedKeysIsVar:
             # if it looks like a variable, check that the variable is suitable
             # to eval at run-time
+            stringType = '{}'.format(['basestring', 'str'][PY3])
             code = ("# AllowedKeys looks like a variable named `{0}`\n"
                     "if not type({0}) in [list, tuple, np.ndarray]:\n"
-                    "    if not isinstance({0}, basestring):\n"
+                    "    if not isinstance({0}, {1}):\n"
                     "        logging.error('AllowedKeys variable `{0}` is "
                     "not string- or list-like.')\n"
                     "        core.quit()\n"
-                    .format(allowedKeys))
+                    .format(allowedKeys, stringType))
 
             code += (
-                "    elif not ',' in {0}: {0} = ({0},)\n"
-                "    else:  {0} = eval({0})\n"
+                "    elif not ',' in {0}:\n"
+                "        {0} = ({0},)\n"
+                "    else:\n"
+                "        {0} = eval({0})\n"
                 .format(allowedKeys))
             buff.writeIndentedLines(code)
 
-            keyListStr = "keyList=list(%s)" % allowedKeys  # eval at run time
+            keyListStr = "list(%s)" % allowedKeys  # eval at run time
 
         buff.writeIndented("# keyboard checking is just starting\n")
 
@@ -229,10 +231,10 @@ class KeyboardComponent(BaseComponent):
                 keyList = list(keyList)
             elif isinstance(keyList, basestring):  # a single string/key
                 keyList = [keyList]
-            keyListStr = "keyList=%s" % repr(keyList)
+            keyListStr = "%s" % repr(keyList)
 
         # check for keypresses
-        code = "theseKeys = %s.getKeys(%s, waitRelease=False)\n" % (self.params['name'], keyListStr)
+        code = "theseKeys = %s.getKeys(keyList=%s, waitRelease=False)\n" % (self.params['name'], (keyListStr or None))
         buff.writeIndented(code)
 
         # Check for response
@@ -243,7 +245,7 @@ class KeyboardComponent(BaseComponent):
 
         if self.exp.settings.params['Enable Escape'].val:
             code = ('\n# check for quit:\n'
-                    'if "escape" in theseKeys:\n'
+                    'if "escape" == theseKeys:\n'
                     '    endExpNow = True\n')
             buff.writeIndentedLines(code)
 
@@ -261,7 +263,7 @@ class KeyboardComponent(BaseComponent):
                         "%(name)s.rt = theseKeys.rt\n")
                 buff.writeIndentedLines(code % self.params)
             elif store == 'all keys':
-                code = ("%(name)s.keys.extend(theseKeys.name)  # storing all keys\n"
+                code = ("%(name)s.keys.append(theseKeys.name)  # storing all keys\n"
                         "%(name)s.rt.append(theseKeys.rt)\n")
                 buff.writeIndentedLines(code % self.params)
 
@@ -372,8 +374,8 @@ class KeyboardComponent(BaseComponent):
         if self.exp.settings.params['Enable Escape'].val:
             code = ("\n// check for quit:\n"
                     "if (theseKeys.indexOf('escape') > -1) {\n"
-                    "    psychoJS.experiment.experimentEnded = true;\n"
-                    "}\n")
+                    "  psychoJS.experiment.experimentEnded = true;\n"
+                    "}\n\n")
             buff.writeIndentedLines(code)
 
         # how do we store it?
@@ -424,6 +426,7 @@ class KeyboardComponent(BaseComponent):
         for dedents in range(dedentAtEnd):
             buff.setIndentLevel(-1, relative=True)
             buff.writeIndented("}\n")
+        buff.writeIndented("\n")
 
     def writeRoutineEndCode(self, buff):
         # some shortcuts

@@ -75,7 +75,7 @@ class SliderComponent(BaseVisualComponent):
                 startType=startType, startVal=startVal,
                 stopType=stopType, stopVal=stopVal,
                 startEstim=startEstim, durationEstim=durationEstim)
-        self.type = 'SliderComponent'
+        self.type = 'Slider'
         self.url = "http://www.psychopy.org/builder/components/slidercomponent.html"
         self.exp.requirePsychopyLibs(['visual', 'event'])
         self.targets = ['PsychoPy', 'PsychoJS']

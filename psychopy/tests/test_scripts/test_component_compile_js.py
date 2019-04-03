@@ -13,8 +13,8 @@ class TestComponentCompilerJS(object):
         self.allComp = getAllComponents(fetchIcons=False)
         self.exp = Experiment() # create once, not every test
         # Create correctScript subdir for holding correct scripts
-        if not os.path.isdir(os.path.join(TESTS_DATA_PATH, "correctScript")):
-            os.mkdir(os.path.join(TESTS_DATA_PATH, "correctScript"))
+        if not os.path.isdir(os.path.join(TESTS_DATA_PATH, "correctScript", "js")):
+            os.mkdir(os.path.join(TESTS_DATA_PATH, "correctScript", "js"))
 
     def teardown(self):
         shutil.rmtree(self.temp_dir)
@@ -31,7 +31,7 @@ class TestComponentCompilerJS(object):
                 if psychoJSComponent:
                     self.create_component_output(compName)
                     # Get correct script path
-                    correctPath = os.path.join(TESTS_DATA_PATH, "correctScript", 'correct{}.js'.format(compName))
+                    correctPath = os.path.join(TESTS_DATA_PATH, "correctScript", "js", 'correct{}.js'.format(compName))
                     # Compare files, raising assertions on fails above tolerance (%)
                     try:
                         compareTextFiles('new{}.js'.format(compName), correctPath, tolerance=3)
