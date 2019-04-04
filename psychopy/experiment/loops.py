@@ -205,12 +205,13 @@ class TrialHandler(object):
                 "    extraInfo: expInfo, originPath: undefined,\n"
                 "    trialList: {trialList},\n"
                 "    seed: {seed}, name: '{name}'}});\n"
-                "  psychoJS.experiment.addLoop({name}); // add the loop to the experiment\n\n"
+                "  psychoJS.experiment.addLoop({name}); // add the loop to the experiment\n"
+                "  currentLoop = {name};  // we're now the current loop\n"
                 .format(funName=self.params['name'].val,name=self.params['name'], loopType=(self.params['loopType'].val).upper(),
                         params=self.params, thisName=self.thisName, trialList=trialList, seed=seed))
         buff.writeIndentedLines(code)
         # for the scheduler
-        code = ("  // Schedule all the trials in the trialList:\n"
+        code = ("\n  // Schedule all the trials in the trialList:\n"
                 "  for (const {thisName} of {name}) {{\n"
                 "    thisScheduler.add(importConditions({name}));\n"
                 .format(name=self.params['name'], params=self.params, thisName=self.thisName, seed=seed))
