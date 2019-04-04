@@ -607,7 +607,10 @@ class Mouse(object):
             mouse.set_pos(newPosPix)
         else:
             if hasattr(self.win.winHandle, 'set_mouse_position'):
-                newPosPix = numpy.array(self.win.size) / 2 + newPosPix
+                if self.win.useRetina:
+                    newPosPix = numpy.array(self.win.size) / 4 + newPosPix / 2
+                else:
+                    newPosPix = numpy.array(self.win.size) / 2 + newPosPix
                 x, y = int(newPosPix[0]), int(newPosPix[1])
                 self.win.winHandle.set_mouse_position(x, y)
                 self.win.winHandle._mouse_x = x

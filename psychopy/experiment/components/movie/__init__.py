@@ -8,6 +8,7 @@
 from __future__ import absolute_import, print_function
 
 from os import path
+from psychopy import logging
 from psychopy.experiment.components import BaseVisualComponent, getInitVals, Param, _translate
 
 # the absolute path to the folder containing this path
@@ -141,7 +142,10 @@ class MovieComponent(BaseVisualComponent):
     def writeInitCodeJS(self, buff):
 
         if self.params['units'].val == 'from exp settings':
-            unitsStr = 'undefined'
+            unitsStr = "'height'"
+            logging.warning("{units} not a valid screen unit for online studies. Switching {name} units to 'height'."
+                            .format(units=self.params['units'],
+                                    name=self.params['name']))
         else:
             unitsStr = "%(units)s" % self.params
 
@@ -249,7 +253,7 @@ class MovieComponent(BaseVisualComponent):
             buff.writeIndentedLines("}\n")
         # do force end of trial code
         if self.params['forceEndRoutine'].val is True:
-            code = ("if ({name}.status === FINISHED) {{  // force-end the routine\n"
+            code = ("if ({name}.status === PsychoJS.Status.FINISHED) {{  // force-end the routine\n"
                     "    continueRoutine = false;\n"
                     "}}\n".format(**self.params))
             buff.writeIndentedLines(code)

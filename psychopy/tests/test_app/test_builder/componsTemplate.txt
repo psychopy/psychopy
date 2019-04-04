@@ -994,6 +994,198 @@ EnvGratingComponent.units.staticUpdater:None
 EnvGratingComponent.units.updates:None
 EnvGratingComponent.units.val:from exp settings
 EnvGratingComponent.units.valType:str
+FormComponent.order:['name', 'Items', 'Text Height', 'Size', 'Pos', 'Item Padding', 'Data Format', 'Randomize']
+FormComponent.Data Format.default:'rows'
+FormComponent.Data Format.allowedTypes:[]
+FormComponent.Data Format.allowedUpdates:None
+FormComponent.Data Format.allowedVals:['columns', 'rows']
+FormComponent.Data Format.categ:Basic
+FormComponent.Data Format.hint:Store item data by columns, or rows
+FormComponent.Data Format.label:Data Format
+FormComponent.Data Format.readOnly:False
+FormComponent.Data Format.staticUpdater:None
+FormComponent.Data Format.updates:constant
+FormComponent.Data Format.val:rows
+FormComponent.Data Format.valType:str
+FormComponent.Item Padding.default:0.05
+FormComponent.Item Padding.allowedTypes:[]
+FormComponent.Item Padding.allowedUpdates:None
+FormComponent.Item Padding.allowedVals:[]
+FormComponent.Item Padding.categ:Basic
+FormComponent.Item Padding.hint:The padding or space between items.
+FormComponent.Item Padding.label:Item Padding
+FormComponent.Item Padding.readOnly:False
+FormComponent.Item Padding.staticUpdater:None
+FormComponent.Item Padding.updates:constant
+FormComponent.Item Padding.val:0.05
+FormComponent.Item Padding.valType:code
+FormComponent.Items.default:'.csv'
+FormComponent.Items.allowedTypes:[]
+FormComponent.Items.allowedUpdates:None
+FormComponent.Items.allowedVals:[]
+FormComponent.Items.categ:Basic
+FormComponent.Items.hint:The csv filename containing the items for your survey.
+FormComponent.Items.label:Items
+FormComponent.Items.readOnly:False
+FormComponent.Items.staticUpdater:None
+FormComponent.Items.updates:constant
+FormComponent.Items.val:.csv
+FormComponent.Items.valType:str
+FormComponent.Pos.default:(0, 0)
+FormComponent.Pos.allowedTypes:[]
+FormComponent.Pos.allowedUpdates:None
+FormComponent.Pos.allowedVals:[]
+FormComponent.Pos.categ:Basic
+FormComponent.Pos.hint:x,y position of the form on screen
+FormComponent.Pos.label:Pos
+FormComponent.Pos.readOnly:False
+FormComponent.Pos.staticUpdater:None
+FormComponent.Pos.updates:constant
+FormComponent.Pos.val:(0, 0)
+FormComponent.Pos.valType:code
+FormComponent.Randomize.default:False
+FormComponent.Randomize.allowedTypes:[]
+FormComponent.Randomize.allowedUpdates:None
+FormComponent.Randomize.allowedVals:[]
+FormComponent.Randomize.categ:Basic
+FormComponent.Randomize.hint:Do you want to randomize the order of your questions?
+FormComponent.Randomize.label:Randomize
+FormComponent.Randomize.readOnly:False
+FormComponent.Randomize.staticUpdater:None
+FormComponent.Randomize.updates:constant
+FormComponent.Randomize.val:False
+FormComponent.Randomize.valType:bool
+FormComponent.Size.default:(1, 0.7)
+FormComponent.Size.allowedTypes:[]
+FormComponent.Size.allowedUpdates:None
+FormComponent.Size.allowedVals:[]
+FormComponent.Size.categ:Basic
+FormComponent.Size.hint:Size of the Form on screen in 'height' units. e.g. (1, .7) height units for horizontal,and vertical, respectively
+FormComponent.Size.label:Size
+FormComponent.Size.readOnly:False
+FormComponent.Size.staticUpdater:None
+FormComponent.Size.updates:constant
+FormComponent.Size.val:(1, 0.7)
+FormComponent.Size.valType:code
+FormComponent.Text Height.default:0.03
+FormComponent.Text Height.allowedTypes:[]
+FormComponent.Text Height.allowedUpdates:None
+FormComponent.Text Height.allowedVals:[]
+FormComponent.Text Height.categ:Basic
+FormComponent.Text Height.hint:The size of the item text for Form
+FormComponent.Text Height.label:Text Height
+FormComponent.Text Height.readOnly:False
+FormComponent.Text Height.staticUpdater:None
+FormComponent.Text Height.updates:constant
+FormComponent.Text Height.val:0.03
+FormComponent.Text Height.valType:code
+FormComponent.durationEstim.default:
+FormComponent.durationEstim.allowedTypes:[]
+FormComponent.durationEstim.allowedUpdates:None
+FormComponent.durationEstim.allowedVals:[]
+FormComponent.durationEstim.categ:Basic
+FormComponent.durationEstim.hint:(Optional) expected duration (s), purely for representing in the timeline
+FormComponent.durationEstim.label:Expected duration (s)
+FormComponent.durationEstim.readOnly:False
+FormComponent.durationEstim.staticUpdater:None
+FormComponent.durationEstim.updates:None
+FormComponent.durationEstim.val:
+FormComponent.durationEstim.valType:code
+FormComponent.name.default:form
+FormComponent.name.allowedTypes:[]
+FormComponent.name.allowedUpdates:None
+FormComponent.name.allowedVals:[]
+FormComponent.name.categ:Basic
+FormComponent.name.hint:Name of this component (alpha-numeric or _, no spaces)
+FormComponent.name.label:Name
+FormComponent.name.readOnly:False
+FormComponent.name.staticUpdater:None
+FormComponent.name.val:form
+FormComponent.name.valType:code
+FormComponent.saveStartStop.default:True
+FormComponent.saveStartStop.allowedTypes:[]
+FormComponent.saveStartStop.allowedUpdates:None
+FormComponent.saveStartStop.allowedVals:[]
+FormComponent.saveStartStop.categ:Data
+FormComponent.saveStartStop.hint:Store the onset/offset times in the data file (as well as in the log file).
+FormComponent.saveStartStop.label:Save onset/offset times
+FormComponent.saveStartStop.readOnly:False
+FormComponent.saveStartStop.staticUpdater:None
+FormComponent.saveStartStop.updates:None
+FormComponent.saveStartStop.val:True
+FormComponent.saveStartStop.valType:bool
+FormComponent.startEstim.default:
+FormComponent.startEstim.allowedTypes:[]
+FormComponent.startEstim.allowedUpdates:None
+FormComponent.startEstim.allowedVals:[]
+FormComponent.startEstim.categ:Basic
+FormComponent.startEstim.hint:(Optional) expected start (s), purely for representing in the timeline
+FormComponent.startEstim.label:Expected start (s)
+FormComponent.startEstim.readOnly:False
+FormComponent.startEstim.staticUpdater:None
+FormComponent.startEstim.updates:None
+FormComponent.startEstim.val:
+FormComponent.startEstim.valType:code
+FormComponent.startType.default:'time (s)'
+FormComponent.startType.allowedTypes:[]
+FormComponent.startType.allowedUpdates:None
+FormComponent.startType.allowedVals:['time (s)', 'frame N', 'condition']
+FormComponent.startType.categ:Basic
+FormComponent.startType.hint:How do you want to define your start point?
+FormComponent.startType.label:start type
+FormComponent.startType.readOnly:False
+FormComponent.startType.staticUpdater:None
+FormComponent.startType.updates:None
+FormComponent.startType.val:time (s)
+FormComponent.startType.valType:str
+FormComponent.startVal.default:0.0
+FormComponent.startVal.allowedTypes:[]
+FormComponent.startVal.allowedUpdates:None
+FormComponent.startVal.allowedVals:[]
+FormComponent.startVal.categ:Basic
+FormComponent.startVal.hint:When does the component start?
+FormComponent.startVal.label:Start
+FormComponent.startVal.readOnly:False
+FormComponent.startVal.staticUpdater:None
+FormComponent.startVal.updates:None
+FormComponent.startVal.val:0.0
+FormComponent.startVal.valType:code
+FormComponent.stopType.default:'duration (s)'
+FormComponent.stopType.allowedTypes:[]
+FormComponent.stopType.allowedUpdates:None
+FormComponent.stopType.allowedVals:['duration (s)', 'duration (frames)', 'time (s)', 'frame N', 'condition']
+FormComponent.stopType.categ:Basic
+FormComponent.stopType.hint:How do you want to define your end point?
+FormComponent.stopType.label:stop type
+FormComponent.stopType.readOnly:False
+FormComponent.stopType.staticUpdater:None
+FormComponent.stopType.updates:None
+FormComponent.stopType.val:duration (s)
+FormComponent.stopType.valType:str
+FormComponent.stopVal.default:
+FormComponent.stopVal.allowedTypes:[]
+FormComponent.stopVal.allowedUpdates:[]
+FormComponent.stopVal.allowedVals:[]
+FormComponent.stopVal.categ:Basic
+FormComponent.stopVal.hint:When does the component end? (blank is endless)
+FormComponent.stopVal.label:Stop
+FormComponent.stopVal.readOnly:False
+FormComponent.stopVal.staticUpdater:None
+FormComponent.stopVal.updates:constant
+FormComponent.stopVal.val:
+FormComponent.stopVal.valType:code
+FormComponent.syncScreenRefresh.default:False
+FormComponent.syncScreenRefresh.allowedTypes:[]
+FormComponent.syncScreenRefresh.allowedUpdates:None
+FormComponent.syncScreenRefresh.allowedVals:[]
+FormComponent.syncScreenRefresh.categ:Data
+FormComponent.syncScreenRefresh.hint:Synchronize times with screen refresh (good for visual stimuli and responses based on them)
+FormComponent.syncScreenRefresh.label:Sync timing with screen refresh
+FormComponent.syncScreenRefresh.readOnly:False
+FormComponent.syncScreenRefresh.staticUpdater:None
+FormComponent.syncScreenRefresh.updates:None
+FormComponent.syncScreenRefresh.val:False
+FormComponent.syncScreenRefresh.valType:bool
 GratingComponent.order:['tex', 'mask']
 GratingComponent.blendmode.default:'avg'
 GratingComponent.blendmode.allowedTypes:[]
@@ -2966,7 +3158,7 @@ ParallelOutComponent.order:['address', 'startData', 'stopData']
 ParallelOutComponent.address.default:'0x0378'
 ParallelOutComponent.address.allowedTypes:[]
 ParallelOutComponent.address.allowedUpdates:None
-ParallelOutComponent.address.allowedVals:['0x0378', '0x03BC', '/dev/parport0', '/dev/parport1', 'LabJack U3']
+ParallelOutComponent.address.allowedVals:[u'0x0378', u'0x03BC', u'LabJack U3']
 ParallelOutComponent.address.categ:Basic
 ParallelOutComponent.address.hint:Parallel port to be used (you can change these options in preferences>general)
 ParallelOutComponent.address.label:Port address
