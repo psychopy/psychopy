@@ -774,7 +774,7 @@ class SettingsComponent(object):
         endLoopInteration = ("\nfunction endLoopIteration(thisScheduler, thisTrial) {\n"
                     "  // ------Prepare for next entry------\n"
                     "  return function () {\n"
-                    "    // ------Check if user ended loop early------"
+                    "    // ------Check if user ended loop early------\n"
                     "    if (currentLoop.finished)\n"
                     "      thisScheduler.stop();\n"
                     "    else if (typeof thisTrial === 'undefined' || !('isTrials' in thisTrial) || thisTrial.isTrials) {\n"
