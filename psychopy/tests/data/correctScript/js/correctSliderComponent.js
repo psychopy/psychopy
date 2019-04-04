@@ -181,9 +181,9 @@ function endLoopIteration(thisScheduler, thisTrial) {
   // ------Prepare for next entry------
   return function () {
     // ------Check if user ended loop early------
-    if (currentLoop.finished)
+    if (currentLoop.finished) {
       thisScheduler.stop();
-    else if (typeof thisTrial === 'undefined' || !('isTrials' in thisTrial) || thisTrial.isTrials) {
+    } else if (typeof thisTrial === 'undefined' || !('isTrials' in thisTrial) || thisTrial.isTrials) {
       psychoJS.experiment.nextEntry();
     }
   return Scheduler.Event.NEXT;
