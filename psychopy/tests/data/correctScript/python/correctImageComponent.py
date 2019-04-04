@@ -1,8 +1,8 @@
 ﻿#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-This experiment was created using PsychoPy3 Experiment Builder (v3.0.6),
-    on March 21, 2019, at 14:53
+This experiment was created using PsychoPy3 Experiment Builder (v3.1.0),
+    on Thu Apr  4 17:01:10 2019
 If you publish work using this script please cite the PsychoPy publications:
     Peirce, JW (2007) PsychoPy - Psychophysics software in Python.
         Journal of Neuroscience Methods, 162(1-2), 8-13.
@@ -24,13 +24,13 @@ import sys  # to get file system encoding
 from psychopy.hardware import keyboard
 
 # Ensure that relative paths start from the same directory as this script
-_thisDir = os.path.dirname(os.path.abspath(__file__))
+_thisDir = os.path.dirname(os.path.abspath(__file__)).decode(sys.getfilesystemencoding())
 os.chdir(_thisDir)
 
 # Store info about the experiment session
-psychopyVersion = '3.0.6'
+psychopyVersion = '3.1.0'
 expName = 'untitled.py'
-expInfo = {'participant': '', 'session': '001'}
+expInfo = {'session': '001', 'participant': ''}
 dlg = gui.DlgFromDict(dictionary=expInfo, title=expName)
 if dlg.OK == False:
     core.quit()  # user pressed cancel
