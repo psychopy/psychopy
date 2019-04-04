@@ -771,10 +771,13 @@ class SettingsComponent(object):
 
     def writeEndCodeJS(self, buff):
 
-        endLoopInteration = ("\nfunction endLoopIteration(thisTrial) {\n"
+        endLoopInteration = ("\nfunction endLoopIteration(thisScheduler, thisTrial) {\n"
                     "  // ------Prepare for next entry------\n"
                     "  return function () {\n"
-                    "    if (typeof thisTrial === 'undefined' || !('isTrials' in thisTrial) || thisTrial.isTrials) {\n"
+                    "    // ------Check if user ended loop early------"
+                    "    if (currentLoop.finished)\n"
+                    "      thisScheduler.stop();\n"
+                    "    else if (typeof thisTrial === 'undefined' || !('isTrials' in thisTrial) || thisTrial.isTrials) {\n"
                     "      psychoJS.experiment.nextEntry();\n"
                     "    }\n"
                     "  return Scheduler.Event.NEXT;\n"

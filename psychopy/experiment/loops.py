@@ -237,7 +237,8 @@ class TrialHandler(object):
                     .format(params=self.params, name=thisChild.params['name'].val)
                     )
         if self.params['isTrials'].val == True:
-            code += ("    thisScheduler.add(endLoopIteration({thisName}));\n").format(thisName=self.thisName)
+            code += ("    thisScheduler.add(endLoopIteration(thisScheduler, "
+                     "{thisName}));\n".format(thisName=self.thisName))
 
         code += ("  }\n"
                 "\n"
