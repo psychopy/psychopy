@@ -10,6 +10,25 @@ Changelog
 CHANGES, which are identified in this dark red text, typically indicate things that alter the PsychoPy behaviour in a way that could break compatibility. Be especially wary of those!
 
 
+PsychoPy 3.1
+----------------
+
+We've improved timing, especially keyboard timing a great deal
+
+PsychoPy 3.1.0
+~~~~~~~~~~~~~~~~~~~~~~
+
+NEW:
+
+- hardware.keyboard.Keyboard class, based on C code from the Psychtoolbox project (ported to Python by Mario Kleiner)
+ - faster than `event.getKeys()` (polling is asynchronous with drawing loop and the calls go direct 
+   to the USB rather than going via the operating system key calls)
+ - supports keyDuration fields as well as `rt` for key down time
+- Form class for combining text items and responses (currently ratings and radio items) in a scrollable list
+- each Builder Component is now outputting its start/stop times in the data file by default (can be turned
+  off for )
+
+
 PsychoPy 3.0
 ----------------
 
@@ -17,6 +36,16 @@ PsychoPy3 is the new phase of development including support for online studies
 at the Pavlovia.org experiment server. Many of the features here are relatively
 new and, although we have spent hundreds of hours developing and testing them
 you should be more cautious than ever checking your experiment and data outputs.
+
+PsychoPy 3.0.7
+~~~~~~~~~~~~~~~~~~~~~~
+
+FIXED:
+ - local project repeatedly asking to Create New Pavlovia project when one already exists #c3f0d203f
+ - Fixed "No module named 'PyQt4'" on MacOS<10.10 caused by PyQt dropping support for Mac10.9 in PyQt5.9 #2375
+ - don't allow movie->online to use units 'from experiment settings' #8cbaf8a713
+ - Py3 string/byte fixes for CRS ColorCal #3bf1b7e5d4 #d49f154a0
+ - various fixes to Japanese translations
 
 PsychoPy 3.0.6
 ~~~~~~~~~~~~~~~~~~~~~~

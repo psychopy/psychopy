@@ -2,13 +2,13 @@
  * Moviecomponent Test *
  ***********************/
 
-import { PsychoJS } from './lib/core-3.0.6.js';
-import * as core from './lib/core-3.0.6.js';
-import { TrialHandler } from './lib/data-3.0.6.js';
-import { Scheduler } from './lib/util-3.0.6.js';
-import * as util from './lib/util-3.0.6.js';
-import * as visual from './lib/visual-3.0.6.js';
-import { Sound } from './lib/sound-3.0.6.js';
+import { PsychoJS } from './lib/core-3.1.0.js';
+import * as core from './lib/core-3.1.0.js';
+import { TrialHandler } from './lib/data-3.1.0.js';
+import { Scheduler } from './lib/util-3.1.0.js';
+import * as util from './lib/util-3.1.0.js';
+import * as visual from './lib/visual-3.1.0.js';
+import { Sound } from './lib/sound-3.1.0.js';
 
 // init psychoJS:
 var psychoJS = new PsychoJS({
@@ -24,7 +24,7 @@ psychoJS.openWindow({
 
 // store info about the experiment session:
 let expName = 'MovieComponent';  // from the Builder filename that created this script
-let expInfo = {'participant': '', 'session': '001'};
+let expInfo = {'session': '001', 'participant': ''};
 
 // schedule the experiment:
 psychoJS.schedule(psychoJS.gui.DlgFromDict({
@@ -49,11 +49,10 @@ dialogCancelScheduler.add(quitPsychoJS, '', false);
 
 psychoJS.start({configURL: 'config.json', expInfo: expInfo});
 
-var frameDur;
 function updateInfo() {
   expInfo['date'] = util.MonotonicClock.getDateStr();  // add a simple timestamp
   expInfo['expName'] = expName;
-  expInfo['psychopyVersion'] = '3.0.6';
+  expInfo['psychopyVersion'] = '3.1.0';
 
   // store frame rate of monitor if we can measure it successfully
   expInfo['frameRate'] = psychoJS.window.getActualFrameRate();
@@ -68,11 +67,6 @@ function updateInfo() {
   return Scheduler.Event.NEXT;
 }
 
-var trialClock;
-var movieClock;
-var movie;
-var globalClock;
-var routineTimer;
 function experimentInit() {
   // Initialize components for Routine "trial"
   trialClock = new util.Clock();
@@ -81,7 +75,7 @@ function experimentInit() {
     win: psychoJS.window,
     name: 'movie',
     movie: undefined,
-    units: undefined,
+    units: 'height',
     pos: [0, 0],
     size: undefined,
     ori: 0,
@@ -96,9 +90,6 @@ function experimentInit() {
   return Scheduler.Event.NEXT;
 }
 
-var t;
-var frameN;
-var trialComponents;
 function trialRoutineBegin() {
   //------Prepare to start Routine 'trial'-------
   t = 0;
@@ -117,8 +108,6 @@ function trialRoutineBegin() {
   return Scheduler.Event.NEXT;
 }
 
-var frameRemains;
-var continueRoutine;
 function trialRoutineEachFrame() {
   //------Loop for each frame of Routine 'trial'-------
   let continueRoutine = true; // until we're told otherwise
@@ -166,7 +155,6 @@ function trialRoutineEachFrame() {
   }
 }
 
-
 function trialRoutineEnd() {
   //------Ending Routine 'trial'-------
   for (const thisComponent of trialComponents) {
@@ -177,17 +165,17 @@ function trialRoutineEnd() {
   return Scheduler.Event.NEXT;
 }
 
-
-function endLoopIteration(thisTrial) {
+function endLoopIteration(thisScheduler, thisTrial) {
   // ------Prepare for next entry------
   return function () {
-    if (typeof thisTrial === 'undefined' || !('isTrials' in thisTrial) || thisTrial.isTrials) {
+    // ------Check if user ended loop early------    if (currentLoop.finished)
+      thisScheduler.stop();
+    else if (typeof thisTrial === 'undefined' || !('isTrials' in thisTrial) || thisTrial.isTrials) {
       psychoJS.experiment.nextEntry();
     }
   return Scheduler.Event.NEXT;
   };
 }
-
 
 function importConditions(loop) {
   const trialIndex = loop.getTrialIndex();
@@ -197,7 +185,6 @@ function importConditions(loop) {
     return Scheduler.Event.NEXT;
     };
 }
-
 
 function quitPsychoJS(message, isCompleted) {
   psychoJS.window.close();
