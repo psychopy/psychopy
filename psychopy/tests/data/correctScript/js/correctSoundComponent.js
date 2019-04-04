@@ -49,6 +49,7 @@ dialogCancelScheduler.add(quitPsychoJS, '', false);
 
 psychoJS.start({configURL: 'config.json', expInfo: expInfo});
 
+var frameDur;
 function updateInfo() {
   expInfo['date'] = util.MonotonicClock.getDateStr();  // add a simple timestamp
   expInfo['expName'] = expName;
@@ -67,6 +68,10 @@ function updateInfo() {
   return Scheduler.Event.NEXT;
 }
 
+var trialClock;
+var sound_1;
+var globalClock;
+var routineTimer;
 function experimentInit() {
   // Initialize components for Routine "trial"
   trialClock = new util.Clock();
@@ -83,6 +88,9 @@ function experimentInit() {
   return Scheduler.Event.NEXT;
 }
 
+var t;
+var frameN;
+var trialComponents;
 function trialRoutineBegin() {
   //------Prepare to start Routine 'trial'-------
   t = 0;
@@ -103,6 +111,7 @@ function trialRoutineBegin() {
   return Scheduler.Event.NEXT;
 }
 
+var continueRoutine;
 function trialRoutineEachFrame() {
   //------Loop for each frame of Routine 'trial'-------
   let continueRoutine = true; // until we're told otherwise
@@ -144,6 +153,7 @@ function trialRoutineEachFrame() {
   }
 }
 
+
 function trialRoutineEnd() {
   //------Ending Routine 'trial'-------
   for (const thisComponent of trialComponents) {
@@ -155,10 +165,12 @@ function trialRoutineEnd() {
   return Scheduler.Event.NEXT;
 }
 
+
 function endLoopIteration(thisScheduler, thisTrial) {
   // ------Prepare for next entry------
   return function () {
-    // ------Check if user ended loop early------    if (currentLoop.finished)
+    // ------Check if user ended loop early------
+    if (currentLoop.finished)
       thisScheduler.stop();
     else if (typeof thisTrial === 'undefined' || !('isTrials' in thisTrial) || thisTrial.isTrials) {
       psychoJS.experiment.nextEntry();
@@ -166,6 +178,7 @@ function endLoopIteration(thisScheduler, thisTrial) {
   return Scheduler.Event.NEXT;
   };
 }
+
 
 function importConditions(loop) {
   const trialIndex = loop.getTrialIndex();
@@ -175,6 +188,7 @@ function importConditions(loop) {
     return Scheduler.Event.NEXT;
     };
 }
+
 
 function quitPsychoJS(message, isCompleted) {
   psychoJS.window.close();
