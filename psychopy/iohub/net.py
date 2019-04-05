@@ -23,7 +23,7 @@ from .util import NumPyRingBuffer as RingBuffer
 
 MAX_PACKET_SIZE = 64 * 1024
 
-defTimeout = 0.1
+defTimeout = 1.0
 
 class SocketConnection(object): # pylint: disable=too-many-instance-attributes
     def __init__(
@@ -65,7 +65,7 @@ class SocketConnection(object): # pylint: disable=too-many-instance-attributes
             self.sock.setsockopt(socket.IPPROTO_IP, socket.IP_MULTICAST_TTL,
                                  struct.pack('@i', 1))
 
-        if blocking is not 0:
+        if blocking:
             self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 
         self.sock.settimeout(timeout)
@@ -92,8 +92,8 @@ class SocketConnection(object): # pylint: disable=too-many-instance-attributes
                     num_packets = num_packets - 1
                 result = self.unpack()
             return result, address
-        except Exception: # pylint: disable=broad-except
-            pass # printExceptionDetailsToStdErr()
+        except:
+            pass
 
     def close(self):
         self.sock.close()

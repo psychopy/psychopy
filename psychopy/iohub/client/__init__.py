@@ -60,6 +60,12 @@ class DeviceRPC(object):
         # for the method return value sent back from the ioHub Server.
         r = self.sendToHub(('EXP_DEVICE', 'DEV_RPC', self.device_class,
                             self.method_name, args, kwargs))
+        
+        if r is None:
+            print("r is None:",('EXP_DEVICE', 'DEV_RPC', self.device_class,
+                            self.method_name, args, kwargs))
+            return None
+        
         r = r[1:]
         if len(r) == 1:
             r = r[0]
@@ -1091,6 +1097,34 @@ class ioHubConnection(object):
             printExceptionDetailsToStdErr()
         return None
 
+    def _convertDict(self, d):
+        r = {}
+        for k, v in d.items():
+            if isinstance(v, bytes):
+                v = str(v, 'utf-8')
+            elif isinstance(v, list) or  isinstance(v, tuple):
+                v = self._convertList(v)
+            elif isinstance(v, dict):
+                v = self._convertDict(v)
+        
+            if isinstance(k, bytes):
+                k = str(k, 'utf-8')
+            r[k]=v
+        return r
+
+    def _convertList(self, l):
+        r = []
+        for i in l:
+            if isinstance(i, bytes):
+                r.append(str(i, 'utf-8'))
+            elif isinstance(i, list) or  isinstance(i, tuple):
+                r.append(self._convertList(i))
+            elif isinstance(i, dict):
+                r.append(self._convertDict(i))
+            else:
+                r.append(i)
+        return r
+
     def _sendToHubServer(self, tx_data):
         """General purpose local <-> iohub server process UDP based
         request - reply code. The method blocks until the request is fulfilled
@@ -1103,19 +1137,23 @@ class ioHubConnection(object):
         """
         try:
             # send request to host, return is # bytes sent.
+            #print("SEND:",tx_data)
             self.udp_client.sendTo(tx_data)
         except Exception as e: # pylint: disable=broad-except
             import traceback
             traceback.print_exc()
             self.shutdown()
             raise e
-
+        
+        result = None
+        
         try:
             # wait for response from ioHub server, which will be the
             # result data and iohub server address (ip4,port).
             result = self.udp_client.receive()
             if result:
                 result, _ = result
+            #print("RESULT:",result)
         except Exception as e: # pylint: disable=broad-except
             import traceback
             traceback.print_exc()
@@ -1126,23 +1164,16 @@ class ioHubConnection(object):
         # TODO: This is not really working as planned, in part because iohub
         #       server does not consistently return error responses when needed
         errorReply = self._isErrorReply(result)
-        if errorReply:
+        if errorReply:           
             raise ioHubError(result)
-
         # Otherwise return the result
+        
         if constants.PY3 and result is not None:
-            if isinstance(result, list):
-                for ind, items in enumerate(result):
-                    if isinstance(items, list) and not items is None:
-                        for nextInd, nested in enumerate(items):
-                            if type(nested) not in [dict, list, int, float, bool] and not nested is None :
-                                result[ind][nextInd] = str(nested, 'utf-8')
-                    elif type(items) not in [dict, list, int, float, bool] and not items is None:
-                        result[ind] = str(items, 'utf-8')
-                    elif type(items) is dict:
-                        result[ind] = {str(keys, 'utf-8'): vals for keys, vals in items.items()}
-            else:
-                result = str(result, 'utf-8')
+            # Use recursive conversion funcs                     
+            if isinstance(result, list) or  isinstance(result, tuple):
+                result = self._convertList(result)
+            elif isinstance(result, dict):
+                result = self._convertDict(result)
         return result
 
     def _sendExperimentInfo(self, experimentInfoDict):
