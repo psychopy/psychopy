@@ -37,7 +37,8 @@ display = io.devices.display
 tracker = io.devices.tracker
 
 # run eyetracker calibration
-#tracker.runSetupProcedure()
+tracker.runSetupProcedure()
+
 win = visual.Window(display.getPixelResolution(),
                     units='pix',
                     fullscr=True,
