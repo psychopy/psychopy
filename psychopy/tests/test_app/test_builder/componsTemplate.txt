@@ -1079,6 +1079,18 @@ FormComponent.Text Height.staticUpdater:None
 FormComponent.Text Height.updates:constant
 FormComponent.Text Height.val:0.03
 FormComponent.Text Height.valType:code
+FormComponent.disabled.default:False
+FormComponent.disabled.allowedTypes:[]
+FormComponent.disabled.allowedUpdates:None
+FormComponent.disabled.allowedVals:[]
+FormComponent.disabled.categ:Testing
+FormComponent.disabled.hint:Disable this component
+FormComponent.disabled.label:Disable component
+FormComponent.disabled.readOnly:False
+FormComponent.disabled.staticUpdater:None
+FormComponent.disabled.updates:None
+FormComponent.disabled.val:False
+FormComponent.disabled.valType:bool
 FormComponent.durationEstim.default:
 FormComponent.durationEstim.allowedTypes:[]
 FormComponent.durationEstim.allowedUpdates:None
