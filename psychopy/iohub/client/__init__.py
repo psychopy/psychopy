@@ -904,13 +904,6 @@ class ioHubConnection(object):
 
         self._iohub_server_config = ioHubConfig
 
-        # >>>>> Create open UDP port to ioHub Server
-
-        server_udp_port = self._iohub_server_config.get('udp_port', 9000)
-        from ..net import UDPClientConnection
-        self.udp_client = UDPClientConnection(remote_port=server_udp_port)
-        # <<<<< Done Creating open UDP port to ioHub Server
-
         # >>>> Check for orphaned ioHub Process and kill if found...
         iopFileName = os.path.join(rootScriptPath, '.iohpid')
         if os.path.exists(iopFileName):
@@ -973,11 +966,23 @@ class ioHubConnection(object):
         # for affinity and process priority setting.
         Computer.iohub_process_id = self._server_process.pid
         Computer.iohub_process = psutil.Process(self._server_process.pid)
-        # If ioHub server did not respond correctly,
+
+        # >>>>> Create open UDP port to ioHub Server
+        server_udp_port = self._iohub_server_config.get('udp_port', 9000)
+        from ..net import UDPClientConnection
+        # initially open with a timeout so macOS does not hang.        
+        self.udp_client = UDPClientConnection(remote_port=server_udp_port, timeout=0.1)
+
+        # If ioHub server does not respond correctly,
         # terminate process and exit the program.
         if self._waitForServerInit() is False:
             self._server_process.terminate()
             return "ioHub startup failed."
+        
+        # close and reopen blocking version of socket
+        self.udp_client.close()
+        self.udp_client = UDPClientConnection(remote_port=server_udp_port)
+        # <<<<< Done Creating open UDP port to ioHub Server
 
         # <<<<< Done starting iohub subprocess
 
