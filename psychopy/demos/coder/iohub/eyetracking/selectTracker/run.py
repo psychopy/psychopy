@@ -18,8 +18,9 @@ from __future__ import absolute_import, division, print_function
 
 from psychopy import visual
 from psychopy.data import TrialHandler,importConditions
-from psychopy.iohub import (EventConstants, EyeTrackerConstants, 
-                            getCurrentDateTimeString, ioHubExperimentRuntime)
+from psychopy.iohub import ioHubExperimentRuntime
+from psychopy.iohub.util import getCurrentDateTimeString
+
 import os
 
 class ExperimentRuntime(ioHubExperimentRuntime):
@@ -49,7 +50,6 @@ class ExperimentRuntime(ioHubExperimentRuntime):
         tracker=self.hub.devices.tracker
         display=self.hub.devices.display
         kb=self.hub.devices.keyboard
-        mouse=self.hub.devices.mouse            
                     
         # Start by running the eye tracker default setup procedure.
         tracker.runSetupProcedure()
@@ -117,8 +117,7 @@ class ExperimentRuntime(ioHubExperimentRuntime):
             flip_time=window.flip()
             self.hub.sendMessageEvent(text="EXPERIMENT_START",sec_time=flip_time)
             
-            start_trial=False
-            
+
             # wait until a space key event occurs after the instructions are displayed
             kb.waitForPresses(keys=' ')
 
@@ -189,7 +188,7 @@ class ExperimentRuntime(ioHubExperimentRuntime):
             # Save the Experiment Condition Variable Data for this trial to the
             # ioDataStore.
             #
-            self.hub.addRowToConditionVariableTable(list(trial.values()))          
+            self.hub.addTrialHandlerRecord(trial)          
             self.hub.clearEvents('all')
             t+=1
 
@@ -220,7 +219,6 @@ class ExperimentRuntime(ioHubExperimentRuntime):
 ####### Main Script Launching Code Below #######
 
 if __name__ == "__main__":
-    import os
     from psychopy import gui
     from psychopy.iohub import module_directory
         

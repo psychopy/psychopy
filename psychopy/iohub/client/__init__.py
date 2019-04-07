@@ -606,7 +606,7 @@ class ioHubConnection(object):
             # variable states to iohub so they can be stored for future
             # reference.
             #
-            io.addTrialHandlerRecord(trial.values())
+            io.addTrialHandlerRecord(trial)
 
         """
         trial = trials.trialList[0]
