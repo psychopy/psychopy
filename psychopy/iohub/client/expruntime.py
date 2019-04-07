@@ -8,6 +8,7 @@ from __future__ import print_function
 import os
 import sys
 from collections import deque
+from past.builtins import unicode
 
 try:
     import psychopy.logging as psycho_logging
@@ -107,7 +108,7 @@ class ioHubExperimentRuntime(object):
         # load the experiment config settings from the experiment_config.yaml file.
         # The file must be in the same directory as the experiment script.
         self.configuration = yload(
-            file(
+            open(
                 os.path.join(
                     self.configFilePath,
                     self.configFileName),
@@ -349,7 +350,7 @@ class ioHubExperimentRuntime(object):
         using the path/file name in merged_save_to_path."""
         base_config = yload(open(base_config_file_path, 'r'), Loader=yLoader)
         update_from_config = yload(
-            file(
+            open(
                 update_from_config_file_path,
                 'r'),
             Loader=yLoader)
@@ -372,7 +373,7 @@ class ioHubExperimentRuntime(object):
 
         import copy
         merged = merge(copy.deepcopy(update_from_config), base_config)
-        ydump(merged, file(merged_save_to_path, 'w'), Dumper=yDumper)
+        ydump(merged, open(merged_save_to_path, 'w'), Dumper=yDumper)
 
         return merged
 

@@ -19,8 +19,8 @@ from __future__ import absolute_import, division, print_function
 
 from psychopy import visual
 from psychopy.data import TrialHandler,importConditions
-from psychopy.iohub import (ioHubExperimentRuntime, module_directory,
-                            getCurrentDateTimeString)
+from psychopy.iohub import ioHubExperimentRuntime, module_directory
+from psychopy.iohub.util import getCurrentDateTimeString
 import os
 
 class ExperimentRuntime(ioHubExperimentRuntime):
@@ -110,10 +110,6 @@ class ExperimentRuntime(ioHubExperimentRuntime):
                                     allowGUI=False, # We want it to be borderless
                                     screen= display.getIndex() # The display index to use, assuming a multi display setup.
                                     )
-
-        # Hide the 'system mouse cursor' during the experiment.
-        #
-        mouse.setSystemCursorVisibility(False)
 
         # Create a dict of image stim for trials and a gaze blob to show the
         # reported gaze position with.
@@ -283,7 +279,7 @@ class ExperimentRuntime(ioHubExperimentRuntime):
             # Save the experiment condition variable values for this
             # trial to the ioDataStore.
             #
-            self.hub.addRowToConditionVariableTable(list(trial.values()))
+            self.hub.addTrialHandlerRecord(trial)
 
             # Clear all event buffers
             #
