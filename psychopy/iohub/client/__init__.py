@@ -219,7 +219,7 @@ class ioHubDevices(object):
         self._devicesByName[name] = d
 
     def getDevice(self, name):
-        self._devicesByName.get(name)
+        return self._devicesByName.get(name)
 
     def getAll(self):
         return self._devicesByName.values()

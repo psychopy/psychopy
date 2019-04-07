@@ -32,9 +32,9 @@ eyetracker_config['runtime_settings'] = dict(sampling_rate=1000,
 io = launchHubServer(**{iohub_tracker_class_path: eyetracker_config})
 
 # Get some iohub devices for future access.
-keyboard = io.devices.keyboard
-display = io.devices.display
-tracker = io.devices.tracker
+keyboard = io.getDevice('keyboard')
+display = io.getDevice('display')
+tracker = io.getDevice('tracker')
 
 # run eyetracker calibration
 tracker.runSetupProcedure()
