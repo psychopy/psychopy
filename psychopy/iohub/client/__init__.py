@@ -5,7 +5,7 @@
 # Copyright (C) 2012-2016 iSolver Software Solutions
 # Distributed under the terms of the GNU General Public License (GPL).
 from __future__ import division, absolute_import, print_function
-
+from past.builtins import unicode
 import os
 import sys
 import time
@@ -621,8 +621,6 @@ class ioHubConnection(object):
             if isinstance(cond_val, basestring):
                 numpy_dtype = (cond_name, 'S', 256)
             elif isinstance(cond_val, int):
-                numpy_dtype = (cond_name, 'i4')
-            elif isinstance(cond_val, long):
                 numpy_dtype = (cond_name, 'i8')
             elif isinstance(cond_val, float):
                 numpy_dtype = (cond_name, 'f8')
