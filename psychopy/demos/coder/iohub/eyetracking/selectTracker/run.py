@@ -239,14 +239,14 @@ if __name__ == "__main__":
         # by the Experiment _runtime
         # as normal.
         eye_tracker_config_files={
-                                  'LC Technologies EyeGaze':'eyetracker_configs/eyegaze_config.yaml',
-                                  'SMI iViewX':'eyetracker_configs/iviewx_config.yaml',
-                                  'SR Research EyeLink':'eyetracker_configs/eyelink_config.yaml',
-                                  'Tobii Technologies Eye Trackers':'eyetracker_configs/tobii_config.yaml',
+                                  'GazePoint':'eyetracker_configs/gazepoint_config.yaml',
+                                  'SMI':'eyetracker_configs/iviewx_config.yaml',
+                                  'SR Research':'eyetracker_configs/eyelink_config.yaml',
+                                  'Tobii':'eyetracker_configs/tobii_config.yaml',
                                   }
         
-        info = {'Eye Tracker Type': ['Select', 'LC Technologies EyeGaze', 
-                                     'SMI iViewX', 'SR Research EyeLink', 'Tobii Technologies Eye Trackers']}
+        info = {'Eye Tracker Type': ['Select', 'GazePoint', 
+                                     'SMI', 'SR Research', 'Tobii']}
         
         dlg_info=dict(info)
         infoDlg = gui.DlgFromDict(dictionary=dlg_info, title='Select Eye Tracker')
