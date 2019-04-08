@@ -1,0 +1,21 @@
+data_store: {enable: true}
+monitor_devices:
+- Display:
+    default_eye_distance: {surface_center: 500, unit_type: mm}
+    device_number: 0
+    name: display
+    physical_dimensions: {height: 340, unit_type: mm, width: 590}
+    psychopy_monitor_name: default
+    reporting_unit_type: pix
+- Keyboard: {name: keyboard}
+- Mouse: {name: mouse}
+- Experiment: {name: experimentRuntime}
+- eyetracker.hw.gazepoint.gp3.EyeTracker:
+    calibration: {target_delay: 0.5, target_duration: 1.25}
+    device_timer: {interval: 0.005}
+    enable: true
+    event_buffer_length: 1024
+    monitor_event_types: [BinocularEyeSampleEvent, FixationStartEvent, FixationEndEvent]
+    name: tracker
+    save_events: true
+    stream_events: true
