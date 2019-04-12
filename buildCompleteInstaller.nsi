@@ -3,16 +3,28 @@
 !define PRODUCT_PUBLISHER "Jon Peirce"
 !define PRODUCT_WEB_SITE "http://www.psychopy.org"
 ;!define PRODUCT_DIR_REGKEY "Software\Microsoft\Windows\CurrentVersion\App Paths\AppMainExe.exe"
+
 !define PRODUCT_UNINST_KEY "Software\Microsoft\Windows\CurrentVersion\Uninstall\${PRODUCT_NAME}"
-!define PRODUCT_UNINST_ROOT_KEY "HKLM"
+!define PRODUCT_UNINST_ROOT_KEY "SHELL_CONTEXT"
+
 !define PRODUCT_STARTMENU_REGVAL "NSIS:StartMenuDir"
 
 
+
+
 ; Modern User Interface v2 ------
+
+; Allow choosing between multiuser and current user (no admin rights) installs
+!define MULTIUSER_EXECUTIONLEVEL Highest
+!define MULTIUSER_MUI
+!define MULTIUSER_INSTALLMODE_COMMANDLINE
+!include MultiUser.nsh
+
 !include "MUI2.nsh"
 !include "fileassoc.nsh"
 !include "EnvVarUpdate.nsh"
 !include "Library.nsh"
+!include LogicLib.nsh
 
 ; MUI Settings
 !define MUI_ABORTWARNING
@@ -23,8 +35,13 @@
 !insertmacro MUI_PAGE_LICENSE "psychopy/LICENSE.txt"
 ; Components page NB having multiple components was annoying with uninstall
 ;!insertmacro MUI_PAGE_COMPONENTS
+; Choice for multiuser or single user install - note that this page only 
+; displays if the user has privileges to do the AllUsers
+!define MUI_PAGE_CUSTOMFUNCTION_PRE multiuser_pre_func
+!insertmacro MULTIUSER_PAGE_INSTALLMODE
 ; Directory page
 !insertmacro MUI_PAGE_DIRECTORY
+
 ; Start menu page
 var ICONS_GROUP
 !define MUI_STARTMENUPAGE_NODISABLE
@@ -33,10 +50,12 @@ var ICONS_GROUP
 !define MUI_STARTMENUPAGE_REGISTRY_KEY "${PRODUCT_UNINST_KEY}"
 !define MUI_STARTMENUPAGE_REGISTRY_VALUENAME "${PRODUCT_STARTMENU_REGVAL}"
 !insertmacro MUI_PAGE_STARTMENU Application $ICONS_GROUP
+
 ; Instfiles page
 !insertmacro MUI_PAGE_INSTFILES
 
 ; Uninstaller pages
+!insertmacro MUI_UNPAGE_CONFIRM
 !insertmacro MUI_UNPAGE_INSTFILES
 
 ; Language files
@@ -46,15 +65,33 @@ var ICONS_GROUP
 
 Name "${PRODUCT_NAME} ${PRODUCT_VERSION} ${ARCH}"
 OutFile "Standalone${PRODUCT_NAME}-${PRODUCT_VERSION}-${ARCH}.exe"
-InstallDir "$PROGRAMFILES\${PRODUCT_NAME}"
-;InstallDirRegKey HKLM "${PRODUCT_DIR_REGKEY}" ""
+
+; We set InstallDir inside .onInit instead so it can be dynamic
+InstallDir ""
+
 ShowInstDetails show
 ShowUnInstDetails show
-;Request application privileges for Windows Vista
-RequestExecutionLevel admin
+
+;pre-multiuser detection
+Function multiuser_pre_func
+
+       ClearErrors
+       ReadRegStr $R1 ${PRODUCT_UNINST_ROOT_KEY} "${PRODUCT_UNINST_KEY}" "InstallDir"
+       ${Unless} ${Errors}
+           Abort
+       ${EndUnless}
+
+FunctionEnd
 
 ;if previous version installed then remove
 Function .onInit
+  !insertmacro MULTIUSER_INIT
+
+  ${If} $MultiUser.InstallMode == "CurrentUser"
+    StrCpy $InstDir "$LOCALAPPDATA\${PRODUCT_NAME}"
+  ${Else}
+    StrCpy $InstDir "$PROGRAMFILES\${PRODUCT_NAME}"
+  ${EndIf}
 
   ReadRegStr $R0 HKLM \
   "Software\Microsoft\Windows\CurrentVersion\Uninstall\${PRODUCT_NAME}" \
@@ -68,11 +105,15 @@ Function .onInit
   IDOK uninst
   Abort
 
-;Run the uninstaller
-uninst:
-  ClearErrors
-  ExecWait '"$INSTDIR\uninst.exe" _?=$INSTDIR'
-done:
+  ;Run the uninstaller
+  uninst:
+    ClearErrors
+    ExecWait '"$INSTDIR\uninst.exe" _?=$INSTDIR'
+  done:
+FunctionEnd
+
+Function un.onInit
+  !insertmacro MULTIUSER_UNINIT
 FunctionEnd
 
 Section "PsychoPy" SEC01
@@ -86,7 +127,7 @@ Section "PsychoPy" SEC01
 
   File /r /x *.pyo /x *.chm /x Editra /x doc "${PYPATH}*.*"
 ; avbin to system32
-  !insertmacro InstallLib DLL NOTSHARED NOREBOOT_PROTECTED avbin.dll $SYSDIR\avbin.dll $SYSDIR
+;  !insertmacro InstallLib DLL NOTSHARED NOREBOOT_PROTECTED avbin.dll $SYSDIR\avbin.dll $SYSDIR
 
 ; Shortcuts
   !insertmacro MUI_STARTMENU_WRITE_BEGIN Application
