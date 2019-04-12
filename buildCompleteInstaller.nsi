@@ -127,7 +127,7 @@ Section "PsychoPy" SEC01
 
   File /r /x *.pyo /x *.chm /x Editra /x doc "${PYPATH}*.*"
 ; avbin to system32
-;  !insertmacro InstallLib DLL NOTSHARED NOREBOOT_PROTECTED avbin.dll $SYSDIR\avbin.dll $SYSDIR
+  !insertmacro InstallLib DLL NOTSHARED NOREBOOT_PROTECTED avbin.dll $SYSDIR\avbin.dll $SYSDIR
 
 ; Shortcuts
   !insertmacro MUI_STARTMENU_WRITE_BEGIN Application
