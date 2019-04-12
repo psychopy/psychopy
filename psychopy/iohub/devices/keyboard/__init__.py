@@ -229,12 +229,12 @@ class KeyboardInputEvent(DeviceEvent):
         modifier_value_index = cls.CLASS_ATTRIBUTE_NAMES.index('modifiers')
         event_value_list[modifier_value_index] = KeyboardConstants._modifierCodes2Labels(
             event_value_list[modifier_value_index])
-        char_value_index = cls.CLASS_ATTRIBUTE_NAMES.index('char')
-        event_value_list[char_value_index] = event_value_list[
-            char_value_index].decode('utf-8')
-        key_value_index = cls.CLASS_ATTRIBUTE_NAMES.index('key')
-        event_value_list[key_value_index] = event_value_list[
-            key_value_index].decode('utf-8')
+        #char_value_index = cls.CLASS_ATTRIBUTE_NAMES.index('char')
+        #event_value_list[char_value_index] = event_value_list[
+        #    char_value_index].decode('utf-8')
+        #key_value_index = cls.CLASS_ATTRIBUTE_NAMES.index('key')
+        #event_value_list[key_value_index] = event_value_list[
+        #    key_value_index].decode('utf-8')
 
     @classmethod
     def createEventAsDict(cls, values):

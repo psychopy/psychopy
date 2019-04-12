@@ -67,6 +67,7 @@
       <xsd:element name="cedrusButtonBoxComponent" type="Component"/>
       <xsd:element name="CodeComponent" type="Component"/>
       <xsd:element name="DotsComponent" type="Component"/>
+      <xsd:element name="FormComponent" type="Component"/>
       <xsd:element name="GratingComponent" type="Component"/>
       <xsd:element name="ImageComponent" type="Component"/>
       <xsd:element name="ioLabsButtonBoxComponent" type="Component"/>

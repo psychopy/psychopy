@@ -38,6 +38,8 @@ except ImportError:
 except Exception: # pylint: disable=broad-except
     printExceptionDetailsToStdErr()
 
+from .client.expruntime import ioHubExperimentRuntime
+
 lazyImports = """
 from {pkgroot}.client.connect import launchHubServer
 from {pkgroot}.devices.computer import Computer

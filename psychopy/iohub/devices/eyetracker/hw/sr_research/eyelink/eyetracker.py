@@ -2,10 +2,6 @@
 # Part of the PsychoPy.iohub library
 # Copyright (C) 2012-2016 iSolver Software Solutions
 # Distributed under the terms of the GNU General Public License (GPL).
-
-from __future__ import print_function
-from __future__ import absolute_import
-
 import os
 import numpy as np
 import pylink
@@ -1152,7 +1148,7 @@ class EyeTracker(EyeTrackerDevice):
 
     def _fileTransferProgressUpdate(self, size, received):
         if ProgressBarDialog is None:
-            print("eyelink._fileTransferProgressUpdate() not asupported: wx package not found")
+            #print2err("eyelink._fileTransferProgressUpdate() not asupported: wx package not found")
             return
             
         if EyeTracker._file_transfer_progress_dialog is None:

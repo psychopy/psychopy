@@ -150,7 +150,7 @@ class PavloviaCommitDialog(wx.Dialog):
 
         # pop kwargs for Py2 compatibility
         changeInfo = kwargs.pop('changeInfo', '')
-        initMsg = kwargs.pop('initMsg', 'Write your commit message here...')
+        initMsg = kwargs.pop('initMsg', '')
 
         super(PavloviaCommitDialog, self).__init__(*args, **kwargs)
 
@@ -167,23 +167,17 @@ class PavloviaCommitDialog(wx.Dialog):
         self.btnCancel = wx.Button(self, wx.ID_CANCEL)
 
         # Format elements
-        self.setBindings()
         self.setToolTips()
         self.setDlgSizers()
-
-    def setBindings(self):
-        """Set the bindings for the dialog widgets"""
-        # Bind button event to textbox
-        self.commitTitleCtrl.Bind(wx.EVT_UPDATE_UI, self.enableButton)
 
     def setToolTips(self):
         """Set the tooltips for the dialog widgets"""
         self.commitTitleCtrl.SetToolTip(
             wx.ToolTip(
-                _translate("Mandatory title summarizing the changes you're making in these files")))
+                _translate("Title summarizing the changes you're making in these files")))
         self.commitDescrCtrl.SetToolTip(
             wx.ToolTip(
-                _translate("Optional further details about the changes you're making in these files")))
+                _translate("Optional details about the changes you're making in these files")))
 
     def setDlgSizers(self):
         """
@@ -215,16 +209,6 @@ class PavloviaCommitDialog(wx.Dialog):
         """
         return self.ShowModal()
 
-    def enableButton(self, evt):
-        """
-        If the commit msg is empty, the OK button is disabled.
-        """
-        if not self.commitTitleCtrl.IsEmpty():
-            self.btnOK.Enable(True)
-        else:
-            self.btnOK.Enable(False)
-        evt.Skip()
-
     def getCommitMsg(self):
         """
         Gets the commit message for the git commit.
@@ -236,8 +220,7 @@ class PavloviaCommitDialog(wx.Dialog):
             If somehow the commit message is blank, a default is given.
         """
         if self.commitTitleCtrl.IsEmpty():
-            commitMsg = 'Default commit msg.\n\n'
-            commitMsg += 'Remember to enter a commit message when committing your changes to Pavlovia.'
+            commitMsg = "_"
         else:
             commitMsg = self.commitTitleCtrl.GetValue()
             if not self.commitDescrCtrl.IsEmpty():
