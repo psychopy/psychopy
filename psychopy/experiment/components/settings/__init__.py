@@ -86,6 +86,7 @@ thisFolder = os.path.split(__file__)[0]
 #     def allowedVals(self, allowed):
 #         pass
 
+
 class SettingsComponent(object):
     """This component stores general info about how to run the experiment
     """
@@ -107,7 +108,6 @@ class SettingsComponent(object):
         self.exp.requirePsychopyLibs(['visual', 'gui'])
         self.parentName = parentName
         self.url = "http://www.psychopy.org/builder/settings.html"
-
         # if filename is the default value fetch the builder pref for the
         # folder instead
         if filename is None:
@@ -348,11 +348,11 @@ class SettingsComponent(object):
             saveToDir = os.path.dirname(self.params['Data filename'].val)
         return saveToDir or u'data'
 
-    def writeUseVersion(self, buff):
+    def writeUseVersion(self, buff, version):
         if self.params['Use version'].val:
             code = ('\nimport psychopy\n'
                     'psychopy.useVersion({})\n\n')
-            val = repr(self.params['Use version'].val)
+            val = repr(version.requested)
             buff.writeIndentedLines(code.format(val))
 
     def writeInitCode(self, buff, version, localDateTime):
@@ -362,7 +362,7 @@ class SettingsComponent(object):
             '# -*- coding: utf-8 -*-\n'
             '"""\nThis experiment was created using PsychoPy3 Experiment '
             'Builder (v%s),\n'
-            '    on %s\n' % (version, localDateTime) +
+            '    on %s\n' % (version.current, localDateTime) +
             'If you publish work using this script please cite the PsychoPy '
             'publications:\n'
             '    Peirce, JW (2007) PsychoPy - Psychophysics software in '
@@ -374,7 +374,7 @@ class SettingsComponent(object):
             'neuro.11.010.2008\n"""\n'
             "\nfrom __future__ import absolute_import, division\n")
 
-        self.writeUseVersion(buff)
+        self.writeUseVersion(buff, version)
 
         psychopyImports = []
         customImports = []
@@ -500,7 +500,7 @@ class SettingsComponent(object):
         template = readTextFile("JS_htmlHeader.tmpl")
         header = template.format(
             name=jsFilename,
-            version=version,
+            version=version.htmlVersion(),
             params=self.params)
         jsFile = self.exp.expPath
         folder = os.path.dirname(jsFile)
@@ -519,14 +519,14 @@ class SettingsComponent(object):
 
         # Write imports if modular
         if modular:
-            code = ("import {{ PsychoJS }} from './lib/core-{version}.js';\n"
-                    "import * as core from './lib/core-{version}.js';\n"
-                    "import {{ TrialHandler }} from './lib/data-{version}.js';\n"
-                    "import {{ Scheduler }} from './lib/util-{version}.js';\n"
-                    "import * as util from './lib/util-{version}.js';\n"
-                    "import * as visual from './lib/visual-{version}.js';\n"
-                    "import {{ Sound }} from './lib/sound-{version}.js';\n"
-                    "\n").format(version=version)
+            code = ("import {{ PsychoJS }} from './lib/core{version}.js';\n"
+                    "import * as core from './lib/core{version}.js';\n"
+                    "import {{ TrialHandler }} from './lib/data{version}.js';\n"
+                    "import {{ Scheduler }} from './lib/util{version}.js';\n"
+                    "import * as util from './lib/util{version}.js';\n"
+                    "import * as visual from './lib/visual{version}.js';\n"
+                    "import {{ Sound }} from './lib/sound{version}.js';\n"
+                    "\n").format(version=version.htmlVersion())
             buff.writeIndentedLines(code)
 
         # Write window code
@@ -559,7 +559,7 @@ class SettingsComponent(object):
                         name=self.params['expName'].val,
                         loggingLevel=self.params['logging level'].val.upper(),
                         setRedirectURL=setRedirectURL,
-                        version=version,
+                        version=version.current,
                         )
         buff.writeIndentedLines(code)
 
@@ -576,7 +576,7 @@ class SettingsComponent(object):
                 "os.chdir(_thisDir)\n\n"
                 "# Store info about the experiment session\n"
                 "psychopyVersion = '{version}'\n".format(decoding=decodingInfo,
-                                                         version=version))
+                                                         version=version.current))
         buff.writeIndentedLines(code)
 
         if self.params['expName'].val in [None, '']:

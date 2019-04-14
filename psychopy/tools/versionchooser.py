@@ -38,6 +38,56 @@ def _translate(string):
     return string
 
 
+class psychopyVersion(object):
+    """
+    A class for handling PsychoPy version requests from code compilers
+
+    Attributes
+    ----------
+    params : Param
+        The settings parameters holding 'Use version' param
+    current: str
+        The current version of PsychoPy
+    """
+
+    def __init__(self, params, currentVersion):
+        """
+        Parameters
+        ----------
+        params : Param
+            The settings parameters holding 'Use version' param
+        currentVersion : str
+            The current version of PsychoPy
+        """
+        self.params = params
+        self.current = currentVersion
+
+    def htmlVersion(self):
+        """
+        Returns the correctly formatted version for HTML export
+
+        Returns
+        -------
+        version : str
+            Returns empty string for latest version,
+            or version with '-' prepended for html/JS formatting
+        """
+        if self.params['Use version'].val in ['', 'latest']:
+            return ''
+        return ''.join(('-', self.current))
+
+    def requested(self):
+        """
+        Returns the reqested version of PsychoPy defined in experiment settings
+
+        Returns
+        -------
+        version : str
+            Returns the currently selected version from "Use version" parameter
+        """
+        return self.params['Use version'].val
+
+
 def useVersion(requestedVersion):
     """Manage paths and checkout psychopy libraries for requested versions
     of PsychoPy.

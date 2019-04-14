@@ -28,6 +28,8 @@ from copy import deepcopy
 
 import psychopy
 from psychopy import data, __version__, logging
+from psychopy.tools.versionchooser import psychopyVersion
+
 from .exports import IndentingBuffer, NameSpace
 from .flow import Flow
 from .loops import TrialHandler, LoopInitiator, \
@@ -73,9 +75,6 @@ class Experiment(object):
         self.prefsCoder = prefs.coder
         self.prefsBuilder = prefs.builder
         self.prefsPaths = prefs.paths
-        # this can be checked by the builder that this is an experiment and a
-        # compatible version
-        self.psychopyVersion = __version__
 
         # What libs are needed (make sound come first)
         self.requiredImports = []
@@ -88,6 +87,8 @@ class Experiment(object):
 
         _settingsComp = getComponents(fetchIcons=False)['SettingsComponent']
         self.settings = _settingsComp(parentName='', exp=self)
+        # Create psychopy version object for handling version formatting when writing code
+        self.psychopyVersion = psychopyVersion(self.settings.params, __version__)
         # this will be the xml.dom.minidom.doc object for saving
         self._doc = xml.ElementTree()
         self.namespace = NameSpace(self)  # manage variable names
@@ -172,7 +173,7 @@ class Experiment(object):
     def writeScript(self, expPath=None, target="PsychoPy", modular=True):
         """Write a PsychoPy script for the experiment
         """
-        self.psychopyVersion = psychopy.__version__  # make sure is current
+        self.psychopyVersion.current = psychopy.__version__  # make sure is current
         # set this so that params write for approp target
         utils.scriptTarget = target
         self.flow._prescreenValues()
@@ -268,7 +269,7 @@ class Experiment(object):
         return script
 
     def saveToXML(self, filename):
-        self.psychopyVersion = psychopy.__version__  # make sure is current
+        self.psychopyVersion.current = psychopy.__version__  # make sure is current
         # create the dom object
         self.xmlRoot = xml.Element("PsychoPy2experiment")
         self.xmlRoot.set('version', __version__)
@@ -535,11 +536,11 @@ class Experiment(object):
                           (filenameBase, root.tag))
             # the current exp is already vaporized at this point, oops
             return
-        self.psychopyVersion = root.get('version')
-        versionf = float(self.psychopyVersion.rsplit('.', 1)[0])
+        self.psychopyVersion.current = root.get('version')
+        versionf = float(self.psychopyVersion.current.rsplit('.', 1)[0])
         if versionf < 1.63:
             msg = 'note: v%s was used to create %s ("%s")'
-            vals = (self.psychopyVersion, filenameBase, root.tag)
+            vals = (self.psychopyVersion.current, filenameBase, root.tag)
             logging.warning(msg % vals)
 
         # Parse document nodes

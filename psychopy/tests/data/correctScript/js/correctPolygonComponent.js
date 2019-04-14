@@ -2,13 +2,13 @@
  * Polygoncomponent Test *
  *************************/
 
-import { PsychoJS } from './lib/core-3.1.0.js';
-import * as core from './lib/core-3.1.0.js';
-import { TrialHandler } from './lib/data-3.1.0.js';
-import { Scheduler } from './lib/util-3.1.0.js';
-import * as util from './lib/util-3.1.0.js';
-import * as visual from './lib/visual-3.1.0.js';
-import { Sound } from './lib/sound-3.1.0.js';
+import { PsychoJS } from './lib/core.js';
+import * as core from './lib/core.js';
+import { TrialHandler } from './lib/data.js';
+import { Scheduler } from './lib/util.js';
+import * as util from './lib/util.js';
+import * as visual from './lib/visual.js';
+import { Sound } from './lib/sound.js';
 
 // init psychoJS:
 var psychoJS = new PsychoJS({

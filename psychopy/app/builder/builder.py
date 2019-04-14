@@ -2339,7 +2339,7 @@ class BuilderFrame(wx.Frame):
         cmd = [pythonExec, '-m', compiler, filename,
                '-o', experimentPath]
         # if version is not specified then don't touch useVersion at all
-        version = self.exp.settings.params['Use version'].val
+        version = self.exp.psychopyVersion.requested()
         if version not in [None, 'None', '', __version__]:
             cmd.extend(['-v', version])
             logging.info(' '.join(cmd))
