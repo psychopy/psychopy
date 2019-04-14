@@ -8,7 +8,7 @@ from .. import Device, Computer
 from ... import _ispkg
 from ...constants import DeviceConstants
 from ...errors import print2err, printExceptionDetailsToStdErr
-
+import pyglet
 currentSec = Computer.getTime
 
 class Display(Device):
@@ -456,8 +456,6 @@ class Display(Device):
     def _createAllRuntimeInfoDicts(cls):
         runtime_info_list = []
         try:
-            #try getting screen info using pyglet 1.2.x
-            import pyglet
             default_screen = pyglet.canvas.get_display().get_default_screen()
             dx, dy = default_screen.x, default_screen.y
             dw, dh = default_screen.width, default_screen.height
@@ -473,12 +471,15 @@ class Display(Device):
                 runtime_info['pixel_width'] = w
                 runtime_info['pixel_height'] = h
                 runtime_info['bounds'] = (x, y, x + w, y + h)
-                runtime_info['retrace_rate'] = mode.rate
-                runtime_info['bits_per_pixel'] = mode.depth
                 runtime_info['primary'] = runtime_info['bounds'] == dbounds
-                if mode and mode.width > 0 and mode.height > 0:
-                    runtime_info['pixel_resolution'] = mode.width, mode.height
+                if mode:
+                    runtime_info['retrace_rate'] = mode.rate
+                    runtime_info['bits_per_pixel'] = mode.depth
+                    if mode and mode.width > 0 and mode.height > 0:
+                        runtime_info['pixel_resolution'] = mode.width, mode.height
                 else:
+                    runtime_info['retrace_rate'] = 60
+                    runtime_info['bits_per_pixel'] = 32
                     runtime_info['pixel_resolution'] = w, h
                 runtime_info_list.append(runtime_info)
             return runtime_info_list
