@@ -125,7 +125,7 @@ while t < TRIAL_COUNT:
         # Check any new keyboard char events for a space key.
         # If one is found, set the trial end variable.
         #
-        if ' ' in keyboard.getPresses():
+        if " " in keyboard.getPresses():
             run_trial = False
 
     # Current Trial is Done
