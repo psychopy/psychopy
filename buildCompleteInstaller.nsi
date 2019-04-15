@@ -136,8 +136,11 @@ Section "PsychoPy" SEC01
   StrCpy $AppDir "$INSTDIR\Lib\site-packages\psychopy\app"
 
   File /r /x *.pyo /x *.chm /x Editra /x doc "${PYPATH}*.*"
-; avbin to system32
-  !insertmacro InstallLib DLL NOTSHARED NOREBOOT_PROTECTED avbin.dll $SYSDIR\avbin.dll $SYSDIR
+
+  ${If} $MultiUser.InstallMode == "AllUsers"
+  ; avbin to system32
+    !insertmacro InstallLib DLL NOTSHARED NOREBOOT_PROTECTED avbin.dll $SYSDIR\avbin.dll $SYSDIR
+  ${EndIf}
 
 ; Shortcuts
   !insertmacro MUI_STARTMENU_WRITE_BEGIN Application
