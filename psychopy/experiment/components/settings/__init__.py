@@ -496,11 +496,18 @@ class SettingsComponent(object):
         # create resources folder
         self.prepareResourcesJS()
         jsFilename = os.path.basename(os.path.splitext(self.exp.filename)[0])
+
+        # decide if we need anchored useVersion or leave plain
+        if self.params['Use version'].val not in ['', 'latest']:
+            versionStr = "-{}".format(self.params['Use version'])
+        else:
+            versionStr = ''
+
         # html header
         template = readTextFile("JS_htmlHeader.tmpl")
         header = template.format(
             name=jsFilename,
-            version=version,
+            version=versionStr,
             params=self.params)
         jsFile = self.exp.expPath
         folder = os.path.dirname(jsFile)
@@ -519,14 +526,14 @@ class SettingsComponent(object):
 
         # Write imports if modular
         if modular:
-            code = ("import {{ PsychoJS }} from './lib/core-{version}.js';\n"
-                    "import * as core from './lib/core-{version}.js';\n"
-                    "import {{ TrialHandler }} from './lib/data-{version}.js';\n"
-                    "import {{ Scheduler }} from './lib/util-{version}.js';\n"
-                    "import * as util from './lib/util-{version}.js';\n"
-                    "import * as visual from './lib/visual-{version}.js';\n"
-                    "import {{ Sound }} from './lib/sound-{version}.js';\n"
-                    "\n").format(version=version)
+            code = ("import {{ PsychoJS }} from 'https://pavlovia.org/lib/core{version}.js';\n"
+                    "import * as core from 'https://pavlovia.org/lib/core{version}.js';\n"
+                    "import {{ TrialHandler }} from 'https://pavlovia.org/lib/data{version}.js';\n"
+                    "import {{ Scheduler }} from 'https://pavlovia.org/lib/util{version}.js';\n"
+                    "import * as util from 'https://pavlovia.org/lib/util{version}.js';\n"
+                    "import * as visual from 'https://pavlovia.org/lib/visual{version}.js';\n"
+                    "import {{ Sound }} from 'https://pavlovia.org/lib/sound{version}.js';\n"
+                    "\n").format(version=versionStr)
             buff.writeIndentedLines(code)
 
         # Write window code
