@@ -5,13 +5,16 @@
 
 """ioHub Common Eye Tracker Interface for Tobii (C) Eye Tracking System"""
 from __future__ import absolute_import
-
-import numpy as np
 from .....constants import EventConstants, EyeTrackerConstants
 from .... import Computer, Device
 from ... import EyeTrackerDevice
 from ...eye_events import *
 from .....errors import print2err, printExceptionDetailsToStdErr
+try:
+    from .tobiiclasses import TobiiTracker
+except Exception:
+    print2err('Error importing tobiiclasses')
+    printExceptionDetailsToStdErr()
 
 
 class EyeTracker(EyeTrackerDevice):
@@ -49,24 +52,8 @@ class EyeTracker(EyeTrackerDevice):
             serial_num = None
 
         EyeTracker._tobii = None
-
-        EyeTracker._isEyeX = model_name == 'Tobii EyeX'
-
         try:
-            if EyeTracker._isEyeX:
-                from .eyex_classes import TobiiEyeXTracker
-            else:
-                from .tobiiclasses import TobiiTracker
-        except Exception:
-            print2err('Error importing tobiiclasses')
-            printExceptionDetailsToStdErr()
-
-        try:
-            if EyeTracker._isEyeX:
-                EyeTracker._tobii = TobiiEyeXTracker()
-            else:
-                EyeTracker._tobii = TobiiTracker(
-                    product_id=serial_num, model=model_name)
+            EyeTracker._tobii = TobiiTracker(serial_num, model_name)
         except Exception:
             print2err('Error creating Tobii Device class')
             printExceptionDetailsToStdErr()
@@ -122,10 +109,7 @@ class EyeTracker(EyeTrackerDevice):
             bool: indicates the current connection state to the eye tracking hardware.
         """
         if self._tobii:
-            if self._isEyeX:
-                return self._tobii.isConnected()
-            else:
-                return self._tobii.getTrackerDetails().get('status', False) == 'OK'
+            return self._tobii.getTrackerDetails().get('status', False) == 'OK'
         return False
 
     def isConnected(self):
@@ -142,44 +126,19 @@ class EyeTracker(EyeTrackerDevice):
 
         """
         if self._tobii:
-            if self._isEyeX:
-                return self._tobii.isConnected()
-            else:
-                return self._tobii.getTrackerDetails().get('status', False) == 'OK'
+            return self._tobii.getTrackerDetails().get('status', False) == 'OK'
         return False
 
     def sendMessage(self, message_contents, time_offset=None):
         """The sendMessage method is not supported by the Tobii implementation
         of the Common Eye Tracker Interface, as the Tobii SDK does not support
         saving eye data to a native data file during recording."""
-        EyeTrackerConstants.EYETRACKER_INTERFACE_METHOD_NOT_SUPPORTED
+        return EyeTrackerConstants.EYETRACKER_INTERFACE_METHOD_NOT_SUPPORTED
 
     def sendCommand(self, key, value=None):
         """The sendCommand method is not supported by the Tobii Common Eye
         Tracker Interface."""
-
-#        TODO: The Tobii has several custom commands that can be sent to set or get
-#        information about the eye tracker that is specific to Tobii
-#        systems. Valid command tokens and associated possible valid command values
-#        are as follows:
-#
-#        TO DO: complete based on these tracker object methods
-#            - getTrackerDetails
-#            - getName
-#            - setName
-#            - getHeadBox
-#            - setXSeriesPhysicalPlacement (no-op if tracker is not an X series system)
-#            - getEyeTrackerPhysicalPlacement
-#            - getAvailableExtensions
-#            - getEnabledExtensions
-#            - enableExtension
-#            - ....
-#
-#        Commands always return their result at the end of the command call, if
-#        there is any result to return. Otherwise EyeTrackerConstants.EYETRACKER_OK
-#        is returned.
-
-        EyeTrackerConstants.EYETRACKER_INTERFACE_METHOD_NOT_SUPPORTED
+        return EyeTrackerConstants.EYETRACKER_INTERFACE_METHOD_NOT_SUPPORTED
 
     def runSetupProcedure(
             self,
@@ -369,12 +328,8 @@ class EyeTracker(EyeTrackerDevice):
         """
         if self.isReportingEvents():
             try:
-                if self._isEyeX:
-                    eye_data_event = args[0]
-                    return self._handleNativeEyeXEvent(eye_data_event)
-                else:
-                    eye_data_event = args[1]
-                    return self._handleNativeTobiiEvent(eye_data_event)
+                eye_data_event = args[1]
+                return self._handleNativeTobiiEvent(eye_data_event)
             except Exception:
                 print2err('ERROR IN _handleNativeEvent')
                 printExceptionDetailsToStdErr()
@@ -459,11 +414,7 @@ class EyeTracker(EyeTrackerDevice):
 
         """
         try:
-            if self._isEyeX:
-                return self._getIOHubEventObjectForEyeX(native_event_data)
-            else:
-                return self._getIOHubEventObjectForTobii(native_event_data)
-
+            return self._getIOHubEventObjectForTobii(native_event_data)
         except Exception:
             printExceptionDetailsToStdErr()
         return None

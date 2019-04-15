@@ -42,10 +42,7 @@ class TobiiPsychopyCalibrationGraphics(object):
                  calibrationPointList=None):
         self._eyetrackerinterface = eyetrackerInterface
         # The EyeX interface has to fake the other API's calibration stuff
-        if eyetrackerInterface._isEyeX:
-            self._tobii = eyetrackerInterface._tobii
-        else:
-            self._tobii = eyetrackerInterface._tobii._eyetracker
+        self._tobii = eyetrackerInterface._tobii._eyetracker
         self.screenSize = eyetrackerInterface._display_device.getPixelResolution()
 
         self.width = self.screenSize[0]
@@ -413,9 +410,6 @@ class TobiiPsychopyCalibrationGraphics(object):
         if calibration_sequence_completed:
             # The EyeX interface is slower to add calibration points,
             # have to give it a moment before computing
-            if self._eyetrackerinterface._isEyeX:
-                gevent.sleep(3.0)
-
             self._tobii.ComputeCalibration(self.on_compute_calibration)
 
             msg = 1
@@ -546,9 +540,7 @@ class TobiiPsychopyCalibrationGraphics(object):
                     cal_stats[(targ_x, targ_y)] = dict(
                         left=left_stats, right=right_stats)
             else:
-                # EyeX doesn't return calibration stats
-                if not self._eyetrackerinterface._isEyeX:
-                    print2err('WARNING: Calibration results are NULL.')
+                print2err('WARNING: Calibration results are NULL.')
 
             instuction_text = "Calibration Passed. PRESS 'SPACE' KEY TO CONTINUE."
             continue_method = self.showSystemSetupMessageScreen(

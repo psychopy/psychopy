@@ -5,11 +5,17 @@ from __future__ import print_function
 # Copyright (C) 2012-2016 iSolver Software Solutions
 # Distributed under the terms of the GNU General Public License (GPL).
 
-import Queue
-import exceptions
-import collections
+try:
+    unicode
+except NameError:
+    unicode = str
+
+try:
+    basestring
+except NameError:
+    basestring = str
+    
 import copy
-import sys
 from collections import OrderedDict
 import numpy as np
 from .....devices import ioDeviceError, Computer
@@ -17,246 +23,11 @@ from .....errors import print2err, printExceptionDetailsToStdErr
 
 getTime = Computer.getTime
 
-_USING_PYTHON_2_7 = True
 try:
-    majorv, minorv = sys.version_info[0:2]
-    if majorv == 2 and minorv == 6:
-        _USING_PYTHON_2_7 = False
-        import tobii.sdk as TobiiPy
-        from tobii.sdk.mainloop import Mainloop as TobiiPyMainloop
-        from tobii.sdk.mainloop import MainloopThread as TobiiPyMainloopThread
-        from tobii.sdk.browsing import EyetrackerBrowser as TobiiPyEyetrackerBrowser
-        from tobii.sdk.eyetracker import EyeTracker as TobiiPyEyeTracker
-        from tobii.sdk.time.clock import Clock as TobiiPyClock
-        from tobii.sdk.time.sync import SyncManager as TobiiPySyncManager
-        from tobii.sdk.types import Point2D, Point3D
-    else:
-        import tobii.eye_tracking_io as TobiiPy
-        from tobii.eye_tracking_io.mainloop import Mainloop as TobiiPyMainloop
-        from tobii.eye_tracking_io.mainloop import MainloopThread as TobiiPyMainloopThread
-        from tobii.eye_tracking_io.browsing import EyetrackerBrowser as TobiiPyEyetrackerBrowser
-        from tobii.eye_tracking_io.eyetracker import Eyetracker as TobiiPyEyeTracker
-        from tobii.eye_tracking_io.time.clock import Clock as TobiiPyClock
-        from tobii.eye_tracking_io.time.sync import SyncManager as TobiiPySyncManager
-        from tobii.eye_tracking_io.time.sync import State as TobiiPySyncState
-        from tobii.eye_tracking_io.types import Point2D, Point3D
+    import tobii_research
 except Exception:
     # This only happens when it is Sphinx auto-doc loading the file
     printExceptionDetailsToStdErr()
-
-# Tobii Tracker Browser / Detection Services
-
-
-class BrowserEvent(object):
-    _event_types = dict(
-        BROWSER_EVENT=0,
-        TRACKER_FOUND=1,
-        TRACKER_UPDATE=2,
-        TRACKER_REMOVED=3)
-    _event_types.update([(v, k) for k, v in _event_types.items()])
-    event_type = _event_types['BROWSER_EVENT']
-
-    def __init__(self, tobii_event_type, tracker_info):
-        self._tobii_event_type = tobii_event_type
-        self.tracker_info = tracker_info
-
-
-class TrackerFoundEvent(BrowserEvent):
-    event_type = BrowserEvent._event_types['TRACKER_FOUND']
-
-    def __init__(self, info):
-        BrowserEvent.__init__(self, TobiiPyEyetrackerBrowser.FOUND, info)
-
-
-class TrackerUpdatedEvent(BrowserEvent):
-    event_type = BrowserEvent._event_types['TRACKER_UPDATE']
-
-    def __init__(self, info):
-        BrowserEvent.__init__(self, TobiiPyEyetrackerBrowser.UPDATED, info)
-
-
-class TrackerRemovedEvent(BrowserEvent):
-    event_type = BrowserEvent._event_types['TRACKER_REMOVED']
-
-    def __init__(self, info):
-        BrowserEvent.__init__(self, TobiiPyEyetrackerBrowser.REMOVED, info)
-
-
-class EyeTrackerEvent(object):
-    _event_types = dict(TRACKER_EVENT=0, EYE_TRACKER_CREATED=1)
-    _event_types.update([(v, k) for k, v in _event_types.items()])
-    event_type = _event_types['TRACKER_EVENT']
-
-    def __init__(self, tracker_object):
-        self.tracker_object = tracker_object
-
-    def __del__(self):
-        self.tracker_object = None
-
-
-class TobiiTrackerCreatedEvent(EyeTrackerEvent):
-    event_type = EyeTrackerEvent._event_types['EYE_TRACKER_CREATED']
-
-    def __init__(self, tracker_object):
-        EyeTrackerEvent.__init__(self, tracker_object)
-
-
-class TobiiTrackerBrowser(object):
-    _mainloop = None
-    _detectedTrackers = OrderedDict()
-    _browser = None
-    _event_queue = None
-    _active = False
-    _mainloop_referenced = False
-
-    TRACKER_FOUND = 1
-    TRACKER_UPDATED = 2
-    TRACKER_DROPPED = 3
-
-    @classmethod
-    def start(cls):
-        if TobiiTrackerBrowser._mainloop is None:
-            TobiiPy.init()
-            TobiiTrackerBrowser._mainloop = TobiiPyMainloopThread()
-            TobiiTrackerBrowser._mainloop.start()
-            TobiiTrackerBrowser._event_queue = Queue.Queue()
-            TobiiTrackerBrowser._browser = TobiiPyEyetrackerBrowser(
-                TobiiTrackerBrowser._mainloop, TobiiTrackerBrowser.on_eyetracker_browser_event)
-            cls._active = True
-
-    @classmethod
-    def stop(cls, empty_queue=True):
-        if cls._active:
-            cls._active = False
-            TobiiTrackerBrowser._event_queue.put(None)
-            TobiiTrackerBrowser._browser.stop()
-
-            if cls._mainloop_referenced is False:
-                TobiiTrackerBrowser._mainloop.stop()
-                TobiiTrackerBrowser._mainloop = None
-
-            if empty_queue is True:
-                e = 1
-                while e is not None:
-                    try:
-                        e = TobiiTrackerBrowser.getNextEvent()
-                    except Queue.Empty:
-                        pass
-
-            TobiiTrackerBrowser._browser = None
-            TobiiTrackerBrowser._detectedTrackers = OrderedDict()
-
-    @classmethod
-    def isActive(cls):
-        return cls._active
-
-    @classmethod
-    def getMainLoop(cls):
-        cls._mainloop_referenced = True
-        return cls._mainloop
-
-    @classmethod
-    def getNextEvent(cls, timeout=None):
-        if timeout is None:
-            e = TobiiTrackerBrowser._event_queue.get_nowait()
-            TobiiTrackerBrowser._event_queue.task_done()
-            return e
-        e = TobiiTrackerBrowser._event_queue.get(block=True, timeout=timeout)
-        TobiiTrackerBrowser._event_queue.task_done()
-        return e
-
-    @classmethod
-    def on_eyetracker_browser_event(
-            cls,
-            event_type,
-            event_name,
-            eyetracker_info):
-        if event_type == TobiiPyEyetrackerBrowser.FOUND:
-            TobiiTrackerBrowser._detectedTrackers[
-                eyetracker_info.product_id] = eyetracker_info
-            TobiiTrackerBrowser._event_queue.put(
-                TrackerFoundEvent(eyetracker_info))
-            return False
-
-        if event_type == TobiiPyEyetrackerBrowser.UPDATED:
-            TobiiTrackerBrowser._detectedTrackers[
-                eyetracker_info.product_id] = eyetracker_info
-            TobiiTrackerBrowser._event_queue.put(
-                TrackerUpdatedEvent(eyetracker_info))
-            return False
-
-        if TobiiPyEyetrackerBrowser.REMOVED:
-            del TobiiTrackerBrowser._detectedTrackers[
-                eyetracker_info.product_id]
-            TobiiTrackerBrowser._event_queue.put(
-                TrackerRemovedEvent(eyetracker_info))
-            return False
-
-        raise ioDeviceError(
-            device=cls,
-            msg='TobiiTrackerBrowser.on_eyetracker_browser_event received unhandled event type {0} for Tobii device with info: {1}'.format(
-                event_type,
-                eyetracker_info))
-
-    @classmethod
-    def getTrackerDetails(cls, tracker_product_id):
-        tobiiInfoProperties = [
-            'product_id',
-            'given_name',
-            'model',
-            'generation',
-            'firmware_version',
-            'status']
-        tprops = OrderedDict()
-        eyetracker_info = TobiiTrackerBrowser._detectedTrackers[
-            tracker_product_id]
-        for tp in tobiiInfoProperties:
-            ta = getattr(eyetracker_info, tp)
-            if callable(ta):
-                ta = ta()
-            tprops[tp] = ta
-        tprops['factory_info_string'] = str(eyetracker_info.factory_info)
-        return tprops
-
-    @classmethod
-    def getDetectedTrackerList(cls):
-        return [t for t in TobiiTrackerBrowser._detectedTrackers.values()]
-
-    @classmethod
-    def _checkForMatch(cls, tracker_info, model, product_id):
-        if product_id:
-            if tracker_info.product_id != product_id:
-                return False
-        if model:
-            if model != tracker_info.model:
-                return False
-
-        return True
-
-    @classmethod
-    def findDevice(cls, model=None, product_id=None, timeout=10.0):
-        tracker_info = None
-
-        # check existing detected devices
-        matching_tracker_infos = [
-            tracker_info for tracker_info in cls.getDetectedTrackerList() if cls._checkForMatch(
-                tracker_info, model, product_id) is True]
-        if matching_tracker_infos:
-            return matching_tracker_infos[0]
-
-        started_browsing_time = getTime()
-        while(getTime() - started_browsing_time < timeout):
-            try:
-                tb_event = TobiiTrackerBrowser.getNextEvent(timeout=0.05)
-                if tb_event is None:
-                    break
-                if isinstance(tb_event, TrackerFoundEvent):
-                    tracker_info = tb_event.tracker_info
-                    if TobiiTrackerBrowser._checkForMatch(
-                            tracker_info, model, product_id) is True:
-                        return tracker_info
-            except Queue.Empty:
-                pass
 
 
 # Tobii Eye Tracker and Time Synchronization Services
@@ -274,246 +45,157 @@ class TobiiTracker(object):
                            status='UNKNOWN',
                            trigger_signal=None)
 
-    def __init__(
-            self,
-            eyetracker_info=None,
-            product_id=None,
-            model=None,
-            mainloop=None,
-            create_sync_manager=True):
-        self._eyetracker_info = eyetracker_info
-        self._requested_product_id = product_id
-        self._requested_model = model
-        self._mainloop = mainloop
+    def __init__(self, serial_number=None,  model=None):
+        
         self._eyetracker = None
-        self._queue = None
-        self._tobiiClock = None
-        self._getTobiiClockResolution = None
-        self._getTobiiClockTime = None
-        self._sync_manager = None
-        self._syncTimeEventDeque = None
-        self._isRecording = False
-
-        if eyetracker_info is None:
-            if not TobiiTrackerBrowser.isActive():
-                TobiiTrackerBrowser.start()
-                self._eyetracker_info = TobiiTrackerBrowser.findDevice(
-                    model, product_id)
-                if self._eyetracker_info:
-                    self._mainloop = TobiiTrackerBrowser.getMainLoop()
-                TobiiTrackerBrowser.stop()
-            else:
-                self._eyetracker_info = TobiiTrackerBrowser.findDevice(
-                    model, product_id)
-
-        if self._eyetracker_info is None:
-            raise exceptions.BaseException(
-                'Could not find a Tobii Eye Tracker matching requirements.')
-
-        if self._mainloop is None:
-            if TobiiTrackerBrowser.isActive():
-                self._mainloop = TobiiTrackerBrowser.getMainLoop()
-            else:
-                TobiiPy.init()
-                self._mainloop = TobiiPyMainloopThread()
-                self._mainloop.start()
-
-        self._queue = Queue.Queue()
-
-        TobiiPyEyeTracker.create_async(
-            self._mainloop,
-            self._eyetracker_info,
-            self.on_eyetracker_created)
-
-        stime = getTime()
-        while getTime() - stime < 10.0:
-            try:
-                event = self._queue.get(block=True, timeout=.1)
-                if isinstance(event, TobiiTrackerCreatedEvent):
-                    self._eyetracker = event.tracker_object
-                    self._eyetracker.events.OnFramerateChanged += self.on_external_framerate_change
-                    if hasattr(
-                            self._eyetracker.events,
-                            'OnHeadMovementBoxChanged'):
-                        self._eyetracker.events.OnHeadMovementBoxChanged += self.on_head_box_change
-                    elif hasattr(self._eyetracker.events, 'OnTrackBoxChanged'):
-                        self._eyetracker.events.OnTrackBoxChanged += self.on_head_box_change
-                    else:
-                        print('WARNING: TobiiClasses could not set callback hook for "self.on_head_box_change".')
-                    self._eyetracker.events.OnXConfigurationChanged += self.on_x_series_physical_config_change
-
+        if serial_number or model:
+            for et in tobii_research.find_all_eyetrackers():
+                if serial_number == et.serial_number:
+                    self._eyetracker = et
                     break
-                self._queue.task_done()
-            except Queue.Empty:
-                pass
+                if model == et.model:
+                    self._eyetracker = et
+                    break
+        else:
+            self._eyetracker = tobii_research.find_all_eyetrackers()[0]
+
 
         if self._eyetracker is None:
-            raise exceptions.BaseException(
-                'Could not connect to Tobii. Timeout.')
+            raise RuntimeError('Could not connect to Tobii.')
+            
+        self._isRecording = False
+        self._queue = None#Queue.Queue()
 
-        if create_sync_manager:
-            self._eyetracker.events.OnError += self.on_eyetracker_error
-            self._tobiiClock = TobiiPyClock()
-            self._getTobiiClockResolution = self._tobiiClock.get_resolution
-            self._getTobiiClockTime = self._tobiiClock.get_time
-            self._syncTimeEventDeque = collections.deque(maxlen=32)
-            self._sync_manager = TobiiPySyncManager(self._tobiiClock,
-                                                    self._eyetracker_info,
-                                                    self._mainloop,
-                                                    self.on_sync_error,
-                                                    self.on_sync_status)
 
-    def on_eyetracker_created(self, *args, **kwargs):
-        # print 'on_eyetracker_created: entered'
-        et = None
-        if len(args) >= 2:
-            et = args[1]
-        else:
-            raise exceptions.BaseException(
-                'WARNING: on_eyetracker_created: Unhandled args count', len(args), args)
+        #if create_sync_manager:
+        #    self._eyetracker.events.OnError += self.on_eyetracker_error
+        #    self._tobiiClock = TobiiPyClock()
+        #    self._getTobiiClockResolution = self._tobiiClock.get_resolution
+        #    self._getTobiiClockTime = self._tobiiClock.get_time
+        #    self._syncTimeEventDeque = collections.deque(maxlen=32)
+        #    self._sync_manager = TobiiPySyncManager(self._tobiiClock,
+        #                                            self._eyetracker_info,
+        #                                            self._mainloop,
+        #                                            self.on_sync_error,
+        #                                            self.on_sync_status)
 
-        error = kwargs.get('error', None)
-        if error:
-            raise exceptions.BaseException(
-                'Connection to Tobii failed because of an exception: %s' %
-                (str(error),))
-
-        self._queue.put(TobiiTrackerCreatedEvent(et))
-
-        return False
-
-    def on_eyetracker_error(self, *args, **kwargs):
-        print2err('TobiiTracker.on_eyetracker_error: ', args, kwargs)
-        return False
-
-    def on_sync_error(self, *args, **kwargs):
-        print2err('TobiiTracker.on_sync_error: ', args, kwargs)
-        return False
-
-    def on_sync_status(self, *args, **kwargs):
-        sync_state = args[0]
-        self._syncTimeEventDeque.append(sync_state)
-        return False
 
     def on_eyetracker_data(self, *args, **kwargs):
-        eye_data_event = args[1]
-        LEFT = self.LEFT
-        RIGHT = self.RIGHT
+        print2err('on_eyetracker_data:', args, kwargs)
+# =============================================================================
+#         eye_data_event = args[1]
+#         LEFT = self.LEFT
+#         RIGHT = self.RIGHT
+# 
+#         eyes = (copy.deepcopy(self.eye_data), copy.deepcopy(self.eye_data))
+# 
+#         eyes[LEFT]['validity_code'] = eye_data_event.LeftValidity
+#         eyes[RIGHT]['validity_code'] = eye_data_event.RightValidity
+#         eyes[LEFT]['tracker_time_usec'] = eye_data_event.Timestamp
+#         eyes[RIGHT]['tracker_time_usec'] = eye_data_event.Timestamp
+#         if hasattr(eye_data_event, 'TrigSignal'):
+#             eyes[LEFT]['trigger_signal'] = eye_data_event.TrigSignal
+#             eyes[RIGHT]['trigger_signal'] = eye_data_event.TrigSignal
+# 
+#         # print "*** lastEyeData.RightGazePoint2D:
+#         # ",lastEyeData.RightGazePoint2D.__dict__
+#         if eye_data_event.LeftValidity >= 2 and eye_data_event.RightValidity >= 2:
+#             # no eye signal
+#             eyes[LEFT]['status'] = 'Missing'
+#             eyes[RIGHT]['status'] = 'Missing'
+# 
+#         elif eye_data_event.LeftValidity < 2 and eye_data_event.RightValidity >= 2:
+#             # left eye only available
+#             eyes[LEFT]['status'] = 'Available'
+#             eyes[RIGHT]['status'] = 'Missing'
+# 
+#             eyes[LEFT]['pupil_diameter_mm'] = eye_data_event.LeftPupil
+#             eyes[LEFT]['gaze_norm'][0] = eye_data_event.LeftGazePoint2D.x
+#             eyes[LEFT]['gaze_norm'][1] = eye_data_event.LeftGazePoint2D.y
+#             eyes[LEFT]['gaze_mm'][0] = eye_data_event.LeftGazePoint3D.x
+#             eyes[LEFT]['gaze_mm'][1] = eye_data_event.LeftGazePoint3D.y
+#             eyes[LEFT]['gaze_mm'][2] = eye_data_event.LeftGazePoint3D.z
+#             eyes[LEFT]['eye_location_norm'][
+#                 0] = eye_data_event.LeftEyePosition3DRelative.x
+#             eyes[LEFT]['eye_location_norm'][
+#                 1] = eye_data_event.LeftEyePosition3DRelative.y
+#             eyes[LEFT]['eye_location_norm'][
+#                 2] = eye_data_event.LeftEyePosition3DRelative.z
+#             eyes[LEFT]['eye_location_mm'][
+#                 0] = eye_data_event.LeftEyePosition3D.x
+#             eyes[LEFT]['eye_location_mm'][
+#                 1] = eye_data_event.LeftEyePosition3D.y
+#             eyes[LEFT]['eye_location_mm'][
+#                 2] = eye_data_event.LeftEyePosition3D.z
+# 
+#         elif eye_data_event.LeftValidity >= 2 and eye_data_event.RightValidity < 2:
+#             # right eye only available
+#             eyes[RIGHT]['status'] = 'Available'
+#             eyes[LEFT]['status'] = 'Missing'
+# 
+#             eyes[RIGHT]['pupil_diameter_mm'] = eye_data_event.RightPupil
+#             eyes[RIGHT]['gaze_norm'][0] = eye_data_event.RightGazePoint2D.x
+#             eyes[RIGHT]['gaze_norm'][1] = eye_data_event.RightGazePoint2D.y
+#             eyes[RIGHT]['gaze_mm'][0] = eye_data_event.RightGazePoint3D.x
+#             eyes[RIGHT]['gaze_mm'][1] = eye_data_event.RightGazePoint3D.y
+#             eyes[RIGHT]['gaze_mm'][2] = eye_data_event.RightGazePoint3D.z
+#             eyes[RIGHT]['eye_location_norm'][
+#                 0] = eye_data_event.RightEyePosition3DRelative.x
+#             eyes[RIGHT]['eye_location_norm'][
+#                 1] = eye_data_event.RightEyePosition3DRelative.y
+#             eyes[RIGHT]['eye_location_norm'][
+#                 2] = eye_data_event.RightEyePosition3DRelative.z
+#             eyes[RIGHT]['eye_location_mm'][
+#                 0] = eye_data_event.RightEyePosition3D.x
+#             eyes[RIGHT]['eye_location_mm'][
+#                 1] = eye_data_event.RightEyePosition3D.y
+#             eyes[RIGHT]['eye_location_mm'][
+#                 2] = eye_data_event.RightEyePosition3D.z
+#         else:
+#             # binocular available
+#             eyes[RIGHT]['status'] = 'Available'
+#             eyes[LEFT]['status'] = 'Available'
+# 
+#             eyes[LEFT]['pupil_diameter_mm'] = eye_data_event.LeftPupil
+#             eyes[LEFT]['gaze_norm'][0] = eye_data_event.LeftGazePoint2D.x
+#             eyes[LEFT]['gaze_norm'][1] = eye_data_event.LeftGazePoint2D.y
+#             eyes[LEFT]['gaze_mm'][0] = eye_data_event.LeftGazePoint3D.x
+#             eyes[LEFT]['gaze_mm'][1] = eye_data_event.LeftGazePoint3D.y
+#             eyes[LEFT]['gaze_mm'][2] = eye_data_event.LeftGazePoint3D.z
+#             eyes[LEFT]['eye_location_norm'][
+#                 0] = eye_data_event.LeftEyePosition3DRelative.x
+#             eyes[LEFT]['eye_location_norm'][
+#                 1] = eye_data_event.LeftEyePosition3DRelative.y
+#             eyes[LEFT]['eye_location_norm'][
+#                 2] = eye_data_event.LeftEyePosition3DRelative.z
+#             eyes[LEFT]['eye_location_mm'][
+#                 0] = eye_data_event.LeftEyePosition3D.x
+#             eyes[LEFT]['eye_location_mm'][
+#                 1] = eye_data_event.LeftEyePosition3D.y
+#             eyes[LEFT]['eye_location_mm'][
+#                 2] = eye_data_event.LeftEyePosition3D.z
+# 
+#             eyes[RIGHT]['pupil_diameter_mm'] = eye_data_event.RightPupil
+#             eyes[RIGHT]['gaze_norm'][0] = eye_data_event.RightGazePoint2D.x
+#             eyes[RIGHT]['gaze_norm'][1] = eye_data_event.RightGazePoint2D.y
+#             eyes[RIGHT]['gaze_mm'][0] = eye_data_event.RightGazePoint3D.x
+#             eyes[RIGHT]['gaze_mm'][1] = eye_data_event.RightGazePoint3D.y
+#             eyes[RIGHT]['gaze_mm'][2] = eye_data_event.RightGazePoint3D.z
+#             eyes[RIGHT]['eye_location_norm'][
+#                 0] = eye_data_event.RightEyePosition3DRelative.x
+#             eyes[RIGHT]['eye_location_norm'][
+#                 1] = eye_data_event.RightEyePosition3DRelative.y
+#             eyes[RIGHT]['eye_location_norm'][
+#                 2] = eye_data_event.RightEyePosition3DRelative.z
+#             eyes[RIGHT]['eye_location_mm'][
+#                 0] = eye_data_event.RightEyePosition3D.x
+#             eyes[RIGHT]['eye_location_mm'][
+#                 1] = eye_data_event.RightEyePosition3D.y
+#             eyes[RIGHT]['eye_location_mm'][
+#                 2] = eye_data_event.RightEyePosition3D.z
+# 
+# =============================================================================
 
-        eyes = (copy.deepcopy(self.eye_data), copy.deepcopy(self.eye_data))
-
-        eyes[LEFT]['validity_code'] = eye_data_event.LeftValidity
-        eyes[RIGHT]['validity_code'] = eye_data_event.RightValidity
-        eyes[LEFT]['tracker_time_usec'] = eye_data_event.Timestamp
-        eyes[RIGHT]['tracker_time_usec'] = eye_data_event.Timestamp
-        if hasattr(eye_data_event, 'TrigSignal'):
-            eyes[LEFT]['trigger_signal'] = eye_data_event.TrigSignal
-            eyes[RIGHT]['trigger_signal'] = eye_data_event.TrigSignal
-
-        # print "*** lastEyeData.RightGazePoint2D:
-        # ",lastEyeData.RightGazePoint2D.__dict__
-        if eye_data_event.LeftValidity >= 2 and eye_data_event.RightValidity >= 2:
-            # no eye signal
-            eyes[LEFT]['status'] = 'Missing'
-            eyes[RIGHT]['status'] = 'Missing'
-
-        elif eye_data_event.LeftValidity < 2 and eye_data_event.RightValidity >= 2:
-            # left eye only available
-            eyes[LEFT]['status'] = 'Available'
-            eyes[RIGHT]['status'] = 'Missing'
-
-            eyes[LEFT]['pupil_diameter_mm'] = eye_data_event.LeftPupil
-            eyes[LEFT]['gaze_norm'][0] = eye_data_event.LeftGazePoint2D.x
-            eyes[LEFT]['gaze_norm'][1] = eye_data_event.LeftGazePoint2D.y
-            eyes[LEFT]['gaze_mm'][0] = eye_data_event.LeftGazePoint3D.x
-            eyes[LEFT]['gaze_mm'][1] = eye_data_event.LeftGazePoint3D.y
-            eyes[LEFT]['gaze_mm'][2] = eye_data_event.LeftGazePoint3D.z
-            eyes[LEFT]['eye_location_norm'][
-                0] = eye_data_event.LeftEyePosition3DRelative.x
-            eyes[LEFT]['eye_location_norm'][
-                1] = eye_data_event.LeftEyePosition3DRelative.y
-            eyes[LEFT]['eye_location_norm'][
-                2] = eye_data_event.LeftEyePosition3DRelative.z
-            eyes[LEFT]['eye_location_mm'][
-                0] = eye_data_event.LeftEyePosition3D.x
-            eyes[LEFT]['eye_location_mm'][
-                1] = eye_data_event.LeftEyePosition3D.y
-            eyes[LEFT]['eye_location_mm'][
-                2] = eye_data_event.LeftEyePosition3D.z
-
-        elif eye_data_event.LeftValidity >= 2 and eye_data_event.RightValidity < 2:
-            # right eye only available
-            eyes[RIGHT]['status'] = 'Available'
-            eyes[LEFT]['status'] = 'Missing'
-
-            eyes[RIGHT]['pupil_diameter_mm'] = eye_data_event.RightPupil
-            eyes[RIGHT]['gaze_norm'][0] = eye_data_event.RightGazePoint2D.x
-            eyes[RIGHT]['gaze_norm'][1] = eye_data_event.RightGazePoint2D.y
-            eyes[RIGHT]['gaze_mm'][0] = eye_data_event.RightGazePoint3D.x
-            eyes[RIGHT]['gaze_mm'][1] = eye_data_event.RightGazePoint3D.y
-            eyes[RIGHT]['gaze_mm'][2] = eye_data_event.RightGazePoint3D.z
-            eyes[RIGHT]['eye_location_norm'][
-                0] = eye_data_event.RightEyePosition3DRelative.x
-            eyes[RIGHT]['eye_location_norm'][
-                1] = eye_data_event.RightEyePosition3DRelative.y
-            eyes[RIGHT]['eye_location_norm'][
-                2] = eye_data_event.RightEyePosition3DRelative.z
-            eyes[RIGHT]['eye_location_mm'][
-                0] = eye_data_event.RightEyePosition3D.x
-            eyes[RIGHT]['eye_location_mm'][
-                1] = eye_data_event.RightEyePosition3D.y
-            eyes[RIGHT]['eye_location_mm'][
-                2] = eye_data_event.RightEyePosition3D.z
-        else:
-            # binocular available
-            eyes[RIGHT]['status'] = 'Available'
-            eyes[LEFT]['status'] = 'Available'
-
-            eyes[LEFT]['pupil_diameter_mm'] = eye_data_event.LeftPupil
-            eyes[LEFT]['gaze_norm'][0] = eye_data_event.LeftGazePoint2D.x
-            eyes[LEFT]['gaze_norm'][1] = eye_data_event.LeftGazePoint2D.y
-            eyes[LEFT]['gaze_mm'][0] = eye_data_event.LeftGazePoint3D.x
-            eyes[LEFT]['gaze_mm'][1] = eye_data_event.LeftGazePoint3D.y
-            eyes[LEFT]['gaze_mm'][2] = eye_data_event.LeftGazePoint3D.z
-            eyes[LEFT]['eye_location_norm'][
-                0] = eye_data_event.LeftEyePosition3DRelative.x
-            eyes[LEFT]['eye_location_norm'][
-                1] = eye_data_event.LeftEyePosition3DRelative.y
-            eyes[LEFT]['eye_location_norm'][
-                2] = eye_data_event.LeftEyePosition3DRelative.z
-            eyes[LEFT]['eye_location_mm'][
-                0] = eye_data_event.LeftEyePosition3D.x
-            eyes[LEFT]['eye_location_mm'][
-                1] = eye_data_event.LeftEyePosition3D.y
-            eyes[LEFT]['eye_location_mm'][
-                2] = eye_data_event.LeftEyePosition3D.z
-
-            eyes[RIGHT]['pupil_diameter_mm'] = eye_data_event.RightPupil
-            eyes[RIGHT]['gaze_norm'][0] = eye_data_event.RightGazePoint2D.x
-            eyes[RIGHT]['gaze_norm'][1] = eye_data_event.RightGazePoint2D.y
-            eyes[RIGHT]['gaze_mm'][0] = eye_data_event.RightGazePoint3D.x
-            eyes[RIGHT]['gaze_mm'][1] = eye_data_event.RightGazePoint3D.y
-            eyes[RIGHT]['gaze_mm'][2] = eye_data_event.RightGazePoint3D.z
-            eyes[RIGHT]['eye_location_norm'][
-                0] = eye_data_event.RightEyePosition3DRelative.x
-            eyes[RIGHT]['eye_location_norm'][
-                1] = eye_data_event.RightEyePosition3DRelative.y
-            eyes[RIGHT]['eye_location_norm'][
-                2] = eye_data_event.RightEyePosition3DRelative.z
-            eyes[RIGHT]['eye_location_mm'][
-                0] = eye_data_event.RightEyePosition3D.x
-            eyes[RIGHT]['eye_location_mm'][
-                1] = eye_data_event.RightEyePosition3D.y
-            eyes[RIGHT]['eye_location_mm'][
-                2] = eye_data_event.RightEyePosition3D.z
-
-        return False
-
-    def on_start_tracking(self, *args, **kwargs):
-        return False
-
-    def on_stop_tracking(self, *args, **kwargs):
-        return False
 
     def on_external_framerate_change(self, *args, **kwargs):
         print2err('NOTE: Tobii System Sampling Rate Changed.')
@@ -521,10 +203,6 @@ class TobiiTracker(object):
 
     def on_head_box_change(self, *args, **kwargs):
         print2err('NOTE: Tobii Head Movement Box Changed.')
-        return False
-
-    def on_x_series_physical_config_change(self, *args, **kwargs):
-        print2err('NOTE: Tobii X Series Physical Settings Changed.')
         return False
 
     def getTimeSyncManager(self):
@@ -542,9 +220,6 @@ class TobiiTracker(object):
 
     def getTobiiTimeResolution(self):
         return self._getTobiiClockResolution()
-
-    def getMainLoop(self):
-        return self._mainloop
 
     def getTrackerDetails(self):
         tobiiInfoProperties = [
@@ -572,91 +247,89 @@ class TobiiTracker(object):
     def startTracking(self, et_data_rx_callback=None):
         if et_data_rx_callback:
             self.on_eyetracker_data = et_data_rx_callback
-        self._eyetracker.events.OnGazeDataReceived += self.on_eyetracker_data
-        self._eyetracker.StartTracking(self.on_start_tracking)
+        
+        self._eyetracker.subscribe_to(tobii_research.EYETRACKER_GAZE_DATA, 
+                                      self.on_eyetracker_data,
+                                      as_dictionary=True)
+        
         self._isRecording = True
         return True
 
     def stopTracking(self):
-        self._eyetracker.events.OnGazeDataReceived -= self.on_eyetracker_data
-        self._eyetracker.StopTracking(self.on_stop_tracking)
+        self._eyetracker.unsubscribe_from(tobii_research.EYETRACKER_GAZE_DATA,
+                                          self.on_eyetracker_data)
         self._isRecording = False
 
     def getName(self):
-        return self._eyetracker.GetUnitName()
+        return self._eyetracker.name
 
     def setName(self, name):
-        self._eyetracker.SetUnitName(name)
-
-    def getLowBlinkMode(self):
         try:
-            return self._eyetracker.GetLowblinkMode()
-        except Exception:
-            pass
-        return None
-
-    def setLowBlinkMode(self, enable):
-        if hasattr(self._eyetracker, 'SetLowblinkMode'):
-            try:
-                if isinstance(enable, bool) or enable == 0 or enable == 1:
-                    self._eyetracker.SetLowblinkMode(enable)
-                return self._eyetracker.GetLowblinkMode()
-            except Exception:
-                pass
-        return None
+            self._eyetracker.set_device_name(name)
+        except tobii_research.EyeTrackerFeatureNotSupportedError:
+            print2err("This eye tracker doesn't support changing the device name.")
+        except tobii_research.EyeTrackerLicenseError:
+            print2err("You need a higher level license to change the device name.")
 
     def setSamplingRate(self, rate):
-        if rate in self._eyetracker.EnumerateFramerates():
-            self._eyetracker.SetFramerate(rate)
-            return rate
-        return self._eyetracker.GetFramerate()
+        if rate in self.getAvailableSamplingRates():
+            self._eyetracker.set_gaze_output_frequency(rate)
+        return self._eyetracker.getSamplingRate()
 
     def getAvailableSamplingRates(self):
-        return self._eyetracker.EnumerateFramerates()
+        return self._eyetracker.get_all_gaze_output_frequencies()
 
     def getSamplingRate(self):
-        return self._eyetracker.GetFramerate()
+        return self._eyetracker.get_gaze_output_frequency()
 
-    def getIlluminationMode(self):
+    def getMode(self):
+        return self._eyetracker.get_eye_tracking_mode()
+
+    def getAvailableModes(self):
+        return self._eyetracker.get_all_eye_tracking_modes()
+
+    def setMode(self, imode):
+        cmode = self.getMode()
         try:
-            return self._eyetracker.getIlluminationMode()
-        except Exception:
-            pass
-        return None
-
-    def getAvailableIlluminationModes(self):
-        try:
-            return self._eyetracker.EnumerateIlluminationModes()
-        except Exception:
-            return []
-
-    def setIlluminationMode(self, imode):
-        imodes = self.getAvailableIlluminationModes()
-        if len(imodes) > 0:
-            if imode in imodes:
-                self._eyetracker.SetIlluminationMode(imode)
-                return imode
-            return self._eyetracker.getIlluminationMode()
-        else:
-            print('WARNING: setIlluminationMode is not supported by either your Tobii model, or the version of the Tobii SDK being used.')
+            self._eyetracker.set_eye_tracking_mode(imode)
+        except:
+            self._eyetracker.set_eye_tracking_mode(cmode)
 
     def getHeadBox(self):
-        hb = None
-        if hasattr(self._eyetracker, 'GetTrackBox'):
-            hb = self._eyetracker.GetTrackBox()
-        elif hasattr(self._eyetracker, 'GetHeadMovementBox'):
-            hb = self._eyetracker.GetHeadMovementBox()
+        """
+        tobii_research format:
+            Back Lower Left: (-200.0, -130.0, 750.0)
+            Back Lower Right: (200.0, -130.0, 750.0)
+            Back Upper Left: (-200.0, 130.0, 750.0)
+            Back Upper Right: (200.0, 130.0, 750.0)
+            Front Lower Left: (-140.0, -80.0, 450.0)
+            Front Lower Right: (140.0, -80.0, 450.0)
+            Front Upper Left: (-140.0, 80.0, 450.0)
+            Front Upper Right: (140.0, 80.0, 450.0)
+        """
+        
+        hb = self._eyetracker.get_track_box()
+
 
         if hb:
+            bll = hb.back_lower_left
+            blr = hb.back_lower_right
+            bup = hb.back_upper_left
+            bur = hb.back_upper_right
+            fll = hb.front_lower_left
+            flr = hb.front_lower_right
+            ful = hb.front_upper_left
+            fur = hb.front_upper_right 
+
             return np.asarray([
-                (hb.Point1.x, hb.Point1.y, hb.Point1.z),
-                (hb.Point2.x, hb.Point2.y, hb.Point2.z),
-                (hb.Point3.x, hb.Point3.y, hb.Point3.z),
-                (hb.Point4.x, hb.Point4.y, hb.Point4.z),
-                (hb.Point5.x, hb.Point5.y, hb.Point5.z),
-                (hb.Point6.x, hb.Point6.y, hb.Point6.z),
-                (hb.Point7.x, hb.Point7.y, hb.Point7.z),
-                (hb.Point8.x, hb.Point8.y, hb.Point8.z)
+                bll,
+                blr,
+                bup,
+                bur,
+                fll,
+                flr,
+                ful,
+                fur
             ])
         return None
 
@@ -702,13 +375,5 @@ class TobiiTracker(object):
     def disconnect(self):
         if self._isRecording:
             self.stopTracking()
-        self._mainloop.stop()
-        self._mainloop = None
-        self._eyetracker_info = None
-        self._requested_product_id = None
-        self._requested_model = None
         self._eyetracker = None
 
-    def __del__(self):
-        if self._mainloop:
-            self.disconnect()
