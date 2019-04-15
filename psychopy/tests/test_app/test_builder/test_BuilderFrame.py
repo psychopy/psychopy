@@ -28,9 +28,9 @@ class Test_BuilderFrame(object):
     """This test fetches all standard components and checks that, with default
     settings, they can be added to a Routine and result in a script that compiles
     """
-    @pytest.mark.usefixtures('pytest_namespace')
+    @pytest.mark.usefixtures('needs_app')
     def setup(self):
-        self.app = pytest.app
+        self.app = getApp()
 
         self.builder = self.app.newBuilderFrame()
         self.exp = self.builder.exp
