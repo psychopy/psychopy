@@ -4,11 +4,11 @@
 import pytest
 from psychopy.app._psychopyApp import PsychoPyApp
 
-@pytest.fixture(scope="session", autouse=True)
-def pytest_namespace():
-    app = PsychoPyApp(testMode=True, showSplash=False)
-    return {'app': app}
+# def pytest_configure():
+#     pytest.app = PsychoPyApp(testMode=True, showSplash=False)
 
-@pytest.mark.usefixtures('pytest_namespace')
-def pytest_sessionfinish(session, exitstatus):
-    pytest.app.quit()
+@pytest.fixture(scope="session")
+def getApp():
+    app = PsychoPyApp(testMode=True, showSplash=False)
+    yield app
+    app.quit()

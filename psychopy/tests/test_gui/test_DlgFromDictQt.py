@@ -6,7 +6,7 @@ from collections import OrderedDict
 from psychopy.gui.qtgui import DlgFromDict
 import pytest
 
-@pytest.mark.usefixtures('pytest_namespace')
+
 class TestDlgFromDictQt(object):
     def setup(self):
         self.d = dict(
