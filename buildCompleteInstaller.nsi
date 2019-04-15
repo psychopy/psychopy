@@ -93,7 +93,7 @@ Function .onInit
     StrCpy $InstDir "$PROGRAMFILES\${PRODUCT_NAME}"
   ${EndIf}
 
-  ReadRegStr $R0 HKLM \
+  ReadRegStr $R0 SHELL_CONTEXT \
   "Software\Microsoft\Windows\CurrentVersion\Uninstall\${PRODUCT_NAME}" \
   "UninstallString"
   StrCmp $R0 "" done
@@ -142,8 +142,8 @@ Section "PsychoPy" SEC01
 
 ; Update Windows Path
   ;add to path variable
-  ${EnvVarUpdate} $0 "PATH" "A" "HKLM" "$INSTDIR"
-  ${EnvVarUpdate} $0 "PATH" "A" "HKLM" "$INSTDIR\DLLs"
+  ${EnvVarUpdate} $0 "PATH" "A" "SHELL_CONTEXT" "$INSTDIR"
+  ${EnvVarUpdate} $0 "PATH" "A" "SHELL_CONTEXT" "$INSTDIR\DLLs"
 
 SectionEnd
 
@@ -162,7 +162,7 @@ SectionEnd
 
 Section -Post
   WriteUninstaller "$INSTDIR\uninst.exe"
-  ;WriteRegStr HKLM "${PRODUCT_DIR_REGKEY}" "" "$INSTDIR\AppMainExe.exe"
+  ;WriteRegStr SHELL_CONTEXT "${PRODUCT_DIR_REGKEY}" "" "$INSTDIR\AppMainExe.exe"
   WriteRegStr ${PRODUCT_UNINST_ROOT_KEY} "${PRODUCT_UNINST_KEY}" "DisplayName" "$(^Name)"
   WriteRegStr ${PRODUCT_UNINST_ROOT_KEY} "${PRODUCT_UNINST_KEY}" "UninstallString" "$INSTDIR\uninst.exe"
   WriteRegStr ${PRODUCT_UNINST_ROOT_KEY} "${PRODUCT_UNINST_KEY}" "DisplayVersion" "${PRODUCT_VERSION}"
@@ -186,9 +186,9 @@ Section Uninstall
   RMDir /r "$SMPROGRAMS\$ICONS_GROUP"
 
   DeleteRegKey ${PRODUCT_UNINST_ROOT_KEY} "${PRODUCT_UNINST_KEY}"
-  ;DeleteRegKey HKLM "${PRODUCT_DIR_REGKEY}"
-  ${un.EnvVarUpdate} $0 "PATH" "R" "HKLM" "$INSTDIR"
-  ${un.EnvVarUpdate} $0 "PATH" "R" "HKLM" "$INSTDIR\DLLs"
+  ;DeleteRegKey SHELL_CONTEXT "${PRODUCT_DIR_REGKEY}"
+  ${un.EnvVarUpdate} $0 "PATH" "R" "SHELL_CONTEXT" "$INSTDIR"
+  ${un.EnvVarUpdate} $0 "PATH" "R" "SHELL_CONTEXT" "$INSTDIR\DLLs"
 
   SetAutoClose true
 SectionEnd
