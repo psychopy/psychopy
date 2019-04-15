@@ -6,6 +6,7 @@
 """ioHub Common Eye Tracker Interface for Tobii (C) Eye Tracking System"""
 
 from __future__ import print_function
+import time
 
 def printEyeTrackerInfo(tobii_tracker):
     eyetracker = tobii_tracker._eyetracker
@@ -74,14 +75,8 @@ def printEyeTrackerInfo(tobii_tracker):
     
 if __name__ == '__main__':
     from psychopy.iohub.devices.eyetracker.hw.tobii.tobiiclasses import TobiiTracker
-    from psychopy.iohub.devices import Computer
+    from psychopy.core import getTime
     import tobii_research as tr
-
-    getTime = Computer.getTime
-    # init global clock manually for test
-    from psychopy.clock import MonotonicClock
-    Computer.global_clock = MonotonicClock()
-
     
     print('Test Creating a connected TobiiTracker class, using first available Tobii:')
 
@@ -89,47 +84,37 @@ if __name__ == '__main__':
     
     printEyeTrackerInfo(tobii_tracker)    
     
+    track_box = tobii_tracker.getHeadBox()
+    print("track_box", track_box)
+
+    print('')
+    srates = tobii_tracker.getAvailableSamplingRates()
+    print('Valid Tracker Sampling Rates: ', srates)
+    crate = tobii_tracker.getSamplingRate()
+    print('Current Sampling Rate: ', crate)
+    print('Setting Sampling Rate to ', srates[-1])
+    tobii_tracker.setSamplingRate(srates[-1])
+    print('Current Sampling Rate Now: ', tobii_tracker.getSamplingRate())
+    print('Setting Sampling Rate back to ', crate)
+    tobii_tracker.setSamplingRate(crate)
+    print('Current Sampling Rate Now: ', tobii_tracker.getSamplingRate())
+
     # TODO: Add tests for .setMode, .getMode
-    
-    # TODO: Add tests for .getAvailableSamplingRates, .getSamplingRate, setSamplingRate
-    
+        
     # TODO: Add tests for .getName, .setName
     
-    # STart Recording Test
-    
+    # Start Recording
     tobii_tracker.startTracking()
     
     ctime = getTime()
     while getTime() - ctime < 0.5:
-        pass
+        time.sleep(0.001)
     
+    # Stop Recording
     tobii_tracker.stopTracking()
     
-    track_box = tobii_tracker.getHeadBox()#_eyetracker.get_track_box()
-    print("track_box", track_box)
- 
-
-    #print('')
-    #print('Tracker Physical Placement: ', tobii_tracker.getEyeTrackerPhysicalPlacement())
-
-    #print('')
-    #print('Tracker Enabled Extensions: ', tobii_tracker.getEnabledExtensions())
-
-    #print('')
-    #print('Tracker Available Extensions: ', tobii_tracker.getAvailableExtensions())
-
-    #print('')
-    #srates = tobii_tracker.getAvailableSamplingRates()
-    #print('Valid Tracker Sampling Rates: ', srates)
-    #crate = tobii_tracker.getSamplingRate()
-    #print('Current Sampling Rate: ', crate)
-    #print('Setting Sampling Rate to ', srates[0])
-    #tobii_tracker.setSamplingRate(srates[0])
-    #print('Current Sampling Rate Now: ', tobii_tracker.getSamplingRate())
-    #print('Setting Sampling Rate back to ', crate)
-    #tobii_tracker.setSamplingRate(crate)
-    #print('Current Sampling Rate Now: ', tobii_tracker.getSamplingRate())
-
+    # TODO: Time Sync / Delay Test ???
+    
     #print('')
     #print('Tobii Time Info (20 sec):')
     # give some time for events
