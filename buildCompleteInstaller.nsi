@@ -83,16 +83,26 @@ Function multiuser_pre_func
 
 FunctionEnd
 
-;if previous version installed then remove
 Function .onInit
   !insertmacro MULTIUSER_INIT
 
   ${If} $MultiUser.InstallMode == "CurrentUser"
     StrCpy $InstDir "$LOCALAPPDATA\${PRODUCT_NAME}"
+    StrCpy $PRODUCT_REGISTRY_ROOT "HKCU"
+    IfFileExists $SYSDIR\avbin.dll continue_init 0
+    MessageBox MB_OKCANCEL|MB_ICONEXCLAMATION \
+    "You do not have admin privileges, which are needed to install AVBin. \
+    $\n$\nPlease cancel the install and run with admin \
+    privileges, or manually install AVBin later." \
+    IDOK continue_init
+    Abort
   ${Else}
     StrCpy $InstDir "$PROGRAMFILES\${PRODUCT_NAME}"
   ${EndIf}
 
+  continue_init:
+
+  ;if previous version installed then remove
   ReadRegStr $R0 SHELL_CONTEXT \
   "Software\Microsoft\Windows\CurrentVersion\Uninstall\${PRODUCT_NAME}" \
   "UninstallString"
