@@ -22,4 +22,3 @@ echo "Installing PsychoPy dependencies via pip..."
 sudo pip install requests[security]
 
 travis_retry sudo pip install --upgrade -qq -r requirements_travis.txt
-travis_retry sudo pip install --upgrade -qq -r pytest
