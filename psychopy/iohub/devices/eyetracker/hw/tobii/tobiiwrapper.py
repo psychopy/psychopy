@@ -29,8 +29,8 @@ except Exception:
 
 
 # Tobii Eye Tracker
-
 class TobiiTracker(object):
+    CALIBRATION_STATUS_SUCCESS = tobii_research.CALIBRATION_STATUS_SUCCESS
     def __init__(self, serial_number=None,  model=None):
         """
         """
@@ -63,27 +63,7 @@ class TobiiTracker(object):
 
     def on_eyetracker_data(self, *args, **kwargs):
         """
-        {
-         'system_time_stamp': 295431587453,
-         'device_time_stamp': 1554911175642814,
-         'right_gaze_point_on_display_area': (0.6514113545417786, 0.6740643382072449)
-         'right_gaze_point_validity': 1,
-         'right_pupil_diameter': 2.0828399658203125, 
-         'right_pupil_validity': 1, 
-         'left_gaze_point_on_display_area': (0.6300967931747437, 0.6632571816444397), 
-         'left_gaze_point_validity': 1,
-         'left_pupil_diameter': 2.2154541015625, 
-         'left_pupil_validity': 1,
-
-         'right_gaze_origin_in_user_coordinate_system': (26.230587005615234, 30.770994186401367, 584.1049194335938), 
-         'right_gaze_origin_in_trackbox_coordinate_system': (0.4429018795490265, 0.339368999004364, 0.4470163881778717), 
-         'left_gaze_origin_in_trackbox_coordinate_system': (0.6209999918937683, 0.35132133960723877, 0.4568300247192383),
-         'right_gaze_origin_validity': 1,
-         'right_gaze_point_in_user_coordinate_system': (51.17703628540039, 115.1743392944336, 27.5936222076416),
-         'left_gaze_origin_validity': 1, 
-         'left_gaze_origin_in_user_coordinate_system': (-33.106361389160156, 26.86952018737793, 587.0490112304688), 
-         'left_gaze_point_in_user_coordinate_system': (43.972713470458984, 117.93881225585938, 28.65477752685547), 
-         }
+        Default (standalone test use only) event handler.
         """
         eye_data = args[0]
         print2err('on_eyetracker_data:')
@@ -92,13 +72,21 @@ class TobiiTracker(object):
         self._last_eye_data = eye_data
         
     def getCurrentEyeTrackerTime(self):
-        print2err("TODO: NOT IMPLEMENTED: getCurrentEyeTrackerTime. ")
-        return 0.0#tobii_research.get_system_time_stamp()	
+        '''
+        Using tobii_research.get_system_time_stamp() as current tracker time.
+        TODO: Find out how to accurately get current device time without
+              having an event time.
+        '''
+        return tobii_research.get_system_time_stamp()	
 
     def getCurrentLocalTobiiTime(self):
         return tobii_research.get_system_time_stamp()	
 
 
+    def newScreenCalibration(self):
+        if self._eyetracker:
+            return tobii_research.ScreenBasedCalibration(self._eyetracker)
+        
     def startTracking(self, et_data_rx_callback=None):
         if et_data_rx_callback:
             self.on_eyetracker_data = et_data_rx_callback        
