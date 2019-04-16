@@ -28,15 +28,24 @@ except Exception:
     printExceptionDetailsToStdErr()
 
 
-# Tobii Eye Tracker and Time Synchronization Services
+# Tobii Eye Tracker
 
 class TobiiTracker(object):
     def __init__(self, serial_number=None,  model=None):
         """
         """
         self._eyetracker = None
+        retry_count = 10
+        trackers = []
+        while len(trackers)==0 or retry_count > 0:
+            trackers = tobii_research.find_all_eyetrackers()
+            retry_count = retry_count - 1
+
+        if len(trackers)==0:
+            raise RuntimeError('Could detect any Tobii devices.')
+            
         if serial_number or model:
-            for et in tobii_research.find_all_eyetrackers():
+            for et in trackers:
                 if serial_number == et.serial_number:
                     self._eyetracker = et
                     break
@@ -44,12 +53,11 @@ class TobiiTracker(object):
                     self._eyetracker = et
                     break
         else:
-            self._eyetracker = tobii_research.find_all_eyetrackers()[0]
-
+            self._eyetracker = trackers[0]
 
         if self._eyetracker is None:
             raise RuntimeError('Could not connect to Tobii.')
-            
+        
         self._last_eye_data = None
         self._isRecording = False
 

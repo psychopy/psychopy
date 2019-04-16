@@ -19,7 +19,7 @@ from .....util import convertCamelToSnake
 from .... import DeviceEvent, Computer
 from .....constants import EventConstants
 from .....errors import print2err, printExceptionDetailsToStdErr
-from .tobiiclasses import Point2D
+from .tobiiwrapper import Point2D
 
 currentTime = Computer.getTime
 
