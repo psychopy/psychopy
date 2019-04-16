@@ -22,6 +22,7 @@ from psychopy import experiment
 from os.path import split, join, expanduser
 import psychopy.scripts.psyexpCompile as psyexpCompile
 import codecs
+import pytest
 
 home = expanduser("~")
 
@@ -42,7 +43,7 @@ class Test_PsychoJS_from_Builder(object):
         else:
             self.temp_dir = mkdtemp(prefix='psychopy-test_psychojs')
 
-        self.app = getApp()
+        self.app = pytest.app
         self.builderView = self.app.newBuilderFrame()
 
     def teardown_class(self):
@@ -50,7 +51,6 @@ class Test_PsychoJS_from_Builder(object):
             shutil.rmtree(self.temp_dir)
 
         del self.builderView
-        del self.app
 
     def writeScript(self, exp, outFolder):
         script = exp.writeScript(expPath=outFolder, target="PsychoJS")
