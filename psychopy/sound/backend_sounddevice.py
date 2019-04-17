@@ -9,6 +9,8 @@ import sys
 import os
 import time
 import re
+import atexit
+
 try:
     import readline  # Work around GH-2230
 except ImportError:
@@ -16,7 +18,7 @@ except ImportError:
 
 from psychopy import logging, exceptions
 from psychopy.constants import (PLAYING, PAUSED, FINISHED, STOPPED,
-                                NOT_STARTED)
+                                NOT_STARTED, PY3)
 from psychopy.exceptions import SoundFormatError, DependencyError
 from ._base import _SoundBase, HammingWindow
 
@@ -171,6 +173,7 @@ class _SoundStream(object):
             self.device = self._sdStream.device
             self.latency = self._sdStream.latency
             self.cpu_load = self._sdStream.cpu_load
+            atexit.register(self.__del__)
         self._tSoundRequestPlay = 0
 
     def callback(self, toSpk, blockSize, timepoint, status):
@@ -236,7 +239,10 @@ class _SoundStream(object):
             if not travisCI:
                 self._sdStream.stop()
             del self._sdStream
-        sys.stdout.flush()
+        if hasattr(sys, 'stdout'):
+            sys.stdout.flush()
+        if PY3:
+            atexit.unregister(self.__del__)
 
 
 class SoundDeviceSound(_SoundBase):
