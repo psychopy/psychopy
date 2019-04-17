@@ -12,6 +12,7 @@ from builtins import object
 
 profiling = False  # turning on will save profile files in currDir
 
+import atexit
 import sys
 import psychopy
 from pkg_resources import parse_version
@@ -182,7 +183,7 @@ class PsychoPyApp(wx.App):
             profile.disable()
             print("time to load app = {:.2f}".format(time.time()-t0))
             profile.dump_stats('profileLaunchApp.profile')
-
+        atexit.register(self.quit)
 
     def onInit(self, showSplash=True, testMode=False):
         """This is launched immediately *after* the app initialises with wx
@@ -672,6 +673,10 @@ class PsychoPyApp(wx.App):
             except Exception:
                 pass  # we don't care if this fails - we're quitting anyway
         self.Destroy()
+
+        if PY3:
+            atexit.unregister(self.quit)  # this didn't exist in Py2
+
         if not self.testMode:
             sys.exit()  # sys exit during pytest will end testing?
 
