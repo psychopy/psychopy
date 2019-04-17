@@ -48,8 +48,6 @@ class TobiiPsychopyCalibrationGraphics(object):
 
         self._msg_queue = []
         self._lastCalibrationOK = False
-        self._lastCalibrationReturnCode = 0
-        self._lastCalibration = None
 
         TobiiPsychopyCalibrationGraphics.WINDOW_BACKGROUND_COLOR = screenColor
 
@@ -325,20 +323,17 @@ class TobiiPsychopyCalibrationGraphics(object):
                 self.marker_heights[2]))
 
     def runCalibration(self):
-        """Performs a simple calibration routine.
+        """Performs a simple Tobii - like (@2010) calibration routine.
 
         Args:
             None
 
         Result:
-            bool: True if calibration was successful. False if not, in which case exit the application.
+            bool: True if calibration was successful. False if not.
 
         """
 
         self._lastCalibrationOK = False
-        self._lastCalibrationReturnCode = 0
-        self._lastCalibration = None
-
         calibration_sequence_completed = False
 
         instuction_text = 'Press SPACE to Start Calibration; ESCAPE to Exit.'
@@ -376,7 +371,7 @@ class TobiiPsychopyCalibrationGraphics(object):
             self.drawCalibrationTarget(i, (x, y))
             self.clearAllEventBuffers()
             stime = currentTime()
-
+            print2err("Done {} target drawing".format(i))
             def waitingForNextTargetTime():
                 return True
 
@@ -384,22 +379,34 @@ class TobiiPsychopyCalibrationGraphics(object):
                 def waitingForNextTargetTime():
                     return currentTime() - stime < float(pacing_speed)
 
+            _quit = False
             while waitingForNextTargetTime():
                 msg = self.getNextMsg()
                 if msg == 'SPACE_KEY_ACTION':
                     break
                 elif msg == 'QUIT':
-                    return False
-
+                    _quit = True
+                    break
                 self.MsgPump()
-                gevent.sleep()
+                gevent.sleep(0.01)
 
-            if calibration.collect_data(pt[0], pt[1]) != self._tobii.CALIBRATION_STATUS_SUCCESS:
+            print2err("Tobii collecting point data.....")
+            calibration.collect_data(pt[0], pt[1])
+
+            print2err("Moving on.....")
+            if _quit:
+                print2err("QUIT detected...")
+                calibration.leave_calibration_mode()
+                calibration = None
+                break
+
+            # TODO: Switch to support per target status check available
+            # in tobii_research.
+            #if calibration.collect_data(pt[0], pt[1]) != self._tobii.CALIBRATION_STATUS_SUCCESS:
                 # Try again if it didn't go well the first time.
                 # Not all eye tracker models will fail at this point, but instead fail on ComputeAndApply.
-                calibration.collect_data(pt[0], pt[1])
-
-            time.sleep(0.5)
+            #    print2err("Calibration failed for target {}. Recollecting data.... TODO: Give visual feedback.")
+            #    calibration.collect_data(pt[0], pt[1])
 
             self.clearCalibrationWindow()
             self.clearAllEventBuffers()
@@ -408,167 +415,37 @@ class TobiiPsychopyCalibrationGraphics(object):
             if i == len(cal_target_list):
                 calibration_sequence_completed = True
 
-        if calibration_sequence_completed:
-            calibration_result = calibration.compute_and_apply()
-            print2err("Compute and apply returned {0} and collected at {1} points.".
-                  format(calibration_result.status, len(calibration_result.calibration_points)))
+        self.clearCalibrationWindow()
+        self.clearAllEventBuffers()
 
-#        def on_compute_calibration(self, *args, **kwargs):
-#            self._lastCalibrationReturnCode = args[0]
-#            if self._lastCalibrationReturnCode != 0:
-#                print2err(
-#                    'ERROR: Tobii Calibration Calculation Failed. Error code: {0}'.format(
-#                        self._lastCalibrationReturnCode))
-#                self._lastCalibrationOK = False
-#                self._msg_queue.append('CALIBRATION_COMPUTATION_FAILED')
-#    
-#            else:
-#                self._msg_queue.append('CALIBRATION_COMPUTATION_COMPLETE')
-#                self._lastCalibrationOK = True
-#    
-#        def on_calibration_result(self, *args, **kwargs):
-#            self._lastCalibration = args[1]
-#            self._msg_queue.append('CALIBRATION_RESULT_RECEIVED')
-
-        calibration.leave_calibration_mode()
-        calibration = None
-#        if self._lastCalibrationOK is True:
-#            self._tobii.GetCalibration(self.on_calibration_result)
-#
-#            msg = 1
-#            while msg is not 'CALIBRATION_RESULT_RECEIVED':
-#                msg = self.getNextMsg()
-#
-#            cal_data_dict = {}
-#
-#            import math
-#
-#            if self._lastCalibration:
-#                for cal_point_result in self._lastCalibration.plot_data:
-#                    left_eye_data = cal_point_result.left.map_point
-#
-#                    lval = None
-#                    if hasattr(cal_point_result.left, 'validity'):
-#                        lval = cal_point_result.left.validity
-#                    elif hasattr(cal_point_result.left, 'status'):
-#                        lval = cal_point_result.left.quality
-#                    left_eye_data = (
-#                        left_eye_data.x * self.width, left_eye_data.y * self.height), lval
-#
-#                    rval = None
-#                    if hasattr(cal_point_result.right, 'validity'):
-#                        rval = cal_point_result.right.validity
-#                    elif hasattr(cal_point_result.right, 'status'):
-#                        rval = cal_point_result.right.status
-#                    right_eye_data = cal_point_result.right.map_point
-#                    right_eye_data = (
-#                        right_eye_data.x * self.width, right_eye_data.y * self.height), rval
-#
-#                    target_pos = cal_point_result.true_point.x * \
-#                        self.width, cal_point_result.true_point.y * self.height
-#
-#                    if target_pos not in cal_data_dict:
-#                        cal_data_dict[target_pos] = []
-#                    cal_data_dict[target_pos].append(
-#                        (left_eye_data, right_eye_data))
-#
-#                cal_stats = dict()
-#                for (
-#                        targ_x, targ_y), eye_cal_result_list in cal_data_dict.items():
-#                    left_stats = dict(
-#                        pos_sample_count=0,
-#                        invalid_sample_count=0,
-#                        avg_err=0.0,
-#                        min_err=100000.0,
-#                        max_err=0.0)
-#                    right_stats = dict(
-#                        pos_sample_count=0,
-#                        invalid_sample_count=0,
-#                        avg_err=0.0,
-#                        min_err=100000.0,
-#                        max_err=0.0)
-#
-#                    for ((left_x, left_y), left_validity), ((
-#                            right_x, right_y), right_validity) in eye_cal_result_list:
-#                        left_stats['pos_sample_count'] += 1.0
-#                        right_stats['pos_sample_count'] += 1.0
-#
-#                        if left_validity == 1:
-#                            x_err = targ_x - left_x
-#                            y_err = targ_y - left_y
-#                            left_err = math.sqrt(x_err * x_err + y_err * y_err)
-#                            if left_err < left_stats['min_err']:
-#                                left_stats['min_err'] = left_err
-#                            elif left_err > left_stats['max_err']:
-#                                left_stats['max_err'] = left_err
-#                            left_stats['avg_err'] += left_err
-#                        else:
-#                            left_stats['invalid_sample_count'] += 1.0
-#
-#                        if right_validity == 1:
-#                            x_err = targ_x - right_x
-#                            y_err = targ_y - right_y
-#                            right_err = math.sqrt(
-#                                x_err * x_err + y_err * y_err)
-#                            if right_err < right_stats['min_err']:
-#                                right_stats['min_err'] = right_err
-#                            elif right_err > right_stats['max_err']:
-#                                right_stats['max_err'] = right_err
-#                            right_stats['avg_err'] += right_err
-#                        else:
-#                            right_stats['invalid_sample_count'] += 1.0
-#
-#                    if right_stats['invalid_sample_count'] == 0:
-#                        right_stats['valid_sample_percentage'] = 100.0
-#                    else:
-#                        right_stats['valid_sample_percentage'] = (
-#                            1.0 - right_stats['invalid_sample_count'] / right_stats['pos_sample_count']) * 100.0
-#
-#                    if left_stats['invalid_sample_count'] == 0:
-#                        left_stats['valid_sample_percentage'] = 100.0
-#                    else:
-#                        left_stats['valid_sample_percentage'] = (
-#                            1.0 - left_stats['invalid_sample_count'] / left_stats['pos_sample_count']) * 100.0
-#
-#                    if int(
-#                            right_stats['pos_sample_count'] -
-#                            right_stats['invalid_sample_count']) > 0:
-#                        right_stats['avg_err'] = right_stats[
-#                            'avg_err'] / (right_stats['pos_sample_count'] - right_stats['invalid_sample_count'])
-#                    else:
-#                        right_stats['avg_err'] = -1.0
-#
-#                    if int(
-#                            left_stats['pos_sample_count'] -
-#                            left_stats['invalid_sample_count']) > 0:
-#                        left_stats['avg_err'] = left_stats[
-#                            'avg_err'] / (left_stats['pos_sample_count'] - left_stats['invalid_sample_count'])
-#                    else:
-#                        left_stats['avg_err'] = -1.0
-#
-#                    cal_stats[(targ_x, targ_y)] = dict(
-#                        left=left_stats, right=right_stats)
-#            else:
-#                print2err('WARNING: Calibration results are NULL.')
-#
-#            instuction_text = "Calibration Passed. PRESS 'SPACE' KEY TO CONTINUE."
-#            continue_method = self.showSystemSetupMessageScreen(
-#                instuction_text, True, msg_types=['SPACE_KEY_ACTION'])
-#            if continue_method is False:
-#                return False
-#        if self._lastCalibrationOK is False:
-#            instuction_text = 'Calibration Failed. Options: SPACE: Re-run Calibration; ESCAPE: Exit Setup'
-#            continue_method = self.showSystemSetupMessageScreen(
-#                instuction_text, True, msg_types=['SPACE_KEY_ACTION', 'QUIT'])
-#            if continue_method is False:
-#                return False
-#
-        print2err('TODO: Process calibration result; check for pass / fail.')
+        if _quit:
+            return False
+        
+        self._lastCalibrationOK = False
+        if calibration:
+            if calibration_sequence_completed:
+                calibration_result = calibration.compute_and_apply()
+                self._lastCalibrationOK = calibration_result.status == 'calibration_status_success'
+            else:
+                self._lastCalibrationOK = False
+            calibration.leave_calibration_mode()
+            calibration = None
+            
+            
+            
+        if self._lastCalibrationOK is False:
+            instuction_text = 'Calibration Failed. Options: SPACE: Re-run Calibration; ESCAPE: Exit Setup'
+            continue_method = self.showSystemSetupMessageScreen(
+                instuction_text, True, msg_types=['SPACE_KEY_ACTION', 'QUIT'])
+            if continue_method is False:
+                print2err('User selected to retry calibration ...')
+                return self.runCalibration()
+            return False
+        
         instuction_text = "Calibration Passed. PRESS 'SPACE' KEY TO CONTINUE."
-        return self.showSystemSetupMessageScreen(instuction_text,
-                                                            True,
-                                                            msg_types=['SPACE_KEY_ACTION'])
-
+        self.showSystemSetupMessageScreen(instuction_text, True, msg_types=['SPACE_KEY_ACTION'])
+        return True
+    
     def clearCalibrationWindow(self):
         self.window.flip(clearBuffer=True)
 
