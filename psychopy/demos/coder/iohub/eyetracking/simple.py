@@ -12,6 +12,7 @@ from __future__ import absolute_import, division, print_function
 
 from psychopy import core, visual
 from psychopy.iohub.client import launchHubServer
+import time
 
 # Number if 'trials' to run in demo
 TRIAL_COUNT = 2
@@ -22,7 +23,7 @@ iohub_tracker_class_path = 'eyetracker.hw.sr_research.eyelink.EyeTracker'
 eyetracker_config = dict()
 eyetracker_config['name'] = 'tracker'
 eyetracker_config['model_name'] = 'EYELINK 1000 DESKTOP'
-#eyetracker_config['simulation_mode'] = True
+eyetracker_config['simulation_mode'] = True
 eyetracker_config['runtime_settings'] = dict(sampling_rate=1000,
                                              track_eyes='RIGHT')
 
@@ -31,12 +32,13 @@ eyetracker_config['runtime_settings'] = dict(sampling_rate=1000,
 io = launchHubServer(**{iohub_tracker_class_path: eyetracker_config})
 
 # Get some iohub devices for future access.
-keyboard = io.devices.keyboard
-display = io.devices.display
-tracker = io.devices.tracker
+keyboard = io.getDevice('keyboard')
+display = io.getDevice('display')
+tracker = io.getDevice('tracker')
 
 # run eyetracker calibration
-r = tracker.runSetupProcedure()
+tracker.runSetupProcedure()
+
 win = visual.Window(display.getPixelResolution(),
                     units='pix',
                     fullscr=True,
@@ -69,7 +71,7 @@ while t < TRIAL_COUNT:
     while run_trial is True:
         # Get the latest gaze position in dispolay coord space..
         gpos = tracker.getLastGazePosition()
-
+        #print("gpos:",gpos)
         # Update stim based on gaze position
         valid_gaze_pos = isinstance(gpos, (tuple, list))
         gaze_in_region = valid_gaze_pos and gaze_ok_region.contains(gpos)
@@ -99,7 +101,8 @@ while t < TRIAL_COUNT:
         # Check any new keyboard char events for a space key.
         # If one is found, set the trial end variable.
         #
-        if ' ' in keyboard.getPresses() or core.getTime()-tstart_time > T_MAX:
+        #if keyboard.getEvents():
+        if core.getTime()-tstart_time > T_MAX:
             run_trial = False
 
     # Current Trial is Done
@@ -109,7 +112,7 @@ while t < TRIAL_COUNT:
 
 # All Trials are done
 # End experiment
-win.close()
 tracker.setConnectionState(False)
+
 io.quit()
-core.quit()
+#core.quit()

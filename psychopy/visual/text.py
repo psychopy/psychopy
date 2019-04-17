@@ -660,6 +660,10 @@ class TextStim(BaseVisualStim, ColorMixin, ContainerMixin):
     @attributeSetter
     def alignVert(self, value):
         """The vertical alignment ('top', 'bottom' or 'center')
+        Note that this will not necessarily center the particular characters
+        you choose to draw. Instead, it likely centers the invisible
+        bounding box (which is often spanned by the top of a 'T' to the
+        bottom of a 'y') at the `pos`.
         """
         self.__dict__['alignVert'] = value
         self._needSetText = True

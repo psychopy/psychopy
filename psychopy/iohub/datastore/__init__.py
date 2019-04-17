@@ -89,15 +89,18 @@ class DataStoreFile(object):
 
         atexit.register(close_open_data_files, False)
 
-        if fmode == 'w' or len(self.emrtFile.title) == 0:
+        if len(self.emrtFile.title) == 0:
             self.buildOutTemplate()
             self.flush()
         else:
             self.loadTableMappings()
 
     def loadTableMappings(self):
-        raise NotImplementedError
-
+        # create meta-data tables
+        self.TABLES['EXPERIMENT_METADETA']=self.emrtFile.root.data_collection.experiment_meta_data
+        self.TABLES['SESSION_METADETA']=self.emrtFile.root.data_collection.session_meta_data
+        self.TABLES['CLASS_TABLE_MAPPINGS']=self.emrtFile.root.class_table_mapping
+        
     def buildOutTemplate(self):
         self.emrtFile.title = DATA_FILE_TITLE
         self.emrtFile.FILE_VERSION = FILE_VERSION
@@ -304,6 +307,16 @@ class DataStoreFile(object):
                 np_dtype.append(tuple(nv))
             else:
                 np_dtype.append(npctype)
+
+        np_dtype2=[]
+        for adtype in np_dtype:
+            adtype2=[]
+            for a in adtype:
+                if isinstance(a, bytes): 
+                    a = str(a, 'utf-8')
+                adtype2.append(a)
+            np_dtype2.append(tuple(adtype2))
+        np_dtype = np_dtype2    
         self._EXP_COND_DTYPE = np.dtype(np_dtype)
         try:
             expCondTableName = "EXP_CV_%d"%(experiment_id)
