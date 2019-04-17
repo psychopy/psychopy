@@ -146,11 +146,9 @@ class TobiiPsychopyCalibrationGraphics(object):
             if isinstance(ek, bytes):
                 ek = ek.decode('utf-8')
             if ek == ' ':
-                #print2err("Adding SPACE_KEY_ACTION")
                 self._msg_queue.append('SPACE_KEY_ACTION')
                 self.clearAllEventBuffers()
             elif ek == 'escape':
-                #print2err("Adding QUIT")
                 self._msg_queue.append('QUIT')
                 self.clearAllEventBuffers()
 
@@ -371,7 +369,6 @@ class TobiiPsychopyCalibrationGraphics(object):
             self.drawCalibrationTarget(i, (x, y))
             self.clearAllEventBuffers()
             stime = currentTime()
-            print2err("Done {} target drawing".format(i))
             def waitingForNextTargetTime():
                 return True
 
@@ -390,12 +387,9 @@ class TobiiPsychopyCalibrationGraphics(object):
                 self.MsgPump()
                 gevent.sleep(0.01)
 
-            print2err("Tobii collecting point data.....")
             calibration.collect_data(pt[0], pt[1])
 
-            print2err("Moving on.....")
             if _quit:
-                print2err("QUIT detected...")
                 calibration.leave_calibration_mode()
                 calibration = None
                 break
@@ -438,7 +432,6 @@ class TobiiPsychopyCalibrationGraphics(object):
             continue_method = self.showSystemSetupMessageScreen(
                 instuction_text, True, msg_types=['SPACE_KEY_ACTION', 'QUIT'])
             if continue_method is False:
-                print2err('User selected to retry calibration ...')
                 return self.runCalibration()
             return False
         
