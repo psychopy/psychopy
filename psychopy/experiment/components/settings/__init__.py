@@ -585,12 +585,21 @@ class SettingsComponent(object):
             code = ("expName = %s  # from the Builder filename that created"
                     " this script\n")
             buff.writeIndented(code % self.params['expName'])
+
+        if PY3:  # in Py3 dicts are chrono-sorted
+            sorting = "False"
+        else:  # in Py2, with no natural order, at least be alphabetical
+            sorting = "True"
         expInfoDict = self.getInfo()
         buff.writeIndented("expInfo = %s\n" % repr(expInfoDict))
         if self.params['Show info dlg'].val:
             buff.writeIndentedLines(
-                "dlg = gui.DlgFromDict(dictionary=expInfo, sortKeys=False, title=expName)\n"
-                "if dlg.OK == False:\n    core.quit()  # user pressed cancel\n")
+                "dlg = gui.DlgFromDict(dictionary=expInfo, "
+                "sortKeys={}, title=expName)\n"
+                "if dlg.OK == False:\n"
+                "    core.quit()  # user pressed cancel\n"
+                .format(sorting)
+            )
         buff.writeIndentedLines(
             "expInfo['date'] = data.getDateStr()  # add a simple timestamp\n"
             "expInfo['expName'] = expName\n"
