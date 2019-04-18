@@ -241,8 +241,6 @@ class _SoundStream(object):
             del self._sdStream
         if hasattr(sys, 'stdout'):
             sys.stdout.flush()
-        if PY3:
-            atexit.unregister(self.__del__)
 
 
 class SoundDeviceSound(_SoundBase):

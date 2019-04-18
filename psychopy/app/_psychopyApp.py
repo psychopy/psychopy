@@ -674,9 +674,6 @@ class PsychoPyApp(wx.App):
                 pass  # we don't care if this fails - we're quitting anyway
         self.Destroy()
 
-        if PY3:
-            atexit.unregister(self.quit)  # this didn't exist in Py2
-
         if not self.testMode:
             sys.exit()  # sys exit during pytest will end testing?
 
