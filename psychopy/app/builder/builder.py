@@ -1612,10 +1612,10 @@ class BuilderFrame(wx.Frame):
             # as of wx3.0 the AUI manager needs to be uninitialised explicitly
             self._mgr.UnInit()
             # is it the last frame?
-            lastFrame = bool(len(wx.GetApp().getAllFrames()) == 1)
-            quitting = wx.GetApp().quitting
+            lastFrame = len(self.app.getAllFrames()) == 1
+            quitting = self.app.quitting
             if lastFrame and sys.platform != 'darwin' and not quitting:
-                wx.GetApp().quit(event)
+                self.app.quit(event)
             else:
                 self.app.forgetFrame(self)
                 self.Destroy()  # required

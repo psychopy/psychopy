@@ -2,13 +2,13 @@
  * Imagecomponent Test *
  ***********************/
 
-import { PsychoJS } from './lib/core-3.1.0.js';
-import * as core from './lib/core-3.1.0.js';
-import { TrialHandler } from './lib/data-3.1.0.js';
-import { Scheduler } from './lib/util-3.1.0.js';
-import * as util from './lib/util-3.1.0.js';
-import * as visual from './lib/visual-3.1.0.js';
-import { Sound } from './lib/sound-3.1.0.js';
+import { PsychoJS } from 'https://pavlovia.org/lib/core.js';
+import * as core from 'https://pavlovia.org/lib/core.js';
+import { TrialHandler } from 'https://pavlovia.org/lib/data.js';
+import { Scheduler } from 'https://pavlovia.org/lib/util.js';
+import * as util from 'https://pavlovia.org/lib/util.js';
+import * as visual from 'https://pavlovia.org/lib/visual.js';
+import { Sound } from 'https://pavlovia.org/lib/sound.js';
 
 // init psychoJS:
 var psychoJS = new PsychoJS({
@@ -24,7 +24,7 @@ psychoJS.openWindow({
 
 // store info about the experiment session:
 let expName = 'ImageComponent';  // from the Builder filename that created this script
-let expInfo = {'session': '001', 'participant': ''};
+let expInfo = {'participant': '', 'session': '001'};
 
 // schedule the experiment:
 psychoJS.schedule(psychoJS.gui.DlgFromDict({
@@ -47,7 +47,7 @@ flowScheduler.add(quitPsychoJS, '', true);
 // quit if user presses Cancel in dialog box:
 dialogCancelScheduler.add(quitPsychoJS, '', false);
 
-psychoJS.start({configURL: 'config.json', expInfo: expInfo});
+psychoJS.start({expInfo: expInfo});
 
 var frameDur;
 function updateInfo() {
@@ -144,7 +144,7 @@ function trialRoutineEachFrame() {
     return Scheduler.Event.NEXT;
   }
   
-  continueRoutine = false;// reverts to True if at least one component still running
+  continueRoutine = false;  // reverts to True if at least one component still running
   for (const thisComponent of trialComponents)
     if ('status' in thisComponent && thisComponent.status !== PsychoJS.Status.FINISHED) {
       continueRoutine = true;
@@ -198,7 +198,7 @@ function importConditions(loop) {
 
 function quitPsychoJS(message, isCompleted) {
   psychoJS.window.close();
-  psychoJS.quit({message, isCompleted});
+  psychoJS.quit({message: message, isCompleted: isCompleted});
 
   return Scheduler.Event.QUIT;
 }
