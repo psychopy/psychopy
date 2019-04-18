@@ -58,6 +58,13 @@ else:
     blockTips = False
 
 
+_appInstances = []
+
+@atexit.register
+def quitAllInstances():
+    for appInstance in _appInstances:
+        appInstance.quit()
+
 class MenuFrame(wx.Frame):
     """A simple empty frame with a menubar, should be last frame closed on mac
     """
@@ -144,8 +151,10 @@ class PsychoPyApp(wx.App):
             profile = cProfile.Profile()
             profile.enable()
             t0 = time.time()
-
+        global _appInstances
+        _appInstances.append(self)
         self._appLoaded = False  # set to true when all frames are created
+
         self.coder = None
         self.version = psychopy.__version__
         # set default paths and prefs
@@ -183,7 +192,6 @@ class PsychoPyApp(wx.App):
             profile.disable()
             print("time to load app = {:.2f}".format(time.time()-t0))
             profile.dump_stats('profileLaunchApp.profile')
-        atexit.register(self.quit)
 
     def onInit(self, showSplash=True, testMode=False):
         """This is launched immediately *after* the app initialises with wx

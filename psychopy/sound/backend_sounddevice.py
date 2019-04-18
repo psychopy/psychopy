@@ -9,7 +9,6 @@ import sys
 import os
 import time
 import re
-import atexit
 
 try:
     import readline  # Work around GH-2230
@@ -173,7 +172,7 @@ class _SoundStream(object):
             self.device = self._sdStream.device
             self.latency = self._sdStream.latency
             self.cpu_load = self._sdStream.cpu_load
-            atexit.register(self.__del__)
+
         self._tSoundRequestPlay = 0
 
     def callback(self, toSpk, blockSize, timepoint, status):
