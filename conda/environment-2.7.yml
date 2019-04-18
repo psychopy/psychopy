@@ -13,10 +13,12 @@ dependencies:
 - esprima-python
 - gitpython
 - ffmpeg
+- freetype<2.10.0
 - freetype-py
 - future
 - gevent
 - greenlet
+- imageio<2.5
 - json_tricks
 - libffi
 - libflac

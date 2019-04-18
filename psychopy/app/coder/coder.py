@@ -506,7 +506,6 @@ class CodeEditor(BaseCodeEditor):
         self.coder = frame
         self.SetViewWhiteSpace(self.coder.appData['showWhitespace'])
         self.SetViewEOL(self.coder.appData['showEOLs'])
-
         self.Bind(wx.EVT_DROP_FILES, self.coder.filesDropped)
         self.Bind(wx.stc.EVT_STC_MODIFIED, self.onModified)
         # self.Bind(wx.stc.EVT_STC_UPDATEUI, self.OnUpdateUI)
@@ -955,24 +954,6 @@ class CodeEditor(BaseCodeEditor):
             newText = newText + lineText
         self._ReplaceSelectedLines(newText)
 
-    def Paste(self, event=None):
-        dataObj = wx.TextDataObject()
-        clip = wx.Clipboard().Get()
-        clip.Open()
-        success = clip.GetData(dataObj)
-        clip.Close()
-        if success:
-            txt = dataObj.GetText()
-            # dealing with unicode error in wx3 for Mac
-            if wx.__version__[0] == '3' and sys.platform == 'darwin':
-                try:
-                    # if we can decode from utf-8 then all is good
-                    txt.decode('utf-8')
-                except:
-                    # if not then wx conversion broke so get raw data instead
-                    txt = dataObj.GetDataHere()
-            self.ReplaceSelection(txt)
-
     def increaseFontSize(self):
         self.SetZoom(self.GetZoom() + 1)
 
@@ -1297,7 +1278,10 @@ class CoderFrame(wx.Frame):
             fontSize=self.prefs['outputFontSize'])
         self.outputWindow.write(_translate('Welcome to PsychoPy3!') + '\n')
         self.outputWindow.write("v%s\n" % self.app.version)
+        # Add context manager to output window
+        self.outputWindow.Bind(wx.EVT_CONTEXT_MENU, self.outputContextMenu)
         self.shelf.AddPage(self.outputWindow, _translate('Output'))
+
         if self.app._appLoaded:
             self.setOutputWindow()
 
@@ -1355,6 +1339,45 @@ class CoderFrame(wx.Frame):
             self.paneManager.Update()
         self.SendSizeEvent()
         self.app.trackFrame(self)
+
+    def outputContextMenu(self, event):
+        """Custom context menu for output window.
+
+        Provides menu items to clear all, select all and copy selected text."""
+        if not hasattr(self, "outputMenuID1"):
+            self.outputMenuID1 = wx.NewId()
+            self.outputMenuID2 = wx.NewId()
+            self.outputMenuID3 = wx.NewId()
+
+            self.Bind(wx.EVT_MENU, self.outputClear, id=self.outputMenuID1)
+            self.Bind(wx.EVT_MENU, self.outputSelectAll, id=self.outputMenuID2)
+            self.Bind(wx.EVT_MENU, self.outputCopy, id=self.outputMenuID3)
+
+        menu = wx.Menu()
+        itemClear = wx.MenuItem(menu, self.outputMenuID1, "Clear All")
+        itemSelect = wx.MenuItem(menu, self.outputMenuID2, "Select All")
+        itemCopy = wx.MenuItem(menu, self.outputMenuID3, "Copy")
+
+        menu.Append(itemClear)
+        menu.AppendSeparator()
+        menu.Append(itemSelect)
+        menu.Append(itemCopy)
+        # Popup the menu.  If an item is selected then its handler
+        # will be called before PopupMenu returns.
+        self.PopupMenu(menu)
+        menu.Destroy()
+
+    def outputClear(self, event):
+        """Clears the output window in Coder"""
+        self.outputWindow.Clear()
+
+    def outputSelectAll(self, event):
+        """Selects all text from the output window in Coder"""
+        self.outputWindow.SelectAll()
+
+    def outputCopy(self, event):
+        """Copies all text from the output window in Coder"""
+        self.outputWindow.Copy()
 
     def makeMenus(self):
         # ---Menus---#000000#FFFFFF-------------------------------------------
@@ -1830,18 +1853,6 @@ class CoderFrame(wx.Frame):
         tb.AddSeparator()
 
         if 'phoenix' in wx.PlatformInfo:
-            item = tb.AddTool(wx.ID_ANY,
-                              _translate("Preferences"),
-                              preferencesBmp,
-                              _translate("Application preferences"))
-        else:
-            item = tb.AddSimpleTool(wx.ID_ANY,
-                                    preferencesBmp,
-                                    _translate("Preferences"),
-                                    _translate("Application preferences"))
-        tb.Bind(wx.EVT_TOOL, self.app.showPrefs, id=item.GetId())
-
-        if 'phoenix' in wx.PlatformInfo:
             item = tb.AddTool(
                 wx.ID_ANY,
                 _translate("Monitor Center"),
@@ -1904,7 +1915,8 @@ class CoderFrame(wx.Frame):
 
         self.toolbar.AddSeparator()
         pavButtons = pavlovia_ui.toolbar.PavloviaButtons(self, toolbar=tb, tbSize=size)
-        pavButtons.addPavloviaTools(buttons=['pavloviaSync', 'pavloviaSearch', 'pavloviaUser', ])
+        pavButtons.addPavloviaTools(
+                buttons=['pavloviaSync', 'pavloviaSearch', 'pavloviaUser'])
         self.btnHandles.update(pavButtons.btnHandles)
 
         tb.Realize()
@@ -2263,7 +2275,6 @@ class CoderFrame(wx.Frame):
             else:
                 self.setCurrentDoc(filename)
                 self.setFileModified(False)
-
         self.SetStatusText('')
         # self.fileHistory.AddFileToHistory(newPath)  # this is done by
         # setCurrentDoc
@@ -2334,26 +2345,7 @@ class CoderFrame(wx.Frame):
                 if failToSave:
                     raise IOError
                 self.SetStatusText(_translate('Saving file'))
-                newlines = None  # system default, os.linesep
-                try:
-                    # this will fail when doc.newlines was not set (new file)
-                    if self.prefs['newlineConvention'] == 'keep':
-                        if doc.GetText().lstrip(u'\ufeff').startswith("#!"):
-                            # document has shebang (ignore byte-order-marker)
-                            newlines = '\n'
-                        elif doc.newlines == '\r\n':
-                            # document had '\r\n' newline on load
-                            newlines = '\r\n'
-                        else:
-                            # None, \n, tuple
-                            newlines = '\n'
-                    elif self.prefs['newlineConvention'] == 'dos':
-                        newlines = '\r\n'
-                    elif self.prefs['newlineConvention'] == 'unix':
-                        newlines = '\n'
-                except Exception:
-                    pass
-
+                newlines = '\n'  # system default, os.linesep
                 with io.open(filename, 'w', encoding='utf-8', newline=newlines) as f:
                     f.write(doc.GetText())
                 self.setFileModified(False)

@@ -54,9 +54,11 @@ from psychopy.projects import pavlovia
 
 from psychopy.scripts import psyexpCompile
 
+
 canvasColor = [200, 200, 200]  # in prefs? ;-)
 routineTimeColor = wx.Colour(50, 100, 200, 200)
 staticTimeColor = wx.Colour(200, 50, 50, 100)
+disabledTimeColor = wx.Colour(127, 127, 127, 100)
 nonSlipFill = wx.Colour(150, 200, 150, 255)
 nonSlipEdge = wx.Colour(0, 100, 0, 255)
 relTimeFill = wx.Colour(200, 150, 150, 255)
@@ -396,7 +398,12 @@ class RoutineCanvas(wx.ScrolledWindow):
         # calculate rectangle for component
         xScale = self.getSecsPerPixel()
         dc.SetPen(wx.Pen(wx.Colour(200, 100, 100, 0), style=wx.TRANSPARENT))
-        dc.SetBrush(wx.Brush(staticTimeColor))
+
+        if component.params['disabled'].val:
+            dc.SetBrush(wx.Brush(disabledTimeColor))
+        else:
+            dc.SetBrush(wx.Brush(staticTimeColor))
+
         xSt = self.timeXposStart + startTime // xScale
         w = duration // xScale + 1  # +1 b/c border alpha=0 in dc.SetPen
         w = max(min(w, 10000), 2)  # ensure 2..10000 pixels
@@ -461,7 +468,12 @@ class RoutineCanvas(wx.ScrolledWindow):
             xScale = self.getSecsPerPixel()
             dc.SetPen(wx.Pen(wx.Colour(200, 100, 100, 0),
                              style=wx.TRANSPARENT))
-            dc.SetBrush(wx.Brush(routineTimeColor))
+
+            if component.params['disabled'].val:
+                dc.SetBrush(wx.Brush(disabledTimeColor))
+            else:
+                dc.SetBrush(wx.Brush(routineTimeColor))
+
             hSize = (3.5, 2.75, 2)[self.drawSize]
             yOffset = (3, 3, 0)[self.drawSize]
             h = self.componentStep // hSize
@@ -518,6 +530,7 @@ class RoutineCanvas(wx.ScrolledWindow):
         else:
             helpUrl = None
         old_name = component.params['name'].val
+        old_disabled = component.params['disabled'].val
         # check current timing settings of component (if it changes we
         # need to update views)
         initialTimings = component.getStartAndDuration()
@@ -539,6 +552,8 @@ class RoutineCanvas(wx.ScrolledWindow):
                 # self.frame.flowPanel.Refresh()
             elif component.params['name'].val != old_name:
                 self.redrawRoutine()  # need to refresh name
+            elif component.params['disabled'].val != old_disabled:
+                self.redrawRoutine()  # need to refresh color
             self.frame.exp.namespace.remove(old_name)
             self.frame.exp.namespace.add(component.params['name'].val)
             self.frame.addToUndoStack("EDIT `%s`" %
@@ -1243,20 +1258,6 @@ class BuilderFrame(wx.Frame):
         tb.AddSeparator()
 
         if 'phoenix' in wx.PlatformInfo:
-            self.bldrBtnPrefs = tb.AddTool(
-                wx.ID_ANY,
-                _translate("Preferences"),
-                preferencesBmp,
-                _translate("Application preferences"))
-        else:
-            self.bldrBtnPrefs = tb.AddSimpleTool(
-                wx.ID_ANY,
-                preferencesBmp,
-                _translate("Preferences"),
-                _translate("Application preferences"))
-        tb.Bind(wx.EVT_TOOL, self.app.showPrefs, self.bldrBtnPrefs)
-
-        if 'phoenix' in wx.PlatformInfo:
             item = tb.AddTool(
                 wx.ID_ANY,
                 _translate("Monitor Center"),
@@ -1270,21 +1271,21 @@ class BuilderFrame(wx.Frame):
                 _translate("Monitor settings and calibration"))
         tb.Bind(wx.EVT_TOOL, self.app.openMonitorCenter, id=item.GetId())
 
-        tb.AddSeparator()
-
         if 'phoenix' in wx.PlatformInfo:
             item = tb.AddTool(
                 wx.ID_ANY,
                 _translate("Experiment Settings"),
                 settingsBmp,
-                _translate("Settings for this exp"))
+                _translate("Experiment settings"))
         else:
             item = tb.AddSimpleTool(
                 wx.ID_ANY,
                 settingsBmp,
                 _translate("Experiment Settings"),
-                _translate("Settings for this exp"))
+                _translate("Experiment settings"))
         tb.Bind(wx.EVT_TOOL, self.setExperimentSettings, item)
+
+        tb.AddSeparator()
 
         if 'phoenix' in wx.PlatformInfo:
             item = tb.AddTool(
@@ -1331,8 +1332,7 @@ class BuilderFrame(wx.Frame):
 
         self.toolbar.AddSeparator()
         pavButtons = pavlovia_ui.toolbar.PavloviaButtons(self, toolbar=tb, tbSize=tbSize)
-        pavButtons.addPavloviaTools(buttons=['pavloviaSync', 'pavloviaRun',
-                                             'pavloviaSearch', 'pavloviaUser'])
+        pavButtons.addPavloviaTools()
         self.btnHandles.update(pavButtons.btnHandles)
 
         # Finished setup. Make it happen
@@ -1612,10 +1612,10 @@ class BuilderFrame(wx.Frame):
             # as of wx3.0 the AUI manager needs to be uninitialised explicitly
             self._mgr.UnInit()
             # is it the last frame?
-            lastFrame = bool(len(wx.GetApp().getAllFrames()) == 1)
-            quitting = wx.GetApp().quitting
+            lastFrame = len(self.app.getAllFrames()) == 1
+            quitting = self.app.quitting
             if lastFrame and sys.platform != 'darwin' and not quitting:
-                wx.GetApp().quit(event)
+                self.app.quit(event)
             else:
                 self.app.forgetFrame(self)
                 self.Destroy()  # required
@@ -2345,7 +2345,8 @@ class BuilderFrame(wx.Frame):
             logging.info(' '.join(cmd))
             out = subprocess.check_output(cmd)
             if len(out):
-                print(out)  # so that any errors messages in compile are printed
+                out = out.decode('utf-8-sig').split('\n')
+                [print(line) for line in out] # so that any errors messages in compile are printed
         else:
             psyexpCompile.compileScript(infile=self.exp, version=None, outfile=experimentPath)
 
@@ -2372,7 +2373,13 @@ class BuilderFrame(wx.Frame):
     def onPavloviaSync(self, evt=None):
         if self._getExportPref('on sync'):
             self.fileExport(htmlPath=self._getHtmlPath(self.filename))
-        pavlovia_ui.syncProject(parent=self, project=self.project)
+
+        self.enablePavloviaButton(['pavloviaSync', 'pavloviaRun'], False)
+        try:
+            pavlovia_ui.syncProject(parent=self, project=self.project)
+            pavlovia.knownProjects.save()  # update projects.json
+        finally:
+            self.enablePavloviaButton(['pavloviaSync', 'pavloviaRun'], True)
 
     def onPavloviaRun(self, evt=None):
         if self._getExportPref('on save'):
@@ -2397,6 +2404,24 @@ class BuilderFrame(wx.Frame):
             self.project.pavloviaStatus = 'ACTIVATED'
             url = "https://pavlovia.org/run/{}/html".format(self.project.id)
             wx.LaunchDefaultBrowser(url)
+
+    def enablePavloviaButton(self, buttons, enable):
+        """
+        Enables or disables Pavlovia buttons.
+
+        Parameters
+        ----------
+        name: string, list
+            Takes single buttons 'pavloviaSync', 'pavloviaRun', 'pavloviaSearch', 'pavloviaUser',
+            or multiple buttons in string 'pavloviaSync, pavloviaRun',
+            or comma separated list of strings ['pavloviaSync', 'pavloviaRun', ...].
+        enable: bool
+            True enables and False disables the button
+        """
+        if isinstance(buttons, str):
+            buttons = buttons.split(',')
+        for button in buttons:
+            self.toolbar.EnableTool(self.btnHandles[button.strip(' ')].GetId(), enable)
 
     def setPavloviaUser(self, user):
         # TODO: update user icon on button to user avatar

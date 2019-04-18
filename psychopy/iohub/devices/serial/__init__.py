@@ -41,7 +41,7 @@ class Serial(Device):
     }
 
     DEVICE_TIMEBASE_TO_SEC = 1.0
-    _newDataTypes = [('port', N.str, 32), ('baud', N.str, 32), ]
+    _newDataTypes = [('port', '|S32'), ('baud', '|S32'), ]
     EVENT_CLASS_NAMES = ['SerialInputEvent', 'SerialByteChangeEvent']
     DEVICE_TYPE_ID = DeviceConstants.SERIAL
     DEVICE_TYPE_STRING = 'SERIAL'
@@ -723,8 +723,8 @@ class Pstbox(Serial):
 
 class SerialInputEvent(DeviceEvent):
     _newDataTypes = [
-        ('port', N.str, 32),
-        ('data', N.str, 256)
+        ('port', '|S32'),
+        ('data', '|S256')
     ]
     PARENT_DEVICE = Serial
     EVENT_TYPE_ID = EventConstants.SERIAL_INPUT
@@ -738,7 +738,7 @@ class SerialInputEvent(DeviceEvent):
 
 class SerialByteChangeEvent(DeviceEvent):
     _newDataTypes = [
-        ('port', N.str, 32),
+        ('port', '|S32'),
         ('prev_byte', N.uint8),
         ('current_byte', N.uint8)
     ]
@@ -755,11 +755,11 @@ class SerialByteChangeEvent(DeviceEvent):
 class PstboxButtonEvent(DeviceEvent):
     # Add new fields for PstboxButtonEvent
     _newDataTypes = [
-        ('port', N.str, 32),  # could be needed to identify events
+        ('port', '|S32'),  # could be needed to identify events
                               # from >1 connected button box; if that is
                               # ever supported.
         ('button', N.uint8),
-        ('button_event', N.str, 7)
+        ('button_event', '|S7')
     ]
 
     PARENT_DEVICE = Pstbox

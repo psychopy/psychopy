@@ -50,7 +50,7 @@ serial.Pstbox:
     #   attribute of events that have a parent device that is polled often can be used to
     #   determine the actual polling rate being achieved by the ioHub Process.
     device_timer:
-        interval: 0.0005
+        interval: 0.001
 
     # enable: Specifies if the device should be enabled by ioHub and monitored
     #   for events.

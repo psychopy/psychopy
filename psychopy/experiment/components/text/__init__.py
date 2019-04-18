@@ -29,7 +29,6 @@ class TextComponent(BaseVisualComponent):
     """
     categories = ['Stimuli']
     targets = ['PsychoPy', 'PsychoJS']
-
     def __init__(self, exp, parentName, name='text',
                  # effectively just a display-value
                  text=_translate('Any text\n\nincluding line breaks'),
@@ -136,17 +135,19 @@ class TextComponent(BaseVisualComponent):
     def writeInitCodeJS(self, buff):
         # do we need units code?
         if self.params['units'].val == 'from exp settings':
-            unitsStr = ""
+            unitsStr = "  units : undefined, \n"
         else:
-            unitsStr = "  units : %(units)s, " % self.params
+            unitsStr = "  units : %(units)s, \n" % self.params
         # do writing of init
         # replaces variable params with sensible defaults
         inits = getInitVals(self.params, 'PsychoJS')
 
-        if self.params['wrapWidth'].val in ['', None, 'None', 'none']:
-            inits['wrapWidth'] = 'undefined'
-        if self.params['text'].val in ['', None, 'None', 'none']:
-            inits['text'] = "''"
+        # check for NoneTypes
+        for param in inits:
+            if inits[param] in [None, 'None', '']:
+                inits[param].val = 'undefined'
+                if param == 'text':
+                    inits[param].val = "''"
 
         code = ("%(name)s = new visual.TextStim({\n"
                 "  win: psychoJS.window,\n"
@@ -158,6 +159,7 @@ class TextComponent(BaseVisualComponent):
                 "  color: new util.Color(%(color)s),"
                 "  opacity: %(opacity)s,")
         buff.writeIndentedLines(code % inits)
+
         flip = self.params['flip'].val.strip()
         if flip == 'horiz':
             flipStr = 'flipHoriz : true, '

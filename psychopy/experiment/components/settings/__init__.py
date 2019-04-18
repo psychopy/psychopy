@@ -94,7 +94,7 @@ class SettingsComponent(object):
                  winSize=(1024, 768), screen=1, monitor='testMonitor',
                  showMouse=False, saveLogFile=True, showExpInfo=True,
                  expInfo="{'participant':'', 'session':'001'}",
-                 units='use prefs', logging='exp',
+                 units='height', logging='exp',
                  color='$[0,0,0]', colorSpace='rgb', enableEscape=True,
                  blendMode='avg',
                  saveXLSXFile=False, saveCSVFile=False,
@@ -495,11 +495,11 @@ class SettingsComponent(object):
     def writeInitCodeJS(self, buff, version, localDateTime, modular=True):
         # create resources folder
         self.prepareResourcesJS()
-
+        jsFilename = os.path.basename(os.path.splitext(self.exp.filename)[0])
         # html header
         template = readTextFile("JS_htmlHeader.tmpl")
         header = template.format(
-            name=self.params['expName'].val,  # prevent repr() conversion
+            name=jsFilename,
             version=version,
             params=self.params)
         jsFile = self.exp.expPath
@@ -511,11 +511,11 @@ class SettingsComponent(object):
         html.close()
 
         # Write header comment
-        starLen = "*"*(len(self.params['expName'].val)+9)
+        starLen = "*"*(len(jsFilename) + 9)
         code = ("/%s \n"
                " * %s Test *\n" 
                " %s/\n\n")
-        buff.writeIndentedLines(code % (starLen, self.params['expName'].val.title(), starLen))
+        buff.writeIndentedLines(code % (starLen, jsFilename.title(), starLen))
 
         # Write imports if modular
         if modular:
@@ -532,9 +532,9 @@ class SettingsComponent(object):
         # Write window code
         self.writeWindowCodeJS(buff)
         code = ("\n// store info about the experiment session:\n"
-                "let expName = %s;  // from the Builder filename that created this script\n"
+                "let expName = '%s';  // from the Builder filename that created this script\n"
                 "let expInfo = %s;\n"
-                "\n" % (self.params['expName'], self.getInfo()))
+                "\n" % (jsFilename, self.getInfo()))
         buff.writeIndentedLines(code)
 
     def writeExpSetupCodeJS(self, buff, version):
@@ -585,12 +585,21 @@ class SettingsComponent(object):
             code = ("expName = %s  # from the Builder filename that created"
                     " this script\n")
             buff.writeIndented(code % self.params['expName'])
+
+        if PY3:  # in Py3 dicts are chrono-sorted
+            sorting = "False"
+        else:  # in Py2, with no natural order, at least be alphabetical
+            sorting = "True"
         expInfoDict = self.getInfo()
         buff.writeIndented("expInfo = %s\n" % repr(expInfoDict))
         if self.params['Show info dlg'].val:
             buff.writeIndentedLines(
-                "dlg = gui.DlgFromDict(dictionary=expInfo, title=expName)\n"
-                "if dlg.OK == False:\n    core.quit()  # user pressed cancel\n")
+                "dlg = gui.DlgFromDict(dictionary=expInfo, "
+                "sortKeys={}, title=expName)\n"
+                "if dlg.OK == False:\n"
+                "    core.quit()  # user pressed cancel\n"
+                .format(sorting)
+            )
         buff.writeIndentedLines(
             "expInfo['date'] = data.getDateStr()  # add a simple timestamp\n"
             "expInfo['expName'] = expName\n"
@@ -691,14 +700,17 @@ class SettingsComponent(object):
             screenNumber = requestedScreenNumber - 1
 
         size = self.params['Window size (pixels)']
-        code = ("win = visual.Window(\n    size=%s, fullscr=%s, screen=%s,"
-                "\n    allowGUI=%s, allowStencil=%s,\n")
-        vals = (size, fullScr, screenNumber, allowGUI, allowStencil)
+        winType = self.exp.prefsGeneral['winType']
+
+        code = ("win = visual.Window(\n    size=%s, fullscr=%s, screen=%s, "
+                "\n    winType='%s', allowGUI=%s, allowStencil=%s,\n")
+        vals = (size, fullScr, screenNumber, winType, allowGUI, allowStencil)
         buff.writeIndented(code % vals)
+
         code = ("    monitor=%(Monitor)s, color=%(color)s, "
                 "colorSpace=%(colorSpace)s,\n")
         if self.params['blendMode'].val:
-            code += "    blendMode=%(blendMode)s, useFBO=True,\n"
+            code += "    blendMode=%(blendMode)s, useFBO=True, \n"
 
         if self.params['Units'].val != 'use prefs':
             code += "    units=%(Units)s"
@@ -747,6 +759,11 @@ class SettingsComponent(object):
     def writeEndCode(self, buff):
         """Write code for end of experiment (e.g. close log file).
         """
+        code = ('\n# Flip one final time so any remaining win.callOnFlip() \n'
+                '# and win.timeOnFlip() tasks get executed before quitting\n'
+                'win.flip()\n\n')
+        buff.writeIndentedLines(code)
+
         buff.writeIndented("# these shouldn't be strictly necessary "
                            "(should auto-save)\n")
         if self.params['Save wide csv file'].val:
@@ -763,10 +780,13 @@ class SettingsComponent(object):
 
     def writeEndCodeJS(self, buff):
 
-        endLoopInteration = ("\nfunction endLoopIteration(thisTrial) {\n"
+        endLoopInteration = ("\nfunction endLoopIteration(thisScheduler, thisTrial) {\n"
                     "  // ------Prepare for next entry------\n"
                     "  return function () {\n"
-                    "    if (typeof thisTrial === 'undefined' || !('isTrials' in thisTrial) || thisTrial.isTrials) {\n"
+                    "    // ------Check if user ended loop early------\n"
+                    "    if (currentLoop.finished) {\n"
+                    "      thisScheduler.stop();\n"
+                    "    } else if (typeof thisTrial === 'undefined' || !('isTrials' in thisTrial) || thisTrial.isTrials) {\n"
                     "      psychoJS.experiment.nextEntry();\n"
                     "    }\n"
                     "  return Scheduler.Event.NEXT;\n"

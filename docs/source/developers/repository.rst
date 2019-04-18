@@ -98,7 +98,9 @@ Informative commit messages are really useful when we have to go back through th
   * *ENH* : enhancement (improvement to existing code)
   * *DOC*: for all kinds of documentation related commits
   * *TEST*: for adding or changing tests
-  
+
+When making commits that fall into several commit categories (e.g., BF and TEST), **please make separate commits for each category** and **avoid concatenating commit message prefixes**. E.g., please do not use `BF/TEST`, because this will affect how commit messages are sorted when we pull in fixes for each release.
+
 NB: The difference between BF and FF is that BF indicates a fix that is appropriate for back-porting to earlier versions, whereas FF indicates a fix to code that has not been released, and so cannot be back-ported.
 
 .. _pullRequest:

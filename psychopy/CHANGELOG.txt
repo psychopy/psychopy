@@ -10,6 +10,25 @@ Changelog
 CHANGES, which are identified in this dark red text, typically indicate things that alter the PsychoPy behaviour in a way that could break compatibility. Be especially wary of those!
 
 
+PsychoPy 3.1
+----------------
+
+We've improved timing, especially keyboard timing a great deal
+
+PsychoPy 3.1.0
+~~~~~~~~~~~~~~~~~~~~~~
+
+NEW:
+
+- hardware.keyboard.Keyboard class, based on C code from the Psychtoolbox project (ported to Python by Mario Kleiner)
+ - faster than `event.getKeys()` (polling is asynchronous with drawing loop and the calls go direct 
+   to the USB rather than going via the operating system key calls)
+ - supports keyDuration fields as well as `rt` for key down time
+- Form class for combining text items and responses (currently ratings and radio items) in a scrollable list
+- each Builder Component is now outputting its start/stop times in the data file by default (can be turned
+  off for )
+
+
 PsychoPy 3.0
 ----------------
 
@@ -17,6 +36,97 @@ PsychoPy3 is the new phase of development including support for online studies
 at the Pavlovia.org experiment server. Many of the features here are relatively
 new and, although we have spent hundreds of hours developing and testing them
 you should be more cautious than ever checking your experiment and data outputs.
+
+PsychoPy 3.0.7
+~~~~~~~~~~~~~~~~~~~~~~
+
+FIXED:
+ - local project repeatedly asking to Create New Pavlovia project when one already exists #c3f0d203f
+ - Fixed "No module named 'PyQt4'" on MacOS<10.10 caused by PyQt dropping support for Mac10.9 in PyQt5.9 #2375
+ - don't allow movie->online to use units 'from experiment settings' #8cbaf8a713
+ - Py3 string/byte fixes for CRS ColorCal #3bf1b7e5d4 #d49f154a0
+ - various fixes to Japanese translations
+
+PsychoPy 3.0.6
+~~~~~~~~~~~~~~~~~~~~~~
+
+FIXED:
+
+- `TrialHandler.next()` was accidentally removed by Python3 conversion and now added back in #c44621ab072ad
+- various fixes to iohub Python3 compatibility (especially for datastore)
+- permit reading "xlsm" files as conditions files (Excel files with macros although these will be ignored by Python) #9e11bfd61
+- added space key to the GlobalEventKeys #2310
+- fix to pating into Code Component with windows EOLs
+- fixes to Japanese translation (and bug around saving Static Components in Japanese locale)
+- packaging: PyQt package inside one of the Standalone distros was broken
+
+PsychoPy 3.0.5
+~~~~~~~~~~~~~~~~~~~~~~
+
+FIXED:
+
+- sounddevice backend not importing on systems that don't have readline #a9bbe98b3
+- better automated Pavlovia logging-in for users, based on project #460889e5d
+- faster auto-logging for changes involving numpy arrays (e.g. elexment arrays XYs) #e5dfc9e7d
+- fix paste when using legacy macOS end-of-lines (convert them to '\n' always) #94c5ee6a2
+- updated Japanese translations #2292
+
+PsychoPy 3.0.4
+~~~~~~~~~~~~~~~~~~~~~~
+
+FIXED:
+
+- fixes to prevent stalled "Synchronizing..." message by preventing behaviours that would cause it #8cadce02d
+- workaround to stop `sounddevice` backend from silencing `input()` #1422fd7c9
+- prevent JS experiments being compiled with units of "use prefs" #a686dbf52
+- cleaner ioHub shutdown #7a7751ca5 and datastore #209c4047f
+- Slider in JS allows forceEndRoutine #0694027b2
+- better error reporting when compiling scripts #a01cb2982
+- don't crash the app if no internet #84b7602c3
+- don't crash if scipy.optimize doesn't load #0f8038629
+- set Slider label height to match tick height by default #f8bdf2341
+- online sounds were never ending if duration was blank (now ends at end of file) #6d91b3186
+- problem converting EOLs between different formats when pasting code
+
+ADDED:
+
+- New Builder Pavlovia button to examine properties of current project
+- Added star to ShapeStim (currently only in Python) #8e6c40993
+- Added tooltips for Pavlovia buttons
+
+PsychoPy 3.0.3
+~~~~~~~~~~~~~~~~~~~~~~
+
+CHANGED: Slight change to creation of *new* experiments, which will now default to
+the units of 'height' rather than 'use preferences' (which led to potential confusion
+when the experiment moved to a different computer)
+
+FIXED:
+
+- Force End Routine wasn't working with Slider when online #a0ca2e312
+- Fix to the online error about units: if an experiment is given units of "use preferences"
+this will switch to height during HTML export #a686dbf52
+- First push of a new project to Pavlovia didn't note that remote now exists, so
+tried to "first push" again #f4134a670
+- fixed detection of correct non-response in JavaScript outputs (so no-go works online) #0c3cea2b2
+- added workaround for strange clash of `sounddevice` with `input()` #f99bef4a9
+- various small fixes to iohub for Py3 #e6a2169d6 #4ca503399 #cf432bc3c
+
+ADDED:
+
+- star available as a Shape in Builder (but not online yet)
+- experiment info dialog now supports drop-downs to constrain options (e.g. ['male','female','other'] )
+- BBTK now supports mode Digital Stimulus Response Echo #5da328fcf
+
+PsychoPy 3.0.2
+~~~~~~~~~~~~~~~~~~~~~~
+
+FIXED:
+
+- Builder's PsychoJS outputs were not updating their versions (pointing to the version the script was first created in, not the version currently used) #789d24ee45aa
+- sounddevice under Python2 had a bug with being unable to copy() #c1317b6b6355e
+- now prevent the user from accessing `useVersion` if that version can't be supported by the current install (e.g. incompatible Python version or wx version)
+- Windows Standalone version now includes dependency for [pyqmix](https://github.com/psyfood/pyqmix) pumps
 
 PsychoPy 3.0.1
 ~~~~~~~~~~~~~~~~~~~~~~
@@ -26,7 +136,6 @@ FIXED:
 - JS outputs were connecting to outdated PsychoJS version (3.0.0b11 instead of 3.0.0)
 - updated numpy (to 1.15.4) and scipy (to 1.2.0) for windows installs using https://www.lfd.uci.edu/~gohlke/pythonlibs/ in the hope of fixing numpy problems for some windows boxes
 - JS string values in Py27 were being convert to b'theString' in JS outputs which obviously broke JS
--
 
 ADDED:
 

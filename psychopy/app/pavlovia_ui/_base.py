@@ -140,3 +140,89 @@ class PavloviaMiniBrowser(wx.Dialog):
         if url is None:
             url = self.browser.GetCurrentURL()
         return url.split(paramName + '=')[1].split('&')[0]
+
+
+class PavloviaCommitDialog(wx.Dialog):
+    """This class will be used to brings up a commit dialog
+    (if there is anything to commit)"""
+
+    def __init__(self, *args, **kwargs):
+
+        # pop kwargs for Py2 compatibility
+        changeInfo = kwargs.pop('changeInfo', '')
+        initMsg = kwargs.pop('initMsg', '')
+
+        super(PavloviaCommitDialog, self).__init__(*args, **kwargs)
+
+        # Set Text widgets
+        wx.Dialog(None, id=wx.ID_ANY, title="Committing changes")
+        self.updatesInfo = wx.StaticText(self, label=changeInfo)
+        self.commitTitleLbl = wx.StaticText(self, label='Summary of changes')
+        self.commitTitleCtrl = wx.TextCtrl(self, size=(500, -1), value=initMsg)
+        self.commitDescrLbl = wx.StaticText(self, label='Details of changes\n (optional)')
+        self.commitDescrCtrl = wx.TextCtrl(self, size=(500, 200), style=wx.TE_MULTILINE | wx.TE_AUTO_URL)
+
+        # Set buttons
+        self.btnOK = wx.Button(self, wx.ID_OK)
+        self.btnCancel = wx.Button(self, wx.ID_CANCEL)
+
+        # Format elements
+        self.setToolTips()
+        self.setDlgSizers()
+
+    def setToolTips(self):
+        """Set the tooltips for the dialog widgets"""
+        self.commitTitleCtrl.SetToolTip(
+            wx.ToolTip(
+                _translate("Title summarizing the changes you're making in these files")))
+        self.commitDescrCtrl.SetToolTip(
+            wx.ToolTip(
+                _translate("Optional details about the changes you're making in these files")))
+
+    def setDlgSizers(self):
+        """
+        Set the commit dialog sizers and layout.
+        """
+        commitSizer = wx.FlexGridSizer(cols=2, rows=2, vgap=5, hgap=5)
+        commitSizer.AddMany([(self.commitTitleLbl, 0, wx.ALIGN_RIGHT),
+                             self.commitTitleCtrl,
+                             (self.commitDescrLbl, 0, wx.ALIGN_RIGHT),
+                             self.commitDescrCtrl])
+        buttonSizer = wx.BoxSizer(wx.HORIZONTAL)
+        buttonSizer.AddMany([self.btnCancel,
+                             self.btnOK])
+
+        # main sizer and layout
+        mainSizer = wx.BoxSizer(wx.VERTICAL)
+        mainSizer.Add(self.updatesInfo, 0, wx.ALL | wx.EXPAND, border=5)
+        mainSizer.Add(commitSizer, 1, wx.ALL | wx.EXPAND, border=5)
+        mainSizer.Add(buttonSizer, 0, wx.ALL | wx.ALIGN_RIGHT, border=5)
+        self.SetSizerAndFit(mainSizer)
+        self.Layout()
+
+    def ShowCommitDlg(self):
+        """Show the commit application-modal dialog
+
+        Returns
+        -------
+        wx event
+        """
+        return self.ShowModal()
+
+    def getCommitMsg(self):
+        """
+        Gets the commit message for the git commit.
+
+        Returns
+        -------
+        string:
+            The commit message and description.
+            If somehow the commit message is blank, a default is given.
+        """
+        if self.commitTitleCtrl.IsEmpty():
+            commitMsg = "_"
+        else:
+            commitMsg = self.commitTitleCtrl.GetValue()
+            if not self.commitDescrCtrl.IsEmpty():
+                commitMsg += "\n\n" + self.commitDescrCtrl.GetValue()
+        return commitMsg

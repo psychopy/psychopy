@@ -11,7 +11,11 @@ import sys
 import platform
 import psychopy
 from psychopy import web, logging
-import requests
+
+try:
+    import certifi
+except ImportError:
+    certifi = None
 
 
 def sendUsageStats(app=None):
@@ -23,12 +27,15 @@ def sendUsageStats(app=None):
 
     v = psychopy.__version__
     dateNow = time.strftime("%Y-%m-%d_%H:%M")
-    miscInfo = ''
+    try:
+        miscInfo = platform.machine()
+    except AttributeError:
+        miscInfo=''
 
     # get platform-specific info
     if sys.platform == 'darwin':
         OSXver, junk, architecture = platform.mac_ver()
-        systemInfo = "OSX_%s_%s" % (OSXver, architecture)
+        systemInfo = "OSX_%s" % (OSXver)
     elif sys.platform.startswith('linux'):
         systemInfo = '%s_%s_%s' % (
             'Linux',
@@ -40,10 +47,14 @@ def sendUsageStats(app=None):
         systemInfo = "win32_v" + platform.version()
     else:
         systemInfo = platform.system() + platform.release()
-    u = "http://www.psychopy.org/usage.php?date=%s&sys=%s&version=%s&misc=%s"
+    u = "https://usage.psychopy.org/submit.php?date=%s&sys=%s&version=%s&misc=%s"
     URL = u % (dateNow, systemInfo, v, miscInfo)
     try:
-        page = requests.get(URL, proxies=web.proxies)  # proxies
+        req = web.urllib.request.Request(URL)
+        if certifi:
+            page = web.urllib.request.urlopen(req, cafile=certifi.where())
+        else:
+            page = web.urllib.request.urlopen(req)
     except Exception:
         logging.warning("Couldn't connect to psychopy.org\n"
                         "Check internet settings (and proxy "

@@ -38,6 +38,7 @@ class ioLabsButtonBoxComponent(KeyboardComponent):
     components over which active buttons (for responses and lights).
     """
     categories = ['Responses']  # which section(s) in the components panel
+    targets = ['PsychoPy']
 
     def __init__(self, exp, parentName, name='bbox',
                  active="(0,1,2,3,4,5,6,7)", store='first button',
@@ -56,6 +57,7 @@ class ioLabsButtonBoxComponent(KeyboardComponent):
 
         self.type = 'ioLabsButtonBox'
         self.url = "http://www.psychopy.org/builder/components/ioLabs.html"
+
         self.exp.requirePsychopyLibs(['hardware'])
         del self.params['allowedKeys']
 

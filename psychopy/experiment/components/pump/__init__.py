@@ -49,7 +49,7 @@ class QmixPumpComponent(BaseComponent):
             stopType=stopType, stopVal=stopVal,
             startEstim=startEstim, durationEstim=durationEstim)
 
-        self.type = 'Qmix pump'
+        self.type = 'QmixPump'
         self.url = 'http://www.psychopy.org/builder/components/pump.html'
         self.categories = ['I/O']
 
@@ -57,7 +57,7 @@ class QmixPumpComponent(BaseComponent):
                                importFrom='psychopy.hardware')
 
         code = ('# Initialize all pumps so they are ready to be used when we\n'
-                '# need them later – this enables us to dynamically select\n'
+                '# need them later. This enables us to dynamically select\n'
                 '# pumps during the experiment without worrying about their\n'
                 '# initialization.\n'
                 'qmix._init_all_pumps()')

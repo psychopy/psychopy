@@ -142,7 +142,7 @@ class KeyboardInputEvent(DeviceEvent):
 
                      # a string representation of what key was pressed. This
                      # will be based on a mapping table
-                     ('key', N.str, 12),
+                     ('key', '|S12'),
 
                      # indicates what modifier keys were active when the key
                      # was pressed.
@@ -155,7 +155,7 @@ class KeyboardInputEvent(DeviceEvent):
                      # Holds the unicode char value of the key, if available.
                      # Only keys that also have a visible glyph will be set for
                      # this field.
-                     ('char', N.str, 4),
+                     ('char', '|S4'),
 
                      # for keyboard release events, the duration from key press
                      # event (if one was registered)
@@ -229,12 +229,12 @@ class KeyboardInputEvent(DeviceEvent):
         modifier_value_index = cls.CLASS_ATTRIBUTE_NAMES.index('modifiers')
         event_value_list[modifier_value_index] = KeyboardConstants._modifierCodes2Labels(
             event_value_list[modifier_value_index])
-        char_value_index = cls.CLASS_ATTRIBUTE_NAMES.index('char')
-        event_value_list[char_value_index] = event_value_list[
-            char_value_index].decode('utf-8')
-        key_value_index = cls.CLASS_ATTRIBUTE_NAMES.index('key')
-        event_value_list[key_value_index] = event_value_list[
-            key_value_index].decode('utf-8')
+        #char_value_index = cls.CLASS_ATTRIBUTE_NAMES.index('char')
+        #event_value_list[char_value_index] = event_value_list[
+        #    char_value_index].decode('utf-8')
+        #key_value_index = cls.CLASS_ATTRIBUTE_NAMES.index('key')
+        #event_value_list[key_value_index] = event_value_list[
+        #    key_value_index].decode('utf-8')
 
     @classmethod
     def createEventAsDict(cls, values):

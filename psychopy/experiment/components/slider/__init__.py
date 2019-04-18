@@ -75,7 +75,7 @@ class SliderComponent(BaseVisualComponent):
                 startType=startType, startVal=startVal,
                 stopType=stopType, stopVal=stopVal,
                 startEstim=startEstim, durationEstim=durationEstim)
-        self.type = 'SliderComponent'
+        self.type = 'Slider'
         self.url = "http://www.psychopy.org/builder/components/slidercomponent.html"
         self.exp.requirePsychopyLibs(['visual', 'event'])
         self.targets = ['PsychoPy', 'PsychoJS']
@@ -263,7 +263,7 @@ class SliderComponent(BaseVisualComponent):
         forceEnd = self.params['forceEndRoutine'].val
         if forceEnd:
             code = ("\n// Check %(name)s for response to end routine\n"
-                    "if (%(name)s.getRating() !== 'undefined' && %(name)s.status === PsychoJS.Status.STARTED) {\n"
+                    "if (%(name)s.getRating() !== undefined && %(name)s.status === PsychoJS.Status.STARTED) {\n"
                     "  continueRoutine = false; }\n")
             buff.writeIndentedLines(code % (self.params))
 

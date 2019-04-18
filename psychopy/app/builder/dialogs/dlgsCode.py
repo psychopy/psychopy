@@ -251,6 +251,8 @@ class DlgCodeComponentProperties(wx.Dialog):
                 param.val = self.componentName.GetValue()
             elif fieldName == 'Code Type':
                 param.val = self.codeTypeMenu.GetStringSelection()
+            elif fieldName == 'disabled':
+                pass
             else:
                 codeBox = self.codeBoxes[fieldName]
                 param.val = codeBox.GetText()
@@ -283,22 +285,29 @@ class CodeBox(BaseCodeEditor):
         # 4 means 'tabs are bad'; 1 means 'flag inconsistency'
         self.SetProperty("tab.timmy.whinge.level", "4")
         self.SetViewWhiteSpace(self.prefs.appData['coder']['showWhitespace'])
-        self.SetViewEOL(False)
+        self.SetViewEOL(self.prefs.appData['coder']['showEOLs'])
 
         self.Bind(wx.stc.EVT_STC_MARGINCLICK, self.OnMarginClick)
         self.SetIndentationGuides(False)
 
         self.Bind(wx.EVT_KEY_DOWN, self.OnKeyPressed)
+
         self.setupStyles()
 
     def OnKeyPressed(self, event):
         keyCode = event.GetKeyCode()
         _mods = event.GetModifiers()
+
+        # Check combination keys
         if keyCode == ord('/') and wx.MOD_CONTROL == _mods:
-            self.toggleCommentLines(self.params['Code Type'].val)
+            if self.params is not None:
+                self.toggleCommentLines(self.params['Code Type'].val)
+        elif keyCode == ord('V') and wx.MOD_CONTROL == _mods:
+            self.Paste()
+            return  # so that we don't reach the skip line at end
 
         if keyCode == wx.WXK_RETURN and not self.AutoCompActive():
-            # prcoess end of line and then do smart indentation
+            # process end of line and then do smart indentation
             event.Skip(False)
             self.CmdKeyExecute(wx.stc.STC_CMD_NEWLINE)
             if self.params is not None:
@@ -413,20 +422,3 @@ class CodeBox(BaseCodeEditor):
                         self.Expand(lineClicked, True, True, 100)
                 else:
                     self.ToggleFold(lineClicked)
-
-    def Paste(self, event=None):
-        dataObj = wx.TextDataObject()
-        clip = wx.Clipboard().Get()
-        clip.Open()
-        success = clip.GetData(dataObj)
-        clip.Close()
-        if success:
-            txt = dataObj.GetText()
-            if not constants.PY3:
-                try:
-                    # if we can decode/encode to utf-8 then all is good
-                    txt.decode('utf-8')
-                except:
-                    # if not then wx conversion broke so get raw data instead
-                    txt = dataObj.GetDataHere()
-            self.ReplaceSelection(txt)

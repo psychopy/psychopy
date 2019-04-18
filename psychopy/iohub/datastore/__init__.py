@@ -89,15 +89,18 @@ class DataStoreFile(object):
 
         atexit.register(close_open_data_files, False)
 
-        if fmode == 'w' or len(self.emrtFile.title) == 0:
+        if len(self.emrtFile.title) == 0:
             self.buildOutTemplate()
             self.flush()
         else:
             self.loadTableMappings()
 
     def loadTableMappings(self):
-        raise NotImplementedError
-
+        # create meta-data tables
+        self.TABLES['EXPERIMENT_METADETA']=self.emrtFile.root.data_collection.experiment_meta_data
+        self.TABLES['SESSION_METADETA']=self.emrtFile.root.data_collection.session_meta_data
+        self.TABLES['CLASS_TABLE_MAPPINGS']=self.emrtFile.root.class_table_mapping
+        
     def buildOutTemplate(self):
         self.emrtFile.title = DATA_FILE_TITLE
         self.emrtFile.FILE_VERSION = FILE_VERSION
@@ -304,6 +307,16 @@ class DataStoreFile(object):
                 np_dtype.append(tuple(nv))
             else:
                 np_dtype.append(npctype)
+
+        np_dtype2=[]
+        for adtype in np_dtype:
+            adtype2=[]
+            for a in adtype:
+                if isinstance(a, bytes): 
+                    a = str(a, 'utf-8')
+                adtype2.append(a)
+            np_dtype2.append(tuple(adtype2))
+        np_dtype = np_dtype2    
         self._EXP_COND_DTYPE = np.dtype(np_dtype)
         try:
             expCondTableName = "EXP_CV_%d"%(experiment_id)
@@ -336,8 +349,6 @@ class DataStoreFile(object):
             data = temp
             try:
                 etable = self.TABLES['EXP_CV']
-                #print2err('data: ',data,' ',type(data))
-
                 for i, d in enumerate(data):
                     if isinstance(d, (list, tuple)):
                         data[i] = tuple(d)
@@ -409,7 +420,6 @@ class DataStoreFile(object):
                 np_events.append(tuple(event))
 
             np_array = np.array(np_events, dtype=eventClass.NUMPY_DTYPE)
-            #ioHub.print2err('np_array:',np_array)
             etable.append(np_array)
             self.bufferedFlush(len(np_events))
         except ioHubError as e:
@@ -503,48 +513,3 @@ class SessionMetaData(tables.IsDescription):
     comments  = StringCol(256, pos=5)
     user_variables = StringCol(2048, pos=6) # will hold json encoded version of user variable dict for session
 
-
-"""
-# NEEDS TO BE COMPLETED
-class ParticipantMetaData(IsDescription):
-    participant_id = UInt32Col(pos=1)
-    participant_code = StringCol(8,pos=2)
-
-# NEEDS TO BE COMPLETED
-class SiteMetaData(IsDescription):
-    site_id = UInt32Col(pos=1)
-    site_code = StringCol(8,pos=2)
-
-# NEEDS TO BE COMPLETED
-class MemberMetaData(IsDescription):
-    member_id =UInt32Col(pos=1)
-    username = StringCol(16,pos=2)
-    password = StringCol(16,pos=3)
-    email = StringCol(32,pos=4)
-    secretPhrase = StringCol(64,pos=5)
-    dateAdded = Int64Col(pos=6)
-
-# NEEDS TO BE COMPLETED
-class DeviceInformation(IsDescription):
-    device_id = UInt32Col(pos=1)
-    device_code = StringCol(7,pos=2)
-    name =StringCol(32,pos=3)
-    manufacturer =StringCol(32,pos=3)
-
-# NEEDS TO BE COMPLETED
-class CalibrationAreaInformation(IsDescription):
-    cal_id = UInt32Col(pos=1)
-
-# NEEDS TO BE COMPLETED
-class EyeTrackerInformation(IsDescription):
-    et_id = UInt32Col(pos=1)
-
-# NEEDS TO BE COMPLETED
-class EyeTrackerSessionConfiguration(IsDescription):
-    et_config_id = UInt32Col(pos=1)
-
-# NEEDS TO BE COMPLETED
-class ApparatusSetupMetaData(IsDescription):
-    app_setup_id = UInt32Col(pos=1)
-
-"""

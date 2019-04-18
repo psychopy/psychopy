@@ -435,7 +435,6 @@ class EyeLinkCoreGraphicsIOHubPsychopy(pylink.EyeLinkCustomDisplay):
 
         if self._iohub_server:
             for dev in self._iohub_server.devices:
-                #print2err("dev: ",dev.__class__.__name__)
                 if dev.__class__.__name__ == 'Keyboard':
                     kbDevice = dev
                 elif dev.__class__.__name__ == 'Mouse':
@@ -487,6 +486,8 @@ class EyeLinkCoreGraphicsIOHubPsychopy(pylink.EyeLinkCustomDisplay):
             from .....keyboard import KeyboardInputEvent
             key_index = KeyboardInputEvent.CLASS_ATTRIBUTE_NAMES.index('key')
             char = event[key_index]
+            if isinstance(char, bytes):
+                char = str(event[key_index],'utf-8')
 
             if char:
                 char = char.lower()

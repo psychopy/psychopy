@@ -5,7 +5,7 @@
 from __future__ import division, absolute_import, print_function
 
 from builtins import str
-from past.builtins import unicode
+#from past.builtins import unicode
 from collections import deque
 import time
 from ..client import ioHubDeviceView, ioEvent, DeviceRPC
@@ -50,8 +50,8 @@ class KeyboardEvent(ioEvent):
 
     @property
     def key(self):
-        return unicode(self._key, 'utf-8')
-
+        return self._key
+        
     @property
     def char(self):
         """The unicode value of the keyboard event, if available. This field is
@@ -61,7 +61,7 @@ class KeyboardEvent(ioEvent):
         :return: unicode, '' if no char value is available for the event.
 
         """
-        return unicode(self._char, 'utf-8')
+        return self._char
 
     @property
     def modifiers(self):
@@ -88,10 +88,9 @@ class KeyboardEvent(ioEvent):
         return self._modifiers
 
     def __str__(self):
-        return '%s, key: %s char: %s, modifiers: %s' % (
-            ioEvent.__str__(self), unicode(self.key, 'utf-8'),
-            unicode(self.char, 'utf-8'),
-            unicode(self.modifiers, 'utf-8'))
+        pstr = ioEvent.__str__(self)
+        return '{}, key: {} char: {}, modifiers: {}'.format(pstr, self.key,
+                self.char, self.modifiers)
 
     def __eq__(self, v):
         if isinstance(v, KeyboardEvent):
@@ -187,6 +186,8 @@ class Keyboard(ioHubDeviceView):
 
         """
         kb_state = self.getCurrentDeviceState()
+        if not isinstance(kb_state,dict):
+            return
         self._reporting = kb_state.get('reporting_events')
         pressed_keys = kb_state.get('pressed_keys')
         self._pressed_keys.clear()
@@ -214,7 +215,7 @@ class Keyboard(ioHubDeviceView):
         :return: dict
         """
         self._syncDeviceState()
-        self._pressed_keys = {unicode(keys, 'utf-8'): vals for keys, vals in self._pressed_keys.items()}
+        self._pressed_keys = {keys: vals for keys, vals in self._pressed_keys.items()}
         return self._pressed_keys
 
     @property

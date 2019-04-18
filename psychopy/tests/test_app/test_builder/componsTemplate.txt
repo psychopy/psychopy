@@ -1,4 +1,16 @@
 ApertureComponent.order:['name', 'size', 'pos']
+ApertureComponent.disabled.default:False
+ApertureComponent.disabled.allowedTypes:[]
+ApertureComponent.disabled.allowedUpdates:None
+ApertureComponent.disabled.allowedVals:[]
+ApertureComponent.disabled.categ:Testing
+ApertureComponent.disabled.hint:Disable this component
+ApertureComponent.disabled.label:Disable component
+ApertureComponent.disabled.readOnly:False
+ApertureComponent.disabled.staticUpdater:None
+ApertureComponent.disabled.updates:None
+ApertureComponent.disabled.val:False
+ApertureComponent.disabled.valType:bool
 ApertureComponent.durationEstim.default:
 ApertureComponent.durationEstim.allowedTypes:[]
 ApertureComponent.durationEstim.allowedUpdates:None
@@ -275,6 +287,18 @@ CodeComponent.End Routine.staticUpdater:None
 CodeComponent.End Routine.updates:constant
 CodeComponent.End Routine.val:
 CodeComponent.End Routine.valType:extendedCode
+CodeComponent.disabled.default:False
+CodeComponent.disabled.allowedTypes:[]
+CodeComponent.disabled.allowedUpdates:None
+CodeComponent.disabled.allowedVals:[]
+CodeComponent.disabled.categ:Testing
+CodeComponent.disabled.hint:Disable this component
+CodeComponent.disabled.label:Disable component
+CodeComponent.disabled.readOnly:False
+CodeComponent.disabled.staticUpdater:None
+CodeComponent.disabled.updates:None
+CodeComponent.disabled.val:False
+CodeComponent.disabled.valType:bool
 CodeComponent.name.default:code
 CodeComponent.name.allowedTypes:[]
 CodeComponent.name.allowedUpdates:None
@@ -286,30 +310,6 @@ CodeComponent.name.readOnly:False
 CodeComponent.name.staticUpdater:None
 CodeComponent.name.val:code
 CodeComponent.name.valType:code
-CodeComponent.saveStartStop.default:True
-CodeComponent.saveStartStop.allowedTypes:[]
-CodeComponent.saveStartStop.allowedUpdates:None
-CodeComponent.saveStartStop.allowedVals:[]
-CodeComponent.saveStartStop.categ:Data
-CodeComponent.saveStartStop.hint:Store the onset/offset times in the data file (as well as in the log file).
-CodeComponent.saveStartStop.label:Save onset/offset times
-CodeComponent.saveStartStop.readOnly:False
-CodeComponent.saveStartStop.staticUpdater:None
-CodeComponent.saveStartStop.updates:None
-CodeComponent.saveStartStop.val:True
-CodeComponent.saveStartStop.valType:bool
-CodeComponent.syncScreenRefresh.default:False
-CodeComponent.syncScreenRefresh.allowedTypes:[]
-CodeComponent.syncScreenRefresh.allowedUpdates:None
-CodeComponent.syncScreenRefresh.allowedVals:[]
-CodeComponent.syncScreenRefresh.categ:Data
-CodeComponent.syncScreenRefresh.hint:Synchronize times with screen refresh (good for visual stimuli and responses based on them)
-CodeComponent.syncScreenRefresh.label:Sync timing with screen refresh
-CodeComponent.syncScreenRefresh.readOnly:False
-CodeComponent.syncScreenRefresh.staticUpdater:None
-CodeComponent.syncScreenRefresh.updates:None
-CodeComponent.syncScreenRefresh.val:False
-CodeComponent.syncScreenRefresh.valType:bool
 DotsComponent.order:['name']
 DotsComponent.coherence.default:1.0
 DotsComponent.coherence.allowedTypes:[]
@@ -359,6 +359,18 @@ DotsComponent.dir.staticUpdater:None
 DotsComponent.dir.updates:constant
 DotsComponent.dir.val:0.0
 DotsComponent.dir.valType:code
+DotsComponent.disabled.default:False
+DotsComponent.disabled.allowedTypes:[]
+DotsComponent.disabled.allowedUpdates:None
+DotsComponent.disabled.allowedVals:[]
+DotsComponent.disabled.categ:Testing
+DotsComponent.disabled.hint:Disable this component
+DotsComponent.disabled.label:Disable component
+DotsComponent.disabled.readOnly:False
+DotsComponent.disabled.staticUpdater:None
+DotsComponent.disabled.updates:None
+DotsComponent.disabled.val:False
+DotsComponent.disabled.valType:bool
 DotsComponent.dotLife.default:3
 DotsComponent.dotLife.allowedTypes:[]
 DotsComponent.dotLife.allowedUpdates:None
@@ -683,6 +695,18 @@ EnvGratingComponent.contrast.staticUpdater:None
 EnvGratingComponent.contrast.updates:constant
 EnvGratingComponent.contrast.val:0.5
 EnvGratingComponent.contrast.valType:code
+EnvGratingComponent.disabled.default:False
+EnvGratingComponent.disabled.allowedTypes:[]
+EnvGratingComponent.disabled.allowedUpdates:None
+EnvGratingComponent.disabled.allowedVals:[]
+EnvGratingComponent.disabled.categ:Testing
+EnvGratingComponent.disabled.hint:Disable this component
+EnvGratingComponent.disabled.label:Disable component
+EnvGratingComponent.disabled.readOnly:False
+EnvGratingComponent.disabled.staticUpdater:None
+EnvGratingComponent.disabled.updates:None
+EnvGratingComponent.disabled.val:False
+EnvGratingComponent.disabled.valType:bool
 EnvGratingComponent.durationEstim.default:
 EnvGratingComponent.durationEstim.allowedTypes:[]
 EnvGratingComponent.durationEstim.allowedUpdates:None
@@ -970,6 +994,210 @@ EnvGratingComponent.units.staticUpdater:None
 EnvGratingComponent.units.updates:None
 EnvGratingComponent.units.val:from exp settings
 EnvGratingComponent.units.valType:str
+FormComponent.order:['name', 'Items', 'Text Height', 'Size', 'Pos', 'Item Padding', 'Data Format', 'Randomize']
+FormComponent.Data Format.default:'rows'
+FormComponent.Data Format.allowedTypes:[]
+FormComponent.Data Format.allowedUpdates:None
+FormComponent.Data Format.allowedVals:['columns', 'rows']
+FormComponent.Data Format.categ:Basic
+FormComponent.Data Format.hint:Store item data by columns, or rows
+FormComponent.Data Format.label:Data Format
+FormComponent.Data Format.readOnly:False
+FormComponent.Data Format.staticUpdater:None
+FormComponent.Data Format.updates:constant
+FormComponent.Data Format.val:rows
+FormComponent.Data Format.valType:str
+FormComponent.Item Padding.default:0.05
+FormComponent.Item Padding.allowedTypes:[]
+FormComponent.Item Padding.allowedUpdates:None
+FormComponent.Item Padding.allowedVals:[]
+FormComponent.Item Padding.categ:Basic
+FormComponent.Item Padding.hint:The padding or space between items.
+FormComponent.Item Padding.label:Item Padding
+FormComponent.Item Padding.readOnly:False
+FormComponent.Item Padding.staticUpdater:None
+FormComponent.Item Padding.updates:constant
+FormComponent.Item Padding.val:0.05
+FormComponent.Item Padding.valType:code
+FormComponent.Items.default:'.csv'
+FormComponent.Items.allowedTypes:[]
+FormComponent.Items.allowedUpdates:None
+FormComponent.Items.allowedVals:[]
+FormComponent.Items.categ:Basic
+FormComponent.Items.hint:The csv filename containing the items for your survey.
+FormComponent.Items.label:Items
+FormComponent.Items.readOnly:False
+FormComponent.Items.staticUpdater:None
+FormComponent.Items.updates:constant
+FormComponent.Items.val:.csv
+FormComponent.Items.valType:str
+FormComponent.Pos.default:(0, 0)
+FormComponent.Pos.allowedTypes:[]
+FormComponent.Pos.allowedUpdates:None
+FormComponent.Pos.allowedVals:[]
+FormComponent.Pos.categ:Basic
+FormComponent.Pos.hint:x,y position of the form on screen
+FormComponent.Pos.label:Pos
+FormComponent.Pos.readOnly:False
+FormComponent.Pos.staticUpdater:None
+FormComponent.Pos.updates:constant
+FormComponent.Pos.val:(0, 0)
+FormComponent.Pos.valType:code
+FormComponent.Randomize.default:False
+FormComponent.Randomize.allowedTypes:[]
+FormComponent.Randomize.allowedUpdates:None
+FormComponent.Randomize.allowedVals:[]
+FormComponent.Randomize.categ:Basic
+FormComponent.Randomize.hint:Do you want to randomize the order of your questions?
+FormComponent.Randomize.label:Randomize
+FormComponent.Randomize.readOnly:False
+FormComponent.Randomize.staticUpdater:None
+FormComponent.Randomize.updates:constant
+FormComponent.Randomize.val:False
+FormComponent.Randomize.valType:bool
+FormComponent.Size.default:(1, 0.7)
+FormComponent.Size.allowedTypes:[]
+FormComponent.Size.allowedUpdates:None
+FormComponent.Size.allowedVals:[]
+FormComponent.Size.categ:Basic
+FormComponent.Size.hint:Size of the Form on screen in 'height' units. e.g. (1, .7) height units for horizontal,and vertical, respectively
+FormComponent.Size.label:Size
+FormComponent.Size.readOnly:False
+FormComponent.Size.staticUpdater:None
+FormComponent.Size.updates:constant
+FormComponent.Size.val:(1, 0.7)
+FormComponent.Size.valType:code
+FormComponent.Text Height.default:0.03
+FormComponent.Text Height.allowedTypes:[]
+FormComponent.Text Height.allowedUpdates:None
+FormComponent.Text Height.allowedVals:[]
+FormComponent.Text Height.categ:Basic
+FormComponent.Text Height.hint:The size of the item text for Form
+FormComponent.Text Height.label:Text Height
+FormComponent.Text Height.readOnly:False
+FormComponent.Text Height.staticUpdater:None
+FormComponent.Text Height.updates:constant
+FormComponent.Text Height.val:0.03
+FormComponent.Text Height.valType:code
+FormComponent.disabled.default:False
+FormComponent.disabled.allowedTypes:[]
+FormComponent.disabled.allowedUpdates:None
+FormComponent.disabled.allowedVals:[]
+FormComponent.disabled.categ:Testing
+FormComponent.disabled.hint:Disable this component
+FormComponent.disabled.label:Disable component
+FormComponent.disabled.readOnly:False
+FormComponent.disabled.staticUpdater:None
+FormComponent.disabled.updates:None
+FormComponent.disabled.val:False
+FormComponent.disabled.valType:bool
+FormComponent.durationEstim.default:
+FormComponent.durationEstim.allowedTypes:[]
+FormComponent.durationEstim.allowedUpdates:None
+FormComponent.durationEstim.allowedVals:[]
+FormComponent.durationEstim.categ:Basic
+FormComponent.durationEstim.hint:(Optional) expected duration (s), purely for representing in the timeline
+FormComponent.durationEstim.label:Expected duration (s)
+FormComponent.durationEstim.readOnly:False
+FormComponent.durationEstim.staticUpdater:None
+FormComponent.durationEstim.updates:None
+FormComponent.durationEstim.val:
+FormComponent.durationEstim.valType:code
+FormComponent.name.default:form
+FormComponent.name.allowedTypes:[]
+FormComponent.name.allowedUpdates:None
+FormComponent.name.allowedVals:[]
+FormComponent.name.categ:Basic
+FormComponent.name.hint:Name of this component (alpha-numeric or _, no spaces)
+FormComponent.name.label:Name
+FormComponent.name.readOnly:False
+FormComponent.name.staticUpdater:None
+FormComponent.name.val:form
+FormComponent.name.valType:code
+FormComponent.saveStartStop.default:True
+FormComponent.saveStartStop.allowedTypes:[]
+FormComponent.saveStartStop.allowedUpdates:None
+FormComponent.saveStartStop.allowedVals:[]
+FormComponent.saveStartStop.categ:Data
+FormComponent.saveStartStop.hint:Store the onset/offset times in the data file (as well as in the log file).
+FormComponent.saveStartStop.label:Save onset/offset times
+FormComponent.saveStartStop.readOnly:False
+FormComponent.saveStartStop.staticUpdater:None
+FormComponent.saveStartStop.updates:None
+FormComponent.saveStartStop.val:True
+FormComponent.saveStartStop.valType:bool
+FormComponent.startEstim.default:
+FormComponent.startEstim.allowedTypes:[]
+FormComponent.startEstim.allowedUpdates:None
+FormComponent.startEstim.allowedVals:[]
+FormComponent.startEstim.categ:Basic
+FormComponent.startEstim.hint:(Optional) expected start (s), purely for representing in the timeline
+FormComponent.startEstim.label:Expected start (s)
+FormComponent.startEstim.readOnly:False
+FormComponent.startEstim.staticUpdater:None
+FormComponent.startEstim.updates:None
+FormComponent.startEstim.val:
+FormComponent.startEstim.valType:code
+FormComponent.startType.default:'time (s)'
+FormComponent.startType.allowedTypes:[]
+FormComponent.startType.allowedUpdates:None
+FormComponent.startType.allowedVals:['time (s)', 'frame N', 'condition']
+FormComponent.startType.categ:Basic
+FormComponent.startType.hint:How do you want to define your start point?
+FormComponent.startType.label:start type
+FormComponent.startType.readOnly:False
+FormComponent.startType.staticUpdater:None
+FormComponent.startType.updates:None
+FormComponent.startType.val:time (s)
+FormComponent.startType.valType:str
+FormComponent.startVal.default:0.0
+FormComponent.startVal.allowedTypes:[]
+FormComponent.startVal.allowedUpdates:None
+FormComponent.startVal.allowedVals:[]
+FormComponent.startVal.categ:Basic
+FormComponent.startVal.hint:When does the component start?
+FormComponent.startVal.label:Start
+FormComponent.startVal.readOnly:False
+FormComponent.startVal.staticUpdater:None
+FormComponent.startVal.updates:None
+FormComponent.startVal.val:0.0
+FormComponent.startVal.valType:code
+FormComponent.stopType.default:'duration (s)'
+FormComponent.stopType.allowedTypes:[]
+FormComponent.stopType.allowedUpdates:None
+FormComponent.stopType.allowedVals:['duration (s)', 'duration (frames)', 'time (s)', 'frame N', 'condition']
+FormComponent.stopType.categ:Basic
+FormComponent.stopType.hint:How do you want to define your end point?
+FormComponent.stopType.label:stop type
+FormComponent.stopType.readOnly:False
+FormComponent.stopType.staticUpdater:None
+FormComponent.stopType.updates:None
+FormComponent.stopType.val:duration (s)
+FormComponent.stopType.valType:str
+FormComponent.stopVal.default:
+FormComponent.stopVal.allowedTypes:[]
+FormComponent.stopVal.allowedUpdates:[]
+FormComponent.stopVal.allowedVals:[]
+FormComponent.stopVal.categ:Basic
+FormComponent.stopVal.hint:When does the component end? (blank is endless)
+FormComponent.stopVal.label:Stop
+FormComponent.stopVal.readOnly:False
+FormComponent.stopVal.staticUpdater:None
+FormComponent.stopVal.updates:constant
+FormComponent.stopVal.val:
+FormComponent.stopVal.valType:code
+FormComponent.syncScreenRefresh.default:False
+FormComponent.syncScreenRefresh.allowedTypes:[]
+FormComponent.syncScreenRefresh.allowedUpdates:None
+FormComponent.syncScreenRefresh.allowedVals:[]
+FormComponent.syncScreenRefresh.categ:Data
+FormComponent.syncScreenRefresh.hint:Synchronize times with screen refresh (good for visual stimuli and responses based on them)
+FormComponent.syncScreenRefresh.label:Sync timing with screen refresh
+FormComponent.syncScreenRefresh.readOnly:False
+FormComponent.syncScreenRefresh.staticUpdater:None
+FormComponent.syncScreenRefresh.updates:None
+FormComponent.syncScreenRefresh.val:False
+FormComponent.syncScreenRefresh.valType:bool
 GratingComponent.order:['tex', 'mask']
 GratingComponent.blendmode.default:'avg'
 GratingComponent.blendmode.allowedTypes:[]
@@ -1007,6 +1235,18 @@ GratingComponent.colorSpace.staticUpdater:None
 GratingComponent.colorSpace.updates:constant
 GratingComponent.colorSpace.val:rgb
 GratingComponent.colorSpace.valType:str
+GratingComponent.disabled.default:False
+GratingComponent.disabled.allowedTypes:[]
+GratingComponent.disabled.allowedUpdates:None
+GratingComponent.disabled.allowedVals:[]
+GratingComponent.disabled.categ:Testing
+GratingComponent.disabled.hint:Disable this component
+GratingComponent.disabled.label:Disable component
+GratingComponent.disabled.readOnly:False
+GratingComponent.disabled.staticUpdater:None
+GratingComponent.disabled.updates:None
+GratingComponent.disabled.val:False
+GratingComponent.disabled.valType:bool
 GratingComponent.durationEstim.default:
 GratingComponent.durationEstim.allowedTypes:[]
 GratingComponent.durationEstim.allowedUpdates:None
@@ -1271,6 +1511,18 @@ ImageComponent.colorSpace.staticUpdater:None
 ImageComponent.colorSpace.updates:constant
 ImageComponent.colorSpace.val:rgb
 ImageComponent.colorSpace.valType:str
+ImageComponent.disabled.default:False
+ImageComponent.disabled.allowedTypes:[]
+ImageComponent.disabled.allowedUpdates:None
+ImageComponent.disabled.allowedVals:[]
+ImageComponent.disabled.categ:Testing
+ImageComponent.disabled.hint:Disable this component
+ImageComponent.disabled.label:Disable component
+ImageComponent.disabled.readOnly:False
+ImageComponent.disabled.staticUpdater:None
+ImageComponent.disabled.updates:None
+ImageComponent.disabled.val:False
+ImageComponent.disabled.valType:bool
 ImageComponent.durationEstim.default:
 ImageComponent.durationEstim.allowedTypes:[]
 ImageComponent.durationEstim.allowedUpdates:None
@@ -1547,6 +1799,18 @@ JoystickComponent.deviceNumber.staticUpdater:None
 JoystickComponent.deviceNumber.updates:constant
 JoystickComponent.deviceNumber.val:0
 JoystickComponent.deviceNumber.valType:code
+JoystickComponent.disabled.default:False
+JoystickComponent.disabled.allowedTypes:[]
+JoystickComponent.disabled.allowedUpdates:None
+JoystickComponent.disabled.allowedVals:[]
+JoystickComponent.disabled.categ:Testing
+JoystickComponent.disabled.hint:Disable this component
+JoystickComponent.disabled.label:Disable component
+JoystickComponent.disabled.readOnly:False
+JoystickComponent.disabled.staticUpdater:None
+JoystickComponent.disabled.updates:None
+JoystickComponent.disabled.val:False
+JoystickComponent.disabled.valType:bool
 JoystickComponent.durationEstim.default:
 JoystickComponent.durationEstim.allowedTypes:[]
 JoystickComponent.durationEstim.allowedUpdates:None
@@ -1727,6 +1991,18 @@ KeyboardComponent.correctAns.staticUpdater:None
 KeyboardComponent.correctAns.updates:constant
 KeyboardComponent.correctAns.val:
 KeyboardComponent.correctAns.valType:str
+KeyboardComponent.disabled.default:False
+KeyboardComponent.disabled.allowedTypes:[]
+KeyboardComponent.disabled.allowedUpdates:None
+KeyboardComponent.disabled.allowedVals:[]
+KeyboardComponent.disabled.categ:Testing
+KeyboardComponent.disabled.hint:Disable this component
+KeyboardComponent.disabled.label:Disable component
+KeyboardComponent.disabled.readOnly:False
+KeyboardComponent.disabled.staticUpdater:None
+KeyboardComponent.disabled.updates:None
+KeyboardComponent.disabled.val:False
+KeyboardComponent.disabled.valType:bool
 KeyboardComponent.discard previous.default:True
 KeyboardComponent.discard previous.allowedTypes:[]
 KeyboardComponent.discard previous.allowedUpdates:None
@@ -1883,6 +2159,30 @@ KeyboardComponent.syncScreenRefresh.updates:constant
 KeyboardComponent.syncScreenRefresh.val:True
 KeyboardComponent.syncScreenRefresh.valType:bool
 MicrophoneComponent.order:['name']
+MicrophoneComponent.channel.default:0
+MicrophoneComponent.channel.allowedTypes:[]
+MicrophoneComponent.channel.allowedUpdates:None
+MicrophoneComponent.channel.allowedVals:[]
+MicrophoneComponent.channel.categ:Basic
+MicrophoneComponent.channel.hint:Enter a channel number. Default value is 0. If unsure, run 'sound.backend.get_input_devices()' to locate the system's selected device/channel.
+MicrophoneComponent.channel.label:Channel
+MicrophoneComponent.channel.readOnly:False
+MicrophoneComponent.channel.staticUpdater:None
+MicrophoneComponent.channel.updates:None
+MicrophoneComponent.channel.val:0
+MicrophoneComponent.channel.valType:str
+MicrophoneComponent.disabled.default:False
+MicrophoneComponent.disabled.allowedTypes:[]
+MicrophoneComponent.disabled.allowedUpdates:None
+MicrophoneComponent.disabled.allowedVals:[]
+MicrophoneComponent.disabled.categ:Testing
+MicrophoneComponent.disabled.hint:Disable this component
+MicrophoneComponent.disabled.label:Disable component
+MicrophoneComponent.disabled.readOnly:False
+MicrophoneComponent.disabled.staticUpdater:None
+MicrophoneComponent.disabled.updates:None
+MicrophoneComponent.disabled.val:False
+MicrophoneComponent.disabled.valType:bool
 MicrophoneComponent.durationEstim.default:
 MicrophoneComponent.durationEstim.allowedTypes:[]
 MicrophoneComponent.durationEstim.allowedUpdates:None
@@ -2015,6 +2315,18 @@ MouseComponent.clickable.staticUpdater:None
 MouseComponent.clickable.updates:constant
 MouseComponent.clickable.val:
 MouseComponent.clickable.valType:code
+MouseComponent.disabled.default:False
+MouseComponent.disabled.allowedTypes:[]
+MouseComponent.disabled.allowedUpdates:None
+MouseComponent.disabled.allowedVals:[]
+MouseComponent.disabled.categ:Testing
+MouseComponent.disabled.hint:Disable this component
+MouseComponent.disabled.label:Disable component
+MouseComponent.disabled.readOnly:False
+MouseComponent.disabled.staticUpdater:None
+MouseComponent.disabled.updates:None
+MouseComponent.disabled.val:False
+MouseComponent.disabled.valType:bool
 MouseComponent.durationEstim.default:
 MouseComponent.durationEstim.allowedTypes:[]
 MouseComponent.durationEstim.allowedUpdates:None
@@ -2207,6 +2519,18 @@ MovieComponent.backend.staticUpdater:None
 MovieComponent.backend.updates:None
 MovieComponent.backend.val:moviepy
 MovieComponent.backend.valType:str
+MovieComponent.disabled.default:False
+MovieComponent.disabled.allowedTypes:[]
+MovieComponent.disabled.allowedUpdates:None
+MovieComponent.disabled.allowedVals:[]
+MovieComponent.disabled.categ:Testing
+MovieComponent.disabled.hint:Disable this component
+MovieComponent.disabled.label:Disable component
+MovieComponent.disabled.readOnly:False
+MovieComponent.disabled.staticUpdater:None
+MovieComponent.disabled.updates:None
+MovieComponent.disabled.val:False
+MovieComponent.disabled.valType:bool
 MovieComponent.durationEstim.default:
 MovieComponent.durationEstim.allowedTypes:[]
 MovieComponent.durationEstim.allowedUpdates:None
@@ -2447,6 +2771,18 @@ NoiseStimComponent.contrast.staticUpdater:None
 NoiseStimComponent.contrast.updates:constant
 NoiseStimComponent.contrast.val:1.0
 NoiseStimComponent.contrast.valType:code
+NoiseStimComponent.disabled.default:False
+NoiseStimComponent.disabled.allowedTypes:[]
+NoiseStimComponent.disabled.allowedUpdates:None
+NoiseStimComponent.disabled.allowedVals:[]
+NoiseStimComponent.disabled.categ:Testing
+NoiseStimComponent.disabled.hint:Disable this component
+NoiseStimComponent.disabled.label:Disable component
+NoiseStimComponent.disabled.readOnly:False
+NoiseStimComponent.disabled.staticUpdater:None
+NoiseStimComponent.disabled.updates:None
+NoiseStimComponent.disabled.val:False
+NoiseStimComponent.disabled.valType:bool
 NoiseStimComponent.durationEstim.default:
 NoiseStimComponent.durationEstim.allowedTypes:[]
 NoiseStimComponent.durationEstim.allowedUpdates:None
@@ -2834,7 +3170,7 @@ ParallelOutComponent.order:['address', 'startData', 'stopData']
 ParallelOutComponent.address.default:'0x0378'
 ParallelOutComponent.address.allowedTypes:[]
 ParallelOutComponent.address.allowedUpdates:None
-ParallelOutComponent.address.allowedVals:['0x0378', '0x03BC', '/dev/parport0', '/dev/parport1', 'LabJack U3']
+ParallelOutComponent.address.allowedVals:[u'0x0378', u'0x03BC', u'LabJack U3']
 ParallelOutComponent.address.categ:Basic
 ParallelOutComponent.address.hint:Parallel port to be used (you can change these options in preferences>general)
 ParallelOutComponent.address.label:Port address
@@ -2843,6 +3179,18 @@ ParallelOutComponent.address.staticUpdater:None
 ParallelOutComponent.address.updates:None
 ParallelOutComponent.address.val:0x0378
 ParallelOutComponent.address.valType:str
+ParallelOutComponent.disabled.default:False
+ParallelOutComponent.disabled.allowedTypes:[]
+ParallelOutComponent.disabled.allowedUpdates:None
+ParallelOutComponent.disabled.allowedVals:[]
+ParallelOutComponent.disabled.categ:Testing
+ParallelOutComponent.disabled.hint:Disable this component
+ParallelOutComponent.disabled.label:Disable component
+ParallelOutComponent.disabled.readOnly:False
+ParallelOutComponent.disabled.staticUpdater:None
+ParallelOutComponent.disabled.updates:None
+ParallelOutComponent.disabled.val:False
+ParallelOutComponent.disabled.valType:bool
 ParallelOutComponent.durationEstim.default:
 ParallelOutComponent.durationEstim.allowedTypes:[]
 ParallelOutComponent.durationEstim.allowedUpdates:None
@@ -3011,6 +3359,18 @@ PatchComponent.colorSpace.staticUpdater:None
 PatchComponent.colorSpace.updates:constant
 PatchComponent.colorSpace.val:rgb
 PatchComponent.colorSpace.valType:str
+PatchComponent.disabled.default:False
+PatchComponent.disabled.allowedTypes:[]
+PatchComponent.disabled.allowedUpdates:None
+PatchComponent.disabled.allowedVals:[]
+PatchComponent.disabled.categ:Testing
+PatchComponent.disabled.hint:Disable this component
+PatchComponent.disabled.label:Disable component
+PatchComponent.disabled.readOnly:False
+PatchComponent.disabled.staticUpdater:None
+PatchComponent.disabled.updates:None
+PatchComponent.disabled.val:False
+PatchComponent.disabled.valType:bool
 PatchComponent.durationEstim.default:
 PatchComponent.durationEstim.allowedTypes:[]
 PatchComponent.durationEstim.allowedUpdates:None
@@ -3251,6 +3611,18 @@ PatchComponent.units.updates:None
 PatchComponent.units.val:from exp settings
 PatchComponent.units.valType:str
 PolygonComponent.order:['shape', 'nVertices']
+PolygonComponent.disabled.default:False
+PolygonComponent.disabled.allowedTypes:[]
+PolygonComponent.disabled.allowedUpdates:None
+PolygonComponent.disabled.allowedVals:[]
+PolygonComponent.disabled.categ:Testing
+PolygonComponent.disabled.hint:Disable this component
+PolygonComponent.disabled.label:Disable component
+PolygonComponent.disabled.readOnly:False
+PolygonComponent.disabled.staticUpdater:None
+PolygonComponent.disabled.updates:None
+PolygonComponent.disabled.val:False
+PolygonComponent.disabled.valType:bool
 PolygonComponent.durationEstim.default:
 PolygonComponent.durationEstim.allowedTypes:[]
 PolygonComponent.durationEstim.allowedUpdates:None
@@ -3409,7 +3781,7 @@ PolygonComponent.saveStartStop.valType:bool
 PolygonComponent.shape.default:'triangle'
 PolygonComponent.shape.allowedTypes:[]
 PolygonComponent.shape.allowedUpdates:['constant']
-PolygonComponent.shape.allowedVals:['line', 'triangle', 'rectangle', 'cross', 'regular polygon...']
+PolygonComponent.shape.allowedVals:['line', 'triangle', 'rectangle', 'cross', 'star', 'regular polygon...']
 PolygonComponent.shape.categ:Basic
 PolygonComponent.shape.hint:What shape is this? With 'regular polygon...' you can set number of vertices
 PolygonComponent.shape.label:Shape
@@ -3515,174 +3887,6 @@ PolygonComponent.units.staticUpdater:None
 PolygonComponent.units.updates:None
 PolygonComponent.units.val:from exp settings
 PolygonComponent.units.valType:str
-QmixPumpComponent.order:['pumpIndex', 'syringeType', 'pumpAction', 'flowRate', 'flowRateUnit', 'switchValveWhenDone', 'syncToScreen']
-QmixPumpComponent.durationEstim.default:
-QmixPumpComponent.durationEstim.allowedTypes:[]
-QmixPumpComponent.durationEstim.allowedUpdates:None
-QmixPumpComponent.durationEstim.allowedVals:[]
-QmixPumpComponent.durationEstim.categ:Basic
-QmixPumpComponent.durationEstim.hint:(Optional) expected duration (s), purely for representing in the timeline
-QmixPumpComponent.durationEstim.label:Expected duration (s)
-QmixPumpComponent.durationEstim.readOnly:False
-QmixPumpComponent.durationEstim.staticUpdater:None
-QmixPumpComponent.durationEstim.updates:None
-QmixPumpComponent.durationEstim.val:
-QmixPumpComponent.durationEstim.valType:code
-QmixPumpComponent.flowRate.default:1.0
-QmixPumpComponent.flowRate.allowedTypes:[]
-QmixPumpComponent.flowRate.allowedUpdates:None
-QmixPumpComponent.flowRate.allowedVals:[]
-QmixPumpComponent.flowRate.categ:Basic
-QmixPumpComponent.flowRate.hint:The flow rate
-QmixPumpComponent.flowRate.label:Flow rate
-QmixPumpComponent.flowRate.readOnly:False
-QmixPumpComponent.flowRate.staticUpdater:None
-QmixPumpComponent.flowRate.updates:None
-QmixPumpComponent.flowRate.val:1.0
-QmixPumpComponent.flowRate.valType:code
-QmixPumpComponent.flowRateUnit.default:'mL/s'
-QmixPumpComponent.flowRateUnit.allowedTypes:[]
-QmixPumpComponent.flowRateUnit.allowedUpdates:None
-QmixPumpComponent.flowRateUnit.allowedVals:['mL/s', 'mL/min']
-QmixPumpComponent.flowRateUnit.categ:Basic
-QmixPumpComponent.flowRateUnit.hint:The unit of the flow rate
-QmixPumpComponent.flowRateUnit.label:Flow rate unit
-QmixPumpComponent.flowRateUnit.readOnly:False
-QmixPumpComponent.flowRateUnit.staticUpdater:None
-QmixPumpComponent.flowRateUnit.updates:None
-QmixPumpComponent.flowRateUnit.val:mL/s
-QmixPumpComponent.flowRateUnit.valType:str
-QmixPumpComponent.name.default:pump
-QmixPumpComponent.name.allowedTypes:[]
-QmixPumpComponent.name.allowedUpdates:None
-QmixPumpComponent.name.allowedVals:[]
-QmixPumpComponent.name.categ:Basic
-QmixPumpComponent.name.hint:Name of this component (alpha-numeric or _, no spaces)
-QmixPumpComponent.name.label:Name
-QmixPumpComponent.name.readOnly:False
-QmixPumpComponent.name.staticUpdater:None
-QmixPumpComponent.name.val:pump
-QmixPumpComponent.name.valType:code
-QmixPumpComponent.pumpAction.default:'dispense'
-QmixPumpComponent.pumpAction.allowedTypes:[]
-QmixPumpComponent.pumpAction.allowedUpdates:None
-QmixPumpComponent.pumpAction.allowedVals:['aspirate', 'dispense']
-QmixPumpComponent.pumpAction.categ:Basic
-QmixPumpComponent.pumpAction.hint:Whether the syringe should be filled (aspirate) or emptied (dispense
-QmixPumpComponent.pumpAction.label:Pump action
-QmixPumpComponent.pumpAction.readOnly:False
-QmixPumpComponent.pumpAction.staticUpdater:None
-QmixPumpComponent.pumpAction.updates:None
-QmixPumpComponent.pumpAction.val:dispense
-QmixPumpComponent.pumpAction.valType:str
-QmixPumpComponent.pumpIndex.default:0
-QmixPumpComponent.pumpIndex.allowedTypes:[]
-QmixPumpComponent.pumpIndex.allowedUpdates:None
-QmixPumpComponent.pumpIndex.allowedVals:[]
-QmixPumpComponent.pumpIndex.categ:Basic
-QmixPumpComponent.pumpIndex.hint:The index of the pump(s) (first pump is 0).
-QmixPumpComponent.pumpIndex.label:Pump index
-QmixPumpComponent.pumpIndex.readOnly:False
-QmixPumpComponent.pumpIndex.staticUpdater:None
-QmixPumpComponent.pumpIndex.updates:None
-QmixPumpComponent.pumpIndex.val:0
-QmixPumpComponent.pumpIndex.valType:code
-QmixPumpComponent.startEstim.default:
-QmixPumpComponent.startEstim.allowedTypes:[]
-QmixPumpComponent.startEstim.allowedUpdates:None
-QmixPumpComponent.startEstim.allowedVals:[]
-QmixPumpComponent.startEstim.categ:Basic
-QmixPumpComponent.startEstim.hint:(Optional) expected start (s), purely for representing in the timeline
-QmixPumpComponent.startEstim.label:Expected start (s)
-QmixPumpComponent.startEstim.readOnly:False
-QmixPumpComponent.startEstim.staticUpdater:None
-QmixPumpComponent.startEstim.updates:None
-QmixPumpComponent.startEstim.val:
-QmixPumpComponent.startEstim.valType:code
-QmixPumpComponent.startType.default:'time (s)'
-QmixPumpComponent.startType.allowedTypes:[]
-QmixPumpComponent.startType.allowedUpdates:None
-QmixPumpComponent.startType.allowedVals:['time (s)', 'frame N', 'condition']
-QmixPumpComponent.startType.categ:Basic
-QmixPumpComponent.startType.hint:How do you want to define your start point?
-QmixPumpComponent.startType.label:start type
-QmixPumpComponent.startType.readOnly:False
-QmixPumpComponent.startType.staticUpdater:None
-QmixPumpComponent.startType.updates:None
-QmixPumpComponent.startType.val:time (s)
-QmixPumpComponent.startType.valType:str
-QmixPumpComponent.startVal.default:0.0
-QmixPumpComponent.startVal.allowedTypes:[]
-QmixPumpComponent.startVal.allowedUpdates:None
-QmixPumpComponent.startVal.allowedVals:[]
-QmixPumpComponent.startVal.categ:Basic
-QmixPumpComponent.startVal.hint:When does the component start?
-QmixPumpComponent.startVal.label:Start
-QmixPumpComponent.startVal.readOnly:False
-QmixPumpComponent.startVal.staticUpdater:None
-QmixPumpComponent.startVal.updates:None
-QmixPumpComponent.startVal.val:0.0
-QmixPumpComponent.startVal.valType:code
-QmixPumpComponent.stopType.default:'duration (s)'
-QmixPumpComponent.stopType.allowedTypes:[]
-QmixPumpComponent.stopType.allowedUpdates:None
-QmixPumpComponent.stopType.allowedVals:['duration (s)', 'duration (frames)', 'time (s)', 'frame N', 'condition']
-QmixPumpComponent.stopType.categ:Basic
-QmixPumpComponent.stopType.hint:How do you want to define your end point?
-QmixPumpComponent.stopType.label:stop type
-QmixPumpComponent.stopType.readOnly:False
-QmixPumpComponent.stopType.staticUpdater:None
-QmixPumpComponent.stopType.updates:None
-QmixPumpComponent.stopType.val:duration (s)
-QmixPumpComponent.stopType.valType:str
-QmixPumpComponent.stopVal.default:1.0
-QmixPumpComponent.stopVal.allowedTypes:[]
-QmixPumpComponent.stopVal.allowedUpdates:[]
-QmixPumpComponent.stopVal.allowedVals:[]
-QmixPumpComponent.stopVal.categ:Basic
-QmixPumpComponent.stopVal.hint:When does the component end? (blank is endless)
-QmixPumpComponent.stopVal.label:Stop
-QmixPumpComponent.stopVal.readOnly:False
-QmixPumpComponent.stopVal.staticUpdater:None
-QmixPumpComponent.stopVal.updates:constant
-QmixPumpComponent.stopVal.val:1.0
-QmixPumpComponent.stopVal.valType:code
-QmixPumpComponent.switchValveWhenDone.default:True
-QmixPumpComponent.switchValveWhenDone.allowedTypes:[]
-QmixPumpComponent.switchValveWhenDone.allowedUpdates:None
-QmixPumpComponent.switchValveWhenDone.allowedVals:[True, False]
-QmixPumpComponent.switchValveWhenDone.categ:Basic
-QmixPumpComponent.switchValveWhenDone.hint:Switch the valve after pump operation
-QmixPumpComponent.switchValveWhenDone.label:Switch valve after dosing
-QmixPumpComponent.switchValveWhenDone.readOnly:False
-QmixPumpComponent.switchValveWhenDone.staticUpdater:None
-QmixPumpComponent.switchValveWhenDone.updates:None
-QmixPumpComponent.switchValveWhenDone.val:True
-QmixPumpComponent.switchValveWhenDone.valType:bool
-QmixPumpComponent.syncToScreen.default:True
-QmixPumpComponent.syncToScreen.allowedTypes:[]
-QmixPumpComponent.syncToScreen.allowedUpdates:None
-QmixPumpComponent.syncToScreen.allowedVals:[True, False]
-QmixPumpComponent.syncToScreen.categ:Basic
-QmixPumpComponent.syncToScreen.hint:Sync pump onset to the screen refresh
-QmixPumpComponent.syncToScreen.label:Sync to screen
-QmixPumpComponent.syncToScreen.readOnly:False
-QmixPumpComponent.syncToScreen.staticUpdater:None
-QmixPumpComponent.syncToScreen.updates:None
-QmixPumpComponent.syncToScreen.val:True
-QmixPumpComponent.syncToScreen.valType:bool
-QmixPumpComponent.syringeType.default:'50 mL glass'
-QmixPumpComponent.syringeType.allowedTypes:[]
-QmixPumpComponent.syringeType.allowedUpdates:None
-QmixPumpComponent.syringeType.allowedVals:['25 mL glass', '50 mL glass']
-QmixPumpComponent.syringeType.categ:Basic
-QmixPumpComponent.syringeType.hint:Syringe type and dimensions
-QmixPumpComponent.syringeType.label:Syringe type
-QmixPumpComponent.syringeType.readOnly:False
-QmixPumpComponent.syringeType.staticUpdater:None
-QmixPumpComponent.syringeType.updates:None
-QmixPumpComponent.syringeType.val:50 mL glass
-QmixPumpComponent.syringeType.valType:str
 RatingScaleComponent.order:['name', 'visualAnalogScale', 'categoryChoices', 'scaleDescription', 'low', 'high', 'labels', 'markerStart', 'size', 'pos', 'tickHeight']
 RatingScaleComponent.categoryChoices.default:''
 RatingScaleComponent.categoryChoices.allowedTypes:[]
@@ -3708,6 +3912,18 @@ RatingScaleComponent.customize_everything.staticUpdater:None
 RatingScaleComponent.customize_everything.updates:constant
 RatingScaleComponent.customize_everything.val:
 RatingScaleComponent.customize_everything.valType:str
+RatingScaleComponent.disabled.default:False
+RatingScaleComponent.disabled.allowedTypes:[]
+RatingScaleComponent.disabled.allowedUpdates:None
+RatingScaleComponent.disabled.allowedVals:[]
+RatingScaleComponent.disabled.categ:Testing
+RatingScaleComponent.disabled.hint:Disable this component
+RatingScaleComponent.disabled.label:Disable component
+RatingScaleComponent.disabled.readOnly:False
+RatingScaleComponent.disabled.staticUpdater:None
+RatingScaleComponent.disabled.updates:None
+RatingScaleComponent.disabled.val:False
+RatingScaleComponent.disabled.valType:bool
 RatingScaleComponent.disappear.default:False
 RatingScaleComponent.disappear.allowedTypes:[]
 RatingScaleComponent.disappear.allowedUpdates:[]
@@ -4238,7 +4454,7 @@ SettingsComponent.Show mouse.staticUpdater:None
 SettingsComponent.Show mouse.updates:None
 SettingsComponent.Show mouse.val:False
 SettingsComponent.Show mouse.valType:bool
-SettingsComponent.Units.default:'use prefs'
+SettingsComponent.Units.default:'height'
 SettingsComponent.Units.allowedTypes:[]
 SettingsComponent.Units.allowedUpdates:None
 SettingsComponent.Units.allowedVals:['use prefs', 'deg', 'pix', 'cm', 'norm', 'height', 'degFlatPos', 'degFlat']
@@ -4248,12 +4464,12 @@ SettingsComponent.Units.label:Units
 SettingsComponent.Units.readOnly:False
 SettingsComponent.Units.staticUpdater:None
 SettingsComponent.Units.updates:None
-SettingsComponent.Units.val:use prefs
+SettingsComponent.Units.val:height
 SettingsComponent.Units.valType:str
 SettingsComponent.Use version.default:''
 SettingsComponent.Use version.allowedTypes:[]
 SettingsComponent.Use version.allowedUpdates:None
-SettingsComponent.Use version.allowedVals:['latest', '1', '1.90', '1.85', '1.84', '1.83', '1.82', '1.81', '1.80', '1.79', '1.78', '1.77', '1.76', '', '1.90.2', '1.90.1', '1.90.0', '1.85.6', '1.85.4', '1.85.3', '1.85.2', '1.85.1', '1.85.0', '1.84.2', '1.84.1', '1.84.0', '1.83.04', '1.83.03', '1.83.01', '1.83.00', '1.82.01', '1.82.00', '1.81.03', '1.81.02', '1.81.01', '1.81.00', '1.80.06', '1.80.05', '1.80.03', '1.80.02', '1.80.01', '1.80.00', '1.79.00', '1.78.01', '1.78.00', '1.77.02', '1.77.01', '1.77.00', '1.76.00']
+SettingsComponent.Use version.allowedVals:['latest', '3', '3.0', '', '3.0.5']
 SettingsComponent.Use version.categ:Basic
 SettingsComponent.Use version.hint:The version of PsychoPy to use when running the experiment.
 SettingsComponent.Use version.label:Use PsychoPy version
@@ -4371,6 +4587,18 @@ SliderComponent.colorSpace.staticUpdater:None
 SliderComponent.colorSpace.updates:constant
 SliderComponent.colorSpace.val:rgb
 SliderComponent.colorSpace.valType:str
+SliderComponent.disabled.default:False
+SliderComponent.disabled.allowedTypes:[]
+SliderComponent.disabled.allowedUpdates:None
+SliderComponent.disabled.allowedVals:[]
+SliderComponent.disabled.categ:Testing
+SliderComponent.disabled.hint:Disable this component
+SliderComponent.disabled.label:Disable component
+SliderComponent.disabled.readOnly:False
+SliderComponent.disabled.staticUpdater:None
+SliderComponent.disabled.updates:None
+SliderComponent.disabled.val:False
+SliderComponent.disabled.valType:bool
 SliderComponent.durationEstim.default:
 SliderComponent.durationEstim.allowedTypes:[]
 SliderComponent.durationEstim.allowedUpdates:None
@@ -4659,6 +4887,18 @@ SliderComponent.units.updates:None
 SliderComponent.units.val:from exp settings
 SliderComponent.units.valType:str
 SoundComponent.order:['sound', 'volume']
+SoundComponent.disabled.default:False
+SoundComponent.disabled.allowedTypes:[]
+SoundComponent.disabled.allowedUpdates:None
+SoundComponent.disabled.allowedVals:[]
+SoundComponent.disabled.categ:Testing
+SoundComponent.disabled.hint:Disable this component
+SoundComponent.disabled.label:Disable component
+SoundComponent.disabled.readOnly:False
+SoundComponent.disabled.staticUpdater:None
+SoundComponent.disabled.updates:None
+SoundComponent.disabled.val:False
+SoundComponent.disabled.valType:bool
 SoundComponent.durationEstim.default:
 SoundComponent.durationEstim.allowedTypes:[]
 SoundComponent.durationEstim.allowedUpdates:None
@@ -4803,6 +5043,18 @@ StaticComponent.code.staticUpdater:None
 StaticComponent.code.updates:None
 StaticComponent.code.val:
 StaticComponent.code.valType:code
+StaticComponent.disabled.default:False
+StaticComponent.disabled.allowedTypes:[]
+StaticComponent.disabled.allowedUpdates:None
+StaticComponent.disabled.allowedVals:[]
+StaticComponent.disabled.categ:Testing
+StaticComponent.disabled.hint:Disable this component
+StaticComponent.disabled.label:Disable component
+StaticComponent.disabled.readOnly:False
+StaticComponent.disabled.staticUpdater:None
+StaticComponent.disabled.updates:None
+StaticComponent.disabled.val:False
+StaticComponent.disabled.valType:bool
 StaticComponent.durationEstim.default:
 StaticComponent.durationEstim.allowedTypes:[]
 StaticComponent.durationEstim.allowedUpdates:None
@@ -4935,6 +5187,18 @@ TextComponent.colorSpace.staticUpdater:None
 TextComponent.colorSpace.updates:constant
 TextComponent.colorSpace.val:rgb
 TextComponent.colorSpace.valType:str
+TextComponent.disabled.default:False
+TextComponent.disabled.allowedTypes:[]
+TextComponent.disabled.allowedUpdates:None
+TextComponent.disabled.allowedVals:[]
+TextComponent.disabled.categ:Testing
+TextComponent.disabled.hint:Disable this component
+TextComponent.disabled.label:Disable component
+TextComponent.disabled.readOnly:False
+TextComponent.disabled.staticUpdater:None
+TextComponent.disabled.updates:None
+TextComponent.disabled.val:False
+TextComponent.disabled.valType:bool
 TextComponent.durationEstim.default:
 TextComponent.durationEstim.allowedTypes:[]
 TextComponent.durationEstim.allowedUpdates:None
@@ -5177,6 +5441,18 @@ UnknownComponent.name.staticUpdater:None
 UnknownComponent.name.val:
 UnknownComponent.name.valType:code
 VariableComponent.order:['name', 'startExpValue', 'saveStartExp', 'startRoutineValue', 'saveStartRoutine', 'startFrameValue', 'saveFrameValue', 'saveEndRoutine', 'saveEndExp']
+VariableComponent.disabled.default:False
+VariableComponent.disabled.allowedTypes:[]
+VariableComponent.disabled.allowedUpdates:None
+VariableComponent.disabled.allowedVals:[]
+VariableComponent.disabled.categ:Testing
+VariableComponent.disabled.hint:Disable this component
+VariableComponent.disabled.label:Disable component
+VariableComponent.disabled.readOnly:False
+VariableComponent.disabled.staticUpdater:None
+VariableComponent.disabled.updates:None
+VariableComponent.disabled.val:False
+VariableComponent.disabled.valType:bool
 VariableComponent.durationEstim.default:
 VariableComponent.durationEstim.allowedTypes:[]
 VariableComponent.durationEstim.allowedUpdates:None
@@ -5417,6 +5693,18 @@ cedrusButtonBoxComponent.deviceNumber.staticUpdater:None
 cedrusButtonBoxComponent.deviceNumber.updates:constant
 cedrusButtonBoxComponent.deviceNumber.val:0
 cedrusButtonBoxComponent.deviceNumber.valType:code
+cedrusButtonBoxComponent.disabled.default:False
+cedrusButtonBoxComponent.disabled.allowedTypes:[]
+cedrusButtonBoxComponent.disabled.allowedUpdates:None
+cedrusButtonBoxComponent.disabled.allowedVals:[]
+cedrusButtonBoxComponent.disabled.categ:Testing
+cedrusButtonBoxComponent.disabled.hint:Disable this component
+cedrusButtonBoxComponent.disabled.label:Disable component
+cedrusButtonBoxComponent.disabled.readOnly:False
+cedrusButtonBoxComponent.disabled.staticUpdater:None
+cedrusButtonBoxComponent.disabled.updates:None
+cedrusButtonBoxComponent.disabled.val:False
+cedrusButtonBoxComponent.disabled.valType:bool
 cedrusButtonBoxComponent.discard previous.default:True
 cedrusButtonBoxComponent.discard previous.allowedTypes:[]
 cedrusButtonBoxComponent.discard previous.allowedUpdates:None
@@ -5609,6 +5897,18 @@ ioLabsButtonBoxComponent.correctAns.staticUpdater:None
 ioLabsButtonBoxComponent.correctAns.updates:constant
 ioLabsButtonBoxComponent.correctAns.val:0
 ioLabsButtonBoxComponent.correctAns.valType:str
+ioLabsButtonBoxComponent.disabled.default:False
+ioLabsButtonBoxComponent.disabled.allowedTypes:[]
+ioLabsButtonBoxComponent.disabled.allowedUpdates:None
+ioLabsButtonBoxComponent.disabled.allowedVals:[]
+ioLabsButtonBoxComponent.disabled.categ:Testing
+ioLabsButtonBoxComponent.disabled.hint:Disable this component
+ioLabsButtonBoxComponent.disabled.label:Disable component
+ioLabsButtonBoxComponent.disabled.readOnly:False
+ioLabsButtonBoxComponent.disabled.staticUpdater:None
+ioLabsButtonBoxComponent.disabled.updates:None
+ioLabsButtonBoxComponent.disabled.val:False
+ioLabsButtonBoxComponent.disabled.valType:bool
 ioLabsButtonBoxComponent.discard previous.default:True
 ioLabsButtonBoxComponent.discard previous.allowedTypes:[]
 ioLabsButtonBoxComponent.discard previous.allowedUpdates:None

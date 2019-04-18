@@ -32,7 +32,10 @@ if sys.platform == 'win32':
         _winQPC_(byref(_fcounter_))
         return _fcounter_.value / _qpfreq_
 else:
-    # GP3 is only supported on Windows, so this will never actually be used.
+    print2err("WARNING: IOHUB ONLY SUPPORTS GAZEPOINT ON WINDOWS.")
+    # TODO: Implement on other platforms if possible
+    # GP3 is only supported on Windows by iohub, 
+    # so this will never actually be used.
     def getGP3Time():
         return getTime()        
         
@@ -516,8 +519,8 @@ class EyeTracker(EyeTrackerDevice):
             fix_id = m.get('FPOGID', ET_UNDEFINED)        
             m = dict(FPOGID=fix_id, FPOGV=fix_valid, FPOGX=fix_x, FPOGY=fix_y, 
                      FPOGS=fix_stime, FPOGD=fix_duration, 
-                     TIME=long(m.get('TIME')),
-                     TIME_TICK=long(m.get('TIME_TICK')))
+                     TIME=int(m.get('TIME')),
+                     TIME_TICK=int(m.get('TIME_TICK')))
 
             if self._last_fix_evt is None:
                 # Create start fixation evt based on m
@@ -539,7 +542,7 @@ class EyeTracker(EyeTrackerDevice):
         # create a left and right fix evt each time.
         gaze = m.get('FPOGX', ET_UNDEFINED), m.get('FPOGY', ET_UNDEFINED)
 
-        evt_tick_time = long(m.get('TIME_TICK', ET_UNDEFINED))
+        evt_tick_time = int(m.get('TIME_TICK', ET_UNDEFINED))
         evt_tick_sec = evt_tick_time / self._ttfreq
    
         sample_delay = tracker_time-evt_tick_sec 
@@ -596,7 +599,7 @@ class EyeTracker(EyeTrackerDevice):
         gaze = m.get('FPOGX', ET_UNDEFINED), m.get('FPOGY', ET_UNDEFINED)
 
 
-        evt_tick_time = long(m.get('TIME_TICK', ET_UNDEFINED))
+        evt_tick_time = int(m.get('TIME_TICK', ET_UNDEFINED))
         evt_tick_sec = evt_tick_time / self._ttfreq
    
         sample_delay = tracker_time-evt_tick_sec 
@@ -689,7 +692,7 @@ class EyeTracker(EyeTrackerDevice):
         # in seconds, take from the REC TIME field
         event_timestamp = m.get('TIME', ET_UNDEFINED)
 
-        evt_tick_time = long(m.get('TIME_TICK', ET_UNDEFINED))
+        evt_tick_time = int(m.get('TIME_TICK', ET_UNDEFINED))
         evt_tick_sec = evt_tick_time / self._ttfreq
    
         event_delay = tracker_time-evt_tick_sec 

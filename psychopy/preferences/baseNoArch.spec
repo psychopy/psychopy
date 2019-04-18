@@ -23,7 +23,7 @@
 # General settings
 [general]
     # which system to use as a backend for drawing
-    winType = option('pyglet', 'pygame', default='pyglet')
+    winType = option('pyglet', 'pygame', 'glfw', default='pyglet')
     # the default units for windows and visual stimuli
     units = option('deg', 'norm', 'cm', 'pix', 'height', default='norm')
     # full screen is best for accurate timing
@@ -80,8 +80,6 @@
     reloadPrevFiles = boolean(default=True)
     # for coder shell window, which shell to use
     preferredShell = option('ipython','pyshell',default='pyshell')
-    # newline for python files: unix = \n, dos = \r\n
-    newlineConvention = option('keep','unix','dos',default='keep')
 
 # Settings for the Builder window
 [builder]

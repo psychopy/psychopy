@@ -12,9 +12,10 @@ import glob
 import os, time, socket
 import subprocess
 import traceback
+from pkg_resources import parse_version
 
 from psychopy import logging, prefs, constants, exceptions
-from psychopy.tools.filetools import DictStorage
+from psychopy.tools.filetools import DictStorage, KnownProjects
 from psychopy import app
 from psychopy.localization import _translate
 
@@ -57,7 +58,7 @@ knownUsers = DictStorage(
         filename=os.path.join(pavloviaPrefsDir, 'users.json'))
 
 # knownProjects is a dict stored by id ("namespace/name")
-knownProjects = DictStorage(
+knownProjects = KnownProjects(
         filename=os.path.join(pavloviaPrefsDir, 'projects.json'))
 # knownProjects stores the gitlab id to check if it's the same exact project
 # We add to the knownProjects when project.local is set (ie when we have a
@@ -384,7 +385,7 @@ class PavloviaSession:
         projs = []
         projIDs = []
         for proj in own + group:
-            if proj.id and proj.id not in projIDs:
+            if proj.id not in projIDs and proj.id not in projs:
                 projs.append(PavloviaProject(proj))
                 projIDs.append(proj.id)
         return projs
@@ -424,14 +425,20 @@ class PavloviaSession:
                         "Trying to login with token {} which is shorter "
                         "than expected length ({} not 64) for gitlab token"
                             .format(repr(token), len(token)))
-            self.gitlab = gitlab.Gitlab(rootURL, oauth_token=token, timeout=2)
+            if parse_version(gitlab.__version__) > parse_version("1.4"):
+                self.gitlab = gitlab.Gitlab(rootURL, oauth_token=token, timeout=2, per_page=100)
+            else:
+                self.gitlab = gitlab.Gitlab(rootURL, oauth_token=token, timeout=2)
             self.gitlab.auth()
             self.username = self.user.username
             self.userID = self.user.id  # populate when token property is set
             self.userFullName = self.user.name
             self.authenticated = True
         else:
-            self.gitlab = gitlab.Gitlab(rootURL, timeout=1)
+            if parse_version(gitlab.__version__) > parse_version("1.4"):
+                self.gitlab = gitlab.Gitlab(rootURL, timeout=1, per_page=100)
+            else:
+                self.gitlab = gitlab.Gitlab(rootURL, timeout=1)
 
     @property
     def user(self):
@@ -905,15 +912,13 @@ class PavloviaProject(dict):
             elif this.change_type == 'M':
                 changeDict['changed'].append(this.b_path)
             else:
-                raise (
-                    "Found an unexpected change_type '{}' in gitpython Diff"
-                        .format(this.change_type))
+                raise ValueError("Found an unexpected change_type '{}' in gitpython Diff".format(this.change_type))
         changeList = []
         for categ in changeDict:
             changeList.extend(changeDict[categ])
         return changeDict, changeList
 
-    def stageFiles(self, files=None):
+    def stageFiles(self, files=None, infoStream=None):
         """Adds changed files to the stage (index) ready for commit.
 
         The files is a list and can include new/changed/deleted
@@ -925,7 +930,12 @@ class PavloviaProject(dict):
                 raise TypeError(
                         'The `files` provided to PavloviaProject.stageFiles '
                         'should be a list not a {}'.format(type(files)))
-            self.repo.git.add(files)
+            try:
+                for thisFile in files:
+                    self.repo.git.add(thisFile)
+            except git.exc.GitCommandError:
+                if infoStream:
+                    infoStream.SetValue(traceback.format_exc())
         else:
             diffsDict, diffsList = self.getChanges()
             if diffsDict['untracked']:
@@ -1058,28 +1068,34 @@ def getProject(filename):
                     namespaceName = url.split('gitlab.pavlovia.org/')[1]
                     namespaceName = namespaceName.replace('.git', '')
                     pavSession = getCurrentSession()
+                    if not pavSession.user:
+                        nameSpace = namespaceName.split('/')[0]
+                        if nameSpace in knownUsers:  # Log in if user is known
+                            login(nameSpace, rememberMe=True)
+                        else:  # Check whether project repo is found in any of the known users accounts
+                            for user in knownUsers:
+                                login(user)
+                                foundProject = False
+                                for repo in pavSession.findUserProjects():
+                                    if namespaceName in repo['id']:
+                                        foundProject = True
+                                        logging.info("Logging in as {}".format(user))
+                                        break
+                                if not foundProject:
+                                    logging.warning("Could not find {namespace} in your Pavlovia accounts. "
+                                                    "Logging in as {user}.".format(namespace=namespaceName,
+                                                                                   user=user))
                     if pavSession.user:
                         proj = pavSession.getProject(namespaceName,
                                                      repo=localRepo)
                         if proj.pavlovia == 0:
-                            logging.warning(
-                                    _translate(
-                                            "We found a repository pointing to {} "
-                                            "but ") +
-                                    _translate("no project was found there ("
-                                               "deleted?)")
-                                    .format(url))
-
+                            logging.warning(_translate("We found a repository pointing to {} "
+                                                       "but no project was found there (deleted?)").format(url))
                     else:
-                        logging.warning(
-                                _translate(
-                                        "We found a repository pointing to {} "
-                                        "but ") +
-                                _translate(
-                                        "no user is logged in for us to check "
-                                        "it")
-                                .format(url))
+                        logging.warning(_translate("We found a repository pointing to {} "
+                                                   "but no user is logged in for us to check it".format(url)))
                     return proj
+
         if proj == None:
             logging.warning("We found a repository at {} but it "
                             "doesn't point to gitlab.pavlovia.org. "

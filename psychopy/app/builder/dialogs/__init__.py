@@ -234,12 +234,15 @@ class ParamCtrls(object):
             allowedUpdates = copy.copy(param.allowedUpdates)
             for routineName, routine in list(self.exp.routines.items()):
                 for static in routine.getStatics():
-                    msg = _translate(
-                        "set during: %(routineName)s.%(staticName)s")
-                    vals = {'routineName': routineName,
-                            'staticName': static.params['name']}
-                    updateLabels.append(msg % vals)
-                    allowedUpdates.append(msg % vals)
+                    # Note: replacing following line with
+                    # "localizedMsg = _translate(msg)",
+                    # poedit would not able to find this message.
+                    msg = "set during: "
+                    localizedMsg = _translate("set during: ")
+                    fullName = "{}.{}".format(
+                        routineName, static.params['name'])
+                    allowedUpdates.append(msg + fullName)
+                    updateLabels.append(localizedMsg + fullName)
             self.updateCtrl = wx.Choice(parent, choices=updateLabels)
             # stash non-localized choices to allow retrieval by index:
             self.updateCtrl._choices = copy.copy(allowedUpdates)
@@ -640,18 +643,18 @@ class _BaseParamsDlg(wx.Dialog):
         _choices = list(map(_translate, startTypeParam.allowedVals))
         self.startTypeCtrl = wx.Choice(parent, choices=_choices)
         self.startTypeCtrl.SetStringSelection(_translate(startTypeParam.val))
-        self.startTypeCtrl.SetToolTip(wx.ToolTip(
-                _translate(self.params['startType'].hint)))
+        msg = self.params['startType'].hint
+        self.startTypeCtrl.SetToolTip(wx.ToolTip(_translate(msg)))
         # the value to be used as the start/stop
         _start = str(startValParam.val)
         self.startValCtrl = wx.TextCtrl(parent, -1, _start)
-        self.startValCtrl.SetToolTip(wx.ToolTip(
-                _translate(self.params['startVal'].hint)))
+        msg = self.params['startVal'].hint
+        self.startValCtrl.SetToolTip(wx.ToolTip(_translate(msg)))
         # the value to estimate start/stop if not numeric
         _est = str(self.params['startEstim'].val)
         self.startEstimCtrl = wx.TextCtrl(parent, -1, _est)
-        self.startEstimCtrl.SetToolTip(wx.ToolTip(
-                _translate(self.params['startEstim'].hint)))
+        msg = self.params['startEstim'].hint
+        self.startEstimCtrl.SetToolTip(wx.ToolTip(_translate(msg)))
         # add the controls to a new line
         startSizer = wx.BoxSizer(orient=wx.HORIZONTAL)
         startSizer.Add(self.startTypeCtrl)
@@ -685,17 +688,17 @@ class _BaseParamsDlg(wx.Dialog):
         _choices = list(map(_translate, stopTypeParam.allowedVals))
         self.stopTypeCtrl = wx.Choice(parent, choices=_choices)
         self.stopTypeCtrl.SetStringSelection(_translate(stopTypeParam.val))
-        self.stopTypeCtrl.SetToolTip(wx.ToolTip(
-                _translate(self.params['stopType'].hint)))
+        msg = self.params['stopType'].hint
+        self.stopTypeCtrl.SetToolTip(wx.ToolTip(_translate(msg)))
         # the value to be used as the start/stop
         self.stopValCtrl = wx.TextCtrl(parent, -1, str(stopValParam.val))
-        self.stopValCtrl.SetToolTip(wx.ToolTip(
-                _translate(self.params['stopVal'].hint)))
+        msg = self.params['stopVal'].hint
+        self.stopValCtrl.SetToolTip(wx.ToolTip(_translate(msg)))
         # the value to estimate start/stop if not numeric
         _est = str(self.params['durationEstim'].val)
         self.durationEstimCtrl = wx.TextCtrl(parent, -1, _est)
-        self.durationEstimCtrl.SetToolTip(wx.ToolTip(
-                _translate(self.params['durationEstim'].hint)))
+        msg = self.params['durationEstim'].hint
+        self.durationEstimCtrl.SetToolTip(wx.ToolTip(_translate(msg)))
         # add the controls to a new line
         stopSizer = wx.BoxSizer(orient=wx.HORIZONTAL)
         stopSizer.Add(self.stopTypeCtrl)

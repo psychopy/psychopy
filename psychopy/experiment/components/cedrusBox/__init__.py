@@ -40,6 +40,7 @@ class cedrusButtonBoxComponent(KeyboardComponent):
     components over which active keys (for responses and lights).
     """
     categories = ['Responses']  # which section(s) in the components panel
+    targets = ['PsychoPy']
 
     def __init__(self, exp, parentName, name='buttonBox',
                  store='first key',
@@ -60,6 +61,7 @@ class cedrusButtonBoxComponent(KeyboardComponent):
 
         self.type = 'cedrusButtonBox'
         self.url = "http://www.psychopy.org/builder/components/cedrusButtonBox.html"
+
         self.exp.requirePsychopyLibs(['hardware'])
 
         self.params['correctAns'].hint = _translate(

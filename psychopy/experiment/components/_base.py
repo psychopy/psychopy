@@ -30,7 +30,8 @@ class BaseComponent(object):
                  startType='time (s)', startVal='',
                  stopType='duration (s)', stopVal='',
                  startEstim='', durationEstim='',
-                 saveStartStop=True, syncScreenRefresh=False):
+                 saveStartStop=True, syncScreenRefresh=False,
+                 disabled=False):
         self.type = 'Base'
         self.exp = exp  # so we can access the experiment if necess
         self.parentName = parentName  # to access the routine too if needed
@@ -106,6 +107,12 @@ class BaseComponent(object):
             hint=msg, categ="Data",
             label=_translate('Sync timing with screen refresh'))
 
+        msg = _translate("Disable this component")
+        self.params['disabled'] = Param(
+            disabled, valType='bool', allowedTypes=[],
+            hint=msg, categ="Testing",
+            label=_translate('Disable component'))
+
         self.order = ['name']  # name first, then timing, then others
 
     def writeInitCode(self, buff):
@@ -144,14 +151,14 @@ class BaseComponent(object):
         """Write the code that will be called at the end of
         a routine (e.g. to save data)
         """
-        if 'saveStartStop' in self.params and self.params['saveStartStop']:
+        if 'saveStartStop' in self.params and self.params['saveStartStop'].val:
             # what loop are we in (or thisExp)?
             if len(self.exp.flow._loopList):
                 currLoop = self.exp.flow._loopList[-1]  # last (outer-most) loop
             else:
                 currLoop = self.exp._expHandler
 
-            if self.params['syncScreenRefresh']:
+            if self.params['syncScreenRefresh'].val:
                 code = (
                     "{loop}.addData('{name}.started', {name}.tStartRefresh)\n"
                     "{loop}.addData('{name}.stopped', {name}.tStopRefresh)\n"
@@ -652,9 +659,9 @@ class BaseVisualComponent(BaseComponent):
         # set parameters that need updating every frame
         # do any params need updating? (this method inherited from _base)
         if self.checkNeedToUpdate('set every frame'):
-            code = ("if (%(name)s.status === PsychoJS.Status.STARTED){ "
+            code = ("\nif (%(name)s.status === PsychoJS.Status.STARTED){ "
                     "// only update if being drawn\n")
-            buff.writeIndented(code % self.params)
+            buff.writeIndentedLines(code % self.params)
             buff.setIndentLevel(+1, relative=True)  # to enter the if block
             self.writeParamUpdatesJS(buff, 'set every frame')
             buff.setIndentLevel(-1, relative=True)  # to exit the if block
