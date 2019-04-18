@@ -2,6 +2,7 @@ from __future__ import print_function
 from builtins import object
 
 import psychopy.experiment
+from psychopy.app._psychopyApp import PsychoPyApp
 from os import path
 import shutil
 import py_compile
@@ -31,7 +32,7 @@ class Test_BuilderFrame(object):
     settings, they can be added to a Routine and result in a script that compiles
     """
     def setup(self):
-        self.app = pytest.app
+        self.app = PsychoPyApp(testMode=True, showSplash=False)
 
         self.builder = self.app.newBuilderFrame()
         self.exp = self.builder.exp
@@ -42,6 +43,7 @@ class Test_BuilderFrame(object):
         self.exp.flow.addRoutine(self.testRoutine, 0)
 
     def teardown(self):
+        self.app.quit()
         shutil.rmtree(self.tmp_dir, ignore_errors=True)
 
     def test_BuilderFrame(self):

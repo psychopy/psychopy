@@ -21,6 +21,7 @@ To add a new stimulus test use _base so that it gets tested in all contexts
 from psychopy import experiment
 from os.path import split, join, expanduser
 import psychopy.scripts.psyexpCompile as psyexpCompile
+from psychopy.app._psychopyApp import PsychoPyApp
 import codecs
 import pytest
 
@@ -43,11 +44,11 @@ class Test_PsychoJS_from_Builder(object):
         else:
             self.temp_dir = mkdtemp(prefix='psychopy-test_psychojs')
 
-        self.app = pytest.app
+        self.app = PsychoPyApp(testMode=True, showSplash=False)
         self.builderView = self.app.newBuilderFrame()
 
     def teardown_class(self):
-        self.builderView.closeFrame()
+        self.app.quit()
         if not keepFiles:
             shutil.rmtree(self.temp_dir)
 
