@@ -803,7 +803,7 @@ class SettingsComponent(object):
         buff.writeIndentedLines(recordLoopIterationFunc)
         quitFunc = ("\nfunction quitPsychoJS(message, isCompleted) {\n"
                     "  psychoJS.window.close();\n"
-                    "  psychoJS.quit({message, isCompleted});\n\n"
+                    "  psychoJS.quit({message: message, isCompleted: isCompleted});\n\n"
                     "  return Scheduler.Event.QUIT;\n"
                     "}")
         buff.writeIndentedLines(quitFunc)

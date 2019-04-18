@@ -247,12 +247,12 @@ class Experiment(object):
             routinesToWrite = list(self_copy.routines)
             for thisItem in self_copy.flow:
                 if thisItem.getType() in ['LoopInitiator', 'LoopTerminator']:
-                    self_copy.flow.writeLoopHandlerJS(script)
+                    self_copy.flow.writeLoopHandlerJS(script, modular)
                 elif thisItem.name in routinesToWrite:
                     self_copy._currentRoutine = self_copy.routines[thisItem.name]
-                    self_copy._currentRoutine.writeRoutineBeginCodeJS(script)
-                    self_copy._currentRoutine.writeEachFrameCodeJS(script)
-                    self_copy._currentRoutine.writeRoutineEndCodeJS(script)
+                    self_copy._currentRoutine.writeRoutineBeginCodeJS(script, modular)
+                    self_copy._currentRoutine.writeEachFrameCodeJS(script, modular)
+                    self_copy._currentRoutine.writeRoutineEndCodeJS(script, modular)
                     routinesToWrite.remove(thisItem.name)
             self_copy.settings.writeEndCodeJS(script)
 
