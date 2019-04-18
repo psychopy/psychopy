@@ -320,12 +320,12 @@ class Flow(list):
         # handled all the flow entries
         code = ("\n// quit if user presses Cancel in dialog box:\n"
                 "dialogCancelScheduler.add(quitPsychoJS, '', false);\n"
-                "\npsychoJS.start({configURL: 'config.json', expInfo: expInfo});\n")
+                "\npsychoJS.start({expInfo: expInfo});\n")
         script.writeIndentedLines(code)
         script.setIndentLevel(-1, relative=True)
         script.writeIndented("\n")
 
-    def writeLoopHandlerJS(self, script):
+    def writeLoopHandlerJS(self, script, modular):
         """
         Function for setting up handler to look after randomisation of conditions etc
         """
@@ -335,7 +335,7 @@ class Flow(list):
             if loopType in self._loopController:
                 loopName = entry.loop.params['name'].val  # Get loop name
                 if loopName not in self._loopController[loopType]:  # Write if not already written
-                    entry.writeMainCodeJS(script)  # will either be function trialsBegin() or trialsEnd()
+                    entry.writeMainCodeJS(script, modular)  # will either be function trialsBegin() or trialsEnd()
                     self._loopController[loopType].append(loopName)
 
     def _resetLoopController(self):
