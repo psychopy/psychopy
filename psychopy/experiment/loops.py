@@ -185,6 +185,9 @@ class TrialHandler(object):
         makeLoopIndex = self.exp.namespace.makeLoopIndex
         self.thisName = makeLoopIndex(self.params['name'].val)
 
+        # Convert filepath separator
+        conditionsFile = self.params['conditionsFile'].val
+        self.params['conditionsFile'].val = conditionsFile.replace('\\\\', '/').replace('\\', '/')
         # seed might be undefined
         seed = self.params['random seed'].val or 'undefined'
         if self.params['conditionsFile'].val in ['None', None, 'none', '']:
@@ -207,8 +210,13 @@ class TrialHandler(object):
                 "    seed: {seed}, name: '{name}'}});\n"
                 "  psychoJS.experiment.addLoop({name}); // add the loop to the experiment\n"
                 "  currentLoop = {name};  // we're now the current loop\n"
-                .format(funName=self.params['name'].val,name=self.params['name'], loopType=(self.params['loopType'].val).upper(),
-                        params=self.params, thisName=self.thisName, trialList=trialList, seed=seed))
+                .format(funName=self.params['name'].val,
+                        name=self.params['name'],
+                        loopType=(self.params['loopType'].val).upper(),
+                        params=self.params,
+                        thisName=self.thisName,
+                        trialList=trialList,
+                        seed=seed))
         buff.writeIndentedLines(code)
         # for the scheduler
         if modular:

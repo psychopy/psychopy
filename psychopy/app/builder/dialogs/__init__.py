@@ -1549,7 +1549,7 @@ class DlgLoopProperties(_BaseParamsDlg):
                 isSameFilePathAndName = bool(newFullPath == oldFullPath)
             else:
                 isSameFilePathAndName = False
-            newPath = _relpath(newFullPath, expFolder).replace('\\', '/')
+            newPath = _relpath(newFullPath, expFolder)
             self.conditionsFile = newPath
             needUpdate = False
             try:
