@@ -1549,7 +1549,7 @@ class DlgLoopProperties(_BaseParamsDlg):
                 isSameFilePathAndName = bool(newFullPath == oldFullPath)
             else:
                 isSameFilePathAndName = False
-            newPath = _relpath(newFullPath, expFolder)
+            newPath = _relpath(newFullPath, expFolder).replace('\\', '/')
             self.conditionsFile = newPath
             needUpdate = False
             try:
@@ -1626,9 +1626,9 @@ class DlgLoopProperties(_BaseParamsDlg):
             # add after self.show() in __init__:
             self.duplCondNames = duplCondNames
 
-            if (needUpdate or
-                    ('conditionsFile' in list(self.currentCtrls.keys()) and
-                     not duplCondNames)):
+            if (needUpdate
+                    or ('conditionsFile' in list(self.currentCtrls.keys())
+                        and not duplCondNames)):
                 self.currentCtrls['conditionsFile'].setValue(newPath)
                 self.currentCtrls['conditions'].setValue(
                     self.getTrialsSummary(self.conditions))
