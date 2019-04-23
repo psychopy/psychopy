@@ -1,11 +1,5 @@
 from __future__ import print_function
 from builtins import object
-import sys, os, copy
-from psychopy import visual, monitors, prefs
-from psychopy.visual import filters
-from psychopy.tools.coordinatetools import pol2cart
-from psychopy.tests import utils
-import numpy
 import pytest
 import shutil
 from tempfile import mkdtemp
@@ -18,18 +12,20 @@ of tests on a single graphics context (e.g. pyglet with shaders)
 To add a new stimulus test use _base so that it gets tested in all contexts
 
 """
+import psychopy
 from psychopy import experiment
-from os.path import split, join, expanduser
 import psychopy.scripts.psyexpCompile as psyexpCompile
 from psychopy.app import psychopyApp
+
 import codecs
+from os.path import split, join, expanduser
 
 home = expanduser("~")
 
 keepFiles = False
 
 thisDir = split(__file__)[0]
-psychoRoot = join(thisDir, '..', '..')
+psychoRoot = split(psychopy.__file__)[0]
 demosDir = join(psychoRoot, 'demos')
 
 
