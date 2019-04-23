@@ -18,9 +18,6 @@ ET_UNDEFINED = EyeTrackerConstants.UNDEFINED
 getTime = Computer.getTime
 
 if sys.platform == 'win32':
-    # GP3 sends the Windows QPC value for each sample. getGP3Time() returns
-    # the current QPC time. This is used to calculate the sample qpc 'delay'
-    # which is then used to caclulate the sample time in iohub timebase.
     from ctypes import byref, c_int64, windll
     _fcounter_ = c_int64()
     _qpfreq_ = c_int64()
@@ -32,12 +29,7 @@ if sys.platform == 'win32':
         _winQPC_(byref(_fcounter_))
         return _fcounter_.value / _qpfreq_
 else:
-    print2err("WARNING: IOHUB ONLY SUPPORTS GAZEPOINT ON WINDOWS.")
-    # TODO: Implement on other platforms if possible
-    # GP3 is only supported on Windows by iohub, 
-    # so this will never actually be used.
-    def getGP3Time():
-        return getTime()        
+    print2err("WARNING: GAZEPOINT IS ONY SUPPORT ON WINDOWS.")
         
 def to_numeric(lit):
     """Return value of a numeric literal string. If the string can not be

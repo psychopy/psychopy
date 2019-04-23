@@ -20,10 +20,8 @@ is available in the psychopy/demos/coder/iohub folder.
 .. note::
 
     This documentation is in very early stages of being written. Many sections
-    regarding device usage details are simply placeholders.
-    For information on devices or functionality that has not yet been migrated
-    to the psychopy documentation, please visit the somewhat outdated
-    `original ioHub doc's. <http://www.isolver-solutions.com/iohubdocs/>`_
+    regarding device usage details are simply placeholders. Comments and
+    contributions are welcome.
 
 Using psychopy.iohub:
 -----------------------

@@ -19,13 +19,13 @@ The iohub Keyboard device provides methods to:
     :member-order: bysource
 
 Keyboard Events
-================
+---------------
 
 The Keyboard device can return two types of events, which represent key press
 and key release actions on the keyboard.
 
 KeyboardPress Event
---------------------
+~~~~~~~~~~~~~~~~~~~
 
 .. autoclass:: KeyboardPress
     :exclude-members: id
@@ -34,7 +34,7 @@ KeyboardPress Event
     :member-order: bysource
 
 KeyboardRelease Event
------------------------
+~~~~~~~~~~~~~~~~~~~~~
 
 .. autoclass:: KeyboardRelease
     :exclude-members: id
