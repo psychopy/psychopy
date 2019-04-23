@@ -396,7 +396,7 @@ class MovieStim2(BaseVisualStim, ContainerMixin):
             vlc.EventType.MediaPlayerEndReached, _audioEndCallback,
             weakref.ref(self))
 
-    def _releaseeAudioStream(self):
+    def _releaseAudioStream(self):
         if self._audio_stream_player:
             self._audio_stream_player.stop()
 
@@ -410,7 +410,6 @@ class MovieStim2(BaseVisualStim, ContainerMixin):
             self._audio_stream.release()
 
         if self._vlc_instance:
-            self._vlc_instance.vlm_release()
             self._vlc_instance.release()
 
         self._audio_stream = None
@@ -791,7 +790,7 @@ class MovieStim2(BaseVisualStim, ContainerMixin):
         self._video_stream.release()
         # self._video_stream = None
         self._numpy_frame = None
-        self._releaseeAudioStream()
+        self._releaseAudioStream()
         self.status = FINISHED
 
     def _onEos(self):
