@@ -3,16 +3,29 @@
 !define PRODUCT_PUBLISHER "Jon Peirce"
 !define PRODUCT_WEB_SITE "http://www.psychopy.org"
 ;!define PRODUCT_DIR_REGKEY "Software\Microsoft\Windows\CurrentVersion\App Paths\AppMainExe.exe"
+
 !define PRODUCT_UNINST_KEY "Software\Microsoft\Windows\CurrentVersion\Uninstall\${PRODUCT_NAME}"
-!define PRODUCT_UNINST_ROOT_KEY "HKLM"
+!define PRODUCT_UNINST_ROOT_KEY "SHELL_CONTEXT"
+var PRODUCT_REGISTRY_ROOT
+
 !define PRODUCT_STARTMENU_REGVAL "NSIS:StartMenuDir"
 
 
+
+
 ; Modern User Interface v2 ------
+
+; Allow choosing between multiuser and current user (no admin rights) installs
+!define MULTIUSER_EXECUTIONLEVEL Highest
+!define MULTIUSER_MUI
+!define MULTIUSER_INSTALLMODE_COMMANDLINE
+!include MultiUser.nsh
+
 !include "MUI2.nsh"
 !include "fileassoc.nsh"
 !include "EnvVarUpdate.nsh"
 !include "Library.nsh"
+!include LogicLib.nsh
 
 ; MUI Settings
 !define MUI_ABORTWARNING
@@ -23,8 +36,13 @@
 !insertmacro MUI_PAGE_LICENSE "psychopy/LICENSE.txt"
 ; Components page NB having multiple components was annoying with uninstall
 ;!insertmacro MUI_PAGE_COMPONENTS
+; Choice for multiuser or single user install - note that this page only 
+; displays if the user has privileges to do the AllUsers
+!define MUI_PAGE_CUSTOMFUNCTION_PRE multiuser_pre_func
+!insertmacro MULTIUSER_PAGE_INSTALLMODE
 ; Directory page
 !insertmacro MUI_PAGE_DIRECTORY
+
 ; Start menu page
 var ICONS_GROUP
 !define MUI_STARTMENUPAGE_NODISABLE
@@ -33,10 +51,12 @@ var ICONS_GROUP
 !define MUI_STARTMENUPAGE_REGISTRY_KEY "${PRODUCT_UNINST_KEY}"
 !define MUI_STARTMENUPAGE_REGISTRY_VALUENAME "${PRODUCT_STARTMENU_REGVAL}"
 !insertmacro MUI_PAGE_STARTMENU Application $ICONS_GROUP
+
 ; Instfiles page
 !insertmacro MUI_PAGE_INSTFILES
 
 ; Uninstaller pages
+!insertmacro MUI_UNPAGE_CONFIRM
 !insertmacro MUI_UNPAGE_INSTFILES
 
 ; Language files
@@ -46,17 +66,48 @@ var ICONS_GROUP
 
 Name "${PRODUCT_NAME} ${PRODUCT_VERSION} ${ARCH}"
 OutFile "Standalone${PRODUCT_NAME}-${PRODUCT_VERSION}-${ARCH}.exe"
-InstallDir "$PROGRAMFILES\${PRODUCT_NAME}"
-;InstallDirRegKey HKLM "${PRODUCT_DIR_REGKEY}" ""
+
+; We set InstallDir inside .onInit instead so it can be dynamic
+InstallDir ""
+
 ShowInstDetails show
 ShowUnInstDetails show
-;Request application privileges for Windows Vista
-RequestExecutionLevel admin
 
-;if previous version installed then remove
+;pre-multiuser detection
+Function multiuser_pre_func
+
+       ClearErrors
+       ReadRegStr $R1 ${PRODUCT_UNINST_ROOT_KEY} "${PRODUCT_UNINST_KEY}" "InstallDir"
+       ${Unless} ${Errors}
+           Abort
+       ${EndUnless}
+
+FunctionEnd
+
 Function .onInit
+  !insertmacro MULTIUSER_INIT
 
-  ReadRegStr $R0 HKLM \
+  ${If} $MultiUser.InstallMode == "CurrentUser"
+    SetShellVarContext current
+    StrCpy $InstDir "$LOCALAPPDATA\${PRODUCT_NAME}"
+    StrCpy $PRODUCT_REGISTRY_ROOT "HKCU"
+    IfFileExists $SYSDIR\avbin.dll continue_init 0
+    MessageBox MB_OKCANCEL|MB_ICONEXCLAMATION \
+    "You do not have admin privileges, which are needed to install AVBin. \
+    $\n$\nPlease cancel the install and run with admin \
+    privileges, or manually install AVBin later." \
+    IDOK continue_init
+    Abort
+  ${Else}
+    SetShellVarContext all
+    StrCpy $InstDir "$PROGRAMFILES\${PRODUCT_NAME}"
+    StrCpy $PRODUCT_REGISTRY_ROOT "HKLM"
+  ${EndIf}
+
+  continue_init:
+
+  ;if previous version installed then remove
+  ReadRegStr $R0 SHELL_CONTEXT \
   "Software\Microsoft\Windows\CurrentVersion\Uninstall\${PRODUCT_NAME}" \
   "UninstallString"
   StrCmp $R0 "" done
@@ -68,16 +119,29 @@ Function .onInit
   IDOK uninst
   Abort
 
-;Run the uninstaller
-uninst:
-  ClearErrors
-  ExecWait '"$INSTDIR\uninst.exe" _?=$INSTDIR'
-done:
+  ;Run the uninstaller
+  uninst:
+    ClearErrors
+    ExecWait '"$INSTDIR\uninst.exe" _?=$INSTDIR'
+  done:
+FunctionEnd
+
+Function un.onInit
+  !insertmacro MULTIUSER_UNINIT
+  ${If} $MultiUser.InstallMode == "CurrentUser"
+    SetShellVarContext current
+    StrCpy $InstDir "$LOCALAPPDATA\${PRODUCT_NAME}"
+    StrCpy $PRODUCT_REGISTRY_ROOT "HKCU"
+  ${Else}
+    SetShellVarContext all
+    StrCpy $InstDir "$PROGRAMFILES\${PRODUCT_NAME}"
+    StrCpy $PRODUCT_REGISTRY_ROOT "HKLM"
+  ${EndIf}
+
 FunctionEnd
 
 Section "PsychoPy" SEC01
   SectionIn RO
-  SetShellVarContext all
   SetOutPath "$INSTDIR"
   SetOverwrite on
   ;AppDir is the path to the psychopy app folder
@@ -85,8 +149,11 @@ Section "PsychoPy" SEC01
   StrCpy $AppDir "$INSTDIR\Lib\site-packages\psychopy\app"
 
   File /r /x *.pyo /x *.chm /x Editra /x doc "${PYPATH}*.*"
-; avbin to system32
-  !insertmacro InstallLib DLL NOTSHARED NOREBOOT_PROTECTED avbin.dll $SYSDIR\avbin.dll $SYSDIR
+
+  ${If} $MultiUser.InstallMode == "AllUsers"
+  ; avbin to system32
+    !insertmacro InstallLib DLL NOTSHARED NOREBOOT_PROTECTED avbin.dll $SYSDIR\avbin.dll $SYSDIR
+  ${EndIf}
 
 ; Shortcuts
   !insertmacro MUI_STARTMENU_WRITE_BEGIN Application
@@ -101,8 +168,8 @@ Section "PsychoPy" SEC01
 
 ; Update Windows Path
   ;add to path variable
-  ${EnvVarUpdate} $0 "PATH" "A" "HKLM" "$INSTDIR"
-  ${EnvVarUpdate} $0 "PATH" "A" "HKLM" "$INSTDIR\DLLs"
+  ${EnvVarUpdate} $0 "PATH" "A" "$PRODUCT_REGISTRY_ROOT" "$INSTDIR"
+  ${EnvVarUpdate} $0 "PATH" "A" "$PRODUCT_REGISTRY_ROOT" "$INSTDIR\DLLs"
 
 SectionEnd
 
@@ -146,8 +213,8 @@ Section Uninstall
 
   DeleteRegKey ${PRODUCT_UNINST_ROOT_KEY} "${PRODUCT_UNINST_KEY}"
   ;DeleteRegKey HKLM "${PRODUCT_DIR_REGKEY}"
-  ${un.EnvVarUpdate} $0 "PATH" "R" "HKLM" "$INSTDIR"
-  ${un.EnvVarUpdate} $0 "PATH" "R" "HKLM" "$INSTDIR\DLLs"
+  ${un.EnvVarUpdate} $0 "PATH" "R" "$PRODUCT_REGISTRY_ROOT" "$INSTDIR"
+  ${un.EnvVarUpdate} $0 "PATH" "R" "$PRODUCT_REGISTRY_ROOT" "$INSTDIR\DLLs"
 
   SetAutoClose true
 SectionEnd

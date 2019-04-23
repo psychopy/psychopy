@@ -1,12 +1,28 @@
 ioHub vx.x Release Notes
 ========================
 
+Eye Tracker Support
+-------------------
+
+Windows
+~~~~~~~
+
+Tested:
+
+- gazepoint.GP3
+- srresearch.eyelink
+    - tested using EyeLink 1000
+
+Still To Port (a.k.a probably not working in PsychoPy3 / Python 3):
+
+- Tobii
+- SMI
+ 
+
 Enhancements
 -------------
 
-- Added wintab device (Windows only)
-- ioSync Device now supports generating keyboard events using
-  iosync.generateKeyboardEvent() device method. Limitations exist.....
+- Added wintab device (Windows only, P2.7 only likely)
 - launchHubServer() should now be able to replace iohubExpRuntime class
 - other than 'data_store', launchHubServer supports updating
   psychopy/iohub/default_config.yaml settings by adding kwargs that match the
@@ -30,8 +46,6 @@ Bugs Fixed
 
 - mouse.setPosition was not correctly setting y position
 - fixed bug in iohubdelaytest demo that was stopping it from running.
-- Analog Input implementation for Measurement Computing works on python 64bit
-- coder\iohub\network demo was referencing non-existent KeyboardChar event type.
 - io.clearEvents() was not clearing any locally cached events in
   psychopy.io.client.Keyboard class.
   
@@ -144,10 +158,5 @@ Internal API Changes
 - When adding new Device and/or Event types, iohub.datastore module does not
   need to be changed. Adding new Device or Event types to iohub.constants.py
   is still required.
-
-demos.coder.iohub Changes
--------------------------
-
-- Moved eyetracker/validation.py to eyetracker/validation/run.py
 
 
