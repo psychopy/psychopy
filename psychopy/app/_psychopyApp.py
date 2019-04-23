@@ -672,8 +672,7 @@ class PsychoPyApp(wx.App):
             except Exception:
                 pass  # we don't care if this fails - we're quitting anyway
         self.Destroy()
-        if not self.testMode:
-            sys.exit()  # sys exit during pytest will end testing?
+        sys.exit()
 
     def showPrefs(self, event):
         from psychopy.app.preferencesDlg import PreferencesDlg
