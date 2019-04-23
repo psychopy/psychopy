@@ -5,13 +5,17 @@
 
 """ioHub Common Eye Tracker Interface for Tobii (C) Eye Tracking System"""
 from __future__ import absolute_import
-
-import numpy as np
+import math
 from .....constants import EventConstants, EyeTrackerConstants
 from .... import Computer, Device
 from ... import EyeTrackerDevice
 from ...eye_events import *
 from .....errors import print2err, printExceptionDetailsToStdErr
+try:
+    from .tobiiwrapper import TobiiTracker
+except Exception:
+    print2err('Error importing tobiiwrapper.TobiiTracker')
+    printExceptionDetailsToStdErr()
 
 
 class EyeTracker(EyeTrackerDevice):
@@ -49,32 +53,15 @@ class EyeTracker(EyeTrackerDevice):
             serial_num = None
 
         EyeTracker._tobii = None
-
-        EyeTracker._isEyeX = model_name == 'Tobii EyeX'
-
         try:
-            if EyeTracker._isEyeX:
-                from .eyex_classes import TobiiEyeXTracker
-            else:
-                from .tobiiclasses import TobiiTracker
-        except Exception:
-            print2err('Error importing tobiiclasses')
-            printExceptionDetailsToStdErr()
-
-        try:
-            if EyeTracker._isEyeX:
-                EyeTracker._tobii = TobiiEyeXTracker()
-            else:
-                EyeTracker._tobii = TobiiTracker(
-                    product_id=serial_num, model=model_name)
+            EyeTracker._tobii = TobiiTracker(serial_num, model_name)
         except Exception:
             print2err('Error creating Tobii Device class')
             printExceptionDetailsToStdErr()
 
-        if self._tobii and self._runtime_settings['sampling_rate'] and self._runtime_settings[
-                'sampling_rate'] in self._tobii.getAvailableSamplingRates():
-            self._tobii.setSamplingRate(
-                self._runtime_settings['sampling_rate'])
+        srate = self._runtime_settings['sampling_rate']
+        if srate and srate in self._tobii.getAvailableSamplingRates():
+            self._tobii.setSamplingRate(srate)
 
         self._latest_sample = None
         self._latest_gaze_position = None
@@ -122,12 +109,9 @@ class EyeTracker(EyeTrackerDevice):
             bool: indicates the current connection state to the eye tracking hardware.
         """
         if self._tobii:
-            if self._isEyeX:
-                return self._tobii.isConnected()
-            else:
-                return self._tobii.getTrackerDetails().get('status', False) == 'OK'
+            return True
         return False
-
+    
     def isConnected(self):
         """isConnected returns whether the Tobii is connected to the experiment
         PC and if the tracker state is valid. Returns True if the tracker can
@@ -142,44 +126,19 @@ class EyeTracker(EyeTrackerDevice):
 
         """
         if self._tobii:
-            if self._isEyeX:
-                return self._tobii.isConnected()
-            else:
-                return self._tobii.getTrackerDetails().get('status', False) == 'OK'
+            return True
         return False
 
     def sendMessage(self, message_contents, time_offset=None):
         """The sendMessage method is not supported by the Tobii implementation
         of the Common Eye Tracker Interface, as the Tobii SDK does not support
         saving eye data to a native data file during recording."""
-        EyeTrackerConstants.EYETRACKER_INTERFACE_METHOD_NOT_SUPPORTED
+        return EyeTrackerConstants.EYETRACKER_INTERFACE_METHOD_NOT_SUPPORTED
 
     def sendCommand(self, key, value=None):
         """The sendCommand method is not supported by the Tobii Common Eye
         Tracker Interface."""
-
-#        TODO: The Tobii has several custom commands that can be sent to set or get
-#        information about the eye tracker that is specific to Tobii
-#        systems. Valid command tokens and associated possible valid command values
-#        are as follows:
-#
-#        TO DO: complete based on these tracker object methods
-#            - getTrackerDetails
-#            - getName
-#            - setName
-#            - getHeadBox
-#            - setXSeriesPhysicalPlacement (no-op if tracker is not an X series system)
-#            - getEyeTrackerPhysicalPlacement
-#            - getAvailableExtensions
-#            - getEnabledExtensions
-#            - enableExtension
-#            - ....
-#
-#        Commands always return their result at the end of the command call, if
-#        there is any result to return. Otherwise EyeTrackerConstants.EYETRACKER_OK
-#        is returned.
-
-        EyeTrackerConstants.EYETRACKER_INTERFACE_METHOD_NOT_SUPPORTED
+        return EyeTrackerConstants.EYETRACKER_INTERFACE_METHOD_NOT_SUPPORTED
 
     def runSetupProcedure(
             self,
@@ -365,16 +324,26 @@ class EyeTracker(EyeTrackerDevice):
         the eye tracker device, and the local ioHub time the callback
         was called, into a buffer for processing by the ioHub event
         system.
-
         """
         if self.isReportingEvents():
             try:
-                if self._isEyeX:
-                    eye_data_event = args[0]
-                    return self._handleNativeEyeXEvent(eye_data_event)
-                else:
-                    eye_data_event = args[1]
-                    return self._handleNativeTobiiEvent(eye_data_event)
+                logged_time = Computer.getTime()
+                tobii_logged_time = self._tobii.getCurrentLocalTobiiTime() * self.DEVICE_TIMEBASE_TO_SEC
+                
+                eye_data_event = args[0]
+                
+                device_event_time = eye_data_event['system_time_stamp'] * self.DEVICE_TIMEBASE_TO_SEC
+        
+                data_delay = tobii_logged_time-device_event_time
+        
+                iohub_event_time = (logged_time - data_delay)
+                self._addNativeEventToBuffer(
+                    (logged_time,
+                     device_event_time,
+                     iohub_event_time,
+                     data_delay,
+                     eye_data_event))
+                return True
             except Exception:
                 print2err('ERROR IN _handleNativeEvent')
                 printExceptionDetailsToStdErr()
@@ -382,64 +351,6 @@ class EyeTracker(EyeTrackerDevice):
             print2err(
                 'self._handleNativeEvent called but isReportingEvents == false')
 
-    def _handleNativeTobiiEvent(self, eye_data_event):
-        """Logic for most Tobii device native events goes here."""
-        logged_time_iohub_usec = Computer.getTime() / self.DEVICE_TIMEBASE_TO_SEC
-        logged_time_tobii_local_usec = self._tobii._getTobiiClockTime()
-        data_time_in_tobii_local_time = self._tobii._sync_manager.convert_from_remote_to_local(
-            eye_data_event.Timestamp)
-
-        data_delay = logged_time_tobii_local_usec - data_time_in_tobii_local_time
-
-        logged_time = logged_time_iohub_usec * self.DEVICE_TIMEBASE_TO_SEC
-        device_event_time = data_time_in_tobii_local_time * self.DEVICE_TIMEBASE_TO_SEC
-        iohub_event_time = (logged_time_iohub_usec - data_delay) * \
-            self.DEVICE_TIMEBASE_TO_SEC  # in sec.msec_usec
-        data_delay = data_delay * self.DEVICE_TIMEBASE_TO_SEC
-
-        self._addNativeEventToBuffer(
-            (logged_time,
-             device_event_time,
-             iohub_event_time,
-             data_delay,
-             eye_data_event))
-        return True
-
-    def _handleNativeEyeXEvent(self, eye_data_event):
-        """Logic for the EyeX native event type goes here.
-
-        There's no way to get the EyeX clock currently, all we have
-        is a timestamp on each event.
-
-        See discussion here: https://github.com/dgfitch/psychopy/commit/30d8f1f732fe0902c13222e3b9dc690a0de4d75b#commitcomment-9053635
-
-        For now, we are just returning a delay of 0.
-
-        """
-
-        # Correct-ish time delay tracking math
-        logged_sec = Computer.getTime()
-        logged_usec = logged_sec / self.DEVICE_TIMEBASE_TO_SEC
-
-        tobii_usec = self._tobii.getDelayInMicroseconds(
-            eye_data_event.timestamp, self.DEVICE_TIMEBASE_TO_SEC)
-        tobii_event_time = tobii_usec * self.DEVICE_TIMEBASE_TO_SEC
-
-        # For now, we are just returning a delay of 0 because tobii_usec is
-        # unreliable
-        data_delay = 0
-        iohub_event_time = (logged_usec - data_delay) * \
-            self.DEVICE_TIMEBASE_TO_SEC  # in sec.msec_usec
-        data_delay = data_delay * self.DEVICE_TIMEBASE_TO_SEC
-
-        #print2err("data delay: %gms" % (data_delay * 1000))
-        self._addNativeEventToBuffer(
-            (logged_sec,
-             tobii_event_time,
-             iohub_event_time,
-             data_delay,
-             eye_data_event))
-        return True
 
     def _getIOHubEventObject(self, native_event_data):
         """The _getIOHubEventObject method is called by the ioHub Server to
@@ -459,224 +370,135 @@ class EyeTracker(EyeTrackerDevice):
 
         """
         try:
-            if self._isEyeX:
-                return self._getIOHubEventObjectForEyeX(native_event_data)
-            else:
-                return self._getIOHubEventObjectForTobii(native_event_data)
+            logged_time, device_event_time, iohub_event_time, data_delay, eye_data_event = native_event_data
 
+#         'system_time_stamp': 295431587453,
+#         'device_time_stamp': 1554911175642814,
+#         'right_gaze_point_on_display_area': (0.6514113545417786, 0.6740643382072449)
+#         'right_gaze_point_validity': 1,
+#         'right_pupil_diameter': 2.0828399658203125, 
+#         'right_pupil_validity': 1, 
+#         'left_gaze_point_on_display_area': (0.6300967931747437, 0.6632571816444397), 
+#         'left_gaze_point_validity': 1,
+#         'left_pupil_diameter': 2.2154541015625, 
+#         'left_pupil_validity': 1,
+#
+#         'right_gaze_origin_in_user_coordinate_system': (26.230587005615234, 30.770994186401367, 584.1049194335938), 
+#         'right_gaze_origin_in_trackbox_coordinate_system': (0.4429018795490265, 0.339368999004364, 0.4470163881778717), 
+#         'left_gaze_origin_in_trackbox_coordinate_system': (0.6209999918937683, 0.35132133960723877, 0.4568300247192383),
+#         'right_gaze_origin_validity': 1,
+#         'right_gaze_point_in_user_coordinate_system': (51.17703628540039, 115.1743392944336, 27.5936222076416),
+#         'left_gaze_origin_validity': 1, 
+#         'left_gaze_origin_in_user_coordinate_system': (-33.106361389160156, 26.86952018737793, 587.0490112304688), 
+#         'left_gaze_point_in_user_coordinate_system': (43.972713470458984, 117.93881225585938, 28.65477752685547), 
+    
+    #        eyes[LEFT]['gaze_mm'][0]=eye_data_event.LeftGazePoint3D.x
+    #        eyes[LEFT]['gaze_mm'][1]=eye_data_event.LeftGazePoint3D.y
+    #        eyes[LEFT]['gaze_mm'][2]=eye_data_event.LeftGazePoint3D.z
+    #        eyes[LEFT]['eye_location_norm'][0]=eye_data_event.LeftEyePosition3DRelative.x
+    #        eyes[LEFT]['eye_location_norm'][1]=eye_data_event.LeftEyePosition3DRelative.y
+    #        eyes[LEFT]['eye_location_norm'][2]=eye_data_event.LeftEyePosition3DRelative.z
+    #        eyes[RIGHT]['gaze_mm'][0]=eye_data_event.RightGazePoint3D.x
+    #        eyes[RIGHT]['gaze_mm'][1]=eye_data_event.RightGazePoint3D.y
+    #        eyes[RIGHT]['gaze_mm'][2]=eye_data_event.RightGazePoint3D.z
+    #        eyes[RIGHT]['eye_location_norm'][0]=eye_data_event.RightEyePosition3DRelative.x
+    #        eyes[RIGHT]['eye_location_norm'][1]=eye_data_event.RightEyePosition3DRelative.y
+    #        eyes[RIGHT]['eye_location_norm'][2]=eye_data_event.RightEyePosition3DRelative.z
+    
+            event_type = EventConstants.BINOCULAR_EYE_SAMPLE
+    
+            left_gaze_x, left_gaze_y = eye_data_event['left_gaze_point_on_display_area']
+            right_gaze_x, right_gaze_y = eye_data_event['right_gaze_point_on_display_area']
+    
+            status = 0
+
+            if eye_data_event['left_gaze_point_validity'] > 0:
+                left_gaze_x, left_gaze_y = self._eyeTrackerToDisplayCoords(
+                    (left_gaze_x, left_gaze_y))
+            else:
+                status += 20
+                
+            if eye_data_event['right_gaze_point_validity'] > 0:
+                right_gaze_x, right_gaze_y = self._eyeTrackerToDisplayCoords(
+                    (right_gaze_x, right_gaze_y))
+            else:
+                status += 2                
+
+            right_gx, right_gy, right_gz = eye_data_event['right_gaze_origin_in_trackbox_coordinate_system']
+            left_gx, left_gy, left_gz = eye_data_event['left_gaze_origin_in_trackbox_coordinate_system']
+
+            confidenceInterval = 0.0
+            binocSample = [
+                0,
+                0,
+                0,  # device id (not currently used)
+                Device._getNextEventID(),
+                event_type,
+                device_event_time,
+                logged_time,
+                iohub_event_time,
+                confidenceInterval,
+                data_delay,
+                0,  # filtered id (always 0 right now)
+                left_gaze_x,
+                left_gaze_y,
+                EyeTrackerConstants.UNDEFINED,
+                left_gx,
+                left_gy,
+                left_gz,
+                EyeTrackerConstants.UNDEFINED,  # Left Eye Angle x
+                EyeTrackerConstants.UNDEFINED,  # Left Eye Angle y
+                EyeTrackerConstants.UNDEFINED,  # Left Camera Sensor position x
+                EyeTrackerConstants.UNDEFINED,  # Left Camera Sensor position y
+                eye_data_event['left_pupil_diameter'],
+                EyeTrackerConstants.PUPIL_DIAMETER_MM,
+                EyeTrackerConstants.UNDEFINED,  # Left pupil size measure 2
+                EyeTrackerConstants.UNDEFINED,  # Left pupil size measure 2 type
+                EyeTrackerConstants.UNDEFINED,  # Left PPD x
+                EyeTrackerConstants.UNDEFINED,  # Left PPD y
+                EyeTrackerConstants.UNDEFINED,  # Left velocity x
+                EyeTrackerConstants.UNDEFINED,  # Left velocity y
+                EyeTrackerConstants.UNDEFINED,  # Left velocity xy
+                right_gaze_x,
+                right_gaze_y,
+                EyeTrackerConstants.UNDEFINED,  # Right Eye Angle z
+                right_gx,
+                right_gy,
+                right_gz,
+                EyeTrackerConstants.UNDEFINED,  # Right Eye Angle x
+                EyeTrackerConstants.UNDEFINED,  # Right Eye Angle y
+                EyeTrackerConstants.UNDEFINED,  # Right Camera Sensor position x
+                EyeTrackerConstants.UNDEFINED,  # Right Camera Sensor position y
+                eye_data_event['right_pupil_diameter'],
+                EyeTrackerConstants.PUPIL_DIAMETER_MM,
+                EyeTrackerConstants.UNDEFINED,  # Right pupil size measure 2
+                EyeTrackerConstants.UNDEFINED,  # Right pupil size measure 2 type
+                EyeTrackerConstants.UNDEFINED,  # Right PPD x
+                EyeTrackerConstants.UNDEFINED,  # Right PPD y
+                EyeTrackerConstants.UNDEFINED,  # right velocity x
+                EyeTrackerConstants.UNDEFINED,  # right velocity y
+                EyeTrackerConstants.UNDEFINED,  # right velocity xy
+                status
+            ]
+    
+            self._latest_sample = binocSample
+    
+            if eye_data_event['left_gaze_point_validity'] == eye_data_event['right_gaze_point_validity'] == 0:
+                self._latest_gaze_position = None
+            elif eye_data_event['left_gaze_point_validity'] == eye_data_event['right_gaze_point_validity'] == 1:
+                self._latest_gaze_position = [(right_gaze_x + left_gaze_x) / 2.0,
+                                              (right_gaze_y + left_gaze_y) / 2.0]
+            elif eye_data_event['left_gaze_point_validity'] == 1:
+                self._latest_gaze_position = [left_gaze_x, left_gaze_y]
+            elif eye_data_event['right_gaze_point_validity'] == 1:
+                self._latest_gaze_position = [right_gaze_x, right_gaze_y]
+    
+            self._last_callback_time = logged_time
+    
+            return binocSample
         except Exception:
             printExceptionDetailsToStdErr()
         return None
-
-    def _getIOHubEventObjectForTobii(self, native_event_data):
-        """Used by _getIOHubEventObject to parse most Tobii devices."""
-        logged_time, device_event_time, iohub_event_time, data_delay, eye_data_event = native_event_data
-
-#        eyes[LEFT]['gaze_mm'][0]=eye_data_event.LeftGazePoint3D.x
-#        eyes[LEFT]['gaze_mm'][1]=eye_data_event.LeftGazePoint3D.y
-#        eyes[LEFT]['gaze_mm'][2]=eye_data_event.LeftGazePoint3D.z
-#        eyes[LEFT]['eye_location_norm'][0]=eye_data_event.LeftEyePosition3DRelative.x
-#        eyes[LEFT]['eye_location_norm'][1]=eye_data_event.LeftEyePosition3DRelative.y
-#        eyes[LEFT]['eye_location_norm'][2]=eye_data_event.LeftEyePosition3DRelative.z
-#        eyes[RIGHT]['gaze_mm'][0]=eye_data_event.RightGazePoint3D.x
-#        eyes[RIGHT]['gaze_mm'][1]=eye_data_event.RightGazePoint3D.y
-#        eyes[RIGHT]['gaze_mm'][2]=eye_data_event.RightGazePoint3D.z
-#        eyes[RIGHT]['eye_location_norm'][0]=eye_data_event.RightEyePosition3DRelative.x
-#        eyes[RIGHT]['eye_location_norm'][1]=eye_data_event.RightEyePosition3DRelative.y
-#        eyes[RIGHT]['eye_location_norm'][2]=eye_data_event.RightEyePosition3DRelative.z
-
-        event_type = EventConstants.BINOCULAR_EYE_SAMPLE
-
-        left_gaze_x = eye_data_event.LeftGazePoint2D.x
-        left_gaze_y = eye_data_event.LeftGazePoint2D.y
-        right_gaze_x = eye_data_event.RightGazePoint2D.x
-        right_gaze_y = eye_data_event.RightGazePoint2D.y
-
-        if left_gaze_x != -1 and left_gaze_y != -1:
-            left_gaze_x, left_gaze_y = self._eyeTrackerToDisplayCoords(
-                (left_gaze_x, left_gaze_y))
-
-        if right_gaze_x != -1 and right_gaze_y != -1:
-            right_gaze_x, right_gaze_y = self._eyeTrackerToDisplayCoords(
-                (right_gaze_x, right_gaze_y))
-
-        status = 0
-        if eye_data_event.LeftValidity >= 2:
-            status += 20
-        if eye_data_event.RightValidity >= 2:
-            status += 2
-
-        # TO DO: Set CI to be equal to current time error stated in Tobii Sync
-        # manager
-        confidenceInterval = 0.0
-        binocSample = [
-            0,
-            0,
-            0,  # device id (not currently used)
-            Device._getNextEventID(),
-            event_type,
-            device_event_time,
-            logged_time,
-            iohub_event_time,
-            confidenceInterval,
-            data_delay,
-            0,  # filtered id (always 0 right now)
-            left_gaze_x,
-            left_gaze_y,
-            EyeTrackerConstants.UNDEFINED,  # Left Eye Angle z
-
-            #                         eye_data_event.LeftEyePosition3D.x,
-            #                         eye_data_event.LeftEyePosition3D.y,
-            #                         eye_data_event.LeftEyePosition3D.z,
-            eye_data_event.LeftEyePosition3DRelative.x,
-            eye_data_event.LeftEyePosition3DRelative.y,
-            eye_data_event.LeftEyePosition3DRelative.z,
-            EyeTrackerConstants.UNDEFINED,  # Left Eye Angle x
-            EyeTrackerConstants.UNDEFINED,  # Left Eye Angle y
-            EyeTrackerConstants.UNDEFINED,  # Left Camera Sensor position x
-            EyeTrackerConstants.UNDEFINED,  # Left Camera Sensor position y
-            eye_data_event.LeftPupil,
-            EyeTrackerConstants.PUPIL_DIAMETER_MM,
-            EyeTrackerConstants.UNDEFINED,  # Left pupil size measure 2
-            EyeTrackerConstants.UNDEFINED,  # Left pupil size measure 2 type
-            EyeTrackerConstants.UNDEFINED,  # Left PPD x
-            EyeTrackerConstants.UNDEFINED,  # Left PPD y
-            EyeTrackerConstants.UNDEFINED,  # Left velocity x
-            EyeTrackerConstants.UNDEFINED,  # Left velocity y
-            EyeTrackerConstants.UNDEFINED,  # Left velocity xy
-            right_gaze_x,
-            right_gaze_y,
-            EyeTrackerConstants.UNDEFINED,  # Right Eye Angle z
-            eye_data_event.RightEyePosition3DRelative.x,
-            eye_data_event.RightEyePosition3DRelative.y,
-            eye_data_event.RightEyePosition3DRelative.z,
-            EyeTrackerConstants.UNDEFINED,  # Right Eye Angle x
-            EyeTrackerConstants.UNDEFINED,  # Right Eye Angle y
-            EyeTrackerConstants.UNDEFINED,  # Right Camera Sensor position x
-            EyeTrackerConstants.UNDEFINED,  # Right Camera Sensor position y
-            eye_data_event.RightPupil,
-            EyeTrackerConstants.PUPIL_DIAMETER_MM,
-            EyeTrackerConstants.UNDEFINED,  # Right pupil size measure 2
-            EyeTrackerConstants.UNDEFINED,  # Right pupil size measure 2 type
-            EyeTrackerConstants.UNDEFINED,  # Right PPD x
-            EyeTrackerConstants.UNDEFINED,  # Right PPD y
-            EyeTrackerConstants.UNDEFINED,  # right velocity x
-            EyeTrackerConstants.UNDEFINED,  # right velocity y
-            EyeTrackerConstants.UNDEFINED,  # right velocity xy
-            status
-        ]
-
-        self._latest_sample = binocSample
-
-        if eye_data_event.LeftValidity >= 2 and eye_data_event.RightValidity >= 2:
-            self._latest_gaze_position = None
-        elif eye_data_event.LeftValidity < 2 and eye_data_event.RightValidity < 2:
-            self._latest_gaze_position = [(right_gaze_x + left_gaze_x) / 2.0,
-                                          (right_gaze_y + left_gaze_y) / 2.0]
-        elif eye_data_event.LeftValidity < 2:
-            self._latest_gaze_position = [left_gaze_x, left_gaze_y]
-        elif eye_data_event.RightValidity < 2:
-            self._latest_gaze_position = [right_gaze_x, right_gaze_y]
-
-        self._last_callback_time = logged_time
-
-        return binocSample
-
-    def _getIOHubEventObjectForEyeX(self, native_event_data):
-        """Used by _getIOHubEventObject to parse the Tobii EyeX response
-        object."""
-        logged_time, device_event_time, iohub_event_time, data_delay, eye_data_event = native_event_data
-
-        # TODO: Could use the eye_data_event.tracking_status and the
-        # TOBIIGAZE_TRACKING_STATUS enums to relay more information about what
-        # kind of event this gaze data contains
-
-        event_type = EventConstants.BINOCULAR_EYE_SAMPLE
-
-        left_eye = eye_data_event.left.gaze_point_on_display_normalized
-        right_eye = eye_data_event.right.gaze_point_on_display_normalized
-        left_gaze_x = left_eye.x
-        left_gaze_y = left_eye.y
-        right_gaze_x = right_eye.x
-        right_gaze_y = right_eye.y
-
-        if left_gaze_x != -1 and left_gaze_y != -1:
-            left_gaze_x, left_gaze_y = self._eyeTrackerToDisplayCoords(
-                (left_gaze_x, left_gaze_y))
-
-        if right_gaze_x != -1 and right_gaze_y != -1:
-            right_gaze_x, right_gaze_y = self._eyeTrackerToDisplayCoords(
-                (right_gaze_x, right_gaze_y))
-
-        status = 0
-
-        confidenceInterval = 0.0
-
-        # NOTE: Not 100% sure what confidence interval should be. I see the
-        # irony.
-        if self._latest_sample is not None:
-            confidenceInterval = device_event_time - self._latest_sample[5]
-
-        binocSample = [
-            0,
-            0,
-            0,  # device id (not currently used)
-            Device._getNextEventID(),
-            event_type,
-            device_event_time,
-            logged_time,
-            iohub_event_time,
-            confidenceInterval,
-            data_delay,
-            0,  # filtered id (always 0 right now)
-            left_gaze_x,
-            left_gaze_y,
-            EyeTrackerConstants.UNDEFINED,
-            eye_data_event.left.eye_position_in_track_box_normalized.x,
-            eye_data_event.left.eye_position_in_track_box_normalized.y,
-            eye_data_event.left.eye_position_in_track_box_normalized.z,
-            EyeTrackerConstants.UNDEFINED,  # Left Eye Angle x
-            EyeTrackerConstants.UNDEFINED,  # Left Eye Angle y
-            EyeTrackerConstants.UNDEFINED,  # Left Camera Sensor position x
-            EyeTrackerConstants.UNDEFINED,  # Left Camera Sensor position y
-            EyeTrackerConstants.UNDEFINED,  # Left pupil size measure 1
-            EyeTrackerConstants.UNDEFINED,  # Left pupil size measure 1 type
-            EyeTrackerConstants.UNDEFINED,  # Left pupil size measure 2
-            EyeTrackerConstants.UNDEFINED,  # Left pupil size measure 2 type
-            EyeTrackerConstants.UNDEFINED,  # Left PPD x
-            EyeTrackerConstants.UNDEFINED,  # Left PPD y
-            EyeTrackerConstants.UNDEFINED,  # Left velocity x
-            EyeTrackerConstants.UNDEFINED,  # Left velocity y
-            EyeTrackerConstants.UNDEFINED,  # Left velocity xy
-            right_gaze_x,
-            right_gaze_y,
-            EyeTrackerConstants.UNDEFINED,
-            eye_data_event.right.eye_position_in_track_box_normalized.x,
-            eye_data_event.right.eye_position_in_track_box_normalized.y,
-            eye_data_event.right.eye_position_in_track_box_normalized.z,
-            EyeTrackerConstants.UNDEFINED,  # Right Eye Angle x
-            EyeTrackerConstants.UNDEFINED,  # Right Eye Angle y
-            EyeTrackerConstants.UNDEFINED,  # Right Camera Sensor position x
-            EyeTrackerConstants.UNDEFINED,  # Right Camera Sensor position y
-            EyeTrackerConstants.UNDEFINED,  # Right pupil size measure 1
-            EyeTrackerConstants.UNDEFINED,  # Right pupil size measure 1
-            EyeTrackerConstants.UNDEFINED,  # Right pupil size measure 2
-            EyeTrackerConstants.UNDEFINED,  # Right pupil size measure 2 type
-            EyeTrackerConstants.UNDEFINED,  # Right PPD x
-            EyeTrackerConstants.UNDEFINED,  # Right PPD y
-            EyeTrackerConstants.UNDEFINED,  # right velocity x
-            EyeTrackerConstants.UNDEFINED,  # right velocity y
-            EyeTrackerConstants.UNDEFINED,  # right velocity xy
-            status
-        ]
-
-        self._latest_sample = binocSample
-
-        self._latest_gaze_position = [left_gaze_x, left_gaze_y]
-
-        self._last_callback_time = logged_time
-
-        return binocSample
 
     def _eyeTrackerToDisplayCoords(self, eyetracker_point):
         """Converts Tobii gaze positions to the Display device coordinate
@@ -699,6 +521,7 @@ class EyeTracker(EyeTrackerDevice):
         return (left - display_x) / w, (top - display_y) / h
 
     def _close(self):
-        if self._tobii and self._tobii._mainloop:
-            self._tobii.disconnect()
+        if EyeTracker._tobii:
+            EyeTracker._tobii.disconnect()
+            EyeTracker._tobii = None
         EyeTrackerDevice._close(self)
