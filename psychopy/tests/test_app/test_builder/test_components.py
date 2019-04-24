@@ -4,6 +4,7 @@ from builtins import object
 import os
 import io
 import pytest
+import warnings
 
 from psychopy import constants
 from psychopy.experiment import getAllComponents
@@ -92,7 +93,7 @@ class TestComponents(object):
                 ignore.append(field)
         fields = set(dir(param)).difference(ignore)
 
-        err = []
+        mismatched = []
         for compName in sorted(self.allComp):
             comp = self.allComp[compName](parentName='x', exp=self.exp)
             order = '%s.order:%s' % (compName, eval("comp.order"))
@@ -106,7 +107,7 @@ class TestComponents(object):
                 print(mismatch.encode('utf8'))
 
                 if not ignoreOrder:
-                    err.append(mismatch)
+                    mismatched.append(mismatch)
 
             for parName in comp.params:
                 # default is what you get from param.__str__, which returns its value
@@ -155,13 +156,12 @@ class TestComponents(object):
                                 if item in mismatch:
                                     break
                             else:
-                                err.append(mismatch)
-                                print(mismatch.encode('utf8'))
+                                mismatched.append(mismatch)
                         else:
-                            err.append(mismatch)
-                            print(mismatch.encode('utf8'))
+                            mismatched.append(mismatch)
 
-        assert not err
+        for mismatch in mismatched:
+            warnings.warn("Non-identical Builder Param: {}".format(mismatch))
 
 
 @pytest.mark.components

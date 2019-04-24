@@ -1074,7 +1074,10 @@ def getProject(filename):
                             login(nameSpace, rememberMe=True)
                         else:  # Check whether project repo is found in any of the known users accounts
                             for user in knownUsers:
-                                login(user)
+                                try:
+                                    login(user)
+                                except requests.exceptions.ConnectionError:
+                                    break
                                 foundProject = False
                                 for repo in pavSession.findUserProjects():
                                     if namespaceName in repo['id']:

@@ -759,7 +759,9 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
         self.makeFavoriteButtons()
         # then add another copy for each category that the component itself
         # lists
-        for thisName in self.components:
+        componentNames = list(self.components.keys())
+        componentNames.sort()
+        for thisName in componentNames:
             thisComp = self.components[thisName]
             # NB thisComp is a class - we can't use its methods/attribs until
             # it is an instance
