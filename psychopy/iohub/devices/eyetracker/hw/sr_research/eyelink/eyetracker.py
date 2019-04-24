@@ -344,11 +344,7 @@ class EyeTracker(EyeTrackerDevice):
             self,
             starting_state=EyeTrackerConstants.DEFAULT_SETUP_PROCEDURE):
         """runSetupProcedure initiates the EyeLink Camera Setup and Calibration
-        procedure. Currently, only the default starting_state value of
-        EyeTrackerConstants.DEFAULT_SETUP_PROCEDURE is supported.
-
-        The current implementation does not support displaying of the eye camera
-        images on the Camera Setup screen, the screen is blank.
+        procedure.
 
         When runSetupProcedure is called, the following keys can be used on either the
         Host PC or Experiment PC to control the state of the setup procedure:

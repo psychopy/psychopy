@@ -140,18 +140,9 @@ class EyeTracker(EyeTrackerDevice):
         Tracker Interface."""
         return EyeTrackerConstants.EYETRACKER_INTERFACE_METHOD_NOT_SUPPORTED
 
-    def runSetupProcedure(
-            self,
-            starting_state=EyeTrackerConstants.DEFAULT_SETUP_PROCEDURE):
+    def runSetupProcedure(self):
         """runSetupProcedure performs a calibration routine for the Tobii eye
-        tracking system. The current calibration options are relatively limited
-        for the Tobii ioHub interface compared to a standard Tobii calibration
-        procedure. It is hoped that this will be improved in the ioHub Tobii
-        interface as time permits.
-
-        Result:
-            bool: True if setup / calibration procedue passed, False otherwise. If false, should likely exit experiment.
-
+        tracking system.
         """
         try:
             from .tobiiCalibrationGraphics import TobiiPsychopyCalibrationGraphics

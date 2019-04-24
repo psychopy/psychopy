@@ -4,7 +4,6 @@
 # Distributed under the terms of the GNU General Public License (GPL).
 # .. fileauthor:: Martin Guest
 # .. fileauthor:: Sol Simpson
-
 from __future__ import division
 from ......errors import print2err, printExceptionDetailsToStdErr
 from ......constants import EventConstants, EyeTrackerConstants
@@ -75,40 +74,14 @@ def to_numeric(lit):
 
 class EyeTracker(EyeTrackerDevice):
     """
-    The Gazepoint GP3 implementation of the Common Eye Tracker Interface can be
-    used by providing the following EyeTracker class path as the eye tracker
-    device name in the iohub_config.yaml device settings file::
+    The Gazepoint GP3 can be used by iohub by providing the following 
+    EyeTracker class path as the eye tracker device name in the 
+    experiments iohub_config.yaml device settings file::
 
         eyetracker.hw.gazepoint.gp3.EyeTracker
 
     .. note:: The Gazepoint control application **must** be running
               while using this interface.
-
-    The Gazepoint GP3 interface supports:
-    * connection / disconnection to the GP3 device.
-    * Starting the GP3 Calibration procedure.
-    * Starting / stopping when eye position data is collected.
-    * Sending text messages to the GP3 system.
-    * Current gaze position information, using the FPOGX, FPOGY fields from
-      the most receint REC message received from the GP3
-    * Generation of the BinocularEyeSampleEvent type based on the GP3 REC
-      message type. The following fields of an eye sample event are populated
-      populated:
-        * device_time: uses TIME field of the REC message
-        * logged_time: the time the REC message was received / read.
-        * time: device_time converted to local time (TODO: maybe broken in PsychoPy3)
-        * left_gaze_x: uses LFOGX
-        * left_gaze_y: uses LFOGY
-        * right_gaze_x: uses RFOGX
-        * right_gaze_y: uses RFOGY
-        * left_pupil_size: uses LPD and is diameter in pixels
-        * right_pupil_size: uses RPD and is diamter in pixels
-    * Creates FixationStart and FixationEnd events by parsing the FPOGx fields 
-      of REC messages from the GP3.
-
-    The Gazepoint GP3 interface uses a polling method to check for new eye
-    tracker data. The default polling interval is 5 msec. This can be changed
-    in the device's configuration settings for the experiment if needed.
     """
 
     # GP3 tracker times are received as msec
@@ -413,7 +386,7 @@ class EyeTracker(EyeTrackerDevice):
             return self._recording
         return False
 
-    def runSetupProcedure(self,starting_state=None):
+    def runSetupProcedure(self):
         """runSetupProcedure opens the GP3 Calibration window.
         """
         

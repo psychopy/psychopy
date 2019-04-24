@@ -30,7 +30,11 @@ except Exception:
 
 # Tobii Eye Tracker
 class TobiiTracker(object):
-    CALIBRATION_STATUS_SUCCESS = tobii_research.CALIBRATION_STATUS_SUCCESS
+    try:
+        CALIBRATION_STATUS_SUCCESS = tobii_research.CALIBRATION_STATUS_SUCCESS
+    except:
+        CALIBRATION_STATUS_SUCCESS = 1
+        
     def __init__(self, serial_number=None,  model=None):
         """
         """
