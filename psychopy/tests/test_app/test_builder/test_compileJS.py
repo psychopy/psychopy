@@ -46,9 +46,6 @@ class Test_PsychoJS_from_Builder(object):
         if not keepFiles:
             shutil.rmtree(self.temp_dir)
 
-        del self.builderView
-        del self.app
-
     def writeScript(self, exp, outFolder):
         script = exp.writeScript(expPath=outFolder, target="PsychoJS")
         with codecs.open(join(outFolder,'index.html'), 'w',

@@ -56,7 +56,6 @@ class Test_BuilderFrame(object):
         builderView.setExperimentSettings(timeout=500)
         builderView.isModified = False
         builderView.closeFrame()
-        del builderView
 
     def _checkCompileWith(self, thisComp):
         """Adds the component to the current Routine and makes sure it still
