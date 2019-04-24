@@ -467,7 +467,7 @@ class EyeTracker(EyeTrackerDevice):
 
     def getLastSample(self):
         """getLastSample returns the most recent EyeSampleEvent received from
-        the iViewX system. Any position fields are in Display device coordinate
+        the EyeLink system. Any position fields are in Display device coordinate
         space. If the eye tracker is not recording or is not connected, then
         None is returned.
 

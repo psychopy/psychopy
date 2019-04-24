@@ -96,13 +96,11 @@ class EyeTracker(EyeTrackerDevice):
       populated:
         * device_time: uses TIME field of the REC message
         * logged_time: the time the REC message was received / read.
-        * time: currently set to equal the time the REC message was received.
+        * time: device_time converted to local time (TODO: maybe broken in PsychoPy3)
         * left_gaze_x: uses LFOGX
         * left_gaze_y: uses LFOGY
         * right_gaze_x: uses RFOGX
         * right_gaze_y: uses RFOGY
-        * combined_gaze_x: uses FPOGX
-        * combined_gaze_Y: uses FPOGY
         * left_pupil_size: uses LPD and is diameter in pixels
         * right_pupil_size: uses RPD and is diamter in pixels
     * Creates FixationStart and FixationEnd events by parsing the FPOGx fields 

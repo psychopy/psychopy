@@ -14,7 +14,7 @@ The iohub Keyboard device provides methods to:
 
 .. autoclass:: Keyboard
     :exclude-members: getDeviceInterface, getIOHubDeviceClass, getName
-	:members:
+    :members:
     :inherited-members:
     :member-order: bysource
 
@@ -38,7 +38,7 @@ KeyboardRelease Event
 
 .. autoclass:: KeyboardRelease
     :exclude-members: id
-	:members:
+    :members:
     :inherited-members:
     :member-order: bysource
 

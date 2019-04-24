@@ -167,7 +167,7 @@ def launchHubServer(**kwargs):
     if iohub_conf_file_name:
         # Load the specified iohub configuration file,
         # converting it to apython dict.
-        with file(iohub_conf_file_name, 'r') as iohub_conf_file:
+        with open(iohub_conf_file_name, 'r') as iohub_conf_file:
             _temp_conf_read = yload(iohub_conf_file, Loader=yLoader)
             monitor_devices_config = _temp_conf_read.get('monitor_devices')
             del kwargs['iohub_config_name']

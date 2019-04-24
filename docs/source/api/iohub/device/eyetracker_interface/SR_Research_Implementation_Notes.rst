@@ -1,33 +1,40 @@
-#####################################################
-SR Research EyeLink EyeTracker Class
-#####################################################
+######################################
+SR Research EyeLink EyeTracker Support
+######################################
 
 **Platforms:** 
 
-* Windows (tested)
-* Linux (not tested yet, but should be possible given pylink is available for Linux)
-* OS X (not tested yet, but should be possible given pylink is available for OS X)
-    
+* Windows 7 / 10
+* Linux (not tested)
+* OS X (not tested)
+
+**Required Python Version:** 
+
+* Python 3.6
+        
 **Supported Models:**
 
 * EyeLink
 * EyeLink II
-* EyeLink 1000 (tested in monocular mode only, to date)
+* EyeLink 1000
+* EyeLink 1000 Plus (not tested)
 
 .. autoclass:: psychopy.iohub.devices.eyetracker.hw.sr_research.eyelink.EyeTracker
+    :members:  
     :exclude-members: ALL_EVENT_CLASSES, CLASS_ATTRIBUTE_NAMES, DEVICE_BUFFER_LENGTH_INDEX, DEVICE_CLASS_NAME_INDEX, DEVICE_MAX_ATTRIBUTE_INDEX, DEVICE_TIMEBASE_TO_SEC, DEVICE_TYPE_ID, DEVICE_TYPE_ID_INDEX, DEVICE_TYPE_STRING, DEVICE_USER_LABEL_INDEX, NUMPY_DTYPE, e, DEVICE_FIRMWARE_VERSION_INDEX, DEVICE_HARDWARE_VERSION_INDEX,DEVICE_MANUFACTURER_NAME_INDEX,DEVICE_MODEL_NAME_INDEX, DEVICE_MODEL_NUMBER_INDEX, DEVICE_NUMBER_INDEX, DEVICE_SERIAL_NUMBER_INDEX, DEVICE_SOFTWARE_VERSION_INDEX, EVENT_CLASS_NAMES, EYELINK, EYELINK_1000, EYELINK_II    
     :member-order: bysource
 
 Installing other Necessary SR Research Software
 ##################################################
 
-The EyeLink implementation of the ioHub Common Eye Tracker Interface uses the 
-pyLink module written by SR Research. This package is bundled with
-ioHub, so no extra display side software installation should be needed to use
-the ioHub Common Eye Tracker Interface with the EyeLink.
+The SR Research EyeLink implementation of the ioHub common eye tracker 
+interface uses the pylink module written by SR Research. 
 
-For Linux or OS X tests, pyLink will need to be installed and functioning for ioHub
-to have any chance of running.
+If using a PsychoPy3 standalone installation, this package should 
+already be included. 
+
+If you are manually installing PsychPy3, please install
+the appropriate version of pylink.
 
 Default SR Research EyeLink Device Settings
 ############################################
@@ -98,6 +105,8 @@ supported by the EyeLink for each event type::
             * delay
             * confidence_interval
             * eye
+            * gaze_x
+            * gaze_y            
 
     #. psychopy.iohub.devices.eyetracker.FixationEndEvent: 
         * Attributes supported: 
@@ -195,23 +204,4 @@ supported by the EyeLink for each event type::
 General Considerations
 #######################
 
-**Last Updated:** May 5th, 2013
-
-Known Issues:              
-==============
-
-    #. Several event fields, in several event types, should be populated but are not (and are therefore not listed above).
-    #. Eye image transfer during camera setup is not supported.
-
-Limitations:
-==============
-
-    #. Only the EyeLink 1000 system in monocular mode has been tested. While other models should work, they have not been tested so will likely have bugs that need to be fixed when someone is able to test.
-
-To Do / Wish List:
-===================
-
-    #. Add image transfer and sound support to camer setup state.
-    #. Fix missing event attributes issue.     
-    #. Officially test and support use on Linux / OS X.
-
+**Last Updated:** April, 2019
