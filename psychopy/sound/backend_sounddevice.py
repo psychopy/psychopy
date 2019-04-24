@@ -370,7 +370,7 @@ class SoundDeviceSound(_SoundBase):
                                          channels=-1,
                                          blockSize=-1)
             if altern is None:
-                raise SoundFormatError(err)
+                raise err
             else:  # safe to extract data
                 label, s = altern
             # update self in case it changed to fit the stream
