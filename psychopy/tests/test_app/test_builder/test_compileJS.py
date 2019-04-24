@@ -40,7 +40,7 @@ class Test_PsychoJS_from_Builder(object):
         else:
             self.temp_dir = mkdtemp(prefix='psychopy-test_psychojs')
 
-        self.app = pytest._app
+        self.app = pytest.app
         self.builderView = self.app.newBuilderFrame()
 
     def teardown_class(self):
