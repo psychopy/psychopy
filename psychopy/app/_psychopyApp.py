@@ -672,7 +672,8 @@ class PsychoPyApp(wx.App):
             except Exception:
                 pass  # we don't care if this fails - we're quitting anyway
         self.Destroy()
-        sys.exit()
+        if not self.testMode:
+            sys.exit()
 
     def showPrefs(self, event):
         from psychopy.app.preferencesDlg import PreferencesDlg

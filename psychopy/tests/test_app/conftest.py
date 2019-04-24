@@ -16,14 +16,14 @@ from psychopy.app._psychopyApp import PsychoPyApp
 from PIL import Image
 Image.DEBUG = False
 
-def pytest_configure():
-    psychopyApp._called_from_test = True
-    psychopyApp._app = PsychoPyApp(testMode=True, showSplash=False)
-    # then use from psychopy import psychopyApp` to access _app
-
-def pytest_unconfigure():
-    with pytest.raises(SystemExit):
-        psychopyApp._app.quit()
+# def pytest_configure():
+#     psychopyApp._called_from_test = True
+#     psychopyApp._app = PsychoPyApp(testMode=True, showSplash=False)
+#     # then use from psychopy import psychopyApp` to access _app
+#
+# def pytest_unconfigure():
+#     with pytest.raises(SystemExit):
+#         psychopyApp._app.quit()
 
 
 if __name__ == '__main__':
