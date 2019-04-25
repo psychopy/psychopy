@@ -98,7 +98,7 @@ packages = ['wx', 'psychopy',
             'json_tricks',  # allows saving arrays/dates in json
             'git', 'gitlab',
             'astunparse', 'esprima',  # for translating/adapting py/JS
-            'pylsl', 'pygaze',
+            'pylsl', 'pygaze', 'smite',
             ]
 
 if sys.version_info.major >= 3:
