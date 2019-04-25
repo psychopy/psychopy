@@ -43,7 +43,7 @@ class Mouse(MouseDevice):
             # Stop the ioHub Server
             io.quit()
             
-        A. Print current mouse position for 5 seconds::
+        B. Print current mouse position for 5 seconds::
     
             from psychopy.iohub import launchHubServer
             from psychopy.core import getTime

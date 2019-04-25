@@ -40,18 +40,9 @@ attributes.
         Horizontal scroll wheel absolute position when the event occurred.
         macOS only. Always 0 on other OS's.
 
-    .. attribute:: scroll_dx
-
-        Horizontal scroll wheel position change when the event occurred.
-        macOS only. Always 0 on other OS's.
-
     .. attribute:: scroll_y
 
         Vertical scroll wheel absolute position when the event occurred.
-
-    .. attribute:: scroll_dy
-
-        Vertical scroll wheel position change when the event occurred.
 
     .. attribute:: modifiers
 
@@ -79,7 +70,7 @@ attributes.
         or dictionary representations of an event based on the data from an
         event list.
     
-.. autoclass:: psychopy.iohub.devices.mouse.MouseDragEvent
+.. autoclass:: psychopy.iohub.devices.mouse.MouseDragEvent(object)
 
     .. attribute:: time
 
@@ -116,18 +107,9 @@ attributes.
         Horizontal scroll wheel absolute position when the event occurred.
         macOS only. Always 0 on other OS's.
 
-    .. attribute:: scroll_dx
-
-        Horizontal scroll wheel position change when the event occurred.
-        macOS only. Always 0 on other OS's.
-
     .. attribute:: scroll_y
 
         Vertical scroll wheel absolute position when the event occurred.
-
-    .. attribute:: scroll_dy
-
-        Vertical scroll wheel position change when the event occurred.
 
     .. attribute:: modifiers
 
@@ -155,7 +137,7 @@ attributes.
         or dictionary representations of an event based on the data from an
         event list.
         
-.. autoclass:: psychopy.iohub.devices.mouse.MouseButtonPressEvent
+.. autoclass:: psychopy.iohub.devices.mouse.MouseButtonPressEvent(object)
 
     .. attribute:: time
 
@@ -192,18 +174,9 @@ attributes.
         Horizontal scroll wheel absolute position when the event occurred.
         macOS only. Always 0 on other OS's.
 
-    .. attribute:: scroll_dx
-
-        Horizontal scroll wheel position change when the event occurred.
-        macOS only. Always 0 on other OS's.
-
     .. attribute:: scroll_y
 
         Vertical scroll wheel absolute position when the event occurred.
-
-    .. attribute:: scroll_dy
-
-        Vertical scroll wheel position change when the event occurred.
 
     .. attribute:: modifiers
 
@@ -231,7 +204,7 @@ attributes.
         or dictionary representations of an event based on the data from an
         event list.
         
-.. autoclass:: psychopy.iohub.devices.mouse.MouseButtonReleaseEvent
+.. autoclass:: psychopy.iohub.devices.mouse.MouseButtonReleaseEvent(object)
 
     .. attribute:: time
 
@@ -268,18 +241,9 @@ attributes.
         Horizontal scroll wheel absolute position when the event occurred.
         macOS only. Always 0 on other OS's.
 
-    .. attribute:: scroll_dx
-
-        Horizontal scroll wheel position change when the event occurred.
-        macOS only. Always 0 on other OS's.
-
     .. attribute:: scroll_y
 
         Vertical scroll wheel absolute position when the event occurred.
-
-    .. attribute:: scroll_dy
-
-        Vertical scroll wheel position change when the event occurred.
 
     .. attribute:: modifiers
 
@@ -307,7 +271,7 @@ attributes.
         or dictionary representations of an event based on the data from an
         event list.
         
-.. autoclass:: psychopy.iohub.devices.mouse.MouseScrollEvent
+.. autoclass:: psychopy.iohub.devices.mouse.MouseScrollEvent(object)
 
     .. attribute:: time
 
