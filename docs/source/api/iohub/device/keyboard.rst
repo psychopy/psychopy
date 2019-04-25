@@ -13,10 +13,9 @@ The iohub Keyboard device provides methods to:
   * Get a list of all currently pressed keys.
 
 .. autoclass:: Keyboard
-    :exclude-members: getDeviceInterface, getIOHubDeviceClass, getName
+    :exclude-members: getDeviceInterface, getIOHubDeviceClass, getName, _syncDeviceState
     :members:
     :inherited-members:
-    :member-order: bysource
 
 Keyboard Events
 ---------------

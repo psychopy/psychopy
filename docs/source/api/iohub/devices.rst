@@ -1,9 +1,10 @@
 .. _iohub_devices:
 
-ioHub Devices and Device Events
-=================================
+ioHub Devices
 
-psychopy.iohub supports several different types of devices, including a common eye tracker interface.
+psychopy.iohub supports several different types of devices, including Keyboards,
+Mice, and Eye Trackers.
+
 Details for each device can be found in the following sections.
 
 .. toctree::

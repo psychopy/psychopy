@@ -19,8 +19,7 @@ is available in the psychopy/demos/coder/iohub folder.
 
 .. note::
 
-    This documentation is in very early stages of being written. Many sections
-    regarding device usage details are simply placeholders. Comments and
+    This documentation is in very early stages of being written. Comments and
     contributions are welcome.
 
 Using psychopy.iohub:
