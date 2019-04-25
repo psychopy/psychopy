@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge"/>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+    <title>Home &#8212; PsychoPy v3.0</title>
+    <link rel="stylesheet" href="_static/psychopy.css" type="text/css"/>
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css"/>
+    <script type="text/javascript" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="_static/js/jquery-1.11.0.min.js"></script>
+    <script type="text/javascript" src="_static/js/jquery-fix.js"></script>
+    <script type="text/javascript" src="_static/bootstrap-3.3.7/js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="_static/bootstrap-sphinx.js"></script>
+    <link rel="shortcut icon" href="_static/favicon.ico"/>
+    <link rel="index" title="Index" href="genindex.html"/>
+    <link rel="search" title="Search" href="search.html"/>
+    <link rel="next" title="About PsychoPy" href="about/index.html"/>
+    <meta charset='utf-8'>
+    <meta http-equiv='X-UA-Compatible' content='IE=edge,chrome=1'>
+    <meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1'>
+    <meta name="apple-mobile-web-app-capable" content="yes">
+
+</head>
+<body>
+
+<!-- The social media icon bar -->
+<div class="social-bar">
+    <a href="https://twitter.com/psychopy" class="twitter">
+        <i class="fab fa-twitter"></i></a>
+    <a href="https://www.youtube.com/watch?v=VV6qhuQgsiI&list=PLFB5A1BE51964D587" class="youtube">
+        <i class="fab fa-youtube"></i></a>
+    <a href="https://www.facebook.com/PsychoPy/" class="facebook">
+        <i class="fab fa-facebook"></i></a>
+    <a href="https://github.com/psychopy/psychopy" class="github">
+        <i class="fab fa-github"></i></a>
+</div>
+
+
+<div id="navbar" class="navbar navbar-default navbar-fixed-top">
+    <div class="container">
+        <div class="navbar-header">
+            <!-- .btn-navbar is used as the toggle for collapsed navbar content -->
+            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".nav-collapse">
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <!-- <span class="navbar-text navbar-version pull-right"><b>3.0</b></span> -->
+        </div>
+
+        <div class="collapse navbar-collapse nav-collapse w-100 pull-right">
+            <ul class="nav navbar-nav ml-auto">
+                <li><a href="https://discourse.psychopy.org">Forum</a></li>
+                <li><a href="http://www.psychopy.org/installation.html" style="font-weight:bold">Install</a></li>
+
+
+                <li class="dropdown globaltoc-container">
+                    <a role="button"
+                       id="dLabelGlobalToc"
+                       data-toggle="dropdown"
+                       data-target="#"
+                       href="#">Documentation <b class="caret"></b></a>
+                    <ul class="dropdown-menu globaltoc"
+                        role="menu"
+                        aria-labelledby="dLabelGlobalToc">
+                        <ul>
+                            <li class="toctree-l1"><a class="reference internal" href="about/index.html">Features</a>
+                            </li>
+                            <li class="toctree-l1"><a class="reference internal"
+                                                      href="documentation.html">Documentation</a></li>
+                            <li class="toctree-l1"><a class="reference internal" href="api/api.html">Reference Manual
+                                (API)</a></li>
+                            <li class="toctree-l1"><a class="reference internal" href="changelog.html">Changelog</a>
+                            </li>
+                            <li class="toctree-l1"><a class="reference internal" href="resources/resources.html">Resources
+                                (e.g. for teaching)</a></li>
+                        </ul>
+                    </ul>
+                </li>
+
+
+                <!--  -->
+
+
+            </ul>
+
+        </div>
+    </div>
+</div>
+
+<!--<section id="land">-->
+    <!--<div class="container">-->
+        <!--<div class="row" align="center">-->
+            <!--<div class="central-logo" align="center">-->
+                <!--<img class="delay0s" src="_static/blank_h480.png" height="240" alt="placeholder">-->
+                <!--<img class="img-layer delay0" src="_static/psychopyLogoType_h480.png" alt="PsychoPy Logo">-->
+                <!--<img class="img-layer delay4" src="_static/psychopyOnly3_h480.png" alt="PsychoPy is online">-->
+                <!--<div class="text-layer delay1"><a href="#precise">Precise</a> enough for Psychophysics</div>-->
+                <!--<div class="text-layer-abbr delay1"><a href="#precise">Precise</a></div>-->
+                <!--<div class="text-layer delay2"><br/>&nbsp;&nbsp;<a href="#easy">Easy</a> enough for teaching</div>-->
+                <!--<div class="text-layer-abbr delay2"><br/>&nbsp;&nbsp;<a href="#easy">Easy</a></div>-->
+                <!--<div class="text-layer delay3"><br/><br/>&nbsp;&nbsp;&nbsp;&nbsp;<a href="#flexible">Flexible</a> enough for everything else-->
+                <!--</div>-->
+                <!--<div class="text-layer-abbr delay3"><br/><br/>&nbsp;&nbsp;&nbsp;&nbsp;<a href="#flexible">Flexible</a></div>-->
+                <!--<div class="text-layer delay4" style="font-family: 'Indie Flower'; color:red">-->
+                    <!--<br/><br/><br/>&nbsp;&nbsp;&nbsp;&nbsp;<span style="font-size:1.1em">Now running studies online!</span>-->
+                <!--</div>-->
+                <!--<div class="text-layer-abbr delay4"><br/><br/><br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Online</div>-->
+                <!--&lt;!&ndash; <div class="icon3-layer delay4s" style="top:5%; left:85%">3</div> &ndash;&gt;-->
+            <!--</div>-->
+        <!--</div>-->
+    <!--</div>-->
+<!--</section>-->
+
+<section id="land full-height">
+  <div class="container">
+    <div class="row" align="center">
+      <div class="central-logo" align="center" >
+        <img class="delay0s" src="_static/blank_h480.png" alt="placeholder">
+        <img class="img-layer delay0" src="_static/psychopyLogoOnlineStrap_h480.png" alt="PsychoPy Logo">
+        <!-- <img class="img-layer delay1" src="_static/psychopyStrapPrecise.png" alt="PsychoPy is precise"> -->
+        <!-- <img class="img-layer delay2" src="_static/psychopyStrapEasy.png" alt="PsychoPy is easy"> -->
+        <!-- <img class="img-layer delay3" src="_static/psychopyStrapFlexible.png" alt="PsychoPy is flexible"> -->
+        <!-- <img class="img-layer delay4" src="_static/psychopyStrapOnline3.png" alt="PsychoPy is online"> -->
+      </div>
+    </div>
+  </div>
+
+  <div class="container" 
+    style="padding:20px; max-width: 100;
+    display: flex; justify-content: center; flex-wrap: wrap">
+        <!-- <div class="btn-group"> -->
+
+        <a href="#easy" class="btn btn-secondary delay1">
+            <span style="font-size:2em; font-weight: bold">Easy</span>
+            <br>enough for teaching
+        </a>
+        <a href="#precise" class="btn btn-secondary delay2">
+            <span style="font-size:2em; font-weight: bold">Precise</span>
+            <br>enough for psychophysics
+        </a>
+        <a href="#flexible" class="btn btn-secondary delay3">
+            <span style="font-size:2em; font-weight: bold">Flexible</span>
+            <br>enough for everything else
+        </a>
+        <a href="#open" class="btn btn-secondary delay4">
+            <span style="font-size:2em; font-weight: bold">Online</span>
+            <br>or lab-based, your choice
+        </a>
+        <a href="#open" class="btn btn-secondary delay5">
+            <span style="font-size:2em; font-weight: bold">Open Science</span>
+            <br>because it's what we do
+        </a>
+  </div> <!-- container -->
+
+</section>
+
+<section class="bg-info" id="about">
+    <div class="container" style="padding:20px">
+        <div class="row">
+            <p>PsychoPy is an free cross-platform package allowing you run a wide range of in the behavioral sciences (neuroscience, psychology, psychophysics, linguistics...) </p>
+            <p>This is a community project. Users have all the source code. Users are the developers. Users support each other. 
+            <p>Alongside open-source, we're strongly supporters of Open Science, and we'll try to encourage and facilitate that wherever we can!
+        </div>
+    </div>
+</section>
+
+<section class="bg-primary" id="precise">
+    <div class="container" style="padding:20px;">
+        <h2>Precise enough for psychophysics</h2>
+        <div class="row">
+            <div class="col-md-6 col-lg-4">
+                <ul>
+                    <li>Timing can be controlled with frame-by-frame precision
+                    </li>
+                    <li>Tools to help monitor calibration and wide range of units 
+                    </li>
+                    <li>Hardware-accelerated graphics for stimuli that can be updated on the fly
+                    </li>
+                    <li>Access to button boxes when you need the utmost precision
+                    </li>
+                    <li>Automated logging for you to what happened and when
+                    </li>
+                    <li>OpenGL (and shaders) ready for use when you low-level access to graphics
+                    </li>
+                </ul>
+            </div>
+<!--             <div class="col-md-6 col-lg-8">
+                <img src="_static/builder.png" width=100% style="max-width: 1200px;">
+            </div> -->
+        </div>
+    </div>
+</section>
+
+<section class="bg-default" id="easy">
+    <div class="container" style="padding:20px">
+        <h2>Easy enough for teaching</h2>
+        <div class="row">
+
+            <div class="col-md-6 col-lg-8">
+                <img src="_static/builder.png" width=100% style="max-width: 1200px;">
+            </div>
+            <div class="col-md-6 col-lg-4">
+                <ul>
+                    <li>Flexible and intuitive <a href="builder.html">Builder interface</a> to create huge range of studies
+                    </li>
+                    <li><a href="https://uk.sagepub.com/en-gb/eur/building-experiments-in-psychopy/book253480"> Textbook</a>(s) suitable for both undergraduate and professional audiences
+                    </li>
+                    <li>Many further <a href="resources/resources.html">resources</a> for learning and teaching, including <a href="https://www.youtube.com/playlist?list=PLFB5A1BE51964D587">Youtube tutorials</a>, online tutorials and workshops.
+                    </li>
+                    <li><a href="https://pavlovia.org">The Pavlovia repository of shared experiments</a> accessible directly from the application (requires PsychoPy3) to search for and share your studies.
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="bg-primary" id="flexible">
+    <div class="container" style="padding:20px">
+        <h2>Flexible enough for everything else</h2>   
+        <div class="row">
+            
+            <div class="col-md-6 col-lg-4">
+                PsychoPy is great for:
+                <ul>
+                    <li><strong>Dynamic, interactive studies:</strong> Free yourself from simple static stimuli! You can update your stimulus interactively on every screen refresh!
+                    </li>
+                    <li><strong>Neuroimaging:</strong> Send and receive triggers to your hardware at precise times
+                    </li>
+                    <li><strong>Eye-tracking:</strong> Access to wide range of hardware (eye trackers, button boxes, trigger systems...)
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</section>
+
+
+<section class="bg-primary" id="online">
+    <div class="container" style="padding:20px">
+        <h2>Online</h2>
+        Want to run your study on the web?
+        <div class="row">
+            PsychoPy3 added the facility to 
+            <div class="col-md-6 col-lg-4">
+                <ul>
+                    <li>Export your experiment as a web page
+                    </li>
+                    <li>Upload that to <a href="https://pavlovia.org">Pavlovia.org</a>
+                    </li>
+                    <li>Give participants your URL and run your study in the browser!
+                    </li>
+                    <li>You can recruit participants using Sona, Prolific Academic, Mechanical Turk or similar systems.
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</section>
+
+
+<section class="bg-info" id="open">
+    <div class="container" style="padding:20px">
+        <h2>Open science</h2>
+        Did you notice that everyone's sharing these days?
+        <div class="row">
+
+            <div class="col-md-6 col-lg-8">
+                <img src="_static/builder.png" width=100% style="max-width: 1200px;">
+            </div>
+            <div class="col-md-6 col-lg-4">
+                <ul>
+                    <li>PsychoPy was written by scientists for scientists
+                    </li>
+                    <li>You have all the source code. If you want something added or changed you can go ahead and make that change!
+                    </li>
+                    <li><a href="https://github.com/psychopy/psychopy/graphs/contributors">Over 100 contributors</a> have made changes (small or large) and fed them back to the project for others to benefit!
+                    </li>
+                    <li>You can <a href="https://pavlovia.org">share your study</a> on <a href="https://pavlovia.org">Pavlovia.org</a> and that means more people might be tempted to base their work on yours (which means more people talking about your work).
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</section>
+
+
+<footer class="footer">
+    <div class="container">
+        <p class="pull-right">
+            <a href="#">Back to top</a>
+
+            <br/>
+
+        </p>
+        <p>
+            &copy; Copyright 2019, Jonathan Peirce.<br/>
+            Last updated on Jan 03, 2019.<br/>
+            Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.7.1.<br/>
+        </p>
+    </div>
+</footer>
+</body>
+</html>
