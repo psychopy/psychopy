@@ -74,7 +74,7 @@ class PavloviaButtons:
     def onPavloviaRun(self, evt=None):
         if self.frame.project:
             self.frame.project.pavloviaStatus = 'ACTIVATED'
-            url = "https://pavlovia.org/run/{}/html".format(
+            url = "https://run.pavlovia.org/{}/html".format(
                     self.frame.project.id)
             wx.LaunchDefaultBrowser(url)
 
