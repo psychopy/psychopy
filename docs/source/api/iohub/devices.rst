@@ -1,6 +1,7 @@
 .. _iohub_devices:
 
-ioHub Devices
+Supported Devices
+=================
 
 psychopy.iohub supports several different types of devices, including Keyboards,
 Mice, and Eye Trackers.

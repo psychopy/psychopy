@@ -22,13 +22,10 @@ is available in the psychopy/demos/coder/iohub folder.
     This documentation is in very early stages of being written. Comments and
     contributions are welcome.
 
-Using psychopy.iohub:
------------------------
-
 .. toctree::
    :maxdepth: 2
    :glob:
 
-   iohub/requirements
    iohub/starting
    iohub/devices
+   iohub/requirements
