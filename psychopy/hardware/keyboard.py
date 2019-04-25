@@ -218,8 +218,8 @@ class Keyboard:
                     thisKey.rt = thisKey.tDown - self.clock.getLastResetTime()
                     keys.append(thisKey)
         else:
-            (name, rt) = event.getKeys(keyList, modifiers=False,
-                                       timeStamped=self.clock)
+            name = event.getKeys(keyList, modifiers=False, timeStamped=False)
+            rt = self.clock.getTime()
             if len(name):
                 thisKey = KeyPress(code=None, tDown=rt, name=name[0])
                 keys.append(thisKey)
