@@ -1,0 +1,264 @@
+{#
+this is modified from sphinx/themse/basic/layout
+changed: sidebar, rootrellink, header, footer,
+    order of titlesuffix (this couldn't be done by extending sphinx template)
+#}
+
+{%- block doctype -%}
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+{%- endblock %}
+{%- set reldelim1 = reldelim1 is not defined and ' &raquo;' or reldelim1 %}
+{%- set reldelim2 = reldelim2 is not defined and ' |' or reldelim2 %}
+
+{%- macro relbar() %}
+    <div class="related">
+      <h3>{{ _('Navigation') }}</h3>
+      <ul>
+        {%- for rellink in rellinks %}
+        <li class="right" {% if loop.first %}style="margin-right: 10px"{% endif %}>
+          <a href="{{ pathto(rellink[0]) }}" title="{{ rellink[1]|striptags }}"
+             {{ accesskey(rellink[2]) }}>{{ rellink[3] }}</a>
+          {%- if not loop.first %}{{ reldelim2 }}{% endif %}</li>
+        {%- endfor %}
+        {%- block rootrellink %}
+        <li><a href="{{ pathto(master_doc) }}">{{ shorttitle|e }}</a>{{ reldelim1 }}</li>
+        {%- endblock %}
+        {%- for parent in parents %}
+          <li><a href="{{ parent.link|e }}" {% if loop.last %}{{ accesskey("U") }}{% endif %}>{{ parent.title }}</a>{{ reldelim1 }}</li>
+        {%- endfor %}
+        {%- block relbaritems %} {% endblock %}
+      </ul>
+    </div>
+{%- endmacro %}
+
+{%- macro sidebar() %}
+      {%- if not embedded %}{% if not theme_nosidebar|tobool %}
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+          {%- block sidebarlogo %}
+          {%- if logo %}
+            <p class="logo"><a href="{{ pathto(master_doc) }}">
+              <img class="logo" src="{{ pathto('_static/' + logo, 1) }}" alt="Logo"/>
+            </a></p>
+          {%- endif %}
+          {%- endblock %}
+          {%- block sidebartoc %}
+          {%- if display_toc %}
+            <h3><a href="{{ pathto(master_doc) }}">{{ _('Table Of Contents') }}</a></h3>
+            {{ toc }}
+          {%- endif %}
+          {%- endblock %}
+          {%- block sidebarrel %}
+          {%- if prev %}
+            <h4>{{ _('Previous topic') }}</h4>
+            <p class="topless"><a href="{{ prev.link|e }}"
+                                  title="{{ _('previous chapter') }}">{{ prev.title }}</a></p>
+          {%- endif %}
+          {%- if next %}
+            <h4>{{ _('Next topic') }}</h4>
+            <p class="topless"><a href="{{ next.link|e }}"
+                                  title="{{ _('next chapter') }}">{{ next.title }}</a></p>
+          {%- endif %}
+          {%- endblock %}
+          {%- block sidebarsourcelink %}
+          {%- if show_source and has_source and sourcename %}
+            <h3>{{ _('This Page') }}</h3>
+            <ul class="this-page-menu">
+              <li><a href="{{ pathto('_sources/' + sourcename, true)|e }}"
+                     rel="nofollow">{{ _('Show Source') }}</a></li>
+            </ul>
+          {%- endif %}
+          {%- endblock %}
+          {%- if customsidebar %}
+          {% include customsidebar %}
+          {%- endif %}
+
+
+          {%- block sidebarsearch %}
+
+            <h3>Quick links</h3>
+            <ul>
+            <li><a href="http://psychopy.org/installation.html"><strong>Download</strong></a></li>
+            <li><a href="http://discourse.psychopy.org">Forum</a></li>
+            <li><a href="http://twitter.com/psychopy">Twitter</a></li>
+            </ul>
+
+            <!-- facebook like -->
+            <div id="fb-root"></div><script src="http://connect.facebook.net/en_US/all.js#appId=122767831154831&amp;xfbml=1"></script>
+            <fb:like href="http://www.facebook.com/pages/PsychoPy/140222406067597" send="false" layout="button_count" width="300" show_faces="false" action="like" font=""></fb:like>
+
+            <!-- google +1 -->
+            <!-- Place this tag where you want the +1 button to render -->
+            <g:plusone count="false" href="http://www.psychopy.org"></g:plusone>
+            <!-- Place this tag after the last plusone tag -->
+            <script type="text/javascript">
+              window.___gcfg = {lang: 'en-GB'};
+              (function() {
+                var po = document.createElement('script'); po.type = 'text/javascript'; po.async = true;
+                po.src = 'https://apis.google.com/js/plusone.js';
+                var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(po, s);
+              })();
+            </script>
+
+
+          {%- if pagename != "search" %}
+
+          <div id="searchbox" style="display: none">
+            <h3>{{ _('Searches') }}</h3>
+            <form action="http://www.google.com/cse" id="cse-search-box">
+                <input type="hidden" name="cx" value="partner-pub-0861691574026297:eyw5n7-ugep" />
+                <input type="hidden" name="ie" value="ISO-8859-1" />
+                <input type="text" name="q" size="20" />
+                <input type="submit" name="sa" value="Go" />
+            </form>
+              <p class="searchtip" style="font-size: 90%">
+              {{ _('General') }}
+              </p>
+            <script type="text/javascript" src="http://www.google.com/coop/cse/brand?form=cse-search-box&amp;lang=en"></script>
+              <form class="search" action="{{ pathto('search') }}" method="get">
+                <input type="text" name="q" size="18" />
+                <input type="submit" value="{{ _('Go') }}" />
+                <input type="hidden" name="check_keywords" value="yes" />
+                <input type="hidden" name="area" value="default" />
+              </form>
+              <p class="searchtip" style="font-size: 90%">
+              {{ _('Docs only') }}
+              </p>
+          </div>
+          <script type="text/javascript">$('#searchbox').show(0);</script>
+
+          {%- endif %}
+
+          {%- endblock %}
+        </div>
+      </div>
+      {%- endif %}{% endif %}
+{%- endmacro %}
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    {{ metatags }}
+    {%- if not embedded %}
+      {%- set titlesuffix = " &mdash; "|safe + docstitle|e%}
+    {%- else %}
+      {%- set titlesuffix = "" %}
+    {%- endif %}
+    <title>{{ title|striptags }}{{ titlesuffix }}</title>
+    <link rel="stylesheet" href="{{ pathto('_static/' + style, 1) }}" type="text/css" />
+    <link rel="stylesheet" href="{{ pathto('_static/pygments.css', 1) }}" type="text/css" />
+    {%- if not embedded %}
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '{{ pathto("", 1) }}',
+        VERSION:     '{{ release|e }}',
+        COLLAPSE_MODINDEX: false,
+        FILE_SUFFIX: '{{ file_suffix }}',
+        HAS_SOURCE:  {{ has_source|lower }}
+      };
+    </script>
+    {%- for scriptfile in script_files %}
+    <script type="text/javascript" src="{{ pathto(scriptfile, 1) }}"></script>
+    {%- endfor %}
+    {%- if use_opensearch %}
+    <link rel="search" type="application/opensearchdescription+xml"
+          title="{% trans docstitle=docstitle|e %}Search within {{ docstitle }}{% endtrans %}"
+          href="{{ pathto('_static/opensearch.xml', 1) }}"/>
+    {%- endif %}
+    {%- if favicon %}
+    <link rel="shortcut icon" href="{{ pathto('_static/' + favicon, 1) }}"/>
+    {%- endif %}
+    {%- endif %}
+{%- block linktags %}
+    {%- if hasdoc('about') %}
+    <link rel="author" title="{{ _('About these documents') }}" href="{{ pathto('about') }}" />
+    {%- endif %}
+    {%- if hasdoc('genindex') %}
+    <link rel="index" title="{{ _('Index') }}" href="{{ pathto('genindex') }}" />
+    {%- endif %}
+    {%- if hasdoc('search') %}
+    <link rel="search" title="{{ _('Search') }}" href="{{ pathto('search') }}" />
+    {%- endif %}
+    {%- if hasdoc('copyright') %}
+    <link rel="copyright" title="{{ _('Copyright') }}" href="{{ pathto('copyright') }}" />
+    {%- endif %}
+    <link rel="top" title="{{ docstitle|e }}" href="{{ pathto('index') }}" />
+    {%- if parents %}
+    <link rel="up" title="{{ parents[-1].title|striptags }}" href="{{ parents[-1].link|e }}" />
+    {%- endif %}
+    {%- if next %}
+    <link rel="next" title="{{ next.title|striptags }}" href="{{ next.link|e }}" />
+    {%- endif %}
+    {%- if prev %}
+    <link rel="prev" title="{{ prev.title|striptags }}" href="{{ prev.link|e }}" />
+    {%- endif %}
+{%- endblock %}
+{%- block extrahead %} {% endblock %}
+  </head>
+  <body>
+
+{% block header %}
+<div id="header"  style="background-color: white">
+<table width="100%" cellpadding="10">
+<tr><td style="text-align:left;vertical-align:middle">
+<a href='http://www.psychopy.org'><img src="{{ pathto("_static/psychopyDocBanner2.gif", 1) }}" alt="PsychoPy logo" /></a>
+</td><td style="text-align:right;vertical-align:middle">
+<a href='http://www.nottingham.ac.uk'><img src="{{ pathto("_static/nott_logo.png", 1) }}" alt="University of Nottingham" /></a>
+</td></table>
+</div>
+{% endblock %}
+
+{%- block relbar1 %}{{ relbar() }}{% endblock %}
+
+{%- block sidebar2 %}{{ sidebar() }}{% endblock %}
+
+    <div class="document">
+{%- block document %}
+      <div class="documentwrapper">
+      {%- if not embedded %}{% if not theme_nosidebar|tobool %}
+        <div class="bodywrapper">
+      {%- endif %}{% endif %}
+          <div class="body">
+            {% block body %} {% endblock %}
+          </div>
+      {%- if not embedded %}{% if not theme_nosidebar|tobool %}
+        </div>
+      {%- endif %}{% endif %}
+      </div>
+{%- endblock %}
+
+      <div class="clearer"></div>
+    </div>
+
+{%- block relbar2 %}{{ relbar() }}{% endblock %}
+
+{%- block footer %}
+    <div class="footer">
+    {%- if hasdoc('copyright') %}
+      {% trans path=pathto('copyright'), copyright=copyright|e %}&copy; <a href="{{ path }}">Copyright</a> {{ copyright }}.{% endtrans %}
+    {%- else %}
+      {% trans copyright=copyright|e %}&copy; Copyright {{ copyright }}.{% endtrans %}
+    {%- endif %}
+    {%- if last_updated %}
+      {% trans last_updated=last_updated|e %}Last updated on {{ last_updated }}.{% endtrans %}
+    {%- endif %}
+    {%- if show_sphinx %}
+      {% trans sphinx_version=sphinx_version|e %}Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> {{ sphinx_version }}.{% endtrans %}
+    {%- endif %}
+    <script>
+      (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+      (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+      m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+      })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+
+      ga('create', 'UA-4089651-2', 'auto');
+      ga('send', 'pageview');
+
+    </script>
+
+    <script type="text/javascript" src="http://www.ohloh.net/p/17081/widgets/project_partner_badge.js"></script>
+    </div>
+{%- endblock %}
+  </body>
+</html>
