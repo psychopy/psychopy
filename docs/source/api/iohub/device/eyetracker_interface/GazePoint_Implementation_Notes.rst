@@ -37,58 +37,139 @@ iohub creates a BinocularEyeSampleEvent for each sample received from the GP3.
 
 The following fields of the BinocularEyeSample event are supported:
 
-    #. psychopy.iohub.devices.eyetracker.BinocularEyeSampleEvent:
-        #. Attributes supported:
-            #. experiment_id
-            #. session_id
-            #. event_id
-            #. event_type
-            #. logged_time
-            #. device_time
-            #. time
-            #. left_gaze_x: maps to LPOGX            
-            #. left_gaze_y: maps to LPOGY
-            #. left_raw_x: maps to LPCX             
-            #. left_raw_y: maps to LPCY             
-            #. left_pupil_measure_1: maps to LPD        
-            #. left_pupil_measure1_type: Pixels
-            #. right_gaze_x: maps to RPOGX            
-            #. right_gaze_y: maps to RPOGY           
-            #. right_raw_x: maps to LPCX             
-            #. right_raw_y: maps to LPCY
-            #. right_pupil_measure_1: maps to RPD 
-            #. right_pupil_measure1_type: Pixels
-            #. status: combines LPOGV and RPOGV into single status code                 
+.. autoclass:: psychopy.iohub.devices.eyetracker.BinocularEyeSampleEvent(object)
+
+    .. attribute:: time
+
+        time of event, in sec.msec format, using psychopy timebase.
+        
+    .. attribute:: left_gaze_x
+
+        The horizontal position of the left eye on the computer screen,
+        in Display Coordinate Type Units. Calibration must be done prior
+        to reading (meaningful) gaze data.
+        Uses Gazepoint LPOGX field. 
+
+    .. attribute:: left_gaze_y
+
+        The vertical position of the left eye on the computer screen,
+        in Display Coordinate Type Units. Calibration must be done prior
+        to reading (meaningful) gaze data.
+        Uses Gazepoint LPOGY field. 
+
+    .. attribute:: left_raw_x
+
+        The uncalibrated x position of the left eye in a device specific
+        coordinate space.
+        Uses Gazepoint LPCX field. 
+
+    .. attribute:: left_raw_y
+
+        The uncalibrated y position of the left eye in a device specific
+        coordinate space.
+        Uses Gazepoint LPCY field.
+
+    .. attribute:: left_pupil_measure_1
+
+        Left eye pupil diameter. (in camera pixels??).
+        Uses Gazepoint LPD field.
+
+    .. attribute:: right_gaze_x
+
+        The horizontal position of the right eye on the computer screen,
+        in Display Coordinate Type Units. Calibration must be done prior
+        to reading (meaningful) gaze data.
+        Uses Gazepoint RPOGX field. 
+
+    .. attribute:: right_gaze_y
+
+        The vertical position of the right eye on the computer screen,
+        in Display Coordinate Type Units. Calibration must be done prior
+        to reading (meaningful) gaze data.
+        Uses Gazepoint RPOGY field.
+
+    .. attribute:: right_raw_x
+
+        The uncalibrated x position of the right eye in a device specific
+        coordinate space.
+        Uses Gazepoint RPCX field.
+
+    .. attribute:: right_raw_y
+
+        The uncalibrated y position of the right eye in a device specific
+        coordinate space.
+        Uses Gazepoint RPCY field.
+
+    .. attribute:: right_pupil_measure_1
+
+        Right eye pupil diameter. (in camera pixels??).
+        Uses Gazepoint RPD field.
+
+    .. attribute:: status
+
+        Indicates if eye sample contains 'valid' data for left and right eyes. 
+        0 = Eye sample is OK.
+        2 = Right eye data is likely invalid.
+        20 = Left eye data is likely invalid.
+        22 = Eye sample is likely invalid.              
+
 
 iohub also creates basic start and end fixation events by using Gazepoint
-FPOG* fields. Identical fixation events are created for the left and right eye. 
+FPOG* fields. Identical / duplicate fixation events are created for 
+the left and right eye. 
 
-    #. psychopy.iohub.devices.eyetracker.FixationStartEvent: 
-         #. Attributes supported:
-            #. experiment_id
-            #. session_id
-            #. event_id
-            #. event_type
-            #. logged_time
-            #. device_time
-            #. time
-            #. eye
-            #. gaze_x: uses FPOGX
-            #. gaze_y: uses FPOGY
+.. autoclass:: psychopy.iohub.devices.eyetracker.FixationStartEvent(object)
+    
+    .. attribute:: time
+    
+        time of event, in sec.msec format, using psychopy timebase.
+            
+    .. attribute:: eye
 
-    #. psychopy.iohub.devices.eyetracker.FixationEndEvent: 
-        #. Attributes supported: 
-            #. experiment_id
-            #. session_id
-            #. event_id
-            #. event_type
-            #. logged_time
-            #. device_time
-            #. time
-            #. eye
-            #. duration: uses FPOGD
-            #. average_gaze_x: uses FPOGX
-            #. average_gaze_y: uses FPOGY
+        Eye that generated the event. Either EyeTrackerConstants.LEFT_EYE
+        or EyeTrackerConstants.RIGHT_EYE.
+
+    .. attribute:: gaze_x
+
+        The calibrated horizontal eye position on the computer screen
+        at the start of the fixation. Units are same as Display. 
+        Calibration must be done prior to reading (meaningful) gaze data.
+        Uses Gazepoint FPOGX field.
+
+    .. attribute:: gaze_y
+
+        The calibrated horizontal eye position on the computer screen
+        at the start of the fixation. Units are same as Display. 
+        Calibration must be done prior to reading (meaningful) gaze data.
+        Uses Gazepoint FPOGY field.
+    
+.. autoclass:: psychopy.iohub.devices.eyetracker.FixationEndEvent(object)
+
+    .. attribute:: time
+
+        time of event, in sec.msec format, using psychopy timebase.
+        
+    .. attribute:: eye
+
+        Eye that generated the event. Either EyeTrackerConstants.LEFT_EYE
+        or EyeTrackerConstants.RIGHT_EYE.
+
+    .. attribute:: average_gaze_x
+
+        Average calibrated horizontal eye position during the fixation,
+        specified in Display Units.
+        Uses Gazepoint FPOGX field.
+
+    .. attribute:: average_gaze_y
+
+        Average calibrated vertical eye position during the fixation,
+        specified in Display Units.
+        Uses Gazepoint FPOGY field.
+
+    .. attribute:: duration
+
+        Duration of the fixation in sec.msec format.
+        Uses Gazepoint FPOGD field.
 
 **Last Updated:** April 23rd, 2019
 

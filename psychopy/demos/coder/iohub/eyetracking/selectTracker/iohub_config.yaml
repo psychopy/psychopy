@@ -10,28 +10,12 @@ monitor_devices:
 - Keyboard: {name: keyboard}
 - Mouse: {name: mouse}
 - Experiment: {name: experimentRuntime}
-- eyetracker.hw.tobii.EyeTracker:
-    calibration:
-      auto_pace: false
-      pacing_speed: 1.5
-      randomize: true
-      screen_background_color: [128, 128, 128]
-      target_attributes:
-        animate: {contract_only: true, enable: true, expansion_ratio: 3.0, expansion_speed: 30.0,
-          movement_velocity: 600.0}
-        inner_color: [0, 0, 0]
-        inner_diameter: 7
-        inner_fill_color: [0, 0, 0]
-        inner_line_color: [0, 0, 0]
-        inner_stroke_width: 1
-        outer_diameter: 35
-        outer_fill_color: [128, 128, 128]
-        outer_line_color: [255, 255, 255]
-        outer_stroke_width: 2
-      target_type: CIRCLE_TARGET
-      type: FIVE_POINTS
+- eyetracker.hw.gazepoint.gp3.EyeTracker:
+    calibration: {target_delay: 0.5, target_duration: 1.25}
+    device_timer: {interval: 0.005}
     enable: true
-    model_name: null
+    event_buffer_length: 1024
+    monitor_event_types: [BinocularEyeSampleEvent, FixationStartEvent, FixationEndEvent]
     name: tracker
-    runtime_settings: {sampling_rate: 120}
-    serial_number: null
+    save_events: true
+    stream_events: true

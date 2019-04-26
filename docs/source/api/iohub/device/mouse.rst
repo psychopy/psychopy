@@ -22,8 +22,7 @@ attributes.
 
     .. attribute:: time
 
-        x position of the Mouse when the event occurred; in display 
-        coordinate space.
+        time of event, in sec.msec format, using psychopy timebase.
         
     .. attribute:: x_position
 

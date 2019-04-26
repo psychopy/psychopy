@@ -82,6 +82,46 @@ class EyeTracker(EyeTrackerDevice):
 
     .. note:: The Gazepoint control application **must** be running
               while using this interface.
+              
+    Examples:
+        A. Start ioHub with Gazepoint GP3 device and run tracker calibration::
+    
+            from psychopy.iohub import launchHubServer
+            from psychopy.core import getTime, wait
+
+            iohub_config = {'eyetracker.hw.gazepoint.gp3.EyeTracker':
+                {'name': 'tracker', 'device_timer': {'interval': 0.005}}}
+                
+            io = launchHubServer(**iohub_config)
+            
+            # Get the eye tracker device.
+            tracker = io.devices.tracker
+                            
+            # run eyetracker calibration
+            r = tracker.runSetupProcedure()
+            
+        B. Print all eye tracker events received for 2 seconds::
+                        
+            # Check for and print any eye tracker events received...
+            tracker.setRecordingState(True)
+            
+            stime = getTime()
+            while getTime()-stime < 2.0:
+                for e in tracker.getEvents():
+                    print(e)
+            
+        C. Print current eye position for 5 seconds::
+                        
+            # Check for and print current eye position every 100 msec.
+            stime = getTime()
+            while getTime()-stime < 5.0:
+                print(tracker.getPosition())
+                wait(0.1)
+            
+            tracker.setRecordingState(False)
+            
+            # Stop the ioHub Server
+            io.quit()
     """
 
     # GP3 tracker times are received as msec
