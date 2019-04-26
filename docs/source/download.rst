@@ -7,24 +7,28 @@ For the easiest installation download and install the Standalone package.
 
    <script src="https://cdn.jsdelivr.net/npm/ua-parser-js@0/dist/ua-parser.min.js"></script>
    <script>
-    let name;
+    
+    let filename;
     let url;
-    let version='3.0.7'
+    let version='3.1.0'
 
     let clientInfo = UAParser(navigator.userAgent);
-    let os = clientInfo.os;
-    let arch = clientInfo.cpu.architecture;
+    var osLabel;
+    var os = clientInfo.os.name;
+    var arch = clientInfo.cpu.architecture;
     // create the platform dependent strings
     if (navigator.platform == 'Win32' && clientInfo.cpu.architecture == 'amd64') {
-      name = '  Standalone PsychoPy '+version+' for 64bit Windows (using Python3.6)';
+      osLabel = clientInfo.os.name+" "+clientInfo.cpu.architecture;
+      filename = '  Standalone PsychoPy '+version+' for 64bit Windows (using Python3.6)';
       url = 'https://github.com/psychopy/psychopy/releases/download/'+version+'/StandalonePsychoPy3-'+version+'-win64.exe';
     }
     else if (navigator.platform == 'Win32') {
-      name = '  Standalone PsychoPy '+version+' for 32bit Windows (using Python3.6)';
+      filename = '  Standalone PsychoPy '+version+' for 32bit Windows (using Python3.6)';
       url = 'https://github.com/psychopy/psychopy/releases/download/'+version+'/StandalonePsychoPy3-'+version+'-win32.exe';
     }
     else if (navigator.platform == 'MacIntel') {
-      name = '  Standalone PsychoPy '+version+' for MacOS';
+      osLabel = clientInfo.os.name+" "+clientInfo.os.version;
+      filename = '  Standalone PsychoPy '+version+' for MacOS';
       url = 'https://github.com/psychopy/psychopy/releases/download/'+version+'/StandalonePsychoPy3-'+version+'-MacOS.dmg';
     }
     else {
@@ -32,9 +36,9 @@ For the easiest installation download and install the Standalone package.
       url = '#linux';
     }
 
-    document.write( "For your detected platform ("+os+" "+arch+") we recommend<br>");
-    document.write( "<centre><button class='btn' onclick='window.location.href=url'>
-        <i class='fa fa-download'></i>" + name + "</button></centre>" );
+    document.write( "<br><center>For your detected platform ("+osLabel+") we recommend<br>");
+    document.write( "<button class='btn-primary btn-lg' onclick='window.location.href=url'>" +
+        "<i class='fa fa-download'></i>" + filename + "</button></center><br>" );
 
    </script>
 
