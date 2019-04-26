@@ -14,7 +14,7 @@ Documentation
 
    about/index
    general/general
-   installation
+   download
    gettingStarted
    Builder - building experiments in a GUI <builder/builder>
    Coder - writing experiments with scripts <coder/coder>
