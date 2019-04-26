@@ -56,7 +56,7 @@ class MicrophoneComponent(BaseComponent):
 
         msg = _translate("Enter a channel number. Default value is 0. If unsure, run 'sound.backend.get_input_devices()' to locate the system's selected device/channel.")
 
-        self.params['channel'] = Param(channel, valType='str', hint=msg, label=_localized['channel'])
+        self.params['channel'] = Param(channel, valType='int', hint=msg, label=_localized['channel'])
     def writeStartCode(self, buff):
         # filename should have date_time, so filename_wav should be unique
         buff.writeIndented("wavDirName = filename + '_wav'\n")
