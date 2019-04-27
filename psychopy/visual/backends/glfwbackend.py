@@ -447,6 +447,9 @@ class GLFWBackend(BaseBackend):
                 GL.glBindTexture(GL.GL_TEXTURE_2D, 0)
                 GL.glEnable(GL.GL_STENCIL_TEST)
 
+                GL.glViewport(0, 0, win.size[0], win.size[1])
+                GL.glScissor(0, 0, win.size[0], win.size[1])
+
     def dispatchEvents(self):
         """Dispatch events to the event handler (typically called on each frame)
 

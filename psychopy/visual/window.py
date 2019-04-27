@@ -1087,8 +1087,8 @@ class Window(object):
             objects.
 
         """
-        GL.glViewport(0, 0, self.size[0], self.size[1])
-        GL.glScissor(0, 0, self.size[0], self.size[1])
+        #GL.glViewport(0, 0, self.size[0], self.size[1])
+        #GL.glScissor(0, 0, self.size[0], self.size[1])
 
         # apply the projection and view transformations
         GL.glMatrixMode(GL.GL_PROJECTION)
@@ -1125,8 +1125,8 @@ class Window(object):
         """
         # should eventually have the same effect as calling _onResize(), so we
         # need to add the retina mode stuff eventually
-        GL.glViewport(0, 0, self.size[0], self.size[1])
-        GL.glScissor(0, 0, self.size[0], self.size[1])
+        #GL.glViewport(0, 0, self.size[0], self.size[1])
+        #GL.glScissor(0, 0, self.size[0], self.size[1])
         GL.glMatrixMode(GL.GL_PROJECTION)
         GL.glLoadIdentity()
         GL.glOrtho(-1, 1, -1, 1, -1, 1)
