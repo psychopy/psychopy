@@ -661,12 +661,8 @@ class Window(object):
         GL.glViewport(0, 0, bufferWidth, bufferHeight)
         GL.glScissor(0, 0, bufferWidth, bufferHeight)
 
-        # clear the projection and view matrix
-        GL.glMatrixMode(GL.GL_PROJECTION)
-        GL.glLoadIdentity()
-        GL.glOrtho(-1, 1, -1, 1, -1, 1)
-        GL.glMatrixMode(GL.GL_MODELVIEW)
-        GL.glLoadIdentity()
+        # apply the view transforms for this window
+        self.applyEyeTransform()
 
     def onResize(self, width, height):
         """A default resize event handler.
@@ -778,15 +774,13 @@ class Window(object):
             win.flip(clearBuffer=False)
 
         """
-        # needs to be set current prior to flipping if using FBO to draw
-        if self.useFBO:
+        if self._toDraw:
+            for thisStim in self._toDraw:
+                thisStim.draw()
+        else:
             self._setCurrent()
 
-        for thisStim in self._toDraw:
-            thisStim.draw()
-
         flipThisFrame = self._startOfFlip()
-
         if self.useFBO:
             if flipThisFrame:
                 self._prepareFBOrender()
@@ -1133,24 +1127,18 @@ class Window(object):
             objects.
 
         """
-        #GL.glViewport(0, 0, self.size[0], self.size[1])
-        #GL.glScissor(0, 0, self.size[0], self.size[1])
-
         # apply the projection and view transformations
         GL.glMatrixMode(GL.GL_PROJECTION)
-        #GL.glLoadIdentity()
         projMat = self._projectionMatrix.T.ctypes.data_as(
             ctypes.POINTER(ctypes.c_float))
         GL.glLoadMatrixf(projMat)
 
         GL.glMatrixMode(GL.GL_MODELVIEW)
-        #GL.glLoadIdentity()
         viewMat = self._viewMatrix.T.ctypes.data_as(
             ctypes.POINTER(ctypes.c_float))
         GL.glLoadMatrixf(viewMat)
 
         if clearDepth:
-            #GL.glDepthMask(GL.GL_TRUE)
             GL.glClear(GL.GL_DEPTH_BUFFER_BIT)
 
     def resetEyeTransform(self, clearDepth=True):
@@ -1171,16 +1159,14 @@ class Window(object):
         """
         # should eventually have the same effect as calling _onResize(), so we
         # need to add the retina mode stuff eventually
-        #GL.glViewport(0, 0, self.size[0], self.size[1])
-        #GL.glScissor(0, 0, self.size[0], self.size[1])
-        GL.glMatrixMode(GL.GL_PROJECTION)
-        GL.glLoadIdentity()
-        GL.glOrtho(-1, 1, -1, 1, -1, 1)
-        GL.glMatrixMode(GL.GL_MODELVIEW)
-        GL.glLoadIdentity()
+        if not hasattr(self, '_viewMatrix'):
+            self._viewMatrix = numpy.identity(4, dtype=numpy.float32)
 
-        if clearDepth:
-            GL.glClear(GL.GL_DEPTH_BUFFER_BIT)
+        if not hasattr(self, '_projectionMatrix'):
+            self._projectionMatrix = viewtools.orthoProjectionMatrix(
+                -1, 1, -1, 1, -1, 1)
+
+        self.applyEyeTransform(clearDepth)
 
     def getMovieFrame(self, buffer='front'):
         """Capture the current Window as an image.
