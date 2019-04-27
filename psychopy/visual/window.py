@@ -636,6 +636,29 @@ class Window(object):
         """
         self.backend.setCurrent()
 
+        # if we are using an FBO, bind it
+        if hasattr(self, 'frameBuffer'):
+            GL.glBindFramebufferEXT(GL.GL_FRAMEBUFFER_EXT,
+                                    self.frameBuffer)
+            GL.glReadBuffer(GL.GL_COLOR_ATTACHMENT0_EXT)
+            GL.glDrawBuffer(GL.GL_COLOR_ATTACHMENT0_EXT)
+
+            # NB - check if we need these
+            GL.glActiveTexture(GL.GL_TEXTURE0)
+            GL.glBindTexture(GL.GL_TEXTURE_2D, 0)
+            GL.glEnable(GL.GL_STENCIL_TEST)
+
+        # set these to match the current window's settings
+        GL.glViewport(0, 0, self.size[0], self.size[1])
+        GL.glScissor(0, 0, self.size[0], self.size[1])
+
+        # clear the projection and view matrix
+        GL.glMatrixMode(GL.GL_PROJECTION)
+        GL.glLoadIdentity()
+        GL.glOrtho(-1, 1, -1, 1, -1, 1)
+        GL.glMatrixMode(GL.GL_MODELVIEW)
+        GL.glLoadIdentity()
+
     def onResize(self, width, height):
         """A default resize event handler.
 
@@ -746,11 +769,15 @@ class Window(object):
             win.flip(clearBuffer=False)
 
         """
+        # needs to be set current prior to flipping if using FBO to draw
+        if self.useFBO:
+            self._setCurrent()
+
         for thisStim in self._toDraw:
             thisStim.draw()
 
         flipThisFrame = self._startOfFlip()
-        self.resetEyeTransform(False)  # reset transformations
+
         if self.useFBO:
             if flipThisFrame:
                 self._prepareFBOrender()
@@ -1055,9 +1082,19 @@ class Window(object):
         # NB - we should eventually compute these matrices lazily since they may
         # not change over the course of an experiment under most circumstances.
         #
-        scrDistM = self.scrDistCM / 100.0
+
+        if self.scrDistCM is None:
+            scrDistM = 0.5
+        else:
+            scrDistM = self.scrDistCM / 100.0
+
+        if self.scrWidthCM is None:
+            scrWidthM = 0.5
+        else:
+            scrWidthM = self.scrWidthCM / 100.0
+
         frustum = viewtools.computeFrustum(
-            self.scrWidthCM / 100.0,  # width of screen
+            scrWidthM,  # width of screen
             self.size[0] / self.size[1],  # aspect ratio
             scrDistM,  # distance to screen
             nearClip=self._nearClip,

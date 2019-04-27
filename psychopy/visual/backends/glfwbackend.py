@@ -434,22 +434,6 @@ class GLFWBackend(BaseBackend):
             glfw.make_context_current(self.winHandle)
             globalVars.currWindow = self
 
-            win = self.win  # it's a weakref so faster to call just once
-            # if we are using an FBO, bind it
-            if hasattr(win, 'frameBuffer'):
-                GL.glBindFramebufferEXT(GL.GL_FRAMEBUFFER_EXT,
-                                        win.frameBuffer)
-                GL.glReadBuffer(GL.GL_COLOR_ATTACHMENT0_EXT)
-                GL.glDrawBuffer(GL.GL_COLOR_ATTACHMENT0_EXT)
-
-                # NB - check if we need these
-                GL.glActiveTexture(GL.GL_TEXTURE0)
-                GL.glBindTexture(GL.GL_TEXTURE_2D, 0)
-                GL.glEnable(GL.GL_STENCIL_TEST)
-
-                GL.glViewport(0, 0, win.size[0], win.size[1])
-                GL.glScissor(0, 0, win.size[0], win.size[1])
-
     def dispatchEvents(self):
         """Dispatch events to the event handler (typically called on each frame)
 
