@@ -648,9 +648,18 @@ class Window(object):
             GL.glBindTexture(GL.GL_TEXTURE_2D, 0)
             GL.glEnable(GL.GL_STENCIL_TEST)
 
+        # setup retina display if applicable
+        global retinaContext
+        if retinaContext is not None:
+            view = retinaContext.view()
+            bounds = view.convertRectToBacking_(view.bounds()).size
+            bufferWidth, bufferHeight = (int(bounds.width), int(bounds.height))
+        else:
+            bufferWidth, bufferHeight = self.size
+
         # set these to match the current window's settings
-        GL.glViewport(0, 0, self.size[0], self.size[1])
-        GL.glScissor(0, 0, self.size[0], self.size[1])
+        GL.glViewport(0, 0, bufferWidth, bufferHeight)
+        GL.glScissor(0, 0, bufferWidth, bufferHeight)
 
         # clear the projection and view matrix
         GL.glMatrixMode(GL.GL_PROJECTION)
