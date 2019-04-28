@@ -11,6 +11,7 @@ Contents:
    :maxdepth: 1
    :glob:
 
+   hardware/keyboard
    hardware/*
 
 

@@ -210,7 +210,7 @@ class SuggestUpdateDialog(wx.Dialog):
             msg2 = wx.StaticText(self, -1, style=wx.ALIGN_CENTRE, label=label)
         changelog = wxhl.HyperLinkCtrl(self, wx.ID_ANY,
                                        _translate("View complete Changelog"),
-                                       URL="http://www.psychopy.org/changelog.html")
+                                       URL="https://www.psychopy.org/changelog.html")
 
         if sys.platform.startswith('linux'):
             msg = _translate("You can update PsychoPy with your package "
@@ -412,7 +412,7 @@ class InstallUpdateDialog(wx.Dialog):
             v = self.latest['version']
 
         # open page
-        URL = "https://github.com/psychopy/psychopy/releases/download/%s/PsychoPy-%s.zip"
+        URL = "http://github.com/psychopy/psychopy/releases/download/%s/PsychoPy-%s.zip"
         page = urllib.request.urlopen(URL % v)
         # download in chunks so that we can monitor progress and abort mid-way
         chunk = 4096

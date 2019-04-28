@@ -1,8 +1,59 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-"""To handle input from keyboard
+"""To handle input from keyboard (supercedes event.getKeys)
+
+
+The Keyboard class was new in PsychoPy 3.1 and replaces the older
+`event.getKeys()` calls.
+
+Psychtoolbox versus event.getKeys
+------------------------------------
+
+On 64 bits Python3 installations it provides access to the
+`Psychtoolbox kbQueue <http://psychtoolbox.org/docs/KbQueueCreate>`_ series of
+functions using the same compiled C code (available in python-psychtoolbox lib).
+
+On 32 bit installations and Python2 it reverts to the older
+:func:`psychopy.event.getKeys` calls.
+
+The new calls have several advantages:
+
+- the polling is performed and timestamped asynchronously with the main thread
+  so that times relate to when the key was pressed, not when the call was made
+- the polling is direct to the USB HID library in C, which is faster than
+  waiting for the operating system to poll and interpret those same packets
+- we also detect the KeyUp events and therefore provide the option of returning
+  keypress duration
+- on Linux and Mac you can also distinguish between different keyboard devices
+  (see :func:`getKeyboards`)
+
+This library makes use, where possible of the same low-level asynchronous
+hardware polling as in `Psychtoolbox <http://psychtoolbox.org/>`_
+
+.. currentmodule:: psychopy.hardware.keyboard
+
+Example usage
+
+------------------------------------
+
+.. code-block:: python
+
+    from psychopy.hardware import keyboard
+    from psychopy import core
+
+    kb = keyboard.Keyboard()
+
+    # during your trial
+    kb.clock.reset()  # when you want to start the timer from
+    keys = kb.getKeys(['right', 'left', 'quit'], waitDuration=True)
+    if 'quit' in keys:
+        core.quit()
+    for key in keys:
+        print(key.name, key.rt, key.duration)
+
 """
+
 # Part of the PsychoPy library
 # Copyright (C) 2018 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
@@ -35,20 +86,27 @@ defaultBufferSize = 10000
 
 
 def getKeyboards():
-    """Get info about the available keyboards"""
+    """Get info about the available keyboards.
+
+    Only really useful on Mac/Linux because on these the info can be used to
+    select a particular physical device when calling :class:`Keyboard`. On Win
+    this function does return information correctly but the :class:Keyboard
+    can't make use of it.
+
+    Returns
+    ----------
+    A list of dicts
+        USB Info including with name, manufacturer, id, etc for each device
+
+    """
     indices, names, keyboards = hid.get_keyboard_indices()
     return keyboards
 
 
 class Keyboard:
-    """The keyboard class is currently just a helper class to allow common
-    attributes with other objects (like mouse and stimuli). In particular
-    it allows storage of the .status property (NOT_STARTED, STARTED, STOPPED).
-
-    It isn't really needed for most users - the functions it supports (e.g.
-    getKeys()) are directly callable from the event module.
-
-    Note that multiple Keyboard instances will not keep separate buffers.
+    """The Keyboard class provides access to the Psychtoolbox KbQueue-based
+    calls on **Python3 64-bit** with fall-back to `event.getKeys` on legacy
+    systems.
 
     """
 
@@ -60,13 +118,19 @@ class Keyboard:
         ----------
         device: int or dict
 
-            A device index
-            or a dict containing the device info (as from getKeyboards())
+            On Linux/Mac this can be a device index
+            or a dict containing the device info (as from :func:`getKeyboards`)
             or -1 for all devices acting as a unified Keyboard
 
         bufferSize: int
 
             How many keys to store in the buffer (before dropping older ones)
+
+        waitForStart: bool (default False)
+
+            Normally we'll start polling the Keyboard at all times but you
+            could choose not to do that and start/stop manually instead by
+            setting this to True
 
         """
         self.status = NOT_STARTED
@@ -107,17 +171,44 @@ class Keyboard:
                 self.start()
 
     def start(self):
-        """Start recording with any unstarted key buffers"""
+        """Start recording from this keyboard """
         for buffer in self._buffers.values():
             buffer.start()
 
     def stop(self):
+        """Start recording from this keyboard"""
         logging.warning("Stopping key buffers but this could be dangerous if"
                         "other keyboards rely on the same.")
         for buffer in self._buffers.values():
             buffer.stop()
 
-    def getKeys(self, keyList=None, modifiers=False, timeStamped=False, waitRelease=True, clear=True):
+    def getKeys(self, keyList=None, waitRelease=True, clear=True):
+        """
+
+        Parameters
+        ----------
+        keyList: list (or other iterable)
+
+            The keys that you want to listen out for. e.g. ['left', 'right', 'q']
+
+        waitRelease: bool (default True)
+
+            If True then we won't report any "incomplete" keypress but all
+            presses will then be given a `duration`. If False then all
+            keys will be presses will be returned, but only those with a
+            corresponding release will contain a `duration` value (others will
+            have `duration=None`
+
+        clear: bool (default True)
+
+            If False then keep the keypresses for further calls (leave the
+            buffer untouched)
+
+        Returns
+        -------
+        A list of :class:`Keypress` objects
+
+        """
         keys = []
         if havePTB:
             for buffer in self._buffers.values():
@@ -127,7 +218,7 @@ class Keyboard:
                     thisKey.rt = thisKey.tDown - self.clock.getLastResetTime()
                     keys.append(thisKey)
         else:
-            name = event.getKeys(keyList, modifiers, timeStamped)
+            name = event.getKeys(keyList, modifiers=False, timeStamped=False)
             rt = self.clock.getTime()
             if len(name):
                 thisKey = KeyPress(code=None, tDown=rt, name=name[0])
@@ -146,7 +237,8 @@ class Keyboard:
             event.clearEvents(eventType)
 
 class KeyPress(object):
-    """Class to store key"""
+    """Class to store key presses, as returned by `Keyboard.getKeys()`
+    """
 
     def __init__(self, code, tDown, name=None):
         self.code = code
