@@ -18,7 +18,8 @@ from __future__ import absolute_import, division, print_function
 from numpy import zeros
 
 from psychopy import core, visual
-from psychopy.iohub import Computer, ioHubExperimentRuntime, EventConstants
+from psychopy.iohub import Computer, ioHubExperimentRuntime
+from psychopy.iohub.constants import EventConstants
 from collections import OrderedDict
 
 
@@ -62,9 +63,6 @@ class ExperimentRuntime(ioHubExperimentRuntime):
         # create stats numpy arrays, set experiment process to high priority.
         self.initStats()
 
-        # enable high priority mode for the experiment process
-        #Computer.enableHighPriority()
-
         #draw and flip to the updated graphics state.
         ifi=self.drawAndFlipPsychoWindow()
 
@@ -86,8 +84,7 @@ class ExperimentRuntime(ioHubExperimentRuntime):
 
         # END TEST LOOP <<<<<<<<<<<<<<<<<<<<<<<<<<
 
-        # close necessary files / objects, disable high priority.
-        self.spinDownTest()
+        self.psychoWindow.close()
 
         # plot collected delay and retrace detection results.
         self.plotResults()
@@ -103,8 +100,7 @@ class ExperimentRuntime(ioHubExperimentRuntime):
                         )
 
         currentPosition=self.mouse.setPosition((0,0))
-        self.mouse.setSystemCursorVisibility(False)
-
+        
         fixation = visual.PatchStim(self.psychoWindow, size=25, pos=[0,0], sf=0,
                                     color=[-1,-1,-1], colorSpace='rgb')
         title = visual.TextStim(win=self.psychoWindow,
@@ -136,7 +132,7 @@ class ExperimentRuntime(ioHubExperimentRuntime):
 
     def drawAndFlipPsychoWindow(self):
         self.psychoStim['grating'].setPhase(0.05, '+')#advance phase by 0.05 of a cycle
-        currentPosition,currentDisplayIndex=self.mouse.getPosition(return_display_index=True)
+        currentPosition,currentDisplayIndex =self.mouse.getPosition(return_display_index=True)
 
         if currentDisplayIndex == self.display.getIndex():
             currentPosition=(float(currentPosition[0]),float(currentPosition[1]))
@@ -163,11 +159,11 @@ class ExperimentRuntime(ioHubExperimentRuntime):
 
     def checkForEvents(self):
         # get the time we request events from the ioHub
-        stime=Computer.currentTime()
+        stime=Computer.getTime()
         r = self.hub.getEvents()
         if r and len(r) > 0:
             # so there were events returned in the request, so include this getEvent request in the tally
-            etime=Computer.currentTime()
+            etime=Computer.getTime()
             dur=etime-stime
             return r, dur*1000.0
         return None,None
@@ -195,16 +191,6 @@ class ExperimentRuntime(ioHubExperimentRuntime):
         self.results[self.numEventRequests][1]=len(events)  # number of events returned
         self.results[self.numEventRequests][2]=ifi*1000.0   # calculating inter flip interval.
         self.numEventRequests+=1                            # incrementing tally counterfgh
-
-
-    def spinDownTest(self):
-        # OK, we have collected the number of requested getEvents, that have returned >0 events
-        # so _close psychopy window
-        self.psychoWindow.close()
-
-        # disable high priority in both processes
-        Computer.disableHighPriority()
-
 
     def plotResults(self):
         #### calculate stats on collected data and draw some plots ####
