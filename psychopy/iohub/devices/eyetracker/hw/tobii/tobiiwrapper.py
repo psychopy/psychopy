@@ -5,16 +5,6 @@ from __future__ import print_function
 # Copyright (C) 2012-2016 iSolver Software Solutions
 # Distributed under the terms of the GNU General Public License (GPL).
 
-try:
-    unicode
-except NameError:
-    unicode = str
-
-try:
-    basestring
-except NameError:
-    basestring = str
-
 import numpy as np
 from .....devices import Computer
 from .....errors import print2err, printExceptionDetailsToStdErr
@@ -24,9 +14,8 @@ getTime = Computer.getTime
 try:
     import tobii_research
 except Exception:
-    # This only happens when it is Sphinx auto-doc loading the file
+    # This can happen when it is Sphinx auto-doc loading the file
     printExceptionDetailsToStdErr()
-
 
 # Tobii Eye Tracker
 class TobiiTracker(object):

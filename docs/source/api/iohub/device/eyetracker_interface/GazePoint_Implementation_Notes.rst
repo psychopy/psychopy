@@ -1,6 +1,6 @@
-##########################
-Gazepoint EyeTracker Class
-##########################
+##########
+Gazepoint
+##########
 
 **Platforms:** 
 
@@ -14,23 +14,20 @@ Gazepoint EyeTracker Class
 
 * Gazepoint GP3
 
-.. autoclass:: psychopy.iohub.devices.eyetracker.hw.gazepoint.gp3.EyeTracker
-    :members: runSetupProcedure, setRecordingState, enableEventReporting, isRecordingEnabled, getLastSample, getLastGazePosition, getPosition, trackerTime, trackerSec, getConfiguration, getEvents, clearEvents
-
-Installing Other Necessary GazePoint Software
-#############################################
+Additional Software Requirements
+#################################
 
 To use your Gazepoint GP3 during an experiment you must first start the
 Gazepoint Control software on the computer running PsychoPy.
 
-Default GP3 EyeTracker Device Settings
-######################################
+EyeTracker Class
+################
 
-.. literalinclude:: ../default_yaml_configs/default_gp3_eyetracker.yaml
-    :language: yaml
+.. autoclass:: psychopy.iohub.devices.eyetracker.hw.gazepoint.gp3.EyeTracker()
+    :members: runSetupProcedure, setRecordingState, enableEventReporting, isRecordingEnabled,  getEvents, clearEvents, getLastSample, getLastGazePosition, getPosition, trackerTime, trackerSec, getConfiguration
 
-Supported EyeTracker Device Event Types
-#######################################
+Supported Event Types
+#####################
 
 The Gazepoint GP3 provides real-time access to binocular sample data.
 iohub creates a BinocularEyeSampleEvent for each sample received from the GP3. 
@@ -171,5 +168,12 @@ the left and right eye.
         Duration of the fixation in sec.msec format.
         Uses Gazepoint FPOGD field.
 
-**Last Updated:** April 23rd, 2019
+Default Device Settings
+#######################
+
+.. literalinclude:: ../default_yaml_configs/default_gp3_eyetracker.yaml
+    :language: yaml
+
+
+**Last Updated:** April, 2019
 

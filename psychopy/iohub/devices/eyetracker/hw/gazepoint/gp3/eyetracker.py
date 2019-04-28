@@ -74,9 +74,9 @@ def to_numeric(lit):
 
 class EyeTracker(EyeTrackerDevice):
     """
-    The Gazepoint GP3 can be used by iohub by providing the following 
-    EyeTracker class path as the eye tracker device name in the 
-    experiments iohub_config.yaml device settings file::
+    To start iohub with a Gazepoint GP3 eye tracker device, add a GP3
+    device to the device dictionary passed to launchHubServer or the 
+    experiment's iohub_config.yaml::
 
         eyetracker.hw.gazepoint.gp3.EyeTracker
 

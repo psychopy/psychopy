@@ -1,74 +1,133 @@
-#######################
-Tobii EyeTracker Class
-#######################
+#####
+Tobii
+#####
 
 **Platforms:** 
 
 * Windows 7 / 10
 * Linux (not tested)
 * macOS (not tested)
+
+**Required Python Version:** 
+
+* Python 3.5
     
 **Supported Models:**
 
 Any Tobii model that supports screen based calibration and can used the
 tobii_research API. Tested using a Tobii T120.
- 
+
+Additional Software Requirements
+#################################
+
+To use the ioHub interface for Tobii, the Tobi Pro SDK must be installed
+in your Python environment. Python versions up to Python 3.5 are supported
+as of this docs last update.
+
+To install tobii_research type::
+
+    pip install tobii_research
+
+EyeTracker Class
+################ 
    
-.. autoclass:: psychopy.iohub.devices.eyetracker.hw.tobii.EyeTracker
-    :members: runSetupProcedure, setRecordingState, enableEventReporting, isRecordingEnabled, getLastSample, getLastGazePosition, getPosition, trackerTime, trackerSec, getConfiguration, getEvents, clearEvents
+.. autoclass:: psychopy.iohub.devices.eyetracker.hw.tobii.EyeTracker()
+    :members: runSetupProcedure, setRecordingState, enableEventReporting, isRecordingEnabled, getEvents, clearEvents, getLastSample, getLastGazePosition, getPosition, getConfiguration
 
+Supported Event Types
+#####################
 
-Installing Other Necessary Tobii Software
-##################################################
+tobii_research provides real-time access to binocular sample data.
 
-The ioHub Common Eye Tracker Interface implementation for Tobii uses the 
-tobii_research Python package. Python 3.5 is supported. To install tobii_
-research use `pip install tobii_research`.
+The following fields of the ioHub BinocularEyeSample event are supported:
 
-Default Tobii EyeTracker Device Settings
-############################################
+.. autoclass:: psychopy.iohub.devices.eyetracker.BinocularEyeSampleEvent(object)
+
+    .. attribute:: time
+
+        time of event, in sec.msec format, using psychopy timebase.
+        
+    .. attribute:: left_gaze_x
+
+        The horizontal position of the left eye on the computer screen,
+        in Display Coordinate Type Units. Calibration must be done prior
+        to reading (meaningful) gaze data.
+        Uses tobii_research gaze data 'left_gaze_point_on_display_area'[0] field. 
+        
+    .. attribute:: left_gaze_y
+
+        The vertical position of the left eye on the computer screen,
+        in Display Coordinate Type Units. Calibration must be done prior
+        to reading (meaningful) gaze data.
+        Uses tobii_research gaze data 'left_gaze_point_on_display_area'[1] field. 
+        
+    .. attribute:: left_eye_cam_x
+
+        The left x eye position in the eye trackers 3D coordinate space.
+        Uses tobii_research gaze data 'left_gaze_origin_in_trackbox_coordinate_system'[0] field. 
+
+    .. attribute:: left_eye_cam_y
+
+        The left y eye position in the eye trackers 3D coordinate space.
+        Uses tobii_research gaze data 'left_gaze_origin_in_trackbox_coordinate_system'[1] field. 
+        
+    .. attribute:: left_eye_cam_z
+
+        The left z eye position in the eye trackers 3D coordinate space.
+        Uses tobii_research gaze data 'left_gaze_origin_in_trackbox_coordinate_system'[2] field. 
+
+    .. attribute:: left_pupil_measure_1
+
+        Left eye pupil diameter in mm.
+        Uses tobii_research gaze data 'left_pupil_diameter' field. 
+
+    .. attribute:: right_gaze_x
+
+        The horizontal position of the right eye on the computer screen,
+        in Display Coordinate Type Units. Calibration must be done prior
+        to reading (meaningful) gaze data.
+        Uses tobii_research gaze data 'right_gaze_point_on_display_area'[0] field. 
+
+    .. attribute:: right_gaze_y
+
+        The vertical position of the right eye on the computer screen,
+        in Display Coordinate Type Units. Calibration must be done prior
+        to reading (meaningful) gaze data.
+        Uses tobii_research gaze data 'right_gaze_point_on_display_area'[1] field. 
+
+    .. attribute:: right_eye_cam_x
+
+        The right x eye position in the eye trackers 3D coordinate space.
+        Uses tobii_research gaze data 'right_gaze_origin_in_trackbox_coordinate_system'[0] field. 
+
+    .. attribute:: right_eye_cam_y
+
+        The right y eye position in the eye trackers 3D coordinate space.
+        Uses tobii_research gaze data 'right_gaze_origin_in_trackbox_coordinate_system'[1] field. 
+        
+    .. attribute:: right_eye_cam_z
+
+        The right z eye position in the eye trackers 3D coordinate space.
+        Uses tobii_research gaze data 'right_gaze_origin_in_trackbox_coordinate_system'[2] field. 
+
+    .. attribute:: right_pupil_measure_1
+
+        Right eye pupil diameter in mm.
+        Uses tobii_research gaze data 'right_pupil_diameter' field. 
+
+    .. attribute:: status
+
+        Indicates if eye sample contains 'valid' data for left and right eyes. 
+        0 = Eye sample is OK.
+        2 = Right eye data is likely invalid.
+        20 = Left eye data is likely invalid.
+        22 = Eye sample is likely invalid.              
+
+Default Device Settings
+#######################
 
 .. literalinclude:: ../default_yaml_configs/default_tobii_eyetracker.yaml
     :language: yaml
 
-Supported EyeTracker Device Event Types
-########################################
-
-TODO: Update mappings for tobii_research
-
-tobii_research provides real-time access to binocular sample data.
-Therefore the BinocularEyeSample event type is supported when using a Tobii as 
-the ioHub EyeTracker device. 
-The following fields of the BinocularEyeSample event are supported:
-
-    #. psychopy.iohub.devices.eyetracker.BinocularEyeSampleEvent:
-        #. Attributes supported:
-            #. experiment_id
-            #. session_id
-            #. event_id
-            #. event_type
-            #. logged_time
-            #. device_time
-            #. time
-            #. delay
-            #. confidence_interval
-            #. left_gaze_x:             maps to Tobii eye sample field LeftGazePoint2D.x
-            #. left_gaze_y:             maps to LeftGazePoint2D.y
-            #. left_eye_cam_x:          maps to LeftEyePosition3DRelative.x
-            #. left_eye_cam_y:          maps to LeftEyePosition3DRelative.y
-            #. left_eye_cam_z:          maps to LeftEyePosition3DRelative.z
-            #. left_pupil_measure_1:    maps to LeftPupil
-            #. left_pupil_measure1_type: PUPIL_DIAMETER_MM
-            #. right_gaze_x:            maps to Tobii eye sample field RightGazePoint2D.x
-            #. right_gaze_y:            maps to RightGazePoint2D.y
-            #. right_eye_cam_x:         maps to RightEyePosition3DRelative.x
-            #. right_eye_cam_y:         maps to RightEyePosition3DRelative.y
-            #. right_eye_cam_z:         maps to RightEyePosition3DRelative.z
-            #. right_pupil_measure_1:   maps to RightPupil
-            #. right_pupil_measure1_type: PUPIL_DIAMETER_MM
-            #. status:                  both left and right eye validity codes are encoded as LeftValidity*10+RightValidity
-
-General Considerations
-#######################
 
 **Last Updated:** April 2019

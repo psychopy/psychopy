@@ -153,28 +153,10 @@ eyetracker.hw.tobii.EyeTracker:
         # Using a defualt of 60 Hz, with the assumption it is the most common.
         sampling_rate: 60
 
-        # Tobii supports BINOCULAR tracking mode only.
+        # Tobii implementation supports BINOCULAR tracking mode only.
         track_eyes: BINOCULAR
             
     # manufacturer_name is used to store the name of the maker of the eye tracking
     # device. This is for informational purposes only.
     manufacturer_name: Tobii Technology
-    
-    # Do not change this value.
-    auto_report_events: False
-    
-    # The below parameters are not used by the Tobii common eye tracker
-    # interface implementation. They can be ignored an left out of your
-    # device configuration, or you can complete any ones that are relevent for FYI
-    # purposes only at this time.
-    device_number: 0
-    
-    model_number: N/A
-    
-    manufacture_date: DD-MM-YYYY
-    
-    software_version: N/A
-    
-    hardware_version: N/A
-    
-    firmware_version: N/A
+
