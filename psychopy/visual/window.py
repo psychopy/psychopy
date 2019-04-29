@@ -631,10 +631,14 @@ class Window(object):
             self.frameClock.reset()
 
     def _setCurrent(self):
-        """Make this window current. If useFBO=True, the framebuffer is bound
-        after the context switch.
+        """Make this window's OpenGL context current.
+
+        If ``useFBO=True``, the framebuffer is bound after the context switch.
+
         """
-        self.backend.setCurrent()
+        # don't configure if we haven't changed context
+        if not self.backend.setCurrent():
+            return
 
         # if we are using an FBO, bind it
         if hasattr(self, 'frameBuffer'):
@@ -657,7 +661,7 @@ class Window(object):
         else:
             bufferWidth, bufferHeight = self.size
 
-        # set these to match the current window's settings
+        # set these to match the current window or buffer's settings
         GL.glViewport(0, 0, bufferWidth, bufferHeight)
         GL.glScissor(0, 0, bufferWidth, bufferHeight)
 

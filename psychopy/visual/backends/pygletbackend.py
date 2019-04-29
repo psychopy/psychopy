@@ -269,35 +269,22 @@ class PygletBackend(BaseBackend):
         self.winHandle.set_mouse_visible(visibility)
 
     def setCurrent(self):
-        """Sets this window to be the current rendering target
+        """Sets this window to be the current rendering target.
 
-        :return: None
+        Returns
+        -------
+        bool
+            ``True`` if the context was switched from another. ``False`` is
+            returned if ``setCurrent`` was called on an already current window.
+
         """
         if self != globalVars.currWindow:
             self.winHandle.switch_to()
             globalVars.currWindow = self
 
-        win = self.win  # it's a weakref so faster to call just once
-        # if we are using an FBO, bind it
-        if hasattr(win, 'frameBuffer'):
-            GL.glBindFramebufferEXT(GL.GL_FRAMEBUFFER_EXT,
-                                    win.frameBuffer)
-            GL.glReadBuffer(GL.GL_COLOR_ATTACHMENT0_EXT)
-            GL.glDrawBuffer(GL.GL_COLOR_ATTACHMENT0_EXT)
+            return True
 
-            # NB - check if we need these
-            GL.glActiveTexture(GL.GL_TEXTURE0)
-            GL.glBindTexture(GL.GL_TEXTURE_2D, 0)
-            GL.glEnable(GL.GL_STENCIL_TEST)
-
-        GL.glViewport(0, 0, win.size[0], win.size[1])
-        GL.glScissor(0, 0, win.size[0], win.size[1])
-
-        GL.glMatrixMode(GL.GL_PROJECTION)
-        GL.glLoadIdentity()
-        GL.glOrtho(-1, 1, -1, 1, -1, 1)
-        GL.glMatrixMode(GL.GL_MODELVIEW)
-        GL.glLoadIdentity()
+        return False
 
     def dispatchEvents(self):
         """Dispatch events to the event handler (typically called on each frame)
