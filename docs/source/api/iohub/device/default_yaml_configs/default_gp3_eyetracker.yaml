@@ -45,22 +45,3 @@ eyetracker.hw.gazepoint.gp3.EyeTracker:
     # manufacturer_name is used to store the name of the maker of the eye tracking
     # device. This is for informational purposes only.
     manufacturer_name: GazePoint
-    
-    # Do not change this value.
-    auto_report_events: False
-    
-    # The below parameters are not used by the GP3 common eye tracker
-    # interface implementation. They can be ignored an left out of your
-    # device configuration, or you can complete any ones that are relevant for FYI
-    # purposes only at this time.
-    device_number: 0
-    
-    model_number: N/A
-    
-    manufacture_date: DD-MM-YYYY
-    
-    software_version: N/A
-    
-    hardware_version: N/A
-    
-    firmware_version: N/A

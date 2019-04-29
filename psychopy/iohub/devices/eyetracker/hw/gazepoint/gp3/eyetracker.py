@@ -4,7 +4,6 @@
 # Distributed under the terms of the GNU General Public License (GPL).
 # .. fileauthor:: Martin Guest
 # .. fileauthor:: Sol Simpson
-
 from __future__ import division
 from ......errors import print2err, printExceptionDetailsToStdErr
 from ......constants import EventConstants, EyeTrackerConstants
@@ -18,9 +17,6 @@ ET_UNDEFINED = EyeTrackerConstants.UNDEFINED
 getTime = Computer.getTime
 
 if sys.platform == 'win32':
-    # GP3 sends the Windows QPC value for each sample. getGP3Time() returns
-    # the current QPC time. This is used to calculate the sample qpc 'delay'
-    # which is then used to caclulate the sample time in iohub timebase.
     from ctypes import byref, c_int64, windll
     _fcounter_ = c_int64()
     _qpfreq_ = c_int64()
@@ -32,12 +28,7 @@ if sys.platform == 'win32':
         _winQPC_(byref(_fcounter_))
         return _fcounter_.value / _qpfreq_
 else:
-    print2err("WARNING: IOHUB ONLY SUPPORTS GAZEPOINT ON WINDOWS.")
-    # TODO: Implement on other platforms if possible
-    # GP3 is only supported on Windows by iohub, 
-    # so this will never actually be used.
-    def getGP3Time():
-        return getTime()        
+    print2err("WARNING: GAZEPOINT IS ONY SUPPORT ON WINDOWS.")
         
 def to_numeric(lit):
     """Return value of a numeric literal string. If the string can not be
@@ -83,42 +74,54 @@ def to_numeric(lit):
 
 class EyeTracker(EyeTrackerDevice):
     """
-    The Gazepoint GP3 implementation of the Common Eye Tracker Interface can be
-    used by providing the following EyeTracker class path as the eye tracker
-    device name in the iohub_config.yaml device settings file::
+    To start iohub with a Gazepoint GP3 eye tracker device, add a GP3
+    device to the device dictionary passed to launchHubServer or the 
+    experiment's iohub_config.yaml::
 
         eyetracker.hw.gazepoint.gp3.EyeTracker
 
     .. note:: The Gazepoint control application **must** be running
               while using this interface.
+              
+    Examples:
+        A. Start ioHub with Gazepoint GP3 device and run tracker calibration::
+    
+            from psychopy.iohub import launchHubServer
+            from psychopy.core import getTime, wait
 
-    The Gazepoint GP3 interface supports:
-    * connection / disconnection to the GP3 device.
-    * Starting the GP3 Calibration procedure.
-    * Starting / stopping when eye position data is collected.
-    * Sending text messages to the GP3 system.
-    * Current gaze position information, using the FPOGX, FPOGY fields from
-      the most receint REC message received from the GP3
-    * Generation of the BinocularEyeSampleEvent type based on the GP3 REC
-      message type. The following fields of an eye sample event are populated
-      populated:
-        * device_time: uses TIME field of the REC message
-        * logged_time: the time the REC message was received / read.
-        * time: currently set to equal the time the REC message was received.
-        * left_gaze_x: uses LFOGX
-        * left_gaze_y: uses LFOGY
-        * right_gaze_x: uses RFOGX
-        * right_gaze_y: uses RFOGY
-        * combined_gaze_x: uses FPOGX
-        * combined_gaze_Y: uses FPOGY
-        * left_pupil_size: uses LPD and is diameter in pixels
-        * right_pupil_size: uses RPD and is diamter in pixels
-    * Creates FixationStart and FixationEnd events by parsing the FPOGx fields 
-      of REC messages from the GP3.
-
-    The Gazepoint GP3 interface uses a polling method to check for new eye
-    tracker data. The default polling interval is 5 msec. This can be changed
-    in the device's configuration settings for the experiment if needed.
+            iohub_config = {'eyetracker.hw.gazepoint.gp3.EyeTracker':
+                {'name': 'tracker', 'device_timer': {'interval': 0.005}}}
+                
+            io = launchHubServer(**iohub_config)
+            
+            # Get the eye tracker device.
+            tracker = io.devices.tracker
+                            
+            # run eyetracker calibration
+            r = tracker.runSetupProcedure()
+            
+        B. Print all eye tracker events received for 2 seconds::
+                        
+            # Check for and print any eye tracker events received...
+            tracker.setRecordingState(True)
+            
+            stime = getTime()
+            while getTime()-stime < 2.0:
+                for e in tracker.getEvents():
+                    print(e)
+            
+        C. Print current eye position for 5 seconds::
+                        
+            # Check for and print current eye position every 100 msec.
+            stime = getTime()
+            while getTime()-stime < 5.0:
+                print(tracker.getPosition())
+                wait(0.1)
+            
+            tracker.setRecordingState(False)
+            
+            # Stop the ioHub Server
+            io.quit()
     """
 
     # GP3 tracker times are received as msec
@@ -423,7 +426,7 @@ class EyeTracker(EyeTrackerDevice):
             return self._recording
         return False
 
-    def runSetupProcedure(self,starting_state=None):
+    def runSetupProcedure(self):
         """runSetupProcedure opens the GP3 Calibration window.
         """
         

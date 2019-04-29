@@ -39,6 +39,47 @@ class Mouse(MouseDevice):
     Mouse position data is mapped to the coordinate space defined in the
     ioHub configuration file for the Display.
 
+    Examples:
+
+        A. Print all mouse events received for 5 seconds::
+    
+            from psychopy.iohub import launchHubServer
+            from psychopy.core import getTime
+            
+            # Start the ioHub process. 'io' can now be used during the
+            # experiment to access iohub devices and read iohub device events.
+            io = launchHubServer()
+            
+            mouse = io.devices.mouse
+                    
+            # Check for and print any Mouse events received for 5 seconds.
+            stime = getTime()
+            while getTime()-stime < 5.0:
+                for e in mouse.getEvents():
+                    print(e)
+            
+            # Stop the ioHub Server
+            io.quit()
+            
+        B. Print current mouse position for 5 seconds::
+    
+            from psychopy.iohub import launchHubServer
+            from psychopy.core import getTime
+            
+            # Start the ioHub process. 'io' can now be used during the
+            # experiment to access iohub devices and read iohub device events.
+            io = launchHubServer()
+            
+            mouse = io.devices.mouse
+                    
+            # Check for and print any Mouse events received for 5 seconds.
+            stime = getTime()
+            while getTime()-stime < 5.0:
+                print(mouse.getPosition())
+            
+            # Stop the ioHub Server
+            io.quit()
+                
     """
     __slots__ = ['_loop_source', '_tap', '_device_loop', '_CGEventTapEnable',
                  '_loop_mode', '_scrollPositionX']

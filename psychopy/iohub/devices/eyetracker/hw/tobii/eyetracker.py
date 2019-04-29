@@ -20,12 +20,51 @@ except Exception:
 
 class EyeTracker(EyeTrackerDevice):
     """
-    The Tobii implementation of the Common Eye Tracker Interface can be used
-    by providing the following EyeTracker path as the device class in
-    the iohub_config.yaml device settings file:
+    To start iohub with a Tobii eye tracker device, add the Tobii
+    device to the dictionary passed to launchHubServer or the 
+    experiment's iohub_config.yaml::
 
         eyetracker.hw.tobii.EyeTracker
+        
+    Examples:
+        A. Start ioHub with a Tobii device and run tracker calibration::
+    
+            from psychopy.iohub import launchHubServer
+            from psychopy.core import getTime, wait
 
+            iohub_config = {'eyetracker.hw.tobii.EyeTracker':
+                {'name': 'tracker', 'runtime_settings': {'sampling_rate': 120}}}
+                
+            io = launchHubServer(**iohub_config)
+            
+            # Get the eye tracker device.
+            tracker = io.devices.tracker
+                            
+            # run eyetracker calibration
+            r = tracker.runSetupProcedure()
+            
+        B. Print all eye tracker events received for 2 seconds::
+                        
+            # Check for and print any eye tracker events received...
+            tracker.setRecordingState(True)
+            
+            stime = getTime()
+            while getTime()-stime < 2.0:
+                for e in tracker.getEvents():
+                    print(e)
+            
+        C. Print current eye position for 5 seconds::
+                        
+            # Check for and print current eye position every 100 msec.
+            stime = getTime()
+            while getTime()-stime < 5.0:
+                print(tracker.getPosition())
+                wait(0.1)
+            
+            tracker.setRecordingState(False)
+            
+            # Stop the ioHub Server
+            io.quit()
     """
     _tobii = None
 
@@ -140,18 +179,9 @@ class EyeTracker(EyeTrackerDevice):
         Tracker Interface."""
         return EyeTrackerConstants.EYETRACKER_INTERFACE_METHOD_NOT_SUPPORTED
 
-    def runSetupProcedure(
-            self,
-            starting_state=EyeTrackerConstants.DEFAULT_SETUP_PROCEDURE):
+    def runSetupProcedure(self):
         """runSetupProcedure performs a calibration routine for the Tobii eye
-        tracking system. The current calibration options are relatively limited
-        for the Tobii ioHub interface compared to a standard Tobii calibration
-        procedure. It is hoped that this will be improved in the ioHub Tobii
-        interface as time permits.
-
-        Result:
-            bool: True if setup / calibration procedue passed, False otherwise. If false, should likely exit experiment.
-
+        tracking system.
         """
         try:
             from .tobiiCalibrationGraphics import TobiiPsychopyCalibrationGraphics
@@ -332,10 +362,9 @@ class EyeTracker(EyeTrackerDevice):
                 
                 eye_data_event = args[0]
                 
-                device_event_time = eye_data_event['system_time_stamp'] * self.DEVICE_TIMEBASE_TO_SEC
+                data_delay = tobii_logged_time - (eye_data_event['system_time_stamp'] * self.DEVICE_TIMEBASE_TO_SEC)
         
-                data_delay = tobii_logged_time-device_event_time
-        
+                device_event_time = eye_data_event['device_time_stamp']
                 iohub_event_time = (logged_time - data_delay)
                 self._addNativeEventToBuffer(
                     (logged_time,
@@ -372,39 +401,6 @@ class EyeTracker(EyeTrackerDevice):
         try:
             logged_time, device_event_time, iohub_event_time, data_delay, eye_data_event = native_event_data
 
-#         'system_time_stamp': 295431587453,
-#         'device_time_stamp': 1554911175642814,
-#         'right_gaze_point_on_display_area': (0.6514113545417786, 0.6740643382072449)
-#         'right_gaze_point_validity': 1,
-#         'right_pupil_diameter': 2.0828399658203125, 
-#         'right_pupil_validity': 1, 
-#         'left_gaze_point_on_display_area': (0.6300967931747437, 0.6632571816444397), 
-#         'left_gaze_point_validity': 1,
-#         'left_pupil_diameter': 2.2154541015625, 
-#         'left_pupil_validity': 1,
-#
-#         'right_gaze_origin_in_user_coordinate_system': (26.230587005615234, 30.770994186401367, 584.1049194335938), 
-#         'right_gaze_origin_in_trackbox_coordinate_system': (0.4429018795490265, 0.339368999004364, 0.4470163881778717), 
-#         'left_gaze_origin_in_trackbox_coordinate_system': (0.6209999918937683, 0.35132133960723877, 0.4568300247192383),
-#         'right_gaze_origin_validity': 1,
-#         'right_gaze_point_in_user_coordinate_system': (51.17703628540039, 115.1743392944336, 27.5936222076416),
-#         'left_gaze_origin_validity': 1, 
-#         'left_gaze_origin_in_user_coordinate_system': (-33.106361389160156, 26.86952018737793, 587.0490112304688), 
-#         'left_gaze_point_in_user_coordinate_system': (43.972713470458984, 117.93881225585938, 28.65477752685547), 
-    
-    #        eyes[LEFT]['gaze_mm'][0]=eye_data_event.LeftGazePoint3D.x
-    #        eyes[LEFT]['gaze_mm'][1]=eye_data_event.LeftGazePoint3D.y
-    #        eyes[LEFT]['gaze_mm'][2]=eye_data_event.LeftGazePoint3D.z
-    #        eyes[LEFT]['eye_location_norm'][0]=eye_data_event.LeftEyePosition3DRelative.x
-    #        eyes[LEFT]['eye_location_norm'][1]=eye_data_event.LeftEyePosition3DRelative.y
-    #        eyes[LEFT]['eye_location_norm'][2]=eye_data_event.LeftEyePosition3DRelative.z
-    #        eyes[RIGHT]['gaze_mm'][0]=eye_data_event.RightGazePoint3D.x
-    #        eyes[RIGHT]['gaze_mm'][1]=eye_data_event.RightGazePoint3D.y
-    #        eyes[RIGHT]['gaze_mm'][2]=eye_data_event.RightGazePoint3D.z
-    #        eyes[RIGHT]['eye_location_norm'][0]=eye_data_event.RightEyePosition3DRelative.x
-    #        eyes[RIGHT]['eye_location_norm'][1]=eye_data_event.RightEyePosition3DRelative.y
-    #        eyes[RIGHT]['eye_location_norm'][2]=eye_data_event.RightEyePosition3DRelative.z
-    
             event_type = EventConstants.BINOCULAR_EYE_SAMPLE
     
             left_gaze_x, left_gaze_y = eye_data_event['left_gaze_point_on_display_area']
@@ -503,13 +499,10 @@ class EyeTracker(EyeTrackerDevice):
     def _eyeTrackerToDisplayCoords(self, eyetracker_point):
         """Converts Tobii gaze positions to the Display device coordinate
         space."""
-
         gaze_x, gaze_y = eyetracker_point
         left, top, right, bottom = self._display_device.getCoordBounds()
         w, h = right - left, top - bottom
         x, y = left + w * gaze_x, bottom + h * (1.0 - gaze_y)
-
-        #print2err("Tobii: ",(eyetracker_point),(left,top,right,bottom),(x,y))
         return x, y
 
     def _displayToEyeTrackerCoords(self, display_x, display_y):

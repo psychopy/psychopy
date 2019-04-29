@@ -105,45 +105,6 @@ def launchHubServer(**kwargs):
             # Stop the ioHub Server
             io.quit()
 
-        B. Use a XInput compliant game pad (e.g. Xbox 360 controller)::
-
-            from psychopy.iohub.client import launchHubServer
-
-            # Create an iohub_config kwargs dict and indicate that ioHub
-            # should connect to a XInput compliant game pad using the
-            # default devices settings.
-            iohub_config = dict()
-            iohub_config['xinput.Gamepad'] = dict()
-
-            # Start the ioHub Server Process and access the gamepad and
-            # keyboard devices.
-            io = launchHubServer(**iohub_config)
-            gamepad = io.getDevice('gamepad')
-            keyboard = io.devices.keyboard
-
-            if gamepad:
-                print("Press 'A' button on controller to make it rumble.")
-                print("To Exit the Demo, press any Keyboard key.....")
-
-                while not keyboard.getPresses():
-                    # Get any new events from the game pad
-                    for gp_evt in gamepad.getEvents():
-                        # Check if the gamepad button 'A' was pressed....
-                        if 'A' in gp_evt.buttons:
-                            # Rumble the game pad for 1 second:
-                            #   - low frequency motor @ 50%
-                            #   - high frequency motor @ 25%
-                            # setRumble() returns as soon as the
-                            # ioHub Server has started the requested action.
-                            rt, rd = gamepad.setRumble(50.0, 25.0, 1.0)
-                            print("Started Rumbling....")
-                            io.wait(0.01)
-            else:
-                print("XInput device connection failed.")
-            print("Exiting demo....")
-            # Stop the ioHub Server
-            io.quit()
-
     Please see the psychopy/demos/coder/iohub/launchHub.py demo for examples
     of different ways to use the launchHubServer function.
     """
@@ -206,7 +167,7 @@ def launchHubServer(**kwargs):
     if iohub_conf_file_name:
         # Load the specified iohub configuration file,
         # converting it to apython dict.
-        with file(iohub_conf_file_name, 'r') as iohub_conf_file:
+        with open(iohub_conf_file_name, 'r') as iohub_conf_file:
             _temp_conf_read = yload(iohub_conf_file, Loader=yLoader)
             monitor_devices_config = _temp_conf_read.get('monitor_devices')
             del kwargs['iohub_config_name']
