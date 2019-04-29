@@ -50,19 +50,15 @@ def displayDataFileSelectionDialog(starting_dir=None):
     processing."""
     from psychopy.gui.qtgui import fileOpenDlg
 
-    fdlg = FileDialog(
-        message="Select a ioHub DataStore File",
-        defaultDir=starting_dir,
-        fileTypes=FileDialog.IODATA_FILES,
-        display_index=0)
+    filePath = fileOpenDlg(tryFilePath=starting_dir, 
+                           prompt = "Select a ioHub HDF5 File",
+                           allowed='HDF5 Files (*.hdf5)|*.hdf5')
+    
 
-    status, filePathList = fdlg.show()
-
-    if status != FileDialog.OK_RESULT:
-        print(" Data File Selection Cancelled.")
+    if filePath is None:
         return None
 
-    return filePathList[0]
+    return filePath
 
 
 def displayEventTableSelectionDialog(
@@ -172,7 +168,7 @@ class ExperimentDataAccessUtility(object):
         if self.hdfFile:
             hubFile = self.hdfFile
             for group in getattr(hubFile, walk_groups)("/"):
-                for table in getattr(hubFile, listNodes)(group, classname='Table'):
+                for table in getattr(hubFile, list_nodes)(group, classname='Table'):
                     if table.name == tableName:
                         print('------------------')
                         print('Path:', table)
@@ -249,7 +245,6 @@ class ExperimentDataAccessUtility(object):
         """
         if self.hdfFile:
             klassTables = self.hdfFile.root.class_table_mapping
-            deviceEventTable = None
             event_column = None
             event_value = None
 
@@ -263,7 +258,6 @@ class ExperimentDataAccessUtility(object):
                     for t in tokens:
                         event_value += t[0].upper()+t[1:].lower()
                     event_value = event_type+'Event'
-                event_value = '"%s"' % (event_value)
             elif isinstance(event_type, numbers.Integral):
                 event_column = 'class_id'
                 event_value = event_type
@@ -272,10 +266,10 @@ class ExperimentDataAccessUtility(object):
                     'getEventTable error: event_type arguement must be a string or and int')
                 return None
 
-            result = [
-                row.fetch_all_fields() for row in klassTables.where(
-                    '({0} == {1}) & (class_type_id == 1)'.format(
-                        event_column, event_value))]
+            result = []
+            where_cls = '(%s == b"%s") & (class_type_id == 1)'%(event_column, event_value)
+            for row in klassTables.where(where_cls):
+                result.append(row.fetch_all_fields())
 
             if len(result) == 0:
                     return None
@@ -285,8 +279,9 @@ class ExperimentDataAccessUtility(object):
                     'event_type_id passed to getEventAttribute can only return one row from CLASS_MAPPINGS: ',
                     len(result))
                 return None
-
             tablePathString = result[0][3]
+            if isinstance(tablePathString, bytes):
+                tablePathString = tablePathString.decode('utf-8')         
             return getattr(self.hdfFile, get_node)(tablePathString)
         return None
 
@@ -316,13 +311,16 @@ class ExperimentDataAccessUtility(object):
         eventTableMappings = self.getEventMappingInformation()
         if eventTableMappings:
             events_by_type = dict()
+            getNode = getattr(self.hdfFile, get_node)
             for event_type_id, event_mapping_info in eventTableMappings.items():
                 try:
                     cond = '(type == %d)' % (event_type_id)
                     if condition_str:
                         cond += ' & ' + condition_str
-                    events_by_type[event_type_id] = next(self.hdfFile.getNode(
-                        event_mapping_info.table_path).where(cond))
+                    et_path = event_mapping_info.table_path
+                    if isinstance(et_path, bytes):
+                        et_path = et_path.decode('utf-8')
+                    events_by_type[event_type_id] = next(getNode(et_path).where(cond))
                 except StopIteration:
                     pass
             return events_by_type
