@@ -633,7 +633,10 @@ class Window(object):
     def _setCurrent(self):
         """Make this window's OpenGL context current.
 
-        If ``useFBO=True``, the framebuffer is bound after the context switch.
+        If called on a window whose context is current, the function will return
+        immediately. This reduces the number of redundant calls if no context
+        switch is required. If ``useFBO=True``, the framebuffer is bound after
+        the context switch.
 
         """
         # don't configure if we haven't changed context
