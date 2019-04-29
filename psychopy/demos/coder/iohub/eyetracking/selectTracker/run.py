@@ -61,7 +61,7 @@ class ExperimentRuntime(ioHubExperimentRuntime):
                                     units=display.getCoordinateType(),
                                     fullscr=True,
                                     allowGUI=False,
-                                    screen= display.getIndex()
+                                    screen= 0
                                     )
 
         # Create a dict of image stim for trials and a gaze blob to show gaze position.
@@ -240,13 +240,12 @@ if __name__ == "__main__":
         # as normal.
         eye_tracker_config_files={
                                   'GazePoint':'eyetracker_configs/gazepoint_config.yaml',
-                                  'SMI':'eyetracker_configs/iviewx_config.yaml',
                                   'SR Research':'eyetracker_configs/eyelink_config.yaml',
                                   'Tobii':'eyetracker_configs/tobii_config.yaml',
                                   }
         
-        info = {'Eye Tracker Type': ['Select', 'GazePoint', 
-                                     'SMI', 'SR Research', 'Tobii']}
+        info = {'Eye Tracker Type': ['Select', 'GazePoint', 'SR Research',
+                                     'Tobii']}
         
         dlg_info=dict(info)
         infoDlg = gui.DlgFromDict(dictionary=dlg_info, title='Select Eye Tracker')

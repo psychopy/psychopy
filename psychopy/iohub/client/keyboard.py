@@ -25,7 +25,7 @@ class KeyboardEvent(ioEvent):
     Base class for KeyboardPress and KeyboardRelease events.
 
     Note that keyboard events can be compared using a single character
-    basestring. For example:
+    basestring. For example::
 
         kb_evts = keyboard.getKeys(['a','b','c'])
         for event in kb_evts:
@@ -155,7 +155,49 @@ class KeyboardRelease(KeyboardEvent):
 
 class Keyboard(ioHubDeviceView):
     """The Keyboard device provides access to KeyboardPress and KeyboardRelease
-    events as well as the current keyboard state."""
+    events as well as the current keyboard state.
+    
+    Examples:
+
+        A. Print all keyboard events received for 5 seconds::
+    
+            from psychopy.iohub import launchHubServer
+            from psychopy.core import getTime
+            
+            # Start the ioHub process. 'io' can now be used during the
+            # experiment to access iohub devices and read iohub device events.
+            io = launchHubServer()
+            
+            keyboard = io.devices.keyboard
+                    
+            # Check for and print any Keyboard events received for 5 seconds.
+            stime = getTime()
+            while getTime()-stime < 5.0:
+                for e in keyboard.getEvents():
+                    print(e)
+            
+            # Stop the ioHub Server
+            io.quit()
+            
+        B. Wait for a keyboard press event (max of 5 seconds)::
+    
+            from psychopy.iohub import launchHubServer
+            from psychopy.core import getTime
+            
+            # Start the ioHub process. 'io' can now be used during the
+            # experiment to access iohub devices and read iohub device events.
+            io = launchHubServer()
+            
+            keyboard = io.devices.keyboard
+                    
+            # Wait for a key keypress event ( max wait of 5 seconds )
+            presses = keyboard.waitForPresses(maxWait=5.0)
+            
+            print(presses)
+            
+            # Stop the ioHub Server
+            io.quit()         
+    """
     KEY_PRESS = EventConstants.KEYBOARD_PRESS
     KEY_RELEASE = EventConstants.KEYBOARD_RELEASE
     _type2class = {KEY_PRESS: KeyboardPress, KEY_RELEASE: KeyboardRelease}

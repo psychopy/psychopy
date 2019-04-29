@@ -232,17 +232,11 @@ class EyeTrackerDevice(Device):
 
         return EyeTrackerConstants.FUNCTIONALITY_NOT_SUPPORTED
 
-    def runSetupProcedure(
-            self,
-            starting_state=EyeTrackerConstants.DEFAULT_SETUP_PROCEDURE):
+    def runSetupProcedure(self):
         """
-        The runSetupProcedure is a generic method for performing Eye Tracker-specific
-        online configurations, such as:
-
-        #. Participant placement validation
-        #. Camera setup
-        #. Calibration and validation
-
+        The runSetupProcedure method starts the eye tracker calibration
+        routine.
+        
         The details of this method are implementation-specific.
 
         .. note::
@@ -253,22 +247,6 @@ class EyeTrackerDevice(Device):
 
         Args:
             None
-
-        Kwargs:
-            starting_state (int): The state that the eye tracker should start with or perform when the runSetupProcedure method is called. Valid options are:
-                                * EyeTrackerConstants.DEFAULT_SETUP_PROCEDURE (the default) indicates that the standard setup and calibration procedure should be performed.
-                                * EyeTrackerConstants.CALIBRATION_STATE indicates the eye tracker should immediately start the calibration procedure when the method is called.
-                                * EyeTrackerConstants.VALIDATION_STATE indicates the eye tracker should immediately start the validation procedure when the method is called.
-                                * EyeTrackerConstants.DRIFT_CORRECTION_STATE indicates the eye tracker should immediately start the validation procedure when the method is called.
-                                * EyeTrackerConstants.TRACKER_FEEDBACK_STATE indicates that any supported operator feeback graphics or windows should be displayed when the method is called..
-
-                        An eye tracker implementation is only required to support the EyeTrackerConstants.DEFAULT_SETUP_PROCEDURE setting.
-
-        Return:
-            int: EyeTrackerConstants.EYETRACKER_OK if this method and starting_state is supported and the runSetupProcedure ran successfully. If the starting state specified was anything other the EyeTrackerConstants.VALIDATION_START_STATE, the performed calibration routine must have also passed (been successful). Possible values:
-                 * EyeTrackerConstants.EYETRACKER_CALIBRATION_ERROR if this method and starting_state is supported but either calibration or drift correction (depending on the state argument provided) failed. In this case; the method can be called again to attempt a successful calibration and or drift correction.
-                 * EyeTrackerConstants.EYETRACKER_ERROR if this method is supported and starting_state is, but an error occurred during the method (other than a failed calibration or drift correct result).
-                 * EyeTrackerConstants.EYETRACKER_INTERFACE_METHOD_NOT_SUPPORTED if the eye tracker implementation does not support this method or the specified starting_state.
         """
         return EyeTrackerConstants.EYETRACKER_INTERFACE_METHOD_NOT_SUPPORTED
 

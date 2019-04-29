@@ -40,6 +40,51 @@ class EyeTracker(EyeTrackerDevice):
     class in the iohub_config.yaml device settings file:
 
         eyetracker.hw.sr_research.eyelink
+        
+    Examples:
+        A. Start ioHub with SR Research EyeLink 1000 and run tracker calibration::
+    
+            from psychopy.iohub import launchHubServer
+            from psychopy.core import getTime, wait
+
+
+            iohub_config = {'eyetracker.hw.sr_research.eyelink.EyeTracker':
+                            {'name': 'tracker',
+                             'model_name': 'EYELINK 1000 DESKTOP',
+                             'runtime_settings': {'sampling_rate': 500, 
+                                                  'track_eyes': 'RIGHT'}
+                             }
+                            }
+            io = launchHubServer(**iohub_config)
+            
+            # Get the eye tracker device.
+            tracker = io.devices.tracker
+                            
+            # run eyetracker calibration
+            r = tracker.runSetupProcedure()
+            
+        B. Print all eye tracker events received for 2 seconds::
+                        
+            # Check for and print any eye tracker events received...
+            tracker.setRecordingState(True)
+            
+            stime = getTime()
+            while getTime()-stime < 2.0:
+                for e in tracker.getEvents():
+                    print(e)
+            
+        C. Print current eye position for 5 seconds::
+                        
+            # Check for and print current eye position every 100 msec.
+            stime = getTime()
+            while getTime()-stime < 5.0:
+                print(tracker.getPosition())
+                wait(0.1)
+            
+            tracker.setRecordingState(False)
+            
+            # Stop the ioHub Server
+            io.quit()
     """
 
     # >>> Constants:
@@ -344,11 +389,7 @@ class EyeTracker(EyeTrackerDevice):
             self,
             starting_state=EyeTrackerConstants.DEFAULT_SETUP_PROCEDURE):
         """runSetupProcedure initiates the EyeLink Camera Setup and Calibration
-        procedure. Currently, only the default starting_state value of
-        EyeTrackerConstants.DEFAULT_SETUP_PROCEDURE is supported.
-
-        The current implementation does not support displaying of the eye camera
-        images on the Camera Setup screen, the screen is blank.
+        procedure.
 
         When runSetupProcedure is called, the following keys can be used on either the
         Host PC or Experiment PC to control the state of the setup procedure:
@@ -467,7 +508,7 @@ class EyeTracker(EyeTrackerDevice):
 
     def getLastSample(self):
         """getLastSample returns the most recent EyeSampleEvent received from
-        the iViewX system. Any position fields are in Display device coordinate
+        the EyeLink system. Any position fields are in Display device coordinate
         space. If the eye tracker is not recording or is not connected, then
         None is returned.
 
