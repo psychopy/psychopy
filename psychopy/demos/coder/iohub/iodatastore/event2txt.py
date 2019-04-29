@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
 """
 This script demonstrates how to load a ioHub DataStore HDF5 file, read the
 session variable data collected via the Experiment Session Variable Dialog
@@ -54,6 +53,7 @@ if __name__ == '__main__':
     if data_file_path is None:
         print("File Selection Cancelled, exiting...")
         sys.exit(0)
+    data_file_path = data_file_path[0]
     dpath,dfile=os.path.split(data_file_path)
 
     # Lets time how long processing takes
@@ -75,28 +75,24 @@ if __name__ == '__main__':
     events_with_data=dataAccessUtil.getEventsByType()
 
     duration=getTime()-start_time
-
     # Select which event table to output by displaying a list of
     #   Event Class Names that have data available to the user...
     event_class_selection=displayEventTableSelectionDialog("Select Event Type to Save", "Event Type:",
-                [eventTableMappings[event_id].class_name for event_id in list(events_with_data.keys())])
+                [eventTableMappings[event_id].class_name.decode('utf-8') for event_id in list(events_with_data.keys())])
     if event_class_selection is None:
         print("Event table Selection Cancelled, exiting...")
         dataAccessUtil.close()
         sys.exit(0)
 
-    # restart processing time calculation...
-    #
     start_time=getTime()
 
     # Lookup the correct event iterator fiven the event class name selected.
     #
     event_iterator_for_output=None
     for event_id, mapping_info in eventTableMappings.items():
-        if mapping_info.class_name==event_class_selection:
+        if mapping_info.class_name.decode('utf-8') == event_class_selection:
             event_iterator_for_output=events_with_data[event_id]
             break
-
     # Read the session metadata table for all sessions saved to the file.
     #
     session_metadata=dataAccessUtil.getSessionMetaData()
@@ -114,7 +110,11 @@ if __name__ == '__main__':
 
     # Open a file to save the tab delimited output to.
     #
-    log_file_name="%s.%s.txt"%(dfile[:-5],event_class_selection)
+    if isinstance(event_class_selection, str):
+        log_file_name="%s.%s.txt"%(dfile[:-5],event_class_selection)
+    else:
+        log_file_name="%s.%s.txt"%(dfile[:-5],event_class_selection.decode('utf-8'))
+        
     with open(log_file_name,'w') as output_file:
 
         # write column header
@@ -136,4 +136,4 @@ if __name__ == '__main__':
     duration=duration+(getTime()-start_time)
     print()
     print('\nOutput Complete. %d Events Saved to %s in %.3f seconds (%.2f events/seconds).\n'%(i,log_file_name,duration,i/duration))
-    print('%s will be in the same directory as the selected .hdf5 file'%(log_file_name))
+    print('Output saved to same directory as source .hdf5 file.')

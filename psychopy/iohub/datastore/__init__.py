@@ -296,7 +296,6 @@ class DataStoreFile(object):
     def initConditionVariableTable(
             self, experiment_id, session_id, np_dtype):
         expcv_table = None
-        expcv_node = self.emrtFile.root.data_collection.condition_variables
         exp_session = [('EXPERIMENT_ID','i4'),('SESSION_ID','i4')]
         exp_session.extend(np_dtype)
         np_dtype = []
