@@ -55,7 +55,7 @@ reportNDroppedFrames = 10
 import os
 import sys
 import threading
-import weakref  # don't create circular references with vlc classes
+import weakref
 
 # Ensure setting pyglet.options['debug_gl'] to False is done prior to any
 # other calls to pyglet or pyglet submodules, otherwise it may not get picked
@@ -117,6 +117,34 @@ class TexturedRect:
         self.vertex_list.draw(GL.GL_TRIANGLE_STRIP)
         GL.glDisable(GL.GL_TEXTURE_2D)
         GL.glPopMatrix()
+
+# vlc.CallbackDecorators in python-vlc lib are incorrect and don't match VLC docs
+CorrectVideoLockCb = ctypes.CFUNCTYPE(ctypes.c_void_p, ctypes.c_void_p, ctypes.POINTER(ctypes.c_void_p))
+CorrectVideoUnlockCb = ctypes.CFUNCTYPE(ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p, ctypes.POINTER(ctypes.c_void_p))
+
+@CorrectVideoLockCb
+def vlcLockCallback(user_data, planes):
+    self = ctypes.cast(user_data, ctypes.POINTER(ctypes.py_object)).contents.value
+    self.pixel_lock.acquire()
+    # Tell VLC to take the data and stuff it into the buffer
+    planes[0] = ctypes.cast(self.pixel_buffer, ctypes.c_void_p)
+
+@CorrectVideoUnlockCb
+def vlcUnlockCallback(user_data, picture, planes):
+    self = ctypes.cast(user_data, ctypes.POINTER(ctypes.py_object)).contents.value
+    self.pixel_lock.release()
+
+@vlc.CallbackDecorators.VideoDisplayCb
+def vlcDisplayCallback(user_data, picture):
+    self = ctypes.cast(user_data, ctypes.POINTER(ctypes.py_object)).contents.value
+    self.frame_counter += 1
+
+def vlcTimeCallback(event, ref, player):
+    # Called by VLC every few hundred msec providing the current time.
+    return
+
+def vlcEndCallback(event, ref):
+    logging.warning("Got end of movie callback")
 
 
 class MovieStim4(BaseVisualStim, ContainerMixin):
@@ -234,15 +262,13 @@ class MovieStim4(BaseVisualStim, ContainerMixin):
 
         Due to VLC oddness, .duration is not correct until the movie starts playing.
         """
-        filename = pathToString(filename)
         self._reset()
+        self.filename = pathToString(filename)
 
         # Initialize VLC
         self._vlc_start()
 
         self.status = NOT_STARTED
-
-        self.filename = filename
         logAttrib(self, log, 'movie', filename)
 
     def _vlc_start(self):
@@ -289,34 +315,10 @@ class MovieStim4(BaseVisualStim, ContainerMixin):
         # TODO: base on this object's intended size/pos
         self._video_rect = TexturedRect(self.video_width, self.video_height, self.video_width/2, self.video_height/2, self._texture_id)
 
-        # vlc.CallbackDecorators in python-vlc lib are incorrect and don't match VLC docs
-        CorrectVideoLockCb = ctypes.CFUNCTYPE(ctypes.c_void_p, ctypes.c_void_p, ctypes.POINTER(ctypes.c_void_p))
-        CorrectVideoUnlockCb = ctypes.CFUNCTYPE(ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p, ctypes.POINTER(ctypes.c_void_p))
-
-        @CorrectVideoLockCb
-        def vlcLockCallback(user_data, planes):
-            self.pixel_lock.acquire()
-            # Tell VLC to take the data and stuff it into the buffer
-            planes[0] = ctypes.cast(self.pixel_buffer, ctypes.c_void_p)
-
-        @CorrectVideoUnlockCb
-        def vlcUnlockCallback(user_data, picture, planes):
-            self.pixel_lock.release()
-
-        @vlc.CallbackDecorators.VideoDisplayCb
-        def vlcDisplayCallback(user_data, picture):
-            self.frame_counter += 1
-
-        def vlcTimeCallback(event, ref, player):
-            # Called by VLC every few hundred msec providing the current time.
-            return
-
-        def vlcEndCallback(event, ref):
-            logging.warning("Got end of movie callback")
-
-
         # Once you set these callbacks, you are in complete control of what to do with the video buffer
-        player.video_set_callbacks(vlcLockCallback, vlcUnlockCallback, vlcDisplayCallback, None)
+        selfref = ctypes.cast(ctypes.pointer(ctypes.py_object(self)), ctypes.c_void_p)
+
+        player.video_set_callbacks(vlcLockCallback, vlcUnlockCallback, vlcDisplayCallback, selfref)
 
         # The other callbacks go on the player's event manager
         manager = player.event_manager()
@@ -358,7 +360,10 @@ class MovieStim4(BaseVisualStim, ContainerMixin):
             GL.glEnable(GL.GL_TEXTURE_2D)
             GL.glBindTexture(GL.GL_TEXTURE_2D, self._texture_id)
             GL.glPixelStorei(GL.GL_UNPACK_ALIGNMENT, 1)
-            interpolation = GL.GL_LINEAR
+            if self.interpolate:
+                interpolation = GL.GL_LINEAR
+            else:
+                interpolation = GL.GL_NEAREST
             GL.glTexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MAG_FILTER, interpolation)
             GL.glTexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MIN_FILTER, interpolation)
             GL.glTexImage2D(GL.GL_TEXTURE_2D, 0, GL.GL_RGB,
@@ -479,15 +484,13 @@ class MovieStim4(BaseVisualStim, ContainerMixin):
         """
         Returns the movie frames per second playback speed.
         """
-        # TODO
-        return 0
+        return self.frame_rate
 
     def getCurrentFrameNumber(self):
         """Get the current movie frame number.
         The first frame number in a file is 1.
         """
-        # TODO
-        return 0
+        return self.frame_counter
 
     def getCurrentFrameTime(self):
         """Get the time that the movie file specified the current
@@ -524,7 +527,7 @@ class MovieStim4(BaseVisualStim, ContainerMixin):
 
         if self.current_frame != self.frame_counter:
             self.current_frame = self.frame_counter
-            return true
+            return True
 
     def setContrast(self):
         """Not yet implemented for MovieStim
