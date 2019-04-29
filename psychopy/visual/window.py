@@ -1789,19 +1789,24 @@ class Window(object):
         They may vary in appearance and hot spot location across platforms. The
         following names are valid on most platforms:
 
-        - 'arrow' : Default pointer
-        - 'ibeam' : Indicates text can be edited
-        - 'crosshair' : Crosshair with hot-spot at center
-        - 'hand' : A pointing hand
-        - 'hresize' : Double arrows pointing horizontally
-        - 'vresize' : Double arrows pointing vertically
+            * ``arrow`` : Default pointer.
+            * ``ibeam`` : Indicates text can be edited.
+            * ``crosshair`` : Crosshair with hot-spot at center.
+            * ``hand`` : A pointing hand.
+            * ``hresize`` : Double arrows pointing horizontally.
+            * ``vresize`` : Double arrows pointing vertically.
 
-        Requires the GLFW backend, otherwise this function does nothing! Note,
-        on Windows the 'crosshair' option is XORed with the background color. It
-        will not be visible when placed over 50% grey fields.
+        Requires the GLFW backend, otherwise this function does nothing!
 
-        :param name: str, type of standard cursor to use
-        :return:
+        Parameters
+        ----------
+        name : str
+            Type of standard cursor to use.
+
+        Notes
+        -----
+        * On Windows the ``crosshair`` option is negated with the background
+          color. It will not be visible when placed over 50% grey fields.
 
         """
         pass
