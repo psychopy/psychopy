@@ -403,18 +403,21 @@ class GLFWBackend(BaseBackend):
         They may vary in appearance and hot spot location across platforms. The
         following names are valid on most platforms:
 
-                'arrow' : Default pointer
-                'ibeam' : Indicates text can be edited
-            'crosshair' : Crosshair with hot-spot at center
-                 'hand' : A pointing hand
-              'hresize' : Double arrows pointing horizontally
-              'vresize' : Double arrows pointing vertically
+        * ``arrow`` : Default pointer
+        * ``ibeam`` : Indicates text can be edited
+        * ``crosshair`` : Crosshair with hot-spot at center
+        * ``hand`` : A pointing hand
+        * ``hresize`` : Double arrows pointing horizontally
+        * ``vresize`` : Double arrows pointing vertically
 
-        Note, on Windows the 'crosshair' option is XORed with the background
+        Requires the GLFW backend, otherwise this function does nothing! Note,
+        on Windows the ``crosshair`` option is negated with the background
         color. It will not be visible when placed over 50% grey fields.
 
-        :param name: str, type of standard cursor to use
-        :return:
+        Parameters
+        ----------
+        name : str
+            Type of standard cursor to use.
 
         """
         try:
@@ -427,30 +430,23 @@ class GLFWBackend(BaseBackend):
     def setCurrent(self):
         """Sets this window to be the current rendering target.
 
-        :return: None
+        Returns
+        -------
+        bool
+            ``True`` if the context was switched from another. ``False`` is
+            returned if ``setCurrent`` was called on an already current window.
 
         """
         if self != globalVars.currWindow:
             glfw.make_context_current(self.winHandle)
             globalVars.currWindow = self
 
-            win = self.win  # it's a weakref so faster to call just once
-            # if we are using an FBO, bind it
-            if hasattr(win, 'frameBuffer'):
-                GL.glBindFramebufferEXT(GL.GL_FRAMEBUFFER_EXT,
-                                        win.frameBuffer)
-                GL.glReadBuffer(GL.GL_COLOR_ATTACHMENT0_EXT)
-                GL.glDrawBuffer(GL.GL_COLOR_ATTACHMENT0_EXT)
+            return True
 
-                # NB - check if we need these
-                GL.glActiveTexture(GL.GL_TEXTURE0)
-                GL.glBindTexture(GL.GL_TEXTURE_2D, 0)
-                GL.glEnable(GL.GL_STENCIL_TEST)
+        return False
 
     def dispatchEvents(self):
         """Dispatch events to the event handler (typically called on each frame)
-
-        :return:
         """
         pass
 
