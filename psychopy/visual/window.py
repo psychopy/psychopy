@@ -783,22 +783,30 @@ class Window(object):
 
         """
         if self._toDraw:
+            # stimuli draw in the list will automatically make their window
+            # context current.
             for thisStim in self._toDraw:
                 thisStim.draw()
         else:
-            self.backend.setCurrent()
+            # Make sure framebuffer draw calls are issued to the correct window
+            # and everything is configured correctly to match its config.
+            # Failing to do so will cause the FBO to be drawn to the last window
+            # that was bound, or it will distort the image if the
+            # viewport/scissor rectangles are different sizes.
+            if self.useFBO:
+                self.backend.setCurrent()
 
-            # set these to match the current window or buffer's settings
-            GL.glViewport(0, 0, self.size[0], self.size[1])
-            GL.glScissor(0, 0, self.size[0], self.size[1])
-            GL.glEnable(GL.GL_SCISSOR_TEST)
+                # set these to match the current window or buffer's settings
+                GL.glViewport(0, 0, self.size[0], self.size[1])
+                GL.glScissor(0, 0, self.size[0], self.size[1])
+                GL.glEnable(GL.GL_SCISSOR_TEST)
 
-            # clear the projection and modelview matrix for FBO blit
-            GL.glMatrixMode(GL.GL_PROJECTION)
-            GL.glLoadIdentity()
-            GL.glOrtho(-1, 1, -1, 1, -1, 1)
-            GL.glMatrixMode(GL.GL_MODELVIEW)
-            GL.glLoadIdentity()
+                # clear the projection and modelview matrix for FBO blit
+                GL.glMatrixMode(GL.GL_PROJECTION)
+                GL.glLoadIdentity()
+                GL.glOrtho(-1, 1, -1, 1, -1, 1)
+                GL.glMatrixMode(GL.GL_MODELVIEW)
+                GL.glLoadIdentity()
 
         flipThisFrame = self._startOfFlip()
         if self.useFBO:
