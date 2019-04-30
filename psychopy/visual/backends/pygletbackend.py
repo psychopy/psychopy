@@ -35,6 +35,17 @@ GL = pyglet.gl
 
 retinaContext = None  # it will be set to an actual context if needed
 
+# standard cursors constants for pyglet
+_CURSORS_ = {
+    'arrow': pyglet.window.Window.CURSOR_DEFAULT,
+    'crosshair': pyglet.window.Window.CURSOR_CROSSHAIR,
+    'hand': pyglet.window.Window.CURSOR_HAND,
+    'ibeam': pyglet.window.Window.CURSOR_TEXT,
+    'hresize': pyglet.window.Window.CURSOR_SIZE_LEFT_RIGHT,
+    'vresize': pyglet.window.Window.CURSOR_SIZE_UP_DOWN,
+}
+
+
 class PygletBackend(BaseBackend):
     """The pyglet backend is the most used backend. It has no dependencies
     or C libs that need compiling, but may not be as fast or efficient as libs
@@ -267,6 +278,42 @@ class PygletBackend(BaseBackend):
 
     def setMouseVisibility(self, visibility):
         self.winHandle.set_mouse_visible(visibility)
+
+    def setMouseType(self, name='arrow'):
+        """Change the appearance of the cursor for this window.
+
+        Cursor types provide contextual hints about how to interact with
+        on-screen objects. The graphics used are 'standard cursors' provided by
+        the operating system. They may vary in appearance and 'hot spot'
+        location across platforms. The following names are valid on most
+        platforms:
+
+            * ``arrow`` : Default pointer.
+            * ``ibeam`` : Indicates text can be edited.
+            * ``crosshair`` : Crosshair with hot-spot at center.
+            * ``hand`` : A pointing hand.
+            * ``hresize`` : Double arrows pointing horizontally.
+            * ``vresize`` : Double arrows pointing vertically.
+
+        Parameters
+        ----------
+        name : str
+            Type of standard cursor to use.
+
+        Notes
+        -----
+        * On Windows the ``crosshair`` option is negated with the background
+          color. It will not be visible when placed over 50% grey fields.
+
+        """
+        try:
+            cursor = self.winHandle.get_system_mouse_cursor(_CURSORS_[name])
+        except KeyError:
+            logging.warn(
+                "Invalid cursor type name '{}', using default.".format(type))
+            cursor = self.winHandle.get_system_mouse_cursor(_CURSORS_['arrow'])
+
+        self.winHandle.set_mouse_cursor(cursor)
 
     def setCurrent(self):
         """Sets this window to be the current rendering target.
