@@ -1090,24 +1090,26 @@ class Window(object):
 
     def setPerspectiveView(self, applyTransform=True, **kwargs):
         """Set the projection and view matrix to render with perspective.
-        Matrices are computed using values specified in the monitor
-        configuration with the scene origin on the screen plane. Calculations
-        assume units are in meters.
 
-        Note that the values of 'projectionMatrix' and 'viewMatrix' will be
-        replaced when calling this function.
+        The resulting perspective transformation will be correct assuming the
+        display width (``scrDistCM``) and view distance (``scrDistCM``) are
+        set to real world values. If not defined, both values will default to 50
+        centimeters.
 
         Parameters
         ----------
         applyTransform : bool
             Apply transformations after computing them in immediate mode. Same
-            as calling 'applyEyeTransform' afterwards.
+            as calling ``applyEyeTransform`` afterwards. Set this to ``False``
+            if you want to compute the matrices, but defer using them. For
+            instance, if the matrices are being used in fragment shaders.
         **kwargs
-            Additional arguments to pass to 'applyEyeTransform()'
+            Additional arguments to pass to ``applyEyeTransform``.
 
-        Returns
-        -------
-        None
+        Warnings
+        --------
+        The values of the ``projectionMatrix`` and ``viewMatrix`` properties
+        will be replaced when calling this function.
 
         """
         # NB - we should eventually compute these matrices lazily since they may
@@ -1141,18 +1143,21 @@ class Window(object):
             self.applyEyeTransform(**kwargs)
 
     def applyEyeTransform(self, clearDepth=True):
-        """Apply the current view and projection matrices specified by
-        'viewMatrix' and 'projectionMatrix' using 'immediate mode' OpenGL.
-        Subsequent drawing operations will be affected until 'flip()' is called.
+        """Apply the current view and projection matrices.
 
-        All transformations in GL_PROJECTION and GL_MODELVIEW matrix stacks will
-        be cleared (set to identity) prior to applying.
+         This applies transformations specified by ``viewMatrix`` and
+         ``projectionMatrix`` using 'immediate mode' OpenGL. Subsequent drawing
+         operations will be affected until ``flip`` or ``resetEyeTransform`` is
+         called.
+
+        Current ``GL_PROJECTION`` and ``GL_MODELVIEW`` matrices will be
+        overwritten.
 
         Parameters
         ----------
         clearDepth : bool
-            Clear the depth buffer. This may be required prior to rendering 3D
-            objects.
+            Clear the depth buffer after applying the view and projection
+            transform.
 
         """
         # apply the projection and view transformations
@@ -1170,15 +1175,17 @@ class Window(object):
             GL.glClear(GL.GL_DEPTH_BUFFER_BIT)
 
     def resetEyeTransform(self, clearDepth=True):
-        """Restore the default projection and view settings to PsychoPy
-        defaults. Call this prior to drawing 2D stimuli objects (i.e.
-        GratingStim, ImageStim, Rect, etc.) if any eye transformations were
-        applied for the stimuli to be drawn correctly.
+        """Restore the default projection and view matrices.
 
-        Notes
-        -----
-        Calling 'flip()' automatically resets the view and projection to
-        defaults. So you don't need to call this unless you are mixing views.
+        Call this prior to drawing 2D stimuli objects (i.e. ``GratingStim``,
+        ``ImageStim``, ``Rect``, etc.) if any eye transformations were applied
+        for the stimuli to be drawn correctly.
+
+        Parameters
+        ----------
+        clearDepth : bool
+            Clear the depth buffer after applying the view and projection
+            transform.
 
         """
         # should eventually have the same effect as calling _onResize(), so we
