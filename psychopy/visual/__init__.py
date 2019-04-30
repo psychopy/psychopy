@@ -58,7 +58,7 @@ from psychopy.visual.secondorder import EnvelopeGrating
 from psychopy.visual.movie import MovieStim
 from psychopy.visual.movie2 import MovieStim2
 from psychopy.visual.movie3 import MovieStim3
-from psychopy.visual.movie4 import MovieStim4
+from psychopy.visual.vlcmoviestim import VlcMovieStim
 from psychopy.visual.shape import BaseShapeStim
 
 # stimuli derived from GratingStim

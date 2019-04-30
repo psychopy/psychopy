@@ -7,7 +7,7 @@ using VLC.  movie4 does /not/ require avbin to be installed.
 
 Testing has only been done on Windows.
 
-MovieStim4 requires:
+VlcMovieStim requires:
 ~~~~~~~~~~~~~~~~~~~~~
 
 1. VLC. Just install the standard VLC of the same bitness as python
@@ -20,10 +20,18 @@ MovieStim4 requires:
 To play a video:
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-a. Create a new instance, `mov = visual.MovieStim4(..)`
-b. Call `mov.play()` when you want to start playing the video.
-c. Call `win.flip()`, which will display the first frame of the video.
-d. TODO
+Create a new instance, `mov = visual.VlcMovieStim(..)`
+
+    shouldflip = mov.play()
+    continueRoutine = True
+    while continueRoutine:
+        if shouldflip:
+            # Draw other stimuli here
+            win.flip()
+        else:
+            time.sleep(0.001)
+        shouldflip = mov.draw()
+
 
 To fix "stale cache" VLC errors on Windows...
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -43,7 +51,7 @@ it, execute this as Administrator:
 # Copyright (C) 2018 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 #
-# MovieStim4 contributed by Dan Fitch, April 2019.
+# VlcMovieStim contributed by Dan Fitch, April 2019.
 # The MovieStim2 class was taken and rewritten to use only vlc
 
 from __future__ import absolute_import, division, print_function
@@ -75,6 +83,7 @@ from psychopy.tools.filetools import pathToString
 from psychopy.visual.basevisual import BaseVisualStim, ContainerMixin
 from psychopy.clock import Clock
 from psychopy.constants import FINISHED, NOT_STARTED, PAUSED, PLAYING, STOPPED
+from psychopy.tools.monitorunittools import convertToPix
 
 import ctypes
 import numpy
@@ -97,20 +106,27 @@ except Exception as err:
 
 
 class TexturedRect:
-    def __init__(self, width, height, xpos, ypos, texture_id):
-        self.xpos = xpos
-        self.ypos = ypos
-        self.angle = 0
-        self.size = 1
+    def __init__(self, texture_id):
         self.texture_id = texture_id
-        x = width/2.0
-        y = height/2.0
+        self.pos = (0.0, 0.0)
+        self.size = (1.0, 1.0)
+        self.angle = 0
+        self.init_vertexes()
+
+    def init_vertexes(self):
+        x = 0.5
+        y = 0.5
         self.vertex_list = pyglet.graphics.vertex_list(4, ('v2f', [-x,y, x,y, -x,-y, x,-y]), ('t2f', [0,0, 1,0, 0,1, 1,1]))
+
+    def set_position_and_size(self, pos, size):
+        self.pos = pos
+        self.size = size
+
     def draw(self):
         GL.glPushMatrix()
-        GL.glTranslatef(self.xpos, self.ypos, 0)
+        GL.glTranslatef(self.pos[0], self.pos[1], 0)
         GL.glRotatef(self.angle, 0, 0, 1)
-        GL.glScalef(self.size, self.size, self.size)
+        GL.glScalef(self.size[0], self.size[1], 1)
         GL.glColor4f(1,1,1,1)
         GL.glEnable(GL.GL_TEXTURE_2D)
         GL.glBindTexture(GL.GL_TEXTURE_2D, self.texture_id)
@@ -147,7 +163,7 @@ def vlcEndCallback(event, ref):
     logging.warning("Got end of movie callback")
 
 
-class MovieStim4(BaseVisualStim, ContainerMixin):
+class VlcMovieStim(BaseVisualStim, ContainerMixin):
     """A stimulus class for playing movies (mpeg, avi, etc...) in PsychoPy
     that uses VLC and does not require avbin. The VLC media player must be 
     installed on the psychopy computer.
@@ -193,7 +209,7 @@ class MovieStim4(BaseVisualStim, ContainerMixin):
         # by __repr__
         self._initParams = dir()
         self._initParams.remove('self')
-        super(MovieStim4, self).__init__(win, units=units, name=name,
+        super(VlcMovieStim, self).__init__(win, units=units, name=name,
                                          autoLog=False)
         # check for pyglet
         if win.winType != 'pyglet':
@@ -312,8 +328,7 @@ class MovieStim4(BaseVisualStim, ContainerMixin):
         self.pixel_buffer = (ctypes.c_ubyte * self.video_width * self.video_height * 4)()
 
         # Configure a helper for drawing the texture
-        # TODO: base on this object's intended size/pos
-        self._video_rect = TexturedRect(self.video_width, self.video_height, self.video_width/2, self.video_height/2, self._texture_id)
+        self._video_rect = TexturedRect(self._texture_id)
 
         # Once you set these callbacks, you are in complete control of what to do with the video buffer
         selfref = ctypes.cast(ctypes.pointer(ctypes.py_object(self)), ctypes.c_void_p)
@@ -523,6 +538,13 @@ class MovieStim4(BaseVisualStim, ContainerMixin):
         self._selectWindow(win)
 
         self._update_texture()
+
+        win.setScale('pix')
+        posPix = convertToPix([0, 0], self.pos, win.units, win)
+        sizePix = convertToPix([0, 0], self.size, win.units, win)
+
+        self._video_rect.angle = self.ori
+        self._video_rect.set_position_and_size(posPix, sizePix)
         self._video_rect.draw()
 
         if self.current_frame != self.frame_counter:
