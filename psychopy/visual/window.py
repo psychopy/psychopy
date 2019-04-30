@@ -1091,10 +1091,10 @@ class Window(object):
     def setPerspectiveView(self, applyTransform=True, **kwargs):
         """Set the projection and view matrix to render with perspective.
 
-        The resulting perspective transformation will be correct assuming the
-        display width (``scrDistCM``) and view distance (``scrDistCM``) are
-        set to real world values. If not defined, both values will default to 50
-        centimeters.
+        The resulting perspective and view transformation will be correct
+        assuming the display width (``scrDistCM``) and view distance
+        (``scrDistCM``) are set to real world values. If not defined, both
+        values will default to 50 centimeters.
 
         Parameters
         ----------
@@ -1104,7 +1104,13 @@ class Window(object):
             if you want to compute the matrices, but defer using them. For
             instance, if the matrices are being used in fragment shaders.
         **kwargs
-            Additional arguments to pass to ``applyEyeTransform``.
+            Additional arguments to pass to ``applyEyeTransform``, such as
+            ``clearDepth``.
+
+        See Also
+        --------
+        applyEyeTransform : Apply the current view and projection matrices.
+        resetEyeTransform : Restore the default projection and view matrices.
 
         Warnings
         --------
@@ -1186,6 +1192,11 @@ class Window(object):
         clearDepth : bool
             Clear the depth buffer after applying the view and projection
             transform.
+
+        Warnings
+        --------
+        The values of the ``projectionMatrix`` and ``viewMatrix`` properties
+        will be replaced when calling this function.
 
         """
         # should eventually have the same effect as calling _onResize(), so we
