@@ -228,6 +228,7 @@ class VlcMovieStim(BaseVisualStim, ContainerMixin):
         self.flipVert = flipVert
         self.flipHoriz = flipHoriz
         self.pos = numpy.asarray(pos, float)
+        self.size = numpy.asarray(size, float)
         self.depth = depth
         self.opacity = float(opacity)
         self.volume = volume
@@ -333,7 +334,6 @@ class VlcMovieStim(BaseVisualStim, ContainerMixin):
 
         # Once you set these callbacks, you are in complete control of what to do with the video buffer
         selfref = ctypes.cast(ctypes.pointer(ctypes.py_object(self)), ctypes.c_void_p)
-
         player.video_set_callbacks(vlcLockCallback, vlcUnlockCallback, vlcDisplayCallback, selfref)
 
         # Keep references
@@ -530,8 +530,11 @@ class VlcMovieStim(BaseVisualStim, ContainerMixin):
         self._update_texture()
 
         win.setScale('pix')
-        posPix = convertToPix([0, 0], self.pos, win.units, win)
-        sizePix = convertToPix([0, 0], self.size, win.units, win)
+        posPix = convertToPix([0, 0], numpy.asarray(self.pos), win.units, win)
+        if self.size is None:
+            sizePix = numpy.asarray([self._video_width, self._video_height])
+        else:
+            sizePix = convertToPix([0, 0], numpy.asarray(self.size), win.units, win)
 
         self._video_rect.angle = self.ori
         self._video_rect.set_position_and_size(posPix, sizePix)
