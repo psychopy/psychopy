@@ -2362,7 +2362,7 @@ MicrophoneComponent.channel.readOnly:False
 MicrophoneComponent.channel.staticUpdater:None
 MicrophoneComponent.channel.updates:None
 MicrophoneComponent.channel.val:0
-MicrophoneComponent.channel.valType:str
+MicrophoneComponent.channel.valType:int
 MicrophoneComponent.disabled.default:False
 MicrophoneComponent.disabled.allowedTypes:[]
 MicrophoneComponent.disabled.allowedUpdates:None
