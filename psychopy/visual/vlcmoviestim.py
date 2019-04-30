@@ -341,6 +341,7 @@ class VlcMovieStim(BaseVisualStim, ContainerMixin):
         self._player = player
         self._stream = stream
 
+        logging.info("Initialized VLC...")
         self._vlc_initialized = True
 
     def _release_vlc(self):
@@ -435,16 +436,12 @@ class VlcMovieStim(BaseVisualStim, ContainerMixin):
         """Seek to a particular timestamp in the movie.
         """
         if self.status in [PLAYING, PAUSED]:
-            if self.status == PLAYING:
-                self.pause()
             player = self._player
             if player and player.is_seekable():
                 player.set_time(int(timestamp * 1000.0))
 
             if log:
                 logAttrib(self, log, 'seek', timestamp)
-
-            self.play()
 
     def setFlipHoriz(self, newVal=True, log=True):
         """If set to True then the movie will be flipped horizontally
