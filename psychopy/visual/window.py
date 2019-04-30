@@ -1820,12 +1820,13 @@ class Window(object):
         setAttribute(self, 'mouseVisible', visibility, log)
 
     def setMouseType(self, name='arrow'):
-        """Change the appearance of the cursor for this window. Cursor types
-        provide contextual hints about how to interact with on-screen objects.
+        """Change the appearance of the cursor for this window.
 
-        The graphics used 'standard cursors' provided by the operating system.
-        They may vary in appearance and hot spot location across platforms. The
-        following names are valid on most platforms:
+        Cursor types provide contextual hints about how to interact with
+        on-screen objects. The graphics used are 'standard cursors' provided by
+        the operating system. They may vary in appearance and 'hot spot'
+        location across platforms. The following names are valid on most
+        platforms:
 
             * ``arrow`` : Default pointer.
             * ``ibeam`` : Indicates text can be edited.
@@ -1833,8 +1834,6 @@ class Window(object):
             * ``hand`` : A pointing hand.
             * ``hresize`` : Double arrows pointing horizontally.
             * ``vresize`` : Double arrows pointing vertically.
-
-        Requires the GLFW backend, otherwise this function does nothing!
 
         Parameters
         ----------
@@ -1847,7 +1846,7 @@ class Window(object):
           color. It will not be visible when placed over 50% grey fields.
 
         """
-        if self.winType == 'glfw':
+        if self.winType in ['glfw', 'pyglet']:
             self.backend.setMouseType(name)
 
     def getActualFrameRate(self, nIdentical=10, nMaxFrames=100,

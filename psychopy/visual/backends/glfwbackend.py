@@ -396,28 +396,30 @@ class GLFWBackend(BaseBackend):
             glfw.set_input_mode(self.winHandle, glfw.CURSOR, glfw.CURSOR_HIDDEN)
 
     def setMouseType(self, name='arrow'):
-        """Change the appearance of the cursor for this window. Cursor types
-        provide contextual hints about how to interact with on-screen objects.
+        """Change the appearance of the cursor for this window.
 
-        The graphics used 'standard cursors' provided by the operating system.
-        They may vary in appearance and hot spot location across platforms. The
-        following names are valid on most platforms:
+        Cursor types provide contextual hints about how to interact with
+        on-screen objects. The graphics used are 'standard cursors' provided by
+        the operating system. They may vary in appearance and 'hot spot'
+        location across platforms. The following names are valid on most
+        platforms:
 
-        * ``arrow`` : Default pointer
-        * ``ibeam`` : Indicates text can be edited
-        * ``crosshair`` : Crosshair with hot-spot at center
-        * ``hand`` : A pointing hand
-        * ``hresize`` : Double arrows pointing horizontally
-        * ``vresize`` : Double arrows pointing vertically
-
-        Requires the GLFW backend, otherwise this function does nothing! Note,
-        on Windows the ``crosshair`` option is negated with the background
-        color. It will not be visible when placed over 50% grey fields.
+            * ``arrow`` : Default pointer.
+            * ``ibeam`` : Indicates text can be edited.
+            * ``crosshair`` : Crosshair with hot-spot at center.
+            * ``hand`` : A pointing hand.
+            * ``hresize`` : Double arrows pointing horizontally.
+            * ``vresize`` : Double arrows pointing vertically.
 
         Parameters
         ----------
         name : str
             Type of standard cursor to use.
+
+        Notes
+        -----
+        * On Windows the ``crosshair`` option is negated with the background
+          color. It will not be visible when placed over 50% grey fields.
 
         """
         try:
