@@ -654,7 +654,6 @@ class Window(object):
             # NB - check if we need these
             GL.glActiveTexture(GL.GL_TEXTURE0)
             GL.glBindTexture(GL.GL_TEXTURE_2D, 0)
-            GL.glEnable(GL.GL_STENCIL_TEST)
 
         # setup retina display if applicable
         global retinaContext
@@ -668,6 +667,7 @@ class Window(object):
         # set these to match the current window or buffer's settings
         GL.glViewport(0, 0, bufferWidth, bufferHeight)
         GL.glScissor(0, 0, bufferWidth, bufferHeight)
+        GL.glEnable(GL.GL_STENCIL_TEST)
 
         # apply the view transforms for this window
         self.applyEyeTransform()
@@ -791,6 +791,7 @@ class Window(object):
             # set these to match the current window or buffer's settings
             GL.glViewport(0, 0, self.size[0], self.size[1])
             GL.glScissor(0, 0, self.size[0], self.size[1])
+            GL.glEnable(GL.GL_SCISSOR_TEST)
 
             # clear the projection and modelview matrix for FBO blit
             GL.glMatrixMode(GL.GL_PROJECTION)
@@ -1148,14 +1149,14 @@ class Window(object):
         """
         # apply the projection and view transformations
         GL.glMatrixMode(GL.GL_PROJECTION)
-        projMat = self._projectionMatrix.T.ctypes.data_as(
+        projMat = self._projectionMatrix.ctypes.data_as(
             ctypes.POINTER(ctypes.c_float))
-        GL.glLoadMatrixf(projMat)
+        GL.glLoadTransposeMatrixf(projMat)
 
         GL.glMatrixMode(GL.GL_MODELVIEW)
-        viewMat = self._viewMatrix.T.ctypes.data_as(
+        viewMat = self._viewMatrix.ctypes.data_as(
             ctypes.POINTER(ctypes.c_float))
-        GL.glLoadMatrixf(viewMat)
+        GL.glLoadTransposeMatrixf(viewMat)
 
         if clearDepth:
             GL.glClear(GL.GL_DEPTH_BUFFER_BIT)
