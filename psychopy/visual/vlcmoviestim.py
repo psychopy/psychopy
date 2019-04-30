@@ -45,6 +45,14 @@ it, execute this as Administrator:
     cd "C:\Program Files\VideoLAN\VLC"
     vlc-cache-gen.exe "C:\Program Files\VideoLAN\VLC\plugins"
 
+
+Not implemented:
+~~~~~~~~~~~~~~~~
+
+* Horizontal/vertical flipping
+* getCurrentFrameTime
+* getPercentageComplete
+
 """
 
 # Part of the PsychoPy library
@@ -154,13 +162,6 @@ def vlcUnlockCallback(user_data, picture, planes):
 def vlcDisplayCallback(user_data, picture):
     self = ctypes.cast(user_data, ctypes.POINTER(ctypes.py_object)).contents.value
     self.frame_counter += 1
-
-def vlcTimeCallback(event, ref, player):
-    # Called by VLC every few hundred msec providing the current time.
-    return
-
-def vlcEndCallback(event, ref):
-    logging.warning("Got end of movie callback")
 
 
 class VlcMovieStim(BaseVisualStim, ContainerMixin):
@@ -335,16 +336,10 @@ class VlcMovieStim(BaseVisualStim, ContainerMixin):
 
         player.video_set_callbacks(vlcLockCallback, vlcUnlockCallback, vlcDisplayCallback, selfref)
 
-        # The other callbacks go on the player's event manager
-        manager = player.event_manager()
-        #manager.event_attach(vlc.EventType.MediaPlayerTimeChanged, vlcTimeCallback, None, player)
-        #manager.event_attach(vlc.EventType.MediaPlayerEndReached, vlcEndCallback, None)
-
         # Keep references
         self._instance = instance
         self._player = player
         self._stream = stream
-        self._stream_event_manager = manager
 
         self._vlc_initialized = True
 
@@ -352,11 +347,6 @@ class VlcMovieStim(BaseVisualStim, ContainerMixin):
         logging.info("Releasing VLC...")
 
         if self._player: self._player.stop()
-
-        if self._stream_event_manager:
-            self._stream_event_manager.event_detach(vlc.EventType.MediaPlayerTimeChanged)
-            self._stream_event_manager.event_detach(vlc.EventType.MediaPlayerEndReached)
-
         if self._stream: self._stream.release()
         if self._instance: self._instance.release()
 
@@ -552,16 +542,16 @@ class VlcMovieStim(BaseVisualStim, ContainerMixin):
             return True
 
     def setContrast(self):
-        """Not yet implemented for MovieStim
+        """Not yet implemented
         """
         pass
 
     def _unload(self):
+        if self._vlc_initialized:
+            self._release_vlc()
         if self._texture_id is not None:
             GL.glDeleteTextures(1, self._texture_id)
             self._texture_id = None
-        if self._vlc_initialized:
-            self._release_vlc()
         self.status = FINISHED
 
     def _onEos(self):
