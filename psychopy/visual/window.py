@@ -822,13 +822,6 @@ class Window(object):
                 GL.glColor3f(1.0, 1.0, 1.0)  # glColor multiplies with texture
                 GL.glColorMask(True, True, True, True)
 
-                # clear the projection and modelview matrix for FBO blit
-                GL.glMatrixMode(GL.GL_PROJECTION)
-                GL.glLoadIdentity()
-                GL.glOrtho(-1, 1, -1, 1, -1, 1)
-                GL.glMatrixMode(GL.GL_MODELVIEW)
-                GL.glLoadIdentity()
-
                 self._renderFBO()
 
                 GL.glEnable(GL.GL_BLEND)
