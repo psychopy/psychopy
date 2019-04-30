@@ -348,7 +348,8 @@ class Window(object):
             self._viewMatrix = numpy.identity(4, dtype=numpy.float32)
 
         if not hasattr(self, '_projectionMatrix'):
-            self._projectionMatrix = viewtools.orthoProjectionMatrix(-1, 1, -1, 1, -1, 1)
+            self._projectionMatrix = viewtools.orthoProjectionMatrix(
+                -1, 1, -1, 1, -1, 1)
 
         # set screen color
         self.__dict__['colorSpace'] = colorSpace
@@ -640,7 +641,7 @@ class Window(object):
 
         """
         # don't configure if we haven't changed context
-        if not self.backend.setCurrent():
+        if self.backend.setCurrent():
             return
 
         # if we are using an FBO, bind it
@@ -658,11 +659,11 @@ class Window(object):
         # setup retina display if applicable
         global retinaContext
         if retinaContext is not None:
-            view = retinaContext.view()
-            bounds = view.convertRectToBacking_(view.bounds()).size
-            bufferWidth, bufferHeight = (int(bounds.width), int(bounds.height))
+           view = retinaContext.view()
+           bounds = view.convertRectToBacking_(view.bounds()).size
+           bufferWidth, bufferHeight = (int(bounds.width), int(bounds.height))
         else:
-            bufferWidth, bufferHeight = self.size
+           bufferWidth, bufferHeight = self.size
 
         # set these to match the current window or buffer's settings
         GL.glViewport(0, 0, bufferWidth, bufferHeight)
@@ -785,7 +786,18 @@ class Window(object):
             for thisStim in self._toDraw:
                 thisStim.draw()
         else:
-            self._setCurrent()
+            self.backend.setCurrent()
+
+            # set these to match the current window or buffer's settings
+            GL.glViewport(0, 0, self.size[0], self.size[1])
+            GL.glScissor(0, 0, self.size[0], self.size[1])
+
+            # clear the projection and modelview matrix for FBO blit
+            GL.glMatrixMode(GL.GL_PROJECTION)
+            GL.glLoadIdentity()
+            GL.glOrtho(-1, 1, -1, 1, -1, 1)
+            GL.glMatrixMode(GL.GL_MODELVIEW)
+            GL.glLoadIdentity()
 
         flipThisFrame = self._startOfFlip()
         if self.useFBO:
@@ -809,13 +821,6 @@ class Window(object):
                 GL.glBindTexture(GL.GL_TEXTURE_2D, self.frameTexture)
                 GL.glColor3f(1.0, 1.0, 1.0)  # glColor multiplies with texture
                 GL.glColorMask(True, True, True, True)
-
-                # clear the projection and modelview matrix for FBO blit
-                GL.glMatrixMode(GL.GL_PROJECTION)
-                GL.glLoadIdentity()
-                GL.glOrtho(-1, 1, -1, 1, -1, 1)
-                GL.glMatrixMode(GL.GL_MODELVIEW)
-                GL.glLoadIdentity()
 
                 self._renderFBO()
 
@@ -1160,10 +1165,6 @@ class Window(object):
         defaults. Call this prior to drawing 2D stimuli objects (i.e.
         GratingStim, ImageStim, Rect, etc.) if any eye transformations were
         applied for the stimuli to be drawn correctly.
-
-        Returns
-        -------
-        None
 
         Notes
         -----
