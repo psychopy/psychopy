@@ -1847,7 +1847,8 @@ class Window(object):
           color. It will not be visible when placed over 50% grey fields.
 
         """
-        pass
+        if self.winType == 'glfw':
+            self.backend.setMouseType(name)
 
     def getActualFrameRate(self, nIdentical=10, nMaxFrames=100,
                            nWarmUpFrames=10, threshold=1):
