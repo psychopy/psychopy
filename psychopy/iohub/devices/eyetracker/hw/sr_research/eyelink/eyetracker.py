@@ -385,13 +385,10 @@ class EyeTracker(EyeTrackerDevice):
         except Exception as e:
             printExceptionDetailsToStdErr()
 
-    def runSetupProcedure(
-            self,
-            starting_state=EyeTrackerConstants.DEFAULT_SETUP_PROCEDURE):
-        """runSetupProcedure initiates the EyeLink Camera Setup and Calibration
-        procedure.
+    def runSetupProcedure(self):
+        """Start the EyeLink Camera Setup and Calibration procedure.
 
-        When runSetupProcedure is called, the following keys can be used on either the
+        During the system setup, the following keys can be used on either the
         Host PC or Experiment PC to control the state of the setup procedure:
 
             * C = Start Calibration
@@ -399,7 +396,6 @@ class EyeTracker(EyeTrackerDevice):
             * ENTER should be pressed at the end of a calibration or validation to accept the calibration, or in the case of validation, use the option drift correction that can be performed as part of the validation process in the EyeLink system.
             * ESC can be pressed at any time to exit the current state of the setup procedure and return to the initial blank screen state.
             * O = Exit the runSetupProcedure method and continue with the experiment.
-
         """
         if starting_state != EyeTrackerConstants.DEFAULT_SETUP_PROCEDURE:
             printExceptionDetailsToStdErr()
@@ -1693,59 +1689,3 @@ def _setNativeRecordingFileSaveDir(*args):
             EyeTracker._local_edf_dir = edfpath
     except Exception as e:
         printExceptionDetailsToStdErr()
-
-#    def drawToHostApplicationWindow(self,graphic_type,**graphic_attributes):
-#        """
-#        EyeLink supported:
-#
-#        graphic_type: EyeTrackerConstants.TEXT_GRAPHIC
-#        graphic_attributes: text='The text to draw', position=(x,y)
-#                where x,y is the position to draw the text in calibrated screen coords.
-#
-#        graphic_type: EyeTrackerConstants.CLEAR_GRAPHICS
-#        graphic_attributes: color = int, between 0 - 15, the color from the EyeLink Host PC palette to use.
-#
-#        graphic_type: EyeTrackerConstants.LINE_GRAPHIC
-#        graphic_attributes: color= int 0 - 15,  start=(x,y), end=(x,y)
-#                where x,y are the start and end position to draw the line in calibrated screen coords.
-#
-#        graphic_type: EyeTrackerConstants.RECTANGLE_GRAPHIC
-#        graphic_attributes:  x  = x coordinates for the top-left corner of the rectangle.
-#                 y  = y coordinates for the top-left corner of the rectangle.
-#                 width = width of the filled rectangle.
-#                 height = height of the filled rectangle.
-#                 color = 0 to 15.
-#                 filled (optional) = True , then box is filled, False and box is only an outline.
-#        """
-#            if graphic_type==EyeTrackerConstants.TEXT_GRAPHIC:
-#                if 'text' in graphic_attributes and 'position' in graphic_attributes:
-#                    text=graphic_attributes['text']
-#                    position=graphic_attributes['position']
-#                    return self._eyelink.drawText(str(text),position)
-#            elif graphic_type==EyeTrackerConstants.CLEAR_GRAPHICS:
-#                if 'color' in graphic_attributes:
-#                    pcolor=int(graphic_attributes['color'])
-#                    if pcolor >=0 and pcolor <= 15:
-#                        return self._eyelink.clearScreen(pcolor)
-#            elif graphic_type==EyeTrackerConstants.LINE_GRAPHIC:
-#                if 'color' in graphic_attributes and 'start' in graphic_attributes and 'end' in graphic_attributes:
-#                    pcolor=int(graphic_attributes['color'])
-#                    sposition = graphic_attributes['start']
-#                    eposition = graphic_attributes['end']
-#                    if pcolor >=0 and pcolor <= 15 and len(sposition)==2 and len(eposition)==2:
-#                        return self._eyelink.drawLine(sposition, eposition,pcolor)
-#            elif graphic_type==EyeTrackerConstants.RECTANGLE_GRAPHIC:
-#                if 'color' in kwargs and 'x' in kwargs and 'y' in kwargs and 'width' in kwargs and 'height' in kwargs:
-#                    pcolor=kwargs['color']
-#                    x=kwargs['x']
-#                    y=kwargs['y']
-#                    width=kwargs['width']
-#                    height=kwargs['height']
-#                    filled=False
-#                    if filled in kwargs:
-#                        filled=kwargs['filled']
-#                    if pcolor >=0 and pcolor <= 15:
-#                        if filled is True:
-#                            return self._eyelink.drawBox(x, y,width, height, pcolor)
-#                        else:
-# return self._eyelink.drawFilledBox(x, y,width, height, pcolor)

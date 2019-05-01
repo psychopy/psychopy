@@ -14,8 +14,6 @@ SR Research
         
 **Supported Models:**
 
-* EyeLink (not tested)
-* EyeLink II
 * EyeLink 1000
 * EyeLink 1000 Remote (not tested)
 * EyeLink 1000 Plus (not tested)
@@ -34,7 +32,7 @@ customers from their support website.
 EyeTracker Class
 ################
 
-.. autoclass:: psychopy.iohub.devices.eyetracker.hw.sr_research.eyelink.EyeTracker
+.. autoclass:: psychopy.iohub.devices.eyetracker.hw.sr_research.eyelink.EyeTracker()
     :members: runSetupProcedure, setRecordingState, enableEventReporting, isRecordingEnabled, getLastSample, getLastGazePosition, getPosition, trackerTime, trackerSec, getConfiguration, getEvents, clearEvents, sendCommand, sendMessage
                 
 Supported Event Types
@@ -44,7 +42,8 @@ The EyeLink implementation of the ioHub eye tracker interface supports
 monoculor or binocular eye samples as well as fixation, saccade, and blink 
 events. 
 
-The following fields of the BinocularEyeSample event are supported:
+Eye Samples
+~~~~~~~~~~~
 
 .. autoclass:: psychopy.iohub.devices.eyetracker.MonocularEyeSampleEvent(object)
 
@@ -97,6 +96,7 @@ The following fields of the BinocularEyeSample event are supported:
         Coordinate space type being used for left_pupil_measure_1.
 
     .. attribute:: ppd_x
+
         Horizontal pixels per visual degree for this eye position as 
         reported by the eye tracker.
 
@@ -126,7 +126,6 @@ The following fields of the BinocularEyeSample event are supported:
         Indicates if eye sample contains 'valid' data. 
         0 = Eye sample is OK.
         2 = Eye sample is invalid.
-        
 
 .. autoclass:: psychopy.iohub.devices.eyetracker.BinocularEyeSampleEvent(object)
 
@@ -272,115 +271,422 @@ The following fields of the BinocularEyeSample event are supported:
         20 = Left eye data is likely invalid.
         22 = Eye sample is likely invalid.
 
+Fixation Events
+~~~~~~~~~~~~~~~
 
-TODO: Update Fixation, Saccade, and Blink eevent docs.
+Successful eye tracker calibration must be performed prior to 
+reading (meaningful) fixation event data.
 
-    #. psychopy.iohub.devices.eyetracker.FixationStartEvent: 
-         * Attributes supported:
-            * experiment_id
-            * session_id
-            * event_id
-            * event_type
-            * logged_time
-            * device_time
-            * time
-            * delay
-            * confidence_interval
-            * eye
-            * gaze_x
-            * gaze_y            
+.. autoclass:: psychopy.iohub.devices.eyetracker.FixationStartEvent(object)
 
-    #. psychopy.iohub.devices.eyetracker.FixationEndEvent: 
-        * Attributes supported: 
-            * experiment_id
-            * session_id
-            * event_id
-            * event_type
-            * logged_time
-            * device_time
-            * time
-            * delay
-            * confidence_interval
-            * eye
-            * duration
-            * start_ppd_x
-            * start_ppd_y
-            * end_ppd_x
-            * end_ppd_y
-            * average_gaze_x
-            * average_gaze_y
-            * average_pupil_measure1
-            * average_pupil_measure1_type
+    .. attribute:: time
+
+        time of event, in sec.msec format, using psychopy timebase.
+
+    .. attribute:: eye
+
+        Eye that generated the event. Either EyeTrackerConstants.LEFT_EYE
+        or EyeTrackerConstants.RIGHT_EYE.
+        
+    .. attribute:: gaze_x
+
+        Horizontal gaze position at the start of the event,
+        in Display Coordinate Type Units. 
+        
+    .. attribute:: gaze_y
+
+        Vertical gaze position at the start of the event,
+        in Display Coordinate Type Units. 
+
+    .. attribute:: angle_x
+
+        Horizontal eye angle at the start of the event.
+        
+    .. attribute:: angle_y
+
+        Vertical eye angle at the start of the event.
+                
+    .. attribute:: pupil_measure_1
+
+        Pupil size. Use pupil_measure1_type to determine what type of pupil
+        size data was being saved by the tracker.
+
+    .. attribute:: pupil_measure1_type
+    
+        EyeTrackerConstants.PUPIL_AREA
+
+    .. attribute:: ppd_x
+    
+        Horizontal pixels per degree at start of event.
+
+    .. attribute:: ppd_y
+
+        Vertical pixels per degree at start of event.
+
+    .. attribute:: velocity_xy
+
+        2D eye velocity at the start of the event.
+
+    .. attribute:: status
+
+        Event status as reported by the eye tracker.
+                  
+.. autoclass:: psychopy.iohub.devices.eyetracker.FixationEndEvent(object)
+
+    .. attribute:: time
+
+        time of event, in sec.msec format, using psychopy timebase.
+        
+    .. attribute:: eye
+
+        Eye that generated the event. Either EyeTrackerConstants.LEFT_EYE
+        or EyeTrackerConstants.RIGHT_EYE.
+        
+    .. attribute:: duration
+
+        Duration of the event in sec.msec format. 
+
+    .. attribute:: start_gaze_x
+
+        Horizontal gaze position at the start of the event,
+        in Display Coordinate Type Units. 
+        
+    .. attribute:: start_gaze_y
+
+        Vertical gaze position at the start of the event,
+        in Display Coordinate Type Units. 
+
+    .. attribute:: start_angle_x
+
+        Horizontal eye angle at the start of the event.
+        
+    .. attribute:: start_angle_y
+
+        Vertical eye angle at the start of the event.
+                
+    .. attribute:: start_pupil_measure_1
+
+        Pupil size at the start of the event.
+
+    .. attribute:: start_pupil_measure1_type
+    
+        EyeTrackerConstants.PUPIL_AREA
+
+    .. attribute:: start_ppd_x
+    
+        Horizontal pixels per degree at start of event.
+
+    .. attribute:: start_ppd_y
+
+        Vertical pixels per degree at start of event.
+
+    .. attribute:: start_velocity_xy
+
+        2D eye velocity at the start of the event.
+
+    .. attribute:: end_gaze_x
+
+        Horizontal gaze position at the end of the event,
+        in Display Coordinate Type Units. 
+        
+    .. attribute:: end_gaze_y
+
+        Vertical gaze position at the end of the event,
+        in Display Coordinate Type Units. 
+
+    .. attribute:: end_angle_x
+
+        Horizontal eye angle at the end of the event.
+        
+    .. attribute:: end_angle_y
+
+        Vertical eye angle at the end of the event.
+                
+    .. attribute:: end_pupil_measure_1
+
+        Pupil size at the end of the event.
+
+    .. attribute:: end_pupil_measure1_type
+    
+        EyeTrackerConstants.PUPIL_AREA
+
+    .. attribute:: end_ppd_x
+    
+        Horizontal pixels per degree at end of event.
+
+    .. attribute:: end_ppd_y
+
+        Vertical pixels per degree at end of event.
+
+    .. attribute:: end_velocity_xy
+
+        2D eye velocity at the end of the event.
+
+    .. attribute:: average_gaze_x
+
+        Average horizontal gaze position during the event,
+        in Display Coordinate Type Units. 
+        
+    .. attribute:: average_gaze_y
+
+        Average vertical gaze position during the event,
+        in Display Coordinate Type Units. 
+
+    .. attribute:: average_angle_x
+
+        Average horizontal eye angle during the event,
+        
+    .. attribute:: average_angle_y
+
+        Average vertical eye angle during the event,
+                
+    .. attribute:: average_pupil_measure_1
+
+        Average pupil size during the event. 
+
+    .. attribute:: average_pupil_measure1_type
+    
+        EyeTrackerConstants.PUPIL_AREA
+
+    .. attribute:: average_velocity_xy
+    
+        Average 2D velocity of the eye during the event.
+
+    .. attribute:: peak_velocity_xy
+
+        Peak 2D velocity of the eye during the event.
+
+    .. attribute:: status
+
+        Event status as reported by the eye tracker.
 
 
-    #. psychopy.iohub.devices.eyetracker.SaccadeStartEvent: 
-         * Attributes supported:
-            * experiment_id
-            * session_id
-            * event_id
-            * event_type
-            * logged_time
-            * device_time
-            * time
-            * delay
-            * confidence_interval
-            * eye
+Saccade Events
+~~~~~~~~~~~~~~~
 
-    #. psychopy.iohub.devices.eyetracker.SaccadeEndEvent: 
-        * Attributes supported: 
-            * experiment_id
-            * session_id
-            * event_id
-            * event_type
-            * logged_time
-            * device_time
-            * time
-            * delay
-            * confidence_interval
-            * eye
-            * duration
-            * amplitude_x
-            * amplitude_y
-            * angle
-            * start_gaze_x
-            * start_gaze_y
-            * start_angle_x
-            * start_angle_y
-            * start_ppd_x
-            * start_ppd_y
-            * end_gaze_x
-            * end_gaze_y
-            * end_angle_x
-            * end_angle_y
-            * end_ppd_x
-            * end_ppd_y
+Successful eye tracker calibration must be performed prior to 
+reading (meaningful) saccade event data.
 
-   #. psychopy.iohub.devices.eyetracker.BlinkStartEvent: 
-         * Attributes supported:
-            * experiment_id
-            * session_id
-            * event_id
-            * event_type
-            * logged_time
-            * device_time
-            * time
-            * delay
-            * confidence_interval
-            * eye
+.. autoclass:: psychopy.iohub.devices.eyetracker.SaccadeStartEvent(object)
 
-    #. psychopy.iohub.devices.eyetracker.BlinkEndEvent: 
-        * Attributes supported: 
-            * experiment_id
-            * session_id
-            * event_id
-            * event_type
-            * logged_time
-            * device_time
-            * time
-            * delay
-            * confidence_interval
-            * eye
-            * duration
+    .. attribute:: time
+
+        time of event, in sec.msec format, using psychopy timebase.
+
+    .. attribute:: eye
+
+        Eye that generated the event. Either EyeTrackerConstants.LEFT_EYE
+        or EyeTrackerConstants.RIGHT_EYE.
+        
+    .. attribute:: gaze_x
+
+        Horizontal gaze position at the start of the event,
+        in Display Coordinate Type Units. 
+        
+    .. attribute:: gaze_y
+
+        Vertical gaze position at the start of the event,
+        in Display Coordinate Type Units. 
+
+    .. attribute:: angle_x
+
+        Horizontal eye angle at the start of the event.
+        
+    .. attribute:: angle_y
+
+        Vertical eye angle at the start of the event.
+                
+    .. attribute:: pupil_measure_1
+
+        Pupil size. Use pupil_measure1_type to determine what type of pupil
+        size data was being saved by the tracker.
+
+    .. attribute:: pupil_measure1_type
+    
+        EyeTrackerConstants.PUPIL_AREA
+
+    .. attribute:: ppd_x
+    
+        Horizontal pixels per degree at start of event.
+
+    .. attribute:: ppd_y
+
+        Vertical pixels per degree at start of event.
+
+    .. attribute:: velocity_xy
+
+        2D eye velocity at the start of the event.
+
+    .. attribute:: status
+
+        Event status as reported by the eye tracker.
+
+                  
+.. autoclass:: psychopy.iohub.devices.eyetracker.SaccadeEndEvent(object)
+
+    .. attribute:: time
+
+        time of event, in sec.msec format, using psychopy timebase.
+        
+    .. attribute:: eye
+
+        Eye that generated the event. Either EyeTrackerConstants.LEFT_EYE
+        or EyeTrackerConstants.RIGHT_EYE.
+        
+    .. attribute:: duration
+
+        Duration of the event in sec.msec format. 
+
+    .. attribute:: start_gaze_x
+
+        Horizontal gaze position at the start of the event,
+        in Display Coordinate Type Units. 
+        
+    .. attribute:: start_gaze_y
+
+        Vertical gaze position at the start of the event,
+        in Display Coordinate Type Units. 
+
+    .. attribute:: start_angle_x
+
+        Horizontal eye angle at the start of the event.
+        
+    .. attribute:: start_angle_y
+
+        Vertical eye angle at the start of the event.
+                
+    .. attribute:: start_pupil_measure_1
+
+        Pupil size at the start of the event.
+
+    .. attribute:: start_pupil_measure1_type
+    
+        EyeTrackerConstants.PUPIL_AREA
+
+    .. attribute:: start_ppd_x
+        
+    Horizontal pixels per degree at start of event.
+
+    .. attribute:: start_ppd_y
+
+        Vertical pixels per degree at start of event.
+
+    .. attribute:: start_velocity_xy
+
+        2D eye velocity at the start of the event.
+
+    .. attribute:: end_gaze_x
+
+        Horizontal gaze position at the end of the event,
+        in Display Coordinate Type Units. 
+        
+    .. attribute:: end_gaze_y
+
+        Vertical gaze position at the end of the event,
+        in Display Coordinate Type Units. 
+
+    .. attribute:: end_angle_x
+
+        Horizontal eye angle at the end of the event.
+        
+    .. attribute:: end_angle_y
+
+        Vertical eye angle at the end of the event.
+                
+    .. attribute:: end_pupil_measure_1
+
+        Pupil size at the end of the event.
+
+    .. attribute:: end_pupil_measure1_type
+    
+        EyeTrackerConstants.PUPIL_AREA
+
+    .. attribute:: end_ppd_x
+        
+        Horizontal pixels per degree at end of event.
+
+    .. attribute:: end_ppd_y
+
+        Vertical pixels per degree at end of event.
+
+    .. attribute:: end_velocity_xy
+
+        2D eye velocity at the end of the event.
+
+    .. attribute:: average_gaze_x
+
+        Average horizontal gaze position during the event,
+        in Display Coordinate Type Units. 
+        
+    .. attribute:: average_gaze_y
+
+        Average vertical gaze position during the event,
+        in Display Coordinate Type Units. 
+
+    .. attribute:: average_angle_x
+
+        Average horizontal eye angle during the event,
+        
+    .. attribute:: average_angle_y
+
+        Average vertical eye angle during the event,
+                
+    .. attribute:: average_pupil_measure_1
+
+        Average pupil size during the event. 
+
+    .. attribute:: average_pupil_measure1_type
+    
+        EyeTrackerConstants.PUPIL_AREA
+
+    .. attribute:: average_velocity_xy
+        
+        Average 2D velocity of the eye during the event.
+
+    .. attribute:: peak_velocity_xy
+
+        Peak 2D velocity of the eye during the event.
+
+    .. attribute:: status
+
+        Event status as reported by the eye tracker.
+
+Blink Events
+~~~~~~~~~~~~
+
+.. autoclass:: psychopy.iohub.devices.eyetracker.BlinkStartEvent(object)
+
+    .. attribute:: time
+
+        time of event, in sec.msec format, using psychopy timebase.
+
+    .. attribute:: eye
+
+        Eye that generated the event. Either EyeTrackerConstants.LEFT_EYE
+        or EyeTrackerConstants.RIGHT_EYE.
+        
+    .. attribute:: status
+
+        Event status as reported by the eye tracker.
+        
+.. autoclass:: psychopy.iohub.devices.eyetracker.BlinkEndEvent(object)
+
+    .. attribute:: time
+
+        time of event, in sec.msec format, using psychopy timebase.
+
+    .. attribute:: eye
+
+        Eye that generated the event. Either EyeTrackerConstants.LEFT_EYE
+        or EyeTrackerConstants.RIGHT_EYE.
+
+    .. attribute:: duration
+
+        Blink duration, in sec.msec format.
+        
+    .. attribute:: status
+
+        Event status as reported by the eye tracker.     
 
 
 Default Device Settings
