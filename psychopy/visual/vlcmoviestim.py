@@ -163,6 +163,12 @@ def vlcDisplayCallback(user_data, picture):
     self = ctypes.cast(user_data, ctypes.POINTER(ctypes.py_object)).contents.value
     self.frame_counter += 1
 
+def vlcTimeCallback(event, user_data, player):
+    if user_data():
+        tm = -event.u.new_time/1000.0
+        user_data()._vlc_clock.reset(tm)
+    return
+
 
 class VlcMovieStim(BaseVisualStim, ContainerMixin):
     """A stimulus class for playing movies (mpeg, avi, etc...) in PsychoPy
@@ -238,6 +244,7 @@ class VlcMovieStim(BaseVisualStim, ContainerMixin):
         self._texture_id = GL.GLuint()
         GL.glGenTextures(1, ctypes.byref(self._texture_id))
 
+        self._vlc_clock = Clock()
         self._vlc_initialized = False
         self._reset()
         self.loadMovie(self.filename)
@@ -336,10 +343,17 @@ class VlcMovieStim(BaseVisualStim, ContainerMixin):
         selfref = ctypes.cast(ctypes.pointer(ctypes.py_object(self)), ctypes.c_void_p)
         player.video_set_callbacks(vlcLockCallback, vlcUnlockCallback, vlcDisplayCallback, selfref)
 
+        manager = player.event_manager()
+        manager.event_attach(
+            vlc.EventType.MediaPlayerTimeChanged, vlcTimeCallback,
+            weakref.ref(self), player)
+
         # Keep references
+        self._self_ref = selfref
         self._instance = instance
         self._player = player
         self._stream = stream
+        self._manager = manager
 
         logging.info("Initialized VLC...")
         self._vlc_initialized = True
@@ -347,6 +361,7 @@ class VlcMovieStim(BaseVisualStim, ContainerMixin):
     def _release_vlc(self):
         logging.info("Releasing VLC...")
 
+        if self._manager: self._manager.event_detach(vlc.EventType.MediaPlayerTimeChanged)
         if self._player: self._player.stop()
         if self._stream: self._stream.release()
         if self._instance: self._instance.release()
@@ -498,15 +513,13 @@ class VlcMovieStim(BaseVisualStim, ContainerMixin):
         """Get the time that the movie file specified the current
         video frame as having.
         """
-        # TODO
-        return 0
+        return self._vlc_clock.getTime()
 
     def getPercentageComplete(self):
         """Provides a value between 0.0 and 100.0, indicating the
         amount of the movie that has been already played.
         """
-        # TODO
-        return 0
+        return self._player.get_position() * 100.0
 
     def draw(self, win=None):
         """Draw the current frame to a particular visual.Window (or to the
