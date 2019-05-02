@@ -114,11 +114,12 @@ except Exception as err:
 
 
 class TexturedRect:
-    def __init__(self, texture_id):
+    def __init__(self, texture_id, opacity=1.0):
         self.texture_id = texture_id
         self.pos = (0.0, 0.0)
         self.size = (1.0, 1.0)
         self.angle = 0
+        self.opacity = opacity
         self.init_vertexes()
 
     def init_vertexes(self):
@@ -132,10 +133,11 @@ class TexturedRect:
 
     def draw(self):
         GL.glPushMatrix()
-        GL.glTranslatef(self.pos[0], self.pos[1], 0)
         GL.glRotatef(self.angle, 0, 0, 1)
+        GL.glTranslatef(self.pos[0], self.pos[1], 0)
         GL.glScalef(self.size[0], self.size[1], 1)
         GL.glColor4f(1,1,1,1)
+        GL.glActiveTexture(GL.GL_TEXTURE0)
         GL.glEnable(GL.GL_TEXTURE_2D)
         GL.glBindTexture(GL.GL_TEXTURE_2D, self.texture_id)
         self.vertex_list.draw(GL.GL_TRIANGLE_STRIP)
@@ -539,14 +541,15 @@ class VlcMovieStim(BaseVisualStim, ContainerMixin):
 
         self._update_texture()
 
-        win.setScale('pix')
-        posPix = convertToPix([0, 0], numpy.asarray(self.pos), win.units, win)
+        posPix = self.pos
         if self.size is None:
-            sizePix = numpy.asarray([self._video_width, self._video_height])
+            sizePix = self.size or numpy.asarray([1, 1])
         else:
-            sizePix = convertToPix([0, 0], numpy.asarray(self.size), win.units, win)
+            sizePix = self.size
+        print("orig: %s %s converted: %s %s" % (self.pos, self.size, posPix, sizePix))
 
         self._video_rect.angle = self.ori
+        # TODO: it would be nice to only recalculate this when it changes
         self._video_rect.set_position_and_size(posPix, sizePix)
         self._video_rect.draw()
 
