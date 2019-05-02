@@ -338,9 +338,6 @@ class VlcMovieStim(BaseVisualStim, ContainerMixin):
         self.pixel_lock = threading.Lock()
         self.pixel_buffer = (ctypes.c_ubyte * self.video_width * self.video_height * 4)()
 
-        # Configure a helper for drawing the texture
-        self._video_rect = TexturedRect(self._texture_id)
-
         # Once you set these callbacks, you are in complete control of what to do with the video buffer
         selfref = ctypes.cast(ctypes.pointer(ctypes.py_object(self)), ctypes.c_void_p)
         player.video_set_callbacks(vlcLockCallback, vlcUnlockCallback, vlcDisplayCallback, selfref)
@@ -523,6 +520,38 @@ class VlcMovieStim(BaseVisualStim, ContainerMixin):
         """
         return self._player.get_position() * 100.0
 
+    def _draw_rectangle(self, win):
+        # make sure that textures are on and GL_TEXTURE0 is active
+        GL.glActiveTexture(GL.GL_TEXTURE0)
+        GL.glEnable(GL.GL_TEXTURE_2D)
+        # sets opacity (1,1,1 = RGB placeholder)
+        GL.glColor4f(1, 1, 1, self.opacity)
+        GL.glPushMatrix()
+        self.win.setScale('pix')
+        # move to centre of stimulus and rotate
+        vertsPix = self.verticesPix
+
+        array = (GL.GLfloat * 32)(
+            1, 1,  # texture coords
+            vertsPix[0, 0], vertsPix[0, 1], 0.,  # vertex
+            0, 1,
+            vertsPix[1, 0], vertsPix[1, 1], 0.,
+            0, 0,
+            vertsPix[2, 0], vertsPix[2, 1], 0.,
+            1, 0,
+            vertsPix[3, 0], vertsPix[3, 1], 0.,
+        )
+        GL.glPushAttrib(GL.GL_ENABLE_BIT)
+        GL.glEnable(GL.GL_TEXTURE_2D)
+        GL.glBindTexture(GL.GL_TEXTURE_2D, self._texture_id)
+        GL.glPushClientAttrib(GL.GL_CLIENT_VERTEX_ARRAY_BIT)
+        # 2D texture array, 3D vertex array
+        GL.glInterleavedArrays(GL.GL_T2F_V3F, 0, array)
+        GL.glDrawArrays(GL.GL_QUADS, 0, 4)
+        GL.glPopClientAttrib()
+        GL.glPopAttrib()
+        GL.glPopMatrix()
+
     def draw(self, win=None):
         """Draw the current frame to a particular visual.Window (or to the
         default win for this object if not specified).
@@ -540,18 +569,7 @@ class VlcMovieStim(BaseVisualStim, ContainerMixin):
         self._selectWindow(win)
 
         self._update_texture()
-
-        posPix = self.pos
-        if self.size is None:
-            sizePix = self.size or numpy.asarray([1, 1])
-        else:
-            sizePix = self.size
-        print("orig: %s %s converted: %s %s" % (self.pos, self.size, posPix, sizePix))
-
-        self._video_rect.angle = self.ori
-        # TODO: it would be nice to only recalculate this when it changes
-        self._video_rect.set_position_and_size(posPix, sizePix)
-        self._video_rect.draw()
+        self._draw_rectangle(win)
 
         if self.current_frame != self.frame_counter:
             self.current_frame = self.frame_counter
