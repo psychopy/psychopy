@@ -246,6 +246,7 @@ class VlcMovieStim(BaseVisualStim, ContainerMixin):
         self._texture_id = GL.GLuint()
         GL.glGenTextures(1, ctypes.byref(self._texture_id))
 
+        self._pause_time = 0
         self._vlc_clock = Clock()
         self._vlc_initialized = False
         self._reset()
@@ -401,6 +402,9 @@ class VlcMovieStim(BaseVisualStim, ContainerMixin):
         if cstat != PLAYING:
             self.status = PLAYING
 
+            if self._pause_time:
+                self._vlc_clock.reset(self._pause_time)
+
             if self._player:
                 if cstat == PAUSED:
                     self._player.pause()
@@ -415,8 +419,7 @@ class VlcMovieStim(BaseVisualStim, ContainerMixin):
             return self.current_frame
 
     def pause(self, log=True):
-        """Pause the current point in the movie (sound will stop, current
-        frame will not advance). If play() is called again both will restart.
+        """Pause the current point in the movie.
         """
         if self.status == PLAYING:
             self.status = PAUSED
@@ -426,6 +429,7 @@ class VlcMovieStim(BaseVisualStim, ContainerMixin):
             if log and self.autoLog:
                 self.win.logOnFlip("Set %s paused" % self.name,
                                    level=logging.EXP, obj=self)
+            self._pause_time = self._vlc_clock.getTime()
             return True
         if log and self.autoLog:
             self.win.logOnFlip("Failed Set %s paused" % self.name,
@@ -453,6 +457,10 @@ class VlcMovieStim(BaseVisualStim, ContainerMixin):
             player = self._player
             if player and player.is_seekable():
                 player.set_time(int(timestamp * 1000.0))
+                self._vlc_clock.reset(timestamp)
+
+                if self.status == PAUSED:
+                    self._pause_time = timestamp
 
             if log:
                 logAttrib(self, log, 'seek', timestamp)
