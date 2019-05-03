@@ -548,7 +548,7 @@ class NoiseStim(GratingStim):
         xx = (0.5 - 1.0 / self._size * xx) 
         yy = (0.5 - 1.0 / self._size * yy) 
         tempTex=filters.make2DGauss(xx,yy,mean=(localf,0), sd=(sigmaF,sigmaO))
-        tempTexTex=tempTex+filters.make2DGauss(xx,yy, mean=(-localf,0), sd=(sigmaF,sigmaO))
+        tempTex=tempTex+filters.make2DGauss(xx,yy, mean=(-localf,0), sd=(sigmaF,sigmaO))
         tempTex=imrotate(tempTex, self.noiseOri, interp='bicubic')
         return FT*tempTex
 
