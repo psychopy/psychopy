@@ -45,9 +45,20 @@ flowScheduler.add(trialRoutineEnd);
 flowScheduler.add(quitPsychoJS, '', true);
 
 // quit if user presses Cancel in dialog box:
-dialogCancelScheduler.add(quitPsychoJS, '', false);
-
-psychoJS.start({expInfo: expInfo});
+dialogCancelScheduler.add(quitPsychoJS, "", false);
+let resourceList = jQuery.getJSON("resources.json")
+  .done(function(data) {
+  // parse when resources.json has successfully downloaded
+  let resourceObj = JSON.parse(resourceList.responseText);
+  psychoJS.start({
+    expName,
+    expInfo,
+    resources: resourceObj,
+    });
+  })
+  .fail(function(error){
+  console.log(error);
+});
 
 var frameDur;
 function updateInfo() {
