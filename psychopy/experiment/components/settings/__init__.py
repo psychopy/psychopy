@@ -492,6 +492,17 @@ class SettingsComponent(object):
                 os.makedirs(dstFolder)
             shutil.copy2(srcFile['abs'], dstAbs)
 
+        # write JSON resources file
+        with open(os.path.join(os.path.dirname(self.exp.expPath), "resources.json"), "w+") as f:
+            f.write("[\n")
+            for file in resourceFiles:
+                file['rel'] = file['rel'].replace('\\\\', '/')  # replace file path separator
+                f.write('{{"name": "{file}", "path": "{file}"}},\n'.format(file=file['rel']))
+            # Remove final comma which causes JSON parse error
+            if len(resourceFiles):
+                f.seek(f.tell() - 3, os.SEEK_SET)
+            f.write("\n]")
+
     def writeInitCodeJS(self, buff, version, localDateTime, modular=True):
         # create resources folder
         self.prepareResourcesJS()

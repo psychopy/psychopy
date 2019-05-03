@@ -257,7 +257,6 @@ class Flow(list):
             self._currentRoutine = entry
             entry.writeExperimentEndCode(script)
 
-
     def writeFlowSchedulerJS(self, script):
         """Initialise each component and then write the per-frame code too
         """
@@ -317,13 +316,25 @@ class Flow(list):
             script.writeIndentedLines(code)
         # quit when all routines are finished
         script.writeIndented("flowScheduler.add(quitPsychoJS, '', true);\n")
-        # handled all the flow entries
-        code = ("\n// quit if user presses Cancel in dialog box:\n"
-                "dialogCancelScheduler.add(quitPsychoJS, '', false);\n"
-                "\npsychoJS.start({expName, expInfo});\n")
+        # Handle resource list
+        code = ('\n// quit if user presses Cancel in dialog box:\n'
+                'dialogCancelScheduler.add(quitPsychoJS, "", false);\n'
+                'let resourceList = jQuery.getJSON("resources.json")\n'
+                '  .done(function(data) {\n'
+                '  // parse when resources.json has successfully downloaded\n'
+                '  let resourceObj = JSON.parse(resourceList.responseText);\n'
+                '  psychoJS.start({\n'
+                '    expName,\n'
+                '    expInfo,\n'
+                '    resources: resourceObj,\n'
+                '    });\n'
+                '  })\n'
+                '  .fail(function(error){\n'
+                '  console.log(error);\n'
+                '});')
         script.writeIndentedLines(code)
         script.setIndentLevel(-1, relative=True)
-        script.writeIndented("\n")
+        script.writeIndented('\n')
 
     def writeLoopHandlerJS(self, script, modular):
         """
