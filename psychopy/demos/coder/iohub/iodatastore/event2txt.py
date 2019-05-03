@@ -2,14 +2,14 @@
 # -*- coding: utf-8 -*-
 """
 This script demonstrates how to load a ioHub DataStore HDF5 file, read the
-session variable data collected via the Experiment Session Variable Dialog
-at the start of each experiment run ( if you did so, otherwise that is ignored)
+session variable data (if provided when experiment was run, otherwise ignored)
 and combine it with columns from a Device Event Table, saving the output as a
 tab delimited file.
 
-@author: Sol
+You will need a .HDF5 file saved using ioHub to run use this demo. If you need
+an ioHub data file, first run the demos/coder/iohub/delaytest/run.py script
+and use the events.hdf5 file that is saved by that demo. 
 """
-
 from __future__ import absolute_import, division, print_function
 
 from builtins import str
@@ -116,7 +116,6 @@ if __name__ == '__main__':
         log_file_name="%s.%s.txt"%(dfile[:-5],event_class_selection.decode('utf-8'))
         
     with open(log_file_name,'w') as output_file:
-
         # write column header
         #
         writeOutputFileHeader(output_file,session_metadata_columns,

@@ -1209,6 +1209,18 @@ class FixationEndEvent(EyeTrackerEvent):
         #: as reported by the eye tracker.
         self.average_velocity_xy = None
 
+        #: Peak Horizontal velocity of the eye during the eye event;
+        #: as reported by the eye tracker.
+        self.peak_velocity_x = None
+
+        #: Peak Vertical velocity of the eye during the eye event;
+        #: as reported by the eye tracker.
+        self.peak_velocity_y = None
+
+        #: Peak 2D Velocity of the eye at the during the eye event;
+        #: as reported by the eye tracker.
+        self.peak_velocity_xy = None
+        
         #: An available status byte for the eye tracker event.
         #: Meaning or use is completely tracker dependent.
         self.status = None

@@ -8,7 +8,7 @@ Gazepoint
 
 **Required Python Version:** 
 
-* Python 3.6
+* Python 3.6 +
 
 **Supported Models:**
 
