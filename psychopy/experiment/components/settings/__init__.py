@@ -499,7 +499,7 @@ class SettingsComponent(object):
 
         # decide if we need anchored useVersion or leave plain
         if self.params['Use version'].val not in ['', 'latest']:
-            versionStr = "-{}".format(self.params['Use version'])
+            versionStr = '-{}'.format(self.params['Use version'].val)
         else:
             versionStr = ''
 
