@@ -41,7 +41,8 @@ else:
 import json
 import numpy as np
 from scipy.io import wavfile
-from psychopy import core, logging, sound, web, prefs
+from psychopy import core, logging, web, prefs
+from psychopy.sound import backend_pyo
 from psychopy.constants import NOT_STARTED, PLAYING, PSYCHOPY_USERAGENT
 # import pyo is done within switchOn to better encapsulate it, can be very
 # slow and don't want to delay up to 3 sec when importing microphone
@@ -112,7 +113,7 @@ class AudioCapture(object):
                 chnl=0, chnls=2):
             filename = pathToString(filename)
             self.running = True
-            # chnl from psychopy.sound.backend.get_input_devices()
+            # chnl from psychopy.backend_pyo.get_input_devices()
             inputter = pyo.Input(chnl=chnl, mul=1)
             self.recorder = pyo.Record(inputter, filename, chnls=chnls,
                                        fileformat=0, sampletype=sampletype,
@@ -247,7 +248,7 @@ class AudioCapture(object):
         t0 = core.getTime()
         self.recorder.run(self.savedFile, self.duration, **self.options)
 
-        self.rate = sound.backend.pyoSndServer.getSamplingRate()
+        self.rate = backend_pyo.pyoSndServer.getSamplingRate()
         if block:
             core.wait(self.duration, 0)
             if log and self.autoLog:
@@ -285,7 +286,7 @@ class AudioCapture(object):
 
         # play this file:
         name = self.name + '.current_recording'
-        self.current_recording = sound.Sound(
+        self.current_recording = backend_pyo.SoundPyo(
             self.savedFile, name=name, loops=loops)
         self.current_recording.play()
         if block:
@@ -428,7 +429,7 @@ class AdvAudioCapture(AudioCapture):
                             ' will not be able to auto-detect onset')
         else:
             self.marker_hz = float(tone)
-            sampleRate = sound.backend.pyoSndServer.getSamplingRate()
+            sampleRate = backend_pyo.pyoSndServer.getSamplingRate()
             if sampleRate < 2 * self.marker_hz:
                 # NyquistError
                 msg = ("Recording rate (%i Hz) too slow for %i Hz-based"
@@ -437,7 +438,7 @@ class AdvAudioCapture(AudioCapture):
             if log and self.autoLog:
                 msg = 'frequency of recording onset marker: %.1f'
                 logging.exp(msg % self.marker_hz)
-            self.marker = sound.Sound(self.marker_hz, secs, volume=volume,
+            self.marker = backend_pyo.SoundPyo(self.marker_hz, secs, volume=volume,
                                       name=self.name + '.marker_tone')
 
     def playMarker(self):
@@ -1159,6 +1160,11 @@ def switchOn(sampleRate=48000, outputDevice=None, bufferSize=None):
     # imports pyo, creates sound.pyoSndServer using sound.initPyo() if not yet
     # created
     t0 = core.getTime()
+    if prefs.hardware['audioLib'][0] != 'pyo':
+        logging.warning("Starting Microphone but sound lib preference is set to be {}. "
+                        "Clashes might occur since 'pyo' is not "
+                        "preferred lib but is needed for Microphone"
+                        .format(prefs.hardware['audioLib']))
     try:
         global pyo
         import pyo
@@ -1166,20 +1172,20 @@ def switchOn(sampleRate=48000, outputDevice=None, bufferSize=None):
         haveMic = True
     except ImportError:  # pragma: no cover
         msg = ('Microphone class not available, needs pyo; '
-               'see http://code.google.com/p/pyo/')
+               'see http://ajaxsoundstudio.com/software/pyo/')
         logging.error(msg)
         raise ImportError(msg)
     if pyo.serverCreated():
-        sound.backend.pyoSndServer.setSamplingRate(sampleRate)
+        backend_pyo.pyoSndServer.setSamplingRate(sampleRate)
     else:
-        # sound.init() will create pyoSndServer. We want there only
+        # backend_pyo.init() will create pyoSndServer. We want there only
         # ever to be one server
         # will automatically use duplex=1 and stereo if poss
-        sound.init(rate=sampleRate)
+        backend_pyo.init(rate=sampleRate)
     if outputDevice:
-        sound.backend.pyoSndServer.setOutputDevice(outputDevice)
+        backend_pyo.pyoSndServer.setOutputDevice(outputDevice)
     if bufferSize:
-        sound.backend.pyoSndServer.setBufferSize(bufferSize)
+        backend_pyo.pyoSndServer.setBufferSize(bufferSize)
     logging.exp('%s: switch on (%dhz) took %.3fs' %
                 (__file__.strip('.py'), sampleRate, core.getTime() - t0))
 
