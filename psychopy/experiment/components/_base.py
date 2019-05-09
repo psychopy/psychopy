@@ -325,7 +325,7 @@ class BaseComponent(object):
                     "&& frameN >= %(stopVal)s) {\n")
         elif self.params['stopType'].val == 'condition':
             code = ("if (%(name)s.status === PsychoJS.Status.STARTED "
-                    "&& bool(%(stopVal)s)) {\n")
+                    "&& Boolean(%(stopVal)s)) {\n")
         else:
             msg = ("Didn't write any stop line for startType="
                    "%(startType)s, "
