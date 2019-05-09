@@ -264,7 +264,7 @@ class SoundDeviceSound(_SoundBase):
                         to force sounds to stereo or mono
         :param volume: float 0-1
         :param loops: number of loops to play (-1=forever, 0=single repeat)
-        :param sampleRate: sample rate for synthesized tones
+        :param sampleRate: sample rate (for synthesized tones)
         :param blockSize: the size of the buffer on the sound card
                          (small for low latency, large for stability)
         :param preBuffer: integer to control streaming/buffering
