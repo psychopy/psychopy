@@ -1,8 +1,8 @@
-#!/usr/bin/env python
+﻿#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-This experiment was created using PsychoPy3 Experiment Builder (v3.1.0),
-    on Thu May  9 17:20:38 2019
+This experiment was created using PsychoPy3 Experiment Builder (v3.1.1),
+    on Thu May  9 17:54:23 2019
 If you publish work using this script please cite the PsychoPy publications:
     Peirce, JW (2007) PsychoPy - Psychophysics software in Python.
         Journal of Neuroscience Methods, 162(1-2), 8-13.
@@ -28,7 +28,7 @@ _thisDir = os.path.dirname(os.path.abspath(__file__))
 os.chdir(_thisDir)
 
 # Store info about the experiment session
-psychopyVersion = '3.1.0'
+psychopyVersion = '3.1.1'
 expName = 'untitled.py'
 expInfo = {'participant': '', 'session': '001'}
 dlg = gui.DlgFromDict(dictionary=expInfo, sortKeys=False, title=expName)
@@ -75,7 +75,7 @@ noise = visual.NoiseStim(
     win=win, name='noise',
     noiseImage=None, mask=None,
     ori=0, pos=(0, 0), size=(0.5, 0.5), sf=None, phase=0.0,
-    color=[1,1,1], colorSpace='rgb',     opacity=1, blendmode='avg', contrast=1.0,
+    color=[1,1,1], colorSpace='rgb', opacity=1, blendmode='avg', contrast=1.0,
     texRes=128,
     noiseType='Binary', noiseElementSize=0.0625, noiseBaseSf=8.0,
     noiseBW=1, noiseBWO=1, noiseFractalPower=0.0,noiseFilterLower=1.0, noiseFilterUpper=8.0, noiseFilterOrder=0.0, noiseClip=3.0, interpolate=False, depth=0.0)
