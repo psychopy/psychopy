@@ -6,7 +6,7 @@ EyeLink(C) calibration graphics implemented using PsychoPy.
 # Copyright (C) 2012-2016 iSolver Software Solutions
 # Distributed under the terms of the GNU General Public License (GPL).
 import numpy as np
-import scipy
+from PIL import Image, ImageOps
 from psychopy import visual
 import sys
 import tempfile
@@ -416,7 +416,7 @@ class EyeLinkCoreGraphicsIOHubPsychopy(pylink.EyeLinkCustomDisplay):
         self.imagetitlestim = None
         self.eye_image = None
         self.state = None
-        self.size = (0, 0)
+        self.eye_frame_size = (0, 0)
 
         self._registerEventMonitors()
         #self._ioMouse.setSystemCursorVisibility(False)
@@ -587,11 +587,12 @@ class EyeLinkCoreGraphicsIOHubPsychopy(pylink.EyeLinkCustomDisplay):
     def setup_image_display(self, width, height):
         """Initialize the index array that will contain camera image data."""
 
-        self.size = (width, height)
-        self.clear_cal_display()
-        self.last_mouse_state = -1
-        if self.rgb_index_array is None:
-            self.rgb_index_array = np.zeros((height, width), dtype=np.uint8)
+        if width and height:
+            self.eye_frame_size = (width, height)
+            self.clear_cal_display()
+            self.last_mouse_state = -1
+            if self.rgb_index_array is None:
+                self.rgb_index_array = np.zeros((int(height/2), int(width/2)), dtype=np.uint8)
 
     def exit_image_display(self):
         """Exits the image display."""
@@ -644,26 +645,15 @@ class EyeLinkCoreGraphicsIOHubPsychopy(pylink.EyeLinkCustomDisplay):
         # resolution.
         if line == totlines:
             try:
-                image = scipy.misc.toimage(self.rgb_index_array,
-                                           pal=self.rgb_pallete,
+                image = Image.fromarray(self.rgb_index_array,
                                            mode='P')
-                if self.imgstim_size is None:
-                    maxsz = self.width / 2
-                    mx = 1.0
-                    while (mx + 1) * self.size[0] <= maxsz:
-                        mx += 1.0
-                    self.imgstim_size = int(
-                        self.size[0] * mx), int(self.size[1] * mx)
-                image = image.resize(self.imgstim_size)
-
-                # TODO: There must be a way to just hand an ImageSTim a nxmx3
-                # array for the image data??
-                image.save(self.tmp_file, 'PNG')
+                image.putpalette(self.rgb_pallete)
+                image = ImageOps.fit(image, [640, 480])
                 if self.eye_image is None:
                     self.eye_image = visual.ImageStim(
-                        self.window, self.tmp_file)
+                        self.window, image)
                 else:
-                    self.eye_image.setImage(self.tmp_file)
+                    self.eye_image.setImage(image)
 
                 # Redraw the Camera Setup Mode graphics
                 self.blankdisplay.draw()
@@ -673,7 +663,6 @@ class EyeLinkCoreGraphicsIOHubPsychopy(pylink.EyeLinkCustomDisplay):
                 self.window.flip()
 
             except Exception as err:
-                import traceback
                 print2err('Error during eye image display: ', err)
                 printExceptionDetailsToStdErr()
 
@@ -734,195 +723,3 @@ class EyeLinkCoreGraphicsIOHubPsychopy(pylink.EyeLinkCustomDisplay):
     def get_mouse_state(self):
         """TODO."""
         pass
-############# From Pyglet Custom Graphics #####################################
-#
-# NOT YET CONVERTED
-#
-#
-#
-###############################################################################
-#
-#
-#   pyglet impl.
-#    def get_mouse_state(self):
-#        #print2err('get_mouse_state entered')
-#        if len(self.pos) > 0 :
-#            l = (int)(self.width*0.5-self.width*0.5*0.75)
-#            r = (int)(self.width*0.5+self.width*0.5*0.75)
-#            b = (int)(self.height*0.5-self.height*0.5*0.75)
-#            t = (int)(self.height*0.5+self.height*0.5*0.75)
-#
-#            mx, my = 0,0
-#            if self.pos[0]<l:
-#                mx = l
-#            elif self.pos[0] >r:
-#                mx = r
-#            else:
-#                mx = self.pos[0]
-#
-#            if self.pos[1]<b:
-#                my = b
-#            elif self.pos[1]>t:
-#                my = t
-#            else:
-#                my = self.pos[1]
-#
-#            mx = (int)((mx-l)*self.img_size[0]//(r-l))
-#            my = self.img_size[1] - (int)((my-b)*self.img_size[1]//(t-b))
-#            #ioHub.print2err('get_mouse_state exiting')
-#            return ((mx, my),self.state)
-#        else:
-#            #ioHub.print2err('get_mouse_state exiting')
-#            return((0,0), 0)
-#
-#
-#
-#   PYGLET Imp.
-#    def draw_image_line(self, width, line, totlines,buff):
-#        pass
-#        ioHub.print2err('draw_image_line entered')
-#        i =0
-#        while i <width:
-#            if buff[i]>=len(self.pal):
-#                buff[i]=len(self.pal)-1
-#            self.imagebuffer.append(self.pal[buff[i]&0x000000FF])
-#            i = i+1
-#        if line == totlines:
-#            #asp = ((float)(self.size[1]))/((float)(self.size[0]))
-#            asp = 1
-#            r = (float)(self.width*0.5-self.width*0.5*0.75)
-#            l = (float)(self.width*0.5+self.width*0.5*0.75)
-#            t = (float)(self.height*0.5+self.height*0.5*asp*0.75)
-#            b = (float)(self.height*0.5-self.height*0.5*asp*0.75)
-#
-#            self.window.clearBuffer()
-#
-#            tx = (int)(self.width*0.5)
-#            ty = b - 30
-#            self.stim.drawStim('imageTitle',{'setPos':(tx,ty)})
-#
-#            self.draw_cross_hair()
-#            glEnable(GL_TEXTURE_RECTANGLE_ARB)
-#            glBindTexture(GL_TEXTURE_RECTANGLE_ARB, self.texid.value)
-#            glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_MAG_FILTER, GL_LINEAR)
-#            glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_MIN_FILTER, GL_LINEAR)
-#            glTexEnvi( GL_TEXTURE_ENV,GL_TEXTURE_ENV_MODE, GL_REPLACE )
-#            glTexImage2D( GL_TEXTURE_RECTANGLE_ARB, 0,GL_RGBA8, width, totlines, 0, GL_RGBA, GL_UNSIGNED_BYTE, self.imagebuffer.tostring())
-#
-#            glBegin(GL_QUADS)
-#            glTexCoord2i(0, 0)
-#            glVertex2f(r,t)
-#            glTexCoord2i(0, self.img_size[1])
-#            glVertex2f(r, b)
-#            glTexCoord2i(self.img_size[0],self.img_size[1])
-#            glVertex2f(l, b)
-#            glTexCoord2i(self.img_size[1],0)
-#            glVertex2f(l, t)
-#            glEnd()
-#            glDisable(GL_TEXTURE_RECTANGLE_ARB)
-#            self.draw_cross_hair()
-#
-#            self.window.flip(clearBuffer=True)
-#
-#            self.imagebuffer = array.array('I')
-#        ioHub.print2err('draw_image_line exiting')
-###############################################################################
-#
-#   Pyglet impl.
-#    def draw_line(self,x1,y1,x2,y2,colorindex):
-#        pass
-#
-#        ioHub.print2err('draw_line entered')
-#        if colorindex   ==  pylink.CR_HAIR_COLOR:          color = (1.0,1.0,1.0,1.0)
-#        elif colorindex ==  pylink.PUPIL_HAIR_COLOR:       color = (1.0,1.0,1.0,1.0)
-#        elif colorindex ==  pylink.PUPIL_BOX_COLOR:        color = (0.0,1.0,0.0,1.0)
-#        elif colorindex ==  pylink.SEARCH_LIMIT_BOX_COLOR: color = (1.0,0.0,0.0,1.0)
-#        elif colorindex ==  pylink.MOUSE_CURSOR_COLOR:     color = (1.0,0.0,0.0,1.0)
-#        else: color =(0.0,0.0,0.0,0.0)
-#
-#        #asp = ((float)(self.size[1]))/((float)(self.size[0]))
-#        asp = 1
-#        r = (float)(self.width*0.5-self.width*0.5*0.75)
-#        l = (float)(self.width*0.5+self.width*0.5*0.75)
-#        t = (float)(self.height*0.5+self.height*0.5*asp*0.75)
-#        b = (float)(self.height*0.5-self.height*0.5*asp*0.75)
-#
-#        x11= float(float(x1)*(l-r)/float(self.img_size[0]) + r)
-#        x22= float(float(x2)*(l-r)/float(self.img_size[0]) + r)
-#        y11= float(float(y1)*(b-t)/float(self.img_size[1]) + t)
-#        y22= float(float(y2)*(b-t)/float(self.img_size[1]) + t)
-#
-# glBegin(GL_LINES)
-##        glColor4f(color[0],color[1],color[2],color[3] )
-# glVertex2f(x11,y11)
-# glVertex2f(x22,y22)
-# glEnd()
-#        ioHub.print2err('draw_line exiting')
-#
-###############################################################################
-#
-#   Pyglet Implementation
-#    def draw_lozenge(self,x,y,width,height,colorindex):
-#        pass
-#        ioHub.print2err('draw_lozenge entered')
-#        if colorindex   ==  pylink.CR_HAIR_COLOR:          color = (1.0,1.0,1.0,1.0)
-#        elif colorindex ==  pylink.PUPIL_HAIR_COLOR:       color = (1.0,1.0,1.0,1.0)
-#        elif colorindex ==  pylink.PUPIL_BOX_COLOR:        color = (0.0,1.0,0.0,1.0)
-#        elif colorindex ==  pylink.SEARCH_LIMIT_BOX_COLOR: color = (1.0,0.0,0.0,1.0)
-#        elif colorindex ==  pylink.MOUSE_CURSOR_COLOR:     color = (1.0,0.0,0.0,1.0)
-#        else: color =(0.0,0.0,0.0,0.0)
-#
-#        width=int((float(width)/float(self.img_size[0]))*self.img_size[0])
-#        height=int((float(height)/float(self.img_size[1]))*self.img_size[1])
-#
-#        #asp = ((float)(self.size[1]))/((float)(self.size[0]))
-#        asp = 1
-#        r = (float)(self.width*0.5-self.width*0.5*0.75)
-#        l = (float)(self.width*0.5+self.width*0.5*0.75)
-#        t = (float)(self.height*0.5+self.height*0.5*asp*0.75)
-#        b = (float)(self.height*0.5-self.height*0.5*asp*0.75)
-#
-#        x11= float(float(x)*(l-r)/float(self.img_size[0]) + r)
-#        x22= float(float(x+width)*(l-r)/float(self.img_size[0]) + r)
-#        y11= float(float(y)*(b-t)/float(self.img_size[1]) + t)
-#        y22= float(float(y+height)*(b-t)/float(self.img_size[1]) + t)
-#
-#        r=x11
-#        l=x22
-#        b=y11
-#        t=y22
-#
-#        #glColor4f(color[0],color[1],color[2],color[3])
-#
-#        xw = math.fabs(float(l-r))
-#        yw = math.fabs(float(b-t))
-#        sh = min(xw,yw)
-#        rad = float(sh*0.5)
-#
-#        x = float(min(l,r)+rad)
-#        y = float(min(t,b)+rad)
-#
-#        if xw==sh:
-#            st = 180
-#        else:
-#            st = 90
-#        glBegin(GL_LINE_LOOP)
-#        i=st
-#        degInRad = (float)(float(i)*(3.14159/180.0))
-#
-#        for i in range (st, st+180):
-#            degInRad = (float)(float(i)*(3.14159/180.0))
-#            glVertex2f((float)(float(x)+math.cos(degInRad)*rad),float(y)+(float)(math.sin(degInRad)*rad))
-#
-#        if xw == sh:    #short horizontally
-#            y = (float)(max(t,b)-rad)
-#        else:  		  # short vertically
-#            x = (float)(max(l,r)-rad)
-#
-#        i = st+180
-#        for i in range (st+180, st+360):
-#            degInRad = (float)(float(i)*(3.14159/180.0))
-#            glVertex2f((float)(float(x)+math.cos(degInRad)*rad),float(y)+(float)(math.sin(degInRad)*rad))
-#
-#        glEnd()
-#        ioHub.print2err('draw_lozenge exiting')

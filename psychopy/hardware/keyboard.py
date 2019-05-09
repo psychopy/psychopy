@@ -232,7 +232,9 @@ class Keyboard:
     def clearEvents(self, eventType=None):
         if havePTB:
             for buffer in self._buffers.values():
-                buffer._clearEvents()
+                buffer._evts.clear()
+                buffer._keys.clear()
+                buffer._keysStillDown.clear()
         else:
             event.clearEvents(eventType)
 

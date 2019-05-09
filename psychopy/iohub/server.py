@@ -41,6 +41,17 @@ MAX_PACKET_SIZE = 64 * 1024
 # pylint: disable=protected-access
 # pylint: disable=broad-except
 
+def convertByteKeysToStr(rdict):
+    if rdict is None or len(rdict)==0:
+        return rdict
+    result = dict()
+    for k, i in rdict.items():
+        if isinstance(k, bytes):
+            result[k.decode('utf-8')] = i
+        else:
+            result[k] = i
+    return result
+
 class udpServer(DatagramServer):
     client_proc_init_req = None
     def __init__(self, ioHubServer, address):
@@ -104,11 +115,11 @@ class udpServer(DatagramServer):
                     if args is None and kwargs is None:
                         result = funcPtr()
                     elif args and kwargs:
-                        result = funcPtr(*args, **kwargs)
+                        result = funcPtr(*args, **convertByteKeysToStr(kwargs))
                     elif args and not kwargs:
                         result = funcPtr(*args)
                     elif not args and kwargs:
-                        result = funcPtr(**kwargs)
+                        result = funcPtr(**convertByteKeysToStr(kwargs))
                     edata = ('RPC_RESULT', callable_name, result)
                     self.sendResponse(edata, replyTo)
                     return True
@@ -155,7 +166,7 @@ class udpServer(DatagramServer):
                 class_kwargs = {}
                 if len(request):
                     class_kwargs = request.pop(0)
-                custom_tasks[tasklet_label] = task_cls(**class_kwargs)
+                custom_tasks[tasklet_label] = task_cls(**convertByteKeysToStr(class_kwargs))
                 custom_tasks[tasklet_label].start()
             except Exception:
                 print2err(
@@ -246,11 +257,11 @@ class udpServer(DatagramServer):
             result = []
             try:
                 if args and kwargs:
-                    result = method(*args, **kwargs)
+                    result = method(*args, **convertByteKeysToStr(kwargs))
                 elif args:
                     result = method(*args)
                 elif kwargs:
-                    result = method(**kwargs)
+                    result = method(**convertByteKeysToStr(kwargs))
                 else:
                     result = method()
                 self.sendResponse(('DEV_RPC_RESULT', result), replyTo)

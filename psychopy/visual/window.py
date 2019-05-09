@@ -631,10 +631,45 @@ class Window(object):
             self.frameClock.reset()
 
     def _setCurrent(self):
-        """Make this window current. If useFBO=True, the framebuffer is bound
-        after the context switch.
+        """Make this window's OpenGL context current.
+
+        If called on a window whose context is current, the function will return
+        immediately. This reduces the number of redundant calls if no context
+        switch is required. If ``useFBO=True``, the framebuffer is bound after
+        the context switch.
+
         """
-        self.backend.setCurrent()
+        # don't configure if we haven't changed context
+        if not self.backend.setCurrent():
+            return
+
+        # if we are using an FBO, bind it
+        if hasattr(self, 'frameBuffer'):
+            GL.glBindFramebufferEXT(GL.GL_FRAMEBUFFER_EXT,
+                                    self.frameBuffer)
+            GL.glReadBuffer(GL.GL_COLOR_ATTACHMENT0_EXT)
+            GL.glDrawBuffer(GL.GL_COLOR_ATTACHMENT0_EXT)
+
+            # NB - check if we need these
+            GL.glActiveTexture(GL.GL_TEXTURE0)
+            GL.glBindTexture(GL.GL_TEXTURE_2D, 0)
+            GL.glEnable(GL.GL_STENCIL_TEST)
+
+        # setup retina display if applicable
+        global retinaContext
+        if retinaContext is not None:
+            view = retinaContext.view()
+            bounds = view.convertRectToBacking_(view.bounds()).size
+            bufferWidth, bufferHeight = (int(bounds.width), int(bounds.height))
+        else:
+            bufferWidth, bufferHeight = self.size
+
+        # set these to match the current window or buffer's settings
+        GL.glViewport(0, 0, bufferWidth, bufferHeight)
+        GL.glScissor(0, 0, bufferWidth, bufferHeight)
+
+        # apply the view transforms for this window
+        self.applyEyeTransform()
 
     def onResize(self, width, height):
         """A default resize event handler.
@@ -746,11 +781,13 @@ class Window(object):
             win.flip(clearBuffer=False)
 
         """
-        for thisStim in self._toDraw:
-            thisStim.draw()
+        if self._toDraw:
+            for thisStim in self._toDraw:
+                thisStim.draw()
+        else:
+            self._setCurrent()
 
         flipThisFrame = self._startOfFlip()
-        self.resetEyeTransform(False)  # reset transformations
         if self.useFBO:
             if flipThisFrame:
                 self._prepareFBOrender()
@@ -1055,9 +1092,19 @@ class Window(object):
         # NB - we should eventually compute these matrices lazily since they may
         # not change over the course of an experiment under most circumstances.
         #
-        scrDistM = self.scrDistCM / 100.0
+
+        if self.scrDistCM is None:
+            scrDistM = 0.5
+        else:
+            scrDistM = self.scrDistCM / 100.0
+
+        if self.scrWidthCM is None:
+            scrWidthM = 0.5
+        else:
+            scrWidthM = self.scrWidthCM / 100.0
+
         frustum = viewtools.computeFrustum(
-            self.scrWidthCM / 100.0,  # width of screen
+            scrWidthM,  # width of screen
             self.size[0] / self.size[1],  # aspect ratio
             scrDistM,  # distance to screen
             nearClip=self._nearClip,
@@ -1087,24 +1134,18 @@ class Window(object):
             objects.
 
         """
-        GL.glViewport(0, 0, self.size[0], self.size[1])
-        GL.glScissor(0, 0, self.size[0], self.size[1])
-
         # apply the projection and view transformations
         GL.glMatrixMode(GL.GL_PROJECTION)
-        #GL.glLoadIdentity()
         projMat = self._projectionMatrix.T.ctypes.data_as(
             ctypes.POINTER(ctypes.c_float))
         GL.glLoadMatrixf(projMat)
 
         GL.glMatrixMode(GL.GL_MODELVIEW)
-        #GL.glLoadIdentity()
         viewMat = self._viewMatrix.T.ctypes.data_as(
             ctypes.POINTER(ctypes.c_float))
         GL.glLoadMatrixf(viewMat)
 
         if clearDepth:
-            #GL.glDepthMask(GL.GL_TRUE)
             GL.glClear(GL.GL_DEPTH_BUFFER_BIT)
 
     def resetEyeTransform(self, clearDepth=True):
@@ -1125,16 +1166,14 @@ class Window(object):
         """
         # should eventually have the same effect as calling _onResize(), so we
         # need to add the retina mode stuff eventually
-        GL.glViewport(0, 0, self.size[0], self.size[1])
-        GL.glScissor(0, 0, self.size[0], self.size[1])
-        GL.glMatrixMode(GL.GL_PROJECTION)
-        GL.glLoadIdentity()
-        GL.glOrtho(-1, 1, -1, 1, -1, 1)
-        GL.glMatrixMode(GL.GL_MODELVIEW)
-        GL.glLoadIdentity()
+        if not hasattr(self, '_viewMatrix'):
+            self._viewMatrix = numpy.identity(4, dtype=numpy.float32)
 
-        if clearDepth:
-            GL.glClear(GL.GL_DEPTH_BUFFER_BIT)
+        if not hasattr(self, '_projectionMatrix'):
+            self._projectionMatrix = viewtools.orthoProjectionMatrix(
+                -1, 1, -1, 1, -1, 1)
+
+        self.applyEyeTransform(clearDepth)
 
     def getMovieFrame(self, buffer='front'):
         """Capture the current Window as an image.
@@ -1753,19 +1792,24 @@ class Window(object):
         They may vary in appearance and hot spot location across platforms. The
         following names are valid on most platforms:
 
-        - 'arrow' : Default pointer
-        - 'ibeam' : Indicates text can be edited
-        - 'crosshair' : Crosshair with hot-spot at center
-        - 'hand' : A pointing hand
-        - 'hresize' : Double arrows pointing horizontally
-        - 'vresize' : Double arrows pointing vertically
+            * ``arrow`` : Default pointer.
+            * ``ibeam`` : Indicates text can be edited.
+            * ``crosshair`` : Crosshair with hot-spot at center.
+            * ``hand`` : A pointing hand.
+            * ``hresize`` : Double arrows pointing horizontally.
+            * ``vresize`` : Double arrows pointing vertically.
 
-        Requires the GLFW backend, otherwise this function does nothing! Note,
-        on Windows the 'crosshair' option is XORed with the background color. It
-        will not be visible when placed over 50% grey fields.
+        Requires the GLFW backend, otherwise this function does nothing!
 
-        :param name: str, type of standard cursor to use
-        :return:
+        Parameters
+        ----------
+        name : str
+            Type of standard cursor to use.
+
+        Notes
+        -----
+        * On Windows the ``crosshair`` option is negated with the background
+          color. It will not be visible when placed over 50% grey fields.
 
         """
         pass
