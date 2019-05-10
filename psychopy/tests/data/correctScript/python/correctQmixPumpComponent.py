@@ -1,8 +1,8 @@
-#!/usr/bin/env python
+﻿#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-This experiment was created using PsychoPy3 Experiment Builder (v3.1.1),
-    on Thu May  9 17:54:23 2019
+This experiment was created using PsychoPy3 Experiment Builder (v3.1.0),
+    on May 10, 2019, at 11:15
 If you publish work using this script please cite the PsychoPy publications:
     Peirce, JW (2007) PsychoPy - Psychophysics software in Python.
         Journal of Neuroscience Methods, 162(1-2), 8-13.
@@ -22,13 +22,20 @@ import os  # handy system and path functions
 import sys  # to get file system encoding
 
 from psychopy.hardware import keyboard
+from psychopy.hardware import qmix
+
+# Initialize all pumps so they are ready to be used when we
+# need them later. This enables us to dynamically select
+# pumps during the experiment without worrying about their
+# initialization.
+qmix._init_all_pumps()
 
 # Ensure that relative paths start from the same directory as this script
 _thisDir = os.path.dirname(os.path.abspath(__file__))
 os.chdir(_thisDir)
 
 # Store info about the experiment session
-psychopyVersion = '3.1.1'
+psychopyVersion = '3.1.0'
 expName = 'untitled.py'
 expInfo = {'participant': '', 'session': '001'}
 dlg = gui.DlgFromDict(dictionary=expInfo, sortKeys=False, title=expName)
@@ -44,7 +51,7 @@ filename = _thisDir + os.sep + u'data/%s_%s_%s' % (expInfo['participant'], expNa
 # An ExperimentHandler isn't essential but helps with data saving
 thisExp = data.ExperimentHandler(name=expName, version='',
     extraInfo=expInfo, runtimeInfo=None,
-    originPath='newSoundComponent.py',
+    originPath='newQmixPumpComponent.py',
     savePickle=True, saveWideText=True,
     dataFileName=filename)
 # save a log file for detail verbose info
@@ -71,8 +78,6 @@ else:
 
 # Initialize components for Routine "trial"
 trialClock = core.Clock()
-sound_1 = sound.Sound('A', secs=1.0, stereo=True)
-sound_1.setVolume(1)
 
 # Create some handy timers
 globalClock = core.Clock()  # to track the time since experiment started
@@ -85,10 +90,16 @@ frameN = -1
 continueRoutine = True
 routineTimer.add(1.000000)
 # update component parameters for each repeat
-sound_1.setSound('A', secs=1.0)
-sound_1.setVolume(1, log=False)
+
+# Select the correct pre-initialized pump, and set the 
+# syringe type according to the Pumo Component properties.
+_pumpInstance = qmix.pumps[0]
+pump = qmix._PumpWrapperForBuilderComponent(_pumpInstance)
+pump.syringeType = '50 mL glass'
+pump.flowRateUnit = 'mL/s'
+pump.status = None
 # keep track of which components have finished
-trialComponents = [sound_1]
+trialComponents = [pump]
 for thisComponent in trialComponents:
     thisComponent.tStart = None
     thisComponent.tStop = None
@@ -103,21 +114,23 @@ while continueRoutine and routineTimer.getTime() > 0:
     t = trialClock.getTime()
     frameN = frameN + 1  # number of completed frames (so 0 is the first frame)
     # update/draw components on each frame
-    # start/stop sound_1
-    if t >= 0.0 and sound_1.status == NOT_STARTED:
+    # *pump* updates
+    if t >= 0.0 and pump.status == NOT_STARTED:
         # keep track of start time/frame for later
-        sound_1.tStart = t  # not accounting for scr refresh
-        sound_1.frameNStart = frameN  # exact frame index
-        win.timeOnFlip(sound_1, 'tStartRefresh')  # time at next scr refresh
-        win.callOnFlip(sound_1.play)  # screen flip
+        pump.tStart = t  # not accounting for scr refresh
+        pump.frameNStart = frameN  # exact frame index
+        win.timeOnFlip(pump, 'tStartRefresh')  # time at next scr refresh
+        pump.status = STARTED
+        win.callOnFlip(pump.empty, flowRate=1.0)
     frameRemains = 0.0 + 1.0- win.monitorFramePeriod * 0.75  # most of one frame period left
-    if sound_1.status == STARTED and t >= frameRemains:
+    if pump.status == STARTED and t >= frameRemains:
         # keep track of stop time/frame for later
-        sound_1.tStop = t  # not accounting for scr refresh
-        sound_1.frameNStop = frameN  # exact frame index
-        win.timeOnFlip(sound_1, 'tStopRefresh')  # time at next scr refresh
-        if 1.0 > 0.5:  # don't force-stop brief sounds
-            sound_1.stop()
+        pump.tStop = t  # not accounting for scr refresh
+        pump.frameNStop = frameN  # exact frame index
+        win.timeOnFlip(pump, 'tStopRefresh')  # time at next scr refresh
+        pump.status = FINISHED
+        win.callOnFlip(pump.stop)
+        win.callOnFlip(pump.switchValvePosition)
     
     # check for quit (typically the Esc key)
     if endExpNow or keyboard.Keyboard().getKeys(keyList=["escape"]):
@@ -140,9 +153,13 @@ while continueRoutine and routineTimer.getTime() > 0:
 for thisComponent in trialComponents:
     if hasattr(thisComponent, "setAutoDraw"):
         thisComponent.setAutoDraw(False)
-sound_1.stop()  # ensure sound has stopped at end of routine
-thisExp.addData('sound_1.started', sound_1.tStartRefresh)
-thisExp.addData('sound_1.stopped', sound_1.tStopRefresh)
+
+if pump.status == STARTED:
+    pump.stop()
+    pump.switchValvePosition()
+
+thisExp.addData('pump.started', pump.tStart)
+thisExp.addData('pump.stopped', pump.tStop)
 
 # Flip one final time so any remaining win.callOnFlip() 
 # and win.timeOnFlip() tasks get executed before quitting
