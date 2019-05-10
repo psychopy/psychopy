@@ -668,6 +668,7 @@ class Window(object):
         # set these to match the current window or buffer's settings
         GL.glViewport(0, 0, bufferWidth, bufferHeight)
         GL.glScissor(0, 0, bufferWidth, bufferHeight)
+        GL.glEnable(GL.GL_SCISSOR_TEST)
 
         # apply the view transforms for this window
         #self.applyEyeTransform()
