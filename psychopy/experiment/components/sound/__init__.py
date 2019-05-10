@@ -149,17 +149,12 @@ class SoundComponent(BaseComponent):
         # because of the 'if' statement of the time test
         buff.setIndentLevel(-1, relative=True)
         if not self.params['stopVal'].val in ['', None, -1, 'None']:
-
-            if '$' in self.params['stopVal'].val:
-                code = 'if %(name)s.status == STARTED and t >= %(stopVal)s:\n' \
-                       '    %(name)s.stop()  # stop the sound (if longer than duration)\n'
-                buff.writeIndentedLines(code % self.params)
-            elif not float(self.params['stopVal'].val) < 2:  # Reduce spectral splatter but not stopping short sounds
-                self.writeStopTestCode(buff)
-                code = "%s.stop()  # stop the sound (if longer than duration)\n"
-                buff.writeIndented(code % self.params['name'])
-                # because of the 'if' statement of the time test
-                buff.setIndentLevel(-1, relative=True)
+            self.writeStopTestCode(buff)
+            code = ("if %(stopVal)s > 0.5:  # don't force-stop brief sounds\n"
+                    "    %(name)s.stop()\n")
+            buff.writeIndentedLines(code % self.params)
+            # because of the 'if' statement of the time test
+            buff.setIndentLevel(-1, relative=True)
 
     def writeFrameCodeJS(self, buff):
         """Write the code that will be called every frame
@@ -180,23 +175,22 @@ class SoundComponent(BaseComponent):
         buff.writeIndentedLines('}\n')
         knownNote = (self.params['sound'] in knownNoteNames) or (self.params['sound'].val.isdigit())
         if self.params['stopVal'].val in [None, 'None', '']:
-            code = ('if (t >= (%(name)s.getDuration() + %(name)s.tStart) '
-                    '&& %(name)s.status === PsychoJS.Status.STARTED) {\n'
-                    '  %(name)s.stop();  // stop the sound (if longer than duration)\n'
-                    '  %(name)s.status = PsychoJS.Status.FINISHED;\n'
-                    '}\n')
             if not knownNote:  # Known notes have no getDuration function because duration is infinite or not None
+                # infinite sounds
+                code = ('if (t >= (%(name)s.getDuration() + %(name)s.tStart) '
+                        '    && %(name)s.status === PsychoJS.Status.STARTED) {\n'
+                        '  %(name)s.stop();  // stop the sound (if longer than duration)\n'
+                        '  %(name)s.status = PsychoJS.Status.FINISHED;\n'
+                        '}\n')
                 buff.writeIndentedLines(code % self.params)
-        elif '$' in self.params['stopVal'].val:
-            code = ('if (t >= (%(stopVal)s && %(name)s.status === PsychoJS.Status.STARTED)) {\n'
-                    '  %(name)s.stop();  // stop the sound (if longer than duration)\n'
-                    '  %(name)s.status = PsychoJS.Status.FINISHED;\n'
-                    '}\n')
-            buff.writeIndentedLines(code % self.params)
-        elif not float(self.params['stopVal'].val) < 2:  # Reduce spectral splatter but not stopping short sounds
+        else:
+            # sounds with stop values
             self.writeStopTestCodeJS(buff)
-            code = "%s.stop();  // stop the sound (if longer than duration)\n"
-            buff.writeIndented(code % self.params['name'])
+            code = ("if (%(stopVal)s > 0.5) {"
+                    "  %(name)s.stop();  // stop the sound (if longer than duration)\n"
+                    "  %(name)s.status = PsychoJS.Status.FINISHED;\n"
+                    "}\n")
+            buff.writeIndentedLines(code % self.params)
             # because of the 'if' statement of the time test
             buff.setIndentLevel(-1, relative=True)
             buff.writeIndented('}\n')
