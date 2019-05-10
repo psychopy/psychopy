@@ -862,6 +862,18 @@ EnvGratingComponent.pos.staticUpdater:None
 EnvGratingComponent.pos.updates:constant
 EnvGratingComponent.pos.val:(0, 0)
 EnvGratingComponent.pos.valType:code
+EnvGratingComponent.power.default:1.0
+EnvGratingComponent.power.allowedTypes:[]
+EnvGratingComponent.power.allowedUpdates:['constant', 'set every repeat', 'set every frame']
+EnvGratingComponent.power.allowedVals:[]
+EnvGratingComponent.power.categ:Envelope
+EnvGratingComponent.power.hint:Power of modulation envelope. The modulator will be rasied to this power according to the equation S=cC*(1+mM)^power, where C is the carrier and M is the modulator. and c and m are there respective contrast and modulation depth. Only works with AM envelopes (hence +1) in equation. Power is ignored if a beat is requested. This is used to obtain the square root of the modulator (power = 0.5) which is useful if combining two envelope gratings with different carriers and a 180 degree phase shift as the resulting combined signal will not have any reduction in local contrast at any point in the image. This is similar - but not identical to - the method used by Landy and Oruc, Vis Res 2002. Note overall contrast (apparent carrier contrast) will be altered.
+EnvGratingComponent.power.label:Power to which envelope is rasied
+EnvGratingComponent.power.readOnly:False
+EnvGratingComponent.power.staticUpdater:None
+EnvGratingComponent.power.updates:constant
+EnvGratingComponent.power.val:1.0
+EnvGratingComponent.power.valType:code
 EnvGratingComponent.saveStartStop.default:True
 EnvGratingComponent.saveStartStop.allowedTypes:[]
 EnvGratingComponent.saveStartStop.allowedUpdates:None
