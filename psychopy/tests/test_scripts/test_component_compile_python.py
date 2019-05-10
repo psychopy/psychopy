@@ -35,9 +35,9 @@ class TestComponentCompilerPython(object):
                 correctPath = os.path.join(TESTS_DATA_PATH, "correctScript", "python", 'correct{}.py'.format(compName))
                 # Compare files, raising assertions on fails above tolerance (%)
                 try:
-                    compareTextFiles('new{}.py'.format(compName), correctPath, tolerance=3)
+                    compareTextFiles('new{}.py'.format(compName), correctPath, tolerance=5)
                 except IOError as err:
-                    compareTextFiles('new{}.py'.format(compName), correctPath, tolerance=3)
+                    compareTextFiles('new{}.py'.format(compName), correctPath, tolerance=5)
 
     def reset_experiment(self):
         """Resets the exp object for each component"""

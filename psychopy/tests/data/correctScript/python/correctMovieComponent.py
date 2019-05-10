@@ -1,8 +1,8 @@
 ﻿#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-This experiment was created using PsychoPy3 Experiment Builder (v3.1.0),
-    on Thu Apr  4 17:01:10 2019
+This experiment was created using PsychoPy3 Experiment Builder (v3.1.1),
+    on May 10, 2019, at 11:50
 If you publish work using this script please cite the PsychoPy publications:
     Peirce, JW (2007) PsychoPy - Psychophysics software in Python.
         Journal of Neuroscience Methods, 162(1-2), 8-13.
@@ -24,14 +24,14 @@ import sys  # to get file system encoding
 from psychopy.hardware import keyboard
 
 # Ensure that relative paths start from the same directory as this script
-_thisDir = os.path.dirname(os.path.abspath(__file__)).decode(sys.getfilesystemencoding())
+_thisDir = os.path.dirname(os.path.abspath(__file__))
 os.chdir(_thisDir)
 
 # Store info about the experiment session
-psychopyVersion = '3.1.0'
+psychopyVersion = '3.1.1'
 expName = 'untitled.py'
-expInfo = {'session': '001', 'participant': ''}
-dlg = gui.DlgFromDict(dictionary=expInfo, title=expName)
+expInfo = {'participant': '', 'session': '001'}
+dlg = gui.DlgFromDict(dictionary=expInfo, sortKeys=False, title=expName)
 if dlg.OK == False:
     core.quit()  # user pressed cancel
 expInfo['date'] = data.getDateStr()  # add a simple timestamp
@@ -76,6 +76,7 @@ movie = visual.MovieStim3(
     noAudio = False,
     filename=None,
     ori=0, pos=(0, 0), opacity=1,
+    loop=False,
     depth=0.0,
     )
 

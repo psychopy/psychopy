@@ -87,7 +87,7 @@ def compareTextFiles(pathToActual, pathToCorrect, delim=None,
         raise IOError("File not found")  # deliberately raise an error to see the warning message, but also to create file
 
     allowLines = 0
-    lineDiff = True
+    nLinesMatch = True
 
     if delim is None:
         if pathToCorrect.endswith('.csv'):
@@ -108,8 +108,9 @@ def compareTextFiles(pathToActual, pathToCorrect, delim=None,
             allowLines = round((tolerance * len(txtCorrect)) / 100, 0)
 
         # Check number of lines per document for equality
-        lineDiff = len(txtActual) == len(txtCorrect)
-        assert lineDiff
+        nLinesMatch = len(txtActual) == len(txtCorrect)
+        assert nLinesMatch
+        errLines = []
 
         for lineN in range(len(txtActual)):
             if delim is None:
@@ -118,8 +119,8 @@ def compareTextFiles(pathToActual, pathToCorrect, delim=None,
 
                 # just compare the entire line
                 if not lineActual == lineCorrect:
-                    allowLines -= 1
-                assert allowLines >= 0
+                    errLines.append({'actual':lineActual, 'correct':lineCorrect})
+                assert len(errLines) <= allowLines
 
             else:  # word by word instead
                 lineActual=txtActual[lineN].split(delim)
@@ -156,9 +157,9 @@ def compareTextFiles(pathToActual, pathToCorrect, delim=None,
         pathToLocal = pathToLocal+'_local'+ext
 
         # Set assertion type
-        if not lineDiff:  # Fail if number of lines not equal
+        if not nLinesMatch:  # Fail if number of lines not equal
             msg = "{} has the wrong number of lines".format(pathToActual)
-        elif allowLines < 0:  # Fail if tolerance reached
+        elif len(errLines) < allowLines:  # Fail if tolerance reached
             msg = 'Number of differences in {failed} exceeds the {tol}% tolerance'.format(failed=pathToActual,
                                                                                           tol=tolerance or 0)
         else:
