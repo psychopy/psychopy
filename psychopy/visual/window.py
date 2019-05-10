@@ -641,7 +641,7 @@ class Window(object):
 
         """
         # don't configure if we haven't changed context
-        if self.backend.setCurrent():
+        if not self.backend.setCurrent():
             return
 
         # if we are using an FBO, bind it
