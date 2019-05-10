@@ -670,7 +670,7 @@ class Window(object):
         GL.glScissor(0, 0, bufferWidth, bufferHeight)
 
         # apply the view transforms for this window
-        self.applyEyeTransform()
+        #self.applyEyeTransform()
 
     def onResize(self, width, height):
         """A default resize event handler.
@@ -1147,15 +1147,17 @@ class Window(object):
 
         """
         # apply the projection and view transformations
-        GL.glMatrixMode(GL.GL_PROJECTION)
-        projMat = self._projectionMatrix.T.ctypes.data_as(
-            ctypes.POINTER(ctypes.c_float))
-        GL.glLoadMatrixf(projMat)
+        if hasattr(self, '_projectionMatrix'):
+            GL.glMatrixMode(GL.GL_PROJECTION)
+            projMat = self._projectionMatrix.T.ctypes.data_as(
+                ctypes.POINTER(ctypes.c_float))
+            GL.glLoadMatrixf(projMat)
 
-        GL.glMatrixMode(GL.GL_MODELVIEW)
-        viewMat = self._viewMatrix.T.ctypes.data_as(
-            ctypes.POINTER(ctypes.c_float))
-        GL.glLoadMatrixf(viewMat)
+        if hasattr(self, '_viewMatrix'):
+            GL.glMatrixMode(GL.GL_MODELVIEW)
+            viewMat = self._viewMatrix.T.ctypes.data_as(
+                ctypes.POINTER(ctypes.c_float))
+            GL.glLoadMatrixf(viewMat)
 
         if clearDepth:
             GL.glClear(GL.GL_DEPTH_BUFFER_BIT)
@@ -1174,10 +1176,10 @@ class Window(object):
         """
         # should eventually have the same effect as calling _onResize(), so we
         # need to add the retina mode stuff eventually
-        if not hasattr(self, '_viewMatrix'):
+        if hasattr(self, '_viewMatrix'):
             self._viewMatrix = numpy.identity(4, dtype=numpy.float32)
 
-        if not hasattr(self, '_projectionMatrix'):
+        if hasattr(self, '_projectionMatrix'):
             self._projectionMatrix = viewtools.orthoProjectionMatrix(
                 -1, 1, -1, 1, -1, 1)
 
