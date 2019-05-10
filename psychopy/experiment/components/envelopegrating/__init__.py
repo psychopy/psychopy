@@ -31,7 +31,7 @@ _localized = {'carrier': _translate('Carrier texture'),
               'envori':_translate('Envelope orientation'),
               'envphase':_translate('Envelope phase'),
               'moddepth':_translate('Envelope modulation depth'),
-              'power':_translate('Power to which envelope is rasied'),
+              'power':_translate('Power to which envelope is raised'),
               'beat':_translate('Is modulation a beat'),
               'blendmode':_translate('OpenGL blend mode')
               }
@@ -179,7 +179,7 @@ class EnvGratingComponent(BaseVisualComponent):
             label=_localized['moddepth'], categ="Envelope")
             
         msg = _translate("Power of modulation envelope. "
-                          "The modulator will be rasied to this power "
+                          "The modulator will be raised to this power "
                           "according to the equation S=cC*(1+mM)^power, "
                           "where C is the carrier and M is the modulator. "
                           "and c and m are there respective contrast and modulation depth. "
