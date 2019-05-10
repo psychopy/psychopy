@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 """
 This experiment was created using PsychoPy3 Experiment Builder (v3.1.0),
-    on Thu May  9 17:20:38 2019
+    on May 10, 2019, at 11:15
 If you publish work using this script please cite the PsychoPy publications:
     Peirce, JW (2007) PsychoPy - Psychophysics software in Python.
         Journal of Neuroscience Methods, 162(1-2), 8-13.
@@ -22,6 +22,13 @@ import os  # handy system and path functions
 import sys  # to get file system encoding
 
 from psychopy.hardware import keyboard
+from psychopy.hardware import qmix
+
+# Initialize all pumps so they are ready to be used when we
+# need them later. This enables us to dynamically select
+# pumps during the experiment without worrying about their
+# initialization.
+qmix._init_all_pumps()
 
 # Ensure that relative paths start from the same directory as this script
 _thisDir = os.path.dirname(os.path.abspath(__file__))
@@ -44,7 +51,7 @@ filename = _thisDir + os.sep + u'data/%s_%s_%s' % (expInfo['participant'], expNa
 # An ExperimentHandler isn't essential but helps with data saving
 thisExp = data.ExperimentHandler(name=expName, version='',
     extraInfo=expInfo, runtimeInfo=None,
-    originPath='newApertureComponent.py',
+    originPath='newQmixPumpComponent.py',
     savePickle=True, saveWideText=True,
     dataFileName=filename)
 # save a log file for detail verbose info
@@ -58,7 +65,7 @@ endExpNow = False  # flag for 'escape' or other condition => quit the exp
 # Setup the Window
 win = visual.Window(
     size=(1024, 768), fullscr=True, screen=0, 
-    winType='pyglet', allowGUI=False, allowStencil=True,
+    winType='pyglet', allowGUI=False, allowStencil=False,
     monitor='testMonitor', color=[0,0,0], colorSpace='rgb',
     blendMode='avg', useFBO=True, 
     units='height')
@@ -71,10 +78,6 @@ else:
 
 # Initialize components for Routine "trial"
 trialClock = core.Clock()
-aperture = visual.Aperture(
-    win=win, name='aperture',
-    units='norm', size=1, pos=(0, 0))
-aperture.disable()  # disable until its actually used
 
 # Create some handy timers
 globalClock = core.Clock()  # to track the time since experiment started
@@ -87,8 +90,16 @@ frameN = -1
 continueRoutine = True
 routineTimer.add(1.000000)
 # update component parameters for each repeat
+
+# Select the correct pre-initialized pump, and set the 
+# syringe type according to the Pumo Component properties.
+_pumpInstance = qmix.pumps[0]
+pump = qmix._PumpWrapperForBuilderComponent(_pumpInstance)
+pump.syringeType = '50 mL glass'
+pump.flowRateUnit = 'mL/s'
+pump.status = None
 # keep track of which components have finished
-trialComponents = [aperture]
+trialComponents = [pump]
 for thisComponent in trialComponents:
     thisComponent.tStart = None
     thisComponent.tStop = None
@@ -103,21 +114,23 @@ while continueRoutine and routineTimer.getTime() > 0:
     t = trialClock.getTime()
     frameN = frameN + 1  # number of completed frames (so 0 is the first frame)
     # update/draw components on each frame
-    
-    # *aperture* updates
-    if t >= 0.0 and aperture.status == NOT_STARTED:
+    # *pump* updates
+    if t >= 0.0 and pump.status == NOT_STARTED:
         # keep track of start time/frame for later
-        aperture.tStart = t  # not accounting for scr refresh
-        aperture.frameNStart = frameN  # exact frame index
-        win.timeOnFlip(aperture, 'tStartRefresh')  # time at next scr refresh
-        aperture.enabled = True
+        pump.tStart = t  # not accounting for scr refresh
+        pump.frameNStart = frameN  # exact frame index
+        win.timeOnFlip(pump, 'tStartRefresh')  # time at next scr refresh
+        pump.status = STARTED
+        win.callOnFlip(pump.empty, flowRate=1.0)
     frameRemains = 0.0 + 1.0- win.monitorFramePeriod * 0.75  # most of one frame period left
-    if aperture.status == STARTED and t >= frameRemains:
+    if pump.status == STARTED and t >= frameRemains:
         # keep track of stop time/frame for later
-        aperture.tStop = t  # not accounting for scr refresh
-        aperture.frameNStop = frameN  # exact frame index
-        win.timeOnFlip(aperture, 'tStopRefresh')  # time at next scr refresh
-        aperture.enabled = False
+        pump.tStop = t  # not accounting for scr refresh
+        pump.frameNStop = frameN  # exact frame index
+        win.timeOnFlip(pump, 'tStopRefresh')  # time at next scr refresh
+        pump.status = FINISHED
+        win.callOnFlip(pump.stop)
+        win.callOnFlip(pump.switchValvePosition)
     
     # check for quit (typically the Esc key)
     if endExpNow or keyboard.Keyboard().getKeys(keyList=["escape"]):
@@ -140,9 +153,13 @@ while continueRoutine and routineTimer.getTime() > 0:
 for thisComponent in trialComponents:
     if hasattr(thisComponent, "setAutoDraw"):
         thisComponent.setAutoDraw(False)
-aperture.enabled = False  # just in case it was left enabled
-thisExp.addData('aperture.started', aperture.tStartRefresh)
-thisExp.addData('aperture.stopped', aperture.tStopRefresh)
+
+if pump.status == STARTED:
+    pump.stop()
+    pump.switchValvePosition()
+
+thisExp.addData('pump.started', pump.tStart)
+thisExp.addData('pump.stopped', pump.tStop)
 
 # Flip one final time so any remaining win.callOnFlip() 
 # and win.timeOnFlip() tasks get executed before quitting

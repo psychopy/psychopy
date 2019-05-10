@@ -2698,7 +2698,7 @@ MouseComponent.timeRelativeTo.staticUpdater:None
 MouseComponent.timeRelativeTo.updates:constant
 MouseComponent.timeRelativeTo.val:mouse onset
 MouseComponent.timeRelativeTo.valType:str
-MovieComponent.order:['forceEndRoutine']
+MovieComponent.order:['movie', 'backend', 'No audio', 'loop', 'forceEndRoutine']
 MovieComponent.No audio.default:False
 MovieComponent.No audio.allowedTypes:[]
 MovieComponent.No audio.allowedUpdates:None
@@ -2717,7 +2717,7 @@ MovieComponent.backend.allowedUpdates:None
 MovieComponent.backend.allowedVals:['moviepy', 'avbin', 'opencv']
 MovieComponent.backend.categ:Basic
 MovieComponent.backend.hint:What underlying lib to use for loading movies
-MovieComponent.backend.label:backend
+MovieComponent.backend.label:Backend
 MovieComponent.backend.readOnly:False
 MovieComponent.backend.staticUpdater:None
 MovieComponent.backend.updates:None
@@ -2759,6 +2759,18 @@ MovieComponent.forceEndRoutine.staticUpdater:None
 MovieComponent.forceEndRoutine.updates:constant
 MovieComponent.forceEndRoutine.val:False
 MovieComponent.forceEndRoutine.valType:bool
+MovieComponent.loop.default:False
+MovieComponent.loop.allowedTypes:[]
+MovieComponent.loop.allowedUpdates:None
+MovieComponent.loop.allowedVals:[]
+MovieComponent.loop.categ:Basic
+MovieComponent.loop.hint:Whether the movie should loop back to the beginning on completion.
+MovieComponent.loop.label:Loop playback
+MovieComponent.loop.readOnly:False
+MovieComponent.loop.staticUpdater:None
+MovieComponent.loop.updates:None
+MovieComponent.loop.val:False
+MovieComponent.loop.valType:bool
 MovieComponent.movie.default:''
 MovieComponent.movie.allowedTypes:[]
 MovieComponent.movie.allowedUpdates:['constant', 'set every repeat']
@@ -3410,7 +3422,7 @@ ParallelOutComponent.order:['address', 'startData', 'stopData']
 ParallelOutComponent.address.default:'0x0378'
 ParallelOutComponent.address.allowedTypes:[]
 ParallelOutComponent.address.allowedUpdates:None
-ParallelOutComponent.address.allowedVals:['0x0378', '0x03BC', '/dev/parport0', '/dev/parport1', 'LabJack U3']
+ParallelOutComponent.address.allowedVals:[u'0x0378', u'0x03BC', u'/dev/parport0', u'/dev/parport1', u'LabJack U3']
 ParallelOutComponent.address.categ:Basic
 ParallelOutComponent.address.hint:Parallel port to be used (you can change these options in preferences>general)
 ParallelOutComponent.address.label:Port address
@@ -4709,7 +4721,7 @@ SettingsComponent.Units.valType:str
 SettingsComponent.Use version.default:''
 SettingsComponent.Use version.allowedTypes:[]
 SettingsComponent.Use version.allowedUpdates:None
-SettingsComponent.Use version.allowedVals:['latest', '3', '3.1', '', '3.1.0']
+SettingsComponent.Use version.allowedVals:['latest', u'3', u'3.0', u'1.90', '', u'3.0.7', u'3.0.6', u'3.0.5', u'3.0.4', u'3.0.3', u'3.0.2', u'3.0.1', u'3.0.0', u'1.90.2', u'1.90.1', u'1.90.0', u'1.85.6']
 SettingsComponent.Use version.categ:Basic
 SettingsComponent.Use version.hint:The version of PsychoPy to use when running the experiment.
 SettingsComponent.Use version.label:Use PsychoPy version
