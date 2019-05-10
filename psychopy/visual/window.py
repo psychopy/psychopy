@@ -1153,13 +1153,13 @@ class Window(object):
             GL.glMatrixMode(GL.GL_PROJECTION)
             projMat = self._projectionMatrix.T.ctypes.data_as(
                 ctypes.POINTER(ctypes.c_float))
-            GL.glLoadMatrixf(projMat)
+            GL.glLoadTransposeMatrixf(projMat)
 
         if hasattr(self, '_viewMatrix'):
             GL.glMatrixMode(GL.GL_MODELVIEW)
             viewMat = self._viewMatrix.T.ctypes.data_as(
                 ctypes.POINTER(ctypes.c_float))
-            GL.glLoadMatrixf(viewMat)
+            GL.glLoadTransposeMatrixf(viewMat)
 
         if clearDepth:
             GL.glClear(GL.GL_DEPTH_BUFFER_BIT)
