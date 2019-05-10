@@ -3374,7 +3374,7 @@ ParallelOutComponent.order:['address', 'startData', 'stopData']
 ParallelOutComponent.address.default:'0x0378'
 ParallelOutComponent.address.allowedTypes:[]
 ParallelOutComponent.address.allowedUpdates:None
-ParallelOutComponent.address.allowedVals:[u'0x0378', u'0x03BC', u'/dev/parport0', u'/dev/parport1', u'LabJack U3']
+ParallelOutComponent.address.allowedVals:['0x0378', '0x03BC', '/dev/parport0', '/dev/parport1', 'LabJack U3']
 ParallelOutComponent.address.categ:Basic
 ParallelOutComponent.address.hint:Parallel port to be used (you can change these options in preferences>general)
 ParallelOutComponent.address.label:Port address
@@ -4673,7 +4673,7 @@ SettingsComponent.Units.valType:str
 SettingsComponent.Use version.default:''
 SettingsComponent.Use version.allowedTypes:[]
 SettingsComponent.Use version.allowedUpdates:None
-SettingsComponent.Use version.allowedVals:['latest', u'3', u'3.0', u'1.90', '', u'3.0.7', u'3.0.6', u'3.0.5', u'3.0.4', u'3.0.3', u'3.0.2', u'3.0.1', u'3.0.0', u'1.90.2', u'1.90.1', u'1.90.0', u'1.85.6']
+SettingsComponent.Use version.allowedVals:['latest', '3', '3.0', '1.90', '', '3.0.7', '3.0.6', '3.0.5', '3.0.4', '3.0.3', '3.0.2', '3.0.1', '3.0.0', '1.90.2', '1.90.1', '1.90.0']
 SettingsComponent.Use version.categ:Basic
 SettingsComponent.Use version.hint:The version of PsychoPy to use when running the experiment.
 SettingsComponent.Use version.label:Use PsychoPy version

@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 """
 This experiment was created using PsychoPy3 Experiment Builder (v3.1.1),
-    on Thu May  9 17:54:23 2019
+    on Fri May 10 15:02:06 2019
 If you publish work using this script please cite the PsychoPy publications:
     Peirce, JW (2007) PsychoPy - Psychophysics software in Python.
         Journal of Neuroscience Methods, 162(1-2), 8-13.
@@ -76,6 +76,7 @@ movie = visual.MovieStim3(
     noAudio = False,
     filename=None,
     ori=0, pos=(0, 0), opacity=1,
+    loop=False,
     depth=0.0,
     )
 
