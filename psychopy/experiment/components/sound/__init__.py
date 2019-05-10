@@ -115,7 +115,7 @@ class SoundComponent(BaseComponent):
         buff.writeIndented("%(name)s.setVolume(%(volume)s);\n" % (inits))
 
     def writeRoutineStartCodeJS(self, buff):
-        stopVal = self.params['stopVal'].val
+        stopVal = self.params['stopVal']
         if stopVal in ['', None, 'None']:
             stopVal = -1
 
@@ -128,10 +128,10 @@ class SoundComponent(BaseComponent):
                                               self.params['sound'],
                                               stopVal))
         if stopVal == -1:
-            buff.writeIndentedLines("%(name)s.setVolume(%(volume)s)\n" % self.params)
+            buff.writeIndentedLines("%(name)s.setVolume(%(volume)s);\n" % self.params)
         else:
-            buff.writeIndentedLines("%(name)s.secs=%(stopVal)s\n"
-                                    "%(name)s.setVolume(%(volume)s)\n" % self.params)
+            buff.writeIndentedLines("%(name)s.secs=%(stopVal)s;\n"
+                                    "%(name)s.setVolume(%(volume)s);\n" % self.params)
 
     def writeFrameCode(self, buff):
         """Write the code that will be called every frame
