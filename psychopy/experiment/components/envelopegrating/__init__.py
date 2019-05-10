@@ -31,6 +31,7 @@ _localized = {'carrier': _translate('Carrier texture'),
               'envori':_translate('Envelope orientation'),
               'envphase':_translate('Envelope phase'),
               'moddepth':_translate('Envelope modulation depth'),
+              'power':_translate('Power to which envelope is rasied'),
               'beat':_translate('Is modulation a beat'),
               'blendmode':_translate('OpenGL blend mode')
               }
@@ -43,7 +44,9 @@ class EnvGratingComponent(BaseVisualComponent):
                  mask='None', sf=1.0, interpolate='linear',
                  units='from exp settings', color='$[1,1,1]', colorSpace='rgb',
                  pos=(0, 0), size=(0.5, 0.5), ori=0, phase=0.0, texRes='128',
-                 envelope='sin',envsf=1.0,envori=0.0,envphase=0.0, beat=False, contrast=0.5, moddepth=1.0, blendmode='avg',
+                 envelope='sin',envsf=1.0,envori=0.0,envphase=0.0, 
+                 beat=False, power=1.0,
+                 contrast=0.5, moddepth=1.0, blendmode='avg',
                  startType='time (s)', startVal=0.0,
                  stopType='duration (s)', stopVal=1.0,
                  startEstim='', durationEstim=''):
@@ -174,6 +177,28 @@ class EnvGratingComponent(BaseVisualComponent):
             allowedUpdates=['constant', 'set every repeat', 'set every frame'],
             hint=msg,
             label=_localized['moddepth'], categ="Envelope")
+            
+        msg = _translate("Power of modulation envelope. "
+                          "The modulator will be rasied to this power "
+                          "according to the equation S=cC*(1+mM)^power, "
+                          "where C is the carrier and M is the modulator. "
+                          "and c and m are there respective contrast and modulation depth. "
+                          "Only works with AM envelopes (hence +1) in "
+                          "equation. Power is ignored if a beat is requested. "
+                          "This is used to obtain the square root of the modulator (power = 0.5) "
+                          "which is useful if combining two envelope gratings "
+                          "with different carriers and a 180 degree phase shift "
+                          "as the resulting combined signal will not "
+                          "have any reduction in local contrast at any point in the image. "
+                          "This is similar - but not identical to - the method used by "
+                          "Landy and Oruc, Vis Res 2002. "
+                          "Note overall contrast (apparent carrier contrast) will be altered.")
+        self.params['power'] = Param(
+            moddepth, valType='code', allowedTypes=[],
+            updates='constant',
+            allowedUpdates=['constant', 'set every repeat', 'set every frame'],
+            hint=msg,
+            label=_localized['power'], categ="Envelope")
 
         msg = _translate("Do you want a 'beat'? [beat = carrier*envelope, "
                          "no beat = carrier*(1+envelope), True/False, Y/N]")
@@ -208,14 +233,14 @@ class EnvGratingComponent(BaseVisualComponent):
         code = ("%s = visual.EnvelopeGrating(\n" % inits['name'] +
                 "    win=win, name='%s',%s\n" % (inits['name'], unitsStr) +
                 "    carrier=%(carrier)s, mask=%(mask)s,\n" % inits +
-                "    ori=%(ori)s, pos=%(pos)s, size=%(size)s, " % inits +
-                "sf=%(sf)s, phase=%(phase)s,\n" % inits +
-                "    color=%(color)s, colorSpace=%(colorSpace)s, " % inits +
-                "opacity=%(opacity)s, contrast=%(contrast)s,\n" % inits +
-                # no newline - start optional parameters
-                "    texRes=%(texture resolution)s,\n" % inits +
-                "    envelope=%(envelope)s, envori=%(envori)s,\n" % inits +
-                "    envsf=%(envsf)s, envphase=%(envphase)s, moddepth=%(moddepth)s, blendmode=%(blendmode)s" %inits )
+                "    ori=%(ori)s, pos=%(pos)s, size=%(size)s,\n" % inits +
+                "    sf=%(sf)s, phase=%(phase)s,\n" % inits +
+                "    color=%(color)s, colorSpace=%(colorSpace)s,\n " % inits +
+                "    opacity=%(opacity)s, contrast=%(contrast)s,\n" % inits +
+                "    texRes=%(texture resolution)s, envelope=%(envelope)s,\n" % inits +
+                "    envori=%(envori)s, envsf=%(envsf)s,\n" % inits +
+                "    envphase=%(envphase)s, power=%(power)s,\n" % inits +
+                "    moddepth=%(moddepth)s, blendmode=%(blendmode)s" %inits )
 
         if self.params['beat'].val in ['Y','y','Yes', 'yes','True','true']:
             code += ", beat=True"
@@ -230,6 +255,10 @@ class EnvGratingComponent(BaseVisualComponent):
             code += ", interpolate=False"
         depth = -self.getPosInRoutine()
         code += ", depth=%.1f)\n" % depth
+        code += "if sys.version[0]=='3' and np.min(win.gamma) == None:\n"
+        code += "    logging.warning('Envelope grating in use with no gamma set. Unless you have hardware gamma correction the image will be distorted.')\n"           
+        code += "elif np.min(win.gamma) < 1.01:\n"
+        code += "    logging.warning('Envelope grating in use with window gamma <= 1.0 or no gamma set at all. Unless you have hardware gamma correction the image will be distorted.')\n"        
         buff.writeIndentedLines(code)
 
     def writeRoutineStartCode(self,buff):
