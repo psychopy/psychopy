@@ -792,6 +792,7 @@ class Window(object):
             # set these to match the current window or buffer's settings
             GL.glViewport(0, 0, self.size[0], self.size[1])
             GL.glScissor(0, 0, self.size[0], self.size[1])
+            GL.glEnable(GL.GL_SCISSOR_TEST)
 
             # clear the projection and modelview matrix for FBO blit
             GL.glMatrixMode(GL.GL_PROJECTION)
