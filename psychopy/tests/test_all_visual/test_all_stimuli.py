@@ -198,7 +198,7 @@ class _baseVisualTest(object):
         str(image)
         
     def test_noiseFiltersAndRaisedCos(self):
-        numpy.random.seed(2)
+        numpy.random.seed(1)
         win = self.win
         size = numpy.array([2.0,2.0])*self.scaleFactor
         tres=128
