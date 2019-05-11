@@ -352,7 +352,7 @@ class Keyboard(ioHubDeviceView):
         Returned events are sorted by time.
 
         :param maxWait: Maximum seconds method waits for >=1 matching event.
-                        If 0.0, method functions the same as getKeys().
+                        If <=0.0, method functions the same as getKeys().
                         If None, the methods blocks indefinitely.
         :param keys: Include events where .key in keys.
         :param chars: Include events where .char in chars.
@@ -383,6 +383,11 @@ class Keyboard(ioHubDeviceView):
             if key:
                 return key
             win32MessagePump()
+            return key
+
+        # Don't wait if maxWait is <= 0
+        if maxWait <= 0:
+            key = pumpKeys()
             return key
 
         while getTime() < (timeout - checkInterval * 2):
