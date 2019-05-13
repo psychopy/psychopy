@@ -348,8 +348,7 @@ class Window(object):
             self._viewMatrix = numpy.identity(4, dtype=numpy.float32)
 
         if not hasattr(self, '_projectionMatrix'):
-            self._projectionMatrix = viewtools.orthoProjectionMatrix(
-                -1, 1, -1, 1, -1, 1)
+            self._projectionMatrix = viewtools.orthoProjectionMatrix(-1, 1, -1, 1, -1, 1)
 
         # set screen color
         self.__dict__['colorSpace'] = colorSpace
@@ -659,19 +658,18 @@ class Window(object):
         # setup retina display if applicable
         global retinaContext
         if retinaContext is not None:
-           view = retinaContext.view()
-           bounds = view.convertRectToBacking_(view.bounds()).size
-           bufferWidth, bufferHeight = (int(bounds.width), int(bounds.height))
+            view = retinaContext.view()
+            bounds = view.convertRectToBacking_(view.bounds()).size
+            bufferWidth, bufferHeight = (int(bounds.width), int(bounds.height))
         else:
-           bufferWidth, bufferHeight = self.size
+            bufferWidth, bufferHeight = self.size
 
         # set these to match the current window or buffer's settings
         GL.glViewport(0, 0, bufferWidth, bufferHeight)
         GL.glScissor(0, 0, bufferWidth, bufferHeight)
-        GL.glEnable(GL.GL_SCISSOR_TEST)
 
         # apply the view transforms for this window
-        #self.applyEyeTransform()
+        self.applyEyeTransform()
 
     def onResize(self, width, height):
         """A default resize event handler.
@@ -787,19 +785,7 @@ class Window(object):
             for thisStim in self._toDraw:
                 thisStim.draw()
         else:
-            self.backend.setCurrent()
-
-            # set these to match the current window or buffer's settings
-            GL.glViewport(0, 0, self.size[0], self.size[1])
-            GL.glScissor(0, 0, self.size[0], self.size[1])
-            GL.glEnable(GL.GL_SCISSOR_TEST)
-
-            # clear the projection and modelview matrix for FBO blit
-            GL.glMatrixMode(GL.GL_PROJECTION)
-            GL.glLoadIdentity()
-            GL.glOrtho(-1, 1, -1, 1, -1, 1)
-            GL.glMatrixMode(GL.GL_MODELVIEW)
-            GL.glLoadIdentity()
+            self._setCurrent()
 
         flipThisFrame = self._startOfFlip()
         if self.useFBO:
@@ -1149,17 +1135,15 @@ class Window(object):
 
         """
         # apply the projection and view transformations
-        if hasattr(self, '_projectionMatrix'):
-            GL.glMatrixMode(GL.GL_PROJECTION)
-            projMat = self._projectionMatrix.T.ctypes.data_as(
-                ctypes.POINTER(ctypes.c_float))
-            GL.glLoadTransposeMatrixf(projMat)
+        GL.glMatrixMode(GL.GL_PROJECTION)
+        projMat = self._projectionMatrix.T.ctypes.data_as(
+            ctypes.POINTER(ctypes.c_float))
+        GL.glLoadMatrixf(projMat)
 
-        if hasattr(self, '_viewMatrix'):
-            GL.glMatrixMode(GL.GL_MODELVIEW)
-            viewMat = self._viewMatrix.T.ctypes.data_as(
-                ctypes.POINTER(ctypes.c_float))
-            GL.glLoadTransposeMatrixf(viewMat)
+        GL.glMatrixMode(GL.GL_MODELVIEW)
+        viewMat = self._viewMatrix.T.ctypes.data_as(
+            ctypes.POINTER(ctypes.c_float))
+        GL.glLoadMatrixf(viewMat)
 
         if clearDepth:
             GL.glClear(GL.GL_DEPTH_BUFFER_BIT)
@@ -1170,6 +1154,10 @@ class Window(object):
         GratingStim, ImageStim, Rect, etc.) if any eye transformations were
         applied for the stimuli to be drawn correctly.
 
+        Returns
+        -------
+        None
+
         Notes
         -----
         Calling 'flip()' automatically resets the view and projection to
@@ -1178,10 +1166,10 @@ class Window(object):
         """
         # should eventually have the same effect as calling _onResize(), so we
         # need to add the retina mode stuff eventually
-        if hasattr(self, '_viewMatrix'):
+        if not hasattr(self, '_viewMatrix'):
             self._viewMatrix = numpy.identity(4, dtype=numpy.float32)
 
-        if hasattr(self, '_projectionMatrix'):
+        if not hasattr(self, '_projectionMatrix'):
             self._projectionMatrix = viewtools.orthoProjectionMatrix(
                 -1, 1, -1, 1, -1, 1)
 
