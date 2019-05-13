@@ -178,6 +178,62 @@ class _baseVisualTest(object):
         utils.compareScreenshot('noiseAndRcos_%s.png' %(self.contextName), win)
         win.flip()
         str(image)
+        
+    def test_noiseFiltersAndRaisedCos(self):
+        numpy.random.seed(1)
+        win = self.win
+        size = numpy.array([2.0,2.0])*self.scaleFactor
+        tres=128
+        elementsize=4
+        sf=None
+        ntype='Binary'
+        comp='Amplitude'
+        fileName = os.path.join(utils.TESTS_DATA_PATH, 'testimagegray.jpg')
+        if win.units in ['pix']:
+            ftype='Butterworth'
+            size = numpy.array([128,128])
+        elif win.units in ['degFlatPos']:
+            ftype='Gabor'
+            sf=0.125
+            elementsize=1
+        elif win.units in ['degFlat']:
+            ftype='Isotropic'
+            sf=0.125
+            elementsize=1
+        elif win.units in ['deg']:
+            ntype='Image'
+            ftype='Butterworth'
+            sf=0.125
+        elif win.units in ['cm']:
+            ntype='Image'
+            ftype='Butterworth'
+            comp='Phase'
+            sf=0.25
+        else:
+            if self.contextName=='stencil':
+                ntype='White'
+                ftype='Butterworth'
+            elif self.contextName=='height':
+                ntype='Uniform'
+                ftype='Butterworth'
+            else:
+                ntype='Normal'
+                ftype='Butterworth'
+            elementsize=1.0/8.0
+        image  = visual.NoiseStim(win=win, name='noise',units=win.units, 
+            noiseImage=fileName, mask='raisedCos',
+            ori=0, pos=(0, 0), size=size, sf=sf, phase=0,
+            color=[1,1,1], colorSpace='rgb', opacity=1, blendmode='avg', contrast=0.5,
+            texRes=tres,
+            noiseType=ntype, noiseElementSize=elementsize, noiseBaseSf=32.0/size[0],
+            noiseBW=0.5, noiseBWO=7, noiseFractalPower=-1,noiseFilterLower=4.0/size[0], 
+            noiseFilterUpper=16.0/size[0], noiseFilterOrder=1, noiseOri=45.0,
+            noiseClip=4.0, imageComponent=comp, filter=ftype, interpolate=False, depth=-1.0)
+ 
+        image.draw()
+        utils.compareScreenshot('noiseFiltersAndRcos_%s.png' %(self.contextName), win)
+        win.flip()
+        str(image)
 
     def test_envelopeBeatAndRaisedCos(self):
         win = self.win
