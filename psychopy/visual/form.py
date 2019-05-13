@@ -177,7 +177,7 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
                 if isinstance(item['options'], str):
                     items[idx]['options'] = item['options'].split(',')
             else: # Python2
-                if isinstance(item['options'], unicode):
+                if isinstance(item['options'], basestring):
                     items[idx]['options'] = item['options'].split(',')
         # Check types
         [_checkTypes(item['type']) for item in items]
