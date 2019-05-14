@@ -385,7 +385,7 @@ class _KeyBuffer(object):
             else:
                 for key in self._keysStillDown:
                     if key.code == evt['keycode']:
-                        key.duration = key.tDown - evt['time']
+                        key.duration = evt['time'] - key.tDown
                         self._keysStillDown.remove(key)
                         break  # this key is done
                     else:
