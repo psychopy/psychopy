@@ -22,6 +22,8 @@ _localized = {'movie': _translate('Movie file'),
               'backend': _translate('backend'),
               'No audio': _translate('No audio')}
 
+if _localized['backend'] == 'backend': # this is the only non-capitals label
+    _localized['backend'] = 'Backend'
 
 class MovieComponent(BaseVisualComponent):
     """An event class for presenting movie-based stimuli"""
@@ -33,6 +35,7 @@ class MovieComponent(BaseVisualComponent):
                  stopType='duration (s)', stopVal=1.0,
                  startEstim='', durationEstim='',
                  forceEndRoutine=False, backend='moviepy',
+                 loop=False,
                  noAudio=False):
         super(MovieComponent, self).__init__(
             exp, parentName, name=name, units=units,
@@ -44,7 +47,7 @@ class MovieComponent(BaseVisualComponent):
         self.type = 'Movie'
         self.url = "http://www.psychopy.org/builder/components/movie.html"
         # comes immediately after name and timing params
-        self.order = ['forceEndRoutine']
+        self.order = ['movie', 'backend', 'No audio', 'loop', 'forceEndRoutine']
         self.targets = ['PsychoPy', 'PsychoJS']
 
         # params
@@ -81,6 +84,13 @@ class MovieComponent(BaseVisualComponent):
             updates='constant', allowedUpdates=[],
             hint=msg,
             label=_localized['forceEndRoutine'])
+
+        msg = _translate("Whether the movie should loop back to the beginning "
+                         "on completion.")
+        self.params['loop'] = Param(
+            loop, valType='bool',
+            hint=msg,
+            label=_translate('Loop playback'))
 
         # these are normally added but we don't want them for a movie
         del self.params['color']
@@ -120,6 +130,7 @@ class MovieComponent(BaseVisualComponent):
 
         code += ("    filename=%(movie)s,\n"
                  "    ori=%(ori)s, pos=%(pos)s, opacity=%(opacity)s,\n"
+                 "    loop=%(loop)s,\n"
                  % params)
 
         buff.writeIndentedLines(code)
@@ -151,6 +162,8 @@ class MovieComponent(BaseVisualComponent):
 
         inits = getInitVals(self.params)
         noAudio = '{}'.format(inits['No audio'].val).lower()
+        loop = '{}'.format(inits['loop'].val).lower()
+
         for param in inits:
             if inits[param] in ['', None, 'None', 'none']:
                 inits[param] = 'undefined'
@@ -167,16 +180,17 @@ class MovieComponent(BaseVisualComponent):
                 "  size: {size},\n"
                 "  ori: {ori},\n"
                 "  opacity: {opacity},\n"
-                "  loop: false,\n"
+                "  loop: {loop},\n"
                 "  noAudio: {noAudio},\n"
-                "  }});\n").format(name = inits['name'],
-                                movie = inits['movie'],
-                                units = unitsStr,
-                                pos = inits['pos'],
-                                size = inits['size'],
-                                ori = inits['ori'],
-                                opacity = inits['opacity'],
-                                noAudio=noAudio)
+                "  }});\n").format(name=inits['name'],
+                                   movie=inits['movie'],
+                                   units=unitsStr,
+                                   pos=inits['pos'],
+                                   size=inits['size'],
+                                   ori=inits['ori'],
+                                   loop=loop,
+                                   opacity=inits['opacity'],
+                                   noAudio=noAudio)
         buff.writeIndentedLines(code)
 
     def writeRoutineStartCode(self, buff):

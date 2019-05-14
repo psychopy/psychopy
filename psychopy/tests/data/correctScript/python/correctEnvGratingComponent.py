@@ -1,4 +1,4 @@
-﻿#!/usr/bin/env python
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
 This experiment was created using PsychoPy3 Experiment Builder (v3.1.1),
@@ -74,11 +74,18 @@ trialClock = core.Clock()
 env_grating = visual.EnvelopeGrating(
     win=win, name='env_grating',
     carrier='sin', mask=None,
-    ori=0, pos=(0, 0), size=(0.5, 0.5), sf=1.0, phase=0.0,
-    color=[1,1,1], colorSpace='rgb', opacity=1, contrast=0.5,
-    texRes=128,
-    envelope='sin', envori=0.0,
-    envsf=1.0, envphase=0.0, moddepth=1.0, blendmode='avg', beat=False, interpolate=True, depth=0.0)
+    ori=0, pos=(0, 0), size=(0.5, 0.5),
+    sf=1.0, phase=0.0,
+    color=[1,1,1], colorSpace='rgb',
+     opacity=1, contrast=0.5,
+    texRes=128, envelope='sin',
+    envori=0.0, envsf=1.0,
+    envphase=0.0, power=1.0,
+    moddepth=1.0, blendmode='avg', beat=False, interpolate=True, depth=0.0)
+if sys.version[0]=='3' and np.min(win.gamma) == None:
+    logging.warning('Envelope grating in use with no gamma set. Unless you have hardware gamma correction the image will be distorted.')
+elif np.min(win.gamma) < 1.01:
+    logging.warning('Envelope grating in use with window gamma <= 1.0 or no gamma set at all. Unless you have hardware gamma correction the image will be distorted.')
 
 # Create some handy timers
 globalClock = core.Clock()  # to track the time since experiment started

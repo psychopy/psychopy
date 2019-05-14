@@ -15,6 +15,8 @@ from psychopy.visual.basevisual import (BaseVisualStim,
                                         ColorMixin)
 from random import shuffle
 
+from psychopy.constants import PY3
+
 __author__ = 'Jon Peirce, David Bridges, Anthony Haffey'
 
 
@@ -171,8 +173,12 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
                 _checkHeaders(item.keys())
         # Convert options to list of strings
         for idx, item in enumerate(items):
-            if isinstance(item['options'], str):
-                items[idx]['options'] = item['options'].split(',')
+            if PY3:
+                if isinstance(item['options'], str):
+                    items[idx]['options'] = item['options'].split(',')
+            else: # Python2
+                if isinstance(item['options'], basestring):
+                    items[idx]['options'] = item['options'].split(',')
         # Check types
         [_checkTypes(item['type']) for item in items]
         # Check N options > 1
@@ -266,7 +272,7 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
             The width of the question bounding box as type float
         """
         if self.autoLog:
-            psychopy.logging.exp("Question text: {}".format(item['questionText']))
+            psychopy.logging.exp(u"Question text: {}".format(item['questionText']))
 
         question = psychopy.visual.TextStim(self.win,
                                             text=item['questionText'],
@@ -310,7 +316,7 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
         if self.autoLog:
             psychopy.logging.exp("Response type: {}".format(item['type']))
             psychopy.logging.exp("Response layout: {}".format(item['layout']))
-            psychopy.logging.exp("Response options: {}".format(item['options']))
+            psychopy.logging.exp(u"Response options: {}".format(item['options']))
 
         # Create position of response object
         pos = self._getResponsePos(item, question)
