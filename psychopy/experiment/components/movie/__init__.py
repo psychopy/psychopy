@@ -162,6 +162,8 @@ class MovieComponent(BaseVisualComponent):
 
         inits = getInitVals(self.params)
         noAudio = '{}'.format(inits['No audio'].val).lower()
+        loop = '{}'.format(inits['loop'].val).lower()
+
         for param in inits:
             if inits[param] in ['', None, 'None', 'none']:
                 inits[param] = 'undefined'
@@ -186,7 +188,7 @@ class MovieComponent(BaseVisualComponent):
                                    pos=inits['pos'],
                                    size=inits['size'],
                                    ori=inits['ori'],
-                                   loop=inits['loop'],
+                                   loop=loop,
                                    opacity=inits['opacity'],
                                    noAudio=noAudio)
         buff.writeIndentedLines(code)
