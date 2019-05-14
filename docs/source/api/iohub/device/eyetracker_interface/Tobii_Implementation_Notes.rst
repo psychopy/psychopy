@@ -10,7 +10,7 @@ Tobii
 
 **Required Python Version:** 
 
-* Python 3.5
+* Python 3.6
     
 **Supported Models:**
 
@@ -21,8 +21,8 @@ Additional Software Requirements
 #################################
 
 To use the ioHub interface for Tobii, the Tobi Pro SDK must be installed
-in your Python environment. Python versions up to Python 3.5 are supported
-as of this docs last update.
+in your Python environment. If a recent standalone installation of PsychoPy3,
+this package should already be included. 
 
 To install tobii_research type::
 
