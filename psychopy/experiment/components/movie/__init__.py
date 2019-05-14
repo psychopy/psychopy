@@ -143,14 +143,14 @@ class MovieComponent(BaseVisualComponent):
                 "    )\n")
         buff.writeIndentedLines(code % depth)
 
-    def writeInitCode(self, buff):
-        # If needed then use _writeCreationCode()
-        # Movie could be created here or in writeRoutineStart()
-        if self.params['movie'].updates == 'constant':
-            # create the code using init vals
-            self._writeCreationCode(buff, useInits=True)
+    def _writeCreationCodeJS(self, buff, useInits):
 
-    def writeInitCodeJS(self, buff):
+        # If we're in writeInitCode then we need to convert params to initVals
+        # because some (variable) params haven't been created yet.
+        if useInits:
+            inits = getInitVals(self.params)
+        else:
+            inits = self.params
 
         if self.params['units'].val == 'from exp settings':
             unitsStr = "'height'"
@@ -160,13 +160,14 @@ class MovieComponent(BaseVisualComponent):
         else:
             unitsStr = "%(units)s" % self.params
 
-        inits = getInitVals(self.params)
+
         noAudio = '{}'.format(inits['No audio'].val).lower()
         loop = '{}'.format(inits['loop'].val).lower()
 
-        for param in inits:
-            if inits[param] in ['', None, 'None', 'none']:
-                inits[param] = 'undefined'
+        if useInits:
+            for param in inits:
+                if inits[param] in ['', None, 'None', 'none']:
+                    inits[param] = 'undefined'
 
         code = "{name}Clock = new util.Clock();\n".format(**inits)
         buff.writeIndented(code)
@@ -193,12 +194,33 @@ class MovieComponent(BaseVisualComponent):
                                    noAudio=noAudio)
         buff.writeIndentedLines(code)
 
+    def writeInitCode(self, buff):
+        # If needed then use _writeCreationCode()
+        # Movie could be created here or in writeRoutineStart()
+        if self.params['movie'].updates == 'constant':
+            # create the code using init vals
+            self._writeCreationCode(buff, useInits=True)
+
+    def writeInitCodeJS(self, buff):
+        # If needed then use _writeCreationCodeJS()
+        # Movie could be created here or in writeRoutineStart()
+        if self.params['movie'].updates == 'constant':
+            # create the code using init vals
+            self._writeCreationCodeJS(buff, useInits=True)
+
     def writeRoutineStartCode(self, buff):
         # If needed then use _writeCreationCode()
         # Movie could be created here or in writeInitCode()
         if self.params['movie'].updates != 'constant':
             # create the code using params, not vals
             self._writeCreationCode(buff, useInits=False)
+
+    def writeRoutineStartCodeJS(self, buff):
+        # If needed then use _writeCreationCode()
+        # Movie could be created here or in writeInitCode()
+        if self.params['movie'].updates != 'constant':
+            # create the code using params, not vals
+            self._writeCreationCodeJS(buff, useInits=False)
 
     def writeFrameCode(self, buff):
         """Write the code that will be called every frame
