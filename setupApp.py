@@ -63,7 +63,7 @@ includes = ['Tkinter', 'tkFileDialog',
             'pyo', 'greenlet', 'zmq', 'tornado',
             'psutil',  # for iohub
             'pysoundcard', 'soundfile', 'sounddevice', 'readline',
-            'cv2', 'hid',
+            'hid',
             'xlwt',  # writes excel files for pandas
             'vlc',  # install with pip install python-vlc
             'msgpack_numpy',
@@ -99,6 +99,7 @@ packages = ['wx', 'psychopy',
             'git', 'gitlab',
             'astunparse', 'esprima',  # for translating/adapting py/JS
             'pylsl', 'pygaze', 'smite',
+            'cv2',
             ]
 
 if sys.version_info.major >= 3:
