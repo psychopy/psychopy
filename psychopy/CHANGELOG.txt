@@ -22,6 +22,16 @@ This only works on 64-bit Python3 installations, but the Keyboard class will
 fall back to the old `event.GetKeys` calls where the `psychtoolbox` package is
 not available.
 
+PsychoPy 3.1.2
+~~~~~~~~~~~~~~~~~~~~~~
+
+FIXED:
+
+- the new Keyboard durations were being reported with correct magnitude but as negative values #e43e474602b7f
+- videos were not running online #9779579b60 #51b0824f755
+- fixed rounding error in filtering of NoiseStim #5d0e360d87b
+- iohub `waitKeys` should act like `getKeys` if maxWait<=0 #e33f733f317de
+- error if unicode items in teh new Form class #8287674f49a4c8
 
 PsychoPy 3.1.1
 ~~~~~~~~~~~~~~~~~~~~~~
