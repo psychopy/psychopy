@@ -62,6 +62,7 @@ includes = ['Tkinter', 'tkFileDialog',
             'hid',
             'pyo', 'greenlet', 'zmq', 'tornado',
             'psutil',  # for iohub
+            'tobii_research',  # need tobii_research file and tobiiresearch pkg
             'pysoundcard', 'soundfile', 'sounddevice', 'readline',
             'hid',
             'xlwt',  # writes excel files for pandas
@@ -86,7 +87,7 @@ packages = ['wx', 'psychopy',
             'coverage',
             # handy external science libs
             'serial',
-            'egi', 'pylink',
+            'egi', 'pylink', 'tobiiresearch',
             'pyxid',
             'pandas', 'tables',  # 'cython',
             'msgpack', 'yaml', 'gevent',  # for ioHub
