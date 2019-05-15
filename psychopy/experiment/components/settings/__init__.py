@@ -738,7 +738,9 @@ class SettingsComponent(object):
                 "if expInfo['frameRate'] != None:\n"
                 "    frameDur = 1.0 / round(expInfo['frameRate'])\n"
                 "else:\n"
-                "    frameDur = 1.0 / 60.0  # could not measure, so guess\n")
+                "    frameDur = 1.0 / 60.0  # could not measure, so guess\n"
+                "\n# create a default keyboard (e.g. to check for escape)\n"
+                "defaultKeyboard = keyboard.Keyboard()")
         buff.writeIndentedLines(code)
 
     def writeWindowCodeJS(self, buff):

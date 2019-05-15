@@ -13,7 +13,43 @@ CHANGES, which are identified in this dark red text, typically indicate things t
 PsychoPy 3.1
 ----------------
 
-We've improved timing, especially keyboard timing a great deal
+We've improved timing, especially keyboard timing, a great deal.
+
+As of PsychoPy 3.1 we are now using the underlying code of the `kbQueue` calls in
+`Psychophysics Toolbox`. The C code from those calls was ported to a new Python
+package in late 2018 and this is now the basis of the new :class:`Keyboard` class.
+This only works on 64-bit Python3 installations, but the Keyboard class will
+fall back to the old `event.GetKeys` calls where the `psychtoolbox` package is
+not available.
+
+PsychoPy 3.1.2
+~~~~~~~~~~~~~~~~~~~~~~
+
+FIXED:
+
+- the new Keyboard durations were being reported with correct magnitude but as negative values #e43e474602b7f
+- videos were not running online #9779579b60 #51b0824f755
+- fixed rounding error in filtering of NoiseStim #5d0e360d87b
+- iohub `waitKeys` should act like `getKeys` if maxWait<=0 #e33f733f317de
+- error if unicode items in teh new Form class #8287674f49a4c8
+
+PsychoPy 3.1.1
+~~~~~~~~~~~~~~~~~~~~~~
+
+ADDED:
+
+- Added the loop playback parameter to Movie Components
+
+FIXED:
+
+- Microphone on windows failed if user didn't manually set pyo to be preferred lib. That isn't now needed #700b72cd6
+- pyo lib is now provided in the 64 bit Python3 Standalone (win)
+- The new Keyboard class wasn't clearing all events when requested (e.g. at the beginning of stimulus onset) #2442
+- Parallel port lib in the Windows 32-bit version wasn't working (installed a new dll)
+- OpenCV in Mac Standalone wasn't working (updated to be a package not a single file)
+- Sounds with variable duration didn't stop properly #2446
+- Fix to JS output when useVersion was set to something
+- Cedrus XID lib is now working on Python3 (although their official one is yet to come)
 
 PsychoPy 3.1.0
 ~~~~~~~~~~~~~~~~~~~~~~
@@ -41,11 +77,12 @@ PsychoPy 3.0.7
 ~~~~~~~~~~~~~~~~~~~~~~
 
 FIXED:
- - local project repeatedly asking to Create New Pavlovia project when one already exists #c3f0d203f
- - Fixed "No module named 'PyQt4'" on MacOS<10.10 caused by PyQt dropping support for Mac10.9 in PyQt5.9 #2375
- - don't allow movie->online to use units 'from experiment settings' #8cbaf8a713
- - Py3 string/byte fixes for CRS ColorCal #3bf1b7e5d4 #d49f154a0
- - various fixes to Japanese translations
+
+- local project repeatedly asking to Create New Pavlovia project when one already exists #c3f0d203f
+- Fixed "No module named 'PyQt4'" on MacOS<10.10 caused by PyQt dropping support for Mac10.9 in PyQt5.9 #2375
+- don't allow movie->online to use units 'from experiment settings' #8cbaf8a713
+- Py3 string/byte fixes for CRS ColorCal #3bf1b7e5d4 #d49f154a0
+- various fixes to Japanese translations
 
 PsychoPy 3.0.6
 ~~~~~~~~~~~~~~~~~~~~~~

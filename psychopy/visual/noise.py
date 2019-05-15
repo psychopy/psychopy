@@ -16,7 +16,7 @@ orientation, frequencyand phase. Also does beat stimuli. """
 # up by the pyglet GL engine and have no effect.
 # Shaders will work but require OpenGL2.0 drivers AND PyOpenGL3.0+
 
-from __future__ import absolute_import, print_function
+from __future__ import absolute_import, print_function, division
 
 import pyglet
 pyglet.options['debug_gl'] = False
@@ -495,8 +495,8 @@ class NoiseStim(GratingStim):
                                                             cutoff_y = self._upsf / filterSize, 
                                                             n=self.noiseFilterOrder, 
                                                             alpha=0, 
-                                                            offset_x = 2 / (filterSize-1),
-                                                            offset_y = 2 / (filterSize-1))
+                                                                offset_x = 0.5/filterSize,  #becuase FFTs are slightly off centred.
+                                                                offset_y = 0.5/filterSize)
             else:
                 filter = numpy.ones((int(filterSize),int(filterSize)))
             if self._lowsf > 0:
@@ -509,8 +509,8 @@ class NoiseStim(GratingStim):
                                                                 cutoff_y = self._lowsf / filterSize, 
                                                                 n = self.noiseFilterOrder, 
                                                                 alpha = 0, 
-                                                                offset_x = 2/(filterSize - 1),
-                                                                offset_y = 2/(filterSize - 1))
+                                                                offset_x = 0.5/filterSize, #becuase FFTs are slightly off centred.
+                                                                offset_y = 0.5/filterSize)
             return FT * filter
         else:
             return FT
@@ -691,7 +691,7 @@ class NoiseStim(GratingStim):
         if not(self.noiseType in ['binary','Binary','normal','Normal','uniform','Uniform']):
             if (self.noiseType in ['filtered','Filtered']) or (self.filter in ['butterworth', 'Butterworth']):
                 self.noiseTex=self._filter(self.noiseTex)
-            elif (self.noiseType in ['Isotropic','isotropic']) or (self.filter in ['isotropic', 'Isopropic']):
+            elif (self.noiseType in ['Isotropic','isotropic']) or (self.filter in ['isotropic', 'Isotropic']):
                 self.noiseTex = self._isotropic(self.noiseTex)
             elif (self.noiseType in ['Gabor','gabor']) or (self.filter in ['gabor', 'Gabor']):
                 self.noiseTex = self._gabor(self.noiseTex)
