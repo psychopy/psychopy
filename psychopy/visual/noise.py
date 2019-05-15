@@ -568,11 +568,11 @@ class NoiseStim(GratingStim):
                 raise Warning(msg)
             if self.noiseFilterOrder > 0.01:
                 if upsf<(mysize/2.0):
-                    filter = filters.butter2d_lp_elliptic(size=[mysize,mysize], cutoff_x=upsf/mysize, cutoff_y=upsf/mysize, n=self.noiseFilterOrder, alpha=0, offset_x=2/(mysize-1),offset_y=2/(mysize-1))
+                    filter = filters.butter2d_lp_elliptic(size=[mysize,mysize], cutoff_x=upsf/mysize, cutoff_y=upsf/mysize, n=self.noiseFilterOrder, alpha=0, offset_x=0.5/mysize, offset_y=0.5/mysize)
                 else:
                     filter = numpy.ones((int(mysize),int(mysize)))
                 if lowsf>0:
-                    filter = filter-filters.butter2d_lp_elliptic(size=[mysize,mysize], cutoff_x=lowsf/mysize, cutoff_y=lowsf/mysize, n=self.noiseFilterOrder, alpha=0, offset_x=2/(mysize-1),offset_y=2/(mysize-1))
+                    filter = filter-filters.butter2d_lp_elliptic(size=[mysize,mysize], cutoff_x=lowsf/mysize, cutoff_y=lowsf/mysize, n=self.noiseFilterOrder, alpha=0, offset_x=0.5/mysize, offset_y=0.5/mysize)
                 self.noiseTex = self.noiseTex*filter
             self.noiseTex = fftshift(self.noiseTex)
             self.noiseTex[0][0] = 0
