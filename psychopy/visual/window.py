@@ -127,13 +127,13 @@ openWindows = core.openWindows = OpenWinList()  # core needs this for wait()
 class Window(object):
     """Used to set up a context in which to draw objects,
     using either `pyglet <http://www.pyglet.org>`_,
-    `pygame <http://www.pygame.org>`_, or `glfw <https://www.glfw.org/>_`.
+    `pygame <http://www.pygame.org>`_, or `glfw <https://www.glfw.org>`_.
 
     The pyglet backend allows multiple windows to be created, allows the user
     to specify which screen to use (if more than one is available, duh!) and
     allows movies to be rendered.
 
-    The glfw backend is a new addition which provides most of the same features
+    The GLFW backend is a new addition which provides most of the same features
     as pyglet, but provides greater flexibility for complex display
     configurations.
 
@@ -584,14 +584,17 @@ class Window(object):
     @attributeSetter
     def waitBlanking(self, value):
         """*None*, True or False.
-        After a call to ``flip()`` should we wait for the blank before the
-        script continues
+
+        After a call to :py:attr:`~Window.flip()` should we wait for the blank
+        before the script continues.
         """
         self.__dict__['waitBlanking'] = value
 
     @attributeSetter
     def recordFrameIntervals(self, value):
-        """To provide accurate measures of frame intervals, to determine
+        """Record time elapsed per frame.
+
+        Provides accurate measures of frame intervals to determine
         whether frames are being dropped. The intervals are the times between
         calls to ``.flip()``. Set to `True` only during the time-critical parts
         of the script. Set this to `False` while the screen is not being
@@ -599,8 +602,18 @@ class Window(object):
         your code, including inter-trial-intervals, ``event.waitkeys()``,
         ``core.wait()``, or ``image.setImage()``.
 
-        see also:
-            Window.saveFrameIntervals()
+        Examples
+        --------
+        Enable frame interval recording, successive frame intervals will be
+        stored::
+
+            win.recordFrameIntervals = True
+
+        Frame intervals can be saved by calling the
+        :py:attr:`~Window.saveFrameIntervals` method::
+
+            win.saveFrameIntervals()
+
         """
         # was off, and now turning it on
         self.recordFrameIntervalsJustTurnedOn = bool(
@@ -715,7 +728,8 @@ class Window(object):
         self._toLog.append({'msg': msg, 'level': level, 'obj': repr(obj)})
 
     def callOnFlip(self, function, *args, **kwargs):
-        """Call a function immediately after the next ``.flip()`` command.
+        """Call a function immediately after the next :py:attr:`~Window.flip()`
+        command.
 
         The first argument should be the function to call, the following args
         should be used exactly as you would for your normal call to the
@@ -725,8 +739,8 @@ class Window(object):
 
             pingMyDevice(portToPing, channel=2, level=0)
 
-        then you could call ``callOnFlip()`` to have the function call
-        synchronized with the frame flip like this::
+        then you could call :py:attr:`~Window.callOnFlip()` to have the function
+        call synchronized with the frame flip like this::
 
             win.callOnFlip(pingMyDevice, portToPing, channel=2, level=0)
 
@@ -736,15 +750,15 @@ class Window(object):
                              'kwargs': kwargs})
 
     def timeOnFlip(self, obj, attrib):
-        """Retrieves the time on the next flip and assigns it to the attrib
-        for this obj.
+        """Retrieves the time on the next flip and assigns it to the `attrib`
+        for this `obj`.
 
         Parameters
         ----------
         obj : dict or object
             A mutable object (usually a dict of class instance).
         attrib : str
-            Key or attribute of ``obj`` to assign the flip time to.
+            Key or attribute of `obj` to assign the flip time to.
 
         Examples
         --------
@@ -787,8 +801,26 @@ class Window(object):
 
     def flip(self, clearBuffer=True):
         """Flip the front and back buffers after drawing everything for your
-        frame. (This replaces the win.update() method, better reflecting what
-        is happening underneath).
+        frame. (This replaces the :py:attr:`~Window.update()` method, better
+        reflecting what is happening underneath).
+
+        Parameters
+        ----------
+        clearBuffer : bool, optional
+            Clear the draw buffer after flipping. Default is `True`.
+
+        Returns
+        -------
+        float or None
+            Wall-clock time in seconds the flip completed. Returns `None` if
+            :py:attr:`~Window.waitBlanking` is `False`.
+
+        Notes
+        -----
+        * The time returned when :py:attr:`~Window.waitBlanking` is `True`
+          corresponds to when the graphics driver releases the draw buffer to
+          accept draw commands again. This time is usually close to the vertical
+          sync signal of the display.
 
         Examples
         --------
@@ -963,8 +995,7 @@ class Window(object):
         self.flip(clearBuffer=True)
 
     def multiFlip(self, flips=1, clearBuffer=True):
-        """
-        Flip multiple times while maintaining the display constant.
+        """Flip multiple times while maintaining the display constant.
         Use this method for precise timing.
 
         **WARNING:** This function should not be used. See the `Notes` section
@@ -1112,6 +1143,7 @@ class Window(object):
 
     def setPerspectiveView(self, applyTransform=True, **kwargs):
         """Set the projection and view matrix to render with perspective.
+
         Matrices are computed using values specified in the monitor
         configuration with the scene origin on the screen plane. Calculations
         assume units are in meters.
@@ -1159,9 +1191,12 @@ class Window(object):
             self.applyEyeTransform(**kwargs)
 
     def applyEyeTransform(self, clearDepth=True):
-        """Apply the current view and projection matrices specified by
-        'viewMatrix' and 'projectionMatrix' using 'immediate mode' OpenGL.
-        Subsequent drawing operations will be affected until 'flip()' is called.
+        """Apply the current view and projection matrices.
+
+        Matrices specified by attributes :py:attr:`~Window.viewMatrix` and
+        :py:attr:`~Window.projectionMatrix` are applied using 'immediate mode'
+        OpenGL functions. Subsequent drawing operations will be affected until
+        :py:attr:`~Window.flip()` is called.
 
         All transformations in ``GL_PROJECTION`` and ``GL_MODELVIEW`` matrix
         stacks will be cleared (set to identity) prior to applying.
@@ -1197,8 +1232,9 @@ class Window(object):
 
         Notes
         -----
-        * Calling ``flip()`` automatically resets the view and projection to
-          defaults. So you don't need to call this unless you are mixing views.
+        * Calling :py:attr:`~Window.flip()` automatically resets the view and
+          projection to defaults. So you don't need to call this unless you are
+          mixing views.
 
         """
         # should eventually have the same effect as calling _onResize(), so we
@@ -1215,22 +1251,23 @@ class Window(object):
     def getMovieFrame(self, buffer='front'):
         """Capture the current Window as an image.
 
-        Saves to stack for ``saveMovieFrames()``.
-        As of v1.81.00 this also returns the frame as a PIL image
+        Saves to stack for :py:attr:`~Window.saveMovieFrames()`. As of v1.81.00
+        this also returns the frame as a PIL image
 
-        This can be done at any time (usually after a ``.flip()`` command).
+        This can be done at any time (usually after a :py:attr:`~Window.flip()`
+        command).
 
-        Frames are stored in memory until a ``.saveMovieFrames(filename)``
-        command is issued. You can issue ``getMovieFrame()`` as often
-        as you like and then save them all in one go when finished.
+        Frames are stored in memory until a :py:attr:`~Window.saveMovieFrames()`
+        command is issued. You can issue :py:attr:`~Window.getMovieFrame()` as
+        often as you like and then save them all in one go when finished.
 
         The back buffer will return the frame that hasn't yet been 'flipped'
         to be visible on screen but has the advantage that the mouse and any
         other overlapping windows won't get in the way.
 
         The default front buffer is to be called immediately after a
-        ``win.flip()`` and gives a complete copy of the screen at the window's
-        coordinates.
+        :py:attr:`~Window.flip()` and gives a complete copy of the screen at the
+        window's coordinates.
 
         Parameters
         ----------
@@ -1312,31 +1349,26 @@ class Window(object):
             image manipulation software, such as GIMP). On Windows and Linux
             `.mpeg` files can be created if `pymedia` is installed. On macOS
             `.mov` files can be created if the pyobjc-frameworks-QTKit is
-            installed.
-
-            Unfortunately the libs used for movie generation can be flaky and
-            poor quality. As for animated GIFs, better results can be achieved
-            by saving as individual .png frames and then combining them into a
-            movie using software like ffmpeg.
-
+            installed. Unfortunately the libs used for movie generation can be
+            flaky and poor quality. As for animated GIFs, better results can be
+            achieved by saving as individual .png frames and then combining them
+            into a movie using software like ffmpeg.
         codec : str, optional
             The codec to be used **by moviepy** for mp4/mpg/mov files. If
-            ``None`` then the default will depend on file extension. Can be
+            `None` then the default will depend on file extension. Can be
             one of ``libx264``, ``mpeg4`` for mp4/mov files. Can be
             ``rawvideo``, ``png`` for avi files (not recommended). Can be
             ``libvorbis`` for ogv files. Default is ``libx264``.
-
         fps : int, optional
             The frame rate to be used throughout the movie. **Only for
-            quicktime (.mov) movies.**. Default is ``30``.
-
+            quicktime (.mov) movies.**. Default is `30`.
         clearFrames : bool, optional
-            Set this to ``False`` if you want the frames to be kept for
-            additional calls to ``saveMovieFrames``. Default is ``True``.
+            Set this to `False` if you want the frames to be kept for
+            additional calls to ``saveMovieFrames``. Default is `True`.
 
         Examples
         --------
-        Writes a series of static frames as frame001.tif, frame002.tif etc...::
+        Writes a series of static frames as frame001.tif, frame002.tif etc.::
 
             myWin.saveMovieFrames('frame.tif')
 
@@ -1384,14 +1416,14 @@ class Window(object):
     def _getRegionOfFrame(self, rect=(-1, 1, 1, -1), buffer='front',
                           power2=False, squarePower2=False):
         """Deprecated function, here for historical reasons. You may now use
-        ``_getFrame()`` and specify a rect to get a sub-region, just as used
-        here.
+        `:py:attr:`~Window._getFrame()` and specify a rect to get a sub-region,
+        just as usedhere.
 
         power2 can be useful with older OpenGL versions to avoid interpolation
-        in ``PatchStim``. If power2 or squarePower2, it will expand rect
+        in :py:attr:`PatchStim`. If power2 or squarePower2, it will expand rect
         dimensions up to next power of two. squarePower2 uses the max
         dimensions. You need to check what your hardware & OpenGL supports,
-        and call ``_getRegionOfFrame`` as appropriate.
+        and call :py:attr:`~Window._getRegionOfFrame()` as appropriate.
         """
         # Ideally: rewrite using GL frame buffer object; glReadPixels == slow
         region = self._getFrame(rect=rect, buffer=buffer)
@@ -1482,18 +1514,18 @@ class Window(object):
     def color(self, color):
         """Set the color of the window.
 
-        NB This command sets the color that the blank screen will have on the
-        next clear operation. As a result it effectively takes TWO `flip()`
-        operations to become visible (the first uses the color to create the
-        new screen, the second presents that screen to the viewer). For this
-        reason, if you want to changed background color of the window "on the
-        fly", it might be a better idea to draw a `visual.Rect` that fills the
-        whole window with the desired `Rect.fillColor` attribute.
-        That'll show up on first flip.
+        This command sets the color that the blank screen will have on the
+        next clear operation. As a result it effectively takes TWO
+        :py:attr:`Window.flip()` operations to become visible (the first uses
+        the color to create the new screen, the second presents that screen to
+        the viewer). For this reason, if you want to changed background color of
+        the window "on the fly", it might be a better idea to draw a
+        :py:attr:`Rect` that fills the whole window with the desired
+        :py:attr:`Rect.fillColor` attribute. That'll show up on first flip.
 
-        See other stimuli (e.g. :ref:`GratingStim.color`) for more info on the
-        color attribute which essentially works the same on all PsychoPy
-        stimuli.
+        See other stimuli (e.g. :py:attr:`GratingStim.color`)
+        for more info on the color attribute which essentially works the same on
+        all PsychoPy stimuli.
 
         See :ref:`colorspaces` for further information about the ways to
         specify colors and their various implications.
@@ -1502,9 +1534,9 @@ class Window(object):
 
     @attributeSetter
     def colorSpace(self, colorSpace):
-        """string. (Documentation for colorSpace is in the stimuli.)
+        """Documentation for colorSpace is in the stimuli.
 
-        e.g. :ref:`GratingStim.colorSpace`.
+        e.g. :py:attr:`GratingStim.colorSpace`
 
         Usually used in conjunction with ``color`` like this::
 
@@ -1820,13 +1852,14 @@ class Window(object):
     def mouseVisible(self, visibility):
         """Sets the visibility of the mouse cursor.
 
-        If Window was initialized with noGUI=True then the mouse is initially
-        set to invisible, otherwise it will initially be visible.
+        If Window was initialized with ``allowGUI=True`` then the mouse is
+        initially set to invisible, otherwise it will initially be visible.
 
         Usage::
 
-            ``win.mouseVisible = False``
-            ``win.mouseVisible = True``
+            win.mouseVisible = False
+            win.mouseVisible = True
+
         """
         self.backend.setMouseVisibility(visibility)
         self.__dict__['mouseVisible'] = visibility
@@ -1869,9 +1902,9 @@ class Window(object):
                            nWarmUpFrames=10, threshold=1):
         """Measures the actual frames-per-second (FPS) for the screen.
 
-        This is done by waiting (for a max of ``nMaxFrames``) until
-        ``nIdentical`` frames in a row have identical frame times (std dev below
-        ``threshold`` ms).
+        This is done by waiting (for a max of `nMaxFrames`) until
+        `nIdentical` frames in a row have identical frame times (std dev below
+        `threshold` ms).
 
         Parameters
         ----------
