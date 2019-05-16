@@ -532,7 +532,10 @@ class Window(object):
 
         Can be overridden by each stimulus, if units is specified on
         initialization.
-        See :ref:`units` for explanation of options."""
+
+        See :ref:`units` for explanation of options.
+
+        """
         self.__dict__['units'] = value
 
     def setUnits(self, value, log=True):
@@ -544,9 +547,11 @@ class Window(object):
 
         The value should be given in the units defined for the window. NB:
         Never change a single component (x or y) of the origin, instead replace
-        the viewPos-attribute in one shot, e.g.:
+        the viewPos-attribute in one shot, e.g.::
+
             win.viewPos = [new_xval, new_yval]  # This is the way to do it
             win.viewPos[0] = new_xval  # DO NOT DO THIS! Errors will result.
+
         """
         self.__dict__['viewPos'] = value
         if value is not None:
@@ -690,8 +695,8 @@ class Window(object):
         self.backend.onResize(width, height)
 
     def logOnFlip(self, msg, level, obj=None):
-        """Send a log message that should be time-stamped at the next .flip()
-        command.
+        """Send a log message that should be time-stamped at the next
+        ``.flip()`` command.
 
         Parameters
         ----------
@@ -699,7 +704,7 @@ class Window(object):
             The message to be logged.
         level : int
             The level of importance for the message.
-        obj : object
+        obj : object, optional
             The python object that might be associated with this message if
             desired.
 
@@ -707,7 +712,7 @@ class Window(object):
         self._toLog.append({'msg': msg, 'level': level, 'obj': repr(obj)})
 
     def callOnFlip(self, function, *args, **kwargs):
-        """Call a function immediately after the next .flip() command.
+        """Call a function immediately after the next ``.flip()`` command.
 
         The first argument should be the function to call, the following args
         should be used exactly as you would for your normal call to the
@@ -731,25 +736,32 @@ class Window(object):
         """Retrieves the time on the next flip and assigns it to the attrib
         for this obj.
 
-        usage:
+        Parameters
+        ----------
+        obj : dict or object
+            A mutable object (usually a dict of class instance).
+        attrib : str
+            Key or attribute of ``obj`` to assign the flip time to.
+
+        Examples
+        --------
+        Assign time on flip to the ``tStartRefresh`` key of ``myTimingDict``::
+
             win.getTimeOnFlip(myTimingDict, 'tStartRefresh')
 
-        :parameters:
-            - obj:
-                must be a mutable object (usually a dict of class instance)
-            - attrib: str
-                if obj has this
         """
         self.callOnFlip(self._assignFlipTime, obj, attrib)
 
     def _assignFlipTime(self, obj, attrib):
         """Helper function to assign the time of last flip to the obj.attrib
 
-        :parameters:
-            - obj:
-                must be a mutable object (usually a dict of class instance)
-            - attrib: str
-                if obj has this
+        Parameters
+        ----------
+        obj : dict or object
+            A mutable object (usually a dict of class instance).
+        attrib : str
+            Key or attribute of ``obj`` to assign the flip time to.
+
         """
         if hasattr(obj, attrib):
             setattr(obj, attrib, self._frameTime)
@@ -952,22 +964,29 @@ class Window(object):
         Flip multiple times while maintaining the display constant.
         Use this method for precise timing.
 
-        WARNING: This function should not be used. See the `Notes` section
+        **WARNING:** This function should not be used. See the `Notes` section
         for details.
 
-        :Parameters:
-
-        flips: int, optional
+        Parameters
+        ----------
+        flips : int, optional
             The number of monitor frames to flip. Floats will be
             rounded to integers, and a warning will be emitted.
             ``Window.multiFlip(flips=1)`` is equivalent to ``Window.flip()``.
             Defaults to `1`.
-
-        clearBuffer: bool, optional
+        clearBuffer : bool, optional
             Whether to clear the screen after the last flip.
             Defaults to `True`.
 
-        Example::
+        Notes
+        -----
+        - This function can behave unpredictably, and the PsychoPy authors
+          recommend against using it. See
+          https://github.com/psychopy/psychopy/issues/867 for more information.
+
+        Examples
+        --------
+        Example of using ``multiFlip``::
 
             # Draws myStim1 to buffer
             myStim1.draw()
@@ -980,12 +999,6 @@ class Window(object):
             myWin.multiFlip(flips=2)
             # Show blank screen for 3 frames (buffer was cleared above)
             myWin.multiFlip(flips=3)
-
-        :Notes:
-        This function can behave unpredictably, and the PsychoPy authors
-        recommend against using it.
-        See https://github.com/psychopy/psychopy/issues/867 for more
-        information.
 
         """
         if flips < 1:
@@ -1014,10 +1027,19 @@ class Window(object):
         graphics card that supports quad buffering (e,g nVidia Quadro series)
 
         PsychoPy always draws to the back buffers, so 'left' will use
-        GL_BACK_LEFT This then needs to be flipped once both eye's buffers
+        ``GL_BACK_LEFT`` This then needs to be flipped once both eye's buffers
         have been rendered.
 
-        Typical usage::
+        Parameters
+        ----------
+        buffer : str
+            Buffer to draw to. Can either be 'left' or 'right'.
+        clear : bool, optional
+            Clear the buffer before drawing. Default is ``True``.
+
+        Examples
+        --------
+        Stereoscopic rendering example using quad-buffers::
 
             win = visual.Window(...., stereo=True)
             while True:
@@ -1091,16 +1113,16 @@ class Window(object):
         configuration with the scene origin on the screen plane. Calculations
         assume units are in meters.
 
-        Note that the values of 'projectionMatrix' and 'viewMatrix' will be
+        Note that the values of ``projectionMatrix`` and ``viewMatrix`` will be
         replaced when calling this function.
 
         Parameters
         ----------
         applyTransform : bool
             Apply transformations after computing them in immediate mode. Same
-            as calling 'applyEyeTransform' afterwards.
+            as calling ``applyEyeTransform()`` afterwards.
         **kwargs
-            Additional arguments to pass to 'applyEyeTransform()'
+            Additional arguments to pass to ``applyEyeTransform()``
 
         Returns
         -------
@@ -1176,7 +1198,7 @@ class Window(object):
 
         Notes
         -----
-        Calling 'flip()' automatically resets the view and projection to
+        Calling ``flip()`` automatically resets the view and projection to
         defaults. So you don't need to call this unless you are mixing views.
 
         """
@@ -1245,7 +1267,6 @@ class Window(object):
             left = top = 0
             w, h = self.size
 
-
         # http://www.opengl.org/sdk/docs/man/xhtml/glGetTexImage.xml
         bufferDat = (GL.GLubyte * (4 * w * h))()
         GL.glReadPixels(left, top, w, h,
@@ -1270,43 +1291,47 @@ class Window(object):
 
         Will write any format that is understood by PIL (tif, jpg, png, ...)
 
-        :parameters:
+        Parameters
+        ----------
+        filename : str
+            Name of file, including path. The extension at the end of the file
+            determines the type of file(s) created. If an image type (e.g. .png)
+            is given, then multiple static frames are created. If it is .gif
+            then an animated GIF image is created (although you will get higher
+            quality GIF by saving PNG files and then combining them in dedicated
+            image manipulation software, such as GIMP). On Windows and Linux
+            `.mpeg` files can be created if `pymedia` is installed. On macOS
+            `.mov` files can be created if the pyobjc-frameworks-QTKit is
+             installed.
 
-            filename: name of file, including path (required)
-                The extension at the end of the file determines the type of
-                file(s) created. If an image type (e.g. .png) is given, then
-                multiple static frames are created. If it is .gif then an
-                animated GIF image is created (although you will get higher
-                quality GIF by saving PNG files and then combining them in
-                dedicated image manipulation software, such as GIMP). On
-                Windows and Linux `.mpeg` files can be created if `pymedia`
-                is installed. On macOS `.mov` files can be created if the
-                pyobjc-frameworks-QTKit is installed.
+             Unfortunately the libs used for movie generation can be flaky and
+             poor quality. As for animated GIFs, better results can be achieved
+             by saving as individual .png frames and then combining them into a
+             movie using software like ffmpeg.
 
-                Unfortunately the libs used for movie generation can be flaky
-                and poor quality. As for animated GIFs, better results can be
-                achieved by saving as individual .png frames and then
-                combining them into a movie using software like ffmpeg.
+        codec : str, optional
+            The codec to be used **by moviepy** for mp4/mpg/mov files. If
+            ``None`` then the default will depend on file extension. Can be
+            one of ``libx264``, ``mpeg4`` for mp4/mov files. Can be
+            ``rawvideo``, ``png`` for avi files (not recommended). Can be
+            ``libvorbis`` for ogv files. Default is ``libx264``.
 
-            codec: the codec to be used **by moviepy** for mp4/mpg/mov files.
-                If None then the default will depend on file extension.
-                Can be one of 'libx264','mpeg4' for mp4/mov files.
-                Can be 'rawvideo','png' for avi files (not recommended).
-                Can be 'libvorbis' for ogv files.
+        fps : int, optional
+            The frame rate to be used throughout the movie. **Only for
+            quicktime (.mov) movies.**. Default is ``30``.
 
-            fps: the frame rate to be used throughout the movie
-                **only for quicktime (.mov) movies**
+        clearFrames : bool, optional
+            Set this to ``False`` if you want the frames to be kept for
+            additional calls to ``saveMovieFrames``. Default is ``True``.
 
-            clearFrames: set this to False if you want the frames to be kept
-                for additional calls to `saveMovieFrames`
+        Examples
+        --------
+        Writes a series of static frames as frame001.tif, frame002.tif etc...::
 
-        Examples::
-
-            # writes a series of static frames as frame001.tif,
-            # frame002.tif etc...
             myWin.saveMovieFrames('frame.tif')
 
-            #as of PsychoPy 1.84.1 the following are written with moviepy
+        As of PsychoPy 1.84.1 the following are written with moviepy::
+
             myWin.saveMovieFrames('stimuli.mp4') # codec = 'libx264' or 'mpeg4'
             myWin.saveMovieFrames('stimuli.mov')
             myWin.saveMovieFrames('stimuli.gif')
@@ -1349,13 +1374,14 @@ class Window(object):
     def _getRegionOfFrame(self, rect=(-1, 1, 1, -1), buffer='front',
                           power2=False, squarePower2=False):
         """Deprecated function, here for historical reasons. You may now use
-        _getFrame() and specify a rect to get a sub-region, just as used here
+        ``_getFrame()`` and specify a rect to get a sub-region, just as used
+        here.
 
         power2 can be useful with older OpenGL versions to avoid interpolation
-        in PatchStim. If power2 or squarePower2, it will expand rect
+        in ``PatchStim``. If power2 or squarePower2, it will expand rect
         dimensions up to next power of two. squarePower2 uses the max
         dimensions. You need to check what your hardware & OpenGL supports,
-        and call _getRegionOfFrame as appropriate.
+        and call ``_getRegionOfFrame`` as appropriate.
         """
         # Ideally: rewrite using GL frame buffer object; glReadPixels == slow
         region = self._getFrame(rect=rect, buffer=buffer)
@@ -1820,7 +1846,7 @@ class Window(object):
         Parameters
         ----------
         name : str
-            Type of standard cursor to use.
+            Type of standard cursor to use (see above). Default is ``arrow``.
 
         Notes
         -----
@@ -1828,7 +1854,7 @@ class Window(object):
           color. It will not be visible when placed over 50% grey fields.
 
         """
-        pass
+        self.backend.setMouseType(name)
 
     def getActualFrameRate(self, nIdentical=10, nMaxFrames=100,
                            nWarmUpFrames=10, threshold=1):
