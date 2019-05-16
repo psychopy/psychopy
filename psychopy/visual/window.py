@@ -1312,12 +1312,12 @@ class Window(object):
             image manipulation software, such as GIMP). On Windows and Linux
             `.mpeg` files can be created if `pymedia` is installed. On macOS
             `.mov` files can be created if the pyobjc-frameworks-QTKit is
-             installed.
+            installed.
 
-             Unfortunately the libs used for movie generation can be flaky and
-             poor quality. As for animated GIFs, better results can be achieved
-             by saving as individual .png frames and then combining them into a
-             movie using software like ffmpeg.
+            Unfortunately the libs used for movie generation can be flaky and
+            poor quality. As for animated GIFs, better results can be achieved
+            by saving as individual .png frames and then combining them into a
+            movie using software like ffmpeg.
 
         codec : str, optional
             The codec to be used **by moviepy** for mp4/mpg/mov files. If
