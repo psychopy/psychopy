@@ -693,13 +693,17 @@ class Window(object):
         """Send a log message that should be time-stamped at the next .flip()
         command.
 
-        :parameters:
-            - msg: the message to be logged
-            - level: the level of importance for the message
-            - obj (optional): the python object that might be associated with
-              this message if desired
-        """
+        Parameters
+        ----------
+        msg : str
+            The message to be logged.
+        level : int
+            The level of importance for the message.
+        obj : object
+            The python object that might be associated with this message if
+            desired.
 
+        """
         self._toLog.append({'msg': msg, 'level': level, 'obj': repr(obj)})
 
     def callOnFlip(self, function, *args, **kwargs):
