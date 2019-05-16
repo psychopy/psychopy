@@ -1834,12 +1834,12 @@ class Window(object):
         They may vary in appearance and hot spot location across platforms. The
         following names are valid on most platforms:
 
-            * ``arrow`` : Default pointer.
-            * ``ibeam`` : Indicates text can be edited.
-            * ``crosshair`` : Crosshair with hot-spot at center.
-            * ``hand`` : A pointing hand.
-            * ``hresize`` : Double arrows pointing horizontally.
-            * ``vresize`` : Double arrows pointing vertically.
+        * ``arrow`` : Default pointer.
+        * ``ibeam`` : Indicates text can be edited.
+        * ``crosshair`` : Crosshair with hot-spot at center.
+        * ``hand`` : A pointing hand.
+        * ``hresize`` : Double arrows pointing horizontally.
+        * ``vresize`` : Double arrows pointing vertically.
 
         Requires the GLFW backend, otherwise this function does nothing!
 
@@ -1858,32 +1858,33 @@ class Window(object):
 
     def getActualFrameRate(self, nIdentical=10, nMaxFrames=100,
                            nWarmUpFrames=10, threshold=1):
-        """Measures the actual fps for the screen.
+        """Measures the actual frames-per-second (FPS) for the screen.
 
-        This is done by waiting (for a max of nMaxFrames) until [nIdentical]
-        frames in a row have identical frame times
-        (std dev below [threshold] ms).
+        This is done by waiting (for a max of ``nMaxFrames``) until
+        ``nIdentical`` frames in a row have identical frame times (std dev below
+        ``threshold`` ms).
 
-        If there is no such sequence of identical frames a warning is logged
-        and `None` will be returned.
+        Parameters
+        ----------
+        nIdentical : int, optional
+            The number of consecutive frames that will be evaluated.
+            Higher --> greater precision. Lower --> faster.
+        nMaxFrames : int, optional
+            The maximum number of frames to wait for a matching set of
+            nIdentical.
+        nWarmUpFrames : int, optional
+            The number of frames to display before starting the test
+            (this is in place to allow the system to settle after opening
+            the `Window` for the first time.
+        threshold : int, optional
+            The threshold for the std deviation (in ms) before the set
+            are considered a match.
 
-        :parameters:
-            nIdentical:
-                the number of consecutive frames that will be evaluated.
-                Higher --> greater precision. Lower --> faster.
-
-            nMaxFrames:
-                the maximum number of frames to wait for a matching set of
-                nIdentical
-
-            nWarmUpFrames:
-                the number of frames to display before starting the test
-                (this is in place to allow the system to settle after opening
-                the `Window` for the first time.
-
-            threshold:
-                the threshold for the std deviation (in ms) before the set
-                are considered a match
+        Returns
+        -------
+        float or None
+            Frame rate (FPS) in seconds. If there is no such sequence of
+            identical frames a warning is logged and `None` will be returned.
 
         """
         if nIdentical > nMaxFrames:
@@ -2077,6 +2078,7 @@ def getMsPerFrame(myWin, nFrames=60, showVisual=False, msg='', msDelay=0.):
     doing the win.flip(). If 0 < msDelay < 100, wait for that long in ms.
 
     Returns timing stats (in ms) of:
+
     - average time per frame, for all frames
     - standard deviation of all frames
     - median, as the average of 12 frame times around the median
