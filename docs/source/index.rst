@@ -29,11 +29,12 @@ Sogo, H., Kastman, E., Lindeløv, J. (2019). `PsychoPy2: experiments in behavior
 made easy. <https://dx.doi.org/10.3758/s13428-018-01193-y>`_ Behavior Research
 Methods. 10.3758/s13428-018-01193-y
 
-**Latest version**: 3.1.0 April 2019
+**Latest version**: 3.1.2 April 2019
 
-Supporting online studies and announcing our own experiment server at
-`Pavlovia.org <https://pavlovia.org>`_ See the launch video at
-https://www.youtube.com/watch?v=bprYeBzkUc8 to get more info.
+Release series 3.1.x adds a :class:`~psychopy.hardware.keyboard.Keyboard`
+class which is much faster (polling the USB bus directly and at a higher rate)
+and supplies key durations automatically where possible (for keys that have
+been released). As always, see the :ref:`changelog` for full details.
 
 **Buy the official book!**
 

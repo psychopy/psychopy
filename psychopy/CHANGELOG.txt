@@ -1,3 +1,5 @@
+.. _changelog::
+
 Changelog
 ====================
 
@@ -19,7 +21,7 @@ As of PsychoPy 3.1 we are now using the underlying code of the `kbQueue` calls i
 `Psychophysics Toolbox`. The C code from those calls was ported to a new Python
 package in late 2018 and this is now the basis of the new :class:`Keyboard` class.
 This only works on 64-bit Python3 installations, but the Keyboard class will
-fall back to the old `event.GetKeys` calls where the `psychtoolbox` package is
+fall back to the old :func:`event.GetKeys` calls where the `psychtoolbox` package is
 not available.
 
 PsychoPy 3.1.2
@@ -27,12 +29,12 @@ PsychoPy 3.1.2
 
 FIXED:
 
-- teething problems with new :class:`~psychopy.hardware.Keyboard`:
+- teething problems with the new :class:`~psychopy.hardware.keyboard.Keyboard` class:
    - in Builder there was stuttering of sounds and lags in frame timing caused
-   by accidentally creating lots of Kyeboards while checking for 'escape'
+     by accidentally creating lots of Kyeboards while checking for 'escape'
    - durations were being reported with correct magnitude but as negative values #e43e474602b7f
    - problem on Windows if keyboard device name contained unicode (that problem
-   was actually in psychtoolbox package, now updated in Standalone)
+     was actually in psychtoolbox package, now updated in Standalone)
    - on Windows, the 'return' key was being called 'num_enter'
 - videos were not running online #9779579b60 #51b0824f755
 - fixed rounding error in filtering of NoiseStim #5d0e360d87b
@@ -67,7 +69,7 @@ PsychoPy 3.1.0
 
 NEW:
 
-- hardware.keyboard.Keyboard class, based on C code from the Psychtoolbox project (ported to Python by Mario Kleiner)
+- :class:`~psychopy.hardware.keyboard.Keyboard` class, based on C code from the Psychtoolbox project (ported to Python by Mario Kleiner)
  - faster than `event.getKeys()` (polling is asynchronous with drawing loop and the calls go direct 
    to the USB rather than going via the operating system key calls)
  - supports keyDuration fields as well as `rt` for key down time
