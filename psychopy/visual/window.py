@@ -584,7 +584,7 @@ class Window(object):
     @attributeSetter
     def waitBlanking(self, value):
         """*None*, True or False.
-        After a call to flip() should we wait for the blank before the
+        After a call to ``flip()`` should we wait for the blank before the
         script continues
         """
         self.__dict__['waitBlanking'] = value
@@ -593,11 +593,11 @@ class Window(object):
     def recordFrameIntervals(self, value):
         """To provide accurate measures of frame intervals, to determine
         whether frames are being dropped. The intervals are the times between
-        calls to `.flip()`. Set to `True` only during the time-critical parts
+        calls to ``.flip()``. Set to `True` only during the time-critical parts
         of the script. Set this to `False` while the screen is not being
         updated, i.e., during any slow, non-frame-time-critical sections of
-        your code, including inter-trial-intervals, `event.waitkeys()`,
-        `core.wait()`, or `image.setImage()`.
+        your code, including inter-trial-intervals, ``event.waitkeys()``,
+        ``core.wait()``, or ``image.setImage()``.
 
         see also:
             Window.saveFrameIntervals()
@@ -618,11 +618,14 @@ class Window(object):
         """Save recorded screen frame intervals to disk, as comma-separated
         values.
 
-        :Parameters:
-
-        fileName : *None* or the filename (including path if necessary) in
-            which to store the data.
-            If None then 'lastFrameIntervals.log' will be used.
+        Parameters
+        ----------
+        fileName : *None* or str
+            *None* or the filename (including path if necessary) in which to
+            store the data. If None then 'lastFrameIntervals.log' will be used.
+        clear : bool
+            Clear buffer frames intervals were stored after saving. Default is
+            `True`.
 
         """
         if not fileName:
@@ -722,7 +725,7 @@ class Window(object):
 
             pingMyDevice(portToPing, channel=2, level=0)
 
-        then you could call callOnFlip() to have the function call
+        then you could call ``callOnFlip()`` to have the function call
         synchronized with the frame flip like this::
 
             win.callOnFlip(pingMyDevice, portToPing, channel=2, level=0)
@@ -1124,10 +1127,6 @@ class Window(object):
         **kwargs
             Additional arguments to pass to ``applyEyeTransform()``
 
-        Returns
-        -------
-        None
-
         """
         # NB - we should eventually compute these matrices lazily since they may
         # not change over the course of an experiment under most circumstances.
@@ -1164,8 +1163,8 @@ class Window(object):
         'viewMatrix' and 'projectionMatrix' using 'immediate mode' OpenGL.
         Subsequent drawing operations will be affected until 'flip()' is called.
 
-        All transformations in GL_PROJECTION and GL_MODELVIEW matrix stacks will
-        be cleared (set to identity) prior to applying.
+        All transformations in ``GL_PROJECTION`` and ``GL_MODELVIEW`` matrix
+        stacks will be cleared (set to identity) prior to applying.
 
         Parameters
         ----------
@@ -1216,13 +1215,13 @@ class Window(object):
     def getMovieFrame(self, buffer='front'):
         """Capture the current Window as an image.
 
-        Saves to stack for saveMovieFrames().
+        Saves to stack for ``saveMovieFrames()``.
         As of v1.81.00 this also returns the frame as a PIL image
 
-        This can be done at any time (usually after a .flip() command).
+        This can be done at any time (usually after a ``.flip()`` command).
 
-        Frames are stored in memory until a .saveMovieFrames(filename)
-        command is issued. You can issue getMovieFrame() as often
+        Frames are stored in memory until a ``.saveMovieFrames(filename)``
+        command is issued. You can issue ``getMovieFrame()`` as often
         as you like and then save them all in one go when finished.
 
         The back buffer will return the frame that hasn't yet been 'flipped'
@@ -1230,7 +1229,7 @@ class Window(object):
         other overlapping windows won't get in the way.
 
         The default front buffer is to be called immediately after a
-        win.flip() and gives a complete copy of the screen at the window's
+        ``win.flip()`` and gives a complete copy of the screen at the window's
         coordinates.
         """
         im = self._getFrame(buffer=buffer)
@@ -1854,7 +1853,8 @@ class Window(object):
           color. It will not be visible when placed over 50% grey fields.
 
         """
-        self.backend.setMouseType(name)
+        if hasattr(self.backend, "setMouseType"):
+            self.backend.setMouseType(name)
 
     def getActualFrameRate(self, nIdentical=10, nMaxFrames=100,
                            nWarmUpFrames=10, threshold=1):
