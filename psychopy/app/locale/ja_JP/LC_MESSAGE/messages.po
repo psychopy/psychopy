@@ -2,8 +2,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PsychoPy 1.81.00\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-05-14 18:41+0900\n"
-"PO-Revision-Date: 2019-05-14 18:41+0900\n"
+"POT-Creation-Date: 2019-05-14 18:53+0900\n"
+"PO-Revision-Date: 2019-05-14 19:16+0900\n"
 "Last-Translator: Hiroyuki Sogo <hsogo12600@gmail.com>\n"
 "Language-Team: Hiroyuki Sogo <hsogo12600@gmail.com>\n"
 "Language: ja\n"
@@ -2818,7 +2818,7 @@ msgstr ""
 "刺激の大きさを指定します (単一の値または縦横の値のペア, 例: 2.5, [1,2]) "
 
 #: psychopy/experiment/components/_base.py:601
-#: psychopy/experiment/components/envelopegrating/__init__.py:68
+#: psychopy/experiment/components/envelopegrating/__init__.py:71
 #: psychopy/experiment/components/noise/__init__.py:94
 msgid "Orientation of this stimulus (in deg)"
 msgstr "刺激の回転方向を指定します (単位は度)"
@@ -3172,23 +3172,27 @@ msgid "Envelope modulation depth"
 msgstr "エンベロープの変調幅"
 
 #: psychopy/experiment/components/envelopegrating/__init__.py:34
+msgid "Power to which envelope is raised"
+msgstr "エンベロープ"
+
+#: psychopy/experiment/components/envelopegrating/__init__.py:35
 msgid "Is modulation a beat"
 msgstr "ビートモード"
 
-#: psychopy/experiment/components/envelopegrating/__init__.py:35
+#: psychopy/experiment/components/envelopegrating/__init__.py:36
 #: psychopy/experiment/components/grating/__init__.py:26
 #: psychopy/experiment/components/noise/__init__.py:43
 msgid "OpenGL blend mode"
 msgstr "OpenGLのブレンドモード"
 
-#: psychopy/experiment/components/envelopegrating/__init__.py:71
+#: psychopy/experiment/components/envelopegrating/__init__.py:74
 msgid ""
 "The (2D) texture of the background - can be sin, sqr, sinXsin... or a "
 "filename (including path)"
 msgstr ""
 "背景となる(2D)テクスチャ (sin, sqr, sinXsin, ファイル名など)を指定します。"
 
-#: psychopy/experiment/components/envelopegrating/__init__.py:80
+#: psychopy/experiment/components/envelopegrating/__init__.py:83
 #: psychopy/experiment/components/grating/__init__.py:62
 #: psychopy/experiment/components/noise/__init__.py:97
 #: psychopy/experiment/components/patch/__init__.py:61
@@ -3199,11 +3203,11 @@ msgstr ""
 "αマスクを指定して形状を変更します(gauss, circle, ... パスを含むファイル名な"
 "ど)。"
 
-#: psychopy/experiment/components/envelopegrating/__init__.py:89
+#: psychopy/experiment/components/envelopegrating/__init__.py:92
 msgid "Contrast of background carrier"
 msgstr "背景となるキャリアのコントラストを指定します"
 
-#: psychopy/experiment/components/envelopegrating/__init__.py:97
+#: psychopy/experiment/components/envelopegrating/__init__.py:100
 msgid ""
 "Spatial frequency of background carrier repeats across the grating in 1 or 2 "
 "dimensions, e.g. 4 or [2,3]"
@@ -3211,11 +3215,11 @@ msgstr ""
 "背景となるキャリアの空間周波数を１次元または２次元(例えば4 や[2,3])で指定ま"
 "す。"
 
-#: psychopy/experiment/components/envelopegrating/__init__.py:106
+#: psychopy/experiment/components/envelopegrating/__init__.py:109
 msgid "Spatial positioning of the background carrier (wraps in range 0-1.0)"
 msgstr "背景となるキャリアの位相を指定します(0.0から1.0の範囲に丸められます)。"
 
-#: psychopy/experiment/components/envelopegrating/__init__.py:116
+#: psychopy/experiment/components/envelopegrating/__init__.py:119
 #: psychopy/experiment/components/grating/__init__.py:90
 #: psychopy/experiment/components/noise/__init__.py:137
 #: psychopy/experiment/components/patch/__init__.py:89
@@ -3225,7 +3229,7 @@ msgid ""
 msgstr ""
 "Sin, sqrといったテクスチャの解像度を指定します 多くの場合256pixで十分です"
 
-#: psychopy/experiment/components/envelopegrating/__init__.py:125
+#: psychopy/experiment/components/envelopegrating/__init__.py:128
 #: psychopy/experiment/components/grating/__init__.py:99
 #: psychopy/experiment/components/image/__init__.py:84
 #: psychopy/experiment/components/noise/__init__.py:146
@@ -3234,7 +3238,7 @@ msgstr ""
 msgid "How should the image be interpolated if/when rescaled"
 msgstr "画像がリサイズされた時の補間方法を指定します"
 
-#: psychopy/experiment/components/envelopegrating/__init__.py:134
+#: psychopy/experiment/components/envelopegrating/__init__.py:137
 msgid ""
 "The (2D) texture of the envelope - can be sin, sqr, sinXsin... or a filename "
 "(including path)"
@@ -3242,26 +3246,50 @@ msgstr ""
 "エンベロープとなる(2D)テクスチャ(sin, sqr, sinXsin, ファイル名など)を指定しま"
 "す。"
 
-#: psychopy/experiment/components/envelopegrating/__init__.py:143
+#: psychopy/experiment/components/envelopegrating/__init__.py:146
 msgid ""
 "Spatial frequency of the modulation envelope repeats across the grating in 1 "
 "or 2 dimensions, e.g. 4 or [2,3]"
 msgstr ""
 "変調エンベロープの空間周波数を1次元または2次元(例えば4や[2,3])で指定します。"
 
-#: psychopy/experiment/components/envelopegrating/__init__.py:152
+#: psychopy/experiment/components/envelopegrating/__init__.py:155
 msgid "Spatial positioning of the modulation envelope(wraps in range 0-1.0)"
 msgstr "変調エンベロープの位相を指定します(0.0から1.0の範囲に丸められます)。"
 
-#: psychopy/experiment/components/envelopegrating/__init__.py:161
+#: psychopy/experiment/components/envelopegrating/__init__.py:164
 msgid "Orientation of the modulation envelope(wraps in range 0-360)"
 msgstr "変調エンベロープの回転角度を指定します(0から360の範囲に丸められます)。"
 
-#: psychopy/experiment/components/envelopegrating/__init__.py:170
+#: psychopy/experiment/components/envelopegrating/__init__.py:173
 msgid "Modulation depth of modulation envelope"
 msgstr "変調エンベロープによる変調幅を指定します"
 
-#: psychopy/experiment/components/envelopegrating/__init__.py:178
+#: psychopy/experiment/components/envelopegrating/__init__.py:181
+msgid ""
+"Power of modulation envelope. The modulator will be raised to this power "
+"according to the equation S=cC*(1+mM)^power, where C is the carrier and M is "
+"the modulator. and c and m are there respective contrast and modulation "
+"depth. Only works with AM envelopes (hence +1) in equation. Power is ignored "
+"if a beat is requested. This is used to obtain the square root of the "
+"modulator (power = 0.5) which is useful if combining two envelope gratings "
+"with different carriers and a 180 degree phase shift as the resulting "
+"combined signal will not have any reduction in local contrast at any point "
+"in the image. This is similar - but not identical to - the method used by "
+"Landy and Oruc, Vis Res 2002. Note overall contrast (apparent carrier "
+"contrast) will be altered."
+msgstr ""
+"変調エンベロープのパワー。モジュレータはS=cC*(1+mM)^pの式に従って持ち上げられ"
+"ます(Cはキャリア、Mはモジュレータ、pはパワー)。cとmはコントラストと変調幅で"
+"す。AMエンベロープでのみ機能します。ビートが設定された場合はパワーは無視され"
+"ます。異なるキャリアと180度位相が異なるモジュレータを持つ2つのエンベロープグ"
+"レーティングを結合して画像の任意の位置において局所的なコントラストが減少しな"
+"い刺激を作成するときに便利なモジュレータの平方根(パワー=0.5)を得るために便利"
+"です。この刺激はLandy and Oruc, Vis Res 2002で用いられた刺激と同一ではありま"
+"せんがよく似ています。全体的なコントラスト(見た目上のキャリアのコントラスト)"
+"は変化しないことに注意してください。"
+
+#: psychopy/experiment/components/envelopegrating/__init__.py:203
 msgid ""
 "Do you want a 'beat'? [beat = carrier*envelope, no beat = "
 "carrier*(1+envelope), True/False, Y/N]"
@@ -3269,7 +3297,7 @@ msgstr ""
 "ビートを使用しますか？(ビート=carrier*envelope, ビート無し"
 "=carrier*(1+envelope)　True/FalseまたはY/Nで指定)"
 
-#: psychopy/experiment/components/envelopegrating/__init__.py:187
+#: psychopy/experiment/components/envelopegrating/__init__.py:212
 msgid ""
 "OpenGL Blendmode. Avg is most common mode in PsychoPy, add is useful if "
 "combining a beat with the carrier image or numpy array at point of display"
@@ -3744,20 +3772,20 @@ msgstr "バックエンド"
 msgid "No audio"
 msgstr "音声無し"
 
-#: psychopy/experiment/components/movie/__init__.py:52
+#: psychopy/experiment/components/movie/__init__.py:55
 #: psychopy/experiment/components/sound/__init__.py:51
 msgid "When does the component end? (blank to use the duration of the media)"
 msgstr "終了時刻を指定します (空白の場合はメディアの終了まで)"
 
-#: psychopy/experiment/components/movie/__init__.py:55
+#: psychopy/experiment/components/movie/__init__.py:58
 msgid "A filename for the movie (including path)"
 msgstr "動画ファイル名(パスを含む)"
 
-#: psychopy/experiment/components/movie/__init__.py:62
+#: psychopy/experiment/components/movie/__init__.py:65
 msgid "What underlying lib to use for loading movies"
 msgstr "動画再生に使用するライブラリを選択します"
 
-#: psychopy/experiment/components/movie/__init__.py:70
+#: psychopy/experiment/components/movie/__init__.py:73
 msgid ""
 "Prevent the audio stream from being loaded/processed (moviepy and opencv "
 "only)"
@@ -3765,9 +3793,17 @@ msgstr ""
 "オーディオストリームの読み込みおよび処理を行いません (moviepyとopencvバックエ"
 "ンドのみ)"
 
-#: psychopy/experiment/components/movie/__init__.py:77
+#: psychopy/experiment/components/movie/__init__.py:80
 msgid "Should the end of the movie cause the end of the routine (e.g. trial)?"
 msgstr "動画再生終了時にRoutineを終了します"
+
+#: psychopy/experiment/components/movie/__init__.py:88
+msgid "Whether the movie should loop back to the beginning on completion."
+msgstr "動画が終了した時に最初に戻って再生するか否かを指定します"
+
+#: psychopy/experiment/components/movie/__init__.py:93
+msgid "Loop playback"
+msgstr "ループ再生"
 
 #: psychopy/experiment/components/noise/__init__.py:17
 msgid ""
