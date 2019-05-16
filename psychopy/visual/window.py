@@ -1840,8 +1840,6 @@ class Window(object):
         * ``hresize`` : Double arrows pointing horizontally.
         * ``vresize`` : Double arrows pointing vertically.
 
-        Requires the GLFW backend, otherwise this function does nothing!
-
         Parameters
         ----------
         name : str
