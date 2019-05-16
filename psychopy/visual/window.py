@@ -1197,8 +1197,8 @@ class Window(object):
 
         Notes
         -----
-        Calling ``flip()`` automatically resets the view and projection to
-        defaults. So you don't need to call this unless you are mixing views.
+        * Calling ``flip()`` automatically resets the view and projection to
+          defaults. So you don't need to call this unless you are mixing views.
 
         """
         # should eventually have the same effect as calling _onResize(), so we
