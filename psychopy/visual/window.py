@@ -179,84 +179,97 @@ class Window(object):
         for a list of attributes which can be changed after initialization
         of the Window, e.g. color, colorSpace, gamma etc.
 
-        :Parameters:
+        Parameters
+        ----------
+        size : `array-like` of `int`
+            Size of the window in pixels [x, y].
+        pos : `array-like` of `int`
+            Location of the top-left corner of the window on the screen [x, y].
+        color : `array-like` of `float`
+            Color of background as [r, g, b] list or single value. Each gun can
+            take values between -1.0 and 1.0.
+        fullscr : `bool` or `None`
+            Create a window in 'full-screen' mode. Better timing can be achieved
+            in full-screen mode.
+        allowGUI : `bool` or `None`
+            If set to False, window will be drawn with no frame and no buttons
+            to close etc., use `None` for value from preferences.
+        winType : `str` or `None`
+            Set the window type or back-end to use. If `None` then PsychoPy will
+            revert to user/site preferences.
+        monitor : :obj:`~psychopy.monitors.Monitor` or `None`
+            The monitor to be used during the experiment. If `None` a default
+            monitor profile will be used.
+        units : `str` or `None`
+            Defines the default units of stimuli drawn in the window (can be
+            overridden by each stimulus). Values can be *None*, 'height' (of the
+            window), 'norm' (normalised), 'deg', 'cm', 'pix'. See :ref:`units`
+            for explanation of options.
+        screen : `int`
+            Specifies the physical screen that stimuli will appear on ('pyglet'
+            and 'glfw' `winType` only). Values can be >0 if more than one screen
+            is present.
+        viewScale : `array-like` of `float` or `None`
+            Scaling factors [x, y] to apply custom scaling to the current units
+            of the :class:`~psychopy.visual.Window` instance.
+        viewPos : `array-like` of `float` or `None`
+            If not `None`, redefines the origin within the window, in the units
+            of the window. Values outside the borders will be clamped to lie on
+            the border.
+        viewOri : `float`
+            A single value determining the orientation of the view in degrees.
+        waitBlanking : `bool` or `None`
+            After a call to :py:attr:`~Window.flip()` should we wait for the
+            blank before the script continues.
+        bitsMode :
+            DEPRECATED in 1.80.02. Use BitsSharp class from pycrsltd
+            instead.
+        checkTiming : `bool`
+            Whether to calculate frame duration on initialization. Estimated
+            duration is saved in :py:attr:`~Window.monitorFramePeriod`.
+        allowStencil : `bool`
+            When set to `True`, this allows operations that use the OpenGL
+            stencil buffer (notably, allowing the
+            :class:`~psychopy.visual.Aperture` to be used).
+        multiSample : `bool`
+            If `True` and your graphics driver supports multisample buffers,
+            multiple color samples will be taken per-pixel, providing an
+            anti-aliased image through spatial filtering. This setting cannot
+            be changed after opening a window. Only works with 'pyglet' and
+            'glfw' `winTypes`, and `useFBO` is `False`.
+        numSamples : `int`
+            A single value specifying the number of samples per pixel if
+            multisample is enabled. The higher the number, the better the
+            image quality, but can delay frame flipping. The largest number of
+            samples is determined by ``GL_MAX_SAMPLES``, usually 16 or 32 on
+            newer hardware, will crash if number is invalid.
+        stereo : `bool`
+            If `True` and your graphics card supports quad buffers then
+            this will be enabled. You can switch between left and right-eye
+            scenes for drawing operations using
+            :py:attr:`~psychopy.visual.Window.setBuffer()`.
+        useRetina : `bool`
+            In PsychoPy >1.85.3 this should always be `True` as pyglet
+            (or Apple) no longer allows us to create a non-retina display.
+            NB when you use Retina display the initial win size
+            request will be in the larger pixels but subsequent use of
+            ``units='pix'`` should refer to the tiny Retina pixels. Window.size
+            will give the actual size of the screen in Retina pixels.
 
-            size : (800,600)
-                Size of the window in pixels (X,Y)
-            pos : *None* or (x,y)
-                Location of the window on the screen
-            color : [0,0,0]
-                Color of background as [r,g,b] list or single value.
-                Each gun can take values between -1 and 1
-            fullscr : *None*, True or False
-                Better timing can be achieved in full-screen mode
-            allowGUI :  *None*, True or False (if None prefs are used)
-                If set to False, window will be drawn with no frame and
-                no buttons to close etc...
-            winType :  *None*, 'pyglet', 'pygame'
-                If None then PsychoPy will revert to user/site preferences
-            monitor : *None*, string or a `~psychopy.monitors.Monitor` object
-                The monitor to be used during the experiment
-            units :  *None*, 'height' (of the window), 'norm' (normalised),
-                'deg', 'cm', 'pix'
-                Defines the default units of stimuli drawn in the window
-                (can be overridden by each stimulus)
-                See :ref:`units` for explanation of options.
-            screen : *0*, 1 (or higher if you have many screens)
-                Specifies the physical screen that stimuli will appear on
-                (pyglet winType only)
-            viewScale : *None* or [x,y]
-                Can be used to apply a custom scaling to the current units
-                of the :class:`~psychopy.visual.Window`.
-            viewPos : *None*, or [x,y]
-                If not None, redefines the origin within the window, in the
-                ref:`units` of the window. Values outside the borders will be
-                clamped to lie on the border.
-            viewOri : *0* or any numeric value
-                A single value determining the orientation of the view in degs
-            waitBlanking : *None*, True or False.
-                After a call to flip() should we wait for the blank before
-                the script continues
-            bitsMode :
-                DEPRECATED in 1.80.02. Use BitsSharp class from pycrsltd
-                instead.
-            checkTiming: True of False
-                Whether to calculate frame duration on initialization.
-                Estimated duration is saved in [Window].monitorFramePeriod.
-            allowStencil : True or *False*
-                When set to True, this allows operations that use
-                the OpenGL stencil buffer
-                (notably, allowing the class:`~psychopy.visual.Aperture`
-                to be used).
-            multiSample : True or *False*
-                If True and your graphics driver supports multisample buffers,
-                multiple color samples will be taken per-pixel, providing an
-                anti-aliased image through spatial filtering.
-                (Cannot be changed after opening a window, pyglet only)
-            numSamples : *2* or integer >2
-                A single value specifying the number of samples per pixel if
-                multisample is enabled. The higher the number, the better the
-                image quality, but can delay frame flipping.
-                (The largest number of samples is determined by GL_MAX_SAMPLES,
-                usually 16 or 32 on newer hardware, will crash if number
-                is invalid)
-            stereo : True or *False*
-                If True and your graphics card supports quad buffers then
-                this will be enabled.
-                You can switch between left and right-eye scenes for drawing
-                operations using :func:`~psychopy.visual.Window.setBuffer`
-            useRetina : *True* or False
-                In PsychoPy >1.85.3 this should always be True as pyglet
-                (or Apple) no longer allows us to create a non-retina display.
-                NB when you use Retina display the initial win size
-                request will be in the larger pixels but subsequent use of
-                units='pix' should refer to the tiny Retina pixels. Window.size
-                will give the actual size of the screen in Retina pixels
+        Notes
+        -----
+        * Some parameters (e.g. units) can now be given default values in the
+          user/site preferences and these will be used if `None` is given here.
+          If you do specify a value here it will take precedence over
+          preferences.
 
-            :note: Preferences. Some parameters (e.g. units) can now be given
-                default values in the user/site preferences and these will be
-                used if None is given here. If you do specify a value here it
-                will take precedence over preferences.
+        Attributes
+        ----------
+        size : array-like(float)
+            Dimensions of the window's drawing area/buffer in pixels [w, h].
+        monitorFramePeriod : float
+            Refresh rate of the display if ``checkTiming=True`` on window
+            instantiation.
 
         """
         # what local vars are defined (these are the init params) for use by
