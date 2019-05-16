@@ -574,8 +574,8 @@ class Window(object):
 
     @attributeSetter
     def fullscr(self, value):
-        """Set whether fullscreen mode is True or False (not all backends can
-        toggle an open window)
+        """Set whether fullscreen mode is `True` or `False` (not all backends
+        can toggle an open window).
         """
         self.backend.setFullScr(value)
         self.__dict__['fullscr'] = value
@@ -583,10 +583,9 @@ class Window(object):
 
     @attributeSetter
     def waitBlanking(self, value):
-        """*None*, True or False.
+        """After a call to :py:attr:`~Window.flip()` should we wait for the
+        blank before the script continues.
 
-        After a call to :py:attr:`~Window.flip()` should we wait for the blank
-        before the script continues.
         """
         self.__dict__['waitBlanking'] = value
 
@@ -596,11 +595,11 @@ class Window(object):
 
         Provides accurate measures of frame intervals to determine
         whether frames are being dropped. The intervals are the times between
-        calls to ``.flip()``. Set to `True` only during the time-critical parts
-        of the script. Set this to `False` while the screen is not being
-        updated, i.e., during any slow, non-frame-time-critical sections of
-        your code, including inter-trial-intervals, ``event.waitkeys()``,
-        ``core.wait()``, or ``image.setImage()``.
+        calls to :py:attr:`~Window.flip()`. Set to `True` only during the
+        time-critical parts of the script. Set this to `False` while the screen
+        is not being updated, i.e., during any slow, non-frame-time-critical
+        sections of your code, including inter-trial-intervals,
+        ``event.waitkeys()``, ``core.wait()``, or ``image.setImage()``.
 
         Examples
         --------
@@ -712,7 +711,7 @@ class Window(object):
 
     def logOnFlip(self, msg, level, obj=None):
         """Send a log message that should be time-stamped at the next
-        ``.flip()`` command.
+        :py:attr:`~Window.flip()` command.
 
         Parameters
         ----------
@@ -1148,16 +1147,17 @@ class Window(object):
         configuration with the scene origin on the screen plane. Calculations
         assume units are in meters.
 
-        Note that the values of ``projectionMatrix`` and ``viewMatrix`` will be
-        replaced when calling this function.
+        Note that the values of :py:attr:`~Window.projectionMatrix` and
+        :py:attr:`~Window.viewMatrix` will be replaced when calling this
+        function.
 
         Parameters
         ----------
         applyTransform : bool
             Apply transformations after computing them in immediate mode. Same
-            as calling ``applyEyeTransform()`` afterwards.
+            as calling :py:attr:`~Window.applyEyeTransform()` afterwards.
         **kwargs
-            Additional arguments to pass to ``applyEyeTransform()``
+            Additional arguments for :py:attr:`~Window.applyEyeTransform()`.
 
         """
         # NB - we should eventually compute these matrices lazily since they may
@@ -1417,7 +1417,7 @@ class Window(object):
                           power2=False, squarePower2=False):
         """Deprecated function, here for historical reasons. You may now use
         `:py:attr:`~Window._getFrame()` and specify a rect to get a sub-region,
-        just as usedhere.
+        just as used here.
 
         power2 can be useful with older OpenGL versions to avoid interpolation
         in :py:attr:`PatchStim`. If power2 or squarePower2, it will expand rect
@@ -1481,6 +1481,7 @@ class Window(object):
 
     @attributeSetter
     def blendMode(self, blendMode):
+        """Blend mode to use."""
         self.__dict__['blendMode'] = blendMode
         if blendMode == 'avg':
             GL.glBlendFunc(GL.GL_SRC_ALPHA, GL.GL_ONE_MINUS_SRC_ALPHA)
@@ -1550,10 +1551,11 @@ class Window(object):
         self.__dict__['colorSpace'] = colorSpace
 
     def setColor(self, color, colorSpace=None, operation='', log=None):
-        """Usually you can use 'stim.attribute = value' syntax instead,
+        """Usually you can use ``stim.attribute = value`` syntax instead,
         but use this method if you want to set color and colorSpace
         simultaneously.
-        See `Window.color` for documentation on colors.
+
+        See :py:attr:`~Window.color` for documentation on colors.
         """
         # Set color
         setColor(self, color, colorSpace=colorSpace, operation=operation,
@@ -1594,7 +1596,7 @@ class Window(object):
     def _setupGamma(self, gammaVal):
         """A private method to work out how to handle gamma for this Window
         given that the user might have specified an explicit value, or maybe
-        gave a Monitor
+        gave a Monitor.
         """
         # determine which gamma value to use (or native ramp)
         if gammaVal is not None:
@@ -1620,12 +1622,14 @@ class Window(object):
 
     @attributeSetter
     def gamma(self, gamma):
-        """Set the monitor gamma for linearization
+        """Set the monitor gamma for linearization.
 
-        (don't use this if using a Bits++ or Bits#)
-        Overrides monitor settings.
+        Warnings
+        --------
+        Don't use this if using a Bits++ or Bits#, as it overrides monitor
+        settings.
+
         """
-
         self._checkGamma(gamma)
 
         if self.bits is not None:
@@ -1640,11 +1644,18 @@ class Window(object):
     def setGamma(self, gamma, log=None):
         """Usually you can use 'stim.attribute = value' syntax instead,
         but use this method if you need to suppress the log message.
+
         """
         setAttribute(self, 'gamma', gamma, log)
 
     @attributeSetter
     def gammaRamp(self, newRamp):
+        """Sets the hardware CLUT using a specified 3xN array of floats ranging
+        between 0.0 and 1.0.
+
+        Array must have a number of rows equal to 2 ^ max(bpc).
+
+        """
         self.backend.gammaRamp = newRamp
 
     def _checkGamma(self, gamma=None):
@@ -1970,11 +1981,11 @@ class Window(object):
         while displaying an optional visual. The visual is just eye-candy to
         show that something is happening when assessing many frames. You can
         also give it text to display instead of a visual,
-        e.g., msg='(testing refresh rate...)'; setting msg implies
-        showVisual == False.
+        e.g., ``msg='(testing refresh rate...)'``; setting msg implies
+        ``showVisual == False``.
 
         To simulate refresh rate under cpu load, you can specify a time to
-        wait within the loop prior to doing the win.flip().
+        wait within the loop prior to doing the :py:attr:`~Window.flip()`.
         If 0 < msDelay < 100, wait for that long in ms.
 
         Returns timing stats (in ms) of:
@@ -2066,13 +2077,15 @@ class Window(object):
 
     def _startOfFlip(self):
         """Custom hardware classes may want to prevent flipping from
-        occurring and can override this method as needed. Return True to
-        indicate hardware flip.
+        occurring and can override this method as needed.
+
+        Return `True` to indicate hardware flip.
         """
         return True
 
     def _renderFBO(self):
-        """Perform a warp operation
+        """Perform a warp operation.
+
         (in this case a copy operation without any warping)
         """
         GL.glBegin(GL.GL_QUADS)
@@ -2096,7 +2109,7 @@ class Window(object):
         pass
 
     def _endOfFlip(self, clearBuffer):
-        """Override end of flip with custom color channel masking if required
+        """Override end of flip with custom color channel masking if required.
         """
         if clearBuffer:
             GL.glClear(GL.GL_COLOR_BUFFER_BIT)
