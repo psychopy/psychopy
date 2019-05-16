@@ -1231,6 +1231,17 @@ class Window(object):
         The default front buffer is to be called immediately after a
         ``win.flip()`` and gives a complete copy of the screen at the window's
         coordinates.
+
+        Parameters
+        ----------
+        buffer : str, optional
+            Buffer to capture.
+
+        Returns
+        -------
+        Image
+            Buffer pixel contents as a PIL/Pillow image object.
+
         """
         im = self._getFrame(buffer=buffer)
         self.movieFrames.append(im)
