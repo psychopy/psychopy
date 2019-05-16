@@ -8,12 +8,10 @@ In January 2018 we began a `Wellcome Trust <http://www.wellcome.ac.uk>`_ grant t
 The key steps to this are basically to:
 
 - generate a JavaScript experiment ready to run online
-    - either generated from PsychoPy Builder (recommended)
 - upload it to Pavlovia.org to be launched
-- :ref:`recruitingOnline`
+- set up your recruitment procedure
 
-
-Contents:
+Those steps are covered in detail here:
 
 .. toctree::
     :maxdepth: 1
@@ -23,14 +21,14 @@ Contents:
     psychojsCode
     onlineParticipants
 
-You shoud also be aware of the following:
+but you should also be aware of the following:
 
 .. toctree::
     :maxdepth: 1
 
+	cautions
     status
     tech
-	cautions
 	
 
 .. _PsychoJS: https://github.com/psychopy/psychojs
