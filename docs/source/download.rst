@@ -13,7 +13,7 @@ For the easiest installation download and install the Standalone package.
     
     let filename;
     let url;
-    let version='3.1.1'
+    let version='3.1.2'
 
     let clientInfo = UAParser(navigator.userAgent);
     var osLabel;

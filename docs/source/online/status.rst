@@ -17,10 +17,10 @@ The table below shows you the current state of play is the current state of play
      , ,Multi-touch devices
       __, __, __
     ,**Stimuli**,
-  Image, ,Movies
+  Image, ,
   Text, ,Gratings
   Sounds, ,Apertures
-     , ,Dots (RDKs)
+  Movies, ,Dots (RDKs)
       __, __, __
       ,**Data**,
   CSV files, , XLSX files
@@ -38,9 +38,9 @@ The table below shows you the current state of play is the current state of play
   `callOnFlip`
       __, __, __
       ,**External tools**,
-  Synchronize with Pavlovia.org, , Connections to Prolific Academic
+  Synchronize with Pavlovia.org, , 
   Sona Systems, ,
   Mechanical Turk, ,
-  ProlificAcademic, ,
+  Prolific Academic, ,
 
 Anything else we should add to the list above?
