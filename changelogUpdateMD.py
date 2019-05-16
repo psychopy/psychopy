@@ -60,7 +60,7 @@ newRST = txt_hashblue.replace('.. note::', """.. raw:: html
 
 # add note about blue meaning a change?
 
-with open(output_path, "wb") as doc:
+with open(output_path, "wU") as doc:
     doc.write(newRST)
 
 #test:

@@ -157,9 +157,12 @@ class KeyboardComponent(BaseComponent):
         storeCorr = self.params['storeCorrect'].val
         forceEnd = self.params['forceEndRoutine'].val
         allowedKeys = self.params['allowedKeys'].val.strip()
+        visualSync = self.params['syncScreenRefresh'].val
 
         buff.writeIndented("\n")
         buff.writeIndented("# *%s* updates\n" % self.params['name'])
+        if visualSync:
+            buff.writeIndented("waitOnFlip = False\n")
         # writes an if statement to determine whether to draw etc
         self.writeStartTestCode(buff)
         buff.writeIndented("%(name)s.status = STARTED\n" % self.params)
@@ -192,16 +195,20 @@ class KeyboardComponent(BaseComponent):
         buff.writeIndented("# keyboard checking is just starting\n")
 
         if store != 'nothing':
-            if self.params['syncScreenRefresh'].val:
-                code = ("win.callOnFlip(%(name)s.clock.reset)  # t=0 on next"
-                        " screen flip\n") % self.params
+            if visualSync:
+                code = ("waitOnFlip = True\n"
+                        "win.callOnFlip(%(name)s.clock.reset)  "
+                        "# t=0 on next screen flip\n") % self.params
             else:
                 code = "%(name)s.clock.reset()  # now t=0\n" % self.params
-
-            buff.writeIndented(code)
+            buff.writeIndentedLines(code)
 
         if self.params['discard previous'].val:
-            code = "%(name)s.clearEvents(eventType='keyboard')\n" % self.params
+            if visualSync:
+                code = ("win.callOnFlip(%(name)s.clearEvents, eventType='keyboard')  "
+                        "# clear events on next screen flip\n") % self.params
+            else:
+                code = "%(name)s.clearEvents(eventType='keyboard')\n" % self.params
             buff.writeIndented(code)
 
         # to get out of the if statement
@@ -214,7 +221,8 @@ class KeyboardComponent(BaseComponent):
             # to get out of the if statement
             buff.setIndentLevel(-1, relative=True)
 
-        buff.writeIndented("if %(name)s.status == STARTED:\n" % self.params)
+        buff.writeIndented("if %s.status == STARTED%s:\n"
+                           % (self.params['name'], ['', ' and not waitOnFlip'][visualSync]))
         buff.setIndentLevel(1, relative=True)  # to get out of if statement
         dedentAtEnd = 1  # keep track of how far to dedent later
         # do we need a list of keys? (variable case is already handled)
