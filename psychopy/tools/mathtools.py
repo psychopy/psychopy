@@ -8,7 +8,7 @@
 # Copyright (C) 2018 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
-__all__ = ['normalize', 'slerp']
+__all__ = ['normalize', 'slerp', 'quatFromAxisAngle']
 
 import numpy as np
 
@@ -91,3 +91,34 @@ def slerp(q0, q1, t, dtype='float32'):
     s1 = sinTheta / sinTheta0
 
     return (q0 * s0) + (q1 * s1)
+
+
+def quatFromAxisAngle(axis, angle, degrees=False, dtype='float32'):
+    """Create a quaternion to represent a rotation about `axis` vector by
+    `angle`.
+
+    Parameters
+    ----------
+    axis : tuple, list or ndarray of float
+        Axis of rotation [x, y, z].
+    angle : float
+        Rotation angle in radians (or degrees if `degrees` is `True`. Rotations
+        are right-handed about the specified `axis`.
+    degrees : bool
+        Indicate `angle` is in degrees, otherwise `angle` will be treated as
+        radians.
+
+    Returns
+    -------
+    ndarray
+        Quaternion [x, y, z, w].
+
+    """
+    rad = np.radians(float(angle)) if not degrees else float(angle)
+    q = np.zeros((4,), dtype=dtype)
+    axis = np.asarray(axis, dtype=dtype)
+    np.multiply(axis, np.sin(rad / 2.0), out=q[:3])
+    q[3] = np.cos(rad / 2.0)
+
+    return q
+
