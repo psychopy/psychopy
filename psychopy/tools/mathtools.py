@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""Various math functions.
+"""Various math functions for working with vectors, matrices, and quaternions.
 
 """
 
@@ -14,7 +14,7 @@ import numpy as np
 
 
 def normalize(v, dtype='float32'):
-    """Normalize a vector.
+    """Normalize a vector or quaternion.
 
     v : tuple, list or ndarray of float
         Vector to normalize.
@@ -60,6 +60,11 @@ def slerp(q0, q1, t, dtype='float32'):
     -------
     ndarray
         Quaternion [x, y, z, w] at `t`.
+
+    Notes
+    -----
+    * If the dot product between quaternions is >0.9995, linear interpolation is
+      used instead of SLERP.
 
     """
     # Implementation based on code found here:
