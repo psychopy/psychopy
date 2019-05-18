@@ -146,7 +146,7 @@ def quatToMatrix(q, dtype='float32'):
     """
     # based off implementations from
     # https://github.com/glfw/glfw/blob/master/deps/linmath.h
-    q = np.asarray(q, dtype=dtype)
+    q = normalize(q, dtype=dtype)
     a = q[3]
     b, c, d = q[:3]
     a2 = a * a
