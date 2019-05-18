@@ -8,7 +8,7 @@
 # Copyright (C) 2018 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
-__all__ = ['normalize', 'slerp', 'quatFromAxisAngle']
+__all__ = ['normalize', 'slerp', 'quatFromAxisAngle', 'quatToMatrix']
 
 import numpy as np
 
@@ -107,6 +107,9 @@ def quatFromAxisAngle(axis, angle, degrees=False, dtype='float32'):
     degrees : bool
         Indicate `angle` is in degrees, otherwise `angle` will be treated as
         radians.
+    dtype : str or obj
+        Data type to use for all computations (eg. 'float32', 'float64', float,
+        etc.)
 
     Returns
     -------
@@ -121,4 +124,54 @@ def quatFromAxisAngle(axis, angle, degrees=False, dtype='float32'):
     q[3] = np.cos(rad / 2.0)
 
     return q
+
+
+def quatToMatrix(q, dtype='float32'):
+    """Create a rotation matrix from an orientation represented by a quaternion.
+
+    Parameters
+    ----------
+    q : tuple, list or ndarray of float
+        Quaternion to convert in form [x, y, z, w] where w is real and x, y, z
+        are imaginary components.
+    dtype : str or obj
+        Data type to use for all computations (eg. 'float32', 'float64', float,
+        etc.)
+
+    Returns
+    -------
+    ndarray
+        4x4 rotation matrix in row-major order.
+    
+    """
+    # based off implementations from
+    # https://github.com/glfw/glfw/blob/master/deps/linmath.h
+    q = np.asarray(q, dtype=dtype)
+    a = q[3]
+    b, c, d = q[:3]
+    a2 = a * a
+    b2 = b * b
+    c2 = c * c
+    d2 = d * d
+
+    R = np.zeros((4, 4,), dtype=dtype)
+    R[0, 0] = a2 + b2 - c2 - d2
+    R[1, 0] = 2.0 * (b * c + a * d)
+    R[2, 0] = 2.0 * (b * d - a * c)
+    R[3, 0] = 0.0
+
+    R[0, 1] = 2.0 * (b * c - a * d)
+    R[1, 1] = a2 - b2 + c2 - d2
+    R[2, 1] = 2.0 * (c * d + a * b)
+    R[3, 1] = 0.0
+
+    R[0, 2] = 2.0 * (b * d + a * c)
+    R[1, 2] = 2.0 * (c * d - a * b)
+    R[2, 2] = a2 - b2 - c2 + d2
+    R[3, 2] = 0.0
+
+    R[:3, 3] = 0.0
+    R[3, 3] = 1.0
+
+    return R
 

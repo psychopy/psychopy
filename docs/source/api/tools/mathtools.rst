@@ -10,6 +10,7 @@
     normalize
     slerp
     quatFromAxisAngle
+    quatToMatrix
     
 Function details
 ~~~~~~~~~~~~~~~~~~~~~~~
@@ -17,3 +18,4 @@ Function details
 .. autofunction:: normalize
 .. autofunction:: slerp
 .. autofunction:: quatFromAxisAngle
+.. autofunction:: quatToMatrix
