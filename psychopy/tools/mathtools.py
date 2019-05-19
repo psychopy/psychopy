@@ -8,7 +8,7 @@
 # Copyright (C) 2018 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
-__all__ = ['normalize', 'slerp', 'quatFromAxisAngle', 'quatToMatrix']
+__all__ = ['normalize', 'lerp', 'slerp', 'quatFromAxisAngle', 'matrixFromQuat']
 
 import numpy as np
 
@@ -41,6 +41,41 @@ def normalize(v, dtype='float32'):
         return np.zeros(v.shape, dtype=dtype)
 
     return v
+
+
+def lerp(v0, v1, t, dtype='float32'):
+    """Linear interpolation (LERP) between two vectors.
+
+    Parameters
+    ----------
+    v0 : tuple, list or ndarray of float
+        Initial vector in form [x, y, z].
+    v1 : tuple, list or ndarray of float
+        Final vector in form [x, y, z].
+    t : float
+        Interpolation factor [0, 1].
+    dtype : str or obj
+        Data type to use for all computations (eg. 'float32', 'float64', float,
+        etc.)
+
+    Returns
+    -------
+    ndarray
+        Vector [x, y, z] at `t`.
+
+    Examples
+    --------
+    Find the coordinate of the midpoint between two vectors::
+
+        u = [0., 0., 0.]
+        v = [0., 0., 1.]
+        midpoint = lerp(u, v, 0.5)  # 0.5 to interpolate half-way between points
+
+    """
+    v0 = np.asarray(v0, dtype=dtype)
+    v1 = np.asarray(v1, dtype=dtype)
+    t = float(t)
+    return (1.0 - t) * v0 + t * v1
 
 
 def slerp(q0, q1, t, dtype='float32'):
@@ -133,7 +168,7 @@ def quatFromAxisAngle(axis, angle, degrees=False, dtype='float32'):
     return q
 
 
-def quatToMatrix(q, dtype='float32'):
+def matrixFromQuat(q, dtype='float32'):
     """Create a rotation matrix from an orientation represented by a quaternion.
 
     Parameters
