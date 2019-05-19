@@ -169,7 +169,7 @@ def quatFromAxisAngle(axis, angle, degrees=False, dtype='float32'):
 
 
 def matrixFromQuat(q, dtype='float32'):
-    """Create a rotation matrix from an orientation represented by a quaternion.
+    """Create a rotation matrix from a quaternion.
 
     Parameters
     ----------
@@ -189,7 +189,6 @@ def matrixFromQuat(q, dtype='float32'):
     # based off implementations from
     # https://github.com/glfw/glfw/blob/master/deps/linmath.h
     q = normalize(q, dtype=dtype)
-    print(q)
     a = q[3]
     b, c, d = q[:3]
     a2 = a * a
