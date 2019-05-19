@@ -203,25 +203,22 @@ def matrixFromQuat(q, dtype='float32'):
     q = normalize(q, dtype=dtype)
     a = q[3]
     b, c, d = q[:3]
-    a2 = a * a
-    b2 = b * b
-    c2 = c * c
-    d2 = d * d
+    vsqr = np.square(q)
 
     R = np.zeros((4, 4,), dtype=dtype)
-    R[0, 0] = a2 + b2 - c2 - d2
+    R[0, 0] = vsqr[0] + vsqr[1] - vsqr[2] - vsqr[3]
     R[1, 0] = 2.0 * (b * c + a * d)
     R[2, 0] = 2.0 * (b * d - a * c)
     R[3, 0] = 0.0
 
     R[0, 1] = 2.0 * (b * c - a * d)
-    R[1, 1] = a2 - b2 + c2 - d2
+    R[1, 1] = vsqr[0] - vsqr[1] + vsqr[2] - vsqr[3]
     R[2, 1] = 2.0 * (c * d + a * b)
     R[3, 1] = 0.0
 
     R[0, 2] = 2.0 * (b * d + a * c)
     R[1, 2] = 2.0 * (c * d - a * b)
-    R[2, 2] = a2 - b2 - c2 + d2
+    R[2, 2] = vsqr[0] - vsqr[1] - vsqr[2] + vsqr[3]
     R[3, 2] = 0.0
 
     R[:3, 3] = 0.0
