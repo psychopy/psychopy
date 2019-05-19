@@ -168,7 +168,7 @@ def quatFromAxisAngle(axis, angle, degrees=False, dtype='float32'):
         rotMat = matrixFromQuat(ori)
         # rotate point 'p'
         p1 = np.asarray([0., 1., 0., 1.])  # 4-vector form [x, y, z, 1.0]
-        p2 = np.matmul(rotMat.T, p))  # returns [-1., 0., 0., 1.]
+        p2 = np.matmul(rotMat.T, p1)  # returns [-1., 0., 0., 1.]
 
     """
     rad = np.radians(float(angle)) if degrees else float(angle)
