@@ -159,11 +159,11 @@ def quatFromAxisAngle(axis, angle, degrees=False, dtype='float32'):
         Quaternion [x, y, z, w].
 
     """
-    rad = np.radians(float(angle)) if not degrees else float(angle)
+    halfRad = np.radians(float(angle)) if not degrees else float(angle) / 2.0
     q = np.zeros((4,), dtype=dtype)
     axis = np.asarray(axis, dtype=dtype)
-    np.multiply(axis, np.sin(rad / 2.0), out=q[:3])
-    q[3] = np.cos(rad / 2.0)
+    np.multiply(axis, np.sin(halfRad), out=q[:3])
+    q[3] = np.cos(halfRad)
 
     return q
 
