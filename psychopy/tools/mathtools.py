@@ -27,11 +27,18 @@ def normalize(v, dtype='float32'):
     ndarray
         Normalized vector `v`.
 
+    Notes
+    -----
+    * If the vector is degenerate (length is zero), a vector of all zeros is
+      returned.
+
     """
     v = np.asarray(v, dtype=dtype)
     norm = np.linalg.norm(v)
     if norm != 0.0:
         v /= norm
+    else:
+        return np.zeros(v.shape, dtype=dtype)
 
     return v
 
