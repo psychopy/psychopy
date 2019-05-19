@@ -11,7 +11,7 @@
     lerp
     slerp
     quatFromAxisAngle
-    quatToMatrix
+    matrixFromQuat
     
 Function details
 ~~~~~~~~~~~~~~~~~~~~~~~
@@ -20,4 +20,4 @@ Function details
 .. autofunction:: lerp
 .. autofunction:: slerp
 .. autofunction:: quatFromAxisAngle
-.. autofunction:: quatToMatrix
+.. autofunction:: matrixFromQuat
