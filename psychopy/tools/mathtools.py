@@ -33,7 +33,7 @@ def normalize(v, dtype='float32'):
     if norm != 0.0:
         v /= norm
 
-    return norm
+    return v
 
 
 def slerp(q0, q1, t, dtype='float32'):
@@ -147,6 +147,7 @@ def quatToMatrix(q, dtype='float32'):
     # based off implementations from
     # https://github.com/glfw/glfw/blob/master/deps/linmath.h
     q = normalize(q, dtype=dtype)
+    print(q)
     a = q[3]
     b, c, d = q[:3]
     a2 = a * a
@@ -174,4 +175,3 @@ def quatToMatrix(q, dtype='float32'):
     R[3, 3] = 1.0
 
     return R
-
