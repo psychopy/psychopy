@@ -158,12 +158,24 @@ def quatFromAxisAngle(axis, angle, degrees=False, dtype='float32'):
     ndarray
         Quaternion [x, y, z, w].
 
+    Examples
+    --------
+    Create a 4x4 matrix from a rotation in `axis` and `angle` form::
+
+        axis = [0., 0., -1.]  # rotate about -Z axis
+        angle = 90.0  # angle in degrees
+        ori = quatFromAxisAngle(axis, angle, degrees=True)  # using degrees!
+        rotMat = matrixFromQuat(ori)
+        # rotate point 'p'
+        p1 = np.asarray([0., 1., 0., 1.])  # 4-vector form [x, y, z, 1.0]
+        p2 = np.matmul(rotMat.T, p))  # returns [-1., 0., 0., 1.]
+
     """
-    halfRad = np.radians(float(angle)) if not degrees else float(angle) / 2.0
+    rad = np.radians(float(angle)) if degrees else float(angle)
     q = np.zeros((4,), dtype=dtype)
     axis = np.asarray(axis, dtype=dtype)
-    np.multiply(axis, np.sin(halfRad), out=q[:3])
-    q[3] = np.cos(halfRad)
+    np.multiply(axis, np.sin(rad / 2.0), out=q[:3])
+    q[3] = np.cos(rad / 2.0)
 
     return q
 
