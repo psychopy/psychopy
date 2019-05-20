@@ -12,6 +12,8 @@
     slerp
     quatFromAxisAngle
     matrixFromQuat
+    scaleMatrix
+    rotationMatrix
     
 Function details
 ~~~~~~~~~~~~~~~~~~~~~~~
@@ -21,3 +23,5 @@ Function details
 .. autofunction:: slerp
 .. autofunction:: quatFromAxisAngle
 .. autofunction:: matrixFromQuat
+.. autofunction:: scaleMatrix
+.. autofunction:: rotationMatrix

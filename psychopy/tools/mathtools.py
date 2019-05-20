@@ -37,6 +37,8 @@ def normalize(v, dtype='float32'):
     norm = np.linalg.norm(v)
     if norm != 0.0:
         v /= norm
+    elif norm == 1.0:  # already normalized
+        return v
     else:
         return np.zeros(v.shape, dtype=dtype)
 
@@ -169,7 +171,7 @@ def quatFromAxisAngle(axis, angle, degrees=False, dtype='float32'):
     """
     halfRad = np.radians(float(angle)) / 2.0 if degrees else float(angle) / 2.0
     q = np.zeros((4,), dtype=dtype)
-    axis = np.asarray(axis, dtype=dtype)
+    axis = normalize(axis, dtype=dtype)
     np.multiply(axis, np.sin(halfRad), out=q[:3])
     q[3] = np.cos(halfRad)
 
@@ -248,3 +250,86 @@ def matrixFromQuat(q, out=None, dtype='float32'):
 
     if out is None:
         return R
+
+
+def scaleMatrix(sx, sy, sz, dtype='float32'):
+    """Create a scaling matrix.
+
+    The resulting matrix is the same as a `glScale` call.
+
+    Parameters
+    ----------
+    sx, sy, sz : float
+        Scaling factors for x, y, and z dimensions.
+    dtype : str or obj
+        Data type to use for all computations (eg. 'float32', 'float64', float,
+        etc.)
+
+    Returns
+    -------
+    ndarray
+        4x4 scaling matrix in row-major order.
+
+    """
+    # from glScale
+    S = np.zeros((4, 4,), dtype=dtype)
+    S[0, 0] = sx
+    S[1, 1] = sy
+    S[2, 2] = sz
+    S[3, 3] = 1.0
+
+    return S
+
+
+def rotationMatrix(angle, axis, dtype='float32'):
+    """Create a rotation matrix.
+
+    The resulting matrix will rotate points about `axis` by `angle`. The
+    resulting matrix is similar to that produced by a `glRotate` call.
+
+    Parameters
+    ----------
+    angle : float
+        Rotation angle in degrees.
+    axis : ndarray, list, or tuple of float
+        Axis vector components.
+    dtype : str or obj
+        Data type to use for all computations (eg. 'float32', 'float64', float,
+        etc.)
+
+    Returns
+    -------
+    ndarray
+        4x4 scaling matrix in row-major order.
+
+    Notes
+    -----
+    * Vector `axis` is normalized before creating the matrix.
+
+    """
+    axis = normalize(axis, dtype=dtype)
+    angle = np.radians(angle)
+    c = np.cos(angle)
+    s = np.sin(angle)
+
+    xs, ys, zs = axis * s
+    x2, y2, z2 = np.square(axis)
+    x, y, z = axis
+    cd = 1.0 - c
+
+    R = np.zeros((4, 4,), dtype=dtype)
+    R[0, 0] = x2 * cd + c
+    R[0, 1] = x * y * cd - zs
+    R[0, 2] = x * z * cd + ys
+
+    R[1, 0] = y * x * cd + zs
+    R[1, 1] = y2 * cd + c
+    R[1, 2] = y * z * cd - xs
+
+    R[2, 0] = x * z * cd - ys
+    R[2, 1] = y * z * cd + xs
+    R[2, 2] = z2 * cd + c
+
+    R[3, 3] = 1.0
+
+    return R + 0.0  # remove negative zeros
