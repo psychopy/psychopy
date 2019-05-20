@@ -8,8 +8,9 @@
 # Copyright (C) 2018 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
-__all__ = ['normalize', 'lerp', 'slerp', 'quatFromAxisAngle', 'matrixFromQuat',
-           'scaleMatrix', 'rotationMatrix']
+__all__ = ['normalize', 'lerp', 'slerp', 'multQuat', 'quatFromAxisAngle',
+           'matrixFromQuat', 'scaleMatrix', 'rotationMatrix',
+           'translationMatrix']
 
 import numpy as np
 
@@ -47,7 +48,7 @@ def normalize(v, dtype='float32'):
 
 
 def lerp(v0, v1, t, dtype='float32'):
-    """Linear interpolation (LERP) between two vectors.
+    """Linear interpolation (LERP) between two vectors/coordinates.
 
     Parameters
     ----------
