@@ -173,7 +173,7 @@ def quatFromAxisAngle(axis, angle, degrees=False, dtype='float32'):
     np.multiply(axis, np.sin(rad / 2.0), out=q[:3])
     q[3] = np.cos(rad / 2.0)
 
-    return q
+    return q + 0.0  # remove negative zeros
 
 
 def matrixFromQuat(q, dtype='float32'):
@@ -214,8 +214,7 @@ def matrixFromQuat(q, dtype='float32'):
     # based off implementations from
     # https://github.com/glfw/glfw/blob/master/deps/linmath.h
     q = normalize(q, dtype=dtype)
-    a = q[3]
-    b, c, d = q[:3]
+    b, c, d, a = q[:]
     vsqr = np.square(q)
 
     R = np.zeros((4, 4,), dtype=dtype)
@@ -237,4 +236,4 @@ def matrixFromQuat(q, dtype='float32'):
     R[:3, 3] = 0.0
     R[3, 3] = 1.0
 
-    return R
+    return R + 0.0  # remove negative zeros
