@@ -401,7 +401,7 @@ def translationMatrix(t, dtype='float32'):
         4x4 translation matrix in row-major order.
 
     """
-    S = np.identity(4, dtype=dtype)
-    S[:3, 3] = t
+    T = np.identity(4, dtype=dtype)
+    T[:3, 3] = t
 
-    return S
+    return T
