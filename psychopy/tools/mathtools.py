@@ -176,7 +176,7 @@ def quatFromAxisAngle(axis, angle, degrees=False, dtype='float32'):
     return q + 0.0  # remove negative zeros
 
 
-def matrixFromQuat(q, dtype='float32'):
+def matrixFromQuat(q, out=None, dtype='float32'):
     """Create a rotation matrix from a quaternion.
 
     Parameters
@@ -184,14 +184,18 @@ def matrixFromQuat(q, dtype='float32'):
     q : tuple, list or ndarray of float
         Quaternion to convert in form [x, y, z, w] where w is real and x, y, z
         are imaginary components.
+    out : ndarray or None
+        Alternative array to write values. Must be `shape` == (4,4,) and same
+        `dtype` as the `dtype` argument.
     dtype : str or obj
         Data type to use for all computations (eg. 'float32', 'float64', float,
         etc.)
 
     Returns
     -------
-    ndarray
-        4x4 rotation matrix in row-major order.
+    ndarray or None
+        4x4 rotation matrix in row-major order. Returns `None` if `out` is
+        specified.
 
     Examples
     --------
@@ -217,7 +221,11 @@ def matrixFromQuat(q, dtype='float32'):
     b, c, d, a = q[:]
     vsqr = np.square(q)
 
-    R = np.zeros((4, 4,), dtype=dtype)
+    if out is None:
+        R = np.zeros((4, 4,), dtype=dtype)
+    else:
+        R = out
+
     R[0, 0] = vsqr[3] + vsqr[0] - vsqr[1] - vsqr[2]
     R[1, 0] = 2.0 * (b * c + a * d)
     R[2, 0] = 2.0 * (b * d - a * c)
@@ -236,4 +244,7 @@ def matrixFromQuat(q, dtype='float32'):
     R[:3, 3] = 0.0
     R[3, 3] = 1.0
 
-    return R + 0.0  # remove negative zeros
+    R += 0.0  # remove negative zeros
+
+    if out is None:
+        return R
