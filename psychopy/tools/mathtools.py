@@ -253,15 +253,15 @@ def matrixFromQuat(q, out=None, dtype='float32'):
         return R
 
 
-def scaleMatrix(sx, sy, sz, dtype='float32'):
+def scaleMatrix(s, dtype='float32'):
     """Create a scaling matrix.
 
     The resulting matrix is the same as a `glScale` call.
 
     Parameters
     ----------
-    sx, sy, sz : float
-        Scaling factors for x, y, and z dimensions.
+    s : ndarray, tuple, or list of float
+        Scaling factors [sx, sy, sz].
     dtype : str or obj
         Data type to use for all computations (eg. 'float32', 'float64', float,
         etc.)
@@ -274,9 +274,9 @@ def scaleMatrix(sx, sy, sz, dtype='float32'):
     """
     # from glScale
     S = np.zeros((4, 4,), dtype=dtype)
-    S[0, 0] = sx
-    S[1, 1] = sy
-    S[2, 2] = sz
+    S[0, 0] = s[0]
+    S[1, 1] = s[1]
+    S[2, 2] = s[2]
     S[3, 3] = 1.0
 
     return S
@@ -334,3 +334,28 @@ def rotationMatrix(angle, axis, dtype='float32'):
     R[3, 3] = 1.0
 
     return R + 0.0  # remove negative zeros
+
+
+def translationMatrix(t, dtype='float32'):
+    """Create a translation matrix.
+
+    The resulting matrix is the same as a `glTranslate` call.
+
+    Parameters
+    ----------
+    t : ndarray, tuple, or list of float
+        Translation vector [tx, ty, tz].
+    dtype : str or obj
+        Data type to use for all computations (eg. 'float32', 'float64', float,
+        etc.)
+
+    Returns
+    -------
+    ndarray
+        4x4 scaling matrix in row-major order.
+
+    """
+    S = np.identity(4, dtype=dtype)
+    S[:3, 3] = t
+
+    return S

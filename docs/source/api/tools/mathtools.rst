@@ -14,6 +14,7 @@
     matrixFromQuat
     scaleMatrix
     rotationMatrix
+    translationMatrix
     
 Function details
 ~~~~~~~~~~~~~~~~~~~~~~~
@@ -25,3 +26,4 @@ Function details
 .. autofunction:: matrixFromQuat
 .. autofunction:: scaleMatrix
 .. autofunction:: rotationMatrix
+.. autofunction:: translationMatrix
