@@ -36,10 +36,10 @@ def normalize(v, dtype='float32'):
     """
     v = np.asarray(v, dtype=dtype)
     norm = np.linalg.norm(v)
-    if norm != 0.0:
-        v /= norm
-    elif norm == 1.0:  # already normalized
+    if norm == 1.0:  # already normalized
         return v
+    elif norm != 0.0:
+        v /= norm
     else:
         return np.zeros(v.shape, dtype=dtype)
 
