@@ -160,15 +160,11 @@ def quatFromAxisAngle(axis, angle, degrees=False, dtype='float32'):
 
     Examples
     --------
-    Create a 4x4 matrix from a rotation in `axis` and `angle` form::
+    Create a quaternion from specified `axis` and `angle`::
 
         axis = [0., 0., -1.]  # rotate about -Z axis
         angle = 90.0  # angle in degrees
         ori = quatFromAxisAngle(axis, angle, degrees=True)  # using degrees!
-        rotMat = matrixFromQuat(ori)
-        # rotate point 'p'
-        p1 = np.asarray([0., 1., 0., 1.])  # 4-vector form [x, y, z, 1.0]
-        p2 = np.matmul(rotMat.T, p1)  # returns [-1., 0., 0., 1.]
 
     """
     rad = np.radians(float(angle)) if degrees else float(angle)
@@ -196,6 +192,23 @@ def matrixFromQuat(q, dtype='float32'):
     -------
     ndarray
         4x4 rotation matrix in row-major order.
+
+    Examples
+    --------
+    Convert a quaternion to a rotation matrix::
+
+        point = [0., 1., 0., 1.]  # 4-vector form [x, y, z, 1.0]
+        ori = [0., 0., 0., 1.]
+        rotMat = matrixFromQuat(ori)
+        # rotate 'point' using matrix multiplication
+        newPoint = np.matmul(rotMat.T, point)  # returns [-1., 0., 0., 1.]
+
+    Rotate all points in an array (each row is a coordinate)::
+
+        points = np.asarray([[0., 0., 0., 1.],
+                             [0., 1., 0., 1.],
+                             [1., 1., 0., 1.]])
+        newPoints = points.dot(rotMat)
     
     """
     # based off implementations from
@@ -206,19 +219,19 @@ def matrixFromQuat(q, dtype='float32'):
     vsqr = np.square(q)
 
     R = np.zeros((4, 4,), dtype=dtype)
-    R[0, 0] = vsqr[0] + vsqr[1] - vsqr[2] - vsqr[3]
+    R[0, 0] = vsqr[3] + vsqr[0] - vsqr[1] - vsqr[2]
     R[1, 0] = 2.0 * (b * c + a * d)
     R[2, 0] = 2.0 * (b * d - a * c)
     R[3, 0] = 0.0
 
     R[0, 1] = 2.0 * (b * c - a * d)
-    R[1, 1] = vsqr[0] - vsqr[1] + vsqr[2] - vsqr[3]
+    R[1, 1] = vsqr[3] - vsqr[0] + vsqr[1] - vsqr[2]
     R[2, 1] = 2.0 * (c * d + a * b)
     R[3, 1] = 0.0
 
     R[0, 2] = 2.0 * (b * d + a * c)
     R[1, 2] = 2.0 * (c * d - a * b)
-    R[2, 2] = vsqr[0] - vsqr[1] - vsqr[2] + vsqr[3]
+    R[2, 2] = vsqr[3] - vsqr[0] - vsqr[1] + vsqr[2]
     R[3, 2] = 0.0
 
     R[:3, 3] = 0.0
