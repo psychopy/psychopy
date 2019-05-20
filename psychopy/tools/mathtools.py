@@ -178,6 +178,32 @@ def quatFromAxisAngle(axis, angle, degrees=False, dtype='float32'):
 
     return q + 0.0  # remove negative zeros
 
+def multQuat(q0, q1, dtype='float32'):
+    """Multiply quaternion `q0` and `q1`.
+
+    The orientation of the returned quaternion is the combination of the input
+    quaternions.
+
+    Parameters
+    ----------
+    q0, q1 : ndarray, list, or tuple of float
+        Quaternions to multiply in form [x, y, z, w] where w is real and x, y, z
+        are imaginary components.
+    out : ndarray or None
+        Alternative array to write values. Must be `shape` == (4,) and same
+        `dtype` as the `dtype` argument.
+    dtype : str or obj
+        Data type to use for all computations (eg. 'float32', 'float64', float,
+        etc.)
+
+    Returns
+    -------
+    ndarray
+        Combined orientation of `q0` amd `q1`.
+
+    """
+    pass
+
 
 def matrixFromQuat(q, out=None, dtype='float32'):
     """Create a rotation matrix from a quaternion.
