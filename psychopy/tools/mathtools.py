@@ -167,11 +167,11 @@ def quatFromAxisAngle(axis, angle, degrees=False, dtype='float32'):
         ori = quatFromAxisAngle(axis, angle, degrees=True)  # using degrees!
 
     """
-    rad = np.radians(float(angle)) if degrees else float(angle)
+    halfRad = np.radians(float(angle)) / 2.0 if degrees else float(angle) / 2.0
     q = np.zeros((4,), dtype=dtype)
     axis = np.asarray(axis, dtype=dtype)
-    np.multiply(axis, np.sin(rad / 2.0), out=q[:3])
-    q[3] = np.cos(rad / 2.0)
+    np.multiply(axis, np.sin(halfRad), out=q[:3])
+    q[3] = np.cos(halfRad)
 
     return q + 0.0  # remove negative zeros
 
