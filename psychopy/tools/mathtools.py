@@ -178,7 +178,8 @@ def quatFromAxisAngle(axis, angle, degrees=False, dtype='float32'):
 
     return q + 0.0  # remove negative zeros
 
-def multQuat(q0, q1, dtype='float32'):
+
+def multQuat(q0, q1, out=None, dtype='float32'):
     """Multiply quaternion `q0` and `q1`.
 
     The orientation of the returned quaternion is the combination of the input
@@ -199,10 +200,22 @@ def multQuat(q0, q1, dtype='float32'):
     Returns
     -------
     ndarray
-        Combined orientation of `q0` amd `q1`.
+        Combined orientation of `q0` amd `q1`. Returns `None` if `out` is
+        specified.
 
     """
-    pass
+    if out is None:
+        qr = np.zeros((4,), dtype=float)
+    else:
+        qr = out
+
+    qr[:3] = np.cross(q0[:3], q1[:3]) + q0[:3] * q1[3] + q1[:3] * q0[3]
+    qr[3] = q0[3] * q1[3] - q0[:3].dot(q1[:3])
+
+    if out is None:
+        return qr
+
+    return qr
 
 
 def matrixFromQuat(q, out=None, dtype='float32'):

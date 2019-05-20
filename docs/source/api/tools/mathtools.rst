@@ -10,6 +10,7 @@
     normalize
     lerp
     slerp
+    multQuat
     quatFromAxisAngle
     matrixFromQuat
     scaleMatrix
@@ -22,6 +23,7 @@ Function details
 .. autofunction:: normalize
 .. autofunction:: lerp
 .. autofunction:: slerp
+.. autofunction:: multQuat
 .. autofunction:: quatFromAxisAngle
 .. autofunction:: matrixFromQuat
 .. autofunction:: scaleMatrix
