@@ -203,9 +203,16 @@ def multQuat(q0, q1, out=None, dtype='float32'):
         Combined orientation of `q0` amd `q1`. Returns `None` if `out` is
         specified.
 
+    Notes
+    -----
+    * Quaternions are normalized prior to multiplication.
+
     """
+    q0 = normalize(q0, dtype=dtype)
+    q1 = normalize(q1, dtype=dtype)
+
     if out is None:
-        qr = np.zeros((4,), dtype=float)
+        qr = np.zeros((4,), dtype=dtype)
     else:
         qr = out
 
