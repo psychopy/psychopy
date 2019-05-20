@@ -352,7 +352,7 @@ def translationMatrix(t, dtype='float32'):
     Returns
     -------
     ndarray
-        4x4 scaling matrix in row-major order.
+        4x4 translation matrix in row-major order.
 
     """
     S = np.identity(4, dtype=dtype)
