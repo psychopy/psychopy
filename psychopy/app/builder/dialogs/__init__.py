@@ -1588,8 +1588,8 @@ class DlgLoopProperties(_BaseParamsDlg):
                 if condName in self.exp.namespace.builder:
                     builderVariables.append(condName)
             if builderVariables:
-                msg = _translate('Builder variable(s) ({}) in file:{}'.format(
-                    ','.join(builderVariables), newFullPath.split(os.path.sep)[-1]))
+                msg = _translate('Builder variable(s) ({}) in file:{}').format(
+                    ','.join(builderVariables), newFullPath.split(os.path.sep)[-1])
                 self.currentCtrls['conditions'].setValue(msg)
                 msg = 'Rejected Builder variable(s) ({}) in file:{}'.format(
                     ','.join(builderVariables), newFullPath.split(os.path.sep)[-1])
