@@ -27,11 +27,22 @@ PsychoPy 3.1.2
 
 FIXED:
 
-- the new Keyboard durations were being reported with correct magnitude but as negative values #e43e474602b7f
+- teething problems with new :class:`~psychopy.hardware.Keyboard`:
+   - in Builder there was stuttering of sounds and lags in frame timing caused
+   by accidentally creating lots of Kyeboards while checking for 'escape'
+   - durations were being reported with correct magnitude but as negative values #e43e474602b7f
+   - problem on Windows if keyboard device name contained unicode (that problem
+   was actually in psychtoolbox package, now updated in Standalone)
+   - on Windows, the 'return' key was being called 'num_enter'
 - videos were not running online #9779579b60 #51b0824f755
 - fixed rounding error in filtering of NoiseStim #5d0e360d87b
 - iohub `waitKeys` should act like `getKeys` if maxWait<=0 #e33f733f317de
-- error if unicode items in teh new Form class #8287674f49a4c8
+- error if unicode items in the new Form class #8287674f49a4c8
+
+ADDED:
+
+- videos in Builder now have a `Loop playback` parameter
+- Standalone distributions now include tobii-research package
 
 PsychoPy 3.1.1
 ~~~~~~~~~~~~~~~~~~~~~~
