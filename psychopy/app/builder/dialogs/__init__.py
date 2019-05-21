@@ -1564,6 +1564,7 @@ class DlgLoopProperties(_BaseParamsDlg):
                     msg = _translate('Could not read conditions from:\n')
                     _file = newFullPath.split(os.path.sep)[-1]
                     self.currentCtrls['conditions'].setValue(msg + _file)
+                    self.currentCtrls['conditions'].valueCtrl.SetForegroundColour("Red")
                     logging.error(
                         'Could not open as a conditions file: %s' % newFullPath)
                 else:
@@ -1577,6 +1578,7 @@ class DlgLoopProperties(_BaseParamsDlg):
                     msg = _translate('Bad condition name(s) in file:\n')
                     val = msg + newFullPath.split(os.path.sep)[-1]
                     self.currentCtrls['conditions'].setValue(val)
+                    self.currentCtrls['conditions'].valueCtrl.SetForegroundColour("Red")
                     msg = 'Rejected bad condition name(s) in file: %s'
                     logging.error(msg % newFullPath)
                 self.conditionsFile = self.conditionsFileOrig
@@ -1592,6 +1594,7 @@ class DlgLoopProperties(_BaseParamsDlg):
                 msg = _translate('Builder variable(s) ({}) in file:{}').format(
                     ','.join(builderVariables), newFullPath.split(os.path.sep)[-1])
                 self.currentCtrls['conditions'].setValue(msg)
+                self.currentCtrls['conditions'].valueCtrl.SetForegroundColour("Red")
                 msg = 'Rejected Builder variable(s) ({}) in file:{}'.format(
                     ','.join(builderVariables), newFullPath.split(os.path.sep)[-1])
                 logging.error(msg)
@@ -1619,6 +1622,7 @@ class DlgLoopProperties(_BaseParamsDlg):
                            ':\n[' + duplCondNamesStr + ']\nProceed'
                            ' anyway? (= safe if these are in old file)')
                     self.currentCtrls['conditions'].setValue(val)
+                    self.currentCtrls['conditions'].valueCtrl.SetForegroundColour("Red")
                     msg = ('Duplicate condition names, different '
                            'conditions file: %s')
                     logging.warning(msg % duplCondNamesStr)
@@ -1633,6 +1637,7 @@ class DlgLoopProperties(_BaseParamsDlg):
                 self.currentCtrls['conditionsFile'].setValue(newPath)
                 self.currentCtrls['conditions'].setValue(
                     self.getTrialsSummary(self.conditions))
+                self.currentCtrls['conditions'].valueCtrl.SetForegroundColour("Black")
 
     def getParams(self):
         """Retrieves data and re-inserts it into the handler and returns
