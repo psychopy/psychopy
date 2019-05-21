@@ -2,8 +2,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PsychoPy 1.81.00\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-05-14 18:53+0900\n"
-"PO-Revision-Date: 2019-05-14 19:16+0900\n"
+"POT-Creation-Date: 2019-05-21 20:36+0900\n"
+"PO-Revision-Date: 2019-05-21 20:36+0900\n"
 "Last-Translator: Hiroyuki Sogo <hsogo12600@gmail.com>\n"
 "Language-Team: Hiroyuki Sogo <hsogo12600@gmail.com>\n"
 "Language: ja\n"
@@ -596,7 +596,7 @@ msgid "News"
 msgstr "お知らせ"
 
 #: psychopy/app/builder/builder.py:1665
-#: psychopy/app/builder/dialogs/__init__.py:1542
+#: psychopy/app/builder/dialogs/__init__.py:1543
 #: psychopy/app/coder/coder.py:2262
 msgid "Open file ..."
 msgstr "ファイルを開く..."
@@ -676,7 +676,7 @@ msgid "Browse..."
 msgstr "選択..."
 
 #: psychopy/app/builder/dialogs/__init__.py:408
-#: psychopy/app/builder/dialogs/__init__.py:1122
+#: psychopy/app/builder/dialogs/__init__.py:1123
 #: psychopy/app/builder/dialogs/dlgsCode.py:39
 msgid " Properties"
 msgstr "のプロパティ"
@@ -727,40 +727,44 @@ msgstr "保存"
 msgid "Online"
 msgstr "オンライン"
 
-#: psychopy/app/builder/dialogs/__init__.py:636
+#: psychopy/app/builder/dialogs/__init__.py:500
+msgid "Testing"
+msgstr "テスト"
+
+#: psychopy/app/builder/dialogs/__init__.py:637
 #: psychopy/localization/__init__.py:160
 msgid "Start"
 msgstr "開始"
 
-#: psychopy/app/builder/dialogs/__init__.py:639
+#: psychopy/app/builder/dialogs/__init__.py:640
 #: psychopy/localization/__init__.py:162
 msgid "Expected start (s)"
 msgstr "予想開始時刻 (s)"
 
-#: psychopy/app/builder/dialogs/__init__.py:681
+#: psychopy/app/builder/dialogs/__init__.py:682
 #: psychopy/localization/__init__.py:161
 msgid "Stop"
 msgstr "終了"
 
-#: psychopy/app/builder/dialogs/__init__.py:684
+#: psychopy/app/builder/dialogs/__init__.py:685
 #: psychopy/localization/__init__.py:163
 msgid "Expected duration (s)"
 msgstr "予想実行時間 (s)"
 
-#: psychopy/app/builder/dialogs/__init__.py:836
-#: psychopy/app/builder/dialogs/__init__.py:1821
+#: psychopy/app/builder/dialogs/__init__.py:837
+#: psychopy/app/builder/dialogs/__init__.py:1822
 #: psychopy/app/builder/dialogs/dlgsCode.py:116
 #: psychopy/app/builder/dialogs/dlgsConditions.py:516
 msgid " Help "
 msgstr " ヘルプ "
 
-#: psychopy/app/builder/dialogs/__init__.py:837
+#: psychopy/app/builder/dialogs/__init__.py:838
 #: psychopy/app/builder/dialogs/dlgsCode.py:117
 msgid "Go to online help about this component"
 msgstr "このコンポーネントのオンラインヘルプを開きます"
 
-#: psychopy/app/builder/dialogs/__init__.py:842
-#: psychopy/app/builder/dialogs/__init__.py:1825
+#: psychopy/app/builder/dialogs/__init__.py:843
+#: psychopy/app/builder/dialogs/__init__.py:1826
 #: psychopy/app/builder/dialogs/dlgsCode.py:119
 #: psychopy/app/builder/dialogs/dlgsConditions.py:521 psychopy/gui/qtgui.py:95
 #: psychopy/gui/wxgui.py:71 psychopy/monitors/MonitorCenter.py:1113
@@ -768,8 +772,8 @@ msgstr "このコンポーネントのオンラインヘルプを開きます"
 msgid " OK "
 msgstr " OK "
 
-#: psychopy/app/builder/dialogs/__init__.py:850
-#: psychopy/app/builder/dialogs/__init__.py:1828
+#: psychopy/app/builder/dialogs/__init__.py:851
+#: psychopy/app/builder/dialogs/__init__.py:1829
 #: psychopy/app/builder/dialogs/dlgsCode.py:122
 #: psychopy/app/builder/dialogs/dlgsConditions.py:529 psychopy/gui/qtgui.py:96
 #: psychopy/gui/wxgui.py:72 psychopy/monitors/MonitorCenter.py:1115
@@ -777,33 +781,33 @@ msgstr " OK "
 msgid " Cancel "
 msgstr " キャンセル "
 
-#: psychopy/app/builder/dialogs/__init__.py:1084
+#: psychopy/app/builder/dialogs/__init__.py:1085
 #: psychopy/app/builder/validators.py:100
 msgid "Missing name"
 msgstr "名前がありません"
 
-#: psychopy/app/builder/dialogs/__init__.py:1091
+#: psychopy/app/builder/dialogs/__init__.py:1092
 #, python-format
 msgid "That name is in use (it's a %s). Try another name."
 msgstr "その名前は使用されています(%s) 名前を変更してください"
 
-#: psychopy/app/builder/dialogs/__init__.py:1094
+#: psychopy/app/builder/dialogs/__init__.py:1095
 #: psychopy/app/builder/dialogs/dlgsConditions.py:304
 #: psychopy/app/builder/dialogs/dlgsConditions.py:579
 #: psychopy/app/builder/validators.py:110
 msgid "Name must be alpha-numeric or _, no spaces"
 msgstr "名前に使えるのは英数字と_です スペースを含んではいけません"
 
-#: psychopy/app/builder/dialogs/__init__.py:1318
-#: psychopy/app/builder/dialogs/__init__.py:1467
+#: psychopy/app/builder/dialogs/__init__.py:1319
+#: psychopy/app/builder/dialogs/__init__.py:1468
 msgid "No parameters set"
 msgstr "パラメータが定義されていません"
 
-#: psychopy/app/builder/dialogs/__init__.py:1390
+#: psychopy/app/builder/dialogs/__init__.py:1391
 msgid "No parameters set (select a file above)"
 msgstr "パラメータが定義されていません(ファイルを選んでください)"
 
-#: psychopy/app/builder/dialogs/__init__.py:1457
+#: psychopy/app/builder/dialogs/__init__.py:1458
 #, python-format
 msgid ""
 "%(nCondition)i conditions, with %(nParam)i parameters\n"
@@ -812,32 +816,32 @@ msgstr ""
 "%(nParam)iパラメータ, %(nCondition)i条件\n"
 "%(paramStr)s"
 
-#: psychopy/app/builder/dialogs/__init__.py:1466
-#: psychopy/app/builder/dialogs/__init__.py:1690
+#: psychopy/app/builder/dialogs/__init__.py:1467
+#: psychopy/app/builder/dialogs/__init__.py:1691
 msgid "No parameters set (conditionsFile not found)"
 msgstr "パラメータが定義されていません (条件ファイルが見つかりません)"
 
-#: psychopy/app/builder/dialogs/__init__.py:1563
+#: psychopy/app/builder/dialogs/__init__.py:1564
 msgid "Could not read conditions from:\n"
 msgstr "条件を読み込めません\n"
 
-#: psychopy/app/builder/dialogs/__init__.py:1572
+#: psychopy/app/builder/dialogs/__init__.py:1573
 msgid "Configuration error in conditions file"
 msgstr "条件ファイルにエラーがあります"
 
-#: psychopy/app/builder/dialogs/__init__.py:1576
+#: psychopy/app/builder/dialogs/__init__.py:1577
 msgid "Bad condition name(s) in file:\n"
 msgstr "不適切な条件名がファイルに含まれています:\n"
 
-#: psychopy/app/builder/dialogs/__init__.py:1591
+#: psychopy/app/builder/dialogs/__init__.py:1592
 msgid "Builder variable(s) ({}) in file:{}"
 msgstr "Builderの変数名({})が{}で使用されています"
 
-#: psychopy/app/builder/dialogs/__init__.py:1679
+#: psychopy/app/builder/dialogs/__init__.py:1680
 msgid "Badly formed condition name(s) in file:\n"
 msgstr "不適切な条件名がファイルに含まれています:\n"
 
-#: psychopy/app/builder/dialogs/__init__.py:1680
+#: psychopy/app/builder/dialogs/__init__.py:1681
 msgid ""
 ".\n"
 "Need to be legal as var name; edit file, try again."
@@ -845,7 +849,7 @@ msgstr ""
 ".\n"
 "条件名はPythonの変数として使用できる文字列でなければいけません"
 
-#: psychopy/app/builder/dialogs/__init__.py:1822
+#: psychopy/app/builder/dialogs/__init__.py:1823
 msgid "Get help about this component"
 msgstr "このコンポーネントのオンラインヘルプを開きます"
 
