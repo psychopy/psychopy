@@ -1569,7 +1569,7 @@ class DlgLoopProperties(_BaseParamsDlg):
                                                returnFieldNames=True)
                 self.conditions, self.condNamesInFile = _c, _n
                 needUpdate = True
-            except ImportError as msg:
+            except (ImportError, ValueError) as msg:
                 msg = str(msg)
                 if msg.startswith('Could not open'):
                     msg = _translate('Could not read conditions from:\n')
@@ -1698,7 +1698,7 @@ class DlgLoopProperties(_BaseParamsDlg):
                         self.currentCtrls['conditions'].valueCtrl.SetForegroundColour("Black")
                     else:
                         self.currentCtrls['conditions'].valueCtrl.SetForegroundColour("Red")
-                except ImportError as e:
+                except (ImportError, ValueError) as e:
                     msg1 = _translate(
                         'Badly formed condition name(s) in file:\n')
                     msg2 = _translate('.\nNeed to be legal as var name; '
