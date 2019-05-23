@@ -1304,6 +1304,92 @@ class PsiHandler(StairHandler):
                           "posterior array. Continuing without saving...")
 
 
+class QuestPlusWeibullHandler(StairHandler):
+    def __init__(self,
+                 nTrials,
+                 intensities, thresholds, slopes, lowerAsymptotes, lapseRates,
+                 responses=('Yes', 'No'), stimScale='log10',
+                 stimSelectionMethod='minEntropy',
+                 stimSelectionOptions=None, paramEstimationMethod='mean',
+                 extraInfo=None, name=''):
+        import sys
+        if not (sys.version_info.major == 3 and sys.version_info.minor >= 6):
+            msg = 'QUEST+ implementation requires Python 3.6 or newer'
+            raise RuntimeError(msg)
+
+        super().__init__(startVal=None, nTrials=nTrials, extraInfo=extraInfo,
+                         name=name)
+
+        import questplus as qp
+        self._qp = qp.QuestPlusWeibull(
+            intensities=intensities,
+            thresholds=thresholds,
+            slopes=slopes,
+            lower_asymptotes=lowerAsymptotes,
+            lapse_rates=lapseRates,
+            responses=responses,
+            stim_scale=stimScale,
+            stim_selection_method=stimSelectionMethod,
+            stim_selection_options=stimSelectionOptions,
+            param_estimation_method=paramEstimationMethod)
+
+    def addResponse(self, response, intensity=None):
+        self.data.append(response)
+
+        # if needed replace the existing intensity with this custom one
+        if intensity is not None:
+            self.intensities.pop()
+            self.intensities.append(intensity)
+        # add the current data to experiment if possible
+        if self.getExp() is not None:
+            # update the experiment handler too
+            self.getExp().addData(self.name + ".response", response)
+        self._qp.update(intensity=self.intensities[-1],
+                        response=response)
+
+    def __next__(self):
+        self._checkFinished()
+        if not self.finished:
+            # update pointer for next trial
+            self.thisTrialN += 1
+            self.intensities.append(self._qp.next_intensity)
+            return self._qp.next_intensity
+        else:
+            self._terminate()
+
+    next = __next__
+
+    def _checkFinished(self):
+        if self.nTrials is not None and len(self.intensities) >= self.nTrials:
+            self.finished = True
+        else:
+            self.finished = False
+
+    @property
+    def paramEstimates(self):
+        return self._qp.param_estimate
+
+    def saveAsJson(self,
+                   fileName=None,
+                   encoding='utf-8',
+                   fileCollisionMethod='rename'):
+        self_copy = copy.deepcopy(self)
+
+        # Convert questplus.QuestPlus to JSON using questplus's built-in
+        # functionality. questplus uses xarray, which cannot be easily
+        # serialized using directly json_tricks (yet).
+        self_copy._qp_json = self_copy._qp.to_json()
+        del self_copy._qp
+
+        r = (super(QuestPlusWeibullHandler, self_copy)
+             .saveAsJson(fileName=fileName,
+                         encoding=encoding,
+                         fileCollisionMethod=fileCollisionMethod))
+
+        if fileName is None:
+            return r
+
+
 class MultiStairHandler(_BaseTrialHandler):
 
     def __init__(self, stairType='simple', method='random',

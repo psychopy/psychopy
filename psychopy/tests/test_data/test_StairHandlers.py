@@ -14,8 +14,6 @@ import pytest
 from psychopy import data, logging
 from psychopy.tools.filetools import fromFile
 
-from psychopy.tests.utils import _travisTesting
-
 logging.console.setLevel(logging.DEBUG)
 DEBUG = False
 
@@ -822,3 +820,108 @@ def makeBasicResponseCycles(cycles=10, nCorrect=4, nIncorrect=4,
         return responses[:length]
     else:
         return responses
+
+
+def test_QuestPlusWeibullHandler():
+    import sys
+    if not (sys.version_info.major == 3 and sys.version_info.minor >= 6):
+        pytest.skip('QUEST+ only works on Python 3.6+')
+
+    from psychopy.data.staircase import QuestPlusWeibullHandler
+
+    thresholds = np.arange(-40, 0 + 1)
+    slope, guess, lapse = 3.5, 0.5, 0.02
+    contrasts = thresholds.copy()
+
+    expected_contrasts = [-18, -22, -25, -28, -30, -22, -13, -15, -16, -18,
+                          -19, -20, -21, -22, -23, -19, -20, -20, -18, -18,
+                          -19, -17, -17, -18, -18, -18, -19, -19, -19, -19,
+                          -19, -19]
+
+    responses = ['Correct', 'Correct', 'Correct', 'Correct', 'Incorrect',
+                 'Incorrect', 'Correct', 'Correct', 'Correct', 'Correct',
+                 'Correct', 'Correct', 'Correct', 'Correct', 'Incorrect',
+                 'Correct', 'Correct', 'Incorrect', 'Correct', 'Correct',
+                 'Incorrect', 'Correct', 'Correct', 'Correct', 'Correct',
+                 'Correct', 'Correct', 'Correct', 'Correct', 'Correct',
+                 'Correct', 'Correct']
+
+    expected_mode_threshold = -20
+    scale = 'dB'
+    stim_selection_method = 'min_entropy'
+    param_estimation_method = 'mode'
+
+    q = QuestPlusWeibullHandler(nTrials=len(expected_contrasts),
+                                intensities=contrasts,
+                                thresholds=thresholds,
+                                slopes=slope,
+                                lowerAsymptotes=guess,
+                                lapseRates=lapse,
+                                responses=('Correct', 'Incorrect'),
+                                stimSelectionMethod=stim_selection_method,
+                                stimScale=scale,
+                                paramEstimationMethod=param_estimation_method)
+
+    for trial_index, next_contrast in enumerate(q):
+        assert next_contrast == expected_contrasts[trial_index]
+        q.addResponse(response=responses[trial_index])
+
+    assert np.allclose(q.paramEstimates['threshold'],
+                       expected_mode_threshold)
+
+
+def test_QuestPlusWeibullHandler_saveAsJson():
+    import sys
+    if not (sys.version_info.major == 3 and sys.version_info.minor >= 6):
+        pytest.skip('QUEST+ only works on Python 3.6+')
+
+    from psychopy.data.staircase import QuestPlusWeibullHandler
+
+    thresholds = np.arange(-40, 0 + 1)
+    slope, guess, lapse = 3.5, 0.5, 0.02
+    contrasts = thresholds.copy()
+
+    scale = 'dB'
+    stim_selection_method = 'min_entropy'
+    param_estimation_method = 'mode'
+
+    q = QuestPlusWeibullHandler(nTrials=20,
+                                intensities=contrasts,
+                                thresholds=thresholds,
+                                slopes=slope,
+                                lowerAsymptotes=guess,
+                                lapseRates=lapse,
+                                responses=('Correct', 'Incorrect'),
+                                stimSelectionMethod=stim_selection_method,
+                                stimScale=scale,
+                                paramEstimationMethod=param_estimation_method)
+
+    q.origin = ''
+
+    # Add some random responses.
+    q.__next__()
+    q.addResponse(response='Correct')
+    q.__next__()
+    q.addResponse(response='Incorrect')
+
+    # Test dump to memory.
+    q.saveAsJson()
+
+    # Test dump to file.
+    temp_dir = mkdtemp(prefix='psychopy-tests-testdata')
+    _, path = mkstemp(dir=temp_dir, suffix='.json')
+    q.saveAsJson(fileName=path, fileCollisionMethod='overwrite')
+
+    # Test loading from file.
+    q_loaded = fromFile(path)
+    assert q == q_loaded
+
+    # Check if it still works afterwards.
+    q.addResponse(response='Correct')
+
+    shutil.rmtree(temp_dir)
+
+
+if __name__ == '__main__':
+    test_QuestPlusWeibullHandler()
+    test_QuestPlusWeibullHandler_saveAsJson()
