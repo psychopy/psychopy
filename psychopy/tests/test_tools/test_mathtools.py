@@ -24,6 +24,7 @@ def test_quatFromAxisAngle():
     q = quatFromAxisAngle(axis, angle, degrees=True, dtype=np.float64)
     assert np.allclose(q, np.asarray([0., 0., 0., 1.]))
 
+
 @pytest.mark.mathtools
 def test_multQuat():
     """Test quaternion multiplication.
@@ -46,6 +47,7 @@ def test_multQuat():
             axes[i, :], totalAngle, degrees=True, dtype=np.float64)
 
         assert np.allclose(multQuat(q0, q1, dtype=np.float64), quatTarget)
+
 
 @pytest.mark.mathtools
 def test_matrixFromQuat():
@@ -70,7 +72,4 @@ def test_matrixFromQuat():
 
 
 if __name__ == "__main__":
-    test_rotationMatrix()
-    test_quatFromAxisAngle()
-    test_matrixFromQuat()
-    test_multQuat()
+    pytest.main()
