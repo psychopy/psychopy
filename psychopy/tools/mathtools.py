@@ -532,7 +532,7 @@ def applyMatrix(m, points, out=None, dtype='float32'):
         points = np.array([[0., 1., 0.], [-1., 0., 0.]])  # [x, y, z]
         outPoints = np.zeros(points.shape)
         M = rotationMatrix(90., [1., 0., 0.])
-        M3x3 = M[3:, 3:]  # extract rotation groups from the 4x4 matrix
+        M3x3 = M[:3, :3]  # extract rotation groups from the 4x4 matrix
         # apply transformations, write to result to existing array
         applyMatrix(M3x3, points, out=outPoints)
 
