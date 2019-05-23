@@ -550,4 +550,5 @@ def matrixApply(m, points, out=None, dtype='float32'):
     np.dot(points, m.T, out=toReturn)
     #toReturn[:, :] = points.dot(m.T)
 
-    return toReturn
+    if out is None:
+        return toReturn
