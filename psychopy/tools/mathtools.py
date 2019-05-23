@@ -10,7 +10,7 @@
 
 __all__ = ['normalize', 'lerp', 'slerp', 'multQuat', 'quatFromAxisAngle',
            'matrixFromQuat', 'scaleMatrix', 'rotationMatrix',
-           'translationMatrix']
+           'translationMatrix', 'concatenate']
 
 import numpy as np
 
