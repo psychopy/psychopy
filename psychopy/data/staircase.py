@@ -1308,7 +1308,8 @@ class QuestPlusWeibullHandler(StairHandler):
     def __init__(self,
                  nTrials,
                  intensities, thresholds, slopes, lowerAsymptotes, lapseRates,
-                 responses=('Yes', 'No'), stimScale='log10',
+                 responses=('Yes', 'No'), startVal=None,
+                 stimScale='log10',
                  stimSelectionMethod='minEntropy',
                  stimSelectionOptions=None, paramEstimationMethod='mean',
                  extraInfo=None, name=''):
@@ -1317,8 +1318,8 @@ class QuestPlusWeibullHandler(StairHandler):
             msg = 'QUEST+ implementation requires Python 3.6 or newer'
             raise RuntimeError(msg)
 
-        super().__init__(startVal=None, nTrials=nTrials, extraInfo=extraInfo,
-                         name=name)
+        super().__init__(startVal=startVal, nTrials=nTrials,
+                         extraInfo=extraInfo, name=name)
 
         import questplus as qp
         self._qp = qp.QuestPlusWeibull(
@@ -1352,8 +1353,12 @@ class QuestPlusWeibullHandler(StairHandler):
         if not self.finished:
             # update pointer for next trial
             self.thisTrialN += 1
-            self.intensities.append(self._qp.next_intensity)
-            return self._qp.next_intensity
+            if self.thisTrialN == 0 and self.startVal is not None:
+                self.intensities.append(self.startVal)
+            else:
+                self.intensities.append(self._qp.next_intensity)
+
+            return self.intensities[-1]
         else:
             self._terminate()
 
