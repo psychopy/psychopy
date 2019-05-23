@@ -65,3 +65,4 @@ Helper functions:
     * :mod:`~psychopy.tools.monitorunittools` to convert cm<->pix<->deg etc.
     * :mod:`~psychopy.tools.colorspacetools` to convert between supported color spaces
     * :mod:`~psychopy.tools.viewtools` to work with view projections
+    * :mod:`~psychopy.tools.mathtools` to work with vectors, quaternions, and matrices
