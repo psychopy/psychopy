@@ -10,7 +10,7 @@
 
 __all__ = ['normalize', 'lerp', 'slerp', 'multQuat', 'quatFromAxisAngle',
            'matrixFromQuat', 'scaleMatrix', 'rotationMatrix',
-           'translationMatrix', 'concatenate']
+           'translationMatrix', 'concatenate', 'matrixApply']
 
 import numpy as np
 
@@ -486,5 +486,68 @@ def concatenate(*args, dtype='float32'):
     toReturn = np.identity(4, dtype=dtype)
     for mat_i in range(len(args)):
         np.matmul(np.asarray(args[mat_i], dtype=dtype), toReturn, out=toReturn)
+
+    return toReturn
+
+
+def matrixApply(m, points, out=None, dtype='float32'):
+    """Apply a transformation matrix over a 2D array of points.
+
+    Parameters
+    ----------
+    m : ndarray
+        Transformation matrix.
+    points : ndarray
+        2D array of points/coordinates to transform, where each row is a single
+        point and the number of columns should match the dimensions of the
+        matrix.
+    out : ndarray, optional
+        Optional output array to write values. Must be same `shape` and `dtype`
+        as `points`.
+    dtype : str or obj
+        Data type to use for all computations (eg. 'float32', 'float64', float,
+        etc.)
+
+    Returns
+    -------
+    ndarray or None
+        Transformed points. If `None` if `out` was specified.
+
+    Examples
+    --------
+    Transform an array of points by some transformation matrix::
+
+        S = scaleMatrix([5.0, 5.0, 5.0])  # scale 2x
+        R = rotationMatrix(180., [0., 0., -1])  # rotate 180 degrees
+        T = translationMatrix([0., 1.5, -3.])  # translate point up and away
+        M = concatenate(S, R, T)  # create transform matrix
+
+        # points to transform, must be 2D!
+        points = np.array([[0., 1., 0., 1.], [-1., 0., 0., 1.]]) # [x, y, z, w]
+        newPoints = matrixApply(M, points)  # apply the transformation
+
+    Extract the 3x3 rotation sub-matrix from a 4x4 matrix and apply it to
+    points. Here the result in written to an already allocated array::
+
+        points = np.array([[0., 1., 0.], [-1., 0., 0.]])  # [x, y, z]
+        outPoints = np.zeros(points.shape)
+        M = rotationMatrix(90., [1., 0., 0.])
+        M3x3 = M[3:, 3:]  # extract rotation groups from the 4x4 matrix
+        # apply transformations, write to result to existing array
+        matrixApply(M3x3, points, out=outPoints)
+
+    """
+    m = np.asarray(m, dtype=dtype)
+    points = np.asarray(points, dtype=dtype)
+    assert points.ndim == 2
+
+    if out is None:
+        toReturn = np.zeros(points.shape, dtype=dtype)
+    else:
+        # make sure we have the same dtype as the input
+        toReturn = np.asarray(out, dtype=points.dtype)
+
+    np.dot(points, m.T, out=toReturn)
+    #toReturn[:, :] = points.dot(m.T)
 
     return toReturn

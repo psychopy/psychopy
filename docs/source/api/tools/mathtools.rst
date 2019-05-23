@@ -17,6 +17,7 @@
     rotationMatrix
     translationMatrix
     concatenate
+    matrixApply
     
 Function details
 ~~~~~~~~~~~~~~~~~~~~~~~
@@ -31,3 +32,4 @@ Function details
 .. autofunction:: rotationMatrix
 .. autofunction:: translationMatrix
 .. autofunction:: concatenate
+.. autofunction:: matrixApply
