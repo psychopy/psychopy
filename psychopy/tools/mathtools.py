@@ -445,6 +445,43 @@ def concatenate(*args, dtype='float32'):
         pointModel = np.array([0., 1., 0., 1.])
         pointWorld = np.matmul(SRT, pointModel.T)  # point in WCS
 
+    Create a model-view matrix from a world-space pose represented by an
+    orientation (quaternion) and position (vector). The resulting matrix will
+    transform model-space coordinates to eye-space::
+
+        # stimulus pose as quaternion and vector
+        stimOri = quatFromAxisAngle([0., 0., -1.], -45.0)
+        stimPos = [0., 1.5, -5.]
+
+        # create model matrix
+        R = matrixFromQuat(stimOri)
+        T = translationMatrix(stimPos)
+        M = concatenate(R, T)  # model matrix
+
+        # create a view matrix, can also be represented as 'pos' and 'ori'
+        eyePos = [0., 1.5, 0.]
+        eyeFwd = [0., 0., -1.]
+        eyeUp = [0., 1., 0.]
+        V = lookAt(eyePos, eyeFwd, eyeUp)  # from viewtools
+
+        # modelview matrix
+        MV = concatenate(M, V)
+
+    Furthermore, you can go from model-space to homogeneous clip-space by
+    concatenating the projection, view, and model matrices::
+
+        # compute projection matrix, functions here are from 'viewtools'
+        screenWidth = 0.52
+        screenAspect = w / h
+        scrDistance = 0.55
+        frustum = computeFrustum(screenWidth, screenAspect, scrDistance)
+        P = perspectiveProjectionMatrix(*frustum)
+
+        # multiply model-space points by MVP to convert them to clip-space
+        MVP = concatenate(M, V, P)
+        pointModel = np.array([0., 1., 0., 1.])
+        pointClipSpace = np.matmul(MVP, pointModel.T)
+
     """
     toReturn = np.identity(4, dtype=dtype)
     for mat_i in range(len(args)):
