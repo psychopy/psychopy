@@ -16,6 +16,7 @@
     scaleMatrix
     rotationMatrix
     translationMatrix
+    concatenate
     
 Function details
 ~~~~~~~~~~~~~~~~~~~~~~~
@@ -29,3 +30,4 @@ Function details
 .. autofunction:: scaleMatrix
 .. autofunction:: rotationMatrix
 .. autofunction:: translationMatrix
+.. autofunction:: concatenate

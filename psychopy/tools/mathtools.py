@@ -406,3 +406,48 @@ def translationMatrix(t, dtype='float32'):
     T[:3, 3] = t
 
     return T
+
+
+def concatenate(*args, dtype='float32'):
+    """Concatenate matrix transformations.
+
+    Combine transformation matrices into a single matrix. This is similar to
+    what occurs when building a matrix stack in OpenGL using `glRotate`,
+    `glTranslate`, and `glScale` calls. Matrices are multiplied together from
+    right-to-left, or the last argument to first. Note that changing the order
+    of the input matrices changes the final result.
+
+    Parameters
+    ----------
+    *args
+        4x4 matrices to combine of type `ndarray`. Matrices are multiplied from
+        right-to-left.
+    dtype : str or obj
+        Data type to use for all computations (eg. 'float32', 'float64', float,
+        etc.)
+
+    Returns
+    -------
+    ndarray
+        Concatenation of input matrices as a 4x4 matrix in row-major order.
+
+    Examples
+    --------
+    Create an SRT (scale, rotate, and translate) matrix to convert model-space
+    coordinates to world-space::
+
+        S = scaleMatrix([2.0, 2.0, 2.0])  # scale model 2x
+        R = rotationMatrix(-90., [0., 0., -1])  # rotate -90 about -Z axis
+        T = translationMatrix([0., 0., -5.])  # translate point 5 units away
+        SRT = concatenate(S, R, T)
+
+        # transform a point in model-space coordinates to world-space
+        pointModel = np.array([0., 1., 0., 1.])
+        pointWorld = np.matmul(SRT, pointModel.T)  # point in WCS
+
+    """
+    toReturn = np.identity(4, dtype=dtype)
+    for mat_i in range(len(args)):
+        np.matmul(np.asarray(args[mat_i], dtype=dtype), toReturn, out=toReturn)
+
+    return toReturn
