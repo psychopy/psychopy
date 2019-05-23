@@ -10,7 +10,7 @@
 
 __all__ = ['normalize', 'lerp', 'slerp', 'multQuat', 'quatFromAxisAngle',
            'matrixFromQuat', 'scaleMatrix', 'rotationMatrix',
-           'translationMatrix', 'concatenate', 'matrixApply']
+           'translationMatrix', 'concatenate', 'applyMatrix']
 
 import numpy as np
 
@@ -490,7 +490,7 @@ def concatenate(*args, dtype='float32'):
     return toReturn
 
 
-def matrixApply(m, points, out=None, dtype='float32'):
+def applyMatrix(m, points, out=None, dtype='float32'):
     """Apply a transformation matrix over a 2D array of points.
 
     Parameters
