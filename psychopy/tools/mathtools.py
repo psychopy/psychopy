@@ -524,7 +524,7 @@ def applyMatrix(m, points, out=None, dtype='float32'):
 
         # points to transform, must be 2D!
         points = np.array([[0., 1., 0., 1.], [-1., 0., 0., 1.]]) # [x, y, z, w]
-        newPoints = matrixApply(M, points)  # apply the transformation
+        newPoints = applyMatrix(M, points)  # apply the transformation
 
     Extract the 3x3 rotation sub-matrix from a 4x4 matrix and apply it to
     points. Here the result in written to an already allocated array::
@@ -534,7 +534,7 @@ def applyMatrix(m, points, out=None, dtype='float32'):
         M = rotationMatrix(90., [1., 0., 0.])
         M3x3 = M[3:, 3:]  # extract rotation groups from the 4x4 matrix
         # apply transformations, write to result to existing array
-        matrixApply(M3x3, points, out=outPoints)
+        applyMatrix(M3x3, points, out=outPoints)
 
     """
     m = np.asarray(m, dtype=dtype)
