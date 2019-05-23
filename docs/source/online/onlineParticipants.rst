@@ -3,15 +3,23 @@
 Recruiting participants and connecting with online services
 -------------------------------------------------------------
 
-Having created your study in Builder and :ref:`uploaded it to Pavlovia <pavloviaUpload>` (and :ref:`activated it to run <pavloviaActivate>` you now need to recruit your participants to run the study.
+Having created your study in Builder, :ref:`uploaded it to Pavlovia <pavloviaUpload>`, and :ref:`activated it to run <pavloviaActivate>`, you now need to recruit your participants to run the study.
 
 At the simplest level you can get the URL for the study and distribute it to participants manually (e.g. by email or social media). To get the URL to run you can either press the Builder button to "Run online" |pavloviaRun| and then you can select the URL in the resulting browser window that should appear.
 
-PsychoPy can also connect to a range of other online systems as well, however, some of which are helpful in recruiting participants (like :ref:`sona`, :ref:`prolific`, or :ref:`mturk`) and you can also daisy-chain your study with dedicated survey tools like :ref:`qualtrics`.
+PsychoPy can also connect to a range of other online systems as well, however, some of which are helpful in recruiting participants. Below we describe the general approach before describing the specifics for some common systems:
 
 
-The general principle of online connections
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.. toctree::
+    :maxdepth: 1
+
+    sonaIntegration
+    prolificIntegration
+    mturkIntegration
+    qualtricsIntegration
+
+The general principle 
+~~~~~~~~~~~~~~~~~~~~~~~
 
 All the systems below use the same general principle to connect the different services:
 
@@ -53,33 +61,6 @@ This is really simple. In the Experiment Settings dialog again |experimentSettin
     :scale: 50%
     :alt: Experiment Settings with completion links
 
-.. _sona:
-
-Sona Systems
-~~~~~~~~~~~~~
-
-To be written
-
-.. _prolific:
-
-Prolific Academic
-~~~~~~~~~~~~~~~~~~~~~
-
-To be written
-
-.. _mturk:
-
-Amazon's Mechanical Turk (MTurk)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-To be written.
-
-.. _Qualtrics:
-
-Daisy-chaining with Qualtrics
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-To be written.
 
 .. |pavloviaRun| image:: /images/pavloviaRun.png
     :alt: Run online button

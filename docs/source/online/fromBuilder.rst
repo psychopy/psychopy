@@ -82,7 +82,7 @@ Recruiting participants
 
 Once you've uploaded your folder with the correct permissions you can simply provide that as a URL/link to your prospective participants. When they go to this link they'll see the info dialog box (with the same settings as the one you use in your standard PsychoPy study locally, but a little prettier). That dialog box may show a progress bar while the resources (e.g. image files) are downloading to the local computer. When they've finished downloading the 'OK' button will be available and the participant can carry on to your study.
 
-Note that the window won't disappear when the study finishes the way it does locally, so remember to provide a final screen that says something like "Thank you. The experiment has now finished"
+Alternatively you may well want to recruit participants using an online service such as `Prolific Academic`_
 
 
 .. _fetchingData:
@@ -94,7 +94,3 @@ The data are saved in a data folder next to the html file. You should see csv fi
 
 You could just download the data folder or, if you've set it up to sync with an OSF project then you could simply sync your PsychoPy project with OSF (from the projects menu) and your data will be fetched to your local computer! :-)
 
-Sync with OSF
-~~~~~~~~~~~~~~~~~~~~~~~
-
-This option is on the way. It does already work from the PsychoJS perspective. We need to make sure the Builder code is correct and write the docs!

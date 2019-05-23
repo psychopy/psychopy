@@ -25,14 +25,41 @@ h1, .h1 {
     font-size: 34px;
 }
 
+h1::before { 
+    display: block; 
+    content: " "; 
+    margin-top: -101px; 
+    height: 101px; 
+    visibility: hidden; 
+    pointer-events: none;
+  }
+  
 h2, .h2 {
     font-size: 28px;
 }
 
+h2::before { 
+    display: block; 
+    content: " "; 
+    margin-top: -101px; 
+    height: 101px; 
+    visibility: hidden; 
+    pointer-events: none;
+  }
+  
 h3, .h3 {
     font-size: 24px;
 }
 
+h3::before { 
+    display: block; 
+    content: " "; 
+    margin-top: -101px; 
+    height: 101px; 
+    visibility: hidden; 
+    pointer-events: none;
+  }
+  
 /* logos (big and small) in top left */
 .large-logo img {
     position: absolute;

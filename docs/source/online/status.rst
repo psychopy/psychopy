@@ -3,7 +3,7 @@
 Status of online options
 --------------------------
 
-The table below shows you the current state of play is the current state of play. If you want to see things develop faster then see the section below on :ref:`addToPsychoJS`
+The table below shows you the current state of play with capabilities of online studies.
 
 .. csv-table::
   :header: "Done", " ", "Not done (but could be)"

@@ -1,3 +1,5 @@
+.. include:: global.rst
+
 .. _pavlovia:
 
 Using Pavlovia.org
@@ -126,7 +128,4 @@ If you wish to search for your own existing projects on `Pavlovia`_, or other us
 
 Now you can run your synced project online from `Pavlovia`_!
 
-
-.. _PsychoJS: https://github.com/psychopy/psychojs
-.. _Pavlovia: https://pavlovia.org
 

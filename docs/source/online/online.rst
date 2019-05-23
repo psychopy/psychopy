@@ -1,35 +1,23 @@
-.. _online:
 
-Running and sharing studies online
-=======================================
+.. raw:: html
 
-In January 2018 we began a `Wellcome Trust <http://www.wellcome.ac.uk>`_ grant to make online studies possible from PsychoPy. This is what we call PsychoPy3 - the 3rd major phase of PsychoPy's development.
-
-The key steps to this are basically to:
-
-- generate a JavaScript experiment ready to run online
-- upload it to Pavlovia.org to be launched
-- set up your recruitment procedure
-
-Those steps are covered in detail here:
-
-.. toctree::
-    :maxdepth: 1
-
-    fromBuilder
-    usingPavlovia
-    psychojsCode
-    onlineParticipants
-
-but you should also be aware of the following:
-
-.. toctree::
-    :maxdepth: 1
-
-	cautions
-    status
-    tech
-	
-
-.. _PsychoJS: https://github.com/psychopy/psychojs
-.. _pavlovia: https://pavlovia.org
+    <!-- REDIRECTING STARTS -->
+    <link rel="canonical" href="index.html"/>
+    <noscript>
+        <meta http-equiv="refresh" content="0; URL=index.html">
+    </noscript>
+    <!--[if lt IE 9]><script type="text/javascript">var IE_fix=true;</script><![endif]-->
+    <script type="text/javascript">
+        var url = "index.html";
+        if(typeof IE_fix != "undefined") // IE8 and lower fix to pass the http referer
+        {
+            document.write("redirecting..."); // Don't remove this line or appendChild() will fail because it is called before document.onload to make the redirect as fast as possible. Nobody will see this text, it is only a tech fix.
+            var referLink = document.createElement("a");
+            referLink.href = url;
+            document.body.appendChild(referLink);
+            referLink.click();
+        }
+        else { window.location.replace(url); } // All other browsers
+    </script>
+    <!-- Credit goes to http://insider.zone/ -->
+    <!-- REDIRECTING ENDS -->
