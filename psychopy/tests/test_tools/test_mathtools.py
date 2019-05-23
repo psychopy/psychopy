@@ -24,6 +24,28 @@ def test_quatFromAxisAngle():
     q = quatFromAxisAngle(axis, angle, degrees=True, dtype=np.float64)
     assert np.allclose(q, np.asarray([0., 0., 0., 1.]))
 
+@pytest.mark.mathtools
+def test_multQuat():
+    """Test quaternion multiplication.
+
+    Create two quaternions, multiply them, and check if the resulting
+    orientation is as expected.
+    """
+    np.random.seed(123456)
+    N = 1000
+    axes = np.random.uniform(-1.0, 1.0, (N, 3,))  # random axes
+    angles = np.random.uniform(0.0, 360.0, (N, 2,))  # random angles
+
+    for i in range(N):
+        totalAngle = angles[i, 0] + angles[i, 1]
+        q0 = quatFromAxisAngle(
+            axes[i, :], angles[i, 0], degrees=True, dtype=np.float64)
+        q1 = quatFromAxisAngle(
+            axes[i, :], angles[i, 1], degrees=True, dtype=np.float64)
+        quatTarget = quatFromAxisAngle(
+            axes[i, :], totalAngle, degrees=True, dtype=np.float64)
+
+        assert np.allclose(multQuat(q0, q1, dtype=np.float64), quatTarget)
 
 @pytest.mark.mathtools
 def test_matrixFromQuat():
@@ -51,3 +73,4 @@ if __name__ == "__main__":
     test_rotationMatrix()
     test_quatFromAxisAngle()
     test_matrixFromQuat()
+    test_multQuat()
