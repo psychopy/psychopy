@@ -545,7 +545,8 @@ def matrixApply(m, points, out=None, dtype='float32'):
         toReturn = np.zeros(points.shape, dtype=dtype)
     else:
         # make sure we have the same dtype as the input
-        toReturn = np.asarray(out, dtype=points.dtype)
+        assert out.dtype == points.dtype and out.shape == points.shape
+        toReturn = out
 
     np.dot(points, m.T, out=toReturn)
     #toReturn[:, :] = points.dot(m.T)
