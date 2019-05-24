@@ -1313,7 +1313,6 @@ class QuestPlusHandler(StairHandler):
                  stimSelectionMethod='minEntropy',
                  stimSelectionOptions=None, paramEstimationMethod='mean',
                  extraInfo=None, name=''):
-        import sys
         if not (sys.version_info.major == 3 and sys.version_info.minor >= 6):
             msg = 'QUEST+ implementation requires Python 3.6 or newer'
             raise RuntimeError(msg)
@@ -1322,6 +1321,17 @@ class QuestPlusHandler(StairHandler):
                          extraInfo=extraInfo, name=name)
 
         self.func = func
+        self.stimSelectionMethod = stimSelectionMethod
+        self.stimSelectionOptions = stimSelectionOptions
+        self.paramEstimationMethod = paramEstimationMethod
+
+        # questplus uses different parameters.
+        if self.stimSelectionMethod == 'minEntropy':
+            stimSelectionMethod_ = 'min_entropy'
+        elif self.stimSelectionMethod == 'minNEntropy':
+            stimSelectionMethod_ = 'min_n_entropy'
+        else:
+            raise ValueError('Unknown stimSelectionMethod requested.')
 
         import questplus as qp
         if self.func == 'weibull':
@@ -1333,7 +1343,7 @@ class QuestPlusHandler(StairHandler):
                 lapse_rates=lapseRates,
                 responses=responses,
                 stim_scale=stimScale,
-                stim_selection_method=stimSelectionMethod,
+                stim_selection_method=stimSelectionMethod_,
                 stim_selection_options=stimSelectionOptions,
                 param_estimation_method=paramEstimationMethod)
         else:
