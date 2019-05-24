@@ -158,6 +158,9 @@ def slerp(q0, q1, t, dtype='float32'):
 def quatToAxisAngle(q, degrees=False, dtype='float32'):
     """Convert a quaternion to `axis` and `angle` representation.
 
+    This allows you to use quaternions to set the orientation of stimuli that
+    have an `ori` property.
+
     Parameters
     ----------
     q : tuple, list or ndarray of float
@@ -175,6 +178,23 @@ def quatToAxisAngle(q, degrees=False, dtype='float32'):
     tuple
         Axis and angle of quaternion in form ([ax, ay, az], angle). If `degrees`
         is `True`, the angle returned is in degrees, radians if `False`.
+
+    Examples
+    --------
+    Using a quaternion to rotate a stimulus each frame::
+
+        # initial orientation, axis rotates in the Z direction
+        qr = quatFromAxisAngle(0.0, [0., 0., -1.], degrees=True)
+        # rotation per-frame, here it's 0.1 degrees per frame
+        qf = quatFromAxisAngle(0.1, [0., 0., -1.], degrees=True)
+
+        # ---- within main experiment loop ----
+        # myStim is a GratingStim or anything with an 'ori' argument which
+        # accepts angle in degrees
+        qr = multQuat(qr, qf)  # cumulative rotation
+        _, angle = quatToAxisAngle(qr)  # discard axis, only need angle
+        myStim.ori = angle
+        myStim.draw()
 
     """
     q = normalize(q, dtype=dtype)
