@@ -47,17 +47,19 @@ def normalize(v, dtype='float32'):
     return v
 
 
-def lerp(v0, v1, t, dtype='float32'):
+def lerp(v0, v1, t, out=None, dtype='float32'):
     """Linear interpolation (LERP) between two vectors/coordinates.
 
     Parameters
     ----------
     v0 : tuple, list or ndarray of float
-        Initial vector in form [x, y, z].
+        Initial vector. Can be 2D where each row is a point.
     v1 : tuple, list or ndarray of float
-        Final vector in form [x, y, z].
+        Final vector. Must be the same shape as `v0`.
     t : float
-        Interpolation factor [0, 1].
+        Interpolation weight factor [0, 1].
+    out : ndarray, optional
+        Optional output array. Must have the same `shape` and `dtype` as `v0`.
     dtype : str or obj
         Data type to use for all computations (eg. 'float32', 'float64', float,
         etc.)
@@ -65,7 +67,7 @@ def lerp(v0, v1, t, dtype='float32'):
     Returns
     -------
     ndarray
-        Vector [x, y, z] at `t`.
+        Vector  at `t` with same shape as `v0` and `v1`.
 
     Examples
     --------
@@ -78,8 +80,21 @@ def lerp(v0, v1, t, dtype='float32'):
     """
     v0 = np.asarray(v0, dtype=dtype)
     v1 = np.asarray(v1, dtype=dtype)
-    t = float(t)
-    return (1.0 - t) * v0 + t * v1
+    assert v0.shape == v1.shape  # make sure the inputs have the same dims
+    origShape = v0.shape
+    v0, v1 = np.atleast_2d(v0, v1)
+
+    if out is None:
+        toReturn = np.zeros(v0.shape, dtype=dtype)
+    else:
+        toReturn = out
+
+    ncols = v0.shape[1]
+    t0 = 1.0 - t
+    toReturn[:, 0:ncols] = t0 * v0[:, 0:ncols] + t * v1[:, 0:ncols]
+
+    if out is None:
+        return np.reshape(toReturn, origShape)
 
 
 def slerp(q0, q1, t, dtype='float32'):
@@ -97,7 +112,7 @@ def slerp(q0, q1, t, dtype='float32'):
         Final quaternion in form [x, y, z, w] where w is real and x, y, z
         are imaginary components.
     t : float
-        Interpolation factor [0, 1].
+        Interpolation weight factor [0, 1].
     dtype : str or obj
         Data type to use for all computations (eg. 'float32', 'float64', float,
         etc.)
@@ -553,3 +568,13 @@ def applyMatrix(m, points, out=None, dtype='float32'):
 
     if out is None:
         return toReturn
+
+
+if __name__ == "__main__":
+    a = np.random.uniform(-100.0, 100.0, (100, 3,))
+    b = np.random.uniform(-100.0, 100.0, (100, 3,))
+
+    a[0,:] = [1, 0, 0]
+    b[0,:] = [-1, 0, 0]
+
+    print(lerp(a, b, 0.5))
