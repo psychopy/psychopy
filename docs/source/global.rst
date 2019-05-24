@@ -8,3 +8,13 @@
 
 .. |prolific| replace:: Prolific Academic
 .. _prolific: https://prolific.ac
+
+
+
+.. |pavloviaRun| image:: /images/pavloviaRun.png
+    :alt: Run online button
+    :scale: 50%
+
+.. |experimentSettingsBtn| image:: /images/experimentSettingsBtn.png
+    :alt: Experiemnt settings button
+    :scale: 50%

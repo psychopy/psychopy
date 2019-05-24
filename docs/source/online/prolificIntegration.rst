@@ -1,3 +1,4 @@
+.. include:: ../global.rst
 
 .. _prolificIntegration:
 

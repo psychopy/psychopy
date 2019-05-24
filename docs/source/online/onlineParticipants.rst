@@ -1,3 +1,5 @@
+.. include:: ../global.rst
+
 .. _recruitingOnline:
 
 Recruiting participants and connecting with online services
@@ -60,12 +62,3 @@ This is really simple. In the Experiment Settings dialog again |experimentSettin
 .. image:: /images/expSettingsURLs.png
     :scale: 50%
     :alt: Experiment Settings with completion links
-
-
-.. |pavloviaRun| image:: /images/pavloviaRun.png
-    :alt: Run online button
-    :scale: 50%
-
-.. |experimentSettingsBtn| image:: /images/experimentSettingsBtn.png
-    :alt: Experiemnt settings button
-    :scale: 50%
