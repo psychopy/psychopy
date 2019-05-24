@@ -81,6 +81,10 @@ def fromFile(filename, encoding='utf-8'):
                 contents._qp = QuestPlus.from_json(contents._qp_json)
                 del contents._qp_json
                 return contents
+
+        # If we haven't returned anything by now, the loaded object is neither
+        # a TrialHandler2 nor a QuestPlus instance. Return it unchanged.
+        return contents
     else:
         msg = "Don't know how to handle this file type, aborting."
         raise ValueError(msg)
