@@ -11,6 +11,8 @@
     lerp
     slerp
     multQuat
+    invertQuat
+    quatToAxisAngle
     quatFromAxisAngle
     matrixFromQuat
     scaleMatrix
@@ -20,12 +22,14 @@
     applyMatrix
     
 Function details
-~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~
 
 .. autofunction:: normalize
 .. autofunction:: lerp
 .. autofunction:: slerp
 .. autofunction:: multQuat
+.. autofunction:: invertQuat
+.. autofunction:: quatToAxisAngle
 .. autofunction:: quatFromAxisAngle
 .. autofunction:: matrixFromQuat
 .. autofunction:: scaleMatrix

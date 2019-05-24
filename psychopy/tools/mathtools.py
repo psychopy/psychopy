@@ -10,7 +10,8 @@
 
 __all__ = ['normalize', 'lerp', 'slerp', 'multQuat', 'quatFromAxisAngle',
            'matrixFromQuat', 'scaleMatrix', 'rotationMatrix',
-           'translationMatrix', 'concatenate', 'applyMatrix']
+           'translationMatrix', 'concatenate', 'applyMatrix', 'invertQuat',
+           'quatToAxisAngle']
 
 import numpy as np
 
@@ -154,6 +155,36 @@ def slerp(q0, q1, t, dtype='float32'):
     return (q0 * s0) + (q1 * s1)
 
 
+def quatToAxisAngle(q, degrees=False, dtype='float32'):
+    """Convert a quaternion to `axis` and `angle` representation.
+
+    Parameters
+    ----------
+    q : tuple, list or ndarray of float
+        Quaternion in form [x, y, z, w] where w is real and x, y, z
+        are imaginary components.
+    degrees : bool
+        Indicate `angle` is to returned in degrees, otherwise `angle` will be
+        returned in radians.
+    dtype : str or obj
+        Data type to use for all computations (eg. 'float32', 'float64', float,
+        etc.)
+
+    Returns
+    -------
+    tuple
+        Axis and angle of quaternion in form ([ax, ay, az], angle). If `degrees`
+        is `True`, the angle returned is in degrees, radians if `False`.
+
+    """
+    q = normalize(q, dtype=dtype)
+    v = np.sqrt(np.sum(np.square(q[:3])))
+    axis = (q[:3] / v) + 0.0
+    angle = 2.0 * np.arctan2(v, q[3])
+
+    return axis, np.degrees(angle) if degrees else angle
+
+
 def quatFromAxisAngle(axis, angle, degrees=False, dtype='float32'):
     """Create a quaternion to represent a rotation about `axis` vector by
     `angle`.
@@ -239,6 +270,46 @@ def multQuat(q0, q1, out=None, dtype='float32'):
         return qr
 
     return qr
+
+
+def invertQuat(q, dtype='float32'):
+    """Get tht multiplicative inverse of a quaternion.
+
+    Parameters
+    ----------
+    q : ndarray, list, or tuple of float
+        Quaternion to invert in form [x, y, z, w] where w is real and x, y, z
+        are imaginary components.
+    dtype : str or obj
+        Data type to use for all computations (eg. 'float32', 'float64', float,
+        etc.)
+
+    Returns
+    -------
+    ndarray
+        Inverse of quaternion `q`.
+
+    Examples
+    --------
+    Show that multiplying a quaternion by its inverse returns an identity
+    quaternion where [x=0, y=0, z=0, w=1]::
+
+        angle = 90.0
+        axis = [0., 0., -1.]
+        q = quatFromAxisAngle(axis, angle, degrees=True)
+        qinv = invertQuat(q)
+        qr = multQuat(q, qinv)
+        qi = np.array([0., 0., 0., 1.])  # identity quaternion
+        print(np.allclose(qi, qr))   # True
+
+    """
+    qn = normalize(q, dtype=dtype)
+    # conjugate the quaternion
+    conj = np.zeros((4,), dtype=dtype)
+    conj[:3] = -1.0 * qn[:3]
+    conj[3] = qn[3]
+
+    return conj / np.sqrt(np.sum(np.square(qn)))
 
 
 def matrixFromQuat(q, out=None, dtype='float32'):
@@ -569,12 +640,3 @@ def applyMatrix(m, points, out=None, dtype='float32'):
     if out is None:
         return toReturn
 
-
-if __name__ == "__main__":
-    a = np.random.uniform(-100.0, 100.0, (100, 3,))
-    b = np.random.uniform(-100.0, 100.0, (100, 3,))
-
-    a[0,:] = [1, 0, 0]
-    b[0,:] = [-1, 0, 0]
-
-    print(lerp(a, b, 0.5))
