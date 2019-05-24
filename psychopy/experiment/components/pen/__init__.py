@@ -14,12 +14,11 @@ from psychopy import logging
 
 # the absolute path to the folder containing this path
 thisFolder = path.abspath(path.dirname(__file__))
-# iconFile = path.join(thisFolder, 'polygon.png')
+iconFile = path.join(thisFolder, 'quill.png')
 tooltip = _translate('Pen: a drawing tool')
 
 # only use _localized values for label values, nothing functional:
-_localized = {'nStrokes': _translate('Num. strokes'),
-              'lineColorSpace': _translate('Line color-space'),
+_localized = {'lineColorSpace': _translate('Line color-space'),
               'lineColor': _translate('Line color'),
               'lineWidth': _translate('Line width'),
               'opacity': _translate('Opacity'),
@@ -31,7 +30,6 @@ class PenComponent(BaseVisualComponent):
     categories = ['Responses', 'Custom']
 
     def __init__(self, exp, parentName, name='pen',
-                 nStrokes=100,
                  lineColor='$[1,1,1]', lineColorSpace='rgb', lineWidth=1.5,
                  startType='time (s)', startVal=0.0,
                  stopType='duration (s)', stopVal=1.0,
@@ -46,7 +44,7 @@ class PenComponent(BaseVisualComponent):
         self.url = "http://www.psychopy.org/builder/components/pen.html"
         self.exp.requirePsychopyLibs(['visual'])
         self.targets = ['PsychoPy', 'PsychoJS']
-        self.order = ['nStrokes', 'lineWidth', 'lineColor', 'opacity']
+        self.order = ['lineWidth', 'lineColor', 'opacity']
 
         del self.params['color']  # because color is defined by lineColor
         del self.params['colorSpace']  # because color is defined by lineColor
@@ -56,14 +54,6 @@ class PenComponent(BaseVisualComponent):
         del self.params['units']  # always in pix
 
         # params
-        msg = _translate("How many individual strokes can your pen make?")
-        self.params['nStrokes'] = Param(
-            nStrokes, valType='int',
-            updates='constant',
-            allowedUpdates=['constant'],
-            hint=msg,
-            label=_localized['nStrokes'])
-
         msg = _translate("Line color of this pen; Right-click to bring"
                          " up a color-picker (rgb only)")
         self.params['lineColor'] = Param(
@@ -93,15 +83,16 @@ class PenComponent(BaseVisualComponent):
 
     def writeInitCode(self, buff):
         code = ("{name} = visual.Pen(win=win, name='{name}',\n"
-                "   nStrokes={nStrokes},\n"
                 "   lineWidth={lineWidth},\n"
                 "   lineColor={lineColor},\n"
                 "   lineColorSpace={lineColorSpace},\n"
                 "   opacity={opacity})").format(name=self.params['name'],
-                                                nStrokes=self.params['nStrokes'],
                                                 lineWidth=self.params['lineWidth'],
                                                 lineColor=self.params['lineColor'],
                                                 lineColorSpace=self.params['lineColorSpace'],
                                                 opacity=self.params['opacity'])
         buff.writeIndentedLines(code)
 
+
+    def writeRoutineStartCode(self, buff):
+        pass
