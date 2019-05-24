@@ -822,12 +822,12 @@ def makeBasicResponseCycles(cycles=10, nCorrect=4, nIncorrect=4,
         return responses
 
 
-def test_QuestPlusWeibullHandler():
+def test_QuestPlusHandler():
     import sys
     if not (sys.version_info.major == 3 and sys.version_info.minor >= 6):
         pytest.skip('QUEST+ only works on Python 3.6+')
 
-    from psychopy.data.staircase import QuestPlusWeibullHandler
+    from psychopy.data.staircase import QuestPlusHandler
 
     thresholds = np.arange(-40, 0 + 1)
     slope, guess, lapse = 3.5, 0.5, 0.02
@@ -850,17 +850,19 @@ def test_QuestPlusWeibullHandler():
     scale = 'dB'
     stim_selection_method = 'min_entropy'
     param_estimation_method = 'mode'
+    func = 'weibull'
 
-    q = QuestPlusWeibullHandler(nTrials=len(expected_contrasts),
-                                intensities=contrasts,
-                                thresholds=thresholds,
-                                slopes=slope,
-                                lowerAsymptotes=guess,
-                                lapseRates=lapse,
-                                responses=('Correct', 'Incorrect'),
-                                stimSelectionMethod=stim_selection_method,
-                                stimScale=scale,
-                                paramEstimationMethod=param_estimation_method)
+    q = QuestPlusHandler(nTrials=len(expected_contrasts),
+                         intensities=contrasts,
+                         thresholds=thresholds,
+                         slopes=slope,
+                         lowerAsymptotes=guess,
+                         lapseRates=lapse,
+                         responses=('Correct', 'Incorrect'),
+                         func=func,
+                         stimSelectionMethod=stim_selection_method,
+                         stimScale=scale,
+                         paramEstimationMethod=param_estimation_method)
 
     for trial_index, next_contrast in enumerate(q):
         assert next_contrast == expected_contrasts[trial_index]
@@ -870,12 +872,12 @@ def test_QuestPlusWeibullHandler():
                        expected_mode_threshold)
 
 
-def test_QuestPlusWeibullHandler_saveAsJson():
+def test_QuestPlusHandler_saveAsJson():
     import sys
     if not (sys.version_info.major == 3 and sys.version_info.minor >= 6):
         pytest.skip('QUEST+ only works on Python 3.6+')
 
-    from psychopy.data.staircase import QuestPlusWeibullHandler
+    from psychopy.data.staircase import QuestPlusHandler
 
     thresholds = np.arange(-40, 0 + 1)
     slope, guess, lapse = 3.5, 0.5, 0.02
@@ -884,17 +886,19 @@ def test_QuestPlusWeibullHandler_saveAsJson():
     scale = 'dB'
     stim_selection_method = 'min_entropy'
     param_estimation_method = 'mode'
+    func = 'weibull'
 
-    q = QuestPlusWeibullHandler(nTrials=20,
-                                intensities=contrasts,
-                                thresholds=thresholds,
-                                slopes=slope,
-                                lowerAsymptotes=guess,
-                                lapseRates=lapse,
-                                responses=('Correct', 'Incorrect'),
-                                stimSelectionMethod=stim_selection_method,
-                                stimScale=scale,
-                                paramEstimationMethod=param_estimation_method)
+    q = QuestPlusHandler(nTrials=20,
+                         intensities=contrasts,
+                         thresholds=thresholds,
+                         slopes=slope,
+                         lowerAsymptotes=guess,
+                         lapseRates=lapse,
+                         responses=('Correct', 'Incorrect'),
+                         func=func,
+                         stimSelectionMethod=stim_selection_method,
+                         stimScale=scale,
+                         paramEstimationMethod=param_estimation_method)
 
     q.origin = ''
 
@@ -923,5 +927,5 @@ def test_QuestPlusWeibullHandler_saveAsJson():
 
 
 if __name__ == '__main__':
-    test_QuestPlusWeibullHandler()
-    # test_QuestPlusWeibullHandler_saveAsJson()
+    test_QuestPlusHandler()
+    test_QuestPlusHandler_saveAsJson()

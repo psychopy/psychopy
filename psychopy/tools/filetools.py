@@ -74,9 +74,9 @@ def fromFile(filename, encoding='utf-8'):
 
         # QuestPlus.
         if sys.version_info.major == 3 and sys.version_info.minor >= 6:
-            from psychopy.data.staircase import QuestPlusWeibullHandler
+            from psychopy.data.staircase import QuestPlusHandler
             from questplus import QuestPlus
-            if isinstance(contents, QuestPlusWeibullHandler):
+            if isinstance(contents, QuestPlusHandler):
                 # Restore the questplus.QuestPlus object.
                 contents._qp = QuestPlus.from_json(contents._qp_json)
                 del contents._qp_json

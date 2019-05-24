@@ -13,7 +13,7 @@ from .staircase import (StairHandler, QuestHandler, PsiHandler,
                         MultiStairHandler)
 
 if sys.version_info.major == 3 and sys.version_info.minor >= 6:
-    from .staircase import QuestPlusWeibullHandler
+    from .staircase import QuestPlusHandler
 
 from .utils import (checkValidFilePath, isValidVariableName, importTrialTypes,
                     sliceFromString, indicesFromString, importConditions,
