@@ -295,6 +295,10 @@ def multQuat(q0, q1, out=None, dtype='float32'):
 def invertQuat(q, dtype='float32'):
     """Get tht multiplicative inverse of a quaternion.
 
+    This gives a quaternion which rotates in the opposite direction with equal
+    magnitude. Multiplying a quaternion by its inverse returns an identity
+    quaternion as both orientations cancel out.
+
     Parameters
     ----------
     q : ndarray, list, or tuple of float
