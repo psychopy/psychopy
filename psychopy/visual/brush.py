@@ -16,7 +16,7 @@ from .basevisual import MinimalStim
 
 __author__ = 'David Bridges'
 
-class Pen(MinimalStim):
+class Brush(MinimalStim):
     """A class for creating a freehand drawing tool.
 
     """
@@ -33,7 +33,7 @@ class Pen(MinimalStim):
                  autoDraw=False
                  ):
 
-        super(Pen, self).__init__(name=name,
+        super(Brush, self).__init__(name=name,
                                   autoLog=False)
 
         self.win = win

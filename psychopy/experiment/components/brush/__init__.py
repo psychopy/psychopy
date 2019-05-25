@@ -14,8 +14,8 @@ from psychopy import logging
 
 # the absolute path to the folder containing this path
 thisFolder = path.abspath(path.dirname(__file__))
-iconFile = path.join(thisFolder, 'quill.png')
-tooltip = _translate('Pen: a drawing tool')
+iconFile = path.join(thisFolder, 'brush.png')
+tooltip = _translate('Brush: a drawing tool')
 
 # only use _localized values for label values, nothing functional:
 _localized = {'lineColorSpace': _translate('Line color-space'),
@@ -24,24 +24,24 @@ _localized = {'lineColorSpace': _translate('Line color-space'),
               'opacity': _translate('Opacity'),
               }
 
-class PenComponent(BaseVisualComponent):
+class BrushComponent(BaseVisualComponent):
     """A class for drawing freehand responses"""
 
     categories = ['Responses', 'Custom']
 
-    def __init__(self, exp, parentName, name='pen',
+    def __init__(self, exp, parentName, name='brush',
                  lineColor='$[1,1,1]', lineColorSpace='rgb', lineWidth=1.5,
                  startType='time (s)', startVal=0.0,
                  stopType='duration (s)', stopVal=1.0,
                  startEstim='', durationEstim=''):
-        super(PenComponent, self).__init__(
+        super(BrushComponent, self).__init__(
             exp, parentName, name=name,
             startType=startType, startVal=startVal,
             stopType=stopType, stopVal=stopVal,
             startEstim=startEstim, durationEstim=durationEstim)
 
-        self.type = 'Pen'
-        self.url = "http://www.psychopy.org/builder/components/pen.html"
+        self.type = 'Brush'
+        self.url = "http://www.psychopy.org/builder/components/brush.html"
         self.exp.requirePsychopyLibs(['visual'])
         self.targets = ['PsychoPy', 'PsychoJS']
         self.order = ['lineWidth', 'lineColor', 'opacity']
@@ -54,7 +54,7 @@ class PenComponent(BaseVisualComponent):
         del self.params['units']  # always in pix
 
         # params
-        msg = _translate("Line color of this pen; Right-click to bring"
+        msg = _translate("Line color of this brush; Right-click to bring"
                          " up a color-picker (rgb only)")
         self.params['lineColor'] = Param(
             lineColor, valType='str', allowedTypes=[],
@@ -63,7 +63,7 @@ class PenComponent(BaseVisualComponent):
             hint=msg,
             label=_localized['lineColor'], categ='Advanced')
 
-        msg = _translate("Width of the pen's line (always in pixels - this"
+        msg = _translate("Width of the brush's line (always in pixels - this"
                          " does NOT use 'units')")
         self.params['lineWidth'] = Param(
             lineWidth, valType='code', allowedTypes=[],
@@ -82,7 +82,7 @@ class PenComponent(BaseVisualComponent):
             label=_localized['lineColorSpace'], categ='Advanced')
 
     def writeInitCode(self, buff):
-        code = ("{name} = visual.Pen(win=win, name='{name}',\n"
+        code = ("{name} = visual.Brush(win=win, name='{name}',\n"
                 "   lineWidth={lineWidth},\n"
                 "   lineColor={lineColor},\n"
                 "   lineColorSpace={lineColorSpace},\n"
