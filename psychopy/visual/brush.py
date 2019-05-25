@@ -34,7 +34,7 @@ class Brush(MinimalStim):
                  ):
 
         super(Brush, self).__init__(name=name,
-                                  autoLog=False)
+                                    autoLog=False)
 
         self.win = win
         self.name = name
@@ -45,10 +45,10 @@ class Brush(MinimalStim):
         self.opacity = opacity
         self.closeShape = closeShape
         self.pointer = event.Mouse(win=self.win)
-        self.strokes = []
-        self.pointerPos = []
+        self.shapes = []
+        self.brushPos = []
         self.strokeIndex = -1
-        self.firstStroke = False
+        self.atStartPoint = False
 
         self.autoLog = autoLog
         self.autoDraw = autoDraw
@@ -57,67 +57,102 @@ class Brush(MinimalStim):
             # TODO: Set logging messages
             logging.exp("Creating {name}".format(name=self.name))
 
-    def createStroke(self):
+    def _resetVertices(self):
+        """
+        Resets list of vertices passed to ShapeStim
+        """
+        self.brushPos = []
+
+    def _createStroke(self):
         """
         Creates ShapeStim for each stroke
         """
-        self.strokes.append(ShapeStim(self.win,
-                                      vertices=[[0, 0]],
-                                      closeShape=self.closeShape,
-                                      lineWidth=self.lineWidth,
-                                      lineColor=self.lineColor,
-                                      lineColorSpace=self.lineColorSpace,
-                                      opacity=self.opacity,
-                                      autoLog=False,
-                                      autoDraw=self.autoDraw))
+        self.shapes.append(ShapeStim(self.win,
+                                     vertices=[[0, 0]],
+                                     closeShape=self.closeShape,
+                                     lineWidth=self.lineWidth,
+                                     lineColor=self.lineColor,
+                                     lineColorSpace=self.lineColorSpace,
+                                     opacity=self.opacity,
+                                     autoLog=True,
+                                     autoDraw=True))
 
     @property
-    def currentStroke(self):
-        return len(self.strokes)-1
+    def currentShape(self):
+        return len(self.shapes) - 1
 
     @property
-    def penDown(self):
+    def brushDown(self):
         """
         Checks whether the mouse button has been clicked in order to start drawing
         """
-
         return self.pointer.getPressed()[0] == 1
+
+    def onBrushDown(self):
+        """
+        On first brush stroke, empty pointer position list, and create a new shapestim
+        """
+        if self.brushDown and not self.atStartPoint:
+            self.atStartPoint = True
+            self._resetVertices()
+            self._createStroke()
+
+    def onBrushDrag(self):
+        """
+        Check whether the brush is down. If brushDown is True, the brush path is drawn on screen
+        """
+        if self.brushDown:
+            self.brushPos.append(self.pointer.getPos())
+            self.shapes[self.currentShape].setVertices(self.brushPos)
+        else:
+            self.atStartPoint = False
+
+    def draw(self):
+        """
+        Get starting stroke and begin painting on screen
+        """
+        self.onBrushDown()
+        self.onBrushDrag()
 
     def reset(self):
         """
         Clear ShapeStim objects
         """
-        if len(self.strokes):
-            for stroke in self.strokes:
-                stroke.setAutoDraw(False)
-        self.strokes = []
+        if len(self.shapes):
+            for shape in self.shapes:
+                shape.setAutoDraw(False)
+        self.atStartPoint = False
+        self.shapes = []
 
-    def resetPointer(self):
+    def setLineColor(self, value):
         """
-        Resets list of pointer positions used for ShapeStim vertices
-        """
-        self.pointerPos = []
+        Sets the line color passed to ShapeStim
 
-    def beginStroke(self):
+        Parameters
+        ----------
+        value
+            Line color
         """
-        On first pen stroke, empty pointer position list, and create a new shapestim
-        """
-        if self.penDown and not self.firstStroke:
-            self.firstStroke = True
-            self.resetPointer()
-            self.createStroke()
+        self.lineColor = value
 
-    def feedInk(self):
+    def setLineWidth(self, value):
         """
-        Check whether the pen is down. If penDown is True, the pen path is drawn on screen
+        Sets the line width passed to ShapeStim
+
+        Parameters
+        ----------
+        value
+            Line width in pixels
         """
-        if self.penDown:
-            self.pointerPos.append(self.pointer.getPos())
-            self.strokes[self.currentStroke].setVertices(self.pointerPos)
-        else:
-            self.firstStroke = False
+        self.lineWidth = value
 
-    def draw(self):
-        self.beginStroke()
-        self.feedInk()
+    def setOpacity(self, value):
+        """
+        Sets the line opacity passed to ShapeStim
 
+        Parameters
+        ----------
+        value
+            Opacity range(0, 1)
+        """
+        self.opacity = value
