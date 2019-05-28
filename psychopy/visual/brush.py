@@ -16,6 +16,7 @@ from .basevisual import MinimalStim
 
 __author__ = 'David Bridges'
 
+
 class Brush(MinimalStim):
     """A class for creating a freehand drawing tool.
 
@@ -34,7 +35,7 @@ class Brush(MinimalStim):
                  ):
 
         super(Brush, self).__init__(name=name,
-                                    autoLog=autoLog)
+                                    autoLog=False)
 
         self.win = win
         self.name = name
@@ -54,19 +55,20 @@ class Brush(MinimalStim):
         self.autoDraw = autoDraw
 
         if self.autoLog:
-            logging.exp("Creating {name} Brush component".format(name=self.name))
+            logging.exp("Created {name} = {obj}".format(name=self.name,
+                                                        obj=str(self)))
 
     def _resetVertices(self):
         """
-        Resets list of vertices passed to ShapeStim
+        Resets list of vertices passed to ShapeStim.
         """
         if self.autoLog:
-            logging.exp("Resetting {name} brushPos.".format(name=self.name))
+            logging.exp("Resetting {name} parameter: brushPos.".format(name=self.name))
         self.brushPos = []
 
     def _createStroke(self):
         """
-        Creates ShapeStim for each stroke
+        Creates ShapeStim for each stroke.
         """
         if self.autoLog:
             logging.exp("Creating ShapeStim for {name}".format(name=self.name))
@@ -83,19 +85,30 @@ class Brush(MinimalStim):
 
     @property
     def currentShape(self):
-        """Returns index of current shape to be drawn"""
+        """The index of current shape to be drawn.
+
+        Returns
+        -------
+        Int
+            The index as length of shapes attribute - 1.
+        """
         return len(self.shapes) - 1
 
     @property
     def brushDown(self):
         """
-        Checks whether the mouse button has been clicked in order to start drawing
+        Checks whether the mouse button has been clicked in order to start drawing.
+
+        Returns
+        -------
+        Bool
+            True if left mouse button is pressed, False otherwise.
         """
         return self.pointer.getPressed()[0] == 1
 
     def onBrushDown(self):
         """
-        On first brush stroke, empty pointer position list, and create a new shapestim
+        On first brush stroke, empty pointer position list, and create a new ShapeStim.
         """
         if self.brushDown and not self.atStartPoint:
             self.atStartPoint = True
@@ -104,7 +117,7 @@ class Brush(MinimalStim):
 
     def onBrushDrag(self):
         """
-        Check whether the brush is down. If brushDown is True, the brush path is drawn on screen
+        Check whether the brush is down. If brushDown is True, the brush path is drawn on screen.
         """
         if self.brushDown:
             self.brushPos.append(self.pointer.getPos())
@@ -114,14 +127,14 @@ class Brush(MinimalStim):
 
     def draw(self):
         """
-        Get starting stroke and begin painting on screen
+        Get starting stroke and begin painting on screen.
         """
         self.onBrushDown()
         self.onBrushDrag()
 
     def reset(self):
         """
-        Clear ShapeStim objects
+        Clear ShapeStim objects from shapes attribute.
         """
         if self.autoLog:
             logging.exp("Resetting {name}".format(name=self.name))
@@ -134,7 +147,7 @@ class Brush(MinimalStim):
 
     def setLineColor(self, value):
         """
-        Sets the line color passed to ShapeStim
+        Sets the line color passed to ShapeStim.
 
         Parameters
         ----------
@@ -145,7 +158,7 @@ class Brush(MinimalStim):
 
     def setLineWidth(self, value):
         """
-        Sets the line width passed to ShapeStim
+        Sets the line width passed to ShapeStim.
 
         Parameters
         ----------
@@ -156,7 +169,7 @@ class Brush(MinimalStim):
 
     def setOpacity(self, value):
         """
-        Sets the line opacity passed to ShapeStim
+        Sets the line opacity passed to ShapeStim.
 
         Parameters
         ----------
