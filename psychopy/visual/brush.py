@@ -29,12 +29,12 @@ class Brush(MinimalStim):
                  closeShape=False,
                  name=None,
                  depth=0,
-                 autoLog=None,
+                 autoLog=True,
                  autoDraw=False
                  ):
 
         super(Brush, self).__init__(name=name,
-                                    autoLog=False)
+                                    autoLog=autoLog)
 
         self.win = win
         self.name = name
@@ -54,19 +54,23 @@ class Brush(MinimalStim):
         self.autoDraw = autoDraw
 
         if self.autoLog:
-            # TODO: Set logging messages
-            logging.exp("Creating {name}".format(name=self.name))
+            logging.exp("Creating {name} Brush component".format(name=self.name))
 
     def _resetVertices(self):
         """
         Resets list of vertices passed to ShapeStim
         """
+        if self.autoLog:
+            logging.exp("Resetting {name} brushPos.".format(name=self.name))
         self.brushPos = []
 
     def _createStroke(self):
         """
         Creates ShapeStim for each stroke
         """
+        if self.autoLog:
+            logging.exp("Creating ShapeStim for {name}".format(name=self.name))
+
         self.shapes.append(ShapeStim(self.win,
                                      vertices=[[0, 0]],
                                      closeShape=self.closeShape,
@@ -74,11 +78,12 @@ class Brush(MinimalStim):
                                      lineColor=self.lineColor,
                                      lineColorSpace=self.lineColorSpace,
                                      opacity=self.opacity,
-                                     autoLog=True,
+                                     autoLog=False,
                                      autoDraw=True))
 
     @property
     def currentShape(self):
+        """Returns index of current shape to be drawn"""
         return len(self.shapes) - 1
 
     @property
@@ -118,6 +123,9 @@ class Brush(MinimalStim):
         """
         Clear ShapeStim objects
         """
+        if self.autoLog:
+            logging.exp("Resetting {name}".format(name=self.name))
+
         if len(self.shapes):
             for shape in self.shapes:
                 shape.setAutoDraw(False)
