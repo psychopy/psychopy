@@ -48,7 +48,7 @@ class BrushComponent(BaseVisualComponent):
         self.order = ['lineWidth', 'lineColor', 'opacity']
 
         del self.params['color']  # because color is defined by lineColor
-        del self.params['colorSpace']  # because color is defined by lineColor
+        del self.params['colorSpace']
         del self.params['size']  # because size determined by lineWidth
         del self.params['ori']
         del self.params['pos']
@@ -106,17 +106,18 @@ class BrushComponent(BaseVisualComponent):
     def writeInitCodeJS(self, buff):
         # JS code does not use Brush class
         params = getInitVals(self.params)
-        code = ("get{name} = function() {{\n"
-                "  new visual.ShapeStim({{\n"
+
+        code = ("{name} = {{}};\n"
+                "get{name} = function() {{\n"
+                "  return ( new visual.ShapeStim({{\n"
                 "    win: psychoJS.window,\n"
                 "    vertices: [[0, 0]],\n"
                 "    lineWidth: {lineWidth},\n"
                 "    lineColor: new util.Color({lineColor}),\n"
                 "    opacity: {opacity},\n"
                 "    closeShape: false,\n"
-                "    autoDraw: true,\n"
                 "    autoLog: false\n"
-                "    }})\n"
+                "    }}))\n"
                 "}}\n\n").format(name=params['name'],
                                  lineWidth=params['lineWidth'],
                                  lineColor=params['lineColor'],
@@ -132,22 +133,42 @@ class BrushComponent(BaseVisualComponent):
                 "  }}\n"
                 "  {name}AtStartPoint = false;\n"
                 "  {name}Shapes = [];\n"
+                "  {name}CurrentShape = -1;\n"
                 "}}\n\n").format(name=params['name'])
         buff.writeIndentedLines(code)
 
         # Define vars for drawing
-        code = ("{name}CurrentShape = 0;\n"
-                "{name}BrushDown = false;\n"
+        code = ("{name}CurrentShape = -1;\n"
+                "{name}BrushPos = [];\n"
                 "{name}Pointer = new core.Mouse({{win: psychoJS.window}});\n"
                 "{name}AtStartPoint = false;\n"
                 "{name}Shapes = [];\n").format(name=params['name'])
         buff.writeIndentedLines(code)
-        #
-        # TODO: add onBrushDown, currentShape and onBrushDrag functions for HS
-        #
 
     def writeRoutineStartCode(self, buff):
         # Write update code
         super(BrushComponent, self).writeRoutineStartCode(buff)
         # Reset shapes for each trial
         buff.writeIndented("{}.reset()\n".format(self.params['name']))
+
+    def writeRoutineStartCodeJS(self, buff):
+        # Write update code
+        # super(BrushComponent, self).writeRoutineStartCodeJS(buff)
+        # Reset shapes for each trial
+        buff.writeIndented("{}Reset();\n".format(self.params['name']))
+
+    def writeFrameCodeJS(self, buff):
+        code = ("if ({name}Pointer.getPressed()[0] === 1 && {name}AtStartPoint != true) {{\n"
+                "  {name}AtStartPoint = true;\n"
+                "  {name}BrushPos = [];\n"
+                "  {name}Shapes.push(get{name}());\n"
+                "  {name}CurrentShape += 1;\n"
+                "  {name}Shapes[{name}CurrentShape].setAutoDraw(true);\n"
+                "}}\n"
+                "if ({name}Pointer.getPressed()[0] === 1) {{\n"
+                "  {name}BrushPos.push({name}Pointer.getPos());\n"
+                "  {name}Shapes[{name}CurrentShape].setVertices({name}BrushPos);\n"
+                "}} else {{\n"
+                "  {name}AtStartPoint = false;\n"
+                "}}\n".format(name=self.params['name']))
+        buff.writeIndentedLines(code)
