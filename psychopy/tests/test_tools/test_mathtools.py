@@ -71,5 +71,22 @@ def test_matrixFromQuat():
         assert np.allclose(qr, rm)
 
 
+@pytest.mark.mathtools
+def test_invertQuat():
+    """Test quaternion inverse. A quaternion should return the identity if
+    multiplied with its inverse.
+
+    """
+    np.random.seed(123456)
+    N = 1000
+    q = np.random.uniform(-1.0, 1.0, (N, 4,))  # random quaternions
+    qident = np.array([0., 0., 0., 1.])
+
+    for i in range(N):
+        qinv = invertQuat(q[i, :], dtype=q.dtype)
+        qmult = multQuat(qinv, q[i, :])
+        assert np.allclose(qident, qmult)
+
+
 if __name__ == "__main__":
     pytest.main()
