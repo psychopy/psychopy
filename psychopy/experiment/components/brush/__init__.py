@@ -45,7 +45,7 @@ class BrushComponent(BaseVisualComponent):
         self.url = "http://www.psychopy.org/builder/components/brush.html"
         self.exp.requirePsychopyLibs(['visual'])
         self.targets = ['PsychoPy', 'PsychoJS']
-        self.order = ['lineWidth', 'lineColor', 'opacity']
+        self.order = ['lineWidth', 'opacity']
 
         del self.params['color']  # because color is defined by lineColor
         del self.params['colorSpace']
