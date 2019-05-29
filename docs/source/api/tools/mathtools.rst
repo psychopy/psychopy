@@ -32,6 +32,7 @@ point arithmetic. Specify ``'float64'`` to their `dtype` argument for higher
     translationMatrix
     concatenate
     applyMatrix
+    poseToMatrix
     
 Function details
 ~~~~~~~~~~~~~~~~
@@ -49,3 +50,4 @@ Function details
 .. autofunction:: translationMatrix
 .. autofunction:: concatenate
 .. autofunction:: applyMatrix
+.. autofunction:: poseToMatrix

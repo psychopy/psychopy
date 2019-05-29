@@ -11,7 +11,7 @@
 __all__ = ['normalize', 'lerp', 'slerp', 'multQuat', 'quatFromAxisAngle',
            'matrixFromQuat', 'scaleMatrix', 'rotationMatrix',
            'translationMatrix', 'concatenate', 'applyMatrix', 'invertQuat',
-           'quatToAxisAngle']
+           'quatToAxisAngle', 'poseToMatrix']
 
 import numpy as np
 
@@ -326,6 +326,10 @@ def invertQuat(q, dtype='float32'):
         qi = np.array([0., 0., 0., 1.])  # identity quaternion
         print(np.allclose(qi, qr))   # True
 
+    Notes
+    -----
+    * Quaternions are normalized prior to inverting.
+
     """
     qn = normalize(q, dtype=dtype)
     # conjugate the quaternion
@@ -373,6 +377,10 @@ def matrixFromQuat(q, out=None, dtype='float32'):
                              [0., 1., 0., 1.],
                              [1., 1., 0., 1.]])
         newPoints = points.dot(rotMat)
+
+    Notes
+    -----
+    * Quaternions are normalized prior to conversion.
     
     """
     # based off implementations from
@@ -663,4 +671,47 @@ def applyMatrix(m, points, out=None, dtype='float32'):
 
     if out is None:
         return toReturn
+
+
+def poseToMatrix(pos, ori, out=None, dtype='float32'):
+    """Convert a pose to a 4x4 transformation matrix.
+
+    A pose is represented by a position coordinate `pos` and orientation
+    quaternion `ori`.
+
+    Parameters
+    ----------
+    pos : ndarray, tuple, or list of float
+        Position vector [x, y, z].
+    ori : tuple, list or ndarray of float
+        Orientation quaternion in form [x, y, z, w] where w is real and x, y, z
+        are imaginary components.
+    out : ndarray, optional
+        Optional output array.
+    dtype : str or obj
+        Data type to use for all computations (eg. 'float32', 'float64', float,
+        etc.)
+
+    Returns
+    -------
+    ndarray
+        4x4 transformation matrix. Returns None `out` is not specified.
+
+    """
+    pos = np.asarray(pos, dtype=dtype)
+    ori = np.asarray(ori, dtype=dtype)
+
+    transMat = translationMatrix(pos, dtype=dtype)
+    rotMat = matrixFromQuat(ori, dtype=dtype)
+
+    if out is None:
+        toReturn = np.zeros((4, 4,), dtype=dtype)
+    else:
+        toReturn = out
+
+    np.matmul(rotMat, transMat, out=toReturn)
+
+    if out is None:
+        return toReturn
+
 
