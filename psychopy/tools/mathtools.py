@@ -40,7 +40,7 @@ def normalize(v):
     elif norm != 0.0:
         v /= norm
     else:
-        return np.zeros(v.shape, dtype=v.dtype)
+        return np.zeros_like(v)
 
     return v
 
@@ -80,7 +80,7 @@ def lerp(v0, v1, t, out=None):
     v0, v1 = np.atleast_2d(v0, v1)
 
     if out is None:
-        toReturn = np.zeros(v0.shape, dtype=v0.dtype)
+        toReturn = np.zeros_like(v0)
     else:
         toReturn = out
 
@@ -261,7 +261,7 @@ def multQuat(q0, q1, out=None):
     q1 = normalize(q1)
 
     if out is None:
-        qr = np.zeros((4,), dtype=q0.dtype)
+        qr = np.zeros_like(q0)
     else:
         qr = out
 
@@ -366,7 +366,7 @@ def matrixFromQuat(q, out=None):
     vsqr = np.square(q)
 
     if out is None:
-        R = np.zeros((4, 4,), dtype=q.dtype)
+        R = np.zeros_like(q)
     else:
         R = out
 
