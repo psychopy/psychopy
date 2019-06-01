@@ -106,4 +106,4 @@ def test_invertQuat():
 
 
 if __name__ == "__main__":
-    test_mathtoolsDtypes()
+    pytest.main()
