@@ -555,6 +555,15 @@ def concatenate(*args, out=None):
         # modelview matrix
         MV = concatenate(M, V)
 
+    You can put the created matrix in the OpenGL matrix stack as shown below.
+    Note that the matrix must have a 32-bit floating-point data type and needs
+    to be loaded transposed.::
+
+        GL.glMatrixMode(GL.GL_MODELVIEW)
+        MV = np.asarray(MV, dtype='float32')  # must be 32-bit float!
+        ptrMV = MV.ctypes.data_as(ctypes.POINTER(ctypes.c_float))
+        GL.glLoadTransposeMatrixf(ptrMV)
+
     Furthermore, you can go from model-space to homogeneous clip-space by
     concatenating the projection, view, and model matrices::
 
