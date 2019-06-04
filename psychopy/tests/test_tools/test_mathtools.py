@@ -71,5 +71,24 @@ def test_matrixFromQuat():
         assert np.allclose(qr, rm)
 
 
+@pytest.mark.mathtools
+def test_invertQuat():
+    """Test if quaternion inversion works. When multiplied, the result should be
+    an identity quaternion.
+
+    """
+    np.random.seed(123456)
+    N = 1000
+    axes = np.random.uniform(-1.0, 1.0, (N, 3,))  # random axes
+    angles = np.random.uniform(0.0, 360.0, (N,))  # random angles
+    qidt = np.array([0., 0., 0., 1.])  # identity quaternion
+
+    for i in range(N):
+        # create a quaternion and convert it to a rotation matrix
+        q = quatFromAxisAngle(axes[i, :], angles[i], degrees=True)
+        qinv = invertQuat(q)
+        assert np.allclose(multQuat(q, qinv), qidt)  # is identity?
+
+
 if __name__ == "__main__":
     pytest.main()
