@@ -688,4 +688,3 @@ def poseToMatrix(pos, ori, out=None):
     if out is None:
         return toReturn
 
-
