@@ -171,6 +171,11 @@ def vlcTimeCallback(event, user_data, player):
         user_data()._vlc_clock.reset(tm)
     return
 
+def vlcEndReached(event, user_data, player):
+    if user_data():
+        user_data()._onEos()
+    return
+
 
 class VlcMovieStim(BaseVisualStim, ContainerMixin):
     """A stimulus class for playing movies (mpeg, avi, etc...) in PsychoPy
@@ -346,6 +351,9 @@ class VlcMovieStim(BaseVisualStim, ContainerMixin):
         manager = player.event_manager()
         manager.event_attach(
             vlc.EventType.MediaPlayerTimeChanged, vlcTimeCallback,
+            weakref.ref(self), player)
+        manager.event_attach(
+            vlc.EventType.MediaPlayerEndReached, vlcEndReached,
             weakref.ref(self), player)
 
         # Keep references
