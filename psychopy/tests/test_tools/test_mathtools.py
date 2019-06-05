@@ -11,7 +11,7 @@ import pytest
 def test_rotationMatrix():
     """Test rotation matrix composition."""
     # identity check
-    R = rotationMatrix(0., [0., 0., -1.], dtype=np.float64)
+    R = rotationMatrix(0., [0., 0., -1.])
     assert np.allclose(R, np.identity(4))
 
 
@@ -21,7 +21,7 @@ def test_quatFromAxisAngle():
     # identity check
     axis = [0., 0., -1.]
     angle = 0.0
-    q = quatFromAxisAngle(axis, angle, degrees=True, dtype=np.float64)
+    q = quatFromAxisAngle(axis, angle, degrees=True)
     assert np.allclose(q, np.asarray([0., 0., 0., 1.]))
 
 
@@ -40,13 +40,13 @@ def test_multQuat():
     for i in range(N):
         totalAngle = angles[i, 0] + angles[i, 1]
         q0 = quatFromAxisAngle(
-            axes[i, :], angles[i, 0], degrees=True, dtype=np.float64)
+            axes[i, :], angles[i, 0], degrees=True)
         q1 = quatFromAxisAngle(
-            axes[i, :], angles[i, 1], degrees=True, dtype=np.float64)
+            axes[i, :], angles[i, 1], degrees=True)
         quatTarget = quatFromAxisAngle(
-            axes[i, :], totalAngle, degrees=True, dtype=np.float64)
+            axes[i, :], totalAngle, degrees=True)
 
-        assert np.allclose(multQuat(q0, q1, dtype=np.float64), quatTarget)
+        assert np.allclose(multQuat(q0, q1), quatTarget)
 
 
 @pytest.mark.mathtools
@@ -63,12 +63,31 @@ def test_matrixFromQuat():
 
     for i in range(N):
         # create a quaternion and convert it to a rotation matrix
-        q = quatFromAxisAngle(axes[i, :], angles[i], degrees=True, dtype=np.float64)
-        qr = matrixFromQuat(q, dtype=np.float64)
+        q = quatFromAxisAngle(axes[i, :], angles[i], degrees=True)
+        qr = matrixFromQuat(q)
         # create a rotation matrix directly
-        rm = rotationMatrix(angles[i], axes[i, :], dtype=np.float64)
+        rm = rotationMatrix(angles[i], axes[i, :])
         # check if they are close
         assert np.allclose(qr, rm)
+
+
+@pytest.mark.mathtools
+def test_invertQuat():
+    """Test if quaternion inversion works. When multiplied, the result should be
+    an identity quaternion.
+
+    """
+    np.random.seed(123456)
+    N = 1000
+    axes = np.random.uniform(-1.0, 1.0, (N, 3,))  # random axes
+    angles = np.random.uniform(0.0, 360.0, (N,))  # random angles
+    qidt = np.array([0., 0., 0., 1.])  # identity quaternion
+
+    for i in range(N):
+        # create a quaternion and convert it to a rotation matrix
+        q = quatFromAxisAngle(axes[i, :], angles[i], degrees=True)
+        qinv = invertQuat(q)
+        assert np.allclose(multQuat(q, qinv), qidt)  # is identity?
 
 
 if __name__ == "__main__":
