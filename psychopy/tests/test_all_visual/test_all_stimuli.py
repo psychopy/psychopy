@@ -135,7 +135,25 @@ class _baseVisualTest(object):
             utils.compareScreenshot('envelopeandrcos_%s.png' %(self.contextName), win)
             win.flip()
             "{}".format(image)
-
+            
+    def test_envelopeGratingPowerAndRaisedCos(self):
+        win = self.win
+        size = numpy.array([2.0,2.0])*self.scaleFactor
+        if win.units in ['norm','height']:
+            sf = 5
+        else:
+            sf = 5.0/size #this will do the flipping and get exactly one cycle
+        if win._haveShaders==True:  # can't draw envelope gratings without shaders so skip this test
+            image = visual.EnvelopeGrating(win, carrier='sin', envelope='sin',
+                                           size=size, sf=sf, mask='raisedCos',
+                                           ori=-45, envsf=sf / 2, envori=45,
+                                           envphase=90, moddepth=0.5, power=0.5,
+                                           contrast=0.5)
+            image.draw()
+            utils.compareScreenshot('envelopepowerandrcos_%s.png' %(self.contextName), win)
+            win.flip()
+            "{}".format(image)
+            
     def test_noiseAndRaisedCos(self):
         numpy.random.seed(1)
         win = self.win

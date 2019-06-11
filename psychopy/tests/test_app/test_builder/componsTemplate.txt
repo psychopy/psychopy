@@ -154,6 +154,174 @@ ApertureComponent.units.staticUpdater:None
 ApertureComponent.units.updates:None
 ApertureComponent.units.val:norm
 ApertureComponent.units.valType:str
+BrushComponent.order:['lineWidth', 'opacity']
+BrushComponent.disabled.default:False
+BrushComponent.disabled.allowedTypes:[]
+BrushComponent.disabled.allowedUpdates:None
+BrushComponent.disabled.allowedVals:[]
+BrushComponent.disabled.categ:Testing
+BrushComponent.disabled.hint:Disable this component
+BrushComponent.disabled.label:Disable component
+BrushComponent.disabled.readOnly:False
+BrushComponent.disabled.staticUpdater:None
+BrushComponent.disabled.updates:None
+BrushComponent.disabled.val:False
+BrushComponent.disabled.valType:bool
+BrushComponent.durationEstim.default:
+BrushComponent.durationEstim.allowedTypes:[]
+BrushComponent.durationEstim.allowedUpdates:None
+BrushComponent.durationEstim.allowedVals:[]
+BrushComponent.durationEstim.categ:Basic
+BrushComponent.durationEstim.hint:(Optional) expected duration (s), purely for representing in the timeline
+BrushComponent.durationEstim.label:Expected duration (s)
+BrushComponent.durationEstim.readOnly:False
+BrushComponent.durationEstim.staticUpdater:None
+BrushComponent.durationEstim.updates:None
+BrushComponent.durationEstim.val:
+BrushComponent.durationEstim.valType:code
+BrushComponent.lineColor.default:[1,1,1]
+BrushComponent.lineColor.allowedTypes:[]
+BrushComponent.lineColor.allowedUpdates:['constant', 'set every repeat']
+BrushComponent.lineColor.allowedVals:[]
+BrushComponent.lineColor.categ:Advanced
+BrushComponent.lineColor.hint:Line color of this brush; Right-click to bring up a color-picker (rgb only)
+BrushComponent.lineColor.label:Line color
+BrushComponent.lineColor.readOnly:False
+BrushComponent.lineColor.staticUpdater:None
+BrushComponent.lineColor.updates:constant
+BrushComponent.lineColor.val:$[1,1,1]
+BrushComponent.lineColor.valType:str
+BrushComponent.lineColorSpace.default:'rgb'
+BrushComponent.lineColorSpace.allowedTypes:[]
+BrushComponent.lineColorSpace.allowedUpdates:None
+BrushComponent.lineColorSpace.allowedVals:['rgb', 'dkl', 'lms', 'hsv']
+BrushComponent.lineColorSpace.categ:Advanced
+BrushComponent.lineColorSpace.hint:Choice of color space for the fill color (rgb, dkl, lms, hsv)
+BrushComponent.lineColorSpace.label:Line color-space
+BrushComponent.lineColorSpace.readOnly:False
+BrushComponent.lineColorSpace.staticUpdater:None
+BrushComponent.lineColorSpace.updates:constant
+BrushComponent.lineColorSpace.val:rgb
+BrushComponent.lineColorSpace.valType:str
+BrushComponent.lineWidth.default:1.5
+BrushComponent.lineWidth.allowedTypes:[]
+BrushComponent.lineWidth.allowedUpdates:['constant', 'set every repeat']
+BrushComponent.lineWidth.allowedVals:[]
+BrushComponent.lineWidth.categ:Basic
+BrushComponent.lineWidth.hint:Width of the brush's line (always in pixels and limited to 10px max width)
+BrushComponent.lineWidth.label:Line width
+BrushComponent.lineWidth.readOnly:False
+BrushComponent.lineWidth.staticUpdater:None
+BrushComponent.lineWidth.updates:constant
+BrushComponent.lineWidth.val:1.5
+BrushComponent.lineWidth.valType:code
+BrushComponent.name.default:brush
+BrushComponent.name.allowedTypes:[]
+BrushComponent.name.allowedUpdates:None
+BrushComponent.name.allowedVals:[]
+BrushComponent.name.categ:Basic
+BrushComponent.name.hint:Name of this component (alpha-numeric or _, no spaces)
+BrushComponent.name.label:Name
+BrushComponent.name.readOnly:False
+BrushComponent.name.staticUpdater:None
+BrushComponent.name.val:brush
+BrushComponent.name.valType:code
+BrushComponent.opacity.default:1
+BrushComponent.opacity.allowedTypes:[]
+BrushComponent.opacity.allowedUpdates:['constant', 'set every repeat']
+BrushComponent.opacity.allowedVals:[]
+BrushComponent.opacity.categ:Basic
+BrushComponent.opacity.hint:The line opacity
+BrushComponent.opacity.label:Opacity
+BrushComponent.opacity.readOnly:False
+BrushComponent.opacity.staticUpdater:None
+BrushComponent.opacity.updates:constant
+BrushComponent.opacity.val:1
+BrushComponent.opacity.valType:str
+BrushComponent.saveStartStop.default:True
+BrushComponent.saveStartStop.allowedTypes:[]
+BrushComponent.saveStartStop.allowedUpdates:None
+BrushComponent.saveStartStop.allowedVals:[]
+BrushComponent.saveStartStop.categ:Data
+BrushComponent.saveStartStop.hint:Store the onset/offset times in the data file (as well as in the log file).
+BrushComponent.saveStartStop.label:Save onset/offset times
+BrushComponent.saveStartStop.readOnly:False
+BrushComponent.saveStartStop.staticUpdater:None
+BrushComponent.saveStartStop.updates:None
+BrushComponent.saveStartStop.val:True
+BrushComponent.saveStartStop.valType:bool
+BrushComponent.startEstim.default:
+BrushComponent.startEstim.allowedTypes:[]
+BrushComponent.startEstim.allowedUpdates:None
+BrushComponent.startEstim.allowedVals:[]
+BrushComponent.startEstim.categ:Basic
+BrushComponent.startEstim.hint:(Optional) expected start (s), purely for representing in the timeline
+BrushComponent.startEstim.label:Expected start (s)
+BrushComponent.startEstim.readOnly:False
+BrushComponent.startEstim.staticUpdater:None
+BrushComponent.startEstim.updates:None
+BrushComponent.startEstim.val:
+BrushComponent.startEstim.valType:code
+BrushComponent.startType.default:'time (s)'
+BrushComponent.startType.allowedTypes:[]
+BrushComponent.startType.allowedUpdates:None
+BrushComponent.startType.allowedVals:['time (s)', 'frame N', 'condition']
+BrushComponent.startType.categ:Basic
+BrushComponent.startType.hint:How do you want to define your start point?
+BrushComponent.startType.label:start type
+BrushComponent.startType.readOnly:False
+BrushComponent.startType.staticUpdater:None
+BrushComponent.startType.updates:None
+BrushComponent.startType.val:time (s)
+BrushComponent.startType.valType:str
+BrushComponent.startVal.default:0.0
+BrushComponent.startVal.allowedTypes:[]
+BrushComponent.startVal.allowedUpdates:None
+BrushComponent.startVal.allowedVals:[]
+BrushComponent.startVal.categ:Basic
+BrushComponent.startVal.hint:When does the component start?
+BrushComponent.startVal.label:Start
+BrushComponent.startVal.readOnly:False
+BrushComponent.startVal.staticUpdater:None
+BrushComponent.startVal.updates:None
+BrushComponent.startVal.val:0.0
+BrushComponent.startVal.valType:code
+BrushComponent.stopType.default:'duration (s)'
+BrushComponent.stopType.allowedTypes:[]
+BrushComponent.stopType.allowedUpdates:None
+BrushComponent.stopType.allowedVals:['duration (s)', 'duration (frames)', 'time (s)', 'frame N', 'condition']
+BrushComponent.stopType.categ:Basic
+BrushComponent.stopType.hint:How do you want to define your end point?
+BrushComponent.stopType.label:stop type
+BrushComponent.stopType.readOnly:False
+BrushComponent.stopType.staticUpdater:None
+BrushComponent.stopType.updates:None
+BrushComponent.stopType.val:duration (s)
+BrushComponent.stopType.valType:str
+BrushComponent.stopVal.default:1.0
+BrushComponent.stopVal.allowedTypes:[]
+BrushComponent.stopVal.allowedUpdates:[]
+BrushComponent.stopVal.allowedVals:[]
+BrushComponent.stopVal.categ:Basic
+BrushComponent.stopVal.hint:When does the component end? (blank is endless)
+BrushComponent.stopVal.label:Stop
+BrushComponent.stopVal.readOnly:False
+BrushComponent.stopVal.staticUpdater:None
+BrushComponent.stopVal.updates:constant
+BrushComponent.stopVal.val:1.0
+BrushComponent.stopVal.valType:code
+BrushComponent.syncScreenRefresh.default:True
+BrushComponent.syncScreenRefresh.allowedTypes:[]
+BrushComponent.syncScreenRefresh.allowedUpdates:None
+BrushComponent.syncScreenRefresh.allowedVals:[]
+BrushComponent.syncScreenRefresh.categ:Data
+BrushComponent.syncScreenRefresh.hint:Synchronize times with screen refresh (good for visual stimuli and responses based on them)
+BrushComponent.syncScreenRefresh.label:Sync timing with screen refresh
+BrushComponent.syncScreenRefresh.readOnly:True
+BrushComponent.syncScreenRefresh.staticUpdater:None
+BrushComponent.syncScreenRefresh.updates:None
+BrushComponent.syncScreenRefresh.val:True
+BrushComponent.syncScreenRefresh.valType:bool
 CodeComponent.order:['name', 'Code Type', 'Begin Experiment', 'Begin Routine', 'Each Frame', 'End Routine', 'End Experiment', 'Begin JS Experiment', 'Begin JS Routine', 'Each JS Frame', 'End JS Routine', 'End JS Experiment']
 CodeComponent.Begin Experiment.default:
 CodeComponent.Begin Experiment.allowedTypes:[]
@@ -867,8 +1035,8 @@ EnvGratingComponent.power.allowedTypes:[]
 EnvGratingComponent.power.allowedUpdates:['constant', 'set every repeat', 'set every frame']
 EnvGratingComponent.power.allowedVals:[]
 EnvGratingComponent.power.categ:Envelope
-EnvGratingComponent.power.hint:Power of modulation envelope. The modulator will be rasied to this power according to the equation S=cC*(1+mM)^power, where C is the carrier and M is the modulator. and c and m are there respective contrast and modulation depth. Only works with AM envelopes (hence +1) in equation. Power is ignored if a beat is requested. This is used to obtain the square root of the modulator (power = 0.5) which is useful if combining two envelope gratings with different carriers and a 180 degree phase shift as the resulting combined signal will not have any reduction in local contrast at any point in the image. This is similar - but not identical to - the method used by Landy and Oruc, Vis Res 2002. Note overall contrast (apparent carrier contrast) will be altered.
-EnvGratingComponent.power.label:Power to which envelope is rasied
+EnvGratingComponent.power.hint:Power of modulation envelope. The modulator will be raised to this power according to the equation S=cC*(1+mM)^power, where C is the carrier and M is the modulator. and c and m are there respective contrast and modulation depth. Only works with AM envelopes (hence +1) in equation. Power is ignored if a beat is requested. This is used to obtain the square root of the modulator (power = 0.5) which is useful if combining two envelope gratings with different carriers and a 180 degree phase shift as the resulting combined signal will not have any reduction in local contrast at any point in the image. This is similar - but not identical to - the method used by Landy and Oruc, Vis Res 2002. Note overall contrast (apparent carrier contrast) will be altered.
+EnvGratingComponent.power.label:Power to which envelope is raised
 EnvGratingComponent.power.readOnly:False
 EnvGratingComponent.power.staticUpdater:None
 EnvGratingComponent.power.updates:constant
@@ -3422,7 +3590,7 @@ ParallelOutComponent.order:['address', 'startData', 'stopData']
 ParallelOutComponent.address.default:'0x0378'
 ParallelOutComponent.address.allowedTypes:[]
 ParallelOutComponent.address.allowedUpdates:None
-ParallelOutComponent.address.allowedVals:[u'0x0378', u'0x03BC', u'/dev/parport0', u'/dev/parport1', u'LabJack U3']
+ParallelOutComponent.address.allowedVals:['0x0378', '0x03BC', 'LabJack U3']
 ParallelOutComponent.address.categ:Basic
 ParallelOutComponent.address.hint:Parallel port to be used (you can change these options in preferences>general)
 ParallelOutComponent.address.label:Port address
@@ -4139,6 +4307,210 @@ PolygonComponent.units.staticUpdater:None
 PolygonComponent.units.updates:None
 PolygonComponent.units.val:from exp settings
 PolygonComponent.units.valType:str
+QmixPumpComponent.order:['pumpIndex', 'syringeType', 'pumpAction', 'flowRate', 'flowRateUnit', 'switchValveWhenDone', 'syncToScreen']
+QmixPumpComponent.disabled.default:False
+QmixPumpComponent.disabled.allowedTypes:[]
+QmixPumpComponent.disabled.allowedUpdates:None
+QmixPumpComponent.disabled.allowedVals:[]
+QmixPumpComponent.disabled.categ:Testing
+QmixPumpComponent.disabled.hint:Disable this component
+QmixPumpComponent.disabled.label:Disable component
+QmixPumpComponent.disabled.readOnly:False
+QmixPumpComponent.disabled.staticUpdater:None
+QmixPumpComponent.disabled.updates:None
+QmixPumpComponent.disabled.val:False
+QmixPumpComponent.disabled.valType:bool
+QmixPumpComponent.durationEstim.default:
+QmixPumpComponent.durationEstim.allowedTypes:[]
+QmixPumpComponent.durationEstim.allowedUpdates:None
+QmixPumpComponent.durationEstim.allowedVals:[]
+QmixPumpComponent.durationEstim.categ:Basic
+QmixPumpComponent.durationEstim.hint:(Optional) expected duration (s), purely for representing in the timeline
+QmixPumpComponent.durationEstim.label:Expected duration (s)
+QmixPumpComponent.durationEstim.readOnly:False
+QmixPumpComponent.durationEstim.staticUpdater:None
+QmixPumpComponent.durationEstim.updates:None
+QmixPumpComponent.durationEstim.val:
+QmixPumpComponent.durationEstim.valType:code
+QmixPumpComponent.flowRate.default:1.0
+QmixPumpComponent.flowRate.allowedTypes:[]
+QmixPumpComponent.flowRate.allowedUpdates:None
+QmixPumpComponent.flowRate.allowedVals:[]
+QmixPumpComponent.flowRate.categ:Basic
+QmixPumpComponent.flowRate.hint:The flow rate
+QmixPumpComponent.flowRate.label:Flow rate
+QmixPumpComponent.flowRate.readOnly:False
+QmixPumpComponent.flowRate.staticUpdater:None
+QmixPumpComponent.flowRate.updates:None
+QmixPumpComponent.flowRate.val:1.0
+QmixPumpComponent.flowRate.valType:code
+QmixPumpComponent.flowRateUnit.default:'mL/s'
+QmixPumpComponent.flowRateUnit.allowedTypes:[]
+QmixPumpComponent.flowRateUnit.allowedUpdates:None
+QmixPumpComponent.flowRateUnit.allowedVals:['mL/s', 'mL/min']
+QmixPumpComponent.flowRateUnit.categ:Basic
+QmixPumpComponent.flowRateUnit.hint:The unit of the flow rate
+QmixPumpComponent.flowRateUnit.label:Flow rate unit
+QmixPumpComponent.flowRateUnit.readOnly:False
+QmixPumpComponent.flowRateUnit.staticUpdater:None
+QmixPumpComponent.flowRateUnit.updates:None
+QmixPumpComponent.flowRateUnit.val:mL/s
+QmixPumpComponent.flowRateUnit.valType:str
+QmixPumpComponent.name.default:pump
+QmixPumpComponent.name.allowedTypes:[]
+QmixPumpComponent.name.allowedUpdates:None
+QmixPumpComponent.name.allowedVals:[]
+QmixPumpComponent.name.categ:Basic
+QmixPumpComponent.name.hint:Name of this component (alpha-numeric or _, no spaces)
+QmixPumpComponent.name.label:Name
+QmixPumpComponent.name.readOnly:False
+QmixPumpComponent.name.staticUpdater:None
+QmixPumpComponent.name.val:pump
+QmixPumpComponent.name.valType:code
+QmixPumpComponent.pumpAction.default:'dispense'
+QmixPumpComponent.pumpAction.allowedTypes:[]
+QmixPumpComponent.pumpAction.allowedUpdates:None
+QmixPumpComponent.pumpAction.allowedVals:['aspirate', 'dispense']
+QmixPumpComponent.pumpAction.categ:Basic
+QmixPumpComponent.pumpAction.hint:Whether the syringe should be filled (aspirate) or emptied (dispense
+QmixPumpComponent.pumpAction.label:Pump action
+QmixPumpComponent.pumpAction.readOnly:False
+QmixPumpComponent.pumpAction.staticUpdater:None
+QmixPumpComponent.pumpAction.updates:None
+QmixPumpComponent.pumpAction.val:dispense
+QmixPumpComponent.pumpAction.valType:str
+QmixPumpComponent.pumpIndex.default:0
+QmixPumpComponent.pumpIndex.allowedTypes:[]
+QmixPumpComponent.pumpIndex.allowedUpdates:None
+QmixPumpComponent.pumpIndex.allowedVals:[]
+QmixPumpComponent.pumpIndex.categ:Basic
+QmixPumpComponent.pumpIndex.hint:The index of the pump(s) (first pump is 0).
+QmixPumpComponent.pumpIndex.label:Pump index
+QmixPumpComponent.pumpIndex.readOnly:False
+QmixPumpComponent.pumpIndex.staticUpdater:None
+QmixPumpComponent.pumpIndex.updates:None
+QmixPumpComponent.pumpIndex.val:0
+QmixPumpComponent.pumpIndex.valType:code
+QmixPumpComponent.saveStartStop.default:True
+QmixPumpComponent.saveStartStop.allowedTypes:[]
+QmixPumpComponent.saveStartStop.allowedUpdates:None
+QmixPumpComponent.saveStartStop.allowedVals:[]
+QmixPumpComponent.saveStartStop.categ:Data
+QmixPumpComponent.saveStartStop.hint:Store the onset/offset times in the data file (as well as in the log file).
+QmixPumpComponent.saveStartStop.label:Save onset/offset times
+QmixPumpComponent.saveStartStop.readOnly:False
+QmixPumpComponent.saveStartStop.staticUpdater:None
+QmixPumpComponent.saveStartStop.updates:None
+QmixPumpComponent.saveStartStop.val:True
+QmixPumpComponent.saveStartStop.valType:bool
+QmixPumpComponent.startEstim.default:
+QmixPumpComponent.startEstim.allowedTypes:[]
+QmixPumpComponent.startEstim.allowedUpdates:None
+QmixPumpComponent.startEstim.allowedVals:[]
+QmixPumpComponent.startEstim.categ:Basic
+QmixPumpComponent.startEstim.hint:(Optional) expected start (s), purely for representing in the timeline
+QmixPumpComponent.startEstim.label:Expected start (s)
+QmixPumpComponent.startEstim.readOnly:False
+QmixPumpComponent.startEstim.staticUpdater:None
+QmixPumpComponent.startEstim.updates:None
+QmixPumpComponent.startEstim.val:
+QmixPumpComponent.startEstim.valType:code
+QmixPumpComponent.startType.default:'time (s)'
+QmixPumpComponent.startType.allowedTypes:[]
+QmixPumpComponent.startType.allowedUpdates:None
+QmixPumpComponent.startType.allowedVals:['time (s)', 'frame N', 'condition']
+QmixPumpComponent.startType.categ:Basic
+QmixPumpComponent.startType.hint:How do you want to define your start point?
+QmixPumpComponent.startType.label:start type
+QmixPumpComponent.startType.readOnly:False
+QmixPumpComponent.startType.staticUpdater:None
+QmixPumpComponent.startType.updates:None
+QmixPumpComponent.startType.val:time (s)
+QmixPumpComponent.startType.valType:str
+QmixPumpComponent.startVal.default:0.0
+QmixPumpComponent.startVal.allowedTypes:[]
+QmixPumpComponent.startVal.allowedUpdates:None
+QmixPumpComponent.startVal.allowedVals:[]
+QmixPumpComponent.startVal.categ:Basic
+QmixPumpComponent.startVal.hint:When does the component start?
+QmixPumpComponent.startVal.label:Start
+QmixPumpComponent.startVal.readOnly:False
+QmixPumpComponent.startVal.staticUpdater:None
+QmixPumpComponent.startVal.updates:None
+QmixPumpComponent.startVal.val:0.0
+QmixPumpComponent.startVal.valType:code
+QmixPumpComponent.stopType.default:'duration (s)'
+QmixPumpComponent.stopType.allowedTypes:[]
+QmixPumpComponent.stopType.allowedUpdates:None
+QmixPumpComponent.stopType.allowedVals:['duration (s)', 'duration (frames)', 'time (s)', 'frame N', 'condition']
+QmixPumpComponent.stopType.categ:Basic
+QmixPumpComponent.stopType.hint:How do you want to define your end point?
+QmixPumpComponent.stopType.label:stop type
+QmixPumpComponent.stopType.readOnly:False
+QmixPumpComponent.stopType.staticUpdater:None
+QmixPumpComponent.stopType.updates:None
+QmixPumpComponent.stopType.val:duration (s)
+QmixPumpComponent.stopType.valType:str
+QmixPumpComponent.stopVal.default:1.0
+QmixPumpComponent.stopVal.allowedTypes:[]
+QmixPumpComponent.stopVal.allowedUpdates:[]
+QmixPumpComponent.stopVal.allowedVals:[]
+QmixPumpComponent.stopVal.categ:Basic
+QmixPumpComponent.stopVal.hint:When does the component end? (blank is endless)
+QmixPumpComponent.stopVal.label:Stop
+QmixPumpComponent.stopVal.readOnly:False
+QmixPumpComponent.stopVal.staticUpdater:None
+QmixPumpComponent.stopVal.updates:constant
+QmixPumpComponent.stopVal.val:1.0
+QmixPumpComponent.stopVal.valType:code
+QmixPumpComponent.switchValveWhenDone.default:True
+QmixPumpComponent.switchValveWhenDone.allowedTypes:[]
+QmixPumpComponent.switchValveWhenDone.allowedUpdates:None
+QmixPumpComponent.switchValveWhenDone.allowedVals:[True, False]
+QmixPumpComponent.switchValveWhenDone.categ:Basic
+QmixPumpComponent.switchValveWhenDone.hint:Switch the valve after pump operation
+QmixPumpComponent.switchValveWhenDone.label:Switch valve after dosing
+QmixPumpComponent.switchValveWhenDone.readOnly:False
+QmixPumpComponent.switchValveWhenDone.staticUpdater:None
+QmixPumpComponent.switchValveWhenDone.updates:None
+QmixPumpComponent.switchValveWhenDone.val:True
+QmixPumpComponent.switchValveWhenDone.valType:bool
+QmixPumpComponent.syncScreenRefresh.default:False
+QmixPumpComponent.syncScreenRefresh.allowedTypes:[]
+QmixPumpComponent.syncScreenRefresh.allowedUpdates:None
+QmixPumpComponent.syncScreenRefresh.allowedVals:[]
+QmixPumpComponent.syncScreenRefresh.categ:Data
+QmixPumpComponent.syncScreenRefresh.hint:Synchronize times with screen refresh (good for visual stimuli and responses based on them)
+QmixPumpComponent.syncScreenRefresh.label:Sync timing with screen refresh
+QmixPumpComponent.syncScreenRefresh.readOnly:False
+QmixPumpComponent.syncScreenRefresh.staticUpdater:None
+QmixPumpComponent.syncScreenRefresh.updates:None
+QmixPumpComponent.syncScreenRefresh.val:False
+QmixPumpComponent.syncScreenRefresh.valType:bool
+QmixPumpComponent.syncToScreen.default:True
+QmixPumpComponent.syncToScreen.allowedTypes:[]
+QmixPumpComponent.syncToScreen.allowedUpdates:None
+QmixPumpComponent.syncToScreen.allowedVals:[True, False]
+QmixPumpComponent.syncToScreen.categ:Basic
+QmixPumpComponent.syncToScreen.hint:Sync pump onset to the screen refresh
+QmixPumpComponent.syncToScreen.label:Sync to screen
+QmixPumpComponent.syncToScreen.readOnly:False
+QmixPumpComponent.syncToScreen.staticUpdater:None
+QmixPumpComponent.syncToScreen.updates:None
+QmixPumpComponent.syncToScreen.val:True
+QmixPumpComponent.syncToScreen.valType:bool
+QmixPumpComponent.syringeType.default:'50 mL glass'
+QmixPumpComponent.syringeType.allowedTypes:[]
+QmixPumpComponent.syringeType.allowedUpdates:None
+QmixPumpComponent.syringeType.allowedVals:['25 mL glass', '50 mL glass']
+QmixPumpComponent.syringeType.categ:Basic
+QmixPumpComponent.syringeType.hint:Syringe type and dimensions
+QmixPumpComponent.syringeType.label:Syringe type
+QmixPumpComponent.syringeType.readOnly:False
+QmixPumpComponent.syringeType.staticUpdater:None
+QmixPumpComponent.syringeType.updates:None
+QmixPumpComponent.syringeType.val:50 mL glass
+QmixPumpComponent.syringeType.valType:str
 RatingScaleComponent.order:['name', 'visualAnalogScale', 'categoryChoices', 'scaleDescription', 'low', 'high', 'labels', 'markerStart', 'size', 'pos', 'tickHeight']
 RatingScaleComponent.categoryChoices.default:''
 RatingScaleComponent.categoryChoices.allowedTypes:[]
@@ -4721,7 +5093,7 @@ SettingsComponent.Units.valType:str
 SettingsComponent.Use version.default:''
 SettingsComponent.Use version.allowedTypes:[]
 SettingsComponent.Use version.allowedUpdates:None
-SettingsComponent.Use version.allowedVals:['latest', u'3', u'3.0', u'1.90', '', u'3.0.7', u'3.0.6', u'3.0.5', u'3.0.4', u'3.0.3', u'3.0.2', u'3.0.1', u'3.0.0', u'1.90.2', u'1.90.1', u'1.90.0', u'1.85.6']
+SettingsComponent.Use version.allowedVals:['latest', '3', '3.0', '1.90', '', '3.0.7', '3.0.6', '3.0.5', '3.0.4', '3.0.3', '3.0.2', '3.0.1', '3.0.0', '1.90.2', '1.90.1', '1.90.0']
 SettingsComponent.Use version.categ:Basic
 SettingsComponent.Use version.hint:The version of PsychoPy to use when running the experiment.
 SettingsComponent.Use version.label:Use PsychoPy version

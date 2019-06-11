@@ -35,7 +35,6 @@ from .grating import GratingStim
 import numpy
 from numpy import exp, sin, cos
 from numpy.fft import fft2, ifft2, fftshift, ifftshift
-from scipy.misc import imresize, imrotate
 
 from . import shaders as _shaders
 
@@ -554,7 +553,12 @@ class NoiseStim(GratingStim):
         yy = (0.5 - 1.0 / self._size * yy) 
         filter=filters.make2DGauss(xx,yy,mean=(localf,0), sd=(sigmaF,sigmaO))
         filter=filter+filters.make2DGauss(xx,yy, mean=(-localf,0), sd=(sigmaF,sigmaO))
-        filter=imrotate(filter, self.noiseOri, interp='bicubic')
+        filter = numpy.array(
+                Image.fromarray(filter).rotate(
+                        self.noiseOri,
+                        Image.BICUBIC
+                )
+        )
         return FT*filter
 
     def updateNoise(self):
@@ -596,12 +600,22 @@ class NoiseStim(GratingStim):
             if self.filter in ['butterworth', 'Butterworth', 'Gabor','gabor','Isotropic','isotropic']:
                 if self.units == 'pix':
                     if self._size[0] == self._size[1]:
-                        baseImage = imresize(self.noiseTex, (int(self._size[0]),int(self._size[1])), interp='nearest')
+                        baseImage = numpy.array(
+                                Image.fromarray(self.noiseTex).resize(
+                                        (int(self._size[0]), int(self._size[1])),
+                                        Image.NEAREST
+                                )
+                        )
                     else:
                         msg = ('NoiseStim can only apply filters to square noise images')
                         raise ValueError(msg)
-                else: 
-                    baseImage = imresize(self.noiseTex, (int(self._size),int(self._size)), interp='nearest')
+                else:
+                    baseImage = numpy.array(
+                            Image.fromarray(self.noiseTex).resize(
+                                    (int(self._size), int(self._size)),
+                                    Image.NEAREST
+                            )
+                    )
                 baseImage = numpy.array(baseImage).astype(
                         numpy.float32) * 0.0078431372549019607 - 1.0
                 FT = fft2(baseImage)
@@ -671,7 +685,8 @@ class NoiseStim(GratingStim):
                 im = Image.open(self.noiseImage)
                 im = im.transpose(Image.FLIP_TOP_BOTTOM)
                 im = im.convert("L")  # FORCE TO LUMINANCE
-                im = imresize(im, (int(self._size),int(self._size)), interp='bilinear')
+                im = im.resize((int(self._size),int(self._size)),
+                               Image.BILINEAR)
                 intensity = numpy.array(im).astype(
                         numpy.float32) * 0.0078431372549019607 - 1.0
                 if self.imageComponent in ['phase', 'Phase']:
