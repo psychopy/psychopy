@@ -495,7 +495,7 @@ def translationMatrix(t):
     return T
 
 
-def concatenate(*args, out=None):
+def concatenate(*args, **kwargs):
     """Concatenate matrix transformations.
 
     Combine transformation matrices into a single matrix. This is similar to
@@ -580,6 +580,11 @@ def concatenate(*args, out=None):
         pointClipSpace = np.matmul(MVP, pointModel.T)
 
     """
+    if 'out' in kwargs:
+        out = kwargs['out']
+    else:
+        out = None
+
     if out is None:
         toReturn = np.identity(4)
         use_dtype = toReturn.dtype
