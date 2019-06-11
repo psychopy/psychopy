@@ -26,6 +26,7 @@ from .image import ImageStim
 from .text import TextStim
 from .form import Form
 from .button import ButtonStim
+from .brush import Brush
 # window, should always be loaded first
 from .window import Window, getMsPerFrame, openWindows
 
