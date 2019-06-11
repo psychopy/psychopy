@@ -50,7 +50,7 @@ newRST = txt_hash_noncompat.replace('.. note::', """.. raw:: html
 
 # add note about blue meaning a change?
 
-with open(output_path, "wb") as doc:
+with open(output_path, "w") as doc:
     doc.write(newRST)
 
 #test:
