@@ -612,7 +612,7 @@ class NoiseStim(GratingStim):
                 else:
                     baseImage = numpy.array(
                             Image.fromarray(self.noiseTex).resize(
-                                    int(self._size[0]), int(self._size[1]),
+                                    int(self._size), int(self._size),
                                     Image.NEAREST
                             )
                     )
