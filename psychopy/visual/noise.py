@@ -686,7 +686,7 @@ class NoiseStim(GratingStim):
                 im = im.transpose(Image.FLIP_TOP_BOTTOM)
                 im = im.convert("L")  # FORCE TO LUMINANCE
                 im = im.resize((int(self._size),int(self._size)),
-                               interp=Image.BILINEAR)
+                               Image.BILINEAR)
                 intensity = numpy.array(im).astype(
                         numpy.float32) * 0.0078431372549019607 - 1.0
                 if self.imageComponent in ['phase', 'Phase']:
