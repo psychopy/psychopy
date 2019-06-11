@@ -35,7 +35,6 @@ from .grating import GratingStim
 import numpy
 from numpy import exp, sin, cos
 from numpy.fft import fft2, ifft2, fftshift, ifftshift
-from scipy.misc import imrotate
 
 from . import shaders as _shaders
 
@@ -554,7 +553,12 @@ class NoiseStim(GratingStim):
         yy = (0.5 - 1.0 / self._size * yy) 
         filter=filters.make2DGauss(xx,yy,mean=(localf,0), sd=(sigmaF,sigmaO))
         filter=filter+filters.make2DGauss(xx,yy, mean=(-localf,0), sd=(sigmaF,sigmaO))
-        filter=imrotate(filter, self.noiseOri, interp='bicubic')
+        filter = numpy.array(
+                Image.fromarray(filter).rotate(
+                        self.noiseOri,
+                        Image.BICUBIC
+                )
+        )
         return FT*filter
 
     def updateNoise(self):
