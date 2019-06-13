@@ -3,6 +3,7 @@
 [![Travis-CI status](https://img.shields.io/travis/psychopy/psychopy.svg)](https://travis-ci.org/psychopy/psychopy)
 [![Coveralls status](https://img.shields.io/coveralls/psychopy/psychopy.svg)](https://coveralls.io/r/psychopy/psychopy)
 [![PyPI version](https://img.shields.io/pypi/v/psychopy.svg)](https://pypi.python.org/pypi/PsychoPy)
+[![Open Source Helpers](https://www.codetriage.com/psychopy/psychopy/badges/users.svg)](https://www.codetriage.com/psychopy/psychopy)
 
 PsychoPy is an open-source package for creating experiments in behavioral science. It aims to provide a single package that is:
 
