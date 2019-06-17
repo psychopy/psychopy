@@ -1064,8 +1064,14 @@ def getProject(filename):
         proj = None
         for remote in localRepo.remotes:
             for url in remote.urls:
-                if "gitlab.pavlovia.org/" in url:
-                    namespaceName = url.split('gitlab.pavlovia.org/')[1]
+                if "gitlab.pavlovia.org" in url:
+                    # could be 'https://gitlab.pavlovia.org/NameSpace/Name.git'
+                    # or may be 'git@gitlab.pavlovia.org:NameSpace/Name.git'
+                    namespaceName = url.split('gitlab.pavlovia.org')[1]
+                    # remove the first char (: or /)
+                    if namespaceName[0] in ['/', ':']:
+                        namespaceName = namespaceName[1:]
+                    # remove the .git at the end if present
                     namespaceName = namespaceName.replace('.git', '')
                     pavSession = getCurrentSession()
                     if not pavSession.user:
