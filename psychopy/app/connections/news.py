@@ -8,13 +8,14 @@
 import requests
 from psychopy import logging, prefs
 import wx
+from datetime import datetime
 
 newsURL = "http://news.psychopy.org/"
 
-CRITICAL = 50
-ANNOUNCE = 40
-TIP = 30
-JOKE = 20
+CRITICAL = 40
+ANNOUNCE = 30
+TIP = 20
+JOKE = 10
 
 
 def getNewsItems(app=None):
@@ -45,14 +46,21 @@ def showNews(app=None, checkPrev=True):
     """
     if checkPrev and app.news:
         toShow = None
-        if 'lastNewsDate' in prefs.appData['lastNewsDate']:
+        if 'lastNewsDate' in prefs.appData:
             lastNewsDate = prefs.appData['lastNewsDate']
         else:
             lastNewsDate = ""
+
         for item in app.news:
             if item['importance'] >= ANNOUNCE and item['date'] > lastNewsDate:
                 toShow = item
                 break
+
+        # update prefs lastNewsDate to match JavaScript Date().toISOString()
+        now = datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%S.%f')[:-3] + 'Z'
+        prefs.appData['lastNewsDate'] = now
+        prefs.saveAppData()
+
         if not toShow:
             return 0
     else:
