@@ -22,6 +22,18 @@ This only works on 64-bit Python3 installations, but the Keyboard class will
 fall back to the old `event.GetKeys` calls where the `psychtoolbox` package is
 not available.
 
+PsychoPy 3.1.3
+~~~~~~~~~~~~~~~~~~~~~~
+
+FIXED:
+
+- StairHandler code from Builder was failing in 3.1 due to new tStartRefresh
+  data being sent to wrong method (addData not addOtherData) #2497
+- Routines in online studies that weren't included in (or before) a loop were
+  not having their data saved #2496
+- Fix to audio capture error "bad argument at position 0" from Builder experiments #dadb9be25
+- PsychoPy app didn't recognise projects that were pointing to gitlab ssh targets (e.g. created in terminal) #08d7937
+
 PsychoPy 3.1.2
 ~~~~~~~~~~~~~~~~~~~~~~
 
