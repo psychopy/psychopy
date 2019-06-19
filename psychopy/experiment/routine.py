@@ -134,8 +134,9 @@ class Routine(list):
 
         code = '# keep track of which components have finished\n'
         buff.writeIndentedLines(code)
+        # Get list of components, but leave out Variable components, which may not support attributes
         compStr = ', '.join([c.params['name'].val for c in self
-                             if 'startType' in c.params])
+                             if 'startType' in c.params and c.type != 'Variable'])
         buff.writeIndented('%sComponents = [%s]\n' % (self.name, compStr))
         code = ("for thisComponent in %sComponents:\n"
                 "    thisComponent.tStart = None\n"
