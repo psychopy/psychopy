@@ -26,6 +26,7 @@ from .image import ImageStim
 from .text import TextStim
 from .form import Form
 from .button import ButtonStim
+from .brush import Brush
 # window, should always be loaded first
 from .window import Window, getMsPerFrame, openWindows
 
@@ -58,6 +59,7 @@ from psychopy.visual.secondorder import EnvelopeGrating
 from psychopy.visual.movie import MovieStim
 from psychopy.visual.movie2 import MovieStim2
 from psychopy.visual.movie3 import MovieStim3
+from psychopy.visual.vlcmoviestim import VlcMovieStim
 from psychopy.visual.shape import BaseShapeStim
 
 # stimuli derived from GratingStim

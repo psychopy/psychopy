@@ -1,8 +1,8 @@
-﻿#!/usr/bin/env python
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-This experiment was created using PsychoPy3 Experiment Builder (v3.1.0),
-    on Thu Apr  4 17:01:11 2019
+This experiment was created using PsychoPy3 Experiment Builder (v3.1.1),
+    on Thu May  9 17:56:54 2019
 If you publish work using this script please cite the PsychoPy publications:
     Peirce, JW (2007) PsychoPy - Psychophysics software in Python.
         Journal of Neuroscience Methods, 162(1-2), 8-13.
@@ -24,14 +24,14 @@ import sys  # to get file system encoding
 from psychopy.hardware import keyboard
 
 # Ensure that relative paths start from the same directory as this script
-_thisDir = os.path.dirname(os.path.abspath(__file__)).decode(sys.getfilesystemencoding())
+_thisDir = os.path.dirname(os.path.abspath(__file__))
 os.chdir(_thisDir)
 
 # Store info about the experiment session
-psychopyVersion = '3.1.0'
+psychopyVersion = '3.1.1'
 expName = 'untitled.py'
-expInfo = {'session': '001', 'participant': ''}
-dlg = gui.DlgFromDict(dictionary=expInfo, title=expName)
+expInfo = {'participant': '', 'session': '001'}
+dlg = gui.DlgFromDict(dictionary=expInfo, sortKeys=False, title=expName)
 if dlg.OK == False:
     core.quit()  # user pressed cancel
 expInfo['date'] = data.getDateStr()  # add a simple timestamp
@@ -74,11 +74,18 @@ trialClock = core.Clock()
 env_grating = visual.EnvelopeGrating(
     win=win, name='env_grating',
     carrier='sin', mask=None,
-    ori=0, pos=(0, 0), size=(0.5, 0.5), sf=1.0, phase=0.0,
-    color=[1,1,1], colorSpace='rgb', opacity=1, contrast=0.5,
-    texRes=128,
-    envelope='sin', envori=0.0,
-    envsf=1.0, envphase=0.0, moddepth=1.0, blendmode='avg', beat=False, interpolate=True, depth=0.0)
+    ori=0, pos=(0, 0), size=(0.5, 0.5),
+    sf=1.0, phase=0.0,
+    color=[1,1,1], colorSpace='rgb',
+     opacity=1, contrast=0.5,
+    texRes=128, envelope='sin',
+    envori=0.0, envsf=1.0,
+    envphase=0.0, power=1.0,
+    moddepth=1.0, blendmode='avg', beat=False, interpolate=True, depth=0.0)
+if sys.version[0]=='3' and np.min(win.gamma) == None:
+    logging.warning('Envelope grating in use with no gamma set. Unless you have hardware gamma correction the image will be distorted.')
+elif np.min(win.gamma) < 1.01:
+    logging.warning('Envelope grating in use with window gamma <= 1.0 or no gamma set at all. Unless you have hardware gamma correction the image will be distorted.')
 
 # Create some handy timers
 globalClock = core.Clock()  # to track the time since experiment started

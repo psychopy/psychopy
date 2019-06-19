@@ -1,5 +1,8 @@
-Download
+Installation
 ===============
+
+Download
+-----------
 
 For the easiest installation download and install the Standalone package.
 
@@ -7,34 +10,39 @@ For the easiest installation download and install the Standalone package.
 
    <script src="https://cdn.jsdelivr.net/npm/ua-parser-js@0/dist/ua-parser.min.js"></script>
    <script>
-    let name;
+    
+    let filename;
     let url;
-    let version='3.0.7'
+    let version='3.1.1'
 
     let clientInfo = UAParser(navigator.userAgent);
-    let os = clientInfo.os;
-    let arch = clientInfo.cpu.architecture;
+    var osLabel;
+    var os = clientInfo.os.name;
+    var arch = clientInfo.cpu.architecture;
     // create the platform dependent strings
     if (navigator.platform == 'Win32' && clientInfo.cpu.architecture == 'amd64') {
-      name = '  Standalone PsychoPy '+version+' for 64bit Windows (using Python3.6)';
+      osLabel = clientInfo.os.name+" "+clientInfo.cpu.architecture;
+      filename = '  Standalone PsychoPy '+version+' for 64bit Windows (using Python3.6)';
       url = 'https://github.com/psychopy/psychopy/releases/download/'+version+'/StandalonePsychoPy3-'+version+'-win64.exe';
     }
     else if (navigator.platform == 'Win32') {
-      name = '  Standalone PsychoPy '+version+' for 32bit Windows (using Python3.6)';
+      filename = '  Standalone PsychoPy '+version+' for 32bit Windows (using Python3.6)';
       url = 'https://github.com/psychopy/psychopy/releases/download/'+version+'/StandalonePsychoPy3-'+version+'-win32.exe';
     }
     else if (navigator.platform == 'MacIntel') {
-      name = '  Standalone PsychoPy '+version+' for MacOS';
+      osLabel = clientInfo.os.name+" "+clientInfo.os.version;
+      filename = '  Standalone PsychoPy '+version+' for MacOS';
       url = 'https://github.com/psychopy/psychopy/releases/download/'+version+'/StandalonePsychoPy3-'+version+'-MacOS.dmg';
     }
     else {
-      name = 'installing using pip';
+      osLabel = clientInfo.os.name+" ("+clientInfo.cpu.architecture+")";
+      filename = 'installing using pip';
       url = '#linux';
     }
 
-    document.write( "For your detected platform ("+os+" "+arch+") we recommend<br>");
-    document.write( "<centre><button class='btn' onclick='window.location.href=url'>
-        <i class='fa fa-download'></i>" + name + "</button></centre>" );
+    document.write( "<br><center>To install PsychoPy on <strong>"+osLabel+"</strong> we recommend<br>");
+    document.write( "<button class='btn-primary btn-lg' onclick='window.location.href=url'>" +
+        "<i class='fa fa-download'></i>" + filename + "</button></center><br>" );
 
    </script>
 
@@ -43,7 +51,7 @@ For the easiest installation download and install the Standalone package.
 .. _manual_install:
 
 Manual installations
-====================
+---------------------
 
 See below for options if you don't want to use the Standalone releases:
 
@@ -55,7 +63,7 @@ See below for options if you don't want to use the Standalone releases:
 .. _pip_install:
 
 pip install
------------------
+~~~~~~~~~~~~~~~~~
 
 Now that most python libraries can be install using `pip` it's relatively easy
 to manually install PsychoPy and all it's dependencies to your own installation
@@ -78,27 +86,34 @@ and then install them manually.
 .. _linux_install:
 
 Linux
------------------
+~~~~~~~~~~~~~~~~~
 
 There used to be neurodebian and Gentoo packages for PsychoPy but these are both
-badly outdated. We'd recommend you now simply use the :ref:`pip_install` method.
+badly outdated. We'd recommend you do:
 
-On linux the one tricky dependency is with wxPython. You need wxPython>4.0 and
-that doesn't have universal wheels yet so you have to find and install the
-correct wheel for your particular flavor of linux. You can usually find that
-here:
+.. code-block:: bash
+
+    # with --no-deps flag if you want to install dependencies manually
+    pip install psychopy
+
+**Then fetch a wxPython wheel** for your platform from:
 
 https://extras.wxpython.org/wxPython4/extras/linux/gtk3/
 
-and having downloaded the right wheel you can then install it with something::
+and having downloaded the right wheel you can then install it with something like:
+
+.. code-block:: bash
 
   pip install path/to/your/wxpython.whl
+
+wxPython>4.0 and doesn't have universal wheels yet which is why you have to
+find and install the correct wheel for your particular flavor of linux.
 
 
 .. _conda:
 
 Anaconda and Miniconda
--------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 With Python 3.5::
 
@@ -109,10 +124,11 @@ With Python 3.5::
   pip install zmq json-tricks pyparallel sounddevice pygame pysoundcard psychopy_ext psychopy
 
 
-.. _neurodebian:
+.. _developers_install:
+
 
 Developers install
----------------------
+~~~~~~~~~~~~~~~~~~~~~~
 
 Ensure you have Python 3.6 and the latest version of pip installed::
 

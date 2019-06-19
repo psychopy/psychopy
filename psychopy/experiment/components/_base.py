@@ -158,18 +158,24 @@ class BaseComponent(object):
             else:
                 currLoop = self.exp._expHandler
 
+            if 'Stair' in currLoop.type:
+                addDataFunc = 'addOtherData'
+            else:
+                addDataFunc = 'addData'
+
             if self.params['syncScreenRefresh'].val:
                 code = (
-                    "{loop}.addData('{name}.started', {name}.tStartRefresh)\n"
-                    "{loop}.addData('{name}.stopped', {name}.tStopRefresh)\n"
+                    "{loop}.{addDataFunc}('{name}.started', {name}.tStartRefresh)\n"
+                    "{loop}.{addDataFunc}('{name}.stopped', {name}.tStopRefresh)\n"
                 )
             else:
                 code = (
-                    "{loop}.addData('{name}.started', {name}.tStart)\n"
-                    "{loop}.addData('{name}.stopped', {name}.tStop)\n"
+                    "{loop}.{addDataFunc}('{name}.started', {name}.tStart)\n"
+                    "{loop}.{addDataFunc}('{name}.stopped', {name}.tStop)\n"
                 )
             buff.writeIndentedLines(code.format(loop=currLoop.params['name'],
-                                                name=self.params['name']))
+                                                name=self.params['name'],
+                                                addDataFunc=addDataFunc))
 
     def writeRoutineEndCodeJS(self, buff):
         """Write the code that will be called at the end of
@@ -325,7 +331,7 @@ class BaseComponent(object):
                     "&& frameN >= %(stopVal)s) {\n")
         elif self.params['stopType'].val == 'condition':
             code = ("if (%(name)s.status === PsychoJS.Status.STARTED "
-                    "&& bool(%(stopVal)s)) {\n")
+                    "&& Boolean(%(stopVal)s)) {\n")
         else:
             msg = ("Didn't write any stop line for startType="
                    "%(startType)s, "

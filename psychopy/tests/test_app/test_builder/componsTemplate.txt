@@ -154,6 +154,174 @@ ApertureComponent.units.staticUpdater:None
 ApertureComponent.units.updates:None
 ApertureComponent.units.val:norm
 ApertureComponent.units.valType:str
+BrushComponent.order:['lineWidth', 'opacity']
+BrushComponent.disabled.default:False
+BrushComponent.disabled.allowedTypes:[]
+BrushComponent.disabled.allowedUpdates:None
+BrushComponent.disabled.allowedVals:[]
+BrushComponent.disabled.categ:Testing
+BrushComponent.disabled.hint:Disable this component
+BrushComponent.disabled.label:Disable component
+BrushComponent.disabled.readOnly:False
+BrushComponent.disabled.staticUpdater:None
+BrushComponent.disabled.updates:None
+BrushComponent.disabled.val:False
+BrushComponent.disabled.valType:bool
+BrushComponent.durationEstim.default:
+BrushComponent.durationEstim.allowedTypes:[]
+BrushComponent.durationEstim.allowedUpdates:None
+BrushComponent.durationEstim.allowedVals:[]
+BrushComponent.durationEstim.categ:Basic
+BrushComponent.durationEstim.hint:(Optional) expected duration (s), purely for representing in the timeline
+BrushComponent.durationEstim.label:Expected duration (s)
+BrushComponent.durationEstim.readOnly:False
+BrushComponent.durationEstim.staticUpdater:None
+BrushComponent.durationEstim.updates:None
+BrushComponent.durationEstim.val:
+BrushComponent.durationEstim.valType:code
+BrushComponent.lineColor.default:[1,1,1]
+BrushComponent.lineColor.allowedTypes:[]
+BrushComponent.lineColor.allowedUpdates:['constant', 'set every repeat']
+BrushComponent.lineColor.allowedVals:[]
+BrushComponent.lineColor.categ:Advanced
+BrushComponent.lineColor.hint:Line color of this brush; Right-click to bring up a color-picker (rgb only)
+BrushComponent.lineColor.label:Line color
+BrushComponent.lineColor.readOnly:False
+BrushComponent.lineColor.staticUpdater:None
+BrushComponent.lineColor.updates:constant
+BrushComponent.lineColor.val:$[1,1,1]
+BrushComponent.lineColor.valType:str
+BrushComponent.lineColorSpace.default:'rgb'
+BrushComponent.lineColorSpace.allowedTypes:[]
+BrushComponent.lineColorSpace.allowedUpdates:None
+BrushComponent.lineColorSpace.allowedVals:['rgb', 'dkl', 'lms', 'hsv']
+BrushComponent.lineColorSpace.categ:Advanced
+BrushComponent.lineColorSpace.hint:Choice of color space for the fill color (rgb, dkl, lms, hsv)
+BrushComponent.lineColorSpace.label:Line color-space
+BrushComponent.lineColorSpace.readOnly:False
+BrushComponent.lineColorSpace.staticUpdater:None
+BrushComponent.lineColorSpace.updates:constant
+BrushComponent.lineColorSpace.val:rgb
+BrushComponent.lineColorSpace.valType:str
+BrushComponent.lineWidth.default:1.5
+BrushComponent.lineWidth.allowedTypes:[]
+BrushComponent.lineWidth.allowedUpdates:['constant', 'set every repeat']
+BrushComponent.lineWidth.allowedVals:[]
+BrushComponent.lineWidth.categ:Basic
+BrushComponent.lineWidth.hint:Width of the brush's line (always in pixels and limited to 10px max width)
+BrushComponent.lineWidth.label:Line width
+BrushComponent.lineWidth.readOnly:False
+BrushComponent.lineWidth.staticUpdater:None
+BrushComponent.lineWidth.updates:constant
+BrushComponent.lineWidth.val:1.5
+BrushComponent.lineWidth.valType:code
+BrushComponent.name.default:brush
+BrushComponent.name.allowedTypes:[]
+BrushComponent.name.allowedUpdates:None
+BrushComponent.name.allowedVals:[]
+BrushComponent.name.categ:Basic
+BrushComponent.name.hint:Name of this component (alpha-numeric or _, no spaces)
+BrushComponent.name.label:Name
+BrushComponent.name.readOnly:False
+BrushComponent.name.staticUpdater:None
+BrushComponent.name.val:brush
+BrushComponent.name.valType:code
+BrushComponent.opacity.default:1
+BrushComponent.opacity.allowedTypes:[]
+BrushComponent.opacity.allowedUpdates:['constant', 'set every repeat']
+BrushComponent.opacity.allowedVals:[]
+BrushComponent.opacity.categ:Basic
+BrushComponent.opacity.hint:The line opacity
+BrushComponent.opacity.label:Opacity
+BrushComponent.opacity.readOnly:False
+BrushComponent.opacity.staticUpdater:None
+BrushComponent.opacity.updates:constant
+BrushComponent.opacity.val:1
+BrushComponent.opacity.valType:str
+BrushComponent.saveStartStop.default:True
+BrushComponent.saveStartStop.allowedTypes:[]
+BrushComponent.saveStartStop.allowedUpdates:None
+BrushComponent.saveStartStop.allowedVals:[]
+BrushComponent.saveStartStop.categ:Data
+BrushComponent.saveStartStop.hint:Store the onset/offset times in the data file (as well as in the log file).
+BrushComponent.saveStartStop.label:Save onset/offset times
+BrushComponent.saveStartStop.readOnly:False
+BrushComponent.saveStartStop.staticUpdater:None
+BrushComponent.saveStartStop.updates:None
+BrushComponent.saveStartStop.val:True
+BrushComponent.saveStartStop.valType:bool
+BrushComponent.startEstim.default:
+BrushComponent.startEstim.allowedTypes:[]
+BrushComponent.startEstim.allowedUpdates:None
+BrushComponent.startEstim.allowedVals:[]
+BrushComponent.startEstim.categ:Basic
+BrushComponent.startEstim.hint:(Optional) expected start (s), purely for representing in the timeline
+BrushComponent.startEstim.label:Expected start (s)
+BrushComponent.startEstim.readOnly:False
+BrushComponent.startEstim.staticUpdater:None
+BrushComponent.startEstim.updates:None
+BrushComponent.startEstim.val:
+BrushComponent.startEstim.valType:code
+BrushComponent.startType.default:'time (s)'
+BrushComponent.startType.allowedTypes:[]
+BrushComponent.startType.allowedUpdates:None
+BrushComponent.startType.allowedVals:['time (s)', 'frame N', 'condition']
+BrushComponent.startType.categ:Basic
+BrushComponent.startType.hint:How do you want to define your start point?
+BrushComponent.startType.label:start type
+BrushComponent.startType.readOnly:False
+BrushComponent.startType.staticUpdater:None
+BrushComponent.startType.updates:None
+BrushComponent.startType.val:time (s)
+BrushComponent.startType.valType:str
+BrushComponent.startVal.default:0.0
+BrushComponent.startVal.allowedTypes:[]
+BrushComponent.startVal.allowedUpdates:None
+BrushComponent.startVal.allowedVals:[]
+BrushComponent.startVal.categ:Basic
+BrushComponent.startVal.hint:When does the component start?
+BrushComponent.startVal.label:Start
+BrushComponent.startVal.readOnly:False
+BrushComponent.startVal.staticUpdater:None
+BrushComponent.startVal.updates:None
+BrushComponent.startVal.val:0.0
+BrushComponent.startVal.valType:code
+BrushComponent.stopType.default:'duration (s)'
+BrushComponent.stopType.allowedTypes:[]
+BrushComponent.stopType.allowedUpdates:None
+BrushComponent.stopType.allowedVals:['duration (s)', 'duration (frames)', 'time (s)', 'frame N', 'condition']
+BrushComponent.stopType.categ:Basic
+BrushComponent.stopType.hint:How do you want to define your end point?
+BrushComponent.stopType.label:stop type
+BrushComponent.stopType.readOnly:False
+BrushComponent.stopType.staticUpdater:None
+BrushComponent.stopType.updates:None
+BrushComponent.stopType.val:duration (s)
+BrushComponent.stopType.valType:str
+BrushComponent.stopVal.default:1.0
+BrushComponent.stopVal.allowedTypes:[]
+BrushComponent.stopVal.allowedUpdates:[]
+BrushComponent.stopVal.allowedVals:[]
+BrushComponent.stopVal.categ:Basic
+BrushComponent.stopVal.hint:When does the component end? (blank is endless)
+BrushComponent.stopVal.label:Stop
+BrushComponent.stopVal.readOnly:False
+BrushComponent.stopVal.staticUpdater:None
+BrushComponent.stopVal.updates:constant
+BrushComponent.stopVal.val:1.0
+BrushComponent.stopVal.valType:code
+BrushComponent.syncScreenRefresh.default:True
+BrushComponent.syncScreenRefresh.allowedTypes:[]
+BrushComponent.syncScreenRefresh.allowedUpdates:None
+BrushComponent.syncScreenRefresh.allowedVals:[]
+BrushComponent.syncScreenRefresh.categ:Data
+BrushComponent.syncScreenRefresh.hint:Synchronize times with screen refresh (good for visual stimuli and responses based on them)
+BrushComponent.syncScreenRefresh.label:Sync timing with screen refresh
+BrushComponent.syncScreenRefresh.readOnly:True
+BrushComponent.syncScreenRefresh.staticUpdater:None
+BrushComponent.syncScreenRefresh.updates:None
+BrushComponent.syncScreenRefresh.val:True
+BrushComponent.syncScreenRefresh.valType:bool
 CodeComponent.order:['name', 'Code Type', 'Begin Experiment', 'Begin Routine', 'Each Frame', 'End Routine', 'End Experiment', 'Begin JS Experiment', 'Begin JS Routine', 'Each JS Frame', 'End JS Routine', 'End JS Experiment']
 CodeComponent.Begin Experiment.default:
 CodeComponent.Begin Experiment.allowedTypes:[]
@@ -862,6 +1030,18 @@ EnvGratingComponent.pos.staticUpdater:None
 EnvGratingComponent.pos.updates:constant
 EnvGratingComponent.pos.val:(0, 0)
 EnvGratingComponent.pos.valType:code
+EnvGratingComponent.power.default:1.0
+EnvGratingComponent.power.allowedTypes:[]
+EnvGratingComponent.power.allowedUpdates:['constant', 'set every repeat', 'set every frame']
+EnvGratingComponent.power.allowedVals:[]
+EnvGratingComponent.power.categ:Envelope
+EnvGratingComponent.power.hint:Power of modulation envelope. The modulator will be raised to this power according to the equation S=cC*(1+mM)^power, where C is the carrier and M is the modulator. and c and m are there respective contrast and modulation depth. Only works with AM envelopes (hence +1) in equation. Power is ignored if a beat is requested. This is used to obtain the square root of the modulator (power = 0.5) which is useful if combining two envelope gratings with different carriers and a 180 degree phase shift as the resulting combined signal will not have any reduction in local contrast at any point in the image. This is similar - but not identical to - the method used by Landy and Oruc, Vis Res 2002. Note overall contrast (apparent carrier contrast) will be altered.
+EnvGratingComponent.power.label:Power to which envelope is raised
+EnvGratingComponent.power.readOnly:False
+EnvGratingComponent.power.staticUpdater:None
+EnvGratingComponent.power.updates:constant
+EnvGratingComponent.power.val:1.0
+EnvGratingComponent.power.valType:code
 EnvGratingComponent.saveStartStop.default:True
 EnvGratingComponent.saveStartStop.allowedTypes:[]
 EnvGratingComponent.saveStartStop.allowedUpdates:None
@@ -2686,7 +2866,7 @@ MouseComponent.timeRelativeTo.staticUpdater:None
 MouseComponent.timeRelativeTo.updates:constant
 MouseComponent.timeRelativeTo.val:mouse onset
 MouseComponent.timeRelativeTo.valType:str
-MovieComponent.order:['forceEndRoutine']
+MovieComponent.order:['movie', 'backend', 'No audio', 'loop', 'forceEndRoutine']
 MovieComponent.No audio.default:False
 MovieComponent.No audio.allowedTypes:[]
 MovieComponent.No audio.allowedUpdates:None
@@ -2705,7 +2885,7 @@ MovieComponent.backend.allowedUpdates:None
 MovieComponent.backend.allowedVals:['moviepy', 'avbin', 'opencv']
 MovieComponent.backend.categ:Basic
 MovieComponent.backend.hint:What underlying lib to use for loading movies
-MovieComponent.backend.label:backend
+MovieComponent.backend.label:Backend
 MovieComponent.backend.readOnly:False
 MovieComponent.backend.staticUpdater:None
 MovieComponent.backend.updates:None
@@ -2747,6 +2927,18 @@ MovieComponent.forceEndRoutine.staticUpdater:None
 MovieComponent.forceEndRoutine.updates:constant
 MovieComponent.forceEndRoutine.val:False
 MovieComponent.forceEndRoutine.valType:bool
+MovieComponent.loop.default:False
+MovieComponent.loop.allowedTypes:[]
+MovieComponent.loop.allowedUpdates:None
+MovieComponent.loop.allowedVals:[]
+MovieComponent.loop.categ:Basic
+MovieComponent.loop.hint:Whether the movie should loop back to the beginning on completion.
+MovieComponent.loop.label:Loop playback
+MovieComponent.loop.readOnly:False
+MovieComponent.loop.staticUpdater:None
+MovieComponent.loop.updates:None
+MovieComponent.loop.val:False
+MovieComponent.loop.valType:bool
 MovieComponent.movie.default:''
 MovieComponent.movie.allowedTypes:[]
 MovieComponent.movie.allowedUpdates:['constant', 'set every repeat']
@@ -2987,6 +3179,30 @@ NoiseStimComponent.durationEstim.staticUpdater:None
 NoiseStimComponent.durationEstim.updates:None
 NoiseStimComponent.durationEstim.val:
 NoiseStimComponent.durationEstim.valType:code
+NoiseStimComponent.filter.default:'None'
+NoiseStimComponent.filter.allowedTypes:[]
+NoiseStimComponent.filter.allowedUpdates:[]
+NoiseStimComponent.filter.allowedVals:['None', 'Butterworth', 'Gabor', 'Isotropic']
+NoiseStimComponent.filter.categ: Noise
+NoiseStimComponent.filter.hint:Apply filter to noise sample? [Butterworth, Gabor, Isoptopic]. A filter with parameters taken from the either the Filtered (Butterworth) or Gabor/Isotropic tab will be applied to OTHER noise types. [NOTE: if noise of the same type as the filter is requested the filter is applied, once only, to a white noise sample.]
+NoiseStimComponent.filter.label:Apply filter to noise sample
+NoiseStimComponent.filter.readOnly:False
+NoiseStimComponent.filter.staticUpdater:None
+NoiseStimComponent.filter.updates:constant
+NoiseStimComponent.filter.val:None
+NoiseStimComponent.filter.valType:str
+NoiseStimComponent.imageComponent.default:'Phase'
+NoiseStimComponent.imageComponent.allowedTypes:[]
+NoiseStimComponent.imageComponent.allowedUpdates:[]
+NoiseStimComponent.imageComponent.allowedVals:['Phase', 'Amplitude']
+NoiseStimComponent.imageComponent.categ:Image noise
+NoiseStimComponent.imageComponent.hint:Which image component should be randomised? [Amplitude,Phase]. Randomizing amplitude will keep the phase spectrum of the image but set the amplitude spectrum to random values [0...1]. This keeps spatial structure in tact. Randoming the phase spectrum will keep the amplitude spectrum of the image  but set the phase spectrum to random values [-pi...pi] in radians. This makes a noise sample with no obvious structure. 
+NoiseStimComponent.imageComponent.label:Radomize image component
+NoiseStimComponent.imageComponent.readOnly:False
+NoiseStimComponent.imageComponent.staticUpdater:None
+NoiseStimComponent.imageComponent.updates:constant
+NoiseStimComponent.imageComponent.val:Phase
+NoiseStimComponent.imageComponent.valType:str
 NoiseStimComponent.interpolate.default:'nearest'
 NoiseStimComponent.interpolate.allowedTypes:[]
 NoiseStimComponent.interpolate.allowedUpdates:[]
@@ -3034,7 +3250,7 @@ NoiseStimComponent.noiseBW.staticUpdater:None
 NoiseStimComponent.noiseBW.updates:constant
 NoiseStimComponent.noiseBW.val:1
 NoiseStimComponent.noiseBW.valType:code
-NoiseStimComponent.noiseBWO.default:1
+NoiseStimComponent.noiseBWO.default:30
 NoiseStimComponent.noiseBWO.allowedTypes:[]
 NoiseStimComponent.noiseBWO.allowedUpdates:['constant', 'set every repeat', 'set every frame']
 NoiseStimComponent.noiseBWO.allowedVals:[]
@@ -3044,14 +3260,14 @@ NoiseStimComponent.noiseBWO.label:Orientation bandwidth for Gabor noise
 NoiseStimComponent.noiseBWO.readOnly:False
 NoiseStimComponent.noiseBWO.staticUpdater:None
 NoiseStimComponent.noiseBWO.updates:constant
-NoiseStimComponent.noiseBWO.val:1
+NoiseStimComponent.noiseBWO.val:30
 NoiseStimComponent.noiseBWO.valType:code
 NoiseStimComponent.noiseBaseSf.default:8.0
 NoiseStimComponent.noiseBaseSf.allowedTypes:[]
 NoiseStimComponent.noiseBaseSf.allowedUpdates:['constant', 'set every repeat', 'set every frame']
 NoiseStimComponent.noiseBaseSf.allowedVals:[]
 NoiseStimComponent.noiseBaseSf.categ:Gabor/Isotropic
-NoiseStimComponent.noiseBaseSf.hint:Base spatial frequency
+NoiseStimComponent.noiseBaseSf.hint:Base spatial frequency in cycles per unit length If units = pix this value should be < 0.5.
 NoiseStimComponent.noiseBaseSf.label:Base spatial frequency
 NoiseStimComponent.noiseBaseSf.readOnly:False
 NoiseStimComponent.noiseBaseSf.staticUpdater:None
@@ -3063,7 +3279,7 @@ NoiseStimComponent.noiseClip.allowedTypes:[]
 NoiseStimComponent.noiseClip.allowedUpdates:['constant', 'set every repeat', 'set every frame']
 NoiseStimComponent.noiseClip.allowedVals:[]
 NoiseStimComponent.noiseClip.categ: Noise
-NoiseStimComponent.noiseClip.hint:Truncate high and low values beyond stated standard deviations from mean (not used for binary or uniform noise; scales rather than clips normal noise). The higher this is the lower the final RMS contrast. If low noise may appear binary
+NoiseStimComponent.noiseClip.hint:Truncate high and low values beyond stated standard deviations from mean and rescale greyscale range. This is not used at all for 'binary' or 'uniform' noise and scales rather than clips 'normal' noise). The higher this is the lower the final RMS contrast. If very low noise may appear binarised. NOTE: If a filter is used clipping and rescaling are applied after the filter, regardless of the noise type.
 NoiseStimComponent.noiseClip.label:Number of standard deviations at which to clip noise
 NoiseStimComponent.noiseClip.readOnly:False
 NoiseStimComponent.noiseClip.staticUpdater:None
@@ -3075,7 +3291,7 @@ NoiseStimComponent.noiseElementSize.allowedTypes:[]
 NoiseStimComponent.noiseElementSize.allowedUpdates:['constant', 'set every repeat', 'set every frame']
 NoiseStimComponent.noiseElementSize.allowedVals:[]
 NoiseStimComponent.noiseElementSize.categ:Binary/Normal/Uniform
-NoiseStimComponent.noiseElementSize.hint:(Binary, Normal an Uniform only) Size of noise elements
+NoiseStimComponent.noiseElementSize.hint:(Binary, Normal and Uniform only) Size of noise elements in the stimulus units.
 NoiseStimComponent.noiseElementSize.label:Noise element size for pixelated noise
 NoiseStimComponent.noiseElementSize.readOnly:False
 NoiseStimComponent.noiseElementSize.staticUpdater:None
@@ -3086,8 +3302,8 @@ NoiseStimComponent.noiseFilterLower.default:1.0
 NoiseStimComponent.noiseFilterLower.allowedTypes:[]
 NoiseStimComponent.noiseFilterLower.allowedUpdates:['constant', 'set every repeat', 'set every frame']
 NoiseStimComponent.noiseFilterLower.allowedVals:[]
-NoiseStimComponent.noiseFilterLower.categ:Filtered
-NoiseStimComponent.noiseFilterLower.hint:Lower cutoff frequency
+NoiseStimComponent.noiseFilterLower.categ:Filtered (Butterworth)
+NoiseStimComponent.noiseFilterLower.hint:Lower cutoff frequency in cycles per unit length. Set to zero to avoid a lower cuttoff and make a low pass filter.
 NoiseStimComponent.noiseFilterLower.label:Lower cut off frequency
 NoiseStimComponent.noiseFilterLower.readOnly:False
 NoiseStimComponent.noiseFilterLower.staticUpdater:None
@@ -3098,7 +3314,7 @@ NoiseStimComponent.noiseFilterOrder.default:0.0
 NoiseStimComponent.noiseFilterOrder.allowedTypes:[]
 NoiseStimComponent.noiseFilterOrder.allowedUpdates:['constant', 'set every repeat', 'set every frame']
 NoiseStimComponent.noiseFilterOrder.allowedVals:[]
-NoiseStimComponent.noiseFilterOrder.categ:Filtered
+NoiseStimComponent.noiseFilterOrder.categ:Filtered (Butterworth)
 NoiseStimComponent.noiseFilterOrder.hint:Order of filter - higher = steeper fall off, zero = no filter
 NoiseStimComponent.noiseFilterOrder.label:Order of filter
 NoiseStimComponent.noiseFilterOrder.readOnly:False
@@ -3110,8 +3326,8 @@ NoiseStimComponent.noiseFilterUpper.default:8.0
 NoiseStimComponent.noiseFilterUpper.allowedTypes:[]
 NoiseStimComponent.noiseFilterUpper.allowedUpdates:['constant', 'set every repeat', 'set every frame']
 NoiseStimComponent.noiseFilterUpper.allowedVals:[]
-NoiseStimComponent.noiseFilterUpper.categ:Filtered
-NoiseStimComponent.noiseFilterUpper.hint:Upper cutoff frequency
+NoiseStimComponent.noiseFilterUpper.categ:Filtered (Butterworth)
+NoiseStimComponent.noiseFilterUpper.hint:Upper cutoff frequency in cycles per unit length. Set very high to avoid an upper cutoff and make a high pass filter.
 NoiseStimComponent.noiseFilterUpper.label:Upper cut off frequency
 NoiseStimComponent.noiseFilterUpper.readOnly:False
 NoiseStimComponent.noiseFilterUpper.staticUpdater:None
@@ -3122,8 +3338,8 @@ NoiseStimComponent.noiseFractalPower.default:0.0
 NoiseStimComponent.noiseFractalPower.allowedTypes:[]
 NoiseStimComponent.noiseFractalPower.allowedUpdates:['constant', 'set every repeat', 'set every frame']
 NoiseStimComponent.noiseFractalPower.allowedVals:[]
-NoiseStimComponent.noiseFractalPower.categ:Filtered
-NoiseStimComponent.noiseFractalPower.hint:Exponent for spectral slope (A=f^Exponent) of noise negative exponents look nice. -1='pink noise', 0='white noise' (changes the spatial frequency spectrum - does not make the noise colourful)
+NoiseStimComponent.noiseFractalPower.categ:Filtered (Butterworth)
+NoiseStimComponent.noiseFractalPower.hint:Exponent for the slope of the filter's amplitude spectrum (A=f^Exponent). 0 = flat, -1 = slope of 1/f. When used on its own the 'filtered' noise type applies the filter to white noise so the resulting noise samples have the spectral properties of the filter.  When filtering a noise sample of another type this term takes the original spectrum and multiplies it by a ramp in frequency space with values set by the exponent. It does not force the spectrum to a specific slope. 
 NoiseStimComponent.noiseFractalPower.label:Skew in frequency spectrum
 NoiseStimComponent.noiseFractalPower.readOnly:False
 NoiseStimComponent.noiseFractalPower.staticUpdater:None
@@ -3166,6 +3382,18 @@ NoiseStimComponent.noiseNewSampleWhen.staticUpdater:None
 NoiseStimComponent.noiseNewSampleWhen.updates:constant
 NoiseStimComponent.noiseNewSampleWhen.val:1
 NoiseStimComponent.noiseNewSampleWhen.valType:str
+NoiseStimComponent.noiseOri.default:0.0
+NoiseStimComponent.noiseOri.allowedTypes:[]
+NoiseStimComponent.noiseOri.allowedUpdates:['constant', 'set every repeat', 'set every frame']
+NoiseStimComponent.noiseOri.allowedVals:[]
+NoiseStimComponent.noiseOri.categ:Gabor/Isotropic
+NoiseStimComponent.noiseOri.hint:Orientation of Gabor filter in degrees. Used to set the orienation of a Gabor filter to be applied to another noise sample with a different overall orientation. The best way to set the orientation of a Gabor noise sample is to leave this as 0 degree and use the overall orientation on the Advanced tab to vary the dominant orientation of the noise. If using this setting for orientation it is strongly recomended to set the interpolation method to 'linear' on the Advanced tab to avoid pixelization.
+NoiseStimComponent.noiseOri.label:Orientation for Gabor filter
+NoiseStimComponent.noiseOri.readOnly:False
+NoiseStimComponent.noiseOri.staticUpdater:None
+NoiseStimComponent.noiseOri.updates:constant
+NoiseStimComponent.noiseOri.val:0.0
+NoiseStimComponent.noiseOri.valType:code
 NoiseStimComponent.noiseType.default:'Binary'
 NoiseStimComponent.noiseType.allowedTypes:[]
 NoiseStimComponent.noiseType.allowedUpdates:[]
@@ -3207,7 +3435,7 @@ NoiseStimComponent.phase.allowedTypes:[]
 NoiseStimComponent.phase.allowedUpdates:['constant', 'set every repeat', 'set every frame']
 NoiseStimComponent.phase.allowedVals:[]
 NoiseStimComponent.phase.categ:Advanced
-NoiseStimComponent.phase.hint:Spatial positioning of the image  (wraps in range 0-1.0)
+NoiseStimComponent.phase.hint:Spatial positioning of the noise within the stimulus (wraps in range 0-1.0)
 NoiseStimComponent.phase.label:Phase (in cycles)
 NoiseStimComponent.phase.readOnly:False
 NoiseStimComponent.phase.staticUpdater:None
@@ -3243,7 +3471,7 @@ NoiseStimComponent.sf.allowedTypes:[]
 NoiseStimComponent.sf.allowedUpdates:['constant', 'set every repeat', 'set every frame']
 NoiseStimComponent.sf.allowedVals:[]
 NoiseStimComponent.sf.categ:Advanced
-NoiseStimComponent.sf.hint:Final spatial frequency of image in 1 or 2 dimensions, e.g. 4 or [2,3] use None to set to 1 cycle per unit length or 1 cycle per image if units=pix
+NoiseStimComponent.sf.hint:Final spatial frequency of image in 1 or 2 dimensions, e.g. 4 or [2,3]. Use None to set to 1 copy of noise per unit length of image or 1 copy of noise per image if units=pix. Set to 1/size (or [1/size,1/size]) where size is a number (or variable) equal to the size of the stimulus to get one copy of noise per image regardless of the units.
 NoiseStimComponent.sf.label:Final spatial frequency
 NoiseStimComponent.sf.readOnly:False
 NoiseStimComponent.sf.staticUpdater:None
@@ -3337,7 +3565,7 @@ NoiseStimComponent.syncScreenRefresh.valType:bool
 NoiseStimComponent.texture resolution.default:128
 NoiseStimComponent.texture resolution.allowedTypes:[]
 NoiseStimComponent.texture resolution.allowedUpdates:[]
-NoiseStimComponent.texture resolution.allowedVals:['32', '64', '128', '256', '512']
+NoiseStimComponent.texture resolution.allowedVals:['32', '64', '128', '256', '512', '1024']
 NoiseStimComponent.texture resolution.categ:Advanced
 NoiseStimComponent.texture resolution.hint:Resolution of the texture for standard ones such as sin, sqr etc. For most cases a value of 256 pixels will suffice
 NoiseStimComponent.texture resolution.label:Texture resolution
@@ -3362,7 +3590,7 @@ ParallelOutComponent.order:['address', 'startData', 'stopData']
 ParallelOutComponent.address.default:'0x0378'
 ParallelOutComponent.address.allowedTypes:[]
 ParallelOutComponent.address.allowedUpdates:None
-ParallelOutComponent.address.allowedVals:['0x0378', '0x03BC', '/dev/parport0', '/dev/parport1', 'LabJack U3']
+ParallelOutComponent.address.allowedVals:['0x0378', '0x03BC', 'LabJack U3']
 ParallelOutComponent.address.categ:Basic
 ParallelOutComponent.address.hint:Parallel port to be used (you can change these options in preferences>general)
 ParallelOutComponent.address.label:Port address
@@ -4079,6 +4307,210 @@ PolygonComponent.units.staticUpdater:None
 PolygonComponent.units.updates:None
 PolygonComponent.units.val:from exp settings
 PolygonComponent.units.valType:str
+QmixPumpComponent.order:['pumpIndex', 'syringeType', 'pumpAction', 'flowRate', 'flowRateUnit', 'switchValveWhenDone', 'syncToScreen']
+QmixPumpComponent.disabled.default:False
+QmixPumpComponent.disabled.allowedTypes:[]
+QmixPumpComponent.disabled.allowedUpdates:None
+QmixPumpComponent.disabled.allowedVals:[]
+QmixPumpComponent.disabled.categ:Testing
+QmixPumpComponent.disabled.hint:Disable this component
+QmixPumpComponent.disabled.label:Disable component
+QmixPumpComponent.disabled.readOnly:False
+QmixPumpComponent.disabled.staticUpdater:None
+QmixPumpComponent.disabled.updates:None
+QmixPumpComponent.disabled.val:False
+QmixPumpComponent.disabled.valType:bool
+QmixPumpComponent.durationEstim.default:
+QmixPumpComponent.durationEstim.allowedTypes:[]
+QmixPumpComponent.durationEstim.allowedUpdates:None
+QmixPumpComponent.durationEstim.allowedVals:[]
+QmixPumpComponent.durationEstim.categ:Basic
+QmixPumpComponent.durationEstim.hint:(Optional) expected duration (s), purely for representing in the timeline
+QmixPumpComponent.durationEstim.label:Expected duration (s)
+QmixPumpComponent.durationEstim.readOnly:False
+QmixPumpComponent.durationEstim.staticUpdater:None
+QmixPumpComponent.durationEstim.updates:None
+QmixPumpComponent.durationEstim.val:
+QmixPumpComponent.durationEstim.valType:code
+QmixPumpComponent.flowRate.default:1.0
+QmixPumpComponent.flowRate.allowedTypes:[]
+QmixPumpComponent.flowRate.allowedUpdates:None
+QmixPumpComponent.flowRate.allowedVals:[]
+QmixPumpComponent.flowRate.categ:Basic
+QmixPumpComponent.flowRate.hint:The flow rate
+QmixPumpComponent.flowRate.label:Flow rate
+QmixPumpComponent.flowRate.readOnly:False
+QmixPumpComponent.flowRate.staticUpdater:None
+QmixPumpComponent.flowRate.updates:None
+QmixPumpComponent.flowRate.val:1.0
+QmixPumpComponent.flowRate.valType:code
+QmixPumpComponent.flowRateUnit.default:'mL/s'
+QmixPumpComponent.flowRateUnit.allowedTypes:[]
+QmixPumpComponent.flowRateUnit.allowedUpdates:None
+QmixPumpComponent.flowRateUnit.allowedVals:['mL/s', 'mL/min']
+QmixPumpComponent.flowRateUnit.categ:Basic
+QmixPumpComponent.flowRateUnit.hint:The unit of the flow rate
+QmixPumpComponent.flowRateUnit.label:Flow rate unit
+QmixPumpComponent.flowRateUnit.readOnly:False
+QmixPumpComponent.flowRateUnit.staticUpdater:None
+QmixPumpComponent.flowRateUnit.updates:None
+QmixPumpComponent.flowRateUnit.val:mL/s
+QmixPumpComponent.flowRateUnit.valType:str
+QmixPumpComponent.name.default:pump
+QmixPumpComponent.name.allowedTypes:[]
+QmixPumpComponent.name.allowedUpdates:None
+QmixPumpComponent.name.allowedVals:[]
+QmixPumpComponent.name.categ:Basic
+QmixPumpComponent.name.hint:Name of this component (alpha-numeric or _, no spaces)
+QmixPumpComponent.name.label:Name
+QmixPumpComponent.name.readOnly:False
+QmixPumpComponent.name.staticUpdater:None
+QmixPumpComponent.name.val:pump
+QmixPumpComponent.name.valType:code
+QmixPumpComponent.pumpAction.default:'dispense'
+QmixPumpComponent.pumpAction.allowedTypes:[]
+QmixPumpComponent.pumpAction.allowedUpdates:None
+QmixPumpComponent.pumpAction.allowedVals:['aspirate', 'dispense']
+QmixPumpComponent.pumpAction.categ:Basic
+QmixPumpComponent.pumpAction.hint:Whether the syringe should be filled (aspirate) or emptied (dispense
+QmixPumpComponent.pumpAction.label:Pump action
+QmixPumpComponent.pumpAction.readOnly:False
+QmixPumpComponent.pumpAction.staticUpdater:None
+QmixPumpComponent.pumpAction.updates:None
+QmixPumpComponent.pumpAction.val:dispense
+QmixPumpComponent.pumpAction.valType:str
+QmixPumpComponent.pumpIndex.default:0
+QmixPumpComponent.pumpIndex.allowedTypes:[]
+QmixPumpComponent.pumpIndex.allowedUpdates:None
+QmixPumpComponent.pumpIndex.allowedVals:[]
+QmixPumpComponent.pumpIndex.categ:Basic
+QmixPumpComponent.pumpIndex.hint:The index of the pump(s) (first pump is 0).
+QmixPumpComponent.pumpIndex.label:Pump index
+QmixPumpComponent.pumpIndex.readOnly:False
+QmixPumpComponent.pumpIndex.staticUpdater:None
+QmixPumpComponent.pumpIndex.updates:None
+QmixPumpComponent.pumpIndex.val:0
+QmixPumpComponent.pumpIndex.valType:code
+QmixPumpComponent.saveStartStop.default:True
+QmixPumpComponent.saveStartStop.allowedTypes:[]
+QmixPumpComponent.saveStartStop.allowedUpdates:None
+QmixPumpComponent.saveStartStop.allowedVals:[]
+QmixPumpComponent.saveStartStop.categ:Data
+QmixPumpComponent.saveStartStop.hint:Store the onset/offset times in the data file (as well as in the log file).
+QmixPumpComponent.saveStartStop.label:Save onset/offset times
+QmixPumpComponent.saveStartStop.readOnly:False
+QmixPumpComponent.saveStartStop.staticUpdater:None
+QmixPumpComponent.saveStartStop.updates:None
+QmixPumpComponent.saveStartStop.val:True
+QmixPumpComponent.saveStartStop.valType:bool
+QmixPumpComponent.startEstim.default:
+QmixPumpComponent.startEstim.allowedTypes:[]
+QmixPumpComponent.startEstim.allowedUpdates:None
+QmixPumpComponent.startEstim.allowedVals:[]
+QmixPumpComponent.startEstim.categ:Basic
+QmixPumpComponent.startEstim.hint:(Optional) expected start (s), purely for representing in the timeline
+QmixPumpComponent.startEstim.label:Expected start (s)
+QmixPumpComponent.startEstim.readOnly:False
+QmixPumpComponent.startEstim.staticUpdater:None
+QmixPumpComponent.startEstim.updates:None
+QmixPumpComponent.startEstim.val:
+QmixPumpComponent.startEstim.valType:code
+QmixPumpComponent.startType.default:'time (s)'
+QmixPumpComponent.startType.allowedTypes:[]
+QmixPumpComponent.startType.allowedUpdates:None
+QmixPumpComponent.startType.allowedVals:['time (s)', 'frame N', 'condition']
+QmixPumpComponent.startType.categ:Basic
+QmixPumpComponent.startType.hint:How do you want to define your start point?
+QmixPumpComponent.startType.label:start type
+QmixPumpComponent.startType.readOnly:False
+QmixPumpComponent.startType.staticUpdater:None
+QmixPumpComponent.startType.updates:None
+QmixPumpComponent.startType.val:time (s)
+QmixPumpComponent.startType.valType:str
+QmixPumpComponent.startVal.default:0.0
+QmixPumpComponent.startVal.allowedTypes:[]
+QmixPumpComponent.startVal.allowedUpdates:None
+QmixPumpComponent.startVal.allowedVals:[]
+QmixPumpComponent.startVal.categ:Basic
+QmixPumpComponent.startVal.hint:When does the component start?
+QmixPumpComponent.startVal.label:Start
+QmixPumpComponent.startVal.readOnly:False
+QmixPumpComponent.startVal.staticUpdater:None
+QmixPumpComponent.startVal.updates:None
+QmixPumpComponent.startVal.val:0.0
+QmixPumpComponent.startVal.valType:code
+QmixPumpComponent.stopType.default:'duration (s)'
+QmixPumpComponent.stopType.allowedTypes:[]
+QmixPumpComponent.stopType.allowedUpdates:None
+QmixPumpComponent.stopType.allowedVals:['duration (s)', 'duration (frames)', 'time (s)', 'frame N', 'condition']
+QmixPumpComponent.stopType.categ:Basic
+QmixPumpComponent.stopType.hint:How do you want to define your end point?
+QmixPumpComponent.stopType.label:stop type
+QmixPumpComponent.stopType.readOnly:False
+QmixPumpComponent.stopType.staticUpdater:None
+QmixPumpComponent.stopType.updates:None
+QmixPumpComponent.stopType.val:duration (s)
+QmixPumpComponent.stopType.valType:str
+QmixPumpComponent.stopVal.default:1.0
+QmixPumpComponent.stopVal.allowedTypes:[]
+QmixPumpComponent.stopVal.allowedUpdates:[]
+QmixPumpComponent.stopVal.allowedVals:[]
+QmixPumpComponent.stopVal.categ:Basic
+QmixPumpComponent.stopVal.hint:When does the component end? (blank is endless)
+QmixPumpComponent.stopVal.label:Stop
+QmixPumpComponent.stopVal.readOnly:False
+QmixPumpComponent.stopVal.staticUpdater:None
+QmixPumpComponent.stopVal.updates:constant
+QmixPumpComponent.stopVal.val:1.0
+QmixPumpComponent.stopVal.valType:code
+QmixPumpComponent.switchValveWhenDone.default:True
+QmixPumpComponent.switchValveWhenDone.allowedTypes:[]
+QmixPumpComponent.switchValveWhenDone.allowedUpdates:None
+QmixPumpComponent.switchValveWhenDone.allowedVals:[True, False]
+QmixPumpComponent.switchValveWhenDone.categ:Basic
+QmixPumpComponent.switchValveWhenDone.hint:Switch the valve after pump operation
+QmixPumpComponent.switchValveWhenDone.label:Switch valve after dosing
+QmixPumpComponent.switchValveWhenDone.readOnly:False
+QmixPumpComponent.switchValveWhenDone.staticUpdater:None
+QmixPumpComponent.switchValveWhenDone.updates:None
+QmixPumpComponent.switchValveWhenDone.val:True
+QmixPumpComponent.switchValveWhenDone.valType:bool
+QmixPumpComponent.syncScreenRefresh.default:False
+QmixPumpComponent.syncScreenRefresh.allowedTypes:[]
+QmixPumpComponent.syncScreenRefresh.allowedUpdates:None
+QmixPumpComponent.syncScreenRefresh.allowedVals:[]
+QmixPumpComponent.syncScreenRefresh.categ:Data
+QmixPumpComponent.syncScreenRefresh.hint:Synchronize times with screen refresh (good for visual stimuli and responses based on them)
+QmixPumpComponent.syncScreenRefresh.label:Sync timing with screen refresh
+QmixPumpComponent.syncScreenRefresh.readOnly:False
+QmixPumpComponent.syncScreenRefresh.staticUpdater:None
+QmixPumpComponent.syncScreenRefresh.updates:None
+QmixPumpComponent.syncScreenRefresh.val:False
+QmixPumpComponent.syncScreenRefresh.valType:bool
+QmixPumpComponent.syncToScreen.default:True
+QmixPumpComponent.syncToScreen.allowedTypes:[]
+QmixPumpComponent.syncToScreen.allowedUpdates:None
+QmixPumpComponent.syncToScreen.allowedVals:[True, False]
+QmixPumpComponent.syncToScreen.categ:Basic
+QmixPumpComponent.syncToScreen.hint:Sync pump onset to the screen refresh
+QmixPumpComponent.syncToScreen.label:Sync to screen
+QmixPumpComponent.syncToScreen.readOnly:False
+QmixPumpComponent.syncToScreen.staticUpdater:None
+QmixPumpComponent.syncToScreen.updates:None
+QmixPumpComponent.syncToScreen.val:True
+QmixPumpComponent.syncToScreen.valType:bool
+QmixPumpComponent.syringeType.default:'50 mL glass'
+QmixPumpComponent.syringeType.allowedTypes:[]
+QmixPumpComponent.syringeType.allowedUpdates:None
+QmixPumpComponent.syringeType.allowedVals:['25 mL glass', '50 mL glass']
+QmixPumpComponent.syringeType.categ:Basic
+QmixPumpComponent.syringeType.hint:Syringe type and dimensions
+QmixPumpComponent.syringeType.label:Syringe type
+QmixPumpComponent.syringeType.readOnly:False
+QmixPumpComponent.syringeType.staticUpdater:None
+QmixPumpComponent.syringeType.updates:None
+QmixPumpComponent.syringeType.val:50 mL glass
+QmixPumpComponent.syringeType.valType:str
 RatingScaleComponent.order:['name', 'visualAnalogScale', 'categoryChoices', 'scaleDescription', 'low', 'high', 'labels', 'markerStart', 'size', 'pos', 'tickHeight']
 RatingScaleComponent.categoryChoices.default:''
 RatingScaleComponent.categoryChoices.allowedTypes:[]
@@ -4661,7 +5093,7 @@ SettingsComponent.Units.valType:str
 SettingsComponent.Use version.default:''
 SettingsComponent.Use version.allowedTypes:[]
 SettingsComponent.Use version.allowedUpdates:None
-SettingsComponent.Use version.allowedVals:['latest', '3', '3.1', '', '3.1.0']
+SettingsComponent.Use version.allowedVals:['latest', '3', '3.0', '1.90', '', '3.0.7', '3.0.6', '3.0.5', '3.0.4', '3.0.3', '3.0.2', '3.0.1', '3.0.0', '1.90.2', '1.90.1', '1.90.0']
 SettingsComponent.Use version.categ:Basic
 SettingsComponent.Use version.hint:The version of PsychoPy to use when running the experiment.
 SettingsComponent.Use version.label:Use PsychoPy version

@@ -232,7 +232,9 @@ class Keyboard:
     def clearEvents(self, eventType=None):
         if havePTB:
             for buffer in self._buffers.values():
-                buffer._clearEvents()
+                buffer._evts.clear()
+                buffer._keys.clear()
+                buffer._keysStillDown.clear()
         else:
             event.clearEvents(eventType)
 
@@ -383,7 +385,7 @@ class _KeyBuffer(object):
             else:
                 for key in self._keysStillDown:
                     if key.code == evt['keycode']:
-                        key.duration = key.tDown - evt['time']
+                        key.duration = evt['time'] - key.tDown
                         self._keysStillDown.remove(key)
                         break  # this key is done
                     else:
@@ -412,7 +414,7 @@ keyNamesWin = {
     37: 'left', 40: 'down', 38: 'up', 39: 'right', 27: 'escape',
     144: 'numlock', 111: 'num_divide', 106: 'num_multiply',
     8: 'backspace', 109: 'num_subtract', 107: 'num_add',
-    13: 'num_enter', 222: 'pound', 161: 'lshift', 163: 'rctrl',
+    13: 'return', 222: 'pound', 161: 'lshift', 163: 'rctrl',
     92: 'rwindows', 32: 'space', 164: 'lalt', 165: 'ralt',
     91: 'lwindows', 93: 'menu', 162: 'lctrl', 160: 'lshift',
     20: 'capslock', 9: 'tab', 223: 'quoteleft', 220: 'backslash',

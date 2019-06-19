@@ -496,7 +496,8 @@ class _BaseParamsDlg(wx.Dialog):
                       'Envelope': _translate('Envelope'),
                       'Appearance': _translate('Appearance'),
                       'Save': _translate('Save'),
-                      'Online':_translate('Online')}
+                      'Online':_translate('Online'),
+                      'Testing':_translate('Testing')}
         for categName in categNames:
             theseParams = categs[categName]
             page = wx.Panel(self.ctrls, -1)
@@ -1313,9 +1314,10 @@ class DlgLoopProperties(_BaseParamsDlg):
             elif fieldName == 'conditions':
                 if 'conditions' in handler.params:
                     _cond = handler.params['conditions'].val
-                    text = self.getTrialsSummary(_cond)
+                    text, OK = self.getTrialsSummary(_cond)
                 else:
                     text = _translate("No parameters set")
+                    OK = True # No condition file is not an error
                 # we'll create our own widgets
                 ctrls = ParamCtrls(dlg=self, parent=panel, label=label,
                                    fieldName=fieldName,
@@ -1323,6 +1325,10 @@ class DlgLoopProperties(_BaseParamsDlg):
                 size = wx.Size(350, 50)
                 ctrls.valueCtrl = wx.StaticText(
                     panel, label=text, size=size, style=wx.ALIGN_CENTER)
+                if OK:
+                    ctrls.valueCtrl.SetForegroundColour("Black")
+                else:
+                    ctrls.valueCtrl.SetForegroundColour("Red")
                 panelSizer.Add(ctrls.valueCtrl, (row, 0),
                                span=(1, 3), flag=wx.ALIGN_CENTER)
                 row += 1
@@ -1383,11 +1389,12 @@ class DlgLoopProperties(_BaseParamsDlg):
                 row += 1
             elif fieldName == 'conditions':
                 if 'conditions' in handler.params:
-                    text = self.getTrialsSummary(
+                    text, OK = self.getTrialsSummary(
                         handler.params['conditions'].val)
                 else:
                     text = _translate(
                         "No parameters set (select a file above)")
+                    OK = False
                 # we'll create our own widgets
                 ctrls = ParamCtrls(dlg=self, parent=panel, label=label,
                                    fieldName=fieldName,
@@ -1395,6 +1402,10 @@ class DlgLoopProperties(_BaseParamsDlg):
                 size = wx.Size(350, 50)
                 ctrls.valueCtrl = wx.StaticText(panel, label=text, size=size,
                                                 style=wx.ALIGN_CENTER)
+                if OK:
+                    ctrls.valueCtrl.SetForegroundColour("Black")
+                else:
+                    ctrls.valueCtrl.SetForegroundColour("Red")
                 panelSizer.Add(ctrls.valueCtrl, (row, 0),
                                span=(1, 3), flag=wx.ALIGN_CENTER)
                 row += 1
@@ -1459,12 +1470,13 @@ class DlgLoopProperties(_BaseParamsDlg):
             vals = {'nCondition': len(conditions),
                     'nParam': len(conditions[0]),
                     'paramStr': paramStr}
-            return msg % vals
+            return msg % vals, True
         else:
             if (self.conditionsFile and
                     not os.path.isfile(self.conditionsFile)):
-                return _translate("No parameters set (conditionsFile not found)")
-            return _translate("No parameters set")
+                return _translate("No parameters set (conditionsFile not found)"), False
+            # No condition file is not an error
+            return _translate("No parameters set"), True
 
     def viewConditions(self, event):
         """display Condition x Parameter values from within a file
@@ -1557,25 +1569,38 @@ class DlgLoopProperties(_BaseParamsDlg):
                                                returnFieldNames=True)
                 self.conditions, self.condNamesInFile = _c, _n
                 needUpdate = True
-            except ImportError as msg:
+            except (ImportError, ValueError) as msg:
                 msg = str(msg)
                 if msg.startswith('Could not open'):
                     msg = _translate('Could not read conditions from:\n')
                     _file = newFullPath.split(os.path.sep)[-1]
                     self.currentCtrls['conditions'].setValue(msg + _file)
+                    self.currentCtrls['conditions'].valueCtrl.SetForegroundColour("Red")
                     logging.error(
                         'Could not open as a conditions file: %s' % newFullPath)
                 else:
-                    m2 = msg.replace('Conditions file ', '')
-                    sep2 = os.linesep * 2
+                    mo = re.search('".+\.[0-9]+"$', msg)
+                    if 'cannot contain punctuation or spaces' in msg and mo:
+                        # column name is something like "stim.1", which may
+                        # be in conditionsFile or generated by pandas when
+                        # duplicated column names are found.
+                        m2 = 'Parameters (column headers) cannot contain dots' \
+                             ' or be duplicated.'
+                    else:
+                        # other exceptions
+                        sep2 = os.linesep * 2
+                        m2 = msg.replace(
+                            'Conditions file ','').replace(': ', sep2)
+                    # Display error message dialog
                     _title = _translate(
                         'Configuration error in conditions file')
                     dlgErr = dialogs.MessageDialog(
-                        parent=self.frame, message=m2.replace(': ', sep2),
+                        parent=self.frame, message=m2,
                         type='Info', title=_title).ShowModal()
                     msg = _translate('Bad condition name(s) in file:\n')
                     val = msg + newFullPath.split(os.path.sep)[-1]
                     self.currentCtrls['conditions'].setValue(val)
+                    self.currentCtrls['conditions'].valueCtrl.SetForegroundColour("Red")
                     msg = 'Rejected bad condition name(s) in file: %s'
                     logging.error(msg % newFullPath)
                 self.conditionsFile = self.conditionsFileOrig
@@ -1588,9 +1613,10 @@ class DlgLoopProperties(_BaseParamsDlg):
                 if condName in self.exp.namespace.builder:
                     builderVariables.append(condName)
             if builderVariables:
-                msg = _translate('Builder variable(s) ({}) in file:{}'.format(
-                    ','.join(builderVariables), newFullPath.split(os.path.sep)[-1]))
+                msg = _translate('Builder variable(s) ({}) in file:{}').format(
+                    ','.join(builderVariables), newFullPath.split(os.path.sep)[-1])
                 self.currentCtrls['conditions'].setValue(msg)
+                self.currentCtrls['conditions'].valueCtrl.SetForegroundColour("Red")
                 msg = 'Rejected Builder variable(s) ({}) in file:{}'.format(
                     ','.join(builderVariables), newFullPath.split(os.path.sep)[-1])
                 logging.error(msg)
@@ -1618,6 +1644,7 @@ class DlgLoopProperties(_BaseParamsDlg):
                            ':\n[' + duplCondNamesStr + ']\nProceed'
                            ' anyway? (= safe if these are in old file)')
                     self.currentCtrls['conditions'].setValue(val)
+                    self.currentCtrls['conditions'].valueCtrl.SetForegroundColour("Red")
                     msg = ('Duplicate condition names, different '
                            'conditions file: %s')
                     logging.warning(msg % duplCondNamesStr)
@@ -1630,8 +1657,12 @@ class DlgLoopProperties(_BaseParamsDlg):
                     or ('conditionsFile' in list(self.currentCtrls.keys())
                         and not duplCondNames)):
                 self.currentCtrls['conditionsFile'].setValue(newPath)
-                self.currentCtrls['conditions'].setValue(
-                    self.getTrialsSummary(self.conditions))
+                msg, OK = self.getTrialsSummary(self.conditions)
+                self.currentCtrls['conditions'].setValue(msg)
+                if OK:
+                    self.currentCtrls['conditions'].valueCtrl.SetForegroundColour("Black")
+                else:
+                    self.currentCtrls['conditions'].valueCtrl.SetForegroundColour("Red")
 
     def getParams(self):
         """Retrieves data and re-inserts it into the handler and returns
@@ -1672,15 +1703,20 @@ class DlgLoopProperties(_BaseParamsDlg):
                 try:
                     self.conditions = data.importConditions(
                         self.conditionsFile)
-                    self.currentCtrls['conditions'].setValue(
-                        self.getTrialsSummary(self.conditions))
-                except ImportError as e:
+                    msg, OK = self.getTrialsSummary(self.conditions)
+                    self.currentCtrls['conditions'].setValue(msg)
+                    if OK:
+                        self.currentCtrls['conditions'].valueCtrl.SetForegroundColour("Black")
+                    else:
+                        self.currentCtrls['conditions'].valueCtrl.SetForegroundColour("Red")
+                except (ImportError, ValueError) as e:
                     msg1 = _translate(
                         'Badly formed condition name(s) in file:\n')
                     msg2 = _translate('.\nNeed to be legal as var name; '
                                       'edit file, try again.')
                     val = msg1 + str(e).replace(':', '\n') + msg2
                     self.currentCtrls['conditions'].setValue(val)
+                    self.currentCtrls['conditions'].valueCtrl.SetForegroundColour("Red")
                     self.conditions = ''
                     msg3 = 'Reject bad condition name in conditions file: %s'
                     logging.error(msg3 % str(e).split(':')[0])
@@ -1688,6 +1724,7 @@ class DlgLoopProperties(_BaseParamsDlg):
                 self.conditions = None
                 self.currentCtrls['conditions'].setValue(_translate(
                     "No parameters set (conditionsFile not found)"))
+                self.currentCtrls['conditions'].valueCtrl.SetForegroundColour("Red")
         else:
             msg = ('DlgLoop: could not determine if a condition'
                    ' filename was edited')

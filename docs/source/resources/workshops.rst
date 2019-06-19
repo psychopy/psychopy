@@ -3,11 +3,7 @@
 PsychoPy official workshops
 ===============================
 
-The following workshop is currently planned for **2019**:
-
- - 30 Apr - 2 May 2019 (inclusive): :ref:`PEP1`
-
-You can now `book your place on this 3 day Python workshop <https://store.nottingham.ac.uk/conferences-and-events/conferences/schools-and-departments/psychology/pep-2019-programming-experiments-in-python-beginners>`_
+We typically run PsychoPy workshops at University of Nottingham in the Easter break.
 
 Do you want to get started using Python_ (and PsychoPy_) for your studies in behavioural sciences? Maybe you keep meaning to switch from another applications and haven't gotten around to it. These workshops, run by the creators of PsychoPy, will get you off the ground with building and analysing your experiments using Python.
 
@@ -33,7 +29,7 @@ PEP1: Programming Experiments in Python (Beginners)
 Details
 ~~~~~~~~~~~~
 
-    :When: 30 Apr - 2 May 2019 (inclusive)
+    :When: Typically in the Easter break (check back in Oct for final dates)
     :Where: School of Psychology, University of Nottingham
     :Cost: £350
     :Includes: Refreshments and lunch. There is an accommodation package too, costing £53 per night including bed, full breakfast and free wifi

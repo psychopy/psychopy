@@ -1,8 +1,8 @@
 ﻿#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-This experiment was created using PsychoPy3 Experiment Builder (v3.1.0),
-    on Thu Apr  4 17:01:10 2019
+This experiment was created using PsychoPy3 Experiment Builder (v3.1.1),
+    on Thu May  9 17:56:55 2019
 If you publish work using this script please cite the PsychoPy publications:
     Peirce, JW (2007) PsychoPy - Psychophysics software in Python.
         Journal of Neuroscience Methods, 162(1-2), 8-13.
@@ -24,14 +24,14 @@ import sys  # to get file system encoding
 from psychopy.hardware import keyboard
 
 # Ensure that relative paths start from the same directory as this script
-_thisDir = os.path.dirname(os.path.abspath(__file__)).decode(sys.getfilesystemencoding())
+_thisDir = os.path.dirname(os.path.abspath(__file__))
 os.chdir(_thisDir)
 
 # Store info about the experiment session
-psychopyVersion = '3.1.0'
+psychopyVersion = '3.1.1'
 expName = 'untitled.py'
-expInfo = {'session': '001', 'participant': ''}
-dlg = gui.DlgFromDict(dictionary=expInfo, title=expName)
+expInfo = {'participant': '', 'session': '001'}
+dlg = gui.DlgFromDict(dictionary=expInfo, sortKeys=False, title=expName)
 if dlg.OK == False:
     core.quit()  # user pressed cancel
 expInfo['date'] = data.getDateStr()  # add a simple timestamp
@@ -74,11 +74,16 @@ trialClock = core.Clock()
 noise = visual.NoiseStim(
     win=win, name='noise',
     noiseImage=None, mask=None,
-    ori=0, pos=(0, 0), size=(0.5, 0.5), sf=None, phase=0.0,
-    color=[1,1,1], colorSpace='rgb', opacity=1, blendmode='avg', contrast=1.0,
-    texRes=128,
-    noiseType='Binary', noiseElementSize=0.0625, noiseBaseSf=8.0,
-    noiseBW=1, noiseBWO=1, noiseFractalPower=0.0,noiseFilterLower=1.0, noiseFilterUpper=8.0, noiseFilterOrder=0.0, noiseClip=3.0, interpolate=False, depth=0.0)
+    ori=0, pos=(0, 0), size=(0.5, 0.5), sf=None,
+    phase=0.0,
+    color=[1,1,1], colorSpace='rgb',     opacity=1, blendmode='avg', contrast=1.0,
+    texRes=128, filter=None,
+    noiseType='Binary', noiseElementSize=0.0625, 
+    noiseBaseSf=8.0, noiseBW=1,
+    noiseBWO=30, noiseOri=0.0,
+    noiseFractalPower=0.0,noiseFilterLower=1.0,
+    noiseFilterUpper=8.0, noiseFilterOrder=0.0,
+    noiseClip=3.0, imageComponent='Phase', interpolate=False, depth=0.0)
 noise.buildNoise()
 
 # Create some handy timers

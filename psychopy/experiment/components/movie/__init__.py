@@ -22,6 +22,8 @@ _localized = {'movie': _translate('Movie file'),
               'backend': _translate('backend'),
               'No audio': _translate('No audio')}
 
+if _localized['backend'] == 'backend': # this is the only non-capitals label
+    _localized['backend'] = 'Backend'
 
 class MovieComponent(BaseVisualComponent):
     """An event class for presenting movie-based stimuli"""
@@ -33,6 +35,7 @@ class MovieComponent(BaseVisualComponent):
                  stopType='duration (s)', stopVal=1.0,
                  startEstim='', durationEstim='',
                  forceEndRoutine=False, backend='moviepy',
+                 loop=False,
                  noAudio=False):
         super(MovieComponent, self).__init__(
             exp, parentName, name=name, units=units,
@@ -44,7 +47,7 @@ class MovieComponent(BaseVisualComponent):
         self.type = 'Movie'
         self.url = "http://www.psychopy.org/builder/components/movie.html"
         # comes immediately after name and timing params
-        self.order = ['forceEndRoutine']
+        self.order = ['movie', 'backend', 'No audio', 'loop', 'forceEndRoutine']
         self.targets = ['PsychoPy', 'PsychoJS']
 
         # params
@@ -81,6 +84,13 @@ class MovieComponent(BaseVisualComponent):
             updates='constant', allowedUpdates=[],
             hint=msg,
             label=_localized['forceEndRoutine'])
+
+        msg = _translate("Whether the movie should loop back to the beginning "
+                         "on completion.")
+        self.params['loop'] = Param(
+            loop, valType='bool',
+            hint=msg,
+            label=_translate('Loop playback'))
 
         # these are normally added but we don't want them for a movie
         del self.params['color']
@@ -120,6 +130,7 @@ class MovieComponent(BaseVisualComponent):
 
         code += ("    filename=%(movie)s,\n"
                  "    ori=%(ori)s, pos=%(pos)s, opacity=%(opacity)s,\n"
+                 "    loop=%(loop)s,\n"
                  % params)
 
         buff.writeIndentedLines(code)
@@ -132,14 +143,14 @@ class MovieComponent(BaseVisualComponent):
                 "    )\n")
         buff.writeIndentedLines(code % depth)
 
-    def writeInitCode(self, buff):
-        # If needed then use _writeCreationCode()
-        # Movie could be created here or in writeRoutineStart()
-        if self.params['movie'].updates == 'constant':
-            # create the code using init vals
-            self._writeCreationCode(buff, useInits=True)
+    def _writeCreationCodeJS(self, buff, useInits):
 
-    def writeInitCodeJS(self, buff):
+        # If we're in writeInitCode then we need to convert params to initVals
+        # because some (variable) params haven't been created yet.
+        if useInits:
+            inits = getInitVals(self.params)
+        else:
+            inits = self.params
 
         if self.params['units'].val == 'from exp settings':
             unitsStr = "'height'"
@@ -149,11 +160,14 @@ class MovieComponent(BaseVisualComponent):
         else:
             unitsStr = "%(units)s" % self.params
 
-        inits = getInitVals(self.params)
+
         noAudio = '{}'.format(inits['No audio'].val).lower()
-        for param in inits:
-            if inits[param] in ['', None, 'None', 'none']:
-                inits[param] = 'undefined'
+        loop = '{}'.format(inits['loop'].val).lower()
+
+        if useInits:
+            for param in inits:
+                if inits[param] in ['', None, 'None', 'none']:
+                    inits[param] = 'undefined'
 
         code = "{name}Clock = new util.Clock();\n".format(**inits)
         buff.writeIndented(code)
@@ -167,17 +181,32 @@ class MovieComponent(BaseVisualComponent):
                 "  size: {size},\n"
                 "  ori: {ori},\n"
                 "  opacity: {opacity},\n"
-                "  loop: false,\n"
+                "  loop: {loop},\n"
                 "  noAudio: {noAudio},\n"
-                "  }});\n").format(name = inits['name'],
-                                movie = inits['movie'],
-                                units = unitsStr,
-                                pos = inits['pos'],
-                                size = inits['size'],
-                                ori = inits['ori'],
-                                opacity = inits['opacity'],
-                                noAudio=noAudio)
+                "  }});\n").format(name=inits['name'],
+                                   movie=inits['movie'],
+                                   units=unitsStr,
+                                   pos=inits['pos'],
+                                   size=inits['size'],
+                                   ori=inits['ori'],
+                                   loop=loop,
+                                   opacity=inits['opacity'],
+                                   noAudio=noAudio)
         buff.writeIndentedLines(code)
+
+    def writeInitCode(self, buff):
+        # If needed then use _writeCreationCode()
+        # Movie could be created here or in writeRoutineStart()
+        if self.params['movie'].updates == 'constant':
+            # create the code using init vals
+            self._writeCreationCode(buff, useInits=True)
+
+    def writeInitCodeJS(self, buff):
+        # If needed then use _writeCreationCodeJS()
+        # Movie could be created here or in writeRoutineStart()
+        if self.params['movie'].updates == 'constant':
+            # create the code using init vals
+            self._writeCreationCodeJS(buff, useInits=True)
 
     def writeRoutineStartCode(self, buff):
         # If needed then use _writeCreationCode()
@@ -185,6 +214,13 @@ class MovieComponent(BaseVisualComponent):
         if self.params['movie'].updates != 'constant':
             # create the code using params, not vals
             self._writeCreationCode(buff, useInits=False)
+
+    def writeRoutineStartCodeJS(self, buff):
+        # If needed then use _writeCreationCode()
+        # Movie could be created here or in writeInitCode()
+        if self.params['movie'].updates != 'constant':
+            # create the code using params, not vals
+            self._writeCreationCodeJS(buff, useInits=False)
 
     def writeFrameCode(self, buff):
         """Write the code that will be called every frame

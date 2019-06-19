@@ -39,7 +39,8 @@ class ExperimentHandler(_ComparisonMixin):
                  savePickle=True,
                  saveWideText=True,
                  dataFileName='',
-                 autoLog=True):
+                 autoLog=True,
+                 appendFiles=False):
         """
         :parameters:
 
@@ -93,6 +94,8 @@ class ExperimentHandler(_ComparisonMixin):
         self._paramNamesSoFar = []
         self.dataNames = []  # names of all the data (eg. resp.keys)
         self.autoLog = autoLog
+        self.appendFiles = appendFiles
+
         if dataFileName in ['', None]:
             logging.warning('ExperimentHandler created with no dataFileName'
                             ' parameter. No data will be saved in the event '
@@ -250,7 +253,7 @@ class ExperimentHandler(_ComparisonMixin):
                        fileName,
                        delim=None,
                        matrixOnly=False,
-                       appendFile=False,
+                       appendFile=None,
                        encoding='utf-8-sig',
                        fileCollisionMethod='rename',
                        sortColumns=False):
@@ -299,6 +302,9 @@ class ExperimentHandler(_ComparisonMixin):
         # set default delimiter if none given
         if delim is None:
             delim = genDelimiter(fileName)
+
+        if appendFile is None:
+            appendFile = self.appendFiles
 
         # create the file or send to stdout
         fileName = genFilenameFromDelimiter(fileName, delim)

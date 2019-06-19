@@ -127,13 +127,13 @@ openWindows = core.openWindows = OpenWinList()  # core needs this for wait()
 class Window(object):
     """Used to set up a context in which to draw objects,
     using either `pyglet <http://www.pyglet.org>`_,
-    `pygame <http://www.pygame.org>`_, or `glfw <https://www.glfw.org/>_`.
+    `pygame <http://www.pygame.org>`_, or `glfw <https://www.glfw.org>`_.
 
     The pyglet backend allows multiple windows to be created, allows the user
     to specify which screen to use (if more than one is available, duh!) and
     allows movies to be rendered.
 
-    The glfw backend is a new addition which provides most of the same features
+    The GLFW backend is a new addition which provides most of the same features
     as pyglet, but provides greater flexibility for complex display
     configurations.
 
@@ -179,84 +179,97 @@ class Window(object):
         for a list of attributes which can be changed after initialization
         of the Window, e.g. color, colorSpace, gamma etc.
 
-        :Parameters:
+        Parameters
+        ----------
+        size : `array-like` of `int`
+            Size of the window in pixels [x, y].
+        pos : `array-like` of `int`
+            Location of the top-left corner of the window on the screen [x, y].
+        color : `array-like` of `float`
+            Color of background as [r, g, b] list or single value. Each gun can
+            take values between -1.0 and 1.0.
+        fullscr : `bool` or `None`
+            Create a window in 'full-screen' mode. Better timing can be achieved
+            in full-screen mode.
+        allowGUI : `bool` or `None`
+            If set to False, window will be drawn with no frame and no buttons
+            to close etc., use `None` for value from preferences.
+        winType : `str` or `None`
+            Set the window type or back-end to use. If `None` then PsychoPy will
+            revert to user/site preferences.
+        monitor : :obj:`~psychopy.monitors.Monitor` or `None`
+            The monitor to be used during the experiment. If `None` a default
+            monitor profile will be used.
+        units : `str` or `None`
+            Defines the default units of stimuli drawn in the window (can be
+            overridden by each stimulus). Values can be *None*, 'height' (of the
+            window), 'norm' (normalised), 'deg', 'cm', 'pix'. See :ref:`units`
+            for explanation of options.
+        screen : `int`
+            Specifies the physical screen that stimuli will appear on ('pyglet'
+            and 'glfw' `winType` only). Values can be >0 if more than one screen
+            is present.
+        viewScale : `array-like` of `float` or `None`
+            Scaling factors [x, y] to apply custom scaling to the current units
+            of the :class:`~psychopy.visual.Window` instance.
+        viewPos : `array-like` of `float` or `None`
+            If not `None`, redefines the origin within the window, in the units
+            of the window. Values outside the borders will be clamped to lie on
+            the border.
+        viewOri : `float`
+            A single value determining the orientation of the view in degrees.
+        waitBlanking : `bool` or `None`
+            After a call to :py:attr:`~Window.flip()` should we wait for the
+            blank before the script continues.
+        bitsMode :
+            DEPRECATED in 1.80.02. Use BitsSharp class from pycrsltd
+            instead.
+        checkTiming : `bool`
+            Whether to calculate frame duration on initialization. Estimated
+            duration is saved in :py:attr:`~Window.monitorFramePeriod`.
+        allowStencil : `bool`
+            When set to `True`, this allows operations that use the OpenGL
+            stencil buffer (notably, allowing the
+            :class:`~psychopy.visual.Aperture` to be used).
+        multiSample : `bool`
+            If `True` and your graphics driver supports multisample buffers,
+            multiple color samples will be taken per-pixel, providing an
+            anti-aliased image through spatial filtering. This setting cannot
+            be changed after opening a window. Only works with 'pyglet' and
+            'glfw' `winTypes`, and `useFBO` is `False`.
+        numSamples : `int`
+            A single value specifying the number of samples per pixel if
+            multisample is enabled. The higher the number, the better the
+            image quality, but can delay frame flipping. The largest number of
+            samples is determined by ``GL_MAX_SAMPLES``, usually 16 or 32 on
+            newer hardware, will crash if number is invalid.
+        stereo : `bool`
+            If `True` and your graphics card supports quad buffers then
+            this will be enabled. You can switch between left and right-eye
+            scenes for drawing operations using
+            :py:attr:`~psychopy.visual.Window.setBuffer()`.
+        useRetina : `bool`
+            In PsychoPy >1.85.3 this should always be `True` as pyglet
+            (or Apple) no longer allows us to create a non-retina display.
+            NB when you use Retina display the initial win size
+            request will be in the larger pixels but subsequent use of
+            ``units='pix'`` should refer to the tiny Retina pixels. Window.size
+            will give the actual size of the screen in Retina pixels.
 
-            size : (800,600)
-                Size of the window in pixels (X,Y)
-            pos : *None* or (x,y)
-                Location of the window on the screen
-            color : [0,0,0]
-                Color of background as [r,g,b] list or single value.
-                Each gun can take values between -1 and 1
-            fullscr : *None*, True or False
-                Better timing can be achieved in full-screen mode
-            allowGUI :  *None*, True or False (if None prefs are used)
-                If set to False, window will be drawn with no frame and
-                no buttons to close etc...
-            winType :  *None*, 'pyglet', 'pygame'
-                If None then PsychoPy will revert to user/site preferences
-            monitor : *None*, string or a `~psychopy.monitors.Monitor` object
-                The monitor to be used during the experiment
-            units :  *None*, 'height' (of the window), 'norm' (normalised),
-                'deg', 'cm', 'pix'
-                Defines the default units of stimuli drawn in the window
-                (can be overridden by each stimulus)
-                See :ref:`units` for explanation of options.
-            screen : *0*, 1 (or higher if you have many screens)
-                Specifies the physical screen that stimuli will appear on
-                (pyglet winType only)
-            viewScale : *None* or [x,y]
-                Can be used to apply a custom scaling to the current units
-                of the :class:`~psychopy.visual.Window`.
-            viewPos : *None*, or [x,y]
-                If not None, redefines the origin within the window, in the
-                ref:`units` of the window. Values outside the borders will be
-                clamped to lie on the border.
-            viewOri : *0* or any numeric value
-                A single value determining the orientation of the view in degs
-            waitBlanking : *None*, True or False.
-                After a call to flip() should we wait for the blank before
-                the script continues
-            bitsMode :
-                DEPRECATED in 1.80.02. Use BitsSharp class from pycrsltd
-                instead.
-            checkTiming: True of False
-                Whether to calculate frame duration on initialization.
-                Estimated duration is saved in [Window].monitorFramePeriod.
-            allowStencil : True or *False*
-                When set to True, this allows operations that use
-                the OpenGL stencil buffer
-                (notably, allowing the class:`~psychopy.visual.Aperture`
-                to be used).
-            multiSample : True or *False*
-                If True and your graphics driver supports multisample buffers,
-                multiple color samples will be taken per-pixel, providing an
-                anti-aliased image through spatial filtering.
-                (Cannot be changed after opening a window, pyglet only)
-            numSamples : *2* or integer >2
-                A single value specifying the number of samples per pixel if
-                multisample is enabled. The higher the number, the better the
-                image quality, but can delay frame flipping.
-                (The largest number of samples is determined by GL_MAX_SAMPLES,
-                usually 16 or 32 on newer hardware, will crash if number
-                is invalid)
-            stereo : True or *False*
-                If True and your graphics card supports quad buffers then
-                this will be enabled.
-                You can switch between left and right-eye scenes for drawing
-                operations using :func:`~psychopy.visual.Window.setBuffer`
-            useRetina : *True* or False
-                In PsychoPy >1.85.3 this should always be True as pyglet
-                (or Apple) no longer allows us to create a non-retina display.
-                NB when you use Retina display the initial win size
-                request will be in the larger pixels but subsequent use of
-                units='pix' should refer to the tiny Retina pixels. Window.size
-                will give the actual size of the screen in Retina pixels
+        Notes
+        -----
+        * Some parameters (e.g. units) can now be given default values in the
+          user/site preferences and these will be used if `None` is given here.
+          If you do specify a value here it will take precedence over
+          preferences.
 
-            :note: Preferences. Some parameters (e.g. units) can now be given
-                default values in the user/site preferences and these will be
-                used if None is given here. If you do specify a value here it
-                will take precedence over preferences.
+        Attributes
+        ----------
+        size : array-like(float)
+            Dimensions of the window's drawing area/buffer in pixels [w, h].
+        monitorFramePeriod : float
+            Refresh rate of the display if ``checkTiming=True`` on window
+            instantiation.
 
         """
         # what local vars are defined (these are the init params) for use by
@@ -348,7 +361,8 @@ class Window(object):
             self._viewMatrix = numpy.identity(4, dtype=numpy.float32)
 
         if not hasattr(self, '_projectionMatrix'):
-            self._projectionMatrix = viewtools.orthoProjectionMatrix(-1, 1, -1, 1, -1, 1)
+            self._projectionMatrix = viewtools.orthoProjectionMatrix(
+                -1, 1, -1, 1, -1, 1)
 
         # set screen color
         self.__dict__['colorSpace'] = colorSpace
@@ -531,7 +545,10 @@ class Window(object):
 
         Can be overridden by each stimulus, if units is specified on
         initialization.
-        See :ref:`units` for explanation of options."""
+
+        See :ref:`units` for explanation of options.
+
+        """
         self.__dict__['units'] = value
 
     def setUnits(self, value, log=True):
@@ -543,9 +560,11 @@ class Window(object):
 
         The value should be given in the units defined for the window. NB:
         Never change a single component (x or y) of the origin, instead replace
-        the viewPos-attribute in one shot, e.g.:
+        the viewPos-attribute in one shot, e.g.::
+
             win.viewPos = [new_xval, new_yval]  # This is the way to do it
             win.viewPos[0] = new_xval  # DO NOT DO THIS! Errors will result.
+
         """
         self.__dict__['viewPos'] = value
         if value is not None:
@@ -568,8 +587,8 @@ class Window(object):
 
     @attributeSetter
     def fullscr(self, value):
-        """Set whether fullscreen mode is True or False (not all backends can
-        toggle an open window)
+        """Set whether fullscreen mode is `True` or `False` (not all backends
+        can toggle an open window).
         """
         self.backend.setFullScr(value)
         self.__dict__['fullscr'] = value
@@ -577,24 +596,36 @@ class Window(object):
 
     @attributeSetter
     def waitBlanking(self, value):
-        """*None*, True or False.
-        After a call to flip() should we wait for the blank before the
-        script continues
+        """After a call to :py:attr:`~Window.flip()` should we wait for the
+        blank before the script continues.
+
         """
         self.__dict__['waitBlanking'] = value
 
     @attributeSetter
     def recordFrameIntervals(self, value):
-        """To provide accurate measures of frame intervals, to determine
-        whether frames are being dropped. The intervals are the times between
-        calls to `.flip()`. Set to `True` only during the time-critical parts
-        of the script. Set this to `False` while the screen is not being
-        updated, i.e., during any slow, non-frame-time-critical sections of
-        your code, including inter-trial-intervals, `event.waitkeys()`,
-        `core.wait()`, or `image.setImage()`.
+        """Record time elapsed per frame.
 
-        see also:
-            Window.saveFrameIntervals()
+        Provides accurate measures of frame intervals to determine
+        whether frames are being dropped. The intervals are the times between
+        calls to :py:attr:`~Window.flip()`. Set to `True` only during the
+        time-critical parts of the script. Set this to `False` while the screen
+        is not being updated, i.e., during any slow, non-frame-time-critical
+        sections of your code, including inter-trial-intervals,
+        ``event.waitkeys()``, ``core.wait()``, or ``image.setImage()``.
+
+        Examples
+        --------
+        Enable frame interval recording, successive frame intervals will be
+        stored::
+
+            win.recordFrameIntervals = True
+
+        Frame intervals can be saved by calling the
+        :py:attr:`~Window.saveFrameIntervals` method::
+
+            win.saveFrameIntervals()
+
         """
         # was off, and now turning it on
         self.recordFrameIntervalsJustTurnedOn = bool(
@@ -612,11 +643,14 @@ class Window(object):
         """Save recorded screen frame intervals to disk, as comma-separated
         values.
 
-        :Parameters:
-
-        fileName : *None* or the filename (including path if necessary) in
-            which to store the data.
-            If None then 'lastFrameIntervals.log' will be used.
+        Parameters
+        ----------
+        fileName : *None* or str
+            *None* or the filename (including path if necessary) in which to
+            store the data. If None then 'lastFrameIntervals.log' will be used.
+        clear : bool
+            Clear buffer frames intervals were stored after saving. Default is
+            `True`.
 
         """
         if not fileName:
@@ -658,18 +692,19 @@ class Window(object):
         # setup retina display if applicable
         global retinaContext
         if retinaContext is not None:
-            view = retinaContext.view()
-            bounds = view.convertRectToBacking_(view.bounds()).size
-            bufferWidth, bufferHeight = (int(bounds.width), int(bounds.height))
+           view = retinaContext.view()
+           bounds = view.convertRectToBacking_(view.bounds()).size
+           bufferWidth, bufferHeight = (int(bounds.width), int(bounds.height))
         else:
-            bufferWidth, bufferHeight = self.size
+           bufferWidth, bufferHeight = self.size
 
         # set these to match the current window or buffer's settings
         GL.glViewport(0, 0, bufferWidth, bufferHeight)
         GL.glScissor(0, 0, bufferWidth, bufferHeight)
+        GL.glEnable(GL.GL_SCISSOR_TEST)
 
         # apply the view transforms for this window
-        self.applyEyeTransform()
+        #self.applyEyeTransform()
 
     def onResize(self, width, height):
         """A default resize event handler.
@@ -688,20 +723,25 @@ class Window(object):
         self.backend.onResize(width, height)
 
     def logOnFlip(self, msg, level, obj=None):
-        """Send a log message that should be time-stamped at the next .flip()
-        command.
+        """Send a log message that should be time-stamped at the next
+        :py:attr:`~Window.flip()` command.
 
-        :parameters:
-            - msg: the message to be logged
-            - level: the level of importance for the message
-            - obj (optional): the python object that might be associated with
-              this message if desired
+        Parameters
+        ----------
+        msg : str
+            The message to be logged.
+        level : int
+            The level of importance for the message.
+        obj : object, optional
+            The python object that might be associated with this message if
+            desired.
+
         """
-
         self._toLog.append({'msg': msg, 'level': level, 'obj': repr(obj)})
 
     def callOnFlip(self, function, *args, **kwargs):
-        """Call a function immediately after the next .flip() command.
+        """Call a function immediately after the next :py:attr:`~Window.flip()`
+        command.
 
         The first argument should be the function to call, the following args
         should be used exactly as you would for your normal call to the
@@ -711,8 +751,8 @@ class Window(object):
 
             pingMyDevice(portToPing, channel=2, level=0)
 
-        then you could call callOnFlip() to have the function call
-        synchronized with the frame flip like this::
+        then you could call :py:attr:`~Window.callOnFlip()` to have the function
+        call synchronized with the frame flip like this::
 
             win.callOnFlip(pingMyDevice, portToPing, channel=2, level=0)
 
@@ -722,28 +762,35 @@ class Window(object):
                              'kwargs': kwargs})
 
     def timeOnFlip(self, obj, attrib):
-        """Retrieves the time on the next flip and assigns it to the attrib
-        for this obj.
+        """Retrieves the time on the next flip and assigns it to the `attrib`
+        for this `obj`.
 
-        usage:
+        Parameters
+        ----------
+        obj : dict or object
+            A mutable object (usually a dict of class instance).
+        attrib : str
+            Key or attribute of `obj` to assign the flip time to.
+
+        Examples
+        --------
+        Assign time on flip to the ``tStartRefresh`` key of ``myTimingDict``::
+
             win.getTimeOnFlip(myTimingDict, 'tStartRefresh')
 
-        :parameters:
-            - obj:
-                must be a mutable object (usually a dict of class instance)
-            - attrib: str
-                if obj has this
         """
         self.callOnFlip(self._assignFlipTime, obj, attrib)
 
     def _assignFlipTime(self, obj, attrib):
         """Helper function to assign the time of last flip to the obj.attrib
 
-        :parameters:
-            - obj:
-                must be a mutable object (usually a dict of class instance)
-            - attrib: str
-                if obj has this
+        Parameters
+        ----------
+        obj : dict or object
+            A mutable object (usually a dict of class instance).
+        attrib : str
+            Key or attribute of ``obj`` to assign the flip time to.
+
         """
         if hasattr(obj, attrib):
             setattr(obj, attrib, self._frameTime)
@@ -766,8 +813,26 @@ class Window(object):
 
     def flip(self, clearBuffer=True):
         """Flip the front and back buffers after drawing everything for your
-        frame. (This replaces the win.update() method, better reflecting what
-        is happening underneath).
+        frame. (This replaces the :py:attr:`~Window.update()` method, better
+        reflecting what is happening underneath).
+
+        Parameters
+        ----------
+        clearBuffer : bool, optional
+            Clear the draw buffer after flipping. Default is `True`.
+
+        Returns
+        -------
+        float or None
+            Wall-clock time in seconds the flip completed. Returns `None` if
+            :py:attr:`~Window.waitBlanking` is `False`.
+
+        Notes
+        -----
+        * The time returned when :py:attr:`~Window.waitBlanking` is `True`
+          corresponds to when the graphics driver releases the draw buffer to
+          accept draw commands again. This time is usually close to the vertical
+          sync signal of the display.
 
         Examples
         --------
@@ -785,7 +850,19 @@ class Window(object):
             for thisStim in self._toDraw:
                 thisStim.draw()
         else:
-            self._setCurrent()
+            self.backend.setCurrent()
+
+            # set these to match the current window or buffer's settings
+            GL.glViewport(0, 0, self.size[0], self.size[1])
+            GL.glScissor(0, 0, self.size[0], self.size[1])
+            GL.glEnable(GL.GL_SCISSOR_TEST)
+
+            # clear the projection and modelview matrix for FBO blit
+            GL.glMatrixMode(GL.GL_PROJECTION)
+            GL.glLoadIdentity()
+            GL.glOrtho(-1, 1, -1, 1, -1, 1)
+            GL.glMatrixMode(GL.GL_MODELVIEW)
+            GL.glLoadIdentity()
 
         flipThisFrame = self._startOfFlip()
         if self.useFBO:
@@ -930,26 +1007,32 @@ class Window(object):
         self.flip(clearBuffer=True)
 
     def multiFlip(self, flips=1, clearBuffer=True):
-        """
-        Flip multiple times while maintaining the display constant.
+        """Flip multiple times while maintaining the display constant.
         Use this method for precise timing.
 
-        WARNING: This function should not be used. See the `Notes` section
+        **WARNING:** This function should not be used. See the `Notes` section
         for details.
 
-        :Parameters:
-
-        flips: int, optional
+        Parameters
+        ----------
+        flips : int, optional
             The number of monitor frames to flip. Floats will be
             rounded to integers, and a warning will be emitted.
             ``Window.multiFlip(flips=1)`` is equivalent to ``Window.flip()``.
             Defaults to `1`.
-
-        clearBuffer: bool, optional
+        clearBuffer : bool, optional
             Whether to clear the screen after the last flip.
             Defaults to `True`.
 
-        Example::
+        Notes
+        -----
+        - This function can behave unpredictably, and the PsychoPy authors
+          recommend against using it. See
+          https://github.com/psychopy/psychopy/issues/867 for more information.
+
+        Examples
+        --------
+        Example of using ``multiFlip``::
 
             # Draws myStim1 to buffer
             myStim1.draw()
@@ -962,12 +1045,6 @@ class Window(object):
             myWin.multiFlip(flips=2)
             # Show blank screen for 3 frames (buffer was cleared above)
             myWin.multiFlip(flips=3)
-
-        :Notes:
-        This function can behave unpredictably, and the PsychoPy authors
-        recommend against using it.
-        See https://github.com/psychopy/psychopy/issues/867 for more
-        information.
 
         """
         if flips < 1:
@@ -996,10 +1073,19 @@ class Window(object):
         graphics card that supports quad buffering (e,g nVidia Quadro series)
 
         PsychoPy always draws to the back buffers, so 'left' will use
-        GL_BACK_LEFT This then needs to be flipped once both eye's buffers
+        ``GL_BACK_LEFT`` This then needs to be flipped once both eye's buffers
         have been rendered.
 
-        Typical usage::
+        Parameters
+        ----------
+        buffer : str
+            Buffer to draw to. Can either be 'left' or 'right'.
+        clear : bool, optional
+            Clear the buffer before drawing. Default is ``True``.
+
+        Examples
+        --------
+        Stereoscopic rendering example using quad-buffers::
 
             win = visual.Window(...., stereo=True)
             while True:
@@ -1069,24 +1155,22 @@ class Window(object):
 
     def setPerspectiveView(self, applyTransform=True, **kwargs):
         """Set the projection and view matrix to render with perspective.
+
         Matrices are computed using values specified in the monitor
         configuration with the scene origin on the screen plane. Calculations
         assume units are in meters.
 
-        Note that the values of 'projectionMatrix' and 'viewMatrix' will be
-        replaced when calling this function.
+        Note that the values of :py:attr:`~Window.projectionMatrix` and
+        :py:attr:`~Window.viewMatrix` will be replaced when calling this
+        function.
 
         Parameters
         ----------
         applyTransform : bool
             Apply transformations after computing them in immediate mode. Same
-            as calling 'applyEyeTransform' afterwards.
+            as calling :py:attr:`~Window.applyEyeTransform()` afterwards.
         **kwargs
-            Additional arguments to pass to 'applyEyeTransform()'
-
-        Returns
-        -------
-        None
+            Additional arguments for :py:attr:`~Window.applyEyeTransform()`.
 
         """
         # NB - we should eventually compute these matrices lazily since they may
@@ -1120,12 +1204,15 @@ class Window(object):
             self.applyEyeTransform(**kwargs)
 
     def applyEyeTransform(self, clearDepth=True):
-        """Apply the current view and projection matrices specified by
-        'viewMatrix' and 'projectionMatrix' using 'immediate mode' OpenGL.
-        Subsequent drawing operations will be affected until 'flip()' is called.
+        """Apply the current view and projection matrices.
 
-        All transformations in GL_PROJECTION and GL_MODELVIEW matrix stacks will
-        be cleared (set to identity) prior to applying.
+        Matrices specified by attributes :py:attr:`~Window.viewMatrix` and
+        :py:attr:`~Window.projectionMatrix` are applied using 'immediate mode'
+        OpenGL functions. Subsequent drawing operations will be affected until
+        :py:attr:`~Window.flip()` is called.
+
+        All transformations in ``GL_PROJECTION`` and ``GL_MODELVIEW`` matrix
+        stacks will be cleared (set to identity) prior to applying.
 
         Parameters
         ----------
@@ -1135,15 +1222,17 @@ class Window(object):
 
         """
         # apply the projection and view transformations
-        GL.glMatrixMode(GL.GL_PROJECTION)
-        projMat = self._projectionMatrix.T.ctypes.data_as(
-            ctypes.POINTER(ctypes.c_float))
-        GL.glLoadMatrixf(projMat)
+        if hasattr(self, '_projectionMatrix'):
+            GL.glMatrixMode(GL.GL_PROJECTION)
+            projMat = self._projectionMatrix.T.ctypes.data_as(
+                ctypes.POINTER(ctypes.c_float))
+            GL.glLoadTransposeMatrixf(projMat)
 
-        GL.glMatrixMode(GL.GL_MODELVIEW)
-        viewMat = self._viewMatrix.T.ctypes.data_as(
-            ctypes.POINTER(ctypes.c_float))
-        GL.glLoadMatrixf(viewMat)
+        if hasattr(self, '_viewMatrix'):
+            GL.glMatrixMode(GL.GL_MODELVIEW)
+            viewMat = self._viewMatrix.T.ctypes.data_as(
+                ctypes.POINTER(ctypes.c_float))
+            GL.glLoadTransposeMatrixf(viewMat)
 
         if clearDepth:
             GL.glClear(GL.GL_DEPTH_BUFFER_BIT)
@@ -1154,22 +1243,19 @@ class Window(object):
         GratingStim, ImageStim, Rect, etc.) if any eye transformations were
         applied for the stimuli to be drawn correctly.
 
-        Returns
-        -------
-        None
-
         Notes
         -----
-        Calling 'flip()' automatically resets the view and projection to
-        defaults. So you don't need to call this unless you are mixing views.
+        * Calling :py:attr:`~Window.flip()` automatically resets the view and
+          projection to defaults. So you don't need to call this unless you are
+          mixing views.
 
         """
         # should eventually have the same effect as calling _onResize(), so we
         # need to add the retina mode stuff eventually
-        if not hasattr(self, '_viewMatrix'):
+        if hasattr(self, '_viewMatrix'):
             self._viewMatrix = numpy.identity(4, dtype=numpy.float32)
 
-        if not hasattr(self, '_projectionMatrix'):
+        if hasattr(self, '_projectionMatrix'):
             self._projectionMatrix = viewtools.orthoProjectionMatrix(
                 -1, 1, -1, 1, -1, 1)
 
@@ -1178,22 +1264,34 @@ class Window(object):
     def getMovieFrame(self, buffer='front'):
         """Capture the current Window as an image.
 
-        Saves to stack for saveMovieFrames().
-        As of v1.81.00 this also returns the frame as a PIL image
+        Saves to stack for :py:attr:`~Window.saveMovieFrames()`. As of v1.81.00
+        this also returns the frame as a PIL image
 
-        This can be done at any time (usually after a .flip() command).
+        This can be done at any time (usually after a :py:attr:`~Window.flip()`
+        command).
 
-        Frames are stored in memory until a .saveMovieFrames(filename)
-        command is issued. You can issue getMovieFrame() as often
-        as you like and then save them all in one go when finished.
+        Frames are stored in memory until a :py:attr:`~Window.saveMovieFrames()`
+        command is issued. You can issue :py:attr:`~Window.getMovieFrame()` as
+        often as you like and then save them all in one go when finished.
 
         The back buffer will return the frame that hasn't yet been 'flipped'
         to be visible on screen but has the advantage that the mouse and any
         other overlapping windows won't get in the way.
 
         The default front buffer is to be called immediately after a
-        win.flip() and gives a complete copy of the screen at the window's
-        coordinates.
+        :py:attr:`~Window.flip()` and gives a complete copy of the screen at the
+        window's coordinates.
+
+        Parameters
+        ----------
+        buffer : str, optional
+            Buffer to capture.
+
+        Returns
+        -------
+        Image
+            Buffer pixel contents as a PIL/Pillow image object.
+
         """
         im = self._getFrame(buffer=buffer)
         self.movieFrames.append(im)
@@ -1229,7 +1327,6 @@ class Window(object):
             left = top = 0
             w, h = self.size
 
-
         # http://www.opengl.org/sdk/docs/man/xhtml/glGetTexImage.xml
         bufferDat = (GL.GLubyte * (4 * w * h))()
         GL.glReadPixels(left, top, w, h,
@@ -1254,43 +1351,42 @@ class Window(object):
 
         Will write any format that is understood by PIL (tif, jpg, png, ...)
 
-        :parameters:
+        Parameters
+        ----------
+        filename : str
+            Name of file, including path. The extension at the end of the file
+            determines the type of file(s) created. If an image type (e.g. .png)
+            is given, then multiple static frames are created. If it is .gif
+            then an animated GIF image is created (although you will get higher
+            quality GIF by saving PNG files and then combining them in dedicated
+            image manipulation software, such as GIMP). On Windows and Linux
+            `.mpeg` files can be created if `pymedia` is installed. On macOS
+            `.mov` files can be created if the pyobjc-frameworks-QTKit is
+            installed. Unfortunately the libs used for movie generation can be
+            flaky and poor quality. As for animated GIFs, better results can be
+            achieved by saving as individual .png frames and then combining them
+            into a movie using software like ffmpeg.
+        codec : str, optional
+            The codec to be used **by moviepy** for mp4/mpg/mov files. If
+            `None` then the default will depend on file extension. Can be
+            one of ``libx264``, ``mpeg4`` for mp4/mov files. Can be
+            ``rawvideo``, ``png`` for avi files (not recommended). Can be
+            ``libvorbis`` for ogv files. Default is ``libx264``.
+        fps : int, optional
+            The frame rate to be used throughout the movie. **Only for
+            quicktime (.mov) movies.**. Default is `30`.
+        clearFrames : bool, optional
+            Set this to `False` if you want the frames to be kept for
+            additional calls to ``saveMovieFrames``. Default is `True`.
 
-            filename: name of file, including path (required)
-                The extension at the end of the file determines the type of
-                file(s) created. If an image type (e.g. .png) is given, then
-                multiple static frames are created. If it is .gif then an
-                animated GIF image is created (although you will get higher
-                quality GIF by saving PNG files and then combining them in
-                dedicated image manipulation software, such as GIMP). On
-                Windows and Linux `.mpeg` files can be created if `pymedia`
-                is installed. On macOS `.mov` files can be created if the
-                pyobjc-frameworks-QTKit is installed.
+        Examples
+        --------
+        Writes a series of static frames as frame001.tif, frame002.tif etc.::
 
-                Unfortunately the libs used for movie generation can be flaky
-                and poor quality. As for animated GIFs, better results can be
-                achieved by saving as individual .png frames and then
-                combining them into a movie using software like ffmpeg.
-
-            codec: the codec to be used **by moviepy** for mp4/mpg/mov files.
-                If None then the default will depend on file extension.
-                Can be one of 'libx264','mpeg4' for mp4/mov files.
-                Can be 'rawvideo','png' for avi files (not recommended).
-                Can be 'libvorbis' for ogv files.
-
-            fps: the frame rate to be used throughout the movie
-                **only for quicktime (.mov) movies**
-
-            clearFrames: set this to False if you want the frames to be kept
-                for additional calls to `saveMovieFrames`
-
-        Examples::
-
-            # writes a series of static frames as frame001.tif,
-            # frame002.tif etc...
             myWin.saveMovieFrames('frame.tif')
 
-            #as of PsychoPy 1.84.1 the following are written with moviepy
+        As of PsychoPy 1.84.1 the following are written with moviepy::
+
             myWin.saveMovieFrames('stimuli.mp4') # codec = 'libx264' or 'mpeg4'
             myWin.saveMovieFrames('stimuli.mov')
             myWin.saveMovieFrames('stimuli.gif')
@@ -1333,13 +1429,14 @@ class Window(object):
     def _getRegionOfFrame(self, rect=(-1, 1, 1, -1), buffer='front',
                           power2=False, squarePower2=False):
         """Deprecated function, here for historical reasons. You may now use
-        _getFrame() and specify a rect to get a sub-region, just as used here
+        `:py:attr:`~Window._getFrame()` and specify a rect to get a sub-region,
+        just as used here.
 
         power2 can be useful with older OpenGL versions to avoid interpolation
-        in PatchStim. If power2 or squarePower2, it will expand rect
+        in :py:attr:`PatchStim`. If power2 or squarePower2, it will expand rect
         dimensions up to next power of two. squarePower2 uses the max
         dimensions. You need to check what your hardware & OpenGL supports,
-        and call _getRegionOfFrame as appropriate.
+        and call :py:attr:`~Window._getRegionOfFrame()` as appropriate.
         """
         # Ideally: rewrite using GL frame buffer object; glReadPixels == slow
         region = self._getFrame(rect=rect, buffer=buffer)
@@ -1397,6 +1494,7 @@ class Window(object):
 
     @attributeSetter
     def blendMode(self, blendMode):
+        """Blend mode to use."""
         self.__dict__['blendMode'] = blendMode
         if blendMode == 'avg':
             GL.glBlendFunc(GL.GL_SRC_ALPHA, GL.GL_ONE_MINUS_SRC_ALPHA)
@@ -1430,18 +1528,18 @@ class Window(object):
     def color(self, color):
         """Set the color of the window.
 
-        NB This command sets the color that the blank screen will have on the
-        next clear operation. As a result it effectively takes TWO `flip()`
-        operations to become visible (the first uses the color to create the
-        new screen, the second presents that screen to the viewer). For this
-        reason, if you want to changed background color of the window "on the
-        fly", it might be a better idea to draw a `visual.Rect` that fills the
-        whole window with the desired `Rect.fillColor` attribute.
-        That'll show up on first flip.
+        This command sets the color that the blank screen will have on the
+        next clear operation. As a result it effectively takes TWO
+        :py:attr:`~Window.flip()` operations to become visible (the first uses
+        the color to create the new screen, the second presents that screen to
+        the viewer). For this reason, if you want to changed background color of
+        the window "on the fly", it might be a better idea to draw a
+        :py:attr:`Rect` that fills the whole window with the desired
+        :py:attr:`Rect.fillColor` attribute. That'll show up on first flip.
 
-        See other stimuli (e.g. :ref:`GratingStim.color`) for more info on the
-        color attribute which essentially works the same on all PsychoPy
-        stimuli.
+        See other stimuli (e.g. :py:attr:`GratingStim.color`)
+        for more info on the color attribute which essentially works the same on
+        all PsychoPy stimuli.
 
         See :ref:`colorspaces` for further information about the ways to
         specify colors and their various implications.
@@ -1450,9 +1548,9 @@ class Window(object):
 
     @attributeSetter
     def colorSpace(self, colorSpace):
-        """string. (Documentation for colorSpace is in the stimuli.)
+        """Documentation for colorSpace is in the stimuli.
 
-        e.g. :ref:`GratingStim.colorSpace`.
+        e.g. :py:attr:`GratingStim.colorSpace`
 
         Usually used in conjunction with ``color`` like this::
 
@@ -1466,10 +1564,11 @@ class Window(object):
         self.__dict__['colorSpace'] = colorSpace
 
     def setColor(self, color, colorSpace=None, operation='', log=None):
-        """Usually you can use 'stim.attribute = value' syntax instead,
+        """Usually you can use ``stim.attribute = value`` syntax instead,
         but use this method if you want to set color and colorSpace
         simultaneously.
-        See `Window.color` for documentation on colors.
+
+        See :py:attr:`~Window.color` for documentation on colors.
         """
         # Set color
         setColor(self, color, colorSpace=colorSpace, operation=operation,
@@ -1510,7 +1609,7 @@ class Window(object):
     def _setupGamma(self, gammaVal):
         """A private method to work out how to handle gamma for this Window
         given that the user might have specified an explicit value, or maybe
-        gave a Monitor
+        gave a Monitor.
         """
         # determine which gamma value to use (or native ramp)
         if gammaVal is not None:
@@ -1536,12 +1635,14 @@ class Window(object):
 
     @attributeSetter
     def gamma(self, gamma):
-        """Set the monitor gamma for linearization
+        """Set the monitor gamma for linearization.
 
-        (don't use this if using a Bits++ or Bits#)
-        Overrides monitor settings.
+        Warnings
+        --------
+        Don't use this if using a Bits++ or Bits#, as it overrides monitor
+        settings.
+
         """
-
         self._checkGamma(gamma)
 
         if self.bits is not None:
@@ -1556,11 +1657,18 @@ class Window(object):
     def setGamma(self, gamma, log=None):
         """Usually you can use 'stim.attribute = value' syntax instead,
         but use this method if you need to suppress the log message.
+
         """
         setAttribute(self, 'gamma', gamma, log)
 
     @attributeSetter
     def gammaRamp(self, newRamp):
+        """Sets the hardware CLUT using a specified 3xN array of floats ranging
+        between 0.0 and 1.0.
+
+        Array must have a number of rows equal to 2 ^ max(bpc).
+
+        """
         self.backend.gammaRamp = newRamp
 
     def _checkGamma(self, gamma=None):
@@ -1768,13 +1876,14 @@ class Window(object):
     def mouseVisible(self, visibility):
         """Sets the visibility of the mouse cursor.
 
-        If Window was initialized with noGUI=True then the mouse is initially
-        set to invisible, otherwise it will initially be visible.
+        If Window was initialized with ``allowGUI=True`` then the mouse is
+        initially set to invisible, otherwise it will initially be visible.
 
         Usage::
 
-            ``win.mouseVisible = False``
-            ``win.mouseVisible = True``
+            win.mouseVisible = False
+            win.mouseVisible = True
+
         """
         self.backend.setMouseVisibility(visibility)
         self.__dict__['mouseVisible'] = visibility
@@ -1792,19 +1901,17 @@ class Window(object):
         They may vary in appearance and hot spot location across platforms. The
         following names are valid on most platforms:
 
-            * ``arrow`` : Default pointer.
-            * ``ibeam`` : Indicates text can be edited.
-            * ``crosshair`` : Crosshair with hot-spot at center.
-            * ``hand`` : A pointing hand.
-            * ``hresize`` : Double arrows pointing horizontally.
-            * ``vresize`` : Double arrows pointing vertically.
-
-        Requires the GLFW backend, otherwise this function does nothing!
+        * ``arrow`` : Default pointer.
+        * ``ibeam`` : Indicates text can be edited.
+        * ``crosshair`` : Crosshair with hot-spot at center.
+        * ``hand`` : A pointing hand.
+        * ``hresize`` : Double arrows pointing horizontally.
+        * ``vresize`` : Double arrows pointing vertically.
 
         Parameters
         ----------
         name : str
-            Type of standard cursor to use.
+            Type of standard cursor to use (see above). Default is ``arrow``.
 
         Notes
         -----
@@ -1812,36 +1919,38 @@ class Window(object):
           color. It will not be visible when placed over 50% grey fields.
 
         """
-        pass
+        if hasattr(self.backend, "setMouseType"):
+            self.backend.setMouseType(name)
 
     def getActualFrameRate(self, nIdentical=10, nMaxFrames=100,
                            nWarmUpFrames=10, threshold=1):
-        """Measures the actual fps for the screen.
+        """Measures the actual frames-per-second (FPS) for the screen.
 
-        This is done by waiting (for a max of nMaxFrames) until [nIdentical]
-        frames in a row have identical frame times
-        (std dev below [threshold] ms).
+        This is done by waiting (for a max of `nMaxFrames`) until
+        `nIdentical` frames in a row have identical frame times (std dev below
+        `threshold` ms).
 
-        If there is no such sequence of identical frames a warning is logged
-        and `None` will be returned.
+        Parameters
+        ----------
+        nIdentical : int, optional
+            The number of consecutive frames that will be evaluated.
+            Higher --> greater precision. Lower --> faster.
+        nMaxFrames : int, optional
+            The maximum number of frames to wait for a matching set of
+            nIdentical.
+        nWarmUpFrames : int, optional
+            The number of frames to display before starting the test
+            (this is in place to allow the system to settle after opening
+            the `Window` for the first time.
+        threshold : int, optional
+            The threshold for the std deviation (in ms) before the set
+            are considered a match.
 
-        :parameters:
-            nIdentical:
-                the number of consecutive frames that will be evaluated.
-                Higher --> greater precision. Lower --> faster.
-
-            nMaxFrames:
-                the maximum number of frames to wait for a matching set of
-                nIdentical
-
-            nWarmUpFrames:
-                the number of frames to display before starting the test
-                (this is in place to allow the system to settle after opening
-                the `Window` for the first time.
-
-            threshold:
-                the threshold for the std deviation (in ms) before the set
-                are considered a match
+        Returns
+        -------
+        float or None
+            Frame rate (FPS) in seconds. If there is no such sequence of
+            identical frames a warning is logged and `None` will be returned.
 
         """
         if nIdentical > nMaxFrames:
@@ -1885,11 +1994,11 @@ class Window(object):
         while displaying an optional visual. The visual is just eye-candy to
         show that something is happening when assessing many frames. You can
         also give it text to display instead of a visual,
-        e.g., msg='(testing refresh rate...)'; setting msg implies
-        showVisual == False.
+        e.g., ``msg='(testing refresh rate...)'``; setting msg implies
+        ``showVisual == False``.
 
         To simulate refresh rate under cpu load, you can specify a time to
-        wait within the loop prior to doing the win.flip().
+        wait within the loop prior to doing the :py:attr:`~Window.flip()`.
         If 0 < msDelay < 100, wait for that long in ms.
 
         Returns timing stats (in ms) of:
@@ -1981,13 +2090,15 @@ class Window(object):
 
     def _startOfFlip(self):
         """Custom hardware classes may want to prevent flipping from
-        occurring and can override this method as needed. Return True to
-        indicate hardware flip.
+        occurring and can override this method as needed.
+
+        Return `True` to indicate hardware flip.
         """
         return True
 
     def _renderFBO(self):
-        """Perform a warp operation
+        """Perform a warp operation.
+
         (in this case a copy operation without any warping)
         """
         GL.glBegin(GL.GL_QUADS)
@@ -2011,7 +2122,7 @@ class Window(object):
         pass
 
     def _endOfFlip(self, clearBuffer):
-        """Override end of flip with custom color channel masking if required
+        """Override end of flip with custom color channel masking if required.
         """
         if clearBuffer:
             GL.glClear(GL.GL_COLOR_BUFFER_BIT)
@@ -2035,6 +2146,7 @@ def getMsPerFrame(myWin, nFrames=60, showVisual=False, msg='', msDelay=0.):
     doing the win.flip(). If 0 < msDelay < 100, wait for that long in ms.
 
     Returns timing stats (in ms) of:
+
     - average time per frame, for all frames
     - standard deviation of all frames
     - median, as the average of 12 frame times around the median

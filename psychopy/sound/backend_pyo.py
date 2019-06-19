@@ -13,11 +13,14 @@ from sys import platform
 from psychopy import core, logging
 from psychopy.constants import (STARTED, PLAYING, PAUSED, FINISHED, STOPPED,
                                 NOT_STARTED, FOREVER)
+import os
+travisCI = bool(str(os.environ.get('TRAVIS')).lower() == 'true')
 try:
     import pyo
 except ImportError as err:
-    # convert this import error to our own, pyo probably not installed
-    raise exceptions.DependencyError(repr(err))
+    if not travisCI:
+        # convert this import error to our own, pyo probably not installed
+        raise exceptions.DependencyError(repr(err))
 
 from ._base import _SoundBase
 import sounddevice
