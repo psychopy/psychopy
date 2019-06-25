@@ -22,13 +22,22 @@ Stop : int, float
 
 Items : List of dicts or csv / xlsx file
     A list of dicts or csv file should have the following key, value pairs / column headers:
-
+    :*index*: The item index as a number
     :*questionText*: item question string
     :*questionWidth*: question width between 0:1
     :*type*: type of rating e.g., 'radio', 'rating', 'slider'
     :*responseWidth*: question width between 0:1
-    :*options*: list of tick labels for options
+    :*options*: A sequence of tick labels for options e.g., yes, no
     :*layout*: Response object layout e.g., 'horiz' or 'vert'
+
+    Missing column headers will be replaced by default entries. The default entries are:
+    :*index*: 0 (increments for each item)
+    :*questionText*: Default question
+    :*questionWidth*: 0.7
+    :*type*: rating
+    :*responseWidth*: 0.3
+    :*options*: Yes, No
+    :*layout*: horiz
 
 Text height : float
     Text height of the Form elements (i.e., question and response text).
