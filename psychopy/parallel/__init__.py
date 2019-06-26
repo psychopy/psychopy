@@ -71,6 +71,7 @@ else:
 
             from psychopy import parallel
             port = parallel.ParallelPort(address=0x0378)
+
             port.setData(4)
             port.readPin(2)
             port.setPin(2, 1)
@@ -93,15 +94,18 @@ else:
 
             Examples::
 
-                parallel.setData(0)  # sets all pins low
-                parallel.setData(255)  # sets all pins high
-                parallel.setData(2)  # sets just pin 3 high (pin2 = bit0)
-                parallel.setData(3)  # sets just pins 2 and 3 high
+                from psychopy import parallel
+                port = parallel.ParallelPort(address=0x0378)
+
+                port.setData(0)  # sets all pins low
+                port.setData(255)  # sets all pins high
+                port.setData(2)  # sets just pin 3 high (pin2 = bit0)
+                port.setData(3)  # sets just pins 2 and 3 high
 
             You can also convert base 2 to int easily in python::
 
-                parallel.setData( int("00000011", 2) )  # pins 2 and 3 high
-                parallel.setData( int("00000101", 2) )  # pins 2 and 4 high
+                port.setData( int("00000011", 2) )  # pins 2 and 3 high
+                port.setData( int("00000101", 2) )  # pins 2 and 4 high
             """
             sys.stdout.flush()
             raise NotImplementedError("Parallel ports don't work on a Mac")
