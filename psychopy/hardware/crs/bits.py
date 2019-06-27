@@ -1926,7 +1926,7 @@ class BitsSharp(BitsPlusPlus, serialdevice.SerialDevice):
 
     def setRTBoxMode(self, mode=['CB6','Down','Trigger']):
         """ Sets the RTBox mode data member - does not
-        actually se the RTBox into this mode.
+        actually set the RTBox into this mode.
         
         Example:
             bits.setRTBoxMode(['CB6','Down']) # set the mode
@@ -1986,7 +1986,7 @@ class BitsSharp(BitsPlusPlus, serialdevice.SerialDevice):
             event will be mapped to the trigIn connector.
             
         Example: 
-            bits.RTBoxEnable(mode = 'Down'), map = [('btn1','Din0'), ('btn2','Din1')]
+            bits.RTBoxEnable(mode = ['Down']), map = [('btn1','Din0'), ('btn2','Din1')]
             
         enable the RTBox emulation to detect Down events on buttons 1 and 2 where they are
         mapped to DIN0 and DIN1.
@@ -1996,7 +1996,8 @@ class BitsSharp(BitsPlusPlus, serialdevice.SerialDevice):
         
         enable the RTBox emulation to detect Down events on the standard CB6 IR response box keys.
         
-        
+        If no key direction has been set (mode does not contain 'Up' or 'Down') the default is 'Down'.
+
         Note that the firmware in Bits# units varies over time and some 
         features of this class may not work for all firmware versions. 
         Also Bits# units can be configured in various ways via their 
@@ -2019,9 +2020,16 @@ class BitsSharp(BitsPlusPlus, serialdevice.SerialDevice):
             warning = ("Cannot use RTBox when statusBox is on ")
             raise AssertionError(warning)
 
-        # If mode is not None then use the supplied Mode otherwise use the preset or default mode.
+        # If mode is not None then use the supplied Mode otherwise use the preset mode.
         if mode != None:
             self.RTBoxMode = mode
+        # If self.RTBoxMode has still not be set to something set it to the default: 'down','CB6','trigger'
+        if self.RTBoxMode == None:
+            self.setRTBoxMode
+        # If 'Up' is not in mode adds a 'Down' just in case no direction has been set at all.
+        if (('Up' not in self.RTBoxMode)  
+                and ('up' not in self.RTBoxMode)):
+            self.RTBoxMode.append('Down')
         self.RTBoxResetKeys() # reset all the button - input mappings.
         # If map is not None the mapping provided will over ride any presets given
         # by mode, otherwise use the present mappings below.
