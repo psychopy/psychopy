@@ -610,7 +610,7 @@ class SettingsComponent(object):
         buff.writeIndentedLines(
             "expInfo['date'] = data.getDateStr()  # add a simple timestamp\n"
             "expInfo['expName'] = expName\n"
-            "expInfo['psychopyVersion'] = psychopyVersion")
+            "expInfo['psychopyVersion'] = psychopyVersion\n")
         level = self.params['logging level'].val.upper()
 
         saveToDir = self.getSaveDataDir()
