@@ -687,8 +687,6 @@ class Window(object):
             # NB - check if we need these
             GL.glActiveTexture(GL.GL_TEXTURE0)
             GL.glBindTexture(GL.GL_TEXTURE_2D, 0)
-            if GL.glIsEnabled(GL.GL_STENCIL_TEST):
-                GL.glEnable(GL.GL_STENCIL_TEST)
 
         # setup retina display if applicable
         global retinaContext
