@@ -173,7 +173,7 @@ class _SoundStream(portaudio.Stream):
         # self.frameTimes = range(5)  # DEBUGGING: store the last 5 callbacks
         if not travisCI:  # travis-CI testing does not have a sound device
             portaudio.Stream.__init__(self, [], [], [0], sampleRate,
-                                            channels)
+                                      channels)
             
             # self.device = self._sdStream.device
             # self.latency = self._sdStream.latency
