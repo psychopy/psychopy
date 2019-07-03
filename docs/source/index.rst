@@ -22,18 +22,20 @@ To achieve these goals PsychoPy provides a unique choice of interface: use the
 News
 ====================
 
+**Pavlovia Store online**: Go and `buy your credits and site licenses <https://pavlovia.org/store>`_ now for Pavlovia
+participants. Site licenses (£1500) last until Sept 2020. Individual credits (£0.20) 
+last forever! For more info about pricing see https://pavlovia.org/docs/store/pricing
+
+:ref:`download` the **latest version**: 3.1.3 released June 2019. 
+
+With a new faster keyboard (and many imporvements to the provision of online studies). 
+
 **New PsychoPy paper**: Please cite this if you use PsychoPy Builder in your studies
 
 Peirce, J. W., Gray, J. R., Simpson, S., MacAskill, M. R., Höchenberger, R.,
 Sogo, H., Kastman, E., Lindeløv, J. (2019). `PsychoPy2: experiments in behavior
 made easy. <https://dx.doi.org/10.3758/s13428-018-01193-y>`_ Behavior Research
 Methods. 10.3758/s13428-018-01193-y
-
-**Latest version**: 3.1.0 April 2019
-
-Supporting online studies and announcing our own experiment server at
-`Pavlovia.org <https://pavlovia.org>`_ See the launch video at
-https://www.youtube.com/watch?v=bprYeBzkUc8 to get more info.
 
 **Buy the official book!**
 
