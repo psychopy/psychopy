@@ -180,6 +180,12 @@ class AudioCapture(object):
         if self.name:
             self.loggingId += ' ' + self.name
 
+        if type(chnl) != int:
+            try:
+                chnl = int(chnl)
+            except (TypeError, ValueError):
+                raise TypeError("AudioCapture argument 'chnl' needs to be an int but received {}".format(repr(chnl)))
+
         # the recorder object needs to persist, or else get bus errors:
         self.recorder = self._Recorder()
         self.options = {'sampletype': sampletype, 'buffering': buffering,
@@ -384,6 +390,7 @@ class AdvAudioCapture(AudioCapture):
         AudioCapture.__init__(self, name=name, filename=filename,
                               saveDir=saveDir, sampletype=sampletype,
                               buffering=buffering, chnl=chnl, stereo=stereo)
+
         self.setMarker()
         self.autoLog = autoLog
 
