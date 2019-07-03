@@ -335,7 +335,9 @@ class MovieStim3(BaseVisualStim, ContainerMixin, TextureMixin):
         GL.glBindTexture(GL.GL_TEXTURE_2D, self._texID)
         # makes the texture map wrap (this is actually default anyway)
         GL.glTexParameteri(
-            GL.GL_TEXTURE_2D, GL.GL_TEXTURE_WRAP_S, GL.GL_REPEAT)
+            GL.GL_TEXTURE_2D, GL.GL_TEXTURE_WRAP_S, GL.GL_CLAMP)
+        GL.glTexParameteri(
+            GL.GL_TEXTURE_2D, GL.GL_TEXTURE_WRAP_T, GL.GL_CLAMP)
         # data from PIL/numpy is packed, but default for GL is 4 bytes
         GL.glPixelStorei(GL.GL_UNPACK_ALIGNMENT, 1)
         # important if using bits++ because GL_LINEAR
