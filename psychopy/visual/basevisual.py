@@ -618,7 +618,8 @@ class TextureMixin(object):
 
     def _createTexture(self, tex, id, pixFormat,
                        stim, res=128, maskParams=None,
-                       forcePOW2=True, dataType=None):
+                       forcePOW2=True, dataType=None,
+                       wrapping=True):
         """
         :params:
             id:
@@ -956,8 +957,16 @@ class TextureMixin(object):
         GL.glEnable(GL.GL_TEXTURE_2D)
         GL.glBindTexture(GL.GL_TEXTURE_2D, id)  # bind that name to the target
         # makes the texture map wrap (this is actually default anyway)
-        GL.glTexParameteri(
-            GL.GL_TEXTURE_2D, GL.GL_TEXTURE_WRAP_S, GL.GL_REPEAT)
+        if wrapping:
+            GL.glTexParameteri(
+                GL.GL_TEXTURE_2D, GL.GL_TEXTURE_WRAP_S, GL.GL_REPEAT)
+            GL.glTexParameteri(
+                GL.GL_TEXTURE_2D, GL.GL_TEXTURE_WRAP_T, GL.GL_REPEAT)
+        else:
+            GL.glTexParameteri(
+                GL.GL_TEXTURE_2D, GL.GL_TEXTURE_WRAP_S, GL.GL_CLAMP)
+            GL.glTexParameteri(
+                GL.GL_TEXTURE_2D, GL.GL_TEXTURE_WRAP_T, GL.GL_CLAMP)
         # data from PIL/numpy is packed, but default for GL is 4 bytes
         GL.glPixelStorei(GL.GL_UNPACK_ALIGNMENT, 1)
         # important if using bits++ because GL_LINEAR
@@ -1021,7 +1030,8 @@ class TextureMixin(object):
             dataType = None
         self._createTexture(
             value, id=self._maskID, pixFormat=GL.GL_ALPHA, dataType=dataType,
-            stim=self, res=self.texRes, maskParams=self.maskParams)
+            stim=self, res=self.texRes, maskParams=self.maskParams,
+            wrapping=False)
 
     def setMask(self, value, log=None):
         """Usually you can use 'stim.attribute = value' syntax instead,
