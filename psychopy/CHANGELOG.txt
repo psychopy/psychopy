@@ -22,6 +22,21 @@ This only works on 64-bit Python3 installations, but the Keyboard class will
 fall back to the old `event.GetKeys` calls where the `psychtoolbox` package is
 not available.
 
+PsychoPy 3.1.4
+~~~~~~~~~~~~~~~~~~~~~~
+
+FIXED:
+
+- further fix to Mic for experiments created under the previous version (our last fix only solved the problem for new
+  Mic Components being inserted) #2512
+- fixed demo timeByFrames which was set to use Qt4 for plotting instead of Qt5 (which has been the default version
+  provided since the switch to Python3)
+- fixed crash in the new Keyboard class caused by `psychtoolbox` lib incorrectly converting unicode characters in the
+  device name (this was actually a fix in #kleinerm/Psychtoolbox-3@a5c37855a4a097) that needed repackaging
+- error with Variable Component trying to save start/stop times (that might not exist for that variable) #e1bca1bdc
+- some data could get orphaned (and not saved) by being collected in the outer section of a nested loop #8b7fda826
+- when using Mouse.getPos() with retina display and win.units=='pix' the mouse pos was double the expected value #a78d74420
+
 PsychoPy 3.1.3
 ~~~~~~~~~~~~~~~~~~~~~~
 
