@@ -18,7 +18,7 @@ from psychopy.exceptions import SoundFormatError, DependencyError
 from ._base import _SoundBase, HammingWindow
 
 try:
-    from psychtoolbox import portaudio
+    from psychtoolbox import audio
 except Exception:
     raise DependencyError("psychtoolbox audio failed to import")
 try:
@@ -28,11 +28,18 @@ except Exception:
 
 import numpy as np
 
+
+defaultLatencyClass = 2
+# 0=cautious
+# 1=try but be nice
+# 2=try and take priority (seems good on Mac)
+# 3=force our priority
+
 audioDriver = None
 
 travisCI = bool(str(os.environ.get('TRAVIS')).lower() == 'true')
 logging.info("Loaded psychtoolbox audio version {}"
-             .format(portaudio.get_version_info()['version']))
+             .format(audio.get_version_info()['version']))
 
 # ask PTB to align verbosity with our current logging level at console
 _verbosities = ((logging.DEBUG, 5),
@@ -42,8 +49,7 @@ _verbosities = ((logging.DEBUG, 5),
                 (logging.ERROR, 1))
 for _logLevel, _verbos in _verbosities:
     if logging.console.level <= _logLevel:
-        portaudio.verbosity(_verbos)
-
+        audio.verbosity(_verbos)
 
 def init(rate=44100, stereo=True, buffer=128):
     pass  # for compatibility with other backends
@@ -58,7 +64,7 @@ def getDevices(kind=None):
     if travisCI:  # travis-CI testing does not have a sound device
         return devs
     else:
-        allDevs = portaudio.get_devices(kind)
+        allDevs = audio.get_devices(kind)
     # annoyingly query_devices is a DeviceList or a dict depending on number
     if type(allDevs) == dict:
         allDevs = [allDevs]
@@ -144,7 +150,7 @@ class _StreamsDict(dict):
             )
         else:
             # create new stream
-            self[label] = _SoundStream(sampleRate, channels, blockSize,
+            self[label] = _MasterStream(sampleRate, channels, blockSize,
                                        device=defaultOutput)
         return label, self[label]
 
@@ -152,16 +158,20 @@ class _StreamsDict(dict):
 streams = _StreamsDict()
 
 
-class _SoundStream(portaudio.Stream):
+class _MasterStream(audio.Stream):
     def __init__(self, sampleRate, channels, blockSize,
-                 device=None, duplex=False):
+                 device=None, duplex=False, mode=1,
+                 audioLatencyClass=None):
         # initialise thread
+        if audioLatencyClass is None:
+            audioLatencyClass = defaultLatencyClass
         self.streamLabel = None
         self.streams = []
         self.list = []
         # sound stream info
         self.sampleRate = sampleRate
-        self.channels = channels
+        self.channels = 2
+        print('stereoChannels', channels)
         self.duplex = duplex
         self.blockSize = blockSize
         self.label = getStreamLabel(sampleRate, channels, blockSize)
@@ -172,9 +182,10 @@ class _SoundStream(portaudio.Stream):
         self.frameN = 1
         # self.frameTimes = range(5)  # DEBUGGING: store the last 5 callbacks
         if not travisCI:  # travis-CI testing does not have a sound device
-            portaudio.Stream.__init__(self, [], [], [0], sampleRate,
-                                      channels)
-            
+            audio.Stream.__init__(self, [], mode=mode+8,
+                                  latency_class=audioLatencyClass,
+                                  freq=sampleRate, channels=channels)
+            self.start(0, 0, 1)
             # self.device = self._sdStream.device
             # self.latency = self._sdStream.latency
             # self.cpu_load = self._sdStream.cpu_load
@@ -341,7 +352,7 @@ class SoundPTB(_SoundBase):
 
     def _setSndFromArray(self, thisArray):
 
-        self.sndArr = np.asarray(thisArray)
+        self.sndArr = np.asarray(thisArray).astype('float32')
         if thisArray.ndim == 1:
             self.sndArr.shape = [len(thisArray), 1]  # make 2D for broadcasting
         if self.channels == 2 and self.sndArr.shape[1] == 1:  # mono -> stereo
@@ -371,7 +382,7 @@ class SoundPTB(_SoundBase):
         # set to run from the start:
         self.seek(0)
         self.sourceType = "array"
-        self.stream.fill_buffer(self.sndArr)
+        self.track = audio.Slave(self.stream.handle, data=self.sndArr)
         print('filled the buffer')
 
     def _channelCheck(self, array):
@@ -391,8 +402,7 @@ class SoundPTB(_SoundBase):
             self.setLoops(loops)
         self.status = PLAYING
         self._tSoundRequestPlay = time.time()
-        stream = streams[self.streamLabel]
-        stream.start(repetitions=self.loops)
+        self.track.start(repetitions=self.loops)
 
     def pause(self):
         """Stop the sound but play will continue from here if needed
@@ -407,51 +417,7 @@ class SoundPTB(_SoundBase):
         if reset:
             self.seek(0)
         self.status = STOPPED
-
-    def _nextBlock(self):
-        if self.status == STOPPED:
-            return
-        samplesLeft = int((self.stopTime - self.t) * self.sampleRate)
-        nSamples = min(self.blockSize, samplesLeft)
-        if self.sourceType == 'file' and self.preBuffer == 0:
-            # streaming sound block-by-block direct from file
-            block = self.sndFile.read(nSamples)
-            # TODO: check if we already finished using sndFile?
-        elif (self.sourceType == 'file' and self.preBuffer == -1) \
-                or self.sourceType == 'array':
-            # An array, or a file entirely loaded into an array
-            ii = int(round(self.t * self.sampleRate))
-            if self.stereo == 1:  # don't treat as boolean. Might be -1
-                block = self.sndArr[ii:ii + nSamples, :]
-            elif self.stereo == 0:
-                block = self.sndArr[ii:ii + nSamples]
-            else:
-                raise IOError("Unknown stereo type {!r}"
-                              .format(self.stereo))
-            if ii + nSamples > len(self.sndArr):
-                self._EOS()
-
-        elif self.sourceType == 'freq':
-            startT = self.t
-            stopT = self.t + self.blockSize / float(self.sampleRate)
-            xx = np.linspace(
-                start=startT * self.freq * 2 * np.pi,
-                stop=stopT * self.freq * 2 * np.pi,
-                num=self.blockSize, endpoint=False
-            )
-            xx.shape = [self.blockSize, 1]
-            block = np.sin(xx)
-            # if run beyond our desired t then set to zeros
-            if stopT > (self.secs):
-                tRange = np.linspace(startT, self.blockSize * self.sampleRate,
-                                     num=self.blockSize, endpoint=False)
-                block[tRange > self.secs] = 0
-                # and inform our EOS function that we finished
-                self._EOS(reset=False)  # don't set t=0
-
-        else:
-            raise IOError("SoundDeviceSound._nextBlock doesn't correctly handle"
-                          "{!r} sounds yet".format(self.sourceType))
+        self.track.stop(repetitions=self.loops)
 
         if self._hammingWindow:
             thisWin = self._hammingWindow.nextBlock(self.t, self.blockSize)
