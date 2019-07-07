@@ -35,6 +35,7 @@ dependencies:
 - pillow
 - pip<19.0
 - psutil
+- pyglfw
 - pyopengl
 - pyosf
 - pyqt

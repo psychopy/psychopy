@@ -37,6 +37,7 @@ dependencies:
 - prompt_toolkit
 - psutil
 - pycparser
+- pyglfw
 - pygments
 - pyopengl
 - pyopenssl
