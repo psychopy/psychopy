@@ -7,7 +7,6 @@ dependencies:
 - astunparse
 - backports
 - bzip2
-- cffi
 - codecov
 - coveralls
 - esprima-python
