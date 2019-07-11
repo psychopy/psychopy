@@ -255,14 +255,12 @@ class TrialHandler(object):
                     "    thisScheduler.add({name}LoopEnd);\n"
                     .format(params=self.params, name=thisChild.params['name'].val)
                     )
-        if self.params['isTrials'].val == True:
-            code += ("    thisScheduler.add(endLoopIteration(thisScheduler, "
-                     "{thisName}));\n".format(thisName=self.thisName))
 
-        code += ("  }\n"
-                "\n"
-                "  return Scheduler.Event.NEXT;\n"
-                "}\n")
+        code += ("    thisScheduler.add(endLoopIteration({{thisScheduler, isTrials : {isTrials}}}));\n"
+                 "  }}\n"
+                 "\n"
+                 "  return Scheduler.Event.NEXT;\n"
+                 "}}\n").format(isTrials=str(self.params['isTrials'].val).lower())
         buff.writeIndentedLines(code)
 
     def writeLoopEndCode(self, buff):
