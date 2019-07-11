@@ -53,7 +53,7 @@ var frameDur;
 function updateInfo() {
   expInfo['date'] = util.MonotonicClock.getDateStr();  // add a simple timestamp
   expInfo['expName'] = expName;
-  expInfo['psychopyVersion'] = '3.1.1';
+  expInfo['psychopyVersion'] = '3.1.0';
 
   // store frame rate of monitor if we can measure it successfully
   expInfo['frameRate'] = psychoJS.window.getActualFrameRate();
@@ -98,8 +98,8 @@ function trialRoutineBegin() {
   frameN = -1;
   routineTimer.add(1.000000);
   // update component parameters for each repeat
-  sound_1.secs=1.0
-  sound_1.setVolume(1)
+  sound_1.secs=1.0;
+  sound_1.setVolume(1);
   // keep track of which components have finished
   trialComponents = [];
   trialComponents.push(sound_1);
@@ -111,6 +111,7 @@ function trialRoutineBegin() {
   return Scheduler.Event.NEXT;
 }
 
+var frameRemains;
 var continueRoutine;
 function trialRoutineEachFrame() {
   //------Loop for each frame of Routine 'trial'-------
@@ -126,6 +127,12 @@ function trialRoutineEachFrame() {
     sound_1.frameNStart = frameN;  // exact frame index
     psychoJS.window.callOnFlip(function(){ sound_1.play(); });  // screen flip
     sound_1.status = PsychoJS.Status.STARTED;
+  }
+  frameRemains = 0.0 + 1.0 - psychoJS.window.monitorFramePeriod * 0.75;  // most of one frame period left
+  if (sound_1.status === PsychoJS.Status.STARTED && t >= frameRemains) {
+    if (1.0 > 0.5) {  sound_1.stop();  // stop the sound (if longer than duration)
+      sound_1.status = PsychoJS.Status.FINISHED;
+    }
   }
   // check for quit (typically the Esc key)
   if (psychoJS.experiment.experimentEnded || psychoJS.eventManager.getKeys({keyList:['escape']}).length > 0) {

@@ -1,8 +1,8 @@
-﻿#!/usr/bin/env python
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-This experiment was created using PsychoPy3 Experiment Builder (v3.1.1),
-    on Fri May 10 13:45:01 2019
+This experiment was created using PsychoPy3 Experiment Builder (v3.1.0),
+    on May 10, 2019, at 11:15
 If you publish work using this script please cite the PsychoPy publications:
     Peirce, JW (2007) PsychoPy - Psychophysics software in Python.
         Journal of Neuroscience Methods, 162(1-2), 8-13.
@@ -110,6 +110,14 @@ while continueRoutine and routineTimer.getTime() > 0:
         sound_1.frameNStart = frameN  # exact frame index
         win.timeOnFlip(sound_1, 'tStartRefresh')  # time at next scr refresh
         win.callOnFlip(sound_1.play)  # screen flip
+    frameRemains = 0.0 + 1.0- win.monitorFramePeriod * 0.75  # most of one frame period left
+    if sound_1.status == STARTED and t >= frameRemains:
+        # keep track of stop time/frame for later
+        sound_1.tStop = t  # not accounting for scr refresh
+        sound_1.frameNStop = frameN  # exact frame index
+        win.timeOnFlip(sound_1, 'tStopRefresh')  # time at next scr refresh
+        if 1.0 > 0.5:  # don't force-stop brief sounds
+            sound_1.stop()
     
     # check for quit (typically the Esc key)
     if endExpNow or keyboard.Keyboard().getKeys(keyList=["escape"]):
