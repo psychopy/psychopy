@@ -66,8 +66,11 @@ install:
   # Build & install wheel.
   - python setup.py bdist_wheel
   - pip install --no-deps dist/PsychoPy-*.whl
-  - pip uninstall --yes psychopy
 
+  # Test entry point.
+  - psychopy --version
+
+  - pip uninstall --yes psychopy
   - rm -rf build/ dist/
 
 before_script:
