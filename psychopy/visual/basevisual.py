@@ -700,6 +700,7 @@ class TextureMixin(object):
             res = 1
             intensity = numpy.ones([res, res], numpy.float32)
             wasLum = True
+            wrapping = True  # override any wrapping setting for None
         elif tex == "sin":
             # NB 1j*res is a special mgrid notation
             onePeriodX, onePeriodY = numpy.mgrid[0:res, 0:2 * pi:1j * res]
