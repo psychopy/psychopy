@@ -7,6 +7,8 @@
 from __future__ import absolute_import, print_function
 from setuptools.config import read_configuration
 import os, copy, platform, subprocess
+from psychopy.constants import PY3
+
 thisLoc = os.path.split(__file__)[0]
 # import versioneer
 # get version from file
@@ -115,11 +117,11 @@ def _getGitShaString(dist=None, sha=None):
                                 stderr=subprocess.PIPE,
                                 cwd='.', shell=True)
         repo_commit, _ = proc.communicate()
+        if PY3:
+            repo_commit = repo_commit.decode('utf-8')
         del proc  # to get rid of the background process
         if repo_commit:
             shaStr = "{}".format(repo_commit.strip())
-            if shaStr.startswith("b'"):
-                shaStr = shaStr.replace("b'", "").replace("'", "")
         else:
             shaStr = 'n/a'
         #this looks neater but raises errors on win32

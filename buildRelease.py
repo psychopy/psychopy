@@ -18,6 +18,7 @@ from builtins import input
 import os, sys, shutil, subprocess
 from os.path import join
 from createInitFile import createInitFile
+from psychopy.constants import PY3
 
 MAIN = os.path.abspath(os.path.split(__file__)[0])
 VERSIONS = join(MAIN, '..', 'versions')
@@ -34,6 +35,9 @@ def getSHA(cwd='.'):
     SHA_string = subprocess.check_output(
         ['git', 'rev-parse', '--short', 'HEAD'],
         cwd=cwd).split()[0]
+    if PY3:
+        SHA_string = SHA_string.decode('utf-8')
+
     # convert to hex from a string and return it
     print('SHA:', SHA_string, 'for repo:', cwd)
     return SHA_string
