@@ -382,7 +382,8 @@ class SoundPTB(_SoundBase):
         # set to run from the start:
         self.seek(0)
         self.sourceType = "array"
-        self.track = audio.Slave(self.stream.handle, data=self.sndArr)
+        self.track = audio.Slave(self.stream.handle, data=self.sndArr,
+                                 volume=self.volume)
         print('filled the buffer')
 
     def _channelCheck(self, array):
@@ -395,14 +396,14 @@ class SoundPTB(_SoundBase):
             logging.error(msg)
             raise ValueError(msg)
 
-    def play(self, loops=None):
+    def play(self, loops=None, when=None):
         """Start the sound playing
         """
         if loops is not None and self.loops != loops:
             self.setLoops(loops)
         self.status = PLAYING
         self._tSoundRequestPlay = time.time()
-        self.track.start(repetitions=self.loops)
+        self.track.start(repetitions=self.loops, when=when)
 
     def pause(self):
         """Stop the sound but play will continue from here if needed
