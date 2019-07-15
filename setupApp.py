@@ -88,7 +88,7 @@ packages = ['wx', 'psychopy',
             # handy external science libs
             'serial',
             'egi', 'pylink', 'tobiiresearch',
-            'pyxid',
+            'pyxid', 'pyxid2', 'ftd2xx',  # ftd2xx is used by cedrus
             'pandas', 'tables',  # 'cython',
             'msgpack', 'yaml', 'gevent',  # for ioHub
             # these aren't needed, but liked
