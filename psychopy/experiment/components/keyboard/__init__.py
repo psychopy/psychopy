@@ -141,7 +141,7 @@ class KeyboardComponent(BaseComponent):
             return
 
     def writeRoutineStartCodeJS(self, buff):
-        code = "%(name)s = new core.BuilderKeyResponse(psychoJS);\n\n"
+        code = "%(name)s = new core.Keyboard({psychoJS, waitForStart: true});\n\n"
         buff.writeIndentedLines(code % self.params)
 
         if (self.params['store'].val == 'nothing' and
@@ -334,15 +334,16 @@ class KeyboardComponent(BaseComponent):
 
         if store != 'nothing':
             if self.params['syncScreenRefresh'].val:
-                code = ("psychoJS.window.callOnFlip(function() { %(name)s.clock.reset(); });"
-                        " // t = 0 on screen flip\n") % self.params
+                code = ("psychoJS.window.callOnFlip(function() { %(name)s.start(); }); "
+                        "// start on screen flip\n") % self.params
             else:
-                code = "%(name)s.clock.reset();  // now t=0\n" % self.params
+                code = "%(name)s.start();\n" % self.params
 
             buff.writeIndented(code)
 
         if self.params['discard previous'].val:
-            buff.writeIndented("psychoJS.eventManager.clearEvents({eventType:'keyboard'});\n")
+            buff.writeIndented("%(name)s.clearEvents();\n" % self.params)
+
         # to get out of the if statement
         buff.setIndentLevel(-1, relative=True)
         buff.writeIndented("}\n\n")
@@ -362,7 +363,7 @@ class KeyboardComponent(BaseComponent):
         dedentAtEnd = 1  # keep track of how far to dedent later
         # do we need a list of keys? (variable case is already handled)
         if allowedKeys in [None, "none", "None", "", "[]", "()"]:
-            keyListStr = ""
+            keyListStr = "[]"
         elif not allowedKeysIsVar:
             try:
                 keyList = eval(allowedKeys)
@@ -374,14 +375,16 @@ class KeyboardComponent(BaseComponent):
                 keyList = list(keyList)
             elif isinstance(keyList, basestring):  # a single string/key
                 keyList = [keyList]
-            keyListStr = "{keyList:%s}" % repr(keyList)
+            keyListStr = "%s" % repr(keyList)
 
         # check for keypresses
-        buff.writeIndented("let theseKeys = psychoJS.eventManager.getKeys(%s);\n" % keyListStr)
+        buff.writeIndented("let theseKeys = %s.getKeys({keyList: %s, waitRelease: false});\n"
+                           % (self.params['name'], keyListStr)
+                           )
 
         if self.exp.settings.params['Enable Escape'].val:
             code = ("\n// check for quit:\n"
-                    "if (theseKeys.indexOf('escape') > -1) {\n"
+                    "if (theseKeys.length > 0 && theseKeys[0].name === 'escape') {\n"
                     "  psychoJS.experiment.experimentEnded = true;\n"
                     "}\n\n")
             buff.writeIndentedLines(code)
@@ -396,30 +399,30 @@ class KeyboardComponent(BaseComponent):
             dedentAtEnd += 1  # indent by 1
 
         if store == 'first key':  # then see if a key has already been pressed
-            code = ("if (%(name)s.keys.length === 0) {"
+            code = ("if (%(name)s.keys === undefined) {"
                     "  // then this was the first keypress\n") % self.params
             buff.writeIndented(code)
 
             buff.setIndentLevel(1, True)
             dedentAtEnd += 1  # to undo this level of "if"
 
-            code = ("%(name)s.keys = theseKeys[0];"
+            code = ("%(name)s.keys = theseKeys[0].name;"
                     "  // just the first key pressed\n"
-                    "%(name)s.rt = %(name)s.clock.getTime();\n")
+                    "%(name)s.rt = theseKeys[0].rt;\n")
             buff.writeIndentedLines(code % self.params)
         elif store == 'last key':
-            code = ("%(name)s.keys = theseKeys[theseKeys.length-1];"
+            code = ("%(name)s.keys = theseKeys[0].name;"
                     "  // just the last key pressed\n"
-                    "%(name)s.rt = %(name)s.clock.getTime();\n")
+                    "%(name)s.rt = theseKeys[0].rt;\n")
             buff.writeIndentedLines(code % self.params)
         elif store == 'all keys':
-            code = ("%(name)s.keys = %(name)s.keys.concat(theseKeys);  // storing all keys\n"
-                    "%(name)s.rt = %(name)s.rt.concat(%(name)s.clock.getTime());\n")
+            code = ("%(name)s.keys = [].concat(%(name)s.keys, theseKeys[0].name).filter((i) => i !== undefined);  // storing all keys\n"
+                    "%(name)s.rt = [].concat(%(name)s.rt, theseKeys[0].rt).filter((i) => i !== undefined);\n")
             buff.writeIndentedLines(code % self.params)
 
         if storeCorr:
             code = ("// was this 'correct'?\n"
-                    "if (%(name)s.keys == %(correctAns)s) {\n"
+                    "if (%(name)s.keys === %(correctAns)s) {\n"
                     "    %(name)s.corr = 1;\n"
                     "} else {\n"
                     "    %(name)s.corr = 0;\n"
@@ -508,14 +511,6 @@ class KeyboardComponent(BaseComponent):
         else:
             currLoop = self.exp._expHandler
 
-        # write the actual code
-        code = ("\n// check responses\n"
-                "if (%(name)s.keys === undefined || %(name)s.keys.length === 0) {"
-                "    // No response was made\n"
-                "    %(name)s.keys = undefined;\n"
-                "}\n\n")
-        buff.writeIndentedLines(code % self.params)
-
         if self.params['storeCorrect'].val:  # check for correct NON-repsonse
             code = ("// was no response the correct answer?!\n"
                     "if (%(name)s.keys === undefined) {\n"
@@ -543,7 +538,7 @@ class KeyboardComponent(BaseComponent):
                 buff.writeIndented("psychoJS.experiment.addData('%(name)s.corr', %(name)s.corr);\n" % self.params)
 
             # only add an RT if we had a response
-            code = ("if (typeof {name}.keys !== 'undefined') {{  // we had a response\n"
+            code = ("if (typeof {name}.keys !== undefined) {{  // we had a response\n"
                     "    psychoJS.experiment.addData('{name}.rt', {name}.rt);\n")
             if forceEnd:
                 code += ("    routineTimer.reset();\n"
