@@ -84,6 +84,10 @@ class Experiment(object):
         self.requirePsychopyLibs(libs=libs)
         self.requireImport(importName='keyboard',
                            importFrom='psychopy.hardware')
+        self.requireImport(importName='backend_ptb',
+                           importFrom='psychopy.sound',
+                           importAs='ptbAudio')
+
         self._runOnce = []
 
         _settingsComp = getComponents(fetchIcons=False)['SettingsComponent']

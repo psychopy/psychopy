@@ -13,6 +13,10 @@ from builtins import super  # provides Py3-style super() using python-future
 from os import path
 from psychopy.experiment.components import BaseComponent, Param, getInitVals, _translate
 from psychopy.sound._base import knownNoteNames
+from pkgutil import find_loader
+
+# Check for psychtoolbox
+havePTB = find_loader('psychtoolbox') is not None
 
 # the absolute path to the folder containing this path
 thisFolder = path.abspath(path.dirname(__file__))
@@ -84,9 +88,17 @@ class SoundComponent(BaseComponent):
                 inits['stopVal'].val = -1
             elif float(inits['stopVal'].val) > 2:
                 inits['stopVal'].val = -1
-        buff.writeIndented("%s = sound.Sound(%s, secs=%s, stereo=%s)\n" %
-                           (inits['name'], inits['sound'], inits['stopVal'], self.exp.settings.params['Force stereo']))
-        buff.writeIndented("%(name)s.setVolume(%(volume)s)\n" % (inits))
+        if havePTB:
+            if self.exp.settings.params['logging level'].val == 'debug':
+                buff.writeIndented("ptbAudio.audio.verbosity(5)  # increase verbosity for debugging\n")
+            buff.writeIndented("%s = ptbAudio.SoundPTB(%s, secs=%s, stereo=%s, loops=1)\n" %
+                               (inits['name'], inits['sound'], inits['stopVal'],
+                                self.exp.settings.params['Force stereo']))
+            buff.writeIndented("%(name)s.setVolume(%(volume)s)\n" % (inits))
+        else:
+            buff.writeIndented("%s = sound.Sound(%s, secs=%s, stereo=%s)\n" %
+                               (inits['name'], inits['sound'], inits['stopVal'], self.exp.settings.params['Force stereo']))
+            buff.writeIndented("%(name)s.setVolume(%(volume)s)\n" % (inits))
 
     def writeRoutineStartCode(self, buff):
         if self.params['stopVal'].val in [None, 'None', '']:
@@ -150,10 +162,11 @@ class SoundComponent(BaseComponent):
         buff.setIndentLevel(-1, relative=True)
         if not self.params['stopVal'].val in ['', None, -1, 'None']:
             self.writeStopTestCode(buff)
-            code = ("if %(stopVal)s > 0.5:  # don't force-stop brief sounds\n"
-                    "    %(name)s.stop()\n")
-            buff.writeIndentedLines(code % self.params)
-            # because of the 'if' statement of the time test
+            if not havePTB:
+                code = ("if %(stopVal)s > 0.5:  # don't force-stop brief sounds\n"
+                        "    %(name)s.stop()\n")
+                buff.writeIndentedLines(code % self.params)
+                # because of the 'if' statement of the time test
             buff.setIndentLevel(-1, relative=True)
 
     def writeFrameCodeJS(self, buff):
@@ -196,8 +209,9 @@ class SoundComponent(BaseComponent):
             buff.writeIndented('}\n')
 
     def writeRoutineEndCode(self, buff):
-        code = "%s.stop()  # ensure sound has stopped at end of routine\n"
-        buff.writeIndented(code % self.params['name'])
+        if not havePTB:
+            code = "%s.stop()  # ensure sound has stopped at end of routine\n"
+            buff.writeIndented(code % self.params['name'])
         # get parent to write code too (e.g. store onset/offset times)
         super().writeRoutineEndCode(buff)
 

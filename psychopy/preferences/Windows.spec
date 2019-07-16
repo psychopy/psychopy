@@ -108,7 +108,7 @@
 
 [hardware]
     # choice of audio library
-    audioLib = list(default=list('sounddevice', 'pyo', 'pygame'))
+    audioLib = list(default=list('PTB', 'sounddevice', 'pyo', 'pygame'))
     # audio driver to use
     audioDriver = list(default=list('Primary Sound','ASIO','Audigy'))
     # audio device to use (if audioLib allows control)
