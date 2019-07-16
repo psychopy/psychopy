@@ -131,8 +131,17 @@ class KeyboardComponent(BaseComponent):
             hint=msg,
             label=_localized['syncScreenRefresh'])
 
-    def writeRoutineStartCode(self, buff):
+    def writeInitCode(self, buff):
         code = "%(name)s = keyboard.Keyboard()\n"
+        buff.writeIndentedLines(code % self.params)
+
+    def writeInitCodeJS(self, buff):
+        code = "%(name)s = new core.Keyboard({psychoJS, clock: new util.Clock(), waitForStart: true});\n\n"
+        buff.writeIndentedLines(code % self.params)
+
+    def writeRoutineStartCode(self, buff):
+        code = ("%(name)s.keys = [];\n"
+                "%(name)s.rt = None;\n")
         buff.writeIndentedLines(code % self.params)
 
         if (self.params['store'].val == 'nothing' and
@@ -141,7 +150,8 @@ class KeyboardComponent(BaseComponent):
             return
 
     def writeRoutineStartCodeJS(self, buff):
-        code = "%(name)s = new core.Keyboard({psychoJS, clock: new util.Clock(), waitForStart: true});\n\n"
+        code = ("%(name)s.keys = undefined;\n"
+                "%(name)s.rt = undefined;\n")
         buff.writeIndentedLines(code % self.params)
 
         if (self.params['store'].val == 'nothing' and
@@ -553,3 +563,5 @@ class KeyboardComponent(BaseComponent):
             else:
                 code += "    }}\n\n"
             buff.writeIndentedLines(code.format(loopName=currLoop.params['name'], name=name))
+        # Stop keyboard
+        buff.writeIndentedLines("%(name)s.stop();\n" % self.params)
