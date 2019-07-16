@@ -141,7 +141,7 @@ class KeyboardComponent(BaseComponent):
             return
 
     def writeRoutineStartCodeJS(self, buff):
-        code = "%(name)s = new core.Keyboard({psychoJS, waitForStart: true});\n\n"
+        code = "%(name)s = new core.Keyboard({psychoJS, clock: new util.Clock(), waitForStart: true});\n\n"
         buff.writeIndentedLines(code % self.params)
 
         if (self.params['store'].val == 'nothing' and
@@ -334,15 +334,22 @@ class KeyboardComponent(BaseComponent):
 
         if store != 'nothing':
             if self.params['syncScreenRefresh'].val:
-                code = ("psychoJS.window.callOnFlip(function() { %(name)s.start(); }); "
+                code = ("psychoJS.window.callOnFlip(function() { %(name)s.clock.reset(); });  "
+                        "// t=0 on next screen flip\n"
+                        "psychoJS.window.callOnFlip(function() { %(name)s.start(); }); "
                         "// start on screen flip\n") % self.params
             else:
-                code = "%(name)s.start();\n" % self.params
+                code = ("%(name)s.clock.reset();\n"
+                        "%(name)s.start();\n") % self.params
 
-            buff.writeIndented(code)
+            buff.writeIndentedLines(code)
 
         if self.params['discard previous'].val:
-            buff.writeIndented("%(name)s.clearEvents();\n" % self.params)
+            if self.params['syncScreenRefresh'].val:
+                 buff.writeIndented("psychoJS.window.callOnFlip(function() { %(name)s.clearEvents(); });\n"
+                                    % self.params)
+            else:
+                buff.writeIndented("%(name)s.clearEvents();\n" % self.params)
 
         # to get out of the if statement
         buff.setIndentLevel(-1, relative=True)
