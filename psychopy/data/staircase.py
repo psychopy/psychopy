@@ -1314,7 +1314,108 @@ class QuestPlusHandler(StairHandler):
                  stimSelectionMethod='minEntropy',
                  stimSelectionOptions=None, paramEstimationMethod='mean',
                  extraInfo=None, name=''):
+        """
+        QUEST+ implementation. Currently only supports parameter estimation of
+        a Weibull-shaped psychometric function.
 
+        Parameters
+        ----------
+        nTrials : int
+            Number of trials to run.
+
+        intensityVals : collection of floats
+            The complete set of possible stimulus levels. Note that the
+            stimulus levels are not necessarily limited to intensities (as the
+            name of this parameter implies), but they could also be contrasts,
+            durations, weights, etc.
+
+        thresholdVals : collection of floats
+            The complete set of possible threshold values.
+
+        slopeVals : collection of floats
+            The complete set of possible slope values.
+
+        lowerAsymptoteVals : collection of floats
+            The complete set of possible values of the lower asymptote. This
+            corresponds to false-alarm rates in yes-no tasks, and to the
+            guessing rate in n-AFC tasks. Therefore, when performing an n-AFC
+            experiment, the collection should consists of a single value only
+            (e.g., `[0.5]` for 2-AFC, `[0.33]` for 3-AFC, `[0.25]` for 4-AFC,
+            etc.).
+
+        lapseRateVals : collection of floats
+            The complete set of possible lapse rate values. The lapse rate
+            defines the upper asymptote of the psychometric function, which
+            will be at `1 - lapse rate`.
+
+        responseVals : collection
+            The complete set of possible response outcomes. Currently, only
+            two outcomes are supported: the first element must correspond to
+            a successful response / stimulus detection, and the second one to
+            an unsuccessful or incorrect response. For example, in a yes-no
+            task, one would use `['Yes', 'No']`, and in an n-AFC task,
+            `['Correct', 'Incorrect']`; or, alternatively, the less verbose
+            `[1, 0]` in both cases.
+
+        startIntensity : float
+            The very first intensity (or stimulus level) to present.
+
+        psychometricFunc : {'weibull'}
+            The psychometric function to fit. Currently, only the Weibull
+            function is supported.
+
+        stimScale : {'log10', 'dB', 'linear'}
+            The scale on which the stimulus intensities (or stimulus levels)
+            are provided. Currently supported are the decadic logarithm,
+            `log10`; decibels, `dB`; and a linear scale, `linear`.
+
+        stimSelectionMethod : {minEntropy, minNEntropy}
+            How to select the next stimulus. `minEntropy` will select the
+            stimulus that will minimize the expected entropy. `minNEntropy`
+            will randomly pick pick a stimulus from the set of stimuli that
+            will produce the smallest, 2nd-smallest, ..., N-smallest entropy.
+            This can be used to ensure some variation in the stimulus selection
+            (and subsequent presentation) procedure. The number `N` will then
+            have to be specified via the `stimSelectionOption` parameter.
+
+        stimSelectionOptions : dict
+            This parameter further controls how to select the next stimulus in
+            case `stimSelectionMethod=minNEntropy`.
+            The dictionary supports two keys:
+            `N` and `maxConsecutiveReps`.
+            `N` defines the number of "best" stimuli (i.e., those which
+            produce the smallest `N` expected entropies) from which to randomly
+            select a stimulus for presentation in the next trial.
+            `maxConsecutiveReps` defines how many times the exact same stimulus
+            can be presented on consecutive trials.
+            For exmaple, to randomly pick a stimulus from those which will
+            produce the 4 smallest expected entropies, and to allow the same
+            stimulus to be presented on two consecutive trials max, use
+            `stimSelectionDuration=dict(N=4, maxConsecutiveReps=2)`.
+
+        paramEstimationMethod : {'mean' or 'mode'}
+            How to calculate the final parameter estimate. `mean` returns the
+            mean of each parameter, weighted by their respective posterior
+            probabilities. `mode` returns the the parameters at the peak of
+            the posterior distribution.
+
+        extraInfo : dict
+            Additional information to store along the actual QUEST+ staircase
+            data.
+
+        name : str
+            The name of the QUEST+ staircase object. This will appear in the
+            PsychoPy logs.
+
+        Notes
+        -----
+        The QUEST+ algorithm was first described by [1]_.
+
+        .. [1] Andrew B. Watson (2017). QUEST+: A general multidimensional
+               Bayesian adaptive psychometric method.
+               Journal of Vision, 17(3):10. doi: 10.1167/17.3.10.
+
+        """
         if sys.version_info.major == 3 and sys.version_info.minor >= 6:
             import questplus as qp
         else:
