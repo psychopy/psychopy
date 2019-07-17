@@ -171,7 +171,6 @@ class _MasterStream(audio.Stream):
         # sound stream info
         self.sampleRate = sampleRate
         self.channels = 2
-        print('stereoChannels', channels)
         self.duplex = duplex
         self.blockSize = blockSize
         self.label = getStreamLabel(sampleRate, channels, blockSize)
@@ -384,7 +383,6 @@ class SoundPTB(_SoundBase):
         self.sourceType = "array"
         self.track = audio.Slave(self.stream.handle, data=self.sndArr,
                                  volume=self.volume)
-        print('filled the buffer')
 
     def _channelCheck(self, array):
         """Checks whether stream has fewer channels than data. If True, ValueError"""
@@ -409,28 +407,14 @@ class SoundPTB(_SoundBase):
         """Stop the sound but play will continue from here if needed
         """
         self.status = PAUSED
-        streams[self.streamLabel].remove(self)
 
     def stop(self, reset=True):
         """Stop the sound and return to beginning
         """
-        streams[self.streamLabel].remove(self)
         if reset:
             self.seek(0)
         self.status = STOPPED
         self.track.stop(repetitions=self.loops)
-
-        if self._hammingWindow:
-            thisWin = self._hammingWindow.nextBlock(self.t, self.blockSize)
-            if thisWin is not None:
-                if len(block) == len(thisWin):
-                    block *= thisWin
-                elif block.shape[0] == 0:
-                    pass
-                else:
-                    block *= thisWin[0:len(block)]
-        self.t += self.blockSize / float(self.sampleRate)
-        return block
 
     def seek(self, t):
         self.t = t
