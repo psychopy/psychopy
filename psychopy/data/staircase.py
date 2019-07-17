@@ -1307,20 +1307,32 @@ class PsiHandler(StairHandler):
 class QuestPlusHandler(StairHandler):
     def __init__(self,
                  nTrials,
-                 intensities, thresholds, slopes, lowerAsymptotes, lapseRates,
-                 responses=('Yes', 'No'), startIntensity=None,
-                 func='weibull', stimScale='log10',
+                 intensityVals, thresholdVals, slopeVals,
+                 lowerAsymptoteVals, lapseRateVals,
+                 responseVals=('Yes', 'No'), startIntensity=None,
+                 psychometricFunc='weibull', stimScale='log10',
                  stimSelectionMethod='minEntropy',
                  stimSelectionOptions=None, paramEstimationMethod='mean',
                  extraInfo=None, name=''):
-        if not (sys.version_info.major == 3 and sys.version_info.minor >= 6):
+
+        if sys.version_info.major == 3 and sys.version_info.minor >= 6:
+            import questplus as qp
+        else:
             msg = 'QUEST+ implementation requires Python 3.6 or newer'
             raise RuntimeError(msg)
 
         super().__init__(startVal=startIntensity, nTrials=nTrials,
                          extraInfo=extraInfo, name=name)
 
-        self.func = func
+        self.intensityVals = intensityVals
+        self.thresholdVals = thresholdVals
+        self.slopeVals = slopeVals
+        self.lowerAsymptoteVals = lowerAsymptoteVals
+        self.lapseRateVals = lapseRateVals
+        self.responseVals = responseVals
+
+        self.psychometricFunc = psychometricFunc
+        self.stimScale = stimScale
         self.stimSelectionMethod = stimSelectionMethod
         self.stimSelectionOptions = stimSelectionOptions
         self.paramEstimationMethod = paramEstimationMethod
@@ -1333,19 +1345,18 @@ class QuestPlusHandler(StairHandler):
         else:
             raise ValueError('Unknown stimSelectionMethod requested.')
 
-        import questplus as qp
-        if self.func == 'weibull':
+        if self.psychometricFunc == 'weibull':
             self._qp = qp.QuestPlusWeibull(
-                intensities=intensities,
-                thresholds=thresholds,
-                slopes=slopes,
-                lower_asymptotes=lowerAsymptotes,
-                lapse_rates=lapseRates,
-                responses=responses,
-                stim_scale=stimScale,
+                intensities=self.intensityVals,
+                thresholds=self.thresholdVals,
+                slopes=self.slopeVals,
+                lower_asymptotes=self.lowerAsymptoteVals,
+                lapse_rates=self.lapseRateVals,
+                responses=self.responseVals,
+                stim_scale=self.stimScale,
                 stim_selection_method=stimSelectionMethod_,
-                stim_selection_options=stimSelectionOptions,
-                param_estimation_method=paramEstimationMethod)
+                stim_selection_options=self.stimSelectionOptions,
+                param_estimation_method=self.paramEstimationMethod)
         else:
             msg = ('Currently only the Weibull psychometric function is '
                    'supported.')

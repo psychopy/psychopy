@@ -848,18 +848,18 @@ def test_QuestPlusHandler():
 
     expected_mode_threshold = -20
     scale = 'dB'
-    stim_selection_method = 'min_entropy'
+    stim_selection_method = 'minEntropy'
     param_estimation_method = 'mode'
     func = 'weibull'
 
     q = QuestPlusHandler(nTrials=len(expected_contrasts),
-                         intensities=contrasts,
-                         thresholds=thresholds,
-                         slopes=slope,
-                         lowerAsymptotes=guess,
-                         lapseRates=lapse,
-                         responses=('Correct', 'Incorrect'),
-                         func=func,
+                         intensityVals=contrasts,
+                         thresholdVals=thresholds,
+                         slopeVals=slope,
+                         lowerAsymptoteVals=guess,
+                         lapseRateVals=lapse,
+                         responseVals=('Correct', 'Incorrect'),
+                         psychometricFunc=func,
                          stimSelectionMethod=stim_selection_method,
                          stimScale=scale,
                          paramEstimationMethod=param_estimation_method)
@@ -884,18 +884,18 @@ def test_QuestPlusHandler_saveAsJson():
     contrasts = thresholds.copy()
 
     scale = 'dB'
-    stim_selection_method = 'min_entropy'
+    stim_selection_method = 'minEntropy'
     param_estimation_method = 'mode'
     func = 'weibull'
 
     q = QuestPlusHandler(nTrials=20,
-                         intensities=contrasts,
-                         thresholds=thresholds,
-                         slopes=slope,
-                         lowerAsymptotes=guess,
-                         lapseRates=lapse,
-                         responses=('Correct', 'Incorrect'),
-                         func=func,
+                         intensityVals=contrasts,
+                         thresholdVals=thresholds,
+                         slopeVals=slope,
+                         lowerAsymptoteVals=guess,
+                         lapseRateVals=lapse,
+                         responseVals=('Correct', 'Incorrect'),
+                         psychometricFunc=func,
                          stimSelectionMethod=stim_selection_method,
                          stimScale=scale,
                          paramEstimationMethod=param_estimation_method)
