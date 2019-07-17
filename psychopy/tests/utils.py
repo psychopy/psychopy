@@ -43,9 +43,8 @@ def compareScreenshot(fileName, win, crit=5.0):
     win.movieFrames=[]
     #if the file exists run a test, if not save the file
     if not isfile(fileName):
-        if win.useRetina:  # if we're creating an image on retina then downsize
-            frame = frame.resize((int(frame.size[0]/2), int(frame.size[1]/2)),
-                                 resample=Image.LANCZOS)
+        frame = frame.resize((int(frame.size[0]/2), int(frame.size[1]/2)),
+                             resample=Image.LANCZOS)
         frame.save(fileName, optimize=1)
         skip("Created %s" % basename(fileName))
     else:

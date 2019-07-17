@@ -59,7 +59,7 @@ Sound = None
 audioLib = None
 audioDriver = None
 
-_audioLibs = ['sounddevice', 'pyo', 'pysoundcard', 'pygame']
+_audioLibs = ['PTB', 'sounddevice', 'pyo', 'pysoundcard', 'pygame']
 
 # check if this is being imported on Travis (has no audio card)
 travisCI = bool(str(os.environ.get('TRAVIS')).lower() == 'true')
@@ -70,7 +70,11 @@ if travisCI:
 for thisLibName in prefs.hardware['audioLib']:
 
     try:
-        if thisLibName == 'pyo':
+        if thisLibName.lower() == 'ptb':
+            from . import backend_ptb as backend
+            Sound = backend.SoundPTB
+            audioDriver = backend.audioDriver
+        elif thisLibName == 'pyo':
             from . import backend_pyo as backend
             Sound = backend.SoundPyo
             pyoSndServer = backend.pyoSndServer
