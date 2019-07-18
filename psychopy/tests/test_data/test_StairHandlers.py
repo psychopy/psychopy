@@ -882,6 +882,7 @@ def test_QuestPlusHandler_saveAsJson():
     thresholds = np.arange(-40, 0 + 1)
     slope, guess, lapse = 3.5, 0.5, 0.02
     contrasts = thresholds.copy()
+    responses = ['Correct', 'Incorrect']
 
     scale = 'dB'
     stim_selection_method = 'minEntropy'
@@ -894,7 +895,7 @@ def test_QuestPlusHandler_saveAsJson():
                          slopeVals=slope,
                          lowerAsymptoteVals=guess,
                          lapseRateVals=lapse,
-                         responseVals=('Correct', 'Incorrect'),
+                         responseVals=responses,
                          psychometricFunc=func,
                          stimSelectionMethod=stim_selection_method,
                          stimScale=scale,
