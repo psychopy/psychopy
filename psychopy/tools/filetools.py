@@ -39,7 +39,7 @@ def toFile(filename, data):
     f.close()
 
 
-def fromFile(filename, encoding='utf-8'):
+def fromFile(filename, encoding='utf-8-sig'):
     """Load data from a pickle or JSON file.
 
     Parameters
