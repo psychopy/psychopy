@@ -1425,6 +1425,10 @@ class QuestPlusHandler(StairHandler):
             msg = 'QUEST+ implementation requires Python 3.6 or newer'
             raise RuntimeError(msg)
 
+        msg = ('The QUEST+ staircase implementation is currently being '
+               'tested and may be subject to change.')
+        logging.critical(msg)
+
         super().__init__(startVal=startIntensity, nTrials=nTrials,
                          extraInfo=extraInfo, name=name)
 
