@@ -1329,13 +1329,13 @@ class QuestPlusHandler(StairHandler):
             name of this parameter implies), but they could also be contrasts,
             durations, weights, etc.
 
-        thresholdVals : collection of floats
+        thresholdVals : float or collection of floats
             The complete set of possible threshold values.
 
-        slopeVals : collection of floats
+        slopeVals : float or collection of floats
             The complete set of possible slope values.
 
-        lowerAsymptoteVals : collection of floats
+        lowerAsymptoteVals : float or collection of floats
             The complete set of possible values of the lower asymptote. This
             corresponds to false-alarm rates in yes-no tasks, and to the
             guessing rate in n-AFC tasks. Therefore, when performing an n-AFC
@@ -1343,7 +1343,7 @@ class QuestPlusHandler(StairHandler):
             (e.g., `[0.5]` for 2-AFC, `[0.33]` for 3-AFC, `[0.25]` for 4-AFC,
             etc.).
 
-        lapseRateVals : collection of floats
+        lapseRateVals : float or collection of floats
             The complete set of possible lapse rate values. The lapse rate
             defines the upper asymptote of the psychometric function, which
             will be at `1 - lapse rate`.
@@ -1369,7 +1369,7 @@ class QuestPlusHandler(StairHandler):
             are provided. Currently supported are the decadic logarithm,
             `log10`; decibels, `dB`; and a linear scale, `linear`.
 
-        stimSelectionMethod : {minEntropy, minNEntropy}
+        stimSelectionMethod : {'minEntropy', 'minNEntropy'}
             How to select the next stimulus. `minEntropy` will select the
             stimulus that will minimize the expected entropy. `minNEntropy`
             will randomly pick pick a stimulus from the set of stimuli that
@@ -1393,7 +1393,7 @@ class QuestPlusHandler(StairHandler):
             stimulus to be presented on two consecutive trials max, use
             `stimSelectionDuration=dict(N=4, maxConsecutiveReps=2)`.
 
-        paramEstimationMethod : {'mean' or 'mode'}
+        paramEstimationMethod : {'mean', 'mode'}
             How to calculate the final parameter estimate. `mean` returns the
             mean of each parameter, weighted by their respective posterior
             probabilities. `mode` returns the the parameters at the peak of
