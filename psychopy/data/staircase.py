@@ -1387,13 +1387,13 @@ class QuestPlusHandler(StairHandler):
 
     def saveAsJson(self,
                    fileName=None,
-                   encoding='utf-8',
+                   encoding='utf-8-sig',
                    fileCollisionMethod='rename'):
         self_copy = copy.deepcopy(self)
 
         # Convert questplus.QuestPlus to JSON using questplus's built-in
         # functionality. questplus uses xarray, which cannot be easily
-        # serialized using directly json_tricks (yet).
+        # serialized directly using json_tricks (yet).
         self_copy._qp_json = self_copy._qp.to_json()
         del self_copy._qp
 
