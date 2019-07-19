@@ -78,6 +78,10 @@ class TestMultiStairHandler(object):
         exp.close()
 
     def test_QuestPlus(self):
+        import sys
+        if not (sys.version_info.major == 3 and sys.version_info.minor >= 6):
+            pytest.skip('QUEST+ only works on Python 3.6+')
+
         conditions = data.importConditions(os.path.join(fixturesPath,
                                            'multiStairQuestPlus.xlsx'))
         stairs = data.MultiStairHandler(stairType='questplus',
