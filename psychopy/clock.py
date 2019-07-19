@@ -121,10 +121,20 @@ class MonotonicClock(object):
         else:
             self._timeAtLastReset = start_time
 
-    def getTime(self):
-        """Returns the current time on this clock in secs (sub-ms precision)
+    def getTime(self, applyZero=True):
+        """Returns the current time on this clock in secs (sub-ms precision).
+
+        If applying zero then this will be the time since the clock was created
+        (typically the beginning of the script).
+
+        If not applying zero then it is whatever the underlying clock uses as
+        its base time but that is system dependent. e.g. can be time since
+        reboot, time since Unix Epoch etc
         """
-        return getTime() - self._timeAtLastReset
+        if applyZero:
+            return getTime() - self._timeAtLastReset
+        else:
+            return getTime()
 
     def getLastResetTime(self):
         """
@@ -132,6 +142,7 @@ class MonotonicClock(object):
         timebase used by Clock.
         """
         return self._timeAtLastReset
+
 
 monotonicClock = MonotonicClock()
 

@@ -780,6 +780,26 @@ class Window(object):
         """
         self.callOnFlip(self._assignFlipTime, obj, attrib)
 
+    @property
+    def nextFlipTime(self, ptb=False):
+        """The expected time of the next screen refresh. This is currently
+        calculated as win._lastFrameTime + refreshInterval
+
+        Parameters
+        ----------
+        ptb : bool
+            If True then the time returned is compatible with ptb.GetSecs()
+        """
+        if not self.monitorFramePeriod:
+            raise AttributeError("Cannot calculate nextFlipTime due to unknown"
+                                 "monitorFramePeriod")
+        nextT = self._lastFrameT + self.monitorFramePeriod
+        if ptb:  #add back the lastResetTime (that's the clock difference)
+            return nextT + logging.defaultClock.getLastResetTime()
+        else:
+            return nextT
+
+
     def _assignFlipTime(self, obj, attrib):
         """Helper function to assign the time of last flip to the obj.attrib
 
