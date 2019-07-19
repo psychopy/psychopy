@@ -851,6 +851,7 @@ def test_QuestPlusHandler():
     stim_selection_method = 'minEntropy'
     param_estimation_method = 'mode'
     func = 'weibull'
+    response_vals = ['Correct', 'Incorrect']
 
     q = QuestPlusHandler(nTrials=len(expected_contrasts),
                          intensityVals=contrasts,
@@ -858,7 +859,7 @@ def test_QuestPlusHandler():
                          slopeVals=slope,
                          lowerAsymptoteVals=guess,
                          lapseRateVals=lapse,
-                         responseVals=('Correct', 'Incorrect'),
+                         responseVals=response_vals,
                          psychometricFunc=func,
                          stimSelectionMethod=stim_selection_method,
                          stimScale=scale,
@@ -872,6 +873,40 @@ def test_QuestPlusHandler():
                        expected_mode_threshold)
 
 
+def test_QuestPlusHandler_startIntensity():
+    import sys
+    if not (sys.version_info.major == 3 and sys.version_info.minor >= 6):
+        pytest.skip('QUEST+ only works on Python 3.6+')
+
+    from psychopy.data.staircase import QuestPlusHandler
+
+    thresholds = np.arange(-40, 0 + 1)
+    slope, guess, lapse = 3.5, 0.5, 0.02
+    contrasts = thresholds.copy()
+    response_vals = ['Correct', 'Incorrect']
+    start_intensity = contrasts[10]
+    scale = 'dB'
+    stim_selection_method = 'minEntropy'
+    param_estimation_method = 'mode'
+    func = 'weibull'
+
+    q = QuestPlusHandler(nTrials=10,
+                         startIntensity=start_intensity,
+                         intensityVals=contrasts,
+                         thresholdVals=thresholds,
+                         slopeVals=slope,
+                         lowerAsymptoteVals=guess,
+                         lapseRateVals=lapse,
+                         responseVals=response_vals,
+                         psychometricFunc=func,
+                         stimSelectionMethod=stim_selection_method,
+                         stimScale=scale,
+                         paramEstimationMethod=param_estimation_method)
+
+    assert q.startIntensity == start_intensity
+    assert q._nextIntensity == start_intensity
+
+
 def test_QuestPlusHandler_saveAsJson():
     import sys
     if not (sys.version_info.major == 3 and sys.version_info.minor >= 6):
@@ -882,7 +917,7 @@ def test_QuestPlusHandler_saveAsJson():
     thresholds = np.arange(-40, 0 + 1)
     slope, guess, lapse = 3.5, 0.5, 0.02
     contrasts = thresholds.copy()
-    responses = ['Correct', 'Incorrect']
+    response_vals = ['Correct', 'Incorrect']
 
     scale = 'dB'
     stim_selection_method = 'minEntropy'
@@ -895,7 +930,7 @@ def test_QuestPlusHandler_saveAsJson():
                          slopeVals=slope,
                          lowerAsymptoteVals=guess,
                          lapseRateVals=lapse,
-                         responseVals=responses,
+                         responseVals=response_vals,
                          psychometricFunc=func,
                          stimSelectionMethod=stim_selection_method,
                          stimScale=scale,
@@ -928,5 +963,6 @@ def test_QuestPlusHandler_saveAsJson():
 
 
 if __name__ == '__main__':
-    test_QuestPlusHandler()
+    # test_QuestPlusHandler()
+    # test_QuestPlusHandler_startIntensity()
     test_QuestPlusHandler_saveAsJson()

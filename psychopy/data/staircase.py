@@ -1313,7 +1313,7 @@ class QuestPlusHandler(StairHandler):
                  psychometricFunc='weibull', stimScale='log10',
                  stimSelectionMethod='minEntropy',
                  stimSelectionOptions=None, paramEstimationMethod='mean',
-                 extraInfo=None, name=''):
+                 extraInfo=None, name='', label=''):
         """
         QUEST+ implementation. Currently only supports parameter estimation of
         a Weibull-shaped psychometric function.
@@ -1407,6 +1407,9 @@ class QuestPlusHandler(StairHandler):
             The name of the QUEST+ staircase object. This will appear in the
             PsychoPy logs.
 
+        label : str
+            Only used by :class:`MultiStairHandler`, and otherwise ignored.
+
         Notes
         -----
         The QUEST+ algorithm was first described by [1]_.
@@ -1463,6 +1466,15 @@ class QuestPlusHandler(StairHandler):
                    'supported.')
             raise ValueError(msg)
 
+        # Ensure self._nextIntensity is set in case the `startIntensity` kwarg
+        # was supplied. We never actually use self._nextIntensity in the
+        # QuestPlusHandler; it's mere purpose here is to make the
+        # MultiStairHandler happy.
+        if self.startIntensity is not None:
+            self._nextIntensity = self.startIntensity
+        else:
+            self._nextIntensity = self._qp.next_intensity
+
     @property
     def startIntensity(self):
         return self.startVal
@@ -1486,11 +1498,15 @@ class QuestPlusHandler(StairHandler):
         if not self.finished:
             # update pointer for next trial
             self.thisTrialN += 1
-            if self.thisTrialN == 0 and self.startVal is not None:
+            if self.thisTrialN == 0 and self.startIntensity is not None:
                 self.intensities.append(self.startVal)
             else:
                 self.intensities.append(self._qp.next_intensity)
 
+            # We never actually use self._nextIntensity in the
+            # QuestPlusHandler; it's mere purpose here is to make the
+            # MultiStairHandler happy.
+            self._nextIntensity = self.intensities[-1]
             return self.intensities[-1]
         else:
             self._terminate()
@@ -1552,8 +1568,9 @@ class MultiStairHandler(_BaseTrialHandler):
 
         :params:
 
-            stairType: 'simple' or 'quest'
-                Use a :class:`StairHandler` or :class:`QuestHandler`
+            stairType: 'simple', 'quest', or 'questplus'
+                Use a :class:`StairHandler`, a :class:`QuestHandler`, or a
+                 :class:`QuestPlusHandler`.
 
             method: 'random' or 'sequential'
                 The stairs are shuffled in each repeat but not randomised
@@ -1637,12 +1654,12 @@ class MultiStairHandler(_BaseTrialHandler):
 
         # Did `conditions` contain the things we need?
         params = list(c0.keys())
-        if self.type not in ['simple', 'quest', 'QUEST']:
+        if self.type not in ['simple', 'quest', 'QUEST', 'questplus']:
             raise ValueError(
                 'MultiStairHandler `stairType` should be \'simple\', '
                 '\'QUEST\' or \'quest\', not \'%s\'' % self.type)
 
-        if 'startVal' not in params:
+        if self.type != 'questplus' and 'startVal' not in params:
             raise AttributeError('MultiStairHandler needs a parameter called '
                                  '`startVal` in conditions')
         if 'label' not in params:
@@ -1673,6 +1690,8 @@ class MultiStairHandler(_BaseTrialHandler):
                 startVal = args.pop('startVal')
                 startValSd = args.pop('startValSd')
                 thisStair = QuestHandler(startVal, startValSd, **args)
+            elif self.type == 'questplus':
+                thisStair = QuestPlusHandler(**args)
 
             # This isn't normally part of handler.
             thisStair.condition = condition
