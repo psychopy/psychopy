@@ -990,6 +990,34 @@ def test_QuestPlusHandler_paramEstimate_weibull():
     assert 'lapseRate' in q.paramEstimate.keys()
 
 
+def test_QuestPlusHandler_posterior_weibull():
+    import sys
+    if not (sys.version_info.major == 3 and sys.version_info.minor >= 6):
+        pytest.skip('QUEST+ only works on Python 3.6+')
+
+    from psychopy.data.staircase import QuestPlusHandler
+
+    thresholds = np.arange(-40, 0 + 1)
+    slope, guess, lapse = 3.5, 0.5, 0.02
+    contrasts = thresholds.copy()
+    response_vals = ['Correct', 'Incorrect']
+    func = 'weibull'
+
+    q = QuestPlusHandler(nTrials=20,
+                         intensityVals=contrasts,
+                         thresholdVals=thresholds,
+                         slopeVals=slope,
+                         lowerAsymptoteVals=guess,
+                         lapseRateVals=lapse,
+                         responseVals=response_vals,
+                         psychometricFunc=func)
+
+    assert 'threshold' in q.posterior.keys()
+    assert 'slope' in q.posterior.keys()
+    assert 'lowerAsymptote' in q.posterior.keys()
+    assert 'lapseRate' in q.posterior.keys()
+
+
 if __name__ == '__main__':
     # test_QuestPlusHandler()
     # test_QuestPlusHandler_startIntensity()
