@@ -144,7 +144,7 @@ class NoiseStim(GratingStim):
                  sf=None,
                  ori=0.0,
                  phase=(0.0, 0.0),
-                 noiseType='none',
+                 noiseType=None,
                  noiseElementSize=16,
                  noiseBaseSf=1,
                  noiseBW=1,
@@ -179,6 +179,17 @@ class NoiseStim(GratingStim):
         # __repr__
 
         self._initParams = dir()
+
+        if noiseType is None:
+            msg = ('noiseType not recognized. Valid types are: \n'
+                   'binary, uniform, normal, white, filtered, gabor, '
+                   'isotropic, or image.')
+            raise ValueError(msg)
+        elif noiseType == 'image' and noiseImage is None:
+            msg = ('You need to supply an image via the noiseImage keyword '
+                   'argument.')
+            raise ValueError(msg)
+
         for unecess in ['self', 'rgb', 'dkl', 'lms']:
             self._initParams.remove(unecess)
         # initialise parent class
