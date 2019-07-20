@@ -153,7 +153,11 @@ class _baseVisualTest(object):
             utils.compareScreenshot('envelopepowerandrcos_%s.png' %(self.contextName), win)
             win.flip()
             "{}".format(image)
-            
+
+    def test_NoiseStim_defaults(self):
+        stim = visual.NoiseStim(win=self.win)
+        stim.draw()
+
     def test_noiseAndRaisedCos(self):
         numpy.random.seed(1)
         win = self.win
