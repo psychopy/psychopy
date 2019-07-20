@@ -1318,6 +1318,12 @@ class QuestPlusHandler(StairHandler):
         QUEST+ implementation. Currently only supports parameter estimation of
         a Weibull-shaped psychometric function.
 
+        The parameter estimates can be retrieved via the `.paramEstimate`
+        attribute, which returns a dictionary whose keys correspond to the
+        names of the estimated parameters
+        (i.e., `QuestPlusHandler.paramEstimate['threshold']` will provide the
+         threshold estimate).
+
         Parameters
         ----------
         nTrials : int
@@ -1524,8 +1530,23 @@ class QuestPlusHandler(StairHandler):
             self.finished = False
 
     @property
-    def paramEstimates(self):
-        return self._qp.param_estimate
+    def paramEstimate(self):
+        """
+        The estimated parameters of the psychometric function.
+
+        Returns
+        -------
+        dict
+            A dictionary whose keys correspond to the names of the estimated
+            parameters.
+
+        """
+        qp_estimate = self._qp.param_estimate
+        estimate = dict(threshold=qp_estimate['threshold'],
+                        slope=qp_estimate['slope'],
+                        lowerAsymptote=qp_estimate['lower_asymptote'],
+                        lapseRate=qp_estimate['lapse_rate'])
+        return estimate
 
     def saveAsJson(self,
                    fileName=None,
