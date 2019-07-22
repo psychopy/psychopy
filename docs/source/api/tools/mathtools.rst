@@ -95,7 +95,7 @@ Overview
     invertMatrix
     concatenate
     applyMatrix
-    rigidBodyToMatrix
+    posOriToMatrix
     transform
 
 Details

@@ -11,7 +11,7 @@
 __all__ = ['normalize', 'lerp', 'slerp', 'multQuat', 'quatFromAxisAngle',
            'quatToMatrix', 'scaleMatrix', 'rotationMatrix', 'transform',
            'translationMatrix', 'concatenate', 'applyMatrix', 'invertQuat',
-           'quatToAxisAngle', 'rigidBodyToMatrix', 'applyQuat', 'orthogonalize',
+           'quatToAxisAngle', 'posOriToMatrix', 'applyQuat', 'orthogonalize',
            'reflect', 'cross', 'distance', 'dot', 'quatMagnitude', 'length',
            'project', 'surfaceNormal', 'invertMatrix', 'angleTo']
 
@@ -1641,7 +1641,7 @@ def applyMatrix(m, points, out=None, dtype=None):
     return toReturn
 
 
-def rigidBodyToMatrix(pos, ori, out=None, dtype=None):
+def posOriToMatrix(pos, ori, out=None, dtype=None):
     """Convert a rigid body pose to a 4x4 transformation matrix.
 
     A pose is represented by a position coordinate `pos` and orientation
