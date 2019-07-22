@@ -153,7 +153,28 @@ class _baseVisualTest(object):
             utils.compareScreenshot('envelopepowerandrcos_%s.png' %(self.contextName), win)
             win.flip()
             "{}".format(image)
-            
+
+    def test_NoiseStim_defaults(self):
+        noiseTypes = ['binary', 'uniform', 'normal', 'white', 'filtered']
+
+        for noiseType in noiseTypes:
+            stim = visual.NoiseStim(win=self.win,
+                                    noiseType=noiseType,
+                                    size=(32, 32),
+                                    units='pix')
+            stim.updateNoise()
+            stim.draw()
+
+    def test_NoiseStim_defaults_image(self):
+        noiseType = 'image'
+
+        # noiseImage kwarg missing.
+        with pytest.raises(ValueError):
+            visual.NoiseStim(win=self.win,
+                             noiseType=noiseType,
+                             size=(32, 32),
+                             units='pix')
+
     def test_noiseAndRaisedCos(self):
         numpy.random.seed(1)
         win = self.win

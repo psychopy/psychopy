@@ -77,5 +77,38 @@ class TestMultiStairHandler(object):
         stairs.saveAsPickle(os.path.join(self.temp_dir, 'multiQuestOut'))
         exp.close()
 
+    def test_QuestPlus(self):
+        import sys
+        if not (sys.version_info.major == 3 and sys.version_info.minor >= 6):
+            pytest.skip('QUEST+ only works on Python 3.6+')
+
+        conditions = data.importConditions(os.path.join(fixturesPath,
+                                           'multiStairQuestPlus.xlsx'))
+        stairs = data.MultiStairHandler(stairType='questplus',
+                                        conditions=conditions,
+                                        method='random',
+                                        nTrials=20,
+                                        name='QuestPlusStairs',
+                                        autoLog=False)
+        exp = data.ExperimentHandler(name='testExp',
+                                     savePickle=True,
+                                     saveWideText=True,
+                                     dataFileName=os.path.join(self.temp_dir,
+                                                               'multiQuestPlusExperiment'),
+                                     autoLog=False)
+        rng = np.random.RandomState(seed=self.random_seed)
+        exp.addLoop(stairs)
+
+        for intensity, condition in stairs:
+            response = np.random.choice(['Correct', 'Incorrect'])
+            stairs.addResponse(response)
+
+        stairs.saveAsExcel(os.path.join(self.temp_dir, 'multiQuestPlusOut'))
+
+        # contains more info
+        stairs.saveAsPickle(os.path.join(self.temp_dir, 'multiQuestPlusOut'))
+        exp.close()
+
+
 if __name__ == '__main__':
     pytest.main()

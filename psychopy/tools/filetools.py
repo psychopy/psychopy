@@ -39,7 +39,7 @@ def toFile(filename, data):
     f.close()
 
 
-def fromFile(filename, encoding='utf-8'):
+def fromFile(filename, encoding='utf-8-sig'):
     """Load data from a pickle or JSON file.
 
     Parameters
@@ -57,23 +57,37 @@ def fromFile(filename, encoding='utf-8'):
             # copies using __del__
             if hasattr(contents, 'abort'):
                 contents.abort()
+            return contents
     elif filename.endswith('.json'):
         with codecs.open(filename, 'r', encoding=encoding) as f:
             contents = json_tricks.load(f)
 
-            # Restore RNG if we load a TrialHandler2 object.
-            # We also need to remove the 'temporary' ._rng_state attribute that
-            # was saved with it.
-            from psychopy.data import TrialHandler2
-            if isinstance(contents, TrialHandler2):
-                contents._rng = np.random.RandomState(seed=contents.seed)
-                contents._rng.set_state(contents._rng_state)
-                del contents._rng_state
+        # Restore RNG if we load a TrialHandler2 object.
+        # We also need to remove the 'temporary' ._rng_state attribute that
+        # was saved with it.
+        from psychopy.data import TrialHandler2
+        if isinstance(contents, TrialHandler2):
+            contents._rng = np.random.RandomState(seed=contents.seed)
+            contents._rng.set_state(contents._rng_state)
+            del contents._rng_state
+            return contents
+
+        # QuestPlus.
+        if sys.version_info.major == 3 and sys.version_info.minor >= 6:
+            from psychopy.data.staircase import QuestPlusHandler
+            from questplus import QuestPlus
+            if isinstance(contents, QuestPlusHandler):
+                # Restore the questplus.QuestPlus object.
+                contents._qp = QuestPlus.from_json(contents._qp_json)
+                del contents._qp_json
+                return contents
+
+        # If we haven't returned anything by now, the loaded object is neither
+        # a TrialHandler2 nor a QuestPlus instance. Return it unchanged.
+        return contents
     else:
         msg = "Don't know how to handle this file type, aborting."
         raise ValueError(msg)
-
-    return contents
 
 
 def mergeFolder(src, dst, pattern=None):
