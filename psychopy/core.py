@@ -56,15 +56,17 @@ openWindows = []  # visual.Window updates this, event.py and clock.py use it
 # (which was also a descripancy between OS's when win32 was using time.clock).
 
 
-def getTime():
+def getTime(applyZero = True):
     """Get the current time since psychopy.core was loaded.
+
+
 
     Version Notes: Note that prior to PsychoPy 1.77.00 the behaviour of
     getTime() was platform dependent (on OSX and linux it was equivalent to
     :func:`psychopy.core.getAbsTime`
     whereas on windows it returned time since loading of the module, as now)
     """
-    return monotonicClock.getTime()
+    return monotonicClock.getTime(applyZero)
 
 
 def quit():

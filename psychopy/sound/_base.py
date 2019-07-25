@@ -218,6 +218,8 @@ class _SoundBase(object):
             # want infinite duration - create 1 sec sound and loop it
             secs = 10.0
             self.loops = -1
+        if not self.sampleRate:
+            self.sampleRate = self._getDefaultSampleRate()
         nSamples = int(secs * self.sampleRate)
         outArr = numpy.arange(0.0, 1.0, 1.0 / nSamples)
         outArr *= 2 * numpy.pi * thisFreq * secs
@@ -225,6 +227,10 @@ class _SoundBase(object):
         if hamming and nSamples > 30:
             outArr = apodize(outArr, self.sampleRate)
         self._setSndFromArray(outArr)
+
+    def _getDefaultSampleRate(self):
+        """For backends this might depend on what streams are open"""
+        return 44100
 
     def getDuration(self):
         """Return the duration of the sound"""
