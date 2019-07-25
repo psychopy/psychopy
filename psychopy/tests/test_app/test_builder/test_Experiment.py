@@ -427,7 +427,7 @@ class TestExpImports(object):
         assert import_ in self.exp.requiredImports
 
         script = self.exp.writeScript()
-        assert 'from psychopy import locale_setup, foo\n' in script
+        assert 'from psychopy import foo\n' in script
 
     def test_requirePsychopyLibs2(self):
         import_0 = RequiredImport(importName='foo', importFrom='psychopy',
@@ -440,7 +440,7 @@ class TestExpImports(object):
         assert import_1 in self.exp.requiredImports
 
         script = self.exp.writeScript()
-        assert 'from psychopy import locale_setup, foo, bar\n' in script
+        assert 'from psychopy import foo, bar\n' in script
 
     def test_requireImportAndPsychopyLib(self):
         import_0 = RequiredImport(importName='foo', importFrom='psychopy',
@@ -454,7 +454,8 @@ class TestExpImports(object):
         assert import_1 in self.exp.requiredImports
 
         script = self.exp.writeScript()
-        assert 'from psychopy import locale_setup, foo\n' in script
+        print(script)
+        assert 'from psychopy import foo\n' in script
         assert 'import bar\n' in script
 
 
