@@ -10,15 +10,17 @@ import sys
 import os
 import time
 import re
+import weakref
 
-from psychopy import logging, exceptions
-from psychopy.constants import (PLAYING, PAUSED, FINISHED, STOPPED,
+from psychopy import prefs, logging, exceptions
+from psychopy.constants import (STARTED, PAUSED, FINISHED, STOPPED,
                                 NOT_STARTED)
 from psychopy.exceptions import SoundFormatError, DependencyError
 from ._base import _SoundBase, HammingWindow
 
 try:
     from psychtoolbox import audio
+    import psychtoolbox as ptb
 except Exception:
     raise DependencyError("psychtoolbox audio failed to import")
 try:
@@ -29,7 +31,15 @@ except Exception:
 import numpy as np
 
 
-defaultLatencyClass = 2
+defaultLatencyClass = int(prefs.hardware['audioLatency'][0])
+"""vals in prefs.hardware['audioLatency'] are:
+    '0:compatibility'
+    '1:balance latency/compatibility'
+    '2:prioritise low latency'
+    '3:aggressive low-latency'
+    '4:critical low-latency'
+Based on help at http://psychtoolbox.org/docs/PsychPortAudio-Open
+"""
 # 0=cautious
 # 1=try but be nice
 # 2=try and take priority (seems good on Mac)
@@ -50,8 +60,9 @@ _verbosities = ((logging.DEBUG, 5),
 for _logLevel, _verbos in _verbosities:
     if logging.console.level <= _logLevel:
         audio.verbosity(_verbos)
+        break
 
-def init(rate=44100, stereo=True, buffer=128):
+def init(rate=48000, stereo=True, buffer=128):
     pass  # for compatibility with other backends
 
 
@@ -197,7 +208,7 @@ class SoundPTB(_SoundBase):
 
     def __init__(self, value="C", secs=0.5, octave=4, stereo=-1,
                  volume=1.0, loops=0,
-                 sampleRate=44100, blockSize=128,
+                 sampleRate=None, blockSize=128,
                  preBuffer=-1,
                  hamming=True,
                  startTime=0, stopTime=-1,
@@ -257,6 +268,39 @@ class SoundPTB(_SoundBase):
         self.setSound(value, secs=self.secs, octave=self.octave,
                       hamming=self.hamming)
         self.status = NOT_STARTED
+
+    def _getDefaultSampleRate(self):
+        """Check what streams are open and use one of these"""
+        if len(streams):
+            return list(streams.values())[0].sampleRate
+        else:
+            return 48000  # seems most widely supported
+
+    @property
+    def statusDetailed(self):
+        if not self.track:
+            return None
+        return self.track.status
+
+    @property
+    def status(self):
+        """status gives a simple value from psychopy.constants to indicate
+        NOT_STARTED, STARTED, FINISHED, PAUSED
+
+        Psychtoolbox sounds also have a statusDetailed property with further info"""
+        if self.__dict__['status']==STARTED:
+            # check portaudio to see if still playing
+            pa_status = self.statusDetailed
+            if not pa_status['Active'] and pa_status['State']==0:
+                # we were playing and now not so presumably FINISHED
+                self._EOS()
+
+        return self.__dict__['status']
+
+
+    @status.setter
+    def status(self, newStatus):
+        self.__dict__['status'] = newStatus
 
     @property
     def stereo(self):
@@ -381,8 +425,13 @@ class SoundPTB(_SoundBase):
         # set to run from the start:
         self.seek(0)
         self.sourceType = "array"
-        self.track = audio.Slave(self.stream.handle, data=self.sndArr,
-                                 volume=self.volume)
+
+        if not self.track:  # do we have one already?
+            self.track = audio.Slave(self.stream.handle, data=self.sndArr,
+                                     volume=self.volume)
+        else:
+            self.track.stop()
+            self.track.fill_buffer(self.sndArr, start_index=1)
 
     def _channelCheck(self, array):
         """Checks whether stream has fewer channels than data. If True, ValueError"""
@@ -399,9 +448,12 @@ class SoundPTB(_SoundBase):
         """
         if loops is not None and self.loops != loops:
             self.setLoops(loops)
-        self.status = PLAYING
+        self.status = STARTED
         self._tSoundRequestPlay = time.time()
+        if hasattr(when, 'getFutureFlipTime'):
+            when = when.getFutureFlipTime(ptb=True)
         self.track.start(repetitions=self.loops, when=when)
+        # time.sleep(0.)
 
     def pause(self):
         """Stop the sound but play will continue from here if needed
@@ -414,7 +466,7 @@ class SoundPTB(_SoundBase):
         if reset:
             self.seek(0)
         self.status = STOPPED
-        self.track.stop(repetitions=self.loops)
+        self.track.stop()
 
     def seek(self, t):
         self.t = t
@@ -460,3 +512,24 @@ class SoundPTB(_SoundBase):
             self.streamLabel = label
 
         return streams[self.streamLabel]
+
+    def __del__(self):
+        if self.track:
+            self.track.close()
+        self.track = None
+
+    @property
+    def track(self):
+        """The track on the master stream to which we belong"""
+        # the track is actually a weak reference to avoid circularity
+        if 'track' in self.__dict__:
+            return self.__dict__['track']()
+        else:
+            return None
+
+    @track.setter
+    def track(self, track):
+        if track is None:
+            self.__dict__['track'] = None
+        else:
+            self.__dict__['track'] = weakref.ref(track)

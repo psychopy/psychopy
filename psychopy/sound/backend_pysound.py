@@ -185,7 +185,7 @@ class SoundPySoundCard(_SoundBase):
         self.requestedLoops = self.loops = int(loops)
         self.setSound(value=value, secs=secs, octave=octave)
 
-    def play(self, fromStart=True, log=True, loops=None):
+    def play(self, fromStart=True, log=True, loops=None, when=None):
         """Starts playing the sound on an available channel.
 
         :Parameters:
@@ -198,6 +198,8 @@ class SoundPySoundCard(_SoundBase):
                 How many times to repeat the sound after it plays once. If
                 `loops` == -1, the sound will repeat indefinitely until
                 stopped.
+            when: not used
+                Included for compatibility purposes
 
         :Notes:
 

@@ -149,7 +149,7 @@ class SoundComponent(BaseComponent):
         self.writeParamUpdates(buff, 'set every frame')
         self.writeStartTestCode(buff)
         if self.params['syncScreenRefresh'].val:
-            code = ("win.callOnFlip(%(name)s.play)  # screen flip\n") % self.params
+            code = ("%(name)s.play(when=win)  # sync with win flip\n") % self.params
         else:
             code = "%(name)s.play()  # start the sound (it finishes automatically)\n" % self.params
         buff.writeIndented(code)
