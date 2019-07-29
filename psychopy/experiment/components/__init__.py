@@ -186,12 +186,10 @@ def getInitVals(params, target="PsychoPy"):
     """
     inits = copy.deepcopy(params)
     for name in params:
-
         if target == "PsychoJS":
-            # convert (0,0.5) to [0,0.5] but don't convert "rand()" to "rand[]"
+            # convert (0,0.5) to [0,0.5] but don't convert "rand()" to "rand[]" and don't convert text
             valStr = str(inits[name].val).strip()
-
-            if valStr.startswith("(") and valStr.endswith(")"):
+            if valStr.startswith("(") and valStr.endswith(")") and name != 'text':
                 inits[name].val = py2js.expression2js(inits[name].val)
             # filenames (e.g. for image) need to be loaded from resources
             if name in ["sound"]:

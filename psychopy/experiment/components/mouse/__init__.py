@@ -89,8 +89,8 @@ class MouseComponent(BaseComponent):
             label=_localized['timeRelativeTo'])
 
 
-        msg = _translate('If the mouse button is already down when we start'
-                         'checking then wait for it to be released before'
+        msg = _translate('If the mouse button is already down when we start '
+                         'checking then wait for it to be released before '
                          'recording as a new click.'
                          )
         self.params['newClicksOnly'] = Param(
@@ -388,7 +388,7 @@ class MouseComponent(BaseComponent):
                 "  // if button is down already this ISN'T a new click\n")
         else:
             code += (
-                "let prevButtonState = [0, 0, 0];"
+                "prevButtonState = [0, 0, 0];"
                 "  // if now button is down we will treat as 'new' click\n")
         code+=("}\n")
         buff.writeIndentedLines(code % self.params)

@@ -1,31 +1,28 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+"""
+New backend for the Psychtoolbox portaudio engine
+"""
 from __future__ import absolute_import, division, print_function
 
-from builtins import str
-from builtins import object
 import sys
 import os
 import time
 import re
-import atexit
+import weakref
 
-try:
-    import readline  # Work around GH-2230
-except ImportError:
-    pass  # all that will happen is the stderr/stdout might get redirected
-
-from psychopy import logging, exceptions
-from psychopy.constants import (PLAYING, PAUSED, FINISHED, STOPPED,
-                                NOT_STARTED, PY3)
+from psychopy import prefs, logging, exceptions
+from psychopy.constants import (STARTED, PAUSED, FINISHED, STOPPED,
+                                NOT_STARTED)
 from psychopy.exceptions import SoundFormatError, DependencyError
 from ._base import _SoundBase, HammingWindow
 
 try:
-    import sounddevice as sd
+    from psychtoolbox import audio
+    import psychtoolbox as ptb
 except Exception:
-    raise DependencyError("sounddevice not working")
+    raise DependencyError("psychtoolbox audio failed to import")
 try:
     import soundfile as sf
 except Exception:
@@ -33,12 +30,39 @@ except Exception:
 
 import numpy as np
 
+
+defaultLatencyClass = int(prefs.hardware['audioLatency'][0])
+"""vals in prefs.hardware['audioLatency'] are:
+    '0:compatibility'
+    '1:balance latency/compatibility'
+    '2:prioritise low latency'
+    '3:aggressive low-latency'
+    '4:critical low-latency'
+Based on help at http://psychtoolbox.org/docs/PsychPortAudio-Open
+"""
+# 0=cautious
+# 1=try but be nice
+# 2=try and take priority (seems good on Mac)
+# 3=force our priority
+
+audioDriver = None
+
 travisCI = bool(str(os.environ.get('TRAVIS')).lower() == 'true')
+logging.info("Loaded psychtoolbox audio version {}"
+             .format(audio.get_version_info()['version']))
 
-logging.info("Loaded SoundDevice with {}".format(sd.get_portaudio_version()[1]))
+# ask PTB to align verbosity with our current logging level at console
+_verbosities = ((logging.DEBUG, 5),
+                (logging.INFO, 4),
+                (logging.EXP, 3),
+                (logging.WARNING, 2),
+                (logging.ERROR, 1))
+for _logLevel, _verbos in _verbosities:
+    if logging.console.level <= _logLevel:
+        audio.verbosity(_verbos)
+        break
 
-
-def init(rate=44100, stereo=True, buffer=128):
+def init(rate=48000, stereo=True, buffer=128):
     pass  # for compatibility with other backends
 
 
@@ -51,13 +75,13 @@ def getDevices(kind=None):
     if travisCI:  # travis-CI testing does not have a sound device
         return devs
     else:
-        allDevs = sd.query_devices(kind=kind)
+        allDevs = audio.get_devices(kind)
     # annoyingly query_devices is a DeviceList or a dict depending on number
     if type(allDevs) == dict:
         allDevs = [allDevs]
     for ii, dev in enumerate(allDevs):
         # newline characters must be removed
-        devName = dev['name'].replace('\r\n','')
+        devName = dev['name'].replace('\r\n', '')
         devs[devName] = dev
         dev['id'] = ii
     return devs
@@ -116,8 +140,8 @@ class _StreamsDict(dict):
                 return thisFormat, self[thisFormat]
         # if we've been given values in each place then create stream
         if (sampleRate not in [None, -1, 0] and
-                    channels not in [None, -1] and
-                    blockSize not in [None, -1]):
+                channels not in [None, -1] and
+                blockSize not in [None, -1]):
             return self._getStream(sampleRate, channels, blockSize)
 
     def _getStream(self, sampleRate, channels, blockSize):
@@ -127,6 +151,7 @@ class _StreamsDict(dict):
         # try to retrieve existing stream of that name
         if label in self:
             pass
+        # todo: check if this is still needed on win32
         # on some systems more than one stream isn't supported so check
         elif sys.platform == 'win32' and len(self):
             raise exceptions.SoundFormatError(
@@ -136,7 +161,7 @@ class _StreamsDict(dict):
             )
         else:
             # create new stream
-            self[label] = _SoundStream(sampleRate, channels, blockSize,
+            self[label] = _MasterStream(sampleRate, channels, blockSize,
                                        device=defaultOutput)
         return label, self[label]
 
@@ -144,15 +169,19 @@ class _StreamsDict(dict):
 streams = _StreamsDict()
 
 
-class _SoundStream(object):
+class _MasterStream(audio.Stream):
     def __init__(self, sampleRate, channels, blockSize,
-                 device=None, duplex=False):
+                 device=None, duplex=False, mode=1,
+                 audioLatencyClass=None):
         # initialise thread
+        if audioLatencyClass is None:
+            audioLatencyClass = defaultLatencyClass
+        self.streamLabel = None
         self.streams = []
         self.list = []
         # sound stream info
         self.sampleRate = sampleRate
-        self.channels = channels
+        self.channels = 2
         self.duplex = duplex
         self.blockSize = blockSize
         self.label = getStreamLabel(sampleRate, channels, blockSize)
@@ -163,89 +192,17 @@ class _SoundStream(object):
         self.frameN = 1
         # self.frameTimes = range(5)  # DEBUGGING: store the last 5 callbacks
         if not travisCI:  # travis-CI testing does not have a sound device
-            self._sdStream = sd.OutputStream(samplerate=self.sampleRate,
-                                             blocksize=self.blockSize,
-                                             latency='low',
-                                             device=device,
-                                             channels=self.channels,
-                                             callback=self.callback)
-            self._sdStream.start()
-            self.device = self._sdStream.device
-            self.latency = self._sdStream.latency
-            self.cpu_load = self._sdStream.cpu_load
-            atexit.register(self.__del__)
+            audio.Stream.__init__(self, [], mode=mode+8,
+                                  latency_class=audioLatencyClass,
+                                  freq=sampleRate, channels=channels)
+            self.start(0, 0, 1)
+            # self.device = self._sdStream.device
+            # self.latency = self._sdStream.latency
+            # self.cpu_load = self._sdStream.cpu_load
         self._tSoundRequestPlay = 0
 
-    def callback(self, toSpk, blockSize, timepoint, status):
-        """This is a callback for the SoundDevice lib
 
-        fromMic is data from the mic that can be extracted
-        toSpk is a numpy array to be populated with data
-        blockSize is the number of frames to be included each block
-        timepoint has values:
-            .currentTime
-            .inputBufferAdcTime
-            .outputBufferDacTime
-        """
-        if self.takeTimeStamp and hasattr(self, 'lastFrameTime'):
-            logging.info("Entered callback: {} ms after last frame end"
-                         .format((time.time() - self.lastFrameTime) * 1000))
-            logging.info("Entered callback: {} ms after sound start"
-                         .format(
-                (time.time() - self._tSoundRequestPlay) * 1000))
-        t0 = time.time()
-        self.frameN += 1
-        toSpk.fill(0)
-        for thisSound in list(self.sounds): # copy (Py2 doesn't have list.copy)
-            dat = thisSound._nextBlock()  # fetch the next block of data
-            dat *= thisSound.volume  # Set the volume block by block
-            if self.channels == 2 and len(dat.shape) == 2:
-                toSpk[:len(dat), :] += dat  # add to out stream
-            elif self.channels == 2 and len(dat.shape) == 1:
-                toSpk[:len(dat), 0] += dat  # add to out stream
-                toSpk[:len(dat), 1] += dat  # add to out stream
-            elif self.channels == 1 and len(dat.shape) == 2:
-                toSpk[:len(dat), :] += dat  # add to out stream
-            else:
-                toSpk[:len(dat), 0] += dat  # add to out stream
-            # check if that was a short block (sound is finished)
-            if len(dat) < len(toSpk[:, :]):
-                self.remove(thisSound)
-                thisSound._EOS()
-                # check if that took a long time
-                # t1 = time.time()
-                # if (t1-t0) > 0.001:
-                #     logging.debug("buffer_callback took {:.3f}ms that frame"
-                #                  .format((t1-t0)*1000))
-                # self.frameTimes.pop(0)
-                # if hasattr(self, 'lastFrameTime'):
-                #     self.frameTimes.append(time.time()-self.lastFrameTime)
-                # self.lastFrameTime = time.time()
-                # if self.takeTimeStamp:
-                #     logging.debug("Callback durations: {}".format(self.frameTimes))
-                #     self.takeTimeStamp = False
-
-    def add(self, sound):
-        # t0 = time.time()
-        self.sounds.append(sound)
-        # logging.debug("took {} ms to add".format((time.time()-t0)*1000))
-
-    def remove(self, sound):
-        if sound in self.sounds:
-            self.sounds.remove(sound)
-
-    def __del__(self):
-        if hasattr(self, '_sdStream'):
-            if not travisCI:
-                self._sdStream.stop()
-            del self._sdStream
-        if hasattr(sys, 'stdout'):
-            sys.stdout.flush()
-        if PY3:
-            atexit.unregister(self.__del__)
-
-
-class SoundDeviceSound(_SoundBase):
+class SoundPTB(_SoundBase):
     """Play a variety of sounds using the new SoundDevice library
     """
 
@@ -264,7 +221,7 @@ class SoundDeviceSound(_SoundBase):
                         to force sounds to stereo or mono
         :param volume: float 0-1
         :param loops: number of loops to play (-1=forever, 0=single repeat)
-        :param sampleRate: sample rate (for synthesized tones)
+        :param sampleRate: sample rate for synthesized tones
         :param blockSize: the size of the buffer on the sound card
                          (small for low latency, large for stability)
         :param preBuffer: integer to control streaming/buffering
@@ -295,13 +252,7 @@ class SoundDeviceSound(_SoundBase):
         self.preBuffer = preBuffer
         self.frameN = 0
         self._tSoundRequestPlay = 0
-        if sampleRate:  #a rate was requested so use it
-            self.sampleRate = sampleRate
-        else:  # no requested rate so use current stream or a default of 44100
-            rate = 44100  # start with a default
-            for streamLabel in streams:  # then look to see if we have an open stream and use that
-                rate = streams[streamLabel].sampleRate
-            self.sampleRate = rate
+        self.sampleRate = sampleRate
         self.channels = None  # let this be set by stereo
         self.stereo = stereo
         self.duplex = None
@@ -317,6 +268,40 @@ class SoundDeviceSound(_SoundBase):
         self.setSound(value, secs=self.secs, octave=self.octave,
                       hamming=self.hamming)
         self.status = NOT_STARTED
+
+    def _getDefaultSampleRate(self):
+        """Check what streams are open and use one of these"""
+        if len(streams):
+            return list(streams.values())[0].sampleRate
+        else:
+            return 48000  # seems most widely supported
+
+    @property
+    def statusDetailed(self):
+        if not self.track:
+            return None
+        return self.track.status
+
+    @property
+    def status(self):
+        """status gives a simple value from psychopy.constants to indicate
+        NOT_STARTED, STARTED, FINISHED, PAUSED
+
+        Psychtoolbox sounds also have a statusDetailed property with further info"""
+        if self.__dict__['status']==STARTED:
+            # check portaudio to see if still playing
+            pa_status = self.statusDetailed
+            if not pa_status['Active'] and pa_status['State']==0:
+                # we were playing and now not so presumably FINISHED
+                self._EOS()
+
+        return self.__dict__['status']
+
+
+    @status.setter
+    def status(self, newStatus):
+        self.__dict__['status'] = newStatus
+
     @property
     def stereo(self):
         return self.__dict__['stereo']
@@ -359,25 +344,6 @@ class SoundDeviceSound(_SoundBase):
         """
         # start with the base class method
         _SoundBase.setSound(self, value, secs, octave, hamming, log)
-        try:
-            label, s = streams.getStream(sampleRate=self.sampleRate,
-                                         channels=self.channels,
-                                         blockSize=self.blockSize)
-        except SoundFormatError as err:
-            # try to use something similar (e.g. mono->stereo)
-            # then check we have an appropriate stream open
-            altern = streams._getSimilar(sampleRate=self.sampleRate,
-                                         channels=-1,
-                                         blockSize=-1)
-            if altern is None:
-                raise err
-            else:  # safe to extract data
-                label, s = altern
-            # update self in case it changed to fit the stream
-            self.sampleRate = s.sampleRate
-            self.channels = s.channels
-            self.blockSize = s.blockSize
-        self.streamLabel = label
 
         if hamming is None:
             hamming = self.hamming
@@ -397,7 +363,7 @@ class SoundDeviceSound(_SoundBase):
         self.sampleRate = f.samplerate
         if self.channels == -1:  # if channels was auto then set to file val
             self.channels = f.channels
-        fileDuration = float(len(f))/f.samplerate  # needed for duration?
+        fileDuration = float(len(f)) / f.samplerate  # needed for duration?
         # process start time
         if self.startTime and self.startTime > 0:
             startFrame = self.startTime * self.sampleRate
@@ -423,20 +389,13 @@ class SoundDeviceSound(_SoundBase):
                 frames=int(self.sampleRate * self.duration))
             self.sndFile.close()
             self._setSndFromArray(sndArr)
-        self._channelCheck(self.sndArr)  # Check for fewer channels in stream vs data array
+        self._channelCheck(
+            self.sndArr)  # Check for fewer channels in stream vs data array
 
-    def _setSndFromFreq(self, thisFreq, secs, hamming=True):
-        self.freq = thisFreq
-        self.secs = secs
-        self.sourceType = 'freq'
-        self.t = 0
-        self.duration = self.secs
-        if self.stereo == -1:
-            self.stereo = 0
 
     def _setSndFromArray(self, thisArray):
 
-        self.sndArr = np.asarray(thisArray)
+        self.sndArr = np.asarray(thisArray).astype('float32')
         if thisArray.ndim == 1:
             self.sndArr.shape = [len(thisArray), 1]  # make 2D for broadcasting
         if self.channels == 2 and self.sndArr.shape[1] == 1:  # mono -> stereo
@@ -462,105 +421,52 @@ class SoundDeviceSound(_SoundBase):
                               "stereo. Shape={}".format(self.sndArr.shape))
         self._nSamples = thisArray.shape[0]
         if self.stopTime == -1:
-            self.stopTime = self._nSamples/float(self.sampleRate)
+            self.stopTime = self._nSamples / float(self.sampleRate)
         # set to run from the start:
         self.seek(0)
         self.sourceType = "array"
 
+        if not self.track:  # do we have one already?
+            self.track = audio.Slave(self.stream.handle, data=self.sndArr,
+                                     volume=self.volume)
+        else:
+            self.track.stop()
+            self.track.fill_buffer(self.sndArr, start_index=1)
+
     def _channelCheck(self, array):
         """Checks whether stream has fewer channels than data. If True, ValueError"""
         if self.channels < array.shape[1]:
-            msg = ("The sound stream is set up incorrectly. You have fewer channels in the buffer "
-                   "than in data file ({} vs {}).\n**Ensure you have selected 'Force stereo' in "
-                   "experiment settings**".format(self.channels, array.shape[1]))
+            msg = (
+                "The sound stream is set up incorrectly. You have fewer channels in the buffer "
+                "than in data file ({} vs {}).\n**Ensure you have selected 'Force stereo' in "
+                "experiment settings**".format(self.channels, array.shape[1]))
             logging.error(msg)
             raise ValueError(msg)
 
     def play(self, loops=None, when=None):
         """Start the sound playing
-
-        Parameters
-        --------------
-            when: not used
-                Included for compatibility purposes
         """
         if loops is not None and self.loops != loops:
             self.setLoops(loops)
-        self.status = PLAYING
+        self.status = STARTED
         self._tSoundRequestPlay = time.time()
-        streams[self.streamLabel].takeTimeStamp = True
-        streams[self.streamLabel].add(self)
+        if hasattr(when, 'getFutureFlipTime'):
+            when = when.getFutureFlipTime(ptb=True)
+        self.track.start(repetitions=self.loops, when=when)
+        # time.sleep(0.)
 
     def pause(self):
         """Stop the sound but play will continue from here if needed
         """
         self.status = PAUSED
-        streams[self.streamLabel].remove(self)
 
     def stop(self, reset=True):
         """Stop the sound and return to beginning
         """
-        streams[self.streamLabel].remove(self)
         if reset:
             self.seek(0)
         self.status = STOPPED
-
-    def _nextBlock(self):
-        if self.status == STOPPED:
-            return
-        samplesLeft = int((self.stopTime - self.t) * self.sampleRate)
-        nSamples = min(self.blockSize, samplesLeft)
-        if self.sourceType == 'file' and self.preBuffer == 0:
-            # streaming sound block-by-block direct from file
-            block = self.sndFile.read(nSamples)
-            # TODO: check if we already finished using sndFile?
-        elif (self.sourceType == 'file' and self.preBuffer == -1) \
-                or self.sourceType == 'array':
-            # An array, or a file entirely loaded into an array
-            ii = int(round(self.t * self.sampleRate))
-            if self.stereo == 1:  # don't treat as boolean. Might be -1
-                block = self.sndArr[ii:ii + nSamples, :]
-            elif self.stereo == 0:
-                block = self.sndArr[ii:ii + nSamples]
-            else:
-                raise IOError("Unknown stereo type {!r}"
-                              .format(self.stereo))
-            if ii + nSamples > len(self.sndArr):
-                self._EOS()
-
-        elif self.sourceType == 'freq':
-            startT = self.t
-            stopT = self.t + self.blockSize/float(self.sampleRate)
-            xx = np.linspace(
-                start=startT * self.freq * 2 * np.pi,
-                stop=stopT * self.freq * 2 * np.pi,
-                num=self.blockSize, endpoint=False
-            )
-            xx.shape = [self.blockSize, 1]
-            block = np.sin(xx)
-            # if run beyond our desired t then set to zeros
-            if stopT > (self.secs):
-                tRange = np.linspace(startT, self.blockSize*self.sampleRate,
-                                     num=self.blockSize, endpoint=False)
-                block[tRange > self.secs] = 0
-                # and inform our EOS function that we finished
-                self._EOS(reset=False)  # don't set t=0
-
-        else:
-            raise IOError("SoundDeviceSound._nextBlock doesn't correctly handle"
-                          "{!r} sounds yet".format(self.sourceType))
-
-        if self._hammingWindow:
-            thisWin = self._hammingWindow.nextBlock(self.t, self.blockSize)
-            if thisWin is not None:
-                if len(block) == len(thisWin):
-                    block *= thisWin
-                elif block.shape[0] == 0:
-                    pass
-                else:
-                    block *= thisWin[0:len(block)]
-        self.t += self.blockSize/float(self.sampleRate)
-        return block
+        self.track.stop()
 
     def seek(self, t):
         self.t = t
@@ -577,7 +483,6 @@ class SoundDeviceSound(_SoundBase):
         elif self.loops > 0 and self._loopsFinished >= self.loops:
             self.stop(reset=reset)
 
-        streams[self.streamLabel].remove(self)
         self.status = FINISHED
 
     @property
@@ -585,4 +490,46 @@ class SoundDeviceSound(_SoundBase):
         """Read-only property returns the the stream on which the sound
         will be played
         """
+        if not self.streamLabel:
+            try:
+                label, s = streams.getStream(sampleRate=self.sampleRate,
+                                             channels=self.channels,
+                                             blockSize=self.blockSize)
+            except SoundFormatError as err:
+                # try to use something similar (e.g. mono->stereo)
+                # then check we have an appropriate stream open
+                altern = streams._getSimilar(sampleRate=self.sampleRate,
+                                             channels=-1,
+                                             blockSize=-1)
+                if altern is None:
+                    raise SoundFormatError(err)
+                else:  # safe to extract data
+                    label, s = altern
+                # update self in case it changed to fit the stream
+                self.sampleRate = s.sampleRate
+                self.channels = s.channels
+                self.blockSize = s.blockSize
+            self.streamLabel = label
+
         return streams[self.streamLabel]
+
+    def __del__(self):
+        if self.track:
+            self.track.close()
+        self.track = None
+
+    @property
+    def track(self):
+        """The track on the master stream to which we belong"""
+        # the track is actually a weak reference to avoid circularity
+        if 'track' in self.__dict__:
+            return self.__dict__['track']()
+        else:
+            return None
+
+    @track.setter
+    def track(self, track):
+        if track is None:
+            self.__dict__['track'] = None
+        else:
+            self.__dict__['track'] = weakref.ref(track)

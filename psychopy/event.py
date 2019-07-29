@@ -643,6 +643,7 @@ class Mouse(object):
             else:
                 lastPosPix = lastPosPix - numpy.array(self.win.size) / 2
         self.lastPos = self._pix2windowUnits(lastPosPix)
+
         return copy.copy(self.lastPos)
 
     def mouseMoved(self, distance=None, reset=False):
@@ -849,6 +850,8 @@ class Mouse(object):
 
     def _pix2windowUnits(self, pos):
         if self.win.units == 'pix':
+            if self.win.useRetina:
+                pos /= 2.0
             return pos
         elif self.win.units == 'norm':
             return pos * 2.0 / self.win.size

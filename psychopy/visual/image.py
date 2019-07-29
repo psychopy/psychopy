@@ -285,7 +285,8 @@ class ImageStim(BaseVisualStim, ContainerMixin, ColorMixin, TextureMixin):
                                                   pixFormat=GL.GL_RGB,
                                                   dataType=datatype,
                                                   maskParams=self.maskParams,
-                                                  forcePOW2=False)
+                                                  forcePOW2=False,
+                                                  wrapping=False)
         # if user requested size=None then update the size for new stim here
         if hasattr(self, '_requestedSize') and self._requestedSize is None:
             self.size = None  # set size to default
@@ -315,7 +316,8 @@ class ImageStim(BaseVisualStim, ContainerMixin, ColorMixin, TextureMixin):
                             dataType=GL.GL_UNSIGNED_BYTE,
                             stim=self,
                             res=self.texRes,
-                            maskParams=self.maskParams)
+                            maskParams=self.maskParams,
+                            wrapping=True)
 
     def setMask(self, value, log=None):
         """Usually you can use 'stim.attribute = value' syntax instead,

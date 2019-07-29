@@ -256,11 +256,8 @@ class Experiment(object):
                     routinesToWrite.remove(thisItem.name)
             self_copy.settings.writeEndCodeJS(script)
 
-            try:
-                script = py2js.addVariableDeclarations(script.getvalue())
-            except py2js.esprima.error_handler.Error:
-                script = script.getvalue()
-                print("Failed to parse as JS by esprima")
+            # Add JS variable declarations e.g., var msg;
+            script = py2js.addVariableDeclarations(script.getvalue(), fileName=self.expPath)
 
             # Reset loop controller ready for next call to writeScript
             self_copy.flow._resetLoopController()
@@ -456,6 +453,9 @@ class Experiment(object):
                                 " and log files (blank defaults to the "
                                 "builder pref)"),
                 categ='Data')
+        elif name == 'channel':  # was incorrectly set to be valType='str' until 3.1.2
+            params[name].val = val
+            params[name].valType = 'code'  # override
         elif 'val' in list(paramNode.keys()):
             if val == 'window units':  # changed this value in 1.70.00
                 params[name].val = 'from exp settings'

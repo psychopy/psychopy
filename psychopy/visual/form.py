@@ -38,6 +38,7 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
         The window object to present the form.
     items : List of dicts or csv or xlsx file
         a list of dicts or csv file should have the following key, value pairs / column headers:
+                 "index": The item index as a number
                  "questionText": item question string,
                  "questionWidth": question width between 0:1
                  "type": type of rating e.g., 'radio', 'rating', 'slider'
@@ -142,6 +143,7 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
             """
             allowedTypes = ['rating', 'slider', 'textbox', 'radio']
             itemDiff = set([types])-set(allowedTypes)
+
             if len(itemDiff) > 0:
                 msg = ("In Forms, {} is not allowed. You can only use type {}. "
                        "Please amend your item types in your item list").format(itemDiff,
@@ -151,26 +153,71 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
                 raise ValueError(msg)
 
         def _checkHeaders(fields):
-            """A nested function for testing the names of fields in any given set of items
+            """A nested function for checking the names of fields in any given set of items
 
-            Raises NameError if fields do not match required survey fields
+            Returns
+            -------
+                missingHeaders : Set of missing headers, or None if no missing headers
             """
-            surveyFields = ['index', 'responseWidth', 'layout', 'questionText', 'type', 'questionWidth', 'options']
-            if not set(surveyFields) == set(fields):
-                msg = "Use the following fields/column names for Forms...\n{}".format(surveyFields)
+            surveyFields = {'index', 'responseWidth', 'layout', 'questionText', 'type', 'questionWidth', 'options'}
+            fields = set(fields)
+
+            if not surveyFields == fields:
+                missingHeaders = surveyFields.difference(fields)
+                msg = ("Missing headers: {}. "
+                       "Note, headers are case sensitive and must match: {}"
+                       .format(missingHeaders, surveyFields))
                 if self.autoLog:
-                    psychopy.logging.error(msg)
-                raise NameError(msg)
+                    psychopy.logging.warning(msg)
+                return missingHeaders
+
+        def _addDefaultItems(items, missingHeaders):
+            """
+            Adds default items when missing. Works in-place.
+
+            Parameters
+            ----------
+            items : List of dicts
+            headers : List of column headers for each item
+            """
+            if missingHeaders is None:
+                return
+
+            defaultValues = {'index': 0,
+                             'responseWidth': .3,
+                             'questionWidth': .7,
+                             'layout': 'horiz',
+                             'questionText': 'Default question',
+                             'type': 'rating',
+                             'options': 'Yes, No'}
+
+            msg = "Using default values for the following headers: {}".format(missingHeaders)
+            if self.autoLog:
+                psychopy.logging.warning(msg)
+
+            for index, item in enumerate(items):
+                defaultValues['index'] = index
+                for header in missingHeaders:
+                    items[index][header] = defaultValues[header]
 
         if self.autoLog:
             psychopy.logging.info("Importing items...")
+
         if not isinstance(items, list):
+            # items is a conditions file
             items, returnFieldNames = importConditions(items, returnFieldNames=True)
             # Check fieldnames are correct
-            _checkHeaders(returnFieldNames)
+            missingHeaders = _checkHeaders(returnFieldNames)
+            # Add default values if headers are missing
+            _addDefaultItems(items, missingHeaders)
         else:
+            # items is a list of dicts
             for item in items:
-                _checkHeaders(item.keys())
+                # Check fieldnames are correct
+                missingHeaders = _checkHeaders(item.keys())
+                # Add default values if headers are missing
+                _addDefaultItems(items, missingHeaders)
+
         # Convert options to list of strings
         for idx, item in enumerate(items):
             if PY3:
@@ -179,30 +226,27 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
             else: # Python2
                 if isinstance(item['options'], basestring):
                     items[idx]['options'] = item['options'].split(',')
+
         # Check types
         [_checkTypes(item['type']) for item in items]
         # Check N options > 1
         [_checkOptions(item['options']) for item in items]
-        return self.randomizeItems(items)
+        # Randomise items if requested
+        self.randomizeItems(items)
+        return items
 
     def randomizeItems(self, items):
         """
-        Takes list of items or dataframe, and shuffles the order
+        Takes list of items and shuffles the order in place
 
         Parameters
         ----------
-        items : list, dataframe
+        items : list of dicts
             Items used to populate the form
-
-        Returns
-        -------
-        List of Lists
-            List of Form items
         """
         if self.randomize:
             if isinstance(items, list):
-                return shuffle(items)
-        return items
+                shuffle(items)
 
     def setScrollSpeed(self, items, multiplier=2):
         """Set scroll speed of Form. Higher multiplers give smoother, but slower scroll.

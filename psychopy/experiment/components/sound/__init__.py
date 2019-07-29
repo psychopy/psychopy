@@ -73,6 +73,11 @@ class SoundComponent(BaseComponent):
             updates='constant',
             hint=msg,
             label=_localized['syncScreenRefresh'])
+        self.params['hamming'] = Param(
+            True, valType='bool', updates='constant',
+            hint=("For tones we can apply a Hamming window to prevent 'clicks' that "
+                  "are caused by a sudden onset. This delays onset by roughly 1ms."),
+            label=_translate('Hamming window'))
 
     def writeInitCode(self, buff):
         # replaces variable params with sensible defaults
@@ -84,16 +89,18 @@ class SoundComponent(BaseComponent):
                 inits['stopVal'].val = -1
             elif float(inits['stopVal'].val) > 2:
                 inits['stopVal'].val = -1
-        buff.writeIndented("%s = sound.Sound(%s, secs=%s, stereo=%s)\n" %
-                           (inits['name'], inits['sound'], inits['stopVal'], self.exp.settings.params['Force stereo']))
+        buff.writeIndented("%s = sound.Sound(%s, secs=%s, stereo=%s, hamming=%s)\n" %
+                           (inits['name'], inits['sound'], inits['stopVal'],
+                            self.exp.settings.params['Force stereo'],
+                            inits['hamming']))
         buff.writeIndented("%(name)s.setVolume(%(volume)s)\n" % (inits))
 
     def writeRoutineStartCode(self, buff):
         if self.params['stopVal'].val in [None, 'None', '']:
-            buff.writeIndentedLines("%(name)s.setSound(%(sound)s)\n"
+            buff.writeIndentedLines("%(name)s.setSound(%(sound)s, hamming=%(hamming)s)\n"
                                     "%(name)s.setVolume(%(volume)s, log=False)\n" % self.params)
         else:
-            buff.writeIndentedLines("%(name)s.setSound(%(sound)s, secs=%(stopVal)s)\n"
+            buff.writeIndentedLines("%(name)s.setSound(%(sound)s, secs=%(stopVal)s, hamming=%(hamming)s)\n"
                                     "%(name)s.setVolume(%(volume)s, log=False)\n" % self.params)
 
     def writeInitCodeJS(self, buff):
@@ -142,7 +149,7 @@ class SoundComponent(BaseComponent):
         self.writeParamUpdates(buff, 'set every frame')
         self.writeStartTestCode(buff)
         if self.params['syncScreenRefresh'].val:
-            code = ("win.callOnFlip(%(name)s.play)  # screen flip\n") % self.params
+            code = ("%(name)s.play(when=win)  # sync with win flip\n") % self.params
         else:
             code = "%(name)s.play()  # start the sound (it finishes automatically)\n" % self.params
         buff.writeIndented(code)
