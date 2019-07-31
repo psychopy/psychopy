@@ -242,12 +242,6 @@ def deleteObjectARB(obj):
         :func:`createProgramObjectARB`, :func:`compileShaderObjectARB,
         `glCreateProgramObjectARB` or `glCreateShaderObjectARB` call.
 
-    Notes
-    -----
-    This function is intended to provide legacy support for GPU drivers that
-    lack backwards compatibility for shader programs using no longer supported
-    GLSL specifications. Unless necessary, use :func:`deleteObject` instead.
-
     """
     GL.glDeleteObjectARB(obj)
 
@@ -284,12 +278,6 @@ def attachObjectARB(program, shader):
     shader : int
         Handle of shader object to attach. Must have originated from a
         :func:`compileShaderObjectARB` or `glCreateShaderObjectARB` call.
-
-    Notes
-    -----
-    This function is intended to provide legacy support for GPU drivers that
-    lack backwards compatibility for shader programs using no longer supported
-    GLSL specifications. Unless necessary, use :func:`attachShader` instead.
 
     """
     if not GL.glIsProgram(program):
@@ -332,12 +320,6 @@ def detachObjectARB(program, shader):
     shader : int
         Handle of shader object to detach. Must have been previously attached
         to `program`.
-
-    Notes
-    -----
-    This function is intended to provide legacy support for GPU drivers that
-    lack backwards compatibility for shader programs using no longer supported
-    GLSL specifications. Unless necessary, use :func:`detachShader` instead.
 
     """
     if not GL.glIsProgram(program):
@@ -400,12 +382,6 @@ def linkProgramObjectARB(program):
     RuntimeError
         Program failed to link. Log will be dumped to `sterr`.
 
-    Notes
-    -----
-    This function is intended to provide legacy support for GPU drivers that
-    lack backwards compatibility for shader programs using no longer supported
-    GLSL specifications. Unless necessary, use :func:`linkProgram` instead.
-
     """
     if GL.glIsProgram(program):
         GL.glLinkProgramARB(program)
@@ -446,19 +422,14 @@ def validateProgram(program):
 
 
 def validateProgramARB(program):
-    """Check if the program can execute given the current OpenGL state.
+    """Check if the program can execute given the current OpenGL state. If
+    validation fails, information from the driver is dumped giving the reason.
 
     Parameters
     ----------
     program : int
         Handle of program object to validate. Must have originated from a
         :func:`createProgramObjectARB` or `glCreateProgramObjectARB` call.
-
-    Notes
-    -----
-    This function is intended to provide legacy support for GPU drivers that
-    lack backwards compatibility for shader programs using no longer supported
-    GLSL specifications. Unless necessary, use :func:`validateProgram` instead.
 
     """
     # check validation info
@@ -643,7 +614,7 @@ def getAttribLocations(program, builtins=False):
     Returns
     -------
     dict
-        Uniform names and locations.
+        Attribute names and locations.
 
     """
     if not GL.glIsProgram(program):
