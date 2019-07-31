@@ -144,6 +144,25 @@ def compileShader(shaderSrc, shaderType):
     int
         OpenGL shader object handle retrieved from a `glCreateShader` call.
 
+    Examples
+    --------
+    Compiling GLSL source code and attaching it to a program object::
+
+        # GLSL vertex shader source
+        vertexSource = \
+            '''
+            #version 330 core
+            layout (location = 0) in vec3 vertexPos;
+
+            void main()
+            {
+                gl_Position = vec4(vertexPos, 1.0);
+            }
+            '''
+        # compile it, specifying `GL_VERTEX_SHADER`
+        vertexShader = compileShader(vertexSource, GL.GL_VERTEX_SHADER)
+        attachShader(myProgram, vertexShader)  # attach it to `myProgram`
+
     """
     shaderId = GL.glCreateShader(shaderType)
 
@@ -177,7 +196,7 @@ def compileShaderObjectARB(shaderSrc, shaderType):
     Parameters
     ----------
     shaderSrc : str
-        GLSL shader source code.
+        GLSL shader source code text.
     shaderType : GLenum
         Shader program type. Must be *_ARB enums such as GL_VERTEX_SHADER_ARB,
         GL_FRAGMENT_SHADER_ARB, GL_GEOMETRY_SHADER_ARB, etc.
@@ -219,7 +238,7 @@ def deleteObject(obj):
     Parameters
     ----------
     obj : int
-        Shader or program object. Must have originated from a
+        Shader or program object handle. Must have originated from a
         :func:`createProgram`, :func:`compileShader`, `glCreateProgram` or
         `glCreateShader` call.
 
@@ -229,7 +248,7 @@ def deleteObject(obj):
     elif GL.glIsProgram(obj):
         GL.glDeleteProgram(obj)
     else:
-        raise ValueError('Cannot delete, not a program or shader.')
+        raise ValueError('Cannot delete, not a program or shader object.')
 
 
 def deleteObjectARB(obj):
@@ -260,7 +279,7 @@ def attachShader(program, shader):
 
     """
     if not GL.glIsProgram(program):
-        raise ValueError("Value `program` is not a program.")
+        raise ValueError("Value `program` is not a program object.")
     elif not GL.glIsShader(shader):
         raise ValueError("Value `shader` is not a shader object.")
     else:
@@ -281,7 +300,7 @@ def attachObjectARB(program, shader):
 
     """
     if not GL.glIsProgram(program):
-        raise ValueError("Value `program` is not a program.")
+        raise ValueError("Value `program` is not a program object.")
     elif not GL.glIsShader(shader):
         raise ValueError("Value `shader` is not a shader object.")
     else:
@@ -474,7 +493,7 @@ def useProgram(program):
     if GL.glIsProgram(program) or program == 0:
         GL.glUseProgram(program)
     else:
-        raise ValueError('Specified `program` is not a shader program.')
+        raise ValueError('Specified `program` is not a program object.')
 
 
 def useProgramObjectARB(program):
@@ -511,7 +530,7 @@ def useProgramObjectARB(program):
     if GL.glIsProgram(program) or program == 0:
         GL.glUseProgramObjectARB(program)
     else:
-        raise ValueError('Specified `program` is not a shader program.')
+        raise ValueError('Specified `program` is not a program object.')
 
 
 def getInfoLog(obj):
