@@ -781,7 +781,8 @@ class SettingsComponent(object):
                 "psychoJS.openWindow({{\n"
                 "  fullscr: {fullScr},\n"
                 "  color: new util.Color({params[color]}),\n"
-                "  units: '{units}'\n"
+                "  units: '{units}',\n"
+                "  waitBlanking: true\n"
                 "}});\n").format(fullScr=str(self.params['Full-screen window']).lower(),
                                  params=self.params,
                                  units=units)
