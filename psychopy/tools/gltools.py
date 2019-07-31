@@ -57,8 +57,8 @@ def createProgram():
         detachShader(myProgram, vertexShader)
         detachShader(myProgram, fragmentShader)
 
-        deleteShader(vertexShader)
-        deleteShader(fragmentShader)
+        deleteObject(vertexShader)
+        deleteObject(fragmentShader)
 
     You can install the program for use in the current rendering state by
     calling::
@@ -460,8 +460,18 @@ def useProgram(program):
         :func:`createProgram` or `glCreateProgram` call and was successfully
         linked.
 
+    Examples
+    --------
+    Install a program for use in the current rendering state::
+
+        useProgram(myShader)
+
+    Disable the current shader program by specifying `0`::
+
+        useProgram(0)
+
     """
-    if GL.glIsProgram(program):
+    if GL.glIsProgram(program) or program == 0:
         GL.glUseProgram(program)
     else:
         raise ValueError('Specified `program` is not a shader program.')
@@ -482,8 +492,23 @@ def useProgramObjectARB(program):
         :func:`createProgramObjectARB` or `glCreateProgramObjectARB` call and
         was successfully linked.
 
+    Examples
+    --------
+    Install a program for use in the current rendering state::
+
+        useProgramObjectARB(myShader)
+
+    Disable the current shader program by specifying `0`::
+
+        useProgramObjectARB(0)
+
+    Notes
+    -----
+    Some drivers may support using `glUseProgram` for objects created by calling
+    :func:`createProgramObjectARB` or `glCreateProgramObjectARB`.
+
     """
-    if GL.glIsProgram(program):
+    if GL.glIsProgram(program) or program == 0:
         GL.glUseProgramObjectARB(program)
     else:
         raise ValueError('Specified `program` is not a shader program.')
