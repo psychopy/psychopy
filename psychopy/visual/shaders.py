@@ -10,72 +10,34 @@
 
 from __future__ import absolute_import, print_function
 
-from ctypes import (byref, cast, c_int, c_char, c_char_p,
-                    POINTER, create_string_buffer)
 import pyglet
 GL = pyglet.gl
-import sys
-
-
-def print_log(shader):
-    length = c_int()
-    GL.glGetShaderiv(shader, GL.GL_INFO_LOG_LENGTH, byref(length))
-
-    if length.value > 0:
-        log = create_string_buffer(length.value)
-        GL.glGetShaderInfoLog(shader, length, byref(length), log)
-        sys.stderr.write(log.value.decode('UTF-8') + '\n')
+import psychopy.tools.gltools as gltools
 
 
 def compileProgram(vertexSource=None, fragmentSource=None):
     """Create and compile a vertex and fragment shader pair from their
     sources (strings)
     """
+    program = gltools.createProgramObjectARB()
 
-    def compileShader(source, shaderType):
-        """Compile shader source of given type (only needed by compileProgram)
-        """
-        shader = GL.glCreateShaderObjectARB(shaderType)
-        # if Py3 then we need to convert our (unicode) str into bytes for C
-        if type(source) != bytes:
-            source = source.encode()
-        prog = c_char_p(source)
-        length = c_int(-1)
-        GL.glShaderSourceARB(shader,
-                             1,
-                             cast(byref(prog), POINTER(POINTER(c_char))),
-                             byref(length))
-        GL.glCompileShaderARB(shader)
-
-        # check for errors
-        status = c_int()
-        GL.glGetShaderiv(shader, GL.GL_COMPILE_STATUS, byref(status))
-        if not status.value:
-            print_log(shader)
-            GL.glDeleteShader(shader)
-            raise ValueError('Shader compilation failed')
-        return shader
-
-    program = GL.glCreateProgramObjectARB()
-
+    vertexShader = fragmentShader = None
     if vertexSource:
-        vertexShader = compileShader(
-            vertexSource, GL.GL_VERTEX_SHADER_ARB
-        )
-        GL.glAttachObjectARB(program, vertexShader)
+        vertexShader = gltools.compileShaderObjectARB(
+            vertexSource, GL.GL_VERTEX_SHADER_ARB)
+        gltools.attachObjectARB(program, vertexShader)
     if fragmentSource:
-        fragmentShader = compileShader(
-            fragmentSource, GL.GL_FRAGMENT_SHADER_ARB
-        )
-        GL.glAttachObjectARB(program, fragmentShader)
+        fragmentShader = gltools.compileShaderObjectARB(
+            fragmentSource, GL.GL_FRAGMENT_SHADER_ARB)
+        gltools.attachObjectARB(program, fragmentShader)
 
-    GL.glValidateProgramARB(program)
-    GL.glLinkProgramARB(program)
+    gltools.linkProgramObjectARB(program)
+    # gltools.validateProgramARB(program)
 
     if vertexShader:
-        GL.glDeleteObjectARB(vertexShader)
+        gltools.deleteObjectARB(vertexShader)
     if fragmentShader:
-        GL.glDeleteObjectARB(fragmentShader)
+        gltools.deleteObjectARB(fragmentShader)
 
     return program
 

@@ -1900,7 +1900,7 @@ def loadObjFile(objFile):
         # load the material (*.mtl) file, textures are also loaded
         materials = loadMtl('/path/to/' + objModel.mtlFile)
 
-    Drawing a mesh perviously loaded::
+    Drawing a mesh previously loaded::
 
         # apply settings
         GL.glEnable(GL.GL_CULL_FACE)
