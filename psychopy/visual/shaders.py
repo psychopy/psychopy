@@ -35,8 +35,10 @@ def compileProgram(vertexSource=None, fragmentSource=None):
     # gltools.validateProgramARB(program)
 
     if vertexShader:
+        gltools.detachObjectARB(program, vertexShader)
         gltools.deleteObjectARB(vertexShader)
     if fragmentShader:
+        gltools.detachObjectARB(program, fragmentShader)
         gltools.deleteObjectARB(fragmentShader)
 
     return program
