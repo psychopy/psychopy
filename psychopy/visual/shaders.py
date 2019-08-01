@@ -16,8 +16,18 @@ import psychopy.tools.gltools as gltools
 
 
 def compileProgram(vertexSource=None, fragmentSource=None):
-    """Create and compile a vertex and fragment shader pair from their
-    sources (strings)
+    """Create and compile a vertex and fragment shader pair from their sources.
+
+    Parameters
+    ----------
+    vertexSource, fragmentSource : str
+        Vertex and fragment shader GLSL sources.
+
+    Returns
+    -------
+    int
+        Program object handle.
+
     """
     program = gltools.createProgramObjectARB()
 
