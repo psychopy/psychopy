@@ -111,6 +111,22 @@ and having downloaded the right wheel you can then install it with something lik
 wxPython>4.0 and doesn't have universal wheels yet which is why you have to
 find and install the correct wheel for your particular flavor of linux.
 
+**Building Python PsychToolbox bindings:**
+
+The PsychToolbox bindings for Python provide superior timing for sounds and
+keyboard responses. Unfortunately we haven't bee able to build universal wheels
+for these yet so you may have to build the pkg yourself. That should be hard.
+You need the necessary dev libraries installed first:
+
+.. code-block:: bash
+
+    sudo apt-get install libusb-1.0-0-dev portaudio19-dev libasound2-dev
+
+and then you should be able to install using pip and it will build the extensions
+as needed:
+
+    pip install psychtoolbox
+
 
 .. _conda:
 
