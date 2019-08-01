@@ -10,8 +10,7 @@
 
 from __future__ import absolute_import, print_function
 
-import pyglet
-GL = pyglet.gl
+import pyglet.gl as GL
 import psychopy.tools.gltools as gltools
 
 
@@ -52,6 +51,7 @@ def compileProgram(vertexSource=None, fragmentSource=None):
         gltools.deleteObjectARB(fragmentShader)
 
     return program
+
 
 """NOTE about frag shaders using FBO. If a floating point texture is being
 used as a frame buffer (FBO object) then we should keep in the range -1:1
