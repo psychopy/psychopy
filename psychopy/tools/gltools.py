@@ -90,7 +90,7 @@ def createProgramObjectARB():
 
     Examples
     --------
-   Building a program with vertex and fragment shader attachments::
+    Building a program with vertex and fragment shader attachments::
 
         myProgram = createProgramObjectARB()  # new shader object
 
