@@ -476,8 +476,13 @@ class SoundDeviceSound(_SoundBase):
             logging.error(msg)
             raise ValueError(msg)
 
-    def play(self, loops=None):
+    def play(self, loops=None, when=None):
         """Start the sound playing
+
+        Parameters
+        --------------
+            when: not used
+                Included for compatibility purposes
         """
         if loops is not None and self.loops != loops:
             self.setLoops(loops)

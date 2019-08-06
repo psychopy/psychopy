@@ -20,9 +20,10 @@ from builtins import object
 from builtins import range
 from builtins import str
 from past.builtins import basestring
+from collections import deque
 
 from psychopy.contrib.lazy_import import lazy_import
-from psychopy import colors
+from psychopy import colors, clock
 # try to find avbin (we'll overload pyglet's load_library tool and then
 # add some paths)
 haveAvbin = False
@@ -478,6 +479,7 @@ class Window(object):
         self.recordFrameIntervalsJustTurnedOn = False
         self.nDroppedFrames = 0
         self.frameIntervals = []
+        self._frameTimes = deque(maxlen=1000)  # 1000 keeps overhead low
 
         self._toDraw = []
         self._toDrawDepths = []
@@ -500,9 +502,9 @@ class Window(object):
             self._monitorFrameRate = self.getActualFrameRate()
         if self._monitorFrameRate is not None:
             self.monitorFramePeriod = 1.0 / self._monitorFrameRate
-            self.refreshThreshold = 1.0 / self._monitorFrameRate * 1.2
         else:
-            self.refreshThreshold = 1.0 / 60 * 1.2  # maybe a flat panel?
+            self.monitorFramePeriod = 1.0 / 60  # assume a flat panel?
+        self.refreshThreshold = self.monitorFramePeriod * 1.2
         openWindows.append(self)
 
         self.autoLog = autoLog
@@ -789,6 +791,37 @@ class Window(object):
         """
         self.callOnFlip(self._assignFlipTime, obj, attrib)
 
+    def getFutureFlipTime(self, targetTime=0, ptb=False):
+        """The expected time of the next screen refresh. This is currently
+        calculated as win._lastFrameTime + refreshInterval
+
+        Parameters
+        -----------
+        targetTime: float
+            The delay from now for which you want the flip time. 0 will give the
+            because that the earliest we can achieve. 0.15 will give the schedule
+            flip time that gets as close to 150 ms as possible
+        ptb : bool
+            If True then the time returned is compatible with ptb.GetSecs()
+        """
+        if not self.monitorFramePeriod:
+            raise AttributeError("Cannot calculate nextFlipTime due to unknown "
+                                 "monitorFramePeriod")
+        lastFlip = self._frameTimes[-1]  # self.lastFrameTime is not always on. This is
+        timeNext = lastFlip + self.monitorFramePeriod
+        now = clock.monotonicClock.getTime()
+        if targetTime > timeNext:
+            extraFrames = round((targetTime - timeNext)/self.monitorFramePeriod)
+            thisT = timeNext + extraFrames*self.monitorFramePeriod
+        else:
+            thisT = timeNext
+
+        if ptb:  #add back the lastResetTime (that's the clock difference)
+            return thisT + logging.defaultClock.getLastResetTime()
+        else:
+            return thisT
+
+
     def _assignFlipTime(self, obj, attrib):
         """Helper function to assign the time of last flip to the obj.attrib
 
@@ -963,6 +996,7 @@ class Window(object):
 
         # get timestamp
         self._frameTime = now = logging.defaultClock.getTime()
+        self._frameTimes.append(clock.monotonicClock.getTime())
 
         # run other functions immediately after flip completes
         for callEntry in self._toCall:
@@ -974,6 +1008,7 @@ class Window(object):
             self.frames += 1
             deltaT = now - self.lastFrameT
             self.lastFrameT = now
+
             if self.recordFrameIntervalsJustTurnedOn:  # don't do anything
                 self.recordFrameIntervalsJustTurnedOn = False
             else:  # past the first frame since turned on

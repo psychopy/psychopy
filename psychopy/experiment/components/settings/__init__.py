@@ -211,6 +211,16 @@ class SettingsComponent(object):
             hint=_translate("Should the mouse be visible on screen?"),
             label=_localized["Show mouse"], categ='Screen')
 
+        # sound params
+        self.params['Audio lib'] = Param(
+            'Use prefs', valType='str', allowedVals=['Use prefs', 'ptb', 'pyo', 'sounddevice', 'pygame'],
+            hint=_translate("Which Python sound engine do you want to play your sounds?"),
+            label=_translate("Audio library"), categ='Audio')
+        self.params['Audio latency priority'] = Param(
+            'Use prefs', valType='str', allowedVals=['Use prefs', '0:prioritise compatibility', '1:balance latency/compatibility', '2:prioritise low latency', '3:aggressive low-latency', '4:critical low-latency'],
+            hint=_translate("How important is audio latency for you? If essential then you may need to get all your sounds in correct formats."),
+            label=_translate("Audio latency priority"), categ='Audio')
+
         # data params
         self.params['Data filename'] = Param(
             filename, valType='code', allowedTypes=[],
@@ -384,13 +394,25 @@ class SettingsComponent(object):
             else:
                 customImports.append(import_)
 
+        buff.writelines(
+            "\nfrom psychopy import locale_setup\n"
+            "from psychopy import prefs\n"
+        )
+        # adjust the prefs for this study if needed
+        if self.params['Audio lib'] != 'Use prefs':
+            buff.lines(
+                "prefs.hardware['audioLib'] = {}\n".format(self.params['Audio lib'])
+            )
+        if self.params['Audio latency priority'] != 'Use prefs':
+            buff.writelines(
+                "prefs.hardware['audioLatency'] = {}\n".format(self.params['Audio latency priority'])
+            )
         buff.write(
-            "from psychopy import locale_setup, "
-            "%s\n" % ', '.join(psychopyImports) +
+            "from psychopy import %s\n" % ', '.join(psychopyImports) +
             "from psychopy.constants import (NOT_STARTED, STARTED, PLAYING,"
             " PAUSED,\n"
             "                                STOPPED, FINISHED, PRESSED, "
-            "RELEASED, FOREVER)\n"
+            "RELEASED, FOREVER)\n\n"
             "import numpy as np  # whole numpy lib is available, "
             "prepend 'np.'\n"
             "from numpy import (%s,\n" % ', '.join(_numpyImports[:7]) +
@@ -759,7 +781,8 @@ class SettingsComponent(object):
                 "psychoJS.openWindow({{\n"
                 "  fullscr: {fullScr},\n"
                 "  color: new util.Color({params[color]}),\n"
-                "  units: '{units}'\n"
+                "  units: '{units}',\n"
+                "  waitBlanking: true\n"
                 "}});\n").format(fullScr=str(self.params['Full-screen window']).lower(),
                                  params=self.params,
                                  units=units)

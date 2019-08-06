@@ -67,6 +67,8 @@ if travisCI:
     # for sounddevice we built in some TravisCI protection but not in pyo
     prefs.hardware['audioLib'] = ['sounddevice']
 
+if type(prefs.hardware['audioLib']) == str:
+    prefs.hardware['audioLib'] = [prefs.hardware['audioLib']]
 for thisLibName in prefs.hardware['audioLib']:
 
     try:

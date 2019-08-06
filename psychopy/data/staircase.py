@@ -1304,6 +1304,297 @@ class PsiHandler(StairHandler):
                           "posterior array. Continuing without saving...")
 
 
+class QuestPlusHandler(StairHandler):
+    def __init__(self,
+                 nTrials,
+                 intensityVals, thresholdVals, slopeVals,
+                 lowerAsymptoteVals, lapseRateVals,
+                 responseVals=('Yes', 'No'), startIntensity=None,
+                 psychometricFunc='weibull', stimScale='log10',
+                 stimSelectionMethod='minEntropy',
+                 stimSelectionOptions=None, paramEstimationMethod='mean',
+                 extraInfo=None, name='', label=''):
+        """
+        QUEST+ implementation. Currently only supports parameter estimation of
+        a Weibull-shaped psychometric function.
+
+        The parameter estimates can be retrieved via the `.paramEstimate`
+        attribute, which returns a dictionary whose keys correspond to the
+        names of the estimated parameters
+        (i.e., `QuestPlusHandler.paramEstimate['threshold']` will provide the
+         threshold estimate). Retrieval of the marginal posterior distributions
+         works similarly: they can be accessed via the `.posterior` dictionary.
+
+        Parameters
+        ----------
+        nTrials : int
+            Number of trials to run.
+
+        intensityVals : collection of floats
+            The complete set of possible stimulus levels. Note that the
+            stimulus levels are not necessarily limited to intensities (as the
+            name of this parameter implies), but they could also be contrasts,
+            durations, weights, etc.
+
+        thresholdVals : float or collection of floats
+            The complete set of possible threshold values.
+
+        slopeVals : float or collection of floats
+            The complete set of possible slope values.
+
+        lowerAsymptoteVals : float or collection of floats
+            The complete set of possible values of the lower asymptote. This
+            corresponds to false-alarm rates in yes-no tasks, and to the
+            guessing rate in n-AFC tasks. Therefore, when performing an n-AFC
+            experiment, the collection should consists of a single value only
+            (e.g., `[0.5]` for 2-AFC, `[0.33]` for 3-AFC, `[0.25]` for 4-AFC,
+            etc.).
+
+        lapseRateVals : float or collection of floats
+            The complete set of possible lapse rate values. The lapse rate
+            defines the upper asymptote of the psychometric function, which
+            will be at `1 - lapse rate`.
+
+        responseVals : collection
+            The complete set of possible response outcomes. Currently, only
+            two outcomes are supported: the first element must correspond to
+            a successful response / stimulus detection, and the second one to
+            an unsuccessful or incorrect response. For example, in a yes-no
+            task, one would use `['Yes', 'No']`, and in an n-AFC task,
+            `['Correct', 'Incorrect']`; or, alternatively, the less verbose
+            `[1, 0]` in both cases.
+
+        startIntensity : float
+            The very first intensity (or stimulus level) to present.
+
+        psychometricFunc : {'weibull'}
+            The psychometric function to fit. Currently, only the Weibull
+            function is supported.
+
+        stimScale : {'log10', 'dB', 'linear'}
+            The scale on which the stimulus intensities (or stimulus levels)
+            are provided. Currently supported are the decadic logarithm,
+            `log10`; decibels, `dB`; and a linear scale, `linear`.
+
+        stimSelectionMethod : {'minEntropy', 'minNEntropy'}
+            How to select the next stimulus. `minEntropy` will select the
+            stimulus that will minimize the expected entropy. `minNEntropy`
+            will randomly pick pick a stimulus from the set of stimuli that
+            will produce the smallest, 2nd-smallest, ..., N-smallest entropy.
+            This can be used to ensure some variation in the stimulus selection
+            (and subsequent presentation) procedure. The number `N` will then
+            have to be specified via the `stimSelectionOption` parameter.
+
+        stimSelectionOptions : dict
+            This parameter further controls how to select the next stimulus in
+            case `stimSelectionMethod=minNEntropy`.
+            The dictionary supports two keys:
+            `N` and `maxConsecutiveReps`.
+            `N` defines the number of "best" stimuli (i.e., those which
+            produce the smallest `N` expected entropies) from which to randomly
+            select a stimulus for presentation in the next trial.
+            `maxConsecutiveReps` defines how many times the exact same stimulus
+            can be presented on consecutive trials.
+            For exmaple, to randomly pick a stimulus from those which will
+            produce the 4 smallest expected entropies, and to allow the same
+            stimulus to be presented on two consecutive trials max, use
+            `stimSelectionDuration=dict(N=4, maxConsecutiveReps=2)`.
+
+        paramEstimationMethod : {'mean', 'mode'}
+            How to calculate the final parameter estimate. `mean` returns the
+            mean of each parameter, weighted by their respective posterior
+            probabilities. `mode` returns the the parameters at the peak of
+            the posterior distribution.
+
+        extraInfo : dict
+            Additional information to store along the actual QUEST+ staircase
+            data.
+
+        name : str
+            The name of the QUEST+ staircase object. This will appear in the
+            PsychoPy logs.
+
+        label : str
+            Only used by :class:`MultiStairHandler`, and otherwise ignored.
+
+        Notes
+        -----
+        The QUEST+ algorithm was first described by [1]_.
+
+        .. [1] Andrew B. Watson (2017). QUEST+: A general multidimensional
+               Bayesian adaptive psychometric method.
+               Journal of Vision, 17(3):10. doi: 10.1167/17.3.10.
+
+        """
+        if sys.version_info.major == 3 and sys.version_info.minor >= 6:
+            import questplus as qp
+        else:
+            msg = 'QUEST+ implementation requires Python 3.6 or newer'
+            raise RuntimeError(msg)
+
+        msg = ('The QUEST+ staircase implementation is currently being '
+               'tested and may be subject to change.')
+        logging.critical(msg)
+
+        super().__init__(startVal=startIntensity, nTrials=nTrials,
+                         extraInfo=extraInfo, name=name)
+
+        self.intensityVals = intensityVals
+        self.thresholdVals = thresholdVals
+        self.slopeVals = slopeVals
+        self.lowerAsymptoteVals = lowerAsymptoteVals
+        self.lapseRateVals = lapseRateVals
+        self.responseVals = responseVals
+
+        self.psychometricFunc = psychometricFunc
+        self.stimScale = stimScale
+        self.stimSelectionMethod = stimSelectionMethod
+        self.stimSelectionOptions = stimSelectionOptions
+        self.paramEstimationMethod = paramEstimationMethod
+
+        # questplus uses different parameters.
+        if self.stimSelectionMethod == 'minEntropy':
+            stimSelectionMethod_ = 'min_entropy'
+        elif self.stimSelectionMethod == 'minNEntropy':
+            stimSelectionMethod_ = 'min_n_entropy'
+        else:
+            raise ValueError('Unknown stimSelectionMethod requested.')
+
+        if self.psychometricFunc == 'weibull':
+            self._qp = qp.QuestPlusWeibull(
+                intensities=self.intensityVals,
+                thresholds=self.thresholdVals,
+                slopes=self.slopeVals,
+                lower_asymptotes=self.lowerAsymptoteVals,
+                lapse_rates=self.lapseRateVals,
+                responses=self.responseVals,
+                stim_scale=self.stimScale,
+                stim_selection_method=stimSelectionMethod_,
+                stim_selection_options=self.stimSelectionOptions,
+                param_estimation_method=self.paramEstimationMethod)
+        else:
+            msg = ('Currently only the Weibull psychometric function is '
+                   'supported.')
+            raise ValueError(msg)
+
+        # Ensure self._nextIntensity is set in case the `startIntensity` kwarg
+        # was supplied. We never actually use self._nextIntensity in the
+        # QuestPlusHandler; it's mere purpose here is to make the
+        # MultiStairHandler happy.
+        if self.startIntensity is not None:
+            self._nextIntensity = self.startIntensity
+        else:
+            self._nextIntensity = self._qp.next_intensity
+
+    @property
+    def startIntensity(self):
+        return self.startVal
+
+    def addResponse(self, response, intensity=None):
+        self.data.append(response)
+
+        # if needed replace the existing intensity with this custom one
+        if intensity is not None:
+            self.intensities.pop()
+            self.intensities.append(intensity)
+        # add the current data to experiment if possible
+        if self.getExp() is not None:
+            # update the experiment handler too
+            self.getExp().addData(self.name + ".response", response)
+        self._qp.update(intensity=self.intensities[-1],
+                        response=response)
+
+    def __next__(self):
+        self._checkFinished()
+        if not self.finished:
+            # update pointer for next trial
+            self.thisTrialN += 1
+            if self.thisTrialN == 0 and self.startIntensity is not None:
+                self.intensities.append(self.startVal)
+            else:
+                self.intensities.append(self._qp.next_intensity)
+
+            # We never actually use self._nextIntensity in the
+            # QuestPlusHandler; it's mere purpose here is to make the
+            # MultiStairHandler happy.
+            self._nextIntensity = self.intensities[-1]
+            return self.intensities[-1]
+        else:
+            self._terminate()
+
+    next = __next__
+
+    def _checkFinished(self):
+        if self.nTrials is not None and len(self.intensities) >= self.nTrials:
+            self.finished = True
+        else:
+            self.finished = False
+
+    @property
+    def paramEstimate(self):
+        """
+        The estimated parameters of the psychometric function.
+
+        Returns
+        -------
+        dict of floats
+            A dictionary whose keys correspond to the names of the estimated
+            parameters.
+
+        """
+        qp_estimate = self._qp.param_estimate
+        estimate = dict(threshold=qp_estimate['threshold'],
+                        slope=qp_estimate['slope'],
+                        lowerAsymptote=qp_estimate['lower_asymptote'],
+                        lapseRate=qp_estimate['lapse_rate'])
+        return estimate
+
+    @property
+    def posterior(self):
+        """
+        The marginal posterior distributions.
+
+        Returns
+        -------
+        dict of np.ndarrays
+            A dictionary whose keys correspond to the names of the estimated
+            parameters.
+
+        """
+        qp_posterior = self._qp.posterior
+
+        threshold = qp_posterior.sum(dim=('slope', 'lower_asymptote', 'lapse_rate'))
+        slope = qp_posterior.sum(dim=('threshold', 'lower_asymptote', 'lapse_rate'))
+        lowerAsymptote = qp_posterior.sum(dim=('threshold', 'slope', 'lapse_rate'))
+        lapseRate = qp_posterior.sum(dim=('threshold', 'slope', 'lower_asymptote'))
+
+        posterior = dict(threshold=threshold.values,
+                         slope=slope.values,
+                         lowerAsymptote=lowerAsymptote.values,
+                         lapseRate=lapseRate.values)
+        return posterior
+
+    def saveAsJson(self,
+                   fileName=None,
+                   encoding='utf-8-sig',
+                   fileCollisionMethod='rename'):
+        self_copy = copy.deepcopy(self)
+
+        # Convert questplus.QuestPlus to JSON using questplus's built-in
+        # functionality. questplus uses xarray, which cannot be easily
+        # serialized directly using json_tricks (yet).
+        self_copy._qp_json = self_copy._qp.to_json()
+        del self_copy._qp
+
+        r = (super(QuestPlusHandler, self_copy)
+             .saveAsJson(fileName=fileName,
+                         encoding=encoding,
+                         fileCollisionMethod=fileCollisionMethod))
+
+        if fileName is None:
+            return r
+
+
 class MultiStairHandler(_BaseTrialHandler):
 
     def __init__(self, stairType='simple', method='random',
@@ -1328,8 +1619,9 @@ class MultiStairHandler(_BaseTrialHandler):
 
         :params:
 
-            stairType: 'simple' or 'quest'
-                Use a :class:`StairHandler` or :class:`QuestHandler`
+            stairType: 'simple', 'quest', or 'questplus'
+                Use a :class:`StairHandler`, a :class:`QuestHandler`, or a
+                 :class:`QuestPlusHandler`.
 
             method: 'random' or 'sequential'
                 The stairs are shuffled in each repeat but not randomised
@@ -1413,12 +1705,12 @@ class MultiStairHandler(_BaseTrialHandler):
 
         # Did `conditions` contain the things we need?
         params = list(c0.keys())
-        if self.type not in ['simple', 'quest', 'QUEST']:
+        if self.type not in ['simple', 'quest', 'QUEST', 'questplus']:
             raise ValueError(
                 'MultiStairHandler `stairType` should be \'simple\', '
                 '\'QUEST\' or \'quest\', not \'%s\'' % self.type)
 
-        if 'startVal' not in params:
+        if self.type != 'questplus' and 'startVal' not in params:
             raise AttributeError('MultiStairHandler needs a parameter called '
                                  '`startVal` in conditions')
         if 'label' not in params:
@@ -1449,6 +1741,8 @@ class MultiStairHandler(_BaseTrialHandler):
                 startVal = args.pop('startVal')
                 startValSd = args.pop('startValSd')
                 thisStair = QuestHandler(startVal, startValSd, **args)
+            elif self.type == 'questplus':
+                thisStair = QuestPlusHandler(**args)
 
             # This isn't normally part of handler.
             thisStair.condition = condition

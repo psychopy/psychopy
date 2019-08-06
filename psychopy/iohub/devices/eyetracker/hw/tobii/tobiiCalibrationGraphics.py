@@ -38,7 +38,7 @@ class TobiiPsychopyCalibrationGraphics(object):
     def __init__(self, eyetrackerInterface, screenColor=None,
                  calibrationPointList=None):
         self._eyetrackerinterface = eyetrackerInterface
-        # The EyeX interface has to fake the other API's calibration stuff
+
         self._tobii = eyetrackerInterface._tobii
         self.screenSize = eyetrackerInterface._display_device.getPixelResolution()
 

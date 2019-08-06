@@ -24,9 +24,9 @@ To use the ioHub interface for Tobii, the Tobi Pro SDK must be installed
 in your Python environment. If a recent standalone installation of PsychoPy3,
 this package should already be included. 
 
-To install tobii_research type::
+To install tobii-research type::
 
-    pip install tobii_research
+    pip install tobii-research
 
 EyeTracker Class
 ################ 
@@ -130,4 +130,4 @@ Default Device Settings
     :language: yaml
 
 
-**Last Updated:** April 2019
+**Last Updated:** June 2019

@@ -16,7 +16,693 @@ import pyglet.gl as GL  # using Pyglet for now
 from contextlib import contextmanager
 from PIL import Image
 import numpy as np
-import os
+import os, sys
+
+# -------------------------------
+# Shader Program Helper Functions
+# -------------------------------
+#
+
+
+def createProgram():
+    """Create an empty program object for shaders.
+
+    Returns
+    -------
+    int
+        OpenGL program object handle retrieved from a `glCreateProgram` call.
+
+    Examples
+    --------
+    Building a program with vertex and fragment shader attachments::
+
+        myProgram = createProgram()  # new shader object
+
+        # compile vertex and fragment shader sources
+        vertexShader = compileShader(vertShaderSource, GL.GL_VERTEX_SHADER)
+        fragmentShader = compileShader(fragShaderSource, GL.GL_FRAGMENT_SHADER)
+
+        # attach shaders to program
+        attachShader(myProgram, vertexShader)
+        attachShader(myProgram, fragmentShader)
+
+        # link the shader, makes `myProgram` attachments executable by their
+        # respective processors and available for use
+        linkProgram(myProgram)
+
+        # optional, validate the program
+        validateProgram(myProgram)
+
+        # optional, detach and discard shader objects
+        detachShader(myProgram, vertexShader)
+        detachShader(myProgram, fragmentShader)
+
+        deleteObject(vertexShader)
+        deleteObject(fragmentShader)
+
+    You can install the program for use in the current rendering state by
+    calling::
+
+        useProgram(myShader) # OR glUseProgram(myShader)
+        # set uniforms/attributes and start drawing here ...
+
+    """
+    return GL.glCreateProgram()
+
+
+def createProgramObjectARB():
+    """Create an empty program object for shaders.
+
+    This creates an *Architecture Review Board* (ARB) program variant which is
+    compatible with older GLSL versions and OpenGL coding practices (eg.
+    immediate mode) on some platforms. Use *ARB variants of shader helper
+    functions (eg. `compileShaderObjectARB` instead of `compileShader`) when
+    working with these ARB program objects. This was included for legacy support
+    of existing PsychoPy shaders. However, it is recommended that you use
+    :func:`createShader` and follow more recent OpenGL design patterns in
+    for new code (if possible of course).
+
+    Returns
+    -------
+    int
+        OpenGL program object handle retrieved from a `glCreateProgramObjectARB`
+        call.
+
+    Examples
+    --------
+    Building a program with vertex and fragment shader attachments::
+
+        myProgram = createProgramObjectARB()  # new shader object
+
+        # compile vertex and fragment shader sources
+        vertexShader = compileShaderObjectARB(
+            vertShaderSource, GL.GL_VERTEX_SHADER_ARB)
+        fragmentShader = compileShaderObjectARB(
+            fragShaderSource, GL.GL_FRAGMENT_SHADER_ARB)
+
+        # attach shaders to program
+        attachObjectARB(myProgram, vertexShader)
+        attachObjectARB(myProgram, fragmentShader)
+
+        # link the shader, makes `myProgram` attachments executable by their
+        # respective processors and available for use
+        linkProgramObjectARB(myProgram)
+
+        # optional, validate the program
+        validateProgramARB(myProgram)
+
+        # optional, detach and discard shader objects
+        detachObjectARB(myProgram, vertexShader)
+        detachObjectARB(myProgram, fragmentShader)
+
+        deleteObjectARB(vertexShader)
+        deleteObjectARB(fragmentShader)
+
+    Use the program in the current OpenGL state::
+
+        useProgramObjectARB(myProgram)
+
+    """
+    return GL.glCreateProgramObjectARB()
+
+
+def compileShader(shaderSrc, shaderType):
+    """Compile shader GLSL code and return a shader object. Shader objects can
+    then be attached to programs an made executable on their respective
+    processors.
+
+    Parameters
+    ----------
+    shaderSrc : str
+        GLSL shader source code.
+    shaderType : GLenum
+        Shader program type (eg. GL_VERTEX_SHADER, GL_FRAGMENT_SHADER,
+        GL_GEOMETRY_SHADER, etc.)
+
+    Returns
+    -------
+    int
+        OpenGL shader object handle retrieved from a `glCreateShader` call.
+
+    Examples
+    --------
+    Compiling GLSL source code and attaching it to a program object::
+
+        # GLSL vertex shader source
+        vertexSource = \
+            '''
+            #version 330 core
+            layout (location = 0) in vec3 vertexPos;
+
+            void main()
+            {
+                gl_Position = vec4(vertexPos, 1.0);
+            }
+            '''
+        # compile it, specifying `GL_VERTEX_SHADER`
+        vertexShader = compileShader(vertexSource, GL.GL_VERTEX_SHADER)
+        attachShader(myProgram, vertexShader)  # attach it to `myProgram`
+
+    """
+    shaderId = GL.glCreateShader(shaderType)
+
+    shaderSrc = shaderSrc.encode()
+    srcPtr = ctypes.c_char_p(shaderSrc)
+    GL.glShaderSource(
+        shaderId, 1,
+        ctypes.cast(
+            ctypes.byref(srcPtr),
+            ctypes.POINTER(ctypes.POINTER(ctypes.c_char))),
+        None)
+    GL.glCompileShader(shaderId)
+
+    result = GL.GLint()
+    GL.glGetShaderiv(
+        shaderId, GL.GL_COMPILE_STATUS, ctypes.byref(result))
+
+    if result.value == GL.GL_FALSE:  # failed to compile for whatever reason
+        sys.stderr.write(getInfoLog(shaderId) + '\n')
+        deleteObject(shaderId)
+        raise RuntimeError("Shader compilation failed, check log output.")
+
+    return shaderId
+
+
+def compileShaderObjectARB(shaderSrc, shaderType):
+    """Compile shader GLSL code and return a shader object. Shader objects can
+    then be attached to programs an made executable on their respective
+    processors.
+
+    Parameters
+    ----------
+    shaderSrc : str
+        GLSL shader source code text.
+    shaderType : GLenum
+        Shader program type. Must be *_ARB enums such as GL_VERTEX_SHADER_ARB,
+        GL_FRAGMENT_SHADER_ARB, GL_GEOMETRY_SHADER_ARB, etc.
+
+    Returns
+    -------
+    int
+        OpenGL shader object handle retrieved from a `glCreateShaderObjectARB`
+        call.
+
+    """
+    shaderId = GL.glCreateShaderObjectARB(shaderType)
+
+    shaderSrc = shaderSrc.encode()
+    srcPtr = ctypes.c_char_p(shaderSrc)
+    GL.glShaderSourceARB(
+        shaderId, 1,
+        ctypes.cast(
+            ctypes.byref(srcPtr),
+            ctypes.POINTER(ctypes.POINTER(ctypes.c_char))),
+        None)
+    GL.glCompileShaderARB(shaderId)
+
+    result = GL.GLint()
+    GL.glGetObjectParameterivARB(
+        shaderId, GL.GL_OBJECT_COMPILE_STATUS_ARB, ctypes.byref(result))
+
+    if result.value == GL.GL_FALSE:  # failed to compile for whatever reason
+        sys.stderr.write(getInfoLog(shaderId) + '\n')
+        deleteObjectARB(shaderId)
+        raise RuntimeError("Shader compilation failed, check log output.")
+
+    return shaderId
+
+
+def deleteObject(obj):
+    """Delete a shader or program object.
+
+    Parameters
+    ----------
+    obj : int
+        Shader or program object handle. Must have originated from a
+        :func:`createProgram`, :func:`compileShader`, `glCreateProgram` or
+        `glCreateShader` call.
+
+    """
+    if GL.glIsShader(obj):
+        GL.glDeleteShader(obj)
+    elif GL.glIsProgram(obj):
+        GL.glDeleteProgram(obj)
+    else:
+        raise ValueError('Cannot delete, not a program or shader object.')
+
+
+def deleteObjectARB(obj):
+    """Delete a program or shader object.
+
+    Parameters
+    ----------
+    obj : int
+        Program handle to attach `shader` to. Must have originated from a
+        :func:`createProgramObjectARB`, :func:`compileShaderObjectARB,
+        `glCreateProgramObjectARB` or `glCreateShaderObjectARB` call.
+
+    """
+    GL.glDeleteObjectARB(obj)
+
+
+def attachShader(program, shader):
+    """Attach a shader to a program.
+
+    Parameters
+    ----------
+    program : int
+        Program handle to attach `shader` to. Must have originated from a
+        :func:`createProgram` or `glCreateProgram` call.
+    shader : int
+        Handle of shader object to attach. Must have originated from a
+        :func:`compileShader` or `glCreateShader` call.
+
+    """
+    if not GL.glIsProgram(program):
+        raise ValueError("Value `program` is not a program object.")
+    elif not GL.glIsShader(shader):
+        raise ValueError("Value `shader` is not a shader object.")
+    else:
+        GL.glAttachShader(program, shader)
+
+
+def attachObjectARB(program, shader):
+    """Attach a shader object to a program.
+
+    Parameters
+    ----------
+    program : int
+        Program handle to attach `shader` to. Must have originated from a
+        :func:`createProgramObjectARB` or `glCreateProgramObjectARB` call.
+    shader : int
+        Handle of shader object to attach. Must have originated from a
+        :func:`compileShaderObjectARB` or `glCreateShaderObjectARB` call.
+
+    """
+    if not GL.glIsProgram(program):
+        raise ValueError("Value `program` is not a program object.")
+    elif not GL.glIsShader(shader):
+        raise ValueError("Value `shader` is not a shader object.")
+    else:
+        GL.glAttachObjectARB(program, shader)
+
+
+def detachShader(program, shader):
+    """Detach a shader object from a program.
+
+    Parameters
+    ----------
+    program : int
+        Program handle to detach `shader` from. Must have originated from a
+        :func:`createProgram` or `glCreateProgram` call.
+    shader : int
+        Handle of shader object to detach. Must have been previously attached
+        to `program`.
+
+    """
+    if not GL.glIsProgram(program):
+        raise ValueError("Value `program` is not a program.")
+    elif not GL.glIsShader(shader):
+        raise ValueError("Value `shader` is not a shader object.")
+    else:
+        GL.glDetachShader(program, shader)
+
+
+def detachObjectARB(program, shader):
+    """Detach a shader object from a program.
+
+    Parameters
+    ----------
+    program : int
+        Program handle to detach `shader` from. Must have originated from a
+        :func:`createProgramObjectARB` or `glCreateProgramObjectARB` call.
+    shader : int
+        Handle of shader object to detach. Must have been previously attached
+        to `program`.
+
+    """
+    if not GL.glIsProgram(program):
+        raise ValueError("Value `program` is not a program.")
+    elif not GL.glIsShader(shader):
+        raise ValueError("Value `shader` is not a shader object.")
+    else:
+        GL.glDetachObjectARB(program, shader)
+
+
+def linkProgram(program):
+    """Link a shader program. Any attached shader objects will be made
+    executable to run on associated GPU processor units when the program is
+    used.
+
+    Parameters
+    ----------
+    program : int
+        Program handle to link. Must have originated from a :func:`createProgram`
+        or `glCreateProgram` call.
+
+    Raises
+    ------
+    ValueError
+        Specified `program` handle is invalid.
+    RuntimeError
+        Program failed to link. Log will be dumped to `sterr`.
+
+    """
+    if GL.glIsProgram(program):
+        GL.glLinkProgram(program)
+    else:
+        raise ValueError("Value `program` is not a shader program.")
+
+    # check for errors
+    result = GL.GLint()
+    GL.glGetProgramiv(program, GL.GL_LINK_STATUS, ctypes.byref(result))
+
+    if result.value == GL.GL_FALSE:  # failed to compile for whatever reason
+        sys.stderr.write(getInfoLog(program) + '\n')
+        raise RuntimeError(
+            'Failed to link shader program. Check log output.')
+
+
+def linkProgramObjectARB(program):
+    """Link a shader program object. Any attached shader objects will be made
+    executable to run on associated GPU processor units when the program is
+    used.
+
+    Parameters
+    ----------
+    program : int
+        Program handle to link. Must have originated from a
+        :func:`createProgramObjectARB` or `glCreateProgramObjectARB` call.
+
+    Raises
+    ------
+    ValueError
+        Specified `program` handle is invalid.
+    RuntimeError
+        Program failed to link. Log will be dumped to `sterr`.
+
+    """
+    if GL.glIsProgram(program):
+        GL.glLinkProgramARB(program)
+    else:
+        raise ValueError("Value `program` is not a shader program.")
+
+    # check for errors
+    result = GL.GLint()
+    GL.glGetObjectParameterivARB(
+        program,
+        GL.GL_OBJECT_LINK_STATUS_ARB,
+        ctypes.byref(result))
+
+    if result.value == GL.GL_FALSE:  # failed to compile for whatever reason
+        sys.stderr.write(getInfoLog(program) + '\n')
+        raise RuntimeError(
+            'Failed to link shader program. Check log output.')
+
+
+def validateProgram(program):
+    """Check if the program can execute given the current OpenGL state.
+
+    Parameters
+    ----------
+    program : int
+        Handle of program to validate. Must have originated from a
+        :func:`createProgram` or `glCreateProgram` call.
+
+    """
+    # check validation info
+    result = GL.GLint()
+    GL.glValidateProgram(program)
+    GL.glGetProgramiv(program, GL.GL_VALIDATE_STATUS, ctypes.byref(result))
+
+    if result.value == GL.GL_FALSE:
+        sys.stderr.write(getInfoLog(program) + '\n')
+        raise RuntimeError('Shader program validation failed.')
+
+
+def validateProgramARB(program):
+    """Check if the program can execute given the current OpenGL state. If
+    validation fails, information from the driver is dumped giving the reason.
+
+    Parameters
+    ----------
+    program : int
+        Handle of program object to validate. Must have originated from a
+        :func:`createProgramObjectARB` or `glCreateProgramObjectARB` call.
+
+    """
+    # check validation info
+    result = GL.GLint()
+    GL.glValidateProgramARB(program)
+    GL.glGetObjectParameterivARB(
+        program,
+        GL.GL_OBJECT_VALIDATE_STATUS_ARB,
+        ctypes.byref(result))
+
+    if result.value == GL.GL_FALSE:
+        sys.stderr.write(getInfoLog(program) + '\n')
+        raise RuntimeError('Shader program validation failed.')
+
+
+def useProgram(program):
+    """Use a program object's executable shader attachments in the current
+    OpenGL rendering state.
+
+    In order to install the program object in the current rendering state, a
+    program must have been successfully linked by calling :func:`linkProgram` or
+    `glLinkProgram`.
+
+    Parameters
+    ----------
+    program : int
+        Handle of program to use. Must have originated from a
+        :func:`createProgram` or `glCreateProgram` call and was successfully
+        linked.
+
+    Examples
+    --------
+    Install a program for use in the current rendering state::
+
+        useProgram(myShader)
+
+    Disable the current shader program by specifying `0`::
+
+        useProgram(0)
+
+    """
+    if GL.glIsProgram(program) or program == 0:
+        GL.glUseProgram(program)
+    else:
+        raise ValueError('Specified `program` is not a program object.')
+
+
+def useProgramObjectARB(program):
+    """Use a program object's executable shader attachments in the current
+    OpenGL rendering state.
+
+    In order to install the program object in the current rendering state, a
+    program must have been successfully linked by calling
+    :func:`linkProgramObjectARB` or `glLinkProgramObjectARB`.
+
+    Parameters
+    ----------
+    program : int
+        Handle of program object to use. Must have originated from a
+        :func:`createProgramObjectARB` or `glCreateProgramObjectARB` call and
+        was successfully linked.
+
+    Examples
+    --------
+    Install a program for use in the current rendering state::
+
+        useProgramObjectARB(myShader)
+
+    Disable the current shader program by specifying `0`::
+
+        useProgramObjectARB(0)
+
+    Notes
+    -----
+    Some drivers may support using `glUseProgram` for objects created by calling
+    :func:`createProgramObjectARB` or `glCreateProgramObjectARB`.
+
+    """
+    if GL.glIsProgram(program) or program == 0:
+        GL.glUseProgramObjectARB(program)
+    else:
+        raise ValueError('Specified `program` is not a program object.')
+
+
+def getInfoLog(obj):
+    """Get the information log from a shader or program.
+
+    This retrieves a text log from the driver pertaining to the shader or
+    program. For instance, a log can report shader compiler output or validation
+    results. The verbosity and formatting of the logs are platform-dependent,
+    where one driver may provide more information than another.
+
+    This function works with both standard and ARB program object variants.
+
+    Parameters
+    ----------
+    obj : int
+        Program or shader to retrieve a log from. Must have originated from a
+        :func:`createProgram`, :func:`createProgramObjectARB`, `glCreateProgram`
+        or `glCreateProgramObjectARB` call.
+
+    Returns
+    -------
+    str
+        Information log data. Logs can be empty strings if the driver has no
+        information available.
+
+    """
+    logLength = GL.GLint()
+    if GL.glIsShader(obj) == GL.GL_TRUE:
+        GL.glGetShaderiv(
+            obj, GL.GL_INFO_LOG_LENGTH, ctypes.byref(logLength))
+        logBuffer = ctypes.create_string_buffer(logLength.value)
+        GL.glGetShaderInfoLog(obj, logLength, None, logBuffer)
+    elif GL.glIsProgram(obj) == GL.GL_TRUE:
+        GL.glGetProgramiv(
+            obj, GL.GL_INFO_LOG_LENGTH, ctypes.byref(logLength))
+        logBuffer = ctypes.create_string_buffer(logLength.value)
+        GL.glGetProgramInfoLog(obj, logLength, None, logBuffer)
+    else:
+        raise ValueError(
+            "Specified value of `obj` is not a shader or program.")
+
+    return logBuffer.value.decode('UTF-8')
+
+
+def getUniformLocations(program, builtins=False):
+    """Get uniform names and locations from a given shader program object.
+
+    This function works with both standard and ARB program object variants.
+
+    Parameters
+    ----------
+    program : int
+        Handle of program to retrieve uniforms. Must have originated from a
+        :func:`createProgram`, :func:`createProgramObjectARB`, `glCreateProgram`
+        or `glCreateProgramObjectARB` call.
+    builtins : bool, optional
+        Include built-in GLSL uniforms (eg. `gl_ModelViewProjectionMatrix`).
+        Default is `False`.
+
+    Returns
+    -------
+    dict
+        Uniform names and locations.
+
+    """
+    if not GL.glIsProgram(program):
+        raise ValueError(
+            "Specified value of `program` is not a program object handle.")
+
+    arraySize = GL.GLint()
+    nameLength = GL.GLsizei()
+
+    # cache uniform locations to avoid looking them up before setting them
+    nUniforms = GL.GLint()
+    GL.glGetProgramiv(program, GL.GL_ACTIVE_UNIFORMS, ctypes.byref(nUniforms))
+
+    unifLoc = None
+    if nUniforms.value > 0:
+        maxUniformLength = GL.GLint()
+        GL.glGetProgramiv(
+            program,
+            GL.GL_ACTIVE_UNIFORM_MAX_LENGTH,
+            ctypes.byref(maxUniformLength))
+
+        unifLoc = {}
+        for uniformIdx in range(nUniforms.value):
+            unifType = GL.GLenum()
+            unifName = (GL.GLchar * maxUniformLength.value)()
+
+            GL.glGetActiveUniform(
+                program,
+                uniformIdx,
+                maxUniformLength,
+                ctypes.byref(nameLength),
+                ctypes.byref(arraySize),
+                ctypes.byref(unifType),
+                unifName)
+
+            # get location
+            loc = GL.glGetUniformLocation(program, unifName)
+            # don't include if -1, these are internal types like 'gl_Vertex'
+            if not builtins:
+                if loc != -1:
+                    unifLoc[unifName.value] = loc
+            else:
+                unifLoc[unifName.value] = loc
+
+    return unifLoc
+
+
+def getAttribLocations(program, builtins=False):
+    """Get attribute names and locations from the specified program object.
+
+    This function works with both standard and ARB program object variants.
+
+    Parameters
+    ----------
+    program : int
+        Handle of program to retrieve attributes. Must have originated from a
+        :func:`createProgram`, :func:`createProgramObjectARB`, `glCreateProgram`
+        or `glCreateProgramObjectARB` call.
+    builtins : bool, optional
+        Include built-in GLSL attributes (eg. `gl_Vertex`). Default is `False`.
+
+    Returns
+    -------
+    dict
+        Attribute names and locations.
+
+    """
+    if not GL.glIsProgram(program):
+        raise ValueError(
+            "Specified value of `program` is not a program object handle.")
+
+    arraySize = GL.GLint()
+    nameLength = GL.GLsizei()
+
+    nAttribs = GL.GLint()
+    GL.glGetProgramiv(program, GL.GL_ACTIVE_ATTRIBUTES, ctypes.byref(nAttribs))
+
+    attribLoc = None
+    if nAttribs.value > 0:
+        maxAttribLength = GL.GLint()
+        GL.glGetProgramiv(
+            program,
+            GL.GL_ACTIVE_ATTRIBUTE_MAX_LENGTH,
+            ctypes.byref(maxAttribLength))
+
+        attribLoc = {}
+        for attribIdx in range(nAttribs.value):
+            attribType = GL.GLenum()
+            attribName = (GL.GLchar * maxAttribLength.value)()
+
+            GL.glGetActiveAttrib(
+                program,
+                attribIdx,
+                maxAttribLength,
+                ctypes.byref(nameLength),
+                ctypes.byref(arraySize),
+                ctypes.byref(attribType),
+                attribName)
+
+            # get location
+            loc = GL.glGetAttribLocation(program, attribName.value)
+            # don't include if -1, these are internal types like 'gl_Vertex'
+            if not builtins:
+                if loc != -1:
+                    attribLoc[attribName.value] = loc
+            else:
+                attribLoc[attribName.value] = loc
+
+    return attribLoc
 
 # -----------------------------------
 # Framebuffer Objects (FBO) Functions
@@ -68,40 +754,42 @@ def createFBO(attachments=()):
 
     Examples
     --------
-    # empty framebuffer with no attachments
-    fbo = createFBO()  # invalid until attachments are added
+    Create an empty framebuffer with no attachments::
 
-    # create a render target with multiple color texture attachments
-    colorTex = createTexImage2D(1024,1024)  # empty texture
-    depthRb = createRenderbuffer(800,600,internalFormat=GL.GL_DEPTH24_STENCIL8)
+        fbo = createFBO()  # invalid until attachments are added
 
-    # attach images
-    GL.glBindFramebuffer(GL.GL_FRAMEBUFFER, fbo.id)
-    attach(GL.GL_COLOR_ATTACHMENT0, colorTex)
-    attach(GL.GL_DEPTH_ATTACHMENT, depthRb)
-    attach(GL.GL_STENCIL_ATTACHMENT, depthRb)
-    # or attach(GL.GL_DEPTH_STENCIL_ATTACHMENT, depthRb)
-    GL.glBindFramebuffer(GL.GL_FRAMEBUFFER, 0)
+    Create a render target with multiple color texture attachments::
 
-    # above is the same as
-    with useFBO(fbo):
+        colorTex = createTexImage2D(1024,1024)  # empty texture
+        depthRb = createRenderbuffer(800,600,internalFormat=GL.GL_DEPTH24_STENCIL8)
+
+        # attach images
+        GL.glBindFramebuffer(GL.GL_FRAMEBUFFER, fbo.id)
         attach(GL.GL_COLOR_ATTACHMENT0, colorTex)
         attach(GL.GL_DEPTH_ATTACHMENT, depthRb)
         attach(GL.GL_STENCIL_ATTACHMENT, depthRb)
+        # or attach(GL.GL_DEPTH_STENCIL_ATTACHMENT, depthRb)
+        GL.glBindFramebuffer(GL.GL_FRAMEBUFFER, 0)
 
-    # examples of userData some custom function might access
-    fbo.userData['flags'] = ['left_eye', 'clear_before_use']
+        # above is the same as
+        with useFBO(fbo):
+            attach(GL.GL_COLOR_ATTACHMENT0, colorTex)
+            attach(GL.GL_DEPTH_ATTACHMENT, depthRb)
+            attach(GL.GL_STENCIL_ATTACHMENT, depthRb)
 
+    Examples of userData some custom function might access::
 
+        fbo.userData['flags'] = ['left_eye', 'clear_before_use']
 
-    # depth only texture (for shadow mapping?)
-    depthTex = createTexImage2D(800, 600,
-                                internalFormat=GL.GL_DEPTH_COMPONENT24,
-                                pixelFormat=GL.GL_DEPTH_COMPONENT)
-    fbo = createFBO([(GL.GL_DEPTH_ATTACHMENT, depthTex)])  # is valid
+    Using a depth only texture (for shadow mapping?)::
 
-    # discard FBO descriptor, just give me the ID
-    frameBuffer = createFBO().id
+        depthTex = createTexImage2D(800, 600,
+                                    internalFormat=GL.GL_DEPTH_COMPONENT24,
+                                    pixelFormat=GL.GL_DEPTH_COMPONENT)
+        fbo = createFBO([(GL.GL_DEPTH_ATTACHMENT, depthTex)])  # is valid
+
+        # discard FBO descriptor, just give me the ID
+        frameBuffer = createFBO().id
 
     """
     fboId = GL.GLuint()
@@ -136,16 +824,17 @@ def attach(attachPoint, imageBuffer):
 
     Examples
     --------
-    # with descriptors colorTex and depthRb
-    GL.glBindFramebuffer(GL.GL_FRAMEBUFFER, fbo)
-    attach(GL.GL_COLOR_ATTACHMENT0, colorTex)
-    attach(GL.GL_DEPTH_STENCIL_ATTACHMENT, depthRb)
-    GL.glBindFramebuffer(GL.GL_FRAMEBUFFER, lastBoundFbo)
+    Attach an image to attachment points on the framebuffer::
 
-    # same as above, but using a context manager
-    with useFBO(fbo):
+        GL.glBindFramebuffer(GL.GL_FRAMEBUFFER, fbo)
         attach(GL.GL_COLOR_ATTACHMENT0, colorTex)
         attach(GL.GL_DEPTH_STENCIL_ATTACHMENT, depthRb)
+        GL.glBindFramebuffer(GL.GL_FRAMEBUFFER, lastBoundFbo)
+
+        # same as above, but using a context manager
+        with useFBO(fbo):
+            attach(GL.GL_COLOR_ATTACHMENT0, colorTex)
+            attach(GL.GL_DEPTH_STENCIL_ATTACHMENT, depthRb)
 
     """
     # We should also support binding GL names specified as integers. Right now
@@ -213,16 +902,18 @@ def blitFBO(srcRect, dstRect=None, filter=GL.GL_LINEAR):
 
     Examples
     --------
-    # bind framebuffer to read pixels from
-    GL.glBindFramebuffer(GL.GL_READ_FRAMEBUFFER, srcFbo)
+    Blitting pixels from on FBO to another::
 
-    # bind framebuffer to draw pixels to
-    GL.glBindFramebuffer(GL.GL_DRAW_FRAMEBUFFER, dstFbo)
+        # bind framebuffer to read pixels from
+        GL.glBindFramebuffer(GL.GL_READ_FRAMEBUFFER, srcFbo)
 
-    gltools.blitFBO((0,0,800,600), (0,0,800,600))
+        # bind framebuffer to draw pixels to
+        GL.glBindFramebuffer(GL.GL_DRAW_FRAMEBUFFER, dstFbo)
 
-    # unbind both read and draw buffers
-    GL.glBindFramebuffer(GL.GL_FRAMEBUFFER, 0)
+        gltools.blitFBO((0,0,800,600), (0,0,800,600))
+
+        # unbind both read and draw buffers
+        GL.glBindFramebuffer(GL.GL_FRAMEBUFFER, 0)
 
     """
     # in most cases srcRect and dstRect will be the same.
@@ -261,22 +952,24 @@ def useFBO(fbo):
 
     Examples
     --------
-    # FBO bound somewhere deep in our code
-    GL.glBindFramebuffer(GL.GL_FRAMEBUFFER, someOtherFBO)
+    Using a framebuffer context manager::
 
-    ...
+        # FBO bound somewhere deep in our code
+        GL.glBindFramebuffer(GL.GL_FRAMEBUFFER, someOtherFBO)
 
-    # create a new FBO, but we have no idea what the currently bound FBO is
-    fbo = createFBO()
+        ...
 
-    # use a context to bind attachments
-    with bindFBO(fbo):
-        attach(GL.GL_COLOR_ATTACHMENT0, colorTex)
-        attach(GL.GL_DEPTH_ATTACHMENT, depthRb)
-        attach(GL.GL_STENCIL_ATTACHMENT, depthRb)
-        isComplete = gltools.isComplete()
+        # create a new FBO, but we have no idea what the currently bound FBO is
+        fbo = createFBO()
 
-    # someOtherFBO is still bound!
+        # use a context to bind attachments
+        with bindFBO(fbo):
+            attach(GL.GL_COLOR_ATTACHMENT0, colorTex)
+            attach(GL.GL_DEPTH_ATTACHMENT, depthRb)
+            attach(GL.GL_STENCIL_ATTACHMENT, depthRb)
+            isComplete = gltools.isComplete()
+
+        # someOtherFBO is still bound!
 
     """
     prevFBO = GL.GLint()
@@ -477,33 +1170,35 @@ def createTexImage2D(width, height, target=GL.GL_TEXTURE_2D, level=0,
 
     Examples
     --------
-    import pyglet.gl as GL  # using Pyglet for now
+    Creating a texture from an image file::
 
-    # empty texture
-    textureDesc = createTexImage2D(1024, 1024, internalFormat=GL.GL_RGBA8)
+        import pyglet.gl as GL  # using Pyglet for now
 
-    # load texture data from an image file using Pillow and NumPy
-    from PIL import Image
-    import numpy as np
-    im = Image.open(imageFile)  # 8bpp!
-    im = im.transpose(Image.FLIP_TOP_BOTTOM)  # OpenGL origin is at bottom
-    im = im.convert("RGBA")
-    pixelData = np.array(im).ctypes  # convert to ctypes!
+        # empty texture
+        textureDesc = createTexImage2D(1024, 1024, internalFormat=GL.GL_RGBA8)
 
-    width = pixelData.shape[1]
-    height = pixelData.shape[0]
-    textureDesc = gltools.createTexImage2D(
-        width,
-        height,
-        internalFormat=GL.GL_RGBA,
-        pixelFormat=GL.GL_RGBA,
-        dataType=GL.GL_UNSIGNED_BYTE,
-        data=texture_array.ctypes,
-        unpackAlignment=1,
-        texParameters=[(GL.GL_TEXTURE_MAG_FILTER, GL.GL_LINEAR),
-                       (GL.GL_TEXTURE_MIN_FILTER, GL.GL_LINEAR)])
+        # load texture data from an image file using Pillow and NumPy
+        from PIL import Image
+        import numpy as np
+        im = Image.open(imageFile)  # 8bpp!
+        im = im.transpose(Image.FLIP_TOP_BOTTOM)  # OpenGL origin is at bottom
+        im = im.convert("RGBA")
+        pixelData = np.array(im).ctypes  # convert to ctypes!
 
-    GL.glBindTexture(GL.GL_TEXTURE_2D, textureDesc.id)
+        width = pixelData.shape[1]
+        height = pixelData.shape[0]
+        textureDesc = gltools.createTexImage2D(
+            width,
+            height,
+            internalFormat=GL.GL_RGBA,
+            pixelFormat=GL.GL_RGBA,
+            dataType=GL.GL_UNSIGNED_BYTE,
+            data=texture_array.ctypes,
+            unpackAlignment=1,
+            texParameters=[(GL.GL_TEXTURE_MAG_FILTER, GL.GL_LINEAR),
+                           (GL.GL_TEXTURE_MIN_FILTER, GL.GL_LINEAR)])
+
+        GL.glBindTexture(GL.GL_TEXTURE_2D, textureDesc.id)
 
     """
     width = int(width)
@@ -693,20 +1388,23 @@ def createVBO(data, size=3, dtype=GL.GL_FLOAT, target=GL.GL_ARRAY_BUFFER):
 
     Examples
     --------
-    # vertices of a triangle
-    verts = [ 1.0,  1.0, 0.0,   # v0
-              0.0, -1.0, 0.0,   # v1
-             -1.0,  1.0, 0.0]   # v2
+    Creating a vertex buffer object with vertex data::
 
-    # load vertices to graphics device, return a descriptor
-    vboDesc = createVBO(verts, 3)
+        # vertices of a triangle
+        verts = [ 1.0,  1.0, 0.0,   # v0
+                  0.0, -1.0, 0.0,   # v1
+                 -1.0,  1.0, 0.0]   # v2
 
-    # draw
-    GL.glBindBuffer(GL.GL_ARRAY_BUFFER, vboDesc.id)
-    GL.glVertexPointer(vboDesc.vertexSize, vboDesc.dtype, 0, None)
-    GL.glEnableClientState(vboDesc.bufferType)
-    GL.glDrawArrays(GL.GL_TRIANGLES, 0, vboDesc.indices)
-    GL.glFlush()
+        # load vertices to graphics device, return a descriptor
+        vboDesc = createVBO(verts, 3)
+
+    Drawing triangles using vertex buffer data::
+
+        GL.glBindBuffer(GL.GL_ARRAY_BUFFER, vboDesc.id)
+        GL.glVertexPointer(vboDesc.vertexSize, vboDesc.dtype, 0, None)
+        GL.glEnableClientState(vboDesc.bufferType)
+        GL.glDrawArrays(GL.GL_TRIANGLES, 0, vboDesc.indices)
+        GL.glFlush()
 
     """
     # convert values to ctypes float array
@@ -775,11 +1473,13 @@ def createVAO(vertexBuffers, indexBuffer=None):
 
     Examples
     --------
-    # create a VAO
-    vaoDesc = createVAO(vboVerts, vboTexCoords, vboNormals)
+    Creating a VAO using VBOs::
 
-    # draw the VAO, renders the mesh
-    drawVAO(vaoDesc, GL.GL_TRIANGLES)
+        vaoDesc = createVAO(vboVerts, vboTexCoords, vboNormals)
+
+    Draw the VAO, rendering the mesh::
+
+        drawVAO(vaoDesc, GL.GL_TRIANGLES)
 
     """
     if not vertexBuffers:  # in case an empty list is passed
@@ -848,11 +1548,12 @@ def drawVAO(vao, mode=GL.GL_TRIANGLES, flush=False):
 
     Examples
     --------
-    # create a VAO
-    vaoDesc = createVAO(vboVerts, vboTexCoords, vboNormals)
+    Creating a VAO and drawing it::
 
-    # draw the VAO, renders the mesh
-    drawVAO(vaoDesc, GL.GL_TRIANGLES)
+        vaoDesc = createVAO(vboVerts, vboTexCoords, vboNormals)
+
+        # draw the VAO, renders the mesh
+        drawVAO(vaoDesc, GL.GL_TRIANGLES)
 
     """
     # draw the array
@@ -932,34 +1633,38 @@ def createMaterial(params=(), textures=(), face=GL.GL_FRONT_AND_BACK):
 
     Examples
     --------
-    # The values for the material below can be found at
-    # http://devernay.free.fr/cours/opengl/materials.html
+    Creating a new material with given properties::
 
-    # create a gold material
-    gold = createMaterial([
-        (GL.GL_AMBIENT, (0.24725, 0.19950, 0.07450, 1.0)),
-        (GL.GL_DIFFUSE, (0.75164, 0.60648, 0.22648, 1.0)),
-        (GL.GL_SPECULAR, (0.628281, 0.555802, 0.366065, 1.0)),
-        (GL.GL_SHININESS, 0.4 * 128.0)])
+        # The values for the material below can be found at
+        # http://devernay.free.fr/cours/opengl/materials.html
 
-    # use the material when drawing
-    useMaterial(gold)
-    drawVAO( ... )  # all meshes will be gold
-    useMaterial(None)  # turn off material when done
+        # create a gold material
+        gold = createMaterial([
+            (GL.GL_AMBIENT, (0.24725, 0.19950, 0.07450, 1.0)),
+            (GL.GL_DIFFUSE, (0.75164, 0.60648, 0.22648, 1.0)),
+            (GL.GL_SPECULAR, (0.628281, 0.555802, 0.366065, 1.0)),
+            (GL.GL_SHININESS, 0.4 * 128.0)])
 
-    # create a red plastic material, but define reflectance and shine later
-    red_plastic = createMaterial()
+    Use the material when drawing::
 
-    # you need to convert values to ctypes!
-    red_plastic.values[GL_AMBIENT] = (GLfloat * 4)(0.0, 0.0, 0.0, 1.0)
-    red_plastic.values[GL_DIFFUSE] = (GLfloat * 4)(0.5, 0.0, 0.0, 1.0)
-    red_plastic.values[GL_SPECULAR] = (GLfloat * 4)(0.7, 0.6, 0.6, 1.0)
-    red_plastic.values[GL_SHININESS] = 0.25 * 128.0
+        useMaterial(gold)
+        drawVAO( ... )  # all meshes will be gold
+        useMaterial(None)  # turn off material when done
 
-    # set and draw
-    useMaterial(red_plastic)
-    drawVertexbuffers( ... )  # all meshes will be red plastic
-    useMaterial(None)
+    Create a red plastic material, but define reflectance and shine later::
+
+        red_plastic = createMaterial()
+
+        # you need to convert values to ctypes!
+        red_plastic.values[GL_AMBIENT] = (GLfloat * 4)(0.0, 0.0, 0.0, 1.0)
+        red_plastic.values[GL_DIFFUSE] = (GLfloat * 4)(0.5, 0.0, 0.0, 1.0)
+        red_plastic.values[GL_SPECULAR] = (GLfloat * 4)(0.7, 0.6, 0.6, 1.0)
+        red_plastic.values[GL_SHININESS] = 0.25 * 128.0
+
+        # set and draw
+        useMaterial(red_plastic)
+        drawVertexbuffers( ... )  # all meshes will be red plastic
+        useMaterial(None)
 
     """
     # setup material mode/value slots
@@ -1019,10 +1724,11 @@ def useMaterial(material, useTextures=True):
 
     Examples
     --------
-    # use the material when drawing
-    useMaterial(metalMaterials.gold)
-    drawVAO( ... )  # all meshes drawn will be gold
-    useMaterial(None)  # turn off material when done
+    Use a material when drawing::
+
+        useMaterial(metalMaterials.gold)
+        drawVAO( ... )  # all meshes drawn will be gold
+        useMaterial(None)  # turn off material when done
 
     """
     if material is not None:
@@ -1098,10 +1804,6 @@ def useLights(lights, setupOnly=False):
         Do not enable lighting or lights. Specify True if lighting is being
         computed via fragment shaders.
 
-    Returns
-    -------
-    None
-
     """
     if lights is not None:
         if len(lights) > getIntegerv(GL.GL_MAX_LIGHTS):
@@ -1140,10 +1842,6 @@ def setAmbientLight(color):
     ----------
     color : :obj:`tuple`
         Ambient lighting RGBA intensity for the whole scene.
-
-    Returns
-    -------
-    None
 
     Notes
     -----
@@ -1195,32 +1893,35 @@ def loadObjFile(objFile):
 
     Examples
     --------
-    # load a model from file
-    objModel = loadObjFile('/path/to/file.obj')
+    Loading a *.OBJ mode from file::
 
-    # load the material (*.mtl) file, textures are also loaded
-    materials = loadMtl('/path/to/' + objModel.mtlFile)
+        objModel = loadObjFile('/path/to/file.obj')
 
-    # apply settings
-    GL.glEnable(GL.GL_CULL_FACE)
-    GL.glEnable(GL.GL_DEPTH_TEST)
-    GL.glDepthFunc(GL.GL_LEQUAL)
-    GL.glDepthMask(GL.GL_TRUE)
-    GL.glShadeModel(GL.GL_SMOOTH)
-    GL.glCullFace(GL.GL_BACK)
-    GL.glDisable(GL.GL_BLEND)
+        # load the material (*.mtl) file, textures are also loaded
+        materials = loadMtl('/path/to/' + objModel.mtlFile)
 
-    # lights
-    useLights(light0)
+    Drawing a mesh previously loaded::
 
-    # draw the model
-    for group, vao in obj.drawGroups.items():
-        useMaterial(materials[group])
-        drawVAO(vao)
+        # apply settings
+        GL.glEnable(GL.GL_CULL_FACE)
+        GL.glEnable(GL.GL_DEPTH_TEST)
+        GL.glDepthFunc(GL.GL_LEQUAL)
+        GL.glDepthMask(GL.GL_TRUE)
+        GL.glShadeModel(GL.GL_SMOOTH)
+        GL.glCullFace(GL.GL_BACK)
+        GL.glDisable(GL.GL_BLEND)
 
-    # disable materials and lights
-    useMaterial(None)
-    useLights(None)
+        # lights
+        useLights(light0)
+
+        # draw the model
+        for group, vao in obj.drawGroups.items():
+            useMaterial(materials[group])
+            drawVAO(vao)
+
+        # disable materials and lights
+        useMaterial(None)
+        useLights(None)
 
     """
     # open the file, read it into memory
