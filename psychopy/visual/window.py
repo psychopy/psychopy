@@ -493,9 +493,9 @@ class Window(object):
             self._monitorFrameRate = self.getActualFrameRate()
         if self._monitorFrameRate is not None:
             self.monitorFramePeriod = 1.0 / self._monitorFrameRate
-            self.refreshThreshold = 1.0 / self._monitorFrameRate * 1.2
         else:
-            self.refreshThreshold = 1.0 / 60 * 1.2  # maybe a flat panel?
+            self.monitorFramePeriod = 1.0 / 60  # assume a flat panel?
+        self.refreshThreshold = self.monitorFramePeriod * 1.2
         openWindows.append(self)
 
         self.autoLog = autoLog
@@ -796,7 +796,7 @@ class Window(object):
             If True then the time returned is compatible with ptb.GetSecs()
         """
         if not self.monitorFramePeriod:
-            raise AttributeError("Cannot calculate nextFlipTime due to unknown"
+            raise AttributeError("Cannot calculate nextFlipTime due to unknown "
                                  "monitorFramePeriod")
         lastFlip = self._frameTimes[-1]  # self.lastFrameTime is not always on. This is
         timeNext = lastFlip + self.monitorFramePeriod
