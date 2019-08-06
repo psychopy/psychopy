@@ -40,10 +40,7 @@ defaultLatencyClass = int(prefs.hardware['audioLatency'][0])
     '4:critical low-latency'
 Based on help at http://psychtoolbox.org/docs/PsychPortAudio-Open
 """
-# 0=cautious
-# 1=try but be nice
-# 2=try and take priority (seems good on Mac)
-# 3=force our priority
+# suggestedLatency = 0.005  ## Not currently used. Keep < 1 scr refresh
 
 audioDriver = None
 
@@ -194,7 +191,8 @@ class _MasterStream(audio.Stream):
         if not travisCI:  # travis-CI testing does not have a sound device
             audio.Stream.__init__(self, [], mode=mode+8,
                                   latency_class=audioLatencyClass,
-                                  freq=sampleRate, channels=channels)
+                                  freq=sampleRate, channels=channels,
+                                  )  # suggested_latency=suggestedLatency
             self.start(0, 0, 1)
             # self.device = self._sdStream.device
             # self.latency = self._sdStream.latency
@@ -459,14 +457,15 @@ class SoundPTB(_SoundBase):
         """Stop the sound but play will continue from here if needed
         """
         self.status = PAUSED
+        self.track.stop()
 
     def stop(self, reset=True):
         """Stop the sound and return to beginning
         """
-        if reset:
-            self.seek(0)
         self.status = STOPPED
         self.track.stop()
+        if reset:
+            self.seek(0)
 
     def seek(self, t):
         self.t = t
