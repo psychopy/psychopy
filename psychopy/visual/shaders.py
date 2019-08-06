@@ -24,7 +24,7 @@ def print_log(shader):
     if length.value > 0:
         log = create_string_buffer(length.value)
         GL.glGetShaderInfoLog(shader, length, byref(length), log)
-        sys.stderr.write(log.value + '\n')
+        sys.stderr.write(log.value.decode('UTF-8') + '\n')
 
 
 def compileProgram(vertexSource=None, fragmentSource=None):

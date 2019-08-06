@@ -1318,6 +1318,13 @@ class QuestPlusHandler(StairHandler):
         QUEST+ implementation. Currently only supports parameter estimation of
         a Weibull-shaped psychometric function.
 
+        The parameter estimates can be retrieved via the `.paramEstimate`
+        attribute, which returns a dictionary whose keys correspond to the
+        names of the estimated parameters
+        (i.e., `QuestPlusHandler.paramEstimate['threshold']` will provide the
+         threshold estimate). Retrieval of the marginal posterior distributions
+         works similarly: they can be accessed via the `.posterior` dictionary.
+
         Parameters
         ----------
         nTrials : int
@@ -1524,8 +1531,48 @@ class QuestPlusHandler(StairHandler):
             self.finished = False
 
     @property
-    def paramEstimates(self):
-        return self._qp.param_estimate
+    def paramEstimate(self):
+        """
+        The estimated parameters of the psychometric function.
+
+        Returns
+        -------
+        dict of floats
+            A dictionary whose keys correspond to the names of the estimated
+            parameters.
+
+        """
+        qp_estimate = self._qp.param_estimate
+        estimate = dict(threshold=qp_estimate['threshold'],
+                        slope=qp_estimate['slope'],
+                        lowerAsymptote=qp_estimate['lower_asymptote'],
+                        lapseRate=qp_estimate['lapse_rate'])
+        return estimate
+
+    @property
+    def posterior(self):
+        """
+        The marginal posterior distributions.
+
+        Returns
+        -------
+        dict of np.ndarrays
+            A dictionary whose keys correspond to the names of the estimated
+            parameters.
+
+        """
+        qp_posterior = self._qp.posterior
+
+        threshold = qp_posterior.sum(dim=('slope', 'lower_asymptote', 'lapse_rate'))
+        slope = qp_posterior.sum(dim=('threshold', 'lower_asymptote', 'lapse_rate'))
+        lowerAsymptote = qp_posterior.sum(dim=('threshold', 'slope', 'lapse_rate'))
+        lapseRate = qp_posterior.sum(dim=('threshold', 'slope', 'lower_asymptote'))
+
+        posterior = dict(threshold=threshold.values,
+                         slope=slope.values,
+                         lowerAsymptote=lowerAsymptote.values,
+                         lapseRate=lapseRate.values)
+        return posterior
 
     def saveAsJson(self,
                    fileName=None,

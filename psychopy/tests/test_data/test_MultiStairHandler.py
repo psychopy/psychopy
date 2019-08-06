@@ -103,10 +103,10 @@ class TestMultiStairHandler(object):
             response = np.random.choice(['Correct', 'Incorrect'])
             stairs.addResponse(response)
 
-        stairs.saveAsExcel(os.path.join(self.temp_dir, 'multiQuestOut'))
+        stairs.saveAsExcel(os.path.join(self.temp_dir, 'multiQuestPlusOut'))
 
         # contains more info
-        stairs.saveAsPickle(os.path.join(self.temp_dir, 'multiQuestOut'))
+        stairs.saveAsPickle(os.path.join(self.temp_dir, 'multiQuestPlusOut'))
         exp.close()
 
 
