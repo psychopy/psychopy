@@ -173,6 +173,7 @@ class Window(object):
                  useFBO=False,
                  useRetina=True,
                  autoLog=True,
+                 gammaErrorPolicy='raise',
                  *args,
                  **kwargs):
         """
@@ -256,6 +257,10 @@ class Window(object):
             request will be in the larger pixels but subsequent use of
             ``units='pix'`` should refer to the tiny Retina pixels. Window.size
             will give the actual size of the screen in Retina pixels.
+        gammaErrorPolicy: `str`
+            If `raise`, an error is raised if the gamma table is unable to be
+            retrieved or set. If `warn`, a warning is raised instead. If
+            `ignore`, neither an error nor a warning are raised.
 
         Notes
         -----
@@ -294,6 +299,10 @@ class Window(object):
         self.winHandle = None
         self.useFBO = useFBO
         self.useRetina = useRetina and sys.platform == 'darwin'
+
+        if gammaErrorPolicy not in ['raise', 'warn', 'ignore']:
+            raise ValueError('Unexpected `gammaErrorPolicy`')
+        self.gammaErrorPolicy = gammaErrorPolicy
 
         self._toLog = []
         self._toCall = []

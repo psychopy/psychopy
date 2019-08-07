@@ -224,8 +224,15 @@ class PygletBackend(BaseBackend):
 
         # store properties of the system
         self._driver = pyglet.gl.gl_info.get_renderer()
-        self._origGammaRamp = self.getGammaRamp()
-        self._rampSize = getGammaRampSize(self.screenID, self.xDisplay)
+        self._gammaErrorPolicy = win.gammaErrorPolicy
+        try:
+            self._origGammaRamp = self.getGammaRamp()
+            self._rampSize = getGammaRampSize(
+                self.screenID, self.xDisplay, gammaErrorPolicy=self._gammaErrorPolicy
+            )
+        except OSError:
+            self.close()
+            raise
         self._TravisTesting = (os.environ.get('TRAVIS') == 'true')
 
 
@@ -307,7 +314,8 @@ class PygletBackend(BaseBackend):
                 newGamma=gamma,
                 rampSize=self._rampSize,
                 driver=self._driver,
-                xDisplay=self.xDisplay
+                xDisplay=self.xDisplay,
+                gammaErrorPolicy=self._gammaErrorPolicy
             )
 
     @attributeSetter
@@ -315,11 +323,18 @@ class PygletBackend(BaseBackend):
         """Gets the gamma ramp or sets it to a new value (an Nx3 or Nx1 array)
         """
         self.__dict__['gammaRamp'] = gammaRamp
-        setGammaRamp(self.screenID, gammaRamp, nAttempts=3,
-                     xDisplay=self.xDisplay)
+        setGammaRamp(
+            self.screenID,
+            gammaRamp,
+            nAttempts=3,
+            xDisplay=self.xDisplay,
+            gammaErrorPolicy=self._gammaErrorPolicy
+        )
 
     def getGammaRamp(self):
-        return getGammaRamp(self.screenID, self.xDisplay)
+        return getGammaRamp(
+            self.screenID, self.xDisplay, gammaErrorPolicy=self._gammaErrorPolicy
+        )
 
     @property
     def screenID(self):
@@ -363,7 +378,7 @@ class PygletBackend(BaseBackend):
             return
 
         # restore the gamma ramp that was active when window was opened
-        if not self._TravisTesting:
+        if hasattr(self, "_TravisTesting") and not self._TravisTesting:
             self.gammaRamp = self._origGammaRamp
 
         _hw_handle = None
