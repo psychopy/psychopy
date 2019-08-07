@@ -223,7 +223,6 @@ class PygletBackend(BaseBackend):
             pass  # doesn't matter
 
         # store properties of the system
-        self._TravisTesting = (os.environ.get('TRAVIS') == 'true')
         self._driver = pyglet.gl.gl_info.get_renderer()
         self._gammaErrorPolicy = win.gammaErrorPolicy
         try:
@@ -234,6 +233,7 @@ class PygletBackend(BaseBackend):
         except OSError:
             self.close()
             raise
+        self._TravisTesting = (os.environ.get('TRAVIS') == 'true')
 
 
     @property
@@ -378,7 +378,7 @@ class PygletBackend(BaseBackend):
             return
 
         # restore the gamma ramp that was active when window was opened
-        if not self._TravisTesting:
+        if hasattr(self, "_TravisTesting") and not self._TravisTesting:
             self.gammaRamp = self._origGammaRamp
 
         _hw_handle = None
