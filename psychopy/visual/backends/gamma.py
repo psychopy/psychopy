@@ -38,6 +38,14 @@ elif sys.platform.startswith('linux'):
 
 _TravisTesting = os.environ.get('TRAVIS') == 'true'  # in Travis-CI testing
 
+problem_msg = 'The hardware look-up table ({func:s}) was unable to be used.'
+raise_msg = (
+    problem_msg + ' If you would like to proceed without look-up table ' +
+    '(gamma) changes, you can set the `Window` parameter ' +
+    '`gammaErrorPolicy` to `"warn"` or `"ignore"`.'
+)
+warn_msg = problem_msg + ' Proceeding without look-up table (gamma) changes.'
+
 
 def setGamma(
     screenID=None,
@@ -94,11 +102,11 @@ def setGammaRamp(
             if success:
                 break
         if not success:
-            msg = 'SetDeviceGammaRamp failed'
-            if gammaErrorPolicy == "raise":
-                raise OSError(msg)
-            elif gammaErrorPolicy == "warn":
-                logging.warning(msg)
+            func = 'SetDeviceGammaRamp'
+            if gammaErrorPolicy == 'raise':
+                raise OSError(raise_msg.format(func=func))
+            elif gammaErrorPolicy == 'warn':
+                logging.warning(warn_msg.format(func=func))
 
     if sys.platform == 'darwin':
         newRamp = (newRamp).astype(numpy.float32)
@@ -109,11 +117,11 @@ def setGammaRamp(
             newRamp[2, :].ctypes)
 
         if error:
-            msg = 'CGSetDisplayTransferByTable failed'
-            if gammaErrorPolicy == "raise":
-                raise OSError(msg)
-            elif gammaErrorPolicy == "warn":
-                logging.warning(msg)
+            func = 'CGSetDisplayTransferByTable'
+            if gammaErrorPolicy == 'raise':
+                raise OSError(raise_msg.format(func=func))
+            elif gammaErrorPolicy == 'warn':
+                logging.warning(warn_msg.format(func=func))
 
     if sys.platform.startswith('linux') and not _TravisTesting:
         newRamp = (numpy.around(65535 * newRamp)).astype(numpy.uint16)
@@ -123,11 +131,11 @@ def setGammaRamp(
             newRamp[1, :].ctypes,
             newRamp[2, :].ctypes)
         if not success:
-            msg = 'XF86VidModeSetGammaRamp failed'
-            if gammaErrorPolicy == "raise":
-                raise OSError(msg)
-            elif gammaErrorPolicy == "warn":
-                logging.warning(msg)
+            func = 'XF86VidModeSetGammaRamp'
+            if gammaErrorPolicy == 'raise':
+                raise OSError(raise_msg.format(func=func))
+            elif gammaErrorPolicy == 'warn':
+                logging.warning(raise_msg.format(func=func))
 
     elif _TravisTesting:
         logging.warn("It looks like we're running in the Travis-CI testing "
@@ -146,11 +154,11 @@ def getGammaRamp(screenID, xDisplay=None, gammaErrorPolicy='raise'):
         success = windll.gdi32.GetDeviceGammaRamp(
             screenID, origramps.ctypes)  # FB 504
         if not success:
-            msg = 'GetDeviceGammaRamp failed'
+            func = 'GetDeviceGammaRamp'
             if gammaErrorPolicy == 'raise':
-                raise OSError(msg)
+                raise OSError(raise_msg.format(func=func))
             elif gammaErrorPolicy == 'warn':
-                logging.warning(msg)
+                logging.warning(warn_msg.format(func=func))
         else:
             origramps.byteswap(True)  # back to 0:255
             origramps = origramps/255.0  # rescale to 0:1
@@ -165,11 +173,11 @@ def getGammaRamp(screenID, xDisplay=None, gammaErrorPolicy='raise'):
             origramps[1, :].ctypes,
             origramps[2, :].ctypes, n.ctypes)
         if error:
-            msg = 'CGSetDisplayTransferByTable failed'
+            func = 'CGSetDisplayTransferByTable'
             if gammaErrorPolicy == 'raise':
-                raise OSError(msg)
+                raise OSError(raise_msg.format(func=func))
             elif gammaErrorPolicy == 'warn':
-                logging.warning(msg)
+                logging.warning(warn_msg.format(func=func))
 
     if sys.platform.startswith('linux') and not _TravisTesting:
         origramps = numpy.empty((3, rampSize), dtype=numpy.uint16)
@@ -179,11 +187,11 @@ def getGammaRamp(screenID, xDisplay=None, gammaErrorPolicy='raise'):
             origramps[1, :].ctypes,
             origramps[2, :].ctypes)
         if not success:
-            msg = 'XF86VidModeGetGammaRamp failed'
+            func = 'XF86VidModeGetGammaRamp'
             if gammaErrorPolicy == 'raise':
-                raise OSError(msg)
+                raise OSError(raise_msg.format(func=func))
             elif gammaErrorPolicy == 'warn':
-                logging.warning(msg)
+                logging.warning(warn_msg.format(func=func))
         else:
             origramps = origramps/65535.0  # rescale to 0:1
 
@@ -308,11 +316,11 @@ def getGammaRampSize(screenID, xDisplay=None, gammaErrorPolicy='raise'):
         )
 
         if not success:
-            msg = 'XF86VidModeGetGammaRampSize failed'
+            func = 'XF86VidModeGetGammaRampSize'
             if gammaErrorPolicy == 'raise':
-                raise OSError(msg)
+                raise OSError(raise_msg.format(func=func))
             elif gammaErrorPolicy == 'warn':
-                logging.warning(msg)
+                logging.warning(warn_msg.format(func=func))
         else:
             rampSize = rampSize.value
 
