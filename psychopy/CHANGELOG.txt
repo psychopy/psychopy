@@ -10,6 +10,24 @@ Changelog
 CHANGES, which are identified in this dark red text, typically indicate things that alter the PsychoPy behaviour in a way that could break compatibility. Be especially wary of those!
 
 
+PsychoPy 3.2
+----------------
+
+This version adds better audio timing to the Python engine (using the C code from Psychtoolbox thanks to Mario Kleiner)
+and better keyboard timing on the JavaScript engine for your web-based experiments.
+
+ADDED:
+
+- new Sound backend 'ptb' which is much faster than any of the alternatives on all operating systems. The other backends
+  are still there for now but we strongly recommend you try this new one out! We're measuring submillisecond jitter AND
+  even submillisecond *lag*, which is amazing!
+- better timing on the keyboard responses of the JavaScript experiments due to timestamping asynchronously with your script
+- Standalone installations now provide an updated Cedrus library, pyxid2
+
+FIXED:
+
+-
+
 PsychoPy 3.1
 ----------------
 

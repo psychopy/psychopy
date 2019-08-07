@@ -30,8 +30,10 @@ except Exception:
 
 import numpy as np
 
-
-defaultLatencyClass = int(prefs.hardware['audioLatency'][0])
+try:
+    defaultLatencyClass = int(prefs.hardware['audioLatency'][0])
+except (TypeError, IndexError):  # maybe we were given a number instead
+    defaultLatencyClass = prefs.hardware['audioLatency']
 """vals in prefs.hardware['audioLatency'] are:
     '0:compatibility'
     '1:balance latency/compatibility'
@@ -42,7 +44,20 @@ Based on help at http://psychtoolbox.org/docs/PsychPortAudio-Open
 """
 # suggestedLatency = 0.005  ## Not currently used. Keep < 1 scr refresh
 
-audioDriver = None
+if prefs.hardware['audioDriver']=='auto':
+    audioDriver = None
+else:
+    audioDriver = prefs.hardware['audioDriver']
+
+if prefs.hardware['audioDevice']=='auto':
+    audioDevice = None
+else:
+    audioDevice = prefs.hardware['audioDevice']
+
+# these will be used by sound.__init__.py
+defaultInput = None
+defaultOutput = audioDevice
+
 
 travisCI = bool(str(os.environ.get('TRAVIS')).lower() == 'true')
 logging.info("Loaded psychtoolbox audio version {}"
@@ -82,11 +97,6 @@ def getDevices(kind=None):
         devs[devName] = dev
         dev['id'] = ii
     return devs
-
-
-# these will be controlled by sound.__init__.py
-defaultInput = None
-defaultOutput = None
 
 
 def getStreamLabel(sampleRate, channels, blockSize):
@@ -342,18 +352,6 @@ class SoundPTB(_SoundBase):
         """
         # start with the base class method
         _SoundBase.setSound(self, value, secs, octave, hamming, log)
-
-        if hamming is None:
-            hamming = self.hamming
-        else:
-            self.hamming = hamming
-        if hamming:
-            # 5ms or 15th of stimulus (for short sounds)
-            hammDur = min(0.005,  # 5ms
-                          self.secs / 15.0)  # 15th of stim
-            self._hammingWindow = HammingWindow(winSecs=hammDur,
-                                                soundSecs=self.secs,
-                                                sampleRate=self.sampleRate)
 
     def _setSndFromFile(self, filename):
         self.sndFile = f = sf.SoundFile(filename)

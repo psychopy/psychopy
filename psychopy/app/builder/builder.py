@@ -2126,6 +2126,9 @@ class BuilderFrame(wx.Frame):
         fullPath = self.filename.replace('.psyexp', '_lastrun.py')
         self.generateScript(fullPath)  # Build script based on current version selected
 
+        self.SetEvtHandlerEnabled(False)
+        self.Bind(wx.EVT_IDLE, None)
+
         try:
             self.stdoutFrame.getText()
         except Exception:
@@ -2165,6 +2168,8 @@ class BuilderFrame(wx.Frame):
         self.scriptProcessID = wx.Execute(command, _opts, self.scriptProcess)
         self.toolbar.EnableTool(self.bldrBtnRun.Id, False)
         self.toolbar.EnableTool(self.bldrBtnStop.Id, True)
+
+        self.SetEvtHandlerEnabled(True)
 
     def stopFile(self, event=None):
         """Kills script processes"""
