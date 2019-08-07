@@ -400,7 +400,7 @@ class SettingsComponent(object):
         )
         # adjust the prefs for this study if needed
         if self.params['Audio lib'] != 'Use prefs':
-            buff.lines(
+            buff.writelines(
                 "prefs.hardware['audioLib'] = {}\n".format(self.params['Audio lib'])
             )
         if self.params['Audio latency priority'] != 'Use prefs':
