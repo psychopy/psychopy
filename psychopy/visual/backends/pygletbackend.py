@@ -223,13 +223,17 @@ class PygletBackend(BaseBackend):
             pass  # doesn't matter
 
         # store properties of the system
+        self._TravisTesting = (os.environ.get('TRAVIS') == 'true')
         self._driver = pyglet.gl.gl_info.get_renderer()
         self._gammaErrorPolicy = win.gammaErrorPolicy
-        self._origGammaRamp = self.getGammaRamp()
-        self._rampSize = getGammaRampSize(
-            self.screenID, self.xDisplay, gammaErrorPolicy=self._gammaErrorPolicy
-        )
-        self._TravisTesting = (os.environ.get('TRAVIS') == 'true')
+        try:
+            self._origGammaRamp = self.getGammaRamp()
+            self._rampSize = getGammaRampSize(
+                self.screenID, self.xDisplay, gammaErrorPolicy=self._gammaErrorPolicy
+            )
+        except OSError:
+            self.close()
+            raise
 
 
     @property
