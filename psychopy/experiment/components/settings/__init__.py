@@ -672,6 +672,8 @@ class SettingsComponent(object):
             buff.writeIndentedLines("\nendExpNow = False  # flag for 'escape'"
                                     " or other condition => quit the exp\n")
 
+        buff.writeIndented("frameTolerance = 0.001  # how close to onset before 'same' frame\n")
+
     def writeWindowCode(self, buff):
         """Setup the window code.
         """

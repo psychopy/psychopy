@@ -173,7 +173,7 @@ class QmixPumpComponent(BaseComponent):
                     code = '%(name)s.stop()\n' % self.params
 
             buff.writeIndentedLines(code)
-            buff.setIndentLevel(-1, relative=True)
+            buff.setIndentLevel(-2, relative=True)
 
     def writeRoutineEndCode(self, buff):
         # Make sure that we stop the pumps even if the routine has been

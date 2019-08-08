@@ -209,7 +209,7 @@ class cedrusButtonBoxComponent(KeyboardComponent):
             # writes an if statement to determine whether to draw etc
             self.writeStopTestCode(buff)
             buff.writeIndented("%(name)s.status = FINISHED\n" % self.params)
-            buff.setIndentLevel(-1, True)
+            buff.setIndentLevel(-2, True)
 
         buff.writeIndented("if %(name)s.status == STARTED:\n" % self.params)
         buff.setIndentLevel(1, relative=True)  # to get out of if statement

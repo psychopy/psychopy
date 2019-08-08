@@ -90,7 +90,7 @@ class ApertureComponent(BaseVisualComponent):
             self.writeStopTestCode(buff)
             buff.writeIndented("%(name)s.enabled = False\n" % self.params)
             # to get out of the if statement
-            buff.setIndentLevel(-1, relative=True)
+            buff.setIndentLevel(-2, relative=True)
         # set parameters that need updating every frame
         # do any params need updating? (this method inherited from _base)
         if self.checkNeedToUpdate('set every frame'):

@@ -126,7 +126,7 @@ class ParallelOutComponent(BaseComponent):
             buff.writeIndented(code)
 
             # to get out of the if statement
-            buff.setIndentLevel(-1, relative=True)
+            buff.setIndentLevel(-2, relative=True)
 
         # dedent
 # buff.setIndentLevel(-dedentAtEnd, relative=True)#'if' statement of the

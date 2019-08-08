@@ -189,50 +189,41 @@ class BaseComponent(object):
         """
         pass
 
-    def writeTimeTestCode(self, buff):
-        """Original code for testing whether to draw.
-        All objects have now migrated to using writeStartTestCode and
-        writeEndTestCode
-        """
-        # unused internally; deprecated March 2016 v1.83.x, will remove 1.85
-        logging.warning(
-            'Deprecation warning: writeTimeTestCode() is not supported;\n'
-            'will be removed. Please use writeStartTestCode() instead')
-        if self.params['duration'].val == '':
-            code = "if %(startTime)s <= t:\n"
-        else:
-            code = "if %(startTime)s <= t < %(startTime)s + %(duration)s:\n"
-        buff.writeIndentedLines(code % self.params)
-
     def writeStartTestCode(self, buff):
         """Test whether we need to start
         """
+        if self.params['syncScreenRefresh']:
+            tCompare = 'tThisFlip'
+        else:
+            tCompare = 't'
         if self.params['startType'].val == 'time (s)':
             # if startVal is an empty string then set to be 0.0
             if (isinstance(self.params['startVal'].val, basestring) and
                     not self.params['startVal'].val.strip()):
                 self.params['startVal'].val = '0.0'
-            code = ("if t >= %(startVal)s "
-                    "and %(name)s.status == NOT_STARTED:\n")
+            code = ("if {params[name]}.status == NOT_STARTED and "
+                    "{t} >= {params[startVal]}-frameTolerance:\n")
         elif self.params['startType'].val == 'frame N':
-            code = ("if frameN >= %(startVal)s "
-                    "and %(name)s.status == NOT_STARTED:\n")
+            code = ("if {params[name]}.status == NOT_STARTED and "
+                    "frameN >= {params[startVal]}:\n")
         elif self.params['startType'].val == 'condition':
-            code = ("if (%(startVal)s) "
-                    "and %(name)s.status == NOT_STARTED:\n")
+            code = ("if {params[name]}.status == NOT_STARTED and "
+                    "{params[startVal]}:\n")
         else:
             msg = "Not a known startType (%(startType)s) for %(name)s"
             raise CodeGenerationException(msg % self.params)
 
-        buff.writeIndented(code % self.params)
+        buff.writeIndented(code.format(params=self.params, t=tCompare))
 
         buff.setIndentLevel(+1, relative=True)
         code = ("# keep track of start time/frame for later\n"
-                "%(name)s.tStart = t  # not accounting for scr refresh\n"
-                "%(name)s.frameNStart = frameN  # exact frame index\n"
-                "win.timeOnFlip(%(name)s, 'tStartRefresh')"
-                "  # time at next scr refresh\n")
-        buff.writeIndentedLines(code % self.params)
+                "{params[name]}.frameNStart = frameN  # exact frame index\n"
+                "{params[name]}.tStart = t  # local t and not account for scr refresh\n"
+                "{params[name]}.tStartRefresh = tThisFlipGlobal  # on global time\n")
+        if self.type != "Sound":  # for sounds, don't update to actual frame time
+                code += ("win.timeOnFlip({params[name]}, 'tStartRefresh')"
+                         "  # time at next scr refresh\n")
+        buff.writeIndentedLines(code.format(params=self.params))
 
     def writeStartTestCodeJS(self, buff):
         """Test whether we need to start
@@ -265,29 +256,24 @@ class BaseComponent(object):
     def writeStopTestCode(self, buff):
         """Test whether we need to stop
         """
+        buff.writeIndentedLines("if %(name)s.status == STARTED:\n" % self.params)
+        buff.setIndentLevel(+1, relative=True)
+
         if self.params['stopType'].val == 'time (s)':
-            code = ("frameRemains = %(stopVal)s "
-                    "- win.monitorFramePeriod * 0.75"
-                    "  # most of one frame period left\n"
-                    "if %(name)s.status == STARTED and t >= frameRemains:\n")
+            code = ("# is it time to stop? (based on local clock)\n"
+                    "if tThisFlip > %(stopVal)s-frameTolerance:\n"
+                    )
         # duration in time (s)
-        elif (self.params['stopType'].val == 'duration (s)' and
-              self.params['startType'].val == 'time (s)'):
-            code = ("frameRemains = %(startVal)s + %(stopVal)s"
-                    "- win.monitorFramePeriod * 0.75"
-                    "  # most of one frame period left\n"
-                    "if %(name)s.status == STARTED and t >= frameRemains:\n")
-        # start at frame and end with duration (need to use approximate)
-        elif self.params['stopType'].val == 'duration (s)':
-            code = ("if %(name)s.status == STARTED and t >= (%(name)s.tStart "
-                    "+ %(stopVal)s):\n")
+        elif (self.params['stopType'].val == 'duration (s)'):
+            code = ("# is it time to stop? (based on global clock, using actual start)\n"
+                    "if tThisFlipGlobal > %(name)s.tStartRefresh + %(stopVal)s-frameTolerance:\n"
+                    )
         elif self.params['stopType'].val == 'duration (frames)':
-            code = ("if %(name)s.status == STARTED and frameN >= "
-                    "(%(name)s.frameNStart + %(stopVal)s):\n")
+            code = ("if frameN >= (%(name)s.frameNStart + %(stopVal)s):\n")
         elif self.params['stopType'].val == 'frame N':
-            code = "if %(name)s.status == STARTED and frameN >= %(stopVal)s:\n"
+            code = "if frameN >= %(stopVal)s:\n"
         elif self.params['stopType'].val == 'condition':
-            code = "if %(name)s.status == STARTED and bool(%(stopVal)s):\n"
+            code = "if bool(%(stopVal)s):\n"
         else:
             msg = ("Didn't write any stop line for startType=%(startType)s, "
                    "stopType=%(stopType)s")
@@ -626,7 +612,7 @@ class BaseVisualComponent(BaseComponent):
             self.writeStopTestCode(buff)
             buff.writeIndented("%(name)s.setAutoDraw(False)\n" % self.params)
             # to get out of the if statement
-            buff.setIndentLevel(-1, relative=True)
+            buff.setIndentLevel(-2, relative=True)
 
         # set parameters that need updating every frame
         # do any params need updating? (this method inherited from _base)

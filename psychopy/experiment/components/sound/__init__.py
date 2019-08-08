@@ -84,8 +84,11 @@ class SoundComponent(BaseComponent):
                 inits['stopVal'].val = -1
             elif float(inits['stopVal'].val) > 2:
                 inits['stopVal'].val = -1
-        buff.writeIndented("%s = sound.Sound(%s, secs=%s, stereo=%s)\n" %
-                           (inits['name'], inits['sound'], inits['stopVal'], self.exp.settings.params['Force stereo']))
+        buff.writeIndented("%s = sound.Sound(%s, secs=%s, stereo=%s, hamming=%s,\n"
+                           "    name='%s')\n" %
+                           (inits['name'], inits['sound'], inits['stopVal'],
+                            self.exp.settings.params['Force stereo'],
+                            inits['hamming'], inits['name']))
         buff.writeIndented("%(name)s.setVolume(%(volume)s)\n" % (inits))
 
     def writeRoutineStartCode(self, buff):
@@ -154,7 +157,7 @@ class SoundComponent(BaseComponent):
                     "    %(name)s.stop()\n")
             buff.writeIndentedLines(code % self.params)
             # because of the 'if' statement of the time test
-            buff.setIndentLevel(-1, relative=True)
+            buff.setIndentLevel(-2, relative=True)
 
     def writeFrameCodeJS(self, buff):
         """Write the code that will be called every frame
@@ -199,7 +202,7 @@ class SoundComponent(BaseComponent):
         code = "%s.stop()  # ensure sound has stopped at end of routine\n"
         buff.writeIndented(code % self.params['name'])
         # get parent to write code too (e.g. store onset/offset times)
-        super().writeRoutineEndCode(buff)
+        super().writeRoutineEndCode(buff)  # noinspection
 
     def writeRoutineEndCodeJS(self, buff):
         code = "%s.stop();  // ensure sound has stopped at end of routine\n"

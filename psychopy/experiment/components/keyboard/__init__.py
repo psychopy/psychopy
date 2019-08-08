@@ -229,7 +229,7 @@ class KeyboardComponent(BaseComponent):
             self.writeStopTestCode(buff)
             buff.writeIndented("%(name)s.status = FINISHED\n" % self.params)
             # to get out of the if statement
-            buff.setIndentLevel(-1, relative=True)
+            buff.setIndentLevel(-2, relative=True)
 
         buff.writeIndented("if %s.status == STARTED%s:\n"
                            % (self.params['name'], ['', ' and not waitOnFlip'][visualSync]))

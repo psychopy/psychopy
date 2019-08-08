@@ -23,6 +23,8 @@ from past.builtins import basestring
 
 from psychopy.contrib.lazy_import import lazy_import
 from psychopy import colors
+from psychopy.clock import monotonicClock
+
 # try to find avbin (we'll overload pyglet's load_library tool and then
 # add some paths)
 haveAvbin = False
@@ -780,6 +782,40 @@ class Window(object):
         """
         self.callOnFlip(self._assignFlipTime, obj, attrib)
 
+    def getFutureFlipTime(self, targetTime=0, clock=None):
+        """The expected time of the next screen refresh. This is currently
+        calculated as win._lastFrameTime + refreshInterval
+
+        Parameters
+        -----------
+        targetTime: float
+            The delay from now for which you want the flip time. 0 will give the
+            because that the earliest we can achieve. 0.15 will give the schedule
+            flip time that gets as close to 150 ms as possible
+        clock : None, 'ptb' or any Clock object
+            If True then the time returned is compatible with ptb.GetSecs()
+        """
+        baseClock = logging.defaultClock
+        if not self.monitorFramePeriod:
+            raise AttributeError("Cannot calculate nextFlipTime due to unknown "
+                                 "monitorFramePeriod")
+        lastFlip = self._frameTimes[-1]  # self.lastFrameTime is not always on. This is
+        timeNext = lastFlip + self.monitorFramePeriod
+        now = baseClock.getTime()
+        if (now + targetTime) > timeNext:
+            extraFrames = round((targetTime - timeNext)/self.monitorFramePeriod)
+            thisT = timeNext + extraFrames*self.monitorFramePeriod
+        else:
+            thisT = timeNext
+        # convert back to target clock timebase
+        if clock=='ptb':  # add back the lastResetTime (that's the clock difference)
+            return thisT + baseClock.getLastResetTime()
+        elif clock:
+            return thisT + baseClock.getLastResetTime() - clock.getLastResetTime()
+        else:
+            return thisT
+
+
     def _assignFlipTime(self, obj, attrib):
         """Helper function to assign the time of last flip to the obj.attrib
 
@@ -954,6 +990,7 @@ class Window(object):
 
         # get timestamp
         self._frameTime = now = logging.defaultClock.getTime()
+        self._frameTimes.append(monotonicClock.getTime())
 
         # run other functions immediately after flip completes
         for callEntry in self._toCall:

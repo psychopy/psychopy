@@ -298,7 +298,7 @@ class JoyButtonsComponent(BaseComponent):
             self.writeStopTestCode(buff)
             buff.writeIndented("%(name)s.status = FINISHED\n" % self.params)
             # to get out of the if statement
-            buff.setIndentLevel(-1, relative=True)
+            buff.setIndentLevel(-2, relative=True)
 
         buff.writeIndented("if %(name)s.status == STARTED:\n" % self.params)
         buff.setIndentLevel(1, relative=True)  # to get out of if statement
