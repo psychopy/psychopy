@@ -246,6 +246,94 @@ def compileShaderObjectARB(shaderSrc, shaderType):
     return shaderId
 
 
+def genShaderPreprocDefs(defs):
+    """Generate GLSL preprocessor definitions.
+
+    This is a convenience function which generates GLSL source code that defines
+    preprocessor values. The resulting string can be passed along with a shader
+    program's source to the compiler. This allows a shader program to be altered
+    at runtime, either to define constants or select render code paths.
+
+    Passing ``{'MAX_LIGHTS': 8, 'NORMAL_MAP': False}`` to `genShaderPreprocDefs`
+    as `defs` returns the following GLSL code::
+
+        #define MAX_LIGHTS 8
+        #define NORMAL_MAP 0
+
+    Parameters
+    ----------
+    defs : dict
+       Values to set as ``#define`` statements. Keys must all be valid GLSL
+       preprocessor variable names of type `str`. Values can only be `int`,
+       `float`, `str`, `bytes`, or `bool` types. Boolean values `True` and
+       `False` are converted to integers `1` and `0`, respectively.
+
+    Returns
+    -------
+    str
+        GLSL source code.
+
+    Examples
+    --------
+    Defining ``MAX_LIGHTS`` as `8` in a fragment shader program at runtime::
+
+        # the `#version 120` directive is first
+        glslHeader = "#version 120\n" + genShaderPreprocDefs({'MAX_LIGHTS': 8})
+
+        # `MAX_LIGHTS` is specified in fragment shader `fragSrc`
+        fragShader = compileShaderObjectARB(
+            [glslHeader, fragSrc], GL_FRAGMENT_SHADER_ARB)
+
+    Code paths can be selected depending on the requirements of the material
+    being used. For instance, a shader program can enable/disable sampling
+    diffuse color from texture conditionally by defining ``DIFFUSE`` and
+    surrounding texture related code paths with ``#ifdef`` and ``#endif``
+    preprocessor directives::
+
+        #ifdef DIFFUSE
+            uniform sampler2D diffuseTexture;
+        #endif
+        ...
+        #ifdef DIFFUSE
+            // sample color from texture
+            vec4 diffuseColor = texture2D(diffuseTexture, gl_TexCoord[0].st);
+        #else
+            // code path for no textures, just output material color
+            vec4 diffuseColor = gl_LightSource[0].diffuse;
+        #endif
+
+    You can then create a fragment shader, defining ``DIFFUSE`` before
+    compilation whose value depends on whether the material has textures or
+    not::
+
+        defs = {'DIFFUSE': hasTexture}  # `hasTexture` is bool
+        fragShader = compileShaderObjectARB(
+            [genShaderPreprocDefs(defs), fragSrc],
+            GL_FRAGMENT_SHADER_ARB)
+
+    """
+    glslDefSrc = ""
+    for varName, varValue in defs.items():
+        if not isinstance(varName, str):
+            raise ValueError("Definition name must be type `str`.")
+
+        if isinstance(varValue, (int, float,)):
+            if isinstance(varValue, bool):
+                varValue = int(varValue)
+            defStmt = '#define {n} {v}\n'.format(n=varName, v=str(varValue))
+        elif isinstance(varValue, str):
+            defStmt = '#define {n} {v}\n'.format(n=varName, v=varValue)
+        elif isinstance(varValue, bytes):
+            varValue = varValue.decode('UTF-8')
+            defStmt = '#define {n} "{v}"\n'.format(n=varName, v=varValue)
+        else:
+            raise TypeError("Invalid type for value of `{}`.".format(varName))
+
+        glslDefSrc += defStmt
+
+    return glslDefSrc
+
+
 def deleteObject(obj):
     """Delete a shader or program object.
 
@@ -2383,3 +2471,7 @@ defaultMaterial = createMaterial(
      (GL.GL_SPECULAR, (0.0, 0.0, 0.0, 1.0)),
      (GL.GL_EMISSION, (0.0, 0.0, 0.0, 1.0)),
      (GL.GL_SHININESS, 0)])
+
+
+if __name__ == "__main__":
+    print(genShaderPreprocDefs({'MAX_LIGHTS': 8, 'light(n)': 'gl_LightSource[(n)]'}))
