@@ -16,7 +16,7 @@ from builtins import object
 import sys
 import time
 
-from psychopy import logging
+from psychopy import logging, constants
 try:
     import serial
 except ImportError:
@@ -185,8 +185,11 @@ class SerialDevice(object):
             retVal = self.com.readline()
         elif length > 1:
             retVal = self.com.readlines()
+            retVal = [line.decode('utf-8') for line in retVal]
         else:  # was -1?
             retVal = self.com.read(self.com.inWaiting())
+        if constants.PY3 and type(retVal) is bytes:
+            retVal = retVal.decode('utf-8')
         return retVal
 
     def __del__(self):
