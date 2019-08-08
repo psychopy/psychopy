@@ -148,7 +148,7 @@ class EyetrackerComponent(BaseComponent):
             buff.writeIndentedLines(code % self.params)
 
             # to get out of the if statement
-            buff.setIndentLevel(-1, relative=True)
+            buff.setIndentLevel(-2, relative=True)
 
         # if STARTED and not FINISHED!
         code = "if %(name)s.status == STARTED:  # only update if started and not finished!\n" % self.params

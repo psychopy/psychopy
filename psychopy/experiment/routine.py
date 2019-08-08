@@ -156,10 +156,12 @@ class Routine(list):
         buff.setIndentLevel(1, True)
         # on each frame
         code = ('# get current time\n'
-                't = %s.getTime()\n'
+                't = {clockName}.getTime()\n'
+                'tThisFlip = win.getFutureFlipTime(clock={clockName})\n'
+                'tThisFlipGlobal = win.getFutureFlipTime(clock=None)\n'
                 'frameN = frameN + 1  # number of completed frames '
                 '(so 0 is the first frame)\n')
-        buff.writeIndentedLines(code % self._clockName)
+        buff.writeIndentedLines(code.format(clockName=self._clockName))
 
         # write the code for each component during frame
         buff.writeIndentedLines('# update/draw components on each frame\n')
