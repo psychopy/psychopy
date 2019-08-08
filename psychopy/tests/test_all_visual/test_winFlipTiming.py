@@ -22,12 +22,14 @@ class Test_WinFlipTiming(object):
     def _runSeriesOfFlips(self, usePTB):
         if usePTB:
             getTime = GetSecs
+            clk = 'ptb'
         else:
             getTime = clock.monotonicClock.getTime
+            clk = None
 
         self.win.flip()
         now = clock.monotonicClock.getTime()
-        next = self.win.getFutureFlipTime(ptb=usePTB)
+        next = self.win.getFutureFlipTime(clock=clk)
 
         errsNext = []
         # check nextFrame against reality for 10 frames
@@ -38,7 +40,7 @@ class Test_WinFlipTiming(object):
             ## print('err', next-this)
             errsNext.append(next-this)
             #then update next
-            next = self.win.getFutureFlipTime(ptb=usePTB)
+            next = self.win.getFutureFlipTime(clock=clk)
             ## print('next', next)
         return errsNext
 
