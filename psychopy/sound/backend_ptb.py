@@ -11,8 +11,8 @@ import os
 import time
 import re
 
-from psychopy import logging, exceptions
-from psychopy.constants import (PLAYING, PAUSED, FINISHED, STOPPED,
+from psychopy import prefs, logging, exceptions
+from psychopy.constants import (STARTED, PAUSED, FINISHED, STOPPING,
                                 NOT_STARTED)
 from psychopy.exceptions import SoundFormatError, DependencyError
 from ._base import _SoundBase, HammingWindow
@@ -202,7 +202,8 @@ class SoundPTB(_SoundBase):
                  preBuffer=-1,
                  hamming=True,
                  startTime=0, stopTime=-1,
-                 name='', autoLog=True):
+                 name='', autoLog=True,
+                 syncToWin=None):
         """
         :param value: note name ("C","Bfl"), filename or frequency (Hz)
         :param secs: duration (for synthesised tones)
@@ -228,12 +229,13 @@ class SoundPTB(_SoundBase):
         :param stopTime: for sound files this controls the end of snippet
         :param name: string for logging purposes
         :param autoLog: whether to automatically log every change
+        :param syncToWin: if you want start/stop to sync with win flips add this
         """
         self.sound = value
         self.name = name
         self.secs = secs  # for any synthesised sounds (notesand freqs)
         self.octave = octave  # for note name sounds
-        self.loops = loops
+        self.loops = self._loopsRequested = loops
         self._loopsFinished = 0
         self.volume = volume
         self.startTime = startTime  # for files
@@ -253,7 +255,7 @@ class SoundPTB(_SoundBase):
         self.sndArr = None
         self.hamming = hamming
         self._hammingWindow = None  # will be created during setSound
-
+        self.win=syncToWin
         # setSound (determines sound type)
         self.setSound(value, secs=self.secs, octave=self.octave,
                       hamming=self.hamming)
@@ -299,6 +301,8 @@ class SoundPTB(_SoundBase):
                 output sounds in the bottom octave (1) and the top
                 octave (8) is generally painful
         """
+        # reset self.loops to what was requested (in case altered for infinite play of tones)
+        self.loops = self._loopsRequested
         # start with the base class method
         _SoundBase.setSound(self, value, secs, octave, hamming, log)
 
@@ -396,14 +400,26 @@ class SoundPTB(_SoundBase):
             logging.error(msg)
             raise ValueError(msg)
 
-    def play(self, loops=None, when=None):
+    def play(self, loops=None, when=None, log=True):
         """Start the sound playing
         """
         if loops is not None and self.loops != loops:
             self.setLoops(loops)
         self.status = PLAYING
         self._tSoundRequestPlay = time.time()
-        self.track.start(repetitions=self.loops, when=when)
+
+        if hasattr(when, 'getFutureFlipTime'):
+            logTime = when.getFutureFlipTime(clock=None)
+            when = when.getFutureFlipTime(clock='ptb')
+        elif when is None and hasattr(self.win, 'getFutureFlipTime'):
+            logTime = self.win.getFutureFlipTime(clock=None)
+            when = self.win.getFutureFlipTime(clock='ptb')
+        else:
+            logTime = None
+        self.track.start(repetitions=loops, when=when)
+        # time.sleep(0.)
+        if log and self.autoLog:
+            logging.exp(u"Sound %s started" % (self.name), obj=self, t=logTime)
 
     def pause(self):
         """Stop the sound but play will continue from here if needed
@@ -411,14 +427,17 @@ class SoundPTB(_SoundBase):
         self.status = PAUSED
         streams[self.streamLabel].remove(self)
 
-    def stop(self, reset=True):
+    def stop(self, reset=True, log=True):
         """Stop the sound and return to beginning
         """
-        streams[self.streamLabel].remove(self)
+        if self.status == FINISHED:
+            return
+        self.track.stop()
         if reset:
             self.seek(0)
-        self.status = STOPPED
-        self.track.stop(repetitions=self.loops)
+        if log and self.autoLog:
+            logging.exp(u"Sound %s stopped" % (self.name), obj=self)
+        self.status = FINISHED
 
         if self._hammingWindow:
             thisWin = self._hammingWindow.nextBlock(self.t, self.blockSize)
@@ -438,16 +457,17 @@ class SoundPTB(_SoundBase):
         if self.sndFile and not self.sndFile.closed:
             self.sndFile.seek(self.frameN)
 
-    def _EOS(self, reset=True):
+    def _EOS(self, reset=True, log=True):
         """Function called on End Of Stream
         """
+        self.status = STOPPING
         self._loopsFinished += 1
         if self.loops == 0:
-            self.stop(reset=reset)
+            self.stop(reset=reset, log=False)
         elif self.loops > 0 and self._loopsFinished >= self.loops:
-            self.stop(reset=reset)
-
-        self.status = FINISHED
+            self.stop(reset=reset, log=False)
+        if log and self.autoLog:
+            logging.exp(u"Sound %s reached end of file" % (self.name), obj=self)
 
     @property
     def stream(self):

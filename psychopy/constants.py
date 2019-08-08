@@ -22,6 +22,7 @@ PAUSED = 2
 STOPPED = -1
 FINISHED = STOPPED
 SKIP = -2
+STOPPING = -3
 
 # for button box:
 PRESSED = 1
