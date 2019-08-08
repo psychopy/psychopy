@@ -20,6 +20,7 @@ from builtins import object
 from builtins import range
 from builtins import str
 from past.builtins import basestring
+from collections import deque
 
 from psychopy.contrib.lazy_import import lazy_import
 from psychopy import colors
@@ -174,6 +175,7 @@ class Window(object):
                  useFBO=False,
                  useRetina=True,
                  autoLog=True,
+                 gammaErrorPolicy='raise',
                  *args,
                  **kwargs):
         """
@@ -257,6 +259,10 @@ class Window(object):
             request will be in the larger pixels but subsequent use of
             ``units='pix'`` should refer to the tiny Retina pixels. Window.size
             will give the actual size of the screen in Retina pixels.
+        gammaErrorPolicy: `str`
+            If `raise`, an error is raised if the gamma table is unable to be
+            retrieved or set. If `warn`, a warning is raised instead. If
+            `ignore`, neither an error nor a warning are raised.
 
         Notes
         -----
@@ -295,6 +301,10 @@ class Window(object):
         self.winHandle = None
         self.useFBO = useFBO
         self.useRetina = useRetina and sys.platform == 'darwin'
+
+        if gammaErrorPolicy not in ['raise', 'warn', 'ignore']:
+            raise ValueError('Unexpected `gammaErrorPolicy`')
+        self.gammaErrorPolicy = gammaErrorPolicy
 
         self._toLog = []
         self._toCall = []
@@ -471,6 +481,7 @@ class Window(object):
         self.recordFrameIntervalsJustTurnedOn = False
         self.nDroppedFrames = 0
         self.frameIntervals = []
+        self._frameTimes = deque(maxlen=1000)  # 1000 keeps overhead low
 
         self._toDraw = []
         self._toDrawDepths = []
@@ -493,9 +504,9 @@ class Window(object):
             self._monitorFrameRate = self.getActualFrameRate()
         if self._monitorFrameRate is not None:
             self.monitorFramePeriod = 1.0 / self._monitorFrameRate
-            self.refreshThreshold = 1.0 / self._monitorFrameRate * 1.2
         else:
-            self.refreshThreshold = 1.0 / 60 * 1.2  # maybe a flat panel?
+            self.monitorFramePeriod = 1.0 / 60  # assume a flat panel?
+        self.refreshThreshold = self.monitorFramePeriod * 1.2
         openWindows.append(self)
 
         self.autoLog = autoLog
@@ -1002,6 +1013,7 @@ class Window(object):
             self.frames += 1
             deltaT = now - self.lastFrameT
             self.lastFrameT = now
+
             if self.recordFrameIntervalsJustTurnedOn:  # don't do anything
                 self.recordFrameIntervalsJustTurnedOn = False
             else:  # past the first frame since turned on

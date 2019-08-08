@@ -5,7 +5,26 @@
 .. currentmodule:: psychopy.tools.gltools
     
 .. autosummary:: 
-
+    
+    createProgram
+    compileShader
+    deleteObject
+    attachShader
+    detachShader
+    linkProgram
+    validateProgram
+    useProgram
+    createProgramObjectARB
+    compileShaderObjectARB
+    deleteObjectARB
+    attachObjectARB
+    detachObjectARB
+    linkProgramObjectARB
+    validateProgramARB
+    useProgramObjectARB
+    getInfoLog
+    getUniformLocations
+    getAttribLocations
     createFBO
     attach
     isComplete
@@ -37,6 +56,25 @@
 Function details
 ~~~~~~~~~~~~~~~~~~~~~~~
 
+.. autofunction:: createProgram
+.. autofunction:: compileShader
+.. autofunction:: deleteObject
+.. autofunction:: attachShader
+.. autofunction:: detachShader
+.. autofunction:: linkProgram
+.. autofunction:: validateProgram
+.. autofunction:: useProgram
+.. autofunction:: createProgramObjectARB
+.. autofunction:: compileShaderObjectARB
+.. autofunction:: deleteObjectARB
+.. autofunction:: attachObjectARB
+.. autofunction:: detachObjectARB
+.. autofunction:: linkProgramObjectARB
+.. autofunction:: validateProgramARB
+.. autofunction:: useProgramObjectARB
+.. autofunction:: getInfoLog
+.. autofunction:: getUniformLocations
+.. autofunction:: getAttribLocations
 .. autofunction:: createFBO
 .. autofunction:: attach
 .. autofunction:: isComplete

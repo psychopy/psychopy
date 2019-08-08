@@ -4,9 +4,7 @@
 """Simple iohub eye tracker device demo. Shows how monitoring for central
 fixation monitoring could be done.
 No iohub config .yaml files are needed for this demo.
-Demo config is setup for an EyeLink(C) 1000 Desktop System. 
-To to use a different eye tracker implementation, change the 
-iohub_tracker_class_path and eyetracker_config dict script variables.
+Comment / uncomment appropriate tracker_config to select which implementation to use.
 """
 from __future__ import absolute_import, division, print_function
 
@@ -17,19 +15,24 @@ import time
 # Number if 'trials' to run in demo
 TRIAL_COUNT = 2
 # Maximum trial time / time timeout
-T_MAX = 10.0
+T_MAX = 5.0
 
-iohub_tracker_class_path = 'eyetracker.hw.sr_research.eyelink.EyeTracker'
-eyetracker_config = dict()
-eyetracker_config['name'] = 'tracker'
-eyetracker_config['model_name'] = 'EYELINK 1000 DESKTOP'
-eyetracker_config['simulation_mode'] = True
-eyetracker_config['runtime_settings'] = dict(sampling_rate=1000,
-                                             track_eyes='RIGHT')
+## Uncomment to use EyeLink device and default settings.
+#
+#eyetracker_config = dict(name='tracker')
+#eyetracker_config['model_name'] = 'EYELINK 1000 DESKTOP'
+#eyetracker_config['simulation_mode'] = False
+#eyetracker_config['runtime_settings'] = dict(sampling_rate=1000, track_eyes='RIGHT')
+#tracker_config = {'eyetracker.hw.sr_research.eyelink.EyeTracker':eyetracker_config}
+
+## Uncomment to use GP3 device and default settings.
+#
+tracker_config = {'eyetracker.hw.gazepoint.gp3.EyeTracker':
+    {'name': 'tracker', 'device_timer': {'interval': 0.005}}}
 
 # Since no experiment or session code is given, no iohub hdf5 file
 # will be saved, but device events are still available at runtime.
-io = launchHubServer(**{iohub_tracker_class_path: eyetracker_config})
+io = launchHubServer(**tracker_config)
 
 # Get some iohub devices for future access.
 keyboard = io.getDevice('keyboard')
@@ -101,8 +104,9 @@ while t < TRIAL_COUNT:
         # Check any new keyboard char events for a space key.
         # If one is found, set the trial end variable.
         #
-        #if keyboard.getEvents():
-        if core.getTime()-tstart_time > T_MAX:
+        if keyboard.getPresses(keys=' '):
+            run_trial = False
+        elif core.getTime()-tstart_time > T_MAX:
             run_trial = False
 
     # Current Trial is Done
@@ -115,4 +119,4 @@ while t < TRIAL_COUNT:
 tracker.setConnectionState(False)
 
 io.quit()
-#core.quit()
+core.quit()

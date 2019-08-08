@@ -49,7 +49,7 @@ class ParallelOutComponent(BaseComponent):
         self.order = ['address', 'startData', 'stopData']
 
         # main parameters
-        addressOptions = prefs.hardware['parallelPorts'] + [u'LabJack U3']
+        addressOptions = prefs.hardware['parallelPorts'] + [u'LabJack U3'] + [u'USB2TTL8'] 
         if not address:
             address = addressOptions[0]
 
@@ -83,6 +83,12 @@ class ParallelOutComponent(BaseComponent):
         if self.params['address'].val == 'LabJack U3':
             code = ("from psychopy.hardware import labjacks\n"
                     "%(name)s = labjacks.U3()\n"
+                    "%(name)s.status = None\n"
+                    % self.params)
+            buff.writeIndentedLines(code)
+        elif self.params['address'].val == 'USB2TTL8':
+            code = ("from psychopy.hardware import labhackers\n"
+                    "%(name)s = labhackers.USB2TTL8()\n"
                     "%(name)s.status = None\n"
                     % self.params)
             buff.writeIndentedLines(code)
