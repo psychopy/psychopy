@@ -285,10 +285,10 @@ def genShaderPreprocDefs(defs):
             [glslHeader, fragSrc], GL_FRAGMENT_SHADER_ARB)
 
     Code paths can be selected depending on the requirements of the material
-    being used. For instance, a shader program can enable/disable sampling
-    diffuse color from texture conditionally by defining ``DIFFUSE`` and
-    surrounding texture related code paths with ``#ifdef`` and ``#endif``
-    preprocessor directives::
+    being used. For instance, a shader program can be built to sample diffuse
+    color from texture conditionally by defining ``DIFFUSE`` and surrounding
+    texture related code paths with ``#ifdef`` and ``#endif`` preprocessor
+    directives::
 
         #ifdef DIFFUSE
             uniform sampler2D diffuseTexture;
