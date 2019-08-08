@@ -133,7 +133,7 @@ def compileShader(shaderSrc, shaderType):
 
     Parameters
     ----------
-    shaderSrc : str
+    shaderSrc : str or list of str
         GLSL shader source code.
     shaderType : GLenum
         Shader program type (eg. GL_VERTEX_SHADER, GL_FRAGMENT_SHADER,
@@ -166,10 +166,17 @@ def compileShader(shaderSrc, shaderType):
     """
     shaderId = GL.glCreateShader(shaderType)
 
-    shaderSrc = shaderSrc.encode()
-    srcPtr = ctypes.c_char_p(shaderSrc)
+    if isinstance(shaderSrc, (list, tuple,)):
+        nSources = len(shaderSrc)
+        srcPtr = (ctypes.c_char_p * nSources)()
+        srcPtr[:] = [i.encode() for i in shaderSrc]
+    else:
+        nSources = 1
+        srcPtr = ctypes.c_char_p(shaderSrc.encode())
+
     GL.glShaderSource(
-        shaderId, 1,
+        shaderId,
+        nSources,
         ctypes.cast(
             ctypes.byref(srcPtr),
             ctypes.POINTER(ctypes.POINTER(ctypes.c_char))),
@@ -210,10 +217,17 @@ def compileShaderObjectARB(shaderSrc, shaderType):
     """
     shaderId = GL.glCreateShaderObjectARB(shaderType)
 
-    shaderSrc = shaderSrc.encode()
-    srcPtr = ctypes.c_char_p(shaderSrc)
+    if isinstance(shaderSrc, (list, tuple,)):
+        nSources = len(shaderSrc)
+        srcPtr = (ctypes.c_char_p * nSources)()
+        srcPtr[:] = [i.encode() for i in shaderSrc]
+    else:
+        nSources = 1
+        srcPtr = ctypes.c_char_p(shaderSrc.encode())
+
     GL.glShaderSourceARB(
-        shaderId, 1,
+        shaderId,
+        nSources,
         ctypes.cast(
             ctypes.byref(srcPtr),
             ctypes.POINTER(ctypes.POINTER(ctypes.c_char))),

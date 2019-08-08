@@ -19,7 +19,7 @@ def compileProgram(vertexSource=None, fragmentSource=None):
 
     Parameters
     ----------
-    vertexSource, fragmentSource : str
+    vertexSource, fragmentSource : str or list of str
         Vertex and fragment shader GLSL sources.
 
     Returns
