@@ -808,7 +808,7 @@ class Window(object):
         Dispatches events for all pyglet windows. Used by iohub 2.0
         psychopy kb event integration.
         """
-        self.backend.dispatchEvents()
+        Window.backend.dispatchEvents()
 
     def flip(self, clearBuffer=True):
         """Flip the front and back buffers after drawing everything for your
