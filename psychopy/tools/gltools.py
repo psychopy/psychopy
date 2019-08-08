@@ -246,22 +246,28 @@ def compileShaderObjectARB(shaderSrc, shaderType):
     return shaderId
 
 
-def genShaderPreprocDefs(defs):
-    """Generate GLSL preprocessor definitions.
+def insertShaderDefs(src, defs):
+    """Generate and insert preprocessor definitions into GLSL source code.
 
-    This is a convenience function which generates GLSL source code that defines
-    preprocessor values. The resulting string can be passed along with a shader
-    program's source to the compiler. This allows a shader program to be altered
-    at runtime, either to define constants or select render code paths.
+    This is a convenience function which generates and inserts ``#define``
+    statements into existing GLSL source code. This allows the GLSL preprocessor
+    to alter a shader program at compile time, either to define constants or
+    select render code paths.
 
-    Passing ``{'MAX_LIGHTS': 8, 'NORMAL_MAP': False}`` to `genShaderPreprocDefs`
-    as `defs` returns the following GLSL code::
+    Passing ``{'MAX_LIGHTS': 8, 'NORMAL_MAP': False}`` to `insertShaderDefs`
+    as `defs` will insert the following ``#define`` statements into `src`::
 
         #define MAX_LIGHTS 8
         #define NORMAL_MAP 0
 
+    If the shader source contains a ``#version`` directive, generated
+    ``#define`` statements will be inserted into the source code immediately
+    after it. If not, the statements will be simply prepended to `src`.
+
     Parameters
     ----------
+    src : str
+        GLSL shader source code.
     defs : dict
        Values to set as ``#define`` statements. Keys must all be valid GLSL
        preprocessor variable names of type `str`. Values can only be `int`,
@@ -277,12 +283,8 @@ def genShaderPreprocDefs(defs):
     --------
     Defining ``MAX_LIGHTS`` as `8` in a fragment shader program at runtime::
 
-        # the `#version 120` directive is first
-        glslHeader = "#version 120\n" + genShaderPreprocDefs({'MAX_LIGHTS': 8})
-
-        # `MAX_LIGHTS` is specified in fragment shader `fragSrc`
-        fragShader = compileShaderObjectARB(
-            [glslHeader, fragSrc], GL_FRAGMENT_SHADER_ARB)
+        fragSrc = insertShaderDefs(fragSrc, {'MAX_LIGHTS': 8})
+        fragShader = compileShaderObjectARB(fragSrc, GL_FRAGMENT_SHADER_ARB)
 
     Code paths can be selected depending on the requirements of the material
     being used. For instance, a shader program can be built to sample diffuse
@@ -312,6 +314,7 @@ def genShaderPreprocDefs(defs):
             GL_FRAGMENT_SHADER_ARB)
 
     """
+    # generate GLSL `#define` statements
     glslDefSrc = ""
     for varName, varValue in defs.items():
         if not isinstance(varName, str):
@@ -331,7 +334,17 @@ def genShaderPreprocDefs(defs):
 
         glslDefSrc += defStmt
 
-    return glslDefSrc
+    # find where the `#version` directive occurs
+    versionDirIdx = src.find("#version")
+    if versionDirIdx != -1:
+        srcSplitIdx = src.find("\n", versionDirIdx) + 1  # after newline
+        # insert definitions between splits
+        srcOut = src[:srcSplitIdx] + glslDefSrc + src[srcSplitIdx:]
+    else:
+        # no version directive in source, just prepend defines
+        srcOut = glslDefSrc + src
+
+    return srcOut
 
 
 def deleteObject(obj):
@@ -2474,4 +2487,14 @@ defaultMaterial = createMaterial(
 
 
 if __name__ == "__main__":
-    print(genShaderPreprocDefs({'MAX_LIGHTS': 8, 'light(n)': 'gl_LightSource[(n)]'}))
+    src = \
+'''
+#version 330 core
+layout (location = 0) in vec3 vertexPos;
+
+void main()
+{
+    gl_Position = vec4(vertexPos, 1.0);
+}
+'''
+    print(insertShaderDefs(src, {'MAX_LIGHTS': 8}))
