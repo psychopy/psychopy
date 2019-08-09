@@ -1678,10 +1678,7 @@ def posOriToMatrix(pos, ori, out=None, dtype=None):
     transMat = translationMatrix(pos, dtype=dtype)
     rotMat = quatToMatrix(ori, dtype=dtype)
 
-    if out is not None:
-        return np.matmul(rotMat, transMat, out=toReturn)
-
-    return np.matmul(rotMat, transMat)
+    return np.matmul(rotMat, transMat, out=toReturn)
 
 
 def transform(pos, ori, points, out=None, dtype=None):
