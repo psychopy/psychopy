@@ -79,8 +79,8 @@ def createProgramObjectARB():
     functions (eg. `compileShaderObjectARB` instead of `compileShader`) when
     working with these ARB program objects. This was included for legacy support
     of existing PsychoPy shaders. However, it is recommended that you use
-    :func:`createShader` and follow more recent OpenGL design patterns in
-    for new code (if possible of course).
+    :func:`createShader` and follow more recent OpenGL design patterns for new
+    code (if possible of course).
 
     Returns
     -------
@@ -133,7 +133,7 @@ def compileShader(shaderSrc, shaderType):
 
     Parameters
     ----------
-    shaderSrc : str or list of str
+    shaderSrc : str, list of str
         GLSL shader source code.
     shaderType : GLenum
         Shader program type (eg. GL_VERTEX_SHADER, GL_FRAGMENT_SHADER,
@@ -202,7 +202,7 @@ def compileShaderObjectARB(shaderSrc, shaderType):
 
     Parameters
     ----------
-    shaderSrc : str
+    shaderSrc : str, list of str
         GLSL shader source code text.
     shaderType : GLenum
         Shader program type. Must be *_ARB enums such as GL_VERTEX_SHADER_ARB,
@@ -246,72 +246,89 @@ def compileShaderObjectARB(shaderSrc, shaderType):
     return shaderId
 
 
-def insertShaderDefs(src, defs):
-    """Generate and insert preprocessor definitions into GLSL source code.
+def embedShaderSourceDefs(shaderSrc, defs):
+    """Embed preprocessor definitions into GLSL source code.
 
-    This is a convenience function which generates and inserts ``#define``
-    statements into existing GLSL source code. This allows the GLSL preprocessor
-    to alter a shader program at compile time, either to define constants or
-    select render code paths.
+    This function generates and inserts ``#define`` statements into existing
+    GLSL source code, allowing one to use GLSL preprocessor statements to alter
+    program source at compile time.
 
-    Passing ``{'MAX_LIGHTS': 8, 'NORMAL_MAP': False}`` to `insertShaderDefs`
-    as `defs` will insert the following ``#define`` statements into `src`::
+    Passing ``{'MAX_LIGHTS': 8, 'NORMAL_MAP': False}`` to `defs` will create and
+    insert the following ``#define`` statements into `shaderSrc`::
 
         #define MAX_LIGHTS 8
         #define NORMAL_MAP 0
 
-    If the shader source contains a ``#version`` directive, generated
-    ``#define`` statements will be inserted into the source code immediately
-    after it. If not, the statements will be simply prepended to `src`.
+    As per the GLSL specification, the ``#version`` directive must be specified
+    at the top of the file before any other statement (with the exception of
+    comments). If a ``#version`` directive is present, generated ``#define``
+    statements will be inserted starting at the following line. If no
+    ``#version`` directive is found in `shaderSrc`, the statements will be
+    prepended to `shaderSrc`.
+
+    Using preprocessor directives, multiple shader program routines can reside
+    in the same source text if enclosed by ``#ifdef`` and ``#endif`` statements
+    as shown here::
+
+        #ifdef VERTEX
+            // vertex shader code here ...
+        #endif
+
+        #ifdef FRAGMENT
+            // pixel shader code here ...
+        #endif
+
+    Both the vertex and fragment shader can be built from the same GLSL code
+    listing by setting either ``VERTEX`` or ``FRAGMENT`` as `True`::
+
+        vertexShader = gltools.compileShaderObjectARB(
+            gltools.embedShaderSourceDefs(glslSource, {'VERTEX': True}),
+            GL.GL_VERTEX_SHADER_ARB)
+        fragmentShader = gltools.compileShaderObjectARB(
+            gltools.embedShaderSourceDefs(glslSource, {'FRAGMENT': True}),
+            GL.GL_FRAGMENT_SHADER_ARB)
+
+    In addition, ``#ifdef`` blocks can be used to prune render code paths. Here,
+    this GLSL snippet shows a shader having diffuse color sampled from a texture
+    is conditional on ``DIFFUSE_TEXTURE`` being `True`, if not, the material
+    color is used instead::
+
+        #ifdef DIFFUSE_TEXTURE
+            uniform sampler2D diffuseTexture;
+        #endif
+        ...
+        #ifdef DIFFUSE_TEXTURE
+            // sample color from texture
+            vec4 diffuseColor = texture2D(diffuseTexture, gl_TexCoord[0].st);
+        #else
+            // code path for no textures, just output material color
+            vec4 diffuseColor = gl_FrontMaterial.diffuse;
+        #endif
+
+    This avoids needing to provide two separate GLSL program sources to build
+    shaders to handle cases where a diffuse texture is or isn't used.
 
     Parameters
     ----------
-    src : str
+    shaderSrc : str
         GLSL shader source code.
     defs : dict
-       Values to set as ``#define`` statements. Keys must all be valid GLSL
-       preprocessor variable names of type `str`. Values can only be `int`,
-       `float`, `str`, `bytes`, or `bool` types. Boolean values `True` and
-       `False` are converted to integers `1` and `0`, respectively.
+       Names and values to generate ``#define`` statements. Keys must all be
+       valid GLSL preprocessor variable names of type `str`. Values can only be
+       `int`, `float`, `str`, `bytes`, or `bool` types. Boolean values `True`
+       and `False` are converted to integers `1` and `0`, respectively.
 
     Returns
     -------
     str
-        GLSL source code.
+        GLSL source code with ``#define`` statements inserted.
 
     Examples
     --------
     Defining ``MAX_LIGHTS`` as `8` in a fragment shader program at runtime::
 
-        fragSrc = insertShaderDefs(fragSrc, {'MAX_LIGHTS': 8})
+        fragSrc = embedShaderSourceDefs(fragSrc, {'MAX_LIGHTS': 8})
         fragShader = compileShaderObjectARB(fragSrc, GL_FRAGMENT_SHADER_ARB)
-
-    Code paths can be selected depending on the requirements of the material
-    being used. For instance, a shader program can be built to sample diffuse
-    color from texture conditionally by defining ``DIFFUSE`` and surrounding
-    texture related code paths with ``#ifdef`` and ``#endif`` preprocessor
-    directives::
-
-        #ifdef DIFFUSE
-            uniform sampler2D diffuseTexture;
-        #endif
-        ...
-        #ifdef DIFFUSE
-            // sample color from texture
-            vec4 diffuseColor = texture2D(diffuseTexture, gl_TexCoord[0].st);
-        #else
-            // code path for no textures, just output material color
-            vec4 diffuseColor = gl_LightSource[0].diffuse;
-        #endif
-
-    You can then create a fragment shader, defining ``DIFFUSE`` before
-    compilation whose value depends on whether the material has textures or
-    not::
-
-        defs = {'DIFFUSE': hasTexture}  # `hasTexture` is bool
-        fragShader = compileShaderObjectARB(
-            [genShaderPreprocDefs(defs), fragSrc],
-            GL_FRAGMENT_SHADER_ARB)
 
     """
     # generate GLSL `#define` statements
@@ -335,14 +352,13 @@ def insertShaderDefs(src, defs):
         glslDefSrc += defStmt
 
     # find where the `#version` directive occurs
-    versionDirIdx = src.find("#version")
+    versionDirIdx = shaderSrc.find("#version")
     if versionDirIdx != -1:
-        srcSplitIdx = src.find("\n", versionDirIdx) + 1  # after newline
-        # insert definitions between splits
-        srcOut = src[:srcSplitIdx] + glslDefSrc + src[srcSplitIdx:]
+        srcSplitIdx = shaderSrc.find("\n", versionDirIdx) + 1  # after newline
+        srcOut = shaderSrc[:srcSplitIdx] + glslDefSrc + shaderSrc[srcSplitIdx:]
     else:
         # no version directive in source, just prepend defines
-        srcOut = glslDefSrc + src
+        srcOut = glslDefSrc + shaderSrc
 
     return srcOut
 
@@ -472,8 +488,8 @@ def linkProgram(program):
     Parameters
     ----------
     program : int
-        Program handle to link. Must have originated from a :func:`createProgram`
-        or `glCreateProgram` call.
+        Program handle to link. Must have originated from a
+        :func:`createProgram` or `glCreateProgram` call.
 
     Raises
     ------
@@ -661,9 +677,12 @@ def getInfoLog(obj):
     Parameters
     ----------
     obj : int
-        Program or shader to retrieve a log from. Must have originated from a
-        :func:`createProgram`, :func:`createProgramObjectARB`, `glCreateProgram`
-        or `glCreateProgramObjectARB` call.
+        Program or shader to retrieve a log from. If a shader, the handle must
+        have originated from a :func:`compileShader`, `glCreateShader`,
+        :func:`createProgramObjectARB` or `glCreateProgramObjectARB` call. If a
+        program, the handle must have came from a :func:`createProgram`,
+        :func:`createProgramObjectARB`, `glCreateProgram` or
+        `glCreateProgramObjectARB` call.
 
     Returns
     -------
@@ -2484,17 +2503,3 @@ defaultMaterial = createMaterial(
      (GL.GL_SPECULAR, (0.0, 0.0, 0.0, 1.0)),
      (GL.GL_EMISSION, (0.0, 0.0, 0.0, 1.0)),
      (GL.GL_SHININESS, 0)])
-
-
-if __name__ == "__main__":
-    src = \
-'''
-#version 330 core
-layout (location = 0) in vec3 vertexPos;
-
-void main()
-{
-    gl_Position = vec4(vertexPos, 1.0);
-}
-'''
-    print(insertShaderDefs(src, {'MAX_LIGHTS': 8}))
