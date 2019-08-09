@@ -136,8 +136,8 @@ def compileShader(shaderSrc, shaderType):
     shaderSrc : str, list of str
         GLSL shader source code.
     shaderType : GLenum
-        Shader program type (eg. GL_VERTEX_SHADER, GL_FRAGMENT_SHADER,
-        GL_GEOMETRY_SHADER, etc.)
+        Shader program type (eg. `GL_VERTEX_SHADER`, `GL_FRAGMENT_SHADER`,
+        `GL_GEOMETRY_SHADER`, etc.)
 
     Returns
     -------
@@ -205,8 +205,8 @@ def compileShaderObjectARB(shaderSrc, shaderType):
     shaderSrc : str, list of str
         GLSL shader source code text.
     shaderType : GLenum
-        Shader program type. Must be *_ARB enums such as GL_VERTEX_SHADER_ARB,
-        GL_FRAGMENT_SHADER_ARB, GL_GEOMETRY_SHADER_ARB, etc.
+        Shader program type. Must be *_ARB enums such as `GL_VERTEX_SHADER_ARB`,
+        `GL_FRAGMENT_SHADER_ARB`, `GL_GEOMETRY_SHADER_ARB`, etc.
 
     Returns
     -------
@@ -508,7 +508,7 @@ def linkProgram(program):
     result = GL.GLint()
     GL.glGetProgramiv(program, GL.GL_LINK_STATUS, ctypes.byref(result))
 
-    if result.value == GL.GL_FALSE:  # failed to compile for whatever reason
+    if result.value == GL.GL_FALSE:  # failed to link for whatever reason
         sys.stderr.write(getInfoLog(program) + '\n')
         raise RuntimeError(
             'Failed to link shader program. Check log output.')
@@ -545,7 +545,7 @@ def linkProgramObjectARB(program):
         GL.GL_OBJECT_LINK_STATUS_ARB,
         ctypes.byref(result))
 
-    if result.value == GL.GL_FALSE:  # failed to compile for whatever reason
+    if result.value == GL.GL_FALSE:  # failed to link for whatever reason
         sys.stderr.write(getInfoLog(program) + '\n')
         raise RuntimeError(
             'Failed to link shader program. Check log output.')
@@ -608,7 +608,7 @@ def useProgram(program):
     program : int
         Handle of program to use. Must have originated from a
         :func:`createProgram` or `glCreateProgram` call and was successfully
-        linked.
+        linked. Passing `0` or `None` disables shader programs.
 
     Examples
     --------
@@ -621,6 +621,9 @@ def useProgram(program):
         useProgram(0)
 
     """
+    if program is None:
+        program = 0
+
     if GL.glIsProgram(program) or program == 0:
         GL.glUseProgram(program)
     else:
@@ -640,7 +643,7 @@ def useProgramObjectARB(program):
     program : int
         Handle of program object to use. Must have originated from a
         :func:`createProgramObjectARB` or `glCreateProgramObjectARB` call and
-        was successfully linked.
+        was successfully linked. Passing `0` or `None` disables shader programs.
 
     Examples
     --------
@@ -658,6 +661,9 @@ def useProgramObjectARB(program):
     :func:`createProgramObjectARB` or `glCreateProgramObjectARB`.
 
     """
+    if program is None:
+        program = 0
+
     if GL.glIsProgram(program) or program == 0:
         GL.glUseProgramObjectARB(program)
     else:
@@ -695,16 +701,15 @@ def getInfoLog(obj):
     if GL.glIsShader(obj) == GL.GL_TRUE:
         GL.glGetShaderiv(
             obj, GL.GL_INFO_LOG_LENGTH, ctypes.byref(logLength))
-        logBuffer = ctypes.create_string_buffer(logLength.value)
-        GL.glGetShaderInfoLog(obj, logLength, None, logBuffer)
     elif GL.glIsProgram(obj) == GL.GL_TRUE:
         GL.glGetProgramiv(
             obj, GL.GL_INFO_LOG_LENGTH, ctypes.byref(logLength))
-        logBuffer = ctypes.create_string_buffer(logLength.value)
-        GL.glGetProgramInfoLog(obj, logLength, None, logBuffer)
     else:
         raise ValueError(
             "Specified value of `obj` is not a shader or program.")
+
+    logBuffer = ctypes.create_string_buffer(logLength.value)
+    GL.glGetShaderInfoLog(obj, logLength, None, logBuffer)
 
     return logBuffer.value.decode('UTF-8')
 
