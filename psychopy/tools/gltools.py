@@ -337,19 +337,16 @@ def embedShaderSourceDefs(shaderSrc, defs):
         if not isinstance(varName, str):
             raise ValueError("Definition name must be type `str`.")
 
-        if isinstance(varValue, (int, float,)):
-            if isinstance(varValue, bool):
-                varValue = int(varValue)
-            defStmt = '#define {n} {v}\n'.format(n=varName, v=str(varValue))
-        elif isinstance(varValue, str):
-            defStmt = '#define {n} {v}\n'.format(n=varName, v=varValue)
+        if isinstance(varValue, (int, bool, float,)):
+            varValue = str(int(varValue))
         elif isinstance(varValue, bytes):
             varValue = varValue.decode('UTF-8')
-            defStmt = '#define {n} "{v}"\n'.format(n=varName, v=varValue)
+        elif isinstance(varValue, str):
+            pass  # nop
         else:
             raise TypeError("Invalid type for value of `{}`.".format(varName))
 
-        glslDefSrc += defStmt
+        glslDefSrc += '#define {n} "{v}"\n'.format(n=varName, v=varValue)
 
     # find where the `#version` directive occurs
     versionDirIdx = shaderSrc.find("#version")
