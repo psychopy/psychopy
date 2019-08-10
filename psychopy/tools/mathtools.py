@@ -1383,8 +1383,8 @@ def translationMatrix(t, out=None, dtype=None):
         output if `out` was not specified.
     dtype : dtype or str, optional
         Data type for arrays, can either be 'float32' or 'float64'. If `None` is
-        specified, the data type is inferred by `out`. If `out` is not
-        specified, the default is 'float64'.
+        specified, the data type is inferred by `out`. If `out` is not provided,
+        the default is 'float64'.
 
     Returns
     -------
@@ -1442,6 +1442,7 @@ def invertMatrix(m, homogeneous=False, out=None, dtype=None):
         toReturn.fill(0.0)
 
     m = np.asarray(m, dtype=dtype)  # input as array
+    assert m.shape == (4, 4,)
 
     if not homogeneous:
         toReturn[:, :] = np.linalg.inv(m)
@@ -1588,8 +1589,8 @@ def applyMatrix(m, points, out=None, dtype=None):
         output if `out` was not specified.
     dtype : dtype or str, optional
         Data type for arrays, can either be 'float32' or 'float64'. If `None` is
-        specified, the data type is inferred by `out`. If `out` is not
-        specified, the default is 'float64'.
+        specified, the data type is inferred by `out`. If `out` is not provided,
+        the default is 'float64'.
 
     Returns
     -------
@@ -1659,8 +1660,8 @@ def posOriToMatrix(pos, ori, out=None, dtype=None):
         output if `out` was not specified.
     dtype : dtype or str, optional
         Data type for arrays, can either be 'float32' or 'float64'. If `None` is
-        specified, the data type is inferred by `out`. If `out` is not
-        specified, the default is 'float64'.
+        specified, the data type is inferred by `out`. If `out` is not provided,
+        the default is 'float64'.
 
     Returns
     -------
