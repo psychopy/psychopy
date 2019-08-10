@@ -662,7 +662,7 @@ def surfaceNormal(tri, norm=False, out=None, dtype=None):
 
         vertices = [[[-1., 0., 0.], [0., 1., 0.], [1, 0, 0]],  # 2x3x3
                     [[1., 0., 0.], [0., 1., 0.], [-1, 0, 0]]]
-        normals = np.zeros((2, 3, 3))
+        normals = np.zeros((2, 3))  # normals from two triangles triangles
         surfaceNormal(vertices, out=normals)
 
     """
@@ -685,8 +685,8 @@ def surfaceNormal(tri, norm=False, out=None, dtype=None):
 
     # from https://www.khronos.org/opengl/wiki/Calculating_a_Surface_Normal
     nr = np.atleast_2d(toReturn)
-    u = (tris[:, 1, :] - tris[:, 0, :])
-    v = (tris[:, 2, :] - tris[:, 1, :])
+    u = tris[:, 1, :] - tris[:, 0, :]
+    v = tris[:, 2, :] - tris[:, 1, :]
     nr[:, 0] = u[:, 1] * v[:, 2] - u[:, 2] * v[:, 1]
     nr[:, 1] = u[:, 2] * v[:, 0] - u[:, 0] * v[:, 2]
     nr[:, 2] = u[:, 0] * v[:, 1] - u[:, 1] * v[:, 0]
@@ -1181,7 +1181,7 @@ def applyQuat(q, points, out=None, dtype=None):
 #
 
 def quatToMatrix(q, out=None, dtype=None):
-    """Create a rotation matrix from a quaternion.
+    """Create a 4x4 rotation matrix from a quaternion.
 
     Parameters
     ----------
@@ -1541,8 +1541,8 @@ def concatenate(matrices, out=None, dtype=None):
         MV = np.asarray(MV, dtype='float32')
         GL.glLoadTransposeMatrixf(MV)
 
-    Furthermore, you can go from model-space to homogeneous clip-space by
-    concatenating the projection, view, and model matrices::
+    Furthermore, you can convert a point from model-space to homogeneous
+    clip-space by concatenating the projection, view, and model matrices::
 
         # compute projection matrix, functions here are from 'viewtools'
         screenWidth = 0.52
@@ -1552,7 +1552,7 @@ def concatenate(matrices, out=None, dtype=None):
         P = perspectiveProjectionMatrix(*frustum)
 
         # multiply model-space points by MVP to convert them to clip-space
-        MVP = concatenate(M, V, P)
+        MVP = concatenate([M, V, P])
         pointModel = np.array([0., 1., 0., 1.])
         pointClipSpace = np.matmul(MVP, pointModel.T)
 
