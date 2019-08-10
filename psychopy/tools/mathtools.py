@@ -13,7 +13,8 @@ __all__ = ['normalize', 'lerp', 'slerp', 'multQuat', 'quatFromAxisAngle',
            'translationMatrix', 'concatenate', 'applyMatrix', 'invertQuat',
            'quatToAxisAngle', 'posOriToMatrix', 'applyQuat', 'orthogonalize',
            'reflect', 'cross', 'distance', 'dot', 'quatMagnitude', 'length',
-           'project', 'surfaceNormal', 'invertMatrix', 'angleTo']
+           'project', 'surfaceNormal', 'invertMatrix', 'angleTo',
+           'surfaceBitangent', 'surfaceTangent']
 
 import numpy as np
 import functools
@@ -626,7 +627,7 @@ def angleTo(v, point, degrees=True, out=None, dtype=None):
     return np.degrees(angle) if degrees else angle
 
 
-def surfaceNormal(tri, norm=False, out=None, dtype=None):
+def surfaceNormal(tri, norm=True, out=None, dtype=None):
     """Compute the surface normal of a given triangle.
 
     Parameters
@@ -636,7 +637,7 @@ def surfaceNormal(tri, norm=False, out=None, dtype=None):
         length 3 array [vx, xy, vz]. The input array can be 3D (Nx3x3) to
         specify multiple triangles.
     norm : bool, optional
-        Normalize surface normals if ``True``, default is ``False``.
+        Normalize computed surface normals if ``True``, default is ``True``.
     out : ndarray, optional
         Optional output array. Must have one fewer dimensions than `tri`. The
         shape of the last dimension must be 3.
@@ -693,6 +694,182 @@ def surfaceNormal(tri, norm=False, out=None, dtype=None):
 
     if norm:
         normalize(nr, out=nr)
+
+    return toReturn
+
+
+def surfaceBitangent(tri, uv, norm=True, out=None, dtype=None):
+    """Compute the bitangent vector of a given triangle.
+
+    Uses texture coordinates at each triangle vertex to determine the direction
+    of the vector. This function can be used to generate bitangent vertex
+    attributes for normal mapping. After computing bitangents, one may
+    orthogonalize them with vertex normals using the :func:`orthogonalize`
+    function, or within the fragment shader.
+
+    Parameters
+    ----------
+    tri : array_like
+        Triangle vertices as 2D (3x3) array [p0, p1, p2] where each vertex is a
+        length 3 array [vx, xy, vz]. The input array can be 3D (Nx3x3) to
+        specify multiple triangles.
+    uv : array_like
+        Texture coordinates associated with each face vertex as a 2D array (3x2)
+        where each texture coordinate is length 2 array [u, v]. The input array
+        can be 3D (Nx3x2) to specify multiple texture coordinates if multiple
+        triangles are specified.
+    norm : bool, optional
+        Normalize computed bitangents if ``True``, default is ``True``.
+    out : ndarray, optional
+        Optional output array. Must have one fewer dimensions than `tri`. The
+        shape of the last dimension must be 3.
+    dtype : dtype or str, optional
+        Data type for arrays, can either be 'float32' or 'float64'. If `None` is
+        specified, the data type is inferred by `out`. If `out` is not provided,
+        the default is 'float64'.
+
+    Returns
+    -------
+    ndarray
+        Surface bitangent of triangle `tri`.
+
+    Examples
+    --------
+    Computing the bitangents for two triangles from vertex and texture
+    coordinates (UVs)::
+
+        # array of triangle vertices (2x3x3)
+        tri = np.asarray([
+            [(-1.0, 1.0, 0.0), (-1.0, -1.0, 0.0), (1.0, -1.0, 0.0)],   # 1
+            [(-1.0, 1.0, 0.0), (-1.0, -1.0, 0.0), (1.0, -1.0, 0.0)]])  # 2
+
+        # array of triangle texture coordinates (2x3x2)
+        uv = np.asarray([
+            [(0.0, 1.0), (0.0, 0.0), (1.0, 0.0)],   # 1
+            [(0.0, 1.0), (0.0, 0.0), (1.0, 0.0)]])  # 2
+
+        bitangents = surfaceBitangent(tri, uv, norm=True)  # bitangets (2x3)
+
+    """
+    if out is None:
+        dtype = np.float64 if dtype is None else np.dtype(dtype).type
+    else:
+        dtype = np.dtype(out.dtype).type
+
+    tris = np.asarray(tri, dtype=dtype)
+    if tris.ndim == 2:
+        tris = np.expand_dims(tri, axis=0)
+
+    if tris.shape[0] == 1:
+        toReturn = np.zeros((3,), dtype=dtype) if out is None else out
+    else:
+        if out is None:
+            toReturn = np.zeros((tris.shape[0], 3), dtype=dtype)
+        else:
+            toReturn = out
+
+    uvs = np.asarray(uv, dtype=dtype)
+    if uvs.ndim == 2:
+        uvs = np.expand_dims(uvs, axis=0)
+
+    # based off the implementation from
+    # https://learnopengl.com/Advanced-Lighting/Normal-Mapping
+    e1 = tris[:, 1, :] - tris[:, 0, :]
+    e2 = tris[:, 2, :] - tris[:, 0, :]
+    d1 = uvs[:, 1, :] - uvs[:, 0, :]
+    d2 = uvs[:, 2, :] - uvs[:, 0, :]
+
+    # compute the bitangent
+    nr = np.atleast_2d(toReturn)
+    nr[:, 0] = -d2[:, 0] * e1[:, 0] + d1[:, 0] * e2[:, 0]
+    nr[:, 1] = -d2[:, 0] * e1[:, 1] + d1[:, 0] * e2[:, 1]
+    nr[:, 2] = -d2[:, 0] * e1[:, 2] + d1[:, 0] * e2[:, 2]
+
+    f = dtype(1.0) / (d1[:, 0] * d2[:, 1] - d2[:, 0] * d1[:, 1])
+    nr *= f[:, np.newaxis]
+
+    if norm:
+        normalize(toReturn, out=toReturn, dtype=dtype)
+
+    return toReturn
+
+
+def surfaceTangent(tri, uv, norm=True, out=None, dtype=None):
+    """Compute the tangent vector of a given triangle.
+
+    Uses texture coordinates at each triangle vertex to determine the direction
+    of the vector. This function can be used to generate tangent vertex
+    attributes for normal mapping. After computing tangents, one may
+    orthogonalize them with vertex normals using the :func:`orthogonalize`
+    function, or within the fragment shader.
+
+    Parameters
+    ----------
+    tri : array_like
+        Triangle vertices as 2D (3x3) array [p0, p1, p2] where each vertex is a
+        length 3 array [vx, xy, vz]. The input array can be 3D (Nx3x3) to
+        specify multiple triangles.
+    uv : array_like
+        Texture coordinates associated with each face vertex as a 2D array (3x2)
+        where each texture coordinate is length 2 array [u, v]. The input array
+        can be 3D (Nx3x2) to specify multiple texture coordinates if multiple
+        triangles are specified. If so `N` must be the same size as the first
+        dimension of `tri`.
+    norm : bool, optional
+        Normalize computed tangents if ``True``, default is ``True``.
+    out : ndarray, optional
+        Optional output array. Must have one fewer dimensions than `tri`. The
+        shape of the last dimension must be 3.
+    dtype : dtype or str, optional
+        Data type for arrays, can either be 'float32' or 'float64'. If `None` is
+        specified, the data type is inferred by `out`. If `out` is not provided,
+        the default is 'float64'.
+
+    Returns
+    -------
+    ndarray
+        Surface normal of triangle `tri`.
+
+    """
+    if out is None:
+        dtype = np.float64 if dtype is None else np.dtype(dtype).type
+    else:
+        dtype = np.dtype(out.dtype).type
+
+    tris = np.asarray(tri, dtype=dtype)
+    if tris.ndim == 2:
+        tris = np.expand_dims(tri, axis=0)
+
+    if tris.shape[0] == 1:
+        toReturn = np.zeros((3,), dtype=dtype) if out is None else out
+    else:
+        if out is None:
+            toReturn = np.zeros((tris.shape[0], 3), dtype=dtype)
+        else:
+            toReturn = out
+
+    uvs = np.asarray(uv, dtype=dtype)
+    if uvs.ndim == 2:
+        uvs = np.expand_dims(uvs, axis=0)
+
+    # based off the implementation from
+    # https://learnopengl.com/Advanced-Lighting/Normal-Mapping
+    e1 = tris[:, 1, :] - tris[:, 0, :]
+    e2 = tris[:, 2, :] - tris[:, 0, :]
+    d1 = uvs[:, 1, :] - uvs[:, 0, :]
+    d2 = uvs[:, 2, :] - uvs[:, 0, :]
+
+    # compute the bitangent
+    nr = np.atleast_2d(toReturn)
+    nr[:, 0] = d2[:, 1] * e1[:, 0] - d1[:, 1] * e2[:, 0]
+    nr[:, 1] = d2[:, 1] * e1[:, 1] - d1[:, 1] * e2[:, 1]
+    nr[:, 2] = d2[:, 1] * e1[:, 2] - d1[:, 1] * e2[:, 2]
+
+    f = dtype(1.0) / (d1[:, 0] * d2[:, 1] - d2[:, 0] * d1[:, 1])
+    nr *= f[:, np.newaxis]
+
+    if norm:
+        normalize(toReturn, out=toReturn, dtype=dtype)
 
     return toReturn
 
@@ -1769,4 +1946,3 @@ def transform(pos, ori, points, out=None, dtype=None):
     pout[:, 2] += pos[2]
 
     return toReturn
-

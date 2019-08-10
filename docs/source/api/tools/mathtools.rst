@@ -81,6 +81,8 @@ Overview
     distance
     angleTo
     surfaceNormal
+    surfaceBitangent
+    surfaceTangent
     slerp
     quatToAxisAngle
     quatFromAxisAngle
@@ -112,6 +114,8 @@ Details
 .. autofunction:: distance
 .. autofunction:: angleTo
 .. autofunction:: surfaceNormal
+.. autofunction:: surfaceBitangent
+.. autofunction:: surfaceTangent
 .. autofunction:: slerp
 .. autofunction:: quatToAxisAngle
 .. autofunction:: quatFromAxisAngle
