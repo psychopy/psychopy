@@ -2009,13 +2009,3 @@ def transform(pos, ori, points, out=None, dtype=None):
 
     return toReturn
 
-
-if __name__ == "__main__":
-    vertices = [[[1., 0., 0.], [0., 1., 0.], [-1, 0, 0]],  # 2x3x3
-                [[1., 0., 0.], [0., 1., 0.], [-1, 0, 0]]]
-    normals = np.zeros((2, 3))  # normals from two triangles triangles
-    faceNorms = surfaceNormal(vertices, out=normals)
-
-    print(faceNorms)
-
-    print(vertexNormal([[1., 0., 0.], [0., 1., 0.]]))
