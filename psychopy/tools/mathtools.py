@@ -14,7 +14,7 @@ __all__ = ['normalize', 'lerp', 'slerp', 'multQuat', 'quatFromAxisAngle',
            'quatToAxisAngle', 'posOriToMatrix', 'applyQuat', 'orthogonalize',
            'reflect', 'cross', 'distance', 'dot', 'quatMagnitude', 'length',
            'project', 'surfaceNormal', 'invertMatrix', 'angleTo',
-           'surfaceBitangent', 'surfaceTangent']
+           'surfaceBitangent', 'surfaceTangent', 'vertexNormal']
 
 import numpy as np
 import functools
@@ -867,6 +867,68 @@ def surfaceTangent(tri, uv, norm=True, out=None, dtype=None):
 
     f = dtype(1.0) / (d1[:, 0] * d2[:, 1] - d2[:, 0] * d1[:, 1])
     nr *= f[:, np.newaxis]
+
+    if norm:
+        normalize(toReturn, out=toReturn, dtype=dtype)
+
+    return toReturn
+
+
+def vertexNormal(faceNorms, norm=True, out=None, dtype=None):
+    """Compute a vertex normal from shared triangles.
+
+    This function computes a vertex normal by averaging the surface normals of
+    the triangles it belongs to. If model has no vertex normals, first use
+    :func:`surfaceNormal` to compute them, then run :func:`vertexNormal` to
+    compute vertex normal attributes.
+
+    While this function is mainly used to compute vertex normals, it can also
+    be supplied triangle tangents and bitangents.
+
+    Parameters
+    ----------
+    faceNorms : array_like
+        An array (Nx3) of surface normals.
+    norm : bool, optional
+        Normalize computed normals if ``True``, default is ``True``.
+    out : ndarray, optional
+        Optional output array.
+    dtype : dtype or str, optional
+        Data type for arrays, can either be 'float32' or 'float64'. If `None` is
+        specified, the data type is inferred by `out`. If `out` is not provided,
+        the default is 'float64'.
+
+    Returns
+    -------
+    ndarray
+        Vertex normal.
+
+    Examples
+    --------
+    Compute a vertex normal from the face normals of the triangles it belongs
+    to::
+
+        normals = [[1., 0., 0.], [0., 1., 0.]]  # adjacent face normals
+        vertexNorm = vertexNormal(normals)
+
+    """
+    if out is None:
+        dtype = np.float64 if dtype is None else np.dtype(dtype).type
+    else:
+        dtype = np.dtype(out.dtype).type
+
+    triNorms2d = np.atleast_2d(np.asarray(faceNorms, dtype=dtype))
+    nFaces = triNorms2d.shape[0]
+
+    if out is None:
+        toReturn = np.zeros((3,), dtype=dtype)
+    else:
+        toReturn = out
+
+    toReturn[0] = np.sum(triNorms2d[:, 0])
+    toReturn[1] = np.sum(triNorms2d[:, 1])
+    toReturn[2] = np.sum(triNorms2d[:, 2])
+    toReturn /= nFaces
 
     if norm:
         normalize(toReturn, out=toReturn, dtype=dtype)
@@ -1946,3 +2008,14 @@ def transform(pos, ori, points, out=None, dtype=None):
     pout[:, 2] += pos[2]
 
     return toReturn
+
+
+if __name__ == "__main__":
+    vertices = [[[1., 0., 0.], [0., 1., 0.], [-1, 0, 0]],  # 2x3x3
+                [[1., 0., 0.], [0., 1., 0.], [-1, 0, 0]]]
+    normals = np.zeros((2, 3))  # normals from two triangles triangles
+    faceNorms = surfaceNormal(vertices, out=normals)
+
+    print(faceNorms)
+
+    print(vertexNormal([[1., 0., 0.], [0., 1., 0.]]))

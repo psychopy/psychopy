@@ -83,6 +83,7 @@ Overview
     surfaceNormal
     surfaceBitangent
     surfaceTangent
+    vertexNormal
     slerp
     quatToAxisAngle
     quatFromAxisAngle
@@ -116,6 +117,7 @@ Details
 .. autofunction:: surfaceNormal
 .. autofunction:: surfaceBitangent
 .. autofunction:: surfaceTangent
+.. autofunction:: vertexNormal
 .. autofunction:: slerp
 .. autofunction:: quatToAxisAngle
 .. autofunction:: quatFromAxisAngle
