@@ -830,6 +830,35 @@ def surfaceTangent(tri, uv, norm=True, out=None, dtype=None):
     ndarray
         Surface normal of triangle `tri`.
 
+    Examples
+    --------
+    Compute surface normals, tangents, and bitangents for a list of triangles::
+
+        # triangle vertices (2x3x3)
+        vertices = [[[-1., 0., 0.], [0., 1., 0.], [1, 0, 0]],
+                    [[1., 0., 0.], [0., 1., 0.], [-1, 0, 0]]]
+
+        # array of triangle texture coordinates (2x3x2)
+        uv = np.asarray([
+            [(0.0, 1.0), (0.0, 0.0), (1.0, 0.0)],   # 1
+            [(0.0, 1.0), (0.0, 0.0), (1.0, 0.0)]])  # 2
+
+        normals = surfaceNormal(vertices)
+        tangents = surfaceTangent(vertices, uv)
+        bitangents = cross(normals, tangents)  # or use `surfaceBitangent`
+
+    Orthogonalize a surface tangent with a vertex normal vector to get the
+    vertex tangent and bitangent vectors::
+
+        vertexTangent = orthogonalize(faceTangent, vertexNormal)
+        vertexBitangent = cross(vertexTangent, vertexNormal)
+
+    Ensure computed vectors have the same handedness, if not, flip the tangent
+    vector (important for applications like normal mapping)::
+
+        # tangent, bitangent, and normal are 2D
+        tangent[dot(cross(normal, tangent), bitangent) < 0.0, :] *= -1.0
+
     """
     if out is None:
         dtype = np.float64 if dtype is None else np.dtype(dtype).type
@@ -1396,9 +1425,6 @@ def applyQuat(q, points, out=None, dtype=None):
         t *= qin[3]
         pout[:, :3] += t
         pout[:, :3] += u
-        pout += 0.0  # remove negative zeros
-        # remove values very close to zero
-        pout[np.abs(pout) <= np.finfo(dtype).eps] = 0.0
     elif qin.ndim == 2:
         assert qin.shape[1] == 4 and qin.shape[0] == pin.shape[0]
         t = cross(qin[:, :3], pin[:, :3])
@@ -1407,10 +1433,11 @@ def applyQuat(q, points, out=None, dtype=None):
         t *= np.expand_dims(qin[:, 3], axis=1)
         pout[:, :3] += t
         pout[:, :3] += u
-        pout += 0.0
-        pout[np.abs(pout) <= np.finfo(dtype).eps] = 0.0
     else:
         raise ValueError("Input arguments have invalid dimensions.")
+
+    # remove values very close to zero
+    toReturn[np.abs(toReturn) <= np.finfo(dtype).eps] = 0.0
 
     return toReturn
 
