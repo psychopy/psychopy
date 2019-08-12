@@ -749,6 +749,58 @@ def getUniformLocations(program, builtins=False):
     dict
         Uniform names and locations.
 
+    Examples
+    --------
+    Get the location uniform `modelMatrix` in `myShader` and set it matrix using
+    a Numpy array::
+
+        modelMatrix = numpy.identity(4)  # example
+
+        # if using Pygelt's GL functions, you need to convert to a pointer
+        modelMatrix = modelMatrix.ctypes.data_as(ctypes.POINTER(GL.GLfloat))
+
+        uniforms = getUniformLocations(myShader)
+        useProgram(myShader)
+
+        glUniformMatrix4fv(
+            uniforms['modelMatrix'],
+            1,
+            GL_TRUE,  # transpose, since Numpy matrices are row-major in memory
+            modelMatrix)
+
+    You can check if a shader has a uniform before setting it. This allows for
+    the same sub-routine to flexibly handle different shader types, as long as
+    the uniform variables have the same names and types::
+
+        # get the uniform names and locations. In the shader, we have defined
+        # `uniform vec4 specularColor`.
+        uniforms = getUniformLocations(myShader)
+        hasSpecularColor = 'specularColor' in uniforms
+
+        if hasSpecularColor:
+            glUniform4f(uniforms['specularColor'],
+                1.0, 1.0, 1.0, 1.0)
+
+        # Another example to handle cases where a shader may be compiled with or
+        # without texture code paths.
+        #
+        # If the shader has `uniform sampler2D diffuseTexture` defined, we
+        # enable textures and bind it to the appropriate texture unit.
+        if 'diffuseTexture' in uniforms:
+            # enable textures if the shader calls for it
+            glEnable(GL_TEXTURE_2D)
+            glActiveTexture(GL_TEXTURE0)
+            glColor4f(1.0, 1.0, 1.0, 1.0)
+            glColorMask(True, True, True, True)
+            glBindTexture(GL_TEXTURE_2D, texId)
+
+            # diffuse at texture unit `0`
+            glUniform4i(uniforms['diffuseTexture'], 0)
+            # remember to disable textures when done!
+        else:
+            # no diffuse texture, just have the material track the current color
+            glColor4f(1.0, 1.0, 1.0, 1.0)
+
     """
     if not GL.glIsProgram(program):
         raise ValueError(
