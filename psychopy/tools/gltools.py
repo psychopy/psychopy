@@ -23,6 +23,9 @@ import itertools
 # Shader Program Helper Functions
 # -------------------------------
 #
+# These functions simplify the creation and usage of GLSL shader programs. Both
+# legacy *ARB and recent core profile shader programs are supported.
+#
 
 
 def createProgram():
