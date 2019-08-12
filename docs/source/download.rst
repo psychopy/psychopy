@@ -133,9 +133,9 @@ as needed:
 Anaconda and Miniconda
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-With Python 3.5::
+With Python 3.6::
 
-  conda create -n psypy3 python=3.5
+  conda create -n psypy3 python=3.6
   conda activate psypy3
   conda install numpy scipy matplotlib pandas pyopengl pillow lxml openpyxl xlrd configobj pyyaml gevent greenlet msgpack-python psutil pytables requests[security] cffi seaborn wxpython cython pyzmq pyserial
   conda install -c conda-forge pyglet pysoundfile python-bidi moviepy pyosf
