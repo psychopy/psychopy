@@ -16,6 +16,7 @@
     useProgram
     createProgramObjectARB
     compileShaderObjectARB
+    embedShaderSourceDefs
     deleteObjectARB
     attachObjectARB
     detachObjectARB

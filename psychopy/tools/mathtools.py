@@ -13,7 +13,8 @@ __all__ = ['normalize', 'lerp', 'slerp', 'multQuat', 'quatFromAxisAngle',
            'translationMatrix', 'concatenate', 'applyMatrix', 'invertQuat',
            'quatToAxisAngle', 'posOriToMatrix', 'applyQuat', 'orthogonalize',
            'reflect', 'cross', 'distance', 'dot', 'quatMagnitude', 'length',
-           'project', 'surfaceNormal', 'invertMatrix', 'angleTo']
+           'project', 'surfaceNormal', 'invertMatrix', 'angleTo',
+           'surfaceBitangent', 'surfaceTangent', 'vertexNormal']
 
 import numpy as np
 import functools
@@ -626,7 +627,7 @@ def angleTo(v, point, degrees=True, out=None, dtype=None):
     return np.degrees(angle) if degrees else angle
 
 
-def surfaceNormal(tri, norm=False, out=None, dtype=None):
+def surfaceNormal(tri, norm=True, out=None, dtype=None):
     """Compute the surface normal of a given triangle.
 
     Parameters
@@ -636,7 +637,7 @@ def surfaceNormal(tri, norm=False, out=None, dtype=None):
         length 3 array [vx, xy, vz]. The input array can be 3D (Nx3x3) to
         specify multiple triangles.
     norm : bool, optional
-        Normalize surface normals if ``True``, default is ``False``.
+        Normalize computed surface normals if ``True``, default is ``True``.
     out : ndarray, optional
         Optional output array. Must have one fewer dimensions than `tri`. The
         shape of the last dimension must be 3.
@@ -662,7 +663,7 @@ def surfaceNormal(tri, norm=False, out=None, dtype=None):
 
         vertices = [[[-1., 0., 0.], [0., 1., 0.], [1, 0, 0]],  # 2x3x3
                     [[1., 0., 0.], [0., 1., 0.], [-1, 0, 0]]]
-        normals = np.zeros((2, 3, 3))
+        normals = np.zeros((2, 3))  # normals from two triangles triangles
         surfaceNormal(vertices, out=normals)
 
     """
@@ -685,14 +686,281 @@ def surfaceNormal(tri, norm=False, out=None, dtype=None):
 
     # from https://www.khronos.org/opengl/wiki/Calculating_a_Surface_Normal
     nr = np.atleast_2d(toReturn)
-    u = (tris[:, 1, :] - tris[:, 0, :])
-    v = (tris[:, 2, :] - tris[:, 1, :])
+    u = tris[:, 1, :] - tris[:, 0, :]
+    v = tris[:, 2, :] - tris[:, 1, :]
     nr[:, 0] = u[:, 1] * v[:, 2] - u[:, 2] * v[:, 1]
     nr[:, 1] = u[:, 2] * v[:, 0] - u[:, 0] * v[:, 2]
     nr[:, 2] = u[:, 0] * v[:, 1] - u[:, 1] * v[:, 0]
 
     if norm:
         normalize(nr, out=nr)
+
+    return toReturn
+
+
+def surfaceBitangent(tri, uv, norm=True, out=None, dtype=None):
+    """Compute the bitangent vector of a given triangle.
+
+    Uses texture coordinates at each triangle vertex to determine the direction
+    of the vector. This function can be used to generate bitangent vertex
+    attributes for normal mapping. After computing bitangents, one may
+    orthogonalize them with vertex normals using the :func:`orthogonalize`
+    function, or within the fragment shader.
+
+    Parameters
+    ----------
+    tri : array_like
+        Triangle vertices as 2D (3x3) array [p0, p1, p2] where each vertex is a
+        length 3 array [vx, xy, vz]. The input array can be 3D (Nx3x3) to
+        specify multiple triangles.
+    uv : array_like
+        Texture coordinates associated with each face vertex as a 2D array (3x2)
+        where each texture coordinate is length 2 array [u, v]. The input array
+        can be 3D (Nx3x2) to specify multiple texture coordinates if multiple
+        triangles are specified.
+    norm : bool, optional
+        Normalize computed bitangents if ``True``, default is ``True``.
+    out : ndarray, optional
+        Optional output array. Must have one fewer dimensions than `tri`. The
+        shape of the last dimension must be 3.
+    dtype : dtype or str, optional
+        Data type for arrays, can either be 'float32' or 'float64'. If `None` is
+        specified, the data type is inferred by `out`. If `out` is not provided,
+        the default is 'float64'.
+
+    Returns
+    -------
+    ndarray
+        Surface bitangent of triangle `tri`.
+
+    Examples
+    --------
+    Computing the bitangents for two triangles from vertex and texture
+    coordinates (UVs)::
+
+        # array of triangle vertices (2x3x3)
+        tri = np.asarray([
+            [(-1.0, 1.0, 0.0), (-1.0, -1.0, 0.0), (1.0, -1.0, 0.0)],   # 1
+            [(-1.0, 1.0, 0.0), (-1.0, -1.0, 0.0), (1.0, -1.0, 0.0)]])  # 2
+
+        # array of triangle texture coordinates (2x3x2)
+        uv = np.asarray([
+            [(0.0, 1.0), (0.0, 0.0), (1.0, 0.0)],   # 1
+            [(0.0, 1.0), (0.0, 0.0), (1.0, 0.0)]])  # 2
+
+        bitangents = surfaceBitangent(tri, uv, norm=True)  # bitangets (2x3)
+
+    """
+    if out is None:
+        dtype = np.float64 if dtype is None else np.dtype(dtype).type
+    else:
+        dtype = np.dtype(out.dtype).type
+
+    tris = np.asarray(tri, dtype=dtype)
+    if tris.ndim == 2:
+        tris = np.expand_dims(tri, axis=0)
+
+    if tris.shape[0] == 1:
+        toReturn = np.zeros((3,), dtype=dtype) if out is None else out
+    else:
+        if out is None:
+            toReturn = np.zeros((tris.shape[0], 3), dtype=dtype)
+        else:
+            toReturn = out
+
+    uvs = np.asarray(uv, dtype=dtype)
+    if uvs.ndim == 2:
+        uvs = np.expand_dims(uvs, axis=0)
+
+    # based off the implementation from
+    # https://learnopengl.com/Advanced-Lighting/Normal-Mapping
+    e1 = tris[:, 1, :] - tris[:, 0, :]
+    e2 = tris[:, 2, :] - tris[:, 0, :]
+    d1 = uvs[:, 1, :] - uvs[:, 0, :]
+    d2 = uvs[:, 2, :] - uvs[:, 0, :]
+
+    # compute the bitangent
+    nr = np.atleast_2d(toReturn)
+    nr[:, 0] = -d2[:, 0] * e1[:, 0] + d1[:, 0] * e2[:, 0]
+    nr[:, 1] = -d2[:, 0] * e1[:, 1] + d1[:, 0] * e2[:, 1]
+    nr[:, 2] = -d2[:, 0] * e1[:, 2] + d1[:, 0] * e2[:, 2]
+
+    f = dtype(1.0) / (d1[:, 0] * d2[:, 1] - d2[:, 0] * d1[:, 1])
+    nr *= f[:, np.newaxis]
+
+    if norm:
+        normalize(toReturn, out=toReturn, dtype=dtype)
+
+    return toReturn
+
+
+def surfaceTangent(tri, uv, norm=True, out=None, dtype=None):
+    """Compute the tangent vector of a given triangle.
+
+    Uses texture coordinates at each triangle vertex to determine the direction
+    of the vector. This function can be used to generate tangent vertex
+    attributes for normal mapping. After computing tangents, one may
+    orthogonalize them with vertex normals using the :func:`orthogonalize`
+    function, or within the fragment shader.
+
+    Parameters
+    ----------
+    tri : array_like
+        Triangle vertices as 2D (3x3) array [p0, p1, p2] where each vertex is a
+        length 3 array [vx, xy, vz]. The input array can be 3D (Nx3x3) to
+        specify multiple triangles.
+    uv : array_like
+        Texture coordinates associated with each face vertex as a 2D array (3x2)
+        where each texture coordinate is length 2 array [u, v]. The input array
+        can be 3D (Nx3x2) to specify multiple texture coordinates if multiple
+        triangles are specified. If so `N` must be the same size as the first
+        dimension of `tri`.
+    norm : bool, optional
+        Normalize computed tangents if ``True``, default is ``True``.
+    out : ndarray, optional
+        Optional output array. Must have one fewer dimensions than `tri`. The
+        shape of the last dimension must be 3.
+    dtype : dtype or str, optional
+        Data type for arrays, can either be 'float32' or 'float64'. If `None` is
+        specified, the data type is inferred by `out`. If `out` is not provided,
+        the default is 'float64'.
+
+    Returns
+    -------
+    ndarray
+        Surface normal of triangle `tri`.
+
+    Examples
+    --------
+    Compute surface normals, tangents, and bitangents for a list of triangles::
+
+        # triangle vertices (2x3x3)
+        vertices = [[[-1., 0., 0.], [0., 1., 0.], [1, 0, 0]],
+                    [[1., 0., 0.], [0., 1., 0.], [-1, 0, 0]]]
+
+        # array of triangle texture coordinates (2x3x2)
+        uv = np.asarray([
+            [(0.0, 1.0), (0.0, 0.0), (1.0, 0.0)],   # 1
+            [(0.0, 1.0), (0.0, 0.0), (1.0, 0.0)]])  # 2
+
+        normals = surfaceNormal(vertices)
+        tangents = surfaceTangent(vertices, uv)
+        bitangents = cross(normals, tangents)  # or use `surfaceBitangent`
+
+    Orthogonalize a surface tangent with a vertex normal vector to get the
+    vertex tangent and bitangent vectors::
+
+        vertexTangent = orthogonalize(faceTangent, vertexNormal)
+        vertexBitangent = cross(vertexTangent, vertexNormal)
+
+    Ensure computed vectors have the same handedness, if not, flip the tangent
+    vector (important for applications like normal mapping)::
+
+        # tangent, bitangent, and normal are 2D
+        tangent[dot(cross(normal, tangent), bitangent) < 0.0, :] *= -1.0
+
+    """
+    if out is None:
+        dtype = np.float64 if dtype is None else np.dtype(dtype).type
+    else:
+        dtype = np.dtype(out.dtype).type
+
+    tris = np.asarray(tri, dtype=dtype)
+    if tris.ndim == 2:
+        tris = np.expand_dims(tri, axis=0)
+
+    if tris.shape[0] == 1:
+        toReturn = np.zeros((3,), dtype=dtype) if out is None else out
+    else:
+        if out is None:
+            toReturn = np.zeros((tris.shape[0], 3), dtype=dtype)
+        else:
+            toReturn = out
+
+    uvs = np.asarray(uv, dtype=dtype)
+    if uvs.ndim == 2:
+        uvs = np.expand_dims(uvs, axis=0)
+
+    # based off the implementation from
+    # https://learnopengl.com/Advanced-Lighting/Normal-Mapping
+    e1 = tris[:, 1, :] - tris[:, 0, :]
+    e2 = tris[:, 2, :] - tris[:, 0, :]
+    d1 = uvs[:, 1, :] - uvs[:, 0, :]
+    d2 = uvs[:, 2, :] - uvs[:, 0, :]
+
+    # compute the bitangent
+    nr = np.atleast_2d(toReturn)
+    nr[:, 0] = d2[:, 1] * e1[:, 0] - d1[:, 1] * e2[:, 0]
+    nr[:, 1] = d2[:, 1] * e1[:, 1] - d1[:, 1] * e2[:, 1]
+    nr[:, 2] = d2[:, 1] * e1[:, 2] - d1[:, 1] * e2[:, 2]
+
+    f = dtype(1.0) / (d1[:, 0] * d2[:, 1] - d2[:, 0] * d1[:, 1])
+    nr *= f[:, np.newaxis]
+
+    if norm:
+        normalize(toReturn, out=toReturn, dtype=dtype)
+
+    return toReturn
+
+
+def vertexNormal(faceNorms, norm=True, out=None, dtype=None):
+    """Compute a vertex normal from shared triangles.
+
+    This function computes a vertex normal by averaging the surface normals of
+    the triangles it belongs to. If model has no vertex normals, first use
+    :func:`surfaceNormal` to compute them, then run :func:`vertexNormal` to
+    compute vertex normal attributes.
+
+    While this function is mainly used to compute vertex normals, it can also
+    be supplied triangle tangents and bitangents.
+
+    Parameters
+    ----------
+    faceNorms : array_like
+        An array (Nx3) of surface normals.
+    norm : bool, optional
+        Normalize computed normals if ``True``, default is ``True``.
+    out : ndarray, optional
+        Optional output array.
+    dtype : dtype or str, optional
+        Data type for arrays, can either be 'float32' or 'float64'. If `None` is
+        specified, the data type is inferred by `out`. If `out` is not provided,
+        the default is 'float64'.
+
+    Returns
+    -------
+    ndarray
+        Vertex normal.
+
+    Examples
+    --------
+    Compute a vertex normal from the face normals of the triangles it belongs
+    to::
+
+        normals = [[1., 0., 0.], [0., 1., 0.]]  # adjacent face normals
+        vertexNorm = vertexNormal(normals)
+
+    """
+    if out is None:
+        dtype = np.float64 if dtype is None else np.dtype(dtype).type
+    else:
+        dtype = np.dtype(out.dtype).type
+
+    triNorms2d = np.atleast_2d(np.asarray(faceNorms, dtype=dtype))
+    nFaces = triNorms2d.shape[0]
+
+    if out is None:
+        toReturn = np.zeros((3,), dtype=dtype)
+    else:
+        toReturn = out
+
+    toReturn[0] = np.sum(triNorms2d[:, 0])
+    toReturn[1] = np.sum(triNorms2d[:, 1])
+    toReturn[2] = np.sum(triNorms2d[:, 2])
+    toReturn /= nFaces
+
+    if norm:
+        normalize(toReturn, out=toReturn, dtype=dtype)
 
     return toReturn
 
@@ -1157,9 +1425,6 @@ def applyQuat(q, points, out=None, dtype=None):
         t *= qin[3]
         pout[:, :3] += t
         pout[:, :3] += u
-        pout += 0.0  # remove negative zeros
-        # remove values very close to zero
-        pout[np.abs(pout) <= np.finfo(dtype).eps] = 0.0
     elif qin.ndim == 2:
         assert qin.shape[1] == 4 and qin.shape[0] == pin.shape[0]
         t = cross(qin[:, :3], pin[:, :3])
@@ -1168,10 +1433,11 @@ def applyQuat(q, points, out=None, dtype=None):
         t *= np.expand_dims(qin[:, 3], axis=1)
         pout[:, :3] += t
         pout[:, :3] += u
-        pout += 0.0
-        pout[np.abs(pout) <= np.finfo(dtype).eps] = 0.0
     else:
         raise ValueError("Input arguments have invalid dimensions.")
+
+    # remove values very close to zero
+    toReturn[np.abs(toReturn) <= np.finfo(dtype).eps] = 0.0
 
     return toReturn
 
@@ -1181,7 +1447,7 @@ def applyQuat(q, points, out=None, dtype=None):
 #
 
 def quatToMatrix(q, out=None, dtype=None):
-    """Create a rotation matrix from a quaternion.
+    """Create a 4x4 rotation matrix from a quaternion.
 
     Parameters
     ----------
@@ -1383,8 +1649,8 @@ def translationMatrix(t, out=None, dtype=None):
         output if `out` was not specified.
     dtype : dtype or str, optional
         Data type for arrays, can either be 'float32' or 'float64'. If `None` is
-        specified, the data type is inferred by `out`. If `out` is not
-        specified, the default is 'float64'.
+        specified, the data type is inferred by `out`. If `out` is not provided,
+        the default is 'float64'.
 
     Returns
     -------
@@ -1442,6 +1708,7 @@ def invertMatrix(m, homogeneous=False, out=None, dtype=None):
         toReturn.fill(0.0)
 
     m = np.asarray(m, dtype=dtype)  # input as array
+    assert m.shape == (4, 4,)
 
     if not homogeneous:
         toReturn[:, :] = np.linalg.inv(m)
@@ -1540,8 +1807,8 @@ def concatenate(matrices, out=None, dtype=None):
         MV = np.asarray(MV, dtype='float32')
         GL.glLoadTransposeMatrixf(MV)
 
-    Furthermore, you can go from model-space to homogeneous clip-space by
-    concatenating the projection, view, and model matrices::
+    Furthermore, you can convert a point from model-space to homogeneous
+    clip-space by concatenating the projection, view, and model matrices::
 
         # compute projection matrix, functions here are from 'viewtools'
         screenWidth = 0.52
@@ -1551,7 +1818,7 @@ def concatenate(matrices, out=None, dtype=None):
         P = perspectiveProjectionMatrix(*frustum)
 
         # multiply model-space points by MVP to convert them to clip-space
-        MVP = concatenate(M, V, P)
+        MVP = concatenate([M, V, P])
         pointModel = np.array([0., 1., 0., 1.])
         pointClipSpace = np.matmul(MVP, pointModel.T)
 
@@ -1588,8 +1855,8 @@ def applyMatrix(m, points, out=None, dtype=None):
         output if `out` was not specified.
     dtype : dtype or str, optional
         Data type for arrays, can either be 'float32' or 'float64'. If `None` is
-        specified, the data type is inferred by `out`. If `out` is not
-        specified, the default is 'float64'.
+        specified, the data type is inferred by `out`. If `out` is not provided,
+        the default is 'float64'.
 
     Returns
     -------
@@ -1659,8 +1926,8 @@ def posOriToMatrix(pos, ori, out=None, dtype=None):
         output if `out` was not specified.
     dtype : dtype or str, optional
         Data type for arrays, can either be 'float32' or 'float64'. If `None` is
-        specified, the data type is inferred by `out`. If `out` is not
-        specified, the default is 'float64'.
+        specified, the data type is inferred by `out`. If `out` is not provided,
+        the default is 'float64'.
 
     Returns
     -------
@@ -1678,10 +1945,7 @@ def posOriToMatrix(pos, ori, out=None, dtype=None):
     transMat = translationMatrix(pos, dtype=dtype)
     rotMat = quatToMatrix(ori, dtype=dtype)
 
-    if out is not None:
-        return np.matmul(rotMat, transMat, out=toReturn)
-
-    return np.matmul(rotMat, transMat)
+    return np.matmul(rotMat, transMat, out=toReturn)
 
 
 def transform(pos, ori, points, out=None, dtype=None):

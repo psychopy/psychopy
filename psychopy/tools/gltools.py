@@ -79,8 +79,8 @@ def createProgramObjectARB():
     functions (eg. `compileShaderObjectARB` instead of `compileShader`) when
     working with these ARB program objects. This was included for legacy support
     of existing PsychoPy shaders. However, it is recommended that you use
-    :func:`createShader` and follow more recent OpenGL design patterns in
-    for new code (if possible of course).
+    :func:`createShader` and follow more recent OpenGL design patterns for new
+    code (if possible of course).
 
     Returns
     -------
@@ -133,11 +133,11 @@ def compileShader(shaderSrc, shaderType):
 
     Parameters
     ----------
-    shaderSrc : str
+    shaderSrc : str, list of str
         GLSL shader source code.
     shaderType : GLenum
-        Shader program type (eg. GL_VERTEX_SHADER, GL_FRAGMENT_SHADER,
-        GL_GEOMETRY_SHADER, etc.)
+        Shader program type (eg. `GL_VERTEX_SHADER`, `GL_FRAGMENT_SHADER`,
+        `GL_GEOMETRY_SHADER`, etc.)
 
     Returns
     -------
@@ -166,10 +166,17 @@ def compileShader(shaderSrc, shaderType):
     """
     shaderId = GL.glCreateShader(shaderType)
 
-    shaderSrc = shaderSrc.encode()
-    srcPtr = ctypes.c_char_p(shaderSrc)
+    if isinstance(shaderSrc, (list, tuple,)):
+        nSources = len(shaderSrc)
+        srcPtr = (ctypes.c_char_p * nSources)()
+        srcPtr[:] = [i.encode() for i in shaderSrc]
+    else:
+        nSources = 1
+        srcPtr = ctypes.c_char_p(shaderSrc.encode())
+
     GL.glShaderSource(
-        shaderId, 1,
+        shaderId,
+        nSources,
         ctypes.cast(
             ctypes.byref(srcPtr),
             ctypes.POINTER(ctypes.POINTER(ctypes.c_char))),
@@ -195,11 +202,11 @@ def compileShaderObjectARB(shaderSrc, shaderType):
 
     Parameters
     ----------
-    shaderSrc : str
+    shaderSrc : str, list of str
         GLSL shader source code text.
     shaderType : GLenum
-        Shader program type. Must be *_ARB enums such as GL_VERTEX_SHADER_ARB,
-        GL_FRAGMENT_SHADER_ARB, GL_GEOMETRY_SHADER_ARB, etc.
+        Shader program type. Must be *_ARB enums such as `GL_VERTEX_SHADER_ARB`,
+        `GL_FRAGMENT_SHADER_ARB`, `GL_GEOMETRY_SHADER_ARB`, etc.
 
     Returns
     -------
@@ -210,10 +217,17 @@ def compileShaderObjectARB(shaderSrc, shaderType):
     """
     shaderId = GL.glCreateShaderObjectARB(shaderType)
 
-    shaderSrc = shaderSrc.encode()
-    srcPtr = ctypes.c_char_p(shaderSrc)
+    if isinstance(shaderSrc, (list, tuple,)):
+        nSources = len(shaderSrc)
+        srcPtr = (ctypes.c_char_p * nSources)()
+        srcPtr[:] = [i.encode() for i in shaderSrc]
+    else:
+        nSources = 1
+        srcPtr = ctypes.c_char_p(shaderSrc.encode())
+
     GL.glShaderSourceARB(
-        shaderId, 1,
+        shaderId,
+        nSources,
         ctypes.cast(
             ctypes.byref(srcPtr),
             ctypes.POINTER(ctypes.POINTER(ctypes.c_char))),
@@ -230,6 +244,120 @@ def compileShaderObjectARB(shaderSrc, shaderType):
         raise RuntimeError("Shader compilation failed, check log output.")
 
     return shaderId
+
+
+def embedShaderSourceDefs(shaderSrc, defs):
+    """Embed preprocessor definitions into GLSL source code.
+
+    This function generates and inserts ``#define`` statements into existing
+    GLSL source code, allowing one to use GLSL preprocessor statements to alter
+    program source at compile time.
+
+    Passing ``{'MAX_LIGHTS': 8, 'NORMAL_MAP': False}`` to `defs` will create and
+    insert the following ``#define`` statements into `shaderSrc`::
+
+        #define MAX_LIGHTS 8
+        #define NORMAL_MAP 0
+
+    As per the GLSL specification, the ``#version`` directive must be specified
+    at the top of the file before any other statement (with the exception of
+    comments). If a ``#version`` directive is present, generated ``#define``
+    statements will be inserted starting at the following line. If no
+    ``#version`` directive is found in `shaderSrc`, the statements will be
+    prepended to `shaderSrc`.
+
+    Using preprocessor directives, multiple shader program routines can reside
+    in the same source text if enclosed by ``#ifdef`` and ``#endif`` statements
+    as shown here::
+
+        #ifdef VERTEX
+            // vertex shader code here ...
+        #endif
+
+        #ifdef FRAGMENT
+            // pixel shader code here ...
+        #endif
+
+    Both the vertex and fragment shader can be built from the same GLSL code
+    listing by setting either ``VERTEX`` or ``FRAGMENT`` as `True`::
+
+        vertexShader = gltools.compileShaderObjectARB(
+            gltools.embedShaderSourceDefs(glslSource, {'VERTEX': True}),
+            GL.GL_VERTEX_SHADER_ARB)
+        fragmentShader = gltools.compileShaderObjectARB(
+            gltools.embedShaderSourceDefs(glslSource, {'FRAGMENT': True}),
+            GL.GL_FRAGMENT_SHADER_ARB)
+
+    In addition, ``#ifdef`` blocks can be used to prune render code paths. Here,
+    this GLSL snippet shows a shader having diffuse color sampled from a texture
+    is conditional on ``DIFFUSE_TEXTURE`` being `True`, if not, the material
+    color is used instead::
+
+        #ifdef DIFFUSE_TEXTURE
+            uniform sampler2D diffuseTexture;
+        #endif
+        ...
+        #ifdef DIFFUSE_TEXTURE
+            // sample color from texture
+            vec4 diffuseColor = texture2D(diffuseTexture, gl_TexCoord[0].st);
+        #else
+            // code path for no textures, just output material color
+            vec4 diffuseColor = gl_FrontMaterial.diffuse;
+        #endif
+
+    This avoids needing to provide two separate GLSL program sources to build
+    shaders to handle cases where a diffuse texture is or isn't used.
+
+    Parameters
+    ----------
+    shaderSrc : str
+        GLSL shader source code.
+    defs : dict
+       Names and values to generate ``#define`` statements. Keys must all be
+       valid GLSL preprocessor variable names of type `str`. Values can only be
+       `int`, `float`, `str`, `bytes`, or `bool` types. Boolean values `True`
+       and `False` are converted to integers `1` and `0`, respectively.
+
+    Returns
+    -------
+    str
+        GLSL source code with ``#define`` statements inserted.
+
+    Examples
+    --------
+    Defining ``MAX_LIGHTS`` as `8` in a fragment shader program at runtime::
+
+        fragSrc = embedShaderSourceDefs(fragSrc, {'MAX_LIGHTS': 8})
+        fragShader = compileShaderObjectARB(fragSrc, GL_FRAGMENT_SHADER_ARB)
+
+    """
+    # generate GLSL `#define` statements
+    glslDefSrc = ""
+    for varName, varValue in defs.items():
+        if not isinstance(varName, str):
+            raise ValueError("Definition name must be type `str`.")
+
+        if isinstance(varValue, (int, bool, float,)):
+            varValue = str(int(varValue))
+        elif isinstance(varValue, bytes):
+            varValue = varValue.decode('UTF-8')
+        elif isinstance(varValue, str):
+            pass  # nop
+        else:
+            raise TypeError("Invalid type for value of `{}`.".format(varName))
+
+        glslDefSrc += '#define {n} "{v}"\n'.format(n=varName, v=varValue)
+
+    # find where the `#version` directive occurs
+    versionDirIdx = shaderSrc.find("#version")
+    if versionDirIdx != -1:
+        srcSplitIdx = shaderSrc.find("\n", versionDirIdx) + 1  # after newline
+        srcOut = shaderSrc[:srcSplitIdx] + glslDefSrc + shaderSrc[srcSplitIdx:]
+    else:
+        # no version directive in source, just prepend defines
+        srcOut = glslDefSrc + shaderSrc
+
+    return srcOut
 
 
 def deleteObject(obj):
@@ -357,8 +485,8 @@ def linkProgram(program):
     Parameters
     ----------
     program : int
-        Program handle to link. Must have originated from a :func:`createProgram`
-        or `glCreateProgram` call.
+        Program handle to link. Must have originated from a
+        :func:`createProgram` or `glCreateProgram` call.
 
     Raises
     ------
@@ -377,7 +505,7 @@ def linkProgram(program):
     result = GL.GLint()
     GL.glGetProgramiv(program, GL.GL_LINK_STATUS, ctypes.byref(result))
 
-    if result.value == GL.GL_FALSE:  # failed to compile for whatever reason
+    if result.value == GL.GL_FALSE:  # failed to link for whatever reason
         sys.stderr.write(getInfoLog(program) + '\n')
         raise RuntimeError(
             'Failed to link shader program. Check log output.')
@@ -414,7 +542,7 @@ def linkProgramObjectARB(program):
         GL.GL_OBJECT_LINK_STATUS_ARB,
         ctypes.byref(result))
 
-    if result.value == GL.GL_FALSE:  # failed to compile for whatever reason
+    if result.value == GL.GL_FALSE:  # failed to link for whatever reason
         sys.stderr.write(getInfoLog(program) + '\n')
         raise RuntimeError(
             'Failed to link shader program. Check log output.')
@@ -477,7 +605,7 @@ def useProgram(program):
     program : int
         Handle of program to use. Must have originated from a
         :func:`createProgram` or `glCreateProgram` call and was successfully
-        linked.
+        linked. Passing `0` or `None` disables shader programs.
 
     Examples
     --------
@@ -490,6 +618,9 @@ def useProgram(program):
         useProgram(0)
 
     """
+    if program is None:
+        program = 0
+
     if GL.glIsProgram(program) or program == 0:
         GL.glUseProgram(program)
     else:
@@ -509,7 +640,7 @@ def useProgramObjectARB(program):
     program : int
         Handle of program object to use. Must have originated from a
         :func:`createProgramObjectARB` or `glCreateProgramObjectARB` call and
-        was successfully linked.
+        was successfully linked. Passing `0` or `None` disables shader programs.
 
     Examples
     --------
@@ -527,6 +658,9 @@ def useProgramObjectARB(program):
     :func:`createProgramObjectARB` or `glCreateProgramObjectARB`.
 
     """
+    if program is None:
+        program = 0
+
     if GL.glIsProgram(program) or program == 0:
         GL.glUseProgramObjectARB(program)
     else:
@@ -546,9 +680,12 @@ def getInfoLog(obj):
     Parameters
     ----------
     obj : int
-        Program or shader to retrieve a log from. Must have originated from a
-        :func:`createProgram`, :func:`createProgramObjectARB`, `glCreateProgram`
-        or `glCreateProgramObjectARB` call.
+        Program or shader to retrieve a log from. If a shader, the handle must
+        have originated from a :func:`compileShader`, `glCreateShader`,
+        :func:`createProgramObjectARB` or `glCreateProgramObjectARB` call. If a
+        program, the handle must have came from a :func:`createProgram`,
+        :func:`createProgramObjectARB`, `glCreateProgram` or
+        `glCreateProgramObjectARB` call.
 
     Returns
     -------
@@ -561,16 +698,15 @@ def getInfoLog(obj):
     if GL.glIsShader(obj) == GL.GL_TRUE:
         GL.glGetShaderiv(
             obj, GL.GL_INFO_LOG_LENGTH, ctypes.byref(logLength))
-        logBuffer = ctypes.create_string_buffer(logLength.value)
-        GL.glGetShaderInfoLog(obj, logLength, None, logBuffer)
     elif GL.glIsProgram(obj) == GL.GL_TRUE:
         GL.glGetProgramiv(
             obj, GL.GL_INFO_LOG_LENGTH, ctypes.byref(logLength))
-        logBuffer = ctypes.create_string_buffer(logLength.value)
-        GL.glGetProgramInfoLog(obj, logLength, None, logBuffer)
     else:
         raise ValueError(
             "Specified value of `obj` is not a shader or program.")
+
+    logBuffer = ctypes.create_string_buffer(logLength.value)
+    GL.glGetShaderInfoLog(obj, logLength, None, logBuffer)
 
     return logBuffer.value.decode('UTF-8')
 
