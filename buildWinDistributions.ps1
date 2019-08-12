@@ -1,3 +1,5 @@
+#! powershell
+
 # build simple distributions
 # python setup.py bdist_egg
 # python setup.py sdist --formats=zip
