@@ -17,6 +17,7 @@ from contextlib import contextmanager
 from PIL import Image
 import numpy as np
 import os, sys
+import itertools
 
 # -------------------------------
 # Shader Program Helper Functions
@@ -128,7 +129,7 @@ def createProgramObjectARB():
 
 def compileShader(shaderSrc, shaderType):
     """Compile shader GLSL code and return a shader object. Shader objects can
-    then be attached to programs an made executable on their respective
+    then be attached to programs and made executable on their respective
     processors.
 
     Parameters
@@ -197,7 +198,7 @@ def compileShader(shaderSrc, shaderType):
 
 def compileShaderObjectARB(shaderSrc, shaderType):
     """Compile shader GLSL code and return a shader object. Shader objects can
-    then be attached to programs an made executable on their respective
+    then be attached to programs and made executable on their respective
     processors.
 
     Parameters
@@ -331,14 +332,28 @@ def embedShaderSourceDefs(shaderSrc, defs):
         fragShader = compileShaderObjectARB(fragSrc, GL_FRAGMENT_SHADER_ARB)
 
     """
+    # get the indentation level of the `#version` directive if applicable
+    indent = ''
+    for line in shaderSrc.splitlines(keepends=False):
+        if '#version' in line:
+            indent, _ = line.split('#')
+    else:
+        # no version directive, use indent level of first line
+        for line in shaderSrc.splitlines(keepends=False):
+            if line:
+                indent = ''.join(itertools.takewhile(str.isspace, line))
+                break
+
     # generate GLSL `#define` statements
     glslDefSrc = ""
     for varName, varValue in defs.items():
         if not isinstance(varName, str):
             raise ValueError("Definition name must be type `str`.")
 
-        if isinstance(varValue, (int, bool, float,)):
+        if isinstance(varValue, (int, bool,)):
             varValue = str(int(varValue))
+        elif isinstance(varValue, float):
+            varValue = str(varValue)
         elif isinstance(varValue, bytes):
             varValue = varValue.decode('UTF-8')
         elif isinstance(varValue, str):
@@ -346,7 +361,7 @@ def embedShaderSourceDefs(shaderSrc, defs):
         else:
             raise TypeError("Invalid type for value of `{}`.".format(varName))
 
-        glslDefSrc += '#define {n} "{v}"\n'.format(n=varName, v=varValue)
+        glslDefSrc += indent + '#define {n} {v}\n'.format(n=varName, v=varValue)
 
     # find where the `#version` directive occurs
     versionDirIdx = shaderSrc.find("#version")
