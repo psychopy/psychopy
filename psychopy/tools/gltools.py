@@ -76,7 +76,7 @@ def createProgramObjectARB():
 
     This creates an *Architecture Review Board* (ARB) program variant which is
     compatible with older GLSL versions and OpenGL coding practices (eg.
-    immediate mode) on some platforms. Use *ARB variants of shader helper
+    fixed function) on some platforms. Use *ARB variants of shader helper
     functions (eg. `compileShaderObjectARB` instead of `compileShader`) when
     working with these ARB program objects. This was included for legacy support
     of existing PsychoPy shaders. However, it is recommended that you use
