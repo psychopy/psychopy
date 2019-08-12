@@ -798,6 +798,10 @@ def getUniformLocations(program, builtins=False):
 def getAttribLocations(program, builtins=False):
     """Get attribute names and locations from the specified program object.
 
+    This allows you to set vertex attribute pointers by name instead of by
+    index, allowing indices to vary between shaders. Furthermore, it allows for
+    checking if a shader has a particular attribute.
+
     This function works with both standard and ARB program object variants.
 
     Parameters
@@ -813,6 +817,67 @@ def getAttribLocations(program, builtins=False):
     -------
     dict
         Attribute names and locations.
+
+    Examples
+    --------
+    Get the attribute locations in the shader and use them to specify vertex
+    attribute pointers within a vertex array (VAO) context::
+
+        # Get vertex attribute locations in our shader (`myShader`). Within the
+        # shader we have attributes defined as:
+        #
+        #   layout(location = 0) in vec3 pos;
+        #   layout(location = 1) in vec2 textureCoords;
+        #   layout(location = 2) in vec3 normals;
+        #
+        # Calling `getAttribLocations` will return a dictionary like this:
+        #
+        #   {'pos': 0, 'textureCoords': 1, 'normals': 2}
+        #
+        attribLocations = getAttribLocations(myShader)
+
+        # create a VAO
+        vaoId = GLuint()
+        glGenVertexArrays(1, byref(vaoId))
+        glBindVertexArray(vaoId)
+
+        # bind the buffer storing vertex attribute, here they are interleaved
+        glBindBuffer(GL.GL_ARRAY_BUFFER, vboId)
+
+        # use the attribute index for `pos` to bind the vertex position buffer
+        attrib = attribLocations['pos']
+        glVertexAttribPointer(attrib, 3, GL_FLOAT, GL_FALSE, posStride, 0)
+        glEnableVertexAttribArray(attrib)
+
+        attrib = attribLocations['textureCoords']
+        glVertexAttribPointer(
+            attrib, 2, GL_FLOAT, GL_FALSE, texCoordStride, texCoordOffset)
+        glEnableVertexAttribArray(attrib)
+
+        attrib = attribLocations['normals']
+        glVertexAttribPointer(
+            attrib, 3, GL_FLOAT, GL_FALSE, normStride, normOffset)
+        glEnableVertexAttribArray(attrib)
+
+        glBindVertexArray(0)  # unbind
+
+    If attribute names are consistent between shaders, you should be able to
+    reuse the same code above, even if the vertex attribute layout locations
+    differ between shaders. In some cases the shader may not accept one or more
+    available attributes (eg. texture coordinates) that are available. Instead
+    of writing multiple sub-routines for building VAOs to handle these
+    permutations, simply check for attribute membership in the data returned
+    by `getAttribLocations`::
+
+        attribLocations = getAttribLocations(myShader)
+        hasTexCoords = 'textureCoords' in attribLocations.keys()
+
+        # when binding attribute pointers
+        if hasTexCoords:
+            attrib = attribLocations['textureCoords']
+            glVertexAttribPointer(
+                attrib, 2, GL_FLOAT, GL_FALSE, texCoordStride, texCoordOffset)
+            glEnableVertexAttribArray(attrib)
 
     """
     if not GL.glIsProgram(program):
