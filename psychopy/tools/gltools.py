@@ -775,7 +775,7 @@ def getUniformLocations(program, builtins=False):
         # get the uniform names and locations. In the shader, we have defined
         # `uniform vec4 specularColor`.
         uniforms = getUniformLocations(myShader)
-        hasSpecularColor = 'specularColor' in uniforms
+        hasSpecularColor = 'specularColor' in uniforms.keys()
 
         if hasSpecularColor:
             glUniform4f(uniforms['specularColor'],
@@ -786,7 +786,7 @@ def getUniformLocations(program, builtins=False):
         #
         # If the shader has `uniform sampler2D diffuseTexture` defined, we
         # enable textures and bind it to the appropriate texture unit.
-        if 'diffuseTexture' in uniforms:
+        if 'diffuseTexture' in uniforms.keys():
             # enable textures if the shader calls for it
             glEnable(GL_TEXTURE_2D)
             glActiveTexture(GL_TEXTURE0)
