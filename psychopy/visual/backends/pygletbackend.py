@@ -105,7 +105,11 @@ class PygletBackend(BaseBackend):
                            stereo=win.stereo,
                            vsync=vsync)
 
-        allScrs = _default_display_.get_screens()
+        if pyglet.version < '1.4':
+            allScrs = _default_display_.get_screens()
+        else:
+            allScrs = pyglet.canvas.Display().get_screens()
+
         # Screen (from Exp Settings) is 1-indexed,
         # so the second screen is Screen 1
         if len(allScrs) < int(win.screen) + 1:
