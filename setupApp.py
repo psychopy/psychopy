@@ -101,6 +101,7 @@ packages = ['wx', 'psychopy',
             'astunparse', 'esprima',  # for translating/adapting py/JS
             'pylsl', 'pygaze', 'smite',
             'cv2',
+            'badapted', 'darc_toolbox',  # adaptive methods from Ben Vincent
             ]
 
 if sys.version_info.major >= 3:
