@@ -11,7 +11,7 @@ exactly what you want to run.
 
 import logging
 import numpy as np
-import darc
+import darc_toolbox
 
 
 # define what is available
@@ -128,7 +128,7 @@ def act_on_choices(desired_experiment_type, desired_model, expInfo):
     # create desired experiment object ========================================
 
     if desired_experiment_type == 'delayed (Bayesian Adaptive Design)':
-        from darc.designs import BayesianAdaptiveDesignGeneratorDARC, DesignSpaceBuilder
+        from darc_toolbox.designs import BayesianAdaptiveDesignGeneratorDARC, DesignSpaceBuilder
         # regular, or magnitude effect
         if (desired_model is 'HyperbolicMagnitudeEffect') or (desired_model is 'ExponentialMagnitudeEffect'):
             D = DesignSpaceBuilder.delay_magnitude_effect().build()
@@ -140,56 +140,56 @@ def act_on_choices(desired_experiment_type, desired_model, expInfo):
                 max_trials=expInfo['trials'])
 
         # import the appropriate set of models
-        from darc.delayed import models
+        from darc_toolbox.delayed import models
 
 
     elif desired_experiment_type == 'delayed (Kirby 2009)':
-        from darc.delayed.designs import Kirby2009
+        from darc_toolbox.delayed.designs import Kirby2009
         design_thing = Kirby2009()
-        from darc.delayed import models
+        from darc_toolbox.delayed import models
 
     elif desired_experiment_type == 'delayed (Griskevicius et al, 2011)':
-        from darc.delayed.designs import Griskevicius2011
+        from darc_toolbox.delayed.designs import Griskevicius2011
         design_thing = Griskevicius2011()
-        from darc.delayed import models
+        from darc_toolbox.delayed import models
 
     elif desired_experiment_type == 'delayed (Frye et al, 2016)':
-        from darc.delayed.designs import Frye
+        from darc_toolbox.delayed.designs import Frye
         design_thing = Frye()
-        from darc.delayed import models
+        from darc_toolbox.delayed import models
 
     elif desired_experiment_type == 'delayed (Du, Green, & Myerson, 2002)':
-        from darc.delayed.designs import DuGreenMyerson2002
+        from darc_toolbox.delayed.designs import DuGreenMyerson2002
         design_thing = DuGreenMyerson2002()
-        from darc.delayed import models
+        from darc_toolbox.delayed import models
 
     elif desired_experiment_type == 'risky (Du, Green, & Myerson, 2002)':
-        from darc.risky.designs import DuGreenMyerson2002
+        from darc_toolbox.risky.designs import DuGreenMyerson2002
         design_thing = DuGreenMyerson2002()
-        from darc.risky import models
+        from darc_toolbox.risky import models
 
     elif desired_experiment_type == 'risky (Griskevicius et al, 2011)':
-        from darc.risky.designs import Griskevicius2011
+        from darc_toolbox.risky.designs import Griskevicius2011
         design_thing = Griskevicius2011()
-        from darc.risky import models
+        from darc_toolbox.risky import models
 
     elif desired_experiment_type == 'risky (Bayesian Adaptive Design)':
-        from darc.designs import BayesianAdaptiveDesignGeneratorDARC, DesignSpaceBuilder
+        from darc_toolbox.designs import BayesianAdaptiveDesignGeneratorDARC, DesignSpaceBuilder
         # create an appropriate design object
         D = DesignSpaceBuilder.risky().build()
         design_thing = BayesianAdaptiveDesignGeneratorDARC(D,
             max_trials=expInfo['trials'])
         # import the appropriate set of models
-        from darc.risky import models
+        from darc_toolbox.risky import models
 
     elif desired_experiment_type == 'delayed and risky (Bayesian Adaptive Design)':
-        from darc.designs import BayesianAdaptiveDesignGeneratorDARC
+        from darc_toolbox.designs import BayesianAdaptiveDesignGeneratorDARC
         # create an appropriate design object
         D = DesignSpaceBuilder.delayed_and_risky().build()
         design_thing = BayesianAdaptiveDesignGeneratorDARC(D,
             max_trials=expInfo['trials'])
         # import the appropriate set of models
-        from darc.delayed_and_risky import models
+        from darc_toolbox.delayed_and_risky import models
 
 
     # chose the desired model here ============================================
