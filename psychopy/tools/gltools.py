@@ -17,10 +17,14 @@ from contextlib import contextmanager
 from PIL import Image
 import numpy as np
 import os, sys
+import itertools
 
 # -------------------------------
 # Shader Program Helper Functions
 # -------------------------------
+#
+# These functions simplify the creation and usage of GLSL shader programs. Both
+# legacy *ARB and recent core profile shader programs are supported.
 #
 
 
@@ -75,7 +79,7 @@ def createProgramObjectARB():
 
     This creates an *Architecture Review Board* (ARB) program variant which is
     compatible with older GLSL versions and OpenGL coding practices (eg.
-    immediate mode) on some platforms. Use *ARB variants of shader helper
+    fixed function) on some platforms. Use *ARB variants of shader helper
     functions (eg. `compileShaderObjectARB` instead of `compileShader`) when
     working with these ARB program objects. This was included for legacy support
     of existing PsychoPy shaders. However, it is recommended that you use
@@ -128,7 +132,7 @@ def createProgramObjectARB():
 
 def compileShader(shaderSrc, shaderType):
     """Compile shader GLSL code and return a shader object. Shader objects can
-    then be attached to programs an made executable on their respective
+    then be attached to programs and made executable on their respective
     processors.
 
     Parameters
@@ -197,7 +201,7 @@ def compileShader(shaderSrc, shaderType):
 
 def compileShaderObjectARB(shaderSrc, shaderType):
     """Compile shader GLSL code and return a shader object. Shader objects can
-    then be attached to programs an made executable on their respective
+    then be attached to programs and made executable on their respective
     processors.
 
     Parameters
@@ -331,14 +335,28 @@ def embedShaderSourceDefs(shaderSrc, defs):
         fragShader = compileShaderObjectARB(fragSrc, GL_FRAGMENT_SHADER_ARB)
 
     """
+    # get the indentation level of the `#version` directive if applicable
+    indent = ''
+    for line in shaderSrc.splitlines(keepends=False):
+        if '#version' in line:
+            indent, _ = line.split('#')
+    else:
+        # no version directive, use indent level of first line
+        for line in shaderSrc.splitlines(keepends=False):
+            if line:
+                indent = ''.join(itertools.takewhile(str.isspace, line))
+                break
+
     # generate GLSL `#define` statements
     glslDefSrc = ""
     for varName, varValue in defs.items():
         if not isinstance(varName, str):
             raise ValueError("Definition name must be type `str`.")
 
-        if isinstance(varValue, (int, bool, float,)):
+        if isinstance(varValue, (int, bool,)):
             varValue = str(int(varValue))
+        elif isinstance(varValue, float):
+            varValue = str(varValue)
         elif isinstance(varValue, bytes):
             varValue = varValue.decode('UTF-8')
         elif isinstance(varValue, str):
@@ -346,7 +364,7 @@ def embedShaderSourceDefs(shaderSrc, defs):
         else:
             raise TypeError("Invalid type for value of `{}`.".format(varName))
 
-        glslDefSrc += '#define {n} "{v}"\n'.format(n=varName, v=varValue)
+        glslDefSrc += indent + '#define {n} {v}\n'.format(n=varName, v=varValue)
 
     # find where the `#version` directive occurs
     versionDirIdx = shaderSrc.find("#version")
@@ -731,6 +749,58 @@ def getUniformLocations(program, builtins=False):
     dict
         Uniform names and locations.
 
+    Examples
+    --------
+    Get the location uniform `modelMatrix` in `myShader` and set it matrix using
+    a Numpy array::
+
+        modelMatrix = numpy.identity(4)  # example
+
+        # if using Pygelt's GL functions, you need to convert to a pointer
+        modelMatrix = modelMatrix.ctypes.data_as(ctypes.POINTER(GL.GLfloat))
+
+        uniforms = getUniformLocations(myShader)
+        useProgram(myShader)
+
+        glUniformMatrix4fv(
+            uniforms['modelMatrix'],
+            1,
+            GL_TRUE,  # transpose, since Numpy matrices are row-major in memory
+            modelMatrix)
+
+    You can check if a shader has a uniform before setting it. This allows for
+    the same sub-routine to flexibly handle different shader types, as long as
+    the uniform variables have the same names and types::
+
+        # get the uniform names and locations. In the shader, we have defined
+        # `uniform vec4 specularColor`.
+        uniforms = getUniformLocations(myShader)
+        hasSpecularColor = 'specularColor' in uniforms.keys()
+
+        if hasSpecularColor:
+            glUniform4f(uniforms['specularColor'],
+                1.0, 1.0, 1.0, 1.0)
+
+        # Another example to handle cases where a shader may be compiled with or
+        # without texture code paths.
+        #
+        # If the shader has `uniform sampler2D diffuseTexture` defined, we
+        # enable textures and bind it to the appropriate texture unit.
+        if 'diffuseTexture' in uniforms.keys():
+            # enable textures if the shader calls for it
+            glEnable(GL_TEXTURE_2D)
+            glActiveTexture(GL_TEXTURE0)
+            glColor4f(1.0, 1.0, 1.0, 1.0)
+            glColorMask(True, True, True, True)
+            glBindTexture(GL_TEXTURE_2D, texId)
+
+            # diffuse at texture unit `0`
+            glUniform4i(uniforms['diffuseTexture'], 0)
+            # remember to disable textures when done!
+        else:
+            # no diffuse texture, just have the material track the current color
+            glColor4f(1.0, 1.0, 1.0, 1.0)
+
     """
     if not GL.glIsProgram(program):
         raise ValueError(
@@ -780,6 +850,10 @@ def getUniformLocations(program, builtins=False):
 def getAttribLocations(program, builtins=False):
     """Get attribute names and locations from the specified program object.
 
+    This allows you to set vertex attribute pointers by name instead of by
+    index, allowing indices to vary between shaders. Furthermore, it allows for
+    checking if a shader has a particular attribute.
+
     This function works with both standard and ARB program object variants.
 
     Parameters
@@ -795,6 +869,67 @@ def getAttribLocations(program, builtins=False):
     -------
     dict
         Attribute names and locations.
+
+    Examples
+    --------
+    Get the attribute locations in the shader and use them to specify vertex
+    attribute pointers within a vertex array (VAO) context::
+
+        # Get vertex attribute locations in our shader (`myShader`). Within the
+        # shader we have attributes defined as:
+        #
+        #   layout(location = 0) in vec3 pos;
+        #   layout(location = 1) in vec2 textureCoords;
+        #   layout(location = 2) in vec3 normals;
+        #
+        # Calling `getAttribLocations` will return a dictionary like this:
+        #
+        #   {'pos': 0, 'textureCoords': 1, 'normals': 2}
+        #
+        attribLocations = getAttribLocations(myShader)
+
+        # create a VAO
+        vaoId = GLuint()
+        glGenVertexArrays(1, byref(vaoId))
+        glBindVertexArray(vaoId)
+
+        # bind the buffer storing vertex attribute, here they are interleaved
+        glBindBuffer(GL.GL_ARRAY_BUFFER, vboId)
+
+        # use the attribute index for `pos` to bind the vertex position buffer
+        attrib = attribLocations['pos']
+        glVertexAttribPointer(attrib, 3, GL_FLOAT, GL_FALSE, posStride, 0)
+        glEnableVertexAttribArray(attrib)
+
+        attrib = attribLocations['textureCoords']
+        glVertexAttribPointer(
+            attrib, 2, GL_FLOAT, GL_FALSE, texCoordStride, texCoordOffset)
+        glEnableVertexAttribArray(attrib)
+
+        attrib = attribLocations['normals']
+        glVertexAttribPointer(
+            attrib, 3, GL_FLOAT, GL_FALSE, normStride, normOffset)
+        glEnableVertexAttribArray(attrib)
+
+        glBindVertexArray(0)  # unbind
+
+    If attribute names are consistent between shaders, you should be able to
+    reuse the same code above, even if the vertex attribute layout locations
+    differ between shaders. In some cases the shader may not accept one or more
+    available attributes (eg. texture coordinates) that are available. Instead
+    of writing multiple sub-routines for building VAOs to handle these
+    permutations, simply check for attribute membership in the data returned
+    by `getAttribLocations`::
+
+        attribLocations = getAttribLocations(myShader)
+        hasTexCoords = 'textureCoords' in attribLocations.keys()
+
+        # when binding attribute pointers
+        if hasTexCoords:
+            attrib = attribLocations['textureCoords']
+            glVertexAttribPointer(
+                attrib, 2, GL_FLOAT, GL_FALSE, texCoordStride, texCoordOffset)
+            glEnableVertexAttribArray(attrib)
 
     """
     if not GL.glIsProgram(program):
