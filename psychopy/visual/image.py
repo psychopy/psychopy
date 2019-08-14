@@ -198,12 +198,12 @@ class ImageStim(BaseVisualStim, ContainerMixin, ColorMixin, TextureMixin):
         # glColor can interfere with multitextures
         GL.glColor4f(1.0, 1.0, 1.0, 1.0)
         # mask
-        GL.glActiveTextureARB(GL.GL_TEXTURE1_ARB)
+        GL.glActiveTexture(GL.GL_TEXTURE1)
         GL.glEnable(GL.GL_TEXTURE_2D)  # implicitly disables 1D
         GL.glBindTexture(GL.GL_TEXTURE_2D, self._maskID)
 
         # main texture
-        GL.glActiveTextureARB(GL.GL_TEXTURE0_ARB)
+        GL.glActiveTexture(GL.GL_TEXTURE0)
         GL.glEnable(GL.GL_TEXTURE_2D)
         GL.glBindTexture(GL.GL_TEXTURE_2D, self._texID)
 
