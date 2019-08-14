@@ -1476,16 +1476,134 @@ def deleteTexture(texture):
 # ---------------------------
 
 
-VertexBufferObject = namedtuple(
-    'VertexBufferObject',
-    ['id',
-     'size',
-     'count',
-     'indices',
-     'usage',
-     'dtype',
-     'userData']
-)
+#VertexBufferObject = namedtuple(
+#    'VertexBufferObject',
+#    ['id',
+#     'size',
+#     'count',
+#     'indices',
+#     'usage',
+#     'dtype',
+#     'userData']
+#)
+
+class VertexBufferInfo(object):
+    """Vertex buffer object (VBO) descriptor.
+
+    This class only stores information about the VBO it refers to, it does not
+    contain any actual array data associated with the VBO. Calling
+    :func:`createVBO` returns instances of this class.
+
+    Parameters
+    ----------
+    name : GLuint or int
+        OpenGL handle for the buffer.
+    target : GLenum or int, optional
+        Target used when binding the buffer (e.g. `GL_VERTEX_ARRAY` or
+        `GL_ELEMENT_ARRAY_BUFFER`). Default is `GL_VERTEX_ARRAY`)
+    usage : GLenum or int, optional
+        Usage type for the array (i.e. `GL_STATIC_DRAW`).
+    dataType : Glenum, optional
+        Data type of array. Default is `GL_FLOAT`.
+    size : int, optional
+        Size of the buffer in bytes.
+    stride : int, optional
+        Number of bytes between adjacent attributes. If `0`, values are assumed
+        to be tightly packed.
+    userData : dict, optional
+        Optional user defined data associated with the VBO. If `None`,
+        `userData` will be initialized as an empty dictionary.
+
+    """
+    __slots__ = [
+        'name', 'target', 'usage', 'dataType', 'size', 'stride', 'userData']
+
+    def __init__(self,
+                 name=0,
+                 target=GL.GL_ARRAY_BUFFER,
+                 usage=GL.GL_STATIC_DRAW,
+                 dataType=GL.GL_FLOAT,
+                 size=0,
+                 stride=0,
+                 userData=None):
+
+        self.name = GL.GLuint(name)
+        self.target = target
+        self.usage = usage
+        self.dataType = dataType
+        self.size = size
+        self.stride = stride
+
+        if userData is None:
+            self.userData = {}
+        elif isinstance(userData, dict):
+            self.userData = userData
+        else:
+            raise TypeError('Invalid type for `userData`.')
+
+    def __eq__(self, other):
+        """Equality test between VBO object names."""
+        return self.name == other.name
+
+    def __ne__(self, other):
+        """Inequality test between VBO object names."""
+        return self.name != other.name
+
+    @property
+    def isBuffer(self):
+        """Check if the VBO assigned to name is a buffer."""
+        if self.name != 0 and GL.glIsBuffer(self.name):
+            return True
+
+        return False
+
+    def validate(self):
+        """Check if the data contained in this descriptor matches what is
+        actually present in the OpenGL state.
+
+        Returns
+        -------
+        bool
+            `True` if the information contained in this descriptor matches the
+            OpenGL state.
+
+        """
+        if self.name == 0 or GL.glIsBuffer(self.name) != GL.GL_TRUE:
+            return False
+
+        # get current binding so we don't disturb the current state
+        currentVBO = GL.GLint()
+
+        if self.target == GL.GL_VERTEX_ARRAY:
+            bindTarget = GL.GL_VERTEX_ARRAY_BINDING
+        elif self.target == GL.GL_ELEMENT_ARRAY_BUFFER:
+            bindTarget = GL.GL_ELEMENT_ARRAY_BUFFER_BINDING
+        else:
+            raise ValueError('Invalid `target` type.')
+
+        GL.glGetIntegerv(bindTarget, ctypes.byref(currentVBO))
+
+        # bind buffer at name to validate
+        GL.glBindBuffer(self.target, self.name)
+
+        # get buffer parameters
+        actualSize = GL.GLint()
+        GL.glGetBufferParameteriv(
+            self.target, GL.GL_BUFFER_SIZE, ctypes.byref(actualSize))
+        actualUsage = GL.GLint()
+        GL.glGetBufferParameteriv(
+            self.target, GL.GL_BUFFER_USAGE, ctypes.byref(actualUsage))
+
+        # check values against those in this object
+        isValid = False
+        if self.usage == actualUsage and self.size == actualSize:
+            isValid = True
+
+        # return to the original binding
+        GL.glBindBuffer(self.target, currentVBO)
+
+        return isValid
+
 
 VertexArrayObject = namedtuple(
     'VertexArrayObject',
@@ -1496,31 +1614,36 @@ VertexArrayObject = namedtuple(
 )
 
 
-def createVBO(data, size=3, dtype=GL.GL_FLOAT, target=GL.GL_ARRAY_BUFFER):
-    """Create a single-storage array buffer, often referred to as Vertex Buffer
-    Object (VBO).
+GL_COMPAT_TYPES = {np.float32: (GL.GL_FLOAT, GL.GLfloat),
+                   np.float64: (GL.GL_DOUBLE, GL.GLdouble),
+                   np.float: (GL.GL_DOUBLE, GL.GLdouble),
+                   np.uint16: (GL.GL_UNSIGNED_SHORT, GL.GLushort),
+                   np.uint32: (GL.GL_UNSIGNED_INT, GL.GLuint),
+                   np.int32: (GL.GL_INT, GL.GLint),
+                   np.int16: (GL.GL_SHORT, GL.GLshort)}
+
+
+def createVBO(data, target=GL.GL_ARRAY_BUFFER, dataType=GL.GL_FLOAT, usage=GL.GL_STATIC_DRAW):
+    """Create an array buffer, often referred to as Vertex Buffer Object (VBO).
 
     Parameters
     ----------
-    data : :obj:`list` or :obj:`tuple` of :obj:`float` or :obj:`int`
-        Coordinates as a 1D array of floats (e.g. [X0, Y0, Z0, X1, Y1, Z1, ...])
-    size : :obj:`int`
-        Number of coordinates per-vertex, default is 3.
-    dtype : :obj:`int`
-        Data type OpenGL will interpret that data as, should be compatible with
-        the type of 'data'.
+    data : array_like
+        Coordinates as a 2D array of values. The data type of the VBO is
+        inferred by the type of the array. If the input is a Python `list` or
+        `tuple` type, the data type of the array will be `GL_FLOAT`.
     target : :obj:`int`
         Target used when binding the buffer (e.g. GL_VERTEX_ARRAY)
+    dataType : Glenum, optional
+        Data type of array. Input data will be recast to the appropriate type if
+        necessary. Default is `GL_FLOAT`.
+    usage : GLenum or int, optional
+        Usage type for the array (i.e. `GL_STATIC_DRAW`).
 
     Returns
     -------
-    VertexBufferObject
+    VertexBufferInfo
         A descriptor with vertex buffer information.
-
-    Notes
-    -----
-    Creating vertex buffers is a computationally expensive operation. Be sure to
-    load all resources before entering your experiment's main loop.
 
     Examples
     --------
@@ -1543,47 +1666,31 @@ def createVBO(data, size=3, dtype=GL.GL_FLOAT, target=GL.GL_ARRAY_BUFFER):
         GL.glFlush()
 
     """
-    # convert values to ctypes float array
-    if dtype == GL.GL_FLOAT:
-        useType = GL.GLfloat
-    elif dtype == GL.GL_UNSIGNED_INT:
-        useType = GL.GLuint
-    elif dtype == GL.GL_UNSIGNED_SHORT:
-        useType = GL.GLushort
-    else:
-        raise TypeError("Invalid type specified.")
 
-    if isinstance(data, array.array):
-        addr, count = data.buffer_info()
-        c_array = ctypes.cast(addr, ctypes.POINTER((useType * count)))[0]
-    else:
-        count = len(data)
-        c_array = (useType * count)(*data)
+    if dataType == GL.GL_FLOAT:
+        data = np.asarray(data, dtype=np.float32)
+    elif dataType == GL.GL_DOUBLE:
+        data = np.asarray(data, dtype=np.float64)
+    elif dataType == GL.GL_UNSIGNED_INT:
+        data = np.asarray(data, dtype=np.uint32)
+    elif dataType == GL.GL_UNSIGNED_SHORT:
+        data = np.asarray(data, dtype=np.uint16)
+    elif dataType == GL.GL_INT:
+        data = np.asarray(data, dtype=np.int32)
+    elif dataType == GL.GL_SHORT:
+        data = np.asarray(data, dtype=np.int16)
 
-    # create a vertex buffer ID
-    vboId = GL.GLuint()
-    GL.glGenBuffers(1, ctypes.byref(vboId))
-
-    nIndices = count
-    if target != GL.GL_ELEMENT_ARRAY_BUFFER:
-        nIndices = int(nIndices / size)
-
-    # new vertex descriptor
-    vboDesc = VertexBufferObject(vboId,
-                                 size,
-                                 count,
-                                 nIndices,
-                                 GL.GL_STATIC_DRAW,
-                                 dtype,
-                                 dict())
-
-    # bind and upload
-    GL.glBindBuffer(target, vboId)
-    GL.glBufferData(target,
-                    ctypes.sizeof(c_array),
-                    c_array,
-                    GL.GL_STATIC_DRAW)
-    GL.glBindBuffer(target, 0)
+    # # create a vertex buffer ID
+    # vboInfo = VertexBufferInfo()
+    # GL.glGenBuffers(1, ctypes.byref(vboInfo.name))
+    #
+    # # bind and upload
+    # GL.glBindBuffer(target, vboInfo.name)
+    # GL.glBufferData(target,
+    #                 ctypes.sizeof(c_array),
+    #                 c_array,
+    #                 GL.GL_STATIC_DRAW)
+    # GL.glBindBuffer(target, 0)
 
     return vboDesc
 
