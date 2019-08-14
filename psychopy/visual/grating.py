@@ -400,12 +400,12 @@ class GratingStim(BaseVisualStim, TextureMixin, ColorMixin, ContainerMixin):
         # glColor can interfere with multitextures
         GL.glColor4f(1.0, 1.0, 1.0, 1.0)
         # mask
-        GL.glActiveTextureARB(GL.GL_TEXTURE1_ARB)
-        GL.glEnable(GL.GL_TEXTURE_2D)  # implicitly disables 1D
+        GL.glActiveTexture(GL.GL_TEXTURE1)
+        GL.glEnable(GL.GL_TEXTURE_2D)
         GL.glBindTexture(GL.GL_TEXTURE_2D, self._maskID)
 
         # main texture
-        GL.glActiveTextureARB(GL.GL_TEXTURE0_ARB)
+        GL.glActiveTexture(GL.GL_TEXTURE0)
         GL.glEnable(GL.GL_TEXTURE_2D)
         GL.glBindTexture(GL.GL_TEXTURE_2D, self._texID)
 
@@ -439,12 +439,12 @@ class GratingStim(BaseVisualStim, TextureMixin, ColorMixin, ContainerMixin):
         GL.glEnd()
 
         # disable mask
-        GL.glActiveTextureARB(GL.GL_TEXTURE1_ARB)
+        GL.glActiveTexture(GL.GL_TEXTURE1)
         GL.glDisable(GL.GL_TEXTURE_2D)
         GL.glBindTexture(GL.GL_TEXTURE_2D, 0)
 
         # main texture
-        GL.glActiveTextureARB(GL.GL_TEXTURE0_ARB)
+        GL.glActiveTexture(GL.GL_TEXTURE0)
         GL.glDisable(GL.GL_TEXTURE_2D)
         GL.glBindTexture(GL.GL_TEXTURE_2D, 0)
 

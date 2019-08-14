@@ -570,11 +570,11 @@ class TextStim(BaseVisualStim, ColorMixin, ContainerMixin):
             GL.glEnable(GL.GL_TEXTURE_2D)
         else:
             # bind the appropriate main texture
-            GL.glActiveTextureARB(GL.GL_TEXTURE0_ARB)
+            GL.glActiveTexture(GL.GL_TEXTURE0)
             GL.glEnable(GL.GL_TEXTURE_2D)
             GL.glBindTexture(GL.GL_TEXTURE_2D, self._texID)
             # unbind the mask texture regardless
-            GL.glActiveTextureARB(GL.GL_TEXTURE1_ARB)
+            GL.glActiveTexture(GL.GL_TEXTURE1)
             GL.glEnable(GL.GL_TEXTURE_2D)
             GL.glBindTexture(GL.GL_TEXTURE_2D, 0)
 

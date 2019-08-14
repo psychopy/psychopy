@@ -1011,12 +1011,13 @@ class BitsPlusPlus(object):
         GL.glLoadIdentity()
 
         # draw the pixels
-        GL.glActiveTextureARB(GL.GL_TEXTURE0_ARB)
+        GL.glActiveTexture(GL.GL_TEXTURE0)
         GL.glEnable(GL.GL_TEXTURE_2D)
         GL.glBindTexture(GL.GL_TEXTURE_2D, 0)
-        GL.glActiveTextureARB(GL.GL_TEXTURE1_ARB)
+        GL.glActiveTexture(GL.GL_TEXTURE1)
         GL.glEnable(GL.GL_TEXTURE_2D)
         GL.glBindTexture(GL.GL_TEXTURE_2D, 0)
+
         GL.glRasterPos2i(0, 1)
         GL.glPixelStorei(GL.GL_UNPACK_ALIGNMENT, 1)
         GL.glDrawPixels(len(self._HEADandLUT), 1,
@@ -1045,13 +1046,15 @@ class BitsPlusPlus(object):
         GL.glMatrixMode(GL.GL_MODELVIEW)
         GL.glLoadIdentity()
 
-        #draw the pixels
-        GL.glActiveTextureARB(GL.GL_TEXTURE0_ARB)
+        # unload texture
+        GL.glActiveTexture(GL.GL_TEXTURE0)
         GL.glEnable(GL.GL_TEXTURE_2D)
         GL.glBindTexture(GL.GL_TEXTURE_2D, 0)
-        GL.glActiveTextureARB(GL.GL_TEXTURE1_ARB)
+        # unload mask
+        GL.glActiveTexture(GL.GL_TEXTURE1)
         GL.glEnable(GL.GL_TEXTURE_2D)
         GL.glBindTexture(GL.GL_TEXTURE_2D, 0)
+        # draw the pixels
         GL.glRasterPos2i(0,2)
         GL.glPixelStorei(GL.GL_UNPACK_ALIGNMENT, 1)
         GL.glDrawPixels(len(self._HEADandClock),1,
@@ -1084,10 +1087,10 @@ class BitsPlusPlus(object):
         GL.glLoadIdentity()
 
         #draw the pixels
-        GL.glActiveTextureARB(GL.GL_TEXTURE0_ARB)
+        GL.glActiveTexture(GL.GL_TEXTURE0)
         GL.glEnable(GL.GL_TEXTURE_2D)
         GL.glBindTexture(GL.GL_TEXTURE_2D, 0)
-        GL.glActiveTextureARB(GL.GL_TEXTURE1_ARB)
+        GL.glActiveTexture(GL.GL_TEXTURE1)
         GL.glEnable(GL.GL_TEXTURE_2D)
         GL.glBindTexture(GL.GL_TEXTURE_2D, 0)
         GL.glRasterPos2i(0,3)
