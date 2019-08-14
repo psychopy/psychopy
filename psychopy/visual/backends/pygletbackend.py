@@ -35,6 +35,13 @@ GL = pyglet.gl
 
 retinaContext = None  # it will be set to an actual context if needed
 
+# get the default display
+if pyglet.version < '1.4':
+    _default_display_ = pyglet.window.get_platform().get_default_display()
+else:
+    _default_display_ = pyglet.canvas.Display().get_default_screen()
+
+
 class PygletBackend(BaseBackend):
     """The pyglet backend is the most used backend. It has no dependencies
     or C libs that need compiling, but may not be as fast or efficient as libs
@@ -98,8 +105,11 @@ class PygletBackend(BaseBackend):
                            stereo=win.stereo,
                            vsync=vsync)
 
-        defDisp = pyglet.window.get_platform().get_default_display()
-        allScrs = defDisp.get_screens()
+        if pyglet.version < '1.4':
+            allScrs = _default_display_.get_screens()
+        else:
+            allScrs = pyglet.canvas.Display().get_screens()
+
         # Screen (from Exp Settings) is 1-indexed,
         # so the second screen is Screen 1
         if len(allScrs) < int(win.screen) + 1:
@@ -298,7 +308,8 @@ class PygletBackend(BaseBackend):
 
         :return:
         """
-        wins = pyglet.window.get_platform().get_default_display().get_windows()
+        wins = _default_display_.get_windows()
+
         for win in wins:
             win.dispatch_events()
 
