@@ -158,8 +158,7 @@ class SoundComponent(BaseComponent):
         buff.setIndentLevel(-1, relative=True)
         if not self.params['stopVal'].val in ['', None, -1, 'None']:
             self.writeStopTestCode(buff)
-            code = ("if %(stopVal)s > 0.5:  # don't force-stop brief sounds\n"
-                    "    %(name)s.stop()\n")
+            code = ("%(name)s.stop()\n")
             buff.writeIndentedLines(code % self.params)
             # because of the 'if' statement of the time test
             buff.setIndentLevel(-2, relative=True)
