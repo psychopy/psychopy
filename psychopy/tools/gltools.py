@@ -1510,13 +1510,15 @@ class VertexBufferInfo(object):
     stride : int, optional
         Number of bytes between adjacent attributes. If `0`, values are assumed
         to be tightly packed.
+    shape : tuple or list, optional
+        Shape of the array used to create this VBO.
     userData : dict, optional
         Optional user defined data associated with the VBO. If `None`,
         `userData` will be initialized as an empty dictionary.
 
     """
     __slots__ = [
-        'name', 'target', 'usage', 'dataType', 'size', 'stride', 'userData']
+        'name', 'target', 'usage', 'dataType', 'size', 'stride', 'shape', 'userData']
 
     def __init__(self,
                  name=0,
@@ -1525,6 +1527,7 @@ class VertexBufferInfo(object):
                  dataType=GL.GL_FLOAT,
                  size=0,
                  stride=0,
+                 shape=(0,),
                  userData=None):
 
         self.name = GL.GLuint(name)
@@ -1533,6 +1536,7 @@ class VertexBufferInfo(object):
         self.dataType = dataType
         self.size = size
         self.stride = stride
+        self.shape = shape
 
         if userData is None:
             self.userData = {}
@@ -1568,6 +1572,7 @@ class VertexBufferInfo(object):
             OpenGL state.
 
         """
+        # fail automatically if these conditions are true
         if self.name == 0 or GL.glIsBuffer(self.name) != GL.GL_TRUE:
             return False
 
@@ -1614,24 +1619,26 @@ VertexArrayObject = namedtuple(
 )
 
 
-GL_COMPAT_TYPES = {np.float32: (GL.GL_FLOAT, GL.GLfloat),
-                   np.float64: (GL.GL_DOUBLE, GL.GLdouble),
-                   np.float: (GL.GL_DOUBLE, GL.GLdouble),
-                   np.uint16: (GL.GL_UNSIGNED_SHORT, GL.GLushort),
-                   np.uint32: (GL.GL_UNSIGNED_INT, GL.GLuint),
-                   np.int32: (GL.GL_INT, GL.GLint),
-                   np.int16: (GL.GL_SHORT, GL.GLshort)}
+GL_COMPAT_TYPES = {GL.GL_FLOAT: (np.float32, GL.GLfloat),
+                   GL.GL_DOUBLE: (np.float64, GL.GLdouble),
+                   GL.GL_UNSIGNED_SHORT: (np.uint16, GL.GLushort),
+                   GL.GL_UNSIGNED_INT: (np.uint32, GL.GLuint),
+                   GL.GL_INT: (np.int32, GL.GLint),
+                   GL.GL_SHORT: (np.int16, GL.GLshort)}
 
 
-def createVBO(data, target=GL.GL_ARRAY_BUFFER, dataType=GL.GL_FLOAT, usage=GL.GL_STATIC_DRAW):
+def createVBO(data,
+              target=GL.GL_ARRAY_BUFFER,
+              dataType=GL.GL_FLOAT,
+              usage=GL.GL_STATIC_DRAW):
     """Create an array buffer, often referred to as Vertex Buffer Object (VBO).
 
     Parameters
     ----------
     data : array_like
-        Coordinates as a 2D array of values. The data type of the VBO is
-        inferred by the type of the array. If the input is a Python `list` or
-        `tuple` type, the data type of the array will be `GL_FLOAT`.
+        A 2D array of values to write to the array buffer. The data type of the
+        VBO is inferred by the type of the array. If the input is a Python
+        `list` or `tuple` type, the data type of the array will be `GL_FLOAT`.
     target : :obj:`int`
         Target used when binding the buffer (e.g. GL_VERTEX_ARRAY)
     dataType : Glenum, optional
@@ -1650,49 +1657,50 @@ def createVBO(data, target=GL.GL_ARRAY_BUFFER, dataType=GL.GL_FLOAT, usage=GL.GL
     Creating a vertex buffer object with vertex data::
 
         # vertices of a triangle
-        verts = [ 1.0,  1.0, 0.0,   # v0
-                  0.0, -1.0, 0.0,   # v1
-                 -1.0,  1.0, 0.0]   # v2
+        verts = [[ 1.0,  1.0, 0.0],   # v0
+                   0.0, -1.0, 0.0],   # v1
+                  -1.0,  1.0, 0.0]]   # v2
 
         # load vertices to graphics device, return a descriptor
-        vboDesc = createVBO(verts, 3)
+        vboDesc = createVBO(verts)
 
     Drawing triangles using vertex buffer data::
 
-        GL.glBindBuffer(GL.GL_ARRAY_BUFFER, vboDesc.id)
-        GL.glVertexPointer(vboDesc.vertexSize, vboDesc.dtype, 0, None)
+        GL.glBindBuffer(GL.GL_ARRAY_BUFFER, vboDesc.name)
+        GL.glVertexPointer(vboDesc.vertexSize, vboDesc.dataType, 0, None)
         GL.glEnableClientState(vboDesc.bufferType)
         GL.glDrawArrays(GL.GL_TRIANGLES, 0, vboDesc.indices)
         GL.glFlush()
 
     """
+    # build input array
+    npType, glType = GL_COMPAT_TYPES[dataType]
+    data = np.asarray(data, dtype=npType)
 
-    if dataType == GL.GL_FLOAT:
-        data = np.asarray(data, dtype=np.float32)
-    elif dataType == GL.GL_DOUBLE:
-        data = np.asarray(data, dtype=np.float64)
-    elif dataType == GL.GL_UNSIGNED_INT:
-        data = np.asarray(data, dtype=np.uint32)
-    elif dataType == GL.GL_UNSIGNED_SHORT:
-        data = np.asarray(data, dtype=np.uint16)
-    elif dataType == GL.GL_INT:
-        data = np.asarray(data, dtype=np.int32)
-    elif dataType == GL.GL_SHORT:
-        data = np.asarray(data, dtype=np.int16)
+    # get buffer size and pointer
+    bufferSize = data.size * ctypes.sizeof(glType)
+    bufferStride = data.shape[1] * ctypes.sizeof(glType)
+    bufferPtr = data.ctypes.data_as(ctypes.POINTER(glType))
 
-    # # create a vertex buffer ID
-    # vboInfo = VertexBufferInfo()
-    # GL.glGenBuffers(1, ctypes.byref(vboInfo.name))
-    #
-    # # bind and upload
-    # GL.glBindBuffer(target, vboInfo.name)
-    # GL.glBufferData(target,
-    #                 ctypes.sizeof(c_array),
-    #                 c_array,
-    #                 GL.GL_STATIC_DRAW)
-    # GL.glBindBuffer(target, 0)
+    # create a vertex buffer ID
+    bufferName = GL.GLuint()
+    GL.glGenBuffers(1, ctypes.byref(bufferName))
 
-    return vboDesc
+    # bind and upload
+    GL.glBindBuffer(target, bufferName)
+    GL.glBufferData(target, bufferSize, bufferPtr, usage)
+    GL.glBindBuffer(target, 0)
+
+    vboInfo = VertexBufferInfo(
+        bufferName,
+        target,
+        usage,
+        dataType,
+        bufferSize,
+        bufferStride,
+        data.shape)  # leave userData empty
+
+    return vboInfo
 
 
 def createVAO(vertexBuffers, indexBuffer=None):
