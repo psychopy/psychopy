@@ -787,7 +787,7 @@ class Mouse(object):
             else:
                 plat = _default_display_
 
-                w = plat.get_default_display().get_windows()[0]
+                w = plat.get_windows()[0]
             w.set_mouse_visible(visible)
 
     def clickReset(self, buttons=(0, 1, 2)):
