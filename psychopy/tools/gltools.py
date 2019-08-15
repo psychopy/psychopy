@@ -1498,18 +1498,6 @@ def deleteTexture(texture):
 # Vertex Buffer Objects (VBO)
 # ---------------------------
 
-
-#VertexBufferObject = namedtuple(
-#    'VertexBufferObject',
-#    ['id',
-#     'size',
-#     'count',
-#     'indices',
-#     'usage',
-#     'dtype',
-#     'userData']
-#)
-
 class VertexArrayInfo(object):
     """Vertex array object (VAO) descriptor.
 
@@ -1518,11 +1506,12 @@ class VertexArrayInfo(object):
     :func:`createVAO` returns instances of this class.
 
     """
-    __slots__ = ['name', 'activeAttribs', 'isIndexed', 'userData']
+    __slots__ = ['name', 'count', 'activeAttribs', 'isIndexed', 'userData']
 
-    def __init__(self, name=0, activeAttribs=None, isIndexed=False, userData=None):
+    def __init__(self, name=0, count=0, activeAttribs=None, isIndexed=False, userData=None):
         self.name = name
         self.activeAttribs = activeAttribs
+        self.count = count
         self.isIndexed = isIndexed
 
         if userData is None:
@@ -1541,16 +1530,20 @@ class VertexArrayInfo(object):
         return self.name != other.name
 
 
-def createVAO(buffers, offsets=None, indexBuffer=None):
-    """Create a Vertex Array object (VAO).
+def createVAO(attribBuffers, indexBuffer=None):
+    """Create a Vertex Array object (VAO). VAOs store buffer binding states,
+    reducing CPU overhead when drawing objects with vertex data stored in VBOs.
+
+    Define vertex attributes within a VAO state by passing a mapping for
+    generic attribute indices and VBO buffers.
 
     Parameters
     ----------
-    buffers : dict
+    attribBuffers : dict
         Attributes and associated VBOs to add to the VAO state. Keys are
         vertex attribute pointer indices, values are VBO descriptors to define.
-    offsets : dict, optional
-        Optional attribute pointer offsets.
+        Values can be `tuples` where the first value is the buffer descriptor,
+        and the second is the buffer offset.
     indexBuffer : VertexBufferInfo
         Optional index buffer.
 
@@ -1561,16 +1554,16 @@ def createVAO(buffers, offsets=None, indexBuffer=None):
         vao = createVAO({0: vertexPos, 1: texCoords, 2: vertexNormals})
 
     Using an interleaved vertex buffer, all attributes are in the same buffer
-    (`vertexAttr`). We need to specify offsets for each attribute and pass them
-    to `attribOffsets`::
+    (`vertexAttr`). We need to specify offsets for each attribute by passing a
+    buffer in a `tuple` with the second value specifying the offset::
 
         vao = createVAO(
-            {0: vertexAttr, 1: vertexAttr, 2: vertexAttr}, {0: 0, 1: 3, 2: 5})
+            {0: (vertexAttr, 0), 1: (vertexAttr, 3), 2: (vertexAttr, 5)})
 
     You can mix interleaved and single-storage buffers::
 
         vao = createVAO(
-            {0: vertexAttr, 1: vertexAttr, 2: vertexColors}, {0: 0, 1: 3})
+            {0: (vertexAttr, 0), 1: (vertexAttr, 3), 2: vertexColors})
 
     Specifying an optional index array, this is used for indexed drawing of
     primitives::
@@ -1580,8 +1573,24 @@ def createVAO(buffers, offsets=None, indexBuffer=None):
     The returned `VertexArrayInfo` instance will have attribute
     ``isIndexed==True``.
 
+    Drawing vertex arrays using a VAO::
+
+        # draw the array
+        GL.glBindVertexArray(vao.name)
+
+        if vao.isIndexed:
+            GL.glDrawElements(mode, vao.count, GL.GL_UNSIGNED_INT, None)
+        else:
+            GL.glDrawArrays(mode, 0, vao.count)
+
+        if flush:
+            GL.glFlush()
+
+        # reset
+        GL.glBindVertexArray(0)
+
     """
-    if not buffers:  # in case an empty list is passed
+    if not attribBuffers:  # in case an empty list is passed
         raise ValueError("No buffers specified.")
 
     # create a vertex buffer ID
@@ -1591,17 +1600,45 @@ def createVAO(buffers, offsets=None, indexBuffer=None):
 
     # add attribute pointers
     activeAttribs = []
-    for i, buffer in buffers.items():
+    bufferIndices = []
+    for i, buffer in attribBuffers.items():
         offset = 0
-        if offsets is not None:
-            if i in offsets.keys():
-                offset = offsets[i]
+        normalize = False
+        if isinstance(buffer, (list, tuple,)):
+            if len(buffer) == 1:
+                buffer = buffer[0]  # size 1 tuple or list eg. (buffer,)
+            elif len(buffer) == 2:
+                buffer, offset = buffer
+            elif len(buffer) == 3:
+                buffer, offset, normalize = buffer
+            else:
+                raise ValueError('Invalid attribute values.')
 
         GL.glEnableVertexAttribArray(i)
-        setVertexAttribPointer(i, buffer, offset)
+        setVertexAttribPointer(i, buffer, offset, normalize)
         activeAttribs.append(i)
+        bufferIndices.append(buffer.shape[1])
 
-    return VertexArrayInfo(vaoId)
+    # bind the EBO if available
+    if indexBuffer is not None:
+        if indexBuffer.target == GL.GL_ELEMENT_ARRAY_BUFFER:
+            GL.glBindBuffer(GL.GL_ELEMENT_ARRAY_BUFFER, indexBuffer.name)
+            nIndices = indexBuffer.shape[0]
+        else:
+            raise ValueError(
+                'Index buffer does not have target `GL_ELEMENT_ARRAY_BUFFER`.')
+    else:
+        nIndices = min(bufferIndices)
+
+    GL.glBindVertexArray(0)
+
+    #if not all(i == bufferIndices[0] for i in bufferIndices):
+    #    raise ValueError('Buffers do not have the same number of indices.')
+
+    return VertexArrayInfo(vaoId,
+                           nIndices,
+                           activeAttribs,
+                           indexBuffer is not None,)
 
 
 class VertexBufferInfo(object):
@@ -1840,6 +1877,14 @@ def createVBO(data,
 def setVertexAttribPointer(index, vbo, offset=0, normalize=False):
     """Define an array of vertex attribute data with a VBO descriptor.
 
+    In modern OpenGL implementations, attributes are 'generic', where an
+    attribute pointer index does not correspond to any special vertex property.
+    Usually the usage for an attribute is defined in the shader program. For
+    compatibility with older OpenGL specifications, some drivers will alias
+    vertex pointers unless they are explicitly defined in the shader. This
+    allows VAOs the be used with the fixed-function pipeline or older GLSL
+    versions.
+
     Parameters
     ----------
     index : int
@@ -1927,8 +1972,7 @@ def deleteVBO(vbo):
 
 def createVAO(vertexBuffers, indexBuffer=None):
     """Create a Vertex Array Object (VAO) with specified Vertex Buffer Objects.
-    VAOs store buffer binding states, reducing CPU overhead when drawing objects
-    with vertex data stored in VBOs.
+
 
     Parameters
     ----------
