@@ -1578,9 +1578,17 @@ class VertexBufferInfo(object):
 
     @property
     def hasBuffer(self):
-        """Check if the VBO assigned to name is a buffer."""
+        """Check if the VBO assigned to `name` is a buffer."""
         if self.name != 0 and GL.glIsBuffer(self.name):
             return True
+
+        return False
+
+    @property
+    def isIndex(self):
+        """`True` if the buffer referred to by this object is an index array."""
+        if self.name != 0 and GL.glIsBuffer(self.name):
+            return self.target == GL.GL_ELEMENT_ARRAY_BUFFER
 
         return False
 
@@ -1599,16 +1607,17 @@ class VertexBufferInfo(object):
         if self.name == 0 or GL.glIsBuffer(self.name) != GL.GL_TRUE:
             return False
 
-        # get current binding so we don't disturb the current state
-        currentVBO = GL.GLint()
-
-        if self.target == GL.GL_VERTEX_ARRAY:
-            bindTarget = GL.GL_VERTEX_ARRAY_BINDING
+        if self.target == GL.GL_ARRAY_BUFFER:
+            bindTarget = GL.GL_VERTEX_ARRAY_BUFFER_BINDING
         elif self.target == GL.GL_ELEMENT_ARRAY_BUFFER:
             bindTarget = GL.GL_ELEMENT_ARRAY_BUFFER_BINDING
         else:
-            raise ValueError('Invalid `target` type.')
+            raise ValueError(
+                'Invalid `target` type, must be `GL_ARRAY_BUFFER` or '
+                '`GL_ELEMENT_ARRAY_BUFFER`.')
 
+        # get current binding so we don't disturb the current state
+        currentVBO = GL.GLint()
         GL.glGetIntegerv(bindTarget, ctypes.byref(currentVBO))
 
         # bind buffer at name to validate
@@ -1624,11 +1633,11 @@ class VertexBufferInfo(object):
 
         # check values against those in this object
         isValid = False
-        if self.usage == actualUsage and self.size == actualSize:
+        if self.usage == actualUsage.value and self.size == actualSize.value:
             isValid = True
 
         # return to the original binding
-        GL.glBindBuffer(self.target, currentVBO)
+        GL.glBindBuffer(self.target, currentVBO.value)
 
         return isValid
 
