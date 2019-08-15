@@ -1510,6 +1510,35 @@ def deleteTexture(texture):
 #     'userData']
 #)
 
+class VertexArrayInfo(object):
+    """Vertex array object (VAO) descriptor.
+
+    This class only stores information about the VAO it refers to, it does not
+    contain any actual array data associated with the VAO. Calling
+    :func:`createVAO` returns instances of this class.
+
+    """
+    __slots__ = ['name', 'userData']
+
+    def __init__(self, name=0, userData=None):
+        self.name = name
+
+        if userData is None:
+            self.userData = {}
+        elif isinstance(userData, dict):
+            self.userData = userData
+        else:
+            raise TypeError('Invalid type for `userData`.')
+
+    def __eq__(self, other):
+        """Equality test between VAO object names."""
+        return self.name == other.name
+
+    def __ne__(self, other):
+        """Inequality test between VAO object names."""
+        return self.name != other.name
+
+
 class VertexBufferInfo(object):
     """Vertex buffer object (VBO) descriptor.
 
@@ -1743,23 +1772,24 @@ def createVBO(data,
     return vboInfo
 
 
-def setVertexAttribPointer(index, vboInfo, offset=0, normalize=False, enable=True):
+def setVertexAttribPointer(index, vbo, offset=0, normalize=False, vao=None):
     """Define an array of vertex attribute data with a VBO descriptor.
 
     Parameters
     ----------
     index : int
         Index of the attribute to modify.
-    vboInfo : VertexBufferInfo
+    vbo : VertexBufferInfo
         VBO descriptor.
-    offset : int
+    offset : int, optional
         Starting index of the attribute in the buffer.
-    normalize : bool
+    normalize : bool, optional
         Normalize fixed-point format values when accessed.
-    enable : bool
-        Enable the vertex attribute array after defining it. Note that you must
-        call `glDisableVertexAttribArray` with `index` when done (unless this is
-        being called within a presently bound VAO).
+    vao : int, optional
+        Vertex array object (VAO) to modify. The state of the VAO will be
+        changed to include the definition of the vertex attribute pointer.
+        Furthermore, access to the attribute will be enabled within the VAO
+        state.
 
     Examples
     --------
@@ -1774,7 +1804,7 @@ def setVertexAttribPointer(index, vboInfo, offset=0, normalize=False, enable=Tru
         GL.glDrawArrays(GL.GL_TRIANGLES, 0, nIndices)
 
     If our VBO has interleaved attributes, we can specify `offset` to account
-    for this::
+    for that::
 
         # define interleaved vertex attributes
         #        |     Position    | Texture |   Normals   |
@@ -1786,7 +1816,7 @@ def setVertexAttribPointer(index, vboInfo, offset=0, normalize=False, enable=Tru
         # create interleaved array
         vertexAttribs = np.asarray(vQuad, dtype=np.float32)
 
-        # create VBO
+        # create a VBO with interleaved attributes
         vboInterleaved = createVBO(vertexAttribs)
 
         # ... before rendering, set the attribute pointers
@@ -1804,21 +1834,21 @@ def setVertexAttribPointer(index, vboInfo, offset=0, normalize=False, enable=Tru
         glDisableVertexAttribArray(2)
 
     """
-    if vboInfo.target != GL.GL_ARRAY_BUFFER:
+    if vbo.target != GL.GL_ARRAY_BUFFER:
         raise ValueError('VBO must have `target` type `GL_ARRAY_BUFFER`.')
 
-    _, glType = GL_COMPAT_TYPES[vboInfo.dataType]
+    _, glType = GL_COMPAT_TYPES[vbo.dataType]
 
-    GL.glBindBuffer(GL.GL_ARRAY_BUFFER, vboInfo.name)
-    if enable:
+    GL.glBindBuffer(GL.GL_ARRAY_BUFFER, vbo.name)
+    if vao is not None:
         GL.glEnableVertexAttribArray(index)
 
     GL.glVertexAttribPointer(
         index,
-        vboInfo.shape[1],
-        vboInfo.dataType,
+        vbo.shape[1],
+        vbo.dataType,
         GL.GL_TRUE if normalize else GL.GL_FALSE,
-        vboInfo.stride,
+        vbo.stride,
         offset * ctypes.sizeof(glType))
 
     GL.glBindBuffer(GL.GL_ARRAY_BUFFER, 0)
