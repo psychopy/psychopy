@@ -18,6 +18,29 @@ from PIL import Image
 import numpy as np
 import os, sys
 
+# compatible Numpy and OpenGL types for common GL type enums
+GL_COMPAT_TYPES = {
+    GL.GL_FLOAT: (np.float32, GL.GLfloat),
+    GL.GL_DOUBLE: (np.float64, GL.GLdouble),
+    GL.GL_UNSIGNED_SHORT: (np.uint16, GL.GLushort),
+    GL.GL_UNSIGNED_INT: (np.uint32, GL.GLuint),
+    GL.GL_INT: (np.int32, GL.GLint),
+    GL.GL_SHORT: (np.int16, GL.GLshort),
+    GL.GL_HALF_FLOAT: (np.float16, GL.GLhalfARB),
+    GL.GL_UNSIGNED_BYTE: (np.uint8, GL.GLubyte),
+    GL.GL_BYTE: (np.int8, GL.GLbyte),
+    np.float32: (GL.GL_FLOAT, GL.GLfloat),
+    np.float64: (GL.GL_DOUBLE, GL.GLdouble),
+    np.uint16: (GL.GL_UNSIGNED_SHORT, GL.GLushort),
+    np.uint32: (GL.GL_UNSIGNED_INT, GL.GLuint),
+    np.int32: (GL.GL_INT, GL.GLint),
+    np.int16: (GL.GL_SHORT, GL.GLshort),
+    np.float16: (GL.GL_HALF_FLOAT, GL.GLhalfARB),
+    np.uint8: (GL.GL_UNSIGNED_BYTE, GL.GLubyte),
+    np.int8: (GL.GL_BYTE, GL.GLbyte)
+}
+
+
 # -------------------------------
 # Shader Program Helper Functions
 # -------------------------------
@@ -1517,8 +1540,8 @@ class VertexBufferInfo(object):
         `userData` will be initialized as an empty dictionary.
 
     """
-    __slots__ = [
-        'name', 'target', 'usage', 'dataType', 'size', 'stride', 'shape', 'userData']
+    __slots__ = ['name', 'target', 'usage', 'dataType',
+                 'size', 'stride', 'shape', 'userData']
 
     def __init__(self,
                  name=0,
@@ -1530,7 +1553,7 @@ class VertexBufferInfo(object):
                  shape=(0,),
                  userData=None):
 
-        self.name = GL.GLuint(name)
+        self.name = name
         self.target = target
         self.usage = usage
         self.dataType = dataType
@@ -1554,7 +1577,7 @@ class VertexBufferInfo(object):
         return self.name != other.name
 
     @property
-    def isBuffer(self):
+    def hasBuffer(self):
         """Check if the VBO assigned to name is a buffer."""
         if self.name != 0 and GL.glIsBuffer(self.name):
             return True
@@ -1610,28 +1633,14 @@ class VertexBufferInfo(object):
         return isValid
 
 
-VertexArrayObject = namedtuple(
-    'VertexArrayObject',
-    ['id',
-     'indices',
-     'isIndexed',
-     'userData']
-)
-
-
-GL_COMPAT_TYPES = {GL.GL_FLOAT: (np.float32, GL.GLfloat),
-                   GL.GL_DOUBLE: (np.float64, GL.GLdouble),
-                   GL.GL_UNSIGNED_SHORT: (np.uint16, GL.GLushort),
-                   GL.GL_UNSIGNED_INT: (np.uint32, GL.GLuint),
-                   GL.GL_INT: (np.int32, GL.GLint),
-                   GL.GL_SHORT: (np.int16, GL.GLshort)}
-
-
 def createVBO(data,
               target=GL.GL_ARRAY_BUFFER,
               dataType=GL.GL_FLOAT,
               usage=GL.GL_STATIC_DRAW):
-    """Create an array buffer, often referred to as Vertex Buffer Object (VBO).
+    """Create an array buffer object (VBO).
+
+    Creates a VBO using input data, usually as a `ndarray` or `list`. Attributes
+    common to one vertex should occupy a single row of the `data` array.
 
     Parameters
     ----------
@@ -1640,9 +1649,10 @@ def createVBO(data,
         VBO is inferred by the type of the array. If the input is a Python
         `list` or `tuple` type, the data type of the array will be `GL_FLOAT`.
     target : :obj:`int`
-        Target used when binding the buffer (e.g. GL_VERTEX_ARRAY)
+        Target used when binding the buffer (e.g. `GL_VERTEX_ARRAY` or
+        `GL_ELEMENT_ARRAY_BUFFER`). Default is `GL_VERTEX_ARRAY`.
     dataType : Glenum, optional
-        Data type of array. Input data will be recast to the appropriate type if
+        Data type of array. Input data will be recast to an appropriate type if
         necessary. Default is `GL_FLOAT`.
     usage : GLenum or int, optional
         Usage type for the array (i.e. `GL_STATIC_DRAW`).
@@ -1658,19 +1668,40 @@ def createVBO(data,
 
         # vertices of a triangle
         verts = [[ 1.0,  1.0, 0.0],   # v0
-                   0.0, -1.0, 0.0],   # v1
-                  -1.0,  1.0, 0.0]]   # v2
+                 [ 0.0, -1.0, 0.0],   # v1
+                 [-1.0,  1.0, 0.0]]   # v2
 
         # load vertices to graphics device, return a descriptor
         vboDesc = createVBO(verts)
 
-    Drawing triangles using vertex buffer data::
+    Drawing triangles or quads using vertex buffer data::
 
-        GL.glBindBuffer(GL.GL_ARRAY_BUFFER, vboDesc.name)
-        GL.glVertexPointer(vboDesc.vertexSize, vboDesc.dataType, 0, None)
-        GL.glEnableClientState(vboDesc.bufferType)
-        GL.glDrawArrays(GL.GL_TRIANGLES, 0, vboDesc.indices)
-        GL.glFlush()
+        nIndices, vSize = vboDesc.shape  # element size
+
+        glBindBuffer(GL_ARRAY_BUFFER, vboDesc.name)
+        glVertexPointer(vSize, vboDesc.dataType, 0, None)
+        glEnableClientState(GL_VERTEX_ARRAY)
+
+        if vSize == 3:
+            drawMode = GL_TRIANGLES
+        elif vSize == 4:
+            drawMode = GL_QUADS
+
+        glDrawArrays(drawMode, 0, nIndices)
+        glFlush()
+
+    Custom data can be associated with this vertex buffer by specifying
+    `userData`::
+
+        myVBO = createVBO(data)
+        myVBO.userData['startIdx'] = 14  # first index to draw with
+
+        # use it later
+        nIndices, vSize = vboDesc.shape  # element size
+        startIdx = myVBO.userData['startIdx']
+        endIdx = nIndices - startIdx
+        glDrawArrays(GL_TRIANGLES, startIdx, endIdx)
+        glFlush()
 
     """
     # build input array
@@ -1701,6 +1732,111 @@ def createVBO(data,
         data.shape)  # leave userData empty
 
     return vboInfo
+
+
+def setVertexAttribPointer(index, vboInfo, offset=0, normalize=False, enable=True):
+    """Define an array of vertex attribute data with a VBO descriptor.
+
+    Parameters
+    ----------
+    index : int
+        Index of the attribute to modify.
+    vboInfo : VertexBufferInfo
+        VBO descriptor.
+    offset : int
+        Starting index of the attribute in the buffer.
+    normalize : bool
+        Normalize fixed-point format values when accessed.
+    enable : bool
+        Enable the vertex attribute array after defining it. Note that you must
+        call `glDisableVertexAttribArray` with `index` when done (unless this is
+        being called within a presently bound VAO).
+
+    Examples
+    --------
+    Define a generic attribute from a vertex buffer descriptor::
+
+        # set the vertex location attribute
+        setVertexAttribPointer(0, vboDesc)  # 0 is vertex in our shader
+        GL.glColor3f(1.0, 0.0, 0.0)  # red triangle
+
+        # draw the triangle
+        nIndices, vSize = vboDesc.shape  # element size
+        GL.glDrawArrays(GL.GL_TRIANGLES, 0, nIndices)
+
+    If our VBO has interleaved attributes, we can specify `offset` to account
+    for this::
+
+        # define vertex attributes
+        verts = [[ -1.0, -1.0, 0.0],
+                 [ -1.0,  1.0, 0.0],
+                 [  1.0,  1.0, 0.0],
+                 [  1.0, -1.0, 0.0]]
+        texCoords = [[0.0, 0.0],
+                     [0.0, 1.0],
+                     [1.0, 1.0],
+                     [1.0, 0.0]]
+        normals = [[ 0.0, 0.0, 1.0],
+                   [ 0.0, 0.0, 1.0],
+                   [ 0.0, 0.0, 1.0],
+                   [ 0.0, 0.0, 1.0]]
+
+        # create interleaved array
+        vertexAttribs = np.hstack([
+            np.asarray(verts, dtype=np.float32),      # starts at 0
+            np.asarray(texCoords, dtype=np.float32),  # starts at 3
+            np.asarray(normals, dtype=np.float32)])   # starts at 5
+
+        # create VBO
+        vboInterleaved = createVBO(vertexAttribs)
+
+        # ... before rendering, set the attribute pointers
+        setVertexAttribPointer(0, vboInterleaved, offset=0)  # vertex pointer
+        setVertexAttribPointer(1, vboInterleaved, offset=3)  # texture pointer
+        setVertexAttribPointer(2, vboInterleaved, offset=5)  # normals pointer
+
+        # draw the triangles
+        nIndices, vSize = vboDesc.shape  # element size
+        GL.glDrawArrays(GL.GL_TRIANGLES, 0, nIndices)
+
+        # call these when done if `enable=True`
+        glDisableVertexAttribArray(0)
+        glDisableVertexAttribArray(1)
+        glDisableVertexAttribArray(2)
+
+    """
+    if vboInfo.target != GL.GL_ARRAY_BUFFER:
+        raise ValueError('VBO must have `target` type `GL_ARRAY_BUFFER`.')
+
+    _, glType = GL_COMPAT_TYPES[vboInfo.dataType]
+
+    GL.glBindBuffer(GL.GL_ARRAY_BUFFER, vboInfo.name)
+    if enable:
+        GL.glEnableVertexAttribArray(index)
+
+    GL.glVertexAttribPointer(
+        index,
+        vboInfo.shape[1],
+        vboInfo.dataType,
+        GL.GL_TRUE if normalize else GL.GL_FALSE,
+        vboInfo.stride,
+        offset * ctypes.sizeof(glType))
+
+    GL.glBindBuffer(GL.GL_ARRAY_BUFFER, 0)
+
+
+def deleteVBO(vbo):
+    """Delete a vertex buffer object (VBO).
+
+    Parameters
+    ----------
+    vbo : VertexBufferInfo
+        Descriptor of VBO to delete.
+
+    """
+    if GL.glIsBuffer(vbo.name):
+        GL.glDeleteBuffers(1, vbo.name)
+        vbo.name = GL.GLuint(0)
 
 
 def createVAO(vertexBuffers, indexBuffer=None):
@@ -1820,17 +1956,6 @@ def drawVAO(vao, mode=GL.GL_TRIANGLES, flush=False):
 
     # reset
     GL.glBindVertexArray(0)
-
-
-def deleteVBO(vbo):
-    """Delete a Vertex Buffer Object (VBO).
-
-    Returns
-    -------
-    :obj:`None'
-
-    """
-    GL.glDeleteBuffers(1, vbo.id)
 
 
 def deleteVAO(vao):
