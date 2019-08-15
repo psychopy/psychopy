@@ -1653,10 +1653,12 @@ class VertexArrayInfo(object):
     :func:`createVAO` returns instances of this class.
 
     """
-    __slots__ = ['name', 'userData']
+    __slots__ = ['name', 'activeAttribs', 'isIndexed', 'userData']
 
-    def __init__(self, name=0, userData=None):
+    def __init__(self, name=0, activeAttribs=None, isIndexed=False, userData=None):
         self.name = name
+        self.activeAttribs = activeAttribs
+        self.isIndexed = isIndexed
 
         if userData is None:
             self.userData = {}
@@ -1672,6 +1674,69 @@ class VertexArrayInfo(object):
     def __ne__(self, other):
         """Inequality test between VAO object names."""
         return self.name != other.name
+
+
+def createVAO(buffers, offsets=None, indexBuffer=None):
+    """Create a Vertex Array object (VAO).
+
+    Parameters
+    ----------
+    buffers : dict
+        Attributes and associated VBOs to add to the VAO state. Keys are
+        vertex attribute pointer indices, values are VBO descriptors to define.
+    offsets : dict, optional
+        Optional attribute pointer offsets.
+    indexBuffer : VertexBufferInfo
+        Optional index buffer.
+
+    Examples
+    --------
+    Create a vertex array object and enable buffer states::
+
+        vao = createVAO({0: vertexPos, 1: texCoords, 2: vertexNormals})
+
+    Using an interleaved vertex buffer, all attributes are in the same buffer
+    (`vertexAttr`). We need to specify offsets for each attribute and pass them
+    to `attribOffsets`::
+
+        vao = createVAO(
+            {0: vertexAttr, 1: vertexAttr, 2: vertexAttr}, {0: 0, 1: 3, 2: 5})
+
+    You can mix interleaved and single-storage buffers::
+
+        vao = createVAO(
+            {0: vertexAttr, 1: vertexAttr, 2: vertexColors}, {0: 0, 1: 3})
+
+    Specifying an optional index array, this is used for indexed drawing of
+    primitives::
+
+        vao = createVAO({0: vertexPos}, indexBuffer=indices)
+
+    The returned `VertexArrayInfo` instance will have attribute
+    ``isIndexed==True``.
+
+    """
+    if not buffers:  # in case an empty list is passed
+        raise ValueError("No buffers specified.")
+
+    # create a vertex buffer ID
+    vaoId = GL.GLuint()
+    GL.glGenVertexArrays(1, ctypes.byref(vaoId))
+    GL.glBindVertexArray(vaoId)
+
+    # add attribute pointers
+    activeAttribs = []
+    for i, buffer in buffers.items():
+        offset = 0
+        if offsets is not None:
+            if i in offsets.keys():
+                offset = offsets[i]
+
+        GL.glEnableVertexAttribArray(i)
+        setVertexAttribPointer(i, buffer, offset)
+        activeAttribs.append(i)
+
+    return VertexArrayInfo(vaoId)
 
 
 class VertexBufferInfo(object):
@@ -1907,7 +1972,7 @@ def createVBO(data,
     return vboInfo
 
 
-def setVertexAttribPointer(index, vbo, offset=0, normalize=False, vao=None):
+def setVertexAttribPointer(index, vbo, offset=0, normalize=False):
     """Define an array of vertex attribute data with a VBO descriptor.
 
     Parameters
@@ -1920,11 +1985,6 @@ def setVertexAttribPointer(index, vbo, offset=0, normalize=False, vao=None):
         Starting index of the attribute in the buffer.
     normalize : bool, optional
         Normalize fixed-point format values when accessed.
-    vao : int, optional
-        Vertex array object (VAO) to modify. The state of the VAO will be
-        changed to include the definition of the vertex attribute pointer.
-        Furthermore, access to the attribute will be enabled within the VAO
-        state.
 
     Examples
     --------
@@ -1975,9 +2035,6 @@ def setVertexAttribPointer(index, vbo, offset=0, normalize=False, vao=None):
     _, glType = GL_COMPAT_TYPES[vbo.dataType]
 
     GL.glBindBuffer(GL.GL_ARRAY_BUFFER, vbo.name)
-    if vao is not None:
-        GL.glEnableVertexAttribArray(index)
-
     GL.glVertexAttribPointer(
         index,
         vbo.shape[1],
