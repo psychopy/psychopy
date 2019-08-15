@@ -1776,25 +1776,15 @@ def setVertexAttribPointer(index, vboInfo, offset=0, normalize=False, enable=Tru
     If our VBO has interleaved attributes, we can specify `offset` to account
     for this::
 
-        # define vertex attributes
-        verts = [[ -1.0, -1.0, 0.0],
-                 [ -1.0,  1.0, 0.0],
-                 [  1.0,  1.0, 0.0],
-                 [  1.0, -1.0, 0.0]]
-        texCoords = [[0.0, 0.0],
-                     [0.0, 1.0],
-                     [1.0, 1.0],
-                     [1.0, 0.0]]
-        normals = [[ 0.0, 0.0, 1.0],
-                   [ 0.0, 0.0, 1.0],
-                   [ 0.0, 0.0, 1.0],
-                   [ 0.0, 0.0, 1.0]]
+        # define interleaved vertex attributes
+        #        |     Position    | Texture |   Normals   |
+        vQuad = [[ -1.0, -1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0],  # v0
+                 [ -1.0,  1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0],  # v1
+                 [  1.0,  1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 1.0],  # v2
+                 [  1.0, -1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 1.0]]  # v3
 
         # create interleaved array
-        vertexAttribs = np.hstack([
-            np.asarray(verts, dtype=np.float32),      # starts at 0
-            np.asarray(texCoords, dtype=np.float32),  # starts at 3
-            np.asarray(normals, dtype=np.float32)])   # starts at 5
+        vertexAttribs = np.asarray(vQuad, dtype=np.float32)
 
         # create VBO
         vboInterleaved = createVBO(vertexAttribs)
@@ -1805,7 +1795,7 @@ def setVertexAttribPointer(index, vboInfo, offset=0, normalize=False, enable=Tru
         setVertexAttribPointer(2, vboInterleaved, offset=5)  # normals pointer
 
         # draw the triangles
-        nIndices, vSize = vboDesc.shape  # element size
+        nIndices, _ = vboDesc.shape
         GL.glDrawArrays(GL.GL_TRIANGLES, 0, nIndices)
 
         # call these when done if `enable=True`
