@@ -17,7 +17,6 @@ from contextlib import contextmanager
 from PIL import Image
 import numpy as np
 import os, sys
-import itertools
 
 # compatible Numpy and OpenGL types for common GL type enums
 GL_COMPAT_TYPES = {
@@ -45,9 +44,6 @@ GL_COMPAT_TYPES = {
 # -------------------------------
 # Shader Program Helper Functions
 # -------------------------------
-#
-# These functions simplify the creation and usage of GLSL shader programs. Both
-# legacy *ARB and recent core profile shader programs are supported.
 #
 
 
@@ -102,7 +98,7 @@ def createProgramObjectARB():
 
     This creates an *Architecture Review Board* (ARB) program variant which is
     compatible with older GLSL versions and OpenGL coding practices (eg.
-    fixed function) on some platforms. Use *ARB variants of shader helper
+    immediate mode) on some platforms. Use *ARB variants of shader helper
     functions (eg. `compileShaderObjectARB` instead of `compileShader`) when
     working with these ARB program objects. This was included for legacy support
     of existing PsychoPy shaders. However, it is recommended that you use
@@ -155,7 +151,7 @@ def createProgramObjectARB():
 
 def compileShader(shaderSrc, shaderType):
     """Compile shader GLSL code and return a shader object. Shader objects can
-    then be attached to programs and made executable on their respective
+    then be attached to programs an made executable on their respective
     processors.
 
     Parameters
@@ -224,7 +220,7 @@ def compileShader(shaderSrc, shaderType):
 
 def compileShaderObjectARB(shaderSrc, shaderType):
     """Compile shader GLSL code and return a shader object. Shader objects can
-    then be attached to programs and made executable on their respective
+    then be attached to programs an made executable on their respective
     processors.
 
     Parameters
@@ -358,28 +354,14 @@ def embedShaderSourceDefs(shaderSrc, defs):
         fragShader = compileShaderObjectARB(fragSrc, GL_FRAGMENT_SHADER_ARB)
 
     """
-    # get the indentation level of the `#version` directive if applicable
-    indent = ''
-    for line in shaderSrc.splitlines(keepends=False):
-        if '#version' in line:
-            indent, _ = line.split('#')
-    else:
-        # no version directive, use indent level of first line
-        for line in shaderSrc.splitlines(keepends=False):
-            if line:
-                indent = ''.join(itertools.takewhile(str.isspace, line))
-                break
-
     # generate GLSL `#define` statements
     glslDefSrc = ""
     for varName, varValue in defs.items():
         if not isinstance(varName, str):
             raise ValueError("Definition name must be type `str`.")
 
-        if isinstance(varValue, (int, bool,)):
+        if isinstance(varValue, (int, bool, float,)):
             varValue = str(int(varValue))
-        elif isinstance(varValue, float):
-            varValue = str(varValue)
         elif isinstance(varValue, bytes):
             varValue = varValue.decode('UTF-8')
         elif isinstance(varValue, str):
@@ -387,7 +369,7 @@ def embedShaderSourceDefs(shaderSrc, defs):
         else:
             raise TypeError("Invalid type for value of `{}`.".format(varName))
 
-        glslDefSrc += indent + '#define {n} {v}\n'.format(n=varName, v=varValue)
+        glslDefSrc += '#define {n} "{v}"\n'.format(n=varName, v=varValue)
 
     # find where the `#version` directive occurs
     versionDirIdx = shaderSrc.find("#version")
@@ -772,58 +754,6 @@ def getUniformLocations(program, builtins=False):
     dict
         Uniform names and locations.
 
-    Examples
-    --------
-    Get the location uniform `modelMatrix` in `myShader` and set it matrix using
-    a Numpy array::
-
-        modelMatrix = numpy.identity(4)  # example
-
-        # if using Pygelt's GL functions, you need to convert to a pointer
-        modelMatrix = modelMatrix.ctypes.data_as(ctypes.POINTER(GL.GLfloat))
-
-        uniforms = getUniformLocations(myShader)
-        useProgram(myShader)
-
-        glUniformMatrix4fv(
-            uniforms['modelMatrix'],
-            1,
-            GL_TRUE,  # transpose, since Numpy matrices are row-major in memory
-            modelMatrix)
-
-    You can check if a shader has a uniform before setting it. This allows for
-    the same sub-routine to flexibly handle different shader types, as long as
-    the uniform variables have the same names and types::
-
-        # get the uniform names and locations. In the shader, we have defined
-        # `uniform vec4 specularColor`.
-        uniforms = getUniformLocations(myShader)
-        hasSpecularColor = 'specularColor' in uniforms.keys()
-
-        if hasSpecularColor:
-            glUniform4f(uniforms['specularColor'],
-                1.0, 1.0, 1.0, 1.0)
-
-        # Another example to handle cases where a shader may be compiled with or
-        # without texture code paths.
-        #
-        # If the shader has `uniform sampler2D diffuseTexture` defined, we
-        # enable textures and bind it to the appropriate texture unit.
-        if 'diffuseTexture' in uniforms.keys():
-            # enable textures if the shader calls for it
-            glEnable(GL_TEXTURE_2D)
-            glActiveTexture(GL_TEXTURE0)
-            glColor4f(1.0, 1.0, 1.0, 1.0)
-            glColorMask(True, True, True, True)
-            glBindTexture(GL_TEXTURE_2D, texId)
-
-            # diffuse at texture unit `0`
-            glUniform4i(uniforms['diffuseTexture'], 0)
-            # remember to disable textures when done!
-        else:
-            # no diffuse texture, just have the material track the current color
-            glColor4f(1.0, 1.0, 1.0, 1.0)
-
     """
     if not GL.glIsProgram(program):
         raise ValueError(
@@ -873,10 +803,6 @@ def getUniformLocations(program, builtins=False):
 def getAttribLocations(program, builtins=False):
     """Get attribute names and locations from the specified program object.
 
-    This allows you to set vertex attribute pointers by name instead of by
-    index, allowing indices to vary between shaders. Furthermore, it allows for
-    checking if a shader has a particular attribute.
-
     This function works with both standard and ARB program object variants.
 
     Parameters
@@ -892,67 +818,6 @@ def getAttribLocations(program, builtins=False):
     -------
     dict
         Attribute names and locations.
-
-    Examples
-    --------
-    Get the attribute locations in the shader and use them to specify vertex
-    attribute pointers within a vertex array (VAO) context::
-
-        # Get vertex attribute locations in our shader (`myShader`). Within the
-        # shader we have attributes defined as:
-        #
-        #   layout(location = 0) in vec3 pos;
-        #   layout(location = 1) in vec2 textureCoords;
-        #   layout(location = 2) in vec3 normals;
-        #
-        # Calling `getAttribLocations` will return a dictionary like this:
-        #
-        #   {'pos': 0, 'textureCoords': 1, 'normals': 2}
-        #
-        attribLocations = getAttribLocations(myShader)
-
-        # create a VAO
-        vaoId = GLuint()
-        glGenVertexArrays(1, byref(vaoId))
-        glBindVertexArray(vaoId)
-
-        # bind the buffer storing vertex attribute, here they are interleaved
-        glBindBuffer(GL.GL_ARRAY_BUFFER, vboId)
-
-        # use the attribute index for `pos` to bind the vertex position buffer
-        attrib = attribLocations['pos']
-        glVertexAttribPointer(attrib, 3, GL_FLOAT, GL_FALSE, posStride, 0)
-        glEnableVertexAttribArray(attrib)
-
-        attrib = attribLocations['textureCoords']
-        glVertexAttribPointer(
-            attrib, 2, GL_FLOAT, GL_FALSE, texCoordStride, texCoordOffset)
-        glEnableVertexAttribArray(attrib)
-
-        attrib = attribLocations['normals']
-        glVertexAttribPointer(
-            attrib, 3, GL_FLOAT, GL_FALSE, normStride, normOffset)
-        glEnableVertexAttribArray(attrib)
-
-        glBindVertexArray(0)  # unbind
-
-    If attribute names are consistent between shaders, you should be able to
-    reuse the same code above, even if the vertex attribute layout locations
-    differ between shaders. In some cases the shader may not accept one or more
-    available attributes (eg. texture coordinates) that are available. Instead
-    of writing multiple sub-routines for building VAOs to handle these
-    permutations, simply check for attribute membership in the data returned
-    by `getAttribLocations`::
-
-        attribLocations = getAttribLocations(myShader)
-        hasTexCoords = 'textureCoords' in attribLocations.keys()
-
-        # when binding attribute pointers
-        if hasTexCoords:
-            attrib = attribLocations['textureCoords']
-            glVertexAttribPointer(
-                attrib, 2, GL_FLOAT, GL_FALSE, texCoordStride, texCoordOffset)
-            glEnableVertexAttribArray(attrib)
 
     """
     if not GL.glIsProgram(program):
@@ -1633,18 +1498,6 @@ def deleteTexture(texture):
 # Vertex Buffer Objects (VBO)
 # ---------------------------
 
-
-#VertexBufferObject = namedtuple(
-#    'VertexBufferObject',
-#    ['id',
-#     'size',
-#     'count',
-#     'indices',
-#     'usage',
-#     'dtype',
-#     'userData']
-#)
-
 class VertexArrayInfo(object):
     """Vertex array object (VAO) descriptor.
 
@@ -1652,13 +1505,23 @@ class VertexArrayInfo(object):
     contain any actual array data associated with the VAO. Calling
     :func:`createVAO` returns instances of this class.
 
-    """
-    __slots__ = ['name', 'activeAttribs', 'isIndexed', 'userData']
+    If `isLegacy` is `True`, attribute binding states are using deprecated (but
+    still supported) pointer definition calls (eg. `glVertexPointer`). This is
+    to ensure backwards compatibility. The values stored in `activeAttribs` will
+    be `GLenum` types such as `GL_VERTEX_ARRAY`. Call `glDisableClientState`
+    instead of `glDisableVertexAttribArray` on `activeAttribs` after using the
+    VAO if `isLegacy`.
 
-    def __init__(self, name=0, activeAttribs=None, isIndexed=False, userData=None):
+    """
+    __slots__ = ['name', 'count', 'activeAttribs', 'indexBuffer', 'isLegacy',
+                 'userData']
+
+    def __init__(self, name=0, count=0, activeAttribs=None, indexBuffer=None, isLegacy=False, userData=None):
         self.name = name
         self.activeAttribs = activeAttribs
-        self.isIndexed = isIndexed
+        self.count = count
+        self.indexBuffer = indexBuffer
+        self.isLegacy = isLegacy
 
         if userData is None:
             self.userData = {}
@@ -1676,18 +1539,28 @@ class VertexArrayInfo(object):
         return self.name != other.name
 
 
-def createVAO(buffers, offsets=None, indexBuffer=None):
-    """Create a Vertex Array object (VAO).
+def createVAO(attribBuffers, indexBuffer=None, legacy=False):
+    """Create a Vertex Array object (VAO). VAOs store buffer binding states,
+    reducing CPU overhead when drawing objects with vertex data stored in VBOs.
+
+    Define vertex attributes within a VAO state by passing a mapping for
+    generic attribute indices and VBO buffers.
 
     Parameters
     ----------
-    buffers : dict
+    attribBuffers : dict
         Attributes and associated VBOs to add to the VAO state. Keys are
         vertex attribute pointer indices, values are VBO descriptors to define.
-    offsets : dict, optional
-        Optional attribute pointer offsets.
+        Values can be `tuples` where the first value is the buffer descriptor,
+        the second is the buffer offset (`int`), and the last is whether to
+        normalize the array (`bool`).
     indexBuffer : VertexBufferInfo
         Optional index buffer.
+    legacy : bool, optional
+        Use legacy attribute pointer functions when setting the VAO state. This
+        is for compatibility with older GL implementations. Key specified to
+        `attribBuffers` must be `GLenum` types such as `GL_VERTEX_ARRAY` to
+        indicate the capability to use.
 
     Examples
     --------
@@ -1696,16 +1569,16 @@ def createVAO(buffers, offsets=None, indexBuffer=None):
         vao = createVAO({0: vertexPos, 1: texCoords, 2: vertexNormals})
 
     Using an interleaved vertex buffer, all attributes are in the same buffer
-    (`vertexAttr`). We need to specify offsets for each attribute and pass them
-    to `attribOffsets`::
+    (`vertexAttr`). We need to specify offsets for each attribute by passing a
+    buffer in a `tuple` with the second value specifying the offset::
 
         vao = createVAO(
-            {0: vertexAttr, 1: vertexAttr, 2: vertexAttr}, {0: 0, 1: 3, 2: 5})
+            {0: (vertexAttr, 0), 1: (vertexAttr, 3), 2: (vertexAttr, 5)})
 
     You can mix interleaved and single-storage buffers::
 
         vao = createVAO(
-            {0: vertexAttr, 1: vertexAttr, 2: vertexColors}, {0: 0, 1: 3})
+            {0: (vertexAttr, 0), 1: (vertexAttr, 3), 2: vertexColors})
 
     Specifying an optional index array, this is used for indexed drawing of
     primitives::
@@ -1715,8 +1588,30 @@ def createVAO(buffers, offsets=None, indexBuffer=None):
     The returned `VertexArrayInfo` instance will have attribute
     ``isIndexed==True``.
 
+    Drawing vertex arrays using a VAO::
+
+        # draw the array
+        GL.glBindVertexArray(vao.name)
+
+        if vao.isIndexed:
+            GL.glDrawElements(mode, vao.count, vao.indexBuffer.dataType, None)
+        else:
+            GL.glDrawArrays(mode, 0, vao.count)
+
+        if flush:
+            GL.glFlush()
+
+        # reset
+        GL.glBindVertexArray(0)
+
+    Use legacy attribute pointer bindings when building a VAO for compatibility
+    with the fixed-function pipeline and older GLSL versions::
+
+        attribBuffers = {GL_VERTEX_ARRAY: vertexPos, GL_NORMAL_ARRAY: normals}
+        vao = createVAO(attribBuffers, legacy=True)
+
     """
-    if not buffers:  # in case an empty list is passed
+    if not attribBuffers:  # in case an empty list is passed
         raise ValueError("No buffers specified.")
 
     # create a vertex buffer ID
@@ -1725,18 +1620,49 @@ def createVAO(buffers, offsets=None, indexBuffer=None):
     GL.glBindVertexArray(vaoId)
 
     # add attribute pointers
-    activeAttribs = []
-    for i, buffer in buffers.items():
+    activeAttribs = {}
+    bufferIndices = []
+    for i, buffer in attribBuffers.items():
         offset = 0
-        if offsets is not None:
-            if i in offsets.keys():
-                offset = offsets[i]
+        normalize = False
+        if isinstance(buffer, (list, tuple,)):
+            if len(buffer) == 1:
+                buffer = buffer[0]  # size 1 tuple or list eg. (buffer,)
+            elif len(buffer) == 2:
+                buffer, offset = buffer
+            elif len(buffer) == 3:
+                buffer, offset, normalize = buffer
+            else:
+                raise ValueError('Invalid attribute values.')
 
-        GL.glEnableVertexAttribArray(i)
-        setVertexAttribPointer(i, buffer, offset)
-        activeAttribs.append(i)
+        if not legacy:
+            GL.glEnableVertexAttribArray(i)
+            setVertexAttribPointer(i, buffer, offset, normalize)
+        else:
+            GL.glEnableClientState(i)
+            setVertexPointer(buffer, i)
 
-    return VertexArrayInfo(vaoId)
+        activeAttribs[i] = buffer
+        bufferIndices.append(buffer.shape[1])
+
+    # bind the EBO if available
+    if indexBuffer is not None:
+        if indexBuffer.target == GL.GL_ELEMENT_ARRAY_BUFFER:
+            GL.glBindBuffer(GL.GL_ELEMENT_ARRAY_BUFFER, indexBuffer.name)
+            nIndices = indexBuffer.shape[0]
+        else:
+            raise ValueError(
+                'Index buffer does not have target `GL_ELEMENT_ARRAY_BUFFER`.')
+    else:
+        nIndices = min(bufferIndices)
+
+    GL.glBindVertexArray(0)
+
+    return VertexArrayInfo(vaoId,
+                           nIndices,
+                           activeAttribs,
+                           indexBuffer,
+                           legacy)
 
 
 class VertexBufferInfo(object):
@@ -1972,8 +1898,81 @@ def createVBO(data,
     return vboInfo
 
 
+def setVertexPointer(vbo, cap=GL.GL_VERTEX_ARRAY, offset=0):
+    """Define a vertex pointer using a VBO descriptor.
+
+    Parameters
+    ----------
+    vbo : VertexBufferInfo
+        VBO descriptor.
+    cap : GLenum
+        Target capability to define (eg. `GL_VERTEX_ARRAY`, `GL_NORMAL_ARRAY`,
+        `GL_TEXTURE_COORD_ARRAY`, etc.)
+    offset : int, optional
+        Starting index of the attribute in the buffer. Default is `0`.
+
+    """
+    GL.glBindBuffer(vbo.target, vbo.name)
+
+    if cap == GL.GL_VERTEX_ARRAY:
+        GL.glVertexPointer(vbo.shape[1], vbo.dataType, vbo.stride, offset)
+    elif cap == GL.GL_TEXTURE_COORD_ARRAY:
+        GL.glTexCoordPointer(vbo.shape[1], vbo.dataType, vbo.stride, offset)
+    elif cap == GL.GL_NORMAL_ARRAY:
+        GL.glNormalPointer(vbo.dataType, vbo.stride, offset)
+    elif cap == GL.GL_COLOR_ARRAY:
+        GL.glColorPointer(vbo.shape[1], vbo.dataType, vbo.stride, offset)
+    elif cap == GL.GL_SECONDARY_COLOR_ARRAY:
+        GL.glSecondaryColorPointer(
+            vbo.shape[1], vbo.dataType, vbo.stride, offset)
+    elif cap == GL.GL_FOG_COORD_ARRAY:
+        GL.glFogCoordPointer(vbo.dataType, vbo.stride, offset)
+    else:
+        raise ValueError('Invalid `cap` value.')
+
+    GL.glBindBuffer(GL.GL_ARRAY_BUFFER, 0)
+
+
 def setVertexAttribPointer(index, vbo, offset=0, normalize=False):
     """Define an array of vertex attribute data with a VBO descriptor.
+
+    In modern OpenGL implementations, attributes are 'generic', where an
+    attribute pointer index does not correspond to any special vertex property.
+    Usually the usage for an attribute is defined in the shader program. It is
+    recommended that shader programs define attributes using the `layout`
+    parameters::
+
+        layout (location = 0) in vec3 position;
+        layout (location = 1) in vec2 texCoord;
+        layout (location = 2) in vec3 normal;
+
+    Setting attribute pointers can be done like this::
+
+        setVertexAttribPointer(0, posVbo)
+        setVertexAttribPointer(1, texVbo)
+        setVertexAttribPointer(2, normVbo)
+
+    For compatibility with older OpenGL specifications, some drivers will alias
+    vertex pointers unless they are explicitly defined in the shader. This
+    allows VAOs the be used with the fixed-function pipeline or older GLSL
+    versions.
+
+    On nVidia graphics drivers (and maybe others), the following attribute
+    pointers indices are aliased with reserved GLSL names:
+
+        * gl_Vertex - 0
+        * gl_Normal - 2
+        * gl_Color - 3
+        * gl_SecondaryColor - 4
+        * gl_FogCoord - 5
+        * gl_MultiTexCoord0 - 8
+        * gl_MultiTexCoord1 - 9
+        * gl_MultiTexCoord2 - 10
+        * gl_MultiTexCoord3 - 11
+        * gl_MultiTexCoord4 - 12
+        * gl_MultiTexCoord5 - 13
+        * gl_MultiTexCoord6 - 14
+        * gl_MultiTexCoord7 - 15
 
     Parameters
     ----------
@@ -2016,8 +2015,8 @@ def setVertexAttribPointer(index, vbo, offset=0, normalize=False):
 
         # ... before rendering, set the attribute pointers
         setVertexAttribPointer(0, vboInterleaved, offset=0)  # vertex pointer
-        setVertexAttribPointer(1, vboInterleaved, offset=3)  # texture pointer
-        setVertexAttribPointer(2, vboInterleaved, offset=5)  # normals pointer
+        setVertexAttribPointer(8, vboInterleaved, offset=3)  # texture pointer
+        setVertexAttribPointer(1, vboInterleaved, offset=5)  # normals pointer
 
         # draw the triangles
         nIndices, _ = vboDesc.shape
@@ -2025,8 +2024,8 @@ def setVertexAttribPointer(index, vbo, offset=0, normalize=False):
 
         # call these when done if `enable=True`
         glDisableVertexAttribArray(0)
+        glDisableVertexAttribArray(8)
         glDisableVertexAttribArray(1)
-        glDisableVertexAttribArray(2)
 
     """
     if vbo.target != GL.GL_ARRAY_BUFFER:
@@ -2046,6 +2045,51 @@ def setVertexAttribPointer(index, vbo, offset=0, normalize=False):
     GL.glBindBuffer(GL.GL_ARRAY_BUFFER, 0)
 
 
+class MapBufferContext(object):
+    """Context for modifying vertex buffers."""
+    def __init__(self, vbo, access=GL.GL_READ_WRITE):
+        self.vboDesc = vbo
+        GL.glBindBuffer(self.vboDesc.target, self.vboDesc.name)
+        self.bufferPtr = GL.glMapBuffer(self.vboDesc.target, access)
+        self.bufferArray = np.ctypeslib.as_array(
+            ctypes.cast(self.bufferPtr, ctypes.POINTER(ctypes.c_float)),
+            shape=vbo.shape)
+
+    def __enter__(self):
+        return self.bufferArray
+
+    def __exit__(self, type, value, traceback):
+        GL.glUnmapBuffer(self.vboDesc.target)
+        GL.glBindBuffer(self.vboDesc.target, 0)
+
+
+def mapBuffer(vbo, access=GL.GL_READ_WRITE):
+    """Map a vertex buffer object to client memory.
+
+    Parameters
+    ----------
+    vbo : VertexBufferInfo
+        Vertex buffer to map to client memory.
+    access : GLenum
+        Access type. Can be `GL_READ_WRITE`, `GL_READ_ONLY` or `GL_WRITE_ONLY`.
+
+    Returns
+    -------
+    MapBufferContext
+        Context object for modifying a vertex buffer. Must be used in a `with`
+        statement. Buffer binding state is broken upon exiting the context.
+
+    Examples
+    --------
+    Map a buffer and edit it::
+
+        with mapBuffer(vbo, GL.GL_READ_WRITE) as arr:
+            arr[:, :] += 2.0  # add 2 to all values
+
+    """
+    return MapBufferContext(vbo, access)
+
+
 def deleteVBO(vbo):
     """Delete a vertex buffer object (VBO).
 
@@ -2060,105 +2104,28 @@ def deleteVBO(vbo):
         vbo.name = GL.GLuint(0)
 
 
-def createVAO(vertexBuffers, indexBuffer=None):
-    """Create a Vertex Array Object (VAO) with specified Vertex Buffer Objects.
-    VAOs store buffer binding states, reducing CPU overhead when drawing objects
-    with vertex data stored in VBOs.
-
-    Parameters
-    ----------
-    vertexBuffers : :obj:`list` of :obj:`tuple`
-        Specify vertex attributes VBO descriptors apply to.
-    indexBuffer : :obj:`list` of :obj:`int`, optional
-        Index array of elements. If provided, an element array is created from
-        the array. The returned descriptor will have isIndexed=True. This
-        requires the VAO be drawn with glDrawElements instead of glDrawArrays.
-
-    Returns
-    -------
-    VertexArrayObject
-        A descriptor with vertex array information.
-
-    Examples
-    --------
-    Creating a VAO using VBOs::
-
-        vaoDesc = createVAO(vboVerts, vboTexCoords, vboNormals)
-
-    Draw the VAO, rendering the mesh::
-
-        drawVAO(vaoDesc, GL.GL_TRIANGLES)
-
-    """
-    if not vertexBuffers:  # in case an empty list is passed
-        raise ValueError("No buffers specified.")
-
-    # create a vertex buffer ID
-    vaoId = GL.GLuint()
-    GL.glGenVertexArrays(1, ctypes.byref(vaoId))
-    GL.glBindVertexArray(vaoId)
-
-    nIndices = 0
-    hasVertexArray = False
-    for attr, vbo in vertexBuffers:
-        GL.glBindBuffer(GL.GL_ARRAY_BUFFER, vbo.id)
-        if attr == GL.GL_VERTEX_ARRAY:
-            GL.glVertexPointer(vbo.size, vbo.dtype, 0, None)
-            GL.glEnableClientState(GL.GL_VERTEX_ARRAY)
-            nIndices = int(vbo.indices / 3)
-            hasVertexArray = True
-        elif attr == GL.GL_TEXTURE_COORD_ARRAY:
-            GL.glTexCoordPointer(vbo.size, vbo.dtype, 0, None)
-            GL.glEnableClientState(GL.GL_TEXTURE_COORD_ARRAY)
-        elif attr == GL.GL_NORMAL_ARRAY:
-            GL.glNormalPointer(vbo.dtype, 0, None)
-            GL.glEnableClientState(GL.GL_NORMAL_ARRAY)
-        elif attr == GL.GL_COLOR_ARRAY:
-            GL.glColorPointer(vbo.size, vbo.dtype, 0, None)
-            GL.glEnableClientState(GL.GL_COLOR_ARRAY)
-        elif isinstance(attr, int):  # generic attributes
-            GL.glVertexAttribPointer(
-                attr, vbo.size, GL.GL_FLOAT, GL.GL_FALSE, 0, None)
-            GL.glEnableVertexAttribArray(attr)
-
-    if not hasVertexArray:
-        # delete the VAO we created
-        GL.glBindVertexArray(0)
-        GL.glDeleteVertexArrays(1, vaoId)
-        raise RuntimeError("Failed to create VAO, no vertex data specified.")
-
-    # bind the EBO if available
-    if indexBuffer is not None:
-        GL.glBindBuffer(GL.GL_ELEMENT_ARRAY_BUFFER, indexBuffer.id)
-        nIndices = indexBuffer.indices
-
-    GL.glBindVertexArray(0)
-
-    return VertexArrayObject(vaoId, nIndices, indexBuffer is not None, dict())
-
-
-def drawVAO(vao, mode=GL.GL_TRIANGLES, flush=False):
+def drawVAO(vao, mode=GL.GL_TRIANGLES, start=0, count=None, flush=False):
     """Draw a vertex array using glDrawArrays. This method does not require
     shaders.
 
     Parameters
     ----------
-    vao : :obj:`VertexArrayObject`
+    vao : VertexArrayObject
         Vertex Array Object (VAO) to draw.
-    mode : :obj:`int`, optional
+    mode : int, optional
         Drawing mode to use (e.g. GL_TRIANGLES, GL_QUADS, GL_POINTS, etc.)
-    flush : :obj:`bool`, optional
+    start : int, optional
+        Starting index for array elements. Default is `0` which is the beginning
+        of the array.
+    count : int, optional
+        Number of indices to draw from `start`. Must not exceed `vao.count` -
+        `start`.
+    flush : bool, optional
         Flush queued drawing commands before returning.
-
-    Returns
-    -------
-    None
 
     Examples
     --------
     Creating a VAO and drawing it::
-
-        vaoDesc = createVAO(vboVerts, vboTexCoords, vboNormals)
 
         # draw the VAO, renders the mesh
         drawVAO(vaoDesc, GL.GL_TRIANGLES)
@@ -2167,10 +2134,17 @@ def drawVAO(vao, mode=GL.GL_TRIANGLES, flush=False):
     # draw the array
     GL.glBindVertexArray(vao.id)
 
-    if vao.isIndexed:
-        GL.glDrawElements(mode, vao.indices, GL.GL_UNSIGNED_INT, None)
+    if count is None:
+        count = vao.count
     else:
-        GL.glDrawArrays(mode, 0, vao.indices)
+        if count > vao.count - start:
+            raise ValueError(
+                "Value of `count` cannot exceed `{}`.".format(vao.count))
+
+    if vao.indexBuffer is not None:
+        GL.glDrawElements(mode, count, vao.indexBuffer.dataType, start)
+    else:
+        GL.glDrawArrays(mode, start, count)
 
     if flush:
         GL.glFlush()
