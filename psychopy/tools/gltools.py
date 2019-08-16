@@ -2152,7 +2152,7 @@ class MapBufferContext(object):
             self.vboDesc.target,
             GL.GLintptr(0),
             GL.GLintptr(self.vboDesc.size),
-            GL.GL_MAP_WRITE_BIT)
+            GL.GL_MAP_WRITE_BIT | GL.GL_MAP_UNSYNCHRONIZED_BIT)
         self.bufferArray = np.ctypeslib.as_array(
             ctypes.cast(self.bufferPtr, ctypes.POINTER(ctypes.c_float)),
             shape=vbo.shape)
