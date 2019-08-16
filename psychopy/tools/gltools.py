@@ -1623,24 +1623,23 @@ def createVAO(attribBuffers, indexBuffer=None, legacy=False):
     activeAttribs = {}
     bufferIndices = []
     for i, buffer in attribBuffers.items():
+        size = 0
         offset = 0
         normalize = False
         if isinstance(buffer, (list, tuple,)):
             if len(buffer) == 1:
                 buffer = buffer[0]  # size 1 tuple or list eg. (buffer,)
             elif len(buffer) == 2:
-                buffer, offset = buffer
+                buffer, size = buffer
             elif len(buffer) == 3:
-                buffer, offset, normalize = buffer
+                buffer, size, offset = buffer
+            elif len(buffer) == 4:
+                buffer, size, offset, normalize = buffer
             else:
                 raise ValueError('Invalid attribute values.')
 
-        if not legacy:
-            GL.glEnableVertexAttribArray(i)
-            setVertexAttribPointer(i, buffer, offset, normalize)
-        else:
-            GL.glEnableClientState(i)
-            setVertexPointer(buffer, i)
+        enableVertexAttribArray(i, legacy)
+        setVertexAttribPointer(i, buffer, size, offset, normalize, True, legacy)
 
         activeAttribs[i] = buffer
         bufferIndices.append(buffer.shape[1])
@@ -1898,42 +1897,33 @@ def createVBO(data,
     return vboInfo
 
 
-def setVertexPointer(vbo, cap=GL.GL_VERTEX_ARRAY, offset=0):
-    """Define a vertex pointer using a VBO descriptor.
+def bindArrayBuffer(vbo):
+    """Bind a VBO with an `GL_ARRAY_BUFFER` target to the current GL state.
 
     Parameters
     ----------
-    vbo : VertexBufferInfo
-        VBO descriptor.
-    cap : GLenum
-        Target capability to define (eg. `GL_VERTEX_ARRAY`, `GL_NORMAL_ARRAY`,
-        `GL_TEXTURE_COORD_ARRAY`, etc.)
-    offset : int, optional
-        Starting index of the attribute in the buffer. Default is `0`.
+    vbo : VertexBufferInfo or None
+        VBO descriptor to bind. If `None` is specified, the current binding
+        state will be broken.
 
     """
-    GL.glBindBuffer(vbo.target, vbo.name)
-
-    if cap == GL.GL_VERTEX_ARRAY:
-        GL.glVertexPointer(vbo.shape[1], vbo.dataType, vbo.stride, offset)
-    elif cap == GL.GL_TEXTURE_COORD_ARRAY:
-        GL.glTexCoordPointer(vbo.shape[1], vbo.dataType, vbo.stride, offset)
-    elif cap == GL.GL_NORMAL_ARRAY:
-        GL.glNormalPointer(vbo.dataType, vbo.stride, offset)
-    elif cap == GL.GL_COLOR_ARRAY:
-        GL.glColorPointer(vbo.shape[1], vbo.dataType, vbo.stride, offset)
-    elif cap == GL.GL_SECONDARY_COLOR_ARRAY:
-        GL.glSecondaryColorPointer(
-            vbo.shape[1], vbo.dataType, vbo.stride, offset)
-    elif cap == GL.GL_FOG_COORD_ARRAY:
-        GL.glFogCoordPointer(vbo.dataType, vbo.stride, offset)
+    if isinstance(vbo, VertexBufferInfo):
+        if vbo.target != GL.GL_ARRAY_BUFFER:
+            raise ValueError('VBO must have `target` type `GL_ARRAY_BUFFER`.')
+        GL.glBindBuffer(GL.GL_ARRAY_BUFFER, vbo.name)
+    elif vbo is None:
+        GL.glBindBuffer(GL.GL_ARRAY_BUFFER, 0)
     else:
-        raise ValueError('Invalid `cap` value.')
-
-    GL.glBindBuffer(GL.GL_ARRAY_BUFFER, 0)
+        raise TypeError('VBO is not a `VertexBufferInfo` instance.')
 
 
-def setVertexAttribPointer(index, vbo, offset=0, normalize=False):
+def setVertexAttribPointer(index,
+                           vbo,
+                           size=None,
+                           offset=0,
+                           normalize=False,
+                           bind=False,
+                           legacy=False):
     """Define an array of vertex attribute data with a VBO descriptor.
 
     In modern OpenGL implementations, attributes are 'generic', where an
@@ -1974,16 +1964,38 @@ def setVertexAttribPointer(index, vbo, offset=0, normalize=False):
         * gl_MultiTexCoord6 - 14
         * gl_MultiTexCoord7 - 15
 
+    Specifying `legacy` as `True` will allow for old-style pointer definitions.
+    You must specify the capability as a `GLenum` associated with the pointer
+    in this case::
+
+        setVertexAttribPointer(GL_VERTEX_ARRAY, posVbo, legacy=True)
+        setVertexAttribPointer(GL_TEXTURE_COORD_ARRAY, texVbo, legacy=True)
+        setVertexAttribPointer(GL_NORMAL_ARRAY, normVbo, legacy=True)
+
     Parameters
     ----------
     index : int
-        Index of the attribute to modify.
+        Index of the attribute to modify. If `legacy=True`, this value should
+        be a `GLenum` type corresponding to the capability to bind the buffer
+        to, such as `GL_VERTEX_ARRAY`, `GL_TEXTURE_COORD_ARRAY`,
+        `GL_NORMAL_ARRAY`, etc.
     vbo : VertexBufferInfo
         VBO descriptor.
+    size : int, optional
+        Number of components per vertex attribute, can be either 1, 2, 3, or 4.
+        If `None` is specified, the component size will be inferred from the
+        `shape` of the VBO. You must specify this value if the VBO is
+        interleaved.
     offset : int, optional
         Starting index of the attribute in the buffer.
     normalize : bool, optional
         Normalize fixed-point format values when accessed.
+    bind : bool, optional
+        Bind/unbind the vertex buffer before and after defining attributes. If
+        `False`, `vbo` must be bound and unbound by other means.
+    legacy : bool, optional
+        Use legacy vertex attributes (ie. `GL_VERTEX_ARRAY`,
+        `GL_TEXTURE_COORD_ARRAY`, etc.) for backwards compatibility.
 
     Examples
     --------
@@ -2007,25 +2019,33 @@ def setVertexAttribPointer(index, vbo, offset=0, normalize=False):
                  [  1.0,  1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 1.0],  # v2
                  [  1.0, -1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 1.0]]  # v3
 
-        # create interleaved array
-        vertexAttribs = np.asarray(vQuad, dtype=np.float32)
-
         # create a VBO with interleaved attributes
-        vboInterleaved = createVBO(vertexAttribs)
+        vboInterleaved = createVBO(np.asarray(vQuad, dtype=np.float32))
 
         # ... before rendering, set the attribute pointers
-        setVertexAttribPointer(0, vboInterleaved, offset=0)  # vertex pointer
-        setVertexAttribPointer(8, vboInterleaved, offset=3)  # texture pointer
-        setVertexAttribPointer(1, vboInterleaved, offset=5)  # normals pointer
+        GL.glBindBuffer(vboInterleaved.target, vboInterleaved.name)
+        gltools.setVertexAttribPointer(
+            0, vboInterleaved, size=3, offset=0, bind=False)  # vertex pointer
+        gltools.setVertexAttribPointer(
+            8, vboInterleaved, size=2, offset=3, bind=False)  # texture pointer
+        gltools.setVertexAttribPointer(
+            3, vboInterleaved, size=3, offset=5, bind=False)  # normals pointer
 
-        # draw the triangles
-        nIndices, _ = vboDesc.shape
-        GL.glDrawArrays(GL.GL_TRIANGLES, 0, nIndices)
+        # Note, we specified `bind=False` since we are managing the binding
+        # state. It is recommended that you do this when setting up interleaved
+        # buffers to avoid re-binding the same buffer.
+
+        # draw red, full screen quad
+        GL.glColor3f(1.0, 0.0, 0.0)
+        GL.glDrawArrays(GL.GL_QUADS, 0, vboInterleaved.shape[1])
 
         # call these when done if `enable=True`
-        glDisableVertexAttribArray(0)
-        glDisableVertexAttribArray(8)
-        glDisableVertexAttribArray(1)
+        gltools.disableVertexAttribArray(0)
+        gltools.disableVertexAttribArray(8)
+        gltools.disableVertexAttribArray(1)
+
+        # unbind the buffer
+        GL.glBindBuffer(vboInterleaved.target, 0)
 
     """
     if vbo.target != GL.GL_ARRAY_BUFFER:
@@ -2033,24 +2053,106 @@ def setVertexAttribPointer(index, vbo, offset=0, normalize=False):
 
     _, glType = GL_COMPAT_TYPES[vbo.dataType]
 
-    GL.glBindBuffer(GL.GL_ARRAY_BUFFER, vbo.name)
-    GL.glVertexAttribPointer(
-        index,
-        vbo.shape[1],
-        vbo.dataType,
-        GL.GL_TRUE if normalize else GL.GL_FALSE,
-        vbo.stride,
-        offset * ctypes.sizeof(glType))
+    if size is None:
+        size = vbo.shape[1]
 
-    GL.glBindBuffer(GL.GL_ARRAY_BUFFER, 0)
+    offset *= ctypes.sizeof(glType)
+
+    if bind:
+        GL.glBindBuffer(GL.GL_ARRAY_BUFFER, vbo.name)
+
+    if not legacy:
+        GL.glEnableVertexAttribArray(index)
+        GL.glVertexAttribPointer(
+            index,
+            size,
+            vbo.dataType,
+            GL.GL_TRUE if normalize else GL.GL_FALSE,
+            vbo.stride,
+            offset)
+    else:
+        GL.glEnableClientState(index)
+        if index == GL.GL_VERTEX_ARRAY:
+            GL.glVertexPointer(size, vbo.dataType, vbo.stride, offset)
+        elif index == GL.GL_NORMAL_ARRAY:
+            GL.glNormalPointer(vbo.dataType, vbo.stride, offset)
+        elif index == GL.GL_TEXTURE_COORD_ARRAY:
+            GL.glTexCoordPointer(size, vbo.dataType, vbo.stride, offset)
+        elif index == GL.GL_COLOR_ARRAY:
+            GL.glColorPointer(size, vbo.dataType, vbo.stride, offset)
+        elif index == GL.GL_SECONDARY_COLOR_ARRAY:
+            GL.glSecondaryColorPointer(size, vbo.dataType, vbo.stride, offset)
+        elif index == GL.GL_FOG_COORD_ARRAY:
+            GL.glFogCoordPointer(vbo.dataType, vbo.stride, offset)
+        else:
+            raise ValueError('Invalid `index` enum specified.')
+
+    if bind:
+        GL.glBindBuffer(GL.GL_ARRAY_BUFFER, 0)
+
+
+def enableVertexAttribArray(index, legacy=False):
+    """Enable a vertex attribute array. Attributes will be used for use by
+    subsequent draw operations. Be sure to call :func:`disableVertexAttribArray`
+    on the same attribute to prevent currently enabled attributes from affecting
+    later rendering.
+
+    Parameters
+    ----------
+    index : int
+        Index of the attribute to enable. If `legacy=True`, this value should
+        be a `GLenum` type corresponding to the capability to bind the buffer
+        to, such as `GL_VERTEX_ARRAY`, `GL_TEXTURE_COORD_ARRAY`,
+        `GL_NORMAL_ARRAY`, etc.
+    legacy : bool, optional
+        Use legacy vertex attributes (ie. `GL_VERTEX_ARRAY`,
+        `GL_TEXTURE_COORD_ARRAY`, etc.) for backwards compatibility.
+
+    """
+    if not legacy:
+        GL.glEnableVertexAttribArray(index)
+    else:
+        GL.glEnableClientState(index)
+
+
+def disableVertexAttribArray(index, legacy=False):
+    """Disable a vertex attribute array.
+
+    Parameters
+    ----------
+    index : int
+        Index of the attribute to enable. If `legacy=True`, this value should
+        be a `GLenum` type corresponding to the capability to bind the buffer
+        to, such as `GL_VERTEX_ARRAY`, `GL_TEXTURE_COORD_ARRAY`,
+        `GL_NORMAL_ARRAY`, etc.
+    legacy : bool, optional
+        Use legacy vertex attributes (ie. `GL_VERTEX_ARRAY`,
+        `GL_TEXTURE_COORD_ARRAY`, etc.) for backwards compatibility.
+
+    """
+    if not legacy:
+        GL.glDisableVertexAttribArray(index)
+    else:
+        GL.glDisableClientState(index)
 
 
 class MapBufferContext(object):
     """Context for modifying vertex buffers."""
-    def __init__(self, vbo, access=GL.GL_READ_WRITE):
+    def __init__(self, vbo, access=GL.GL_READ_WRITE, discard=False):
         self.vboDesc = vbo
         GL.glBindBuffer(self.vboDesc.target, self.vboDesc.name)
-        self.bufferPtr = GL.glMapBuffer(self.vboDesc.target, access)
+        if discard:
+            GL.glBufferData(
+                self.vboDesc.target,
+                self.vboDesc.size,
+                None,
+                self.vboDesc.usage)
+
+        self.bufferPtr = GL.glMapBufferRange(
+            self.vboDesc.target,
+            GL.GLintptr(0),
+            GL.GLintptr(self.vboDesc.size),
+            GL.GL_MAP_WRITE_BIT)
         self.bufferArray = np.ctypeslib.as_array(
             ctypes.cast(self.bufferPtr, ctypes.POINTER(ctypes.c_float)),
             shape=vbo.shape)
@@ -2063,7 +2165,7 @@ class MapBufferContext(object):
         GL.glBindBuffer(self.vboDesc.target, 0)
 
 
-def mapBuffer(vbo, access=GL.GL_READ_WRITE):
+def mapBuffer(vbo, access=GL.GL_WRITE_ONLY, discard=False):
     """Map a vertex buffer object to client memory.
 
     Parameters
@@ -2072,6 +2174,10 @@ def mapBuffer(vbo, access=GL.GL_READ_WRITE):
         Vertex buffer to map to client memory.
     access : GLenum
         Access type. Can be `GL_READ_WRITE`, `GL_READ_ONLY` or `GL_WRITE_ONLY`.
+    discard : bool, optional
+        Discard buffer data before mapping. This avoid stalling the application
+        while the GPU is still working on the target buffer. Only do this if you
+        wish to update *all* of the data in the buffer, and have write access.
 
     Returns
     -------
@@ -2087,7 +2193,7 @@ def mapBuffer(vbo, access=GL.GL_READ_WRITE):
             arr[:, :] += 2.0  # add 2 to all values
 
     """
-    return MapBufferContext(vbo, access)
+    return MapBufferContext(vbo, access, discard)
 
 
 def deleteVBO(vbo):
@@ -2132,7 +2238,7 @@ def drawVAO(vao, mode=GL.GL_TRIANGLES, start=0, count=None, flush=False):
 
     """
     # draw the array
-    GL.glBindVertexArray(vao.id)
+    GL.glBindVertexArray(vao.name)
 
     if count is None:
         count = vao.count
