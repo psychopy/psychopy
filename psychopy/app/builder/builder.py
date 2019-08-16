@@ -1028,6 +1028,8 @@ class BuilderFrame(wx.Frame):
         self.htmlPath = None
         self.project = None  # type: pavlovia.PavloviaProject
         self.btnHandles = {}  # stores toolbar buttons so they can be altered
+        self.scriptProcess = None
+        self.stdoutBuffer = None
 
         if fileName in self.appData['frames']:
             self.frameData = self.appData['frames'][fileName]
@@ -2126,9 +2128,6 @@ class BuilderFrame(wx.Frame):
         fullPath = self.filename.replace('.psyexp', '_lastrun.py')
         self.generateScript(fullPath)  # Build script based on current version selected
 
-        self.SetEvtHandlerEnabled(False)
-        self.Bind(wx.EVT_IDLE, None)
-
         try:
             self.stdoutFrame.getText()
         except Exception:
@@ -2136,20 +2135,18 @@ class BuilderFrame(wx.Frame):
                 parent=self, app=self.app, size=(700, 300))
 
         # redirect standard streams to log window
+        sys.stdoutOrig = sys.stdout
+        sys.stderrOrig = sys.stderr
         sys.stdout = self.stdoutFrame
         sys.stderr = self.stdoutFrame
 
         # provide a running... message
-        print("\n" + (" Running: %s " % (fullPath)).center(80, "#"))
+        self.stdoutFrame.write((u" Running: %s " % (fullPath)).center(80, "#"))
         self.stdoutFrame.lenLastRun = len(self.stdoutFrame.getText())
-
-        # self is the parent (which will receive an event when the process ends)
-        self.scriptProcess = wx.Process(self)
-        self.scriptProcess.Redirect()  # builder will receive the stdout/stdin
 
         if sys.platform == 'win32':
             # the quotes allow file paths with spaces
-            command = '"%s" -u "%s"' % (sys.executable, fullPath)
+            command = '%s -u %s' % (sys.executable, fullPath)
             # self.scriptProcessID = wx.Execute(command, wx.EXEC_ASYNC,
             #   self.scriptProcess)
             if hasattr(wx, "EXEC_NOHIDE"):
@@ -2164,20 +2161,51 @@ class BuilderFrame(wx.Frame):
             # the quotes would break a unix system command
             command = '%s -u %s' % (pythonExec, fullPath)
             _opts = wx.EXEC_ASYNC | wx.EXEC_MAKE_GROUP_LEADER
-        # launch the command
-        self.scriptProcessID = wx.Execute(command, _opts, self.scriptProcess)
+
+        # self is the parent (which will receive an event when the process ends)
+        # self.scriptProcess = wx.Process(self)
+        # self.scriptProcess.Redirect()  # builder will receive the stdout/stdin
+        # # launch the command
+        # self.scriptProcessID = wx.Execute(command, _opts, self.scriptProcess)
         self.toolbar.EnableTool(self.bldrBtnRun.Id, False)
         self.toolbar.EnableTool(self.bldrBtnStop.Id, True)
-
-        self.SetEvtHandlerEnabled(True)
+        wx.Yield()
+        self.Bind(wx.EVT_IDLE, self.whileRunningFile)
+        self.scriptProcess = subprocess.Popen(
+            args=command.split(),
+            bufsize=-1, executable=None, stdin=None,
+            stdout=subprocess.PIPE, stderr=subprocess.PIPE, preexec_fn=None,
+            close_fds=False, shell=False, cwd=None, env=None,
+            universal_newlines=True,  # gives us back a string instead of bytes
+            startupinfo=None,
+            creationflags=0, restore_signals=True,
+            start_new_session=False, pass_fds=()
+        )
 
     def stopFile(self, event=None):
         """Kills script processes"""
         self.app.terminateHubProcess()
-        # try to kill it gently first
-        success = wx.Kill(self.scriptProcessID, wx.SIGTERM)
-        if success[0] != wx.KILL_OK:
-            wx.Kill(self.scriptProcessID, wx.SIGKILL)  # kill it aggressively
+        if self.scriptProcess:
+            self.scriptProcess.kill()
+        self.scriptProcess = None
+        self.toolbar.EnableTool(self.bldrBtnRun.Id, True)
+        self.toolbar.EnableTool(self.bldrBtnStop.Id, False)
+        self.Bind(wx.EVT_IDLE, None)
+
+    def whileRunningFile(self, event=None):
+        """This is an Idle function while study is running. Check on process
+        and handle stdout"""
+
+        if self.scriptProcess:
+            if self.scriptProcess.poll() is not None:
+                self.onProcessEnded()
+            else:  # still running
+                output = self.scriptProcess.stdout.read()
+                output += self.scriptProcess.stderr.read()
+                self.stdoutFrame.write(output)
+                # if len(self.stdoutBuffer.getvalue()) > self.stdoutFrame.lenLastRun:
+                #     self.stdoutFrame.write(self.stdoutBuffer.getvalue())
+                self.stdoutFrame.Show()
 
     def onProcessEnded(self, event=None):
         """The script/exp has finished running
@@ -2185,22 +2213,20 @@ class BuilderFrame(wx.Frame):
         self.toolbar.EnableTool(self.bldrBtnRun.Id, True)
         self.toolbar.EnableTool(self.bldrBtnStop.Id, False)
         # update the output window and show it
-        text = u""
-        if self.scriptProcess.IsInputAvailable():
-            text += extractText(self.scriptProcess.GetInputStream())
-        if self.scriptProcess.IsErrorAvailable():
-            text += extractText(self.scriptProcess.GetErrorStream())
-        if len(text):
-            # if some text hadn't yet been written (possible?)
-            self.stdoutFrame.write(text)
-        if len(self.stdoutFrame.getText()) > self.stdoutFrame.lenLastRun:
-            self.stdoutFrame.Show()
-            self.stdoutFrame.Raise()
+        sys.stdout.flush()
+        output = self.scriptProcess.stdout.read()
+        output += self.scriptProcess.stderr.read()
+        self.stdoutFrame.write(output)
+        # if len(self.stdoutBuffer.getvalue()) > self.stdoutFrame.lenLastRun:
+        #     self.stdoutFrame.write(self.stdoutBuffer.getvalue())
+        self.stdoutFrame.Show()
+        self.stdoutFrame.Raise()
 
         # then return stdout to its org location
         sys.stdout = self.stdoutOrig
         sys.stderr = self.stderrOrig
-        self.scriptProcess.Destroy()
+        self.scriptProcess = None
+        self.Bind(wx.EVT_IDLE, None)
 
     def onCopyRoutine(self, event=None):
         """copy the current routine from self.routinePanel
