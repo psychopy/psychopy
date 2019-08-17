@@ -18,6 +18,10 @@ from PIL import Image
 import numpy as np
 import os, sys
 
+# keep track of OpenGL states here instead of using `glGet`
+_MAPPED_BUFFERS_ = {GL.GL_ARRAY_BUFFER: None, GL.GL_ELEMENT_ARRAY_BUFFER: None}
+
+
 # compatible Numpy and OpenGL types for common GL type enums
 GL_COMPAT_TYPES = {
     GL.GL_FLOAT: (np.float32, GL.GLfloat),
@@ -1623,7 +1627,7 @@ def createVAO(attribBuffers, indexBuffer=None, legacy=False):
     activeAttribs = {}
     bufferIndices = []
     for i, buffer in attribBuffers.items():
-        size = 0
+        size = buffer.shape[1]
         offset = 0
         normalize = False
         if isinstance(buffer, (list, tuple,)):
@@ -1642,7 +1646,7 @@ def createVAO(attribBuffers, indexBuffer=None, legacy=False):
         setVertexAttribPointer(i, buffer, size, offset, normalize, True, legacy)
 
         activeAttribs[i] = buffer
-        bufferIndices.append(buffer.shape[1])
+        bufferIndices.append(buffer.shape[0])
 
     # bind the EBO if available
     if indexBuffer is not None:
@@ -2165,35 +2169,127 @@ class MapBufferContext(object):
         GL.glBindBuffer(self.vboDesc.target, 0)
 
 
-def mapBuffer(vbo, access=GL.GL_WRITE_ONLY, discard=False):
-    """Map a vertex buffer object to client memory.
+def mapBuffer(vbo, start=0, length=None, read=True, write=True, noSync=False):
+    """Map a vertex buffer object to client memory. This allows you to modify
+
+    Warnings
+    --------
+    Modifying buffer data must be done carefully, or else system stability may
+    be affected. Do not use the returned view `ndarray` outside of successive
+    :func:`mapBuffer` and :func:`unmapBuffer` calls. Do not use the mapped
+    buffer for rendering until after :func:`unmapBuffer` is called.
 
     Parameters
     ----------
     vbo : VertexBufferInfo
         Vertex buffer to map to client memory.
-    access : GLenum
-        Access type. Can be `GL_READ_WRITE`, `GL_READ_ONLY` or `GL_WRITE_ONLY`.
-    discard : bool, optional
-        Discard buffer data before mapping. This avoid stalling the application
-        while the GPU is still working on the target buffer. Only do this if you
-        wish to update *all* of the data in the buffer, and have write access.
+    start : int
+        Initial index of the sub-range of the buffer to modify.
+    length : int or None
+        Number of elements of the sub-array to map from `offset`. If `None`, all
+        elements to from `offset` to the end of the array are mapped.
+    read : bool, optional
+        Allow data to be read from the buffer (sets `GL_MAP_READ_BIT`). This is
+        ignored if `noSync` is `True`.
+    write : bool, optional
+        Allow data to be written to the buffer (sets `GL_MAP_WRITE_BIT`).
+    noSync : bool, optional
+        If `True`, GL will not wait until the buffer is free (i.e. not being
+        processed by the GPU) to map it (sets `GL_MAP_UNSYNCHRONIZED_BIT`). The
+        contents of the previous storage buffer are discarded and the driver
+        returns a new one. This prevents the CPU from stalling until the buffer
+        is available. In addition, `read` must be `False` if `noSync` is `True`.
+        Default is `False`.
 
     Returns
     -------
-    MapBufferContext
-        Context object for modifying a vertex buffer. Must be used in a `with`
-        statement. Buffer binding state is broken upon exiting the context.
+    ndarray
+        View of the data. The type of the returned array is one which best
+        matches the data type of the buffer.
 
     Examples
     --------
     Map a buffer and edit it::
 
-        with mapBuffer(vbo, GL.GL_READ_WRITE) as arr:
-            arr[:, :] += 2.0  # add 2 to all values
+        arr = mapBuffer(vbo)
+        arr[:, :] += 2.0  # add 2 to all values
+        unmapBuffer(vbo)  # call when done
+        # Don't ever modify `arr` after calling `unmapBuffer`. Delete it if
+        # necessary to prevent it form being used.
+        del arr
+
+    Modify a sub-range of data by specifying `start` and `length`, indices
+    correspond to values, not byte offsets::
+
+        arr = mapBuffer(vbo, start=12, end=24)
+        arr[:, :] *= 10.0
+        unmapBuffer(vbo)
 
     """
-    return MapBufferContext(vbo, access, discard)
+    global _MAPPED_BUFFERS_
+    if _MAPPED_BUFFERS_[vbo.target] is not None:
+        raise RuntimeError("Vertex buffer already mapped.")
+
+    npType, glType = GL_COMPAT_TYPES[vbo.dataType]
+    start *= ctypes.sizeof(glType)
+
+    if length is None:
+        length = vbo.size
+    else:
+        length *= ctypes.sizeof(glType)
+
+    accessFlags = GL.GL_NONE
+    if noSync:  # if set, don't set GL_MAP_READ_BIT
+        accessFlags |= GL.GL_MAP_UNSYNCHRONIZED_BIT
+    elif read:
+        accessFlags |= GL.GL_MAP_READ_BIT
+
+    if write:
+        accessFlags |= GL.GL_MAP_WRITE_BIT
+
+    GL.glBindBuffer(vbo.target, vbo.name)
+
+    # get pointer to the buffer
+    bufferPtr = GL.glMapBufferRange(
+        vbo.target,
+        GL.GLintptr(start),
+        GL.GLintptr(length),
+        accessFlags)
+
+    bufferArray = np.ctypeslib.as_array(
+        ctypes.cast(bufferPtr, ctypes.POINTER(glType)),
+        shape=vbo.shape)
+
+    _MAPPED_BUFFERS_[vbo.target] = vbo.name
+
+    return bufferArray
+
+
+def unmapBuffer(vbo):
+    """Unmap a previously mapped buffer. Must be called after :func:`mapBuffer`
+    is called and before any drawing operations which use the buffer are
+    called. Failing to call this before using the buffer could result in a
+    system error.
+
+    Parameters
+    ----------
+    vbo : VertexBufferInfo
+        Vertex buffer descriptor.
+
+    Returns
+    -------
+    bool
+        `True` if the buffer has been successfully modified. If `False`, the
+        data was corrupted for some reason and needs to be resubmitted.
+
+    """
+    global _MAPPED_BUFFERS_
+
+    if _MAPPED_BUFFERS_[vbo.target] == vbo.name:
+        _MAPPED_BUFFERS_[vbo.target] = None
+        return GL.glUnmapBuffer(vbo.target) == GL.GL_TRUE
+    else:
+        return False
 
 
 def deleteVBO(vbo):
