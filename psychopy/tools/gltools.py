@@ -9,7 +9,6 @@
 # Distributed under the terms of the GNU General Public License (GPL).
 
 import ctypes
-import array
 from io import StringIO
 from collections import namedtuple, OrderedDict
 import pyglet.gl as GL  # using Pyglet for now
@@ -17,9 +16,11 @@ from contextlib import contextmanager
 from PIL import Image
 import numpy as np
 import os, sys
+import warnings
 
 # keep track of OpenGL states here instead of using `glGet`
 _MAPPED_BUFFERS_ = {GL.GL_ARRAY_BUFFER: None, GL.GL_ELEMENT_ARRAY_BUFFER: None}
+_BOUND_BUFFERS_ = {GL.GL_ARRAY_BUFFER: None, GL.GL_ELEMENT_ARRAY_BUFFER: None}
 
 
 # compatible Numpy and OpenGL types for common GL type enums
@@ -1511,16 +1512,37 @@ class VertexArrayInfo(object):
 
     If `isLegacy` is `True`, attribute binding states are using deprecated (but
     still supported) pointer definition calls (eg. `glVertexPointer`). This is
-    to ensure backwards compatibility. The values stored in `activeAttribs` will
-    be `GLenum` types such as `GL_VERTEX_ARRAY`. Call `glDisableClientState`
-    instead of `glDisableVertexAttribArray` on `activeAttribs` after using the
-    VAO if `isLegacy`.
+    to ensure backwards compatibility. The keys stored in `activeAttribs` will
+    be `GLenum` types such as `GL_VERTEX_ARRAY`.
+
+    Parameters
+    ----------
+    name : int
+        OpenGL handle for the VAO.
+    count : int
+        Number of vertex elements. If `indexBuffer` is not `None`, count
+        corresponds to the number of elements in the index buffer.
+    activeAttribs : dict
+        Attributes and buffers defined as part of this VAO state. Keys are
+        attribute pointer indices or capabilities (ie. GL_VERTEX_ARRAY).
+    isLegacy : bool
+        Array pointers were defined using the deprecated OpenGL API. If `True`,
+        the VAO may work with older GLSL shaders versions and the fixed-function
+        pipeline.
+    userData : dict or None, optional
+        Optional user defined data associated with this VAO.
 
     """
     __slots__ = ['name', 'count', 'activeAttribs', 'indexBuffer', 'isLegacy',
                  'userData']
 
-    def __init__(self, name=0, count=0, activeAttribs=None, indexBuffer=None, isLegacy=False, userData=None):
+    def __init__(self,
+                 name=0,
+                 count=0,
+                 activeAttribs=None,
+                 indexBuffer=None,
+                 isLegacy=False,
+                 userData=None):
         self.name = name
         self.activeAttribs = activeAttribs
         self.count = count
@@ -1652,17 +1674,23 @@ def createVAO(attribBuffers, indexBuffer=None, legacy=False):
     if indexBuffer is not None:
         if indexBuffer.target == GL.GL_ELEMENT_ARRAY_BUFFER:
             GL.glBindBuffer(GL.GL_ELEMENT_ARRAY_BUFFER, indexBuffer.name)
-            nIndices = indexBuffer.shape[0]
+            count = indexBuffer.shape[0]
         else:
             raise ValueError(
                 'Index buffer does not have target `GL_ELEMENT_ARRAY_BUFFER`.')
     else:
-        nIndices = min(bufferIndices)
+        if bufferIndices.count(bufferIndices[0]) != len(bufferIndices):
+            warnings.warn(
+                'Input arrays have unequal number of rows, using shortest for '
+                '`count`.')
+            count = min(bufferIndices)
+        else:
+            count = bufferIndices[0]
 
     GL.glBindVertexArray(0)
 
     return VertexArrayInfo(vaoId,
-                           nIndices,
+                           count,
                            activeAttribs,
                            indexBuffer,
                            legacy)
@@ -1674,6 +1702,9 @@ class VertexBufferInfo(object):
     This class only stores information about the VBO it refers to, it does not
     contain any actual array data associated with the VBO. Calling
     :func:`createVBO` returns instances of this class.
+
+    It is recommended to use `gltools` functions :func:`bindVBO`,
+    :func:`unbindVBO`, :func:`mapBuffer`, etc. when working with these objects.
 
     Parameters
     ----------
@@ -1901,24 +1932,186 @@ def createVBO(data,
     return vboInfo
 
 
-def bindArrayBuffer(vbo):
-    """Bind a VBO with an `GL_ARRAY_BUFFER` target to the current GL state.
+def bindVBO(vbo):
+    """Bind a VBO to the current GL state.
 
     Parameters
     ----------
-    vbo : VertexBufferInfo or None
-        VBO descriptor to bind. If `None` is specified, the current binding
-        state will be broken.
+    vbo : VertexBufferInfo
+        VBO descriptor to bind.
+
+    Returns
+    -------
+    bool
+        `True` is the binding state was changed. Returns `False` if the state
+        was not changed due to the buffer already  being bound.
 
     """
+    global _BOUND_BUFFERS_
     if isinstance(vbo, VertexBufferInfo):
-        if vbo.target != GL.GL_ARRAY_BUFFER:
-            raise ValueError('VBO must have `target` type `GL_ARRAY_BUFFER`.')
-        GL.glBindBuffer(GL.GL_ARRAY_BUFFER, vbo.name)
-    elif vbo is None:
-        GL.glBindBuffer(GL.GL_ARRAY_BUFFER, 0)
+        if _BOUND_BUFFERS_[vbo.target] != vbo.name:
+            _BOUND_BUFFERS_[vbo.target] = vbo.name
+            GL.glBindBuffer(vbo.target, vbo.name)
+            return True
+        else:
+            return False
     else:
-        raise TypeError('VBO is not a `VertexBufferInfo` instance.')
+        raise TypeError('Specified `vbo` is not at `VertexBufferInfo`.')
+
+
+def unbindVBO(vbo):
+    """Unbind a vertex buffer object (VBO).
+
+    Parameters
+    ----------
+    vbo : VertexBufferInfo
+        VBO descriptor to unbind.
+
+    """
+    global _BOUND_BUFFERS_
+    if isinstance(vbo, VertexBufferInfo):
+        if _BOUND_BUFFERS_[vbo.target] == vbo.name:
+            _BOUND_BUFFERS_[vbo.target] = None
+            GL.glBindBuffer(vbo.target, 0)
+        else:
+            raise ValueError('Vertex buffer was not currently bound.')
+
+
+def mapBuffer(vbo, start=0, length=None, read=True, write=True, noSync=False):
+    """Map a vertex buffer object to client memory. This allows you to modify
+    its contents.
+
+    Warnings
+    --------
+    Modifying buffer data must be done carefully, or else system stability may
+    be affected. Do not use the returned view `ndarray` outside of successive
+    :func:`mapBuffer` and :func:`unmapBuffer` calls. Do not use the mapped
+    buffer for rendering until after :func:`unmapBuffer` is called.
+
+    Parameters
+    ----------
+    vbo : VertexBufferInfo
+        Vertex buffer to map to client memory.
+    start : int
+        Initial index of the sub-range of the buffer to modify.
+    length : int or None
+        Number of elements of the sub-array to map from `offset`. If `None`, all
+        elements to from `offset` to the end of the array are mapped.
+    read : bool, optional
+        Allow data to be read from the buffer (sets `GL_MAP_READ_BIT`). This is
+        ignored if `noSync` is `True`.
+    write : bool, optional
+        Allow data to be written to the buffer (sets `GL_MAP_WRITE_BIT`).
+    noSync : bool, optional
+        If `True`, GL will not wait until the buffer is free (i.e. not being
+        processed by the GPU) to map it (sets `GL_MAP_UNSYNCHRONIZED_BIT`). The
+        contents of the previous storage buffer are discarded and the driver
+        returns a new one. This prevents the CPU from stalling until the buffer
+        is available.
+
+    Returns
+    -------
+    ndarray
+        View of the data. The type of the returned array is one which best
+        matches the data type of the buffer.
+
+    Examples
+    --------
+    Map a buffer and edit it::
+
+        arr = mapBuffer(vbo)
+        arr[:, :] += 2.0  # add 2 to all values
+        unmapBuffer(vbo)  # call when done
+        # Don't ever modify `arr` after calling `unmapBuffer`. Delete it if
+        # necessary to prevent it form being used.
+        del arr
+
+    Modify a sub-range of data by specifying `start` and `length`, indices
+    correspond to values, not byte offsets::
+
+        arr = mapBuffer(vbo, start=12, end=24)
+        arr[:, :] *= 10.0
+        unmapBuffer(vbo)
+
+    """
+    global _MAPPED_BUFFERS_
+    if _MAPPED_BUFFERS_[vbo.target] is not None:
+        raise RuntimeError("Vertex buffer already mapped.")
+
+    npType, glType = GL_COMPAT_TYPES[vbo.dataType]
+    start *= ctypes.sizeof(glType)
+
+    if length is None:
+        length = vbo.size
+    else:
+        length *= ctypes.sizeof(glType)
+
+    accessFlags = GL.GL_NONE
+    if noSync:  # if set, don't set GL_MAP_READ_BIT
+        accessFlags |= GL.GL_MAP_UNSYNCHRONIZED_BIT
+    elif read:
+        accessFlags |= GL.GL_MAP_READ_BIT
+
+    if write:
+        accessFlags |= GL.GL_MAP_WRITE_BIT
+
+    bindVBO(vbo)  # bind the buffer for mapping
+
+    # get pointer to the buffer
+    bufferPtr = GL.glMapBufferRange(
+        vbo.target,
+        GL.GLintptr(start),
+        GL.GLintptr(length),
+        accessFlags)
+
+    bufferArray = np.ctypeslib.as_array(
+        ctypes.cast(bufferPtr, ctypes.POINTER(glType)),
+        shape=vbo.shape)
+
+    _MAPPED_BUFFERS_[vbo.target] = vbo.name
+
+    return bufferArray
+
+
+def unmapBuffer(vbo):
+    """Unmap a previously mapped buffer. Must be called after :func:`mapBuffer`
+    is called and before any drawing operations which use the buffer are
+    called. Failing to call this before using the buffer could result in a
+    system error.
+
+    Parameters
+    ----------
+    vbo : VertexBufferInfo
+        Vertex buffer descriptor.
+
+    Returns
+    -------
+    bool
+        `True` if the buffer has been successfully modified. If `False`, the
+        data was corrupted for some reason and needs to be resubmitted.
+
+    """
+    global _MAPPED_BUFFERS_
+
+    if _MAPPED_BUFFERS_[vbo.target] == vbo.name:
+        _MAPPED_BUFFERS_[vbo.target] = None
+        return GL.glUnmapBuffer(vbo.target) == GL.GL_TRUE
+    else:
+        return False
+
+
+def deleteVBO(vbo):
+    """Delete a vertex buffer object (VBO).
+
+    Parameters
+    ----------
+    vbo : VertexBufferInfo
+        Descriptor of VBO to delete.
+
+    """
+    if GL.glIsBuffer(vbo.name):
+        GL.glDeleteBuffers(1, vbo.name)
+        vbo.name = GL.GLuint(0)
 
 
 def setVertexAttribPointer(index,
@@ -2063,7 +2256,7 @@ def setVertexAttribPointer(index,
     offset *= ctypes.sizeof(glType)
 
     if bind:
-        GL.glBindBuffer(GL.GL_ARRAY_BUFFER, vbo.name)
+        bindVBO(vbo)
 
     if not legacy:
         GL.glEnableVertexAttribArray(index)
@@ -2092,7 +2285,7 @@ def setVertexAttribPointer(index,
             raise ValueError('Invalid `index` enum specified.')
 
     if bind:
-        GL.glBindBuffer(GL.GL_ARRAY_BUFFER, 0)
+        unbindVBO(vbo)
 
 
 def enableVertexAttribArray(index, legacy=False):
@@ -2138,172 +2331,6 @@ def disableVertexAttribArray(index, legacy=False):
         GL.glDisableVertexAttribArray(index)
     else:
         GL.glDisableClientState(index)
-
-
-class MapBufferContext(object):
-    """Context for modifying vertex buffers."""
-    def __init__(self, vbo, access=GL.GL_READ_WRITE, discard=False):
-        self.vboDesc = vbo
-        GL.glBindBuffer(self.vboDesc.target, self.vboDesc.name)
-        if discard:
-            GL.glBufferData(
-                self.vboDesc.target,
-                self.vboDesc.size,
-                None,
-                self.vboDesc.usage)
-
-        self.bufferPtr = GL.glMapBufferRange(
-            self.vboDesc.target,
-            GL.GLintptr(0),
-            GL.GLintptr(self.vboDesc.size),
-            GL.GL_MAP_WRITE_BIT | GL.GL_MAP_UNSYNCHRONIZED_BIT)
-        self.bufferArray = np.ctypeslib.as_array(
-            ctypes.cast(self.bufferPtr, ctypes.POINTER(ctypes.c_float)),
-            shape=vbo.shape)
-
-    def __enter__(self):
-        return self.bufferArray
-
-    def __exit__(self, type, value, traceback):
-        GL.glUnmapBuffer(self.vboDesc.target)
-        GL.glBindBuffer(self.vboDesc.target, 0)
-
-
-def mapBuffer(vbo, start=0, length=None, read=True, write=True, noSync=False):
-    """Map a vertex buffer object to client memory. This allows you to modify
-
-    Warnings
-    --------
-    Modifying buffer data must be done carefully, or else system stability may
-    be affected. Do not use the returned view `ndarray` outside of successive
-    :func:`mapBuffer` and :func:`unmapBuffer` calls. Do not use the mapped
-    buffer for rendering until after :func:`unmapBuffer` is called.
-
-    Parameters
-    ----------
-    vbo : VertexBufferInfo
-        Vertex buffer to map to client memory.
-    start : int
-        Initial index of the sub-range of the buffer to modify.
-    length : int or None
-        Number of elements of the sub-array to map from `offset`. If `None`, all
-        elements to from `offset` to the end of the array are mapped.
-    read : bool, optional
-        Allow data to be read from the buffer (sets `GL_MAP_READ_BIT`). This is
-        ignored if `noSync` is `True`.
-    write : bool, optional
-        Allow data to be written to the buffer (sets `GL_MAP_WRITE_BIT`).
-    noSync : bool, optional
-        If `True`, GL will not wait until the buffer is free (i.e. not being
-        processed by the GPU) to map it (sets `GL_MAP_UNSYNCHRONIZED_BIT`). The
-        contents of the previous storage buffer are discarded and the driver
-        returns a new one. This prevents the CPU from stalling until the buffer
-        is available. In addition, `read` must be `False` if `noSync` is `True`.
-        Default is `False`.
-
-    Returns
-    -------
-    ndarray
-        View of the data. The type of the returned array is one which best
-        matches the data type of the buffer.
-
-    Examples
-    --------
-    Map a buffer and edit it::
-
-        arr = mapBuffer(vbo)
-        arr[:, :] += 2.0  # add 2 to all values
-        unmapBuffer(vbo)  # call when done
-        # Don't ever modify `arr` after calling `unmapBuffer`. Delete it if
-        # necessary to prevent it form being used.
-        del arr
-
-    Modify a sub-range of data by specifying `start` and `length`, indices
-    correspond to values, not byte offsets::
-
-        arr = mapBuffer(vbo, start=12, end=24)
-        arr[:, :] *= 10.0
-        unmapBuffer(vbo)
-
-    """
-    global _MAPPED_BUFFERS_
-    if _MAPPED_BUFFERS_[vbo.target] is not None:
-        raise RuntimeError("Vertex buffer already mapped.")
-
-    npType, glType = GL_COMPAT_TYPES[vbo.dataType]
-    start *= ctypes.sizeof(glType)
-
-    if length is None:
-        length = vbo.size
-    else:
-        length *= ctypes.sizeof(glType)
-
-    accessFlags = GL.GL_NONE
-    if noSync:  # if set, don't set GL_MAP_READ_BIT
-        accessFlags |= GL.GL_MAP_UNSYNCHRONIZED_BIT
-    elif read:
-        accessFlags |= GL.GL_MAP_READ_BIT
-
-    if write:
-        accessFlags |= GL.GL_MAP_WRITE_BIT
-
-    GL.glBindBuffer(vbo.target, vbo.name)
-
-    # get pointer to the buffer
-    bufferPtr = GL.glMapBufferRange(
-        vbo.target,
-        GL.GLintptr(start),
-        GL.GLintptr(length),
-        accessFlags)
-
-    bufferArray = np.ctypeslib.as_array(
-        ctypes.cast(bufferPtr, ctypes.POINTER(glType)),
-        shape=vbo.shape)
-
-    _MAPPED_BUFFERS_[vbo.target] = vbo.name
-
-    return bufferArray
-
-
-def unmapBuffer(vbo):
-    """Unmap a previously mapped buffer. Must be called after :func:`mapBuffer`
-    is called and before any drawing operations which use the buffer are
-    called. Failing to call this before using the buffer could result in a
-    system error.
-
-    Parameters
-    ----------
-    vbo : VertexBufferInfo
-        Vertex buffer descriptor.
-
-    Returns
-    -------
-    bool
-        `True` if the buffer has been successfully modified. If `False`, the
-        data was corrupted for some reason and needs to be resubmitted.
-
-    """
-    global _MAPPED_BUFFERS_
-
-    if _MAPPED_BUFFERS_[vbo.target] == vbo.name:
-        _MAPPED_BUFFERS_[vbo.target] = None
-        return GL.glUnmapBuffer(vbo.target) == GL.GL_TRUE
-    else:
-        return False
-
-
-def deleteVBO(vbo):
-    """Delete a vertex buffer object (VBO).
-
-    Parameters
-    ----------
-    vbo : VertexBufferInfo
-        Descriptor of VBO to delete.
-
-    """
-    if GL.glIsBuffer(vbo.name):
-        GL.glDeleteBuffers(1, vbo.name)
-        vbo.name = GL.GLuint(0)
 
 
 def drawVAO(vao, mode=GL.GL_TRIANGLES, start=0, count=None, flush=False):
