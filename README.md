@@ -35,3 +35,4 @@ and the developers documentation at http://www.psychopy.org/developers/developer
 * Homepage: https://www.psychopy.org
 * Forum: https://discourse.psychopy.org
 * Issue tracker: https://github.com/psychopy/psychopy/issues
+* Changelog: https://www.psychopy.org/changelog.html

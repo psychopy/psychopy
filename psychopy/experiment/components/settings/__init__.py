@@ -213,11 +213,23 @@ class SettingsComponent(object):
 
         # sound params
         self.params['Audio lib'] = Param(
-            'Use prefs', valType='str', allowedVals=['Use prefs', 'ptb', 'pyo', 'sounddevice', 'pygame'],
+            'Use prefs', valType='str',
+            allowedVals=['Use prefs', 'ptb', 'pyo', 'sounddevice', 'pygame'],
             hint=_translate("Which Python sound engine do you want to play your sounds?"),
             label=_translate("Audio library"), categ='Audio')
+
+        audioLatencyLabels = [
+            _translate('Use prefs'),
+            '0: ' + _translate('Latency not important'),
+            '1: ' + _translate('Share low-latency driver'),
+            '2: ' + _translate('Exclusive low-latency'),
+            '3: ' + _translate('Aggressive low-latency'),
+            '4: ' + _translate('Latency critical'),
+        ]
         self.params['Audio latency priority'] = Param(
-            'Use prefs', valType='str', allowedVals=['Use prefs', '0:prioritise compatibility', '1:balance latency/compatibility', '2:prioritise low latency', '3:aggressive low-latency', '4:critical low-latency'],
+            'Use prefs', valType='str',
+            allowedVals=['Use prefs', '0', '1', '2', '3', '4'],
+            allowedLabels=audioLatencyLabels,
             hint=_translate("How important is audio latency for you? If essential then you may need to get all your sounds in correct formats."),
             label=_translate("Audio latency priority"), categ='Audio')
 
@@ -405,7 +417,7 @@ class SettingsComponent(object):
             )
         if self.params['Audio latency priority'] != 'Use prefs':
             buff.writelines(
-                "prefs.hardware['audioLatency'] = {}\n".format(self.params['Audio latency priority'])
+                "prefs.hardware['audioLatencyMode'] = {}\n".format(self.params['Audio latency priority'])
             )
         buff.write(
             "from psychopy import %s\n" % ', '.join(psychopyImports) +
