@@ -122,7 +122,7 @@ class StdOutFrame(wx.Frame):
             parent=self, style=wx.TE_MULTILINE, size=size)
 
         self.mainSizer = wx.BoxSizer(wx.VERTICAL)
-        self.mainSizer.Add(self.stdoutCtrl)
+        self.mainSizer.Add(self.stdoutCtrl, proportion=1, flag=wx.EXPAND)
         self.SetSizerAndFit(self.mainSizer)
         self.Center()
 
