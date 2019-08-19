@@ -1944,9 +1944,10 @@ def createVBO(data,
 
         nIndices, vSize = vboDesc.shape  # element size
 
-        glBindBuffer(GL_ARRAY_BUFFER, vboDesc.name)
-        glVertexPointer(vSize, vboDesc.dataType, 0, None)
-        glEnableClientState(GL_VERTEX_ARRAY)
+        bindVBO(vboDesc)
+        setVertexAttribPointer(
+            GL_VERTEX_ARRAY, vSize, vboDesc.dataType, legacy=True)
+        enableVertexAttribArray(GL_VERTEX_ARRAY, legacy=True)
 
         if vSize == 3:
             drawMode = GL_TRIANGLES
@@ -1955,6 +1956,9 @@ def createVBO(data,
 
         glDrawArrays(drawMode, 0, nIndices)
         glFlush()
+
+        disableVertexAttribArray(GL_VERTEX_ARRAY, legacy=True)
+        unbindVBO()
 
     Custom data can be associated with this vertex buffer by specifying
     `userData`::
@@ -2191,7 +2195,6 @@ def setVertexAttribPointer(index,
                            size=None,
                            offset=0,
                            normalize=False,
-                           bind=False,
                            legacy=False):
     """Define an array of vertex attribute data with a VBO descriptor.
 
@@ -2259,9 +2262,6 @@ def setVertexAttribPointer(index,
         Starting index of the attribute in the buffer.
     normalize : bool, optional
         Normalize fixed-point format values when accessed.
-    bind : bool, optional
-        Bind/unbind the vertex buffer before and after defining attributes. If
-        `False`, `vbo` must be bound and unbound by other means.
     legacy : bool, optional
         Use legacy vertex attributes (ie. `GL_VERTEX_ARRAY`,
         `GL_TEXTURE_COORD_ARRAY`, etc.) for backwards compatibility.
