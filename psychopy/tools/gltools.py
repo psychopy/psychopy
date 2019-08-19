@@ -1512,7 +1512,7 @@ class VertexArrayInfo(object):
 
     If `isLegacy` is `True`, attribute binding states are using deprecated (but
     still supported) pointer definition calls (eg. `glVertexPointer`). This is
-    to ensure backwards compatibility. The keys stored in `activeAttribs` will
+    to ensure backwards compatibility. The keys stored in `activeAttribs` must
     be `GLenum` types such as `GL_VERTEX_ARRAY`.
 
     Parameters
@@ -1578,7 +1578,8 @@ def createVAO(attribBuffers, indexBuffer=None, legacy=False):
         Attributes and associated VBOs to add to the VAO state. Keys are
         vertex attribute pointer indices, values are VBO descriptors to define.
         Values can be `tuples` where the first value is the buffer descriptor,
-        the second is the buffer offset (`int`), and the last is whether to
+        the second is the number of attribute components (`int`, either 2, 3 or
+        4), the third is the offset (`int`), and the last is whether to
         normalize the array (`bool`).
     indexBuffer : VertexBufferInfo
         Optional index buffer.
@@ -1590,7 +1591,7 @@ def createVAO(attribBuffers, indexBuffer=None, legacy=False):
 
     Examples
     --------
-    Create a vertex array object and enable buffer states::
+    Create a vertex array object and enable buffer states within it::
 
         vao = createVAO({0: vertexPos, 1: texCoords, 2: vertexNormals})
 
@@ -1598,13 +1599,16 @@ def createVAO(attribBuffers, indexBuffer=None, legacy=False):
     (`vertexAttr`). We need to specify offsets for each attribute by passing a
     buffer in a `tuple` with the second value specifying the offset::
 
+        # buffer with interleaved layout `00011222` per-attribute
         vao = createVAO(
-            {0: (vertexAttr, 0), 1: (vertexAttr, 3), 2: (vertexAttr, 5)})
+            {0: (vertexAttr, 3),            # size 3, offset 0
+             1: (vertexAttr, 2, 3),         # size 2, offset 3
+             2: (vertexAttr, 3, 5, True)})  # size 3, offset 5, normalize
 
-    You can mix interleaved and single-storage buffers::
+    You can mix interleaved and single-use buffers::
 
         vao = createVAO(
-            {0: (vertexAttr, 0), 1: (vertexAttr, 3), 2: vertexColors})
+            {0: (vertexAttr, 3, 0), 1: (vertexAttr, 3, 3), 2: vertexColors})
 
     Specifying an optional index array, this is used for indexed drawing of
     primitives::
@@ -1614,21 +1618,10 @@ def createVAO(attribBuffers, indexBuffer=None, legacy=False):
     The returned `VertexArrayInfo` instance will have attribute
     ``isIndexed==True``.
 
-    Drawing vertex arrays using a VAO::
+    Drawing vertex arrays using a VAO, will use the `indexBuffer` if available::
 
         # draw the array
-        GL.glBindVertexArray(vao.name)
-
-        if vao.isIndexed:
-            GL.glDrawElements(mode, vao.count, vao.indexBuffer.dataType, None)
-        else:
-            GL.glDrawArrays(mode, 0, vao.count)
-
-        if flush:
-            GL.glFlush()
-
-        # reset
-        GL.glBindVertexArray(0)
+        drawVAO(vao, mode=GL.GL_TRIANGLES)
 
     Use legacy attribute pointer bindings when building a VAO for compatibility
     with the fixed-function pipeline and older GLSL versions::
@@ -2334,8 +2327,7 @@ def setVertexAttribPointer(index,
 
     offset *= ctypes.sizeof(glType)
 
-    if bind:
-        bindVBO(vbo)
+    bindVBO(vbo)
 
     if not legacy:
         GL.glEnableVertexAttribArray(index)
@@ -2363,8 +2355,7 @@ def setVertexAttribPointer(index,
         else:
             raise ValueError('Invalid `index` enum specified.')
 
-    if bind:
-        unbindVBO(vbo)
+    unbindVBO(vbo)
 
 
 def enableVertexAttribArray(index, legacy=False):
