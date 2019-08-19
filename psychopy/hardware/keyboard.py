@@ -262,7 +262,7 @@ class KeyPress(object):
             if thisKey=='q':  # it is equivalent to the string 'q'
                 core.quit()
             else:
-                print(
+                print(thisKey.name, thisKey.tDown, thisKey.rt)
     """
 
     def __init__(self, code, tDown, name=None):
