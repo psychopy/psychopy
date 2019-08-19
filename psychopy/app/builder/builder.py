@@ -29,12 +29,19 @@ if parse_version(wx.__version__) < parse_version('4.0.3'):
 
 import sys
 import os
-import subprocess
 import glob
 import copy
 import traceback
 import codecs
 import numpy
+import time
+
+import subprocess
+import threading
+try:
+    from queue import Queue, Empty
+except ImportError:
+    from Queue import Queue, Empty  # python 2.x
 
 from psychopy.localization import _translate
 
@@ -89,6 +96,33 @@ _localized = {
     'move up': _translate('move up'),
     'move down': _translate('move down'),
     'move to bottom': _translate('move to bottom')}
+
+
+class OutputThread(threading.Thread):
+    def __init__(self, proc):
+        self.proc = proc
+        threading.Thread.__init__(self)
+        self.queue = Queue()
+        self.daemon = True
+        self.exit = False
+
+    def run(self):
+        self.doCheck()
+
+    def doCheck(self):
+        # will do the next line repeatedly until finds EOL
+        # after checking each line check if we should quit
+        for line in iter(self.proc.stdout.readline, b''):
+            # this runs repeatedly
+            self.queue.put(line)
+            # then check if the process ended
+            if self.exit:
+                break
+        for line in self.proc.stderr.readlines():
+            sys.stdout.write(line)
+
+    def getBuffer(self):
+        return self.queue.get_nowait()
 
 
 class RoutineCanvas(wx.ScrolledWindow):
@@ -1028,6 +1062,8 @@ class BuilderFrame(wx.Frame):
         self.htmlPath = None
         self.project = None  # type: pavlovia.PavloviaProject
         self.btnHandles = {}  # stores toolbar buttons so they can be altered
+        self.scriptProcess = None
+        self.stdoutBuffer = None
 
         if fileName in self.appData['frames']:
             self.frameData = self.appData['frames'][fileName]
@@ -2126,9 +2162,6 @@ class BuilderFrame(wx.Frame):
         fullPath = self.filename.replace('.psyexp', '_lastrun.py')
         self.generateScript(fullPath)  # Build script based on current version selected
 
-        self.SetEvtHandlerEnabled(False)
-        self.Bind(wx.EVT_IDLE, None)
-
         try:
             self.stdoutFrame.getText()
         except Exception:
@@ -2136,20 +2169,18 @@ class BuilderFrame(wx.Frame):
                 parent=self, app=self.app, size=(700, 300))
 
         # redirect standard streams to log window
+        sys.stdoutOrig = sys.stdout
+        sys.stderrOrig = sys.stderr
         sys.stdout = self.stdoutFrame
         sys.stderr = self.stdoutFrame
 
         # provide a running... message
-        print("\n" + (" Running: %s " % (fullPath)).center(80, "#"))
+        self.stdoutFrame.write((u" Running: %s " % (fullPath)).center(80, "#"))
         self.stdoutFrame.lenLastRun = len(self.stdoutFrame.getText())
-
-        # self is the parent (which will receive an event when the process ends)
-        self.scriptProcess = wx.Process(self)
-        self.scriptProcess.Redirect()  # builder will receive the stdout/stdin
 
         if sys.platform == 'win32':
             # the quotes allow file paths with spaces
-            command = '"%s" -u "%s"' % (sys.executable, fullPath)
+            command = '%s -u %s' % (sys.executable, fullPath)
             # self.scriptProcessID = wx.Execute(command, wx.EXEC_ASYNC,
             #   self.scriptProcess)
             if hasattr(wx, "EXEC_NOHIDE"):
@@ -2164,35 +2195,69 @@ class BuilderFrame(wx.Frame):
             # the quotes would break a unix system command
             command = '%s -u %s' % (pythonExec, fullPath)
             _opts = wx.EXEC_ASYNC | wx.EXEC_MAKE_GROUP_LEADER
-        # launch the command
-        self.scriptProcessID = wx.Execute(command, _opts, self.scriptProcess)
+        # update app controls
         self.toolbar.EnableTool(self.bldrBtnRun.Id, False)
         self.toolbar.EnableTool(self.bldrBtnStop.Id, True)
-
-        self.SetEvtHandlerEnabled(True)
+        wx.Yield()
+        # the whileRunning method will check on stdout from the script
+        self.scriptProcess = subprocess.Popen(
+            args=command.split(),
+            bufsize=1, executable=None, stdin=None,
+            stdout=subprocess.PIPE, stderr=subprocess.PIPE, preexec_fn=None,
+            shell=False, cwd=None, env=None,
+            universal_newlines=True,  # gives us back a string instead of bytes
+            creationflags=0, restore_signals=True,
+            start_new_session=False, pass_fds=()
+        )
+        print('before', len(threading.enumerate()))
+        # this part creates a non-blocking thread to check the stdout/err
+        self._stdoutThread = OutputThread(self.scriptProcess)
+        self._stdoutThread.start()
+        print('after', len(threading.enumerate()))
+        self.Bind(wx.EVT_IDLE, self.whileRunningFile)
 
     def stopFile(self, event=None):
         """Kills script processes"""
         self.app.terminateHubProcess()
-        # try to kill it gently first
-        success = wx.Kill(self.scriptProcessID, wx.SIGTERM)
-        if success[0] != wx.KILL_OK:
-            wx.Kill(self.scriptProcessID, wx.SIGKILL)  # kill it aggressively
+        if self.scriptProcess:
+            self.scriptProcess.kill()
+        self.onProcessEnded()
+
+    def whileRunningFile(self, event=None):
+        """This is an Idle function while study is running. Check on process
+        and handle stdout"""
+
+        if self.scriptProcess:
+            returnVal = self.scriptProcess.poll()
+            if returnVal is not None:
+                self.onProcessEnded()
+            else:  # still running
+                output = ''
+                try:
+                    line = self._stdoutThread.getBuffer()
+                except Empty:  # nothing in the queue
+                    pass
+                else:  # got line
+                    output += line
+                if output:
+                    sys.stdout.write(output)
+                # if len(self.stdoutBuffer.getvalue()) > self.stdoutFrame.lenLastRun:
+                #     self.stdoutFrame.write(self.stdoutBuffer.getvalue())
+                # self.stdoutFrame.Show()
+        wx.Yield()
+        time.sleep(0.1)  # check every 100ms
 
     def onProcessEnded(self, event=None):
         """The script/exp has finished running
         """
         self.toolbar.EnableTool(self.bldrBtnRun.Id, True)
         self.toolbar.EnableTool(self.bldrBtnStop.Id, False)
-        # update the output window and show it
-        text = u""
-        if self.scriptProcess.IsInputAvailable():
-            text += extractText(self.scriptProcess.GetInputStream())
-        if self.scriptProcess.IsErrorAvailable():
-            text += extractText(self.scriptProcess.GetErrorStream())
-        if len(text):
-            # if some text hadn't yet been written (possible?)
-            self.stdoutFrame.write(text)
+        wx.Yield()
+        # if len(self.stdoutBuffer.getvalue()) > self.stdoutFrame.lenLastRun:
+        #     self.stdoutFrame.write(self.stdoutBuffer.getvalue())
+        self._stdoutThread.exit = True
+        time.sleep(0.2)  # give time for the buffers to finish writing
+        self.stdoutFrame.write(self._stdoutThread.getBuffer())
         if len(self.stdoutFrame.getText()) > self.stdoutFrame.lenLastRun:
             self.stdoutFrame.Show()
             self.stdoutFrame.Raise()
@@ -2200,7 +2265,8 @@ class BuilderFrame(wx.Frame):
         # then return stdout to its org location
         sys.stdout = self.stdoutOrig
         sys.stderr = self.stderrOrig
-        self.scriptProcess.Destroy()
+        self.scriptProcess = None
+        self.Bind(wx.EVT_IDLE, None)
 
     def onCopyRoutine(self, event=None):
         """copy the current routine from self.routinePanel
