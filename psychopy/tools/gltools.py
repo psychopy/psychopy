@@ -1499,9 +1499,9 @@ def deleteTexture(texture):
     GL.glDeleteTextures(1, texture.id)
 
 
-# ---------------------------
-# Vertex Buffer Objects (VBO)
-# ---------------------------
+# --------------------------
+# Vertex Array Objects (VAO)
+#
 
 class VertexArrayInfo(object):
     """Vertex array object (VAO) descriptor.
@@ -1694,6 +1694,81 @@ def createVAO(attribBuffers, indexBuffer=None, legacy=False):
                            activeAttribs,
                            indexBuffer,
                            legacy)
+
+
+def drawVAO(vao, mode=GL.GL_TRIANGLES, start=0, count=None, flush=False):
+    """Draw a vertex array using glDrawArrays. This method does not require
+    shaders.
+
+    Parameters
+    ----------
+    vao : VertexArrayObject
+        Vertex Array Object (VAO) to draw.
+    mode : int, optional
+        Drawing mode to use (e.g. GL_TRIANGLES, GL_QUADS, GL_POINTS, etc.)
+    start : int, optional
+        Starting index for array elements. Default is `0` which is the beginning
+        of the array.
+    count : int, optional
+        Number of indices to draw from `start`. Must not exceed `vao.count` -
+        `start`.
+    flush : bool, optional
+        Flush queued drawing commands before returning.
+
+    Examples
+    --------
+    Creating a VAO and drawing it::
+
+        # draw the VAO, renders the mesh
+        drawVAO(vaoDesc, GL.GL_TRIANGLES)
+
+    """
+    # draw the array
+    GL.glBindVertexArray(vao.name)
+
+    if count is None:
+        count = vao.count
+    else:
+        if count > vao.count - start:
+            raise ValueError(
+                "Value of `count` cannot exceed `{}`.".format(vao.count))
+
+    if vao.indexBuffer is not None:
+        GL.glDrawElements(mode, count, vao.indexBuffer.dataType, start)
+    else:
+        GL.glDrawArrays(mode, start, count)
+
+    if flush:
+        GL.glFlush()
+
+    # reset
+    GL.glBindVertexArray(0)
+
+
+def deleteVAO(vao):
+    """Delete a Vertex Array Object (VAO). This does not delete array buffers
+    bound to the VAO.
+
+    Parameters
+    ----------
+    vao : VertexArrayInfo
+        VAO to delete. All fields in the descriptor except `userData` will be
+        reset.
+
+    """
+    if isinstance(vao, VertexArrayInfo):
+        if vao.name:
+            GL.glDeleteVertexArrays(1, vao.name)
+            vao.name = 0
+            vao.isLegacy = False
+            vao.indexBuffer = None
+            vao.activeAttribs = {}
+            vao.count = 0
+
+
+# ---------------------------
+# Vertex Buffer Objects (VBO)
+#
 
 
 class VertexBufferInfo(object):
@@ -1980,6 +2055,10 @@ def unbindVBO(vbo):
 def mapBuffer(vbo, start=0, length=None, read=True, write=True, noSync=False):
     """Map a vertex buffer object to client memory. This allows you to modify
     its contents.
+
+    If planning to update VBO vertex data, make sure the VBO `usage` types are
+    `GL_DYNAMIC_*` or `GL_STREAM_*` or else serious performance issues may
+    arise.
 
     Warnings
     --------
@@ -2331,67 +2410,6 @@ def disableVertexAttribArray(index, legacy=False):
         GL.glDisableVertexAttribArray(index)
     else:
         GL.glDisableClientState(index)
-
-
-def drawVAO(vao, mode=GL.GL_TRIANGLES, start=0, count=None, flush=False):
-    """Draw a vertex array using glDrawArrays. This method does not require
-    shaders.
-
-    Parameters
-    ----------
-    vao : VertexArrayObject
-        Vertex Array Object (VAO) to draw.
-    mode : int, optional
-        Drawing mode to use (e.g. GL_TRIANGLES, GL_QUADS, GL_POINTS, etc.)
-    start : int, optional
-        Starting index for array elements. Default is `0` which is the beginning
-        of the array.
-    count : int, optional
-        Number of indices to draw from `start`. Must not exceed `vao.count` -
-        `start`.
-    flush : bool, optional
-        Flush queued drawing commands before returning.
-
-    Examples
-    --------
-    Creating a VAO and drawing it::
-
-        # draw the VAO, renders the mesh
-        drawVAO(vaoDesc, GL.GL_TRIANGLES)
-
-    """
-    # draw the array
-    GL.glBindVertexArray(vao.name)
-
-    if count is None:
-        count = vao.count
-    else:
-        if count > vao.count - start:
-            raise ValueError(
-                "Value of `count` cannot exceed `{}`.".format(vao.count))
-
-    if vao.indexBuffer is not None:
-        GL.glDrawElements(mode, count, vao.indexBuffer.dataType, start)
-    else:
-        GL.glDrawArrays(mode, start, count)
-
-    if flush:
-        GL.glFlush()
-
-    # reset
-    GL.glBindVertexArray(0)
-
-
-def deleteVAO(vao):
-    """Delete a Vertex Array Object (VAO). This does not delete array buffers
-    bound to the VAO.
-
-    Returns
-    -------
-    :obj:`None'
-
-    """
-    GL.glDeleteVertexArrays(1, vao.id)
 
 
 # -------------------------
