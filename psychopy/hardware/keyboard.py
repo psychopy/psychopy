@@ -230,8 +230,10 @@ class Keyboard:
         raise NotImplementedError
 
     def clearEvents(self, eventType=None):
+        """"""
         if havePTB:
             for buffer in self._buffers.values():
+                buffer.flush()  # flush the device events to the soft buffer
                 buffer._evts.clear()
                 buffer._keys.clear()
                 buffer._keysStillDown.clear()
@@ -240,6 +242,27 @@ class Keyboard:
 
 class KeyPress(object):
     """Class to store key presses, as returned by `Keyboard.getKeys()`
+
+    Unlike keypresses from the old event.getKeys() which returned a list of
+    strings (the names of the keys) we now return several attributes for each
+    key:
+
+        .name: the name as a string (matching the previous pyglet name)
+        .rt: the reaction time (relative to last clock reset)
+        .tDown: the time the key went down in absolute time
+        .duration: the duration of the keypress (or None if not released)
+
+    Although the keypresses are a class they will test `==`, `!=` and `in`
+    based on their name. So you can still do::
+
+        kb = KeyBoard()
+        # wait for keypresses here
+        keys = kb.getKeys()
+        for thisKey in keys:
+            if thisKey=='q':  # it is equivalent to the string 'q'
+                core.quit()
+            else:
+                print(
     """
 
     def __init__(self, code, tDown, name=None):
@@ -312,6 +335,8 @@ class _KeyBuffer(object):
         self.dev._create_queue(bufferSize)
 
     def flush(self):
+        """Flushes and processes events from the device to this software buffer
+        """
         self._processEvts()
 
     def _flushEvts(self):
@@ -325,7 +350,7 @@ class _KeyBuffer(object):
             self._evts.append(key)
 
     def getKeys(self, keyList=[], waitRelease=True, clear=True):
-        """Return the KeyPress objects
+        """Return the KeyPress objects from the software buffer
 
         Parameters
         ----------
