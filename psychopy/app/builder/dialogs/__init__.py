@@ -163,8 +163,13 @@ class ParamCtrls(object):
             # there are limited options - use a Choice control
             # use localized text or fall through to non-localized,
             # for future-proofing, parallel-port addresses, etc:
+            if param.allowedLabels:
+                labels = param.allowedLabels
+            else:
+                labels = param.allowedVals
+            # add each label to the dropdown
             choiceLabels = []
-            for val in param.allowedVals:
+            for val in labels:
                 try:
                     choiceLabels.append(_localized[val])
                 except KeyError:
