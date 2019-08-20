@@ -37,8 +37,20 @@
     createTexImage2D
     createTexImage2DMultisample
     deleteTexture
-    createVBO
+    VertexArrayInfo
     createVAO
+    drawVAO
+    deleteVAO
+    VertexBufferInfo
+    createVBO
+    bindVBO
+    unbindVBO
+    mapBuffer
+    unmapBuffer
+    deleteVBO
+    setVertexAttribPointer
+    enableVertexAttribArray
+    disableVertexAttribArray
     drawVAO
     deleteVBO
     deleteVAO
@@ -87,11 +99,20 @@ Function details
 .. autofunction:: createTexImage2D
 .. autofunction:: createTexImage2DMultisample
 .. autofunction:: deleteTexture
-.. autofunction:: createVBO
+.. autofunction:: VertexArrayInfo
 .. autofunction:: createVAO
 .. autofunction:: drawVAO
-.. autofunction:: deleteVBO
 .. autofunction:: deleteVAO
+.. autofunction:: VertexBufferInfo
+.. autofunction:: createVBO
+.. autofunction:: bindVBO
+.. autofunction:: unbindVBO
+.. autofunction:: mapBuffer
+.. autofunction:: unmapBuffer
+.. autofunction:: deleteVBO
+.. autofunction:: setVertexAttribPointer
+.. autofunction:: enableVertexAttribArray
+.. autofunction:: disableVertexAttribArray
 .. autofunction:: createMaterial
 .. autofunction:: useMaterial
 .. autofunction:: createLight

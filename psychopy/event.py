@@ -58,7 +58,7 @@ if havePyglet:
     if pyglet.version < '1.4':
         _default_display_ = pyglet.window.get_platform().get_default_display()
     else:
-        _default_display_ = pyglet.canvas.Display().get_default_screen()
+        _default_display_ = pyglet.canvas.get_display()
 
 
 import psychopy.core
