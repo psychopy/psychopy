@@ -1556,6 +1556,9 @@ class VertexArrayInfo(object):
         else:
             raise TypeError('Invalid type for `userData`.')
 
+    def __hash__(self):
+        return hash((self.name, self.isLegacy))
+
     def __eq__(self, other):
         """Equality test between VAO object names."""
         return self.name == other.name
@@ -1824,6 +1827,14 @@ class VertexBufferInfo(object):
             self.userData = userData
         else:
             raise TypeError('Invalid type for `userData`.')
+
+    def __hash__(self):
+        return hash((self.name,
+                     self.target,
+                     self.dataType,
+                     self.usage,
+                     self.size,
+                     self.shape))
 
     def __eq__(self, other):
         """Equality test between VBO object names."""
