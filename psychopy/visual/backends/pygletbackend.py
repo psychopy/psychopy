@@ -39,7 +39,7 @@ retinaContext = None  # it will be set to an actual context if needed
 if pyglet.version < '1.4':
     _default_display_ = pyglet.window.get_platform().get_default_display()
 else:
-    _default_display_ = pyglet.canvas.Display().get_default_screen()
+    _default_display_ = pyglet.canvas.get_display()
 
 
 class PygletBackend(BaseBackend):
@@ -108,7 +108,7 @@ class PygletBackend(BaseBackend):
         if pyglet.version < '1.4':
             allScrs = _default_display_.get_screens()
         else:
-            allScrs = pyglet.canvas.Display().get_screens()
+            allScrs = _default_display_.get_screens()
 
         # Screen (from Exp Settings) is 1-indexed,
         # so the second screen is Screen 1
