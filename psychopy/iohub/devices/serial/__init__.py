@@ -3,12 +3,15 @@
 # Copyright (C) 2012-2016 iSolver Software Solutions
 # Distributed under the terms of the GNU General Public License (GPL).
 import serial
+import sys
 import numpy as N
 from ... import EXP_SCRIPT_DIRECTORY
 from .. import Device, DeviceEvent, Computer
 from ...errors import print2err, printExceptionDetailsToStdErr
 from ...constants import DeviceConstants, EventConstants
 getTime = Computer.getTime
+
+PY3 = sys.version_info.major >= 3
 
 
 class Serial(Device):
@@ -280,7 +283,7 @@ class Serial(Device):
         self._serial.flushInput()
         inBytes = self._serial.inWaiting()
         if inBytes > 0:
-            self._serial.read(inBytes)
+            self._serial.read(inBytes)  # empty buffer and discard
         if self._byte_diff_mode:
             self._rx_buffer = None
         else:
@@ -293,14 +296,18 @@ class Serial(Device):
         self._serial.flush()
 
     def write(self, bytestring):
+        if type(bytestring) != bytes:
+            bytestring = bytestring.encode('utf-8')
         tx_count = self._serial.write(bytestring)
         self._serial.flush()
         return tx_count
 
     def read(self):
-        rx = self._serial.read(self._serial.inWaiting())
-        return rx
-
+        returned = self._serial.read(self._serial.inWaiting())
+        if PY3:
+            returned = returned.decode('utf-8')
+        return returned
+		
     def closeSerial(self):
         if self._serial:
             self._serial.close()

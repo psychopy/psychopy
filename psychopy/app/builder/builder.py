@@ -2209,11 +2209,9 @@ class BuilderFrame(wx.Frame):
             creationflags=0, restore_signals=True,
             start_new_session=False, pass_fds=()
         )
-        print('before', len(threading.enumerate()))
         # this part creates a non-blocking thread to check the stdout/err
         self._stdoutThread = OutputThread(self.scriptProcess)
         self._stdoutThread.start()
-        print('after', len(threading.enumerate()))
         self.Bind(wx.EVT_IDLE, self.whileRunningFile)
 
     def stopFile(self, event=None):
@@ -2252,7 +2250,6 @@ class BuilderFrame(wx.Frame):
         """
         self.toolbar.EnableTool(self.bldrBtnRun.Id, True)
         self.toolbar.EnableTool(self.bldrBtnStop.Id, False)
-        wx.Yield()
         # if len(self.stdoutBuffer.getvalue()) > self.stdoutFrame.lenLastRun:
         #     self.stdoutFrame.write(self.stdoutBuffer.getvalue())
         self._stdoutThread.exit = True

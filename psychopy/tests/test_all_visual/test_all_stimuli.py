@@ -583,9 +583,10 @@ class _baseVisualTest(object):
         wedge = visual.RadialStim(win, tex='sqrXsqr', color=1,size=2*self.scaleFactor,
             visibleWedge=[0, 45], radialCycles=2, angularCycles=2, interpolate=False)
         wedge.draw()
-        thresh = 10
+        thresh = 15  # there are often a slight interpolation differences
         if win.winType != 'pygame':  # pygame definitely gets radialstim wrong!
-            utils.compareScreenshot('wedge1_%s.png' %(self.contextName), win, crit=thresh)
+            utils.compareScreenshot('wedge1_%s.png' %(self.contextName),
+                                    win, crit=thresh)
         win.flip()#AFTER compare screenshot
 
         #using .set()
@@ -601,7 +602,8 @@ class _baseVisualTest(object):
         wedge.draw()
         "{}".format(wedge) #check that str(xxx) is working
         if win.winType != 'pygame':  # pygame definitely gets radialstim wrong!
-            utils.compareScreenshot('wedge2_%s.png' %(self.contextName), win, crit=10.0)
+            utils.compareScreenshot('wedge2_%s.png' %(self.contextName),
+                                    win, crit=thresh)
         else:
             pytest.skip("Pygame fails to render RadialStim properly :-/")
 
@@ -672,8 +674,9 @@ class _baseVisualTest(object):
         radii = numpy.linspace(0,1.0,N)*self.scaleFactor
         x, y = pol2cart(theta=thetas, radius=radii)
         xys = numpy.array([x,y]).transpose()
-        spiral = visual.ElementArrayStim(win, opacities = 0, nElements=N,sizes=0.5*self.scaleFactor,
-            sfs=1.0, xys=xys, oris=-thetas)
+        spiral = visual.ElementArrayStim(
+                win, opacities = 0, nElements=N, sizes=0.5*self.scaleFactor,
+                sfs=1.0, xys=xys, oris=-thetas)
         spiral.draw()
         #check that the update function is working by changing vals after first draw() call
         spiral.opacities = 1.0
@@ -689,8 +692,11 @@ class _baseVisualTest(object):
         win = self.win
         if not win.allowStencil:
             pytest.skip("Don't run aperture test when no stencil is available")
-        grating = visual.GratingStim(win, mask='gauss',sf=8.0, size=2,color='FireBrick', units='norm')
-        aperture = visual.Aperture(win, size=1*self.scaleFactor,pos=[0.8*self.scaleFactor,0])
+        grating = visual.GratingStim(
+                win, mask='gauss',sf=8.0, size=2,color='FireBrick',
+                units='norm')
+        aperture = visual.Aperture(win, size=1*self.scaleFactor,
+                                   pos=[0.8*self.scaleFactor,0])
         aperture.enabled = False
         grating.draw()
         aperture.enabled = True
@@ -711,8 +717,10 @@ class _baseVisualTest(object):
         fileName = os.path.join(utils.TESTS_DATA_PATH, 'testwedges.png')
         if not win.allowStencil:
             pytest.skip("Don't run aperture test when no stencil is available")
-        grating = visual.GratingStim(win, mask='gauss',sf=8.0, size=2,color='FireBrick', units='norm')
-        aperture = visual.Aperture(win, size=1*self.scaleFactor,pos=[0.8*self.scaleFactor,0], shape=fileName)
+        grating = visual.GratingStim(win, mask='gauss',sf=8.0, size=2,
+                                     color='FireBrick', units='norm')
+        aperture = visual.Aperture(win, size=1*self.scaleFactor,
+                                   pos=[0.8*self.scaleFactor,0], shape=fileName)
         aperture.enabled = False
         grating.draw()
         aperture.enabled = True
@@ -720,7 +728,8 @@ class _baseVisualTest(object):
         grating.ori = 90
         grating.color = 'black'
         grating.draw()
-        utils.compareScreenshot('aperture2_%s.png' %(self.contextName), win, crit=30)
+        utils.compareScreenshot('aperture2_%s.png' %(self.contextName),
+                                win, crit=30)
         #aperture should automatically disable on exit
 
     def test_rating_scale(self):
