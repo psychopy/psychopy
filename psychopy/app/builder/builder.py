@@ -2241,7 +2241,6 @@ class BuilderFrame(wx.Frame):
         if returnVal is not None:
             self.onProcessEnded()
         else:
-            wx.Yield()
             time.sleep(0.1)  # let's not check too often
 
     def onProcessEnded(self, event=None):
