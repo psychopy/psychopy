@@ -307,7 +307,7 @@ class Serial(Device):
         if PY3:
             returned = returned.decode('utf-8')
         return returned
-
+		
     def closeSerial(self):
         if self._serial:
             self._serial.close()
@@ -545,7 +545,7 @@ class Pstbox(Serial):
 
         # Convert the new state into a bitmask, collapse it into a
         # single byte and send it to the response box.
-        state_bits = (2**N.arange(9))[state]
+        state_bits = (2**N.arange(8))[state]
         self.write(chr(N.sum(state_bits)))
 
         # Set the `update lamp` bit to LOW again.
