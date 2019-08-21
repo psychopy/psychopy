@@ -2162,17 +2162,9 @@ class BuilderFrame(wx.Frame):
         fullPath = self.filename.replace('.psyexp', '_lastrun.py')
         self.generateScript(fullPath)  # Build script based on current version selected
 
-        try:
-            self.stdoutFrame.getText()
-        except Exception:
-            self.stdoutFrame = stdOutRich.StdOutFrame(
-                parent=self, app=self.app, size=(700, 300))
-
         # redirect standard streams to log window
-        sys.stdoutOrig = sys.stdout
-        sys.stderrOrig = sys.stderr
-        sys.stdout = self.stdoutFrame
-        sys.stderr = self.stdoutFrame
+        self.regenerateStdOutFrame()
+        self.setStandardStream(True)
 
         # provide a running... message
         self.stdoutFrame.write((u" Running: %s " % (fullPath)).center(80, "#"))
@@ -2260,8 +2252,7 @@ class BuilderFrame(wx.Frame):
             self.stdoutFrame.Raise()
 
         # then return stdout to its org location
-        sys.stdout = self.stdoutOrig
-        sys.stderr = self.stderrOrig
+        self.setStandardStream(False)
         self.scriptProcess = None
         self.Bind(wx.EVT_IDLE, None)
 
@@ -2383,8 +2374,32 @@ class BuilderFrame(wx.Frame):
         self.app.coder.fileNew(filepath=fullPath)
         self.app.coder.fileReload(event=None, filename=fullPath)
 
+    def regenerateStdOutFrame(self):
+        try:
+            self.stdoutFrame.getText()
+        except Exception:
+            self.stdoutFrame = stdOutRich.StdOutFrame(
+                parent=self, app=self.app, size=(700, 300))
+
+    def setStandardStream(self, capture):
+        if capture:
+            sys.stdoutOrig = sys.stdout
+            sys.stderrOrig = sys.stderr
+            sys.stdout = self.stdoutFrame
+            sys.stderr = self.stdoutFrame
+        else:
+            sys.stdout = sys.stdoutOrig
+            sys.stderr = sys.stderrOrig
+
+
     def generateScript(self, experimentPath, target="PsychoPy"):
         """Generates python script from the current builder experiment"""
+
+        # Set stdOut for error capture
+        self.regenerateStdOutFrame()
+        self.setStandardStream(True)
+        self.stdoutFrame.write("Generating script...\n")
+
         if self.getIsModified():
             ok = self.fileSave(experimentPath)
             if not ok:
@@ -2413,12 +2428,14 @@ class BuilderFrame(wx.Frame):
         if version not in [None, 'None', '', __version__]:
             cmd.extend(['-v', version])
             logging.info(' '.join(cmd))
-            out = subprocess.check_output(cmd)
-            if len(out):
-                out = out.decode('utf-8-sig').split('\n')
-                [print(line) for line in out] # so that any errors messages in compile are printed
+            output = subprocess.check_output(cmd, universal_newlines=True)
+            if len(output):
+                self.stdoutFrame.write(output)
         else:
             psyexpCompile.compileScript(infile=self.exp, version=None, outfile=experimentPath)
+
+        self.stdoutFrame.Show()
+        self.setStandardStream(False)
 
     def _getHtmlPath(self, filename):
         expPath = os.path.split(filename)[0]
