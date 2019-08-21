@@ -69,11 +69,11 @@ io.clearEvents('all')
 # Print any serial events.
 #
 while not keyboard.getPresses():
-    serial_device.write(b'aaa')
+    serial_device.write('aaa')
     io.wait(0.05)
-    serial_device.write(b'bbb')
+    serial_device.write('bbb')
     io.wait(0.05)
-    serial_device.write(b'ccc')
+    serial_device.write('ccc')
     io.wait(.500)
     for serevt in serial_device.getEvents():
         print(serevt)
