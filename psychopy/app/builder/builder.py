@@ -2402,7 +2402,6 @@ class BuilderFrame(wx.Frame):
             sys.stdout = sys.stdoutOrig
             sys.stderr = sys.stderrOrig
 
-
     def generateScript(self, experimentPath, target="PsychoPy"):
         """Generates python script from the current builder experiment"""
         # Set stdOut for error capture
