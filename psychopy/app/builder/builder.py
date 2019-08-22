@@ -2162,17 +2162,9 @@ class BuilderFrame(wx.Frame):
         fullPath = self.filename.replace('.psyexp', '_lastrun.py')
         self.generateScript(fullPath)  # Build script based on current version selected
 
-        try:
-            self.stdoutFrame.getText()
-        except Exception:
-            self.stdoutFrame = stdOutRich.StdOutFrame(
-                parent=self, app=self.app, size=(700, 300))
-
         # redirect standard streams to log window
-        sys.stdoutOrig = sys.stdout
-        sys.stderrOrig = sys.stderr
-        sys.stdout = self.stdoutFrame
-        sys.stderr = self.stdoutFrame
+        self.regenerateStdOutFrame()
+        self.setStandardStream(True)
 
         # provide a running... message
         self.stdoutFrame.write((u" Running: %s " % (fullPath)).center(80, "#"))
@@ -2260,8 +2252,7 @@ class BuilderFrame(wx.Frame):
             self.stdoutFrame.Raise()
 
         # then return stdout to its org location
-        sys.stdout = self.stdoutOrig
-        sys.stderr = self.stderrOrig
+        self.setStandardStream(False)
         self.scriptProcess = None
         self.Bind(wx.EVT_IDLE, None)
 
@@ -2383,8 +2374,41 @@ class BuilderFrame(wx.Frame):
         self.app.coder.fileNew(filepath=fullPath)
         self.app.coder.fileReload(event=None, filename=fullPath)
 
+    def regenerateStdOutFrame(self):
+        """
+        Initializes the stdOutFrame if closed.
+        """
+        try:
+            self.stdoutFrame.getText()
+        except Exception:
+            self.stdoutFrame = stdOutRich.StdOutFrame(
+                parent=self, app=self.app, size=(700, 300))
+
+    def setStandardStream(self, capture):
+        """
+        Captures standard stream.
+
+        Parameters
+        ----------
+        capture: bool
+            True to capture std stream, False to release std stream.
+        """
+        if capture:
+            sys.stdoutOrig = sys.stdout
+            sys.stderrOrig = sys.stderr
+            sys.stdout = self.stdoutFrame
+            sys.stderr = self.stdoutFrame
+        else:
+            sys.stdout = sys.stdoutOrig
+            sys.stderr = sys.stderrOrig
+
     def generateScript(self, experimentPath, target="PsychoPy"):
         """Generates python script from the current builder experiment"""
+        # Set stdOut for error capture
+        self.regenerateStdOutFrame()
+        self.setStandardStream(True)
+        self.stdoutFrame.write("Generating {} script...\n".format(target))
+
         if self.getIsModified():
             ok = self.fileSave(experimentPath)
             if not ok:
@@ -2410,15 +2434,24 @@ class BuilderFrame(wx.Frame):
                '-o', experimentPath]
         # if version is not specified then don't touch useVersion at all
         version = self.exp.settings.params['Use version'].val
-        if version not in [None, 'None', '', __version__]:
-            cmd.extend(['-v', version])
-            logging.info(' '.join(cmd))
-            out = subprocess.check_output(cmd)
-            if len(out):
-                out = out.decode('utf-8-sig').split('\n')
-                [print(line) for line in out] # so that any errors messages in compile are printed
-        else:
-            psyexpCompile.compileScript(infile=self.exp, version=None, outfile=experimentPath)
+        try:
+            if version not in [None, 'None', '', __version__]:
+                cmd.extend(['-v', version])
+                logging.info(' '.join(cmd))
+                output = subprocess.Popen(cmd,
+                                          stdout=subprocess.PIPE,
+                                          stderr=subprocess.PIPE,
+                                          universal_newlines=True)
+                stdout, stderr = output.communicate()
+                self.stdoutFrame.write(stdout)
+                self.stdoutFrame.write(stderr)
+            else:
+                psyexpCompile.compileScript(infile=self.exp, version=None, outfile=experimentPath)
+        except Exception:
+            traceback.print_exc(file=sys.stderr)
+        finally:
+            self.stdoutFrame.Show()
+            self.setStandardStream(False)
 
     def _getHtmlPath(self, filename):
         expPath = os.path.split(filename)[0]
