@@ -2448,6 +2448,8 @@ class BuilderFrame(wx.Frame):
                 self.stdoutFrame.write(stderr)
             else:
                 psyexpCompile.compileScript(infile=self.exp, version=None, outfile=experimentPath)
+        except Exception:
+            traceback.print_exc(file=sys.stderr)
         finally:
             self.stdoutFrame.Show()
             self.setStandardStream(False)
