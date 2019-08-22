@@ -2184,7 +2184,8 @@ class BuilderFrame(wx.Frame):
         sys.stderr = self.stdoutFrame
 
         # provide a running... message
-        self.stdoutFrame.write((u" Running: %s " % (fullPath)).center(80, "#"))
+        self.stdoutFrame.write((u"## Running: %s ##" % (fullPath))
+                               .center(80, "#")+"\n")
         self.stdoutFrame.lenLastRun = len(self.stdoutFrame.getText())
 
         if sys.platform == 'win32':
