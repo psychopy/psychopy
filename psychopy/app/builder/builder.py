@@ -2375,6 +2375,9 @@ class BuilderFrame(wx.Frame):
         self.app.coder.fileReload(event=None, filename=fullPath)
 
     def regenerateStdOutFrame(self):
+        """
+        Initializes the stdOutFrame if closed.
+        """
         try:
             self.stdoutFrame.getText()
         except Exception:
@@ -2382,6 +2385,14 @@ class BuilderFrame(wx.Frame):
                 parent=self, app=self.app, size=(700, 300))
 
     def setStandardStream(self, capture):
+        """
+        Captures standard stream.
+
+        Parameters
+        ----------
+        capture: bool
+            True to capture std stream, False to release std stream.
+        """
         if capture:
             sys.stdoutOrig = sys.stdout
             sys.stderrOrig = sys.stderr
@@ -2394,11 +2405,10 @@ class BuilderFrame(wx.Frame):
 
     def generateScript(self, experimentPath, target="PsychoPy"):
         """Generates python script from the current builder experiment"""
-
         # Set stdOut for error capture
         self.regenerateStdOutFrame()
         self.setStandardStream(True)
-        self.stdoutFrame.write("Generating script...\n")
+        self.stdoutFrame.write("Generating {} script...\n".format(target))
 
         if self.getIsModified():
             ok = self.fileSave(experimentPath)
@@ -2425,17 +2435,22 @@ class BuilderFrame(wx.Frame):
                '-o', experimentPath]
         # if version is not specified then don't touch useVersion at all
         version = self.exp.settings.params['Use version'].val
-        if version not in [None, 'None', '', __version__]:
-            cmd.extend(['-v', version])
-            logging.info(' '.join(cmd))
-            output = subprocess.check_output(cmd, universal_newlines=True)
-            if len(output):
-                self.stdoutFrame.write(output)
-        else:
-            psyexpCompile.compileScript(infile=self.exp, version=None, outfile=experimentPath)
-
-        self.stdoutFrame.Show()
-        self.setStandardStream(False)
+        try:
+            if version not in [None, 'None', '', __version__]:
+                cmd.extend(['-v', version])
+                logging.info(' '.join(cmd))
+                output = subprocess.Popen(cmd,
+                                          stdout=subprocess.PIPE,
+                                          stderr=subprocess.PIPE,
+                                          universal_newlines=True)
+                stdout, stderr = output.communicate()
+                self.stdoutFrame.write(stdout)
+                self.stdoutFrame.write(stderr)
+            else:
+                psyexpCompile.compileScript(infile=self.exp, version=None, outfile=experimentPath)
+        finally:
+            self.stdoutFrame.Show()
+            self.setStandardStream(False)
 
     def _getHtmlPath(self, filename):
         expPath = os.path.split(filename)[0]
