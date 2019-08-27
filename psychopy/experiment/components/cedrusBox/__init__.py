@@ -102,9 +102,11 @@ class cedrusButtonBoxComponent(KeyboardComponent):
     def writeStartCode(self, buff):
         """code for start of the script (import statements)
         """
-        buff.writeIndented("import pyxid  # to use the Cedrus response box\n")
-        if self.params['useBoxTimer'].val:
-            buff.writeIndented("pyxid.use_response_pad_timer = True\n")
+        code = ("try:  # to use the Cedrus response box\n"
+                "   import pyxid2 as pyxid\n"
+                "except ImportError:\n"
+                "   import pyxid\n")
+        buff.writeIndentedLines(code)
 
     def writeInitCode(self, buff):
         code = ("%(name)s = None\n"
