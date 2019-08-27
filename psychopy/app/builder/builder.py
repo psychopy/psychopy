@@ -107,22 +107,32 @@ class OutputThread(threading.Thread):
         self.exit = False
 
     def run(self):
-        self.doCheck()
+        """start the thread"""
+        running = self.doCheck()  # block until process ends
 
     def doCheck(self):
         # will do the next line repeatedly until finds EOL
         # after checking each line check if we should quit
-        for line in iter(self.proc.stdout.readline, b''):
-            # this runs repeatedly
-            self.queue.put(line)
+        try:
+            for line in iter(self.proc.stdout.readline, b''):
+                # this runs repeatedly
+                self.queue.put(line)
+                if not line:
+                    break
+        except ValueError:
+            return False
             # then check if the process ended
-            if self.exit:
-                break
+            # self.exit
         for line in self.proc.stderr.readlines():
             sys.stdout.write(line)
+        return True
 
     def getBuffer(self):
-        return self.queue.get_nowait()
+        """Retrieve all lines currently in buffer"""
+        lines = ''
+        while not self.queue.empty():
+            lines += self.queue.get_nowait()
+        return lines
 
 
 class RoutineCanvas(wx.ScrolledWindow):
@@ -135,7 +145,6 @@ class RoutineCanvas(wx.ScrolledWindow):
             self, notebook, id, (0, 0), style=wx.SUNKEN_BORDER)
 
         self.SetBackgroundColour(canvasColor)
-        self.notebook = notebook
         self.frame = notebook.frame
         self.app = self.frame.app
         self.dpi = self.app.dpi
@@ -2167,7 +2176,8 @@ class BuilderFrame(wx.Frame):
         self.setStandardStream(True)
 
         # provide a running... message
-        self.stdoutFrame.write((u" Running: %s " % (fullPath)).center(80, "#"))
+        self.stdoutFrame.write((u"## Running: %s ##" % (fullPath))
+                               .center(80, "#")+"\n")
         self.stdoutFrame.lenLastRun = len(self.stdoutFrame.getText())
 
         if sys.platform == 'win32':
@@ -2192,6 +2202,7 @@ class BuilderFrame(wx.Frame):
         self.toolbar.EnableTool(self.bldrBtnStop.Id, True)
         wx.Yield()
         # the whileRunning method will check on stdout from the script
+        self._processEndTime = None
         self.scriptProcess = subprocess.Popen(
             args=command.split(),
             bufsize=1, executable=None, stdin=None,
@@ -2214,39 +2225,28 @@ class BuilderFrame(wx.Frame):
         self.onProcessEnded()
 
     def whileRunningFile(self, event=None):
-        """This is an Idle function while study is running. Check on process
+        """This is an Idle function while study is running. Checks on process
         and handle stdout"""
-
-        if self.scriptProcess:
-            returnVal = self.scriptProcess.poll()
-            if returnVal is not None:
-                self.onProcessEnded()
-            else:  # still running
-                output = ''
-                try:
-                    line = self._stdoutThread.getBuffer()
-                except Empty:  # nothing in the queue
-                    pass
-                else:  # got line
-                    output += line
-                if output:
-                    sys.stdout.write(output)
-                # if len(self.stdoutBuffer.getvalue()) > self.stdoutFrame.lenLastRun:
-                #     self.stdoutFrame.write(self.stdoutBuffer.getvalue())
-                # self.stdoutFrame.Show()
-        wx.Yield()
-        time.sleep(0.1)  # check every 100ms
+        newOutput = self._stdoutThread.getBuffer()
+        if newOutput:
+            sys.stdout.write(newOutput)
+        returnVal = self.scriptProcess.poll()
+        if returnVal is not None:
+            self.onProcessEnded()
+        else:
+            time.sleep(0.1)  # let's not check too often
 
     def onProcessEnded(self, event=None):
         """The script/exp has finished running
         """
-        self.toolbar.EnableTool(self.bldrBtnRun.Id, True)
-        self.toolbar.EnableTool(self.bldrBtnStop.Id, False)
         # if len(self.stdoutBuffer.getvalue()) > self.stdoutFrame.lenLastRun:
         #     self.stdoutFrame.write(self.stdoutBuffer.getvalue())
+        self.toolbar.EnableTool(self.bldrBtnRun.Id, True)
+        self.toolbar.EnableTool(self.bldrBtnStop.Id, False)
         self._stdoutThread.exit = True
-        time.sleep(0.2)  # give time for the buffers to finish writing
-        self.stdoutFrame.write(self._stdoutThread.getBuffer())
+        time.sleep(0.1)  # give time for the buffers to finish writing?
+        buff = self._stdoutThread.getBuffer()
+        self.stdoutFrame.write(buff)
         if len(self.stdoutFrame.getText()) > self.stdoutFrame.lenLastRun:
             self.stdoutFrame.Show()
             self.stdoutFrame.Raise()

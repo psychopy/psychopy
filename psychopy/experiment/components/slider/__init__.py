@@ -14,6 +14,7 @@ from psychopy.experiment.components import BaseVisualComponent, Param, \
 from psychopy.visual import slider
 from psychopy.experiment import py2js
 from psychopy import logging
+import copy
 
 __author__ = 'Jon Peirce'
 
@@ -213,7 +214,9 @@ class SliderComponent(BaseVisualComponent):
                 inits[param].val = 'undefined'
 
         # Check for unsupported units
-        if inits['units'].val in ['from exp settings', 'cm', 'deg', 'degFlatPos', 'degFlat']:
+        if inits['units'].val == 'from exp settings':
+            inits['units'] = copy.copy(self.exp.settings.params['Units'])
+        if inits['units'].val in ['cm', 'deg', 'degFlatPos', 'degFlat']:
             msg = ("'{units}' units for your '{name}' Slider are not currently supported for PsychoJS: "
                   "switching units to 'height'. Note, this will affect the size and positioning of '{name}'.")
             logging.warning(msg.format(units=inits['units'].val, name=inits['name'].val))
