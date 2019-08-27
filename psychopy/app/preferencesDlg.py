@@ -454,7 +454,6 @@ class PrefCtrls(object):
                 val.insert(0, preferred)
                 return val
             else:
-                print('using mode {}'.format(ctrl._choices[ctrl.GetSelection()]))
                 return ctrl._choices[ctrl.GetSelection()]
         elif hasattr(ctrl, 'GetValue'):  # e.g. TextCtrl
             return ctrl.GetValue()
