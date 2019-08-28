@@ -1125,8 +1125,6 @@ class BuilderFrame(wx.Frame):
         self.SetAcceleratorTable(accelTable)
 
         # set stdout to correct output panel
-        self.stdoutOrig = sys.stdout
-        self.stderrOrig = sys.stderr
         self.stdoutFrame = stdOutRich.StdOutFrame(
             parent=self, app=self.app, size=(700, 300))
 
@@ -2394,13 +2392,11 @@ class BuilderFrame(wx.Frame):
             True to capture std stream, False to release std stream.
         """
         if capture:
-            sys.stdoutOrig = sys.stdout
-            sys.stderrOrig = sys.stderr
             sys.stdout = self.stdoutFrame
             sys.stderr = self.stdoutFrame
         else:
-            sys.stdout = sys.stdoutOrig
-            sys.stderr = sys.stderrOrig
+            sys.stdout = sys.__stdout__
+            sys.stderr = sys.__stderr__
 
     def generateScript(self, experimentPath, target="PsychoPy"):
         """Generates python script from the current builder experiment"""
