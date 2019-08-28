@@ -14,7 +14,14 @@ except ImportError:
 class Test_WinFlipTiming(object):
     def setup_class(self):
         self.win = visual.Window(size=(200, 200), units='pix',
-                                 allowGUI=False, autoLog=False)
+                                 allowGUI=False, autoLog=False,
+                                 waitBlanking=True)
+        self.rate = self.win.getActualFrameRate()
+
+        if self.rate and 40<self.rate<160:
+            self.testOutputs = True
+        else:
+            self.testOutputs = False
 
     def teardown_class(self):
         self.win.close()
@@ -25,23 +32,25 @@ class Test_WinFlipTiming(object):
             clk = 'ptb'
         else:
             getTime = clock.monotonicClock.getTime
-            clk = None
+            clk = clock.monotonicClock
 
         self.win.flip()
         now = clock.monotonicClock.getTime()
         next = self.win.getFutureFlipTime(clock=clk)
+        self.win.flip()
+
 
         errsNext = []
         # check nextFrame against reality for 10 frames
         for frameN in range(10):
             self.win.flip()
             this = getTime()
-            ## print('this', this)
-            ## print('err', next-this)
+            # print('this', this)
+            # print('err', next-this)
             errsNext.append(next-this)
             #then update next
             next = self.win.getFutureFlipTime(clock=clk)
-            ## print('next', next)
+            # print('next', next)
         return errsNext
 
     def test_winFutureFlip(self):
@@ -60,13 +69,15 @@ class Test_WinFlipTiming(object):
         print()
         print('getFutureFlipTime(0): mean={:.6f}, std={:6f}, all={}'
               .format(np.mean(errs), np.std(errs), errs))
-        assert np.mean(errs)<0.005  # checks for any systematic bias
+        if self.testOutputs:
+            assert np.mean(errs)<0.005  # checks for any systematic bias
 
         if havePTB:
             errs = self._runSeriesOfFlips(usePTB=True)
             print('PTB getFutureFlipTime(0): mean={:.6f}, std={:6f}, all={}'
                   .format(np.mean(errs), np.std(errs), errs))
-            assert np.mean(errs)<0.005  # checks for any systematic bias
+            if self.testOutputs:
+                assert np.mean(errs)<0.005  # checks for any systematic bias
 
         now = clock.monotonicClock.getTime()
         predictedFrames = []
@@ -77,6 +88,7 @@ class Test_WinFlipTiming(object):
             diff = expect-requested
             print("{:.4f}, {:.5f} {:.5f} {:.5f}".format(requested, requested, expect, diff))
             # should always be within 1/2 frame
+        if self.testOutputs:
             assert abs(diff) < self.win.monitorFramePeriod/2.0
 
 
