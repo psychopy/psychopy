@@ -30,7 +30,7 @@ ADDED:
 - better timing on the keyboard responses of the JavaScript experiments due to timestamping asynchronously with your script
 - Standalone installations now provide an updated Cedrus library, pyxid2
 - support for new LabHackers TTL2USB8 device (parallel port alternative)
-- Envelope grating
+- Envelope grating now has exponent (power) option
 
 FIXED:
 
@@ -39,7 +39,6 @@ FIXED:
 - support for Pyglet 1.4 (although text scaling appears to have changed a little)
 - some serial devices (photometers) were not compatible with Python3 string/bytes
   conversion
--
 
 PsychoPy 3.1
 ----------------

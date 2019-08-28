@@ -800,32 +800,38 @@ class Window(object):
         Parameters
         -----------
         targetTime: float
-            The delay from now for which you want the flip time. 0 will give the
+            The delay *from now* for which you want the flip time. 0 will give the
             because that the earliest we can achieve. 0.15 will give the schedule
             flip time that gets as close to 150 ms as possible
-        clock : None, 'ptb' or any Clock object
+        clock : None, 'ptb', 'now' or any Clock object
             If True then the time returned is compatible with ptb.GetSecs()
+        verbose: bool
+            Set to True to view the calculations along the way
         """
         baseClock = logging.defaultClock
         if not self.monitorFramePeriod:
             raise AttributeError("Cannot calculate nextFlipTime due to unknown "
                                  "monitorFramePeriod")
-        lastFlip = self._frameTimes[-1]  # self.lastFrameTime is not always on. This is
+        lastFlip = self._frameTimes[-1]  # unlike win.lastFrameTime this is always on
         timeNext = lastFlip + self.monitorFramePeriod
         now = baseClock.getTime()
-        if (now + targetTime) > timeNext:
-            extraFrames = round((targetTime - timeNext)/self.monitorFramePeriod)
+        if (now + targetTime) > timeNext:  # target is more than 1 frame in future
+            extraFrames = round((now + targetTime - timeNext)/self.monitorFramePeriod)
             thisT = timeNext + extraFrames*self.monitorFramePeriod
         else:
             thisT = timeNext
+
         # convert back to target clock timebase
         if clock=='ptb':  # add back the lastResetTime (that's the clock difference)
-            return thisT + baseClock.getLastResetTime()
+            output = thisT + baseClock.getLastResetTime()
+        elif clock=='now':  # time from now is easy!
+            output = timeNext - now
         elif clock:
-            return thisT + baseClock.getLastResetTime() - clock.getLastResetTime()
+            output = thisT + baseClock.getLastResetTime() - clock.getLastResetTime()
         else:
-            return thisT
+            output = thisT
 
+        return output
 
     def _assignFlipTime(self, obj, attrib):
         """Helper function to assign the time of last flip to the obj.attrib
@@ -1001,7 +1007,7 @@ class Window(object):
 
         # get timestamp
         self._frameTime = now = logging.defaultClock.getTime()
-        self._frameTimes.append(monotonicClock.getTime())
+        self._frameTimes.append(self._frameTime)
 
         # run other functions immediately after flip completes
         for callEntry in self._toCall:
