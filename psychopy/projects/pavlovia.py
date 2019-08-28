@@ -1097,8 +1097,9 @@ def getProject(filename):
                     if pavSession.user:
                         proj = pavSession.getProject(namespaceName,
                                                      repo=localRepo)
-                        if proj.pavlovia == 0:
-                            logging.warning(_translate("We found a repository pointing to {} "
+                        if proj.pavlovia and proj.pavlovia.get_id() == 0:
+                            logging.warning(
+                                _translate("We found a repository pointing to {} "
                                                        "but no project was found there (deleted?)").format(url))
                     else:
                         logging.warning(_translate("We found a repository pointing to {} "
