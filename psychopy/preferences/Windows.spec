@@ -109,7 +109,7 @@
 [hardware]
     # choice of audio library
     audioLib = list(default=list('sounddevice','PTB', 'pyo', 'pygame'))
-    # priority
+    # latency mode for PsychToolbox audio (3 is good for most applications. See
     audioLatencyMode = option(0, 1, 2, 3, 4, default=3)
     # audio driver to use
     audioDriver = list(default=list('Primary Sound','ASIO','Audigy'))
