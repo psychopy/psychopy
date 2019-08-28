@@ -68,6 +68,9 @@ _localizedDialogs = {
     'add': _translate('add'),
     'avg': _translate('average'),  # blend mode
     'use prefs': _translate('use preferences'),
+    'on Sync': _translate('on Sync'), # export HTML
+    'on Save': _translate('on Save'),
+    'manually': _translate('manually'),
     # logging level:
     'debug': _translate('debug'),
     'info': _translate('info'),
