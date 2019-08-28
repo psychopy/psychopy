@@ -75,7 +75,8 @@ class SoundComponent(BaseComponent):
             label=_localized['syncScreenRefresh'])
         self.params['hamming'] = Param(
             True, valType='bool', updates='constant',
-            hint=("For tones we can apply a Hamming window to prevent 'clicks' that "
+            hint=_translate(
+                  "For tones we can apply a Hamming window to prevent 'clicks' that "
                   "are caused by a sudden onset. This delays onset by roughly 1ms."),
             label=_translate('Hamming window'))
 
