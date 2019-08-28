@@ -72,11 +72,10 @@ class Test_WinFlipTiming(object):
         predictedFrames = []
         print('now={:.5f}, lastFrame={:.5f}'.format(now, self.win._frameTimes[-1]))
         print('delay requestT expectT diff'.format(now, self.win._frameTimes[-1]))
-        for delay in np.arange(0, 0.04, 0.001):
-            expect = self.win.getFutureFlipTime(now+delay)
-            requested = now+delay
+        for requested in np.arange(0, 0.04, 0.001):
+            expect = self.win.getFutureFlipTime(requested)
             diff = expect-requested
-            print("{:.4f}, {:.5f} {:.5f} {:.5f}".format(delay, requested, expect, diff))
+            print("{:.4f}, {:.5f} {:.5f} {:.5f}".format(requested, requested, expect, diff))
             # should always be within 1/2 frame
             assert abs(diff) < self.win.monitorFramePeriod/2.0
 
