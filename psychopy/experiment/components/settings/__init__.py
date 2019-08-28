@@ -411,11 +411,11 @@ class SettingsComponent(object):
             "from psychopy import prefs\n"
         )
         # adjust the prefs for this study if needed
-        if self.params['Audio lib'] != 'use prefs':
+        if self.params['Audio lib'].val.lower() != 'use prefs':
             buff.writelines(
                 "prefs.hardware['audioLib'] = {}\n".format(self.params['Audio lib'])
             )
-        if self.params['Audio latency priority'] != 'use prefs':
+        if self.params['Audio latency priority'].val.lower() != 'use prefs':
             buff.writelines(
                 "prefs.hardware['audioLatencyMode'] = {}\n".format(self.params['Audio latency priority'])
             )

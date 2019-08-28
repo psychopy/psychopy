@@ -140,8 +140,8 @@ class KeyboardComponent(BaseComponent):
         buff.writeIndentedLines(code % self.params)
 
     def writeRoutineStartCode(self, buff):
-        code = ("%(name)s.keys = [];\n"
-                "%(name)s.rt = None;\n")
+        code = ("%(name)s.keys = []\n"
+                "%(name)s.rt = []\n")
         buff.writeIndentedLines(code % self.params)
 
         if (self.params['store'].val == 'nothing' and
