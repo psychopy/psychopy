@@ -158,6 +158,7 @@ class PsychoPyApp(wx.App):
         # check compatibility with last run version (before opening windows)
         self.firstRun = False
         self.testMode = testMode
+        self._stdout = sys.stdout
 
         if self.prefs.app['debugMode']:
             logging.console.setLevel(logging.DEBUG)
