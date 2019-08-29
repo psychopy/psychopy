@@ -2,13 +2,14 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2018 Jonathan Peirce
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 from __future__ import absolute_import, print_function
 
 from builtins import str
 from os import path
+import copy
 from psychopy.experiment.components import BaseVisualComponent, Param, getInitVals, _translate
 from psychopy import logging
 
@@ -211,11 +212,15 @@ class PolygonComponent(BaseVisualComponent):
 
     def writeInitCodeJS(self, buff):
 
+        inits = getInitVals(self.params)
+
         # Check for unsupported units
-        if self.params['units'].val in ['from exp settings', 'cm', 'deg', 'degFlatPos', 'degFlat']:
+        if inits['units'].val == 'from exp settings':
+            inits['units'] = copy.copy(self.exp.settings.params['Units'])
+        if inits['units'].val in ['from exp settings', 'cm', 'deg', 'degFlatPos', 'degFlat']:
             msg = "'{units}' units for your '{name}' shape is not currently supported for PsychoJS: " \
                   "switching units to 'height'."
-            logging.warning(msg.format(units=self.params['units'].val,
+            logging.warning(msg.format(units=inits['units'].val,
                                        name=self.params['name'].val,))
             unitsStr = "'height'"
         else:

@@ -211,7 +211,7 @@ class _MasterStream(audio.Stream):
 
 
 class SoundPTB(_SoundBase):
-    """Play a variety of sounds using the new SoundDevice library
+    """Play a variety of sounds using the new PsychPortAudio library
     """
 
     def __init__(self, value="C", secs=0.5, octave=4, stereo=-1,

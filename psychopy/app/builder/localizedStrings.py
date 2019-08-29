@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2018 Jonathan Peirce
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 """
@@ -68,6 +68,9 @@ _localizedDialogs = {
     'add': _translate('add'),
     'avg': _translate('average'),  # blend mode
     'use prefs': _translate('use preferences'),
+    'on Sync': _translate('on Sync'), # export HTML
+    'on Save': _translate('on Save'),
+    'manually': _translate('manually'),
     # logging level:
     'debug': _translate('debug'),
     'info': _translate('info'),

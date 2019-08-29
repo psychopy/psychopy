@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2018 Jonathan Peirce
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 from __future__ import absolute_import, division, print_function
@@ -158,6 +158,7 @@ class PsychoPyApp(wx.App):
         # check compatibility with last run version (before opening windows)
         self.firstRun = False
         self.testMode = testMode
+        self._stdout = sys.stdout
 
         if self.prefs.app['debugMode']:
             logging.console.setLevel(logging.DEBUG)
@@ -192,7 +193,7 @@ class PsychoPyApp(wx.App):
         """
         self.SetAppName('PsychoPy3')
 
-        if False:
+        if showSplash:
             # show splash screen
             splashFile = os.path.join(
                 self.prefs.paths['resources'], 'psychopySplash.png')
@@ -204,7 +205,7 @@ class PsychoPyApp(wx.App):
                                        )  # transparency?
             w, h = splashImage.GetSize()
             splash.SetTextPosition((int(w-130), h-20))
-            splash.SetText(_translate("Loading libraries..."))
+            splash.SetText(_translate("Copyright (C) 2019 Open Science Tools"))
             wx.Yield()
         else:
             splash = None
