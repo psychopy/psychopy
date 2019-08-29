@@ -296,6 +296,3 @@ _translate("Projects: Open project")
 
 # baseNoArch.spec,[keyBindings],line228
 _translate("Projects: Create new project")
-
-# Darwin.spec,[builder],line102
-_translate("priority")
