@@ -3,6 +3,15 @@
 
 """Load and play sounds
 
+We have used a number of different Python libraries ("backends") for generating
+sounds in PsychoPy. We started with `Pygame`, then tried `pyo` and `sounddevice`
+but we now strongly recommend you use the PTB setting. That uses the
+`PsychPortAudio`_ engine, written by Mario Kleiner for `Psychophysics Toolbox`_.
+
+With the PTB backend you get some options about how agressively you want to try
+for low latency, and there is also an option to pre-schedule a sound to play at
+a given time in the future.
+
 By default PsychoPy will try to use the following Libs, in this order, for
 sound reproduction but you can alter the order in
 preferences > hardware > audioLib:
@@ -14,37 +23,14 @@ After importing sound, the sound lib and driver being used will be stored as::
     `psychopy.sound.audioLib`
     `psychopy.sound.audioDriver`
 
-For control of bitrate and buffer size you can call psychopy.sound.init before
-creating your first Sound object::
+.. PTB
 
-    from psychopy import sound
-    sound.init(rate=44100, stereo=True, buffer=128)
-    s1 = sound.Sound('ding.wav')
-
-The history of sound libs in PsychoPy:
-
-    - we started with pygame but latencies were always poor
-    - we switched to pyo and latencies were better but very system-dependent.
-      The problem with pyo is that it has to be compiled which was always
-      more painful and prevents us from modifying it easily when needed. It
-      also doesn't support python3 as of 2016 and it doesn't support pip for
-      installation (e.g. in Anaconda)
-    - pysoundcard and sounddevice are new pure python portaudio libraries
-      They both install trivially with pip and support python3
-      Sounddevice appears to be under most recent development (and shares a
-      lot of the original pysoundcard code). In testing we've found the
-      latencies to be low
-
-As of PsychoPy 1.85 **sounddevice looks like it will be the best option** but
-while it is new there may be some teething problems! To be fair, when writing
-the sounddevice code we also changed the method of starting sounds (and pyo
-also supports the new method). It is likely that pyo can achieve the same
-low latencies as sounddevice, but the other advantages of sounddevice make it
-preferable.
+.. _PsychPortAudio: http://psychtoolbox.org/docs/PsychPortAudio-Open
+.. _Psychophysics Toolbox: http://psychtoolbox.org
 """
 
 # Part of the PsychoPy library
-# Copyright (C) 2018 Jonathan Peirce
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 from __future__ import absolute_import, division, print_function

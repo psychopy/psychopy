@@ -102,6 +102,7 @@ packages = ['wx', 'psychopy',
             'pylsl', 'pygaze', 'smite',
             'cv2',
             'badapted', 'darc_toolbox',  # adaptive methods from Ben Vincent
+            'questplus',
             ]
 
 if sys.version_info.major >= 3:
