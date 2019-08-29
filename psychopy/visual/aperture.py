@@ -191,7 +191,7 @@ class Aperture(MinimalStim, ContainerMixin):
         :ref:`Operations <attrib-operations>` supported here as
         well as ShapeStim.
 
-        Use setSize() if you want to control 0logging and resetting.
+        Use setSize() if you want to control logging and resetting.
         """
         self.__dict__['size'] = size
         self._shape.size = size  # _shape is a ShapeStim

@@ -17,7 +17,8 @@ from psychopy.constants import FOREVER
 from ..params import Param
 from psychopy.experiment.utils import CodeGenerationException
 from psychopy.localization import _translate, _localized
-
+from psychopy.alerts.Alerts import AlertLogger
+import ast
 
 class BaseComponent(object):
     """A template for components, defining the methods to be overridden"""
@@ -38,6 +39,7 @@ class BaseComponent(object):
 
         self.params = {}
         self.depends = []  # allows params to turn each other off/on
+        self.alerts = AlertLogger(self.type)
         """{
          "dependsOn": "shape",
          "condition": "=='n vertices",
@@ -114,6 +116,40 @@ class BaseComponent(object):
             label=_translate('Disable component'))
 
         self.order = ['name']  # name first, then timing, then others
+
+    def integrityCheck(self):
+        unitTypes = {'height': .5,
+                     'norm': 1,}
+
+        if 'units' in self.params:
+            if self.params['units'].val not in ['from exp settings', 'cm', 'deg']:
+                units = self.params['units'].val
+            else:
+                # Use window units for sizing etc
+                units = self.exp.settings.params['Units'].val
+
+        winSizeX, winSizeY = ast.literal_eval(self.exp.settings.params['Window size (pixels)'].val)
+        winRatio = winSizeX/winSizeY
+
+        if 'size' in self.params:
+            componentSize = ast.literal_eval(self.params['size'].val)
+            if type(componentSize) in (tuple, list):
+                if units == 'height':
+                    if abs(componentSize[0]/2) > (unitTypes[units] * winRatio):
+                        self.alerts.write(1001, self)
+                    if abs(componentSize[1]/2) > unitTypes[units]:
+                        self.alerts.write(1002, self)
+                elif units == 'norm':
+                    if abs(componentSize[0]/2) > unitTypes[units]:
+                        self.alerts.write(1001, self)
+                    if abs(componentSize[1]/2) > unitTypes[units]:
+                        self.alerts.write(1002, self)
+                elif units == 'pix':
+                    if abs(componentSize[0]) > winSizeX:
+                        self.alerts.write(1001, self)
+                    if abs(componentSize[1]) > winSizeY:
+                        self.alerts.write(1002, self)
+        self.alerts.flush()
 
     def writeInitCode(self, buff):
         """Write any code that a component needs that should only ever be done
