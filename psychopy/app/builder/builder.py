@@ -2394,9 +2394,9 @@ class BuilderFrame(wx.Frame):
         if capture:
             sys.stdout = self.stdoutFrame
             sys.stderr = self.stdoutFrame
-        else:
-            sys.stdout = sys.__stdout__
-            sys.stderr = sys.__stderr__
+        else:  # revert to the application setting (coder out or terminal)
+            sys.stdout = self.app._stdout
+            sys.stderr = self.app._stdout
 
     def generateScript(self, experimentPath, target="PsychoPy"):
         """Generates python script from the current builder experiment"""
