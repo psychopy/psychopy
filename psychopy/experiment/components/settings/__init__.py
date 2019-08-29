@@ -213,13 +213,13 @@ class SettingsComponent(object):
 
         # sound params
         self.params['Audio lib'] = Param(
-            'Use prefs', valType='str',
-            allowedVals=['Use prefs', 'ptb', 'pyo', 'sounddevice', 'pygame'],
+            'use prefs', valType='str',
+            allowedVals=['use prefs', 'ptb', 'pyo', 'sounddevice', 'pygame'],
             hint=_translate("Which Python sound engine do you want to play your sounds?"),
             label=_translate("Audio library"), categ='Audio')
 
         audioLatencyLabels = [
-            _translate('Use prefs'),
+            _translate('use prefs'),
             '0: ' + _translate('Latency not important'),
             '1: ' + _translate('Share low-latency driver'),
             '2: ' + _translate('Exclusive low-latency'),
@@ -227,8 +227,8 @@ class SettingsComponent(object):
             '4: ' + _translate('Latency critical'),
         ]
         self.params['Audio latency priority'] = Param(
-            'Use prefs', valType='str',
-            allowedVals=['Use prefs', '0', '1', '2', '3', '4'],
+            'use prefs', valType='str',
+            allowedVals=['use prefs', '0', '1', '2', '3', '4'],
             allowedLabels=audioLatencyLabels,
             hint=_translate("How important is audio latency for you? If essential then you may need to get all your sounds in correct formats."),
             label=_translate("Audio latency priority"), categ='Audio')
@@ -385,15 +385,13 @@ class SettingsComponent(object):
             '"""\nThis experiment was created using PsychoPy3 Experiment '
             'Builder (v%s),\n'
             '    on %s\n' % (version, localDateTime) +
-            'If you publish work using this script please cite the PsychoPy '
-            'publications:\n'
-            '    Peirce, JW (2007) PsychoPy - Psychophysics software in '
-            'Python.\n'
-            '        Journal of Neuroscience Methods, 162(1-2), 8-13.\n'
-            '    Peirce, JW (2009) Generating stimuli for neuroscience using '
-            'PsychoPy.\n'
-            '        Frontiers in Neuroinformatics, 2:10. doi: 10.3389/'
-            'neuro.11.010.2008\n"""\n'
+            'If you publish work using this script the most relevant '
+            'publication is:\n\n'            
+            '    Peirce J, Gray JR, Simpson S, MacAskill M, Höchenberger R, Sogo H, '
+            'Kastman E, Lindeløv JK. (2019) \n'
+            '        PsychoPy2: Experiments in behavior made easy Behav Res 51: 195. \n'
+            '        https://doi.org/10.3758/s13428-018-01193-y\n'
+            '\n"""\n'
             "\nfrom __future__ import absolute_import, division\n")
 
         self.writeUseVersion(buff)
@@ -411,11 +409,11 @@ class SettingsComponent(object):
             "from psychopy import prefs\n"
         )
         # adjust the prefs for this study if needed
-        if self.params['Audio lib'] != 'Use prefs':
+        if self.params['Audio lib'].val.lower() != 'use prefs':
             buff.writelines(
                 "prefs.hardware['audioLib'] = {}\n".format(self.params['Audio lib'])
             )
-        if self.params['Audio latency priority'] != 'Use prefs':
+        if self.params['Audio latency priority'].val.lower() != 'use prefs':
             buff.writelines(
                 "prefs.hardware['audioLatencyMode'] = {}\n".format(self.params['Audio latency priority'])
             )

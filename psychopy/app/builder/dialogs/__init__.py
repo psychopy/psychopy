@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2018 Jonathan Peirce
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 """Dialog classes for the Builder, including ParamCtrls
@@ -502,7 +502,8 @@ class _BaseParamsDlg(wx.Dialog):
                       'Appearance': _translate('Appearance'),
                       'Save': _translate('Save'),
                       'Online':_translate('Online'),
-                      'Testing':_translate('Testing')}
+                      'Testing':_translate('Testing'),
+                      'Audio':_translate('Audio')}
         for categName in categNames:
             theseParams = categs[categName]
             page = wx.Panel(self.ctrls, -1)

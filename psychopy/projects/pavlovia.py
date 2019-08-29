@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2018 Jonathan Peirce
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 """Helper functions in PsychoPy for interacting with Pavlovia.org
@@ -1097,8 +1097,9 @@ def getProject(filename):
                     if pavSession.user:
                         proj = pavSession.getProject(namespaceName,
                                                      repo=localRepo)
-                        if proj.pavlovia == 0:
-                            logging.warning(_translate("We found a repository pointing to {} "
+                        if proj.pavlovia and proj.pavlovia.get_id() == 0:
+                            logging.warning(
+                                _translate("We found a repository pointing to {} "
                                                        "but no project was found there (deleted?)").format(url))
                     else:
                         logging.warning(_translate("We found a repository pointing to {} "

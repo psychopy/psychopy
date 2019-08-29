@@ -389,7 +389,7 @@ class PrefCtrls(object):
             # get the labels from above
             labels = []
             for val, labl in audioLatencyLabels.items():
-                labels.append('{}: {}'.format(val, labl))
+                labels.append(u'{}: {}'.format(val, labl))
             #get the options from the config file spec
             options = spec.replace("option(", "").replace("'", "")
             # item -1 is 'default=x' from spec
@@ -454,7 +454,6 @@ class PrefCtrls(object):
                 val.insert(0, preferred)
                 return val
             else:
-                print('using mode {}'.format(ctrl._choices[ctrl.GetSelection()]))
                 return ctrl._choices[ctrl.GetSelection()]
         elif hasattr(ctrl, 'GetValue'):  # e.g. TextCtrl
             return ctrl.GetValue()

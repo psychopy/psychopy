@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2018 Jonathan Peirce
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 from __future__ import absolute_import, print_function
@@ -140,8 +140,8 @@ class KeyboardComponent(BaseComponent):
         buff.writeIndentedLines(code % self.params)
 
     def writeRoutineStartCode(self, buff):
-        code = ("%(name)s.keys = [];\n"
-                "%(name)s.rt = None;\n")
+        code = ("%(name)s.keys = []\n"
+                "%(name)s.rt = []\n")
         buff.writeIndentedLines(code % self.params)
 
         if (self.params['store'].val == 'nothing' and
@@ -311,7 +311,6 @@ class KeyboardComponent(BaseComponent):
         buff.writeIndented("// *%s* updates\n" % self.params['name'])
         # writes an if statement to determine whether to draw etc
         self.writeStartTestCodeJS(buff)
-        buff.writeIndented("%(name)s.status = PsychoJS.Status.STARTED;\n" % self.params)
 
         allowedKeysIsVar = (valid_var_re.match(str(allowedKeys)) and not
                             allowedKeys == 'None')
@@ -342,17 +341,16 @@ class KeyboardComponent(BaseComponent):
 
         buff.writeIndented("// keyboard checking is just starting\n")
 
-        if store != 'nothing':
-            if self.params['syncScreenRefresh'].val:
-                code = ("psychoJS.window.callOnFlip(function() { %(name)s.clock.reset(); });  "
-                        "// t=0 on next screen flip\n"
-                        "psychoJS.window.callOnFlip(function() { %(name)s.start(); }); "
-                        "// start on screen flip\n") % self.params
-            else:
-                code = ("%(name)s.clock.reset();\n"
-                        "%(name)s.start();\n") % self.params
+        if self.params['syncScreenRefresh'].val:
+            code = ("psychoJS.window.callOnFlip(function() { %(name)s.clock.reset(); });  "
+                    "// t=0 on next screen flip\n"
+                    "psychoJS.window.callOnFlip(function() { %(name)s.start(); }); "
+                    "// start on screen flip\n") % self.params
+        else:
+            code = ("%(name)s.clock.reset();\n"
+                    "%(name)s.start();\n") % self.params
 
-            buff.writeIndentedLines(code)
+        buff.writeIndentedLines(code)
 
         if self.params['discard previous'].val:
             if self.params['syncScreenRefresh'].val:
