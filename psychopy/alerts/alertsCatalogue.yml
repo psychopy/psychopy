@@ -1,0 +1,19 @@
+1001:
+  code: 1001
+  warn: Size Issue
+  msg: You have a sizing issue
+  url: https://psychopy.org
+
+1002:
+  code: 1002
+  warn: Position Issue
+  msg: You have a position issue
+  url: https://psychopy.org
+
+9999:
+  code: 9999
+  warn: TEST_ISSUE
+  msg: TEST_MSG
+  url: https://psychopy.org
+
+
