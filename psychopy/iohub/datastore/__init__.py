@@ -152,12 +152,13 @@ class DataStoreFile(object):
         getattr(self.emrtFile, create_group)(self.emrtFile.root.data_collection.events, 'experiment', title='Experiment Device Events.')
         getattr(self.emrtFile, create_group)(self.emrtFile.root.data_collection.events, 'keyboard', title='Keyboard Device Events.')
         getattr(self.emrtFile, create_group)(self.emrtFile.root.data_collection.events, 'mouse', title='Mouse Device Events.')
-        getattr(self.emrtFile, create_group)(self.emrtFile.root.data_collection.events, 'touch', title='Touch Device Events.')
-        getattr(self.emrtFile, create_group)(self.emrtFile.root.data_collection.events, 'gamepad', title='GamePad Device Events.')
-        getattr(self.emrtFile, create_group)(self.emrtFile.root.data_collection.events, 'analog_input', title='AnalogInput Device Events.')
+        #getattr(self.emrtFile, create_group)(self.emrtFile.root.data_collection.events, 'touch', title='Touch Device Events.')
+        #getattr(self.emrtFile, create_group)(self.emrtFile.root.data_collection.events, 'gamepad', title='GamePad Device Events.')
+        #getattr(self.emrtFile, create_group)(self.emrtFile.root.data_collection.events, 'analog_input', title='AnalogInput Device Events.')
         getattr(self.emrtFile, create_group)(self.emrtFile.root.data_collection.events, 'eyetracker', title='EyeTracker Device Events.')
-        getattr(self.emrtFile, create_group)(self.emrtFile.root.data_collection.events, 'mcu', title='MCU Device Events.')
+        #getattr(self.emrtFile, create_group)(self.emrtFile.root.data_collection.events, 'mcu', title='MCU Device Events.')
         getattr(self.emrtFile, create_group)(self.emrtFile.root.data_collection.events, 'serial', title='Serial Interface Events.')
+        getattr(self.emrtFile, create_group)(self.emrtFile.root.data_collection.events, 'pstbox', title='Serial Pstbox Device Events.')
         self.flush()
 
     @staticmethod
