@@ -20,7 +20,6 @@ class TestAlertsLogger():
     def test_fresh_master_log(self):
         """Test the MasterLog is instantiated"""
         assert isinstance(Alerts.master, Alerts.MasterLog)
-        assert len(Alerts.master.alertLog) == 0
 
     def test_alert_logger_instance(self):
         """Test the AlertLogger is instantiated"""
@@ -42,7 +41,7 @@ class TestAlertsLogger():
     def test_alert_entry_attributes(self):
         """Test the AlertEntry object has the correct values assigned to its attributes"""
         assert Alerts.root.alertLog[0].code == 9999
-        assert Alerts.root.alertLog[0].warn == "TEST_ISSUE"
+        assert Alerts.root.alertLog[0].cat == "TEST_ISSUE"
         assert Alerts.root.alertLog[0].msg == "TEST_MSG"
         assert Alerts.root.alertLog[0].url == "https://psychopy.org"
         assert isinstance(Alerts.root.alertLog[0].obj, type(self))
@@ -50,4 +49,3 @@ class TestAlertsLogger():
     def test_alert_logger_flush(self):
         self.alert.flush()
         assert len(Alerts.root.alertLog) == 0
-        assert len(Alerts.master.alertLog) == 1
