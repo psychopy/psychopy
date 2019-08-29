@@ -45,7 +45,7 @@ class AlertCatalogue():
         with open('{}'.format(alertsYml), 'r') as ymlFile:
             return yaml.load(ymlFile, Loader=yaml.SafeLoader)
 
-class AlertLog():
+class AlertLog(object):
     """The AlertLog storage class for storage and provision of alert data.
     The AlertLog stores data from a single call to compile script, before being
     flushed to the display, and the MasterLog
