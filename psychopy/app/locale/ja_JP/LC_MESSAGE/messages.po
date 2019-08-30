@@ -2,8 +2,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PsychoPy 1.81.00\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-08-29 13:58+0900\n"
-"PO-Revision-Date: 2019-08-29 14:07+0900\n"
+"POT-Creation-Date: 2019-08-30 15:33+0900\n"
+"PO-Revision-Date: 2019-08-30 15:34+0900\n"
 "Last-Translator: Hiroyuki Sogo <hsogo12600@gmail.com>\n"
 "Language-Team: Hiroyuki Sogo <hsogo12600@gmail.com>\n"
 "Language: ja\n"
@@ -66,31 +66,31 @@ msgstr "終了(&Q)\t%s"
 msgid "Terminate the program"
 msgstr "アプリケーションを終了します"
 
-#: psychopy/app/_psychopyApp.py:207
-msgid "Loading libraries..."
-msgstr "ライブラリをロード中..."
+#: psychopy/app/_psychopyApp.py:208
+msgid "Copyright (C) 2019 Open Science Tools"
+msgstr "Copyright (C) 2019 Open Science Tools"
 
-#: psychopy/app/_psychopyApp.py:215
+#: psychopy/app/_psychopyApp.py:216
 msgid "Loading PsychoPy3..."
 msgstr "PsychoPy3をロード中..."
 
-#: psychopy/app/_psychopyApp.py:317
+#: psychopy/app/_psychopyApp.py:318
 msgid "  Creating frames..."
 msgstr " ウィンドウを準備中..."
 
-#: psychopy/app/_psychopyApp.py:335
+#: psychopy/app/_psychopyApp.py:336
 msgid "Compatibility information"
 msgstr "互換性についての情報"
 
-#: psychopy/app/_psychopyApp.py:343
+#: psychopy/app/_psychopyApp.py:344
 msgid "tips.txt"
 msgstr "tips_ja_JP.txt"
 
-#: psychopy/app/_psychopyApp.py:406
+#: psychopy/app/_psychopyApp.py:407
 msgid "Select .psydat file(s) to extract"
 msgstr "変換する.psydatファイルを選択してください"
 
-#: psychopy/app/_psychopyApp.py:692
+#: psychopy/app/_psychopyApp.py:693
 msgid ""
 "For stimulus generation and experimental control in python.\n"
 "PsychoPy depends on your feedback. If something doesn't work\n"
@@ -6568,6 +6568,9 @@ msgstr "ベンチマークテストの全結果を確認するにはOKをクリ�
 #: psychopy/tools/wizard.py:721
 msgid "Click Cancel to stay in PsychoPy."
 msgstr "PsychoPyに戻るにはキャンセルをクリックします"
+
+#~ msgid "Loading libraries..."
+#~ msgstr "ライブラリをロード中..."
 
 #~ msgid "priority"
 #~ msgstr "優先度"
