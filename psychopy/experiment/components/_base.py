@@ -127,8 +127,10 @@ class BaseComponent(object):
             else:
                 # Use window units for sizing etc
                 units = self.exp.settings.params['Units'].val
-
-        winSizeX, winSizeY = ast.literal_eval(self.exp.settings.params['Window size (pixels)'].val)
+        winSize = self.exp.settings.params['Window size (pixels)'].val
+        if isinstance(winSize, str):
+            winSize = ast.literal_eval(winSize)
+        winSizeX, winSizeY = winSize
         winRatio = winSizeX/winSizeY
 
         if 'size' in self.params:
