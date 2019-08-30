@@ -4,7 +4,7 @@
 """
 Defines the behavior of Psychopy's Builder view window
 Part of the PsychoPy library
-Copyright (C) 2018 Jonathan Peirce
+Copyright (C) 2002-2018 Jonathan Peirce (C) 2019 Open Science Tools Ltd.
 Distributed under the terms of the GNU General Public License (GPL).
 """
 
@@ -2394,9 +2394,9 @@ class BuilderFrame(wx.Frame):
         if capture:
             sys.stdout = self.stdoutFrame
             sys.stderr = self.stdoutFrame
-        else:
-            sys.stdout = sys.__stdout__
-            sys.stderr = sys.__stderr__
+        else:  # revert to the application setting (coder out or terminal)
+            sys.stdout = self.app._stdout
+            sys.stderr = self.app._stdout
 
     def generateScript(self, experimentPath, target="PsychoPy"):
         """Generates python script from the current builder experiment"""
