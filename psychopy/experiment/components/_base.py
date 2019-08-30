@@ -132,7 +132,9 @@ class BaseComponent(object):
         winRatio = winSizeX/winSizeY
 
         if 'size' in self.params:
-            componentSize = ast.literal_eval(self.params['size'].val)
+            componentSize = self.params['size'].val
+            if isinstance(componentSize, str):
+                componentSize = ast.literal_eval(componentSize)
             if type(componentSize) in (tuple, list):
                 if units == 'height':
                     if abs(componentSize[0]/2) > (unitTypes[units] * winRatio):
