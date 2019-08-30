@@ -75,7 +75,6 @@ class Routine(list):
     def writeStartCode(self, buff):
         """This is start of the *experiment* (before window is created)
         """
-        # few components will have this
         for thisCompon in self:
             # if hasattr(thisCompon, "integrityCheck"):
             #     thisCompon.integrityCheck()
