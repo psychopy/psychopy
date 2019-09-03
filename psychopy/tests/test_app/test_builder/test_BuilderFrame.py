@@ -8,6 +8,7 @@ from tempfile import mkdtemp
 import codecs
 import pytest
 import locale
+import time
 
 import psychopy.experiment
 from psychopy import prefs
@@ -57,6 +58,7 @@ class Test_BuilderFrame(object):
         builderView.fileOpen(filename=expfile)
         builderView.setExperimentSettings(timeout=500)
         builderView.isModified = False
+        builderView.runFile()
         builderView.closeFrame()
 
     def _checkCompileWith(self, thisComp):
