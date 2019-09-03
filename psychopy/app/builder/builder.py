@@ -2200,7 +2200,7 @@ class BuilderFrame(wx.Frame):
         # update app controls
         self.toolbar.EnableTool(self.bldrBtnRun.Id, False)
         self.toolbar.EnableTool(self.bldrBtnStop.Id, True)
-        wx.Yield()
+        self.app.Yield()
         # the whileRunning method will check on stdout from the script
         self._processEndTime = None
         self.scriptProcess = subprocess.Popen(
