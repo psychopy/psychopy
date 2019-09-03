@@ -2209,8 +2209,7 @@ class BuilderFrame(wx.Frame):
             stdout=subprocess.PIPE, stderr=subprocess.PIPE, preexec_fn=None,
             shell=False, cwd=None, env=None,
             universal_newlines=True,  # gives us back a string instead of bytes
-            creationflags=0, restore_signals=True,
-            start_new_session=False, pass_fds=()
+            creationflags=0,
         )
         # this part creates a non-blocking thread to check the stdout/err
         self._stdoutThread = OutputThread(self.scriptProcess)
