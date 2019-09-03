@@ -2180,7 +2180,7 @@ class BuilderFrame(wx.Frame):
 
         if sys.platform == 'win32':
             # the quotes allow file paths with spaces
-            command = '%s -u %s' % (sys.executable, fullPath)
+            command = [sys.executable, '-u', fullPath]
             # self.scriptProcessID = wx.Execute(command, wx.EXEC_ASYNC,
             #   self.scriptProcess)
             if hasattr(wx, "EXEC_NOHIDE"):
@@ -2193,7 +2193,7 @@ class BuilderFrame(wx.Frame):
             # for unix this signifies a space in a filename
             pythonExec = sys.executable.replace(' ', '\ ')
             # the quotes would break a unix system command
-            command = '%s -u %s' % (pythonExec, fullPath)
+            command = [pythonExec, '-u', fullPath]
             _opts = wx.EXEC_ASYNC | wx.EXEC_MAKE_GROUP_LEADER
         # update app controls
         self.toolbar.EnableTool(self.bldrBtnRun.Id, False)
@@ -2202,13 +2202,12 @@ class BuilderFrame(wx.Frame):
         # the whileRunning method will check on stdout from the script
         self._processEndTime = None
         self.scriptProcess = subprocess.Popen(
-            args=command.split(),
+            args=command,
             bufsize=1, executable=None, stdin=None,
             stdout=subprocess.PIPE, stderr=subprocess.PIPE, preexec_fn=None,
             shell=False, cwd=None, env=None,
             universal_newlines=True,  # gives us back a string instead of bytes
-            creationflags=0, restore_signals=True,
-            start_new_session=False, pass_fds=()
+            creationflags=0,
         )
         # this part creates a non-blocking thread to check the stdout/err
         self._stdoutThread = OutputThread(self.scriptProcess)
