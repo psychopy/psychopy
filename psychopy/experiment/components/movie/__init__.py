@@ -153,13 +153,9 @@ class MovieComponent(BaseVisualComponent):
             inits = self.params
 
         if self.params['units'].val == 'from exp settings':
-            unitsStr = "'height'"
-            logging.warning("{units} not a valid screen unit for online studies. Switching {name} units to 'height'."
-                            .format(units=self.params['units'],
-                                    name=self.params['name']))
+            unitsStr = ""
         else:
-            unitsStr = "%(units)s" % self.params
-
+            unitsStr = "units=%(units)s, " % self.params
 
         noAudio = '{}'.format(inits['No audio'].val).lower()
         loop = '{}'.format(inits['loop'].val).lower()
@@ -174,9 +170,8 @@ class MovieComponent(BaseVisualComponent):
 
         code = ("{name} = new visual.MovieStim({{\n"
                 "  win: psychoJS.window,\n"
-                "  name: '{name}',\n"
+                "  name: '{name}', {units}\n"
                 "  movie: {movie},\n"
-                "  units: {units},\n"
                 "  pos: {pos},\n"
                 "  size: {size},\n"
                 "  ori: {ori},\n"
