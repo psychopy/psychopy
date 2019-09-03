@@ -43,7 +43,7 @@ play in "immediate" mode with typically in the region of 5ms lag and maybe 1ms
 precision. That's pretty good compared to the other options that have a lag of
 20ms upwards and sevral ms variability.
 
-BUT, on top of that, PTB allows you to *preschedule* your sound to occur at a
+BUT, on top of that, PTB allows you to :ref:`ptbPreschedule` your sound to occur at a
 particular point in time (e.g. when the trigger is due to be sent or when the
 screen is due to flip) and the PTB engine will then prepare all the buffers
 ready to go and will also account for the known latencies in the card. With this
@@ -60,6 +60,51 @@ buit-in audio (not a fancy audio card):
     Sub-ms audio timing with standard audio on Win10. Yellow trace is a 440
     Hz tone played at 48 kHz with PTB engine. Cyan trace is the trigger
     (from a Labjack output). Gridlines are set to 1 ms.
+
+
+.. _ptbPreschedule:
+
+Preschedule your sound
+-----------------------
+
+The most precise way to use the PTB audio backend is to preschedule the 
+playing of a sound. By doing this PTB can actually take into account both the 
+time taken to load the sound (it will preload ready) and also the time taken
+by the hardware to start playing it.
+
+To do this you can call `play()` with an argument called `when`. The `when` argument
+needs to be in the PsychToolBox clock timebase which can be accessed by using 
+`psychtoolbox.GetSecs()` if you want to play sound at an arbitraty time (not in sync
+with a window flip) 
+
+For instance::
+
+    import psychtoolbox as ptb
+    from psychopy import sound
+
+    mySound = sound.Sound('A')
+    now = ptb.GetSecs()
+    mySound.play(when=now+0.5)  # play in EXACTLY 0.5s
+
+or using `Window.getFutureFlipTime(clock='ptb')` if you want a
+synchronized time::
+
+    import psychtoolbox as ptb
+    from psychopy import sound, visual
+
+    mySound = sound.Sound('A')
+
+    win = visual.Window()
+    win.flip()
+    nextFlip = win.getFutureFlipTime(clock='ptb')
+
+    mySound.play(when=nextFlip)  # sync with screen refresh
+
+The precision of that timing is still dependent on the :ref:`_PTB_latency_modes`
+and can obviously not work if the delay before the requested time is not long 
+enough for the requested mode (e.g. if you request that the sound starts on the
+next refresh but set the latency mode to be `0` (which has a lag of around 300 ms)
+then the timing will be very poor.
 
 .. _PTB_latency_modes:
 
@@ -96,7 +141,7 @@ The modes are as follows:
     card over all others. **This is the recommended mode for most studies**
 
 **4 : Critical mode**
-    As Mode 3 but if we fail to be totally dominant then raise an error rather
+    As Mode 3 except that, if we fail to be totally dominant, then raise an error rather
     than just accepting our slightly less dominant status.
 
 
