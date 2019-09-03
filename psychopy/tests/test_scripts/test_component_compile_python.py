@@ -41,7 +41,7 @@ class TestComponentCompilerPython(object):
 
     def reset_experiment(self):
         """Resets the exp object for each component"""
-        self.exp = Experiment()  # create once, not every test
+        self.exp = Experiment()
         self.exp.addRoutine('trial')
         self.exp.flow.addRoutine(self.exp.routines['trial'], pos=0)
 
@@ -63,7 +63,8 @@ class TestComponentCompilerPython(object):
 
     def create_component_output(self, compName):
         """Create the Python script"""
-        psyexpCompile.compileScript(infile=self.exp, outfile='new{}.py'.format(compName))
+        pyFilePath = os.path.join(self.temp_dir, 'new{}.py'.format(compName))
+        psyexpCompile.compileScript(infile=self.exp, outfile=pyFilePath)
 
     def test_component_type_in_experiment(self):
         for compName in self.allComp:
