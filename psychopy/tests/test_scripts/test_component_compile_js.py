@@ -55,5 +55,5 @@ class TestComponentCompilerJS(object):
 
     def create_component_output(self, compName):
         """Create the JS script"""
-        jsFilePath = os.path.join(os.getcwd(), 'new{}.js'.format(compName))
+        jsFilePath = os.path.join(self.temp_dir, 'new{}.js'.format(compName))
         psyexpCompile.compileScript(infile=self.exp, outfile=jsFilePath)
