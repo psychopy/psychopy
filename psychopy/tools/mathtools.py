@@ -1887,6 +1887,14 @@ def applyMatrix(m, points, out=None, dtype=None):
         points = np.array([[0., 1., 0., 1.], [-1., 0., 0., 1.]]) # [x, y, z, w]
         newPoints = applyMatrix(M, points)  # apply the transformation
 
+    Convert CIE-XYZ colors to sRGB::
+
+        sRGBMatrix = [[3.2404542, -1.5371385, -0.4985314],
+                      [-0.969266,  1.8760108,  0.041556 ],
+                      [0.0556434, -0.2040259,  1.0572252]]
+
+        colorsRGB = applyMatrix(sRGBMatrix, colorsXYZ)
+
     """
     if out is None:
         dtype = np.float64 if dtype is None else np.dtype(dtype).type
@@ -1905,6 +1913,7 @@ def applyMatrix(m, points, out=None, dtype=None):
 
     pout, p = np.atleast_2d(toReturn, points)
 
+    # TODO - optimize this!!!
     if m.shape[0] == m.shape[1] == 4:  # 4x4 matrix
         if pout.shape[1] == 3:  # Nx3
             # find `rcpW` as suggested in OpenXR's xr_linear.h header
