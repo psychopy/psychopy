@@ -25,8 +25,13 @@ VERSIONS = join(MAIN, '..', 'versions')
 
 if sys.platform == "darwin":
     gitgui = ["git", "gui"]
-else:
+elif sys.platform == "linux":
     gitgui = ["cola"]
+else:
+    gitgui = ["git", "gui"]
+    print("This script requires a unix-based terminal to run (for commands "
+          "like `du -sck` to work)")
+    sys.exit()
 
 def getSHA(cwd='.'):
     if cwd == '.':

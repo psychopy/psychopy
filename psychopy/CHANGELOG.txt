@@ -13,6 +13,14 @@ CHANGES, which are identified in this dark red text, typically indicate things t
 PsychoPy 3.2
 ----------------
 
+PsychoPy 3.2.1
+~~~~~~~~~~~~~~~~~~~~~~
+
+Fixed Python2 not loading/launching experiments properly #2597
+
+PsychoPy 3.2.0
+~~~~~~~~~~~~~~~~~~~~~~
+
 It's all about the new timing improvements!
 
 This version adds better audio timing to the Python engine (using the C code from
