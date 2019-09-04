@@ -1842,13 +1842,20 @@ def concatenate(matrices, out=None, dtype=None):
 def applyMatrix(m, points, out=None, dtype=None):
     """Apply a transformation matrix over a 2D array of points.
 
+    This function is useful for transforming large arrays of coordinates with
+    a matrix (eg. sRGB conversion, vertex transformations, etc.) Transformation
+    matrices specified to `m` must have dimensions 4x4, 3x4, 3x3 or 2x2. With
+    the exception of 4x4 matrices, input `points` must have the same number of
+    columns as the matrix has rows. 4x4 matrices can be used to transform Nx4
+    and Nx3 arrays.
+
     Parameters
     ----------
     m : array_like
-        Square matrix with dimensions 2, 3 or 4.
+        Matrix with dimensions 2x2, 3x3, 3x4 or 4x4.
     points : array_like
         2D array of points/coordinates to transform. Each row should have length
-        2, 3 or 4.
+        approprate for the matrix being used.
     out : ndarray, optional
         Optional output array. Must be same `shape` and `dtype` as the expected
         output if `out` was not specified.
@@ -1860,7 +1867,7 @@ def applyMatrix(m, points, out=None, dtype=None):
     Returns
     -------
     ndarray
-        Transformed points.
+        Transformed coordinates.
 
     Notes
     -----
@@ -1936,7 +1943,27 @@ def applyMatrix(m, points, out=None, dtype=None):
                           m[3, 2] * p[:, 2] +
                           m[3, 3])
         else:
-            raise ValueError('Input array dimensions invalid.')
+            raise ValueError(
+                'Input array dimensions invalid. Should be Nx3 or Nx4 when '
+                'input matrix is 4x4.')
+    elif m.shape[0] == 3 and m.shape[1] == 4:
+        if pout.shape[1] == 3:  # Nx3
+            pout[:, 0] = (m[0, 0] * p[:, 0] +
+                          m[0, 1] * p[:, 1] +
+                          m[0, 2] * p[:, 2] +
+                          m[0, 3])
+            pout[:, 1] = (m[1, 0] * p[:, 0] +
+                          m[1, 1] * p[:, 1] +
+                          m[1, 2] * p[:, 2] +
+                          m[1, 3])
+            pout[:, 2] = (m[2, 0] * p[:, 0] +
+                          m[2, 1] * p[:, 1] +
+                          m[2, 2] * p[:, 2] +
+                          m[2, 3])
+        else:
+            raise ValueError(
+                'Input array dimensions invalid. Should be Nx3 when input matrix '
+                'is 3x4.')
     elif m.shape[0] == m.shape[1] == 3:  # 3x3 matrix, e.g colors
         if pout.shape[1] == 3:  # Nx3
             pout[:, 0] = (m[0, 0] * p[:, 0] +
@@ -1949,13 +1976,17 @@ def applyMatrix(m, points, out=None, dtype=None):
                           m[2, 1] * p[:, 1] +
                           m[2, 2] * p[:, 2])
         else:
-            raise ValueError('Input array dimensions invalid.')
+            raise ValueError(
+                'Input array dimensions invalid. Should be Nx3 when '
+                'input matrix is 3x3.')
     elif m.shape[0] == m.shape[1] == 2:  # 2x2 matrix
         if pout.shape[1] == 2:  # Nx2
             pout[:, 0] = m[0, 0] * p[:, 0] + m[0, 1] * p[:, 1]
             pout[:, 1] = m[1, 0] * p[:, 0] + m[1, 1] * p[:, 1]
         else:
-            raise ValueError('Input array dimensions invalid.')
+            raise ValueError(
+                'Input array dimensions invalid. Should be Nx2 when '
+                'input matrix is 2x2.')
     else:
         raise ValueError(
             'Only a square matrix with dimensions 2, 3 or 4 can be used.')
