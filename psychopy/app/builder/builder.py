@@ -124,7 +124,9 @@ class OutputThread(threading.Thread):
             # then check if the process ended
             # self.exit
         for line in self.proc.stderr.readlines():
-            sys.stdout.write(line)
+            self.queue.put(line)
+            if not line:
+                break
         return True
 
     def getBuffer(self):
@@ -1123,10 +1125,6 @@ class BuilderFrame(wx.Frame):
         # setup universal shortcuts
         accelTable = self.app.makeAccelTable()
         self.SetAcceleratorTable(accelTable)
-
-        # set stdout to correct output panel
-        self.stdoutFrame = stdOutRich.StdOutFrame(
-            parent=self, app=self.app, size=(700, 300))
 
         # setup a default exp
         if fileName is not None and os.path.isfile(fileName):
@@ -2170,7 +2168,6 @@ class BuilderFrame(wx.Frame):
         self.generateScript(fullPath)  # Build script based on current version selected
 
         # redirect standard streams to log window
-        self.regenerateStdOutFrame()
         self.setStandardStream(True)
 
         # provide a running... message
@@ -2180,7 +2177,7 @@ class BuilderFrame(wx.Frame):
 
         if sys.platform == 'win32':
             # the quotes allow file paths with spaces
-            command = '%s -u %s' % (sys.executable, fullPath)
+            command = [sys.executable, '-u', fullPath]
             # self.scriptProcessID = wx.Execute(command, wx.EXEC_ASYNC,
             #   self.scriptProcess)
             if hasattr(wx, "EXEC_NOHIDE"):
@@ -2193,22 +2190,21 @@ class BuilderFrame(wx.Frame):
             # for unix this signifies a space in a filename
             pythonExec = sys.executable.replace(' ', '\ ')
             # the quotes would break a unix system command
-            command = '%s -u %s' % (pythonExec, fullPath)
+            command = [pythonExec, '-u', fullPath]
             _opts = wx.EXEC_ASYNC | wx.EXEC_MAKE_GROUP_LEADER
         # update app controls
         self.toolbar.EnableTool(self.bldrBtnRun.Id, False)
         self.toolbar.EnableTool(self.bldrBtnStop.Id, True)
-        wx.Yield()
+        self.app.Yield()
         # the whileRunning method will check on stdout from the script
         self._processEndTime = None
         self.scriptProcess = subprocess.Popen(
-            args=command.split(),
+            args=command,
             bufsize=1, executable=None, stdin=None,
             stdout=subprocess.PIPE, stderr=subprocess.PIPE, preexec_fn=None,
             shell=False, cwd=None, env=None,
             universal_newlines=True,  # gives us back a string instead of bytes
-            creationflags=0, restore_signals=True,
-            start_new_session=False, pass_fds=()
+            creationflags=0,
         )
         # this part creates a non-blocking thread to check the stdout/err
         self._stdoutThread = OutputThread(self.scriptProcess)
@@ -2372,15 +2368,15 @@ class BuilderFrame(wx.Frame):
         self.app.coder.fileNew(filepath=fullPath)
         self.app.coder.fileReload(event=None, filename=fullPath)
 
-    def regenerateStdOutFrame(self):
+    @property
+    def stdoutFrame(self):
         """
-        Initializes the stdOutFrame if closed.
+        Initializes app._stdoutFrame if closed.
         """
-        try:
-            self.stdoutFrame.getText()
-        except Exception:
-            self.stdoutFrame = stdOutRich.StdOutFrame(
-                parent=self, app=self.app, size=(700, 300))
+        if self.app._stdoutFrame is None:
+            self.app._stdoutFrame = stdOutRich.StdOutFrame(
+                parent=None, app=self.app, size=(700, 300))
+        return self.app._stdoutFrame
 
     def setStandardStream(self, capture):
         """
@@ -2401,7 +2397,6 @@ class BuilderFrame(wx.Frame):
     def generateScript(self, experimentPath, target="PsychoPy"):
         """Generates python script from the current builder experiment"""
         # Set stdOut for error capture
-        self.regenerateStdOutFrame()
         self.setStandardStream(True)
         self.stdoutFrame.write("Generating {} script...\n".format(target))
 
