@@ -1845,11 +1845,10 @@ def applyMatrix(m, points, out=None, dtype=None):
     Parameters
     ----------
     m : array_like
-        Transformation matrix.
+        Square matrix with dimensions 2, 3 or 4.
     points : array_like
-        2D array of points/coordinates to transform, where each row is a single
-        point and the number of columns should match the dimensions of the
-        matrix.
+        2D array of points/coordinates to transform. Each row should have length
+        2, 3 or 4.
     out : ndarray, optional
         Optional output array. Must be same `shape` and `dtype` as the expected
         output if `out` was not specified.
@@ -1862,6 +1861,11 @@ def applyMatrix(m, points, out=None, dtype=None):
     -------
     ndarray
         Transformed points.
+
+    Notes
+    -----
+    * Input (`points`) and output (`out`) arrays cannot be the same instance for
+      this function.
 
     Examples
     --------
@@ -1876,16 +1880,6 @@ def applyMatrix(m, points, out=None, dtype=None):
         points = np.array([[0., 1., 0., 1.], [-1., 0., 0., 1.]]) # [x, y, z, w]
         newPoints = applyMatrix(M, points)  # apply the transformation
 
-    Extract the 3x3 rotation sub-matrix from a 4x4 matrix and apply it to
-    points. Here the result is written to a pre-allocated array::
-
-        points = np.array([[0., 1., 0.], [-1., 0., 0.]])  # [x, y, z]
-        outPoints = np.zeros(points.shape)
-        M = rotationMatrix(90., [1., 0., 0.])
-        M3x3 = M[:3, :3]  # extract rotation groups from the 4x4 matrix
-        # apply transformations, write to result to existing array
-        applyMatrix(M3x3, points, out=outPoints)
-
     """
     if out is None:
         dtype = np.float64 if dtype is None else np.dtype(dtype).type
@@ -1898,11 +1892,74 @@ def applyMatrix(m, points, out=None, dtype=None):
     if out is None:
         toReturn = np.zeros_like(points, dtype=dtype)
     else:
+        if id(out) == id(points):
+            raise ValueError('Output array cannot be input.')
         toReturn = out
 
-    pout, points = np.atleast_2d(toReturn, points)
+    pout, p = np.atleast_2d(toReturn, points)
 
-    np.dot(points, m.T, out=pout)
+    if m.shape[0] == m.shape[1] == 4:  # 4x4 matrix
+        if pout.shape[1] == 3:  # Nx3
+            # find `rcpW` as suggested in OpenXR's xr_linear.h header
+
+            rcpW = 1.0 / (m[3, 0] * p[:, 0] +
+                          m[3, 1] * p[:, 1] +
+                          m[3, 2] * p[:, 2] +
+                          m[3, 3])
+            pout[:, 0] = (m[0, 0] * p[:, 0] +
+                          m[0, 1] * p[:, 1] +
+                          m[0, 2] * p[:, 2] +
+                          m[0, 3]) * rcpW
+            pout[:, 1] = (m[1, 0] * p[:, 0] +
+                          m[1, 1] * p[:, 1] +
+                          m[1, 2] * p[:, 2] +
+                          m[1, 3]) * rcpW
+            pout[:, 2] = (m[2, 0] * p[:, 0] +
+                          m[2, 1] * p[:, 1] +
+                          m[2, 2] * p[:, 2] +
+                          m[2, 3]) * rcpW
+        elif pout.shape[1] == 4:  # Nx4
+            pout[:, 0] = (m[0, 0] * p[:, 0] +
+                          m[0, 1] * p[:, 1] +
+                          m[0, 2] * p[:, 2] +
+                          m[0, 3])
+            pout[:, 1] = (m[1, 0] * p[:, 0] +
+                          m[1, 1] * p[:, 1] +
+                          m[1, 2] * p[:, 2] +
+                          m[1, 3])
+            pout[:, 2] = (m[2, 0] * p[:, 0] +
+                          m[2, 1] * p[:, 1] +
+                          m[2, 2] * p[:, 2] +
+                          m[2, 3])
+            pout[:, 3] = (m[3, 0] * p[:, 0] +
+                          m[3, 1] * p[:, 1] +
+                          m[3, 2] * p[:, 2] +
+                          m[3, 3])
+        else:
+            raise ValueError('Input array dimensions invalid.')
+    elif m.shape[0] == m.shape[1] == 3:  # 3x3 matrix, e.g colors
+        if pout.shape[1] == 3:  # Nx3
+            pout[:, 0] = (m[0, 0] * p[:, 0] +
+                          m[0, 1] * p[:, 1] +
+                          m[0, 2] * p[:, 2])
+            pout[:, 1] = (m[1, 0] * p[:, 0] +
+                          m[1, 1] * p[:, 1] +
+                          m[1, 2] * p[:, 2])
+            pout[:, 2] = (m[2, 0] * p[:, 0] +
+                          m[2, 1] * p[:, 1] +
+                          m[2, 2] * p[:, 2])
+        else:
+            raise ValueError('Input array dimensions invalid.')
+    elif m.shape[0] == m.shape[1] == 2:  # 2x2 matrix
+        if pout.shape[1] == 2:  # Nx2
+            pout[:, 0] = m[0, 0] * p[:, 0] + m[0, 1] * p[:, 1]
+            pout[:, 1] = m[1, 0] * p[:, 0] + m[1, 1] * p[:, 1]
+        else:
+            raise ValueError('Input array dimensions invalid.')
+    else:
+        raise ValueError(
+            'Only square matrices with dimensions 2, 3 or 4 can be used.')
+
     pout[np.abs(pout) <= np.finfo(dtype).eps] = 0.0  # very small, make zero
 
     return toReturn

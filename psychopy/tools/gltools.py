@@ -73,7 +73,10 @@ __all__ = [
     'getFloatv',
     'getString',
     'getOpenGLInfo',
-    'mineralMaterials'
+    'mineralMaterials',
+    'metalMaterials',
+    'rubberMaterials',
+    'plasticMaterials'
 ]
 
 import ctypes
@@ -86,6 +89,7 @@ import numpy as np
 import os, sys
 import warnings
 import io
+import psychopy.tools.mathtools as mt
 
 # create a query counter to get absolute GPU time
 QUERY_COUNTER = GL.GLuint()
@@ -1950,7 +1954,6 @@ def drawVAO(vao, mode=GL.GL_TRIANGLES, start=0, count=None, flush=False):
                     vao.count - start))
 
     if vao.indexBuffer is not None:
-        print(count)
         GL.glDrawElements(mode, count, vao.indexBuffer.dataType, start)
     else:
         GL.glDrawArrays(mode, start, count)
@@ -2756,10 +2759,15 @@ def useMaterial(material, useTextures=True):
 
     """
     if material is not None:
+        GL.glDisable(GL.GL_COLOR_MATERIAL)  # disable color tracking
+        GL.glColorMaterial(material.face, GL.GL_AMBIENT_AND_DIFFUSE)
         # setup material color params
         for mode, param in material.params.items():
             if param is not None:
-                GL.glMaterialfv(material.face, mode, param)
+                if mode != GL.GL_SHININESS:
+                    GL.glMaterialfv(material.face, mode, param)
+                else:
+                    GL.glMaterialf(material.face, mode, param)
         # setup textures
         if useTextures and material.textures:
             GL.glEnable(GL.GL_TEXTURE_2D)
@@ -2770,6 +2778,7 @@ def useMaterial(material, useTextures=True):
                 GL.glBindTexture(GL.GL_TEXTURE_2D, desc.id)
     else:
         for mode, param in defaultMaterial.params.items():
+            GL.glEnable(GL.GL_COLOR_MATERIAL)
             GL.glMaterialfv(GL.GL_FRONT_AND_BACK, mode, param)
         if useTextures:
             GL.glActiveTexture(GL.GL_TEXTURE0)
@@ -3226,9 +3235,11 @@ def createUVSphere(radius=0.5, sectors=16, stacks=16):
     """Create a UV sphere.
 
     Procedurally generate a UV sphere by specifying its radius, and number of
-    stacks and sectors. Surface normals and texture coordinates are
-    automatically generated. The returned sphere's normals are computed to
-    produce smooth shading.
+    stacks and sectors. The poles of the resulting sphere will be aligned with
+    the Z-axis.
+
+    Surface normals and texture coordinates are automatically generated. The
+    returned normals are computed to produce smooth shading.
 
     Parameters
     ----------
@@ -3270,6 +3281,13 @@ def createUVSphere(radius=0.5, sectors=16, stacks=16):
         glColor4f(1.0, 0.0, 0.0, 1.0)  # red
         gltools.drawVAO(vao, GL.GL_TRIANGLES)
 
+    Raw coordinates can be transformed prior to uploading to VBOs. Here we can
+    rotate vertex positions and normals so the equator rests on Z-axis::
+
+        r = mt.rotationMatrix(90.0, (1.0, 0, 0.0))  # 90 degrees about +X axis
+        vertices = mt.applyMatrix(r, vertices)
+        normals = mt.applyMatrix(r, normals)
+
     """
     # based of the code found here http://www.songho.ca/opengl/gl_sphere.html
     sectorStep = 2.0 * np.pi / sectors
@@ -3310,6 +3328,7 @@ def createUVSphere(radius=0.5, sectors=16, stacks=16):
         k2 = k1 + sectors + 1
 
         for j in range(sectors):
+            # case for caps
             if i != 0:
                 indices.append((k1, k2, k1 + 1))
 
@@ -3323,9 +3342,9 @@ def createUVSphere(radius=0.5, sectors=16, stacks=16):
     vertices = np.asarray(vertices, dtype=np.float32)
     normals = np.asarray(normals, dtype=np.float32)
     texCoords = np.asarray(texCoords, dtype=np.float32)
-    indices = np.asarray(indices, dtype=np.uint32)
+    faces = np.asarray(indices, dtype=np.uint32)
 
-    return vertices, texCoords, normals, indices
+    return vertices, texCoords, normals, faces
 
 
 # -----------------------------
@@ -3598,6 +3617,3 @@ defaultMaterial = createMaterial(
      (GL.GL_SPECULAR, (0.0, 0.0, 0.0, 1.0)),
      (GL.GL_EMISSION, (0.0, 0.0, 0.0, 1.0)),
      (GL.GL_SHININESS, 0)])
-
-
-#if __name__ == "__main__":
