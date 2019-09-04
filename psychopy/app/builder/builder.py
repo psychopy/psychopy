@@ -2375,9 +2375,7 @@ class BuilderFrame(wx.Frame):
         """
         Initializes the stdOutFrame if closed.
         """
-        try:
-            self.stdoutFrame.getText()
-        except Exception:
+        if self.stdoutFrame is None:
             self.stdoutFrame = stdOutRich.StdOutFrame(
                 parent=self, app=self.app, size=(700, 300))
 
