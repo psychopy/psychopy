@@ -68,6 +68,7 @@ __all__ = [
     'ObjMeshInfo',
     'loadObjFile',
     'loadMtlFile',
+    'createUVSphere',
     'getIntegerv',
     'getFloatv',
     'getString',
