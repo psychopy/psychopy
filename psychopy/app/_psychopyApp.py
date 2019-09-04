@@ -204,17 +204,14 @@ class PsychoPyApp(wx.App):
                                        agwStyle=AS.AS_TIMEOUT | AS.AS_CENTER_ON_SCREEN,
                                        )  # transparency?
             w, h = splashImage.GetSize()
-            splash.SetTextPosition((int(w-130), h-20))
-            splash.SetText(_translate("Copyright (C) 2019 Open Science Tools"))
-            wx.Yield()
+            splash.SetTextPosition((int(200), h-20))
+            splash.SetText(_translate("Copyright (C) 2019 OpenScienceTools.org"))
         else:
             splash = None
 
         # SLOW IMPORTS - these need to be imported after splash screen starts
         # but then that they end up being local so keep track in self
-        if splash:
-            splash.SetText(_translate("Loading PsychoPy3..."))
-            wx.Yield()
+
         from psychopy.compatibility import checkCompatibility
         # import coder and builder here but only use them later
         from psychopy.app import coder, builder, dialogs
