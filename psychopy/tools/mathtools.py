@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""Various math functions for working with vectors, matrices, and quaternions.
 
-"""
+# Various math functions for working with vectors, matrices, and quaternions.
+#
 
 # Part of the PsychoPy library
 # Copyright (C) 2002-2018 Jonathan Peirce (C) 2019 Open Science Tools Ltd.
@@ -1473,7 +1473,7 @@ def quatToMatrix(q, out=None, dtype=None):
 
         point = [0., 1., 0., 1.]  # 4-vector form [x, y, z, 1.0]
         ori = [0., 0., 0., 1.]
-        rotMat = matrixFromQuat(ori)
+        rotMat = quatToMatrix(ori)
         # rotate 'point' using matrix multiplication
         newPoint = np.matmul(rotMat.T, point)  # returns [-1., 0., 0., 1.]
 
@@ -1779,7 +1779,7 @@ def concatenate(matrices, out=None, dtype=None):
         stimPos = [0., 1.5, -5.]
 
         # create model matrix
-        R = matrixFromQuat(stimOri)
+        R = quatToMatrix(stimOri)
         T = translationMatrix(stimPos)
         M = concatenate(R, T)  # model matrix
 
@@ -1893,7 +1893,7 @@ def applyMatrix(m, points, out=None, dtype=None):
         toReturn = np.zeros_like(points, dtype=dtype)
     else:
         if id(out) == id(points):
-            raise ValueError('Output array cannot be input.')
+            raise ValueError('Output array cannot be same as input.')
         toReturn = out
 
     pout, p = np.atleast_2d(toReturn, points)
@@ -1958,7 +1958,7 @@ def applyMatrix(m, points, out=None, dtype=None):
             raise ValueError('Input array dimensions invalid.')
     else:
         raise ValueError(
-            'Only square matrices with dimensions 2, 3 or 4 can be used.')
+            'Only a square matrix with dimensions 2, 3 or 4 can be used.')
 
     pout[np.abs(pout) <= np.finfo(dtype).eps] = 0.0  # very small, make zero
 

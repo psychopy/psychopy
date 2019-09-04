@@ -91,7 +91,7 @@ Overview
     multQuat
     invertQuat
     applyQuat
-    matrixFromQuat
+    quatToMatrix
     scaleMatrix
     rotationMatrix
     translationMatrix
@@ -125,7 +125,7 @@ Details
 .. autofunction:: multQuat
 .. autofunction:: invertQuat
 .. autofunction:: applyQuat
-.. autofunction:: matrixFromQuat
+.. autofunction:: quatToMatrix
 .. autofunction:: scaleMatrix
 .. autofunction:: rotationMatrix
 .. autofunction:: translationMatrix

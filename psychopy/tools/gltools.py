@@ -2935,6 +2935,10 @@ def loadObjFile(objFile):
     their materials. Index arrays are generated for each material present in the
     file.
 
+    Data from the returned `ObjMeshInfo` object can be used to create vertex
+    buffer objects and arrays for rendering. See `Examples` below for details on
+    how to do this.
+
     Parameters
     ----------
     objFile : :obj:`str`
@@ -3231,7 +3235,7 @@ def loadMtlFile(mtllib, texParameters=None):
     return foundMaterials
 
 
-def createUVSphere(radius=0.5, sectors=16, stacks=16):
+def createUVSphere(radius=0.5, sectors=16, stacks=16, flipFaces=False):
     """Create a UV sphere.
 
     Procedurally generate a UV sphere by specifying its radius, and number of
@@ -3244,10 +3248,14 @@ def createUVSphere(radius=0.5, sectors=16, stacks=16):
     Parameters
     ----------
     radius : float, optional
-        Radius of the sphere in scene units (usually meters).
-    sectors, stacks : int
+        Radius of the sphere in scene units (usually meters). Default is 0.5.
+    sectors, stacks : int, optional
         Number of longitudinal and latitudinal sub-divisions. Default is 16 for
         both.
+    flipFaces : bool, optional
+        If `True`, normals and face windings will be set to point inward towards
+        the center of the sphere. Texture coordinates will remain the same.
+        Default is `False`.
 
     Returns
     -------
@@ -3329,11 +3337,18 @@ def createUVSphere(radius=0.5, sectors=16, stacks=16):
 
         for j in range(sectors):
             # case for caps
-            if i != 0:
-                indices.append((k1, k2, k1 + 1))
+            if not flipFaces:
+                if i != 0:
+                    indices.append((k1, k2, k1 + 1))
 
-            if i != stacks - 1:
-                indices.append((k1 + 1, k2, k2 + 1))
+                if i != stacks - 1:
+                    indices.append((k1 + 1, k2, k2 + 1))
+            else:
+                if i != 0:
+                    indices.append((k1, k1 + 1, k2))
+
+                if i != stacks - 1:
+                    indices.append((k1 + 1, k2 + 1, k2))
 
             k1 += 1
             k2 += 1
@@ -3343,6 +3358,9 @@ def createUVSphere(radius=0.5, sectors=16, stacks=16):
     normals = np.asarray(normals, dtype=np.float32)
     texCoords = np.asarray(texCoords, dtype=np.float32)
     faces = np.asarray(indices, dtype=np.uint32)
+
+    if flipFaces:   # flip normals so they point inwards
+        normals *= -1.0
 
     return vertices, texCoords, normals, faces
 
@@ -3427,7 +3445,7 @@ def getOpenGLInfo():
     This should provide a consistent means of doing so regardless of the OpenGL
     interface we are using.
 
-    Returns are dictionary with the following fields:
+    Returns are dictionary with the following fields::
 
         vendor, renderer, version, majorVersion, minorVersion, doubleBuffer,
         maxTextureSize, stereo, maxSamples, extensions
