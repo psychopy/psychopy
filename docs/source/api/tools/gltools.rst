@@ -66,6 +66,7 @@ Overview
     ObjMeshInfo
     loadObjFile
     loadMtlFile
+    createUVSphere
     getIntegerv
     getFloatv
     getString
@@ -129,6 +130,7 @@ Details
 .. autofunction:: setAmbientLight
 .. autofunction:: loadObjFile
 .. autofunction:: loadMtlFile
+.. autofunction:: createUVSphere
 .. autofunction:: getIntegerv
 .. autofunction:: getFloatv
 .. autofunction:: getString

@@ -71,7 +71,8 @@ __all__ = [
     'getIntegerv',
     'getFloatv',
     'getString',
-    'getOpenGLInfo'
+    'getOpenGLInfo',
+    'mineralMaterials'
 ]
 
 import ctypes
@@ -3220,6 +3221,112 @@ def loadMtlFile(mtllib, texParameters=None):
     return foundMaterials
 
 
+def createUVSphere(radius=0.5, sectors=16, stacks=16):
+    """Create a UV sphere.
+
+    Procedurally generate a UV sphere by specifying its radius, and number of
+    stacks and sectors. Surface normals and texture coordinates are
+    automatically generated. The returned sphere's normals are computed to
+    produce smooth shading.
+
+    Parameters
+    ----------
+    radius : float, optional
+        Radius of the sphere in scene units (usually meters).
+    sectors, stacks : int
+        Number of longitudinal and latitudinal sub-divisions. Default is 16 for
+        both.
+
+    Returns
+    -------
+    tuple
+        Vertex attribute arrays (position, texture coordinates, and normals) and
+        triangle indices.
+
+    Examples
+    --------
+    Create a UV sphere and VAO to render it::
+
+        vertices, textureCoords, normals, faces = \
+            gltools.createUVSphere(sectors=32, stacks=32)
+
+        vertexVBO = gltools.createVBO(v)
+        texCoordVBO = gltools.createVBO(t)
+        normalsVBO = gltools.createVBO(n)
+        indexBuffer = gltools.createVBO(
+            faces.flatten(),
+            target=GL.GL_ELEMENT_ARRAY_BUFFER,
+            dataType=GL.GL_UNSIGNED_INT)
+
+        vao = gltools.createVAO({0: vertexVBO, 8: texCoordVBO, 2: normalsVBO},
+            indexBuffer=indexBuffer)
+
+        # in the rendering loop
+        gltools.drawVAO(vao, GL.GL_TRIANGLES)
+
+    The color of the sphere can be changed by calling `glColor*`::
+
+        glColor4f(1.0, 0.0, 0.0, 1.0)  # red
+        gltools.drawVAO(vao, GL.GL_TRIANGLES)
+
+    """
+    # based of the code found here http://www.songho.ca/opengl/gl_sphere.html
+    sectorStep = 2.0 * np.pi / sectors
+    stackStep = np.pi / stacks
+    lengthInv = 1.0 / radius
+
+    vertices = []
+    normals = []
+    texCoords = []
+
+    for i in range(stacks + 1):
+        stackAngle = np.pi / 2.0 - i * stackStep
+        xy = radius * np.cos(stackAngle)
+        z = radius * np.sin(stackAngle)
+
+        for j in range(sectors + 1):
+            sectorAngle = j * sectorStep
+            x = xy * np.cos(sectorAngle)
+            y = xy * np.sin(sectorAngle)
+
+            vertices.append((x, y, z))
+
+            nx = x * lengthInv
+            ny = y * lengthInv
+            nz = z * lengthInv
+
+            normals.append((nx, ny, nz))
+
+            s = j / float(sectors)
+            t = i / float(sectors)
+
+            texCoords.append((s, t))
+
+    # generate index
+    indices = []
+    for i in range(stacks):
+        k1 = i * (sectors + 1)
+        k2 = k1 + sectors + 1
+
+        for j in range(sectors):
+            if i != 0:
+                indices.append((k1, k2, k1 + 1))
+
+            if i != stacks - 1:
+                indices.append((k1 + 1, k2, k2 + 1))
+
+            k1 += 1
+            k2 += 1
+
+    # convert to numpy arrays
+    vertices = np.asarray(vertices, dtype=np.float32)
+    normals = np.asarray(normals, dtype=np.float32)
+    texCoords = np.asarray(texCoords, dtype=np.float32)
+    indices = np.asarray(indices, dtype=np.uint32)
+
+    return vertices, texCoords, normals, indices
+
+
 # -----------------------------
 # Misc. OpenGL Helper Functions
 # -----------------------------
@@ -3490,3 +3597,6 @@ defaultMaterial = createMaterial(
      (GL.GL_SPECULAR, (0.0, 0.0, 0.0, 1.0)),
      (GL.GL_EMISSION, (0.0, 0.0, 0.0, 1.0)),
      (GL.GL_SHININESS, 0)])
+
+
+#if __name__ == "__main__":
