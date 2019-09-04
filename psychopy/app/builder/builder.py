@@ -124,7 +124,9 @@ class OutputThread(threading.Thread):
             # then check if the process ended
             # self.exit
         for line in self.proc.stderr.readlines():
-            sys.stdout.write(line)
+            self.queue.put(line)
+            if not line:
+                break
         return True
 
     def getBuffer(self):
