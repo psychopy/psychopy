@@ -8,6 +8,68 @@
 # Copyright (C) 2002-2018 Jonathan Peirce (C) 2019 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
+__all__ = [
+    'createProgram',
+    'createProgramObjectARB',
+    'compileShader',
+    'compileShaderObjectARB',
+    'embedShaderSourceDefs',
+    'deleteObject',
+    'deleteObjectARB',
+    'attachShader',
+    'attachObjectARB',
+    'detachShader',
+    'detachObjectARB',
+    'linkProgram',
+    'linkProgramObjectARB',
+    'validateProgram',
+    'validateProgramARB',
+    'useProgram',
+    'useProgramObjectARB',
+    'getInfoLog',
+    'getUniformLocations',
+    'getAttribLocations',
+    'createQueryObject',
+    'beginQuery',
+    'endQuery',
+    'getQuery',
+    'getAbsTimeGPU',
+    'createFBO',
+    'attach',
+    'isComplete',
+    'deleteFBO',
+    'blitFBO',
+    'useFBO',
+    'createRenderbuffer',
+    'deleteRenderbuffer',
+    'createTexImage2D',
+    'createTexImage2DMultisample',
+    'deleteTexture',
+    'createVAO',
+    'drawVAO',
+    'deleteVAO',
+    'createVBO',
+    'bindVBO',
+    'unbindVBO',
+    'mapBuffer',
+    'unmapBuffer',
+    'deleteVBO',
+    'setVertexAttribPointer',
+    'enableVertexAttribArray',
+    'disableVertexAttribArray',
+    'createMaterial',
+    'useMaterial',
+    'createLight',
+    'useLights',
+    'setAmbientLight',
+    'loadObjFile',
+    'loadMtlFile',
+    'getIntegerv',
+    'getFloatv',
+    'getString',
+    'getOpenGLInfo'
+]
+
 import ctypes
 from io import StringIO
 from collections import namedtuple, OrderedDict
@@ -1066,7 +1128,7 @@ def createFBO(attachments=()):
 
     Returns
     -------
-    :obj:`Framebuffer`
+    Framebuffer
         Framebuffer descriptor.
 
     Notes
@@ -1142,10 +1204,6 @@ def attach(attachPoint, imageBuffer):
     imageBuffer : :obj:`TexImage2D` or :obj:`Renderbuffer`
         Framebuffer-attachable buffer descriptor.
 
-    Returns
-    -------
-    None
-
     Examples
     --------
     Attach an image to attachment points on the framebuffer::
@@ -1183,7 +1241,8 @@ def isComplete():
 
     Returns
     -------
-    :obj:`bool'
+    bool
+        `True` if the presently bound FBO is complete.
 
     """
     return GL.glCheckFramebufferStatus(GL.GL_FRAMEBUFFER) == \
@@ -1192,10 +1251,6 @@ def isComplete():
 
 def deleteFBO(fbo):
     """Delete a framebuffer.
-
-    Returns
-    -------
-    :obj:`None'
 
     """
     GL.glDeleteFramebuffers(
@@ -1269,10 +1324,6 @@ def useFBO(fbo):
     -------
     int
         OpenGL name of the framebuffer bound in the context.
-
-    Returns
-    -------
-    None
 
     Examples
     --------
@@ -1350,7 +1401,7 @@ def createRenderbuffer(width, height, internalFormat=GL.GL_RGBA8, samples=1):
 
     Returns
     -------
-    :obj:`Renderbuffer`
+    Renderbuffer
         A descriptor of the created renderbuffer.
 
     Notes
@@ -1407,10 +1458,6 @@ def createRenderbuffer(width, height, internalFormat=GL.GL_RGBA8, samples=1):
 def deleteRenderbuffer(renderBuffer):
     """Free the resources associated with a renderbuffer. This invalidates the
     renderbuffer's ID.
-
-    Returns
-    -------
-    :obj:`None'
 
     """
     GL.glDeleteRenderbuffers(1, renderBuffer.id)
@@ -1482,7 +1529,7 @@ def createTexImage2D(width, height, target=GL.GL_TEXTURE_2D, level=0,
 
     Returns
     -------
-    :obj:`TexImage2D`
+    TexImage2D
         A TexImage2D descriptor.
 
     Notes
@@ -1605,7 +1652,7 @@ def createTexImage2DMultisample(width, height,
 
     Returns
     -------
-    :obj:`TexImage2DMultisample`
+    TexImage2DMultisample
         A TexImage2DMultisample descriptor.
 
     """
@@ -1650,10 +1697,6 @@ def createTexImage2DMultisample(width, height,
 def deleteTexture(texture):
     """Free the resources associated with a texture. This invalidates the
     texture's ID.
-
-    Returns
-    -------
-    :obj:`None'
 
     """
     GL.glDeleteTextures(1, texture.id)
@@ -2340,7 +2383,6 @@ def unmapBuffer(vbo):
 
     """
     return GL.glUnmapBuffer(vbo.target) == GL.GL_TRUE
-
 
 
 def deleteVBO(vbo):
@@ -3183,7 +3225,7 @@ def getIntegerv(parName):
 
     Parameters
     ----------
-    pName : :obj:`int'
+    pName : int
         OpenGL property enum to query (e.g. GL_MAJOR_VERSION).
 
     Returns
@@ -3202,12 +3244,12 @@ def getFloatv(parName):
 
     Parameters
     ----------
-    pName : :obj:`float'
+    pName : float
         OpenGL property enum to query.
 
     Returns
     -------
-    int
+    float
 
     """
     val = GL.GLfloat()
@@ -3221,7 +3263,7 @@ def getString(parName):
 
     Parameters
     ----------
-    pName : :obj:`int'
+    pName : int
         OpenGL property enum to query (e.g. GL_VENDOR).
 
     Returns
