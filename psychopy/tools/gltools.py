@@ -72,24 +72,18 @@ __all__ = [
     'getIntegerv',
     'getFloatv',
     'getString',
-    'getOpenGLInfo',
-    'mineralMaterials',
-    'metalMaterials',
-    'rubberMaterials',
-    'plasticMaterials'
+    'getOpenGLInfo'
 ]
 
 import ctypes
 from io import StringIO
-from collections import namedtuple, OrderedDict
+from collections import namedtuple
 import pyglet.gl as GL  # using Pyglet for now
 from contextlib import contextmanager
 from PIL import Image
 import numpy as np
 import os, sys
 import warnings
-import io
-import psychopy.tools.mathtools as mt
 
 # create a query counter to get absolute GPU time
 QUERY_COUNTER = GL.GLuint()
@@ -3041,7 +3035,7 @@ def loadObjFile(objFile):
     """
     # open the file, read it into memory
     with open(objFile, 'r') as f:
-        objBuffer = io.StringIO(f.read())
+        objBuffer = StringIO(f.read())
 
     mtlFile = None
 
