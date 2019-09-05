@@ -96,6 +96,8 @@ Overview
     rotationMatrix
     translationMatrix
     invertMatrix
+    isOrthogonal
+    isAffine
     concatenate
     applyMatrix
     posOriToMatrix
@@ -130,6 +132,8 @@ Details
 .. autofunction:: rotationMatrix
 .. autofunction:: translationMatrix
 .. autofunction:: invertMatrix
+.. autofunction:: isOrthogonal
+.. autofunction:: isAffine
 .. autofunction:: concatenate
 .. autofunction:: applyMatrix
 .. autofunction:: rigidBodyToMatrix

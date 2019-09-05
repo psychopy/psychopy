@@ -14,7 +14,8 @@ __all__ = ['normalize', 'lerp', 'slerp', 'multQuat', 'quatFromAxisAngle',
            'quatToAxisAngle', 'posOriToMatrix', 'applyQuat', 'orthogonalize',
            'reflect', 'cross', 'distance', 'dot', 'quatMagnitude', 'length',
            'project', 'surfaceNormal', 'invertMatrix', 'angleTo',
-           'surfaceBitangent', 'surfaceTangent', 'vertexNormal']
+           'surfaceBitangent', 'surfaceTangent', 'vertexNormal', 'isOrthogonal',
+           'isAffine']
 
 import numpy as np
 import functools
@@ -1682,9 +1683,8 @@ def invertMatrix(m, homogeneous=False, out=None, dtype=None):
         4x4 matrix to invert.
     homogeneous : bool, optional
         Set as ``True`` if the input matrix specifies affine (homogeneous)
-        transformations (scale, rotation, and translation) and is orthonormal.
-        This will use a faster inverse method which handles such cases. Default
-        is ``False``.
+        transformations (scale, rotation, and translation). This will use a
+        faster inverse method which handles such cases. Default is ``False``.
     out : ndarray, optional
         Optional output array. Must be same `shape` and `dtype` as the expected
         output if `out` was not specified.
@@ -1711,7 +1711,10 @@ def invertMatrix(m, homogeneous=False, out=None, dtype=None):
     assert m.shape == (4, 4,)
 
     if not homogeneous:
-        toReturn[:, :] = np.linalg.inv(m)
+        if not isOrthogonal(m):
+            toReturn[:, :] = np.linalg.inv(m)
+        else:
+            toReturn[:, :] = m.T
     else:
         toReturn[:3, :3] = m[:3, :3].T
         toReturn[0, 3] = -(m[0, 0] * m[0, 3] + m[1, 0] * m[1, 3] + m[2, 0] * m[2, 3])
@@ -1839,6 +1842,65 @@ def concatenate(matrices, out=None, dtype=None):
     return toReturn
 
 
+def isOrthogonal(m):
+    """Check if a square matrix is orthogonal.
+
+    If a matrix is orthogonal, its columns form an orthonormal basis and is
+    non-singular. An orthogonal matrix is invertible by simply taking the
+    transpose of the matrix.
+
+    Parameters
+    ----------
+    m : array_like
+        Square matrix, either 2x2, 3x3 or 4x4.
+
+    Returns
+    -------
+    bool
+        `True` if the matrix is orthogonal.
+
+    """
+    assert 2 <= m.shape[0] <= 4
+    assert m.shape[0] == m.shape[1]
+
+    if not isinstance(m, (np.ndarray,)):
+        m = np.asarray(m)
+
+    dtype = np.dtype(m.dtype).type
+    eps = np.finfo(dtype).eps
+    return np.all(
+        np.abs(np.matmul(m, m.T) - np.identity(m.shape[0], dtype)) < eps)
+
+
+def isAffine(m):
+    """Check if a 4x4 square matrix describes an affine transformation.
+
+    Parameters
+    ----------
+    m : array_like
+        Square matrix, either 2x2, 3x3 or 4x4.
+
+    Returns
+    -------
+    bool
+        `True` if the matrix is affine.
+
+    """
+    assert 2 <= m.shape[0] <= 4
+    assert m.shape[0] == m.shape[1]
+
+    if not isinstance(m, (np.ndarray,)):
+        m = np.asarray(m)
+
+    dtype = np.dtype(m.dtype).type
+    eps = np.finfo(dtype).eps
+
+    if np.all(m[3, :3] < eps) and (dtype(1.0) - m[3, 3]) < eps:
+        return True
+
+    return False
+
+
 def applyMatrix(m, points, out=None, dtype=None):
     """Apply a transformation matrix over a 2D array of points.
 
@@ -1920,7 +1982,8 @@ def applyMatrix(m, points, out=None, dtype=None):
             # find `rcpW` as suggested in OpenXR's xr_linear.h header
             #rcpW = 1.0 / (np.sum(p * m[3, :3].T, axis=1) + m[3, 3])
             # reciprocal of `w` if the matrix is not orthonormal
-            if not (m[3, 0] == m[3, 1] == m[3, 2] == 0.0 and m[3, 3] == 1.0):
+            #if not (m[3, 0] == m[3, 1] == m[3, 2] == 0.0 and m[3, 3] == 1.0):
+            if not isAffine(m):
                 rcpW = 1.0 / (m[3, 0] * p[:, 0] +
                               m[3, 1] * p[:, 1] +
                               m[3, 2] * p[:, 2] +
@@ -2090,4 +2153,3 @@ def transform(pos, ori, points, out=None, dtype=None):
     pout[:, 2] += pos[2]
 
     return toReturn
-
