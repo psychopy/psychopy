@@ -1919,11 +1919,13 @@ def applyMatrix(m, points, out=None, dtype=None):
             pout += m[:3, 3]
             # find `rcpW` as suggested in OpenXR's xr_linear.h header
             #rcpW = 1.0 / (np.sum(p * m[3, :3].T, axis=1) + m[3, 3])
-            rcpW = 1.0 / (m[3, 0] * p[:, 0] +
-                          m[3, 1] * p[:, 1] +
-                          m[3, 2] * p[:, 2] +
-                          m[3, 3])
-            pout *= rcpW[:, np.newaxis]
+            # reciprocal of `w` if the matrix is not orthonormal
+            if not (m[3, 0] == m[3, 1] == m[3, 2] == 0.0 and m[3, 3] == 1.0):
+                rcpW = 1.0 / (m[3, 0] * p[:, 0] +
+                              m[3, 1] * p[:, 1] +
+                              m[3, 2] * p[:, 2] +
+                              m[3, 3])
+                pout *= rcpW[:, np.newaxis]
         elif pout.shape[1] == 4:  # Nx4
             pout[:, :] = p.dot(m.T)
         else:
@@ -2089,17 +2091,3 @@ def transform(pos, ori, points, out=None, dtype=None):
 
     return toReturn
 
-
-import timeit
-import time
-
-if __name__ == "__main__":
-    a = np.random.uniform(-100.0, 100.0, (100000, 3,))
-    r = rotationMatrix(34.5)
-    r2 = r[:3, :]
-    o = np.zeros_like(a)
-
-    time.clock()
-    applyMatrix(r, a, out=o)
-    print(time.clock())
-    print(np.allclose(o, applyMatrix(r[:3,:], a)))
