@@ -1913,85 +1913,41 @@ def applyMatrix(m, points, out=None, dtype=None):
 
     pout, p = np.atleast_2d(toReturn, points)
 
-    # TODO - optimize this!!!
     if m.shape[0] == m.shape[1] == 4:  # 4x4 matrix
         if pout.shape[1] == 3:  # Nx3
+            pout[:, :] = p.dot(m[:3, :3].T)
+            pout += m[:3, 3]
             # find `rcpW` as suggested in OpenXR's xr_linear.h header
-
+            #rcpW = 1.0 / (np.sum(p * m[3, :3].T, axis=1) + m[3, 3])
             rcpW = 1.0 / (m[3, 0] * p[:, 0] +
                           m[3, 1] * p[:, 1] +
                           m[3, 2] * p[:, 2] +
                           m[3, 3])
-            pout[:, 0] = (m[0, 0] * p[:, 0] +
-                          m[0, 1] * p[:, 1] +
-                          m[0, 2] * p[:, 2] +
-                          m[0, 3]) * rcpW
-            pout[:, 1] = (m[1, 0] * p[:, 0] +
-                          m[1, 1] * p[:, 1] +
-                          m[1, 2] * p[:, 2] +
-                          m[1, 3]) * rcpW
-            pout[:, 2] = (m[2, 0] * p[:, 0] +
-                          m[2, 1] * p[:, 1] +
-                          m[2, 2] * p[:, 2] +
-                          m[2, 3]) * rcpW
+            pout *= rcpW[:, np.newaxis]
         elif pout.shape[1] == 4:  # Nx4
-            pout[:, 0] = (m[0, 0] * p[:, 0] +
-                          m[0, 1] * p[:, 1] +
-                          m[0, 2] * p[:, 2] +
-                          m[0, 3])
-            pout[:, 1] = (m[1, 0] * p[:, 0] +
-                          m[1, 1] * p[:, 1] +
-                          m[1, 2] * p[:, 2] +
-                          m[1, 3])
-            pout[:, 2] = (m[2, 0] * p[:, 0] +
-                          m[2, 1] * p[:, 1] +
-                          m[2, 2] * p[:, 2] +
-                          m[2, 3])
-            pout[:, 3] = (m[3, 0] * p[:, 0] +
-                          m[3, 1] * p[:, 1] +
-                          m[3, 2] * p[:, 2] +
-                          m[3, 3])
+            pout[:, :] = p.dot(m.T)
         else:
             raise ValueError(
                 'Input array dimensions invalid. Should be Nx3 or Nx4 when '
                 'input matrix is 4x4.')
-    elif m.shape[0] == 3 and m.shape[1] == 4:
+    elif m.shape[0] == 3 and m.shape[1] == 4:  # 3x4 matrix
         if pout.shape[1] == 3:  # Nx3
-            pout[:, 0] = (m[0, 0] * p[:, 0] +
-                          m[0, 1] * p[:, 1] +
-                          m[0, 2] * p[:, 2] +
-                          m[0, 3])
-            pout[:, 1] = (m[1, 0] * p[:, 0] +
-                          m[1, 1] * p[:, 1] +
-                          m[1, 2] * p[:, 2] +
-                          m[1, 3])
-            pout[:, 2] = (m[2, 0] * p[:, 0] +
-                          m[2, 1] * p[:, 1] +
-                          m[2, 2] * p[:, 2] +
-                          m[2, 3])
+            pout[:, :] = p.dot(m[:3, :3].T)
+            pout += m[:3, 3]
         else:
             raise ValueError(
-                'Input array dimensions invalid. Should be Nx3 when input matrix '
-                'is 3x4.')
+                'Input array dimensions invalid. Should be Nx3 when input '
+                'matrix is 3x4.')
     elif m.shape[0] == m.shape[1] == 3:  # 3x3 matrix, e.g colors
         if pout.shape[1] == 3:  # Nx3
-            pout[:, 0] = (m[0, 0] * p[:, 0] +
-                          m[0, 1] * p[:, 1] +
-                          m[0, 2] * p[:, 2])
-            pout[:, 1] = (m[1, 0] * p[:, 0] +
-                          m[1, 1] * p[:, 1] +
-                          m[1, 2] * p[:, 2])
-            pout[:, 2] = (m[2, 0] * p[:, 0] +
-                          m[2, 1] * p[:, 1] +
-                          m[2, 2] * p[:, 2])
+            pout[:, :] = p.dot(m.T)
         else:
             raise ValueError(
                 'Input array dimensions invalid. Should be Nx3 when '
                 'input matrix is 3x3.')
-    elif m.shape[0] == m.shape[1] == 2:  # 2x2 matrix
+    elif m.shape[0] == m.shape[1] == pout.shape[1] == 2:  # 2x2 matrix
         if pout.shape[1] == 2:  # Nx2
-            pout[:, 0] = m[0, 0] * p[:, 0] + m[0, 1] * p[:, 1]
-            pout[:, 1] = m[1, 0] * p[:, 0] + m[1, 1] * p[:, 1]
+            pout[:, :] = p.dot(m.T)
         else:
             raise ValueError(
                 'Input array dimensions invalid. Should be Nx2 when '
@@ -2133,3 +2089,17 @@ def transform(pos, ori, points, out=None, dtype=None):
 
     return toReturn
 
+
+import timeit
+import time
+
+if __name__ == "__main__":
+    a = np.random.uniform(-100.0, 100.0, (100000, 3,))
+    r = rotationMatrix(34.5)
+    r2 = r[:3, :]
+    o = np.zeros_like(a)
+
+    time.clock()
+    applyMatrix(r, a, out=o)
+    print(time.clock())
+    print(np.allclose(o, applyMatrix(r[:3,:], a)))
