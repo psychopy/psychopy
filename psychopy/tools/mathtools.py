@@ -966,6 +966,43 @@ def vertexNormal(faceNorms, norm=True, out=None, dtype=None):
     return toReturn
 
 
+def intersectRayPlane(orig, dir, planeOrig, planeNormal):
+    """Get the point which a ray intersects a plane.
+
+    Parameters
+    ----------
+    orig : array_like
+        Origin of the line in space [x, y, z].
+    dir : array_like
+        Direction vector of the line [x, y, z].
+    planeOrig : array_like
+        Origin of the plane to test [x, y, z].
+    planeNormal : array_like
+        Normal vector of the plane [x, y, z].
+
+    Returns
+    -------
+    ndarray
+        Position in space which the line intersects the plane. `None` is
+        returned if the line does not intersect the plane at a single point or
+        at all.
+
+    """
+    orig = np.asarray(orig)
+    dir = np.asarray(dir)
+    planeOrig = np.asarray(planeOrig)
+    planeNormal = np.asarray(planeNormal)
+
+    denom = dot(dir, planeNormal)
+    if denom == 0.0:
+        return None
+
+    dist = dot((planeOrig - orig), planeNormal) / denom  # distance to collision
+    intersect = dist * dir + orig
+
+    return intersect
+
+
 # ------------------------------------------------------------------------------
 # Quaternion Operations
 #
@@ -1902,14 +1939,16 @@ def isAffine(m):
 
 
 def applyMatrix(m, points, out=None, dtype=None):
-    """Apply a transformation matrix over a 2D array of points.
+    """Apply a matrix over a 2D array of points.
 
-    This function is useful for transforming large arrays of coordinates with
-    a matrix (eg. sRGB conversion, vertex transformations, etc.) Transformation
-    matrices specified to `m` must have dimensions 4x4, 3x4, 3x3 or 2x2. With
-    the exception of 4x4 matrices, input `points` must have the same number of
-    columns as the matrix has rows. 4x4 matrices can be used to transform Nx4
-    and Nx3 arrays.
+    This function behaves similarly to the following `Numpy` statement::
+
+        points[:, :] = points.dot(m.T)
+
+    Transformation matrices specified to `m` must have dimensions 4x4, 3x4, 3x3
+    or 2x2. With the exception of 4x4 matrices, input `points` must have the
+    same number of columns as the matrix has rows. 4x4 matrices can be used to
+    transform both Nx4 and Nx3 arrays.
 
     Parameters
     ----------
@@ -1917,7 +1956,7 @@ def applyMatrix(m, points, out=None, dtype=None):
         Matrix with dimensions 2x2, 3x3, 3x4 or 4x4.
     points : array_like
         2D array of points/coordinates to transform. Each row should have length
-        approprate for the matrix being used.
+        appropriate for the matrix being used.
     out : ndarray, optional
         Optional output array. Must be same `shape` and `dtype` as the expected
         output if `out` was not specified.
