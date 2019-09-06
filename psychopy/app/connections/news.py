@@ -22,7 +22,7 @@ def getNewsItems(app=None):
     url = newsURL + "news_items.json"
     try:
         resp = requests.get(url, timeout=0.5)
-    except requests.ConnectionError:
+    except (requests.ConnectionError, requests.exceptions.ReadTimeout):
         return None
     if resp.status_code == 200:
         try:
