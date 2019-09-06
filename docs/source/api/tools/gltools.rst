@@ -67,6 +67,7 @@ Overview
     loadObjFile
     loadMtlFile
     createUVSphere
+    createPlane
     getIntegerv
     getFloatv
     getString
@@ -131,6 +132,7 @@ Details
 .. autofunction:: loadObjFile
 .. autofunction:: loadMtlFile
 .. autofunction:: createUVSphere
+.. autofunction:: createPlane
 .. autofunction:: getIntegerv
 .. autofunction:: getFloatv
 .. autofunction:: getString
