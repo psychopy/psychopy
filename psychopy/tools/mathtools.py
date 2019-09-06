@@ -1935,17 +1935,32 @@ def applyMatrix(m, points, out=None, dtype=None):
     -----
     * Input (`points`) and output (`out`) arrays cannot be the same instance for
       this function.
+    * In the case of 4x4 input matrices, this function performs optimizations
+      based on whether the input matrix is affine, greatly improving performance
+      when working with Nx3 arrays.
 
     Examples
     --------
-    Transform an array of points by some transformation matrix::
+    Construct a matrix and transform a point::
+
+        # identity 3x3 matrix for this example
+        M = [[1.0, 0.0, 0.0],
+             [0.0, 1.0, 0.0],
+             [0.0, 0.0, 1.0]]
+
+        pnt = [1.0, 0.0, 0.0]
+
+        pntNew = applyMatrix(M, pnt)
+
+    Construct an SRT matrix (scale, rotate, transform) and transform an array of
+    points::
 
         S = scaleMatrix([5.0, 5.0, 5.0])  # scale 2x
         R = rotationMatrix(180., [0., 0., -1])  # rotate 180 degrees
         T = translationMatrix([0., 1.5, -3.])  # translate point up and away
         M = concatenate([S, R, T])  # create transform matrix
 
-        # points to transform, must be 2D!
+        # points to transform
         points = np.array([[0., 1., 0., 1.], [-1., 0., 0., 1.]]) # [x, y, z, w]
         newPoints = applyMatrix(M, points)  # apply the transformation
 
@@ -1980,9 +1995,7 @@ def applyMatrix(m, points, out=None, dtype=None):
             pout[:, :] = p.dot(m[:3, :3].T)
             pout += m[:3, 3]
             # find `rcpW` as suggested in OpenXR's xr_linear.h header
-            #rcpW = 1.0 / (np.sum(p * m[3, :3].T, axis=1) + m[3, 3])
             # reciprocal of `w` if the matrix is not orthonormal
-            #if not (m[3, 0] == m[3, 1] == m[3, 2] == 0.0 and m[3, 3] == 1.0):
             if not isAffine(m):
                 rcpW = 1.0 / (m[3, 0] * p[:, 0] +
                               m[3, 1] * p[:, 1] +
