@@ -2185,7 +2185,7 @@ class BuilderFrame(wx.Frame):
             else:
                 _opts = wx.EXEC_ASYNC | wx.EXEC_SHOW_CONSOLE
         else:
-            command = [pythonExec, '-u', fullPath]
+            command = [sys.executable, '-u', fullPath]
             _opts = wx.EXEC_ASYNC | wx.EXEC_MAKE_GROUP_LEADER
         # update app controls
         self.toolbar.EnableTool(self.bldrBtnRun.Id, False)
