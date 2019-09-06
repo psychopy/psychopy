@@ -2185,11 +2185,6 @@ class BuilderFrame(wx.Frame):
             else:
                 _opts = wx.EXEC_ASYNC | wx.EXEC_SHOW_CONSOLE
         else:
-            # for unix this signifies a space in a filename
-            fullPath = fullPath.replace(' ', '\ ')
-            # for unix this signifies a space in a filename
-            pythonExec = sys.executable.replace(' ', '\ ')
-            # the quotes would break a unix system command
             command = [pythonExec, '-u', fullPath]
             _opts = wx.EXEC_ASYNC | wx.EXEC_MAKE_GROUP_LEADER
         # update app controls
