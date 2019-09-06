@@ -112,7 +112,7 @@ class StdOutFrame(wx.Frame):
         item = self.fileMenu.Append(wx.ID_EXIT, mtxt % app.keys['quit'],
                                     _translate("Terminate the application"))
         self.Bind(wx.EVT_MENU, self.quit, item)
-
+        self.Bind(wx.EVT_CLOSE, self.closeFrame)
         self.menuBar.Append(self.fileMenu, _translate("&File"))
         self.SetMenuBar(self.menuBar)
 
