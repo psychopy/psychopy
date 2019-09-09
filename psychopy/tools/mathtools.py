@@ -15,7 +15,8 @@ __all__ = ['normalize', 'lerp', 'slerp', 'multQuat', 'quatFromAxisAngle',
            'reflect', 'cross', 'distance', 'dot', 'quatMagnitude', 'length',
            'project', 'surfaceNormal', 'invertMatrix', 'angleTo',
            'surfaceBitangent', 'surfaceTangent', 'vertexNormal', 'isOrthogonal',
-           'isAffine', 'perp', 'ortho3Dto2D', 'intersectRayPlane']
+           'isAffine', 'perp', 'ortho3Dto2D', 'intersectRayPlane',
+           'matrixToQuat']
 
 import numpy as np
 import functools
@@ -1612,6 +1613,78 @@ def applyQuat(q, points, out=None, dtype=None):
 
     # remove values very close to zero
     toReturn[np.abs(toReturn) <= np.finfo(dtype).eps] = 0.0
+
+    return toReturn
+
+
+def matrixToQuat(m, out=None, dtype=None):
+    """Convert a 3x3 rotation matrix to a quaternion.
+
+    Input matrix must be orthogonal and define a pure rotation.
+
+    Parameters
+    ----------
+    m : array_like
+        3x3 rotation matrix (row-major). A 4x4 affine transformation matrix may
+        be provided, assuming the top-left 3x3 sub-matrix is orthonormal and
+        is a rotation group.
+    out : ndarray, optional
+        Optional output array. Must be same `shape` and `dtype` as the expected
+        output if `out` was not specified.
+    dtype : dtype or str, optional
+        Data type for arrays, can either be 'float32' or 'float64'. If `None` is
+        specified, the data type is inferred by `out`. If `out` is not
+        provided, the default is 'float64'.
+
+    Returns
+    -------
+    ndarray
+        Rotation quaternion.
+
+    """
+    # based off example `Maths - Conversion Matrix to Quaternion` from
+    # https://www.euclideanspace.com/
+    if out is None:
+        dtype = np.float64 if dtype is None else np.dtype(dtype).type
+    else:
+        dtype = np.dtype(out.dtype).type
+
+    m = np.asarray(m, dtype=dtype)
+
+    if m.shape == (4, 4,) or m.shape == (3, 4,):
+        m = m[:3, :3]  # keep only rotation group sub-matrix
+    elif m.shape == (3, 3,):
+        pass  # fine, nop
+    else:
+        raise ValueError("Input matrix `m` must be 3x3 or 4x4.")
+
+    toReturn = np.zeros((4,), dtype=dtype) if out is None else out
+
+    tr = m[0, 0] + m[1, 1] + m[2, 2]
+    if tr > 0.0:
+        s = np.sqrt(tr + 1.0) * 2.0
+        toReturn[3] = dtype(0.25) * s
+        toReturn[0] = (m[1, 2] - m[2, 1]) / s
+        toReturn[1] = (m[2, 0] - m[0, 2]) / s
+        toReturn[2] = (m[0, 1] - m[1, 0]) / s
+    elif m[0, 0] > m[1, 1] and m[0, 0] > m[2, 2]:
+        s = np.sqrt(dtype(1.0) + m[0, 0] - m[1, 1] - m[2, 2]) * dtype(2.0)
+        toReturn[3] = (m[1, 2] - m[2, 1]) / s
+        toReturn[0] = dtype(0.25) * s
+        toReturn[1] = (m[1, 0] - m[0, 1]) / s
+        toReturn[2] = (m[2, 0] - m[0, 2]) / s
+    elif m[0, 0] > m[2, 2]:
+        s = np.sqrt(dtype(1.0) + m[1, 1] - m[0, 0] - m[2, 2]) * dtype(2.0)
+        toReturn[3] = (m[2, 0] - m[0, 2]) / s
+        toReturn[0] = (m[1, 0] - m[0, 1]) / s
+        toReturn[1] = dtype(0.25) * s
+        toReturn[2] = (m[2, 1] - m[1, 2]) / s
+    else:
+        s = np.sqrt(dtype(1.0) + m[2, 2] - m[0, 0] - m[1, 1]) * dtype(2.0)
+        toReturn[3] = (m[0, 1] - m[1, 0]) / s
+        toReturn[0] = (m[2, 0] - m[0, 2]) / s
+        toReturn[1] = (m[2, 1] - m[1, 2]) / s
+        toReturn[2] = dtype(0.25) * s
 
     return toReturn
 
