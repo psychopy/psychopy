@@ -3,7 +3,6 @@
 
 """Stimulus object for drawing arbitrary bitmaps that can repeat (cycle)
 in either dimension. One of the main stimuli for PsychoPy.
-"""
 
 # Part of the PsychoPy library
 # Copyright (C) 2002-2018 Jonathan Peirce (C) 2019 Open Science Tools Ltd.
@@ -240,7 +239,7 @@ class GratingStim(BaseVisualStim, TextureMixin, ColorMixin, ContainerMixin):
             + a numpy array (1xN or NxN) ranging -1:1
 
         If specifying your own texture using an image or numpy array
-        you should ensure that the image has square power-of-two dimesnions
+        you should ensure that the image has square power-of-two dimensions
         (e.g. 256 x 256). If not then PsychoPy will upsample your stimulus
         to the next larger power of two.
         """
