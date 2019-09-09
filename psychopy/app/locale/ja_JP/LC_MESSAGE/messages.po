@@ -2,8 +2,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PsychoPy 1.81.00\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-08-30 15:33+0900\n"
-"PO-Revision-Date: 2019-08-30 15:34+0900\n"
+"POT-Creation-Date: 2019-09-09 19:50+0900\n"
+"PO-Revision-Date: 2019-09-09 19:50+0900\n"
 "Last-Translator: Hiroyuki Sogo <hsogo12600@gmail.com>\n"
 "Language-Team: Hiroyuki Sogo <hsogo12600@gmail.com>\n"
 "Language: ja\n"
@@ -101,12 +101,12 @@ msgstr ""
 "psychopy-users@googlegroups.com に御連絡ください"
 
 #: psychopy/app/builder/builder.py:82
-#: psychopy/app/builder/localizedStrings.py:82
+#: psychopy/app/builder/localizedStrings.py:83
 msgid "Field"
 msgstr "フィールド"
 
 #: psychopy/app/builder/builder.py:83
-#: psychopy/app/builder/localizedStrings.py:83
+#: psychopy/app/builder/localizedStrings.py:84
 msgid "Default"
 msgstr "初期値"
 
@@ -1076,148 +1076,156 @@ msgstr "ランダム位置"
 msgid "walk"
 msgstr "ランダムウォーク"
 
-#: psychopy/app/builder/localizedStrings.py:48
+#: psychopy/app/builder/localizedStrings.py:47
 msgid "same"
-msgstr "同一方向"
+msgstr "同じ"
+
+#: psychopy/app/builder/localizedStrings.py:48
+msgid "different"
+msgstr "異なる"
 
 #: psychopy/app/builder/localizedStrings.py:49
-msgid "different"
-msgstr "異なる方向"
-
-#: psychopy/app/builder/localizedStrings.py:50
 msgid "Experiment"
 msgstr "実験開始時"
 
-#: psychopy/app/builder/localizedStrings.py:52
+#: psychopy/app/builder/localizedStrings.py:50
+msgid "repeat"
+msgstr "繰り返し"
+
+#: psychopy/app/builder/localizedStrings.py:51
+msgid "none"
+msgstr "なし"
+
+#: psychopy/app/builder/localizedStrings.py:53
 msgid "time (s)"
 msgstr "時刻 (秒)"
 
-#: psychopy/app/builder/localizedStrings.py:53
+#: psychopy/app/builder/localizedStrings.py:54
 msgid "frame N"
 msgstr "フレーム数"
 
-#: psychopy/app/builder/localizedStrings.py:54
+#: psychopy/app/builder/localizedStrings.py:55
 msgid "condition"
 msgstr "条件式"
 
-#: psychopy/app/builder/localizedStrings.py:55
+#: psychopy/app/builder/localizedStrings.py:56
 msgid "duration (s)"
 msgstr "実行時間 (秒)"
 
-#: psychopy/app/builder/localizedStrings.py:56
+#: psychopy/app/builder/localizedStrings.py:57
 msgid "duration (frames)"
 msgstr "実行時間 (フレーム数)"
 
-#: psychopy/app/builder/localizedStrings.py:64
+#: psychopy/app/builder/localizedStrings.py:65
 msgid "constant"
 msgstr "更新しない"
 
-#: psychopy/app/builder/localizedStrings.py:65
+#: psychopy/app/builder/localizedStrings.py:66
 msgid "set every repeat"
 msgstr "繰り返し毎に更新"
 
-#: psychopy/app/builder/localizedStrings.py:66
+#: psychopy/app/builder/localizedStrings.py:67
 msgid "set every frame"
 msgstr "フレーム毎に更新"
 
-#: psychopy/app/builder/localizedStrings.py:68
+#: psychopy/app/builder/localizedStrings.py:69
 msgid "add"
 msgstr "加算"
 
-#: psychopy/app/builder/localizedStrings.py:69
-#: psychopy/app/builder/localizedStrings.py:100
+#: psychopy/app/builder/localizedStrings.py:70
+#: psychopy/app/builder/localizedStrings.py:101
 msgid "average"
 msgstr "平均"
 
-#: psychopy/app/builder/localizedStrings.py:70
+#: psychopy/app/builder/localizedStrings.py:71
 msgid "use preferences"
 msgstr "PsychoPyの設定を用いる"
 
-#: psychopy/app/builder/localizedStrings.py:71
+#: psychopy/app/builder/localizedStrings.py:72
 msgid "on Sync"
 msgstr "同期時"
 
-#: psychopy/app/builder/localizedStrings.py:72
+#: psychopy/app/builder/localizedStrings.py:73
 msgid "on Save"
 msgstr "保存時"
 
-#: psychopy/app/builder/localizedStrings.py:73
+#: psychopy/app/builder/localizedStrings.py:74
 msgid "manually"
 msgstr "手作業で"
 
-#: psychopy/app/builder/localizedStrings.py:75
+#: psychopy/app/builder/localizedStrings.py:76
 msgid "debug"
 msgstr "debug"
 
-#: psychopy/app/builder/localizedStrings.py:76
+#: psychopy/app/builder/localizedStrings.py:77
 msgid "info"
 msgstr "info"
 
-#: psychopy/app/builder/localizedStrings.py:77
+#: psychopy/app/builder/localizedStrings.py:78
 msgid "exp"
 msgstr "exp"
 
-#: psychopy/app/builder/localizedStrings.py:78
+#: psychopy/app/builder/localizedStrings.py:79
 msgid "data"
 msgstr "data"
 
-#: psychopy/app/builder/localizedStrings.py:79
+#: psychopy/app/builder/localizedStrings.py:80
 msgid "warning"
 msgstr "warning"
 
-#: psychopy/app/builder/localizedStrings.py:80
+#: psychopy/app/builder/localizedStrings.py:81
 msgid "error"
 msgstr "error"
 
-#: psychopy/app/builder/localizedStrings.py:85
+#: psychopy/app/builder/localizedStrings.py:86
 msgid "any click"
 msgstr "全てのクリック"
 
-#: psychopy/app/builder/localizedStrings.py:86
+#: psychopy/app/builder/localizedStrings.py:87
 msgid "valid click"
 msgstr "有効なクリック"
 
-#: psychopy/app/builder/localizedStrings.py:87
+#: psychopy/app/builder/localizedStrings.py:88
 msgid "mouse onset"
 msgstr "Mouseコンポーネント初期化時"
 
-#: psychopy/app/builder/localizedStrings.py:88
+#: psychopy/app/builder/localizedStrings.py:89
 msgid "Routine"
 msgstr "Routine開始時"
 
-#: psychopy/app/builder/localizedStrings.py:90
+#: psychopy/app/builder/localizedStrings.py:91
 msgid "line"
 msgstr "直線"
 
-#: psychopy/app/builder/localizedStrings.py:91
+#: psychopy/app/builder/localizedStrings.py:92
 msgid "triangle"
 msgstr "三角形"
 
-#: psychopy/app/builder/localizedStrings.py:92
+#: psychopy/app/builder/localizedStrings.py:93
 msgid "rectangle"
 msgstr "長方形"
 
-#: psychopy/app/builder/localizedStrings.py:93
+#: psychopy/app/builder/localizedStrings.py:94
 msgid "cross"
 msgstr "十字"
 
-#: psychopy/app/builder/localizedStrings.py:94
+#: psychopy/app/builder/localizedStrings.py:95
 msgid "star"
 msgstr "星"
 
-#: psychopy/app/builder/localizedStrings.py:95
+#: psychopy/app/builder/localizedStrings.py:96
 msgid "regular polygon..."
 msgstr "正多角形..."
 
-#: psychopy/app/builder/localizedStrings.py:97
+#: psychopy/app/builder/localizedStrings.py:98
 msgid "first"
 msgstr "最初"
 
-#: psychopy/app/builder/localizedStrings.py:98
+#: psychopy/app/builder/localizedStrings.py:99
 msgid "last"
 msgstr "最後"
 
-#: psychopy/app/builder/localizedStrings.py:99
+#: psychopy/app/builder/localizedStrings.py:100
 msgid "all"
 msgstr "すべて"
 
