@@ -77,6 +77,7 @@ Overview
     dot
     cross
     project
+    perp
     lerp
     distance
     angleTo
@@ -113,6 +114,7 @@ Details
 .. autofunction:: dot
 .. autofunction:: cross
 .. autofunction:: project
+.. autofunction:: perp
 .. autofunction:: lerp
 .. autofunction:: distance
 .. autofunction:: angleTo

@@ -15,7 +15,7 @@ __all__ = ['normalize', 'lerp', 'slerp', 'multQuat', 'quatFromAxisAngle',
            'reflect', 'cross', 'distance', 'dot', 'quatMagnitude', 'length',
            'project', 'surfaceNormal', 'invertMatrix', 'angleTo',
            'surfaceBitangent', 'surfaceTangent', 'vertexNormal', 'isOrthogonal',
-           'isAffine']
+           'isAffine', 'perp']
 
 import numpy as np
 import functools
@@ -504,7 +504,6 @@ def lerp(v0, v1, t, out=None, dtype=None):
     v1 = np.asarray(v1, dtype=dtype)
 
     toReturn = np.zeros_like(v0, dtype=dtype) if out is None else out
-    toReturn.fill(0.0)
 
     v0, v1, vr = np.atleast_2d(v0, v1, toReturn)
     vr[:, :] = v0 * t0
@@ -563,6 +562,66 @@ def distance(v0, v1, out=None, dtype=None):
         raise ValueError("Input arguments have invalid dimensions.")
 
     return dist
+
+
+def perp(v, n, norm=True, out=None, dtype=None):
+    """Project `v` to be a perpendicular axis of `n`.
+
+    Parameters
+    ----------
+    v : array_like
+        Vector to project [x, y, z], may be Nx3.
+    n : array_like
+        Normal vector [x, y, z], may be Nx3.
+    norm : bool
+        Normalize the resulting axis. Default is `True`.
+    out : ndarray, optional
+        Optional output array. Must be same `shape` and `dtype` as the expected
+        output if `out` was not specified.
+    dtype : dtype or str, optional
+        Data type for arrays, can either be 'float32' or 'float64'. If `None` is
+        specified, the data type is inferred by `out`. If `out` is not provided,
+        the default is 'float64'.
+
+    Returns
+    -------
+    ndarray
+        Perpendicular axis of `n` from `v`.
+
+    Examples
+    --------
+    Determine the local `up` (y-axis) of a surface or plane given `normal`::
+
+        normal = [0., 0.70710678, 0.70710678]
+        up = [1., 0., 0.]
+
+        yaxis = perp(up, normal)
+
+    Do a cross product to get the x-axis perpendicular to both::
+
+        xaxis = cross(yaxis, normal)
+
+    """
+    if out is None:
+        dtype = np.float64 if dtype is None else np.dtype(dtype).type
+    else:
+        dtype = np.dtype(out.dtype).type
+
+    v = np.asarray(v, dtype=dtype)
+    n = np.asarray(n, dtype=dtype)
+
+    toReturn = np.zeros_like(v, dtype=dtype) if out is None else out
+    v2d, n2d, r2d = np.atleast_2d(v, n, toReturn)
+
+    # from GLM `glm/gtx/perpendicular.inl`
+    r2d[:, :] = v2d - project(v2d, n2d, dtype=dtype)
+
+    if norm:
+        normalize(toReturn, out=toReturn)
+
+    toReturn += 0.0  # clear negative zeros
+
+    return toReturn
 
 
 def angleTo(v, point, degrees=True, out=None, dtype=None):
@@ -965,6 +1024,10 @@ def vertexNormal(faceNorms, norm=True, out=None, dtype=None):
 
     return toReturn
 
+
+# ------------------------------------------------------------------------------
+# Collision Detection and Interaction
+#
 
 def intersectRayPlane(orig, dir, planeOrig, planeNormal):
     """Get the point which a ray intersects a plane.
