@@ -85,6 +85,8 @@ Overview
     surfaceBitangent
     surfaceTangent
     vertexNormal
+    intersectRayPlane
+    ortho3Dto2D
     slerp
     quatToAxisAngle
     quatFromAxisAngle
@@ -122,6 +124,8 @@ Details
 .. autofunction:: surfaceBitangent
 .. autofunction:: surfaceTangent
 .. autofunction:: vertexNormal
+.. autofunction:: intersectRayPlane
+.. autofunction:: ortho3Dto2D
 .. autofunction:: slerp
 .. autofunction:: quatToAxisAngle
 .. autofunction:: quatFromAxisAngle

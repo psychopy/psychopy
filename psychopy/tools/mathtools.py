@@ -15,7 +15,7 @@ __all__ = ['normalize', 'lerp', 'slerp', 'multQuat', 'quatFromAxisAngle',
            'reflect', 'cross', 'distance', 'dot', 'quatMagnitude', 'length',
            'project', 'surfaceNormal', 'invertMatrix', 'angleTo',
            'surfaceBitangent', 'surfaceTangent', 'vertexNormal', 'isOrthogonal',
-           'isAffine', 'perp']
+           'isAffine', 'perp', 'point3Dto2D', 'intersectRayPlane']
 
 import numpy as np
 import functools
@@ -761,11 +761,11 @@ def surfaceNormal(tri, norm=True, out=None, dtype=None):
 def surfaceBitangent(tri, uv, norm=True, out=None, dtype=None):
     """Compute the bitangent vector of a given triangle.
 
-    Uses texture coordinates at each triangle vertex to determine the direction
-    of the vector. This function can be used to generate bitangent vertex
+     This function can be used to generate bitangent vertex
     attributes for normal mapping. After computing bitangents, one may
     orthogonalize them with vertex normals using the :func:`orthogonalize`
-    function, or within the fragment shader.
+    function, or within the fragment shader. Uses texture coordinates at each
+    triangle vertex to determine the direction of the vector.
 
     Parameters
     ----------
@@ -857,11 +857,11 @@ def surfaceBitangent(tri, uv, norm=True, out=None, dtype=None):
 def surfaceTangent(tri, uv, norm=True, out=None, dtype=None):
     """Compute the tangent vector of a given triangle.
 
-    Uses texture coordinates at each triangle vertex to determine the direction
-    of the vector. This function can be used to generate tangent vertex
+    This function can be used to generate tangent vertex
     attributes for normal mapping. After computing tangents, one may
     orthogonalize them with vertex normals using the :func:`orthogonalize`
-    function, or within the fragment shader.
+    function, or within the fragment shader. Uses texture coordinates at each
+    triangle vertex to determine the direction of the vector.
 
     Parameters
     ----------
@@ -1050,6 +1050,22 @@ def intersectRayPlane(orig, dir, planeOrig, planeNormal):
         returned if the line does not intersect the plane at a single point or
         at all.
 
+    Examples
+    --------
+    Find the point in the scene a ray intersects the plane::
+
+        # plane information
+        planeOrigin = [0, 0, 0]
+        planeNormal = [0, 0, 1]
+        planeUpAxis = perp([0, 1, 0], planeNormal)
+
+        # ray
+        rayDir = [0, 0, -1]
+        rayOrigin = [0, 0, 5]
+
+        # get the intersect in 3D world space
+        pnt = intersectRayPlane(rayOrigin, rayDir, planeOrigin, planeNormal)
+
     """
     orig = np.asarray(orig)
     dir = np.asarray(dir)
@@ -1064,6 +1080,63 @@ def intersectRayPlane(orig, dir, planeOrig, planeNormal):
     intersect = dist * dir + orig
 
     return intersect
+
+
+def ortho3Dto2D(p, orig, normal, up):
+    """Get the planar coordinates of an orthogonal projection of a 3D point onto
+    a 2D plane.
+
+    Parameters
+    ----------
+    p : array_like
+        Point to be projected on the plane.
+    orig : array_like
+        Origin of the plane to test [x, y, z].
+    normal : array_like
+        Normal vector of the plane [x, y, z], must be normalized.
+    up : array_like
+        Normalized up (+Y) direction of the plane's coordinate system. Must be
+        perpendicular to `normal`.
+
+    Returns
+    -------
+    ndarray
+        Coordinates on the plane [X, Y] where the 3D point projects towards
+        perpendicularly.
+
+    Examples
+    --------
+    This function can be used with :func:`intersectRayPlane` to find the
+    location on the plane the ray intersects::
+
+        # plane information
+        planeOrigin = [0, 0, 0]
+        planeNormal = [0, 0, 1]  # must be normalized
+        planeUpAxis = perp([0, 1, 0], planeNormal)  # must also be normalized
+
+        # ray
+        rayDir = [0, 0, -1]
+        rayOrigin = [0, 0, 5]
+
+        # get the intersect in 3D world space
+        pnt = intersectRayPlane(rayOrigin, rayDir, planeOrigin, planeNormal)
+
+        # get the 2D coordinates on the plane the intersect occurred
+        planeX, planeY = ortho3Dto2D(pnt, planeOrigin, planeNormal, planeUpAxis)
+
+    """
+    p = np.asarray(p)
+    orig = np.asarray(orig)
+    normal = np.asarray(normal)
+    up = np.asarray(up)
+
+    toReturn = np.zeros((2,))
+
+    offset = p - orig
+    toReturn[0] = dot(offset, cross(normal, up))  # derive +X axis with cross
+    toReturn[1] = dot(offset, up)
+
+    return toReturn
 
 
 # ------------------------------------------------------------------------------
