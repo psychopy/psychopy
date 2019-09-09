@@ -11,6 +11,7 @@ from builtins import str
 from past.builtins import basestring
 from os import path
 
+from psychopy.constants import PY3
 from psychopy.experiment.components import Param, _translate
 from psychopy.experiment.components.keyboard import KeyboardComponent
 from psychopy.experiment import CodeGenerationException, valid_var_re
@@ -148,22 +149,23 @@ class cedrusButtonBoxComponent(KeyboardComponent):
         if allowedKeysIsVar:
             # only insert this code if we think allowed keys is a variable.
             # check at run-time that the var is suitable to eval
-            key = {'key': allowedKeys}
-            code = ("# AllowedKeys looks like a variable named `%(key)s`\n"
-                    "if not '%(key)s' in locals():\n"
-                    "    logging.error('AllowedKeys variable `%(key)s` "
+            stringType = '{}'.format(['basestring', 'str'][PY3])
+            code = ("# AllowedKeys looks like a variable named `{0}`\n"
+                    "if not '{0}' in locals():\n"
+                    "    logging.error('AllowedKeys variable `{0}` "
                     "is not defined.')\n"
                     "    core.quit()\n" +
-                    "if not type(%(key)s) in [list, tuple, np.ndarray]:\n"
-                    "    if not isinstance(%(key)s, basestring):\n"
-                    "        logging.error('AllowedKeys variable `%(key)s`"
+                    "if not type({0}) in [list, tuple, np.ndarray]:\n"
+                    "    if not isinstance({0}, basestring):\n"
+                    "        logging.error('AllowedKeys variable `{0}`"
                     " is not string- or list-like.')\n"
                     "        core.quit()\n" +
-                    "    elif not ',' in %s(key): %(key)s = (%(key)s,)\n"
-                    "    else:  %(key)s = eval(%(key)s)\n")
-            buff.writeIndentedLines(code % key)
+                    "    elif not ',' in {0}: {0} = ({0},)\n"
+                    "    else:  {0} = eval({0})\n").format(allowedKeys, stringType)
+            buff.writeIndentedLines(code)
 
-            keyListStr = "keyList=list(%s)" % allowedKeys  # eval() @ run time
+            keyCheckStr = "keyList=list(%s)" % allowedKeys  # eval() @ run time
+            keyList = allowedKeys
 
         # now create the string that will loop-continue if
         if allowedKeys in [None, "none", "None", "", "[]", "()"]:
