@@ -380,19 +380,19 @@ class SettingsComponent(object):
     def writeInitCode(self, buff, version, localDateTime):
 
         buff.write(
-            u'#!/usr/bin/env python\n'
-            u'# -*- coding: utf-8 -*-\n'
-            u'"""\nThis experiment was created using PsychoPy3 Experiment '
-            u'Builder (v%s),\n'
-            u'    on %s\n' % (version, localDateTime) +
-            u'If you publish work using this script the most relevant '
-            u'publication is:\n\n'            
+            '#!/usr/bin/env python\n'
+            '# -*- coding: utf-8 -*-\n'
+            '"""\nThis experiment was created using PsychoPy3 Experiment '
+            'Builder (v%s),\n'
+            '    on %s\n' % (version, localDateTime) +
+            'If you publish work using this script the most relevant '
+            'publication is:\n\n'            
             u'    Peirce J, Gray JR, Simpson S, MacAskill M, Höchenberger R, Sogo H, '
             u'Kastman E, Lindeløv JK. (2019) \n'
-            u'        PsychoPy2: Experiments in behavior made easy Behav Res 51: 195. \n'
-            u'        https://doi.org/10.3758/s13428-018-01193-y\n'
-            u'\n"""\n'
-            u'\nfrom __future__ import absolute_import, division\n')
+            '        PsychoPy2: Experiments in behavior made easy Behav Res 51: 195. \n'
+            '        https://doi.org/10.3758/s13428-018-01193-y\n'
+            '\n"""\n'
+            "\nfrom __future__ import absolute_import, division\n")
 
         self.writeUseVersion(buff)
 
