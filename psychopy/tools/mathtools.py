@@ -15,7 +15,7 @@ __all__ = ['normalize', 'lerp', 'slerp', 'multQuat', 'quatFromAxisAngle',
            'reflect', 'cross', 'distance', 'dot', 'quatMagnitude', 'length',
            'project', 'surfaceNormal', 'invertMatrix', 'angleTo',
            'surfaceBitangent', 'surfaceTangent', 'vertexNormal', 'isOrthogonal',
-           'isAffine', 'perp', 'point3Dto2D', 'intersectRayPlane']
+           'isAffine', 'perp', 'ortho3Dto2D', 'intersectRayPlane']
 
 import numpy as np
 import functools
