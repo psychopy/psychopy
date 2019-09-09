@@ -13,37 +13,47 @@ CHANGES, which are identified in this dark red text, typically indicate things t
 PsychoPy 3.2
 ----------------
 
+PsychoPy 3.2.1
+~~~~~~~~~~~~~~~~~~~~~~
+
+Fixed Python2 not loading/launching experiments properly #2597
+
+PsychoPy 3.2.0
+~~~~~~~~~~~~~~~~~~~~~~
+
 It's all about the new timing improvements!
 
-This version adds better audio timing to the Python engine (using the C code from
-Psychtoolbox thanks to Mario Kleiner) better visual timing for visual stimuli
-when using time (isntaed of frames) and better keyboard timing on the JavaScript
-engine for your web-based experiments.
+PsychoPy 3.2.0
+~~~~~~~~~~~~~~~~~~~~~~
 
-ADDED:
+TIMING improvements:
 
-- **new Sound backend 'PTB' which is much faster** than any of the alternatives on all operating systems. The other backends
-  are still there for now but we strongly recommend you try this new one out! We're measuring jitter of less than a
-  millisecond and lag of just a few milliseconds on most systems
-- better timing of visual stimuli when timing by 'secs' (rather than frames) using
-  a new feature to request infom from the Window about next expected flip
-- better timing on the keyboard responses of the JavaScript experiments due to timestamping asynchronously with your script
+- **new Sound backend 'PTB' which is much faster** than any of the alternatives on all operating systems (using the C code from Psychtoolbox thanks to Mario Kleiner) :
+   - when combined with pre-scheduling (e.g. start playback on upcoming win.flip()) this can generate sub-ms precision and sub-ms lag!
+   - works with standard audio hardware
+- **better timing of visual stimuli** when timing by 'secs' (rather than frames):
+   - new feature to request info from the Window about next expected flip
+   - t in a Builder scripts is now time from first frame (so synched to visual stims)
+- **better timing on the keyboard responses** of the JavaScript experiments due to timestamping asynchronously with your script
+
+Also ADDED:
+
 - Standalone installations now provide an updated Cedrus library, pyxid2
-- support for new LabHackers TTL2USB8 device (parallel port alternative)
+- Support for new LabHackers TTL2USB8 device (parallel port alternative)
 - Envelope grating now has exponent (power) option
 
 FIXED:
 
-- long-standing issue with lots of print-statements (e.g. on every frame)
-  crashing Builder scripts
-- support for Pyglet 1.4 (although text scaling appears to have changed a little)
-- some serial devices (photometers) were not compatible with Python3 string/bytes
+- Long-standing issue with lots of print-statements (e.g. on every frame) crashing Builder scripts
+- Support for Pyglet 1.4 (although text scaling appears to have changed a little)
+- Some serial devices (photometers) were not compatible with Python3 string/bytes
   conversion
+- Too many more to mention...!
 
 PsychoPy 3.1
 ----------------
 
-We've improved timing, especially keyboard timing, a great deal.
+We've improved keyboard timing a great deal.
 
 As of PsychoPy 3.1 we are now using the underlying code of the `kbQueue` calls in
 `Psychophysics Toolbox`. The C code from those calls was ported to a new Python

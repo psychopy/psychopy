@@ -36,9 +36,10 @@ After importing sound, the sound lib and driver being used will be stored as::
 from __future__ import absolute_import, division, print_function
 
 from builtins import str
+from past.types import basestring
 import sys
 import os
-from psychopy import logging, prefs, exceptions
+from psychopy import logging, prefs, exceptions, constants
 
 pyoSndServer = None
 Sound = None
@@ -53,10 +54,9 @@ if travisCI:
     # for sounddevice we built in some TravisCI protection but not in pyo
     prefs.hardware['audioLib'] = ['sounddevice']
 
-if type(prefs.hardware['audioLib']) == str:
+if isinstance(prefs.hardware['audioLib'], basestring):
     prefs.hardware['audioLib'] = [prefs.hardware['audioLib']]
 for thisLibName in prefs.hardware['audioLib']:
-
     try:
         if thisLibName.lower() == 'ptb':
             from . import backend_ptb as backend

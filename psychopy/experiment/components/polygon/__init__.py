@@ -215,16 +215,16 @@ class PolygonComponent(BaseVisualComponent):
         inits = getInitVals(self.params)
 
         # Check for unsupported units
-        if inits['units'].val == 'from exp settings':
-            inits['units'] = copy.copy(self.exp.settings.params['Units'])
-        if inits['units'].val in ['from exp settings', 'cm', 'deg', 'degFlatPos', 'degFlat']:
+        if self.params['units'].val == 'from exp settings':
+            unitsStr = ""
+        elif inits['units'].val in ['cm', 'deg', 'degFlatPos', 'degFlat']:
             msg = "'{units}' units for your '{name}' shape is not currently supported for PsychoJS: " \
                   "switching units to 'height'."
             logging.warning(msg.format(units=inits['units'].val,
                                        name=self.params['name'].val,))
-            unitsStr = "'height'"
+            unitsStr = "units : 'height', "
         else:
-            unitsStr = self.params['units']
+            unitsStr = "units : %(units)s, " % self.params
 
         # replace variable params with defaults
         inits = getInitVals(self.params)
@@ -255,18 +255,15 @@ class PolygonComponent(BaseVisualComponent):
 
         if vertices in ['line', '2']:
             code = ("{name} = new visual.ShapeStim ({{\n"
-                    "  win: psychoJS.window, name: '{name}',\n"
-                    "  units: {unitsStr},\n"
+                    "  win: psychoJS.window, name: '{name}', {unitsStr}\n"
                     "  vertices: [[-{size}[0]/2.0, 0], [+{size}[0]/2.0, 0]],\n")
         elif vertices in ['triangle', '3']:
             code = ("{name} = new visual.ShapeStim ({{\n"
-                    "  win: psychoJS.window, name: '{name}',\n"
-                    "  units: {unitsStr},\n"
+                    "  win: psychoJS.window, name: '{name}', {unitsStr}\n"
                     "  vertices: [[-{size}[0]/2.0, -{size}[1]/2.0], [+{size}[0]/2.0, -{size}[1]/2.0], [0, {size}[1]/2.0]],\n")
         elif vertices in ['rectangle', '4']:
             code = ("{name} = new visual.Rect ({{\n"
-                    "  win: psychoJS.window, name: '{name}',\n"
-                    "  units: {unitsStr},\n"
+                    "  win: psychoJS.window, name: '{name}', {unitsStr}\n"
                     "  width: {size}[0], height: {size}[1],\n")
 
         depth = -self.getPosInRoutine()

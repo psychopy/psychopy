@@ -24,6 +24,7 @@ from collections import deque
 
 from psychopy.contrib.lazy_import import lazy_import
 from psychopy import colors
+import math
 from psychopy.clock import monotonicClock
 
 # try to find avbin (we'll overload pyglet's load_library tool and then
@@ -816,16 +817,15 @@ class Window(object):
         timeNext = lastFlip + self.monitorFramePeriod
         now = baseClock.getTime()
         if (now + targetTime) > timeNext:  # target is more than 1 frame in future
-            extraFrames = round((now + targetTime - timeNext)/self.monitorFramePeriod)
+            extraFrames = math.ceil((now + targetTime - timeNext)/self.monitorFramePeriod)
             thisT = timeNext + extraFrames*self.monitorFramePeriod
         else:
             thisT = timeNext
-
         # convert back to target clock timebase
         if clock=='ptb':  # add back the lastResetTime (that's the clock difference)
             output = thisT + baseClock.getLastResetTime()
         elif clock=='now':  # time from now is easy!
-            output = timeNext - now
+            output = thisT - now
         elif clock:
             output = thisT + baseClock.getLastResetTime() - clock.getLastResetTime()
         else:

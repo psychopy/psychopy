@@ -399,12 +399,14 @@ def getKeys(keyList=None, modifiers=False, timeStamped=False):
 
     if havePygame and display.get_init():
         # see if pygame has anything instead (if it exists)
+        windowSystem = 'pygame'
         for evts in evt.get(locals.KEYDOWN):
             # pygame has no keytimes
             keys.append((pygame.key.name(evts.key), 0))
     elif havePyglet:
         # for each (pyglet) window, dispatch its events before checking event
         # buffer
+        windowSystem = 'pyglet'
         for win in _default_display_.get_windows():
             try:
                 win.dispatch_events()  # pump events on pyglet windows
@@ -421,6 +423,7 @@ def getKeys(keyList=None, modifiers=False, timeStamped=False):
             # _keyBuffer = []  # DO /NOT/ CLEAR THE KEY BUFFER ENTIRELY
 
     elif haveGLFW:
+        windowSystem = 'glfw'
         # 'poll_events' is called when a window is flipped, all the callbacks
         # populate the buffer
         if len(_keyBuffer) > 0:
@@ -448,6 +451,11 @@ def getKeys(keyList=None, modifiers=False, timeStamped=False):
     elif timeStamped == False:
         keyNames = [(k[0], modifiers_dict(k[1])) for k in targets]
         return keyNames
+    elif timeStamped and windowSystem=='pygame':
+        # provide a warning and set timestamps to be None
+        logging.warning('Pygame keyboard events do not support timestamped=True')
+        relTuple = [[_f for _f in (k[0], modifiers and modifiers_dict(k[1]) or None, None) if _f] for k in targets]
+        return relTuple
     elif hasattr(timeStamped, 'getLastResetTime'):
         # keys were originally time-stamped with
         #   core.monotonicClock._lastResetTime
@@ -463,6 +471,12 @@ def getKeys(keyList=None, modifiers=False, timeStamped=False):
     elif isinstance(timeStamped, (float, int, int)):
         relTuple = [[_f for _f in (k[0], modifiers and modifiers_dict(k[1]) or None, k[-1] - timeStamped) if _f] for k in targets]
         return relTuple
+    else: ## danger - catch anything that gets here because it shouldn't!
+        raise ValueError("We received an unknown combination of params to "
+                         "getKeys(): timestamped={}, windowSystem={}, "
+                         "modifiers={}"
+                        .format(timeStamped, windowSystem, modifiers))
+
 
 
 def waitKeys(maxWait=float('inf'), keyList=None, modifiers=False,
