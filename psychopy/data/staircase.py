@@ -1420,13 +1420,13 @@ class QuestPlusHandler(StairHandler):
         kwargs : dict
             Additional keyword arguments. These might be passed, for example,
             through a :class:`MultiStairHandler`, and will be ignored. A
-            warning will be printed whenever additional keyword arguments
+            warning will be emitted whenever additional keyword arguments
             have been passed.
 
         Warns
         -----
         RuntimeWarning
-            Emits a warning if an unknown keyword argument was passed.
+            If an unknown keyword argument was passed.
 
         Notes
         -----
@@ -1448,8 +1448,8 @@ class QuestPlusHandler(StairHandler):
         logging.critical(msg)
 
         if kwargs:
-            msg = ('The  following keyword arguments are unknown to QuestPlus '
-                   'and will be ignored by QuestPlusHandler: \n')
+            msg = ('The  following keyword arguments are unknown to '
+                   'QuestPlusHandler and will be ignored: \n')
             for k in kwargs.keys():
                 msg += '\n  - %s' % k
             msg += ('\n\nIf you are using QuestPlusHandler through a '
