@@ -1252,7 +1252,27 @@ class Window(object):
         self._convergeOffset = value / 100.0
 
     def setOffAxisView(self, applyTransform=True, clearDepth=True):
-        """Set an off-axis projection."""
+        """Set an off-axis projection.
+
+        Create an off-axis projection for subsequent rendering calls. Sets the
+        `viewMatrix` and `projectionMatrix` accordingly so the scene origin is
+        on the screen plane. If `eyeOffset` is correct and the view distance and
+        screen size is defined in the monitor configuration, the resulting view
+        will be `ortho stereo`.
+
+        The convergence plane can be adjusted by setting `convergeOffset`. By
+        default, the convergence plane is set to the screen plane. Any points
+        on the screen plane will have zero disparity.
+
+        Parameters
+        ----------
+        applyTransform : bool
+            Apply transformations after computing them in immediate mode. Same
+            as calling :py:attr:`~Window.applyEyeTransform()` afterwards.
+        clearDepth : bool, optional
+            Clear the depth buffer.
+
+        """
         if self.scrDistCM is None:
             scrDistM = 0.5
         else:
@@ -1289,7 +1309,33 @@ class Window(object):
             self.applyEyeTransform(clearDepth=clearDepth)
 
     def setToeInView(self, applyTransform=True, clearDepth=True):
-        """Set toe-in projection."""
+        """Set toe-in projection.
+
+        Create a toe-in projection for subsequent rendering calls. Sets the
+        `viewMatrix` and `projectionMatrix` accordingly so the scene origin is
+        on the screen plane. The value of `convergeOffset` will define the
+        convergence point of the view, which is offset perpendicular to the
+        center of the screen. Points falling on a vertical line at the
+        convergence point will have zero disparity. The eye origin will be
+        determined using the value of `eyeOffset`.
+
+        Parameters
+        ----------
+        applyTransform : bool
+            Apply transformations after computing them in immediate mode. Same
+            as calling :py:attr:`~Window.applyEyeTransform()` afterwards.
+        clearDepth : bool, optional
+            Clear the depth buffer.
+
+        Notes
+        -----
+        * This projection mode is only 'correct' if the viewer's eyes are
+          converged at the convergence point. Due to perspective, this
+          projection introduces vertical disparities which increase in magnitude
+          with eccentricity. Use `setOffAxisView` if you want to display
+          something the viewer can look around the screen comfortably.
+
+        """
         if self.scrDistCM is None:
             scrDistM = 0.5
         else:
@@ -1339,8 +1385,8 @@ class Window(object):
         applyTransform : bool
             Apply transformations after computing them in immediate mode. Same
             as calling :py:attr:`~Window.applyEyeTransform()` afterwards.
-        **kwargs
-            Additional arguments for :py:attr:`~Window.applyEyeTransform()`.
+        clearDepth : bool, optional
+            Clear the depth buffer.
 
         Examples
         --------
