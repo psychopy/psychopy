@@ -1339,9 +1339,6 @@ class Window(object):
         applyTransform : bool
             Apply transformations after computing them in immediate mode. Same
             as calling :py:attr:`~Window.applyEyeTransform()` afterwards.
-        symmetric : bool
-            Force a symmetric frustum if `eyeOffset != 0`. If `False`, the
-            computed frustum will be asymmetric (or skewed).
         **kwargs
             Additional arguments for :py:attr:`~Window.applyEyeTransform()`.
 
