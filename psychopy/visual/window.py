@@ -440,6 +440,12 @@ class Window(object):
         self._nearClip = 0.1
         self._farClip = 100.0
 
+        # eye offset
+        self._eyeOffset = 0.0
+
+        # convergence plane offset
+        self._convergeOffset = 0.0
+
         # check whether shaders are supported
         # also will need to check for ARB_float extension,
         # but that should be done after context is created
@@ -1207,7 +1213,45 @@ class Window(object):
     def viewMatrix(self, value):
         self._viewMatrix = numpy.asarray(value, numpy.float32)
 
-    def setPerspectiveView(self, applyTransform=True, **kwargs):
+    @property
+    def eyeOffset(self):
+        """Eye offset in centimeters.
+
+        This value is used by `setPerspectiveView` to apply a lateral
+        offset to the view, therefore it must be set prior to calling it. Use a
+        positive offset for the right eye, and a negative one for the left.
+        Offsets should be the distance to from the middle of the face to the
+        center of the eye, or half the inter-ocular distance.
+
+        """
+        return self._eyeOffset * 100.0
+
+    @eyeOffset.setter
+    def eyeOffset(self, value):
+        self._eyeOffset = value / 100.0
+
+    @property
+    def convergeOffset(self):
+        """Convergence offset from monitor in centimeters.
+
+        This is value corresponds to the offset from screen plane to set the
+        convergence plane. Positive offsets move the plane farther away from the
+        viewer, while negative offsets nearer. This value is used by
+        `setPerspectiveView` and should be set before calling it to take effect.
+
+        Notes
+        -----
+        * This value is only applicable if `setPerspectiveView` is called with
+          `symmetric=False`.
+
+        """
+        return self._convergeOffset * 100.0
+
+    @convergeOffset.setter
+    def convergeOffset(self, value):
+        self._convergeOffset = value / 100.0
+
+    def setPerspectiveView(self, applyTransform=True, symmetric=False, **kwargs):
         """Set the projection and view matrix to render with perspective.
 
         Matrices are computed using values specified in the monitor
@@ -1223,14 +1267,31 @@ class Window(object):
         applyTransform : bool
             Apply transformations after computing them in immediate mode. Same
             as calling :py:attr:`~Window.applyEyeTransform()` afterwards.
+        symmetric : bool
+            Force a symmetric frustum if `eyeOffset != 0`. If `False`, the
+            computed frustum will be asymmetric (or skewed).
         **kwargs
             Additional arguments for :py:attr:`~Window.applyEyeTransform()`.
+
+        Examples
+        --------
+        Setting the projection using an asymmetric frustum::
+
+            win.eyeOffset = -3.2 if leftEye else 3.2
+            win.setPerspectiveView(symmetric=True)
+
+            # draw 3D things here ...
+
+            win.resetEyeTransform()
+
+            # draw 2D stimuli here ...
+
+            win.flip()
 
         """
         # NB - we should eventually compute these matrices lazily since they may
         # not change over the course of an experiment under most circumstances.
         #
-
         if self.scrDistCM is None:
             scrDistM = 0.5
         else:
@@ -1241,10 +1302,18 @@ class Window(object):
         else:
             scrWidthM = self.scrWidthCM / 100.0
 
+        # Not in full screen mode? Need to compute the dimensions of the display
+        # area to ensure disparities are correct even when in windowed-mode.
+        aspect = self.size[0] / self.size[1]
+        if not self._isFullScr:
+            scrWidthM = (self.size[0] / self.scrWidthPIX) * scrWidthM
+
         frustum = viewtools.computeFrustum(
             scrWidthM,  # width of screen
-            self.size[0] / self.size[1],  # aspect ratio
+            aspect,  # aspect ratio
             scrDistM,  # distance to screen
+            eyeOffset=0.0 if symmetric else self._eyeOffset,
+            convergeOffset=0.0 if symmetric else self._convergeOffset,
             nearClip=self._nearClip,
             farClip=self._farClip)
 
@@ -1252,6 +1321,7 @@ class Window(object):
 
         # translate away from screen
         self._viewMatrix = numpy.identity(4, dtype=numpy.float32)
+        self._viewMatrix[0, 3] = -self._eyeOffset  # apply eye offset
         self._viewMatrix[2, 3] = -scrDistM  # displace scene away from viewer
 
         if applyTransform:
