@@ -1251,7 +1251,79 @@ class Window(object):
     def convergeOffset(self, value):
         self._convergeOffset = value / 100.0
 
-    def setPerspectiveView(self, applyTransform=True, symmetric=False, **kwargs):
+    def setOffAxisView(self, applyTransform=True, clearDepth=True):
+        """Set an off-axis projection."""
+        if self.scrDistCM is None:
+            scrDistM = 0.5
+        else:
+            scrDistM = self.scrDistCM / 100.0
+
+        if self.scrWidthCM is None:
+            scrWidthM = 0.5
+        else:
+            scrWidthM = self.scrWidthCM / 100.0
+
+        # Not in full screen mode? Need to compute the dimensions of the display
+        # area to ensure disparities are correct even when in windowed-mode.
+        aspect = self.size[0] / self.size[1]
+        if not self._isFullScr:
+            scrWidthM = (self.size[0] / self.scrWidthPIX) * scrWidthM
+
+        frustum = viewtools.computeFrustum(
+            scrWidthM,  # width of screen
+            aspect,  # aspect ratio
+            scrDistM,  # distance to screen
+            eyeOffset=self._eyeOffset,
+            convergeOffset=self._convergeOffset,
+            nearClip=self._nearClip,
+            farClip=self._farClip)
+
+        self._projectionMatrix = viewtools.perspectiveProjectionMatrix(*frustum)
+
+        # translate away from screen
+        self._viewMatrix = numpy.identity(4, dtype=numpy.float32)
+        self._viewMatrix[0, 3] = -self._eyeOffset  # apply eye offset
+        self._viewMatrix[2, 3] = -scrDistM  # displace scene away from viewer
+
+        if applyTransform:
+            self.applyEyeTransform(clearDepth=clearDepth)
+
+    def setToeInView(self, applyTransform=True, clearDepth=True):
+        """Set toe-in projection."""
+        if self.scrDistCM is None:
+            scrDistM = 0.5
+        else:
+            scrDistM = self.scrDistCM / 100.0
+
+        if self.scrWidthCM is None:
+            scrWidthM = 0.5
+        else:
+            scrWidthM = self.scrWidthCM / 100.0
+
+        # Not in full screen mode? Need to compute the dimensions of the display
+        # area to ensure disparities are correct even when in windowed-mode.
+        aspect = self.size[0] / self.size[1]
+        if not self._isFullScr:
+            scrWidthM = (self.size[0] / self.scrWidthPIX) * scrWidthM
+
+        frustum = viewtools.computeFrustum(
+            scrWidthM,  # width of screen
+            aspect,  # aspect ratio
+            scrDistM,  # distance to screen
+            nearClip=self._nearClip,
+            farClip=self._farClip)
+
+        self._projectionMatrix = viewtools.perspectiveProjectionMatrix(*frustum)
+
+        # translate away from screen
+        eyePos = (self._eyeOffset, 0.0, scrDistM)
+        convergePoint = (0.0, 0.0, self.convergeOffset)
+        self._viewMatrix = viewtools.lookAt(eyePos, convergePoint)
+
+        if applyTransform:
+            self.applyEyeTransform(clearDepth=clearDepth)
+
+    def setPerspectiveView(self, applyTransform=True, clearDepth=True):
         """Set the projection and view matrix to render with perspective.
 
         Matrices are computed using values specified in the monitor
@@ -1312,8 +1384,6 @@ class Window(object):
             scrWidthM,  # width of screen
             aspect,  # aspect ratio
             scrDistM,  # distance to screen
-            eyeOffset=0.0 if symmetric else self._eyeOffset,
-            convergeOffset=0.0 if symmetric else self._convergeOffset,
             nearClip=self._nearClip,
             farClip=self._farClip)
 
@@ -1325,7 +1395,7 @@ class Window(object):
         self._viewMatrix[2, 3] = -scrDistM  # displace scene away from viewer
 
         if applyTransform:
-            self.applyEyeTransform(**kwargs)
+            self.applyEyeTransform(clearDepth=clearDepth)
 
     def applyEyeTransform(self, clearDepth=True):
         """Apply the current view and projection matrices.
