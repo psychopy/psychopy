@@ -1313,7 +1313,7 @@ class QuestPlusHandler(StairHandler):
                  psychometricFunc='weibull', stimScale='log10',
                  stimSelectionMethod='minEntropy',
                  stimSelectionOptions=None, paramEstimationMethod='mean',
-                 extraInfo=None, name='', label=''):
+                 extraInfo=None, name='', label='', **kwargs):
         """
         QUEST+ implementation. Currently only supports parameter estimation of
         a Weibull-shaped psychometric function.
@@ -1417,6 +1417,17 @@ class QuestPlusHandler(StairHandler):
         label : str
             Only used by :class:`MultiStairHandler`, and otherwise ignored.
 
+        kwargs : dict
+            Additional keyword arguments. These might be passed, for example,
+            through a :class:`MultiStairHandler`, and will be ignored. A
+            warning will be emitted whenever additional keyword arguments
+            have been passed.
+
+        Warns
+        -----
+        RuntimeWarning
+            If an unknown keyword argument was passed.
+
         Notes
         -----
         The QUEST+ algorithm was first described by [1]_.
@@ -1435,6 +1446,21 @@ class QuestPlusHandler(StairHandler):
         msg = ('The QUEST+ staircase implementation is currently being '
                'tested and may be subject to change.')
         logging.critical(msg)
+
+        if kwargs:
+            msg = ('The  following keyword arguments are unknown to '
+                   'QuestPlusHandler and will be ignored: \n')
+            for k in kwargs.keys():
+                msg += '\n  - %s' % k
+            msg += ('\n\nIf you are using QuestPlusHandler through a '
+                    'MultiStairHandler, it may be safe to ignore this '
+                    'warning.')
+            logging.warn(msg)
+
+            # Ensure we get a proper unit-testable warning too (not just a
+            # logfile entry)
+            msg = 'Unknown keyword argument(s) passed to QuestPlusHandler'
+            warnings.warn(msg, RuntimeWarning)
 
         super().__init__(startVal=startIntensity, nTrials=nTrials,
                          extraInfo=extraInfo, name=name)
