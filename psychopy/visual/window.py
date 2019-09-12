@@ -375,7 +375,7 @@ class Window(object):
 
         if not hasattr(self, '_projectionMatrix'):
             self._projectionMatrix = viewtools.orthoProjectionMatrix(
-                -1, 1, -1, 1, -1, 1)
+                -1, 1, -1, 1, -1, 1, dtype=numpy.float32)
 
         # set screen color
         self.__dict__['colorSpace'] = colorSpace
@@ -1248,7 +1248,8 @@ class Window(object):
             nearClip=self._nearClip,
             farClip=self._farClip)
 
-        self._projectionMatrix = viewtools.perspectiveProjectionMatrix(*frustum)
+        self._projectionMatrix = \
+            viewtools.perspectiveProjectionMatrix(*frustum, dtype=numpy.float32)
 
         # translate away from screen
         self._viewMatrix = numpy.identity(4, dtype=numpy.float32)
@@ -1311,7 +1312,7 @@ class Window(object):
 
         if hasattr(self, '_projectionMatrix'):
             self._projectionMatrix = viewtools.orthoProjectionMatrix(
-                -1, 1, -1, 1, -1, 1)
+                -1, 1, -1, 1, -1, 1, dtype=numpy.float32)
 
         self.applyEyeTransform(clearDepth)
 

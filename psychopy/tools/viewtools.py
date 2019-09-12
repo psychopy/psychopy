@@ -14,6 +14,7 @@ __all__ = ['Frustum', 'computeFrustum', 'generalizedPerspectiveProjection',
 
 import numpy as np
 from collections import namedtuple
+import psychopy.tools.mathtools as mt
 
 # convenient named tuple for storing frustum parameters
 Frustum = namedtuple(
@@ -443,18 +444,25 @@ def lookAt(eyePos, centerPos, upVec=(0.0, 1.0, 0.0), out=None, dtype=None):
     return np.matmul(rotMat, transMat, out=toReturn)
 
 
-def pointToNdc(wcsPos, viewMatrix, projectionMatrix):
+def pointToNdc(wcsPos, viewMatrix, projectionMatrix, out=None, dtype=None):
     """Map the position of a point in world space to normalized device
     coordinates/space.
 
     Parameters
     ----------
     wcsPos : tuple, list or ndarray
-        3x1 position vector(s) (xyz) in world space coordinates
+        Nx3 position vector(s) (xyz) in world space coordinates.
     viewMatrix : ndarray
-        4x4 view matrix
+        4x4 view matrix.
     projectionMatrix : ndarray
-        4x4 projection matrix
+        4x4 projection matrix.
+    out : ndarray, optional
+        Optional output array. Must be same `shape` and `dtype` as the expected
+        output if `out` was not specified.
+    dtype : dtype or str, optional
+        Data type for arrays, can either be 'float32' or 'float64'. If `None` is
+        specified, the data type is inferred by `out`. If `out` is not provided,
+        the default is 'float64'.
 
     Returns
     -------
@@ -493,22 +501,30 @@ def pointToNdc(wcsPos, viewMatrix, projectionMatrix):
         # object at point will appear at (pixelX, pixelY)
 
     """
-    # TODO - this would be more useful if this function accepted 3xN input too
-    coord = np.asarray(wcsPos, dtype=np.float32)  # convert to array
+    if out is None:
+        dtype = np.float64 if dtype is None else np.dtype(dtype).type
+    else:
+        dtype = np.dtype(out.dtype).type
+
+    wcsPos = np.asarray(wcsPos, dtype=dtype)  # convert to array
+    toReturn = np.zeros_like(wcsPos, dtype=dtype) if out is None else out
 
     # forward transform from world to clipping space
-    viewProjMatrix = np.zeros((4, 4), dtype=np.float32)
-    np.matmul(projectionMatrix, viewMatrix, viewProjMatrix)  # c-order
+    viewProjMatrix = np.zeros((4, 4,), dtype=dtype)
+    np.matmul(projectionMatrix, viewMatrix, viewProjMatrix)
+
+    pnts, rtn = np.atleast_2d(wcsPos, toReturn)
 
     # convert to 4-vector with W=1.0
-    wcsVec = np.zeros((4,), dtype=np.float32)
-    wcsVec[:3] = coord
-    wcsVec[3] = 1.0
+    wcsVec = np.zeros((pnts.shape[0], 4), dtype=dtype)
+    wcsVec[:, :3] = wcsPos
+    wcsVec[:, 3] = 1.0
 
-    clipCoords = viewProjMatrix.dot(wcsVec)  # convert to clipping space
+    # convert to homogeneous clip space
+    wcsVec = mt.applyMatrix(viewProjMatrix, wcsVec, dtype=dtype)
 
     # handle the singularity where perspective division will fail
-    if clipCoords[3] < 1e-05:
-        clipCoords[3] = 1e-05
+    wcsVec[np.abs(wcsVec[:, 3]) <= np.finfo(dtype).eps] = np.finfo(dtype).eps
+    rtn[:, :] = wcsVec[:, :3] / wcsVec[:, 3:]  # xyz / w
 
-    return clipCoords[:3] / clipCoords[3]  # xyz / w
+    return toReturn
