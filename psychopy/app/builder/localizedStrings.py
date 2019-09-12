@@ -44,10 +44,11 @@ _localizedDialogs = {
     'direction': _translate('direction'),
     'position': _translate('position'),
     'walk': _translate('walk'),
-    # dots
     'same': _translate('same'),
     'different': _translate('different'),
     'experiment': _translate('Experiment'),
+    'repeat': _translate('repeat'),
+    'none': _translate('none'),
     # startType & stopType:
     'time (s)': _translate('time (s)'),
     'frame N': _translate('frame N'),
