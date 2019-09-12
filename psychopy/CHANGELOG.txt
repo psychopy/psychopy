@@ -13,10 +13,31 @@ CHANGES, which are identified in this dark red text, typically indicate things t
 PsychoPy 3.2
 ----------------
 
+
+PsychoPy 3.2.3
+~~~~~~~~~~~~~~~~~~~~~~
+
+FIXED:
+
+- on pip install version (incorrectly packaged) there was an error
+- JS version system now drops the final (bugfix) release number (3.2.3 -> 3.2 in JS lib)
+- Cedrus response box now supports keys as a variable value in Builder #2608
+- QUestPlusHandler now supports "unkown" kwargs #2610
+
+PsychoPy 3.2.2
+~~~~~~~~~~~~~~~~~~~~~~
+
+FIXED:
+
+- timing of first frame was being given an extra (unecessary) delay if images were loaded #8ddab41
+- potential app crashes if no internet avilable #63aa7e0 #b3e15f9
+- Builder under OS X was not launching experiments if filename contained a space #1b205df
+
 PsychoPy 3.2.1
 ~~~~~~~~~~~~~~~~~~~~~~
 
-Fixed Python2 not loading/launching experiments properly #2597
+- Python2 installations crashed when trying to launch studies from Builder due to the use of a modern argument to subprocess not supported by Python2 #2596
+- If Builder script had an error, then printing of that error was sometimes being split across the output frame (of Builder) and the output panel of Coder #2594
 
 PsychoPy 3.2.0
 ~~~~~~~~~~~~~~~~~~~~~~
