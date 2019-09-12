@@ -17,7 +17,7 @@ from psychopy.constants import PY3
 # for creating html output folders:
 import shutil
 import hashlib
-import zipfile
+from pkg_resources import parse_version
 import ast  # for doing literal eval to convert '["a","b"]' to a list
 
 
@@ -530,10 +530,17 @@ class SettingsComponent(object):
         jsFilename = os.path.basename(os.path.splitext(self.exp.filename)[0])
 
         # decide if we need anchored useVersion or leave plain
-        if self.params['Use version'].val not in ['', 'latest']:
-            versionStr = '-{}'.format(self.params['Use version'].val)
+        useVer = self.params['Use version'].val
+        if useVer in ['', 'latest']:
+            versionStr = ''  # nothing to do - use unversioned version
         else:
-            versionStr = ''
+            # do we shorten minor versions ('3.4.2' to '3.4')?
+            # only from 3.2 onwards
+            if (parse_version(useVer) > (parse_version('3.2'))
+                    and len(useVer.split('.'))>2):
+                useVer = '.'.join(useVer.split('.')[:2])
+            # prepend the hyphen
+            versionStr = '-{}'.format(useVer)
 
         # html header
         template = readTextFile("JS_htmlHeader.tmpl")
