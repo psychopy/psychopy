@@ -3561,9 +3561,9 @@ def createBox(size=(1., 1., 1.), flipFaces=False):
     Parameters
     ----------
     size : tuple or float
-        Dimensions of the mesh. If a single value is specified, the plane will
-        be square. Provide a tuple of floats to specify the width and length of
-        the plane (eg. `size=(0.2, 1.3, 2.1)`).
+        Dimensions of the mesh. If a single value is specified, the box will
+        be a cube. Provide a tuple of floats to specify the width, length, and
+        height of the box (eg. `size=(0.2, 1.3, 2.1)`).
     flipFaces : bool, optional
         If `True`, normals and face windings will be set to point inward towards
         the center of the box. Texture coordinates will remain the same.
