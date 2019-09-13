@@ -41,7 +41,7 @@ Items : List of dicts or csv / xlsx file
         *responseColor*
             The response object color
 
-    Missing column headers will be replaced by default entries. The default entries are::
+    Missing column headers will be replaced by default entries. The default entries are:
         *index*
             0 (increments for each item)
         *questionText*
