@@ -596,13 +596,15 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
         psychopy.visual.Aperture
             The aperture setting viewable area for forms
         """
-        return psychopy.visual.Aperture(win=self.win,
-                                        name='aperture',
-                                        units=self.units,
-                                        shape='square',
-                                        size=self.size,
-                                        pos=(0, 0),
-                                        autoLog=False)
+        aperture = psychopy.visual.Aperture(win=self.win,
+                                            name='aperture',
+                                            units=self.units,
+                                            shape='square',
+                                            size=self.size,
+                                            pos=(0, 0),
+                                            autoLog=False)
+        aperture.disable()  # Disable on creation. Only enable on draw.
+        return aperture
 
     def _getScrollOffset(self):
         """Calculate offset position of items in relation to markerPos
