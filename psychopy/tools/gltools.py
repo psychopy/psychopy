@@ -70,6 +70,8 @@ __all__ = [
     'loadMtlFile',
     'createUVSphere',
     'createPlane',
+    'createMeshGrid',
+    'createBox',
     'getIntegerv',
     'getFloatv',
     'getString',
@@ -3265,9 +3267,9 @@ def createUVSphere(radius=0.5, sectors=16, stacks=16, flipFaces=False):
         vertices, textureCoords, normals, faces = \
             gltools.createUVSphere(sectors=32, stacks=32)
 
-        vertexVBO = gltools.createVBO(v)
-        texCoordVBO = gltools.createVBO(t)
-        normalsVBO = gltools.createVBO(n)
+        vertexVBO = gltools.createVBO(vertices)
+        texCoordVBO = gltools.createVBO(textureCoords)
+        normalsVBO = gltools.createVBO(normals)
         indexBuffer = gltools.createVBO(
             faces.flatten(),
             target=GL.GL_ELEMENT_ARRAY_BUFFER,
@@ -3360,13 +3362,13 @@ def createUVSphere(radius=0.5, sectors=16, stacks=16, flipFaces=False):
     return vertices, texCoords, normals, faces
 
 
-def createPlane(size=(1.0, 1.0), subdiv=0):
+def createPlane(size=(1., 1.)):
     """Create a plane.
 
-    Procedurally generate a plane (or quad) mesh by specifying its size and
-    number of sub-divisions. Texture coordinates are computed automatically,
-    with origin at the bottom left of the plane. The generated plane is
-    perpendicular to the +Z axis, origin of the plane is at its center.
+    Procedurally generate a plane (or quad) mesh by specifying its size. Texture
+    coordinates are computed automatically, with origin at the bottom left of
+    the plane. The generated plane is perpendicular to the +Z axis, origin of
+    the plane is at its center.
 
     Parameters
     ----------
@@ -3390,9 +3392,103 @@ def createPlane(size=(1.0, 1.0), subdiv=0):
 
         vertices, textureCoords, normals, faces = gltools.createPlane()
 
-        vertexVBO = gltools.createVBO(v)
-        texCoordVBO = gltools.createVBO(t)
-        normalsVBO = gltools.createVBO(n)
+        vertexVBO = gltools.createVBO(vertices)
+        texCoordVBO = gltools.createVBO(textureCoords)
+        normalsVBO = gltools.createVBO(normals)
+        indexBuffer = gltools.createVBO(
+            faces.flatten(),
+            target=GL.GL_ELEMENT_ARRAY_BUFFER,
+            dataType=GL.GL_UNSIGNED_INT)
+
+        vao = gltools.createVAO({0: vertexVBO, 8: texCoordVBO, 2: normalsVBO},
+            indexBuffer=indexBuffer)
+
+        # in the rendering loop
+        gltools.drawVAO(vao, GL.GL_TRIANGLES)
+
+    """
+    if isinstance(size, (int, float,)):
+        divx = divy = float(size) / 2.
+    else:
+        divx = size[0] / 2.
+        divy = size[1] / 2.
+
+    # generate plane vertices
+    x = np.linspace(-divx, divy, 2)
+    y = np.linspace(divx, -divy, 2)
+    xx, yy = np.meshgrid(x, y)
+
+    vertices = np.vstack([xx.ravel(), yy.ravel()]).T
+    vertices = np.hstack([vertices, np.zeros((vertices.shape[0], 1))])  # add z
+
+    # texture coordinates
+    u = np.linspace(0.0, 1.0, 2)
+    v = np.linspace(1.0, 0.0, 2)
+    uu, vv = np.meshgrid(u, v)
+
+    texCoords = np.vstack([uu.ravel(), vv.ravel()]).T
+
+    # normals, facing +Z
+    normals = np.zeros_like(vertices)
+    normals[:, 0] = 0.
+    normals[:, 1] = 0.
+    normals[:, 2] = 1.
+
+    # generate face index
+    faces = []
+    for i in range(1):
+        k1 = i * 2
+        k2 = k1 + 2
+
+        for j in range(1):
+            faces.append([k1, k2, k1 + 1])
+            faces.append([k1 + 1, k2, k2 + 1])
+
+            k1 += 1
+            k2 += 1
+
+    # convert to numpy arrays
+    vertices = np.ascontiguousarray(vertices, dtype=np.float32)
+    texCoords = np.ascontiguousarray(texCoords, dtype=np.float32)
+    normals = np.ascontiguousarray(normals, dtype=np.float32)
+    faces = np.ascontiguousarray(faces, dtype=np.uint32)
+
+    return vertices, texCoords, normals, faces
+
+
+def createMeshGrid(size=(1., 1.), subdiv=0):
+    """Create a grid mesh.
+
+    Procedurally generate a grid mesh by specifying its size and number of
+    sub-divisions. Texture coordinates are computed automatically, with origin
+    at the bottom left of the plane. The generated grid is perpendicular to the
+    +Z axis, origin of the grid is at its center.
+
+    Parameters
+    ----------
+    size : tuple or float
+        Dimensions of the mesh. If a single value is specified, the plane will
+        be square. Provide a tuple of floats to specify the width and length of
+        the plane (eg. `size=(0.2, 1.3)`).
+    subdiv : int, optional
+        Number of subdivisions. Zero subdivisions are applied by default, and
+        the resulting mesh will only have vertices at the corners.
+
+    Returns
+    -------
+    tuple
+        Vertex attribute arrays (position, texture coordinates, and normals) and
+        triangle indices.
+
+    Examples
+    --------
+    Create a grid mesh and draw it::
+
+        vertices, textureCoords, normals, faces = gltools.createPlane()
+
+        vertexVBO = gltools.createVBO(vertices)
+        texCoordVBO = gltools.createVBO(textureCoords)
+        normalsVBO = gltools.createVBO(normals)
         indexBuffer = gltools.createVBO(
             faces.flatten(),
             target=GL.GL_ELEMENT_ARRAY_BUFFER,
@@ -3450,6 +3546,107 @@ def createPlane(size=(1.0, 1.0), subdiv=0):
     texCoords = np.ascontiguousarray(texCoords, dtype=np.float32)
     normals = np.ascontiguousarray(normals, dtype=np.float32)
     faces = np.ascontiguousarray(faces, dtype=np.uint32)
+
+    return vertices, texCoords, normals, faces
+
+
+def createBox(size=(1., 1., 1.), flipFaces=False):
+    """Create a box mesh.
+
+    Create a box mesh by specifying its `size` in three dimensions (x, y, z),
+    or a single value (`float`) to create a cube. The resulting box will be
+    centered about the origin. Texture coordinates and normals are automatically
+    generated for each face.
+
+    Parameters
+    ----------
+    size : tuple or float
+        Dimensions of the mesh. If a single value is specified, the plane will
+        be square. Provide a tuple of floats to specify the width and length of
+        the plane (eg. `size=(0.2, 1.3, 2.1)`).
+    flipFaces : bool, optional
+        If `True`, normals and face windings will be set to point inward towards
+        the center of the box. Texture coordinates will remain the same.
+        Default is `False`.
+
+    Returns
+    -------
+    tuple
+        Vertex attribute arrays (position, texture coordinates, and normals) and
+        triangle indices.
+
+    Examples
+    --------
+    Create a box mesh and draw it::
+
+        vertices, textureCoords, normals, faces = gltools.createBox()
+
+        vertexVBO = gltools.createVBO(vertices)
+        texCoordVBO = gltools.createVBO(textureCoords)
+        normalsVBO = gltools.createVBO(normals)
+        indexBuffer = gltools.createVBO(
+            faces.flatten(),
+            target=GL.GL_ELEMENT_ARRAY_BUFFER,
+            dataType=GL.GL_UNSIGNED_INT)
+
+        vao = gltools.createVAO({0: vertexVBO, 8: texCoordVBO, 2: normalsVBO},
+            indexBuffer=indexBuffer)
+
+        # in the rendering loop
+        gltools.drawVAO(vao, GL.GL_TRIANGLES)
+
+    """
+    if isinstance(size, (int, float,)):
+        sx = sy = sz = float(size) / 2.
+    else:
+        sx, sy, sz = size
+        sx /= 2.
+        sy /= 2.
+        sz /= 2.
+
+    # vertices
+    vertices = np.ascontiguousarray([
+        [ 1.,  1.,  1.], [ 1.,  1., -1.], [ 1., -1.,  1.],
+        [ 1., -1., -1.], [-1.,  1., -1.], [-1.,  1.,  1.],
+        [-1., -1., -1.], [-1., -1.,  1.], [-1.,  1., -1.],
+        [ 1.,  1., -1.], [-1.,  1.,  1.], [ 1.,  1.,  1.],
+        [ 1., -1., -1.], [-1., -1., -1.], [ 1., -1.,  1.],
+        [-1., -1.,  1.], [-1.,  1.,  1.], [ 1.,  1.,  1.],
+        [-1., -1.,  1.], [ 1., -1.,  1.], [ 1.,  1., -1.],
+        [-1.,  1., -1.], [ 1., -1., -1.], [-1., -1., -1.]
+    ], dtype=np.float32)
+    
+    # multiply vertex coordinates by box dimensions
+    vertices[:, 0] *= sx
+    vertices[:, 1] *= sy
+    vertices[:, 2] *= sz
+
+    # normals for each side
+    normals = np.repeat(
+        [[ 1.,  0.,  0.],   # +X
+         [-1.,  0.,  0.],   # -X
+         [ 0.,  1.,  0.],   # +Y
+         [ 0., -1.,  0.],   # -Y
+         [ 0.,  0.,  1.],   # +Z
+         [ 0.,  0., -1.]],  # -Z
+        4, axis=0)
+
+    normals = np.ascontiguousarray(normals, dtype=np.float32)
+
+    # texture coordinates for each side
+    texCoords = np.tile([[0., 1.], [1., 1.], [0., 0.], [1., 0.]], (6, 1))
+    texCoords = np.ascontiguousarray(texCoords, dtype=np.float32)
+
+    # vertex indices for faces
+    faces = np.ascontiguousarray([
+        [ 0,  2,  1], [ 1,  2,  3], [ 4,  6,  5], [ 5,  6,  7], [ 8, 10,  9],
+        [ 9, 10, 11], [12, 14, 13], [13, 14, 15], [16, 18, 17], [17, 18, 19],
+        [20, 22, 21], [21, 22, 23]
+    ], dtype=np.uint32)
+
+    if flipFaces:
+        faces = np.fliplr(faces)
+        normals *= -1.0
 
     return vertices, texCoords, normals, faces
 
