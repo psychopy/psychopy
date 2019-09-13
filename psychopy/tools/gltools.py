@@ -3558,6 +3558,9 @@ def createBox(size=(1., 1., 1.), flipFaces=False):
     centered about the origin. Texture coordinates and normals are automatically
     generated for each face.
 
+    Setting `flipFaces=True` will make faces and normals point inwards, this
+    allows boxes to be viewed and lit correctly from the inside.
+
     Parameters
     ----------
     size : tuple or float
@@ -3617,9 +3620,14 @@ def createBox(size=(1., 1., 1.), flipFaces=False):
     ], dtype=np.float32)
     
     # multiply vertex coordinates by box dimensions
-    vertices[:, 0] *= sx
-    vertices[:, 1] *= sy
-    vertices[:, 2] *= sz
+    if sx != 1.:
+        vertices[:, 0] *= sx
+
+    if sx != 1.:
+        vertices[:, 1] *= sy
+
+    if sx != 1.:
+        vertices[:, 2] *= sz
 
     # normals for each side
     normals = np.repeat(
