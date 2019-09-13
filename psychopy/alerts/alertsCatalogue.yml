@@ -10,6 +10,18 @@
   msg: Your stimuli size exceeds the Y dimension of your window. Check your component size and screen units.
   url: https://psychopy.org
 
+1003:
+  code: 1003
+  cat: Positioning
+  msg: Your stimuli position exceeds the X dimension of your window. Check your component position and screen units.
+  url: https://psychopy.org
+
+1004:
+  code: 1004
+  cat: Positioning
+  msg: Your stimuli position exceeds the Y dimension of your window. Check your component position and screen units.
+  url: https://psychopy.org
+
 9999:
   code: 9999
   cat: TEST_ISSUE

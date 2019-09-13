@@ -18,7 +18,8 @@ from ..params import Param
 from psychopy.experiment.utils import CodeGenerationException
 from psychopy.localization import _translate, _localized
 from psychopy.alerts.Alerts import AlertLogger
-import ast
+from psychopy.alerts import AlertTools
+
 
 class BaseComponent(object):
     """A template for components, defining the methods to be overridden"""
@@ -118,41 +119,10 @@ class BaseComponent(object):
         self.order = ['name']  # name first, then timing, then others
 
     def integrityCheck(self):
-        unitTypes = {'height': .5,
-                     'norm': 1,}
-
-        if 'units' in self.params:
-            if self.params['units'].val not in ['from exp settings', 'cm', 'deg']:
-                units = self.params['units'].val
-            else:
-                # Use window units for sizing etc
-                units = self.exp.settings.params['Units'].val
-        winSize = self.exp.settings.params['Window size (pixels)'].val
-        if isinstance(winSize, str):
-            winSize = ast.literal_eval(winSize)
-        winSizeX, winSizeY = winSize
-        winRatio = winSizeX/winSizeY
-
-        if 'size' in self.params:
-            componentSize = self.params['size'].val
-            if isinstance(componentSize, str):
-                componentSize = ast.literal_eval(componentSize)
-            if type(componentSize) in (tuple, list):
-                if units == 'height':
-                    if abs(componentSize[0]/2) > (unitTypes[units] * winRatio):
-                        self.alerts.write(1001, self)
-                    if abs(componentSize[1]/2) > unitTypes[units]:
-                        self.alerts.write(1002, self)
-                elif units == 'norm':
-                    if abs(componentSize[0]/2) > unitTypes[units]:
-                        self.alerts.write(1001, self)
-                    if abs(componentSize[1]/2) > unitTypes[units]:
-                        self.alerts.write(1002, self)
-                elif units == 'pix':
-                    if abs(componentSize[0]) > winSizeX:
-                        self.alerts.write(1001, self)
-                    if abs(componentSize[1]) > winSizeY:
-                        self.alerts.write(1002, self)
+        """
+        Run component integrity checks.
+        """
+        AlertTools.runTest(self)
         self.alerts.flush()
 
     def writeInitCode(self, buff):
