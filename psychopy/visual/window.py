@@ -684,73 +684,6 @@ class Window(object):
             self.frameIntervals = []
             self.frameClock.reset()
 
-    @property
-    def depthTest(self):
-        """`True` if depth testing is enabled."""
-        return self._depthTest
-
-    @depthTest.setter
-    def depthTest(self, value):
-        if value is True:
-            GL.glEnable(GL.GL_DEPTH_TEST)
-        else:
-            GL.glDisable(GL.GL_DEPTH_TEST)
-
-        self._depthTest = value
-
-    @property
-    def depthFunc(self):
-        """Depth test comparison function for rendering."""
-        return self._depthFunc
-
-    @depthFunc.setter
-    def depthFunc(self, value):
-        depthFuncs = {'never': GL.GL_NEVER, 'less': GL.GL_LESS,
-                      'equal': GL.GL_EQUAL, 'lequal': GL.GL_LEQUAL,
-                      'greater': GL.GL_GREATER, 'notequal': GL.GL_NOTEQUAL,
-                      'gequal': GL.GL_GEQUAL, 'always': GL.GL_ALWAYS}
-
-        GL.glDepthFunc(depthFuncs[value])
-
-        self._depthFunc = value
-
-    @property
-    def depthMask(self):
-        """`True` if depth masking is enabled. Writing to the depth buffer will
-        be disabled.
-        """
-        return self._depthMask
-
-    @depthMask.setter
-    def depthMask(self, value):
-        if value is True:
-            GL.glDepthMask(GL.GL_TRUE)
-        else:
-            GL.glDepthMask(GL.GL_FALSE)
-
-        self._depthMask = value
-
-    @property
-    def cullFace(self):
-        """Face culling mode, either `back`, `front`, `both`, or `None`."""
-        return self._cullFace
-
-    @cullFace.setter
-    def cullFace(self, value):
-        if value == 'back':
-            GL.glEnable(GL.GL_CULL_FACE)
-            GL.glCullFace(GL.GL_BACK)
-        elif value == 'front':
-            GL.glEnable(GL.GL_CULL_FACE)
-            GL.glCullFace(GL.GL_FRONT)
-        elif value == 'both':
-            GL.glEnable(GL.GL_CULL_FACE)
-            GL.glCullFace(GL.GL_FRONT_AND_BACK)
-        elif value is None:
-            GL.glDisable(GL.GL_CULL_FACE)
-
-        self._cullFace = value
-
     def _setCurrent(self):
         """Make this window's OpenGL context current.
 
@@ -1618,6 +1551,73 @@ class Window(object):
         self.frameClock.reset()
         self.frames = 0
         return fps
+
+    @property
+    def depthTest(self):
+        """`True` if depth testing is enabled."""
+        return self._depthTest
+
+    @depthTest.setter
+    def depthTest(self, value):
+        if value is True:
+            GL.glEnable(GL.GL_DEPTH_TEST)
+        else:
+            GL.glDisable(GL.GL_DEPTH_TEST)
+
+        self._depthTest = value
+
+    @property
+    def depthFunc(self):
+        """Depth test comparison function for rendering."""
+        return self._depthFunc
+
+    @depthFunc.setter
+    def depthFunc(self, value):
+        depthFuncs = {'never': GL.GL_NEVER, 'less': GL.GL_LESS,
+                      'equal': GL.GL_EQUAL, 'lequal': GL.GL_LEQUAL,
+                      'greater': GL.GL_GREATER, 'notequal': GL.GL_NOTEQUAL,
+                      'gequal': GL.GL_GEQUAL, 'always': GL.GL_ALWAYS}
+
+        GL.glDepthFunc(depthFuncs[value])
+
+        self._depthFunc = value
+
+    @property
+    def depthMask(self):
+        """`True` if depth masking is enabled. Writing to the depth buffer will
+        be disabled.
+        """
+        return self._depthMask
+
+    @depthMask.setter
+    def depthMask(self, value):
+        if value is True:
+            GL.glDepthMask(GL.GL_TRUE)
+        else:
+            GL.glDepthMask(GL.GL_FALSE)
+
+        self._depthMask = value
+
+    @property
+    def cullFace(self):
+        """Face culling mode, either `back`, `front`, `both`, or `None`."""
+        return self._cullFace
+
+    @cullFace.setter
+    def cullFace(self, value):
+        if value == 'back':
+            GL.glEnable(GL.GL_CULL_FACE)
+            GL.glCullFace(GL.GL_BACK)
+        elif value == 'front':
+            GL.glEnable(GL.GL_CULL_FACE)
+            GL.glCullFace(GL.GL_FRONT)
+        elif value == 'both':
+            GL.glEnable(GL.GL_CULL_FACE)
+            GL.glCullFace(GL.GL_FRONT_AND_BACK)
+        elif value is None:
+            GL.glDisable(GL.GL_CULL_FACE)
+
+        self._cullFace = value
 
     @attributeSetter
     def blendMode(self, blendMode):
