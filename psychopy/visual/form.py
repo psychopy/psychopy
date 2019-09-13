@@ -408,7 +408,7 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
             The position of the response object
         """
         pos = (self.rightEdge
-               - (item['responseWidth'] / 2)
+               - ((item['responseWidth'] * self.size[0]) / 2)
                - self._scrollBarSize[0]
                - self.itemPadding
                * self.size[0],
