@@ -1643,7 +1643,7 @@ class Window(object):
     def frontFace(self, value):
         if value == 'ccw':
             GL.glFrontFace(GL.GL_CCW)
-        elif value == 'ccw':
+        elif value == 'cw':
             GL.glFrontFace(GL.GL_CW)
         else:
             raise ValueError('Invalid value, must be `ccw` or `cw`.')
