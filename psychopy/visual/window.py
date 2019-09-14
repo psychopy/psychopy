@@ -454,7 +454,8 @@ class Window(object):
         self.depthFunc = 'lequal'
         self.depthMask = False
         self.cullFace = False
-        self.cullMode = 'back'
+        self.cullFaceMode = 'back'
+        self.draw3d = False
 
         # gamma
         self.bits = None  # this may change in a few lines time!
@@ -1600,12 +1601,12 @@ class Window(object):
         self._depthMask = value
 
     @property
-    def cullMode(self):
+    def cullFaceMode(self):
         """Face culling mode, either `back`, `front` or `both`."""
-        return self._cullMode
+        return self._cullFaceMode
 
-    @cullMode.setter
-    def cullMode(self, value):
+    @cullFaceMode.setter
+    def cullFaceMode(self, value):
         if value == 'back':
             GL.glCullFace(GL.GL_BACK)
         elif value == 'front':
@@ -1615,7 +1616,7 @@ class Window(object):
         else:
             raise ValueError('Invalid face cull mode.')
 
-        self._cullMode = value
+        self._cullFaceMode = value
 
     @property
     def cullFace(self):
@@ -1626,10 +1627,30 @@ class Window(object):
     def cullFace(self, value):
         if value is True:
             GL.glEnable(GL.GL_CULL_FACE)
-        else:
+        elif value is False:
             GL.glDisable(GL.GL_CULL_FACE)
+        else:
+            raise TypeError('Value must be type `bool`.')
 
         self._cullFace = value
+
+    @property
+    def draw3d(self):
+        """`True` if 3D drawing is enabled on this window."""
+        return self._draw3d
+
+    @draw3d.setter
+    def draw3d(self, value):
+        if value is True:
+            self.depthTest = True
+            self.cullFace = True
+        elif value is False:
+            self.depthTest = False
+            self.cullFace = False
+        else:
+            raise TypeError('Value must be type `bool`.')
+
+        self._draw3d = False
 
     @attributeSetter
     def blendMode(self, blendMode):
