@@ -1068,6 +1068,7 @@ def intersectRayPlane(orig, dir, planeOrig, planeNormal):
         pnt = intersectRayPlane(rayOrigin, rayDir, planeOrigin, planeNormal)
 
     """
+    # based off the method from GLM
     orig = np.asarray(orig)
     dir = np.asarray(dir)
     planeOrig = np.asarray(planeOrig)

@@ -453,7 +453,8 @@ class Window(object):
         self.depthTest = False
         self.depthFunc = 'lequal'
         self.depthMask = False
-        self.cullFace = None
+        self.cullFace = False
+        self.cullMode = 'back'
 
         # gamma
         self.bits = None  # this may change in a few lines time!
@@ -1599,22 +1600,33 @@ class Window(object):
         self._depthMask = value
 
     @property
+    def cullMode(self):
+        """Face culling mode, either `back`, `front` or `both`."""
+        return self._cullMode
+
+    @cullMode.setter
+    def cullMode(self, value):
+        if value == 'back':
+            GL.glCullFace(GL.GL_BACK)
+        elif value == 'front':
+            GL.glCullFace(GL.GL_FRONT)
+        elif value == 'both':
+            GL.glCullFace(GL.GL_FRONT_AND_BACK)
+        else:
+            raise ValueError('Invalid face cull mode.')
+
+        self._cullMode = value
+
+    @property
     def cullFace(self):
-        """Face culling mode, either `back`, `front`, `both`, or `None`."""
+        """`True` if face culling is enabled.`"""
         return self._cullFace
 
     @cullFace.setter
     def cullFace(self, value):
-        if value == 'back':
+        if value is True:
             GL.glEnable(GL.GL_CULL_FACE)
-            GL.glCullFace(GL.GL_BACK)
-        elif value == 'front':
-            GL.glEnable(GL.GL_CULL_FACE)
-            GL.glCullFace(GL.GL_FRONT)
-        elif value == 'both':
-            GL.glEnable(GL.GL_CULL_FACE)
-            GL.glCullFace(GL.GL_FRONT_AND_BACK)
-        elif value is None:
+        else:
             GL.glDisable(GL.GL_CULL_FACE)
 
         self._cullFace = value
