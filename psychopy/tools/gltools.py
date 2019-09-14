@@ -3930,6 +3930,3 @@ defaultMaterial = createMaterial(
      (GL.GL_EMISSION, (0.0, 0.0, 0.0, 1.0)),
      (GL.GL_SHININESS, 0)])
 
-
-if __name__ == "__main__":
-    createPlane(subdiv=1)
