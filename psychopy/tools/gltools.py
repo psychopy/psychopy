@@ -3623,10 +3623,10 @@ def createBox(size=(1., 1., 1.), flipFaces=False):
     if sx != 1.:
         vertices[:, 0] *= sx
 
-    if sx != 1.:
+    if sy != 1.:
         vertices[:, 1] *= sy
 
-    if sx != 1.:
+    if sz != 1.:
         vertices[:, 2] *= sz
 
     # normals for each side
