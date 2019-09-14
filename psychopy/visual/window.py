@@ -1666,7 +1666,7 @@ class Window(object):
         else:
             raise TypeError('Value must be type `bool`.')
 
-        self._draw3d = False
+        self._draw3d = value
 
     @attributeSetter
     def blendMode(self, blendMode):
