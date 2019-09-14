@@ -450,12 +450,11 @@ class Window(object):
         self.blendMode = self.blendMode
 
         # 3D rendering related attributes
-        self.depthTest = False
+        self.draw3d = False
+        self.frontFace = 'ccw'
         self.depthFunc = 'lequal'
         self.depthMask = False
-        self.cullFace = False
         self.cullFaceMode = 'back'
-        self.draw3d = False
 
         # gamma
         self.bits = None  # this may change in a few lines time!
@@ -927,6 +926,7 @@ class Window(object):
         flipThisFrame = self._startOfFlip()
         if self.useFBO:
             if flipThisFrame:
+                self.draw3d = False  # disable 3d drawing
                 self._prepareFBOrender()
                 # need blit the framebuffer object to the actual back buffer
 
@@ -1633,6 +1633,22 @@ class Window(object):
             raise TypeError('Value must be type `bool`.')
 
         self._cullFace = value
+
+    @property
+    def frontFace(self):
+        """Face winding order to define front, either `ccw` or `cw`."""
+        return self._frontFace
+
+    @frontFace.setter
+    def frontFace(self, value):
+        if value == 'ccw':
+            GL.glFrontFace(GL.GL_CCW)
+        elif value == 'ccw':
+            GL.glFrontFace(GL.GL_CW)
+        else:
+            raise ValueError('Invalid value, must be `ccw` or `cw`.')
+
+        self._frontFace = value
 
     @property
     def draw3d(self):
