@@ -1174,6 +1174,11 @@ class Window(object):
         GL.glClear(GL.GL_COLOR_BUFFER_BIT)
 
     @property
+    def aspect(self):
+        """Aspect ratio of the current viewport."""
+        return self._viewport[2] / float(self._viewport[3])
+
+    @property
     def viewport(self):
         """Viewport rectangle (x, y, w, h) for the current draw buffer."""
         return self._viewport
