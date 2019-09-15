@@ -113,10 +113,14 @@ DEBUG = False
 IOHUB_ACTIVE = False
 retinaContext = None  # only needed for retina-ready displays
 
-# keep track of windows that have been opened
-# Use a list of weak references so that we don't stop the window being deleted
-class OpenWinList(list):
 
+class OpenWinList(list):
+    """Class to keep keep track of windows that have been opened.
+
+    Uses a list of weak references so that we don't stop the window
+    being deleted.
+
+    """
     def append(self, item):
         list.append(self, weakref.ref(item))
 
@@ -125,6 +129,8 @@ class OpenWinList(list):
             obj = ref()
             if obj is None or item == obj:
                 list.remove(self, ref)
+
+
 openWindows = core.openWindows = OpenWinList()  # core needs this for wait()
 
 
@@ -145,7 +151,6 @@ class Window(object):
     project (we won't be fixing pygame-specific bugs).
 
     """
-
     def __init__(self,
                  size=(800, 600),
                  pos=None,
@@ -274,7 +279,7 @@ class Window(object):
 
         Attributes
         ----------
-        size : array-like(float)
+        size : array-like (float)
             Dimensions of the window's drawing area/buffer in pixels [w, h].
         monitorFramePeriod : float
             Refresh rate of the display if ``checkTiming=True`` on window
@@ -1194,7 +1199,32 @@ class Window(object):
 
     @property
     def viewport(self):
-        """Viewport rectangle (x, y, w, h) for the current draw buffer."""
+        """Viewport rectangle (x, y, w, h) for the current draw buffer.
+
+        Values `x` and `y` define the origin, and `w` and `h` the size
+        of the rectangle in pixels.
+
+        This is typically set to cover the whole buffer, however it can
+        be changed for application like multi-view rendering.
+
+        Examples
+        --------
+        Constrain drawing to the left and right halves of the screen,
+        where stimuli will be drawn centered on the new rectangle. Note
+        that you need to set both the viewport and the scissor
+        rectangle::
+
+            x, y, w, h = win.frameBufferSize  # size of the framebuffer
+            win.viewport = win.scissor = [x, y, w / 2.0, h]
+            # draw left stimuli ...
+
+            win.viewport = win.scissor = [x + (w / 2.0), y, w / 2.0, h]
+            # draw right stimuli ...
+
+            # restore drawing to the whole screen
+            win.viewport = win.scissor = [x, y, w, h]
+
+        """
         return self._viewport
 
     @viewport.setter
@@ -1204,7 +1234,22 @@ class Window(object):
 
     @property
     def scissor(self):
-        """Scissor rectangle (x, y, w, h) for the current draw buffer."""
+        """Scissor rectangle (x, y, w, h) for the current draw buffer.
+
+        Values `x` and `y` define the origin, and `w` and `h` the size
+        of the rectangle in pixels. The scissor operation is only active
+        if `scissorTest=True`.
+
+        Usually, the scissor and viewport are set to the same rectangle
+        to prevent drawing operations from `spilling` into other regions
+        of the screen. For instance, calling `clearBuffer` will only
+        clear within the scissor rectangle.
+
+        Setting the scissor rectangle but not the viewport will restrict
+        drawing within the defined region (like a rectangular aperture),
+        not changing the positions of stimuli.
+
+        """
         return self._scissor
 
     @scissor.setter
