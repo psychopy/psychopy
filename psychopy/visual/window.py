@@ -296,7 +296,7 @@ class Window(object):
 
         self.autoLog = False  # to suppress log msg during init
         self.name = name
-        self.size = numpy.array(size, numpy.int)
+        self.clientSize = numpy.array(size, numpy.int)  # size of window, not buffer
         self.pos = pos
         # this will get overridden once the window is created
         self.winHandle = None
@@ -709,17 +709,10 @@ class Window(object):
             GL.glActiveTexture(GL.GL_TEXTURE0)
             GL.glBindTexture(GL.GL_TEXTURE_2D, 0)
 
-        # setup retina display if applicable
-        global retinaContext
-        if retinaContext is not None:
-           view = retinaContext.view()
-           bounds = view.convertRectToBacking_(view.bounds()).size
-           bufferWidth, bufferHeight = (int(bounds.width), int(bounds.height))
-        else:
-           bufferWidth, bufferHeight = self.size
-
         # set these to match the current window or buffer's settings
-        self.viewport = self.scissor = [0, 0, bufferWidth, bufferHeight]
+        fbw, fbh = self.frameBufferSize
+        self.viewport = self.scissor = [0, 0, fbw, fbh]
+        self.scissorTest = True
 
         # apply the view transforms for this window
         #self.applyEyeTransform()
@@ -910,7 +903,8 @@ class Window(object):
             self.backend.setCurrent()
 
             # set these to match the current window or buffer's settings
-            self.viewport = self.scissor = (0, 0, self.size[0], self.size[1])
+            self.viewport = self.scissor = \
+                (0, 0, self.frameBufferSize[0], self.frameBufferSize[1])
             if not self.scissorTest:
                 self.scissorTest = True
 
@@ -1174,8 +1168,19 @@ class Window(object):
         GL.glClear(GL.GL_COLOR_BUFFER_BIT)
 
     @property
+    def size(self):
+        """Size of the drawable area in pixels (w, h)."""
+        return self.viewport[2:]
+
+    @property
+    def frameBufferSize(self):
+        """Size of the framebuffer in pixels (w, h)."""
+        # Dimensions should match window size unless using a retina display
+        return self.backend.frameBufferSize
+
+    @property
     def aspect(self):
-        """Aspect ratio of the current viewport."""
+        """Aspect ratio of the current viewport (width / height)."""
         return self._viewport[2] / float(self._viewport[3])
 
     @property
@@ -1971,7 +1976,7 @@ class Window(object):
             logging.warning("User requested fullscreen with size %s, "
                             "but screen is actually %s. Using actual size" %
                             (requested, actual))
-            self.size = numpy.array(actual)
+            self.clientSize = numpy.array(actual)
 
     def _setupGL(self):
         """Setup OpenGL state for this window.
@@ -1981,7 +1986,8 @@ class Window(object):
         GL.glClearDepth(1.0)
 
         # viewport or drawable area of the framebuffer
-        self.viewport = self.scissor = (0, 0, self.size[0], self.size[1])
+        self.viewport = self.scissor = \
+            (0, 0, self.frameBufferSize[0], self.frameBufferSize[1])
         self.scissorTest = True
         self.stencilTest = False
 

@@ -122,11 +122,11 @@ class PygletBackend(BaseBackend):
                 logging.info('configured pyglet screen %i' % self.screen)
         # if fullscreen check screen size
         if win._isFullScr:
-            win._checkMatchingSizes(win.size, [thisScreen.width,
-                                                 thisScreen.height])
+            win._checkMatchingSizes(win.clientSize, [thisScreen.width,
+                                                  thisScreen.height])
             w = h = None
         else:
-            w, h = win.size
+            w, h = win.clientSize
         if win.allowGUI:
             style = None
         else:
@@ -163,15 +163,19 @@ class PygletBackend(BaseBackend):
                 win._hw_handle = self.winHandle._view_hwnd
             else:
                 win._hw_handle = self.winHandle._hwnd
+
+            self._frameBufferSize = win.clientSize
         elif sys.platform == 'darwin':
             if win.useRetina:
                 global retinaContext
                 retinaContext = self.winHandle.context._nscontext
                 view = retinaContext.view()
                 bounds = view.convertRectToBacking_(view.bounds()).size
-                if win.size[0] == bounds.width:
+                if win.clientSize[0] == bounds.width:
                     win.useRetina = False  # the screen is not a retina display
-                win.size = np.array([int(bounds.width), int(bounds.height)])
+                self._frameBufferSize = np.array([int(bounds.width), int(bounds.height)])
+            else:
+                self._frameBufferSize = win.clientSize
             try:
                 # python 32bit (1.4. or 1.2 pyglet)
                 win._hw_handle = self.winHandle._window.value
@@ -180,6 +184,7 @@ class PygletBackend(BaseBackend):
                 win._hw_handle = self.winHandle._nswindow.windowNumber()
         elif sys.platform.startswith('linux'):
             win._hw_handle = self.winHandle._window
+            self._frameBufferSize = win.clientSize
 
         if win.useFBO:  # check for necessary extensions
             if not GL.gl_info.have_extension('GL_EXT_framebuffer_object'):
@@ -214,11 +219,11 @@ class PygletBackend(BaseBackend):
         if not win.pos:
             # work out where the centre should be 
             if win.useRetina:
-                win.pos = [(thisScreen.width - win.size[0]/2) / 2,
-                            (thisScreen.height - win.size[1]/2) / 2]
+                win.pos = [(thisScreen.width - win.clientSize[0]/2) / 2,
+                            (thisScreen.height - win.clientSize[1]/2) / 2]
             else:
-                win.pos = [(thisScreen.width - win.size[0]) / 2,
-                            (thisScreen.height - win.size[1]) / 2]
+                win.pos = [(thisScreen.width - win.clientSize[0]) / 2,
+                            (thisScreen.height - win.clientSize[1]) / 2]
         if not win._isFullScr:
             # add the necessary amount for second screen
             self.winHandle.set_location(int(win.pos[0] + thisScreen.x),
@@ -245,6 +250,10 @@ class PygletBackend(BaseBackend):
             raise
         self._TravisTesting = (os.environ.get('TRAVIS') == 'true')
 
+    @property
+    def frameBufferSize(self):
+        """Size of the presently active framebuffer in pixels (w, h)."""
+        return self._frameBufferSize
 
     @property
     def shadersSupported(self):
