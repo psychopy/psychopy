@@ -456,6 +456,9 @@ class Window(object):
         self.depthMask = False
         self.cullFaceMode = 'back'
 
+        # stereo rendering
+        self._eyeOffset = 0.0
+
         # gamma
         self.bits = None  # this may change in a few lines time!
         self.__dict__['gamma'] = gamma
@@ -1279,6 +1282,15 @@ class Window(object):
     def viewMatrix(self, value):
         self._viewMatrix = numpy.asarray(value, numpy.float32)
         assert self._viewMatrix.shape == (4, 4)
+
+    @property
+    def eyeOffset(self):
+        """Eye offset in centimeters."""
+        return self.eyeOffset * 100.
+
+    @eyeOffset.setter
+    def eyeOffset(self, value):
+        self._eyeOffset = float(value) / 100.
 
     def setPerspectiveView(self, applyTransform=True, **kwargs):
         """Set the projection and view matrix to render with perspective.
