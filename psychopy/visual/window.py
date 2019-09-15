@@ -1358,8 +1358,7 @@ class Window(object):
 
         Notes
         -----
-        * This value is only applicable if `setPerspectiveView` is called with
-          `symmetric=False`.
+        * This value is only applicable for `setToeIn` and `setOffAxisView`.
 
         """
         return self._convergeOffset * 100.0
@@ -1375,7 +1374,7 @@ class Window(object):
         `viewMatrix` and `projectionMatrix` accordingly so the scene origin is
         on the screen plane. If `eyeOffset` is correct and the view distance and
         screen size is defined in the monitor configuration, the resulting view
-        will approximate `ortho stereo` viewing.
+        will approximate `ortho-stereo` viewing.
 
         The convergence plane can be adjusted by setting `convergeOffset`. By
         default, the convergence plane is set to the screen plane. Any points
