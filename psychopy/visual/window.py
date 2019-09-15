@@ -456,8 +456,9 @@ class Window(object):
         self.depthMask = False
         self.cullFaceMode = 'back'
 
-        # stereo rendering
+        # stereo rendering settings, set later by the user
         self._eyeOffset = 0.0
+        self._convergeOffset = 0.0
 
         # gamma
         self.bits = None  # this may change in a few lines time!
@@ -1285,19 +1286,154 @@ class Window(object):
 
     @property
     def eyeOffset(self):
-        """Eye offset in centimeters."""
-        return self.eyeOffset * 100.
+        """Eye offset in centimeters.
+
+        This value is used by `setPerspectiveView` to apply a lateral
+        offset to the view, therefore it must be set prior to calling it. Use a
+        positive offset for the right eye, and a negative one for the left.
+        Offsets should be the distance to from the middle of the face to the
+        center of the eye, or half the inter-ocular distance.
+
+        """
+        return self._eyeOffset * 100.0
 
     @eyeOffset.setter
     def eyeOffset(self, value):
-        self._eyeOffset = float(value) / 100.
+        self._eyeOffset = value / 100.0
 
-    def setPerspectiveView(self, applyTransform=True, **kwargs):
+    @property
+    def convergeOffset(self):
+        """Convergence offset from monitor in centimeters.
+
+        This is value corresponds to the offset from screen plane to set the
+        convergence plane (or point for `toe-in` projections). Positive offsets
+        move the plane farther away from the viewer, while negative offsets
+        nearer. This value is used by `setPerspectiveView` and should be set
+        before calling it to take effect.
+
+        Notes
+        -----
+        * This value is only applicable if `setPerspectiveView` is called with
+          `symmetric=False`.
+
+        """
+        return self._convergeOffset * 100.0
+
+    @convergeOffset.setter
+    def convergeOffset(self, value):
+        self._convergeOffset = value / 100.0
+
+    def setOffAxisView(self, applyTransform=True, clearDepth=True):
+        """Set an off-axis projection.
+
+        Create an off-axis projection for subsequent rendering calls. Sets the
+        `viewMatrix` and `projectionMatrix` accordingly so the scene origin is
+        on the screen plane. If `eyeOffset` is correct and the view distance and
+        screen size is defined in the monitor configuration, the resulting view
+        will approximate `ortho stereo` viewing.
+
+        The convergence plane can be adjusted by setting `convergeOffset`. By
+        default, the convergence plane is set to the screen plane. Any points
+        on the screen plane will have zero disparity.
+
+        Parameters
+        ----------
+        applyTransform : bool
+            Apply transformations after computing them in immediate mode. Same
+            as calling :py:attr:`~Window.applyEyeTransform()` afterwards.
+        clearDepth : bool, optional
+            Clear the depth buffer.
+
+        """
+        scrDistM = 0.5 if self.scrDistCM is None else self.scrDistCM / 100.0
+        scrWidthM = 0.5 if self.scrWidthCM is None else self.scrWidthCM / 100.0
+
+        # Not in full screen mode? Need to compute the dimensions of the display
+        # area to ensure disparities are correct even when in windowed-mode.
+        aspect = self.size[0] / self.size[1]
+        if not self._isFullScr:
+            scrWidthM = (self.size[0] / self.scrWidthPIX) * scrWidthM
+
+        frustum = viewtools.computeFrustum(
+            scrWidthM,  # width of screen
+            aspect,  # aspect ratio
+            scrDistM,  # distance to screen
+            eyeOffset=self._eyeOffset,
+            convergeOffset=self._convergeOffset,
+            nearClip=self._nearClip,
+            farClip=self._farClip)
+
+        self._projectionMatrix = viewtools.perspectiveProjectionMatrix(*frustum)
+
+        # translate away from screen
+        self._viewMatrix = numpy.identity(4, dtype=numpy.float32)
+        self._viewMatrix[0, 3] = -self._eyeOffset  # apply eye offset
+        self._viewMatrix[2, 3] = -scrDistM  # displace scene away from viewer
+
+        if applyTransform:
+            self.applyEyeTransform(clearDepth=clearDepth)
+
+    def setToeInView(self, applyTransform=True, clearDepth=True):
+        """Set toe-in projection.
+
+        Create a toe-in projection for subsequent rendering calls. Sets the
+        `viewMatrix` and `projectionMatrix` accordingly so the scene origin is
+        on the screen plane. The value of `convergeOffset` will define the
+        convergence point of the view, which is offset perpendicular to the
+        center of the screen plane. Points falling on a vertical line at the
+        convergence point will have zero disparity.
+
+        Parameters
+        ----------
+        applyTransform : bool
+            Apply transformations after computing them in immediate mode. Same
+            as calling :py:attr:`~Window.applyEyeTransform()` afterwards.
+        clearDepth : bool, optional
+            Clear the depth buffer.
+
+        Notes
+        -----
+        * This projection mode is only 'correct' if the viewer's eyes are
+          converged at the convergence point. Due to perspective, this
+          projection introduces vertical disparities which increase in magnitude
+          with eccentricity. Use `setOffAxisView` if you want to display
+          something the viewer can look around the screen comfortably.
+
+        """
+        scrDistM = 0.5 if self.scrDistCM is None else self.scrDistCM / 100.0
+        scrWidthM = 0.5 if self.scrWidthCM is None else self.scrWidthCM / 100.0
+
+        # Not in full screen mode? Need to compute the dimensions of the display
+        # area to ensure disparities are correct even when in windowed-mode.
+        aspect = self.size[0] / self.size[1]
+        if not self._isFullScr:
+            scrWidthM = (self.size[0] / self.scrWidthPIX) * scrWidthM
+
+        frustum = viewtools.computeFrustum(
+            scrWidthM,  # width of screen
+            aspect,  # aspect ratio
+            scrDistM,  # distance to screen
+            nearClip=self._nearClip,
+            farClip=self._farClip)
+
+        self._projectionMatrix = viewtools.perspectiveProjectionMatrix(*frustum)
+
+        # translate away from screen
+        eyePos = (self._eyeOffset, 0.0, scrDistM)
+        convergePoint = (0.0, 0.0, self.convergeOffset)
+        self._viewMatrix = viewtools.lookAt(eyePos, convergePoint)
+
+        if applyTransform:
+            self.applyEyeTransform(clearDepth=clearDepth)
+
+    def setPerspectiveView(self, applyTransform=True, clearDepth=True):
         """Set the projection and view matrix to render with perspective.
 
         Matrices are computed using values specified in the monitor
         configuration with the scene origin on the screen plane. Calculations
-        assume units are in meters.
+        assume units are in meters. If `eyeOffset != 0`, the view will be
+        transformed laterally, however the frustum shape will remain the
+        same.
 
         Note that the values of :py:attr:`~Window.projectionMatrix` and
         :py:attr:`~Window.viewMatrix` will be replaced when calling this
@@ -1308,27 +1444,25 @@ class Window(object):
         applyTransform : bool
             Apply transformations after computing them in immediate mode. Same
             as calling :py:attr:`~Window.applyEyeTransform()` afterwards.
-        **kwargs
-            Additional arguments for :py:attr:`~Window.applyEyeTransform()`.
+        clearDepth : bool, optional
+            Clear the depth buffer.
 
         """
         # NB - we should eventually compute these matrices lazily since they may
         # not change over the course of an experiment under most circumstances.
         #
+        scrDistM = 0.5 if self.scrDistCM is None else self.scrDistCM / 100.0
+        scrWidthM = 0.5 if self.scrWidthCM is None else self.scrWidthCM / 100.0
 
-        if self.scrDistCM is None:
-            scrDistM = 0.5
-        else:
-            scrDistM = self.scrDistCM / 100.0
-
-        if self.scrWidthCM is None:
-            scrWidthM = 0.5
-        else:
-            scrWidthM = self.scrWidthCM / 100.0
+        # Not in full screen mode? Need to compute the dimensions of the display
+        # area to ensure disparities are correct even when in windowed-mode.
+        aspect = self.size[0] / self.size[1]
+        if not self._isFullScr:
+            scrWidthM = (self.size[0] / self.scrWidthPIX) * scrWidthM
 
         frustum = viewtools.computeFrustum(
             scrWidthM,  # width of screen
-            self.size[0] / self.size[1],  # aspect ratio
+            aspect,  # aspect ratio
             scrDistM,  # distance to screen
             nearClip=self._nearClip,
             farClip=self._farClip)
@@ -1337,10 +1471,11 @@ class Window(object):
 
         # translate away from screen
         self._viewMatrix = numpy.identity(4, dtype=numpy.float32)
+        self._viewMatrix[0, 3] = -self._eyeOffset  # apply eye offset
         self._viewMatrix[2, 3] = -scrDistM  # displace scene away from viewer
 
         if applyTransform:
-            self.applyEyeTransform(**kwargs)
+            self.applyEyeTransform(clearDepth=clearDepth)
 
     def applyEyeTransform(self, clearDepth=True):
         """Apply the current view and projection matrices.
