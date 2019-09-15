@@ -347,16 +347,6 @@ class Window(object):
         self.allowGUI = allowGUI
 
         self.screen = screen
-
-        # parameters for transforming the overall view
-        self.viewScale = val2array(viewScale)
-        if self.viewPos is not None and self.units is None:
-            raise ValueError('You must define the window units to use viewPos')
-        self.viewPos = val2array(viewPos, withScalar=False)
-        self.viewOri = float(viewOri)
-        if self.viewOri != 0. and self.viewPos is not None:
-            msg = "Window: viewPos & viewOri are currently incompatible"
-            raise NotImplementedError(msg)
         self.stereo = stereo  # use quad buffer if requested (and if possible)
 
         # enable multisampling
@@ -418,6 +408,25 @@ class Window(object):
         global GL
         GL = self.backend.GL
 
+        # check whether shaders are supported
+        # also will need to check for ARB_float extension,
+        # but that should be done after context is created
+        self._haveShaders = self.backend.shadersSupported
+
+        self._setupGL()
+
+        self.blendMode = self.blendMode
+
+        # parameters for transforming the overall view
+        self.viewScale = val2array(viewScale)
+        if self.viewPos is not None and self.units is None:
+            raise ValueError('You must define the window units to use viewPos')
+        self.viewPos = val2array(viewPos, withScalar=False)
+        self.viewOri = float(viewOri)
+        if self.viewOri != 0. and self.viewPos is not None:
+            msg = "Window: viewPos & viewOri are currently incompatible"
+            raise NotImplementedError(msg)
+
         # Code to allow iohub to know id of any psychopy windows created
         # so kb and mouse event filtering by window id can be supported.
         #
@@ -439,15 +448,6 @@ class Window(object):
         # near and far clipping planes
         self._nearClip = 0.1
         self._farClip = 100.0
-
-        # check whether shaders are supported
-        # also will need to check for ARB_float extension,
-        # but that should be done after context is created
-        self._haveShaders = self.backend.shadersSupported
-
-        self._setupGL()
-
-        self.blendMode = self.blendMode
 
         # 3D rendering related attributes
         self.draw3d = False
