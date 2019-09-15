@@ -1170,7 +1170,12 @@ class Window(object):
     @property
     def size(self):
         """Size of the drawable area in pixels (w, h)."""
-        return self.viewport[2:]
+        # report clientSize until we get framebuffer size from
+        # the backend, needs to be done properly in the future
+        if self.backend is not None:
+            return self.viewport[2:]
+        else:
+            return self.clientSize
 
     @property
     def frameBufferSize(self):
