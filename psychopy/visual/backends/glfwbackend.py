@@ -27,7 +27,7 @@ from PIL import Image
 
 # on mac Standalone app check for packaged libglfw dylib
 if prefs.paths['libs']:
-    _possLibPaths = glob.glob(os.path.join(self.paths['libs'], 'libglfw*'))
+    _possLibPaths = glob.glob(os.path.join(prefs.paths['libs'], 'libglfw*'))
     if _possLibPaths:
         os.environ['PYGLFW_LIBRARY'] = _possLibPaths[0]
 
@@ -302,8 +302,8 @@ class GLFWBackend(BaseBackend):
             # if no window position is specified, centre it on-screen
             if win.pos is None:
                 size, bpc, hz = nativeVidmode
-                win.pos = [(size[0] - win.size[0]) / 2.0,
-                           (size[1] - win.size[1]) / 2.0]
+                win.pos = [(size[0] - win.clientSize[0]) / 2.0,
+                           (size[1] - win.clientSize[1]) / 2.0]
 
             # get the virtual position of the monitor, apply offset to the
             # window position
@@ -316,11 +316,11 @@ class GLFWBackend(BaseBackend):
             logging.warn("Ignoring window 'pos' in fullscreen mode.")
 
         # set the window icon
-        glfw.set_window_icon(self.winHandle, 1, _WINDOW_ICON_)
+        if hasattr(glfw, 'set_window_icon'):
+            glfw.set_window_icon(self.winHandle, 1, _WINDOW_ICON_)
 
         # set the window size to the framebuffer size
         self._frameBufferSize = np.array(glfw.get_framebuffer_size(self.winHandle))
-        win.size = self._frameBufferSize
 
         if win.useFBO:  # check for necessary extensions
             if not glfw.extension_supported('GL_EXT_framebuffer_object'):
