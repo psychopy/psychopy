@@ -1215,7 +1215,7 @@ class Window(object):
         elif value is False:
             GL.glDisable(GL.GL_SCISSOR_TEST)
         else:
-            TypeError("Value must be boolean.")
+            raise TypeError("Value must be boolean.")
 
         self._scissorTest = value
 
@@ -1231,7 +1231,7 @@ class Window(object):
         elif value is False:
             GL.glDisable(GL.GL_STENCIL_TEST)
         else:
-            TypeError("Value must be boolean.")
+            raise TypeError("Value must be boolean.")
 
         self._stencilTest = value
 
