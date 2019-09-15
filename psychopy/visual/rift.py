@@ -770,8 +770,7 @@ class Rift(window.Window):
 
         # blit the texture
         fbo_w, fbo_h = self._swapTextureSize
-        GL.glViewport(0, 0, fbo_w, fbo_h)
-        GL.glScissor(0, 0, fbo_w, fbo_h)
+        self.viewport = self.scissor = (0, 0, fbo_w, fbo_h)
         GL.glBlitFramebuffer(0, 0, fbo_w, fbo_h,
                              0, 0, fbo_w, fbo_h,  # flips texture
                              GL.GL_COLOR_BUFFER_BIT,
@@ -799,10 +798,8 @@ class Rift(window.Window):
 
         # use the mono viewport
         self.buffer = 'mono'
-        GL.glEnable(GL.GL_SCISSOR_TEST)
-        viewPort = self._viewports.asTuple()
-        GL.glViewport(*viewPort)
-        GL.glScissor(*viewPort)
+        self.scissorTest = True
+        self.viewport = self.scissor = self._viewports.asTuple()
 
         if clear:
             self.setColor(self.color)  # clear the texture to the window color
@@ -863,10 +860,9 @@ class Rift(window.Window):
                 0)
 
         self.buffer = buffer  # set buffer string
-        GL.glEnable(GL.GL_SCISSOR_TEST)
-        viewPort = self._viewports[self._bufferFlags[buffer]].asTuple()
-        GL.glViewport(*viewPort)
-        GL.glScissor(*viewPort)
+        self.scissorTest = True
+        self.viewport = self.scissor = \
+            self._viewports[self._bufferFlags[buffer]].asTuple()
 
         if clear:
             self.setColor(self.color)  # clear the texture to the window color
@@ -1095,8 +1091,8 @@ class Rift(window.Window):
                 # unbind the framebuffer as the render target
                 GL.glBindFramebufferEXT(GL.GL_FRAMEBUFFER_EXT, 0)
                 GL.glDisable(GL.GL_BLEND)
-                stencilOn = GL.glIsEnabled(GL.GL_STENCIL_TEST)
-                GL.glDisable(GL.GL_STENCIL_TEST)
+                stencilOn = self.stencilTest
+                self.stencilTest = False
 
                 # blit mirror texture
                 GL.glBindFramebuffer(GL.GL_READ_FRAMEBUFFER, self._mirrorFbo)
@@ -1112,8 +1108,8 @@ class Rift(window.Window):
                 win_w, win_h = self.__dict__['size']
                 tex_w, tex_h = self._mirrorRes
 
-                GL.glViewport(0, 0, win_w, win_h)
-                GL.glScissor(0, 0, win_w, win_h)
+                self.viewport = self.scissor = (0, 0, win_w, win_h)
+
                 GL.glClearColor(0.0, 0.0, 0.0, 1.0)
                 GL.glClear(GL.GL_COLOR_BUFFER_BIT)
                 GL.glBlitFramebuffer(0, 0, tex_w, tex_h,
@@ -1141,7 +1137,7 @@ class Rift(window.Window):
                 GL.glActiveTexture(GL.GL_TEXTURE0)
                 GL.glBindTexture(GL.GL_TEXTURE_2D, 0)
                 if stencilOn:
-                    GL.glEnable(GL.GL_STENCIL_TEST)
+                    self.stencilTest = True
 
         # rescale, reposition, & rotate
         GL.glMatrixMode(GL.GL_MODELVIEW)

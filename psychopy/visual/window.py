@@ -719,9 +719,7 @@ class Window(object):
            bufferWidth, bufferHeight = self.size
 
         # set these to match the current window or buffer's settings
-        GL.glViewport(0, 0, bufferWidth, bufferHeight)
-        GL.glScissor(0, 0, bufferWidth, bufferHeight)
-        GL.glEnable(GL.GL_SCISSOR_TEST)
+        self.viewport = self.scissor = [0, 0, bufferWidth, bufferHeight]
 
         # apply the view transforms for this window
         #self.applyEyeTransform()
@@ -912,9 +910,9 @@ class Window(object):
             self.backend.setCurrent()
 
             # set these to match the current window or buffer's settings
-            GL.glViewport(0, 0, self.size[0], self.size[1])
-            GL.glScissor(0, 0, self.size[0], self.size[1])
-            GL.glEnable(GL.GL_SCISSOR_TEST)
+            self.viewport = self.scissor = (0, 0, self.size[0], self.size[1])
+            if not self.scissorTest:
+                self.scissorTest = True
 
             # clear the projection and modelview matrix for FBO blit
             GL.glMatrixMode(GL.GL_PROJECTION)
@@ -924,51 +922,49 @@ class Window(object):
             GL.glLoadIdentity()
 
         flipThisFrame = self._startOfFlip()
-        if self.useFBO:
-            if flipThisFrame:
-                self.draw3d = False  # disable 3d drawing
-                self._prepareFBOrender()
-                # need blit the framebuffer object to the actual back buffer
+        if self.useFBO and flipThisFrame:
+            self.draw3d = False  # disable 3d drawing
+            self._prepareFBOrender()
+            # need blit the framebuffer object to the actual back buffer
 
-                # unbind the framebuffer as the render target
-                GL.glBindFramebufferEXT(GL.GL_FRAMEBUFFER_EXT, 0)
-                GL.glDisable(GL.GL_BLEND)
-                stencilOn = GL.glIsEnabled(GL.GL_STENCIL_TEST)
-                GL.glDisable(GL.GL_STENCIL_TEST)
+            # unbind the framebuffer as the render target
+            GL.glBindFramebufferEXT(GL.GL_FRAMEBUFFER_EXT, 0)
+            GL.glDisable(GL.GL_BLEND)
+            stencilOn = self.stencilTest
+            self.stencilTest = False
 
-                if self.bits is not None:
-                    self.bits._prepareFBOrender()
+            if self.bits is not None:
+                self.bits._prepareFBOrender()
 
-                # before flipping need to copy the renderBuffer to the
-                # frameBuffer
-                GL.glActiveTexture(GL.GL_TEXTURE0)
-                GL.glEnable(GL.GL_TEXTURE_2D)
-                GL.glBindTexture(GL.GL_TEXTURE_2D, self.frameTexture)
-                GL.glColor3f(1.0, 1.0, 1.0)  # glColor multiplies with texture
-                GL.glColorMask(True, True, True, True)
+            # before flipping need to copy the renderBuffer to the
+            # frameBuffer
+            GL.glActiveTexture(GL.GL_TEXTURE0)
+            GL.glEnable(GL.GL_TEXTURE_2D)
+            GL.glBindTexture(GL.GL_TEXTURE_2D, self.frameTexture)
+            GL.glColor3f(1.0, 1.0, 1.0)  # glColor multiplies with texture
+            GL.glColorMask(True, True, True, True)
 
-                self._renderFBO()
+            self._renderFBO()
 
-                GL.glEnable(GL.GL_BLEND)
-                self._finishFBOrender()
+            GL.glEnable(GL.GL_BLEND)
+            self._finishFBOrender()
 
         # call this before flip() whether FBO was used or not
         self._afterFBOrender()
 
         self.backend.swapBuffers(flipThisFrame)
 
-        if self.useFBO:
-            if flipThisFrame:
-                # set rendering back to the framebuffer object
-                GL.glBindFramebufferEXT(
-                    GL.GL_FRAMEBUFFER_EXT, self.frameBuffer)
-                GL.glReadBuffer(GL.GL_COLOR_ATTACHMENT0_EXT)
-                GL.glDrawBuffer(GL.GL_COLOR_ATTACHMENT0_EXT)
-                # set to no active rendering texture
-                GL.glActiveTexture(GL.GL_TEXTURE0)
-                GL.glBindTexture(GL.GL_TEXTURE_2D, 0)
-                if stencilOn:
-                    GL.glEnable(GL.GL_STENCIL_TEST)
+        if self.useFBO and flipThisFrame:
+            # set rendering back to the framebuffer object
+            GL.glBindFramebufferEXT(
+                GL.GL_FRAMEBUFFER_EXT, self.frameBuffer)
+            GL.glReadBuffer(GL.GL_COLOR_ATTACHMENT0_EXT)
+            GL.glDrawBuffer(GL.GL_COLOR_ATTACHMENT0_EXT)
+            # set to no active rendering texture
+            GL.glActiveTexture(GL.GL_TEXTURE0)
+            GL.glBindTexture(GL.GL_TEXTURE_2D, 0)
+            if stencilOn:
+                self.stencilTest = True
 
         # rescale, reposition, & rotate
         GL.glMatrixMode(GL.GL_MODELVIEW)
@@ -1178,6 +1174,58 @@ class Window(object):
         GL.glClear(GL.GL_COLOR_BUFFER_BIT)
 
     @property
+    def viewport(self):
+        """Viewport rectangle (x, y, w, h) for the current draw buffer."""
+        return self._viewport
+
+    @viewport.setter
+    def viewport(self, value):
+        self._viewport = numpy.array(value, numpy.int)
+        GL.glViewport(*self._viewport)
+
+    @property
+    def scissor(self):
+        """Scissor rectangle (x, y, w, h) for the current draw buffer."""
+        return self._scissor
+
+    @scissor.setter
+    def scissor(self, value):
+        self._scissor = numpy.array(value, numpy.int)
+        GL.glScissor(*self._scissor)
+
+    @property
+    def scissorTest(self):
+        """`True` if scissor testing is enabled."""
+        return self._scissorTest
+
+    @scissorTest.setter
+    def scissorTest(self, value):
+        if value is True:
+            GL.glEnable(GL.GL_SCISSOR_TEST)
+        elif value is False:
+            GL.glDisable(GL.GL_SCISSOR_TEST)
+        else:
+            TypeError("Value must be boolean.")
+
+        self._scissorTest = value
+
+    @property
+    def stencilTest(self):
+        """`True` if stencil testing is enabled."""
+        return self._stencilTest
+
+    @stencilTest.setter
+    def stencilTest(self, value):
+        if value is True:
+            GL.glEnable(GL.GL_STENCIL_TEST)
+        elif value is False:
+            GL.glDisable(GL.GL_STENCIL_TEST)
+        else:
+            TypeError("Value must be boolean.")
+
+        self._stencilTest = value
+
+    @property
     def nearClip(self):
         """Distance to the near clipping plane in meters."""
         # internally stored as meters, but PsychoPy uses centimeters elsewhere
@@ -1205,6 +1253,7 @@ class Window(object):
     @projectionMatrix.setter
     def projectionMatrix(self, value):
         self._projectionMatrix = numpy.asarray(value, numpy.float32)
+        assert self._projectionMatrix.shape == (4, 4)
 
     @property
     def viewMatrix(self):
@@ -1214,6 +1263,7 @@ class Window(object):
     @viewMatrix.setter
     def viewMatrix(self, value):
         self._viewMatrix = numpy.asarray(value, numpy.float32)
+        assert self._viewMatrix.shape == (4, 4)
 
     def setPerspectiveView(self, applyTransform=True, **kwargs):
         """Set the projection and view matrix to render with perspective.
@@ -1563,8 +1613,10 @@ class Window(object):
     def depthTest(self, value):
         if value is True:
             GL.glEnable(GL.GL_DEPTH_TEST)
-        else:
+        elif value is False:
             GL.glDisable(GL.GL_DEPTH_TEST)
+        else:
+            raise TypeError("Value must be boolean.")
 
         self._depthTest = value
 
@@ -1595,8 +1647,10 @@ class Window(object):
     def depthMask(self, value):
         if value is True:
             GL.glDepthMask(GL.GL_TRUE)
-        else:
+        elif value is False:
             GL.glDepthMask(GL.GL_FALSE)
+        else:
+            raise TypeError("Value must be boolean.")
 
         self._depthMask = value
 
@@ -1915,21 +1969,25 @@ class Window(object):
             self.size = numpy.array(actual)
 
     def _setupGL(self):
-
+        """Setup OpenGL state for this window.
+        """
         # setup screen color
         self.color = self.color  # call attributeSetter
         GL.glClearDepth(1.0)
 
-        GL.glViewport(0, 0, int(self.size[0]), int(self.size[1]))
+        # viewport or drawable area of the framebuffer
+        self.viewport = self.scissor = (0, 0, self.size[0], self.size[1])
+        self.scissorTest = True
+        self.stencilTest = False
 
-        GL.glMatrixMode(GL.GL_PROJECTION)  # Reset The Projection Matrix
+        GL.glMatrixMode(GL.GL_PROJECTION)  # Reset the projection matrix
         GL.glLoadIdentity()
         GL.gluOrtho2D(-1, 1, -1, 1)
 
-        GL.glMatrixMode(GL.GL_MODELVIEW)  # Reset The Projection Matrix
+        GL.glMatrixMode(GL.GL_MODELVIEW)  # Reset the modelview matrix
         GL.glLoadIdentity()
 
-        GL.glDisable(GL.GL_DEPTH_TEST)
+        self.depthTest = False
         # GL.glEnable(GL.GL_DEPTH_TEST)  # Enables Depth Testing
         # GL.glDepthFunc(GL.GL_LESS)  # The Type Of Depth Test To Do
         GL.glEnable(GL.GL_BLEND)

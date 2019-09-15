@@ -626,7 +626,7 @@ def _onResize(width, height):
     else:
         back_width, back_height = width, height
 
-    GL.glViewport(0, 0, width, height)
+    GL.glViewport(0, 0, back_width, back_height)
     GL.glMatrixMode(GL.GL_PROJECTION)
     GL.glLoadIdentity()
     GL.glOrtho(-1, 1, -1, 1, -1, 1)
