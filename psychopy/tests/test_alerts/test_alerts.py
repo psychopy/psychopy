@@ -1,11 +1,18 @@
+import shutil
 from psychopy.alerts import Alerts
+from tempfile import mkdtemp
+
 
 class TestAlertsLogger():
     """A class for testing the alerts package"""
 
     def setup(self):
         """Test creation of the AlertLogger"""
-        self.alert = Alerts.AlertLogger("TestCase")
+        self.temp_dir = mkdtemp()
+        self.alert = Alerts.AlertLogger("TestCase", self.temp_dir)
+
+    def teardown(self):
+        shutil.rmtree(self.temp_dir)
 
     def test_alert_catalogue(self):
         """Test the alerts catalogue has been created and loaded correctly"""
@@ -40,6 +47,9 @@ class TestAlertsLogger():
 
     def test_alert_entry_attributes(self):
         """Test the AlertEntry object has the correct values assigned to its attributes"""
+        assert Alerts.root.alertLog[0].logName == "TestCase"
+        assert Alerts.root.alertLog[0].type == None
+        assert Alerts.root.alertLog[0].name == None
         assert Alerts.root.alertLog[0].code == 9999
         assert Alerts.root.alertLog[0].cat == "TEST_ISSUE"
         assert Alerts.root.alertLog[0].msg == "TEST_MSG"
