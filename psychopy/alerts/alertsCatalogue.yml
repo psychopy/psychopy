@@ -12,14 +12,52 @@
 
 1003:
   code: 1003
-  cat: Positioning
-  msg: Your stimuli position exceeds the X dimension of your window. Check your component position and screen units.
+  cat: Sizing
+  msg: >-
+      Your stimuli size is smaller than 1 pixel (X dimension), meaning your stimuli will not be visible.
+      Check your component size and screen units.
   url: https://psychopy.org
 
 1004:
   code: 1004
+  cat: Sizing
+  msg: >-
+      Your stimuli size is smaller than 1 pixel (Y dimension), meaning your stimuli will not be visible.
+      Check your component size and screen units.
+  url: https://psychopy.org
+
+1005:
+  code: 1005
+  cat: Positioning
+  msg: Your stimuli position exceeds the X dimension of your window. Check your component position and screen units.
+  url: https://psychopy.org
+
+1006:
+  code: 1006
   cat: Positioning
   msg: Your stimuli position exceeds the Y dimension of your window. Check your component position and screen units.
+  url: https://psychopy.orgConsider using a duration rather than time.
+
+1007:
+  code: 1007
+  cat: Timing
+  msg: >-
+      Your stimuli start time (in time (s)) exceeds the stop time, meaning your stimuli will not be presented.
+      Check your component start/stop times and types. Consider using a time duration instead.
+  url: https://psychopy.org
+
+1008:
+  code: 1008
+  cat: Timing
+  msg: >-
+      Your stimuli start frame N exceeds the stop frame N, meaning your stimuli will not be presented.
+      Check your component start/stop frames. Consider using a frame duration instead.
+  url: https://psychopy.org
+
+9000:
+  code: 9000
+  cat: Failure
+  msg: Cannot calculate parameter. Integrity check incomplete.
   url: https://psychopy.org
 
 9999:
@@ -27,5 +65,6 @@
   cat: TEST_ISSUE
   msg: TEST_MSG
   url: https://psychopy.org
+
 
 
