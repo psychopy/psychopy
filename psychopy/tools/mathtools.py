@@ -1339,6 +1339,9 @@ def quatFromAxisAngle(axis, angle, degrees=True, dtype=None):
         halfRad = np.dtype(dtype).type(angle) / dtype(2.0)
 
     axis = normalize(axis, dtype=dtype)
+    if np.count_nonzero(axis) == 0:
+        raise ValueError("Value for `axis` is zero-length.")
+
     np.multiply(axis, np.sin(halfRad), out=toReturn[:3])
     toReturn[3] = np.cos(halfRad)
     toReturn += 0.0  # remove negative zeros
@@ -1856,6 +1859,9 @@ def rotationMatrix(angle, axis=(0., 0., -1.), out=None, dtype=None):
         R.fill(0.0)
 
     axis = normalize(axis, dtype=dtype)
+    if np.count_nonzero(axis) == 0:
+        raise ValueError("Value for `axis` is zero-length.")
+
     angle = np.radians(angle, dtype=dtype)
     c = np.cos(angle, dtype=dtype)
     s = np.sin(angle, dtype=dtype)
