@@ -17,8 +17,7 @@ from psychopy.constants import FOREVER
 from ..params import Param
 from psychopy.experiment.utils import CodeGenerationException
 from psychopy.localization import _translate, _localized
-from psychopy.alerts.Alerts import AlertLogger
-from psychopy.alerts import AlertTools
+from psychopy.alerts import AlertLogger, AlertTools
 
 
 class BaseComponent(object):

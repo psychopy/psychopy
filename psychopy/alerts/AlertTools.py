@@ -29,6 +29,7 @@ def runTest(component):
     units = component.exp.settings.params['Units'].val
     testSize(component, win, units)
     testPos(component, win, units)
+    testTiming(component)
 
 def convertParamToPix(value, win, units):
     """
@@ -69,7 +70,12 @@ def testSize(component, win, units):
     """
     if 'size' not in component.params:
         return
-    size = convertParamToPix(component.params['size'].val, win, units)
+
+    try:
+        size = convertParamToPix(component.params['size'].val, win, units)
+    except Exception:  # Use of variables fails check
+        component.alerts.write(9000, component)
+        return
 
     # Test X
     if size[0] > win.size[0]:
@@ -78,6 +84,12 @@ def testSize(component, win, units):
     if size[1] > win.size[1]:
         component.alerts.write(1002, component)
 
+    # Test if smaller than 1 pixel (X dimension)
+    if size[0] < 1:
+        component.alerts.write(1003, component)
+    # Test if smaller than 1 pixel (Y dimension)
+    if size[1] < 1:
+        component.alerts.write(1004, component)
 
 def testPos(component, win, units):
     """
@@ -94,14 +106,45 @@ def testPos(component, win, units):
     """
     if 'pos' not in component.params:
         return
-    pos = convertParamToPix(component.params['pos'].val, win, units)
 
-    # Test X
+    try:
+        pos = convertParamToPix(component.params['pos'].val, win, units)
+    except Exception:  # Use of variables fails check
+        component.alerts.write(9000, component)
+        return
+
+    # Test X position
     if pos[0] > win.size[0]:
-        component.alerts.write(1003, component)
-    # Test Y
+        component.alerts.write(1005, component)
+    # Test Y position
     if pos[1] > win.size[1]:
-        component.alerts.write(1004, component)
+        component.alerts.write(1006, component)
 
+def testTiming(component):
+    """
+    Tests stimuli starts before end time.
 
+    Parameters
+    ----------
+    component: Component
+        The component used for size testing
+    """
+    if "startType" not in component.params:
+        return
 
+    start = {'type': component.params['startType'].val, 'val' : component.params['startVal'].val}
+    stop = {'type': component.params['stopType'].val, 'val' : component.params['stopVal'].val}
+
+    try:
+        float(start['val'])
+        float(stop['val'])
+    except Exception:
+        component.alerts.write(9000, component)
+        return
+
+    if [start['type'], stop['type']] == ["time (s)", "time (s)"]:
+        if float(start['val']) > float(stop['val']):
+            component.alerts.write(1007, component)
+    if [start['type'], stop['type']] == ["frame N", "frame N"]:
+        if int(start['val']) > int(stop['val']):
+            component.alerts.write(1008, component)
