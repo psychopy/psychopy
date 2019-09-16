@@ -1665,26 +1665,26 @@ def matrixToQuat(m, out=None, dtype=None):
     if tr > 0.0:
         s = np.sqrt(tr + 1.0) * 2.0
         toReturn[3] = dtype(0.25) * s
-        toReturn[0] = (m[1, 2] - m[2, 1]) / s
-        toReturn[1] = (m[2, 0] - m[0, 2]) / s
-        toReturn[2] = (m[0, 1] - m[1, 0]) / s
+        toReturn[0] = (m[2, 1] - m[1, 2]) / s
+        toReturn[1] = (m[0, 2] - m[2, 0]) / s
+        toReturn[2] = (m[1, 0] - m[0, 1]) / s
     elif m[0, 0] > m[1, 1] and m[0, 0] > m[2, 2]:
         s = np.sqrt(dtype(1.0) + m[0, 0] - m[1, 1] - m[2, 2]) * dtype(2.0)
-        toReturn[3] = (m[1, 2] - m[2, 1]) / s
+        toReturn[3] = (m[2, 1] - m[1, 2]) / s
         toReturn[0] = dtype(0.25) * s
-        toReturn[1] = (m[1, 0] - m[0, 1]) / s
-        toReturn[2] = (m[2, 0] - m[0, 2]) / s
+        toReturn[1] = (m[0, 1] + m[1, 0]) / s
+        toReturn[2] = (m[0, 2] + m[2, 0]) / s
     elif m[0, 0] > m[2, 2]:
         s = np.sqrt(dtype(1.0) + m[1, 1] - m[0, 0] - m[2, 2]) * dtype(2.0)
-        toReturn[3] = (m[2, 0] - m[0, 2]) / s
-        toReturn[0] = (m[1, 0] - m[0, 1]) / s
+        toReturn[3] = (m[0, 2] - m[2, 0]) / s
+        toReturn[0] = (m[0, 1] + m[1, 0]) / s
         toReturn[1] = dtype(0.25) * s
-        toReturn[2] = (m[2, 1] - m[1, 2]) / s
+        toReturn[2] = (m[1, 2] + m[2, 1]) / s
     else:
         s = np.sqrt(dtype(1.0) + m[2, 2] - m[0, 0] - m[1, 1]) * dtype(2.0)
-        toReturn[3] = (m[0, 1] - m[1, 0]) / s
-        toReturn[0] = (m[2, 0] - m[0, 2]) / s
-        toReturn[1] = (m[2, 1] - m[1, 2]) / s
+        toReturn[3] = (m[1, 0] - m[0, 1]) / s
+        toReturn[0] = (m[0, 2] + m[2, 0]) / s
+        toReturn[1] = (m[1, 2] + m[2, 1]) / s
         toReturn[2] = dtype(0.25) * s
 
     return toReturn
@@ -2125,7 +2125,7 @@ def isAffine(m):
     Parameters
     ----------
     m : array_like
-        Square matrix, either 2x2, 3x3 or 4x4.
+        4x4 transformation matrix.
 
     Returns
     -------
@@ -2204,7 +2204,7 @@ def applyMatrix(m, points, out=None, dtype=None):
     Construct an SRT matrix (scale, rotate, transform) and transform an array of
     points::
 
-        S = scaleMatrix([5.0, 5.0, 5.0])  # scale 2x
+        S = scaleMatrix([5.0, 5.0, 5.0])  # scale 5x
         R = rotationMatrix(180., [0., 0., -1])  # rotate 180 degrees
         T = translationMatrix([0., 1.5, -3.])  # translate point up and away
         M = concatenate([S, R, T])  # create transform matrix
@@ -2404,14 +2404,14 @@ def transform(pos, ori, points, out=None, dtype=None):
 
         toReturn = out
 
-    pout, points = np.atleast_2d(toReturn, points)  # create 2d views
+    pout, points, pos2d = np.atleast_2d(toReturn, points, pos)  # create 2d views
 
     # apply rotation
     applyQuat(ori, points, out=pout)
 
     # apply translation
-    pout[:, 0] += pos[0]
-    pout[:, 1] += pos[1]
-    pout[:, 2] += pos[2]
+    pout[:, 0] += pos2d[:, 0]
+    pout[:, 1] += pos2d[:, 1]
+    pout[:, 2] += pos2d[:, 2]
 
     return toReturn

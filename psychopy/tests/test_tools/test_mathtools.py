@@ -86,7 +86,7 @@ def test_invertQuat():
         qinv = invertQuat(q)
         assert np.allclose(multQuat(q, qinv), qidt)  # is identity?
 
-
+@pytest.mark.mathtools
 def test_transform():
     """Test if `transform` gives the same results as a matrix."""
     np.random.seed(123456)
@@ -109,6 +109,21 @@ def test_transform():
 
         assert np.allclose(tPoint, mPoint[:, :3])  # is identity?
 
+@pytest.mark.mathtools
+def test_quatToMatrix():
+    """Test converting matrices to quaternions and vice-versa."""
+    np.random.seed(123456)
+    N = 1000
+    axes = np.random.uniform(-1.0, 1.0, (N, 3,))  # random axes
+    angles = np.random.uniform(0.0, 360.0, (N,))  # random angles
+
+    for i in range(N):
+        r = rotationMatrix(angles[i], normalize(axes[i, :]))
+        q = matrixToQuat(r)
+
+        assert np.allclose(r, quatToMatrix(q))
+
 
 if __name__ == "__main__":
-    pytest.main()
+    test_quatToMatrix()
+    #pytest.main()
