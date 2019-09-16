@@ -76,8 +76,8 @@ class Routine(list):
         """This is start of the *experiment* (before window is created)
         """
         for thisCompon in self:
-            # if hasattr(thisCompon, "integrityCheck"):
-            #     thisCompon.integrityCheck()
+            if hasattr(thisCompon, "integrityCheck"):
+                thisCompon.integrityCheck()
             # check just in case; try to ensure backwards compatibility _base
             if hasattr(thisCompon, 'writeStartCode'):
                 thisCompon.writeStartCode(buff)
