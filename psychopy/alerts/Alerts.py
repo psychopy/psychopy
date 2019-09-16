@@ -65,17 +65,19 @@ class AlertLog():
         self.alertLog.append((alert))
 
     def flush(self):
-        for i in self.alertLog:
+        for alert in self.alertLog:
             # Print to stdOutFrame
-            msg = ("AlertLogger: {name} | "
+            msg = ("AlertLogger: {logName} | "
+                   "Component Type: {type} | "
+                   "Component Name: {name} | "
                    "Code: {code} | "
                    "Category: {cat} | "
-                   "Message: {msg} | "
-                   "Component: {obj}".format(name=i.name,
-                                             code=i.code,
-                                             cat=i.cat,
-                                             msg=i.msg,
-                                             obj=i.obj))
+                   "Message: {msg} | ".format(logName=alert.logName,
+                                              type=alert.type,
+                                              name=alert.name,
+                                              code=alert.code,
+                                              cat=alert.cat,
+                                              msg=alert.msg))
             master.write(msg)  # Write to log file
             print(msg)  # Send to terminal or stdOutFrame
         self.alertLog = []  # reset alertLog
@@ -86,8 +88,27 @@ class MasterLog():
     store 5 most recent alert log files.
     """
     def __init__(self):
-        self.logFolder = Path(os.path.dirname(os.path.abspath(__file__))) / "alertLogs"
-        self.alertLogFile = self.logFolder / "alertLogFile_{}.log".format(time.strftime("%Y.%m.%d.%H.%M.%S"))
+        self.logFolder = None
+        self.logFile = None
+        self.alertLogFile = None
+
+    def setLogPath(self, filePath=None):
+        """
+        Sets the directory for the master log.
+
+        Parameters
+        ----------
+        filePath: str
+            File path for the master logs folder
+        """
+        # Only create MasterLog folder if filePath provided
+        if filePath is None:
+            return
+
+        self.logFile = "alertLog_{}.log".format(time.strftime("%Y.%m.%d.%H.%M.%S"))
+        self.logFolder = Path(os.path.abspath(filePath)) / "alertLogs"
+        self.alertLogFile = self.logFolder / self.logFile
+
         if not self.logFolder.exists():
             self.logFolder.mkdir(parents=True)
         else:
@@ -105,8 +126,12 @@ class AlertEntry():
 
     Attributes
     ----------
-    name: str
+    logName: str
         Name of the AlertLogger
+    type: str
+        Type of component being tested
+    name: str
+        Name of component being tested
     code: int
         The 4 digit code for retrieving alert from AlertCatalogue
     cat: str
@@ -128,12 +153,50 @@ class AlertEntry():
         The object related to the alert e.g., TextComponent object.
     """
     def __init__(self, name, code, obj):
-        self.name = name
+        self.logName = name
+        self.type = self._componentType(obj)
+        self.name = self._componentName(obj)
         self.code = catalogue.alert[code]['code']
         self.cat = catalogue.alert[code]['cat']
         self.msg = catalogue.alert[code]['msg']
         self.url = catalogue.alert[code]['url']
         self.obj = obj
+
+    def _componentType(self, obj):
+        """
+        Checks component for type
+
+        Parameters
+        ----------
+        obj: Component
+            Component object being tested
+
+        Returns
+        -------
+        type: str
+            The type of component if exists, or None.
+        """
+        if hasattr(obj, "type"):
+            return obj.type
+        return None
+
+    def _componentName(self, obj):
+        """
+        Checks component for name
+
+        Parameters
+        ----------
+        obj: Component
+            Component object being tested
+
+        Returns
+        -------
+        name: str
+            The name of the component if the parameter exists, or None.
+        """
+        if hasattr(obj, "params"):
+            return obj.params['name'].val
+        return None
 
 class AlertLogger():
     """The Alerts logging class used for writing to AlertLog class
@@ -143,8 +206,9 @@ class AlertLogger():
     name: str
         Logger name e.g., Experiment, Builder, Coder etc
     """
-    def __init__(self, name):
+    def __init__(self, name, filePath=None):
         self.name = name
+        master.setLogPath(filePath)  # Default sets on new/opened Builder file
 
     def write(self, code, obj=object):
         """Write to AlertLog
