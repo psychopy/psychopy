@@ -972,7 +972,7 @@ class TextBox(object):
                     self._window.size[1], -1, 1)
             glMatrixMode(GL_MODELVIEW)
             glLoadIdentity()
-            glDisable(GL_DEPTH_TEST)
+            self._window.depthTest = False
             glEnable(GL_BLEND)
             glEnable(GL_COLOR_MATERIAL)
             glColorMaterial(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE)
