@@ -3456,7 +3456,7 @@ def createPlane(size=(1., 1.)):
     return vertices, texCoords, normals, faces
 
 
-def createMeshGrid(size=(1., 1.), subdiv=0):
+def createMeshGrid(size=(1., 1.), subdiv=0, tessMode='radial'):
     """Create a grid mesh.
 
     Procedurally generate a grid mesh by specifying its size and number of
@@ -3473,6 +3473,10 @@ def createMeshGrid(size=(1., 1.), subdiv=0):
     subdiv : int, optional
         Number of subdivisions. Zero subdivisions are applied by default, and
         the resulting mesh will only have vertices at the corners.
+    tessMode : str, optional
+        Tessellation mode. Specifies the direction the longest edge of
+        subdivision faces should be pointing. This may reduce artifacts that
+        arise when deforming the mesh a particular way.
 
     Returns
     -------
