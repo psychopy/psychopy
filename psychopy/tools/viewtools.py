@@ -113,7 +113,7 @@ def computeFrustum(scrWidth,
 
     """
     # mdc - uses display size instead of the horizontal FOV gluPerspective needs
-    d = scrWidth * (convergeOffset + scrDist)
+    d = scrWidth * (convergeOffset + scrDist) / 2.0
     ratio = nearClip / float((convergeOffset + scrDist))
 
     right = (d - eyeOffset) * ratio
