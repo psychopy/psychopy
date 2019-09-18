@@ -3435,17 +3435,7 @@ def createPlane(size=(1., 1.)):
     normals[:, 2] = 1.
 
     # generate face index
-    faces = []
-    for i in range(1):
-        k1 = i * 2
-        k2 = k1 + 2
-
-        for j in range(1):
-            faces.append([k1, k2, k1 + 1])
-            faces.append([k1 + 1, k2, k2 + 1])
-
-            k1 += 1
-            k2 += 1
+    faces = [[0, 2, 1], [1, 2, 3]]
 
     # convert to numpy arrays
     vertices = np.ascontiguousarray(vertices, dtype=np.float32)
@@ -3456,13 +3446,17 @@ def createPlane(size=(1., 1.)):
     return vertices, texCoords, normals, faces
 
 
-def createMeshGrid(size=(1., 1.), subdiv=0, tessMode='radial'):
+def createMeshGrid(size=(1., 1.), subdiv=0, tessMode='diag'):
     """Create a grid mesh.
 
     Procedurally generate a grid mesh by specifying its size and number of
     sub-divisions. Texture coordinates are computed automatically, with origin
-    at the bottom left of the plane. The generated grid is perpendicular to the
+    at the center of the mesh. The generated grid is perpendicular to the
     +Z axis, origin of the grid is at its center.
+
+    This function is intended to generate meshes for image warping and
+    displacement meshes. If you wish to generate planes, use `createPlane`
+    instead.
 
     Parameters
     ----------
@@ -3474,9 +3468,9 @@ def createMeshGrid(size=(1., 1.), subdiv=0, tessMode='radial'):
         Number of subdivisions. Zero subdivisions are applied by default, and
         the resulting mesh will only have vertices at the corners.
     tessMode : str, optional
-        Tessellation mode. Specifies the direction the longest edge of
-        subdivision faces should be pointing. This may reduce artifacts that
-        arise when deforming the mesh a particular way.
+        Tessellation mode. Specifies how faces are subdivided. Options are
+        'center', 'radial', and 'diag'. Default is 'diag'. Modes 'radial' and
+        'center' work best with an odd number of subdivisions.
 
     Returns
     -------
@@ -3534,13 +3528,49 @@ def createMeshGrid(size=(1., 1.), subdiv=0, tessMode='radial'):
 
     # generate face index
     faces = []
+
+    lx = len(x)
+    ly = len(y)
     for i in range(subdiv + 1):
         k1 = i * (subdiv + 2)
         k2 = k1 + subdiv + 2
 
         for j in range(subdiv + 1):
-            faces.append([k1, k2, k1 + 1])
-            faces.append([k1 + 1, k2, k2 + 1])
+            if tessMode == 'diag':
+                faces.append([k1, k2, k1 + 1])
+                faces.append([k1 + 1, k2, k2 + 1])
+            elif tessMode == 'center':
+                if k1 + j < k1 + int((lx / 2)):
+                    if int(k1 / ly) + 1 > int(ly / 2):
+                        faces.append([k1, k2, k1 + 1])
+                        faces.append([k1 + 1, k2, k2 + 1])
+                    else:
+                        faces.append([k1, k2, k2 + 1])
+                        faces.append([k1 + 1, k1, k2 + 1])
+                else:
+                    if int(k1 / ly) + 1 > int(ly / 2):
+                        faces.append([k1, k2, k2 + 1])
+                        faces.append([k1 + 1, k1, k2 + 1])
+                    else:
+                        faces.append([k1, k2, k1 + 1])
+                        faces.append([k1 + 1, k2, k2 + 1])
+            elif tessMode == 'radial':
+                if k1 + j < k1 + int((lx / 2)):
+                    if int(k1 / ly) + 1 > int(ly / 2):
+                        faces.append([k1, k2, k2 + 1])
+                        faces.append([k1 + 1, k1, k2 + 1])
+                    else:
+                        faces.append([k1, k2, k1 + 1])
+                        faces.append([k1 + 1, k2, k2 + 1])
+                else:
+                    if int(k1 / ly) + 1 > int(ly / 2):
+                        faces.append([k1, k2, k1 + 1])
+                        faces.append([k1 + 1, k2, k2 + 1])
+                    else:
+                        faces.append([k1, k2, k2 + 1])
+                        faces.append([k1 + 1, k1, k2 + 1])
+            else:
+                raise ValueError('Invalid value for `tessMode`.')
 
             k1 += 1
             k2 += 1
