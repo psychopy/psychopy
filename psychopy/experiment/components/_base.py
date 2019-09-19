@@ -122,7 +122,6 @@ class BaseComponent(object):
         Run component integrity checks.
         """
         AlertTools.runTest(self)
-        self.alerts.flush()
 
     def writeInitCode(self, buff):
         """Write any code that a component needs that should only ever be done
