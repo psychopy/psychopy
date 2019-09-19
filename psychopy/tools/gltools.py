@@ -72,6 +72,8 @@ __all__ = [
     'createPlane',
     'createMeshGrid',
     'createBox',
+    'transformMeshPosOri',
+    'calculateVertexNormals',
     'getIntegerv',
     'getFloatv',
     'getString',
@@ -87,6 +89,7 @@ from PIL import Image
 import numpy as np
 import os, sys
 import warnings
+import psychopy.tools.mathtools as mt
 
 # create a query counter to get absolute GPU time
 QUERY_COUNTER = GL.GLuint()
@@ -3406,27 +3409,32 @@ def createPlane(size=(1., 1.)):
         # in the rendering loop
         gltools.drawVAO(vao, GL.GL_TRIANGLES)
 
+    Create a plane to present an image with correct aspect ratio::
+
+        aspect = imgW / imgH
+        
+
     """
     if isinstance(size, (int, float,)):
-        divx = divy = float(size) / 2.
+        sx = sy = float(size) / 2.
     else:
-        divx = size[0] / 2.
-        divy = size[1] / 2.
+        sx = size[0] / 2.
+        sy = size[1] / 2.
 
-    # generate plane vertices
-    x = np.linspace(-divx, divy, 2)
-    y = np.linspace(divx, -divy, 2)
-    xx, yy = np.meshgrid(x, y)
+    vertices = np.ascontiguousarray(
+        [[-1.,  1., 0.],
+         [ 1.,  1., 0.],
+         [-1., -1., 0.],
+         [ 1., -1., 0.]])
 
-    vertices = np.vstack([xx.ravel(), yy.ravel()]).T
-    vertices = np.hstack([vertices, np.zeros((vertices.shape[0], 1))])  # add z
+    if sx != 1.:
+        vertices[:, 0] *= sx
+
+    if sy != 1.:
+        vertices[:, 1] *= sy
 
     # texture coordinates
-    u = np.linspace(0.0, 1.0, 2)
-    v = np.linspace(1.0, 0.0, 2)
-    uu, vv = np.meshgrid(u, v)
-
-    texCoords = np.vstack([uu.ravel(), vv.ravel()]).T
+    texCoords = np.ascontiguousarray([[0., 1.], [1., 1.], [0., 0.], [1., 0.]])
 
     # normals, facing +Z
     normals = np.zeros_like(vertices)
@@ -3435,13 +3443,7 @@ def createPlane(size=(1., 1.)):
     normals[:, 2] = 1.
 
     # generate face index
-    faces = [[0, 2, 1], [1, 2, 3]]
-
-    # convert to numpy arrays
-    vertices = np.ascontiguousarray(vertices, dtype=np.float32)
-    texCoords = np.ascontiguousarray(texCoords, dtype=np.float32)
-    normals = np.ascontiguousarray(normals, dtype=np.float32)
-    faces = np.ascontiguousarray(faces, dtype=np.uint32)
+    faces = np.ascontiguousarray([[0, 2, 1], [1, 2, 3]], dtype=np.uint32)
 
     return vertices, texCoords, normals, faces
 
@@ -3681,9 +3683,12 @@ def createBox(size=(1., 1., 1.), flipFaces=False):
 
     # vertex indices for faces
     faces = np.ascontiguousarray([
-        [ 0,  2,  1], [ 1,  2,  3], [ 4,  6,  5], [ 5,  6,  7], [ 8, 10,  9],
-        [ 9, 10, 11], [12, 14, 13], [13, 14, 15], [16, 18, 17], [17, 18, 19],
-        [20, 22, 21], [21, 22, 23]
+        [ 0,  2,  1], [ 1,  2,  3],  # +X
+        [ 4,  6,  5], [ 5,  6,  7],  # -X
+        [ 8, 10,  9], [ 9, 10, 11],  # +Y
+        [12, 14, 13], [13, 14, 15],  # -Y
+        [16, 18, 17], [17, 18, 19],  # +Z
+        [20, 22, 21], [21, 22, 23]   # -Z
     ], dtype=np.uint32)
 
     if flipFaces:
@@ -3692,6 +3697,126 @@ def createBox(size=(1., 1., 1.), flipFaces=False):
 
     return vertices, texCoords, normals, faces
 
+
+def transformMeshPosOri(vertices, normals, pos=(0., 0., 0.), ori=(0., 0., 0., 1.)):
+    """Transform a mesh.
+
+    Transform mesh vertices and normals to a new position and orientation using
+    a position coordinate and rotation quaternion. Values `vertices` and
+    `normals` must be the same shape. This is intended to be used when editing
+    raw vertex data prior to rendering. Do not use this to change the
+    configuration of an object while rendering.
+
+    Parameters
+    ----------
+    vertices : array_like
+        Nx3 array of vertices.
+    normals : array_like
+        Nx3 array of normals.
+    pos : array_like, optional
+        Position vector to transform mesh vertices. If Nx3, `vertices` will be
+        transformed by corresponding rows of `pos`.
+    ori : array_like, optional
+        Orientation quaternion in form [x, y, z, w]. If Nx4, `vertices` and
+        `normals` will be transformed by corresponding rows of `ori`.
+
+    Returns
+    -------
+    tuple
+        Transformed vertices and normals.
+
+    Examples
+    --------
+    Create and re-orient a plane to face upwards::
+
+        vertices, textureCoords, normals, faces = createPlane()
+
+        # rotation quaternion
+        qr = quatFromAxisAngle((1., 0., 0.), -90.0)  # -90 degrees about +X axis
+
+        # transform the normals and points
+        vertices, normals = transformMeshPosOri(vertices, normals, ori=qr)
+
+    Any `create*` primitive generating function can be used inplace of
+    `createPlane`.
+
+    """
+    # ensure these are contiguous
+    vertices = np.ascontiguousarray(vertices)
+    normals = np.ascontiguousarray(normals)
+
+    if not np.allclose(pos, [0., 0., 0.]):
+        vertices = mt.transform(pos, ori, vertices)
+
+    if not np.allclose(ori, [0., 0., 0., 1.]):
+        normals = mt.applyQuat(ori, normals)
+
+    return vertices, normals
+
+
+def calculateVertexNormals(vertices, faces, shading='smooth'):
+    """Calculate vertex normals given vertices and faces.
+
+    Parameters
+    ----------
+    vertices : array_like
+        Nx3 vertex positions.
+    faces : array_like
+        Nx3 vertex indices.
+    shading : str, optional
+        Shading mode. Options are 'smooth' and 'flat'. Flat only works with
+        meshes where no vertex index is shared across faces.
+
+    Returns
+    -------
+    ndarray
+        Vertex normals array with the shame shape as `vertices`. Computed
+        normals are normalized.
+
+    Examples
+    --------
+    Recomputing vertex normals for a UV sphere::
+
+        vertices, textureCoords, normals, faces = gltools.createUVSphere()
+        normals = gltools.calculateVertexNormals(vertices, faces)
+
+    """
+
+    # compute surface normals for all faces
+    faceNormals = mt.surfaceNormal(vertices[faces])
+
+    if shading == 'flat':
+        return np.ascontiguousarray(np.repeat(faceNormals, 2, axis=0)) + 0.0
+    elif shading == 'smooth':
+        normals = []
+
+        # for each vertex get vertex indices sharing that position
+        similarVerts = []
+        for i in range(vertices.shape[0]):
+            # find similar vertices
+            foundVerts = []
+            for j in range(vertices.shape[0]):
+                if np.allclose(vertices[i, :], vertices[j, :]):
+                    foundVerts.append(j)
+
+            similarVerts.append(foundVerts)
+
+        # get the shared face indices
+        vertFaces = []
+        for vertIndices in similarVerts:
+            foundFaces = []
+            for i in range(faces.shape[0]):
+                face = faces[i, :]
+                if np.isin(face, vertIndices).any():
+                    foundFaces.append(i)
+
+            vertFaces.append(foundFaces)
+
+        vertexNormals = []
+        for i in range(vertices.shape[0]):
+            vertexNormals.append(mt.vertexNormal(faceNormals[vertFaces[i], :]))
+
+        return np.ascontiguousarray(vertexNormals) + 0.0
 
 # -----------------------------
 # Misc. OpenGL Helper Functions

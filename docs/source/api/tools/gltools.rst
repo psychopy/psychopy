@@ -70,6 +70,7 @@ Overview
     createPlane
     createMeshGrid
     createBox
+    transformMeshPosOri
     getIntegerv
     getFloatv
     getString
@@ -137,6 +138,7 @@ Details
 .. autofunction:: createPlane
 .. autofunction:: createMeshGrid
 .. autofunction:: createBox
+.. autofunction:: transformMeshPosOri
 .. autofunction:: getIntegerv
 .. autofunction:: getFloatv
 .. autofunction:: getString
