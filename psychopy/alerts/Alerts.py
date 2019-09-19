@@ -151,16 +151,40 @@ class AlertEntry():
             The 4 digit code for retrieving alert from AlertCatalogue
     obj: object
         The object related to the alert e.g., TextComponent object.
+    strFormat: dict
+            Dict containing relevant values for formatting messages
     """
-    def __init__(self, name, code, obj):
+    def __init__(self, name, code, obj, strFormat=None):
         self.logName = name
         self.type = self._componentType(obj)
         self.name = self._componentName(obj)
         self.code = catalogue.alert[code]['code']
         self.cat = catalogue.alert[code]['cat']
-        self.msg = catalogue.alert[code]['msg']
+        self.msg = self._formatMsg(
+            catalogue.alert[code]['msg'],
+            strFormat)
         self.url = catalogue.alert[code]['url']
         self.obj = obj
+
+    def _formatMsg(self, msg, strFormat):
+        """
+        Formats message text if strFormat value given.
+
+        Parameters
+        ----------
+        msg: str
+            The alerts catalogue message entry
+        strFormat: dict
+            Values to format msg
+
+        Returns
+        -------
+        msg: str
+            Either original or formatted message
+        """
+        if strFormat is not None:
+            return msg.format(**strFormat)
+        return msg
 
     def _componentType(self, obj):
         """
@@ -210,7 +234,7 @@ class AlertLogger():
         self.name = name
         master.setLogPath(filePath)  # Default sets on new/opened Builder file
 
-    def write(self, code, obj=object):
+    def write(self, code, obj=object, strFormat=None):
         """Write to AlertLog
 
         Parameters
@@ -219,8 +243,10 @@ class AlertLogger():
             The 4 digit code for retrieving alert from AlertCatalogue
         obj: object
             The object related to the alert e.g., TextComponent object
+        strFormat: dict
+            Dict containing relevant values for formatting messages
         """
-        root.write(AlertEntry(self.name, code, obj))
+        root.write(AlertEntry(self.name, code, obj, strFormat))
 
     def flush(self):
         root.flush()
