@@ -159,7 +159,9 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
             -------
                 missingHeaders : Set of missing headers, or None if no missing headers
             """
-            surveyFields = {'index', 'responseWidth', 'layout', 'questionText', 'type', 'questionWidth', 'options'}
+            surveyFields = {'index', 'responseWidth', 'layout', 'questionText',
+                            'type', 'questionWidth', 'options',
+                            'questionColor', 'responseColor'}
             fields = set(fields)
 
             if not surveyFields == fields:
@@ -189,7 +191,9 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
                              'layout': 'horiz',
                              'questionText': 'Default question',
                              'type': 'rating',
-                             'options': 'Yes, No'}
+                             'options': 'Yes, No',
+                             'questionColor': 'white',
+                             'responseColor': 'white'}
 
             msg = "Using default values for the following headers: {}".format(missingHeaders)
             if self.autoLog:
@@ -324,7 +328,8 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
                                             height=self.textHeight,
                                             alignHoriz='left',
                                             wrapWidth=self._questionTextWrap(item['questionWidth']),
-                                            autoLog=False)
+                                            autoLog=False,
+                                            color=item['questionColor'])
 
         questionHeight = self._getQuestionHeight(question)
         questionWidth = self._getQuestionWidth(question)
@@ -408,7 +413,7 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
             The position of the response object
         """
         pos = (self.rightEdge
-               - (item['responseWidth'] / 2)
+               - ((item['responseWidth'] * self.size[0]) / 2)
                - self._scrollBarSize[0]
                - self.itemPadding
                * self.size[0],
@@ -463,7 +468,8 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
                                       granularity=sliderType[item['type'].lower()]['granularity'],
                                       flip=True,
                                       style=sliderType[item['type'].lower()]['style'],
-                                      autoLog=False, )
+                                      autoLog=False,
+                                      color=item['responseColor'])
 
         return resp, respHeight
 
@@ -596,13 +602,15 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
         psychopy.visual.Aperture
             The aperture setting viewable area for forms
         """
-        return psychopy.visual.Aperture(win=self.win,
-                                        name='aperture',
-                                        units=self.units,
-                                        shape='square',
-                                        size=self.size,
-                                        pos=(0, 0),
-                                        autoLog=False)
+        aperture = psychopy.visual.Aperture(win=self.win,
+                                            name='aperture',
+                                            units=self.units,
+                                            shape='square',
+                                            size=self.size,
+                                            pos=(0, 0),
+                                            autoLog=False)
+        aperture.disable()  # Disable on creation. Only enable on draw.
+        return aperture
 
     def _getScrollOffset(self):
         """Calculate offset position of items in relation to markerPos

@@ -30,7 +30,10 @@ class Test_Form(object):
                            "responseWidth": 0.3,
                            "options": "Male, Female, Other",
                            "layout": 'vert',
-                           "index": 0}
+                           "index": 0,
+                           "questionColor": "white",
+                           "responseColor": "white"
+                           }
         self.questions.append(self.genderItem)
         # then a set of ratings
         items = ["running", "cake", "programming"]
@@ -41,7 +44,10 @@ class Test_Form(object):
                      "responseWidth": 0.3,
                      "options":"Lots, some, Not a lot, Longest Option",
                      "layout": 'horiz',
-                     "index": idx+1}
+                     "index": idx+1,
+                     "questionColor": "white",
+                     "responseColor": "white"
+                     }
             self.questions.append(entry)
         self.survey = Form(self.win, items=self.questions, size=(1.0, 0.3), pos=(0.0, 0.0), autoLog=False)
 
@@ -51,7 +57,10 @@ class Test_Form(object):
                       "c": "radio",
                       "d": 0.3,
                       "e": "Male, Female, Other",
-                      "f": 'vert'}]
+                      "f": 'vert',
+                      "g": "white",
+                      "h": "white"
+                        }]
 
         wrongOptions = [{"questionText": "What is your gender?",
                       "questionWidth": 0.7,
@@ -59,7 +68,9 @@ class Test_Form(object):
                       "responseWidth": 0.3,
                       "options": "Other",
                       "layout": 'vert',
-                      "index": 0}]
+                      "index": 0,
+                      "questionColor": "white",
+                      "responseColor": "white"}]
 
         reducedHeaders = [{"questionText": "What is your gender?"}]
 
