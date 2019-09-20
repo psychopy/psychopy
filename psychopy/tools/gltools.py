@@ -70,6 +70,7 @@ __all__ = [
     'loadMtlFile',
     'createUVSphere',
     'createPlane',
+    'createMeshGridFromArrays',
     'createMeshGrid',
     'createBox',
     'transformMeshPosOri',
@@ -3448,17 +3449,111 @@ def createPlane(size=(1., 1.)):
     return vertices, texCoords, normals, faces
 
 
+def createMeshGridFromArrays(xvals, yvals, zvals=None, tessMode='diag'):
+    """Create a mesh grid using coordinates from arrays.
+
+    Generates a mesh using data in provided in arrays of vertex coordinates.
+    Triangle faces are automatically computed by this function by joining
+    adjacent vertices. Texture coordinates are generated covering the whole
+    mesh, with origin at the bottom left.
+
+    Parameters
+    ----------
+    xvals, yvals : array_like
+        NxM arrays of X and Y coordinates. Both arrays must have the same
+        shape. the resulting mesh will have a single vertex for each X and Y
+        pair. Faces will be generated to connect adjacent coordinates in the
+        array.
+    zvals : array_like, optional
+        NxM array of Z coordinates for each X and Y. Must have the same shape
+        as X and Y. If not specified, the Z coordinates will be filled with
+        zeros.
+    tessMode : str, optional
+        Tessellation mode. Specifies how faces are generated. Options are
+        'center', 'radial', and 'diag'. Default is 'diag'. Modes 'radial' and
+        'center' work best with odd numbered array dimensions.
+
+    Returns
+    -------
+    tuple
+        Vertex attribute arrays (position, texture coordinates, and normals) and
+        triangle indices.
+
+    Examples
+    --------
+    Create a 3D sine grating mesh using 2D arrays::
+
+        x = np.linspace(0, 1.0, 32)
+        y = np.linspace(1.0, 0.0, 32)
+        xx, yy = np.meshgrid(x, y)
+        zz = np.tile(np.sin(np.linspace(0.0, 32., 32)) * 0.02, (32, 1))
+
+        vertices, textureCoords, normals, faces = \
+            gltools.createMeshGridFromArrays(xx, yy, zz)
+
+    """
+    vertices = np.vstack([xvals.ravel(), yvals.ravel()]).T
+
+    if zvals is not None:
+        assert xvals.shape == yvals.shape == zvals.shape
+    else:
+        assert xvals.shape == yvals.shape
+
+    if zvals is None:
+        # fill z with zeros if not provided
+        vertices = np.hstack([vertices, np.zeros((vertices.shape[0], 1))])
+    else:
+        vertices = np.hstack([vertices, np.atleast_2d(zvals.ravel()).T])
+
+    ny, nx = xvals.shape
+
+    # texture coordinates
+    u = np.linspace(0.0, 1.0, nx)
+    v = np.linspace(1.0, 0.0, ny)
+    uu, vv = np.meshgrid(u, v)
+
+    texCoords = np.vstack([uu.ravel(), vv.ravel()]).T
+
+    # generate face index
+    faces = []
+
+    if tessMode == 'diag':
+        for i in range(ny - 1):
+            k1 = i * nx
+            k2 = k1 + nx
+
+            for j in range(nx - 1):
+                faces.append([k1, k2, k1 + 1])
+                faces.append([k1 + 1, k2, k2 + 1])
+
+                k1 += 1
+                k2 += 1
+
+    else:
+        raise ValueError('Invalid value for `tessMode`.')
+
+    # convert to numpy arrays
+    vertices = np.ascontiguousarray(vertices, dtype=np.float32)
+    texCoords = np.ascontiguousarray(texCoords, dtype=np.float32)
+    faces = np.ascontiguousarray(faces, dtype=np.uint32)
+
+    # calculate surface normals for the mesh
+    normals = calculateVertexNormals(vertices, faces, shading='smooth')
+
+    return vertices, texCoords, normals, faces
+
+
 def createMeshGrid(size=(1., 1.), subdiv=0, tessMode='diag'):
     """Create a grid mesh.
 
     Procedurally generate a grid mesh by specifying its size and number of
-    sub-divisions. Texture coordinates are computed automatically, with origin
-    at the center of the mesh. The generated grid is perpendicular to the
-    +Z axis, origin of the grid is at its center.
+    sub-divisions. Texture coordinates are computed automatically. The origin is
+    at the center of the mesh. The generated grid is perpendicular to the +Z
+    axis, origin of the grid is at its center.
 
     This function is intended to generate meshes for image warping and
-    displacement meshes. If you wish to generate planes, use `createPlane`
-    instead.
+    displacement meshes (eg. 3D gratings, terrain, etc.) If you wish to generate
+    flat planes, use `createPlane` instead.
 
     Parameters
     ----------
@@ -3500,6 +3595,20 @@ def createMeshGrid(size=(1., 1.), subdiv=0, tessMode='diag'):
         # in the rendering loop
         gltools.drawVAO(vao, GL.GL_TRIANGLES)
 
+    Randomly displace vertices off the plane of the grid by setting the `Z`
+    value per vertex::
+
+        vertices, textureCoords, normals, faces = \
+            gltools.createMeshGrid(subdiv=11)
+
+        numVerts = vertices.shape[0]
+        vertices[:, 2] = np.random.uniform(-0.02, 0.02, (numVerts,)))  # Z
+
+        # you must recompute surface normals to get correct shading!
+        normals = gltools.calculateVertexNormals(vertices, faces)
+
+        # create a VAO as shown in the previous example here to draw it ...
+
     """
     if isinstance(size, (int, float,)):
         divx = divy = float(size) / 2.
@@ -3531,51 +3640,74 @@ def createMeshGrid(size=(1., 1.), subdiv=0, tessMode='diag'):
     # generate face index
     faces = []
 
-    lx = len(x)
-    ly = len(y)
-    for i in range(subdiv + 1):
-        k1 = i * (subdiv + 2)
-        k2 = k1 + subdiv + 2
+    if tessMode == 'diag':
+        for i in range(subdiv + 1):
+            k1 = i * (subdiv + 2)
+            k2 = k1 + subdiv + 2
 
-        for j in range(subdiv + 1):
-            if tessMode == 'diag':
+            for j in range(subdiv + 1):
                 faces.append([k1, k2, k1 + 1])
                 faces.append([k1 + 1, k2, k2 + 1])
-            elif tessMode == 'center':
-                if k1 + j < k1 + int((lx / 2)):
-                    if int(k1 / ly) + 1 > int(ly / 2):
-                        faces.append([k1, k2, k1 + 1])
-                        faces.append([k1 + 1, k2, k2 + 1])
-                    else:
-                        faces.append([k1, k2, k2 + 1])
-                        faces.append([k1 + 1, k1, k2 + 1])
-                else:
-                    if int(k1 / ly) + 1 > int(ly / 2):
-                        faces.append([k1, k2, k2 + 1])
-                        faces.append([k1 + 1, k1, k2 + 1])
-                    else:
-                        faces.append([k1, k2, k1 + 1])
-                        faces.append([k1 + 1, k2, k2 + 1])
-            elif tessMode == 'radial':
-                if k1 + j < k1 + int((lx / 2)):
-                    if int(k1 / ly) + 1 > int(ly / 2):
-                        faces.append([k1, k2, k2 + 1])
-                        faces.append([k1 + 1, k1, k2 + 1])
-                    else:
-                        faces.append([k1, k2, k1 + 1])
-                        faces.append([k1 + 1, k2, k2 + 1])
-                else:
-                    if int(k1 / ly) + 1 > int(ly / 2):
-                        faces.append([k1, k2, k1 + 1])
-                        faces.append([k1 + 1, k2, k2 + 1])
-                    else:
-                        faces.append([k1, k2, k2 + 1])
-                        faces.append([k1 + 1, k1, k2 + 1])
-            else:
-                raise ValueError('Invalid value for `tessMode`.')
 
-            k1 += 1
-            k2 += 1
+                k1 += 1
+                k2 += 1
+
+    elif tessMode == 'center':
+        lx = len(x)
+        ly = len(y)
+
+        for i in range(subdiv + 1):
+            k1 = i * (subdiv + 2)
+            k2 = k1 + subdiv + 2
+
+            for j in range(subdiv + 1):
+                if k1 + j < k1 + int((lx / 2)):
+                    if int(k1 / ly) + 1 > int(ly / 2):
+                        faces.append([k1, k2, k1 + 1])
+                        faces.append([k1 + 1, k2, k2 + 1])
+                    else:
+                        faces.append([k1, k2, k2 + 1])
+                        faces.append([k1 + 1, k1, k2 + 1])
+                else:
+                    if int(k1 / ly) + 1 > int(ly / 2):
+                        faces.append([k1, k2, k2 + 1])
+                        faces.append([k1 + 1, k1, k2 + 1])
+                    else:
+                        faces.append([k1, k2, k1 + 1])
+                        faces.append([k1 + 1, k2, k2 + 1])
+
+                k1 += 1
+                k2 += 1
+
+    elif tessMode == 'radial':
+        lx = len(x)
+        ly = len(y)
+
+        for i in range(subdiv + 1):
+            k1 = i * (subdiv + 2)
+            k2 = k1 + subdiv + 2
+
+            for j in range(subdiv + 1):
+                if k1 + j < k1 + int((lx / 2)):
+                    if int(k1 / ly) + 1 > int(ly / 2):
+                        faces.append([k1, k2, k2 + 1])
+                        faces.append([k1 + 1, k1, k2 + 1])
+                    else:
+                        faces.append([k1, k2, k1 + 1])
+                        faces.append([k1 + 1, k2, k2 + 1])
+                else:
+                    if int(k1 / ly) + 1 > int(ly / 2):
+                        faces.append([k1, k2, k1 + 1])
+                        faces.append([k1 + 1, k2, k2 + 1])
+                    else:
+                        faces.append([k1, k2, k2 + 1])
+                        faces.append([k1 + 1, k1, k2 + 1])
+
+                k1 += 1
+                k2 += 1
+
+    else:
+        raise ValueError('Invalid value for `tessMode`.')
 
     # convert to numpy arrays
     vertices = np.ascontiguousarray(vertices, dtype=np.float32)
