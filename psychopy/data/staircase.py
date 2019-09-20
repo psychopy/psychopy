@@ -863,11 +863,12 @@ class QuestHandler(StairHandler):
         self.startValSd = startValSd
         self.stopInterval = stopInterval
         self._questNextIntensity = startVal
+        self._range = range
 
         # Create Quest object
         self._quest = QuestObject_(
             startVal, startValSd, pThreshold, beta, delta, gamma,
-            grain=grain, range=range)
+            grain=grain, range=self._range)
 
         # Import any old staircase data
         if staircase is not None:
@@ -876,6 +877,26 @@ class QuestHandler(StairHandler):
         self.originPath, self.origin = self.getOriginPathAndFile(originPath)
         self._exp = None
         self.autoLog = autoLog
+
+    @property
+    def beta(self):
+        return self._quest.beta
+
+    @property
+    def gamma(self):
+        return self._quest.gamma
+
+    @property
+    def delta(self):
+        return self._quest.delta
+
+    @property
+    def grain(self):
+        return self._quest.grain
+
+    @property
+    def range(self):
+        return self._range
 
     def addResponse(self, result, intensity=None):
         """Add a 1 or 0 to signify a correct / detected or
