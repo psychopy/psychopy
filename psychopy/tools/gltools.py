@@ -3380,9 +3380,6 @@ def createPlane(size=(1., 1.)):
         Dimensions of the plane. If a single value is specified, the plane will
         be square. Provide a tuple of floats to specify the width and length of
         the plane (eg. `size=(0.2, 1.3)`).
-    subdiv : int, optional
-        Number of subdivisions. Zero subdivisions are applied by default, and
-        the resulting mesh will only have vertices at the corners.
 
     Returns
     -------
@@ -3409,11 +3406,6 @@ def createPlane(size=(1., 1.)):
 
         # in the rendering loop
         gltools.drawVAO(vao, GL.GL_TRIANGLES)
-
-    Create a plane to present an image with correct aspect ratio::
-
-        aspect = imgW / imgH
-        
 
     """
     if isinstance(size, (int, float,)):
