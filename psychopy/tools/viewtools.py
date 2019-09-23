@@ -176,7 +176,7 @@ def generalizedPerspectiveProjection(posBottomLeft,
     References
     ----------
     .. [1] Kooima, R. (2009). Generalized perspective projection. J. Sch.
-    Electron. Eng. Comput. Sci.
+       Electron. Eng. Comput. Sci.
 
     Examples
     --------

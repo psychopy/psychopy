@@ -16,7 +16,7 @@ __all__ = ['normalize', 'lerp', 'slerp', 'multQuat', 'quatFromAxisAngle',
            'project', 'surfaceNormal', 'invertMatrix', 'angleTo',
            'surfaceBitangent', 'surfaceTangent', 'vertexNormal', 'isOrthogonal',
            'isAffine', 'perp', 'ortho3Dto2D', 'intersectRayPlane',
-           'matrixToQuat', 'lensCorrectionDM']
+           'matrixToQuat', 'lensCorrection']
 
 import numpy as np
 import functools
@@ -2427,9 +2427,13 @@ def transform(pos, ori, points, out=None, dtype=None):
 # Misc. Math Functions
 #
 
-def lensCorrectionDM(xys, coefK=(1.0,), distCenter=(0., 0.), out=None, dtype=None):
-    """Lens correction (or distortion) using the division model (Fitzgibbon,
-    2001).
+def lensCorrection(xys, coefK=(1.0,), distCenter=(0., 0.), out=None, dtype=None):
+    """Lens correction (or distortion) using the division model.
+
+    Calculate new vertex positions or texture coordinates to apply radial
+    warping, such as 'pincushion' and 'barrel' distortion. This is to compensate
+    for optical distortion introduced by lenses placed in the optical path of
+    the viewer and the display (such as in an HMD).
 
     Parameters
     ----------
@@ -2455,6 +2459,18 @@ def lensCorrectionDM(xys, coefK=(1.0,), distCenter=(0., 0.), out=None, dtype=Non
     -------
     ndarray
         Array of distorted vertices.
+
+    Notes
+    -----
+    * At this time tangential distortion (i.e. due to a slant in the display)
+      cannot be corrected for.
+
+    References
+    ----------
+    .. [1] Fitzgibbon, W. (2001). Simultaneous linear estimation of multiple
+       view geometry and lens distortion. Proceedings of the 2001 IEEE Computer
+       Society Conference on Computer Vision and Pattern Recognition (CVPR).
+       IEEE.
 
     Examples
     --------
@@ -2488,4 +2504,3 @@ def lensCorrectionDM(xys, coefK=(1.0,), distCenter=(0., 0.), out=None, dtype=Non
     toReturn[:, :] = xys + (d_minus_c / denom[:, np.newaxis])
 
     return toReturn
-
