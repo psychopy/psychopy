@@ -487,6 +487,24 @@ class TestQuestHandler(_BaseTestStairHandler):
         assert self.stairs._quest.x[0] == -range/2
         assert self.stairs._quest.x[-1] == range/2
 
+    def test_attributes(self):
+        beta = 3.5
+        gamma = 0.01
+        delta = 0.02
+        grain = 0.01
+        range = 1
+
+        q = data.QuestHandler(startVal=0.5, startValSd=0.2, pThreshold=0.63,
+                              nTrials=10,
+                              beta=beta, gamma=gamma, delta=delta,
+                              grain=grain, range=range)
+
+        assert q.beta == beta
+        assert q.gamma == gamma
+        assert q.delta == delta
+        assert q.grain == grain
+        assert q.range == range
+
     def test_comparison_equals(self):
         q1 = data.QuestHandler(0.5, 0.2, pThreshold=0.63, gamma=0.01,
                                nTrials=20, minVal=0, maxVal=1)
