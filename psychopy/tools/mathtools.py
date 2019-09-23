@@ -16,7 +16,7 @@ __all__ = ['normalize', 'lerp', 'slerp', 'multQuat', 'quatFromAxisAngle',
            'project', 'surfaceNormal', 'invertMatrix', 'angleTo',
            'surfaceBitangent', 'surfaceTangent', 'vertexNormal', 'isOrthogonal',
            'isAffine', 'perp', 'ortho3Dto2D', 'intersectRayPlane',
-           'matrixToQuat']
+           'matrixToQuat', 'lensCorrectionDM']
 
 import numpy as np
 import functools
@@ -2421,3 +2421,71 @@ def transform(pos, ori, points, out=None, dtype=None):
     pout[:, 2] += pos2d[:, 2]
 
     return toReturn
+
+
+# ------------------------------------------------------------------------------
+# Misc. Math Functions
+#
+
+def lensCorrectionDM(xys, coefK=(1.0,), distCenter=(0., 0.), out=None, dtype=None):
+    """Lens correction (or distortion) using the division model (Fitzgibbon,
+    2001).
+
+    Parameters
+    ----------
+    xys : array_like
+        Nx2 list of vertex positions or texture coordinates to distort. Works
+        correctly only if input values range between -1.0 and 1.0.
+    coefK : array_like or float
+        Distortion coefficients K_n. Specifying multiple values will add more
+        polynomial terms to the distortion formula. Positive values will produce
+        'barrel' distortion, whereas negative will produce 'pincushion'
+        distortion.
+    distCenter : array_like, optional
+        X and Y coordinate of the distortion center (eg. (0.2, -0.4)).
+    out : ndarray, optional
+        Optional output array. Must be same `shape` and `dtype` as the expected
+        output if `out` was not specified.
+    dtype : dtype or str, optional
+        Data type for computations can either be 'float32' or 'float64'. If
+        `None` is specified, the data type of `out` is used. If `out` is not
+        provided, 'float64' is used by default.
+
+    Returns
+    -------
+    ndarray
+        Array of distorted vertices.
+
+    Examples
+    --------
+    Creating a lens correction mesh with barrel distortion (eg. for HMDs)::
+
+        vertices, textureCoords, normals, faces = gltools.createMeshGrid(
+            subdiv=11, tessMode='center')
+
+        # recompute vertex positions
+        vertices[:, :2] = mt.lensCorrection(vertices[:, :2], coefK=(5., 5.))
+
+    """
+    if out is None:
+        dtype = np.float64 if dtype is None else np.dtype(dtype).type
+    else:
+        dtype = np.dtype(dtype).type
+
+    if isinstance(coefK, (float, int,)):
+        coefK = (coefK,)
+
+    xys = np.asarray(xys, dtype=dtype)
+    coefK = np.asarray(coefK, dtype=dtype)
+
+    d_minus_c = xys - np.asarray(distCenter, dtype=dtype)
+    r = np.power(length(d_minus_c, dtype=dtype)[:, np.newaxis],
+                 np.arange(len(coefK), dtype=dtype) * 2. + 2.)
+
+    toReturn = np.zeros_like(xys, dtype=dtype) if out is None else out
+
+    denom = dtype(1.0) + dot(coefK, r, dtype=dtype)
+    toReturn[:, :] = xys + (d_minus_c / denom[:, np.newaxis])
+
+    return toReturn
+

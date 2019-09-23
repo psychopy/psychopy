@@ -3449,13 +3449,13 @@ def createPlane(size=(1., 1.)):
     return vertices, texCoords, normals, faces
 
 
-def createMeshGridFromArrays(xvals, yvals, zvals=None, tessMode='diag'):
+def createMeshGridFromArrays(xvals, yvals, zvals=None, tessMode='diag', computeNormals=True):
     """Create a mesh grid using coordinates from arrays.
 
-    Generates a mesh using data in provided in arrays of vertex coordinates.
+    Generates a mesh using data in provided in 2D arrays of vertex coordinates.
     Triangle faces are automatically computed by this function by joining
-    adjacent vertices. Texture coordinates are generated covering the whole
-    mesh, with origin at the bottom left.
+    adjacent vertices at neighbouring indices in the array. Texture coordinates
+    are generated covering the whole mesh, with origin at the bottom left.
 
     Parameters
     ----------
@@ -3472,6 +3472,10 @@ def createMeshGridFromArrays(xvals, yvals, zvals=None, tessMode='diag'):
         Tessellation mode. Specifies how faces are generated. Options are
         'center', 'radial', and 'diag'. Default is 'diag'. Modes 'radial' and
         'center' work best with odd numbered array dimensions.
+    computeNormals : bool, optional
+        Compute normals for the generated mesh. If `False`, all normals are set
+        to face in the +Z direction. Presently, computing normals is a slow
+        operation and may not be needed for some meshes.
 
     Returns
     -------
@@ -3538,7 +3542,11 @@ def createMeshGridFromArrays(xvals, yvals, zvals=None, tessMode='diag'):
     faces = np.ascontiguousarray(faces, dtype=np.uint32)
 
     # calculate surface normals for the mesh
-    normals = calculateVertexNormals(vertices, faces, shading='smooth')
+    if computeNormals:
+        normals = calculateVertexNormals(vertices, faces, shading='smooth')
+    else:
+        normals = np.zeros_like(vertices, dtype=np.float32)
+        normals[:, 2] = 1.
 
     return vertices, texCoords, normals, faces
 
@@ -3550,10 +3558,6 @@ def createMeshGrid(size=(1., 1.), subdiv=0, tessMode='diag'):
     sub-divisions. Texture coordinates are computed automatically. The origin is
     at the center of the mesh. The generated grid is perpendicular to the +Z
     axis, origin of the grid is at its center.
-
-    This function is intended to generate meshes for image warping and
-    displacement meshes (eg. 3D gratings, terrain, etc.) If you wish to generate
-    flat planes, use `createPlane` instead.
 
     Parameters
     ----------
@@ -3617,8 +3621,8 @@ def createMeshGrid(size=(1., 1.), subdiv=0, tessMode='diag'):
         divy = size[1] / 2.
 
     # generate plane vertices
-    x = np.linspace(-divx, divy, subdiv + 2)
-    y = np.linspace(divx, -divy, subdiv + 2)
+    x = np.linspace(-divx, divx, subdiv + 2)
+    y = np.linspace(divy, -divy, subdiv + 2)
     xx, yy = np.meshgrid(x, y)
 
     vertices = np.vstack([xx.ravel(), yy.ravel()]).T
