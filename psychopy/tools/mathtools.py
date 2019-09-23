@@ -2444,7 +2444,8 @@ def lensCorrection(xys, coefK=(1.0,), distCenter=(0., 0.), out=None, dtype=None)
         Distortion coefficients K_n. Specifying multiple values will add more
         polynomial terms to the distortion formula. Positive values will produce
         'barrel' distortion, whereas negative will produce 'pincushion'
-        distortion.
+        distortion. In most cases, two or three coefficients are adequate,
+        depending on the degree of distortion.
     distCenter : array_like, optional
         X and Y coordinate of the distortion center (eg. (0.2, -0.4)).
     out : ndarray, optional
