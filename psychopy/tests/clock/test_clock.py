@@ -21,6 +21,7 @@ def test_StaticPeriod_finish_on_time():
 def test_StaticPeriod_overrun():
     """Test unsuccessful completion (period "overran")
     """
+    static = StaticPeriod()
     static.start(0.1)
     wait(0.11)
     assert static.complete() == 0
@@ -39,7 +40,8 @@ def test_StaticPeriod_recordFrameIntervals():
 def test_StaticPeriod_screenHz():
     """Test if screenHz parameter is respected, i.e., if after completion of the
     StaticPeriod, 1/screenHz seconds are still remaining, so the period will
-    complete after the next flip."""
+    complete after the next flip.
+    """
     refresh_rate = 100.0
     period_duration = 0.1
     timer = CountdownTimer()
