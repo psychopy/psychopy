@@ -11,19 +11,21 @@ from psychopy.visual.form import Form
 from psychopy.visual.text import TextStim
 from psychopy.visual.slider import Slider
 from psychopy import constants
+import shutil
+from tempfile import mkdtemp
 
-thisDir, _ = os.path.split(os.path.abspath(__file__))
-fixturesPath = os.path.join(thisDir, '..', 'data')
-fileName_xlsx = os.path.join(fixturesPath, 'items.xlsx')
-fileName_csv = os.path.join(fixturesPath, 'items.csv')
 
 class Test_Form(object):
     """Test suite for Form component"""
 
     def setup_class(self):
-        self.questions = []
-        self.win = Window(units='height', allowStencil=True, autoLog=False)
+        # Create temp files for storing items
+        self.temp_dir = mkdtemp()
+        self.fileName_xlsx = os.path.join(self.temp_dir, 'items.xlsx')
+        self.fileName_csv = os.path.join(self.temp_dir, 'items.csv')
+
         # create some questions
+        self.questions = []
         self.genderItem = {"questionText": "What is your gender?",
                            "questionWidth": 0.7,
                            "type": "radio",
@@ -49,7 +51,14 @@ class Test_Form(object):
                      "responseColor": "white"
                      }
             self.questions.append(entry)
+
+        self.win = Window(units='height', allowStencil=True, autoLog=False)
         self.survey = Form(self.win, items=self.questions, size=(1.0, 0.3), pos=(0.0, 0.0), autoLog=False)
+
+        # Create datafiles
+        df = DataFrame(self.questions)
+        df.to_excel(self.fileName_xlsx, index=False)
+        df.to_csv(self.fileName_csv, index=False)
 
     def test_importItems(self):
         wrongFields = [{"a": "What is your gender?",
@@ -74,10 +83,6 @@ class Test_Form(object):
 
         reducedHeaders = [{"questionText": "What is your gender?"}]
 
-        df = DataFrame(self.questions)
-        df.to_excel(fileName_xlsx, index=False)
-        df.to_csv(fileName_csv, index=False)
-
         # Check options for list of dicts
         with pytest.raises(ValueError):
             self.survey = Form(self.win, items=wrongOptions, size=(1.0, 0.3), pos=(0.0, 0.0), autoLog=False)
@@ -86,10 +91,10 @@ class Test_Form(object):
         self.survey = Form(self.win, items=reducedHeaders, size=(1.0, 0.3), pos=(0.0, 0.0), autoLog=False)
 
         # Check csv
-        self.survey = Form(self.win, items=fileName_csv,
+        self.survey = Form(self.win, items=self.fileName_csv,
                            size=(1.0, 0.3), pos=(0.0, 0.0), autoLog=False)
         # Check Excel
-        self.survey = Form(self.win, items=fileName_xlsx,
+        self.survey = Form(self.win, items=self.fileName_xlsx,
                            size=(1.0, 0.3), pos=(0.0, 0.0), randomize=False, autoLog=False)
 
     def test_randomize_items(self):
@@ -179,6 +184,7 @@ class Test_Form(object):
         assert set(data['itemIndex']) == {0, 1, 2, 3}
 
     def teardown_class(self):
+        shutil.rmtree(self.temp_dir)
         self.win.close()
 
 
