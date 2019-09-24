@@ -1062,6 +1062,35 @@ def test_QuesPlusHandler_unknown_kwargs():
                          **unknown_kwargs)
 
 
+def test_QuesPlusHandler_unused_StairHandler_attribs():
+    import sys
+    if not (sys.version_info.major == 3 and sys.version_info.minor >= 6):
+        pytest.skip('QUEST+ only works on Python 3.6+')
+
+    from psychopy.data.staircase import QuestPlusHandler
+
+    thresholds = np.arange(-40, 0 + 1)
+    slope, guess, lapse = 3.5, 0.5, 0.02
+    contrasts = thresholds.copy()
+    response_vals = ['Correct', 'Incorrect']
+    func = 'weibull'
+    stim_scale = 'linear'
+
+    q = QuestPlusHandler(nTrials=20,
+                         intensityVals=contrasts,
+                         thresholdVals=thresholds,
+                         slopeVals=slope,
+                         lowerAsymptoteVals=guess,
+                         lapseRateVals=lapse,
+                         responseVals=response_vals,
+                         psychometricFunc=func,
+                         stimScale=stim_scale)
+
+    assert q.currentDirection is None
+    assert q.stepSizeCurrent is None
+    assert q.stepType == q.stimScale
+
+
 if __name__ == '__main__':
     # test_QuestPlusHandler()
     # test_QuestPlusHandler_startIntensity()
