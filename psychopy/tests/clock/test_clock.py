@@ -9,15 +9,24 @@ from psychopy.visual import Window
 
 
 @pytest.mark.staticperiod
-def test_StaticPeriod():
+def test_StaticPeriod_finish_on_time():
+    """Test successful completion (finishing "on time")
+    """
     static = StaticPeriod()
     static.start(0.1)
-    wait(0.05)
-    assert static.complete()==1
+    wait(0.01)
+    assert static.complete() == 1
+
+@pytest.mark.staticperiod
+def test_StaticPeriod_overrun():
+    """Test unsuccessful completion (period "overran")
+    """
     static.start(0.1)
     wait(0.11)
-    assert static.complete()==0
+    assert static.complete() == 0
 
+@pytest.mark.staticperiod
+def test_StaticPeriod_recordFrameIntervals():
     win = Window(autoLog=False)
     static = StaticPeriod(screenHz=60, win=win)
     static.start(.002)
@@ -26,9 +35,11 @@ def test_StaticPeriod():
     assert static._winWasRecordingIntervals == win.recordFrameIntervals
     win.close()
 
-    # Test if screenHz parameter is respected, i.e., if after completion of the
-    # StaticPeriod, 1/screenHz seconds are still remaining, so the period will
-    # complete after the next flip.
+@pytest.mark.staticperiod
+def test_StaticPeriod_screenHz():
+    """Test if screenHz parameter is respected, i.e., if after completion of the
+    StaticPeriod, 1/screenHz seconds are still remaining, so the period will
+    complete after the next flip."""
     refresh_rate = 100.0
     period_duration = 0.1
     timer = CountdownTimer()
@@ -43,7 +54,3 @@ def test_StaticPeriod():
                        1.0/refresh_rate,
                        atol=0.001)
     win.close()
-
-
-if __name__ == '__main__':
-    test_StaticPeriod()
