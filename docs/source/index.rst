@@ -26,9 +26,10 @@ News
 participants. Site licenses (£1500) last until Sept 2020. Individual credits (£0.20) 
 last forever! For more info about pricing see https://pavlovia.org/docs/store/pricing
 
-:ref:`download` the **latest version**: 3.1.5 released July 2019.
+:ref:`download` the **latest version**: 3.2.3 released Sept 2019.
 
-With a new faster keyboard (and many improvements to the provision of online studies).
+With a new faster sound (and many improvements to the provision of online studies)
+combined with the faster keyboard timing in the 3.1.x release series.
 
 **New PsychoPy paper**: Please cite this if you use PsychoPy Builder in your studies
 
@@ -67,6 +68,7 @@ Contents
    gettingStarted
    builder/builder
    coder/coder
+   Sharing and running ONLINE <online/index>
    api/api
    changelog
    resources/resources

@@ -24,7 +24,7 @@ In general timing of web-based experiments will be poorer than locally-run studi
 
 **Variable internet connection:** Surprisingly no, this isn't one to worry about! PsychoJS will make sure that the script and all the recourses for your study (image files etc) are downloaded to the computer beforehand. On a slow internet connection it may take longer for your study to start but the performance won't be limited by that while it runs. Happy days!
 
-**Visual stimuli:** PsychoJS is using WebGL (high performance web rendering using advanced graphics card features) and we have confirmed that PsychoJS is able to run with frame-precise timing. So we think your stimuli will be presented for very precise times.
+**Visual stimuli:** PsychoJS is using WebGL (high performance web rendering using advanced graphics card features) and we have confirmed that PsychoJS is able to run with frame-precise timing. That means, if you ask for a stimulus to last for, say, 6 frames then you will get exactly 100 ms of stimulus presentation.
 
 **Response timing:** Again this won't be affected by your internet connection (because the keypresses are being time-stamped locally, at your computer, not by the web server). The major problem, as with any software, is that keyboards have long and variable latencies (10-30 ms typically). On a local lab-based setup you can get around this by using custom hardware (a button box) but this obviously isn't possible when your user is anywhere in the world!
 
@@ -37,16 +37,17 @@ We'd recommend running on an updated browser but pretty much any modern browser 
 
 Specifically, these support Canvas (minimum requirement):
 
-- IE 9+ (released in 2011)
-- FF 10+ (released 2012)
+- Firefox 10+ (released 2012)
 - Chrome 11+ (2011)
 - Safari 2.0+ (2005)
 - Opera 12+ (2011)
+- Internet Explorer 9+ (released in 2011) but we really recommend you avoid it!
 
 Browsers supporting WebGL (hardware-accelerated graphics in the browser):
 
-- IE 11+ (2013)
-- FF 15+ (2012)
+- Firefox 15+ (2012)
 - Chrome 11+ (2011)
 - Safari 5.1+ (2011/12?)
 - Opera 19+
+- Microsoft Edge
+- IE 11+ (2013)
