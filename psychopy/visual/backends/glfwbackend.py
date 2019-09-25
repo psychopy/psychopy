@@ -27,7 +27,7 @@ from PIL import Image
 
 # on mac Standalone app check for packaged libglfw dylib
 if prefs.paths['libs']:
-    _possLibPaths = glob.glob(os.path.join(self.paths['libs'], 'libglfw*'))
+    _possLibPaths = glob.glob(os.path.join(prefs.paths['libs'], 'libglfw*'))
     if _possLibPaths:
         os.environ['PYGLFW_LIBRARY'] = _possLibPaths[0]
 
@@ -286,8 +286,8 @@ class GLFWBackend(BaseBackend):
 
         # create the window
         self.winHandle = glfw.create_window(
-            width=win.size[0],
-            height=win.size[1],
+            width=win.clientSize[0],
+            height=win.clientSize[1],
             title=str(kwargs.get('winTitle', "PsychoPy (GLFW)")),
             monitor=useDisplay,
             share=shareContext)
@@ -302,8 +302,8 @@ class GLFWBackend(BaseBackend):
             # if no window position is specified, centre it on-screen
             if win.pos is None:
                 size, bpc, hz = nativeVidmode
-                win.pos = [(size[0] - win.size[0]) / 2.0,
-                           (size[1] - win.size[1]) / 2.0]
+                win.pos = [(size[0] - win.clientSize[0]) / 2.0,
+                           (size[1] - win.clientSize[1]) / 2.0]
 
             # get the virtual position of the monitor, apply offset to the
             # window position
@@ -316,10 +316,11 @@ class GLFWBackend(BaseBackend):
             logging.warn("Ignoring window 'pos' in fullscreen mode.")
 
         # set the window icon
-        glfw.set_window_icon(self.winHandle, 1, _WINDOW_ICON_)
+        if hasattr(glfw, 'set_window_icon'):
+            glfw.set_window_icon(self.winHandle, 1, _WINDOW_ICON_)
 
         # set the window size to the framebuffer size
-        win.size = np.array(glfw.get_framebuffer_size(self.winHandle))
+        self._frameBufferSize = np.array(glfw.get_framebuffer_size(self.winHandle))
 
         if win.useFBO:  # check for necessary extensions
             if not glfw.extension_supported('GL_EXT_framebuffer_object'):
@@ -361,6 +362,11 @@ class GLFWBackend(BaseBackend):
     def shadersSupported(self):
         # on pyglet shaders are fine so just check GL>2.0
         return pyglet.gl.gl_info.get_version() >= '2.0'
+
+    @property
+    def frameBufferSize(self):
+        """Framebuffer size (w, h)."""
+        return self._frameBufferSize
 
     def swapBuffers(self, flipThisFrame=True):
         """Performs various hardware events around the window flip and then
@@ -626,7 +632,7 @@ def _onResize(width, height):
     else:
         back_width, back_height = width, height
 
-    GL.glViewport(0, 0, width, height)
+    GL.glViewport(0, 0, back_width, back_height)
     GL.glMatrixMode(GL.GL_PROJECTION)
     GL.glLoadIdentity()
     GL.glOrtho(-1, 1, -1, 1, -1, 1)

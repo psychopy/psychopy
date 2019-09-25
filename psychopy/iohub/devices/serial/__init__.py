@@ -5,6 +5,7 @@
 import serial
 import sys
 import numpy as N
+import struct
 from ... import EXP_SCRIPT_DIRECTORY
 from .. import Device, DeviceEvent, Computer
 from ...errors import print2err, printExceptionDetailsToStdErr
@@ -546,7 +547,7 @@ class Pstbox(Serial):
         # Convert the new state into a bitmask, collapse it into a
         # single byte and send it to the response box.
         state_bits = (2**N.arange(8))[state]
-        self.write(chr(N.sum(state_bits)))
+        self.write(struct.pack("B",(N.sum(state_bits))))
 
         # Set the `update lamp` bit to LOW again.
         state[6] = False

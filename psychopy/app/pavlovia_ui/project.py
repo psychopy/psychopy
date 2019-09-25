@@ -472,7 +472,7 @@ def syncProject(parent, project=None, closeFrameWhenDone=False):
             project = recreatorDlg.project
         else:
             logging.error("Failed to recreate project to sync with")
-            return
+            return 0
 
     # a sync will be necessary so can create syncFrame
     syncFrame = sync.SyncFrame(parent=parent, id=wx.ID_ANY, project=project)
@@ -520,9 +520,9 @@ def syncProject(parent, project=None, closeFrameWhenDone=False):
             if status == -1:
                 syncFrame.syncPanel.statusAppend("Couldn't sync")
         except Exception:  # not yet sure what errors might occur
-            # send the
-            closeFrameWhenDone = False
+            # send the error to panel
             syncFrame.syncPanel.statusAppend(traceback.format_exc())
+            return 0
 
     wx.Yield()
     project._lastKnownSync = time.time()

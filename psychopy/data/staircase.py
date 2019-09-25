@@ -863,11 +863,12 @@ class QuestHandler(StairHandler):
         self.startValSd = startValSd
         self.stopInterval = stopInterval
         self._questNextIntensity = startVal
+        self._range = range
 
         # Create Quest object
         self._quest = QuestObject_(
             startVal, startValSd, pThreshold, beta, delta, gamma,
-            grain=grain, range=range)
+            grain=grain, range=self._range)
 
         # Import any old staircase data
         if staircase is not None:
@@ -876,6 +877,26 @@ class QuestHandler(StairHandler):
         self.originPath, self.origin = self.getOriginPathAndFile(originPath)
         self._exp = None
         self.autoLog = autoLog
+
+    @property
+    def beta(self):
+        return self._quest.beta
+
+    @property
+    def gamma(self):
+        return self._quest.gamma
+
+    @property
+    def delta(self):
+        return self._quest.delta
+
+    @property
+    def grain(self):
+        return self._quest.grain
+
+    @property
+    def range(self):
+        return self._range
 
     def addResponse(self, result, intensity=None):
         """Add a 1 or 0 to signify a correct / detected or
@@ -1463,7 +1484,13 @@ class QuestPlusHandler(StairHandler):
             warnings.warn(msg, RuntimeWarning)
 
         super().__init__(startVal=startIntensity, nTrials=nTrials,
-                         extraInfo=extraInfo, name=name)
+                         stepType=stimScale, extraInfo=extraInfo, name=name)
+
+        # We  don't use these attributes that were inherited from StairHandler.
+        self.currentDirection = None
+        self.stepSizeCurrent = None
+        # Note that self.stepType is not used either: we use self.stimScale
+        # instead (which is defined below).
 
         self.intensityVals = intensityVals
         self.thresholdVals = thresholdVals
@@ -1831,9 +1858,12 @@ class MultiStairHandler(_BaseTrialHandler):
                             self.conditions.index(stair.condition))
                 exp.addData(self.name + '.thisRepN', stair.thisTrialN + 1)
                 exp.addData(self.name + '.thisN', self.totalTrials)
-                exp.addData(self.name + '.direction', stair.currentDirection)
-                exp.addData(self.name + '.stepSize', stair.stepSizeCurrent)
-                exp.addData(self.name + '.stepType', stair.stepType)
+
+                if self.type != 'questplus':
+                    exp.addData(self.name + '.direction', stair.currentDirection)
+                    exp.addData(self.name + '.stepSize', stair.stepSizeCurrent)
+                    exp.addData(self.name + '.stepType', stair.stepType)
+
                 exp.addData(self.name + '.intensity', self._nextIntensity)
             return self._nextIntensity, self.currentStaircase.condition
         else:
