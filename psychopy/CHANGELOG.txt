@@ -60,7 +60,7 @@ TIMING improvements:
 Also ADDED:
 
 - Standalone installations now provide an updated Cedrus library, pyxid2
-- Support for new LabHackers USB2TTL8 device (parallel port alternative)
+- Support for new `LabHackers USB2TTL8 device (parallel port alternative) <https://labhackers.com/usb2ttl8.html>`_
 - Envelope grating now has exponent (power) option
 
 FIXED:
