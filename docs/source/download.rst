@@ -1,6 +1,8 @@
 Installation
 ===============
 
+.. _download:
+
 Download
 -----------
 
@@ -13,7 +15,7 @@ For the easiest installation download and install the Standalone package.
     
     let filename;
     let url;
-    let version='3.1.2'
+    let version='3.2.3'
 
     let clientInfo = UAParser(navigator.userAgent);
     var osLabel;
@@ -109,15 +111,31 @@ and having downloaded the right wheel you can then install it with something lik
 wxPython>4.0 and doesn't have universal wheels yet which is why you have to
 find and install the correct wheel for your particular flavor of linux.
 
+**Building Python PsychToolbox bindings:**
+
+The PsychToolbox bindings for Python provide superior timing for sounds and
+keyboard responses. Unfortunately we haven't bee able to build universal wheels
+for these yet so you may have to build the pkg yourself. That should be hard.
+You need the necessary dev libraries installed first:
+
+.. code-block:: bash
+
+    sudo apt-get install libusb-1.0-0-dev portaudio19-dev libasound2-dev
+
+and then you should be able to install using pip and it will build the extensions
+as needed:
+
+    pip install psychtoolbox
+
 
 .. _conda:
 
 Anaconda and Miniconda
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-With Python 3.5::
+With Python 3.6::
 
-  conda create -n psypy3 python=3.5
+  conda create -n psypy3 python=3.6
   conda activate psypy3
   conda install numpy scipy matplotlib pandas pyopengl pillow lxml openpyxl xlrd configobj pyyaml gevent greenlet msgpack-python psutil pytables requests[security] cffi seaborn wxpython cython pyzmq pyserial
   conda install -c conda-forge pyglet pysoundfile python-bidi moviepy pyosf

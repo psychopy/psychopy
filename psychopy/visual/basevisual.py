@@ -5,7 +5,7 @@
 """
 
 # Part of the PsychoPy library
-# Copyright (C) 2018 Jonathan Peirce
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 from __future__ import absolute_import, division, print_function
@@ -618,7 +618,8 @@ class TextureMixin(object):
 
     def _createTexture(self, tex, id, pixFormat,
                        stim, res=128, maskParams=None,
-                       forcePOW2=True, dataType=None):
+                       forcePOW2=True, dataType=None,
+                       wrapping=True):
         """
         :params:
             id:
@@ -699,6 +700,7 @@ class TextureMixin(object):
             res = 1
             intensity = numpy.ones([res, res], numpy.float32)
             wasLum = True
+            wrapping = True  # override any wrapping setting for None
         elif tex == "sin":
             # NB 1j*res is a special mgrid notation
             onePeriodX, onePeriodY = numpy.mgrid[0:res, 0:2 * pi:1j * res]
@@ -956,8 +958,16 @@ class TextureMixin(object):
         GL.glEnable(GL.GL_TEXTURE_2D)
         GL.glBindTexture(GL.GL_TEXTURE_2D, id)  # bind that name to the target
         # makes the texture map wrap (this is actually default anyway)
-        GL.glTexParameteri(
-            GL.GL_TEXTURE_2D, GL.GL_TEXTURE_WRAP_S, GL.GL_REPEAT)
+        if wrapping:
+            GL.glTexParameteri(
+                GL.GL_TEXTURE_2D, GL.GL_TEXTURE_WRAP_S, GL.GL_REPEAT)
+            GL.glTexParameteri(
+                GL.GL_TEXTURE_2D, GL.GL_TEXTURE_WRAP_T, GL.GL_REPEAT)
+        else:
+            GL.glTexParameteri(
+                GL.GL_TEXTURE_2D, GL.GL_TEXTURE_WRAP_S, GL.GL_CLAMP)
+            GL.glTexParameteri(
+                GL.GL_TEXTURE_2D, GL.GL_TEXTURE_WRAP_T, GL.GL_CLAMP)
         # data from PIL/numpy is packed, but default for GL is 4 bytes
         GL.glPixelStorei(GL.GL_UNPACK_ALIGNMENT, 1)
         # important if using bits++ because GL_LINEAR
@@ -1021,7 +1031,8 @@ class TextureMixin(object):
             dataType = None
         self._createTexture(
             value, id=self._maskID, pixFormat=GL.GL_ALPHA, dataType=dataType,
-            stim=self, res=self.texRes, maskParams=self.maskParams)
+            stim=self, res=self.texRes, maskParams=self.maskParams,
+            wrapping=False)
 
     def setMask(self, value, log=None):
         """Usually you can use 'stim.attribute = value' syntax instead,

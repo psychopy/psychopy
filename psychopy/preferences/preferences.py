@@ -41,7 +41,7 @@ class Preferences(object):
     or, within a script, preferences can be controlled like this::
 
         import psychopy
-        psychopy.prefs.hardware['audioLib'] = ['pyo','pygame']
+        psychopy.prefs.hardware['audioLib'] = ['PTB', 'pyo','pygame']
         print(prefs)
         # prints the location of the user prefs file and all the current vals
 

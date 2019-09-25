@@ -13,6 +13,8 @@ from psychopy.experiment.components import BaseVisualComponent, Param, \
     getInitVals, _translate
 from psychopy.visual import slider
 from psychopy.experiment import py2js
+from psychopy import logging
+import copy
 
 __author__ = 'Jon Peirce'
 
@@ -197,7 +199,7 @@ class SliderComponent(BaseVisualComponent):
         inits = getInitVals(self.params)
         # build up an initialization string for Slider():
         initStr = ("{name} = visual.Slider(win=win, name='{name}',\n"
-                   "    size={size}, pos={pos},\n"
+                   "    size={size}, pos={pos}, units={units},\n"
                    "    labels={labels}, ticks={ticks},\n"
                    "    granularity={granularity}, style={styles},\n"
                    "    color={color}, font={font},\n"
@@ -210,6 +212,16 @@ class SliderComponent(BaseVisualComponent):
         for param in inits:
             if inits[param].val in ['', None, 'None', 'none']:
                 inits[param].val = 'undefined'
+
+        # Check for unsupported units
+        if inits['units'].val == 'from exp settings':
+            inits['units'] = copy.copy(self.exp.settings.params['Units'])
+        if inits['units'].val in ['cm', 'deg', 'degFlatPos', 'degFlat']:
+            msg = ("'{units}' units for your '{name}' Slider are not currently supported for PsychoJS: "
+                  "switching units to 'height'. Note, this will affect the size and positioning of '{name}'.")
+            logging.warning(msg.format(units=inits['units'].val, name=inits['name'].val))
+            inits['units'].val = "height"
+
         boolConverter = {False: 'false', True: 'true'}
         sliderStyles = {'slider': 'SLIDER',
                         '()': 'RATING',
@@ -233,7 +245,7 @@ class SliderComponent(BaseVisualComponent):
         # build up an initialization string for Slider():
         initStr = ("{name} = new visual.Slider({{\n"
                    "  win: psychoJS.window, name: '{name}',\n"
-                   "  size: {size}, pos: {pos},\n"
+                   "  size: {size}, pos: {pos}, units: {units},\n"
                    "  labels: {labels}, ticks: {ticks},\n"
                    "  granularity: {granularity}, style: {styles},\n"
                    "  color: new util.Color({color}), \n"

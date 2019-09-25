@@ -4,7 +4,7 @@
 """Create geometric (vector) shapes by defining vertex locations."""
 
 # Part of the PsychoPy library
-# Copyright (C) 2018 Jonathan Peirce
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL)
 
 from __future__ import absolute_import, print_function
@@ -143,7 +143,8 @@ class BaseShapeStim(BaseVisualStim, ColorMixin, ContainerMixin):
 
         # if the fillColor and lineColor are not set but color is
         # then the user probably wants color applied to both
-        if (lineColor==(1.0, 1.0, 1.0) and fillColor is None
+        if (lineColor==(1.0, 1.0, 1.0)
+                and fillColor is None
                 and color is not None):
             self.color = color
 

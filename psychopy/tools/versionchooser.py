@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2018 Jonathan Peirce
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 """PsychoPy Version Chooser to specify version within experiment scripts.
 """
@@ -266,15 +266,16 @@ def availableVersions(local=True, forceCheck=False):
 
     Everything returned has the form Major.minor.patchLevel, as strings.
     """
-
-    if local:
-        return _localVersions(forceCheck)
-    else:
-        return sorted(
-            list(set([psychopy.__version__] + _localVersions(forceCheck) + _remoteVersions(
-                forceCheck))),
-            reverse=True)
-
+    try:
+        if local:
+            return _localVersions(forceCheck)
+        else:
+            return sorted(
+                list(set([psychopy.__version__] + _localVersions(forceCheck) + _remoteVersions(
+                    forceCheck))),
+                reverse=True)
+    except subprocess.CalledProcessError:
+        return []
 
 def fullVersion(partial):
     """Expands a special name or a partial tag to the highest patch level

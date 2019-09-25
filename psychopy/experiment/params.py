@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2018 Jonathan Peirce
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 """Experiment classes:
@@ -100,6 +100,7 @@ class Param(object):
 
     def __init__(self, val, valType, allowedVals=None, allowedTypes=None,
                  hint="", label="", updates=None, allowedUpdates=None,
+                 allowedLabels=None,
                  categ="Basic"):
         """
         @param val: the value for this parameter
@@ -134,6 +135,7 @@ class Param(object):
         self.updates = updates
         self.allowedUpdates = allowedUpdates
         self.allowedVals = allowedVals or []
+        self.allowedLabels = allowedLabels or []
         self.staticUpdater = None
         self.categ = categ
         self.readOnly = False

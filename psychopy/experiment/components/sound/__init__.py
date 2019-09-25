@@ -3,7 +3,7 @@
 
 """
 Part of the PsychoPy library
-Copyright (C) 2018 Jonathan Peirce
+Copyright (C) 2002-2018 Jonathan Peirce (C) 2019 Open Science Tools Ltd.
 Distributed under the terms of the GNU General Public License (GPL).
 """
 
@@ -73,6 +73,12 @@ class SoundComponent(BaseComponent):
             updates='constant',
             hint=msg,
             label=_localized['syncScreenRefresh'])
+        self.params['hamming'] = Param(
+            True, valType='bool', updates='constant',
+            hint=_translate(
+                  "For tones we can apply a Hamming window to prevent 'clicks' that "
+                  "are caused by a sudden onset. This delays onset by roughly 1ms."),
+            label=_translate('Hamming window'))
 
     def writeInitCode(self, buff):
         # replaces variable params with sensible defaults
@@ -84,16 +90,19 @@ class SoundComponent(BaseComponent):
                 inits['stopVal'].val = -1
             elif float(inits['stopVal'].val) > 2:
                 inits['stopVal'].val = -1
-        buff.writeIndented("%s = sound.Sound(%s, secs=%s, stereo=%s)\n" %
-                           (inits['name'], inits['sound'], inits['stopVal'], self.exp.settings.params['Force stereo']))
+        buff.writeIndented("%s = sound.Sound(%s, secs=%s, stereo=%s, hamming=%s,\n"
+                           "    name='%s')\n" %
+                           (inits['name'], inits['sound'], inits['stopVal'],
+                            self.exp.settings.params['Force stereo'],
+                            inits['hamming'], inits['name']))
         buff.writeIndented("%(name)s.setVolume(%(volume)s)\n" % (inits))
 
     def writeRoutineStartCode(self, buff):
         if self.params['stopVal'].val in [None, 'None', '']:
-            buff.writeIndentedLines("%(name)s.setSound(%(sound)s)\n"
+            buff.writeIndentedLines("%(name)s.setSound(%(sound)s, hamming=%(hamming)s)\n"
                                     "%(name)s.setVolume(%(volume)s, log=False)\n" % self.params)
         else:
-            buff.writeIndentedLines("%(name)s.setSound(%(sound)s, secs=%(stopVal)s)\n"
+            buff.writeIndentedLines("%(name)s.setSound(%(sound)s, secs=%(stopVal)s, hamming=%(hamming)s)\n"
                                     "%(name)s.setVolume(%(volume)s, log=False)\n" % self.params)
 
     def writeInitCodeJS(self, buff):
@@ -142,7 +151,7 @@ class SoundComponent(BaseComponent):
         self.writeParamUpdates(buff, 'set every frame')
         self.writeStartTestCode(buff)
         if self.params['syncScreenRefresh'].val:
-            code = ("win.callOnFlip(%(name)s.play)  # screen flip\n") % self.params
+            code = ("%(name)s.play(when=win)  # sync with win flip\n") % self.params
         else:
             code = "%(name)s.play()  # start the sound (it finishes automatically)\n" % self.params
         buff.writeIndented(code)
@@ -150,11 +159,10 @@ class SoundComponent(BaseComponent):
         buff.setIndentLevel(-1, relative=True)
         if not self.params['stopVal'].val in ['', None, -1, 'None']:
             self.writeStopTestCode(buff)
-            code = ("if %(stopVal)s > 0.5:  # don't force-stop brief sounds\n"
-                    "    %(name)s.stop()\n")
+            code = ("%(name)s.stop()\n")
             buff.writeIndentedLines(code % self.params)
             # because of the 'if' statement of the time test
-            buff.setIndentLevel(-1, relative=True)
+            buff.setIndentLevel(-2, relative=True)
 
     def writeFrameCodeJS(self, buff):
         """Write the code that will be called every frame
@@ -199,7 +207,7 @@ class SoundComponent(BaseComponent):
         code = "%s.stop()  # ensure sound has stopped at end of routine\n"
         buff.writeIndented(code % self.params['name'])
         # get parent to write code too (e.g. store onset/offset times)
-        super().writeRoutineEndCode(buff)
+        super().writeRoutineEndCode(buff)  # noinspection
 
     def writeRoutineEndCodeJS(self, buff):
         code = "%s.stop();  // ensure sound has stopped at end of routine\n"

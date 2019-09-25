@@ -6,7 +6,7 @@ pygame to be installed).
 See demo_mouse.py and i{demo_joystick.py} for examples
 """
 # Part of the PsychoPy library
-# Copyright (C) 2018 Jonathan Peirce
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 # 01/2011 modified by Dave Britton to get mouse event timing
@@ -51,6 +51,15 @@ if haveGLFW:
     useGLFW = True
 else:
     useGLFW = False
+
+
+if havePyglet:
+    # get the default display
+    if pyglet.version < '1.4':
+        _default_display_ = pyglet.window.get_platform().get_default_display()
+    else:
+        _default_display_ = pyglet.canvas.get_display()
+
 
 import psychopy.core
 from psychopy.tools.monitorunittools import cm2pix, deg2pix, pix2cm, pix2deg
@@ -390,14 +399,15 @@ def getKeys(keyList=None, modifiers=False, timeStamped=False):
 
     if havePygame and display.get_init():
         # see if pygame has anything instead (if it exists)
+        windowSystem = 'pygame'
         for evts in evt.get(locals.KEYDOWN):
             # pygame has no keytimes
             keys.append((pygame.key.name(evts.key), 0))
     elif havePyglet:
         # for each (pyglet) window, dispatch its events before checking event
         # buffer
-        defDisplay = pyglet.window.get_platform().get_default_display()
-        for win in defDisplay.get_windows():
+        windowSystem = 'pyglet'
+        for win in _default_display_.get_windows():
             try:
                 win.dispatch_events()  # pump events on pyglet windows
             except ValueError as e:  # pragma: no cover
@@ -413,6 +423,7 @@ def getKeys(keyList=None, modifiers=False, timeStamped=False):
             # _keyBuffer = []  # DO /NOT/ CLEAR THE KEY BUFFER ENTIRELY
 
     elif haveGLFW:
+        windowSystem = 'glfw'
         # 'poll_events' is called when a window is flipped, all the callbacks
         # populate the buffer
         if len(_keyBuffer) > 0:
@@ -440,6 +451,11 @@ def getKeys(keyList=None, modifiers=False, timeStamped=False):
     elif timeStamped == False:
         keyNames = [(k[0], modifiers_dict(k[1])) for k in targets]
         return keyNames
+    elif timeStamped and windowSystem=='pygame':
+        # provide a warning and set timestamps to be None
+        logging.warning('Pygame keyboard events do not support timestamped=True')
+        relTuple = [[_f for _f in (k[0], modifiers and modifiers_dict(k[1]) or None, None) if _f] for k in targets]
+        return relTuple
     elif hasattr(timeStamped, 'getLastResetTime'):
         # keys were originally time-stamped with
         #   core.monotonicClock._lastResetTime
@@ -455,6 +471,12 @@ def getKeys(keyList=None, modifiers=False, timeStamped=False):
     elif isinstance(timeStamped, (float, int, int)):
         relTuple = [[_f for _f in (k[0], modifiers and modifiers_dict(k[1]) or None, k[-1] - timeStamped) if _f] for k in targets]
         return relTuple
+    else: ## danger - catch anything that gets here because it shouldn't!
+        raise ValueError("We received an unknown combination of params to "
+                         "getKeys(): timestamped={}, windowSystem={}, "
+                         "modifiers={}"
+                        .format(timeStamped, windowSystem, modifiers))
+
 
 
 def waitKeys(maxWait=float('inf'), keyList=None, modifiers=False,
@@ -507,8 +529,7 @@ def waitKeys(maxWait=float('inf'), keyList=None, modifiers=False,
     while not got_keypress and timer.getTime() < maxWait:
         # Pump events on pyglet windows if they exist.
         if havePyglet:
-            defDisplay = pyglet.window.get_platform().get_default_display()
-            for win in defDisplay.get_windows():
+            for win in _default_display_.get_windows():
                 win.dispatch_events()
 
         # Get keypresses and return if anything is pressed.
@@ -633,8 +654,9 @@ class Mouse(object):
             if self.win:
                 w = self.win.winHandle
             else:
-                defDisplay = pyglet.window.get_platform().get_default_display()
+                defDisplay = _default_display_
                 w = defDisplay.get_windows()[0]
+
             # get position in window
             lastPosPix = numpy.array([w._mouse_x, w._mouse_y])
             # set (0,0) to centre
@@ -643,6 +665,7 @@ class Mouse(object):
             else:
                 lastPosPix = lastPosPix - numpy.array(self.win.size) / 2
         self.lastPos = self._pix2windowUnits(lastPosPix)
+
         return copy.copy(self.lastPos)
 
     def mouseMoved(self, distance=None, reset=False):
@@ -776,8 +799,9 @@ class Mouse(object):
             if self.win:  # use default window if we don't have one
                 w = self.win.winHandle
             else:
-                plat = pyglet.window.get_platform()
-                w = plat.get_default_display().get_windows()[0]
+                plat = _default_display_
+
+                w = plat.get_windows()[0]
             w.set_mouse_visible(visible)
 
     def clickReset(self, buttons=(0, 1, 2)):
@@ -819,8 +843,8 @@ class Mouse(object):
             # False:  # havePyglet: # like in getKeys - pump the events
             # for each (pyglet) window, dispatch its events before checking
             # event buffer
-            defDisplay = pyglet.window.get_platform().get_default_display()
-            for win in defDisplay.get_windows():
+
+            for win in _default_display_.get_windows():
                 win.dispatch_events()  # pump events on pyglet windows
 
             # else:
@@ -849,6 +873,8 @@ class Mouse(object):
 
     def _pix2windowUnits(self, pos):
         if self.win.units == 'pix':
+            if self.win.useRetina:
+                pos /= 2.0
             return pos
         elif self.win.units == 'norm':
             return pos * 2.0 / self.win.size
@@ -923,8 +949,7 @@ def clearEvents(eventType=None):
     if not havePygame or not display.get_init():  # pyglet
         # For each window, dispatch its events before
         # checking event buffer.
-        defDisplay = pyglet.window.get_platform().get_default_display()
-        for win in defDisplay.get_windows():
+        for win in _default_display_.get_windows():
             win.dispatch_events()  # pump events on pyglet windows
 
         if eventType == 'mouse':

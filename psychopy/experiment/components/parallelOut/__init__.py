@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2018 Jonathan Peirce
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 from __future__ import absolute_import, print_function
@@ -49,7 +49,7 @@ class ParallelOutComponent(BaseComponent):
         self.order = ['address', 'startData', 'stopData']
 
         # main parameters
-        addressOptions = prefs.hardware['parallelPorts'] + [u'LabJack U3']
+        addressOptions = prefs.hardware['parallelPorts'] + [u'LabJack U3'] + [u'USB2TTL8'] 
         if not address:
             address = addressOptions[0]
 
@@ -83,6 +83,12 @@ class ParallelOutComponent(BaseComponent):
         if self.params['address'].val == 'LabJack U3':
             code = ("from psychopy.hardware import labjacks\n"
                     "%(name)s = labjacks.U3()\n"
+                    "%(name)s.status = None\n"
+                    % self.params)
+            buff.writeIndentedLines(code)
+        elif self.params['address'].val == 'USB2TTL8':
+            code = ("from psychopy.hardware import labhackers\n"
+                    "%(name)s = labhackers.USB2TTL8()\n"
                     "%(name)s.status = None\n"
                     % self.params)
             buff.writeIndentedLines(code)
@@ -126,7 +132,7 @@ class ParallelOutComponent(BaseComponent):
             buff.writeIndented(code)
 
             # to get out of the if statement
-            buff.setIndentLevel(-1, relative=True)
+            buff.setIndentLevel(-2, relative=True)
 
         # dedent
 # buff.setIndentLevel(-dedentAtEnd, relative=True)#'if' statement of the

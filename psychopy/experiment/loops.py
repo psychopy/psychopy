@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2018 Jonathan Peirce
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 """Experiment classes:
@@ -255,14 +255,12 @@ class TrialHandler(object):
                     "    thisScheduler.add({name}LoopEnd);\n"
                     .format(params=self.params, name=thisChild.params['name'].val)
                     )
-        if self.params['isTrials'].val == True:
-            code += ("    thisScheduler.add(endLoopIteration(thisScheduler, "
-                     "{thisName}));\n".format(thisName=self.thisName))
 
-        code += ("  }\n"
-                "\n"
-                "  return Scheduler.Event.NEXT;\n"
-                "}\n")
+        code += ("    thisScheduler.add(endLoopIteration({{thisScheduler, isTrials : {isTrials}}}));\n"
+                 "  }}\n"
+                 "\n"
+                 "  return Scheduler.Event.NEXT;\n"
+                 "}}\n").format(isTrials=str(self.params['isTrials'].val).lower())
         buff.writeIndentedLines(code)
 
     def writeLoopEndCode(self, buff):
@@ -490,7 +488,7 @@ class MultiStairHandler(object):
             hint=_translate("(Minimum) number of trials in *each* staircase"))
         self.params['stairType'] = Param(
             stairType, valType='str',
-            allowedVals=['simple', 'QUEST', 'quest'],
+            allowedVals=['simple', 'QUEST', 'quest', 'questplus'],
             label=_localized['stairType'],
             hint=_translate("How to select the next staircase to run"))
         self.params['switchMethod'] = Param(

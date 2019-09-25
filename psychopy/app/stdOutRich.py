@@ -97,8 +97,6 @@ class StdOutFrame(wx.Frame):
 
         self.parent = parent  # e.g. the builder frame
         self.app = app
-        self.stdoutOrig = sys.stdout
-        self.stderrOrig = sys.stderr
         self.lenLastRun = 0
 
         self.menuBar = wx.MenuBar()
@@ -114,7 +112,7 @@ class StdOutFrame(wx.Frame):
         item = self.fileMenu.Append(wx.ID_EXIT, mtxt % app.keys['quit'],
                                     _translate("Terminate the application"))
         self.Bind(wx.EVT_MENU, self.quit, item)
-
+        self.Bind(wx.EVT_CLOSE, self.closeFrame)
         self.menuBar.Append(self.fileMenu, _translate("&File"))
         self.SetMenuBar(self.menuBar)
 
@@ -122,7 +120,7 @@ class StdOutFrame(wx.Frame):
             parent=self, style=wx.TE_MULTILINE, size=size)
 
         self.mainSizer = wx.BoxSizer(wx.VERTICAL)
-        self.mainSizer.Add(self.stdoutCtrl)
+        self.mainSizer.Add(self.stdoutCtrl, proportion=1, flag=wx.EXPAND)
         self.SetSizerAndFit(self.mainSizer)
         self.Center()
 
@@ -139,8 +137,8 @@ class StdOutFrame(wx.Frame):
         # the app (or frame of the app) should control redirection of stdout,
         # but just in case the user closes the window while it is receiving
         # input we should direct it back to orig
-        sys.stdout = self.stdoutOrig
-        sys.stderr = self.stderrOrig
+        sys.stdout = sys.__stdout__
+        sys.stderr = sys.__stderr__
         self.Hide()
 
     def saveAs(self):

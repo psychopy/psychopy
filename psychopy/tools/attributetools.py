@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2018 Jonathan Peirce
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 """Functions and classes related to attribute handling
@@ -166,5 +166,5 @@ def logAttrib(obj, log, attrib, value=None):
         try:
             obj.win.logOnFlip(message, level=logging.EXP, obj=obj)
         except AttributeError:
-            # this is probably a Window, having no "win" attribute
+            # the "win" attribute only exists if sync-to-visual (e.g. stimuli)
             logging.log(message, level=logging.EXP, obj=obj)

@@ -1,3 +1,5 @@
+#! powershell
+
 # build simple distributions
 # python setup.py bdist_egg
 # python setup.py sdist --formats=zip
@@ -15,9 +17,8 @@ $v = [Io.File]::ReadAllText($versionfile).Trim()
 for ($i=0; $i -lt $pyPaths.Length; $i++) {
     [console]::beep(440,300); [console]::beep(880,300)
     # try to uninstall psychopy from site-packages
-    Invoke-Expression ("{0}python.exe -m pip uninstall psychopy -y" -f $pyPaths[$i])
     # re-install the current version as editable/developer
-    Invoke-Expression ("{0}python.exe -m pip install . --no-deps" -f $pyPaths[$i])
+    Invoke-Expression ("{0}python.exe -m pip install . --no-deps --force" -f $pyPaths[$i])
     echo ("Installed current PsychoPy")
     xcopy /I /Y psychopy\*.txt $pyPaths[$i]
     if ($i -eq '0') {
@@ -38,6 +39,7 @@ for ($i=0; $i -lt $pyPaths.Length; $i++) {
     Invoke-Expression ("{0}python.exe -m pip uninstall psychopy -y" -f $pyPaths[$i])
     # re-install the current version as editable/developer
     Invoke-Expression ("{0}python.exe -m pip install -e . --no-deps" -f $pyPaths[$i])
+    Invoke-Expression ("{0}python.exe setup.py clean --all" -f $pyPaths[$i])  # clean up our build dir
 
 }
 

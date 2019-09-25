@@ -100,7 +100,11 @@ Function .onInit
     Abort
   ${Else}
     SetShellVarContext all
-    StrCpy $InstDir "$PROGRAMFILES\${PRODUCT_NAME}"
+    ${If} ${ARCH} == "win64"
+      StrCpy $InstDir "$PROGRAMFILES64\${PRODUCT_NAME}"
+    ${Else}
+      StrCpy $InstDir "$PROGRAMFILES\${PRODUCT_NAME}"
+    ${EndIf}
     StrCpy $PRODUCT_REGISTRY_ROOT "HKLM"
   ${EndIf}
 
@@ -134,7 +138,11 @@ Function un.onInit
     StrCpy $PRODUCT_REGISTRY_ROOT "HKCU"
   ${Else}
     SetShellVarContext all
-    StrCpy $InstDir "$PROGRAMFILES\${PRODUCT_NAME}"
+    ${If} ${ARCH} == "win64"
+      StrCpy $InstDir "$PROGRAMFILES64\${PRODUCT_NAME}"
+    ${Else}
+      StrCpy $InstDir "$PROGRAMFILES\${PRODUCT_NAME}"
+    ${EndIf}
     StrCpy $PRODUCT_REGISTRY_ROOT "HKLM"
   ${EndIf}
 

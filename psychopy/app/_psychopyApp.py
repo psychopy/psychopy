@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2018 Jonathan Peirce
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 from __future__ import absolute_import, division, print_function
@@ -158,6 +158,8 @@ class PsychoPyApp(wx.App):
         # check compatibility with last run version (before opening windows)
         self.firstRun = False
         self.testMode = testMode
+        self._stdout = sys.stdout
+        self._stdoutFrame = None
 
         if self.prefs.app['debugMode']:
             logging.console.setLevel(logging.DEBUG)
@@ -192,7 +194,7 @@ class PsychoPyApp(wx.App):
         """
         self.SetAppName('PsychoPy3')
 
-        if False:
+        if showSplash:
             # show splash screen
             splashFile = os.path.join(
                 self.prefs.paths['resources'], 'psychopySplash.png')
@@ -203,17 +205,14 @@ class PsychoPyApp(wx.App):
                                        agwStyle=AS.AS_TIMEOUT | AS.AS_CENTER_ON_SCREEN,
                                        )  # transparency?
             w, h = splashImage.GetSize()
-            splash.SetTextPosition((int(w-130), h-20))
-            splash.SetText(_translate("Loading libraries..."))
-            wx.Yield()
+            splash.SetTextPosition((int(200), h-20))
+            splash.SetText(_translate("Copyright (C) 2019 OpenScienceTools.org"))
         else:
             splash = None
 
         # SLOW IMPORTS - these need to be imported after splash screen starts
         # but then that they end up being local so keep track in self
-        if splash:
-            splash.SetText(_translate("Loading PsychoPy3..."))
-            wx.Yield()
+
         from psychopy.compatibility import checkCompatibility
         # import coder and builder here but only use them later
         from psychopy.app import coder, builder, dialogs

@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2018 Jonathan Peirce
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 from __future__ import absolute_import, print_function
@@ -143,39 +143,35 @@ class MovieComponent(BaseVisualComponent):
                 "    )\n")
         buff.writeIndentedLines(code % depth)
 
-    def writeInitCode(self, buff):
-        # If needed then use _writeCreationCode()
-        # Movie could be created here or in writeRoutineStart()
-        if self.params['movie'].updates == 'constant':
-            # create the code using init vals
-            self._writeCreationCode(buff, useInits=True)
+    def _writeCreationCodeJS(self, buff, useInits):
 
-    def writeInitCodeJS(self, buff):
+        # If we're in writeInitCode then we need to convert params to initVals
+        # because some (variable) params haven't been created yet.
+        if useInits:
+            inits = getInitVals(self.params)
+        else:
+            inits = self.params
 
         if self.params['units'].val == 'from exp settings':
-            unitsStr = "'height'"
-            logging.warning("{units} not a valid screen unit for online studies. Switching {name} units to 'height'."
-                            .format(units=self.params['units'],
-                                    name=self.params['name']))
+            unitsStr = ""
         else:
-            unitsStr = "%(units)s" % self.params
+            unitsStr = "units=%(units)s, " % self.params
 
-        inits = getInitVals(self.params)
         noAudio = '{}'.format(inits['No audio'].val).lower()
         loop = '{}'.format(inits['loop'].val).lower()
 
-        for param in inits:
-            if inits[param] in ['', None, 'None', 'none']:
-                inits[param] = 'undefined'
+        if useInits:
+            for param in inits:
+                if inits[param] in ['', None, 'None', 'none']:
+                    inits[param] = 'undefined'
 
         code = "{name}Clock = new util.Clock();\n".format(**inits)
         buff.writeIndented(code)
 
         code = ("{name} = new visual.MovieStim({{\n"
                 "  win: psychoJS.window,\n"
-                "  name: '{name}',\n"
+                "  name: '{name}', {units}\n"
                 "  movie: {movie},\n"
-                "  units: {units},\n"
                 "  pos: {pos},\n"
                 "  size: {size},\n"
                 "  ori: {ori},\n"
@@ -193,12 +189,33 @@ class MovieComponent(BaseVisualComponent):
                                    noAudio=noAudio)
         buff.writeIndentedLines(code)
 
+    def writeInitCode(self, buff):
+        # If needed then use _writeCreationCode()
+        # Movie could be created here or in writeRoutineStart()
+        if self.params['movie'].updates == 'constant':
+            # create the code using init vals
+            self._writeCreationCode(buff, useInits=True)
+
+    def writeInitCodeJS(self, buff):
+        # If needed then use _writeCreationCodeJS()
+        # Movie could be created here or in writeRoutineStart()
+        if self.params['movie'].updates == 'constant':
+            # create the code using init vals
+            self._writeCreationCodeJS(buff, useInits=True)
+
     def writeRoutineStartCode(self, buff):
         # If needed then use _writeCreationCode()
         # Movie could be created here or in writeInitCode()
         if self.params['movie'].updates != 'constant':
             # create the code using params, not vals
             self._writeCreationCode(buff, useInits=False)
+
+    def writeRoutineStartCodeJS(self, buff):
+        # If needed then use _writeCreationCode()
+        # Movie could be created here or in writeInitCode()
+        if self.params['movie'].updates != 'constant':
+            # create the code using params, not vals
+            self._writeCreationCodeJS(buff, useInits=False)
 
     def writeFrameCode(self, buff):
         """Write the code that will be called every frame
@@ -218,7 +235,7 @@ class MovieComponent(BaseVisualComponent):
             self.writeStopTestCode(buff)
             buff.writeIndented("%(name)s.setAutoDraw(False)\n" % self.params)
             # to get out of the if statement
-            buff.setIndentLevel(-1, relative=True)
+            buff.setIndentLevel(-2, relative=True)
         # set parameters that need updating every frame
         # do any params need updating? (this method inherited from _base)
         if self.checkNeedToUpdate('set every frame'):

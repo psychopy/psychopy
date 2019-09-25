@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2018 Jonathan Peirce
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 # Acknowledgements:
@@ -1011,12 +1011,13 @@ class BitsPlusPlus(object):
         GL.glLoadIdentity()
 
         # draw the pixels
-        GL.glActiveTextureARB(GL.GL_TEXTURE0_ARB)
+        GL.glActiveTexture(GL.GL_TEXTURE0)
         GL.glEnable(GL.GL_TEXTURE_2D)
         GL.glBindTexture(GL.GL_TEXTURE_2D, 0)
-        GL.glActiveTextureARB(GL.GL_TEXTURE1_ARB)
+        GL.glActiveTexture(GL.GL_TEXTURE1)
         GL.glEnable(GL.GL_TEXTURE_2D)
         GL.glBindTexture(GL.GL_TEXTURE_2D, 0)
+
         GL.glRasterPos2i(0, 1)
         GL.glPixelStorei(GL.GL_UNPACK_ALIGNMENT, 1)
         GL.glDrawPixels(len(self._HEADandLUT), 1,
@@ -1045,13 +1046,15 @@ class BitsPlusPlus(object):
         GL.glMatrixMode(GL.GL_MODELVIEW)
         GL.glLoadIdentity()
 
-        #draw the pixels
-        GL.glActiveTextureARB(GL.GL_TEXTURE0_ARB)
+        # unload texture
+        GL.glActiveTexture(GL.GL_TEXTURE0)
         GL.glEnable(GL.GL_TEXTURE_2D)
         GL.glBindTexture(GL.GL_TEXTURE_2D, 0)
-        GL.glActiveTextureARB(GL.GL_TEXTURE1_ARB)
+        # unload mask
+        GL.glActiveTexture(GL.GL_TEXTURE1)
         GL.glEnable(GL.GL_TEXTURE_2D)
         GL.glBindTexture(GL.GL_TEXTURE_2D, 0)
+        # draw the pixels
         GL.glRasterPos2i(0,2)
         GL.glPixelStorei(GL.GL_UNPACK_ALIGNMENT, 1)
         GL.glDrawPixels(len(self._HEADandClock),1,
@@ -1084,10 +1087,10 @@ class BitsPlusPlus(object):
         GL.glLoadIdentity()
 
         #draw the pixels
-        GL.glActiveTextureARB(GL.GL_TEXTURE0_ARB)
+        GL.glActiveTexture(GL.GL_TEXTURE0)
         GL.glEnable(GL.GL_TEXTURE_2D)
         GL.glBindTexture(GL.GL_TEXTURE_2D, 0)
-        GL.glActiveTextureARB(GL.GL_TEXTURE1_ARB)
+        GL.glActiveTexture(GL.GL_TEXTURE1)
         GL.glEnable(GL.GL_TEXTURE_2D)
         GL.glBindTexture(GL.GL_TEXTURE_2D, 0)
         GL.glRasterPos2i(0,3)
@@ -1926,7 +1929,7 @@ class BitsSharp(BitsPlusPlus, serialdevice.SerialDevice):
 
     def setRTBoxMode(self, mode=['CB6','Down','Trigger']):
         """ Sets the RTBox mode data member - does not
-        actually se the RTBox into this mode.
+        actually set the RTBox into this mode.
         
         Example:
             bits.setRTBoxMode(['CB6','Down']) # set the mode
@@ -1986,7 +1989,7 @@ class BitsSharp(BitsPlusPlus, serialdevice.SerialDevice):
             event will be mapped to the trigIn connector.
             
         Example: 
-            bits.RTBoxEnable(mode = 'Down'), map = [('btn1','Din0'), ('btn2','Din1')]
+            bits.RTBoxEnable(mode = ['Down']), map = [('btn1','Din0'), ('btn2','Din1')]
             
         enable the RTBox emulation to detect Down events on buttons 1 and 2 where they are
         mapped to DIN0 and DIN1.
@@ -1996,7 +1999,8 @@ class BitsSharp(BitsPlusPlus, serialdevice.SerialDevice):
         
         enable the RTBox emulation to detect Down events on the standard CB6 IR response box keys.
         
-        
+        If no key direction has been set (mode does not contain 'Up' or 'Down') the default is 'Down'.
+
         Note that the firmware in Bits# units varies over time and some 
         features of this class may not work for all firmware versions. 
         Also Bits# units can be configured in various ways via their 
@@ -2019,9 +2023,16 @@ class BitsSharp(BitsPlusPlus, serialdevice.SerialDevice):
             warning = ("Cannot use RTBox when statusBox is on ")
             raise AssertionError(warning)
 
-        # If mode is not None then use the supplied Mode otherwise use the preset or default mode.
+        # If mode is not None then use the supplied Mode otherwise use the preset mode.
         if mode != None:
             self.RTBoxMode = mode
+        # If self.RTBoxMode has still not be set to something set it to the default: 'down','CB6','trigger'
+        if self.RTBoxMode == None:
+            self.setRTBoxMode
+        # If 'Up' is not in mode adds a 'Down' just in case no direction has been set at all.
+        if (('Up' not in self.RTBoxMode)  
+                and ('up' not in self.RTBoxMode)):
+            self.RTBoxMode.append('Down')
         self.RTBoxResetKeys() # reset all the button - input mappings.
         # If map is not None the mapping provided will over ride any presets given
         # by mode, otherwise use the present mappings below.

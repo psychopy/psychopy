@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2018 Jonathan Peirce
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 """Describes the Flow of an experiment
@@ -115,12 +115,8 @@ class Routine(list):
         """This defines the code for the frames of a single routine
         """
         # create the frame loop for this routine
-        code = ('\n# ------Prepare to start Routine "%s"-------\n'
-                't = 0\n'
-                '%s.reset()  # clock\n'
-                'frameN = -1\n'
-                'continueRoutine = True\n')
-        buff.writeIndentedLines(code % (self.name, self._clockName))
+        code = ('\n# ------Prepare to start Routine "%s"-------\n')
+        buff.writeIndentedLines(code % (self.name))
         # can we use non-slip timing?
         maxTime, useNonSlip = self.getMaxTime()
         if useNonSlip:
@@ -134,18 +130,27 @@ class Routine(list):
 
         code = '# keep track of which components have finished\n'
         buff.writeIndentedLines(code)
+        # Get list of components, but leave out Variable components, which may not support attributes
         compStr = ', '.join([c.params['name'].val for c in self
-                             if 'startType' in c.params])
+                             if 'startType' in c.params and c.type != 'Variable'])
         buff.writeIndented('%sComponents = [%s]\n' % (self.name, compStr))
-        code = ("for thisComponent in %sComponents:\n"
+
+        code = ("for thisComponent in {name}Components:\n"
                 "    thisComponent.tStart = None\n"
                 "    thisComponent.tStop = None\n"
                 "    thisComponent.tStartRefresh = None\n"
                 "    thisComponent.tStopRefresh = None\n"
                 "    if hasattr(thisComponent, 'status'):\n"
                 "        thisComponent.status = NOT_STARTED\n"
-                '\n# -------Start Routine "%s"-------\n')
-        buff.writeIndentedLines(code % (self.name, self.name))
+                "# reset timers\n"
+                't = 0\n'
+                '_timeToFirstFrame = win.getFutureFlipTime(clock="now")\n'
+                '{clockName}.reset(-_timeToFirstFrame)  # t0 is time of first possible flip\n'
+                'frameN = -1\n'
+                'continueRoutine = True\n'
+                '\n# -------Run Routine "{name}"-------\n')
+        buff.writeIndentedLines(code.format(name=self.name,
+                                            clockName=self._clockName))
         if useNonSlip:
             code = 'while continueRoutine and routineTimer.getTime() > 0:\n'
         else:
@@ -155,10 +160,12 @@ class Routine(list):
         buff.setIndentLevel(1, True)
         # on each frame
         code = ('# get current time\n'
-                't = %s.getTime()\n'
+                't = {clockName}.getTime()\n'
+                'tThisFlip = win.getFutureFlipTime(clock={clockName})\n'
+                'tThisFlipGlobal = win.getFutureFlipTime(clock=None)\n'
                 'frameN = frameN + 1  # number of completed frames '
                 '(so 0 is the first frame)\n')
-        buff.writeIndentedLines(code % self._clockName)
+        buff.writeIndentedLines(code.format(clockName=self._clockName))
 
         # write the code for each component during frame
         buff.writeIndentedLines('# update/draw components on each frame\n')
@@ -174,7 +181,7 @@ class Routine(list):
         # allow subject to quit via Esc key?
         if self.exp.settings.params['Enable Escape'].val:
             code = ('\n# check for quit (typically the Esc key)\n'
-                    'if endExpNow or keyboard.Keyboard().getKeys(keyList=["escape"]):\n'
+                    'if endExpNow or defaultKeyboard.getKeys(keyList=["escape"]):\n'
                     '    core.quit()\n')
             buff.writeIndentedLines(code)
 

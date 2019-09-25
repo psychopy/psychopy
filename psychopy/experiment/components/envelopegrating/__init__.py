@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2018 Jonathan Peirce
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 from __future__ import absolute_import, print_function
@@ -288,7 +288,7 @@ class EnvGratingComponent(BaseVisualComponent):
             #if self.params['blendmode'].val!='default':
                 #buff.writeIndented("win.blendMode=%(name)s_SaveBlendMode\n" % self.params)
             # to get out of the if statement
-            buff.setIndentLevel(-1, relative=True)
+            buff.setIndentLevel(-2, relative=True)
 
         # set parameters that need updating every frame
         # do any params need updating? (this method inherited from _base)

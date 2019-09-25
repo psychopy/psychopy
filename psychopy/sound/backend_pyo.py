@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2018 Jonathan Peirce
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 from __future__ import absolute_import, division, print_function
@@ -361,11 +361,14 @@ class SoundPyo(_SoundBase):
         self.setSound(value=value, secs=secs, octave=octave, hamming=hamming)
         self.needsUpdate = False
 
-    def play(self, loops=None, autoStop=True, log=True):
+    def play(self, loops=None, autoStop=True, log=True, when=None):
         """Starts playing the sound on an available channel.
 
         loops : int
-            (same as above)
+            How many times to repeat the sound after it plays once. If
+            `loops` == -1, the sound will repeat indefinitely until stopped.
+
+        when: not used but included for compatibility purposes
 
         For playing a sound file, you cannot specify the start and stop
         times when playing the sound, only when creating the sound initially.

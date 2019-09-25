@@ -6,18 +6,18 @@
 #, fuzzy
 msgid ""
 msgstr ""
-"Project-Id-Version: PsychoPy 3.0.0\n"
+"Project-Id-Version: PsychoPy 3.2.0\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2019-03-08 10:32+0900\n"
+"POT-Creation-Date: 2019-08-19 12:51+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Generated-By: Babel 2.6.0\n"
+"Generated-By: Babel 2.5.3\n"
 
-#: ../app/_psychopyApp.py:72 ../app/builder/builder.py:1474
+#: ../app/_psychopyApp.py:72 ../app/builder/builder.py:1462
 #: ../app/coder/coder.py:1576
 msgid "&View"
 msgstr ""
@@ -31,23 +31,23 @@ msgstr ""
 msgid "Open a new Builder view"
 msgstr ""
 
-#: ../app/_psychopyApp.py:79 ../app/builder/builder.py:1478
+#: ../app/_psychopyApp.py:79 ../app/builder/builder.py:1466
 #, python-format
 msgid "&Open Coder view\t%s"
 msgstr ""
 
-#: ../app/_psychopyApp.py:82 ../app/builder/builder.py:1480
+#: ../app/_psychopyApp.py:82 ../app/builder/builder.py:1468
 msgid "Open a new Coder view"
 msgstr ""
 
-#: ../app/_psychopyApp.py:85 ../app/builder/builder.py:1416
+#: ../app/_psychopyApp.py:85 ../app/builder/builder.py:1404
 #: ../app/coder/coder.py:327 ../app/coder/coder.py:1428
 #: ../app/pavlovia_ui/_base.py:38
 #, python-format
 msgid "&Quit\t%s"
 msgstr ""
 
-#: ../app/_psychopyApp.py:87 ../app/builder/builder.py:1417
+#: ../app/_psychopyApp.py:87 ../app/builder/builder.py:1405
 #: ../app/coder/coder.py:1429 ../app/pavlovia_ui/_base.py:39
 msgid "Terminate the program"
 msgstr ""
@@ -83,7 +83,7 @@ msgid ""
 "then let us know at psychopy-users@googlegroups.com"
 msgstr ""
 
-#: ../app/dialogs.py:38 ../gui/qtgui.py:577
+#: ../app/dialogs.py:38 ../gui/qtgui.py:597
 msgid "Warning"
 msgstr ""
 
@@ -97,7 +97,7 @@ msgstr ""
 
 #: ../app/coder/coder.py:360 ../app/dialogs.py:53
 #: ../app/pavlovia_ui/project.py:98 ../app/pavlovia_ui/project.py:594
-#: ../app/preferencesDlg.py:205
+#: ../app/preferencesDlg.py:212
 msgid "Cancel"
 msgstr ""
 
@@ -106,7 +106,7 @@ msgid "No"
 msgstr ""
 
 #: ../app/dialogs.py:65 ../app/pavlovia_ui/project.py:592
-#: ../app/pavlovia_ui/user.py:71 ../app/preferencesDlg.py:198
+#: ../app/pavlovia_ui/user.py:71 ../app/preferencesDlg.py:205
 msgid "OK"
 msgstr ""
 
@@ -163,399 +163,428 @@ msgid "audio device"
 msgstr ""
 
 #: ../app/preferencesDlg.py:44
-msgid "flac audio compression"
+msgid "audio latency mode"
 msgstr ""
 
 #: ../app/preferencesDlg.py:45
-msgid "parallel ports"
+msgid "flac audio compression"
 msgstr ""
 
 #: ../app/preferencesDlg.py:46
-msgid "Qmix configuration"
+msgid "parallel ports"
 msgstr ""
 
 #: ../app/preferencesDlg.py:47
-msgid "shutdown key"
+msgid "Qmix configuration"
 msgstr ""
 
 #: ../app/preferencesDlg.py:48
-msgid "shutdown key modifier keys"
+msgid "shutdown key"
 msgstr ""
 
 #: ../app/preferencesDlg.py:49
-msgid "show start-up tips"
+msgid "shutdown key modifier keys"
 msgstr ""
 
 #: ../app/preferencesDlg.py:50
-msgid "large icons"
+msgid "show start-up tips"
 msgstr ""
 
 #: ../app/preferencesDlg.py:51
-msgid "default view"
+msgid "large icons"
 msgstr ""
 
 #: ../app/preferencesDlg.py:52
-msgid "reset preferences"
+msgid "default view"
 msgstr ""
 
 #: ../app/preferencesDlg.py:53
-msgid "auto-save prefs"
+msgid "reset preferences"
 msgstr ""
 
 #: ../app/preferencesDlg.py:54
+msgid "auto-save prefs"
+msgstr ""
+
+#: ../app/preferencesDlg.py:55
 msgid "debug mode"
 msgstr ""
 
-#: ../app/preferencesDlg.py:55 ../tools/wizard.py:42
+#: ../app/preferencesDlg.py:56 ../tools/wizard.py:42
 msgid "locale"
 msgstr ""
 
-#: ../app/preferencesDlg.py:56
+#: ../app/preferencesDlg.py:57
 msgid "read-only"
 msgstr ""
 
-#: ../app/preferencesDlg.py:57
+#: ../app/preferencesDlg.py:58
 msgid "code font"
 msgstr ""
 
-#: ../app/preferencesDlg.py:58
+#: ../app/preferencesDlg.py:59
 msgid "comment font"
 msgstr ""
 
-#: ../app/preferencesDlg.py:59
+#: ../app/preferencesDlg.py:60
 msgid "output font"
 msgstr ""
 
-#: ../app/preferencesDlg.py:60
+#: ../app/preferencesDlg.py:61
 msgid "output font size"
 msgstr ""
 
-#: ../app/preferencesDlg.py:61
+#: ../app/preferencesDlg.py:62
 msgid "code font size"
 msgstr ""
 
-#: ../app/preferencesDlg.py:62
+#: ../app/preferencesDlg.py:63
 msgid "show source asst"
 msgstr ""
 
-#: ../app/preferencesDlg.py:63
+#: ../app/preferencesDlg.py:64
 msgid "show output"
 msgstr ""
 
-#: ../app/preferencesDlg.py:64
+#: ../app/preferencesDlg.py:65
 msgid "reload previous files"
 msgstr ""
 
-#: ../app/preferencesDlg.py:65
+#: ../app/preferencesDlg.py:66
 msgid "preferred shell"
 msgstr ""
 
-#: ../app/preferencesDlg.py:66
+#: ../app/preferencesDlg.py:67
 msgid "reload previous exp"
 msgstr ""
 
-#: ../app/preferencesDlg.py:67
+#: ../app/preferencesDlg.py:68
 msgid "uncluttered namespace"
 msgstr ""
 
-#: ../app/preferencesDlg.py:68
+#: ../app/preferencesDlg.py:69
 msgid "components folders"
 msgstr ""
 
-#: ../app/preferencesDlg.py:69
+#: ../app/preferencesDlg.py:70
 msgid "hidden components"
 msgstr ""
 
-#: ../app/preferencesDlg.py:70
+#: ../app/preferencesDlg.py:71
 msgid "unpacked demos dir"
 msgstr ""
 
-#: ../app/preferencesDlg.py:71
+#: ../app/preferencesDlg.py:72
 msgid "saved data folder"
 msgstr ""
 
-#: ../app/preferencesDlg.py:72
+#: ../app/preferencesDlg.py:73
 msgid "Flow at top"
 msgstr ""
 
-#: ../app/preferencesDlg.py:73
+#: ../app/preferencesDlg.py:74
 msgid "always show readme"
 msgstr ""
 
-#: ../app/preferencesDlg.py:74
+#: ../app/preferencesDlg.py:75
 msgid "max favorites"
 msgstr ""
 
-#: ../app/preferencesDlg.py:75
+#: ../app/preferencesDlg.py:76
 msgid "proxy"
 msgstr ""
 
-#: ../app/preferencesDlg.py:76
+#: ../app/preferencesDlg.py:77
 msgid "auto-proxy"
 msgstr ""
 
-#: ../app/preferencesDlg.py:77
+#: ../app/preferencesDlg.py:78
 msgid "allow usage stats"
 msgstr ""
 
-#: ../app/preferencesDlg.py:78
+#: ../app/preferencesDlg.py:79
 msgid "check for updates"
 msgstr ""
 
-#: ../app/preferencesDlg.py:79
+#: ../app/preferencesDlg.py:80
 msgid "timeout"
 msgstr ""
 
-#: ../app/preferencesDlg.py:80
+#: ../app/preferencesDlg.py:81
 msgid "open"
 msgstr ""
 
-#: ../app/preferencesDlg.py:81
+#: ../app/preferencesDlg.py:82
 msgid "new"
 msgstr ""
 
-#: ../app/preferencesDlg.py:82
+#: ../app/preferencesDlg.py:83
 msgid "save"
 msgstr ""
 
-#: ../app/preferencesDlg.py:83
+#: ../app/preferencesDlg.py:84
 msgid "save as"
 msgstr ""
 
-#: ../app/preferencesDlg.py:84
+#: ../app/preferencesDlg.py:85
 msgid "print"
 msgstr ""
 
-#: ../app/preferencesDlg.py:85
+#: ../app/preferencesDlg.py:86
 msgid "close"
 msgstr ""
 
-#: ../app/preferencesDlg.py:86
+#: ../app/preferencesDlg.py:87
 msgid "quit"
 msgstr ""
 
-#: ../app/preferencesDlg.py:87
+#: ../app/preferencesDlg.py:88
 msgid "preferences"
 msgstr ""
 
-#: ../app/preferencesDlg.py:88
+#: ../app/preferencesDlg.py:89
 msgid "export HTML"
 msgstr ""
 
-#: ../app/preferencesDlg.py:89
+#: ../app/preferencesDlg.py:90
 msgid "cut"
 msgstr ""
 
-#: ../app/builder/builder.py:87 ../app/preferencesDlg.py:90
+#: ../app/builder/builder.py:87 ../app/preferencesDlg.py:91
 msgid "copy"
 msgstr ""
 
-#: ../app/preferencesDlg.py:91
+#: ../app/preferencesDlg.py:92
 msgid "paste"
 msgstr ""
 
-#: ../app/preferencesDlg.py:92
+#: ../app/preferencesDlg.py:93
 msgid "duplicate"
 msgstr ""
 
-#: ../app/preferencesDlg.py:93
+#: ../app/preferencesDlg.py:94
 msgid "indent"
 msgstr ""
 
-#: ../app/preferencesDlg.py:94
+#: ../app/preferencesDlg.py:95
 msgid "dedent"
 msgstr ""
 
-#: ../app/preferencesDlg.py:95
+#: ../app/preferencesDlg.py:96
 msgid "smart indent"
 msgstr ""
 
-#: ../app/preferencesDlg.py:96
+#: ../app/preferencesDlg.py:97
 msgid "find"
 msgstr ""
 
-#: ../app/preferencesDlg.py:97
+#: ../app/preferencesDlg.py:98
 msgid "find again"
 msgstr ""
 
-#: ../app/preferencesDlg.py:98
+#: ../app/preferencesDlg.py:99
 msgid "undo"
 msgstr ""
 
-#: ../app/preferencesDlg.py:99
+#: ../app/preferencesDlg.py:100
 msgid "redo"
 msgstr ""
 
-#: ../app/preferencesDlg.py:100
+#: ../app/preferencesDlg.py:101
 msgid "comment"
 msgstr ""
 
-#: ../app/preferencesDlg.py:101
+#: ../app/preferencesDlg.py:102
 msgid "uncomment"
 msgstr ""
 
-#: ../app/preferencesDlg.py:102
+#: ../app/preferencesDlg.py:103
 msgid "toggle comment"
 msgstr ""
 
-#: ../app/preferencesDlg.py:103
+#: ../app/preferencesDlg.py:104
 msgid "fold"
 msgstr ""
 
-#: ../app/preferencesDlg.py:104
+#: ../app/preferencesDlg.py:105
 msgid "enlarge Font"
 msgstr ""
 
-#: ../app/preferencesDlg.py:105
+#: ../app/preferencesDlg.py:106
 msgid "shrink Font"
 msgstr ""
 
-#: ../app/preferencesDlg.py:106
+#: ../app/preferencesDlg.py:107
 msgid "analyze code"
 msgstr ""
 
-#: ../app/preferencesDlg.py:107
+#: ../app/preferencesDlg.py:108
 msgid "compile script"
 msgstr ""
 
-#: ../app/preferencesDlg.py:108
+#: ../app/preferencesDlg.py:109
 msgid "run script"
 msgstr ""
 
-#: ../app/preferencesDlg.py:109
+#: ../app/preferencesDlg.py:110
 msgid "stop script"
 msgstr ""
 
-#: ../app/preferencesDlg.py:110
+#: ../app/preferencesDlg.py:111
 msgid "toggle whitespace"
 msgstr ""
 
-#: ../app/preferencesDlg.py:111
+#: ../app/preferencesDlg.py:112
 msgid "toggle EOLs"
 msgstr ""
 
-#: ../app/preferencesDlg.py:112
+#: ../app/preferencesDlg.py:113
 msgid "toggle indent guides"
 msgstr ""
 
-#: ../app/preferencesDlg.py:113
+#: ../app/preferencesDlg.py:114
 msgid "new Routine"
 msgstr ""
 
-#: ../app/preferencesDlg.py:114
+#: ../app/preferencesDlg.py:115
 msgid "copy Routine"
 msgstr ""
 
-#: ../app/preferencesDlg.py:115
+#: ../app/preferencesDlg.py:116
 msgid "paste Routine"
 msgstr ""
 
-#: ../app/preferencesDlg.py:116
+#: ../app/preferencesDlg.py:117
 msgid "paste Component"
 msgstr ""
 
-#: ../app/preferencesDlg.py:117
+#: ../app/preferencesDlg.py:118
 msgid "toggle output panel"
 msgstr ""
 
-#: ../app/preferencesDlg.py:118
+#: ../app/preferencesDlg.py:119
 msgid "rename Routine"
 msgstr ""
 
-#: ../app/preferencesDlg.py:119
+#: ../app/preferencesDlg.py:120
 msgid "switch to Builder"
 msgstr ""
 
-#: ../app/preferencesDlg.py:120
+#: ../app/preferencesDlg.py:121
 msgid "switch to Coder"
 msgstr ""
 
-#: ../app/preferencesDlg.py:121
+#: ../app/preferencesDlg.py:122
 msgid "larger Flow"
 msgstr ""
 
-#: ../app/preferencesDlg.py:122
+#: ../app/preferencesDlg.py:123
 msgid "smaller Flow"
 msgstr ""
 
-#: ../app/preferencesDlg.py:123
+#: ../app/preferencesDlg.py:124
 msgid "larger routine"
 msgstr ""
 
-#: ../app/preferencesDlg.py:124
+#: ../app/preferencesDlg.py:125
 msgid "smaller routine"
 msgstr ""
 
-#: ../app/preferencesDlg.py:125
+#: ../app/preferencesDlg.py:126
 msgid "toggle readme"
 msgstr ""
 
-#: ../app/preferencesDlg.py:126
+#: ../app/preferencesDlg.py:127
 msgid "login to projects"
 msgstr ""
 
-#: ../app/preferencesDlg.py:127
+#: ../app/preferencesDlg.py:128
 msgid "login to pavlovia"
 msgstr ""
 
-#: ../app/preferencesDlg.py:128
+#: ../app/preferencesDlg.py:129
 msgid "login to OSF"
 msgstr ""
 
-#: ../app/preferencesDlg.py:129
+#: ../app/preferencesDlg.py:130
 msgid "sync projects"
 msgstr ""
 
-#: ../app/preferencesDlg.py:130
+#: ../app/preferencesDlg.py:131
 msgid "find projects"
 msgstr ""
 
-#: ../app/preferencesDlg.py:131
+#: ../app/preferencesDlg.py:132
 msgid "open projects"
 msgstr ""
 
-#: ../app/preferencesDlg.py:132
+#: ../app/preferencesDlg.py:133
 msgid "new projects"
 msgstr ""
 
-#: ../app/preferencesDlg.py:134
+#: ../app/preferencesDlg.py:135
 msgid "same as last session"
 msgstr ""
 
-#: ../app/preferencesDlg.py:135
+#: ../app/preferencesDlg.py:136
 msgid "both Builder & Coder"
 msgstr ""
 
-#: ../app/preferencesDlg.py:136
+#: ../app/preferencesDlg.py:137
 msgid "same as in the file"
 msgstr ""
 
-#: ../app/preferencesDlg.py:156
+#: ../app/preferencesDlg.py:150
+#: ../experiment/components/settings/__init__.py:223
+msgid "Latency not important"
+msgstr ""
+
+#: ../app/preferencesDlg.py:151
+#: ../experiment/components/settings/__init__.py:224
+msgid "Share low-latency driver"
+msgstr ""
+
+#: ../app/preferencesDlg.py:152
+#: ../experiment/components/settings/__init__.py:225
+msgid "Exclusive low-latency"
+msgstr ""
+
+#: ../app/preferencesDlg.py:153
+#: ../experiment/components/settings/__init__.py:226
+msgid "Aggressive low-latency"
+msgstr ""
+
+#: ../app/preferencesDlg.py:154
+#: ../experiment/components/settings/__init__.py:227
+msgid "Latency critical"
+msgstr ""
+
+#: ../app/preferencesDlg.py:163
 msgid "PsychoPy Preferences"
 msgstr ""
 
-#: ../app/preferencesDlg.py:199
+#: ../app/preferencesDlg.py:206
 msgid "Save prefs (in all sections) and close window"
 msgstr ""
 
-#: ../app/preferencesDlg.py:206
+#: ../app/preferencesDlg.py:213
 msgid "Cancel any changes (to any panel)"
 msgstr ""
 
-#: ../app/preferencesDlg.py:210
+#: ../app/preferencesDlg.py:217
 msgid "Help"
 msgstr ""
 
-#: ../app/preferencesDlg.py:211
+#: ../app/preferencesDlg.py:218
 msgid "Get help on prefs"
 msgstr ""
 
-#: ../app/preferencesDlg.py:342
+#: ../app/preferencesDlg.py:349
 #, python-format
 msgid "Invalid value in \"%(pref)s\" (\"%(section)s\" Tab)"
 msgstr ""
 
-#: ../app/builder/builder.py:871 ../app/preferencesDlg.py:345
+#: ../app/builder/builder.py:873 ../app/preferencesDlg.py:352
 msgid "Error"
 msgstr ""
 
@@ -573,9 +602,9 @@ msgstr ""
 msgid "Terminate the application"
 msgstr ""
 
-#: ../app/builder/builder.py:1364 ../app/builder/builder.py:2506
+#: ../app/builder/builder.py:1352 ../app/builder/builder.py:2486
 #: ../app/coder/coder.py:1387 ../app/pavlovia_ui/_base.py:23
-#: ../app/stdOutRich.py:118 ../monitors/MonitorCenter.py:238
+#: ../app/stdOutRich.py:118 ../monitors/MonitorCenter.py:235
 msgid "&File"
 msgstr ""
 
@@ -599,7 +628,7 @@ msgstr ""
 msgid "Responses"
 msgstr ""
 
-#: ../app/builder/builder.py:80 ../app/builder/dialogs/__init__.py:494
+#: ../app/builder/builder.py:80 ../app/builder/dialogs/__init__.py:499
 msgid "Custom"
 msgstr ""
 
@@ -619,7 +648,7 @@ msgstr ""
 msgid "edit"
 msgstr ""
 
-#: ../app/builder/builder.py:86 ../app/builder/flow.py:99
+#: ../app/builder/builder.py:86 ../app/builder/flow.py:97
 msgid "remove"
 msgstr ""
 
@@ -639,7 +668,7 @@ msgstr ""
 msgid "move to bottom"
 msgstr ""
 
-#: ../app/builder/builder.py:502 ../app/builder/builder.py:2228
+#: ../app/builder/builder.py:502 ../app/builder/builder.py:2221
 #, python-format
 msgid "New name for copy of \"%(copied)s\"?  [%(default)s]"
 msgstr ""
@@ -656,542 +685,524 @@ msgstr ""
 msgid "New Routine"
 msgstr ""
 
-#: ../app/builder/builder.py:868
+#: ../app/builder/builder.py:870
 msgid "Create a routine (Experiment menu) before adding components"
 msgstr ""
 
-#: ../app/builder/builder.py:1179 ../app/builder/builder.py:1185
+#: ../app/builder/builder.py:1181 ../app/builder/builder.py:1187
 #: ../app/coder/coder.py:1766
 #, python-format
 msgid "New [%s]"
 msgstr ""
 
-#: ../app/builder/builder.py:1181 ../app/builder/builder.py:1186
+#: ../app/builder/builder.py:1183 ../app/builder/builder.py:1188
 msgid "Create new experiment file"
 msgstr ""
 
-#: ../app/builder/builder.py:1191 ../app/builder/builder.py:1197
+#: ../app/builder/builder.py:1193 ../app/builder/builder.py:1199
 #: ../app/coder/coder.py:1779
 #, python-format
 msgid "Open [%s]"
 msgstr ""
 
-#: ../app/builder/builder.py:1193 ../app/builder/builder.py:1198
+#: ../app/builder/builder.py:1195 ../app/builder/builder.py:1200
 msgid "Open an existing experiment file"
 msgstr ""
 
-#: ../app/builder/builder.py:1204 ../app/builder/builder.py:1211
+#: ../app/builder/builder.py:1206 ../app/builder/builder.py:1213
 #: ../app/coder/coder.py:1792
 #, python-format
 msgid "Save [%s]"
 msgstr ""
 
-#: ../app/builder/builder.py:1206 ../app/builder/builder.py:1212
-#: ../app/builder/builder.py:1389
+#: ../app/builder/builder.py:1208 ../app/builder/builder.py:1214
+#: ../app/builder/builder.py:1377
 msgid "Save current experiment file"
 msgstr ""
 
-#: ../app/builder/builder.py:1219 ../app/builder/builder.py:1226
+#: ../app/builder/builder.py:1221 ../app/builder/builder.py:1228
 #: ../app/coder/coder.py:1808
 #, python-format
 msgid "Save As... [%s]"
 msgstr ""
 
-#: ../app/builder/builder.py:1221 ../app/builder/builder.py:1227
-#: ../app/builder/builder.py:1393
+#: ../app/builder/builder.py:1223 ../app/builder/builder.py:1229
+#: ../app/builder/builder.py:1381
 msgid "Save current experiment file as..."
 msgstr ""
 
-#: ../app/builder/builder.py:1233 ../app/builder/builder.py:1240
+#: ../app/builder/builder.py:1235 ../app/builder/builder.py:1242
 #: ../app/coder/coder.py:1823
 #, python-format
 msgid "Undo [%s]"
 msgstr ""
 
-#: ../app/builder/builder.py:1235 ../app/builder/builder.py:1241
-#: ../app/builder/builder.py:1426 ../app/coder/coder.py:1502
+#: ../app/builder/builder.py:1237 ../app/builder/builder.py:1243
+#: ../app/builder/builder.py:1414 ../app/coder/coder.py:1502
 #: ../app/coder/coder.py:1829 ../app/coder/coder.py:1835
 msgid "Undo last action"
 msgstr ""
 
-#: ../app/builder/builder.py:1247 ../app/builder/builder.py:1254
+#: ../app/builder/builder.py:1249 ../app/builder/builder.py:1256
 #: ../app/coder/coder.py:1838
 #, python-format
 msgid "Redo [%s]"
 msgstr ""
 
-#: ../app/builder/builder.py:1249 ../app/builder/builder.py:1255
-#: ../app/builder/builder.py:1431 ../app/coder/coder.py:1507
+#: ../app/builder/builder.py:1251 ../app/builder/builder.py:1257
+#: ../app/builder/builder.py:1419 ../app/coder/coder.py:1507
 #: ../app/coder/coder.py:1844 ../app/coder/coder.py:1850
 msgid "Redo last action"
 msgstr ""
 
-#: ../app/builder/builder.py:1263 ../app/builder/builder.py:1270
-#: ../app/coder/coder.py:1857 ../app/coder/coder.py:1863
-msgid "Preferences"
-msgstr ""
-
-#: ../app/builder/builder.py:1265 ../app/builder/builder.py:1271
-#: ../app/coder/coder.py:1859 ../app/coder/coder.py:1864
-msgid "Application preferences"
-msgstr ""
-
-#: ../app/builder/builder.py:1277 ../app/builder/builder.py:1284
-#: ../app/builder/builder.py:1442 ../app/coder/coder.py:1530
-#: ../app/coder/coder.py:1870 ../app/coder/coder.py:1877
+#: ../app/builder/builder.py:1265 ../app/builder/builder.py:1272
+#: ../app/builder/builder.py:1430 ../app/coder/coder.py:1530
+#: ../app/coder/coder.py:1858 ../app/coder/coder.py:1865
 msgid "Monitor Center"
 msgstr ""
 
-#: ../app/builder/builder.py:1279 ../app/builder/builder.py:1285
-#: ../app/coder/coder.py:1872 ../app/coder/coder.py:1878
+#: ../app/builder/builder.py:1267 ../app/builder/builder.py:1273
+#: ../app/coder/coder.py:1860 ../app/coder/coder.py:1866
 msgid "Monitor settings and calibration"
 msgstr ""
 
-#: ../app/builder/builder.py:1293 ../app/builder/builder.py:1300
+#: ../app/builder/builder.py:1279 ../app/builder/builder.py:1286
 msgid "Experiment Settings"
 msgstr ""
 
-#: ../app/builder/builder.py:1295 ../app/builder/builder.py:1301
-msgid "Settings for this exp"
+#: ../app/builder/builder.py:1281 ../app/builder/builder.py:1287
+msgid "Experiment settings"
 msgstr ""
 
-#: ../app/builder/builder.py:1307 ../app/builder/builder.py:1314
+#: ../app/builder/builder.py:1295 ../app/builder/builder.py:1302
 #, python-format
 msgid "Compile Script [%s]"
 msgstr ""
 
-#: ../app/builder/builder.py:1309 ../app/builder/builder.py:1315
+#: ../app/builder/builder.py:1297 ../app/builder/builder.py:1303
 msgid "Compile to script"
 msgstr ""
 
-#: ../app/builder/builder.py:1321 ../app/builder/builder.py:1328
-#: ../app/coder/coder.py:1897
+#: ../app/builder/builder.py:1309 ../app/builder/builder.py:1316
+#: ../app/coder/coder.py:1885
 #, python-format
 msgid "Run [%s]"
 msgstr ""
 
-#: ../app/builder/builder.py:1323 ../app/builder/builder.py:1329
+#: ../app/builder/builder.py:1311 ../app/builder/builder.py:1317
 msgid "Run experiment"
 msgstr ""
 
-#: ../app/builder/builder.py:1335 ../app/builder/builder.py:1342
-#: ../app/coder/coder.py:1912
+#: ../app/builder/builder.py:1323 ../app/builder/builder.py:1330
+#: ../app/coder/coder.py:1900
 #, python-format
 msgid "Stop [%s]"
 msgstr ""
 
-#: ../app/builder/builder.py:1337 ../app/builder/builder.py:1343
+#: ../app/builder/builder.py:1325 ../app/builder/builder.py:1331
 msgid "Stop experiment"
 msgstr ""
 
-#: ../app/builder/builder.py:1379 ../app/coder/coder.py:1401
+#: ../app/builder/builder.py:1367 ../app/coder/coder.py:1401
 #, python-format
 msgid "&New\t%s"
 msgstr ""
 
-#: ../app/builder/builder.py:1382 ../app/coder/coder.py:1402
+#: ../app/builder/builder.py:1370 ../app/coder/coder.py:1402
 #, python-format
 msgid "&Open...\t%s"
 msgstr ""
 
-#: ../app/builder/builder.py:1385 ../app/coder/coder.py:1403
+#: ../app/builder/builder.py:1373 ../app/coder/coder.py:1403
 msgid "Open &Recent"
 msgstr ""
 
-#: ../app/builder/builder.py:1388 ../app/builder/builder.py:2509
+#: ../app/builder/builder.py:1376 ../app/builder/builder.py:2489
 #: ../app/coder/coder.py:1405
 #, python-format
 msgid "&Save\t%s"
 msgstr ""
 
-#: ../app/builder/builder.py:1392 ../app/coder/coder.py:1408
+#: ../app/builder/builder.py:1380 ../app/coder/coder.py:1408
 #, python-format
 msgid "Save &as...\t%s"
 msgstr ""
 
-#: ../app/builder/builder.py:1396
+#: ../app/builder/builder.py:1384
 #, python-format
 msgid "Export HTML...\t%s"
 msgstr ""
 
-#: ../app/builder/builder.py:1397
+#: ../app/builder/builder.py:1385
 msgid "Export experiment to html/javascript file"
 msgstr ""
 
-#: ../app/builder/builder.py:1400 ../app/coder/coder.py:1411
+#: ../app/builder/builder.py:1388 ../app/coder/coder.py:1411
 #, python-format
 msgid "&Close file\t%s"
 msgstr ""
 
-#: ../app/builder/builder.py:1401
+#: ../app/builder/builder.py:1389
 msgid "Close current experiment"
 msgstr ""
 
-#: ../app/builder/builder.py:1411 ../app/coder/coder.py:1421
+#: ../app/builder/builder.py:1399 ../app/coder/coder.py:1421
 #, python-format
 msgid "&Preferences\t%s"
 msgstr ""
 
-#: ../app/builder/builder.py:1422 ../app/coder/coder.py:1435
-#: ../monitors/MonitorCenter.py:246
+#: ../app/builder/builder.py:1410 ../app/coder/coder.py:1435
+#: ../monitors/MonitorCenter.py:243
 msgid "&Edit"
 msgstr ""
 
-#: ../app/builder/builder.py:1425 ../app/builder/builder.py:2057
+#: ../app/builder/builder.py:1413 ../app/builder/builder.py:2045
 #: ../app/coder/coder.py:1501
 #, python-format
 msgid "Undo\t%s"
 msgstr ""
 
-#: ../app/builder/builder.py:1430 ../app/builder/builder.py:2071
+#: ../app/builder/builder.py:1418 ../app/builder/builder.py:2059
 #: ../app/coder/coder.py:1506
 #, python-format
 msgid "Redo\t%s"
 msgstr ""
 
-#: ../app/builder/builder.py:1434 ../app/coder/coder.py:1440
+#: ../app/builder/builder.py:1422 ../app/coder/coder.py:1440
 #, python-format
 msgid "&Paste\t%s"
 msgstr ""
 
-#: ../app/builder/builder.py:1439 ../app/coder/coder.py:1528
+#: ../app/builder/builder.py:1427 ../app/coder/coder.py:1528
 msgid "&Tools"
 msgstr ""
 
-#: ../app/builder/builder.py:1443 ../app/coder/coder.py:1531
+#: ../app/builder/builder.py:1431 ../app/coder/coder.py:1531
 msgid "To set information about your monitor"
 msgstr ""
 
-#: ../app/builder/builder.py:1447
+#: ../app/builder/builder.py:1435
 #, python-format
 msgid "Compile\t%s"
 msgstr ""
 
-#: ../app/builder/builder.py:1448
+#: ../app/builder/builder.py:1436
 msgid "Compile the exp to a script"
 msgstr ""
 
-#: ../app/builder/builder.py:1451 ../app/coder/coder.py:1545
+#: ../app/builder/builder.py:1439 ../app/coder/coder.py:1545
 #, python-format
 msgid "Run\t%s"
 msgstr ""
 
-#: ../app/builder/builder.py:1452 ../app/coder/coder.py:1546
+#: ../app/builder/builder.py:1440 ../app/coder/coder.py:1546
 msgid "Run the current script"
 msgstr ""
 
-#: ../app/builder/builder.py:1455 ../app/coder/coder.py:1549
+#: ../app/builder/builder.py:1443 ../app/coder/coder.py:1549
 #, python-format
 msgid "Stop\t%s"
 msgstr ""
 
-#: ../app/builder/builder.py:1456
+#: ../app/builder/builder.py:1444
 msgid "Abort the current script"
 msgstr ""
 
-#: ../app/builder/builder.py:1461 ../app/coder/coder.py:1555
+#: ../app/builder/builder.py:1449 ../app/coder/coder.py:1555
 msgid "PsychoPy updates..."
 msgstr ""
 
-#: ../app/builder/builder.py:1462 ../app/coder/coder.py:1556
+#: ../app/builder/builder.py:1450 ../app/coder/coder.py:1556
 msgid "Update PsychoPy to the latest, or a specific, version"
 msgstr ""
 
-#: ../app/builder/builder.py:1467 ../app/coder/coder.py:1559
+#: ../app/builder/builder.py:1455 ../app/coder/coder.py:1559
 msgid "Benchmark wizard"
 msgstr ""
 
-#: ../app/builder/builder.py:1468 ../app/coder/coder.py:1560
+#: ../app/builder/builder.py:1456 ../app/coder/coder.py:1560
 msgid "Check software & hardware, generate report"
 msgstr ""
 
-#: ../app/builder/builder.py:1483 ../app/builder/builder.py:2513
+#: ../app/builder/builder.py:1471 ../app/builder/builder.py:2493
 #, python-format
 msgid "&Toggle readme\t%s"
 msgstr ""
 
-#: ../app/builder/builder.py:1485 ../app/builder/builder.py:2515
+#: ../app/builder/builder.py:1473 ../app/builder/builder.py:2495
 msgid "Toggle Readme"
 msgstr ""
 
-#: ../app/builder/builder.py:1488
+#: ../app/builder/builder.py:1476
 #, python-format
 msgid "&Flow Larger\t%s"
 msgstr ""
 
-#: ../app/builder/builder.py:1490
+#: ../app/builder/builder.py:1478
 msgid "Larger flow items"
 msgstr ""
 
-#: ../app/builder/builder.py:1493
+#: ../app/builder/builder.py:1481
 #, python-format
 msgid "&Flow Smaller\t%s"
 msgstr ""
 
-#: ../app/builder/builder.py:1495
+#: ../app/builder/builder.py:1483
 msgid "Smaller flow items"
 msgstr ""
 
-#: ../app/builder/builder.py:1498
+#: ../app/builder/builder.py:1486
 #, python-format
 msgid "&Routine Larger\t%s"
 msgstr ""
 
-#: ../app/builder/builder.py:1500
+#: ../app/builder/builder.py:1488
 msgid "Larger routine items"
 msgstr ""
 
-#: ../app/builder/builder.py:1503
+#: ../app/builder/builder.py:1491
 #, python-format
 msgid "&Routine Smaller\t%s"
 msgstr ""
 
-#: ../app/builder/builder.py:1505
+#: ../app/builder/builder.py:1493
 msgid "Smaller routine items"
 msgstr ""
 
-#: ../app/builder/builder.py:1510
+#: ../app/builder/builder.py:1498
 msgid "&Experiment"
 msgstr ""
 
-#: ../app/builder/builder.py:1513
+#: ../app/builder/builder.py:1501
 #, python-format
 msgid "&New Routine\t%s"
 msgstr ""
 
-#: ../app/builder/builder.py:1514
+#: ../app/builder/builder.py:1502
 msgid "Create a new routine (e.g. the trial definition)"
 msgstr ""
 
-#: ../app/builder/builder.py:1518
+#: ../app/builder/builder.py:1506
 #, python-format
 msgid "&Copy Routine\t%s"
 msgstr ""
 
-#: ../app/builder/builder.py:1520
+#: ../app/builder/builder.py:1508
 msgid "Copy the current routine so it can be used in another exp"
 msgstr ""
 
-#: ../app/builder/builder.py:1525
+#: ../app/builder/builder.py:1513
 #, python-format
 msgid "&Paste Routine\t%s"
 msgstr ""
 
-#: ../app/builder/builder.py:1527
+#: ../app/builder/builder.py:1515
 msgid "Paste the Routine into the current experiment"
 msgstr ""
 
-#: ../app/builder/builder.py:1532
+#: ../app/builder/builder.py:1520
 #, python-format
 msgid "&Rename Routine\t%s"
 msgstr ""
 
-#: ../app/builder/builder.py:1534
+#: ../app/builder/builder.py:1522
 msgid "Change the name of this routine"
 msgstr ""
 
-#: ../app/builder/builder.py:1537
+#: ../app/builder/builder.py:1525
 #, python-format
 msgid "Paste Component\t%s"
 msgstr ""
 
-#: ../app/builder/builder.py:1539
+#: ../app/builder/builder.py:1527
 msgid "Paste the Component at bottom of the current Routine"
 msgstr ""
 
-#: ../app/builder/builder.py:1547
+#: ../app/builder/builder.py:1535
 msgid "Insert Routine in Flow"
 msgstr ""
 
-#: ../app/builder/builder.py:1548
+#: ../app/builder/builder.py:1536
 msgid "Select one of your routines to be inserted into the experiment flow"
 msgstr ""
 
-#: ../app/builder/builder.py:1553
+#: ../app/builder/builder.py:1541
 msgid "Insert Loop in Flow"
 msgstr ""
 
-#: ../app/builder/builder.py:1554
+#: ../app/builder/builder.py:1542
 msgid "Create a new loop in your flow window"
 msgstr ""
 
-#: ../app/builder/builder.py:1565
+#: ../app/builder/builder.py:1553
 msgid "&Unpack Demos..."
 msgstr ""
 
-#: ../app/builder/builder.py:1566
+#: ../app/builder/builder.py:1554
 msgid "Unpack demos to a writable location (so that they can be run)"
 msgstr ""
 
-#: ../app/builder/builder.py:1573 ../app/coder/coder.py:1644
+#: ../app/builder/builder.py:1561 ../app/coder/coder.py:1644
 msgid "&Demos"
 msgstr ""
 
-#: ../app/builder/builder.py:1577 ../app/coder/coder.py:1694
+#: ../app/builder/builder.py:1565 ../app/coder/coder.py:1694
 msgid "Pavlovia.org"
 msgstr ""
 
-#: ../app/builder/builder.py:1581 ../app/coder/coder.py:1698
+#: ../app/builder/builder.py:1569 ../app/coder/coder.py:1698
 msgid "&Help"
 msgstr ""
 
-#: ../app/builder/builder.py:1585 ../app/coder/coder.py:1700
+#: ../app/builder/builder.py:1573 ../app/coder/coder.py:1700
 msgid "&PsychoPy Homepage"
 msgstr ""
 
-#: ../app/builder/builder.py:1586 ../app/coder/coder.py:1701
+#: ../app/builder/builder.py:1574 ../app/coder/coder.py:1701
 msgid "Go to the PsychoPy homepage"
 msgstr ""
 
-#: ../app/builder/builder.py:1590
+#: ../app/builder/builder.py:1578
 msgid "&PsychoPy Builder Help"
 msgstr ""
 
-#: ../app/builder/builder.py:1591
+#: ../app/builder/builder.py:1579
 msgid "Go to the online documentation for PsychoPy Builder"
 msgstr ""
 
-#: ../app/builder/builder.py:1598 ../app/coder/coder.py:1717
+#: ../app/builder/builder.py:1586 ../app/coder/coder.py:1717
 msgid "&About..."
 msgstr ""
 
-#: ../app/builder/builder.py:1599 ../app/coder/coder.py:1718
+#: ../app/builder/builder.py:1587 ../app/coder/coder.py:1718
 msgid "About PsychoPy"
 msgstr ""
 
-#: ../app/builder/builder.py:1605 ../app/coder/coder.py:1722
+#: ../app/builder/builder.py:1593 ../app/coder/coder.py:1722
 msgid "&News..."
 msgstr ""
 
-#: ../app/builder/builder.py:1606 ../app/coder/coder.py:1723
+#: ../app/builder/builder.py:1594 ../app/coder/coder.py:1723
 msgid "News"
 msgstr ""
 
-#: ../app/builder/builder.py:1677 ../app/builder/dialogs/__init__.py:1542
-#: ../app/coder/coder.py:2274
+#: ../app/builder/builder.py:1665 ../app/builder/dialogs/__init__.py:1559
+#: ../app/coder/coder.py:2262
 msgid "Open file ..."
 msgstr ""
 
-#: ../app/builder/builder.py:1756 ../app/coder/coder.py:2408
+#: ../app/builder/builder.py:1744 ../app/coder/coder.py:2396
 msgid "Save file as ..."
 msgstr ""
 
-#: ../app/builder/builder.py:1792
+#: ../app/builder/builder.py:1780
 msgid "Export HTML file"
 msgstr ""
 
-#: ../app/builder/builder.py:1869
+#: ../app/builder/builder.py:1857
 #, python-format
 msgid "Experiment %s has changed. Save before quitting?"
 msgstr ""
 
-#: ../app/builder/builder.py:2061
+#: ../app/builder/builder.py:2049
 #, python-format
 msgid "Undo %(action)s\t%(key)s"
 msgstr ""
 
-#: ../app/builder/builder.py:2075
+#: ../app/builder/builder.py:2063
 #, python-format
 msgid "Redo %(action)s\t%(key)s"
 msgstr ""
 
-#: ../app/builder/builder.py:2087
+#: ../app/builder/builder.py:2075
 msgid "Location to unpack demos"
 msgstr ""
 
-#: ../app/builder/builder.py:2232
+#: ../app/builder/builder.py:2225
 msgid "Paste Routine"
 msgstr ""
 
-#: ../app/builder/builder.py:2313
+#: ../app/builder/builder.py:2293
 msgid "What is the new name for the Routine?"
 msgstr ""
 
-#: ../app/builder/builder.py:2315
+#: ../app/builder/builder.py:2295
 msgid "Rename"
 msgstr ""
 
-#: ../app/builder/builder.py:2511
+#: ../app/builder/builder.py:2491
 #, python-format
 msgid "&Close readme\t%s"
 msgstr ""
 
-#: ../app/builder/builder.py:2585
+#: ../app/builder/builder.py:2565
 msgid ""
 "Warning, HTML outputs are very new.\n"
 "Treat with caution (CHECK YOUR EXPERIMENT)!"
 msgstr ""
 
-#: ../app/builder/builder.py:2593
+#: ../app/builder/builder.py:2573
 msgid "Filepath:"
 msgstr ""
 
-#: ../app/builder/builder.py:2605
+#: ../app/builder/builder.py:2585
 msgid ""
 "Select 'manually' to receive this alert when exporting HTML.\n"
 "Click 'OK' to export HTML, or click 'Cancel' to return."
 msgstr ""
 
-#: ../app/builder/flow.py:97
+#: ../app/builder/flow.py:98
 msgid "rename"
 msgstr ""
 
-#: ../app/builder/flow.py:98 ../app/builder/flow.py:486
-msgid "disable"
-msgstr ""
-
-#: ../app/builder/flow.py:111
+#: ../app/builder/flow.py:110
 msgid "Insert Routine "
 msgstr ""
 
-#: ../app/builder/flow.py:112
+#: ../app/builder/flow.py:111
 msgid "Insert Loop     "
 msgstr ""
 
-#: ../app/builder/flow.py:158
+#: ../app/builder/flow.py:157
 msgid "Insert Routine"
 msgstr ""
 
-#: ../app/builder/flow.py:159
+#: ../app/builder/flow.py:158
 msgid "Insert Loop"
 msgstr ""
 
-#: ../app/builder/flow.py:188
+#: ../app/builder/flow.py:187
 msgid "Select a Routine to insert (Esc to exit)"
 msgstr ""
 
-#: ../app/builder/flow.py:224
+#: ../app/builder/flow.py:223
 msgid "CANCEL Insert"
 msgstr ""
 
-#: ../app/builder/flow.py:226
+#: ../app/builder/flow.py:225
 msgid "Click where you want to insert the Routine, or CANCEL insert."
 msgstr ""
 
-#: ../app/builder/flow.py:256
+#: ../app/builder/flow.py:255
 msgid "CANCEL insert"
 msgstr ""
 
-#: ../app/builder/flow.py:259
+#: ../app/builder/flow.py:258
 msgid "Click where you want the loop to start/end, or CANCEL insert."
 msgstr ""
 
-#: ../app/builder/flow.py:268
+#: ../app/builder/flow.py:267
 msgid "Click the other end for the loop"
 msgstr ""
 
-#: ../app/builder/flow.py:484
-msgid "enable"
-msgstr ""
-
-#: ../app/builder/flow.py:506
+#: ../app/builder/flow.py:496
 #, python-format
 msgid ""
 "The \"%s\" Loop is about to be deleted as well (by collapsing). OK to "
 "proceed?"
 msgstr ""
 
-#: ../app/builder/flow.py:508
+#: ../app/builder/flow.py:498
 msgid "Impending Loop collapse"
 msgstr ""
 
@@ -1407,7 +1418,7 @@ msgstr ""
 msgid "all"
 msgstr ""
 
-#: ../app/builder/dialogs/__init__.py:1084 ../app/builder/validators.py:100
+#: ../app/builder/dialogs/__init__.py:1090 ../app/builder/validators.py:100
 msgid "Missing name"
 msgstr ""
 
@@ -1416,7 +1427,7 @@ msgstr ""
 msgid "That name is in use (by %s). Try another name."
 msgstr ""
 
-#: ../app/builder/dialogs/__init__.py:1094
+#: ../app/builder/dialogs/__init__.py:1100
 #: ../app/builder/dialogs/dlgsConditions.py:303
 #: ../app/builder/dialogs/dlgsConditions.py:578
 #: ../app/builder/validators.py:110
@@ -1443,165 +1454,169 @@ msgstr ""
 msgid "Python var `{}` in `{}` is same as Name"
 msgstr ""
 
-#: ../app/builder/dialogs/__init__.py:241
+#: ../app/builder/dialogs/__init__.py:246
 msgid "set during: "
 msgstr ""
 
-#: ../app/builder/dialogs/__init__.py:259 ../app/pavlovia_ui/project.py:77
+#: ../app/builder/dialogs/__init__.py:264 ../app/pavlovia_ui/project.py:77
 #: ../app/pavlovia_ui/project.py:197
 msgid "Browse..."
 msgstr ""
 
-#: ../app/builder/dialogs/__init__.py:408
-#: ../app/builder/dialogs/__init__.py:1122
+#: ../app/builder/dialogs/__init__.py:413
+#: ../app/builder/dialogs/__init__.py:1128
 #: ../app/builder/dialogs/dlgsCode.py:39
 msgid " Properties"
 msgstr ""
 
-#: ../app/builder/dialogs/__init__.py:488
+#: ../app/builder/dialogs/__init__.py:493
 msgid "Basic"
 msgstr ""
 
-#: ../app/builder/dialogs/__init__.py:489
+#: ../app/builder/dialogs/__init__.py:494
 msgid "Data"
 msgstr ""
 
-#: ../app/builder/dialogs/__init__.py:490
+#: ../app/builder/dialogs/__init__.py:495
 #: ../experiment/components/settings/__init__.py:47
 msgid "Screen"
 msgstr ""
 
-#: ../app/builder/dialogs/__init__.py:491
+#: ../app/builder/dialogs/__init__.py:496
 msgid "Dots"
 msgstr ""
 
-#: ../app/builder/dialogs/__init__.py:492
+#: ../app/builder/dialogs/__init__.py:497
 msgid "Grating"
 msgstr ""
 
-#: ../app/builder/dialogs/__init__.py:493
+#: ../app/builder/dialogs/__init__.py:498
 msgid "Advanced"
 msgstr ""
 
-#: ../app/builder/dialogs/__init__.py:495
+#: ../app/builder/dialogs/__init__.py:500
 msgid "Carrier"
 msgstr ""
 
-#: ../app/builder/dialogs/__init__.py:496
+#: ../app/builder/dialogs/__init__.py:501
 msgid "Envelope"
 msgstr ""
 
-#: ../app/builder/dialogs/__init__.py:497
+#: ../app/builder/dialogs/__init__.py:502
 msgid "Appearance"
 msgstr ""
 
-#: ../app/builder/dialogs/__init__.py:498 ../monitors/MonitorCenter.py:270
+#: ../app/builder/dialogs/__init__.py:503 ../monitors/MonitorCenter.py:267
 msgid "Save"
 msgstr ""
 
-#: ../app/builder/dialogs/__init__.py:499
+#: ../app/builder/dialogs/__init__.py:504
 msgid "Online"
 msgstr ""
 
-#: ../app/builder/dialogs/__init__.py:636 ../localization/__init__.py:160
+#: ../app/builder/dialogs/__init__.py:505
+msgid "Testing"
+msgstr ""
+
+#: ../app/builder/dialogs/__init__.py:642 ../localization/__init__.py:160
 msgid "Start"
 msgstr ""
 
-#: ../app/builder/dialogs/__init__.py:639 ../localization/__init__.py:162
+#: ../app/builder/dialogs/__init__.py:645 ../localization/__init__.py:162
 msgid "Expected start (s)"
 msgstr ""
 
-#: ../app/builder/dialogs/__init__.py:681 ../localization/__init__.py:161
+#: ../app/builder/dialogs/__init__.py:687 ../localization/__init__.py:161
 msgid "Stop"
 msgstr ""
 
-#: ../app/builder/dialogs/__init__.py:684 ../localization/__init__.py:163
+#: ../app/builder/dialogs/__init__.py:690 ../localization/__init__.py:163
 msgid "Expected duration (s)"
 msgstr ""
 
-#: ../app/builder/dialogs/__init__.py:836
-#: ../app/builder/dialogs/__init__.py:1821
+#: ../app/builder/dialogs/__init__.py:842
+#: ../app/builder/dialogs/__init__.py:1863
 #: ../app/builder/dialogs/dlgsCode.py:116
 #: ../app/builder/dialogs/dlgsConditions.py:516
 msgid " Help "
 msgstr ""
 
-#: ../app/builder/dialogs/__init__.py:837
+#: ../app/builder/dialogs/__init__.py:843
 #: ../app/builder/dialogs/dlgsCode.py:117
 msgid "Go to online help about this component"
 msgstr ""
 
-#: ../app/builder/dialogs/__init__.py:842
-#: ../app/builder/dialogs/__init__.py:1825
+#: ../app/builder/dialogs/__init__.py:848
+#: ../app/builder/dialogs/__init__.py:1867
 #: ../app/builder/dialogs/dlgsCode.py:119
-#: ../app/builder/dialogs/dlgsConditions.py:521 ../gui/qtgui.py:75
-#: ../gui/wxgui.py:71 ../monitors/MonitorCenter.py:1117
-#: ../monitors/MonitorCenter.py:1224
+#: ../app/builder/dialogs/dlgsConditions.py:521 ../gui/qtgui.py:95
+#: ../gui/wxgui.py:71 ../monitors/MonitorCenter.py:1113
+#: ../monitors/MonitorCenter.py:1220
 msgid " OK "
 msgstr ""
 
-#: ../app/builder/dialogs/__init__.py:850
-#: ../app/builder/dialogs/__init__.py:1828
+#: ../app/builder/dialogs/__init__.py:856
+#: ../app/builder/dialogs/__init__.py:1870
 #: ../app/builder/dialogs/dlgsCode.py:122
-#: ../app/builder/dialogs/dlgsConditions.py:529 ../gui/qtgui.py:76
-#: ../gui/wxgui.py:72 ../monitors/MonitorCenter.py:1119
-#: ../monitors/MonitorCenter.py:1227
+#: ../app/builder/dialogs/dlgsConditions.py:529 ../gui/qtgui.py:96
+#: ../gui/wxgui.py:72 ../monitors/MonitorCenter.py:1115
+#: ../monitors/MonitorCenter.py:1223
 msgid " Cancel "
 msgstr ""
 
-#: ../app/builder/dialogs/__init__.py:1090
+#: ../app/builder/dialogs/__init__.py:1096
 #, python-format
 msgid "That name is in use (it's a %s). Try another name."
 msgstr ""
 
-#: ../app/builder/dialogs/__init__.py:1318
-#: ../app/builder/dialogs/__init__.py:1467
+#: ../app/builder/dialogs/__init__.py:1324
+#: ../app/builder/dialogs/__init__.py:1484
 msgid "No parameters set"
 msgstr ""
 
-#: ../app/builder/dialogs/__init__.py:1389
+#: ../app/builder/dialogs/__init__.py:1400
 msgid "No parameters set (select a file above)"
 msgstr ""
 
-#: ../app/builder/dialogs/__init__.py:1457
+#: ../app/builder/dialogs/__init__.py:1473
 #, python-format
 msgid ""
 "%(nCondition)i conditions, with %(nParam)i parameters\n"
 "%(paramStr)s"
 msgstr ""
 
-#: ../app/builder/dialogs/__init__.py:1466
-#: ../app/builder/dialogs/__init__.py:1689
+#: ../app/builder/dialogs/__init__.py:1482
+#: ../app/builder/dialogs/__init__.py:1730
 msgid "No parameters set (conditionsFile not found)"
 msgstr ""
 
-#: ../app/builder/dialogs/__init__.py:1563
+#: ../app/builder/dialogs/__init__.py:1580
 msgid "Could not read conditions from:\n"
 msgstr ""
 
-#: ../app/builder/dialogs/__init__.py:1571
+#: ../app/builder/dialogs/__init__.py:1600
 msgid "Configuration error in conditions file"
 msgstr ""
 
-#: ../app/builder/dialogs/__init__.py:1576
+#: ../app/builder/dialogs/__init__.py:1605
 msgid "Bad condition name(s) in file:\n"
 msgstr ""
 
-#: ../app/builder/dialogs/__init__.py:1592
+#: ../app/builder/dialogs/__init__.py:1621
 msgid "Builder variable(s) ({}) in file:{}"
 msgstr ""
 
-#: ../app/builder/dialogs/__init__.py:1678
+#: ../app/builder/dialogs/__init__.py:1718
 msgid "Badly formed condition name(s) in file:\n"
 msgstr ""
 
-#: ../app/builder/dialogs/__init__.py:1680
+#: ../app/builder/dialogs/__init__.py:1720
 msgid ""
 ".\n"
 "Need to be legal as var name; edit file, try again."
 msgstr ""
 
-#: ../app/builder/dialogs/__init__.py:1822
+#: ../app/builder/dialogs/__init__.py:1864
 msgid "Get help about this component"
 msgstr ""
 
@@ -2047,20 +2062,20 @@ msgstr ""
 msgid "Open an existing file"
 msgstr ""
 
-#: ../app/coder/coder.py:1884 ../app/coder/coder.py:1886
-#: ../app/coder/coder.py:1891 ../app/coder/coder.py:1892
+#: ../app/coder/coder.py:1872 ../app/coder/coder.py:1874
+#: ../app/coder/coder.py:1879 ../app/coder/coder.py:1880
 msgid "Color Picker -> clipboard"
 msgstr ""
 
-#: ../app/coder/coder.py:1903 ../app/coder/coder.py:1909
+#: ../app/coder/coder.py:1891 ../app/coder/coder.py:1897
 msgid "Run current script"
 msgstr ""
 
-#: ../app/coder/coder.py:1918 ../app/coder/coder.py:1924
+#: ../app/coder/coder.py:1906 ../app/coder/coder.py:1912
 msgid "Stop current script"
 msgstr ""
 
-#: ../app/coder/coder.py:1960 ../app/coder/coder.py:1985
+#: ../app/coder/coder.py:1948 ../app/coder/coder.py:1973
 #, python-format
 msgid ""
 "'%s' was modified outside of PsychoPy:\n"
@@ -2068,28 +2083,28 @@ msgid ""
 "Reload (without saving)?"
 msgstr ""
 
-#: ../app/coder/coder.py:1964 ../app/coder/coder.py:1989
+#: ../app/coder/coder.py:1952 ../app/coder/coder.py:1977
 msgid "Reloading file"
 msgstr ""
 
-#: ../app/coder/coder.py:2074 ../app/coder/coder.py:2438
+#: ../app/coder/coder.py:2062 ../app/coder/coder.py:2426
 #, python-format
 msgid "Save changes to %s before quitting?"
 msgstr ""
 
-#: ../app/coder/coder.py:2207
+#: ../app/coder/coder.py:2195
 msgid "Failed to open {}. Make sure that encoding of the file is utf-8."
 msgstr ""
 
-#: ../app/coder/coder.py:2258 ../app/coder/coder.py:2738
+#: ../app/coder/coder.py:2246 ../app/coder/coder.py:2726
 msgid "Analyzing code"
 msgstr ""
 
-#: ../app/coder/coder.py:2280
+#: ../app/coder/coder.py:2268
 msgid "Loading file"
 msgstr ""
 
-#: ../app/coder/coder.py:2333
+#: ../app/coder/coder.py:2321
 #, python-format
 msgid ""
 "File appears to have been modified outside of PsychoPy:\n"
@@ -2097,35 +2112,35 @@ msgid ""
 "OK to overwrite?"
 msgstr ""
 
-#: ../app/coder/coder.py:2345
+#: ../app/coder/coder.py:2333
 #, python-format
 msgid ""
 "File '%s' lacks write-permission:\n"
 "Will try save-as instead."
 msgstr ""
 
-#: ../app/coder/coder.py:2359
+#: ../app/coder/coder.py:2347
 msgid "Saving file"
 msgstr ""
 
-#: ../app/coder/coder.py:2371
+#: ../app/coder/coder.py:2359
 msgid "Analyzing current source code"
 msgstr ""
 
-#: ../app/coder/coder.py:2401
+#: ../app/coder/coder.py:2389
 msgid "Python scripts (*.py)|*.py|Text file (*.txt)|*.txt|Any file (*.*)|*.*"
 msgstr ""
 
-#: ../app/coder/coder.py:2404
+#: ../app/coder/coder.py:2392
 msgid "Python scripts (*.py)|*.py|Text file (*.txt)|*.txt|Any file (*.*)|*"
 msgstr ""
 
-#: ../app/coder/coder.py:2539
+#: ../app/coder/coder.py:2527
 #, python-format
 msgid "Save changes to %s before running?"
 msgstr ""
 
-#: ../app/coder/coder.py:2746
+#: ../app/coder/coder.py:2734
 msgid "ready"
 msgstr ""
 
@@ -2366,12 +2381,12 @@ msgstr ""
 msgid "Close current window"
 msgstr ""
 
-#: ../app/pavlovia_ui/_base.py:183
-msgid "Mandatory title summarizing the changes you're making in these files"
+#: ../app/pavlovia_ui/_base.py:177
+msgid "Title summarizing the changes you're making in these files"
 msgstr ""
 
-#: ../app/pavlovia_ui/_base.py:186
-msgid "Optional further details about the changes you're making in these files"
+#: ../app/pavlovia_ui/_base.py:180
+msgid "Optional details about the changes you're making in these files"
 msgstr ""
 
 #: ../app/pavlovia_ui/functions.py:44
@@ -2591,19 +2606,19 @@ msgstr ""
 msgid "Bio (250 chrs):"
 msgstr ""
 
-#: ../experiment/_experiment.py:480
+#: ../experiment/_experiment.py:452
 msgid ""
 "Name of the folder in which to save data and log files (blank defaults to"
 " the builder pref)"
 msgstr ""
 
-#: ../experiment/_experiment.py:517
+#: ../experiment/_experiment.py:492
 msgid ""
 "This parameter is not known by this version of PsychoPy. It might be "
 "worth upgrading"
 msgstr ""
 
-#: ../experiment/_experiment.py:524
+#: ../experiment/_experiment.py:499
 #, python-format
 msgid ""
 "Parameter %r is not known to this version of PsychoPy but has come from "
@@ -2611,8 +2626,8 @@ msgid ""
 "experiment may not run correctly in the current version."
 msgstr ""
 
-#: ../experiment/loops.py:60 ../experiment/loops.py:321
-#: ../experiment/loops.py:466
+#: ../experiment/loops.py:60 ../experiment/loops.py:339
+#: ../experiment/loops.py:484
 msgid "Name of this loop"
 msgstr ""
 
@@ -2651,72 +2666,72 @@ msgid ""
 " Leave blank to have a new random sequence on each run of the experiment."
 msgstr ""
 
-#: ../experiment/loops.py:108 ../experiment/loops.py:382
-#: ../experiment/loops.py:508
+#: ../experiment/loops.py:108 ../experiment/loops.py:400
+#: ../experiment/loops.py:526
 msgid ""
 "Indicates that this loop generates TRIALS, rather than BLOCKS of trials "
 "or stimuli within a trial. It alters how data files are output"
 msgstr ""
 
-#: ../experiment/loops.py:326
+#: ../experiment/loops.py:344
 msgid "(Minimum) number of trials in the staircase"
 msgstr ""
 
-#: ../experiment/loops.py:330
+#: ../experiment/loops.py:348
 msgid "The initial value of the parameter"
 msgstr ""
 
-#: ../experiment/loops.py:334
+#: ../experiment/loops.py:352
 msgid "The maximum value the parameter can take"
 msgstr ""
 
-#: ../experiment/loops.py:338
+#: ../experiment/loops.py:356
 msgid "The minimum value the parameter can take"
 msgstr ""
 
-#: ../experiment/loops.py:342
+#: ../experiment/loops.py:360
 msgid "The size of the jump at each step (can change on each 'reversal')"
 msgstr ""
 
-#: ../experiment/loops.py:347
+#: ../experiment/loops.py:365
 msgid ""
 "The units of the step size (e.g. 'linear' will add/subtract that value "
 "each step, whereas 'log' will ad that many log units)"
 msgstr ""
 
-#: ../experiment/loops.py:353
+#: ../experiment/loops.py:371
 msgid "The number of 'incorrect' answers before the value goes up"
 msgstr ""
 
-#: ../experiment/loops.py:358
+#: ../experiment/loops.py:376
 msgid "The number of 'correct' answers before the value goes down"
 msgstr ""
 
-#: ../experiment/loops.py:363
+#: ../experiment/loops.py:381
 msgid "Minimum number of times the staircase must change direction before ending"
 msgstr ""
 
-#: ../experiment/loops.py:372 ../experiment/loops.py:488
+#: ../experiment/loops.py:390 ../experiment/loops.py:506
 msgid "How should the next trial value(s) be chosen?"
 msgstr ""
 
-#: ../experiment/loops.py:377 ../experiment/loops.py:492
+#: ../experiment/loops.py:395 ../experiment/loops.py:510
 msgid "Where to loop from and to (see values currently shown in the flow view)"
 msgstr ""
 
-#: ../experiment/loops.py:470
+#: ../experiment/loops.py:488
 msgid "(Minimum) number of trials in *each* staircase"
 msgstr ""
 
-#: ../experiment/loops.py:475 ../experiment/loops.py:480
+#: ../experiment/loops.py:493 ../experiment/loops.py:498
 msgid "How to select the next staircase to run"
 msgstr ""
 
-#: ../experiment/loops.py:498
+#: ../experiment/loops.py:516
 msgid "A list of dictionaries describing the differences between each staircase"
 msgstr ""
 
-#: ../experiment/loops.py:503
+#: ../experiment/loops.py:521
 msgid "An xlsx or csv file specifying the parameters for each condition"
 msgstr ""
 
@@ -2791,35 +2806,35 @@ msgstr ""
 msgid "Disable component"
 msgstr ""
 
-#: ../experiment/components/_base.py:545
+#: ../experiment/components/_base.py:540
 msgid "Units of dimensions for this stimulus"
 msgstr ""
 
-#: ../experiment/components/_base.py:553
+#: ../experiment/components/_base.py:548
 msgid ""
 "Color of this stimulus (e.g. $[1,1,0], red ); Right-click to bring up a "
 "color-picker (rgb only)"
 msgstr ""
 
-#: ../experiment/components/_base.py:562
+#: ../experiment/components/_base.py:557
 msgid "Opacity of the stimulus (1=opaque, 0=fully transparent, 0.5=translucent)"
 msgstr ""
 
-#: ../experiment/components/_base.py:571
+#: ../experiment/components/_base.py:566
 msgid "Choice of color space for the color (rgb, dkl, lms, hsv)"
 msgstr ""
 
-#: ../experiment/components/_base.py:580
+#: ../experiment/components/_base.py:575
 msgid "Position of this stimulus (e.g. [1,2] )"
 msgstr ""
 
-#: ../experiment/components/_base.py:588
+#: ../experiment/components/_base.py:583
 msgid "Size of this stimulus (either a single value or x,y pair, e.g. 2.5, [1,2] "
 msgstr ""
 
-#: ../experiment/components/_base.py:601
-#: ../experiment/components/envelopegrating/__init__.py:68
-#: ../experiment/components/noise/__init__.py:86
+#: ../experiment/components/_base.py:596
+#: ../experiment/components/envelopegrating/__init__.py:71
+#: ../experiment/components/noise/__init__.py:94
 msgid "Orientation of this stimulus (in deg)"
 msgstr ""
 
@@ -2832,13 +2847,58 @@ msgid "How big is the aperture? (a single number for diameter)"
 msgstr ""
 
 #: ../experiment/components/aperture/__init__.py:52
+#: ../experiment/components/form/__init__.py:23
 #: ../experiment/components/ratingScale/__init__.py:34
-#: ../experiment/components/slider/__init__.py:29
+#: ../experiment/components/slider/__init__.py:30
 msgid "Size"
 msgstr ""
 
 #: ../experiment/components/aperture/__init__.py:53
 msgid "Where is the aperture centred?"
+msgstr ""
+
+#: ../experiment/components/brush/__init__.py:18
+msgid "Brush: a drawing tool"
+msgstr ""
+
+#: ../experiment/components/brush/__init__.py:21
+#: ../experiment/components/polygon/__init__.py:25
+msgid "Line color-space"
+msgstr ""
+
+#: ../experiment/components/brush/__init__.py:22
+#: ../experiment/components/polygon/__init__.py:26
+msgid "Line color"
+msgstr ""
+
+#: ../experiment/components/brush/__init__.py:23
+#: ../experiment/components/polygon/__init__.py:27
+msgid "Line width"
+msgstr ""
+
+#: ../experiment/components/brush/__init__.py:24
+#: ../localization/__init__.py:169
+msgid "Opacity"
+msgstr ""
+
+#: ../experiment/components/brush/__init__.py:58
+msgid ""
+"Line color of this brush; Right-click to bring up a color-picker (rgb "
+"only)"
+msgstr ""
+
+#: ../experiment/components/brush/__init__.py:67
+msgid "Width of the brush's line (always in pixels and limited to 10px max width)"
+msgstr ""
+
+#: ../experiment/components/brush/__init__.py:75
+#: ../experiment/components/polygon/__init__.py:86
+#: ../experiment/components/polygon/__init__.py:104
+msgid "Choice of color space for the fill color (rgb, dkl, lms, hsv)"
+msgstr ""
+
+#: ../experiment/components/brush/__init__.py:84
+msgid "The line opacity"
 msgstr ""
 
 #: ../experiment/components/cedrusBox/__init__.py:23
@@ -2848,6 +2908,7 @@ msgid ""
 msgstr ""
 
 #: ../experiment/components/cedrusBox/__init__.py:27
+#: ../experiment/components/joyButtons/__init__.py:30
 #: ../experiment/components/joystick/__init__.py:27
 msgid "Device number"
 msgstr ""
@@ -2856,7 +2917,7 @@ msgstr ""
 msgid "Use box timer"
 msgstr ""
 
-#: ../experiment/components/cedrusBox/__init__.py:65
+#: ../experiment/components/cedrusBox/__init__.py:67
 msgid ""
 "What is the 'correct' response? NB, buttons are labelled 0 to 6 on a "
 "7-button box. Enter 'None' (no quotes) if withholding a response is "
@@ -2864,18 +2925,19 @@ msgid ""
 "to compare to the key press."
 msgstr ""
 
-#: ../experiment/components/cedrusBox/__init__.py:73
+#: ../experiment/components/cedrusBox/__init__.py:75
 msgid "Keys to be read (blank for any) or key numbers separated by commas"
 msgstr ""
 
-#: ../experiment/components/cedrusBox/__init__.py:77
+#: ../experiment/components/cedrusBox/__init__.py:79
+#: ../experiment/components/joyButtons/__init__.py:119
 #: ../experiment/components/joystick/__init__.py:113
 msgid ""
 "Device number, if you have multiple devices which one do you want (0, 1, "
 "2...)"
 msgstr ""
 
-#: ../experiment/components/cedrusBox/__init__.py:92
+#: ../experiment/components/cedrusBox/__init__.py:94
 msgid "According to Cedrus the response box timer has a drift - use with caution!"
 msgstr ""
 
@@ -3142,93 +3204,112 @@ msgid "Envelope modulation depth"
 msgstr ""
 
 #: ../experiment/components/envelopegrating/__init__.py:34
-msgid "Is modulation a beat"
+msgid "Power to which envelope is raised"
 msgstr ""
 
 #: ../experiment/components/envelopegrating/__init__.py:35
+msgid "Is modulation a beat"
+msgstr ""
+
+#: ../experiment/components/envelopegrating/__init__.py:36
 #: ../experiment/components/grating/__init__.py:26
-#: ../experiment/components/noise/__init__.py:40
+#: ../experiment/components/noise/__init__.py:43
 msgid "OpenGL blend mode"
 msgstr ""
 
-#: ../experiment/components/envelopegrating/__init__.py:71
+#: ../experiment/components/envelopegrating/__init__.py:74
 msgid ""
 "The (2D) texture of the background - can be sin, sqr, sinXsin... or a "
 "filename (including path)"
 msgstr ""
 
-#: ../experiment/components/envelopegrating/__init__.py:80
+#: ../experiment/components/envelopegrating/__init__.py:83
 #: ../experiment/components/grating/__init__.py:62
-#: ../experiment/components/noise/__init__.py:91
+#: ../experiment/components/noise/__init__.py:97
 #: ../experiment/components/patch/__init__.py:61
 msgid ""
 "An image to define the alpha mask (ie shape)- gauss, circle... or a "
 "filename (including path)"
 msgstr ""
 
-#: ../experiment/components/envelopegrating/__init__.py:89
+#: ../experiment/components/envelopegrating/__init__.py:92
 msgid "Contrast of background carrier"
 msgstr ""
 
-#: ../experiment/components/envelopegrating/__init__.py:97
+#: ../experiment/components/envelopegrating/__init__.py:100
 msgid ""
 "Spatial frequency of background carrier repeats across the grating in 1 "
 "or 2 dimensions, e.g. 4 or [2,3]"
 msgstr ""
 
-#: ../experiment/components/envelopegrating/__init__.py:106
+#: ../experiment/components/envelopegrating/__init__.py:109
 msgid "Spatial positioning of the background carrier (wraps in range 0-1.0)"
 msgstr ""
 
-#: ../experiment/components/envelopegrating/__init__.py:115
+#: ../experiment/components/envelopegrating/__init__.py:118
 #: ../experiment/components/grating/__init__.py:89
-#: ../experiment/components/noise/__init__.py:125
+#: ../experiment/components/noise/__init__.py:136
 #: ../experiment/components/patch/__init__.py:88
 msgid ""
 "Resolution of the texture for standard ones such as sin, sqr etc. For "
 "most cases a value of 256 pixels will suffice"
 msgstr ""
 
-#: ../experiment/components/envelopegrating/__init__.py:125
+#: ../experiment/components/envelopegrating/__init__.py:128
 #: ../experiment/components/grating/__init__.py:99
 #: ../experiment/components/image/__init__.py:83
-#: ../experiment/components/noise/__init__.py:135
+#: ../experiment/components/noise/__init__.py:146
 #: ../experiment/components/patch/__init__.py:98
 #: ../experiment/components/polygon/__init__.py:131
 msgid "How should the image be interpolated if/when rescaled"
 msgstr ""
 
-#: ../experiment/components/envelopegrating/__init__.py:134
+#: ../experiment/components/envelopegrating/__init__.py:137
 msgid ""
 "The (2D) texture of the envelope - can be sin, sqr, sinXsin... or a "
 "filename (including path)"
 msgstr ""
 
-#: ../experiment/components/envelopegrating/__init__.py:143
+#: ../experiment/components/envelopegrating/__init__.py:146
 msgid ""
 "Spatial frequency of the modulation envelope repeats across the grating "
 "in 1 or 2 dimensions, e.g. 4 or [2,3]"
 msgstr ""
 
-#: ../experiment/components/envelopegrating/__init__.py:152
+#: ../experiment/components/envelopegrating/__init__.py:155
 msgid "Spatial positioning of the modulation envelope(wraps in range 0-1.0)"
 msgstr ""
 
-#: ../experiment/components/envelopegrating/__init__.py:161
+#: ../experiment/components/envelopegrating/__init__.py:164
 msgid "Orientation of the modulation envelope(wraps in range 0-360)"
 msgstr ""
 
-#: ../experiment/components/envelopegrating/__init__.py:170
+#: ../experiment/components/envelopegrating/__init__.py:173
 msgid "Modulation depth of modulation envelope"
 msgstr ""
 
-#: ../experiment/components/envelopegrating/__init__.py:178
+#: ../experiment/components/envelopegrating/__init__.py:181
+msgid ""
+"Power of modulation envelope. The modulator will be raised to this power "
+"according to the equation S=cC*(1+mM)^power, where C is the carrier and M"
+" is the modulator. and c and m are there respective contrast and "
+"modulation depth. Only works with AM envelopes (hence +1) in equation. "
+"Power is ignored if a beat is requested. This is used to obtain the "
+"square root of the modulator (power = 0.5) which is useful if combining "
+"two envelope gratings with different carriers and a 180 degree phase "
+"shift as the resulting combined signal will not have any reduction in "
+"local contrast at any point in the image. This is similar - but not "
+"identical to - the method used by Landy and Oruc, Vis Res 2002. Note "
+"overall contrast (apparent carrier contrast) will be altered."
+msgstr ""
+
+#: ../experiment/components/envelopegrating/__init__.py:203
 msgid ""
 "Do you want a 'beat'? [beat = carrier*envelope, no beat = "
 "carrier*(1+envelope), True/False, Y/N]"
 msgstr ""
 
-#: ../experiment/components/envelopegrating/__init__.py:187
+#: ../experiment/components/envelopegrating/__init__.py:212
 msgid ""
 "OpenGL Blendmode. Avg is most common mode in PsychoPy, add is useful if "
 "combining a beat with the carrier image or numpy array at point of "
@@ -3243,6 +3324,64 @@ msgstr ""
 msgid ""
 "How often should the eyetracker state (x,y,pupilsize...) be stored? On "
 "every video frame, every click or just at the end of the Routine?"
+msgstr ""
+
+#: ../experiment/components/form/__init__.py:18
+msgid "Form: a Psychopy survey tool"
+msgstr ""
+
+#: ../experiment/components/form/__init__.py:21
+msgid "Items"
+msgstr ""
+
+#: ../experiment/components/form/__init__.py:22
+msgid "Text Height"
+msgstr ""
+
+#: ../experiment/components/form/__init__.py:24
+msgid "Pos"
+msgstr ""
+
+#: ../experiment/components/form/__init__.py:25
+msgid "Item Padding"
+msgstr ""
+
+#: ../experiment/components/form/__init__.py:26
+msgid "Data Format"
+msgstr ""
+
+#: ../experiment/components/form/__init__.py:27
+msgid "Randomize"
+msgstr ""
+
+#: ../experiment/components/form/__init__.py:73
+msgid "The csv filename containing the items for your survey."
+msgstr ""
+
+#: ../experiment/components/form/__init__.py:79
+msgid ""
+"Size of the Form on screen in 'height' units. e.g. (1, .7) height units "
+"for horizontal,and vertical, respectively"
+msgstr ""
+
+#: ../experiment/components/form/__init__.py:87
+msgid "x,y position of the form on screen"
+msgstr ""
+
+#: ../experiment/components/form/__init__.py:93
+msgid "The size of the item text for Form"
+msgstr ""
+
+#: ../experiment/components/form/__init__.py:99
+msgid "Do you want to randomize the order of your questions?"
+msgstr ""
+
+#: ../experiment/components/form/__init__.py:105
+msgid "The padding or space between items."
+msgstr ""
+
+#: ../experiment/components/form/__init__.py:112
+msgid "Store item data by columns, or rows"
 msgstr ""
 
 #: ../experiment/components/grating/__init__.py:17
@@ -3342,7 +3481,7 @@ msgstr ""
 msgid "Lights off"
 msgstr ""
 
-#: ../experiment/components/ioLabs/__init__.py:66
+#: ../experiment/components/ioLabs/__init__.py:68
 msgid ""
 "What is the 'correct' response? NB, buttons are labelled 0 to 7 on a "
 "8-button box. Enter 'None' (no quotes) if withholding a response is "
@@ -3350,20 +3489,89 @@ msgid ""
 "to compare to the key press."
 msgstr ""
 
-#: ../experiment/components/ioLabs/__init__.py:76
+#: ../experiment/components/ioLabs/__init__.py:78
 msgid "Choose which (if any) responses to store at end of a trial"
 msgstr ""
 
-#: ../experiment/components/ioLabs/__init__.py:80
+#: ../experiment/components/ioLabs/__init__.py:82
 msgid "Active buttons, such as '1,6', '(1,2,5,6)' or '0' (without quotes)"
 msgstr ""
 
-#: ../experiment/components/ioLabs/__init__.py:92
+#: ../experiment/components/ioLabs/__init__.py:94
 msgid "Turn ON the lights for the active buttons?"
 msgstr ""
 
-#: ../experiment/components/ioLabs/__init__.py:98
+#: ../experiment/components/ioLabs/__init__.py:100
 msgid "Turn OFF all lights at the end of each routine?"
+msgstr ""
+
+#: ../experiment/components/joyButtons/__init__.py:22
+msgid "JoyButtons: check and record joystick/gamepad button presses"
+msgstr ""
+
+#: ../experiment/components/joyButtons/__init__.py:25
+msgid "Allowed buttons"
+msgstr ""
+
+#: ../experiment/components/joyButtons/__init__.py:26
+#: ../experiment/components/keyboard/__init__.py:33
+msgid "Store"
+msgstr ""
+
+#: ../experiment/components/joyButtons/__init__.py:27
+#: ../experiment/components/keyboard/__init__.py:34
+#: ../experiment/components/movie/__init__.py:21
+#: ../experiment/components/ratingScale/__init__.py:38
+#: ../experiment/components/slider/__init__.py:32
+msgid "Force end of Routine"
+msgstr ""
+
+#: ../experiment/components/joyButtons/__init__.py:28
+#: ../experiment/components/keyboard/__init__.py:35
+msgid "Store correct"
+msgstr ""
+
+#: ../experiment/components/joyButtons/__init__.py:29
+#: ../experiment/components/keyboard/__init__.py:36
+msgid "Correct answer"
+msgstr ""
+
+#: ../experiment/components/joyButtons/__init__.py:31
+#: ../experiment/components/sound/__init__.py:25
+msgid "sync RT with screen"
+msgstr ""
+
+#: ../experiment/components/joyButtons/__init__.py:65
+msgid "A comma-separated list of button numbers, such as 0,1,2,3,4"
+msgstr ""
+
+#: ../experiment/components/joyButtons/__init__.py:75
+#: ../experiment/components/keyboard/__init__.py:90
+msgid "Choose which (if any) responses to store at the end of a trial"
+msgstr ""
+
+#: ../experiment/components/joyButtons/__init__.py:84
+#: ../experiment/components/keyboard/__init__.py:99
+msgid "Should a response force the end of the Routine (e.g end the trial)?"
+msgstr ""
+
+#: ../experiment/components/joyButtons/__init__.py:92
+#: ../experiment/components/keyboard/__init__.py:107
+msgid "Do you want to save the response as correct/incorrect?"
+msgstr ""
+
+#: ../experiment/components/joyButtons/__init__.py:100
+#: ../experiment/components/keyboard/__init__.py:115
+msgid ""
+"What is the 'correct' key? Might be helpful to add a correctAns column "
+"and use $correctAns to compare to the key press."
+msgstr ""
+
+#: ../experiment/components/joyButtons/__init__.py:110
+#: ../experiment/components/keyboard/__init__.py:125
+msgid ""
+"A reaction time to a visual stimulus should be based on when the screen "
+"flipped"
 msgstr ""
 
 #: ../experiment/components/joystick/__init__.py:19
@@ -3431,75 +3639,32 @@ msgstr ""
 msgid "Buttons to be read (blank for any) numbers separated by commas"
 msgstr ""
 
-#: ../experiment/components/keyboard/__init__.py:23
+#: ../experiment/components/keyboard/__init__.py:28
 msgid "Keyboard: check and record keypresses"
 msgstr ""
 
-#: ../experiment/components/keyboard/__init__.py:26
+#: ../experiment/components/keyboard/__init__.py:31
 msgid "Allowed keys"
 msgstr ""
 
-#: ../experiment/components/keyboard/__init__.py:27
+#: ../experiment/components/keyboard/__init__.py:32
 msgid "Discard previous"
 msgstr ""
 
-#: ../experiment/components/keyboard/__init__.py:28
-msgid "Store"
-msgstr ""
-
-#: ../experiment/components/keyboard/__init__.py:29
-#: ../experiment/components/movie/__init__.py:20
-#: ../experiment/components/ratingScale/__init__.py:38
-#: ../experiment/components/slider/__init__.py:31
-msgid "Force end of Routine"
-msgstr ""
-
-#: ../experiment/components/keyboard/__init__.py:30
-msgid "Store correct"
-msgstr ""
-
-#: ../experiment/components/keyboard/__init__.py:31
-msgid "Correct answer"
-msgstr ""
-
-#: ../experiment/components/keyboard/__init__.py:32
+#: ../experiment/components/keyboard/__init__.py:37
 msgid "Sync timing with screen"
 msgstr ""
 
-#: ../experiment/components/keyboard/__init__.py:65
+#: ../experiment/components/keyboard/__init__.py:70
 msgid ""
 "A comma-separated list of keys (with quotes), such as "
 "'q','right','space','left'"
 msgstr ""
 
-#: ../experiment/components/keyboard/__init__.py:77
+#: ../experiment/components/keyboard/__init__.py:82
 msgid ""
 "Do you want to discard all responses occuring before the onset of this "
 "component?"
-msgstr ""
-
-#: ../experiment/components/keyboard/__init__.py:85
-msgid "Choose which (if any) responses to store at the end of a trial"
-msgstr ""
-
-#: ../experiment/components/keyboard/__init__.py:94
-msgid "Should a response force the end of the Routine (e.g end the trial)?"
-msgstr ""
-
-#: ../experiment/components/keyboard/__init__.py:102
-msgid "Do you want to save the response as correct/incorrect?"
-msgstr ""
-
-#: ../experiment/components/keyboard/__init__.py:110
-msgid ""
-"What is the 'correct' key? Might be helpful to add a correctAns column "
-"and use $correctAns to compare to the key press."
-msgstr ""
-
-#: ../experiment/components/keyboard/__init__.py:120
-msgid ""
-"A reaction time to a visual stimulus should be based on when the screen "
-"flipped"
 msgstr ""
 
 #: ../experiment/components/microphone/__init__.py:19
@@ -3555,8 +3720,8 @@ msgstr ""
 
 #: ../experiment/components/mouse/__init__.py:92
 msgid ""
-"If the mouse button is already down when we startchecking then wait for "
-"it to be released beforerecording as a new click."
+"If the mouse button is already down when we start checking then wait for "
+"it to be released before recording as a new click."
 msgstr ""
 
 #: ../experiment/components/mouse/__init__.py:111
@@ -3566,43 +3731,51 @@ msgid ""
 "all the clickable objects have all these params."
 msgstr ""
 
-#: ../experiment/components/movie/__init__.py:16
+#: ../experiment/components/movie/__init__.py:17
 msgid "Movie: play movie files"
 msgstr ""
 
-#: ../experiment/components/movie/__init__.py:19
+#: ../experiment/components/movie/__init__.py:20
 msgid "Movie file"
 msgstr ""
 
-#: ../experiment/components/movie/__init__.py:21
+#: ../experiment/components/movie/__init__.py:22
 msgid "backend"
 msgstr ""
 
-#: ../experiment/components/movie/__init__.py:22
+#: ../experiment/components/movie/__init__.py:23
 msgid "No audio"
 msgstr ""
 
-#: ../experiment/components/movie/__init__.py:50
+#: ../experiment/components/movie/__init__.py:54
 #: ../experiment/components/sound/__init__.py:51
 msgid "When does the component end? (blank to use the duration of the media)"
 msgstr ""
 
-#: ../experiment/components/movie/__init__.py:54
+#: ../experiment/components/movie/__init__.py:58
 msgid "A filename for the movie (including path)"
 msgstr ""
 
-#: ../experiment/components/movie/__init__.py:61
+#: ../experiment/components/movie/__init__.py:65
 msgid "What underlying lib to use for loading movies"
 msgstr ""
 
-#: ../experiment/components/movie/__init__.py:69
+#: ../experiment/components/movie/__init__.py:73
 msgid ""
 "Prevent the audio stream from being loaded/processed (moviepy and opencv "
 "only)"
 msgstr ""
 
-#: ../experiment/components/movie/__init__.py:76
+#: ../experiment/components/movie/__init__.py:80
 msgid "Should the end of the movie cause the end of the routine (e.g. trial)?"
+msgstr ""
+
+#: ../experiment/components/movie/__init__.py:88
+msgid "Whether the movie should loop back to the beginning on completion."
+msgstr ""
+
+#: ../experiment/components/movie/__init__.py:93
+msgid "Loop playback"
 msgstr ""
 
 #: ../experiment/components/noise/__init__.py:17
@@ -3641,7 +3814,6 @@ msgid "Skew in frequency spectrum"
 msgstr ""
 
 #: ../experiment/components/noise/__init__.py:31
-#: ../experiment/components/noise/__init__.py:159
 msgid "Base spatial frequency"
 msgstr ""
 
@@ -3654,108 +3826,174 @@ msgid "Orientation bandwidth for Gabor noise"
 msgstr ""
 
 #: ../experiment/components/noise/__init__.py:34
-msgid "Order of filter"
+msgid "Orientation for Gabor filter"
 msgstr ""
 
 #: ../experiment/components/noise/__init__.py:35
-msgid "Upper cut off frequency"
+msgid "Order of filter"
 msgstr ""
 
 #: ../experiment/components/noise/__init__.py:36
-msgid "Lower cut off frequency"
+msgid "Upper cut off frequency"
 msgstr ""
 
 #: ../experiment/components/noise/__init__.py:37
-msgid "Number of standard deviations at which to clip noise"
+msgid "Lower cut off frequency"
 msgstr ""
 
 #: ../experiment/components/noise/__init__.py:38
-msgid "How to update noise sample"
+msgid "Number of standard deviations at which to clip noise"
 msgstr ""
 
 #: ../experiment/components/noise/__init__.py:39
+msgid "Apply filter to noise sample"
+msgstr ""
+
+#: ../experiment/components/noise/__init__.py:40
+msgid "Radomize image component"
+msgstr ""
+
+#: ../experiment/components/noise/__init__.py:41
+msgid "How to update noise sample"
+msgstr ""
+
+#: ../experiment/components/noise/__init__.py:42
 msgid "When to update noise sample"
 msgstr ""
 
-#: ../experiment/components/noise/__init__.py:74
+#: ../experiment/components/noise/__init__.py:82
 msgid ""
 "An image from which to derive the frequency spectrum for the noise. Give "
 "filename (including path)"
 msgstr ""
 
-#: ../experiment/components/noise/__init__.py:100
+#: ../experiment/components/noise/__init__.py:106
 msgid "Michaelson contrast of the image"
 msgstr ""
 
-#: ../experiment/components/noise/__init__.py:108
+#: ../experiment/components/noise/__init__.py:114
 msgid ""
-"Final spatial frequency of image in 1 or 2 dimensions, e.g. 4 or [2,3] "
-"use None to set to 1 cycle per unit length or 1 cycle per image if "
-"units=pix"
+"Final spatial frequency of image in 1 or 2 dimensions, e.g. 4 or [2,3]. "
+"Use None to set to 1 copy of noise per unit length of image or 1 copy of "
+"noise per image if units=pix. Set to 1/size (or [1/size,1/size]) where "
+"size is a number (or variable) equal to the size of the stimulus to get "
+"one copy of noise per image regardless of the units."
 msgstr ""
 
-#: ../experiment/components/noise/__init__.py:116
-msgid "Spatial positioning of the image  (wraps in range 0-1.0)"
+#: ../experiment/components/noise/__init__.py:127
+msgid ""
+"Spatial positioning of the noise within the stimulus (wraps in range "
+"0-1.0)"
 msgstr ""
 
-#: ../experiment/components/noise/__init__.py:143
+#: ../experiment/components/noise/__init__.py:154
 msgid ""
 "Type of noise (Binary, Normal, Gabor, Isotropic, White, Coloured, "
 "Filtered, Image)"
 msgstr ""
 
-#: ../experiment/components/noise/__init__.py:151
-msgid "(Binary, Normal an Uniform only) Size of noise elements"
+#: ../experiment/components/noise/__init__.py:162
+msgid ""
+"Apply filter to noise sample? [Butterworth, Gabor, Isoptopic]. A filter "
+"with parameters taken from the either the Filtered (Butterworth) or "
+"Gabor/Isotropic tab will be applied to OTHER noise types. [NOTE: if noise"
+" of the same type as the filter is requested the filter is applied, once "
+"only, to a white noise sample.]"
 msgstr ""
 
-#: ../experiment/components/noise/__init__.py:167
+#: ../experiment/components/noise/__init__.py:174
+msgid ""
+"Which image component should be randomised? [Amplitude,Phase]. "
+"Randomizing amplitude will keep the phase spectrum of the image but set "
+"the amplitude spectrum to random values [0...1]. This keeps spatial "
+"structure in tact. Randoming the phase spectrum will keep the amplitude "
+"spectrum of the image  but set the phase spectrum to random values "
+"[-pi...pi] in radians. This makes a noise sample with no obvious "
+"structure. "
+msgstr ""
+
+#: ../experiment/components/noise/__init__.py:186
+msgid ""
+"(Binary, Normal and Uniform only) Size of noise elements in the stimulus "
+"units."
+msgstr ""
+
+#: ../experiment/components/noise/__init__.py:194
+msgid ""
+"Base spatial frequency in cycles per unit length If units = pix this "
+"value should be < 0.5."
+msgstr ""
+
+#: ../experiment/components/noise/__init__.py:203
 msgid "Spatial frequency bandwidth in octaves - Full width half height"
 msgstr ""
 
-#: ../experiment/components/noise/__init__.py:175
+#: ../experiment/components/noise/__init__.py:211
 msgid "Orientation bandwidth in degrees (Gabor only) - Full width half height"
 msgstr ""
 
-#: ../experiment/components/noise/__init__.py:183
+#: ../experiment/components/noise/__init__.py:219
 msgid ""
-"Exponent for spectral slope (A=f^Exponent) of noise negative exponents "
-"look nice. -1='pink noise', 0='white noise' (changes the spatial "
-"frequency spectrum - does not make the noise colourful)"
+"Orientation of Gabor filter in degrees. Used to set the orienation of a "
+"Gabor filter to be applied to another noise sample with a different "
+"overall orientation. The best way to set the orientation of a Gabor noise"
+" sample is to leave this as 0 degree and use the overall orientation on "
+"the Advanced tab to vary the dominant orientation of the noise. If using "
+"this setting for orientation it is strongly recomended to set the "
+"interpolation method to 'linear' on the Advanced tab to avoid "
+"pixelization."
 msgstr ""
 
-#: ../experiment/components/noise/__init__.py:191
+#: ../experiment/components/noise/__init__.py:234
+msgid ""
+"Exponent for the slope of the filter's amplitude spectrum (A=f^Exponent)."
+" 0 = flat, -1 = slope of 1/f. When used on its own the 'filtered' noise "
+"type applies the filter to white noise so the resulting noise samples "
+"have the spectral properties of the filter.  When filtering a noise "
+"sample of another type this term takes the original spectrum and "
+"multiplies it by a ramp in frequency space with values set by the "
+"exponent. It does not force the spectrum to a specific slope. "
+msgstr ""
+
+#: ../experiment/components/noise/__init__.py:247
 msgid "Order of filter - higher = steeper fall off, zero = no filter"
 msgstr ""
 
-#: ../experiment/components/noise/__init__.py:199
-msgid "Upper cutoff frequency"
+#: ../experiment/components/noise/__init__.py:255
+msgid ""
+"Upper cutoff frequency in cycles per unit length. Set very high to avoid "
+"an upper cutoff and make a high pass filter."
 msgstr ""
 
-#: ../experiment/components/noise/__init__.py:207
-msgid "Lower cutoff frequency"
+#: ../experiment/components/noise/__init__.py:264
+msgid ""
+"Lower cutoff frequency in cycles per unit length. Set to zero to avoid a "
+"lower cuttoff and make a low pass filter."
 msgstr ""
 
-#: ../experiment/components/noise/__init__.py:215
+#: ../experiment/components/noise/__init__.py:273
 msgid ""
 "Truncate high and low values beyond stated standard deviations from mean "
-"(not used for binary or uniform noise; scales rather than clips normal "
-"noise). The higher this is the lower the final RMS contrast. If low noise"
-" may appear binary"
+"and rescale greyscale range. This is not used at all for 'binary' or "
+"'uniform' noise and scales rather than clips 'normal' noise). The higher "
+"this is the lower the final RMS contrast. If very low noise may appear "
+"binarised. NOTE: If a filter is used clipping and rescaling are applied "
+"after the filter, regardless of the noise type."
 msgstr ""
 
-#: ../experiment/components/noise/__init__.py:223
+#: ../experiment/components/noise/__init__.py:284
 msgid ""
 "How to update noise if not otherwise required by other changes (none, "
 "repeat, N-frames, Seconds)"
 msgstr ""
 
-#: ../experiment/components/noise/__init__.py:231
+#: ../experiment/components/noise/__init__.py:292
 msgid ""
 "How often to update noise (in frames or seconds) - can be a variable, "
 "ignored if any noise characteristic is updating on every frame"
 msgstr ""
 
-#: ../experiment/components/noise/__init__.py:239
+#: ../experiment/components/noise/__init__.py:300
 msgid ""
 "OpenGL Blendmode [avg, add (avg is most common mode in PsychoPy, add is "
 "used if you want to generate the sum of two components)]"
@@ -3838,18 +4076,6 @@ msgstr ""
 msgid "Fill color"
 msgstr ""
 
-#: ../experiment/components/polygon/__init__.py:25
-msgid "Line color-space"
-msgstr ""
-
-#: ../experiment/components/polygon/__init__.py:26
-msgid "Line color"
-msgstr ""
-
-#: ../experiment/components/polygon/__init__.py:27
-msgid "Line width"
-msgstr ""
-
 #: ../experiment/components/polygon/__init__.py:29
 #: ../localization/__init__.py:172
 msgid "Size [w,h]"
@@ -3867,11 +4093,6 @@ msgstr ""
 msgid ""
 "What shape is this? With 'regular polygon...' you can set number of "
 "vertices"
-msgstr ""
-
-#: ../experiment/components/polygon/__init__.py:86
-#: ../experiment/components/polygon/__init__.py:104
-msgid "Choice of color space for the fill color (rgb, dkl, lms, hsv)"
 msgstr ""
 
 #: ../experiment/components/polygon/__init__.py:95
@@ -3955,7 +4176,7 @@ msgid "Visual analog scale"
 msgstr ""
 
 #: ../experiment/components/ratingScale/__init__.py:27
-#: ../experiment/components/slider/__init__.py:26
+#: ../experiment/components/slider/__init__.py:27
 msgid "Category choices"
 msgstr ""
 
@@ -3972,7 +4193,7 @@ msgid "Highest value"
 msgstr ""
 
 #: ../experiment/components/ratingScale/__init__.py:31
-#: ../experiment/components/slider/__init__.py:27
+#: ../experiment/components/slider/__init__.py:28
 msgid "Labels"
 msgstr ""
 
@@ -3985,7 +4206,7 @@ msgid "Marker start"
 msgstr ""
 
 #: ../experiment/components/ratingScale/__init__.py:35
-#: ../experiment/components/slider/__init__.py:30
+#: ../experiment/components/slider/__init__.py:31
 #: ../localization/__init__.py:170
 msgid "Position [x,y]"
 msgstr ""
@@ -4007,17 +4228,17 @@ msgid "Single click"
 msgstr ""
 
 #: ../experiment/components/ratingScale/__init__.py:41
-#: ../experiment/components/slider/__init__.py:32
+#: ../experiment/components/slider/__init__.py:33
 msgid "Store history"
 msgstr ""
 
 #: ../experiment/components/ratingScale/__init__.py:42
-#: ../experiment/components/slider/__init__.py:33
+#: ../experiment/components/slider/__init__.py:34
 msgid "Store rating"
 msgstr ""
 
 #: ../experiment/components/ratingScale/__init__.py:43
-#: ../experiment/components/slider/__init__.py:34
+#: ../experiment/components/slider/__init__.py:35
 msgid "Store rating time"
 msgstr ""
 
@@ -4078,7 +4299,7 @@ msgid "Should the accept button by visible?"
 msgstr ""
 
 #: ../experiment/components/ratingScale/__init__.py:160
-#: ../experiment/components/slider/__init__.py:178
+#: ../experiment/components/slider/__init__.py:179
 msgid "store the rating"
 msgstr ""
 
@@ -4087,7 +4308,7 @@ msgid "store the time taken to make the choice (in seconds)"
 msgstr ""
 
 #: ../experiment/components/ratingScale/__init__.py:171
-#: ../experiment/components/slider/__init__.py:191
+#: ../experiment/components/slider/__init__.py:192
 msgid "store the history of (selection, time)"
 msgstr ""
 
@@ -4106,7 +4327,7 @@ msgid "height of tick marks (1 is upward, 0 is hidden, -1 is downward)"
 msgstr ""
 
 #: ../experiment/components/ratingScale/__init__.py:194
-#: ../experiment/components/slider/__init__.py:125
+#: ../experiment/components/slider/__init__.py:126
 msgid "x,y position on the screen"
 msgstr ""
 
@@ -4150,7 +4371,7 @@ msgid "Monitor"
 msgstr ""
 
 #: ../experiment/components/settings/__init__.py:49
-#: ../experiment/components/slider/__init__.py:155
+#: ../experiment/components/slider/__init__.py:156
 #: ../localization/__init__.py:167
 msgid "Color"
 msgstr ""
@@ -4299,136 +4520,158 @@ msgstr ""
 msgid "Should the mouse be visible on screen?"
 msgstr ""
 
-#: ../experiment/components/settings/__init__.py:217
+#: ../experiment/components/settings/__init__.py:218
+msgid "Which Python sound engine do you want to play your sounds?"
+msgstr ""
+
+#: ../experiment/components/settings/__init__.py:219
+msgid "Audio library"
+msgstr ""
+
+#: ../experiment/components/settings/__init__.py:222
+msgid "Use prefs"
+msgstr ""
+
+#: ../experiment/components/settings/__init__.py:233
+msgid ""
+"How important is audio latency for you? If essential then you may need to"
+" get all your sounds in correct formats."
+msgstr ""
+
+#: ../experiment/components/settings/__init__.py:234
+msgid "Audio latency priority"
+msgstr ""
+
+#: ../experiment/components/settings/__init__.py:239
 msgid ""
 "Code to create your custom file name base. Don't give a file extension - "
 "this will be added."
 msgstr ""
 
-#: ../experiment/components/settings/__init__.py:222
+#: ../experiment/components/settings/__init__.py:244
 msgid ""
 "Save a detailed log (more detailed than the excel/csv files) of the "
 "entire experiment"
 msgstr ""
 
-#: ../experiment/components/settings/__init__.py:227
-#: ../experiment/components/settings/__init__.py:232
+#: ../experiment/components/settings/__init__.py:249
+#: ../experiment/components/settings/__init__.py:254
 msgid ""
 "Save data from loops in comma-separated-value (.csv) format for maximum "
 "portability"
 msgstr ""
 
-#: ../experiment/components/settings/__init__.py:237
+#: ../experiment/components/settings/__init__.py:259
 msgid "Save data from loops in Excel (.xlsx) format"
 msgstr ""
 
-#: ../experiment/components/settings/__init__.py:241
+#: ../experiment/components/settings/__init__.py:263
 msgid ""
 "Save data from loops in psydat format. This is useful for python "
 "programmers to generate analysis scripts."
 msgstr ""
 
-#: ../experiment/components/settings/__init__.py:248
+#: ../experiment/components/settings/__init__.py:270
 msgid ""
 "How much output do you want in the log files? ('error' is fewest "
 "messages, 'debug' is most)"
 msgstr ""
 
-#: ../experiment/components/settings/__init__.py:259
+#: ../experiment/components/settings/__init__.py:281
 msgid "Place the HTML files will be saved locally "
 msgstr ""
 
-#: ../experiment/components/settings/__init__.py:263
+#: ../experiment/components/settings/__init__.py:285
 msgid ""
 "Should we package a copy of the JS libs or useremote copies "
 "(http:/www.psychopy.org/js)?"
 msgstr ""
 
-#: ../experiment/components/settings/__init__.py:268
+#: ../experiment/components/settings/__init__.py:290
 msgid ""
 "Where should participants be redirected after the experiment on "
 "completion\n"
 " INSERT COMPLETION URL E.G.?"
 msgstr ""
 
-#: ../experiment/components/settings/__init__.py:273
+#: ../experiment/components/settings/__init__.py:295
 msgid ""
 "Where participants are redirected if they do not complete the task\n"
 " INSERT INCOMPLETION URL E.G.?"
 msgstr ""
 
-#: ../experiment/components/settings/__init__.py:281
+#: ../experiment/components/settings/__init__.py:303
 msgid "When to export experiment to the HTML folder."
 msgstr ""
 
-#: ../experiment/components/slider/__init__.py:22
+#: ../experiment/components/slider/__init__.py:23
 msgid "Slider: A simple, flexible object for getting ratings"
 msgstr ""
 
-#: ../experiment/components/slider/__init__.py:28
+#: ../experiment/components/slider/__init__.py:29
 msgid "Ticks"
 msgstr ""
 
-#: ../experiment/components/slider/__init__.py:96
+#: ../experiment/components/slider/__init__.py:97
 msgid "Tick positions (numerical) on the scale, separated by commas"
 msgstr ""
 
-#: ../experiment/components/slider/__init__.py:103
+#: ../experiment/components/slider/__init__.py:104
 msgid "Labels for the tick marks on the scale, separated by commas"
 msgstr ""
 
-#: ../experiment/components/slider/__init__.py:110
+#: ../experiment/components/slider/__init__.py:111
 msgid ""
 "Specifies the minimum step size (0 for a continuous scale, 1 for integer "
 "rating scale)"
 msgstr ""
 
-#: ../experiment/components/slider/__init__.py:113
+#: ../experiment/components/slider/__init__.py:114
 msgid "Granularity"
 msgstr ""
 
-#: ../experiment/components/slider/__init__.py:117
+#: ../experiment/components/slider/__init__.py:118
 msgid ""
 "Should setting a rating (releasing the mouse) cause the end of the "
 "routine (e.g. trial)?"
 msgstr ""
 
-#: ../experiment/components/slider/__init__.py:132
+#: ../experiment/components/slider/__init__.py:133
 msgid "Size on screen. e.g. (500,10) pix for horizontal,(10,500) pix for vertical"
 msgstr ""
 
-#: ../experiment/components/slider/__init__.py:141
+#: ../experiment/components/slider/__init__.py:142
 msgid ""
 "By default the labels will be on the bottom or left of the scale, but "
 "this can be flipped to the other side."
 msgstr ""
 
-#: ../experiment/components/slider/__init__.py:145
+#: ../experiment/components/slider/__init__.py:146
 msgid "Flip"
 msgstr ""
 
-#: ../experiment/components/slider/__init__.py:152
+#: ../experiment/components/slider/__init__.py:153
 msgid "Color of the lines and labels (might beoverridden by the style setting)"
 msgstr ""
 
-#: ../experiment/components/slider/__init__.py:161
+#: ../experiment/components/slider/__init__.py:162
 msgid "Font for the labels"
 msgstr ""
 
-#: ../experiment/components/slider/__init__.py:163
+#: ../experiment/components/slider/__init__.py:164
 #: ../experiment/components/text/__init__.py:20
 msgid "Font"
 msgstr ""
 
-#: ../experiment/components/slider/__init__.py:169
+#: ../experiment/components/slider/__init__.py:170
 msgid "Styles determine the appearance of the slider"
 msgstr ""
 
-#: ../experiment/components/slider/__init__.py:171
+#: ../experiment/components/slider/__init__.py:172
 msgid "Styles"
 msgstr ""
 
-#: ../experiment/components/slider/__init__.py:184
+#: ../experiment/components/slider/__init__.py:185
 msgid "Store the time taken to make the choice (in seconds)"
 msgstr ""
 
@@ -4442,10 +4685,6 @@ msgstr ""
 
 #: ../experiment/components/sound/__init__.py:24
 msgid "Volume"
-msgstr ""
-
-#: ../experiment/components/sound/__init__.py:25
-msgid "sync RT with screen"
 msgstr ""
 
 #: ../experiment/components/sound/__init__.py:49
@@ -4466,6 +4705,10 @@ msgstr ""
 msgid ""
 "A reaction time to a sound stimulus should be based on when the screen "
 "flipped"
+msgstr ""
+
+#: ../experiment/components/sound/__init__.py:80
+msgid "Hamming window"
 msgstr ""
 
 #: ../experiment/components/static/__init__.py:21
@@ -4506,36 +4749,36 @@ msgstr ""
 msgid "Language style"
 msgstr ""
 
-#: ../experiment/components/text/__init__.py:35
+#: ../experiment/components/text/__init__.py:34
 msgid ""
 "Any text\n"
 "\n"
 "including line breaks"
 msgstr ""
 
-#: ../experiment/components/text/__init__.py:63
+#: ../experiment/components/text/__init__.py:62
 msgid "The text to be displayed"
 msgstr ""
 
-#: ../experiment/components/text/__init__.py:68
+#: ../experiment/components/text/__init__.py:67
 msgid "The font name (e.g. Comic Sans)"
 msgstr ""
 
-#: ../experiment/components/text/__init__.py:74
+#: ../experiment/components/text/__init__.py:73
 msgid ""
 "Specifies the height of the letter (the width is then determined by the "
 "font)"
 msgstr ""
 
-#: ../experiment/components/text/__init__.py:81
+#: ../experiment/components/text/__init__.py:80
 msgid "How wide should the text get when it wraps? (in the specified units)"
 msgstr ""
 
-#: ../experiment/components/text/__init__.py:87
+#: ../experiment/components/text/__init__.py:86
 msgid "horiz = left-right reversed; vert = up-down reversed; $var = variable"
 msgstr ""
 
-#: ../experiment/components/text/__init__.py:93
+#: ../experiment/components/text/__init__.py:92
 msgid "Handle right-to-left (RTL) languages and Arabic reshaping"
 msgstr ""
 
@@ -4620,32 +4863,32 @@ msgstr ""
 msgid "Save choice of frame value in data file."
 msgstr ""
 
-#: ../gui/qtgui.py:73
+#: ../gui/qtgui.py:93
 msgid "PsychoPy Dialog"
 msgstr ""
 
-#: ../gui/qtgui.py:476 ../gui/wxgui.py:334
+#: ../gui/qtgui.py:496 ../gui/wxgui.py:334
 msgid "Select file to save"
 msgstr ""
 
-#: ../gui/qtgui.py:521
+#: ../gui/qtgui.py:541
 msgid "Select file to open"
 msgstr ""
 
-#: ../gui/qtgui.py:571
+#: ../gui/qtgui.py:591
 msgid "Information"
 msgstr ""
 
-#: ../gui/qtgui.py:573 ../gui/qtgui.py:579 ../gui/qtgui.py:585
-#: ../gui/qtgui.py:591
+#: ../gui/qtgui.py:593 ../gui/qtgui.py:599 ../gui/qtgui.py:605
+#: ../gui/qtgui.py:611
 msgid "No details provided. ('prompt' value not set)."
 msgstr ""
 
-#: ../gui/qtgui.py:583
+#: ../gui/qtgui.py:603
 msgid "Critical"
 msgstr ""
 
-#: ../gui/qtgui.py:589
+#: ../gui/qtgui.py:609
 msgid "About Experiment"
 msgstr ""
 
@@ -4663,10 +4906,6 @@ msgstr ""
 
 #: ../localization/__init__.py:159
 msgid "stop type"
-msgstr ""
-
-#: ../localization/__init__.py:169
-msgid "Opacity"
 msgstr ""
 
 #: ../localization/__init__.py:176
@@ -4737,222 +4976,222 @@ msgstr ""
 msgid "switchMethod"
 msgstr ""
 
-#: ../monitors/MonitorCenter.py:177 ../monitors/MonitorCenter.py:315
+#: ../monitors/MonitorCenter.py:174 ../monitors/MonitorCenter.py:312
 msgid "Monitor Info"
 msgstr ""
 
-#: ../monitors/MonitorCenter.py:186 ../monitors/MonitorCenter.py:381
+#: ../monitors/MonitorCenter.py:183 ../monitors/MonitorCenter.py:378
 msgid "Calibration"
 msgstr ""
 
-#: ../monitors/MonitorCenter.py:229
+#: ../monitors/MonitorCenter.py:226
 msgid "Save\tCtrl+S"
 msgstr ""
 
-#: ../monitors/MonitorCenter.py:230
+#: ../monitors/MonitorCenter.py:227
 msgid "Save the current monitor"
 msgstr ""
 
-#: ../monitors/MonitorCenter.py:232
+#: ../monitors/MonitorCenter.py:229
 msgid "Close Monitor Center (but not other PsychoPy windows)"
 msgstr ""
 
-#: ../monitors/MonitorCenter.py:235
+#: ../monitors/MonitorCenter.py:232
 msgid "Close Monitor Center\tCtrl+W"
 msgstr ""
 
-#: ../monitors/MonitorCenter.py:243
+#: ../monitors/MonitorCenter.py:240
 msgid "Copy the current monitor's name to clipboard"
 msgstr ""
 
-#: ../monitors/MonitorCenter.py:244
+#: ../monitors/MonitorCenter.py:241
 msgid "Copy\tCtrl+C"
 msgstr ""
 
-#: ../monitors/MonitorCenter.py:252
+#: ../monitors/MonitorCenter.py:249
 msgid "Choose Monitor"
 msgstr ""
 
-#: ../monitors/MonitorCenter.py:264
+#: ../monitors/MonitorCenter.py:261
 msgid "New..."
 msgstr ""
 
-#: ../monitors/MonitorCenter.py:268
+#: ../monitors/MonitorCenter.py:265
 msgid "Create a new monitor"
 msgstr ""
 
-#: ../monitors/MonitorCenter.py:273
+#: ../monitors/MonitorCenter.py:270
 msgid "Save all calibrations for this monitor"
 msgstr ""
 
-#: ../monitors/MonitorCenter.py:277 ../monitors/MonitorCenter.py:298
+#: ../monitors/MonitorCenter.py:274 ../monitors/MonitorCenter.py:295
 msgid "Delete"
 msgstr ""
 
-#: ../monitors/MonitorCenter.py:280
+#: ../monitors/MonitorCenter.py:277
 msgid "Delete this monitor entirely"
 msgstr ""
 
-#: ../monitors/MonitorCenter.py:291
+#: ../monitors/MonitorCenter.py:288
 msgid "Copy..."
 msgstr ""
 
-#: ../monitors/MonitorCenter.py:294
+#: ../monitors/MonitorCenter.py:291
 msgid "Creates a new calibration entry for this monitor"
 msgstr ""
 
-#: ../monitors/MonitorCenter.py:301
+#: ../monitors/MonitorCenter.py:298
 msgid "Remove this calibration entry (finalized when monitor is saved)"
 msgstr ""
 
-#: ../monitors/MonitorCenter.py:321
+#: ../monitors/MonitorCenter.py:318
 msgid "Screen Distance (cm):"
 msgstr ""
 
-#: ../monitors/MonitorCenter.py:328
+#: ../monitors/MonitorCenter.py:325
 msgid "Screen Width (cm):"
 msgstr ""
 
-#: ../monitors/MonitorCenter.py:334
+#: ../monitors/MonitorCenter.py:331
 msgid "Size (pixels; Horiz,Vert):"
 msgstr ""
 
-#: ../monitors/MonitorCenter.py:346
+#: ../monitors/MonitorCenter.py:343
 msgid "Calibration Date:"
 msgstr ""
 
-#: ../monitors/MonitorCenter.py:353
+#: ../monitors/MonitorCenter.py:350
 msgid "Notes:"
 msgstr ""
 
-#: ../monitors/MonitorCenter.py:361 ../monitors/MonitorCenter.py:1197
+#: ../monitors/MonitorCenter.py:358 ../monitors/MonitorCenter.py:1193
 msgid "Use Bits++"
 msgstr ""
 
-#: ../monitors/MonitorCenter.py:395
+#: ../monitors/MonitorCenter.py:392
 msgid "Scan all ports"
 msgstr ""
 
-#: ../monitors/MonitorCenter.py:404
+#: ../monitors/MonitorCenter.py:401
 msgid "Get Photometer"
 msgstr ""
 
-#: ../monitors/MonitorCenter.py:410
+#: ../monitors/MonitorCenter.py:407
 msgid "Gamma Calibration..."
 msgstr ""
 
-#: ../monitors/MonitorCenter.py:414
+#: ../monitors/MonitorCenter.py:411
 msgid "Gamma Test..."
 msgstr ""
 
-#: ../monitors/MonitorCenter.py:421
+#: ../monitors/MonitorCenter.py:418
 msgid "Chromatic Calibration..."
 msgstr ""
 
-#: ../monitors/MonitorCenter.py:426
+#: ../monitors/MonitorCenter.py:423
 msgid "Plot gamma"
 msgstr ""
 
-#: ../monitors/MonitorCenter.py:430
+#: ../monitors/MonitorCenter.py:427
 msgid "Plot spectra"
 msgstr ""
 
-#: ../monitors/MonitorCenter.py:442
+#: ../monitors/MonitorCenter.py:439
 msgid "Linearization"
 msgstr ""
 
-#: ../monitors/MonitorCenter.py:543
+#: ../monitors/MonitorCenter.py:540
 msgid "Save changes to monitor settings before quitting?"
 msgstr ""
 
-#: ../monitors/MonitorCenter.py:565
+#: ../monitors/MonitorCenter.py:562
 msgid "Save changes to monitor?"
 msgstr ""
 
-#: ../monitors/MonitorCenter.py:658
+#: ../monitors/MonitorCenter.py:655
 #, python-format
 msgid "Name of this calibration (for monitor \"%(name)s\") will be:)"
 msgstr ""
 
-#: ../monitors/MonitorCenter.py:663 ../monitors/MonitorCenter.py:678
+#: ../monitors/MonitorCenter.py:660 ../monitors/MonitorCenter.py:675
 msgid "Input text"
 msgstr ""
 
-#: ../monitors/MonitorCenter.py:677
+#: ../monitors/MonitorCenter.py:674
 msgid "New monitor name:"
 msgstr ""
 
-#: ../monitors/MonitorCenter.py:692
+#: ../monitors/MonitorCenter.py:689
 #, python-format
 msgid "Are you sure you want to delete all details for %s? (cannot be undone)"
 msgstr ""
 
-#: ../monitors/MonitorCenter.py:716
+#: ../monitors/MonitorCenter.py:713
 msgid "Are you sure you want to delete this calibration? (cannot be undone)"
 msgstr ""
 
-#: ../monitors/MonitorCenter.py:972
+#: ../monitors/MonitorCenter.py:969
 msgid "Scanning ports..."
 msgstr ""
 
-#: ../monitors/MonitorCenter.py:981
+#: ../monitors/MonitorCenter.py:978
 #, python-format
 msgid "%(photomType)s found on %(photomPort)s"
 msgstr ""
 
-#: ../monitors/MonitorCenter.py:986
+#: ../monitors/MonitorCenter.py:983
 msgid "No photometers found"
 msgstr ""
 
-#: ../monitors/MonitorCenter.py:994 ../monitors/MonitorCenter.py:1000
+#: ../monitors/MonitorCenter.py:991 ../monitors/MonitorCenter.py:997
 msgid "Dark calibration of ColorCAL"
 msgstr ""
 
-#: ../monitors/MonitorCenter.py:996
+#: ../monitors/MonitorCenter.py:993
 msgid ""
 "Your ColorCAL needs to be calibrated first. Please block all light from "
 "getting into the lens and press OK."
 msgstr ""
 
-#: ../monitors/MonitorCenter.py:1013
+#: ../monitors/MonitorCenter.py:1010
 msgid "Try again. Cover the lens fully and press OK"
 msgstr ""
 
-#: ../monitors/MonitorCenter.py:1017
+#: ../monitors/MonitorCenter.py:1014
 #, python-format
 msgid "%(monName)s %(calibName)s Gamma Functions"
 msgstr ""
 
-#: ../monitors/MonitorCenter.py:1082
+#: ../monitors/MonitorCenter.py:1079
 #, python-format
 msgid "%(monName)s %(calibName)s Spectra"
 msgstr ""
 
-#: ../monitors/MonitorCenter.py:1108
+#: ../monitors/MonitorCenter.py:1104
 msgid "Recorded luminance values"
 msgstr ""
 
-#: ../monitors/MonitorCenter.py:1134
+#: ../monitors/MonitorCenter.py:1130
 msgid "Luminance Values"
 msgstr ""
 
-#: ../monitors/MonitorCenter.py:1187
+#: ../monitors/MonitorCenter.py:1183
 msgid "Gamma Calibration"
 msgstr ""
 
-#: ../monitors/MonitorCenter.py:1200
+#: ../monitors/MonitorCenter.py:1196
 msgid "Number of calibration points:"
 msgstr ""
 
-#: ../monitors/MonitorCenter.py:1204
+#: ../monitors/MonitorCenter.py:1200
 msgid "Screen number (primary is 1)"
 msgstr ""
 
-#: ../monitors/MonitorCenter.py:1208
+#: ../monitors/MonitorCenter.py:1204
 msgid "Patch size (fraction of screen):"
 msgstr ""
 
-#: ../monitors/MonitorCenter.py:1242
+#: ../monitors/MonitorCenter.py:1238
 msgid "PsychoPy Monitor Center"
 msgstr ""
 
@@ -5089,262 +5328,270 @@ msgid "choice of audio library"
 msgstr ""
 
 #: ../preferences/hints.py:112
+msgid "latency mode for PsychToolbox audio (3 is good for most applications. See"
+msgstr ""
+
+#: ../preferences/hints.py:116
 msgid "audio driver to use"
 msgstr ""
 
-#: ../preferences/hints.py:115
+#: ../preferences/hints.py:119
 msgid "audio device to use (if audioLib allows control)"
 msgstr ""
 
-#: ../preferences/hints.py:118
+#: ../preferences/hints.py:122
 msgid "a list of parallel ports"
 msgstr ""
 
-#: ../preferences/hints.py:121
+#: ../preferences/hints.py:125
 msgid "The name of the Qmix pump configuration to use"
 msgstr ""
 
-#: ../preferences/hints.py:124
+#: ../preferences/hints.py:128
 msgid "the http proxy for usage stats and auto-updating; format is host: port"
 msgstr ""
 
-#: ../preferences/hints.py:127
+#: ../preferences/hints.py:131
 msgid ""
 "override the above proxy settings with values found in the environment "
 "(if possible)"
 msgstr ""
 
-#: ../preferences/hints.py:131
+#: ../preferences/hints.py:135
 msgid ""
 "allow PsychoPy to send anonymous usage stats; please allow if possible, "
 "it helps PsychoPy's development"
 msgstr ""
 
-#: ../preferences/hints.py:134
+#: ../preferences/hints.py:138
 msgid "allow PsychoPy to check for new features and bug fixes"
 msgstr ""
 
-#: ../preferences/hints.py:137
+#: ../preferences/hints.py:141
 msgid "max time to wait for a connection response"
 msgstr ""
 
-#: ../preferences/hints.py:140
+#: ../preferences/hints.py:144
 msgid "open an existing file"
 msgstr ""
 
-#: ../preferences/hints.py:143
+#: ../preferences/hints.py:147
 msgid "start a new experiment or script"
 msgstr ""
 
-#: ../preferences/hints.py:146
+#: ../preferences/hints.py:150
 msgid "save a Builder or Coder file"
 msgstr ""
 
-#: ../preferences/hints.py:149
+#: ../preferences/hints.py:153
 msgid "save a Builder or Coder file under a new name"
 msgstr ""
 
-#: ../preferences/hints.py:152
+#: ../preferences/hints.py:156
 msgid "Coder: print the file"
 msgstr ""
 
-#: ../preferences/hints.py:155
+#: ../preferences/hints.py:159
 msgid "close the Builder or Coder window"
 msgstr ""
 
-#: ../preferences/hints.py:158
+#: ../preferences/hints.py:162
 msgid "end the application (PsychoPy)"
 msgstr ""
 
-#: ../preferences/hints.py:161
+#: ../preferences/hints.py:165
 msgid "open the preferences dialog"
 msgstr ""
 
-#: ../preferences/hints.py:164
+#: ../preferences/hints.py:168
 msgid "export Builder experiment to HTML"
 msgstr ""
 
-#: ../preferences/hints.py:167
+#: ../preferences/hints.py:171
 msgid "Coder: cut"
 msgstr ""
 
-#: ../preferences/hints.py:170
+#: ../preferences/hints.py:174
 msgid "Coder: copy"
 msgstr ""
 
-#: ../preferences/hints.py:173
+#: ../preferences/hints.py:177
 msgid "Coder: paste"
 msgstr ""
 
-#: ../preferences/hints.py:176
+#: ../preferences/hints.py:180
 msgid "Coder: duplicate"
 msgstr ""
 
-#: ../preferences/hints.py:179
+#: ../preferences/hints.py:183
 msgid "Coder: indent code by one level (4 spaces)"
 msgstr ""
 
-#: ../preferences/hints.py:182
+#: ../preferences/hints.py:186
 msgid "Coder: reduce indentation by one level (4 spaces)"
 msgstr ""
 
-#: ../preferences/hints.py:185
+#: ../preferences/hints.py:189
 msgid "Coder: indent to fit python syntax"
 msgstr ""
 
-#: ../preferences/hints.py:188
+#: ../preferences/hints.py:192
 msgid "Coder: find"
 msgstr ""
 
-#: ../preferences/hints.py:191
+#: ../preferences/hints.py:195
 msgid "Coder: find again"
 msgstr ""
 
-#: ../preferences/hints.py:194
+#: ../preferences/hints.py:198
 msgid "Coder: undo"
 msgstr ""
 
-#: ../preferences/hints.py:197
+#: ../preferences/hints.py:201
 msgid "Coder: redo"
 msgstr ""
 
-#: ../preferences/hints.py:200
+#: ../preferences/hints.py:204
 msgid "Coder: add a # to the start of the line(s)"
 msgstr ""
 
-#: ../preferences/hints.py:203
+#: ../preferences/hints.py:207
 msgid "Coder: remove # from start of line(s)"
 msgstr ""
 
-#: ../preferences/hints.py:206
+#: ../preferences/hints.py:210
 msgid "Coder: add or remove # from start of line(s)"
 msgstr ""
 
-#: ../preferences/hints.py:209
+#: ../preferences/hints.py:213
 msgid "Coder: fold this block of code"
 msgstr ""
 
-#: ../preferences/hints.py:212
+#: ../preferences/hints.py:216
 msgid "Coder: increase font size this block of code"
 msgstr ""
 
-#: ../preferences/hints.py:215
+#: ../preferences/hints.py:219
 msgid "Coder: decrease font size this block of code"
 msgstr ""
 
-#: ../preferences/hints.py:218
+#: ../preferences/hints.py:222
 msgid "Coder: check for basic syntax errors"
 msgstr ""
 
-#: ../preferences/hints.py:221
+#: ../preferences/hints.py:225
 msgid ""
 "convert a Builder .psyexp script into a python script and open it in the "
 "Coder"
 msgstr ""
 
-#: ../preferences/hints.py:225
+#: ../preferences/hints.py:229
 msgid "launch a script, Builder or Coder, or run unit-tests"
 msgstr ""
 
-#: ../preferences/hints.py:228
+#: ../preferences/hints.py:232
 msgid "attempt to interrupt and halt a running script"
 msgstr ""
 
-#: ../preferences/hints.py:231
+#: ../preferences/hints.py:235
 msgid "Coder: show / hide white-space dots"
 msgstr ""
 
-#: ../preferences/hints.py:234
+#: ../preferences/hints.py:238
 msgid "Coder: show / hide end of line characters"
 msgstr ""
 
-#: ../preferences/hints.py:237
+#: ../preferences/hints.py:241
 msgid "Coder: show / hide indentation level lines"
 msgstr ""
 
-#: ../preferences/hints.py:240
+#: ../preferences/hints.py:244
 msgid "Builder: create a new routine"
 msgstr ""
 
-#: ../preferences/hints.py:243
+#: ../preferences/hints.py:247
 msgid "Builder: copy an existing routine"
 msgstr ""
 
-#: ../preferences/hints.py:246
+#: ../preferences/hints.py:250
 msgid "Builder: paste the copied routine"
 msgstr ""
 
-#: ../preferences/hints.py:249
+#: ../preferences/hints.py:253
 msgid "Builder: paste the copied component"
 msgstr ""
 
-#: ../preferences/hints.py:252
+#: ../preferences/hints.py:256
 msgid "Coder: show / hide the output panel"
 msgstr ""
 
-#: ../preferences/hints.py:255
+#: ../preferences/hints.py:259
 msgid "Builder: rename an existing routine"
 msgstr ""
 
-#: ../preferences/hints.py:258
+#: ../preferences/hints.py:262
 msgid "switch to Builder window from Coder"
 msgstr ""
 
-#: ../preferences/hints.py:261
+#: ../preferences/hints.py:265
 msgid "switch to Coder window from Builder"
 msgstr ""
 
-#: ../preferences/hints.py:264
+#: ../preferences/hints.py:268
 msgid "increase display size in Flow"
 msgstr ""
 
-#: ../preferences/hints.py:267
+#: ../preferences/hints.py:271
 msgid "decrease display size in Flow"
 msgstr ""
 
-#: ../preferences/hints.py:270
+#: ../preferences/hints.py:274
 msgid "increase display size of Routines"
 msgstr ""
 
-#: ../preferences/hints.py:273
+#: ../preferences/hints.py:277
 msgid "decrease display size of Routines"
 msgstr ""
 
-#: ../preferences/hints.py:276
+#: ../preferences/hints.py:280
 msgid "show or hide the readme (info) for this experiment if possible"
 msgstr ""
 
-#: ../preferences/hints.py:279
+#: ../preferences/hints.py:283
 msgid "Projects: Log in to pavlovia"
 msgstr ""
 
-#: ../preferences/hints.py:282
+#: ../preferences/hints.py:286
 msgid "Projects: Log in to OSF"
 msgstr ""
 
-#: ../preferences/hints.py:285
+#: ../preferences/hints.py:289
 msgid "Projects: Sync project"
 msgstr ""
 
-#: ../preferences/hints.py:288
+#: ../preferences/hints.py:292
 msgid "Projects: Find projects"
 msgstr ""
 
-#: ../preferences/hints.py:291
+#: ../preferences/hints.py:295
 msgid "Projects: Open project"
 msgstr ""
 
-#: ../preferences/hints.py:294
+#: ../preferences/hints.py:298
 msgid "Projects: Create new project"
 msgstr ""
 
-#: ../projects/pavlovia.py:1091
+#: ../preferences/hints.py:301
+msgid "priority"
+msgstr ""
+
+#: ../projects/pavlovia.py:1101
 msgid ""
 "We found a repository pointing to {} but no project was found there "
 "(deleted?)"
 msgstr ""
 
-#: ../projects/pavlovia.py:1095
+#: ../projects/pavlovia.py:1105
 msgid ""
 "We found a repository pointing to {} but no user is logged in for us to "
 "check it"

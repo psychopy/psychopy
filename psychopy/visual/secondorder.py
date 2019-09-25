@@ -6,7 +6,7 @@ second order envelope carrier and envelope can vary independently for
 orientation, frequencyand phase. Also does beat stimuli. """
 
 # Part of the PsychoPy library
-# Copyright (C) 2018 Jonathan Peirce.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019 Open Science Tools Ltd..
 # Additional code provided by Andrew Schofield
 # Distributed under the terms of the GNU General Public License (GPL).
 
@@ -642,15 +642,15 @@ class EnvelopeGrating(GratingStim):
         # glColor can interfere with multitextures
         GL.glColor4f(1.0, 1.0, 1.0, 1.0)
         # mask
-        GL.glActiveTextureARB(GL.GL_TEXTURE2_ARB)
+        GL.glActiveTexture(GL.GL_TEXTURE2)
         GL.glEnable(GL.GL_TEXTURE_2D)  # implicitly disables 1D
         GL.glBindTexture(GL.GL_TEXTURE_2D, self._maskID)
         # envelope (eg a grating but can be anything)
-        GL.glActiveTextureARB(GL.GL_TEXTURE1_ARB)
+        GL.glActiveTexture(GL.GL_TEXTURE1)
         GL.glEnable(GL.GL_TEXTURE_2D)  # implicitly disables 1D
         GL.glBindTexture(GL.GL_TEXTURE_2D, self._envelopeID)
         # carrier (eg noise or textuture)
-        GL.glActiveTextureARB(GL.GL_TEXTURE0_ARB)
+        GL.glActiveTexture(GL.GL_TEXTURE0)
         GL.glEnable(GL.GL_TEXTURE_2D)
         GL.glBindTexture(GL.GL_TEXTURE_2D, self._carrierID)
 
@@ -696,17 +696,17 @@ class EnvelopeGrating(GratingStim):
         GL.glEnd()
 
         # disable mask
-        GL.glActiveTextureARB(GL.GL_TEXTURE2_ARB)
+        GL.glActiveTexture(GL.GL_TEXTURE2)
         GL.glDisable(GL.GL_TEXTURE_2D)
         GL.glBindTexture(GL.GL_TEXTURE_2D, 0)
 
         # disable mask
-        GL.glActiveTextureARB(GL.GL_TEXTURE1_ARB)
+        GL.glActiveTexture(GL.GL_TEXTURE1)
         GL.glDisable(GL.GL_TEXTURE_2D)
         GL.glBindTexture(GL.GL_TEXTURE_2D, 0)
 
         # main texture
-        GL.glActiveTextureARB(GL.GL_TEXTURE0_ARB)
+        GL.glActiveTexture(GL.GL_TEXTURE0)
         GL.glDisable(GL.GL_TEXTURE_2D)
         GL.glBindTexture(GL.GL_TEXTURE_2D, 0)
 

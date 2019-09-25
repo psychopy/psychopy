@@ -3,9 +3,36 @@
 
 .. automodule:: psychopy.tools.gltools
 .. currentmodule:: psychopy.tools.gltools
-    
-.. autosummary:: 
 
+Overview
+~~~~~~~~
+
+.. autosummary::
+    createProgram
+    createProgramObjectARB
+    compileShader
+    compileShaderObjectARB
+    embedShaderSourceDefs
+    deleteObject
+    deleteObjectARB
+    attachShader
+    attachObjectARB
+    detachShader
+    detachObjectARB
+    linkProgram
+    linkProgramObjectARB
+    validateProgram
+    validateProgramARB
+    useProgram
+    useProgramObjectARB
+    getInfoLog
+    getUniformLocations
+    getAttribLocations
+    createQueryObject
+    beginQuery
+    endQuery
+    getQuery
+    getAbsTimeGPU
     createFBO
     attach
     isComplete
@@ -17,26 +44,65 @@
     createTexImage2D
     createTexImage2DMultisample
     deleteTexture
-    createVBO
+    VertexArrayInfo
     createVAO
     drawVAO
-    deleteVBO
     deleteVAO
+    VertexBufferInfo
+    createVBO
+    bindVBO
+    unbindVBO
+    mapBuffer
+    unmapBuffer
+    deleteVBO
+    setVertexAttribPointer
+    enableVertexAttribArray
+    disableVertexAttribArray
     createMaterial
     useMaterial
     createLight
     useLights
     setAmbientLight
+    ObjMeshInfo
     loadObjFile
     loadMtlFile
+    createUVSphere
+    createPlane
+    createMeshGrid
+    createBox
     getIntegerv
     getFloatv
     getString
     getOpenGLInfo
     
-Function details
-~~~~~~~~~~~~~~~~~~~~~~~
+Details
+~~~~~~~
 
+.. autofunction:: createProgram
+.. autofunction:: createProgramObjectARB
+.. autofunction:: compileShader
+.. autofunction:: compileShaderObjectARB
+.. autofunction:: embedShaderSourceDefs
+.. autofunction:: deleteObject
+.. autofunction:: deleteObjectARB
+.. autofunction:: attachShader
+.. autofunction:: attachObjectARB
+.. autofunction:: detachShader
+.. autofunction:: detachObjectARB
+.. autofunction:: linkProgram
+.. autofunction:: linkProgramObjectARB
+.. autofunction:: validateProgram
+.. autofunction:: validateProgramARB
+.. autofunction:: useProgram
+.. autofunction:: useProgramObjectARB
+.. autofunction:: getInfoLog
+.. autofunction:: getUniformLocations
+.. autofunction:: getAttribLocations
+.. autofunction:: createQueryObject
+.. autofunction:: beginQuery
+.. autofunction:: endQuery
+.. autofunction:: getQuery
+.. autofunction:: getAbsTimeGPU
 .. autofunction:: createFBO
 .. autofunction:: attach
 .. autofunction:: isComplete
@@ -48,11 +114,18 @@ Function details
 .. autofunction:: createTexImage2D
 .. autofunction:: createTexImage2DMultisample
 .. autofunction:: deleteTexture
-.. autofunction:: createVBO
 .. autofunction:: createVAO
 .. autofunction:: drawVAO
-.. autofunction:: deleteVBO
 .. autofunction:: deleteVAO
+.. autofunction:: createVBO
+.. autofunction:: bindVBO
+.. autofunction:: unbindVBO
+.. autofunction:: mapBuffer
+.. autofunction:: unmapBuffer
+.. autofunction:: deleteVBO
+.. autofunction:: setVertexAttribPointer
+.. autofunction:: enableVertexAttribArray
+.. autofunction:: disableVertexAttribArray
 .. autofunction:: createMaterial
 .. autofunction:: useMaterial
 .. autofunction:: createLight
@@ -60,13 +133,18 @@ Function details
 .. autofunction:: setAmbientLight
 .. autofunction:: loadObjFile
 .. autofunction:: loadMtlFile
+.. autofunction:: createUVSphere
+.. autofunction:: createPlane
+.. autofunction:: createMeshGrid
+.. autofunction:: createBox
 .. autofunction:: getIntegerv
 .. autofunction:: getFloatv
 .. autofunction:: getString
 .. autofunction:: getOpenGLInfo
 
+
 Examples
-~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~
 **Working with Framebuffer Objects (FBOs):**
 
 Creating an empty framebuffer with no attachments::

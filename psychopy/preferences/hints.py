@@ -109,186 +109,190 @@ _translate("Display text in a floating window that describes the experiment")
 _translate("choice of audio library")
 
 # baseNoArch.spec,[builder],line98
-_translate("audio driver to use")
+_translate(
+    "latency mode for PsychToolbox audio (3 is good for most applications. See")
 
 # baseNoArch.spec,[builder],line100
-_translate("audio device to use (if audioLib allows control)")
+_translate("audio driver to use")
 
 # baseNoArch.spec,[builder],line102
-_translate("a list of parallel ports")
+_translate("audio device to use (if audioLib allows control)")
 
 # baseNoArch.spec,[hardware],line106
-_translate("The name of the Qmix pump configuration to use")
+_translate("a list of parallel ports")
 
 # baseNoArch.spec,[hardware],line108
-_translate("the http proxy for usage stats and auto-updating; format is host: port")
+_translate("The name of the Qmix pump configuration to use")
 
 # baseNoArch.spec,[hardware],line110
+_translate("the http proxy for usage stats and auto-updating; format is host: port")
+
+# baseNoArch.spec,[hardware],line112
 _translate(
     "override the above proxy settings with values found in the environment (if possible)")
 
-# baseNoArch.spec,[hardware],line112
+# baseNoArch.spec,[hardware],line114
 _translate("allow PsychoPy to send anonymous usage stats; please allow if possible, it helps PsychoPy's development")
 
-# baseNoArch.spec,[hardware],line114
+# baseNoArch.spec,[hardware],line116
 _translate("allow PsychoPy to check for new features and bug fixes")
 
-# baseNoArch.spec,[hardware],line117
+# baseNoArch.spec,[hardware],line119
 _translate("max time to wait for a connection response")
 
-# baseNoArch.spec,[connections],line119
+# baseNoArch.spec,[connections],line121
 _translate("open an existing file")
 
-# baseNoArch.spec,[connections],line121
+# baseNoArch.spec,[connections],line123
 _translate("start a new experiment or script")
 
-# baseNoArch.spec,[connections],line123
+# baseNoArch.spec,[connections],line125
 _translate("save a Builder or Coder file")
 
-# baseNoArch.spec,[connections],line125
+# baseNoArch.spec,[connections],line127
 _translate("save a Builder or Coder file under a new name")
 
-# baseNoArch.spec,[connections],line127
+# baseNoArch.spec,[connections],line129
 _translate("Coder: print the file")
 
-# baseNoArch.spec,[connections],line130
+# baseNoArch.spec,[connections],line132
 _translate("close the Builder or Coder window")
 
-# baseNoArch.spec,[keyBindings],line132
+# baseNoArch.spec,[keyBindings],line134
 _translate("end the application (PsychoPy)")
 
-# baseNoArch.spec,[keyBindings],line134
+# baseNoArch.spec,[keyBindings],line136
 _translate("open the preferences dialog")
 
-# baseNoArch.spec,[keyBindings],line136
+# baseNoArch.spec,[keyBindings],line138
 _translate("export Builder experiment to HTML")
 
-# baseNoArch.spec,[keyBindings],line138
+# baseNoArch.spec,[keyBindings],line140
 _translate("Coder: cut")
 
-# baseNoArch.spec,[keyBindings],line140
+# baseNoArch.spec,[keyBindings],line142
 _translate("Coder: copy")
 
-# baseNoArch.spec,[keyBindings],line142
+# baseNoArch.spec,[keyBindings],line144
 _translate("Coder: paste")
 
-# baseNoArch.spec,[keyBindings],line144
+# baseNoArch.spec,[keyBindings],line146
 _translate("Coder: duplicate")
 
-# baseNoArch.spec,[keyBindings],line146
+# baseNoArch.spec,[keyBindings],line148
 _translate("Coder: indent code by one level (4 spaces)")
 
-# baseNoArch.spec,[keyBindings],line148
+# baseNoArch.spec,[keyBindings],line150
 _translate("Coder: reduce indentation by one level (4 spaces)")
 
-# baseNoArch.spec,[keyBindings],line151
+# baseNoArch.spec,[keyBindings],line153
 _translate("Coder: indent to fit python syntax")
 
-# baseNoArch.spec,[keyBindings],line153
+# baseNoArch.spec,[keyBindings],line155
 _translate("Coder: find")
 
-# baseNoArch.spec,[keyBindings],line155
+# baseNoArch.spec,[keyBindings],line157
 _translate("Coder: find again")
 
-# baseNoArch.spec,[keyBindings],line157
+# baseNoArch.spec,[keyBindings],line159
 _translate("Coder: undo")
 
-# baseNoArch.spec,[keyBindings],line159
+# baseNoArch.spec,[keyBindings],line161
 _translate("Coder: redo")
 
-# baseNoArch.spec,[keyBindings],line161
+# baseNoArch.spec,[keyBindings],line163
 _translate("Coder: add a # to the start of the line(s)")
 
-# baseNoArch.spec,[keyBindings],line163
+# baseNoArch.spec,[keyBindings],line165
 _translate("Coder: remove # from start of line(s)")
 
-# baseNoArch.spec,[keyBindings],line165
+# baseNoArch.spec,[keyBindings],line167
 _translate("Coder: add or remove # from start of line(s)")
 
-# baseNoArch.spec,[keyBindings],line167
+# baseNoArch.spec,[keyBindings],line169
 _translate("Coder: fold this block of code")
 
-# baseNoArch.spec,[keyBindings],line169
+# baseNoArch.spec,[keyBindings],line171
 _translate("Coder: increase font size this block of code")
 
-# baseNoArch.spec,[keyBindings],line171
+# baseNoArch.spec,[keyBindings],line173
 _translate("Coder: decrease font size this block of code")
 
-# baseNoArch.spec,[keyBindings],line173
+# baseNoArch.spec,[keyBindings],line175
 _translate("Coder: check for basic syntax errors")
 
-# baseNoArch.spec,[keyBindings],line175
+# baseNoArch.spec,[keyBindings],line177
 _translate(
     "convert a Builder .psyexp script into a python script and open it in the Coder")
 
-# baseNoArch.spec,[keyBindings],line177
+# baseNoArch.spec,[keyBindings],line179
 _translate("launch a script, Builder or Coder, or run unit-tests")
 
-# baseNoArch.spec,[keyBindings],line179
+# baseNoArch.spec,[keyBindings],line181
 _translate("attempt to interrupt and halt a running script")
 
-# baseNoArch.spec,[keyBindings],line181
+# baseNoArch.spec,[keyBindings],line183
 _translate("Coder: show / hide white-space dots")
 
-# baseNoArch.spec,[keyBindings],line183
+# baseNoArch.spec,[keyBindings],line185
 _translate("Coder: show / hide end of line characters")
 
-# baseNoArch.spec,[keyBindings],line186
+# baseNoArch.spec,[keyBindings],line188
 _translate("Coder: show / hide indentation level lines")
 
-# baseNoArch.spec,[keyBindings],line188
+# baseNoArch.spec,[keyBindings],line190
 _translate("Builder: create a new routine")
 
-# baseNoArch.spec,[keyBindings],line190
+# baseNoArch.spec,[keyBindings],line192
 _translate("Builder: copy an existing routine")
 
-# baseNoArch.spec,[keyBindings],line192
+# baseNoArch.spec,[keyBindings],line194
 _translate("Builder: paste the copied routine")
 
-# baseNoArch.spec,[keyBindings],line195
+# baseNoArch.spec,[keyBindings],line197
 _translate("Builder: paste the copied component")
 
-# baseNoArch.spec,[keyBindings],line197
+# baseNoArch.spec,[keyBindings],line199
 _translate("Coder: show / hide the output panel")
 
-# baseNoArch.spec,[keyBindings],line199
+# baseNoArch.spec,[keyBindings],line201
 _translate("Builder: rename an existing routine")
 
-# baseNoArch.spec,[keyBindings],line202
+# baseNoArch.spec,[keyBindings],line204
 _translate("switch to Builder window from Coder")
 
-# baseNoArch.spec,[keyBindings],line204
+# baseNoArch.spec,[keyBindings],line206
 _translate("switch to Coder window from Builder")
 
-# baseNoArch.spec,[keyBindings],line206
+# baseNoArch.spec,[keyBindings],line208
 _translate("increase display size in Flow")
 
-# baseNoArch.spec,[keyBindings],line208
+# baseNoArch.spec,[keyBindings],line210
 _translate("decrease display size in Flow")
 
-# baseNoArch.spec,[keyBindings],line210
+# baseNoArch.spec,[keyBindings],line212
 _translate("increase display size of Routines")
 
-# baseNoArch.spec,[keyBindings],line212
+# baseNoArch.spec,[keyBindings],line214
 _translate("decrease display size of Routines")
 
-# baseNoArch.spec,[keyBindings],line214
+# baseNoArch.spec,[keyBindings],line216
 _translate("show or hide the readme (info) for this experiment if possible")
 
-# baseNoArch.spec,[keyBindings],line216
+# baseNoArch.spec,[keyBindings],line218
 _translate("Projects: Log in to pavlovia")
 
-# baseNoArch.spec,[keyBindings],line218
+# baseNoArch.spec,[keyBindings],line220
 _translate("Projects: Log in to OSF")
 
-# baseNoArch.spec,[keyBindings],line220
+# baseNoArch.spec,[keyBindings],line222
 _translate("Projects: Sync project")
 
-# baseNoArch.spec,[keyBindings],line222
+# baseNoArch.spec,[keyBindings],line224
 _translate("Projects: Find projects")
 
-# baseNoArch.spec,[keyBindings],line224
+# baseNoArch.spec,[keyBindings],line226
 _translate("Projects: Open project")
 
-# baseNoArch.spec,[keyBindings],line226
+# baseNoArch.spec,[keyBindings],line228
 _translate("Projects: Create new project")

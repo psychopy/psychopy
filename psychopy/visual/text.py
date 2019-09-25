@@ -5,7 +5,7 @@
 '''
 
 # Part of the PsychoPy library
-# Copyright (C) 2018 Jonathan Peirce
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 from __future__ import absolute_import, division, print_function
@@ -357,21 +357,22 @@ class TextStim(BaseVisualStim, ColorMixin, ContainerMixin):
         """Set the text to be rendered using the current font
         """
         if self.win.winType in ["pyglet", "glfw"]:
-            self._pygletTextObj = pyglet.font.Text(
-                self._font, self.text,
-                halign=self.alignHoriz, valign=self.alignVert,
-                color=(1.0, 1.0, 1.0, self.opacity),
-                width=self._wrapWidthPix)  # width of the frame
-            # self._pygletTextObj = pyglet.text.Label(
-            #       self.text,self.font, int(self._heightPix),
-            #      anchor_x=self.alignHoriz,
-            #      anchor_y=self.alignVert,  # the point we rotate around
-            #      halign=self.alignHoriz,
-            #      color = (int(127.5 * self.rgb[0] + 127.5),
-            #               int(127.5 * self.rgb[1] + 127.5),
-            #               int(127.5 * self.rgb[2] + 127.5),
-            #               int(255 * self.opacity)),
-            # multiline=True, width=self._wrapWidthPix)  # width of the frame
+            if pyglet.version < '1.4':
+                self._pygletTextObj = pyglet.font.Text(
+                    self._font, self.text,
+                    halign=self.alignHoriz, valign=self.alignVert,
+                    color=(1.0, 1.0, 1.0, self.opacity),
+                    width=self._wrapWidthPix)  # width of the frame
+            else:
+                self._pygletTextObj = pyglet.text.Label(
+                    self.text, self.font, int(self._heightPix),
+                    anchor_x=self.alignHoriz,
+                    anchor_y=self.alignVert,  # the point we rotate around
+                    color = (int(127.5 * self.rgb[0] + 127.5),
+                          int(127.5 * self.rgb[1] + 127.5),
+                          int(127.5 * self.rgb[2] + 127.5),
+                          int(255 * self.opacity)),
+                    multiline=True, width=self._wrapWidthPix)  # width of the frame
             self.width = self._pygletTextObj.width
             self._fontHeightPix = self._pygletTextObj.height
         else:
@@ -570,11 +571,11 @@ class TextStim(BaseVisualStim, ColorMixin, ContainerMixin):
             GL.glEnable(GL.GL_TEXTURE_2D)
         else:
             # bind the appropriate main texture
-            GL.glActiveTextureARB(GL.GL_TEXTURE0_ARB)
+            GL.glActiveTexture(GL.GL_TEXTURE0)
             GL.glEnable(GL.GL_TEXTURE_2D)
             GL.glBindTexture(GL.GL_TEXTURE_2D, self._texID)
             # unbind the mask texture regardless
-            GL.glActiveTextureARB(GL.GL_TEXTURE1_ARB)
+            GL.glActiveTexture(GL.GL_TEXTURE1)
             GL.glEnable(GL.GL_TEXTURE_2D)
             GL.glBindTexture(GL.GL_TEXTURE_2D, 0)
 

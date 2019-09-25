@@ -2681,14 +2681,14 @@ class CoderFrame(wx.Frame):
             # will we actually redirect the output?
             # don't if we're doing py.tests or we lose the output
             if not self.app.testMode:
-                sys.stdout = self.outputWindow
-                sys.stderr = self.outputWindow
+                self.app._stdout = sys.stdout = self.outputWindow
+                self.app._stdout = sys.stderr = self.outputWindow
         else:
             # show the pane
             self.prefs['showOutput'] = False
             self.paneManager.GetPane('Shelf').Hide()
-            sys.stdout = self._origStdOut  # discovered during __init__
-            sys.stderr = self._origStdErr
+            self.app._stdout = sys.stdout = sys.__stdout__
+            self.app._stdout = sys.stderr = sys.__stderr__
         self.app.prefs.saveUserPrefs()  # includes a validation
 
         self.paneManager.Update()

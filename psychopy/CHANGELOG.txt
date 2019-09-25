@@ -12,10 +12,71 @@ Changelog
 CHANGES, which are identified in this dark red text, typically indicate things that alter the PsychoPy behaviour in a way that could break compatibility. Be especially wary of those!
 
 
+PsychoPy 3.2
+----------------
+
+
+PsychoPy 3.2.3
+~~~~~~~~~~~~~~~~~~~~~~
+
+FIXED:
+
+- on pip install version (incorrectly packaged) there was an error
+- JS version system now drops the final (bugfix) release number (3.2.3 -> 3.2 in JS lib)
+- Cedrus response box now supports keys as a variable value in Builder #2608
+- QUestPlusHandler now supports "unkown" kwargs #2610
+
+PsychoPy 3.2.2
+~~~~~~~~~~~~~~~~~~~~~~
+
+FIXED:
+
+- timing of first frame was being given an extra (unecessary) delay if images were loaded #8ddab41
+- potential app crashes if no internet avilable #63aa7e0 #b3e15f9
+- Builder under OS X was not launching experiments if filename contained a space #1b205df
+
+PsychoPy 3.2.1
+~~~~~~~~~~~~~~~~~~~~~~
+
+- Python2 installations crashed when trying to launch studies from Builder due to the use of a modern argument to subprocess not supported by Python2 #2596
+- If Builder script had an error, then printing of that error was sometimes being split across the output frame (of Builder) and the output panel of Coder #2594
+
+PsychoPy 3.2.0
+~~~~~~~~~~~~~~~~~~~~~~
+
+It's all about the new timing improvements!
+
+PsychoPy 3.2.0
+~~~~~~~~~~~~~~~~~~~~~~
+
+TIMING improvements:
+
+- **new Sound backend 'PTB' which is much faster** than any of the alternatives on all operating systems (using the C code from Psychtoolbox thanks to Mario Kleiner) :
+   - when combined with pre-scheduling (e.g. start playback on upcoming win.flip()) this can generate sub-ms precision and sub-ms lag!
+   - works with standard audio hardware
+- **better timing of visual stimuli** when timing by 'secs' (rather than frames):
+   - new feature to request info from the Window about next expected flip
+   - t in a Builder scripts is now time from first frame (so synched to visual stims)
+- **better timing on the keyboard responses** of the JavaScript experiments due to timestamping asynchronously with your script
+
+Also ADDED:
+
+- Standalone installations now provide an updated Cedrus library, pyxid2
+- Support for new `LabHackers USB2TTL8 device (parallel port alternative) <https://labhackers.com/usb2ttl8.html>`_
+- Envelope grating now has exponent (power) option
+
+FIXED:
+
+- Long-standing issue with lots of print-statements (e.g. on every frame) crashing Builder scripts
+- Support for Pyglet 1.4 (although text scaling appears to have changed a little)
+- Some serial devices (photometers) were not compatible with Python3 string/bytes
+  conversion
+- Too many more to mention...!
+
 PsychoPy 3.1
 ----------------
 
-We've improved timing, especially keyboard timing, a great deal.
+We've improved keyboard timing a great deal.
 
 As of PsychoPy 3.1 we are now using the underlying code of the `kbQueue` calls in
 `Psychophysics Toolbox`. The C code from those calls was ported to a new Python
@@ -24,6 +85,40 @@ This only works on 64-bit Python3 installations, but the Keyboard class will
 fall back to the old :func:`event.GetKeys` calls where the `psychtoolbox` package is
 not available.
 
+PsychoPy 3.1.5
+~~~~~~~~~~~~~~~~~~~~~~
+
+FIXED:
+
+- new rendering glitch in ImageStim when mask=None and interpolate=True, caused by previous fix to the wrapping issue #2526
+
+PsychoPy 3.1.4
+~~~~~~~~~~~~~~~~~~~~~~
+
+FIXED:
+
+- further fix to Mic for experiments created under the previous version (our last fix only solved the problem for new
+  Mic Components being inserted) #2512
+- fixed demo timeByFrames which was set to use Qt4 for plotting instead of Qt5 (which has been the default version
+  provided since the switch to Python3)
+- fixed crash in the new Keyboard class caused by `psychtoolbox` lib incorrectly converting unicode characters in the
+  device name (this was actually a fix in #kleinerm/Psychtoolbox-3@a5c37855a4a097) that needed repackaging
+- error with Variable Component trying to save start/stop times (that might not exist for that variable) #e1bca1bdc
+- some data could get orphaned (and not saved) by being collected in the outer section of a nested loop #8b7fda826
+- when using Mouse.getPos() with retina display and win.units=='pix' the mouse pos was double the expected value #a78d74420
+
+PsychoPy 3.1.3
+~~~~~~~~~~~~~~~~~~~~~~
+
+FIXED:
+
+- StairHandler code from Builder was failing in 3.1 due to new tStartRefresh
+  data being sent to wrong method (addData not addOtherData) #2497
+- Routines in online studies that weren't included in (or before) a loop were
+  not having their data saved #2496
+- Fix to audio capture error "bad argument at position 0" from Builder experiments #dadb9be25
+- PsychoPy app didn't recognise projects that were pointing to gitlab ssh targets (e.g. created in terminal) #08d7937
+
 PsychoPy 3.1.2
 ~~~~~~~~~~~~~~~~~~~~~~
 
@@ -31,10 +126,10 @@ FIXED:
 
 - teething problems with the new :class:`~psychopy.hardware.keyboard.Keyboard` class:
    - in Builder there was stuttering of sounds and lags in frame timing caused
-     by accidentally creating lots of Kyeboards while checking for 'escape'
+   by accidentally creating lots of Kyeboards while checking for 'escape'
    - durations were being reported with correct magnitude but as negative values #e43e474602b7f
    - problem on Windows if keyboard device name contained unicode (that problem
-     was actually in psychtoolbox package, now updated in Standalone)
+   was actually in psychtoolbox package, now updated in Standalone)
    - on Windows, the 'return' key was being called 'num_enter'
 - videos were not running online #9779579b60 #51b0824f755
 - fixed rounding error in filtering of NoiseStim #5d0e360d87b

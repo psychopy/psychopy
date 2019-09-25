@@ -30,7 +30,10 @@ class Test_Form(object):
                            "responseWidth": 0.3,
                            "options": "Male, Female, Other",
                            "layout": 'vert',
-                           "index": 0}
+                           "index": 0,
+                           "questionColor": "white",
+                           "responseColor": "white"
+                           }
         self.questions.append(self.genderItem)
         # then a set of ratings
         items = ["running", "cake", "programming"]
@@ -41,7 +44,10 @@ class Test_Form(object):
                      "responseWidth": 0.3,
                      "options":"Lots, some, Not a lot, Longest Option",
                      "layout": 'horiz',
-                     "index": idx+1}
+                     "index": idx+1,
+                     "questionColor": "white",
+                     "responseColor": "white"
+                     }
             self.questions.append(entry)
         self.survey = Form(self.win, items=self.questions, size=(1.0, 0.3), pos=(0.0, 0.0), autoLog=False)
 
@@ -51,7 +57,10 @@ class Test_Form(object):
                       "c": "radio",
                       "d": 0.3,
                       "e": "Male, Female, Other",
-                      "f": 'vert'}]
+                      "f": 'vert',
+                      "g": "white",
+                      "h": "white"
+                        }]
 
         wrongOptions = [{"questionText": "What is your gender?",
                       "questionWidth": 0.7,
@@ -59,19 +68,22 @@ class Test_Form(object):
                       "responseWidth": 0.3,
                       "options": "Other",
                       "layout": 'vert',
-                      "index": 0}]
+                      "index": 0,
+                      "questionColor": "white",
+                      "responseColor": "white"}]
+
+        reducedHeaders = [{"questionText": "What is your gender?"}]
 
         df = DataFrame(self.questions)
         df.to_excel(fileName_xlsx, index=False)
         df.to_csv(fileName_csv, index=False)
 
-        # Check wrong field error
-        with pytest.raises(NameError):
-            self.survey = Form(self.win, items=wrongFields, size=(1.0, 0.3), pos=(0.0, 0.0), autoLog=False)
-
         # Check options for list of dicts
         with pytest.raises(ValueError):
             self.survey = Form(self.win, items=wrongOptions, size=(1.0, 0.3), pos=(0.0, 0.0), autoLog=False)
+
+        # Check default values are applied
+        self.survey = Form(self.win, items=reducedHeaders, size=(1.0, 0.3), pos=(0.0, 0.0), autoLog=False)
 
         # Check csv
         self.survey = Form(self.win, items=fileName_csv,
@@ -79,7 +91,6 @@ class Test_Form(object):
         # Check Excel
         self.survey = Form(self.win, items=fileName_xlsx,
                            size=(1.0, 0.3), pos=(0.0, 0.0), randomize=False, autoLog=False)
-
 
     def test_randomize_items(self):
         assert self.questions == self.survey.items

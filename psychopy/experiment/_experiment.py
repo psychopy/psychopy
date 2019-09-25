@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2018 Jonathan Peirce
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 """Experiment classes:
@@ -256,11 +256,8 @@ class Experiment(object):
                     routinesToWrite.remove(thisItem.name)
             self_copy.settings.writeEndCodeJS(script)
 
-            try:
-                script = py2js.addVariableDeclarations(script.getvalue())
-            except py2js.esprima.error_handler.Error:
-                script = script.getvalue()
-                print("Failed to parse as JS by esprima")
+            # Add JS variable declarations e.g., var msg;
+            script = py2js.addVariableDeclarations(script.getvalue(), fileName=self.expPath)
 
             # Reset loop controller ready for next call to writeScript
             self_copy.flow._resetLoopController()
@@ -456,6 +453,9 @@ class Experiment(object):
                                 " and log files (blank defaults to the "
                                 "builder pref)"),
                 categ='Data')
+        elif name == 'channel':  # was incorrectly set to be valType='str' until 3.1.2
+            params[name].val = val
+            params[name].valType = 'code'  # override
         elif 'val' in list(paramNode.keys()):
             if val == 'window units':  # changed this value in 1.70.00
                 params[name].val = 'from exp settings'
@@ -536,11 +536,6 @@ class Experiment(object):
             # the current exp is already vaporized at this point, oops
             return
         self.psychopyVersion = root.get('version')
-        versionf = float(self.psychopyVersion.rsplit('.', 1)[0])
-        if versionf < 1.63:
-            msg = 'note: v%s was used to create %s ("%s")'
-            vals = (self.psychopyVersion, filenameBase, root.tag)
-            logging.warning(msg % vals)
 
         # Parse document nodes
         # first make sure we're empty

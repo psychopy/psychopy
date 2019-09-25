@@ -88,7 +88,7 @@ packages = ['wx', 'psychopy',
             # handy external science libs
             'serial',
             'egi', 'pylink', 'tobiiresearch',
-            'pyxid',
+            'pyxid', 'pyxid2', 'ftd2xx',  # ftd2xx is used by cedrus
             'pandas', 'tables',  # 'cython',
             'msgpack', 'yaml', 'gevent',  # for ioHub
             # these aren't needed, but liked
@@ -101,6 +101,8 @@ packages = ['wx', 'psychopy',
             'astunparse', 'esprima',  # for translating/adapting py/JS
             'pylsl', 'pygaze', 'smite',
             'cv2',
+            'badapted', 'darc_toolbox',  # adaptive methods from Ben Vincent
+            'questplus',
             ]
 
 if sys.version_info.major >= 3:

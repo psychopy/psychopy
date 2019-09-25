@@ -41,6 +41,7 @@ _localized = {
     'audioLib': _translate("audio library"),
     'audioDriver': _translate("audio driver"),
     'audioDevice': _translate("audio device"),
+    'audioLatencyMode': _translate("audio latency mode"),
     'flac': _translate('flac audio compression'),
     'parallelPorts': _translate("parallel ports"),
     'qmixConfiguration': _translate("Qmix configuration"),
@@ -145,6 +146,12 @@ _localized = {
 }
 # add pre-translated names-of-langauges, for display in locale pref:
 _localized.update(localization.locname)
+
+audioLatencyLabels = {0:_translate('Latency not important'),
+                      1:_translate('Share low-latency driver'),
+                      2:_translate('Exclusive low-latency'),
+                      3:_translate('Aggressive low-latency'),
+                      4:_translate('Latency critical')}
 
 
 class PreferencesDlg(wx.Dialog):
@@ -378,6 +385,19 @@ class PrefCtrls(object):
             # only True or False - use a checkbox
             self.valueCtrl = wx.CheckBox(self.parent)
             self.valueCtrl.SetValue(value)
+        elif name == 'audioLatencyMode':
+            # get the labels from above
+            labels = []
+            for val, labl in audioLatencyLabels.items():
+                labels.append(u'{}: {}'.format(val, labl))
+            #get the options from the config file spec
+            options = spec.replace("option(", "").replace("'", "")
+            # item -1 is 'default=x' from spec
+            options = options.replace(", ", ",").split(',')[:-1]
+
+            self.valueCtrl = wx.Choice(self.parent, choices=labels)
+            self.valueCtrl._choices = copy.copy(options)  # internal values
+            self.valueCtrl.SetSelection(options.index(value))
         elif spec.startswith('option') or name == 'audioDevice':
             if name == 'audioDevice':
                 options = copy.copy(value)
@@ -453,7 +473,7 @@ class PrefCtrls(object):
         """Convert list to string.
 
         This function is necessary because Unicode characters come to be
-        converted to hexadicimal values if unicode() is used to convert a
+        converted to hexadecimal values if unicode() is used to convert a
         list to string. This function applies str() or unicode() to each
         element of the list.
         """

@@ -22,19 +22,21 @@ To achieve these goals PsychoPy provides a unique choice of interface: use the
 News
 ====================
 
+**Pavlovia Store online**: Go and `buy your credits and site licenses <https://pavlovia.org/store>`_ now for Pavlovia
+participants. Site licenses (£1500) last until Sept 2020. Individual credits (£0.20) 
+last forever! For more info about pricing see https://pavlovia.org/docs/store/pricing
+
+:ref:`download` the **latest version**: 3.2.3 released Sept 2019.
+
+With a new faster sound (and many improvements to the provision of online studies)
+combined with the faster keyboard timing in the 3.1.x release series.
+
 **New PsychoPy paper**: Please cite this if you use PsychoPy Builder in your studies
 
 Peirce, J. W., Gray, J. R., Simpson, S., MacAskill, M. R., Höchenberger, R.,
 Sogo, H., Kastman, E., Lindeløv, J. (2019). `PsychoPy2: experiments in behavior
 made easy. <https://dx.doi.org/10.3758/s13428-018-01193-y>`_ Behavior Research
 Methods. 10.3758/s13428-018-01193-y
-
-**Latest version**: 3.1.2 April 2019
-
-Release series 3.1.x adds a :class:`~psychopy.hardware.keyboard.Keyboard`
-class which is much faster (polling the USB bus directly and at a higher rate)
-and supplies key durations automatically where possible (for keys that have
-been released). As always, see the :ref:`changelog` for full details.
 
 **Buy the official book!**
 

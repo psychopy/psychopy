@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2018 Jonathan Peirce
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 """Audio capture and analysis using pyo"""
@@ -179,6 +179,12 @@ class AudioCapture(object):
         self.loggingId = self.__class__.__name__
         if self.name:
             self.loggingId += ' ' + self.name
+
+        if type(chnl) != int:
+            try:
+                chnl = int(chnl)
+            except (TypeError, ValueError):
+                raise TypeError("AudioCapture argument 'chnl' needs to be an int but received {}".format(repr(chnl)))
 
         # the recorder object needs to persist, or else get bus errors:
         self.recorder = self._Recorder()
@@ -384,6 +390,7 @@ class AdvAudioCapture(AudioCapture):
         AudioCapture.__init__(self, name=name, filename=filename,
                               saveDir=saveDir, sampletype=sampletype,
                               buffering=buffering, chnl=chnl, stereo=stereo)
+
         self.setMarker()
         self.autoLog = autoLog
 

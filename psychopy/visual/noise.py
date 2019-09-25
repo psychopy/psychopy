@@ -6,7 +6,7 @@ second order envelope carrier and envelope can vary independently for
 orientation, frequencyand phase. Also does beat stimuli. """
 
 # Part of the PsychoPy library
-# Copyright (C) 2018 Jonathan Peirce
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019 Open Science Tools Ltd.
 # some code provided by Andrew Schofield
 # Distributed under the terms of the GNU General Public License (GPL).
 
@@ -16,7 +16,7 @@ orientation, frequencyand phase. Also does beat stimuli. """
 # up by the pyglet GL engine and have no effect.
 # Shaders will work but require OpenGL2.0 drivers AND PyOpenGL3.0+
 
-from __future__ import absolute_import, print_function
+from __future__ import absolute_import, print_function, division
 
 import pyglet
 pyglet.options['debug_gl'] = False
@@ -35,7 +35,6 @@ from .grating import GratingStim
 import numpy
 from numpy import exp, sin, cos
 from numpy.fft import fft2, ifft2, fftshift, ifftshift
-from scipy.misc import imresize, imrotate
 
 from . import shaders as _shaders
 
@@ -145,20 +144,20 @@ class NoiseStim(GratingStim):
                  sf=None,
                  ori=0.0,
                  phase=(0.0, 0.0),
-                 noiseType='none',
-                 noiseElementSize='16',
-                 noiseBaseSf='1',
-                 noiseBW='1',
-                 noiseBWO='30',
-                 noiseOri='0',
-                 noiseFractalPower='0.0',
-                 noiseFilterUpper='50',
-                 noiseFilterLower='0',
-                 noiseFilterOrder='0.0',
-                 noiseClip='1',
-                 noiseImage='None',
+                 noiseType=None,
+                 noiseElementSize=16,
+                 noiseBaseSf=1,
+                 noiseBW=1,
+                 noiseBWO=30,
+                 noiseOri=0,
+                 noiseFractalPower=0.0,
+                 noiseFilterUpper=50,
+                 noiseFilterLower=0,
+                 noiseFilterOrder=0.0,
+                 noiseClip=1,
+                 noiseImage=None,
                  imageComponent='Phase',
-                 filter='None',
+                 filter=None,
                  texRes=128,
                  rgb=None,
                  dkl=None,
@@ -180,6 +179,17 @@ class NoiseStim(GratingStim):
         # __repr__
 
         self._initParams = dir()
+
+        if noiseType is None:
+            msg = ('noiseType not recognized. Valid types are: \n'
+                   'binary, uniform, normal, white, filtered, gabor, '
+                   'isotropic, or image.')
+            raise ValueError(msg)
+        elif noiseType == 'image' and noiseImage is None:
+            msg = ('You need to supply an image via the noiseImage keyword '
+                   'argument.')
+            raise ValueError(msg)
+
         for unecess in ['self', 'rgb', 'dkl', 'lms']:
             self._initParams.remove(unecess)
         # initialise parent class
@@ -495,8 +505,8 @@ class NoiseStim(GratingStim):
                                                             cutoff_y = self._upsf / filterSize, 
                                                             n=self.noiseFilterOrder, 
                                                             alpha=0, 
-                                                            offset_x = 2 / (filterSize-1),
-                                                            offset_y = 2 / (filterSize-1))
+                                                                offset_x = 0.5/filterSize,  #becuase FFTs are slightly off centred.
+                                                                offset_y = 0.5/filterSize)
             else:
                 filter = numpy.ones((int(filterSize),int(filterSize)))
             if self._lowsf > 0:
@@ -509,8 +519,8 @@ class NoiseStim(GratingStim):
                                                                 cutoff_y = self._lowsf / filterSize, 
                                                                 n = self.noiseFilterOrder, 
                                                                 alpha = 0, 
-                                                                offset_x = 2/(filterSize - 1),
-                                                                offset_y = 2/(filterSize - 1))
+                                                                offset_x = 0.5/filterSize, #becuase FFTs are slightly off centred.
+                                                                offset_y = 0.5/filterSize)
             return FT * filter
         else:
             return FT
@@ -554,7 +564,12 @@ class NoiseStim(GratingStim):
         yy = (0.5 - 1.0 / self._size * yy) 
         filter=filters.make2DGauss(xx,yy,mean=(localf,0), sd=(sigmaF,sigmaO))
         filter=filter+filters.make2DGauss(xx,yy, mean=(-localf,0), sd=(sigmaF,sigmaO))
-        filter=imrotate(filter, self.noiseOri, interp='bicubic')
+        filter = numpy.array(
+                Image.fromarray(filter).rotate(
+                        self.noiseOri,
+                        Image.BICUBIC
+                )
+        )
         return FT*filter
 
     def updateNoise(self):
@@ -596,12 +611,22 @@ class NoiseStim(GratingStim):
             if self.filter in ['butterworth', 'Butterworth', 'Gabor','gabor','Isotropic','isotropic']:
                 if self.units == 'pix':
                     if self._size[0] == self._size[1]:
-                        baseImage = imresize(self.noiseTex, (int(self._size[0]),int(self._size[1])), interp='nearest')
+                        baseImage = numpy.array(
+                                Image.fromarray(self.noiseTex).resize(
+                                        (int(self._size[0]), int(self._size[1])),
+                                        Image.NEAREST
+                                )
+                        )
                     else:
                         msg = ('NoiseStim can only apply filters to square noise images')
                         raise ValueError(msg)
-                else: 
-                    baseImage = imresize(self.noiseTex, (int(self._size),int(self._size)), interp='nearest')
+                else:
+                    baseImage = numpy.array(
+                            Image.fromarray(self.noiseTex).resize(
+                                    (int(self._size), int(self._size)),
+                                    Image.NEAREST
+                            )
+                    )
                 baseImage = numpy.array(baseImage).astype(
                         numpy.float32) * 0.0078431372549019607 - 1.0
                 FT = fft2(baseImage)
@@ -671,7 +696,8 @@ class NoiseStim(GratingStim):
                 im = Image.open(self.noiseImage)
                 im = im.transpose(Image.FLIP_TOP_BOTTOM)
                 im = im.convert("L")  # FORCE TO LUMINANCE
-                im = imresize(im, (int(self._size),int(self._size)), interp='bilinear')
+                im = im.resize((int(self._size),int(self._size)),
+                               Image.BILINEAR)
                 intensity = numpy.array(im).astype(
                         numpy.float32) * 0.0078431372549019607 - 1.0
                 if self.imageComponent in ['phase', 'Phase']:
@@ -691,7 +717,7 @@ class NoiseStim(GratingStim):
         if not(self.noiseType in ['binary','Binary','normal','Normal','uniform','Uniform']):
             if (self.noiseType in ['filtered','Filtered']) or (self.filter in ['butterworth', 'Butterworth']):
                 self.noiseTex=self._filter(self.noiseTex)
-            elif (self.noiseType in ['Isotropic','isotropic']) or (self.filter in ['isotropic', 'Isopropic']):
+            elif (self.noiseType in ['Isotropic','isotropic']) or (self.filter in ['isotropic', 'Isotropic']):
                 self.noiseTex = self._isotropic(self.noiseTex)
             elif (self.noiseType in ['Gabor','gabor']) or (self.filter in ['gabor', 'Gabor']):
                 self.noiseTex = self._gabor(self.noiseTex)

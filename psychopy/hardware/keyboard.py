@@ -55,7 +55,7 @@ Example usage
 """
 
 # Part of the PsychoPy library
-# Copyright (C) 2018 Jonathan Peirce
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 # 01/2011 modified by Dave Britton to get mouse event timing
@@ -230,8 +230,10 @@ class Keyboard:
         raise NotImplementedError
 
     def clearEvents(self, eventType=None):
+        """"""
         if havePTB:
             for buffer in self._buffers.values():
+                buffer.flush()  # flush the device events to the soft buffer
                 buffer._evts.clear()
                 buffer._keys.clear()
                 buffer._keysStillDown.clear()
@@ -240,6 +242,27 @@ class Keyboard:
 
 class KeyPress(object):
     """Class to store key presses, as returned by `Keyboard.getKeys()`
+
+    Unlike keypresses from the old event.getKeys() which returned a list of
+    strings (the names of the keys) we now return several attributes for each
+    key:
+
+        .name: the name as a string (matching the previous pyglet name)
+        .rt: the reaction time (relative to last clock reset)
+        .tDown: the time the key went down in absolute time
+        .duration: the duration of the keypress (or None if not released)
+
+    Although the keypresses are a class they will test `==`, `!=` and `in`
+    based on their name. So you can still do::
+
+        kb = KeyBoard()
+        # wait for keypresses here
+        keys = kb.getKeys()
+        for thisKey in keys:
+            if thisKey=='q':  # it is equivalent to the string 'q'
+                core.quit()
+            else:
+                print(thisKey.name, thisKey.tDown, thisKey.rt)
     """
 
     def __init__(self, code, tDown, name=None):
@@ -312,6 +335,8 @@ class _KeyBuffer(object):
         self.dev._create_queue(bufferSize)
 
     def flush(self):
+        """Flushes and processes events from the device to this software buffer
+        """
         self._processEvts()
 
     def _flushEvts(self):
@@ -325,7 +350,7 @@ class _KeyBuffer(object):
             self._evts.append(key)
 
     def getKeys(self, keyList=[], waitRelease=True, clear=True):
-        """Return the KeyPress objects
+        """Return the KeyPress objects from the software buffer
 
         Parameters
         ----------
@@ -414,7 +439,7 @@ keyNamesWin = {
     37: 'left', 40: 'down', 38: 'up', 39: 'right', 27: 'escape',
     144: 'numlock', 111: 'num_divide', 106: 'num_multiply',
     8: 'backspace', 109: 'num_subtract', 107: 'num_add',
-    13: 'num_enter', 222: 'pound', 161: 'lshift', 163: 'rctrl',
+    13: 'return', 222: 'pound', 161: 'lshift', 163: 'rctrl',
     92: 'rwindows', 32: 'space', 164: 'lalt', 165: 'ralt',
     91: 'lwindows', 93: 'menu', 162: 'lctrl', 160: 'lshift',
     20: 'capslock', 9: 'tab', 223: 'quoteleft', 220: 'backslash',
@@ -430,7 +455,7 @@ keyNamesMac = {
     29: 'z',
     30: '1', 31: '2', 32: '3', 33: '4', 34: '5', 35: '6', 36: '7',
     37: '8', 38: '9', 39: '0',
-    40: 'return', 41: 'escape', 42: 'backspace', 43: 'escape', 44: 'space',
+    40: 'return', 41: 'escape', 42: 'backspace', 43: 'tab', 44: 'space',
     45: 'minus', 46: 'equal',
     47: 'bracketleft', 48: 'bracketright', 49: 'backslash', 51: 'semicolon',
     52: 'apostrophe', 53: 'grave', 54: 'comma', 55: 'period', 56: 'slash',

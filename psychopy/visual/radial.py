@@ -5,7 +5,7 @@
 """
 
 # Part of the PsychoPy library
-# Copyright (C) 2018 Jonathan Peirce
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 from __future__ import absolute_import, division, print_function
@@ -586,22 +586,22 @@ class RadialStim(GratingStim):
 
         # bind and enable textures
         # main texture
-        GL.glActiveTextureARB(GL.GL_TEXTURE0_ARB)
+        GL.glActiveTexture(GL.GL_TEXTURE0)
         GL.glBindTexture(GL.GL_TEXTURE_2D, self._texID)
         GL.glEnable(GL.GL_TEXTURE_2D)
         # mask
-        GL.glActiveTextureARB(GL.GL_TEXTURE1_ARB)
+        GL.glActiveTexture(GL.GL_TEXTURE1)
         GL.glBindTexture(GL.GL_TEXTURE_1D, self._maskID)
         GL.glDisable(GL.GL_TEXTURE_2D)
         GL.glEnable(GL.GL_TEXTURE_1D)
 
         # set pointers to visible textures
         # mask
-        GL.glClientActiveTextureARB(GL.GL_TEXTURE1_ARB)
+        GL.glClientActiveTexture(GL.GL_TEXTURE1)
         GL.glTexCoordPointer(2, GL.GL_DOUBLE, 0, self._visibleMask.ctypes)
         GL.glEnableClientState(GL.GL_TEXTURE_COORD_ARRAY)
         # texture
-        GL.glClientActiveTextureARB(GL.GL_TEXTURE0_ARB)
+        GL.glClientActiveTexture(GL.GL_TEXTURE0)
         GL.glTexCoordPointer(2, GL.GL_DOUBLE, 0, self._visibleTexture.ctypes)
         GL.glEnableClientState(GL.GL_TEXTURE_COORD_ARRAY)
 
@@ -610,9 +610,9 @@ class RadialStim(GratingStim):
 
         # disable set states
         GL.glDisableClientState(GL.GL_VERTEX_ARRAY)
-        GL.glActiveTextureARB(GL.GL_TEXTURE0_ARB)
+        GL.glActiveTexture(GL.GL_TEXTURE0)
         GL.glDisableClientState(GL.GL_TEXTURE_COORD_ARRAY)
-        GL.glActiveTextureARB(GL.GL_TEXTURE1_ARB)
+        GL.glActiveTexture(GL.GL_TEXTURE1)
         GL.glDisableClientState(GL.GL_TEXTURE_COORD_ARRAY)
 
         GL.glEndList()
