@@ -1484,7 +1484,13 @@ class QuestPlusHandler(StairHandler):
             warnings.warn(msg, RuntimeWarning)
 
         super().__init__(startVal=startIntensity, nTrials=nTrials,
-                         extraInfo=extraInfo, name=name)
+                         stepType=stimScale, extraInfo=extraInfo, name=name)
+
+        # We  don't use these attributes that were inherited from StairHandler.
+        self.currentDirection = None
+        self.stepSizeCurrent = None
+        # Note that self.stepType is not used either: we use self.stimScale
+        # instead (which is defined below).
 
         self.intensityVals = intensityVals
         self.thresholdVals = thresholdVals
@@ -1852,9 +1858,12 @@ class MultiStairHandler(_BaseTrialHandler):
                             self.conditions.index(stair.condition))
                 exp.addData(self.name + '.thisRepN', stair.thisTrialN + 1)
                 exp.addData(self.name + '.thisN', self.totalTrials)
-                exp.addData(self.name + '.direction', stair.currentDirection)
-                exp.addData(self.name + '.stepSize', stair.stepSizeCurrent)
-                exp.addData(self.name + '.stepType', stair.stepType)
+
+                if self.type != 'questplus':
+                    exp.addData(self.name + '.direction', stair.currentDirection)
+                    exp.addData(self.name + '.stepSize', stair.stepSizeCurrent)
+                    exp.addData(self.name + '.stepType', stair.stepType)
+
                 exp.addData(self.name + '.intensity', self._nextIntensity)
             return self._nextIntensity, self.currentStaircase.condition
         else:
