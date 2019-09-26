@@ -41,8 +41,8 @@ def length(v, squared=False, out=None, dtype=None):
         output if `out` was not specified.
     dtype : dtype or str, optional
         Data type for computations can either be 'float32' or 'float64'. If
-        `None` is specified, the data type of `out` is used. If `out` is not
-        provided, 'float64' is used by default.
+        `out` is specified, the data type of `out` is used and this argument is
+        ignored. If `out` is not provided, 'float64' is used by default.
 
     Returns
     -------
@@ -87,9 +87,9 @@ def normalize(v, out=None, dtype=None):
         Optional output array. Must be same `shape` and `dtype` as the expected
         output if `out` was not specified.
     dtype : dtype or str, optional
-        Data type for arrays, can either be 'float32' or 'float64'. If `None` is
-        specified, the data type is inferred by `out`. If `out` is not provided,
-        the default is 'float64'.
+        Data type for computations can either be 'float32' or 'float64'. If
+        `out` is specified, the data type of `out` is used and this argument is
+        ignored. If `out` is not provided, 'float64' is used by default.
 
     Returns
     -------
@@ -152,9 +152,9 @@ def orthogonalize(v, n, out=None, dtype=None):
         Optional output array. Must be same `shape` and `dtype` as the expected
         output if `out` was not specified.
     dtype : dtype or str, optional
-        Data type for arrays, can either be 'float32' or 'float64'. If `None` is
-        specified, the data type is inferred by `out`. If `out` is not provided,
-        the default is 'float64'.
+        Data type for computations can either be 'float32' or 'float64'. If
+        `out` is specified, the data type of `out` is used and this argument is
+        ignored. If `out` is not provided, 'float64' is used by default.
 
     Returns
     -------
@@ -205,9 +205,9 @@ def reflect(v, n, out=None, dtype=None):
         Optional output array. Must be same `shape` and `dtype` as the expected
         output if `out` was not specified.
     dtype : dtype or str, optional
-        Data type for arrays, can either be 'float32' or 'float64'. If `None` is
-        specified, the data type is inferred by `out`. If `out` is not provided,
-        the default is 'float64'.
+        Data type for computations can either be 'float32' or 'float64'. If
+        `out` is specified, the data type of `out` is used and this argument is
+        ignored. If `out` is not provided, 'float64' is used by default.
 
     Returns
     -------
@@ -259,9 +259,9 @@ def dot(v0, v1, out=None, dtype=None):
         Optional output array. Must be same `shape` and `dtype` as the expected
         output if `out` was not specified.
     dtype : dtype or str, optional
-        Data type for arrays, can either be 'float32' or 'float64'. If `None` is
-        specified, the data type is inferred by `out`. If `out` is not provided,
-        the default is 'float64'.
+        Data type for computations can either be 'float32' or 'float64'. If
+        `out` is specified, the data type of `out` is used and this argument is
+        ignored. If `out` is not provided, 'float64' is used by default.
 
     Returns
     -------
@@ -312,9 +312,9 @@ def cross(v0, v1, out=None, dtype=None):
         Optional output array. Must be same `shape` and `dtype` as the expected
         output if `out` was not specified.
     dtype : dtype or str, optional
-        Data type for arrays, can either be 'float32' or 'float64'. If `None` is
-        specified, the data type is inferred by `out`. If `out` is not provided,
-        the default is 'float64'.
+        Data type for computations can either be 'float32' or 'float64'. If
+        `out` is specified, the data type of `out` is used and this argument is
+        ignored. If `out` is not provided, 'float64' is used by default.
 
     Returns
     -------
@@ -426,9 +426,9 @@ def project(v0, v1, out=None, dtype=None):
         Optional output array. Must be same `shape` and `dtype` as the expected
         output if `out` was not specified.
     dtype : dtype or str, optional
-        Data type for arrays, can either be 'float32' or 'float64'. If `None` is
-        specified, the data type is inferred by `out`. If `out` is not provided,
-        the default is 'float64'.
+        Data type for computations can either be 'float32' or 'float64'. If
+        `out` is specified, the data type of `out` is used and this argument is
+        ignored. If `out` is not provided, 'float64' is used by default.
 
     Returns
     -------
@@ -476,9 +476,9 @@ def lerp(v0, v1, t, out=None, dtype=None):
         Optional output array. Must be same `shape` and `dtype` as the expected
         output if `out` was not specified.
     dtype : dtype or str, optional
-        Data type for arrays, can either be 'float32' or 'float64'. If `None` is
-        specified, the data type is inferred by `out`. If `out` is not provided,
-        the default is 'float64'.
+        Data type for computations can either be 'float32' or 'float64'. If
+        `out` is specified, the data type of `out` is used and this argument is
+        ignored. If `out` is not provided, 'float64' is used by default.
 
     Returns
     -------
@@ -533,9 +533,9 @@ def distance(v0, v1, out=None, dtype=None):
         Optional output array. Must be same `shape` and `dtype` as the expected
         output if `out` was not specified.
     dtype : dtype or str, optional
-        Data type for arrays, can either be 'float32' or 'float64'. If `None` is
-        specified, the data type is inferred by `out`. If `out` is not provided,
-        the default is 'float64'.
+        Data type for computations can either be 'float32' or 'float64'. If
+        `out` is specified, the data type of `out` is used and this argument is
+        ignored. If `out` is not provided, 'float64' is used by default.
 
     Returns
     -------
@@ -580,9 +580,9 @@ def perp(v, n, norm=True, out=None, dtype=None):
         Optional output array. Must be same `shape` and `dtype` as the expected
         output if `out` was not specified.
     dtype : dtype or str, optional
-        Data type for arrays, can either be 'float32' or 'float64'. If `None` is
-        specified, the data type is inferred by `out`. If `out` is not provided,
-        the default is 'float64'.
+        Data type for computations can either be 'float32' or 'float64'. If
+        `out` is specified, the data type of `out` is used and this argument is
+        ignored. If `out` is not provided, 'float64' is used by default.
 
     Returns
     -------
@@ -650,9 +650,9 @@ def angleTo(v, point, degrees=True, out=None, dtype=None):
         Optional output array. Must be same `shape` and `dtype` as the expected
         output if `out` was not specified.
     dtype : dtype or str, optional
-        Data type for arrays, can either be 'float32' or 'float64'. If `None` is
-        specified, the data type is inferred by `out`. If `out` is not provided,
-        the default is 'float64'.
+        Data type for computations can either be 'float32' or 'float64'. If
+        `out` is specified, the data type of `out` is used and this argument is
+        ignored. If `out` is not provided, 'float64' is used by default.
 
     Returns
     -------
@@ -703,9 +703,9 @@ def surfaceNormal(tri, norm=True, out=None, dtype=None):
         Optional output array. Must have one fewer dimensions than `tri`. The
         shape of the last dimension must be 3.
     dtype : dtype or str, optional
-        Data type for arrays, can either be 'float32' or 'float64'. If `None` is
-        specified, the data type is inferred by `out`. If `out` is not provided,
-        the default is 'float64'.
+        Data type for computations can either be 'float32' or 'float64'. If
+        `out` is specified, the data type of `out` is used and this argument is
+        ignored. If `out` is not provided, 'float64' is used by default.
 
     Returns
     -------
@@ -785,9 +785,9 @@ def surfaceBitangent(tri, uv, norm=True, out=None, dtype=None):
         Optional output array. Must have one fewer dimensions than `tri`. The
         shape of the last dimension must be 3.
     dtype : dtype or str, optional
-        Data type for arrays, can either be 'float32' or 'float64'. If `None` is
-        specified, the data type is inferred by `out`. If `out` is not provided,
-        the default is 'float64'.
+        Data type for computations can either be 'float32' or 'float64'. If
+        `out` is specified, the data type of `out` is used and this argument is
+        ignored. If `out` is not provided, 'float64' is used by default.
 
     Returns
     -------
@@ -882,9 +882,9 @@ def surfaceTangent(tri, uv, norm=True, out=None, dtype=None):
         Optional output array. Must have one fewer dimensions than `tri`. The
         shape of the last dimension must be 3.
     dtype : dtype or str, optional
-        Data type for arrays, can either be 'float32' or 'float64'. If `None` is
-        specified, the data type is inferred by `out`. If `out` is not provided,
-        the default is 'float64'.
+        Data type for computations can either be 'float32' or 'float64'. If
+        `out` is specified, the data type of `out` is used and this argument is
+        ignored. If `out` is not provided, 'float64' is used by default.
 
     Returns
     -------
@@ -984,9 +984,9 @@ def vertexNormal(faceNorms, norm=True, out=None, dtype=None):
     out : ndarray, optional
         Optional output array.
     dtype : dtype or str, optional
-        Data type for arrays, can either be 'float32' or 'float64'. If `None` is
-        specified, the data type is inferred by `out`. If `out` is not provided,
-        the default is 'float64'.
+        Data type for computations can either be 'float32' or 'float64'. If
+        `out` is specified, the data type of `out` is used and this argument is
+        ignored. If `out` is not provided, 'float64' is used by default.
 
     Returns
     -------
@@ -1030,7 +1030,7 @@ def vertexNormal(faceNorms, norm=True, out=None, dtype=None):
 # Collision Detection and Interaction
 #
 
-def intersectRayPlane(orig, dir, planeOrig, planeNormal):
+def intersectRayPlane(orig, dir, planeOrig, planeNormal, dtype=None):
     """Get the point which a ray intersects a plane.
 
     Parameters
@@ -1043,11 +1043,16 @@ def intersectRayPlane(orig, dir, planeOrig, planeNormal):
         Origin of the plane to test [x, y, z].
     planeNormal : array_like
         Normal vector of the plane [x, y, z].
+    dtype : dtype or str, optional
+        Data type for computations can either be 'float32' or 'float64'. If
+        `out` is specified, the data type of `out` is used and this argument is
+        ignored. If `out` is not provided, 'float64' is used by default.
 
     Returns
     -------
-    ndarray
-        Position in space which the line intersects the plane. `None` is
+    tuple or None
+        Position (`ndarray`) in space which the line intersects the plane and
+        the distance the intersect occurs from the origin (`float`). `None` is
         returned if the line does not intersect the plane at a single point or
         at all.
 
@@ -1064,29 +1069,35 @@ def intersectRayPlane(orig, dir, planeOrig, planeNormal):
         rayDir = [0, 0, -1]
         rayOrigin = [0, 0, 5]
 
-        # get the intersect in 3D world space
-        pnt = intersectRayPlane(rayOrigin, rayDir, planeOrigin, planeNormal)
+        # get the intersect and distacne in 3D world space
+        pnt, dist = intersectRayPlane(rayOrigin, rayDir, planeOrigin, planeNormal)
 
     """
-    # based off the method from GLM
-    orig = np.asarray(orig)
-    dir = np.asarray(dir)
-    planeOrig = np.asarray(planeOrig)
-    planeNormal = np.asarray(planeNormal)
+    dtype = np.float64 if dtype is None else np.dtype(dtype).type
 
-    denom = dot(dir, planeNormal)
+    # based off the method from GLM
+    orig = np.asarray(orig, dtype=dtype)
+    dir = np.asarray(dir, dtype=dtype)
+    planeOrig = np.asarray(planeOrig, dtype=dtype)
+    planeNormal = np.asarray(planeNormal, dtype=dtype)
+
+    denom = dot(dir, planeNormal, dtype=dtype)
     if denom == 0.0:
         return None
 
-    dist = dot((planeOrig - orig), planeNormal) / denom  # distance to collision
+    # distance to collision
+    dist = dot((planeOrig - orig), planeNormal, dtype=dtype) / denom
     intersect = dist * dir + orig
 
-    return intersect
+    return intersect, dist
 
 
-def ortho3Dto2D(p, orig, normal, up):
+def ortho3Dto2D(p, orig, normal, up, right=None, dtype=None):
     """Get the planar coordinates of an orthogonal projection of a 3D point onto
     a 2D plane.
+
+    This function gets the nearest point on the plane which a 3D point falls on
+    the plane.
 
     Parameters
     ----------
@@ -1099,6 +1110,13 @@ def ortho3Dto2D(p, orig, normal, up):
     up : array_like
         Normalized up (+Y) direction of the plane's coordinate system. Must be
         perpendicular to `normal`.
+    right : array_like, optional
+        Perpendicular right (+X) axis. If not provided, the axis will be
+        computed via the cross product between `normal` and `up`.
+    dtype : dtype or str, optional
+        Data type for computations can either be 'float32' or 'float64'. If
+        `out` is specified, the data type of `out` is used and this argument is
+        ignored. If `out` is not provided, 'float64' is used by default.
 
     Returns
     -------
@@ -1127,15 +1145,22 @@ def ortho3Dto2D(p, orig, normal, up):
         planeX, planeY = ortho3Dto2D(pnt, planeOrigin, planeNormal, planeUpAxis)
 
     """
-    p = np.asarray(p)
-    orig = np.asarray(orig)
-    normal = np.asarray(normal)
-    up = np.asarray(up)
+    dtype = np.float64 if dtype is None else np.dtype(dtype).type
+
+    p = np.asarray(p, dtype=dtype)
+    orig = np.asarray(orig, dtype=dtype)
+    normal = np.asarray(normal, dtype=dtype)
+    up = np.asarray(up, dtype=dtype)
 
     toReturn = np.zeros((2,))
 
     offset = p - orig
-    toReturn[0] = dot(offset, cross(normal, up))  # derive +X axis with cross
+    if right is None:
+        # derive X axis with cross product
+        toReturn[0] = dot(offset, cross(normal, up, dtype=dtype), dtype=dtype)
+    else:
+        toReturn[0] = dot(offset, np.asarray(right, dtype=dtype), dtype=dtype)
+
     toReturn[1] = dot(offset, up)
 
     return toReturn
@@ -1173,9 +1198,9 @@ def slerp(q0, q1, t, shortest=True, out=None, dtype=None):
         Optional output array. Must be same `shape` and `dtype` as the expected
         output if `out` was not specified.
     dtype : dtype or str, optional
-        Data type for arrays, can either be 'float32' or 'float64'. If `None` is
-        specified, the data type is inferred by `out`. If `out` is not provided,
-        the default is 'float64'.
+        Data type for computations can either be 'float32' or 'float64'. If
+        `out` is specified, the data type of `out` is used and this argument is
+        ignored. If `out` is not provided, 'float64' is used by default.
 
     Returns
     -------
@@ -1260,9 +1285,9 @@ def quatToAxisAngle(q, degrees=True, dtype=None):
         Indicate `angle` is to be returned in degrees, otherwise `angle` will be
         returned in radians.
     dtype : dtype or str, optional
-        Data type for arrays, can either be 'float32' or 'float64'. If `None` is
-        specified, the data type is inferred by `out`. If `out` is not provided,
-        the default is 'float64'.
+        Data type for computations can either be 'float32' or 'float64'. If
+        `out` is specified, the data type of `out` is used and this argument is
+        ignored. If `out` is not provided, 'float64' is used by default.
 
     Returns
     -------
@@ -1313,8 +1338,9 @@ def quatFromAxisAngle(axis, angle, degrees=True, dtype=None):
         Indicate `angle` is in degrees, otherwise `angle` will be treated as
         radians.
     dtype : dtype or str, optional
-        Data type for arrays, can either be 'float32' or 'float64'. If `None` is
-        specified, 'float64' is used.
+        Data type for computations can either be 'float32' or 'float64'. If
+        `out` is specified, the data type of `out` is used and this argument is
+        ignored. If `out` is not provided, 'float64' is used by default.
 
     Returns
     -------
@@ -1367,9 +1393,9 @@ def quatMagnitude(q, squared=False, out=None, dtype=None):
         Optional output array. Must be same `shape` and `dtype` as the expected
         output if `out` was not specified.
     dtype : dtype or str, optional
-        Data type for arrays, can either be 'float32' or 'float64'. If `None` is
-        specified, the data type is inferred by `out`. If `out` is not provided,
-        the default is 'float64'.
+        Data type for computations can either be 'float32' or 'float64'. If
+        `out` is specified, the data type of `out` is used and this argument is
+        ignored. If `out` is not provided, 'float64' is used by default.
 
     Returns
     -------
@@ -1418,9 +1444,9 @@ def multQuat(q0, q1, out=None, dtype=None):
         Optional output array. Must be same `shape` and `dtype` as the expected
         output if `out` was not specified.
     dtype : dtype or str, optional
-        Data type for arrays, can either be 'float32' or 'float64'. If `None` is
-        specified, the data type is inferred by `out`. If `out` is not provided,
-        the default is 'float64'.
+        Data type for computations can either be 'float32' or 'float64'. If
+        `out` is specified, the data type of `out` is used and this argument is
+        ignored. If `out` is not provided, 'float64' is used by default.
 
     Returns
     -------
@@ -1481,9 +1507,9 @@ def invertQuat(q, out=None, dtype=None):
         Optional output array. Must be same `shape` and `dtype` as the expected
         output if `out` was not specified.
     dtype : dtype or str, optional
-        Data type for arrays, can either be 'float32' or 'float64'. If `None` is
-        specified, the data type is inferred by `out`. If `out` is not provided,
-        the default is 'float64'.
+        Data type for computations can either be 'float32' or 'float64'. If
+        `out` is specified, the data type of `out` is used and this argument is
+        ignored. If `out` is not provided, 'float64' is used by default.
 
     Returns
     -------
@@ -1546,9 +1572,9 @@ def applyQuat(q, points, out=None, dtype=None):
         Optional output array. Must be same `shape` and `dtype` as the expected
         output if `out` was not specified.
     dtype : dtype or str, optional
-        Data type for arrays, can either be 'float32' or 'float64'. If `None` is
-        specified, the data type is inferred by `out`. If `out` is not
-        provided, the default is 'float64'.
+        Data type for computations can either be 'float32' or 'float64'. If
+        `out` is specified, the data type of `out` is used and this argument is
+        ignored. If `out` is not provided, 'float64' is used by default.
 
     Returns
     -------
@@ -1636,9 +1662,9 @@ def matrixToQuat(m, out=None, dtype=None):
         Optional output array. Must be same `shape` and `dtype` as the expected
         output if `out` was not specified.
     dtype : dtype or str, optional
-        Data type for arrays, can either be 'float32' or 'float64'. If `None` is
-        specified, the data type is inferred by `out`. If `out` is not
-        provided, the default is 'float64'.
+        Data type for computations can either be 'float32' or 'float64'. If
+        `out` is specified, the data type of `out` is used and this argument is
+        ignored. If `out` is not provided, 'float64' is used by default.
 
     Returns
     -------
@@ -1709,9 +1735,9 @@ def quatToMatrix(q, out=None, dtype=None):
         Optional output array. Must be same `shape` and `dtype` as the expected
         output if `out` was not specified.
     dtype : dtype or str, optional
-        Data type for arrays, can either be 'float32' or 'float64'. If `None` is
-        specified, the data type is inferred by `out`. If `out` is not provided,
-        the default is 'float64'.
+        Data type for computations can either be 'float32' or 'float64'. If
+        `out` is specified, the data type of `out` is used and this argument is
+        ignored. If `out` is not provided, 'float64' is used by default.
 
     Returns
     -------
@@ -1788,9 +1814,9 @@ def scaleMatrix(s, out=None, dtype=None):
         Optional output array. Must be same `shape` and `dtype` as the expected
         output if `out` was not specified.
     dtype : dtype or str, optional
-        Data type for arrays, can either be 'float32' or 'float64'. If `None` is
-        specified, the data type is inferred by `out`. If `out` is not provided,
-        the default is 'float64'.
+        Data type for computations can either be 'float32' or 'float64'. If
+        `out` is specified, the data type of `out` is used and this argument is
+        ignored. If `out` is not provided, 'float64' is used by default.
 
     Returns
     -------
@@ -1835,9 +1861,9 @@ def rotationMatrix(angle, axis=(0., 0., -1.), out=None, dtype=None):
         Optional output array. Must be same `shape` and `dtype` as the expected
         output if `out` was not specified.
     dtype : dtype or str, optional
-        Data type for arrays, can either be 'float32' or 'float64'. If `None` is
-        specified, the data type is inferred by `out`. If `out` is not provided,
-        the default is 'float64'.
+        Data type for computations can either be 'float32' or 'float64'. If
+        `out` is specified, the data type of `out` is used and this argument is
+        ignored. If `out` is not provided, 'float64' is used by default.
 
     Returns
     -------
@@ -1902,9 +1928,9 @@ def translationMatrix(t, out=None, dtype=None):
         Optional output array. Must be same `shape` and `dtype` as the expected
         output if `out` was not specified.
     dtype : dtype or str, optional
-        Data type for arrays, can either be 'float32' or 'float64'. If `None` is
-        specified, the data type is inferred by `out`. If `out` is not provided,
-        the default is 'float64'.
+        Data type for computations can either be 'float32' or 'float64'. If
+        `out` is specified, the data type of `out` is used and this argument is
+        ignored. If `out` is not provided, 'float64' is used by default.
 
     Returns
     -------
@@ -1942,9 +1968,9 @@ def invertMatrix(m, homogeneous=False, out=None, dtype=None):
         Optional output array. Must be same `shape` and `dtype` as the expected
         output if `out` was not specified.
     dtype : dtype or str, optional
-        Data type for arrays, can either be 'float32' or 'float64'. If `None` is
-        specified, the data type is inferred by `out`. If `out` is not
-        specified, the default is 'float64'.
+        Data type for computations can either be 'float32' or 'float64'. If
+        `out` is specified, the data type of `out` is used and this argument is
+        ignored. If `out` is not provided, 'float64' is used by default.
 
     Returns
     -------
@@ -2001,9 +2027,9 @@ def concatenate(matrices, out=None, dtype=None):
         Optional output array. Must be same `shape` and `dtype` as the expected
         output if `out` was not specified.
     dtype : dtype or str, optional
-        Data type for arrays, can either be 'float32' or 'float64'. If `None` is
-        specified, the data type is inferred by `out`. If `out` is not provided,
-        the default is 'float64'.
+        Data type for computations can either be 'float32' or 'float64'. If
+        `out` is specified, the data type of `out` is used and this argument is
+        ignored. If `out` is not provided, 'float64' is used by default.
 
     Returns
     -------
@@ -2177,9 +2203,9 @@ def applyMatrix(m, points, out=None, dtype=None):
         Optional output array. Must be same `shape` and `dtype` as the expected
         output if `out` was not specified.
     dtype : dtype or str, optional
-        Data type for arrays, can either be 'float32' or 'float64'. If `None` is
-        specified, the data type is inferred by `out`. If `out` is not provided,
-        the default is 'float64'.
+        Data type for computations can either be 'float32' or 'float64'. If
+        `out` is specified, the data type of `out` is used and this argument is
+        ignored. If `out` is not provided, 'float64' is used by default.
 
     Returns
     -------
@@ -2311,9 +2337,9 @@ def posOriToMatrix(pos, ori, out=None, dtype=None):
         Optional output array. Must be same `shape` and `dtype` as the expected
         output if `out` was not specified.
     dtype : dtype or str, optional
-        Data type for arrays, can either be 'float32' or 'float64'. If `None` is
-        specified, the data type is inferred by `out`. If `out` is not provided,
-        the default is 'float64'.
+        Data type for computations can either be 'float32' or 'float64'. If
+        `out` is specified, the data type of `out` is used and this argument is
+        ignored. If `out` is not provided, 'float64' is used by default.
 
     Returns
     -------
@@ -2352,8 +2378,8 @@ def transform(pos, ori, points, out=None, dtype=None):
         output if `out` was not specified.
     dtype : dtype or str, optional
         Data type for computations can either be 'float32' or 'float64'. If
-        `None` is specified, the data type of `out` is used. If `out` is not
-        provided, 'float64' is used by default.
+        `out` is specified, the data type of `out` is used and this argument is
+        ignored. If `out` is not provided, 'float64' is used by default.
 
     Returns
     -------
@@ -2453,8 +2479,8 @@ def lensCorrection(xys, coefK=(1.0,), distCenter=(0., 0.), out=None, dtype=None)
         output if `out` was not specified.
     dtype : dtype or str, optional
         Data type for computations can either be 'float32' or 'float64'. If
-        `None` is specified, the data type of `out` is used. If `out` is not
-        provided, 'float64' is used by default.
+        `out` is specified, the data type of `out` is used and this argument is
+        ignored. If `out` is not provided, 'float64' is used by default.
 
     Returns
     -------
