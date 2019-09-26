@@ -348,7 +348,7 @@ class Rift(window.Window):
 
         """
         if self.buffer is None:
-            return self.__dict__['size']
+            return self.frameBufferSize
         else:
             if self._monoscopic:
                 return np.array(
@@ -1105,7 +1105,7 @@ class Rift(window.Window):
                     GL.GL_COLOR_ATTACHMENT0,
                     GL.GL_TEXTURE_2D, ovr.capi.getMirrorTexture(), 0)
 
-                win_w, win_h = self.__dict__['size']
+                win_w, win_h = self.frameBufferSize
                 tex_w, tex_h = self._mirrorRes
 
                 self.viewport = self.scissor = (0, 0, win_w, win_h)
