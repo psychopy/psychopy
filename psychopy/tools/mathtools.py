@@ -8,15 +8,43 @@
 # Copyright (C) 2002-2018 Jonathan Peirce (C) 2019 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
-__all__ = ['normalize', 'lerp', 'slerp', 'multQuat', 'quatFromAxisAngle',
-           'quatToMatrix', 'scaleMatrix', 'rotationMatrix', 'transform',
-           'translationMatrix', 'concatenate', 'applyMatrix', 'invertQuat',
-           'quatToAxisAngle', 'posOriToMatrix', 'applyQuat', 'orthogonalize',
-           'reflect', 'cross', 'distance', 'dot', 'quatMagnitude', 'length',
-           'project', 'surfaceNormal', 'invertMatrix', 'angleTo',
-           'surfaceBitangent', 'surfaceTangent', 'vertexNormal', 'isOrthogonal',
-           'isAffine', 'perp', 'ortho3Dto2D', 'intersectRayPlane',
-           'matrixToQuat', 'lensCorrection']
+__all__ = ['normalize',
+           'lerp',
+           'slerp',
+           'multQuat',
+           'quatFromAxisAngle',
+           'quatToMatrix',
+           'scaleMatrix',
+           'rotationMatrix',
+           'transform',
+           'translationMatrix',
+           'concatenate',
+           'applyMatrix',
+           'invertQuat',
+           'quatToAxisAngle',
+           'posOriToMatrix',
+           'applyQuat',
+           'orthogonalize',
+           'reflect',
+           'cross',
+           'distance',
+           'dot',
+           'quatMagnitude',
+           'length',
+           'project',
+           'surfaceNormal',
+           'invertMatrix',
+           'angleTo',
+           'surfaceBitangent',
+           'surfaceTangent',
+           'vertexNormal',
+           'isOrthogonal',
+           'isAffine',
+           'perp',
+           'ortho3Dto2D',
+           'intersectRayPlane',
+           'matrixToQuat',
+           'lensCorrection']
 
 import numpy as np
 import functools
@@ -1069,7 +1097,7 @@ def intersectRayPlane(orig, dir, planeOrig, planeNormal, dtype=None):
         rayDir = [0, 0, -1]
         rayOrigin = [0, 0, 5]
 
-        # get the intersect and distacne in 3D world space
+        # get the intersect and distance in 3D world space
         pnt, dist = intersectRayPlane(rayOrigin, rayDir, planeOrigin, planeNormal)
 
     """
@@ -2056,7 +2084,7 @@ def concatenate(matrices, out=None, dtype=None):
     orientation (quaternion) and position (vector). The resulting matrix will
     transform model-space coordinates to eye-space::
 
-        # stimulus pose as quaternion and vector
+        # eye pose as quaternion and vector
         stimOri = quatFromAxisAngle([0., 0., -1.], -45.0)
         stimPos = [0., 1.5, -5.]
 

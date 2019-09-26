@@ -8,8 +8,12 @@
 # Copyright (C) 2002-2018 Jonathan Peirce (C) 2019 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
-__all__ = ['Frustum', 'computeFrustum', 'generalizedPerspectiveProjection',
-           'orthoProjectionMatrix', 'perspectiveProjectionMatrix', 'lookAt',
+__all__ = ['Frustum',
+           'computeFrustum',
+           'generalizedPerspectiveProjection',
+           'orthoProjectionMatrix',
+           'perspectiveProjectionMatrix',
+           'lookAt',
            'pointToNdc']
 
 import numpy as np
