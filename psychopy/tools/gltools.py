@@ -3917,32 +3917,13 @@ def calculateVertexNormals(vertices, faces, shading='smooth'):
         return np.ascontiguousarray(np.repeat(faceNormals, 2, axis=0)) + 0.0
     elif shading == 'smooth':
         # for each vertex get vertex indices sharing that position
-        similarVerts = []
-        for i in range(vertices.shape[0]):
-            # find similar vertices
-            foundVerts = []
-            for j in range(vertices.shape[0]):
-                if np.allclose(vertices[i, :], vertices[j, :]):
-                    foundVerts.append(j)
+        normals = []
+        for vertexIdx in np.unique(faces):
+            match, _ = np.where(faces == vertexIdx)
+            normals.append(mt.vertexNormal(faceNormals[match, :]))
 
-            similarVerts.append(foundVerts)
+        return np.ascontiguousarray(normals) + 0.0
 
-        # get the shared face indices
-        vertFaces = []
-        for vertIndices in similarVerts:
-            foundFaces = []
-            for i in range(faces.shape[0]):
-                face = faces[i, :]
-                if np.isin(face, vertIndices).any():
-                    foundFaces.append(i)
-
-            vertFaces.append(foundFaces)
-
-        vertexNormals = []
-        for i in range(vertices.shape[0]):
-            vertexNormals.append(mt.vertexNormal(faceNormals[vertFaces[i], :]))
-
-        return np.ascontiguousarray(vertexNormals) + 0.0
 
 # -----------------------------
 # Misc. OpenGL Helper Functions
