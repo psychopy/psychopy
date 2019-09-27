@@ -1676,9 +1676,7 @@ def applyQuat(q, points, out=None, dtype=None):
 
 
 def matrixToQuat(m, out=None, dtype=None):
-    """Convert a 3x3 rotation matrix to a quaternion.
-
-    Input matrix must be orthogonal and define a pure rotation.
+    """Convert a rotation matrix to a quaternion.
 
     Parameters
     ----------
@@ -1698,6 +1696,27 @@ def matrixToQuat(m, out=None, dtype=None):
     -------
     ndarray
         Rotation quaternion.
+
+    Notes
+    -----
+    * Depending on the input, returned quaternions may not be exactly the same
+      as the one used to construct the rotation matrix (i.e. by calling
+      `quatToMatrix`), typically when a large rotation angle is used. However,
+      the returned quaternion should result in the same rotation when applied to
+      points.
+
+    Examples
+    --------
+    Converting a rotation matrix from the OpenGL matrix stack to a quaternion::
+
+        glRotatef(45., -1, 0, 0)
+
+        m = np.zeros((4, 4), dtype='float32')  # store the matrix
+        GL.glGetFloatv(
+            GL.GL_MODELVIEW_MATRIX,
+            m.ctypes.data_as(ctypes.POINTER(ctypes.c_float)))
+
+        qr = matrixToQuat(m.T)  # must be transposed
 
     """
     # based off example `Maths - Conversion Matrix to Quaternion` from
@@ -1731,7 +1750,7 @@ def matrixToQuat(m, out=None, dtype=None):
         toReturn[0] = dtype(0.25) * s
         toReturn[1] = (m[0, 1] + m[1, 0]) / s
         toReturn[2] = (m[0, 2] + m[2, 0]) / s
-    elif m[0, 0] > m[2, 2]:
+    elif m[1, 1] > m[2, 2]:
         s = np.sqrt(dtype(1.0) + m[1, 1] - m[0, 0] - m[2, 2]) * dtype(2.0)
         toReturn[3] = (m[0, 2] - m[2, 0]) / s
         toReturn[0] = (m[0, 1] + m[1, 0]) / s
