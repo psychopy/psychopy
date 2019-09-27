@@ -376,9 +376,8 @@ def cross(v0, v1, out=None, dtype=None):
         cross(a, b, out=cprod)
 
     If a 1D and 2D vector are specified, the cross product of each row of the
-    2D array and the 1D array is returned::
+    2D array and the 1D array is returned as a 2D array::
 
-        # create two 6x3 arrays with random numbers
         a = normalize([1, 2, 3])
         b = normalize(np.random.uniform(-1.0, 1.0, (6, 3,)))
         cprod = np.zeros(a.shape)
