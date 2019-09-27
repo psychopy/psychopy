@@ -3916,8 +3916,6 @@ def calculateVertexNormals(vertices, faces, shading='smooth'):
     if shading == 'flat':
         return np.ascontiguousarray(np.repeat(faceNormals, 2, axis=0)) + 0.0
     elif shading == 'smooth':
-        normals = []
-
         # for each vertex get vertex indices sharing that position
         similarVerts = []
         for i in range(vertices.shape[0]):
