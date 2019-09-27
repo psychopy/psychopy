@@ -2212,7 +2212,6 @@ def isAffine(m):
         `True` if the matrix is affine.
 
     """
-    assert 2 <= m.shape[0] <= 4
     assert m.shape[0] == m.shape[1]
 
     if not isinstance(m, (np.ndarray,)):
