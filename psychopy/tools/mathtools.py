@@ -2501,7 +2501,8 @@ def transform(pos, ori, points, out=None, dtype=None):
 #
 
 def lensCorrection(xys, coefK=(1.0,), distCenter=(0., 0.), out=None, dtype=None):
-    """Lens correction (or distortion) using the division model.
+    """Lens correction (or distortion) using the division model with even
+    polynomial terms.
 
     Calculate new vertex positions or texture coordinates to apply radial
     warping, such as 'pincushion' and 'barrel' distortion. This is to compensate
