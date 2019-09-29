@@ -44,7 +44,8 @@ __all__ = ['normalize',
            'ortho3Dto2D',
            'intersectRayPlane',
            'matrixToQuat',
-           'lensCorrection']
+           'lensCorrection',
+           'matrixFromEulerAngles']
 
 import numpy as np
 import functools
@@ -2167,6 +2168,86 @@ def concatenate(matrices, out=None, dtype=None):
     return toReturn
 
 
+def matrixFromEulerAngles(rx, ry, rz, degrees=True, out=None, dtype=None):
+    """Construct a 4x4 rotation matrix from Euler angles.
+
+    Rotations are combined by first rotating about the X axis, then Y, and
+    finally Z.
+
+    Parameters
+    ----------
+    rx, ry, rz : float
+        Rotation angles (pitch, yaw, and roll).
+    degrees : bool, optional
+        Rotation angles are specified in degrees. If `False`, they will be
+        assumed as radians. Default is `True`.
+    out : ndarray, optional
+        Optional output array. Must be same `shape` and `dtype` as the expected
+        output if `out` was not specified.
+    dtype : dtype or str, optional
+        Data type for computations can either be 'float32' or 'float64'. If
+        `out` is specified, the data type of `out` is used and this argument is
+        ignored. If `out` is not provided, 'float64' is used by default.
+
+    Returns
+    -------
+    ndarray
+        4x4 rotation matrix.
+
+    Examples
+    --------
+    Demonstration of how a combination of axis-angle rotations is equivalent
+    to a single call of `matrixFromEulerAngles`::
+
+        m1 = matrixFromEulerAngles(90., 45., 135.))
+
+        # construct rotation matrix from 3 orthogonal rotations
+        rx = rotationMatrix(90., (1, 0, 0))  # x-axis
+        ry = rotationMatrix(45., (0, 1, 0))  # y-axis
+        rz = rotationMatrix(135., (0, 0, 1))  # z-axis
+        m2 = concatenate([rz, ry, rx])  # note the order
+
+        print(numpy.allclose(m1, m2))  # True
+
+    Not only does `matrixFromEulerAngles` require less code, it also is
+    considerably more efficient than constructing and multiplying multiple
+    matrices.
+
+    """
+    # from http://www.j3d.org/matrix_faq/matrfaq_latest.html
+    if out is None:
+        dtype = np.float64 if dtype is None else np.dtype(dtype).type
+        toReturn = np.zeros((4, 4,), dtype=dtype)
+    else:
+        dtype = np.dtype(dtype).type
+        toReturn = out
+
+    angles = np.asarray([rx, ry, rz], dtype=dtype)
+    if degrees:
+        angles = np.radians(angles)
+
+    a, c, e = np.cos(angles)
+    b, d, f = np.sin(angles)
+    ad = a * d
+    bd = b * d
+
+    toReturn[0, 0] = c * e
+    toReturn[0, 1] = -c * f
+    toReturn[0, 2] = d
+    toReturn[1, 0] = bd * e + a * f
+    toReturn[1, 1] = -bd * f + a * e
+    toReturn[1, 2] = -b * c
+    toReturn[2, 0] = -ad * e + b * f
+    toReturn[2, 1] = ad * f + b * e
+    toReturn[2, 2] = a * c
+    toReturn[3, 3] = 1.0
+
+    # very small, make zero
+    toReturn[np.abs(toReturn) <= np.finfo(dtype).eps] = 0.0
+
+    return toReturn
+
+
 def isOrthogonal(m):
     """Check if a square matrix is orthogonal.
 
@@ -2577,3 +2658,15 @@ def lensCorrection(xys, coefK=(1.0,), distCenter=(0., 0.), out=None, dtype=None)
     toReturn[:, :] = xys + (d_minus_c / denom[:, np.newaxis])
 
     return toReturn
+
+
+if __name__ == "__main__":
+
+    print(matrixFromEulerAngles(90., 45., 135.))
+    rx = rotationMatrix(90., (1, 0, 0))
+    ry = rotationMatrix(45., (0, 1, 0))
+    rz = rotationMatrix(135., (0, 0, 1))
+
+    rout = concatenate([rz, ry, rx])
+
+    print(rout)
