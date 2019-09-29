@@ -1718,6 +1718,21 @@ def matrixToQuat(m, out=None, dtype=None):
 
         qr = matrixToQuat(m.T)  # must be transposed
 
+    Interpolation between two 4x4 transformation matrices::
+
+        interpWeight = 0.5
+
+        posStart = mStart[:3, 3]
+        oriStart = matrixToQuat(mStart)
+
+        posEnd = mEnd[:3, 3]
+        oriEnd = matrixToQuat(mEnd)
+
+        oriInterp = slerp(qStart, qEnd, interpWeight)
+        posInterp = lerp(posStart, posEnd, interpWeight)
+
+        mInterp = posOriToMatrix(posInterp, oriInterp)
+
     """
     # based off example `Maths - Conversion Matrix to Quaternion` from
     # https://www.euclideanspace.com/
@@ -2660,14 +2675,3 @@ def lensCorrection(xys, coefK=(1.0,), distCenter=(0., 0.), out=None, dtype=None)
 
     return toReturn
 
-
-if __name__ == "__main__":
-
-    print(matrixFromEulerAngles(90., 45., 135.))
-    rx = rotationMatrix(90., (1, 0, 0))
-    ry = rotationMatrix(45., (0, 1, 0))
-    rz = rotationMatrix(135., (0, 0, 1))
-
-    rout = concatenate([rz, ry, rx])
-
-    print(rout)
