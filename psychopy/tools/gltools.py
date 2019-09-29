@@ -3883,7 +3883,22 @@ def transformMeshPosOri(vertices, normals, pos=(0., 0., 0.), ori=(0., 0., 0., 1.
 
 
 def calculateVertexNormals(vertices, faces, shading='smooth'):
-    """Calculate vertex normals given vertices and faces.
+    """Calculate vertex normals given vertices and triangle faces.
+
+    Finds all faces sharing a vertex index and sets its normal to either
+    the face normal if `shading='flat'` or the average normals of adjacent
+    faces if `shading='smooth'`. Flat shading only works correctly if each
+    vertex belongs to exactly one face.
+
+    The direction of the normals are determined by the winding order of
+    triangles, assumed counter clock-wise (OpenGL default). Most model
+    editing software exports using this convention. If not, winding orders
+    can be reversed by calling::
+
+        faces = np.fliplr(faces)
+
+    In some case, creases may appear if vertices are at the same location,
+    but do not share the same index.
 
     Parameters
     ----------
@@ -3905,24 +3920,26 @@ def calculateVertexNormals(vertices, faces, shading='smooth'):
     --------
     Recomputing vertex normals for a UV sphere::
 
-        vertices, textureCoords, normals, faces = gltools.createUVSphere()
+        # create a sphere and discard normals
+        vertices, textureCoords, _, faces = gltools.createUVSphere()
         normals = gltools.calculateVertexNormals(vertices, faces)
 
     """
-
     # compute surface normals for all faces
     faceNormals = mt.surfaceNormal(vertices[faces])
 
+    normals = []
     if shading == 'flat':
-        return np.ascontiguousarray(np.repeat(faceNormals, 2, axis=0)) + 0.0
+        for vertexIdx in np.unique(faces):
+            match, _ = np.where(faces == vertexIdx)
+            normals.append(faceNormals[match, :])
     elif shading == 'smooth':
-        # for each vertex get vertex indices sharing that position
-        normals = []
+        # get all faces the vertex belongs to
         for vertexIdx in np.unique(faces):
             match, _ = np.where(faces == vertexIdx)
             normals.append(mt.vertexNormal(faceNormals[match, :]))
 
-        return np.ascontiguousarray(normals) + 0.0
+    return np.ascontiguousarray(normals) + 0.0
 
 
 # -----------------------------
