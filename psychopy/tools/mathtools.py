@@ -2221,6 +2221,7 @@ def matrixFromEulerAngles(rx, ry, rz, degrees=True, out=None, dtype=None):
     else:
         dtype = np.dtype(dtype).type
         toReturn = out
+        toReturn.fill(0.0)
 
     angles = np.asarray([rx, ry, rz], dtype=dtype)
     if degrees:
