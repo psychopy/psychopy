@@ -59,7 +59,7 @@ input arguments should have matching types and `dtype` set accordingly.
 Most functions have an `out` argument, where one can specify an array to write
 values to. The value of `dtype` is ignored if `out` is provided, and all input
 arrays will be converted to match the `dtype` of `out` (if not already). This
-ensures that the type of the destination array is used.
+ensures that the type of the destination array is used for all arithmetic.
 
 
 .. automodule:: psychopy.tools.mathtools
@@ -95,6 +95,8 @@ Overview
     invertQuat
     applyQuat
     quatToMatrix
+    matrixToQuat
+    matrixFromEulerAngles
     scaleMatrix
     rotationMatrix
     translationMatrix
@@ -105,6 +107,7 @@ Overview
     applyMatrix
     posOriToMatrix
     transform
+    lensCorrection
 
 Details
 ~~~~~~~
@@ -134,6 +137,8 @@ Details
 .. autofunction:: invertQuat
 .. autofunction:: applyQuat
 .. autofunction:: quatToMatrix
+.. autofunction:: matrixToQuat
+.. autofunction:: matrixFromEulerAngles
 .. autofunction:: scaleMatrix
 .. autofunction:: rotationMatrix
 .. autofunction:: translationMatrix
@@ -144,3 +149,4 @@ Details
 .. autofunction:: applyMatrix
 .. autofunction:: rigidBodyToMatrix
 .. autofunction:: transform
+.. autofunction:: lensCorrection
