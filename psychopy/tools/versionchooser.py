@@ -246,7 +246,10 @@ def _versionFilter(versions, wxVersion):
     if constants.PY3:
         msg = _translate("Filtering versions of PsychoPy only compatible with Python 3.")
         logging.info(msg)
-        versions = [ver for ver in versions if ver == 'latest' or parse_version(ver) >= parse_version('1.90')]
+        versions = [ver for ver in versions
+                    if ver == 'latest'
+                    or parse_version(ver) >= parse_version('1.90')
+                    and len(ver) > 1]
 
     # Get WX Compatibility
     compatibleWX = '4.0'
@@ -255,7 +258,10 @@ def _versionFilter(versions, wxVersion):
                          "PsychoPy only compatible with wx >= version {}".format(wxVersion,
                                                                               compatibleWX))
         logging.info(msg)
-        return [ver for ver in versions if ver == 'latest' or parse_version(ver) > parse_version('1.85.04')]
+        return [ver for ver in versions
+                if ver == 'latest'
+                or parse_version(ver) > parse_version('1.85.04')
+                and len(ver) > 1]
     return versions
 
 
