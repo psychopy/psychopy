@@ -744,16 +744,16 @@ class Experiment(object):
             :return: dict of 'asb' and 'rel' paths or None
             """
             thisFile = {}
-            if len(filePath) > 2 and (filePath[0] == "/" or filePath[1] == ":"):
+            if len(filePath) > 2 and (filePath[0] == "/" or filePath[1] == ":")\
+                    and os.path.isfile(filePath):
                 thisFile['abs'] = filePath
                 thisFile['rel'] = os.path.relpath(filePath, srcRoot)
+                return thisFile
             else:
                 thisFile['rel'] = filePath
                 thisFile['abs'] = os.path.normpath(join(srcRoot, filePath))
-            if os.path.isfile(thisFile['abs']):
-                return thisFile
-            else:
-                return None
+                if os.path.isfile(thisFile['abs']):
+                    return thisFile
 
         def findPathsInFile(filePath):
             """Recursively search a conditions file (xlsx or csv)
