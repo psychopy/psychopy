@@ -156,20 +156,13 @@ def compileScript(infile=None, version=None, outfile=None):
 
         # Write script
         if targetOutput == "PsychoJS":
-            try:
-                # Write module JS code
-                script = thisExp.writeScript(outfile, target=targetOutput, modular=True)
-                # Write no module JS code
-                outfileNoModule = outfile.replace('.js', 'NoModule.js')  # For no JS module script
-                scriptNoModule = thisExp.writeScript(outfileNoModule, target=targetOutput, modular=False)
-                # Store scripts in list
-                scriptDict = {'outfile': script, 'outfileNoModule': scriptNoModule}
-            except Exception as err:
-                if "writeScript()" in '{}'.format(err):  # the exception comes from this module
-                    err = ("You cannot compile JavaScript experiments with this version of PsychoPy. "
-                           "Please use version 3.0.0 or higher.")
-                logging.error("\t{}".format(err))
-                return 0
+            # Write module JS code
+            script = thisExp.writeScript(outfile, target=targetOutput, modular=True)
+            # Write no module JS code
+            outfileNoModule = outfile.replace('.js', 'NoModule.js')  # For no JS module script
+            scriptNoModule = thisExp.writeScript(outfileNoModule, target=targetOutput, modular=False)
+            # Store scripts in list
+            scriptDict = {'outfile': script, 'outfileNoModule': scriptNoModule}
         else:
             script = thisExp.writeScript(outfile, target=targetOutput)
             scriptDict = {'outfile': script}
