@@ -197,6 +197,10 @@ class SliderComponent(BaseVisualComponent):
     def writeInitCode(self, buff):
 
         inits = getInitVals(self.params)
+        # check units
+        if inits['units'].val == 'from exp settings':
+            inits['units'].val = None
+
         # build up an initialization string for Slider():
         initStr = ("{name} = visual.Slider(win=win, name='{name}',\n"
                    "    size={size}, pos={pos}, units={units},\n"
