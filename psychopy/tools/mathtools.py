@@ -790,11 +790,11 @@ def surfaceNormal(tri, norm=True, out=None, dtype=None):
 def surfaceBitangent(tri, uv, norm=True, out=None, dtype=None):
     """Compute the bitangent vector of a given triangle.
 
-     This function can be used to generate bitangent vertex
-    attributes for normal mapping. After computing bitangents, one may
-    orthogonalize them with vertex normals using the :func:`orthogonalize`
-    function, or within the fragment shader. Uses texture coordinates at each
-    triangle vertex to determine the direction of the vector.
+    This function can be used to generate bitangent vertex attributes for normal
+    mapping. After computing bitangents, one may orthogonalize them with vertex
+    normals using the :func:`orthogonalize` function, or within the fragment
+    shader. Uses texture coordinates at each triangle vertex to determine the
+    direction of the vector.
 
     Parameters
     ----------
@@ -886,11 +886,11 @@ def surfaceBitangent(tri, uv, norm=True, out=None, dtype=None):
 def surfaceTangent(tri, uv, norm=True, out=None, dtype=None):
     """Compute the tangent vector of a given triangle.
 
-    This function can be used to generate tangent vertex
-    attributes for normal mapping. After computing tangents, one may
-    orthogonalize them with vertex normals using the :func:`orthogonalize`
-    function, or within the fragment shader. Uses texture coordinates at each
-    triangle vertex to determine the direction of the vector.
+    This function can be used to generate tangent vertex attributes for normal
+    mapping. After computing tangents, one may orthogonalize them with vertex
+    normals using the :func:`orthogonalize` function, or within the fragment
+    shader. Uses texture coordinates at each triangle vertex to determine the
+    direction of the vector.
 
     Parameters
     ----------
