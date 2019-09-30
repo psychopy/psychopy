@@ -81,6 +81,7 @@ Overview
     lerp
     distance
     angleTo
+    bisector
     surfaceNormal
     surfaceBitangent
     surfaceTangent
@@ -123,6 +124,7 @@ Details
 .. autofunction:: lerp
 .. autofunction:: distance
 .. autofunction:: angleTo
+.. autofunction:: bisector
 .. autofunction:: surfaceNormal
 .. autofunction:: surfaceBitangent
 .. autofunction:: surfaceTangent

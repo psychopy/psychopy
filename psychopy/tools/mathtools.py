@@ -32,6 +32,7 @@ __all__ = ['normalize',
            'quatMagnitude',
            'length',
            'project',
+           'bisector',
            'surfaceNormal',
            'invertMatrix',
            'angleTo',
@@ -649,6 +650,57 @@ def perp(v, n, norm=True, out=None, dtype=None):
         normalize(toReturn, out=toReturn)
 
     toReturn += 0.0  # clear negative zeros
+
+    return toReturn
+
+
+def bisector(v0, v1, norm=False, out=None, dtype=None):
+    """Get the angle bisector.
+
+    Computes a vector which bisects the angle between `v0` and `v1`. Input
+    vectors `v0` and `v1` must be non-zero.
+
+    Parameters
+    ----------
+    v0, v1 : array_like
+        Vectors to bisect [x, y, z]. Must be non-zero in length and have the
+        same shape. Inputs can be Nx3 where the bisector for corresponding
+        rows will be returned.
+    norm : bool, optional
+        Normalize the resulting bisector. Default is `False`.
+    out : ndarray, optional
+        Optional output array. Must be same `shape` and `dtype` as the expected
+        output if `out` was not specified.
+    dtype : dtype or str, optional
+        Data type for computations can either be 'float32' or 'float64'. If
+        `out` is specified, the data type of `out` is used and this argument is
+        ignored. If `out` is not provided, 'float64' is used by default.
+
+    Returns
+    -------
+    ndarray
+        Bisecting vector [x, y, z].
+
+    """
+    if out is None:
+        dtype = np.float64 if dtype is None else np.dtype(dtype).type
+    else:
+        dtype = np.dtype(out.dtype).type
+
+    v0 = np.asarray(v0, dtype=dtype)
+    v1 = np.asarray(v1, dtype=dtype)
+
+    assert v0.shape == v1.shape
+
+    toReturn = np.zeros_like(v0, dtype=dtype) if out is None else out
+
+    v02d, v12d, r2d = np.atleast_2d(v0, v1, toReturn)
+
+    r2d[:, :] = v02d * length(v12d, dtype=dtype)[:, np.newaxis] + \
+                v12d * length(v02d, dtype=dtype)[:, np.newaxis]
+
+    if norm:
+        normalize(r2d, out=r2d)
 
     return toReturn
 
@@ -2675,3 +2727,9 @@ def lensCorrection(xys, coefK=(1.0,), distCenter=(0., 0.), out=None, dtype=None)
 
     return toReturn
 
+
+if __name__ == "__main__":
+    v = [[1, 0, 0], [0, 1, 0]]
+    u = [[0, 1, 0], [1, 0, 0]]
+
+    print(bisector(v, u, norm=True))
