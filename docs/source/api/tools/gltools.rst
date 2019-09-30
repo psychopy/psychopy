@@ -68,9 +68,11 @@ Overview
     loadMtlFile
     createUVSphere
     createPlane
+    createMeshGridFromArrays
     createMeshGrid
     createBox
     transformMeshPosOri
+    calculateVertexNormals
     getIntegerv
     getFloatv
     getString
@@ -136,9 +138,11 @@ Details
 .. autofunction:: loadMtlFile
 .. autofunction:: createUVSphere
 .. autofunction:: createPlane
+.. autofunction:: createMeshGridFromArrays
 .. autofunction:: createMeshGrid
 .. autofunction:: createBox
 .. autofunction:: transformMeshPosOri
+.. autofunction:: calculateVertexNormals
 .. autofunction:: getIntegerv
 .. autofunction:: getFloatv
 .. autofunction:: getString
