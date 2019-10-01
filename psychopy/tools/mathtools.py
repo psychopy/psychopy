@@ -1766,7 +1766,7 @@ def alignTo(v, t, out=None, dtype=None):
         numpy.allclose(vecRotated, targets)  # True
 
     """
-    # based off Quaternion.hpp from OpenMP
+    # based off Quaternion::align from Quaternion.hpp from OpenMP
     if out is None:
         dtype = np.float64 if dtype is None else np.dtype(dtype).type
     else:
@@ -2811,15 +2811,3 @@ def lensCorrection(xys, coefK=(1.0,), distCenter=(0., 0.), out=None, dtype=None)
     toReturn[:, :] = xys + (d_minus_c / denom[:, np.newaxis])
 
     return toReturn
-
-
-if __name__ == "__main__":
-    vec = normalize([[1, 1, 0], [0, 1, 1], [1, 0, 0]])
-    targets = [[0, 1, 0], [0, -1, 0], [-1, 0, 0]]
-
-    print()
-
-    qr = alignTo(vec, targets)
-    vecRotated = applyQuat(qr, vec)
-    print(vecRotated)
-    print(np.allclose(vecRotated, targets))  # True
