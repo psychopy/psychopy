@@ -2821,21 +2821,3 @@ def lensCorrection(xys, coefK=(1.0,), distCenter=(0., 0.), out=None, dtype=None)
 
     return toReturn
 
-if __name__ == "__main__":
-    N = 1000
-    np.random.seed(12345)
-
-    # general use cases
-    vec = normalize(np.random.uniform(-1.0, 1.0, (N, 3)))
-    target = normalize(np.random.uniform(-1.0, 1.0, (N, 3)))
-    qr = alignTo(vec, target)
-    out = applyQuat(qr, vec)
-
-    print(np.allclose(out, target))
-
-    # test when rotation is 180 degrees
-    target = -vec
-    qr = alignTo(vec, target)
-    out = applyQuat(qr, vec)
-
-    print(np.allclose(out, target))
