@@ -1802,22 +1802,21 @@ def alignTo(v, t, out=None, dtype=None):
         return toReturn + 0.0
 
     # deal with cases where the vectors are facing exact opposite directions
-    ry = np.logical_and(np.abs(v2d[:, 0]) >= np.abs(v2d[:, 1]), ~nonparallel)
+    ry = np.logical_and(np.abs(v2d[:, 0]) > np.abs(v2d[:, 1]), ~nonparallel)
     rx = np.logical_and(~ry, ~nonparallel)
 
     getLength = lambda x, y: np.sqrt(x * x + y * y)
-
-    if not np.alltrue(ry):
-        invLength = getLength(v2d[rx, 1], v2d[rx, 2])
-        np.where(invLength > 0.0, 1.0 / invLength, invLength)
-        qr[rx, 1] = v2d[rx, 2] * invLength
-        qr[rx, 2] = -v2d[rx, 1] * invLength
-
-    if not np.alltrue(rx):  # skip if all the same edge case
+    if not np.alltrue(rx):
         invLength = getLength(v2d[ry, 0], v2d[ry, 2])
-        np.where(invLength > 0.0, 1.0 / invLength, invLength)  # avoid x / 0
+        invLength = np.where(invLength > 0.0, 1.0 / invLength, invLength)  # avoid x / 0
         qr[ry, 0] = -v2d[ry, 2] * invLength
         qr[ry, 2] = v2d[ry, 0] * invLength
+
+    if not np.alltrue(ry):  # skip if all the same edge case
+        invLength = getLength(v2d[rx, 1], v2d[rx, 2])
+        invLength = np.where(invLength > 0.0, 1.0 / invLength, invLength)
+        qr[rx, 1] = v2d[rx, 2] * invLength
+        qr[rx, 2] = -v2d[rx, 1] * invLength
 
     return toReturn + 0.0
 
@@ -2821,3 +2820,22 @@ def lensCorrection(xys, coefK=(1.0,), distCenter=(0., 0.), out=None, dtype=None)
     toReturn[:, :] = xys + (d_minus_c / denom[:, np.newaxis])
 
     return toReturn
+
+if __name__ == "__main__":
+    N = 1000
+    np.random.seed(12345)
+
+    # general use cases
+    vec = normalize(np.random.uniform(-1.0, 1.0, (N, 3)))
+    target = normalize(np.random.uniform(-1.0, 1.0, (N, 3)))
+    qr = alignTo(vec, target)
+    out = applyQuat(qr, vec)
+
+    print(np.allclose(out, target))
+
+    # test when rotation is 180 degrees
+    target = -vec
+    qr = alignTo(vec, target)
+    out = applyQuat(qr, vec)
+
+    print(np.allclose(out, target))
