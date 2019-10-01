@@ -516,8 +516,10 @@ class RoutineCanvas(wx.ScrolledWindow):
 
             if component.params['disabled'].val:
                 dc.SetBrush(wx.Brush(disabledTimeColor))
+                dc.DrawBitmap(thisIcon.ConvertToDisabled(), self.iconXpos, yPos + iconYOffset, True)
             else:
                 dc.SetBrush(wx.Brush(routineTimeColor))
+                dc.DrawBitmap(thisIcon, self.iconXpos, yPos + iconYOffset, True)
 
             hSize = (3.5, 2.75, 2)[self.drawSize]
             yOffset = (3, 3, 0)[self.drawSize]
