@@ -113,7 +113,8 @@ def normalize(v, out=None, dtype=None):
 
     v : array_like
         Vector to normalize, can be Nx2, Nx3, or Nx4. If a 2D array is
-        specified, rows are treated as separate vectors.
+        specified, rows are treated as separate vectors. All vectors should have
+        nonzero length.
     out : ndarray, optional
         Optional output array. Must be same `shape` and `dtype` as the expected
         output if `out` was not specified.
@@ -129,8 +130,8 @@ def normalize(v, out=None, dtype=None):
 
     Notes
     -----
-    * If the vector is degenerate (length is zero), a vector of all zeros is
-      returned.
+    * If the vector has length is zero, a vector of all zeros is returned after
+      normalization.
 
     Examples
     --------
@@ -1785,10 +1786,13 @@ def alignTo(v, t, out=None, dtype=None):
     v = normalize(v, dtype=dtype)
     t = normalize(t, dtype=dtype)
 
-    if v.ndim == 1:
-        toReturn = np.zeros((4,), dtype=dtype)
+    if out is None:
+        if v.ndim == 1:
+            toReturn = np.zeros((4,), dtype=dtype)
+        else:
+            toReturn = np.zeros((v.shape[0], 4), dtype=dtype)
     else:
-        toReturn = np.zeros((v.shape[0], 4), dtype=dtype)
+        toReturn = out
 
     b = bisector(v, t, norm=True, dtype=dtype)
     cosHalfAngle = dot(v, b, dtype=dtype)
