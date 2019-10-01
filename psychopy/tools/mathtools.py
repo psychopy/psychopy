@@ -1765,6 +1765,16 @@ def alignTo(v, t, out=None, dtype=None):
 
         numpy.allclose(vecRotated, targets)  # True
 
+    Get matrix which orients vertices towards a point::
+
+        point = [5, 6, 7]
+        vec = [0, 0, -1]  # initial facing is -Z (forward in GL)
+
+        targetVec = normalize(point - vec)
+        qr = alignTo(vec, targetVec)  # get rotation to align
+
+        M = quatToMatrix(qr)  # 4x4 transformation matrix
+
     """
     # based off Quaternion::align from Quaternion.hpp from OpenMP
     if out is None:
