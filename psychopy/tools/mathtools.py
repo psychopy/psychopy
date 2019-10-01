@@ -1802,7 +1802,7 @@ def alignTo(v, t, out=None, dtype=None):
         return toReturn + 0.0
 
     # deal with cases where the vectors are facing exact opposite directions
-    ry = np.logical_and(np.abs(v2d[:, 0]) > np.abs(v2d[:, 1]), ~nonparallel)
+    ry = np.logical_and(np.abs(v2d[:, 0]) >= np.abs(v2d[:, 1]), ~nonparallel)
     rx = np.logical_and(~ry, ~nonparallel)
 
     getLength = lambda x, y: np.sqrt(x * x + y * y)
