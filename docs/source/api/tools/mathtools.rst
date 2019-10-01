@@ -91,6 +91,7 @@ Overview
     slerp
     quatToAxisAngle
     quatFromAxisAngle
+    alignTo
     quatMagnitude
     multQuat
     invertQuat
@@ -134,6 +135,7 @@ Details
 .. autofunction:: slerp
 .. autofunction:: quatToAxisAngle
 .. autofunction:: quatFromAxisAngle
+.. autofunction:: alignTo
 .. autofunction:: quatMagnitude
 .. autofunction:: multQuat
 .. autofunction:: invertQuat

@@ -46,7 +46,8 @@ __all__ = ['normalize',
            'intersectRayPlane',
            'matrixToQuat',
            'lensCorrection',
-           'matrixFromEulerAngles']
+           'matrixFromEulerAngles',
+           'alignTo']
 
 import numpy as np
 import functools
@@ -1645,7 +1646,7 @@ def applyQuat(q, points, out=None, dtype=None):
         Quaternion to invert in form [x, y, z, w] where w is real and x, y, z
         are imaginary components.
     points : array_like
-        2D array of points/coordinates to transform, where each row is a single
+        2D array of vectors or points to transform, where each row is a single
         point. Only the x, y, and z components (the first three columns) are
         rotated. Additional columns are copied.
     out : ndarray, optional
@@ -1725,6 +1726,90 @@ def applyQuat(q, points, out=None, dtype=None):
     toReturn[np.abs(toReturn) <= np.finfo(dtype).eps] = 0.0
 
     return toReturn
+
+
+def alignTo(v, t, out=None, dtype=None):
+    """Compute a quaternion which rotates one vector to align with another.
+
+    Parameters
+    ----------
+    v : array_like
+        Vector [x, y, z] to rotate. Can be Nx3, but must have the same shape as
+        `t`.
+    t : array_like
+        Target [x, y, z] vector to align to. Can be Nx3, but must have the same
+        shape as `v`.
+    out : ndarray, optional
+        Optional output array. Must be same `shape` and `dtype` as the expected
+        output if `out` was not specified.
+    dtype : dtype or str, optional
+        Data type for computations can either be 'float32' or 'float64'. If
+        `out` is specified, the data type of `out` is used and this argument is
+        ignored. If `out` is not provided, 'float64' is used by default.
+
+    Returns
+    -------
+    ndarray
+        Quaternion which rotates `v` to `t`.
+
+    Examples
+    --------
+    Rotate some vectors to align with other vectors, inputs should be
+    normalized::
+
+        vec = [[1, 0, 0], [0, 1, 0], [1, 0, 0]]
+        targets = [[0, 1, 0], [0, -1, 0], [-1, 0, 0]]
+
+        qr = alignTo(vec, targets)
+        vecRotated = applyQuat(qr, vec)
+
+        numpy.allclose(vecRotated, targets)  # True
+
+    """
+    # based off Quaternion.hpp from OpenMP
+    if out is None:
+        dtype = np.float64 if dtype is None else np.dtype(dtype).type
+    else:
+        dtype = np.dtype(out.dtype).type
+
+    v = normalize(v, dtype=dtype)
+    t = normalize(t, dtype=dtype)
+
+    if v.ndim == 1:
+        toReturn = np.zeros((4,), dtype=dtype)
+    else:
+        toReturn = np.zeros((v.shape[0], 4), dtype=dtype)
+
+    b = bisector(v, t, norm=True, dtype=dtype)
+    cosHalfAngle = dot(v, b, dtype=dtype)
+    qr, v2d, b2d, t2d = np.atleast_2d(toReturn, v, b, t)
+
+    nonparallel = cosHalfAngle > 0.0  # rotation is not 180 degrees
+    qr[nonparallel, :3] = cross(v2d[nonparallel], b2d[nonparallel], dtype=dtype)
+    qr[nonparallel, 3] = cosHalfAngle[nonparallel]
+
+    if np.alltrue(nonparallel):  # don't bother handling special cases
+        return toReturn + 0.0
+
+    # deal with cases where the vectors are facing exact opposite directions
+    ry = np.logical_and(np.abs(v2d[:, 0]) >= np.abs(v2d[:, 1]), ~nonparallel)
+    rx = np.logical_and(~ry, ~nonparallel)
+
+    getLength = lambda x, y: np.sqrt(x * x + y * y)
+
+    if not np.alltrue(ry):
+        invLength = getLength(v2d[rx, 1], v2d[rx, 2])
+        np.where(invLength > 0.0, 1.0 / invLength, invLength)
+        qr[rx, 1] = v2d[rx, 2] * invLength
+        qr[rx, 2] = -v2d[rx, 1] * invLength
+
+    if not np.alltrue(rx):  # skip if all the same edge case
+        invLength = getLength(v2d[ry, 0], v2d[ry, 2])
+        np.where(invLength > 0.0, 1.0 / invLength, invLength)  # avoid x / 0
+        qr[ry, 0] = -v2d[ry, 2] * invLength
+        qr[ry, 2] = v2d[ry, 0] * invLength
+
+    return toReturn + 0.0
 
 
 def matrixToQuat(m, out=None, dtype=None):
@@ -2729,7 +2814,12 @@ def lensCorrection(xys, coefK=(1.0,), distCenter=(0., 0.), out=None, dtype=None)
 
 
 if __name__ == "__main__":
-    v = [[1, 0, 0], [0, 1, 0]]
-    u = [[0, 1, 0], [1, 0, 0]]
+    vec = normalize([[1, 1, 0], [0, 1, 1], [1, 0, 0]])
+    targets = [[0, 1, 0], [0, -1, 0], [-1, 0, 0]]
 
-    print(bisector(v, u, norm=True))
+    print()
+
+    qr = alignTo(vec, targets)
+    vecRotated = applyQuat(qr, vec)
+    print(vecRotated)
+    print(np.allclose(vecRotated, targets))  # True
