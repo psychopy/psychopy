@@ -60,6 +60,7 @@ from psychopy.app import pavlovia_ui
 from psychopy.projects import pavlovia
 
 from psychopy.scripts import psyexpCompile
+from psychopy.alerts import ErrorHandler
 
 
 canvasColor = [200, 200, 200]  # in prefs? ;-)
@@ -1176,6 +1177,9 @@ class BuilderFrame(wx.Frame):
 
         self.app.trackFrame(self)
         self.SetDropTarget(FileDropTarget(targetFrame=self))
+
+        # Set up error handling tool
+        self.errorHandler = ErrorHandler()
 
     def makeToolbar(self):
         """Produces Toolbar for the Builder Frame"""
@@ -2397,7 +2401,8 @@ class BuilderFrame(wx.Frame):
     def generateScript(self, experimentPath, target="PsychoPy"):
         """Generates python script from the current builder experiment"""
         # Set stdOut for error capture
-        self.setStandardStream(True)
+        # self.setStandardStream(True)
+        self.errorHandler.setStdErr()
         self.stdoutFrame.write("Generating {} script...\n".format(target))
 
         if self.getIsModified():
@@ -2434,15 +2439,17 @@ class BuilderFrame(wx.Frame):
                                           stderr=subprocess.PIPE,
                                           universal_newlines=True)
                 stdout, stderr = output.communicate()
-                self.stdoutFrame.write(stdout)
-                self.stdoutFrame.write(stderr)
+                self.stdout.write(stdout)
+                self.stderr.write(stderr)
             else:
                 psyexpCompile.compileScript(infile=self.exp, version=None, outfile=experimentPath)
         except Exception:
             traceback.print_exc(file=sys.stderr)
         finally:
-            self.stdoutFrame.Show()
-            self.setStandardStream(False)
+            self.errorHandler.flush()
+            self.errorHandler.unsetStdErr()
+            # self.stdoutFrame.Show()
+            # self.setStandardStream(False)
 
     def _getHtmlPath(self, filename):
         expPath = os.path.split(filename)[0]

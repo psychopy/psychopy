@@ -17,7 +17,7 @@ from psychopy.constants import FOREVER
 from ..params import Param
 from psychopy.experiment.utils import CodeGenerationException
 from psychopy.localization import _translate, _localized
-from psychopy.alerts import AlertLogger, AlertTools
+from psychopy.alerts import alerttools
 
 
 class BaseComponent(object):
@@ -39,7 +39,6 @@ class BaseComponent(object):
 
         self.params = {}
         self.depends = []  # allows params to turn each other off/on
-        self.alerts = AlertLogger(self.type)
         """{
          "dependsOn": "shape",
          "condition": "=='n vertices",
@@ -121,7 +120,7 @@ class BaseComponent(object):
         """
         Run component integrity checks.
         """
-        AlertTools.runTest(self)
+        alerttools.runTest(self)
 
     def writeInitCode(self, buff):
         """Write any code that a component needs that should only ever be done

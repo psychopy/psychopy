@@ -36,7 +36,6 @@ from .params import _findParam, Param
 from .routine import Routine
 from . import utils, py2js
 from .components import getComponents, getAllComponents
-from psychopy.alerts import AlertLogger
 
 from psychopy.localization import _translate
 import locale
@@ -103,7 +102,6 @@ class Experiment(object):
         self._expHandler = TrialHandler(exp=self, name='thisExp')
         self._expHandler.type = 'ExperimentHandler'  # true at run-time
         self._expHandler.name = self._expHandler.params['name'].val  # thisExp
-        self.masterAlert = None
 
     def requirePsychopyLibs(self, libs=()):
         """Add a list of top-level psychopy libs that the experiment
@@ -534,7 +532,6 @@ class Experiment(object):
         # .psyexp)?
         filenameBase = os.path.basename(filename)
 
-        self.masterAlert = AlertLogger("Master", os.path.dirname(filename))
         if root.tag != "PsychoPy2experiment":
             logging.error('%s is not a valid .psyexp file, "%s"' %
                           (filenameBase, root.tag))

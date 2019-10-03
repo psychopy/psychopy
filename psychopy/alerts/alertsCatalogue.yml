@@ -26,6 +26,14 @@
       Check your component start/stop entries and types. Consider using a {type} duration instead.
   url: https://psychopy.org
 
+1005:
+  code: 1005
+  cat: Components
+  msg: >-
+      Your component is currently disabled and will not be written to your experiment script.
+      Enable the component if you wish to add it to the experiment.
+  url: https://psychopy.org
+
 2000:
   code: 2000
   cat: Coding
