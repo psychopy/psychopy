@@ -15,6 +15,7 @@ from psychopy.projects import pavlovia
 from psychopy import logging
 
 from psychopy.app.pavlovia_ui import sync
+from psychopy.alerts._alertDialog import AlertPanel
 
 import wx
 from wx.lib import scrolledpanel as scrlpanel
@@ -374,11 +375,10 @@ class DetailsPanel(scrlpanel.ScrolledPanel):
         self.parent.Raise()
 
 
-
 class ProjectFrame(wx.Dialog):
 
     def __init__(self, app, parent=None, style=None,
-                 pos=wx.DefaultPosition, project=None):
+                 pos=wx.DefaultPosition, project=None, alerts=None):
         if style is None:
             style = (wx.DEFAULT_DIALOG_STYLE | wx.CENTER |
                      wx.TAB_TRAVERSAL | wx.RESIZE_BORDER)
@@ -393,10 +393,12 @@ class ProjectFrame(wx.Dialog):
         self.project = project
         self.parent = parent
 
-        # on the right
         self.detailsPanel = DetailsPanel(parent=self, project=self.project)
-        self.mainSizer = wx.BoxSizer(wx.HORIZONTAL)
+        self.alertPanel = AlertPanel(parent=self, alerts=alerts)
+
+        self.mainSizer = wx.BoxSizer(wx.VERTICAL)
         self.mainSizer.Add(self.detailsPanel, 1, wx.EXPAND | wx.ALL, 5)
+        self.mainSizer.Add(self.alertPanel, .5, wx.EXPAND | wx.ALL, 5)
         self.SetSizerAndFit(self.mainSizer)
 
         if self.parent:

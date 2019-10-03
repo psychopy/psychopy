@@ -2403,6 +2403,7 @@ class BuilderFrame(wx.Frame):
         # Set stdOut for error capture
         # self.setStandardStream(True)
         self.errorHandler.setStdErr()
+        self.errorHandler.flush()  # Flush to clear error list
         self.stdoutFrame.write("Generating {} script...\n".format(target))
 
         if self.getIsModified():
@@ -2446,7 +2447,6 @@ class BuilderFrame(wx.Frame):
         except Exception:
             traceback.print_exc(file=sys.stderr)
         finally:
-            self.errorHandler.flush()
             self.errorHandler.unsetStdErr()
             # self.stdoutFrame.Show()
             # self.setStandardStream(False)

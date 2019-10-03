@@ -1,5 +1,5 @@
 import sys
-from psychopy.alerts._alertDialog import AlertDlg
+
 
 class _BaseErrorHandler(object):
     """A base class for error (and warning) handlers to receive PsychoPy standard
@@ -10,9 +10,9 @@ class _BaseErrorHandler(object):
     def __init__(self):
         """Create the handler, assign and keep track of previous stderr
         """
-        self.errList = []
+        self.errors = []
+        self.alerts = []
         self.autoFlush=True
-        self.tree = None
 
     def setStdErr(self):
         """Set self to be sys.stderr.
@@ -36,11 +36,11 @@ class _BaseErrorHandler(object):
         An ErrorHandler might simply collect warnings until the flush()
         method is called
         """
-        for err in self.errList:
+        for err in self.errors:
             print(err)
-        self.errList = []
+        self.errors = []
 
-    def receiveWarning(self, alert):
+    def receiveAlert(self, alert):
         """
         Implement this to handle PsychoPy alerts (sent my _alerts.alert).
         This function should ONLY be called by _alerts.alert.
@@ -50,26 +50,25 @@ class _BaseErrorHandler(object):
             A data object containing alert information.
         """
 
-        # self.errList.append("Component Type: {type} | "
-        #                     "Component Name: {name} | "
-        #                     "Code: {code} | "
-        #                     "Category: {cat} | "
-        #                     "Message: {msg} | "
-        #                     "Traceback: {trace}".format(type=alert.type,
-        #                                                 name=alert.name,
-        #                                                 code=alert.code,
-        #                                                 cat=alert.cat,
-        #                                                 msg=alert.msg,
-        #                                                 trace=alert.trace))
-        self.errList.append(alert)
-
+        # self.alerts.append("Component Type: {type} | "
+        #                       "Component Name: {name} | "
+        #                       "Code: {code} | "
+        #                       "Category: {cat} | "
+        #                       "Message: {msg} | "
+        #                       "Traceback: {trace}".format(type=alert.type,
+        #                                                   name=alert.name,
+        #                                                   code=alert.code,
+        #                                                   cat=alert.cat,
+        #                                                   msg=alert.msg,
+        #                                                   trace=alert.trace))
+        self.alerts.append(alert)
 
     def write(self, toWrite):
         """This is needed for any Python Exceptions, which assume the stderr
         is a file-like object. But we might well simply store the message for
         printing later.
         """
-        self.errList.append(toWrite)
+        self.errors.append(toWrite)
         if self.autoFlush:
             self.flush()
 
@@ -88,7 +87,7 @@ class ErrorHandler(_BaseErrorHandler):
         super(ErrorHandler, self).__init__()
 
     def flush(self):
-        self.dlg = AlertDlg(alerts=self.errList)
-        self.dlg.Show()
-        # When we flush, we need to send the error list to the info dialog
-        self.errList = []
+        for err in self.errors:
+            print(err)
+        self.errors = []
+        self.alerts = []

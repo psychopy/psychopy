@@ -177,7 +177,6 @@ def alert(code=None, obj=object, strFormat=None, trace=None):
     traceback *********
     """
 
-
     msg = AlertEntry(code, obj, strFormat, trace)
 
     # format the warning into a string for console and logging targets
@@ -194,8 +193,8 @@ def alert(code=None, obj=object, strFormat=None, trace=None):
                                             trace=msg.trace))
 
     # if we have a psychopy warning instead of a file-like stderr then pass on the raw info
-    if hasattr(sys.stderr, 'receiveWarning'):
-        sys.stderr.receiveWarning(msg)
+    if hasattr(sys.stderr, 'receiveAlert'):
+        sys.stderr.receiveAlert(msg)
     else:
         sys.stderr.write(msgAsStr)  # For tests detecting output - change when error handler set up
     logging.warning(msgAsStr)

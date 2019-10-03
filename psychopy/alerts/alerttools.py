@@ -78,8 +78,7 @@ def testSize(component, win, units):
 
     try:
         size = convertParamToPix(component.params['size'].val, win, units)
-    except Exception:  # Use of variables fails check
-        alert(9000, component)
+    except Exception:  # Cannot convert to pixels - probably a variable
         return
 
     # Test X
@@ -114,8 +113,7 @@ def testPos(component, win, units):
 
     try:
         pos = convertParamToPix(component.params['pos'].val, win, units)
-    except Exception:  # Use of variables fails check
-        alert(9000, component)
+    except Exception:  # Cannot convert to pixels - probably a variable
         return
 
     # Test X position
@@ -148,8 +146,7 @@ def testTiming(component):
     try:
         float(start['val'])
         float(stop['val'])
-    except Exception:
-        alert(9000, component)
+    except Exception:  # Cannot convert to float - probably a variable
         return
 
     if [start['type'], stop['type']] == ["time (s)", "time (s)"]:
@@ -195,7 +192,7 @@ def checkPythonSyntax(component, tab):
         compile(str(component.params[tab]), "path", 'exec')
     except Exception as err:
         strFormat = {'codeTab': tab, 'lineNumber': err.lineno, 'code': err.text.strip()}
-        alert(2000, component, strFormat)
+        alert(2000, component, strFormat, trace=sys.exc_info())
 
 def checkJavaScriptSyntax(component, tab):
     """
