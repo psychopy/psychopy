@@ -79,7 +79,6 @@ def testSize(component, win, units):
     try:
         size = convertParamToPix(component.params['size'].val, win, units)
     except Exception:  # Use of variables fails check
-        alert(9000, component)
         return
 
     # Test X
@@ -115,7 +114,6 @@ def testPos(component, win, units):
     try:
         pos = convertParamToPix(component.params['pos'].val, win, units)
     except Exception:  # Use of variables fails check
-        alert(9000, component)
         return
 
     # Test X position
@@ -148,8 +146,7 @@ def testTiming(component):
     try:
         float(start['val'])
         float(stop['val'])
-    except Exception:
-        alert(9000, component)
+    except Exception:  # Conversion to float fails - probably a variable
         return
 
     if [start['type'], stop['type']] == ["time (s)", "time (s)"]:
@@ -195,6 +192,7 @@ def checkPythonSyntax(component, tab):
         compile(str(component.params[tab]), "path", 'exec')
     except Exception as err:
         strFormat = {'codeTab': tab, 'lineNumber': err.lineno, 'code': err.text.strip()}
+        # Dont sent traceback because strFormat gives better localisation of error
         alert(2000, component, strFormat)
 
 def checkJavaScriptSyntax(component, tab):
@@ -217,4 +215,5 @@ def checkJavaScriptSyntax(component, tab):
         parseScript(str(component.params[tab]))
     except Exception as err:
         strFormat = {'codeTab': tab, 'lineNumber': err.message}
+        # Dont sent traceback because strFormat gives better localisation of error
         alert(2001, component, strFormat)
