@@ -68,6 +68,7 @@ Contents
    gettingStarted
    builder/builder
    coder/coder
+   Sharing and running ONLINE <online/index>
    api/api
    changelog
    resources/resources
