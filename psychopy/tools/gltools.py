@@ -1661,7 +1661,7 @@ def createVAO(attribBuffers, indexBuffer=None, legacy=False):
                 raise ValueError('Invalid attribute values.')
 
         enableVertexAttribArray(i, legacy)
-        setVertexAttribPointer(i, buffer, size, offset, normalize, True, legacy)
+        setVertexAttribPointer(i, buffer, size, offset, normalize, legacy)
 
         activeAttribs[i] = buffer
         bufferIndices.append(buffer.shape[0])
