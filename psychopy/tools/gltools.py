@@ -2305,11 +2305,11 @@ def setVertexAttribPointer(index,
         # ... before rendering, set the attribute pointers
         GL.glBindBuffer(vboInterleaved.target, vboInterleaved.name)
         gltools.setVertexAttribPointer(
-            0, vboInterleaved, size=3, offset=0, bind=False)  # vertex pointer
+            0, vboInterleaved, size=3, offset=0)  # vertex pointer
         gltools.setVertexAttribPointer(
-            8, vboInterleaved, size=2, offset=3, bind=False)  # texture pointer
+            8, vboInterleaved, size=2, offset=3)  # texture pointer
         gltools.setVertexAttribPointer(
-            3, vboInterleaved, size=3, offset=5, bind=False)  # normals pointer
+            3, vboInterleaved, size=3, offset=5)  # normals pointer
 
         # Note, we specified `bind=False` since we are managing the binding
         # state. It is recommended that you do this when setting up interleaved
