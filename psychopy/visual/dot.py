@@ -91,12 +91,12 @@ class DotStim(BaseVisualStim, ColorMixin, ContainerMixin):
                  name=None,
                  autoLog=None):
         """
-        :Parameters:
-
-            fieldSize : (x,y) or [x,y] or single value (applied to both
-                dimensions). Sizes can be negative and can extend beyond
-                the window.
-            """
+        Parameters
+        ----------
+        fieldSize : (x,y) or [x,y] or single value (applied to both
+            dimensions). Sizes can be negative and can extend beyond
+            the window.
+        """
         # what local vars are defined (these are the init params) for use by
         # __repr__
         self._initParams = __builtins__['dir']()
@@ -291,8 +291,9 @@ class DotStim(BaseVisualStim, ColorMixin, ContainerMixin):
         # for 'direction' method we need to update the direction of the number
         # of signal dots immediately, but for other methods it will be done
         # during updateXY
-        #:::::::::::::::::::: AJS Actually you need to do this for 'walk' also otherwise
-        #would be signal dots adopt random directions when the become sinal dots in later trails
+        #:::::::::::::::::::: AJS Actually you need to do this for 'walk' also
+        # otherwise would be signal dots adopt random directions when the become
+        # sinal dots in later trails
         if self.noiseDots in ['direction', 'position','walk']:
             self._dotsDir = numpy.random.rand(self.nDots) * 2 * pi
             self._dotsDir[self._signalDots] = self.dir * pi / 180
@@ -336,9 +337,16 @@ class DotStim(BaseVisualStim, ColorMixin, ContainerMixin):
         setAttribute(self, 'speed', val, log, op)
 
     def draw(self, win=None):
-        """Draw the stimulus in its relevant window. You must call
-        this method after every MyWin.flip() if you want the
-        stimulus to appear on that frame and then update the screen again.
+        """Draw the stimulus in its relevant window. You must call this method
+        after every MyWin.flip() if you want the stimulus to appear on that
+        frame and then update the screen again.
+
+        Parameters
+        ----------
+        win : window.Window, optional
+            Window to draw dots to. If `None`, dots will be drawn to the parent
+            window.
+
         """
         if win is None:
             win = self.win
@@ -503,7 +511,9 @@ class DotStim(BaseVisualStim, ColorMixin, ContainerMixin):
             self._verticesBase[dead, :] = self._newDotsXY(sum(dead))
             #self._verticesBase[dead, :] = -self._verticesBase[dead,:]
 
-        # Reposition any dots that have gone out of bounds. Net effect is to place dot one step inside the boundary on the other side of the aperture.
+        # Reposition any dots that have gone out of bounds. Net effect is to
+        # place dot one step inside the boundary on the other side of the
+        # aperture.
         if sum(outofbounds):
             self._verticesBase[outofbounds, :] = self._newDotsXY(sum(outofbounds))
             #wind the dots back one step and store as tempary values
