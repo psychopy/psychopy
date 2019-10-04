@@ -386,25 +386,40 @@ class DotStim(BaseVisualStim, ColorMixin, ContainerMixin):
         GL.glPopMatrix()
 
     def _newDotsXY(self, nDots):
-        """Returns a uniform spread of dots, according to the
-        fieldShape and fieldSize
+        """Returns a uniform spread of dots, according to the `fieldShape` and
+        `fieldSize`.
 
-        usage::
+        Parameters
+        ----------
+        nDots : int
+            Number of dots to sample.
+
+        Returns
+        -------
+        ndarray
+            Nx2 array of X and Y positions of dots.
+
+        Examples
+        --------
+        Create a new array of dot positions::
 
             dots = self._newDots(nDots)
 
         """
-        # make more dots than we need and only use those within the circle
         if self.fieldShape == 'circle':
-            while True:
-                # repeat until we have enough; fetch twice as many as needed
-                new = numpy.random.uniform(-1, 1, [nDots * 2, 2])
-                inCircle = (numpy.hypot(new[:, 0], new[:, 1]) < 1)
-                if sum(inCircle) >= nDots:
-                    return new[inCircle, :][:nDots, :] * self.fieldSize * 0.5
+            length = numpy.sqrt(numpy.random.uniform(0, 1, (nDots,)))
+            angle = numpy.random.uniform(0., 2. * numpy.pi, (nDots,))
+
+            newDots = numpy.zeros((nDots, 2))
+            newDots[:, 0] = length * numpy.cos(angle)
+            newDots[:, 1] = length * numpy.sin(angle)
+
+            newDots *= self.fieldSize * .5
         else:
-            return numpy.random.uniform(-0.5*self.fieldSize[0],
-                                        0.5*self.fieldSize[1], [nDots, 2])
+            newDots = numpy.random.uniform(
+                -.5 * self.fieldSize[0], .5 * self.fieldSize[1], (nDots, 2))
+
+        return newDots
 
     def refreshDots(self):
         """Callable user function to choose a new set of dots"""
