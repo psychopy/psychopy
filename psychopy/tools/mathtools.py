@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""Various math functions for working with vectors, matrices, and quaternions.
 
-"""
+# Various math functions for working with vectors, matrices, and quaternions.
+#
 
 # Part of the PsychoPy library
 # Copyright (C) 2002-2018 Jonathan Peirce (C) 2019 Open Science Tools Ltd.
@@ -14,7 +14,9 @@ __all__ = ['normalize', 'lerp', 'slerp', 'multQuat', 'quatFromAxisAngle',
            'quatToAxisAngle', 'posOriToMatrix', 'applyQuat', 'orthogonalize',
            'reflect', 'cross', 'distance', 'dot', 'quatMagnitude', 'length',
            'project', 'surfaceNormal', 'invertMatrix', 'angleTo',
-           'surfaceBitangent', 'surfaceTangent', 'vertexNormal']
+           'surfaceBitangent', 'surfaceTangent', 'vertexNormal', 'isOrthogonal',
+           'isAffine', 'perp', 'ortho3Dto2D', 'intersectRayPlane',
+           'matrixToQuat']
 
 import numpy as np
 import functools
@@ -503,7 +505,6 @@ def lerp(v0, v1, t, out=None, dtype=None):
     v1 = np.asarray(v1, dtype=dtype)
 
     toReturn = np.zeros_like(v0, dtype=dtype) if out is None else out
-    toReturn.fill(0.0)
 
     v0, v1, vr = np.atleast_2d(v0, v1, toReturn)
     vr[:, :] = v0 * t0
@@ -562,6 +563,66 @@ def distance(v0, v1, out=None, dtype=None):
         raise ValueError("Input arguments have invalid dimensions.")
 
     return dist
+
+
+def perp(v, n, norm=True, out=None, dtype=None):
+    """Project `v` to be a perpendicular axis of `n`.
+
+    Parameters
+    ----------
+    v : array_like
+        Vector to project [x, y, z], may be Nx3.
+    n : array_like
+        Normal vector [x, y, z], may be Nx3.
+    norm : bool
+        Normalize the resulting axis. Default is `True`.
+    out : ndarray, optional
+        Optional output array. Must be same `shape` and `dtype` as the expected
+        output if `out` was not specified.
+    dtype : dtype or str, optional
+        Data type for arrays, can either be 'float32' or 'float64'. If `None` is
+        specified, the data type is inferred by `out`. If `out` is not provided,
+        the default is 'float64'.
+
+    Returns
+    -------
+    ndarray
+        Perpendicular axis of `n` from `v`.
+
+    Examples
+    --------
+    Determine the local `up` (y-axis) of a surface or plane given `normal`::
+
+        normal = [0., 0.70710678, 0.70710678]
+        up = [1., 0., 0.]
+
+        yaxis = perp(up, normal)
+
+    Do a cross product to get the x-axis perpendicular to both::
+
+        xaxis = cross(yaxis, normal)
+
+    """
+    if out is None:
+        dtype = np.float64 if dtype is None else np.dtype(dtype).type
+    else:
+        dtype = np.dtype(out.dtype).type
+
+    v = np.asarray(v, dtype=dtype)
+    n = np.asarray(n, dtype=dtype)
+
+    toReturn = np.zeros_like(v, dtype=dtype) if out is None else out
+    v2d, n2d, r2d = np.atleast_2d(v, n, toReturn)
+
+    # from GLM `glm/gtx/perpendicular.inl`
+    r2d[:, :] = v2d - project(v2d, n2d, dtype=dtype)
+
+    if norm:
+        normalize(toReturn, out=toReturn)
+
+    toReturn += 0.0  # clear negative zeros
+
+    return toReturn
 
 
 def angleTo(v, point, degrees=True, out=None, dtype=None):
@@ -701,11 +762,11 @@ def surfaceNormal(tri, norm=True, out=None, dtype=None):
 def surfaceBitangent(tri, uv, norm=True, out=None, dtype=None):
     """Compute the bitangent vector of a given triangle.
 
-    Uses texture coordinates at each triangle vertex to determine the direction
-    of the vector. This function can be used to generate bitangent vertex
+     This function can be used to generate bitangent vertex
     attributes for normal mapping. After computing bitangents, one may
     orthogonalize them with vertex normals using the :func:`orthogonalize`
-    function, or within the fragment shader.
+    function, or within the fragment shader. Uses texture coordinates at each
+    triangle vertex to determine the direction of the vector.
 
     Parameters
     ----------
@@ -797,11 +858,11 @@ def surfaceBitangent(tri, uv, norm=True, out=None, dtype=None):
 def surfaceTangent(tri, uv, norm=True, out=None, dtype=None):
     """Compute the tangent vector of a given triangle.
 
-    Uses texture coordinates at each triangle vertex to determine the direction
-    of the vector. This function can be used to generate tangent vertex
+    This function can be used to generate tangent vertex
     attributes for normal mapping. After computing tangents, one may
     orthogonalize them with vertex normals using the :func:`orthogonalize`
-    function, or within the fragment shader.
+    function, or within the fragment shader. Uses texture coordinates at each
+    triangle vertex to determine the direction of the vector.
 
     Parameters
     ----------
@@ -961,6 +1022,121 @@ def vertexNormal(faceNorms, norm=True, out=None, dtype=None):
 
     if norm:
         normalize(toReturn, out=toReturn, dtype=dtype)
+
+    return toReturn
+
+
+# ------------------------------------------------------------------------------
+# Collision Detection and Interaction
+#
+
+def intersectRayPlane(orig, dir, planeOrig, planeNormal):
+    """Get the point which a ray intersects a plane.
+
+    Parameters
+    ----------
+    orig : array_like
+        Origin of the line in space [x, y, z].
+    dir : array_like
+        Direction vector of the line [x, y, z].
+    planeOrig : array_like
+        Origin of the plane to test [x, y, z].
+    planeNormal : array_like
+        Normal vector of the plane [x, y, z].
+
+    Returns
+    -------
+    ndarray
+        Position in space which the line intersects the plane. `None` is
+        returned if the line does not intersect the plane at a single point or
+        at all.
+
+    Examples
+    --------
+    Find the point in the scene a ray intersects the plane::
+
+        # plane information
+        planeOrigin = [0, 0, 0]
+        planeNormal = [0, 0, 1]
+        planeUpAxis = perp([0, 1, 0], planeNormal)
+
+        # ray
+        rayDir = [0, 0, -1]
+        rayOrigin = [0, 0, 5]
+
+        # get the intersect in 3D world space
+        pnt = intersectRayPlane(rayOrigin, rayDir, planeOrigin, planeNormal)
+
+    """
+    # based off the method from GLM
+    orig = np.asarray(orig)
+    dir = np.asarray(dir)
+    planeOrig = np.asarray(planeOrig)
+    planeNormal = np.asarray(planeNormal)
+
+    denom = dot(dir, planeNormal)
+    if denom == 0.0:
+        return None
+
+    dist = dot((planeOrig - orig), planeNormal) / denom  # distance to collision
+    intersect = dist * dir + orig
+
+    return intersect
+
+
+def ortho3Dto2D(p, orig, normal, up):
+    """Get the planar coordinates of an orthogonal projection of a 3D point onto
+    a 2D plane.
+
+    Parameters
+    ----------
+    p : array_like
+        Point to be projected on the plane.
+    orig : array_like
+        Origin of the plane to test [x, y, z].
+    normal : array_like
+        Normal vector of the plane [x, y, z], must be normalized.
+    up : array_like
+        Normalized up (+Y) direction of the plane's coordinate system. Must be
+        perpendicular to `normal`.
+
+    Returns
+    -------
+    ndarray
+        Coordinates on the plane [X, Y] where the 3D point projects towards
+        perpendicularly.
+
+    Examples
+    --------
+    This function can be used with :func:`intersectRayPlane` to find the
+    location on the plane the ray intersects::
+
+        # plane information
+        planeOrigin = [0, 0, 0]
+        planeNormal = [0, 0, 1]  # must be normalized
+        planeUpAxis = perp([0, 1, 0], planeNormal)  # must also be normalized
+
+        # ray
+        rayDir = [0, 0, -1]
+        rayOrigin = [0, 0, 5]
+
+        # get the intersect in 3D world space
+        pnt = intersectRayPlane(rayOrigin, rayDir, planeOrigin, planeNormal)
+
+        # get the 2D coordinates on the plane the intersect occurred
+        planeX, planeY = ortho3Dto2D(pnt, planeOrigin, planeNormal, planeUpAxis)
+
+    """
+    p = np.asarray(p)
+    orig = np.asarray(orig)
+    normal = np.asarray(normal)
+    up = np.asarray(up)
+
+    toReturn = np.zeros((2,))
+
+    offset = p - orig
+    toReturn[0] = dot(offset, cross(normal, up))  # derive +X axis with cross
+    toReturn[1] = dot(offset, up)
 
     return toReturn
 
@@ -1163,6 +1339,9 @@ def quatFromAxisAngle(axis, angle, degrees=True, dtype=None):
         halfRad = np.dtype(dtype).type(angle) / dtype(2.0)
 
     axis = normalize(axis, dtype=dtype)
+    if np.count_nonzero(axis) == 0:
+        raise ValueError("Value for `axis` is zero-length.")
+
     np.multiply(axis, np.sin(halfRad), out=toReturn[:3])
     toReturn[3] = np.cos(halfRad)
     toReturn += 0.0  # remove negative zeros
@@ -1442,6 +1621,78 @@ def applyQuat(q, points, out=None, dtype=None):
     return toReturn
 
 
+def matrixToQuat(m, out=None, dtype=None):
+    """Convert a 3x3 rotation matrix to a quaternion.
+
+    Input matrix must be orthogonal and define a pure rotation.
+
+    Parameters
+    ----------
+    m : array_like
+        3x3 rotation matrix (row-major). A 4x4 affine transformation matrix may
+        be provided, assuming the top-left 3x3 sub-matrix is orthonormal and
+        is a rotation group.
+    out : ndarray, optional
+        Optional output array. Must be same `shape` and `dtype` as the expected
+        output if `out` was not specified.
+    dtype : dtype or str, optional
+        Data type for arrays, can either be 'float32' or 'float64'. If `None` is
+        specified, the data type is inferred by `out`. If `out` is not
+        provided, the default is 'float64'.
+
+    Returns
+    -------
+    ndarray
+        Rotation quaternion.
+
+    """
+    # based off example `Maths - Conversion Matrix to Quaternion` from
+    # https://www.euclideanspace.com/
+    if out is None:
+        dtype = np.float64 if dtype is None else np.dtype(dtype).type
+    else:
+        dtype = np.dtype(out.dtype).type
+
+    m = np.asarray(m, dtype=dtype)
+
+    if m.shape == (4, 4,) or m.shape == (3, 4,):
+        m = m[:3, :3]  # keep only rotation group sub-matrix
+    elif m.shape == (3, 3,):
+        pass  # fine, nop
+    else:
+        raise ValueError("Input matrix `m` must be 3x3 or 4x4.")
+
+    toReturn = np.zeros((4,), dtype=dtype) if out is None else out
+
+    tr = m[0, 0] + m[1, 1] + m[2, 2]
+    if tr > 0.0:
+        s = np.sqrt(tr + 1.0) * 2.0
+        toReturn[3] = dtype(0.25) * s
+        toReturn[0] = (m[2, 1] - m[1, 2]) / s
+        toReturn[1] = (m[0, 2] - m[2, 0]) / s
+        toReturn[2] = (m[1, 0] - m[0, 1]) / s
+    elif m[0, 0] > m[1, 1] and m[0, 0] > m[2, 2]:
+        s = np.sqrt(dtype(1.0) + m[0, 0] - m[1, 1] - m[2, 2]) * dtype(2.0)
+        toReturn[3] = (m[2, 1] - m[1, 2]) / s
+        toReturn[0] = dtype(0.25) * s
+        toReturn[1] = (m[0, 1] + m[1, 0]) / s
+        toReturn[2] = (m[0, 2] + m[2, 0]) / s
+    elif m[0, 0] > m[2, 2]:
+        s = np.sqrt(dtype(1.0) + m[1, 1] - m[0, 0] - m[2, 2]) * dtype(2.0)
+        toReturn[3] = (m[0, 2] - m[2, 0]) / s
+        toReturn[0] = (m[0, 1] + m[1, 0]) / s
+        toReturn[1] = dtype(0.25) * s
+        toReturn[2] = (m[1, 2] + m[2, 1]) / s
+    else:
+        s = np.sqrt(dtype(1.0) + m[2, 2] - m[0, 0] - m[1, 1]) * dtype(2.0)
+        toReturn[3] = (m[1, 0] - m[0, 1]) / s
+        toReturn[0] = (m[0, 2] + m[2, 0]) / s
+        toReturn[1] = (m[1, 2] + m[2, 1]) / s
+        toReturn[2] = dtype(0.25) * s
+
+    return toReturn
+
+
 # ------------------------------------------------------------------------------
 # Matrix Operations
 #
@@ -1473,7 +1724,7 @@ def quatToMatrix(q, out=None, dtype=None):
 
         point = [0., 1., 0., 1.]  # 4-vector form [x, y, z, 1.0]
         ori = [0., 0., 0., 1.]
-        rotMat = matrixFromQuat(ori)
+        rotMat = quatToMatrix(ori)
         # rotate 'point' using matrix multiplication
         newPoint = np.matmul(rotMat.T, point)  # returns [-1., 0., 0., 1.]
 
@@ -1608,6 +1859,9 @@ def rotationMatrix(angle, axis=(0., 0., -1.), out=None, dtype=None):
         R.fill(0.0)
 
     axis = normalize(axis, dtype=dtype)
+    if np.count_nonzero(axis) == 0:
+        raise ValueError("Value for `axis` is zero-length.")
+
     angle = np.radians(angle, dtype=dtype)
     c = np.cos(angle, dtype=dtype)
     s = np.sin(angle, dtype=dtype)
@@ -1682,9 +1936,8 @@ def invertMatrix(m, homogeneous=False, out=None, dtype=None):
         4x4 matrix to invert.
     homogeneous : bool, optional
         Set as ``True`` if the input matrix specifies affine (homogeneous)
-        transformations (scale, rotation, and translation) and is orthonormal.
-        This will use a faster inverse method which handles such cases. Default
-        is ``False``.
+        transformations (scale, rotation, and translation). This will use a
+        faster inverse method which handles such cases. Default is ``False``.
     out : ndarray, optional
         Optional output array. Must be same `shape` and `dtype` as the expected
         output if `out` was not specified.
@@ -1711,7 +1964,10 @@ def invertMatrix(m, homogeneous=False, out=None, dtype=None):
     assert m.shape == (4, 4,)
 
     if not homogeneous:
-        toReturn[:, :] = np.linalg.inv(m)
+        if not isOrthogonal(m):
+            toReturn[:, :] = np.linalg.inv(m)
+        else:
+            toReturn[:, :] = m.T
     else:
         toReturn[:3, :3] = m[:3, :3].T
         toReturn[0, 3] = -(m[0, 0] * m[0, 3] + m[1, 0] * m[1, 3] + m[2, 0] * m[2, 3])
@@ -1779,7 +2035,7 @@ def concatenate(matrices, out=None, dtype=None):
         stimPos = [0., 1.5, -5.]
 
         # create model matrix
-        R = matrixFromQuat(stimOri)
+        R = quatToMatrix(stimOri)
         T = translationMatrix(stimPos)
         M = concatenate(R, T)  # model matrix
 
@@ -1839,17 +2095,84 @@ def concatenate(matrices, out=None, dtype=None):
     return toReturn
 
 
-def applyMatrix(m, points, out=None, dtype=None):
-    """Apply a transformation matrix over a 2D array of points.
+def isOrthogonal(m):
+    """Check if a square matrix is orthogonal.
+
+    If a matrix is orthogonal, its columns form an orthonormal basis and is
+    non-singular. An orthogonal matrix is invertible by simply taking the
+    transpose of the matrix.
 
     Parameters
     ----------
     m : array_like
-        Transformation matrix.
+        Square matrix, either 2x2, 3x3 or 4x4.
+
+    Returns
+    -------
+    bool
+        `True` if the matrix is orthogonal.
+
+    """
+    assert 2 <= m.shape[0] <= 4
+    assert m.shape[0] == m.shape[1]
+
+    if not isinstance(m, (np.ndarray,)):
+        m = np.asarray(m)
+
+    dtype = np.dtype(m.dtype).type
+    eps = np.finfo(dtype).eps
+    return np.all(
+        np.abs(np.matmul(m, m.T) - np.identity(m.shape[0], dtype)) < eps)
+
+
+def isAffine(m):
+    """Check if a 4x4 square matrix describes an affine transformation.
+
+    Parameters
+    ----------
+    m : array_like
+        4x4 transformation matrix.
+
+    Returns
+    -------
+    bool
+        `True` if the matrix is affine.
+
+    """
+    assert 2 <= m.shape[0] <= 4
+    assert m.shape[0] == m.shape[1]
+
+    if not isinstance(m, (np.ndarray,)):
+        m = np.asarray(m)
+
+    dtype = np.dtype(m.dtype).type
+    eps = np.finfo(dtype).eps
+
+    if np.all(m[3, :3] < eps) and (dtype(1.0) - m[3, 3]) < eps:
+        return True
+
+    return False
+
+
+def applyMatrix(m, points, out=None, dtype=None):
+    """Apply a matrix over a 2D array of points.
+
+    This function behaves similarly to the following `Numpy` statement::
+
+        points[:, :] = points.dot(m.T)
+
+    Transformation matrices specified to `m` must have dimensions 4x4, 3x4, 3x3
+    or 2x2. With the exception of 4x4 matrices, input `points` must have the
+    same number of columns as the matrix has rows. 4x4 matrices can be used to
+    transform both Nx4 and Nx3 arrays.
+
+    Parameters
+    ----------
+    m : array_like
+        Matrix with dimensions 2x2, 3x3, 3x4 or 4x4.
     points : array_like
-        2D array of points/coordinates to transform, where each row is a single
-        point and the number of columns should match the dimensions of the
-        matrix.
+        2D array of points/coordinates to transform. Each row should have length
+        appropriate for the matrix being used.
     out : ndarray, optional
         Optional output array. Must be same `shape` and `dtype` as the expected
         output if `out` was not specified.
@@ -1861,30 +2184,48 @@ def applyMatrix(m, points, out=None, dtype=None):
     Returns
     -------
     ndarray
-        Transformed points.
+        Transformed coordinates.
+
+    Notes
+    -----
+    * Input (`points`) and output (`out`) arrays cannot be the same instance for
+      this function.
+    * In the case of 4x4 input matrices, this function performs optimizations
+      based on whether the input matrix is affine, greatly improving performance
+      when working with Nx3 arrays.
 
     Examples
     --------
-    Transform an array of points by some transformation matrix::
+    Construct a matrix and transform a point::
 
-        S = scaleMatrix([5.0, 5.0, 5.0])  # scale 2x
+        # identity 3x3 matrix for this example
+        M = [[1.0, 0.0, 0.0],
+             [0.0, 1.0, 0.0],
+             [0.0, 0.0, 1.0]]
+
+        pnt = [1.0, 0.0, 0.0]
+
+        pntNew = applyMatrix(M, pnt)
+
+    Construct an SRT matrix (scale, rotate, transform) and transform an array of
+    points::
+
+        S = scaleMatrix([5.0, 5.0, 5.0])  # scale 5x
         R = rotationMatrix(180., [0., 0., -1])  # rotate 180 degrees
         T = translationMatrix([0., 1.5, -3.])  # translate point up and away
         M = concatenate([S, R, T])  # create transform matrix
 
-        # points to transform, must be 2D!
+        # points to transform
         points = np.array([[0., 1., 0., 1.], [-1., 0., 0., 1.]]) # [x, y, z, w]
         newPoints = applyMatrix(M, points)  # apply the transformation
 
-    Extract the 3x3 rotation sub-matrix from a 4x4 matrix and apply it to
-    points. Here the result is written to a pre-allocated array::
+    Convert CIE-XYZ colors to sRGB::
 
-        points = np.array([[0., 1., 0.], [-1., 0., 0.]])  # [x, y, z]
-        outPoints = np.zeros(points.shape)
-        M = rotationMatrix(90., [1., 0., 0.])
-        M3x3 = M[:3, :3]  # extract rotation groups from the 4x4 matrix
-        # apply transformations, write to result to existing array
-        applyMatrix(M3x3, points, out=outPoints)
+        sRGBMatrix = [[3.2404542, -1.5371385, -0.4985314],
+                      [-0.969266,  1.8760108,  0.041556 ],
+                      [0.0556434, -0.2040259,  1.0572252]]
+
+        colorsRGB = applyMatrix(sRGBMatrix, colorsXYZ)
 
     """
     if out is None:
@@ -1898,11 +2239,56 @@ def applyMatrix(m, points, out=None, dtype=None):
     if out is None:
         toReturn = np.zeros_like(points, dtype=dtype)
     else:
+        if id(out) == id(points):
+            raise ValueError('Output array cannot be same as input.')
         toReturn = out
 
-    pout, points = np.atleast_2d(toReturn, points)
+    pout, p = np.atleast_2d(toReturn, points)
 
-    np.dot(points, m.T, out=pout)
+    if m.shape[0] == m.shape[1] == 4:  # 4x4 matrix
+        if pout.shape[1] == 3:  # Nx3
+            pout[:, :] = p.dot(m[:3, :3].T)
+            pout += m[:3, 3]
+            # find `rcpW` as suggested in OpenXR's xr_linear.h header
+            # reciprocal of `w` if the matrix is not orthonormal
+            if not isAffine(m):
+                rcpW = 1.0 / (m[3, 0] * p[:, 0] +
+                              m[3, 1] * p[:, 1] +
+                              m[3, 2] * p[:, 2] +
+                              m[3, 3])
+                pout *= rcpW[:, np.newaxis]
+        elif pout.shape[1] == 4:  # Nx4
+            pout[:, :] = p.dot(m.T)
+        else:
+            raise ValueError(
+                'Input array dimensions invalid. Should be Nx3 or Nx4 when '
+                'input matrix is 4x4.')
+    elif m.shape[0] == 3 and m.shape[1] == 4:  # 3x4 matrix
+        if pout.shape[1] == 3:  # Nx3
+            pout[:, :] = p.dot(m[:3, :3].T)
+            pout += m[:3, 3]
+        else:
+            raise ValueError(
+                'Input array dimensions invalid. Should be Nx3 when input '
+                'matrix is 3x4.')
+    elif m.shape[0] == m.shape[1] == 3:  # 3x3 matrix, e.g colors
+        if pout.shape[1] == 3:  # Nx3
+            pout[:, :] = p.dot(m.T)
+        else:
+            raise ValueError(
+                'Input array dimensions invalid. Should be Nx3 when '
+                'input matrix is 3x3.')
+    elif m.shape[0] == m.shape[1] == pout.shape[1] == 2:  # 2x2 matrix
+        if pout.shape[1] == 2:  # Nx2
+            pout[:, :] = p.dot(m.T)
+        else:
+            raise ValueError(
+                'Input array dimensions invalid. Should be Nx2 when '
+                'input matrix is 2x2.')
+    else:
+        raise ValueError(
+            'Only a square matrix with dimensions 2, 3 or 4 can be used.')
+
     pout[np.abs(pout) <= np.finfo(dtype).eps] = 0.0  # very small, make zero
 
     return toReturn
@@ -2024,15 +2410,14 @@ def transform(pos, ori, points, out=None, dtype=None):
 
         toReturn = out
 
-    pout, points = np.atleast_2d(toReturn, points)  # create 2d views
+    pout, points, pos2d = np.atleast_2d(toReturn, points, pos)  # create 2d views
 
     # apply rotation
     applyQuat(ori, points, out=pout)
 
     # apply translation
-    pout[:, 0] += pos[0]
-    pout[:, 1] += pos[1]
-    pout[:, 2] += pos[2]
+    pout[:, 0] += pos2d[:, 0]
+    pout[:, 1] += pos2d[:, 1]
+    pout[:, 2] += pos2d[:, 2]
 
     return toReturn
-

@@ -24,13 +24,13 @@ def repl_commit(m):
     g = m.group(1)
     return g.replace('#', '[commit:')[:18] +  "](https://github.com/psychopy/psychopy/commit/" + g.strip(' (#') + ")"
 
-def repl_blue(m):
+def repl_noncompat(m):
     g = m.group(1)
     g = g.replace('`', "'")
-    return g.replace('CHANGE', '<span style="color:blue">CHANGE') + "</span>\n"
+    return g.replace('CHANGE', '<span style="color:red">CHANGE') + "</span>\n"
 
 # raw .txt form of changelog:
-txt = open(input_path, "rU").read()
+txt = open(input_path, "rU", encoding='utf8').read()
 
 # programmatic replacements:
 link = re.compile(r'`(?P<name>.*)\<(?P<url>.*)\>`_')
@@ -45,23 +45,21 @@ hashtag = re.compile(r"([ (]#[0-9a-f]{6,})\b")
 print("found %i commit tags" %(len(hashtag.findall(txt_hash))))
 txt_hash = hashtag.sub(repl_commit, txt_hash)
 
-blue = re.compile(r"(CHANGE.*)\n")
-print("found %i CHANGE" %(len(blue.findall(txt_hash))))
-txt_hashblue = blue.sub(repl_blue, txt_hash)
+noncompat = re.compile(r"(CHANGE.*)\n")
+print("found %i CHANGE" %(len(noncompat.findall(txt_hash))))
+txt_final = noncompat.sub(repl_noncompat, txt_hash)
 
-# one-off specific .rst directives:
-newRST = txt_hashblue.replace('.. note::', """.. raw:: html
-
-    <style> .blue {color:blue} </style>
-
-.. role:: blue
-
-.. note::""", 1)
+# # one-off specific .rst directives:
+# newRST = txt_hashblue.replace('.. note::', """.. raw:: html
+#
+#     <style> .red {color:red} </style>
+#
+# .. note::""", 1)
 
 # add note about blue meaning a change?
 
-with open(output_path, "w") as doc:
-    doc.write(newRST)
+with open(output_path, "w", encoding='utf8') as doc:
+    doc.write(txt_final)
 
 #test:
 #text = "yes #123\n yes (#4567)\n; none of `#123, #3, #45, #12345 #123a"

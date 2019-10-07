@@ -84,7 +84,7 @@ def test_setGammaRamp():
 
     desiredRamp = numpy.tile(
         visual.gamma.createLinearRamp(
-            rampSize=win.backend._rampSize,
+            rampSize=win.backend.getGammaRampSize(),
             driver=win.backend._driver
         ),
         (3, 1)

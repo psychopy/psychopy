@@ -487,6 +487,24 @@ class TestQuestHandler(_BaseTestStairHandler):
         assert self.stairs._quest.x[0] == -range/2
         assert self.stairs._quest.x[-1] == range/2
 
+    def test_attributes(self):
+        beta = 3.5
+        gamma = 0.01
+        delta = 0.02
+        grain = 0.01
+        range = 1
+
+        q = data.QuestHandler(startVal=0.5, startValSd=0.2, pThreshold=0.63,
+                              nTrials=10,
+                              beta=beta, gamma=gamma, delta=delta,
+                              grain=grain, range=range)
+
+        assert q.beta == beta
+        assert q.gamma == gamma
+        assert q.delta == delta
+        assert q.grain == grain
+        assert q.range == range
+
     def test_comparison_equals(self):
         q1 = data.QuestHandler(0.5, 0.2, pThreshold=0.63, gamma=0.01,
                                nTrials=20, minVal=0, maxVal=1)
@@ -1042,6 +1060,35 @@ def test_QuesPlusHandler_unknown_kwargs():
                          responseVals=response_vals,
                          psychometricFunc=func,
                          **unknown_kwargs)
+
+
+def test_QuesPlusHandler_unused_StairHandler_attribs():
+    import sys
+    if not (sys.version_info.major == 3 and sys.version_info.minor >= 6):
+        pytest.skip('QUEST+ only works on Python 3.6+')
+
+    from psychopy.data.staircase import QuestPlusHandler
+
+    thresholds = np.arange(-40, 0 + 1)
+    slope, guess, lapse = 3.5, 0.5, 0.02
+    contrasts = thresholds.copy()
+    response_vals = ['Correct', 'Incorrect']
+    func = 'weibull'
+    stim_scale = 'linear'
+
+    q = QuestPlusHandler(nTrials=20,
+                         intensityVals=contrasts,
+                         thresholdVals=thresholds,
+                         slopeVals=slope,
+                         lowerAsymptoteVals=guess,
+                         lapseRateVals=lapse,
+                         responseVals=response_vals,
+                         psychometricFunc=func,
+                         stimScale=stim_scale)
+
+    assert q.currentDirection is None
+    assert q.stepSizeCurrent is None
+    assert q.stepType == q.stimScale
 
 
 if __name__ == '__main__':

@@ -77,6 +77,7 @@ Overview
     dot
     cross
     project
+    perp
     lerp
     distance
     angleTo
@@ -84,6 +85,8 @@ Overview
     surfaceBitangent
     surfaceTangent
     vertexNormal
+    intersectRayPlane
+    ortho3Dto2D
     slerp
     quatToAxisAngle
     quatFromAxisAngle
@@ -91,11 +94,13 @@ Overview
     multQuat
     invertQuat
     applyQuat
-    matrixFromQuat
+    quatToMatrix
     scaleMatrix
     rotationMatrix
     translationMatrix
     invertMatrix
+    isOrthogonal
+    isAffine
     concatenate
     applyMatrix
     posOriToMatrix
@@ -111,6 +116,7 @@ Details
 .. autofunction:: dot
 .. autofunction:: cross
 .. autofunction:: project
+.. autofunction:: perp
 .. autofunction:: lerp
 .. autofunction:: distance
 .. autofunction:: angleTo
@@ -118,6 +124,8 @@ Details
 .. autofunction:: surfaceBitangent
 .. autofunction:: surfaceTangent
 .. autofunction:: vertexNormal
+.. autofunction:: intersectRayPlane
+.. autofunction:: ortho3Dto2D
 .. autofunction:: slerp
 .. autofunction:: quatToAxisAngle
 .. autofunction:: quatFromAxisAngle
@@ -125,11 +133,13 @@ Details
 .. autofunction:: multQuat
 .. autofunction:: invertQuat
 .. autofunction:: applyQuat
-.. autofunction:: matrixFromQuat
+.. autofunction:: quatToMatrix
 .. autofunction:: scaleMatrix
 .. autofunction:: rotationMatrix
 .. autofunction:: translationMatrix
 .. autofunction:: invertMatrix
+.. autofunction:: isOrthogonal
+.. autofunction:: isAffine
 .. autofunction:: concatenate
 .. autofunction:: applyMatrix
 .. autofunction:: rigidBodyToMatrix

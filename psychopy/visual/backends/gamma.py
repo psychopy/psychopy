@@ -18,12 +18,6 @@ import ctypes
 import ctypes.util
 from psychopy import logging, prefs
 import os
-from psychopy import prefs
-
-if prefs.general['gammaErrorPolicy'] == 'abort':  # more clear to Builder users
-    defaultGammaErrorPolicy = 'raise'  # more clear to Python coders
-else:
-    defaultGammaErrorPolicy = prefs.general['gammaErrorPolicy']
 
 # import platform specific C++ libs for controlling gamma
 if sys.platform == 'win32':
@@ -44,13 +38,20 @@ elif sys.platform.startswith('linux'):
 
 _TravisTesting = os.environ.get('TRAVIS') == 'true'  # in Travis-CI testing
 
-problem_msg = 'The hardware look-up table ({func:s}) was unable to be used.'
-raise_msg = (
-    problem_msg + ' If you would like to proceed without look-up table ' +
-    '(gamma) changes, you can set the `Window` parameter ' +
-    '`gammaErrorPolicy` to `"warn"` or `"ignore"`.'
-)
-warn_msg = problem_msg + ' Proceeding without look-up table (gamma) changes.'
+# Handling what to do if gamma can't be set
+if prefs.general['gammaErrorPolicy'] == 'abort':  # more clear to Builder users
+    defaultGammaErrorPolicy = 'raise'  # more clear to Python coders
+else:
+    defaultGammaErrorPolicy = prefs.general['gammaErrorPolicy']
+
+problem_msg = 'The hardware look-up table function ({func:s}) failed. '
+raise_msg = (problem_msg +
+        'If you would like to proceed without look-up table '
+        '(gamma) changes, you can change your `defaultGammaFailPolicy` in the '
+        'application preferences. For more information see\n'
+        'https://www.psychopy.org/troubleshooting.html#errors-with-getting-setting-the-gamma-ramp '
+        )
+warn_msg = problem_msg + 'Proceeding without look-up table (gamma) changes.'
 
 
 def setGamma(screenID=None, newGamma=1.0, rampType=None, rampSize=None,

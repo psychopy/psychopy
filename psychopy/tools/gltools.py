@@ -8,9 +8,79 @@
 # Copyright (C) 2002-2018 Jonathan Peirce (C) 2019 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
+__all__ = [
+    'createProgram',
+    'createProgramObjectARB',
+    'compileShader',
+    'compileShaderObjectARB',
+    'embedShaderSourceDefs',
+    'deleteObject',
+    'deleteObjectARB',
+    'attachShader',
+    'attachObjectARB',
+    'detachShader',
+    'detachObjectARB',
+    'linkProgram',
+    'linkProgramObjectARB',
+    'validateProgram',
+    'validateProgramARB',
+    'useProgram',
+    'useProgramObjectARB',
+    'getInfoLog',
+    'getUniformLocations',
+    'getAttribLocations',
+    'createQueryObject',
+    'QueryObjectInfo',
+    'beginQuery',
+    'endQuery',
+    'getQuery',
+    'getAbsTimeGPU',
+    'createFBO',
+    'attach',
+    'isComplete',
+    'deleteFBO',
+    'blitFBO',
+    'useFBO',
+    'createRenderbuffer',
+    'deleteRenderbuffer',
+    'createTexImage2D',
+    'createTexImage2DMultisample',
+    'deleteTexture',
+    'VertexArrayInfo',
+    'createVAO',
+    'drawVAO',
+    'deleteVAO',
+    'VertexBufferInfo',
+    'createVBO',
+    'bindVBO',
+    'unbindVBO',
+    'mapBuffer',
+    'unmapBuffer',
+    'deleteVBO',
+    'setVertexAttribPointer',
+    'enableVertexAttribArray',
+    'disableVertexAttribArray',
+    'createMaterial',
+    'useMaterial',
+    'createLight',
+    'useLights',
+    'setAmbientLight',
+    'ObjMeshInfo',
+    'loadObjFile',
+    'loadMtlFile',
+    'createUVSphere',
+    'createPlane',
+    'createMeshGrid',
+    'createBox',
+    'getIntegerv',
+    'getFloatv',
+    'getString',
+    'getOpenGLInfo'
+]
+
 import ctypes
 from io import StringIO
-from collections import namedtuple, OrderedDict
+from collections import namedtuple
 import pyglet.gl as GL  # using Pyglet for now
 from contextlib import contextmanager
 from PIL import Image
@@ -18,9 +88,9 @@ import numpy as np
 import os, sys
 import warnings
 
-# keep track of OpenGL states here instead of using `glGet`
-_MAPPED_BUFFERS_ = {GL.GL_ARRAY_BUFFER: None, GL.GL_ELEMENT_ARRAY_BUFFER: None}
-_BOUND_BUFFERS_ = {GL.GL_ARRAY_BUFFER: None, GL.GL_ELEMENT_ARRAY_BUFFER: None}
+# create a query counter to get absolute GPU time
+QUERY_COUNTER = GL.GLuint()
+GL.glGenQueries(1, ctypes.byref(QUERY_COUNTER))
 
 
 # compatible Numpy and OpenGL types for common GL type enums
@@ -50,7 +120,6 @@ GL_COMPAT_TYPES = {
 # Shader Program Helper Functions
 # -------------------------------
 #
-
 
 def createProgram():
     """Create an empty program object for shaders.
@@ -869,6 +938,166 @@ def getAttribLocations(program, builtins=False):
     return attribLoc
 
 # -----------------------------------
+# GL Query Objects
+# -----------------------------------
+
+
+class QueryObjectInfo(object):
+    """Object for querying information. This includes GPU timing information."""
+    __slots__ = ['name', 'target']
+
+    def __init__(self, name, target):
+        self.name = name
+        self.target = target
+
+    def isValid(self):
+        """Check if the name associated with this object is valid."""
+        return GL.glIsQuery(self.name) == GL.GL_TRUE
+
+
+def createQueryObject(target=GL.GL_TIME_ELAPSED):
+    """Create a GL query object.
+
+    Parameters
+    ----------
+    target : Glenum or int
+        Target for the query.
+
+    Returns
+    -------
+    QueryObjectInfo
+        Query object.
+
+    Examples
+    --------
+
+    Get GPU time elapsed executing rendering/GL calls associated with some
+    stimuli (this is not the difference in absolute time between consecutive
+    `beginQuery` and `endQuery` calls!)::
+
+        # create a new query object
+        qGPU = createQueryObject(GL_TIME_ELAPSED)
+
+        beginQuery(query)
+        myStim.draw()  # OpenGL calls here
+        endQuery(query)
+
+        # get time elapsed in seconds spent on the GPU
+        timeRendering = getQueryValue(qGPU) * 1e-9
+
+    You can also use queries to test if vertices are occluded, as their samples
+    would be rejected during depth testing::
+
+        drawVAO(shape0, GL_TRIANGLES)  # draw the first object
+
+        # check if the object was completely occluded
+        qOcclusion = createQueryObject(GL_ANY_SAMPLES_PASSED​​)
+
+        # draw the next shape within query context
+        beginQuery(qOcclusion)
+        drawVAO(shape1, GL_TRIANGLES)  # draw the second object
+        endQuery(qOcclusion)
+
+        isOccluded = getQueryValue(qOcclusion) == 1
+
+    This can be leveraged to perform occlusion testing/culling, where you can
+    render a `cheap` version of your mesh/shape, then the more expensive version
+    if samples were passed.
+
+    """
+    result = GL.GLuint()
+    GL.glGenQueries(1, ctypes.byref(result))
+
+    return QueryObjectInfo(result, target)
+
+
+def beginQuery(query):
+    """Begin query.
+
+    Parameters
+    ----------
+    query : QueryObjectInfo
+        Query object descriptor returned by :func:`createQueryObject`.
+
+    """
+    if isinstance(query, (QueryObjectInfo,)):
+        GL.glBeginQuery(query.target, query.name)
+    else:
+        raise TypeError('Type of `query` must be `QueryObjectInfo`.')
+
+
+def endQuery(query):
+    """End a query.
+
+    Parameters
+    ----------
+    query : QueryObjectInfo
+        Query object descriptor returned by :func:`createQueryObject`,
+        previously passed to :func:`beginQuery`.
+
+    """
+    if isinstance(query, (QueryObjectInfo,)):
+        GL.glEndQuery(query.target)
+    else:
+        raise TypeError('Type of `query` must be `QueryObjectInfo`.')
+
+
+def getQuery(query):
+    """Get the value stored in a query object.
+
+    Parameters
+    ----------
+    query : QueryObjectInfo
+        Query object descriptor returned by :func:`createQueryObject`,
+        previously passed to :func:`endQuery`.
+
+    """
+    params = GL.GLuint64(0)
+    if isinstance(query, QueryObjectInfo):
+        GL.glGetQueryObjectui64v(
+            query.name,
+            GL.GL_QUERY_RESULT,
+            ctypes.byref(params))
+
+        return params.value
+    else:
+        raise TypeError('Argument `query` must be `QueryObjectInfo` instance.')
+
+
+def getAbsTimeGPU():
+    """Get the absolute GPU time in nanoseconds.
+
+    Returns
+    -------
+    int
+        Time elapsed in nanoseconds since the OpenGL context was fully realized.
+
+    Examples
+    --------
+    Get the current GPU time in seconds::
+
+        timeInSeconds = getAbsTimeGPU() * 1e-9
+
+    Get the GPU time elapsed::
+
+        t0 = getAbsTimeGPU()
+        # some drawing commands here ...
+        t1 = getAbsTimeGPU()
+        timeElapsed = (t1 - t0) * 1e-9  # take difference, convert to seconds
+
+    """
+    GL.glQueryCounter(QUERY_COUNTER, GL.GL_TIMESTAMP)
+
+    params = GL.GLuint64(0)
+    GL.glGetQueryObjectui64v(
+        QUERY_COUNTER,
+        GL.GL_QUERY_RESULT,
+        ctypes.byref(params))
+
+    return params.value
+
+
+# -----------------------------------
 # Framebuffer Objects (FBO) Functions
 # -----------------------------------
 #
@@ -906,7 +1135,7 @@ def createFBO(attachments=()):
 
     Returns
     -------
-    :obj:`Framebuffer`
+    Framebuffer
         Framebuffer descriptor.
 
     Notes
@@ -982,10 +1211,6 @@ def attach(attachPoint, imageBuffer):
     imageBuffer : :obj:`TexImage2D` or :obj:`Renderbuffer`
         Framebuffer-attachable buffer descriptor.
 
-    Returns
-    -------
-    None
-
     Examples
     --------
     Attach an image to attachment points on the framebuffer::
@@ -1023,7 +1248,8 @@ def isComplete():
 
     Returns
     -------
-    :obj:`bool'
+    bool
+        `True` if the presently bound FBO is complete.
 
     """
     return GL.glCheckFramebufferStatus(GL.GL_FRAMEBUFFER) == \
@@ -1032,10 +1258,6 @@ def isComplete():
 
 def deleteFBO(fbo):
     """Delete a framebuffer.
-
-    Returns
-    -------
-    :obj:`None'
 
     """
     GL.glDeleteFramebuffers(
@@ -1109,10 +1331,6 @@ def useFBO(fbo):
     -------
     int
         OpenGL name of the framebuffer bound in the context.
-
-    Returns
-    -------
-    None
 
     Examples
     --------
@@ -1190,7 +1408,7 @@ def createRenderbuffer(width, height, internalFormat=GL.GL_RGBA8, samples=1):
 
     Returns
     -------
-    :obj:`Renderbuffer`
+    Renderbuffer
         A descriptor of the created renderbuffer.
 
     Notes
@@ -1247,10 +1465,6 @@ def createRenderbuffer(width, height, internalFormat=GL.GL_RGBA8, samples=1):
 def deleteRenderbuffer(renderBuffer):
     """Free the resources associated with a renderbuffer. This invalidates the
     renderbuffer's ID.
-
-    Returns
-    -------
-    :obj:`None'
 
     """
     GL.glDeleteRenderbuffers(1, renderBuffer.id)
@@ -1322,7 +1536,7 @@ def createTexImage2D(width, height, target=GL.GL_TEXTURE_2D, level=0,
 
     Returns
     -------
-    :obj:`TexImage2D`
+    TexImage2D
         A TexImage2D descriptor.
 
     Notes
@@ -1445,7 +1659,7 @@ def createTexImage2DMultisample(width, height,
 
     Returns
     -------
-    :obj:`TexImage2DMultisample`
+    TexImage2DMultisample
         A TexImage2DMultisample descriptor.
 
     """
@@ -1491,10 +1705,6 @@ def deleteTexture(texture):
     """Free the resources associated with a texture. This invalidates the
     texture's ID.
 
-    Returns
-    -------
-    :obj:`None'
-
     """
     GL.glDeleteTextures(1, texture.id)
 
@@ -1525,6 +1735,7 @@ class VertexArrayInfo(object):
     activeAttribs : dict
         Attributes and buffers defined as part of this VAO state. Keys are
         attribute pointer indices or capabilities (ie. GL_VERTEX_ARRAY).
+        Modifying these values will not update the VAO state.
     isLegacy : bool
         Array pointers were defined using the deprecated OpenGL API. If `True`,
         the VAO may work with older GLSL shaders versions and the fixed-function
@@ -1555,6 +1766,9 @@ class VertexArrayInfo(object):
             self.userData = userData
         else:
             raise TypeError('Invalid type for `userData`.')
+
+    def __hash__(self):
+        return hash((self.name, self.isLegacy))
 
     def __eq__(self, other):
         """Equality test between VAO object names."""
@@ -1642,23 +1856,30 @@ def createVAO(attribBuffers, indexBuffer=None, legacy=False):
     activeAttribs = {}
     bufferIndices = []
     for i, buffer in attribBuffers.items():
-        size = buffer.shape[1]
-        offset = 0
-        normalize = False
         if isinstance(buffer, (list, tuple,)):
             if len(buffer) == 1:
                 buffer = buffer[0]  # size 1 tuple or list eg. (buffer,)
+                size = buffer.shape[1]
+                offset = 0
+                normalize = False
             elif len(buffer) == 2:
                 buffer, size = buffer
+                offset = 0
+                normalize = False
             elif len(buffer) == 3:
                 buffer, size, offset = buffer
+                normalize = False
             elif len(buffer) == 4:
                 buffer, size, offset, normalize = buffer
             else:
                 raise ValueError('Invalid attribute values.')
+        else:
+            size = buffer.shape[1]
+            offset = 0
+            normalize = False
 
         enableVertexAttribArray(i, legacy)
-        setVertexAttribPointer(i, buffer, size, offset, normalize, True, legacy)
+        setVertexAttribPointer(i, buffer, size, offset, normalize, legacy)
 
         activeAttribs[i] = buffer
         bufferIndices.append(buffer.shape[0])
@@ -1667,7 +1888,10 @@ def createVAO(attribBuffers, indexBuffer=None, legacy=False):
     if indexBuffer is not None:
         if indexBuffer.target == GL.GL_ELEMENT_ARRAY_BUFFER:
             GL.glBindBuffer(GL.GL_ELEMENT_ARRAY_BUFFER, indexBuffer.name)
-            count = indexBuffer.shape[0]
+            if len(indexBuffer.shape) > 1:
+                count = indexBuffer.shape[0] * indexBuffer.shape[1]
+            else:
+                count = indexBuffer.shape[0]
         else:
             raise ValueError(
                 'Index buffer does not have target `GL_ELEMENT_ARRAY_BUFFER`.')
@@ -1690,8 +1914,8 @@ def createVAO(attribBuffers, indexBuffer=None, legacy=False):
 
 
 def drawVAO(vao, mode=GL.GL_TRIANGLES, start=0, count=None, flush=False):
-    """Draw a vertex array using glDrawArrays. This method does not require
-    shaders.
+    """Draw a vertex array using `glDrawArrays` or `glDrawElements`. This method
+    does not require shaders.
 
     Parameters
     ----------
@@ -1718,13 +1942,13 @@ def drawVAO(vao, mode=GL.GL_TRIANGLES, start=0, count=None, flush=False):
     """
     # draw the array
     GL.glBindVertexArray(vao.name)
-
     if count is None:
         count = vao.count
     else:
         if count > vao.count - start:
             raise ValueError(
-                "Value of `count` cannot exceed `{}`.".format(vao.count))
+                "Value of `count` cannot exceed `{}`.".format(
+                    vao.count - start))
 
     if vao.indexBuffer is not None:
         GL.glDrawElements(mode, count, vao.indexBuffer.dataType, start)
@@ -1824,6 +2048,14 @@ class VertexBufferInfo(object):
             self.userData = userData
         else:
             raise TypeError('Invalid type for `userData`.')
+
+    def __hash__(self):
+        return hash((self.name,
+                     self.target,
+                     self.dataType,
+                     self.usage,
+                     self.size,
+                     self.shape))
 
     def __eq__(self, other):
         """Equality test between VBO object names."""
@@ -1980,7 +2212,11 @@ def createVBO(data,
 
     # get buffer size and pointer
     bufferSize = data.size * ctypes.sizeof(glType)
-    bufferStride = data.shape[1] * ctypes.sizeof(glType)
+    if data.ndim > 1:
+        bufferStride = data.shape[1] * ctypes.sizeof(glType)
+    else:
+        bufferStride = 0
+
     bufferPtr = data.ctypes.data_as(ctypes.POINTER(glType))
 
     # create a vertex buffer ID
@@ -2019,14 +2255,8 @@ def bindVBO(vbo):
         was not changed due to the buffer already  being bound.
 
     """
-    global _BOUND_BUFFERS_
     if isinstance(vbo, VertexBufferInfo):
-        if _BOUND_BUFFERS_[vbo.target] != vbo.name:
-            _BOUND_BUFFERS_[vbo.target] = vbo.name
-            GL.glBindBuffer(vbo.target, vbo.name)
-            return True
-        else:
-            return False
+        GL.glBindBuffer(vbo.target, vbo.name)
     else:
         raise TypeError('Specified `vbo` is not at `VertexBufferInfo`.')
 
@@ -2040,13 +2270,10 @@ def unbindVBO(vbo):
         VBO descriptor to unbind.
 
     """
-    global _BOUND_BUFFERS_
     if isinstance(vbo, VertexBufferInfo):
-        if _BOUND_BUFFERS_[vbo.target] == vbo.name:
-            _BOUND_BUFFERS_[vbo.target] = None
-            GL.glBindBuffer(vbo.target, 0)
-        else:
-            raise ValueError('Vertex buffer was not currently bound.')
+        GL.glBindBuffer(vbo.target, 0)
+    else:
+        raise TypeError('Specified `vbo` is not at `VertexBufferInfo`.')
 
 
 def mapBuffer(vbo, start=0, length=None, read=True, write=True, noSync=False):
@@ -2110,10 +2337,6 @@ def mapBuffer(vbo, start=0, length=None, read=True, write=True, noSync=False):
         unmapBuffer(vbo)
 
     """
-    global _MAPPED_BUFFERS_
-    if _MAPPED_BUFFERS_[vbo.target] is not None:
-        raise RuntimeError("Vertex buffer already mapped.")
-
     npType, glType = GL_COMPAT_TYPES[vbo.dataType]
     start *= ctypes.sizeof(glType)
 
@@ -2144,8 +2367,6 @@ def mapBuffer(vbo, start=0, length=None, read=True, write=True, noSync=False):
         ctypes.cast(bufferPtr, ctypes.POINTER(glType)),
         shape=vbo.shape)
 
-    _MAPPED_BUFFERS_[vbo.target] = vbo.name
-
     return bufferArray
 
 
@@ -2167,13 +2388,7 @@ def unmapBuffer(vbo):
         data was corrupted for some reason and needs to be resubmitted.
 
     """
-    global _MAPPED_BUFFERS_
-
-    if _MAPPED_BUFFERS_[vbo.target] == vbo.name:
-        _MAPPED_BUFFERS_[vbo.target] = None
-        return GL.glUnmapBuffer(vbo.target) == GL.GL_TRUE
-    else:
-        return False
+    return GL.glUnmapBuffer(vbo.target) == GL.GL_TRUE
 
 
 def deleteVBO(vbo):
@@ -2294,11 +2509,11 @@ def setVertexAttribPointer(index,
         # ... before rendering, set the attribute pointers
         GL.glBindBuffer(vboInterleaved.target, vboInterleaved.name)
         gltools.setVertexAttribPointer(
-            0, vboInterleaved, size=3, offset=0, bind=False)  # vertex pointer
+            0, vboInterleaved, size=3, offset=0)  # vertex pointer
         gltools.setVertexAttribPointer(
-            8, vboInterleaved, size=2, offset=3, bind=False)  # texture pointer
+            8, vboInterleaved, size=2, offset=3)  # texture pointer
         gltools.setVertexAttribPointer(
-            3, vboInterleaved, size=3, offset=5, bind=False)  # normals pointer
+            3, vboInterleaved, size=3, offset=5)  # normals pointer
 
         # Note, we specified `bind=False` since we are managing the binding
         # state. It is recommended that you do this when setting up interleaved
@@ -2541,10 +2756,15 @@ def useMaterial(material, useTextures=True):
 
     """
     if material is not None:
+        GL.glDisable(GL.GL_COLOR_MATERIAL)  # disable color tracking
+        GL.glColorMaterial(material.face, GL.GL_AMBIENT_AND_DIFFUSE)
         # setup material color params
         for mode, param in material.params.items():
             if param is not None:
-                GL.glMaterialfv(material.face, mode, param)
+                if mode != GL.GL_SHININESS:
+                    GL.glMaterialfv(material.face, mode, param)
+                else:
+                    GL.glMaterialf(material.face, mode, param)
         # setup textures
         if useTextures and material.textures:
             GL.glEnable(GL.GL_TEXTURE_2D)
@@ -2555,6 +2775,7 @@ def useMaterial(material, useTextures=True):
                 GL.glBindTexture(GL.GL_TEXTURE_2D, desc.id)
     else:
         for mode, param in defaultMaterial.params.items():
+            GL.glEnable(GL.GL_COLOR_MATERIAL)
             GL.glMaterialfv(GL.GL_FRONT_AND_BACK, mode, param)
         if useTextures:
             GL.glActiveTexture(GL.GL_TEXTURE0)
@@ -2669,20 +2890,51 @@ def setAmbientLight(color):
 # model data.
 #
 
-# Header
-WavefrontObj = namedtuple(
-    'WavefrontObj',
-    ['mtlFile',
-     'drawGroups',
-     'posBuffer',
-     'texCoordBuffer',
-     'normBuffer',
-     'userData']
-)
+
+class ObjMeshInfo(object):
+    """Descriptor for mesh data loaded from a Wavefront OBJ file.
+
+    """
+    __slots__ = [
+        'vertexPos',
+        'texCoords',
+        'normals',
+        'faces',
+        'extents',
+        'mtlFile']
+
+    def __init__(self,
+                 vertexPos=None,
+                 texCoords=None,
+                 normals=None,
+                 faces=None,
+                 extents=None,
+                 mtlFile=None):
+
+        self.vertexPos = vertexPos
+        self.texCoords = texCoords
+        self.normals = normals
+        self.faces = faces
+        self.extents = extents
+        self.mtlFile = mtlFile
 
 
 def loadObjFile(objFile):
     """Load a Wavefront OBJ file (*.obj).
+
+    Loads vertex, normals, and texture coordinates from the provided *.obj file
+    into arrays. These arrays can be processed then loaded into vertex buffer
+    objects (VBOs) for rendering. The *.obj file must at least specify vertex
+    position data to be loaded successfully. Normals and texture coordinates are
+    optional.
+
+    Faces can be either triangles or quads, but not both. Faces are grouped by
+    their materials. Index arrays are generated for each material present in the
+    file.
+
+    Data from the returned `ObjMeshInfo` object can be used to create vertex
+    buffer objects and arrays for rendering. See `Examples` below for details on
+    how to do this.
 
     Parameters
     ----------
@@ -2691,170 +2943,242 @@ def loadObjFile(objFile):
 
     Returns
     -------
-    WavefrontObjModel
+    ObjMeshInfo
+        Mesh data.
+
+    See Also
+    --------
+    loadMtlFile : Load a *.mtl file.
 
     Notes
     -----
-    1. This importer should work fine for most sanely generated files.
-       Export your model with Blender for best results, even if you used some
-       other package to create it.
-    2. The model must be triangulated, quad faces are not supported.
+    1. This importer should work fine for most sanely generated files. Export
+       your model with Blender for best results, even if you used some other
+       package to create it.
+    2. The mesh cannot contain both triangles and quads.
 
     Examples
     --------
     Loading a *.OBJ mode from file::
 
         objModel = loadObjFile('/path/to/file.obj')
-
         # load the material (*.mtl) file, textures are also loaded
-        materials = loadMtl('/path/to/' + objModel.mtlFile)
+        mtllib = loadMtl('/path/to/' + objModel.mtlFile)
 
-    Drawing a mesh previously loaded::
+    Creating separate vertex buffer objects (VBOs) for each vertex attribute::
 
-        # apply settings
-        GL.glEnable(GL.GL_CULL_FACE)
-        GL.glEnable(GL.GL_DEPTH_TEST)
-        GL.glDepthFunc(GL.GL_LEQUAL)
-        GL.glDepthMask(GL.GL_TRUE)
-        GL.glShadeModel(GL.GL_SMOOTH)
-        GL.glCullFace(GL.GL_BACK)
-        GL.glDisable(GL.GL_BLEND)
+        vertexPosVBO = createVBO(objModel.vertexPos)
+        texCoordVBO = createVBO(objModel.texCoords)
+        normalsVBO = createVBO(objModel.normals)
 
-        # lights
-        useLights(light0)
+    Create vertex array objects (VAOs) to draw the mesh. We create VAOs for each
+    face material::
 
-        # draw the model
-        for group, vao in obj.drawGroups.items():
-            useMaterial(materials[group])
+        objVAOs = {}  # dictionary for VAOs
+        # for each material create a VAO
+        # keys are material names, values are index buffers
+        for material, faces in objModel.faces.items():
+            # convert index buffer to VAO
+            indexBuffer = \
+                gltools.createVBO(
+                    faces.flatten(),  # flatten face index for element array
+                    target=GL.GL_ELEMENT_ARRAY_BUFFER,
+                    dataType=GL.GL_UNSIGNED_INT)
+
+            # see `setVertexAttribPointer` for more information about attribute
+            # pointer indices
+            objVAOs[material] = gltools.createVAO(
+                {0: vertexPosVBO,  # 0 = gl_Vertex
+                 8: texCoordVBO,   # 8 = gl_MultiTexCoord0
+                 2: normalsVBO},   # 2 = gl_Normal
+                 indexBuffer=indexBuffer)
+
+            # if using legacy attribute pointers, do this instead ...
+            # objVAOs[key] = createVAO({GL_VERTEX_ARRAY: vertexPosVBO,
+            #                           GL_TEXTURE_COORD_ARRAY: texCoordVBO,
+            #                           GL_NORMAL_ARRAY: normalsVBO},
+            #                           indexBuffer=indexBuffer,
+            #                           legacy=True)  # this needs to be `True`
+
+    To render the VAOs using `objVAOs` created above, do the following::
+
+        for material, vao in objVAOs.items():
+            useMaterial(mtllib[material])
             drawVAO(vao)
 
-        # disable materials and lights
-        useMaterial(None)
-        useLights(None)
+        useMaterial(None)  # disable materials when done
+
+    Optionally, you can create a single-storage, interleaved VBO by using
+    `numpy.hstack`. On some GL implementations, using single-storage buffers
+    offers better performance::
+
+        interleavedData = numpy.hstack(
+            (objModel.vertexPos, objModel.texCoords, objModel.normals))
+        vertexData = createVBO(interleavedData)
+
+    Creating VAOs with interleaved, single-storage buffers require specifying
+    additional information, such as `size` and `offset`::
+
+        objVAOs = {}
+        for key, val in objModel.faces.items():
+            indexBuffer = \
+                gltools.createVBO(
+                    faces.flatten(),
+                    target=GL.GL_ELEMENT_ARRAY_BUFFER,
+                    dataType=GL.GL_UNSIGNED_INT)
+
+            objVAOs[key] = createVAO({0: (vertexData, 3, 0),  # size=3, offset=0
+                                      8: (vertexData, 2, 3),  # size=2, offset=3
+                                      2: (vertexData, 3, 5),  # size=3, offset=5
+                                      indexBuffer=val)
+
+    Drawing VAOs with interleaved buffers is exactly the same as shown before
+    with separate buffers.
 
     """
     # open the file, read it into memory
-    with open(objFile, 'r') as objFile:
-        objBuffer = StringIO(objFile.read())
+    with open(objFile, 'r') as f:
+        objBuffer = StringIO(f.read())
 
-    nVertices = nTextureCoords = nNormals = nFaces = nObjects = nMaterials = 0
-    matLibPath = None
+    mtlFile = None
 
-    # first pass, examine the file
-    for line in objBuffer.readlines():
-        if line.startswith('v '):
-            nVertices += 1
-        elif line.startswith('vt '):
-            nTextureCoords += 1
-        elif line.startswith('vn '):
-            nNormals += 1
-        elif line.startswith('f '):
-            nFaces += 1
-        elif line.startswith('o '):
-            nObjects += 1
-        elif line.startswith('usemtl '):
-            nMaterials += 1
-        elif line.startswith('mtllib '):
-            matLibPath = line.strip()[7:]
-
-    # error check
-    if nVertices == 0:
-        raise RuntimeError(
-            "Failed to load OBJ file, file contains no vertices.")
-
-    objBuffer.seek(0)
-
-    # attribute data lists
+    # unsorted attribute data lists
     positionDefs = []
     texCoordDefs = []
     normalDefs = []
+    vertexAttrs = {}
 
-    # attribute lists to upload
-    vertexAttrList = []
-    texCoordAttrList = []
-    normalAttrList = []
-
-    # store vertex attributes in dictionaries for easy re-mapping if needed
-    vertexAttrs = OrderedDict()
-    vertexIndices = OrderedDict()
-
-    # group faces by material, each one will get its own VAO
-    materialGroups = OrderedDict()
-    materialOffsets = OrderedDict()
-
-    # Parse the buffer for vertex attributes. We would like to create an index
-    # buffer were there are no duplicate vertices. So we load attributes and
-    # check if it's a duplicate against previously loaded attributes. If so, we
-    # re-map it instead of creating a new attribute. Attributes are considered
-    # equal if they share the same position, texture coordinate and normal.
-    #
-    vertexIdx = faceIdx = 0
+    # material groups
     materialGroup = None
+    materialGroups = {}
+
+    nVertices = nTextureCoords = nNormals = nFaces = 0
+    vertexIdx = 0
+    # first pass, examine the file and load up vertex attributes
     for line in objBuffer.readlines():
-        line = line.strip()
-
-        if line.startswith('v '):  # new vertex position
+        line = line.strip()  # clean up like
+        if line.startswith('v '):
             positionDefs.append(tuple(map(float, line[2:].split(' '))))
-        elif line.startswith('vt '):  # new vertex texture coordinate
+            nVertices += 1
+        elif line.startswith('vt '):
             texCoordDefs.append(tuple(map(float, line[3:].split(' '))))
-        elif line.startswith('vn '):  # new vertex normal
+            nTextureCoords += 1
+        elif line.startswith('vn '):
             normalDefs.append(tuple(map(float, line[3:].split(' '))))
+            nNormals += 1
         elif line.startswith('f '):
-            faceDef = []
-            for attrs in line[2:].split(' '):
-                # check if vertex attribute already loaded, create a new index
-                # if not.
+            faceAttrs = []  # attributes this face
+            for attrs in line[2:].split(' '):  # triangle vertex attrs
                 if attrs not in vertexAttrs.keys():
-                    p, t, n = map(int, attrs.split('/'))
-                    # add to attribute lists
-                    vertexAttrList.extend(positionDefs[p - 1])
-                    texCoordAttrList.extend(texCoordDefs[t - 1])
-                    normalAttrList.extend(normalDefs[n - 1])
-                    vertexIndices[attrs] = vertexIdx
+                    vertexAttrs[attrs] = vertexIdx
                     vertexIdx += 1
-                faceDef.append(vertexIndices[attrs])  # attribute exists? remap
-            materialGroups[materialGroup].extend(faceDef)
-            faceIdx += 1  # for computing material offsets
-        # elif line.startswith('o '):
-        #    pass
+                faceAttrs.append(vertexAttrs[attrs])
+            materialGroups[materialGroup].append(faceAttrs)
+            nFaces += 1
+        elif line.startswith('o '):  # ignored for now
+            pass
+        elif line.startswith('g '):  # ignored for now
+            pass
         elif line.startswith('usemtl '):
-            materialGroup = line[7:]
-            if materialGroup not in materialGroups.keys():
-                materialGroups[materialGroup] = []
-                materialOffsets[materialGroup] = faceIdx
+            foundMaterial = line[7:]
+            if foundMaterial not in materialGroups.keys():
+                materialGroups[foundMaterial] = []
+            materialGroup = foundMaterial
+        elif line.startswith('mtllib '):
+            mtlFile = line.strip()[7:]
 
-    # Load all vertex attribute data to the graphics device. If anyone cares,
-    # try to make this work by interleaving attributes so we can read from a
-    # single buffer. Regardless, we're using VAOs and EBOs when rendering
-    # primitives which speeds things up considerably, so it's not needed right
-    # now.
-    #
-    posVBO = createVBO(vertexAttrList)
-    texVBO = createVBO(texCoordAttrList, 2)
-    normVBO = createVBO(normalAttrList)
+    # at the very least, we need vertices and facedefs
+    if nVertices == 0 or nFaces == 0:
+        raise RuntimeError(
+            "Failed to load OBJ file, file contains no vertices or faces.")
 
-    # Create a VAO for each material in the file, each gets it own element
-    # buffer array for indexed drawing.
-    #
-    objVAOs = {}
-    for group, elements in materialGroups.items():
-        objVAOs[group] = createVAO((
-            (GL.GL_VERTEX_ARRAY, posVBO),
-            (GL.GL_TEXTURE_COORD_ARRAY, texVBO),
-            (GL.GL_NORMAL_ARRAY, normVBO)),
-            createVBO(elements,
-                      dtype=GL.GL_UNSIGNED_INT,
-                      target=GL.GL_ELEMENT_ARRAY_BUFFER))
+    # convert indices for materials to numpy arrays
+    for key, val in materialGroups.items():
+        materialGroups[key] = np.asarray(val, dtype=np.int)
 
-    return WavefrontObj(matLibPath, objVAOs, posVBO, texVBO, normVBO, dict())
+    # indicate if file has any texture coordinates of normals
+    hasTexCoords = nTextureCoords > 0
+    hasNormals = nNormals > 0
+
+    # lists for vertex attributes
+    vertexPos = []
+    vertexTexCoord = []
+    vertexNormal = []
+
+    # populate vertex attribute arrays
+    for attrs, idx in vertexAttrs.items():
+        attr = attrs.split('/')
+        vertexPos.append(positionDefs[int(attr[0]) - 1])
+        if len(attr) > 1:  # has texture coords
+            if hasTexCoords:
+                if attr[1] != '':  # texcoord field not empty
+                    vertexTexCoord.append(texCoordDefs[int(attr[1]) - 1])
+                else:
+                    vertexTexCoord.append([0., 0.])  # fill with zeros
+        if len(attr) > 2:  # has normals too
+            if hasNormals:
+                vertexNormal.append(normalDefs[int(attr[2]) - 1])
+            else:
+                vertexNormal.append([0., 0., 0.])  # fill with zeros
+
+    # convert vertex attribute lists to numeric arrays
+    vertexPos = np.asarray(vertexPos)
+    vertexTexCoord = np.asarray(vertexTexCoord)
+    vertexNormal = np.asarray(vertexNormal)
+
+    # compute the extents of the model, needed for axis-aligned bounding boxes
+    extents = (vertexPos.min(axis=0), vertexPos.max(axis=0))
+
+    return ObjMeshInfo(vertexPos,
+                       vertexTexCoord,
+                       vertexNormal,
+                       materialGroups,
+                       extents,
+                       mtlFile)
 
 
-def loadMtlFile(mtlFilePath, texParameters=None):
-    """Load a material library (*.mtl).
+def loadMtlFile(mtllib, texParameters=None):
+    """Load a material library file (*.mtl).
+
+    Parameters
+    ----------
+    mtllib : str
+        Path to the material library file.
+    texParameters : list or tuple
+        Optional texture parameters for loaded textures. Texture parameters are
+        specified as a list of tuples. Each item specifies the option and
+        parameter. For instance,
+        `[(GL.GL_TEXTURE_MAG_FILTER, GL.GL_LINEAR), ...]`. By default, linear
+        filtering is used for both the minifying and magnification filter
+        functions. This is adequate for most uses.
+
+    Returns
+    -------
+    dict
+        Dictionary of materials. Where each key is the material name found in
+        the file, and values are `Material` namedtuple objects.
+
+    See Also
+    --------
+    loadObjFile : Load an *.OBJ file.
+
+    Examples
+    --------
+    Load material associated with an *.OBJ file::
+
+        objModel = loadObjFile('/path/to/file.obj')
+        # load the material (*.mtl) file, textures are also loaded
+        mtllib = loadMtl('/path/to/' + objModel.mtlFile)
+
+    Use a material when rendering vertex arrays::
+
+        useMaterial(mtllib[material])
+        drawVAO(vao)
+        useMaterial(None)  # disable materials when done
 
     """
     # open the file, read it into memory
-    with open(mtlFilePath, 'r') as mtlFile:
+    with open(mtllib, 'r') as mtlFile:
         mtlBuffer = StringIO(mtlFile.read())
 
     # default texture parameters
@@ -2887,7 +3211,7 @@ def loadMtlFile(mtlFilePath, texParameters=None):
             textureName = line[7:]
             if textureName not in foundTextures.keys():
                 im = Image.open(
-                    os.path.join(os.path.split(mtlFilePath)[0], textureName))
+                    os.path.join(os.path.split(mtllib)[0], textureName))
                 im = im.transpose(Image.FLIP_TOP_BOTTOM)
                 im = im.convert("RGBA")
                 pixelData = np.array(im).ctypes
@@ -2908,6 +3232,433 @@ def loadMtlFile(mtlFilePath, texParameters=None):
     return foundMaterials
 
 
+def createUVSphere(radius=0.5, sectors=16, stacks=16, flipFaces=False):
+    """Create a UV sphere.
+
+    Procedurally generate a UV sphere by specifying its radius, and number of
+    stacks and sectors. The poles of the resulting sphere will be aligned with
+    the Z-axis.
+
+    Surface normals and texture coordinates are automatically generated. The
+    returned normals are computed to produce smooth shading.
+
+    Parameters
+    ----------
+    radius : float, optional
+        Radius of the sphere in scene units (usually meters). Default is 0.5.
+    sectors, stacks : int, optional
+        Number of longitudinal and latitudinal sub-divisions. Default is 16 for
+        both.
+    flipFaces : bool, optional
+        If `True`, normals and face windings will be set to point inward towards
+        the center of the sphere. Texture coordinates will remain the same.
+        Default is `False`.
+
+    Returns
+    -------
+    tuple
+        Vertex attribute arrays (position, texture coordinates, and normals) and
+        triangle indices.
+
+    Examples
+    --------
+    Create a UV sphere and VAO to render it::
+
+        vertices, textureCoords, normals, faces = \
+            gltools.createUVSphere(sectors=32, stacks=32)
+
+        vertexVBO = gltools.createVBO(vertices)
+        texCoordVBO = gltools.createVBO(textureCoords)
+        normalsVBO = gltools.createVBO(normals)
+        indexBuffer = gltools.createVBO(
+            faces.flatten(),
+            target=GL.GL_ELEMENT_ARRAY_BUFFER,
+            dataType=GL.GL_UNSIGNED_INT)
+
+        vao = gltools.createVAO({0: vertexVBO, 8: texCoordVBO, 2: normalsVBO},
+            indexBuffer=indexBuffer)
+
+        # in the rendering loop
+        gltools.drawVAO(vao, GL.GL_TRIANGLES)
+
+    The color of the sphere can be changed by calling `glColor*`::
+
+        glColor4f(1.0, 0.0, 0.0, 1.0)  # red
+        gltools.drawVAO(vao, GL.GL_TRIANGLES)
+
+    Raw coordinates can be transformed prior to uploading to VBOs. Here we can
+    rotate vertex positions and normals so the equator rests on Z-axis::
+
+        r = mt.rotationMatrix(90.0, (1.0, 0, 0.0))  # 90 degrees about +X axis
+        vertices = mt.applyMatrix(r, vertices)
+        normals = mt.applyMatrix(r, normals)
+
+    """
+    # based of the code found here http://www.songho.ca/opengl/gl_sphere.html
+    sectorStep = 2.0 * np.pi / sectors
+    stackStep = np.pi / stacks
+    lengthInv = 1.0 / radius
+
+    vertices = []
+    normals = []
+    texCoords = []
+
+    for i in range(stacks + 1):
+        stackAngle = np.pi / 2.0 - i * stackStep
+        xy = radius * np.cos(stackAngle)
+        z = radius * np.sin(stackAngle)
+
+        for j in range(sectors + 1):
+            sectorAngle = j * sectorStep
+            x = xy * np.cos(sectorAngle)
+            y = xy * np.sin(sectorAngle)
+
+            vertices.append((x, y, z))
+
+            nx = x * lengthInv
+            ny = y * lengthInv
+            nz = z * lengthInv
+
+            normals.append((nx, ny, nz))
+
+            s = j / float(sectors)
+            t = i / float(sectors)
+
+            texCoords.append((s, t))
+
+    # generate index
+    indices = []
+    for i in range(stacks):
+        k1 = i * (sectors + 1)
+        k2 = k1 + sectors + 1
+
+        for j in range(sectors):
+            # case for caps
+            if not flipFaces:
+                if i != 0:
+                    indices.append((k1, k2, k1 + 1))
+
+                if i != stacks - 1:
+                    indices.append((k1 + 1, k2, k2 + 1))
+            else:
+                if i != 0:
+                    indices.append((k1, k1 + 1, k2))
+
+                if i != stacks - 1:
+                    indices.append((k1 + 1, k2 + 1, k2))
+
+            k1 += 1
+            k2 += 1
+
+    # convert to numpy arrays
+    vertices = np.ascontiguousarray(vertices, dtype=np.float32)
+    normals = np.ascontiguousarray(normals, dtype=np.float32)
+    texCoords = np.ascontiguousarray(texCoords, dtype=np.float32)
+    faces = np.ascontiguousarray(indices, dtype=np.uint32)
+
+    if flipFaces:   # flip normals so they point inwards
+        normals *= -1.0
+
+    return vertices, texCoords, normals, faces
+
+
+def createPlane(size=(1., 1.)):
+    """Create a plane.
+
+    Procedurally generate a plane (or quad) mesh by specifying its size. Texture
+    coordinates are computed automatically, with origin at the bottom left of
+    the plane. The generated plane is perpendicular to the +Z axis, origin of
+    the plane is at its center.
+
+    Parameters
+    ----------
+    size : tuple or float
+        Dimensions of the plane. If a single value is specified, the plane will
+        be square. Provide a tuple of floats to specify the width and length of
+        the plane (eg. `size=(0.2, 1.3)`).
+    subdiv : int, optional
+        Number of subdivisions. Zero subdivisions are applied by default, and
+        the resulting mesh will only have vertices at the corners.
+
+    Returns
+    -------
+    tuple
+        Vertex attribute arrays (position, texture coordinates, and normals) and
+        triangle indices.
+
+    Examples
+    --------
+    Create a plane mesh and draw it::
+
+        vertices, textureCoords, normals, faces = gltools.createPlane()
+
+        vertexVBO = gltools.createVBO(vertices)
+        texCoordVBO = gltools.createVBO(textureCoords)
+        normalsVBO = gltools.createVBO(normals)
+        indexBuffer = gltools.createVBO(
+            faces.flatten(),
+            target=GL.GL_ELEMENT_ARRAY_BUFFER,
+            dataType=GL.GL_UNSIGNED_INT)
+
+        vao = gltools.createVAO({0: vertexVBO, 8: texCoordVBO, 2: normalsVBO},
+            indexBuffer=indexBuffer)
+
+        # in the rendering loop
+        gltools.drawVAO(vao, GL.GL_TRIANGLES)
+
+    """
+    if isinstance(size, (int, float,)):
+        divx = divy = float(size) / 2.
+    else:
+        divx = size[0] / 2.
+        divy = size[1] / 2.
+
+    # generate plane vertices
+    x = np.linspace(-divx, divy, 2)
+    y = np.linspace(divx, -divy, 2)
+    xx, yy = np.meshgrid(x, y)
+
+    vertices = np.vstack([xx.ravel(), yy.ravel()]).T
+    vertices = np.hstack([vertices, np.zeros((vertices.shape[0], 1))])  # add z
+
+    # texture coordinates
+    u = np.linspace(0.0, 1.0, 2)
+    v = np.linspace(1.0, 0.0, 2)
+    uu, vv = np.meshgrid(u, v)
+
+    texCoords = np.vstack([uu.ravel(), vv.ravel()]).T
+
+    # normals, facing +Z
+    normals = np.zeros_like(vertices)
+    normals[:, 0] = 0.
+    normals[:, 1] = 0.
+    normals[:, 2] = 1.
+
+    # generate face index
+    faces = []
+    for i in range(1):
+        k1 = i * 2
+        k2 = k1 + 2
+
+        for j in range(1):
+            faces.append([k1, k2, k1 + 1])
+            faces.append([k1 + 1, k2, k2 + 1])
+
+            k1 += 1
+            k2 += 1
+
+    # convert to numpy arrays
+    vertices = np.ascontiguousarray(vertices, dtype=np.float32)
+    texCoords = np.ascontiguousarray(texCoords, dtype=np.float32)
+    normals = np.ascontiguousarray(normals, dtype=np.float32)
+    faces = np.ascontiguousarray(faces, dtype=np.uint32)
+
+    return vertices, texCoords, normals, faces
+
+
+def createMeshGrid(size=(1., 1.), subdiv=0):
+    """Create a grid mesh.
+
+    Procedurally generate a grid mesh by specifying its size and number of
+    sub-divisions. Texture coordinates are computed automatically, with origin
+    at the bottom left of the plane. The generated grid is perpendicular to the
+    +Z axis, origin of the grid is at its center.
+
+    Parameters
+    ----------
+    size : tuple or float
+        Dimensions of the mesh. If a single value is specified, the plane will
+        be square. Provide a tuple of floats to specify the width and length of
+        the plane (eg. `size=(0.2, 1.3)`).
+    subdiv : int, optional
+        Number of subdivisions. Zero subdivisions are applied by default, and
+        the resulting mesh will only have vertices at the corners.
+
+    Returns
+    -------
+    tuple
+        Vertex attribute arrays (position, texture coordinates, and normals) and
+        triangle indices.
+
+    Examples
+    --------
+    Create a grid mesh and draw it::
+
+        vertices, textureCoords, normals, faces = gltools.createPlane()
+
+        vertexVBO = gltools.createVBO(vertices)
+        texCoordVBO = gltools.createVBO(textureCoords)
+        normalsVBO = gltools.createVBO(normals)
+        indexBuffer = gltools.createVBO(
+            faces.flatten(),
+            target=GL.GL_ELEMENT_ARRAY_BUFFER,
+            dataType=GL.GL_UNSIGNED_INT)
+
+        vao = gltools.createVAO({0: vertexVBO, 8: texCoordVBO, 2: normalsVBO},
+            indexBuffer=indexBuffer)
+
+        # in the rendering loop
+        gltools.drawVAO(vao, GL.GL_TRIANGLES)
+
+    """
+    if isinstance(size, (int, float,)):
+        divx = divy = float(size) / 2.
+    else:
+        divx = size[0] / 2.
+        divy = size[1] / 2.
+
+    # generate plane vertices
+    x = np.linspace(-divx, divy, subdiv + 2)
+    y = np.linspace(divx, -divy, subdiv + 2)
+    xx, yy = np.meshgrid(x, y)
+
+    vertices = np.vstack([xx.ravel(), yy.ravel()]).T
+    vertices = np.hstack([vertices, np.zeros((vertices.shape[0], 1))])  # add z
+
+    # texture coordinates
+    u = np.linspace(0.0, 1.0, subdiv + 2)
+    v = np.linspace(1.0, 0.0, subdiv + 2)
+    uu, vv = np.meshgrid(u, v)
+
+    texCoords = np.vstack([uu.ravel(), vv.ravel()]).T
+
+    # normals, facing +Z
+    normals = np.zeros_like(vertices)
+    normals[:, 0] = 0.
+    normals[:, 1] = 0.
+    normals[:, 2] = 1.
+
+    # generate face index
+    faces = []
+    for i in range(subdiv + 1):
+        k1 = i * (subdiv + 2)
+        k2 = k1 + subdiv + 2
+
+        for j in range(subdiv + 1):
+            faces.append([k1, k2, k1 + 1])
+            faces.append([k1 + 1, k2, k2 + 1])
+
+            k1 += 1
+            k2 += 1
+
+    # convert to numpy arrays
+    vertices = np.ascontiguousarray(vertices, dtype=np.float32)
+    texCoords = np.ascontiguousarray(texCoords, dtype=np.float32)
+    normals = np.ascontiguousarray(normals, dtype=np.float32)
+    faces = np.ascontiguousarray(faces, dtype=np.uint32)
+
+    return vertices, texCoords, normals, faces
+
+
+def createBox(size=(1., 1., 1.), flipFaces=False):
+    """Create a box mesh.
+
+    Create a box mesh by specifying its `size` in three dimensions (x, y, z),
+    or a single value (`float`) to create a cube. The resulting box will be
+    centered about the origin. Texture coordinates and normals are automatically
+    generated for each face.
+
+    Setting `flipFaces=True` will make faces and normals point inwards, this
+    allows boxes to be viewed and lit correctly from the inside.
+
+    Parameters
+    ----------
+    size : tuple or float
+        Dimensions of the mesh. If a single value is specified, the box will
+        be a cube. Provide a tuple of floats to specify the width, length, and
+        height of the box (eg. `size=(0.2, 1.3, 2.1)`).
+    flipFaces : bool, optional
+        If `True`, normals and face windings will be set to point inward towards
+        the center of the box. Texture coordinates will remain the same.
+        Default is `False`.
+
+    Returns
+    -------
+    tuple
+        Vertex attribute arrays (position, texture coordinates, and normals) and
+        triangle indices.
+
+    Examples
+    --------
+    Create a box mesh and draw it::
+
+        vertices, textureCoords, normals, faces = gltools.createBox()
+
+        vertexVBO = gltools.createVBO(vertices)
+        texCoordVBO = gltools.createVBO(textureCoords)
+        normalsVBO = gltools.createVBO(normals)
+        indexBuffer = gltools.createVBO(
+            faces.flatten(),
+            target=GL.GL_ELEMENT_ARRAY_BUFFER,
+            dataType=GL.GL_UNSIGNED_INT)
+
+        vao = gltools.createVAO({0: vertexVBO, 8: texCoordVBO, 2: normalsVBO},
+            indexBuffer=indexBuffer)
+
+        # in the rendering loop
+        gltools.drawVAO(vao, GL.GL_TRIANGLES)
+
+    """
+    if isinstance(size, (int, float,)):
+        sx = sy = sz = float(size) / 2.
+    else:
+        sx, sy, sz = size
+        sx /= 2.
+        sy /= 2.
+        sz /= 2.
+
+    # vertices
+    vertices = np.ascontiguousarray([
+        [ 1.,  1.,  1.], [ 1.,  1., -1.], [ 1., -1.,  1.],
+        [ 1., -1., -1.], [-1.,  1., -1.], [-1.,  1.,  1.],
+        [-1., -1., -1.], [-1., -1.,  1.], [-1.,  1., -1.],
+        [ 1.,  1., -1.], [-1.,  1.,  1.], [ 1.,  1.,  1.],
+        [ 1., -1., -1.], [-1., -1., -1.], [ 1., -1.,  1.],
+        [-1., -1.,  1.], [-1.,  1.,  1.], [ 1.,  1.,  1.],
+        [-1., -1.,  1.], [ 1., -1.,  1.], [ 1.,  1., -1.],
+        [-1.,  1., -1.], [ 1., -1., -1.], [-1., -1., -1.]
+    ], dtype=np.float32)
+    
+    # multiply vertex coordinates by box dimensions
+    if sx != 1.:
+        vertices[:, 0] *= sx
+
+    if sy != 1.:
+        vertices[:, 1] *= sy
+
+    if sz != 1.:
+        vertices[:, 2] *= sz
+
+    # normals for each side
+    normals = np.repeat(
+        [[ 1.,  0.,  0.],   # +X
+         [-1.,  0.,  0.],   # -X
+         [ 0.,  1.,  0.],   # +Y
+         [ 0., -1.,  0.],   # -Y
+         [ 0.,  0.,  1.],   # +Z
+         [ 0.,  0., -1.]],  # -Z
+        4, axis=0)
+
+    normals = np.ascontiguousarray(normals, dtype=np.float32)
+
+    # texture coordinates for each side
+    texCoords = np.tile([[0., 1.], [1., 1.], [0., 0.], [1., 0.]], (6, 1))
+    texCoords = np.ascontiguousarray(texCoords, dtype=np.float32)
+
+    # vertex indices for faces
+    faces = np.ascontiguousarray([
+        [ 0,  2,  1], [ 1,  2,  3], [ 4,  6,  5], [ 5,  6,  7], [ 8, 10,  9],
+        [ 9, 10, 11], [12, 14, 13], [13, 14, 15], [16, 18, 17], [17, 18, 19],
+        [20, 22, 21], [21, 22, 23]
+    ], dtype=np.uint32)
+
+    if flipFaces:
+        faces = np.fliplr(faces)
+        normals *= -1.0
+
+    return vertices, texCoords, normals, faces
+
+
 # -----------------------------
 # Misc. OpenGL Helper Functions
 # -----------------------------
@@ -2917,7 +3668,7 @@ def getIntegerv(parName):
 
     Parameters
     ----------
-    pName : :obj:`int'
+    pName : int
         OpenGL property enum to query (e.g. GL_MAJOR_VERSION).
 
     Returns
@@ -2936,12 +3687,12 @@ def getFloatv(parName):
 
     Parameters
     ----------
-    pName : :obj:`float'
+    pName : float
         OpenGL property enum to query.
 
     Returns
     -------
-    int
+    float
 
     """
     val = GL.GLfloat()
@@ -2955,7 +3706,7 @@ def getString(parName):
 
     Parameters
     ----------
-    pName : :obj:`int'
+    pName : int
         OpenGL property enum to query (e.g. GL_VENDOR).
 
     Returns
@@ -2988,7 +3739,7 @@ def getOpenGLInfo():
     This should provide a consistent means of doing so regardless of the OpenGL
     interface we are using.
 
-    Returns are dictionary with the following fields:
+    Returns are dictionary with the following fields::
 
         vendor, renderer, version, majorVersion, minorVersion, doubleBuffer,
         maxTextureSize, stereo, maxSamples, extensions
@@ -3178,3 +3929,4 @@ defaultMaterial = createMaterial(
      (GL.GL_SPECULAR, (0.0, 0.0, 0.0, 1.0)),
      (GL.GL_EMISSION, (0.0, 0.0, 0.0, 1.0)),
      (GL.GL_SHININESS, 0)])
+

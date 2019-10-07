@@ -65,8 +65,9 @@ class PygameBackend(BaseBackend):
             winSettings = winSettings | pygame.FULLSCREEN
             # check screen size if full screen
             scrInfo = pygame.display.Info()
-            win._checkMatchingSizes(win.size, [scrInfo.current_w,
-                                                 scrInfo.current_h])
+            win._checkMatchingSizes(win.clientSize,
+                                    [scrInfo.current_w,
+                                     scrInfo.current_h])
         elif not win.pos:
             # centre video
             os.environ['SDL_VIDEO_CENTERED'] = "1"
@@ -85,11 +86,17 @@ class PygameBackend(BaseBackend):
             pygame.display.set_caption('PsychoPy')
         self.winHandle = pygame.display.set_mode(win.size.astype('i'),
                                                  winSettings)
+        self._frameBufferSize = win.clientSize
         pygame.display.set_gamma(1.0)  # this will be set appropriately later
         # This is causing segfault although it used to be for pyglet only anyway
         # pygame under mac is not syncing to refresh although docs say it should
         # if sys.platform == 'darwin':
         #     platform_specific.syncSwapBuffers(2)
+
+    @property
+    def frameBufferSize(self):
+        """Framebuffer size (w, h)."""
+        return self._frameBufferSize
 
     def swapBuffers(self, flipThisFrame=True):
         """Do the actual flipping of the buffers (Window will take care of

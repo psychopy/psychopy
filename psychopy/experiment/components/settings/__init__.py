@@ -11,7 +11,7 @@ import wx.__version__
 import psychopy
 from psychopy import logging
 from psychopy.experiment.components import BaseComponent, Param, _translate
-from psychopy.tools.versionchooser import versionOptions, availableVersions, _versionFilter
+from psychopy.tools.versionchooser import versionOptions, availableVersions, _versionFilter, latestVersion
 from psychopy.constants import PY3
 
 # for creating html output folders:
@@ -531,16 +531,18 @@ class SettingsComponent(object):
 
         # decide if we need anchored useVersion or leave plain
         useVer = self.params['Use version'].val
-        if useVer in ['', 'latest']:
-            versionStr = ''  # nothing to do - use unversioned version
+        if useVer == '':
+            useVer = '.'.join(version.split('.')[:2])
+        elif useVer == 'latest':
+            useVer = '.'.join(latestVersion().split('.')[:2])
         else:
             # do we shorten minor versions ('3.4.2' to '3.4')?
             # only from 3.2 onwards
             if (parse_version(useVer) > (parse_version('3.2'))
                     and len(useVer.split('.'))>2):
                 useVer = '.'.join(useVer.split('.')[:2])
-            # prepend the hyphen
-            versionStr = '-{}'.format(useVer)
+        # prepend the hyphen
+        versionStr = '-{}'.format(useVer)
 
         # html header
         template = readTextFile("JS_htmlHeader.tmpl")

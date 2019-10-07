@@ -57,6 +57,11 @@ class PygletBackend(BaseBackend):
         :param: win is a PsychoPy Window (usually not fully created yet)
         """
         BaseBackend.__init__(self, win)  # sets up self.win=win as weakref
+        self._TravisTesting = (os.environ.get('TRAVIS') == 'true')
+
+        self._gammaErrorPolicy = win.gammaErrorPolicy
+        self._origGammaRamp = None
+        self._rampSize = None
 
         if win.allowStencil:
             stencil_size = 8
@@ -122,11 +127,11 @@ class PygletBackend(BaseBackend):
                 logging.info('configured pyglet screen %i' % self.screen)
         # if fullscreen check screen size
         if win._isFullScr:
-            win._checkMatchingSizes(win.size, [thisScreen.width,
-                                                 thisScreen.height])
+            win._checkMatchingSizes(win.clientSize, [thisScreen.width,
+                                                  thisScreen.height])
             w = h = None
         else:
-            w, h = win.size
+            w, h = win.clientSize
         if win.allowGUI:
             style = None
         else:
@@ -163,15 +168,19 @@ class PygletBackend(BaseBackend):
                 win._hw_handle = self.winHandle._view_hwnd
             else:
                 win._hw_handle = self.winHandle._hwnd
+
+            self._frameBufferSize = win.clientSize
         elif sys.platform == 'darwin':
             if win.useRetina:
                 global retinaContext
                 retinaContext = self.winHandle.context._nscontext
                 view = retinaContext.view()
                 bounds = view.convertRectToBacking_(view.bounds()).size
-                if win.size[0] == bounds.width:
+                if win.clientSize[0] == bounds.width:
                     win.useRetina = False  # the screen is not a retina display
-                win.size = np.array([int(bounds.width), int(bounds.height)])
+                self._frameBufferSize = np.array([int(bounds.width), int(bounds.height)])
+            else:
+                self._frameBufferSize = win.clientSize
             try:
                 # python 32bit (1.4. or 1.2 pyglet)
                 win._hw_handle = self.winHandle._window.value
@@ -180,6 +189,7 @@ class PygletBackend(BaseBackend):
                 win._hw_handle = self.winHandle._nswindow.windowNumber()
         elif sys.platform.startswith('linux'):
             win._hw_handle = self.winHandle._window
+            self._frameBufferSize = win.clientSize
 
         if win.useFBO:  # check for necessary extensions
             if not GL.gl_info.have_extension('GL_EXT_framebuffer_object'):
@@ -214,11 +224,11 @@ class PygletBackend(BaseBackend):
         if not win.pos:
             # work out where the centre should be 
             if win.useRetina:
-                win.pos = [(thisScreen.width - win.size[0]/2) / 2,
-                            (thisScreen.height - win.size[1]/2) / 2]
+                win.pos = [(thisScreen.width - win.clientSize[0]/2) / 2,
+                            (thisScreen.height - win.clientSize[1]/2) / 2]
             else:
-                win.pos = [(thisScreen.width - win.size[0]) / 2,
-                            (thisScreen.height - win.size[1]) / 2]
+                win.pos = [(thisScreen.width - win.clientSize[0]) / 2,
+                            (thisScreen.height - win.clientSize[1]) / 2]
         if not win._isFullScr:
             # add the necessary amount for second screen
             self.winHandle.set_location(int(win.pos[0] + thisScreen.x),
@@ -234,17 +244,11 @@ class PygletBackend(BaseBackend):
 
         # store properties of the system
         self._driver = pyglet.gl.gl_info.get_renderer()
-        self._gammaErrorPolicy = win.gammaErrorPolicy
-        try:
-            self._origGammaRamp = self.getGammaRamp()
-            self._rampSize = getGammaRampSize(
-                self.screenID, self.xDisplay, gammaErrorPolicy=self._gammaErrorPolicy
-            )
-        except OSError:
-            self.close()
-            raise
-        self._TravisTesting = (os.environ.get('TRAVIS') == 'true')
 
+    @property
+    def frameBufferSize(self):
+        """Size of the presently active framebuffer in pixels (w, h)."""
+        return self._frameBufferSize
 
     @property
     def shadersSupported(self):
@@ -319,6 +323,10 @@ class PygletBackend(BaseBackend):
     @attributeSetter
     def gamma(self, gamma):
         self.__dict__['gamma'] = gamma
+        if self._TravisTesting:
+            return
+        if self._origGammaRamp is None:  # get the original if we haven't yet
+            self._getOrigGammaRamp()
         if gamma is not None:
             setGamma(
                 screenID=self.screenID,
@@ -334,6 +342,10 @@ class PygletBackend(BaseBackend):
         """Gets the gamma ramp or sets it to a new value (an Nx3 or Nx1 array)
         """
         self.__dict__['gammaRamp'] = gammaRamp
+        if self._TravisTesting:
+            return
+        if self._origGammaRamp is None:  # get the original if we haven't yet
+            self._getOrigGammaRamp()
         setGammaRamp(
             self.screenID,
             gammaRamp,
@@ -346,6 +358,18 @@ class PygletBackend(BaseBackend):
         return getGammaRamp(
             self.screenID, self.xDisplay, gammaErrorPolicy=self._gammaErrorPolicy
         )
+
+    def _getOrigGammaRamp(self):
+        """This is just used to get origGammaRamp and will populate that if
+        needed on the first call"""
+        if self._origGammaRamp is None:
+            self._origGammaRamp = self.getGammaRamp()
+            self._rampSize = getGammaRampSize(
+                self.screenID, self.xDisplay,
+                gammaErrorPolicy=self._gammaErrorPolicy
+            )
+        else:
+            return self._origGammaRamp
 
     @property
     def screenID(self):
@@ -389,7 +413,7 @@ class PygletBackend(BaseBackend):
             return
 
         # restore the gamma ramp that was active when window was opened
-        if hasattr(self, "_TravisTesting") and not self._TravisTesting:
+        if self._origGammaRamp is not None:
             self.gammaRamp = self._origGammaRamp
 
         _hw_handle = None

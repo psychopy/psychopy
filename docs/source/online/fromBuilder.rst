@@ -35,7 +35,6 @@ Path: When you upload your study to Pavlovia it will expect to find an 'html' fo
 .. figure:: /images/foldersStimHTML.png
   :alt: Folder structure with the experiment (`blockedTrials.psyexp`), a `stims` folder in which the stimuli are stored, some conditions files and an `html` folder containing the code for the study to run online.
 
-
 .. _onlineExportHTML:
 
 Export the HTML files
@@ -45,35 +44,6 @@ Once you've checked your settings you can simply go to `>File>Export HTML` from 
 
 That will generate all the necessary files (HTML and JS) that you need for your study
 
-
-.. _onlineSyncPavlovia:
-
-Sync your files with Pavlovia.org
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Technically you could upload your html folder to any server but by far the easiest way to get your study running is to synchronise with Pavlovia.org. Pavlovia:
-
-  - allows really easy to synchronize from within PsychoPy
-  - is secure, using encrypted communication at all times
-  - is reliable, fast and automatically backed-up
-  - allows version control via `Git` (your experiment will be stored in a git repository locally and pushed/pulled with the server)
-
-All you need to do to get your files online is press the sync button. Depending on which steps you've already completed PsychoPy will then walk you though:
-
-  #. register/login to the Pavlovia site
-  #. create a project to sync with and choose the local folder as the root of that project
-  #. sync the files
-
-    - each time you add/change files locally PsychoPy will ask you to give a title and description for that set of changes (a `git commit` in the underlying version control)
-    - each time participants run online, if you're using `csv` files for storage, then the new file(s) will also be added to the repository on Pavlovia
-    - when you press sync a two-way sync will occur
-    - this can be used to sync easily with any other machine or collaborator
-
-Merges and conflicts:
-
-- if changes are made concurrently these will typically be merged by git
-- if two people change the *same file* then changes will still be combined if possible (e.g. you each make a change to a different parameter in the PsychoPy experiment)
-- if 2 they strictly conflict (you both change the same parameter to a different value) then a merge conflict in git will result. Currently we aren't providing a way to resolve these and you will need to find out enough about git to handle it locally
 
 .. _onlineUploadServer:
 
@@ -112,7 +82,7 @@ Recruiting participants
 
 Once you've uploaded your folder with the correct permissions you can simply provide that as a URL/link to your prospective participants. When they go to this link they'll see the info dialog box (with the same settings as the one you use in your standard PsychoPy study locally, but a little prettier). That dialog box may show a progress bar while the resources (e.g. image files) are downloading to the local computer. When they've finished downloading the 'OK' button will be available and the participant can carry on to your study.
 
-Note that the window won't disappear when the study finishes the way it does locally, so remember to provide a final screen that says something like "Thank you. The experiment has now finished"
+Alternatively you may well want to recruit participants using an online service such as `Prolific Academic`_
 
 
 .. _fetchingData:
@@ -124,7 +94,3 @@ The data are saved in a data folder next to the html file. You should see csv fi
 
 You could just download the data folder or, if you've set it up to sync with an OSF project then you could simply sync your PsychoPy project with OSF (from the projects menu) and your data will be fetched to your local computer! :-)
 
-Sync with OSF
-~~~~~~~~~~~~~~~~~~~~~~~
-
-This option is on the way. It does already work from the PsychoJS perspective. We need to make sure the Builder code is correct and write the docs!
