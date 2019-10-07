@@ -57,6 +57,11 @@ class PygletBackend(BaseBackend):
         :param: win is a PsychoPy Window (usually not fully created yet)
         """
         BaseBackend.__init__(self, win)  # sets up self.win=win as weakref
+        self._TravisTesting = (os.environ.get('TRAVIS') == 'true')
+
+        self._gammaErrorPolicy = win.gammaErrorPolicy
+        self._origGammaRamp = None
+        self._rampSize = None
 
         if win.allowStencil:
             stencil_size = 8
@@ -239,16 +244,6 @@ class PygletBackend(BaseBackend):
 
         # store properties of the system
         self._driver = pyglet.gl.gl_info.get_renderer()
-        self._gammaErrorPolicy = win.gammaErrorPolicy
-        try:
-            self._origGammaRamp = self.getGammaRamp()
-            self._rampSize = getGammaRampSize(
-                self.screenID, self.xDisplay, gammaErrorPolicy=self._gammaErrorPolicy
-            )
-        except OSError:
-            self.close()
-            raise
-        self._TravisTesting = (os.environ.get('TRAVIS') == 'true')
 
     @property
     def frameBufferSize(self):
@@ -328,6 +323,10 @@ class PygletBackend(BaseBackend):
     @attributeSetter
     def gamma(self, gamma):
         self.__dict__['gamma'] = gamma
+        if self._TravisTesting:
+            return
+        if self._origGammaRamp is None:  # get the original if we haven't yet
+            self._getOrigGammaRamp()
         if gamma is not None:
             setGamma(
                 screenID=self.screenID,
@@ -343,6 +342,10 @@ class PygletBackend(BaseBackend):
         """Gets the gamma ramp or sets it to a new value (an Nx3 or Nx1 array)
         """
         self.__dict__['gammaRamp'] = gammaRamp
+        if self._TravisTesting:
+            return
+        if self._origGammaRamp is None:  # get the original if we haven't yet
+            self._getOrigGammaRamp()
         setGammaRamp(
             self.screenID,
             gammaRamp,
@@ -355,6 +358,18 @@ class PygletBackend(BaseBackend):
         return getGammaRamp(
             self.screenID, self.xDisplay, gammaErrorPolicy=self._gammaErrorPolicy
         )
+
+    def _getOrigGammaRamp(self):
+        """This is just used to get origGammaRamp and will populate that if
+        needed on the first call"""
+        if self._origGammaRamp is None:
+            self._origGammaRamp = self.getGammaRamp()
+            self._rampSize = getGammaRampSize(
+                self.screenID, self.xDisplay,
+                gammaErrorPolicy=self._gammaErrorPolicy
+            )
+        else:
+            return self._origGammaRamp
 
     @property
     def screenID(self):
@@ -398,7 +413,7 @@ class PygletBackend(BaseBackend):
             return
 
         # restore the gamma ramp that was active when window was opened
-        if hasattr(self, "_TravisTesting") and not self._TravisTesting:
+        if self._origGammaRamp is not None:
             self.gammaRamp = self._origGammaRamp
 
         _hw_handle = None
