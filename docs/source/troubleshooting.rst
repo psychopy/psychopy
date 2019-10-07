@@ -20,16 +20,16 @@ If resetting the preferences files doesn't help then we need to get to an error 
 
 *Windows users* (starting from the Command Prompt):
     
-    #. Did you get an error message that "This application failed to start because the application configuration is incorrect. Reinstalling the application may fix the problem"? If so that indicates you need to `update your .NET installation to SP1 <http://www.microsoft.com/download/en/details.aspx?id=33>`_ .
+#. Did you get an error message that "This application failed to start because the application configuration is incorrect. Reinstalling the application may fix the problem"? If so that indicates you need to `update your .NET installation to SP1 <http://www.microsoft.com/download/en/details.aspx?id=33>`_ .
 
-    #. open a Command Prompt (terminal):
-        #. go to the Windows Start menu
-        #. select Run... and type in cmd <Return>
-    #. paste the following into that window (Ctrl-V doesn't work in Cmd.exe but you can right-click and select Paste)::
+#. open a Command Prompt (terminal):
+    #. go to the Windows Start menu
+    #. select Run... and type in cmd <Return>
+#. paste the following into that window (Ctrl-V doesn't work in Cmd.exe but you can right-click and select Paste)::
 
         "C:\Program Files\PsychoPy2\python.exe" -m psychopy.app.psychopyApp
 
-    #. when you hit <return> you will hopefully get a moderately useful error message that you can :ref:`contribForum`
+#. when you hit <return> you will hopefully get a moderately useful error message that you can :ref:`contribForum`
     
 *Mac users*:   
     #. open the Console app (open spotlight and type console)
@@ -92,3 +92,21 @@ and failing to load on startup, you could simply delete the `appData.cfg` file.
 Please *also* :ref:`contribForum` a copy of the file that isn't working so that
 the underlying cause of the problem can be investigated (google first to see if
 it's a known issue).
+
+
+.. _gammaRampFail:
+
+Errors with getting/setting the Gamma ramp
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+In Windows release 1903 Microsoft added a `bug that prevents getting/setting the gamma ramp
+<https://docs.microsoft.com/en-us/windows/release-information/status-windows-10-1903#226msgdesc>`_. This only occurs in certain scenarios, like when the screen orientation is in portrait, or when it is extended onto a second monitor, but it does affect **all versions of PsychoPy**.
+
+Workarounds are as follows:
+
+**If you don't need gamma correction** then, as of PsychoPy 3.2.4, you can go to the preferences and set the `defaultGammaFailPolicy` to be be 'warn' (rather than 'abort') and then your experiment will still at least run, just without gamma correction.
+
+**If you do need gamma correction** then there isn't much that the PsychoPy team can do until Microsoft fixes the underlying bug. You'll need to do one of:
+
+- Not using Window 1903 until a fix is listed on the `status of the gamma bug <https://docs.microsoft.com/en-us/windows/release-information/status-windows-10-1903#226msgdesc>`_
+- Altering your monitor settings in Windows (e.g. turning off extended desktop) until it works . Unfortunately that might mean you can't use dual independent displays for vision science studies until Microsoft fix it.
