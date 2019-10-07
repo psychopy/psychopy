@@ -1,21 +1,20 @@
 import wx
 from psychopy.alerts._alerts import AlertEntry
+from psychopy.alerts._alerts import alertLog
 
 
 class AlertPanel(wx.Panel):
     """
-    Alerts docstring
-
-    See wx Sized Control Error Dlg
+    Alerts panel for presenting alerts stored in _alerts.alertLog
     """
-    def __init__(self, parent=None, id=wx.ID_ANY, size=[300,300], alerts=[]):
+    def __init__(self, parent=None, id=wx.ID_ANY, size=[300,300]):
         wx.Panel.__init__(self, parent, id, size=size)
 
         self.lblDetails = wx.StaticText(self, -1, "Alerts")
         self.listCtrl = wx.ListCtrl(self, -1, style=wx.LC_REPORT)
         self.ConfigureListCtrl()
 
-        for alert in alerts:
+        for alert in alertLog.current:
             if isinstance(alert, AlertEntry):
                 temp = [alert.code, alert.cat, alert.name, alert.msg, alert.url]
                 self.listCtrl.Append(temp)

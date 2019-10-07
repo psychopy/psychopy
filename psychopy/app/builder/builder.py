@@ -2393,17 +2393,15 @@ class BuilderFrame(wx.Frame):
         """
         if capture:
             sys.stdout = self.stdoutFrame
-            sys.stderr = self.stdoutFrame
+            sys.stderr = self.errorHandler
         else:  # revert to the application setting (coder out or terminal)
             sys.stdout = self.app._stdout
-            sys.stderr = self.app._stdout
+            sys.stderr = self.app._stderr
 
     def generateScript(self, experimentPath, target="PsychoPy"):
         """Generates python script from the current builder experiment"""
-        # Set stdOut for error capture
-        # self.setStandardStream(True)
-        self.errorHandler.setStdErr()
-        self.errorHandler.flush()  # Flush to clear error list
+        # Set streams
+        self.setStandardStream(True)
         self.stdoutFrame.write("Generating {} script...\n".format(target))
 
         if self.getIsModified():
@@ -2440,16 +2438,16 @@ class BuilderFrame(wx.Frame):
                                           stderr=subprocess.PIPE,
                                           universal_newlines=True)
                 stdout, stderr = output.communicate()
-                self.stdout.write(stdout)
-                self.stderr.write(stderr)
+                sys.stdout.write(stdout)
+                sys.stderr.write(stderr)
             else:
                 psyexpCompile.compileScript(infile=self.exp, version=None, outfile=experimentPath)
         except Exception:
             traceback.print_exc(file=sys.stderr)
         finally:
-            self.errorHandler.unsetStdErr()
             # self.stdoutFrame.Show()
-            # self.setStandardStream(False)
+            self.setStandardStream(False)
+            self.errorHandler.flush()
 
     def _getHtmlPath(self, filename):
         expPath = os.path.split(filename)[0]

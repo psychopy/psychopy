@@ -159,6 +159,7 @@ class PsychoPyApp(wx.App):
         self.firstRun = False
         self.testMode = testMode
         self._stdout = sys.stdout
+        self._stderr = sys.stderr
         self._stdoutFrame = None
 
         if self.prefs.app['debugMode']:

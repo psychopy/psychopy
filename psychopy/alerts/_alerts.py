@@ -9,14 +9,44 @@ import sys
 from psychopy import logging
 
 """
-The Alerts module is part of the alerts package for used for generating alerts during PsychoPy integrity checks.
+The Alerts module is used for generating alerts during PsychoPy integrity checks.
 
 Attributes
 ----------
 catalogue : AlertCatalogue
     For loading alert catalogues, or definitions of each alert, from a yaml file.
     Each catalogue entry has a code key, with values of code, category, msg, and url.
+alertLog : AlertLog
+    For storing alerts that are otherwise lost when flushing standard stream. The stored
+    lists can be used to feed AlertPanel using in Project Info and new Runner frame.
 """
+
+
+class AlertLog(object):
+    """
+    Alert container class for storing up to 2 sets of alerts.
+    The AlertLog class will create alertLog object to feed AlertsPanel and Runner.
+    """
+    def __init__(self):
+        self.log = []
+
+    def append(self, alerts):
+        """Appends list of alerts to list
+
+        Parameters
+        ----------
+        alerts: list
+            List of AlertEntry objects
+        """
+        self.log.append(alerts)
+        self.log = self.log[-2:]
+
+    @property
+    def current(self):
+        """Returns current log"""
+        if len(self.log):
+            return self.log[-1]
+        return self.log
 
 
 class AlertCatalogue():
@@ -62,11 +92,11 @@ class AlertEntry():
         A URL for pointing towards information resources for solving the issue
     obj: object
         The object related to the alert e.g., TextComponent object.
+    trace: sys.exec_info() traceback object
+            The traceback
 
     Parameters
     ----------
-    name: str
-        The name of the AlertLogger instantiating the AlertEntry
     code: int
             The 4 digit code for retrieving alert from AlertCatalogue
     obj: object
@@ -164,7 +194,8 @@ class AlertEntry():
 
 
 def alert(code=None, obj=object, strFormat=None, trace=None):
-    """The Alerts logging function used for writing to AlertLog class
+    """The alert function is used for writing alerts to the standard error stream.
+    Only the ErrorHandler class can receive alerts via the "receiveAlert" method.
 
     Parameters
     ----------
@@ -174,7 +205,8 @@ def alert(code=None, obj=object, strFormat=None, trace=None):
         The object related to the alert e.g., TextComponent object
     strFormat: dict
         Dict containing relevant values for formatting messages
-    traceback *********
+    trace: sys.exec_info() traceback object
+            The traceback
     """
 
     msg = AlertEntry(code, obj, strFormat, trace)
@@ -197,8 +229,9 @@ def alert(code=None, obj=object, strFormat=None, trace=None):
         sys.stderr.receiveAlert(msg)
     else:
         sys.stderr.write(msgAsStr)  # For tests detecting output - change when error handler set up
+
     logging.warning(msgAsStr)
 
 # Create catalogue
 catalogue = AlertCatalogue()
-
+alertLog = AlertLog()  # Alerts container

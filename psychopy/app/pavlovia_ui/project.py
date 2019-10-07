@@ -378,7 +378,7 @@ class DetailsPanel(scrlpanel.ScrolledPanel):
 class ProjectFrame(wx.Dialog):
 
     def __init__(self, app, parent=None, style=None,
-                 pos=wx.DefaultPosition, project=None, alerts=None):
+                 pos=wx.DefaultPosition, project=None):
         if style is None:
             style = (wx.DEFAULT_DIALOG_STYLE | wx.CENTER |
                      wx.TAB_TRAVERSAL | wx.RESIZE_BORDER)
@@ -394,7 +394,7 @@ class ProjectFrame(wx.Dialog):
         self.parent = parent
 
         self.detailsPanel = DetailsPanel(parent=self, project=self.project)
-        self.alertPanel = AlertPanel(parent=self, alerts=alerts)
+        self.alertPanel = AlertPanel(parent=self)
 
         self.mainSizer = wx.BoxSizer(wx.VERTICAL)
         self.mainSizer.Add(self.detailsPanel, 1, wx.EXPAND | wx.ALL, 5)

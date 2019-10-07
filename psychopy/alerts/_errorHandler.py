@@ -1,67 +1,14 @@
 import sys
-
+from psychopy.alerts._alerts import alertLog
 
 class _BaseErrorHandler(object):
-    """A base class for error (and warning) handlers to receive PsychoPy standard
-    warnings as well as Python Exceptions.
-    Subclass this for any actual handler (e.g. wx diaog to handle warnings)
+    """A base class for handling PsychoPy alerts and exceptions.
     """
 
     def __init__(self):
-        """Create the handler, assign and keep track of previous stderr
-        """
         self.errors = []
         self.alerts = []
-        self.autoFlush=True
-
-    def setStdErr(self):
-        """Set self to be sys.stderr.
-        Can be reverted with unsetStdErr()
-        """
-        self.origErr = sys.stderr
-        sys.stderr = self
-
-    def unsetStdErr(self):
-        """Revert stderr to be the previous sys.stderr when self.setStdErr()
-        was last called
-        """
-        if self == sys.stderr:
-            sys.stderr = self.origErr
-
-    def flush(self):
-        """This is the key function to override. Flush needs to handle a list
-        of errs/warnings that could be strings (Python Exceptions) or dicts
-        such as:
-            {'code':1001,'obj':stim, 'msg':aString, 'trace':listOfStrings}
-        An ErrorHandler might simply collect warnings until the flush()
-        method is called
-        """
-        for err in self.errors:
-            print(err)
-        self.errors = []
-
-    def receiveAlert(self, alert):
-        """
-        Implement this to handle PsychoPy alerts (sent my _alerts.alert).
-        This function should ONLY be called by _alerts.alert.
-        Parameters:
-        -----------
-        alert: psychopy.alert._alert.AlertEntry object
-            A data object containing alert information.
-        """
-
-        # self.alerts.append("Component Type: {type} | "
-        #                       "Component Name: {name} | "
-        #                       "Code: {code} | "
-        #                       "Category: {cat} | "
-        #                       "Message: {msg} | "
-        #                       "Traceback: {trace}".format(type=alert.type,
-        #                                                   name=alert.name,
-        #                                                   code=alert.code,
-        #                                                   cat=alert.cat,
-        #                                                   msg=alert.msg,
-        #                                                   trace=alert.trace))
-        self.alerts.append(alert)
+        self.autoFlush = True
 
     def write(self, toWrite):
         """This is needed for any Python Exceptions, which assume the stderr
@@ -72,22 +19,45 @@ class _BaseErrorHandler(object):
         if self.autoFlush:
             self.flush()
 
-    def __del__(self):
-        """Make sure any current warnings are flushed and then revert the
+    def flush(self):
+        """Print errors to console and clear errors.
         """
+        for err in self.errors:
+            print(err)
+        self.errors = []
+
+    def receiveAlert(self, alert):
+        """
+        Handles PsychoPy alerts (sent by _alerts.alert).
+        This function should ONLY be called by _alerts.alert.
+        Each alert is published to the _alerts.alertLog variable.
+
+        Parameters:
+        -----------
+        alert: psychopy.alert._alert.AlertEntry object
+            A data object containing alert information.
+        """
+        self.alerts.append(alert)
+
+    def __del__(self):
         self.flush()
 
 
 class ErrorHandler(_BaseErrorHandler):
-    """A dialog for handling PsychoPy Warnings and Python Exceptions
+    """A dialog for handling PsychoPy alerts and exceptions
     """
     def __init__(self):
-        """Create the handler, assign and keep track of previous stderr
-        """
         super(ErrorHandler, self).__init__()
 
     def flush(self):
+        """Appends alerts to alertLog, flushes errors, clears errors and alerts attributes.
+        """
+        alertLog.append(self.alerts)
+
         for err in self.errors:
             print(err)
+
         self.errors = []
         self.alerts = []
+
+
