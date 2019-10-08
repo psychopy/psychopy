@@ -481,6 +481,8 @@ class PsychoPyApp(wx.App):
             self.coder = coder.CoderFrame(None, -1,
                                           title=title % self.version,
                                           files=fileList, app=self)
+        else:
+            self.coder.setStandardStream()
         self.coder.Show(True)
         self.SetTopWindow(self.coder)
         self.coder.Raise()

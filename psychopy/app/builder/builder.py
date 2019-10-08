@@ -2445,8 +2445,7 @@ class BuilderFrame(wx.Frame):
         except Exception:
             traceback.print_exc(file=sys.stderr)
         finally:
-            # self.stdoutFrame.Show()
-            self.setStandardStream(False)
+            self.stdoutFrame.Show()
             self.errorHandler.flush()
 
     def _getHtmlPath(self, filename):

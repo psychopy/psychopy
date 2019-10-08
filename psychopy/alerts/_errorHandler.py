@@ -59,5 +59,3 @@ class ErrorHandler(_BaseErrorHandler):
 
         self.errors = []
         self.alerts = []
-
-
