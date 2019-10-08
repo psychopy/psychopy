@@ -355,19 +355,19 @@ class PygletBackend(BaseBackend):
         )
 
     def getGammaRamp(self):
-        return getGammaRamp(
-            self.screenID, self.xDisplay, gammaErrorPolicy=self._gammaErrorPolicy
-        )
+        return getGammaRamp(self.screenID, self.xDisplay,
+                            gammaErrorPolicy=self._gammaErrorPolicy)
+
+    def getGammaRampSize(self):
+        return getGammaRampSize(self.screenID, self.xDisplay,
+                                gammaErrorPolicy=self._gammaErrorPolicy)
 
     def _getOrigGammaRamp(self):
         """This is just used to get origGammaRamp and will populate that if
         needed on the first call"""
         if self._origGammaRamp is None:
             self._origGammaRamp = self.getGammaRamp()
-            self._rampSize = getGammaRampSize(
-                self.screenID, self.xDisplay,
-                gammaErrorPolicy=self._gammaErrorPolicy
-            )
+            self._rampSize = self.getGammaRampSize()
         else:
             return self._origGammaRamp
 
