@@ -99,11 +99,10 @@
         {% include "sourcelink.html" %}
       {% endif %}<br/>
       {%- if show_copyright %}
-        {%- if hasdoc('copyright') %}
-          {% trans path=pathto('copyright'), copyright=copyright|e %}&copy; <a href="{{ path }}">Copyright</a> {{ copyright }}.{% endtrans %}<br/>
-        {%- else %}
-          {% trans copyright=copyright|e %}&copy; Copyright {{ copyright }}.{% endtrans %}<br/>
-        {%- endif %}
+
+          {% trans copyright=copyright|e %}&copy; 2002-2018 <a href="https://www.peirce.org.uk/">Jonathan Peirce</a>{% endtrans %}<br/>
+          {% trans copyright=copyright|e %}&copy; 2019 <a href="https://opensciencetools.org/">Open Science Tools Ltd.</a>{% endtrans %}<br/>
+
       {%- endif %}
       {%- if last_updated %}
         {% trans last_updated=last_updated|e %}Last updated on {{ last_updated }}.{% endtrans %}<br/>

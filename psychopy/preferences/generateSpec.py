@@ -7,8 +7,9 @@
 from __future__ import absolute_import, print_function
 
 import os
-from psychopy.core import PY3
+import sys
 
+PY3 = sys.version_info.major >= 3
 if PY3:
     write_mode = 'w'
 else:

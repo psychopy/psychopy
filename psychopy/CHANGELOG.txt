@@ -1,5 +1,3 @@
-.. _changelog::
-
 Changelog
 ====================
 
@@ -14,6 +12,19 @@ CHANGES, which are identified in this dark red text, typically indicate things t
 
 PsychoPy 3.2
 ----------------
+
+PsychoPy 3.2.4
+~~~~~~~~~~~~~~~~~~~~~~
+
+FIXED:
+
+- When Microsoft release 1903 fails to get/set gamma give more info and the option to skip gamma correction. See more info in `troubleshooting gamma ramp <https://www.psychopy.org/troubleshooting.html#errors-with-getting-setting-the-gamma-ramp>`_
+- Slider wasn't allowing the units to be "from experiment settings" #23d80b49f
+- Setting the conditions rows from another conditions file was causing "Error path is on mount... start on mount..." #2e8cd2183
+- Mac 'tab' key was reporting itself as 'escape' with new Keyboard #95326cadd
+- PSTBox Python3 incompatibility (although there may be more) #da83429d6
+- better scaling of rating scale (Slider) in Form #d115e63cb
+- Stencil for Form was being activated immediately rather than when needed #9daeba94d
 
 PsychoPy 3.2.3
 ~~~~~~~~~~~~~~~~~~~~~~
@@ -61,7 +72,7 @@ TIMING improvements:
 Also ADDED:
 
 - Standalone installations now provide an updated Cedrus library, pyxid2
-- Support for new `LabHackers USB2TTL8 device (parallel port alternative) <https://labhackers.com/usb2ttl8.html>`_
+- Support for new LabHackers TTL2USB8 device (parallel port alternative)
 - Envelope grating now has exponent (power) option
 
 FIXED:
@@ -81,7 +92,7 @@ As of PsychoPy 3.1 we are now using the underlying code of the `kbQueue` calls i
 `Psychophysics Toolbox`. The C code from those calls was ported to a new Python
 package in late 2018 and this is now the basis of the new :class:`Keyboard` class.
 This only works on 64-bit Python3 installations, but the Keyboard class will
-fall back to the old :func:`event.GetKeys` calls where the `psychtoolbox` package is
+fall back to the old `event.GetKeys` calls where the `psychtoolbox` package is
 not available.
 
 PsychoPy 3.1.5
@@ -123,7 +134,7 @@ PsychoPy 3.1.2
 
 FIXED:
 
-- teething problems with the new :class:`~psychopy.hardware.keyboard.Keyboard` class:
+- teething problems with new :class:`~psychopy.hardware.Keyboard`:
    - in Builder there was stuttering of sounds and lags in frame timing caused
    by accidentally creating lots of Kyeboards while checking for 'escape'
    - durations were being reported with correct magnitude but as negative values #e43e474602b7f
@@ -163,7 +174,7 @@ PsychoPy 3.1.0
 
 NEW:
 
-- :class:`~psychopy.hardware.keyboard.Keyboard` class, based on C code from the Psychtoolbox project (ported to Python by Mario Kleiner)
+- hardware.keyboard.Keyboard class, based on C code from the Psychtoolbox project (ported to Python by Mario Kleiner)
  - faster than `event.getKeys()` (polling is asynchronous with drawing loop and the calls go direct 
    to the USB rather than going via the operating system key calls)
  - supports keyDuration fields as well as `rt` for key down time
