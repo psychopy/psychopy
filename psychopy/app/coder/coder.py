@@ -2074,8 +2074,11 @@ class CoderFrame(wx.Frame):
         return 1
 
     def setStandardStream(self):
-        sys.stdout = self._origStdOut  # discovered during __init__
-        sys.stderr = self._origStdErr
+        """
+        Captures standard stream and sets output window
+        """
+        self._origStdOut = sys.stdout  # discovered during __init__
+        self._origStdErr = sys.stderr
         self.setOutputWindow(True)
         self.outputWindow.fontSize = self.prefs['outputFontSize']
 
