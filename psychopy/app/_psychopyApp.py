@@ -482,7 +482,8 @@ class PsychoPyApp(wx.App):
                                           title=title % self.version,
                                           files=fileList, app=self)
         else:
-            self.coder.setStandardStream()
+            # Set output window and standard streams
+            self.coder.setOutputWindow(True)
         self.coder.Show(True)
         self.SetTopWindow(self.coder)
         self.coder.Raise()

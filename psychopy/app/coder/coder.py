@@ -2073,15 +2073,6 @@ class CoderFrame(wx.Frame):
                     pass  # don't save just quit
         return 1
 
-    def setStandardStream(self):
-        """
-        Captures standard stream and sets output window
-        """
-        self._origStdOut = sys.stdout  # discovered during __init__
-        self._origStdErr = sys.stderr
-        self.setOutputWindow(True)
-        self.outputWindow.fontSize = self.prefs['outputFontSize']
-
     def closeFrame(self, event=None, checkSave=True):
         """Close open windows, update prefs.appData (but don't save)
         and either close the frame or hide it
@@ -2699,7 +2690,6 @@ class CoderFrame(wx.Frame):
             self.app._stdout = sys.stdout = sys.__stdout__
             self.app._stderr = sys.stderr = sys.__stderr__
         self.app.prefs.saveUserPrefs()  # includes a validation
-
         self.paneManager.Update()
 
     def setShowIndentGuides(self, event):

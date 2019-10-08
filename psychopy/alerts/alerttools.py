@@ -189,7 +189,7 @@ def checkPythonSyntax(component, tab):
         The name of the code component tab being tested
     """
     try:
-        compile(str(component.params[tab]), "path", 'exec')
+        compile(str(component.params[tab].val), "path", 'exec')
     except Exception as err:
         strFormat = {'codeTab': tab, 'lineNumber': err.lineno, 'code': err.text.strip()}
         # Dont sent traceback because strFormat gives better localisation of error
@@ -212,7 +212,7 @@ def checkJavaScriptSyntax(component, tab):
         The name of the code component tab being tested
     """
     try:
-        parseScript(str(component.params[tab]))
+        parseScript(str(component.params[tab].val))
     except Exception as err:
         strFormat = {'codeTab': tab, 'lineNumber': err.message}
         # Dont sent traceback because strFormat gives better localisation of error
