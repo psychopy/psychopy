@@ -91,12 +91,12 @@ class DotStim(BaseVisualStim, ColorMixin, ContainerMixin):
                  name=None,
                  autoLog=None):
         """
-        :Parameters:
-
-            fieldSize : (x,y) or [x,y] or single value (applied to both
-                dimensions). Sizes can be negative and can extend beyond
-                the window.
-            """
+        Parameters
+        ----------
+        fieldSize : (x,y) or [x,y] or single value (applied to both
+            dimensions). Sizes can be negative and can extend beyond
+            the window.
+        """
         # what local vars are defined (these are the init params) for use by
         # __repr__
         self._initParams = __builtins__['dir']()
@@ -291,8 +291,9 @@ class DotStim(BaseVisualStim, ColorMixin, ContainerMixin):
         # for 'direction' method we need to update the direction of the number
         # of signal dots immediately, but for other methods it will be done
         # during updateXY
-        #:::::::::::::::::::: AJS Actually you need to do this for 'walk' also otherwise
-        #would be signal dots adopt random directions when the become sinal dots in later trails
+        #:::::::::::::::::::: AJS Actually you need to do this for 'walk' also
+        # otherwise would be signal dots adopt random directions when the become
+        # sinal dots in later trails
         if self.noiseDots in ['direction', 'position','walk']:
             self._dotsDir = numpy.random.rand(self.nDots) * 2 * pi
             self._dotsDir[self._signalDots] = self.dir * pi / 180
@@ -336,9 +337,16 @@ class DotStim(BaseVisualStim, ColorMixin, ContainerMixin):
         setAttribute(self, 'speed', val, log, op)
 
     def draw(self, win=None):
-        """Draw the stimulus in its relevant window. You must call
-        this method after every MyWin.flip() if you want the
-        stimulus to appear on that frame and then update the screen again.
+        """Draw the stimulus in its relevant window. You must call this method
+        after every MyWin.flip() if you want the stimulus to appear on that
+        frame and then update the screen again.
+
+        Parameters
+        ----------
+        win : window.Window, optional
+            Window to draw dots to. If `None`, dots will be drawn to the parent
+            window.
+
         """
         if win is None:
             win = self.win
@@ -386,25 +394,40 @@ class DotStim(BaseVisualStim, ColorMixin, ContainerMixin):
         GL.glPopMatrix()
 
     def _newDotsXY(self, nDots):
-        """Returns a uniform spread of dots, according to the
-        fieldShape and fieldSize
+        """Returns a uniform spread of dots, according to the `fieldShape` and
+        `fieldSize`.
 
-        usage::
+        Parameters
+        ----------
+        nDots : int
+            Number of dots to sample.
+
+        Returns
+        -------
+        ndarray
+            Nx2 array of X and Y positions of dots.
+
+        Examples
+        --------
+        Create a new array of dot positions::
 
             dots = self._newDots(nDots)
 
         """
-        # make more dots than we need and only use those within the circle
         if self.fieldShape == 'circle':
-            while True:
-                # repeat until we have enough; fetch twice as many as needed
-                new = numpy.random.uniform(-1, 1, [nDots * 2, 2])
-                inCircle = (numpy.hypot(new[:, 0], new[:, 1]) < 1)
-                if sum(inCircle) >= nDots:
-                    return new[inCircle, :][:nDots, :] * self.fieldSize * 0.5
+            length = numpy.sqrt(numpy.random.uniform(0, 1, (nDots,)))
+            angle = numpy.random.uniform(0., 2. * numpy.pi, (nDots,))
+
+            newDots = numpy.zeros((nDots, 2))
+            newDots[:, 0] = length * numpy.cos(angle)
+            newDots[:, 1] = length * numpy.sin(angle)
+
+            newDots *= self.fieldSize * .5
         else:
-            return numpy.random.uniform(-0.5*self.fieldSize[0],
-                                        0.5*self.fieldSize[1], [nDots, 2])
+            newDots = numpy.random.uniform(
+                -.5 * self.fieldSize[0], .5 * self.fieldSize[1], (nDots, 2))
+
+        return newDots
 
     def refreshDots(self):
         """Callable user function to choose a new set of dots"""
@@ -488,7 +511,9 @@ class DotStim(BaseVisualStim, ColorMixin, ContainerMixin):
             self._verticesBase[dead, :] = self._newDotsXY(sum(dead))
             #self._verticesBase[dead, :] = -self._verticesBase[dead,:]
 
-        # Reposition any dots that have gone out of bounds. Net effect is to place dot one step inside the boundary on the other side of the aperture.
+        # Reposition any dots that have gone out of bounds. Net effect is to
+        # place dot one step inside the boundary on the other side of the
+        # aperture.
         if sum(outofbounds):
             self._verticesBase[outofbounds, :] = self._newDotsXY(sum(outofbounds))
             #wind the dots back one step and store as tempary values
