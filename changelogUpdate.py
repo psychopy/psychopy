@@ -24,7 +24,7 @@ def repl_noncompat(m):
     return g.replace('CHANGE', ':noncompat:`CHANGE') + "`\n"
 
 # raw .txt form of changelog:
-txt = open(input_path, "rU").read()
+txt = open(input_path, "rU", encoding='utf8').read()
 
 # programmatic replacements:
 hashtag = re.compile(r"([ (]#\d{3,5})\b")
@@ -50,7 +50,7 @@ newRST = txt_hash_noncompat.replace('.. note::', """.. raw:: html
 
 # add note about blue meaning a change?
 
-with open(output_path, "w") as doc:
+with open(output_path, "w", encoding='utf8') as doc:
     doc.write(newRST)
 
 #test:

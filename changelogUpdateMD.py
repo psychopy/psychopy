@@ -30,7 +30,7 @@ def repl_noncompat(m):
     return g.replace('CHANGE', '<span style="color:red">CHANGE') + "</span>\n"
 
 # raw .txt form of changelog:
-txt = open(input_path, "rU").read()
+txt = open(input_path, "rU", encoding='utf8').read()
 
 # programmatic replacements:
 link = re.compile(r'`(?P<name>.*)\<(?P<url>.*)\>`_')
@@ -58,7 +58,7 @@ txt_final = noncompat.sub(repl_noncompat, txt_hash)
 
 # add note about blue meaning a change?
 
-with open(output_path, "w") as doc:
+with open(output_path, "w", encoding='utf8') as doc:
     doc.write(txt_final)
 
 #test:
