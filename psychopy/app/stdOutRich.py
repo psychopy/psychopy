@@ -137,8 +137,7 @@ class StdOutFrame(wx.Frame):
         # the app (or frame of the app) should control redirection of stdout,
         # but just in case the user closes the window while it is receiving
         # input we should direct it back to orig
-        sys.stdout = self.app._stdout
-        sys.stderr = self.app._stderr
+        sys.stdout = sys.__stdout__
         self.Hide()
 
     def saveAs(self):

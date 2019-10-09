@@ -161,6 +161,7 @@ class PsychoPyApp(wx.App):
         self._stdout = sys.stdout
         self._stderr = sys.stderr
         self._stdoutFrame = None
+        self._errorHandler = None
 
         if self.prefs.app['debugMode']:
             logging.console.setLevel(logging.DEBUG)

@@ -1178,9 +1178,6 @@ class BuilderFrame(wx.Frame):
         self.app.trackFrame(self)
         self.SetDropTarget(FileDropTarget(targetFrame=self))
 
-        # Set up error handling tool
-        self.errorHandler = ErrorHandler()
-
     def makeToolbar(self):
         """Produces Toolbar for the Builder Frame"""
         # ---toolbar---#000000#FFFFFF-----------------------------------------
@@ -2382,6 +2379,15 @@ class BuilderFrame(wx.Frame):
                 parent=None, app=self.app, size=(700, 300))
         return self.app._stdoutFrame
 
+    @property
+    def errorHandler(self):
+        """
+        Initializes app._errorHandler if not created.
+        """
+        if self.app._errorHandler is None:
+            self.app._errorHandler = ErrorHandler()
+        return self.app._errorHandler
+
     def setStandardStream(self, capture):
         """
         Captures standard stream.
@@ -2447,6 +2453,7 @@ class BuilderFrame(wx.Frame):
         finally:
             self.stdoutFrame.Show()
             self.errorHandler.flush()
+            # self.setStandardStream(False)
 
     def _getHtmlPath(self, filename):
         expPath = os.path.split(filename)[0]
