@@ -70,6 +70,57 @@ class DotStim(BaseVisualStim, ColorMixin, ContainerMixin):
     If further customisation is required, then the DotStim should be
     subclassed and its _update_dotsXY and _newDotsXY methods overridden.
 
+    The maximum number of dots that can be drawn is limited by system
+    performance.
+
+    Attributes
+    ----------
+    fieldShape : str
+        *'sqr'* or 'circle'. Defines the envelope used to present the dots. If
+        changed while drawing, dots outside new envelope will be respawned.
+    dotSize : float
+        Dot size specified in pixels (overridden if `element` is specified).
+        :ref:`operations <attrib-operations>` are supported.
+    dotLife : int
+        Number of frames each dot lives for (-1=infinite). Dot lives are
+        initiated randomly from a uniform distribution from 0 to dotLife. If
+        changed while drawing, the lives of all dots will be randomly initiated
+        again.
+    signalDots : str
+        If 'same' then the signal and noise dots are constant. If 'different'
+        then the choice of which is signal and which is noise gets randomised on
+        each frame. This corresponds to Scase et al's (1996) categories of RDK.
+    noiseDots : str
+        Determines the behaviour of the noise dots, taken directly from Scase et
+        al's (1996) categories. For 'position', noise dots take a random
+        position every frame. For 'direction' noise dots follow a random, but
+        constant direction. For 'walk' noise dots vary their direction every
+        frame, but keep a constant speed.
+    element : object
+        This can be any object that has a ``.draw()`` method and a
+        ``.setPos([x,y])`` method (e.g. a GratingStim, TextStim...)!! DotStim
+        assumes that the element uses pixels as units. ``None`` defaults to
+        dots.
+    fieldPos : array_like
+        Specifying the location of the centre of the stimulus using a
+        :ref:`x,y-pair <attrib-xy>`. See e.g. :class:`.ShapeStim` for more
+        documentation/examples on how to set position.
+        :ref:`operations <attrib-operations>` are supported.
+    fieldSize : array_like
+        Specifying the size of the field of dots using a
+        :ref:`x,y-pair <attrib-xy>`. See e.g. :class:`.ShapeStim` for more
+        documentation/examples on how to set position.
+        :ref:`operations <attrib-operations>` are supported.
+    coherence : float
+        Change the coherence (%) of the DotStim. This will be rounded according
+        to the number of dots in the stimulus.
+    dir : float
+        Direction of the coherent dots in degrees. :ref:`operations
+        <attrib-operations>` are supported.
+    speed : float
+        Speed of the dots (in *units*/frame). :ref:`operations
+        <attrib-operations>` are supported.
+
     """
     def __init__(self,
                  win,
@@ -102,7 +153,7 @@ class DotStim(BaseVisualStim, ColorMixin, ContainerMixin):
         units : str
             Units to use.
         nDots : int
-            Number of dots to present.
+            Number of dots to present in the field.
         coherence : float
             Proportion of dots which are coherent. This value can be set using
             the `coherence` property after initialization.
@@ -122,25 +173,34 @@ class DotStim(BaseVisualStim, ColorMixin, ContainerMixin):
             Size of the dots. If given an array, the sizes of individual dots
             will be set. The array must have length `nDots`. If a single value
             is given, all dots will be set to the same size.
-        dotLife : float
+        dotLife : int
             Lifetime of a dot in frames. Dot lives are initiated randomly from a
             uniform distribution from 0 to dotLife. If changed while drawing,
-            the lives of all dots will be randomly initiated again.
+            the lives of all dots will be randomly initiated again. A value of
+            -1 results in dots having an infinite lifetime. This value can be
+            set using the `dotLife` property after initialization.
         dir : float
-            Direction of the coherent dots in degrees.
+            Direction of the coherent dots in degrees. At 0 degrees, coherent
+            dots will move from left to right. Increasing the angle will rotate
+            the direction counter-clockwise. This value can be set using the
+            `dir` property after initialization.
         speed : float
-            Speed of the dots (in *units* per frame).
+            Speed of the dots (in *units* per frame). This value can be set
+            using the `speed` property after initialization.
         rgb : array_like, optional
-            Color of the dots in form (r, g, b) or [r, g, b].
+            Color of the dots in form (r, g, b) or [r, g, b]. **Deprecated**,
+            use `color` instead.
         color : array_like or str
-            Color of the dots.
+            Color of the dots in form (r, g, b) or [r, g, b].
         colorSpace : str
             Colorspace to use.
         opacity : float
             Opacity of the dots from 0.0 to 1.0.
         contrast : float
-            Contrast of the dots.
+            Contrast of the dots 0.0 to 1.0. This value is simply multiplied by
+            the `color` value.
         depth : float
+            **Deprecated**, depth is now controlled simply by drawing order.
         element : object
             This can be any object that has a ``.draw()`` method and a
             ``.setPos([x,y])`` method (e.g. a GratingStim, TextStim...)!!
