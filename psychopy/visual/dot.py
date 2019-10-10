@@ -266,7 +266,6 @@ class DotStim(BaseVisualStim, ColorMixin, ContainerMixin):
 
         # initialise the dots themselves - give them all random dir and then
         # fix the first n in the array to have the direction specified
-
         self.coherence = coherence  # using the attributeSetter
         self.noiseDots = noiseDots
 
@@ -276,7 +275,8 @@ class DotStim(BaseVisualStim, ColorMixin, ContainerMixin):
         self._dotsSpeed = np.ones(self.nDots, dtype=float) * self.speed
         # abs() means we can ignore the -1 case (no life)
         self._dotsLife = np.abs(dotLife) * np.random.rand(self.nDots)
-        # np.random.shuffle(self._signalDots)  # not really necessary
+        # pre-allocate array for flagging dead dots
+        self._deadDots = np.zeros(self.nDots, dtype=bool)
         # set directions (only used when self.noiseDots='direction')
         self._dotsDir = np.random.rand(self.nDots) * 2. * pi
         self._dotsDir[self._signalDots] = self.dir * pi / 180.
@@ -424,7 +424,7 @@ class DotStim(BaseVisualStim, ColorMixin, ContainerMixin):
         # NB - AJS Actually you need to do this for 'walk' also
         # otherwise would be signal dots adopt random directions when the become
         # sinal dots in later trails
-        if self.noiseDots in ['direction', 'position','walk']:
+        if self.noiseDots in ('direction', 'position', 'walk'):
             self._dotsDir = np.random.rand(self.nDots) * 2. * pi
             self._dotsDir[self._signalDots] = self.dir * pi / 180.
 
@@ -564,19 +564,24 @@ class DotStim(BaseVisualStim, ColorMixin, ContainerMixin):
         """Callable user function to choose a new set of dots."""
         self._verticesBase = self._dotsXY = self._newDotsXY(self.nDots)
 
+        # Don't allocate another array if the new number of dots is equal to
+        # the last.
+        if self.nDots != len(self._deadDots):
+            self._deadDots = np.zeros(self.nDots, dtype=bool)
+
     def _update_dotsXY(self):
         """The user shouldn't call this - its gets done within draw().
         """
         # Find dead dots, update positions, get new positions for
         # dead and out-of-bounds
         # renew dead dots
-        if self.dotLife > 0.:  # if less than zero ignore it
+        if self.dotLife > 0:  # if less than zero ignore it
             # decrement. Then dots to be reborn will be negative
-            self._dotsLife -= 1.
-            dead = (self._dotsLife <= 0.0)
-            self._dotsLife[dead] = self.dotLife
+            self._dotsLife -= 1
+            self._deadDots[:] = (self._dotsLife <= 0)
+            self._dotsLife[self._deadDots] = self.dotLife
         else:
-            dead = np.zeros(self.nDots, dtype=bool)
+            self._deadDots[:] = False
 
         # update XY based on speed and dir
         # NB self._dotsDir is in radians, but self.dir is in degs
@@ -615,25 +620,25 @@ class DotStim(BaseVisualStim, ColorMixin, ContainerMixin):
             self._verticesBase[sd, 0] += self.speed * cosDots
             self._verticesBase[sd, 1] += self.speed * sinDots
             # update noise dots
-            dead = dead + (~self._signalDots)  # just create new ones
+            self._deadDots = self._deadDots + (~self._signalDots)  # just create new ones
 
         # handle boundaries of the field
         if self.fieldShape in (None, 'square', 'sqr'):
-            out0 = (np.abs(self._verticesBase[:, 0]) > 0.5 * self.fieldSize[0])
-            out1 = (np.abs(self._verticesBase[:, 1]) > 0.5 * self.fieldSize[1])
+            out0 = (np.abs(self._verticesBase[:, 0]) > .5 * self.fieldSize[0])
+            out1 = (np.abs(self._verticesBase[:, 1]) > .5 * self.fieldSize[1])
             outofbounds = out0 + out1
         else:
             # transform to a normalised circle (radius = 1 all around)
             # then to polar coords to check
             # the normalised XY position (where radius should be < 1)
-            normXY = self._verticesBase / 0.5 / self.fieldSize
+            normXY = self._verticesBase / .5 / self.fieldSize
             # add out-of-bounds to those that need replacing
             outofbounds = np.hypot(normXY[:, 0], normXY[:, 1]) > 1.
 
         # update any dead dots
-        nDead = dead.sum()
+        nDead = self._deadDots.sum()
         if nDead:
-            self._verticesBase[dead, :] = self._newDotsXY(nDead)
+            self._verticesBase[self._deadDots, :] = self._newDotsXY(nDead)
 
         # Reposition any dots that have gone out of bounds. Net effect is to
         # place dot one step inside the boundary on the other side of the
