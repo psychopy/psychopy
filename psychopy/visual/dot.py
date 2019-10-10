@@ -508,15 +508,16 @@ class DotStim(BaseVisualStim, ColorMixin, ContainerMixin):
             outofbounds = np.hypot(normXY[:, 0], normXY[:, 1]) > 1.
 
         # update any dead dots
-        if np.sum(dead):
-            self._verticesBase[dead, :] = self._newDotsXY(dead.sum())
+        nDead = dead.sum()
+        if nDead:
+            self._verticesBase[dead, :] = self._newDotsXY(nDead)
 
         # Reposition any dots that have gone out of bounds. Net effect is to
         # place dot one step inside the boundary on the other side of the
         # aperture.
-        if np.any(outofbounds):
-            self._verticesBase[outofbounds, :] = self._newDotsXY(
-                outofbounds.sum())
+        nOutOfBounds = outofbounds.sum()
+        if nOutOfBounds:
+            self._verticesBase[outofbounds, :] = self._newDotsXY(nOutOfBounds)
 
         # update the pixel XY coordinates in pixels (using _BaseVisual class)
         self._updateVertices()
