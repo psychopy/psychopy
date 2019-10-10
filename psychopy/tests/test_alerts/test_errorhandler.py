@@ -17,15 +17,15 @@ class TestErrorHandler():
 
     def test_errorhandler(self):
         """Test error handler attributes"""
-        assert (hasattr(self.error, "receiveAlert"))
-        assert (hasattr(self.error, "alerts"))
-        assert (hasattr(self.error, "errors"))
-        assert (self.error.alerts == [])
+        assert (hasattr(sys.stderr, "receiveAlert"))
+        assert (hasattr(sys.stderr, "alerts"))
+        assert (hasattr(sys.stderr, "errors"))
+        assert (sys.stderr.alerts == [])
 
     def test_errorhandler_flush(self):
         """Test flushing of alert to alertLog and clearing attributes"""
         alert(9999, self)
-        assert (isinstance(self.error.alerts[-1], AlertEntry))
+        assert (isinstance(sys.stderr.alerts[-1], AlertEntry))
         sys.stderr.flush()
         assert (isinstance(alertLog.current[-1], AlertEntry))
         assert (sys.stderr.alerts == [])

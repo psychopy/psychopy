@@ -143,7 +143,7 @@ class AlertEntry():
 
     def _formatTrace(self, trace=None):
         """
-           Formats message text if strFormat value given.
+        Formats traceback as string.
 
         Parameters
         ----------
