@@ -97,10 +97,67 @@ class DotStim(BaseVisualStim, ColorMixin, ContainerMixin):
         """
         Parameters
         ----------
-        fieldSize : array_like
+        win : window.Window
+            Window this stimulus is associated with.
+        nDots : int
+            Number of dots to present.
+        coherence : float
+            Proportion of dots which are coherent. This value can be set using
+            the `coherence` property after initialization.
+        fieldPos : array_like
+            (x,y) or [x,y] position of the field. This value can be set using
+            the `fieldPos` property after initialization.
+        fieldSize : array_like, int or float
             (x,y) or [x,y] or single value (applied to both dimensions). Sizes
-            can be negative and can extend beyond the window.
-            
+            can be negative and can extend beyond the window. This value can be
+            set using the `fieldSize` property after initialization.
+        fieldShape : str
+            Defines the envelope used to present the dots. If changed while
+            drawing by setting the `fieldShape` property, dots outside new
+            envelope will be respawned., valid values are 'square', 'sqr' or
+            'circle'.
+        dotSize : array_like or float
+            Size of the dots. If given an array, the sizes of individual dots
+            will be set. The array must have length `nDots`. If a single value
+            is given, all dots will be set to the same size.
+        dotLife : float
+            Lifetime of a dot in frames. Dot lives are initiated randomly from a
+            uniform distribution from 0 to dotLife. If changed while drawing,
+            the lives of all dots will be randomly initiated again.
+        dir : float
+            Direction of the coherent dots in degrees.
+        speed : float
+            Speed of the dots (in *units* per frame).
+        rgb : array_like, optional
+            Color of the dots in form (r, g, b) or [r, g, b].
+        color : array_like or str
+            Color of the dots.
+        colorSpace : str
+            Colorspace to use.
+        opacity : float
+            Opacity of the dots from 0.0 to 1.0.
+        contrast : float
+            Contrast of the dots.
+        depth : float
+        element : object
+            This can be any object that has a ``.draw()`` method and a
+            ``.setPos([x,y])`` method (e.g. a GratingStim, TextStim...)!!
+            DotStim assumes that the element uses pixels as units.
+            ``None`` defaults to dots.
+        signalDots : str
+            If 'same' then the signal and noise dots are constant. If different
+            then the choice of which is signal and which is noise gets
+            randomised on each frame. This corresponds to Scase et al's (1996)
+            categories of RDK. This value can be set using the `signalDots`
+            property after initialization.
+        noiseDots : str
+            Determines the behaviour of the noise dots, taken directly from
+            Scase et al's (1996) categories. For 'position', noise dots take a
+            random position every frame. For 'direction' noise dots follow a
+            random, but constant direction. For 'walk' noise dots vary their
+            direction every frame, but keep a constant speed. This value can be
+            set using the `noiseDots` property after initialization.
+
         """
         # what local vars are defined (these are the init params) for use by
         # __repr__
