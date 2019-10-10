@@ -48,6 +48,9 @@ class AlertLog(object):
             return self.log[-1]
         return self.log
 
+    def clear(self):
+        self.log = []
+
 
 class AlertCatalogue():
     """A class for loading alerts from the alerts catalogue yaml file"""
@@ -229,7 +232,6 @@ def alert(code=None, obj=object, strFormat=None, trace=None):
         sys.stderr.receiveAlert(msg)
     else:
         sys.stderr.write(msgAsStr)  # For tests detecting output - change when error handler set up
-
     logging.warning(msgAsStr)
 
 # Create catalogue

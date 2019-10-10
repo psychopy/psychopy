@@ -55,7 +55,7 @@
 9999:
   code: 9999
   cat: TEST_ISSUE
-  msg: TEST_MSG
+  msg: TEST_MSG {testString}
   url: https://psychopy.org
 
 
