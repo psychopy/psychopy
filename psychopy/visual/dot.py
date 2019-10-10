@@ -99,6 +99,8 @@ class DotStim(BaseVisualStim, ColorMixin, ContainerMixin):
         ----------
         win : window.Window
             Window this stimulus is associated with.
+        units : str
+            Units to use.
         nDots : int
             Number of dots to present.
         coherence : float
@@ -157,6 +159,10 @@ class DotStim(BaseVisualStim, ColorMixin, ContainerMixin):
             random, but constant direction. For 'walk' noise dots vary their
             direction every frame, but keep a constant speed. This value can be
             set using the `noiseDots` property after initialization.
+        name : str, optional
+            Optional name to use for logging.
+        autoLog : bool
+            Enable automatic logging.
 
         """
         # what local vars are defined (these are the init params) for use by
