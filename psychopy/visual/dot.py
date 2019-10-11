@@ -44,7 +44,11 @@ from psychopy.visual.basevisual import (BaseVisualStim, ColorMixin,
                                         ContainerMixin)
 
 import numpy as np
-from numpy import pi
+
+# some constants
+_piOver2 = np.pi / 2.
+_piOver180 = np.pi / 180.
+_2pi = 2 * np.pi
 
 
 class DotStim(BaseVisualStim, ColorMixin, ContainerMixin):
@@ -238,7 +242,7 @@ class DotStim(BaseVisualStim, ColorMixin, ContainerMixin):
         # fieldPos = pos, fieldSize=size and then dotSize as additional param
         self.fieldPos = fieldPos  # self.pos is also set here
         self.fieldSize = val2array(fieldSize, False)  # self.size is also set
-        if type(dotSize) in [tuple, list]:
+        if type(dotSize) in (tuple, list):
             self.dotSize = np.array(dotSize)
         else:
             self.dotSize = dotSize
@@ -278,8 +282,8 @@ class DotStim(BaseVisualStim, ColorMixin, ContainerMixin):
         # pre-allocate array for flagging dead dots
         self._deadDots = np.zeros(self.nDots, dtype=bool)
         # set directions (only used when self.noiseDots='direction')
-        self._dotsDir = np.random.rand(self.nDots) * 2. * pi
-        self._dotsDir[self._signalDots] = self.dir * pi / 180.
+        self._dotsDir = np.random.rand(self.nDots) * _2pi
+        self._dotsDir[self._signalDots] = self.dir * _piOver180
 
         self._update_dotsXY()
 
@@ -425,8 +429,8 @@ class DotStim(BaseVisualStim, ColorMixin, ContainerMixin):
         # otherwise would be signal dots adopt random directions when the become
         # sinal dots in later trails
         if self.noiseDots in ('direction', 'position', 'walk'):
-            self._dotsDir = np.random.rand(self.nDots) * 2. * pi
-            self._dotsDir[self._signalDots] = self.dir * pi / 180.
+            self._dotsDir = np.random.rand(self.nDots) * _2pi
+            self._dotsDir[self._signalDots] = self.dir * _piOver180
 
     def setFieldCoherence(self, val, op='', log=None):
         """Usually you can use 'stim.attribute = value' syntax instead, but use 
@@ -440,12 +444,12 @@ class DotStim(BaseVisualStim, ColorMixin, ContainerMixin):
         <attrib-operations>` are supported.
         """
         # check which dots are signal before setting new dir
-        signalDots = self._dotsDir == (self.dir * pi / 180.)
+        signalDots = self._dotsDir == (self.dir * _piOver180)
         self.__dict__['dir'] = dir
 
         # dots currently moving in the signal direction also need to update
         # their direction
-        self._dotsDir[signalDots] = self.dir * pi / 180.
+        self._dotsDir[signalDots] = self.dir * _piOver180
 
     def setDir(self, val, op='', log=None):
         """Usually you can use 'stim.attribute = value' syntax instead, but use 
@@ -547,7 +551,7 @@ class DotStim(BaseVisualStim, ColorMixin, ContainerMixin):
         """
         if self.fieldShape == 'circle':
             length = np.sqrt(np.random.uniform(0, 1, (nDots,)))
-            angle = np.random.uniform(0., 2. * np.pi, (nDots,))
+            angle = np.random.uniform(0., _2pi, (nDots,))
 
             newDots = np.zeros((nDots, 2))
             newDots[:, 0] = length * np.cos(angle)
@@ -592,14 +596,14 @@ class DotStim(BaseVisualStim, ColorMixin, ContainerMixin):
             # noise and signal dots change identity constantly
             np.random.shuffle(self._dotsDir)
             # and then update _signalDots from that
-            self._signalDots = (self._dotsDir == (self.dir * pi / 180.))
+            self._signalDots = (self._dotsDir == (self.dir * _piOver180))
 
         # update the locations of signal and noise; 0 radians=East!
         reshape = np.reshape
         if self.noiseDots == 'walk':
             # noise dots are ~self._signalDots
             sig = np.random.rand(np.sum(~self._signalDots))
-            self._dotsDir[~self._signalDots] = sig * pi * 2.
+            self._dotsDir[~self._signalDots] = sig * _2pi
             # then update all positions from dir*speed
             cosDots = reshape(np.cos(self._dotsDir), (self.nDots,))
             sinDots = reshape(np.sin(self._dotsDir), (self.nDots,))
