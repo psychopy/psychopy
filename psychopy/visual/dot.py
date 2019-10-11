@@ -52,27 +52,27 @@ _2pi = 2 * np.pi
 
 
 class DotStim(BaseVisualStim, ColorMixin, ContainerMixin):
-    """This stimulus class defines a field of dots with an update rule
-    that determines how they change on every call to the .draw() method.
+    """This stimulus class defines a field of dots with an update rule that
+    determines how they change on every call to the .draw() method.
 
-    This single class can be used to generate a wide variety of
-    dot motion types. For a review of possible types and their pros and
-    cons see Scase, Braddick & Raymond (1996). All six possible motions
-    they describe can be generated with appropriate choices of the
-    signalDots (which determines whether signal dots are the 'same' or
-    'different' on each frame), noiseDots (which determines the locations
-    of the noise dots on each frame) and the dotLife (which determines
-    for how many frames the dot will continue before being regenerated).
+    This single class can be used to generate a wide variety of dot motion
+    types. For a review of possible types and their pros and cons see Scase,
+    Braddick & Raymond (1996). All six possible motions they describe can be
+    generated with appropriate choices of the `signalDots` (which determines
+    whether signal dots are the 'same' or 'different' on each frame),
+    `noiseDots` (which determines the locations of the noise dots on each frame)
+    and the `dotLife` (which determines for how many frames the dot will
+    continue before being regenerated).
 
     The default settings (as of v1.70.00) is for the noise dots to have
-    identical velocity but random direction and signal dots remain the
-    'same' (once a signal dot, always a signal dot).
+    identical velocity but random direction and signal dots remain the 'same'
+    (once a signal dot, always a signal dot).
 
-    For further detail about the different configurations see :ref:`dots`
-    in the Builder Components section of the documentation.
+    For further detail about the different configurations see :ref:`dots` in the
+    Builder Components section of the documentation.
 
-    If further customisation is required, then the DotStim should be
-    subclassed and its _update_dotsXY and _newDotsXY methods overridden.
+    If further customisation is required, then the DotStim should be subclassed
+    and its _update_dotsXY and _newDotsXY methods overridden.
 
     The maximum number of dots that can be drawn is limited by system
     performance.
@@ -624,7 +624,7 @@ class DotStim(BaseVisualStim, ColorMixin, ContainerMixin):
             self._verticesBase[sd, 0] += self.speed * cosDots
             self._verticesBase[sd, 1] += self.speed * sinDots
             # update noise dots
-            self._deadDots = self._deadDots + (~self._signalDots)  # just create new ones
+            self._deadDots[:] = self._deadDots + (~self._signalDots)
 
         # handle boundaries of the field
         if self.fieldShape in (None, 'square', 'sqr'):
