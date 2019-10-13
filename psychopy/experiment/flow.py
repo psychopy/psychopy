@@ -319,10 +319,23 @@ class Flow(list):
         script.writeIndented("flowScheduler.add(quitPsychoJS, '', true);\n")
         # handled all the flow entries
         code = ("\n// quit if user presses Cancel in dialog box:\n"
-                "dialogCancelScheduler.add(quitPsychoJS, '', false);\n"
-                "\npsychoJS.start({expName, expInfo});\n")
+                "dialogCancelScheduler.add(quitPsychoJS, '', false);\n\n")
+        script.writeIndentedLines(code)
+
+        # Write resource list
+        resourceFiles = self.exp.getResourceFiles()
+        script.writeIndented("psychoJS.start({expName: expName, expInfo: expInfo, resources: [\n")
+        script.setIndentLevel(1, relative=True)
+        code = ""
+        for i, resource in enumerate(resourceFiles):
+            temp = "{{'name': '{0}', 'path': 'resources/{0}'}}".format(resource['rel'])
+            code += temp
+            if i != (len(resourceFiles)-1):
+                code += ",\n"  # Trailing comma
         script.writeIndentedLines(code)
         script.setIndentLevel(-1, relative=True)
+        code = "]});\n"
+        script.writeIndentedLines(code)
         script.writeIndented("\n")
 
     def writeLoopHandlerJS(self, script, modular):

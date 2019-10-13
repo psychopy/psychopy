@@ -833,36 +833,37 @@ class SettingsComponent(object):
 
     def writeEndCodeJS(self, buff):
 
-        endLoopInteration = ("\nfunction endLoopIteration({thisScheduler, isTrials=true}) {\n"
+        endLoopInteration = ("\nfunction endLoopIteration({thisScheduler, isTrials=true, trials=undefined}) {\n"
                     "  // ------Prepare for next entry------\n"
                     "  return function () {\n"
                     "    // ------Check if user ended loop early------\n"
                     "    if (currentLoop.finished) {\n"
                     "      // Check for and save orphaned data\n"
                     "      if (Object.keys(psychoJS.experiment._thisEntry).length > 0) {\n"
-                    "        psychoJS.experiment.nextEntry();\n"
+                    "        psychoJS.experiment.nextEntry(trials);\n"
                     "      }\n"
                     "      thisScheduler.stop();\n"
-                    "    } else if (isTrials) {\n"
-                    "      psychoJS.experiment.nextEntry();\n"
+                    "    } else {\n"
+                    "      const thisTrial = trials.getCurrentTrial();\n"
+                    "      if (typeof thisTrial === 'undefined' || !('isTrials' in thisTrial) || thisTrial.isTrials) {\n"
+                    "         psychoJS.experiment.nextEntry(trials);\n"
+                    "      }\n"
                     "    }\n"
                     "  return Scheduler.Event.NEXT;\n"
                     "  };\n"
                     "}\n")
         buff.writeIndentedLines(endLoopInteration)
 
-        recordLoopIterationFunc = ("\nfunction importConditions(loop) {\n"
-                    "  const trialIndex = loop.getTrialIndex();\n"
+        recordLoopIterationFunc = ("\nfunction importConditions(trials) {\n"
                     "  return function () {\n"
-                    "    loop.setTrialIndex(trialIndex);\n"
-                    "    psychoJS.importAttributes(loop.getCurrentTrial());\n"
+                    "    psychoJS.importAttributes(trials.getCurrentTrial());\n"
                     "    return Scheduler.Event.NEXT;\n"
                     "    };\n"
                     "}\n")
         buff.writeIndentedLines(recordLoopIterationFunc)
         quitFunc = ("\nfunction quitPsychoJS(message, isCompleted) {\n"
                     "  // Check for and save orphaned data\n"
-                    "  if (Object.keys(psychoJS.experiment._thisEntry).length > 0) {\n"
+                    "  if (psychoJS.experiment.isEntryEmpty()) {\n"
                     "    psychoJS.experiment.nextEntry();\n"
                     "  }\n"
                     "  psychoJS.window.close();\n"
