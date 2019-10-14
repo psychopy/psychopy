@@ -31,57 +31,81 @@ class Rect(BaseShapeStim):
         rectangle in a single dimension after initialization.
 
     """
-    def __init__(self, win, width=.5, height=.5, autoLog=None, **kwargs):
-        """Rect accepts all input parameters, that
-        `~psychopy.visual.ShapeStim` accept, except vertices and closeShape.
-
+    def __init__(self,
+                 win,
+                 width=.5,
+                 height=.5,
+                 autoLog=None,
+                 units='',
+                 lineWidth=1.5,
+                 lineColor='white',
+                 lineColorSpace='rgb',
+                 fillColor=None,
+                 fillColorSpace='rgb',
+                 pos=(0, 0),
+                 size=None,
+                 ori=0.0,
+                 opacity=1.0,
+                 contrast=1.0,
+                 depth=0,
+                 interpolate=True,
+                 name=None,
+                 autoDraw=False):
+        """
         Parameters
         ----------
-        win : psychopy.visual.Window
+        win : `~psychopy.visual.Window`
             Window object to be associated with this stimuli.
         width, height : float or int
             The width and height of the rectangle. *DEPRECATED* use `size`
             to define the dimensions of the rectangle on initialization. If
             `size` is specified the values of `width` and `height` are
-            ignored.
+            ignored. This is to provide legacy compatibility for existing
+            applications.
+        size : array_like, float or int
+            Width and height of the rectangle as (w, h) or [w, h]. If a single
+            value is provided, the width and height will be set to the same
+            specified value. If `None` is specified, the `size` will be set
+            with values passed to `width` and `height`.
 
         """
-        # what local vars are defined (these are the init params) for use by
-        # __repr__
-        self._initParams = dir()
-        self._initParams.remove('self')
-        # kwargs isn't a parameter, but a list of params
-        self._initParams.remove('kwargs')
-        self._initParams.extend(kwargs)
-
-        self.__dict__['width'] = width
-        self.__dict__['height'] = height
-        self.__dict__['autoLog'] = autoLog
-
-        # vertices for rectangle, CCW winding order
-        self.vertices = np.array([[-.5,  .5],
-                                  [ .5,  .5],
-                                  [ .5, -.5],
-                                  [-.5, -.5]])
-
-        self.setVertices(self.vertices, log=False)
-
-        kwargs['closeShape'] = True  # Make sure nobody messes around here
-        kwargs['vertices'] = self.vertices
-
-        super(Rect, self).__init__(win, **kwargs)
-
-        # Get the value of `size` if specified and use it instead of `width`
-        # and `height`.
-        argSize = kwargs.get('size', None)
+        # width and height attributes, these are later aliased with `size`
+        self.__dict__['width'] = float(width)
+        self.__dict__['height'] = float(height)
 
         # If the size argument was specified, override values of width and
-        # height, this is too maintain legacy compatibility. Args width and
+        # height, this is to maintain legacy compatibility. Args width and
         # height should be deprecated in later releases.
-        if argSize is None:
-            self.size = (width, height)
-        else:
-            self.size = argSize
+        if size is None:
+            size = (self.__dict__['width'],
+                    self.__dict__['height'])
+
+        # vertices for rectangle, CCW winding order
+        vertices = np.array([[-.5,  .5],
+                             [ .5,  .5],
+                             [ .5, -.5],
+                             [-.5, -.5]])
+
+        super(Rect, self).__init__(
+            win,
+            units=units,
+            lineWidth=lineWidth,
+            lineColor=lineColor,
+            lineColorSpace=lineColorSpace,
+            fillColor=fillColor,
+            fillColorSpace=fillColorSpace,
+            vertices=vertices,
+            closeShape=True,
+            pos=pos,
+            size=size,
+            ori=ori,
+            opacity=opacity,
+            contrast=contrast,
+            depth=depth,
+            interpolate=interpolate,
+            name=name,
+            autoLog=autoLog,
+            autoDraw=autoDraw)
 
     @attributeSetter
     def size(self, value):
