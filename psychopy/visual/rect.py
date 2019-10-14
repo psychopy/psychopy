@@ -59,10 +59,10 @@ class Rect(BaseShapeStim):
         self.__dict__['autoLog'] = autoLog
 
         # vertices for rectangle, CCW winding order
-        self.vertices = np.array([[-1.,  1.],
-                                  [ 1.,  1.],
-                                  [ 1., -1.],
-                                  [-1., -1.]])
+        self.vertices = np.array([[-.5,  .5],
+                                  [ .5,  .5],
+                                  [ .5, -.5],
+                                  [-.5, -.5]])
 
         self.setVertices(self.vertices, log=False)
 
