@@ -843,7 +843,7 @@ class SettingsComponent(object):
                     "        psychoJS.experiment.nextEntry(trials);\n"
                     "      }\n"
                     "      thisScheduler.stop();\n"
-                    "    } else {\n"
+                    "    } else if (trials !== undefined) {\n"
                     "      const thisTrial = trials.getCurrentTrial();\n"
                     "      if (typeof thisTrial === 'undefined' || !('isTrials' in thisTrial) || thisTrial.isTrials) {\n"
                     "         psychoJS.experiment.nextEntry(trials);\n"
@@ -863,7 +863,7 @@ class SettingsComponent(object):
         buff.writeIndentedLines(recordLoopIterationFunc)
         quitFunc = ("\nfunction quitPsychoJS(message, isCompleted) {\n"
                     "  // Check for and save orphaned data\n"
-                    "  if (psychoJS.experiment.isEntryEmpty()) {\n"
+                    "  if (psychoJS.experiment.isEntryEmtpy()) {\n"
                     "    psychoJS.experiment.nextEntry();\n"
                     "  }\n"
                     "  psychoJS.window.close();\n"

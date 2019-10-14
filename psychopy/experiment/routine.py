@@ -227,13 +227,18 @@ class Routine(list):
             buff.writeIndentedLines(code % self.name)
 
 
-    def writeRoutineBeginCodeJS(self, buff, modular):
+    def writeRoutineBeginCodeJS(self, buff, modular, loopDepth):
 
         # create the frame loop for this routine
-        code = ("\nfunction %(name)sRoutineBegin(trials) {\n" % self.params)
-        buff.writeIndentedLines(code)
-        buff.setIndentLevel(1, relative=True)
-        buff.writeIndentedLines("return function () {\n")
+        if loopDepth != 0:
+            code = ("\nfunction %(name)sRoutineBegin(trials) {\n" % self.params)
+            buff.writeIndentedLines(code)
+            buff.setIndentLevel(1, relative=True)
+            buff.writeIndentedLines("return function () {\n")
+        else:
+            code = ("\nfunction %(name)sRoutineBegin() {\n" % self.params)
+            buff.writeIndentedLines(code)
+
         buff.setIndentLevel(1, relative=True)
         code = ("//------Prepare to start Routine '%(name)s'-------\n"
                 "t = 0;\n"
@@ -275,18 +280,25 @@ class Routine(list):
         buff.writeIndentedLines(code)
         buff.setIndentLevel(-1, relative=True)
         buff.writeIndentedLines("}\n")
-        buff.setIndentLevel(-1, relative=True)
-        buff.writeIndentedLines("}\n")
 
-    def writeEachFrameCodeJS(self, buff, modular):
+        if loopDepth != 0:
+            buff.setIndentLevel(-1, relative=True)
+            buff.writeIndentedLines("}\n")
+
+    def writeEachFrameCodeJS(self, buff, modular, loopDepth):
         # can we use non-slip timing?
         maxTime, useNonSlip = self.getMaxTime()
 
         # write code for each frame
-        code = ("\nfunction %(name)sRoutineEachFrame(trials) {\n" % self.params)
-        buff.writeIndentedLines(code)
-        buff.setIndentLevel(1, relative=True)
-        buff.writeIndentedLines("return function () {\n")
+        if loopDepth != 0:
+            code = ("\nfunction %(name)sRoutineEachFrame(trials) {\n" % self.params)
+            buff.writeIndentedLines(code)
+            buff.setIndentLevel(1, relative=True)
+            buff.writeIndentedLines("return function () {\n")
+        else:
+            code = ("\nfunction %(name)sRoutineEachFrame() {\n" % self.params)
+            buff.writeIndentedLines(code)
+
         buff.setIndentLevel(1, relative=True)
         code = ("//------Loop for each frame of Routine '%(name)s'-------\n"
                 "let continueRoutine = true; // until we're told otherwise\n"
@@ -349,20 +361,25 @@ class Routine(list):
                 "  return Scheduler.Event.NEXT;\n"
                 "}\n")
         buff.writeIndentedLines(code)
-
-        buff.setIndentLevel(-1, relative=True)
-        buff.writeIndentedLines("}\n")
         buff.setIndentLevel(-1, relative=True)
         buff.writeIndentedLines("}\n")
 
-    def writeRoutineEndCodeJS(self, buff, modular):
+        if loopDepth != 0:
+            buff.setIndentLevel(-1, relative=True)
+            buff.writeIndentedLines("}\n")
+
+    def writeRoutineEndCodeJS(self, buff, modular, loopDepth):
         # can we use non-slip timing?
         maxTime, useNonSlip = self.getMaxTime()
 
-        code = ("\nfunction %(name)sRoutineEnd(trials) {\n" % self.params)
-        buff.writeIndentedLines(code)
-        buff.setIndentLevel(1, relative=True)
-        buff.writeIndentedLines("return function () {\n")
+        if loopDepth != 0:
+            code = ("\nfunction %(name)sRoutineEnd(trials) {\n" % self.params)
+            buff.writeIndentedLines(code)
+            buff.setIndentLevel(1, relative=True)
+            buff.writeIndentedLines("return function () {\n")
+        else:
+            code = ("\nfunction %(name)sRoutineEnd() {\n" % self.params)
+            buff.writeIndentedLines(code)
         buff.setIndentLevel(1, relative=True)
 
         if modular:
@@ -394,8 +411,10 @@ class Routine(list):
         buff.writeIndented('return Scheduler.Event.NEXT;\n')
         buff.setIndentLevel(-1, relative=True)
         buff.writeIndentedLines("}\n")
-        buff.setIndentLevel(-1, relative=True)
-        buff.writeIndentedLines("}\n")
+
+        if loopDepth != 0:
+            buff.setIndentLevel(-1, relative=True)
+            buff.writeIndentedLines("}\n")
 
     def writeExperimentEndCode(self, buff):
         """Some components have

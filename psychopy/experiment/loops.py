@@ -257,7 +257,7 @@ class TrialHandler(object):
                     .format(params=self.params, name=thisChild.params['name'].val)
                     )
 
-        code += ("    thisScheduler.add(endLoopIteration({{thisScheduler, isTrials : {isTrials}, snapshot: snapshot }}));\n"
+        code += ("    thisScheduler.add(endLoopIteration({{thisScheduler, isTrials : {isTrials}, trials: snapshot }}));\n"
                  "  }}\n"
                  "\n"
                  "  return Scheduler.Event.NEXT;\n"

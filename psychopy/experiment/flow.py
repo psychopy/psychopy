@@ -324,7 +324,7 @@ class Flow(list):
 
         # Write resource list
         resourceFiles = self.exp.getResourceFiles()
-        script.writeIndented("psychoJS.start({expName: expName, expInfo: expInfo, resources: [\n")
+        script.writeIndented("psychoJS.start({expName, expInfo, resources: [\n")
         script.setIndentLevel(1, relative=True)
         code = ""
         for i, resource in enumerate(resourceFiles):

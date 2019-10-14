@@ -245,14 +245,19 @@ class Experiment(object):
             # functions that may or may not get called later.
             # Do the Routines of the experiment first
             routinesToWrite = list(self_copy.routines)
+            loopDepth = 0
             for thisItem in self_copy.flow:
                 if thisItem.getType() in ['LoopInitiator', 'LoopTerminator']:
                     self_copy.flow.writeLoopHandlerJS(script, modular)
+                    if thisItem.getType() == 'LoopInitiator':
+                        loopDepth += 1
+                    if thisItem.getType() == 'LoopTerminator':
+                        loopDepth -= 1
                 elif thisItem.name in routinesToWrite:
                     self_copy._currentRoutine = self_copy.routines[thisItem.name]
-                    self_copy._currentRoutine.writeRoutineBeginCodeJS(script, modular)
-                    self_copy._currentRoutine.writeEachFrameCodeJS(script, modular)
-                    self_copy._currentRoutine.writeRoutineEndCodeJS(script, modular)
+                    self_copy._currentRoutine.writeRoutineBeginCodeJS(script, modular, loopDepth)
+                    self_copy._currentRoutine.writeEachFrameCodeJS(script, modular, loopDepth)
+                    self_copy._currentRoutine.writeRoutineEndCodeJS(script, modular, loopDepth)
                     routinesToWrite.remove(thisItem.name)
             self_copy.settings.writeEndCodeJS(script)
 

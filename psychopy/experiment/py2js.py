@@ -130,6 +130,11 @@ def findUndeclaredVariables(ast, allUndeclaredVariables):
                 consequentVariables = findUndeclaredVariables(
                     expression.consequent.body, allUndeclaredVariables)
             undeclaredVariables.extend(consequentVariables)
+        elif expression.type == "ReturnStatement":
+            if expression.argument.type == "FunctionExpression":
+                consequentVariables = findUndeclaredVariables(
+                    expression.argument.body.body, allUndeclaredVariables)
+                undeclaredVariables.extend(consequentVariables)
     return undeclaredVariables
 
 
