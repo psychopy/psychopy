@@ -133,7 +133,7 @@ class Pie(BaseShapeStim):
         :ref:`Operations <attrib-operations>` supported.
         """
         self.__dict__['start'] = value
-        self._calcVertices()
+        self.vertices = self._calcVertices()
         self.setVertices(self.vertices, log=False)
 
     def setStart(self, start, operation='', log=None):
@@ -149,7 +149,7 @@ class Pie(BaseShapeStim):
         :ref:`Operations <attrib-operations>` supported.
         """
         self.__dict__['end'] = value
-        self._calcVertices()
+        self.vertices = self._calcVertices()
         self.setVertices(self.vertices, log=False)
 
     def setEnd(self, end, operation='', log=None):
@@ -165,7 +165,8 @@ class Pie(BaseShapeStim):
         :ref:`Operations <attrib-operations>` supported.
         """
         self.__dict__['radius'] = value
-        self.size = value
+        self.vertices = self._calcVertices()
+        self.setVertices(self.vertices, log=False)
 
     def setRadius(self, end, operation='', log=None):
         """Usually you can use 'stim.attribute = value' syntax instead,
