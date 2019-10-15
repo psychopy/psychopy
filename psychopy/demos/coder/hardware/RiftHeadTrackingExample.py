@@ -5,6 +5,7 @@
 # This file is public domain.
 #
 from psychopy import visual, event, core, logging
+from psychopy.tools import arraytools
 import pyglet.gl as GL
 import ctypes
 logging.console.setLevel(logging.DEBUG)
@@ -24,8 +25,7 @@ trianglePose = visual.Rift.createPose(trianglePosition)
 translationMatrix = trianglePose.getModelMatrix()
 
 # convert to format Pyglet's GL libraries accept
-translationMatrix = translationMatrix.ctypes.data_as(
-    ctypes.POINTER(ctypes.c_float))
+translationMatrix = arraytools.array2pointer(translationMatrix)
 
 # loop until the user quits the app through the GUI menu
 stopApp = False
@@ -79,7 +79,6 @@ while not stopApp:
 
     # send the rendered buffer to the HMD
     hmd.flip()
-
 
     # check if the application should exit
     if event.getKeys('q') or hmd.shouldQuit:
