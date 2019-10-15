@@ -14,9 +14,11 @@ import numpy as np
 
 
 class Pie(BaseShapeStim):
-    """Creates a pie shape which is a circle with a wedge cut-out. This
-    shape is frequently used for creating Kanizsa figures. However, it
-    can be adapted for other uses.
+    """Creates a pie shape which is a circle with a wedge cut-out.
+
+    This shape is sometimes refered to as a Pac-Man shape which is frequently
+    used for creating Kanizsa figures. However, the shape can be adapted for
+    other uses.
 
     Attributes
     ----------
@@ -25,7 +27,8 @@ class Pie(BaseShapeStim):
         degrees. Shapes are filled counter clockwise between the specified
         angles.
     radius : float or int
-        Radius of the shape.
+        Radius of the shape. Avoid using `size` for adjusting figure dimensions
+        if radius != 0.5 which will result in undefined behavior.
 
     """
     def __init__(self,
@@ -36,11 +39,12 @@ class Pie(BaseShapeStim):
                  edges=32,
                  units='',
                  lineWidth=1.5,
-                 lineColor=(1.0, 1.0, 1.0),
+                 lineColor=None,
                  lineColorSpace='rgb',
                  fillColor=None,
                  fillColorSpace='rgb',
                  pos=(0, 0),
+                 size=1,
                  ori=0.0,
                  opacity=1.0,
                  contrast=1.0,
@@ -54,6 +58,23 @@ class Pie(BaseShapeStim):
                  color=None,
                  colorSpace=None):
 
+        """
+        Parameters
+        ----------
+        win : `~psychopy.visual.Window`
+            Window this shape is associated with.
+        radius : float or int
+            Radius of the shape. Avoid using `size` for adjusting figure
+            dimensions if radius != 0.5 which will result in undefined behavior.
+        start, end : float or int
+            Start and end angles of the filled region of the shape in
+            degrees. Shapes are filled counter clockwise between the specified
+            angles.
+        edges : int
+            Number of edges to use when drawing the figure. A greater number of
+            edges will result in smoother curves, but will require more time
+            to compute.
+        """
         self.__dict__['radius'] = radius
         self.__dict__['edges'] = edges
         self.__dict__['start'] = start
@@ -72,7 +93,7 @@ class Pie(BaseShapeStim):
              vertices=self.vertices,
              closeShape=True,
              pos=pos,
-             size=1,
+             size=size,
              ori=ori,
              opacity=opacity,
              contrast=contrast,
@@ -97,9 +118,9 @@ class Pie(BaseShapeStim):
         steps = np.linspace(startRadians, endRadians, num=edges)
 
         # offset by 1 since the first vertex needs to be at centre
-        verts = np.zeros((edges + 1, 2), float)
-        verts[1:, 0] = np.sin(steps)
-        verts[1:, 1] = np.cos(steps)
+        verts = np.zeros((edges + 2, 2), float)
+        verts[1:-1, 0] = np.sin(steps)
+        verts[1:-1, 1] = np.cos(steps)
 
         verts *= self.radius
 
@@ -107,8 +128,7 @@ class Pie(BaseShapeStim):
 
     @attributeSetter
     def start(self, value):
-        """int or float.
-        Height of the Rectangle (in its respective units, if specified).
+        """Start angle of the slice/wedge in degrees (`float` or `int`).
 
         :ref:`Operations <attrib-operations>` supported.
         """
@@ -124,8 +144,7 @@ class Pie(BaseShapeStim):
 
     @attributeSetter
     def end(self, value):
-        """int or float.
-        Height of the Rectangle (in its respective units, if specified).
+        """End angle of the slice/wedge in degrees (`float` or `int`).
 
         :ref:`Operations <attrib-operations>` supported.
         """
@@ -142,7 +161,7 @@ class Pie(BaseShapeStim):
     @attributeSetter
     def radius(self, value):
         """int or float.
-        Height of the Rectangle (in its respective units, if specified).
+        Radius of the shape in `units` (`float` or `int`).
 
         :ref:`Operations <attrib-operations>` supported.
         """
