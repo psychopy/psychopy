@@ -22,29 +22,69 @@ class Pie(BaseShapeStim):
     ----------
     start, end : float or int
         Start and end angles of the filled region of the shape in
-        degrees. Shapes are filled counter clockwise between the
-        specified angles.
+        degrees. Shapes are filled counter clockwise between the specified
+        angles.
     radius : float or int
         Radius of the shape.
 
     """
-    def __init__(self, win, radius=.5, edges=64, start=0.0, end=90.0, **kwargs):
-        self.radius = radius
-        self.edges = edges
+    def __init__(self,
+                 win,
+                 radius=.5,
+                 start=0.0,
+                 end=90.0,
+                 edges=32,
+                 units='',
+                 lineWidth=1.5,
+                 lineColor=(1.0, 1.0, 1.0),
+                 lineColorSpace='rgb',
+                 fillColor=None,
+                 fillColorSpace='rgb',
+                 pos=(0, 0),
+                 ori=0.0,
+                 opacity=1.0,
+                 contrast=1.0,
+                 depth=0,
+                 interpolate=True,
+                 lineRGB=None,
+                 fillRGB=None,
+                 name=None,
+                 autoLog=None,
+                 autoDraw=False,
+                 color=None,
+                 colorSpace=None):
+
+        self.__dict__['radius'] = radius
+        self.__dict__['edges'] = edges
         self.__dict__['start'] = start
         self.__dict__['end'] = end
 
-        self._initParams = dir()
-        self._initParams.remove('self')
-        # kwargs isn't a parameter, but a list of params
-        self._initParams.remove('kwargs')
-        self._initParams.extend(kwargs)
-
         self.vertices = self._calcVertices()
-        kwargs['closeShape'] = True
-        kwargs['vertices'] = self.vertices
 
-        super(Pie, self).__init__(win, **kwargs)
+        super(Pie, self).__init__(
+             win,
+             units=units,
+             lineWidth=lineWidth,
+             lineColor=lineColor,
+             lineColorSpace=lineColorSpace,
+             fillColor=fillColor,
+             fillColorSpace=fillColorSpace,
+             vertices=self.vertices,
+             closeShape=True,
+             pos=pos,
+             size=1,
+             ori=ori,
+             opacity=opacity,
+             contrast=contrast,
+             depth=depth,
+             interpolate=interpolate,
+             lineRGB=lineRGB,
+             fillRGB=fillRGB,
+             name=name,
+             autoLog=autoLog,
+             autoDraw=autoDraw,
+             color=color,
+             colorSpace=colorSpace)
 
     def _calcVertices(self):
         """Calculate the required vertices for the figure.
@@ -53,10 +93,11 @@ class Pie(BaseShapeStim):
         endRadians = np.radians(self.end)
 
         # get number of steps for vertices
-        steps = np.linspace(startRadians, endRadians, num=self.edges)
+        edges = self.__dict__['edges']
+        steps = np.linspace(startRadians, endRadians, num=edges)
 
         # offset by 1 since the first vertex needs to be at centre
-        verts = np.zeros((self.edges + 1, 2), float)
+        verts = np.zeros((edges + 1, 2), float)
         verts[1:, 0] = np.sin(steps)
         verts[1:, 1] = np.cos(steps)
 
@@ -106,8 +147,7 @@ class Pie(BaseShapeStim):
         :ref:`Operations <attrib-operations>` supported.
         """
         self.__dict__['radius'] = value
-        self._calcVertices()
-        self.setVertices(self.vertices, log=False)
+        self.size = value
 
     def setRadius(self, end, operation='', log=None):
         """Usually you can use 'stim.attribute = value' syntax instead,
