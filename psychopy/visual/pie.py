@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-"""Creates a pie shape."""
+"""Create a pie shape."""
 
 # Part of the PsychoPy library
 # Copyright (C) 2002-2018 Jonathan Peirce (C) 2019 Open Science Tools Ltd.
@@ -16,7 +16,7 @@ import numpy as np
 class Pie(BaseShapeStim):
     """Creates a pie shape which is a circle with a wedge cut-out.
 
-    This shape is sometimes refered to as a Pac-Man shape which is frequently
+    This shape is sometimes referred to as a Pac-Man shape which is often
     used for creating Kanizsa figures. However, the shape can be adapted for
     other uses.
 
