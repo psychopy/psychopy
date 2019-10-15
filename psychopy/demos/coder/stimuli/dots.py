@@ -20,6 +20,8 @@ dotPatch = visual.DotStim(win, color=(1.0, 1.0, 1.0), dir=270,
     noiseDots='direction',  # do the noise dots follow random- 'walk', 'direction', or 'position'
     speed=0.01, coherence=0.9)
 
+print(dotPatch)
+
 message = visual.TextStim(win, text='Any key to quit', pos=(0, -0.5))
 trialClock =core.Clock()
 while not event.getKeys():

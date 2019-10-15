@@ -12,6 +12,9 @@ hmd = visual.Rift()
 # loop until the user quits the app through the GUI menu
 stopApp = False
 while not stopApp:
+    trackingState = hmd.getTrackingState()
+    hmd.calcEyePoses(trackingState.headPose.thePose)
+
     for i in ('left', 'right'):
         hmd.setBuffer(i)  # select the eye buffer to draw to
 
