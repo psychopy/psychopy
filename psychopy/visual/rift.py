@@ -423,6 +423,7 @@ class Rift(window.Window):
         kwargs["stereo"] = False
         kwargs['useFBO'] = True
         kwargs['multiSample'] = False
+        kwargs['bits'] = False
         # kwargs['waitBlanking'] = False
 
         # do not allow 'endFrame' to be called until _startOfFlip is called
@@ -442,6 +443,37 @@ class Rift(window.Window):
         super(Rift, self).__init__(*args, **kwargs)
 
         self._updateProjectionMatrix()
+
+    def close(self):
+        """Close the window and cleanly shutdown the LibOVR session.
+        """
+        # clean up allocated LibOVR resources before closing the window
+        libovr.destroyMirrorTexture()
+        libovr.destroyTextureSwapChain(libovr.TEXTURE_SWAP_CHAIN0)
+        libovr.destroy()
+
+        # start closing the window
+        self._closed = True
+        self.backend.close()
+
+        try:
+            global openWindows
+            openWindows.remove(self)
+        except Exception:
+            pass
+
+        try:
+            self.mouseVisible = True
+        except Exception:
+            pass
+
+        try:
+            logging.flush()
+        except Exception:
+            pass
+
+        # shutdown the session completely
+        libovr.shutdown()
 
     @property
     def size(self):
@@ -489,7 +521,6 @@ class Rift(window.Window):
         """Hide the performance HUD."""
         result = libovr.setInt(libovr.PERF_HUD_MODE, libovr.PERF_HUD_OFF)
         logging.info('Performance HUD disabled.')
-
 
     def stereoDebugHudMode(self, mode):
         """Set the debug stereo HUD mode.
@@ -1315,7 +1346,6 @@ class Rift(window.Window):
             raise LibOVRError(msg)
 
         GL.glDisable(GL.GL_TEXTURE_2D)
-        # GL.glClear(GL.GL_COLOR_BUFFER_BIT)
 
         return True  # assume the FBOs are complete for now
 
@@ -1349,9 +1379,7 @@ class Rift(window.Window):
 
         # blit the texture
         fbo_w, fbo_h = self._swapTextureSize
-
-        self.viewport = (0, 0, fbo_w, fbo_h)
-        self.scissor = (0, 0, fbo_w, fbo_h)
+        self.viewport = self.scissor = (0, 0, fbo_w, fbo_h)
         GL.glBlitFramebuffer(
             0, 0, fbo_w, fbo_h,
             0, 0, fbo_w, fbo_h,  # flips texture
@@ -1383,9 +1411,8 @@ class Rift(window.Window):
         self.buffer = 'mono'
         GL.glEnable(GL.GL_SCISSOR_TEST)
 
-        viewPort = libovr.getEyeRenderViewport(libovr.EYE_LEFT)  # mono mode
-        self.viewport = viewPort
-        self.scissor = viewPort
+        self.viewport = self.scissor = \
+            libovr.getEyeRenderViewport(libovr.EYE_LEFT)  # mono mode
         GL.glDepthMask(GL.GL_TRUE)
 
         if clear:
@@ -2399,8 +2426,10 @@ class Rift(window.Window):
             frustum.
 
         """
-        if self.buffer in ('left', 'right'):
-            return pose.isVisible(RIFT_EYE_TYPE[self.buffer])
+        if self.buffer == 'left' or self.buffer == 'mono':
+            return pose.isVisible(libovr.EYE_LEFT)
+        elif self.buffer == 'right':
+            return pose.isVisible(libovr.EYE_RIGHT)
 
         return False
 

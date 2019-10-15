@@ -79,9 +79,7 @@ while not stopApp:
 
     # send the rendered buffer to the HMD
     hmd.flip()
-    #hmd.updateInputState()
 
-    print(hmd.getThumbstickValues('Touch'))
 
     # check if the application should exit
     if event.getKeys('q') or hmd.shouldQuit:
