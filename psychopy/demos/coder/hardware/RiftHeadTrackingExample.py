@@ -4,9 +4,10 @@
 #
 # This file is public domain.
 #
-from psychopy import visual, event, core
+from psychopy import visual, event, core, logging
 import pyglet.gl as GL
 import ctypes
+logging.console.setLevel(logging.DEBUG)
 
 # Create a VR session, treat the returned object just like a regular window.
 # Increase the number of samples for anti-aliasing, could be 2, 4, 6, 8, 16 or
@@ -78,6 +79,9 @@ while not stopApp:
 
     # send the rendered buffer to the HMD
     hmd.flip()
+    #hmd.updateInputState()
+
+    print(hmd.getThumbstickValues('Touch'))
 
     # check if the application should exit
     if event.getKeys('q') or hmd.shouldQuit:

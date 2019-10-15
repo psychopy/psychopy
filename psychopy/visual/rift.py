@@ -15,6 +15,8 @@ Facebook Technologies, LLC and its affiliates. All rights reserved.
 # Copyright (C) 2018 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
+__all__ = ['Rift']
+
 # ----------
 # Initialize
 # ----------
@@ -59,7 +61,16 @@ RIFT_CONTROLLER_TYPES = {
     'Object0': libovr.CONTROLLER_TYPE_OBJECT0,
     'Object1': libovr.CONTROLLER_TYPE_OBJECT1,
     'Object2': libovr.CONTROLLER_TYPE_OBJECT2,
-    'Object3': libovr.CONTROLLER_TYPE_OBJECT3
+    'Object3': libovr.CONTROLLER_TYPE_OBJECT3,
+    libovr.CONTROLLER_TYPE_XBOX: 'Xbox',
+    libovr.CONTROLLER_TYPE_REMOTE: 'Remote',
+    libovr.CONTROLLER_TYPE_TOUCH: 'Touch',
+    libovr.CONTROLLER_TYPE_LTOUCH: 'LeftTouch',
+    libovr.CONTROLLER_TYPE_RTOUCH: 'RightTouch',
+    libovr.CONTROLLER_TYPE_OBJECT0: 'Object0',
+    libovr.CONTROLLER_TYPE_OBJECT1: 'Object1',
+    libovr.CONTROLLER_TYPE_OBJECT2: 'Object2',
+    libovr.CONTROLLER_TYPE_OBJECT3: 'Object3'
 }
 
 # Button types supported by PsychXR
@@ -81,6 +92,22 @@ RIFT_BUTTON_TYPES = {
     "VolUp": libovr.BUTTON_VOLUP,
     "VolDown": libovr.BUTTON_VOLDOWN,
     "Home": libovr.BUTTON_HOME,
+}
+
+# Touch types supported by PsychXR
+RIFT_TOUCH_TYPES = {
+    "A": libovr.TOUCH_A,
+    "B": libovr.TOUCH_B,
+    "RThumb": libovr.TOUCH_RTHUMB,
+    "RThumbRest": libovr.TOUCH_RTHUMBREST,
+    "RThumbUp": libovr.TOUCH_RTHUMBUP,
+    "RIndexPointing": libovr.TOUCH_RINDEXPOINTING,
+    "X": libovr.TOUCH_X,
+    "Y": libovr.TOUCH_Y,
+    "LThumb": libovr.TOUCH_LTHUMB,
+    "LThumbRest": libovr.TOUCH_LTHUMBREST,
+    "LThumbUp": libovr.TOUCH_LTHUMBUP,
+    "LIndexPointing": libovr.TOUCH_LINDEXPOINTING
 }
 
 # Tracked device identifiers
@@ -126,13 +153,17 @@ RIFT_BOUNDARY_TYPE = {
     'Outer': libovr.BOUNDARY_OUTER
 }
 
-# Boundary types
+# mirror modes
 RIFT_MIRROR_MODES = {
     'left': libovr.MIRROR_OPTION_LEFT_EYE_ONLY,
     'right': libovr.MIRROR_OPTION_RIGHT_EYE_ONLY,
     'distortion': libovr.MIRROR_OPTION_POST_DISTORTION,
     'default': libovr.MIRROR_OPTION_DEFAULT
 }
+
+# eye types
+RIFT_EYE_TYPE = {'left': libovr.EYE_LEFT, 'right': libovr.EYE_RIGHT}
+
 
 class LibOVRError(Exception):
     """Exception for LibOVR errors."""
@@ -157,7 +188,7 @@ class Rift(window.Window):
             mirrorMode='default',
             mirrorRes=None,
             warnAppFrameDropped=True,
-            autoUpdatePoses=True,
+            autoUpdateInput=True,
             legacyOpenGL=True,
             *args,
             **kwargs):
@@ -169,7 +200,9 @@ class Rift(window.Window):
             Field-of-view (FOV) configuration type. Using 'recommended'
             auto-configures the FOV using the recommended parameters computed by
             the runtime. Using 'symmetric' forces a symmetric FOV using optimal
-            parameters from the SDK.
+            parameters from the SDK, this mode is required for displaying 2D
+            stimuli. Specifying 'max' will use the maximum FOVs supported by the
+            HMD.
         trackingOriginType : str
             Specify the HMD origin type. If 'floor', the height of the user
             is added to the head tracker by LibOVR.
@@ -185,31 +218,28 @@ class Rift(window.Window):
             Configure the compositor to use anisotropic texture sampling (4x).
             This reduces aliasing artifacts resulting from high frequency
             details particularly in the periphery.
-        nearClip : float
-            Location of the near clipping plane in GL units (meters by default)
-            from the viewer.
-        farClip : float
-            Location of the far clipping plane in GL units (meters by default)
-            from the viewer.
+        nearClip, farClip : float
+            Location of the near and far clipping plane in GL units (meters by
+            default) from the viewer.
         monoscopic : bool
             Enable monoscopic rendering mode which presents the same image to
             both eyes. Eye poses used will be both centered at the HMD origin.
             Monoscopic mode uses a separate rendering pipeline which reduces
             VRAM usage. When in monoscopic mode, you do not need to call
             'setBuffer' prior to rendering (doing so will do have no effect).
-        samples : int
-            Specify the number of samples for anti-aliasing. When >1,
-            multi-sampling logic is enabled in the rendering pipeline. If 'max'
-            is specified, the largest number of samples supported by the
-            platform is used. If floating point textures are used, MSAA sampling
-            is disabled. Must be power of two value.
+        samples : int or str
+            Specify the number of samples for multi-sample anti-aliasing (MSAA).
+            When >1, multi-sampling logic is enabled in the rendering pipeline.
+            If 'max' is specified, the largest number of samples supported by
+            the platform is used. If floating point textures are used, MSAA
+            sampling is disabled. Must be power of two value.
         mirrorMode : str
             On-screen mirror mode. Values 'left' and 'right' show rectilinear
             images of a single eye. Value 'distortion` shows the post-distortion
             image after being processed by the compositor. Value 'default'
             displays rectilinear images of both eyes side-by-side.
         mirrorRes : list of int
-            Resolution of the mirror texture. If None, the resolution will
+            Resolution of the mirror texture. If `None`, the resolution will
             match the window size.
         warnAppFrameDropped : bool
             Log a warning if the application drops a frame. This occurs when
@@ -219,6 +249,10 @@ class Rift(window.Window):
             However, frame drops can happen sporadically due to driver bugs and
             running background processes (such as Windows Update). Use the
             performance HUD to help diagnose the causes of frame drops.
+        autoUpdateInput : bool
+            Automatically update controller input states at the start of each
+            frame. If `False`, you must manually call `updateInputState` before
+            getting input values from `LibOVR` managed input devices.
         legacyOpenGL : bool
             Disable 'immediate mode' OpenGL calls in the rendering pipeline.
             Specifying False maintains compatibility with existing PsychoPy
@@ -241,6 +275,8 @@ class Rift(window.Window):
         self._mirrorRes = mirrorRes
         self._mirrorMode = mirrorMode
         self._drawMirrorTex = True
+
+        self.autoUpdateInput = autoUpdateInput
 
         # this can be changed while running
         self.warnAppFrameDropped = warnAppFrameDropped
@@ -265,7 +301,7 @@ class Rift(window.Window):
                                "connections and try again.")
 
         # create a VR session, do some initial configuration
-        initResult = libovr.initialize()
+        initResult = libovr.initialize(logCallback=_logCallback)
         if libovr.failure(initResult):
             _, msg = libovr.getLastErrorInfo()
             raise LibOVRError(msg)
@@ -594,7 +630,7 @@ class Rift(window.Window):
 
     @property
     def eyeOffset(self):
-        """Inter-axial separation in centimeters (`float`).
+        """Eye separation in centimeters (`float`).
 
         """
         leftEyeHmdPose = libovr.getHmdToEyePose(libovr.EYE_LEFT)
@@ -611,7 +647,7 @@ class Rift(window.Window):
             libovr.EYE_RIGHT, libovr.LibOVRPose((-halfIAS, 0.0, 0.0)))
 
         logging.info(
-            'Inter-axial separation set to {} centimeters.'.format(value))
+            'Eye separation set to {} centimeters.'.format(value))
 
     @property
     def hasPositionTracking(self):
@@ -1464,8 +1500,9 @@ class Rift(window.Window):
 
     @property
     def viewMatrix(self):
-        """Get the view matrix for the current eye buffer. Only valid after a
-        :py:method:`calcEyePoses` call.
+        """The view matrix for the current eye buffer. Only valid after a
+        :py:method:`calcEyePoses` call. Note that setting `viewMatrix` manually
+        will break visibility culling.
 
         """
         if not self._monoscopic:
@@ -1478,7 +1515,10 @@ class Rift(window.Window):
 
     @property
     def projectionMatrix(self):
-        """Get the projection matrix for the current eye buffer."""
+        """Get the projection matrix for the current eye buffer. Note that
+        setting `projectionMatrix` manually will break visibility culling.
+
+        """
         if not self._monoscopic:
             if self.buffer == 'left':
                 return self._projectionMatrix[libovr.EYE_LEFT]
@@ -1553,7 +1593,7 @@ class Rift(window.Window):
 
         for i in toPoll:
             result, t_sec = libovr.updateInputState(i)
-            self.controllerPollTimes[i] = t_sec
+            self.controllerPollTimes[RIFT_CONTROLLER_TYPES[i]] = t_sec
 
     def _waitToBeginHmdFrame(self):
         """Wait until the HMD surfaces are available for rendering.
@@ -1569,6 +1609,11 @@ class Rift(window.Window):
         # Wait for the buffer to be freed by the compositor, this is like
         # waiting for v-sync.
         result = libovr.waitToBeginFrame(self._frameIndex)
+
+        # update input states
+        if self.autoUpdateInput:
+            self.updateInputState()
+
         #if result == ovr.SUCCESS_NOT_VISIBLE:
         #    pass
         #self.updateInputState()  # poll controller states
@@ -1946,7 +1991,8 @@ class Rift(window.Window):
             or :py:class:`~Rift.flip` call.
 
         """
-        return libovr.getThumbstickValues(controller, deadzone)
+        return libovr.getThumbstickValues(RIFT_CONTROLLER_TYPES[controller],
+                                          deadzone)
 
     def getIndexTriggerValues(self, controller='Xbox', deadzone=False):
         """Get the values of the index triggers.
@@ -2045,36 +2091,103 @@ class Rift(window.Window):
 
         Check if the 'Enter' button on the Oculus remote was released::
 
-            isPressed = hmd.getButtons(['Enter'], 'Remote', 'falling')
+            isPressed, tsec = hmd.getButtons(['Enter'], 'Remote', 'falling')
 
         Check if the 'A' button was pressed on the touch controller::
 
-            isPressed = hmd.getButtons(['A'], 'Touch', 'pressed')
+            isPressed, tsec = hmd.getButtons(['A'], 'Touch', 'pressed')
 
         """
         if isinstance(buttons, str):  # single value
-            _, state = libovr.getButton(
+            return libovr.getButton(
                 RIFT_CONTROLLER_TYPES[controller],
                 RIFT_BUTTON_TYPES[buttons],
                 testState)
-            return state, self.controllerPollTimes[controller]
         elif isinstance(buttons, (list, tuple,)):  # combine buttons
             buttonBits = 0x00000000
             for buttonName in buttons:
                 buttonBits |= RIFT_BUTTON_TYPES[buttonName]
-            _, state = libovr.getButton(
+            return libovr.getButton(
                 RIFT_CONTROLLER_TYPES[controller],
                 buttonBits,
                 testState)
-            return state, self.controllerPollTimes[controller]
         elif isinstance(buttons, int):  # using enums directly
-            _, state = libovr.getButton(
+            return libovr.getButton(
                 RIFT_CONTROLLER_TYPES[controller],
                 buttons,
                 testState)
-            return state, self.controllerPollTimes[controller]
         else:
-            ValueError("Invalid 'buttonNames' specified.")
+            ValueError("Invalid 'buttons' specified.")
+
+    def getTouches(self, touches, controller='Touch', testState='continuous'):
+        """Get touch states from a controller.
+
+        Returns `True` if any names specified to `touches` reflect `testState`
+        since the last :py:class:`~Rift.updateInputState` or
+        :py:class:`~Rift.flip` call. If multiple button names are specified as a
+        `list` or `tuple` to `touches`, multiple button states are tested,
+        returning `True` if all the touches presently satisfy the `testState`.
+        Note that not all controllers available support touches. If a touch is
+        not supported or available, this function will always return `False`.
+
+        Special states can be used for basic gesture recognition, such as
+        'LThumbUp', 'RThumbUp', 'LIndexPointing', and 'RIndexPointing'.
+
+        Parameters
+        ----------
+        touches : `list` of `str` or `str`
+            Buttons to test. Valid `touches` names are 'A', 'B', 'RThumb',
+            'RThumbRest' 'RThumbUp', 'RIndexPointing', 'LThumb', 'LThumbRest',
+            'LThumbUp', 'LIndexPointing', 'X', and 'Y'. Names can be passed as a
+            `list` to test multiple button states.
+        controller : `str`
+            Controller name.
+        testState : `str`
+            State to test. Valid values are:
+
+            * **continuous** - User is touching something on the controller.
+            * **rising** or **pressed** - User began touching something since
+              the last call to `updateInputState`.
+            * **falling** or **released** - User stopped touching something
+              since the last call to `updateInputState`.
+
+        Returns
+        -------
+        tuple of bool, float
+            Touch state and timestamp in seconds the controller was polled.
+
+        Examples
+        --------
+
+        Check if the 'Enter' button on the Oculus remote was released::
+
+            isPressed, tsec = hmd.getButtons(['Enter'], 'Remote', 'falling')
+
+        Check if the 'A' button was pressed on the touch controller::
+
+            isPressed, tsec = hmd.getButtons(['A'], 'Touch', 'pressed')
+
+        """
+        if isinstance(touches, str):  # single value
+            return libovr.getTouch(
+                RIFT_CONTROLLER_TYPES[controller],
+                RIFT_TOUCH_TYPES[touches],
+                testState)
+        elif isinstance(touches, (list, tuple,)):  # combine buttons
+            touchBits = 0x00000000
+            for buttonName in touches:
+                touchBits |= RIFT_TOUCH_TYPES[buttonName]
+            return libovr.getTouch(
+                RIFT_CONTROLLER_TYPES[controller],
+                touchBits,
+                testState)
+        elif isinstance(touches, int):  # using enums directly
+            return libovr.getTouch(
+                RIFT_CONTROLLER_TYPES[controller],
+                touches,
+                testState)
+        else:
+            ValueError("Invalid 'touches' specified.")
 
     def startHaptics(self, controller, frequency='low', amplitude=1.0):
         """Start haptic feedback (vibration).
@@ -2185,11 +2298,15 @@ class Rift(window.Window):
 
     @staticmethod
     def createPose(pos=(0., 0., 0.), ori=(0., 0., 0., 1.)):
-        """Create a new Rift pose object (``psychxr.libovr.LibOVRPose``).
+        """Create a new Rift pose object
+        (:py:class:`~psychxr.libovr.LibOVRPose`).
 
-        `LibOVRPose` is used to represent a rigid body pose mainly for use with
-        the PsychXR's LibOVR module. There are several methods associated with the
-        object to manipulate the pose.
+        :py:class:`~psychxr.libovr.LibOVRPose` is used to represent a rigid body
+        pose mainly for use with the PsychXR's LibOVR module. There are several
+        methods associated with the object to manipulate the pose.
+
+        This function exposes the :py:class:`~psychxr.libovr.LibOVRPose` class
+        so you don't need to access it by importing `psychxr`.
 
         Parameters
         ----------
@@ -2200,51 +2317,99 @@ class Rift(window.Window):
 
         Returns
         -------
-        LibOVRPose
+        :py:class:`~psychxr.libovr.LibOVRPose`
             Object representing a rigid body pose for use with LibOVR.
 
         """
         return libovr.LibOVRPose(pos, ori)
 
     @staticmethod
-    def createBoundingBox(mins=(-.5, -.5, -.5), maxs=(.5, .5, .5)):
-        """Create a new Rift pose object (``psychxr.libovr.LibOVRPose``).
+    def createBoundingBox(extents=None):
+        """Create a new bounding box object
+        (:py:class:`~psychxr.libovr.LibOVRBounds`).
 
-        `LibOVRPose` is used to represent a rigid body pose mainly for use with the
-        PsychXR's LibOVR module. There are several methods associated with the
-        object to manipulate the pose.
+        :py:class:`~psychxr.libovr.LibOVRBounds` represents an axis-aligned
+        bounding box with dimensions defined by `extents`. Bounding boxes are
+        primarily used for visibility testing and culling by `PsychXR`. The
+        dimensions of the bounding box can be specified explicitly, or fitted
+        to meshes by passing verticies to the
+        :py:meth:`~psychxr.libovr.LibOVRBounds.fit` method after initialization.
+
+        This function exposes the :py:class:`~psychxr.libovr.LibOVRBounds` class
+        so you don't need to access it by importing `psychxr`.
 
         Parameters
         ----------
-        mins, maxs : array_like
-            Extents of the bounding box. Where `mins` (x, y, z) is the minimum
-            and `maxs` (x, y, z) is the maximum extents of the bounding box in
-            world units.
+        extents : array_like or None
+            Extents of the bounding box as (`mins`, `maxs`). Where `mins`
+            (x, y, z) is the minimum and `maxs` (x, y, z) is the maximum extents
+            of the bounding box in world units. If `None` is specified, the
+            returned bounding box will be invalid. The bounding box can be later
+            constructed using the :py:meth:`~psychxr.libovr.LibOVRBounds.fit`
+            method or the :py:attr:`~psychxr.libovr.LibOVRBounds.extents`
+            attribute.
 
         Returns
         -------
-        LibOVRBounds
+        `~psychxr.libovr.LibOVRBounds`
             Object representing a bounding box.
 
+        Examples
+        --------
+        Add a bounding box to a pose::
+
+            # create a 1 meter cube bounding box centered with the pose
+            bbox = Rift.createBoundingBox(((-.5, -.5, -.5), (.5, .5, .5)))
+
+            # create a pose and attach the bounding box
+            modelPose = Rift.createPose()
+            modelPose.boundingBox = bbox
+
+        Perform visibility culling on the pose using the bounding box by
+        using the :py:meth:`~psychxr.libovr.LibOVRBounds.isVisible` method::
+
+            if hmd.isPoseVisible(modelPose):
+                modelPose.draw()
+
         """
-        return libovr.LibOVRBounds((mins, maxs))
+        return libovr.LibOVRBounds(extents)
 
-    # def getTouches(self, touchNames, stateMode='continuous'):
-    #     """Returns True if any buttons are touched using sensors. This feature
-    #     is used to estimate finger poses and can be used to read gestures. An
-    #     example of a possible use case is a pointing task, where responses are
-    #     only valid if the user's index finger is extended away from the index
-    #     trigger button.
-    #
-    #     Currently, this feature is only available with the Oculus Touch
-    #     controllers.
-    #
-    #     Returns
-    #     -------
-    #     None
-    #
-    #     """
-    #     return ovr.getTouches('Touch', touchNames, stateMode)
+    def isPoseVisible(self, pose):
+        """Check if a pose object if visible to the present eye. This method can
+        be used to perform visibility culling to avoid executing draw commands
+        for objects that fall outside the FOV for the current eye buffer.
+
+        If :py:attr:`~psychxr.libovr.LibOVRPose.boundingBox` has a valid
+        bounding box object, this function will return `False` if all the box
+        points fall completely to one side of the view frustum. If
+        :py:attr:`~psychxr.libovr.LibOVRPose.boundingBox` is `None`, the point
+        at :py:attr:`~psychxr.libovr.LibOVRPose.pos` is checked, returning
+        `False` if it falls outside of the frustum. If the present buffer is not
+        'left' or 'right', this function will always return `False`.
+
+        Parameters
+        ----------
+        pose : :py:class:`~psychxr.libovr.LibOVRPose`
+            Pose to test for visibility.
+
+        Returns
+        -------
+        bool
+            `True` if pose's bounding box or origin is outside of the view
+            frustum.
+
+        """
+        if self.buffer in ('left', 'right'):
+            return pose.isVisible(RIFT_EYE_TYPE[self.buffer])
+
+        return False
 
 
-
+def _logCallback(level, msg):
+    """Callback function for log messages generated by LibOVR."""
+    if level == libovr.LOG_LEVEL_INFO:
+        logging.info(msg)
+    elif level == libovr.LOG_LEVEL_DEBUG:
+        logging.debug(msg)
+    elif level == libovr.LOG_LEVEL_ERROR:
+        logging.error(msg)
