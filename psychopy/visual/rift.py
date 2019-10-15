@@ -42,7 +42,7 @@ import ctypes
 import numpy as np
 import pyglet.gl as GL
 from psychopy.visual import window
-from psychopy import platform_specific, logging
+from psychopy import platform_specific, logging, core
 from psychopy.tools.attributetools import setAttribute
 
 reportNDroppedFrames = 5
@@ -278,6 +278,7 @@ class Rift(window.Window):
 
         self.autoUpdateInput = autoUpdateInput
 
+        # performance statisitics
         # this can be changed while running
         self.warnAppFrameDropped = warnAppFrameDropped
 
@@ -309,6 +310,12 @@ class Rift(window.Window):
         if libovr.failure(libovr.create()):
             _, msg = libovr.getLastErrorInfo()
             raise LibOVRError(msg)
+
+        if libovr.failure(libovr.resetPerfStats()):
+            logging.warn('Failed to reset performance stats.')
+
+        self._perfStats = libovr.getPerfStats()
+        self._lastAppDroppedFrameCount = 0
 
         # update session status object
         _, status = libovr.getSessionStatus()
@@ -447,18 +454,28 @@ class Rift(window.Window):
     def close(self):
         """Close the window and cleanly shutdown the LibOVR session.
         """
+        logging.info('Closing `Rift` window, de-allocating resources and '
+                     'shutting down.')
+
+        # switch off persistent HUD features
+        self.perfHudMode('Off')
+        self.stereoDebugHudMode('Off')
+
         # clean up allocated LibOVR resources before closing the window
+        logging.debug('Destroying mirror texture.')
         libovr.destroyMirrorTexture()
+        logging.debug('Destroying texture GL swap chain.')
         libovr.destroyTextureSwapChain(libovr.TEXTURE_SWAP_CHAIN0)
+        logging.debug('Destroying LibOVR session.')
         libovr.destroy()
 
         # start closing the window
         self._closed = True
+        logging.debug('Closing window associated with LibOVR session.')
         self.backend.close()
 
         try:
-            global openWindows
-            openWindows.remove(self)
+            core.openWindows.remove(self)
         except Exception:
             pass
 
@@ -467,13 +484,14 @@ class Rift(window.Window):
         except Exception:
             pass
 
+        # shutdown the session completely
+        libovr.shutdown()
+        logging.info('LibOVR session shutdown cleanly.')
+
         try:
             logging.flush()
         except Exception:
             pass
-
-        # shutdown the session completely
-        libovr.shutdown()
 
     @property
     def size(self):
@@ -515,11 +533,15 @@ class Rift(window.Window):
 
         """
         result = libovr.setInt(libovr.PERF_HUD_MODE, RIFT_PERF_HUD_MODES[mode])
-        logging.info("Performance HUD mode set to '{}'.".format(mode))
+        if libovr.success(result):
+            logging.info("Performance HUD mode set to '{}'.".format(mode))
+        else:
+            logging.error('Failed to set performance HUD mode to "{}".'.format(
+                mode))
 
     def hidePerfHud(self):
         """Hide the performance HUD."""
-        result = libovr.setInt(libovr.PERF_HUD_MODE, libovr.PERF_HUD_OFF)
+        libovr.setInt(libovr.PERF_HUD_MODE, libovr.PERF_HUD_OFF)
         logging.info('Performance HUD disabled.')
 
     def stereoDebugHudMode(self, mode):
@@ -591,7 +613,6 @@ class Rift(window.Window):
             hmd.setStereoDebugHudOption('Position', [0.0, 1.7, -2.0])
 
         """
-
         if option == 'InfoEnable':
             result = libovr.setBool(
                 libovr.DEBUG_HUD_STEREO_GUIDE_INFO_ENABLE, value)
@@ -641,7 +662,6 @@ class Rift(window.Window):
 
         Examples
         --------
-
         Generate your own eye poses. These are used when
         :py:method:`calcEyePoses` is called::
 
@@ -654,8 +674,7 @@ class Rift(window.Window):
 
         """
         eyeToNoseDist = np.zeros((2,), dtype=np.float32)
-        result = libovr.getFloatArray(libovr.KEY_EYE_TO_NOSE_DISTANCE,
-                                      eyeToNoseDist)
+        libovr.getFloatArray(libovr.KEY_EYE_TO_NOSE_DISTANCE, eyeToNoseDist)
 
         return eyeToNoseDist
 
@@ -1633,6 +1652,9 @@ class Rift(window.Window):
         result, status = libovr.getSessionStatus()
         self._sessionStatus = status
 
+        # get performance stats for the last frame
+        self._updatePerfStats()
+
         # Wait for the buffer to be freed by the compositor, this is like
         # waiting for v-sync.
         result = libovr.waitToBeginFrame(self._frameIndex)
@@ -2432,6 +2454,32 @@ class Rift(window.Window):
             return pose.isVisible(libovr.EYE_RIGHT)
 
         return False
+
+    def _updatePerfStats(self):
+        """Update and process performance statistics obtained from LibOVR. This
+        should be called at the beginning of each frame to get the stats of the
+        last frame.
+
+        This is called automatically when
+        :py:meth:`~psychopy.visual.Rift._waitToBeginHmdFrame` is called at the
+        beginning of each frame.
+
+        """
+        # update perf stats
+        self._perfStats = libovr.getPerfStats()
+
+        # if we have more >1 stat available, process the stats
+        if self._perfStats.frameStatsCount > 0:
+            recentStat = self._perfStats.frameStats[0]  # get the most recent
+            # check for dropped frames since last call
+            if self.warnAppFrameDropped:
+                appDroppedFrameCount = recentStat.appDroppedFrameCount
+                if appDroppedFrameCount > self._lastAppDroppedFrameCount:
+                    logging.warn(
+                        'Application failed to meet deadline to submit frame '
+                        'to HMD ({}).'.format(self._frameIndex))
+
+                self._lastAppDroppedFrameCount = appDroppedFrameCount
 
 
 def _logCallback(level, msg):
