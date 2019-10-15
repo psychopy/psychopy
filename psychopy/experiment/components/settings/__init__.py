@@ -863,7 +863,7 @@ class SettingsComponent(object):
         buff.writeIndentedLines(recordLoopIterationFunc)
         quitFunc = ("\nfunction quitPsychoJS(message, isCompleted) {\n"
                     "  // Check for and save orphaned data\n"
-                    "  if (psychoJS.experiment.isEntryEmtpy()) {\n"
+                    "  if (psychoJS.experiment.isEntryEmpty()) {\n"
                     "    psychoJS.experiment.nextEntry();\n"
                     "  }\n"
                     "  psychoJS.window.close();\n"

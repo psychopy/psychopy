@@ -304,9 +304,9 @@ class Flow(list):
                             .format(name=thisEntry.loop.params['name'].val))
                     loopStack.append(thisEntry.loop)
                 elif thisEntry.getType() == "Routine":
-                    code = ("flowScheduler.add({params[name]}RoutineBegin);\n"
-                            "flowScheduler.add({params[name]}RoutineEachFrame);\n"
-                            "flowScheduler.add({params[name]}RoutineEnd);\n"
+                    code = ("flowScheduler.add({params[name]}RoutineBegin());\n"
+                            "flowScheduler.add({params[name]}RoutineEachFrame());\n"
+                            "flowScheduler.add({params[name]}RoutineEnd());\n"
                             .format(params=thisEntry.params))
             else:  # we are already in a loop so don't code here just count
                 code = ""
