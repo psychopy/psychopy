@@ -8,7 +8,7 @@ contours.
 """
 from psychopy import core
 import psychopy.visual as visual
-from psychopy.visual.pie import Pie
+from psychopy.visual import Pie
 from psychopy import event
 
 # open a window to render the shape
