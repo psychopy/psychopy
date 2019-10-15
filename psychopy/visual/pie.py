@@ -160,8 +160,7 @@ class Pie(BaseShapeStim):
 
     @attributeSetter
     def radius(self, value):
-        """int or float.
-        Radius of the shape in `units` (`float` or `int`).
+        """Radius of the shape in `units` (`float` or `int`).
 
         :ref:`Operations <attrib-operations>` supported.
         """
