@@ -245,7 +245,6 @@ class Experiment(object):
             # functions that may or may not get called later.
             # Do the Routines of the experiment first
             routinesToWrite = list(self_copy.routines)
-            loopDepth = 0
             for thisItem in self_copy.flow:
                 if thisItem.getType() in ['LoopInitiator', 'LoopTerminator']:
                     self_copy.flow.writeLoopHandlerJS(script, modular)
