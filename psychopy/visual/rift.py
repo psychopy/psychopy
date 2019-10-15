@@ -367,7 +367,7 @@ class Rift(window.Window):
 
         # buffer viewport size
         self._hmdBufferSize = hmdBufferWidth, hmdBufferHeight
-        logging.info(
+        logging.debug(
             'Required HMD buffer size is {}x{}.'.format(*self._hmdBufferSize))
 
         # Calculate the swap texture size. These can differ in later
@@ -388,12 +388,12 @@ class Rift(window.Window):
             rightViewport = (0, 0, texSizeRight[0], texSizeRight[1])
 
         libovr.setEyeRenderViewport(libovr.EYE_LEFT, leftViewport)
-        logging.info(
+        logging.debug(
             'Set left eye viewport to: x={}, y={}, w={}, h={}.'.format(
                 *leftViewport))
 
         libovr.setEyeRenderViewport(libovr.EYE_RIGHT, rightViewport)
-        logging.info(
+        logging.debug(
             'Set right eye viewport to: x={}, y={}, w={}, h={}.'.format(
                 *rightViewport))
 
@@ -1770,9 +1770,9 @@ class Rift(window.Window):
         Notes
         -----
 
-        * The HMD compositor and application are asynchronous, therefore there is
-          no guarantee that the timestamp returned by 'flip' corresponds to the
-          exact vertical retrace time of the HMD.
+        * The HMD compositor and application are asynchronous, therefore there
+          is no guarantee that the timestamp returned by 'flip' corresponds to
+          the exact vertical retrace time of the HMD.
 
         """
         # NOTE: Most of this code is shared with the regular Window's flip
@@ -1922,9 +1922,9 @@ class Rift(window.Window):
                         ctypes.POINTER(ctypes.c_float)))
 
     def multiplyProjectionMatrixGL(self):
-        """Multiply the current projection modelMatrix obtained from the SDK using
-        ``glMultMatrixf``. The modelMatrix used depends on the current eye buffer set
-        by :func:`setBuffer`.
+        """Multiply the current projection modelMatrix obtained from the SDK
+        using ``glMultMatrixf``. The projection matrix used depends on the
+        current eye buffer set by :func:`setBuffer`.
 
         """
         if not self._legacyOpenGL:
