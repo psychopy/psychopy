@@ -4,6 +4,10 @@
 
 .. currentmodule:: psychopy.tools.rifttools
 
+Various tools for working with the :py:class:`~psychopy.visual.rift.Rift` class.
+The documentation for classes in on this page originate from PsychXR and may
+make references to functions and objects not included with PsychoPy.
+
 Overview
 ========
 
@@ -12,6 +16,8 @@ Classes
 
 These classes are included with PsychXR to use with the LibOVR interface. They
 can be accessed from this module to avoid needing to explicitly import PsychXR.
+If PsychXR is not available on the system, these classes will have values
+`None`.
 
 .. autosummary::
     LibOVRPose
