@@ -1,8 +1,8 @@
 :class:`Rift`
 -------------
 
-Attributes
-=============
+Overview
+========
 
 .. currentmodule:: psychopy.visual
 
@@ -47,7 +47,7 @@ Attributes
     Rift.raycastSphere
         
 Details
-=============
+=======
 
 .. autoclass:: Rift
     :members:
