@@ -84,6 +84,12 @@ from psychopy.visual.textbox import TextBox
 
 # rift support 
 from psychopy.visual.rift import Rift
+from psychopy.visual.rift import LibOVRPose
+from psychopy.visual.rift import LibOVRPoseState
+from psychopy.visual.rift import LibOVRBounds
+from psychopy.visual.rift import LibOVRHapticsBuffer
+
+
 """
 try:
     from psychopy.contrib.lazy_import import lazy_import

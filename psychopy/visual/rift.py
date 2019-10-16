@@ -15,7 +15,11 @@ Facebook Technologies, LLC and its affiliates. All rights reserved.
 # Copyright (C) 2018 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
-__all__ = ['Rift']
+__all__ = ['Rift',
+           'LibOVRPose',
+           'LibOVRPoseState',
+           'LibOVRBounds',
+           'LibOVRHapticsBuffer']
 
 # ----------
 # Initialize
@@ -49,7 +53,7 @@ reportNDroppedFrames = 5
 
 # -------------------------------------------
 # Look-up tables for PsychXR/LibOVR constants
-# -------------------------------------------
+#
 
 # Controller types supported by PsychXR
 RIFT_CONTROLLER_TYPES = {
@@ -164,6 +168,24 @@ RIFT_MIRROR_MODES = {
 # eye types
 RIFT_EYE_TYPE = {'left': libovr.EYE_LEFT, 'right': libovr.EYE_RIGHT}
 
+# ------------------------------------------------------------------------------
+# PsychXR LibOVR primitives.
+#
+# These are exposed here so users don't need to import PsychXR to use them.
+# However, they need to visit http://psychxr.org to get documentation.
+#
+
+LibOVRPose = libovr.LibOVRPose
+LibOVRPoseState = libovr.LibOVRPoseState
+LibOVRBounds = libovr.LibOVRBounds
+LibOVRHapticsBuffer = libovr.LibOVRHapticsBuffer
+
+# ------------------------------------------------------------------------------
+# LibOVR Error Handler
+#
+# Exceptions raised by LibOVR will wrapped with this Python exception. This will
+# display the error string passed from LibOVR.
+#
 
 class LibOVRError(Exception):
     """Exception for LibOVR errors."""
@@ -262,7 +284,7 @@ class Rift(window.Window):
         """
         if not _HAS_PSYCHXR_:
             raise ModuleNotFoundError(
-                "PsychXR must be installed to use the Rift class. Exiting.")
+                "PsychXR must be installed to use the `Rift` class. Exiting.")
 
         self._closed = False
         self._legacyOpenGL = legacyOpenGL
@@ -284,12 +306,12 @@ class Rift(window.Window):
 
         # check if we are using Windows
         if platform.system() != 'Windows':
-            raise RuntimeError("Rift class only supports Windows OS at this " +
+            raise RuntimeError("`Rift` class only supports Windows OS at this " +
                                "time, exiting.")
 
         # check if we are using 64-bit Python
         if platform.architecture()[0] != '64bit':  # sys.maxsize != 2**64
-            raise RuntimeError("Rift class only supports 64-bit Python, " +
+            raise RuntimeError("`Rift` class only supports 64-bit Python, " +
                                "exiting.")
 
         # check if the background service is running and an HMD is connected
@@ -308,6 +330,7 @@ class Rift(window.Window):
             raise LibOVRError(msg)
 
         if libovr.failure(libovr.create()):
+            libovr.shutdown()  # shutdown the session
             _, msg = libovr.getLastErrorInfo()
             raise LibOVRError(msg)
 
@@ -455,7 +478,7 @@ class Rift(window.Window):
         """Close the window and cleanly shutdown the LibOVR session.
         """
         logging.info('Closing `Rift` window, de-allocating resources and '
-                     'shutting down.')
+                     'shutting down VR session.')
 
         # switch off persistent HUD features
         self.perfHudMode('Off')
@@ -813,7 +836,7 @@ class Rift(window.Window):
 
         Returns
         -------
-        LibOVRTrackerInfo
+        :py:class:`~psychxr.libovr.LibOVRTrackerInfo`
             Object containing tracker information.
 
         Raises
@@ -980,9 +1003,9 @@ class Rift(window.Window):
 
         Calling this function retrieves the tracking state of the head (HMD)
         and hands at `absTime` from the `LibOVR` runtime. The returned object is
-        a `LibOVRTrackingState` instance with poses, motion derivatives (i.e.
-        linear and angular velocity/acceleration), and tracking status flags
-        accessible through its attributes.
+        a :py:class:`~psychxr.libovr.LibOVRTrackingState` instance with poses,
+        motion derivatives (i.e. linear and angular velocity/acceleration), and
+        tracking status flags accessible through its attributes.
 
         The pose states of the head and hands are available by accessing the
         `headPose` and `handPoses` attributes, respectively.
@@ -998,7 +1021,7 @@ class Rift(window.Window):
 
         Returns
         -------
-        LibOVRTrackingState
+        :py:class:`~psychxr.libovr.LibOVRTrackingState`
             Tracking state object. For more information about this type see:
 
         See Also
@@ -1034,11 +1057,22 @@ class Rift(window.Window):
             vx, vy, vz = linearVel
             ax, ay, az = angularVel
 
-        Checking if head position and orientation tracking was valid when
-        sampled::
+        Above is useful for physics simulations, where one can compute the
+        magnitude and direction of a force applied to a virtual object.
+
+        It's often the case that object tracking becomes unreliable for some
+        reason, for instance, if it becomes occluded and is no longer visible to
+        the sensors. In such cases, the reported pose state is invalid and may
+        not be useful. You can check if the position and orientation of a
+        tracked object is invalid using flags associated with the tracking
+        state. This shows how to check if head position and orientation tracking
+        was valid when sampled::
 
             if trackingState.positionValid and trackingState.orientationValid:
                 print('Tracking valid.')
+
+        It's upto the programmer to determine what to do in such cases. Note
+        that tracking may still be valid even if
 
         Get the calibrated origin used for tracking during the sample period
         of the tracking state::
@@ -1071,7 +1105,13 @@ class Rift(window.Window):
             hmd.calcEyePoses(headPosePredicted)
 
         The resulting head pose is usually very close to what `getTrackingState`
-        would return if the predicted time was used.
+        would return if the predicted time was used. Simple forward prediction
+        with time integration becomes increasingly unstable as the prediction
+        interval increases. Under normal circumstances, let the runtime handle
+        forward prediction by using the pose states returned at the predicted
+        display time. If you plan on doing your own forward prediction, you need
+        enable head-locking, clamp the prediction interval, and apply some sort
+        of smoothing to keep the image as stable as possible.
 
         """
         if absTime is None:

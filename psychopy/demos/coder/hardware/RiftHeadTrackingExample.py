@@ -19,7 +19,7 @@ hmd = visual.Rift(samples=1)
 # the scene. The position of the triangle will be 2 meters away from the user at
 # eye height which we obtain from the HMD's settings.
 trianglePosition = (0., hmd.eyeHeight, -2.)
-trianglePose = visual.Rift.createPose(trianglePosition)
+trianglePose = visual.LibOVRPose(trianglePosition)
 
 # convert the pose to a view transformation matrix
 translationMatrix = trianglePose.getModelMatrix()
