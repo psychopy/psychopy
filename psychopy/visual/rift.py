@@ -49,6 +49,11 @@ from psychopy.visual import window
 from psychopy import platform_specific, logging, core
 from psychopy.tools.attributetools import setAttribute
 
+try:
+    from PIL import Image
+except ImportError:
+    import Image
+
 reportNDroppedFrames = 5
 
 # -------------------------------------------
@@ -215,7 +220,6 @@ class Rift(window.Window):
             *args,
             **kwargs):
         """
-
         Parameters
         ----------
         fovType : str
@@ -242,7 +246,8 @@ class Rift(window.Window):
             details particularly in the periphery.
         nearClip, farClip : float
             Location of the near and far clipping plane in GL units (meters by
-            default) from the viewer.
+            default) from the viewer. These values can be updated after
+            initialization.
         monoscopic : bool
             Enable monoscopic rendering mode which presents the same image to
             both eyes. Eye poses used will be both centered at the HMD origin.
@@ -1600,6 +1605,26 @@ class Rift(window.Window):
             return self._viewMatrix
 
     @property
+    def nearClip(self):
+        """Distance to the near clipping plane in meters."""
+        return self._nearClip
+
+    @nearClip.setter
+    def nearClip(self, value):
+        self._nearClip = value
+        self._updateProjectionMatrix()
+
+    @property
+    def farClip(self):
+        """Distance to the far clipping plane in meters."""
+        return self._farClip
+
+    @farClip.setter
+    def farClip(self, value):
+        self._farClip = value
+        self._updateProjectionMatrix()
+
+    @property
     def projectionMatrix(self):
         """Get the projection matrix for the current eye buffer. Note that
         setting `projectionMatrix` manually will break visibility culling.
@@ -2053,6 +2078,76 @@ class Rift(window.Window):
                 self._nearClip,
                 self._farClip,
                 self._projectionMatrix)
+
+    def _getFrame(self, rect=None, buffer='front'):
+        """Return the current Window as an image.
+        """
+        # GL.glLoadIdentity()
+        # do the reading of the pixels
+        if buffer == 'back' and self.useFBO:
+            GL.glReadBuffer(GL.GL_COLOR_ATTACHMENT0_EXT)
+        elif buffer == 'back':
+            GL.glReadBuffer(GL.GL_BACK)
+        elif buffer == 'front':
+            if self.useFBO:
+                GL.glBindFramebufferEXT(GL.GL_FRAMEBUFFER_EXT, 0)
+            GL.glReadBuffer(GL.GL_FRONT)
+        elif buffer == 'mirror':
+            result, mirrorTexId = libovr.getMirrorTexture()
+            if libovr.failure(result):
+                _, msg = libovr.getLastErrorInfo()
+                raise LibOVRError(msg)
+
+            GL.glBindFramebuffer(GL.GL_FRAMEBUFFER, self._mirrorFbo)
+
+            GL.glEnable(GL.GL_FRAMEBUFFER_SRGB)
+            # bind the rift's texture to the framebuffer
+            GL.glFramebufferTexture2D(
+                GL.GL_READ_FRAMEBUFFER,
+                GL.GL_COLOR_ATTACHMENT0,
+                GL.GL_TEXTURE_2D, mirrorTexId, 0)
+        else:
+            raise ValueError("Requested read from buffer '{}' but should be "
+                             "'front' or 'back'".format(buffer))
+
+        if rect:
+            if buffer != 'mirror':
+                x, y = self.size  # of window, not image
+            else:
+                x, y = self._mirrorRes
+
+            # box corners in pix
+            left = int((rect[0] / 2. + 0.5) * x)
+            top = int((rect[1] / -2. + 0.5) * y)
+            w = int((rect[2] / 2. + 0.5) * x) - left
+            h = int((rect[3] / -2. + 0.5) * y) - top
+        else:
+            left = top = 0
+            if buffer != 'mirror':
+                w, h = self.size  # of window, not image
+            else:
+                w, h = self._mirrorRes
+
+        # http://www.opengl.org/sdk/docs/man/xhtml/glGetTexImage.xml
+        bufferDat = (GL.GLubyte * (4 * w * h))()
+        GL.glReadPixels(left, top, w, h,
+                        GL.GL_RGBA, GL.GL_UNSIGNED_BYTE, bufferDat)
+        try:
+            im = Image.fromstring(mode='RGBA', size=(w, h),
+                                  data=bufferDat)
+        except Exception:
+            im = Image.frombytes(mode='RGBA', size=(w, h),
+                                 data=bufferDat)
+
+        im = im.transpose(Image.FLIP_TOP_BOTTOM)
+        im = im.convert('RGB')
+
+        if self.buffer is not None:
+            self.setBuffer(self.buffer, clear=False)  # go back to previous buffer
+        else:
+            GL.glBindFramebufferEXT(GL.GL_FRAMEBUFFER_EXT, self.frameBuffer)
+
+        return im
 
     def getThumbstickValues(self, controller='Xbox', deadzone=False):
         """Get controller thumbstick values.
