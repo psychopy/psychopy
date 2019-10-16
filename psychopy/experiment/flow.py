@@ -323,14 +323,14 @@ class Flow(list):
         script.writeIndentedLines(code)
 
         # Write resource list
-        resourceFiles = self.exp.getResourceFiles()
+        resourceFiles = set([resource['rel'] for resource in self.exp.getResourceFiles()])
         script.writeIndented("psychoJS.start({expName, expInfo, resources: [\n")
         script.setIndentLevel(1, relative=True)
         code = ""
-        for i, resource in enumerate(resourceFiles):
-            temp = "{{'name': '{0}', 'path': 'resources/{0}'}}".format(resource['rel'])
+        for idx, resource in enumerate(resourceFiles):
+            temp = "{{'name': '{0}', 'path': 'resources/{0}'}}".format(resource)
             code += temp
-            if i != (len(resourceFiles)-1):
+            if idx != (len(resourceFiles)-1):
                 code += ",\n"  # Trailing comma
         script.writeIndentedLines(code)
         script.setIndentLevel(-1, relative=True)
