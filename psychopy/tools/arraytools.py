@@ -195,15 +195,20 @@ def val2array(value, withNone=True, withScalar=True, length=2):
 
 
 def array2pointer(arr, dtype=None):
-    """Convert a contiguous Numpy array to a `ctypes` pointer.
+    """Convert a Numpy array to a `ctypes` pointer.
+
+    Arrays are checked if they are contiguous before conversion, if not, they
+    will be converted to contiguous arrays.
 
     Parameters
     ----------
     arr : ndarray
         N-dimensions array to convert, should be contiguous (C-ordered).
     dtype : str or dtype, optional
-        Data type to convert the array to. If `None` is specified, the data type
-        for the pointer will be implied from the input array type.
+        Data type for the array pointer. If the data type of the array does not
+        match `dtype`, it will be converted to `dtype` prior to using it. If
+        `None` is specified, the data type for the pointer will be implied from
+        the input array type.
 
     Returns
     -------
