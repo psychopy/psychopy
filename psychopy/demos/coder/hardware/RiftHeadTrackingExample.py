@@ -5,7 +5,7 @@
 # This file is public domain.
 #
 from psychopy import visual, event, core, logging
-from psychopy.tools import arraytools
+from psychopy.tools import arraytools, rifttools
 import pyglet.gl as GL
 import ctypes
 logging.console.setLevel(logging.DEBUG)
@@ -19,7 +19,7 @@ hmd = visual.Rift(samples=1)
 # the scene. The position of the triangle will be 2 meters away from the user at
 # eye height which we obtain from the HMD's settings.
 trianglePosition = (0., hmd.eyeHeight, -2.)
-trianglePose = visual.LibOVRPose(trianglePosition)
+trianglePose = rifttools.LibOVRPose(trianglePosition)
 
 # convert the pose to a view transformation matrix
 translationMatrix = trianglePose.getModelMatrix()
@@ -85,6 +85,7 @@ while not stopApp:
         stopApp = True
     elif event.getKeys('r') or hmd.shouldRecenter:
         hmd.recenterTrackingOrigin()
+
 
 # cleanly end the session
 core.quit()
