@@ -1710,7 +1710,7 @@ class Rift(window.Window):
 
         # Wait for the buffer to be freed by the compositor, this is like
         # waiting for v-sync.
-        result = libovr.waitToBeginFrame(self._frameIndex)
+        libovr.waitToBeginFrame(self._frameIndex)
 
         # update input states
         if self.autoUpdateInput:
@@ -2289,7 +2289,7 @@ class Rift(window.Window):
                 buttons,
                 testState)
         else:
-            ValueError("Invalid 'buttons' specified.")
+            raise ValueError("Invalid 'buttons' specified.")
 
     def getTouches(self, touches, controller='Touch', testState='continuous'):
         """Get touch states from a controller.
@@ -2359,7 +2359,7 @@ class Rift(window.Window):
                 touches,
                 testState)
         else:
-            ValueError("Invalid 'touches' specified.")
+            raise ValueError("Invalid 'touches' specified.")
 
     def startHaptics(self, controller, frequency='low', amplitude=1.0):
         """Start haptic feedback (vibration).
