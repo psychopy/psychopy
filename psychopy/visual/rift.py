@@ -15,11 +15,7 @@ Facebook Technologies, LLC and its affiliates. All rights reserved.
 # Copyright (C) 2018 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
-__all__ = ['Rift',
-           'LibOVRPose',
-           'LibOVRPoseState',
-           'LibOVRBounds',
-           'LibOVRHapticsBuffer']
+__all__ = ['Rift']
 
 # ----------
 # Initialize
@@ -255,7 +251,8 @@ class Rift(window.Window):
             displays rectilinear images of both eyes side-by-side.
         mirrorRes : list of int
             Resolution of the mirror texture. If `None`, the resolution will
-            match the window size.
+            match the window size. The value of `mirrorRes` is used for to
+            define the resolution of movie frames.
         warnAppFrameDropped : bool
             Log a warning if the application drops a frame. This occurs when
             the application fails to submit a frame to the compositor on-time.
@@ -289,7 +286,6 @@ class Rift(window.Window):
         self._samples = samples
         self._mirrorRes = mirrorRes
         self._mirrorMode = mirrorMode
-        self._drawMirrorTex = True
 
         self.autoUpdateInput = autoUpdateInput
 
@@ -1803,7 +1799,7 @@ class Rift(window.Window):
         # This always returns True
         return True
 
-    def flip(self, clearBuffer=True):
+    def flip(self, clearBuffer=True, drawMirror=True):
         """Submit view buffer images to the HMD's compositor for display at next
         V-SYNC and draw the mirror texture to the on-screen window. This must
         be called every frame.
@@ -1812,6 +1808,8 @@ class Rift(window.Window):
         ----------
         clearBuffer : bool
             Clear the frame after flipping.
+        drawMirror : bool
+            Draw the HMD mirror texture from the compositor to the window.
 
         Returns
         -------
@@ -1855,7 +1853,7 @@ class Rift(window.Window):
 
             # draw the mirror texture, if not anything drawn to the backbuffer
             # will be displayed instead
-            if self._drawMirrorTex:
+            if drawMirror:
                 # blit mirror texture
                 GL.glBindFramebuffer(GL.GL_READ_FRAMEBUFFER, self._mirrorFbo)
                 GL.glBindFramebuffer(GL.GL_DRAW_FRAMEBUFFER, 0)
@@ -2067,20 +2065,60 @@ class Rift(window.Window):
                 self._farClip,
                 self._projectionMatrix)
 
-    def _getFrame(self, rect=None, buffer='front'):
-        """Return the current Window as an image.
+    def getMovieFrame(self, buffer='mirror'):
+        """Capture the current HMD frame as an image.
+
+        Saves to stack for :py:attr:`~Window.saveMovieFrames()`. As of v1.81.00
+        this also returns the frame as a PIL image.
+
+        This can be done at any time (usually after a :py:attr:`~Window.flip()`
+        command).
+
+        Frames are stored in memory until a :py:attr:`~Window.saveMovieFrames()`
+        command is issued. You can issue :py:attr:`~Window.getMovieFrame()` as
+        often as you like and then save them all in one go when finished.
+
+        For HMD frames, you should call `getMovieFrame` after calling `flip` to
+        ensure that the mirror texture saved reflects what is presently being
+        shown on the HMD. Note, that this function is somewhat slow and may
+        impact performance. Only call this function when you're not collecting
+        experimental data.
+
+        Parameters
+        ----------
+        buffer : str, optional
+            Buffer to capture. For the HMD, only 'mirror' is available at this
+            time.
+
+        Returns
+        -------
+        Image
+            Buffer pixel contents as a PIL/Pillow image object.
+
         """
-        # GL.glLoadIdentity()
-        # do the reading of the pixels
-        if buffer == 'back' and self.useFBO:
-            GL.glReadBuffer(GL.GL_COLOR_ATTACHMENT0_EXT)
-        elif buffer == 'back':
-            GL.glReadBuffer(GL.GL_BACK)
-        elif buffer == 'front':
-            if self.useFBO:
-                GL.glBindFramebufferEXT(GL.GL_FRAMEBUFFER_EXT, 0)
-            GL.glReadBuffer(GL.GL_FRONT)
-        elif buffer == 'mirror':
+        im = self._getFrame(buffer=buffer)
+        self.movieFrames.append(im)
+        return im
+
+    def _getFrame(self, rect=None, buffer='mirror'):
+        """Return the current HMD view as an image.
+
+        Parameters
+        ----------
+        rect : array_like
+            Rectangle [x, y, w, h] defining a sub-region of the frame to
+            capture. This should remain `None` for HMD frames.
+        buffer : str, optional
+            Buffer to capture. For the HMD, only 'mirror' is available at this
+            time.
+
+        Returns
+        -------
+        Image
+            Buffer pixel contents as a PIL/Pillow image object.
+
+        """
+        if buffer == 'mirror':
             result, mirrorTexId = libovr.getMirrorTexture()
             if libovr.failure(result):
                 _, msg = libovr.getLastErrorInfo()
@@ -2096,13 +2134,10 @@ class Rift(window.Window):
                 GL.GL_TEXTURE_2D, mirrorTexId, 0)
         else:
             raise ValueError("Requested read from buffer '{}' but should be "
-                             "'front' or 'back'".format(buffer))
+                             "'mirror'.".format(buffer))
 
         if rect:
-            if buffer != 'mirror':
-                x, y = self.size  # of window, not image
-            else:
-                x, y = self._mirrorRes
+            x, y = self._mirrorRes
 
             # box corners in pix
             left = int((rect[0] / 2. + 0.5) * x)
@@ -2111,10 +2146,7 @@ class Rift(window.Window):
             h = int((rect[3] / -2. + 0.5) * y) - top
         else:
             left = top = 0
-            if buffer != 'mirror':
-                w, h = self.size  # of window, not image
-            else:
-                w, h = self._mirrorRes
+            w, h = self.size  # of window, not image
 
         # http://www.opengl.org/sdk/docs/man/xhtml/glGetTexImage.xml
         bufferDat = (GL.GLubyte * (4 * w * h))()
