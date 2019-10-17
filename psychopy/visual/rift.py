@@ -174,18 +174,6 @@ RIFT_MIRROR_MODES = {
 RIFT_EYE_TYPE = {'left': libovr.EYE_LEFT, 'right': libovr.EYE_RIGHT}
 
 # ------------------------------------------------------------------------------
-# PsychXR LibOVR primitives.
-#
-# These are exposed here so users don't need to import PsychXR to use them.
-# However, they need to visit http://psychxr.org to get documentation.
-#
-
-LibOVRPose = libovr.LibOVRPose
-LibOVRPoseState = libovr.LibOVRPoseState
-LibOVRBounds = libovr.LibOVRBounds
-LibOVRHapticsBuffer = libovr.LibOVRHapticsBuffer
-
-# ------------------------------------------------------------------------------
 # LibOVR Error Handler
 #
 # Exceptions raised by LibOVR will wrapped with this Python exception. This will
