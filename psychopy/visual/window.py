@@ -1209,8 +1209,9 @@ class Window(object):
 
     @property
     def ambientLight(self):
-        """Ambient light color for the scene [r, g, b, a]. Value range from 0.0
+        """Ambient light color for the scene [r, g, b, a]. Values range from 0.0
         to 1.0. Only applicable if `useLights` is `True`."""
+        # TODO - use signed color and colorspace instead
         return self._ambientLight
 
     @ambientLight.setter
@@ -1229,6 +1230,14 @@ class Window(object):
         lighting/shading on subsequent objects. If `lights` is `None` or an
         empty `list`, no lights will be enabled if `useLights=True`, however,
         the ambient light set with `ambientLight` will be used.
+
+        Legacy lights are transformed by the present `GL_MODELVIEW` matrix.
+        Setting `lights` will result in their positions being transformed by it.
+        If you want lights to appear at the specified positions in world space,
+        make sure the current matrix defines the view/eye transformation when
+        setting `lights`. This does not affect directional lights unless the
+        matrix has a rotation. This transformation does not affect positions of
+        lights in shaders, as the transformation in explicitly done.
 
         Examples
         --------

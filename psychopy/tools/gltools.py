@@ -2806,9 +2806,9 @@ class LightSource(object):
     """
     def __init__(self,
                  pos=(0., 0., 0., 1.),
-                 diffuse=(1., 1., 1., 1.),
-                 specular=(1., 1., 1., 1.),
-                 ambient=(.2, .2, .2, 1.)):
+                 diffuse=(1., 1., 1.),
+                 specular=(1., 1., 1.),
+                 ambient=(0., 0., 0.)):
         """
         Parameters
         ----------
@@ -2820,16 +2820,21 @@ class LightSource(object):
             light source is coming from. For instance, a vector of (0, 1, 0, 0)
             will indicate that a light source is coming from above.
         diffuse : array_like
-            Diffuse light color (r, g, b, a) with values between 0.0 and 1.0.
+            Diffuse light color (r, g, b) with values between 0.0 and 1.0.
         specular : array_like
-            Specular light color (r, g, b, a) with values between 0.0 and 1.0.
+            Specular light color (r, g, b) with values between 0.0 and 1.0.
         ambient : array_like
-            Ambient light color (r, g, b, a) with values between 0.0 and 1.0.
+            Ambient light color (r, g, b) with values between 0.0 and 1.0.
         """
-        self._pos = np.asarray(pos, np.float32)
-        self._diffuse = np.asarray(diffuse, np.float32)
-        self._specular = np.asarray(specular, np.float32)
-        self._ambient = np.asarray(ambient, np.float32)
+        self._pos = np.zeros((4,), np.float32)
+        self._diffuse = np.zeros((4,), np.float32)
+        self._specular = np.zeros((4,), np.float32)
+        self._ambient = np.zeros((4,), np.float32)
+
+        self.pos = pos
+        self.diffuse = diffuse
+        self.specular = specular
+        self.ambient = ambient
 
     @property
     def pos(self):
@@ -2841,7 +2846,7 @@ class LightSource(object):
 
     @property
     def diffuse(self):
-        return self._diffuse
+        return self._diffuse[:3]
 
     @diffuse.setter
     def diffuse(self, value):
@@ -2849,7 +2854,7 @@ class LightSource(object):
 
     @property
     def specular(self):
-        return self._specular
+        return self._specular[:3]
 
     @specular.setter
     def specular(self, value):
@@ -2857,7 +2862,7 @@ class LightSource(object):
 
     @property
     def ambient(self):
-        return self._ambient
+        return self._ambient[:3]
 
     @ambient.setter
     def ambient(self, value):
