@@ -1209,8 +1209,8 @@ class Window(object):
 
     @property
     def ambientLight(self):
-        """Ambient light color for the scene [r, g, b, a] with values ranging
-        from 0.0 to 1.0. Only applicable if `useLights` is `True`."""
+        """Ambient light color for the scene [r, g, b, a]. Value range from 0.0
+        to 1.0. Only applicable if `useLights` is `True`."""
         return self._ambientLight
 
     @ambientLight.setter
@@ -1223,10 +1223,11 @@ class Window(object):
     def lights(self):
         """Scene lights.
 
-        This is specified as an array of `LightSource` objects. Set `useLights`
-        to `True` before rendering to enable lighting/shading on subsequent
-        objects. If `lights` is `None` or an empty `list`, no lights will be
-        enabled.
+        This is specified as an array of `~psychopy.tools.gltools.LightSource`
+        objects, if a single value is give, it will be converted to a `list`
+        before setting. Set `useLights` to `True` before rendering to enable
+        lighting/shading on subsequent objects. If `lights` is `None` or an
+        empty `list`, no lights will be enabled.
 
         Examples
         --------
@@ -1240,12 +1241,14 @@ class Window(object):
 
     @lights.setter
     def lights(self, value):
+        # if None or empty list, disable all lights
         if value is None or not value:
-            # disable all lights
             for index in range(self._nLights):
                 GL.glDisable(GL.GL_LIGHT0 + index)
 
             self._nLights = 0  # set number of lights to zero
+            self._lights = value
+
             return
 
         # set the lights and make sure it's a list if a single value was passed
@@ -1261,7 +1264,7 @@ class Window(object):
         # Setup legacy lights, new spec shader programs should access the
         # `lights` attribute directly to setup lighting uniforms.
         # The index of the lights is defined by the order it appears in
-        # `self._lights`
+        # `self._lights`.
         for index, light in enumerate(self._lights):
             enumLight = GL.GL_LIGHT0 + index
 
@@ -1282,8 +1285,11 @@ class Window(object):
 
     @property
     def useLights(self):
-        """Enable scene lighting. This flag is reset to `False` at the beginning
-        of each frame."""
+        """Enable scene lighting.
+
+        This flag is reset to `False` at the beginning of each frame. Should be
+        `False` if rendering 2D stimuli or else the colors will be incorrect.
+        """
         return self._useLights
 
     @useLights.setter
@@ -1292,7 +1298,7 @@ class Window(object):
 
         # Setup legacy lights, new spec shader programs should access the
         # `lights` attribute directly to setup lighting uniforms.
-        if self._useLights and self._lights is not None:
+        if self._useLights and self._lights:
             GL.glEnable(GL.GL_LIGHTING)
         else:
             # disable lights
@@ -1302,18 +1308,17 @@ class Window(object):
     def viewport(self):
         """Viewport rectangle (x, y, w, h) for the current draw buffer.
 
-        Values `x` and `y` define the origin, and `w` and `h` the size
-        of the rectangle in pixels.
+        Values `x` and `y` define the origin, and `w` and `h` the size of the
+        rectangle in pixels.
 
-        This is typically set to cover the whole buffer, however it can
-        be changed for application like multi-view rendering.
+        This is typically set to cover the whole buffer, however it can be
+        changed for application like multi-view rendering.
 
         Examples
         --------
-        Constrain drawing to the left and right halves of the screen,
-        where stimuli will be drawn centered on the new rectangle. Note
-        that you need to set both the viewport and the scissor
-        rectangle::
+        Constrain drawing to the left and right halves of the screen, where
+        stimuli will be drawn centered on the new rectangle. Note that you need
+        to set both the `viewport` and the `scissor` rectangle::
 
             x, y, w, h = win.frameBufferSize  # size of the framebuffer
             win.viewport = win.scissor = [x, y, w / 2.0, h]
@@ -1644,13 +1649,13 @@ class Window(object):
         # apply the projection and view transformations
         if hasattr(self, '_projectionMatrix'):
             GL.glMatrixMode(GL.GL_PROJECTION)
-            projMat = self._projectionMatrix.T.ctypes.data_as(
+            projMat = self._projectionMatrix.ctypes.data_as(
                 ctypes.POINTER(ctypes.c_float))
             GL.glLoadTransposeMatrixf(projMat)
 
         if hasattr(self, '_viewMatrix'):
             GL.glMatrixMode(GL.GL_MODELVIEW)
-            viewMat = self._viewMatrix.T.ctypes.data_as(
+            viewMat = self._viewMatrix.ctypes.data_as(
                 ctypes.POINTER(ctypes.c_float))
             GL.glLoadTransposeMatrixf(viewMat)
 
