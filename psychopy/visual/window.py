@@ -1224,17 +1224,24 @@ class Window(object):
         """Scene lights.
 
         This is specified as an array of `~psychopy.tools.gltools.LightSource`
-        objects, if a single value is give, it will be converted to a `list`
+        objects. If a single value is given, it will be converted to a `list`
         before setting. Set `useLights` to `True` before rendering to enable
         lighting/shading on subsequent objects. If `lights` is `None` or an
-        empty `list`, no lights will be enabled.
+        empty `list`, no lights will be enabled if `useLights=True`, however,
+        the ambient light set with `ambientLight` will be used.
 
         Examples
         --------
         Create a directional light source and add it to scene lights::
 
             dirLight = gltools.LightSource((0., 1., 0., 0.))
-            win.lights = [dirLight]
+            win.lights = dirLight  # `win.lights` will be a list when accessed!
+
+        Multiple lights can be specified by passing values as a list::
+
+            myLights = [gltools.LightSource((0., 5., 0., 1.)),
+                        gltools.LightSource((-2., -2., 0., 1.))
+            win.lights = myLights
 
         """
         return self._lights
@@ -1303,6 +1310,52 @@ class Window(object):
         else:
             # disable lights
             GL.glDisable(GL.GL_LIGHTING)
+
+    def updateLights(self, index=None):
+        """Explicitly update scene lights if they were modified.
+
+        This is required if modifications to objects referenced in `lights` have
+        been changed since assignment.
+
+        Parameters
+        ----------
+        index : int, optional
+            Index of light source in `lights` to update. If `None`, all lights
+            will be refreshed.
+
+        Examples
+        --------
+        Call `updateLights` if you modified lights directly like this::
+
+            win.lights[1].diffuse = [1., 0., 0., 1.]
+            win.updateLights(1)
+
+        """
+        if self._lights is None:
+            return  # nop if there are no lights
+
+        if index is None:
+            self.lights = self._lights
+        else:
+            if index > len(self._lights) - 1:
+                raise IndexError('Invalid index for `lights`.')
+
+            enumLight = GL.GL_LIGHT0 + index
+
+            # light object to modify
+            light = self._lights[index]
+
+            # convert data in light class to ctypes
+            pos = numpy.ctypeslib.as_ctypes(light.pos)
+            diffuse = numpy.ctypeslib.as_ctypes(light.diffuse)
+            specular = numpy.ctypeslib.as_ctypes(light.specular)
+            ambient = numpy.ctypeslib.as_ctypes(light.ambient)
+
+            # pass values to OpenGL
+            GL.glLightfv(enumLight, GL.GL_POSITION, pos)
+            GL.glLightfv(enumLight, GL.GL_DIFFUSE, diffuse)
+            GL.glLightfv(enumLight, GL.GL_SPECULAR, specular)
+            GL.glLightfv(enumLight, GL.GL_AMBIENT, ambient)
 
     @property
     def viewport(self):
