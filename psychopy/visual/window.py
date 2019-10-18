@@ -1319,7 +1319,7 @@ class Window(object):
         Lights will be enabled if using legacy OpenGL lighting. Stimuli using
         shaders for lighting should check if `useLights` is `True` since this
         will have no effect on them, and disable or use a no lighting shader
-        instead.
+        instead
 
         This flag is reset to `False` at the beginning of each frame. Should be
         `False` if rendering 2D stimuli or else the colors will be incorrect.
