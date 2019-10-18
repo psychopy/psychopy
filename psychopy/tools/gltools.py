@@ -2797,9 +2797,13 @@ def useMaterial(material, useTextures=True):
 
 Light = namedtuple('Light', ['params', 'userData'])
 
-class LightSource(object):
-    """Class for representing a light source in a scene."""
 
+class LightSource(object):
+    """Class for representing a light source in a scene.
+
+    Only point and directional lighting is supported by this object for now.
+
+    """
     def __init__(self,
                  pos=(0., 0., 0., 1.),
                  diffuse=(1., 1., 1., 1.),
@@ -2812,7 +2816,9 @@ class LightSource(object):
             Position of the light source (x, y, z, w). If `w=1.0` the light will
             be a point source and `x`, `y`, and `z` is the position in the
             scene. If `w=0.0`, the light source will be directional and `x`,
-            `y`, and `z` will define the vector the light source is coming from.
+            `y`, and `z` will define the vector pointing to the direction the
+            light source is coming from. For instance, a vector of (0, 1, 0, 0)
+            will indicate that a light source is coming from above.
         diffuse : array_like
             Diffuse light color (r, g, b, a) with values between 0.0 and 1.0.
         specular : array_like

@@ -1294,6 +1294,11 @@ class Window(object):
     def useLights(self):
         """Enable scene lighting.
 
+        Lights will be enabled if using legacy OpenGL lighting. Stimuli using
+        shaders for lighting should check if `useLights` is `True` since this
+        will have no effect on them, and disable or use a no lighting shader
+        instead.
+
         This flag is reset to `False` at the beginning of each frame. Should be
         `False` if rendering 2D stimuli or else the colors will be incorrect.
         """
@@ -1315,7 +1320,8 @@ class Window(object):
         """Explicitly update scene lights if they were modified.
 
         This is required if modifications to objects referenced in `lights` have
-        been changed since assignment.
+        been changed since assignment. If you removed or added items of `lights`
+        you must refresh all of them.
 
         Parameters
         ----------
