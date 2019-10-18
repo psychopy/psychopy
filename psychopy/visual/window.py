@@ -465,6 +465,8 @@ class Window(object):
         self._lights = []
         self._useLights = False
         self._nLights = 0
+        self._ambientLight = numpy.asarray((0.2, 0.2, 0.2, 1.0), numpy.float32)
+        self.ambientLight = self._ambientLight  # set it
 
         # stereo rendering settings, set later by the user
         self._eyeOffset = 0.0
@@ -1206,6 +1208,18 @@ class Window(object):
         return self._viewport[2] / float(self._viewport[3])
 
     @property
+    def ambientLight(self):
+        """Ambient light color for the scene [r, g, b, a] with values ranging
+        from 0.0 to 1.0. Only applicable if `useLights` is `True`."""
+        return self._ambientLight
+
+    @ambientLight.setter
+    def ambientLight(self, value):
+        self._ambientLight = numpy.asarray(value, numpy.float32)
+        GL.glLightModelfv(GL.GL_LIGHT_MODEL_AMBIENT,
+                          numpy.ctypeslib.as_ctypes(self._ambientLight))
+
+    @property
     def lights(self):
         """Scene lights.
 
@@ -1226,10 +1240,15 @@ class Window(object):
 
     @lights.setter
     def lights(self, value):
-        if value is None:
-            return  # nop if no lights
+        if value is None or not value:
+            # disable all lights
+            for index in range(self._nLights):
+                GL.glDisable(GL.GL_LIGHT0 + index)
 
-        # set the lights and make sure it's a list
+            self._nLights = 0  # set number of lights to zero
+            return
+
+        # set the lights and make sure it's a list if a single value was passed
         self._lights = value if isinstance(value, (list, tuple,)) else [value]
 
         # disable excess lights if less lights were specified this time
@@ -1245,15 +1264,20 @@ class Window(object):
         # `self._lights`
         for index, light in enumerate(self._lights):
             enumLight = GL.GL_LIGHT0 + index
+
+            # convert data in light class to ctypes
             pos = numpy.ctypeslib.as_ctypes(light.pos)
             diffuse = numpy.ctypeslib.as_ctypes(light.diffuse)
             specular = numpy.ctypeslib.as_ctypes(light.specular)
             ambient = numpy.ctypeslib.as_ctypes(light.ambient)
+
+            # pass values to OpenGL
             GL.glLightfv(enumLight, GL.GL_POSITION, pos)
             GL.glLightfv(enumLight, GL.GL_DIFFUSE, diffuse)
             GL.glLightfv(enumLight, GL.GL_SPECULAR, specular)
             GL.glLightfv(enumLight, GL.GL_AMBIENT, ambient)
 
+            # enable the light
             GL.glEnable(enumLight)
 
     @property
