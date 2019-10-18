@@ -2825,9 +2825,6 @@ class LightSource(object):
         self._specular = np.asarray(specular, np.float32)
         self._ambient = np.asarray(ambient, np.float32)
 
-        # uniform locations of the lights if using shaders
-        self._uniforms = {'pos': ()}
-
     @property
     def pos(self):
         return self._pos
