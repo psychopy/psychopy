@@ -461,6 +461,11 @@ class Window(object):
         self.depthMask = False
         self.cullFaceMode = 'back'
 
+        # scene light sources
+        self._lights = []
+        self._useLights = False
+        self._nLights = 0
+
         # stereo rendering settings, set later by the user
         self._eyeOffset = 0.0
         self._convergeOffset = 0.0
@@ -924,6 +929,9 @@ class Window(object):
             GL.glMatrixMode(GL.GL_MODELVIEW)
             GL.glLoadIdentity()
 
+        # disable lighting
+        self.useLights = False
+
         flipThisFrame = self._startOfFlip()
         if self.useFBO and flipThisFrame:
             self.draw3d = False  # disable 3d drawing
@@ -1196,6 +1204,66 @@ class Window(object):
     def aspect(self):
         """Aspect ratio of the current viewport (width / height)."""
         return self._viewport[2] / float(self._viewport[3])
+
+    @property
+    def lights(self):
+        """Scene lights.
+
+        This is specified as an array of `LightSource` objects. Set `useLights`
+        to `True` before rendering to enable lighting/shading on subsequent
+        objects. If `lights` is `None` or an empty `list`, no lights will be
+        enabled.
+
+        Examples
+        --------
+        Create a directional light source and add it to scene lights::
+
+            dirLight = gltools.LightSource((0., 1., 0., 0.))
+            win.lights = [dirLight]
+
+        """
+        return self._lights
+
+    @lights.setter
+    def lights(self, value):
+        self._lights = value if isinstance(value, (list, tuple,)) else [value]
+        self._nLights = len(self._lights)  # number of lights enabled
+
+    @property
+    def useLights(self):
+        """Enable scene lighting. This flag is reset to `False` at the beginning
+        of each frame."""
+        return self._useLights
+
+    @useLights.setter
+    def useLights(self, value):
+        self._useLights = value
+
+        # Setup legacy lights, new spec shader programs should access the
+        # `lights` attribute directly to setup lighting uniforms.
+        if self._useLights and self._lights is not None:
+            # setup lights, the index of the lights is defined by the order it
+            # appears in `self._lights`
+            for index, light in enumerate(self._lights):
+                enumLight = GL.GL_LIGHT0 + index
+                pos = numpy.ctypeslib.as_ctypes(light.pos)
+                diffuse = numpy.ctypeslib.as_ctypes(light.diffuse)
+                specular = numpy.ctypeslib.as_ctypes(light.specular)
+                ambient = numpy.ctypeslib.as_ctypes(light.ambient)
+                GL.glLightfv(enumLight, GL.GL_POSITION, pos)
+                GL.glLightfv(enumLight, GL.GL_DIFFUSE, diffuse)
+                GL.glLightfv(enumLight, GL.GL_SPECULAR, specular)
+                GL.glLightfv(enumLight, GL.GL_AMBIENT, ambient)
+
+                GL.glEnable(enumLight)
+
+            GL.glEnable(GL.GL_LIGHTING)
+        else:
+            # disable lights
+            for index, light in enumerate(self._lights):
+                GL.glDisable(GL.GL_LIGHT0 + index)
+
+            GL.glDisable(GL.GL_LIGHTING)
 
     @property
     def viewport(self):

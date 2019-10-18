@@ -62,6 +62,7 @@ __all__ = [
     'disableVertexAttribArray',
     'createMaterial',
     'useMaterial',
+    'LightSource',
     'createLight',
     'useLights',
     'setAmbientLight',
@@ -2792,6 +2793,69 @@ def useMaterial(material, useTextures=True):
 # -------------------------
 
 Light = namedtuple('Light', ['params', 'userData'])
+
+class LightSource(object):
+    """Class for representing a light source in a scene."""
+
+    def __init__(self,
+                 pos=(0., 0., 0., 1.),
+                 diffuse=(1., 1., 1., 1.),
+                 specular=(1., 1., 1., 1.),
+                 ambient=(.2, .2, .2, 1.)):
+        """
+        Parameters
+        ----------
+        pos : array_like
+            Position of the light source (x, y, z, w). If `w=1.0` the light will
+            be a point source and `x`, `y`, and `z` is the position in the
+            scene. If `w=0.0`, the light source will be directional and `x`,
+            `y`, and `z` will define the vector the light source is coming from.
+        diffuse : array_like
+            Diffuse light color (r, g, b, a) with values between 0.0 and 1.0.
+        specular : array_like
+            Specular light color (r, g, b, a) with values between 0.0 and 1.0.
+        ambient : array_like
+            Ambient light color (r, g, b, a) with values between 0.0 and 1.0.
+        """
+        self._pos = np.asarray(pos, np.float32)
+        self._diffuse = np.asarray(diffuse, np.float32)
+        self._specular = np.asarray(specular, np.float32)
+        self._ambient = np.asarray(ambient, np.float32)
+
+        # uniform locations of the lights if using shaders
+        self._uniforms = {'pos': ()}
+
+    @property
+    def pos(self):
+        return self._pos
+
+    @pos.setter
+    def pos(self, value):
+        self._pos = np.asarray(value, np.float32)
+
+    @property
+    def diffuse(self):
+        return self._diffuse
+
+    @diffuse.setter
+    def diffuse(self, value):
+        self._diffuse = np.asarray(value, np.float32)
+
+    @property
+    def specular(self):
+        return self._specular
+
+    @specular.setter
+    def specular(self, value):
+        self._specular = np.asarray(value, np.float32)
+
+    @property
+    def ambient(self):
+        return self._ambient
+
+    @ambient.setter
+    def ambient(self, value):
+        self._ambient = np.asarray(value, np.float32)
 
 
 def createLight(params=()):
