@@ -121,11 +121,6 @@ class StairHandler(_BaseTrialHandler):
                 :func:`~psychopy.data.StairHandler.saveAsPickle` or
                 :func:`~psychopy.data.StairHandler.saveAsText` methods.
 
-            stepType:
-                specifies whether each step will be a jump of the given
-                size in 'db', 'log' or 'lin' units ('lin' means this
-                intensity will be added/subtracted)
-
             method:
                 Not used and may be deprecated in future releases.
 
