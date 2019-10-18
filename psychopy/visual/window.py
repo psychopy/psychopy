@@ -465,8 +465,8 @@ class Window(object):
         self._lights = []
         self._useLights = False
         self._nLights = 0
-        self._ambientLight = numpy.asarray((0.2, 0.2, 0.2, 1.0), numpy.float32)
-        self.ambientLight = self._ambientLight  # set it
+        self._ambientLight = numpy.array([0.2, 0.2, 0.2, 1.0],
+                                         dtype=numpy.float32)
 
         # stereo rendering settings, set later by the user
         self._eyeOffset = 0.0
@@ -1210,13 +1210,26 @@ class Window(object):
     @property
     def ambientLight(self):
         """Ambient light color for the scene [r, g, b, a]. Values range from 0.0
-        to 1.0. Only applicable if `useLights` is `True`."""
+        to 1.0. Only applicable if `useLights` is `True`.
+
+        Examples
+        --------
+        Setting the ambient light color::
+
+            win.ambientLight = [0.5, 0.5, 0.5]
+
+            # don't do this!!!
+            win.ambientLight[0] = 0.5
+            win.ambientLight[1] = 0.5
+            win.ambientLight[1] = 0.5
+
+        """
         # TODO - use signed color and colorspace instead
-        return self._ambientLight
+        return self._ambientLight[:3]
 
     @ambientLight.setter
     def ambientLight(self, value):
-        self._ambientLight = numpy.asarray(value, numpy.float32)
+        self._ambientLight[:3] = value
         GL.glLightModelfv(GL.GL_LIGHT_MODEL_AMBIENT,
                           numpy.ctypeslib.as_ctypes(self._ambientLight))
 
