@@ -1226,8 +1226,35 @@ class Window(object):
 
     @lights.setter
     def lights(self, value):
+        if value is None:
+            return  # nop if no lights
+
+        # set the lights and make sure it's a list
         self._lights = value if isinstance(value, (list, tuple,)) else [value]
+
+        # disable excess lights if less lights were specified this time
+        oldNumLights = self._nLights
         self._nLights = len(self._lights)  # number of lights enabled
+        if oldNumLights > self._nLights:
+            for index in range(self._nLights, oldNumLights):
+                GL.glDisable(GL.GL_LIGHT0 + index)
+
+        # Setup legacy lights, new spec shader programs should access the
+        # `lights` attribute directly to setup lighting uniforms.
+        # The index of the lights is defined by the order it appears in
+        # `self._lights`
+        for index, light in enumerate(self._lights):
+            enumLight = GL.GL_LIGHT0 + index
+            pos = numpy.ctypeslib.as_ctypes(light.pos)
+            diffuse = numpy.ctypeslib.as_ctypes(light.diffuse)
+            specular = numpy.ctypeslib.as_ctypes(light.specular)
+            ambient = numpy.ctypeslib.as_ctypes(light.ambient)
+            GL.glLightfv(enumLight, GL.GL_POSITION, pos)
+            GL.glLightfv(enumLight, GL.GL_DIFFUSE, diffuse)
+            GL.glLightfv(enumLight, GL.GL_SPECULAR, specular)
+            GL.glLightfv(enumLight, GL.GL_AMBIENT, ambient)
+
+            GL.glEnable(enumLight)
 
     @property
     def useLights(self):
@@ -1242,27 +1269,9 @@ class Window(object):
         # Setup legacy lights, new spec shader programs should access the
         # `lights` attribute directly to setup lighting uniforms.
         if self._useLights and self._lights is not None:
-            # setup lights, the index of the lights is defined by the order it
-            # appears in `self._lights`
-            for index, light in enumerate(self._lights):
-                enumLight = GL.GL_LIGHT0 + index
-                pos = numpy.ctypeslib.as_ctypes(light.pos)
-                diffuse = numpy.ctypeslib.as_ctypes(light.diffuse)
-                specular = numpy.ctypeslib.as_ctypes(light.specular)
-                ambient = numpy.ctypeslib.as_ctypes(light.ambient)
-                GL.glLightfv(enumLight, GL.GL_POSITION, pos)
-                GL.glLightfv(enumLight, GL.GL_DIFFUSE, diffuse)
-                GL.glLightfv(enumLight, GL.GL_SPECULAR, specular)
-                GL.glLightfv(enumLight, GL.GL_AMBIENT, ambient)
-
-                GL.glEnable(enumLight)
-
             GL.glEnable(GL.GL_LIGHTING)
         else:
             # disable lights
-            for index, light in enumerate(self._lights):
-                GL.glDisable(GL.GL_LIGHT0 + index)
-
             GL.glDisable(GL.GL_LIGHTING)
 
     @property
