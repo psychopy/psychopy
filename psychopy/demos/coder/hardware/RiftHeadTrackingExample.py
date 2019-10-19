@@ -4,14 +4,14 @@
 #
 # This file is public domain.
 #
-from psychopy import visual, event, core, logging
+from psychopy import visual, event, core
 from psychopy.tools import arraytools, rifttools
 import pyglet.gl as GL
 
 # Create a VR session, treat the returned object just like a regular window.
 # Increase the number of samples for anti-aliasing, could be 2, 4, 6, 8, 16 or
 # 32 depending on your hardware.
-hmd = visual.Rift()
+hmd = visual.Rift(samples=1)
 
 # Create a LibOVRPose object to represent the rigid body pose of the triangle in
 # the scene. The position of the triangle will be 2 meters away from the user at
