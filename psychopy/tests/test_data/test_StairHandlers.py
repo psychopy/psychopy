@@ -764,10 +764,8 @@ class TestMultiStairHandler(_BaseTestMultiStairHandler):
             dict(list({'label': 'staircase_1'}.items()) + list(conditions.items())),
         ]
 
-        self.stairs = data.MultiStairHandler(
-                stairType='quest', method='linear',
-                conditions=self.conditions
-        )
+        self.stairs = data.MultiStairHandler(stairType='quest',
+                                             conditions=self.conditions)
 
         # Responses for only one staircase. We will duplicate this below.
         responses = makeBasicResponseCycles(
