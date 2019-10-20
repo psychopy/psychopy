@@ -543,6 +543,7 @@ class MultiStairHandler(object):
                 "name='%(name)s',\n"
                 "    nTrials=%(nReps)s,\n"
                 "    conditions=conditions,\n"
+                "    method=%(switchMethod)s,\n"
                 "    originPath=-1)\n"
                 "thisExp.addLoop(%(name)s)  # add the loop to the experiment\n"
                 "# initialise values for first condition\n"
