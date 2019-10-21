@@ -461,6 +461,13 @@ class Window(object):
         self.depthMask = False
         self.cullFaceMode = 'back'
 
+        # scene light sources
+        self._lights = []
+        self._useLights = False
+        self._nLights = 0
+        self._ambientLight = numpy.array([0.2, 0.2, 0.2, 1.0],
+                                         dtype=numpy.float32)
+
         # stereo rendering settings, set later by the user
         self._eyeOffset = 0.0
         self._convergeOffset = 0.0
@@ -924,6 +931,9 @@ class Window(object):
             GL.glMatrixMode(GL.GL_MODELVIEW)
             GL.glLoadIdentity()
 
+        # disable lighting
+        self.useLights = False
+
         flipThisFrame = self._startOfFlip()
         if self.useFBO and flipThisFrame:
             self.draw3d = False  # disable 3d drawing
@@ -1198,21 +1208,198 @@ class Window(object):
         return self._viewport[2] / float(self._viewport[3])
 
     @property
-    def viewport(self):
-        """Viewport rectangle (x, y, w, h) for the current draw buffer.
-
-        Values `x` and `y` define the origin, and `w` and `h` the size
-        of the rectangle in pixels.
-
-        This is typically set to cover the whole buffer, however it can
-        be changed for application like multi-view rendering.
+    def ambientLight(self):
+        """Ambient light color for the scene [r, g, b, a]. Values range from 0.0
+        to 1.0. Only applicable if `useLights` is `True`.
 
         Examples
         --------
-        Constrain drawing to the left and right halves of the screen,
-        where stimuli will be drawn centered on the new rectangle. Note
-        that you need to set both the viewport and the scissor
-        rectangle::
+        Setting the ambient light color::
+
+            win.ambientLight = [0.5, 0.5, 0.5]
+
+            # don't do this!!!
+            win.ambientLight[0] = 0.5
+            win.ambientLight[1] = 0.5
+            win.ambientLight[1] = 0.5
+
+        """
+        # TODO - use signed color and colorspace instead
+        return self._ambientLight[:3]
+
+    @ambientLight.setter
+    def ambientLight(self, value):
+        self._ambientLight[:3] = value
+        GL.glLightModelfv(GL.GL_LIGHT_MODEL_AMBIENT,
+                          numpy.ctypeslib.as_ctypes(self._ambientLight))
+
+    @property
+    def lights(self):
+        """Scene lights.
+
+        This is specified as an array of `~psychopy.tools.gltools.LightSource`
+        objects. If a single value is given, it will be converted to a `list`
+        before setting. Set `useLights` to `True` before rendering to enable
+        lighting/shading on subsequent objects. If `lights` is `None` or an
+        empty `list`, no lights will be enabled if `useLights=True`, however,
+        the ambient light set with `ambientLight` will be used.
+
+        Legacy lights are transformed by the present `GL_MODELVIEW` matrix.
+        Setting `lights` will result in their positions being transformed by it.
+        If you want lights to appear at the specified positions in world space,
+        make sure the current matrix defines the view/eye transformation when
+        setting `lights`. This does not affect directional lights unless the
+        matrix has a rotation. This transformation does not affect positions of
+        lights in shaders, as the transformation in explicitly done.
+
+        Examples
+        --------
+        Create a directional light source and add it to scene lights::
+
+            dirLight = gltools.LightSource((0., 1., 0., 0.))
+            win.lights = dirLight  # `win.lights` will be a list when accessed!
+
+        Multiple lights can be specified by passing values as a list::
+
+            myLights = [gltools.LightSource((0., 5., 0., 1.)),
+                        gltools.LightSource((-2., -2., 0., 1.))
+            win.lights = myLights
+
+        """
+        return self._lights
+
+    @lights.setter
+    def lights(self, value):
+        # if None or empty list, disable all lights
+        if value is None or not value:
+            for index in range(self._nLights):
+                GL.glDisable(GL.GL_LIGHT0 + index)
+
+            self._nLights = 0  # set number of lights to zero
+            self._lights = value
+
+            return
+
+        # set the lights and make sure it's a list if a single value was passed
+        self._lights = value if isinstance(value, (list, tuple,)) else [value]
+
+        # disable excess lights if less lights were specified this time
+        oldNumLights = self._nLights
+        self._nLights = len(self._lights)  # number of lights enabled
+        if oldNumLights > self._nLights:
+            for index in range(self._nLights, oldNumLights):
+                GL.glDisable(GL.GL_LIGHT0 + index)
+
+        # Setup legacy lights, new spec shader programs should access the
+        # `lights` attribute directly to setup lighting uniforms.
+        # The index of the lights is defined by the order it appears in
+        # `self._lights`.
+        for index, light in enumerate(self._lights):
+            enumLight = GL.GL_LIGHT0 + index
+
+            # convert data in light class to ctypes
+            pos = numpy.ctypeslib.as_ctypes(light.pos)
+            diffuse = numpy.ctypeslib.as_ctypes(light.diffuse)
+            specular = numpy.ctypeslib.as_ctypes(light.specular)
+            ambient = numpy.ctypeslib.as_ctypes(light.ambient)
+
+            # pass values to OpenGL
+            GL.glLightfv(enumLight, GL.GL_POSITION, pos)
+            GL.glLightfv(enumLight, GL.GL_DIFFUSE, diffuse)
+            GL.glLightfv(enumLight, GL.GL_SPECULAR, specular)
+            GL.glLightfv(enumLight, GL.GL_AMBIENT, ambient)
+
+            # enable the light
+            GL.glEnable(enumLight)
+
+    @property
+    def useLights(self):
+        """Enable scene lighting.
+
+        Lights will be enabled if using legacy OpenGL lighting. Stimuli using
+        shaders for lighting should check if `useLights` is `True` since this
+        will have no effect on them, and disable or use a no lighting shader
+        instead
+
+        This flag is reset to `False` at the beginning of each frame. Should be
+        `False` if rendering 2D stimuli or else the colors will be incorrect.
+        """
+        return self._useLights
+
+    @useLights.setter
+    def useLights(self, value):
+        self._useLights = value
+
+        # Setup legacy lights, new spec shader programs should access the
+        # `lights` attribute directly to setup lighting uniforms.
+        if self._useLights and self._lights:
+            GL.glEnable(GL.GL_LIGHTING)
+        else:
+            # disable lights
+            GL.glDisable(GL.GL_LIGHTING)
+
+    def updateLights(self, index=None):
+        """Explicitly update scene lights if they were modified.
+
+        This is required if modifications to objects referenced in `lights` have
+        been changed since assignment. If you removed or added items of `lights`
+        you must refresh all of them.
+
+        Parameters
+        ----------
+        index : int, optional
+            Index of light source in `lights` to update. If `None`, all lights
+            will be refreshed.
+
+        Examples
+        --------
+        Call `updateLights` if you modified lights directly like this::
+
+            win.lights[1].diffuse = [1., 0., 0., 1.]
+            win.updateLights(1)
+
+        """
+        if self._lights is None:
+            return  # nop if there are no lights
+
+        if index is None:
+            self.lights = self._lights
+        else:
+            if index > len(self._lights) - 1:
+                raise IndexError('Invalid index for `lights`.')
+
+            enumLight = GL.GL_LIGHT0 + index
+
+            # light object to modify
+            light = self._lights[index]
+
+            # convert data in light class to ctypes
+            pos = numpy.ctypeslib.as_ctypes(light.pos)
+            diffuse = numpy.ctypeslib.as_ctypes(light.diffuse)
+            specular = numpy.ctypeslib.as_ctypes(light.specular)
+            ambient = numpy.ctypeslib.as_ctypes(light.ambient)
+
+            # pass values to OpenGL
+            GL.glLightfv(enumLight, GL.GL_POSITION, pos)
+            GL.glLightfv(enumLight, GL.GL_DIFFUSE, diffuse)
+            GL.glLightfv(enumLight, GL.GL_SPECULAR, specular)
+            GL.glLightfv(enumLight, GL.GL_AMBIENT, ambient)
+
+    @property
+    def viewport(self):
+        """Viewport rectangle (x, y, w, h) for the current draw buffer.
+
+        Values `x` and `y` define the origin, and `w` and `h` the size of the
+        rectangle in pixels.
+
+        This is typically set to cover the whole buffer, however it can be
+        changed for application like multi-view rendering.
+
+        Examples
+        --------
+        Constrain drawing to the left and right halves of the screen, where
+        stimuli will be drawn centered on the new rectangle. Note that you need
+        to set both the `viewport` and the `scissor` rectangle::
 
             x, y, w, h = win.frameBufferSize  # size of the framebuffer
             win.viewport = win.scissor = [x, y, w / 2.0, h]
@@ -1541,13 +1728,13 @@ class Window(object):
         # apply the projection and view transformations
         if hasattr(self, '_projectionMatrix'):
             GL.glMatrixMode(GL.GL_PROJECTION)
-            projMat = self._projectionMatrix.T.ctypes.data_as(
+            projMat = self._projectionMatrix.ctypes.data_as(
                 ctypes.POINTER(ctypes.c_float))
             GL.glLoadTransposeMatrixf(projMat)
 
         if hasattr(self, '_viewMatrix'):
             GL.glMatrixMode(GL.GL_MODELVIEW)
-            viewMat = self._viewMatrix.T.ctypes.data_as(
+            viewMat = self._viewMatrix.ctypes.data_as(
                 ctypes.POINTER(ctypes.c_float))
             GL.glLoadTransposeMatrixf(viewMat)
 

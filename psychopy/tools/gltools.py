@@ -62,6 +62,7 @@ __all__ = [
     'disableVertexAttribArray',
     'createMaterial',
     'useMaterial',
+    'LightSource',
     'createLight',
     'useLights',
     'setAmbientLight',
@@ -70,8 +71,11 @@ __all__ = [
     'loadMtlFile',
     'createUVSphere',
     'createPlane',
+    'createMeshGridFromArrays',
     'createMeshGrid',
     'createBox',
+    'transformMeshPosOri',
+    'calculateVertexNormals',
     'getIntegerv',
     'getFloatv',
     'getString',
@@ -87,8 +91,10 @@ from PIL import Image
 import numpy as np
 import os, sys
 import warnings
+import psychopy.tools.mathtools as mt
 
 # create a query counter to get absolute GPU time
+
 QUERY_COUNTER = None  # prevent genQueries from being called
 
 
@@ -2793,6 +2799,77 @@ def useMaterial(material, useTextures=True):
 Light = namedtuple('Light', ['params', 'userData'])
 
 
+class LightSource(object):
+    """Class for representing a light source in a scene.
+
+    Only point and directional lighting is supported by this object for now.
+
+    """
+    def __init__(self,
+                 pos=(0., 0., 0., 1.),
+                 diffuse=(1., 1., 1.),
+                 specular=(1., 1., 1.),
+                 ambient=(0., 0., 0.)):
+        """
+        Parameters
+        ----------
+        pos : array_like
+            Position of the light source (x, y, z, w). If `w=1.0` the light will
+            be a point source and `x`, `y`, and `z` is the position in the
+            scene. If `w=0.0`, the light source will be directional and `x`,
+            `y`, and `z` will define the vector pointing to the direction the
+            light source is coming from. For instance, a vector of (0, 1, 0, 0)
+            will indicate that a light source is coming from above.
+        diffuse : array_like
+            Diffuse light color (r, g, b) with values between 0.0 and 1.0.
+        specular : array_like
+            Specular light color (r, g, b) with values between 0.0 and 1.0.
+        ambient : array_like
+            Ambient light color (r, g, b) with values between 0.0 and 1.0.
+        """
+        self._pos = np.zeros((4,), np.float32)
+        self._diffuse = np.zeros((4,), np.float32)
+        self._specular = np.zeros((4,), np.float32)
+        self._ambient = np.zeros((4,), np.float32)
+
+        self.pos = pos
+        self.diffuse = diffuse
+        self.specular = specular
+        self.ambient = ambient
+
+    @property
+    def pos(self):
+        return self._pos
+
+    @pos.setter
+    def pos(self, value):
+        self._pos = np.asarray(value, np.float32)
+
+    @property
+    def diffuse(self):
+        return self._diffuse[:3]
+
+    @diffuse.setter
+    def diffuse(self, value):
+        self._diffuse = np.asarray(value, np.float32)
+
+    @property
+    def specular(self):
+        return self._specular[:3]
+
+    @specular.setter
+    def specular(self, value):
+        self._specular = np.asarray(value, np.float32)
+
+    @property
+    def ambient(self):
+        return self._ambient[:3]
+
+    @ambient.setter
+    def ambient(self, value):
+        self._ambient = np.asarray(value, np.float32)
+
+
 def createLight(params=()):
     """Create a point light source.
 
@@ -3379,9 +3456,6 @@ def createPlane(size=(1., 1.)):
         Dimensions of the plane. If a single value is specified, the plane will
         be square. Provide a tuple of floats to specify the width and length of
         the plane (eg. `size=(0.2, 1.3)`).
-    subdiv : int, optional
-        Number of subdivisions. Zero subdivisions are applied by default, and
-        the resulting mesh will only have vertices at the corners.
 
     Returns
     -------
@@ -3411,25 +3485,25 @@ def createPlane(size=(1., 1.)):
 
     """
     if isinstance(size, (int, float,)):
-        divx = divy = float(size) / 2.
+        sx = sy = float(size) / 2.
     else:
-        divx = size[0] / 2.
-        divy = size[1] / 2.
+        sx = size[0] / 2.
+        sy = size[1] / 2.
 
-    # generate plane vertices
-    x = np.linspace(-divx, divy, 2)
-    y = np.linspace(divx, -divy, 2)
-    xx, yy = np.meshgrid(x, y)
+    vertices = np.ascontiguousarray(
+        [[-1.,  1., 0.],
+         [ 1.,  1., 0.],
+         [-1., -1., 0.],
+         [ 1., -1., 0.]])
 
-    vertices = np.vstack([xx.ravel(), yy.ravel()]).T
-    vertices = np.hstack([vertices, np.zeros((vertices.shape[0], 1))])  # add z
+    if sx != 1.:
+        vertices[:, 0] *= sx
+
+    if sy != 1.:
+        vertices[:, 1] *= sy
 
     # texture coordinates
-    u = np.linspace(0.0, 1.0, 2)
-    v = np.linspace(1.0, 0.0, 2)
-    uu, vv = np.meshgrid(u, v)
-
-    texCoords = np.vstack([uu.ravel(), vv.ravel()]).T
+    texCoords = np.ascontiguousarray([[0., 1.], [1., 1.], [0., 0.], [1., 0.]])
 
     # normals, facing +Z
     normals = np.zeros_like(vertices)
@@ -3438,34 +3512,120 @@ def createPlane(size=(1., 1.)):
     normals[:, 2] = 1.
 
     # generate face index
-    faces = []
-    for i in range(1):
-        k1 = i * 2
-        k2 = k1 + 2
-
-        for j in range(1):
-            faces.append([k1, k2, k1 + 1])
-            faces.append([k1 + 1, k2, k2 + 1])
-
-            k1 += 1
-            k2 += 1
-
-    # convert to numpy arrays
-    vertices = np.ascontiguousarray(vertices, dtype=np.float32)
-    texCoords = np.ascontiguousarray(texCoords, dtype=np.float32)
-    normals = np.ascontiguousarray(normals, dtype=np.float32)
-    faces = np.ascontiguousarray(faces, dtype=np.uint32)
+    faces = np.ascontiguousarray([[0, 2, 1], [1, 2, 3]], dtype=np.uint32)
 
     return vertices, texCoords, normals, faces
 
 
-def createMeshGrid(size=(1., 1.), subdiv=0):
+def createMeshGridFromArrays(xvals, yvals, zvals=None, tessMode='diag', computeNormals=True):
+    """Create a mesh grid using coordinates from arrays.
+
+    Generates a mesh using data in provided in 2D arrays of vertex coordinates.
+    Triangle faces are automatically computed by this function by joining
+    adjacent vertices at neighbouring indices in the array. Texture coordinates
+    are generated covering the whole mesh, with origin at the bottom left.
+
+    Parameters
+    ----------
+    xvals, yvals : array_like
+        NxM arrays of X and Y coordinates. Both arrays must have the same
+        shape. the resulting mesh will have a single vertex for each X and Y
+        pair. Faces will be generated to connect adjacent coordinates in the
+        array.
+    zvals : array_like, optional
+        NxM array of Z coordinates for each X and Y. Must have the same shape
+        as X and Y. If not specified, the Z coordinates will be filled with
+        zeros.
+    tessMode : str, optional
+        Tessellation mode. Specifies how faces are generated. Options are
+        'center', 'radial', and 'diag'. Default is 'diag'. Modes 'radial' and
+        'center' work best with odd numbered array dimensions.
+    computeNormals : bool, optional
+        Compute normals for the generated mesh. If `False`, all normals are set
+        to face in the +Z direction. Presently, computing normals is a slow
+        operation and may not be needed for some meshes.
+
+    Returns
+    -------
+    tuple
+        Vertex attribute arrays (position, texture coordinates, and normals) and
+        triangle indices.
+
+    Examples
+    --------
+    Create a 3D sine grating mesh using 2D arrays::
+
+        x = np.linspace(0, 1.0, 32)
+        y = np.linspace(1.0, 0.0, 32)
+        xx, yy = np.meshgrid(x, y)
+        zz = np.tile(np.sin(np.linspace(0.0, 32., 32)) * 0.02, (32, 1))
+
+        vertices, textureCoords, normals, faces = \
+            gltools.createMeshGridFromArrays(xx, yy, zz)
+
+    """
+    vertices = np.vstack([xvals.ravel(), yvals.ravel()]).T
+
+    if zvals is not None:
+        assert xvals.shape == yvals.shape == zvals.shape
+    else:
+        assert xvals.shape == yvals.shape
+
+    if zvals is None:
+        # fill z with zeros if not provided
+        vertices = np.hstack([vertices, np.zeros((vertices.shape[0], 1))])
+    else:
+        vertices = np.hstack([vertices, np.atleast_2d(zvals.ravel()).T])
+
+    ny, nx = xvals.shape
+
+    # texture coordinates
+    u = np.linspace(0.0, 1.0, nx)
+    v = np.linspace(1.0, 0.0, ny)
+    uu, vv = np.meshgrid(u, v)
+
+    texCoords = np.vstack([uu.ravel(), vv.ravel()]).T
+
+    # generate face index
+    faces = []
+
+    if tessMode == 'diag':
+        for i in range(ny - 1):
+            k1 = i * nx
+            k2 = k1 + nx
+
+            for j in range(nx - 1):
+                faces.append([k1, k2, k1 + 1])
+                faces.append([k1 + 1, k2, k2 + 1])
+
+                k1 += 1
+                k2 += 1
+
+    else:
+        raise ValueError('Invalid value for `tessMode`.')
+
+    # convert to numpy arrays
+    vertices = np.ascontiguousarray(vertices, dtype=np.float32)
+    texCoords = np.ascontiguousarray(texCoords, dtype=np.float32)
+    faces = np.ascontiguousarray(faces, dtype=np.uint32)
+
+    # calculate surface normals for the mesh
+    if computeNormals:
+        normals = calculateVertexNormals(vertices, faces, shading='smooth')
+    else:
+        normals = np.zeros_like(vertices, dtype=np.float32)
+        normals[:, 2] = 1.
+
+    return vertices, texCoords, normals, faces
+
+
+def createMeshGrid(size=(1., 1.), subdiv=0, tessMode='diag'):
     """Create a grid mesh.
 
     Procedurally generate a grid mesh by specifying its size and number of
-    sub-divisions. Texture coordinates are computed automatically, with origin
-    at the bottom left of the plane. The generated grid is perpendicular to the
-    +Z axis, origin of the grid is at its center.
+    sub-divisions. Texture coordinates are computed automatically. The origin is
+    at the center of the mesh. The generated grid is perpendicular to the +Z
+    axis, origin of the grid is at its center.
 
     Parameters
     ----------
@@ -3476,6 +3636,10 @@ def createMeshGrid(size=(1., 1.), subdiv=0):
     subdiv : int, optional
         Number of subdivisions. Zero subdivisions are applied by default, and
         the resulting mesh will only have vertices at the corners.
+    tessMode : str, optional
+        Tessellation mode. Specifies how faces are subdivided. Options are
+        'center', 'radial', and 'diag'. Default is 'diag'. Modes 'radial' and
+        'center' work best with an odd number of subdivisions.
 
     Returns
     -------
@@ -3503,6 +3667,20 @@ def createMeshGrid(size=(1., 1.), subdiv=0):
         # in the rendering loop
         gltools.drawVAO(vao, GL.GL_TRIANGLES)
 
+    Randomly displace vertices off the plane of the grid by setting the `Z`
+    value per vertex::
+
+        vertices, textureCoords, normals, faces = \
+            gltools.createMeshGrid(subdiv=11)
+
+        numVerts = vertices.shape[0]
+        vertices[:, 2] = np.random.uniform(-0.02, 0.02, (numVerts,)))  # Z
+
+        # you must recompute surface normals to get correct shading!
+        normals = gltools.calculateVertexNormals(vertices, faces)
+
+        # create a VAO as shown in the previous example here to draw it ...
+
     """
     if isinstance(size, (int, float,)):
         divx = divy = float(size) / 2.
@@ -3511,8 +3689,8 @@ def createMeshGrid(size=(1., 1.), subdiv=0):
         divy = size[1] / 2.
 
     # generate plane vertices
-    x = np.linspace(-divx, divy, subdiv + 2)
-    y = np.linspace(divx, -divy, subdiv + 2)
+    x = np.linspace(-divx, divx, subdiv + 2)
+    y = np.linspace(divy, -divy, subdiv + 2)
     xx, yy = np.meshgrid(x, y)
 
     vertices = np.vstack([xx.ravel(), yy.ravel()]).T
@@ -3533,16 +3711,75 @@ def createMeshGrid(size=(1., 1.), subdiv=0):
 
     # generate face index
     faces = []
-    for i in range(subdiv + 1):
-        k1 = i * (subdiv + 2)
-        k2 = k1 + subdiv + 2
 
-        for j in range(subdiv + 1):
-            faces.append([k1, k2, k1 + 1])
-            faces.append([k1 + 1, k2, k2 + 1])
+    if tessMode == 'diag':
+        for i in range(subdiv + 1):
+            k1 = i * (subdiv + 2)
+            k2 = k1 + subdiv + 2
 
-            k1 += 1
-            k2 += 1
+            for j in range(subdiv + 1):
+                faces.append([k1, k2, k1 + 1])
+                faces.append([k1 + 1, k2, k2 + 1])
+
+                k1 += 1
+                k2 += 1
+
+    elif tessMode == 'center':
+        lx = len(x)
+        ly = len(y)
+
+        for i in range(subdiv + 1):
+            k1 = i * (subdiv + 2)
+            k2 = k1 + subdiv + 2
+
+            for j in range(subdiv + 1):
+                if k1 + j < k1 + int((lx / 2)):
+                    if int(k1 / ly) + 1 > int(ly / 2):
+                        faces.append([k1, k2, k1 + 1])
+                        faces.append([k1 + 1, k2, k2 + 1])
+                    else:
+                        faces.append([k1, k2, k2 + 1])
+                        faces.append([k1 + 1, k1, k2 + 1])
+                else:
+                    if int(k1 / ly) + 1 > int(ly / 2):
+                        faces.append([k1, k2, k2 + 1])
+                        faces.append([k1 + 1, k1, k2 + 1])
+                    else:
+                        faces.append([k1, k2, k1 + 1])
+                        faces.append([k1 + 1, k2, k2 + 1])
+
+                k1 += 1
+                k2 += 1
+
+    elif tessMode == 'radial':
+        lx = len(x)
+        ly = len(y)
+
+        for i in range(subdiv + 1):
+            k1 = i * (subdiv + 2)
+            k2 = k1 + subdiv + 2
+
+            for j in range(subdiv + 1):
+                if k1 + j < k1 + int((lx / 2)):
+                    if int(k1 / ly) + 1 > int(ly / 2):
+                        faces.append([k1, k2, k2 + 1])
+                        faces.append([k1 + 1, k1, k2 + 1])
+                    else:
+                        faces.append([k1, k2, k1 + 1])
+                        faces.append([k1 + 1, k2, k2 + 1])
+                else:
+                    if int(k1 / ly) + 1 > int(ly / 2):
+                        faces.append([k1, k2, k1 + 1])
+                        faces.append([k1 + 1, k2, k2 + 1])
+                    else:
+                        faces.append([k1, k2, k2 + 1])
+                        faces.append([k1 + 1, k1, k2 + 1])
+
+                k1 += 1
+                k2 += 1
+
+    else:
+        raise ValueError('Invalid value for `tessMode`.')
 
     # convert to numpy arrays
     vertices = np.ascontiguousarray(vertices, dtype=np.float32)
@@ -3650,9 +3887,12 @@ def createBox(size=(1., 1., 1.), flipFaces=False):
 
     # vertex indices for faces
     faces = np.ascontiguousarray([
-        [ 0,  2,  1], [ 1,  2,  3], [ 4,  6,  5], [ 5,  6,  7], [ 8, 10,  9],
-        [ 9, 10, 11], [12, 14, 13], [13, 14, 15], [16, 18, 17], [17, 18, 19],
-        [20, 22, 21], [21, 22, 23]
+        [ 0,  2,  1], [ 1,  2,  3],  # +X
+        [ 4,  6,  5], [ 5,  6,  7],  # -X
+        [ 8, 10,  9], [ 9, 10, 11],  # +Y
+        [12, 14, 13], [13, 14, 15],  # -Y
+        [16, 18, 17], [17, 18, 19],  # +Z
+        [20, 22, 21], [21, 22, 23]   # -Z
     ], dtype=np.uint32)
 
     if flipFaces:
@@ -3660,6 +3900,122 @@ def createBox(size=(1., 1., 1.), flipFaces=False):
         normals *= -1.0
 
     return vertices, texCoords, normals, faces
+
+
+def transformMeshPosOri(vertices, normals, pos=(0., 0., 0.), ori=(0., 0., 0., 1.)):
+    """Transform a mesh.
+
+    Transform mesh vertices and normals to a new position and orientation using
+    a position coordinate and rotation quaternion. Values `vertices` and
+    `normals` must be the same shape. This is intended to be used when editing
+    raw vertex data prior to rendering. Do not use this to change the
+    configuration of an object while rendering.
+
+    Parameters
+    ----------
+    vertices : array_like
+        Nx3 array of vertices.
+    normals : array_like
+        Nx3 array of normals.
+    pos : array_like, optional
+        Position vector to transform mesh vertices. If Nx3, `vertices` will be
+        transformed by corresponding rows of `pos`.
+    ori : array_like, optional
+        Orientation quaternion in form [x, y, z, w]. If Nx4, `vertices` and
+        `normals` will be transformed by corresponding rows of `ori`.
+
+    Returns
+    -------
+    tuple
+        Transformed vertices and normals.
+
+    Examples
+    --------
+    Create and re-orient a plane to face upwards::
+
+        vertices, textureCoords, normals, faces = createPlane()
+
+        # rotation quaternion
+        qr = quatFromAxisAngle((1., 0., 0.), -90.0)  # -90 degrees about +X axis
+
+        # transform the normals and points
+        vertices, normals = transformMeshPosOri(vertices, normals, ori=qr)
+
+    Any `create*` primitive generating function can be used inplace of
+    `createPlane`.
+
+    """
+    # ensure these are contiguous
+    vertices = np.ascontiguousarray(vertices)
+    normals = np.ascontiguousarray(normals)
+
+    if not np.allclose(pos, [0., 0., 0.]):
+        vertices = mt.transform(pos, ori, vertices)
+
+    if not np.allclose(ori, [0., 0., 0., 1.]):
+        normals = mt.applyQuat(ori, normals)
+
+    return vertices, normals
+
+
+def calculateVertexNormals(vertices, faces, shading='smooth'):
+    """Calculate vertex normals given vertices and triangle faces.
+
+    Finds all faces sharing a vertex index and sets its normal to either
+    the face normal if `shading='flat'` or the average normals of adjacent
+    faces if `shading='smooth'`. Flat shading only works correctly if each
+    vertex belongs to exactly one face.
+
+    The direction of the normals are determined by the winding order of
+    triangles, assumed counter clock-wise (OpenGL default). Most model
+    editing software exports using this convention. If not, winding orders
+    can be reversed by calling::
+
+        faces = np.fliplr(faces)
+
+    In some case, creases may appear if vertices are at the same location,
+    but do not share the same index.
+
+    Parameters
+    ----------
+    vertices : array_like
+        Nx3 vertex positions.
+    faces : array_like
+        Nx3 vertex indices.
+    shading : str, optional
+        Shading mode. Options are 'smooth' and 'flat'. Flat only works with
+        meshes where no vertex index is shared across faces.
+
+    Returns
+    -------
+    ndarray
+        Vertex normals array with the shame shape as `vertices`. Computed
+        normals are normalized.
+
+    Examples
+    --------
+    Recomputing vertex normals for a UV sphere::
+
+        # create a sphere and discard normals
+        vertices, textureCoords, _, faces = gltools.createUVSphere()
+        normals = gltools.calculateVertexNormals(vertices, faces)
+
+    """
+    # compute surface normals for all faces
+    faceNormals = mt.surfaceNormal(vertices[faces])
+
+    normals = []
+    if shading == 'flat':
+        for vertexIdx in np.unique(faces):
+            match, _ = np.where(faces == vertexIdx)
+            normals.append(faceNormals[match, :])
+    elif shading == 'smooth':
+        # get all faces the vertex belongs to
+        for vertexIdx in np.unique(faces):
+            match, _ = np.where(faces == vertexIdx)
+            normals.append(mt.vertexNormal(faceNormals[match, :]))
+
+    return np.ascontiguousarray(normals) + 0.0
 
 
 # -----------------------------

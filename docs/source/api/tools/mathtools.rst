@@ -59,7 +59,7 @@ input arguments should have matching types and `dtype` set accordingly.
 Most functions have an `out` argument, where one can specify an array to write
 values to. The value of `dtype` is ignored if `out` is provided, and all input
 arrays will be converted to match the `dtype` of `out` (if not already). This
-ensures that the type of the destination array is used.
+ensures that the type of the destination array is used for all arithmetic.
 
 
 .. automodule:: psychopy.tools.mathtools
@@ -81,6 +81,7 @@ Overview
     lerp
     distance
     angleTo
+    bisector
     surfaceNormal
     surfaceBitangent
     surfaceTangent
@@ -90,11 +91,14 @@ Overview
     slerp
     quatToAxisAngle
     quatFromAxisAngle
+    alignTo
     quatMagnitude
     multQuat
     invertQuat
     applyQuat
     quatToMatrix
+    matrixToQuat
+    matrixFromEulerAngles
     scaleMatrix
     rotationMatrix
     translationMatrix
@@ -105,6 +109,7 @@ Overview
     applyMatrix
     posOriToMatrix
     transform
+    lensCorrection
 
 Details
 ~~~~~~~
@@ -120,6 +125,7 @@ Details
 .. autofunction:: lerp
 .. autofunction:: distance
 .. autofunction:: angleTo
+.. autofunction:: bisector
 .. autofunction:: surfaceNormal
 .. autofunction:: surfaceBitangent
 .. autofunction:: surfaceTangent
@@ -129,11 +135,14 @@ Details
 .. autofunction:: slerp
 .. autofunction:: quatToAxisAngle
 .. autofunction:: quatFromAxisAngle
+.. autofunction:: alignTo
 .. autofunction:: quatMagnitude
 .. autofunction:: multQuat
 .. autofunction:: invertQuat
 .. autofunction:: applyQuat
 .. autofunction:: quatToMatrix
+.. autofunction:: matrixToQuat
+.. autofunction:: matrixFromEulerAngles
 .. autofunction:: scaleMatrix
 .. autofunction:: rotationMatrix
 .. autofunction:: translationMatrix
@@ -144,3 +153,4 @@ Details
 .. autofunction:: applyMatrix
 .. autofunction:: posOriToMatrix
 .. autofunction:: transform
+.. autofunction:: lensCorrection

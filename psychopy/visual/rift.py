@@ -1865,6 +1865,8 @@ class Rift(window.Window):
                     GL.GL_COLOR_ATTACHMENT0,
                     GL.GL_TEXTURE_2D, mirrorTexId, 0)
 
+                win_w, win_h = self.frameBufferSize
+
                 tex_w, tex_h = self._mirrorRes
                 self.viewport = self.scissor = (0, 0, win_w, win_h)
                 GL.glClearColor(0.0, 0.0, 0.0, 1.0)
