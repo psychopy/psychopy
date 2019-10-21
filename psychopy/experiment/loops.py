@@ -222,7 +222,8 @@ class TrialHandler(object):
         if modular:
             code = ("\n  // Schedule all the trials in the trialList:\n"
                     "  for (const {thisName} of {name}) {{\n"
-                    "    thisScheduler.add(importConditions({name}));\n")
+                    "    const snapshot = {name}.getSnapshot();\n"
+                    "    thisScheduler.add(importConditions(snapshot));\n")
         else:
             code = ("\n  // Schedule all the trials in the trialList:\n"
                     "  trialIterator = {name}[Symbol.iterator]();\n"
@@ -242,9 +243,9 @@ class TrialHandler(object):
             if thisChild.getType() == 'Routine':
                 thisType = 'Routine'
                 code += (
-                    "    thisScheduler.add({name}RoutineBegin);\n"
-                    "    thisScheduler.add({name}RoutineEachFrame);\n"
-                    "    thisScheduler.add({name}RoutineEnd);\n"
+                    "    thisScheduler.add({name}RoutineBegin(snapshot));\n"
+                    "    thisScheduler.add({name}RoutineEachFrame(snapshot));\n"
+                    "    thisScheduler.add({name}RoutineEnd(snapshot));\n"
                     .format(params=self.params, name=thisChild.params['name'])
                     )
             else:  # for a LoopInitiator
@@ -256,11 +257,11 @@ class TrialHandler(object):
                     .format(params=self.params, name=thisChild.params['name'].val)
                     )
 
-        code += ("    thisScheduler.add(endLoopIteration({{thisScheduler, isTrials : {isTrials}}}));\n"
-                 "  }}\n"
+        code += ("    thisScheduler.add(endLoopIteration(thisScheduler, snapshot));\n"
+                 "  }\n"
                  "\n"
                  "  return Scheduler.Event.NEXT;\n"
-                 "}}\n").format(isTrials=str(self.params['isTrials'].val).lower())
+                 "}\n")
         buff.writeIndentedLines(code)
 
     def writeLoopEndCode(self, buff):
