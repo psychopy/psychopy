@@ -1398,8 +1398,15 @@ def quatToAxisAngle(q, degrees=True, dtype=None):
     dtype = np.float64 if dtype is None else np.dtype(dtype).type
     q = normalize(q, dtype=dtype)  # returns ndarray
     v = np.sqrt(np.sum(np.square(q[:3])))
-    axis = q[:3] / v
-    angle = dtype(2.0) * np.arctan2(v, q[3])
+
+    if np.count_nonzero(q[:3]):
+        axis = q[:3] / v
+        angle = dtype(2.0) * np.arctan2(v, q[3])
+    else:
+        axis = np.zeros((3,), dtype=dtype)
+        axis[0] = 1.
+        angle = 0.0
+
     axis += 0.0
 
     return axis, np.degrees(angle) if degrees else angle
