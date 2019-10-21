@@ -1,54 +1,88 @@
-:class:`Rift`
+:class:`psychopy.visual.Rift`
 -------------
 
-Attributes
-=============
+Overview
+========
 
-.. currentmodule:: psychopy.visual
+.. currentmodule:: psychopy.visual.rift
 
-.. autosummary:: 
-
+.. autosummary::
     Rift
-    Rift.productName
+    Rift.close
+    Rift.size
+    Rift.setSize
+    Rift.perfHudMode
+    Rift.hidePerfHud
+    Rift.stereoDebugHudMode
+    Rift.setStereoDebugHudOption
+    Rift.userHeight
+    Rift.eyeHeight
+    Rift.eyeToNoseDistance
+    Rift.eyeOffset
+    Rift.hasPositionTracking
+    Rift.hasOrientationTracking
+    Rift.hasMagYawCorrection
     Rift.manufacturer
     Rift.serialNumber
-    Rift.firmwareVersion
-    Rift.resolution
+    Rift.hid
+    Rift.displayResolution
     Rift.displayRefreshRate
+    Rift.pixelsPerTanAngleAtCenter
+    Rift.tanAngleToNDC
+    Rift.trackerCount
+    Rift.getTrackerInfo
+    Rift.headLocked
     Rift.trackingOriginType
-    Rift.getTrackingOriginType
-    Rift.setTrackinOrigin
     Rift.recenterTrackingOrigin
+    Rift.specifyTrackingOrigin
+    Rift.specifyTrackingOriginPosOri
+    Rift.clearShouldRecenterFlag
+    Rift.testBoundary
+    Rift.sensorSampleTime
+    Rift.getDevicePose
+    Rift.getTrackingState
+    Rift.calcEyePoses
+    Rift.eyeRenderPose
     Rift.shouldQuit
     Rift.isVisible
-    Rift.isHmdMounted
-    Rift.isHmdPresent
+    Rift.hmdMounted
+    Rift.hmdPresent
     Rift.shouldRecenter
+    Rift.hasInputFocus
+    Rift.overlayPresent
     Rift.setBuffer
-    Rift.absTime
+    Rift.getPredictedDisplayTime
+    Rift.getTimeInSeconds
     Rift.viewMatrix
+    Rift.nearClip
+    Rift.farClip
     Rift.projectionMatrix
-    Rift.headLocked
-    Rift.pollControllers
+    Rift.isBoundaryVisible
+    Rift.getBoundaryDimensions
+    Rift.connectedControllers
+    Rift.updateInputState
     Rift.flip
     Rift.multiplyViewMatrixGL
     Rift.multiplyProjectionMatrixGL
     Rift.setRiftView
     Rift.setDefaultView
-    Rift.controllerConnected
-    Rift.getConectedControllers
     Rift.getThumbstickValues
     Rift.getIndexTriggerValues
     Rift.getHandTriggerValues
     Rift.getButtons
     Rift.getTouches
-    Rift.isIndexPointing
-    Rift.isThumbUp
-    Rift.raycastSphere
-        
+    Rift.startHaptics
+    Rift.stopHaptics
+    Rift.createHapticsBuffer
+    Rift.submitControllerVibration
+    Rift.createPose
+    Rift.createBoundingBox
+    Rift.isPoseVisible
+
 Details
-=============
+=======
 
 .. autoclass:: Rift
     :members:
     :undoc-members:
+    :inherited-members:

@@ -1292,8 +1292,6 @@ class Window(object):
     @property
     def nearClip(self):
         """Distance to the near clipping plane in meters."""
-        # internally stored as meters, but PsychoPy uses centimeters elsewhere
-        # so let's keep that consistent.
         return self._nearClip
 
     @nearClip.setter

@@ -142,5 +142,5 @@ Details
 .. autofunction:: isAffine
 .. autofunction:: concatenate
 .. autofunction:: applyMatrix
-.. autofunction:: rigidBodyToMatrix
+.. autofunction:: posOriToMatrix
 .. autofunction:: transform

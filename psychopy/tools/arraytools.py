@@ -9,9 +9,18 @@
 """
 from __future__ import absolute_import, division, print_function
 
+__all__ = ["createXYs",
+           "extendArr",
+           "makeRadialMatrix",
+           "ratioRange",
+           "shuffleArray",
+           "val2array",
+           "array2pointer"]
+
 from builtins import str
 from past.utils import old_div
 import numpy
+import ctypes
 
 
 def createXYs(x, y=None):
@@ -183,3 +192,32 @@ def val2array(value, withNone=True, withScalar=True, length=2):
     else:
         msg = 'Invalid parameter. Should be length %s but got length %s.'
         raise ValueError(msg % (str(length), str(len(value))))
+
+
+def array2pointer(arr, dtype=None):
+    """Convert a Numpy array to a `ctypes` pointer.
+
+    Arrays are checked if they are contiguous before conversion, if not, they
+    will be converted to contiguous arrays.
+
+    Parameters
+    ----------
+    arr : ndarray
+        N-dimensions array to convert, should be contiguous (C-ordered).
+    dtype : str or dtype, optional
+        Data type for the array pointer. If the data type of the array does not
+        match `dtype`, it will be converted to `dtype` prior to using it. If
+        `None` is specified, the data type for the pointer will be implied from
+        the input array type.
+
+    Returns
+    -------
+    ctypes.POINTER
+        Pointer to the first value of the array.
+
+    """
+    dtype = arr.dtype if dtype is None else numpy.dtype(dtype).type
+
+    # convert to ctypes, also we ensure the array is contiguous
+    return numpy.ascontiguousarray(arr, dtype=dtype).ctypes.data_as(
+        ctypes.POINTER(numpy.ctypeslib.as_ctypes_type(dtype)))

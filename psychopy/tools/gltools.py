@@ -89,8 +89,7 @@ import os, sys
 import warnings
 
 # create a query counter to get absolute GPU time
-QUERY_COUNTER = GL.GLuint()
-GL.glGenQueries(1, ctypes.byref(QUERY_COUNTER))
+QUERY_COUNTER = None  # prevent genQueries from being called
 
 
 # compatible Numpy and OpenGL types for common GL type enums
@@ -1086,6 +1085,10 @@ def getAbsTimeGPU():
         timeElapsed = (t1 - t0) * 1e-9  # take difference, convert to seconds
 
     """
+    global QUERY_COUNTER
+    if QUERY_COUNTER is None:
+        GL.glGenQueries(1, ctypes.byref(QUERY_COUNTER))
+
     GL.glQueryCounter(QUERY_COUNTER, GL.GL_TIMESTAMP)
 
     params = GL.GLuint64(0)
