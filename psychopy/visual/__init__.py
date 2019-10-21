@@ -85,6 +85,9 @@ from psychopy.visual.textbox import TextBox
 # rift support 
 from psychopy.visual.rift import Rift
 
+# 3D stimuli support
+from psychopy.visual.stim3d import SphereStim
+from psychopy.visual.stim3d import BoxStim
 
 """
 try:

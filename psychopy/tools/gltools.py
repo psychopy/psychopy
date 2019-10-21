@@ -2638,6 +2638,103 @@ def disableVertexAttribArray(index, legacy=False):
 Material = namedtuple('Material', ['face', 'params', 'textures', 'userData'])
 
 
+class SimpleMaterial(object):
+    """Class representing a simple material.
+
+    This class stores material information to modify the appearance of drawn
+    primitives with respect to lighting, such as color (diffuse, specular,
+    ambient, and emission), shininess, and textures. Simple materials are
+    intended to work with features supported by the fixed-function OpenGL
+    pipeline.
+
+    """
+    def __init__(self,
+                 diffuse=(.8, .8, .8, 1.),
+                 specular=(0., 0., 0., 1.),
+                 ambient=(0., 0., 0., 1.),
+                 emission=(0., 0., 0., 1.),
+                 shininess=10.0,
+                 textures=None):
+        """
+        Parameters
+        ----------
+        diffuse : array_like
+            Diffuse material color (r, g, b, a) with values between 0.0 and 1.0.
+        specular : array_like
+            Specular material color (r, g, b, a) with values between 0.0 and
+            1.0.
+        ambient : array_like
+            Ambient material color (r, g, b, a) with values between 0.0 and 1.0.
+        emission : array_like
+            Emission material color (r, g, b, a) with values between 0.0 and
+            1.0.
+        shininess : float
+            Material shininess, usually ranges from 0.0 to 128.0.
+        textures : TexImage2D, optional
+            Texture maps associated with this material.
+
+        """
+        self._diffuse = np.zeros((4,), np.float32)
+        self._specular = np.zeros((4,), np.float32)
+        self._ambient = np.zeros((4,), np.float32)
+        self._emission = np.zeros((4,), np.float32)
+        self._shininess = float(shininess)
+        self._textures = textures
+
+        self.diffuse = diffuse
+        self.specular = specular
+        self.ambient = ambient
+        self.emission = emission
+
+    @property
+    def diffuse(self):
+        return self._diffuse
+
+    @diffuse.setter
+    def diffuse(self, value):
+        self._diffuse = np.asarray(value, np.float32)
+
+    @property
+    def specular(self):
+        return self._specular
+
+    @specular.setter
+    def specular(self, value):
+        self._specular = np.asarray(value, np.float32)
+
+    @property
+    def ambient(self):
+        return self._ambient
+
+    @ambient.setter
+    def ambient(self, value):
+        self._ambient = np.asarray(value, np.float32)
+
+    @property
+    def emission(self):
+        return self._emission
+
+    @emission.setter
+    def emission(self, value):
+        self._emission = np.asarray(value, np.float32)
+
+    @property
+    def shininess(self):
+        return self._shininess
+
+    @shininess.setter
+    def shininess(self, value):
+        self._shininess = float(value)
+
+    @property
+    def diffuseTexture(self):
+        return self._diffuseTexture
+
+    @diffuseTexture.setter
+    def diffuseTexture(self, value):
+        self._diffuseTexture = value
+
+
 def createMaterial(params=(), textures=(), face=GL.GL_FRONT_AND_BACK):
     """Create a new material.
 
