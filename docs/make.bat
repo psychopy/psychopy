@@ -109,4 +109,17 @@ results in build/doctest/output.txt.
 	goto end
 )
 
+if "%1" == "latexpdf" (
+	%SPHINXBUILD% -b latex %ALLSPHINXOPTS% build/latex
+	echo "Running LaTeX files through pdflatex..."
+	cd build/latex
+	xelatex.exe PsychoPyManual.tex
+	cd ../..
+	echo "pdflatex finished; the PDF files are in build/latex."
+	goto end
+)
+if "%1" == "pdf" (
+    ./make.bat latexpdf
+	goto end
+)
 :end

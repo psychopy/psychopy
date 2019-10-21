@@ -13,16 +13,28 @@ CHANGES, which are identified in this dark red text, typically indicate things t
 PsychoPy 3.2
 ----------------
 
+PsychoPy 3.2.4
+~~~~~~~~~~~~~~~~~~~~~~
+
+FIXED:
+
+- When Microsoft release 1903 fails to get/set gamma give more info and the option to skip gamma correction. See more info in `troubleshooting gamma ramp <https://www.psychopy.org/troubleshooting.html#errors-with-getting-setting-the-gamma-ramp>`_
+- Slider wasn't allowing the units to be "from experiment settings" #23d80b49f
+- Setting the conditions rows from another conditions file was causing "Error path is on mount... start on mount..." #2e8cd2183
+- Mac 'tab' key was reporting itself as 'escape' with new Keyboard #95326cadd
+- PSTBox Python3 incompatibility (although there may be more) #da83429d6
+- better scaling of rating scale (Slider) in Form #d115e63cb
+- Stencil for Form was being activated immediately rather than when needed #9daeba94d
 
 PsychoPy 3.2.3
 ~~~~~~~~~~~~~~~~~~~~~~
 
 FIXED:
 
-- on pip install version (incorrectly packaged) there was an error
+- on the `pip install` version (incorrectly packaged) there was an error "NameError: name ‘pythonExec’ is not defined"
 - JS version system now drops the final (bugfix) release number (3.2.3 -> 3.2 in JS lib)
 - Cedrus response box now supports keys as a variable value in Builder #2608
-- QUestPlusHandler now supports "unkown" kwargs #2610
+- QuestPlusHandler now supports "unkown" kwargs #2610
 
 PsychoPy 3.2.2
 ~~~~~~~~~~~~~~~~~~~~~~

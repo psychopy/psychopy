@@ -121,11 +121,6 @@ class StairHandler(_BaseTrialHandler):
                 :func:`~psychopy.data.StairHandler.saveAsPickle` or
                 :func:`~psychopy.data.StairHandler.saveAsText` methods.
 
-            stepType:
-                specifies whether each step will be a jump of the given
-                size in 'db', 'log' or 'lin' units ('lin' means this
-                intensity will be added/subtracted)
-
             method:
                 Not used and may be deprecated in future releases.
 
@@ -863,11 +858,12 @@ class QuestHandler(StairHandler):
         self.startValSd = startValSd
         self.stopInterval = stopInterval
         self._questNextIntensity = startVal
+        self._range = range
 
         # Create Quest object
         self._quest = QuestObject_(
             startVal, startValSd, pThreshold, beta, delta, gamma,
-            grain=grain, range=range)
+            grain=grain, range=self._range)
 
         # Import any old staircase data
         if staircase is not None:
@@ -876,6 +872,26 @@ class QuestHandler(StairHandler):
         self.originPath, self.origin = self.getOriginPathAndFile(originPath)
         self._exp = None
         self.autoLog = autoLog
+
+    @property
+    def beta(self):
+        return self._quest.beta
+
+    @property
+    def gamma(self):
+        return self._quest.gamma
+
+    @property
+    def delta(self):
+        return self._quest.delta
+
+    @property
+    def grain(self):
+        return self._quest.grain
+
+    @property
+    def range(self):
+        return self._range
 
     def addResponse(self, result, intensity=None):
         """Add a 1 or 0 to signify a correct / detected or
@@ -1463,7 +1479,13 @@ class QuestPlusHandler(StairHandler):
             warnings.warn(msg, RuntimeWarning)
 
         super().__init__(startVal=startIntensity, nTrials=nTrials,
-                         extraInfo=extraInfo, name=name)
+                         stepType=stimScale, extraInfo=extraInfo, name=name)
+
+        # We  don't use these attributes that were inherited from StairHandler.
+        self.currentDirection = None
+        self.stepSizeCurrent = None
+        # Note that self.stepType is not used either: we use self.stimScale
+        # instead (which is defined below).
 
         self.intensityVals = intensityVals
         self.thresholdVals = thresholdVals
@@ -1624,8 +1646,8 @@ class QuestPlusHandler(StairHandler):
 class MultiStairHandler(_BaseTrialHandler):
 
     def __init__(self, stairType='simple', method='random',
-                 conditions=None, nTrials=50, originPath=None,
-                 name='', autoLog=True):
+                 conditions=None, nTrials=50, randomSeed=None,
+                 originPath=None, name='', autoLog=True):
         """A Handler to allow easy interleaved staircase procedures
         (simple or QUEST).
 
@@ -1649,10 +1671,14 @@ class MultiStairHandler(_BaseTrialHandler):
                 Use a :class:`StairHandler`, a :class:`QuestHandler`, or a
                  :class:`QuestPlusHandler`.
 
-            method: 'random' or 'sequential'
-                The stairs are shuffled in each repeat but not randomised
-                more than that (so you can't have 3 repeats of the same
-                staircase in a row unless it's the only one still running)
+            method: 'random', 'fullRandom', or 'sequential'
+                If `random`, stairs are shuffled in each repeat but not
+                randomized more than that (so you can't have 3 repeats of the
+                same staircase in a row unless it's the only one still
+                running). If `fullRandom`, the staircase order is "fully"
+                randomized, meaning that, theoretically, a large number of
+                subsequent trials could invoke the same staircase repeatedly.
+                If `sequential`, don't perform any randomization.
 
             conditions: a list of dictionaries specifying conditions
                 Can be used to control parameters for the different staicases.
@@ -1668,6 +1694,11 @@ class MultiStairHandler(_BaseTrialHandler):
                 Minimum trials to run (but may take more if the staircase
                 hasn't also met its minimal reversals.
                 See :class:`~psychopy.data.StairHandler`
+
+            randomSeed : int or None
+                The seed with which to initialize the random number generator
+                (RNG). If `None` (default), do not initialize the RNG with
+                a specific value.
 
         Example usage::
 
@@ -1690,11 +1721,19 @@ class MultiStairHandler(_BaseTrialHandler):
             stairs.saveDataAsExcel(fileName)  # easy to browse
             stairs.saveAsPickle(fileName)  # contains more info
 
+        Raises
+        ------
+            ValueError
+                If an unknown randomiation option was passed via the `method`
+                keyword argument.
+
         """
         self.name = name
         self.autoLog = autoLog
         self.type = stairType
-        self.method = method  # 'random' or 'sequential'
+        self.method = method
+        self.randomSeed = randomSeed
+        self._rng = np.random.RandomState(seed=randomSeed)
         self.conditions = conditions
         self.nTrials = nTrials
         self.finished = False
@@ -1831,9 +1870,12 @@ class MultiStairHandler(_BaseTrialHandler):
                             self.conditions.index(stair.condition))
                 exp.addData(self.name + '.thisRepN', stair.thisTrialN + 1)
                 exp.addData(self.name + '.thisN', self.totalTrials)
-                exp.addData(self.name + '.direction', stair.currentDirection)
-                exp.addData(self.name + '.stepSize', stair.stepSizeCurrent)
-                exp.addData(self.name + '.stepType', stair.stepType)
+
+                if self.type != 'questplus':
+                    exp.addData(self.name + '.direction', stair.currentDirection)
+                    exp.addData(self.name + '.stepSize', stair.stepSizeCurrent)
+                    exp.addData(self.name + '.stepType', stair.stepType)
+
                 exp.addData(self.name + '.intensity', self._nextIntensity)
             return self._nextIntensity, self.currentStaircase.condition
         else:
@@ -1847,9 +1889,21 @@ class MultiStairHandler(_BaseTrialHandler):
         This is not normally needed by the user - it gets called at __init__
         and every time that next() runs out of trials for this pass.
         """
-        self.thisPassRemaining = copy.copy(self.runningStaircases)
-        if self.method == 'random':
-            np.random.shuffle(self.thisPassRemaining)
+        if self.method == 'sequential':
+            self.thisPassRemaining = copy.copy(self.runningStaircases)
+        elif self.method == 'random':
+            # np.random.shuffle() works in-place!
+            self.thisPassRemaining = copy.copy(self.runningStaircases)
+            self._rng.shuffle(self.thisPassRemaining)
+        elif self.method == 'fullRandom':
+            n = len(self.runningStaircases)
+            self.thisPassRemaining = self._rng.choice(self.runningStaircases,
+                                                      size=n, replace=True)
+            # np.random.choice() returns an ndarray, so convert back to a list
+            # again.
+            self.thisPassRemaining = list(self.thisPassRemaining)
+        else:
+            raise ValueError('Unknown randomization method requested.')
 
     def addResponse(self, result, intensity=None):
         """Add a 1 or 0 to signify a correct / detected or

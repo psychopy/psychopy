@@ -121,7 +121,6 @@ def findUndeclaredVariables(ast, allUndeclaredVariables):
                 if variableName not in allUndeclaredVariables:
                     undeclaredVariables.append(variableName)
                     allUndeclaredVariables.append(variableName)
-
         elif expression.type == 'IfStatement':
             if expression.consequent.body is None:
                 consequentVariables = findUndeclaredVariables(
@@ -130,7 +129,11 @@ def findUndeclaredVariables(ast, allUndeclaredVariables):
                 consequentVariables = findUndeclaredVariables(
                     expression.consequent.body, allUndeclaredVariables)
             undeclaredVariables.extend(consequentVariables)
-
+        elif expression.type == "ReturnStatement":
+            if expression.argument.type == "FunctionExpression":
+                consequentVariables = findUndeclaredVariables(
+                    expression.argument.body.body, allUndeclaredVariables)
+                undeclaredVariables.extend(consequentVariables)
     return undeclaredVariables
 
 
@@ -159,7 +162,8 @@ def addVariableDeclarations(inputProgram, fileName):
                                                           allUndeclaredVariables)
 
             # add declarations (var) just before the function:
-            declaration = '\n'.join(['var ' + variable + ';' for variable in
+            funSpacing = ['', '\n'][len(undeclaredVariables) > 0]  # for consistent function spacing
+            declaration = funSpacing + '\n'.join(['var ' + variable + ';' for variable in
                                      undeclaredVariables]) + '\n'
             startIndex = expression.range[0] + offset
             outputProgram = outputProgram[

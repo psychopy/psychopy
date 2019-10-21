@@ -94,7 +94,8 @@ import warnings
 import psychopy.tools.mathtools as mt
 
 # create a query counter to get absolute GPU time
-QUERY_COUNTER = None
+
+QUERY_COUNTER = None  # prevent genQueries from being called
 
 
 # compatible Numpy and OpenGL types for common GL type enums
@@ -995,7 +996,7 @@ def createQueryObject(target=GL.GL_TIME_ELAPSED):
         drawVAO(shape0, GL_TRIANGLES)  # draw the first object
 
         # check if the object was completely occluded
-        qOcclusion = createQueryObject(GL_ANY_SAMPLES_PASSED​​)
+        qOcclusion = createQueryObject(GL_ANY_SAMPLES_PASSED)
 
         # draw the next shape within query context
         beginQuery(qOcclusion)

@@ -11,7 +11,7 @@ import wx.__version__
 import psychopy
 from psychopy import logging
 from psychopy.experiment.components import BaseComponent, Param, _translate
-from psychopy.tools.versionchooser import versionOptions, availableVersions, _versionFilter
+from psychopy.tools.versionchooser import versionOptions, availableVersions, _versionFilter, latestVersion
 from psychopy.constants import PY3
 
 # for creating html output folders:
@@ -531,16 +531,18 @@ class SettingsComponent(object):
 
         # decide if we need anchored useVersion or leave plain
         useVer = self.params['Use version'].val
-        if useVer in ['', 'latest']:
-            versionStr = ''  # nothing to do - use unversioned version
+        if useVer == '':
+            useVer = '.'.join(version.split('.')[:2])
+        elif useVer == 'latest':
+            useVer = '.'.join(latestVersion().split('.')[:2])
         else:
             # do we shorten minor versions ('3.4.2' to '3.4')?
             # only from 3.2 onwards
             if (parse_version(useVer) > (parse_version('3.2'))
                     and len(useVer.split('.'))>2):
                 useVer = '.'.join(useVer.split('.')[:2])
-            # prepend the hyphen
-            versionStr = '-{}'.format(useVer)
+        # prepend the hyphen
+        versionStr = '-{}'.format(useVer)
 
         # html header
         template = readTextFile("JS_htmlHeader.tmpl")
@@ -831,36 +833,37 @@ class SettingsComponent(object):
 
     def writeEndCodeJS(self, buff):
 
-        endLoopInteration = ("\nfunction endLoopIteration({thisScheduler, isTrials=true}) {\n"
+        endLoopInteration = ("\nfunction endLoopIteration(thisScheduler, trials) {\n"
                     "  // ------Prepare for next entry------\n"
                     "  return function () {\n"
                     "    // ------Check if user ended loop early------\n"
                     "    if (currentLoop.finished) {\n"
                     "      // Check for and save orphaned data\n"
                     "      if (Object.keys(psychoJS.experiment._thisEntry).length > 0) {\n"
-                    "        psychoJS.experiment.nextEntry();\n"
+                    "        psychoJS.experiment.nextEntry(trials);\n"
                     "      }\n"
                     "      thisScheduler.stop();\n"
-                    "    } else if (isTrials) {\n"
-                    "      psychoJS.experiment.nextEntry();\n"
+                    "    } else if (trials !== undefined) {\n"
+                    "      const thisTrial = trials.getCurrentTrial();\n"
+                    "      if (typeof thisTrial === 'undefined' || !('isTrials' in thisTrial) || thisTrial.isTrials) {\n"
+                    "         psychoJS.experiment.nextEntry(trials);\n"
+                    "      }\n"
                     "    }\n"
                     "  return Scheduler.Event.NEXT;\n"
                     "  };\n"
                     "}\n")
         buff.writeIndentedLines(endLoopInteration)
 
-        recordLoopIterationFunc = ("\nfunction importConditions(loop) {\n"
-                    "  const trialIndex = loop.getTrialIndex();\n"
+        recordLoopIterationFunc = ("\nfunction importConditions(trials) {\n"
                     "  return function () {\n"
-                    "    loop.setTrialIndex(trialIndex);\n"
-                    "    psychoJS.importAttributes(loop.getCurrentTrial());\n"
+                    "    psychoJS.importAttributes(trials.getCurrentTrial());\n"
                     "    return Scheduler.Event.NEXT;\n"
                     "    };\n"
                     "}\n")
         buff.writeIndentedLines(recordLoopIterationFunc)
         quitFunc = ("\nfunction quitPsychoJS(message, isCompleted) {\n"
                     "  // Check for and save orphaned data\n"
-                    "  if (Object.keys(psychoJS.experiment._thisEntry).length > 0) {\n"
+                    "  if (psychoJS.experiment.isEntryEmpty()) {\n"
                     "    psychoJS.experiment.nextEntry();\n"
                     "  }\n"
                     "  psychoJS.window.close();\n"

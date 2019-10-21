@@ -46,7 +46,7 @@ except ImportError:
 from psychopy.localization import _translate
 
 from ... import experiment
-from .. import stdOutRich, dialogs
+from .. import stdOutRich, dialogs, icons
 from ..icons import getAllIcons
 from psychopy import logging, constants, __version__
 from psychopy.tools.filetools import mergeFolder
@@ -516,8 +516,10 @@ class RoutineCanvas(wx.ScrolledWindow):
 
             if component.params['disabled'].val:
                 dc.SetBrush(wx.Brush(disabledTimeColor))
+                dc.DrawBitmap(thisIcon.ConvertToDisabled(), self.iconXpos, yPos + iconYOffset, True)
             else:
                 dc.SetBrush(wx.Brush(routineTimeColor))
+                dc.DrawBitmap(thisIcon, self.iconXpos, yPos + iconYOffset, True)
 
             hSize = (3.5, 2.75, 2)[self.drawSize]
             yOffset = (3, 3, 0)[self.drawSize]
@@ -2435,6 +2437,7 @@ class BuilderFrame(wx.Frame):
                 psyexpCompile.compileScript(infile=self.exp, version=None, outfile=experimentPath)
         except Exception:
             traceback.print_exc(file=sys.stderr)
+            self.gitFeedback(-1)
         finally:
             self.stdoutFrame.Show()
             self.setStandardStream(False)
@@ -2465,20 +2468,23 @@ class BuilderFrame(wx.Frame):
 
         self.enablePavloviaButton(['pavloviaSync', 'pavloviaRun'], False)
         try:
-            pavlovia_ui.syncProject(parent=self, project=self.project)
+            retVal = pavlovia_ui.syncProject(parent=self, project=self.project)
             pavlovia.knownProjects.save()  # update projects.json
+            self.gitFeedback(retVal)
         finally:
             self.enablePavloviaButton(['pavloviaSync', 'pavloviaRun'], True)
 
     def onPavloviaRun(self, evt=None):
         if self._getExportPref('on save'):
             self.fileSave()
-            pavlovia_ui.syncProject(parent=self, project=self.project,
-                                    closeFrameWhenDone=False)
+            retVal = pavlovia_ui.syncProject(parent=self, project=self.project,
+                                             closeFrameWhenDone=False)
+            self.gitFeedback(retVal)
         elif self._getExportPref('on sync'):
             self.fileExport(htmlPath=self._getHtmlPath(self.filename))
-            pavlovia_ui.syncProject(parent=self, project=self.project,
-                                    closeFrameWhenDone=False)
+            retVal = pavlovia_ui.syncProject(parent=self, project=self.project,
+                                             closeFrameWhenDone=False)
+            self.gitFeedback(retVal)
         elif self._getExportPref('manually'):
             # Check htmlpath and projects exists
             noHtmlFolder = not os.path.isdir(self._getHtmlPath(self.filename))
@@ -2486,9 +2492,9 @@ class BuilderFrame(wx.Frame):
             if noHtmlFolder:
                 self.fileExport()
             if noProject or noHtmlFolder:
-                pavlovia_ui.syncProject(parent=self, project=self.project,
-                                        closeFrameWhenDone=False)
-
+                retVal = pavlovia_ui.syncProject(parent=self, project=self.project,
+                                                 closeFrameWhenDone=False)
+                self.gitFeedback(retVal)
         if self.project:
             self.project.pavloviaStatus = 'ACTIVATED'
             url = "https://pavlovia.org/run/{}/html".format(self.project.id)
@@ -2515,6 +2521,44 @@ class BuilderFrame(wx.Frame):
     def setPavloviaUser(self, user):
         # TODO: update user icon on button to user avatar
         pass
+
+    def gitFeedback(self, val):
+        """
+        Set feedback color for the Pavlovia Sync toolbar button.
+
+        Parameters
+        ----------
+        val: int
+            Status of git sync. 1 for SUCCESS (green), 0 or -1 for FAIL (RED)
+        """
+        rc = self.app.prefs.paths['resources']
+        feedbackTime = 1500
+        colour = {0: "red", -1: "red", 1: "green"}
+
+        if sys.platform == 'win32' or sys.platform.startswith('linux'):
+            if self.appPrefs['largeIcons']:
+                toolbarSize = 32
+            else:
+                toolbarSize = 16
+        else:
+            toolbarSize = 32  # mac: 16 either doesn't work, or looks ba
+
+        # Store original
+        origBtn = self.btnHandles['pavloviaSync'].NormalBitmap
+        # Create new feedback bitmap
+        feedbackBtn = icons.combineImageEmblem(
+            main=os.path.join(rc, '%sglobe%i.png' % (colour[val], toolbarSize)),
+            emblem=os.path.join(rc, 'sync_green16.png'), pos='bottom_right')
+
+        # Set feedback button
+        self.btnHandles['pavloviaSync'].SetNormalBitmap(feedbackBtn)
+        self.toolbar.Realize()
+        self.toolbar.Refresh()
+
+        # Reset button to default state after time
+        wx.CallLater(feedbackTime, self.btnHandles['pavloviaSync'].SetNormalBitmap, origBtn)
+        wx.CallLater(feedbackTime+50, self.toolbar.Realize)
+        wx.CallLater(feedbackTime+50, self.toolbar.Refresh)
 
     @property
     def project(self):

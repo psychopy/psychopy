@@ -18,7 +18,7 @@ Documentation
    gettingStarted
    Builder - building experiments in a GUI <builder/builder>
    Coder - writing experiments with scripts <coder/coder>
-   Online - running experiments on the web <online/online>
+   Online - running experiments on the web <online/index>
    api/api
 
 Further information:

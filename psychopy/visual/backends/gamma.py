@@ -16,7 +16,7 @@ import sys
 import platform
 import ctypes
 import ctypes.util
-from psychopy import logging
+from psychopy import logging, prefs
 import os
 
 # import platform specific C++ libs for controlling gamma
@@ -38,24 +38,37 @@ elif sys.platform.startswith('linux'):
 
 _TravisTesting = os.environ.get('TRAVIS') == 'true'  # in Travis-CI testing
 
-problem_msg = 'The hardware look-up table ({func:s}) was unable to be used.'
-raise_msg = (
-    problem_msg + ' If you would like to proceed without look-up table ' +
-    '(gamma) changes, you can set the `Window` parameter ' +
-    '`gammaErrorPolicy` to `"warn"` or `"ignore"`.'
-)
-warn_msg = problem_msg + ' Proceeding without look-up table (gamma) changes.'
+# Handling what to do if gamma can't be set
+if prefs.general['gammaErrorPolicy'] == 'abort':  # more clear to Builder users
+    defaultGammaErrorPolicy = 'raise'  # more clear to Python coders
+else:
+    defaultGammaErrorPolicy = prefs.general['gammaErrorPolicy']
+
+problem_msg = 'The hardware look-up table function ({func:s}) failed. '
+raise_msg = (problem_msg +
+        'If you would like to proceed without look-up table '
+        '(gamma) changes, you can change your `defaultGammaFailPolicy` in the '
+        'application preferences. For more information see\n'
+        'https://www.psychopy.org/troubleshooting.html#errors-with-getting-setting-the-gamma-ramp '
+        )
+warn_msg = problem_msg + 'Proceeding without look-up table (gamma) changes.'
 
 
-def setGamma(
-    screenID=None,
-    newGamma=1.0,
-    rampType=None,
-    rampSize=None,
-    driver=None,
-    xDisplay=None,
-    gammaErrorPolicy='raise'
-):
+def setGamma(screenID=None, newGamma=1.0, rampType=None, rampSize=None,
+    driver=None, xDisplay=None, gammaErrorPolicy=None):
+    """Sets gamma to a given value
+
+    :param screenID: The screen ID in the Operating system
+    :param newGamma: numeric or triplet (for independent RGB gamma vals)
+    :param rampType: see :ref:`createLinearRamp` for possible ramp types
+    :param rampSize: how large is the lookup table on your system?
+    :param driver: string describing your gfx card driver (e.g. from pyglet)
+    :param xDisplay: for linux only
+    :param gammaErrorPolicy: whether you want to raise an error or warning
+    :return:
+    """
+    if not gammaErrorPolicy:
+        gammaErrorPolicy = defaultGammaErrorPolicy
     # make sure gamma is 3x1 array
     if type(newGamma) in [float, int]:
         newGamma = numpy.tile(newGamma, [3, 1])
@@ -72,14 +85,12 @@ def setGamma(
     if numpy.all(newGamma == 1.0) == False:
         # correctly handles 1 or 3x1 gamma vals
         newLUT = newLUT**(1.0/numpy.array(newGamma))
-    setGammaRamp(
-        screenID, newLUT, xDisplay=xDisplay, gammaErrorPolicy=gammaErrorPolicy
-    )
+    setGammaRamp(screenID, newLUT,
+                 xDisplay=xDisplay, gammaErrorPolicy=gammaErrorPolicy)
 
 
-def setGammaRamp(
-    screenID, newRamp, nAttempts=3, xDisplay=None, gammaErrorPolicy='raise'
-):
+def setGammaRamp(screenID, newRamp, nAttempts=3, xDisplay=None,
+                 gammaErrorPolicy=None):
     """Sets the hardware look-up table, using platform-specific functions.
     Ramp should be provided as 3xN array in range 0:1.0
 
@@ -87,6 +98,9 @@ def setGammaRamp(
     parameter nAttemps allows the user to determine how many attempts should
     be made before failing
     """
+
+    if not gammaErrorPolicy:
+        gammaErrorPolicy = defaultGammaErrorPolicy
 
     LUTlength = newRamp.shape[1]
 
@@ -142,10 +156,18 @@ def setGammaRamp(
                      "environment. Hardware gamma table cannot be set")
 
 
-def getGammaRamp(screenID, xDisplay=None, gammaErrorPolicy='raise'):
+def getGammaRamp(screenID, xDisplay=None, gammaErrorPolicy=None):
     """Ramp will be returned as 3xN array in range 0:1
-    """
 
+    screenID :
+        ID of the given display as defined by the OS
+    xDisplay :
+        the identity (int?) of the X display
+    gammaErrorPolicy : str
+        'raise' (ends the experiment) or 'warn' (logs a warning)
+    """
+    if not gammaErrorPolicy:
+        gammaErrorPolicy = defaultGammaErrorPolicy
     rampSize = getGammaRampSize(screenID, xDisplay=xDisplay)
 
     if sys.platform == 'win32':
@@ -292,29 +314,25 @@ def createLinearRamp(rampType=None, rampSize=256, driver=None):
     return ramp
 
 
-def getGammaRampSize(screenID, xDisplay=None, gammaErrorPolicy='raise'):
+def getGammaRampSize(screenID, xDisplay=None, gammaErrorPolicy=None):
     """Returns the size of each channel of the gamma ramp."""
 
-    if sys.platform == 'win32':
+    if not gammaErrorPolicy:
+        gammaErrorPolicy = defaultGammaErrorPolicy
 
+    if sys.platform == 'win32':
         # windows documentation (for SetDeviceGammaRamp) seems to indicate that
         # the LUT size is always 256
         rampSize = 256
-
     elif sys.platform == 'darwin':
-
         rampSize = carbon.CGDisplayGammaTableCapacity(screenID)
-
     elif sys.platform.startswith('linux') and not _TravisTesting:
-
         rampSize = ctypes.c_int()
-
         success = xf86vm.XF86VidModeGetGammaRampSize(
             xDisplay,
             screenID,
             ctypes.byref(rampSize)
         )
-
         if not success:
             func = 'XF86VidModeGetGammaRampSize'
             if gammaErrorPolicy == 'raise':
@@ -323,21 +341,16 @@ def getGammaRampSize(screenID, xDisplay=None, gammaErrorPolicy='raise'):
                 logging.warning(warn_msg.format(func=func))
         else:
             rampSize = rampSize.value
-
     else:
-
         assert _TravisTesting
-
         rampSize = 256
 
     if rampSize == 0:
-
         logging.warn(
             "The size of the gamma ramp was reported as 0. This can " +
             "mean that gamma settings have no effect. Proceeding with " +
             "a default gamma ramp size."
         )
-
         rampSize = 256
 
     return rampSize

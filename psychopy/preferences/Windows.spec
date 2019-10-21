@@ -44,6 +44,8 @@
     shutdownKey = string(default='')
     # Modifier keys for shutdown keys
     shutdownKeyModifiers = list(default=list())
+    # What to do if gamma-correction not possible
+    gammaErrorPolicy = option('abort', 'warn', default='abort')
 
 # Application settings, applied to coder, builder, & prefs windows
 [app]
