@@ -1492,27 +1492,96 @@ def deleteRenderbuffer(renderBuffer):
 #   # examples of custom userData some function might access
 #   texDesc.userData['flags'] = ['left_eye', 'clear_before_use']
 #
-TexImage2D = namedtuple(
-    'TexImage2D',
-    ['id',
-     'target',
-     'width',
-     'height',
-     'internalFormat',
-     'pixelFormat',
-     'dataType',
-     'unpackAlignment',
-     'samples',  # always 1
-     'multisample',  # always False
-     'userData'])
+
+class TexImage2D(object):
+    """Descriptor for a 2D texture.
+
+    This class is used for bookkeeping 2D textures stored in video memory.
+    Information about the texture (eg. `width` and `height`) is available via
+    class attributes. Attributes should never be modified directly.
+
+    """
+    __slots__ = ['width',
+                 'height',
+                 'target',
+                 'name',
+                 'level',
+                 'internalFormat',
+                 'pixelFormat',
+                 'dataType',
+                 'unpackAlignment',
+                 'texParams']
+
+    def __init__(self,
+                 name=0,
+                 target=GL.GL_TEXTURE_2D,
+                 width=64,
+                 height=64,
+                 level=0,
+                 internalFormat=GL.GL_RGBA,
+                 pixelFormat=GL.GL_RGBA,
+                 dataType=GL.GL_FLOAT,
+                 unpackAlignment=4,
+                 texParams=None):
+        """
+        Parameters
+        ----------
+        name : `int` or `GLuint`
+            OpenGL handle for texture. Is `0` if uninitialized.
+        target : :obj:`int`
+            The target texture should only be either GL_TEXTURE_2D or
+            GL_TEXTURE_RECTANGLE.
+        width : :obj:`int`
+            Texture width in pixels.
+        height : :obj:`int`
+            Texture height in pixels.
+        level : :obj:`int`
+            LOD number of the texture, should be 0 if GL_TEXTURE_RECTANGLE is
+            the target.
+        internalFormat : :obj:`int`
+            Internal format for texture data (e.g. GL_RGBA8, GL_R11F_G11F_B10F).
+        pixelFormat : :obj:`int`
+            Pixel data format (e.g. GL_RGBA, GL_DEPTH_STENCIL)
+        dataType : :obj:`int`
+            Data type for pixel data (e.g. GL_FLOAT, GL_UNSIGNED_BYTE).
+        unpackAlignment : :obj:`int`
+            Alignment requirements of each row in memory. Default is 4.
+        texParams : :obj:`list` of :obj:`tuple` of :obj:`int`
+            Optional texture parameters specified as a list of tuples. These
+            values are passed to `glTexParameteri`. Each tuple must contain a
+            parameter name and value. For example, `texParameters=[
+            (GL.GL_TEXTURE_MIN_FILTER, GL.GL_LINEAR), (GL.GL_TEXTURE_MAG_FILTER,
+            GL.GL_LINEAR)]`.
+
+        """
+        if not isinstance(name, GL.GLuint):
+            self.name = GL.GLuint(int(name))
+        else:
+            self.name = name
+
+        # fields for texture information
+        self.width = width
+        self.height = height
+        self.target = target
+        self.level = level
+        self.internalFormat = internalFormat
+        self.pixelFormat = pixelFormat
+        self.dataType = dataType
+        self.unpackAlignment = unpackAlignment
+        self.texParams = texParams
+
+    @property
+    def size(self):
+        """Size of the texture [w, h] in pixels (`int`, `int`)."""
+        return self.width, self.height
 
 
 def createTexImage2D(width, height, target=GL.GL_TEXTURE_2D, level=0,
                      internalFormat=GL.GL_RGBA8, pixelFormat=GL.GL_RGBA,
                      dataType=GL.GL_FLOAT, data=None, unpackAlignment=4,
-                     texParameters=()):
+                     texParams=()):
     """Create a 2D texture in video memory. This can only create a single 2D
-    texture with targets GL_TEXTURE_2D or GL_TEXTURE_RECTANGLE.
+    texture with targets `GL_TEXTURE_2D` or `GL_TEXTURE_RECTANGLE`.
 
     Parameters
     ----------
@@ -1537,7 +1606,7 @@ def createTexImage2D(width, height, target=GL.GL_TEXTURE_2D, level=0,
         created but pixel data will be uninitialized.
     unpackAlignment : :obj:`int`
         Alignment requirements of each row in memory. Default is 4.
-    texParameters : :obj:`list` of :obj:`tuple` of :obj:`int`
+    texParams : :obj:`list` of :obj:`tuple` of :obj:`int`
         Optional texture parameters specified as a list of tuples. These values
         are passed to 'glTexParameteri'. Each tuple must contain a parameter
         name and value. For example, texParameters=[(GL.GL_TEXTURE_MIN_FILTER,
@@ -1546,7 +1615,7 @@ def createTexImage2D(width, height, target=GL.GL_TEXTURE_2D, level=0,
     Returns
     -------
     TexImage2D
-        A TexImage2D descriptor.
+        A `TexImage2D` descriptor.
 
     Notes
     -----
@@ -1580,7 +1649,7 @@ def createTexImage2D(width, height, target=GL.GL_TEXTURE_2D, level=0,
             internalFormat=GL.GL_RGBA,
             pixelFormat=GL.GL_RGBA,
             dataType=GL.GL_UNSIGNED_BYTE,
-            data=texture_array.ctypes,
+            data=pixelData,
             unpackAlignment=1,
             texParameters=[(GL.GL_TEXTURE_MAG_FILTER, GL.GL_LINEAR),
                            (GL.GL_TEXTURE_MIN_FILTER, GL.GL_LINEAR)])
@@ -1601,32 +1670,36 @@ def createTexImage2D(width, height, target=GL.GL_TEXTURE_2D, level=0,
                              "must be 0.")
         GL.glEnable(GL.GL_TEXTURE_RECTANGLE)
 
+
     colorTexId = GL.GLuint()
     GL.glGenTextures(1, ctypes.byref(colorTexId))
+
     GL.glBindTexture(target, colorTexId)
     GL.glPixelStorei(GL.GL_UNPACK_ALIGNMENT, int(unpackAlignment))
     GL.glTexImage2D(target, level, internalFormat,
                     width, height, 0,
                     pixelFormat, dataType, data)
 
+    # new texture descriptor
+    tex = TexImage2d(name=colorTexId,
+                     target=target,
+                     width=width,
+                     height=height,
+                     internalFormat=internalFormat,
+                     level=level,
+                     pixelFormat=pixelFormat,
+                     dataType=dataType,
+                     unpackAlignment=unpackAlignment,
+                     texParams=texParams)
+
     # apply texture parameters
-    if texParameters:
-        for pname, param in texParameters:
+    if texParams:
+        for pname, param in texParams:
             GL.glTexParameteri(target, pname, param)
 
     GL.glBindTexture(target, 0)
 
-    return TexImage2D(colorTexId,
-                      target,
-                      width,
-                      height,
-                      internalFormat,
-                      pixelFormat,
-                      dataType,
-                      unpackAlignment,
-                      1,
-                      False,
-                      dict())
+    return tex
 
 
 # Descriptor for 2D mutlisampled texture
@@ -2670,8 +2743,10 @@ class SimpleMaterial(object):
             1.0.
         shininess : float
             Material shininess, usually ranges from 0.0 to 128.0.
-        textures : TexImage2D, optional
-            Texture maps associated with this material.
+        textures : dict of TexImage2D, optional
+            Texture maps associated with this material. Textures are specified
+            as a dictionary where keys are texture units (`int`) to bind the
+            texture to on use and values are `TexImage2D` objects to bind.
 
         """
         self._diffuse = np.zeros((4,), np.float32)
@@ -2679,7 +2754,7 @@ class SimpleMaterial(object):
         self._ambient = np.zeros((4,), np.float32)
         self._emission = np.zeros((4,), np.float32)
         self._shininess = float(shininess)
-        self._textures = textures
+        self._textures = dict() if textures is None else textures
 
         self.diffuse = diffuse
         self.specular = specular
@@ -2725,14 +2800,6 @@ class SimpleMaterial(object):
     @shininess.setter
     def shininess(self, value):
         self._shininess = float(value)
-
-    @property
-    def diffuseTexture(self):
-        return self._diffuseTexture
-
-    @diffuseTexture.setter
-    def diffuseTexture(self, value):
-        self._diffuseTexture = value
 
 
 def createMaterial(params=(), textures=(), face=GL.GL_FRONT_AND_BACK):
