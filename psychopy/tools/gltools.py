@@ -79,7 +79,10 @@ __all__ = [
     'getIntegerv',
     'getFloatv',
     'getString',
-    'getOpenGLInfo'
+    'getOpenGLInfo',
+    'createTexImage2D',
+    'bindTexture',
+    'unbindTexture'
 ]
 
 import ctypes
@@ -1486,12 +1489,6 @@ def deleteRenderbuffer(renderBuffer):
 # 2D texture descriptor. You can 'wrap' existing texture IDs with TexImage2D to
 # use them with functions that require that type as input.
 #
-#   texId = getTextureIdFromAPI()
-#   texDesc = TexImage2D(texId, GL.GL_TEXTURE_2D, 1024, 1024)
-#   attachFramebufferImage(fbo, texDesc, GL.GL_COLOR_ATTACHMENT0)
-#   # examples of custom userData some function might access
-#   texDesc.userData['flags'] = ['left_eye', 'clear_before_use']
-#
 
 class TexImage2D(object):
     """Descriptor for a 2D texture.
@@ -1510,7 +1507,10 @@ class TexImage2D(object):
                  'pixelFormat',
                  'dataType',
                  'unpackAlignment',
-                 'texParams']
+                 '_texParams',
+                 '_isBound',
+                 '_unit',
+                 '_texParamsNeedUpdate']
 
     def __init__(self,
                  name=0,
@@ -1547,11 +1547,11 @@ class TexImage2D(object):
         unpackAlignment : :obj:`int`
             Alignment requirements of each row in memory. Default is 4.
         texParams : :obj:`list` of :obj:`tuple` of :obj:`int`
-            Optional texture parameters specified as a list of tuples. These
-            values are passed to `glTexParameteri`. Each tuple must contain a
-            parameter name and value. For example, `texParameters=[
-            (GL.GL_TEXTURE_MIN_FILTER, GL.GL_LINEAR), (GL.GL_TEXTURE_MAG_FILTER,
-            GL.GL_LINEAR)]`.
+            Optional texture parameters specified as `dict`. These values are
+            passed to `glTexParameteri`. Each tuple must contain a parameter
+            name and value. For example, `texParameters={
+            GL.GL_TEXTURE_MIN_FILTER: GL.GL_LINEAR, GL.GL_TEXTURE_MAG_FILTER:
+            GL.GL_LINEAR}`.
 
         """
         if not isinstance(name, GL.GLuint):
@@ -1568,18 +1568,40 @@ class TexImage2D(object):
         self.pixelFormat = pixelFormat
         self.dataType = dataType
         self.unpackAlignment = unpackAlignment
-        self.texParams = texParams
+        self._texParams = {}
+
+        # set texture parameters
+        if texParams is not None:
+            for key, val in texParams.items():
+                self._texParams[key] = val
+
+        # internal data
+        self._isBound = False  # True if the texture has been bound
+        self._unit = None  # texture unit assigned to this texture
+        self._texParamsNeedUpdate = True  # update texture parameters
 
     @property
     def size(self):
         """Size of the texture [w, h] in pixels (`int`, `int`)."""
         return self.width, self.height
 
+    @property
+    def texParams(self):
+        """Texture parameters."""
+        self._texParamsNeedUpdate = True
+        return self._texParams
+
+    @texParams.setter
+    def texParams(self, value):
+        """Texture parameters."""
+        self._texParamsNeedUpdate = True
+        self._texParams = value
+
 
 def createTexImage2D(width, height, target=GL.GL_TEXTURE_2D, level=0,
                      internalFormat=GL.GL_RGBA8, pixelFormat=GL.GL_RGBA,
                      dataType=GL.GL_FLOAT, data=None, unpackAlignment=4,
-                     texParams=()):
+                     texParams=None):
     """Create a 2D texture in video memory. This can only create a single 2D
     texture with targets `GL_TEXTURE_2D` or `GL_TEXTURE_RECTANGLE`.
 
@@ -1606,11 +1628,11 @@ def createTexImage2D(width, height, target=GL.GL_TEXTURE_2D, level=0,
         created but pixel data will be uninitialized.
     unpackAlignment : :obj:`int`
         Alignment requirements of each row in memory. Default is 4.
-    texParams : :obj:`list` of :obj:`tuple` of :obj:`int`
-        Optional texture parameters specified as a list of tuples. These values
-        are passed to 'glTexParameteri'. Each tuple must contain a parameter
-        name and value. For example, texParameters=[(GL.GL_TEXTURE_MIN_FILTER,
-        GL.GL_LINEAR), (GL.GL_TEXTURE_MAG_FILTER, GL.GL_LINEAR)]
+    texParams : :obj:`dict`
+        Optional texture parameters specified as `dict`. These values are passed
+        to `glTexParameteri`. Each tuple must contain a parameter name and
+        value. For example, `texParameters={GL.GL_TEXTURE_MIN_FILTER:
+        GL.GL_LINEAR, GL.GL_TEXTURE_MAG_FILTER: GL.GL_LINEAR}`.
 
     Returns
     -------
@@ -1670,18 +1692,22 @@ def createTexImage2D(width, height, target=GL.GL_TEXTURE_2D, level=0,
                              "must be 0.")
         GL.glEnable(GL.GL_TEXTURE_RECTANGLE)
 
+    texId = GL.GLuint()
+    GL.glGenTextures(1, ctypes.byref(texId))
 
-    colorTexId = GL.GLuint()
-    GL.glGenTextures(1, ctypes.byref(colorTexId))
-
-    GL.glBindTexture(target, colorTexId)
+    GL.glBindTexture(target, texId)
     GL.glPixelStorei(GL.GL_UNPACK_ALIGNMENT, int(unpackAlignment))
     GL.glTexImage2D(target, level, internalFormat,
                     width, height, 0,
                     pixelFormat, dataType, data)
 
+    # apply texture parameters
+    if texParams is not None:
+        for pname, param in texParams.items():
+            GL.glTexParameteri(target, pname, param)
+
     # new texture descriptor
-    tex = TexImage2d(name=colorTexId,
+    tex = TexImage2D(name=texId,
                      target=target,
                      width=width,
                      height=height,
@@ -1692,14 +1718,62 @@ def createTexImage2D(width, height, target=GL.GL_TEXTURE_2D, level=0,
                      unpackAlignment=unpackAlignment,
                      texParams=texParams)
 
-    # apply texture parameters
-    if texParams:
-        for pname, param in texParams:
-            GL.glTexParameteri(target, pname, param)
+    tex._texParamsNeedUpdate = False
 
     GL.glBindTexture(target, 0)
 
     return tex
+
+
+def bindTexture(texture, unit=None, enable=True):
+    """Bind a texture.
+
+    Function binds `texture` to `unit` (if specified). If `unit` is `None`, the
+    texture will be bound but not assigned to a texture unit.
+
+    Parameters
+    ----------
+    texture : TexImage2D
+        Texture descriptor to bind.
+    unit : int, optional
+        Texture unit to associated the texture with.
+    enable : bool
+        Enable textures upon binding.
+
+    """
+    if not texture._isBound:
+        if enable:
+            GL.glEnable(texture.target)
+
+        GL.glBindTexture(texture.target, texture.name)
+        texture._isBound = True
+
+        # update texture parameters if they have been accessed (changed?)
+        if texture._texParamsNeedUpdate:
+            for pname, param in texture._texParams.items():
+                GL.glTexParameteri(texture.target, pname, param)
+                texture._texParamsNeedUpdate = False
+
+        if unit is not None:
+            texture._unit = unit = GL.GL_TEXTURE0 + unit
+            GL.glActiveTexture(unit)
+
+
+def unbindTexture(texture=None):
+    """Unbind a texture.
+
+    Parameters
+    ----------
+    texture : TexImage2D
+        Texture descriptor to unbind.
+
+    """
+    if texture._isBound:
+        GL.glBindTexture(texture.target, 0)
+        texture._isBound = False
+        texture._unit = None
+
+        GL.glDisable(texture.target)
 
 
 # Descriptor for 2D mutlisampled texture
@@ -1788,7 +1862,7 @@ def deleteTexture(texture):
     texture's ID.
 
     """
-    GL.glDeleteTextures(1, texture.id)
+    GL.glDeleteTextures(1, texture.name)
 
 
 # --------------------------
@@ -2761,6 +2835,8 @@ class SimpleMaterial(object):
         self.ambient = ambient
         self.emission = emission
 
+        self._useTextures = False
+
     @property
     def diffuse(self):
         return self._diffuse
@@ -2800,6 +2876,14 @@ class SimpleMaterial(object):
     @shininess.setter
     def shininess(self, value):
         self._shininess = float(value)
+
+    @property
+    def textures(self):
+        return self._textures
+
+    @textures.setter
+    def textures(self, value):
+        self._textures = value
 
 
 def createMaterial(params=(), textures=(), face=GL.GL_FRONT_AND_BACK):
@@ -2891,7 +2975,7 @@ def createMaterial(params=(), textures=(), face=GL.GL_FRONT_AND_BACK):
     return matDesc
 
 
-def useMaterial(material, useTextures=True):
+def useMaterial(material, useTextures=True, face=GL.GL_FRONT):
     """Use a material for proceeding vertex draws.
 
     Parameters
@@ -2905,6 +2989,9 @@ def useMaterial(material, useTextures=True):
         enabled. Note, when disabling materials, the value of useTextures must
         match the previous call. If there are no textures attached to the
         material, useTexture will be silently ignored.
+    face : GLenum
+        Face to apply material to, must be either `GL_BACK`, `GL_FRONT`, and
+        `GL_FRONT_BACK`.
 
     Returns
     -------
@@ -2930,31 +3017,44 @@ def useMaterial(material, useTextures=True):
     """
     if material is not None:
         GL.glDisable(GL.GL_COLOR_MATERIAL)  # disable color tracking
-        GL.glColorMaterial(material.face, GL.GL_AMBIENT_AND_DIFFUSE)
-        # setup material color params
-        for mode, param in material.params.items():
-            if param is not None:
-                if mode != GL.GL_SHININESS:
-                    GL.glMaterialfv(material.face, mode, param)
-                else:
-                    GL.glMaterialf(material.face, mode, param)
+        GL.glColorMaterial(face, GL.GL_AMBIENT_AND_DIFFUSE)
+
+        # convert data in light class to ctypes
+        diffuse = np.ctypeslib.as_ctypes(material.diffuse)
+        specular = np.ctypeslib.as_ctypes(material.specular)
+        ambient = np.ctypeslib.as_ctypes(material.ambient)
+        emission = np.ctypeslib.as_ctypes(material.emission)
+
+        # pass values to OpenGL
+        GL.glMaterialfv(face, GL.GL_DIFFUSE, diffuse)
+        GL.glMaterialfv(face, GL.GL_SPECULAR, specular)
+        GL.glMaterialfv(face, GL.GL_AMBIENT, ambient)
+        GL.glMaterialfv(face, GL.GL_EMISSION, emission)
+        GL.glMaterialf(face, GL.GL_SHININESS, material.shininess)
+
         # setup textures
         if useTextures and material.textures:
+            material._useTextures = True
             GL.glEnable(GL.GL_TEXTURE_2D)
             for unit, desc in material.textures.items():
-                GL.glActiveTexture(unit)
-                GL.glColor4f(1.0, 1.0, 1.0, 1.0)
-                GL.glColorMask(True, True, True, True)
-                GL.glBindTexture(GL.GL_TEXTURE_2D, desc.id)
+                bindTexture(desc, unit)
     else:
         for mode, param in defaultMaterial.params.items():
             GL.glEnable(GL.GL_COLOR_MATERIAL)
             GL.glMaterialfv(GL.GL_FRONT_AND_BACK, mode, param)
-        if useTextures:
-            GL.glActiveTexture(GL.GL_TEXTURE0)
-            GL.glBindTexture(GL.GL_TEXTURE_2D, 0)
-            GL.glDisable(GL.GL_TEXTURE_2D)
 
+
+def clearMaterial(material):
+    """Stop using a material."""
+    for mode, param in defaultMaterial.params.items():
+        GL.glMaterialfv(GL.GL_FRONT_AND_BACK, mode, param)
+
+    if material._useTextures:
+        for unit, desc in material.textures.items():
+            GL.glActiveTexture(GL.GL_TEXTURE0 + unit)
+            unbindTexture(desc)
+
+    GL.glDisable(GL.GL_COLOR_MATERIAL)  # disable color tracking
 
 # -------------------------
 # Lighting Helper Functions
@@ -3427,8 +3527,8 @@ def loadMtlFile(mtllib, texParameters=None):
 
     # default texture parameters
     if texParameters is None:
-        texParameters = [(GL.GL_TEXTURE_MAG_FILTER, GL.GL_LINEAR),
-                         (GL.GL_TEXTURE_MIN_FILTER, GL.GL_LINEAR)]
+        texParameters = {GL.GL_TEXTURE_MAG_FILTER: GL.GL_LINEAR,
+                         GL.GL_TEXTURE_MIN_FILTER: GL.GL_LINEAR}
 
     foundMaterials = {}
     foundTextures = {}
@@ -3469,7 +3569,7 @@ def loadMtlFile(mtllib, texParameters=None):
                     dataType=GL.GL_UNSIGNED_BYTE,
                     data=pixelData,
                     unpackAlignment=1,
-                    texParameters=texParameters)
+                    texParams=texParameters)
             foundMaterials[thisMaterial].textures[GL.GL_TEXTURE0] = \
                 foundTextures[textureName]
 
@@ -3565,8 +3665,8 @@ def createUVSphere(radius=0.5, sectors=16, stacks=16, flipFaces=False):
 
             normals.append((nx, ny, nz))
 
-            s = j / float(sectors)
-            t = i / float(sectors)
+            s = 1.0 - j / float(sectors)
+            t = i / float(stacks)
 
             texCoords.append((s, t))
 
