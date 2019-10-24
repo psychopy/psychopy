@@ -8,18 +8,129 @@
 # Distributed under the terms of the GNU General Public License (GPL).
 
 
-import psychopy
+from psychopy.visual.basevisual import ColorMixin
+from psychopy.visual.helpers import setColor
 import psychopy.tools.mathtools as mt
 import psychopy.tools.gltools as gt
 import psychopy.tools.arraytools as at
 import numpy as np
-import time
+
 
 import pyglet.gl as GL
 
 # shader flags
 SHADER_NONE = 0x00
 SHADER_USE_TEXTURES = 0x01
+
+
+class LightSource(object):
+    """Class for representing a light source in a scene.
+
+    Only point and directional lighting is supported by this object for now. The
+    ambient color of the light source contributes to the scene ambient color
+    defined by :py:attr:`~psychopy.visual.Window.ambientLight`.
+
+    """
+    def __init__(self,
+                 win,
+                 pos=(0., 0., 0., 1.),
+                 diffuseColor=(1., 1., 1.),
+                 specularColor=(1., 1., 1.),
+                 ambientColor=(0., 0., 0.),
+                 colorSpace='rgb'):
+        """
+        Parameters
+        ----------
+        win : `~psychopy.visual.Window`
+            Window associated with this light source.
+        pos : array_like
+            Position of the light source (x, y, z, w). If `w=1.0` the light will
+            be a point source and `x`, `y`, and `z` is the position in the
+            scene. If `w=0.0`, the light source will be directional and `x`,
+            `y`, and `z` will define the vector pointing to the direction the
+            light source is coming from. For instance, a vector of (0, 1, 0, 0)
+            will indicate that a light source is coming from above.
+        diffuseColor : array_like
+            Diffuse light color (r, g, b) with values between 0.0 and 1.0.
+        specularColor : array_like
+            Specular light color (r, g, b) with values between 0.0 and 1.0.
+        ambientColor : array_like
+            Ambient light color (r, g, b) with values between 0.0 and 1.0.
+        colorSpace : str
+            Colorspace for `diffuse`, `specular`, and `ambient` colors.
+        """
+        self.win = win
+
+        self._pos = np.zeros((4,), np.float32)
+        self._diffuseColor = np.zeros((3,), np.float32)
+        self._specularColor = np.zeros((3,), np.float32)
+        self._ambientColor = np.zeros((3,), np.float32)
+
+        # internal RGB values post colorspace conversion
+        self._diffuseRGB = np.array((0., 0., 0., 1.), np.float32)
+        self._specularRGB = np.array((0., 0., 0., 1.), np.float32)
+        self._ambientRGB = np.array((0., 0., 0., 1.), np.float32)
+
+        self.colorSpace = colorSpace
+
+        self.pos = pos
+        self.diffuseColor = diffuseColor
+        self.specularColor = specularColor
+        self.ambientColor = ambientColor
+
+    @property
+    def pos(self):
+        """Position of the light source in the scene in scene units."""
+        return self._pos
+
+    @pos.setter
+    def pos(self, value):
+        self._pos = np.asarray(value, np.float32)
+
+    @property
+    def diffuseColor(self):
+        """Diffuse color of the light."""
+        return self._diffuseColor
+
+    @diffuseColor.setter
+    def diffuseColor(self, value):
+        self._diffuseColor = np.asarray(value, np.float32)
+        setColor(self, value, colorSpace=self.colorSpace, operation=None,
+                 rgbAttrib='_diffuseRGB', colorAttrib='diffuseColor',
+                 colorSpaceAttrib='colorSpace')
+
+        # make sure the color we got is 32-bit float
+        self._diffuseRGB = np.asarray(self._diffuseRGB, np.float32)
+
+    @property
+    def specularColor(self):
+        """Specular color of the light."""
+        return self._specularColor
+
+    @specularColor.setter
+    def specularColor(self, value):
+        self._specularColor = np.asarray(value, np.float32)
+        setColor(self, value, colorSpace=self.colorSpace, operation=None,
+                 rgbAttrib='_specularRGB', colorAttrib='specularColor',
+                 colorSpaceAttrib='colorSpace')
+
+        # make sure the color we got is 32-bit float
+        self._specularRGB = np.asarray(self._specularRGB, np.float32)
+
+    @property
+    def ambientColor(self):
+        """Ambient color of the light."""
+        return self._ambientColor
+
+    @ambientColor.setter
+    def ambientColor(self, value):
+        self._ambientColor = np.asarray(value, np.float32)
+        setColor(self, value, colorSpace=self.colorSpace, operation=None,
+                 rgbAttrib='_ambientRGB', colorAttrib='ambientColor',
+                 colorSpaceAttrib='colorSpace')
+
+        # make sure the color we got is 32-bit float
+        self._ambientRGB = np.asarray(self._ambientRGB, np.float32)
 
 
 class RigidBodyPose(object):
@@ -271,7 +382,7 @@ class RigidBodyPose(object):
             -self._pos, mt.invertQuat(self._ori, dtype=np.float32))
 
 
-class BaseRigidBodyStim(object):
+class BaseRigidBodyStim(ColorMixin):
     """Base class for rigid body 3D stimuli.
 
     This class handles the pose of a rigid body 3D stimulus. Poses are
@@ -284,7 +395,16 @@ class BaseRigidBodyStim(object):
     `RigidBodyPose` which supports more VR specific features).
 
     """
-    def __init__(self, win, pos=(0., 0., 0.), ori=(0., 0., 0., 1.)):
+    def __init__(self,
+                 win,
+                 pos=(0., 0., 0.),
+                 ori=(0., 0., 0., 1.),
+                 color=(0.0, 0.0, 0.0),
+                 colorSpace='rgb',
+                 contrast=1.0,
+                 opacity=1.0,
+                 name='',
+                 autoLog=True):
         """
         Parameters
         ----------
@@ -299,6 +419,15 @@ class BaseRigidBodyStim(object):
 
         """
         self.win = win
+        self.name = name
+        self.autoLog = autoLog
+        super(BaseRigidBodyStim, self).__init__()
+
+        self.colorSpace = colorSpace
+        self.contrast = contrast
+        self.opacity = opacity
+        self.color = color
+
         self._thePose = RigidBodyPose(pos, ori)
 
     @property
@@ -359,7 +488,7 @@ class BaseRigidBodyStim(object):
         Returns
         -------
         tuple
-            Axis [rx, ry, rz] and angle.
+            Axis `[rx, ry, rz]` and angle.
 
         """
         return self.thePose.getOriAxisAngle(degrees)
@@ -422,12 +551,17 @@ class SphereStim(BaseRigidBodyStim):
     def __init__(self,
                  win,
                  radius=0.5,
-                 sectors=32,
-                 stacks=32,
+                 subdiv=(32, 32),
                  flipFaces=False,
                  pos=(0., 0., 0.),
                  ori=(0., 0., 0., 1.),
-                 useMaterial=None):
+                 useMaterial=None,
+                 color=(0., 0., 0.),
+                 colorSpace='rgb',
+                 contrast=1.0,
+                 opacity=1.0,
+                 name='',
+                 autoLog=True):
         """
         Parameters
         ----------
@@ -436,6 +570,10 @@ class SphereStim(BaseRigidBodyStim):
             across windows unless they share the same context.
         radius : float
             Radius of the sphere in scene units.
+        subdiv : array_like
+            Number of latitudinal and longitudinal subdivisions `(lat, long)`
+            for the sphere mesh. The greater the number, the smoother the sphere
+            will appear.
         flipFaces : bool, optional
             If `True`, normals and face windings will be set to point inward
             towards the center of the sphere. Texture coordinates will remain
@@ -451,17 +589,41 @@ class SphereStim(BaseRigidBodyStim):
             `material` attribute after initialization. If not material is
             specified, the diffuse and ambient color of the shape will track the
             current color specified by `glColor`.
+        color : array_like
+            Diffuse and ambient color of the stimulus if `useMaterial` is not
+            specified. Values are with respect to `colorSpace`.
+        colorSpace : str
+            Colorspace of `color` to use.
+        contrast : float
+            Contrast of the stimulus, value modulates the `color`.
+        opacity : float
+            Opacity of the stimulus ranging from 0.0 to 1.0. Note that
+            transparent objects look best when rendered from farthest to
+            nearest.
+        name : str
+            Name of this object for logging purposes.
+        autoLog : bool
+            Enable automatic logging on attribute changes.
 
         """
-        super(SphereStim, self).__init__(win, pos=pos, ori=ori)
+        super(SphereStim, self).__init__(win,
+                                         pos=pos,
+                                         ori=ori,
+                                         color=color,
+                                         colorSpace=colorSpace,
+                                         contrast=contrast,
+                                         opacity=opacity,
+                                         name=name,
+                                         autoLog=autoLog)
 
         # create a vertex array object for drawing
         self._vao = self._createVAO(
-            *gt.createUVSphere(sectors=sectors,
-                               stacks=stacks,
+            *gt.createUVSphere(sectors=subdiv[0],
+                               stacks=subdiv[1],
                                radius=radius,
                                flipFaces=flipFaces))
 
+        self.setColor(color, colorSpace=self.colorSpace, log=False)
         self.material = useMaterial
 
     def draw(self, win=None):
@@ -479,6 +641,7 @@ class SphereStim(BaseRigidBodyStim):
 
         win.draw3d = True
 
+        # apply transformation to mesh
         GL.glPushMatrix()
         GL.glLoadTransposeMatrixf(at.array2pointer(self.thePose.modelMatrix))
 
@@ -487,6 +650,15 @@ class SphereStim(BaseRigidBodyStim):
             gt.drawVAO(self._vao, GL.GL_TRIANGLES)
             gt.clearMaterial(self.material)
         else:
+            # material tracks color
+            GL.glEnable(GL.GL_COLOR_MATERIAL)  # enable color tracking
+            GL.glColorMaterial(GL.GL_FRONT, GL.GL_AMBIENT_AND_DIFFUSE)
+            # 'rgb' is created and set when color is set
+            r, g, b = self._getDesiredRGB(
+                self.rgb, self.colorSpace, self.contrast)
+            GL.glColor4f(r, g, b, self.opacity)
+
+            # draw the shape
             gt.drawVAO(self._vao, GL.GL_TRIANGLES)
 
         GL.glPopMatrix()
@@ -500,14 +672,26 @@ class BoxStim(BaseRigidBodyStim):
     Draws a rectangular box with dimensions specified by `size` (length, width,
     height) in scene units.
 
+    Calling the `draw` method will render the box to the current buffer. The
+    render target (FBO or back buffer) must have a depth buffer attached to it
+    for the object to be rendered correctly. Shading is used if the current
+    window has light sources defined and lighting is enabled (by setting
+    `useLights=True` before drawing the stimulus).
+
     """
     def __init__(self,
                  win,
                  size=(.5, .5, .5),
+                 pos=(0., 0., 0.),
+                 ori=(0., 0., 0., 1.),
                  flipFaces=False,
-                 pos=(0, 0, 0),
-                 ori=(0, 0, 0, 1),
-                 useMaterial=None):
+                 useMaterial=None,
+                 color=(0., 0., 0.),
+                 colorSpace='rgb',
+                 contrast=1.0,
+                 opacity=1.0,
+                 name='',
+                 autoLog=True):
         """
         Parameters
         ----------
@@ -517,28 +701,54 @@ class BoxStim(BaseRigidBodyStim):
         size : tuple or float
             Dimensions of the mesh. If a single value is specified, the box will
             be a cube. Provide a tuple of floats to specify the width, length,
-            and height of the box (eg. `size=(0.2, 1.3, 2.1)`).
-        flipFaces : bool, optional
-            If `True`, normals and face windings will be set to point inward
-            towards the center of the box. Texture coordinates will remain the
-            same. Default is `False`.
+            and height of the box (eg. `size=(0.2, 1.3, 2.1)`) in scene units.
         pos : array_like
             Position vector `[x, y, z]` for the origin of the rigid body.
         ori : array_like
             Orientation quaternion `[x, y, z, w]` where `x`, `y`, `z` are
             imaginary and `w` is real. If you prefer specifying rotations in
             axis-angle format, call `setOriAxisAngle` after initialization.
+        flipFaces : bool, optional
+            If `True`, normals and face windings will be set to point inward
+            towards the center of the box. Texture coordinates will remain the
+            same. Default is `False`.
         useMaterial : SimpleMaterial, optional
             Material to use. The material can be configured by accessing the
             `material` attribute after initialization. If not material is
             specified, the diffuse and ambient color of the shape will track the
             current color specified by `glColor`.
+            color : array_like
+            Diffuse and ambient color of the stimulus if `useMaterial` is not
+            specified. Values are with respect to `colorSpace`.
+        colorSpace : str
+            Colorspace of `color` to use.
+        contrast : float
+            Contrast of the stimulus, value modulates the `color`.
+        opacity : float
+            Opacity of the stimulus ranging from 0.0 to 1.0. Note that
+            transparent objects look best when rendered from farthest to
+            nearest.
+        name : str
+            Name of this object for logging purposes.
+        autoLog : bool
+            Enable automatic logging on attribute changes.
 
         """
-        super(BoxStim, self).__init__(win, pos=pos, ori=ori)
+        super(BoxStim, self).__init__(
+            win,
+            pos=pos,
+            ori=ori,
+            color=color,
+            colorSpace=colorSpace,
+            contrast=contrast,
+            opacity=opacity,
+            name=name,
+            autoLog=autoLog)
 
         # create a vertex array object for drawing
         self._vao = self._createVAO(*gt.createBox(size, flipFaces))
+
+        self.setColor(color, colorSpace=self.colorSpace, log=False)
         self.material = useMaterial
 
     def draw(self, win=None):
@@ -556,6 +766,7 @@ class BoxStim(BaseRigidBodyStim):
 
         win.draw3d = True
 
+        # apply transformation to mesh
         GL.glPushMatrix()
         GL.glLoadTransposeMatrixf(at.array2pointer(self.thePose.modelMatrix))
 
@@ -564,6 +775,15 @@ class BoxStim(BaseRigidBodyStim):
             gt.drawVAO(self._vao, GL.GL_TRIANGLES)
             gt.clearMaterial(self.material)
         else:
+            # material tracks color
+            GL.glEnable(GL.GL_COLOR_MATERIAL)  # enable color tracking
+            GL.glColorMaterial(GL.GL_FRONT, GL.GL_AMBIENT_AND_DIFFUSE)
+            # 'rgb' is created and set when color is set
+            r, g, b = self._getDesiredRGB(
+                self.rgb, self.colorSpace, self.contrast)
+            GL.glColor4f(r, g, b, 1.0)
+
+            # draw the shape
             gt.drawVAO(self._vao, GL.GL_TRIANGLES)
 
         GL.glPopMatrix()
@@ -577,10 +797,148 @@ class PlaneStim(BaseRigidBodyStim):
     Draws a plane with dimensions specified by `size` (length, width) in scene
     units.
 
+    Calling the `draw` method will render the plane to the current buffer. The
+    render target (FBO or back buffer) must have a depth buffer attached to it
+    for the object to be rendered correctly. Shading is used if the current
+    window has light sources defined and lighting is enabled (by setting
+    `useLights=True` before drawing the stimulus).
+
     """
     def __init__(self,
                  win,
                  size=(.5, .5),
+                 pos=(0., 0., 0.),
+                 ori=(0., 0., 0., 1.),
+                 useMaterial=None,
+                 color=(0., 0., 0.),
+                 colorSpace='rgb',
+                 contrast=1.0,
+                 opacity=1.0,
+                 name='',
+                 autoLog=True):
+        """
+        Parameters
+        ----------
+        win : `~psychopy.visual.Window`
+            Window this stimulus is associated with. Stimuli cannot be shared
+            across windows unless they share the same context.
+        size : tuple or float
+            Dimensions of the mesh. If a single value is specified, the plane
+            will be a square. Provide a tuple of floats to specify the width and
+            length of the plane (eg. `size=(0.2, 1.3)`).
+        pos : array_like
+            Position vector `[x, y, z]` for the origin of the rigid body.
+        ori : array_like
+            Orientation quaternion `[x, y, z, w]` where `x`, `y`, `z` are
+            imaginary and `w` is real. If you prefer specifying rotations in
+            axis-angle format, call `setOriAxisAngle` after initialization. By
+            default, the plane is oriented with normal facing the +Z axis of the
+            scene.
+        useMaterial : SimpleMaterial, optional
+            Material to use. The material can be configured by accessing the
+            `material` attribute after initialization. If not material is
+            specified, the diffuse and ambient color of the shape will track the
+            current color specified by `glColor`.
+
+        """
+        super(PlaneStim, self).__init__(
+            win,
+            pos=pos,
+            ori=ori,
+            color=color,
+            colorSpace=colorSpace,
+            contrast=contrast,
+            opacity=opacity,
+            name=name,
+            autoLog=autoLog)
+
+        # create a vertex array object for drawing
+        self._vao = self._createVAO(*gt.createPlane(size))
+
+        self.setColor(color, colorSpace=self.colorSpace, log=False)
+        self.material = useMaterial
+
+    def draw(self, win=None):
+        """Draw the plane.
+
+        Parameters
+        ----------
+        win : `~psychopy.visual.Window`
+            Window this stimulus is associated with. Stimuli cannot be shared
+            across windows unless they share the same context.
+
+        """
+        if win is None:
+            win = self.win
+
+        win.draw3d = True
+
+        # apply transformation to mesh
+        GL.glPushMatrix()
+        GL.glLoadTransposeMatrixf(at.array2pointer(self.thePose.modelMatrix))
+
+        if self.material is not None:
+            gt.useMaterial(self.material)
+            gt.drawVAO(self._vao, GL.GL_TRIANGLES)
+            gt.clearMaterial(self.material)
+        else:
+            # material tracks color
+            GL.glEnable(GL.GL_COLOR_MATERIAL)  # enable color tracking
+            GL.glColorMaterial(GL.GL_FRONT, GL.GL_AMBIENT_AND_DIFFUSE)
+            # 'rgb' is created and set when color is set
+            r, g, b = self._getDesiredRGB(
+                self.rgb, self.colorSpace, self.contrast)
+            GL.glColor4f(r, g, b, 1.0)
+
+            # draw the shape
+            gt.drawVAO(self._vao, GL.GL_TRIANGLES)
+
+        GL.glPopMatrix()
+
+        win.draw3d = False
+
+
+class ObjMeshStim(BaseRigidBodyStim):
+    """Class for loading and presenting 3D stimuli in the Wavefront OBJ format.
+
+    Calling the `draw` method will render the mesh to the current buffer. The
+    render target (FBO or back buffer) must have a depth buffer attached to it
+    for the object to be rendered correctly. Shading is used if the current
+    window has light sources defined and lighting is enabled (by setting
+    `useLights=True` before drawing the stimulus).
+
+    Vertex positions, texture coordinates, and normals are loaded and packed
+    into a single vertex buffer object (VBO). Vertex array objects (VAO) are
+    created for each material with an index buffer referencing vertices assigned
+    that material in the VBO. For maximum performance, keep the number of
+    materials per object as low as possible, as switching between VAOs has some
+    overhead.
+
+    Material attributes are read from the material library file (*.MTL)
+    associated with the *.OBJ file. This file will be automatically searched for
+    and read during loading. Afterwards you can edit material properties by
+    accessing the data structure of the `materials` attribute.
+
+    Keep in mind that OBJ shapes are rigid bodies, the mesh itself cannot be
+    deformed during runtime. However, meshes can be positioned and rotated as
+    desired by manipulating the `RigidBodyPose` instance accessed through the
+    `thePose` attribute.
+
+    Warnings
+    --------
+        Loading an *.OBJ file is a slow process, be sure to do this outside
+        of any time-critical routines!
+
+    Examples
+    --------
+    Loading an *.OBJ file from a disk location::
+
+        myObjStim = ObjMeshStim(win, '/path/to/file/model.obj')
+
+    """
+    def __init__(self,
+                 win,
+                 objFile,
                  pos=(0, 0, 0),
                  ori=(0, 0, 0, 1),
                  useMaterial=None):
@@ -609,52 +967,6 @@ class PlaneStim(BaseRigidBodyStim):
             current color specified by `glColor`.
 
         """
-        super(PlaneStim, self).__init__(win, pos=pos, ori=ori)
-
-        # create a vertex array object for drawing
-        self._vao = self._createVAO(*gt.createPlane(size))
-        self.material = useMaterial
-
-    def draw(self, win=None):
-        """Draw the plane.
-
-        Parameters
-        ----------
-        win : `~psychopy.visual.Window`
-            Window this stimulus is associated with. Stimuli cannot be shared
-            across windows unless they share the same context.
-
-        """
-        if win is None:
-            win = self.win
-
-        win.draw3d = True
-
-        GL.glPushMatrix()
-        GL.glLoadTransposeMatrixf(at.array2pointer(self.thePose.modelMatrix))
-
-        if self.material is not None:
-            gt.useMaterial(self.material)
-            gt.drawVAO(self._vao, GL.GL_TRIANGLES)
-            gt.clearMaterial(self.material)
-        else:
-            gt.drawVAO(self._vao, GL.GL_TRIANGLES)
-
-        GL.glPopMatrix()
-
-        win.draw3d = False
-
-
-class ObjMeshStim(BaseRigidBodyStim):
-    """Class for displaying static meshes loaded from an OBJ file.
-
-    """
-    def __init__(self,
-                 win,
-                 objFile,
-                 pos=(0, 0, 0),
-                 ori=(0, 0, 0, 1)):
-
         super(ObjMeshStim, self).__init__(win, pos=pos, ori=ori)
 
         objModel = gt.loadObjFile(objFile)

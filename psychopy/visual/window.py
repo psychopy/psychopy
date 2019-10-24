@@ -1299,9 +1299,9 @@ class Window(object):
 
             # convert data in light class to ctypes
             pos = numpy.ctypeslib.as_ctypes(light.pos)
-            diffuse = numpy.ctypeslib.as_ctypes(light.diffuse)
-            specular = numpy.ctypeslib.as_ctypes(light.specular)
-            ambient = numpy.ctypeslib.as_ctypes(light.ambient)
+            diffuse = numpy.ctypeslib.as_ctypes(light._diffuseRGB)
+            specular = numpy.ctypeslib.as_ctypes(light._specularRGB)
+            ambient = numpy.ctypeslib.as_ctypes(light._ambientRGB)
 
             # pass values to OpenGL
             GL.glLightfv(enumLight, GL.GL_POSITION, pos)
@@ -1334,6 +1334,8 @@ class Window(object):
         # `lights` attribute directly to setup lighting uniforms.
         if self._useLights and self._lights:
             GL.glEnable(GL.GL_LIGHTING)
+            # make sure specular lights are computed relative to eye position
+            GL.glLightModeli(GL.GL_LIGHT_MODEL_LOCAL_VIEWER, GL.GL_TRUE)
         else:
             # disable lights
             GL.glDisable(GL.GL_LIGHTING)
