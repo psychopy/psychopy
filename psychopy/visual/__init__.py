@@ -86,6 +86,7 @@ from psychopy.visual.textbox import TextBox
 from psychopy.visual.rift import Rift
 
 # 3D stimuli support
+from psychopy.visual.stim3d import LightSource
 from psychopy.visual.stim3d import RigidBodyPose
 from psychopy.visual.stim3d import SphereStim
 from psychopy.visual.stim3d import BoxStim
