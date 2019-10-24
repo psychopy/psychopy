@@ -1501,7 +1501,7 @@ class TexImage2D(object):
     __slots__ = ['width',
                  'height',
                  'target',
-                 'name',
+                 '_name',
                  'level',
                  'internalFormat',
                  'pixelFormat',
@@ -1551,15 +1551,12 @@ class TexImage2D(object):
             passed to `glTexParameteri`. Each tuple must contain a parameter
             name and value. For example, `texParameters={
             GL.GL_TEXTURE_MIN_FILTER: GL.GL_LINEAR, GL.GL_TEXTURE_MAG_FILTER:
-            GL.GL_LINEAR}`.
+            GL.GL_LINEAR}`. These can be changed and will be updated the next
+            time this instance is passed to :func:`bindTexture`.
 
         """
-        if not isinstance(name, GL.GLuint):
-            self.name = GL.GLuint(int(name))
-        else:
-            self.name = name
-
         # fields for texture information
+        self.name = name
         self.width = width
         self.height = height
         self.target = target
@@ -1579,6 +1576,17 @@ class TexImage2D(object):
         self._isBound = False  # True if the texture has been bound
         self._unit = None  # texture unit assigned to this texture
         self._texParamsNeedUpdate = True  # update texture parameters
+
+    @property
+    def name(self):
+        return self._name
+
+    @name.setter
+    def name(self, value):
+        if not isinstance(value, GL.GLuint):
+            self._name = GL.GLuint(int(value))
+        else:
+            self._name = value
 
     @property
     def size(self):
@@ -1748,15 +1756,15 @@ def bindTexture(texture, unit=None, enable=True):
         GL.glBindTexture(texture.target, texture.name)
         texture._isBound = True
 
+        if unit is not None:
+            texture._unit = unit
+            GL.glActiveTexture(GL.GL_TEXTURE0 + unit)
+
         # update texture parameters if they have been accessed (changed?)
         if texture._texParamsNeedUpdate:
             for pname, param in texture._texParams.items():
                 GL.glTexParameteri(texture.target, pname, param)
                 texture._texParamsNeedUpdate = False
-
-        if unit is not None:
-            texture._unit = unit = GL.GL_TEXTURE0 + unit
-            GL.glActiveTexture(unit)
 
 
 def unbindTexture(texture=None):
@@ -1769,11 +1777,18 @@ def unbindTexture(texture=None):
 
     """
     if texture._isBound:
+        # set the texture unit
+        if texture._unit is not None:
+            GL.glActiveTexture(GL.GL_TEXTURE0 + texture._unit)
+            texture._unit = None
+
         GL.glBindTexture(texture.target, 0)
         texture._isBound = False
-        texture._unit = None
 
         GL.glDisable(texture.target)
+    else:
+        raise RuntimeError('Trying to unbind a texture that was not previously'
+                           'bound.')
 
 
 # Descriptor for 2D mutlisampled texture
@@ -1862,7 +1877,12 @@ def deleteTexture(texture):
     texture's ID.
 
     """
-    GL.glDeleteTextures(1, texture.name)
+    if not texture._isBound:
+        GL.glDeleteTextures(1, texture.name)
+        texture.name = 0  # invalidate
+    else:
+        raise RuntimeError("Attempting to delete texture which is presently "
+                           "bound.")
 
 
 # --------------------------
@@ -2828,7 +2848,7 @@ class SimpleMaterial(object):
         self._ambient = np.zeros((4,), np.float32)
         self._emission = np.zeros((4,), np.float32)
         self._shininess = float(shininess)
-        self._textures = dict() if textures is None else textures
+        self._textures = textures
 
         self.diffuse = diffuse
         self.specular = specular
@@ -3036,8 +3056,10 @@ def useMaterial(material, useTextures=True, face=GL.GL_FRONT):
         if useTextures and material.textures:
             material._useTextures = True
             GL.glEnable(GL.GL_TEXTURE_2D)
-            for unit, desc in material.textures.items():
+            unit = 0
+            for desc in material.textures:
                 bindTexture(desc, unit)
+                unit += 1
     else:
         for mode, param in defaultMaterial.params.items():
             GL.glEnable(GL.GL_COLOR_MATERIAL)
@@ -3050,11 +3072,11 @@ def clearMaterial(material):
         GL.glMaterialfv(GL.GL_FRONT_AND_BACK, mode, param)
 
     if material._useTextures:
-        for unit, desc in material.textures.items():
-            GL.glActiveTexture(GL.GL_TEXTURE0 + unit)
+        for desc in material.textures:
             unbindTexture(desc)
 
     GL.glDisable(GL.GL_COLOR_MATERIAL)  # disable color tracking
+
 
 # -------------------------
 # Lighting Helper Functions
@@ -3473,6 +3495,10 @@ def loadObjFile(objFile):
     # compute the extents of the model, needed for axis-aligned bounding boxes
     extents = (vertexPos.min(axis=0), vertexPos.max(axis=0))
 
+    # resolve the path to the material file associated with the mesh
+    if mtlFile is not None:
+        mtlFile = os.path.join(os.path.split(objFile)[0], mtlFile)
+
     return ObjMeshInfo(vertexPos,
                        vertexTexCoord,
                        vertexNormal,
@@ -3481,14 +3507,14 @@ def loadObjFile(objFile):
                        mtlFile)
 
 
-def loadMtlFile(mtllib, texParameters=None):
+def loadMtlFile(mtllib, texParams=None):
     """Load a material library file (*.mtl).
 
     Parameters
     ----------
     mtllib : str
         Path to the material library file.
-    texParameters : list or tuple
+    texParams : list or tuple
         Optional texture parameters for loaded textures. Texture parameters are
         specified as a list of tuples. Each item specifies the option and
         parameter. For instance,
@@ -3526,9 +3552,9 @@ def loadMtlFile(mtllib, texParameters=None):
         mtlBuffer = StringIO(mtlFile.read())
 
     # default texture parameters
-    if texParameters is None:
-        texParameters = {GL.GL_TEXTURE_MAG_FILTER: GL.GL_LINEAR,
-                         GL.GL_TEXTURE_MIN_FILTER: GL.GL_LINEAR}
+    if texParams is None:
+        texParams = {GL.GL_TEXTURE_MAG_FILTER: GL.GL_LINEAR,
+                     GL.GL_TEXTURE_MIN_FILTER: GL.GL_LINEAR}
 
     foundMaterials = {}
     foundTextures = {}
@@ -3537,19 +3563,15 @@ def loadMtlFile(mtllib, texParameters=None):
         line = line.strip()
         if line.startswith('newmtl '):  # new material
             thisMaterial = line[7:]
-            foundMaterials[thisMaterial] = createMaterial()
+            foundMaterials[thisMaterial] = SimpleMaterial(textures=[])
         elif line.startswith('Ns '):  # specular exponent
-            foundMaterials[thisMaterial].params[GL.GL_SHININESS] = \
-                GL.GLfloat(float(line[3:]))
+            foundMaterials[thisMaterial].shininess = line[3:]
         elif line.startswith('Ks '):  # specular color
-            foundMaterials[thisMaterial].params[GL.GL_SPECULAR] = \
-                (GL.GLfloat * 4)(*list(map(float, line[3:].split(' '))) + [1.0])
+            foundMaterials[thisMaterial].specular = list(map(float, line[3:].split(' '))) + [1.0]
         elif line.startswith('Kd '):  # diffuse color
-            foundMaterials[thisMaterial].params[GL.GL_DIFFUSE] = \
-                (GL.GLfloat * 4)(*list(map(float, line[3:].split(' '))) + [1.0])
+            foundMaterials[thisMaterial].diffuse = list(map(float, line[3:].split(' '))) + [1.0]
         elif line.startswith('Ka '):  # ambient color
-            foundMaterials[thisMaterial].params[GL.GL_AMBIENT] = \
-                (GL.GLfloat * 4)(*list(map(float, line[3:].split(' '))) + [1.0])
+            foundMaterials[thisMaterial].ambient = list(map(float, line[3:].split(' '))) + [1.0]
         elif line.startswith('map_Kd '):  # diffuse color map
             # load a diffuse texture from file
             textureName = line[7:]
@@ -3569,9 +3591,9 @@ def loadMtlFile(mtllib, texParameters=None):
                     dataType=GL.GL_UNSIGNED_BYTE,
                     data=pixelData,
                     unpackAlignment=1,
-                    texParams=texParameters)
-            foundMaterials[thisMaterial].textures[GL.GL_TEXTURE0] = \
-                foundTextures[textureName]
+                    texParams=texParams)
+            foundMaterials[thisMaterial].textures.append(
+                foundTextures[textureName])
 
     return foundMaterials
 
