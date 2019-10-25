@@ -1237,12 +1237,12 @@ class Window(object):
     def lights(self):
         """Scene lights.
 
-        This is specified as an array of `~psychopy.tools.gltools.LightSource`
+        This is specified as an array of `~psychopy.visual.LightSource`
         objects. If a single value is given, it will be converted to a `list`
         before setting. Set `useLights` to `True` before rendering to enable
         lighting/shading on subsequent objects. If `lights` is `None` or an
         empty `list`, no lights will be enabled if `useLights=True`, however,
-        the ambient light set with `ambientLight` will be used.
+        the scene ambient light set with `ambientLight` will be still be used.
 
         Legacy lights are transformed by the present `GL_MODELVIEW` matrix.
         Setting `lights` will result in their positions being transformed by it.
@@ -1256,13 +1256,13 @@ class Window(object):
         --------
         Create a directional light source and add it to scene lights::
 
-            dirLight = gltools.LightSource((0., 1., 0., 0.))
+            dirLight = gltools.LightSource((0., 1., 0.), lightType='directional')
             win.lights = dirLight  # `win.lights` will be a list when accessed!
 
         Multiple lights can be specified by passing values as a list::
 
-            myLights = [gltools.LightSource((0., 5., 0., 1.)),
-                        gltools.LightSource((-2., -2., 0., 1.))
+            myLights = [gltools.LightSource((0., 5., 0.)),
+                        gltools.LightSource((-2., -2., 0.))
             win.lights = myLights
 
         """
@@ -1339,7 +1339,8 @@ class Window(object):
         # `lights` attribute directly to setup lighting uniforms.
         if self._useLights and self._lights:
             GL.glEnable(GL.GL_LIGHTING)
-            # make sure specular lights are computed relative to eye position
+            # make sure specular lights are computed relative to eye position,
+            # this is more realistic than the default. Does not affect shaders.
             GL.glLightModeli(GL.GL_LIGHT_MODEL_LOCAL_VIEWER, GL.GL_TRUE)
         else:
             # disable lights
@@ -1362,7 +1363,7 @@ class Window(object):
         --------
         Call `updateLights` if you modified lights directly like this::
 
-            win.lights[1].diffuse = [1., 0., 0., 1.]
+            win.lights[1].diffuseColor = [1., 0., 0.]
             win.updateLights(1)
 
         """
@@ -1400,7 +1401,7 @@ class Window(object):
         rectangle in pixels.
 
         This is typically set to cover the whole buffer, however it can be
-        changed for application like multi-view rendering.
+        changed for applications like multi-view rendering.
 
         Examples
         --------
