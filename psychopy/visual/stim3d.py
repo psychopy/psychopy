@@ -15,7 +15,6 @@ import psychopy.tools.gltools as gt
 import psychopy.tools.arraytools as at
 import numpy as np
 
-
 import pyglet.gl as GL
 
 # shader flags
@@ -175,107 +174,6 @@ class LightSource(object):
     @kAttenuation.setter
     def kAttenuation(self, value):
         self._kAttenuation = np.asarray(value, np.float32)
-
-
-class SimpleMaterial(object):
-    """Class representing a simple material.
-
-    This class stores material information to modify the appearance of drawn
-    primitives with respect to lighting, such as color (diffuse, specular,
-    ambient, and emission), shininess, and textures. Simple materials are
-    intended to work with features supported by the fixed-function OpenGL
-    pipeline.
-
-    """
-    def __init__(self,
-                 diffuse=(.8, .8, .8, 1.),
-                 specular=(0., 0., 0., 1.),
-                 ambient=(0., 0., 0., 1.),
-                 emission=(0., 0., 0., 1.),
-                 shininess=10.0,
-                 textures=None):
-        """
-        Parameters
-        ----------
-        diffuse : array_like
-            Diffuse material color (r, g, b, a) with values between 0.0 and 1.0.
-        specular : array_like
-            Specular material color (r, g, b, a) with values between 0.0 and
-            1.0.
-        ambient : array_like
-            Ambient material color (r, g, b, a) with values between 0.0 and 1.0.
-        emission : array_like
-            Emission material color (r, g, b, a) with values between 0.0 and
-            1.0.
-        shininess : float
-            Material shininess, usually ranges from 0.0 to 128.0.
-        textures : dict of TexImage2D, optional
-            Texture maps associated with this material. Textures are specified
-            as a dictionary where keys are texture units (`int`) to bind the
-            texture to on use and values are `TexImage2D` objects to bind.
-
-        """
-        self._diffuse = np.zeros((4,), np.float32)
-        self._specular = np.zeros((4,), np.float32)
-        self._ambient = np.zeros((4,), np.float32)
-        self._emission = np.zeros((4,), np.float32)
-        self._shininess = float(shininess)
-        self._textures = textures
-
-        self.diffuse = diffuse
-        self.specular = specular
-        self.ambient = ambient
-        self.emission = emission
-
-        self._useTextures = False
-
-    @property
-    def diffuse(self):
-        return self._diffuse
-
-    @diffuse.setter
-    def diffuse(self, value):
-        self._diffuse = np.asarray(value, np.float32)
-
-    @property
-    def specular(self):
-        return self._specular
-
-    @specular.setter
-    def specular(self, value):
-        self._specular = np.asarray(value, np.float32)
-
-    @property
-    def ambient(self):
-        return self._ambient
-
-    @ambient.setter
-    def ambient(self, value):
-        self._ambient = np.asarray(value, np.float32)
-
-    @property
-    def emission(self):
-        return self._emission
-
-    @emission.setter
-    def emission(self, value):
-        self._emission = np.asarray(value, np.float32)
-
-    @property
-    def shininess(self):
-        return self._shininess
-
-    @shininess.setter
-    def shininess(self, value):
-        self._shininess = float(value)
-
-    @property
-    def textures(self):
-        return self._textures
-
-    @textures.setter
-    def textures(self, value):
-        self._textures = value
 
 
 class RigidBodyPose(object):
@@ -566,11 +464,12 @@ class BaseRigidBodyStim(ColorMixin):
         self.win = win
         self.name = name
         self.autoLog = autoLog
-        super(BaseRigidBodyStim, self).__init__()
 
         self.colorSpace = colorSpace
         self.contrast = contrast
         self.opacity = opacity
+
+        super(BaseRigidBodyStim, self).__init__()
         self.color = color
 
         self._thePose = RigidBodyPose(pos, ori)
@@ -1127,6 +1026,9 @@ class ObjMeshStim(BaseRigidBodyStim):
 
         if objModel.mtlFile is not None:
             self.materials = gt.loadMtlFile(objModel.mtlFile)
+            # set the window for each material
+            for _, val in self.materials.items():
+                val.win = self.win
         else:
             self.materials = None
 
