@@ -13,13 +13,41 @@ from psychopy.visual.helpers import setColor
 import psychopy.tools.mathtools as mt
 import psychopy.tools.gltools as gt
 import psychopy.tools.arraytools as at
+from psychopy.visual.shaders import vertPhongLighting, fragPhongLighting
 import numpy as np
 
 import pyglet.gl as GL
 
 # shader flags
 SHADER_NONE = 0x00
-SHADER_USE_TEXTURES = 0x01
+SHADER_DIFFUSE_TEXTURE = 0x01
+
+# Keys for shaders are defined as (nLights, hasDiffuse)
+_material_shaders_ = {}
+
+MAX_LIGHTS = 8
+for i in range(MAX_LIGHTS):
+    for hasDiffuse in (0, 1):
+        vertSrc = gt.embedShaderSourceDefs(
+            vertPhongLighting, {'MAX_LIGHTS': i, 'DIFFUSE': hasDiffuse})
+        fragSrc = gt.embedShaderSourceDefs(
+            fragPhongLighting, {'MAX_LIGHTS': i, 'DIFFUSE': hasDiffuse})
+
+        prog = gt.createProgramObjectARB()  # new shader object
+        vertexShader = gt.compileShaderObjectARB(
+            vertSrc, GL.GL_VERTEX_SHADER_ARB)
+        fragmentShader = gt.compileShaderObjectARB(
+            fragSrc, GL.GL_FRAGMENT_SHADER_ARB)
+
+        gt.attachObjectARB(prog, vertexShader)
+        gt.attachObjectARB(prog, fragmentShader)
+        gt.linkProgramObjectARB(prog)
+        gt.detachObjectARB(prog, vertexShader)
+        gt.detachObjectARB(prog, fragmentShader)
+        gt.deleteObjectARB(vertexShader)
+        gt.deleteObjectARB(fragmentShader)
+
+        _material_shaders_[(i, hasDiffuse)] = prog
 
 
 class LightSource(object):
@@ -609,6 +637,7 @@ class SphereStim(BaseRigidBodyStim):
                  pos=(0., 0., 0.),
                  ori=(0., 0., 0., 1.),
                  useMaterial=None,
+                 useShaders=False,
                  color=(0., 0., 0.),
                  colorSpace='rgb',
                  contrast=1.0,
@@ -678,6 +707,7 @@ class SphereStim(BaseRigidBodyStim):
 
         self.setColor(color, colorSpace=self.colorSpace, log=False)
         self.material = useMaterial
+        self._useShaders = useShaders
 
     def draw(self, win=None):
         """Draw the sphere.
@@ -699,9 +729,18 @@ class SphereStim(BaseRigidBodyStim):
         GL.glLoadTransposeMatrixf(at.array2pointer(self.thePose.modelMatrix))
 
         if self.material is not None:
-            gt.useMaterial(self.material)
-            gt.drawVAO(self._vao, GL.GL_TRIANGLES)
-            gt.clearMaterial(self.material)
+            if self._useShaders:
+                nLights = len(self.win.lights)
+                shaderKey = (nLights, self.material._useTextures)
+                gt.useMaterial(self.material)
+                gt.useProgram(_material_shaders_[shaderKey])
+                gt.drawVAO(self._vao, GL.GL_TRIANGLES)
+                gt.useProgram(0)
+                gt.clearMaterial(self.material)
+            else:
+                gt.useMaterial(self.material)
+                gt.drawVAO(self._vao, GL.GL_TRIANGLES)
+                gt.clearMaterial(self.material)
         else:
             # material tracks color
             GL.glEnable(GL.GL_COLOR_MATERIAL)  # enable color tracking
@@ -711,8 +750,16 @@ class SphereStim(BaseRigidBodyStim):
                 self.rgb, self.colorSpace, self.contrast)
             GL.glColor4f(r, g, b, self.opacity)
 
+            if self._useShaders:
+                nLights = len(self.win.lights)
+                shaderKey = (nLights, self.material._useTextures)
+                gt.useProgram(_material_shaders_[shaderKey])
+
             # draw the shape
             gt.drawVAO(self._vao, GL.GL_TRIANGLES)
+
+            if self._useShaders:
+                gt.useProgram(0)
 
         GL.glPopMatrix()
 
