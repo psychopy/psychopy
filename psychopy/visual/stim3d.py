@@ -33,11 +33,13 @@ class LightSource(object):
     """
     def __init__(self,
                  win,
-                 pos=(0., 0., 0., 1.),
+                 pos=(0., 0., 0.),
                  diffuseColor=(1., 1., 1.),
                  specularColor=(1., 1., 1.),
                  ambientColor=(0., 0., 0.),
-                 colorSpace='rgb'):
+                 colorSpace='rgb',
+                 lightType='point',
+                 kAttenuation=(1, 0, 0)):
         """
         Parameters
         ----------
@@ -51,13 +53,18 @@ class LightSource(object):
             light source is coming from. For instance, a vector of (0, 1, 0, 0)
             will indicate that a light source is coming from above.
         diffuseColor : array_like
-            Diffuse light color (r, g, b) with values between 0.0 and 1.0.
+            Diffuse light color.
         specularColor : array_like
-            Specular light color (r, g, b) with values between 0.0 and 1.0.
+            Specular light color.
         ambientColor : array_like
-            Ambient light color (r, g, b) with values between 0.0 and 1.0.
+            Ambient light color.
         colorSpace : str
             Colorspace for `diffuse`, `specular`, and `ambient` colors.
+        kAttenuation : array_like
+            Values for the constant, linear, and quadratic terms of the lighting
+            attenuation formula. Default is (1, 0, 0) which results in no
+            attenuation.
+
         """
         self.win = win
 
@@ -72,20 +79,46 @@ class LightSource(object):
         self._ambientRGB = np.array((0., 0., 0., 1.), np.float32)
 
         self.colorSpace = colorSpace
-
-        self.pos = pos
         self.diffuseColor = diffuseColor
         self.specularColor = specularColor
         self.ambientColor = ambientColor
 
+        self._lightType = lightType
+        self.pos = pos
+
+        # attenuation factors
+        self._kAttenuation = np.asarray(kAttenuation, np.float32)
+
     @property
     def pos(self):
         """Position of the light source in the scene in scene units."""
-        return self._pos
+        return self._pos[:3]
 
     @pos.setter
     def pos(self, value):
-        self._pos = np.asarray(value, np.float32)
+        self._pos = np.zeros((4,), np.float32)
+        self._pos[:3] = value
+
+        if self._lightType == 'point':
+            self._pos[3] = 1.0
+
+    @property
+    def lightType(self):
+        """Type of light source, can be 'point' or 'directional'."""
+        return self._pos[:3]
+
+    @lightType.setter
+    def lightType(self, value):
+        self._lightType = value
+
+        if self._lightType == 'point':
+            self._pos[3] = 1.0
+        elif self._lightType == 'directional':
+            self._pos[3] = 0.0
+        else:
+            raise ValueError(
+                "Unknown `lightType` specified, must be 'directional' or "
+                "'point'.")
 
     @property
     def diffuseColor(self):
@@ -131,6 +164,17 @@ class LightSource(object):
 
         # make sure the color we got is 32-bit float
         self._ambientRGB = np.asarray(self._ambientRGB, np.float32)
+
+    @property
+    def kAttenuation(self):
+        """Values for the constant, linear, and quadratic terms of the lighting
+        attenuation formula.
+        """
+        return self._kAttenuation
+
+    @kAttenuation.setter
+    def kAttenuation(self, value):
+        self._kAttenuation = np.asarray(value, np.float32)
 
 
 class RigidBodyPose(object):
