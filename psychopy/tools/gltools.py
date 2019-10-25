@@ -62,7 +62,6 @@ __all__ = [
     'disableVertexAttribArray',
     'createMaterial',
     'useMaterial',
-    'LightSource',
     'createLight',
     'useLights',
     'setAmbientLight',
@@ -95,6 +94,7 @@ import numpy as np
 import os, sys
 import warnings
 import psychopy.tools.mathtools as mt
+from psychopy.visual.helpers import setColor
 
 # create a query counter to get absolute GPU time
 
@@ -2894,7 +2894,219 @@ def createMaterial(params=(), textures=(), face=GL.GL_FRONT_AND_BACK):
     return matDesc
 
 
-def useMaterial(material, useTextures=True, face=GL.GL_FRONT):
+class SimpleMaterial(object):
+    """Class representing a simple material.
+
+    This class stores material information to modify the appearance of drawn
+    primitives with respect to lighting, such as color (diffuse, specular,
+    ambient, and emission), shininess, and textures. Simple materials are
+    intended to work with features supported by the fixed-function OpenGL
+    pipeline.
+
+    """
+    def __init__(self,
+                 win=None,
+                 diffuseColor=(.5, .5, .5),
+                 specularColor=(-1., -1., -1.),
+                 ambientColor=(-1., -1., -1.),
+                 emissionColor=(-1., -1., -1.),
+                 shininess=10.0,
+                 colorSpace='rgb',
+                 opacity=1.0,
+                 contrast=1.0,
+                 face='front',
+                 textures=None,
+                 useShaders=False):
+        """
+        Parameters
+        ----------
+        win : `~psychopy.visual.Window` or `None`
+            Window this material is associated with, required for shaders and
+            some color space conversions.
+        diffuseColor : array_like
+            Diffuse material color (r, g, b, a) with values between 0.0 and 1.0.
+        specularColor : array_like
+            Specular material color (r, g, b, a) with values between 0.0 and
+            1.0.
+        ambientColor : array_like
+            Ambient material color (r, g, b, a) with values between 0.0 and 1.0.
+        emissionColor : array_like
+            Emission material color (r, g, b, a) with values between 0.0 and
+            1.0.
+        shininess : float
+            Material shininess, usually ranges from 0.0 to 128.0.
+        colorSpace : float
+            Color space for `diffuseColor`, `specularColor`, `ambientColor`, and
+            `emissionColor`.
+        opacity : float
+            Opacity of the material. Ranges from 0.0 to 1.0 where 1.0 is fully
+            opaque.
+        contrast : float
+            Contrast of the material colors.
+        face : str
+            Face to apply material to. Values are `front`, `back` or `both`.
+        textures : list of TexImage2D, optional
+            Texture maps associated with this material. Textures are specified
+            as a list. The index of textures in the list will be used to set
+            the corresponding texture unit they are bound to.
+        useShaders : bool
+            Use per-pixel lighting when rendering this stimulus. By default,
+            Blinn-Phong shading will be used.
+        """
+        self.win = win
+
+        self._diffuseColor = np.zeros((3,), np.float32)
+        self._specularColor = np.zeros((3,), np.float32)
+        self._ambientColor = np.zeros((3,), np.float32)
+        self._emissionColor = np.zeros((3,), np.float32)
+        self._shininess = float(shininess)
+
+        # internal RGB values post colorspace conversion
+        self._diffuseRGB = np.array((0., 0., 0., 1.), np.float32)
+        self._specularRGB = np.array((0., 0., 0., 1.), np.float32)
+        self._ambientRGB = np.array((0., 0., 0., 1.), np.float32)
+        self._emissionRGB = np.array((0., 0., 0., 1.), np.float32)
+
+        # which faces to apply the material
+
+        if face == 'front':
+            self._face = GL.GL_FRONT
+        elif face == 'back':
+            self._face = GL.GL_BACK
+        elif face == 'both':
+            self._face = GL.GL_FRONT_AND_BACK
+        else:
+            raise ValueError("Invalid `face` specified, must be 'front', "
+                             "'back' or 'both'.")
+
+        self.colorSpace = colorSpace
+        self.opacity = opacity
+        self.contrast = contrast
+
+        self.diffuseColor = diffuseColor
+        self.specularColor = specularColor
+        self.ambientColor = ambientColor
+        self.emissionColor = emissionColor
+
+        self._textures = textures
+
+        self._useTextures = False  # keeps track if textures are being used
+        self._useShaders = useShaders
+
+    @property
+    def diffuseColor(self):
+        """Diffuse color of the material."""
+        return self._diffuseColor
+
+    @diffuseColor.setter
+    def diffuseColor(self, value):
+        self._diffuseColor = np.asarray(value, np.float32)
+        setColor(self, value, colorSpace=self.colorSpace, operation=None,
+                 rgbAttrib='diffuseRGB', colorAttrib='diffuseColor',
+                 colorSpaceAttrib='colorSpace')
+
+    @property
+    def diffuseRGB(self):
+        """Diffuse color of the material."""
+        return self._diffuseRGB[:3]
+
+    @diffuseRGB.setter
+    def diffuseRGB(self, value):
+        # make sure the color we got is 32-bit float
+        self._diffuseRGB = np.zeros((4,), np.float32)
+        self._diffuseRGB[:3] = (value * self.contrast + 1) / 2.0
+        self._diffuseRGB[3] = self.opacity
+
+    @property
+    def specularColor(self):
+        """Specular color of the material."""
+        return self._specularColor
+
+    @specularColor.setter
+    def specularColor(self, value):
+        self._specularColor = np.asarray(value, np.float32)
+        setColor(self, value, colorSpace=self.colorSpace, operation=None,
+                 rgbAttrib='specularRGB', colorAttrib='specularColor',
+                 colorSpaceAttrib='colorSpace')
+
+    @property
+    def specularRGB(self):
+        """Diffuse color of the material."""
+        return self._specularRGB[:3]
+
+    @specularRGB.setter
+    def specularRGB(self, value):
+        # make sure the color we got is 32-bit float
+        self._specularRGB = np.zeros((4,), np.float32)
+        self._specularRGB[:3] = (value * self.contrast + 1) / 2.0
+        self._specularRGB[3] = self.opacity
+
+    @property
+    def ambientColor(self):
+        """Ambient color of the material."""
+        return self._ambientColor
+
+    @ambientColor.setter
+    def ambientColor(self, value):
+        self._ambientColor = np.asarray(value, np.float32)
+        setColor(self, value, colorSpace=self.colorSpace, operation=None,
+                 rgbAttrib='ambientRGB', colorAttrib='ambientColor',
+                 colorSpaceAttrib='colorSpace')
+
+    @property
+    def ambientRGB(self):
+        """Diffuse color of the material."""
+        return self._ambientRGB[:3]
+
+    @ambientRGB.setter
+    def ambientRGB(self, value):
+        # make sure the color we got is 32-bit float
+        self._ambientRGB = np.zeros((4,), np.float32)
+        self._ambientRGB[:3] = (value * self.contrast + 1) / 2.0
+        self._ambientRGB[3] = self.opacity
+
+    @property
+    def emissionColor(self):
+        """Emission color of the material."""
+        return self._emissionColor
+
+    @emissionColor.setter
+    def emissionColor(self, value):
+        self._emissionColor = np.asarray(value, np.float32)
+        setColor(self, value, colorSpace=self.colorSpace, operation=None,
+                 rgbAttrib='emissionRGB', colorAttrib='emissionColor',
+                 colorSpaceAttrib='colorSpace')
+
+    @property
+    def emissionRGB(self):
+        """Diffuse color of the material."""
+        return self._emissionRGB[:3]
+
+    @emissionRGB.setter
+    def emissionRGB(self, value):
+        # make sure the color we got is 32-bit float
+        self._emissionRGB = np.zeros((4,), np.float32)
+        self._emissionRGB[:3] = (value * self.contrast + 1) / 2.0
+        self._emissionRGB[3] = self.opacity
+
+    @property
+    def shininess(self):
+        return self._shininess
+
+    @shininess.setter
+    def shininess(self, value):
+        self._shininess = float(value)
+
+    @property
+    def textures(self):
+        return self._textures
+
+    @textures.setter
+    def textures(self, value):
+        self._textures = value
+
+
+def useMaterial(material, useTextures=True):
     """Use a material for proceeding vertex draws.
 
     Parameters
@@ -2908,9 +3120,6 @@ def useMaterial(material, useTextures=True, face=GL.GL_FRONT):
         enabled. Note, when disabling materials, the value of useTextures must
         match the previous call. If there are no textures attached to the
         material, useTexture will be silently ignored.
-    face : GLenum
-        Face to apply material to, must be either `GL_BACK`, `GL_FRONT`, and
-        `GL_FRONT_BACK`.
 
     Returns
     -------
@@ -2936,13 +3145,14 @@ def useMaterial(material, useTextures=True, face=GL.GL_FRONT):
     """
     if material is not None:
         GL.glDisable(GL.GL_COLOR_MATERIAL)  # disable color tracking
+        face = material._face
         GL.glColorMaterial(face, GL.GL_AMBIENT_AND_DIFFUSE)
 
         # convert data in light class to ctypes
-        diffuse = np.ctypeslib.as_ctypes(material.diffuse)
-        specular = np.ctypeslib.as_ctypes(material.specular)
-        ambient = np.ctypeslib.as_ctypes(material.ambient)
-        emission = np.ctypeslib.as_ctypes(material.emission)
+        diffuse = np.ctypeslib.as_ctypes(material._diffuseRGB)
+        specular = np.ctypeslib.as_ctypes(material._specularRGB)
+        ambient = np.ctypeslib.as_ctypes(material._ambientRGB)
+        emission = np.ctypeslib.as_ctypes(material._emissionRGB)
 
         # pass values to OpenGL
         GL.glMaterialfv(face, GL.GL_DIFFUSE, diffuse)
@@ -3395,11 +3605,17 @@ def loadMtlFile(mtllib, texParams=None):
         elif line.startswith('Ns '):  # specular exponent
             foundMaterials[thisMaterial].shininess = line[3:]
         elif line.startswith('Ks '):  # specular color
-            foundMaterials[thisMaterial].specular = list(map(float, line[3:].split(' '))) + [1.0]
+            specularColor = np.asarray(list(map(float, line[3:].split(' '))))
+            specularColor = 2.0 * specularColor - 1
+            foundMaterials[thisMaterial].specularColor = specularColor
         elif line.startswith('Kd '):  # diffuse color
-            foundMaterials[thisMaterial].diffuse = list(map(float, line[3:].split(' '))) + [1.0]
+            diffuseColor = np.asarray(list(map(float, line[3:].split(' '))))
+            diffuseColor = 2.0 * diffuseColor - 1
+            foundMaterials[thisMaterial].diffuseColor = diffuseColor
         elif line.startswith('Ka '):  # ambient color
-            foundMaterials[thisMaterial].ambient = list(map(float, line[3:].split(' '))) + [1.0]
+            ambientColor = np.asarray(list(map(float, line[3:].split(' '))))
+            ambientColor = 2.0 * ambientColor - 1
+            foundMaterials[thisMaterial].ambientColor = ambientColor
         elif line.startswith('map_Kd '):  # diffuse color map
             # load a diffuse texture from file
             textureName = line[7:]
