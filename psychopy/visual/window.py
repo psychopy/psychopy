@@ -1309,6 +1309,11 @@ class Window(object):
             GL.glLightfv(enumLight, GL.GL_SPECULAR, specular)
             GL.glLightfv(enumLight, GL.GL_AMBIENT, ambient)
 
+            constant, linear, quadratic = light._kAttenuation
+            GL.glLightf(enumLight, GL.GL_CONSTANT_ATTENUATION, constant)
+            GL.glLightf(enumLight, GL.GL_LINEAR_ATTENUATION, linear)
+            GL.glLightf(enumLight, GL.GL_QUADRATIC_ATTENUATION, quadratic)
+
             # enable the light
             GL.glEnable(enumLight)
 
