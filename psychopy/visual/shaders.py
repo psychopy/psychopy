@@ -245,13 +245,13 @@ float calcAttenuation(float kConst, float kLinear, float kQuad, float dist) {
 void main (void)  
 {  
     vec3 N = normalize(N);
-    vec4 finalColor = vec4(0.0, 0.0, 0.0, 0.0);
+    vec4 finalColor = vec4(0.0);
 
 #ifdef DIFFUSE
     // Get the texture color
     vec4 diffTexColor = texture2D(diffTexture, gl_TexCoord[0].st);
 #else
-    vec4 diffTexColor = vec4(1.0, 1.0, 1.0, 1.0);
+    vec4 diffTexColor = vec3(1.0);
 #endif
     
     // loop over available lights
@@ -299,7 +299,6 @@ void main (void)
         
         finalColor += ambient + emission + attenuation * (diffuse + specular);
     }
-    
-    gl_FragColor = gl_FrontLightModelProduct.sceneColor + finalColor; 
+    gl_FragColor = finalColor;  // use texture alpha
 }
 """
