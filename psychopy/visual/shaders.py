@@ -202,6 +202,7 @@ vertPhongLighting = """
 // Only supports directional and point light sources for now. Spotlights will be
 // added later on.
 //
+#version 110
 varying vec3 N;
 varying vec3 v;
 
@@ -211,6 +212,7 @@ void main(void)
     N = normalize(gl_NormalMatrix * gl_Normal);
     
     gl_TexCoord[0] = gl_MultiTexCoord0;
+    gl_TexCoord[1] = gl_MultiTexCoord1;
     gl_Position = ftransform();
 }
           
@@ -230,11 +232,16 @@ fragPhongLighting = """
 // Only supports directional and point light sources for now. Spotlights will be
 // added later on.
 //
+#version 110
 varying vec3 N;
 varying vec3 v; 
 
-#ifdef DIFFUSE
+#ifdef DIFFUSE_TEXTURE
     uniform sampler2D diffTexture;
+#endif
+
+#ifdef SPECULAR_TEXTURE
+    uniform sampler2D specTexture;
 #endif
 
 // Calculate lighting attenuation using the same formula OpenGL uses
@@ -247,13 +254,12 @@ void main (void)
     vec3 N = normalize(N);
     vec4 finalColor = vec4(0.0);
 
-#ifdef DIFFUSE
-    // Get the texture color
+#ifdef DIFFUSE_TEXTURE
     vec4 diffTexColor = texture2D(diffTexture, gl_TexCoord[0].st);
-#else
-    vec4 diffTexColor = vec3(1.0);
-#endif
-    
+#endif 
+#ifdef SPECULAR_TEXTURE
+    vec4 specTexColor = texture2D(specTexture, gl_TexCoord[1].st);
+#endif 
     // loop over available lights
     for (int i=0; i < MAX_LIGHTS; i++)
     {
@@ -282,13 +288,15 @@ void main (void)
         
         vec4 ambient = gl_FrontLightProduct[i].ambient; 
         vec4 diffuse = gl_FrontLightProduct[i].diffuse * max(dot(N, L), 0.0);
-#ifdef DIFFUSE
+#ifdef DIFFUSE_TEXTURE
         // multiply in material texture colors if specified
         diffuse *= diffTexColor;
 #endif
         vec4 specular = gl_FrontLightProduct[i].specular *
             pow(max(dot(R, E), 0.0), gl_FrontMaterial.shininess);
-        
+#ifdef SPECULAR_TEXTURE
+        specular *= specTexColor;
+#endif
         // clamp color values for specular and diffuse
         diffuse = clamp(diffuse, 0.0, 1.0); 
         specular = clamp(specular, 0.0, 1.0); 
