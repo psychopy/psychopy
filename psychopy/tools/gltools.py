@@ -80,6 +80,7 @@ __all__ = [
     'getString',
     'getOpenGLInfo',
     'createTexImage2D',
+    'createTexImage2dFromFile',
     'bindTexture',
     'unbindTexture'
 ]
@@ -1735,6 +1736,55 @@ def createTexImage2D(width, height, target=GL.GL_TEXTURE_2D, level=0,
     return tex
 
 
+def createTexImage2dFromFile(imgFile, transpose=True):
+    """Load an image from file directly into a texture.
+
+    This is a convenience function to quickly get an image file loaded into a
+    2D texture. The image is converted to RGBA format. Texture parameters are
+    set for linear interpolation.
+
+    Parameters
+    ----------
+    imgFile : str
+        Path to the image file.
+    transpose : bool
+        Flip the image so it appears upright when displayed in OpenGL image
+        coordinates.
+
+    Returns
+    -------
+    TexImage2D
+        Texture descriptor.
+
+    """
+    import pyglet.gl as GL  # using Pyglet for now
+
+    # load texture data from an image file using Pillow and NumPy
+    from PIL import Image
+    import numpy as np
+    im = Image.open(imgFile)  # 8bpp!
+    if transpose:
+        im = im.transpose(Image.FLIP_TOP_BOTTOM)  # OpenGL origin is at bottom
+
+    im = im.convert("RGBA")
+    pixelData = np.array(im).ctypes  # convert to ctypes!
+
+    width = pixelData.shape[1]
+    height = pixelData.shape[0]
+    textureDesc = createTexImage2D(
+        width,
+        height,
+        internalFormat=GL.GL_RGBA,
+        pixelFormat=GL.GL_RGBA,
+        dataType=GL.GL_UNSIGNED_BYTE,
+        data=pixelData,
+        unpackAlignment=1,
+        texParams={GL.GL_TEXTURE_MAG_FILTER: GL.GL_LINEAR,
+                   GL.GL_TEXTURE_MIN_FILTER: GL.GL_LINEAR})
+
+    return textureDesc
+
+
 def bindTexture(texture, unit=None, enable=True):
     """Bind a texture.
 
@@ -2914,10 +2964,11 @@ class SimpleMaterial(object):
                  emissionColor=(-1., -1., -1.),
                  shininess=10.0,
                  colorSpace='rgb',
+                 diffuseTexture=None,
+                 specularTexture=None,
                  opacity=1.0,
                  contrast=1.0,
                  face='front',
-                 textures=None,
                  useShaders=False):
         """
         Parameters
@@ -2940,6 +2991,8 @@ class SimpleMaterial(object):
         colorSpace : float
             Color space for `diffuseColor`, `specularColor`, `ambientColor`, and
             `emissionColor`.
+        diffuseTexture : TexImage2D
+        specularTexture : TexImage2D
         opacity : float
             Opacity of the material. Ranges from 0.0 to 1.0 where 1.0 is fully
             opaque.
@@ -2947,7 +3000,7 @@ class SimpleMaterial(object):
             Contrast of the material colors.
         face : str
             Face to apply material to. Values are `front`, `back` or `both`.
-        textures : list of TexImage2D, optional
+        textures : dict, optional
             Texture maps associated with this material. Textures are specified
             as a list. The index of textures in the list will be used to set
             the corresponding texture unit they are bound to.
@@ -2990,10 +3043,30 @@ class SimpleMaterial(object):
         self.ambientColor = ambientColor
         self.emissionColor = emissionColor
 
-        self._textures = textures
+        self._diffuseTexture = diffuseTexture
+        self._specularTexture = specularTexture
+        self._normalTexture = None
 
         self._useTextures = False  # keeps track if textures are being used
         self._useShaders = useShaders
+
+    @property
+    def diffuseTexture(self):
+        """Diffuse color of the material."""
+        return self._diffuseTexture
+
+    @diffuseTexture.setter
+    def diffuseTexture(self, value):
+        self._diffuseTexture = value
+
+    @property
+    def specularTexture(self):
+        """Diffuse color of the material."""
+        return self._specularTexture
+
+    @specularTexture.setter
+    def specularTexture(self, value):
+        self._specularTexture = value
 
     @property
     def diffuseColor(self):
@@ -3099,14 +3172,6 @@ class SimpleMaterial(object):
     def shininess(self, value):
         self._shininess = float(value)
 
-    @property
-    def textures(self):
-        return self._textures
-
-    @textures.setter
-    def textures(self, value):
-        self._textures = value
-
 
 def useMaterial(material, useTextures=True):
     """Use a material for proceeding vertex draws.
@@ -3164,13 +3229,13 @@ def useMaterial(material, useTextures=True):
         GL.glMaterialf(face, GL.GL_SHININESS, material.shininess)
 
         # setup textures
-        if useTextures and material.textures:
+        if useTextures:
             material._useTextures = True
             GL.glEnable(GL.GL_TEXTURE_2D)
-            unit = 0
-            for desc in material.textures:
-                bindTexture(desc, unit)
-                unit += 1
+            if material.diffuseTexture is not None:
+                bindTexture(material.diffuseTexture, 0)
+            if material.specularTexture is not None:
+                bindTexture(material.specularTexture, 1)
     else:
         for mode, param in defaultMaterial.params.items():
             GL.glEnable(GL.GL_COLOR_MATERIAL)
@@ -3183,8 +3248,12 @@ def clearMaterial(material):
         GL.glMaterialfv(GL.GL_FRONT_AND_BACK, mode, param)
 
     if material._useTextures:
-        for desc in material.textures:
-            unbindTexture(desc)
+        if material.diffuseTexture is not None:
+            unbindTexture(material.diffuseTexture)
+        if material.specularTexture is not None:
+            unbindTexture(material.specularTexture)
+
+        GL.glDisable(GL.GL_TEXTURE_2D)
 
     GL.glDisable(GL.GL_COLOR_MATERIAL)  # disable color tracking
 
@@ -3603,7 +3672,7 @@ def loadMtlFile(mtllib, texParams=None):
         line = line.strip()
         if line.startswith('newmtl '):  # new material
             thisMaterial = line[7:]
-            foundMaterials[thisMaterial] = SimpleMaterial(textures=[])
+            foundMaterials[thisMaterial] = SimpleMaterial()
         elif line.startswith('Ns '):  # specular exponent
             foundMaterials[thisMaterial].shininess = line[3:]
         elif line.startswith('Ks '):  # specular color
@@ -3638,8 +3707,8 @@ def loadMtlFile(mtllib, texParams=None):
                     data=pixelData,
                     unpackAlignment=1,
                     texParams=texParams)
-            foundMaterials[thisMaterial].textures.append(
-                foundTextures[textureName])
+            foundMaterials[thisMaterial].diffuseTexture = \
+                foundTextures[textureName]
 
     return foundMaterials
 
