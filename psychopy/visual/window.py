@@ -14,6 +14,7 @@ import os
 import sys
 import weakref
 import atexit
+from itertools import product
 
 from builtins import map
 from builtins import object
@@ -82,6 +83,7 @@ from psychopy.tools.attributetools import attributeSetter, setAttribute
 from psychopy.tools.arraytools import val2array
 from psychopy.tools.monitorunittools import convertToPix
 import psychopy.tools.viewtools as viewtools
+import psychopy.tools.gltools as gltools
 from .text import TextStim
 from .grating import GratingStim
 from .helpers import setColor
@@ -2450,6 +2452,47 @@ class Window(object):
             _shaders.vertSimple, _shaders.fragImageStim)
         self._shaders['imageStim_adding'] = _shaders.compileProgram(
             _shaders.vertSimple, _shaders.fragImageStim_adding)
+        self._shaders['stim3d_phong'] = {}
+
+        # Create shader flags, these are used as keys to pick the appropriate
+        # shader for the given material and lighting configuration.
+        shaderFlags = []
+        for i in range(1, 8 + 1):
+            for j in product((True, False), repeat=1):
+                shaderFlags.append((i, *j))
+
+        # Compile shaders based on generated flags.
+        for flag in shaderFlags:
+            # Define GLSL preprocessor values to enable code paths for specific
+            # material properties.
+            srcDefs = {'MAX_LIGHTS': flag[0]}
+
+            if flag[1]:  # has diffuse texture map
+                srcDefs['DIFFUSE_TEXTURE'] = 1
+
+            # embed #DEFINE statements in GLSL source code
+            vertSrc = gltools.embedShaderSourceDefs(
+                _shaders.vertPhongLighting, srcDefs)
+            fragSrc = gltools.embedShaderSourceDefs(
+                _shaders.fragPhongLighting, srcDefs)
+
+            # build a shader program
+            prog = gltools.createProgramObjectARB()
+            vertexShader = gltools.compileShaderObjectARB(
+                vertSrc, GL.GL_VERTEX_SHADER_ARB)
+            fragmentShader = gltools.compileShaderObjectARB(
+                fragSrc, GL.GL_FRAGMENT_SHADER_ARB)
+
+            gltools.attachObjectARB(prog, vertexShader)
+            gltools.attachObjectARB(prog, fragmentShader)
+            gltools.linkProgramObjectARB(prog)
+            gltools.detachObjectARB(prog, vertexShader)
+            gltools.detachObjectARB(prog, fragmentShader)
+            gltools.deleteObjectARB(vertexShader)
+            gltools.deleteObjectARB(fragmentShader)
+
+            # set the flag
+            self._shaders['stim3d_phong'][flag] = prog
 
     def _setupFrameBuffer(self):
 
