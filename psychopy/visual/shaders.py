@@ -205,6 +205,7 @@ vertPhongLighting = """
 #version 110
 varying vec3 N;
 varying vec3 v;
+varying vec4 frontColor;
 
 void main(void)  
 {     
@@ -214,6 +215,9 @@ void main(void)
     gl_TexCoord[0] = gl_MultiTexCoord0;
     gl_TexCoord[1] = gl_MultiTexCoord1;
     gl_Position = ftransform();
+#if MAX_LIGHTS < 1
+    frontColor = gl_Color;
+#endif
 }
           
 """
@@ -235,13 +239,10 @@ fragPhongLighting = """
 #version 110
 varying vec3 N;
 varying vec3 v; 
+varying vec4 frontColor;
 
 #ifdef DIFFUSE_TEXTURE
     uniform sampler2D diffTexture;
-#endif
-
-#ifdef SPECULAR_TEXTURE
-    uniform sampler2D specTexture;
 #endif
 
 // Calculate lighting attenuation using the same formula OpenGL uses
@@ -254,11 +255,9 @@ void main (void)
     vec3 N = normalize(N);
     vec4 finalColor = vec4(0.0);
 
+#if MAX_LIGHTS > 0
 #ifdef DIFFUSE_TEXTURE
     vec4 diffTexColor = texture2D(diffTexture, gl_TexCoord[0].st);
-#endif 
-#ifdef SPECULAR_TEXTURE
-    vec4 specTexColor = texture2D(specTexture, gl_TexCoord[1].st);
 #endif 
     // loop over available lights
     for (int i=0; i < MAX_LIGHTS; i++)
@@ -294,9 +293,7 @@ void main (void)
 #endif
         vec4 specular = gl_FrontLightProduct[i].specular *
             pow(max(dot(R, E), 0.0), gl_FrontMaterial.shininess);
-#ifdef SPECULAR_TEXTURE
-        specular *= specTexColor;
-#endif
+
         // clamp color values for specular and diffuse
         diffuse = clamp(diffuse, 0.0, 1.0); 
         specular = clamp(specular, 0.0, 1.0); 
@@ -308,5 +305,8 @@ void main (void)
         finalColor += ambient + emission + attenuation * (diffuse + specular);
     }
     gl_FragColor = finalColor;  // use texture alpha
+#else
+    gl_FragColor = frontColor;
+#endif
 }
 """

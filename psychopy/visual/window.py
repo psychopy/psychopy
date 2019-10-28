@@ -2457,7 +2457,7 @@ class Window(object):
         # Create shader flags, these are used as keys to pick the appropriate
         # shader for the given material and lighting configuration.
         shaderFlags = []
-        for i in range(1, 8 + 1):
+        for i in range(0, 8 + 1):
             for j in product((True, False), repeat=1):
                 shaderFlags.append((i, *j))
 
