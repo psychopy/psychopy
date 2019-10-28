@@ -1246,14 +1246,6 @@ class Window(object):
         empty `list`, no lights will be enabled if `useLights=True`, however,
         the scene ambient light set with `ambientLight` will be still be used.
 
-        Legacy lights are transformed by the present `GL_MODELVIEW` matrix.
-        Setting `lights` will result in their positions being transformed by it.
-        If you want lights to appear at the specified positions in world space,
-        make sure the current matrix defines the view/eye transformation when
-        setting `lights`. This does not affect directional lights unless the
-        matrix has a rotation. This transformation does not affect positions of
-        lights in shaders, as the transformation in explicitly done.
-
         Examples
         --------
         Create a directional light source and add it to scene lights::
@@ -1300,13 +1292,13 @@ class Window(object):
             enumLight = GL.GL_LIGHT0 + index
 
             # convert data in light class to ctypes
-            pos = numpy.ctypeslib.as_ctypes(light.pos)
+            #pos = numpy.ctypeslib.as_ctypes(light.pos)
             diffuse = numpy.ctypeslib.as_ctypes(light._diffuseRGB)
             specular = numpy.ctypeslib.as_ctypes(light._specularRGB)
             ambient = numpy.ctypeslib.as_ctypes(light._ambientRGB)
 
             # pass values to OpenGL
-            GL.glLightfv(enumLight, GL.GL_POSITION, pos)
+            #GL.glLightfv(enumLight, GL.GL_POSITION, pos)
             GL.glLightfv(enumLight, GL.GL_DIFFUSE, diffuse)
             GL.glLightfv(enumLight, GL.GL_SPECULAR, specular)
             GL.glLightfv(enumLight, GL.GL_AMBIENT, ambient)
@@ -1326,7 +1318,14 @@ class Window(object):
         Lights will be enabled if using legacy OpenGL lighting. Stimuli using
         shaders for lighting should check if `useLights` is `True` since this
         will have no effect on them, and disable or use a no lighting shader
-        instead
+        instead. Lights will be transformed to the current view matrix upon
+        setting to `True`.
+
+        Lights are transformed by the present `GL_MODELVIEW` matrix. Setting
+        `useLights` will result in their positions being transformed by it.
+        If you want lights to appear at the specified positions in world space,
+        make sure the current matrix defines the view/eye transformation when
+        setting `useLights=True`.
 
         This flag is reset to `False` at the beginning of each frame. Should be
         `False` if rendering 2D stimuli or else the colors will be incorrect.
@@ -1344,6 +1343,12 @@ class Window(object):
             # make sure specular lights are computed relative to eye position,
             # this is more realistic than the default. Does not affect shaders.
             GL.glLightModeli(GL.GL_LIGHT_MODEL_LOCAL_VIEWER, GL.GL_TRUE)
+
+            # update light positions for current model matrix
+            for index, light in enumerate(self._lights):
+                enumLight = GL.GL_LIGHT0 + index
+                pos = numpy.ctypeslib.as_ctypes(light.pos)
+                GL.glLightfv(enumLight, GL.GL_POSITION, pos)
         else:
             # disable lights
             GL.glDisable(GL.GL_LIGHTING)
