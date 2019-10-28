@@ -12,8 +12,7 @@ from psychopy.visual.helpers import setColor
 import psychopy.tools.mathtools as mt
 import psychopy.tools.gltools as gt
 import psychopy.tools.arraytools as at
-from psychopy.visual.shaders import vertPhongLighting, fragPhongLighting
-from itertools import product
+
 import os
 from io import StringIO
 from PIL import Image
@@ -21,52 +20,6 @@ from PIL import Image
 import numpy as np
 
 import pyglet.gl as GL
-
-# Dictionary of material shaders. Keys for shaders are defined as (nLights,
-# hasDiffuse).
-_material_shaders_ = {}
-
-# Generate shaders for materials. Create a separate shader for permutations of
-# texture and lighting number.
-MAX_LIGHTS = 8
-
-# Create shader flags, these are used as keys to pick the appropriate shader
-# for the given material and lighting configuration.
-shaderFlags = []
-for i in range(1, MAX_LIGHTS + 1):
-    for j in product((True, False), repeat=1):
-        shaderFlags.append((i, *j))
-
-# Compile shaders based on generated flags.
-for flag in shaderFlags:
-    # Define GLSL preprocessor values to enable code paths for specific material
-    # properties.
-    srcDefs = {'MAX_LIGHTS': flag[0]}
-
-    if flag[1]:  # has diffuse texture map
-        srcDefs['DIFFUSE_TEXTURE'] = 1
-
-    # embed #DEFINE statements in GLSL source code
-    vertSrc = gt.embedShaderSourceDefs(vertPhongLighting, srcDefs)
-    fragSrc = gt.embedShaderSourceDefs(fragPhongLighting, srcDefs)
-
-    # build a shader program
-    prog = gt.createProgramObjectARB()
-    vertexShader = gt.compileShaderObjectARB(
-        vertSrc, GL.GL_VERTEX_SHADER_ARB)
-    fragmentShader = gt.compileShaderObjectARB(
-        fragSrc, GL.GL_FRAGMENT_SHADER_ARB)
-
-    gt.attachObjectARB(prog, vertexShader)
-    gt.attachObjectARB(prog, fragmentShader)
-    gt.linkProgramObjectARB(prog)
-    gt.detachObjectARB(prog, vertexShader)
-    gt.detachObjectARB(prog, fragmentShader)
-    gt.deleteObjectARB(vertexShader)
-    gt.deleteObjectARB(fragmentShader)
-
-    # set the flag
-    _material_shaders_[flag] = prog
 
 
 class LightSource(object):
@@ -464,7 +417,6 @@ class PhongMaterial(object):
     @shininess.setter
     def shininess(self, value):
         self._shininess = float(value)
-
 
 
 class RigidBodyPose(object):
@@ -932,7 +884,7 @@ class BaseRigidBodyStim(ColorMixin):
                 nLights = len(self.win.lights)
                 shaderKey = (nLights, self.material._useTextures)
                 gt.useMaterial(self.material)
-                gt.useProgram(_material_shaders_[shaderKey])
+                gt.useProgram(self.win._shaders['stim3d_phong'][shaderKey])
                 gt.drawVAO(self._vao, GL.GL_TRIANGLES)
                 gt.useProgram(0)
                 gt.clearMaterial(self.material)
@@ -947,7 +899,7 @@ class BaseRigidBodyStim(ColorMixin):
             if self._useShaders:
                 nLights = len(self.win.lights)
                 shaderKey = (nLights, False, False)
-                gt.useProgram(_material_shaders_[shaderKey])
+                gt.useProgram(self.win._shaders['stim3d_phong'][shaderKey])
                 color = np.ctypeslib.as_ctypes(
                     np.array((r, g, b, self.opacity), np.float32))
                 # pass values to OpenGL as material
@@ -1445,7 +1397,7 @@ class ObjMeshStim(BaseRigidBodyStim):
                 shaderKey = (nLights, materialDesc._useTextures)
                 gt.useMaterial(materialDesc)
                 if self._useShaders:
-                    gt.useProgram(_material_shaders_[shaderKey])
+                    gt.useProgram(self.win._shaders['stim3d_phong'][shaderKey])
 
                 gt.drawVAO(self._vao[materialName], GL.GL_TRIANGLES)
                 mtlIndex += 1

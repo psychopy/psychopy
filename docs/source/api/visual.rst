@@ -25,7 +25,7 @@ Commonly used:
 
 Shapes (all special classes of :class:`ShapeStim`):
 
-	* :class:`.ShapeStim` to draw shapes with arbitrary numbers of vertices
+    * :class:`.ShapeStim` to draw shapes with arbitrary numbers of vertices
     * :class:`.Rect` to show rectangles
     * :class:`.Circle` to show circles
     * :class:`.Polygon` to show polygons
@@ -44,6 +44,16 @@ Multiple stimuli:
 
     * :class:`.ElementArrayStim` to show many stimuli of the same type
     * :class:`.DotStim` to show and control movement of dots
+
+3D shapes, materials, and lighting:
+
+    * :class:`.LightSource` to define a light source in a scene
+    * :class:`.PhongMaterial` to specify a material using the Phong lighting model
+    * :class:`.RigidBodyPose` to define poses of objects in 3D space
+    * :class:`.SphereStim` to show a 3D sphere
+    * :class:`.BoxStim` to show 3D boxes and cubes
+    * :class:`.PlaneStim` to show 3D plane
+    * :class:`.ObjMeshStim` to show Wavefront OBJ meshes loaded from files
 
 Other stimuli:
 
