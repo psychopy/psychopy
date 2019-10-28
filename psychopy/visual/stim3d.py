@@ -14,6 +14,9 @@ import psychopy.tools.gltools as gt
 import psychopy.tools.arraytools as at
 from psychopy.visual.shaders import vertPhongLighting, fragPhongLighting
 from itertools import product
+import os
+from io import StringIO
+from PIL import Image
 
 import numpy as np
 
@@ -31,7 +34,7 @@ MAX_LIGHTS = 8
 # for the given material and lighting configuration.
 shaderFlags = []
 for i in range(1, MAX_LIGHTS + 1):
-    for j in product((True, False), repeat=2):
+    for j in product((True, False), repeat=1):
         shaderFlags.append((i, *j))
 
 # Compile shaders based on generated flags.
@@ -42,9 +45,6 @@ for flag in shaderFlags:
 
     if flag[1]:  # has diffuse texture map
         srcDefs['DIFFUSE_TEXTURE'] = 1
-
-    if flag[2]:  # has specular texture map
-        srcDefs['SPECULAR_TEXTURE'] = 1
 
     # embed #DEFINE statements in GLSL source code
     vertSrc = gt.embedShaderSourceDefs(vertPhongLighting, srcDefs)
@@ -249,6 +249,222 @@ class LightSource(object):
     @kAttenuation.setter
     def kAttenuation(self, value):
         self._kAttenuation = np.asarray(value, np.float32)
+
+
+class PhongMaterial(object):
+    """Class representing a material using the Phong lighting model.
+
+    This class stores material information to modify the appearance of drawn
+    primitives with respect to lighting, such as color (diffuse, specular,
+    ambient, and emission), shininess, and textures. Simple materials are
+    intended to work with features supported by the fixed-function OpenGL
+    pipeline.
+
+    """
+    def __init__(self,
+                 win=None,
+                 diffuseColor=(.5, .5, .5),
+                 specularColor=(-1., -1., -1.),
+                 ambientColor=(-1., -1., -1.),
+                 emissionColor=(-1., -1., -1.),
+                 shininess=10.0,
+                 colorSpace='rgb',
+                 diffuseTexture=None,
+                 opacity=1.0,
+                 contrast=1.0,
+                 face='front',
+                 useShaders=False):
+        """
+        Parameters
+        ----------
+        win : `~psychopy.visual.Window` or `None`
+            Window this material is associated with, required for shaders and
+            some color space conversions.
+        diffuseColor : array_like
+            Diffuse material color (r, g, b, a) with values between 0.0 and 1.0.
+        specularColor : array_like
+            Specular material color (r, g, b, a) with values between 0.0 and
+            1.0.
+        ambientColor : array_like
+            Ambient material color (r, g, b, a) with values between 0.0 and 1.0.
+        emissionColor : array_like
+            Emission material color (r, g, b, a) with values between 0.0 and
+            1.0.
+        shininess : float
+            Material shininess, usually ranges from 0.0 to 128.0.
+        colorSpace : float
+            Color space for `diffuseColor`, `specularColor`, `ambientColor`, and
+            `emissionColor`.
+        diffuseTexture : TexImage2D
+        opacity : float
+            Opacity of the material. Ranges from 0.0 to 1.0 where 1.0 is fully
+            opaque.
+        contrast : float
+            Contrast of the material colors.
+        face : str
+            Face to apply material to. Values are `front`, `back` or `both`.
+        textures : dict, optional
+            Texture maps associated with this material. Textures are specified
+            as a list. The index of textures in the list will be used to set
+            the corresponding texture unit they are bound to.
+        useShaders : bool
+            Use per-pixel lighting when rendering this stimulus. By default,
+            Blinn-Phong shading will be used.
+        """
+        self.win = win
+
+        self._diffuseColor = np.zeros((3,), np.float32)
+        self._specularColor = np.zeros((3,), np.float32)
+        self._ambientColor = np.zeros((3,), np.float32)
+        self._emissionColor = np.zeros((3,), np.float32)
+        self._shininess = float(shininess)
+
+        # internal RGB values post colorspace conversion
+        self._diffuseRGB = np.array((0., 0., 0., 1.), np.float32)
+        self._specularRGB = np.array((0., 0., 0., 1.), np.float32)
+        self._ambientRGB = np.array((0., 0., 0., 1.), np.float32)
+        self._emissionRGB = np.array((0., 0., 0., 1.), np.float32)
+
+        # which faces to apply the material
+
+        if face == 'front':
+            self._face = GL.GL_FRONT
+        elif face == 'back':
+            self._face = GL.GL_BACK
+        elif face == 'both':
+            self._face = GL.GL_FRONT_AND_BACK
+        else:
+            raise ValueError("Invalid `face` specified, must be 'front', "
+                             "'back' or 'both'.")
+
+        self.colorSpace = colorSpace
+        self.opacity = opacity
+        self.contrast = contrast
+
+        self.diffuseColor = diffuseColor
+        self.specularColor = specularColor
+        self.ambientColor = ambientColor
+        self.emissionColor = emissionColor
+
+        self._diffuseTexture = diffuseTexture
+        self._normalTexture = None
+
+        self._useTextures = False  # keeps track if textures are being used
+        self._useShaders = useShaders
+
+    @property
+    def diffuseTexture(self):
+        """Diffuse color of the material."""
+        return self._diffuseTexture
+
+    @diffuseTexture.setter
+    def diffuseTexture(self, value):
+        self._diffuseTexture = value
+
+    @property
+    def diffuseColor(self):
+        """Diffuse color of the material."""
+        return self._diffuseColor
+
+    @diffuseColor.setter
+    def diffuseColor(self, value):
+        self._diffuseColor = np.asarray(value, np.float32)
+        setColor(self, value, colorSpace=self.colorSpace, operation=None,
+                 rgbAttrib='diffuseRGB', colorAttrib='diffuseColor',
+                 colorSpaceAttrib='colorSpace')
+
+    @property
+    def diffuseRGB(self):
+        """Diffuse color of the material."""
+        return self._diffuseRGB[:3]
+
+    @diffuseRGB.setter
+    def diffuseRGB(self, value):
+        # make sure the color we got is 32-bit float
+        self._diffuseRGB = np.zeros((4,), np.float32)
+        self._diffuseRGB[:3] = (value * self.contrast + 1) / 2.0
+        self._diffuseRGB[3] = self.opacity
+
+    @property
+    def specularColor(self):
+        """Specular color of the material."""
+        return self._specularColor
+
+    @specularColor.setter
+    def specularColor(self, value):
+        self._specularColor = np.asarray(value, np.float32)
+        setColor(self, value, colorSpace=self.colorSpace, operation=None,
+                 rgbAttrib='specularRGB', colorAttrib='specularColor',
+                 colorSpaceAttrib='colorSpace')
+
+    @property
+    def specularRGB(self):
+        """Diffuse color of the material."""
+        return self._specularRGB[:3]
+
+    @specularRGB.setter
+    def specularRGB(self, value):
+        # make sure the color we got is 32-bit float
+        self._specularRGB = np.zeros((4,), np.float32)
+        self._specularRGB[:3] = (value * self.contrast + 1) / 2.0
+        self._specularRGB[3] = self.opacity
+
+    @property
+    def ambientColor(self):
+        """Ambient color of the material."""
+        return self._ambientColor
+
+    @ambientColor.setter
+    def ambientColor(self, value):
+        self._ambientColor = np.asarray(value, np.float32)
+        setColor(self, value, colorSpace=self.colorSpace, operation=None,
+                 rgbAttrib='ambientRGB', colorAttrib='ambientColor',
+                 colorSpaceAttrib='colorSpace')
+
+    @property
+    def ambientRGB(self):
+        """Diffuse color of the material."""
+        return self._ambientRGB[:3]
+
+    @ambientRGB.setter
+    def ambientRGB(self, value):
+        # make sure the color we got is 32-bit float
+        self._ambientRGB = np.zeros((4,), np.float32)
+        self._ambientRGB[:3] = (value * self.contrast + 1) / 2.0
+        self._ambientRGB[3] = self.opacity
+
+    @property
+    def emissionColor(self):
+        """Emission color of the material."""
+        return self._emissionColor
+
+    @emissionColor.setter
+    def emissionColor(self, value):
+        self._emissionColor = np.asarray(value, np.float32)
+        setColor(self, value, colorSpace=self.colorSpace, operation=None,
+                 rgbAttrib='emissionRGB', colorAttrib='emissionColor',
+                 colorSpaceAttrib='colorSpace')
+
+    @property
+    def emissionRGB(self):
+        """Diffuse color of the material."""
+        return self._emissionRGB[:3]
+
+    @emissionRGB.setter
+    def emissionRGB(self, value):
+        # make sure the color we got is 32-bit float
+        self._emissionRGB = np.zeros((4,), np.float32)
+        self._emissionRGB[:3] = (value * self.contrast + 1) / 2.0
+        self._emissionRGB[3] = self.opacity
+
+    @property
+    def shininess(self):
+        return self._shininess
+
+    @shininess.setter
+    def shininess(self, value):
+        self._shininess = float(value)
+
 
 
 class RigidBodyPose(object):
@@ -490,14 +706,43 @@ class RigidBodyPose(object):
             -self._pos, mt.invertQuat(self._ori, dtype=np.float32))
 
     def invert(self):
-        """Invert this pose."""
+        """Invert this pose.
+        """
         self._ori = mt.invertQuat(self._ori, dtype=np.float32)
         self._pos *= -1.0
 
     def inverted(self):
-        """Get a pose which is the inverse of this one."""
+        """Get a pose which is the inverse of this one.
+
+        Returns
+        -------
+        RigidBodyPose
+            This pose inverted.
+
+        """
         return RigidBodyPose(
             -self._pos, mt.invertQuat(self._ori, dtype=np.float32))
+
+    def distanceTo(self, v):
+        """Get the distance to a pose or point in scene units.
+
+        Parameters
+        ----------
+        v : RigidBodyPose or array_like
+            Pose or point [x, y, z] to compute distance to.
+
+        Returns
+        -------
+        float
+            Distance to `v` from this pose's origin.
+
+        """
+        if hasattr(v, 'pos'):
+            targetPos = v.pos
+        else:
+            targetPos = np.asarray(v[:3])
+
+        return np.sqrt(np.sum(np.square(targetPos - self.pos)))
 
 
 class BaseRigidBodyStim(ColorMixin):
@@ -521,6 +766,7 @@ class BaseRigidBodyStim(ColorMixin):
                  colorSpace='rgb',
                  contrast=1.0,
                  opacity=1.0,
+                 useShaders=False,
                  name='',
                  autoLog=True):
         """
@@ -548,6 +794,10 @@ class BaseRigidBodyStim(ColorMixin):
         self.color = color
 
         self._thePose = RigidBodyPose(pos, ori)
+        self._useShaders = useShaders
+        self.material = None
+
+        self._vao = None
 
     @property
     def thePose(self):
@@ -650,6 +900,79 @@ class BaseRigidBodyStim(ColorMixin):
         return gt.createVAO({0: vertexVBO, 8: texCoordVBO, 2: normalsVBO},
             indexBuffer=indexBuffer)
 
+    def draw(self, win=None):
+        """Draw the stimulus.
+
+        This should work for stimuli using a single VAO and material. More
+        complex stimuli with multiple materials should override this method to
+        correctly handle that case.
+
+        Parameters
+        ----------
+        win : `~psychopy.visual.Window`
+            Window this stimulus is associated with. Stimuli cannot be shared
+            across windows unless they share the same context.
+
+        """
+        if win is None:
+            win = self.win
+
+        # nop if there is no VAO to draw
+        if self._vao is None:
+            return
+
+        win.draw3d = True
+
+        # apply transformation to mesh
+        GL.glPushMatrix()
+        GL.glLoadTransposeMatrixf(at.array2pointer(self.thePose.modelMatrix))
+
+        if self.material is not None:  # has a material, use it
+            if self._useShaders:
+                nLights = len(self.win.lights)
+                shaderKey = (nLights, self.material._useTextures)
+                gt.useMaterial(self.material)
+                gt.useProgram(_material_shaders_[shaderKey])
+                gt.drawVAO(self._vao, GL.GL_TRIANGLES)
+                gt.useProgram(0)
+                gt.clearMaterial(self.material)
+            else:
+                gt.useMaterial(self.material)
+                gt.drawVAO(self._vao, GL.GL_TRIANGLES)
+                gt.clearMaterial(self.material)
+        else:  # doesn't have a material, use class colors
+            r, g, b = self._getDesiredRGB(
+                self.rgb, self.colorSpace, self.contrast)
+
+            if self._useShaders:
+                nLights = len(self.win.lights)
+                shaderKey = (nLights, False, False)
+                gt.useProgram(_material_shaders_[shaderKey])
+                color = np.ctypeslib.as_ctypes(
+                    np.array((r, g, b, self.opacity), np.float32))
+                # pass values to OpenGL as material
+                GL.glMaterialfv(GL.GL_FRONT, GL.GL_DIFFUSE, color)
+                GL.glMaterialfv(GL.GL_FRONT, GL.GL_AMBIENT, color)
+
+                gt.drawVAO(self._vao, GL.GL_TRIANGLES)
+
+                gt.useProgram(0)
+            else:
+                # material tracks color
+                GL.glEnable(GL.GL_COLOR_MATERIAL)  # enable color tracking
+                GL.glDisable(GL.GL_TEXTURE_2D)
+                GL.glColorMaterial(GL.GL_FRONT, GL.GL_AMBIENT_AND_DIFFUSE)
+                # 'rgb' is created and set when color is set
+                GL.glColor4f(r, g, b, self.opacity)
+
+                # draw the shape
+                gt.drawVAO(self._vao, GL.GL_TRIANGLES)
+                GL.glDisable(GL.GL_COLOR_MATERIAL)  # enable color tracking
+
+        GL.glPopMatrix()
+
+        win.draw3d = False
+
 
 class SphereStim(BaseRigidBodyStim):
     """Class for drawing a UV sphere.
@@ -742,6 +1065,7 @@ class SphereStim(BaseRigidBodyStim):
                                          colorSpace=colorSpace,
                                          contrast=contrast,
                                          opacity=opacity,
+                                         useShaders=useShaders,
                                          name=name,
                                          autoLog=autoLog)
 
@@ -752,79 +1076,8 @@ class SphereStim(BaseRigidBodyStim):
                                radius=radius,
                                flipFaces=flipFaces))
 
-        #self.setColor(color, colorSpace=self.colorSpace, log=False)
         self.material = useMaterial
         self._useShaders = useShaders
-
-    def draw(self, win=None):
-        """Draw the sphere.
-
-        Parameters
-        ----------
-        win : `~psychopy.visual.Window`
-            Window this stimulus is associated with. Stimuli cannot be shared
-            across windows unless they share the same context.
-
-        """
-        if win is None:
-            win = self.win
-
-        win.draw3d = True
-
-        # apply transformation to mesh
-        GL.glPushMatrix()
-        GL.glLoadTransposeMatrixf(at.array2pointer(self.thePose.modelMatrix))
-
-        if self.material is not None:  # has a material, use it
-            if self._useShaders:
-                nLights = len(self.win.lights)
-                shaderKey = (nLights,
-                             self.material.diffuseTexture is not None,
-                             self.material.specularTexture is not None)
-                gt.useMaterial(self.material)
-                shader = _material_shaders_[shaderKey]
-                gt.useProgram(shader)
-                GL.glUniform1i(GL.glGetUniformLocation(shader, b"diffTexColor"), 0)
-                GL.glUniform1i(GL.glGetUniformLocation(shader, b"specTexColor"), 1)
-                gt.drawVAO(self._vao, GL.GL_TRIANGLES)
-                gt.useProgram(0)
-                gt.clearMaterial(self.material)
-            else:
-                gt.useMaterial(self.material)
-                gt.drawVAO(self._vao, GL.GL_TRIANGLES)
-                gt.clearMaterial(self.material)
-        else:  # doesn't have a material, use class colors
-            r, g, b = self._getDesiredRGB(
-                self.rgb, self.colorSpace, self.contrast)
-
-            if self._useShaders:
-                nLights = len(self.win.lights)
-                shaderKey = (nLights, False, False)
-                gt.useProgram(_material_shaders_[shaderKey])
-                color = np.ctypeslib.as_ctypes(
-                    np.array((r, g, b, self.opacity), np.float32))
-                # pass values to OpenGL as material
-                GL.glMaterialfv(GL.GL_FRONT, GL.GL_DIFFUSE, color)
-                GL.glMaterialfv(GL.GL_FRONT, GL.GL_AMBIENT, color)
-
-                gt.drawVAO(self._vao, GL.GL_TRIANGLES)
-
-                gt.useProgram(0)
-            else:
-                # material tracks color
-                GL.glEnable(GL.GL_COLOR_MATERIAL)  # enable color tracking
-                GL.glDisable(GL.GL_TEXTURE_2D)
-                GL.glColorMaterial(GL.GL_FRONT, GL.GL_AMBIENT_AND_DIFFUSE)
-                # 'rgb' is created and set when color is set
-                GL.glColor4f(r, g, b, self.opacity)
-
-                # draw the shape
-                gt.drawVAO(self._vao, GL.GL_TRIANGLES)
-                GL.glDisable(GL.GL_COLOR_MATERIAL)  # enable color tracking
-
-        GL.glPopMatrix()
-
-        win.draw3d = False
 
 
 class BoxStim(BaseRigidBodyStim):
@@ -851,6 +1104,7 @@ class BoxStim(BaseRigidBodyStim):
                  colorSpace='rgb',
                  contrast=1.0,
                  opacity=1.0,
+                 useShaders=True,
                  name='',
                  autoLog=True):
         """
@@ -903,6 +1157,7 @@ class BoxStim(BaseRigidBodyStim):
             colorSpace=colorSpace,
             contrast=contrast,
             opacity=opacity,
+            useShaders=useShaders,
             name=name,
             autoLog=autoLog)
 
@@ -911,71 +1166,6 @@ class BoxStim(BaseRigidBodyStim):
 
         self.setColor(color, colorSpace=self.colorSpace, log=False)
         self.material = useMaterial
-
-    def draw(self, win=None):
-        """Draw the box.
-
-        Parameters
-        ----------
-        win : `~psychopy.visual.Window`
-            Window this stimulus is associated with. Stimuli cannot be shared
-            across windows unless they share the same context.
-
-        """
-        if win is None:
-            win = self.win
-
-        win.draw3d = True
-
-        # apply transformation to mesh
-        GL.glPushMatrix()
-        GL.glLoadTransposeMatrixf(at.array2pointer(self.thePose.modelMatrix))
-
-        if self.material is not None:  # has a material, use it
-            if self._useShaders:
-                nLights = len(self.win.lights)
-                shaderKey = (nLights, self.material._useTextures)
-                gt.useMaterial(self.material)
-                gt.useProgram(_material_shaders_[shaderKey])
-                gt.drawVAO(self._vao, GL.GL_TRIANGLES)
-                gt.useProgram(0)
-                gt.clearMaterial(self.material)
-            else:
-                gt.useMaterial(self.material)
-                gt.drawVAO(self._vao, GL.GL_TRIANGLES)
-                gt.clearMaterial(self.material)
-        else:  # doesn't have a material, use class colors
-            r, g, b = self._getDesiredRGB(
-                self.rgb, self.colorSpace, self.contrast)
-
-            if self._useShaders:
-                nLights = len(self.win.lights)
-                shaderKey = (nLights, False, False)
-                gt.useProgram(_material_shaders_[shaderKey])
-                color = np.ctypeslib.as_ctypes(
-                    np.array((r, g, b, self.opacity), np.float32))
-                # pass values to OpenGL as material
-                GL.glMaterialfv(GL.GL_FRONT, GL.GL_DIFFUSE, color)
-                GL.glMaterialfv(GL.GL_FRONT, GL.GL_AMBIENT, color)
-
-                gt.drawVAO(self._vao, GL.GL_TRIANGLES)
-
-                gt.useProgram(0)
-            else:
-                # material tracks color
-                GL.glEnable(GL.GL_COLOR_MATERIAL)  # enable color tracking
-                GL.glDisable(GL.GL_TEXTURE_2D)
-                GL.glColorMaterial(GL.GL_FRONT, GL.GL_AMBIENT_AND_DIFFUSE)
-                # 'rgb' is created and set when color is set
-                GL.glColor4f(r, g, b, self.opacity)
-
-                # draw the shape
-                gt.drawVAO(self._vao, GL.GL_TRIANGLES)
-                GL.glDisable(GL.GL_COLOR_MATERIAL)  # enable color tracking
-
-        GL.glPopMatrix()
-
-        win.draw3d = False
 
 
 class PlaneStim(BaseRigidBodyStim):
@@ -997,6 +1187,7 @@ class PlaneStim(BaseRigidBodyStim):
                  pos=(0., 0., 0.),
                  ori=(0., 0., 0., 1.),
                  useMaterial=None,
+                 useShaders=True,
                  color=(0., 0., 0.),
                  colorSpace='rgb',
                  contrast=1.0,
@@ -1036,6 +1227,7 @@ class PlaneStim(BaseRigidBodyStim):
             colorSpace=colorSpace,
             contrast=contrast,
             opacity=opacity,
+            useShaders=useShaders,
             name=name,
             autoLog=autoLog)
 
@@ -1044,71 +1236,6 @@ class PlaneStim(BaseRigidBodyStim):
 
         self.setColor(color, colorSpace=self.colorSpace, log=False)
         self.material = useMaterial
-
-    def draw(self, win=None):
-        """Draw the plane.
-
-        Parameters
-        ----------
-        win : `~psychopy.visual.Window`
-            Window this stimulus is associated with. Stimuli cannot be shared
-            across windows unless they share the same context.
-
-        """
-        if win is None:
-            win = self.win
-
-        win.draw3d = True
-
-        # apply transformation to mesh
-        GL.glPushMatrix()
-        GL.glLoadTransposeMatrixf(at.array2pointer(self.thePose.modelMatrix))
-
-        if self.material is not None:  # has a material, use it
-            if self._useShaders:
-                nLights = len(self.win.lights)
-                shaderKey = (nLights, self.material._useTextures)
-                gt.useMaterial(self.material)
-                gt.useProgram(_material_shaders_[shaderKey])
-                gt.drawVAO(self._vao, GL.GL_TRIANGLES)
-                gt.useProgram(0)
-                gt.clearMaterial(self.material)
-            else:
-                gt.useMaterial(self.material)
-                gt.drawVAO(self._vao, GL.GL_TRIANGLES)
-                gt.clearMaterial(self.material)
-        else:  # doesn't have a material, use class colors
-            r, g, b = self._getDesiredRGB(
-                self.rgb, self.colorSpace, self.contrast)
-
-            if self._useShaders:
-                nLights = len(self.win.lights)
-                shaderKey = (nLights, False)
-                gt.useProgram(_material_shaders_[shaderKey])
-                color = np.ctypeslib.as_ctypes(
-                    np.array((r, g, b, self.opacity), np.float32))
-                # pass values to OpenGL as material
-                GL.glMaterialfv(GL.GL_FRONT, GL.GL_DIFFUSE, color)
-                GL.glMaterialfv(GL.GL_FRONT, GL.GL_AMBIENT, color)
-
-                gt.drawVAO(self._vao, GL.GL_TRIANGLES)
-
-                gt.useProgram(0)
-            else:
-                # material tracks color
-                GL.glEnable(GL.GL_COLOR_MATERIAL)  # enable color tracking
-                GL.glDisable(GL.GL_TEXTURE_2D)
-                GL.glColorMaterial(GL.GL_FRONT, GL.GL_AMBIENT_AND_DIFFUSE)
-                # 'rgb' is created and set when color is set
-                GL.glColor4f(r, g, b, self.opacity)
-
-                # draw the shape
-                gt.drawVAO(self._vao, GL.GL_TRIANGLES)
-                GL.glDisable(GL.GL_COLOR_MATERIAL)  # enable color tracking
-
-        GL.glPopMatrix()
-
-        win.draw3d = False
 
 
 class ObjMeshStim(BaseRigidBodyStim):
@@ -1176,28 +1303,36 @@ class ObjMeshStim(BaseRigidBodyStim):
             scene.
         useMaterial : SimpleMaterial, optional
             Material to use. The material can be configured by accessing the
-            `material` attribute after initialization. If not material is
-            specified, the diffuse and ambient color of the shape will track the
-            current color specified by `glColor`.
+            `material` attribute after initialization. If no material is
+            specified, materials will be loaded from the associated MTL file. If
+            there is no MTL file, a default material will be used for all
+            meshes. This material can be edited via the `material` attribute
+            after initialization.
         useShaders : bool
+            Use shaders when rendering.
 
         """
         super(ObjMeshStim, self).__init__(win, pos=pos, ori=ori)
 
         objModel = gt.loadObjFile(objFile)
 
-        if objModel.mtlFile is not None:
-            self.materials = gt.loadMtlFile(objModel.mtlFile)
-            # set the window for each material
-            for _, val in self.materials.items():
-                val.win = self.win
+        if useMaterial is None:
+            if objModel.mtlFile is not None:
+                self.material = self._loadMtlLib(objModel.mtlFile)
+            else:
+                self.material = PhongMaterial(self.win)
         else:
-            self.materials = None
+            self.material = useMaterial
 
-        # load vertex data into VBOs
-        vertexPosVBO = gt.createVBO(objModel.vertexPos)
-        texCoordVBO = gt.createVBO(objModel.texCoords)
-        normalsVBO = gt.createVBO(objModel.normals)
+        # load vertex data into an interleaved VBO
+        buffers = np.ascontiguousarray(
+            np.hstack((objModel.vertexPos,
+                       objModel.texCoords,
+                       objModel.normals)),
+            dtype=np.float32)
+
+        # upload to buffer
+        vertexAttr = gt.createVBO(buffers)
 
         # load vertex data into VAOs
         self._vao = {}  # dictionary for VAOs
@@ -1214,12 +1349,73 @@ class ObjMeshStim(BaseRigidBodyStim):
             # see `setVertexAttribPointer` for more information about attribute
             # pointer indices
             self._vao[material] = gt.createVAO(
-                {0: vertexPosVBO,  # 0 = gl_Vertex
-                 8: texCoordVBO,   # 8 = gl_MultiTexCoord0
-                 2: normalsVBO},   # 2 = gl_Normal
-                 indexBuffer=indexBuffer)
+                {GL.GL_VERTEX_ARRAY: (vertexAttr, 3),
+                 GL.GL_TEXTURE_COORD_ARRAY: (vertexAttr, 2, 3),
+                 GL.GL_NORMAL_ARRAY: (vertexAttr, 3, 5, True)},
+                indexBuffer=indexBuffer, legacy=True)
 
         self._useShaders = useShaders
+
+    def _loadMtlLib(self, mtlFile):
+        """Load a material library associated with the OBJ file. This is usually
+        called by the constructor for this class.
+
+        Parameters
+        ----------
+        mtlFile : str
+            Path to MTL file.
+
+        """
+        with open(mtlFile, 'r') as mtl:
+            mtlBuffer = StringIO(mtl.read())
+
+        foundMaterials = {}
+        foundTextures = {}
+        thisMaterial = 0
+        for line in mtlBuffer.readlines():
+            line = line.strip()
+            if line.startswith('newmtl '):  # new material
+                thisMaterial = line[7:]
+                foundMaterials[thisMaterial] = PhongMaterial(self.win)
+            elif line.startswith('Ns '):  # specular exponent
+                foundMaterials[thisMaterial].shininess = line[3:]
+            elif line.startswith('Ks '):  # specular color
+                specularColor = np.asarray(list(map(float, line[3:].split(' '))))
+                specularColor = 2.0 * specularColor - 1
+                foundMaterials[thisMaterial].specularColor = specularColor
+            elif line.startswith('Kd '):  # diffuse color
+                diffuseColor = np.asarray(list(map(float, line[3:].split(' '))))
+                diffuseColor = 2.0 * diffuseColor - 1
+                foundMaterials[thisMaterial].diffuseColor = diffuseColor
+            elif line.startswith('Ka '):  # ambient color
+                ambientColor = np.asarray(list(map(float, line[3:].split(' '))))
+                ambientColor = 2.0 * ambientColor - 1
+                foundMaterials[thisMaterial].ambientColor = ambientColor
+            elif line.startswith('map_Kd '):  # diffuse color map
+                # load a diffuse texture from file
+                textureName = line[7:]
+                if textureName not in foundTextures.keys():
+                    im = Image.open(
+                        os.path.join(os.path.split(mtlFile)[0], textureName))
+                    im = im.transpose(Image.FLIP_TOP_BOTTOM)
+                    im = im.convert("RGBA")
+                    pixelData = np.array(im).ctypes
+                    width = pixelData.shape[1]
+                    height = pixelData.shape[0]
+                    foundTextures[textureName] = gt.createTexImage2D(
+                        width,
+                        height,
+                        internalFormat=GL.GL_RGBA,
+                        pixelFormat=GL.GL_RGBA,
+                        dataType=GL.GL_UNSIGNED_BYTE,
+                        data=pixelData,
+                        unpackAlignment=1,
+                        texParams={GL.GL_TEXTURE_MAG_FILTER: GL.GL_LINEAR,
+                                   GL.GL_TEXTURE_MIN_FILTER: GL.GL_LINEAR})
+                foundMaterials[thisMaterial].diffuseTexture = \
+                    foundTextures[textureName]
+
+        return foundMaterials
 
     def draw(self, win=None):
         """Draw the mesh.
@@ -1240,25 +1436,29 @@ class ObjMeshStim(BaseRigidBodyStim):
         GL.glLoadTransposeMatrixf(at.array2pointer(self.thePose.modelMatrix))
 
         # iterate over materials, draw associated VAOs
-        if self.materials is not None:
+        if self.material is not None:
             mtlIndex = 0
-            nMaterials = len(self.materials)
+            nMaterials = len(self.material)
             nLights = len(self.win.lights)
 
-            for materialName, materialDesc in self.materials.items():
-                shaderKey = (nLights, materialDesc._useTextures, False)
+            for materialName, materialDesc in self.material.items():
+                shaderKey = (nLights, materialDesc._useTextures)
                 gt.useMaterial(materialDesc)
-                gt.useProgram(_material_shaders_[shaderKey])
+                if self._useShaders:
+                    gt.useProgram(_material_shaders_[shaderKey])
+
                 gt.drawVAO(self._vao[materialName], GL.GL_TRIANGLES)
                 mtlIndex += 1
 
                 # clear the material when done
                 if mtlIndex == nMaterials:
-                    gt.useProgram(0)
+                    if self._useShaders:
+                        gt.useProgram(0)
                     gt.clearMaterial(materialDesc)
 
         else:
-            gt.drawVAO(self._vao, GL.GL_TRIANGLES)
+            for materialName, _ in self.material.items():
+                gt.drawVAO(self._vao, GL.GL_TRIANGLES)
 
         GL.glPopMatrix()
 

@@ -3044,7 +3044,6 @@ class SimpleMaterial(object):
         self.emissionColor = emissionColor
 
         self._diffuseTexture = diffuseTexture
-        self._specularTexture = specularTexture
         self._normalTexture = None
 
         self._useTextures = False  # keeps track if textures are being used
@@ -3058,15 +3057,6 @@ class SimpleMaterial(object):
     @diffuseTexture.setter
     def diffuseTexture(self, value):
         self._diffuseTexture = value
-
-    @property
-    def specularTexture(self):
-        """Diffuse color of the material."""
-        return self._specularTexture
-
-    @specularTexture.setter
-    def specularTexture(self, value):
-        self._specularTexture = value
 
     @property
     def diffuseColor(self):
@@ -3229,13 +3219,15 @@ def useMaterial(material, useTextures=True):
         GL.glMaterialf(face, GL.GL_SHININESS, material.shininess)
 
         # setup textures
-        if useTextures:
+        if useTextures and material.diffuseTexture is not None:
             material._useTextures = True
             GL.glEnable(GL.GL_TEXTURE_2D)
             if material.diffuseTexture is not None:
                 bindTexture(material.diffuseTexture, 0)
-            if material.specularTexture is not None:
-                bindTexture(material.specularTexture, 1)
+        else:
+            material._useTextures = False
+            GL.glBindTexture(GL.GL_TEXTURE_2D, 0)
+            GL.glDisable(GL.GL_TEXTURE_2D)
     else:
         for mode, param in defaultMaterial.params.items():
             GL.glEnable(GL.GL_COLOR_MATERIAL)
@@ -3250,8 +3242,6 @@ def clearMaterial(material):
     if material._useTextures:
         if material.diffuseTexture is not None:
             unbindTexture(material.diffuseTexture)
-        if material.specularTexture is not None:
-            unbindTexture(material.specularTexture)
 
         GL.glDisable(GL.GL_TEXTURE_2D)
 
