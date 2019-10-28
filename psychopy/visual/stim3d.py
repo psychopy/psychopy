@@ -891,14 +891,16 @@ class BaseRigidBodyStim(ColorMixin):
         else:  # doesn't have a material, use class colors
             r, g, b = self._getDesiredRGB(
                 self.rgb, self.colorSpace, self.contrast)
+            color = np.ctypeslib.as_ctypes(
+                np.array((r, g, b, self.opacity), np.float32))
 
             if self._useShaders:
                 nLights = len(self.win.lights)
                 shaderKey = (nLights, False)
                 gt.useProgram(self.win._shaders['stim3d_phong'][shaderKey])
-                color = np.ctypeslib.as_ctypes(
-                    np.array((r, g, b, self.opacity), np.float32))
+
                 # pass values to OpenGL as material
+                GL.glColor4f(r, g, b, self.opacity)
                 GL.glMaterialfv(GL.GL_FRONT, GL.GL_DIFFUSE, color)
                 GL.glMaterialfv(GL.GL_FRONT, GL.GL_AMBIENT, color)
 
@@ -910,6 +912,7 @@ class BaseRigidBodyStim(ColorMixin):
                 GL.glEnable(GL.GL_COLOR_MATERIAL)  # enable color tracking
                 GL.glDisable(GL.GL_TEXTURE_2D)
                 GL.glColorMaterial(GL.GL_FRONT, GL.GL_AMBIENT_AND_DIFFUSE)
+                GL.glMaterialfv(GL.GL_FRONT, GL.GL_AMBIENT, color)
                 # 'rgb' is created and set when color is set
                 GL.glColor4f(r, g, b, self.opacity)
 
