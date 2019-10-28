@@ -252,13 +252,13 @@ float calcAttenuation(float kConst, float kLinear, float kQuad, float dist) {
 
 void main (void)  
 {  
-    vec3 N = normalize(N);
-    vec4 finalColor = vec4(0.0);
-
-#if MAX_LIGHTS > 0
 #ifdef DIFFUSE_TEXTURE
     vec4 diffTexColor = texture2D(diffTexture, gl_TexCoord[0].st);
 #endif 
+
+#if MAX_LIGHTS > 0
+    vec3 N = normalize(N);
+    vec4 finalColor = vec4(0.0);
     // loop over available lights
     for (int i=0; i < MAX_LIGHTS; i++)
     {
@@ -306,7 +306,11 @@ void main (void)
     }
     gl_FragColor = finalColor;  // use texture alpha
 #else
+#ifdef DIFFUSE_TEXTURE
+    gl_FragColor = frontColor * texture2D(diffTexture, gl_TexCoord[0].st);
+#else
     gl_FragColor = frontColor;
+#endif
 #endif
 }
 """
