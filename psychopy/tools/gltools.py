@@ -446,7 +446,8 @@ def embedShaderSourceDefs(shaderSrc, defs):
         if isinstance(varValue, (int, bool,)):
             varValue = int(varValue)
         elif isinstance(varValue, (float,)):
-            varValue = varValue
+            pass
+            #varValue = varValue
         elif isinstance(varValue, bytes):
             varValue = '"{}"'.format(varValue.decode('UTF-8'))
         elif isinstance(varValue, str):
@@ -1757,11 +1758,6 @@ def createTexImage2dFromFile(imgFile, transpose=True):
         Texture descriptor.
 
     """
-    import pyglet.gl as GL  # using Pyglet for now
-
-    # load texture data from an image file using Pillow and NumPy
-    from PIL import Image
-    import numpy as np
     im = Image.open(imgFile)  # 8bpp!
     if transpose:
         im = im.transpose(Image.FLIP_TOP_BOTTOM)  # OpenGL origin is at bottom
