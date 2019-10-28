@@ -467,7 +467,7 @@ class Window(object):
         self._lights = []
         self._useLights = False
         self._nLights = 0
-        self._ambientLight = numpy.array([0.2, 0.2, 0.2, 1.0],
+        self._ambientLight = numpy.array([0.0, 0.0, 0.0, 1.0],
                                          dtype=numpy.float32)
 
         # stereo rendering settings, set later by the user
