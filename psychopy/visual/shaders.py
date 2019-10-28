@@ -284,13 +284,15 @@ void main (void)
         vec3 R = normalize(-reflect(L, N)); 
         
         // combine scene ambient with object
-        vec4 ambient = gl_FrontLightProduct[i].ambient + gl_LightModel.ambient; 
+        vec4 ambient = gl_FrontMaterial.diffuse * 
+            (gl_FrontLightProduct[i].ambient + gl_LightModel.ambient); 
         
         // calculate diffuse component
         vec4 diffuse = gl_FrontLightProduct[i].diffuse * max(dot(N, L), 0.0);
 #ifdef DIFFUSE_TEXTURE
         // multiply in material texture colors if specified
         diffuse *= diffTexColor;
+        ambient *= diffTexColor;  // ambient should be modulated by diffuse color
 #endif
         vec4 specular = gl_FrontLightProduct[i].specular *
             pow(max(dot(R, E), 0.0), gl_FrontMaterial.shininess);
@@ -309,7 +311,7 @@ void main (void)
     gl_FragColor = finalColor;  // use texture alpha
 #else
     // no lights, only track ambient component, frontColor modulates ambient
-    vec4 ambient = gl_FrontLightProduct[0].ambient + gl_LightModel.ambient; 
+    vec4 ambient = gl_FrontLightProduct[0].ambient * gl_LightModel.ambient; 
     ambient = clamp(ambient, 0.0, 1.0); 
 #ifdef DIFFUSE_TEXTURE
     gl_FragColor = ambient * texture2D(diffTexture, gl_TexCoord[0].st);

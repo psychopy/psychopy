@@ -193,7 +193,7 @@ class LightSource(object):
     def ambientRGB(self, value):
         # make sure the color we got is 32-bit float
         self._ambientRGB = np.zeros((4,), np.float32)
-        self._ambientRGB[:3] = (value * + 1) / 2.0
+        self._ambientRGB[:3] = (value + 1) / 2.0
         self._ambientRGB[3] = 1.0
 
     @property
