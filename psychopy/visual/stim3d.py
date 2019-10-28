@@ -895,7 +895,7 @@ class BaseRigidBodyStim(ColorMixin):
             if self._useShaders:
                 nLights = len(self.win.lights)
                 shaderKey = (nLights, self.material._useTextures)
-                gt.useMaterial(self.material)
+                gt.useMaterial(self.material, useTextures=self.material._useTextures)
                 gt.useProgram(self.win._shaders['stim3d_phong'][shaderKey])
                 gt.drawVAO(self._vao, GL.GL_TRIANGLES)
                 gt.useProgram(0)
@@ -1041,14 +1041,17 @@ class SphereStim(BaseRigidBodyStim):
                                          autoLog=autoLog)
 
         # create a vertex array object for drawing
-        self._vao = self._createVAO(
-            *gt.createUVSphere(sectors=subdiv[0],
-                               stacks=subdiv[1],
-                               radius=radius,
-                               flipFaces=flipFaces))
+        vertices, textureCoords, normals, faces = gt.createUVSphere(
+            sectors=subdiv[0],
+            stacks=subdiv[1],
+            radius=radius,
+            flipFaces=flipFaces)
+        self._vao = self._createVAO(vertices, textureCoords, normals, faces)
 
         self.material = useMaterial
         self._useShaders = useShaders
+
+        self.extents = (vertices.min(axis=0), vertices.max(axis=0))
 
 
 class BoxStim(BaseRigidBodyStim):
@@ -1137,10 +1140,13 @@ class BoxStim(BaseRigidBodyStim):
             autoLog=autoLog)
 
         # create a vertex array object for drawing
-        self._vao = self._createVAO(*gt.createBox(size, flipFaces))
+        vertices, texCoords, normals, faces = gt.createBox(size, flipFaces)
+        self._vao = self._createVAO(vertices, texCoords, normals, faces)
 
         self.setColor(color, colorSpace=self.colorSpace, log=False)
         self.material = useMaterial
+
+        self.extents = (vertices.min(axis=0), vertices.max(axis=0))
 
 
 class PlaneStim(BaseRigidBodyStim):
@@ -1211,10 +1217,13 @@ class PlaneStim(BaseRigidBodyStim):
             autoLog=autoLog)
 
         # create a vertex array object for drawing
-        self._vao = self._createVAO(*gt.createPlane(size))
+        vertices, texCoords, normals, faces = gt.createPlane(size)
+        self._vao = self._createVAO(vertices, texCoords, normals, faces)
 
         self.setColor(color, colorSpace=self.colorSpace, log=False)
         self.material = useMaterial
+
+        self.extents = (vertices.min(axis=0), vertices.max(axis=0))
 
 
 class ObjMeshStim(BaseRigidBodyStim):
@@ -1335,6 +1344,7 @@ class ObjMeshStim(BaseRigidBodyStim):
                 indexBuffer=indexBuffer, legacy=True)
 
         self._useShaders = useShaders
+        self.extents = objModel.extents
 
     def _loadMtlLib(self, mtlFile):
         """Load a material library associated with the OBJ file. This is usually
@@ -1417,8 +1427,6 @@ class ObjMeshStim(BaseRigidBodyStim):
 
         # iterate over materials, draw associated VAOs
         if self.material is not None:
-            mtlIndex = 0
-            nMaterials = len(self.material)
             nLights = len(self.win.lights)
 
             for materialName, materialDesc in self.material.items():
@@ -1427,14 +1435,13 @@ class ObjMeshStim(BaseRigidBodyStim):
                 if self._useShaders:
                     gt.useProgram(self.win._shaders['stim3d_phong'][shaderKey])
 
+                gt.useMaterial(materialDesc, useTextures=True)
                 gt.drawVAO(self._vao[materialName], GL.GL_TRIANGLES)
-                mtlIndex += 1
+                gt.clearMaterial(materialDesc)
 
-                # clear the material when done
-                if mtlIndex == nMaterials:
-                    if self._useShaders:
-                        gt.useProgram(0)
-                    gt.clearMaterial(materialDesc)
+            else:
+                if self._useShaders:
+                    gt.useProgram(0)
 
         else:
             for materialName, _ in self.material.items():
