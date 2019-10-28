@@ -217,6 +217,25 @@ class PhongMaterial(object):
     intended to work with features supported by the fixed-function OpenGL
     pipeline.
 
+    If shaders are enabled, the colors of objects will appear different than
+    without. This is due to the lighting/material colors being computed on a
+    per-pixel basis, and the formulation of the lighting model. The Phong shader
+    determines the ambient color/intensity by adding up both the scene and light
+    ambient colors, then multiplies them by the diffuse color of the
+    material, as the ambient light's color should be a product of the surface
+    reflectance (albedo) and the light color (the ambient light needs to reflect
+    off something to be visible). Diffuse reflectance is Lambertian, where the
+    cosine angle between the incident light ray and surface normal determines
+    color. The size of specular highlights are related to the `shininess` factor
+    which ranges from 1.0 to 128.0. The greater this number, the tighter the
+    specular highlight making the surface appear smoother. The emission color
+    is optional, it simply adds to the color of every pixel much like ambient
+    lighting does. Usually, you would not really want this, but it can be used
+    to add bias to the overall color of the shape.
+
+    If there are no lights in the scene, the diffuse color is simply multiplied
+    by the scene and material ambient color to give the final color.
+
     Warnings
     --------
     This class is experimental and may result in undefined behavior.
