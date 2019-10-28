@@ -236,6 +236,14 @@ class PhongMaterial(object):
     If there are no lights in the scene, the diffuse color is simply multiplied
     by the scene and material ambient color to give the final color.
 
+    Lights are attenuated (fall-off with distance) using the formula::
+
+        attenuationFactor = 1.0 / (k0 + k1 * distance + k2 * pow(distance, 2))
+
+    The coefficients for attenuation can be specified by setting `kCoefficients`
+    in the lighting object. Values `k0=1.0, k1=0.0, and k2=0.0` results in a
+    light that does not fall-off with distance.
+
     Warnings
     --------
     This class is experimental and may result in undefined behavior.
