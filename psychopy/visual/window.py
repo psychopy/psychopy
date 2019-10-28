@@ -1223,7 +1223,7 @@ class Window(object):
             # don't do this!!!
             win.ambientLight[0] = 0.5
             win.ambientLight[1] = 0.5
-            win.ambientLight[1] = 0.5
+            win.ambientLight[2] = 0.5
 
         """
         # TODO - use signed color and colorspace instead
