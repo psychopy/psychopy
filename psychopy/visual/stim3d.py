@@ -29,6 +29,10 @@ class LightSource(object):
     ambient color of the light source contributes to the scene ambient color
     defined by :py:attr:`~psychopy.visual.Window.ambientLight`.
 
+    Warnings
+    --------
+    This class is experimental and may result in undefined behavior.
+
     """
     def __init__(self,
                  win,
@@ -212,6 +216,10 @@ class PhongMaterial(object):
     ambient, and emission), shininess, and textures. Simple materials are
     intended to work with features supported by the fixed-function OpenGL
     pipeline.
+
+    Warnings
+    --------
+    This class is experimental and may result in undefined behavior.
 
     """
     def __init__(self,
@@ -449,6 +457,10 @@ class RigidBodyPose(object):
     `ori=[0, 0, 0, 1]`::
 
         identityPose = ~rb * rb
+
+    Warnings
+    --------
+    This class is experimental and may result in undefined behavior.
 
     """
     def __init__(self, pos=(0., 0., 0.), ori=(0., 0., 0., 1.)):
@@ -709,6 +721,10 @@ class BaseRigidBodyStim(ColorMixin):
     transformations (eg. `LibOVRPose` in PsychXR can be used instead of
     `RigidBodyPose` which supports more VR specific features).
 
+    Warnings
+    --------
+    This class is experimental and may result in undefined behavior.
+
     """
     def __init__(self,
                  win,
@@ -940,6 +956,10 @@ class SphereStim(BaseRigidBodyStim):
     window has light sources defined and lighting is enabled (by setting
     `useLights=True` before drawing the stimulus).
 
+    Warnings
+    --------
+    This class is experimental and may result in undefined behavior.
+
     Examples
     --------
     Creating a red sphere 1.5 meters away from the viewer with radius 0.25::
@@ -1043,6 +1063,10 @@ class BoxStim(BaseRigidBodyStim):
     window has light sources defined and lighting is enabled (by setting
     `useLights=True` before drawing the stimulus).
 
+    Warnings
+    --------
+    This class is experimental and may result in undefined behavior.
+
     """
     def __init__(self,
                  win,
@@ -1131,6 +1155,10 @@ class PlaneStim(BaseRigidBodyStim):
     window has light sources defined and lighting is enabled (by setting
     `useLights=True` before drawing the stimulus).
 
+    Warnings
+    --------
+    This class is experimental and may result in undefined behavior.
+
     """
     def __init__(self,
                  win,
@@ -1218,7 +1246,8 @@ class ObjMeshStim(BaseRigidBodyStim):
     Warnings
     --------
         Loading an *.OBJ file is a slow process, be sure to do this outside
-        of any time-critical routines!
+        of any time-critical routines! This class is experimental and may result
+        in undefined behavior.
 
     Examples
     --------
