@@ -304,7 +304,7 @@ void main (void)
         
         // falloff with distance from eye? might be something to consider for 
         // realism
-        vec4 emission = gl_FrontMaterial.emission;
+        vec4 emission = clamp(gl_FrontMaterial.emission, 0.0, 1.0);
         
         finalColor += ambient + emission + attenuation * (diffuse + specular);
     }
