@@ -831,10 +831,6 @@ class BaseRigidBodyStim(ColorMixin):
         """
         self.thePose.setOriAxisAngle(axis, angle, degrees)
 
-    def draw(self):
-        raise NotImplementedError(
-            '3D stimulus classes must override visual.BaseRigidBodyStim.draw')
-
     def _createVAO(self, vertices, textureCoords, normals, faces):
         """Create a vertex array object for handling vertex attribute data.
         """
@@ -877,7 +873,7 @@ class BaseRigidBodyStim(ColorMixin):
 
         # apply transformation to mesh
         GL.glPushMatrix()
-        GL.glLoadTransposeMatrixf(at.array2pointer(self.thePose.modelMatrix))
+        GL.glMultTransposeMatrixf(at.array2pointer(self.thePose.modelMatrix))
 
         if self.material is not None:  # has a material, use it
             if self._useShaders:
@@ -898,7 +894,7 @@ class BaseRigidBodyStim(ColorMixin):
 
             if self._useShaders:
                 nLights = len(self.win.lights)
-                shaderKey = (nLights, False, False)
+                shaderKey = (nLights, False)
                 gt.useProgram(self.win._shaders['stim3d_phong'][shaderKey])
                 color = np.ctypeslib.as_ctypes(
                     np.array((r, g, b, self.opacity), np.float32))
@@ -958,12 +954,12 @@ class SphereStim(BaseRigidBodyStim):
                  flipFaces=False,
                  pos=(0., 0., 0.),
                  ori=(0., 0., 0., 1.),
-                 useMaterial=None,
-                 useShaders=False,
                  color=(0., 0., 0.),
                  colorSpace='rgb',
                  contrast=1.0,
                  opacity=1.0,
+                 useMaterial=None,
+                 useShaders=False,
                  name='',
                  autoLog=True):
         """
@@ -988,7 +984,7 @@ class SphereStim(BaseRigidBodyStim):
             Orientation quaternion `[x, y, z, w]` where `x`, `y`, `z` are
             imaginary and `w` is real. If you prefer specifying rotations in
             axis-angle format, call `setOriAxisAngle` after initialization.
-        useMaterial : SimpleMaterial, optional
+        useMaterial : PhongMaterial, optional
             Material to use. The material can be configured by accessing the
             `material` attribute after initialization. If not material is
             specified, the diffuse and ambient color of the shape will be set
@@ -1048,15 +1044,15 @@ class BoxStim(BaseRigidBodyStim):
     def __init__(self,
                  win,
                  size=(.5, .5, .5),
+                 flipFaces=False,
                  pos=(0., 0., 0.),
                  ori=(0., 0., 0., 1.),
-                 flipFaces=False,
-                 useMaterial=None,
                  color=(0., 0., 0.),
                  colorSpace='rgb',
                  contrast=1.0,
                  opacity=1.0,
-                 useShaders=True,
+                 useMaterial=None,
+                 useShaders=False,
                  name='',
                  autoLog=True):
         """
@@ -1069,17 +1065,17 @@ class BoxStim(BaseRigidBodyStim):
             Dimensions of the mesh. If a single value is specified, the box will
             be a cube. Provide a tuple of floats to specify the width, length,
             and height of the box (eg. `size=(0.2, 1.3, 2.1)`) in scene units.
+        flipFaces : bool, optional
+            If `True`, normals and face windings will be set to point inward
+            towards the center of the box. Texture coordinates will remain the
+            same. Default is `False`.
         pos : array_like
             Position vector `[x, y, z]` for the origin of the rigid body.
         ori : array_like
             Orientation quaternion `[x, y, z, w]` where `x`, `y`, `z` are
             imaginary and `w` is real. If you prefer specifying rotations in
             axis-angle format, call `setOriAxisAngle` after initialization.
-        flipFaces : bool, optional
-            If `True`, normals and face windings will be set to point inward
-            towards the center of the box. Texture coordinates will remain the
-            same. Default is `False`.
-        useMaterial : SimpleMaterial, optional
+        useMaterial : PhongMaterial, optional
             Material to use. The material can be configured by accessing the
             `material` attribute after initialization. If not material is
             specified, the diffuse and ambient color of the shape will track the
@@ -1138,12 +1134,12 @@ class PlaneStim(BaseRigidBodyStim):
                  size=(.5, .5),
                  pos=(0., 0., 0.),
                  ori=(0., 0., 0., 1.),
-                 useMaterial=None,
-                 useShaders=True,
                  color=(0., 0., 0.),
                  colorSpace='rgb',
                  contrast=1.0,
                  opacity=1.0,
+                 useMaterial=None,
+                 useShaders=False,
                  name='',
                  autoLog=True):
         """
@@ -1164,7 +1160,7 @@ class PlaneStim(BaseRigidBodyStim):
             axis-angle format, call `setOriAxisAngle` after initialization. By
             default, the plane is oriented with normal facing the +Z axis of the
             scene.
-        useMaterial : SimpleMaterial, optional
+        useMaterial : PhongMaterial, optional
             Material to use. The material can be configured by accessing the
             `material` attribute after initialization. If not material is
             specified, the diffuse and ambient color of the shape will track the
@@ -1253,13 +1249,13 @@ class ObjMeshStim(BaseRigidBodyStim):
             axis-angle format, call `setOriAxisAngle` after initialization. By
             default, the plane is oriented with normal facing the +Z axis of the
             scene.
-        useMaterial : SimpleMaterial, optional
-            Material to use. The material can be configured by accessing the
-            `material` attribute after initialization. If no material is
-            specified, materials will be loaded from the associated MTL file. If
-            there is no MTL file, a default material will be used for all
-            meshes. This material can be edited via the `material` attribute
-            after initialization.
+        useMaterial : PhongMaterial, optional
+            Material to use for all sub-meshes. The material can be configured
+            by accessing the `material` attribute after initialization. If no
+            material is specified, materials will be loaded from the associated
+            MTL file. If there is no MTL file, a default material will be used
+            for all meshes. This material can be edited via the `material`
+            attribute after initialization.
         useShaders : bool
             Use shaders when rendering.
 
@@ -1385,7 +1381,7 @@ class ObjMeshStim(BaseRigidBodyStim):
         win.draw3d = True
 
         GL.glPushMatrix()
-        GL.glLoadTransposeMatrixf(at.array2pointer(self.thePose.modelMatrix))
+        GL.glMultTransposeMatrixf(at.array2pointer(self.thePose.modelMatrix))
 
         # iterate over materials, draw associated VAOs
         if self.material is not None:
@@ -1416,7 +1412,3 @@ class ObjMeshStim(BaseRigidBodyStim):
 
         win.draw3d = False
 
-        if win is None:
-            win = self.win
-
-        win.draw3d = True
