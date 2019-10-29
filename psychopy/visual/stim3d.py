@@ -882,7 +882,7 @@ class RigidBodyPose(object):
             Distance to `v` from this pose's origin.
 
         """
-        if hasattr(v, 'pos'):
+        if hasattr(v, 'pos'):  # v is pose-like object
             targetPos = v.pos
         else:
             targetPos = np.asarray(v[:3])
@@ -910,10 +910,41 @@ class RigidBodyPose(object):
             this pose and `end`.
 
         """
+        if not (hasattr(end, 'pos') and hasattr(end, 'ori')):
+            raise TypeError("Object for `end` does not have attributes "
+                            "`pos` and `ori`.")
+
         interpPos = mt.lerp(self._pos, end.pos, s)
         interpOri = mt.slerp(self._ori, end.ori, s)
 
         return RigidBodyPose(interpPos, interpOri)
+
+    def alignTo(self, alignTo):
+        """Align this pose to another point or pose.
+
+        This sets the orientation of this pose to one which orients the forward
+        axis towards `alignTo`.
+
+        Parameters
+        ----------
+        alignTo : array_like or LibOVRPose
+            Position vector [x, y, z] or pose to align to.
+
+        """
+        if hasattr(alignTo, 'pos'):  # v is pose-like object
+            targetPos = alignTo.pos
+        else:
+            targetPos = np.asarray(alignTo[:3])
+
+        fwd = np.asarray([0, 0, -1], dtype=np.float32)
+        invPos = mt.applyQuat(
+            mt.invertQuat(self._ori, dtype=np.float32),
+            targetPos - self._pos, dtype=np.float32)
+        mt.normalize(invPos, out=invPos, dtype=np.float32)
+
+        print(invPos)
+
+        self.ori = mt.multQuat(self._ori, mt.alignTo(invPos, fwd, dtype=np.float32))
 
 
 class BaseRigidBodyStim(ColorMixin):
