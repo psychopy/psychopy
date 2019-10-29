@@ -1364,6 +1364,7 @@ class ObjMeshStim(BaseRigidBodyStim):
                  pos=(0, 0, 0),
                  ori=(0, 0, 0, 1),
                  useMaterial=None,
+                 loadMtllib=True,
                  useShaders=True):
         """
         Parameters
@@ -1386,23 +1387,27 @@ class ObjMeshStim(BaseRigidBodyStim):
         useMaterial : PhongMaterial, optional
             Material to use for all sub-meshes. The material can be configured
             by accessing the `material` attribute after initialization. If no
-            material is specified, materials will be loaded from the associated
-            MTL file. If there is no MTL file, a default material will be used
-            for all meshes. This material can be edited via the `material`
-            attribute after initialization.
+            material is specified, `color` will modulate the diffuse and
+            ambient colors for all meshes in the model. If `loadMtllib` is
+            `True`, this value should be `None`.
+        loadMtllib : bool
+            Load materials from the MTL file associated with the mesh. This will
+            override `useMaterial` if it is `None`. The value of `materials`
+            after initialization will be a dictionary where keys are material
+            names and values are materials. Any textures associated with the
+            model will be loaded as per the material requirements.
         useShaders : bool
             Use shaders when rendering.
 
         """
         super(ObjMeshStim, self).__init__(win, pos=pos, ori=ori)
 
+        # load the OBJ file
         objModel = gt.loadObjFile(objFile)
 
-        if useMaterial is None:
-            if objModel.mtlFile is not None:
-                self.material = self._loadMtlLib(objModel.mtlFile)
-            else:
-                self.material = PhongMaterial(self.win)
+        # load materials from file if requested
+        if loadMtllib and self.material is None:
+            self.material = self._loadMtlLib(objModel.mtlFile)
         else:
             self.material = useMaterial
 
@@ -1520,22 +1525,64 @@ class ObjMeshStim(BaseRigidBodyStim):
 
         # iterate over materials, draw associated VAOs
         if self.material is not None:
-            nLights = len(self.win.lights)
+            # if material is a dictionary
+            if isinstance(self.material, dict):
+                nLights = len(self.win.lights)
 
-            for materialName, materialDesc in self.material.items():
-                if self._useShaders:
-                    shaderKey = (nLights, materialDesc.diffuseTexture is not None)
-                    gt.useProgram(self.win._shaders['stim3d_phong'][shaderKey])
+                for materialName, materialDesc in self.material.items():
+                    hasTexture = materialDesc.diffuseTexture is not None
+                    if self._useShaders:
+                        shaderKey = (nLights, hasTexture)
+                        gt.useProgram(self.win._shaders['stim3d_phong'][shaderKey])
 
-                materialDesc.begin(materialDesc.diffuseTexture is not None)
-                gt.drawVAO(self._vao[materialName], GL.GL_TRIANGLES)
-                materialDesc.end()
+                    materialDesc.begin(hasTexture)
+                    gt.drawVAO(self._vao[materialName], GL.GL_TRIANGLES)
+                    materialDesc.end()
 
-                if self._useShaders:
-                    gt.useProgram(0)
+                    if self._useShaders:
+                        gt.useProgram(0)
+            else:
+                # material is a single item
+                hasTexture = self.material.diffuseTexture is not None
+                self.material.begin(hasTexture)
+                for materialName, _ in self.material.items():
+                    gt.drawVAO(self._vao[materialName], GL.GL_TRIANGLES)
+                self.material.end()
         else:
-            for materialName, _ in self.material.items():
-                gt.drawVAO(self._vao, GL.GL_TRIANGLES)
+            r, g, b = self._getDesiredRGB(
+                self.rgb, self.colorSpace, self.contrast)
+            color = np.ctypeslib.as_ctypes(
+                np.array((r, g, b, self.opacity), np.float32))
+
+            if self._useShaders:
+                nLights = len(self.win.lights)
+                shaderKey = (nLights, False)
+                gt.useProgram(self.win._shaders['stim3d_phong'][shaderKey])
+
+                # pass values to OpenGL as material
+                GL.glColor4f(r, g, b, self.opacity)
+                GL.glMaterialfv(GL.GL_FRONT, GL.GL_DIFFUSE, color)
+                GL.glMaterialfv(GL.GL_FRONT, GL.GL_AMBIENT, color)
+
+                for materialName, _ in self.material.items():
+                    gt.drawVAO(self._vao, GL.GL_TRIANGLES)
+
+                gt.useProgram(0)
+            else:
+                # material tracks color
+                GL.glEnable(GL.GL_COLOR_MATERIAL)  # enable color tracking
+                GL.glDisable(GL.GL_TEXTURE_2D)
+                GL.glColorMaterial(GL.GL_FRONT, GL.GL_AMBIENT_AND_DIFFUSE)
+                GL.glMaterialfv(GL.GL_FRONT, GL.GL_DIFFUSE, color)
+                GL.glMaterialfv(GL.GL_FRONT, GL.GL_AMBIENT, color)
+                # 'rgb' is created and set when color is set
+                GL.glColor4f(r, g, b, self.opacity)
+
+                # draw the shape
+                for materialName, _ in self.material.items():
+                    gt.drawVAO(self._vao, GL.GL_TRIANGLES)
+
+                GL.glDisable(GL.GL_COLOR_MATERIAL)  # enable color tracking
 
         GL.glPopMatrix()
 
