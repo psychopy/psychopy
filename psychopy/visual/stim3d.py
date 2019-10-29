@@ -889,6 +889,32 @@ class RigidBodyPose(object):
 
         return np.sqrt(np.sum(np.square(targetPos - self.pos)))
 
+    def interp(self, end, s):
+        """Interpolate between poses.
+
+        Linear interpolation is used on position (Lerp) while the orientation
+        has spherical linear interpolation (Slerp) applied taking the shortest
+        arc on the hypersphere.
+
+        Parameters
+        ----------
+        end : LibOVRPose
+            End pose.
+        s : float
+            Interpolation factor between interval 0.0 and 1.0.
+
+        Returns
+        -------
+        RigidBodyPose
+            Rigid body pose whose position and orientation is at `s` between
+            this pose and `end`.
+
+        """
+        interpPos = mt.lerp(self._pos, end.pos, s)
+        interpOri = mt.slerp(self._ori, end.ori, s)
+
+        return RigidBodyPose(interpPos, interpOri)
+
 
 class BaseRigidBodyStim(ColorMixin):
     """Base class for rigid body 3D stimuli.
