@@ -453,6 +453,70 @@ class PhongMaterial(object):
     def shininess(self, value):
         self._shininess = float(value)
 
+    def begin(self, useTextures=True):
+        """Use this material for successive rendering calls.
+
+        Parameters
+        ----------
+        useTextures : bool
+            Enable textures.
+
+        """
+        GL.glDisable(GL.GL_COLOR_MATERIAL)  # disable color tracking
+        face = self._face
+        #GL.glColorMaterial(face, GL.GL_AMBIENT_AND_DIFFUSE)
+
+        # convert data in light class to ctypes
+        diffuse = np.ctypeslib.as_ctypes(self._diffuseRGB)
+        specular = np.ctypeslib.as_ctypes(self._specularRGB)
+        ambient = np.ctypeslib.as_ctypes(self._ambientRGB)
+        emission = np.ctypeslib.as_ctypes(self._emissionRGB)
+
+        # pass values to OpenGL
+        GL.glMaterialfv(face, GL.GL_DIFFUSE, diffuse)
+        GL.glMaterialfv(face, GL.GL_SPECULAR, specular)
+        GL.glMaterialfv(face, GL.GL_AMBIENT, ambient)
+        GL.glMaterialfv(face, GL.GL_EMISSION, emission)
+        GL.glMaterialf(face, GL.GL_SHININESS, self.shininess)
+
+        # setup textures
+        if useTextures and self.diffuseTexture is not None:
+            self._useTextures = True
+            GL.glEnable(GL.GL_TEXTURE_2D)
+            gt.bindTexture(self.diffuseTexture, 0)
+
+    def end(self):
+        """Stop using this material.
+
+        Must be called after `begin` before using another material or else later
+        drawing operations may have undefined behavior.
+
+        """
+        GL.glMaterialfv(
+            self._face,
+            GL.GL_DIFFUSE,
+            (GL.GLfloat * 4)(0.8, 0.8, 0.8, 1.0))
+        GL.glMaterialfv(
+            self._face,
+            GL.GL_SPECULAR,
+            (GL.GLfloat * 4)(0.0, 0.0, 0.0, 1.0))
+        GL.glMaterialfv(
+            self._face,
+            GL.GL_AMBIENT,
+            (GL.GLfloat * 4)(0.2, 0.2, 0.2, 1.0))
+        GL.glMaterialfv(
+            self._face,
+            GL.GL_EMISSION,
+            (GL.GLfloat * 4)(0.0, 0.0, 0.0, 1.0))
+        GL.glMaterialf(self._face, GL.GL_SHININESS, 0.0)
+
+        if self._useTextures:
+            self._useTextures = False
+            gt.unbindTexture(self.diffuseTexture)
+            GL.glDisable(GL.GL_TEXTURE_2D)
+
+        GL.glEnable(GL.GL_COLOR_MATERIAL)
+
 
 class RigidBodyPose(object):
     """Class for representing rigid body poses.
@@ -921,16 +985,18 @@ class BaseRigidBodyStim(ColorMixin):
         if self.material is not None:  # has a material, use it
             if self._useShaders:
                 nLights = len(self.win.lights)
-                shaderKey = (nLights, self.material._useTextures)
-                gt.useMaterial(self.material, useTextures=self.material._useTextures)
+                useTexture = self.material.diffuseTexture is not None
+                shaderKey = (nLights, useTexture)
                 gt.useProgram(self.win._shaders['stim3d_phong'][shaderKey])
+
+                self.material.begin(useTexture)
                 gt.drawVAO(self._vao, GL.GL_TRIANGLES)
                 gt.useProgram(0)
-                gt.clearMaterial(self.material)
+                self.material.end()
             else:
-                gt.useMaterial(self.material)
+                self.material.begin(self.material.diffuseTexture is not None)
                 gt.drawVAO(self._vao, GL.GL_TRIANGLES)
-                gt.clearMaterial(self.material)
+                self.material.end()
         else:  # doesn't have a material, use class colors
             r, g, b = self._getDesiredRGB(
                 self.rgb, self.colorSpace, self.contrast)
@@ -1457,19 +1523,16 @@ class ObjMeshStim(BaseRigidBodyStim):
             nLights = len(self.win.lights)
 
             for materialName, materialDesc in self.material.items():
-                shaderKey = (nLights, materialDesc._useTextures)
-                gt.useMaterial(materialDesc)
                 if self._useShaders:
+                    shaderKey = (nLights, materialDesc.diffuseTexture is not None)
                     gt.useProgram(self.win._shaders['stim3d_phong'][shaderKey])
 
-                gt.useMaterial(materialDesc, useTextures=True)
+                materialDesc.begin(materialDesc.diffuseTexture is not None)
                 gt.drawVAO(self._vao[materialName], GL.GL_TRIANGLES)
-                gt.clearMaterial(materialDesc)
+                materialDesc.end()
 
-            else:
                 if self._useShaders:
                     gt.useProgram(0)
-
         else:
             for materialName, _ in self.material.items():
                 gt.drawVAO(self._vao, GL.GL_TRIANGLES)
