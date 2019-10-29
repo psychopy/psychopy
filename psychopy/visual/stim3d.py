@@ -309,8 +309,13 @@ class PhongMaterial(object):
         self._ambientRGB = np.array((0., 0., 0., 1.), np.float32)
         self._emissionRGB = np.array((0., 0., 0., 1.), np.float32)
 
-        # which faces to apply the material
+        # internal pointers to arrays, initialized below
+        self._ptrDiffuse = None
+        self._ptrSpecular = None
+        self._ptrAmbient = None
+        self._ptrEmission = None
 
+        # which faces to apply the material
         if face == 'front':
             self._face = GL.GL_FRONT
         elif face == 'back':
@@ -369,6 +374,8 @@ class PhongMaterial(object):
         self._diffuseRGB[:3] = (value * self.contrast + 1) / 2.0
         self._diffuseRGB[3] = self.opacity
 
+        self._ptrDiffuse = np.ctypeslib.as_ctypes(self._diffuseRGB)
+
     @property
     def specularColor(self):
         """Specular color of the material."""
@@ -392,6 +399,8 @@ class PhongMaterial(object):
         self._specularRGB = np.zeros((4,), np.float32)
         self._specularRGB[:3] = (value * self.contrast + 1) / 2.0
         self._specularRGB[3] = self.opacity
+
+        self._ptrSpecular = np.ctypeslib.as_ctypes(self._specularRGB)
 
     @property
     def ambientColor(self):
@@ -417,6 +426,8 @@ class PhongMaterial(object):
         self._ambientRGB[:3] = (value * self.contrast + 1) / 2.0
         self._ambientRGB[3] = self.opacity
 
+        self._ptrAmbient = np.ctypeslib.as_ctypes(self._ambientRGB)
+
     @property
     def emissionColor(self):
         """Emission color of the material."""
@@ -440,6 +451,8 @@ class PhongMaterial(object):
         self._emissionRGB = np.zeros((4,), np.float32)
         self._emissionRGB[:3] = (value * self.contrast + 1) / 2.0
         self._emissionRGB[3] = self.opacity
+
+        self._ptrEmission = np.ctypeslib.as_ctypes(self._emissionRGB)
 
     @property
     def shininess(self):
@@ -469,17 +482,11 @@ class PhongMaterial(object):
             shaderKey = (nLights, useTextures)
             gt.useProgram(self.win._shaders['stim3d_phong'][shaderKey])
 
-        # convert data in light class to ctypes
-        diffuse = np.ctypeslib.as_ctypes(self._diffuseRGB)
-        specular = np.ctypeslib.as_ctypes(self._specularRGB)
-        ambient = np.ctypeslib.as_ctypes(self._ambientRGB)
-        emission = np.ctypeslib.as_ctypes(self._emissionRGB)
-
         # pass values to OpenGL
-        GL.glMaterialfv(face, GL.GL_DIFFUSE, diffuse)
-        GL.glMaterialfv(face, GL.GL_SPECULAR, specular)
-        GL.glMaterialfv(face, GL.GL_AMBIENT, ambient)
-        GL.glMaterialfv(face, GL.GL_EMISSION, emission)
+        GL.glMaterialfv(face, GL.GL_DIFFUSE, self._ptrDiffuse)
+        GL.glMaterialfv(face, GL.GL_SPECULAR, self._ptrSpecular)
+        GL.glMaterialfv(face, GL.GL_AMBIENT, self._ptrAmbient)
+        GL.glMaterialfv(face, GL.GL_EMISSION, self._ptrEmission)
         GL.glMaterialf(face, GL.GL_SHININESS, self.shininess)
 
         # setup textures
