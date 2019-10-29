@@ -12,6 +12,7 @@ from psychopy.visual.helpers import setColor
 import psychopy.tools.mathtools as mt
 import psychopy.tools.gltools as gt
 import psychopy.tools.arraytools as at
+import psychopy.tools.viewtools as vt
 
 import os
 from io import StringIO
@@ -602,11 +603,18 @@ class RigidBodyPose(object):
             self._pos, self._ori, dtype=np.float32)
 
         # computed only if needed
-        self._invModelMatrix = np.zeros(4, dtype=np.float32, order='C')
+        self._invModelMatrix = np.zeros((4, 4), dtype=np.float32, order='C')
+
+        # additional useful vectors
+        self._at = np.zeros((3,), dtype=np.float32, order='C')
+        self._up = np.zeros((3,), dtype=np.float32, order='C')
 
         # compute matrices only if `pos` and `ori` attributes have been updated
         self._matrixNeedsUpdate = False
         self._invMatrixNeedsUpdate = False
+
+        self.pos = pos
+        self.ori = ori
 
     @property
     def pos(self):
@@ -627,6 +635,24 @@ class RigidBodyPose(object):
     def ori(self, value):
         self._ori = np.ascontiguousarray(value, dtype=np.float32)
         self._matrixNeedsUpdate = self._invMatrixNeedsUpdate = True
+
+    @property
+    def at(self):
+        """Vector defining the forward direction (-Z) of this pose."""
+        if self._matrixNeedsUpdate:  # matrix needs update, this need to be too
+            atDir = [0., 0., -1.]
+            self._at = mt.applyQuat(self.ori, atDir, out=self._at)
+
+        return self._at
+
+    @property
+    def up(self, value):
+        """Vector defining the up direction (+Y) of this pose."""
+        if self._matrixNeedsUpdate:  # matrix needs update, this need to be too
+            upDir = [0., 1., 0.]
+            self._up = mt.applyQuat(self.ori, upDir, out=self._up)
+
+        return self._up
 
     def __mul__(self, other):
         """Multiply two poses, combining them to get a new pose."""
@@ -765,6 +791,40 @@ class RigidBodyPose(object):
             out[:, :] = self._modelMatrix[:, :]
 
         return self._modelMatrix
+
+    def getViewMatrix(self, inverse=False):
+        """Convert this pose into a view matrix.
+
+        Creates a view matrix which transforms points into eye space using the
+        current pose as the eye position in the scene. Furthermore, you can use
+        view matrices for rendering shadows if light positions are defined
+        as `RigidBodyPose` objects.
+
+        Parameters
+        ----------
+        inverse : bool
+            Return the inverse of the view matrix. Default is `False`.
+
+        Returns
+        -------
+        ndarray
+            4x4 transformation matrix.
+
+        """
+        axes = np.asarray([[0, 0, -1], [0, 1, 0]], dtype=np.float32)
+
+        rotMatrix = mt.quatToMatrix(self._ori, dtype=np.float32)
+        transformedAxes = mt.applyMatrix(rotMatrix, axes, dtype=np.float32)
+
+        fwdVec = transformedAxes[0, :] + self._pos
+        upVec = transformedAxes[1, :]
+
+        viewMatrix = vt.lookAt(self._pos, fwdVec, upVec, dtype=np.float32)
+
+        if inverse:
+            viewMatrix = mt.invertMatrix(viewMatrix, homogeneous=True)
+
+        return viewMatrix
 
     def transform(self, v, out=None):
         """Transform a vector using this pose.

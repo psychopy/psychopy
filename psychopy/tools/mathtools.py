@@ -1703,11 +1703,14 @@ def applyQuat(q, points, out=None, dtype=None):
     if out is None:
         dtype = np.float64 if dtype is None else np.dtype(dtype).type
     else:
-        assert points.shape == out.shape
         dtype = np.dtype(out.dtype).type
 
     qin = np.asarray(q, dtype=dtype)
     points = np.asarray(points, dtype=dtype)
+
+    if out is not None:
+        assert points.shape == out.shape
+
     toReturn = np.zeros(points.shape, dtype=dtype) if out is None else out
     pin, pout = np.atleast_2d(points, toReturn)
     pout[:, :] = pin[:, :]  # copy values into output array
