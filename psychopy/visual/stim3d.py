@@ -1365,7 +1365,13 @@ class ObjMeshStim(BaseRigidBodyStim):
                  ori=(0, 0, 0, 1),
                  useMaterial=None,
                  loadMtllib=True,
-                 useShaders=True):
+                 color=(0.0, 0.0, 0.0),
+                 colorSpace='rgb',
+                 contrast=1.0,
+                 opacity=1.0,
+                 useShaders=False,
+                 name='',
+                 autoLog=True):
         """
         Parameters
         ----------
@@ -1400,7 +1406,17 @@ class ObjMeshStim(BaseRigidBodyStim):
             Use shaders when rendering.
 
         """
-        super(ObjMeshStim, self).__init__(win, pos=pos, ori=ori)
+        super(ObjMeshStim, self).__init__(
+            win,
+            pos=pos,
+            ori=ori,
+            color=color,
+            colorSpace=colorSpace,
+            contrast=contrast,
+            opacity=opacity,
+            useShaders=useShaders,
+            name=name,
+            autoLog=autoLog)
 
         # load the OBJ file
         objModel = gt.loadObjFile(objFile)
@@ -1545,7 +1561,7 @@ class ObjMeshStim(BaseRigidBodyStim):
                 # material is a single item
                 hasTexture = self.material.diffuseTexture is not None
                 self.material.begin(hasTexture)
-                for materialName, _ in self.material.items():
+                for materialName, _ in self._vao.items():
                     gt.drawVAO(self._vao[materialName], GL.GL_TRIANGLES)
                 self.material.end()
         else:
@@ -1564,8 +1580,8 @@ class ObjMeshStim(BaseRigidBodyStim):
                 GL.glMaterialfv(GL.GL_FRONT, GL.GL_DIFFUSE, color)
                 GL.glMaterialfv(GL.GL_FRONT, GL.GL_AMBIENT, color)
 
-                for materialName, _ in self.material.items():
-                    gt.drawVAO(self._vao, GL.GL_TRIANGLES)
+                for materialName, _ in self._vao.items():
+                    gt.drawVAO(self._vao[materialName], GL.GL_TRIANGLES)
 
                 gt.useProgram(0)
             else:
@@ -1579,8 +1595,8 @@ class ObjMeshStim(BaseRigidBodyStim):
                 GL.glColor4f(r, g, b, self.opacity)
 
                 # draw the shape
-                for materialName, _ in self.material.items():
-                    gt.drawVAO(self._vao, GL.GL_TRIANGLES)
+                for materialName, _ in self._vao.items():
+                    gt.drawVAO(self._vao[materialName], GL.GL_TRIANGLES)
 
                 GL.glDisable(GL.GL_COLOR_MATERIAL)  # enable color tracking
 
