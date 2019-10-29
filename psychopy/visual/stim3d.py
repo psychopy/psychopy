@@ -260,8 +260,7 @@ class PhongMaterial(object):
                  diffuseTexture=None,
                  opacity=1.0,
                  contrast=1.0,
-                 face='front',
-                 useShaders=False):
+                 face='front'):
         """
         Parameters
         ----------
@@ -295,9 +294,6 @@ class PhongMaterial(object):
             Texture maps associated with this material. Textures are specified
             as a list. The index of textures in the list will be used to set
             the corresponding texture unit they are bound to.
-        useShaders : bool
-            Use per-pixel lighting when rendering this stimulus. By default,
-            Blinn-Phong shading will be used.
         """
         self.win = win
 
@@ -338,7 +334,7 @@ class PhongMaterial(object):
         self._normalTexture = None
 
         self._useTextures = False  # keeps track if textures are being used
-        self._useShaders = useShaders
+        self._useShaders = False
 
     @property
     def diffuseTexture(self):
@@ -453,7 +449,7 @@ class PhongMaterial(object):
     def shininess(self, value):
         self._shininess = float(value)
 
-    def begin(self, useTextures=True):
+    def begin(self, useTextures=True, useShaders=False):
         """Use this material for successive rendering calls.
 
         Parameters
@@ -464,7 +460,14 @@ class PhongMaterial(object):
         """
         GL.glDisable(GL.GL_COLOR_MATERIAL)  # disable color tracking
         face = self._face
-        #GL.glColorMaterial(face, GL.GL_AMBIENT_AND_DIFFUSE)
+
+        if useShaders:
+            # number of scene lights
+            self._useShaders = True
+            nLights = len(self.win.lights)
+            useTextures = useTextures and self.diffuseTexture is not None
+            shaderKey = (nLights, useTextures)
+            gt.useProgram(self.win._shaders['stim3d_phong'][shaderKey])
 
         # convert data in light class to ctypes
         diffuse = np.ctypeslib.as_ctypes(self._diffuseRGB)
@@ -485,35 +488,55 @@ class PhongMaterial(object):
             GL.glEnable(GL.GL_TEXTURE_2D)
             gt.bindTexture(self.diffuseTexture, 0)
 
-    def end(self):
+    def end(self, clear=True):
         """Stop using this material.
 
         Must be called after `begin` before using another material or else later
         drawing operations may have undefined behavior.
 
+        Upon returning, `GL_COLOR_MATERIAL` is enabled so material colors will
+        track the current `glColor`.
+
+        Parameters
+        ----------
+        clear : bool
+            Overwrite material state settings with default values. This
+            ensures material colors are set to OpenGL defaults. You can forgo
+            clearing if successive materials are used which overwrite
+            `glMaterialfv` values for `GL_DIFFUSE`, `GL_SPECULAR`, `GL_AMBIENT`,
+            `GL_EMISSION`, and `GL_SHININESS`. This reduces a bit of overhead
+            if there is no need to return to default values intermittently
+            between successive material `begin` and `end` calls. Textures and
+            shaders previously enabled will still be disabled.
+
         """
-        GL.glMaterialfv(
-            self._face,
-            GL.GL_DIFFUSE,
-            (GL.GLfloat * 4)(0.8, 0.8, 0.8, 1.0))
-        GL.glMaterialfv(
-            self._face,
-            GL.GL_SPECULAR,
-            (GL.GLfloat * 4)(0.0, 0.0, 0.0, 1.0))
-        GL.glMaterialfv(
-            self._face,
-            GL.GL_AMBIENT,
-            (GL.GLfloat * 4)(0.2, 0.2, 0.2, 1.0))
-        GL.glMaterialfv(
-            self._face,
-            GL.GL_EMISSION,
-            (GL.GLfloat * 4)(0.0, 0.0, 0.0, 1.0))
-        GL.glMaterialf(self._face, GL.GL_SHININESS, 0.0)
+        if clear:
+            GL.glMaterialfv(
+                self._face,
+                GL.GL_DIFFUSE,
+                (GL.GLfloat * 4)(0.8, 0.8, 0.8, 1.0))
+            GL.glMaterialfv(
+                self._face,
+                GL.GL_SPECULAR,
+                (GL.GLfloat * 4)(0.0, 0.0, 0.0, 1.0))
+            GL.glMaterialfv(
+                self._face,
+                GL.GL_AMBIENT,
+                (GL.GLfloat * 4)(0.2, 0.2, 0.2, 1.0))
+            GL.glMaterialfv(
+                self._face,
+                GL.GL_EMISSION,
+                (GL.GLfloat * 4)(0.0, 0.0, 0.0, 1.0))
+            GL.glMaterialf(self._face, GL.GL_SHININESS, 0.0)
 
         if self._useTextures:
             self._useTextures = False
             gt.unbindTexture(self.diffuseTexture)
             GL.glDisable(GL.GL_TEXTURE_2D)
+
+        if self._useShaders:
+            gt.useProgram(0)
+            self._useShaders = False
 
         GL.glEnable(GL.GL_COLOR_MATERIAL)
 
@@ -1543,24 +1566,13 @@ class ObjMeshStim(BaseRigidBodyStim):
         if self.material is not None:
             # if material is a dictionary
             if isinstance(self.material, dict):
-                nLights = len(self.win.lights)
-
                 for materialName, materialDesc in self.material.items():
-                    hasTexture = materialDesc.diffuseTexture is not None
-                    if self._useShaders:
-                        shaderKey = (nLights, hasTexture)
-                        gt.useProgram(self.win._shaders['stim3d_phong'][shaderKey])
-
-                    materialDesc.begin(hasTexture)
+                    materialDesc.begin(useShaders=self._useShaders)
                     gt.drawVAO(self._vao[materialName], GL.GL_TRIANGLES)
                     materialDesc.end()
-
-                    if self._useShaders:
-                        gt.useProgram(0)
             else:
                 # material is a single item
-                hasTexture = self.material.diffuseTexture is not None
-                self.material.begin(hasTexture)
+                self.material.begin(useShaders=self._useShaders)
                 for materialName, _ in self._vao.items():
                     gt.drawVAO(self._vao[materialName], GL.GL_TRIANGLES)
                 self.material.end()
