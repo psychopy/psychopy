@@ -656,8 +656,8 @@ class RigidBodyPose(object):
 
     def __mul__(self, other):
         """Multiply two poses, combining them to get a new pose."""
-        return RigidBodyPose(self._pos + other.pos,
-                             mt.multQuat(self._ori, other.ori))
+        newOri = mt.multQuat(self._ori, other.ori)
+        return RigidBodyPose(mt.transform(other.pos, newOri, self._pos), newOri)
 
     def isEqual(self, other):
         """Check if poses have similar orientation and position.
@@ -937,14 +937,13 @@ class RigidBodyPose(object):
             targetPos = np.asarray(alignTo[:3])
 
         fwd = np.asarray([0, 0, -1], dtype=np.float32)
+        toTarget = targetPos - self._pos
         invPos = mt.applyQuat(
             mt.invertQuat(self._ori, dtype=np.float32),
-            targetPos - self._pos, dtype=np.float32)
-        mt.normalize(invPos, out=invPos, dtype=np.float32)
+            toTarget, dtype=np.float32)
+        invPos = mt.normalize(invPos)
 
-        print(invPos)
-
-        self.ori = mt.multQuat(self._ori, mt.alignTo(invPos, fwd, dtype=np.float32))
+        self.ori = mt.multQuat(self._ori, mt.alignTo(fwd, invPos, dtype=np.float32))
 
 
 class BaseRigidBodyStim(ColorMixin):

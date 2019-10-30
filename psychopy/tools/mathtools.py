@@ -2837,7 +2837,7 @@ def lensCorrection(xys, coefK=(1.0,), distCenter=(0., 0.), out=None, dtype=None)
     return toReturn
 
 if __name__ == "__main__":
-    vec = [[0, 0, -1], [0, 0, -1]]
+    vec = [[1, 0, 0], [0, 0, -1]]
     vec2 = [[1, 0, 0], [0, 0, 1]]
 
     print(alignTo(vec, vec2))
@@ -2845,4 +2845,4 @@ if __name__ == "__main__":
     vec3 = [0, 0, -1]
     vec4 = [1, 0, 0]
 
-    print(alignTo(vec3, vec4))
+    print(applyQuat(alignTo(vec3, vec4), vec3))
