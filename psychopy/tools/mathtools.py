@@ -1804,12 +1804,13 @@ def alignTo(v, t, out=None, dtype=None):
     else:
         toReturn = out
 
-    b = bisector(v, t, norm=True, dtype=dtype)
-    cosHalfAngle = dot(v, b, dtype=dtype)
-    qr, v2d, b2d, t2d = np.atleast_2d(toReturn, v, b, t)
+    qr, v2d, t2d = np.atleast_2d(toReturn, v,t)
 
-    nonparallel = cosHalfAngle > 0.0  # rotation is not 180 degrees
-    qr[nonparallel, :3] = cross(v2d[nonparallel], b2d[nonparallel], dtype=dtype)
+    b = bisector(v2d, t2d, norm=True, dtype=dtype)
+    cosHalfAngle = dot(v2d, b, dtype=dtype)
+
+    nonparallel = cosHalfAngle > 0.0 # rotation is not 180 degrees
+    qr[nonparallel, :3] = cross(v2d[nonparallel], b[nonparallel], dtype=dtype)
     qr[nonparallel, 3] = cosHalfAngle[nonparallel]
 
     if np.alltrue(nonparallel):  # don't bother handling special cases
@@ -2835,3 +2836,13 @@ def lensCorrection(xys, coefK=(1.0,), distCenter=(0., 0.), out=None, dtype=None)
 
     return toReturn
 
+if __name__ == "__main__":
+    vec = [[0, 0, -1], [0, 0, -1]]
+    vec2 = [[1, 0, 0], [0, 0, 1]]
+
+    print(alignTo(vec, vec2))
+
+    vec3 = [0, 0, -1]
+    vec4 = [1, 0, 0]
+
+    print(alignTo(vec3, vec4))
