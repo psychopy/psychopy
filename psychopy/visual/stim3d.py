@@ -7,7 +7,9 @@
 # Copyright (C) 2002-2018 Jonathan Peirce (C) 2019 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
-from psychopy.visual.basevisual import ColorMixin
+from psychopy import logging
+from psychopy.tools.attributetools import attributeSetter, setAttribute
+from psychopy.visual.basevisual import WindowMixin, ColorMixin
 from psychopy.visual.helpers import setColor
 import psychopy.tools.mathtools as mt
 import psychopy.tools.gltools as gt
@@ -946,7 +948,7 @@ class RigidBodyPose(object):
         self.ori = mt.multQuat(self._ori, mt.alignTo(fwd, invPos, dtype=np.float32))
 
 
-class BaseRigidBodyStim(ColorMixin):
+class BaseRigidBodyStim(ColorMixin, WindowMixin):
     """Base class for rigid body 3D stimuli.
 
     This class handles the pose of a rigid body 3D stimulus. Poses are
@@ -987,15 +989,16 @@ class BaseRigidBodyStim(ColorMixin):
             imaginary and `w` is real.
 
         """
-        self.win = win
-        self.name = name
         self.autoLog = autoLog
+        self.name = name
+
+        super(BaseRigidBodyStim, self).__init__()
+
+        self.win = win
 
         self.colorSpace = colorSpace
         self.contrast = contrast
         self.opacity = opacity
-
-        super(BaseRigidBodyStim, self).__init__()
         self.color = color
 
         self._thePose = RigidBodyPose(pos, ori)
@@ -1117,6 +1120,8 @@ class BaseRigidBodyStim(ColorMixin):
         """
         if win is None:
             win = self.win
+        else:
+            self._selectWindow(win)
 
         # nop if there is no VAO to draw
         if self._vao is None:
@@ -1178,6 +1183,57 @@ class BaseRigidBodyStim(ColorMixin):
         GL.glPopMatrix()
 
         win.draw3d = False
+
+    @attributeSetter
+    def useShaders(self, value):
+        """Should shaders be used to render the stimulus
+        (typically leave as `True`)
+
+        If the system support the use of OpenGL shader language then leaving
+        this set to True is highly recommended. If shaders cannot be used then
+        various operations will be slower (notably, changes to stimulus color
+        or contrast)
+        """
+        if value is True and self.win._haveShaders is False:
+            logging.error("Shaders were requested but aren't available. "
+                          "Shaders need OpenGL 2.0+ drivers")
+        if value != self._useShaders:  # if there's a change...
+            self._useShaders = value
+
+    def setUseShaders(self, value=True, log=None):
+        """Usually you can use 'stim.attribute = value' syntax instead,
+        but use this method if you need to suppress the log message"""
+        setAttribute(self, 'useShaders', value, log)  # call attributeSetter
+
+    @attributeSetter
+    def units(self, value):
+        """
+        None, 'norm', 'cm', 'deg', 'degFlat', 'degFlatPos', or 'pix'
+
+        If None then the current units of the
+        :class:`~psychopy.visual.Window` will be used.
+        See :ref:`units` for explanation of other options.
+
+        Note that when you change units, you don't change the stimulus
+        parameters and it is likely to change appearance. Example::
+
+            # This stimulus is 20% wide and 50% tall with respect to window
+            stim = visual.PatchStim(win, units='norm', size=(0.2, 0.5)
+
+            # This stimulus is 0.2 degrees wide and 0.5 degrees tall.
+            stim.units = 'deg'
+        """
+        if value is not None and len(value):
+            self.__dict__['units'] = value
+        else:
+            self.__dict__['units'] = self.win.units
+
+    def _updateList(self):
+        """The user shouldn't need this method since it gets called
+        after every call to .set()
+        Chooses between using and not using shaders each call.
+        """
+        pass
 
 
 class SphereStim(BaseRigidBodyStim):
@@ -1679,6 +1735,8 @@ class ObjMeshStim(BaseRigidBodyStim):
         """
         if win is None:
             win = self.win
+        else:
+            self._selectWindow(win)
 
         win.draw3d = True
 

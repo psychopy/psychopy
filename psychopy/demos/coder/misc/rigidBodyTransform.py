@@ -45,9 +45,8 @@ while not event.getKeys():
     pivotPose.setOriAxisAngle((0, 1, 0), angle)
 
     # setup drawing
-
     win.setPerspectiveView()
-    win.depthMask = True
+
     win.useLights = True
 
     # multiplying pose puts the first object in the reference frame of the
