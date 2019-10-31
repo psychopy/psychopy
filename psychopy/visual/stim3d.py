@@ -678,6 +678,13 @@ class RigidBodyPose(object):
         return np.isclose(self._pos, other.pos) and \
             np.isclose(self._ori, other.ori)
 
+    def setIdentity(self):
+        """Clear rigid body transformations.
+        """
+        self._pos.fill(0.0)
+        self._ori[:3] = 0.0
+        self._ori[3] = 1.0
+
     def getOriAxisAngle(self, degrees=True):
         """Get the axis and angle of rotation for the rigid body. Converts the
         orientation defined by the `ori` quaternion to and axis-angle
