@@ -91,6 +91,7 @@ Overview
     slerp
     quatToAxisAngle
     quatFromAxisAngle
+    quatYawPitchRoll
     alignTo
     quatMagnitude
     multQuat
@@ -135,6 +136,7 @@ Details
 .. autofunction:: slerp
 .. autofunction:: quatToAxisAngle
 .. autofunction:: quatFromAxisAngle
+.. autofunction:: quatYawPitchRoll
 .. autofunction:: alignTo
 .. autofunction:: quatMagnitude
 .. autofunction:: multQuat

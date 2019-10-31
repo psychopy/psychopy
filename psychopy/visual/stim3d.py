@@ -721,6 +721,19 @@ class RigidBodyPose(object):
         """
         self.ori = mt.quatFromAxisAngle(axis, angle, degrees)
 
+    def getYawPitchRoll(self, degrees=True):
+        """Get the yaw, pitch and roll angles for this pose relative to the -Z
+        world axis.
+
+        Parameters
+        ----------
+        degrees : bool, optional
+            Specify ``True`` if `angle` is in degrees, or else it will be
+            treated as radians. Default is ``True``.
+
+        """
+        return mt.quatYawPitchRoll(self._ori, degrees)
+
     @property
     def modelMatrix(self):
         """Pose as a 4x4 model matrix (read-only)."""
@@ -952,7 +965,8 @@ class RigidBodyPose(object):
             toTarget, dtype=np.float32)
         invPos = mt.normalize(invPos)
 
-        self.ori = mt.multQuat(self._ori, mt.alignTo(fwd, invPos, dtype=np.float32))
+        self.ori = mt.multQuat(
+            self._ori, mt.alignTo(fwd, invPos, dtype=np.float32))
 
 
 class BaseRigidBodyStim(ColorMixin, WindowMixin):

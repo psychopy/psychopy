@@ -47,7 +47,8 @@ __all__ = ['normalize',
            'matrixToQuat',
            'lensCorrection',
            'matrixFromEulerAngles',
-           'alignTo']
+           'alignTo',
+           'quatYawPitchRoll']
 
 import numpy as np
 import functools
@@ -1460,6 +1461,68 @@ def quatFromAxisAngle(axis, angle, degrees=True, dtype=None):
     np.multiply(axis, np.sin(halfRad), out=toReturn[:3])
     toReturn[3] = np.cos(halfRad)
     toReturn += 0.0  # remove negative zeros
+
+    return toReturn
+
+
+def quatYawPitchRoll(q, degrees=True, out=None, dtype=None):
+    """Get the yaw, pitch, and roll of a quaternion's orientation relative to
+    the world -Z axis.
+
+    You can multiply the quaternion by the inverse of some other one to make the
+    returned values referenced to a local coordinate system.
+
+    Parameters
+    ----------
+    q : tuple, list or ndarray of float
+        Quaternion in form [x, y, z, w] where w is real and x, y, z
+        are imaginary components.
+    degrees : bool, optional
+        Indicate angles are to be returned in degrees, otherwise they will be
+        returned in radians.
+    out : ndarray
+        Optional output array. Must have same `shape` and `dtype` as what is
+        expected to be returned by this function of `out` was not specified.
+    dtype : dtype or str, optional
+        Data type for computations can either be 'float32' or 'float64'. If
+        `out` is specified, the data type of `out` is used and this argument is
+        ignored. If `out` is not provided, 'float64' is used by default.
+
+    Returns
+    -------
+    ndarray
+        Yaw, pitch and roll [yaw, pitch, roll] of quaternion `q`.
+
+    """
+    # based off code from 'Conversion Quaternion to Euler' on
+    # http://www.euclideanspace.com
+    dtype = np.float64 if dtype is None else np.dtype(dtype).type
+    qr = np.asarray(q, dtype=dtype)
+
+    t = q[0] * q[1] + q[2] * q[3]
+
+    toReturn = np.zeros((3,), dtype=dtype) if out is None else out
+
+    if t > 0.5 - 1e-7:
+        toReturn[0] = 2. * np.arctan2(qr[0], qr[3])  # yaw
+        toReturn[1] = np.pi / 2.  # pitch
+        toReturn[2] = 0.0
+
+    elif t < -0.5 + 1e-7:
+        toReturn[0] = -2. * np.arctan2(qr[0], qr[3])  # yaw
+        toReturn[1] = -np.pi / 2.  # pitch
+        toReturn[2] = 0.0
+
+    else:
+        sqx, sqy, sqz = np.square(qr[:3])
+        toReturn[0] = np.arctan2(2. * qr[1] * qr[3] - 2. * qr[0] * qr[2],
+                                 1. - 2. * sqy - 2. * sqz)
+        toReturn[1] = np.arcsin(2. * t)
+        toReturn[2] = np.arctan2(2. * qr[0] * qr[3] - 2. * qr[1] * qr[2],
+                                 1. - 2. * sqx - 2. * sqz)
+
+    if degrees:
+        toReturn[:] = np.degrees(toReturn[:])
 
     return toReturn
 
