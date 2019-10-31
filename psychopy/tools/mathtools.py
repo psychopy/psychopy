@@ -1504,22 +1504,22 @@ def quatYawPitchRoll(q, degrees=True, out=None, dtype=None):
     toReturn = np.zeros((3,), dtype=dtype) if out is None else out
 
     if t > 0.5 - 1e-7:
-        toReturn[0] = 2. * np.arctan2(qr[0], qr[3])  # yaw
-        toReturn[1] = np.pi / 2.  # pitch
-        toReturn[2] = 0.0
+        toReturn[0] = 2. * np.arctan2(qr[0], qr[3])
+        toReturn[1] = 0.0
+        toReturn[2] = np.pi / 2.
 
     elif t < -0.5 + 1e-7:
-        toReturn[0] = -2. * np.arctan2(qr[0], qr[3])  # yaw
-        toReturn[1] = -np.pi / 2.  # pitch
-        toReturn[2] = 0.0
+        toReturn[0] = -2. * np.arctan2(qr[0], qr[3])
+        toReturn[1] = 0.0
+        toReturn[2] = -np.pi / 2.
 
     else:
         sqx, sqy, sqz = np.square(qr[:3])
         toReturn[0] = np.arctan2(2. * qr[1] * qr[3] - 2. * qr[0] * qr[2],
                                  1. - 2. * sqy - 2. * sqz)
-        toReturn[1] = np.arcsin(2. * t)
-        toReturn[2] = np.arctan2(2. * qr[0] * qr[3] - 2. * qr[1] * qr[2],
+        toReturn[1] = np.arctan2(2. * qr[0] * qr[3] - 2. * qr[1] * qr[2],
                                  1. - 2. * sqx - 2. * sqz)
+        toReturn[2] = np.arcsin(2. * t)
 
     if degrees:
         toReturn[:] = np.degrees(toReturn[:])
