@@ -1494,32 +1494,30 @@ def quatYawPitchRoll(q, degrees=True, out=None, dtype=None):
         Yaw, pitch and roll [yaw, pitch, roll] of quaternion `q`.
 
     """
-    # based off code from 'Conversion Quaternion to Euler' on
-    # http://www.euclideanspace.com
+    # based off code found here:
+    # https://en.wikipedia.org/wiki/Conversion_between_quaternions_and_Euler_angles
+    # Yields the same results as PsychXR's LibOVRPose.getYawPitchRoll method.
     dtype = np.float64 if dtype is None else np.dtype(dtype).type
-    qr = np.asarray(q, dtype=dtype)
-
-    t = q[0] * q[1] + q[2] * q[3]
+    q = np.asarray(q, dtype=dtype)
 
     toReturn = np.zeros((3,), dtype=dtype) if out is None else out
 
-    if t > 0.5 - 1e-7:
-        toReturn[0] = 2. * np.arctan2(qr[0], qr[3])
-        toReturn[1] = 0.0
-        toReturn[2] = np.pi / 2.
+    sinRcosP = 2.0 * (q[3] * q[0] + q[1] * q[2])
+    cosRcosP = 1.0 - 2.0 * (q[0] * q[0] + q[1] * q[1])
 
-    elif t < -0.5 + 1e-7:
-        toReturn[0] = -2. * np.arctan2(qr[0], qr[3])
-        toReturn[1] = 0.0
-        toReturn[2] = -np.pi / 2.
+    toReturn[0] = np.arctan2(sinRcosP, cosRcosP)
 
+    sinp = 2.0 * (q[3] * q[1] - q[2] * q[0])
+
+    if np.fabs(sinp) >= 1.:
+        toReturn[1] = np.copysign(np.pi / 2., sinp)
     else:
-        sqx, sqy, sqz = np.square(qr[:3])
-        toReturn[0] = np.arctan2(2. * qr[1] * qr[3] - 2. * qr[0] * qr[2],
-                                 1. - 2. * sqy - 2. * sqz)
-        toReturn[1] = np.arctan2(2. * qr[0] * qr[3] - 2. * qr[1] * qr[2],
-                                 1. - 2. * sqx - 2. * sqz)
-        toReturn[2] = np.arcsin(2. * t)
+        toReturn[1] = np.arcsin(sinp)
+
+    sinYcosP = 2.0 * (q[3] * q[2] + q[0] * q[1])
+    cosYcosP = 1.0 - 2.0 * (q[1] * q[1] + q[2] * q[2])
+
+    toReturn[2] = np.arctan2(sinYcosP, cosYcosP)
 
     if degrees:
         toReturn[:] = np.degrees(toReturn[:])
