@@ -470,8 +470,8 @@ class Rift(window.Window):
                      'shutting down VR session.')
 
         # switch off persistent HUD features
-        self.perfHudMode('Off')
-        self.stereoDebugHudMode('Off')
+        self.perfHudMode = 'Off'
+        self.stereoDebugHudMode = 'Off'
 
         # clean up allocated LibOVR resources before closing the window
         logging.debug('Destroying mirror texture.')

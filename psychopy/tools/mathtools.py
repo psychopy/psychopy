@@ -1398,8 +1398,15 @@ def quatToAxisAngle(q, degrees=True, dtype=None):
     dtype = np.float64 if dtype is None else np.dtype(dtype).type
     q = normalize(q, dtype=dtype)  # returns ndarray
     v = np.sqrt(np.sum(np.square(q[:3])))
-    axis = q[:3] / v
-    angle = dtype(2.0) * np.arctan2(v, q[3])
+
+    if np.count_nonzero(q[:3]):
+        axis = q[:3] / v
+        angle = dtype(2.0) * np.arctan2(v, q[3])
+    else:
+        axis = np.zeros((3,), dtype=dtype)
+        axis[0] = 1.
+        angle = 0.0
+
     axis += 0.0
 
     return axis, np.degrees(angle) if degrees else angle
@@ -1696,11 +1703,14 @@ def applyQuat(q, points, out=None, dtype=None):
     if out is None:
         dtype = np.float64 if dtype is None else np.dtype(dtype).type
     else:
-        assert points.shape == out.shape
         dtype = np.dtype(out.dtype).type
 
     qin = np.asarray(q, dtype=dtype)
     points = np.asarray(points, dtype=dtype)
+
+    if out is not None:
+        assert points.shape == out.shape
+
     toReturn = np.zeros(points.shape, dtype=dtype) if out is None else out
     pin, pout = np.atleast_2d(points, toReturn)
     pout[:, :] = pin[:, :]  # copy values into output array
@@ -1794,12 +1804,13 @@ def alignTo(v, t, out=None, dtype=None):
     else:
         toReturn = out
 
-    b = bisector(v, t, norm=True, dtype=dtype)
-    cosHalfAngle = dot(v, b, dtype=dtype)
-    qr, v2d, b2d, t2d = np.atleast_2d(toReturn, v, b, t)
+    qr, v2d, t2d = np.atleast_2d(toReturn, v,t)
 
-    nonparallel = cosHalfAngle > 0.0  # rotation is not 180 degrees
-    qr[nonparallel, :3] = cross(v2d[nonparallel], b2d[nonparallel], dtype=dtype)
+    b = bisector(v2d, t2d, norm=True, dtype=dtype)
+    cosHalfAngle = dot(v2d, b, dtype=dtype)
+
+    nonparallel = cosHalfAngle > 0.0 # rotation is not 180 degrees
+    qr[nonparallel, :3] = cross(v2d[nonparallel], b[nonparallel], dtype=dtype)
     qr[nonparallel, 3] = cosHalfAngle[nonparallel]
 
     if np.alltrue(nonparallel):  # don't bother handling special cases
@@ -2649,7 +2660,7 @@ def posOriToMatrix(pos, ori, out=None, dtype=None):
     transMat = translationMatrix(pos, dtype=dtype)
     rotMat = quatToMatrix(ori, dtype=dtype)
 
-    return np.matmul(rotMat, transMat, out=toReturn)
+    return np.matmul(transMat, rotMat, out=toReturn)
 
 
 def transform(pos, ori, points, out=None, dtype=None):
@@ -2825,3 +2836,13 @@ def lensCorrection(xys, coefK=(1.0,), distCenter=(0., 0.), out=None, dtype=None)
 
     return toReturn
 
+if __name__ == "__main__":
+    vec = [[1, 0, 0], [0, 0, -1]]
+    vec2 = [[1, 0, 0], [0, 0, 1]]
+
+    print(alignTo(vec, vec2))
+
+    vec3 = [0, 0, -1]
+    vec4 = [1, 0, 0]
+
+    print(applyQuat(alignTo(vec3, vec4), vec3))

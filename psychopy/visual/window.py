@@ -14,6 +14,7 @@ import os
 import sys
 import weakref
 import atexit
+from itertools import product
 
 from builtins import map
 from builtins import object
@@ -82,6 +83,7 @@ from psychopy.tools.attributetools import attributeSetter, setAttribute
 from psychopy.tools.arraytools import val2array
 from psychopy.tools.monitorunittools import convertToPix
 import psychopy.tools.viewtools as viewtools
+import psychopy.tools.gltools as gltools
 from .text import TextStim
 from .grating import GratingStim
 from .helpers import setColor
@@ -465,7 +467,7 @@ class Window(object):
         self._lights = []
         self._useLights = False
         self._nLights = 0
-        self._ambientLight = numpy.array([0.2, 0.2, 0.2, 1.0],
+        self._ambientLight = numpy.array([0.0, 0.0, 0.0, 1.0],
                                          dtype=numpy.float32)
 
         # stereo rendering settings, set later by the user
@@ -1221,7 +1223,7 @@ class Window(object):
             # don't do this!!!
             win.ambientLight[0] = 0.5
             win.ambientLight[1] = 0.5
-            win.ambientLight[1] = 0.5
+            win.ambientLight[2] = 0.5
 
         """
         # TODO - use signed color and colorspace instead
@@ -1237,32 +1239,24 @@ class Window(object):
     def lights(self):
         """Scene lights.
 
-        This is specified as an array of `~psychopy.tools.gltools.LightSource`
+        This is specified as an array of `~psychopy.visual.LightSource`
         objects. If a single value is given, it will be converted to a `list`
         before setting. Set `useLights` to `True` before rendering to enable
         lighting/shading on subsequent objects. If `lights` is `None` or an
         empty `list`, no lights will be enabled if `useLights=True`, however,
-        the ambient light set with `ambientLight` will be used.
-
-        Legacy lights are transformed by the present `GL_MODELVIEW` matrix.
-        Setting `lights` will result in their positions being transformed by it.
-        If you want lights to appear at the specified positions in world space,
-        make sure the current matrix defines the view/eye transformation when
-        setting `lights`. This does not affect directional lights unless the
-        matrix has a rotation. This transformation does not affect positions of
-        lights in shaders, as the transformation in explicitly done.
+        the scene ambient light set with `ambientLight` will be still be used.
 
         Examples
         --------
         Create a directional light source and add it to scene lights::
 
-            dirLight = gltools.LightSource((0., 1., 0., 0.))
+            dirLight = gltools.LightSource((0., 1., 0.), lightType='directional')
             win.lights = dirLight  # `win.lights` will be a list when accessed!
 
         Multiple lights can be specified by passing values as a list::
 
-            myLights = [gltools.LightSource((0., 5., 0., 1.)),
-                        gltools.LightSource((-2., -2., 0., 1.))
+            myLights = [gltools.LightSource((0., 5., 0.)),
+                        gltools.LightSource((-2., -2., 0.))
             win.lights = myLights
 
         """
@@ -1298,16 +1292,21 @@ class Window(object):
             enumLight = GL.GL_LIGHT0 + index
 
             # convert data in light class to ctypes
-            pos = numpy.ctypeslib.as_ctypes(light.pos)
-            diffuse = numpy.ctypeslib.as_ctypes(light.diffuse)
-            specular = numpy.ctypeslib.as_ctypes(light.specular)
-            ambient = numpy.ctypeslib.as_ctypes(light.ambient)
+            #pos = numpy.ctypeslib.as_ctypes(light.pos)
+            diffuse = numpy.ctypeslib.as_ctypes(light._diffuseRGB)
+            specular = numpy.ctypeslib.as_ctypes(light._specularRGB)
+            ambient = numpy.ctypeslib.as_ctypes(light._ambientRGB)
 
             # pass values to OpenGL
-            GL.glLightfv(enumLight, GL.GL_POSITION, pos)
+            #GL.glLightfv(enumLight, GL.GL_POSITION, pos)
             GL.glLightfv(enumLight, GL.GL_DIFFUSE, diffuse)
             GL.glLightfv(enumLight, GL.GL_SPECULAR, specular)
             GL.glLightfv(enumLight, GL.GL_AMBIENT, ambient)
+
+            constant, linear, quadratic = light._kAttenuation
+            GL.glLightf(enumLight, GL.GL_CONSTANT_ATTENUATION, constant)
+            GL.glLightf(enumLight, GL.GL_LINEAR_ATTENUATION, linear)
+            GL.glLightf(enumLight, GL.GL_QUADRATIC_ATTENUATION, quadratic)
 
             # enable the light
             GL.glEnable(enumLight)
@@ -1319,7 +1318,14 @@ class Window(object):
         Lights will be enabled if using legacy OpenGL lighting. Stimuli using
         shaders for lighting should check if `useLights` is `True` since this
         will have no effect on them, and disable or use a no lighting shader
-        instead
+        instead. Lights will be transformed to the current view matrix upon
+        setting to `True`.
+
+        Lights are transformed by the present `GL_MODELVIEW` matrix. Setting
+        `useLights` will result in their positions being transformed by it.
+        If you want lights to appear at the specified positions in world space,
+        make sure the current matrix defines the view/eye transformation when
+        setting `useLights=True`.
 
         This flag is reset to `False` at the beginning of each frame. Should be
         `False` if rendering 2D stimuli or else the colors will be incorrect.
@@ -1334,6 +1340,15 @@ class Window(object):
         # `lights` attribute directly to setup lighting uniforms.
         if self._useLights and self._lights:
             GL.glEnable(GL.GL_LIGHTING)
+            # make sure specular lights are computed relative to eye position,
+            # this is more realistic than the default. Does not affect shaders.
+            GL.glLightModeli(GL.GL_LIGHT_MODEL_LOCAL_VIEWER, GL.GL_TRUE)
+
+            # update light positions for current model matrix
+            for index, light in enumerate(self._lights):
+                enumLight = GL.GL_LIGHT0 + index
+                pos = numpy.ctypeslib.as_ctypes(light.pos)
+                GL.glLightfv(enumLight, GL.GL_POSITION, pos)
         else:
             # disable lights
             GL.glDisable(GL.GL_LIGHTING)
@@ -1355,7 +1370,7 @@ class Window(object):
         --------
         Call `updateLights` if you modified lights directly like this::
 
-            win.lights[1].diffuse = [1., 0., 0., 1.]
+            win.lights[1].diffuseColor = [1., 0., 0.]
             win.updateLights(1)
 
         """
@@ -1374,13 +1389,13 @@ class Window(object):
             light = self._lights[index]
 
             # convert data in light class to ctypes
-            pos = numpy.ctypeslib.as_ctypes(light.pos)
+            # pos = numpy.ctypeslib.as_ctypes(light.pos)
             diffuse = numpy.ctypeslib.as_ctypes(light.diffuse)
             specular = numpy.ctypeslib.as_ctypes(light.specular)
             ambient = numpy.ctypeslib.as_ctypes(light.ambient)
 
             # pass values to OpenGL
-            GL.glLightfv(enumLight, GL.GL_POSITION, pos)
+            # GL.glLightfv(enumLight, GL.GL_POSITION, pos)
             GL.glLightfv(enumLight, GL.GL_DIFFUSE, diffuse)
             GL.glLightfv(enumLight, GL.GL_SPECULAR, specular)
             GL.glLightfv(enumLight, GL.GL_AMBIENT, ambient)
@@ -1393,7 +1408,7 @@ class Window(object):
         rectangle in pixels.
 
         This is typically set to cover the whole buffer, however it can be
-        changed for application like multi-view rendering.
+        changed for applications like multi-view rendering.
 
         Examples
         --------
@@ -2442,6 +2457,47 @@ class Window(object):
             _shaders.vertSimple, _shaders.fragImageStim)
         self._shaders['imageStim_adding'] = _shaders.compileProgram(
             _shaders.vertSimple, _shaders.fragImageStim_adding)
+        self._shaders['stim3d_phong'] = {}
+
+        # Create shader flags, these are used as keys to pick the appropriate
+        # shader for the given material and lighting configuration.
+        shaderFlags = []
+        for i in range(0, 8 + 1):
+            for j in product((True, False), repeat=1):
+                shaderFlags.append((i, *j))
+
+        # Compile shaders based on generated flags.
+        for flag in shaderFlags:
+            # Define GLSL preprocessor values to enable code paths for specific
+            # material properties.
+            srcDefs = {'MAX_LIGHTS': flag[0]}
+
+            if flag[1]:  # has diffuse texture map
+                srcDefs['DIFFUSE_TEXTURE'] = 1
+
+            # embed #DEFINE statements in GLSL source code
+            vertSrc = gltools.embedShaderSourceDefs(
+                _shaders.vertPhongLighting, srcDefs)
+            fragSrc = gltools.embedShaderSourceDefs(
+                _shaders.fragPhongLighting, srcDefs)
+
+            # build a shader program
+            prog = gltools.createProgramObjectARB()
+            vertexShader = gltools.compileShaderObjectARB(
+                vertSrc, GL.GL_VERTEX_SHADER_ARB)
+            fragmentShader = gltools.compileShaderObjectARB(
+                fragSrc, GL.GL_FRAGMENT_SHADER_ARB)
+
+            gltools.attachObjectARB(prog, vertexShader)
+            gltools.attachObjectARB(prog, fragmentShader)
+            gltools.linkProgramObjectARB(prog)
+            gltools.detachObjectARB(prog, vertexShader)
+            gltools.detachObjectARB(prog, fragmentShader)
+            gltools.deleteObjectARB(vertexShader)
+            gltools.deleteObjectARB(fragmentShader)
+
+            # set the flag
+            self._shaders['stim3d_phong'][flag] = prog
 
     def _setupFrameBuffer(self):
 
