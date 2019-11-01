@@ -47,7 +47,8 @@ __all__ = ['normalize',
            'matrixToQuat',
            'lensCorrection',
            'matrixFromEulerAngles',
-           'alignTo']
+           'alignTo',
+           'quatYawPitchRoll']
 
 import numpy as np
 import functools
@@ -1460,6 +1461,66 @@ def quatFromAxisAngle(axis, angle, degrees=True, dtype=None):
     np.multiply(axis, np.sin(halfRad), out=toReturn[:3])
     toReturn[3] = np.cos(halfRad)
     toReturn += 0.0  # remove negative zeros
+
+    return toReturn
+
+
+def quatYawPitchRoll(q, degrees=True, out=None, dtype=None):
+    """Get the yaw, pitch, and roll of a quaternion's orientation relative to
+    the world -Z axis.
+
+    You can multiply the quaternion by the inverse of some other one to make the
+    returned values referenced to a local coordinate system.
+
+    Parameters
+    ----------
+    q : tuple, list or ndarray of float
+        Quaternion in form [x, y, z, w] where w is real and x, y, z
+        are imaginary components.
+    degrees : bool, optional
+        Indicate angles are to be returned in degrees, otherwise they will be
+        returned in radians.
+    out : ndarray
+        Optional output array. Must have same `shape` and `dtype` as what is
+        expected to be returned by this function of `out` was not specified.
+    dtype : dtype or str, optional
+        Data type for computations can either be 'float32' or 'float64'. If
+        `out` is specified, the data type of `out` is used and this argument is
+        ignored. If `out` is not provided, 'float64' is used by default.
+
+    Returns
+    -------
+    ndarray
+        Yaw, pitch and roll [yaw, pitch, roll] of quaternion `q`.
+
+    """
+    # based off code found here:
+    # https://en.wikipedia.org/wiki/Conversion_between_quaternions_and_Euler_angles
+    # Yields the same results as PsychXR's LibOVRPose.getYawPitchRoll method.
+    dtype = np.float64 if dtype is None else np.dtype(dtype).type
+    q = np.asarray(q, dtype=dtype)
+
+    toReturn = np.zeros((3,), dtype=dtype) if out is None else out
+
+    sinRcosP = 2.0 * (q[3] * q[0] + q[1] * q[2])
+    cosRcosP = 1.0 - 2.0 * (q[0] * q[0] + q[1] * q[1])
+
+    toReturn[0] = np.arctan2(sinRcosP, cosRcosP)
+
+    sinp = 2.0 * (q[3] * q[1] - q[2] * q[0])
+
+    if np.fabs(sinp) >= 1.:
+        toReturn[1] = np.copysign(np.pi / 2., sinp)
+    else:
+        toReturn[1] = np.arcsin(sinp)
+
+    sinYcosP = 2.0 * (q[3] * q[2] + q[0] * q[1])
+    cosYcosP = 1.0 - 2.0 * (q[1] * q[1] + q[2] * q[2])
+
+    toReturn[2] = np.arctan2(sinYcosP, cosYcosP)
+
+    if degrees:
+        toReturn[:] = np.degrees(toReturn[:])
 
     return toReturn
 

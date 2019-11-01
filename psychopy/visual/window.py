@@ -457,11 +457,12 @@ class Window(object):
         self._farClip = 100.0
 
         # 3D rendering related attributes
-        self.draw3d = False
         self.frontFace = 'ccw'
         self.depthFunc = 'lequal'
         self.depthMask = False
+        self.cullFace = False
         self.cullFaceMode = 'back'
+        self.draw3d = False
 
         # scene light sources
         self._lights = []
@@ -1753,8 +1754,13 @@ class Window(object):
                 ctypes.POINTER(ctypes.c_float))
             GL.glLoadTransposeMatrixf(viewMat)
 
+        oldDepthMask = self.depthMask
         if clearDepth:
+            GL.glDepthMask(GL.GL_TRUE)
             GL.glClear(GL.GL_DEPTH_BUFFER_BIT)
+
+            if oldDepthMask is False:   # return to old state if needed
+                GL.glDepthMask(GL.GL_FALSE)
 
     def resetEyeTransform(self, clearDepth=True):
         """Restore the default projection and view settings to PsychoPy
@@ -2119,11 +2125,19 @@ class Window(object):
     @draw3d.setter
     def draw3d(self, value):
         if value is True:
-            self.depthTest = True
-            self.cullFace = True
+            if self.depthMask is False:
+                self.depthMask = True
+            if self.depthTest is False:
+                self.depthTest = True
+            if self.cullFace is False:
+                self.cullFace = True
         elif value is False:
-            self.depthTest = False
-            self.cullFace = False
+            if self.depthMask is True:
+                self.depthMask = False
+            if self.depthTest is True:
+                self.depthTest = False
+            if self.cullFace is True:
+                self.cullFace = False
         else:
             raise TypeError('Value must be type `bool`.')
 
