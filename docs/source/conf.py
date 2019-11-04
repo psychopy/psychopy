@@ -38,11 +38,11 @@ source_suffix = '.rst'
 #source_encoding = 'utf-8'
 
 # The master toctree document.
-master_doc = 'index'
+master_doc = 'documentation'
 
 # General information about the project.
 project = u'PsychoPy'
-copyright = u'2019, Jonathan Peirce'
+copyright = u'2002-18, Jonathan Peirce; 2019 Open Science Tools Ltd.'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
