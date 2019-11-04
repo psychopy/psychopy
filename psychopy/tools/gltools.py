@@ -991,7 +991,7 @@ def createQueryObject(target=GL.GL_TIME_ELAPSED):
         drawVAO(shape0, GL_TRIANGLES)  # draw the first object
 
         # check if the object was completely occluded
-        qOcclusion = createQueryObject(GL_ANY_SAMPLES_PASSED​​)
+        qOcclusion = createQueryObject(GL_ANY_SAMPLES_PASSED)
 
         # draw the next shape within query context
         beginQuery(qOcclusion)
