@@ -1,0 +1,10 @@
+name: psychopy
+channels:
+- conda-forge
+dependencies:
+- python=3.6
+- psychopy
+- pip:
+  - psychtoolbox
+  - pygame
+  - pyparallel
