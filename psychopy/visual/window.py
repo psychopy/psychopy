@@ -1744,15 +1744,17 @@ class Window(object):
         # apply the projection and view transformations
         if hasattr(self, '_projectionMatrix'):
             GL.glMatrixMode(GL.GL_PROJECTION)
+            GL.glLoadIdentity()
             projMat = self._projectionMatrix.ctypes.data_as(
                 ctypes.POINTER(ctypes.c_float))
-            GL.glLoadTransposeMatrixf(projMat)
+            GL.glMultTransposeMatrixf(projMat)
 
         if hasattr(self, '_viewMatrix'):
             GL.glMatrixMode(GL.GL_MODELVIEW)
+            GL.glLoadIdentity()
             viewMat = self._viewMatrix.ctypes.data_as(
                 ctypes.POINTER(ctypes.c_float))
-            GL.glLoadTransposeMatrixf(viewMat)
+            GL.glMultTransposeMatrixf(viewMat)
 
         oldDepthMask = self.depthMask
         if clearDepth:
