@@ -1180,14 +1180,31 @@ class Window(object):
         if clear:
             self.clearBuffer()
 
-    def clearBuffer(self):
+    def clearBuffer(self, color=True, depth=True, stencil=True):
         """Clear the back buffer (to which you are currently drawing) without
         flipping the window. Useful if you want to generate movie sequences
         from the back buffer without actually taking the time to flip the
         window.
+
+        Parameters
+        ----------
+        color, depth, stencil : bool
+            Buffers to clear.
+
         """
+        clearBufferBits = GL.GL_NONE
+
+        if color:
+            clearBufferBits |= GL.GL_COLOR_BUFFER_BIT
+
+        if depth:
+            clearBufferBits |= GL.GL_DEPTH_BUFFER_BIT
+
+        if stencil:
+            clearBufferBits |= GL.GL_STENCIL_BUFFER_BIT
+
         # reset returned buffer for next frame
-        GL.glClear(GL.GL_COLOR_BUFFER_BIT)
+        GL.glClear(clearBufferBits)
 
     @property
     def size(self):
@@ -1401,6 +1418,16 @@ class Window(object):
             GL.glLightfv(enumLight, GL.GL_SPECULAR, specular)
             GL.glLightfv(enumLight, GL.GL_AMBIENT, ambient)
 
+    def resetViewport(self):
+        """Reset the viewport to cover the whole framebuffer.
+
+        Set the viewport to match the dimensions of the back buffer or
+        framebuffer (if `useFBO=True`). The scissor rectangle is also set to
+        match the dimensions of the viewport.
+
+        """
+        self.scissor = self.viewport = self.frameBufferSize
+
     @property
     def viewport(self):
         """Viewport rectangle (x, y, w, h) for the current draw buffer.
@@ -1409,7 +1436,10 @@ class Window(object):
         rectangle in pixels.
 
         This is typically set to cover the whole buffer, however it can be
-        changed for applications like multi-view rendering.
+        changed for applications like multi-view rendering. Stimuli will draw
+        according to the new shape of the viewport, for instance and stimulus
+        with position (0, 0) will be drawn at the center of the viewport, not
+        the window.
 
         Examples
         --------
@@ -1688,7 +1718,8 @@ class Window(object):
         ----------
         applyTransform : bool
             Apply transformations after computing them in immediate mode. Same
-            as calling :py:attr:`~Window.applyEyeTransform()` afterwards.
+            as calling :py:attr:`~Window.applyEyeTransform()` afterwards if
+            `False`.
         clearDepth : bool, optional
             Clear the depth buffer.
 
@@ -1740,6 +1771,17 @@ class Window(object):
             Clear the depth buffer. This may be required prior to rendering 3D
             objects.
 
+        Examples
+        --------
+        Using a custom view and projection matrix::
+
+            # Must be called every frame since these values are reset after
+            # `flip()` is called!
+            win.viewMatrix = viewtools.lookAt( ... )
+            win.projectionMatrix = viewtools.perspectiveProjectionMatrix( ... )
+            win.applyEyeTransform()
+            # draw 3D objects here ...
+
         """
         # apply the projection and view transformations
         if hasattr(self, '_projectionMatrix'):
@@ -1770,11 +1812,29 @@ class Window(object):
         GratingStim, ImageStim, Rect, etc.) if any eye transformations were
         applied for the stimuli to be drawn correctly.
 
+        Parameters
+        ----------
+        clearDepth : bool
+            Clear the depth buffer upon reset. This ensures successive draw
+            commands are not affected by previous data written to the depth
+            buffer. Default is `True`.
+
         Notes
         -----
         * Calling :py:attr:`~Window.flip()` automatically resets the view and
           projection to defaults. So you don't need to call this unless you are
-          mixing views.
+          mixing 3D and 2D stimuli.
+
+        Examples
+        --------
+        Going between 3D and 2D stimuli::
+
+            # 2D stimuli can be drawn before setting a perspective projection
+            win.setPerspectiveView()
+            # draw 3D stimuli here ...
+            win.resetEyeTransform()
+            # 2D stimuli can be drawn here again ...
+            win.flip()
 
         """
         # should eventually have the same effect as calling _onResize(), so we
