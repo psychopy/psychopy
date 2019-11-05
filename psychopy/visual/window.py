@@ -1181,15 +1181,33 @@ class Window(object):
             self.clearBuffer()
 
     def clearBuffer(self, color=True, depth=True, stencil=True):
-        """Clear the back buffer (to which you are currently drawing) without
-        flipping the window. Useful if you want to generate movie sequences
-        from the back buffer without actually taking the time to flip the
-        window.
+        """Clear the present buffer (to which you are currently drawing) without
+        flipping the window.
+
+        Useful if you want to generate movie sequences from the back buffer
+        without actually taking the time to flip the window.
+
+        Set `color` prior to clearing to set the color to clear the color buffer
+        to. By default, the depth buffer is cleared to a value of 1.0.
 
         Parameters
         ----------
         color, depth, stencil : bool
             Buffers to clear.
+
+        Examples
+        --------
+        Clear the color buffer to a specified color::
+
+            win.color = (1, 0, 0)
+            win.clearBuffer(color=True)
+
+        Clear only the depth buffer, `depthMask` must be `True` or else this
+        will have no effect. Depth mask is usually `True` by default, but
+        may change::
+
+            win.depthMask = True
+            win.clearBuffer(color=False, depth=True, stencil=False)
 
         """
         clearBufferBits = GL.GL_NONE
@@ -1847,6 +1865,118 @@ class Window(object):
                 -1, 1, -1, 1, -1, 1, dtype=numpy.float32)
 
         self.applyEyeTransform(clearDepth)
+
+    def setReadBuffer(self, buffer):
+        """Set the buffer to read values from.
+
+        Parameters
+        ----------
+        buffer : str
+            Name of the buffer to read from. Values can be 'back', 'front',
+            'left', 'right' or `None`.
+
+        """
+        if buffer == 'back' and self.useFBO:
+            GL.glReadBuffer(GL.GL_COLOR_ATTACHMENT0_EXT)
+        elif buffer == 'back':
+            GL.glReadBuffer(GL.GL_BACK)
+        elif buffer == 'front':
+            if self.useFBO:
+                GL.glBindFramebufferEXT(GL.GL_FRAMEBUFFER_EXT, 0)
+            GL.glReadBuffer(GL.GL_FRONT)
+        elif buffer is None:
+            GL.glReadBuffer(GL.GL_NONE)
+        else:
+            raise ValueError("Requested read from buffer '{}' but should be "
+                             "'front', 'back' or `None`.".format(buffer))
+
+    def setDrawBuffer(self, buffer):
+        """Set the buffer to draw to.
+
+        Parameters
+        ----------
+        buffer : str
+            Name of the buffer to draw to. Values can be 'back', 'front',
+            'left', 'right' or `None`. If `None`, values drawn to the buffer
+            are discarded.
+
+        """
+        if buffer == 'back' and self.useFBO:
+            GL.glDrawBuffer(GL.GL_COLOR_ATTACHMENT0_EXT)
+        elif buffer == 'back':
+            GL.glDrawBuffer(GL.GL_BACK)
+        elif buffer == 'front':
+            if self.useFBO:
+                GL.glBindFramebufferEXT(GL.GL_FRAMEBUFFER_EXT, 0)
+            GL.glDrawBuffer(GL.GL_FRONT)
+        elif buffer is None:
+            GL.glDrawBuffer(GL.GL_NONE)
+        else:
+            raise ValueError("Requested draw to buffer '{}' but should be "
+                             "'front' or 'back'".format(buffer))
+
+    def blitBuffer(self, srcRect=None, dstRect=None, filter='nearest',
+                   color=True, depth=False, stencil=False):
+        """Blit pixel data from one framebuffer to another.
+
+        This copies pixels between from the buffer defined by `setReadBuffer`
+        to the one specified by `setDrawBuffer`. You can specify rectangles
+        on the buffer defining sub-regions to copy. If not specified, the
+        current `viewport` is used to define the rectangle.
+
+        Blitting can be used to resolve multisample framebuffers. This is
+        needed to use multisample anti-aliasing (MSAA) on FBOs.
+
+        Parameters
+        ----------
+        srcRect : array_like
+            Source rectangle [x, y, w, h] on the buffer.
+        dstRect : array_like
+            Destination rectangle [x, y, w, h] on the buffer.
+        filter : str
+            Filtering to use, values can be 'nearest' or 'linear'.
+        color, depth, stencil : bool
+            Which buffers associated with the framebuffer to blit. By default,
+            only color values are copied.
+
+        Examples
+        --------
+        Copy the contents of the front buffer to the back buffer::
+
+            win.setReadBuffer('front')
+            win.setDrawBuffer('back')
+            win.blitBuffer()
+
+        """
+        # filtering to use
+        if filter == 'nearest':
+            glFilter = GL.GL_NEAREST
+        elif filter == 'linear':
+            glFilter = GL.GL_LINEAR
+        else:
+            raise ValueError(
+                "Value for `filter` must be 'linear' or 'nearest'.")
+
+        # buffers to copy over
+        blitBufferBits = GL.GL_NONE
+        if color:
+            blitBufferBits |= GL.GL_COLOR_BUFFER_BIT
+        if depth:
+            blitBufferBits |= GL.GL_DEPTH_BUFFER_BIT
+        if stencil:
+            blitBufferBits |= GL.GL_STENCIL_BUFFER_BIT
+
+        # source and destination rectangles
+        if srcRect is None:
+            srcRect = self.viewport
+
+        if dstRect is None:
+            dstRect = self.viewport
+
+        GL.glBlitFramebuffer(
+            int(srcRect[0]), int(srcRect[1]), int(srcRect[2]), int(srcRect[3]),
+            int(dstRect[0]), int(dstRect[1]), int(dstRect[2]), int(dstRect[3]),
+            blitBufferBits, glFilter)
 
     def getMovieFrame(self, buffer='front'):
         """Capture the current Window as an image.
