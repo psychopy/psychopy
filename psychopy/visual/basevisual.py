@@ -299,19 +299,21 @@ class ColorMixin(object):
         respect to the stimulus' current colorSpace. If color is given as a
         single value (scalar) then this will be applied to all 3 channels.
 
-        Examples::
-                # ... for whatever stim you have:
-                stim.color = 'white'
-                stim.color = 'RoyalBlue'  # (the case is actually ignored)
-                stim.color = '#DDA0DD'  # DDA0DD is hexadecimal for plum
-                stim.color = [1.0, -1.0, -1.0]  # if stim.colorSpace='rgb':
-                                # a red color in rgb space
-                stim.color = [0.0, 45.0, 1.0]  # if stim.colorSpace='dkl':
-                                # DKL space with elev=0, azimuth=45
-                stim.color = [0, 0, 255]  # if stim.colorSpace='rgb255':
-                                # a blue stimulus using rgb255 space
-                stim.color = 255  # interpreted as (255, 255, 255)
-                                  # which is white in rgb255.
+        Examples
+        --------
+        For whatever stim you have::
+
+            stim.color = 'white'
+            stim.color = 'RoyalBlue'  # (the case is actually ignored)
+            stim.color = '#DDA0DD'  # DDA0DD is hexadecimal for plum
+            stim.color = [1.0, -1.0, -1.0]  # if stim.colorSpace='rgb':
+                            # a red color in rgb space
+            stim.color = [0.0, 45.0, 1.0]  # if stim.colorSpace='dkl':
+                            # DKL space with elev=0, azimuth=45
+            stim.color = [0, 0, 255]  # if stim.colorSpace='rgb255':
+                            # a blue stimulus using rgb255 space
+            stim.color = 255  # interpreted as (255, 255, 255)
+                              # which is white in rgb255.
 
 
         :ref:`Operations <attrib-operations>` work as normal for all numeric

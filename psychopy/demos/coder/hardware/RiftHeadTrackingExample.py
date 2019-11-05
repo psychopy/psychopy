@@ -1,23 +1,43 @@
 # Oculus Rift head-mounted display example for rendering 3D with head tracking.
 # Press the 'q' key or use the application GUI to exit. Press 'r' to recenter
-# the HMD's view. Requires PsychXR to be installed.
+# the HMD's view. Requires PsychXR 0.2+ to be installed.
 #
 # This file is public domain.
 #
 from psychopy import visual, event, core
-from psychopy.tools.rifttools import *  # math types are accessed from here
+from psychopy.tools import arraytools, rifttools
 import pyglet.gl as GL
-import math
 
 # Create a VR session, treat the returned object just like a regular window.
-# Change headLocked to True to disable head tracking, increase the number of
-# samples for anti-aliasing, could be 2, 4, 6, 8, 16 or 32 depending on your
-# hardware.
-hmd = visual.Rift(headLocked=False, samples=1)
+# Increase the number of samples for anti-aliasing, could be 2, 4, 6, 8, 16 or
+# 32 depending on your hardware.
+hmd = visual.Rift(samples=1)
+
+# Create a LibOVRPose object to represent the rigid body pose of the triangle in
+# the scene. The position of the triangle will be 2 meters away from the user at
+# eye height which we obtain from the HMD's settings.
+trianglePosition = (0., hmd.eyeHeight, -2.)
+trianglePose = rifttools.LibOVRPose(trianglePosition)
+
+# convert the pose to a view transformation matrix
+translationMatrix = trianglePose.getModelMatrix()
+
+# convert to format Pyglet's GL libraries accept
+translationMatrix = arraytools.array2pointer(translationMatrix)
 
 # loop until the user quits the app through the GUI menu
 stopApp = False
 while not stopApp:
+    # Get the current tracking state for the HMD which contains lots of
+    # information about the current pose and dynamics of the user's head and
+    # hands, however we are only interested in head pose for now.
+    trackingState = hmd.getTrackingState()
+    headPose = trackingState.headPose.thePose
+
+    # Calculate the eye poses from the current head pose, must be done before
+    # drawing anything or else the application hangs.
+    hmd.calcEyePoses(headPose)
+
     for i in ('left', 'right'):
         hmd.setBuffer(i)  # select the eye buffer to draw to
 
@@ -35,27 +55,16 @@ while not stopApp:
         # 3D types interface. For instance, hmd.headPose.rotation is a
         # Quaternion type with method "getYawPitchRoll".
         #
-        yaw, pitch, roll = [math.degrees(i) for i in
-                            hmd.headPose.rotation.getYawPitchRoll()]
+        # yaw, pitch, roll = [math.degrees(i) for i in headPose.getYawPitchRoll()]
         # print(yaw, pitch, roll)
 
         # You can get the position of the HMD in the scene as follows,
-        x = hmd.headPose.translation.x
-        y = hmd.headPose.translation.y
-        z = hmd.headPose.translation.z
+        # x, y, z = headPose.pos
         # print(x, y, z)
 
         # use OpenGL rendering commands here...
-
-        # Just draw a triangle 2 meters away. Let's use the ovrMatrix4f type to
-        # handle the translation. You can do whatever you like to the position
-        # every frame.
-        #
-        triangle_origin = ovrVector3f(0.0, 0.0, -2.0)
-        M = ovrMatrix4f.translation(triangle_origin)
-
         GL.glPushMatrix()
-        GL.glMultMatrixf(M.ctypes)  # multiply the scene by the matrix
+        GL.glMultTransposeMatrixf(translationMatrix)
         GL.glBegin(GL.GL_TRIANGLES)
         GL.glColor3f(1, 0, 0)
         GL.glVertex3f(-1.0, -1.0, 0.0)
@@ -74,6 +83,7 @@ while not stopApp:
         stopApp = True
     elif event.getKeys('r') or hmd.shouldRecenter:
         hmd.recenterTrackingOrigin()
+
 
 # cleanly end the session
 core.quit()

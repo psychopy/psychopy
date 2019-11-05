@@ -230,9 +230,13 @@ class Routine(list):
     def writeRoutineBeginCodeJS(self, buff, modular):
 
         # create the frame loop for this routine
-        code = ("\nfunction %(name)sRoutineBegin() {\n" % self.params)
+
+        code = ("\nfunction %(name)sRoutineBegin(trials) {\n" % self.params)
         buff.writeIndentedLines(code)
         buff.setIndentLevel(1, relative=True)
+        buff.writeIndentedLines("return function () {\n")
+        buff.setIndentLevel(1, relative=True)
+
         code = ("//------Prepare to start Routine '%(name)s'-------\n"
                 "t = 0;\n"
                 "%(name)sClock.reset(); // clock\n"
@@ -273,16 +277,21 @@ class Routine(list):
         buff.writeIndentedLines(code)
         buff.setIndentLevel(-1, relative=True)
         buff.writeIndentedLines("}\n")
-
+        buff.setIndentLevel(-1, relative=True)
+        buff.writeIndentedLines("}\n")
 
     def writeEachFrameCodeJS(self, buff, modular):
         # can we use non-slip timing?
         maxTime, useNonSlip = self.getMaxTime()
 
         # write code for each frame
-        code = ("\nfunction %(name)sRoutineEachFrame() {\n" % self.params)
+
+        code = ("\nfunction %(name)sRoutineEachFrame(trials) {\n" % self.params)
         buff.writeIndentedLines(code)
         buff.setIndentLevel(1, relative=True)
+        buff.writeIndentedLines("return function () {\n")
+        buff.setIndentLevel(1, relative=True)
+
         code = ("//------Loop for each frame of Routine '%(name)s'-------\n"
                 "let continueRoutine = true; // until we're told otherwise\n"
                 "// get current time\n"
@@ -305,7 +314,7 @@ class Routine(list):
             code = ("// check for quit (typically the Esc key)\n"
                     "if (psychoJS.experiment.experimentEnded "
                     "|| psychoJS.eventManager.getKeys({keyList:['escape']}).length > 0) {\n"
-                    "  return psychoJS.quit('The [Escape] key was pressed. Goodbye!', false);\n"
+                    "  return quitPsychoJS('The [Escape] key was pressed. Goodbye!', false);\n"
                     "}\n\n")
             buff.writeIndentedLines(code)
 
@@ -344,7 +353,8 @@ class Routine(list):
                 "  return Scheduler.Event.NEXT;\n"
                 "}\n")
         buff.writeIndentedLines(code)
-
+        buff.setIndentLevel(-1, relative=True)
+        buff.writeIndentedLines("}\n")
         buff.setIndentLevel(-1, relative=True)
         buff.writeIndentedLines("}\n")
 
@@ -352,8 +362,10 @@ class Routine(list):
         # can we use non-slip timing?
         maxTime, useNonSlip = self.getMaxTime()
 
-        code = ("\nfunction %(name)sRoutineEnd() {\n" % self.params)
+        code = ("\nfunction %(name)sRoutineEnd(trials) {\n" % self.params)
         buff.writeIndentedLines(code)
+        buff.setIndentLevel(1, relative=True)
+        buff.writeIndentedLines("return function () {\n")
         buff.setIndentLevel(1, relative=True)
 
         if modular:
@@ -383,6 +395,8 @@ class Routine(list):
             buff.writeIndentedLines(code % self.name)
 
         buff.writeIndented('return Scheduler.Event.NEXT;\n')
+        buff.setIndentLevel(-1, relative=True)
+        buff.writeIndentedLines("}\n")
         buff.setIndentLevel(-1, relative=True)
         buff.writeIndentedLines("}\n")
 

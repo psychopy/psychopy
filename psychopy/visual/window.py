@@ -14,6 +14,7 @@ import os
 import sys
 import weakref
 import atexit
+from itertools import product
 
 from builtins import map
 from builtins import object
@@ -82,6 +83,7 @@ from psychopy.tools.attributetools import attributeSetter, setAttribute
 from psychopy.tools.arraytools import val2array
 from psychopy.tools.monitorunittools import convertToPix
 import psychopy.tools.viewtools as viewtools
+import psychopy.tools.gltools as gltools
 from .text import TextStim
 from .grating import GratingStim
 from .helpers import setColor
@@ -455,11 +457,19 @@ class Window(object):
         self._farClip = 100.0
 
         # 3D rendering related attributes
-        self.draw3d = False
         self.frontFace = 'ccw'
         self.depthFunc = 'lequal'
         self.depthMask = False
+        self.cullFace = False
         self.cullFaceMode = 'back'
+        self.draw3d = False
+
+        # scene light sources
+        self._lights = []
+        self._useLights = False
+        self._nLights = 0
+        self._ambientLight = numpy.array([0.0, 0.0, 0.0, 1.0],
+                                         dtype=numpy.float32)
 
         # stereo rendering settings, set later by the user
         self._eyeOffset = 0.0
@@ -924,6 +934,9 @@ class Window(object):
             GL.glMatrixMode(GL.GL_MODELVIEW)
             GL.glLoadIdentity()
 
+        # disable lighting
+        self.useLights = False
+
         flipThisFrame = self._startOfFlip()
         if self.useFBO and flipThisFrame:
             self.draw3d = False  # disable 3d drawing
@@ -1198,21 +1211,211 @@ class Window(object):
         return self._viewport[2] / float(self._viewport[3])
 
     @property
-    def viewport(self):
-        """Viewport rectangle (x, y, w, h) for the current draw buffer.
-
-        Values `x` and `y` define the origin, and `w` and `h` the size
-        of the rectangle in pixels.
-
-        This is typically set to cover the whole buffer, however it can
-        be changed for application like multi-view rendering.
+    def ambientLight(self):
+        """Ambient light color for the scene [r, g, b, a]. Values range from 0.0
+        to 1.0. Only applicable if `useLights` is `True`.
 
         Examples
         --------
-        Constrain drawing to the left and right halves of the screen,
-        where stimuli will be drawn centered on the new rectangle. Note
-        that you need to set both the viewport and the scissor
-        rectangle::
+        Setting the ambient light color::
+
+            win.ambientLight = [0.5, 0.5, 0.5]
+
+            # don't do this!!!
+            win.ambientLight[0] = 0.5
+            win.ambientLight[1] = 0.5
+            win.ambientLight[2] = 0.5
+
+        """
+        # TODO - use signed color and colorspace instead
+        return self._ambientLight[:3]
+
+    @ambientLight.setter
+    def ambientLight(self, value):
+        self._ambientLight[:3] = value
+        GL.glLightModelfv(GL.GL_LIGHT_MODEL_AMBIENT,
+                          numpy.ctypeslib.as_ctypes(self._ambientLight))
+
+    @property
+    def lights(self):
+        """Scene lights.
+
+        This is specified as an array of `~psychopy.visual.LightSource`
+        objects. If a single value is given, it will be converted to a `list`
+        before setting. Set `useLights` to `True` before rendering to enable
+        lighting/shading on subsequent objects. If `lights` is `None` or an
+        empty `list`, no lights will be enabled if `useLights=True`, however,
+        the scene ambient light set with `ambientLight` will be still be used.
+
+        Examples
+        --------
+        Create a directional light source and add it to scene lights::
+
+            dirLight = gltools.LightSource((0., 1., 0.), lightType='directional')
+            win.lights = dirLight  # `win.lights` will be a list when accessed!
+
+        Multiple lights can be specified by passing values as a list::
+
+            myLights = [gltools.LightSource((0., 5., 0.)),
+                        gltools.LightSource((-2., -2., 0.))
+            win.lights = myLights
+
+        """
+        return self._lights
+
+    @lights.setter
+    def lights(self, value):
+        # if None or empty list, disable all lights
+        if value is None or not value:
+            for index in range(self._nLights):
+                GL.glDisable(GL.GL_LIGHT0 + index)
+
+            self._nLights = 0  # set number of lights to zero
+            self._lights = value
+
+            return
+
+        # set the lights and make sure it's a list if a single value was passed
+        self._lights = value if isinstance(value, (list, tuple,)) else [value]
+
+        # disable excess lights if less lights were specified this time
+        oldNumLights = self._nLights
+        self._nLights = len(self._lights)  # number of lights enabled
+        if oldNumLights > self._nLights:
+            for index in range(self._nLights, oldNumLights):
+                GL.glDisable(GL.GL_LIGHT0 + index)
+
+        # Setup legacy lights, new spec shader programs should access the
+        # `lights` attribute directly to setup lighting uniforms.
+        # The index of the lights is defined by the order it appears in
+        # `self._lights`.
+        for index, light in enumerate(self._lights):
+            enumLight = GL.GL_LIGHT0 + index
+
+            # convert data in light class to ctypes
+            #pos = numpy.ctypeslib.as_ctypes(light.pos)
+            diffuse = numpy.ctypeslib.as_ctypes(light._diffuseRGB)
+            specular = numpy.ctypeslib.as_ctypes(light._specularRGB)
+            ambient = numpy.ctypeslib.as_ctypes(light._ambientRGB)
+
+            # pass values to OpenGL
+            #GL.glLightfv(enumLight, GL.GL_POSITION, pos)
+            GL.glLightfv(enumLight, GL.GL_DIFFUSE, diffuse)
+            GL.glLightfv(enumLight, GL.GL_SPECULAR, specular)
+            GL.glLightfv(enumLight, GL.GL_AMBIENT, ambient)
+
+            constant, linear, quadratic = light._kAttenuation
+            GL.glLightf(enumLight, GL.GL_CONSTANT_ATTENUATION, constant)
+            GL.glLightf(enumLight, GL.GL_LINEAR_ATTENUATION, linear)
+            GL.glLightf(enumLight, GL.GL_QUADRATIC_ATTENUATION, quadratic)
+
+            # enable the light
+            GL.glEnable(enumLight)
+
+    @property
+    def useLights(self):
+        """Enable scene lighting.
+
+        Lights will be enabled if using legacy OpenGL lighting. Stimuli using
+        shaders for lighting should check if `useLights` is `True` since this
+        will have no effect on them, and disable or use a no lighting shader
+        instead. Lights will be transformed to the current view matrix upon
+        setting to `True`.
+
+        Lights are transformed by the present `GL_MODELVIEW` matrix. Setting
+        `useLights` will result in their positions being transformed by it.
+        If you want lights to appear at the specified positions in world space,
+        make sure the current matrix defines the view/eye transformation when
+        setting `useLights=True`.
+
+        This flag is reset to `False` at the beginning of each frame. Should be
+        `False` if rendering 2D stimuli or else the colors will be incorrect.
+        """
+        return self._useLights
+
+    @useLights.setter
+    def useLights(self, value):
+        self._useLights = value
+
+        # Setup legacy lights, new spec shader programs should access the
+        # `lights` attribute directly to setup lighting uniforms.
+        if self._useLights and self._lights:
+            GL.glEnable(GL.GL_LIGHTING)
+            # make sure specular lights are computed relative to eye position,
+            # this is more realistic than the default. Does not affect shaders.
+            GL.glLightModeli(GL.GL_LIGHT_MODEL_LOCAL_VIEWER, GL.GL_TRUE)
+
+            # update light positions for current model matrix
+            for index, light in enumerate(self._lights):
+                enumLight = GL.GL_LIGHT0 + index
+                pos = numpy.ctypeslib.as_ctypes(light.pos)
+                GL.glLightfv(enumLight, GL.GL_POSITION, pos)
+        else:
+            # disable lights
+            GL.glDisable(GL.GL_LIGHTING)
+
+    def updateLights(self, index=None):
+        """Explicitly update scene lights if they were modified.
+
+        This is required if modifications to objects referenced in `lights` have
+        been changed since assignment. If you removed or added items of `lights`
+        you must refresh all of them.
+
+        Parameters
+        ----------
+        index : int, optional
+            Index of light source in `lights` to update. If `None`, all lights
+            will be refreshed.
+
+        Examples
+        --------
+        Call `updateLights` if you modified lights directly like this::
+
+            win.lights[1].diffuseColor = [1., 0., 0.]
+            win.updateLights(1)
+
+        """
+        if self._lights is None:
+            return  # nop if there are no lights
+
+        if index is None:
+            self.lights = self._lights
+        else:
+            if index > len(self._lights) - 1:
+                raise IndexError('Invalid index for `lights`.')
+
+            enumLight = GL.GL_LIGHT0 + index
+
+            # light object to modify
+            light = self._lights[index]
+
+            # convert data in light class to ctypes
+            # pos = numpy.ctypeslib.as_ctypes(light.pos)
+            diffuse = numpy.ctypeslib.as_ctypes(light.diffuse)
+            specular = numpy.ctypeslib.as_ctypes(light.specular)
+            ambient = numpy.ctypeslib.as_ctypes(light.ambient)
+
+            # pass values to OpenGL
+            # GL.glLightfv(enumLight, GL.GL_POSITION, pos)
+            GL.glLightfv(enumLight, GL.GL_DIFFUSE, diffuse)
+            GL.glLightfv(enumLight, GL.GL_SPECULAR, specular)
+            GL.glLightfv(enumLight, GL.GL_AMBIENT, ambient)
+
+    @property
+    def viewport(self):
+        """Viewport rectangle (x, y, w, h) for the current draw buffer.
+
+        Values `x` and `y` define the origin, and `w` and `h` the size of the
+        rectangle in pixels.
+
+        This is typically set to cover the whole buffer, however it can be
+        changed for applications like multi-view rendering.
+
+        Examples
+        --------
+        Constrain drawing to the left and right halves of the screen, where
+        stimuli will be drawn centered on the new rectangle. Note that you need
+        to set both the `viewport` and the `scissor` rectangle::
 
             x, y, w, h = win.frameBufferSize  # size of the framebuffer
             win.viewport = win.scissor = [x, y, w / 2.0, h]
@@ -1292,8 +1495,6 @@ class Window(object):
     @property
     def nearClip(self):
         """Distance to the near clipping plane in meters."""
-        # internally stored as meters, but PsychoPy uses centimeters elsewhere
-        # so let's keep that consistent.
         return self._nearClip
 
     @nearClip.setter
@@ -1543,18 +1744,23 @@ class Window(object):
         # apply the projection and view transformations
         if hasattr(self, '_projectionMatrix'):
             GL.glMatrixMode(GL.GL_PROJECTION)
-            projMat = self._projectionMatrix.T.ctypes.data_as(
+            projMat = self._projectionMatrix.ctypes.data_as(
                 ctypes.POINTER(ctypes.c_float))
             GL.glLoadTransposeMatrixf(projMat)
 
         if hasattr(self, '_viewMatrix'):
             GL.glMatrixMode(GL.GL_MODELVIEW)
-            viewMat = self._viewMatrix.T.ctypes.data_as(
+            viewMat = self._viewMatrix.ctypes.data_as(
                 ctypes.POINTER(ctypes.c_float))
             GL.glLoadTransposeMatrixf(viewMat)
 
+        oldDepthMask = self.depthMask
         if clearDepth:
+            GL.glDepthMask(GL.GL_TRUE)
             GL.glClear(GL.GL_DEPTH_BUFFER_BIT)
+
+            if oldDepthMask is False:   # return to old state if needed
+                GL.glDepthMask(GL.GL_FALSE)
 
     def resetEyeTransform(self, clearDepth=True):
         """Restore the default projection and view settings to PsychoPy
@@ -1919,11 +2125,19 @@ class Window(object):
     @draw3d.setter
     def draw3d(self, value):
         if value is True:
-            self.depthTest = True
-            self.cullFace = True
+            if self.depthMask is False:
+                self.depthMask = True
+            if self.depthTest is False:
+                self.depthTest = True
+            if self.cullFace is False:
+                self.cullFace = True
         elif value is False:
-            self.depthTest = False
-            self.cullFace = False
+            if self.depthMask is True:
+                self.depthMask = False
+            if self.depthTest is True:
+                self.depthTest = False
+            if self.cullFace is True:
+                self.cullFace = False
         else:
             raise TypeError('Value must be type `bool`.')
 
@@ -2257,6 +2471,47 @@ class Window(object):
             _shaders.vertSimple, _shaders.fragImageStim)
         self._shaders['imageStim_adding'] = _shaders.compileProgram(
             _shaders.vertSimple, _shaders.fragImageStim_adding)
+        self._shaders['stim3d_phong'] = {}
+
+        # Create shader flags, these are used as keys to pick the appropriate
+        # shader for the given material and lighting configuration.
+        shaderFlags = []
+        for i in range(0, 8 + 1):
+            for j in product((True, False), repeat=1):
+                shaderFlags.append((i, *j))
+
+        # Compile shaders based on generated flags.
+        for flag in shaderFlags:
+            # Define GLSL preprocessor values to enable code paths for specific
+            # material properties.
+            srcDefs = {'MAX_LIGHTS': flag[0]}
+
+            if flag[1]:  # has diffuse texture map
+                srcDefs['DIFFUSE_TEXTURE'] = 1
+
+            # embed #DEFINE statements in GLSL source code
+            vertSrc = gltools.embedShaderSourceDefs(
+                _shaders.vertPhongLighting, srcDefs)
+            fragSrc = gltools.embedShaderSourceDefs(
+                _shaders.fragPhongLighting, srcDefs)
+
+            # build a shader program
+            prog = gltools.createProgramObjectARB()
+            vertexShader = gltools.compileShaderObjectARB(
+                vertSrc, GL.GL_VERTEX_SHADER_ARB)
+            fragmentShader = gltools.compileShaderObjectARB(
+                fragSrc, GL.GL_FRAGMENT_SHADER_ARB)
+
+            gltools.attachObjectARB(prog, vertexShader)
+            gltools.attachObjectARB(prog, fragmentShader)
+            gltools.linkProgramObjectARB(prog)
+            gltools.detachObjectARB(prog, vertexShader)
+            gltools.detachObjectARB(prog, fragmentShader)
+            gltools.deleteObjectARB(vertexShader)
+            gltools.deleteObjectARB(fragmentShader)
+
+            # set the flag
+            self._shaders['stim3d_phong'][flag] = prog
 
     def _setupFrameBuffer(self):
 

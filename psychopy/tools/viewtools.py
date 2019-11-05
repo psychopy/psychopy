@@ -8,8 +8,12 @@
 # Copyright (C) 2002-2018 Jonathan Peirce (C) 2019 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
-__all__ = ['Frustum', 'computeFrustum', 'generalizedPerspectiveProjection',
-           'orthoProjectionMatrix', 'perspectiveProjectionMatrix', 'lookAt',
+__all__ = ['Frustum',
+           'computeFrustum',
+           'generalizedPerspectiveProjection',
+           'orthoProjectionMatrix',
+           'perspectiveProjectionMatrix',
+           'lookAt',
            'pointToNdc']
 
 import numpy as np
@@ -176,7 +180,7 @@ def generalizedPerspectiveProjection(posBottomLeft,
     References
     ----------
     .. [1] Kooima, R. (2009). Generalized perspective projection. J. Sch.
-    Electron. Eng. Comput. Sci.
+       Electron. Eng. Comput. Sci.
 
     Examples
     --------
@@ -306,9 +310,9 @@ def orthoProjectionMatrix(left, right, bottom, top, nearClip, farClip,
     projMat[0, 0] = u / (right - left)
     projMat[1, 1] = u / (top - bottom)
     projMat[2, 2] = -u / (farClip - nearClip)
-    projMat[0, 3] = (right + left) / (right - left)
-    projMat[1, 3] = (top + bottom) / (top - bottom)
-    projMat[2, 3] = (farClip + nearClip) / (farClip - nearClip)
+    projMat[0, 3] = -((right + left) / (right - left))
+    projMat[1, 3] = -((top + bottom) / (top - bottom))
+    projMat[2, 3] = -((farClip + nearClip) / (farClip - nearClip))
     projMat[3, 3] = 1.0
 
     return projMat

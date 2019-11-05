@@ -86,6 +86,7 @@ def test_invertQuat():
         qinv = invertQuat(q)
         assert np.allclose(multQuat(q, qinv), qidt)  # is identity?
 
+
 @pytest.mark.mathtools
 def test_transform():
     """Test if `transform` gives the same results as a matrix."""
@@ -109,6 +110,7 @@ def test_transform():
 
         assert np.allclose(tPoint, mPoint[:, :3])  # is identity?
 
+
 @pytest.mark.mathtools
 def test_quatToMatrix():
     """Test converting matrices to quaternions and vice-versa."""
@@ -124,6 +126,34 @@ def test_quatToMatrix():
         assert np.allclose(r, quatToMatrix(q))
 
 
+@pytest.mark.mathtools
+def test_alignTo():
+    """Test quaternion alignment function `alignTo`. Check general nonparallel
+    and parallel cases.
+
+    Tests are successful if the resulting quaternion rotates the initial vector
+    to match the target vector.
+
+    """
+    np.random.seed(12345)
+    N = 1000
+
+    # general use cases
+    vec = normalize(np.random.uniform(-1.0, 1.0, (N, 3)))
+    target = normalize(np.random.uniform(-1.0, 1.0, (N, 3)))
+    qr = alignTo(vec, target)
+    out = applyQuat(qr, vec)
+
+    assert np.allclose(out, target)
+
+    # test when rotation is 180 degrees, or vectors are parallel in opposite
+    # directions
+    target = -vec
+    qr = alignTo(vec, target)
+    out = applyQuat(qr, vec)
+
+    assert np.allclose(out, target)
+
+
 if __name__ == "__main__":
-    test_quatToMatrix()
-    #pytest.main()
+    pytest.main()

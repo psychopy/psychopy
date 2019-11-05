@@ -11,7 +11,7 @@
 # All configuration values have a default; values that are commented out
 # serve to show the default.
 
-import sys, os, psychopy
+import os, psychopy
 
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
@@ -22,11 +22,19 @@ import sys, os, psychopy
 
 # Add any Sphinx extension module names here, as strings. They can be extensions
 # coming with Sphinx (named 'sphinx.ext.*') or your custom ones.
-extensions = ['sphinx.ext.autodoc', 'sphinx.ext.autosummary', 'sphinx.ext.todo', 'sphinx.ext.coverage',
-    'sphinx.ext.imgmath', 'sphinx.ext.napoleon', 'sphinx.ext.intersphinx', 'sphinx.ext.viewcode']
+extensions = ['sphinx.ext.autodoc',
+              'sphinx.ext.autosummary',
+              'sphinx.ext.todo',
+              'sphinx.ext.coverage',
+              'sphinx.ext.imgmath',
+              'sphinx.ext.napoleon',
+              'sphinx.ext.intersphinx',
+              'sphinx.ext.viewcode']
+
 autoclass_content='both'
 
-intersphinx_mapping = {'pathlib': ('https://docs.python.org/3/', None)}
+intersphinx_mapping = {'pathlib': ('https://docs.python.org/3/', None),
+                       'psychxr': ('http://psychxr.org/', None)}
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']

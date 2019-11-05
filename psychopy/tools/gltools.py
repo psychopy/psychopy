@@ -70,12 +70,19 @@ __all__ = [
     'loadMtlFile',
     'createUVSphere',
     'createPlane',
+    'createMeshGridFromArrays',
     'createMeshGrid',
     'createBox',
+    'transformMeshPosOri',
+    'calculateVertexNormals',
     'getIntegerv',
     'getFloatv',
     'getString',
-    'getOpenGLInfo'
+    'getOpenGLInfo',
+    'createTexImage2D',
+    'createTexImage2dFromFile',
+    'bindTexture',
+    'unbindTexture'
 ]
 
 import ctypes
@@ -87,10 +94,12 @@ from PIL import Image
 import numpy as np
 import os, sys
 import warnings
+import psychopy.tools.mathtools as mt
+from psychopy.visual.helpers import setColor
 
 # create a query counter to get absolute GPU time
-QUERY_COUNTER = GL.GLuint()
-GL.glGenQueries(1, ctypes.byref(QUERY_COUNTER))
+
+QUERY_COUNTER = None  # prevent genQueries from being called
 
 
 # compatible Numpy and OpenGL types for common GL type enums
@@ -434,16 +443,19 @@ def embedShaderSourceDefs(shaderSrc, defs):
         if not isinstance(varName, str):
             raise ValueError("Definition name must be type `str`.")
 
-        if isinstance(varValue, (int, bool, float,)):
-            varValue = str(int(varValue))
+        if isinstance(varValue, (int, bool,)):
+            varValue = int(varValue)
+        elif isinstance(varValue, (float,)):
+            pass
+            #varValue = varValue
         elif isinstance(varValue, bytes):
-            varValue = varValue.decode('UTF-8')
+            varValue = '"{}"'.format(varValue.decode('UTF-8'))
         elif isinstance(varValue, str):
-            pass  # nop
+            varValue = '"{}"'.format(varValue)
         else:
             raise TypeError("Invalid type for value of `{}`.".format(varName))
 
-        glslDefSrc += '#define {n} "{v}"\n'.format(n=varName, v=varValue)
+        glslDefSrc += '#define {n} {v}\n'.format(n=varName, v=varValue)
 
     # find where the `#version` directive occurs
     versionDirIdx = shaderSrc.find("#version")
@@ -1086,6 +1098,10 @@ def getAbsTimeGPU():
         timeElapsed = (t1 - t0) * 1e-9  # take difference, convert to seconds
 
     """
+    global QUERY_COUNTER
+    if QUERY_COUNTER is None:
+        GL.glGenQueries(1, ctypes.byref(QUERY_COUNTER))
+
     GL.glQueryCounter(QUERY_COUNTER, GL.GL_TIMESTAMP)
 
     params = GL.GLuint64(0)
@@ -1477,33 +1493,129 @@ def deleteRenderbuffer(renderBuffer):
 # 2D texture descriptor. You can 'wrap' existing texture IDs with TexImage2D to
 # use them with functions that require that type as input.
 #
-#   texId = getTextureIdFromAPI()
-#   texDesc = TexImage2D(texId, GL.GL_TEXTURE_2D, 1024, 1024)
-#   attachFramebufferImage(fbo, texDesc, GL.GL_COLOR_ATTACHMENT0)
-#   # examples of custom userData some function might access
-#   texDesc.userData['flags'] = ['left_eye', 'clear_before_use']
-#
-TexImage2D = namedtuple(
-    'TexImage2D',
-    ['id',
-     'target',
-     'width',
-     'height',
-     'internalFormat',
-     'pixelFormat',
-     'dataType',
-     'unpackAlignment',
-     'samples',  # always 1
-     'multisample',  # always False
-     'userData'])
+
+class TexImage2D(object):
+    """Descriptor for a 2D texture.
+
+    This class is used for bookkeeping 2D textures stored in video memory.
+    Information about the texture (eg. `width` and `height`) is available via
+    class attributes. Attributes should never be modified directly.
+
+    """
+    __slots__ = ['width',
+                 'height',
+                 'target',
+                 '_name',
+                 'level',
+                 'internalFormat',
+                 'pixelFormat',
+                 'dataType',
+                 'unpackAlignment',
+                 '_texParams',
+                 '_isBound',
+                 '_unit',
+                 '_texParamsNeedUpdate']
+
+    def __init__(self,
+                 name=0,
+                 target=GL.GL_TEXTURE_2D,
+                 width=64,
+                 height=64,
+                 level=0,
+                 internalFormat=GL.GL_RGBA,
+                 pixelFormat=GL.GL_RGBA,
+                 dataType=GL.GL_FLOAT,
+                 unpackAlignment=4,
+                 texParams=None):
+        """
+        Parameters
+        ----------
+        name : `int` or `GLuint`
+            OpenGL handle for texture. Is `0` if uninitialized.
+        target : :obj:`int`
+            The target texture should only be either GL_TEXTURE_2D or
+            GL_TEXTURE_RECTANGLE.
+        width : :obj:`int`
+            Texture width in pixels.
+        height : :obj:`int`
+            Texture height in pixels.
+        level : :obj:`int`
+            LOD number of the texture, should be 0 if GL_TEXTURE_RECTANGLE is
+            the target.
+        internalFormat : :obj:`int`
+            Internal format for texture data (e.g. GL_RGBA8, GL_R11F_G11F_B10F).
+        pixelFormat : :obj:`int`
+            Pixel data format (e.g. GL_RGBA, GL_DEPTH_STENCIL)
+        dataType : :obj:`int`
+            Data type for pixel data (e.g. GL_FLOAT, GL_UNSIGNED_BYTE).
+        unpackAlignment : :obj:`int`
+            Alignment requirements of each row in memory. Default is 4.
+        texParams : :obj:`list` of :obj:`tuple` of :obj:`int`
+            Optional texture parameters specified as `dict`. These values are
+            passed to `glTexParameteri`. Each tuple must contain a parameter
+            name and value. For example, `texParameters={
+            GL.GL_TEXTURE_MIN_FILTER: GL.GL_LINEAR, GL.GL_TEXTURE_MAG_FILTER:
+            GL.GL_LINEAR}`. These can be changed and will be updated the next
+            time this instance is passed to :func:`bindTexture`.
+
+        """
+        # fields for texture information
+        self.name = name
+        self.width = width
+        self.height = height
+        self.target = target
+        self.level = level
+        self.internalFormat = internalFormat
+        self.pixelFormat = pixelFormat
+        self.dataType = dataType
+        self.unpackAlignment = unpackAlignment
+        self._texParams = {}
+
+        # set texture parameters
+        if texParams is not None:
+            for key, val in texParams.items():
+                self._texParams[key] = val
+
+        # internal data
+        self._isBound = False  # True if the texture has been bound
+        self._unit = None  # texture unit assigned to this texture
+        self._texParamsNeedUpdate = True  # update texture parameters
+
+    @property
+    def name(self):
+        return self._name
+
+    @name.setter
+    def name(self, value):
+        if not isinstance(value, GL.GLuint):
+            self._name = GL.GLuint(int(value))
+        else:
+            self._name = value
+
+    @property
+    def size(self):
+        """Size of the texture [w, h] in pixels (`int`, `int`)."""
+        return self.width, self.height
+
+    @property
+    def texParams(self):
+        """Texture parameters."""
+        self._texParamsNeedUpdate = True
+        return self._texParams
+
+    @texParams.setter
+    def texParams(self, value):
+        """Texture parameters."""
+        self._texParamsNeedUpdate = True
+        self._texParams = value
 
 
 def createTexImage2D(width, height, target=GL.GL_TEXTURE_2D, level=0,
                      internalFormat=GL.GL_RGBA8, pixelFormat=GL.GL_RGBA,
                      dataType=GL.GL_FLOAT, data=None, unpackAlignment=4,
-                     texParameters=()):
+                     texParams=None):
     """Create a 2D texture in video memory. This can only create a single 2D
-    texture with targets GL_TEXTURE_2D or GL_TEXTURE_RECTANGLE.
+    texture with targets `GL_TEXTURE_2D` or `GL_TEXTURE_RECTANGLE`.
 
     Parameters
     ----------
@@ -1528,16 +1640,16 @@ def createTexImage2D(width, height, target=GL.GL_TEXTURE_2D, level=0,
         created but pixel data will be uninitialized.
     unpackAlignment : :obj:`int`
         Alignment requirements of each row in memory. Default is 4.
-    texParameters : :obj:`list` of :obj:`tuple` of :obj:`int`
-        Optional texture parameters specified as a list of tuples. These values
-        are passed to 'glTexParameteri'. Each tuple must contain a parameter
-        name and value. For example, texParameters=[(GL.GL_TEXTURE_MIN_FILTER,
-        GL.GL_LINEAR), (GL.GL_TEXTURE_MAG_FILTER, GL.GL_LINEAR)]
+    texParams : :obj:`dict`
+        Optional texture parameters specified as `dict`. These values are passed
+        to `glTexParameteri`. Each tuple must contain a parameter name and
+        value. For example, `texParameters={GL.GL_TEXTURE_MIN_FILTER:
+        GL.GL_LINEAR, GL.GL_TEXTURE_MAG_FILTER: GL.GL_LINEAR}`.
 
     Returns
     -------
     TexImage2D
-        A TexImage2D descriptor.
+        A `TexImage2D` descriptor.
 
     Notes
     -----
@@ -1571,7 +1683,7 @@ def createTexImage2D(width, height, target=GL.GL_TEXTURE_2D, level=0,
             internalFormat=GL.GL_RGBA,
             pixelFormat=GL.GL_RGBA,
             dataType=GL.GL_UNSIGNED_BYTE,
-            data=texture_array.ctypes,
+            data=pixelData,
             unpackAlignment=1,
             texParameters=[(GL.GL_TEXTURE_MAG_FILTER, GL.GL_LINEAR),
                            (GL.GL_TEXTURE_MIN_FILTER, GL.GL_LINEAR)])
@@ -1592,32 +1704,139 @@ def createTexImage2D(width, height, target=GL.GL_TEXTURE_2D, level=0,
                              "must be 0.")
         GL.glEnable(GL.GL_TEXTURE_RECTANGLE)
 
-    colorTexId = GL.GLuint()
-    GL.glGenTextures(1, ctypes.byref(colorTexId))
-    GL.glBindTexture(target, colorTexId)
+    texId = GL.GLuint()
+    GL.glGenTextures(1, ctypes.byref(texId))
+
+    GL.glBindTexture(target, texId)
     GL.glPixelStorei(GL.GL_UNPACK_ALIGNMENT, int(unpackAlignment))
     GL.glTexImage2D(target, level, internalFormat,
                     width, height, 0,
                     pixelFormat, dataType, data)
 
     # apply texture parameters
-    if texParameters:
-        for pname, param in texParameters:
+    if texParams is not None:
+        for pname, param in texParams.items():
             GL.glTexParameteri(target, pname, param)
+
+    # new texture descriptor
+    tex = TexImage2D(name=texId,
+                     target=target,
+                     width=width,
+                     height=height,
+                     internalFormat=internalFormat,
+                     level=level,
+                     pixelFormat=pixelFormat,
+                     dataType=dataType,
+                     unpackAlignment=unpackAlignment,
+                     texParams=texParams)
+
+    tex._texParamsNeedUpdate = False
 
     GL.glBindTexture(target, 0)
 
-    return TexImage2D(colorTexId,
-                      target,
-                      width,
-                      height,
-                      internalFormat,
-                      pixelFormat,
-                      dataType,
-                      unpackAlignment,
-                      1,
-                      False,
-                      dict())
+    return tex
+
+
+def createTexImage2dFromFile(imgFile, transpose=True):
+    """Load an image from file directly into a texture.
+
+    This is a convenience function to quickly get an image file loaded into a
+    2D texture. The image is converted to RGBA format. Texture parameters are
+    set for linear interpolation.
+
+    Parameters
+    ----------
+    imgFile : str
+        Path to the image file.
+    transpose : bool
+        Flip the image so it appears upright when displayed in OpenGL image
+        coordinates.
+
+    Returns
+    -------
+    TexImage2D
+        Texture descriptor.
+
+    """
+    im = Image.open(imgFile)  # 8bpp!
+    if transpose:
+        im = im.transpose(Image.FLIP_TOP_BOTTOM)  # OpenGL origin is at bottom
+
+    im = im.convert("RGBA")
+    pixelData = np.array(im).ctypes  # convert to ctypes!
+
+    width = pixelData.shape[1]
+    height = pixelData.shape[0]
+    textureDesc = createTexImage2D(
+        width,
+        height,
+        internalFormat=GL.GL_RGBA,
+        pixelFormat=GL.GL_RGBA,
+        dataType=GL.GL_UNSIGNED_BYTE,
+        data=pixelData,
+        unpackAlignment=1,
+        texParams={GL.GL_TEXTURE_MAG_FILTER: GL.GL_LINEAR,
+                   GL.GL_TEXTURE_MIN_FILTER: GL.GL_LINEAR})
+
+    return textureDesc
+
+
+def bindTexture(texture, unit=None, enable=True):
+    """Bind a texture.
+
+    Function binds `texture` to `unit` (if specified). If `unit` is `None`, the
+    texture will be bound but not assigned to a texture unit.
+
+    Parameters
+    ----------
+    texture : TexImage2D
+        Texture descriptor to bind.
+    unit : int, optional
+        Texture unit to associated the texture with.
+    enable : bool
+        Enable textures upon binding.
+
+    """
+    if not texture._isBound:
+        if enable:
+            GL.glEnable(texture.target)
+
+        GL.glBindTexture(texture.target, texture.name)
+        texture._isBound = True
+
+        if unit is not None:
+            texture._unit = unit
+            GL.glActiveTexture(GL.GL_TEXTURE0 + unit)
+
+        # update texture parameters if they have been accessed (changed?)
+        if texture._texParamsNeedUpdate:
+            for pname, param in texture._texParams.items():
+                GL.glTexParameteri(texture.target, pname, param)
+                texture._texParamsNeedUpdate = False
+
+
+def unbindTexture(texture=None):
+    """Unbind a texture.
+
+    Parameters
+    ----------
+    texture : TexImage2D
+        Texture descriptor to unbind.
+
+    """
+    if texture._isBound:
+        # set the texture unit
+        if texture._unit is not None:
+            GL.glActiveTexture(GL.GL_TEXTURE0 + texture._unit)
+            texture._unit = None
+
+        GL.glBindTexture(texture.target, 0)
+        texture._isBound = False
+
+        GL.glDisable(texture.target)
+    else:
+        raise RuntimeError('Trying to unbind a texture that was not previously'
+                           'bound.')
 
 
 # Descriptor for 2D mutlisampled texture
@@ -1706,7 +1925,12 @@ def deleteTexture(texture):
     texture's ID.
 
     """
-    GL.glDeleteTextures(1, texture.id)
+    if not texture._isBound:
+        GL.glDeleteTextures(1, texture.name)
+        texture.name = 0  # invalidate
+    else:
+        raise RuntimeError("Attempting to delete texture which is presently "
+                           "bound.")
 
 
 # --------------------------
@@ -2718,6 +2942,223 @@ def createMaterial(params=(), textures=(), face=GL.GL_FRONT_AND_BACK):
     return matDesc
 
 
+class SimpleMaterial(object):
+    """Class representing a simple material.
+
+    This class stores material information to modify the appearance of drawn
+    primitives with respect to lighting, such as color (diffuse, specular,
+    ambient, and emission), shininess, and textures. Simple materials are
+    intended to work with features supported by the fixed-function OpenGL
+    pipeline.
+
+    """
+    def __init__(self,
+                 win=None,
+                 diffuseColor=(.5, .5, .5),
+                 specularColor=(-1., -1., -1.),
+                 ambientColor=(-1., -1., -1.),
+                 emissionColor=(-1., -1., -1.),
+                 shininess=10.0,
+                 colorSpace='rgb',
+                 diffuseTexture=None,
+                 specularTexture=None,
+                 opacity=1.0,
+                 contrast=1.0,
+                 face='front',
+                 useShaders=False):
+        """
+        Parameters
+        ----------
+        win : `~psychopy.visual.Window` or `None`
+            Window this material is associated with, required for shaders and
+            some color space conversions.
+        diffuseColor : array_like
+            Diffuse material color (r, g, b, a) with values between 0.0 and 1.0.
+        specularColor : array_like
+            Specular material color (r, g, b, a) with values between 0.0 and
+            1.0.
+        ambientColor : array_like
+            Ambient material color (r, g, b, a) with values between 0.0 and 1.0.
+        emissionColor : array_like
+            Emission material color (r, g, b, a) with values between 0.0 and
+            1.0.
+        shininess : float
+            Material shininess, usually ranges from 0.0 to 128.0.
+        colorSpace : float
+            Color space for `diffuseColor`, `specularColor`, `ambientColor`, and
+            `emissionColor`.
+        diffuseTexture : TexImage2D
+        specularTexture : TexImage2D
+        opacity : float
+            Opacity of the material. Ranges from 0.0 to 1.0 where 1.0 is fully
+            opaque.
+        contrast : float
+            Contrast of the material colors.
+        face : str
+            Face to apply material to. Values are `front`, `back` or `both`.
+        textures : dict, optional
+            Texture maps associated with this material. Textures are specified
+            as a list. The index of textures in the list will be used to set
+            the corresponding texture unit they are bound to.
+        useShaders : bool
+            Use per-pixel lighting when rendering this stimulus. By default,
+            Blinn-Phong shading will be used.
+        """
+        self.win = win
+
+        self._diffuseColor = np.zeros((3,), np.float32)
+        self._specularColor = np.zeros((3,), np.float32)
+        self._ambientColor = np.zeros((3,), np.float32)
+        self._emissionColor = np.zeros((3,), np.float32)
+        self._shininess = float(shininess)
+
+        # internal RGB values post colorspace conversion
+        self._diffuseRGB = np.array((0., 0., 0., 1.), np.float32)
+        self._specularRGB = np.array((0., 0., 0., 1.), np.float32)
+        self._ambientRGB = np.array((0., 0., 0., 1.), np.float32)
+        self._emissionRGB = np.array((0., 0., 0., 1.), np.float32)
+
+        # which faces to apply the material
+
+        if face == 'front':
+            self._face = GL.GL_FRONT
+        elif face == 'back':
+            self._face = GL.GL_BACK
+        elif face == 'both':
+            self._face = GL.GL_FRONT_AND_BACK
+        else:
+            raise ValueError("Invalid `face` specified, must be 'front', "
+                             "'back' or 'both'.")
+
+        self.colorSpace = colorSpace
+        self.opacity = opacity
+        self.contrast = contrast
+
+        self.diffuseColor = diffuseColor
+        self.specularColor = specularColor
+        self.ambientColor = ambientColor
+        self.emissionColor = emissionColor
+
+        self._diffuseTexture = diffuseTexture
+        self._normalTexture = None
+
+        self._useTextures = False  # keeps track if textures are being used
+        self._useShaders = useShaders
+
+    @property
+    def diffuseTexture(self):
+        """Diffuse color of the material."""
+        return self._diffuseTexture
+
+    @diffuseTexture.setter
+    def diffuseTexture(self, value):
+        self._diffuseTexture = value
+
+    @property
+    def diffuseColor(self):
+        """Diffuse color of the material."""
+        return self._diffuseColor
+
+    @diffuseColor.setter
+    def diffuseColor(self, value):
+        self._diffuseColor = np.asarray(value, np.float32)
+        setColor(self, value, colorSpace=self.colorSpace, operation=None,
+                 rgbAttrib='diffuseRGB', colorAttrib='diffuseColor',
+                 colorSpaceAttrib='colorSpace')
+
+    @property
+    def diffuseRGB(self):
+        """Diffuse color of the material."""
+        return self._diffuseRGB[:3]
+
+    @diffuseRGB.setter
+    def diffuseRGB(self, value):
+        # make sure the color we got is 32-bit float
+        self._diffuseRGB = np.zeros((4,), np.float32)
+        self._diffuseRGB[:3] = (value * self.contrast + 1) / 2.0
+        self._diffuseRGB[3] = self.opacity
+
+    @property
+    def specularColor(self):
+        """Specular color of the material."""
+        return self._specularColor
+
+    @specularColor.setter
+    def specularColor(self, value):
+        self._specularColor = np.asarray(value, np.float32)
+        setColor(self, value, colorSpace=self.colorSpace, operation=None,
+                 rgbAttrib='specularRGB', colorAttrib='specularColor',
+                 colorSpaceAttrib='colorSpace')
+
+    @property
+    def specularRGB(self):
+        """Diffuse color of the material."""
+        return self._specularRGB[:3]
+
+    @specularRGB.setter
+    def specularRGB(self, value):
+        # make sure the color we got is 32-bit float
+        self._specularRGB = np.zeros((4,), np.float32)
+        self._specularRGB[:3] = (value * self.contrast + 1) / 2.0
+        self._specularRGB[3] = self.opacity
+
+    @property
+    def ambientColor(self):
+        """Ambient color of the material."""
+        return self._ambientColor
+
+    @ambientColor.setter
+    def ambientColor(self, value):
+        self._ambientColor = np.asarray(value, np.float32)
+        setColor(self, value, colorSpace=self.colorSpace, operation=None,
+                 rgbAttrib='ambientRGB', colorAttrib='ambientColor',
+                 colorSpaceAttrib='colorSpace')
+
+    @property
+    def ambientRGB(self):
+        """Diffuse color of the material."""
+        return self._ambientRGB[:3]
+
+    @ambientRGB.setter
+    def ambientRGB(self, value):
+        # make sure the color we got is 32-bit float
+        self._ambientRGB = np.zeros((4,), np.float32)
+        self._ambientRGB[:3] = (value * self.contrast + 1) / 2.0
+        self._ambientRGB[3] = self.opacity
+
+    @property
+    def emissionColor(self):
+        """Emission color of the material."""
+        return self._emissionColor
+
+    @emissionColor.setter
+    def emissionColor(self, value):
+        self._emissionColor = np.asarray(value, np.float32)
+        setColor(self, value, colorSpace=self.colorSpace, operation=None,
+                 rgbAttrib='emissionRGB', colorAttrib='emissionColor',
+                 colorSpaceAttrib='colorSpace')
+
+    @property
+    def emissionRGB(self):
+        """Diffuse color of the material."""
+        return self._emissionRGB[:3]
+
+    @emissionRGB.setter
+    def emissionRGB(self, value):
+        # make sure the color we got is 32-bit float
+        self._emissionRGB = np.zeros((4,), np.float32)
+        self._emissionRGB[:3] = (value * self.contrast + 1) / 2.0
+        self._emissionRGB[3] = self.opacity
+
+    @property
+    def shininess(self):
+        return self._shininess
+
+    @shininess.setter
+    def shininess(self, value):
+        self._shininess = float(value)
+
+
 def useMaterial(material, useTextures=True):
     """Use a material for proceeding vertex draws.
 
@@ -2757,30 +3198,50 @@ def useMaterial(material, useTextures=True):
     """
     if material is not None:
         GL.glDisable(GL.GL_COLOR_MATERIAL)  # disable color tracking
-        GL.glColorMaterial(material.face, GL.GL_AMBIENT_AND_DIFFUSE)
-        # setup material color params
-        for mode, param in material.params.items():
-            if param is not None:
-                if mode != GL.GL_SHININESS:
-                    GL.glMaterialfv(material.face, mode, param)
-                else:
-                    GL.glMaterialf(material.face, mode, param)
+        face = material._face
+        GL.glColorMaterial(face, GL.GL_AMBIENT_AND_DIFFUSE)
+
+        # convert data in light class to ctypes
+        diffuse = np.ctypeslib.as_ctypes(material._diffuseRGB)
+        specular = np.ctypeslib.as_ctypes(material._specularRGB)
+        ambient = np.ctypeslib.as_ctypes(material._ambientRGB)
+        emission = np.ctypeslib.as_ctypes(material._emissionRGB)
+
+        # pass values to OpenGL
+        GL.glMaterialfv(face, GL.GL_DIFFUSE, diffuse)
+        GL.glMaterialfv(face, GL.GL_SPECULAR, specular)
+        GL.glMaterialfv(face, GL.GL_AMBIENT, ambient)
+        GL.glMaterialfv(face, GL.GL_EMISSION, emission)
+        GL.glMaterialf(face, GL.GL_SHININESS, material.shininess)
+
         # setup textures
-        if useTextures and material.textures:
+        if useTextures and material.diffuseTexture is not None:
+            material._useTextures = True
             GL.glEnable(GL.GL_TEXTURE_2D)
-            for unit, desc in material.textures.items():
-                GL.glActiveTexture(unit)
-                GL.glColor4f(1.0, 1.0, 1.0, 1.0)
-                GL.glColorMask(True, True, True, True)
-                GL.glBindTexture(GL.GL_TEXTURE_2D, desc.id)
+            if material.diffuseTexture is not None:
+                bindTexture(material.diffuseTexture, 0)
+        else:
+            material._useTextures = False
+            GL.glBindTexture(GL.GL_TEXTURE_2D, 0)
+            GL.glDisable(GL.GL_TEXTURE_2D)
     else:
         for mode, param in defaultMaterial.params.items():
             GL.glEnable(GL.GL_COLOR_MATERIAL)
             GL.glMaterialfv(GL.GL_FRONT_AND_BACK, mode, param)
-        if useTextures:
-            GL.glActiveTexture(GL.GL_TEXTURE0)
-            GL.glBindTexture(GL.GL_TEXTURE_2D, 0)
-            GL.glDisable(GL.GL_TEXTURE_2D)
+
+
+def clearMaterial(material):
+    """Stop using a material."""
+    for mode, param in defaultMaterial.params.items():
+        GL.glMaterialfv(GL.GL_FRONT_AND_BACK, mode, param)
+
+    if material._useTextures:
+        if material.diffuseTexture is not None:
+            unbindTexture(material.diffuseTexture)
+
+        GL.glDisable(GL.GL_TEXTURE_2D)
+
+    GL.glDisable(GL.GL_COLOR_MATERIAL)  # disable color tracking
 
 
 # -------------------------
@@ -3129,6 +3590,10 @@ def loadObjFile(objFile):
     # compute the extents of the model, needed for axis-aligned bounding boxes
     extents = (vertexPos.min(axis=0), vertexPos.max(axis=0))
 
+    # resolve the path to the material file associated with the mesh
+    if mtlFile is not None:
+        mtlFile = os.path.join(os.path.split(objFile)[0], mtlFile)
+
     return ObjMeshInfo(vertexPos,
                        vertexTexCoord,
                        vertexNormal,
@@ -3137,14 +3602,14 @@ def loadObjFile(objFile):
                        mtlFile)
 
 
-def loadMtlFile(mtllib, texParameters=None):
+def loadMtlFile(mtllib, texParams=None):
     """Load a material library file (*.mtl).
 
     Parameters
     ----------
     mtllib : str
         Path to the material library file.
-    texParameters : list or tuple
+    texParams : list or tuple
         Optional texture parameters for loaded textures. Texture parameters are
         specified as a list of tuples. Each item specifies the option and
         parameter. For instance,
@@ -3182,9 +3647,9 @@ def loadMtlFile(mtllib, texParameters=None):
         mtlBuffer = StringIO(mtlFile.read())
 
     # default texture parameters
-    if texParameters is None:
-        texParameters = [(GL.GL_TEXTURE_MAG_FILTER, GL.GL_LINEAR),
-                         (GL.GL_TEXTURE_MIN_FILTER, GL.GL_LINEAR)]
+    if texParams is None:
+        texParams = {GL.GL_TEXTURE_MAG_FILTER: GL.GL_LINEAR,
+                     GL.GL_TEXTURE_MIN_FILTER: GL.GL_LINEAR}
 
     foundMaterials = {}
     foundTextures = {}
@@ -3193,19 +3658,21 @@ def loadMtlFile(mtllib, texParameters=None):
         line = line.strip()
         if line.startswith('newmtl '):  # new material
             thisMaterial = line[7:]
-            foundMaterials[thisMaterial] = createMaterial()
+            foundMaterials[thisMaterial] = SimpleMaterial()
         elif line.startswith('Ns '):  # specular exponent
-            foundMaterials[thisMaterial].params[GL.GL_SHININESS] = \
-                GL.GLfloat(float(line[3:]))
+            foundMaterials[thisMaterial].shininess = line[3:]
         elif line.startswith('Ks '):  # specular color
-            foundMaterials[thisMaterial].params[GL.GL_SPECULAR] = \
-                (GL.GLfloat * 4)(*list(map(float, line[3:].split(' '))) + [1.0])
+            specularColor = np.asarray(list(map(float, line[3:].split(' '))))
+            specularColor = 2.0 * specularColor - 1
+            foundMaterials[thisMaterial].specularColor = specularColor
         elif line.startswith('Kd '):  # diffuse color
-            foundMaterials[thisMaterial].params[GL.GL_DIFFUSE] = \
-                (GL.GLfloat * 4)(*list(map(float, line[3:].split(' '))) + [1.0])
+            diffuseColor = np.asarray(list(map(float, line[3:].split(' '))))
+            diffuseColor = 2.0 * diffuseColor - 1
+            foundMaterials[thisMaterial].diffuseColor = diffuseColor
         elif line.startswith('Ka '):  # ambient color
-            foundMaterials[thisMaterial].params[GL.GL_AMBIENT] = \
-                (GL.GLfloat * 4)(*list(map(float, line[3:].split(' '))) + [1.0])
+            ambientColor = np.asarray(list(map(float, line[3:].split(' '))))
+            ambientColor = 2.0 * ambientColor - 1
+            foundMaterials[thisMaterial].ambientColor = ambientColor
         elif line.startswith('map_Kd '):  # diffuse color map
             # load a diffuse texture from file
             textureName = line[7:]
@@ -3225,8 +3692,8 @@ def loadMtlFile(mtllib, texParameters=None):
                     dataType=GL.GL_UNSIGNED_BYTE,
                     data=pixelData,
                     unpackAlignment=1,
-                    texParameters=texParameters)
-            foundMaterials[thisMaterial].textures[GL.GL_TEXTURE0] = \
+                    texParams=texParams)
+            foundMaterials[thisMaterial].diffuseTexture = \
                 foundTextures[textureName]
 
     return foundMaterials
@@ -3321,8 +3788,8 @@ def createUVSphere(radius=0.5, sectors=16, stacks=16, flipFaces=False):
 
             normals.append((nx, ny, nz))
 
-            s = j / float(sectors)
-            t = i / float(sectors)
+            s = 1.0 - j / float(sectors)
+            t = i / float(stacks)
 
             texCoords.append((s, t))
 
@@ -3376,9 +3843,6 @@ def createPlane(size=(1., 1.)):
         Dimensions of the plane. If a single value is specified, the plane will
         be square. Provide a tuple of floats to specify the width and length of
         the plane (eg. `size=(0.2, 1.3)`).
-    subdiv : int, optional
-        Number of subdivisions. Zero subdivisions are applied by default, and
-        the resulting mesh will only have vertices at the corners.
 
     Returns
     -------
@@ -3408,25 +3872,25 @@ def createPlane(size=(1., 1.)):
 
     """
     if isinstance(size, (int, float,)):
-        divx = divy = float(size) / 2.
+        sx = sy = float(size) / 2.
     else:
-        divx = size[0] / 2.
-        divy = size[1] / 2.
+        sx = size[0] / 2.
+        sy = size[1] / 2.
 
-    # generate plane vertices
-    x = np.linspace(-divx, divy, 2)
-    y = np.linspace(divx, -divy, 2)
-    xx, yy = np.meshgrid(x, y)
+    vertices = np.ascontiguousarray(
+        [[-1.,  1., 0.],
+         [ 1.,  1., 0.],
+         [-1., -1., 0.],
+         [ 1., -1., 0.]])
 
-    vertices = np.vstack([xx.ravel(), yy.ravel()]).T
-    vertices = np.hstack([vertices, np.zeros((vertices.shape[0], 1))])  # add z
+    if sx != 1.:
+        vertices[:, 0] *= sx
+
+    if sy != 1.:
+        vertices[:, 1] *= sy
 
     # texture coordinates
-    u = np.linspace(0.0, 1.0, 2)
-    v = np.linspace(1.0, 0.0, 2)
-    uu, vv = np.meshgrid(u, v)
-
-    texCoords = np.vstack([uu.ravel(), vv.ravel()]).T
+    texCoords = np.ascontiguousarray([[0., 1.], [1., 1.], [0., 0.], [1., 0.]])
 
     # normals, facing +Z
     normals = np.zeros_like(vertices)
@@ -3435,34 +3899,120 @@ def createPlane(size=(1., 1.)):
     normals[:, 2] = 1.
 
     # generate face index
-    faces = []
-    for i in range(1):
-        k1 = i * 2
-        k2 = k1 + 2
-
-        for j in range(1):
-            faces.append([k1, k2, k1 + 1])
-            faces.append([k1 + 1, k2, k2 + 1])
-
-            k1 += 1
-            k2 += 1
-
-    # convert to numpy arrays
-    vertices = np.ascontiguousarray(vertices, dtype=np.float32)
-    texCoords = np.ascontiguousarray(texCoords, dtype=np.float32)
-    normals = np.ascontiguousarray(normals, dtype=np.float32)
-    faces = np.ascontiguousarray(faces, dtype=np.uint32)
+    faces = np.ascontiguousarray([[0, 2, 1], [1, 2, 3]], dtype=np.uint32)
 
     return vertices, texCoords, normals, faces
 
 
-def createMeshGrid(size=(1., 1.), subdiv=0):
+def createMeshGridFromArrays(xvals, yvals, zvals=None, tessMode='diag', computeNormals=True):
+    """Create a mesh grid using coordinates from arrays.
+
+    Generates a mesh using data in provided in 2D arrays of vertex coordinates.
+    Triangle faces are automatically computed by this function by joining
+    adjacent vertices at neighbouring indices in the array. Texture coordinates
+    are generated covering the whole mesh, with origin at the bottom left.
+
+    Parameters
+    ----------
+    xvals, yvals : array_like
+        NxM arrays of X and Y coordinates. Both arrays must have the same
+        shape. the resulting mesh will have a single vertex for each X and Y
+        pair. Faces will be generated to connect adjacent coordinates in the
+        array.
+    zvals : array_like, optional
+        NxM array of Z coordinates for each X and Y. Must have the same shape
+        as X and Y. If not specified, the Z coordinates will be filled with
+        zeros.
+    tessMode : str, optional
+        Tessellation mode. Specifies how faces are generated. Options are
+        'center', 'radial', and 'diag'. Default is 'diag'. Modes 'radial' and
+        'center' work best with odd numbered array dimensions.
+    computeNormals : bool, optional
+        Compute normals for the generated mesh. If `False`, all normals are set
+        to face in the +Z direction. Presently, computing normals is a slow
+        operation and may not be needed for some meshes.
+
+    Returns
+    -------
+    tuple
+        Vertex attribute arrays (position, texture coordinates, and normals) and
+        triangle indices.
+
+    Examples
+    --------
+    Create a 3D sine grating mesh using 2D arrays::
+
+        x = np.linspace(0, 1.0, 32)
+        y = np.linspace(1.0, 0.0, 32)
+        xx, yy = np.meshgrid(x, y)
+        zz = np.tile(np.sin(np.linspace(0.0, 32., 32)) * 0.02, (32, 1))
+
+        vertices, textureCoords, normals, faces = \
+            gltools.createMeshGridFromArrays(xx, yy, zz)
+
+    """
+    vertices = np.vstack([xvals.ravel(), yvals.ravel()]).T
+
+    if zvals is not None:
+        assert xvals.shape == yvals.shape == zvals.shape
+    else:
+        assert xvals.shape == yvals.shape
+
+    if zvals is None:
+        # fill z with zeros if not provided
+        vertices = np.hstack([vertices, np.zeros((vertices.shape[0], 1))])
+    else:
+        vertices = np.hstack([vertices, np.atleast_2d(zvals.ravel()).T])
+
+    ny, nx = xvals.shape
+
+    # texture coordinates
+    u = np.linspace(0.0, 1.0, nx)
+    v = np.linspace(1.0, 0.0, ny)
+    uu, vv = np.meshgrid(u, v)
+
+    texCoords = np.vstack([uu.ravel(), vv.ravel()]).T
+
+    # generate face index
+    faces = []
+
+    if tessMode == 'diag':
+        for i in range(ny - 1):
+            k1 = i * nx
+            k2 = k1 + nx
+
+            for j in range(nx - 1):
+                faces.append([k1, k2, k1 + 1])
+                faces.append([k1 + 1, k2, k2 + 1])
+
+                k1 += 1
+                k2 += 1
+
+    else:
+        raise ValueError('Invalid value for `tessMode`.')
+
+    # convert to numpy arrays
+    vertices = np.ascontiguousarray(vertices, dtype=np.float32)
+    texCoords = np.ascontiguousarray(texCoords, dtype=np.float32)
+    faces = np.ascontiguousarray(faces, dtype=np.uint32)
+
+    # calculate surface normals for the mesh
+    if computeNormals:
+        normals = calculateVertexNormals(vertices, faces, shading='smooth')
+    else:
+        normals = np.zeros_like(vertices, dtype=np.float32)
+        normals[:, 2] = 1.
+
+    return vertices, texCoords, normals, faces
+
+
+def createMeshGrid(size=(1., 1.), subdiv=0, tessMode='diag'):
     """Create a grid mesh.
 
     Procedurally generate a grid mesh by specifying its size and number of
-    sub-divisions. Texture coordinates are computed automatically, with origin
-    at the bottom left of the plane. The generated grid is perpendicular to the
-    +Z axis, origin of the grid is at its center.
+    sub-divisions. Texture coordinates are computed automatically. The origin is
+    at the center of the mesh. The generated grid is perpendicular to the +Z
+    axis, origin of the grid is at its center.
 
     Parameters
     ----------
@@ -3473,6 +4023,10 @@ def createMeshGrid(size=(1., 1.), subdiv=0):
     subdiv : int, optional
         Number of subdivisions. Zero subdivisions are applied by default, and
         the resulting mesh will only have vertices at the corners.
+    tessMode : str, optional
+        Tessellation mode. Specifies how faces are subdivided. Options are
+        'center', 'radial', and 'diag'. Default is 'diag'. Modes 'radial' and
+        'center' work best with an odd number of subdivisions.
 
     Returns
     -------
@@ -3500,6 +4054,20 @@ def createMeshGrid(size=(1., 1.), subdiv=0):
         # in the rendering loop
         gltools.drawVAO(vao, GL.GL_TRIANGLES)
 
+    Randomly displace vertices off the plane of the grid by setting the `Z`
+    value per vertex::
+
+        vertices, textureCoords, normals, faces = \
+            gltools.createMeshGrid(subdiv=11)
+
+        numVerts = vertices.shape[0]
+        vertices[:, 2] = np.random.uniform(-0.02, 0.02, (numVerts,)))  # Z
+
+        # you must recompute surface normals to get correct shading!
+        normals = gltools.calculateVertexNormals(vertices, faces)
+
+        # create a VAO as shown in the previous example here to draw it ...
+
     """
     if isinstance(size, (int, float,)):
         divx = divy = float(size) / 2.
@@ -3508,8 +4076,8 @@ def createMeshGrid(size=(1., 1.), subdiv=0):
         divy = size[1] / 2.
 
     # generate plane vertices
-    x = np.linspace(-divx, divy, subdiv + 2)
-    y = np.linspace(divx, -divy, subdiv + 2)
+    x = np.linspace(-divx, divx, subdiv + 2)
+    y = np.linspace(divy, -divy, subdiv + 2)
     xx, yy = np.meshgrid(x, y)
 
     vertices = np.vstack([xx.ravel(), yy.ravel()]).T
@@ -3530,16 +4098,75 @@ def createMeshGrid(size=(1., 1.), subdiv=0):
 
     # generate face index
     faces = []
-    for i in range(subdiv + 1):
-        k1 = i * (subdiv + 2)
-        k2 = k1 + subdiv + 2
 
-        for j in range(subdiv + 1):
-            faces.append([k1, k2, k1 + 1])
-            faces.append([k1 + 1, k2, k2 + 1])
+    if tessMode == 'diag':
+        for i in range(subdiv + 1):
+            k1 = i * (subdiv + 2)
+            k2 = k1 + subdiv + 2
 
-            k1 += 1
-            k2 += 1
+            for j in range(subdiv + 1):
+                faces.append([k1, k2, k1 + 1])
+                faces.append([k1 + 1, k2, k2 + 1])
+
+                k1 += 1
+                k2 += 1
+
+    elif tessMode == 'center':
+        lx = len(x)
+        ly = len(y)
+
+        for i in range(subdiv + 1):
+            k1 = i * (subdiv + 2)
+            k2 = k1 + subdiv + 2
+
+            for j in range(subdiv + 1):
+                if k1 + j < k1 + int((lx / 2)):
+                    if int(k1 / ly) + 1 > int(ly / 2):
+                        faces.append([k1, k2, k1 + 1])
+                        faces.append([k1 + 1, k2, k2 + 1])
+                    else:
+                        faces.append([k1, k2, k2 + 1])
+                        faces.append([k1 + 1, k1, k2 + 1])
+                else:
+                    if int(k1 / ly) + 1 > int(ly / 2):
+                        faces.append([k1, k2, k2 + 1])
+                        faces.append([k1 + 1, k1, k2 + 1])
+                    else:
+                        faces.append([k1, k2, k1 + 1])
+                        faces.append([k1 + 1, k2, k2 + 1])
+
+                k1 += 1
+                k2 += 1
+
+    elif tessMode == 'radial':
+        lx = len(x)
+        ly = len(y)
+
+        for i in range(subdiv + 1):
+            k1 = i * (subdiv + 2)
+            k2 = k1 + subdiv + 2
+
+            for j in range(subdiv + 1):
+                if k1 + j < k1 + int((lx / 2)):
+                    if int(k1 / ly) + 1 > int(ly / 2):
+                        faces.append([k1, k2, k2 + 1])
+                        faces.append([k1 + 1, k1, k2 + 1])
+                    else:
+                        faces.append([k1, k2, k1 + 1])
+                        faces.append([k1 + 1, k2, k2 + 1])
+                else:
+                    if int(k1 / ly) + 1 > int(ly / 2):
+                        faces.append([k1, k2, k1 + 1])
+                        faces.append([k1 + 1, k2, k2 + 1])
+                    else:
+                        faces.append([k1, k2, k2 + 1])
+                        faces.append([k1 + 1, k1, k2 + 1])
+
+                k1 += 1
+                k2 += 1
+
+    else:
+        raise ValueError('Invalid value for `tessMode`.')
 
     # convert to numpy arrays
     vertices = np.ascontiguousarray(vertices, dtype=np.float32)
@@ -3647,9 +4274,12 @@ def createBox(size=(1., 1., 1.), flipFaces=False):
 
     # vertex indices for faces
     faces = np.ascontiguousarray([
-        [ 0,  2,  1], [ 1,  2,  3], [ 4,  6,  5], [ 5,  6,  7], [ 8, 10,  9],
-        [ 9, 10, 11], [12, 14, 13], [13, 14, 15], [16, 18, 17], [17, 18, 19],
-        [20, 22, 21], [21, 22, 23]
+        [ 0,  2,  1], [ 1,  2,  3],  # +X
+        [ 4,  6,  5], [ 5,  6,  7],  # -X
+        [ 8, 10,  9], [ 9, 10, 11],  # +Y
+        [12, 14, 13], [13, 14, 15],  # -Y
+        [16, 18, 17], [17, 18, 19],  # +Z
+        [20, 22, 21], [21, 22, 23]   # -Z
     ], dtype=np.uint32)
 
     if flipFaces:
@@ -3657,6 +4287,122 @@ def createBox(size=(1., 1., 1.), flipFaces=False):
         normals *= -1.0
 
     return vertices, texCoords, normals, faces
+
+
+def transformMeshPosOri(vertices, normals, pos=(0., 0., 0.), ori=(0., 0., 0., 1.)):
+    """Transform a mesh.
+
+    Transform mesh vertices and normals to a new position and orientation using
+    a position coordinate and rotation quaternion. Values `vertices` and
+    `normals` must be the same shape. This is intended to be used when editing
+    raw vertex data prior to rendering. Do not use this to change the
+    configuration of an object while rendering.
+
+    Parameters
+    ----------
+    vertices : array_like
+        Nx3 array of vertices.
+    normals : array_like
+        Nx3 array of normals.
+    pos : array_like, optional
+        Position vector to transform mesh vertices. If Nx3, `vertices` will be
+        transformed by corresponding rows of `pos`.
+    ori : array_like, optional
+        Orientation quaternion in form [x, y, z, w]. If Nx4, `vertices` and
+        `normals` will be transformed by corresponding rows of `ori`.
+
+    Returns
+    -------
+    tuple
+        Transformed vertices and normals.
+
+    Examples
+    --------
+    Create and re-orient a plane to face upwards::
+
+        vertices, textureCoords, normals, faces = createPlane()
+
+        # rotation quaternion
+        qr = quatFromAxisAngle((1., 0., 0.), -90.0)  # -90 degrees about +X axis
+
+        # transform the normals and points
+        vertices, normals = transformMeshPosOri(vertices, normals, ori=qr)
+
+    Any `create*` primitive generating function can be used inplace of
+    `createPlane`.
+
+    """
+    # ensure these are contiguous
+    vertices = np.ascontiguousarray(vertices)
+    normals = np.ascontiguousarray(normals)
+
+    if not np.allclose(pos, [0., 0., 0.]):
+        vertices = mt.transform(pos, ori, vertices)
+
+    if not np.allclose(ori, [0., 0., 0., 1.]):
+        normals = mt.applyQuat(ori, normals)
+
+    return vertices, normals
+
+
+def calculateVertexNormals(vertices, faces, shading='smooth'):
+    """Calculate vertex normals given vertices and triangle faces.
+
+    Finds all faces sharing a vertex index and sets its normal to either
+    the face normal if `shading='flat'` or the average normals of adjacent
+    faces if `shading='smooth'`. Flat shading only works correctly if each
+    vertex belongs to exactly one face.
+
+    The direction of the normals are determined by the winding order of
+    triangles, assumed counter clock-wise (OpenGL default). Most model
+    editing software exports using this convention. If not, winding orders
+    can be reversed by calling::
+
+        faces = np.fliplr(faces)
+
+    In some case, creases may appear if vertices are at the same location,
+    but do not share the same index.
+
+    Parameters
+    ----------
+    vertices : array_like
+        Nx3 vertex positions.
+    faces : array_like
+        Nx3 vertex indices.
+    shading : str, optional
+        Shading mode. Options are 'smooth' and 'flat'. Flat only works with
+        meshes where no vertex index is shared across faces.
+
+    Returns
+    -------
+    ndarray
+        Vertex normals array with the shame shape as `vertices`. Computed
+        normals are normalized.
+
+    Examples
+    --------
+    Recomputing vertex normals for a UV sphere::
+
+        # create a sphere and discard normals
+        vertices, textureCoords, _, faces = gltools.createUVSphere()
+        normals = gltools.calculateVertexNormals(vertices, faces)
+
+    """
+    # compute surface normals for all faces
+    faceNormals = mt.surfaceNormal(vertices[faces])
+
+    normals = []
+    if shading == 'flat':
+        for vertexIdx in np.unique(faces):
+            match, _ = np.where(faces == vertexIdx)
+            normals.append(faceNormals[match, :])
+    elif shading == 'smooth':
+        # get all faces the vertex belongs to
+        for vertexIdx in np.unique(faces):
+            match, _ = np.where(faces == vertexIdx)
+            normals.append(mt.vertexNormal(faceNormals[match, :]))
+
+    return np.ascontiguousarray(normals) + 0.0
 
 
 # -----------------------------

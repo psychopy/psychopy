@@ -304,9 +304,9 @@ class Flow(list):
                             .format(name=thisEntry.loop.params['name'].val))
                     loopStack.append(thisEntry.loop)
                 elif thisEntry.getType() == "Routine":
-                    code = ("flowScheduler.add({params[name]}RoutineBegin);\n"
-                            "flowScheduler.add({params[name]}RoutineEachFrame);\n"
-                            "flowScheduler.add({params[name]}RoutineEnd);\n"
+                    code = ("flowScheduler.add({params[name]}RoutineBegin());\n"
+                            "flowScheduler.add({params[name]}RoutineEachFrame());\n"
+                            "flowScheduler.add({params[name]}RoutineEnd());\n"
                             .format(params=thisEntry.params))
             else:  # we are already in a loop so don't code here just count
                 code = ""
@@ -319,10 +319,23 @@ class Flow(list):
         script.writeIndented("flowScheduler.add(quitPsychoJS, '', true);\n")
         # handled all the flow entries
         code = ("\n// quit if user presses Cancel in dialog box:\n"
-                "dialogCancelScheduler.add(quitPsychoJS, '', false);\n"
-                "\npsychoJS.start({expName, expInfo});\n")
+                "dialogCancelScheduler.add(quitPsychoJS, '', false);\n\n")
+        script.writeIndentedLines(code)
+
+        # Write resource list
+        resourceFiles = set([resource['rel'].replace("\\", "/") for resource in self.exp.getResourceFiles()])
+        script.writeIndented("psychoJS.start({expName, expInfo, resources: [\n")
+        script.setIndentLevel(1, relative=True)
+        code = ""
+        for idx, resource in enumerate(resourceFiles):
+            temp = "{{'name': '{0}', 'path': 'resources/{0}'}}".format(resource)
+            code += temp
+            if idx != (len(resourceFiles)-1):
+                code += ",\n"  # Trailing comma
         script.writeIndentedLines(code)
         script.setIndentLevel(-1, relative=True)
+        code = "]});\n"
+        script.writeIndentedLines(code)
         script.writeIndented("\n")
 
     def writeLoopHandlerJS(self, script, modular):
