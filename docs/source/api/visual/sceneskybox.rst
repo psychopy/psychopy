@@ -1,5 +1,5 @@
-:class:`BlinnPhongMaterial`
-----------------------
+:class:`SceneSkybox`
+---------------------
 
 Attributes
 ==========
@@ -8,13 +8,13 @@ Attributes
 
 .. autosummary:: 
 
-    BlinnPhongMaterial
+    SceneSkybox
     
         
 Details
 =======
 
-.. autoclass:: BlinnPhongMaterial
+.. autoclass:: SceneSkybox
     :members:
     :undoc-members:
     :inherited-members:

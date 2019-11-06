@@ -34,6 +34,7 @@ spherePose2 = RigidBodyPose((-0.1, 0.1, 0.1))
 spherePose3 = RigidBodyPose((0.1, -0.1, -0.1))
 
 # create some sphere stim objects
+lightSphere = SphereStim(win, radius=0.05, color='white', useShaders=False)
 sphere1 = SphereStim(win, radius=0.05, color='red', useShaders=False)
 sphere2 = SphereStim(win, radius=0.1, color='green', useShaders=False)
 sphere3 = SphereStim(win, radius=0.075, color='blue', useShaders=False)
@@ -47,6 +48,11 @@ while not event.getKeys():
     # setup drawing
     win.setPerspectiveView()
 
+    # sphere for the light source, note this does not actually emit light
+    lightSphere.thePose = pivotPose
+    lightSphere.draw()
+
+    # call after drawing `lightSphere` since we don't want it being shaded
     win.useLights = True
 
     # multiplying pose puts the first object in the reference frame of the
