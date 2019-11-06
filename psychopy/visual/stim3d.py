@@ -826,6 +826,16 @@ class RigidBodyPose(object):
         self._matrixNeedsUpdate = self._invMatrixNeedsUpdate = True
 
     @property
+    def posOri(self):
+        """The position (x, y, z) and orientation (x, y, z, w)."""
+        return self._pos, self._ori
+
+    @posOri.setter
+    def posOri(self, value):
+        self._pos = np.ascontiguousarray(value[0], dtype=np.float32)
+        self._ori = np.ascontiguousarray(value[1], dtype=np.float32)
+
+    @property
     def at(self):
         """Vector defining the forward direction (-Z) of this pose."""
         if self._matrixNeedsUpdate:  # matrix needs update, this need to be too
