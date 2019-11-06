@@ -14,7 +14,9 @@ __all__ = ['Frustum',
            'orthoProjectionMatrix',
            'perspectiveProjectionMatrix',
            'lookAt',
-           'pointToNdc']
+           'pointToNdc',
+           'unProject',
+           'cursorToRay']
 
 import numpy as np
 from collections import namedtuple
@@ -532,3 +534,103 @@ def pointToNdc(wcsPos, viewMatrix, projectionMatrix, out=None, dtype=None):
     rtn[:, :] = wcsVec[:, :3] / wcsVec[:, 3:]  # xyz / w
 
     return toReturn
+
+
+def unProject(winX, winY, winZ, winSize, viewport, projectionMatrix, viewMatrix):
+    """Transform a 2D screen coordinate to direction vector.
+
+    Parameters
+    ----------
+    winX, winY :  float or int
+        Window coordinates. These need to be scaled if you are using a
+        framebuffer that does not have 1:1 pixel mapping (i.e. retina display).
+    winZ : float or int
+        Coordinate between the normalized distance between the near and far
+        clipping planes.
+    winSize : array_like
+        Size of the window client area [w, h].
+    viewport : array_like
+        Viewport rectangle [x, y, w, h] being used.
+    projectionMatrix : ndarray
+        4x4 projection matrix being used.
+    viewMatrix : ndarray
+        4x4 view matrix.
+    dtype : dtype or str, optional
+        Data type for arrays, can either be 'float32' or 'float64'. If `None` is
+        specified, the data type is inferred by `out`. If `out` is not provided,
+        the default is 'float64'.
+
+    """
+    invPM = np.linalg.inv(np.matmul(projectionMatrix, viewMatrix))
+
+    winX = winX + (winSize[0] / 2.0)
+    winY = winY + (winSize[1] / 2.0)
+
+    vec = np.array((((2. * (winX - viewport[0])) / viewport[2]) - 1.0,
+                    ((2. * (winY - viewport[1])) / viewport[3]) - 1.0,
+                    2. * winZ - 1.0, 1.0))
+
+    vec /= vec[3]
+
+    return vec.dot(invPM.T)
+
+
+def cursorToRay(cursorX, cursorY, winSize, viewport, projectionMatrix, viewMatrix,
+                normalize=True, dtype=None):
+    """Convert a 2D window (mouse) coordinate to a 3D ray.
+
+    Takes a 2D window/mouse coordinate and transforms it to a 3D
+    direction vector from the eye viewpoint. This vector can be scaled to
+    transform the vector to a point in scene coordinates.
+
+    Parameters
+    ----------
+    cursorX, cursorY :  float or int
+        Window coordinates. These need to be scaled if you are using a
+        framebuffer that does not have 1:1 pixel mapping (i.e. retina display).
+    winSize : array_like
+        Size of the window client area [w, h].
+    viewport : array_like
+        Viewport rectangle [x, y, w, h] being used.
+    projectionMatrix : ndarray
+        4x4 projection matrix being used.
+    viewMatrix : ndarray
+        4x4 view matrix.
+    normalize : bool
+        Normalize the resulting vector.
+    dtype : dtype or str, optional
+        Data type for arrays, can either be 'float32' or 'float64'. If `None` is
+        specified, the data type is inferred by `out`. If `out` is not provided,
+        the default is 'float64'.
+
+    Returns
+    -------
+    ndarray
+        Direction vector (x, y, z).
+
+    """
+    # compute the inverse model/view and projection matrix
+    invPM = np.linalg.inv(np.matmul(projectionMatrix, viewMatrix))
+
+    # transform psychopy mouse coordinates to viewport coordinates
+    cursorX = cursorX + (winSize[0] / 2.0)
+    cursorY = cursorY + (winSize[1] / 2.0)
+
+    # get the NDC coordinates of the
+    projX = ((2. * (cursorX - viewport[0])) / viewport[2]) - 1.0
+    projY = ((2. * (cursorY - viewport[1])) / viewport[3]) - 1.0
+
+    vecNear = np.array((projX, projY, 0.0, 1.0), dtype=np.float32).dot(invPM.T)
+    vecFar = np.array((projX, projY, 1.0, 1.0), dtype=np.float32).dot(invPM.T)
+
+    vecNear /= vecNear[3]
+    vecFar /= vecFar[3]
+
+    # direction vector
+    vecDir = vecFar[:3] - vecNear[:3]
+
+    if normalize:
+        vecDir = mt.normalize(vecDir)
+
+    return vecDir
+
