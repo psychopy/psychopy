@@ -184,6 +184,9 @@ class Window(object):
                  useRetina=True,
                  autoLog=True,
                  gammaErrorPolicy='raise',
+                 bpc=(8, 8, 8),
+                 depthBits=8,
+                 stencilBits=8,
                  *args,
                  **kwargs):
         """
@@ -271,6 +274,14 @@ class Window(object):
             If `raise`, an error is raised if the gamma table is unable to be
             retrieved or set. If `warn`, a warning is raised instead. If
             `ignore`, neither an error nor a warning are raised.
+        bpc : array_like or int
+            Bits per color for the back buffer. Valid values depend on the
+            output color depth of the display. By default, it is assumed the
+            display has 8-bits per color (8, 8, 8)
+        depthBits : int,
+            Back buffer depth bits. Default is 8.
+        stencilBits : int
+            Back buffer stencil bits. Default is 8.
 
         Notes
         -----
@@ -410,7 +421,12 @@ class Window(object):
         self.winType = winType
 
         # setup the context
-        self.backend = backends.getBackend(win=self, *args, **kwargs)
+        self.backend = backends.getBackend(win=self,
+                                           bpc=bpc,
+                                           depthBits=depthBits,
+                                           stencilBits=stencilBits,
+                                           *args, **kwargs)
+
         self.winHandle = self.backend.winHandle
         global GL
         GL = self.backend.GL
