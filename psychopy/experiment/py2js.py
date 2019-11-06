@@ -12,7 +12,6 @@ to JS (ES6/PsychoJS)
 import ast
 import astunparse
 import esprima
-import sys
 from os import path
 from psychopy.constants import PY3
 from psychopy import logging

@@ -1,4 +1,3 @@
-import sys
 import ast
 from esprima import parseScript
 from numpy import array

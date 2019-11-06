@@ -1,5 +1,5 @@
-import sys
 from psychopy.alerts._alerts import alertLog
+
 
 class _BaseErrorHandler(object):
     """A base class for handling PsychoPy alerts and exceptions.
