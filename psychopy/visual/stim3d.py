@@ -238,16 +238,19 @@ class SceneSkybox(object):
 
 
     """
-    def __init__(self, win, faceTextures=(), ori=0.0, axis=(0, 1, 0)):
+    def __init__(self, win, tex=(), ori=0.0, axis=(0, 1, 0)):
         """
         Parameters
         ----------
         win : `~psychopy.visual.Window`
             Window this skybox is associated with.
-        faceTextures : list or tuple
+        tex : list or tuple or TexCubeMap
             List of files paths to images to use for each face. Images are
             assigned to faces depending on their index within the list ([+X,
-            -X, +Y, -Y, +Z, -Z] or [right, left, top, bottom, back, front]).
+            -X, +Y, -Y, +Z, -Z] or [right, left, top, bottom, back, front]). If
+            `None` is specified, the cube map may be specified later by setting
+            the `cubemap` attribute. Alternativley, you can specify a
+            `TexCubeMap` object to set the cubemap directly.
         ori : float
             Rotation of the skybox about `axis` in degrees.
         axis : array_like
@@ -259,29 +262,41 @@ class SceneSkybox(object):
         self._ori = ori
         self._axis = np.ascontiguousarray(axis, dtype=np.float32)
 
-        imgFace = []
-        for img in faceTextures:
-            im = Image.open(img)
-            im = im.convert("RGBA")
-            pixelData = np.array(im).ctypes
-            imgFace.append(pixelData)
+        if tex:
+            if isinstance(tex, (list, tuple,)):
+                if len(tex) == 6:
+                    imgFace = []
+                    for img in tex:
+                        im = Image.open(img)
+                        im = im.convert("RGBA")
+                        pixelData = np.array(im).ctypes
+                        imgFace.append(pixelData)
 
-        width = imgFace[0].shape[1]
-        height = imgFace[0].shape[0]
+                    width = imgFace[0].shape[1]
+                    height = imgFace[0].shape[0]
 
-        self._skyCubemap = gt.createCubeMap(
-            width,
-            height,
-            internalFormat=GL.GL_RGBA,
-            pixelFormat=GL.GL_RGBA,
-            dataType=GL.GL_UNSIGNED_BYTE,
-            data=imgFace,
-            unpackAlignment=1,
-            texParams={GL.GL_TEXTURE_MAG_FILTER: GL.GL_LINEAR,
-                       GL.GL_TEXTURE_MIN_FILTER: GL.GL_LINEAR,
-                       GL.GL_TEXTURE_WRAP_S: GL.GL_CLAMP_TO_EDGE,
-                       GL.GL_TEXTURE_WRAP_T: GL.GL_CLAMP_TO_EDGE,
-                       GL.GL_TEXTURE_WRAP_R: GL.GL_CLAMP_TO_EDGE})
+                    self._skyCubemap = gt.createCubeMap(
+                        width,
+                        height,
+                        internalFormat=GL.GL_RGBA,
+                        pixelFormat=GL.GL_RGBA,
+                        dataType=GL.GL_UNSIGNED_BYTE,
+                        data=imgFace,
+                        unpackAlignment=1,
+                        texParams={
+                            GL.GL_TEXTURE_MAG_FILTER: GL.GL_LINEAR,
+                            GL.GL_TEXTURE_MIN_FILTER: GL.GL_LINEAR,
+                            GL.GL_TEXTURE_WRAP_S: GL.GL_CLAMP_TO_EDGE,
+                            GL.GL_TEXTURE_WRAP_T: GL.GL_CLAMP_TO_EDGE,
+                            GL.GL_TEXTURE_WRAP_R: GL.GL_CLAMP_TO_EDGE})
+                else:
+                    ValueError("Not enough textures specified, must be 6.")
+            elif isinstance(tex, gt.TexCubeMap):
+                self._skyCubemap = tex
+            else:
+                raise TypeError("Invalid type specified to `tex`.")
+        else:
+            self._skyCubemap = None
 
         # create cube vertices and faces, discard texcoords and normals
         vertices, _, _, faces = gt.createBox(1.0, True)
@@ -310,6 +325,15 @@ class SceneSkybox(object):
         self._skyboxViewMatrix = np.identity(4, dtype=np.float32)
         self._prtSkyboxMatrix = at.array2pointer(self._skyboxViewMatrix)
 
+    @property
+    def skyCubeMap(self):
+        """Cubemap for the sky."""
+        return self._skyCubemap
+
+    @skyCubeMap.setter
+    def skyCubeMap(self, value):
+        self._skyCubemap = value
+
     def draw(self, win=None):
         """Draw the skybox.
 
@@ -324,6 +348,9 @@ class SceneSkybox(object):
             context with the window which this objects was initialized with.
 
         """
+        if self._skyCubemap is None:  # nop if no cubemap is assigned
+            return
+
         if win is None:
             win = self.win
         else:
