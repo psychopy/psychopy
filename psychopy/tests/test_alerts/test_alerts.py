@@ -12,18 +12,23 @@ class TestAlertsModule():
     def test_alertlog(self):
         """Tests the creation of the AlertLog object"""
         assert (isinstance(_alerts.alertLog, _alerts.AlertLog))
-        assert (_alerts.alertLog.log == [])
+        assert (_alerts.alertLog._log == [])
+        assert (_alerts.alertLog._logIndex == 0)
+
+    def test_alert_iteration(self):
+        _alerts.alertLog.store([1,2,3])
+        for i, j in enumerate(_alerts.alertLog):
+            assert (i + 1 == j)
 
     def test_alert_catalogue(self):
         """Test the alerts catalogue has been created and loaded correctly"""
         assert (isinstance(_alerts.catalogue, _alerts.AlertCatalogue))
         assert (9999 in _alerts.catalogue.alert.keys())
 
-    def test_appending_alertlog(self):
+    def test_alertlog_store(self):
         """Tests append and retrieve of the alertlog"""
-        _alerts.alertLog.append(1)
-        _alerts.alertLog.append(2)
-        assert (_alerts.alertLog.current == 2)
+        _alerts.alertLog.store([1])
+        assert (_alerts.alertLog._log == [1])
 
     def test_alertentry(self):
         """Test creation of AlertEntry object"""
@@ -44,6 +49,6 @@ class TestAlertsModule():
         assert ("TEST_MSG TEST ALERT" in err)
 
     def test_alertlog_clear(self):
-        _alerts.alertLog.append(1)
+        _alerts.alertLog.store([1])
         _alerts.alertLog.clear()
-        assert (_alerts.alertLog.log == [])
+        assert (_alerts.alertLog._log == [])

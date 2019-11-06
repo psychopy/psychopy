@@ -50,9 +50,9 @@ class ErrorHandler(_BaseErrorHandler):
         super(ErrorHandler, self).__init__()
 
     def flush(self):
-        """Appends alerts to alertLog, flushes errors, clears errors and alerts attributes.
+        """Stores alerts in alertLog, flushes errors, clears errors and alerts attributes.
         """
-        alertLog.append(self.alerts)
+        alertLog.store(self.alerts)
 
         for err in self.errors:
             print(err)

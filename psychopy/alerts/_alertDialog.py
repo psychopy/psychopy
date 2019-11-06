@@ -14,7 +14,7 @@ class AlertPanel(wx.Panel):
         self.listCtrl = wx.ListCtrl(self, -1, style=wx.LC_REPORT)
         self.ConfigureListCtrl()
 
-        for alert in alertLog.current:
+        for alert in alertLog:
             if isinstance(alert, AlertEntry):
                 temp = [alert.code, alert.cat, alert.name, alert.msg, alert.url]
                 self.listCtrl.Append(temp)

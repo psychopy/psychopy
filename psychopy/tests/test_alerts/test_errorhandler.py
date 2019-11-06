@@ -27,5 +27,5 @@ class TestErrorHandler():
         alert(9999, self)
         assert (isinstance(sys.stderr.alerts[-1], AlertEntry))
         sys.stderr.flush()
-        assert (isinstance(alertLog.current[-1], AlertEntry))
+        assert (isinstance(alertLog[0], AlertEntry))
         assert (sys.stderr.alerts == [])

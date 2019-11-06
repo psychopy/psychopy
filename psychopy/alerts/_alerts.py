@@ -24,32 +24,41 @@ alertLog : AlertLog
 
 class AlertLog(object):
     """
-    Alert container class for storing up to 2 sets of alerts.
+    Alert iterator class for storing a set of alerts from a single integrity check.
     The AlertLog class will create alertLog object to feed AlertsPanel and Runner.
     """
     def __init__(self):
-        self.log = []
+        self._log = []
+        self._logIndex = 0
 
-    def append(self, alerts):
-        """Appends list of alerts to list
+    def store(self, alerts):
+        """Receives and stores list of alerts in log list
 
         Parameters
         ----------
         alerts: list
             List of AlertEntry objects
         """
-        self.log.append(alerts)
-        self.log = self.log[-2:]
+        self._log.extend(alerts)
 
-    @property
-    def current(self):
-        """Returns current log"""
-        if len(self.log):
-            return self.log[-1]
-        return self.log
+    def __iter__(self):
+        return self
+
+    def __next__(self):
+        index = self._logIndex
+        if index < len(self._log):
+            self._logIndex += 1
+            return self._log[index]
+        self._logIndex = 0
+        raise StopIteration
+
+    def __getitem__(self, index):
+        if index < len(self._log):
+            return self._log[index]
 
     def clear(self):
-        self.log = []
+        self._log = []
+        self._logIndex = 0
 
 
 class AlertCatalogue():
@@ -81,20 +90,21 @@ class AlertEntry():
 
     Attributes
     ----------
-    type: str
-        Type of component being tested
-    name: str
-        Name of component being tested
+
     code: int
         The 4 digit code for retrieving alert from AlertCatalogue
     cat: str
         The category of the alert
-    msg: str
-        The alert message
     url: str
         A URL for pointing towards information resources for solving the issue
     obj: object
         The object related to the alert e.g., TextComponent object.
+    type: str
+        Type of component being tested
+    name: str
+        Name of component being tested
+    msg: str
+        The alert message
     trace: sys.exec_info() traceback object
             The traceback
 
@@ -110,90 +120,30 @@ class AlertEntry():
             The traceback
     """
     def __init__(self, code, obj, strFormat=None, trace=None):
-        self.type = self._componentType(obj)
-        self.name = self._componentName(obj)
         self.code = catalogue.alert[code]['code']
         self.cat = catalogue.alert[code]['cat']
-        self.msg = self._formatMsg(
-            catalogue.alert[code]['msg'],
-            strFormat)
         self.url = catalogue.alert[code]['url']
         self.obj = obj
-        self.trace = self._formatTrace(trace)
 
-    def _formatMsg(self, msg, strFormat):
-        """
-        Formats message text if strFormat value given.
+        if hasattr(obj, 'type'):
+            self.type = obj.type
+        else:
+            self.type = None
 
-        Parameters
-        ----------
-        msg: str
-            The alerts catalogue message entry
-        strFormat: dict
-            Values to format msg
-
-        Returns
-        -------
-        msg: str
-            Either original or formatted message
-        """
-        if strFormat is not None:
-            return msg.format(**strFormat)
-        return msg
-
-    def _formatTrace(self, trace=None):
-        """
-        Formats traceback as string.
-
-        Parameters
-        ----------
-        trace: sys.exec_info() traceback object
-            The traceback
-
-        Returns
-        -------
-        str
-            The traceback message formatted as string
-        """
-        if trace:
-            errorType, value, tb = trace
-            return ''.join(traceback.format_exception(errorType, value, tb))
-
-    def _componentType(self, obj):
-        """
-        Checks component for type
-
-        Parameters
-        ----------
-        obj: Component
-            Component object being tested
-
-        Returns
-        -------
-        type: str
-            The type of component if exists, or None.
-        """
-        if hasattr(obj, "type"):
-            return obj.type
-        return None
-
-    def _componentName(self, obj):
-        """
-        Checks component for name
-
-        Parameters
-        ----------
-        obj: Component
-            Component object being tested
-
-        Returns
-        -------
-        name: str
-            The name of the component if the parameter exists, or None.
-        """
         if hasattr(obj, "params"):
-            return obj.params['name'].val
-        return None
+            self.name = obj.params['name'].val
+        else:
+            self.name = None
+
+        if strFormat:
+            self.msg = catalogue.alert[code]['msg'].format(**strFormat)
+        else:
+            self.msg = catalogue.alert[code]['msg']
+
+        if trace:
+            self.trace = ''.join(traceback.format_exception(trace[0], trace[1], trace[2]))
+        else:
+            self.trace = None
 
 
 def alert(code=None, obj=object, strFormat=None, trace=None):
