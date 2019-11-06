@@ -275,11 +275,15 @@ class Window(object):
             retrieved or set. If `warn`, a warning is raised instead. If
             `ignore`, neither an error nor a warning are raised.
         bpc : array_like or int
-            Bits per color for the back buffer. Valid values depend on the
-            output color depth of the display. By default, it is assumed the
-            display has 8-bits per color (8, 8, 8)
+            Bits per color (BPC) for the back buffer. Valid values depend on the
+            output color depth of the display (screen) the window is set to use
+            and the system graphics configuration. By default, it is assumed the
+            display has 8-bits per color (8, 8, 8). Behaviour may be undefined
+            for non-fullscreen windows, or if multiple screens are attached with
+            varying color output depths.
         depthBits : int,
-            Back buffer depth bits. Default is 8.
+            Back buffer depth bits. Default is 8, but can be set higher (eg. 24)
+            if drawing 3D stimuli to minimize artifacts such a 'Z-fighting'.
         stencilBits : int
             Back buffer stencil bits. Default is 8.
 
