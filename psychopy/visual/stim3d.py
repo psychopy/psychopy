@@ -834,6 +834,7 @@ class RigidBodyPose(object):
     def posOri(self, value):
         self._pos = np.ascontiguousarray(value[0], dtype=np.float32)
         self._ori = np.ascontiguousarray(value[1], dtype=np.float32)
+        self._matrixNeedsUpdate = self._invMatrixNeedsUpdate = True
 
     @property
     def at(self):
