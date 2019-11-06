@@ -82,7 +82,9 @@ __all__ = [
     'createTexImage2D',
     'createTexImage2dFromFile',
     'bindTexture',
-    'unbindTexture'
+    'unbindTexture',
+    'createCubeMap',
+    'TexCubeMap'
 ]
 
 import ctypes
@@ -1779,6 +1781,191 @@ def createTexImage2dFromFile(imgFile, transpose=True):
                    GL.GL_TEXTURE_MIN_FILTER: GL.GL_LINEAR})
 
     return textureDesc
+
+
+class TexCubeMap(object):
+    """Descriptor for a cube map texture..
+
+    This class is used for bookkeeping cube maps stored in video memory.
+    Information about the texture (eg. `width` and `height`) is available via
+    class attributes. Attributes should never be modified directly.
+
+    """
+    __slots__ = ['width',
+                 'height',
+                 'target',
+                 '_name',
+                 'level',
+                 'internalFormat',
+                 'pixelFormat',
+                 'dataType',
+                 'unpackAlignment',
+                 '_texParams',
+                 '_isBound',
+                 '_unit',
+                 '_texParamsNeedUpdate']
+
+    def __init__(self,
+                 name=0,
+                 target=GL.GL_TEXTURE_CUBE_MAP,
+                 width=64,
+                 height=64,
+                 level=0,
+                 internalFormat=GL.GL_RGBA,
+                 pixelFormat=GL.GL_RGBA,
+                 dataType=GL.GL_FLOAT,
+                 unpackAlignment=4,
+                 texParams=None):
+        """
+        Parameters
+        ----------
+        name : `int` or `GLuint`
+            OpenGL handle for texture. Is `0` if uninitialized.
+        target : :obj:`int`
+            The target texture should only be `GL_TEXTURE_CUBE_MAP`.
+        width : :obj:`int`
+            Texture width in pixels.
+        height : :obj:`int`
+            Texture height in pixels.
+        level : :obj:`int`
+            LOD number of the texture.
+        internalFormat : :obj:`int`
+            Internal format for texture data (e.g. GL_RGBA8, GL_R11F_G11F_B10F).
+        pixelFormat : :obj:`int`
+            Pixel data format (e.g. GL_RGBA, GL_DEPTH_STENCIL)
+        dataType : :obj:`int`
+            Data type for pixel data (e.g. GL_FLOAT, GL_UNSIGNED_BYTE).
+        unpackAlignment : :obj:`int`
+            Alignment requirements of each row in memory. Default is 4.
+        texParams : :obj:`list` of :obj:`tuple` of :obj:`int`
+            Optional texture parameters specified as `dict`. These values are
+            passed to `glTexParameteri`. Each tuple must contain a parameter
+            name and value. For example, `texParameters={
+            GL.GL_TEXTURE_MIN_FILTER: GL.GL_LINEAR, GL.GL_TEXTURE_MAG_FILTER:
+            GL.GL_LINEAR}`. These can be changed and will be updated the next
+            time this instance is passed to :func:`bindTexture`.
+
+        """
+        # fields for texture information
+        self.name = name
+        self.width = width
+        self.height = height
+        self.target = target
+        self.level = level
+        self.internalFormat = internalFormat
+        self.pixelFormat = pixelFormat
+        self.dataType = dataType
+        self.unpackAlignment = unpackAlignment
+        self._texParams = {}
+
+        # set texture parameters
+        if texParams is not None:
+            for key, val in texParams.items():
+                self._texParams[key] = val
+
+        # internal data
+        self._isBound = False  # True if the texture has been bound
+        self._unit = None  # texture unit assigned to this texture
+        self._texParamsNeedUpdate = True  # update texture parameters
+
+    @property
+    def name(self):
+        return self._name
+
+    @name.setter
+    def name(self, value):
+        if not isinstance(value, GL.GLuint):
+            self._name = GL.GLuint(int(value))
+        else:
+            self._name = value
+
+    @property
+    def size(self):
+        """Size of a single cubemap face [w, h] in pixels (`int`, `int`)."""
+        return self.width, self.height
+
+    @property
+    def texParams(self):
+        """Texture parameters."""
+        self._texParamsNeedUpdate = True
+        return self._texParams
+
+    @texParams.setter
+    def texParams(self, value):
+        """Texture parameters."""
+        self._texParamsNeedUpdate = True
+        self._texParams = value
+
+
+def createCubeMap(width, height, target=GL.GL_TEXTURE_CUBE_MAP, level=0,
+                  internalFormat=GL.GL_RGBA, pixelFormat=GL.GL_RGBA,
+                  dataType=GL.GL_UNSIGNED_BYTE, data=None, unpackAlignment=4,
+                  texParams=None):
+    """Create a cubemap.
+
+    Parameters
+    ----------
+    name : `int` or `GLuint`
+        OpenGL handle for the cube map. Is `0` if uninitialized.
+    target : :obj:`int`
+        The target texture should only be `GL_TEXTURE_CUBE_MAP`.
+    width : :obj:`int`
+        Texture width in pixels.
+    height : :obj:`int`
+        Texture height in pixels.
+    level : :obj:`int`
+        LOD number of the texture.
+    internalFormat : :obj:`int`
+        Internal format for texture data (e.g. GL_RGBA8, GL_R11F_G11F_B10F).
+    pixelFormat : :obj:`int`
+        Pixel data format (e.g. GL_RGBA, GL_DEPTH_STENCIL)
+    dataType : :obj:`int`
+        Data type for pixel data (e.g. GL_FLOAT, GL_UNSIGNED_BYTE).
+    data : list or tuple
+        List of six ctypes pointers to image data for each cubemap face. Image
+        data is assigned to a face by index [+X, -X, +Y, -Y, +Z, -Z]. All images
+        must have the same size as specified by `width` and `height`.
+    unpackAlignment : :obj:`int`
+        Alignment requirements of each row in memory. Default is 4.
+    texParams : :obj:`list` of :obj:`tuple` of :obj:`int`
+        Optional texture parameters specified as `dict`. These values are
+        passed to `glTexParameteri`. Each tuple must contain a parameter
+        name and value. For example, `texParameters={
+        GL.GL_TEXTURE_MIN_FILTER: GL.GL_LINEAR, GL.GL_TEXTURE_MAG_FILTER:
+        GL.GL_LINEAR}`. These can be changed and will be updated the next
+        time this instance is passed to :func:`bindTexture`.
+
+    """
+    texId = GL.GLuint()
+    GL.glGenTextures(1, ctypes.byref(texId))
+    GL.glBindTexture(target, texId)
+
+    # create faces of the cube map
+    for face in range(6):
+        GL.glPixelStorei(GL.GL_UNPACK_ALIGNMENT, int(unpackAlignment))
+        GL.glTexImage2D(GL.GL_TEXTURE_CUBE_MAP_POSITIVE_X + face, level,
+                        internalFormat, width, height, 0, pixelFormat, dataType,
+                        data[face] if data is not None else data)
+
+    # apply texture parameters
+    if texParams is not None:
+        for pname, param in texParams.items():
+            GL.glTexParameteri(target, pname, param)
+
+    GL.glBindTexture(target, 0)
+
+    tex = TexCubeMap(name=texId,
+                     target=target,
+                     width=width,
+                     height=height,
+                     internalFormat=internalFormat,
+                     level=level,
+                     pixelFormat=pixelFormat,
+                     dataType=dataType,
+                     unpackAlignment=unpackAlignment,
+                     texParams=texParams)
+
+    return tex
 
 
 def bindTexture(texture, unit=None, enable=True):

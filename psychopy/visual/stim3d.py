@@ -15,6 +15,7 @@ import psychopy.tools.mathtools as mt
 import psychopy.tools.gltools as gt
 import psychopy.tools.arraytools as at
 import psychopy.tools.viewtools as vt
+from . import shaders as _shaders
 
 import os
 from io import StringIO
@@ -45,7 +46,7 @@ class LightSource(object):
                  ambientColor=(0., 0., 0.),
                  colorSpace='rgb',
                  lightType='point',
-                 kAttenuation=(1, 0, 0)):
+                 attenuation=(1, 0, 0)):
         """
         Parameters
         ----------
@@ -66,7 +67,7 @@ class LightSource(object):
             Ambient light color.
         colorSpace : str
             Colorspace for `diffuse`, `specular`, and `ambient` colors.
-        kAttenuation : array_like
+        attenuation : array_like
             Values for the constant, linear, and quadratic terms of the lighting
             attenuation formula. Default is (1, 0, 0) which results in no
             attenuation.
@@ -93,7 +94,7 @@ class LightSource(object):
         self.pos = pos
 
         # attenuation factors
-        self._kAttenuation = np.asarray(kAttenuation, np.float32)
+        self._kAttenuation = np.asarray(attenuation, np.float32)
 
     @property
     def pos(self):
@@ -200,19 +201,155 @@ class LightSource(object):
         self._ambientRGB[3] = 1.0
 
     @property
-    def kAttenuation(self):
+    def attenuation(self):
         """Values for the constant, linear, and quadratic terms of the lighting
         attenuation formula.
         """
         return self._kAttenuation
 
-    @kAttenuation.setter
-    def kAttenuation(self, value):
+    @attenuation.setter
+    def attenuation(self, value):
         self._kAttenuation = np.asarray(value, np.float32)
 
 
-class PhongMaterial(object):
-    """Class representing a material using the Phong lighting model.
+class SceneSkybox(object):
+    """Class to render scene skyboxes.
+
+    A skybox provides background imagery to serve as a visual reference for the
+    scene. Background images are projected onto faces of a cube centered about
+    the viewpoint regardless of any viewpoint translations, giving the illusion
+    that the background is very far away. Usually, only one skybox can be
+    rendered per buffer each frame. Render targets must have a depth buffer
+    associated with them.
+
+    Background images are specified as a set of image paths passed to
+    `faceTextures`, or a `TexCubeMap` object.
+
+    Skyboxes are not affected by lighting, however, their colors can be
+    modulated by setting the window's `sceneAmbient` value. Skyboxes should be
+    drawn after all other 3D stimuli, but before any successive call that clears
+    the depth buffer (eg. `setPerspectiveView`, `resetEyeTransform`, etc.)
+
+    """
+    def __init__(self, win, faceImage=(), ori=0.0, axis=(0, 1, 0)):
+        self.win = win
+
+        self._ori = ori
+        self._axis = np.ascontiguousarray(axis, dtype=np.float32)
+
+        imgFace = []
+        for img in faceImage:
+            im = Image.open(img)
+            im = im.convert("RGBA")
+            pixelData = np.array(im).ctypes
+            imgFace.append(pixelData)
+
+        width = imgFace[0].shape[1]
+        height = imgFace[0].shape[0]
+
+        self._skyCubemap = gt.createCubeMap(
+            width,
+            height,
+            internalFormat=GL.GL_RGBA,
+            pixelFormat=GL.GL_RGBA,
+            dataType=GL.GL_UNSIGNED_BYTE,
+            data=imgFace,
+            unpackAlignment=1,
+            texParams={GL.GL_TEXTURE_MAG_FILTER: GL.GL_LINEAR,
+                       GL.GL_TEXTURE_MIN_FILTER: GL.GL_LINEAR,
+                       GL.GL_TEXTURE_WRAP_S: GL.GL_CLAMP_TO_EDGE,
+                       GL.GL_TEXTURE_WRAP_T: GL.GL_CLAMP_TO_EDGE,
+                       GL.GL_TEXTURE_WRAP_R: GL.GL_CLAMP_TO_EDGE})
+
+        # create cube vertices and faces, discard texcoords and normals
+        vertices, _, _, faces = gt.createBox(1.0, True)
+
+        # upload to buffers
+        vertexVBO = gt.createVBO(vertices)
+
+        # create an index buffer with faces
+        indexBuffer = gt.createVBO(
+            faces.flatten(),
+            target=GL.GL_ELEMENT_ARRAY_BUFFER,
+            dataType=GL.GL_UNSIGNED_SHORT)
+
+        # create the VAO for drawing
+        self._vao = gt.createVAO(
+            {GL.GL_VERTEX_ARRAY: vertexVBO},
+            indexBuffer=indexBuffer,
+            legacy=True)
+
+        # shader for the skybox
+        self._shaderProg = _shaders.compileProgram(
+            _shaders.vertSkyBox, _shaders.fragSkyBox)
+
+        # store the skybox transformation matrix, this is not to be updated
+        # externally
+        self._skyboxViewMatrix = np.identity(4, dtype=np.float32)
+        self._prtSkyboxMatrix = at.array2pointer(self._skyboxViewMatrix)
+
+    def draw(self, win=None):
+        """Draw the skybox.
+
+        This should be called last after drawing other 3D stimuli for
+        performance reasons.
+
+        Parameters
+        ----------
+        win : `~psychopy.visual.Window`, optional
+            Window to draw the skybox to. If `None`, the window set when
+            initializing this object will be used. The window must share a
+            context with the window which this objects was initialized with.
+
+        """
+        if win is None:
+            win = self.win
+        else:
+            win._makeCurrent()
+
+        # enable 3D drawing
+        win.draw3d = True
+
+        # do transformations
+        GL.glPushMatrix()
+        GL.glLoadIdentity()
+
+        # rotate the skybox if needed
+        if self._ori != 0.0:
+            GL.glRotatef(self._ori, *self._axis)
+
+        # get/set the rotation sub-matrix from the current view matrix
+        self._skyboxViewMatrix[:3, :3] = win.viewMatrix[:3, :3]
+        GL.glMultTransposeMatrixf(self._prtSkyboxMatrix)
+
+        # use the shader program
+        gt.useProgram(self._shaderProg)
+
+        # enable texture sampler
+        GL.glEnable(GL.GL_TEXTURE_2D)
+        GL.glActiveTexture(GL.GL_TEXTURE0)
+        GL.glBindTexture(GL.GL_TEXTURE_CUBE_MAP, self._skyCubemap.name)
+
+        # draw the cube VAO
+        oldDepthFunc = win.depthFunc
+        win.depthFunc = 'lequal'  # optimized for being drawn last
+        gt.drawVAO(self._vao, GL.GL_TRIANGLES)
+        win.depthFunc = oldDepthFunc
+        gt.useProgram(0)
+
+        # disable sampler
+        GL.glBindTexture(GL.GL_TEXTURE_CUBE_MAP, 0)
+        GL.glDisable(GL.GL_TEXTURE_2D)
+
+        # return to previous transformation
+        GL.glPopMatrix()
+
+        # disable 3D drawing
+        win.draw3d = False
+
+
+class BlinnPhongMaterial(object):
+    """Class representing a material using the Blinn-Phong lighting model.
 
     This class stores material information to modify the appearance of drawn
     primitives with respect to lighting, such as color (diffuse, specular,
@@ -231,10 +368,11 @@ class PhongMaterial(object):
     cosine angle between the incident light ray and surface normal determines
     color. The size of specular highlights are related to the `shininess` factor
     which ranges from 1.0 to 128.0. The greater this number, the tighter the
-    specular highlight making the surface appear smoother. The emission color
-    is optional, it simply adds to the color of every pixel much like ambient
-    lighting does. Usually, you would not really want this, but it can be used
-    to add bias to the overall color of the shape.
+    specular highlight making the surface appear smoother. If shaders are not
+    being used, specular highlights will be computed using the Phong lighting
+    model. The emission color is optional, it simply adds to the color of every
+    pixel much like ambient lighting does. Usually, you would not really want
+    this, but it can be used to add bias to the overall color of the shape.
 
     If there are no lights in the scene, the diffuse color is simply multiplied
     by the scene and material ambient color to give the final color.
@@ -243,7 +381,7 @@ class PhongMaterial(object):
 
         attenuationFactor = 1.0 / (k0 + k1 * distance + k2 * pow(distance, 2))
 
-    The coefficients for attenuation can be specified by setting `kCoefficients`
+    The coefficients for attenuation can be specified by setting `attenuation`
     in the lighting object. Values `k0=1.0, k1=0.0, and k2=0.0` results in a
     light that does not fall-off with distance.
 
@@ -648,7 +786,7 @@ class RigidBodyPose(object):
         return self._at
 
     @property
-    def up(self, value):
+    def up(self):
         """Vector defining the up direction (+Y) of this pose."""
         if self._matrixNeedsUpdate:  # matrix needs update, this need to be too
             upDir = [0., 1., 0.]
@@ -1156,14 +1294,9 @@ class BaseRigidBodyStim(ColorMixin, WindowMixin):
 
         if self.material is not None:  # has a material, use it
             if self._useShaders:
-                nLights = len(self.win.lights)
                 useTexture = self.material.diffuseTexture is not None
-                shaderKey = (nLights, useTexture)
-                gt.useProgram(self.win._shaders['stim3d_phong'][shaderKey])
-
-                self.material.begin(useTexture)
+                self.material.begin(useTexture, useShaders=True)
                 gt.drawVAO(self._vao, GL.GL_TRIANGLES)
-                gt.useProgram(0)
                 self.material.end()
             else:
                 self.material.begin(self.material.diffuseTexture is not None)
@@ -1703,7 +1836,7 @@ class ObjMeshStim(BaseRigidBodyStim):
             line = line.strip()
             if line.startswith('newmtl '):  # new material
                 thisMaterial = line[7:]
-                foundMaterials[thisMaterial] = PhongMaterial(self.win)
+                foundMaterials[thisMaterial] = BlinnPhongMaterial(self.win)
             elif line.startswith('Ns '):  # specular exponent
                 foundMaterials[thisMaterial].shininess = line[3:]
             elif line.startswith('Ks '):  # specular color
