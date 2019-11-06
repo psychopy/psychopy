@@ -131,16 +131,19 @@ as needed:
 .. _conda:
 
 Anaconda and Miniconda
-~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~
 
-With Python 3.6::
+We provide an `environment file <https://raw.githubusercontent.com/psychopy/psychopy/master/conda/psychopy-env.yml>`_
+that can be used to install PsychoPy and its dependencies. Download the file,
+open your terminal, navigate to the directory you saved the file to, and run::
 
-  conda create -n psypy3 python=3.6
-  conda activate psypy3
-  conda install numpy scipy matplotlib pandas pyopengl pillow lxml openpyxl xlrd configobj pyyaml gevent greenlet msgpack-python psutil pytables requests[security] cffi seaborn wxpython cython pyzmq pyserial
-  conda install -c conda-forge pyglet pysoundfile python-bidi moviepy pyosf
-  pip install zmq json-tricks pyparallel sounddevice pygame pysoundcard psychopy_ext psychopy
+  conda env create -n psychopy -f psychopy-env.yml
 
+This will create an environment named `psychopy`, which you can subsequently
+acivate to run PsychoPy::
+
+  conda activate psychopy
+  psychopy
 
 .. _developers_install:
 
