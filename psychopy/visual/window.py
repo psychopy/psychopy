@@ -2580,7 +2580,7 @@ class Window(object):
         shaderFlags = []
         for i in range(0, 8 + 1):
             for j in product((True, False), repeat=1):
-                shaderFlags.append((i, *j))
+                shaderFlags.append((i, j[0]))
 
         # Compile shaders based on generated flags.
         for flag in shaderFlags:
