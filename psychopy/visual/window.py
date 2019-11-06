@@ -184,6 +184,9 @@ class Window(object):
                  useRetina=True,
                  autoLog=True,
                  gammaErrorPolicy='raise',
+                 bpc=(8, 8, 8),
+                 depthBits=8,
+                 stencilBits=8,
                  *args,
                  **kwargs):
         """
@@ -271,6 +274,20 @@ class Window(object):
             If `raise`, an error is raised if the gamma table is unable to be
             retrieved or set. If `warn`, a warning is raised instead. If
             `ignore`, neither an error nor a warning are raised.
+        bpc : array_like or int
+            Bits per color (BPC) for the back buffer as a tuple to specify
+            bit depths for each color channel separately (red, green, blue), or
+            a single value to set all of them to the same value. Valid values
+            depend on the output color depth of the display (screen) the window
+            is set to use and the system graphics configuration. By default, it
+            is assumed the display has 8-bits per color (8, 8, 8). Behaviour may
+            be undefined for non-fullscreen windows, or if multiple screens are
+            attached with varying color output depths.
+        depthBits : int,
+            Back buffer depth bits. Default is 8, but can be set higher (eg. 24)
+            if drawing 3D stimuli to minimize artifacts such a 'Z-fighting'.
+        stencilBits : int
+            Back buffer stencil bits. Default is 8.
 
         Notes
         -----
@@ -410,7 +427,12 @@ class Window(object):
         self.winType = winType
 
         # setup the context
-        self.backend = backends.getBackend(win=self, *args, **kwargs)
+        self.backend = backends.getBackend(win=self,
+                                           bpc=bpc,
+                                           depthBits=depthBits,
+                                           stencilBits=stencilBits,
+                                           *args, **kwargs)
+
         self.winHandle = self.backend.winHandle
         global GL
         GL = self.backend.GL
@@ -2558,7 +2580,7 @@ class Window(object):
         shaderFlags = []
         for i in range(0, 8 + 1):
             for j in product((True, False), repeat=1):
-                shaderFlags.append((i, *j))
+                shaderFlags.append((i, j[0]))
 
         # Compile shaders based on generated flags.
         for flag in shaderFlags:
