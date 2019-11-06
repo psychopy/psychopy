@@ -223,22 +223,44 @@ class SceneSkybox(object):
     associated with them.
 
     Background images are specified as a set of image paths passed to
-    `faceTextures`, or a `TexCubeMap` object.
+    `faceTextures`::
+
+        sky = SceneSkybox(
+            win, ('rt.jpg', 'lf.jpg', 'up.jpg', 'dn.jpg', 'bk.jpg', 'ft.jpg'))
+
+    The skybox is rendered by calling `draw()` after drawing all other 3D
+    stimuli.
 
     Skyboxes are not affected by lighting, however, their colors can be
     modulated by setting the window's `sceneAmbient` value. Skyboxes should be
     drawn after all other 3D stimuli, but before any successive call that clears
     the depth buffer (eg. `setPerspectiveView`, `resetEyeTransform`, etc.)
 
+
     """
-    def __init__(self, win, faceImage=(), ori=0.0, axis=(0, 1, 0)):
+    def __init__(self, win, faceTextures=(), ori=0.0, axis=(0, 1, 0)):
+        """
+        Parameters
+        ----------
+        win : `~psychopy.visual.Window`
+            Window this skybox is associated with.
+        faceTextures : list or tuple
+            List of files paths to images to use for each face. Images are
+            assigned to faces depending on their index within the list ([+X,
+            -X, +Y, -Y, +Z, -Z] or [right, left, top, bottom, back, front]).
+        ori : float
+            Rotation of the skybox about `axis` in degrees.
+        axis : array_like
+            Axis [ax, ay, az] to rotate about, default is (0, 1, 0).
+
+        """
         self.win = win
 
         self._ori = ori
         self._axis = np.ascontiguousarray(axis, dtype=np.float32)
 
         imgFace = []
-        for img in faceImage:
+        for img in faceTextures:
             im = Image.open(img)
             im = im.convert("RGBA")
             pixelData = np.array(im).ctypes
