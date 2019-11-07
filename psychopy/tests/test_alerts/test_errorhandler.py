@@ -13,7 +13,7 @@ class TestErrorHandler():
 
     def teardown(self):
         sys.stderr = sys.__stderr__
-        alertLog.clear()
+        del alertLog[:]
 
     def test_errorhandler(self):
         """Test error handler attributes"""

@@ -30,7 +30,7 @@ class TestAlertTools(object):
 
     def teardown(self):
         sys.stderr = sys.__stderr__
-        alertLog.clear()
+        del alertLog[:]
 
     def test_sizing_x_dimension(self):
         self.polygonComp.params['size'].val = [4, .5]
