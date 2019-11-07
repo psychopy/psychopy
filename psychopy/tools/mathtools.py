@@ -2896,14 +2896,3 @@ def lensCorrection(xys, coefK=(1.0,), distCenter=(0., 0.), out=None, dtype=None)
     toReturn[:, :] = xys + (d_minus_c / denom[:, np.newaxis])
 
     return toReturn
-
-if __name__ == "__main__":
-    vec = [[1, 0, 0], [0, 0, -1]]
-    vec2 = [[1, 0, 0], [0, 0, 1]]
-
-    print(alignTo(vec, vec2))
-
-    vec3 = [0, 0, -1]
-    vec4 = [1, 0, 0]
-
-    print(applyQuat(alignTo(vec3, vec4), vec3))
