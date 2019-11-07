@@ -290,7 +290,8 @@ class SceneSkybox(object):
                             GL.GL_TEXTURE_WRAP_T: GL.GL_CLAMP_TO_EDGE,
                             GL.GL_TEXTURE_WRAP_R: GL.GL_CLAMP_TO_EDGE})
                 else:
-                    ValueError("Not enough textures specified, must be 6.")
+                    raise ValueError(
+                        "Not enough textures specified, must be 6.")
             elif isinstance(tex, gt.TexCubeMap):
                 self._skyCubemap = tex
             else:
