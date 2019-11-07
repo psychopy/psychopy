@@ -242,17 +242,6 @@ class PolygonComponent(BaseVisualComponent):
         else:
             vertices = self.params['shape']
 
-        # Temporary checks to catch use of unsupported shapes/polygons
-        if vertices in ['cross', 'star']:
-            msg = "{} shape is in development. Not currently supported in PsychoJS.".format(vertices)
-            raise NotImplementedError(msg)
-
-        elif self.params['shape'] == 'regular polygon...' and self.params['nVertices'].val not in ['2', '3', '4']:
-            msg = ("Regular polygon is currently in development "
-                   "and not yet supported in PsychoJS.".
-                   format(vertices))
-            raise NotImplementedError(msg)
-
         if vertices in ['line', '2']:
             code = ("{name} = new visual.ShapeStim ({{\n"
                     "  win: psychoJS.window, name: '{name}', {unitsStr}\n"
@@ -265,6 +254,18 @@ class PolygonComponent(BaseVisualComponent):
             code = ("{name} = new visual.Rect ({{\n"
                     "  win: psychoJS.window, name: '{name}', {unitsStr}\n"
                     "  width: {size}[0], height: {size}[1],\n")
+        elif vertices in ['star']:
+            code = ("{name} = new visual.ShapeStim ({{\n"
+                    "  win: psychoJS.window, name: '{name}', {unitsStr}\n"
+                    "  vertices: 'star7', size: {size},\n")
+        elif vertices in ['cross']:
+            code = ("{name} = new visual.ShapeStim ({{\n"
+                    "  win: psychoJS.window, name: '{name}', {unitsStr}\n"
+                    "  vertices: 'cross', size:{size},\n")
+        else:
+            code = ("{name} = new visual.Polygon ({{\n"
+                    "  win: psychoJS.window, name: '{name}', {unitsStr}\n"
+                    "  edges: {nVertices}, size:{size},\n")
 
         depth = -self.getPosInRoutine()
 
@@ -289,4 +290,5 @@ class PolygonComponent(BaseVisualComponent):
                                             opacity=inits['opacity'],
                                             depth=depth,
                                             interpolate=interpolate,
+                                            nVertices=inits['nVertices']
                                             ))
