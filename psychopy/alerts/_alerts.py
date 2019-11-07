@@ -16,52 +16,10 @@ Attributes
 catalogue : AlertCatalogue
     For loading alert catalogues, or definitions of each alert, from a yaml file.
     Each catalogue entry has a code key, with values of code, category, msg, and url.
-alertLog : AlertLog
+alertLog : List
     For storing alerts that are otherwise lost when flushing standard stream. The stored
     lists can be used to feed AlertPanel using in Project Info and new Runner frame.
 """
-
-
-class AlertLog(object):
-    """
-    Alert iterator class for storing a set of alerts from a single integrity check.
-    The AlertLog class will create alertLog object to feed AlertsPanel and Runner.
-    """
-    def __init__(self):
-        self._log = []
-        self._logIndex = 0
-
-    def store(self, alerts):
-        """Receives and stores list of alerts in log list
-
-        Parameters
-        ----------
-        alerts: list
-            List of AlertEntry objects
-        """
-        self._log.extend(alerts)
-
-    def __iter__(self):
-        return self
-
-    def __next__(self):
-        index = self._logIndex
-        if index < len(self._log):
-            self._logIndex += 1
-            return self._log[index]
-        self._logIndex = 0
-        raise StopIteration
-
-    def next(self):
-        return self.__next__()  # Py2 compatible
-
-    def __getitem__(self, index):
-        if index < len(self._log):
-            return self._log[index]
-
-    def clear(self):
-        self._log = []
-        self._logIndex = 0
 
 
 class AlertCatalogue():
@@ -189,4 +147,4 @@ def alert(code=None, obj=object, strFormat=None, trace=None):
 
 # Create catalogue
 catalogue = AlertCatalogue()
-alertLog = AlertLog()  # Alerts container
+alertLog = []

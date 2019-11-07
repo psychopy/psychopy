@@ -73,7 +73,7 @@ class TestAlertTools(object):
         self.polygonComp.params['size'].val = '$size'
         alerttools.runTest(self.polygonComp)
         sys.stderr.flush()
-        assert (alertLog[0] == None)
+        assert (len(alertLog) == 0)
 
     def test_timing(self):
         self.polygonComp.params['startVal'].val = 12

@@ -52,7 +52,8 @@ class ErrorHandler(_BaseErrorHandler):
     def flush(self):
         """Stores alerts in alertLog, flushes errors, clears errors and alerts attributes.
         """
-        alertLog.store(self.alerts)
+        alertLog.clear()
+        alertLog.extend(self.alerts)
 
         for err in self.errors:
             print(err)
