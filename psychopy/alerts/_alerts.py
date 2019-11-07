@@ -52,6 +52,9 @@ class AlertLog(object):
         self._logIndex = 0
         raise StopIteration
 
+    def next(self):
+        return self.__next__()  # Py2 compatible
+
     def __getitem__(self, index):
         if index < len(self._log):
             return self._log[index]
