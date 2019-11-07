@@ -7,7 +7,7 @@ class TestAlertsModule():
 
     def teardown(self):
         sys.stderr = sys.__stderr__
-        _alerts.alertLog.clear()
+        del _alerts.alertLog[:]
 
     def test_alert_catalogue(self):
         """Test the alerts catalogue has been created and loaded correctly"""
@@ -44,5 +44,5 @@ class TestAlertsModule():
 
     def test_alertlog_clear(self):
         _alerts.alertLog.extend([1])
-        _alerts.alertLog.clear()
+        del _alerts.alertLog[:]
         assert (_alerts.alertLog == [])
