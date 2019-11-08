@@ -172,14 +172,14 @@ def testStimTimeAccuray(component):
     if startVal not in ['', None, "None", "none"]:
         if component.params['startType'] == "time (s)":
             # Test times are greater than 1 screen refresh for 60Hz and 100Hz monitors
-            if not float.is_integer(float(startVal)) and float(startVal) < 1/60:
+            if not float.is_integer(float(startVal)) and float(startVal) < 1.0 / 60:
                 alert(1014, component, {'type': 'start', 'time': startVal, 'Hz': 60})
-            if not float.is_integer(float(startVal)) and float(startVal) < 1/100:
+            if not float.is_integer(float(startVal)) and float(startVal) < 1.0 / 100:
                 alert(1014, component, {'type': 'start', 'time': startVal, 'Hz': 100})
             # Test times are valid multiples of screen refresh for 60Hz and 100Hz monitors
-            if not float.is_integer(float(startVal)) and round(float(startVal) % (1 / 60), 3) != 0.0:
+            if not float.is_integer(float(startVal)) and round(float(startVal) % (1.0 / 60), 3) != 0.0:
                 alert(1024, component, {'type': 'start', 'time': startVal, 'Hz': 60})
-            if not float.is_integer(float(startVal)) and round(float(startVal) % (1 / 100), 3) != 0.0:
+            if not float.is_integer(float(startVal)) and round(float(startVal) % (1.0 / 100), 3) != 0.0:
                 alert(1024, component, {'type': 'start', 'time': startVal, 'Hz': 100})
 
         if component.params['startType'] in ["frame N", "duration (frames)"]:
@@ -190,14 +190,14 @@ def testStimTimeAccuray(component):
     if stopVal not in ['', None, "None", "none"]:
         if component.params['stopType'] == "duration (s)":
             # Test times are greater than 1 screen refresh for 60Hz and 100Hz monitors
-            if not float.is_integer(float(stopVal)) and float(stopVal) < 1/60:
+            if not float.is_integer(float(stopVal)) and float(stopVal) < 1.0 / 60:
                 alert(1014, component, {'type': 'stop', 'time': stopVal, 'Hz': 60})
-            if not float.is_integer(float(stopVal)) and float(stopVal) < 1/100:
+            if not float.is_integer(float(stopVal)) and float(stopVal) < 1.0 / 100:
                 alert(1014, component, {'type': 'stop', 'time': stopVal, 'Hz': 100})
             # Test times are valid multiples of screen refresh for 60Hz and 100Hz monitors
-            if not float.is_integer(float(stopVal)) and round(float(stopVal) % (1 / 60), 3) != 0.0:
+            if not float.is_integer(float(stopVal)) and round(float(stopVal) % (1.0 / 60), 3) != 0.0:
                 alert(1024, component, {'type': 'stop', 'time': stopVal, 'Hz': 60})
-            if not float.is_integer(float(stopVal)) and round(float(stopVal) % (1 / 100), 3) != 0.0:
+            if not float.is_integer(float(stopVal)) and round(float(stopVal) % (1.0 / 100), 3) != 0.0:
                 alert(1024, component, {'type': 'stop', 'time': stopVal, 'Hz': 100})
 
         if component.params['stopType'] in ["frame N", "duration (frames)"]:
