@@ -2160,10 +2160,3 @@ class ObjMeshStim(BaseRigidBodyStim):
 
         win.draw3d = False
 
-
-if __name__ == "__main__":
-    bbox = BoundingBox(((-1, -1, -1), (1, 1, 1)))
-    print(bbox.isValid)
-    bbox.clear()
-
-    print(bbox.isValid)
