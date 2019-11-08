@@ -34,7 +34,7 @@ def runTest(component):
     testPos(component, win, units)
     testDisabled(component)
     testStartEndTiming(component)
-    testStimTimeAccuray(component)
+    testStimTimeAccuracy(component)
 
 def convertParamToPix(value, win, units):
     """
@@ -156,7 +156,7 @@ def testStartEndTiming(component):
         if int(float(start['val'])) > int(float(stop['val'].strip())):
             alert(1004, component, {'type': 'frame'})
 
-def testStimTimeAccuray(component):
+def testStimTimeAccuracy(component):
     """Test whether stimuli presented for a realistic times or frames i.e.,
     - whether start and end times are less than 1 screen refresh,
     - whether stimuli can be presented accurately for times requested,
