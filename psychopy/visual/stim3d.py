@@ -15,7 +15,7 @@ import psychopy.tools.mathtools as mt
 import psychopy.tools.gltools as gt
 import psychopy.tools.arraytools as at
 import psychopy.tools.viewtools as vt
-from . import shaders as _shaders
+import psychopy.visual.shaders as _shaders
 
 import os
 from io import StringIO
@@ -805,6 +805,17 @@ class RigidBodyPose(object):
         self.pos = pos
         self.ori = ori
 
+        self._bounds = None
+
+    @property
+    def bounds(self):
+        """Bounding box associated with this pose."""
+        return self._bounds
+
+    @bounds.setter
+    def bounds(self, value):
+        self._bounds = value
+
     @property
     def pos(self):
         """Position vector (X, Y, Z)."""
@@ -1167,6 +1178,77 @@ class RigidBodyPose(object):
             self._ori, mt.alignTo(fwd, invPos, dtype=np.float32))
 
 
+class BoundingBox(object):
+    """Class for representing object bounding boxes.
+
+    A bounding box is a construct which represents a 3D rectangular volume about
+    some pose, defined by its minimum and maximum extents in the reference frame
+    of the pose. The axes of the bounding box are aligned to the axes of the
+    world or the associated pose.
+
+    Bounding boxes are primarily used for visibility testing; to determine if
+    the extents of an object associated with a pose (eg. the vertices of a
+    model) falls completely outside of the viewing frustum. If so, the model can
+    be culled during rendering to avoid wasting CPU/GPU resources on objects not
+    visible to the viewer.
+
+    """
+    def __init__(self, extents=None):
+        self._extents = np.zeros((2, 3), np.float32)
+        self._posCorners = np.zeros((8, 4), np.float32)
+
+        if extents is not None:
+            self._extents[0, :] = extents[0]
+            self._extents[1, :] = extents[1]
+        else:
+            self.clear()
+
+        self._computeCorners()
+
+    def _computeCorners(self):
+        """Compute the corners of the bounding box.
+
+        These values are cached to speed up computations if extents hasn't been
+        updated.
+
+        """
+        for i in range(8):
+            self._posCorners[i, 0] = \
+                self._extents[1, 0] if (i & 1) else self._extents[0, 0]
+            self._posCorners[i, 1] = \
+                self._extents[1, 1] if (i & 2) else self._extents[0, 1]
+            self._posCorners[i, 2] = \
+                self._extents[1, 2] if (i & 4) else self._extents[0, 2]
+            self._posCorners[i, 3] = 1.0
+
+    @property
+    def isValid(self):
+        """`True` if the bounding box is valid."""
+        return np.all(self._extents[0, :] <= self._extents[1, :])
+
+    @property
+    def extents(self):
+        return self._extents
+
+    @extents.setter
+    def extents(self, value):
+        self._extents[0, :] = value[0]
+        self._extents[1, :] = value[1]
+        self._computeCorners()
+
+    def fit(self, verts):
+        """Fit the bounding box to vertices."""
+        np.amin(verts, axis=0, out=self._extents[0])
+        np.amax(verts, axis=0, out=self._extents[1])
+        self._computeCorners()
+
+    def clear(self):
+        """Clear a bounding box, invalidating it."""
+        self._extents[0, :] = np.finfo(np.float32).max
+        self._extents[1, :] = np.finfo(np.float32).min
+        self._computeCorners()
+
+
 class BaseRigidBodyStim(ColorMixin, WindowMixin):
     """Base class for rigid body 3D stimuli.
 
@@ -1309,6 +1391,9 @@ class BaseRigidBodyStim(ColorMixin, WindowMixin):
     def _createVAO(self, vertices, textureCoords, normals, faces):
         """Create a vertex array object for handling vertex attribute data.
         """
+        self.thePose.bounds = BoundingBox()
+        self.thePose.bounds.fit(vertices)
+
         # upload to buffers
         vertexVBO = gt.createVBO(vertices)
         texCoordVBO = gt.createVBO(textureCoords)
@@ -1448,6 +1533,67 @@ class BaseRigidBodyStim(ColorMixin, WindowMixin):
         Chooses between using and not using shaders each call.
         """
         pass
+
+    def isVisible(self):
+        """Check if the object is visible to the observer.
+
+        Test if a pose's bounding box or position falls outside of an eye's view
+        frustum.
+
+        Poses can be assigned bounding boxes which enclose any 3D models
+        associated with them. A model is not visible if all the corners of the
+        bounding box fall outside the viewing frustum. Therefore any primitives
+        (i.e. triangles) associated with the pose can be culled during rendering
+        to reduce CPU/GPU workload.
+
+        Returns
+        -------
+        bool
+            `True` if the object's bounding box is visible.
+
+        Examples
+        --------
+        You can avoid running draw commands if the object is not visible by
+        doing a visibility test first::
+
+            if myStim.isVisible():
+                myStim.draw()
+
+        """
+        if self.thePose.bounds is None:
+            return True
+
+        if not self.thePose.bounds.isValid:
+            return True
+
+        # transformation matrix
+        mvpMatrix = np.zeros((4, 4), dtype=np.float32)
+        np.matmul(self.win.projectionMatrix, self.win.viewMatrix, out=mvpMatrix)
+        np.matmul(mvpMatrix, self.thePose.modelMatrix, out=mvpMatrix)
+
+        # compute bounding box corners in current view
+        corners = self.thePose.bounds._posCorners.dot(mvpMatrix.T)
+
+        # check if corners are completely off to one side of the frustum
+        if not np.any(corners[:, 0] > -corners[:, 3]):
+            return False
+
+        if not np.any(corners[:, 0] < corners[:, 3]):
+            return False
+
+        if not np.any(corners[:, 1] > -corners[:, 3]):
+            return False
+
+        if not np.any(corners[:, 1] < corners[:, 3]):
+            return False
+
+        if not np.any(corners[:, 2] > -corners[:, 3]):
+            return False
+
+        if not np.any(corners[:, 2] < corners[:, 3]):
+            return False
+
+        return True
 
 
 class SphereStim(BaseRigidBodyStim):
@@ -1876,6 +2022,9 @@ class ObjMeshStim(BaseRigidBodyStim):
         self._useShaders = useShaders
         self.extents = objModel.extents
 
+        self.thePose.bounds = BoundingBox()
+        self.thePose.bounds.fit(objModel.vertexPos)
+
     def _loadMtlLib(self, mtlFile):
         """Load a material library associated with the OBJ file. This is usually
         called by the constructor for this class.
@@ -2011,3 +2160,10 @@ class ObjMeshStim(BaseRigidBodyStim):
 
         win.draw3d = False
 
+
+if __name__ == "__main__":
+    bbox = BoundingBox(((-1, -1, -1), (1, 1, 1)))
+    print(bbox.isValid)
+    bbox.clear()
+
+    print(bbox.isValid)
