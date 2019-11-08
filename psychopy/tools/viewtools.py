@@ -15,7 +15,6 @@ __all__ = ['Frustum',
            'perspectiveProjectionMatrix',
            'lookAt',
            'pointToNdc',
-           'unProject',
            'cursorToRay']
 
 import numpy as np
