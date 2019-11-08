@@ -84,7 +84,9 @@ __all__ = [
     'bindTexture',
     'unbindTexture',
     'createCubeMap',
-    'TexCubeMap'
+    'TexCubeMap',
+    'getModelViewMatrix',
+    'getProjectionMatrix'
 ]
 
 import ctypes
@@ -4689,6 +4691,44 @@ def getString(parName):
     """
     val = ctypes.cast(GL.glGetString(parName), ctypes.c_char_p).value
     return val.decode('UTF-8')
+
+
+def getModelViewMatrix():
+    """Get the present model matrix from the OpenGL matrix stack.
+
+    Returns
+    -------
+    ndarray
+        4x4 model/view matrix.
+
+    """
+    modelview = np.zeros((4, 4), dtype=np.float32)
+
+    GL.glGetFloatv(GL.GL_MODELVIEW_MATRIX, modelview.ctypes.data_as(
+        ctypes.POINTER(ctypes.c_float)))
+
+    modelview[:, :] = np.transpose(modelview)
+
+    return modelview
+
+
+def getProjectionMatrix():
+    """Get the present projection matrix from the OpenGL matrix stack.
+
+    Returns
+    -------
+    ndarray
+        4x4 projection matrix.
+
+    """
+    proj = np.zeros((4, 4), dtype=np.float32, order='C')
+
+    GL.glGetFloatv(GL.GL_PROJECTION_MATRIX, proj.ctypes.data_as(
+        ctypes.POINTER(ctypes.c_float)))
+
+    proj[:, :] = np.transpose(proj)
+
+    return proj
 
 
 # OpenGL information type
