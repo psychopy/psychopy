@@ -1,5 +1,5 @@
 /*!
- * PsychoPy Boostrap CSS based on the Modern Business template
+ * PsychoPy Bootstrap CSS based on the Modern Business template
  * Copyright 2013-2017 Start Bootstrap
  * Licensed under MIT (https://github.com/BlackrockDigital/startbootstrap-logomodern-business-nav/blob/master/LICENSE)
  */
@@ -13,11 +13,14 @@
 
 body {
     padding-top: 54px;
+    height: 100%; /* needed for the full-height sections to work*/
+    font-family: sans-serif;
+    /* Smooth scroll broken: causes buttons to need 2 presses!  */
+    /* scroll-behavior: smooth; */
 }
 
-html, body {
+html {
     height: 100%; /* needed for the full-height sections to work*/
-    /*scroll-behavior: smooth;*/ /* this requires 2 clicks for internal links! */
     font-family: sans-serif;
 }
 
@@ -25,41 +28,28 @@ h1, .h1 {
     font-size: 34px;
 }
 
-h1::before { 
-    display: block; 
-    content: " "; 
-    margin-top: -101px; 
-    height: 101px; 
-    visibility: hidden; 
-    pointer-events: none;
-  }
-  
 h2, .h2 {
     font-size: 28px;
 }
 
-h2::before { 
-    display: block; 
-    content: " "; 
-    margin-top: -101px; 
-    height: 101px; 
-    visibility: hidden; 
-    pointer-events: none;
-  }
-  
 h3, .h3 {
     font-size: 24px;
 }
 
-h3::before { 
-    display: block; 
-    content: " "; 
-    margin-top: -101px; 
-    height: 101px; 
-    visibility: hidden; 
-    pointer-events: none;
-  }
-  
+.row {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  width: 100%;
+}
+
+.column-collapse { /* will convert to row for <768 */
+  display: flex;
+  flex-direction: column;
+  flex-basis: 100%;
+  flex: 1;
+}
+
 /* logos (big and small) in top left */
 .large-logo img {
     position: absolute;
@@ -86,7 +76,7 @@ h3::before {
     padding: 2vw;
     height: auto;
 }
-
+ 
 .central-logo .img-layer {
     position: absolute;
     object-fit: cover;
@@ -119,7 +109,7 @@ h3::before {
     left: 40%;
     font-family: sans-serif;
     font-size: 2.5vw; /*bigger font but few words*/
-}
+} 
 
 .delay0 {
     opacity: 0;
@@ -154,11 +144,21 @@ h3::before {
     animation-delay: 2s;
     animation-fill-mode: forwards;
 }
+.delay5 {
+    opacity: 0;
+    animation: fadeIn 2s;
+    animation-delay: 2.5s;
+    animation-fill-mode: forwards;
+}
 
 /* to set a section to be the height of the browser window*/
-
 .full-height {
     height: 100%;
+}
+
+.full-height-with-ticker {
+    height: 100%;
+    overflow: auto;
 }
 
 /* @media (min-width: 992px) {
@@ -166,6 +166,15 @@ h3::before {
     padding-top: 56px;
   }
 } */
+
+.bg-primary a {
+    color: white;
+    text-decoration: underline;
+}
+.bg-primary a:hover {
+    color: 'red';
+    text-decoration: underline;
+}
 
 .carousel-item {
     height: 65vh;
@@ -186,7 +195,8 @@ h3::before {
     background-color: white;
     position: fixed;
     right: 0;
-    top: 150px;
+    top: 200px;
+    padding: 8px;
     -webkit-transform: translateY(-50%);
     -ms-transform: translateY(-50%);
     transform: translateY(-50%);
@@ -196,9 +206,9 @@ h3::before {
 .social-bar a {
     display: block;
     text-align: center;
-    padding: 8px;
     transition: all 0.3s ease;
     font-size: 20px;
+    padding: 8px;
 }
 
 /* Style the social media icons with color, if you want */
@@ -243,6 +253,7 @@ h3::before {
     }
 }
 
+
 /* set our responsive mode controls */
 
 @media (max-width: 768px) {
@@ -256,6 +267,9 @@ h3::before {
 
     .social-bar {
         display: none;
+    }  
+    .column-collapse {
+        flex-direction: column;
     }
 
     body {
@@ -337,7 +351,6 @@ h3::before {
     .container {
         max-width: 100%;
     }
-
     .central-logo {
         padding: 80px;
     }
