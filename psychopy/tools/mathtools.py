@@ -48,7 +48,8 @@ __all__ = ['normalize',
            'lensCorrection',
            'matrixFromEulerAngles',
            'alignTo',
-           'quatYawPitchRoll']
+           'quatYawPitchRoll',
+           'intersectRaySphere']
 
 import numpy as np
 import functools
@@ -1173,6 +1174,63 @@ def intersectRayPlane(orig, dir, planeOrig, planeNormal, dtype=None):
     intersect = dist * dir + orig
 
     return intersect, dist
+
+
+def intersectRaySphere(orig, dir, sphereOrig=(0., 0., 0.), sphereRadius=1.0,
+                       dtype=None):
+    """Calculate the points which a ray/line intersects a sphere (if any).
+
+    Get the 3D coordinate of the point which the ray intersects the sphere and
+    the distance to the point from `orig`. The nearest point is returned if
+    the line intersects the sphere at multiple locations. All coordinates should
+    be in world/scene units.
+
+    Parameters
+    ----------
+    orig : array_like
+        Origin of the ray in space [x, y, z].
+    dir : array_like
+        Direction vector of the ray [x, y, z], should be normalized.
+    sphereOrig : array_like
+        Origin of the sphere to test [x, y, z].
+    sphereRadius : float
+        Sphere radius to test in scene units.
+    dtype : dtype or str, optional
+        Data type for computations can either be 'float32' or 'float64'. If
+        `out` is specified, the data type of `out` is used and this argument is
+        ignored. If `out` is not provided, 'float64' is used by default.
+
+    Returns
+    -------
+    tuple
+        Coordinate in world space of the intersection and distance in scene
+        units from `orig`. Returns `None` if there is no intersection.
+
+    """
+    dtype = np.float64 if dtype is None else np.dtype(dtype).type
+
+    orig = np.asarray(orig, dtype=dtype)
+    dir = np.asarray(dir, dtype=dtype)
+    sphereOrig = np.asarray(sphereOrig, dtype=dtype)
+    sphereRadius = np.asarray(sphereRadius, dtype=dtype)
+
+    d = orig - sphereOrig
+    b = np.dot(dir, d)
+    c = np.dot(d, d) - np.square(sphereRadius)
+    b2mc = np.square(b) - c  # determinant
+
+    if b2mc < 0.0:  # no roots, ray does not intersect sphere
+        return None
+
+    u = np.sqrt(b2mc)
+    nearestDist = min(-b + u, -b - u)
+    pos = (dir * nearestDist) + orig
+
+    return pos, nearestDist
+
+
+def intersectRayBox(orig, dir, extents=((-.5, ,-.5, -.5), (.5, ,.5, .5))):
+    pass
 
 
 def ortho3Dto2D(p, orig, normal, up, right=None, dtype=None):
