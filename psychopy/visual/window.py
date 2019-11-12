@@ -1888,6 +1888,112 @@ class Window(object):
 
         self.applyEyeTransform(clearDepth)
 
+    def coordToRay(self, screenXY):
+        """Convert a screen coordinate to a direction vector.
+
+        Takes a screen/window coordinate and computes a vector which projects
+        a ray from the viewpoint through it (line-of-sight). Any 3D point
+        touching the ray will appear at the screen coordinate.
+
+        Uses the current `viewport` and `projectionMatrix` to calculate the
+        vector. The vector is in eye-space, where the origin of the scene is
+        centered at the viewpoint and the forward direction aligned with the -Z
+        axis. A ray of (0, 0, -1) results from a point at the very center of the
+        screen assuming symmetric frustums.
+
+        Note that if you are using a flipped/mirrored view, you must invert your
+        supplied screen coordinates (`screenXY`) prior to passing them to this
+        function.
+
+        Parameters
+        ----------
+        screenXY : array_like
+            X, Y screen coordinate. Must be in units of the window.
+
+        Returns
+        -------
+        ndarray
+            Normalized direction vector [x, y, z].
+
+        Examples
+        --------
+        Getting the direction vector between the mouse cursor and the eye::
+
+            mx, my = mouse.getPos()
+            dir = win.coordToRay((mx, my))
+
+        Set the position of a 3D stimulus object using the mouse, constrained to
+        a plane. The object origin will always be at the screen coordinate of
+        the mouse cursor::
+
+            # the eye position in the scene is defined by a rigid body pose
+            win.viewMatrix = camera.getViewMatrix()
+            win.applyEyeTransform()
+
+            # get the mouse location and calculate the intercept
+            mx, my = mouse.getPos()
+            ray = win.coordToRay([mx, my])
+            result = intersectRayPlane(   # from mathtools
+                orig=camera.pos,
+                dir=camera.transformNormal(ray),
+                planeOrig=(0, 0, -10),
+                planeNormal=(0, 1, 0))
+
+            # if result is `None`, there is no intercept
+            if result is not None:
+                pos, dist = result
+                objModel.thePose.pos = pos
+            else:
+                objModel.thePose.pos = (0, 0, -10)  # plane origin
+
+        If you don't define the position of the viewer with a `RigidBodyPose`,
+        you can obtain the appropriate eye position and rotate the ray by doing
+        the following::
+
+            pos = numpy.linalg.inv(win.viewMatrix)[:3, 3]
+            ray = win.coordToRay([mx, my]).dot(win.viewMatrix[:3, :3])
+            # then ...
+            result = intersectRayPlane(
+                orig=pos,
+                dir=ray,
+                planeOrig=(0, 0, -10),
+                planeNormal=(0, 1, 0))
+
+        """
+        # put in units of pixels
+        if self.units == 'pix':
+            scrX, scrY = numpy.asarray(screenXY, numpy.float32)
+        else:
+            scrX, scrY = convertToPix(numpy.asarray([0, 0]),
+                                      numpy.asarray(screenXY),
+                                      units=self.units,
+                                      win=self)[:2]
+
+        # transform psychopy mouse coordinates to viewport coordinates
+        scrX = scrX + (self.size[0] / 2.)
+        scrY = scrY + (self.size[1] / 2.)
+
+        # get the NDC coordinates of the
+        projX = 2. * (scrX - self.viewport[0]) / self.viewport[2] - 1.
+        projY = 2. * (scrY - self.viewport[1]) / self.viewport[3] - 1.
+
+        vecNear = numpy.array((projX, projY, 0., 1.), dtype=numpy.float32)
+        vecFar = numpy.array((projX, projY, 1., 1.), dtype=numpy.float32)
+
+        # compute the inverse projection matrix
+        invPM = numpy.linalg.inv(self.projectionMatrix)
+
+        vecNear[:] = vecNear.dot(invPM.T)
+        vecFar[:] = vecFar.dot(invPM.T)
+
+        vecNear /= vecNear[3]
+        vecFar /= vecFar[3]
+
+        # direction vector, get rid of `w`
+        dirVec = vecFar[:3] - vecNear[:3]
+
+        return dirVec / numpy.linalg.norm(dirVec)
+
     def getMovieFrame(self, buffer='front'):
         """Capture the current Window as an image.
 

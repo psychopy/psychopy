@@ -1076,6 +1076,32 @@ class RigidBodyPose(object):
         """
         return mt.transform(self._pos, self._ori, points=v, out=out)
 
+    def transformNormal(self, n):
+        """Rotate a normal vector with respect to this pose.
+
+        Rotates a normal vector `n` using the orientation quaternion at `ori`.
+
+        Parameters
+        ----------
+        n : array_like
+            Normal to rotate (1-D with length 3).
+
+        Returns
+        -------
+        ndarray
+            Rotated normal `n`.
+
+        """
+        pout = np.zeros((3,), dtype=np.float32)
+        pout[:] = n
+        t = np.cross(self._ori[:3], n[:3]) * 2.0
+        u = np.cross(self._ori[:3], t)
+        t *= self._ori[3]
+        pout[:3] += t
+        pout[:3] += u
+
+        return pout
+
     def __invert__(self):
         """Operator `~` to invert the pose. Returns a `RigidBodyPose` object."""
         return RigidBodyPose(
