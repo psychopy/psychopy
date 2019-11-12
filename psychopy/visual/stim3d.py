@@ -249,8 +249,8 @@ class SceneSkybox(object):
             assigned to faces depending on their index within the list ([+X,
             -X, +Y, -Y, +Z, -Z] or [right, left, top, bottom, back, front]). If
             `None` is specified, the cube map may be specified later by setting
-            the `cubemap` attribute. Alternativley, you can specify a
-            `TexCubeMap` object to set the cubemap directly.
+            the `cubemap` attribute. Alternatively, you can specify a
+            `TexCubeMap` object to set the cube map directly.
         ori : float
             Rotation of the skybox about `axis` in degrees.
         axis : array_like
