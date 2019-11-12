@@ -870,6 +870,24 @@ class RigidBodyPose(object):
         newOri = mt.multQuat(self._ori, other.ori)
         return RigidBodyPose(mt.transform(other.pos, newOri, self._pos), newOri)
 
+    def __imul__(self, other):
+        """Inplace multiplication. Transforms this pose by another."""
+        self._ori = mt.multQuat(self._ori, other.ori)
+        self._pos = mt.transform(other.pos, self._ori, self._pos)
+
+    def copy(self):
+        """Get a new `RigidBodyPose` object which copies the position and
+        orientation of this one. Copies are independent and do not reference
+        each others data.
+
+        Returns
+        -------
+        RigidBodyPose
+            Copy of this pose.
+
+        """
+        return RigidBodyPose(self._pos, self._ori)
+
     def isEqual(self, other):
         """Check if poses have similar orientation and position.
 
@@ -893,6 +911,7 @@ class RigidBodyPose(object):
         self._pos.fill(0.0)
         self._ori[:3] = 0.0
         self._ori[3] = 1.0
+        self._matrixNeedsUpdate = self._invMatrixNeedsUpdate = True
 
     def getOriAxisAngle(self, degrees=True):
         """Get the axis and angle of rotation for the rigid body. Converts the
