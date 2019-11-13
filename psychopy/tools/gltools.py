@@ -84,7 +84,9 @@ __all__ = [
     'bindTexture',
     'unbindTexture',
     'createCubeMap',
-    'TexCubeMap'
+    'TexCubeMap',
+    'getModelViewMatrix',
+    'getProjectionMatrix'
 ]
 
 import ctypes
@@ -2147,6 +2149,10 @@ class VertexArrayInfo(object):
         Attributes and buffers defined as part of this VAO state. Keys are
         attribute pointer indices or capabilities (ie. GL_VERTEX_ARRAY).
         Modifying these values will not update the VAO state.
+    indexBuffer : VertexBufferInfo, optional
+        Buffer object for indices.
+    attribDivisors : dict, optional
+        Divisors for each attribute.
     isLegacy : bool
         Array pointers were defined using the deprecated OpenGL API. If `True`,
         the VAO may work with older GLSL shaders versions and the fixed-function
@@ -2156,19 +2162,21 @@ class VertexArrayInfo(object):
 
     """
     __slots__ = ['name', 'count', 'activeAttribs', 'indexBuffer', 'isLegacy',
-                 'userData']
+                 'userData', 'attribDivisors']
 
     def __init__(self,
                  name=0,
                  count=0,
                  activeAttribs=None,
                  indexBuffer=None,
+                 attribDivisors=None,
                  isLegacy=False,
                  userData=None):
         self.name = name
         self.activeAttribs = activeAttribs
         self.count = count
         self.indexBuffer = indexBuffer
+        self.attribDivisors = attribDivisors
         self.isLegacy = isLegacy
 
         if userData is None:
@@ -2190,7 +2198,7 @@ class VertexArrayInfo(object):
         return self.name != other.name
 
 
-def createVAO(attribBuffers, indexBuffer=None, legacy=False):
+def createVAO(attribBuffers, indexBuffer=None, attribDivisors=None, legacy=False):
     """Create a Vertex Array object (VAO). VAOs store buffer binding states,
     reducing CPU overhead when drawing objects with vertex data stored in VBOs.
 
@@ -2208,6 +2216,11 @@ def createVAO(attribBuffers, indexBuffer=None, legacy=False):
         normalize the array (`bool`).
     indexBuffer : VertexBufferInfo
         Optional index buffer.
+    attribDivisors : dict
+        Attribute divisors to set. Keys are vertex attribute pointer indices,
+        values are the number of instances that will pass between updates of an
+        attribute. Setting attribute divisors is only permitted if `legacy` is
+        `False`.
     legacy : bool, optional
         Use legacy attribute pointer functions when setting the VAO state. This
         is for compatibility with older GL implementations. Key specified to
@@ -2253,6 +2266,13 @@ def createVAO(attribBuffers, indexBuffer=None, legacy=False):
 
         attribBuffers = {GL_VERTEX_ARRAY: vertexPos, GL_NORMAL_ARRAY: normals}
         vao = createVAO(attribBuffers, legacy=True)
+
+    If you wish to used instanced drawing, you can specify attribute divisors
+    this way::
+
+        vao = createVAO(
+            {0: (vertexAttr, 3, 0), 1: (vertexAttr, 3, 3), 2: vertexColors},
+            attribDivisors={2: 1})
 
     """
     if not attribBuffers:  # in case an empty list is passed
@@ -2315,18 +2335,30 @@ def createVAO(attribBuffers, indexBuffer=None, legacy=False):
         else:
             count = bufferIndices[0]
 
+    # set attribute divisors
+    if attribDivisors is not None:
+        if legacy is True:
+            raise ValueError(
+                'Cannot set attribute divisors when `legacy` is `True.')
+
+        for key, val in attribDivisors.items():
+            GL.glVertexAttribDivisor(key, val)
+
     GL.glBindVertexArray(0)
 
-    return VertexArrayInfo(vaoId,
+    return VertexArrayInfo(vaoId.value,
                            count,
                            activeAttribs,
                            indexBuffer,
+                           attribDivisors,
                            legacy)
 
 
-def drawVAO(vao, mode=GL.GL_TRIANGLES, start=0, count=None, flush=False):
-    """Draw a vertex array using `glDrawArrays` or `glDrawElements`. This method
-    does not require shaders.
+def drawVAO(vao, mode=GL.GL_TRIANGLES, start=0, count=None, instanceCount=None,
+            flush=False):
+    """Draw a vertex array object. Uses `glDrawArrays` or `glDrawElements` if
+    `instanceCount` is `None`, or else `glDrawArraysInstanced` or
+    `glDrawElementsInstanced` is used.
 
     Parameters
     ----------
@@ -2340,6 +2372,9 @@ def drawVAO(vao, mode=GL.GL_TRIANGLES, start=0, count=None, flush=False):
     count : int, optional
         Number of indices to draw from `start`. Must not exceed `vao.count` -
         `start`.
+    instanceCount : int or None
+        Number of instances to draw. If >0 and not `None`, instanced drawing
+        will be used.
     flush : bool, optional
         Flush queued drawing commands before returning.
 
@@ -2362,9 +2397,16 @@ def drawVAO(vao, mode=GL.GL_TRIANGLES, start=0, count=None, flush=False):
                     vao.count - start))
 
     if vao.indexBuffer is not None:
-        GL.glDrawElements(mode, count, vao.indexBuffer.dataType, start)
+        if instanceCount is None:
+            GL.glDrawElements(mode, count, vao.indexBuffer.dataType, start)
+        else:
+            GL.glDrawElementsInstanced(mode, count, vao.indexBuffer.dataType,
+                                       start, instanceCount)
     else:
-        GL.glDrawArrays(mode, start, count)
+        if instanceCount is None:
+            GL.glDrawArrays(mode, start, count)
+        else:
+            GL.glDrawArraysInstanced(mode, start, count, instanceCount)
 
     if flush:
         GL.glFlush()
@@ -4649,6 +4691,44 @@ def getString(parName):
     """
     val = ctypes.cast(GL.glGetString(parName), ctypes.c_char_p).value
     return val.decode('UTF-8')
+
+
+def getModelViewMatrix():
+    """Get the present model matrix from the OpenGL matrix stack.
+
+    Returns
+    -------
+    ndarray
+        4x4 model/view matrix.
+
+    """
+    modelview = np.zeros((4, 4), dtype=np.float32)
+
+    GL.glGetFloatv(GL.GL_MODELVIEW_MATRIX, modelview.ctypes.data_as(
+        ctypes.POINTER(ctypes.c_float)))
+
+    modelview[:, :] = np.transpose(modelview)
+
+    return modelview
+
+
+def getProjectionMatrix():
+    """Get the present projection matrix from the OpenGL matrix stack.
+
+    Returns
+    -------
+    ndarray
+        4x4 projection matrix.
+
+    """
+    proj = np.zeros((4, 4), dtype=np.float32, order='C')
+
+    GL.glGetFloatv(GL.GL_PROJECTION_MATRIX, proj.ctypes.data_as(
+        ctypes.POINTER(ctypes.c_float)))
+
+    proj[:, :] = np.transpose(proj)
+
+    return proj
 
 
 # OpenGL information type
