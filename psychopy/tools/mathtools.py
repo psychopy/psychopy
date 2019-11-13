@@ -49,7 +49,8 @@ __all__ = ['normalize',
            'matrixFromEulerAngles',
            'alignTo',
            'quatYawPitchRoll',
-           'intersectRaySphere']
+           'intersectRaySphere',
+           'intersectRayAABB']
 
 import numpy as np
 import functools
@@ -1207,6 +1208,7 @@ def intersectRaySphere(orig, dir, sphereOrig=(0., 0., 0.), sphereRadius=1.0,
         units from `orig`. Returns `None` if there is no intersection.
 
     """
+    # based off example from http://antongerdelan.net/opengl/raycasting.html
     dtype = np.float64 if dtype is None else np.dtype(dtype).type
 
     orig = np.asarray(orig, dtype=dtype)
@@ -1223,14 +1225,106 @@ def intersectRaySphere(orig, dir, sphereOrig=(0., 0., 0.), sphereRadius=1.0,
         return None
 
     u = np.sqrt(b2mc)
-    nearestDist = min(-b + u, -b - u)
+    nearestDist = np.minimum(-b + u, -b - u)
     pos = (dir * nearestDist) + orig
 
     return pos, nearestDist
 
 
-def intersectRayBox(orig, dir, extents=((-.5, ,-.5, -.5), (.5, ,.5, .5))):
-    pass
+def intersectRayAABB(orig, dir, boundsOffset, boundsExtents, dtype=None):
+    """Find the point a ray intersects an axis-aligned bounding box (AABB).
+
+    Parameters
+    ----------
+    orig : array_like
+        Origin of the ray in space [x, y, z].
+    dir : array_like
+        Direction vector of the ray [x, y, z], should be normalized.
+    boundsOffset : array_like
+        Offset of the bounding box in the scene [x, y, z].
+    boundsExtents : array_like
+        Minimum and maximum extents of the bounding box.
+    dtype : dtype or str, optional
+        Data type for computations can either be 'float32' or 'float64'. If
+        `out` is specified, the data type of `out` is used and this argument is
+        ignored. If `out` is not provided, 'float64' is used by default.
+
+    Returns
+    -------
+    tuple
+        Coordinate in world space of the intersection and distance in scene
+        units from `orig`. Returns `None` if there is no intersection.
+
+    Examples
+    --------
+    Get the point on an axis-aligned bounding box that the cursor is over and
+    place a 3D stimulus there. The eye location is defined by `RigidBodyPose`
+    object `camera`::
+
+        # get the mouse position on-screen
+        mx, my = mouse.getPos()
+
+        # find the point which the ray intersects on the box
+        result = intersectRayAABB(
+            camera.pos,
+            camera.transformNormal(win.coordToRay((mx, my))),
+            myStim.pos,
+            myStim.thePose.bounds.extents)
+
+        # if the ray intersects, set the position of the cursor object to it
+        if result is not None:
+            cursorModel.thePose.pos = result[0]
+            cursorModel.draw()  # don't draw anything if there is no intersect
+
+    Note that if the model is rotated, the bounding box may not be aligned
+    anymore with the axes.
+
+    """
+    # based of the example provided here:
+    # https://www.scratchapixel.com/lessons/3d-basic-rendering/
+    # minimal-ray-tracer-rendering-simple-shapes/ray-box-intersection
+    dtype = np.float64 if dtype is None else np.dtype(dtype).type
+
+    orig = np.asarray(orig, dtype=dtype)
+    dir = np.asarray(dir, dtype=dtype)
+    boundsOffset = np.asarray(boundsOffset, dtype=dtype)
+    extents = np.asarray(boundsExtents, dtype=dtype) + boundsOffset
+
+    invDir = 1.0 / dir
+    sign = np.zeros((3,), dtype=np.int)
+    sign[invDir < 0.0] = 1
+
+    tmin = (extents[sign[0], 0] - orig[0]) * invDir[0]
+    tmax = (extents[1 - sign[0], 0] - orig[0]) * invDir[0]
+    tymin = (extents[sign[1], 1] - orig[1]) * invDir[1]
+    tymax = (extents[1 - sign[1], 1] - orig[1]) * invDir[1]
+
+    if tmin > tymax or tymin > tmax:
+        return None
+
+    if tymin > tmin:
+        tmin = tymin
+
+    if tymax < tmax:
+        tmax = tymax
+
+    tzmin = (extents[sign[2], 2] - orig[2]) * invDir[2]
+    tzmax = (extents[1 - sign[2], 2] - orig[2]) * invDir[2]
+
+    if tmin > tzmax or tzmin > tmax:
+        return None
+
+    if tzmin > tmin:
+        tmin = tzmin
+
+    if tzmax < tmax:
+        tmax = tzmax
+
+    if tmin < 0:
+        if tmax < 0:
+            return None
+
+    return (dir * tmin) + orig, tmin
 
 
 def ortho3Dto2D(p, orig, normal, up, right=None, dtype=None):
