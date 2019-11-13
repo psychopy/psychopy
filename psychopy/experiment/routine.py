@@ -117,6 +117,9 @@ class Routine(list):
         # create the frame loop for this routine
         code = ('\n# ------Prepare to start Routine "%s"-------\n')
         buff.writeIndentedLines(code % (self.name))
+        code = 'continueRoutine = True\n'
+        buff.writeIndentedLines(code)
+
         # can we use non-slip timing?
         maxTime, useNonSlip = self.getMaxTime()
         if useNonSlip:
@@ -147,7 +150,6 @@ class Routine(list):
                 '_timeToFirstFrame = win.getFutureFlipTime(clock="now")\n'
                 '{clockName}.reset(-_timeToFirstFrame)  # t0 is time of first possible flip\n'
                 'frameN = -1\n'
-                'continueRoutine = True\n'
                 '\n# -------Run Routine "{name}"-------\n')
         buff.writeIndentedLines(code.format(name=self.name,
                                             clockName=self._clockName))
