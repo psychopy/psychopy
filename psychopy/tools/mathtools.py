@@ -1389,83 +1389,34 @@ def intersectRayOBB(orig, dir, modelMatrix, boundsExtents, dtype=None):
     tmax = np.finfo(dtype).max
     d = boundsOffset - orig
 
-    xaxis = modelMatrix[:3, 0]
-    ex = np.dot(xaxis, d)
-    fx = np.dot(dir, xaxis)
+    # solve intersects for each pair of planes along each axis
+    for i in range(3):
+        axis = modelMatrix[:3, i]
+        e = np.dot(axis, d)
+        f = np.dot(dir, axis)
 
-    if np.fabs(fx) > 0.001:
-        t1 = (ex + extents[0, 0]) / fx
-        t2 = (ex + extents[1, 0]) / fx
+        if np.fabs(f) > 1e-5:
+            t1 = (e + extents[0, i]) / f
+            t2 = (e + extents[1, i]) / f
 
-        if t1 > t2:
-            temp = t1
-            t1 = t2
-            t2 = temp
+            if t1 > t2:
+                temp = t1
+                t1 = t2
+                t2 = temp
 
-        if t2 < tmax:
-            tmax = t2
+            if t2 < tmax:
+                tmax = t2
 
-        if t1 > tmin:
-            tmin = t1
+            if t1 > tmin:
+                tmin = t1
 
-        if tmin > tmax:
-            return None
+            if tmin > tmax:
+                return None
 
-    else:
-        if -ex + extents[0, 0] > 0.0 or -ex + extents[1, 0] < 0.0:
-            return None
-
-    yaxis = modelMatrix[:3, 1]
-    ey = np.dot(yaxis, d)
-    fy = np.dot(dir, yaxis)
-
-    if np.fabs(fy) > 0.001:
-        t1 = (ey + extents[0, 1]) / fy
-        t2 = (ey + extents[1, 1]) / fy
-
-        if t1 > t2:
-            temp = t1
-            t1 = t2
-            t2 = temp
-
-        if t2 < tmax:
-            tmax = t2
-
-        if t1 > tmin:
-            tmin = t1
-
-        if tmin > tmax:
-            return None
-
-    else:
-        if -ey + extents[0, 1] > 0.0 or -ey + extents[1, 1] < 0.0:
-            return None
-
-    zaxis = modelMatrix[:3, 2]
-    ez = np.dot(zaxis, d)
-    fz = np.dot(dir, zaxis)
-
-    if np.fabs(fy) > 0.001:
-        t1 = (ez + extents[0, 2]) / fz
-        t2 = (ez + extents[1, 2]) / fz
-
-        if t1 > t2:
-            temp = t1
-            t1 = t2
-            t2 = temp
-
-        if t2 < tmax:
-            tmax = t2
-
-        if t1 > tmin:
-            tmin = t1
-
-        if tmin > tmax:
-            return None
-
-    else:
-        if -ez + extents[0, 2] > 0.0 or -ez + extents[1, 2] < 0.0:
-            return None
+        else:
+            # very close to parallel with the face
+            if -e + extents[0, i] > 0.0 or -e + extents[1, i] < 0.0:
+                return None
 
     return (dir * tmin) + orig, tmin
 
