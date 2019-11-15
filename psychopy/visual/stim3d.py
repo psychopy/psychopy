@@ -1640,6 +1640,14 @@ class BaseRigidBodyStim(ColorMixin, WindowMixin):
 
         return True
 
+    def getRayIntersect(self, rayOrig, rayDir):
+        """Get the point which a ray intersects the bounding box of this
+        shape."""
+        if self.thePose.bounds is None:
+            return None  # nop
+
+
+
 
 class SphereStim(BaseRigidBodyStim):
     """Class for drawing a UV sphere.
