@@ -1809,6 +1809,7 @@ class BoxStim(BaseRigidBodyStim):
                  opacity=1.0,
                  useMaterial=None,
                  useShaders=False,
+                 textureScale=None,
                  name='',
                  autoLog=True):
         """
@@ -1847,6 +1848,11 @@ class BoxStim(BaseRigidBodyStim):
             Opacity of the stimulus ranging from 0.0 to 1.0. Note that
             transparent objects look best when rendered from farthest to
             nearest.
+        textureScale : array_like or float, optional
+            Scaling factors for texture coordinates (sx, sy). By default,
+            a factor of 1 will have the entire texture cover the surface of the
+            mesh. If a single number is provided, the texture will be scaled
+            uniformly.
         name : str
             Name of this object for logging purposes.
         autoLog : bool
@@ -1867,6 +1873,14 @@ class BoxStim(BaseRigidBodyStim):
 
         # create a vertex array object for drawing
         vertices, texCoords, normals, faces = gt.createBox(size, flipFaces)
+
+        # scale the texture
+        if textureScale is not None:
+            if isinstance(textureScale, (int, float)):
+                texCoords *= textureScale
+            else:
+                texCoords *= np.asarray(textureScale, dtype=np.float32)
+
         self._vao = self._createVAO(vertices, texCoords, normals, faces)
 
         self.setColor(color, colorSpace=self.colorSpace, log=False)
@@ -1903,6 +1917,7 @@ class PlaneStim(BaseRigidBodyStim):
                  opacity=1.0,
                  useMaterial=None,
                  useShaders=False,
+                 textureScale=None,
                  name='',
                  autoLog=True):
         """
@@ -1928,6 +1943,23 @@ class PlaneStim(BaseRigidBodyStim):
             `material` attribute after initialization. If not material is
             specified, the diffuse and ambient color of the shape will track the
             current color specified by `glColor`.
+        colorSpace : str
+            Colorspace of `color` to use.
+        contrast : float
+            Contrast of the stimulus, value modulates the `color`.
+        opacity : float
+            Opacity of the stimulus ranging from 0.0 to 1.0. Note that
+            transparent objects look best when rendered from farthest to
+            nearest.
+        textureScale : array_like or float, optional
+            Scaling factors for texture coordinates (sx, sy). By default,
+            a factor of 1 will have the entire texture cover the surface of the
+            mesh. If a single number is provided, the texture will be scaled
+            uniformly.
+        name : str
+            Name of this object for logging purposes.
+        autoLog : bool
+            Enable automatic logging on attribute changes.
 
         """
         super(PlaneStim, self).__init__(
@@ -1944,6 +1976,14 @@ class PlaneStim(BaseRigidBodyStim):
 
         # create a vertex array object for drawing
         vertices, texCoords, normals, faces = gt.createPlane(size)
+
+        # scale the texture
+        if textureScale is not None:
+            if isinstance(textureScale, (int, float)):
+                texCoords *= textureScale
+            else:
+                texCoords *= np.asarray(textureScale, dtype=np.float32)
+
         self._vao = self._createVAO(vertices, texCoords, normals, faces)
 
         self.setColor(color, colorSpace=self.colorSpace, log=False)
