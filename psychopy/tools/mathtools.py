@@ -50,7 +50,8 @@ __all__ = ['normalize',
            'alignTo',
            'quatYawPitchRoll',
            'intersectRaySphere',
-           'intersectRayAABB']
+           'intersectRayAABB',
+           'intersectRayOBB']
 
 import numpy as np
 import functools
@@ -1277,7 +1278,7 @@ def intersectRayAABB(orig, dir, boundsOffset, boundsExtents, dtype=None):
             cursorModel.draw()  # don't draw anything if there is no intersect
 
     Note that if the model is rotated, the bounding box may not be aligned
-    anymore with the axes.
+    anymore with the axes. Use `intersectRayOBB` if your model rotates.
 
     """
     # based of the example provided here:
@@ -1322,6 +1323,148 @@ def intersectRayAABB(orig, dir, boundsOffset, boundsExtents, dtype=None):
 
     if tmin < 0:
         if tmax < 0:
+            return None
+
+    return (dir * tmin) + orig, tmin
+
+
+def intersectRayOBB(orig, dir, modelMatrix, boundsExtents, dtype=None):
+    """Find the point a ray intersects an oriented bounding box (OBB).
+
+    Parameters
+    ----------
+    orig : array_like
+        Origin of the ray in space [x, y, z].
+    dir : array_like
+        Direction vector of the ray [x, y, z], should be normalized.
+    modelMatrix : array_like
+        4x4 model matrix of the object and bounding box.
+    boundsExtents : array_like
+        Minimum and maximum extents of the bounding box.
+    dtype : dtype or str, optional
+        Data type for computations can either be 'float32' or 'float64'. If
+        `out` is specified, the data type of `out` is used and this argument is
+        ignored. If `out` is not provided, 'float64' is used by default.
+
+    Returns
+    -------
+    tuple
+        Coordinate in world space of the intersection and distance in scene
+        units from `orig`. Returns `None` if there is no intersection.
+
+    Examples
+    --------
+    Get the point on an oriented bounding box that the cursor is over and place
+    a 3D stimulus there. The eye location is defined by `RigidBodyPose` object
+    `camera`::
+
+        # get the mouse position on-screen
+        mx, my = mouse.getPos()
+
+        # find the point which the ray intersects on the box
+        result = intersectRayOBB(
+            camera.pos,
+            camera.transformNormal(win.coordToRay((mx, my))),
+            myStim.thePose.getModelMatrix(),
+            myStim.thePose.bounds.extents)
+
+        # if the ray intersects, set the position of the cursor object to it
+        if result is not None:
+            cursorModel.thePose.pos = result[0]
+            cursorModel.draw()  # don't draw anything if there is no intersect
+
+    """
+    # based off algorithm:
+    # http://www.opengl-tutorial.org/miscellaneous/clicking-on-objects/
+    # picking-with-custom-ray-obb-function/
+    dtype = np.float64 if dtype is None else np.dtype(dtype).type
+
+    orig = np.asarray(orig, dtype=dtype)
+    dir = np.asarray(dir, dtype=dtype)
+    modelMatrix = np.asarray(modelMatrix, dtype=dtype)
+    boundsOffset = np.asarray(modelMatrix[:3, 3], dtype=dtype)
+    extents = np.asarray(boundsExtents, dtype=dtype)
+
+    tmin = 0.0
+    tmax = np.finfo(dtype).max
+    d = boundsOffset - orig
+
+    xaxis = modelMatrix[:3, 0]
+    ex = np.dot(xaxis, d)
+    fx = np.dot(dir, xaxis)
+
+    if np.fabs(fx) > 0.001:
+        t1 = (ex + extents[0, 0]) / fx
+        t2 = (ex + extents[1, 0]) / fx
+
+        if t1 > t2:
+            temp = t1
+            t1 = t2
+            t2 = temp
+
+        if t2 < tmax:
+            tmax = t2
+
+        if t1 > tmin:
+            tmin = t1
+
+        if tmin > tmax:
+            return None
+
+    else:
+        if -ex + extents[0, 0] > 0.0 or -ex + extents[1, 0] < 0.0:
+            return None
+
+    yaxis = modelMatrix[:3, 1]
+    ey = np.dot(yaxis, d)
+    fy = np.dot(dir, yaxis)
+
+    if np.fabs(fy) > 0.001:
+        t1 = (ey + extents[0, 1]) / fy
+        t2 = (ey + extents[1, 1]) / fy
+
+        if t1 > t2:
+            temp = t1
+            t1 = t2
+            t2 = temp
+
+        if t2 < tmax:
+            tmax = t2
+
+        if t1 > tmin:
+            tmin = t1
+
+        if tmin > tmax:
+            return None
+
+    else:
+        if -ey + extents[0, 1] > 0.0 or -ey + extents[1, 1] < 0.0:
+            return None
+
+    zaxis = modelMatrix[:3, 2]
+    ez = np.dot(zaxis, d)
+    fz = np.dot(dir, zaxis)
+
+    if np.fabs(fy) > 0.001:
+        t1 = (ez + extents[0, 2]) / fz
+        t2 = (ez + extents[1, 2]) / fz
+
+        if t1 > t2:
+            temp = t1
+            t1 = t2
+            t2 = temp
+
+        if t2 < tmax:
+            tmax = t2
+
+        if t1 > tmin:
+            tmin = t1
+
+        if tmin > tmax:
+            return None
+
+    else:
+        if -ez + extents[0, 2] > 0.0 or -ez + extents[1, 2] < 0.0:
             return None
 
     return (dir * tmin) + orig, tmin
