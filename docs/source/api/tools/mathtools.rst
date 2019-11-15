@@ -89,6 +89,7 @@ Overview
     intersectRayPlane
     intersectRaySphere
     intersectRayAABB
+    intersectRayOBB
     ortho3Dto2D
     slerp
     quatToAxisAngle
@@ -136,6 +137,7 @@ Details
 .. autofunction:: intersectRayPlane
 .. autofunction:: intersectRaySphere
 .. autofunction:: intersectRayAABB
+.. autofunction:: intersectRayOBB
 .. autofunction:: ortho3Dto2D
 .. autofunction:: slerp
 .. autofunction:: quatToAxisAngle
