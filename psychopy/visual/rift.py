@@ -44,7 +44,6 @@ import pyglet.gl as GL
 from psychopy.visual import window
 from psychopy import platform_specific, logging, core
 from psychopy.tools.attributetools import setAttribute
-from psychopy.tools import viewtools
 
 try:
     from PIL import Image
