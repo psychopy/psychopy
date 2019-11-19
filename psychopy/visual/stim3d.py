@@ -1642,7 +1642,7 @@ class BaseRigidBodyStim(ColorMixin, WindowMixin):
 
         return True
 
-    def getRayIntersect(self, rayOrig, rayDir):
+    def getRayIntersectBounds(self, rayOrig, rayDir):
         """Get the point which a ray intersects the bounding box of this mesh.
 
         Parameters
@@ -1779,7 +1779,32 @@ class SphereStim(BaseRigidBodyStim):
         self.material = useMaterial
         self._useShaders = useShaders
 
+        self._radius = radius  # for raypicking
+
         self.extents = (vertices.min(axis=0), vertices.max(axis=0))
+
+    def getRayIntersectSphere(self, rayOrig, rayDir):
+        """Get the point which a ray intersects the sphere.
+
+        Parameters
+        ----------
+        rayOrig : array_like
+            Origin of the ray in space [x, y, z].
+        rayDir : array_like
+            Direction vector of the ray [x, y, z], should be normalized.
+
+        Returns
+        -------
+        tuple
+            Coordinate in world space of the intersection and distance in scene
+            units from `rayOrig`. Returns `None` if there is no intersection.
+
+        """
+        return mt.intersectRaySphere(rayOrig,
+                                     rayDir,
+                                     self.thePose.pos,
+                                     self._radius,
+                                     dtype=np.float32)
 
 
 class BoxStim(BaseRigidBodyStim):
