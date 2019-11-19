@@ -1450,8 +1450,10 @@ class BaseRigidBodyStim(ColorMixin, WindowMixin):
             target=GL.GL_ELEMENT_ARRAY_BUFFER,
             dataType=GL.GL_UNSIGNED_INT)
 
-        return gt.createVAO({0: vertexVBO, 8: texCoordVBO, 2: normalsVBO},
-            indexBuffer=indexBuffer)
+        return gt.createVAO({GL.GL_VERTEX_ARRAY: vertexVBO,
+                             GL.GL_TEXTURE_COORD_ARRAY: texCoordVBO,
+                             GL.GL_NORMAL_ARRAY: normalsVBO},
+                            indexBuffer=indexBuffer, legacy=True)
 
     def draw(self, win=None):
         """Draw the stimulus.
