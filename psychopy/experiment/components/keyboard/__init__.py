@@ -393,16 +393,9 @@ class KeyboardComponent(BaseComponent):
             keyListStr = "%s" % repr(keyList)
 
         # check for keypresses
-        buff.writeIndented("let theseKeys = %s.getKeys({keyList: %s, waitRelease: false});\n"
+        buff.writeIndented("let theseKeys = %s.getKeys({keyList: %s, waitRelease: false});\n\n"
                            % (self.params['name'], keyListStr)
                            )
-
-        if self.exp.settings.params['Enable Escape'].val:
-            code = ("\n// check for quit:\n"
-                    "if (theseKeys.length > 0 && theseKeys[0].name === 'escape') {\n"
-                    "  psychoJS.experiment.experimentEnded = true;\n"
-                    "}\n\n")
-            buff.writeIndentedLines(code)
 
         # how do we store it?
         if store != 'nothing' or forceEnd:
@@ -436,8 +429,8 @@ class KeyboardComponent(BaseComponent):
             buff.writeIndentedLines(code % self.params)
 
         if storeCorr:
-            code = ("// was this 'correct'?\n"
-                    "if (%(name)s.keys === %(correctAns)s) {\n"
+            code = ("// was this correct?\n"
+                    "if (%(name)s.keys == %(correctAns)s) {\n"
                     "    %(name)s.corr = 1;\n"
                     "} else {\n"
                     "    %(name)s.corr = 0;\n"
@@ -530,9 +523,9 @@ class KeyboardComponent(BaseComponent):
             code = ("// was no response the correct answer?!\n"
                     "if (%(name)s.keys === undefined) {\n"
                     "  if (['None','none',undefined].includes(%(correctAns)s)) {\n"
-                    "     %(name)s.corr = 1  // correct non-response\n"
+                    "     %(name)s.corr = 1;  // correct non-response\n"
                     "  } else {\n"
-                    "     %(name)s.corr = 0  // failed to respond (incorrectly)\n"
+                    "     %(name)s.corr = 0;  // failed to respond (incorrectly)\n"
                     "  }\n"
                     "}\n"
                     % self.params)
@@ -553,7 +546,7 @@ class KeyboardComponent(BaseComponent):
                 buff.writeIndented("psychoJS.experiment.addData('%(name)s.corr', %(name)s.corr);\n" % self.params)
 
             # only add an RT if we had a response
-            code = ("if (typeof {name}.keys !== undefined) {{  // we had a response\n"
+            code = ("if (typeof {name}.keys !== 'undefined') {{  // we had a response\n"
                     "    psychoJS.experiment.addData('{name}.rt', {name}.rt);\n")
             if forceEnd:
                 code += ("    routineTimer.reset();\n"

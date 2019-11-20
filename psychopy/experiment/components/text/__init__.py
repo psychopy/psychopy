@@ -135,9 +135,9 @@ class TextComponent(BaseVisualComponent):
     def writeInitCodeJS(self, buff):
         # do we need units code?
         if self.params['units'].val == 'from exp settings':
-            unitsStr = "  units : undefined, \n"
+            unitsStr = "  units: undefined, \n"
         else:
-            unitsStr = "  units : %(units)s, \n" % self.params
+            unitsStr = "  units: %(units)s, \n" % self.params
         # do writing of init
         # replaces variable params with sensible defaults
         inits = getInitVals(self.params, 'PsychoJS')

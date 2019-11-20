@@ -278,7 +278,7 @@ class Routine(list):
 
         buff.writeIndentedLines(code)
         buff.setIndentLevel(-1, relative=True)
-        buff.writeIndentedLines("}\n")
+        buff.writeIndentedLines("};\n")
         buff.setIndentLevel(-1, relative=True)
         buff.writeIndentedLines("}\n")
 
@@ -314,8 +314,7 @@ class Routine(list):
 
         if self.exp.settings.params['Enable Escape'].val:
             code = ("// check for quit (typically the Esc key)\n"
-                    "if (psychoJS.experiment.experimentEnded "
-                    "|| psychoJS.eventManager.getKeys({keyList:['escape']}).length > 0) {\n"
+                    "if (psychoJS.experiment.experimentEnded || psychoJS.eventManager.getKeys({keyList:['escape']}).length > 0) {\n"
                     "  return quitPsychoJS('The [Escape] key was pressed. Goodbye!', false);\n"
                     "}\n\n")
             buff.writeIndentedLines(code)
@@ -356,7 +355,7 @@ class Routine(list):
                 "}\n")
         buff.writeIndentedLines(code)
         buff.setIndentLevel(-1, relative=True)
-        buff.writeIndentedLines("}\n")
+        buff.writeIndentedLines("};\n")
         buff.setIndentLevel(-1, relative=True)
         buff.writeIndentedLines("}\n")
 
@@ -398,7 +397,7 @@ class Routine(list):
 
         buff.writeIndented('return Scheduler.Event.NEXT;\n')
         buff.setIndentLevel(-1, relative=True)
-        buff.writeIndentedLines("}\n")
+        buff.writeIndentedLines("};\n")
         buff.setIndentLevel(-1, relative=True)
         buff.writeIndentedLines("}\n")
 

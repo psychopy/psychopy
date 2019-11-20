@@ -207,7 +207,8 @@ class TrialHandler(object):
                 "    nReps: {params[nReps]}, method: TrialHandler.Method.{loopType},\n"
                 "    extraInfo: expInfo, originPath: undefined,\n"
                 "    trialList: {trialList},\n"
-                "    seed: {seed}, name: '{name}'}});\n"
+                "    seed: {seed}, name: '{name}'\n"
+                "  }});\n"
                 "  psychoJS.experiment.addLoop({name}); // add the loop to the experiment\n"
                 "  currentLoop = {name};  // we're now the current loop\n"
                 .format(funName=self.params['name'].val,
@@ -229,8 +230,9 @@ class TrialHandler(object):
                     "  trialIterator = {name}[Symbol.iterator]();\n"
                     "  while(true) {{\n"
                     "    let result = trialIterator.next();\n"
-                    "    if (result.done);\n"
+                    "    if (result.done) {{\n"
                     "      break;\n"
+                    "    }}\n"
                     "    let {thisName} = result.value;\n"
                     "    thisScheduler.add(importConditions({name}));\n")
         buff.writeIndentedLines(code.format(name=self.params['name'],

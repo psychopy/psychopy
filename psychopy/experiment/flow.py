@@ -324,19 +324,24 @@ class Flow(list):
 
         # Write resource list
         resourceFiles = set([resource['rel'].replace("\\", "/") for resource in self.exp.getResourceFiles()])
-        script.writeIndented("psychoJS.start({expName, expInfo, resources: [\n")
+        script.writeIndented("psychoJS.start({\n")
+        script.setIndentLevel(1, relative=True)
+        code = ("expName,\n"
+                "expInfo,\n"
+                "resources: [\n")
+        script.writeIndentedLines(code)
         script.setIndentLevel(1, relative=True)
         code = ""
         for idx, resource in enumerate(resourceFiles):
-            temp = "{{'name': '{0}', 'path': 'resources/{0}'}}".format(resource)
+            temp = "{{name: '{0}', path: 'resources/{0}'}}".format(resource)
             code += temp
             if idx != (len(resourceFiles)-1):
                 code += ",\n"  # Trailing comma
         script.writeIndentedLines(code)
         script.setIndentLevel(-1, relative=True)
-        code = "]});\n"
-        script.writeIndentedLines(code)
-        script.writeIndented("\n")
+        script.writeIndented("]\n")
+        script.setIndentLevel(-1, relative=True)
+        script.writeIndented("});\n\n")
 
     def writeLoopHandlerJS(self, script, modular):
         """
