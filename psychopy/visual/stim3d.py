@@ -1450,8 +1450,10 @@ class BaseRigidBodyStim(ColorMixin, WindowMixin):
             target=GL.GL_ELEMENT_ARRAY_BUFFER,
             dataType=GL.GL_UNSIGNED_INT)
 
-        return gt.createVAO({0: vertexVBO, 8: texCoordVBO, 2: normalsVBO},
-            indexBuffer=indexBuffer)
+        return gt.createVAO({GL.GL_VERTEX_ARRAY: vertexVBO,
+                             GL.GL_TEXTURE_COORD_ARRAY: texCoordVBO,
+                             GL.GL_NORMAL_ARRAY: normalsVBO},
+                            indexBuffer=indexBuffer, legacy=True)
 
     def draw(self, win=None):
         """Draw the stimulus.
@@ -1640,6 +1642,32 @@ class BaseRigidBodyStim(ColorMixin, WindowMixin):
 
         return True
 
+    def getRayIntersectBounds(self, rayOrig, rayDir):
+        """Get the point which a ray intersects the bounding box of this mesh.
+
+        Parameters
+        ----------
+        rayOrig : array_like
+            Origin of the ray in space [x, y, z].
+        rayDir : array_like
+            Direction vector of the ray [x, y, z], should be normalized.
+
+        Returns
+        -------
+        tuple
+            Coordinate in world space of the intersection and distance in scene
+            units from `rayOrig`. Returns `None` if there is no intersection.
+
+        """
+        if self.thePose.bounds is None:
+            return None  # nop
+
+        return mt.intersectRayOBB(rayOrig,
+                                  rayDir,
+                                  self.thePose.modelMatrix,
+                                  self.thePose.bounds.extents,
+                                  dtype=np.float32)
+
 
 class SphereStim(BaseRigidBodyStim):
     """Class for drawing a UV sphere.
@@ -1751,7 +1779,32 @@ class SphereStim(BaseRigidBodyStim):
         self.material = useMaterial
         self._useShaders = useShaders
 
+        self._radius = radius  # for raypicking
+
         self.extents = (vertices.min(axis=0), vertices.max(axis=0))
+
+    def getRayIntersectSphere(self, rayOrig, rayDir):
+        """Get the point which a ray intersects the sphere.
+
+        Parameters
+        ----------
+        rayOrig : array_like
+            Origin of the ray in space [x, y, z].
+        rayDir : array_like
+            Direction vector of the ray [x, y, z], should be normalized.
+
+        Returns
+        -------
+        tuple
+            Coordinate in world space of the intersection and distance in scene
+            units from `rayOrig`. Returns `None` if there is no intersection.
+
+        """
+        return mt.intersectRaySphere(rayOrig,
+                                     rayDir,
+                                     self.thePose.pos,
+                                     self._radius,
+                                     dtype=np.float32)
 
 
 class BoxStim(BaseRigidBodyStim):
@@ -1783,6 +1836,7 @@ class BoxStim(BaseRigidBodyStim):
                  opacity=1.0,
                  useMaterial=None,
                  useShaders=False,
+                 textureScale=None,
                  name='',
                  autoLog=True):
         """
@@ -1821,6 +1875,11 @@ class BoxStim(BaseRigidBodyStim):
             Opacity of the stimulus ranging from 0.0 to 1.0. Note that
             transparent objects look best when rendered from farthest to
             nearest.
+        textureScale : array_like or float, optional
+            Scaling factors for texture coordinates (sx, sy). By default,
+            a factor of 1 will have the entire texture cover the surface of the
+            mesh. If a single number is provided, the texture will be scaled
+            uniformly.
         name : str
             Name of this object for logging purposes.
         autoLog : bool
@@ -1841,6 +1900,14 @@ class BoxStim(BaseRigidBodyStim):
 
         # create a vertex array object for drawing
         vertices, texCoords, normals, faces = gt.createBox(size, flipFaces)
+
+        # scale the texture
+        if textureScale is not None:
+            if isinstance(textureScale, (int, float)):
+                texCoords *= textureScale
+            else:
+                texCoords *= np.asarray(textureScale, dtype=np.float32)
+
         self._vao = self._createVAO(vertices, texCoords, normals, faces)
 
         self.setColor(color, colorSpace=self.colorSpace, log=False)
@@ -1877,6 +1944,7 @@ class PlaneStim(BaseRigidBodyStim):
                  opacity=1.0,
                  useMaterial=None,
                  useShaders=False,
+                 textureScale=None,
                  name='',
                  autoLog=True):
         """
@@ -1902,6 +1970,23 @@ class PlaneStim(BaseRigidBodyStim):
             `material` attribute after initialization. If not material is
             specified, the diffuse and ambient color of the shape will track the
             current color specified by `glColor`.
+        colorSpace : str
+            Colorspace of `color` to use.
+        contrast : float
+            Contrast of the stimulus, value modulates the `color`.
+        opacity : float
+            Opacity of the stimulus ranging from 0.0 to 1.0. Note that
+            transparent objects look best when rendered from farthest to
+            nearest.
+        textureScale : array_like or float, optional
+            Scaling factors for texture coordinates (sx, sy). By default,
+            a factor of 1 will have the entire texture cover the surface of the
+            mesh. If a single number is provided, the texture will be scaled
+            uniformly.
+        name : str
+            Name of this object for logging purposes.
+        autoLog : bool
+            Enable automatic logging on attribute changes.
 
         """
         super(PlaneStim, self).__init__(
@@ -1918,6 +2003,14 @@ class PlaneStim(BaseRigidBodyStim):
 
         # create a vertex array object for drawing
         vertices, texCoords, normals, faces = gt.createPlane(size)
+
+        # scale the texture
+        if textureScale is not None:
+            if isinstance(textureScale, (int, float)):
+                texCoords *= textureScale
+            else:
+                texCoords *= np.asarray(textureScale, dtype=np.float32)
+
         self._vao = self._createVAO(vertices, texCoords, normals, faces)
 
         self.setColor(color, colorSpace=self.colorSpace, log=False)
