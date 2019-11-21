@@ -136,7 +136,7 @@ class KeyboardComponent(BaseComponent):
         buff.writeIndentedLines(code % self.params)
 
     def writeInitCodeJS(self, buff):
-        code = "%(name)s = new core.Keyboard({psychoJS, clock: new util.Clock(), waitForStart: true});\n\n"
+        code = "%(name)s = new core.Keyboard({psychoJS: psychoJS, clock: new util.Clock(), waitForStart: true});\n\n"
         buff.writeIndentedLines(code % self.params)
 
     def writeRoutineStartCode(self, buff):

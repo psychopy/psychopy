@@ -8,11 +8,12 @@
 
     <!-- styles -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.css">
-    <link rel="stylesheet" href="https://lib.pavlovia.org/psychojs.css">
+    <link rel="stylesheet" href="https://lib.pavlovia.org/psychojs{version}.css">
 </head>
 
 <body>
     <div id="root"></div>
+
      <!-- external libraries -->
     <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.2.0/jquery.min.js"></script>
     <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js"></script>
@@ -24,14 +25,16 @@
     <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/log4javascript/1.4.9/log4javascript.min.js"></script>
     <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/tone/13.8.6/Tone.min.js"></script>
     <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/howler/2.1.2/howler.min.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/pako/1.0.10/pako.min.js"></script>
 
     <!-- experiment -->
     <script type='module' src='./{name}.js'></script>
 
-    <!-- older browsers -->
-    <script nomodule type="text/javascript" src="https://unpkg.com/@ungap/url-search-params"></script>
+    <!-- legacy browsers -->
+    <script nomodule type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/babel-polyfill/7.6.0/polyfill.min.js"></script>
+    <script nomodule type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/url-search-params/1.1.0/url-search-params.js"></script>
     <script nomodule type="text/javascript" src="https://lib.pavlovia.org/psychojs{version}.js"></script>
-    <script nomodule type="text/javascript" src="./{name}NoModule.js"></script>
+    <script nomodule type="text/javascript" src="./{name}-legacy-browsers.js"></script>
 </body>
 
 </html>

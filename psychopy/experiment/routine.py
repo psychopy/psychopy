@@ -339,7 +339,8 @@ class Routine(list):
             code = ("%(name)sComponents.forEach( function(thisComponent) {\n"
                     "  if ('status' in thisComponent && thisComponent.status !== PsychoJS.Status.FINISHED) {\n"
                     "    continueRoutine = true;\n"
-                    "  }});\n")
+                    "  }\n"
+                    "});\n")
         buff.writeIndentedLines(code % self.params)
 
         buff.writeIndentedLines("\n// refresh the screen if continuing\n")
@@ -349,8 +350,7 @@ class Routine(list):
         else:
             buff.writeIndentedLines("if (continueRoutine) {")
         code = ("  return Scheduler.Event.FLIP_REPEAT;\n"
-                "}\n"
-                "else {\n"
+                "} else {\n"
                 "  return Scheduler.Event.NEXT;\n"
                 "}\n")
         buff.writeIndentedLines(code)
@@ -381,7 +381,8 @@ class Routine(list):
                     "%(name)sComponents.forEach( function(thisComponent) {\n"
                     "  if (typeof thisComponent.setAutoDraw === 'function') {\n"
                     "    thisComponent.setAutoDraw(false);\n"
-                    "  }});\n")
+                    "  }\n"
+                    "});\n")
         buff.writeIndentedLines(code  % self.params)
         # add the EndRoutine code for each component
         for compon in self:

@@ -326,8 +326,8 @@ class Flow(list):
         resourceFiles = set([resource['rel'].replace("\\", "/") for resource in self.exp.getResourceFiles()])
         script.writeIndented("psychoJS.start({\n")
         script.setIndentLevel(1, relative=True)
-        code = ("expName,\n"
-                "expInfo,\n"
+        code = ("expName: expName,\n"
+                "expInfo: expInfo,\n"
                 "resources: [\n")
         script.writeIndentedLines(code)
         script.setIndentLevel(1, relative=True)

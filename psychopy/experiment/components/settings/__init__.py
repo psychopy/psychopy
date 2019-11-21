@@ -833,7 +833,7 @@ class SettingsComponent(object):
 
     def writeEndCodeJS(self, buff):
 
-        endLoopInteration = ("\nfunction endLoopIteration(thisScheduler, loop = undefined) {\n"
+        endLoopInteration = ("\nfunction endLoopIteration(thisScheduler, loop) {\n"
                     "  // ------Prepare for next entry------\n"
                     "  return function () {\n"
                     "    if (typeof loop !== 'undefined') {\n"
