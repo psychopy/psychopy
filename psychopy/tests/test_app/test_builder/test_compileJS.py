@@ -105,7 +105,7 @@ class Test_PsychoJS_from_Builder(object):
         """Test retrieval of html path"""
         self.temp_dir = mkdtemp(prefix='test')
         fileName = os.path.join(self.temp_dir, 'testFile.psyexp')
-        htmlPath = os.path.join(self.temp_dir, 'html')
+        htmlPath = os.path.join(self.temp_dir, '')
         assert self.builderView._getHtmlPath(fileName) == htmlPath
 
     def test_getExportPref(self):
