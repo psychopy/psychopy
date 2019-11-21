@@ -704,6 +704,10 @@ class Experiment(object):
     def getExpName(self):
         return self.settings.params['expName'].val
 
+    @property
+    def htmlFolder(self):
+        return self.settings.params['HTML path'].val
+
     def getComponentFromName(self, name):
         """Searches all the Routines in the Experiment for a matching Comp name
 

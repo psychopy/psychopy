@@ -324,11 +324,13 @@ class Flow(list):
 
         # Write resource list
         resourceFiles = set([resource['rel'].replace("\\", "/") for resource in self.exp.getResourceFiles()])
+        resourceFolder = [".","resources"][bool(self.exp.htmlFolder)]
+
         script.writeIndented("psychoJS.start({expName, expInfo, resources: [\n")
         script.setIndentLevel(1, relative=True)
         code = ""
         for idx, resource in enumerate(resourceFiles):
-            temp = "{{'name': '{0}', 'path': 'resources/{0}'}}".format(resource)
+            temp = "{{'name': '{0}', 'path': '{1}/{0}'}}".format(resource, resourceFolder)
             code += temp
             if idx != (len(resourceFiles)-1):
                 code += ",\n"  # Trailing comma
