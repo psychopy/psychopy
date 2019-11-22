@@ -97,7 +97,7 @@ class Test_PsychoJS_from_Builder(object):
         assert(self.compileScript(infile=exp, version=None, outfile=outFile))
         # Test whether files are written
         assert(os.path.isfile(os.path.join(outFolder, 'stroop.js')))
-        assert(os.path.isfile(os.path.join(outFolder, 'stroopNoModule.js')))
+        assert(os.path.isfile(os.path.join(outFolder, 'stroop-legacy-browsers.js')))
         assert(os.path.isfile(os.path.join(outFolder, 'index.html')))
         assert(os.path.isdir(os.path.join(outFolder, 'resources')))
 
