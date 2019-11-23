@@ -53,6 +53,7 @@ dependencies:
 - wheel
 - wxpython
 - xlrd
+- pip
 - pip:
   - pygame
   - pyparallel
