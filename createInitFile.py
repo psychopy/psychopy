@@ -7,6 +7,7 @@
 from __future__ import absolute_import, print_function
 from setuptools.config import read_configuration
 import os, copy, platform, subprocess
+import distro
 from psychopy.constants import PY3
 
 thisLoc = os.path.split(__file__)[0]
@@ -140,10 +141,12 @@ def _getPlatformString(dist=None):
             OSXver, _, architecture = platform.mac_ver()
             systemInfo = "OSX_%s_%s" % (OSXver, architecture)
         elif os.sys.platform == 'linux':
+            distro_ = distro.linux_distribution(full_distribution_name=False)
             systemInfo = '%s_%s_%s' % (
                 'Linux',
-                ':'.join([x for x in platform.dist() if x != '']),
+                ':'.join([x for x in distro_ if x != '']),
                 platform.release())
+            del distro_
         elif os.sys.platform == 'win32':
             ver=os.sys.getwindowsversion()
             if len(ver[4])>0:
