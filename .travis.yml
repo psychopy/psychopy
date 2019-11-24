@@ -104,7 +104,7 @@ before_script:
 script:
   - |
     if [ "${PYTHON_VERSION}" == "3.8" ]; then
-      pytest --cov-config .travis_coveragerc --cov=psychopy -v -s -m "not needs_sound" -m "not needs_pygame" psychopy
+      pytest --cov-config .travis_coveragerc --cov=psychopy -v -s -m "not needs_sound and not needs_pygame" psychopy
     else
       pytest --cov-config .travis_coveragerc --cov=psychopy -v -s -m "not needs_sound" psychopy
     fi
