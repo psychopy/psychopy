@@ -336,9 +336,9 @@ class Flow(list):
                 code += ",\n"  # Trailing comma
         script.writeIndentedLines(code)
         script.setIndentLevel(-1, relative=True)
-        code = "]});\n"
-        script.writeIndentedLines(code)
-        script.writeIndented("\n")
+        script.writeIndented("]\n")
+        script.setIndentLevel(-1, relative=True)
+        script.writeIndented("});\n\n")
 
     def writeLoopHandlerJS(self, script, modular):
         """

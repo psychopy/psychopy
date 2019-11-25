@@ -568,13 +568,13 @@ class SettingsComponent(object):
 
         # Write imports if modular
         if modular:
-            code = ("import {{ PsychoJS }} from 'https://pavlovia.org/lib/core{version}.js';\n"
-                    "import * as core from 'https://pavlovia.org/lib/core{version}.js';\n"
-                    "import {{ TrialHandler }} from 'https://pavlovia.org/lib/data{version}.js';\n"
-                    "import {{ Scheduler }} from 'https://pavlovia.org/lib/util{version}.js';\n"
-                    "import * as util from 'https://pavlovia.org/lib/util{version}.js';\n"
-                    "import * as visual from 'https://pavlovia.org/lib/visual{version}.js';\n"
-                    "import {{ Sound }} from 'https://pavlovia.org/lib/sound{version}.js';\n"
+            code = ("import {{ PsychoJS }} from './lib/core{version}.js';\n"
+                    "import * as core from './lib/core{version}.js';\n"
+                    "import {{ TrialHandler }} from './lib/data{version}.js';\n"
+                    "import {{ Scheduler }} from './lib/util{version}.js';\n"
+                    "import * as util from './lib/util{version}.js';\n"
+                    "import * as visual from './lib/visual{version}.js';\n"
+                    "import {{ Sound }} from './lib/sound{version}.js';\n"
                     "\n").format(version=versionStr)
             buff.writeIndentedLines(code)
 
@@ -796,7 +796,7 @@ class SettingsComponent(object):
             units = 'height'
 
         code = ("// init psychoJS:\n"
-                "var psychoJS = new PsychoJS({{\n"
+                "const psychoJS = new PsychoJS({{\n"
                 "  debug: true\n"
                 "}});\n\n"
                 "// open window:\n"
@@ -834,23 +834,25 @@ class SettingsComponent(object):
 
     def writeEndCodeJS(self, buff):
 
-        endLoopInteration = ("\nfunction endLoopIteration(thisScheduler, trials) {\n"
+        endLoopInteration = ("\nfunction endLoopIteration(thisScheduler, loop) {\n"
                     "  // ------Prepare for next entry------\n"
                     "  return function () {\n"
-                    "    // ------Check if user ended loop early------\n"
-                    "    if (currentLoop.finished) {\n"
-                    "      // Check for and save orphaned data\n"
-                    "      if (Object.keys(psychoJS.experiment._thisEntry).length > 0) {\n"
-                    "        psychoJS.experiment.nextEntry(trials);\n"
-                    "      }\n"
+                    "    if (typeof loop !== 'undefined') {\n"
+                    "      // ------Check if user ended loop early------\n"
+                    "      if (loop.finished) {\n"
+                    "        // Check for and save orphaned data\n"
+                    "        if (psychoJS.experiment.isEntryEmpty()) {\n"
+                    "          psychoJS.experiment.nextEntry(loop);\n"
+                    "        }\n"
                     "      thisScheduler.stop();\n"
-                    "    } else if (trials !== undefined) {\n"
-                    "      const thisTrial = trials.getCurrentTrial();\n"
-                    "      if (typeof thisTrial === 'undefined' || !('isTrials' in thisTrial) || thisTrial.isTrials) {\n"
-                    "         psychoJS.experiment.nextEntry(trials);\n"
+                    "      } else {\n"
+                    "        const thisTrial = loop.getCurrentTrial();\n"
+                    "        if (typeof thisTrial === 'undefined' || !('isTrials' in thisTrial) || thisTrial.isTrials) {\n"
+                    "          psychoJS.experiment.nextEntry(loop);\n"
+                    "        }\n"
                     "      }\n"
+                    "    return Scheduler.Event.NEXT;\n"
                     "    }\n"
-                    "  return Scheduler.Event.NEXT;\n"
                     "  };\n"
                     "}\n")
         buff.writeIndentedLines(endLoopInteration)
