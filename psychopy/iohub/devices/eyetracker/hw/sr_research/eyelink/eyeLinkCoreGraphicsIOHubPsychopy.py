@@ -103,8 +103,6 @@ class TextLine(object):
             antialias=True,
             bold=False,
             italic=False,
-            alignHoriz='center',
-            alignVert='center',
             wrapWidth=self.display_size[0] * .8)
 
     def draw(self, text=None):
@@ -150,8 +148,7 @@ class IntroScreen(object):
                 antialias=True,
                 bold=True,
                 italic=False,
-                alignHoriz='center',
-                alignVert='top',
+                anchorVert='top',
                 wrapWidth=self.display_size[0] * .8))
 
         self.introlines.append(visual.TextStim(self.window,
@@ -170,8 +167,7 @@ class IntroScreen(object):
                                                antialias=True,
                                                bold=False,
                                                italic=False,
-                                               alignHoriz='left',
-                                               alignVert='center',
+                                               anchorHoriz='left',
                                                wrapWidth=self.display_size[0] * .8))
 
         self.introlines.append(visual.TextStim(self.window,
@@ -190,8 +186,7 @@ class IntroScreen(object):
                                                antialias=True,
                                                bold=False,
                                                italic=False,
-                                               alignHoriz='left',
-                                               alignVert='center',
+                                               anchorHoriz='left',
                                                wrapWidth=self.display_size[0] * .8))
 
         self.introlines.append(visual.TextStim(self.window,
@@ -210,8 +205,7 @@ class IntroScreen(object):
                                                antialias=True,
                                                bold=False,
                                                italic=False,
-                                               alignHoriz='left',
-                                               alignVert='center',
+                                               anchorHoriz='left',
                                                wrapWidth=self.display_size[0] * .8))
 
         self.introlines.append(visual.TextStim(self.window,
@@ -230,8 +224,7 @@ class IntroScreen(object):
                                                antialias=True,
                                                bold=False,
                                                italic=False,
-                                               alignHoriz='left',
-                                               alignVert='center',
+                                               anchorHoriz='left',
                                                wrapWidth=self.display_size[0] * .8))
 
         self.introlines.append(visual.TextStim(self.window,
@@ -250,8 +243,6 @@ class IntroScreen(object):
                                                antialias=True,
                                                bold=False,
                                                italic=False,
-                                               alignHoriz='center',
-                                               alignVert='center',
                                                wrapWidth=self.display_size[0] * .8))
 
         self.introlines.append(visual.TextStim(self.window,
@@ -270,8 +261,7 @@ class IntroScreen(object):
                                                antialias=True,
                                                bold=False,
                                                italic=False,
-                                               alignHoriz='left',
-                                               alignVert='center',
+                                               anchorHoriz='left',
                                                wrapWidth=self.display_size[0] * .8))
 
         self.introlines.append(visual.TextStim(self.window,
@@ -290,8 +280,7 @@ class IntroScreen(object):
                                                antialias=True,
                                                bold=False,
                                                italic=False,
-                                               alignHoriz='left',
-                                               alignVert='center',
+                                               anchorHoriz='left',
                                                wrapWidth=self.display_size[0] * .8))
 
         self.introlines.append(visual.TextStim(self.window,
@@ -310,8 +299,7 @@ class IntroScreen(object):
                                                antialias=True,
                                                bold=False,
                                                italic=False,
-                                               alignHoriz='left',
-                                               alignVert='center',
+                                               anchorHoriz='left',
                                                wrapWidth=self.display_size[0] * .8))
 
         self.introlines.append(visual.TextStim(self.window,
@@ -330,8 +318,7 @@ class IntroScreen(object):
                                                antialias=True,
                                                bold=False,
                                                italic=False,
-                                               alignHoriz='left',
-                                               alignVert='center',
+                                               anchorHoriz='left',
                                                wrapWidth=self.display_size[0] * .8))
 
     def draw(self):
@@ -621,8 +608,7 @@ class EyeLinkCoreGraphicsIOHubPsychopy(pylink.EyeLinkCustomDisplay):
                 antialias=True,
                 bold=False,
                 italic=False,
-                alignHoriz='center',
-                alignVert='top',
+                anchorVert='top',
                 wrapWidth=self.window.size[0] * .8)
         else:
             self.imagetitlestim.setText(text)
