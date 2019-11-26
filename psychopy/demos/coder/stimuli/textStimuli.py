@@ -25,18 +25,16 @@ sans = ['Gill Sans MT', 'Arial', 'Helvetica', 'Verdana']
 serif = ['Times', 'Times New Roman']
 comic = 'Comic Sans MS'  # the short name won't work
 
+rs = visual.RatingScale(win, low=0, high=1, precision=100, size=3, pos=(0,-.4),
+                       labels=[' ', ' '], scale=' ',
+                       marker='glow', markerStart=0.7, markerColor='darkBlue', autoLog=False)
+rs.draw()
 # Initialize some stimuli.
 # Note that in Python 3 we no longer need to create special unicode strings
 # with a u'' prefix, as all strings are unicode. For the time being, we 
 # retain the prefix in this demo, for backwards compatibility for people 
 # running PsychoPy under Python 2.7
-fpsText = visual.TextStim(win,
-    units='norm', height = 0.1,
-    pos=(-0.98, -0.98), text='starting...',
-    font=sans,
-    alignText = 'left', anchorHoriz='left',
-    alignTextVert='bottom', anchorVert='bottom',
-    color='BlanchedAlmond')
+fpsText = visual.TextStim(win)
 rotating = visual.TextStim(win, text="Fonts \nrotate", pos=(0, 0),  # and can have line breaks
     color=[-1.0, -1, 1],
     units='deg', 

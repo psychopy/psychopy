@@ -97,7 +97,6 @@ class TextStim(BaseVisualStim, ColorMixin, ContainerMixin):
                  alignHoriz=None,
                  alignVert=None,
                  alignText='center',
-                 alignTextVert='center',
                  anchorHoriz='center',
                  anchorVert='center',
                  fontFiles=(),
@@ -185,10 +184,10 @@ class TextStim(BaseVisualStim, ColorMixin, ContainerMixin):
         # deprecated attributes
         if alignVert:
             self.__dict__['alignVert'] = alignVert
-            logging.warning("TextStim.alignVert is deprecated. Use "
-                            "alignTextVert and anchorVert attributes instead")
+            logging.warning("TextStim.alignVert is deprecated. Use the "
+                            "anchorVert attribute instead")
             # for compatibility, alignText was historically 'left'
-            alignTextVert, anchorVert = 'center', alignHoriz
+            anchorVert = alignHoriz
         if alignHoriz:
             self.__dict__['alignHoriz'] = alignHoriz
             logging.warning("TextStim.alignHoriz is deprecated. Use alignText "
@@ -198,7 +197,6 @@ class TextStim(BaseVisualStim, ColorMixin, ContainerMixin):
         # alignment and anchors
         self.alignText = alignText
         self.anchorHoriz = anchorHoriz
-        self.alignTextVert = alignTextVert
         self.anchorVert = anchorVert
 
 
@@ -384,7 +382,6 @@ class TextStim(BaseVisualStim, ColorMixin, ContainerMixin):
                 anchor_x=self.anchorHoriz,
                 anchor_y=self.anchorVert,  # the point we rotate around
                 align=self.alignText,
-                # content_valign=self.alignTextVert,
                 color = (int(127.5 * self.rgb[0] + 127.5),
                       int(127.5 * self.rgb[1] + 127.5),
                       int(127.5 * self.rgb[2] + 127.5),
@@ -685,7 +682,7 @@ class TextStim(BaseVisualStim, ColorMixin, ContainerMixin):
 
     @attributeSetter
     def alignVert(self, value):
-        """Deprecated in PsychoPy 3.3. Use `alignTextVert` and `anchorVert`
+        """Deprecated in PsychoPy 3.3. Use `anchorVert`
         """
         self.__dict__['alignVert'] = value
         self._needSetText = True
@@ -700,15 +697,6 @@ class TextStim(BaseVisualStim, ColorMixin, ContainerMixin):
         self._needSetText = True
 
     @attributeSetter
-    def alignTextVert(self, value):
-        """The vertical alignment ('top', 'bottom' or 'center') of text
-        within the bounding box.
-        See also `anchorY` to set alignment of the box itself relative to pos
-        """
-        self.__dict__['alignTextVert'] = value
-        self._needSetText = True
-
-    @attributeSetter
     def anchorHoriz(self, value):
         """The horizontal alignment ('left', 'right' or 'center')
         """
@@ -719,7 +707,6 @@ class TextStim(BaseVisualStim, ColorMixin, ContainerMixin):
     def anchorVert(self, value):
         """The vertical alignment ('top', 'bottom' or 'center') of the box
         relative to the text `pos`.
-        See also `alignTextVert` to control the text within the box
         """
         self.__dict__['anchorVert'] = value
         self._needSetText = True
