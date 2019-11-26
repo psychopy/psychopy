@@ -26,6 +26,9 @@ matrix:
     - os: linux
       env: CONDA=true PYTHON_VERSION=3.7 DISPLAY=:99.0 AUDIODEV=null
 
+    - os: linux
+      env: CONDA=true PYTHON_VERSION=3.8 DISPLAY=:99.0 AUDIODEV=null
+
 #  allow_failures:
 #    - python: "2.7_with_system_site_packages"
 
@@ -99,7 +102,12 @@ before_script:
 #    fi;
 
 script:
-  - pytest --cov-config .travis_coveragerc --cov=psychopy -v -s -m "not needs_sound" psychopy
+  - |
+    if [ "${PYTHON_VERSION}" == "3.8" ]; then
+      pytest --cov-config .travis_coveragerc --cov=psychopy -v -s -m "not needs_sound and not needs_pygame" psychopy
+    else
+      pytest --cov-config .travis_coveragerc --cov=psychopy -v -s -m "not needs_sound" psychopy
+    fi
 
 after_success:
   - coveralls

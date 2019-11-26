@@ -250,7 +250,7 @@ class BaseComponent(object):
         buff.setIndentLevel(+1, relative=True)
         code = ("// keep track of start time/frame for later\n"
                 "%(name)s.tStart = t;  // (not accounting for frame time here)\n"
-                "%(name)s.frameNStart = frameN;  // exact frame index\n")
+                "%(name)s.frameNStart = frameN;  // exact frame index\n\n")
         buff.writeIndentedLines(code % self.params)
 
     def writeStopTestCode(self, buff):

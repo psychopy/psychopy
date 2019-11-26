@@ -82,7 +82,11 @@ __all__ = [
     'createTexImage2D',
     'createTexImage2dFromFile',
     'bindTexture',
-    'unbindTexture'
+    'unbindTexture',
+    'createCubeMap',
+    'TexCubeMap',
+    'getModelViewMatrix',
+    'getProjectionMatrix'
 ]
 
 import ctypes
@@ -1781,6 +1785,191 @@ def createTexImage2dFromFile(imgFile, transpose=True):
     return textureDesc
 
 
+class TexCubeMap(object):
+    """Descriptor for a cube map texture..
+
+    This class is used for bookkeeping cube maps stored in video memory.
+    Information about the texture (eg. `width` and `height`) is available via
+    class attributes. Attributes should never be modified directly.
+
+    """
+    __slots__ = ['width',
+                 'height',
+                 'target',
+                 '_name',
+                 'level',
+                 'internalFormat',
+                 'pixelFormat',
+                 'dataType',
+                 'unpackAlignment',
+                 '_texParams',
+                 '_isBound',
+                 '_unit',
+                 '_texParamsNeedUpdate']
+
+    def __init__(self,
+                 name=0,
+                 target=GL.GL_TEXTURE_CUBE_MAP,
+                 width=64,
+                 height=64,
+                 level=0,
+                 internalFormat=GL.GL_RGBA,
+                 pixelFormat=GL.GL_RGBA,
+                 dataType=GL.GL_FLOAT,
+                 unpackAlignment=4,
+                 texParams=None):
+        """
+        Parameters
+        ----------
+        name : `int` or `GLuint`
+            OpenGL handle for texture. Is `0` if uninitialized.
+        target : :obj:`int`
+            The target texture should only be `GL_TEXTURE_CUBE_MAP`.
+        width : :obj:`int`
+            Texture width in pixels.
+        height : :obj:`int`
+            Texture height in pixels.
+        level : :obj:`int`
+            LOD number of the texture.
+        internalFormat : :obj:`int`
+            Internal format for texture data (e.g. GL_RGBA8, GL_R11F_G11F_B10F).
+        pixelFormat : :obj:`int`
+            Pixel data format (e.g. GL_RGBA, GL_DEPTH_STENCIL)
+        dataType : :obj:`int`
+            Data type for pixel data (e.g. GL_FLOAT, GL_UNSIGNED_BYTE).
+        unpackAlignment : :obj:`int`
+            Alignment requirements of each row in memory. Default is 4.
+        texParams : :obj:`list` of :obj:`tuple` of :obj:`int`
+            Optional texture parameters specified as `dict`. These values are
+            passed to `glTexParameteri`. Each tuple must contain a parameter
+            name and value. For example, `texParameters={
+            GL.GL_TEXTURE_MIN_FILTER: GL.GL_LINEAR, GL.GL_TEXTURE_MAG_FILTER:
+            GL.GL_LINEAR}`. These can be changed and will be updated the next
+            time this instance is passed to :func:`bindTexture`.
+
+        """
+        # fields for texture information
+        self.name = name
+        self.width = width
+        self.height = height
+        self.target = target
+        self.level = level
+        self.internalFormat = internalFormat
+        self.pixelFormat = pixelFormat
+        self.dataType = dataType
+        self.unpackAlignment = unpackAlignment
+        self._texParams = {}
+
+        # set texture parameters
+        if texParams is not None:
+            for key, val in texParams.items():
+                self._texParams[key] = val
+
+        # internal data
+        self._isBound = False  # True if the texture has been bound
+        self._unit = None  # texture unit assigned to this texture
+        self._texParamsNeedUpdate = True  # update texture parameters
+
+    @property
+    def name(self):
+        return self._name
+
+    @name.setter
+    def name(self, value):
+        if not isinstance(value, GL.GLuint):
+            self._name = GL.GLuint(int(value))
+        else:
+            self._name = value
+
+    @property
+    def size(self):
+        """Size of a single cubemap face [w, h] in pixels (`int`, `int`)."""
+        return self.width, self.height
+
+    @property
+    def texParams(self):
+        """Texture parameters."""
+        self._texParamsNeedUpdate = True
+        return self._texParams
+
+    @texParams.setter
+    def texParams(self, value):
+        """Texture parameters."""
+        self._texParamsNeedUpdate = True
+        self._texParams = value
+
+
+def createCubeMap(width, height, target=GL.GL_TEXTURE_CUBE_MAP, level=0,
+                  internalFormat=GL.GL_RGBA, pixelFormat=GL.GL_RGBA,
+                  dataType=GL.GL_UNSIGNED_BYTE, data=None, unpackAlignment=4,
+                  texParams=None):
+    """Create a cubemap.
+
+    Parameters
+    ----------
+    name : `int` or `GLuint`
+        OpenGL handle for the cube map. Is `0` if uninitialized.
+    target : :obj:`int`
+        The target texture should only be `GL_TEXTURE_CUBE_MAP`.
+    width : :obj:`int`
+        Texture width in pixels.
+    height : :obj:`int`
+        Texture height in pixels.
+    level : :obj:`int`
+        LOD number of the texture.
+    internalFormat : :obj:`int`
+        Internal format for texture data (e.g. GL_RGBA8, GL_R11F_G11F_B10F).
+    pixelFormat : :obj:`int`
+        Pixel data format (e.g. GL_RGBA, GL_DEPTH_STENCIL)
+    dataType : :obj:`int`
+        Data type for pixel data (e.g. GL_FLOAT, GL_UNSIGNED_BYTE).
+    data : list or tuple
+        List of six ctypes pointers to image data for each cubemap face. Image
+        data is assigned to a face by index [+X, -X, +Y, -Y, +Z, -Z]. All images
+        must have the same size as specified by `width` and `height`.
+    unpackAlignment : :obj:`int`
+        Alignment requirements of each row in memory. Default is 4.
+    texParams : :obj:`list` of :obj:`tuple` of :obj:`int`
+        Optional texture parameters specified as `dict`. These values are
+        passed to `glTexParameteri`. Each tuple must contain a parameter
+        name and value. For example, `texParameters={
+        GL.GL_TEXTURE_MIN_FILTER: GL.GL_LINEAR, GL.GL_TEXTURE_MAG_FILTER:
+        GL.GL_LINEAR}`. These can be changed and will be updated the next
+        time this instance is passed to :func:`bindTexture`.
+
+    """
+    texId = GL.GLuint()
+    GL.glGenTextures(1, ctypes.byref(texId))
+    GL.glBindTexture(target, texId)
+
+    # create faces of the cube map
+    for face in range(6):
+        GL.glPixelStorei(GL.GL_UNPACK_ALIGNMENT, int(unpackAlignment))
+        GL.glTexImage2D(GL.GL_TEXTURE_CUBE_MAP_POSITIVE_X + face, level,
+                        internalFormat, width, height, 0, pixelFormat, dataType,
+                        data[face] if data is not None else data)
+
+    # apply texture parameters
+    if texParams is not None:
+        for pname, param in texParams.items():
+            GL.glTexParameteri(target, pname, param)
+
+    GL.glBindTexture(target, 0)
+
+    tex = TexCubeMap(name=texId,
+                     target=target,
+                     width=width,
+                     height=height,
+                     internalFormat=internalFormat,
+                     level=level,
+                     pixelFormat=pixelFormat,
+                     dataType=dataType,
+                     unpackAlignment=unpackAlignment,
+                     texParams=texParams)
+
+    return tex
+
+
 def bindTexture(texture, unit=None, enable=True):
     """Bind a texture.
 
@@ -1960,6 +2149,10 @@ class VertexArrayInfo(object):
         Attributes and buffers defined as part of this VAO state. Keys are
         attribute pointer indices or capabilities (ie. GL_VERTEX_ARRAY).
         Modifying these values will not update the VAO state.
+    indexBuffer : VertexBufferInfo, optional
+        Buffer object for indices.
+    attribDivisors : dict, optional
+        Divisors for each attribute.
     isLegacy : bool
         Array pointers were defined using the deprecated OpenGL API. If `True`,
         the VAO may work with older GLSL shaders versions and the fixed-function
@@ -1969,19 +2162,21 @@ class VertexArrayInfo(object):
 
     """
     __slots__ = ['name', 'count', 'activeAttribs', 'indexBuffer', 'isLegacy',
-                 'userData']
+                 'userData', 'attribDivisors']
 
     def __init__(self,
                  name=0,
                  count=0,
                  activeAttribs=None,
                  indexBuffer=None,
+                 attribDivisors=None,
                  isLegacy=False,
                  userData=None):
         self.name = name
         self.activeAttribs = activeAttribs
         self.count = count
         self.indexBuffer = indexBuffer
+        self.attribDivisors = attribDivisors
         self.isLegacy = isLegacy
 
         if userData is None:
@@ -2003,7 +2198,7 @@ class VertexArrayInfo(object):
         return self.name != other.name
 
 
-def createVAO(attribBuffers, indexBuffer=None, legacy=False):
+def createVAO(attribBuffers, indexBuffer=None, attribDivisors=None, legacy=False):
     """Create a Vertex Array object (VAO). VAOs store buffer binding states,
     reducing CPU overhead when drawing objects with vertex data stored in VBOs.
 
@@ -2021,6 +2216,11 @@ def createVAO(attribBuffers, indexBuffer=None, legacy=False):
         normalize the array (`bool`).
     indexBuffer : VertexBufferInfo
         Optional index buffer.
+    attribDivisors : dict
+        Attribute divisors to set. Keys are vertex attribute pointer indices,
+        values are the number of instances that will pass between updates of an
+        attribute. Setting attribute divisors is only permitted if `legacy` is
+        `False`.
     legacy : bool, optional
         Use legacy attribute pointer functions when setting the VAO state. This
         is for compatibility with older GL implementations. Key specified to
@@ -2066,6 +2266,13 @@ def createVAO(attribBuffers, indexBuffer=None, legacy=False):
 
         attribBuffers = {GL_VERTEX_ARRAY: vertexPos, GL_NORMAL_ARRAY: normals}
         vao = createVAO(attribBuffers, legacy=True)
+
+    If you wish to used instanced drawing, you can specify attribute divisors
+    this way::
+
+        vao = createVAO(
+            {0: (vertexAttr, 3, 0), 1: (vertexAttr, 3, 3), 2: vertexColors},
+            attribDivisors={2: 1})
 
     """
     if not attribBuffers:  # in case an empty list is passed
@@ -2128,18 +2335,30 @@ def createVAO(attribBuffers, indexBuffer=None, legacy=False):
         else:
             count = bufferIndices[0]
 
+    # set attribute divisors
+    if attribDivisors is not None:
+        if legacy is True:
+            raise ValueError(
+                'Cannot set attribute divisors when `legacy` is `True.')
+
+        for key, val in attribDivisors.items():
+            GL.glVertexAttribDivisor(key, val)
+
     GL.glBindVertexArray(0)
 
-    return VertexArrayInfo(vaoId,
+    return VertexArrayInfo(vaoId.value,
                            count,
                            activeAttribs,
                            indexBuffer,
+                           attribDivisors,
                            legacy)
 
 
-def drawVAO(vao, mode=GL.GL_TRIANGLES, start=0, count=None, flush=False):
-    """Draw a vertex array using `glDrawArrays` or `glDrawElements`. This method
-    does not require shaders.
+def drawVAO(vao, mode=GL.GL_TRIANGLES, start=0, count=None, instanceCount=None,
+            flush=False):
+    """Draw a vertex array object. Uses `glDrawArrays` or `glDrawElements` if
+    `instanceCount` is `None`, or else `glDrawArraysInstanced` or
+    `glDrawElementsInstanced` is used.
 
     Parameters
     ----------
@@ -2153,6 +2372,9 @@ def drawVAO(vao, mode=GL.GL_TRIANGLES, start=0, count=None, flush=False):
     count : int, optional
         Number of indices to draw from `start`. Must not exceed `vao.count` -
         `start`.
+    instanceCount : int or None
+        Number of instances to draw. If >0 and not `None`, instanced drawing
+        will be used.
     flush : bool, optional
         Flush queued drawing commands before returning.
 
@@ -2175,9 +2397,16 @@ def drawVAO(vao, mode=GL.GL_TRIANGLES, start=0, count=None, flush=False):
                     vao.count - start))
 
     if vao.indexBuffer is not None:
-        GL.glDrawElements(mode, count, vao.indexBuffer.dataType, start)
+        if instanceCount is None:
+            GL.glDrawElements(mode, count, vao.indexBuffer.dataType, start)
+        else:
+            GL.glDrawElementsInstanced(mode, count, vao.indexBuffer.dataType,
+                                       start, instanceCount)
     else:
-        GL.glDrawArrays(mode, start, count)
+        if instanceCount is None:
+            GL.glDrawArrays(mode, start, count)
+        else:
+            GL.glDrawArraysInstanced(mode, start, count, instanceCount)
 
     if flush:
         GL.glFlush()
@@ -4462,6 +4691,44 @@ def getString(parName):
     """
     val = ctypes.cast(GL.glGetString(parName), ctypes.c_char_p).value
     return val.decode('UTF-8')
+
+
+def getModelViewMatrix():
+    """Get the present model matrix from the OpenGL matrix stack.
+
+    Returns
+    -------
+    ndarray
+        4x4 model/view matrix.
+
+    """
+    modelview = np.zeros((4, 4), dtype=np.float32)
+
+    GL.glGetFloatv(GL.GL_MODELVIEW_MATRIX, modelview.ctypes.data_as(
+        ctypes.POINTER(ctypes.c_float)))
+
+    modelview[:, :] = np.transpose(modelview)
+
+    return modelview
+
+
+def getProjectionMatrix():
+    """Get the present projection matrix from the OpenGL matrix stack.
+
+    Returns
+    -------
+    ndarray
+        4x4 projection matrix.
+
+    """
+    proj = np.zeros((4, 4), dtype=np.float32, order='C')
+
+    GL.glGetFloatv(GL.GL_PROJECTION_MATRIX, proj.ctypes.data_as(
+        ctypes.POINTER(ctypes.c_float)))
+
+    proj[:, :] = np.transpose(proj)
+
+    return proj
 
 
 # OpenGL information type

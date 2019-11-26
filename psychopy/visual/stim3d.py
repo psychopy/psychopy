@@ -15,6 +15,7 @@ import psychopy.tools.mathtools as mt
 import psychopy.tools.gltools as gt
 import psychopy.tools.arraytools as at
 import psychopy.tools.viewtools as vt
+import psychopy.visual.shaders as _shaders
 
 import os
 from io import StringIO
@@ -45,7 +46,7 @@ class LightSource(object):
                  ambientColor=(0., 0., 0.),
                  colorSpace='rgb',
                  lightType='point',
-                 kAttenuation=(1, 0, 0)):
+                 attenuation=(1, 0, 0)):
         """
         Parameters
         ----------
@@ -66,7 +67,7 @@ class LightSource(object):
             Ambient light color.
         colorSpace : str
             Colorspace for `diffuse`, `specular`, and `ambient` colors.
-        kAttenuation : array_like
+        attenuation : array_like
             Values for the constant, linear, and quadratic terms of the lighting
             attenuation formula. Default is (1, 0, 0) which results in no
             attenuation.
@@ -93,7 +94,7 @@ class LightSource(object):
         self.pos = pos
 
         # attenuation factors
-        self._kAttenuation = np.asarray(kAttenuation, np.float32)
+        self._kAttenuation = np.asarray(attenuation, np.float32)
 
     @property
     def pos(self):
@@ -200,19 +201,204 @@ class LightSource(object):
         self._ambientRGB[3] = 1.0
 
     @property
-    def kAttenuation(self):
+    def attenuation(self):
         """Values for the constant, linear, and quadratic terms of the lighting
         attenuation formula.
         """
         return self._kAttenuation
 
-    @kAttenuation.setter
-    def kAttenuation(self, value):
+    @attenuation.setter
+    def attenuation(self, value):
         self._kAttenuation = np.asarray(value, np.float32)
 
 
-class PhongMaterial(object):
-    """Class representing a material using the Phong lighting model.
+class SceneSkybox(object):
+    """Class to render scene skyboxes.
+
+    A skybox provides background imagery to serve as a visual reference for the
+    scene. Background images are projected onto faces of a cube centered about
+    the viewpoint regardless of any viewpoint translations, giving the illusion
+    that the background is very far away. Usually, only one skybox can be
+    rendered per buffer each frame. Render targets must have a depth buffer
+    associated with them.
+
+    Background images are specified as a set of image paths passed to
+    `faceTextures`::
+
+        sky = SceneSkybox(
+            win, ('rt.jpg', 'lf.jpg', 'up.jpg', 'dn.jpg', 'bk.jpg', 'ft.jpg'))
+
+    The skybox is rendered by calling `draw()` after drawing all other 3D
+    stimuli.
+
+    Skyboxes are not affected by lighting, however, their colors can be
+    modulated by setting the window's `sceneAmbient` value. Skyboxes should be
+    drawn after all other 3D stimuli, but before any successive call that clears
+    the depth buffer (eg. `setPerspectiveView`, `resetEyeTransform`, etc.)
+
+
+    """
+    def __init__(self, win, tex=(), ori=0.0, axis=(0, 1, 0)):
+        """
+        Parameters
+        ----------
+        win : `~psychopy.visual.Window`
+            Window this skybox is associated with.
+        tex : list or tuple or TexCubeMap
+            List of files paths to images to use for each face. Images are
+            assigned to faces depending on their index within the list ([+X,
+            -X, +Y, -Y, +Z, -Z] or [right, left, top, bottom, back, front]). If
+            `None` is specified, the cube map may be specified later by setting
+            the `cubemap` attribute. Alternatively, you can specify a
+            `TexCubeMap` object to set the cube map directly.
+        ori : float
+            Rotation of the skybox about `axis` in degrees.
+        axis : array_like
+            Axis [ax, ay, az] to rotate about, default is (0, 1, 0).
+
+        """
+        self.win = win
+
+        self._ori = ori
+        self._axis = np.ascontiguousarray(axis, dtype=np.float32)
+
+        if tex:
+            if isinstance(tex, (list, tuple,)):
+                if len(tex) == 6:
+                    imgFace = []
+                    for img in tex:
+                        im = Image.open(img)
+                        im = im.convert("RGBA")
+                        pixelData = np.array(im).ctypes
+                        imgFace.append(pixelData)
+
+                    width = imgFace[0].shape[1]
+                    height = imgFace[0].shape[0]
+
+                    self._skyCubemap = gt.createCubeMap(
+                        width,
+                        height,
+                        internalFormat=GL.GL_RGBA,
+                        pixelFormat=GL.GL_RGBA,
+                        dataType=GL.GL_UNSIGNED_BYTE,
+                        data=imgFace,
+                        unpackAlignment=1,
+                        texParams={
+                            GL.GL_TEXTURE_MAG_FILTER: GL.GL_LINEAR,
+                            GL.GL_TEXTURE_MIN_FILTER: GL.GL_LINEAR,
+                            GL.GL_TEXTURE_WRAP_S: GL.GL_CLAMP_TO_EDGE,
+                            GL.GL_TEXTURE_WRAP_T: GL.GL_CLAMP_TO_EDGE,
+                            GL.GL_TEXTURE_WRAP_R: GL.GL_CLAMP_TO_EDGE})
+                else:
+                   raise ValueError("Not enough textures specified, must be 6.")
+            elif isinstance(tex, gt.TexCubeMap):
+                self._skyCubemap = tex
+            else:
+                raise TypeError("Invalid type specified to `tex`.")
+        else:
+            self._skyCubemap = None
+
+        # create cube vertices and faces, discard texcoords and normals
+        vertices, _, _, faces = gt.createBox(1.0, True)
+
+        # upload to buffers
+        vertexVBO = gt.createVBO(vertices)
+
+        # create an index buffer with faces
+        indexBuffer = gt.createVBO(
+            faces.flatten(),
+            target=GL.GL_ELEMENT_ARRAY_BUFFER,
+            dataType=GL.GL_UNSIGNED_SHORT)
+
+        # create the VAO for drawing
+        self._vao = gt.createVAO(
+            {GL.GL_VERTEX_ARRAY: vertexVBO},
+            indexBuffer=indexBuffer,
+            legacy=True)
+
+        # shader for the skybox
+        self._shaderProg = _shaders.compileProgram(
+            _shaders.vertSkyBox, _shaders.fragSkyBox)
+
+        # store the skybox transformation matrix, this is not to be updated
+        # externally
+        self._skyboxViewMatrix = np.identity(4, dtype=np.float32)
+        self._prtSkyboxMatrix = at.array2pointer(self._skyboxViewMatrix)
+
+    @property
+    def skyCubeMap(self):
+        """Cubemap for the sky."""
+        return self._skyCubemap
+
+    @skyCubeMap.setter
+    def skyCubeMap(self, value):
+        self._skyCubemap = value
+
+    def draw(self, win=None):
+        """Draw the skybox.
+
+        This should be called last after drawing other 3D stimuli for
+        performance reasons.
+
+        Parameters
+        ----------
+        win : `~psychopy.visual.Window`, optional
+            Window to draw the skybox to. If `None`, the window set when
+            initializing this object will be used. The window must share a
+            context with the window which this objects was initialized with.
+
+        """
+        if self._skyCubemap is None:  # nop if no cubemap is assigned
+            return
+
+        if win is None:
+            win = self.win
+        else:
+            win._makeCurrent()
+
+        # enable 3D drawing
+        win.draw3d = True
+
+        # do transformations
+        GL.glPushMatrix()
+        GL.glLoadIdentity()
+
+        # rotate the skybox if needed
+        if self._ori != 0.0:
+            GL.glRotatef(self._ori, *self._axis)
+
+        # get/set the rotation sub-matrix from the current view matrix
+        self._skyboxViewMatrix[:3, :3] = win.viewMatrix[:3, :3]
+        GL.glMultTransposeMatrixf(self._prtSkyboxMatrix)
+
+        # use the shader program
+        gt.useProgram(self._shaderProg)
+
+        # enable texture sampler
+        GL.glEnable(GL.GL_TEXTURE_2D)
+        GL.glActiveTexture(GL.GL_TEXTURE0)
+        GL.glBindTexture(GL.GL_TEXTURE_CUBE_MAP, self._skyCubemap.name)
+
+        # draw the cube VAO
+        oldDepthFunc = win.depthFunc
+        win.depthFunc = 'lequal'  # optimized for being drawn last
+        gt.drawVAO(self._vao, GL.GL_TRIANGLES)
+        win.depthFunc = oldDepthFunc
+        gt.useProgram(0)
+
+        # disable sampler
+        GL.glBindTexture(GL.GL_TEXTURE_CUBE_MAP, 0)
+        GL.glDisable(GL.GL_TEXTURE_2D)
+
+        # return to previous transformation
+        GL.glPopMatrix()
+
+        # disable 3D drawing
+        win.draw3d = False
+
+
+class BlinnPhongMaterial(object):
+    """Class representing a material using the Blinn-Phong lighting model.
 
     This class stores material information to modify the appearance of drawn
     primitives with respect to lighting, such as color (diffuse, specular,
@@ -231,10 +417,11 @@ class PhongMaterial(object):
     cosine angle between the incident light ray and surface normal determines
     color. The size of specular highlights are related to the `shininess` factor
     which ranges from 1.0 to 128.0. The greater this number, the tighter the
-    specular highlight making the surface appear smoother. The emission color
-    is optional, it simply adds to the color of every pixel much like ambient
-    lighting does. Usually, you would not really want this, but it can be used
-    to add bias to the overall color of the shape.
+    specular highlight making the surface appear smoother. If shaders are not
+    being used, specular highlights will be computed using the Phong lighting
+    model. The emission color is optional, it simply adds to the color of every
+    pixel much like ambient lighting does. Usually, you would not really want
+    this, but it can be used to add bias to the overall color of the shape.
 
     If there are no lights in the scene, the diffuse color is simply multiplied
     by the scene and material ambient color to give the final color.
@@ -243,7 +430,7 @@ class PhongMaterial(object):
 
         attenuationFactor = 1.0 / (k0 + k1 * distance + k2 * pow(distance, 2))
 
-    The coefficients for attenuation can be specified by setting `kCoefficients`
+    The coefficients for attenuation can be specified by setting `attenuation`
     in the lighting object. Values `k0=1.0, k1=0.0, and k2=0.0` results in a
     light that does not fall-off with distance.
 
@@ -618,6 +805,17 @@ class RigidBodyPose(object):
         self.pos = pos
         self.ori = ori
 
+        self._bounds = None
+
+    @property
+    def bounds(self):
+        """Bounding box associated with this pose."""
+        return self._bounds
+
+    @bounds.setter
+    def bounds(self, value):
+        self._bounds = value
+
     @property
     def pos(self):
         """Position vector (X, Y, Z)."""
@@ -639,6 +837,17 @@ class RigidBodyPose(object):
         self._matrixNeedsUpdate = self._invMatrixNeedsUpdate = True
 
     @property
+    def posOri(self):
+        """The position (x, y, z) and orientation (x, y, z, w)."""
+        return self._pos, self._ori
+
+    @posOri.setter
+    def posOri(self, value):
+        self._pos = np.ascontiguousarray(value[0], dtype=np.float32)
+        self._ori = np.ascontiguousarray(value[1], dtype=np.float32)
+        self._matrixNeedsUpdate = self._invMatrixNeedsUpdate = True
+
+    @property
     def at(self):
         """Vector defining the forward direction (-Z) of this pose."""
         if self._matrixNeedsUpdate:  # matrix needs update, this need to be too
@@ -648,7 +857,7 @@ class RigidBodyPose(object):
         return self._at
 
     @property
-    def up(self, value):
+    def up(self):
         """Vector defining the up direction (+Y) of this pose."""
         if self._matrixNeedsUpdate:  # matrix needs update, this need to be too
             upDir = [0., 1., 0.]
@@ -660,6 +869,24 @@ class RigidBodyPose(object):
         """Multiply two poses, combining them to get a new pose."""
         newOri = mt.multQuat(self._ori, other.ori)
         return RigidBodyPose(mt.transform(other.pos, newOri, self._pos), newOri)
+
+    def __imul__(self, other):
+        """Inplace multiplication. Transforms this pose by another."""
+        self._ori = mt.multQuat(self._ori, other.ori)
+        self._pos = mt.transform(other.pos, self._ori, self._pos)
+
+    def copy(self):
+        """Get a new `RigidBodyPose` object which copies the position and
+        orientation of this one. Copies are independent and do not reference
+        each others data.
+
+        Returns
+        -------
+        RigidBodyPose
+            Copy of this pose.
+
+        """
+        return RigidBodyPose(self._pos, self._ori)
 
     def isEqual(self, other):
         """Check if poses have similar orientation and position.
@@ -684,6 +911,7 @@ class RigidBodyPose(object):
         self._pos.fill(0.0)
         self._ori[:3] = 0.0
         self._ori[3] = 1.0
+        self._matrixNeedsUpdate = self._invMatrixNeedsUpdate = True
 
     def getOriAxisAngle(self, degrees=True):
         """Get the axis and angle of rotation for the rigid body. Converts the
@@ -867,6 +1095,32 @@ class RigidBodyPose(object):
         """
         return mt.transform(self._pos, self._ori, points=v, out=out)
 
+    def transformNormal(self, n):
+        """Rotate a normal vector with respect to this pose.
+
+        Rotates a normal vector `n` using the orientation quaternion at `ori`.
+
+        Parameters
+        ----------
+        n : array_like
+            Normal to rotate (1-D with length 3).
+
+        Returns
+        -------
+        ndarray
+            Rotated normal `n`.
+
+        """
+        pout = np.zeros((3,), dtype=np.float32)
+        pout[:] = n
+        t = np.cross(self._ori[:3], n[:3]) * 2.0
+        u = np.cross(self._ori[:3], t)
+        t *= self._ori[3]
+        pout[:3] += t
+        pout[:3] += u
+
+        return pout
+
     def __invert__(self):
         """Operator `~` to invert the pose. Returns a `RigidBodyPose` object."""
         return RigidBodyPose(
@@ -967,6 +1221,77 @@ class RigidBodyPose(object):
 
         self.ori = mt.multQuat(
             self._ori, mt.alignTo(fwd, invPos, dtype=np.float32))
+
+
+class BoundingBox(object):
+    """Class for representing object bounding boxes.
+
+    A bounding box is a construct which represents a 3D rectangular volume about
+    some pose, defined by its minimum and maximum extents in the reference frame
+    of the pose. The axes of the bounding box are aligned to the axes of the
+    world or the associated pose.
+
+    Bounding boxes are primarily used for visibility testing; to determine if
+    the extents of an object associated with a pose (eg. the vertices of a
+    model) falls completely outside of the viewing frustum. If so, the model can
+    be culled during rendering to avoid wasting CPU/GPU resources on objects not
+    visible to the viewer.
+
+    """
+    def __init__(self, extents=None):
+        self._extents = np.zeros((2, 3), np.float32)
+        self._posCorners = np.zeros((8, 4), np.float32)
+
+        if extents is not None:
+            self._extents[0, :] = extents[0]
+            self._extents[1, :] = extents[1]
+        else:
+            self.clear()
+
+        self._computeCorners()
+
+    def _computeCorners(self):
+        """Compute the corners of the bounding box.
+
+        These values are cached to speed up computations if extents hasn't been
+        updated.
+
+        """
+        for i in range(8):
+            self._posCorners[i, 0] = \
+                self._extents[1, 0] if (i & 1) else self._extents[0, 0]
+            self._posCorners[i, 1] = \
+                self._extents[1, 1] if (i & 2) else self._extents[0, 1]
+            self._posCorners[i, 2] = \
+                self._extents[1, 2] if (i & 4) else self._extents[0, 2]
+            self._posCorners[i, 3] = 1.0
+
+    @property
+    def isValid(self):
+        """`True` if the bounding box is valid."""
+        return np.all(self._extents[0, :] <= self._extents[1, :])
+
+    @property
+    def extents(self):
+        return self._extents
+
+    @extents.setter
+    def extents(self, value):
+        self._extents[0, :] = value[0]
+        self._extents[1, :] = value[1]
+        self._computeCorners()
+
+    def fit(self, verts):
+        """Fit the bounding box to vertices."""
+        np.amin(verts, axis=0, out=self._extents[0])
+        np.amax(verts, axis=0, out=self._extents[1])
+        self._computeCorners()
+
+    def clear(self):
+        """Clear a bounding box, invalidating it."""
+        self._extents[0, :] = np.finfo(np.float32).max
+        self._extents[1, :] = np.finfo(np.float32).min
+        self._computeCorners()
 
 
 class BaseRigidBodyStim(ColorMixin, WindowMixin):
@@ -1111,6 +1436,9 @@ class BaseRigidBodyStim(ColorMixin, WindowMixin):
     def _createVAO(self, vertices, textureCoords, normals, faces):
         """Create a vertex array object for handling vertex attribute data.
         """
+        self.thePose.bounds = BoundingBox()
+        self.thePose.bounds.fit(vertices)
+
         # upload to buffers
         vertexVBO = gt.createVBO(vertices)
         texCoordVBO = gt.createVBO(textureCoords)
@@ -1122,8 +1450,10 @@ class BaseRigidBodyStim(ColorMixin, WindowMixin):
             target=GL.GL_ELEMENT_ARRAY_BUFFER,
             dataType=GL.GL_UNSIGNED_INT)
 
-        return gt.createVAO({0: vertexVBO, 8: texCoordVBO, 2: normalsVBO},
-            indexBuffer=indexBuffer)
+        return gt.createVAO({GL.GL_VERTEX_ARRAY: vertexVBO,
+                             GL.GL_TEXTURE_COORD_ARRAY: texCoordVBO,
+                             GL.GL_NORMAL_ARRAY: normalsVBO},
+                            indexBuffer=indexBuffer, legacy=True)
 
     def draw(self, win=None):
         """Draw the stimulus.
@@ -1156,14 +1486,9 @@ class BaseRigidBodyStim(ColorMixin, WindowMixin):
 
         if self.material is not None:  # has a material, use it
             if self._useShaders:
-                nLights = len(self.win.lights)
                 useTexture = self.material.diffuseTexture is not None
-                shaderKey = (nLights, useTexture)
-                gt.useProgram(self.win._shaders['stim3d_phong'][shaderKey])
-
-                self.material.begin(useTexture)
+                self.material.begin(useTexture, useShaders=True)
                 gt.drawVAO(self._vao, GL.GL_TRIANGLES)
-                gt.useProgram(0)
                 self.material.end()
             else:
                 self.material.begin(self.material.diffuseTexture is not None)
@@ -1255,6 +1580,93 @@ class BaseRigidBodyStim(ColorMixin, WindowMixin):
         Chooses between using and not using shaders each call.
         """
         pass
+
+    def isVisible(self):
+        """Check if the object is visible to the observer.
+
+        Test if a pose's bounding box or position falls outside of an eye's view
+        frustum.
+
+        Poses can be assigned bounding boxes which enclose any 3D models
+        associated with them. A model is not visible if all the corners of the
+        bounding box fall outside the viewing frustum. Therefore any primitives
+        (i.e. triangles) associated with the pose can be culled during rendering
+        to reduce CPU/GPU workload.
+
+        Returns
+        -------
+        bool
+            `True` if the object's bounding box is visible.
+
+        Examples
+        --------
+        You can avoid running draw commands if the object is not visible by
+        doing a visibility test first::
+
+            if myStim.isVisible():
+                myStim.draw()
+
+        """
+        if self.thePose.bounds is None:
+            return True
+
+        if not self.thePose.bounds.isValid:
+            return True
+
+        # transformation matrix
+        mvpMatrix = np.zeros((4, 4), dtype=np.float32)
+        np.matmul(self.win.projectionMatrix, self.win.viewMatrix, out=mvpMatrix)
+        np.matmul(mvpMatrix, self.thePose.modelMatrix, out=mvpMatrix)
+
+        # compute bounding box corners in current view
+        corners = self.thePose.bounds._posCorners.dot(mvpMatrix.T)
+
+        # check if corners are completely off to one side of the frustum
+        if not np.any(corners[:, 0] > -corners[:, 3]):
+            return False
+
+        if not np.any(corners[:, 0] < corners[:, 3]):
+            return False
+
+        if not np.any(corners[:, 1] > -corners[:, 3]):
+            return False
+
+        if not np.any(corners[:, 1] < corners[:, 3]):
+            return False
+
+        if not np.any(corners[:, 2] > -corners[:, 3]):
+            return False
+
+        if not np.any(corners[:, 2] < corners[:, 3]):
+            return False
+
+        return True
+
+    def getRayIntersectBounds(self, rayOrig, rayDir):
+        """Get the point which a ray intersects the bounding box of this mesh.
+
+        Parameters
+        ----------
+        rayOrig : array_like
+            Origin of the ray in space [x, y, z].
+        rayDir : array_like
+            Direction vector of the ray [x, y, z], should be normalized.
+
+        Returns
+        -------
+        tuple
+            Coordinate in world space of the intersection and distance in scene
+            units from `rayOrig`. Returns `None` if there is no intersection.
+
+        """
+        if self.thePose.bounds is None:
+            return None  # nop
+
+        return mt.intersectRayOBB(rayOrig,
+                                  rayDir,
+                                  self.thePose.modelMatrix,
+                                  self.thePose.bounds.extents,
+                                  dtype=np.float32)
 
 
 class SphereStim(BaseRigidBodyStim):
@@ -1367,7 +1779,32 @@ class SphereStim(BaseRigidBodyStim):
         self.material = useMaterial
         self._useShaders = useShaders
 
+        self._radius = radius  # for raypicking
+
         self.extents = (vertices.min(axis=0), vertices.max(axis=0))
+
+    def getRayIntersectSphere(self, rayOrig, rayDir):
+        """Get the point which a ray intersects the sphere.
+
+        Parameters
+        ----------
+        rayOrig : array_like
+            Origin of the ray in space [x, y, z].
+        rayDir : array_like
+            Direction vector of the ray [x, y, z], should be normalized.
+
+        Returns
+        -------
+        tuple
+            Coordinate in world space of the intersection and distance in scene
+            units from `rayOrig`. Returns `None` if there is no intersection.
+
+        """
+        return mt.intersectRaySphere(rayOrig,
+                                     rayDir,
+                                     self.thePose.pos,
+                                     self._radius,
+                                     dtype=np.float32)
 
 
 class BoxStim(BaseRigidBodyStim):
@@ -1399,6 +1836,7 @@ class BoxStim(BaseRigidBodyStim):
                  opacity=1.0,
                  useMaterial=None,
                  useShaders=False,
+                 textureScale=None,
                  name='',
                  autoLog=True):
         """
@@ -1437,6 +1875,11 @@ class BoxStim(BaseRigidBodyStim):
             Opacity of the stimulus ranging from 0.0 to 1.0. Note that
             transparent objects look best when rendered from farthest to
             nearest.
+        textureScale : array_like or float, optional
+            Scaling factors for texture coordinates (sx, sy). By default,
+            a factor of 1 will have the entire texture cover the surface of the
+            mesh. If a single number is provided, the texture will be scaled
+            uniformly.
         name : str
             Name of this object for logging purposes.
         autoLog : bool
@@ -1457,6 +1900,14 @@ class BoxStim(BaseRigidBodyStim):
 
         # create a vertex array object for drawing
         vertices, texCoords, normals, faces = gt.createBox(size, flipFaces)
+
+        # scale the texture
+        if textureScale is not None:
+            if isinstance(textureScale, (int, float)):
+                texCoords *= textureScale
+            else:
+                texCoords *= np.asarray(textureScale, dtype=np.float32)
+
         self._vao = self._createVAO(vertices, texCoords, normals, faces)
 
         self.setColor(color, colorSpace=self.colorSpace, log=False)
@@ -1493,6 +1944,7 @@ class PlaneStim(BaseRigidBodyStim):
                  opacity=1.0,
                  useMaterial=None,
                  useShaders=False,
+                 textureScale=None,
                  name='',
                  autoLog=True):
         """
@@ -1518,6 +1970,23 @@ class PlaneStim(BaseRigidBodyStim):
             `material` attribute after initialization. If not material is
             specified, the diffuse and ambient color of the shape will track the
             current color specified by `glColor`.
+        colorSpace : str
+            Colorspace of `color` to use.
+        contrast : float
+            Contrast of the stimulus, value modulates the `color`.
+        opacity : float
+            Opacity of the stimulus ranging from 0.0 to 1.0. Note that
+            transparent objects look best when rendered from farthest to
+            nearest.
+        textureScale : array_like or float, optional
+            Scaling factors for texture coordinates (sx, sy). By default,
+            a factor of 1 will have the entire texture cover the surface of the
+            mesh. If a single number is provided, the texture will be scaled
+            uniformly.
+        name : str
+            Name of this object for logging purposes.
+        autoLog : bool
+            Enable automatic logging on attribute changes.
 
         """
         super(PlaneStim, self).__init__(
@@ -1534,6 +2003,14 @@ class PlaneStim(BaseRigidBodyStim):
 
         # create a vertex array object for drawing
         vertices, texCoords, normals, faces = gt.createPlane(size)
+
+        # scale the texture
+        if textureScale is not None:
+            if isinstance(textureScale, (int, float)):
+                texCoords *= textureScale
+            else:
+                texCoords *= np.asarray(textureScale, dtype=np.float32)
+
         self._vao = self._createVAO(vertices, texCoords, normals, faces)
 
         self.setColor(color, colorSpace=self.colorSpace, log=False)
@@ -1683,6 +2160,9 @@ class ObjMeshStim(BaseRigidBodyStim):
         self._useShaders = useShaders
         self.extents = objModel.extents
 
+        self.thePose.bounds = BoundingBox()
+        self.thePose.bounds.fit(objModel.vertexPos)
+
     def _loadMtlLib(self, mtlFile):
         """Load a material library associated with the OBJ file. This is usually
         called by the constructor for this class.
@@ -1703,7 +2183,7 @@ class ObjMeshStim(BaseRigidBodyStim):
             line = line.strip()
             if line.startswith('newmtl '):  # new material
                 thisMaterial = line[7:]
-                foundMaterials[thisMaterial] = PhongMaterial(self.win)
+                foundMaterials[thisMaterial] = BlinnPhongMaterial(self.win)
             elif line.startswith('Ns '):  # specular exponent
                 foundMaterials[thisMaterial].shininess = line[3:]
             elif line.startswith('Ks '):  # specular color

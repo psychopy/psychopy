@@ -8,6 +8,7 @@ dependencies:
 - backports
 - codecov
 - coveralls
+- distro
 - esprima-python
 - gitpython
 - ffmpeg
@@ -52,6 +53,7 @@ dependencies:
 - wheel
 - wxpython
 - xlrd
+- pip
 - pip:
   - pygame
   - pyparallel

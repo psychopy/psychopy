@@ -887,7 +887,7 @@ class TestPygletDegFlatPos(_baseVisualTest):
         self.contextName='degFlatPos'
         self.scaleFactor=4#applied to size/pos values
 
-
+@pytest.mark.needs_pygame
 class TestPygameNorm(_baseVisualTest):
    @classmethod
    def setup_class(self):

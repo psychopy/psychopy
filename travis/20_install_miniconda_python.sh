@@ -12,8 +12,8 @@ hash -r
 conda config --set always_yes yes --set changeps1 no
 conda update -q conda
 conda info -a
-ls -la ./conda/environment-$PYTHON_VERSION.yml
-conda env create -n psychopy-conda -f ./conda/environment-$PYTHON_VERSION.yml
+ls -la ./travis/environment-$PYTHON_VERSION.yml
+conda env create -n psychopy-conda -f ./travis/environment-$PYTHON_VERSION.yml
 conda env list
 conda activate psychopy-conda
 if [ -n "$WXPYTHON" ]; then conda install --freeze-installed -c conda-forge wxpython=$WXPYTHON; fi

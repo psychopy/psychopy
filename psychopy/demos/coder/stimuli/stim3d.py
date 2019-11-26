@@ -7,7 +7,7 @@ This demonstrates how to render 3D stimuli, set lighting and adjust materials.
 """
 from psychopy import core
 import psychopy.visual as visual
-from psychopy.visual import LightSource, PhongMaterial, BoxStim
+from psychopy.visual import LightSource, BlinnPhongMaterial, BoxStim
 from psychopy.tools.gltools import createTexImage2dFromFile
 from psychopy import event
 
@@ -32,8 +32,8 @@ boxStim = BoxStim(win, size=(.2, .2, .2), useShaders=True)
 boxStim.thePose.pos = (0, 0, -3)
 
 # create a white material and assign it
-boxStim.material = PhongMaterial(win, diffuseColor=(1, 1, 1),
-                                 specularColor=(0, 0, 0), shininess=125.0)
+boxStim.material = BlinnPhongMaterial(win, diffuseColor=(1, 1, 1),
+                                      specularColor=(0, 0, 0), shininess=125.0)
 
 # load a diffuse texture
 boxStim.material.diffuseTexture = createTexImage2dFromFile('face.jpg')

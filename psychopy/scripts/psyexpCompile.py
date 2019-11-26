@@ -159,7 +159,7 @@ def compileScript(infile=None, version=None, outfile=None):
             # Write module JS code
             script = thisExp.writeScript(outfile, target=targetOutput, modular=True)
             # Write no module JS code
-            outfileNoModule = outfile.replace('.js', 'NoModule.js')  # For no JS module script
+            outfileNoModule = outfile.replace('.js', '-legacy-browsers.js')  # For no JS module script
             scriptNoModule = thisExp.writeScript(outfileNoModule, target=targetOutput, modular=False)
             # Store scripts in list
             scriptDict = {'outfile': script, 'outfileNoModule': scriptNoModule}
