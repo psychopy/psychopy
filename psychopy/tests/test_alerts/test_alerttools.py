@@ -48,13 +48,13 @@ class TestAlertTools(object):
         self.polygonComp.params['size'].val = [.0000001, .05]
         alerttools.runTest(self.polygonComp)
         sys.stderr.flush()
-        assert ('Your stimuli size is smaller than 1 pixel (X dimension),' in alertLog[0].msg)
+        assert ('Your stimuli size is smaller than 1 pixel (X dimension)' in alertLog[0].msg)
 
     def test_size_too_small_y(self):
         self.polygonComp.params['size'].val = [.05, .0000001]
         alerttools.runTest(self.polygonComp)
         sys.stderr.flush()
-        assert ('Your stimuli size is smaller than 1 pixel (Y dimension),' in alertLog[0].msg)
+        assert ('Your stimuli size is smaller than 1 pixel (Y dimension)' in alertLog[0].msg)
 
     def test_position_x_dimension(self):
         self.polygonComp.params['pos'].val = [4, .5]
@@ -106,7 +106,7 @@ class TestAlertTools(object):
         self.polygonComp.params['startType'].val = "duration (frames)"
         alerttools.runTest(self.polygonComp)
         sys.stderr.flush()
-        assert ('You cannot present stimuli for fractions of a frame.' in alertLog[0].msg)
+        assert ("Your stimuli start-type 'duration (frames)' must be expressed as a whole number" in alertLog[0].msg)
 
     def test_python_syntax(self):
         alerttools.checkPythonSyntax(self.codeComp, 'Begin Experiment')

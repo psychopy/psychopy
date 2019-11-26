@@ -83,17 +83,17 @@ def testSize(component, win, units):
 
     # Test X
     if size[0] > win.size[0]:
-        alert(1001, component, {'dimension': 'X'})
+        alert(2115, component, {'dimension': 'X'})
     # Test Y
     if size[1] > win.size[1]:
-        alert(1001, component, {'dimension': 'Y'})
+        alert(2115, component, {'dimension': 'Y'})
 
     # Test if smaller than 1 pixel (X dimension)
     if size[0] < 1:
-        alert(1002, component, {'dimension': 'X'})
+        alert(2120, component, {'dimension': 'X'})
     # Test if smaller than 1 pixel (Y dimension)
     if size[1] < 1:
-        alert(1002, component, {'dimension': 'Y'})
+        alert(2120, component, {'dimension': 'Y'})
 
 def testPos(component, win, units):
     """
@@ -118,10 +118,10 @@ def testPos(component, win, units):
 
     # Test X position
     if abs(pos[0]) > win.size[0]:
-        alert(1003, component, {'dimension': 'X'})
+        alert(2155, component, {'dimension': 'X'})
     # Test Y position
     if abs(pos[1]) > win.size[1]:
-        alert(1003, component, {'dimension': 'Y'})
+        alert(2155, component, {'dimension': 'Y'})
 
 def testStartEndTiming(component):
     """
@@ -151,17 +151,24 @@ def testStartEndTiming(component):
 
     if [start['type'], stop['type']] == ["time (s)", "time (s)"]:
         if float(start['val']) > float(stop['val']):
-            alert(1004, component, {'type': 'time'})
+            alert(4105, component, {'type': 'time'})
     if [start['type'], stop['type']] == ["frame N", "frame N"]:
         if int(float(start['val'])) > int(float(stop['val'].strip())):
-            alert(1004, component, {'type': 'frame'})
+            alert(4105, component, {'type': 'frame'})
+
+# TODO: Separate timing tests for visual and non - visual components
+# TODO: Make relevant changes to test battery
 
 def testStimTimeAccuracy(component):
-    """Test whether stimuli presented for a realistic times or frames i.e.,
+    """Test whether visual stimuli presented for a realistic times or frames i.e.,
     - whether start and end times are less than 1 screen refresh,
     - whether stimuli can be presented accurately for times requested,
     - whether whole numbers are used for frames.
     """
+
+    if component.type not in ["Text", "Aperture", "Dots", "EnvGrating", "Form",
+                              "Grating", "Image", "Movie", "NoiseStim", "Polygon"]:
+        return
 
     if "startType" not in component.params or "stopType" not in component.params :
         return
@@ -173,37 +180,37 @@ def testStimTimeAccuracy(component):
         if component.params['startType'] == "time (s)":
             # Test times are greater than 1 screen refresh for 60Hz and 100Hz monitors
             if not float.is_integer(float(startVal)) and float(startVal) < 1.0 / 60:
-                alert(1014, component, {'type': 'start', 'time': startVal, 'Hz': 60})
+                alert(3110, component, {'type': 'start', 'time': startVal, 'Hz': 60})
             if not float.is_integer(float(startVal)) and float(startVal) < 1.0 / 100:
-                alert(1014, component, {'type': 'start', 'time': startVal, 'Hz': 100})
+                alert(3110, component, {'type': 'start', 'time': startVal, 'Hz': 100})
             # Test times are valid multiples of screen refresh for 60Hz and 100Hz monitors
             if not float.is_integer(float(startVal)) and round(float(startVal) % (1.0 / 60), 3) != 0.0:
-                alert(1024, component, {'type': 'start', 'time': startVal, 'Hz': 60})
+                alert(3115, component, {'type': 'start', 'time': startVal, 'Hz': 60})
             if not float.is_integer(float(startVal)) and round(float(startVal) % (1.0 / 100), 3) != 0.0:
-                alert(1024, component, {'type': 'start', 'time': startVal, 'Hz': 100})
+                alert(3115, component, {'type': 'start', 'time': startVal, 'Hz': 100})
 
         if component.params['startType'] in ["frame N", "duration (frames)"]:
             # Test frames are whole numbers
             if not float.is_integer(float(startVal)):
-                alert(1034, component, {'type': 'start', 'frameType': component.params['startType']})
+                alert(4115, component, {'type': 'start', 'frameType': component.params['startType']})
 
     if stopVal not in ['', None, "None", "none"]:
         if component.params['stopType'] == "duration (s)":
             # Test times are greater than 1 screen refresh for 60Hz and 100Hz monitors
             if not float.is_integer(float(stopVal)) and float(stopVal) < 1.0 / 60:
-                alert(1014, component, {'type': 'stop', 'time': stopVal, 'Hz': 60})
+                alert(3110, component, {'type': 'stop', 'time': stopVal, 'Hz': 60})
             if not float.is_integer(float(stopVal)) and float(stopVal) < 1.0 / 100:
-                alert(1014, component, {'type': 'stop', 'time': stopVal, 'Hz': 100})
+                alert(3110, component, {'type': 'stop', 'time': stopVal, 'Hz': 100})
             # Test times are valid multiples of screen refresh for 60Hz and 100Hz monitors
             if not float.is_integer(float(stopVal)) and round(float(stopVal) % (1.0 / 60), 3) != 0.0:
-                alert(1024, component, {'type': 'stop', 'time': stopVal, 'Hz': 60})
+                alert(3115, component, {'type': 'stop', 'time': stopVal, 'Hz': 60})
             if not float.is_integer(float(stopVal)) and round(float(stopVal) % (1.0 / 100), 3) != 0.0:
-                alert(1024, component, {'type': 'stop', 'time': stopVal, 'Hz': 100})
+                alert(3115, component, {'type': 'stop', 'time': stopVal, 'Hz': 100})
 
         if component.params['stopType'] in ["frame N", "duration (frames)"]:
             # Test frames are whole numbers
             if not float.is_integer(float(stopVal)):
-                alert(1034, component, {'type': 'stop', 'frameType': component.params['stopType']})
+                alert(4115, component, {'type': 'stop', 'frameType': component.params['stopType']})
 
 def testDisabled(component):
     """
@@ -218,7 +225,7 @@ def testDisabled(component):
         return
 
     if component.params['disabled'].val:
-        alert(1005, component)
+        alert(4305, component)
 
 def checkPythonSyntax(component, tab):
     """
@@ -242,7 +249,7 @@ def checkPythonSyntax(component, tab):
     except Exception as err:
         strFormat = {'codeTab': tab, 'lineNumber': err.lineno, 'code': err.text.strip()}
         # Dont sent traceback because strFormat gives better localisation of error
-        alert(2000, component, strFormat)
+        alert(4205, component, strFormat)
 
 def checkJavaScriptSyntax(component, tab):
     """
@@ -265,4 +272,4 @@ def checkJavaScriptSyntax(component, tab):
     except Exception as err:
         strFormat = {'codeTab': tab, 'lineNumber': err.message}
         # Dont sent traceback because strFormat gives better localisation of error
-        alert(2001, component, strFormat)
+        alert(4210, component, strFormat)

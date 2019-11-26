@@ -14,8 +14,9 @@ The Alerts module is used for generating alerts during PsychoPy integrity checks
 Attributes
 ----------
 catalogue : AlertCatalogue
-    For loading alert catalogues, or definitions of each alert, from a yaml file.
+    For loading alert catalogues, or definitions of each alert, from a catalogue of yaml files.
     Each catalogue entry has a code key, with values of code, category, msg, and url.
+    Each entry has equivalent reStructuredText entries for insertion into help pages. 
 alertLog : List
     For storing alerts that are otherwise lost when flushing standard stream. The stored
     lists can be used to feed AlertPanel using in Project Info and new Runner frame.
@@ -25,25 +26,33 @@ alertLog : List
 class AlertCatalogue():
     """A class for loading alerts from the alerts catalogue yaml file"""
     def __init__(self):
-        self.alert = self.load("alertsCatalogue.yml")
+        self.alert = self.load()
 
-    def load(self, fileName):
-        """Loads alert catalogue yaml file
+    @property
+    def alertPath(self):
+        return Path(os.path.dirname(os.path.abspath(__file__))) / "alertsCatalogue"
 
-        Parameters
-        ----------
-        fileName: str
-            The name of the alerts catalogue yaml file
+    @property
+    def alertFiles(self):
+        return list(self.alertPath.glob("*[0-9].*"))
+
+    def load(self):
+        """Loads alert catalogue yaml files
 
         Returns
         -------
         dict
             The alerts catalogue as a Python dictionary
         """
-        # Load alert definitions
-        alertsYml = Path(os.path.dirname(os.path.abspath(__file__))) / fileName
-        with open('{}'.format(alertsYml), 'r') as ymlFile:
-            return yaml.load(ymlFile, Loader=yaml.SafeLoader)
+        alertDict = {}
+        for alerts in self.alertFiles:
+            with open('{}'.format(alerts), 'r') as ymlFile:
+                entry = yaml.load(ymlFile, Loader=yaml.SafeLoader)
+                if entry is not None:
+                    key = list(entry.keys())[0]
+                    value = entry[key]
+                    alertDict[key] = value
+        return alertDict
 
 
 class AlertEntry():
