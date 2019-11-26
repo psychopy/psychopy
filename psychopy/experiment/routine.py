@@ -117,6 +117,9 @@ class Routine(list):
         # create the frame loop for this routine
         code = ('\n# ------Prepare to start Routine "%s"-------\n')
         buff.writeIndentedLines(code % (self.name))
+        code = 'continueRoutine = True\n'
+        buff.writeIndentedLines(code)
+
         # can we use non-slip timing?
         maxTime, useNonSlip = self.getMaxTime()
         if useNonSlip:
@@ -147,7 +150,6 @@ class Routine(list):
                 '_timeToFirstFrame = win.getFutureFlipTime(clock="now")\n'
                 '{clockName}.reset(-_timeToFirstFrame)  # t0 is time of first possible flip\n'
                 'frameN = -1\n'
-                'continueRoutine = True\n'
                 '\n# -------Run Routine "{name}"-------\n')
         buff.writeIndentedLines(code.format(name=self.name,
                                             clockName=self._clockName))
@@ -276,7 +278,7 @@ class Routine(list):
 
         buff.writeIndentedLines(code)
         buff.setIndentLevel(-1, relative=True)
-        buff.writeIndentedLines("}\n")
+        buff.writeIndentedLines("};\n")
         buff.setIndentLevel(-1, relative=True)
         buff.writeIndentedLines("}\n")
 
@@ -312,8 +314,7 @@ class Routine(list):
 
         if self.exp.settings.params['Enable Escape'].val:
             code = ("// check for quit (typically the Esc key)\n"
-                    "if (psychoJS.experiment.experimentEnded "
-                    "|| psychoJS.eventManager.getKeys({keyList:['escape']}).length > 0) {\n"
+                    "if (psychoJS.experiment.experimentEnded || psychoJS.eventManager.getKeys({keyList:['escape']}).length > 0) {\n"
                     "  return quitPsychoJS('The [Escape] key was pressed. Goodbye!', false);\n"
                     "}\n\n")
             buff.writeIndentedLines(code)
@@ -338,7 +339,8 @@ class Routine(list):
             code = ("%(name)sComponents.forEach( function(thisComponent) {\n"
                     "  if ('status' in thisComponent && thisComponent.status !== PsychoJS.Status.FINISHED) {\n"
                     "    continueRoutine = true;\n"
-                    "  }});\n")
+                    "  }\n"
+                    "});\n")
         buff.writeIndentedLines(code % self.params)
 
         buff.writeIndentedLines("\n// refresh the screen if continuing\n")
@@ -348,13 +350,12 @@ class Routine(list):
         else:
             buff.writeIndentedLines("if (continueRoutine) {")
         code = ("  return Scheduler.Event.FLIP_REPEAT;\n"
-                "}\n"
-                "else {\n"
+                "} else {\n"
                 "  return Scheduler.Event.NEXT;\n"
                 "}\n")
         buff.writeIndentedLines(code)
         buff.setIndentLevel(-1, relative=True)
-        buff.writeIndentedLines("}\n")
+        buff.writeIndentedLines("};\n")
         buff.setIndentLevel(-1, relative=True)
         buff.writeIndentedLines("}\n")
 
@@ -380,7 +381,8 @@ class Routine(list):
                     "%(name)sComponents.forEach( function(thisComponent) {\n"
                     "  if (typeof thisComponent.setAutoDraw === 'function') {\n"
                     "    thisComponent.setAutoDraw(false);\n"
-                    "  }});\n")
+                    "  }\n"
+                    "});\n")
         buff.writeIndentedLines(code  % self.params)
         # add the EndRoutine code for each component
         for compon in self:
@@ -396,7 +398,7 @@ class Routine(list):
 
         buff.writeIndented('return Scheduler.Event.NEXT;\n')
         buff.setIndentLevel(-1, relative=True)
-        buff.writeIndentedLines("}\n")
+        buff.writeIndentedLines("};\n")
         buff.setIndentLevel(-1, relative=True)
         buff.writeIndentedLines("}\n")
 

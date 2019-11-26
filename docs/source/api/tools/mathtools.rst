@@ -87,6 +87,10 @@ Overview
     surfaceTangent
     vertexNormal
     intersectRayPlane
+    intersectRaySphere
+    intersectRayAABB
+    intersectRayOBB
+    intersectRayTriangle
     ortho3Dto2D
     slerp
     quatToAxisAngle
@@ -132,6 +136,10 @@ Details
 .. autofunction:: surfaceTangent
 .. autofunction:: vertexNormal
 .. autofunction:: intersectRayPlane
+.. autofunction:: intersectRaySphere
+.. autofunction:: intersectRayAABB
+.. autofunction:: intersectRayOBB
+.. autofunction:: intersectRayTriangle
 .. autofunction:: ortho3Dto2D
 .. autofunction:: slerp
 .. autofunction:: quatToAxisAngle

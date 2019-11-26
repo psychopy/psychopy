@@ -63,10 +63,6 @@ class PygletBackend(BaseBackend):
         self._origGammaRamp = None
         self._rampSize = None
 
-        if win.allowStencil:
-            stencil_size = 8
-        else:
-            stencil_size = 0
         vsync = 0
 
         # provide warning if stereo buffers are requested but unavailable
@@ -82,6 +78,20 @@ class PygletBackend(BaseBackend):
                              "Pyglet 1.3 appears to be forcing "
                              "us to use retina on any retina-capable screen "
                              "so setting to False has no effect.")
+
+        # window framebuffer configuration
+        bpc = kwargs.get('bpc', (8, 8, 8))
+        if isinstance(bpc, int):
+            win.bpc = (bpc, bpc, bpc)
+        else:
+            win.bpc = bpc
+
+        win.depthBits = int(kwargs.get('depthBits', 8))
+
+        if win.allowStencil:
+            win.stencilBits = int(kwargs.get('stencilBits', 8))
+        else:
+            win.stencilBits = 0
 
         # multisampling
         sample_buffers = 0
@@ -103,13 +113,6 @@ class PygletBackend(BaseBackend):
                     'integer greater than two. Disabling.')
                 win.multiSample = False
 
-        # options that the user might want
-        config = GL.Config(depth_size=8, double_buffer=True,
-                           sample_buffers=sample_buffers,
-                           samples=aa_samples, stencil_size=stencil_size,
-                           stereo=win.stereo,
-                           vsync=vsync)
-
         if pyglet.version < '1.4':
             allScrs = _default_display_.get_screens()
         else:
@@ -125,6 +128,27 @@ class PygletBackend(BaseBackend):
             thisScreen = allScrs[win.screen]
             if win.autoLog:
                 logging.info('configured pyglet screen %i' % self.screen)
+
+        # options that the user might want
+        config = GL.Config(depth_size=win.depthBits,
+                           double_buffer=True,
+                           sample_buffers=sample_buffers,
+                           samples=aa_samples,
+                           stencil_size=win.stencilBits,
+                           stereo=win.stereo,
+                           vsync=vsync,
+                           red_size=win.bpc[0],
+                           green_size=win.bpc[1],
+                           blue_size=win.bpc[2])
+
+        # check if we can have this configuration
+        validConfigs = thisScreen.get_matching_configs(config)
+        if not validConfigs:
+            # check which configs are invalid for the display
+            raise RuntimeError(
+                "Specified window configuration is not supported by this "
+                "display.")
+
         # if fullscreen check screen size
         if win._isFullScr:
             win._checkMatchingSizes(win.clientSize, [thisScreen.width,
@@ -436,6 +460,7 @@ class PygletBackend(BaseBackend):
     def setFullScr(self, value):
         """Sets the window to/from full-screen mode"""
         self.winHandle.set_fullscreen(value)
+
 
 def _onResize(width, height):
     """A default resize event handler.

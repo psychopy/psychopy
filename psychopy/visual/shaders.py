@@ -294,8 +294,9 @@ void main (void)
         diffuse *= diffTexColor;
         ambient *= diffTexColor;  // ambient should be modulated by diffuse color
 #endif
+        vec3 halfwayVec = normalize(L + E);
         vec4 specular = gl_FrontLightProduct[i].specular *
-            pow(max(dot(R, E), 0.0), gl_FrontMaterial.shininess);
+            pow(max(dot(N, halfwayVec), 0.0), gl_FrontMaterial.shininess);
 
         // clamp color values for specular and diffuse
         ambient = clamp(ambient, 0.0, 1.0); 
@@ -319,5 +320,23 @@ void main (void)
     gl_FragColor = ambient;
 #endif
 #endif
+}
+"""
+
+vertSkyBox = """
+varying vec3 texCoord;
+void main(void)  
+{   
+    texCoord = gl_Vertex;
+    gl_Position = ftransform().xyww;
+}      
+"""
+
+fragSkyBox = """
+varying vec3 texCoord;
+uniform samplerCube SkyTexture;
+void main (void)  
+{  
+    gl_FragColor = texture(SkyTexture, texCoord);
 }
 """

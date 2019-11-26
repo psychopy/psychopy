@@ -1,4 +1,4 @@
-:class:`BlinnPhongMaterial`
+:class:`BoundingBox`
 ----------------------
 
 Attributes
@@ -8,13 +8,13 @@ Attributes
 
 .. autosummary:: 
 
-    BlinnPhongMaterial
+    BoundingBox
     
         
 Details
 =======
 
-.. autoclass:: BlinnPhongMaterial
+.. autoclass:: BoundingBox
     :members:
     :undoc-members:
     :inherited-members:

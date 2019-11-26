@@ -2128,7 +2128,7 @@ class Rift(window.Window):
 
             GL.glBindFramebuffer(GL.GL_FRAMEBUFFER, self._mirrorFbo)
 
-            GL.glEnable(GL.GL_FRAMEBUFFER_SRGB)
+            # GL.glEnable(GL.GL_FRAMEBUFFER_SRGB)
             # bind the rift's texture to the framebuffer
             GL.glFramebufferTexture2D(
                 GL.GL_READ_FRAMEBUFFER,
