@@ -10,7 +10,7 @@ Many scientists have asked "Can PsychoPy provide sub-millisecond timing precisio
 BUT there are many components to getting good timing, and many ways that your timing could be less-than-perfect. So if timing is important to you then you should really read this entire section of the PsychoPy manually and you should **test your timing** using dedicated hardware (photodiodes, microphones or, ideally the `Black Box Toolkit`_). We can't emphasise enough how many ways there are for your hardware and/or operating system to break the good timing that PsychoPy is providing.
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
 
    millisecondPrecision
    nonSlipTiming
