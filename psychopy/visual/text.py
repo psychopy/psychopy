@@ -771,8 +771,13 @@ class TextStim(BaseVisualStim, ColorMixin, ContainerMixin):
         NOTE: currently always returns the size in pixels
         (this will change to return in stimulus units)
         """
-        return (self._pygletTextObj._layout.content_width,
-                self._pygletTextObj._layout.content_height)
+        if hasattr(self._pygletTextObj, 'content_width'):
+            w, h = (self._pygletTextObj.content_width,
+                    self._pygletTextObj.content_height)
+        else:
+            w, h = (self._pygletTextObj._layout.content_width,
+                    self._pygletTextObj._layout.content_height)
+        return w, h
 
     @property
     def posPix(self):
