@@ -20,10 +20,19 @@ try:
 except ImportError:  # was here wx<4.0:
     from wx.lib import flatnotebook
 
-from .... import constants
+from psychopy.constants import PY3
+
+if PY3:
+    from importlib.util import find_spec as loader
+else:
+    from pkgutil import find_loader as loader
+jsTranspilerLib = loader("metapensiero") is not None
+
 from .. import validators
 from psychopy.localization import _translate
 from psychopy.app.coder.codeEditorBase import BaseCodeEditor
+from psychopy.experiment.py2js_transpiler import translatePythonToJavaScript
+
 
 class DlgCodeComponentProperties(wx.Dialog):
     _style = (wx.DEFAULT_DIALOG_STYLE | wx.RESIZE_BORDER
@@ -92,6 +101,15 @@ class DlgCodeComponentProperties(wx.Dialog):
                 self.codeTypeMenu.Bind(wx.EVT_CHOICE, self.OnCodeChoice)
                 self.codeTypeName = wx.StaticText(self, wx.ID_ANY,
                                                   _translate(param.label))
+            elif paramName == 'Translator':
+                _translators = self.params['Translator'].allowedVals
+                self.translatorMenu = wx.Choice(self, choices=_translators)
+                self.translatorMenu.SetSelection(
+                    _translators.index(self.params['Translator'])
+                )
+                self.translatorMenu.Bind(wx.EVT_CHOICE, self.translateCode)
+                self.translatorName = wx.StaticText(self, wx.ID_ANY,
+                                                  _translate(param.label))
             else:
                 tabName = paramName.replace("JS ", "")
                 if tabName in self.tabs:
@@ -135,6 +153,7 @@ class DlgCodeComponentProperties(wx.Dialog):
         ret = self.ShowModal()
 
         if ret == wx.ID_OK:
+            self.translateCode()
             self.checkName()
             self.OK = True
             self.params = self.getParams()  # get new vals from dlg
@@ -147,15 +166,43 @@ class DlgCodeComponentProperties(wx.Dialog):
         """Set code to JS or Python.
         Calls onKeyEvent to show/hide duplicate window.
         """
-        param = self.params['Code Type']
-        formerCodeType = param.val
+        param = self.params['Code Type']  # Update param with menu selection
         param.val = param.allowedVals[self.codeTypeMenu.GetSelection()]
-        if param == "Both":
-            self.updateVisibleCode(event, formerCodeType, 'Show')
-            return
-        self.updateVisibleCode(event, formerCodeType, 'Hide')
+        self.translateCode(event)
+        self.updateVisibleCode(event)
 
-    def updateVisibleCode(self, event=None, formerCodeType=None, winControl='Hide', ):
+    def translateCode(self, event=None):
+        """For each code box, translate Python code to JavaScript.
+        """
+        param = self.params['Translator']
+        param.val = param.allowedVals[self.translatorMenu.GetSelection()]
+
+        if not param.val == "auto":
+            return
+
+        for boxName in self.codeBoxes:
+            if 'JS' not in boxName:
+                pythonCode = self.codeBoxes[boxName].GetValue()
+                jsBox = boxName.replace(' ', ' JS ')
+
+                if not pythonCode:  # Skip empty code panel
+                    continue
+
+                if not jsTranspilerLib:  # metapensiero required for translation
+                    self.codeBoxes[jsBox].SetValue(("// Py to JS auto-translation requires the metapensiero libray\n"
+                                                    "// metapensiero is available for Python 3.5+"))
+                    return
+
+                try:
+                    jsCode = translatePythonToJavaScript(pythonCode)
+                    self.codeBoxes[jsBox].SetValue(jsCode)
+                except Exception as err:
+                    print("{} : {}".format(boxName, err))
+
+        if event:
+            event.Skip()
+
+    def updateVisibleCode(self, event=None):
         """Receives keyboard events and code menu choice events.
         On choice events, the code is stored for python or JS parameters,
         and written to panel depending on choice of code. The duplicate panel
@@ -224,6 +271,9 @@ class DlgCodeComponentProperties(wx.Dialog):
         nameSizer.Add(self.codeTypeName,
                       flag=wx.TOP | wx.RIGHT, border=13, proportion=0)
         nameSizer.Add(self.codeTypeMenu, 0, wx.ALIGN_CENTER_VERTICAL, 0)
+        nameSizer.Add(self.translatorName,
+                      flag=wx.TOP | wx.RIGHT | wx.LEFT, border=13, proportion=0)
+        nameSizer.Add(self.translatorMenu, 0, wx.ALIGN_CENTER_VERTICAL, 0)
 
         mainSizer = wx.BoxSizer(wx.VERTICAL)
         buttonSizer = wx.BoxSizer(wx.HORIZONTAL)
@@ -251,6 +301,8 @@ class DlgCodeComponentProperties(wx.Dialog):
                 param.val = self.componentName.GetValue()
             elif fieldName == 'Code Type':
                 param.val = self.codeTypeMenu.GetStringSelection()
+            elif fieldName == 'Translator':
+                param.val = self.translatorMenu.GetStringSelection()
             elif fieldName == 'disabled':
                 pass
             else:
