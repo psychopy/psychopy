@@ -88,20 +88,27 @@ class TestAlertTools(object):
         sys.stderr.flush()
         assert ('Your component is currently disabled' in alertLog[0].msg)
 
-    def test_achievableStimOnset(self):
+    def test_achievable_visual_stim_onset(self):
         self.polygonComp.params['startVal'].val = .001
         alerttools.runTest(self.polygonComp)
         sys.stderr.flush()
         assert ('Your stimuli start-time of 0.001 is less than a screen refresh for a 60Hz monitor' in alertLog[0].msg)
 
-    def test_achievableStimTime(self):
+    def test_achievable_visual_stim_offset(self):
+        self.polygonComp.params['stopVal'].val = .001
+        self.polygonComp.params['stopType'].val = "duration (s)"
+        alerttools.runTest(self.polygonComp)
+        sys.stderr.flush()
+        assert ('Your stimuli stop-time of 0.001 is less than a screen refresh for a 60Hz monitor' in alertLog[0].msg)
+
+    def test_valid_visual_timing(self):
         self.polygonComp.params['startVal'].val = 1.01
         self.polygonComp.params['stopVal'].val = 2.01
         alerttools.runTest(self.polygonComp)
         sys.stderr.flush()
         assert ('start-time of 1.01 seconds cannot be accurately presented' in alertLog[0].msg)
 
-    def test_achievableStimFrame(self):
+    def test_frames_as_int(self):
         self.polygonComp.params['startVal'].val = .5
         self.polygonComp.params['startType'].val = "duration (frames)"
         alerttools.runTest(self.polygonComp)

@@ -34,7 +34,9 @@ def runTest(component):
     testPos(component, win, units)
     testDisabled(component)
     testStartEndTiming(component)
-    testStimTimeAccuracy(component)
+    testAchievableVisualOnsetOffset(component)
+    testValidVisualStimTiming(component)
+    testFramesAsInt(component)
 
 def convertParamToPix(value, win, units):
     """
@@ -156,21 +158,15 @@ def testStartEndTiming(component):
         if int(float(start['val'])) > int(float(stop['val'].strip())):
             alert(4105, component, {'type': 'frame'})
 
-# TODO: Separate timing tests for visual and non - visual components
-# TODO: Make relevant changes to test battery
-
-def testStimTimeAccuracy(component):
-    """Test whether visual stimuli presented for a realistic times or frames i.e.,
-    - whether start and end times are less than 1 screen refresh,
-    - whether stimuli can be presented accurately for times requested,
-    - whether whole numbers are used for frames.
+def testAchievableVisualOnsetOffset(component):
+    """Test whether start and end times are less than 1 screen refresh.
     """
 
     if component.type not in ["Text", "Aperture", "Dots", "EnvGrating", "Form",
                               "Grating", "Image", "Movie", "NoiseStim", "Polygon"]:
         return
 
-    if "startType" not in component.params or "stopType" not in component.params :
+    if "startType" not in component.params or "stopType" not in component.params:
         return
 
     startVal = component.params['startVal'].val
@@ -183,16 +179,6 @@ def testStimTimeAccuracy(component):
                 alert(3110, component, {'type': 'start', 'time': startVal, 'Hz': 60})
             if not float.is_integer(float(startVal)) and float(startVal) < 1.0 / 100:
                 alert(3110, component, {'type': 'start', 'time': startVal, 'Hz': 100})
-            # Test times are valid multiples of screen refresh for 60Hz and 100Hz monitors
-            if not float.is_integer(float(startVal)) and round(float(startVal) % (1.0 / 60), 3) != 0.0:
-                alert(3115, component, {'type': 'start', 'time': startVal, 'Hz': 60})
-            if not float.is_integer(float(startVal)) and round(float(startVal) % (1.0 / 100), 3) != 0.0:
-                alert(3115, component, {'type': 'start', 'time': startVal, 'Hz': 100})
-
-        if component.params['startType'] in ["frame N", "duration (frames)"]:
-            # Test frames are whole numbers
-            if not float.is_integer(float(startVal)):
-                alert(4115, component, {'type': 'start', 'frameType': component.params['startType']})
 
     if stopVal not in ['', None, "None", "none"]:
         if component.params['stopType'] == "duration (s)":
@@ -201,12 +187,56 @@ def testStimTimeAccuracy(component):
                 alert(3110, component, {'type': 'stop', 'time': stopVal, 'Hz': 60})
             if not float.is_integer(float(stopVal)) and float(stopVal) < 1.0 / 100:
                 alert(3110, component, {'type': 'stop', 'time': stopVal, 'Hz': 100})
+
+def testValidVisualStimTiming(component):
+    """Test whether visual stimuli presented accurately for times requested,
+    relative to screen refresh rate of 60 and 100Hz monitors.
+    """
+    if component.type not in ["Text", "Aperture", "Dots", "EnvGrating", "Form",
+                              "Grating", "Image", "Movie", "NoiseStim", "Polygon"]:
+        return
+
+    if "startType" not in component.params or "stopType" not in component.params:
+        return
+
+    startVal = component.params['startVal'].val
+    stopVal = component.params['stopVal'].val
+
+    if startVal not in ['', None, "None", "none"]:
+        if component.params['startType'] == "time (s)":
+            # Test times are valid multiples of screen refresh for 60Hz and 100Hz monitors
+            if not float.is_integer(float(startVal)) and round(float(startVal) % (1.0 / 60), 3) != 0.0:
+                alert(3115, component, {'type': 'start', 'time': startVal, 'Hz': 60})
+            if not float.is_integer(float(startVal)) and round(float(startVal) % (1.0 / 100), 3) != 0.0:
+                alert(3115, component, {'type': 'start', 'time': startVal, 'Hz': 100})
+
+    if stopVal not in ['', None, "None", "none"]:
+        if component.params['stopType'] == "duration (s)":
             # Test times are valid multiples of screen refresh for 60Hz and 100Hz monitors
             if not float.is_integer(float(stopVal)) and round(float(stopVal) % (1.0 / 60), 3) != 0.0:
                 alert(3115, component, {'type': 'stop', 'time': stopVal, 'Hz': 60})
             if not float.is_integer(float(stopVal)) and round(float(stopVal) % (1.0 / 100), 3) != 0.0:
                 alert(3115, component, {'type': 'stop', 'time': stopVal, 'Hz': 100})
 
+
+def testFramesAsInt(component):
+    """
+    Test whole numbers are used for frames.
+    """
+
+    if "startType" not in component.params or "stopType" not in component.params :
+        return
+
+    startVal = component.params['startVal'].val
+    stopVal = component.params['stopVal'].val
+
+    if startVal not in ['', None, "None", "none"]:
+        if component.params['startType'] in ["frame N", "duration (frames)"]:
+            # Test frames are whole numbers
+            if not float.is_integer(float(startVal)):
+                alert(4115, component, {'type': 'start', 'frameType': component.params['startType']})
+
+    if stopVal not in ['', None, "None", "none"]:
         if component.params['stopType'] in ["frame N", "duration (frames)"]:
             # Test frames are whole numbers
             if not float.is_integer(float(stopVal)):
