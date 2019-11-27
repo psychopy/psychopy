@@ -23,7 +23,7 @@ alertLog : List
 """
 
 
-class AlertCatalogue():
+class AlertCatalogue(object):
     """A class for loading alerts from the alerts catalogue yaml file"""
     def __init__(self):
         self.alert = self.load()
@@ -58,7 +58,7 @@ class AlertCatalogue():
         return alertDict
 
 
-class AlertEntry():
+class AlertEntry(object):
     """An Alerts data class holding alert data as attributes
 
     Attributes
