@@ -16,7 +16,6 @@ thisFolder = path.abspath(path.dirname(__file__))
 iconFile = path.join(thisFolder, 'code.png')
 tooltip = _translate('Code: insert python commands into an experiment')
 _localized = {'Code Type': _translate('Code Type'),
-              'Translator': _translate('Translator'),
               'Begin Experiment': _translate('Begin Experiment'),
               'Begin Routine': _translate('Begin Routine'),
               'Each Frame': _translate('Each Frame'),
@@ -44,7 +43,7 @@ class CodeComponent(BaseComponent):
         self.url = "http://www.psychopy.org/builder/components/code.html"
         # params
         # want a copy, else codeParamNames list gets mutated
-        self.order = ['name', 'Code Type', 'Translator',
+        self.order = ['name', 'Code Type',
                       'Begin Experiment', 'Begin Routine',
                       'Each Frame', 'End Routine', 'End Experiment',
                       'Begin JS Experiment', 'Begin JS Routine',
@@ -54,16 +53,9 @@ class CodeComponent(BaseComponent):
         msg = _translate("Display Python or JS Code")
         self.params['Code Type'] = Param(
             codeType, valType='str', allowedTypes=[],
-            allowedVals=['Py', 'JS', 'Both'],
+            allowedVals=['Py', 'JS', 'Both', 'Auto->JS'],
             hint=msg,
             label=_localized['Code Type'])
-
-        msg = _translate("Python to JavaScript translation")
-        self.params['Translator'] = Param(
-            translator, valType='str', allowedTypes=[],
-            allowedVals=['manual', 'auto'],
-            hint=msg,
-            label=_localized['Translator'])
 
         msg = _translate("Code at the start of the experiment (initialization"
                          "); right-click checks syntax")

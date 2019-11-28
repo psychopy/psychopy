@@ -349,7 +349,7 @@ BrushComponent.syncScreenRefresh.staticUpdater:None
 BrushComponent.syncScreenRefresh.updates:None
 BrushComponent.syncScreenRefresh.val:True
 BrushComponent.syncScreenRefresh.valType:bool
-CodeComponent.order:['name', 'Code Type', 'Translator', 'Begin Experiment', 'Begin Routine', 'Each Frame', 'End Routine', 'End Experiment', 'Begin JS Experiment', 'Begin JS Routine', 'Each JS Frame', 'End JS Routine', 'End JS Experiment']
+CodeComponent.order:['name', 'Code Type', 'Begin Experiment', 'Begin Routine', 'Each Frame', 'End Routine', 'End Experiment', 'Begin JS Experiment', 'Begin JS Routine', 'Each JS Frame', 'End JS Routine', 'End JS Experiment']
 CodeComponent.Begin Experiment.default:
 CodeComponent.Begin Experiment.allowedLabels:[]
 CodeComponent.Begin Experiment.allowedTypes:[]
@@ -406,7 +406,7 @@ CodeComponent.Code Type.default:'Py'
 CodeComponent.Code Type.allowedLabels:[]
 CodeComponent.Code Type.allowedTypes:[]
 CodeComponent.Code Type.allowedUpdates:None
-CodeComponent.Code Type.allowedVals:['Py', 'JS', 'Both']
+CodeComponent.Code Type.allowedVals:['Py', 'JS', 'Both', 'Auto->JS']
 CodeComponent.Code Type.categ:Basic
 CodeComponent.Code Type.hint:Display Python or JS Code
 CodeComponent.Code Type.label:Code Type
@@ -493,19 +493,6 @@ CodeComponent.End Routine.staticUpdater:None
 CodeComponent.End Routine.updates:constant
 CodeComponent.End Routine.val:
 CodeComponent.End Routine.valType:extendedCode
-CodeComponent.Translator.default:'manual'
-CodeComponent.Translator.allowedLabels:[]
-CodeComponent.Translator.allowedTypes:[]
-CodeComponent.Translator.allowedUpdates:None
-CodeComponent.Translator.allowedVals:['manual', 'auto']
-CodeComponent.Translator.categ:Basic
-CodeComponent.Translator.hint:Python to JavaScript translation
-CodeComponent.Translator.label:Translator
-CodeComponent.Translator.readOnly:False
-CodeComponent.Translator.staticUpdater:None
-CodeComponent.Translator.updates:None
-CodeComponent.Translator.val:manual
-CodeComponent.Translator.valType:str
 CodeComponent.disabled.default:False
 CodeComponent.disabled.allowedLabels:[]
 CodeComponent.disabled.allowedTypes:[]

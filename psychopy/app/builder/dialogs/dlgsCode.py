@@ -101,15 +101,6 @@ class DlgCodeComponentProperties(wx.Dialog):
                 self.codeTypeMenu.Bind(wx.EVT_CHOICE, self.OnCodeChoice)
                 self.codeTypeName = wx.StaticText(self, wx.ID_ANY,
                                                   _translate(param.label))
-            elif paramName == 'Translator':
-                _translators = self.params['Translator'].allowedVals
-                self.translatorMenu = wx.Choice(self, choices=_translators)
-                self.translatorMenu.SetSelection(
-                    _translators.index(self.params['Translator'])
-                )
-                self.translatorMenu.Bind(wx.EVT_CHOICE, self.translateCode)
-                self.translatorName = wx.StaticText(self, wx.ID_ANY,
-                                                  _translate(param.label))
             else:
                 tabName = paramName.replace("JS ", "")
                 if tabName in self.tabs:
@@ -174,16 +165,24 @@ class DlgCodeComponentProperties(wx.Dialog):
     def translateCode(self, event=None):
         """For each code box, translate Python code to JavaScript.
         """
-        param = self.params['Translator']
-        param.val = param.allowedVals[self.translatorMenu.GetSelection()]
+        param = self.params['Code Type']
+        param.val = param.allowedVals[self.codeTypeMenu.GetSelection()]
 
-        if not param.val == "auto":
+        if not param.val == "Auto->JS":
             return
 
         for boxName in self.codeBoxes:
             if 'JS' not in boxName:
-                pythonCode = self.codeBoxes[boxName].GetValue()
                 jsBox = boxName.replace(' ', ' JS ')
+                pythonCode = self.codeBoxes[boxName].GetValue()
+                jsCode = self.codeBoxes[jsBox].GetValue()
+
+                if jsCode:
+                    dlg = CodeOverwriteDialog(self, -1, "Warning: Python to JavaScript Translation")
+                    retVal = dlg.ShowModal()
+                    if not retVal == wx.ID_OK:
+                        return
+
 
                 if not pythonCode:  # Skip empty code panel
                     continue
@@ -211,7 +210,7 @@ class DlgCodeComponentProperties(wx.Dialog):
         """
         codeType = self.params['Code Type'].val
         for boxName in self.codeBoxes:
-            if codeType.lower() == 'both':
+            if codeType.lower() in ['both', 'auto->js']:
                 self.codeBoxes[boxName].Show()
             elif codeType == 'JS':
                 # user only wants JS code visible
@@ -271,9 +270,6 @@ class DlgCodeComponentProperties(wx.Dialog):
         nameSizer.Add(self.codeTypeName,
                       flag=wx.TOP | wx.RIGHT, border=13, proportion=0)
         nameSizer.Add(self.codeTypeMenu, 0, wx.ALIGN_CENTER_VERTICAL, 0)
-        nameSizer.Add(self.translatorName,
-                      flag=wx.TOP | wx.RIGHT | wx.LEFT, border=13, proportion=0)
-        nameSizer.Add(self.translatorMenu, 0, wx.ALIGN_CENTER_VERTICAL, 0)
 
         mainSizer = wx.BoxSizer(wx.VERTICAL)
         buttonSizer = wx.BoxSizer(wx.HORIZONTAL)
@@ -301,8 +297,6 @@ class DlgCodeComponentProperties(wx.Dialog):
                 param.val = self.componentName.GetValue()
             elif fieldName == 'Code Type':
                 param.val = self.codeTypeMenu.GetStringSelection()
-            elif fieldName == 'Translator':
-                param.val = self.translatorMenu.GetStringSelection()
             elif fieldName == 'disabled':
                 pass
             else:
@@ -474,3 +468,44 @@ class CodeBox(BaseCodeEditor):
                         self.Expand(lineClicked, True, True, 100)
                 else:
                     self.ToggleFold(lineClicked)
+
+class CodeOverwriteDialog(wx.Dialog):
+    def __init__(self, parent, ID, title,
+                 size=wx.DefaultSize,
+                 pos=wx.DefaultPosition,
+                 style=wx.DEFAULT_DIALOG_STYLE):
+
+        wx.Dialog.__init__(self, parent, ID, title,
+                           size=size, pos=pos, style=style)
+
+        sizer = wx.BoxSizer(wx.VERTICAL)
+
+        # Set warning Message
+        msg = _translate("\nWarning, Auto-JS translate will overwrite your existing JavaScript code.\n"
+                         "To save your existing JavaScript, press 'Cancel'and set code type: 'Both', 'Py', or 'JS'.\n")
+        warning = wx.StaticText(self, wx.ID_ANY, msg)
+        warning.SetForegroundColour((200, 0, 0))
+        sizer.Add(warning, 0, wx.ALIGN_CENTRE | wx.ALL, 5)
+
+        # Set divider
+        line = wx.StaticLine(self, wx.ID_ANY, size=(20, -1), style=wx.LI_HORIZONTAL)
+        sizer.Add(line, 0, wx.GROW | wx.ALIGN_CENTER_VERTICAL | wx.RIGHT | wx.TOP, 5)
+
+        # Set buttons
+        btnsizer = wx.StdDialogButtonSizer()
+
+        btn = wx.Button(self, wx.ID_OK)
+        btn.SetHelpText("The OK button completes the dialog")
+        btn.SetDefault()
+        btnsizer.AddButton(btn)
+
+        btn = wx.Button(self, wx.ID_CANCEL)
+        btn.SetHelpText("The Cancel button cancels the dialog. (Crazy, huh?)")
+        btnsizer.AddButton(btn)
+        btnsizer.Realize()
+
+        sizer.Add(btnsizer, 0, wx.ALIGN_RIGHT | wx.ALL, 5)
+
+        # Center and size
+        self.CenterOnScreen()
+        self.SetSizerAndFit(sizer)
