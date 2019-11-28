@@ -152,25 +152,21 @@ class MovieComponent(BaseVisualComponent):
         else:
             inits = self.params
 
-        if self.params['units'].val == 'from exp settings':
-            unitsStr = ""
-        else:
-            unitsStr = "units=%(units)s, " % self.params
-
         noAudio = '{}'.format(inits['No audio'].val).lower()
         loop = '{}'.format(inits['loop'].val).lower()
 
-        if useInits:
-            for param in inits:
-                if inits[param] in ['', None, 'None', 'none']:
-                    inits[param] = 'undefined'
+        for param in inits:
+            if inits[param] in ['', None, 'None', 'none', 'from exp settings']:
+                inits[param].val = 'undefined'
+                inits[param].valType = 'code'
 
         code = "{name}Clock = new util.Clock();\n".format(**inits)
         buff.writeIndented(code)
 
         code = ("{name} = new visual.MovieStim({{\n"
                 "  win: psychoJS.window,\n"
-                "  name: '{name}', {units}\n"
+                "  name: '{name}',\n"
+                "  units: {units},\n"
                 "  movie: {movie},\n"
                 "  pos: {pos},\n"
                 "  size: {size},\n"
@@ -180,7 +176,7 @@ class MovieComponent(BaseVisualComponent):
                 "  noAudio: {noAudio},\n"
                 "  }});\n").format(name=inits['name'],
                                    movie=inits['movie'],
-                                   units=unitsStr,
+                                   units=inits['units'],
                                    pos=inits['pos'],
                                    size=inits['size'],
                                    ori=inits['ori'],
