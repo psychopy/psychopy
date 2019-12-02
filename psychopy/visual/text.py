@@ -193,7 +193,7 @@ class TextStim(BaseVisualStim, ColorMixin, ContainerMixin):
             logging.warning("TextStim.alignHoriz is deprecated. Use alignText "
                             "and anchorHoriz attributes instead")
             # for compatibility, alignText was historically 'left'
-            alignText, anchorHoriz = 'left', alignHoriz
+            alignText, anchorHoriz = alignHoriz, alignHoriz
         # alignment and anchors
         self.alignText = alignText
         self.anchorHoriz = anchorHoriz
@@ -506,15 +506,17 @@ class TextStim(BaseVisualStim, ColorMixin, ContainerMixin):
         desiredRGB = self._getDesiredRGB(self.rgb, self.colorSpace,
                                          self.contrast)
         if self.win.winType in ["pyglet", "glfw"]:
-            self._pygletTextObj = pyglet.font.Text(
-                self._font, self.text,
-                halign=self.alignHoriz, valign=self.alignVert,
-                color=(desiredRGB[0], desiredRGB[1], desiredRGB[2],
-                       self.opacity),
-                width=self._wrapWidthPix)  # width of the frame
-
+            self._pygletTextObj = pyglet.text.Label(
+                self.text, self.font, int(self._heightPix*0.75),
+                anchor_x=self.anchorHoriz,
+                anchor_y=self.anchorVert,  # the point we rotate around
+                align=self.alignText,
+                color = (int(127.5 * self.rgb[0] + 127.5),
+                      int(127.5 * self.rgb[1] + 127.5),
+                      int(127.5 * self.rgb[2] + 127.5),
+                      int(255 * self.opacity)),
+                multiline=True, width=self._wrapWidthPix)  # width of the frame
             self.width = self._pygletTextObj.width
-            self._fontHeightPix = self._pygletTextObj.height
         else:
             self._surf = self._font.render(value, self.antialias,
                                            [desiredRGB[0] * 255,
