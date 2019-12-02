@@ -159,7 +159,9 @@ class PsychoPyApp(wx.App):
         self.firstRun = False
         self.testMode = testMode
         self._stdout = sys.stdout
+        self._stderr = sys.stderr
         self._stdoutFrame = None
+        self._errorHandler = None
 
         if self.prefs.app['debugMode']:
             logging.console.setLevel(logging.DEBUG)
@@ -477,6 +479,9 @@ class PsychoPyApp(wx.App):
             self.coder = coder.CoderFrame(None, -1,
                                           title=title % self.version,
                                           files=fileList, app=self)
+        else:
+            # Set output window and standard streams
+            self.coder.setOutputWindow(True)
         self.coder.Show(True)
         self.SetTopWindow(self.coder)
         self.coder.Raise()

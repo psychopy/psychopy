@@ -10,6 +10,7 @@ from __future__ import absolute_import, print_function
 from builtins import str
 from os import path
 from psychopy.experiment.components import BaseComponent, Param, _translate
+from psychopy.alerts import alerttools
 
 # the absolute path to the folder containing this path
 thisFolder = path.abspath(path.dirname(__file__))
@@ -151,43 +152,52 @@ class CodeComponent(BaseComponent):
             if p in self.params:
                 del self.params[p]
 
-
     def writeInitCode(self, buff):
         if len(str(self.params['Begin Experiment'])):
+            alerttools.checkPythonSyntax(self, 'Begin Experiment')
             buff.writeIndentedLines(str(self.params['Begin Experiment']) + '\n')
 
     def writeInitCodeJS(self, buff):
         if len(str(self.params['Begin JS Experiment'])):
+            alerttools.checkJavaScriptSyntax(self, 'Begin JS Experiment')
             buff.writeIndentedLines(str(self.params['Begin JS Experiment']) + '\n')
 
     def writeRoutineStartCode(self, buff):
         if len(str(self.params['Begin Routine'])):
+            alerttools.checkPythonSyntax(self, 'Begin Routine')
             buff.writeIndentedLines(str(self.params['Begin Routine']) + '\n')
 
     def writeRoutineStartCodeJS(self, buff):
         if len(str(self.params['Begin JS Routine'])):
+            alerttools.checkJavaScriptSyntax(self, 'Begin JS Routine')
             buff.writeIndentedLines(str(self.params['Begin JS Routine']) + '\n')
 
     def writeFrameCode(self, buff):
         if len(str(self.params['Each Frame'])):
+            alerttools.checkPythonSyntax(self, 'Each Frame')
             buff.writeIndentedLines(str(self.params['Each Frame']) + '\n')
 
     def writeFrameCodeJS(self, buff):
         if len(str(self.params['Each JS Frame'])):
+            alerttools.checkJavaScriptSyntax(self, 'Each JS Frame')
             buff.writeIndentedLines(str(self.params['Each JS Frame']) + '\n')
 
     def writeRoutineEndCode(self, buff):
         if len(str(self.params['End Routine'])):
+            alerttools.checkPythonSyntax(self, 'End Routine')
             buff.writeIndentedLines(str(self.params['End Routine']) + '\n')
 
     def writeRoutineEndCodeJS(self, buff):
         if len(str(self.params['End JS Routine'])):
+            alerttools.checkJavaScriptSyntax(self, 'End JS Routine')
             buff.writeIndentedLines(str(self.params['End JS Routine']) + '\n')
 
     def writeExperimentEndCode(self, buff):
         if len(str(self.params['End Experiment'])):
+            alerttools.checkPythonSyntax(self, 'End Experiment')
             buff.writeIndentedLines(str(self.params['End Experiment']) + '\n')
 
     def writeExperimentEndCodeJS(self, buff):
         if len(str(self.params['End JS Experiment'])):
+            alerttools.checkJavaScriptSyntax(self, 'End JS Experiment')
             buff.writeIndentedLines(str(self.params['End JS Experiment']) + '\n')

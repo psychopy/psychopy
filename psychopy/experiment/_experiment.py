@@ -527,9 +527,11 @@ class Experiment(object):
         self._doc.parse(filename)
         root = self._doc.getroot()
 
+
         # some error checking on the version (and report that this isn't valid
         # .psyexp)?
         filenameBase = os.path.basename(filename)
+
         if root.tag != "PsychoPy2experiment":
             logging.error('%s is not a valid .psyexp file, "%s"' %
                           (filenameBase, root.tag))

@@ -1,0 +1,22 @@
+# The first key-value pair is used for the alerts package
+
+4210:
+  code: 4210
+  cat: Coding
+  msg: JavaScript Syntax Error in '{codeTab}' tab. See '{lineNumber}' in the '{codeTab}' tab.
+  url: https://psychopy.org
+
+# Each of the following key values are used for formatting online help pages, and support reStructured Text.
+
+synopsis: |
+  JavaScript syntax error found in your code component.
+
+details: |
+  Longer description with optional links to further information
+
+solutions: |
+  Describe fixes/workarounds for the user
+  `Code components <https://www.psychopy.org/builder/components/code.html/>`_
+
+versions: |
+  All versions.

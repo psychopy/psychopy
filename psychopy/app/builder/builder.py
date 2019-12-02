@@ -60,6 +60,7 @@ from psychopy.app import pavlovia_ui
 from psychopy.projects import pavlovia
 
 from psychopy.scripts import psyexpCompile
+from psychopy.alerts import ErrorHandler
 
 
 canvasColor = [200, 200, 200]  # in prefs? ;-)
@@ -2373,6 +2374,15 @@ class BuilderFrame(wx.Frame):
                 parent=None, app=self.app, size=(700, 300))
         return self.app._stdoutFrame
 
+    @property
+    def errorHandler(self):
+        """
+        Initializes app._errorHandler if not created.
+        """
+        if self.app._errorHandler is None:
+            self.app._errorHandler = ErrorHandler()
+        return self.app._errorHandler
+
     def setStandardStream(self, capture):
         """
         Captures standard stream.
@@ -2384,14 +2394,14 @@ class BuilderFrame(wx.Frame):
         """
         if capture:
             sys.stdout = self.stdoutFrame
-            sys.stderr = self.stdoutFrame
+            sys.stderr = self.errorHandler
         else:  # revert to the application setting (coder out or terminal)
             sys.stdout = self.app._stdout
-            sys.stderr = self.app._stdout
+            sys.stderr = self.app._stderr
 
     def generateScript(self, experimentPath, target="PsychoPy"):
         """Generates python script from the current builder experiment"""
-        # Set stdOut for error capture
+        # Set streams
         self.setStandardStream(True)
         self.stdoutFrame.write("Generating {} script...\n".format(target))
 
@@ -2429,8 +2439,8 @@ class BuilderFrame(wx.Frame):
                                           stderr=subprocess.PIPE,
                                           universal_newlines=True)
                 stdout, stderr = output.communicate()
-                self.stdoutFrame.write(stdout)
-                self.stdoutFrame.write(stderr)
+                sys.stdout.write(stdout)
+                sys.stderr.write(stderr)
             else:
                 psyexpCompile.compileScript(infile=self.exp, version=None, outfile=experimentPath)
         except Exception:
@@ -2438,7 +2448,8 @@ class BuilderFrame(wx.Frame):
             self.gitFeedback(-1)
         finally:
             self.stdoutFrame.Show()
-            self.setStandardStream(False)
+            self.errorHandler.flush()
+            # self.setStandardStream(False)
 
     def _getHtmlPath(self, filename):
         expPath = os.path.split(filename)[0]
