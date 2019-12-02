@@ -18,7 +18,10 @@ PsychoPy 3.2.4
 
 FIXED:
 
-- When Microsoft release 1903 fails to get/set gamma give more info and the option to skip gamma correction. See more info in `troubleshooting gamma ramp <https://www.psychopy.org/troubleshooting.html#errors-with-getting-setting-the-gamma-ramp>`_
+- Mitigated the gamma get/set fails caused by Microsoft Windows release 1903. PsychoPy
+    - now avoids using these calls unless gamma-setting is really needed
+    - gives more info about the cause. See more info in `troubleshooting gamma ramp <https://www.psychopy.org/troubleshooting.html#errors-with-getting-setting-the-gamma-ramp>`_
+    - provides an option to skip gamma-setting entirely
 - Slider wasn't allowing the units to be "from experiment settings" #23d80b49f
 - Setting the conditions rows from another conditions file was causing "Error path is on mount... start on mount..." #2e8cd2183
 - Mac 'tab' key was reporting itself as 'escape' with new Keyboard #95326cadd

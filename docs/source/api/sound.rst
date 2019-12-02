@@ -1,3 +1,5 @@
+.. _soundAPI:
+
 :mod:`psychopy.sound` - play various forms of sound
 ==============================================================================
 
