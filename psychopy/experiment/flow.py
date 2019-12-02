@@ -215,24 +215,6 @@ class Flow(list):
             if hasattr(entry, 'writeStartCode'):
                 entry.writeStartCode(script)
 
-    def writeResourcesCodeJS(self, script):
-        """For JS we need to create a function to fetch all resources needed
-        by each loop
-        """
-        code = (
-            "\nfunction registerResources() {\n"
-            "    psychoJS.resourceManager.scheduleRegistration(resourceScheduler);\n"
-            "\n"
-            "    return psychoJS.NEXT;\n"
-            "}\n"
-            "\nfunction downloadResources() {\n"
-            "    psychoJS.resourceManager.scheduleDownload(resourceScheduler);\n"
-            "\n"
-            "    return psychoJS.NEXT;\n"
-            "}\n"
-        )
-        script.writeIndentedLines(code)
-
     def writeBody(self, script):
         """Write the rest of the code
         """

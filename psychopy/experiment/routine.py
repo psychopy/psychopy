@@ -106,10 +106,6 @@ class Routine(list):
             if hasattr(thisCompon, 'writeInitCodeJS'):
                 thisCompon.writeInitCodeJS(buff)
 
-    def writeResourcesCodeJS(self, buff):
-        buff.writeIndented("// <<maybe need to load images for {}?>>\n"
-                           .format(self.name))
-
     def writeMainCode(self, buff):
         """This defines the code for the frames of a single routine
         """
