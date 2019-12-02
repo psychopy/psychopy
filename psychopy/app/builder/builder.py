@@ -1814,26 +1814,24 @@ class BuilderFrame(wx.Frame):
         """
         # get path if not given one
         expPath, expName = os.path.split(self.filename)
-        if htmlPath is None and self.exp.settings.params['HTML path']:
+        if htmlPath is None:
             htmlPath = self._getHtmlPath(self.filename)
 
-        # present dialog box
-        if htmlPath:
-            dlg = ExportFileDialog(self, wx.ID_ANY,
-                                   title=_translate("Export HTML file"),
-                                   filePath=htmlPath,
-                                   exp=self.exp)
-            export = dlg.exportOnSave
-            if self.exp.settings.params['exportHTML'].val == 'manually':
-                retVal = dlg.ShowModal()
-                self.exp.settings.params['exportHTML'].val = export.GetString(export.GetCurrentSelection())
-                if retVal != wx.ID_OK:  # User cancelled export
-                    return False
+        dlg = ExportFileDialog(self, wx.ID_ANY,
+                               title=_translate("Export HTML file"),
+                               filePath=htmlPath,
+                               exp=self.exp)
 
-            htmlPath = os.path.join(htmlPath, expName.replace('.psyexp', '.js'))
-            # then save the actual script
-            self.generateScript(experimentPath=htmlPath,
-                                target="PsychoJS")
+        export = dlg.exportOnSave
+        if self.exp.settings.params['exportHTML'].val == 'manually':
+            retVal = dlg.ShowModal()
+            self.exp.settings.params['exportHTML'].val = export.GetString(export.GetCurrentSelection())
+            if retVal != wx.ID_OK:  # User cancelled export
+                return False
+
+        exportPath = os.path.join(htmlPath, expName.replace('.psyexp', '.js'))
+        self.generateScript(experimentPath=exportPath,
+                            target="PsychoJS")
 
     def getShortFilename(self):
         """returns the filename without path or extension
@@ -2450,8 +2448,8 @@ class BuilderFrame(wx.Frame):
                 return self._getHtmlPath(self.filename)
             else:
                 return False
-        htmlFolder = self.exp.settings.params['HTML path'].val
-        htmlPath = os.path.join(expPath, htmlFolder)
+
+        htmlPath = os.path.join(expPath, self.exp.htmlFolder)
         return htmlPath
 
     def _getExportPref(self, pref):
@@ -2688,12 +2686,6 @@ class ExportFileDialog(wx.Dialog):
         # contents
         self.exp = exp
         sizer = wx.BoxSizer(wx.VERTICAL)
-        msg = _translate("Warning, HTML outputs are very new.\n"
-                         "Treat with caution (CHECK YOUR EXPERIMENT)!")
-        warning = wx.StaticText(self, wx.ID_ANY, msg)
-        warning.SetForegroundColour((200, 0, 0))
-        sizer.Add(warning, 0, wx.ALIGN_CENTRE | wx.ALL, 5)
-
         box = wx.BoxSizer(wx.HORIZONTAL)
 
         label = wx.StaticText(self, wx.ID_ANY, _translate("Filepath:"))
