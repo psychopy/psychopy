@@ -919,7 +919,8 @@ class RigidBodyPose(object):
         self._pos.fill(0.0)
         self._ori[:3] = 0.0
         self._ori[3] = 1.0
-        self._matrixNeedsUpdate = self._invMatrixNeedsUpdate = True
+        self._matrixNeedsUpdate = self._normalMatrixNeedsUpdate = \
+            self._invMatrixNeedsUpdate = True
 
     def getOriAxisAngle(self, degrees=True):
         """Get the axis and angle of rotation for the rigid body. Converts the
