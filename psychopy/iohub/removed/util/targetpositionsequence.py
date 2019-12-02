@@ -1633,8 +1633,6 @@ class ValidationProcedure(object):
                     antialias=True,
                     bold=False,
                     italic=False,
-                    alignHoriz='center',
-                    alignVert='center',
                     wrapWidth=self.display_size[0] * .8)
             else:
                 self.textstim.setText(text)
@@ -1675,8 +1673,6 @@ class ValidationProcedure(object):
                 antialias=True,
                 bold=False,
                 italic=False,
-                alignHoriz='center',
-                alignVert='center',
                 wrapWidth=self.display_size[0] * .8)
 
         self.textstim.draw()

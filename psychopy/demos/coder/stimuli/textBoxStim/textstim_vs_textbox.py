@@ -127,7 +127,7 @@ textbox_init_dur=etime-stime
 # to create the initial stim and do the initial draw. 
 stime=core.getTime()*1000.0
 textstim = visual.TextStim(window,pos=(0.0,-(display_resolution[1]//4)),
-                    alignHoriz='center',alignVert='center',height=32,
+                    height=32,
                     text=text,autoLog=False,wrapWidth=display_resolution[0]*0.8)
 textstim.draw()
 etime=core.getTime()*1000.0

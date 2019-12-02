@@ -36,7 +36,8 @@ expanding_line = visual.ShapeStim(win=win, lineColor='Firebrick',
     vertices=[[0, 0], [0, 0], [1, 0], [0, 0]],
     pos=(-win.size[0] / 4, -win.size[1] / 24))
 text = visual.TextStim(win, text='Press Spacebar When Line Lengths Match',
-    pos=[0, 0], height=24, alignHoriz='center', alignVert='center',
+    pos=[0, 0], height=24,
+    alignText='center', anchorHoriz='center', anchorVert='center',
     wrapWidth=win.size[0] * .8)
 stim = [static_bar, expanding_line, text]
 
