@@ -5,6 +5,11 @@ PsychoPy official workshops
 
 We typically run PsychoPy workshops at University of Nottingham in the Easter break.
 
+In 2020, we plan to run **two** workshops:
+
+- a dedicated PsychoPy workshop in Easter break, :ref:`CEP1`
+- a new modular Summer School, called :ref:`pampr`
+
 Do you want to get started using Python_ (and PsychoPy_) for your studies in behavioural sciences? 
 Maybe you keep meaning to switch from another applications and haven't gotten around to it. These 
 workshops, run by the creators of PsychoPy, will get you off the ground with building and analysing 
@@ -13,10 +18,6 @@ your experiments using Python.
 .. image:: jumpAnimate.gif
    :width: 100 %
 
-In 2020 we plan to run:
-
-- a dedicated PsychoPy workshop in Easter break, :ref:`PEP1`
-- a new modular Summer School, :ref:`pampr` 
 
 Introduction
 -------------------
@@ -45,10 +46,12 @@ programming in Python and teaching behavioural scientists since 2003.
 For queries about any of these please email `jonathan.peirce at nottingham.ac.uk` 
 (beware my strangely spelled surname when typing that in!)
 
-.. _PEP1:
+.. _CEP1:
 
-PEP1: Programming Experiments in PsychoPy
+CEP: Creating Experiments in PsychoPy
 --------------------------------------------
+
+Building and Coding in PsychoPy/Python
 
 Details
 ~~~~~~~~~~~~
@@ -90,7 +93,7 @@ and specialist sessions, respectively).
 
 .. _pampr:
 
-Programming and Methods in Psychology Research (PaMPR)
+PaMPR (Programming and Methods in Psychology Research)
 -----------------------------------------------------------
 
 **7-11 Sept 2020. Rough cost: £450 plus accommodation.**
@@ -103,11 +106,12 @@ running continuously on the main programming languages:
 - R 
 - Matlab
 
-as well as various specialist methods sections:
+as well as various specialist methods sections such as:
 
 - EEG
 - eye-tracking
 - web experiments
+- ...
 
 The whole thing will be more modular, so you can drop into whichever sessions you want
 the most. We hope it will offer a richer learning environment than we can provide with the
