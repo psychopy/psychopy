@@ -989,7 +989,7 @@ class RigidBodyPose(object):
         if not self._normalMatrixNeedsUpdate:
             return self._normalMatrix
         else:
-            return self.getModelMatrix(inverse=True)
+            return self.getNormalMatrix()
 
     def getNormalMatrix(self, out=None):
         """Get the present normal matrix.
@@ -1010,7 +1010,10 @@ class RigidBodyPose(object):
             return self._normalMatrix
 
         modelMatrix = self.getModelMatrix()
-        self.normalMatrix[:, :] = np.linalg.inv(modelMatrix).T
+        self._normalMatrix[:, :] = np.linalg.inv(modelMatrix).T
+
+        if out is not None:
+            out[:, :] = self._normalMatrix[:, :]
 
         self._normalMatrixNeedsUpdate = False
 
