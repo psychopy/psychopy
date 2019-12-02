@@ -809,6 +809,9 @@ class RigidBodyPose(object):
 
         self._bounds = None
 
+    def __repr__(self):
+        return 'RigidBodyPose({}, {}), %s)'.format(self.pos, self.ori)
+
     @property
     def bounds(self):
         """Bounding box associated with this pose."""
@@ -1009,15 +1012,14 @@ class RigidBodyPose(object):
         if not self._normalMatrixNeedsUpdate:
             return self._normalMatrix
 
-        modelMatrix = self.getModelMatrix()
-        self._normalMatrix[:, :] = np.linalg.inv(modelMatrix).T
+        self._normalMatrix[:, :] = np.linalg.inv(self.modelMatrix).T
 
         if out is not None:
             out[:, :] = self._normalMatrix[:, :]
 
         self._normalMatrixNeedsUpdate = False
 
-        return self.normalMatrix
+        return self._normalMatrix
 
     def getModelMatrix(self, inverse=False, out=None):
         """Get the present rigid body transformation as a 4x4 matrix.
