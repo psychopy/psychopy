@@ -1,0 +1,23 @@
+# The first key-value pair is used for the alerts package
+
+4305:
+  code: 4305
+  cat: Components
+  msg: Your component is currently disabled and will not be written to your experiment script.
+  url: https://psychopy.org
+
+# Each of the following key values are used for formatting online help pages, and support reStructured Text.
+
+synopsis: |
+  You have a disabled component in your experiment. This alert is created to inform users that
+  disabled components will not be written to your experiment script. This may not be intentional,
+  and will therefore affect your desired outcome.
+
+details: |
+  Longer description with optional links to further information
+
+solutions: |
+  Describe fixes/workarounds for the user
+
+versions: |
+  >= 3.1.0

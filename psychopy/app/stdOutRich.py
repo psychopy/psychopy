@@ -138,7 +138,6 @@ class StdOutFrame(wx.Frame):
         # but just in case the user closes the window while it is receiving
         # input we should direct it back to orig
         sys.stdout = sys.__stdout__
-        sys.stderr = sys.__stderr__
         self.Hide()
 
     def saveAs(self):

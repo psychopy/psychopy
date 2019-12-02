@@ -116,10 +116,6 @@ class TrialHandler(object):
     def writeInitCodeJS(self, buff):
         pass
 
-    def writeResourcesCodeJS(self, buff):
-        buff.writeIndented("resourceManager.addResource({});\n"
-                           .format(self.params["conditionsFile"]))
-
     def writeLoopStartCode(self, buff):
         """Write the code to create and run a sequence of trials
         """
@@ -200,11 +196,15 @@ class TrialHandler(object):
                          ).format(self.params['conditionsFile'],
                                   self.params['Selected rows'])
 
+        nReps = self.params['nReps'].val
+        if nReps in ['None', None, 'none', '']:
+            nReps = 'undefined'
+
         code = ("\nfunction {funName}LoopBegin(thisScheduler) {{\n"
                 "  // set up handler to look after randomisation of conditions etc\n"
                 "  {name} = new TrialHandler({{\n"
                 "    psychoJS: psychoJS,\n"
-                "    nReps: {params[nReps]}, method: TrialHandler.Method.{loopType},\n"
+                "    nReps: {nReps}, method: TrialHandler.Method.{loopType},\n"
                 "    extraInfo: expInfo, originPath: undefined,\n"
                 "    trialList: {trialList},\n"
                 "    seed: {seed}, name: '{name}'\n"
@@ -214,11 +214,12 @@ class TrialHandler(object):
                 .format(funName=self.params['name'].val,
                         name=self.params['name'],
                         loopType=(self.params['loopType'].val).upper(),
-                        params=self.params,
+                        nReps=nReps,
                         thisName=self.thisName,
                         trialList=trialList,
                         seed=seed))
         buff.writeIndentedLines(code)
+        
         # for the scheduler
         if modular:
             code = ("\n  // Schedule all the trials in the trialList:\n"
@@ -402,9 +403,6 @@ class StairHandler(object):
         # not needed - initialise the staircase only when needed
         pass
 
-    def writeResourcesCodeJS(self, buff):
-        pass  # no resources needed for staircase
-
     def writeLoopStartCode(self, buff):
         # create the staircase
         # also a 'thisName' for use in "for thisTrial in trials:"
@@ -525,10 +523,6 @@ class MultiStairHandler(object):
                             "a trial. It alters how data files are output"))
         pass  # don't initialise at start of exp, create when needed
 
-    def writeResourcesCodeJS(self, buff):
-        buff.writeIndented("resourceManager.addResource({});"
-                           .format(self.params["conditionsFile"]))
-
     def writeLoopStartCode(self, buff):
         # create a 'thisName' for use in "for thisTrial in trials:"
         makeLoopIndex = self.exp.namespace.makeLoopIndex
@@ -598,9 +592,6 @@ class LoopInitiator(object):
 
     def getType(self):
         return 'LoopInitiator'
-
-    def writeResourcesCodeJS(self, buff):
-        self.loop.writeResourcesCodeJS(buff)
 
     def writeInitCode(self, buff):
         self.loop.writeInitCode(buff)

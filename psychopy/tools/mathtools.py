@@ -1168,7 +1168,7 @@ def intersectRayPlane(rayOrig, rayDir, planeOrig, planeNormal, dtype=None):
     planeOrig = np.asarray(planeOrig, dtype=dtype)
     planeNormal = np.asarray(planeNormal, dtype=dtype)
 
-    denom = dot(dir, planeNormal, dtype=dtype)
+    denom = dot(rayDir, planeNormal, dtype=dtype)
     if denom == 0.0:
         return None
 

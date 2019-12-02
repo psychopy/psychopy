@@ -113,17 +113,84 @@ def test_transform():
 
 @pytest.mark.mathtools
 def test_quatToMatrix():
-    """Test converting matrices to quaternions and vice-versa."""
+    """Test converting quaternions to matrices and vice-versa. The end result
+    should be the same transformed vectors."""
     np.random.seed(123456)
     N = 1000
     axes = np.random.uniform(-1.0, 1.0, (N, 3,))  # random axes
     angles = np.random.uniform(0.0, 360.0, (N,))  # random angles
+    vectors = normalize(np.random.uniform(-1.0, 1.0, (N, 3,)))
 
     for i in range(N):
-        r = rotationMatrix(angles[i], normalize(axes[i, :]))
-        q = matrixToQuat(r)
+        q = matrixToQuat(rotationMatrix(angles[i], normalize(axes[i, :])))
+        m = quatToMatrix(quatFromAxisAngle(normalize(axes[i, :]), angles[i]))
 
-        assert np.allclose(r, quatToMatrix(q))
+        # The returned quaternion might no be the same, but will result in the
+        # same rotation.
+        assert np.allclose(applyMatrix(m, vectors[i]), applyQuat(q, vectors[i]))
+
+
+@pytest.mark.mathtools
+def test_vectorized():
+    """Test vectorization of various functions.
+
+    Test vectorization of math functions by first computing each value in a
+    loop, then doing the same computation vectorized.
+
+    """
+    np.random.seed(123456)
+    N = 1000
+    vectors1 = np.random.uniform(-1.0, 1.0, (N, 3,))
+    vectors2 = np.random.uniform(-1.0, 1.0, (N, 3,))
+
+    # test normalize() vectorization
+    result = np.zeros_like(vectors1)
+
+    for i in range(N):
+        result[i, :] = normalize(vectors1[i, :])
+
+    assert np.allclose(normalize(vectors1), result)
+
+    # test length() vectorization
+    result = np.zeros((N,))
+    for i in range(N):
+        result[i] = length(vectors1[i, :])
+
+    assert np.allclose(length(vectors1), result)
+
+    # test dot()
+    result = np.zeros((N,))
+    for i in range(N):
+        result[i] = dot(vectors1[i, :], vectors2[i, :])
+
+    assert np.allclose(dot(vectors1, vectors2), result)
+
+    for i in range(N):
+        result[i] = dot(vectors1[0, :], vectors2[i, :])
+
+    assert np.allclose(dot(vectors1[0, :], vectors2), result)
+
+    for i in range(N):
+        result[i] = dot(vectors1[i, :], vectors2[0, :])
+
+    assert np.allclose(dot(vectors1, vectors2[0, :]), result)
+
+    # test cross()
+    result = np.zeros_like(vectors1)
+    for i in range(N):
+        result[i, :] = cross(vectors1[i, :], vectors2[i, :])
+
+    assert np.allclose(cross(vectors1, vectors2), result)
+
+    for i in range(N):
+        result[i, :] = cross(vectors1[0, :], vectors2[i, :])
+
+    assert np.allclose(cross(vectors1[0, :], vectors2), result)
+
+    for i in range(N):
+        result[i, :] = cross(vectors1[i, :], vectors2[0, :])
+
+    assert np.allclose(cross(vectors1, vectors2[0, :]), result)
 
 
 @pytest.mark.mathtools

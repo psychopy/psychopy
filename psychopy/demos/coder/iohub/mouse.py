@@ -42,11 +42,12 @@ grating = visual.GratingStim(win, pos=(300, 0),
     size=(150.0, 150.0), sf=(0.01, 0.0),
     autoLog=False)
 message = visual.TextStim(win, pos=(0.0, -(display_resolution[1]/3)),
-    alignHoriz='center', alignVert='center', height=40,
+    height=40,
+    alignText='center', anchorHoriz='center', anchorVert='center',
     text='move=mv-spot, left-drag=SF, right-drag=mv-grating, scroll=ori',
     autoLog=False, wrapWidth=display_resolution[0] * .9)
 message2 = visual.TextStim(win, pos=(0.0, -(display_resolution[1]/4)),
-    alignHoriz='center', alignVert='center', height=40,
+    alignText='center', anchorHoriz='center', anchorVert='center', height=40,
     text='Press Any Key to Quit.',
     autoLog=False, wrapWidth=display_resolution[0] * .9)
 

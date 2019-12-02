@@ -15,7 +15,7 @@ from __future__ import division
 from psychopy import visual, core, event
 
 # Create a window to draw in
-win = visual.Window((800.0, 800.0), allowGUI=False, winType='pyglet',
+win = visual.Window((800.0, 800.0), allowGUI=True, winType='pyglet',
             monitor='testMonitor', units ='deg', screen=0)
 win.recordFrameIntervals = True
 
@@ -25,20 +25,19 @@ sans = ['Gill Sans MT', 'Arial', 'Helvetica', 'Verdana']
 serif = ['Times', 'Times New Roman']
 comic = 'Comic Sans MS'  # the short name won't work
 
+rs = visual.RatingScale(win, low=0, high=1, precision=100, size=3, pos=(0,-.4),
+                       labels=[' ', ' '], scale=' ',
+                       marker='glow', markerStart=0.7, markerColor='darkBlue', autoLog=False)
+rs.draw()
 # Initialize some stimuli.
 # Note that in Python 3 we no longer need to create special unicode strings
 # with a u'' prefix, as all strings are unicode. For the time being, we 
 # retain the prefix in this demo, for backwards compatibility for people 
 # running PsychoPy under Python 2.7
-fpsText = visual.TextStim(win,
-    units='norm', height = 0.1,
-    pos=(-0.98, -0.98), text='starting...',
-    font=sans,
-    alignHoriz = 'left', alignVert='bottom',
-    color='BlanchedAlmond')
-rotating = visual.TextStim(win, text="Fonts \nrotate!", pos=(0, 0),  # and can have line breaks
+fpsText = visual.TextStim(win)
+rotating = visual.TextStim(win, text="Fonts \nrotate", pos=(0, 0),  # and can have line breaks
     color=[-1.0, -1, 1],
-    units='deg',
+    units='deg', 
     ori=0, height = 1.0,
     font=comic)
 unicodeStuff = visual.TextStim(win,
@@ -49,16 +48,19 @@ unicodeStuff = visual.TextStim(win,
     height = 1)
 psychopyTxt = visual.TextStim(win, color='#FFFFFF',
     text = u"PsychoPy \u00A9Jon Peirce",
-    units='norm', height=0.1,
-    pos=[0.95, 0.95], alignHoriz='right', alignVert='top',
+    units='norm', height=0.05,
+    pos=[0.95, 0.95], 
+    alignText='right', anchorHoriz='right',
     font=fancy)
 longSentence = visual.TextStim(win,
     text = u"Very long sentences can wrap", wrapWidth=0.4,
     units='norm', height=0.05, color='DarkSlateBlue',
-    pos=[0.95, -0.95], alignHoriz='right', alignVert='bottom')
+    pos=[0.95, -0.95], 
+    alignText='left', anchorHoriz='right', # right of the window, left of the box!
+    anchorVert='bottom')
 mirror = visual.TextStim(win, text="mirror mirror",
     units='norm', height=0.12, color='Silver',
-    pos=[0, -0.5], alignHoriz='center',
+    pos=[0, -0.5],
     flipHoriz=True)
 
 # By default, right-to-left languages like Hebrew are often shown in
@@ -72,7 +74,8 @@ raw_Farsi = visual.TextStim(win,
     text = u'Raw Farsi text: \n \u200E خوش آمدید 1999',
     units = 'norm', height = 0.06, color = 'DarkRed',
     pos = (-0.9, 0.8), font = 'Arial',
-    wrapWidth = 1.0, alignHoriz = 'left',
+    wrapWidth = 1.0, 
+    alignText='left', anchorHoriz='left',
     languageStyle = 'LTR') # left-to-right
 # We correct these issues by setting setting the languageStyle to be
 # 'bidirectional' (sufficient for Hebrew, for example) or 'Arabic'
@@ -82,7 +85,8 @@ corrected_Farsi = visual.TextStim(win,
     text = u'Reshaped & bidirectional: \n \u200E خوش آمدید 1999',
     units = 'norm', height = 0.06, color = 'DarkRed',
     pos = (-0.9, 0.6), font = 'Arial',
-    wrapWidth = 1.0, alignHoriz = 'left',
+    wrapWidth = 1.0, 
+    alignText='left', anchorHoriz='left',
     languageStyle = 'Arabic') # RTL + reshaped
 # Please give the developers feedback if there are display issues in
 # other languages that you are familiar with.
@@ -100,8 +104,8 @@ while not event.getKeys():
     longSentence.draw()
     raw_Farsi.draw()
     corrected_Farsi.draw()
-
-    # update the fps text every second
+#
+#    # update the fps text every second
     if t - lastFPSupdate > 1:
         fpsText.text = "%i fps" % win.fps()
         lastFPSupdate += 1

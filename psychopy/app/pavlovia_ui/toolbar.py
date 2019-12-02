@@ -92,7 +92,11 @@ class PavloviaButtons:
         searchDlg.Show()
 
     def onPavloviaProject(self, evt=None):
-        dlg = ProjectFrame(app=self.frame.app, project=self.frame.project)
+        if self.frame.project and self.frame.project.id is not None:
+            dlg = ProjectFrame(app=self.frame.app,
+                               project=self.frame.project)
+        else:
+            dlg = ProjectFrame(app=self.frame.app)
         dlg.Show()
 
         # if self.frame.project:

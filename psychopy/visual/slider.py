@@ -282,7 +282,7 @@ class Slider(MinimalStim):
                     continue
 
                 obj = TextStim(self.win, label, font=self.font,
-                               alignHoriz=alignHoriz, alignVert=alignVert,
+                               anchorHoriz=alignHoriz, anchorVert=alignVert,
                                units=self.units, color=self.color,
                                pos=self.labelLocs[tickN, :],
                                height=self.labelHeight, 

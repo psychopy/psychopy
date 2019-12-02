@@ -29,7 +29,8 @@ class ProjectionsLinesAndCircles(object):
         self.window = window
         self.warper = warper
 
-        self.stimT = TextStim(self.window, text='Null warper', units = 'pix', pos=(0, -140), alignHoriz='center', height=20)
+        self.stimT = TextStim(self.window, text='Null warper',
+                              units = 'pix', pos=(0, -140), height=20)
 
         self.bl = old_div(-window.size, 2.0)
         self.tl = (self.bl[0], -self.bl[1])

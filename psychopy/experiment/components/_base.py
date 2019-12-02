@@ -17,6 +17,7 @@ from psychopy.constants import FOREVER
 from ..params import Param
 from psychopy.experiment.utils import CodeGenerationException
 from psychopy.localization import _translate, _localized
+from psychopy.alerts import alerttools
 
 
 class BaseComponent(object):
@@ -114,6 +115,12 @@ class BaseComponent(object):
             label=_translate('Disable component'))
 
         self.order = ['name']  # name first, then timing, then others
+
+    def integrityCheck(self):
+        """
+        Run component integrity checks.
+        """
+        alerttools.runTest(self)
 
     def writeInitCode(self, buff):
         """Write any code that a component needs that should only ever be done

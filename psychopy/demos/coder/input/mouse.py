@@ -30,8 +30,8 @@ grating = visual.GratingStim(win, pos=(0.5, 0),
     size=(1.0, 1.0), sf=(3, 0),
     autoLog=False)  # autologging not useful for dynamic stimuli
 myMouse = event.Mouse()  #  will use win by default
-message = visual.TextStim(win, pos=(-0.95, -0.9),
-    alignHoriz='left', height=0.08,
+message = visual.TextStim(win, pos=(-0.95, -0.9), height=0.08,
+    alignText='left', anchorHoriz='left',
     text='left-drag=SF, right-drag=pos, scroll=ori',
     autoLog=False)
 
