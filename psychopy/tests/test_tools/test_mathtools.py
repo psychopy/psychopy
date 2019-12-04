@@ -160,6 +160,127 @@ def test_length():
 
 
 @pytest.mark.mathtools
+def test_dot():
+    """Test the dot-product function `dot()`. Tests cases Nx2, Nx3, and Nx4
+    including one-to-many cases. The test for the `cross()` function validates
+    if the values computed by `dot()` are meaningful.
+
+    """
+    np.random.seed(123456)
+    N = 1000
+    # check Nx2, Nx3, Nx4 cases
+    for nCol in range(2, 5):
+        vectors1 = np.random.uniform(-1.0, 1.0, (N, nCol,))
+        vectors2 = np.random.uniform(-1.0, 1.0, (N, nCol,))
+
+        # check vectorization
+        results0 = dot(vectors1, vectors2)
+
+        # check write to output array
+        results1 = np.zeros((N,))
+        dot(vectors1, vectors2, out=results1)
+
+        assert np.allclose(results0, results1)
+
+        # check row-by-row
+        results1.fill(0.0)  # clear
+        for i in range(N):
+            results1[i] = dot(vectors1[i, :], vectors2[i, :])
+
+        assert np.allclose(results0, results1)
+
+        # check 1 to many
+        results0 = dot(vectors1[0, :], vectors2)
+        results1.fill(0.0)  # clear
+        for i in range(N):
+            results1[i] = dot(vectors1[0, :], vectors2[i, :])
+
+        assert np.allclose(results0, results1)
+
+        # check many to 1
+        results0 = dot(vectors1, vectors2[0, :])
+        results1.fill(0.0)  # clear
+        for i in range(N):
+            results1[i] = dot(vectors1[i, :], vectors2[0, :])
+
+        assert np.allclose(results0, results1)
+
+
+@pytest.mark.mathtools
+def test_cross():
+    """Test the cross-product function `cross()`.
+
+    Check input arrays with dimensions Nx3 and Nx4. Test data are orthogonal
+    vectors which the resulting cross product is confirmed to be perpendicular
+    using a dot product, this must be true in all cases in order for the test to
+    succeed. This also tests `dot()` for this purpose.
+
+    Tests for the one-to-many inputs don't compute perpendicular vectors, they
+    just need to return the same values when vectorized and when using a loop.
+
+    """
+    np.random.seed(123456)
+    N = 1000
+
+    # check Nx2, Nx3, Nx4 cases
+    for nCol in range(3, 5):
+        # orthogonal vectors
+        vectors1 = np.zeros((N, nCol,))
+        vectors1[:, 1] = 1.0
+        vectors2 = np.zeros((N, nCol,))
+        vectors2[:, 0] = 1.0
+
+        if nCol == 4:
+            vectors1[:, 3] = vectors2[:, 3] = 1.0
+
+        # rotate the vectors randomly
+        axes = np.random.uniform(-1.0, 1.0, (N, 3,))  # random axes
+        angles = np.random.uniform(-180.0, 180.0, (N,))  # random angles
+        for i in range(N):
+            r = rotationMatrix(angles[i], axes[i, :])
+            vectors1[i, :] = applyMatrix(r, vectors1[i, :])
+            vectors2[i, :] = applyMatrix(r, vectors2[i, :])
+
+        # test normalization output
+        normalize(vectors1[:, :3], out=vectors2[:, :3])
+        normalize(vectors2[:, :3], out=vectors2[:, :3])
+
+        # check vectorization
+        results0 = cross(vectors1, vectors2)
+
+        # check write to output array
+        results1 = np.zeros((N, nCol,))
+        cross(vectors1, vectors2, out=results1)
+        assert np.allclose(results0, results1)
+
+        # check if cross products are perpendicular
+        assert np.allclose(dot(vectors1[:, :3], results0[:, :3]), 0.0)
+
+        # check row-by-row
+        results1.fill(0.0)  # clear
+        for i in range(N):
+            results1[i] = cross(vectors1[i, :], vectors2[i, :])
+
+        assert np.allclose(results0, results1)
+
+        # check 1 to many
+        results0 = cross(vectors1[0, :], vectors2)
+        results1.fill(0.0)  # clear
+        for i in range(N):
+            results1[i] = cross(vectors1[0, :], vectors2[i, :])
+
+        assert np.allclose(results0, results1)
+
+        # check many to 1
+        results0 = cross(vectors1, vectors2[0, :])
+        results1.fill(0.0)  # clear
+        for i in range(N):
+            results1[i] = cross(vectors1[i, :], vectors2[0, :])
+
+        assert np.allclose(results0, results1)
+
+
+@pytest.mark.mathtools
 def test_invertMatrix():
     """Test of the `invertMatrix()` function.
 
@@ -263,69 +384,6 @@ def test_invertMatrix():
         inv = invertMatrix(vp)
 
         assert np.allclose(ident, np.matmul(inv, vp))
-
-
-@pytest.mark.mathtools
-def test_vectorized():
-    """Test vectorization of various functions.
-
-    Test vectorization of math functions by first computing each value in a
-    loop, then doing the same computation vectorized.
-
-    """
-    np.random.seed(123456)
-    N = 1000
-    vectors1 = np.random.uniform(-1.0, 1.0, (N, 3,))
-    vectors2 = np.random.uniform(-1.0, 1.0, (N, 3,))
-
-    # test normalize() vectorization
-    result = np.zeros_like(vectors1)
-
-    for i in range(N):
-        result[i, :] = normalize(vectors1[i, :])
-
-    assert np.allclose(normalize(vectors1), result)
-
-    # test length() vectorization
-    result = np.zeros((N,))
-    for i in range(N):
-        result[i] = length(vectors1[i, :])
-
-    assert np.allclose(length(vectors1), result)
-
-    # test dot()
-    result = np.zeros((N,))
-    for i in range(N):
-        result[i] = dot(vectors1[i, :], vectors2[i, :])
-
-    assert np.allclose(dot(vectors1, vectors2), result)
-
-    for i in range(N):
-        result[i] = dot(vectors1[0, :], vectors2[i, :])
-
-    assert np.allclose(dot(vectors1[0, :], vectors2), result)
-
-    for i in range(N):
-        result[i] = dot(vectors1[i, :], vectors2[0, :])
-
-    assert np.allclose(dot(vectors1, vectors2[0, :]), result)
-
-    # test cross()
-    result = np.zeros_like(vectors1)
-    for i in range(N):
-        result[i, :] = cross(vectors1[i, :], vectors2[i, :])
-
-    assert np.allclose(cross(vectors1, vectors2), result)
-
-    for i in range(N):
-        result[i, :] = cross(vectors1[0, :], vectors2[i, :])
-
-    assert np.allclose(cross(vectors1[0, :], vectors2), result)
-
-    for i in range(N):
-        result[i, :] = cross(vectors1[i, :], vectors2[0, :])
-
-    assert np.allclose(cross(vectors1, vectors2[0, :]), result)
 
 
 @pytest.mark.mathtools
