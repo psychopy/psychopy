@@ -36,7 +36,7 @@ class CodeComponent(BaseComponent):
 
     def __init__(self, exp, parentName, name='code',
                  beginExp="", beginRoutine="", eachFrame="", endRoutine="",
-                 endExperiment="", codeType="Py", translator="manual"):
+                 endExperiment="", codeType="Auto->JS", translator="manual"):
         super(CodeComponent, self).__init__(exp, parentName, name)
         self.type = 'Code'
         self.targets = ['PsychoPy', 'PsychoJS']
