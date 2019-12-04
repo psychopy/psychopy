@@ -131,6 +131,85 @@ def test_quatToMatrix():
 
 
 @pytest.mark.mathtools
+def test_length():
+    """Test function `length()`."""
+    np.random.seed(123456)
+    N = 1000
+    v = np.random.uniform(-1.0, 1.0, (N, 3,))
+
+    # test Nx2 vectorized input
+    result0 = length(v)
+
+    # test writing to another location
+    result1 = np.zeros((N,))
+    length(v, out=result1)
+
+    assert np.allclose(result0, result1)
+
+    # test squared==True
+    result1 = length(v, squared=True)
+    assert np.allclose(result0, np.sqrt(result1))
+
+    # test ndim==1
+    result1 = np.zeros((N,))
+    for i in range(N):
+        result1[i] = length(v[i, :])
+
+    assert np.allclose(result0, result1)
+
+
+@pytest.mark.mathtools
+def test_invertMatrix():
+    """Test of the `invertMatrix()` function.
+
+    Checks if the function can handle both homogeneous (rotation and translation
+    only) and regular case.
+
+    """
+    np.random.seed(123456)
+    N = 1000
+    axes = np.random.uniform(-1.0, 1.0, (N, 3,))  # random axes
+    angles = np.random.uniform(0.0, 360.0, (N,))  # random angles
+    trans = np.random.uniform(-1000.0, 1000.0, (N, 3,))  # random translations
+    scales = np.random.uniform(0.0001, 1000.0, (N, 3,))  # random scales
+
+    # check homogeneous inverse
+    ident = np.identity(4)
+    for i in range(N):
+        r = rotationMatrix(angles[i], axes[i, :])
+        t = translationMatrix(trans[i, :])
+
+        # combine them
+        m = np.matmul(t, r)
+
+        assert isAffine(m)  # must always be TRUE
+
+        inv = invertMatrix(m, homogeneous=True)
+
+        # check if we have identity
+        assert np.allclose(np.matmul(inv, m), ident)
+
+    # check non-homogeneous inverse and outputs
+    rout = np.zeros((4, 4))
+    tout = np.zeros((4, 4))
+    sout = np.zeros((4, 4))
+    ident = np.identity(4)
+    for i in range(N):
+        rotationMatrix(angles[i], axes[i, :], out=rout)
+        translationMatrix(trans[i, :], out=tout)
+        scaleMatrix(scales[i, :], out=sout)
+
+        # combine them
+        m = np.matmul(tout, np.matmul(rout, sout))
+
+        assert isAffine(m)  # must always be TRUE
+
+        inv = invertMatrix(m, homogeneous=False)
+
+        assert np.allclose(np.matmul(inv, m), ident)
+
+
+@pytest.mark.mathtools
 def test_vectorized():
     """Test vectorization of various functions.
 
