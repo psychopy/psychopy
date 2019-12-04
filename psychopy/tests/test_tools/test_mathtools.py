@@ -9,14 +9,6 @@ import pytest
 
 
 @pytest.mark.mathtools
-def test_rotationMatrix():
-    """Test rotation matrix composition."""
-    # identity check
-    R = rotationMatrix(0., [0., 0., -1.])
-    assert np.allclose(R, np.identity(4))
-
-
-@pytest.mark.mathtools
 def test_quatFromAxisAngle():
     """Test creating a quaternion from `axis` and `angle`."""
     # identity check
