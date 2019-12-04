@@ -164,7 +164,10 @@ def test_invertMatrix():
     """Test of the `invertMatrix()` function.
 
     Checks if the function can handle both homogeneous (rotation and translation
-    only) and regular cases.
+    only), general, and view/projection cases.
+
+    All inverses must return something very close to an identity matrix when
+    multiplied with the original matrix for a test to succeed.
 
     """
     np.random.seed(123456)
@@ -212,12 +215,12 @@ def test_invertMatrix():
 
         assert isAffine(m)  # must always be TRUE
 
-        invertMatrix(m, homogeneous=False, out=inv)
+        invertMatrix(m, out=inv)
 
         assert np.allclose(np.matmul(inv, m), ident)
 
     # test with view/projection matrices
-    scrDims = np.random.uniform(0.01, 10.0, (N, 2,))
+    scrDims = np.random.uniform(0.01, 3.0, (N, 2,))
     viewDists = np.random.uniform(0.025, 10.0, (N,))
     eyeOffsets = np.random.uniform(-0.1, 0.1, (N,))
 
@@ -227,12 +230,13 @@ def test_invertMatrix():
         viewDist = viewDists[i]
 
         # nearClip some distance between screen and eye
-        nearClip = np.random.uniform(0.001, viewDist, (1,))
+        nearClip = np.random.uniform(0.1, viewDist, (1,))
 
         # nearClip some distance beyond screen
         fcMin = viewDist + nearClip
         farClip = np.random.uniform(fcMin, 1000.0, (1,))
 
+        # get projection matrix
         frustum = computeFrustum(
             scrWidth,
             scrAspect,
@@ -244,6 +248,7 @@ def test_invertMatrix():
         proj = perspectiveProjectionMatrix(*frustum)
         assert not isAffine(proj)
 
+        # create affine view matrix
         r = rotationMatrix(angles[i], axes[i, :])
         assert isOrthogonal(r)
 
@@ -254,9 +259,10 @@ def test_invertMatrix():
         # combine them
         vp = np.matmul(proj, view)
 
-        inv = invertMatrix(vp, homogeneous=False, out=inv)
+        # invert
+        inv = invertMatrix(vp)
 
-        assert np.allclose(np.matmul(inv, vp), ident)
+        assert np.allclose(ident, np.matmul(inv, vp))
 
 
 @pytest.mark.mathtools
