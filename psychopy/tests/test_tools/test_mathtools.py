@@ -273,6 +273,44 @@ def test_cross():
 
 
 @pytest.mark.mathtools
+def test_orthogonalize():
+    """Check the `orthogonalize()` function. This function nudges a vector to
+    be perpendicular with another (usually a normal). All orthogonalized vectors
+    should be perpendicular to the normal vector, having a dot product very
+    close to zero. This condition must occur in all cases for the test to
+    succeed.
+
+    """
+    np.random.seed(567890)
+    N = 1000
+
+    # orthogonal vectors
+    normals = np.zeros((N, 3,))
+    normals[:, 1] = 1.0
+    vec = np.random.uniform(-1.0, 1.0, (N, 3,))  # random axes
+    normalize(vec, out=vec)
+
+    # rotate the normal vectors randomly
+    axes = np.random.uniform(-1.0, 1.0, (N, 3,))  # random axes
+    angles = np.random.uniform(-180.0, 180.0, (N,))  # random angles
+    for i in range(N):
+        r = rotationMatrix(angles[i], axes[i, :])
+        normals[i, :] = applyMatrix(r, normals[i, :])
+
+    normalize(normals[:, :3], out=normals[:, :3])
+
+    result1 = orthogonalize(vec, normals)
+    result2 = np.zeros_like(result1)
+    orthogonalize(vec, normals, out=result2)
+
+    # check if results are the same
+    assert np.allclose(result1, result2)
+
+    # check if the orthogonalized vector is perpendicular
+    assert np.allclose(dot(normals, result1), 0.0)
+
+
+@pytest.mark.mathtools
 def test_invertMatrix():
     """Test of the `invertMatrix()` function.
 
