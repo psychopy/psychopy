@@ -60,6 +60,7 @@ from psychopy.app import pavlovia_ui
 from psychopy.projects import pavlovia
 
 from psychopy.scripts import psyexpCompile
+from psychopy.alerts import ErrorHandler
 
 
 canvasColor = [200, 200, 200]  # in prefs? ;-)
@@ -1814,26 +1815,24 @@ class BuilderFrame(wx.Frame):
         """
         # get path if not given one
         expPath, expName = os.path.split(self.filename)
-        if htmlPath is None and self.exp.settings.params['HTML path']:
+        if htmlPath is None:
             htmlPath = self._getHtmlPath(self.filename)
 
-        # present dialog box
-        if htmlPath:
-            dlg = ExportFileDialog(self, wx.ID_ANY,
-                                   title=_translate("Export HTML file"),
-                                   filePath=htmlPath,
-                                   exp=self.exp)
-            export = dlg.exportOnSave
-            if self.exp.settings.params['exportHTML'].val == 'manually':
-                retVal = dlg.ShowModal()
-                self.exp.settings.params['exportHTML'].val = export.GetString(export.GetCurrentSelection())
-                if retVal != wx.ID_OK:  # User cancelled export
-                    return False
+        dlg = ExportFileDialog(self, wx.ID_ANY,
+                               title=_translate("Export HTML file"),
+                               filePath=htmlPath,
+                               exp=self.exp)
 
-            htmlPath = os.path.join(htmlPath, expName.replace('.psyexp', '.js'))
-            # then save the actual script
-            self.generateScript(experimentPath=htmlPath,
-                                target="PsychoJS")
+        export = dlg.exportOnSave
+        if self.exp.settings.params['exportHTML'].val == 'manually':
+            retVal = dlg.ShowModal()
+            self.exp.settings.params['exportHTML'].val = export.GetString(export.GetCurrentSelection())
+            if retVal != wx.ID_OK:  # User cancelled export
+                return False
+
+        exportPath = os.path.join(htmlPath, expName.replace('.psyexp', '.js'))
+        self.generateScript(experimentPath=exportPath,
+                            target="PsychoJS")
 
     def getShortFilename(self):
         """returns the filename without path or extension
@@ -2375,6 +2374,15 @@ class BuilderFrame(wx.Frame):
                 parent=None, app=self.app, size=(700, 300))
         return self.app._stdoutFrame
 
+    @property
+    def errorHandler(self):
+        """
+        Initializes app._errorHandler if not created.
+        """
+        if self.app._errorHandler is None:
+            self.app._errorHandler = ErrorHandler()
+        return self.app._errorHandler
+
     def setStandardStream(self, capture):
         """
         Captures standard stream.
@@ -2386,14 +2394,14 @@ class BuilderFrame(wx.Frame):
         """
         if capture:
             sys.stdout = self.stdoutFrame
-            sys.stderr = self.stdoutFrame
+            sys.stderr = self.errorHandler
         else:  # revert to the application setting (coder out or terminal)
             sys.stdout = self.app._stdout
-            sys.stderr = self.app._stdout
+            sys.stderr = self.app._stderr
 
     def generateScript(self, experimentPath, target="PsychoPy"):
         """Generates python script from the current builder experiment"""
-        # Set stdOut for error capture
+        # Set streams
         self.setStandardStream(True)
         self.stdoutFrame.write("Generating {} script...\n".format(target))
 
@@ -2431,8 +2439,8 @@ class BuilderFrame(wx.Frame):
                                           stderr=subprocess.PIPE,
                                           universal_newlines=True)
                 stdout, stderr = output.communicate()
-                self.stdoutFrame.write(stdout)
-                self.stdoutFrame.write(stderr)
+                sys.stdout.write(stdout)
+                sys.stderr.write(stderr)
             else:
                 psyexpCompile.compileScript(infile=self.exp, version=None, outfile=experimentPath)
         except Exception:
@@ -2440,7 +2448,8 @@ class BuilderFrame(wx.Frame):
             self.gitFeedback(-1)
         finally:
             self.stdoutFrame.Show()
-            self.setStandardStream(False)
+            self.errorHandler.flush()
+            # self.setStandardStream(False)
 
     def _getHtmlPath(self, filename):
         expPath = os.path.split(filename)[0]
@@ -2450,8 +2459,8 @@ class BuilderFrame(wx.Frame):
                 return self._getHtmlPath(self.filename)
             else:
                 return False
-        htmlFolder = self.exp.settings.params['HTML path'].val
-        htmlPath = os.path.join(expPath, htmlFolder)
+
+        htmlPath = os.path.join(expPath, self.exp.htmlFolder)
         return htmlPath
 
     def _getExportPref(self, pref):
@@ -2688,12 +2697,6 @@ class ExportFileDialog(wx.Dialog):
         # contents
         self.exp = exp
         sizer = wx.BoxSizer(wx.VERTICAL)
-        msg = _translate("Warning, HTML outputs are very new.\n"
-                         "Treat with caution (CHECK YOUR EXPERIMENT)!")
-        warning = wx.StaticText(self, wx.ID_ANY, msg)
-        warning.SetForegroundColour((200, 0, 0))
-        sizer.Add(warning, 0, wx.ALIGN_CENTRE | wx.ALL, 5)
-
         box = wx.BoxSizer(wx.HORIZONTAL)
 
         label = wx.StaticText(self, wx.ID_ANY, _translate("Filepath:"))

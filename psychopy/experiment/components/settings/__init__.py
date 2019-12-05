@@ -277,7 +277,7 @@ class SettingsComponent(object):
         #     hint=_translate("The ID of this project (e.g. 5bqpc)"),
         #     label="OSF Project ID", categ='Online')
         self.params['HTML path'] = Param(
-            'html', valType='str', allowedTypes=[],
+            '', valType='str', allowedTypes=[],
             hint=_translate("Place the HTML files will be saved locally "),
             label="Output path", categ='Online')
         self.params['JS libs'] = Param(
@@ -526,7 +526,8 @@ class SettingsComponent(object):
 
     def writeInitCodeJS(self, buff, version, localDateTime, modular=True):
         # create resources folder
-        self.prepareResourcesJS()
+        if self.exp.htmlFolder:
+            self.prepareResourcesJS()
         jsFilename = os.path.basename(os.path.splitext(self.exp.filename)[0])
 
         # decide if we need anchored useVersion or leave plain
@@ -863,14 +864,30 @@ class SettingsComponent(object):
                     "    };\n"
                     "}\n")
         buff.writeIndentedLines(recordLoopIterationFunc)
-        quitFunc = ("\nfunction quitPsychoJS(message, isCompleted) {\n"
-                    "  // Check for and save orphaned data\n"
-                    "  if (psychoJS.experiment.isEntryEmpty()) {\n"
-                    "    psychoJS.experiment.nextEntry();\n"
-                    "  }\n"
-                    "  psychoJS.window.close();\n"
-                    "  psychoJS.quit({message: message, isCompleted: isCompleted});\n\n"
-                    "  return Scheduler.Event.QUIT;\n"
-                    "}")
-        buff.writeIndentedLines(quitFunc)
+
+        code = ("\nfunction quitPsychoJS(message, isCompleted) {\n")
+        buff.writeIndented(code)
+        buff.setIndentLevel(1, relative=True)
+        code = ("// Check for and save orphaned data\n"
+                "if (psychoJS.experiment.isEntryEmpty()) {\n"
+                "  psychoJS.experiment.nextEntry();\n"
+                "}\n")
+        buff.writeIndentedLines(code)
+
+        # Write End Experiment code component
+        for thisRoutine in list(self.exp.routines.values()):
+            # a single routine is a list of components:
+            for thisComp in thisRoutine:
+                if thisComp.type == 'Code':
+                    buff.writeIndented("\n")
+                    thisComp.writeExperimentEndCodeJS(buff)
+                    buff.writeIndented("\n")
+
+        code = ("psychoJS.window.close();\n"
+                "psychoJS.quit({message: message, isCompleted: isCompleted});\n\n"
+                "return Scheduler.Event.QUIT;\n")
+        buff.writeIndentedLines(code)
+
+        buff.setIndentLevel(-1, relative=True)
+        buff.writeIndented("}\n")
         buff.setIndentLevel(-1)

@@ -1269,7 +1269,6 @@ class CoderFrame(wx.Frame):
 
         # create output viewer
         self._origStdOut = sys.stdout  # keep track of previous output
-        self._origStdErr = sys.stderr
 
         _style = wx.TE_MULTILINE | wx.TE_READONLY | wx.VSCROLL
         self.outputWindow = stdOutRich.StdOutRich(
@@ -2091,7 +2090,6 @@ class CoderFrame(wx.Frame):
         self.Hide()  # ugly to see it close all the files independently
 
         sys.stdout = self._origStdOut  # discovered during __init__
-        sys.stderr = self._origStdErr
 
         # store current appData
         self.appData['prevFiles'] = []
@@ -2682,15 +2680,12 @@ class CoderFrame(wx.Frame):
             # don't if we're doing py.tests or we lose the output
             if not self.app.testMode:
                 self.app._stdout = sys.stdout = self.outputWindow
-                self.app._stdout = sys.stderr = self.outputWindow
         else:
             # show the pane
             self.prefs['showOutput'] = False
             self.paneManager.GetPane('Shelf').Hide()
             self.app._stdout = sys.stdout = sys.__stdout__
-            self.app._stdout = sys.stderr = sys.__stderr__
         self.app.prefs.saveUserPrefs()  # includes a validation
-
         self.paneManager.Update()
 
     def setShowIndentGuides(self, event):

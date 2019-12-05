@@ -12,7 +12,6 @@ to JS (ES6/PsychoJS)
 import ast
 import astunparse
 import esprima
-import sys
 from os import path
 from psychopy.constants import PY3
 from psychopy import logging
@@ -147,7 +146,7 @@ def addVariableDeclarations(inputProgram, fileName):
     try:
         ast = esprima.parseScript(inputProgram, {'range': True, 'tolerant': True})
     except esprima.error_handler.Error as err:
-        sys.stderr.write("ERROR: {} in {}\n".format(err, path.split(fileName)[1]))
+        logging.error("{0} in {1}".format(err, path.split(fileName)[1]))
         return inputProgram  # So JS can be written to file
 
     # find undeclared vars in functions and declare them before the function

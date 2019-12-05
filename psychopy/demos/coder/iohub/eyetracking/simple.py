@@ -60,8 +60,6 @@ missing_gpos_str += 'Press space key to start next trial.'
 text_stim = visual.TextStim(win, text=text_stim_str,
                             pos=[0, int((-win.size[1]/2)*0.8)], height=24,
                                  color='black',
-                                 alignHoriz='center',
-                                 alignVert='center', 
                                  wrapWidth=win.size[0] * .9)
 
 # Run Trials.....

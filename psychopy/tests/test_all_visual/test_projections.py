@@ -40,7 +40,8 @@ class ProjectionsLinesAndCircles(object):
         self.win = win
         self.warper = warper
 
-        self.stimT = TextStim(self.win, text='Null warper', units = 'pix', pos=(0, -140), alignHoriz='center', height=20)
+        self.stimT = TextStim(self.win, text='Null warper', units = 'pix',
+                              pos=(0, -140), height=20)
 
         self.bl = old_div(-win.size, 2.0)
         self.tl = (self.bl[0], -self.bl[1])
@@ -50,16 +51,20 @@ class ProjectionsLinesAndCircles(object):
         self.degrees = 120
         nLines = 12
         for x in range(-nLines, nLines+1):
-            t = GratingStim(win,tex=None,units='deg',size=[2,win.size[1]],texRes=128,color=foregroundColor, pos=[float(x) / nLines * self.degrees,0])
+            t = GratingStim(win, tex=None, units='deg', size=[2, win.size[1]],
+                            texRes=128, color=foregroundColor,
+                            pos=[float(x) / nLines * self.degrees, 0])
             self.stims.append (t)
 
         for y in range (-nLines, nLines+1):
-            t = GratingStim(win,tex=None,units='deg',size=[win.size[0],2],texRes=128,color=foregroundColor,pos=[0,float(y)/nLines * self.degrees])
-            self.stims.append (t)
+            t = GratingStim(win, tex=None, units='deg', size=[win.size[0], 2],
+                            texRes=128, color=foregroundColor,
+                            pos=[0, float(y)/nLines * self.degrees])
+            self.stims.append(t)
 
         for c in range (1, nLines+1):
             t = Circle (win, radius=c * 10, edges=128, units='deg', lineWidth=4)
-            self.stims.append (t)
+            self.stims.append(t)
 
         self.updateInfo()
 
@@ -82,7 +87,12 @@ class ProjectionsLinesAndCircles(object):
 
     def updateInfo(self):
         try:
-            self.stimT.setText ("%s \n   eyePoint: %.3f, %.3f \n   eyeDistance: %.2f\n\nProjection: [s]pherical, [c]ylindrical, [n]one, warp[f]ile\nFlip: [h]orizontal, [v]ertical\nMouse: wheel = eye distance, click to set eyepoint\n[q]uit" % (
+            self.stimT.setText(
+                "%s \n   eyePoint: %.3f, %.3f \n   eyeDistance: %.2f\n\n"
+                "Projection: [s]pherical, [c]ylindrical, [n]one, warp[f]ile\n"
+                "Flip: [h]orizontal, [v]ertical\n"
+                "Mouse: wheel = eye distance, click to set eyepoint\n"
+                "[q]uit" % (
                 self.warper.warp,
                 self.warper.eyepoint[0], self.warper.eyepoint[1],
                 self.warper.dist_cm))

@@ -128,9 +128,9 @@ class ExperimentRuntime(ioHubExperimentRuntime):
 
         # Create a Text Stim for use on /instruction/ type screens.
         # Current units assume pix.
-        instructions_text_stim = visual.TextStim(window, text='', pos = [0,0],
-                                    height=24, color=[-1,-1,-1], colorSpace='rgb',
-                                    alignHoriz='center', alignVert='center',
+        instructions_text_stim = visual.TextStim(window, text='', pos=[0,0],
+                                    height=24,
+                                    color=[-1,-1,-1], colorSpace='rgb',
                                     wrapWidth=window.size[0]*.9)
 
 

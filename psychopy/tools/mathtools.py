@@ -1168,7 +1168,7 @@ def intersectRayPlane(rayOrig, rayDir, planeOrig, planeNormal, dtype=None):
     planeOrig = np.asarray(planeOrig, dtype=dtype)
     planeNormal = np.asarray(planeNormal, dtype=dtype)
 
-    denom = dot(dir, planeNormal, dtype=dtype)
+    denom = dot(rayDir, planeNormal, dtype=dtype)
     if denom == 0.0:
         return None
 
@@ -2436,7 +2436,7 @@ def scaleMatrix(s, out=None, dtype=None):
         dtype = np.float64 if dtype is None else np.dtype(dtype).type
         S = np.zeros((4, 4,), dtype=dtype)
     else:
-        dtype = out.dtype
+        dtype = np.dtype(out.dtype).type
         S = out
         S.fill(0.0)
 
@@ -2487,7 +2487,7 @@ def rotationMatrix(angle, axis=(0., 0., -1.), out=None, dtype=None):
         dtype = np.float64 if dtype is None else np.dtype(dtype).type
         R = np.zeros((4, 4,), dtype=dtype)
     else:
-        dtype = out.dtype
+        dtype = np.dtype(out.dtype).type
         R = out
         R.fill(0.0)
 
@@ -2550,7 +2550,7 @@ def translationMatrix(t, out=None, dtype=None):
         dtype = np.float64 if dtype is None else np.dtype(dtype).type
         T = np.identity(4, dtype=dtype)
     else:
-        dtype = out.dtype
+        dtype = np.dtype(out.dtype).type
         T = out
         T.fill(0.0)
         np.fill_diagonal(T, 1.0)
@@ -2569,8 +2569,8 @@ def invertMatrix(m, homogeneous=False, out=None, dtype=None):
         4x4 matrix to invert.
     homogeneous : bool, optional
         Set as ``True`` if the input matrix specifies affine (homogeneous)
-        transformations (scale, rotation, and translation). This will use a
-        faster inverse method which handles such cases. Default is ``False``.
+        transformations (rotation and translation only). This will use a faster
+        inverse method which handles such cases. Default is ``False``.
     out : ndarray, optional
         Optional output array. Must be same `shape` and `dtype` as the expected
         output if `out` was not specified.
@@ -2597,7 +2597,7 @@ def invertMatrix(m, homogeneous=False, out=None, dtype=None):
     assert m.shape == (4, 4,)
 
     if not homogeneous:
-        if not isOrthogonal(m):
+        if not isOrthogonal(m[:3, :3]):
             toReturn[:, :] = np.linalg.inv(m)
         else:
             toReturn[:, :] = m.T
@@ -2827,16 +2827,15 @@ def isOrthogonal(m):
         `True` if the matrix is orthogonal.
 
     """
-    assert 2 <= m.shape[0] <= 4
-    assert m.shape[0] == m.shape[1]
-
     if not isinstance(m, (np.ndarray,)):
         m = np.asarray(m)
 
+    assert 2 <= m.shape[0] <= 4
+    assert m.shape[0] == m.shape[1]
+
     dtype = np.dtype(m.dtype).type
-    eps = np.finfo(dtype).eps
-    return np.all(
-        np.abs(np.matmul(m, m.T) - np.identity(m.shape[0], dtype)) < eps)
+    return np.allclose(np.matmul(m.T, m, dtype=dtype),
+                       np.identity(m.shape[0], dtype))
 
 
 def isAffine(m):

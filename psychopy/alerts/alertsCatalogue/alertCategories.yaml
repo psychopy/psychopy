@@ -1,0 +1,53 @@
+1000:
+    cat: App
+    1000: None
+    1100: Installation and versions
+    1500: Preferences
+
+2000:
+    cat: Units
+    2000: None
+    2100:
+      cat: Spatial
+      2110:
+        cat: Sizing
+        2115: Stimulus exceeds window size
+        2120: Stimulus is sized smaller than a pixel
+      2150:
+        cat: Positioning
+        2155: Position exceeds window dimensions
+    2300: Color spaces
+    2500: Unsupported
+
+3000:
+  cat: Timing
+  3100:
+    cat: Visual
+    3110: Component duration less than 1 screen refresh
+    3115: Component start/stop times cannot sync with screen refresh
+  3200: Audio
+  3400: Response
+
+4000:
+  cat: Builder experiments
+  4050: Experiment configuration
+  4100:
+    cat: Timing
+    4105: Component start time exceeds stop times
+    4115: Frames must be given as whole numbers
+  4200:
+    cat: Code component syntax
+    4205: Python syntax error
+    4210: JavaScript syntax error
+  4300:
+    cat: Components
+    4305: Component disabled
+    4310: Cannot calculate parameter
+
+5000: Online studies
+6000: None
+7000: Python dependencies
+8000: None
+9000: None
+
+9999: Test

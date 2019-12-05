@@ -75,7 +75,6 @@ class Routine(list):
     def writeStartCode(self, buff):
         """This is start of the *experiment* (before window is created)
         """
-        # few components will have this
         for thisCompon in self:
             # check just in case; try to ensure backwards compatibility _base
             if hasattr(thisCompon, 'writeStartCode'):
@@ -106,10 +105,6 @@ class Routine(list):
         for thisCompon in self:
             if hasattr(thisCompon, 'writeInitCodeJS'):
                 thisCompon.writeInitCodeJS(buff)
-
-    def writeResourcesCodeJS(self, buff):
-        buff.writeIndented("// <<maybe need to load images for {}?>>\n"
-                           .format(self.name))
 
     def writeMainCode(self, buff):
         """This defines the code for the frames of a single routine
