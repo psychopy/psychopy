@@ -401,7 +401,7 @@ class InstallUpdateDialog(wx.Dialog):
             info = self.doAutoInstall()
         else:
             info = self.installZipFile(self.filename)
-        self.statusMessage.SetLabel(info)
+        self.statusMessage.SetLabel(str(info))
         self.Fit()
 
     def fetchPsychoPy(self, v='latest'):
