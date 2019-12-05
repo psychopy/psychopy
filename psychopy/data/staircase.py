@@ -461,7 +461,7 @@ class StairHandler(_BaseTrialHandler):
 
         # create the file or send to stdout
         f = openOutputFile(
-            fileName, append=False, delim=delim,
+            fileName, append=False, 
             fileCollisionMethod=fileCollisionMethod, encoding=encoding)
 
         # write the data
