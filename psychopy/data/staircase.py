@@ -697,8 +697,7 @@ class QuestHandler(StairHandler):
 
     The Weibull psychometric function:
 
-    _e = -10**(beta * (x2 + xThreshold))
-    p2 = delta * gamma + (1-delta) * (1 - (1 - gamma) * exp(_e))
+    Psi(x) = delta * gamma + (1-delta) * (1 - (1 - gamma) * exp(-10 ** (beta * (x - xThreshold))))
 
     **Example**::
 

@@ -61,7 +61,7 @@ class QuestObject(object):
 
     The Weibull psychometric function:
 
-    p2=delta*gamma+(1-delta)*(1-(1-gamma)*exp(-10**(beta*(x2+xThreshold))))
+    p2=delta*gamma+(1-delta)*(1-(1-gamma)*exp(-10**(beta*(x-xThreshold))))
 
     where x represents log10 contrast relative to threshold. The
     Weibull function itself appears only in recompute(), which uses
