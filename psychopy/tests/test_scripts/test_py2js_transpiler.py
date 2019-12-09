@@ -1,10 +1,16 @@
 from psychopy.experiment.py2js_transpiler import translatePythonToJavaScript
 from psychopy.constants import PY3
+from pkg_resources import parse_version
+import sys
 
 
 class TestTranspiler(object):
+
+    def setup(self):
+        self.supported = PY3 and parse_version(sys.version) < parse_version('3.8')
+
     def runTranspile(self, py, js):
-        if PY3:
+        if self.supported:
             transpiledCode = translatePythonToJavaScript(py)
             assert (js == transpiledCode)
 
