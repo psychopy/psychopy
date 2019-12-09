@@ -57,3 +57,4 @@ dependencies:
 - pip:
   - pygame
   - pyparallel
+  - javascripthon
