@@ -20,10 +20,19 @@ try:
 except ImportError:  # was here wx<4.0:
     from wx.lib import flatnotebook
 
-from .... import constants
+from psychopy.constants import PY3
+
+if PY3:
+    from importlib.util import find_spec as loader
+else:
+    from pkgutil import find_loader as loader
+jsTranspilerLib = loader("metapensiero") is not None
+
 from .. import validators
 from psychopy.localization import _translate
 from psychopy.app.coder.codeEditorBase import BaseCodeEditor
+from psychopy.experiment.py2js_transpiler import translatePythonToJavaScript
+
 
 class DlgCodeComponentProperties(wx.Dialog):
     _style = (wx.DEFAULT_DIALOG_STYLE | wx.RESIZE_BORDER
@@ -135,6 +144,7 @@ class DlgCodeComponentProperties(wx.Dialog):
         ret = self.ShowModal()
 
         if ret == wx.ID_OK:
+            self.translateCode()
             self.checkName()
             self.OK = True
             self.params = self.getParams()  # get new vals from dlg
@@ -147,15 +157,51 @@ class DlgCodeComponentProperties(wx.Dialog):
         """Set code to JS or Python.
         Calls onKeyEvent to show/hide duplicate window.
         """
-        param = self.params['Code Type']
-        formerCodeType = param.val
+        param = self.params['Code Type']  # Update param with menu selection
         param.val = param.allowedVals[self.codeTypeMenu.GetSelection()]
-        if param == "Both":
-            self.updateVisibleCode(event, formerCodeType, 'Show')
-            return
-        self.updateVisibleCode(event, formerCodeType, 'Hide')
+        self.translateCode(event)
+        self.updateVisibleCode(event)
 
-    def updateVisibleCode(self, event=None, formerCodeType=None, winControl='Hide', ):
+    def translateCode(self, event=None):
+        """For each code box, translate Python code to JavaScript.
+        """
+        param = self.params['Code Type']
+        param.val = param.allowedVals[self.codeTypeMenu.GetSelection()]
+
+        if not param.val == "Auto->JS":
+            return
+
+        for boxName in self.codeBoxes:
+            if 'JS' not in boxName:
+                jsBox = boxName.replace(' ', ' JS ')
+                pythonCode = self.codeBoxes[boxName].GetValue()
+                jsCode = self.codeBoxes[jsBox].GetValue()
+
+                if jsCode:
+                    dlg = CodeOverwriteDialog(self, -1, "Warning: Python to JavaScript Translation")
+                    retVal = dlg.ShowModal()
+                    if not retVal == wx.ID_OK:
+                        return
+
+
+                if not pythonCode:  # Skip empty code panel
+                    continue
+
+                if not jsTranspilerLib:  # metapensiero required for translation
+                    self.codeBoxes[jsBox].SetValue(("// Py to JS auto-translation requires the metapensiero libray\n"
+                                                    "// metapensiero is available for Python 3.5+"))
+                    return
+
+                try:
+                    jsCode = translatePythonToJavaScript(pythonCode)
+                    self.codeBoxes[jsBox].SetValue(jsCode)
+                except Exception as err:
+                    print("{} : {}".format(boxName, err))
+
+        if event:
+            event.Skip()
+
+    def updateVisibleCode(self, event=None):
         """Receives keyboard events and code menu choice events.
         On choice events, the code is stored for python or JS parameters,
         and written to panel depending on choice of code. The duplicate panel
@@ -164,7 +210,7 @@ class DlgCodeComponentProperties(wx.Dialog):
         """
         codeType = self.params['Code Type'].val
         for boxName in self.codeBoxes:
-            if codeType.lower() == 'both':
+            if codeType.lower() in ['both', 'auto->js']:
                 self.codeBoxes[boxName].Show()
             elif codeType == 'JS':
                 # user only wants JS code visible
@@ -422,3 +468,44 @@ class CodeBox(BaseCodeEditor):
                         self.Expand(lineClicked, True, True, 100)
                 else:
                     self.ToggleFold(lineClicked)
+
+class CodeOverwriteDialog(wx.Dialog):
+    def __init__(self, parent, ID, title,
+                 size=wx.DefaultSize,
+                 pos=wx.DefaultPosition,
+                 style=wx.DEFAULT_DIALOG_STYLE):
+
+        wx.Dialog.__init__(self, parent, ID, title,
+                           size=size, pos=pos, style=style)
+
+        sizer = wx.BoxSizer(wx.VERTICAL)
+
+        # Set warning Message
+        msg = _translate("\nWarning, Auto-JS translate will overwrite your existing JavaScript code.\n"
+                         "To save your existing JavaScript, press 'Cancel'and set code type: 'Both', 'Py', or 'JS'.\n")
+        warning = wx.StaticText(self, wx.ID_ANY, msg)
+        warning.SetForegroundColour((200, 0, 0))
+        sizer.Add(warning, 0, wx.ALIGN_CENTRE | wx.ALL, 5)
+
+        # Set divider
+        line = wx.StaticLine(self, wx.ID_ANY, size=(20, -1), style=wx.LI_HORIZONTAL)
+        sizer.Add(line, 0, wx.GROW | wx.ALIGN_CENTER_VERTICAL | wx.RIGHT | wx.TOP, 5)
+
+        # Set buttons
+        btnsizer = wx.StdDialogButtonSizer()
+
+        btn = wx.Button(self, wx.ID_OK)
+        btn.SetHelpText("The OK button completes the dialog")
+        btn.SetDefault()
+        btnsizer.AddButton(btn)
+
+        btn = wx.Button(self, wx.ID_CANCEL)
+        btn.SetHelpText("The Cancel button cancels the dialog. (Crazy, huh?)")
+        btnsizer.AddButton(btn)
+        btnsizer.Realize()
+
+        sizer.Add(btnsizer, 0, wx.ALIGN_RIGHT | wx.ALL, 5)
+
+        # Center and size
+        self.CenterOnScreen()
+        self.SetSizerAndFit(sizer)
