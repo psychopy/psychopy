@@ -102,6 +102,7 @@ class DlgCodeComponentProperties(wx.Dialog):
                 self.codeTypeName = wx.StaticText(self, wx.ID_ANY,
                                                   _translate(param.label))
             else:
+                codeType = ["Py", "JS"]["JS" in paramName]  # Give CodeBox a code type
                 tabName = paramName.replace("JS ", "")
                 if tabName in self.tabs:
                     _panel = self.tabs[tabName]
@@ -114,7 +115,8 @@ class DlgCodeComponentProperties(wx.Dialog):
                                                     pos=wx.DefaultPosition,
                                                     style=0,
                                                     prefs=self.app.prefs,
-                                                    params=params)
+                                                    params=params,
+                                                    codeType=codeType)
                 self.codeBoxes[paramName].AddText(param.val)
                 if len(param.val.strip()) and openToPage is None:
                     # index of first non-blank page
@@ -318,12 +320,14 @@ class CodeBox(BaseCodeEditor):
                  # wx.aui control
                  pos=wx.DefaultPosition, size=wx.Size(100, 160),
                  style=0,
-                 params=None):
+                 params=None,
+                 codeType='Py'):
+
         BaseCodeEditor.__init__(self, parent, ID, pos, size, style)
 
         self.prefs = prefs
         self.params = params
-
+        self.codeType = codeType
         self.SetLexer(wx.stc.STC_LEX_PYTHON)
         self.SetKeyWords(0, " ".join(keyword.kwlist))
 
@@ -347,7 +351,7 @@ class CodeBox(BaseCodeEditor):
         # Check combination keys
         if keyCode == ord('/') and wx.MOD_CONTROL == _mods:
             if self.params is not None:
-                self.toggleCommentLines(self.params['Code Type'].val)
+                self.toggleCommentLines()
         elif keyCode == ord('V') and wx.MOD_CONTROL == _mods:
             self.Paste()
             return  # so that we don't reach the skip line at end
@@ -357,7 +361,7 @@ class CodeBox(BaseCodeEditor):
             event.Skip(False)
             self.CmdKeyExecute(wx.stc.STC_CMD_NEWLINE)
             if self.params is not None:
-                self.smartIdentThisLine(self.params['Code Type'].val)
+                self.smartIdentThisLine()
             return  # so that we don't reach the skip line at end
 
         event.Skip()
