@@ -26,7 +26,7 @@ if PY3:
     from importlib.util import find_spec as loader
 else:
     from pkgutil import find_loader as loader
-jsTranspilerLib = loader("metapensiero") is not None
+hasMetapensiero = loader("metapensiero") is not None
 
 from .. import validators
 from psychopy.localization import _translate
@@ -187,7 +187,7 @@ class DlgCodeComponentProperties(wx.Dialog):
                 if not pythonCode:  # Skip empty code panel
                     continue
 
-                if not jsTranspilerLib:  # metapensiero required for translation
+                if not hasMetapensiero:  # metapensiero required for translation
                     self.codeBoxes[jsBox].SetValue(("// Py to JS auto-translation requires the metapensiero libray\n"
                                                     "// metapensiero is available for Python 3.5+"))
                     return
