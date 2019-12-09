@@ -7,7 +7,7 @@ import sys
 class TestTranspiler(object):
 
     def setup(self):
-        self.supported = PY3 and parse_version(sys.version) < parse_version('3.8')
+        self.supported = PY3 and parse_version(sys.version[0:3]) <= parse_version('3.7')
 
     def runTranspile(self, py, js):
         if self.supported:
