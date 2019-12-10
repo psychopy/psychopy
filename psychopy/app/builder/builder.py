@@ -1790,17 +1790,6 @@ class BuilderFrame(wx.Frame):
 
         if dlg.ShowModal() == wx.ID_OK:
             newPath = dlg.GetPath()
-            parentPath = os.path.split(newPath)[0]
-            parentDir = os.path.basename(os.path.normpath(parentPath)).lower()
-
-            # Block SaveAs to Desktop folder
-            if parentDir == "desktop":
-                wx.MessageBox("You cannot save projects to the Desktop. Please find another folder.",
-                              "File Save Error",
-                              wx.ICON_QUESTION | wx.OK)
-                self.fileSaveAs(filename)
-                return returnVal
-
             # update exp name
             # if user has not manually renamed experiment
             if usingDefaultName:
