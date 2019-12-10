@@ -398,7 +398,7 @@ class ProjectFrame(wx.Dialog):
 
         self.mainSizer = wx.BoxSizer(wx.VERTICAL)
         self.mainSizer.Add(self.detailsPanel, 1, wx.EXPAND | wx.ALL, 5)
-        self.mainSizer.Add(self.alertPanel, .5, wx.EXPAND | wx.ALL, 5)
+        self.mainSizer.Add(self.alertPanel, .5, wx.EXPAND | wx.ALL, 10)
         self.SetSizerAndFit(self.mainSizer)
 
         if self.parent:
