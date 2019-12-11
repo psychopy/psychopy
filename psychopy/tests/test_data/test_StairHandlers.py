@@ -595,6 +595,25 @@ class TestQuestHandler(_BaseTestStairHandler):
         q_loaded = fromFile(path)
         assert q == q_loaded
 
+    def test_epsilon(self):
+        # Values used by Harvey (1986).
+        beta = 3.5
+        gamma = 0
+        delta = 0
+        epsilon = 0.0571
+        
+        # Estimate the target proportion correct based on epsilon
+        def weibull(x, beta, gamma, delta):
+            p = delta*gamma + (1-delta) * (1 - (1-gamma) * np.exp(-10 ** (beta*x)))
+            return p
+
+        p = weibull(x=epsilon, beta=beta, gamma=gamma, delta=delta)
+        
+        q = data.QuestHandler(0.5, 0.2, pThreshold=p, beta=3.5,
+                              gamma=0, delta=0)
+        
+        assert np.isclose(q.epsilon, epsilon, atol=1e-4)
+
 
 class TestPsiHandler(_BaseTestStairHandler):
     def test_comparison_equals(self):
