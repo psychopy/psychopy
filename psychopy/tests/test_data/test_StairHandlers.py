@@ -602,6 +602,11 @@ class TestQuestHandler(_BaseTestStairHandler):
         delta = 0
         epsilon = 0.0571
         
+        # QuestHandler needs this, but it doesn't influence our
+        # test. Values chosen arbitrarily.
+        startVal = 0.5
+        startValSd = 1
+        
         # Estimate the target proportion correct based on epsilon
         def weibull(x, beta, gamma, delta):
             p = delta*gamma + (1-delta) * (1 - (1-gamma) * np.exp(-10 ** (beta*x)))
@@ -609,8 +614,8 @@ class TestQuestHandler(_BaseTestStairHandler):
 
         p = weibull(x=epsilon, beta=beta, gamma=gamma, delta=delta)
         
-        q = data.QuestHandler(0.5, 0.2, pThreshold=p, beta=3.5,
-                              gamma=0, delta=0)
+        q = data.QuestHandler(startVal=startVal, startValSd=startValSd,
+                              pThreshold=p, beta=beta, gamma=gamma, delta=delta)
         
         assert np.isclose(q.epsilon, epsilon, atol=1e-4)
 
