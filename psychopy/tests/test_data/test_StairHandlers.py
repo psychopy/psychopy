@@ -596,7 +596,7 @@ class TestQuestHandler(_BaseTestStairHandler):
         assert q == q_loaded
 
     def test_epsilon(self):
-        # Values used by Harvey (1986).
+        # Values used by Harvey (1986), Table 3.
         beta = 3.5
         gamma = 0
         delta = 0
@@ -607,7 +607,10 @@ class TestQuestHandler(_BaseTestStairHandler):
         startVal = 0.5
         startValSd = 1
         
-        # Estimate the target proportion correct based on epsilon
+        # Estimate the target proportion correct based on epsilon.
+        # (The values provided by Harvey (1986) are rounded to two
+        #  decimal places and, therefore, too imprecise. So we
+        #  have to we calculate it again.)
         def weibull(x, beta, gamma, delta):
             p = delta*gamma + (1-delta) * (1 - (1-gamma) * np.exp(-10 ** (beta*x)))
             return p
