@@ -692,12 +692,18 @@ class QuestHandler(StairHandler):
     Measures threshold using a Weibull psychometric function. Currently, it is
     not possible to use a different psychometric function.
 
-    Threshold 't' is measured on an abstract 'intensity' scale, which
-    usually corresponds to log10 contrast.
+    The Weibull psychometric function is given by the formula
+    
+    :math:`\Psi(x) = \delta \gamma + (1 - \delta) [1 - (1 - \gamma)\, \exp(-10^{\beta (x - T + \epsilon)})]`
 
-    The Weibull psychometric function:
-
-    Psi(x) = delta * gamma + (1-delta) * (1 - (1 - gamma) * exp(-10 ** (beta * (x - xThreshold))))
+    Here, :math:`x` is an intensity or a contrast (in log10 units), and :math:`T` is estimated threshold.
+    
+    Quest internally shifts the psychometric function such that intensity at the user-specified
+    threshold performance level ``pThreshold`` (e.g., 50% in a yes-no or 75% in a 2-AFC task) is euqal to 0.
+    The parameter :math:`\epsilon` is responsible for this shift, and is determined automatically based on the
+    specified ``pThreshold`` value. It is the parameter Watson & Pelli (1983) introduced to perform measurements
+    at the "optimal sweat factor". Assuming your ``QuestHandler`` instance is called ``q``, you can retrieve this
+    value via ``q.epsilon``.
 
     **Example**::
 
@@ -883,6 +889,9 @@ class QuestHandler(StairHandler):
     @property
     def delta(self):
         return self._quest.delta
+    @property
+    def epsilon(self):
+        return self._quest.xThreshold
 
     @property
     def grain(self):
