@@ -33,3 +33,4 @@ gitpython
 astunparse
 esprima
 pathlib
+javascripthon

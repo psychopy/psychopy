@@ -20,10 +20,19 @@ try:
 except ImportError:  # was here wx<4.0:
     from wx.lib import flatnotebook
 
-from .... import constants
+from psychopy.constants import PY3
+
+if PY3:
+    from importlib.util import find_spec as loader
+else:
+    from pkgutil import find_loader as loader
+hasMetapensiero = loader("metapensiero") is not None
+
 from .. import validators
 from psychopy.localization import _translate
 from psychopy.app.coder.codeEditorBase import BaseCodeEditor
+from psychopy.experiment.py2js_transpiler import translatePythonToJavaScript
+
 
 class DlgCodeComponentProperties(wx.Dialog):
     _style = (wx.DEFAULT_DIALOG_STYLE | wx.RESIZE_BORDER
@@ -93,6 +102,7 @@ class DlgCodeComponentProperties(wx.Dialog):
                 self.codeTypeName = wx.StaticText(self, wx.ID_ANY,
                                                   _translate(param.label))
             else:
+                codeType = ["Py", "JS"]["JS" in paramName]  # Give CodeBox a code type
                 tabName = paramName.replace("JS ", "")
                 if tabName in self.tabs:
                     _panel = self.tabs[tabName]
@@ -105,7 +115,8 @@ class DlgCodeComponentProperties(wx.Dialog):
                                                     pos=wx.DefaultPosition,
                                                     style=0,
                                                     prefs=self.app.prefs,
-                                                    params=params)
+                                                    params=params,
+                                                    codeType=codeType)
                 self.codeBoxes[paramName].AddText(param.val)
                 if len(param.val.strip()) and openToPage is None:
                     # index of first non-blank page
@@ -135,6 +146,7 @@ class DlgCodeComponentProperties(wx.Dialog):
         ret = self.ShowModal()
 
         if ret == wx.ID_OK:
+            self.translateCode()
             self.checkName()
             self.OK = True
             self.params = self.getParams()  # get new vals from dlg
@@ -147,15 +159,51 @@ class DlgCodeComponentProperties(wx.Dialog):
         """Set code to JS or Python.
         Calls onKeyEvent to show/hide duplicate window.
         """
-        param = self.params['Code Type']
-        formerCodeType = param.val
+        param = self.params['Code Type']  # Update param with menu selection
         param.val = param.allowedVals[self.codeTypeMenu.GetSelection()]
-        if param == "Both":
-            self.updateVisibleCode(event, formerCodeType, 'Show')
-            return
-        self.updateVisibleCode(event, formerCodeType, 'Hide')
+        self.translateCode(event)
+        self.updateVisibleCode(event)
 
-    def updateVisibleCode(self, event=None, formerCodeType=None, winControl='Hide', ):
+    def translateCode(self, event=None):
+        """For each code box, translate Python code to JavaScript.
+        """
+        param = self.params['Code Type']
+        param.val = param.allowedVals[self.codeTypeMenu.GetSelection()]
+
+        if not param.val == "Auto->JS":
+            return
+
+        for boxName in self.codeBoxes:
+            if 'JS' not in boxName:
+                jsBox = boxName.replace(' ', ' JS ')
+                pythonCode = self.codeBoxes[boxName].GetValue()
+                jsCode = self.codeBoxes[jsBox].GetValue()
+
+                if jsCode:
+                    dlg = CodeOverwriteDialog(self, -1, "Warning: Python to JavaScript Translation")
+                    retVal = dlg.ShowModal()
+                    if not retVal == wx.ID_OK:
+                        return
+
+
+                if not pythonCode:  # Skip empty code panel
+                    continue
+
+                if not hasMetapensiero:  # metapensiero required for translation
+                    self.codeBoxes[jsBox].SetValue(("// Py to JS auto-translation requires the metapensiero libray\n"
+                                                    "// metapensiero is available for Python 3.5+"))
+                    return
+
+                try:
+                    jsCode = translatePythonToJavaScript(pythonCode)
+                    self.codeBoxes[jsBox].SetValue(jsCode)
+                except Exception as err:
+                    print("{} : {}".format(boxName, err))
+
+        if event:
+            event.Skip()
+
+    def updateVisibleCode(self, event=None):
         """Receives keyboard events and code menu choice events.
         On choice events, the code is stored for python or JS parameters,
         and written to panel depending on choice of code. The duplicate panel
@@ -164,7 +212,7 @@ class DlgCodeComponentProperties(wx.Dialog):
         """
         codeType = self.params['Code Type'].val
         for boxName in self.codeBoxes:
-            if codeType.lower() == 'both':
+            if codeType.lower() in ['both', 'auto->js']:
                 self.codeBoxes[boxName].Show()
             elif codeType == 'JS':
                 # user only wants JS code visible
@@ -272,12 +320,14 @@ class CodeBox(BaseCodeEditor):
                  # wx.aui control
                  pos=wx.DefaultPosition, size=wx.Size(100, 160),
                  style=0,
-                 params=None):
+                 params=None,
+                 codeType='Py'):
+
         BaseCodeEditor.__init__(self, parent, ID, pos, size, style)
 
         self.prefs = prefs
         self.params = params
-
+        self.codeType = codeType
         self.SetLexer(wx.stc.STC_LEX_PYTHON)
         self.SetKeyWords(0, " ".join(keyword.kwlist))
 
@@ -301,7 +351,7 @@ class CodeBox(BaseCodeEditor):
         # Check combination keys
         if keyCode == ord('/') and wx.MOD_CONTROL == _mods:
             if self.params is not None:
-                self.toggleCommentLines(self.params['Code Type'].val)
+                self.toggleCommentLines()
         elif keyCode == ord('V') and wx.MOD_CONTROL == _mods:
             self.Paste()
             return  # so that we don't reach the skip line at end
@@ -311,7 +361,7 @@ class CodeBox(BaseCodeEditor):
             event.Skip(False)
             self.CmdKeyExecute(wx.stc.STC_CMD_NEWLINE)
             if self.params is not None:
-                self.smartIdentThisLine(self.params['Code Type'].val)
+                self.smartIdentThisLine()
             return  # so that we don't reach the skip line at end
 
         event.Skip()
@@ -422,3 +472,44 @@ class CodeBox(BaseCodeEditor):
                         self.Expand(lineClicked, True, True, 100)
                 else:
                     self.ToggleFold(lineClicked)
+
+class CodeOverwriteDialog(wx.Dialog):
+    def __init__(self, parent, ID, title,
+                 size=wx.DefaultSize,
+                 pos=wx.DefaultPosition,
+                 style=wx.DEFAULT_DIALOG_STYLE):
+
+        wx.Dialog.__init__(self, parent, ID, title,
+                           size=size, pos=pos, style=style)
+
+        sizer = wx.BoxSizer(wx.VERTICAL)
+
+        # Set warning Message
+        msg = _translate("\nWarning, Auto-JS translate will overwrite your existing JavaScript code.\n"
+                         "To save your existing JavaScript, press 'Cancel'and set code type: 'Both', 'Py', or 'JS'.\n")
+        warning = wx.StaticText(self, wx.ID_ANY, msg)
+        warning.SetForegroundColour((200, 0, 0))
+        sizer.Add(warning, 0, wx.ALIGN_CENTRE | wx.ALL, 5)
+
+        # Set divider
+        line = wx.StaticLine(self, wx.ID_ANY, size=(20, -1), style=wx.LI_HORIZONTAL)
+        sizer.Add(line, 0, wx.GROW | wx.ALIGN_CENTER_VERTICAL | wx.RIGHT | wx.TOP, 5)
+
+        # Set buttons
+        btnsizer = wx.StdDialogButtonSizer()
+
+        btn = wx.Button(self, wx.ID_OK)
+        btn.SetHelpText("The OK button completes the dialog")
+        btn.SetDefault()
+        btnsizer.AddButton(btn)
+
+        btn = wx.Button(self, wx.ID_CANCEL)
+        btn.SetHelpText("The Cancel button cancels the dialog. (Crazy, huh?)")
+        btnsizer.AddButton(btn)
+        btnsizer.Realize()
+
+        sizer.Add(btnsizer, 0, wx.ALIGN_RIGHT | wx.ALL, 5)
+
+        # Center and size
+        self.CenterOnScreen()
+        self.SetSizerAndFit(sizer)

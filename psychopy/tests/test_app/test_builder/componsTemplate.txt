@@ -406,7 +406,7 @@ CodeComponent.Code Type.default:'Py'
 CodeComponent.Code Type.allowedLabels:[]
 CodeComponent.Code Type.allowedTypes:[]
 CodeComponent.Code Type.allowedUpdates:None
-CodeComponent.Code Type.allowedVals:['Py', 'JS', 'Both']
+CodeComponent.Code Type.allowedVals:['Py', 'JS', 'Both', 'Auto->JS']
 CodeComponent.Code Type.categ:Basic
 CodeComponent.Code Type.hint:Display Python or JS Code
 CodeComponent.Code Type.label:Code Type
@@ -5265,31 +5265,31 @@ RatingScaleComponent.visualAnalogScale.updates:constant
 RatingScaleComponent.visualAnalogScale.val:False
 RatingScaleComponent.visualAnalogScale.valType:bool
 SettingsComponent.order:['expName', 'Show info dlg', 'Experiment info', 'Data filename', 'Save excel file', 'Save csv file', 'Save wide csv file', 'Save psydat file', 'Save log file', 'logging level', 'Monitor', 'Screen', 'Full-screen window', 'Window size (pixels)', 'color', 'colorSpace', 'Units', 'HTML path']
-SettingsComponent.Audio latency priority.default:'Use prefs'
-SettingsComponent.Audio latency priority.allowedLabels:['Use prefs', '0: Latency not important', '1: Share low-latency driver', '2: Exclusive low-latency', '3: Aggressive low-latency', '4: Latency critical']
+SettingsComponent.Audio latency priority.default:'use prefs'
+SettingsComponent.Audio latency priority.allowedLabels:['use prefs', '0: Latency not important', '1: Share low-latency driver', '2: Exclusive low-latency', '3: Aggressive low-latency', '4: Latency critical']
 SettingsComponent.Audio latency priority.allowedTypes:[]
 SettingsComponent.Audio latency priority.allowedUpdates:None
-SettingsComponent.Audio latency priority.allowedVals:['Use prefs', '0', '1', '2', '3', '4']
+SettingsComponent.Audio latency priority.allowedVals:['use prefs', '0', '1', '2', '3', '4']
 SettingsComponent.Audio latency priority.categ:Audio
 SettingsComponent.Audio latency priority.hint:How important is audio latency for you? If essential then you may need to get all your sounds in correct formats.
 SettingsComponent.Audio latency priority.label:Audio latency priority
 SettingsComponent.Audio latency priority.readOnly:False
 SettingsComponent.Audio latency priority.staticUpdater:None
 SettingsComponent.Audio latency priority.updates:None
-SettingsComponent.Audio latency priority.val:Use prefs
+SettingsComponent.Audio latency priority.val:use prefs
 SettingsComponent.Audio latency priority.valType:str
-SettingsComponent.Audio lib.default:'Use prefs'
+SettingsComponent.Audio lib.default:'use prefs'
 SettingsComponent.Audio lib.allowedLabels:[]
 SettingsComponent.Audio lib.allowedTypes:[]
 SettingsComponent.Audio lib.allowedUpdates:None
-SettingsComponent.Audio lib.allowedVals:['Use prefs', 'ptb', 'pyo', 'sounddevice', 'pygame']
+SettingsComponent.Audio lib.allowedVals:['use prefs', 'ptb', 'pyo', 'sounddevice', 'pygame']
 SettingsComponent.Audio lib.categ:Audio
 SettingsComponent.Audio lib.hint:Which Python sound engine do you want to play your sounds?
 SettingsComponent.Audio lib.label:Audio library
 SettingsComponent.Audio lib.readOnly:False
 SettingsComponent.Audio lib.staticUpdater:None
 SettingsComponent.Audio lib.updates:None
-SettingsComponent.Audio lib.val:Use prefs
+SettingsComponent.Audio lib.val:use prefs
 SettingsComponent.Audio lib.valType:str
 SettingsComponent.Completed URL.default:''
 SettingsComponent.Completed URL.allowedLabels:[]
@@ -5544,7 +5544,7 @@ SettingsComponent.Use version.default:''
 SettingsComponent.Use version.allowedLabels:[]
 SettingsComponent.Use version.allowedTypes:[]
 SettingsComponent.Use version.allowedUpdates:None
-SettingsComponent.Use version.allowedVals:['latest', '3', '3.1', '3.0', '1.90', '', '3.1.5', '3.1.4', '3.1.3', '3.1.2', '3.1.1', '3.1.0', '3.0.7', '3.0.6', '3.0.5', '3.0.4', '3.0.3', '3.0.2', '3.0.1', '3.0.0', '1.90.2', '1.90.1', '1.90.0']
+SettingsComponent.Use version.allowedVals:['latest', '3.2', '3.1', '3.0', '1.90', '', '3.2.4', '3.2.3', '3.2.2', '3.2.1', '3.2.0', '3.1.5', '3.1.4', '3.1.3', '3.1.2', '3.1.1', '3.1.0', '3.0.7', '3.0.6', '3.0.5', '3.0.4', '3.0.3', '3.0.2', '3.0.1', '3.0.0', '1.90.2', '1.90.1', '1.90.0']
 SettingsComponent.Use version.categ:Basic
 SettingsComponent.Use version.hint:The version of PsychoPy to use when running the experiment.
 SettingsComponent.Use version.label:Use PsychoPy version
