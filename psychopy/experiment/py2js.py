@@ -81,9 +81,13 @@ def expression2js(expr):
     # into a list for the number of tuples in the expression.
     try:
         syntaxTree = ast.parse(expr)
-    except Exception as err:
-        logging.error(err)
-        syntaxTree = ast.parse(unicode(expr))
+    except Exception:
+        try:
+            syntaxTree = ast.parse(unicode(expr))
+        except Exception as err:
+            logging.error(err)
+            return
+
 
     for node in ast.walk(syntaxTree):
         TupleTransformer().visit(node)  # Transform tuples to list
