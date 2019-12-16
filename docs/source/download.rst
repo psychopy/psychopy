@@ -139,8 +139,11 @@ open your terminal, navigate to the directory you saved the file to, and run::
 
   conda env create -n psychopy -f psychopy-env.yml
 
-This will create an environment named `psychopy`, which you can subsequently
-acivate to run PsychoPy::
+This will create an environment named ``psychopy``. On Linux, the ``wxPython`` dependency of PsychoPy is linked
+against ``webkitgtk``, which needs to be installed manually, e.g. via ``sudo apt install libwebkitgtk-1.0`` on Debian-based
+systems linke Ubuntu.
+
+To activate the newly-created environment and run PsychoPy, exceute::
 
   conda activate psychopy
   psychopy

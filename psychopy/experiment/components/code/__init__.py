@@ -37,23 +37,24 @@ class CodeComponent(BaseComponent):
 
     def __init__(self, exp, parentName, name='code',
                  beginExp="", beginRoutine="", eachFrame="", endRoutine="",
-                 endExperiment="", codeType="Py"):
+                 endExperiment="", codeType="Auto->JS", translator="manual"):
         super(CodeComponent, self).__init__(exp, parentName, name)
         self.type = 'Code'
         self.targets = ['PsychoPy', 'PsychoJS']
         self.url = "http://www.psychopy.org/builder/components/code.html"
         # params
         # want a copy, else codeParamNames list gets mutated
-        self.order = ['name', 'Code Type', 'Begin Experiment', 'Begin Routine',
+        self.order = ['name', 'Code Type',
+                      'Begin Experiment', 'Begin Routine',
                       'Each Frame', 'End Routine', 'End Experiment',
                       'Begin JS Experiment', 'Begin JS Routine',
                       'Each JS Frame', 'End JS Routine', 'End JS Experiment',
                       ]
 
-        msg = "Display Python or JS Code"
+        msg = _translate("Display Python or JS Code")
         self.params['Code Type'] = Param(
             codeType, valType='str', allowedTypes=[],
-            allowedVals=['Py', 'JS', 'Both'],
+            allowedVals=['Py', 'JS', 'Both', 'Auto->JS'],
             hint=msg,
             label=_localized['Code Type'])
 
