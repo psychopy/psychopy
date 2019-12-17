@@ -14,6 +14,8 @@ from psychopy import core, logging
 from psychopy.constants import (STARTED, PLAYING, PAUSED, FINISHED, STOPPED,
                                 NOT_STARTED, FOREVER)
 import os
+import io
+from contextlib import redirect_stdout
 travisCI = bool(str(os.environ.get('TRAVIS')).lower() == 'true')
 try:
     import pyo
@@ -23,13 +25,13 @@ except ImportError as err:
         raise exceptions.DependencyError(repr(err))
 
 from ._base import _SoundBase
-import sounddevice
 
 import atexit
 import threading
 from numpy import float64
 pyoSndServer = None
 audioDriver = None
+
 
 def _bestDriver(devNames, devIDs):
     """Find ASIO or Windows sound drivers
@@ -59,46 +61,59 @@ def _bestDriver(devNames, devIDs):
     else:
         return None, None
 
+
+def _query_devices():
+    f = io.StringIO()
+    with redirect_stdout(f):
+        pyo.pa_list_devices()
+    s = f.getvalue().strip().split("\n")[1:]
+    devices = []
+    for device in s:
+        info = {}
+        for v in device.split(",")[1:]:
+            info[v.strip().split(": ")[0]] = v.strip().split(": ")[1]
+        info["id"], info["type"] = device.split(",")[0].split(": ")
+        devices.append(info)
+    return devices
+
+
 def get_devices_infos():
-    devices = sounddevice.query_devices()
+    devices = _query_devices()
     in_devices = {}
     out_devices = {}
-    for id, device in enumerate(devices):
-        if device['max_input_channels'] > 0:
-            param = {'host api index':device['hostapi'],
-                     'latency':device['default_low_input_latency'],
-                     'default sr':device['default_samplerate'],
-                     'name':device['name']}
-            in_devices[id] = param
-        if device['max_output_channels'] > 0:
-            param = {'host api index':device['hostapi'],
-                     'latency':device['default_low_output_latency'],
-                     'default sr':device['default_samplerate'],
-                     'name':device['name']}
-            out_devices[id] = param
+    for device in devices:
+        param = {'host api index': device['host api index'],
+                 'latency': device['latency'],
+                 'default sr': device['default sr'],
+                 'name': device['name']}
+        if device['type'] == 'IN':
+            in_devices[int(device["id"])] = param
+        if device['type'] == 'OUT':
+            out_devices[int(device["id"])] = param
     return (in_devices, out_devices)
 
 
 def get_output_devices():
-    devices = sounddevice.query_devices()
+    devices = _query_devices()
     names = []
     ids = []
-    for id, device in enumerate(devices):
-        if device['max_output_channels'] > 0:
+    for device in devices:
+        if device['type'] == 'OUT':
             names.append(device['name'])
-            ids.append(id)
+            ids.append(int(device["id"]))
     return (names, ids)
 
 
 def get_input_devices():
-    devices = sounddevice.query_devices()
+    devices = _query_devices()
     names = []
     ids = []
-    for id, device in enumerate(devices):
-        if device['max_input_channels'] > 0:
+    for device in devices:
+        if device['type'] == 'IN':
             names.append(device['name'])
-            ids.append(id)
+            ids.append(int(device["id"]))
     return (names, ids)
+
 
 def getDevices(kind=None):
     """Returns a dict of dict of audio devices of specified `kind`
@@ -258,7 +273,7 @@ def init(rate=44100, stereo=True, buffer=128):
         pyoSndServer.boot()
     core.wait(0.5)  # wait for server to boot before starting the sound stream
     pyoSndServer.start()
-    
+
     #atexit is filo, will call stop then shutdown upon closing
     atexit.register(pyoSndServer.shutdown)
     atexit.register(pyoSndServer.stop)
