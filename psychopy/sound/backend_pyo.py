@@ -15,7 +15,18 @@ from psychopy.constants import (STARTED, PLAYING, PAUSED, FINISHED, STOPPED,
                                 NOT_STARTED, FOREVER)
 import os
 import io
-from contextlib import redirect_stdout
+try:
+    from contextlib import redirect_stdout
+except ImportError:
+    from sys import stdout
+    import contextlib
+    @contextlib.contextmanager
+    def redirect_stdout(target):
+        original = stdout
+        stdout = target
+        yield
+        stdout = original
+
 travisCI = bool(str(os.environ.get('TRAVIS')).lower() == 'true')
 try:
     import pyo
