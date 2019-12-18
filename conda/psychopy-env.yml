@@ -8,5 +8,5 @@ dependencies:
 - pip:
   - psychtoolbox
   - pygame
-  - pyparallel
-  - SoundFile
+  - pyparallel; platform_system != "Windows"
+  - SoundFile; platform_system == "Windows"
