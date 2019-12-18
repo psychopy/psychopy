@@ -8,13 +8,19 @@
 from __future__ import absolute_import, division, print_function
 
 from builtins import map
-from psychopy import prefs, exceptions
 from sys import platform
-from psychopy import core, logging
-from psychopy.constants import (STARTED, PLAYING, PAUSED, FINISHED, STOPPED,
-                                NOT_STARTED, FOREVER, PY3)
 import os
 import io
+import atexit
+import threading
+from numpy import float64
+from psychopy import prefs, exceptions
+from psychopy import core, logging
+from psychopy.constants import (STARTED, FINISHED, STOPPED, NOT_STARTED,
+                                FOREVER, PY3)
+from ._base import _SoundBase
+
+
 travisCI = bool(str(os.environ.get('TRAVIS')).lower() == 'true')
 try:
     import pyo
@@ -22,13 +28,6 @@ except ImportError as err:
     if not travisCI:
         # convert this import error to our own, pyo probably not installed
         raise exceptions.DependencyError(repr(err))
-
-from ._base import _SoundBase
-
-import atexit
-import threading
-from numpy import float64
-
 if PY3:
     from contextlib import redirect_stdout
 else:
@@ -137,7 +136,7 @@ def getDevices(kind=None):
     if kind is None:
         allDevs = inputs.copy()
         allDevs.update(outputs)
-    elif kind=='output':
+    elif kind == 'output':
         allDevs = outputs
     else:
         allDevs = inputs
@@ -145,7 +144,7 @@ def getDevices(kind=None):
     for ii in allDevs:  # in pyo this is a dict but keys are ii ! :-/
         dev = allDevs[ii]
         # newline characters must be removed
-        devName = dev['name'].replace('\r\n','')
+        devName = dev['name'].replace('\r\n', '')
         devs[devName] = dev
         dev['id'] = ii
     return devs
@@ -287,7 +286,7 @@ def init(rate=44100, stereo=True, buffer=128):
     core.wait(0.5)  # wait for server to boot before starting the sound stream
     pyoSndServer.start()
 
-    #atexit is filo, will call stop then shutdown upon closing
+    # atexit is filo, will call stop then shutdown upon closing
     atexit.register(pyoSndServer.shutdown)
     atexit.register(pyoSndServer.stop)
     try:
