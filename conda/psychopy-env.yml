@@ -8,5 +8,5 @@ dependencies:
 - pip:
   - psychtoolbox
   - pygame
-  - pyparallel; platform_system == "Darwin" or platform_system == "Linux"
+  - pyparallel; platform_system != "Windows"
   - SoundFile; platform_system == "Windows"
