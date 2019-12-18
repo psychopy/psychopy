@@ -60,7 +60,6 @@ from psychopy.app import pavlovia_ui
 from psychopy.projects import pavlovia
 
 from psychopy.scripts import psyexpCompile
-from psychopy.alerts import ErrorHandler
 
 
 canvasColor = [200, 200, 200]  # in prefs? ;-)
@@ -2168,9 +2167,6 @@ class BuilderFrame(wx.Frame):
         fullPath = self.filename.replace('.psyexp', '_lastrun.py')
         self.generateScript(fullPath)  # Build script based on current version selected
 
-        # redirect standard streams to log window
-        self.setStandardStream(True)
-
         # provide a running... message
         self.stdoutFrame.write((u"## Running: %s ##" % (fullPath))
                                .center(80, "#")+"\n")
@@ -2241,8 +2237,6 @@ class BuilderFrame(wx.Frame):
             self.stdoutFrame.Show()
             self.stdoutFrame.Raise()
 
-        # then return stdout to its org location
-        self.setStandardStream(False)
         self.scriptProcess = None
         self.Bind(wx.EVT_IDLE, None)
 
@@ -2367,42 +2361,15 @@ class BuilderFrame(wx.Frame):
     @property
     def stdoutFrame(self):
         """
-        Initializes app._stdoutFrame if closed.
+        Gets Experiment Runner stdout.
         """
-        if self.app._stdoutFrame is None:
-            self.app._stdoutFrame = stdOutRich.StdOutFrame(
-                parent=None, app=self.app, size=(700, 300))
-        return self.app._stdoutFrame
-
-    @property
-    def errorHandler(self):
-        """
-        Initializes app._errorHandler if not created.
-        """
-        if self.app._errorHandler is None:
-            self.app._errorHandler = ErrorHandler()
-        return self.app._errorHandler
-
-    def setStandardStream(self, capture):
-        """
-        Captures standard stream.
-
-        Parameters
-        ----------
-        capture: bool
-            True to capture std stream, False to release std stream.
-        """
-        if capture:
-            sys.stdout = self.stdoutFrame
-            sys.stderr = self.errorHandler
-        else:  # revert to the application setting (coder out or terminal)
-            sys.stdout = self.app._stdout
-            sys.stderr = self.app._stderr
+        return self.app.runner.stdOut
 
     def generateScript(self, experimentPath, target="PsychoPy"):
         """Generates python script from the current builder experiment"""
         # Set streams
-        self.setStandardStream(True)
+        self.app.runner.Show()
+        self.app.runner.Raise()
         self.stdoutFrame.write("Generating {} script...\n".format(target))
 
         if self.getIsModified():
@@ -2447,9 +2414,9 @@ class BuilderFrame(wx.Frame):
             traceback.print_exc(file=sys.stderr)
             self.gitFeedback(-1)
         finally:
-            self.stdoutFrame.Show()
-            self.errorHandler.flush()
-            # self.setStandardStream(False)
+            self.app.runner.Show()
+            self.app.runner.Raise()
+            self.stdoutFrame.flush()
 
     def _getHtmlPath(self, filename):
         expPath = os.path.split(filename)[0]

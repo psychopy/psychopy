@@ -1267,22 +1267,12 @@ class CoderFrame(wx.Frame):
                                  CloseButton(False).
                                  Bottom())
 
-        # create output viewer
-        self._origStdOut = sys.stdout  # keep track of previous output
-
         _style = wx.TE_MULTILINE | wx.TE_READONLY | wx.VSCROLL
-        self.outputWindow = stdOutRich.StdOutRich(
-            self, style=_style,
-            font=self.prefs['outputFont'],
-            fontSize=self.prefs['outputFontSize'])
+
+        self.outputWindow = self.app.runner.stdOut
         self.outputWindow.write(_translate('Welcome to PsychoPy3!') + '\n')
         self.outputWindow.write("v%s\n" % self.app.version)
         # Add context manager to output window
-        self.outputWindow.Bind(wx.EVT_CONTEXT_MENU, self.outputContextMenu)
-        self.shelf.AddPage(self.outputWindow, _translate('Output'))
-
-        if self.app._appLoaded:
-            self.setOutputWindow()
 
         if haveCode:
             useDefaultShell = True
@@ -1336,6 +1326,10 @@ class CoderFrame(wx.Frame):
             self.SetMinSize(wx.Size(400, 600))  # min size for whole window
             self.Fit()
             self.paneManager.Update()
+
+        if self.app._appLoaded:
+            self.setOutputWindow()
+
         self.SendSizeEvent()
         self.app.trackFrame(self)
 
@@ -2089,8 +2083,6 @@ class CoderFrame(wx.Frame):
         wasShown = self.IsShown()
         self.Hide()  # ugly to see it close all the files independently
 
-        sys.stdout = self._origStdOut  # discovered during __init__
-
         # store current appData
         self.appData['prevFiles'] = []
         currFiles = self.getOpenFilenames()
@@ -2517,6 +2509,9 @@ class CoderFrame(wx.Frame):
     def runFile(self, event):
         """Runs files by one of various methods
         """
+
+        self.app.runner.Show()
+
         fullPath = self.currentDoc.filename
         filename = os.path.split(fullPath)[1]
         # does the file need saving before running?
@@ -2676,15 +2671,10 @@ class CoderFrame(wx.Frame):
             # show the pane
             self.prefs['showOutput'] = True
             self.paneManager.GetPane('Shelf').Show()
-            # will we actually redirect the output?
-            # don't if we're doing py.tests or we lose the output
-            if not self.app.testMode:
-                self.app._stdout = sys.stdout = self.outputWindow
         else:
-            # show the pane
+            # hide the pane
             self.prefs['showOutput'] = False
             self.paneManager.GetPane('Shelf').Hide()
-            self.app._stdout = sys.stdout = sys.__stdout__
         self.app.prefs.saveUserPrefs()  # includes a validation
         self.paneManager.Update()
 

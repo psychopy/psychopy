@@ -146,6 +146,7 @@ class PsychoPyApp(wx.App):
 
         self._appLoaded = False  # set to true when all frames are created
         self.coder = None
+        self.runner = None
         self.version = psychopy.__version__
         # set default paths and prefs
         self.prefs = psychopy.prefs
@@ -161,7 +162,6 @@ class PsychoPyApp(wx.App):
         self._stdout = sys.stdout
         self._stderr = sys.stderr
         self._stdoutFrame = None
-        self._errorHandler = None
 
         if self.prefs.app['debugMode']:
             logging.console.setLevel(logging.DEBUG)
@@ -217,7 +217,7 @@ class PsychoPyApp(wx.App):
 
         from psychopy.compatibility import checkCompatibility
         # import coder and builder here but only use them later
-        from psychopy.app import coder, builder, dialogs
+        from psychopy.app import coder, builder, runner, dialogs
 
         if '--firstrun' in sys.argv:
             del sys.argv[sys.argv.index('--firstrun')]
@@ -316,10 +316,19 @@ class PsychoPyApp(wx.App):
         # create both frame for coder/builder as necess
         if splash:
             splash.SetText(_translate("  Creating frames..."))
+        # Always show runner
+        self.showRunner(builderFiles=exps, coderFiles=scripts)
         if mainFrame in ['both', 'coder']:
             self.showCoder(fileList=scripts)
         if mainFrame in ['both', 'builder']:
             self.showBuilder(fileList=exps)
+
+
+        # Runner captures standard streams until program closed
+        if not self.testMode:
+            self._stdout = sys.stdout = self.runner.stdOut
+            self._stderr = sys.stderr = self.runner.stdOut
+
 
         # send anonymous info to www.psychopy.org/usage.php
         # please don't disable this, it's important for PsychoPy's development
@@ -472,7 +481,7 @@ class PsychoPyApp(wx.App):
         return table
 
     def showCoder(self, event=None, fileList=None):
-        # have to reimport because it is ony local to __init__ so far
+        # have to reimport because it is only local to __init__ so far
         from . import coder
         if self.coder is None:
             title = "PsychoPy3 Coder (IDE) (v%s)"
@@ -499,7 +508,7 @@ class PsychoPyApp(wx.App):
         return thisFrame
 
     def showBuilder(self, event=None, fileList=()):
-        # have to reimport because it is ony local to __init__ so far
+        # have to reimport because it is only local to __init__ so far
         from psychopy.app import builder
         for fileName in fileList:
             if os.path.isfile(fileName):
@@ -512,17 +521,25 @@ class PsychoPyApp(wx.App):
             thisFrame.Show(True)
             thisFrame.Raise()
             self.SetTopWindow(thisFrame)
-    # def showShell(self, event=None):
-    #    from psychopy.app import ipythonShell  # have to reimport because
-    #        # it is ony local to __init__ so far
-    #    if self.shell is None:
-    #        self.shell = ipythonShell.ShellFrame(None, -1,
-    #            title="IPython in PsychoPy (v%s)" %self.version, app=self)
-    #        self.shell.Show()
-    #        self.shell.SendSizeEvent()
-    #    self.shell.Raise()
-    #    self.SetTopWindow(self.shell)
-    #    self.shell.SetFocus()
+
+    def showRunner(self, event=None, builderFiles=None, coderFiles=None):
+        if not self.runner:
+            self.newRunnerFrame()
+        if not self.testMode:
+            self.runner.Show()
+            self.runner.Raise()
+            self.SetTopWindow(self.runner)
+
+    def newRunnerFrame(self, event=None, builderFiles=None, coderFiles=None):
+        # have to reimport because it is only local to __init__ so far
+        from .runner.runner import RunnerFrame
+        title = "PsychoPy3 Experiment Runner (v{})".format(self.version)
+
+        if self.runner is None:
+            self.runner = RunnerFrame(parent=None,
+                                      id=-1,
+                                      title=title,
+                                      app=self)
 
     def OnDrop(self, x, y, files):
         """Not clear this method ever gets called!"""

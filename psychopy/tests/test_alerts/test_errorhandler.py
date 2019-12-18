@@ -1,6 +1,6 @@
 import sys
-from psychopy.alerts._alerts import alert, AlertEntry, alertLog
-from psychopy.alerts._errorHandler import ErrorHandler
+from psychopy.alerts._alerts import alert, AlertEntry
+from psychopy.alerts._errorHandler import _BaseErrorHandler
 
 
 class TestErrorHandler():
@@ -8,12 +8,10 @@ class TestErrorHandler():
 
     def setup(self):
         # Set ErrorHandler
-        self.error = ErrorHandler()
-        sys.stderr = self.error
+        sys.stderr = self.error = _BaseErrorHandler()
 
     def teardown(self):
         sys.stderr = sys.__stderr__
-        del alertLog[:]
 
     def test_errorhandler(self):
         """Test error handler attributes"""
@@ -22,10 +20,7 @@ class TestErrorHandler():
         assert (hasattr(sys.stderr, "errors"))
         assert (sys.stderr.alerts == [])
 
-    def test_errorhandler_flush(self):
+    def test_errorhandler_receiveAlert(self):
         """Test flushing of alert to alertLog and clearing attributes"""
-        alert(9999, self)
+        alert(9999, self, {'testString': 'TEST MESSAGE'})
         assert (isinstance(sys.stderr.alerts[-1], AlertEntry))
-        sys.stderr.flush()
-        assert (isinstance(alertLog[0], AlertEntry))
-        assert (sys.stderr.alerts == [])
