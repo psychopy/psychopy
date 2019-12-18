@@ -4,9 +4,8 @@ channels:
 dependencies:
 - python=3.6
 - psychopy
-- pip
 - pip:
   - psychtoolbox
   - pygame
-  - pyparallel
-  - SoundFile
+  - pyparallel; platform_system == "Darwin" or platform_system == "Linux"
+  - SoundFile; platform_system == "Windows"
