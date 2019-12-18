@@ -8,9 +8,8 @@
 from __future__ import absolute_import, division, print_function
 
 from builtins import map
-from sys import platform
+import sys
 import os
-import io
 import atexit
 import threading
 from numpy import float64
@@ -30,15 +29,16 @@ except ImportError as err:
         raise exceptions.DependencyError(repr(err))
 if PY3:
     from contextlib import redirect_stdout
+    from io import StringIO
 else:
-    from sys import stdout
-    import contextlib
-    @contextlib.contextmanager
+    from cStringIO import StringIO
+    from contextlib import contextmanager
+    @contextmanager
     def redirect_stdout(target):
-        original = stdout
-        stdout = target
+        original = sys.stdout
+        sys.stdout = target
         yield
-        stdout = original
+        sys.stdout = original
 
 
 pyoSndServer = None
@@ -75,7 +75,7 @@ def _bestDriver(devNames, devIDs):
 
 
 def _query_devices():
-    f = io.StringIO()
+    f = StringIO()
     with redirect_stdout(f):
         pyo.pa_list_devices()
     s = f.getvalue().strip().split("\n")[1:]
@@ -202,7 +202,7 @@ def init(rate=44100, stereo=True, buffer=128):
                             buffersize=buffer, audio=audioDriver)
         pyoSndServer.boot()
     else:
-        if platform == 'win32':
+        if sys.platform == 'win32':
             # check for output device/driver
             devNames, devIDs = get_output_devices()
             audioDriver, outputID = _bestDriver(devNames, devIDs)
@@ -266,7 +266,7 @@ def init(rate=44100, stereo=True, buffer=128):
             return -1
 
         # create the instance of the server:
-        if platform == 'darwin' or platform.startswith('linux'):
+        if sys.platform == 'darwin' or sys.platform.startswith('linux'):
             # for mac/linux we set the backend using the server audio param
             pyoSndServer = Server(sr=rate, nchnls=maxChnls,
                                   buffersize=buffer, audio=audioDriver)
@@ -276,7 +276,7 @@ def init(rate=44100, stereo=True, buffer=128):
             pyoSndServer = Server(sr=rate, nchnls=maxChnls, buffersize=buffer)
 
         pyoSndServer.setVerbosity(1)
-        if platform == 'win32':
+        if sys.platform == 'win32':
             pyoSndServer.setOutputDevice(outputID)
             if inputID is not None:
                 pyoSndServer.setInputDevice(inputID)
@@ -293,7 +293,7 @@ def init(rate=44100, stereo=True, buffer=128):
         Sound()  # test creation, no play
     except pyo.PyoServerStateException:
         msg = "Failed to start pyo sound Server"
-        if platform == 'darwin' and audioDriver != 'portaudio':
+        if sys.platform == 'darwin' and audioDriver != 'portaudio':
             msg += "; maybe try prefs.general.audioDriver 'portaudio'?"
         logging.error(msg)
         core.quit()
