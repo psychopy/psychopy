@@ -9,3 +9,4 @@ dependencies:
   - psychtoolbox
   - pygame
   - pyparallel
+  - SoundFile
