@@ -12,21 +12,9 @@ from psychopy import prefs, exceptions
 from sys import platform
 from psychopy import core, logging
 from psychopy.constants import (STARTED, PLAYING, PAUSED, FINISHED, STOPPED,
-                                NOT_STARTED, FOREVER)
+                                NOT_STARTED, FOREVER, PY3)
 import os
 import io
-try:
-    from contextlib import redirect_stdout
-except ImportError:
-    from sys import stdout
-    import contextlib
-    @contextlib.contextmanager
-    def redirect_stdout(target):
-        original = stdout
-        stdout = target
-        yield
-        stdout = original
-
 travisCI = bool(str(os.environ.get('TRAVIS')).lower() == 'true')
 try:
     import pyo
@@ -40,6 +28,20 @@ from ._base import _SoundBase
 import atexit
 import threading
 from numpy import float64
+
+if PY3:
+    from contextlib import redirect_stdout
+else:
+    from sys import stdout
+    import contextlib
+    @contextlib.contextmanager
+    def redirect_stdout(target):
+        original = stdout
+        stdout = target
+        yield
+        stdout = original
+
+
 pyoSndServer = None
 audioDriver = None
 
