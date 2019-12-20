@@ -7,7 +7,6 @@
 from __future__ import absolute_import, print_function
 from setuptools.config import read_configuration
 import os, copy, platform, subprocess
-import distro
 from psychopy.constants import PY3
 
 thisLoc = os.path.split(__file__)[0]
@@ -102,7 +101,7 @@ if 'installing' not in locals():
     from psychopy.preferences import prefs
     for pathName in prefs.general['paths']:
         sys.path.append(pathName)
-    
+
     from psychopy.tools.versionchooser import useVersion, ensureMinimal
 
 """
@@ -141,6 +140,7 @@ def _getPlatformString(dist=None):
             OSXver, _, architecture = platform.mac_ver()
             systemInfo = "OSX_%s_%s" % (OSXver, architecture)
         elif os.sys.platform == 'linux':
+            import distro
             distro_ = distro.linux_distribution(full_distribution_name=False)
             systemInfo = '%s_%s_%s' % (
                 'Linux',
