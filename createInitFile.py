@@ -141,10 +141,9 @@ def _getPlatformString(dist=None):
             systemInfo = "OSX_%s_%s" % (OSXver, architecture)
         elif os.sys.platform == 'linux':
             import distro
-            distro_ = distro.linux_distribution(full_distribution_name=False)
             systemInfo = '%s_%s_%s' % (
                 'Linux',
-                ':'.join([x for x in distro_ if x != '']),
+                ':'.join([x for x in distro.linux_distribution() if x != '']),
                 platform.release())
             del distro_
         elif os.sys.platform == 'win32':
