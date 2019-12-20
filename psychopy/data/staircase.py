@@ -1422,7 +1422,9 @@ class QuestPlusHandler(StairHandler):
             For exmaple, to randomly pick a stimulus from those which will
             produce the 4 smallest expected entropies, and to allow the same
             stimulus to be presented on two consecutive trials max, use
-            `stimSelectionDuration=dict(N=4, maxConsecutiveReps=2)`.
+            `stimSelectionOptions=dict(N=4, maxConsecutiveReps=2)`.
+            To achieve reproducible results, you may pass a seed to the
+            random number generator via the `randomSeed` key.
 
         paramEstimationMethod : {'mean', 'mode'}
             How to calculate the final parameter estimate. `mean` returns the
@@ -1516,6 +1518,18 @@ class QuestPlusHandler(StairHandler):
         else:
             raise ValueError('Unknown stimSelectionMethod requested.')
 
+        if self.stimSelectionOptions is not None:
+            stimSelectionOptions_ = dict()
+
+            if 'N' in self.stimSelectionOptions:
+                stimSelectionOptions_['n'] = self.stimSelectionOptions['N']
+            if 'maxConsecutiveReps' in self.stimSelectionOptions:
+                stimSelectionOptions_['max_consecutive_reps'] = self.stimSelectionOptions['maxConsecutiveReps']
+            if 'randomSeed' in self.stimSelectionOptions:
+                stimSelectionOptions_['random_seed'] = self.stimSelectionOptions['randomSeed']
+        else:
+            stimSelectionOptions_ = self.stimSelectionOptions
+
         if self.psychometricFunc == 'weibull':
             self._qp = qp.QuestPlusWeibull(
                 intensities=self.intensityVals,
@@ -1526,7 +1540,7 @@ class QuestPlusHandler(StairHandler):
                 responses=self.responseVals,
                 stim_scale=self.stimScale,
                 stim_selection_method=stimSelectionMethod_,
-                stim_selection_options=self.stimSelectionOptions,
+                stim_selection_options=stimSelectionOptions_,
                 param_estimation_method=self.paramEstimationMethod)
         else:
             msg = ('Currently only the Weibull psychometric function is '

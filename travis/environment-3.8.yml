@@ -47,7 +47,7 @@ dependencies:
 - python-sounddevice
 - pyyaml
 - pyzmq
-- questplus
+- questplus >=2019.2
 - requests
 - scipy
 - wheel

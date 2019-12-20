@@ -1116,7 +1116,45 @@ def test_QuesPlusHandler_unused_StairHandler_attribs():
     assert q.stepType == q.stimScale
 
 
+def test_QuesPlusHandler_stimSelectionOptions():
+    import sys
+    if not (sys.version_info.major == 3 and sys.version_info.minor >= 6):
+        pytest.skip('QUEST+ only works on Python 3.6+')
+
+    from psychopy.data.staircase import QuestPlusHandler
+
+    thresholds = np.arange(-40, 0 + 1)
+    slope, guess, lapse = 3.5, 0.5, 0.02
+    contrasts = thresholds.copy()
+    response_vals = ['Correct', 'Incorrect']
+    func = 'weibull'
+    stim_scale = 'linear'
+    stim_selection_method = 'minNEntropy'
+    stim_selection_options = dict(N=10, maxConsecutiveReps=4, randomSeed=0)
+    stim_selection_options_qp = dict(n=10, max_consecutive_reps=4,
+                                     random_seed=0)
+
+    q = QuestPlusHandler(nTrials=20,
+                         intensityVals=contrasts,
+                         thresholdVals=thresholds,
+                         slopeVals=slope,
+                         lowerAsymptoteVals=guess,
+                         lapseRateVals=lapse,
+                         responseVals=response_vals,
+                         psychometricFunc=func,
+                         stimScale=stim_scale,
+                         stimSelectionMethod=stim_selection_method,
+                         stimSelectionOptions=stim_selection_options)
+
+    assert q.stimSelectionOptions == stim_selection_options
+    assert q._qp.stim_selection_options == stim_selection_options_qp
+
+
 if __name__ == '__main__':
-    # test_QuestPlusHandler()
-    # test_QuestPlusHandler_startIntensity()
+    test_QuestPlusHandler()
+    test_QuestPlusHandler_startIntensity()
     test_QuestPlusHandler_saveAsJson()
+    test_QuestPlusHandler_paramEstimate_weibull()
+    test_QuestPlusHandler_posterior_weibull()
+    test_QuesPlusHandler_unknown_kwargs()
+    test_QuesPlusHandler_unused_StairHandler_attribs()
