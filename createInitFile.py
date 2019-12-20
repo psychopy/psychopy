@@ -145,7 +145,6 @@ def _getPlatformString(dist=None):
                 'Linux',
                 ':'.join([x for x in distro.linux_distribution() if x != '']),
                 platform.release())
-            del distro_
         elif os.sys.platform == 'win32':
             ver = os.sys.getwindowsversion()
             if len(ver[4]) > 0:
