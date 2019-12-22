@@ -56,4 +56,5 @@ dependencies:
 - pip
 - pip:
   - pygame
+  - pyo
   - pyparallel
