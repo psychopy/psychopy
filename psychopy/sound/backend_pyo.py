@@ -8,12 +8,18 @@
 from __future__ import absolute_import, division, print_function
 
 from builtins import map
-from psychopy import prefs, exceptions
-from sys import platform
-from psychopy import core, logging
-from psychopy.constants import (STARTED, PLAYING, PAUSED, FINISHED, STOPPED,
-                                NOT_STARTED, FOREVER)
+import sys
 import os
+import atexit
+import threading
+from numpy import float64
+from psychopy import prefs, exceptions
+from psychopy import core, logging
+from psychopy.constants import (STARTED, FINISHED, STOPPED, NOT_STARTED,
+                                FOREVER, PY3)
+from ._base import _SoundBase
+
+
 travisCI = bool(str(os.environ.get('TRAVIS')).lower() == 'true')
 try:
     import pyo
@@ -21,15 +27,23 @@ except ImportError as err:
     if not travisCI:
         # convert this import error to our own, pyo probably not installed
         raise exceptions.DependencyError(repr(err))
+if PY3:
+    from contextlib import redirect_stdout
+    from io import StringIO
+else:
+    from cStringIO import StringIO
+    from contextlib import contextmanager
+    @contextmanager
+    def redirect_stdout(target):
+        original = sys.stdout
+        sys.stdout = target
+        yield
+        sys.stdout = original
 
-from ._base import _SoundBase
-import sounddevice
 
-import atexit
-import threading
-from numpy import float64
 pyoSndServer = None
 audioDriver = None
+
 
 def _bestDriver(devNames, devIDs):
     """Find ASIO or Windows sound drivers
@@ -59,46 +73,59 @@ def _bestDriver(devNames, devIDs):
     else:
         return None, None
 
+
+def _query_devices():
+    f = StringIO()
+    with redirect_stdout(f):
+        pyo.pa_list_devices()
+    s = f.getvalue().strip().split("\n")[1:]
+    devices = []
+    for device in s:
+        info = {}
+        for v in device.split(",")[1:]:
+            info[v.strip().split(": ")[0]] = v.strip().split(": ")[1]
+        info["id"], info["type"] = device.split(",")[0].split(": ")
+        devices.append(info)
+    return devices
+
+
 def get_devices_infos():
-    devices = sounddevice.query_devices()
+    devices = _query_devices()
     in_devices = {}
     out_devices = {}
-    for id, device in enumerate(devices):
-        if device['max_input_channels'] > 0:
-            param = {'host api index':device['hostapi'],
-                     'latency':device['default_low_input_latency'],
-                     'default sr':device['default_samplerate'],
-                     'name':device['name']}
-            in_devices[id] = param
-        if device['max_output_channels'] > 0:
-            param = {'host api index':device['hostapi'],
-                     'latency':device['default_low_output_latency'],
-                     'default sr':device['default_samplerate'],
-                     'name':device['name']}
-            out_devices[id] = param
+    for device in devices:
+        param = {'host api index': device['host api index'],
+                 'latency': device['latency'],
+                 'default sr': device['default sr'],
+                 'name': device['name']}
+        if device['type'] == 'IN':
+            in_devices[int(device["id"])] = param
+        if device['type'] == 'OUT':
+            out_devices[int(device["id"])] = param
     return (in_devices, out_devices)
 
 
 def get_output_devices():
-    devices = sounddevice.query_devices()
+    devices = _query_devices()
     names = []
     ids = []
-    for id, device in enumerate(devices):
-        if device['max_output_channels'] > 0:
+    for device in devices:
+        if device['type'] == 'OUT':
             names.append(device['name'])
-            ids.append(id)
+            ids.append(int(device["id"]))
     return (names, ids)
 
 
 def get_input_devices():
-    devices = sounddevice.query_devices()
+    devices = _query_devices()
     names = []
     ids = []
-    for id, device in enumerate(devices):
-        if device['max_input_channels'] > 0:
+    for device in devices:
+        if device['type'] == 'IN':
             names.append(device['name'])
-            ids.append(id)
+            ids.append(int(device["id"]))
     return (names, ids)
+
 
 def getDevices(kind=None):
     """Returns a dict of dict of audio devices of specified `kind`
@@ -109,7 +136,7 @@ def getDevices(kind=None):
     if kind is None:
         allDevs = inputs.copy()
         allDevs.update(outputs)
-    elif kind=='output':
+    elif kind == 'output':
         allDevs = outputs
     else:
         allDevs = inputs
@@ -117,7 +144,7 @@ def getDevices(kind=None):
     for ii in allDevs:  # in pyo this is a dict but keys are ii ! :-/
         dev = allDevs[ii]
         # newline characters must be removed
-        devName = dev['name'].replace('\r\n','')
+        devName = dev['name'].replace('\r\n', '')
         devs[devName] = dev
         dev['id'] = ii
     return devs
@@ -175,7 +202,7 @@ def init(rate=44100, stereo=True, buffer=128):
                             buffersize=buffer, audio=audioDriver)
         pyoSndServer.boot()
     else:
-        if platform == 'win32':
+        if sys.platform == 'win32':
             # check for output device/driver
             devNames, devIDs = get_output_devices()
             audioDriver, outputID = _bestDriver(devNames, devIDs)
@@ -239,7 +266,7 @@ def init(rate=44100, stereo=True, buffer=128):
             return -1
 
         # create the instance of the server:
-        if platform == 'darwin' or platform.startswith('linux'):
+        if sys.platform == 'darwin' or sys.platform.startswith('linux'):
             # for mac/linux we set the backend using the server audio param
             pyoSndServer = Server(sr=rate, nchnls=maxChnls,
                                   buffersize=buffer, audio=audioDriver)
@@ -249,7 +276,7 @@ def init(rate=44100, stereo=True, buffer=128):
             pyoSndServer = Server(sr=rate, nchnls=maxChnls, buffersize=buffer)
 
         pyoSndServer.setVerbosity(1)
-        if platform == 'win32':
+        if sys.platform == 'win32':
             pyoSndServer.setOutputDevice(outputID)
             if inputID is not None:
                 pyoSndServer.setInputDevice(inputID)
@@ -258,15 +285,15 @@ def init(rate=44100, stereo=True, buffer=128):
         pyoSndServer.boot()
     core.wait(0.5)  # wait for server to boot before starting the sound stream
     pyoSndServer.start()
-    
-    #atexit is filo, will call stop then shutdown upon closing
+
+    # atexit is filo, will call stop then shutdown upon closing
     atexit.register(pyoSndServer.shutdown)
     atexit.register(pyoSndServer.stop)
     try:
         Sound()  # test creation, no play
     except pyo.PyoServerStateException:
         msg = "Failed to start pyo sound Server"
-        if platform == 'darwin' and audioDriver != 'portaudio':
+        if sys.platform == 'darwin' and audioDriver != 'portaudio':
             msg += "; maybe try prefs.general.audioDriver 'portaudio'?"
         logging.error(msg)
         core.quit()
