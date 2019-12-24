@@ -1333,7 +1333,8 @@ class QuestPlusHandler(StairHandler):
                  nTrials,
                  intensityVals, thresholdVals, slopeVals,
                  lowerAsymptoteVals, lapseRateVals,
-                 responseVals=('Yes', 'No'), startIntensity=None,
+                 responseVals=('Yes', 'No'), prior=None,
+                 startIntensity=None,
                  psychometricFunc='weibull', stimScale='log10',
                  stimSelectionMethod='minEntropy',
                  stimSelectionOptions=None, paramEstimationMethod='mean',
@@ -1387,6 +1388,11 @@ class QuestPlusHandler(StairHandler):
             task, one would use `['Yes', 'No']`, and in an n-AFC task,
             `['Correct', 'Incorrect']`; or, alternatively, the less verbose
             `[1, 0]` in both cases.
+
+        prior : dict of floats
+            The prior probabilities to assign to the parameter values. The
+            dictionary keys correspond to the respective parameters:
+            ``threshold``, ``slope``, ``lowerAsymptote``, ``lapseRate``.
 
         startIntensity : float
             The very first intensity (or stimulus level) to present.
@@ -1509,8 +1515,9 @@ class QuestPlusHandler(StairHandler):
         self.stimSelectionMethod = stimSelectionMethod
         self.stimSelectionOptions = stimSelectionOptions
         self.paramEstimationMethod = paramEstimationMethod
+        self._prior = prior
 
-        # questplus uses different parameters.
+        # questplus uses different parameter names.
         if self.stimSelectionMethod == 'minEntropy':
             stimSelectionMethod_ = 'min_entropy'
         elif self.stimSelectionMethod == 'minNEntropy':
@@ -1519,6 +1526,12 @@ class QuestPlusHandler(StairHandler):
             raise ValueError('Unknown stimSelectionMethod requested.')
 
         if self.stimSelectionOptions is not None:
+            valid = ('N', 'maxConsecutiveReps', 'randomSeed')
+            if any([o not in valid for o in self.stimSelectionOptions]):
+                msg = ('Unknown stimSelectionOptions requested. '
+                       'Valid options are: %s' % ', '.join(valid))
+                raise ValueError(msg)
+
             stimSelectionOptions_ = dict()
 
             if 'N' in self.stimSelectionOptions:
@@ -1530,6 +1543,26 @@ class QuestPlusHandler(StairHandler):
         else:
             stimSelectionOptions_ = self.stimSelectionOptions
 
+        if self._prior is not None:
+            valid = ('threshold', 'slope', 'lapseRate', 'lowerAsymptote')
+            if any([p not in valid for p in self._prior]):
+                msg = ('Invalid prior parameter(s) specified. '
+                       'Valid parameter names are: %s' % ', '.join(valid))
+                raise ValueError(msg)
+
+            prior_ = dict()
+
+            if 'threshold' in self._prior:
+                prior_['threshold'] = self._prior['threshold']
+            if 'slope' in self._prior:
+                prior_['slope'] = self._prior['slope']
+            if 'lapseRate' in self._prior:
+                prior_['lapse_rate'] = self._prior['lapseRate']
+            if 'lowerAsymptote' in self._prior:
+                prior_['lower_asymptote'] = self._prior['lowerAsymptote']
+        else:
+            prior_ = self._prior
+
         if self.psychometricFunc == 'weibull':
             self._qp = qp.QuestPlusWeibull(
                 intensities=self.intensityVals,
@@ -1537,6 +1570,7 @@ class QuestPlusHandler(StairHandler):
                 slopes=self.slopeVals,
                 lower_asymptotes=self.lowerAsymptoteVals,
                 lapse_rates=self.lapseRateVals,
+                prior=prior_,
                 responses=self.responseVals,
                 stim_scale=self.stimScale,
                 stim_selection_method=stimSelectionMethod_,
@@ -1618,6 +1652,30 @@ class QuestPlusHandler(StairHandler):
                         lowerAsymptote=qp_estimate['lower_asymptote'],
                         lapseRate=qp_estimate['lapse_rate'])
         return estimate
+
+    @property
+    def prior(self):
+        """
+        The marginal prior distributions.
+
+        Returns
+        -------
+        dict of np.ndarrays
+            A dictionary whose keys correspond to the names of the parameters.
+
+        """
+        qp_prior = self._qp.prior
+
+        threshold = qp_prior.sum(dim=('slope', 'lower_asymptote', 'lapse_rate'))
+        slope = qp_prior.sum(dim=('threshold', 'lower_asymptote', 'lapse_rate'))
+        lowerAsymptote = qp_prior.sum(dim=('threshold', 'slope', 'lapse_rate'))
+        lapseRate = qp_prior.sum(dim=('threshold', 'slope', 'lower_asymptote'))
+
+        qp_prior = dict(threshold=threshold.values,
+                        slope=slope.values,
+                        lowerAsymptote=lowerAsymptote.values,
+                        lapseRate=lapseRate.values)
+        return qp_prior
 
     @property
     def posterior(self):

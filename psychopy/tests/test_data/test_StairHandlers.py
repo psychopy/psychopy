@@ -1150,6 +1150,87 @@ def test_QuesPlusHandler_stimSelectionOptions():
     assert q._qp.stim_selection_options == stim_selection_options_qp
 
 
+def test_QuesPlusHandler_prior():
+    import sys
+    if not (sys.version_info.major == 3 and sys.version_info.minor >= 6):
+        pytest.skip('QUEST+ only works on Python 3.6+')
+
+    from psychopy.data.staircase import QuestPlusHandler
+
+    thresholds = np.arange(-40, 0 + 1)
+    slope, guess, lapse = 3.5, 0.5, 0.02
+    contrasts = thresholds.copy()
+
+    threshold_prior_vals = np.random.randint(low=1, high=10,
+                                             size=len(thresholds))
+    threshold_prior_vals = threshold_prior_vals / threshold_prior_vals.sum()
+    prior = dict(threshold=threshold_prior_vals)
+
+    q = QuestPlusHandler(nTrials=20,
+                         intensityVals=contrasts,
+                         thresholdVals=thresholds,
+                         slopeVals=slope,
+                         lowerAsymptoteVals=guess,
+                         lapseRateVals=lapse,
+                         prior=prior)
+
+    assert np.allclose(q._qp.prior.squeeze().values, threshold_prior_vals)
+    # Even though we only specified a prior for threshold, all parameters
+    # should be present (auto-populated) in q.prior.
+    assert all([k in q.prior for k in ('threshold', 'slope', 'lowerAsymptote',
+                                       'lapseRate')])
+
+
+def test_QuesPlusHandler_invalid_prior_params():
+    import sys
+    if not (sys.version_info.major == 3 and sys.version_info.minor >= 6):
+        pytest.skip('QUEST+ only works on Python 3.6+')
+
+    from psychopy.data.staircase import QuestPlusHandler
+
+    thresholds = np.arange(-40, 0 + 1)
+    slope, guess, lapse = 3.5, 0.5, 0.02
+    contrasts = thresholds.copy()
+
+    prior_vals = np.random.randint(low=1, high=10,
+                                   size=len(thresholds))
+    prior_vals = prior_vals / prior_vals.sum()
+    prior = dict(unknownParam=prior_vals)
+
+    with pytest.raises(ValueError):
+        q = QuestPlusHandler(nTrials=20,
+                             intensityVals=contrasts,
+                             thresholdVals=thresholds,
+                             slopeVals=slope,
+                             lowerAsymptoteVals=guess,
+                             lapseRateVals=lapse,
+                             prior=prior)
+
+
+def test_QuesPlusHandler_unknown_stimSelectionOptions():
+    import sys
+    if not (sys.version_info.major == 3 and sys.version_info.minor >= 6):
+        pytest.skip('QUEST+ only works on Python 3.6+')
+
+    from psychopy.data.staircase import QuestPlusHandler
+
+    thresholds = np.arange(-40, 0 + 1)
+    slope, guess, lapse = 3.5, 0.5, 0.02
+    contrasts = thresholds.copy()
+    stim_selection_method = 'minNEntropy'
+    stim_selection_options = dict(unknownParam=1)
+
+    with pytest.raises(ValueError):
+        q = QuestPlusHandler(nTrials=20,
+                             intensityVals=contrasts,
+                             thresholdVals=thresholds,
+                             slopeVals=slope,
+                             lowerAsymptoteVals=guess,
+                             lapseRateVals=lapse,
+                             stimSelectionMethod=stim_selection_method,
+                             stimSelectionOptions=stim_selection_options)
+
+
 if __name__ == '__main__':
     test_QuestPlusHandler()
     test_QuestPlusHandler_startIntensity()
@@ -1158,3 +1239,7 @@ if __name__ == '__main__':
     test_QuestPlusHandler_posterior_weibull()
     test_QuesPlusHandler_unknown_kwargs()
     test_QuesPlusHandler_unused_StairHandler_attribs()
+    test_QuesPlusHandler_stimSelectionOptions()
+    test_QuesPlusHandler_prior()
+    test_QuesPlusHandler_invalid_prior_params()
+    test_QuesPlusHandler_unknown_stimSelectionOptions()
