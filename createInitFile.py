@@ -6,9 +6,11 @@
 
 from __future__ import absolute_import, print_function
 from setuptools.config import read_configuration
-import os, copy, platform, subprocess
-import distro
+import os
+import platform
+import subprocess
 from psychopy.constants import PY3
+
 
 thisLoc = os.path.split(__file__)[0]
 # import versioneer
@@ -31,7 +33,7 @@ def createInitFile(dist=None, version=None, sha=None):
     """
     # get default values if None
     if version is None:
-        with open(os.path.join(thisLoc,'version')) as f:
+        with open(os.path.join(thisLoc, 'version')) as f:
             version = f.read().strip()
     if sha is None:
         sha = _getGitShaString(dist)
@@ -49,12 +51,13 @@ def createInitFile(dist=None, version=None, sha=None):
                 'platform': platformStr}
 
     # write it
-    with open(os.path.join(thisLoc, 'psychopy','__init__.py'), 'w') as f:
+    with open(os.path.join(thisLoc, 'psychopy', '__init__.py'), 'w') as f:
         outStr = template.format(**infoDict)
         f.write(outStr)
     print('wrote init for ', version, sha)
     # and return it
     return outStr
+
 
 template = """#!/usr/bin/env python
 # -*- coding: utf-8 -*-
@@ -86,12 +89,12 @@ __all__ = ["gui", "misc", "visual", "core",
 # for developers the following allows access to the current git sha from
 # their repository
 if __git_sha__ == 'n/a':
-    import subprocess
+    from subprocess import check_output, PIPE
     # see if we're in a git repo and fetch from there
     try:
         thisFileLoc = os.path.split(__file__)[0]
-        output = subprocess.check_output(['git', 'rev-parse', '--short', 'HEAD'],
-                                         cwd=thisFileLoc, stderr=subprocess.PIPE)
+        output = check_output(['git', 'rev-parse', '--short', 'HEAD'],
+                              cwd=thisFileLoc, stderr=PIPE)
     except Exception:
         output = False
     if output:
@@ -102,7 +105,7 @@ if 'installing' not in locals():
     from psychopy.preferences import prefs
     for pathName in prefs.general['paths']:
         sys.path.append(pathName)
-    
+
     from psychopy.tools.versionchooser import useVersion, ensureMinimal
 
 """
@@ -125,32 +128,28 @@ def _getGitShaString(dist=None, sha=None):
             shaStr = "{}".format(repo_commit.strip())
         else:
             shaStr = 'n/a'
-        #this looks neater but raises errors on win32
-        #        output = subprocess.check_output(['git', 'rev-parse', '--short', 'HEAD']).split()[0]
-        #        if output:
-        #            shaStr = output
     return shaStr
 
 
 def _getPlatformString(dist=None):
     """If generic==True then returns empty __build_platform__ string
     """
-    if dist=='bdist':
+    if dist == 'bdist':
         # get platform-specific info
         if os.sys.platform == 'darwin':
             OSXver, _, architecture = platform.mac_ver()
             systemInfo = "OSX_%s_%s" % (OSXver, architecture)
         elif os.sys.platform == 'linux':
-            distro_ = distro.linux_distribution(full_distribution_name=False)
+            import distro
             systemInfo = '%s_%s_%s' % (
                 'Linux',
-                ':'.join([x for x in distro_ if x != '']),
+                ':'.join([x for x in distro.linux_distribution() if x != '']),
                 platform.release())
-            del distro_
         elif os.sys.platform == 'win32':
-            ver=os.sys.getwindowsversion()
-            if len(ver[4])>0:
-                systemInfo = "win32_v%i.%i.%i (%s)" %(ver[0], ver[1], ver[2], ver[4])
+            ver = os.sys.getwindowsversion()
+            if len(ver[4]) > 0:
+                systemInfo = "win32_v%i.%i.%i (%s)" % (ver[0], ver[1], ver[2],
+                                                       ver[4])
             else:
                 systemInfo = "win32_v%i.%i.%i" % (ver[0], ver[1], ver[2])
         else:
