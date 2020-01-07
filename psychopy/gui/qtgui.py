@@ -125,7 +125,9 @@ class Dlg(QtWidgets.QDialog):
             raise RuntimeWarning("Dlg does not currently support the "
                                  "style kwarg.")
         self.size = size
-        self.screen = screen
+
+        nScreens = len(qtapp.screens())
+        self.screen = -1 if screen >= nScreens else screen
         # self.labelButtonOK = labelButtonOK
         # self.labelButtonCancel = labelButtonCancel
 
