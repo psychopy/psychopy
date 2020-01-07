@@ -16,11 +16,10 @@ from setuptools.config import read_configuration
 import os
 from os.path import exists, join
 from sys import platform, argv, version_info
+import versioneer
 
-
+version = versioneer.get_version()
 PY3 = version_info >= (3, 0)
-with open('version') as f:
-    version = f.read().strip()
 
 #
 # Special handling for Anaconda / Miniconda

@@ -11,12 +11,7 @@ import platform
 import subprocess
 from psychopy.constants import PY3
 
-
 thisLoc = os.path.split(__file__)[0]
-# import versioneer
-# get version from file
-with open('version') as f:
-    version = f.read().strip()
 
 
 def createInitFile(dist=None, version=None, sha=None):
@@ -32,15 +27,13 @@ def createInitFile(dist=None, version=None, sha=None):
             and __build_platform__
     """
     # get default values if None
-    if version is None:
-        with open(os.path.join(thisLoc, 'version')) as f:
-            version = f.read().strip()
+    versionStr = _getVersionString(dist=dist, version=version)
     if sha is None:
         sha = _getGitShaString(dist)
     platformStr = _getPlatformString(dist)
 
     metadata = read_configuration('setup.cfg')['metadata']
-    infoDict = {'version': version,
+    infoDict = {'versionStr': versionStr,
                 'author': metadata['author'],
                 'author_email': metadata['author_email'],
                 'maintainer_email': metadata['maintainer_email'],
@@ -73,7 +66,7 @@ template = """#!/usr/bin/env python
 import os
 import sys
 
-__version__ = '{version}'
+{versionString}
 __license__ = '{license}'
 __author__ = '{author}'
 __author_email__ = '{author_email}'
@@ -110,6 +103,16 @@ if 'installing' not in locals():
 
 """
 
+
+def _getVersionString(dist=None, version=version):
+    if dist is None:
+        vString = ("from ._version import get_versions\n"
+                   "__version__ = get_versions()['version']\n"
+                   "del get_versions")
+    else:
+        import versioneer
+        version = versioneer.get_version()
+        vString = f"__version__ = {version}")
 
 def _getGitShaString(dist=None, sha=None):
     """If generic==True then returns empty __git_sha__ string
