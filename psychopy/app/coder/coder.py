@@ -2506,7 +2506,7 @@ class CoderFrame(wx.Frame):
         self.toolbar.EnableTool(self.IDs.cdrBtnRun, False)
         self.toolbar.EnableTool(self.IDs.cdrBtnStop, True)
 
-    def runFile(self, event):
+    def runFile(self, event=None):
         """Runs files by one of various methods
         """
 

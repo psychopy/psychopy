@@ -500,8 +500,8 @@ class PsychoPyApp(wx.App):
         from .builder.builder import BuilderFrame
         title = "PsychoPy3 Experiment Builder (v%s)"
         thisFrame = BuilderFrame(None, -1,
-                                         title=title % self.version,
-                                         fileName=fileName, app=self)
+                                 title=title % self.version,
+                                 fileName=fileName, app=self)
         thisFrame.Show(True)
         thisFrame.Raise()
         self.SetTopWindow(thisFrame)

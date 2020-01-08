@@ -2162,8 +2162,13 @@ class BuilderFrame(wx.Frame):
         """Gets absolute path of experiment so it can be stored with data at end of
            the experiment run
         """
+
         if not os.path.exists(self.filename):
             self.fileSave(self.filename)
+
+        self.app.runner.addExperiment(fileName=self.filename)
+        self.app.runner.Show()
+        self.app.runner.Raise()
         fullPath = self.filename.replace('.psyexp', '_lastrun.py')
         self.generateScript(fullPath)  # Build script based on current version selected
 
@@ -2368,8 +2373,6 @@ class BuilderFrame(wx.Frame):
     def generateScript(self, experimentPath, target="PsychoPy"):
         """Generates python script from the current builder experiment"""
         # Set streams
-        self.app.runner.Show()
-        self.app.runner.Raise()
         self.stdoutFrame.write("Generating {} script...\n".format(target))
 
         if self.getIsModified():

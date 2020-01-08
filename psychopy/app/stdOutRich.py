@@ -35,7 +35,7 @@ class StdOutRich(wx.richtext.RichTextCtrl, _BaseErrorHandler):
         self.parent = parent
         self.Bind(wx.EVT_TEXT_URL, parent.onURL)
 
-    def write(self, inStr):
+    def write(self, inStr, evt=None):
         self.MoveEnd()  # always 'append' text rather than 'writing' it
         """tracebacks have the form:
         Traceback (most recent call last):
@@ -54,6 +54,11 @@ class StdOutRich(wx.richtext.RichTextCtrl, _BaseErrorHandler):
             # Write category
             self.BeginTextColour([255, 0, 0])
             self.WriteText("{:<13}".format(alert.cat))
+            self.EndTextColour()
+
+            # Write name of component
+            self.BeginTextColour([200, 0, 230])
+            self.WriteText("{:<20}".format(alert.name))
             self.EndTextColour()
 
             # Write URL

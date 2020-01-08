@@ -143,6 +143,7 @@ def alert(code=None, obj=object, strFormat=None, trace=None):
                 "URL: {url} | "
                 "Message: {msg} | ".format(code=msg.code,
                                            cat=msg.cat,
+                                           name=msg.name,
                                            url=msg.url,
                                            msg=msg.msg,
                                            ))
