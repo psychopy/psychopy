@@ -12,15 +12,15 @@ import importlib
 import re
 
 
-def load_api_plugins(module, plugin='psychopy_.+'):
+def loadPlugins(module, plugin='psychopy_.+'):
     """Load a plugin to extend PsychoPy's coder API.
 
-    This function searches for any installed packages starting with `plugin`,
-    imports them, and add their attributes to namespace of `module`. Only
-    attributes defined explicitly `__all__` in the found packages will be
-    assigned attributes. Therefore, any packages that wish to extend the
-    PsychoPy API must have an `__all__` statement. Note that `module` should
-    be imported prior to attempting to loading a plugin.
+    This function searches for any installed packages named `plugin`, imports
+    them, and add their attributes to namespace of `module`. Only attributes
+    defined explicitly `__all__` in the found packages will be assigned
+    attributes. Therefore, any packages that wish to extend the PsychoPy API
+    must have an `__all__` statement. Note that `module` should be imported
+    prior to attempting to loading a plugin.
 
     Parameters
     ----------
@@ -51,18 +51,22 @@ def load_api_plugins(module, plugin='psychopy_.+'):
     Load all installed packages into the namespace of `psychopy.visual` prefixed
     with `psychopy_visual_`::
 
-        load_api_plugins('psychopy.visual', 'psychopy_visual_.+')
+        loadPlugins('psychopy.visual', 'psychopy_visual_.+')
 
     This can be called from the `__init__.py` of a package/module directory by
     using the `__name__` attribute::
 
-        load_api_plugins(__name__, 'psychopy_something_.+')
+        loadPlugins(__name__, 'psychopy_something_.+')
 
     Load all plugins on the system with names similar to `module`::
 
         # if __name__ == 'psychopy.visual', all packages starting with
         # `psychopy_visual_` will be loaded.
-        load_api_plugins(__name__)
+        loadPlugins(__name__)
+
+    Check if a plugin has been loaded::
+
+        hasPlugin = if 'my_plugin' in loadPlugins(__name__, 'my_plugin')
 
     """
     try:
@@ -94,4 +98,3 @@ def load_api_plugins(module, plugin='psychopy_.+'):
             loaded.append(name)
 
     return loaded
-
