@@ -26,7 +26,7 @@ def loadPlugins(module, plugin=None, ignore=None):
     Parameters
     ----------
     module : str or ModuleType
-        Import path of the module you wish to install the plugin (eg.
+        Import path or object of the module you wish to install the plugin (eg.
         'psychopy.visual').
     plugin : str or None
         Name of the plugin package to load. A name can also be given as a
