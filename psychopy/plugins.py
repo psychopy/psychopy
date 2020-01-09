@@ -18,12 +18,16 @@ import types
 def loadPlugins(module, plugins=None, paths=None, ignore=None):
     """Load a plugin to extend PsychoPy's coder API.
 
-    This function searches for any installed packages named `plugin`, imports
-    them, and add their attributes to namespace of `module`. Only attributes
-    defined explicitly `__all__` in the found packages will be assigned
-    attributes. Therefore, any packages that wish to extend the PsychoPy API
-    must have an `__all__` statement. Note that `module` should be imported
-    prior to attempting to load a plugin.
+    This function searches for any installed packages named in `plugins`,
+    imports them, and add their attributes to namespace of `module`. Only
+    attributes defined explicitly `__all__` in the found packages will be
+    assigned attributes. Therefore, any packages that wish to extend the
+    PsychoPy API must have an `__all__` statement. Note that `module` should be
+    imported prior to attempting to load a plugin. Plugins will only be loaded
+    once per session, where a plugin will be prevented from being imported again
+    if its name appears in `plugins` in successive calls to `loadPlugins`. Any
+    objects from subsequently loaded modules will override objects within a
+    namespace sharing the same names.
 
     Plugins may also be ZIP files (i.e. *.zip or *.egg) and will be imported if
     they reside in one of the `paths`.
@@ -34,19 +38,20 @@ def loadPlugins(module, plugins=None, paths=None, ignore=None):
         Import path or object of the module you wish to install the plugin (eg.
         'psychopy.visual').
     plugins : str, list or None
-        Name of the plugin package to load. A name can also be given as a
+        Name(s) of the plugin package(s) to load. A name can also be given as a
         regular expression for loading multiple packages with similar names. If
-        `None`, the `plugin` name will be derived from the `module` name and
+        `None`, the `plugins` name will be derived from the `module` name and
         all packages prefixed with the name will be loaded. For instance,
-        a if 'psychopy.visual' is given, all packages installed on the system
-        with names starting with 'psychopy_visual_' will be loaded.
+        if 'psychopy.visual' is given, all packages installed on the system
+        with names starting with 'psychopy_visual_' will be loaded. A list of
+        name strings can be given, where they will be loaded sequentially.
     paths : list
         List of paths (`str`) to look for plugins. If `None`, `paths` will be
         set to `sys.paths`.
     ignore : list or None
         List of plugin names to ignore. This prevents certain plugins installed
         on the system from being loaded if they match the pattern specified by
-        `plugin`. If `None`, all plugins will be loaded.
+        `plugins`. If `None`, all plugins will be loaded.
 
     Returns
     -------
@@ -77,9 +82,11 @@ def loadPlugins(module, plugins=None, paths=None, ignore=None):
         # module object
         loadPlugins(visual, 'psychopy_visual_.+')
 
-    You can load multiple, specific plugins using a list for `plugins`::
+    You can load multiple, specific plugins using a list for `plugins`. Note
+    that the second string in this example will match the first too, but it will
+    be ignored the second time::
 
-        loadPlugins(visual, ['psychopy_visual_.+', 'psychopy_hardware_box'])
+        loadPlugins(visual, ['psychopy_hardware_box', 'psychopy_visual_.+'])
 
     If plugins follow the standard naming convention, you can load all plugins
     installed on the system for a given `module` without specifying `plugin`::
@@ -113,12 +120,11 @@ def loadPlugins(module, plugins=None, paths=None, ignore=None):
             this_module = module
         else:
             raise ModuleNotFoundError(
-                'Cannot find module `{}` in current namespace. Has it been '
-                'imported yet?'.format(
-                    module))
+                'Module `{}` does not appear to be imported yet.'.format(
+                    module.__name__))
     else:
         raise ValueError('Object specified to `module` must be type `str` or '
-                         '`Module`.')
+                         '`ModuleType`.')
 
     # derive the plugin search string if not given
     if plugins is None:
