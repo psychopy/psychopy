@@ -6,6 +6,8 @@
 # Distributed under the terms of the GNU General Public License (GPL).
 """Utilities for loading plugins into PsychoPy."""
 
+__all__ = ['loadPlugins']
+
 import sys
 import pkgutil
 import importlib
@@ -13,7 +15,7 @@ import re
 import types
 
 
-def loadPlugins(module, plugin=None, paths=None, ignore=None):
+def loadPlugins(module, plugins=None, paths=None, ignore=None):
     """Load a plugin to extend PsychoPy's coder API.
 
     This function searches for any installed packages named `plugin`, imports
@@ -31,7 +33,7 @@ def loadPlugins(module, plugin=None, paths=None, ignore=None):
     module : str or ModuleType
         Import path or object of the module you wish to install the plugin (eg.
         'psychopy.visual').
-    plugin : str or None
+    plugins : str, list or None
         Name of the plugin package to load. A name can also be given as a
         regular expression for loading multiple packages with similar names. If
         `None`, the `plugin` name will be derived from the `module` name and
@@ -75,6 +77,10 @@ def loadPlugins(module, plugin=None, paths=None, ignore=None):
         # module object
         loadPlugins(visual, 'psychopy_visual_.+')
 
+    You can load multiple, specific plugins using a list for `plugins`::
+
+        loadPlugins(visual, ['psychopy_visual_.+', 'psychopy_hardware_box'])
+
     If plugins follow the standard naming convention, you can load all plugins
     installed on the system for a given `module` without specifying `plugin`::
 
@@ -115,28 +121,35 @@ def loadPlugins(module, plugin=None, paths=None, ignore=None):
                          '`Module`.')
 
     # derive the plugin search string if not given
-    if plugin is None:
-        plugin = ''
+    if plugins is None:
+        plugins = ''
         for i in this_module.__name__.split('.'):
-            plugin += i + '_'
-        plugin += '.+'
+            plugins += i + '_'
+        plugins += '.+'
+
+    if isinstance(plugins, str):
+        plugins = [plugins]
 
     # iterate over packages
     loaded = {}
-    for finder, name, ispkg in pkgutil.iter_modules(paths):
-        if re.search(plugin, name) and ispkg:
-            if ignore is not None and name in ignore:
-                continue
+    for plugin in plugins:
+        for finder, name, ispkg in pkgutil.iter_modules(paths):
+            if re.search(plugin, name) and ispkg:
+                if ignore is not None and name in ignore:
+                    continue
+                elif name in sys.modules.keys():
+                    # don't load a plugin twice if already in namespace
+                    continue
 
-            imp = importlib.import_module(name)  # import the module
+                imp = importlib.import_module(name)  # import the module
 
-            # get module level attributes exposed by __all__
-            attrs = sys.modules[imp.__name__].__all__
+                # get module level attributes exposed by __all__
+                attrs = sys.modules[imp.__name__].__all__
 
-            # create handles to those attributes in the module
-            for attr in attrs:
-                setattr(this_module, attr, getattr(imp, attr))
+                # create handles to those attributes in the module
+                for attr in attrs:
+                    setattr(this_module, attr, getattr(imp, attr))
 
-            loaded[name] = imp
+                loaded[name] = imp
 
     return loaded
