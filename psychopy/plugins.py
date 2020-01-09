@@ -10,6 +10,7 @@ import sys
 import pkgutil
 import importlib
 import re
+import types
 
 
 def loadPlugins(module, plugin=None, ignore=None):
@@ -24,7 +25,7 @@ def loadPlugins(module, plugin=None, ignore=None):
 
     Parameters
     ----------
-    module : str
+    module : str or ModuleType
         Import path of the module you wish to install the plugin (eg.
         'psychopy.visual').
     plugin : str or None
@@ -59,16 +60,22 @@ def loadPlugins(module, plugin=None, ignore=None):
         import psychopy.visual as visual
         loadPlugins('psychopy.visual', 'psychopy_visual_.+')
 
-    You can also use the `__name__` attribute of the module::
+    You can also use the `__name__` attribute of the module, or the module object
+    itself::
 
         import psychopy.visual as visual
         loadPlugins(visual.__name__, 'psychopy_visual_.+')
+
+        # module object
+        loadPlugins(visual, 'psychopy_visual_.+')
 
     If plugins follow the standard naming convention, you can load all plugins
     installed on the system for a given `module` without specifying `plugin`::
 
         import psychopy.visual as visual
         loadPlugins(visual.__name__)
+        # or ..
+        loadPlugins(visual)
 
     Check if a plugin has been loaded::
 
@@ -82,16 +89,29 @@ def loadPlugins(module, plugin=None, ignore=None):
         plugins.loadPlugins(visual.__name__, ignore=['psychopy_visual_bad'])
 
     """
-    try:
-        this_module = sys.modules[module]
-    except KeyError:
-        raise ModuleNotFoundError(
-            'Cannot find module `{}`. Has it been imported yet?'.format(module))
+    if isinstance(module, str):
+        try:
+            this_module = sys.modules[module]
+        except KeyError:
+            raise ModuleNotFoundError(
+                'Cannot find module `{}`. Has it been imported yet?'.format(
+                    module))
+    elif isinstance(module, types.ModuleType):
+        if module.__name__ in sys.modules.keys():
+            this_module = module
+        else:
+            raise ModuleNotFoundError(
+                'Cannot find module `{}` in current namespace. Has it been '
+                'imported yet?'.format(
+                    module))
+    else:
+        raise ValueError('Object specified to `module` must be type `str` or '
+                         '`Module`.')
 
     # derive the plugin search string if not given
     if plugin is None:
         plugin = ''
-        for i in module.split('.'):
+        for i in this_module.__name__.split('.'):
             plugin += i + '_'
         plugin += '.+'
 
