@@ -48,9 +48,9 @@ def loadPlugins(module, plugin=None, paths=None, ignore=None):
 
     Returns
     -------
-    list
-        Names of the plugins loaded. No plugins were loaded if the list is
-        empty.
+    dict
+        Names and modules of the loaded plugins. No plugins were loaded if the
+        dictionary will be empty.
 
     Warnings
     --------
@@ -122,7 +122,7 @@ def loadPlugins(module, plugin=None, paths=None, ignore=None):
         plugin += '.+'
 
     # iterate over packages
-    loaded = []
+    loaded = {}
     for finder, name, ispkg in pkgutil.iter_modules(paths):
         if re.search(plugin, name) and ispkg:
             if ignore is not None and name in ignore:
@@ -137,6 +137,6 @@ def loadPlugins(module, plugin=None, paths=None, ignore=None):
             for attr in attrs:
                 setattr(this_module, attr, getattr(imp, attr))
 
-            loaded.append(name)
+            loaded[name] = imp
 
     return loaded
