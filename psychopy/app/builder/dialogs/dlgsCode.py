@@ -97,7 +97,7 @@ class DlgCodeComponentProperties(wx.Dialog):
                 _codeTypes = self.params['Code Type'].allowedVals
                 self.codeTypeMenu = wx.Choice(self, choices=_codeTypes)
                 self.codeTypeMenu.SetSelection(
-                    _codeTypes.index(self.params['Code Type']))
+                    _codeTypes.index(_codeTypes[hasMetapensiero - 2]))
                 self.codeTypeMenu.Bind(wx.EVT_CHOICE, self.onCodeChoice)
                 self.codeTypeName = wx.StaticText(self, wx.ID_ANY,
                                                   _translate(param.label))
@@ -196,18 +196,39 @@ class DlgCodeComponentProperties(wx.Dialog):
             (previousCodeType, code type param)
         """
         param = self.params['Code Type']  # Update param with menu selection
-        previousCodeType = param.val
+        prevCodeType = param.val
         param.val = param.allowedVals[self.codeTypeMenu.GetSelection()]
-        return previousCodeType, param
+        return prevCodeType, param
+
+    def undoCodeTypeChoice(self, prevCodeType):
+        """
+        Return code type to previous selection.
+
+        Parameters
+        ----------
+        prevCodeType: str
+            Code Type
+        """
+        prevCodeTypeIndex = self.params['Code Type'].allowedVals.index(prevCodeType)
+        self.codeTypeMenu.SetSelection(prevCodeTypeIndex)
+        self.params['Code Type'].val = prevCodeType
 
     def onCodeChoice(self, event):
         """
         Set code to Python, JS, Both, or Auto->JS for translation.
         Calls translation and updates to visible windows
         """
-        previousCodeType, param = self.codeChoice
+        prevCodeType, param = self.codeChoice
 
-        self.translateCode(event, previousCodeType, param.val)
+        if not hasMetapensiero and param.val.lower() == "auto->js" :
+            msg = ("\nPy to JS auto-translation requires the metapensiero library.\n"
+                   "Available for Python 3.5+.\n")
+            dlg = CodeOverwriteDialog(self, -1, "Warning: requires the metapensiero library", msg)
+            dlg.ShowModal()
+            self.undoCodeTypeChoice(prevCodeType)
+            return
+
+        self.translateCode(event, prevCodeType, param.val)
         self.updateVisibleCode(event)
 
         if event:
@@ -231,12 +252,12 @@ class DlgCodeComponentProperties(wx.Dialog):
             return
 
         if prevCodeType.lower() != 'auto->js' and self.codeChangeDetected():
-            dlg = CodeOverwriteDialog(self, -1, "Warning: Python to JavaScript Translation")
+            msg = ("\nAuto-JS translation will overwrite your existing JavaScript code.\n"
+                   "Press OK to continue, or Cancel.\n")
+            dlg = CodeOverwriteDialog(self, -1, "Warning: Python to JavaScript Translation", msg)
             retVal = dlg.ShowModal()
             if not retVal == wx.ID_OK:
-                # Return to previous code type
-                prevCodeTypeIndex = self.params['Code Type'].allowedVals.index(prevCodeType)
-                self.codeTypeMenu.SetSelection(prevCodeTypeIndex)
+                self.undoCodeTypeChoice(prevCodeType)
                 return
 
         for boxName in self.codeBoxes:
@@ -269,16 +290,13 @@ class DlgCodeComponentProperties(wx.Dialog):
         pythonCode = self.codeBoxes[codeBox].GetValue()
         self.readOnlyCodeBox(False)
 
-        if not hasMetapensiero:  # metapensiero required for translation
-            self.codeBoxes[jsBox].SetValue(("// Py to JS auto-translation requires the metapensiero library\n"
-                                            "// metapensiero is available for Python 3.5+"))
-            return
-
         try:
             if pythonCode:
                 jsCode = translatePythonToJavaScript(pythonCode)
-                if codeChangeTest:
-                    return jsCode
+
+            if codeChangeTest:
+                return jsCode
+
             self.codeBoxes[jsBox].SetValue(jsCode)
         except Exception:  # Errors can be caught using alerts syntax checks
             if codeChangeTest:
@@ -584,6 +602,7 @@ class CodeBox(BaseCodeEditor):
 
 class CodeOverwriteDialog(wx.Dialog):
     def __init__(self, parent, ID, title,
+                 msg='',
                  size=wx.DefaultSize,
                  pos=wx.DefaultPosition,
                  style=wx.DEFAULT_DIALOG_STYLE):
@@ -594,8 +613,8 @@ class CodeOverwriteDialog(wx.Dialog):
         sizer = wx.BoxSizer(wx.VERTICAL)
 
         # Set warning Message
-        msg = _translate("\nWarning, Auto-JS translation will overwrite your existing JavaScript code.\n"
-                         "Press OK to continue, or Cancel.\n")
+        msg = _translate(msg)
+
         warning = wx.StaticText(self, wx.ID_ANY, msg)
         warning.SetForegroundColour((200, 0, 0))
         sizer.Add(warning, 0, wx.ALIGN_CENTRE | wx.ALL, 5)
