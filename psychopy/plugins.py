@@ -13,7 +13,7 @@ import re
 import types
 
 
-def loadPlugins(module, plugin=None, ignore=None):
+def loadPlugins(module, plugin=None, paths=None, ignore=None):
     """Load a plugin to extend PsychoPy's coder API.
 
     This function searches for any installed packages named `plugin`, imports
@@ -22,6 +22,9 @@ def loadPlugins(module, plugin=None, ignore=None):
     attributes. Therefore, any packages that wish to extend the PsychoPy API
     must have an `__all__` statement. Note that `module` should be imported
     prior to attempting to load a plugin.
+
+    Plugins may also be ZIP files (i.e. *.zip or *.egg) and will be imported if
+    they reside in one of the `paths`.
 
     Parameters
     ----------
@@ -35,6 +38,9 @@ def loadPlugins(module, plugin=None, ignore=None):
         all packages prefixed with the name will be loaded. For instance,
         a if 'psychopy.visual' is given, all packages installed on the system
         with names starting with 'psychopy_visual_' will be loaded.
+    paths : list
+        List of paths (`str`) to look for plugins. If `None`, `paths` will be
+        set to `sys.paths`.
     ignore : list or None
         List of plugin names to ignore. This prevents certain plugins installed
         on the system from being loaded if they match the pattern specified by
@@ -117,8 +123,8 @@ def loadPlugins(module, plugin=None, ignore=None):
 
     # iterate over packages
     loaded = []
-    for finder, name, ispkg in pkgutil.iter_modules():
-        if re.search(plugin, name):
+    for finder, name, ispkg in pkgutil.iter_modules(paths):
+        if re.search(plugin, name) and ispkg:
             if ignore is not None and name in ignore:
                 continue
 
