@@ -18,6 +18,7 @@ dependencies:
 - greenlet
 - imageio
 - imageio-ffmpeg
+- javascripthon
 - json_tricks
 - lxml
 - matplotlib
