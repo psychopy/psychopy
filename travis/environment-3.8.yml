@@ -60,4 +60,3 @@ dependencies:
   - pygame
   - pyo
   - pyparallel
-  - javascripthon
