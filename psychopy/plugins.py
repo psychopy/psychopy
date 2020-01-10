@@ -6,21 +6,163 @@
 # Distributed under the terms of the GNU General Public License (GPL).
 """Utilities for loading plugins into PsychoPy."""
 
-__all__ = ['loadPlugins']
+__all__ = ['loadPlugins', 'createPluginPackage']
 
 import sys
+import os
 import pkgutil
 import importlib
 import re
 import types
 
 
-def loadPlugins(module, plugins=None, paths=None, ignore=None):
+def createPluginPackage(packagePath,
+                        packageName,
+                        extends):
+    """Create a plugin package template for a PsychoPy module.
+
+    This generates a folder with setup scripts and a base package to get started
+    developing a plugin.
+
+    Parameters
+    ----------
+    packagePath : str
+        Path the create the plugin folder.
+    packageName : str
+        Name of the plugin. The name will be automatically prefixed with
+        'psychopy-' if it does not already.
+    extends : str or ModuleType
+        The PsychoPy module to extend as a fully qualified path or the module
+        object itself.
+
+    """
+    # make sure we are using the correct naming convention
+    name = packageName
+    if not packageName.startswith('psychopy-'):
+        packageName = 'psychopy-' + packageName
+
+    # create the directory
+    packagePath = os.path.join(packagePath, packageName)
+    if not os.path.exists(packagePath):
+        os.makedirs(packagePath)
+
+    # generate the base package name
+    if isinstance(extends, str):
+        try:
+            this_module = sys.modules[extends]
+        except KeyError:
+            raise ModuleNotFoundError(
+                'Cannot find module `{}`. Has it been imported yet?'.format(
+                    extends))
+    elif isinstance(extends, types.ModuleType):
+        if extends.__name__ in sys.modules.keys():
+            this_module = extends
+        else:
+            raise ModuleNotFoundError(
+                'Module `{}` does not appear to be imported yet.'.format(
+                    extends.__name__))
+    else:
+        raise ValueError('Object specified to `extends` must be type `str` or '
+                         '`ModuleType`.')
+
+    # derive the plugin search string if not given
+    baseName = ''
+    for i in this_module.__name__.split('.'):
+        baseName += i + '_'
+    baseName += name
+
+    # create a the root directory for the plugin
+    rootDir = os.path.join(packagePath, baseName)
+    if not os.path.exists(rootDir):
+        os.makedirs(rootDir)
+
+    # setup script template and other files
+    setupScript = """#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+from setuptools import setup
+
+setup(
+    name="{name}",
+    version='1.0',  # version number
+    description='',  # short description of your plugin
+    long_description='',  # long description of your plugin
+    author='',  # author name
+    author_email='',  # author email
+    license='',  # eg. MIT, GPL3, etc.
+    packages=["{package}"]
+)
+    """.format(name=packageName, package=baseName)
+
+    with open(os.path.join(packagePath, 'setup.py'), 'w') as f:
+        f.write(setupScript)
+
+    # README file as markdown
+    with open(os.path.join(packagePath, 'README.md'), 'w') as f:
+        f.write('# {}\nThis is the README file.'.format(packageName))
+
+    # LICENCE file
+    with open(os.path.join(packagePath, 'LICENCE.txt'), 'w') as f:
+        f.write('Put your licence here.'.format(packageName))
+
+    # create an __init__ template
+    packageInit = """#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+__version__ = '1.0'
+__license__ = ''
+__author__ = ''
+__author_email__ = ''
+__maintainer_email__ = ''
+__url__ = ''
+__download_url__ = ''
+__extends__ = '{extends}'
+
+# objects to put in the namespace of the module __extends__
+__all__ = ['MyClass', 'test_function', 'MY_DATA']  
+
+# put your code in this space
+# <<<<<<<<<<<<<<<<<<<<<<<<<<< 
+
+class MyClass(object):
+    def __init__(self):
+        pass
+
+def test_function():
+    return 0
+    
+MY_DATA = 'mydata'
+
+# <<<<<<<<<<<<<<<<<<<<<<<<<<< 
+
+if __name__ == "__main__":
+    # make sure that this can only be used as a plugin
+    raise ImportError("Can not import module. This package is a plugin and"
+                      " needs to be loaded from PsychoPy using" 
+                      " `psychopy.loadPlugin`.")
+
+    """.format(extends=extends.__name__)
+
+    # LICENCE file
+    with open(os.path.join(rootDir, '__init__.py'), 'w') as f:
+        f.write(packageInit)
+
+
+def loadPlugins(plugins=None, paths=None, ignore=None):
     """Load a plugin to extend PsychoPy's coder API.
 
+    Plugins are packages which extend upon PsychoPy's existing functionality by
+    dynamically importing code at runtime. Plugins put new objects into the
+    namespaces of a modules (eg. `psychopy.visual`) allowing them to be used
+    as if they were part of PsychoPy. Plugins are simply Python packages which
+    can either reside in a location defined in `sys.paths` or elsewhere.
+
     This function searches for any installed packages named in `plugins`,
-    imports them, and add their attributes to namespace of `module`. Only
-    attributes defined explicitly `__all__` in the found packages will be
+    imports them, and add their attributes to namespace which the package
+    defines with the `__extends__` directive in the `__init__.py` file within
+    the top-level package. The `__init__.py` must also define an `__all__`
+    statement to indicate which objects to import into the namespace of
+    `__extends__`.
+
+    Only attributes defined explicitly `__all__` in the found packages will be
     assigned attributes. Therefore, any packages that wish to extend the
     PsychoPy API must have an `__all__` statement. Note that `module` should be
     imported prior to attempting to load a plugin. Plugins will only be loaded
@@ -34,9 +176,6 @@ def loadPlugins(module, plugins=None, paths=None, ignore=None):
 
     Parameters
     ----------
-    module : str or ModuleType
-        Import path or object of the module you wish to install the plugin (eg.
-        'psychopy.visual').
     plugins : str, list or None
         Name(s) of the plugin package(s) to load. A name can also be given as a
         regular expression for loading multiple packages with similar names. If
@@ -108,30 +247,9 @@ def loadPlugins(module, plugins=None, paths=None, ignore=None):
         plugins.loadPlugins(visual.__name__, ignore=['psychopy_visual_bad'])
 
     """
-    if isinstance(module, str):
-        try:
-            this_module = sys.modules[module]
-        except KeyError:
-            raise ModuleNotFoundError(
-                'Cannot find module `{}`. Has it been imported yet?'.format(
-                    module))
-    elif isinstance(module, types.ModuleType):
-        if module.__name__ in sys.modules.keys():
-            this_module = module
-        else:
-            raise ModuleNotFoundError(
-                'Module `{}` does not appear to be imported yet.'.format(
-                    module.__name__))
-    else:
-        raise ValueError('Object specified to `module` must be type `str` or '
-                         '`ModuleType`.')
-
-    # derive the plugin search string if not given
+    # search all potential plugins if `None` is specified
     if plugins is None:
-        plugins = ''
-        for i in this_module.__name__.split('.'):
-            plugins += i + '_'
-        plugins += '.+'
+        plugins = 'psychopy_.+'
 
     if isinstance(plugins, str):
         plugins = [plugins]
@@ -149,12 +267,23 @@ def loadPlugins(module, plugins=None, paths=None, ignore=None):
 
                 imp = importlib.import_module(name)  # import the module
 
+                # if the module defines __all__, put those objects into the
+                # namespace of `__extends__`
+
+                # check if the we can actually extend an imported module
+                if imp.__extends__ not in sys.modules.keys():
+                    raise ImportError(
+                        "'Cannot install plugin to module `{}`. Has it been \
+                        imported yet?'".format(imp.__extends__))
+
                 # get module level attributes exposed by __all__
                 attrs = sys.modules[imp.__name__].__all__
 
-                # create handles to those attributes in the module
+                # create handles to those attributes in the module, like calling
+                # `from module import *` from within the `__init__.py` file
                 for attr in attrs:
-                    setattr(this_module, attr, getattr(imp, attr))
+                    setattr(sys.modules[imp.__extends__],
+                            attr, getattr(imp, attr))
 
                 loaded[name] = imp
 
