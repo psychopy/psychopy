@@ -13,8 +13,8 @@ The Alerts module is used for generating alerts during PsychoPy integrity checks
 
 Attributes
 ----------
-catalogue : AlertCatalogue
-    For loading alert catalogues, or definitions of each alert, from a catalogue of yaml files.
+catalog : AlertCatalog
+    For loading alert catalogues, or definitions of each alert, from a catalog of yaml files.
     Each catalogue entry has a code key, with values of code, category, msg, and url.
     Each entry has equivalent reStructuredText entries for insertion into help pages. 
 alertLog : List
@@ -23,7 +23,7 @@ alertLog : List
 """
 
 
-class AlertCatalogue(object):
+class AlertCatalog(object):
     """A class for loading alerts from the alerts catalogue yaml file"""
     def __init__(self):
         self.alert = self.load()
@@ -87,15 +87,15 @@ class AlertEntry(object):
             The 4 digit code for retrieving alert from AlertCatalogue
     obj: object
         The object related to the alert e.g., TextComponent object.
-    strFormat: dict
+    strFields: dict
             Dict containing relevant values for formatting messages
     trace: sys.exec_info() traceback object
             The traceback
     """
-    def __init__(self, code, obj, strFormat=None, trace=None):
-        self.code = catalogue.alert[code]['code']
-        self.cat = catalogue.alert[code]['cat']
-        self.url = catalogue.alert[code]['url']
+    def __init__(self, code, obj, strFields=None, trace=None):
+        self.code = catalog.alert[code]['code']
+        self.cat = catalog.alert[code]['cat']
+        self.url = catalog.alert[code]['url']
         self.obj = obj
 
         if hasattr(obj, 'type'):
@@ -108,10 +108,10 @@ class AlertEntry(object):
         else:
             self.name = None
 
-        if strFormat:
-            self.msg = catalogue.alert[code]['msg'].format(**strFormat)
+        if strFields:
+            self.msg = catalog.alert[code]['msg'].format(**strFields)
         else:
-            self.msg = catalogue.alert[code]['msg']
+            self.msg = catalog.alert[code]['msg']
 
         if trace:
             self.trace = ''.join(traceback.format_exception(trace[0], trace[1], trace[2]))
@@ -119,7 +119,7 @@ class AlertEntry(object):
             self.trace = None
 
 
-def alert(code=None, obj=object, strFormat=None, trace=None):
+def alert(code=None, obj=object, strFields=None, trace=None):
     """The alert function is used for writing alerts to the standard error stream.
     Only the ErrorHandler class can receive alerts via the "receiveAlert" method.
 
@@ -129,26 +129,35 @@ def alert(code=None, obj=object, strFormat=None, trace=None):
         The 4 digit code for retrieving alert from AlertCatalogue
     obj: object
         The object related to the alert e.g., TextComponent object
-    strFormat: dict
+    strFields: dict
         Dict containing relevant values for formatting messages
     trace: sys.exec_info() traceback object
             The traceback
     """
 
-    msg = AlertEntry(code, obj, strFormat, trace)
+    msg = AlertEntry(code, obj, strFields, trace)
 
     # format the warning into a string for console and logging targets
-    msgAsStr = ("Component Type: {type} | "
-                "Component Name: {name} | "
-                "Code: {code} | "
-                "Category: {cat} | "
-                "Message: {msg} | "
-                "Traceback: {trace}".format(type=msg.type,
+
+    msgAsStr = ("Alert {code}: {msg}\n"
+                "For more info see https://docs.psychopy.org/alerts/{code}.html"
+                .format(type=msg.type,
                                             name=msg.name,
                                             code=msg.code,
                                             cat=msg.cat,
                                             msg=msg.msg,
                                             trace=msg.trace))
+    # msgAsStr = ("Component Type: {type} | "
+    #             "Component Name: {name} | "
+    #             "Code: {code} | "
+    #             "Category: {cat} | "
+    #             "Message: {msg} | "
+    #             "Traceback: {trace}".format(type=msg.type,
+    #                                         name=msg.name,
+    #                                         code=msg.code,
+    #                                         cat=msg.cat,
+    #                                         msg=msg.msg,
+    #                                         trace=msg.trace))
 
     # if we have a psychopy warning instead of a file-like stderr then pass on the raw info
     if hasattr(sys.stderr, 'receiveAlert'):
@@ -157,6 +166,6 @@ def alert(code=None, obj=object, strFormat=None, trace=None):
         sys.stderr.write(msgAsStr)  # For tests detecting output - change when error handler set up
     logging.warning(msgAsStr)
 
-# Create catalogue
-catalogue = AlertCatalogue()
+# Create catalog
+catalog = AlertCatalog()
 alertLog = []
