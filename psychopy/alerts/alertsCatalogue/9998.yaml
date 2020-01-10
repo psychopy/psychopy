@@ -1,8 +1,7 @@
-9998:
-  code: Code
-  cat: Category
-  msg: Message
-  url: URL
+code: Code
+cat: Category
+msg: Message
+url: URLonlyIfNotStandard
 
 # Each of the following key values supports reStructured Text.
 
