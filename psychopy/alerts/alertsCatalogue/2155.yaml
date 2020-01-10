@@ -1,8 +1,10 @@
 # The first key-value pair is used for the alerts package
 
-code: 2155
-cat: Positioning
-msg: Your stimuli position exceeds the {dimension} dimension of your window.
+2155:
+  code: 2155
+  cat: Positioning
+  msg: Your stimuli position exceeds the {dimension} dimension of your window.
+  url: https://psychopy.org
 
 # Each of the following key values are used for formatting online help pages, and support reStructured Text.
 

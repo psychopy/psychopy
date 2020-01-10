@@ -1,10 +1,12 @@
 # The first key-value pair is used for the alerts package
 
-code: 3110
-cat: Timing
-msg: Your stimuli {type}-time of {time} is less than a screen refresh for a {Hz}Hz monitor.
+3110:
+  code: 3110
+  cat: Timing
+  msg: Your stimuli {type}-time of {time} is less than a screen refresh for a {Hz}Hz monitor.
+  url: https://psychopy.org
 
-# The following are typically used for online help pages, and support reStructured Text.
+# Each of the following key values are used for formatting online help pages, and support reStructured Text.
 
 synopsis: |
   Requested start or stop times of visual components cannot be presented for times requested.

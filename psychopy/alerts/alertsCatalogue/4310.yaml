@@ -1,9 +1,12 @@
+# The first key-value pair is used for the alerts package
 
-code: 4310
-cat: Components
-msg: Cannot calculate parameter.
+4310:
+  code: 4310
+  cat: Components
+  msg: Cannot calculate parameter.
+  url: https://psychopy.org
 
-# The following are typically used for online help pages, and support reStructured Text.
+# Each of the following key values are used for formatting online help pages, and support reStructured Text.
 
 synopsis: |
   This alert is received when an integrity check has failed to calculate a parameter.

@@ -1,9 +1,12 @@
+# The first key-value pair is used for the alerts package
 
-code: 4205
-cat: Coding
-msg: Python Syntax Error in '{codeTab}' tab. See '{code}' on line number {lineNumber} of the '{codeTab}' tab.
+4205:
+  code: 4205
+  cat: Coding
+  msg: Python Syntax Error in '{codeTab}' tab. See '{code}' on line number {lineNumber} of the '{codeTab}' tab.
+  url: https://psychopy.org
 
-# The following are typically used for online help pages, and support reStructured Text.
+# Each of the following key values are used for formatting online help pages, and support reStructured Text.
 
 synopsis: |
   Python syntax error found in your code component.
