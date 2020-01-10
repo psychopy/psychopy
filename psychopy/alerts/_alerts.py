@@ -46,14 +46,16 @@ class AlertCatalog(object):
         """
         alertDict = {}
 
-        for alerts in self.alertFiles:
-            with open('{}'.format(alerts), 'r') as ymlFile:
+        for filePath in self.alertFiles:
+            with open(filePath, 'r') as ymlFile:
                 entry = yaml.load(ymlFile, Loader=yaml.SafeLoader)
-                if entry is not None:
-                    entry = {key: entry[key] for key in entry if type(key) == int}  # Get alert codes only
-                    key = list(entry.keys())[0]
-                    value = entry[key]
-                    alertDict[key] = value
+                if entry is None:
+                    continue  # this might be a stub for future entry
+                ID = entry['code']
+                alertDict[ID] = entry
+                if 'url' not in entry:  # give a default URL
+                    entry['url'] = ('https://psychopy.org/alerts/{}.html'
+                                    .format(ID))
 
         return alertDict
 
