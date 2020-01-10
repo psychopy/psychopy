@@ -6,6 +6,7 @@ from psychopy.monitors import Monitor
 from psychopy.tools import monitorunittools
 from psychopy.alerts._alerts import alert
 
+validDuration = monitorunittools.validDuration
 
 class TestWin(object):
     """
@@ -214,18 +215,14 @@ def testValidVisualStimTiming(component):
     if testFloat(startVal):
         if component.params['startType'] == "time (s)":
             # Test times are valid multiples of screen refresh for 60Hz and 100Hz monitors
-            if not float.is_integer(float(startVal)) and round(float(startVal) % (1.0 / 60), 3) != 0.0:
+            if not validDuration(startVal, 60):
                 alert(3115, component, {'type': 'start', 'time': startVal, 'Hz': 60})
-            if not float.is_integer(float(startVal)) and round(float(startVal) % (1.0 / 100), 3) != 0.0:
-                alert(3115, component, {'type': 'start', 'time': startVal, 'Hz': 100})
 
     if testFloat(stopVal):
         if component.params['stopType'] == "duration (s)":
             # Test times are valid multiples of screen refresh for 60Hz and 100Hz monitors
-            if not float.is_integer(float(stopVal)) and round(float(stopVal) % (1.0 / 60), 3) != 0.0:
+            if not validDuration(stopVal, 60):
                 alert(3115, component, {'type': 'stop', 'time': stopVal, 'Hz': 60})
-            if not float.is_integer(float(stopVal)) and round(float(stopVal) % (1.0 / 100), 3) != 0.0:
-                alert(3115, component, {'type': 'stop', 'time': stopVal, 'Hz': 100})
 
 
 def testFramesAsInt(component):
