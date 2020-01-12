@@ -1,12 +1,9 @@
-# The first key-value pair is used for the alerts package
 
-9999:
-  code: 9999
-  cat: AlertCategory
-  msg: Alert description (brief) - can use Python style string formatting e.g., The alert affects {component}
-  url: https://psychopy.org
+code: 9999
+cat: AlertCategory
+msg: Alert description (brief) - can use Python style string formatting e.g., The alert affects {component}
 
-# Each of the following key values are used for formatting online help pages, and support reStructured Text.
+# The following are typically used for online help pages, and support reStructured Text.
 
 synopsis: |
   Provide a few sentences (at most) about the alert.
