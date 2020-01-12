@@ -286,9 +286,9 @@ def checkPythonSyntax(component, tab):
     try:
         compile(str(component.params[tab].val), "path", 'exec')
     except Exception as err:
-        strFormat = {'codeTab': tab, 'lineNumber': err.lineno, 'code': err.text.strip()}
-        # Dont sent traceback because strFormat gives better localisation of error
-        alert(4205, component, strFormat)
+        strFields = {'codeTab': tab, 'lineNumber': err.lineno, 'code': err.text.strip()}
+        # Dont sent traceback because strFields gives better localisation of error
+        alert(4205, component, strFields)
 
 def checkJavaScriptSyntax(component, tab):
     """
@@ -309,6 +309,6 @@ def checkJavaScriptSyntax(component, tab):
     try:
         parseScript(str(component.params[tab].val))
     except Exception as err:
-        strFormat = {'codeTab': tab, 'lineNumber': err.message}
-        # Dont sent traceback because strFormat gives better localisation of error
-        alert(4210, component, strFormat)
+        strFields = {'codeTab': tab, 'lineNumber': err.message}
+        # Dont sent traceback because strFields gives better localisation of error
+        alert(4210, component, strFields)
