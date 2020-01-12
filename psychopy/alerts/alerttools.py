@@ -18,6 +18,13 @@ class TestWin(object):
         self.monitor = Monitor(monitor)
         self.size = self.monitor.getSizePix()
 
+def validDuration(t, hz, toleranceFrames=0.01):
+    """Test whether this is a possible time duration given the frame rate"""
+    # best not to use mod operator for floats. e.g. 0.5%0.01 gives 0.00999
+    # (due to a float round error?)
+    # nFrames = t*hz so test if round(nFrames)==nFrames but with a tolerance
+    nFrames = t*hz
+    return abs(nFrames - round(nFrames)) < toleranceFrames
 
 def runTest(component):
     """
@@ -214,19 +221,14 @@ def testValidVisualStimTiming(component):
     if testFloat(startVal):
         if component.params['startType'] == "time (s)":
             # Test times are valid multiples of screen refresh for 60Hz and 100Hz monitors
-            if not float.is_integer(float(startVal)) and round(float(startVal) % (1.0 / 60), 3) != 0.0:
-                alert(3115, component, {'type': 'start', 'time': startVal, 'Hz': 60})
-            if not float.is_integer(float(startVal)) and round(float(startVal) % (1.0 / 100), 3) != 0.0:
-                alert(3115, component, {'type': 'start', 'time': startVal, 'Hz': 100})
+            if not validDuration(startVal, 60):
+                alert(3115, component, {'type': 'start', 'time': startVal, 'Hz': 60}))
 
     if testFloat(stopVal):
         if component.params['stopType'] == "duration (s)":
             # Test times are valid multiples of screen refresh for 60Hz and 100Hz monitors
-            if not float.is_integer(float(stopVal)) and round(float(stopVal) % (1.0 / 60), 3) != 0.0:
+            if not  validDuration(stopVal, 60):
                 alert(3115, component, {'type': 'stop', 'time': stopVal, 'Hz': 60})
-            if not float.is_integer(float(stopVal)) and round(float(stopVal) % (1.0 / 100), 3) != 0.0:
-                alert(3115, component, {'type': 'stop', 'time': stopVal, 'Hz': 100})
-
 
 def testFramesAsInt(component):
     """
