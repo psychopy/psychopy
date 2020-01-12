@@ -2,7 +2,7 @@
 """Tests for psychopy.tools.viewtools
 """
 
-from psychopy.tools.monitorunittools import *
+from psychopy.alerts.alerttools import validDuration
 
 
 def test_validDuration():

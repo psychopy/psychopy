@@ -6,7 +6,15 @@ from psychopy.monitors import Monitor
 from psychopy.tools import monitorunittools
 from psychopy.alerts._alerts import alert
 
-validDuration = monitorunittools.validDuration
+
+def validDuration(t, hz, toleranceFrames=0.01):
+    """Test whether this is a possible time duration given the frame rate"""
+    # best not to use mod operator for floats. e.g. 0.5%0.01 gives 0.00999
+    # (due to a float round error?)
+    # nFrames = t*hz so test if round(nFrames)==nFrames but with a tolerance
+    nFrames = t*hz
+    return abs(nFrames - round(nFrames)) < toleranceFrames
+
 
 class TestWin(object):
     """
