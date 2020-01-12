@@ -222,7 +222,7 @@ def testValidVisualStimTiming(component):
         if component.params['startType'] == "time (s)":
             # Test times are valid multiples of screen refresh for 60Hz and 100Hz monitors
             if not validDuration(startVal, 60):
-                alert(3115, component, {'type': 'start', 'time': startVal, 'Hz': 60}))
+                alert(3115, component, {'type': 'start', 'time': startVal, 'Hz': 60})
 
     if testFloat(stopVal):
         if component.params['stopType'] == "duration (s)":
