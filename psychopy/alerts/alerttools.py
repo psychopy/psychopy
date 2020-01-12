@@ -23,7 +23,7 @@ def validDuration(t, hz, toleranceFrames=0.01):
     # best not to use mod operator for floats. e.g. 0.5%0.01 gives 0.00999
     # (due to a float round error?)
     # nFrames = t*hz so test if round(nFrames)==nFrames but with a tolerance
-    nFrames = t*hz
+    nFrames = float(t) * hz  # t might not be float if given as "0.5"?
     return abs(nFrames - round(nFrames)) < toleranceFrames
 
 def runTest(component):
