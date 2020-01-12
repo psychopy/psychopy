@@ -47,7 +47,9 @@ class AlertCatalogue(object):
         alertDict = {}
 
         for filePath in self.alertFiles:
-            with open(filePath, 'r') as ymlFile:
+            # '{}'.format(filePath) instead of simple open(filePath,'r')
+            # is needed for Py2 support only
+            with open('{}'.format(filePath), 'r') as ymlFile:
                 entry = yaml.load(ymlFile, Loader=yaml.SafeLoader)
                 if entry is None:
                     continue  # this might be a stub for future entry
