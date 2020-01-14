@@ -1,23 +1,26 @@
 # The first key-value pair is used for the alerts package
 
-3115:
-  code: 3115
-  cat: Timing
-  msg: >-
-      Your stimuli {type}-time of {time} seconds cannot be accurately presented for {time} on a {Hz}Hz monitor.
-  url: https://psychopy.org
+code: 3115
+cat: Timing
+msg: >-
+    Your stimuli {type}-time of {time} seconds cannot be accurately presented for {time} on a {Hz}Hz monitor.
 
-# Each of the following key values are used for formatting online help pages, and support reStructured Text.
+# The following are typically used for online help pages, and support reStructured Text.
 
 synopsis: |
   If using a 60Hz or 100Hz monitor, then for accurate presentation of visual stimuli,
-  components must be presented in valid multiples of screen refresh for 60Hz or 100Hz.
+  components must be presented in valid multiples of screen refresh for 60 Hz or 100 Hz.
 
 details: |
-  Longer description with optional links to further information
+  When presenting stimuli at, say, 60 Hz you stimulus can be presented for 1 frame (1/60 s = 16.667 ms),
+  2 frames (2/60 s = 33.333 ms) but not for intervening periods (20 ms is not possible becuase the stimulus
+  would have to be presented for a little more than 1 frame, which isn't phsyically possible on standard
+  fixed-framerate monitors.
 
 solutions: |
-  For accurate stim presentation: time (seconds) % (1 / Monitor Hz) == 0 (3 decimal places).
+  For brief stimuli it's typically better to specify your stimulus in terms of the number of frames.
+  For longer duration stimuli then make sure that your duration divides exactly into an integer
+  number of frames if timing is important to you.
   `Stimuli timing <https://www.psychopy.org/coder/codeStimuli.html/>`_
 
 versions: |

@@ -397,9 +397,7 @@ class EyeTracker(EyeTrackerDevice):
             * ESC can be pressed at any time to exit the current state of the setup procedure and return to the initial blank screen state.
             * O = Exit the runSetupProcedure method and continue with the experiment.
         """
-        if starting_state != EyeTrackerConstants.DEFAULT_SETUP_PROCEDURE:
-            printExceptionDetailsToStdErr()
-
+        
         try:
             from . import eyeLinkCoreGraphicsIOHubPsychopy
             EyeLinkCoreGraphicsIOHubPsychopy = eyeLinkCoreGraphicsIOHubPsychopy.EyeLinkCoreGraphicsIOHubPsychopy
