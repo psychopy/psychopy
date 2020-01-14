@@ -103,7 +103,7 @@ packages = ['wx', 'psychopy',
             'cv2',
             'badapted', 'darc_toolbox',  # adaptive methods from Ben Vincent
             'questplus',
-            'metapensiero.pj',
+            'metapensiero.pj', 'dukpy', 'macropy',
             ]
 
 if sys.version_info.major >= 3:
