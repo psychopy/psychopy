@@ -534,12 +534,10 @@ class PsychoPyApp(wx.App):
         # have to reimport because it is only local to __init__ so far
         from .runner.runner import RunnerFrame
         title = "PsychoPy3 Experiment Runner (v{})".format(self.version)
-
-        if self.runner is None:
-            self.runner = RunnerFrame(parent=None,
-                                      id=-1,
-                                      title=title,
-                                      app=self)
+        self.runner = RunnerFrame(parent=None,
+                                  id=-1,
+                                  title=title,
+                                  app=self)
 
     def OnDrop(self, x, y, files):
         """Not clear this method ever gets called!"""
@@ -741,6 +739,7 @@ class PsychoPyApp(wx.App):
         info.AddDocWriter('Jeremy Gray')
         info.AddDocWriter('Rebecca Sharman')
         info.AddTranslator('Hiroyuki Sogo')
+        info.AddTranslator('David Bridges')
         if not self.testMode:
             showAbout(info)
 

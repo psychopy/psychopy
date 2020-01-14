@@ -2374,6 +2374,7 @@ class BuilderFrame(wx.Frame):
         """Generates python script from the current builder experiment"""
         # Set streams
         self.stdoutFrame.write("Generating {} script...\n".format(target))
+        self.app.showRunner()
 
         if self.getIsModified():
             ok = self.fileSave(experimentPath)
