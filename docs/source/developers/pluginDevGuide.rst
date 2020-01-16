@@ -1,7 +1,7 @@
-.. _pluginGuide:
+.. _pluginDevGuide:
 
-Using Plugins to Extend PsychoPy
-================================
+Extending PsychoPy with Plugins
+===============================
 
 Plugins are packages which can be loaded to extend core PsychoPy, allowing
 third-party developers to add optional features and customizations.

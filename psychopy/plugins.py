@@ -14,6 +14,7 @@ import pkgutil
 import importlib
 import re
 import types
+import inspect
 
 # Keep track of objects exported by plugins to warn of or resolve namespace
 # conflicts. Keys are PsychoPy module names and values are lists of object
@@ -279,31 +280,15 @@ def loadPlugins(plugins=None, paths=None, ignore=None, conflicts='silent'):
                         "Plugin attempted to export objects to a module "
                         "not part of PsychoPy!")
 
-                # check if the target PsychoPy module has been loaded
-                if moduleName not in sys.modules.keys():
-                    importlib.import_module(moduleName)
-                    _exported_objects_[moduleName] = []
+            for fqn, attrs in imp.__extends__.items():
+                # get the object the fully qualified name points to
+                obj = sys.modules['psychopy']  # base module
+                for attr in fqn.split(".")[1:]:
+                    obj = getattr(obj, attr)
 
-            # create handles to those attributes in the module, like calling
-            # `from module import *` from within the `__init__.py` file
-            global _exported_objects_
-            for moduleName, attrs in imp.__extends__.items():
-                # add module objects to their respective name spaces
-                moduleObj = sys.modules[moduleName]
+                # assign attributes from the plugin to the target
                 for attr in attrs:
-                    # check for conflicts
-                    if attr not in _exported_objects_[moduleName]:
-                        setattr(moduleObj, attr, getattr(imp, attr))
-                        # keep track of what's been exported so far
-                        _exported_objects_[moduleName].append(attr)
-                    else:
-                        if conflicts == 'silent':
-                            pass
-                        elif conflicts == 'error':
-                            pass
-                        else:
-                            raise ValueError(
-                                'Invalid value specified to `conflicts`.')
+                    setattr(obj, attr, getattr(imp, attr))
 
             loaded[packageName] = imp
 
