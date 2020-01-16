@@ -19,7 +19,7 @@ import astunparse
 
 class psychoJSTransformer(ast.NodeTransformer):
     """PsychoJS-specific AST transformer
-	"""
+    """
 
     def visit_Name(self, node):
         # status = STOPPED => status = PsychoJS.Status.STOPPED
@@ -42,7 +42,7 @@ class psychoJSTransformer(ast.NodeTransformer):
 
 class pythonTransformer(ast.NodeTransformer):
     """Python-specific AST transformer
-	"""
+    """
 
     # builtin python operations that require substitution by specific JavaScript code:
     subtitutableOperations = ['sum', 'randint']
@@ -259,12 +259,12 @@ class pythonAddonVisitor(ast.NodeVisitor):
 def transformNode(astNode):
     """Transform the input AST
 
-	Args:
-		astNode (ast.Node): the input AST
+    Args:
+        astNode (ast.Node): the input AST
 
-	Returns:
-		ast.Node: transformed AST
-	"""
+    Returns:
+        ast.Node: transformed AST
+    """
 
     # deal with PsychoJS specific changes:
     psychoJSTransformedNode = psychoJSTransformer().visit(astNode)
@@ -282,43 +282,43 @@ def transformNode(astNode):
 def transformPsychoJsCode(psychoJsCode, addons):
     """Transform the input PsychoJS code.
 
-	Args:
-		psychoJsCode (str): the input PsychoJS JavaScript code
+    Args:
+        psychoJsCode (str): the input PsychoJS JavaScript code
 
-	Returns:
-		(str) the transformed code
-	"""
+    Returns:
+        (str) the transformed code
+    """
 
     transformedPsychoJSCode = ''
 
     # add addons on a need-for basis:
     if 'list' in addons:
         transformedPsychoJSCode += """
-		// add-on: list(s: string): string[]
-		function list(s) {
-			// if s is a string, we return a list of its characters
-			if (typeof s === 'string')
-				return s.split('');
-			else
-				// otherwise we return s:
-				return s;
-		}
-		
-		"""
+        // add-on: list(s: string): string[]
+        function list(s) {
+            // if s is a string, we return a list of its characters
+            if (typeof s === 'string')
+                return s.split('');
+            else
+                // otherwise we return s:
+                return s;
+        }
+        
+        """
 
     if 'pad' in addons:
         transformedPsychoJSCode += """
-		// add-on: pad(n: number, width: number): string
-		function pad(n, width) {
-			width = width || 2;
-			integerPart = Number.parseInt(n);
-			decimalPart = (n+'').match(/\.[0-9]*/);
-			if (!decimalPart)
-				decimalPart = '';
-			return (integerPart+'').padStart(width,'0') + decimalPart;
-		}
-		
-		"""
+        // add-on: pad(n: number, width: number): string
+        function pad(n, width) {
+            width = width || 2;
+            integerPart = Number.parseInt(n);
+            decimalPart = (n+'').match(/\.[0-9]*/);
+            if (!decimalPart)
+                decimalPart = '';
+            return (integerPart+'').padStart(width,'0') + decimalPart;
+        }
+        
+        """
 
     lines = psychoJsCode.splitlines()
 
@@ -342,15 +342,15 @@ def transformPsychoJsCode(psychoJsCode, addons):
 def translatePythonToJavaScript(psychoPyCode):
     """Translate PsychoPy python code into PsychoJS JavaScript code.
 
-	Args:
-		psychoPyCode (str): the input PsychoPy python code
+    Args:
+        psychoPyCode (str): the input PsychoPy python code
 
-	Returns:
-		str: the PsychoJS JavaScript code
+    Returns:
+        str: the PsychoJS JavaScript code
 
-	Raises:
-		(Exception): whenever a step of the translation process failed
-	"""
+    Raises:
+        (Exception): whenever a step of the translation process failed
+    """
 
     # get the Abstract Syntax Tree (AST)
     # this checks that the code is valid python
@@ -394,7 +394,7 @@ def translatePythonToJavaScript(psychoPyCode):
 
 def main(argv=None):
     """Read PsychoPy code from the command line and translate it into PsychoJS code.
-	"""
+    """
 
     # other read PsychoPy code from the command line:
     print('Enter PsychoPY code (finish with Ctrl+Z):')

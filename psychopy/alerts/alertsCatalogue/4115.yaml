@@ -1,12 +1,11 @@
 # The first key-value pair is used for the alerts package
 
-4115:
-  code: 4115
-  cat: Timing
-  msg: Your stimuli {type}-type {frameType} must be expressed as a whole number.
-  url: https://psychopy.org
+code: 4115
+cat: Timing
+msg: Your stimuli {type}-type {frameType} must be expressed as a whole number.
 
-# Each of the following key values are used for formatting online help pages, and support reStructured Text.
+
+# The following are typically used for online help pages, and support reStructured Text.
 
 synopsis: |
   Component start and stop times/durations in frames must be given as whole numbers.

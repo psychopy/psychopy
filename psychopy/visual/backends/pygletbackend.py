@@ -127,7 +127,7 @@ class PygletBackend(BaseBackend):
         else:
             thisScreen = allScrs[win.screen]
             if win.autoLog:
-                logging.info('configured pyglet screen %i' % self.screen)
+                logging.info('configured pyglet screen %i' % win.screen)
 
         # options that the user might want
         config = GL.Config(depth_size=win.depthBits,

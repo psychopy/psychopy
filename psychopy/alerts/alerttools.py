@@ -18,6 +18,13 @@ class TestWin(object):
         self.monitor = Monitor(monitor)
         self.size = self.monitor.getSizePix()
 
+def validDuration(t, hz, toleranceFrames=0.01):
+    """Test whether this is a possible time duration given the frame rate"""
+    # best not to use mod operator for floats. e.g. 0.5%0.01 gives 0.00999
+    # (due to a float round error?)
+    # nFrames = t*hz so test if round(nFrames)==nFrames but with a tolerance
+    nFrames = float(t) * hz  # t might not be float if given as "0.5"?
+    return abs(nFrames - round(nFrames)) < toleranceFrames
 
 def runTest(component):
     """
@@ -61,6 +68,16 @@ def convertParamToPix(value, win, units):
     else:
         value = array(value)
     return monitorunittools.convertToPix(value, array([0, 0]), units=units, win=win) * 2
+
+def testFloat(val):
+    """
+    Test value for float.
+    Used to detect use of variables, strings and none types, which cannot be checked.
+    """
+    try:
+        return type(float(val)) == float
+    except Exception:
+        return False
 
 def testSize(component, win, units):
     """
@@ -145,10 +162,8 @@ def testStartEndTiming(component):
     start = {'type': component.params['startType'].val, 'val' : component.params['startVal'].val}
     stop = {'type': component.params['stopType'].val, 'val' : component.params['stopVal'].val}
 
-    try:
-        float(start['val'])
-        float(stop['val'])
-    except Exception:  # Conversion to float fails - probably a variable
+    # Check for string / variable
+    if not all([testFloat(start['val']), testFloat(stop['val'])]):
         return
 
     if [start['type'], stop['type']] == ["time (s)", "time (s)"]:
@@ -172,7 +187,7 @@ def testAchievableVisualOnsetOffset(component):
     startVal = component.params['startVal'].val
     stopVal = component.params['stopVal'].val
 
-    if startVal not in ['', None, "None", "none"]:
+    if testFloat(startVal):
         if component.params['startType'] == "time (s)":
             # Test times are greater than 1 screen refresh for 60Hz and 100Hz monitors
             if not float.is_integer(float(startVal)) and float(startVal) < 1.0 / 60:
@@ -180,7 +195,7 @@ def testAchievableVisualOnsetOffset(component):
             if not float.is_integer(float(startVal)) and float(startVal) < 1.0 / 100:
                 alert(3110, component, {'type': 'start', 'time': startVal, 'Hz': 100})
 
-    if stopVal not in ['', None, "None", "none"]:
+    if testFloat(stopVal):
         if component.params['stopType'] == "duration (s)":
             # Test times are greater than 1 screen refresh for 60Hz and 100Hz monitors
             if not float.is_integer(float(stopVal)) and float(stopVal) < 1.0 / 60:
@@ -199,25 +214,21 @@ def testValidVisualStimTiming(component):
     if "startType" not in component.params or "stopType" not in component.params:
         return
 
+    # Check for string / variable
     startVal = component.params['startVal'].val
     stopVal = component.params['stopVal'].val
 
-    if startVal not in ['', None, "None", "none"]:
+    if testFloat(startVal):
         if component.params['startType'] == "time (s)":
             # Test times are valid multiples of screen refresh for 60Hz and 100Hz monitors
-            if not float.is_integer(float(startVal)) and round(float(startVal) % (1.0 / 60), 3) != 0.0:
+            if not validDuration(startVal, 60):
                 alert(3115, component, {'type': 'start', 'time': startVal, 'Hz': 60})
-            if not float.is_integer(float(startVal)) and round(float(startVal) % (1.0 / 100), 3) != 0.0:
-                alert(3115, component, {'type': 'start', 'time': startVal, 'Hz': 100})
 
-    if stopVal not in ['', None, "None", "none"]:
+    if testFloat(stopVal):
         if component.params['stopType'] == "duration (s)":
             # Test times are valid multiples of screen refresh for 60Hz and 100Hz monitors
-            if not float.is_integer(float(stopVal)) and round(float(stopVal) % (1.0 / 60), 3) != 0.0:
+            if not  validDuration(stopVal, 60):
                 alert(3115, component, {'type': 'stop', 'time': stopVal, 'Hz': 60})
-            if not float.is_integer(float(stopVal)) and round(float(stopVal) % (1.0 / 100), 3) != 0.0:
-                alert(3115, component, {'type': 'stop', 'time': stopVal, 'Hz': 100})
-
 
 def testFramesAsInt(component):
     """
@@ -230,13 +241,13 @@ def testFramesAsInt(component):
     startVal = component.params['startVal'].val
     stopVal = component.params['stopVal'].val
 
-    if startVal not in ['', None, "None", "none"]:
+    if testFloat(startVal):
         if component.params['startType'] in ["frame N", "duration (frames)"]:
             # Test frames are whole numbers
             if not float.is_integer(float(startVal)):
                 alert(4115, component, {'type': 'start', 'frameType': component.params['startType']})
 
-    if stopVal not in ['', None, "None", "none"]:
+    if testFloat(stopVal):
         if component.params['stopType'] in ["frame N", "duration (frames)"]:
             # Test frames are whole numbers
             if not float.is_integer(float(stopVal)):
@@ -277,9 +288,9 @@ def checkPythonSyntax(component, tab):
     try:
         compile(str(component.params[tab].val), "path", 'exec')
     except Exception as err:
-        strFormat = {'codeTab': tab, 'lineNumber': err.lineno, 'code': err.text.strip()}
-        # Dont sent traceback because strFormat gives better localisation of error
-        alert(4205, component, strFormat)
+        strFields = {'codeTab': tab, 'lineNumber': err.lineno, 'code': err.text.strip()}
+        # Dont sent traceback because strFields gives better localisation of error
+        alert(4205, component, strFields)
 
 def checkJavaScriptSyntax(component, tab):
     """
@@ -300,6 +311,6 @@ def checkJavaScriptSyntax(component, tab):
     try:
         parseScript(str(component.params[tab].val))
     except Exception as err:
-        strFormat = {'codeTab': tab, 'lineNumber': err.message}
-        # Dont sent traceback because strFormat gives better localisation of error
-        alert(4210, component, strFormat)
+        strFields = {'codeTab': tab, 'lineNumber': err.message}
+        # Dont sent traceback because strFields gives better localisation of error
+        alert(4210, component, strFields)
