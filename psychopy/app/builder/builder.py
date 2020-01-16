@@ -2504,8 +2504,9 @@ class BuilderFrame(wx.Frame):
                                                  closeFrameWhenDone=False)
                 self.gitFeedback(retVal)
         if self.project:
+            htmlPath = self.exp.settings.params['HTML path'].val
             self.project.pavloviaStatus = 'ACTIVATED'
-            url = "https://pavlovia.org/run/{}/html".format(self.project.id)
+            url = "https://pavlovia.org/run/{}/{}".format(self.project.id, htmlPath)
             wx.LaunchDefaultBrowser(url)
 
     def enablePavloviaButton(self, buttons, enable):
