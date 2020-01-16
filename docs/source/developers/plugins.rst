@@ -8,8 +8,8 @@ third-party developers to add features and customizations.
 
 PsychoPy's plugin system allows for modifications to the coder API by taking
 advantage of Python's flexibility. A plugin can add new objects to the namespace
-(eg. `psychopy.visual`) or manipulate code (eg. monkey patching) of an existing
-module.
+(eg. `psychopy.visual`) or manipulate the code (eg. monkey patching) of an
+existing module.
 
 Why use plugins?
 ----------------
@@ -18,23 +18,25 @@ One may consider using plugins if they wish to distribute code which cannot be
 contributed to the main project. Reasons for this may include:
 
 * **Niche use**, not many people use the feature and will add bloat to
-  PsychoPy and increase workload when testing and packaging.
-* Uses a **GPL incompatible license** or **contains proprietary** code.
+  PsychoPy which increases workload when testing and packaging.
+* Uses a **GPL incompatible license or contains proprietary** code. This allows
+  users to distribute code with any licence they chose and permits compliance
+  to non-disclosure agreements for companies.
 * **Requires special or uncommon configurations** to use (software or hardware).
   This includes features which are limited to specific operating systems, or
   requires hardware which the PsychoPy dev team does not have regular access to.
 * **Under heavy development** where PsychoPy's release cycle is inadequate to
   keep up with changes and bug fixes. Furthermore, the code may not be mature
-  enough for inclusion with core PsychoPy.
+  enough for inclusion with core PsychoPy. Plugins provide an excellent way of
+  field testing features before contributing it to the main project.
 * **Contains changes that can possibly break PsychoPy** which can accidentally
-  affect existing experiments. Using a plugin can allow you to test your code
-  with a broad user base without this risk. if something breaks, users can
-  simply disable the plugin.
+  affect existing experiments. If something breaks, users can simply disable the
+  plugin.
 * **Cannot be maintained long-term** by the PsychoPy developers.
-
-Plugins also make it easier to develop and test features you are considering
-to contribute to core PsychoPy, since you do not need to work within a clone of
-PsychoPy's source tree.
+* **Patches or hotfixes** to customize or fix bugs in the installed version of
+  PsychoPy without needing to edit the code directly, or wait for PsychoPy
+  core developers to apply the changes. Patches can easily be applied across
+  entire sites using the standard Python packaging system.
 
 Caveats
 -------
@@ -52,8 +54,6 @@ them. Here are a few examples of issues one may encounter when using plugins:
   the newer one. Care must be taken to ensure that namespace conflicts do not
   happen by ensuring names are unique, however this becomes more difficult as
   the number of available plugins grows.
-
-``TODO``
 
 Where can I find plugins?
 -------------------------
@@ -107,8 +107,8 @@ Below is an example of what a package's directory structure should look like:
 
 The `__init__.py` in the sub-directory is the entry point for your plugin code.
 
-The `__extends__` statement
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
+The ``__extends__`` statement
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The `__extends__` module attribute is **required** by all PsychoPy plugins. The
 plugin loader imports the module and looks for this attribute to not only
@@ -120,9 +120,10 @@ The value of `__extends__` is always either a dictionary or `None`. Dictionary
 keys are strings specifying the fully qualified path of a PsychoPy module to
 extend (eg. `psychopy.visual`) and items are lists of strings specifying the
 names of objects to place in the associated namespace. For example, an
-`__extends__` statement may look like this:
+`__extends__` statement may look like this::
 
-``__extends__ = {'psychopy.core': ["MyTimer"], 'psychopy.visual': ["MyStimClass", "myFunc"]}``
+    __extends__ = {'psychopy.core': ["MyTimer"],
+                   'psychopy.visual': ["MyStimClass", "myFunc"]}
 
 Where "MyTimer", "MyStimClass", and "myFunc" are objects defined in the
 namespace of the plugin module. When the plugin is loaded, "MyTimer" will be
@@ -134,6 +135,25 @@ In a some cases a plugin may not extend any namespaces, but still contains code
 to modify PsychoPy. This is the case for patches and code which alters the
 Builder interface (eg. add a menu item). If so, the file must still contain a
 `__extends__` directive but it may be set to `None` or an empty dictionary.
+
+The ``__requires__`` statement
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Some plugins may need other plugins to be loaded first to take advantage of
+their features. The ``__requires__`` statement ensures that those plugins are
+also loaded.
+
+``TODO``
+
+Style recommendations
+~~~~~~~~~~~~~~~~~~~~~
+
+Since plugins are not part of PsychoPy, developers are not compelled to
+adhere to the official style guide. However, to provide a consistent
+experience for users, it is highly recommended that any user facing objects
+exported by the plugin do use the official style conventions. See
+:ref:`demostyleguide` for more information. For documentation, PsychoPy
+standardized on the `NumpyDoc` style for new code.
 
 Creating a plugin example
 -------------------------
@@ -149,7 +169,7 @@ The source tree of the plugin resembles a typical Python package. The top-level
 project directory is named `psychopy_mystim`, in it we have files `setup.py`,
 `README.md`, and `LICENCE`, and module sub-directory named `psychopy_mystim`
 with a `__init__.py` file inside it. This sub-directory defines the entry
-point for the plugin and all the code should reside within it.
+point for the plugin.
 
 Below is a diagram of what the project directory should look like when viewed
 in a file manager:
@@ -162,7 +182,43 @@ Configuring `setup.py`
 
 Adding code
 ~~~~~~~~~~~
-``TODO``
+
+The Python file serving as the entry point for your package needs to define an
+``__extends__`` statement which indicates which objects need to be placed into
+which namespace. For our example, we want to put objects ``MyStim`` and
+``helperFunc`` into `psychopy.visual`. Therefore our ``__extends__`` statement
+should be placed in the `__init__.py` file in our module sub-directory and
+defined as::
+
+    __extends__ = {'psychopy.visual': ["MyStim", "helperFunc"]}
+
+Optionally, we can also define an ``__all__`` statement to handle the case where
+we import the plugin module directly (note that PsychoPy plugins must *always*
+define ``__extends__`` even if ``__all__`` is present)::
+
+    __all__ = ["MyStim", "helperFunc"]
+
+Now we add our ``import`` statements. ``MyStim`` is a subclass of
+``BaseShapeStim`` so we need to import it::
+
+    import psychopy
+    from psychopy.visual.shape import BaseShapeStim
+
+You can also add additional import statements to bring in objects from other
+files located in the module sub-directory. In our example, ``helperFunc`` is
+defined in the file ``tools.py`` and we would like to make it exportable. To do
+this, we add add an additional import statement which brings the function into
+the module namespace::
+
+    import psychopy
+    from psychopy.visual.shape import BaseShapeStim
+    from psychopy_mystim.tools import myFunc
+
+We can now define our ``MyStim`` class which may look something like this::
+
+    class MyStim(BaseShapeStim):
+        def __init__(*args, **kwargs):
+            pass
 
 Packaging and testing
 ~~~~~~~~~~~~~~~~~~~~~

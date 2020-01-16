@@ -15,6 +15,11 @@ import importlib
 import re
 import types
 
+# Keep track of objects exported by plugins to warn of or resolve namespace
+# conflicts. Keys are PsychoPy module names and values are lists of object
+# names.
+_exported_objects_ = {}
+
 
 def createPluginPackage(packagePath,
                         packageName,
@@ -146,14 +151,14 @@ if __name__ == "__main__":
         f.write(packageInit)
 
 
-def loadPlugins(plugins=None, paths=None, ignore=None):
+def loadPlugins(plugins=None, paths=None, ignore=None, conflicts='silent'):
     """Load a plugin to extend PsychoPy's coder API.
 
     Plugins are packages which extend upon PsychoPy's existing functionality by
     dynamically importing code at runtime. Plugins put new objects into the
     namespaces of a modules (eg. `psychopy.visual`) allowing them to be used
     as if they were part of PsychoPy. Plugins are simply Python packages which
-    can either reside in a location defined in `sys.paths` or elsewhere.
+    can either reside in a location defined in `sys.path` or elsewhere.
 
     This function searches for any installed packages named in `plugins`,
     imports them, and add their attributes to namespace which the package
@@ -191,6 +196,12 @@ def loadPlugins(plugins=None, paths=None, ignore=None):
         List of plugin names to ignore. This prevents certain plugins installed
         on the system from being loaded if they match the pattern specified by
         `plugins`. If `None`, all plugins will be loaded.
+    conflicts : str
+        Policy for handling conflicts where a plugin tries to export a name
+        a previously loaded plugin used. Options are 'silent' where the previous
+        object is silently overridden, 'warn' which logs a warning informing
+        of the conflict, and 'error' which raise and exception when a conflict
+        occurs.
 
     Returns
     -------
@@ -210,41 +221,24 @@ def loadPlugins(plugins=None, paths=None, ignore=None):
     with `psychopy_visual_`::
 
         import psychopy.visual as visual
-        loadPlugins('psychopy.visual', 'psychopy_visual_.+')
-
-    You can also use the `__name__` attribute of the module, or the module object
-    itself::
-
-        import psychopy.visual as visual
-        loadPlugins(visual.__name__, 'psychopy_visual_.+')
-
-        # module object
-        loadPlugins(visual, 'psychopy_visual_.+')
+        loadPlugins('psychopy_visual_.+')
 
     You can load multiple, specific plugins using a list for `plugins`. Note
     that the second string in this example will match the first too, but it will
     be ignored the second time::
 
-        loadPlugins(visual, ['psychopy_hardware_box', 'psychopy_visual_.+'])
-
-    If plugins follow the standard naming convention, you can load all plugins
-    installed on the system for a given `module` without specifying `plugin`::
-
-        import psychopy.visual as visual
-        loadPlugins(visual.__name__)
-        # or ..
-        loadPlugins(visual)
+        loadPlugins(['psychopy_hardware_box', 'psychopy_visual_.+'])
 
     Check if a plugin has been loaded::
 
-        hasPlugin = if 'my_plugin' in loadPlugins(__name__, 'my_plugin')
+        hasPlugin = if 'my_plugin' in loadPlugins('my_plugin')
         if not hasPlugin:
             print('Unable to load plugin!')
 
     Prevent the `psychopy_visual_bad` plugin from being loaded, but load
     everything else::
 
-        plugins.loadPlugins(visual.__name__, ignore=['psychopy_visual_bad'])
+        plugins.loadPlugins('psychopy_visual_.+', ignore=['psychopy_visual_bad'])
 
     """
     # search all potential plugins if `None` is specified
@@ -254,37 +248,63 @@ def loadPlugins(plugins=None, paths=None, ignore=None):
     if isinstance(plugins, str):
         plugins = [plugins]
 
-    # iterate over packages
     loaded = {}
     for plugin in plugins:
-        for finder, name, ispkg in pkgutil.iter_modules(paths):
-            if re.search(plugin, name) and ispkg:
-                if ignore is not None and name in ignore:
-                    continue
-                elif name in sys.modules.keys():
-                    # don't load a plugin twice if already in namespace
-                    continue
+        # find packages installed packages matching the specified pattern
+        foundPackages = []
+        for _, name, ispkg in pkgutil.iter_modules(paths):
+            if re.search(plugin, name) is not None:
+                foundPackages.append(name)
 
-                imp = importlib.import_module(name)  # import the module
+        # go over found packages and start loading them
+        for packageName in foundPackages:
+            # ignore a package if in `ignore`
+            if ignore is not None and packageName in ignore:
+                continue
+            # don't load a plugin twice if already in namespace
+            elif packageName in sys.modules.keys():
+                continue
 
-                # if the module defines __all__, put those objects into the
-                # namespace of `__extends__`
+            imp = importlib.import_module(packageName)  # import the plugin code
 
-                # check if the we can actually extend an imported module
-                if imp.__extends__ not in sys.modules.keys():
-                    raise ImportError(
-                        "'Cannot install plugin to module `{}`. Has it been \
-                        imported yet?'".format(imp.__extends__))
+            # check if the plugin implements __extends__, skip if not
+            if not hasattr(imp, '__extends__'):
+                del sys.modules[packageName]
+                continue
 
-                # get module level attributes exposed by __all__
-                attrs = sys.modules[imp.__name__].__all__
+            # ensure what is being extended is part of PsychoPy
+            for moduleName in imp.__extends__.keys():
+                if not moduleName.startswith('psychopy'):
+                    raise NameError(
+                        "Plugin attempted to export objects to a module "
+                        "not part of PsychoPy!")
 
-                # create handles to those attributes in the module, like calling
-                # `from module import *` from within the `__init__.py` file
+            # create handles to those attributes in the module, like calling
+            # `from module import *` from within the `__init__.py` file
+            global _exported_objects_
+            for moduleName, attrs in imp.__extends__.items():
+                # check if the target PsychoPy module has been loaded
+                if moduleName not in sys.modules.keys():
+                    importlib.import_module(moduleName)
+                    _exported_objects_[moduleName] = []
+
+                # add module objects to their respective name spaces
+                moduleObj = sys.modules[moduleName]
                 for attr in attrs:
-                    setattr(sys.modules[imp.__extends__],
-                            attr, getattr(imp, attr))
+                    # check for conflicts
+                    if attr not in _exported_objects_[moduleName]:
+                        setattr(moduleObj, attr, getattr(imp, attr))
+                        # keep track of what's been exported so far
+                        _exported_objects_[moduleName].append(attr)
+                    else:
+                        if conflicts == 'silent':
+                            pass
+                        elif conflicts == 'error':
+                            pass
+                        else:
+                            raise ValueError(
+                                'Invalid value specified to `conflicts`.')
 
-                loaded[name] = imp
+            loaded[packageName] = imp
 
     return loaded
