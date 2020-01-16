@@ -4,7 +4,7 @@ Using Plugins to Extend PsychoPy
 ================================
 
 Plugins are packages which can be loaded to extend core PsychoPy, allowing
-third-party developers to add features and customizations.
+third-party developers to add optional features and customizations.
 
 PsychoPy's plugin system allows for modifications to the coder API by taking
 advantage of Python's flexibility. A plugin can add new objects to the namespace
@@ -38,9 +38,6 @@ contributed to the main project. Reasons for this may include:
   core developers to apply the changes. Patches can easily be applied across
   entire sites using the standard Python packaging system.
 
-Caveats
--------
-
 While plugins are useful, there are some issues and limitations associated with
 them. Here are a few examples of issues one may encounter when using plugins:
 
@@ -62,32 +59,63 @@ Plugins are essentially Python packages and can be distributed, installed, and
 used like any other Python library. PsychoPy plugin packages can be uploaded to
 The Python Package Index (PyPI) and installed using `pip`. You can also
 distribute and download plugins as ZIP archives. The names of plugins should
-follow a convention specified in the `Plugin packages` section below.
+follow a convention specified in the `Plugin packages` section below to make
+them easier to identify in a repository directory.
 
-**WARNING!** Ensure that your are downloading and installing plugins from
-reputable and legitimate sources as they may contain malware that can seriously
-harm your computer! Plugins usually consist of text files containing Python
-source code executed by the interpreter, this may not be recognizable as a threat
-to anti-virus scanners.
+Security
+~~~~~~~~
 
-Loading plugins
----------------
+Like any Python package, plugins are capable of injecting and
+executing arbitrary code which can seriously harm your system and data.
+Therefore, the following precautions should be taken by users when using
+plugins:
+
+* Only use plugins that come from reliable and reputable sources. Only obtain
+  packages from sources explicitly sanctioned by the author and not third-party
+  websites.
+* Request a checksum from the plugin author to verify the integrity of the
+  package you've obtained to detect possible tampering. Plugin authors who make
+  their packages publicly available should be ready to provide checksum data
+  associated with their packages to users who request it.
+* Audit the source code of plugins before installing a plugin. Ensure that the
+  routines contained in the package appear to do only what the author describes.
+* Use anti-virus software to scan files in plugins which cannot be opened and
+  read (i.e. compiled binaries) or request the author provide the source code.
+
+The above list is not exhaustive and guaranteed to avoid security issues.
+
+How do I use a plugin?
+----------------------
 
 A plugin can be loaded by calling the `psychopy.plugins.loadPlugins()`
-function. The names of the plugins to load are provided as a list of strings.
-Plugins will be loaded in the order they appear in the list. Note that a plugin
-can override the effects of other plugins loaded before it.
+function. The names of the plugins to load are provided as either a single
+string or list of strings. Plugins will be loaded in the order they appear in
+the list. Note that a plugin can override the effects of other plugins loaded
+before it. Once a plugin is loaded, it cannot be unloaded until the Python
+session is restarted.
 
-Calling `loadPlugins()` should happen *AFTER* importing `psychopy` and preferably
-after all other `import` statements for PsychoPy modules.
+Calling ``loadPlugins()`` should always happen *AFTER* importing `psychopy` and
+preferably after all other ``import`` statements for PsychoPy modules. An
+example of loading a plugin called `psychopy_plugin` looks like this::
 
-``TODO - Provide examples of this``
+    import psychopy
+    import psychopy.plugins as plugins
+    plugins.loadPlugins('psychopy_plugin')
+
+You can also load multiple plugins by specifying a list::
+
+    plugins.loadPlugins(['psychopy_plugin', 'psychopy_plugin2'])
+
+Plugins can also reside in some local or network drive as ZIP archives and can
+be loaded by specifying the ``path`` argument::
+
+    plugins.loadPlugins('psychopy_plugin', path='/path/to/plugin/')
 
 Plugin packages
 ---------------
 
 A plugin has a similar structure to Python package, see the official `Packaging
-Python Projects` (https://packaging.python.org/tutorials/packaging-projects/)
+Python Projects` (https://packaging.python.org/tutorials/packaging-projects)
 guide for details.
 
 To make PsychoPy plugins discernible from any other package in public
@@ -135,15 +163,6 @@ In a some cases a plugin may not extend any namespaces, but still contains code
 to modify PsychoPy. This is the case for patches and code which alters the
 Builder interface (eg. add a menu item). If so, the file must still contain a
 `__extends__` directive but it may be set to `None` or an empty dictionary.
-
-The ``__requires__`` statement
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Some plugins may need other plugins to be loaded first to take advantage of
-their features. The ``__requires__`` statement ensures that those plugins are
-also loaded.
-
-``TODO``
 
 Style recommendations
 ~~~~~~~~~~~~~~~~~~~~~

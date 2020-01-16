@@ -279,15 +279,15 @@ def loadPlugins(plugins=None, paths=None, ignore=None, conflicts='silent'):
                         "Plugin attempted to export objects to a module "
                         "not part of PsychoPy!")
 
-            # create handles to those attributes in the module, like calling
-            # `from module import *` from within the `__init__.py` file
-            global _exported_objects_
-            for moduleName, attrs in imp.__extends__.items():
                 # check if the target PsychoPy module has been loaded
                 if moduleName not in sys.modules.keys():
                     importlib.import_module(moduleName)
                     _exported_objects_[moduleName] = []
 
+            # create handles to those attributes in the module, like calling
+            # `from module import *` from within the `__init__.py` file
+            global _exported_objects_
+            for moduleName, attrs in imp.__extends__.items():
                 # add module objects to their respective name spaces
                 moduleObj = sys.modules[moduleName]
                 for attr in attrs:
