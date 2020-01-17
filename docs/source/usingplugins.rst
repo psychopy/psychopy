@@ -18,7 +18,7 @@ Why use plugins?
 Plugins are used to extend and modify PsychoPy's default behaviour at runtime
 without making permanent changes to the installed program files. This works by
 importing objects from plugin module then patching them into PsychoPy, either by
-creating or reassigning attributes within PsychoPy's module namespaces/scope to
+creating or reassigning attributes within a PsychoPy module's namespace/scope to
 reference them. While this process can be done conventionally using ``import``
 statements and "monkey patching", the plugin loader automates this based on
 metadata the plugin package contains.
@@ -26,13 +26,13 @@ metadata the plugin package contains.
 One may use plugins to add new classes and functions to PsychoPy, for instance
 creating a new stimulus class and have it appear in `psychopy.visual`. Other
 users can then download and install your plugin package and use it too. Another
-use of plugins is to modify existing PsychoPy code to add or replace extant
-attributes of modules and classes. This can be leveraged to add new features or
-to fix bugs between release cycles. Since plugins are standard Python packages
-changes can be easily applied across multiple systems.
+use of plugins is to modify existing PsychoPy code to add or replace
+attributes of extant modules and classes. This can be leveraged to add new
+features or to fix bugs between release cycles. Since plugins are standard
+Python packages changes can be easily applied across multiple systems.
 
 Consider using plugins to distribute code which cannot be contributed to the
-main project. Reasons for this may include:
+main PsychoPy project for reasons that may include:
 
 * **Niche use**, not many people use the feature and will add bloat to
   PsychoPy which increases workload when testing and packaging.
@@ -125,5 +125,6 @@ be loaded by specifying the ``path`` argument::
 How do I make a plugin?
 -----------------------
 
-For instructions on how to make plugins, see :ref:`pluginDevGuide` for
-more information.
+See :ref:`pluginDevGuide` in the developer documentation section for information
+about creating your own plugins and details about the implementation of
+PsychoPy's plugin system.

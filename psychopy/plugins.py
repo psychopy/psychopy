@@ -17,6 +17,8 @@ import types
 import inspect
 import collections
 
+from psychopy import logging
+
 # Keep track of plugins that have been loaded
 _plugins_ = collections.OrderedDict()  # use OrderedDict for Py2 compatibility
 
@@ -124,32 +126,26 @@ __author_email__ = ''
 __maintainer_email__ = ''
 __url__ = ''
 __download_url__ = ''
-__extends__ = '{extends}'
 
-# objects to put in the namespace of the module __extends__
-__all__ = ['MyClass', 'test_function', 'MY_DATA']  
+# Mapping for where objects defined in the scope of this module should be placed
+# for example `__extends__ = {'psychopy.visual': ["MyStim"]}` where "MyStim" is 
+# defined below.
+__extends__ = {}  
 
-# put your code in this space
-# <<<<<<<<<<<<<<<<<<<<<<<<<<< 
+# put your import statements and object definitions in this space
+# <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
-class MyClass(object):
-    def __init__(self):
-        pass
+# <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
-def test_function():
-    return 0
-    
-MY_DATA = 'mydata'
+def __load():
+    # put code to run when the plugin is loaded here
+    return 
 
-# <<<<<<<<<<<<<<<<<<<<<<<<<<< 
+def __shutdown():
+    # put code to run when PsychoPy quits here
+    return
 
-if __name__ == "__main__":
-    # make sure that this can only be used as a plugin
-    raise ImportError("Can not import module. This package is a plugin and"
-                      " needs to be loaded from PsychoPy using" 
-                      " `psychopy.loadPlugin`.")
-
-    """.format(extends=extends.__name__)
+    """
 
     # LICENCE file
     with open(os.path.join(rootDir, '__init__.py'), 'w') as f:
@@ -288,6 +284,8 @@ def loadPlugins(plugins=None, paths=None, ignore=None, conflicts='silent'):
                         "Plugin attempted to export objects to a module "
                         "not part of PsychoPy!")
 
+            _findConflicts(imp)  # warn of any conflicts
+
             for fqn, attrs in imp.__extends__.items():
                 # get the object the fully qualified name points to
                 obj = sys.modules['psychopy']  # base module
@@ -295,10 +293,53 @@ def loadPlugins(plugins=None, paths=None, ignore=None, conflicts='silent'):
                     obj = getattr(obj, attr)
 
                 # assign attributes from the plugin to the target
-                for attr in attrs:
-                    setattr(obj, attr, getattr(imp, attr))
+                if inspect.ismodule(obj) or inspect.isclass(obj):
+                    # classes and module can have multiple objects added to them
+                    if isinstance(attrs, (list, tuple,)):
+                        for attr in attrs:
+                            setattr(obj, attr, getattr(imp, attr))
+                    else:
+                        setattr(obj, attrs, getattr(imp, attrs))
 
             _plugins_[packageName] = imp
+
+
+def _findConflicts(module):
+    """Check if a plugin module exports an attribute a previous plugin did.
+
+    Parameters
+    ----------
+    module : ModuleType
+        Module which defines an ``__extends__`` statement.
+
+    Returns
+    -------
+    bool
+        `True` if `module` conflicts with a previously loaded one.
+
+    """
+    global _plugins_
+
+    foundConflicts = {}
+    for loadedName, loadedModule in _plugins_.items():
+        for qn, attrs in module.__extends__.items():
+            if qn not in loadedModule.__extends__.keys():
+                continue
+            if isinstance(attrs, (list, tuple,)):
+                for attr in attrs:
+                    if attr in loadedModule.__extends__[qn]:
+                        foundConflicts[qn + '.' + attr] = loadedModule
+            else:
+                if attrs == loadedModule.__extends__[qn]:
+                    foundConflicts[qn + '.' + attrs] = loadedModule
+
+    if foundConflicts:
+        for fqn, loadedModule in foundConflicts.items():
+             logging.warning("Plugin '{}' exports attribute `{}` previously "
+                             "assigned by plugin '{}'.".format(
+                 module.__name__, fqn, loadedModule.__name__))
+
+    return len(foundConflicts) > 0
 
 
 def _shutdownPlugins():

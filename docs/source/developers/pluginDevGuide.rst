@@ -16,15 +16,15 @@ additional executable code from plugin packages then patches them into an active
 PsychoPy session. This is done by calling the ``psychopy.plugins.loadPlugins()``
 function and passing the names of the desired plugin modules to it. Once
 ``loadPlugins()`` returns, imported objects are immediately accessible. Any
-changes made to PsychoPy with plugins do not persist across sessions unless
-``loadPlugins()`` is called again. If Python is restarted, PsychoPy will return
-to its default behaviour. While you can do this using conventional ``import``
-statements, the plugin loader also automatically handles patching objects
-exported by the plugin into PsychoPy's modules and classes.
+changes made to PsychoPy with plugins do not persist across sessions, meaning if
+Python is restarted, PsychoPy will return to its default behaviour unless
+``loadPlugins()`` is called again. While you accomplish the same effect using
+conventional ``import`` statements, the plugin loader also automatically handles
+patching objects exported by the plugin into PsychoPy's modules and classes.
 
 To demonstrate why plugins are advantageous over ``import``, let's consider a
 case where we want to add support for some display related hardware. This
-requires overriding the default behaviour of the
+example requires overriding the default behaviour of the
 ``psychopy.visual.Window.flip()`` method and adding a new class to
 `psychopy.hardware` called ``DisplayDriver``. These objects reside in a package
 called `psychopy_display` installed alongside PsychoPy. The following two code
@@ -53,19 +53,20 @@ Equivalent to above using a plugin::
     win = visual.Window()  # create a window
     hw = hardware.DisplayDriver(win)
 
-As we can see, using the plugin does not require the user to manually specify
+As demonstrated, using the plugin does not require the user to manually specify
 which attributes to assign the imported objects. The plugin loader knows where
-to put objects because the modules defines an ``__extends__`` attribute and does
-so automatically. Other than the ``__extends__`` statement, the code in
-`psychopy_display` is exactly the same in both cases. While you could have the
-module apply patches when imported by doing the assignments from within the
-module, the plugin system does some bookkeeping to keep track of what parts of
-PsychoPy have been modified, warning the user when multiple plugins attempt
-to modify the same attributes. For instance, if another plugin is loaded and
-attempts to modify ``psychopy.visual.Window.flip()``, the plugin system will
-identify the conflict and inform the user. This safeguards against possible
-undefined behaviour arising from the conflict which affects the operation of
-previously loaded plugins.
+to put objects because the modules defines an ``__extends__`` attribute. Other
+than the ``__extends__`` statement, the code in `psychopy_display` is exactly
+the same in both cases.
+
+While you could have the module apply patches when imported by doing the
+assignments from within the module, the plugin system does some bookkeeping to
+keep track of what parts of PsychoPy have been modified, warning the user when
+multiple plugins attempt to modify the same attributes. For instance, if another
+plugin is loaded and attempts to modify ``psychopy.visual.Window.flip()``, the
+plugin system will identify the conflict and inform the user. This safeguards
+against possible undefined behaviour arising from the conflict which affects the
+operation of previously loaded plugins.
 
 Plugins can contain executable code which could run when loaded. For instance,
 a routine to initialize something so the user doesn't have to explicitly.
@@ -101,52 +102,61 @@ The ``__extends__`` module attribute is **required** by all PsychoPy plugins. If
 ``__extends__`` is not defined in file used as the entry point for plugin
 module, it cannot be loaded by ``loadPlugins()``. The plugin loader imports the
 module and looks for this attribute to not only identify whether a module is a
-plugin, but to determine where to assign objects within PsychoPy. Note that
-objects can only be assigned to unbound classes and their methods.
+plugin, but to determine where to assign objects within PsychoPy.
 
 The value of ``__extends__`` is always either a dictionary or `None`. Dictionary
-keys are strings specifying the *fully qualified path* of a PsychoPy object
-attribute to extend or modify. Target objects can be modules (eg.
-`psychopy.visual`), classes (eg. `psychopy.visual.Window`) and their methods,
-functions, or variables. Dictionary items are lists of strings specifying the
-names of objects to place in the associated namespace. For example, an
-``__extends__`` statement may look like this::
+keys are strings specifying the *fully qualified name* of a PsychoPy object
+whose attribute you wish to extend or modify. Target PsychoPy objects can be
+modules (eg. `psychopy.visual`), classes (eg. `psychopy.visual.Window`) and
+their methods.
 
-    __extends__ = {'psychopy.core': ["MyTimer"],
+Note that objects can only be assigned to unbound classes and their methods and
+will not modify instances present before the plugin was loaded. The items of the
+``__extends__`` dictionary are strings or lists of strings specifying the names
+of objects to place in the associated namespace. For example, an ``__extends__``
+statement may look like this::
+
+    __extends__ = {'psychopy.core': "MyTimer",
                    'psychopy.visual': ["MyStimClass", "myFunc"],
-                   'psychopy.visual.Window.flip': "flip"}
+                   'psychopy.visual.Window': "flip"}
 
-Where "MyTimer", "MyStimClass", "flip" and "myFunc" are objects defined in the
-namespace of the plugin module. When the plugin is loaded, "MyTimer" will be
-placed in `psychopy.core`, and "MyStimClass" and "myFunc" in `psychopy.visual`.
-The method ``psychopy.visual.Window.flip()`` will be replaced with "flip". Users
-can then access these objects as if they were part of the module (eg.
-calling ``psychopy.visual.myFunc()`` after loading the plugin).
+Where `"MyTimer"`, `"MyStimClass"`, `"flip"` and `"myFunc"` are objects defined
+in the scope of the plugin module. When the plugin is loaded, `MyTimer` will be
+placed in `psychopy.core`, and `MyStimClass` and `myFunc` in `psychopy.visual`.
+The method ``psychopy.visual.Window.flip()`` will be replaced with `flip`.
+After a plugin is loaded, the behaviour of ``flip()`` will change and all other
+object will be accessible within their respective scopes (eg.
+``psychopy.visual.myFunc()`` will be callable).
 
 In a some cases a plugin may not extend any namespaces, but still contains code
-to modify PsychoPy. This is the case for patches and code which alters the
-Builder interface (eg. add a menu item). If so, the file must still contain a
-`__extends__` directive but it may be set to `None` or an empty dictionary.
+to modify PsychoPy. This is the case for plugins which alters the Builder
+interface (eg. add a menu item). If so, the file must still contain a
+``__extends__`` directive but it may be set to `None` or an empty dictionary.
+
+Note the optional ``__all__`` attribute some modules define is ignored by the
+plugin loader. You can include ``__all__`` in your plugin module if you wish to
+allow it to be imported conventionally, or to expose non-PsychoPy related
+objects.
 
 Optional ``__load()`` and ``__shutdown()`` functions
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Some plugins may need to execute code when loaded, or to clean up when PsychoPy
+Some plugins may need to execute code when loaded or to clean up when PsychoPy
 closes. You can indicate which code to run in either of these events by defining
 optional ``__load()`` and ``__shutdown()`` functions in the same file
 ``__extends__`` is defined. If present, the ``__load()`` function is called
 before assigning objects specified by ``__extends__`` and ``__shutdown()`` is
 called when ``psychopy.core.quit()`` is invoked.
 
-Style recommendations
-~~~~~~~~~~~~~~~~~~~~~
+Coding and documentation style
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Since plugins are not part of PsychoPy, developers are not compelled to
-adhere to the official style guide. However, to provide a consistent
-experience for users, it is highly recommended that any user facing objects
-exported by the plugin do use the official style conventions. See
-:ref:`demostyleguide` for more information. For documentation, PsychoPy
-standardized on the `NumpyDoc` style for new code.
+Since plugins are not part of PsychoPy, developers are not compelled to adhere
+to the official style guide. However, to provide a consistent experience for
+users, it is highly recommended that any user facing objects exported by the
+plugin do use the official style conventions. See :ref:`demostyleguide` for more
+information. For documentation, PsychoPy standardized on the `NumpyDoc` style
+for new code.
 
 Creating a plugin example
 -------------------------
