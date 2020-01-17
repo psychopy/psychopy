@@ -30,7 +30,7 @@ Further information:
    recipes/recipes
    faqs/faqs
    resources/resources
-   usingPlugins
+   usingplugins
 
 For developers:
 

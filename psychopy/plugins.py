@@ -15,6 +15,10 @@ import importlib
 import re
 import types
 import inspect
+import collections
+
+# Keep track of plugins that have been loaded
+_plugins_ = collections.OrderedDict()  # use OrderedDict for Py2 compatibility
 
 # Keep track of objects exported by plugins to warn of or resolve namespace
 # conflicts. Keys are PsychoPy module names and values are lists of object
@@ -249,7 +253,7 @@ def loadPlugins(plugins=None, paths=None, ignore=None, conflicts='silent'):
     if isinstance(plugins, str):
         plugins = [plugins]
 
-    loaded = {}
+    global _plugins_
     for plugin in plugins:
         # find packages installed packages matching the specified pattern
         foundPackages = []
@@ -273,6 +277,10 @@ def loadPlugins(plugins=None, paths=None, ignore=None, conflicts='silent'):
                 del sys.modules[packageName]
                 continue
 
+            # call the __load function if present
+            if hasattr(imp, '__load'):
+                imp.__load()
+
             # ensure what is being extended is part of PsychoPy
             for moduleName in imp.__extends__.keys():
                 if not moduleName.startswith('psychopy'):
@@ -290,6 +298,21 @@ def loadPlugins(plugins=None, paths=None, ignore=None, conflicts='silent'):
                 for attr in attrs:
                     setattr(obj, attr, getattr(imp, attr))
 
-            loaded[packageName] = imp
+            _plugins_[packageName] = imp
 
-    return loaded
+
+def _shutdownPlugins():
+    """Call the shutdown routines for all loaded plugins.
+
+    This function calls the ``__shutdown`` function (if present) for all
+    presently loaded plugins. The ``__shutdown`` function is called sequentially
+    for each plugin module in the reverse order they were loaded (ie. the last
+    plugin loaded will have it's ``__shutdown`` function called first.
+
+    """
+    global _plugins_
+    if _plugins_:  # only bother with this if there are any plugins loaded
+        for name, module in reversed(list(_plugins_.items())):
+            if hasattr(module, '__shutdown'):
+                module.__shutdown()
+
