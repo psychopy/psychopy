@@ -22,11 +22,6 @@ from psychopy import logging
 # Keep track of plugins that have been loaded
 _plugins_ = collections.OrderedDict()  # use OrderedDict for Py2 compatibility
 
-# Keep track of objects exported by plugins to warn of or resolve namespace
-# conflicts. Keys are PsychoPy module names and values are lists of object
-# names.
-_exported_objects_ = {}
-
 
 def createPluginPackage(packagePath,
                         packageName,
@@ -152,7 +147,7 @@ def __shutdown():
         f.write(packageInit)
 
 
-def loadPlugins(plugins=None, paths=None, ignore=None, conflicts='silent'):
+def loadPlugins(plugins=None, paths=None, ignore=None, conflicts='warn'):
     """Load a plugin to extend PsychoPy's coder API.
 
     Plugins are packages which extend upon PsychoPy's existing functionality by
@@ -162,20 +157,8 @@ def loadPlugins(plugins=None, paths=None, ignore=None, conflicts='silent'):
     can either reside in a location defined in `sys.path` or elsewhere.
 
     This function searches for any installed packages named in `plugins`,
-    imports them, and add their attributes to namespace which the package
-    defines with the `__extends__` directive in the `__init__.py` file within
-    the top-level package. The `__init__.py` must also define an `__all__`
-    statement to indicate which objects to import into the namespace of
-    `__extends__`.
-
-    Only attributes defined explicitly `__all__` in the found packages will be
-    assigned attributes. Therefore, any packages that wish to extend the
-    PsychoPy API must have an `__all__` statement. Note that `module` should be
-    imported prior to attempting to load a plugin. Plugins will only be loaded
-    once per session, where a plugin will be prevented from being imported again
-    if its name appears in `plugins` in successive calls to `loadPlugins`. Any
-    objects from subsequently loaded modules will override objects within a
-    namespace sharing the same names.
+    imports them, and add their attributes to namespace which the plugin module
+    defines with the `__extends__` directive.
 
     Plugins may also be ZIP files (i.e. *.zip or *.egg) and will be imported if
     they reside in one of the `paths`.
@@ -185,11 +168,9 @@ def loadPlugins(plugins=None, paths=None, ignore=None, conflicts='silent'):
     plugins : str, list or None
         Name(s) of the plugin package(s) to load. A name can also be given as a
         regular expression for loading multiple packages with similar names. If
-        `None`, the `plugins` name will be derived from the `module` name and
-        all packages prefixed with the name will be loaded. For instance,
-        if 'psychopy.visual' is given, all packages installed on the system
-        with names starting with 'psychopy_visual_' will be loaded. A list of
-        name strings can be given, where they will be loaded sequentially.
+        `None`, all packages starting with `psychopy_` installed on the system
+        will be loaded. A list of name strings can be given, where they will be
+        loaded sequentially.
     paths : list
         List of paths (`str`) to look for plugins. If `None`, `paths` will be
         set to `sys.paths`.
@@ -284,8 +265,29 @@ def loadPlugins(plugins=None, paths=None, ignore=None, conflicts='silent'):
                         "Plugin attempted to export objects to a module "
                         "not part of PsychoPy!")
 
-            _findConflicts(imp)  # warn of any conflicts
+            # check for export conflicts
+            if conflicts != 'silent':
+                # find conflicts and log them
+                foundConflicts = _findConflicts(imp)
+                for fqn, loadedModule in foundConflicts.items():
+                    if conflicts == 'warn':
+                        logging.warning(
+                            "Plugin '{}' exports `{}` previously assigned by "
+                            "plugin '{}'.".format(
+                                imp.__name__, fqn, loadedModule.__name__))
+                    elif conflicts == 'error':
+                        logging.error(
+                            "Plugin '{}' exports `{}` previously assigned by "
+                            "plugin '{}'.".format(
+                                imp.__name__, fqn, loadedModule.__name__))
 
+                # raise an exception after logging errors
+                if foundConflicts and conflicts == 'error':
+                    raise NameError(
+                        "Plugin '{}' exports previously exported "
+                        "names.".format(imp.__name__))
+
+            # add exported attributes to PsychoPy objects
             for fqn, attrs in imp.__extends__.items():
                 # get the object the fully qualified name points to
                 obj = sys.modules['psychopy']  # base module
@@ -301,6 +303,7 @@ def loadPlugins(plugins=None, paths=None, ignore=None, conflicts='silent'):
                     else:
                         setattr(obj, attrs, getattr(imp, attrs))
 
+            # register the plugin
             _plugins_[packageName] = imp
 
 
@@ -314,14 +317,17 @@ def _findConflicts(module):
 
     Returns
     -------
-    bool
-        `True` if `module` conflicts with a previously loaded one.
+    dict
+        Dictionary where keys are fully qualified names of attributes where
+        a conflict has been identified, and values are the plugin module which
+        originally set the attribute.
 
     """
     global _plugins_
 
     foundConflicts = {}
-    for loadedName, loadedModule in _plugins_.items():
+    # iter over previously loaded plugins
+    for _, loadedModule in _plugins_.items():
         for qn, attrs in module.__extends__.items():
             if qn not in loadedModule.__extends__.keys():
                 continue
@@ -333,13 +339,7 @@ def _findConflicts(module):
                 if attrs == loadedModule.__extends__[qn]:
                     foundConflicts[qn + '.' + attrs] = loadedModule
 
-    if foundConflicts:
-        for fqn, loadedModule in foundConflicts.items():
-             logging.warning("Plugin '{}' exports attribute `{}` previously "
-                             "assigned by plugin '{}'.".format(
-                 module.__name__, fqn, loadedModule.__name__))
-
-    return len(foundConflicts) > 0
+    return foundConflicts
 
 
 def _shutdownPlugins():
