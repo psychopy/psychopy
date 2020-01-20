@@ -26,6 +26,7 @@ Further information:
 .. toctree::
    :maxdepth: 1
 
+   timing/index
    troubleshooting
    recipes/recipes
    faqs/faqs
