@@ -58,6 +58,7 @@ Manual installations
 See below for options if you don't want to use the Standalone releases:
 
 * :ref:`pip_install`
+* :ref:`brew_install`
 * :ref:`linux_install`
 * :ref:`conda`
 * :ref:`developers_install`
@@ -67,7 +68,7 @@ See below for options if you don't want to use the Standalone releases:
 pip install
 ~~~~~~~~~~~~~~~~~
 
-Now that most python libraries can be install using `pip` it's relatively easy
+Now that most python libraries can be installed using `pip` it's relatively easy
 to manually install PsychoPy and all it's dependencies to your own installation
 of Python.
 
@@ -84,6 +85,15 @@ If you prefer *not* to install *all* the dependencies then you could do::
   pip install psychopy --no-deps
 
 and then install them manually.
+
+.. _brew_install:
+
+brew install
+~~~~~~~~~~~~~~~~~
+
+On a MacOS machine, `brew` can be used to install PsychoPy::
+
+  brew cask install psychopy
 
 .. _linux_install:
 
