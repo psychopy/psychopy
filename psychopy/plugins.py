@@ -289,22 +289,85 @@ def loadPlugins(plugins=None, paths=None, ignore=None, conflicts='warn'):
 
             # add exported attributes to PsychoPy objects
             for fqn, attrs in imp.__extends__.items():
-                # get the object the fully qualified name points to
-                obj = sys.modules['psychopy']  # base module
-                for attr in fqn.split(".")[1:]:
-                    obj = getattr(obj, attr)
+                # prevent the plugin from modifying certain modules
+                if fqn.startswith('psychopy.plugins'):
+                    raise NameError(
+                        "Plugins a forbidden from modifying the "
+                        "`psychopy.plugins` module.")
 
                 # assign attributes from the plugin to the target
-                if inspect.ismodule(obj) or inspect.isclass(obj):
-                    # classes and module can have multiple objects added to them
-                    if isinstance(attrs, (list, tuple,)):
-                        for attr in attrs:
-                            setattr(obj, attr, getattr(imp, attr))
-                    else:
-                        setattr(obj, attrs, getattr(imp, attrs))
+                _patchAttrs(_objectFromFQN(fqn), imp, attrs)
 
             # register the plugin
             _plugins_[packageName] = imp
+
+
+def _objectFromFQN(fqn):
+    """Get an object within PsychoPy's namespace using a fully-qualified name
+    (FQN). This function will only retrieve an object if the root name of the
+    FQN is `psychopy`.
+
+    Parameters
+    ----------
+    fqn : str
+        Fully-qualified name to the object (eg. `psychopy.visual.Window`).
+
+    Returns
+    -------
+    obj
+        Object referred to by the FQN within PsychoPy's namespace. Can be a
+        module, unbound class or method, function or variable.
+
+    """
+    if not fqn.startswith('psychopy'):
+        raise NameError('Base name must be `psychopy`.')
+
+    # get the object the fqn refers to
+    objref = sys.modules['psychopy']  # base module
+    for attr in fqn.split(".")[1:]:
+        objref = getattr(objref, attr)
+
+    return objref
+
+
+def _patchAttrs(obj, exp, attrs):
+    """Assign attributes in the target module or unbound class with objects
+    defined in a plugin module.
+
+    Parameters
+    ----------
+    obj : ModuleType or ClassType
+        Object to assign attributes to.
+    exp : ModuleType
+        Plugin module exporting the objects.
+    attrs : str or list of str
+        Name(s) of objects to assign. Can be a single string or a list of
+        strings.
+
+    """
+    # deal with modules and classes
+    if inspect.ismodule(obj) or inspect.isclass(obj):
+        # modules and class can have their attributes assigned objects directly
+        if isinstance(attrs, str):
+            # Ensure that we are not wholesale replacing an existing module. We
+            # want plugins to be explicit about what they are changing, so the
+            # conflict resolution system doesn't flag the whole module as
+            # modified. This makes sure plugins play nice with each other, only
+            # making changes to existing code where needed. However, plugins are
+            # allowed to add new modules to existing ones.
+            attr = getattr(exp, attrs)
+            if hasattr(obj, attr.__name__) and inspect.ismodule(attr):
+                raise NameError("Plugin attempted to override a builtin "
+                                "PsychoPy module.")
+            else:
+                setattr(obj, attrs, attr)
+        elif isinstance(attrs, (list, tuple,)):  # attributes can be given as a list
+            for attr in attrs:
+                _patchAttrs(obj, exp, attr)  # recursive call on each
+        else:
+            raise TypeError('Value for `attrs` must be list or string.')
+    else:
+        raise TypeError('Object `obj` must be module or class type.')
 
 
 def _findConflicts(module):
@@ -345,15 +408,16 @@ def _findConflicts(module):
 def _shutdownPlugins():
     """Call the shutdown routines for all loaded plugins.
 
-    This function calls the ``__shutdown`` function (if present) for all
-    presently loaded plugins. The ``__shutdown`` function is called sequentially
-    for each plugin module in the reverse order they were loaded (ie. the last
-    plugin loaded will have it's ``__shutdown`` function called first.
+    This function calls the ``__shutdown__`` function (if present) for all
+    presently loaded plugins. The ``__shutdown__`` function is called
+    sequentially for each plugin module in the reverse order they were loaded
+    (ie. the last plugin loaded will have it's ``__shutdown__`` function called
+    first.
 
     """
     global _plugins_
     if _plugins_:  # only bother with this if there are any plugins loaded
         for name, module in reversed(list(_plugins_.items())):
-            if hasattr(module, '__shutdown'):
+            if hasattr(module, '__shutdown__'):
                 module.__shutdown()
 

@@ -71,6 +71,24 @@ operation of previously loaded plugins.
 Plugins can contain executable code which could run when loaded. For instance,
 a routine to initialize something so the user doesn't have to explicitly.
 
+Acceptable Use Policy for Plugins
+---------------------------------
+
+If one chooses to make available their plugins, regardless of the method of
+distribution, they must abide by the following policies for acceptable use.
+
+1) Plugin developers must be as transparent as possible regarding the intent of
+   their software.
+2) Plugins must not perform actions which may compromise the security or
+   privacy of the user.
+3) The software must not perform unsolicited: file operations (access,
+   modification, or deletion of files on the users computer or network), changes
+   to the user's computer hardware or software configuration, or transmission of
+   data over a network (eg. usage data).
+4) Plugins which modify PsychoPy's existing code should be focused on a specific
+   feature. Avoid creating a plugin which modifies multiple, unrelated aspects
+   of the software.
+
 Plugin packages
 ---------------
 
@@ -138,7 +156,7 @@ plugin loader. You can include ``__all__`` in your plugin module if you wish to
 allow it to be imported conventionally, or to expose non-PsychoPy related
 objects.
 
-Optional ``__load()`` and ``__shutdown()`` functions
+Optional ``__load()`` and ``__shutdown__()`` functions
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Some plugins may need to execute code when loaded or to clean up when PsychoPy
