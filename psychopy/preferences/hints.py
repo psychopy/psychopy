@@ -267,6 +267,9 @@ _translate("switch to Builder window from Coder")
 # baseNoArch.spec,[keyBindings],line208
 _translate("switch to Coder window from Builder")
 
+# baseNoArch.spec,[keyBindings],line208
+_translate("switch to Runner")
+
 # baseNoArch.spec,[keyBindings],line210
 _translate("increase display size in Flow")
 

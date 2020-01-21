@@ -1510,6 +1510,13 @@ class BuilderFrame(wx.Frame):
                                'switchToCoder'],
                            _translate("Open a new Coder view"))
         self.Bind(wx.EVT_MENU, self.app.showCoder, item)
+
+        item = menu.Append(wx.ID_ANY,
+                           _translate("&Open Runner view\t%s") % keys[
+                               'switchToRunner'],
+                           _translate("Open the Runner view"))
+        self.Bind(wx.EVT_MENU, self.app.showRunner, item)
+
         item = menu.Append(wx.ID_ANY,
                            _translate("&Toggle readme\t%s") % self.app.keys[
                                'toggleReadme'],
@@ -1631,6 +1638,7 @@ class BuilderFrame(wx.Frame):
         self.Bind(wx.EVT_MENU, self.app.showAbout, id=wx.ID_ABOUT)
 
         menu.AppendSeparator()
+        menu.AppendSeparator()
 
         item = menu.Append(wx.ID_ANY,
                            _translate("&News..."),
@@ -1664,6 +1672,10 @@ class BuilderFrame(wx.Frame):
             else:
                 self.app.forgetFrame(self)
                 self.Destroy()  # required
+
+            # Show Runner if hidden
+            if self.app.runner is not None:
+                self.app.runner.Show()
 
     def quit(self, event=None):
         """quit the app
@@ -1741,6 +1753,10 @@ class BuilderFrame(wx.Frame):
         self.updateReadme()
         self.fileHistory.AddFileToHistory(filename)
         self.htmlPath = None  # so we won't accidentally save to other html exp
+
+        if self.app.runner:
+            self.app.runner.addTask(fileName=self.filename)  # Add to Runner
+
         try:
             self.project = pavlovia.getProject(filename)
         except Exception as e:  # failed for
@@ -2166,9 +2182,8 @@ class BuilderFrame(wx.Frame):
         if not os.path.exists(self.filename):
             self.fileSave(self.filename)
 
-        self.app.runner.addExperiment(fileName=self.filename)
-        self.app.runner.Show()
-        self.app.runner.Raise()
+        self.app.showRunner()
+
         fullPath = self.filename.replace('.psyexp', '_lastrun.py')
         self.generateScript(fullPath)  # Build script based on current version selected
 
@@ -2193,6 +2208,7 @@ class BuilderFrame(wx.Frame):
         self.toolbar.EnableTool(self.bldrBtnRun.Id, False)
         self.toolbar.EnableTool(self.bldrBtnStop.Id, True)
         self.app.Yield()
+
         # the whileRunning method will check on stdout from the script
         self._processEndTime = None
         self.scriptProcess = subprocess.Popen(
@@ -2230,8 +2246,6 @@ class BuilderFrame(wx.Frame):
     def onProcessEnded(self, event=None):
         """The script/exp has finished running
         """
-        # if len(self.stdoutBuffer.getvalue()) > self.stdoutFrame.lenLastRun:
-        #     self.stdoutFrame.write(self.stdoutBuffer.getvalue())
         self.toolbar.EnableTool(self.bldrBtnRun.Id, True)
         self.toolbar.EnableTool(self.bldrBtnStop.Id, False)
         self._stdoutThread.exit = True

@@ -59,6 +59,7 @@ class Preferences(object):
         self.general = None
         self.coder = None
         self.builder = None
+        self.runner = None
         self.connections = None
         self.paths = {}  # this will remain a dictionary
         self.keys = {}  # does not remain a dictionary
@@ -171,6 +172,7 @@ class Preferences(object):
         self.app = self.userPrefsCfg['app']
         self.coder = self.userPrefsCfg['coder']
         self.builder = self.userPrefsCfg['builder']
+        self.runner = self.userPrefsCfg['runner']
         self.hardware = self.userPrefsCfg['hardware']
         self.connections = self.userPrefsCfg['connections']
         self.keys = self.userPrefsCfg['keyBindings']

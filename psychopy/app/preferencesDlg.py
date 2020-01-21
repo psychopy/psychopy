@@ -119,6 +119,7 @@ _localized = {
     'renameRoutine': _translate('rename Routine'),
     'switchToBuilder': _translate('switch to Builder'),
     'switchToCoder': _translate('switch to Coder'),
+    'switchToRunner': _translate('switch to Runner'),
     'largerFlow': _translate('larger Flow'),
     'smallerFlow': _translate('smaller Flow'),
     'largerRoutine': _translate('larger routine'),

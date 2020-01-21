@@ -108,6 +108,11 @@
     # Upper limit on how many components can be in favorites
     maxFavorites = integer(default=10)
 
+# Settings for the runner panel
+[runner]
+    # For saving task lists in the Runner
+    taskList = list(default=list(None))
+
 [hardware]
     # choice of audio library
     audioLib = list(default=list('sounddevice','PTB', 'pyo', 'pygame'))
@@ -223,6 +228,8 @@
     switchToBuilder = string(default='Ctrl+L')
     # switch to Coder window from Builder
     switchToCoder = string(default='Ctrl+L')
+    # switch to Runner
+    switchToRunner = string(default='Ctrl+Alt+R')
     # increase display size in Flow
     largerFlow = string(default='Ctrl+=')
     # decrease display size in Flow
