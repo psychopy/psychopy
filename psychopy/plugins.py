@@ -6,7 +6,7 @@
 # Distributed under the terms of the GNU General Public License (GPL).
 """Utilities for loading plugins into PsychoPy."""
 
-__all__ = ['loadPlugins', 'createPluginPackage']
+__all__ = ['loadPlugins', 'createPluginPackage', 'installPlugin', 'PLUGIN_PATH']
 
 import sys
 import os
@@ -16,8 +16,18 @@ import re
 import types
 import inspect
 import collections
+import shutil
+import zipfile
 
 from psychopy import logging
+
+# get the plugin path
+if sys.platform == 'win32':
+    PLUGIN_PATH = os.path.join(os.environ['APPDATA'], 'psychopy3', 'plugins')
+else:
+    PLUGIN_PATH = os.path.join(os.environ['HOME'], '.psychopy3', 'plugins')
+
+print(PLUGIN_PATH)
 
 # Keep track of plugins that have been loaded
 _plugins_ = collections.OrderedDict()  # use OrderedDict for Py2 compatibility
@@ -147,6 +157,59 @@ def __shutdown():
         f.write(packageInit)
 
 
+def installPlugin(plugin, path=None, overwrite=True):
+    """Install a plugin into PsychoPy.
+
+    This function copies a plugin archive into PsychoPy's plugin directory
+    `PLUGIN_PATH`.
+
+    Examples
+    --------
+    Install a plugin archive to `PLUGIN_PATH`::
+
+        installPlugin(r'/path/to/plugin/psychopy_plugin.zip')
+
+    """
+    if path is not None:
+        # check if path is a directory
+        if not os.path.isdir(path):
+            raise NotADirectoryError("Value for `path` is not a directory.")
+
+        # construct a path to the plugin
+        pathToPlugin = path
+        pluginFile = plugin
+    else:
+        pathToPlugin, pluginFile = os.path.split(plugin)
+
+    fullPathToPlugin = os.path.join(pathToPlugin, pluginFile)
+
+    # identify if the file is a plugin
+    if not os.path.isfile(fullPathToPlugin):
+        raise FileNotFoundError("Cannot find file `{}`.".format(
+            fullPathToPlugin))
+
+    if not zipfile.is_zipfile(fullPathToPlugin):  # make sure file exists
+        raise RuntimeError("File `{}` is not a ZIP archive.".format(
+            fullPathToPlugin))
+
+    # TODO - read the zip archive and look for metadata
+
+    # create the plugin directory if it doesn't exist yet
+    if not os.path.exists(PLUGIN_PATH):
+        os.makedirs(PLUGIN_PATH)
+
+    # prepare copy, check if the file exists already in the plugin folder
+    if not os.path.isfile(os.path.join(PLUGIN_PATH, pluginFile)) or overwrite:
+        # copy the plugin
+        shutil.copy(fullPathToPlugin, PLUGIN_PATH)
+
+        # raise FileExistsError('Plugin `{}` already installed.'.format(
+        #     pluginFile))
+
+    # TODO - function should return the name of the module so you can do this:
+    #        `loadPlugin(installPlugin("blah"))`
+
+
 def loadPlugins(plugins=None, paths=None, ignore=None, conflicts='warn'):
     """Load a plugin to extend PsychoPy's coder API.
 
@@ -230,6 +293,9 @@ def loadPlugins(plugins=None, paths=None, ignore=None, conflicts='warn'):
     if isinstance(plugins, str):
         plugins = [plugins]
 
+    if paths is None:
+        paths = PLUGIN_PATH
+
     global _plugins_
     for plugin in plugins:
         # find packages installed packages matching the specified pattern
@@ -292,7 +358,7 @@ def loadPlugins(plugins=None, paths=None, ignore=None, conflicts='warn'):
                 # prevent the plugin from modifying certain modules
                 if fqn.startswith('psychopy.plugins'):
                     raise NameError(
-                        "Plugins a forbidden from modifying the "
+                        "Plugins are forbidden from modifying the "
                         "`psychopy.plugins` module.")
 
                 # assign attributes from the plugin to the target
