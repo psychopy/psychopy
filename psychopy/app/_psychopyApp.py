@@ -736,11 +736,12 @@ class PsychoPyApp(wx.App):
         info.AddDeveloper('Erik Kastman')
         info.AddDeveloper('Michael MacAskill')
         info.AddDeveloper('Hiroyuki Sogo')
+        info.AddDeveloper('David Bridges')
         info.AddDocWriter('Jonathan Peirce')
         info.AddDocWriter('Jeremy Gray')
         info.AddDocWriter('Rebecca Sharman')
         info.AddTranslator('Hiroyuki Sogo')
-        info.AddTranslator('David Bridges')
+
         if not self.testMode:
             showAbout(info)
 
