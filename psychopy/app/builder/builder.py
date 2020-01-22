@@ -1675,7 +1675,7 @@ class BuilderFrame(wx.Frame):
 
             # Show Runner if hidden
             if self.app.runner is not None:
-                self.app.runner.Show()
+                self.app.showRunner()
 
     def quit(self, event=None):
         """quit the app

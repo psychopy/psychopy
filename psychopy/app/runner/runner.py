@@ -149,15 +149,21 @@ class RunnerFrame(wx.Frame):
     def onClose(self, evt):
         """
         Defines Frame closing behavior.
-        Frame only gets destroyed if no other frames exist.
+        Frame only gets destroyed if no other frames from main thread exist.
+        If only Runner and localProcess threads exist, the app will quit, preventing hang
+        if all frames, except the active task process, are destroyed or hidden.
         """
-        lastFrame = len(self.app.getAllFrames()) == 1
-        if lastFrame:
+        allFrames = self.app.getAllFrames()
+        lastFrame = len(allFrames) == 1
+        okToClose = self.app.getAllFrames() == [self, self.panel.localProcess] # If only Runner and localProcess, quit
+
+        if lastFrame or okToClose:
             self.onQuit()
         else:
             self.Hide()
 
     def onQuit(self, evt=None):
+        self.panel.stopTask(forceQuit=True)
         self.Destroy()  # required
         self.app.forgetFrame(self)
         self.app.quit(evt)
@@ -323,12 +329,12 @@ class RunnerPanel(wx.Panel):
             bmp = wx.Bitmap(join(rc, main), PNG)
         return wx.BitmapButton(self, -1, bmp, size=[buttonSize, buttonSize], style=wx.NO_BORDER )
 
-    def stopTask(self, evt):
+    def stopTask(self, evt=None, forceQuit=False):
         """
         Kills script processes currently running.
         """
         # Check whether script ended automatically
-        if self.processExists and not (evt.EventObject.ClassName == 'wxBitmapButton'):
+        if not forceQuit and self.processExists and not (evt.EventObject.ClassName == 'wxBitmapButton'):
             return
 
         # Stop Runner script local process
@@ -401,7 +407,6 @@ class RunnerPanel(wx.Panel):
         """
         if self.currentSelection is None:
             return
-        print(self.currentSelection)
 
         if self.currentProject not in [None, "None", ''] and self.currentFile.suffix == '.psyexp':
             webbrowser.open(
