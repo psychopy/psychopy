@@ -1816,7 +1816,6 @@ class BuilderFrame(wx.Frame):
             self.fileSave(event=None, filename=newPath)
             self.filename = newPath
             returnVal = 1
-
         try:  # this seems correct on PC, but not on mac
             dlg.destroy()
         except Exception:
@@ -2491,8 +2490,9 @@ class BuilderFrame(wx.Frame):
                                                  closeFrameWhenDone=False)
                 self.gitFeedback(retVal)
         if self.project:
+            htmlPath = self.exp.settings.params['HTML path'].val
             self.project.pavloviaStatus = 'ACTIVATED'
-            url = "https://pavlovia.org/run/{}/html".format(self.project.id)
+            url = "https://pavlovia.org/run/{}/{}".format(self.project.id, htmlPath)
             wx.LaunchDefaultBrowser(url)
 
     def enablePavloviaButton(self, buttons, enable):

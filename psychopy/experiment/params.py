@@ -189,7 +189,7 @@ class Param(object):
                 elif self.valType == 'extendedCode':
                     valJS = py2js.snippet2js(val)
                 if val != valJS:
-                    logging.info("py2js: {} -> {}".format(val, valJS))
+                    logging.debug("Rewriting with py2js: {} -> {}".format(val, valJS))
                 return valJS
             else:
                 return val

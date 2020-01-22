@@ -8,10 +8,10 @@ class TestAlertsModule():
     def teardown(self):
         sys.stderr = sys.__stderr__
 
-    def test_alert_catalogue(self):
-        """Test the alerts catalogue has been created and loaded correctly"""
-        assert (isinstance(_alerts.catalogue, _alerts.AlertCatalogue))
-        assert (9999 in _alerts.catalogue.alert.keys())
+    def test_alert_catalog(self):
+        """Test the alerts catalog has been created and loaded correctly"""
+        assert (isinstance(_alerts.catalog, _alerts.AlertCatalog))
+        assert (9999 in _alerts.catalog.alert.keys())
 
     def test_alertentry(self):
         """Test creation of AlertEntry object"""
@@ -22,11 +22,11 @@ class TestAlertsModule():
     def test_alertentry_stringformatting(self):
         """Test AlertEntry string formatting"""
         testString = {"testString": "TEST ALERT"}
-        newAlert = _alerts.AlertEntry(9999, self, strFormat=testString)
+        newAlert = _alerts.AlertEntry(9999, self, strFields=testString)
         assert (newAlert.msg == "TEST_MSG TEST ALERT")
 
     def test_alert_written_to_console(self, capsys):
         """Test alerts are written to console when no errorhandler exists"""
-        _alerts.alert(9999, self, strFormat={"testString": "TEST ALERT"})
+        _alerts.alert(9999, self, strFields={"testString": "TEST ALERT"})
         out, err = capsys.readouterr()  # Capture stdout stream and test
         assert ("TEST_MSG TEST ALERT" in err)

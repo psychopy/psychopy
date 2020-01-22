@@ -574,7 +574,7 @@ class SettingsComponent(object):
                     "import {{ Scheduler }} from './lib/util{version}.js';\n"
                     "import * as util from './lib/util{version}.js';\n"
                     "import * as visual from './lib/visual{version}.js';\n"
-                    "import {{ Sound }} from './lib/sound{version}.js';\n"
+                    "import * as sound from './lib/sound{version}.js';\n"
                     "\n").format(version=versionStr)
             buff.writeIndentedLines(code)
 

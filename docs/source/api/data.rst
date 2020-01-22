@@ -16,17 +16,24 @@
     :members:
     :undoc-members:
     :inherited-members:
-    
+
+:class:`TrialHandler2`
+---------------------------------------------------------------------------
+.. autoclass:: psychopy.data.TrialHandler2
+    :members:
+    :undoc-members:
+    :inherited-members:
+
 :class:`StairHandler`
 ---------------------------------------------------------------------------
 .. autoclass:: psychopy.data.StairHandler
     :members:
     :undoc-members:
     :inherited-members:
-    
-:class:`MultiStairHandler`
+
+:class:`PsiHandler`
 ---------------------------------------------------------------------------
-.. autoclass:: psychopy.data.MultiStairHandler
+.. autoclass:: psychopy.data.PsiHandler
     :members:
     :undoc-members:
     :inherited-members:
@@ -37,7 +44,21 @@
     :members:
     :undoc-members:
     :inherited-members:
-        
+
+:class:`QuestPlusHandler`
+---------------------------------------------------------------------------
+.. autoclass:: psychopy.data.QuestPlusHandler
+    :members:
+    :undoc-members:
+    :inherited-members:
+
+:class:`MultiStairHandler`
+---------------------------------------------------------------------------
+.. autoclass:: psychopy.data.MultiStairHandler
+    :members:
+    :undoc-members:
+    :inherited-members:
+
 :class:`FitWeibull`
 ---------------------------------------------------------------------------------
 .. autoclass:: psychopy.data.FitWeibull

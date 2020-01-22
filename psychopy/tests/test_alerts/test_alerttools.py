@@ -122,3 +122,16 @@ class TestAlertTools(object):
         sys.stderr.flush()
         assert ("JavaScript Syntax Error in 'Begin JS Experiment'" in self.error.alerts[0].msg)
 
+def test_validDuration():
+    testVals = [
+        {'t': 0.5, 'hz' : 60, 'ans': True},
+        {'t': 0.1, 'hz': 60, 'ans': True},
+        {'t': 0.01667, 'hz': 60, 'ans': True},  # 1 frame-ish
+        {'t': 0.016, 'hz': 60, 'ans': False},  # too sloppy
+        {'t': 0.01, 'hz': 60, 'ans': False},
+        {'t': 0.01, 'hz': 100, 'ans': True},
+        {'t': 0.009, 'hz': 100, 'ans': False},  # 0.9 frames
+        {'t': 0.012, 'hz': 100, 'ans': False},  # 1.2 frames
+    ]
+    for this in testVals:
+        assert alerttools.validDuration(this['t'], this['hz']) == this['ans']

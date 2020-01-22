@@ -416,6 +416,26 @@ def syncProject(parent, project=None, closeFrameWhenDone=False):
         return 0
 
     isCoder = hasattr(parent, 'currentDoc')
+
+    # Test and reject sync from invalid folders
+    if isCoder:
+        currentPath = os.path.dirname(parent.currentDoc.filename)
+    else:
+        currentPath = os.path.dirname(parent.filename)
+
+    currentPath = os.path.normcase(os.path.expanduser(currentPath))
+    invalidFolders = [os.path.normcase(os.path.expanduser('~/Desktop')),
+                      os.path.normcase(os.path.expanduser('~/My Documents'))]
+
+    if currentPath in invalidFolders:
+        wx.MessageBox(("You cannot sync projects from:\n\n"
+                      "  - Desktop\n"
+                      "  - My Documents\n\n"
+                      "Please move your project files to another folder, and try again."),
+                      "Project Sync Error",
+                      wx.ICON_QUESTION | wx.OK)
+        return -1
+
     if not project and "BuilderFrame" in repr(parent):
         # try getting one from the frame
         project = parent.project  # type: pavlovia.PavloviaProject

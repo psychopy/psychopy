@@ -120,6 +120,8 @@ class Rect(BaseShapeStim):
         self.__dict__['width'] = width
         self.__dict__['height'] = height
 
+        self._needVertexUpdate = True
+
     def setSize(self, size, operation='', log=None):
         """Usually you can use 'stim.attribute = value' syntax instead,
         but use this method if you need to suppress the log message

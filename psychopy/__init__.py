@@ -12,7 +12,7 @@
 import os
 import sys
 
-__version__ = '3.2.4'
+__version__ = '2020.1.0rc1'
 __license__ = 'GNU GPLv3 (or more recent equivalent)'
 __author__ = 'Jonathan Peirce'
 __author_email__ = 'jon.peirce@gmail.com'
@@ -28,12 +28,12 @@ __all__ = ["gui", "misc", "visual", "core",
 # for developers the following allows access to the current git sha from
 # their repository
 if __git_sha__ == 'n/a':
-    import subprocess
+    from subprocess import check_output, PIPE
     # see if we're in a git repo and fetch from there
     try:
         thisFileLoc = os.path.split(__file__)[0]
-        output = subprocess.check_output(['git', 'rev-parse', '--short', 'HEAD'],
-                                         cwd=thisFileLoc, stderr=subprocess.PIPE)
+        output = check_output(['git', 'rev-parse', '--short', 'HEAD'],
+                              cwd=thisFileLoc, stderr=PIPE)
     except Exception:
         output = False
     if output:
@@ -44,6 +44,6 @@ if 'installing' not in locals():
     from psychopy.preferences import prefs
     for pathName in prefs.general['paths']:
         sys.path.append(pathName)
-    
+
     from psychopy.tools.versionchooser import useVersion, ensureMinimal
 

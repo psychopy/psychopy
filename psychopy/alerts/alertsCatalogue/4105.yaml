@@ -1,12 +1,10 @@
 # The first key-value pair is used for the alerts package
 
-4105:
-  code: 4105
-  cat: Timing
-  msg: Your stimuli start {type} exceeds the stop {type}. Consider using a {type} duration.
-  url: https://psychopy.org
+code: 4105
+cat: Timing
+msg: Your stimuli start {type} exceeds the stop {type}. Consider using a {type} duration.
 
-# Each of the following key values are used for formatting online help pages, and support reStructured Text.
+# The following are typically used for online help pages, and support reStructured Text.
 
 synopsis: |
   A component start time/frame exceeds the stop time/frame.
