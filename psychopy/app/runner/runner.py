@@ -77,8 +77,8 @@ class RunnerFrame(wx.Frame):
             {'id': wx.ID_ADD, 'label': 'Add task', 'status': 'Adding task...', 'func': self.addTask},
             {'id': wx.ID_REMOVE, 'label': 'Remove task', 'status': 'Removing task...', 'func': self.removeTask},
             {'id': wx.ID_CLEAR, 'label': 'Clear all', 'status': 'Clearing tasks...', 'func': self.clearTasks},
-            {'id': wx.ID_SAVE, 'label': 'Save task', 'status': 'Saving task...', 'func': self.saveTasks},
-            {'id': wx.ID_COPY, 'label': 'Load task', 'status': 'Loading task...', 'func': self.loadTasks},
+            {'id': wx.ID_SAVE, 'label': 'Save list', 'status': 'Saving task...', 'func': self.saveTasks},
+            {'id': wx.ID_COPY, 'label': 'Load list', 'status': 'Loading task...', 'func': self.loadTasks},
             {'id': wx.ID_CLOSE_FRAME, 'label': 'Close', 'status': 'Closing Runner...', 'func': self.onClose},
             {'id': wx.ID_EXIT, 'label': 'Quit', 'status': 'Quitting PsychoPy...', 'func': self.onQuit},
         ]
@@ -142,6 +142,9 @@ class RunnerFrame(wx.Frame):
         Clears all items from the panels expCtrl ListCtrl
         """
         self.panel.expCtrl.DeleteAllItems()
+        self.panel.currentSelection = None
+        self.panel.currentProject = None
+        self.panel.currentFile = None
 
     def onClose(self, evt):
         """
@@ -167,13 +170,22 @@ class RunnerFrame(wx.Frame):
         return True
 
     def viewBuilder(self, evt):
+        if self.panel.currentFile is None:
+            self.app.showBuilder()
+            return
+
         for frame in self.app.getAllFrames("builder"):
             if frame.filename == 'untitled.psyexp' and frame.lastSavedCopy is None:
                 frame.fileOpen(filename=str(self.panel.currentFile))
                 return
+
         self.app.showBuilder(fileList=[str(self.panel.currentFile)])
 
     def viewCoder(self, evt):
+        if self.panel.currentFile is None:
+            self.app.showCoder()
+            return
+
         self.app.showCoder()  # ensures that a coder window exists
         self.app.coder.setCurrentDoc(str(self.panel.currentFile))
         self.app.coder.setFileModified(False)
@@ -389,6 +401,7 @@ class RunnerPanel(wx.Panel):
         """
         if self.currentSelection is None:
             return
+        print(self.currentSelection)
 
         if self.currentProject not in [None, "None", ''] and self.currentFile.suffix == '.psyexp':
             webbrowser.open(
