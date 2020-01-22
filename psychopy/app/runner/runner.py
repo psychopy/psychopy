@@ -16,9 +16,6 @@ from psychopy.app.builder.builder import BuilderFrame
 from psychopy.projects.pavlovia import getProject
 
 
-# todo: Make print statements ALERTS
-# todo: store server processes, to end them after a timeout, or end them automatically on each run
-
 class RunnerFrame(wx.Frame):
     """Defines construction of the Psychopy Runner Frame"""
     def __init__(self, parent=None, id=wx.ID_ANY, title='', app=None):
@@ -64,38 +61,38 @@ class RunnerFrame(wx.Frame):
         """
         Create Runner menu.
         """
-        # File Menu
+        # Menus
         fileMenu = wx.Menu()
-
-        items = [{'id': wx.ID_ADD, 'label': 'Add task', 'status': 'Adding task...', 'func': self.addTask},
-                 {'id': wx.ID_REMOVE, 'label': 'Remove task', 'status': 'Removing task...', 'func': self.removeTask},
-                 {'id': wx.ID_CLEAR, 'label': 'Clear all', 'status': 'Clearing tasks...', 'func': self.clearTasks},
-                 {'id': wx.ID_SAVE, 'label': 'Save task', 'status': 'Saving task...', 'func': self.saveTasks},
-                 {'id': wx.ID_COPY, 'label': 'Load task', 'status': 'Loading task...', 'func': self.loadTasks},
-                 {'id': wx.ID_CLOSE_FRAME, 'label': 'Close', 'status': 'Closing Runner...', 'func': self.onClose},
-                 {'id': wx.ID_EXIT, 'label': 'Quit', 'status': 'Quitting PsychoPy...', 'func': self.onQuit},
-                 ]
-
-        separators = ['clear all', 'load task']
-        for item in items:
-            fileItem = fileMenu.Append(item['id'], item['label'], item['status'])
-            self.Bind(wx.EVT_MENU, item['func'], fileItem)
-            if item['label'].lower() in separators:
-                fileMenu.AppendSeparator()
-
-        # View Menu
         viewMenu = wx.Menu()
-        viewItems = ['Builder', 'Coder']
-        viewFunctions = [self.viewBuilder, self.viewCoder]
 
-        for idx, item in enumerate(viewItems):
-            menuItem = wx.MenuItem(parentMenu=viewMenu,
-                                   id=idx,
-                                   text='View {}'.format(item),
-                                   helpString='Open a {} frame'.format(item),
-                                   )
-            viewMenu.Append(menuItem)
-            self.Bind(wx.EVT_MENU, viewFunctions[idx], id=idx)
+        # Menu items
+        fileMenuItems = [
+            {'id': wx.ID_ADD, 'label': 'Add task', 'status': 'Adding task...', 'func': self.addTask},
+            {'id': wx.ID_REMOVE, 'label': 'Remove task', 'status': 'Removing task...', 'func': self.removeTask},
+            {'id': wx.ID_CLEAR, 'label': 'Clear all', 'status': 'Clearing tasks...', 'func': self.clearTasks},
+            {'id': wx.ID_SAVE, 'label': 'Save task', 'status': 'Saving task...', 'func': self.saveTasks},
+            {'id': wx.ID_COPY, 'label': 'Load task', 'status': 'Loading task...', 'func': self.loadTasks},
+            {'id': wx.ID_CLOSE_FRAME, 'label': 'Close', 'status': 'Closing Runner...', 'func': self.onClose},
+            {'id': wx.ID_EXIT, 'label': 'Quit', 'status': 'Quitting PsychoPy...', 'func': self.onQuit},
+        ]
+
+        viewMenuItems = [
+            {'id': wx.ID_ANY, 'label': 'View Builder', 'status': 'Opening Builder...', 'func': self.viewBuilder},
+            {'id': wx.ID_ANY, 'label': 'View Coder', 'status': 'Opening Coder...', 'func': self.viewCoder},
+        ]
+
+        menus = [
+            {'menu': fileMenu, 'menuItems': fileMenuItems, 'separators': ['clear all', 'load task']},
+            {'menu': viewMenu, 'menuItems': viewMenuItems, 'separators': []},
+        ]
+
+        # Add items to menus
+        for eachMenu in menus:
+            for item in eachMenu['menuItems']:
+                fileItem = eachMenu['menu'].Append(item['id'], item['label'], item['status'])
+                self.Bind(wx.EVT_MENU, item['func'], fileItem)
+                if item['label'].lower() in eachMenu['separators']:
+                    eachMenu['menu'].AppendSeparator()
 
         self.runnerMenu.Append(fileMenu, 'File')
         self.runnerMenu.Append(viewMenu, 'View')
@@ -107,7 +104,7 @@ class RunnerFrame(wx.Frame):
         wx.BeginBusyCursor()
         try:
             if evt.String.startswith("http"):
-                wx.LaunchDefaultBrowser(evt.String)
+                webbrowser.open(evt.String)
             else:
                 # decompose the URL of a file and line number"""
                 # "C:\Program Files\wxPython...\samples\hangman\hangman.py"
@@ -116,7 +113,7 @@ class RunnerFrame(wx.Frame):
                 self.app.showCoder()
                 self.app.coder.gotoLine(filename, lineNumber)
         except Exception:
-            print("Could not open URL: {}".format(evt.String))
+            print("##### Could not open URL: {} #####\n".format(evt.String))
         wx.EndBusyCursor()
 
     def saveTasks(self, evt=None):
@@ -133,7 +130,7 @@ class RunnerFrame(wx.Frame):
     def onClose(self, evt):
         """
         Defines Frame closing behavior.
-        Frame only closes if no other frames exist.
+        Frame only gets destroyed if no other frames exist.
         """
         lastFrame = len(self.app.getAllFrames()) == 1
         if lastFrame:
@@ -142,16 +139,31 @@ class RunnerFrame(wx.Frame):
             self.Hide()
 
     def onQuit(self, evt=None):
-        self.saveTasks()
         self.Destroy()  # required
         self.app.forgetFrame(self)
         self.app.quit(evt)
 
+    def checkSave(self):
+        try:
+            self.saveTasks()
+        except Exception:
+            print("##### Task List not saved correctly. #####\n")
+        return True
+
     def viewBuilder(self, evt):
+        for frame in self.app.getAllFrames("builder"):
+            if frame.filename == 'untitled.psyexp' and frame.lastSavedCopy is None:
+                frame.fileOpen(filename=str(self.panel.currentFile))
+                return
         self.app.showBuilder(fileList=[str(self.panel.currentFile)])
 
     def viewCoder(self, evt):
-        self.app.showCoder(fileList=[str(self.panel.currentFile)])
+        self.app.showCoder()  # ensures that a coder window exists
+        self.app.coder.setCurrentDoc(str(self.panel.currentFile))
+        self.app.coder.setFileModified(False)
+
+    def showRunner(self):
+        self.app.showRunner()
 
     @property
     def taskList(self):
@@ -292,19 +304,19 @@ class RunnerPanel(wx.Panel):
             except TypeError:
                 pass  # coder Process already dead
             self.localProcess = None
-            print("***** Experiment finished. *****")
+            print("##### Experiment finished. #####\n")
 
         # Stop subprocess script running local server
         if self.serverProcess is not None:
             self.serverProcess.kill()
             self.serverProcess = None
-            print("***** Local server shut down. *****")
+            print("##### Local server shut down. #####\n")
 
         # Stop Builder or Coder scripts
         for thisFrame in self.app.getAllFrames():
             if hasattr(thisFrame, 'scriptProcess') and thisFrame.scriptProcess is not None:
                 thisFrame.stopFile()
-                print("***** Experiment finished. *****")
+                print("##### Experiment finished. #####\n")
 
     def runLocal(self, evt):
         """
@@ -327,7 +339,7 @@ class RunnerPanel(wx.Panel):
                                            files=[str(self.currentFile)],
                                            app=self.app)
         self.localProcess.runFile()
-        time.sleep(.5)
+        time.sleep(.5)  # Give processes a moment to start up
         self.Bind(wx.EVT_IDLE, self.stopTask)
 
     @property
@@ -365,11 +377,23 @@ class RunnerPanel(wx.Panel):
         if self.currentSelection is None:
             return
 
+        if self.serverProcess is not None:
+            self.serverProcess.kill()
+            self.serverProcess = None
+
+        # Get PsychoJS libs
         self.getPsychoJS()
-        htmlPath = self.currentFile.parent / self.outputPath(self.currentFile)
+
+        outputPath = self.outputPath(self.currentFile)
+        htmlPath = self.currentFile.parent / outputPath
         server = ["SimpleHTTPServer", "http.server"][PY3]
         pythonExec = Path(sys.executable)
         command = [str(pythonExec), "-m", server, str(port)]
+
+        if not os.path.exists(htmlPath):
+            print('##### HTML output path: "{}" does not exist. '
+                  'Try exporting your HTML, and try again #####\n'.format(outputPath))
+            return
 
         if self.currentProject not in [None, "None", ''] and self.currentFile.suffix == '.psyexp':
             if self.serverProcess is None:
@@ -384,8 +408,8 @@ class RunnerPanel(wx.Panel):
 
             time.sleep(.1)  # Wait for subprocess to start server
             webbrowser.open("http://localhost:{}".format(port))
-            print("***** Local server started! *****")
-            print("***** Running PsychoJS task from {} *****".format(htmlPath))
+            print("##### Local server started! #####\n\n"
+                  "##### Running PsychoJS task from {} #####\n".format(htmlPath))
 
     def onURL(self, evt):
         self.parent.onURL(evt)
@@ -403,6 +427,8 @@ class RunnerPanel(wx.Panel):
             with open(libPath / "{}-{}.js".format(lib, ver), 'wb') as f:
                 f.write(req.content)
 
+        print("##### PsychoJS libs downloaded to {} #####\n".format(libPath))
+
     def addExperiment(self, evt=None, fileName=None):
         """
         Adds experiment entry to the expList listctrl.
@@ -417,7 +443,7 @@ class RunnerPanel(wx.Panel):
         """
         if fileName:  # Filename passed from Builder
             if Path(fileName).suffix not in ['.py', '.psyexp']:
-                print("You can only add Python files or psyexp files to the Runner.")
+                print("##### You can only add Python files or psyexp files to the Runner. #####\n")
                 return
             filePath = [fileName]
         else:

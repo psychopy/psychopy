@@ -1622,6 +1622,13 @@ class CoderFrame(wx.Frame):
                            _translate("Go to &Builder view\t%s") % key,
                            _translate("Go to the Builder view"))
         self.Bind(wx.EVT_MENU, self.app.showBuilder, id=item.GetId())
+
+        key = self.app.keys['switchToRunner']
+        item = menu.Append(wx.ID_ANY,
+                           _translate("&Open Runner view\t%s") % key,
+                           _translate("Open the Runner view"))
+        self.Bind(wx.EVT_MENU, self.app.showRunner, item)
+
         # self.viewMenu.Append(self.IDs.openShell,
         #   "Go to &IPython Shell\t%s" %self.app.keys['switchToShell'],
         #   "Go to a shell window for interactive commands")
@@ -2070,7 +2077,9 @@ class CoderFrame(wx.Frame):
         """Close open windows, update prefs.appData (but don't save)
         and either close the frame or hide it
         """
-        if len(self.app.getAllFrames(frameType="builder")) == 0 and sys.platform != 'darwin':
+        if (len(self.app.getAllFrames(frameType="builder")) == 0
+                and len(self.app.getAllFrames(frameType="runner")) == 0
+                and sys.platform != 'darwin'):
             if not self.app.quitting:
                 # send the event so it can be vetoed if neded
                 self.app.quit(event)

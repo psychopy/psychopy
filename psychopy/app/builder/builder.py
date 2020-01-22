@@ -2182,15 +2182,15 @@ class BuilderFrame(wx.Frame):
         if not os.path.exists(self.filename):
             self.fileSave(self.filename)
 
-        self.app.showRunner()
+        self.stdoutFrame.showRunner()
 
         fullPath = self.filename.replace('.psyexp', '_lastrun.py')
         self.generateScript(fullPath)  # Build script based on current version selected
 
         # provide a running... message
-        self.stdoutFrame.write((u"## Running: %s ##" % (fullPath))
+        self.stdoutFrame.stdOut.write((u"## Running: %s ##" % (fullPath))
                                .center(80, "#")+"\n")
-        self.stdoutFrame.lenLastRun = len(self.stdoutFrame.getText())
+        self.stdoutFrame.stdOut.lenLastRun = len(self.stdoutFrame.stdOut.getText())
 
         if sys.platform == 'win32':
             # the quotes allow file paths with spaces
@@ -2251,10 +2251,10 @@ class BuilderFrame(wx.Frame):
         self._stdoutThread.exit = True
         time.sleep(0.1)  # give time for the buffers to finish writing?
         buff = self._stdoutThread.getBuffer()
-        self.stdoutFrame.write(buff)
-        if len(self.stdoutFrame.getText()) > self.stdoutFrame.lenLastRun:
-            self.stdoutFrame.Show()
-            self.stdoutFrame.Raise()
+        self.stdoutFrame.stdOut.write(buff)
+
+        # Always show Runner when task finished
+        self.stdoutFrame.showRunner()
 
         self.scriptProcess = None
         self.Bind(wx.EVT_IDLE, None)
@@ -2382,13 +2382,15 @@ class BuilderFrame(wx.Frame):
         """
         Gets Experiment Runner stdout.
         """
-        return self.app.runner.stdOut
+        if not self.app.runner:
+            self.app.newRunnerFrame()
+        return self.app.runner
 
     def generateScript(self, experimentPath, target="PsychoPy"):
         """Generates python script from the current builder experiment"""
         # Set streams
-        self.stdoutFrame.write("Generating {} script...\n".format(target))
-        self.app.showRunner()
+        self.stdoutFrame.showRunner()
+        self.stdoutFrame.stdOut.write("Generating {} script...\n".format(target))
 
         if self.getIsModified():
             ok = self.fileSave(experimentPath)
@@ -2432,9 +2434,8 @@ class BuilderFrame(wx.Frame):
             traceback.print_exc(file=sys.stderr)
             self.gitFeedback(-1)
         finally:
-            self.app.runner.Show()
-            self.app.runner.Raise()
-            self.stdoutFrame.flush()
+            self.stdoutFrame.showRunner()
+            self.stdoutFrame.stdOut.flush()
 
     def _getHtmlPath(self, filename):
         expPath = os.path.split(filename)[0]
