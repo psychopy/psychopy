@@ -2383,7 +2383,7 @@ class BuilderFrame(wx.Frame):
         Gets Experiment Runner stdout.
         """
         if not self.app.runner:
-            self.app.newRunnerFrame()
+            self.app.runner = self.app.newRunnerFrame()
         return self.app.runner
 
     def generateScript(self, experimentPath, target="PsychoPy"):

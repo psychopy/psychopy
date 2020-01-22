@@ -524,7 +524,7 @@ class PsychoPyApp(wx.App):
 
     def showRunner(self, event=None, builderFiles=None, coderFiles=None):
         if not self.runner:
-            self.newRunnerFrame()
+            self.runner = self.newRunnerFrame()
         if not self.testMode:
             self.runner.Show()
             self.runner.Raise()
@@ -534,10 +534,11 @@ class PsychoPyApp(wx.App):
         # have to reimport because it is only local to __init__ so far
         from .runner.runner import RunnerFrame
         title = "PsychoPy3 Experiment Runner (v{})".format(self.version)
-        self.runner = RunnerFrame(parent=None,
-                                  id=-1,
-                                  title=title,
-                                  app=self)
+        runner = RunnerFrame(parent=None,
+                             id=-1,
+                             title=title,
+                             app=self)
+        return runner
 
     def OnDrop(self, x, y, files):
         """Not clear this method ever gets called!"""

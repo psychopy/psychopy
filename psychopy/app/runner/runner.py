@@ -1,3 +1,10 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+# Part of the PsychoPy library
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019 Open Science Tools Ltd.
+# Distributed under the terms of the GNU General Public License (GPL).
+
 import wx
 import os
 import sys
@@ -48,7 +55,7 @@ class RunnerFrame(wx.Frame):
         self.Bind(wx.EVT_CLOSE, self.onClose)
 
     def addTask(self, evt=None, fileName=None):
-        self.panel.addExperiment(fileName=fileName)
+        self.panel.addTask(fileName=fileName)
 
     def removeTask(self, evt=None):
         self.panel.removeTask(evt)
@@ -59,7 +66,7 @@ class RunnerFrame(wx.Frame):
 
     def makeMenu(self):
         """
-        Create Runner menu.
+        Create Runner menubar.
         """
         # Menus
         fileMenu = wx.Menu()
@@ -117,14 +124,23 @@ class RunnerFrame(wx.Frame):
         wx.EndBusyCursor()
 
     def saveTasks(self, evt=None):
+        """
+        Saves task list to prefs
+        """
         self.prefs['taskList'] = self.taskList
         self.app.prefs.saveUserPrefs()
 
     def loadTasks(self, evt=None):
+        """
+        Loads saved task list from prefs
+        """
         for filePath in self.prefs['taskList']:
             self.addTask(fileName=filePath)
 
     def clearTasks(self, evt=None):
+        """
+        Clears all items from the panels expCtrl ListCtrl
+        """
         self.panel.expCtrl.DeleteAllItems()
 
     def onClose(self, evt):
@@ -167,6 +183,13 @@ class RunnerFrame(wx.Frame):
 
     @property
     def taskList(self):
+        """
+        Retrieves item paths from expCtrl
+
+        Returns
+        -------
+        taskList : list of filepaths
+        """
         temp = []
         for idx in range(self.panel.expCtrl.GetItemCount()):
             temp.append(self.panel.expCtrl.GetItem(idx, 1).Text)
@@ -226,7 +249,7 @@ class RunnerPanel(wx.Panel):
         onlineDebugBtn.SetToolTip(wx.ToolTip("Run PsychoJS task in local debug mode"))
 
         # Bind events to buttons
-        self.Bind(wx.EVT_BUTTON, self.addExperiment, plusBtn)
+        self.Bind(wx.EVT_BUTTON, self.addTask, plusBtn)
         self.Bind(wx.EVT_BUTTON, self.removeTask, negBtn)
         self.Bind(wx.EVT_BUTTON, self.runLocal, runLocalBtn)
         self.Bind(wx.EVT_BUTTON, self.stopTask, stopTaskBtn)
@@ -344,8 +367,18 @@ class RunnerPanel(wx.Panel):
 
     @property
     def processExists(self):
+        """
+        Used to check whether localProcess is still running, or has stopped
+        either from an error, or because the task finished.
+
+        Returns
+        -------
+        bool
+            True if local process exists, else False
+
+        """
         if not hasattr(self.localProcess, 'scriptProcess'):
-            return
+            return False
         if self.localProcess.scriptProcess is not None:
             time.sleep(.1)
             return True
@@ -415,12 +448,20 @@ class RunnerPanel(wx.Panel):
         self.parent.onURL(evt)
 
     def getPsychoJS(self):
+        """
+        Downloads and saves the current version of the PsychoJS library.
+        Useful for debugging, amending scripts.
+        """
         libPath = self.currentFile.parent / 'lib'
-        if not os.path.exists(libPath):
-            os.makedirs(libPath)
-
         ver = '.'.join(self.app.version.split('.')[:2])
         psychoJSLibs = ['core', 'data', 'util', 'visual', 'sound']
+
+        if libPath.exists() and len(sorted(Path(libPath).glob('*.js'))) >= len(psychoJSLibs):
+            print("##### PsychoJS lib already exists in {} #####\n".format(libPath))
+            return
+
+        os.makedirs(libPath)
+
         for lib in psychoJSLibs:
             url = "https://lib.pavlovia.org/{}-{}.js".format(lib, ver)
             req = requests.get(url)
@@ -429,7 +470,7 @@ class RunnerPanel(wx.Panel):
 
         print("##### PsychoJS libs downloaded to {} #####\n".format(libPath))
 
-    def addExperiment(self, evt=None, fileName=None):
+    def addTask(self, evt=None, fileName=None):
         """
         Adds experiment entry to the expList listctrl.
         Only adds entry if current entry does not exist in list.
@@ -441,7 +482,7 @@ class RunnerPanel(wx.Panel):
         fileName: str
             Filename of task to add to list
         """
-        if fileName:  # Filename passed from Builder
+        if fileName:  # Filename passed from outside runner
             if Path(fileName).suffix not in ['.py', '.psyexp']:
                 print("##### You can only add Python files or psyexp files to the Runner. #####\n")
                 return
@@ -496,9 +537,12 @@ class RunnerPanel(wx.Panel):
         self.currentProject = None
 
         # Check for project
-        project = getProject(str(self.currentFile))
-        if hasattr(project, 'id'):
-            self.currentProject = project.id
+        try:
+            project = getProject(str(self.currentFile))
+            if hasattr(project, 'id'):
+                self.currentProject = project.id
+        except NotADirectoryError as err:
+            self.stdoutCtrl.write(err)
 
     def outputPath(self, filePath):
         """
