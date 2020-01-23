@@ -6,22 +6,17 @@
 # Distributed under the terms of the GNU General Public License (GPL).
 """Utilities for loading plugins into PsychoPy."""
 
-__all__ = ['loadPlugins', 'createPluginPackage', 'installPlugin',
-           'uninstallPlugin', 'getPlugins', 'PLUGIN_PATH']
+__all__ = ['loadPlugins', 'installPlugin',
+           'uninstallPlugin', 'listPlugins', 'PLUGIN_PATH']
 
 import sys
 import os
-import pkgutil
-import importlib
-import re
-import types
 import inspect
 import collections
 import shutil
-import zipfile
 import pkg_resources
-import subprocess
-from setuptools import sandbox
+from platform import python_version
+import hashlib
 
 
 from psychopy import logging
@@ -40,131 +35,43 @@ _plugin_env_ = pkg_resources.Environment([PLUGIN_PATH])
 _plugins_ = collections.OrderedDict()  # use OrderedDict for Py2 compatibility
 
 
-def createPluginPackage(packagePath,
-                        packageName,
-                        extends):
-    """Create a plugin package template for a PsychoPy module.
+def checksumHash(fpath, method='sha256'):
+    """Compute the checksum hash for a given package.
 
-    This generates a folder with setup scripts and a base package to get started
-    developing a plugin.
+    Authors of PsychoPy plugins can use this function to compute a checksum
+    hash and provide it to users to check the integrity of their packages. Users
+    can pass the checksum value to `installPlugin` when installing the package
+    to validate it.
 
     Parameters
     ----------
-    packagePath : str
-        Path the create the plugin folder.
-    packageName : str
-        Name of the plugin. The name will be automatically prefixed with
-        'psychopy-' if it does not already.
-    extends : str or ModuleType
-        The PsychoPy module to extend as a fully qualified path or the module
-        object itself.
+    fpath : str
+        Path to the plugin package or file.
+    method : str
+        Hashing method to use, values are 'md5' or 'sha256'. Default is
+        'sha256'.
+
+    Returns
+    -------
+    str
+        Checksum hash.
 
     """
-    # make sure we are using the correct naming convention
-    name = packageName
-    if not packageName.startswith('psychopy-'):
-        packageName = 'psychopy-' + packageName
+    methodObj = {'md5': hashlib.md5,
+                 'sha256': hashlib.sha256}
 
-    # create the directory
-    packagePath = os.path.join(packagePath, packageName)
-    if not os.path.exists(packagePath):
-        os.makedirs(packagePath)
+    hashobj = methodObj[method]()
+    with open(fpath, "rb") as f:
+        while 1:
+            chunk = f.read(4096)
+            if chunk == b"":  # EOF
+                break
+            hashobj.update(chunk)
 
-    # generate the base package name
-    if isinstance(extends, str):
-        try:
-            this_module = sys.modules[extends]
-        except KeyError:
-            raise ModuleNotFoundError(
-                'Cannot find module `{}`. Has it been imported yet?'.format(
-                    extends))
-    elif isinstance(extends, types.ModuleType):
-        if extends.__name__ in sys.modules.keys():
-            this_module = extends
-        else:
-            raise ModuleNotFoundError(
-                'Module `{}` does not appear to be imported yet.'.format(
-                    extends.__name__))
-    else:
-        raise ValueError('Object specified to `extends` must be type `str` or '
-                         '`ModuleType`.')
-
-    # derive the plugin search string if not given
-    baseName = ''
-    for i in this_module.__name__.split('.'):
-        baseName += i + '_'
-    baseName += name
-
-    # create a the root directory for the plugin
-    rootDir = os.path.join(packagePath, baseName)
-    if not os.path.exists(rootDir):
-        os.makedirs(rootDir)
-
-    # setup script template and other files
-    setupScript = """#!/usr/bin/env python
-# -*- coding: utf-8 -*-
-from setuptools import setup
-
-setup(
-    name="{name}",
-    version='1.0',  # version number
-    description='',  # short description of your plugin
-    long_description='',  # long description of your plugin
-    author='',  # author name
-    author_email='',  # author email
-    license='',  # eg. MIT, GPL3, etc.
-    packages=["{package}"]
-)
-    """.format(name=packageName, package=baseName)
-
-    with open(os.path.join(packagePath, 'setup.py'), 'w') as f:
-        f.write(setupScript)
-
-    # README file as markdown
-    with open(os.path.join(packagePath, 'README.md'), 'w') as f:
-        f.write('# {}\nThis is the README file.'.format(packageName))
-
-    # LICENCE file
-    with open(os.path.join(packagePath, 'LICENCE.txt'), 'w') as f:
-        f.write('Put your licence here.'.format(packageName))
-
-    # create an __init__ template
-    packageInit = """#!/usr/bin/env python
-# -*- coding: utf-8 -*-
-__version__ = '1.0'
-__license__ = ''
-__author__ = ''
-__author_email__ = ''
-__maintainer_email__ = ''
-__url__ = ''
-__download_url__ = ''
-
-# Mapping for where objects defined in the scope of this module should be placed
-# for example `__extends__ = {'psychopy.visual': ["MyStim"]}` where "MyStim" is 
-# defined below.
-__extends__ = {}  
-
-# put your import statements and object definitions in this space
-# <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-
-# <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-
-def __load():
-    # put code to run when the plugin is loaded here
-    return 
-
-def __shutdown():
-    # put code to run when PsychoPy quits here
-    return
-
-    """
-
-    # LICENCE file
-    with open(os.path.join(rootDir, '__init__.py'), 'w') as f:
-        f.write(packageInit)
+    return hashobj.hexdigest()
 
 
-def installPlugin(plugin, path=None, overwrite=True):
+def installPlugin(plugin, path=None, overwrite=True, checksum=None):
     """Install a plugin into PsychoPy.
 
     This function installs modules inside the specified package into PsychoPy's
@@ -179,6 +86,10 @@ def installPlugin(plugin, path=None, overwrite=True):
         absolute path, or relative to the PWD.
     overwrite : bool, optional
         Overwrite modules if present in `PLUGIN_PATH`.
+    checksum : str
+        SHA256 checksum hash to validate package data against. If `None`, no
+        checksum will be computed. Raises an error if `checksum` does not match
+        what is computed for the package.
 
     Returns
     -------
@@ -190,7 +101,7 @@ def installPlugin(plugin, path=None, overwrite=True):
     --------
     Install a plugin archive to `PLUGIN_PATH`::
 
-        installPlugin(r'/path/to/plugin/psychopy_plugin.zip')
+        installPlugin(r'/path/to/plugin/psychopy_plugin.egg')
 
     """
     if path is not None:
@@ -206,16 +117,33 @@ def installPlugin(plugin, path=None, overwrite=True):
 
     fullPathToPlugin = os.path.join(pathToPlugin, pluginFile)
 
-    # identify if the file is a plugin
+    # check if file exists
     if not os.path.isfile(fullPathToPlugin):
         raise FileNotFoundError("Cannot find file `{}`.".format(
             fullPathToPlugin))
 
-    # use PIP to install the plugin to the plugin directory
-    subprocess.check_call(['python',  '-m', 'pip',  'install',
-                           '--target={}'.format(PLUGIN_PATH),
-                           '--upgrade' if overwrite else '',
-                           fullPathToPlugin])
+    # validate the package
+    result = checksumHash(fullPathToPlugin)
+    if checksum is not None:
+        if result != checksum.lower():
+            raise RuntimeError(
+                "Package `{}` failed validation (checksum `{}`).".format(
+                    pluginFile, checksum))
+
+    # inspect the file
+    dist = pkg_resources.Distribution.from_filename(fullPathToPlugin)
+
+    # make sure the plugin is compatible with the version of Python we are using
+    if not python_version().startswith(dist.py_version):
+        raise RuntimeError(
+            "Cannot install plugin. Not compatible with Python version {} "
+            "running PsychoPy.".format(python_version()))
+
+    # check if we are overwriting a file already there
+    if not os.path.isfile(os.path.join(PLUGIN_PATH, pluginFile)) or overwrite:
+        shutil.copy2(fullPathToPlugin, PLUGIN_PATH)
+
+    return dist.project_name
 
 
 def uninstallPlugin(plugin):
@@ -224,21 +152,47 @@ def uninstallPlugin(plugin):
     This function removes a plugin from PsychoPy. Deleting its files from the
     `PLUGIN_PATH` directory.
 
+    Parameters
+    ----------
+    plugin : str
+        Name of the plugin to uninstall.
+
+    Returns
+    -------
+    bool
+        `True` if the plugin was uninstalled. This may be `False` if the
+        package corresponding to `plugin` cannot be found.
+
     """
     # find the matching distribution in plugin directory
-
+    foundPkg = None
     for dist in pkg_resources.find_distributions(PLUGIN_PATH, only=False):
         if dist.project_name == plugin:  # found it
-            print(os.path.join(dist.location, dist.egg_name()))
+            foundPkg = dist.egg_name()
+            break
+
+    # look for a matching package name
+    if foundPkg is not None:
+        for file in os.listdir(PLUGIN_PATH):
+            if file.startswith(foundPkg):
+                pkgPath = os.path.join(PLUGIN_PATH, file)
+                os.remove(pkgPath)  # delete the package
+                logging.info('Uninstalled package `{}`.'.format(pkgPath))
+    else:
+        logging.warning(
+            'Cannot find package corresponding to plugin `{}`.'.format(
+                plugin))
+
+    return foundPkg is not None
 
 
-def getPlugins():
-    """Get a list of plugin packages installed on PsychoPy.
+def listPlugins():
+    """Get a list of plugin packages installed on this instance of PsychoPy.
 
     Returns
     -------
     list
-        Names of plugins current installed on PsychoPy as strings.
+        Names of plugins as strings.
 
     """
     installed = []
@@ -249,7 +203,7 @@ def getPlugins():
     return installed
 
 
-def loadPlugins(plugins=None, paths=None, ignore=None, conflicts='warn'):
+def loadPlugins(plugins):
     """Load a plugin to extend PsychoPy's coder API.
 
     Plugins are packages which extend upon PsychoPy's existing functionality by
@@ -273,19 +227,6 @@ def loadPlugins(plugins=None, paths=None, ignore=None, conflicts='warn'):
         `None`, all packages starting with `psychopy_` installed on the system
         will be loaded. A list of name strings can be given, where they will be
         loaded sequentially.
-    paths : list
-        List of paths (`str`) to look for plugins. If `None`, `paths` will be
-        set to `sys.paths`.
-    ignore : list or None
-        List of plugin names to ignore. This prevents certain plugins installed
-        on the system from being loaded if they match the pattern specified by
-        `plugins`. If `None`, all plugins will be loaded.
-    conflicts : str
-        Policy for handling conflicts where a plugin tries to export a name
-        a previously loaded plugin used. Options are 'silent' where the previous
-        object is silently overridden, 'warn' which logs a warning informing
-        of the conflict, and 'error' which raise and exception when a conflict
-        occurs.
 
     Returns
     -------
@@ -326,19 +267,15 @@ def loadPlugins(plugins=None, paths=None, ignore=None, conflicts='warn'):
 
     """
     # search all potential plugins if `None` is specified
-    if plugins is None:
-        plugins = 'psychopy_.+'
-
     if isinstance(plugins, str):
         plugins = [plugins]
 
-    if paths is None:
-        paths = PLUGIN_PATH
-
-    global _plugins_
+    searchPaths = [PLUGIN_PATH]
 
     # find all plugins installed on the system
-    distributions, errors = _plugin_ws_.find_plugins(_plugin_env_)
+    workingSet = pkg_resources.WorkingSet(searchPaths)
+    env = pkg_resources.Environment(searchPaths)
+    distributions, errors = workingSet.find_plugins(env)
 
     # iter over specified plugins
     for plugin in plugins:
@@ -346,11 +283,27 @@ def loadPlugins(plugins=None, paths=None, ignore=None, conflicts='warn'):
         entryPoints = {}
         for dist in distributions:
             if dist.project_name == plugin:
+                # check if compatible
+                if not python_version().startswith(dist.py_version):
+                    raise RuntimeError(
+                        "Cannot load plugin. Not compatible with Python "
+                        "version {} running PsychoPy.".format(python_version()))
+
                 # load all the entry points
                 entryPoints.update(dist.get_entry_map())
 
         # go over entry points, looking for objects explicitly for psychopy
         for fqn, attrs in entryPoints.items():
+            if not fqn.startswith('psychopy'):
+                continue
+
+            # forbid plugins from modifying this module
+            if fqn.startswith('psychopy.plugins') or \
+                    (fqn == 'psychopy' and 'plugins' in attrs):
+                raise RuntimeError(
+                    "Plugins declaring entry points into the "
+                    "`psychopy.plugins` module is forbidden.")
+
             targObj = _objectFromFQN(fqn)
             for attr, ep in attrs.items():
                 setattr(targObj, attr, ep.load())
