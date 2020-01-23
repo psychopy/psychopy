@@ -6,7 +6,8 @@
 # Distributed under the terms of the GNU General Public License (GPL).
 """Utilities for loading plugins into PsychoPy."""
 
-__all__ = ['loadPlugins', 'createPluginPackage', 'installPlugin', 'PLUGIN_PATH']
+__all__ = ['loadPlugins', 'createPluginPackage', 'installPlugin',
+           'uninstallPlugin', 'getPlugins', 'PLUGIN_PATH']
 
 import sys
 import os
@@ -18,6 +19,10 @@ import inspect
 import collections
 import shutil
 import zipfile
+import pkg_resources
+import subprocess
+from setuptools import sandbox
+
 
 from psychopy import logging
 
@@ -27,7 +32,9 @@ if sys.platform == 'win32':
 else:
     PLUGIN_PATH = os.path.join(os.environ['HOME'], '.psychopy3', 'plugins')
 
-print(PLUGIN_PATH)
+# set the environment for plugins
+_plugin_ws_ = pkg_resources.WorkingSet(PLUGIN_PATH)
+_plugin_env_ = pkg_resources.Environment([PLUGIN_PATH])
 
 # Keep track of plugins that have been loaded
 _plugins_ = collections.OrderedDict()  # use OrderedDict for Py2 compatibility
@@ -160,8 +167,24 @@ def __shutdown():
 def installPlugin(plugin, path=None, overwrite=True):
     """Install a plugin into PsychoPy.
 
-    This function copies a plugin archive into PsychoPy's plugin directory
-    `PLUGIN_PATH`.
+    This function installs modules inside the specified package into PsychoPy's
+    plugin `PLUGIN_PATH` directory.
+
+    Parameters
+    ----------
+    plugin : str
+        Path to the plugin package. The target file should be a ZIP archive.
+    path : str or None, optional
+        Path to look for the package. If `None`, `plugin` needs to be an
+        absolute path, or relative to the PWD.
+    overwrite : bool, optional
+        Overwrite modules if present in `PLUGIN_PATH`.
+
+    Returns
+    -------
+    list
+        Names of modules installed from `package`. You can pass this list to
+        `loadPlugins` to enable them in the current PsychoPy session.
 
     Examples
     --------
@@ -188,26 +211,42 @@ def installPlugin(plugin, path=None, overwrite=True):
         raise FileNotFoundError("Cannot find file `{}`.".format(
             fullPathToPlugin))
 
-    if not zipfile.is_zipfile(fullPathToPlugin):  # make sure file exists
-        raise RuntimeError("File `{}` is not a ZIP archive.".format(
-            fullPathToPlugin))
+    # use PIP to install the plugin to the plugin directory
+    subprocess.check_call(['python',  '-m', 'pip',  'install',
+                           '--target={}'.format(PLUGIN_PATH),
+                           '--upgrade' if overwrite else '',
+                           fullPathToPlugin])
 
-    # TODO - read the zip archive and look for metadata
 
-    # create the plugin directory if it doesn't exist yet
-    if not os.path.exists(PLUGIN_PATH):
-        os.makedirs(PLUGIN_PATH)
+def uninstallPlugin(plugin):
+    """Uninstall a plugin package.
 
-    # prepare copy, check if the file exists already in the plugin folder
-    if not os.path.isfile(os.path.join(PLUGIN_PATH, pluginFile)) or overwrite:
-        # copy the plugin
-        shutil.copy(fullPathToPlugin, PLUGIN_PATH)
+    This function removes a plugin from PsychoPy. Deleting its files from the
+    `PLUGIN_PATH` directory.
 
-        # raise FileExistsError('Plugin `{}` already installed.'.format(
-        #     pluginFile))
+    """
+    # find the matching distribution in plugin directory
 
-    # TODO - function should return the name of the module so you can do this:
-    #        `loadPlugin(installPlugin("blah"))`
+    for dist in pkg_resources.find_distributions(PLUGIN_PATH, only=False):
+        if dist.project_name == plugin:  # found it
+            print(os.path.join(dist.location, dist.egg_name()))
+
+
+def getPlugins():
+    """Get a list of plugin packages installed on PsychoPy.
+
+    Returns
+    -------
+    list
+        Names of plugins current installed on PsychoPy as strings.
+
+    """
+    installed = []
+    dists, _ = _plugin_ws_.find_plugins(_plugin_env_)
+    for dist in dists:
+        installed.append(dist.project_name)
+
+    return installed
 
 
 def loadPlugins(plugins=None, paths=None, ignore=None, conflicts='warn'):
@@ -297,75 +336,24 @@ def loadPlugins(plugins=None, paths=None, ignore=None, conflicts='warn'):
         paths = PLUGIN_PATH
 
     global _plugins_
+
+    # find all plugins installed on the system
+    distributions, errors = _plugin_ws_.find_plugins(_plugin_env_)
+
+    # iter over specified plugins
     for plugin in plugins:
-        # find packages installed packages matching the specified pattern
-        foundPackages = []
-        for _, name, ispkg in pkgutil.iter_modules(paths):
-            if re.search(plugin, name) is not None:
-                foundPackages.append(name)
+        # look for a matching distribution pointing to the plugin
+        entryPoints = {}
+        for dist in distributions:
+            if dist.project_name == plugin:
+                # load all the entry points
+                entryPoints.update(dist.get_entry_map())
 
-        # go over found packages and start loading them
-        for packageName in foundPackages:
-            # ignore a package if in `ignore`
-            if ignore is not None and packageName in ignore:
-                continue
-            # don't load a plugin twice if already in namespace
-            elif packageName in sys.modules.keys():
-                continue
-
-            imp = importlib.import_module(packageName)  # import the plugin code
-
-            # check if the plugin implements __extends__, skip if not
-            if not hasattr(imp, '__extends__'):
-                del sys.modules[packageName]
-                continue
-
-            # call the __load function if present
-            if hasattr(imp, '__load'):
-                imp.__load()
-
-            # ensure what is being extended is part of PsychoPy
-            for moduleName in imp.__extends__.keys():
-                if not moduleName.startswith('psychopy'):
-                    raise NameError(
-                        "Plugin attempted to export objects to a module "
-                        "not part of PsychoPy!")
-
-            # check for export conflicts
-            if conflicts != 'silent':
-                # find conflicts and log them
-                foundConflicts = _findConflicts(imp)
-                for fqn, loadedModule in foundConflicts.items():
-                    if conflicts == 'warn':
-                        logging.warning(
-                            "Plugin '{}' exports `{}` previously assigned by "
-                            "plugin '{}'.".format(
-                                imp.__name__, fqn, loadedModule.__name__))
-                    elif conflicts == 'error':
-                        logging.error(
-                            "Plugin '{}' exports `{}` previously assigned by "
-                            "plugin '{}'.".format(
-                                imp.__name__, fqn, loadedModule.__name__))
-
-                # raise an exception after logging errors
-                if foundConflicts and conflicts == 'error':
-                    raise NameError(
-                        "Plugin '{}' exports previously exported "
-                        "names.".format(imp.__name__))
-
-            # add exported attributes to PsychoPy objects
-            for fqn, attrs in imp.__extends__.items():
-                # prevent the plugin from modifying certain modules
-                if fqn.startswith('psychopy.plugins'):
-                    raise NameError(
-                        "Plugins are forbidden from modifying the "
-                        "`psychopy.plugins` module.")
-
-                # assign attributes from the plugin to the target
-                _patchAttrs(_objectFromFQN(fqn), imp, attrs)
-
-            # register the plugin
-            _plugins_[packageName] = imp
+        # go over entry points, looking for objects explicitly for psychopy
+        for fqn, attrs in entryPoints.items():
+            targObj = _objectFromFQN(fqn)
+            for attr, ep in attrs.items():
+                setattr(targObj, attr, ep.load())
 
 
 def _objectFromFQN(fqn):
