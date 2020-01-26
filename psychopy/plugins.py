@@ -22,9 +22,8 @@ _plugins_ = collections.OrderedDict()  # use OrderedDict for Py2 compatibility
 
 
 def _objectFromFQN(fqn):
-    """Get an object within PsychoPy's namespace using a fully-qualified name
-    (FQN). This function will only retrieve an object if the root name of the
-    FQN is `psychopy`.
+    """Get an object within a module's namespace using a fully-qualified name
+    (FQN) string.
 
     Parameters
     ----------
@@ -38,12 +37,17 @@ def _objectFromFQN(fqn):
         module, unbound class or method, function or variable.
 
     """
-    if not fqn.startswith('psychopy'):
-        raise NameError('Base name must be `psychopy`.')
+    fqn = fqn.split(".")  # split the fqn
 
     # get the object the fqn refers to
-    objref = sys.modules['psychopy']  # base module
-    for attr in fqn.split(".")[1:]:
+    try:
+        objref = sys.modules[fqn[0]]  # base name
+    except KeyError:
+        raise ModuleNotFoundError(
+            'Base module cannot be found, has it been imported yet?')
+
+    # walk through the FQN to get the object it refers to
+    for attr in fqn[1:]:
         objref = getattr(objref, attr)
 
     return objref
@@ -95,23 +99,23 @@ def listPlugins(onlyLoaded=False):
 
     This function searches for potential plugin packages installed or loaded.
     When searching for installed plugin packages, only those the names of those
-    which define entry points specifically for PsychoPy, the version of Python
-    its currently running on, and operating system are returned.
+    which advertise entry points specifically for PsychoPy, the version of
+    Python its currently running on, and operating system are returned.
 
     Parameters
     ----------
     onlyLoaded : bool
-        If `False`, this function will return all packages which can be
-        potentially loaded as plugins. If `True`, the returned values will be
-        names of plugins that have been successfully loaded previously in this
-        session by `loadPlugin`. They will appear in the order of which they
-        were loaded.
+        If `False`, this function will return all installed packages which can
+        be potentially loaded as plugins, regardless if they have been already
+        loaded. If `True`, the returned values will only be names of plugins
+        that have been successfully loaded previously in this session by
+        `loadPlugin`. They will appear in the order of which they were loaded.
 
     Returns
     -------
     list
         Names of PsychoPy related plugins as strings. You can load all installed
-        plugins by passing this value to `loadPlugin`.
+        plugins by passing list elements to `loadPlugin`.
 
     Examples
     --------
@@ -119,6 +123,12 @@ def listPlugins(onlyLoaded=False):
 
         for plugin in plugins.listPlugins():
             plugins.loadPlugin(plugin)
+
+    Check if a plugin package named `plugin-test` is installed on the system and
+    has entry points into PsychoPy::
+
+        if 'plugin-test' in plugins.listPlugins():
+            print("Plugin installed!")
 
     """
     if onlyLoaded:  # only list plugins we have already loaded
@@ -141,14 +151,18 @@ def loadPlugin(plugin, *args, **kwargs):
 
     Plugins are packages which extend upon PsychoPy's existing functionality by
     dynamically importing code at runtime, without modifying the existing
-    installation file. Plugins create or redefine objects into the namespaces of
-    modules (eg. `psychopy.visual`) allowing them to be used as if they were
-    part of PsychoPy. Plugins are simply Python packages, `loadPlugin` will
-    search for them in directories specified in `sys.path`.
+    installation files. Plugins create or redefine objects into the namespaces
+    of modules (eg. `psychopy.visual`) and unbound classes, allowing them to be
+    used as if they were part of PsychoPy.
+
+    Plugins are simply Python packages,`loadPlugin` will search for them in
+    directories specified in `sys.path`. Only packages which define entry points
+    in their metadata which pertain to PsychoPy can be loaded with this
+    function.
 
     Parameters
     ----------
-    plugin : str, list or None
+    plugin : str
         Name of the plugin package to load. This usually refers to the package
         or project name.
     *args, **kwargs
@@ -179,15 +193,19 @@ def loadPlugin(plugin, *args, **kwargs):
     as they may contain malware! PsychoPy is not responsible for undefined
     behaviour or bugs associated with the use of 3rd party plugins.
 
+    See Also
+    --------
+    listPlugins : Search for and list installed or loaded plugins.
+
     Examples
     --------
     Load a plugin by specifying its package/project name::
 
-        loadPlugin('psychopy_hardware_box')
+        loadPlugin('psychopy-hardware-box')
 
     You can give arguments to this function which are passed on to the plugin::
 
-        loadPlugin('psychopy_hardware_box', switchOn=True, baudrate=9600)
+        loadPlugin('psychopy-hardware-box', switchOn=True, baudrate=9600)
 
     """
     global _plugins_
@@ -277,7 +295,8 @@ def loadPlugin(plugin, *args, **kwargs):
             # add the object to the module or unbound class
             setattr(targObj, attr, ep.load())
 
-    # retain information about the plugin's entry points
+    # retain information about the plugin's entry points, we will use this for
+    # conflict resolution
     _plugins_[pluginDist.project_name] = entryPoints
 
     return True
