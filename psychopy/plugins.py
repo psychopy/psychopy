@@ -167,7 +167,11 @@ def loadPlugin(plugin, *args, **kwargs):
     ------
     NameError
         The plugin attempted to overwrite an entire extant module or modify
-        `psychopy.plugins`.
+        `psychopy.plugins`. Also raised if the plugin module defines
+        `__register__` but the specified object is not valid or present.
+    TypeError
+        Plugin defines `__register__` which specifies an object that is not
+        callable.
 
     Warnings
     --------
@@ -181,8 +185,7 @@ def loadPlugin(plugin, *args, **kwargs):
 
         loadPlugin('psychopy_hardware_box')
 
-    You can give arguments to this function which are passed on to the plugin's
-    `register()` function which is called prior to resolving entry points::
+    You can give arguments to this function which are passed on to the plugin::
 
         loadPlugin('psychopy_hardware_box', switchOn=True, baudrate=9600)
 
@@ -237,17 +240,26 @@ def loadPlugin(plugin, *args, **kwargs):
             # anyways when .load() is called, but we get to access it before
             # we start binding.
             if ep.module_name not in sys.modules:
-                # do stuff before loading entry points here ...
+                # Do stuff before loading entry points here, any executable code
+                # in the module will run to configure it.
                 imp = importlib.import_module(ep.module_name)
-                # call the register function in the module (if present)
-                if hasattr(imp, 'register'):
-                    if inspect.isfunction(imp.register):
-                        imp.register(*args, **kwargs)
-                    else:
-                        logging.warning(
-                            "Entry point module `{}` in plugin `{}` defines "
-                            "attribute `register` but it's not a "
-                            "function.".format(ep.module_name, plugin))
+
+                # call the register function, check if exists and valid
+                if hasattr(imp, '__register__') and imp.__register__ is not None:
+                    if not hasattr(imp, imp.__register__):
+                        raise NameError(
+                            'Plugin module defines `__register__` but the '
+                            'specified attribute does not exist.')
+
+                    # get the register function and check if it's callable
+                    func = getattr(imp, imp.__register__)
+                    if not callable(func):
+                        raise TypeError(
+                            'Plugin module defines `__register__` but the '
+                            'specified object not is callable.')
+
+                    # call the register function with arguments
+                    func(*args, **kwargs)
 
             # Ensure that we are not wholesale replacing an existing module.
             # We want plugins to be explicit about what they are changing.
