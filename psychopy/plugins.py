@@ -235,24 +235,19 @@ def loadPlugin(plugin, *args, **kwargs):
 
     # find all plugins installed on the system
     pluginEnv = pkg_resources.Environment()  # supported by the platform
-    distributions, _ = pkg_resources.working_set.find_plugins(pluginEnv)
+    dists, _ = pkg_resources.working_set.find_plugins(pluginEnv)
 
-    # iter over specified plugin names, look for a matching distribution for the
-    # plugin
-    pluginDist = None
-    for dist in distributions:
-        if dist.project_name == plugin:
-            pluginDist = dist
-            break
-
-    if pluginDist is None:  # should raise error?
+    # check if the plugin is in the distribution list
+    try:
+        pluginDist = dists[[dist.project_name for dist in dists].index(plugin)]
+    except ValueError:
         logging.warning(
-            'Cannot find plugin package `{}`. Has it been installed?'.format(
+            'Plugin package `{}` has no entry points or does not exist.'.format(
                 plugin))
 
         return False
 
-    # load all the entry points, check if there are any for PsychoPy
+    # get entry point map and check if there are any for PsychoPy
     entryMap = pluginDist.get_entry_map()
     if not any([i.startswith('psychopy') for i in entryMap.keys()]):
         logging.warning(
@@ -281,7 +276,8 @@ def loadPlugin(plugin, *args, **kwargs):
         for attr, ep in attrs.items():
             # Load the module the entry point belongs to, this happens
             # anyways when .load() is called, but we get to access it before
-            # we start binding.
+            # we start binding. If the module has already been loaded, don't
+            # do this again.
             if ep.module_name not in sys.modules:
                 # Do stuff before loading entry points here, any executable code
                 # in the module will run to configure it.
@@ -289,11 +285,22 @@ def loadPlugin(plugin, *args, **kwargs):
 
                 # call the register function, check if exists and valid
                 if hasattr(imp, '__register__') and imp.__register__ is not None:
-                    func = _objectFromFQN(imp.__register__)
-                    if not callable(func):
+                    if isinstance(imp.__register__, str):
+                        if hasattr(imp, imp.__register__):  # local to module
+                            func = getattr(imp, imp.__register__)
+                        else:  # could be a FQN?
+                            func = _objectFromFQN(imp.__register__)
+                        # check if the reference object is callable
+                        if not callable(func):
+                            raise TypeError(
+                                'Plugin module defines `__register__` but the '
+                                'specified object is not a callable type.')
+                    elif callable(imp.__register__):  # a function was supplied
+                        func = imp.__register__
+                    else:
                         raise TypeError(
-                            'Plugin module defines `__register__` but the '
-                            'specified object not is callable type.')
+                            'Plugin module defines `__register__` but is not '
+                            '`str` or callable type.')
 
                     # call the register function with arguments
                     func(*args, **kwargs)
