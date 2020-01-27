@@ -6,7 +6,7 @@
 # Distributed under the terms of the GNU General Public License (GPL).
 """Utilities for extending PsychoPy with plugins."""
 
-__all__ = ['loadPlugin', 'listPlugins', 'computeChecksum', 'entryPoints']
+__all__ = ['loadPlugin', 'listPlugins', 'computeChecksum']
 
 import sys
 import inspect
@@ -36,6 +36,13 @@ def _objectFromFQN(fqn):
         Object referred to by the FQN within PsychoPy's namespace. Can be a
         module, unbound class or method, function or variable.
 
+    Raises
+    ------
+    ModuleNotFoundError
+        The base module the FQN is referring to has not been imported.
+    NameError
+        The provided FQN does not point to a valid object.
+
     """
     fqn = fqn.split(".")  # split the fqn
 
@@ -48,6 +55,11 @@ def _objectFromFQN(fqn):
 
     # walk through the FQN to get the object it refers to
     for attr in fqn[1:]:
+        if not hasattr(objref, attr):
+            raise NameError(
+                "Specified `fqn` does not reference a valid object or is "
+                "unreachable.")
+
         objref = getattr(objref, attr)
 
     return objref
@@ -135,8 +147,8 @@ def listPlugins(onlyLoaded=False):
         return list(_plugins_.keys())
 
     # find all packages with entry points defined
-    dists, _ = pkg_resources.working_set.find_plugins(
-        pkg_resources.Environment())
+    pluginEnv = pkg_resources.Environment()  # supported by the platform
+    dists, _ = pkg_resources.working_set.find_plugins(pluginEnv)
 
     installed = []
     for dist in dists:
@@ -144,63 +156,6 @@ def listPlugins(onlyLoaded=False):
             installed.append(dist.project_name)
 
     return installed
-
-
-def entryPoints(plugin):
-    """Query the entry points related to PsychoPy for a specified plugin
-    package.
-
-    Function returns a `dict` representing the entry point mapping for the
-    plugin. Keys are fully qualified names to PsychoPy modules and unbound
-    classes, where items are `dict` objects showing the attribute being
-    modified for each and the entry point into the plugin module as a fully
-    qualified name. This function is useful for determining what parts of
-    PsychoPy are being (or will be) changed by a plugin.
-
-    Parameters
-    ----------
-    plugin : str
-        Name of the plugin package to inspect. This usually refers to the
-        package or project name. You can query plugins that have been loaded
-        or not.
-
-    Returns
-    -------
-    dict
-        Entry point mapping for the specified `plugin`. If empty, either the
-        plugin cannot be located, or the package contains no entry points
-        related to PsychoPy.
-
-    """
-    entryPoints = {}
-    if plugin in _plugins_.keys():  # plugin is loaded
-        for fqn, names in _plugins_[plugin].items():
-            entryPoints[fqn] = {
-                i: str(j).split('=')[1].strip().replace(':', '.')
-                for i, j in names.items()}
-
-        return entryPoints
-
-    # plugin has not been loaded, look for it in the environment
-    pluginEnv = pkg_resources.Environment()
-    distributions, errors = pkg_resources.working_set.find_plugins(pluginEnv)
-
-    pluginDist = None
-    for dist in distributions:
-        if dist.project_name == plugin:
-            pluginDist = dist
-            break
-
-    # load all the entry points, check if there are any for PsychoPy
-    if pluginDist is not None:
-        for fqn, names in pluginDist.get_entry_map().items():
-            if not fqn.startswith('psychopy'):
-                continue
-            entryPoints[fqn] = {
-                i: str(j).split('=')[1].strip().replace(':', '.')
-                for i, j in names.items()}
-
-    return entryPoints
 
 
 def loadPlugin(plugin, *args, **kwargs):
@@ -215,7 +170,9 @@ def loadPlugin(plugin, *args, **kwargs):
     Plugins are simply Python packages,`loadPlugin` will search for them in
     directories specified in `sys.path`. Only packages which define entry points
     in their metadata which pertain to PsychoPy can be loaded with this
-    function.
+    function. This function also permits passing optional arguments to a
+    callable object in the plugin module to run any initialization routines
+    prior to loading entry points.
 
     Parameters
     ----------
@@ -229,10 +186,10 @@ def loadPlugin(plugin, *args, **kwargs):
     Returns
     -------
     bool
-        `True` if the plugin has valid entry points and was loaded. `False` is
-        returned if the plugin has already been loaded, or defines no entry
-        points specific to PsychoPy (a warning is logged in either case and
-        this function has no effect).
+        `True` if the plugin has valid entry points and was loaded successfully.
+        Also returns `True` if the plugin was already loaded by a previous
+        `loadPlugin` call this session. `False` is returned if the plugin
+        defines no entry points specific to PsychoPy (a warning is logged).
 
     Raises
     ------
@@ -264,15 +221,21 @@ def loadPlugin(plugin, *args, **kwargs):
 
         loadPlugin('psychopy-hardware-box', switchOn=True, baudrate=9600)
 
+    You can use the value returned from `loadPlugin` to determine if the plugin
+    is installed and supported by the platform::
+
+        hasPlugin = loadPlugin('psychopy-hardware-box')
+        if hasPlugin:
+            # initialize objects which require the plugin here ...
+
     """
     global _plugins_
     if plugin in _plugins_.keys():
-        logging.warning('Plugin `{}` already loaded.'.format(plugin))
-        return False
+        return True  # already loaded, return True
 
     # find all plugins installed on the system
-    pluginEnv = pkg_resources.Environment()
-    distributions, errors = pkg_resources.working_set.find_plugins(pluginEnv)
+    pluginEnv = pkg_resources.Environment()  # supported by the platform
+    distributions, _ = pkg_resources.working_set.find_plugins(pluginEnv)
 
     # iter over specified plugin names, look for a matching distribution for the
     # plugin
@@ -326,17 +289,11 @@ def loadPlugin(plugin, *args, **kwargs):
 
                 # call the register function, check if exists and valid
                 if hasattr(imp, '__register__') and imp.__register__ is not None:
-                    if not hasattr(imp, imp.__register__):
-                        raise NameError(
-                            'Plugin module defines `__register__` but the '
-                            'specified attribute does not exist.')
-
-                    # get the register function and check if it's callable
-                    func = getattr(imp, imp.__register__)
+                    func = _objectFromFQN(imp.__register__)
                     if not callable(func):
                         raise TypeError(
                             'Plugin module defines `__register__` but the '
-                            'specified object not is callable.')
+                            'specified object not is callable type.')
 
                     # call the register function with arguments
                     func(*args, **kwargs)
