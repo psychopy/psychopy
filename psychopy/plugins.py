@@ -214,8 +214,8 @@ def loadPlugin(plugin, *args, **kwargs):
         return False
 
     # find all plugins installed on the system
-    distributions, errors = pkg_resources.working_set.find_plugins(
-        pkg_resources.Environment())
+    pluginEnv = pkg_resources.Environment()
+    distributions, errors = pkg_resources.working_set.find_plugins(pluginEnv)
 
     # iter over specified plugin names, look for a matching distribution for the
     # plugin
@@ -225,19 +225,24 @@ def loadPlugin(plugin, *args, **kwargs):
             pluginDist = dist
             break
 
-    # load all the entry points
-    entryPoints = None
-    if pluginDist is not None:
-        entryPoints = pluginDist.get_entry_map()
+    if pluginDist is None:  # should raise error?
+        logging.warning(
+            'Cannot find plugin package `{}`. Has it been installed?'.format(
+                plugin))
 
-    # skip the next part and warn if there are no entry points
-    if entryPoints is None:
-        logging.warning('Specified package `{}` defines no entry '
-                        'points. Skipping.'.format(pluginDist.project_name))
         return False
 
+    # load all the entry points, check if there are any for PsychoPy
+    entryMap = pluginDist.get_entry_map()
+    if not any([i.startswith('psychopy') for i in entryMap.keys()]):
+        logging.warning(
+            'Specified package `{}` defines no plugin entry points for '
+            'PsychoPy. Skipping.'.format(pluginDist.project_name))
+
+        return False  # can't do anything more here, so return
+
     # go over entry points, looking for objects explicitly for psychopy
-    for fqn, attrs in entryPoints.items():
+    for fqn, attrs in entryMap.items():
         if not fqn.startswith('psychopy'):
             continue
 
@@ -297,6 +302,6 @@ def loadPlugin(plugin, *args, **kwargs):
 
     # retain information about the plugin's entry points, we will use this for
     # conflict resolution
-    _plugins_[pluginDist.project_name] = entryPoints
+    _plugins_[pluginDist.project_name] = entryMap
 
     return True
