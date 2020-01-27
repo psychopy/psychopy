@@ -131,10 +131,22 @@ def listPlugins(onlyLoaded=False):
 
     Examples
     --------
-    Load all plugins installed on the system into the current session::
+    Load all plugins installed on the system into the current session (assumes
+    all plugins don't require any additional arguments passed to them)::
 
         for plugin in plugins.listPlugins():
             plugins.loadPlugin(plugin)
+
+    If certain plugins take arguments, you can do this give specific arguments
+    when loading all plugins::
+
+        pluginArgs = {'some-plugin': (('someArg',), {'setup': True, 'spam': 10})}
+        for plugin in plugins.listPlugins():
+            try:
+                args, kwargs = pluginArgs[plugin]
+                plugins.loadPlugin(plugin, *args, **kwargs)
+            except KeyError:
+                plugins.loadPlugin(plugin)
 
     Check if a plugin package named `plugin-test` is installed on the system and
     has entry points into PsychoPy::
@@ -188,8 +200,9 @@ def loadPlugin(plugin, *args, **kwargs):
     bool
         `True` if the plugin has valid entry points and was loaded successfully.
         Also returns `True` if the plugin was already loaded by a previous
-        `loadPlugin` call this session. `False` is returned if the plugin
-        defines no entry points specific to PsychoPy (a warning is logged).
+        `loadPlugin` call this session, this function will have no effect in
+        this case. `False` is returned if the plugin defines no entry points
+        specific to PsychoPy (a warning is logged).
 
     Raises
     ------
@@ -242,8 +255,8 @@ def loadPlugin(plugin, *args, **kwargs):
         pluginDist = dists[[dist.project_name for dist in dists].index(plugin)]
     except ValueError:
         logging.warning(
-            'Plugin package `{}` has no entry points or does not exist.'.format(
-                plugin))
+            'Package `{}` does not appear to be a valid plugin. '
+            'Skipping.'.format(plugin))
 
         return False
 
@@ -251,8 +264,8 @@ def loadPlugin(plugin, *args, **kwargs):
     entryMap = pluginDist.get_entry_map()
     if not any([i.startswith('psychopy') for i in entryMap.keys()]):
         logging.warning(
-            'Specified package `{}` defines no plugin entry points for '
-            'PsychoPy. Skipping.'.format(pluginDist.project_name))
+            'Specified package `{}` defines no entry points for PsychoPy. '
+            'Skipping.'.format(pluginDist.project_name))
 
         return False  # can't do anything more here, so return
 
