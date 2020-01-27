@@ -6,7 +6,7 @@
 # Distributed under the terms of the GNU General Public License (GPL).
 """Utilities for extending PsychoPy with plugins."""
 
-__all__ = ['loadPlugin', 'listPlugins', 'computeChecksum']
+__all__ = ['loadPlugin', 'listPlugins', 'computeChecksum', 'entryPoints']
 
 import sys
 import inspect
@@ -144,6 +144,63 @@ def listPlugins(onlyLoaded=False):
             installed.append(dist.project_name)
 
     return installed
+
+
+def entryPoints(plugin):
+    """Query the entry points related to PsychoPy for a specified plugin
+    package.
+
+    Function returns a `dict` representing the entry point mapping for the
+    plugin. Keys are fully qualified names to PsychoPy modules and unbound
+    classes, where items are `dict` objects showing the attribute being
+    modified for each and the entry point into the plugin module as a fully
+    qualified name. This function is useful for determining what parts of
+    PsychoPy are being (or will be) changed by a plugin.
+
+    Parameters
+    ----------
+    plugin : str
+        Name of the plugin package to inspect. This usually refers to the
+        package or project name. You can query plugins that have been loaded
+        or not.
+
+    Returns
+    -------
+    dict
+        Entry point mapping for the specified `plugin`. If empty, either the
+        plugin cannot be located, or the package contains no entry points
+        related to PsychoPy.
+
+    """
+    entryPoints = {}
+    if plugin in _plugins_.keys():  # plugin is loaded
+        for fqn, names in _plugins_[plugin].items():
+            entryPoints[fqn] = {
+                i: str(j).split('=')[1].strip().replace(':', '.')
+                for i, j in names.items()}
+
+        return entryPoints
+
+    # plugin has not been loaded, look for it in the environment
+    pluginEnv = pkg_resources.Environment()
+    distributions, errors = pkg_resources.working_set.find_plugins(pluginEnv)
+
+    pluginDist = None
+    for dist in distributions:
+        if dist.project_name == plugin:
+            pluginDist = dist
+            break
+
+    # load all the entry points, check if there are any for PsychoPy
+    if pluginDist is not None:
+        for fqn, names in pluginDist.get_entry_map().items():
+            if not fqn.startswith('psychopy'):
+                continue
+            entryPoints[fqn] = {
+                i: str(j).split('=')[1].strip().replace(':', '.')
+                for i, j in names.items()}
+
+    return entryPoints
 
 
 def loadPlugin(plugin, *args, **kwargs):
