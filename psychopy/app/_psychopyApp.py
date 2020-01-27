@@ -317,7 +317,7 @@ class PsychoPyApp(wx.App):
         if splash:
             splash.SetText(_translate("  Creating frames..."))
         # Always show runner
-        self.showRunner(builderFiles=exps, coderFiles=scripts)
+        self.showRunner()
         if mainFrame in ['both', 'coder']:
             self.showCoder(fileList=scripts)
         if mainFrame in ['both', 'builder']:
@@ -522,7 +522,7 @@ class PsychoPyApp(wx.App):
             thisFrame.Raise()
             self.SetTopWindow(thisFrame)
 
-    def showRunner(self, event=None, builderFiles=None, coderFiles=None):
+    def showRunner(self, event=None):
         if not self.runner:
             self.runner = self.newRunnerFrame()
         if not self.testMode:
@@ -530,7 +530,7 @@ class PsychoPyApp(wx.App):
             self.runner.Raise()
             self.SetTopWindow(self.runner)
 
-    def newRunnerFrame(self, event=None, builderFiles=None, coderFiles=None):
+    def newRunnerFrame(self, event=None):
         # have to reimport because it is only local to __init__ so far
         from .runner.runner import RunnerFrame
         title = "PsychoPy3 Experiment Runner (v{})".format(self.version)
@@ -692,6 +692,11 @@ class PsychoPyApp(wx.App):
             except Exception:
                 pass  # we don't care if this fails - we're quitting anyway
         self.Destroy()
+
+        # Reset streams back to default
+        sys.stdout = sys.__stdout__
+        sys.stderr = sys.__stderr__
+
         if not self.testMode:
             sys.exit()
 

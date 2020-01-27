@@ -50,9 +50,9 @@ class RunnerFrame(wx.Frame):
         self.mainSizer.Add(self.panel, 1, wx.EXPAND | wx.ALL)
         self.SetSizerAndFit(self.mainSizer)
         self.prefs = self.app.prefs.runner
-        self.loadTasks()
+        self.loadTaskList()
 
-        self.Bind(wx.EVT_CLOSE, self.onClose)
+        self.Bind(wx.EVT_CLOSE, self.closeFrame)
 
     def addTask(self, evt=None, fileName=None):
         self.panel.addTask(fileName=fileName)
@@ -77,9 +77,9 @@ class RunnerFrame(wx.Frame):
             {'id': wx.ID_ADD, 'label': 'Add task', 'status': 'Adding task...', 'func': self.addTask},
             {'id': wx.ID_REMOVE, 'label': 'Remove task', 'status': 'Removing task...', 'func': self.removeTask},
             {'id': wx.ID_CLEAR, 'label': 'Clear all', 'status': 'Clearing tasks...', 'func': self.clearTasks},
-            {'id': wx.ID_SAVE, 'label': 'Save list', 'status': 'Saving task...', 'func': self.saveTasks},
-            {'id': wx.ID_COPY, 'label': 'Load list', 'status': 'Loading task...', 'func': self.loadTasks},
-            {'id': wx.ID_CLOSE_FRAME, 'label': 'Close', 'status': 'Closing Runner...', 'func': self.onClose},
+            {'id': wx.ID_SAVE, 'label': 'Save list', 'status': 'Saving task...', 'func': self.saveTaskList},
+            {'id': wx.ID_COPY, 'label': 'Load list', 'status': 'Loading task...', 'func': self.loadTaskList},
+            {'id': wx.ID_CLOSE_FRAME, 'label': 'Close', 'status': 'Closing Runner...', 'func': self.closeFrame},
             {'id': wx.ID_EXIT, 'label': 'Quit', 'status': 'Quitting PsychoPy...', 'func': self.onQuit},
         ]
 
@@ -123,14 +123,14 @@ class RunnerFrame(wx.Frame):
             print("##### Could not open URL: {} #####\n".format(evt.String))
         wx.EndBusyCursor()
 
-    def saveTasks(self, evt=None):
+    def saveTaskList(self, evt=None):
         """
         Saves task list to prefs
         """
         self.prefs['taskList'] = self.taskList
         self.app.prefs.saveUserPrefs()
 
-    def loadTasks(self, evt=None):
+    def loadTaskList(self, evt=None):
         """
         Loads saved task list from prefs
         """
@@ -146,7 +146,7 @@ class RunnerFrame(wx.Frame):
         self.panel.currentProject = None
         self.panel.currentFile = None
 
-    def onClose(self, evt):
+    def closeFrame(self, event=None, checkSave=False):
         """
         Defines Frame closing behavior.
         Frame only gets destroyed if no other frames from main thread exist.
@@ -164,16 +164,15 @@ class RunnerFrame(wx.Frame):
 
     def onQuit(self, evt=None):
         self.panel.stopTask(forceQuit=True)
-        self.Destroy()  # required
-        self.app.forgetFrame(self)
         self.app.quit(evt)
 
     def checkSave(self):
         try:
-            self.saveTasks()
+            self.saveTaskList()
         except Exception:
             print("##### Task List not saved correctly. #####\n")
         return True
+
 
     def viewBuilder(self, evt):
         if self.panel.currentFile is None:
