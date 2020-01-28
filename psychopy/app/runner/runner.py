@@ -343,7 +343,6 @@ class RunnerPanel(wx.Panel):
         if self.serverProcess is not None:
             self.serverProcess.kill()
             self.serverProcess = None
-            print("##### Local server shut down. #####\n")
 
         # Stop local Runner processes
         if self.localProcess is not None:
@@ -478,7 +477,7 @@ class RunnerPanel(wx.Panel):
         ver = '.'.join(self.app.version.split('.')[:2])
         psychoJSLibs = ['core', 'data', 'util', 'visual', 'sound']
 
-        os.path.exists(libPath) or os.mkdir(libPath)
+        os.path.exists(libPath) or os.makedirs(libPath)
 
         if len(sorted(Path(libPath).glob('*.js'))) >= len(psychoJSLibs):  # PsychoJS lib files exist
             print("##### PsychoJS lib already exists in {} #####\n".format(libPath))

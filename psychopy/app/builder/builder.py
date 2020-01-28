@@ -46,7 +46,7 @@ except ImportError:
 from psychopy.localization import _translate
 
 from ... import experiment
-from .. import stdOutRich, dialogs, icons
+from .. import dialogs, icons
 from ..icons import getAllIcons
 from psychopy import logging, constants, __version__
 from psychopy.tools.filetools import mergeFolder
