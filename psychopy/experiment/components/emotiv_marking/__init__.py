@@ -27,7 +27,7 @@ _localized = {
 class EmotivMarkingComponent(BaseComponent):  # or (VisualComponent)
     def __init__(self, exp, parentName, name='eeg_marker',
                  startType='time (s)', startVal=0.0,
-                 stopType='Frame N', stopVal=2,
+                 stopType='time (s)', stopVal=2,
                  startEstim='', durationEstim='0.1',
                  label='label', value=1,
                  stop_marker=False):
@@ -45,13 +45,13 @@ class EmotivMarkingComponent(BaseComponent):  # or (VisualComponent)
             label=_localized['label'])
 
         msg = _translate(
-            "Value of the marker to be inserted")
+            "Value of the marker to be inserted (interpreted as a string")
         self.params['value'] = Param(
-            value, valType='int',
+            value, valType='str',
             hint=msg,
             label=_localized['value'])
 
-        msg = _translate("Check this box to end the marker period")
+        msg = _translate("Check this box to include a stop marker")
         self.params['stop_marker'] = Param(
             stop_marker, valType='bool',
             allowedVals=[True, False],
@@ -91,10 +91,11 @@ class EmotivMarkingComponent(BaseComponent):  # or (VisualComponent)
         if self.params['stopVal'].val not in ('', None, -1, 'None'):
             # writes an if statement to determine whether to draw etc
             self.writeStopTestCode(buff)
-            code = "{}.update_marker()\n".format(OBJECT_NAME)
-            buff.writeIndented(code)
             code = "{}.status = FINISHED\n".format(self.params['name'])
             buff.writeIndented(code)
+            if self.params['stop_marker'].val:
+                code = "{}.update_marker()\n".format(OBJECT_NAME)
+                buff.writeIndented(code)
             buff.setIndentLevel(-1, relative=True)
         buff.setIndentLevel(-1, relative=True)
 
