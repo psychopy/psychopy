@@ -52,7 +52,7 @@ class RunnerFrame(wx.Frame):
         self.prefs = self.app.prefs.runner
         self.loadTaskList()
 
-        self.Bind(wx.EVT_CLOSE, self.closeFrame)
+        self.Bind(wx.EVT_CLOSE, self.onClose)
 
     def addTask(self, evt=None, fileName=None):
         self.panel.addTask(fileName=fileName)
@@ -79,7 +79,7 @@ class RunnerFrame(wx.Frame):
             {'id': wx.ID_CLEAR, 'label': 'Clear all', 'status': 'Clearing tasks...', 'func': self.clearTasks},
             {'id': wx.ID_SAVE, 'label': 'Save list', 'status': 'Saving task...', 'func': self.saveTaskList},
             {'id': wx.ID_COPY, 'label': 'Load list', 'status': 'Loading task...', 'func': self.loadTaskList},
-            {'id': wx.ID_CLOSE_FRAME, 'label': 'Close', 'status': 'Closing Runner...', 'func': self.closeFrame},
+            {'id': wx.ID_CLOSE_FRAME, 'label': 'Close', 'status': 'Closing Runner...', 'func': self.onClose},
             {'id': wx.ID_EXIT, 'label': 'Quit', 'status': 'Quitting PsychoPy...', 'func': self.onQuit},
         ]
 
@@ -146,7 +146,7 @@ class RunnerFrame(wx.Frame):
         self.panel.currentProject = None
         self.panel.currentFile = None
 
-    def closeFrame(self, event=None, checkSave=False):
+    def onClose(self, event=None):
         """
         Defines Frame closing behavior.
         Frame only gets destroyed if no other frames from main thread exist.
