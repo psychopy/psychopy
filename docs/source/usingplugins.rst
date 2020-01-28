@@ -12,14 +12,6 @@ to export them to. This process is handled automatically by the plugin loader
 and is more convenient than attempting to do the same using ``import``
 statements.
 
-Installed plugins for PsychoPy are discovered on the system using package
-metadata. The metadata of the package defines "entry points" which tell the
-plugin loader where within PsychoPy's namespace to place objects exported by the
-plugin. The loader also ensures plugins are compatible with the Python
-environment (ie. operating system, CPU architecture, and Python version). Any
-Python package can define entry points, allowing developers to add functionality
-to PsychoPy without needing to create a separate plugin project.
-
 Why use plugins?
 ----------------
 
@@ -112,30 +104,14 @@ but substituting `psychopy-plugin` for the file name::
 
     python -m pip install psychopy-plugin-1.0.win-amd64.zip
 
-For packages which are distributed as archives, you can use the
-``psychopy.plugins.computeChecksum()`` function to verify that the package has
-not been tampered with. This function generates a unique 'hash' from the package
-data which can be compared against one provided by the author. You can generate
-a hash for a package by doing the following::
-
-    import psychopy
-    import psychopy.plugins as plugins
-    authorHash = "a1b73dba45ccefed8c0d209921752f18cbf2c63f4b44dd4eb8c253492e7077f7"
-    if authorHash == plugins.computeChecksum('psychopy-plugin-1.0.win-amd64.zip'):
-        print('Package successfully validated!')
-
-By default, the SHA256 hashing algorithm is used, but authors may also provide
-an MD5 hash. Passing the additional ``method='md5'`` argument to
-``computeChecksum()`` will generate and MD5 has from the package file.
-
 How do I use a plugin?
 ----------------------
 
 A plugin can be loaded by calling the ``psychopy.plugins.loadPlugin()``
-function. The name of the plugin to load are provided as a string, which should
-reflect the project name. Note that a plugin can override the effects of other
-plugins loaded before it. Once a plugin is loaded, it cannot be unloaded until
-the Python session is restarted.
+function. The name of the plugin to load is provided as a string, which should
+reflect the project name of the package. Note that a plugin can override the
+effects of other plugins loaded before it. Once a plugin is loaded, it cannot be
+unloaded until the Python session is restarted.
 
 Calling ``loadPlugin()`` should preferably happen *after* importing `psychopy`
 and all other ``import`` statements for PsychoPy modules. An example of loading
@@ -176,5 +152,5 @@ How do I make a plugin?
 -----------------------
 
 Have a cool idea you want to share with the world (or at least PsychoPy users)?
-See the developer documentation section for information about creating your own
-plugins.
+See :ref:`pluginDevGuide` in the developer documentation section for information
+about creating your own plugins.
