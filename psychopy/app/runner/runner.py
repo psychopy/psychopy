@@ -22,6 +22,7 @@ from psychopy.projects.pavlovia import getProject
 from psychopy.app.coder.coder import CoderFrame
 from psychopy.app.builder.builder import BuilderFrame
 
+from psychopy.localization import _translate
 
 class RunnerFrame(wx.Frame):
     """Defines construction of the Psychopy Runner Frame"""
@@ -155,7 +156,8 @@ class RunnerFrame(wx.Frame):
         """
         allFrames = self.app.getAllFrames()
         lastFrame = len(allFrames) == 1
-        okToClose = self.app.getAllFrames() == [self, self.panel.localProcess] # If only Runner and localProcess, quit
+        # If only Runner and localProcess, quit
+        okToClose = self.app.getAllFrames() == [self, self.panel.localProcess]
 
         if lastFrame or okToClose:
             self.onQuit()
@@ -245,8 +247,10 @@ class RunnerPanel(wx.Panel):
                                      size=ctrlSize,
                                      style=wx.TE_READONLY | wx.TE_MULTILINE)
 
-        self.expCtrl.Bind(wx.EVT_LIST_ITEM_SELECTED, self.onItemSelected, self.expCtrl)
-        self.expCtrl.Bind(wx.EVT_LIST_ITEM_DESELECTED, self.onItemDeselected, self.expCtrl)
+        self.expCtrl.Bind(wx.EVT_LIST_ITEM_SELECTED,
+                          self.onItemSelected, self.expCtrl)
+        self.expCtrl.Bind(wx.EVT_LIST_ITEM_DESELECTED,
+                          self.onItemDeselected, self.expCtrl)
         self.expCtrl.InsertColumn(0, 'File')
         self.expCtrl.InsertColumn(1, 'Path')
 
@@ -256,14 +260,21 @@ class RunnerPanel(wx.Panel):
         self.runBtn = runLocalBtn = self.makeBmpButton(main='run32.png')
         self.stopBtn = stopTaskBtn = self.makeBmpButton(main='stop32.png')
         onlineBtn = self.makeBmpButton(main='globe32.png', emblem='run16.png')
-        onlineDebugBtn = self.makeBmpButton(main='globe32.png', emblem='bug16.png')
+        onlineDebugBtn = self.makeBmpButton(main='globe32.png',
+                                            emblem='bug16.png')
 
-        plusBtn.SetToolTip(wx.ToolTip("Add experiment to list"))
-        negBtn.SetToolTip(wx.ToolTip("Remove experiment from list"))
-        runLocalBtn.SetToolTip(wx.ToolTip("Run PsychoPy task (Python)"))
-        stopTaskBtn.SetToolTip(wx.ToolTip("Stop Task"))
-        onlineBtn.SetToolTip(wx.ToolTip("Run PsychoJS task from Pavlovia"))
-        onlineDebugBtn.SetToolTip(wx.ToolTip("Run PsychoJS task in local debug mode"))
+        plusBtn.SetToolTip(wx.ToolTip(
+            _translate("Add experiment to list")))
+        negBtn.SetToolTip(wx.ToolTip(
+            _translate("Remove experiment from list")))
+        runLocalBtn.SetToolTip(wx.ToolTip(
+            _translate("Run PsychoPy task (Python)")))
+        stopTaskBtn.SetToolTip(wx.ToolTip(
+            _translate("Stop Task")))
+        onlineBtn.SetToolTip(wx.ToolTip(
+            _translate("Run PsychoJS task from Pavlovia")))
+        onlineDebugBtn.SetToolTip(wx.ToolTip(
+            _translate("Run PsychoJS task in local debug mode")))
 
         # Bind events to buttons
         self.Bind(wx.EVT_BUTTON, self.addTask, plusBtn)
@@ -274,28 +285,25 @@ class RunnerPanel(wx.Panel):
         self.Bind(wx.EVT_BUTTON, self.runOnlineDebug, onlineDebugBtn)
 
         # GridBagSizer
-        gridRow, gridCol = (4,2)
-        self.expBtnSizer = wx.GridBagSizer(vgap=0, hgap=0)
+        self.upperSizer = wx.BoxSizer(wx.HORIZONTAL)
+        self.buttonSizer = wx.BoxSizer(wx.VERTICAL)
+        # self.runCtrlSizer = wx.BoxSizer(wx.HORIZONTAL)
 
-        # Add ListCtrl
-        self.expBtnSizer.Add(self.expCtrl, (0, 0), (gridRow, gridCol), wx.EXPAND)
-
-        # Add buttons
-        self.expBtnSizer.Add(plusBtn, (0,2), (1,1), wx.ALL, 5)
-        self.expBtnSizer.Add(negBtn, (1,2), (1,1), wx.ALL, 5)
-        self.expBtnSizer.Add(runLocalBtn, (3,2),(1,1), wx.ALL | wx.EXPAND, 5)
-        self.expBtnSizer.Add(stopTaskBtn, (3, 3), (1, 1), wx.ALL | wx.EXPAND, 5)
-        self.expBtnSizer.Add(onlineBtn, (3,4),(1,1), wx.ALL | wx.EXPAND, 5)
-        self.expBtnSizer.Add(onlineDebugBtn, (3,5),(1,1), wx.ALL | wx.EXPAND, 5)
-
-        for idx in range(gridRow):
-            self.expBtnSizer.AddGrowableRow(idx)
-            if idx < 2:
-                self.expBtnSizer.AddGrowableCol(idx)
+        self.upperSizer.Add(self.expCtrl, 1, wx.ALL | wx.EXPAND, 5)
+        self.upperSizer.Add(self.buttonSizer, 0, wx.ALL | wx.EXPAND, 5)
+        self.buttonSizer.Add(plusBtn, 0, wx.ALL | wx.ALIGN_TOP, 5)
+        self.buttonSizer.Add(negBtn, 0, wx.ALL | wx.ALIGN_TOP, 5)
+        self.buttonSizer.AddStretchSpacer()
+        # self.buttonSizer.Add(self.runCtrlSizer, 0, wx.ALL | wx.ALIGN_BOTTOM, 5)
+        self.buttonSizer.AddMany([(runLocalBtn, 0, wx.ALL, 5),
+                                   (stopTaskBtn, 0, wx.ALL, 5),
+                                   (onlineBtn, 0, wx.ALL, 5),
+                                   (onlineDebugBtn, 0, wx.ALL, 5),
+                                   ])
 
         # Set main sizer
         self.mainSizer = wx.BoxSizer(wx.VERTICAL)
-        self.mainSizer.Add(self.expBtnSizer, 1, wx.EXPAND | wx.ALL, 10)
+        self.mainSizer.Add(self.upperSizer, 1, wx.EXPAND | wx.ALL, 10)
         self.mainSizer.Add(self.stdoutCtrl, 1, wx.EXPAND | wx.ALL, 10)
 
         self.stopBtn.Disable()
