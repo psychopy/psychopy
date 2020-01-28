@@ -58,7 +58,8 @@ informative.
 
 The module or sub-package which defines the objects which entry points refer to
 should be some variant of the name to prevent possible namespace conflicts. For
-instance, we would name our module `psychopy_quest_procedure`.
+instance, we would name our module `psychopy_quest_procedure` if our project
+was called `psychopy-quest-procedure`.
 
 Specifying entry points
 ~~~~~~~~~~~~~~~~~~~~~~~
@@ -68,7 +69,7 @@ to itself. Packages advertise their entry points by having them in their
 metadata. How entry points are defined and added to package metadata is
 described in the section
 `Dynamic Discovery of Services and Plugins <https://setuptools.readthedocs.io/en/latest/setuptools.html#dynamic-discovery-of-services-and-plugins>`_
-of `setuptools` documentation.
+of the documentation for `setuptools`.
 
 When loading a specified plugin, the plugin loader searches for a distribution
 matching the given project name, then gets the entry point mapping from its
@@ -87,4 +88,33 @@ dictionary when defining entry point metadata using the `setup()` function::
         entry_points={'psychopy.visual': ['MyStim = psychopy_plugin:MyStim']},
         ...
     )
+
+For more complex (albeit contrived) example, say we have a plugin which
+provides a custom interface to some display hardware called
+`psychopy-display` that needs to alter the existing ``flip()`` method of the
+``psychopy.visual.Window`` class to work. Also, we want to add a class to
+`psychopy.hardware` called `DisplayControl` to give the user a way of setting up
+and configuring the display. Entry points for both objects are defined in the
+plugin's `psychopy_display` module. To get the effect we want, we specify entry
+points using the following::
+
+    setup(
+        ...
+        entry_points={
+            'psychopy.visual.Window': ['flip = psychopy_display:flip'],
+            'psychopy.hardware': ['DisplayControl = psychopy_display:DisplayControl']},
+        ...
+    )
+
+After calling ``loadPlugin('psychopy-display')``, the user will be able to
+create instances of ``psychopy.hardware.DisplayControl`` and new instances of
+``psychopy.visual.Window`` will have the modified ``flip()`` method.
+
+.. note::
+
+    Plugins can load and assign entry points to names anywhere in PsychoPy's
+    namespace. However, plugin developers should place them where they make
+    most sense. In the last example, we put `DisplayControl` in
+    `psychopy.hardware` because that's where users would expect to find it if
+    it was part of the base PsychoPy installation.
 
