@@ -3,6 +3,10 @@
 PsychoPy official workshops
 ===============================
 
+You can `BOOK NOW ON Creating Experiments in PsychoPy <https://store.nottingham.ac.uk/conferences-and-events/conferences/schools-and-departments/psychology/cep-2020-creating-experiments-in-psychopy>`_
+
+
+
 We typically run PsychoPy workshops at University of Nottingham in the Easter break.
 
 In 2020, we plan to run **two** workshops:
@@ -53,6 +57,8 @@ CEP: Creating Experiments in PsychoPy
 
 Building and Coding in PsychoPy/Python
 
+Bookings open now at `the Nottingham online store <https://store.nottingham.ac.uk/conferences-and-events/conferences/schools-and-departments/psychology/cep-2020-creating-experiments-in-psychopy>`_
+
 Details
 ~~~~~~~~~~~~
 
@@ -98,7 +104,8 @@ PaMPR (Programming and Methods in Psychology Research)
 
 **7-11 Sept 2020. Rough cost: £450 plus accommodation.**
 
-This is a new thing! I'm afraid we don't have the draft programme in place yet but the
+This is a new thing! It's a joint venture with Nottingham trent University.
+I'm afraid we don't have the draft programme in place yet but the
 general idea is to create a 5 day modular summer school. There will be a number of sessions 
 running continuously on the main programming languages:
 
