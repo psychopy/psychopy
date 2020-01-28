@@ -44,6 +44,7 @@ class IndentingBuffer(io.StringIO):
         io.StringIO.__init__(self, *args, **kwargs)
         self.oneIndent = "    "
         self.indentLevel = 0
+        self._writtenOnce = []
 
     def writeIndented(self, text):
         """Write to the StringIO buffer, but add the current indent.
@@ -61,6 +62,31 @@ class IndentingBuffer(io.StringIO):
         """
         for line in text.splitlines():
             self.write(self.oneIndent * self.indentLevel + line + '\n')
+
+    def writeOnceIndentedLines(self, text):
+        """Add code to the experiment that is only run exactly once,
+        (typically this is used to write the writeOnceInit sections after
+        all `import`s were done but before Window creation).
+
+        Parameters
+        ----------
+        text : str
+            The code to run. May include newline characters to write several
+            lines of code at once.
+
+        Notes
+        -----
+        For running an `import`, use meth:~`Experiment.requireImport` or
+        :meth:~`Experiment.requirePsychopyLibs` instead.
+
+        See also
+        --------
+        :meth:~`Experiment.requireImport`,
+        :meth:~`Experiment.requirePsychopyLibs`
+        """
+        if text not in self._writtenOnce:
+            self.writeIndentedLines(text)
+            self._writtenOnce.append(text)
 
     def setIndentLevel(self, newLevel, relative=False):
         """Change the indent level for the buffer to a new value.

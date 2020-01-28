@@ -56,13 +56,6 @@ class QmixPumpComponent(BaseComponent):
         self.exp.requireImport(importName='qmix',
                                importFrom='psychopy.hardware')
 
-        code = ('# Initialize all pumps so they are ready to be used when we\n'
-                '# need them later. This enables us to dynamically select\n'
-                '# pumps during the experiment without worrying about their\n'
-                '# initialization.\n'
-                'qmix._init_all_pumps()')
-        self.exp.runOnce(code)
-
         # Order in which the user-settable parameters will be displayed
         # in the component's properties window.
         self.order = ['pumpIndex', 'syringeType', 'pumpAction',
@@ -114,6 +107,14 @@ class QmixPumpComponent(BaseComponent):
             allowedVals=[True, False],
             hint=_translate('Sync pump onset to the screen refresh'),
             label=_localized['syncToScreen'])
+
+    def writeRunOnceInitCode(self, buff):
+        code = ('# Initialize all pumps so they are ready to be used when we\n'
+                '# need them later. This enables us to dynamically select\n'
+                '# pumps during the experiment without worrying about their\n'
+                '# initialization.\n'
+                'qmix._init_all_pumps()\n')
+        buff.writeOnceIndentedLines(code)
 
     def writeRoutineStartCode(self, buff):
         """Write the code that will be called at the start of the routine.
