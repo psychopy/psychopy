@@ -111,18 +111,17 @@ class cedrusButtonBoxComponent(KeyboardComponent):
                 "        devices = pyxid.get_xid_devices()\n"
                 "        core.wait(0.1)\n"
                 "        cedrusBox_%(deviceNumber)s = devices[%(deviceNumber)s]\n"
+                "        cedrusBox_%(deviceNumber)s.clock = core.Clock()\n"
                 "        break  # found the device so can break the loop\n"
                 "    except Exception:\n"
                 "        pass\n"
                 "if not cedrusBox_%(deviceNumber)s:\n"
                 "    logging.error('could not find a Cedrus device.')\n"
-                "    core.quit()\n"
-                "%(name)s.clock = core.Clock()\n")
+                "    core.quit()\n")
         buff.writeOnceIndentedLines(code % self.params)
 
     def writeInitCode(self, buff):
-        code = ("%(name)s = cedrusBox_%(deviceNumber)s\n"
-                "%(name)s.clock = core.Clock()\n")
+        code = ("%(name)s = cedrusBox_%(deviceNumber)s\n")
         buff.writeIndentedLines(code % self.params)
 
     def writeRoutineStartCode(self, buff):
