@@ -9,18 +9,18 @@ import wx
 import os
 import sys
 import time
-from pathlib import Path
 import requests
 import webbrowser
-import xml.etree.ElementTree as xml
+from pathlib import Path
 from subprocess import Popen, PIPE
+import xml.etree.ElementTree as xml
 
 from psychopy.app import icons
 from psychopy.constants import PY3
 from psychopy.app.stdOutRich import StdOutRich
+from psychopy.projects.pavlovia import getProject
 from psychopy.app.coder.coder import CoderFrame
 from psychopy.app.builder.builder import BuilderFrame
-from psychopy.projects.pavlovia import getProject
 
 
 class RunnerFrame(wx.Frame):
@@ -173,7 +173,6 @@ class RunnerFrame(wx.Frame):
             print("##### Task List not saved correctly. #####\n")
         return True
 
-
     def viewBuilder(self, evt):
         if self.panel.currentFile is None:
             self.app.showBuilder()
@@ -247,13 +246,14 @@ class RunnerPanel(wx.Panel):
                                      style=wx.TE_READONLY | wx.TE_MULTILINE)
 
         self.expCtrl.Bind(wx.EVT_LIST_ITEM_SELECTED, self.onItemSelected, self.expCtrl)
+        self.expCtrl.Bind(wx.EVT_LIST_ITEM_DESELECTED, self.onItemDeselected, self.expCtrl)
         self.expCtrl.InsertColumn(0, 'File')
         self.expCtrl.InsertColumn(1, 'Path')
 
         # Set buttons
         plusBtn = self.makeBmpButton(main='addExp32.png')
         negBtn = self.makeBmpButton(main='removeExp32.png')
-        runLocalBtn = self.makeBmpButton(main='run32.png')
+        self.runBtn = runLocalBtn = self.makeBmpButton(main='run32.png')
         self.stopBtn = stopTaskBtn = self.makeBmpButton(main='stop32.png')
         onlineBtn = self.makeBmpButton(main='globe32.png', emblem='run16.png')
         onlineDebugBtn = self.makeBmpButton(main='globe32.png', emblem='bug16.png')
@@ -298,6 +298,7 @@ class RunnerPanel(wx.Panel):
         self.mainSizer.Add(self.expBtnSizer, 1, wx.EXPAND | wx.ALL, 10)
         self.mainSizer.Add(self.stdoutCtrl, 1, wx.EXPAND | wx.ALL, 10)
 
+        self.stopBtn.Disable()
         self.SetSizerAndFit(self.mainSizer)
         self.SetMinSize(self.Size)
 
@@ -328,23 +329,15 @@ class RunnerPanel(wx.Panel):
             bmp = wx.Bitmap(join(rc, main), PNG)
         return wx.BitmapButton(self, -1, bmp, size=[buttonSize, buttonSize], style=wx.NO_BORDER )
 
-    def stopTask(self, evt=None, forceQuit=False):
+    def stopTask(self, event=None, forceQuit=False):
         """
         Kills script processes currently running.
         """
         # Check whether script ended automatically
-        if not forceQuit and self.processExists and not (evt.EventObject.ClassName == 'wxBitmapButton'):
+        if (not forceQuit
+                and self.processExists
+                and not (event.EventObject.ClassName == 'wxBitmapButton')):
             return
-
-        # Stop Runner script local process
-        if self.localProcess is not None:
-            self.Bind(wx.EVT_IDLE, None)
-            try:
-                self.localProcess.stopFile(evt)
-            except TypeError:
-                pass  # coder Process already dead
-            self.localProcess = None
-            print("##### Experiment finished. #####\n")
 
         # Stop subprocess script running local server
         if self.serverProcess is not None:
@@ -352,16 +345,25 @@ class RunnerPanel(wx.Panel):
             self.serverProcess = None
             print("##### Local server shut down. #####\n")
 
-        # Stop Builder or Coder scripts
-        for thisFrame in self.app.getAllFrames():
-            if hasattr(thisFrame, 'scriptProcess') and thisFrame.scriptProcess is not None:
-                thisFrame.stopFile()
+        # Stop local Runner processes
+        if self.localProcess is not None:
+
+            # Enable/Disable btns
+            self.runBtn.Enable()
+            self.stopBtn.Disable()
+            self.Bind(wx.EVT_IDLE, None)
+
+            try:
+                self.localProcess.stopFile(event=event)
+            except TypeError:
+                pass  # coder Process already dead
+            finally:
+                self.localProcess = None
                 print("##### Experiment finished. #####\n")
 
     def runLocal(self, evt):
         """
-        Run experiment from Builder - Builder can run both .py and .psyexp filetypes,
-        if builderFrame.filename is set after frame creation.
+        Run experiment from new Builder of Coder frame.
         """
         if self.currentSelection is None or self.localProcess is not None:
             return
@@ -378,8 +380,14 @@ class RunnerPanel(wx.Panel):
                                            title=title,
                                            files=[str(self.currentFile)],
                                            app=self.app)
+
+
+        # Enable/Disable btns
+        self.runBtn.Disable()
+        self.stopBtn.Enable()
+
         self.localProcess.runFile()
-        time.sleep(.5)  # Give processes a moment to start up
+        time.sleep(.2)  # Give processes a moment to start up
         self.Bind(wx.EVT_IDLE, self.stopTask)
 
     @property
@@ -404,9 +412,6 @@ class RunnerPanel(wx.Panel):
         """
         Runs PsychoJS task from https://pavlovia.org
         """
-        if self.currentSelection is None:
-            return
-
         if self.currentProject not in [None, "None", ''] and self.currentFile.suffix == '.psyexp':
             webbrowser.open(
                 "https://pavlovia.org/run/{}/{}"
@@ -424,7 +429,7 @@ class RunnerPanel(wx.Panel):
         port: int
             The port number used for the localhost server
         """
-        if self.currentSelection is None:
+        if self.currentSelection is None or self.currentFile.suffix == '.py':
             return
 
         if self.serverProcess is not None:
@@ -435,7 +440,7 @@ class RunnerPanel(wx.Panel):
         self.getPsychoJS()
 
         outputPath = self.outputPath(self.currentFile)
-        htmlPath = self.currentFile.parent / outputPath
+        htmlPath = str(self.currentFile.parent / outputPath)
         server = ["SimpleHTTPServer", "http.server"][PY3]
         pythonExec = Path(sys.executable)
         command = [str(pythonExec), "-m", server, str(port)]
@@ -469,20 +474,20 @@ class RunnerPanel(wx.Panel):
         Downloads and saves the current version of the PsychoJS library.
         Useful for debugging, amending scripts.
         """
-        libPath = self.currentFile.parent / 'lib'
+        libPath = str(self.currentFile.parent / self.outputPath(self.currentFile) / 'lib')
         ver = '.'.join(self.app.version.split('.')[:2])
         psychoJSLibs = ['core', 'data', 'util', 'visual', 'sound']
 
-        if libPath.exists() and len(sorted(Path(libPath).glob('*.js'))) >= len(psychoJSLibs):
+        os.path.exists(libPath) or os.mkdir(libPath)
+
+        if len(sorted(Path(libPath).glob('*.js'))) >= len(psychoJSLibs):  # PsychoJS lib files exist
             print("##### PsychoJS lib already exists in {} #####\n".format(libPath))
             return
-
-        os.makedirs(libPath)
 
         for lib in psychoJSLibs:
             url = "https://lib.pavlovia.org/{}-{}.js".format(lib, ver)
             req = requests.get(url)
-            with open(libPath / "{}-{}.js".format(lib, ver), 'wb') as f:
+            with open(libPath + "/{}-{}.js".format(lib, ver), 'wb') as f:
                 f.write(req.content)
 
         print("##### PsychoJS libs downloaded to {} #####\n".format(libPath))
@@ -561,6 +566,12 @@ class RunnerPanel(wx.Panel):
         except NotADirectoryError as err:
             self.stdoutCtrl.write(err)
 
+    def onItemDeselected(self, evt):
+        self.expCtrl.SetItemState(self.currentSelection, 0, wx.LIST_STATE_SELECTED)
+        self.currentSelection = None
+        self.currentProject = None
+        self.currentFile = None
+
     def outputPath(self, filePath):
         """
         Returns html output path saved in Experiment Settings.
@@ -577,7 +588,7 @@ class RunnerPanel(wx.Panel):
 
         """
         doc = xml.ElementTree()
-        doc.parse(filePath)
+        doc.parse(str(filePath))
         settings = doc.getroot().find('Settings')
         for param in settings:
             if param.attrib['name'] == "HTML path":
