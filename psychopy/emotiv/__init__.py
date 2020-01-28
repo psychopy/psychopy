@@ -62,22 +62,16 @@ class Cortex(object):
         self.session_id = None
         self.marker_id = None
         self.waiting_for_id = None
-        print("starting cortex")
         self.websocket = None
         self.init_connection()
-        print("getting loging")
         self.get_user_login()
         self.get_cortex_info()
-        print("getting access right")
         self.has_access_right()
-        print("getting access right")
         self.request_access()
-        print("authorizing")
         self.authorize()
         self.get_license_info()
         self.query_headsets()
         if len(self.headsets) > 0:
-            print("** CREATE SESSION **")
             if len(self.headsets) > 1:
                 logger.debug("Currently Psychopy only supports a single headset")
                 logger.debug("Connecting to the first headset found")
