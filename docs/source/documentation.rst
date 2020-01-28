@@ -29,6 +29,7 @@ Further information:
    troubleshooting
    recipes/recipes
    faqs/faqs
+   usingplugins
    resources/resources
 
 For developers:
