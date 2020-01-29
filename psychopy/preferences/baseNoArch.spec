@@ -104,11 +104,6 @@
     # Upper limit on how many components can be in favorites
     maxFavorites = integer(default=10)
 
-# Settings for the runner panel
-[runner]
-    # For saving task lists in the Runner
-    taskList = list(default=list(None))
-
 [hardware]
     # choice of audio library
     audioLib = list(default=list('sounddevice','PTB', 'pyo', 'pygame'))

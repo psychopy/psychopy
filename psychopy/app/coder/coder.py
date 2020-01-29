@@ -34,8 +34,6 @@ import io
 import threading
 import bdb
 import pickle
-import py_compile
-import locale
 
 from . import psychoParser
 from .. import stdOutRich, dialogs
@@ -43,7 +41,6 @@ from .. import pavlovia_ui
 from psychopy import logging
 from psychopy.localization import _translate
 from ..utils import FileDropTarget
-from psychopy.constants import PY3
 from psychopy.projects import pavlovia
 from psychopy.app.coder.codeEditorBase import BaseCodeEditor
 
@@ -306,11 +303,6 @@ class UnitTestFrame(wx.Frame):
         self.menuTests.Append(wx.ID_APPLY,
                               _translate("&Run tests\t%s") % _run)
         self.Bind(wx.EVT_MENU, self.onRunTests, id=wx.ID_APPLY)
-        _stop = self.app.keys['stopScript']
-        self.menuTests.Append(self.IDs.stopFile,
-                              _translate("&Cancel running test\t%s") % _stop,
-                              _translate("Quit a test in progress"))
-        self.Bind(wx.EVT_MENU, self.onCancelTests, id=self.IDs.stopFile)
         self.menuTests.AppendSeparator()
         self.menuTests.Append(wx.ID_CLOSE, _translate(
             "&Close tests panel\t%s") % self.app.keys['close'])
@@ -1538,10 +1530,6 @@ class CoderFrame(wx.Frame):
                                       _translate("Run\t%s") % keyCodes['runScript'],
                                       _translate("Run the current script")).GetId()
         self.Bind(wx.EVT_MENU, self.runFile, id=self.IDs.cdrRun)
-        self.IDs.cdrStop = menu.Append(wx.ID_ANY,
-                                       _translate("Stop\t%s") % keyCodes['stopScript'],
-                                       _translate("Stop the current script")).GetId()
-        self.Bind(wx.EVT_MENU, self.stopFile, id=self.IDs.cdrStop)
 
         menu.AppendSeparator()
         item = menu.Append(wx.ID_ANY,
@@ -1896,22 +1884,6 @@ class CoderFrame(wx.Frame):
                 key.replace('Ctrl+', ctrlKey),
                 _translate("Run current script")).GetId()
         self.toolbar.Bind(wx.EVT_TOOL, self.runFile, id=self.IDs.cdrBtnRun)
-
-        key = _translate("Stop [%s]") % self.app.keys['stopScript']
-        if 'phoenix' in wx.PlatformInfo:
-            self.IDs.cdrBtnStop = self.toolbar.AddTool(
-                wx.ID_ANY,
-                key.replace('Ctrl+', ctrlKey),
-                stopBmp,
-                _translate("Stop current script")).GetId()
-        else:
-            self.IDs.cdrBtnStop = self.toolbar.AddSimpleTool(
-                wx.ID_ANY,
-                stopBmp,
-                key.replace('Ctrl+', ctrlKey),
-                _translate("Stop current script")).GetId()
-        tb.Bind(wx.EVT_TOOL, self.stopFile, id=self.IDs.cdrBtnStop)
-        tb.EnableTool(self.IDs.cdrBtnStop, False)
 
         self.toolbar.AddSeparator()
         pavButtons = pavlovia_ui.toolbar.PavloviaButtons(self, toolbar=tb, tbSize=size)
@@ -2275,8 +2247,7 @@ class CoderFrame(wx.Frame):
                 self.setCurrentDoc(filename)
                 self.setFileModified(False)
         self.SetStatusText('')
-        # self.fileHistory.AddFileToHistory(newPath)  # this is done by
-        # setCurrentDoc
+        self.app.runner.addTask(fileName=filename)
 
     def expectedModTime(self, doc):
         # check for possible external changes to the file, based on
@@ -2452,75 +2423,8 @@ class CoderFrame(wx.Frame):
             self.setFileModified(self.currentDoc.UNSAVED)
         # return 1
 
-    def _runFileAsImport(self):
-        fullPath = self.currentDoc.filename
-        path, scriptName = os.path.split(fullPath)
-        importName, ext = os.path.splitext(scriptName)
-        # set the directory and add to path
-        os.chdir(path)  # try to rewrite to avoid doing chdir in the coder
-        sys.path.insert(0, path)
-
-        # update toolbar
-        self.toolbar.EnableTool(self.IDs.cdrBtnRun, False)
-        self.toolbar.EnableTool(self.IDs.cdrBtnStop, True)
-
-        # do an 'import' on the file to run it
-        # delete the sys reference to it (so we think its a new import)
-        if importName in sys.modules:
-            sys.modules.pop(importName)
-        exec('import %s' % (importName))  # or run first time
-
-    def _runFileInDbg(self):
-        # setup a debugger and then runFileAsImport
-        fullPath = self.currentDoc.filename
-        path, scriptName = os.path.split(fullPath)
-        # importName, ext = os.path.splitext(scriptName)
-        # set the directory and add to path
-        os.chdir(path)  # try to rewrite to avoid doing chdir in the coder
-
-        self.db = PsychoDebugger()
-        self.db.runcall(self._runFileAsImport)
-
-    def _runFileAsProcess(self):
-        fullPath = self.currentDoc.filename
-        path, scriptName = os.path.split(fullPath)
-        # importName, ext = os.path.splitext(scriptName)
-        # set the directory and add to path
-        # try to rewrite to avoid doing chdir in the coder; do through
-        # wx.Shell?
-        os.chdir(path)
-        # self is the parent (which will receive an event when the process
-        # ends)
-        self.scriptProcess = wx.Process(self)
-        self.scriptProcess.Redirect()  # catch the stdout/stdin
-
-        if sys.platform == 'win32':
-            # the quotes allow file paths with spaces
-            command = '"%s" -u "%s"' % (sys.executable, fullPath)
-            # self.scriptProcessID = wx.Execute(command, wx.EXEC_ASYNC,
-            #    self.scriptProcess)
-            if hasattr(wx, "EXEC_NOHIDE"):
-                _opts = wx.EXEC_ASYNC | wx.EXEC_NOHIDE  # that hid console!
-            else:
-                _opts = wx.EXEC_ASYNC | wx.EXEC_SHOW_CONSOLE
-        else:
-            fullPath = fullPath.replace(' ', '\ ')
-            pythonExec = sys.executable.replace(' ', '\ ')
-            # the quotes would break a unix system command
-            command = '%s -u %s' % (pythonExec, fullPath)
-            _opts = wx.EXEC_ASYNC | wx.EXEC_MAKE_GROUP_LEADER
-        # launch the command
-        self.scriptProcessID = wx.Execute(command, _opts,
-                                          self.scriptProcess)
-        self.toolbar.EnableTool(self.IDs.cdrBtnRun, False)
-        self.toolbar.EnableTool(self.IDs.cdrBtnStop, True)
-
     def runFile(self, event=None):
-        """Runs files by one of various methods
-        """
-
-        self.app.runner.Show()
-
+        """Open Runner for running the script."""
         fullPath = self.currentDoc.filename
         filename = os.path.split(fullPath)[1]
         # does the file need saving before running?
@@ -2538,94 +2442,11 @@ class CoderFrame(wx.Frame):
             elif resp == wx.ID_NO:
                 pass  # just run
 
-        if sys.platform in ['darwin']:
-            # restore normal text color for coder output window (stdout);
-            # doesn't fix the issue
-            print("\033")
-        else:
-            print()
-
-        # check syntax by compiling - errors printed (not raised as error)
-        try:
-            if not PY3 or type(fullPath) == bytes:
-                # py_compile.compile doesn't accept Unicode filename.
-                py_compile.compile(fullPath.encode(
-                    sys.getfilesystemencoding()), doraise=False)
-            else:
-                py_compile.compile(fullPath, doraise=False)
-        except Exception as e:
-            print("Problem compiling: %s" % e)
-
-        # provide a running... message; long fullPath --> no # are displayed
-        # unless you add some manually
-        print(("##### Running: %s #####" % (fullPath)).center(80, "#"))
-
-        self.ignoreErrors = False
-        self.SetEvtHandlerEnabled(False)
-        self.Bind(wx.EVT_IDLE, None)
-
-        # try to run script
-        try:  # try to capture any errors in the script
-            if runScripts == 'thread':
-                self.thread = ScriptThread(
-                    target=self._runFileAsImport, gui=self)
-                self.thread.start()
-            elif runScripts == 'process':
-                self._runFileAsProcess()
-
-            elif runScripts == 'dbg':
-                # create a thread and run file as debug within that thread
-                self.thread = ScriptThread(target=self._runFileInDbg, gui=self)
-                self.thread.start()
-            elif runScripts == 'import':
-                raise NotImplementedError()
-                # simplest possible way, but fragile
-                # USING import of scripts (clunky)
-                # if importName in sys.modules:  # delete the sys reference to it
-                #     sys.modules.pop(importName)
-                # exec('import %s' % (importName))  # or run first time
-
-                # NB execfile() would be better doesn't run the import
-                # statements properly! functions defined in the script have
-                # a separate namespace to the main body of the script(!?)
-                # execfile(thisFile)
-        # except SystemExit:  # this is used in psychopy.core.quit()
-        #     pass
-        except Exception:  # report any errors, SystemExit is not caught
-            if self.ignoreErrors:
-                pass
-            else:
-                # traceback.print_exc()
-                # tb = traceback.extract_tb(sys.last_traceback)
-                # for err in tb:
-                #    print('%s, line:%i,function:%s\n%s' %tuple(err))
-                print('')  # just a new line
-
-        self.SetEvtHandlerEnabled(True)
-        self.Bind(wx.EVT_IDLE, self.onIdle)
-
-    def stopFile(self, event):
-        self.toolbar.EnableTool(self.IDs.cdrBtnRun, True)
-        self.toolbar.EnableTool(self.IDs.cdrBtnStop, False)
-        self.app.terminateHubProcess()
-        if runScripts in ['thread', 'dbg']:
-            # killing a debug context doesn't really work on pygame scripts
-            # because of the extra
-            if runScripts == 'dbg':
-                self.db.quit()
-            try:
-                pygame.display.quit()  # if pygame is running, try to kill it
-            except Exception:
-                pass
-            self.thread.kill()
-            # stop listening for errors if the script has ended:
-            self.ignoreErrors = False
-        elif runScripts == 'process':
-            # try to kill it gently first
-            success = wx.Kill(self.scriptProcessID, wx.SIGTERM)
-            if success[0] != wx.KILL_OK:
-                # kill it aggressively
-                wx.Kill(self.scriptProcessID, wx.SIGKILL)
+        self.app.runner.addTask(fileName=fullPath)
+        self.app.showRunner()
+        self.app.runner.Center()
+        self.app.SetTopWindow(self.app.runner)
+        return
 
     def copy(self, event):
         foc = self.FindFocus()
@@ -2772,7 +2593,6 @@ class CoderFrame(wx.Frame):
         self.scriptProcess = None
         self.scriptProcessID = None
         self.toolbar.EnableTool(self.IDs.cdrBtnRun, True)
-        self.toolbar.EnableTool(self.IDs.cdrBtnStop, False)
 
     def onURL(self, evt):
         """decompose the URL of a file and line number"""

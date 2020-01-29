@@ -10,22 +10,24 @@ import os
 import sys
 import time
 import requests
+import traceback
 import webbrowser
 from pathlib import Path
 from subprocess import Popen, PIPE
-import xml.etree.ElementTree as xml
 
 from psychopy.app import icons
+from psychopy import experiment
 from psychopy.constants import PY3
+from psychopy.localization import _translate
 from psychopy.app.stdOutRich import StdOutRich
 from psychopy.projects.pavlovia import getProject
-from psychopy.app.coder.coder import CoderFrame
-from psychopy.app.builder.builder import BuilderFrame
+from psychopy.scripts.psyexpCompile import generateScript
+from psychopy.app.runner.scriptProcess import ScriptProcess
 
-from psychopy.localization import _translate
 
 class RunnerFrame(wx.Frame):
-    """Defines construction of the Psychopy Runner Frame"""
+    """Construct the Psychopy Runner Frame."""
+
     def __init__(self, parent=None, id=wx.ID_ANY, title='', app=None):
         super(RunnerFrame, self).__init__(parent=parent,
                                           id=id,
@@ -50,7 +52,7 @@ class RunnerFrame(wx.Frame):
         self.mainSizer = wx.BoxSizer(wx.VERTICAL)
         self.mainSizer.Add(self.panel, 1, wx.EXPAND | wx.ALL)
         self.SetSizerAndFit(self.mainSizer)
-        self.prefs = self.app.prefs.runner
+        self.appData = self.app.prefs.appData['runner']
         self.loadTaskList()
 
         self.Bind(wx.EVT_CLOSE, self.onClose)
@@ -66,9 +68,7 @@ class RunnerFrame(wx.Frame):
         return self.panel.stdoutCtrl
 
     def makeMenu(self):
-        """
-        Create Runner menubar.
-        """
+        """Create Runner menubar."""
         # Menus
         fileMenu = wx.Menu()
         viewMenu = wx.Menu()
@@ -90,7 +90,7 @@ class RunnerFrame(wx.Frame):
         ]
 
         menus = [
-            {'menu': fileMenu, 'menuItems': fileMenuItems, 'separators': ['clear all', 'load task']},
+            {'menu': fileMenu, 'menuItems': fileMenuItems, 'separators': ['clear all', 'load list']},
             {'menu': viewMenu, 'menuItems': viewMenuItems, 'separators': []},
         ]
 
@@ -106,9 +106,7 @@ class RunnerFrame(wx.Frame):
         self.runnerMenu.Append(viewMenu, 'View')
 
     def onURL(self, evt):
-        """
-        Open link in default browser.
-        """
+        """Open link in default browser."""
         wx.BeginBusyCursor()
         try:
             if evt.String.startswith("http"):
@@ -125,47 +123,35 @@ class RunnerFrame(wx.Frame):
         wx.EndBusyCursor()
 
     def saveTaskList(self, evt=None):
-        """
-        Saves task list to prefs
-        """
-        self.prefs['taskList'] = self.taskList
-        self.app.prefs.saveUserPrefs()
+        """Save task list to appData."""
+        self.appData['taskList'] = self.taskList
+        self.app.prefs.saveAppData()
 
     def loadTaskList(self, evt=None):
-        """
-        Loads saved task list from prefs
-        """
-        for filePath in self.prefs['taskList']:
-            self.addTask(fileName=filePath)
+        """Load saved task list from appData."""
+        for filePath in self.appData['taskList']:
+            if os.path.exists(filePath):
+                self.addTask(fileName=filePath)
 
     def clearTasks(self, evt=None):
-        """
-        Clears all items from the panels expCtrl ListCtrl
-        """
+        """Clear all items from the panels expCtrl ListCtrl."""
         self.panel.expCtrl.DeleteAllItems()
         self.panel.currentSelection = None
         self.panel.currentProject = None
         self.panel.currentFile = None
 
     def onClose(self, event=None):
-        """
-        Defines Frame closing behavior.
-        Frame only gets destroyed if no other frames from main thread exist.
-        If only Runner and localProcess threads exist, the app will quit, preventing hang
-        if all frames, except the active task process, are destroyed or hidden.
-        """
+        """Define Frame closing behavior."""
         allFrames = self.app.getAllFrames()
         lastFrame = len(allFrames) == 1
-        # If only Runner and localProcess, quit
-        okToClose = self.app.getAllFrames() == [self, self.panel.localProcess]
 
-        if lastFrame or okToClose:
+        if lastFrame:
             self.onQuit()
         else:
             self.Hide()
 
     def onQuit(self, evt=None):
-        self.panel.stopTask(forceQuit=True)
+        self.panel.stopTask()
         self.app.quit(evt)
 
     def checkSave(self):
@@ -202,7 +188,7 @@ class RunnerFrame(wx.Frame):
     @property
     def taskList(self):
         """
-        Retrieves item paths from expCtrl
+        Retrieve item paths from expCtrl.
 
         Returns
         -------
@@ -214,7 +200,7 @@ class RunnerFrame(wx.Frame):
         return temp
 
 
-class RunnerPanel(wx.Panel):
+class RunnerPanel(wx.Panel, ScriptProcess):
     def __init__(self, parent=None, id=wx.ID_ANY, title='', app=None):
         super(RunnerPanel, self).__init__(parent=parent,
                                           id=id,
@@ -223,18 +209,20 @@ class RunnerPanel(wx.Panel):
                                           style=wx.DEFAULT_FRAME_STYLE,
                                           name=title,
                                           )
+        ScriptProcess.__init__(self, app)
+        self.Bind(wx.EVT_END_PROCESS, self.onProcessEnded)
 
-        expCtrlSize = [400, 150]
-        ctrlSize = [400, 150]
+        expCtrlSize = [500, 150]
+        ctrlSize = [500, 150]
 
         self.app = app
         self.parent = parent
-        self.localProcess = None
         self.serverProcess = None
 
         self.currentFile = None
         self.currentProject = None
         self.currentSelection = None
+        self.currentExperiment = None
 
         # Set ListCtrl for list of tasks
         self.expCtrl = wx.ListCtrl(self,
@@ -284,17 +272,15 @@ class RunnerPanel(wx.Panel):
         self.Bind(wx.EVT_BUTTON, self.runOnline, onlineBtn)
         self.Bind(wx.EVT_BUTTON, self.runOnlineDebug, onlineDebugBtn)
 
-        # GridBagSizer
+        # Box sizers
         self.upperSizer = wx.BoxSizer(wx.HORIZONTAL)
         self.buttonSizer = wx.BoxSizer(wx.VERTICAL)
-        # self.runCtrlSizer = wx.BoxSizer(wx.HORIZONTAL)
 
         self.upperSizer.Add(self.expCtrl, 1, wx.ALL | wx.EXPAND, 5)
         self.upperSizer.Add(self.buttonSizer, 0, wx.ALL | wx.EXPAND, 5)
         self.buttonSizer.Add(plusBtn, 0, wx.ALL | wx.ALIGN_TOP, 5)
         self.buttonSizer.Add(negBtn, 0, wx.ALL | wx.ALIGN_TOP, 5)
         self.buttonSizer.AddStretchSpacer()
-        # self.buttonSizer.Add(self.runCtrlSizer, 0, wx.ALL | wx.ALIGN_BOTTOM, 5)
         self.buttonSizer.AddMany([(runLocalBtn, 0, wx.ALL, 5),
                                    (stopTaskBtn, 0, wx.ALL, 5),
                                    (onlineBtn, 0, wx.ALL, 5),
@@ -307,12 +293,17 @@ class RunnerPanel(wx.Panel):
         self.mainSizer.Add(self.stdoutCtrl, 1, wx.EXPAND | wx.ALL, 10)
 
         self.stopBtn.Disable()
+
         self.SetSizerAndFit(self.mainSizer)
         self.SetMinSize(self.Size)
 
+    def onProcessEnded(self):
+        ScriptProcess.onProcessEnded(self)
+        self.stopTask()
+
     def makeBmpButton(self, main=None, emblem=None):
         """
-        Produces buttons for the Runner.
+        Produce buttons for the Runner.
 
         Parameters
         ----------
@@ -337,99 +328,48 @@ class RunnerPanel(wx.Panel):
             bmp = wx.Bitmap(join(rc, main), PNG)
         return wx.BitmapButton(self, -1, bmp, size=[buttonSize, buttonSize], style=wx.NO_BORDER )
 
-    def stopTask(self, event=None, forceQuit=False):
-        """
-        Kills script processes currently running.
-        """
-        # Check whether script ended automatically
-        if (not forceQuit
-                and self.processExists
-                and not (event.EventObject.ClassName == 'wxBitmapButton')):
-            return
-
+    def stopTask(self, event=None):
+        """Kill script processes currently running."""
         # Stop subprocess script running local server
         if self.serverProcess is not None:
             self.serverProcess.kill()
             self.serverProcess = None
 
         # Stop local Runner processes
-        if self.localProcess is not None:
+        if self.scriptProcess is not None:
+            self.stopFile(event)
 
-            # Enable/Disable btns
-            self.runBtn.Enable()
-            self.stopBtn.Disable()
-            self.Bind(wx.EVT_IDLE, None)
-
-            try:
-                self.localProcess.stopFile(event=event)
-            except TypeError:
-                pass  # coder Process already dead
-            finally:
-                self.localProcess = None
-                print("##### Experiment finished. #####\n")
+        self.stopBtn.Disable()
+        self.runBtn.Enable()
 
     def runLocal(self, evt):
-        """
-        Run experiment from new Builder of Coder frame.
-        """
-        if self.currentSelection is None or self.localProcess is not None:
+        """Run experiment from new process using inherited ScriptProcess class methods."""
+        if self.currentSelection is None:
             return
 
+        currentFile = str(self.currentFile)
         if self.currentFile.suffix == '.psyexp':
-            title = "PsychoPy3 Experiment Builder (v{})".format(self.app.version)
-            self.localProcess = BuilderFrame(None, -1,
-                                             title=title,
-                                             fileName=str(self.currentFile),
-                                             app=self.app)
-        else:
-            title = "PsychoPy3 Experiment Builder (v{})".format(self.app.version)
-            self.localProcess = CoderFrame(None, -1,
-                                           title=title,
-                                           files=[str(self.currentFile)],
-                                           app=self.app)
-
+            generateScript(experimentPath=currentFile.replace('.psyexp', '_lastrun.py'),
+                           exp=self.currentExperiment)
+        self.runFile(fileName=currentFile)
 
         # Enable/Disable btns
         self.runBtn.Disable()
         self.stopBtn.Enable()
 
-        self.localProcess.runFile()
-        time.sleep(.2)  # Give processes a moment to start up
-        self.Bind(wx.EVT_IDLE, self.stopTask)
-
-    @property
-    def processExists(self):
-        """
-        Used to check whether localProcess is still running, or has stopped
-        either from an error, or because the task finished.
-
-        Returns
-        -------
-        bool
-            True if local process exists, else False
-
-        """
-        if not hasattr(self.localProcess, 'scriptProcess'):
-            return False
-        if self.localProcess.scriptProcess is not None:
-            time.sleep(.1)
-            return True
-
     def runOnline(self, evt):
-        """
-        Runs PsychoJS task from https://pavlovia.org
-        """
+        """Run PsychoJS task from https://pavlovia.org."""
         if self.currentProject not in [None, "None", ''] and self.currentFile.suffix == '.psyexp':
             webbrowser.open(
                 "https://pavlovia.org/run/{}/{}"
                     .format(self.currentProject,
-                            self.outputPath(
-                                self.currentFile)))
+                            self.outputPath))
 
     def runOnlineDebug(self, evt, port=12002):
         """
-        Opens PsychoJS task on local server running from localhost, useful for debugging
-        before pushing up to Pavlovia.
+        Open PsychoJS task on local server running from localhost.
+
+        Local debugging is useful before pushing up to Pavlovia.
 
         Parameters
         ----------
@@ -446,15 +386,14 @@ class RunnerPanel(wx.Panel):
         # Get PsychoJS libs
         self.getPsychoJS()
 
-        outputPath = self.outputPath(self.currentFile)
-        htmlPath = str(self.currentFile.parent / outputPath)
+        htmlPath = str(self.currentFile.parent / self.outputPath)
         server = ["SimpleHTTPServer", "http.server"][PY3]
         pythonExec = Path(sys.executable)
         command = [str(pythonExec), "-m", server, str(port)]
 
         if not os.path.exists(htmlPath):
             print('##### HTML output path: "{}" does not exist. '
-                  'Try exporting your HTML, and try again #####\n'.format(outputPath))
+                  'Try exporting your HTML, and try again #####\n'.format(self.outputPath))
             return
 
         if self.currentProject not in [None, "None", ''] and self.currentFile.suffix == '.psyexp':
@@ -478,10 +417,11 @@ class RunnerPanel(wx.Panel):
 
     def getPsychoJS(self):
         """
-        Downloads and saves the current version of the PsychoJS library.
+        Download and save the current version of the PsychoJS library.
+
         Useful for debugging, amending scripts.
         """
-        libPath = str(self.currentFile.parent / self.outputPath(self.currentFile) / 'lib')
+        libPath = str(self.currentFile.parent / self.outputPath / 'lib')
         ver = '.'.join(self.app.version.split('.')[:2])
         psychoJSLibs = ['core', 'data', 'util', 'visual', 'sound']
 
@@ -501,7 +441,8 @@ class RunnerPanel(wx.Panel):
 
     def addTask(self, evt=None, fileName=None):
         """
-        Adds experiment entry to the expList listctrl.
+        Add task to the expList listctrl.
+
         Only adds entry if current entry does not exist in list.
         Can be passed a filename to add to the list.
 
@@ -545,24 +486,22 @@ class RunnerPanel(wx.Panel):
         self.expCtrl.SetColumnWidth(1, wx.LIST_AUTOSIZE)
 
     def removeTask(self, evt):
-        """
-        Removes experiment entry from the expList listctrl.
-        """
+        """Remove experiment entry from the expList listctrl."""
         if self.currentSelection is None:
             return
 
         self.expCtrl.DeleteItem(self.currentSelection)
         if self.expCtrl.GetItemCount() == 0:
             self.currentSelection = None
-            self.currentProject = None
             self.currentFile = None
+            self.currentExperiment = None
+            self.currentProject = None
 
     def onItemSelected(self, evt):
-        """
-        Sets currentSelection to index of currently selected list item.
-        """
+        """Set currentSelection to index of currently selected list item."""
         self.currentSelection = evt.Index
         self.currentFile = Path(self.expCtrl.GetItem(self.currentSelection, 1).Text)
+        self.currentExperiment = self.experiment()
         self.currentProject = None
 
         # Check for project
@@ -574,45 +513,61 @@ class RunnerPanel(wx.Panel):
             self.stdoutCtrl.write(err)
 
     def onItemDeselected(self, evt):
+        """Set currentSelection, currentFile, currentExperiment and currentProject to None."""
         self.expCtrl.SetItemState(self.currentSelection, 0, wx.LIST_STATE_SELECTED)
         self.currentSelection = None
-        self.currentProject = None
         self.currentFile = None
+        self.currentExperiment = None
+        self.currentProject = None
 
-    def outputPath(self, filePath):
+    @property
+    def outputPath(self):
         """
-        Returns html output path saved in Experiment Settings.
-
-        Parameters
-        ----------
-        filePath: str
-            The file path of the currently selected list item
+        Access and return html output path saved in Experiment Settings from the current experiment.
 
         Returns
         -------
         output path: str
             The output path, relative to parent folder.
-
         """
-        doc = xml.ElementTree()
-        doc.parse(str(filePath))
-        settings = doc.getroot().find('Settings')
-        for param in settings:
-            if param.attrib['name'] == "HTML path":
-                return param.attrib['val']
+        return self.currentExperiment.settings.params['HTML path'].val
+
+    def experiment(self):
+        """
+        Load the experiment object for the current psyexp file.
+
+        Returns
+        -------
+        PsychoPy Experiment object
+        """
+        fileName = str(self.currentFile)
+        if not os.path.exists(fileName):
+            raise FileNotFoundError("File not found: {}".format(fileName))
+
+        # If not a Builder file, return
+        if not fileName.endswith('.psyexp'):
+            return None
+
+        # Load experiment file
+        exp = experiment.Experiment(prefs=self.app.prefs)
+        try:
+            exp.loadFromXML(fileName)
+        except Exception:
+            print(u"Failed to load {}. Please send the following to"
+                  u" the PsychoPy user list".format(fileName))
+            traceback.print_exc()
+
+        return exp
 
 
 class StdOutText(StdOutRich):
-    """
-    StdOutRich which also handles Git messages from Pavlovia projects.
-    """
+    """StdOutRich subclass which also handles Git messages from Pavlovia projects."""
+
     def __init__(self, parent=None, style=wx.TE_READONLY | wx.TE_MULTILINE, size=wx.DefaultSize):
         StdOutRich.__init__(self, parent=parent, style=style, size=size)
 
     def getText(self):
-        """
-        Return the text of the current buffer
-        """
+        """Get and return the text of the current buffer."""
         return self.GetValue()
 
     def setStatus(self, status):
@@ -624,8 +579,5 @@ class StdOutText(StdOutRich):
     def statusAppend(self, newText):
         text = self.GetValue() + newText
         self.setStatus(text)
-
-
-
 
 
