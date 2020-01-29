@@ -175,8 +175,10 @@ The implementation for the `getArea()` method will be defined in a file called
 
 .. note::
 
-    The `get_area()` function has a `self` argument because were are going to
-    assign it as a class attribute which will make it a method of ``Rect``.
+    The `get_area()` function needs to have `self` as the first argument because
+    were are going to assign it as class method. All class methods get a
+    reference to the class as the first argument. You can name this whatever you
+    like (eg. `cls`).
 
 The ``setup.py`` script is used to generate an installable plugin package. This
 should contain something like the following::
@@ -238,8 +240,8 @@ line in ``MANIFEST.in``::
 
     README.md
 
-Building and installing packages
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Building packages
+~~~~~~~~~~~~~~~~~
 
 PsychoPy plugin packages are built like any other Python package. We can build
 a `wheel` distribution by calling the following console command::
@@ -247,9 +249,30 @@ a `wheel` distribution by calling the following console command::
     python setup.py sdist bdist_wheel
 
 The resulting ``.whl`` files will appear in directory `psychopy-rect-area/dist`.
-Entering the following into the console will install the package::
+The generated packages can be installed with `pip` or uploaded to the `Python
+Package Index <https://pypi.org/>`_. for more information about building and
+uploading packages, visit: https://packaging.python.org/tutorials/packaging-projects/
 
+If uploaded to PyPI, other PsychoPy users can install your plugin by entering
+the following into their command prompt::
 
+    python -m pip install psychopy-rect-area
+
+Using the plugin
+~~~~~~~~~~~~~~~~
+
+Once installed the plugin can be activated by using the
+`psychopy.plugins.loadPlugin()` function. This function should be called after
+the import statements in your script::
+
+    from psychopy import visual, core, plugins
+    plugins.loadPlugin('psychopy-demo-plugin')  # load the plugin
+
+After calling ``loadPlugin()``, all instances of ``Rect`` will have the method
+``getArea()``::
+
+    rectStim = visual.Rect(win)
+    rectArea = rectStim.getArea()
 
 Plugins as patches
 ------------------
@@ -270,8 +293,8 @@ you are in the middle of running scheduled experiments, even worse, you have
 dozens of test stations using the hardware.
 
 In this case, you can create a plugin to not only fix the bug, but apply it
-across multiple installations. You may go about doing this by creating a plugin c
-alled `psychopy-hotfix` which defines the working version of the ``getData()``
+across multiple installations. You may go about doing this by creating a plugin
+called `psychopy-hotfix` which defines the working version of the ``getData()``
 method in a sub-module called `psychopy_hotfix` like this::
 
     # method copy and pasted from the bug fix commit
@@ -303,6 +326,9 @@ Once a new release of PsychoPy comes out and your installations are upgraded,
 you can either remove the above lines or leave them in since the code being
 overridden is exactly the same.
 
+Plugins can also patch other plugins that have been previously loaded. You can
+define entry points to module and class attributes that have been created by
+a previously loaded plugin and override them.
 
 
 
