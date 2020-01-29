@@ -1,11 +1,11 @@
 .. _pluginDevGuide:
 
-Extending PsychoPy with Plugins
-===============================
+Creating Plugins for PsychoPy
+=============================
 
 Plugins provide a means for developers to extend PsychoPy, adding new features
 and customizations without directly modifying the PsychoPy installation. Read
-:ref:`usingplugins` for more information about about plugins before proceeding
+:ref:`usingplugins` for more information about plugins before proceeding
 on this page.
 
 How plugins work
