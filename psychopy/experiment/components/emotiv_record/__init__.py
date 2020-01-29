@@ -5,7 +5,7 @@ Created on Fri Apr 28 11:20:49 2017
 @author: mrbki
 """
 from os import path
-from psychopy.experiment.components import BaseComponent, Param, getInitVals
+from psychopy.experiment.components import BaseComponent, getInitVals
 from psychopy.localization import _translate
 
 
@@ -13,7 +13,7 @@ OBJECT_NAME = 'cortex_obj'
 
 thisFolder = path.abspath(path.dirname(__file__))
 iconFile = path.join(thisFolder, 'emotiv.jpg')
-tooltip = _translate('Initialize EMOTIV data handler')
+tooltip = _translate('Initialize EMOTIV hardware connection')
 
 
 class EmotivRecordingComponent(BaseComponent):  # or (VisualComponent)
@@ -21,28 +21,12 @@ class EmotivRecordingComponent(BaseComponent):  # or (VisualComponent)
         super(EmotivRecordingComponent, self).__init__(
             exp, parentName, name=name,
             startType='time (s)', startVal=0,
-            stopType='duration (s)', stopVal=1.0,
+            stopType='duration (s)', stopVal="",
             startEstim='', durationEstim='',
             saveStartStop=False
         )
         self.exp.requirePsychopyLibs(['emotiv'])
 
-        # msg = _translate("Is first routine so initialize connection")
-        # self.params['firstCall'] = Param(
-        #     firstCall, valType='bool',
-        #     allowedVals=[True, False],
-        #     updates='constant', allowedUpdates=[],
-        #     hint=msg,
-        #     label=_localized["firstCall"])
-        #
-        # msg = _translate("Is last routine so close everything down")
-        # self.params['lastCall'] = Param(
-        #     lastCall, valType='bool',
-        #     allowedVals=[True, False],
-        #     updates='constant', allowedUpdates=[],
-        #     hint=msg,
-        #     label=_localized["lastCall"])
-        #
     def writeInitCode(self, buff):
         inits = getInitVals(self.params, 'PsychoPy')
         code = ('{} = visual.BaseVisualStim('.format(inits['name']) +
