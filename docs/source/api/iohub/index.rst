@@ -26,6 +26,6 @@ is available in the psychopy/demos/coder/iohub folder.
    :maxdepth: 2
    :glob:
 
-   iohub/starting
-   iohub/devices
-   iohub/requirements
+   starting
+   devices
+   requirements
