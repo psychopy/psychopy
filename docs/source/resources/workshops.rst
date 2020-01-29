@@ -89,7 +89,7 @@ around and continue working if you prefer.
 All sessions subject to change. Sessions in **green** and **blue** are optional (for self-paced 
 and specialist sessions, respectively).
 
-.. image:: schedulePEP1.png
+.. image:: scheduleCEP.png
    :scale: 70 %
    :align: center
 

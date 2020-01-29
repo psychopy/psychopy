@@ -12,11 +12,11 @@ Want to get started using PsychoPy for your studies? This workshop will get you 
 
 It will be run as a satellite to the `Vision Sciences Society conference <http://www.visionsciences.org/index.html>`_.
 
-    - when: Thurs 10th May, 12-5pm
-    - where: Naples Grand, Banyan Room 1-2
-    - cost: £75
-    - target audience: novice
-    - material will cover the Builder interface and simple Python coding
+- when: Thurs 10th May, 12-5pm
+- where: Naples Grand, Banyan Room 1-2
+- cost: £75
+- target audience: novice
+- material will cover the Builder interface and simple Python coding
 
 Email me personally (jon at peirce.org.uk) if you're interested in attending (or helping!).
 

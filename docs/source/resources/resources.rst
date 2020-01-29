@@ -21,10 +21,12 @@ At Nottingham we run an annual workshop on Python/PsychoPy (ie. programming, not
 Youtube tutorials
 -----------------
 
-- `Youtube PsychoPy tutorial <http://www.youtube.com/watch?v=VV6qhuQgsiI>`_ showing how to build a basic experiment in the :ref:`builder` interface. That's a great way to get started; build your own complete experiment in 15 minutes flat!
-- There's also a `subtitled version of the stroop video tutorial <https://www.universalsubtitles.org/en/videos/rBzTFjunIDB2>`_ (Thanks Kevin Cole for doing that!)
+- There is our `YouTube PsychoPy playlist <https://www.youtube.com/playlist?list=PLFB5A1BE51964D587>`_
+  showing how to build basic experiments in the :ref:`builder` interface.
 - Jason Ozubko has added a series of great `PsychoPy Builder video tutorials`_ too
 - Damien Mannion added a similarly great series of `PsychoPy programming videos on YouTube`_
+- ... and a `searching YouTube for PsychoPy <https://www.youtube.com/results?search_query=psychopy>`_
+  reveals many more!
 
 .. _lectureMaterials:
 
@@ -33,6 +35,7 @@ Materials for Builder
 
 - The **most comprehensive guide** is the book `Building Experiments in PsychoPy`_ by Peirce and MacAskill.
   The book is suitable for a wide range of needs and skill sets, with 3 sections for:
+
     - The Beginner (suitable for undergraduate teaching)
     - The Professional (more detail for creating more precise studies)
     - The Specialist (with info about specialist needs such as studies in fMRI, EEG, ...)
@@ -73,13 +76,6 @@ Previous events
 
 - ECEM, August 2013 : Python for eye-tracking workshop with (Sol Simpson, Michael MacAskill and Jon Peirce). `Download Python-for-eye-tracking materials <ECEM_Python_materials.zip>`_
 - :ref:`VSS`
-- `Yale, 21-23 July <https://scanlab.psych.yale.edu/public/psychopy>`_ : The first ever dedicated PsychoPy workshop/conference was at Yale, 21-23 July 2011. Thanks Jeremy for organising!
-- EPS Satellite workshop, 8 July 2011
-- `BPS Maths Stats and Computing Section <http://bps-msc.blogspot.com/>`_ workshop (Dec 2010):
-
-    .. raw:: html
-
-       <p align='right'><iframe src="https://docs.google.com/present/embed?id=dg34vmg9_7fnp9ctg3" frameborder="0" width="410" height="342"></iframe>
 
 
 .. _School of Psychology, University of Nottingham: http://www.nottingham.ac.uk/psychology
