@@ -19,14 +19,14 @@ class Test_RunnerFrame(object):
 
     def test_addFile(self):
         self.runner.addTask(fileName=self.tempFile)
-        assert self.runner.panel.expCtrl.FindItem(-1, self.tempFile)
+        assert self.runner.ctrlPanel.expCtrl.FindItem(-1, self.tempFile)
 
     def test_removeTask(self):
-        self.runner.removeTask(self.runner.panel.currentSelection)
-        assert self.runner.panel.expCtrl.FindItem(-1, self.tempFile) == -1
+        self.runner.removeTask(self.runner.ctrlPanel.currentSelection)
+        assert self.runner.ctrlPanel.expCtrl.FindItem(-1, self.tempFile) == -1
 
     def test_clearItems(self):
         self.runner.addTask(fileName=self.tempFile)
         self.runner.clearTasks()
-        assert self.runner.panel.expCtrl.FindItem(-1, self.tempFile) == -1
+        assert self.runner.ctrlPanel.expCtrl.FindItem(-1, self.tempFile) == -1
 

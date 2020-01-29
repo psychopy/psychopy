@@ -14,6 +14,7 @@ import traceback
 import webbrowser
 from pathlib import Path
 from subprocess import Popen, PIPE
+import wx.lib.agw.aui as aui
 
 from psychopy.app import icons
 from psychopy import experiment
@@ -33,7 +34,7 @@ class RunnerFrame(wx.Frame):
                                           id=id,
                                           title=title,
                                           pos=wx.DefaultPosition,
-                                          size=wx.DefaultSize,
+                                          size=[800, 600],
                                           style=wx.DEFAULT_FRAME_STYLE,
                                           name=title,
                                           )
@@ -47,25 +48,42 @@ class RunnerFrame(wx.Frame):
         self.frameType = 'runner'
         self.app.trackFrame(self)
 
-        self.panel = RunnerPanel(self, id, title, app)
-
-        self.mainSizer = wx.BoxSizer(wx.VERTICAL)
-        self.mainSizer.Add(self.panel, 1, wx.EXPAND | wx.ALL)
-        self.SetSizerAndFit(self.mainSizer)
+        self.ctrlPanel = RunnerPanel(self, id, title, app)
+        self.stdoutPanel = StdoutPanel(self, id, title, app)
         self.appData = self.app.prefs.appData['runner']
         self.loadTaskList()
 
         self.Bind(wx.EVT_CLOSE, self.onClose)
+        self.CreateStatusBar()
+
+        self._mgr = aui.AuiManager()
+
+        # notify AUI which frame to use
+        self._mgr.SetManagedWindow(self)
+
+        # add the panes to the manager
+        self._mgr.AddPane(self.ctrlPanel, aui.AuiPaneInfo()
+                          .Direction(aui.AUI_DOCK_CENTER)
+                          .CloseButton(visible=False)
+                          .MinSize((400,300)))
+        self._mgr.AddPane(self.stdoutPanel, aui.AuiPaneInfo()
+                          .Direction(aui.AUI_DOCK_CENTER)
+                          .CloseButton(visible=False)
+                          .MinSize((400, 200)))
+
+        # tell the manager to "commit" all the changes just made
+        self._mgr.Update()
+        self.SetMinSize((300,600))
 
     def addTask(self, evt=None, fileName=None):
-        self.panel.addTask(fileName=fileName)
+        self.ctrlPanel.addTask(fileName=fileName)
 
     def removeTask(self, evt=None):
-        self.panel.removeTask(evt)
+        self.ctrlPanel.removeTask(evt)
 
     @property
     def stdOut(self):
-        return self.panel.stdoutCtrl
+        return self.stdoutPanel.stdoutCtrl
 
     def makeMenu(self):
         """Create Runner menubar."""
@@ -135,10 +153,10 @@ class RunnerFrame(wx.Frame):
 
     def clearTasks(self, evt=None):
         """Clear all items from the panels expCtrl ListCtrl."""
-        self.panel.expCtrl.DeleteAllItems()
-        self.panel.currentSelection = None
-        self.panel.currentProject = None
-        self.panel.currentFile = None
+        self.ctrlPanel.expCtrl.DeleteAllItems()
+        self.ctrlPanel.currentSelection = None
+        self.ctrlPanel.currentProject = None
+        self.ctrlPanel.currentFile = None
 
     def onClose(self, event=None):
         """Define Frame closing behavior."""
@@ -151,7 +169,7 @@ class RunnerFrame(wx.Frame):
             self.Hide()
 
     def onQuit(self, evt=None):
-        self.panel.stopTask()
+        self.ctrlPanel.stopTask()
         self.app.quit(evt)
 
     def checkSave(self):
@@ -162,24 +180,24 @@ class RunnerFrame(wx.Frame):
         return True
 
     def viewBuilder(self, evt):
-        if self.panel.currentFile is None:
+        if self.ctrlPanel.currentFile is None:
             self.app.showBuilder()
             return
 
         for frame in self.app.getAllFrames("builder"):
             if frame.filename == 'untitled.psyexp' and frame.lastSavedCopy is None:
-                frame.fileOpen(filename=str(self.panel.currentFile))
+                frame.fileOpen(filename=str(self.ctrlPanel.currentFile))
                 return
 
-        self.app.showBuilder(fileList=[str(self.panel.currentFile)])
+        self.app.showBuilder(fileList=[str(self.ctrlPanel.currentFile)])
 
     def viewCoder(self, evt):
-        if self.panel.currentFile is None:
+        if self.ctrlPanel.currentFile is None:
             self.app.showCoder()
             return
 
         self.app.showCoder()  # ensures that a coder window exists
-        self.app.coder.setCurrentDoc(str(self.panel.currentFile))
+        self.app.coder.setCurrentDoc(str(self.ctrlPanel.currentFile))
         self.app.coder.setFileModified(False)
 
     def showRunner(self):
@@ -195,17 +213,43 @@ class RunnerFrame(wx.Frame):
         taskList : list of filepaths
         """
         temp = []
-        for idx in range(self.panel.expCtrl.GetItemCount()):
-            temp.append(self.panel.expCtrl.GetItem(idx, 1).Text)
+        for idx in range(self.ctrlPanel.expCtrl.GetItemCount()):
+            temp.append(self.ctrlPanel.expCtrl.GetItem(idx, 1).Text)
         return temp
 
+
+class StdoutPanel(wx.Panel):
+    def __init__(self, parent=None, id=wx.ID_ANY, title='', app=None):
+        super(StdoutPanel, self).__init__(parent=parent,
+                                           id=id,
+                                           pos=wx.DefaultPosition,
+                                           size=wx.DefaultSize,
+                                           style=wx.DEFAULT_FRAME_STYLE,
+                                           name=title,
+                                          )
+
+        ctrlSize = [500, 200]
+        self.stdoutCtrl = StdOutText(parent=self,
+                                     size=ctrlSize,
+                                     style=wx.TE_READONLY | wx.TE_MULTILINE)
+
+        # Set main sizer
+        self.parent = parent
+        self.mainSizer = wx.BoxSizer(wx.VERTICAL)
+        self.mainSizer.Add(self.stdoutCtrl, 1, wx.EXPAND | wx.ALL, 10)
+
+        self.SetSizerAndFit(self.mainSizer)
+        self.SetMinSize(self.Size)
+
+    def onURL(self, val):
+        self.parent.onURL(val)
 
 class RunnerPanel(wx.Panel, ScriptProcess):
     def __init__(self, parent=None, id=wx.ID_ANY, title='', app=None):
         super(RunnerPanel, self).__init__(parent=parent,
                                           id=id,
                                           pos=wx.DefaultPosition,
-                                          size=[400,700],
+                                          size=wx.DefaultSize,
                                           style=wx.DEFAULT_FRAME_STYLE,
                                           name=title,
                                           )
@@ -213,7 +257,6 @@ class RunnerPanel(wx.Panel, ScriptProcess):
         self.Bind(wx.EVT_END_PROCESS, self.onProcessEnded)
 
         expCtrlSize = [500, 150]
-        ctrlSize = [500, 150]
 
         self.app = app
         self.parent = parent
@@ -229,11 +272,6 @@ class RunnerPanel(wx.Panel, ScriptProcess):
                                    id=wx.ID_ANY,
                                    size=expCtrlSize,
                                    style=wx.LC_REPORT | wx.BORDER_SUNKEN)
-
-        # Set stdout
-        self.stdoutCtrl = StdOutText(parent=self,
-                                     size=ctrlSize,
-                                     style=wx.TE_READONLY | wx.TE_MULTILINE)
 
         self.expCtrl.Bind(wx.EVT_LIST_ITEM_SELECTED,
                           self.onItemSelected, self.expCtrl)
@@ -290,7 +328,6 @@ class RunnerPanel(wx.Panel, ScriptProcess):
         # Set main sizer
         self.mainSizer = wx.BoxSizer(wx.VERTICAL)
         self.mainSizer.Add(self.upperSizer, 1, wx.EXPAND | wx.ALL, 10)
-        self.mainSizer.Add(self.stdoutCtrl, 1, wx.EXPAND | wx.ALL, 10)
 
         self.stopBtn.Disable()
 
