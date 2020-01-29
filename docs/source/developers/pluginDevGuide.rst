@@ -21,7 +21,7 @@ across sessions, meaning if Python is restarted, PsychoPy will return to its
 default behaviour unless ``loadPlugin()`` is called again.
 
 Installed plugins for PsychoPy are discoverable on the system using package
-metadata. The metadata of the package defines "entry points" which tell the
+metadata. The metadata of the package defines "entry points" which tells the
 plugin loader where within PsychoPy's namespace to place objects exported by the
 plugin. The loader also ensures plugins are compatible with the Python
 environment (ie. operating system, CPU architecture, and Python version). Any
@@ -132,35 +132,155 @@ After calling ``loadPlugin('psychopy-display')``, the user will be able to
 create instances of ``psychopy.hardware.DisplayControl`` and new instances of
 ``psychopy.visual.Window`` will have the modified ``flip()`` method.
 
+Plugin example project
+----------------------
+
+This section will demonstrate how to create a plugin project and package it for
+distribution. For this example, we will create a plugin called
+`psychopy-rect-area` which adds a method to the ``psychopy.visual.Rect``
+stimulus class called `getArea()` that returns the area of the shape when
+called.
+
+Project files
+~~~~~~~~~~~~~
+
+First, we need to create a directory called `psychopy-rect-area` which all our
+Python packages and code will reside. Inside that directory, we create the
+following files and directories::
+
+    psychopy-rect-area/
+        psychopy_rect_area/
+            __init__.py
+        MANIFEST.in
+        README.md
+        setup.py
+
+The implementation for the `getArea()` method will be defined in a file called
+``psychopy_rect_area/__init__.py``, it should contain the following::
+
+    #!/usr/bin/env python
+    # -*- coding: utf-8 -*-
+    """Plugin entry points for `psychopy-rect-area`."""
+
+    def get_area(self):
+        """Compute the area of a `Rect` stimulus in `units`.
+
+        Returns
+        -------
+        float
+            Area in units^2.
+
+        """
+        return self.size[0] * self.size[1]
+
+.. note::
+
+    The `get_area()` function has a `self` argument because were are going to
+    assign it as a class attribute which will make it a method of ``Rect``.
+
+The ``setup.py`` script is used to generate an installable plugin package. This
+should contain something like the following::
+
+    #!/usr/bin/env python
+    # -*- coding: utf-8 -*-
+    from setuptools import setup
+
+    setup(name='psychopy-rect-area',
+        version='1.0',
+        description='Compute the area of a Rect stimulus.',
+        long_description='',
+        url='http://repo.example.com',
+        author='Nobody',
+        author_email='nobody@example.com',
+        license='GPL3',
+        classifiers=[
+            'Development Status :: 4 - Beta',
+            'License :: OSI Approved :: GLP3 License',
+            'Programming Language :: Python :: 2.7',
+            'Programming Language :: Python :: 3'
+        ],
+        keywords='psychopy stimulus',
+        packages=['psychopy_rect_area'],
+        install_requires=['psychopy'],
+        include_package_data=True,
+        entry_points={
+            'psychopy.visual.Rect': ['getArea = psychopy_rect_area:get_area']
+        },
+        zip_safe=False)
+
+Looking at ``entry_points`` we can see that were assigning
+``psychopy_rect_area.get_area`` to ``psychopy.visual.Rect.getArea``. Attributes
+assigned to entry points should follow the naming conventions of PsychoPy (camel
+case), however plugins are free to use internally whatever style the author
+chooses (eg. PEP8). You should also use appropriate classifiers for your plugin,
+a full list can be found here (https://pypi.org/pypi?%3Aaction=list_classifiers).
+
+One should also include a ``README.md`` file which provides detailed information
+about the plugin. This file can be read and passed to the ``long_description``
+argument of ``setup()`` in `setup.py` if desired by inserting the following into
+the setup script::
+
+    from setuptools import setup
+
+    def get_readme_text():
+        with open('README.md') as f:
+            return f.read()
+
+    setup(
+        ...
+        long_description=get_readme_text(),
+        ...
+    )
+
+Finally, we need specify ``README.md`` in our ``MANIFEST.in`` file to tell the
+packaging system to include the file when packaging. Simply put the following
+line in ``MANIFEST.in``::
+
+    README.md
+
+Building and installing packages
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+PsychoPy plugin packages are built like any other Python package. We can build
+a `wheel` distribution by calling the following console command::
+
+    python setup.py sdist bdist_wheel
+
+The resulting ``.whl`` files will appear in directory `psychopy-rect-area/dist`.
+Entering the following into the console will install the package::
+
+
+
 Plugins as patches
-==================
+------------------
 
 Using entry points to override module and class attributes can be also used for
 creating plugins to apply "patches". One can create patches to fix minor bugs
 between PsychoPy releases, or backport fixes and features to older releases
 (that support plugins) that cannot be upgraded for some reason.
 
-As an example, consider a fictional case where a bug was introduced in a recent
-release of PsychoPy by a hardware vendor updating their drivers. As a result,
-PsychoPy's builtin support for their devices provided by the
+As an example, consider a fictional scenario where a bug was introduced in a
+recent release of PsychoPy by a hardware vendor updating their drivers. As a
+result, PsychoPy's builtin support for their devices provided by the
 ``psychopy.hardware.Widget`` class is now broken. You notice that it has been
 fixed in a pending release of PsychoPy, and that it involves a single change to
 the ``getData()`` method of the ``psychopy.hardware.Widget`` class to get it
 working exactly as before. However, you cannot wait for the next release because
 you are in the middle of running scheduled experiments, even worse, you have
-dozens of test stations using the hardware. In this case, you can create a
-plugin to not only fix the bug, but apply it across multiple installations. You
-may go about doing this by creating a plugin called `psychopy-hotfix` which
-defines the working version of the ``getData()`` method in a sub-module called
-`psychopy_hotfix` like this::
+dozens of test stations using the hardware.
+
+In this case, you can create a plugin to not only fix the bug, but apply it
+across multiple installations. You may go about doing this by creating a plugin c
+alled `psychopy-hotfix` which defines the working version of the ``getData()``
+method in a sub-module called `psychopy_hotfix` like this::
 
     # method copy and pasted from the bug fix commit
     def getData(self):
         """This function reads data from the device."""
         # code here ...
 
-In the plugin package's `setup.py` file specify the entry points like so to
-override the defective method in our installations::
+In the `setup.py` file of the plugin package, specify the entry points like this
+to override the defective method in our installations::
 
     setup(
         ...
@@ -171,10 +291,10 @@ override the defective method in our installations::
     )
 
 That's it, just build a package and install it on all the systems affected by
-the bug using `pip`. Experiment scripts will need to have the following lines
-added under the ``import`` statements at the top of the file for the plugin to
-take effect (but it's considerably less work than manually patching in the code
-across all installations)::
+the bug. Experiment scripts will need to have the following lines added under
+the ``import`` statements at the top of the file for the plugin to take effect
+(but it's considerably less work than manually patching in the code across all
+installations)::
 
     import psychopy.plugin as plugin
     plugin.loadPlugin('psychopy-patch')
