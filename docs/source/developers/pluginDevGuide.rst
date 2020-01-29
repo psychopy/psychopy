@@ -132,6 +132,51 @@ After calling ``loadPlugin('psychopy-display')``, the user will be able to
 create instances of ``psychopy.hardware.DisplayControl`` and new instances of
 ``psychopy.visual.Window`` will have the modified ``flip()`` method.
 
+The __register__ attribute
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Plugin modules can define a optional attribute named ``__register__`` which
+specifies a callable object. The purpose of ``__register__`` is to allow the
+module to perform tasks before loading entry points based on arguments passed to
+it by the plugin loader. The arguments passed to the target of ``__register__``,
+come from the ``**kwargs`` given to ``loadPlugins()``. The value of this
+attribute can be a string of the name or a reference to a callable object (ie.
+function or method).
+
+.. note::
+
+    The ``__register__`` attribute should only ever be used for running routines
+    pertinent to setting up entry points. The referenced object is only called
+    on a module once per session.
+
+As an example, consider a case where an entry point is defined as ``doThis`` in
+plugin `python-foobar`. There are two possible behaviors which are `foo` and
+`bar` that ``dothis`` can have. We can implement both behaviors in separate
+functions, and use arguments passed to the ``__register__`` target to assign
+which to use to as the entry point::
+
+    __register__ = 'register'
+
+    doThis = None
+
+    def foo():
+        return 'foo'
+
+    def bar():
+        return 'bar'
+
+    def register(**kwargs):
+        global dothis
+        option = kwargs.get('option', 'foo')
+        if option == 'bar':
+            dothis = bar
+        else:
+            dothis = foo
+
+When the user calls ``loadPlugin('python-foobar', option='bar')``, the plugin
+will assign function ``bar()``` to ``doThis``. If `option` is not specified or
+given as 'foo', the behavior of ``doThis`` will be that of ``foo()``.
+
 Plugin example project
 ----------------------
 
@@ -277,10 +322,22 @@ After calling ``loadPlugin()``, all instances of ``Rect`` will have the method
 Plugins as patches
 ------------------
 
-Using entry points to override module and class attributes can be also used for
-creating plugins to apply "patches". One can create patches to fix minor bugs
-between PsychoPy releases, or backport fixes and features to older releases
-(that support plugins) that cannot be upgraded for some reason.
+A special use case of plugins is to apply and distribute "patches". Using entry
+points to override module and class attributes, one can create patches to fix
+minor bugs in extant PsychoPy installations between releases, or backport fixes
+and features to older releases (that support plugins) that cannot be upgraded
+for some reason. Patches can be distributed like any other Python package, and
+can be installed and applied uniformly across multiple PsychoPy installations.
+
+Plugins can also patch other plugins that have been previously loaded by
+``loadPlugin()`` calls. This is done by defining entry points to module and
+class attributes that have been created by a previously loaded plugin.
+
+Creating patches
+~~~~~~~~~~~~~~~~
+
+Creating a package for our patch is no different than a regular plugin, see the
+`Plugin example project`_ section for more information.
 
 As an example, consider a fictional scenario where a bug was introduced in a
 recent release of PsychoPy by a hardware vendor updating their drivers. As a
@@ -306,6 +363,7 @@ In the `setup.py` file of the plugin package, specify the entry points like this
 to override the defective method in our installations::
 
     setup(
+        name='psychopy-hotfix'
         ...
         entry_points={
             'psychopy.hardware.Widget': ['getData = psychopy_patch:getData']
@@ -314,21 +372,24 @@ to override the defective method in our installations::
     )
 
 That's it, just build a package and install it on all the systems affected by
-the bug. Experiment scripts will need to have the following lines added under
+the bug.
+
+Applying patches
+~~~~~~~~~~~~~~~~
+
+Whether you create your own patch, or obtain one provided by the PsychoPy
+community, they are applied using the `loadPlugin()` function after installing
+them. Experiment scripts will need to have the following lines added under
 the ``import`` statements at the top of the file for the plugin to take effect
-(but it's considerably less work than manually patching in the code across all
-installations)::
+(but it's considerably less work than manually patching in the code across many
+separate installations)::
 
     import psychopy.plugin as plugin
     plugin.loadPlugin('psychopy-patch')
 
 Once a new release of PsychoPy comes out and your installations are upgraded,
-you can either remove the above lines or leave them in since the code being
-overridden is exactly the same.
+you can remove the above lines.
 
-Plugins can also patch other plugins that have been previously loaded. You can
-define entry points to module and class attributes that have been created by
-a previously loaded plugin and override them.
 
 
 
