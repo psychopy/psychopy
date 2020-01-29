@@ -46,6 +46,9 @@ class CortexApiException(Exception):
 class CortexTimingException(Exception):
     pass
 
+class CortexNoHeadsetException(Exception):
+    pass
+
 
 class Cortex(object):
     CORTEX_URL = "wss://localhost:6868"
@@ -63,7 +66,10 @@ class Cortex(object):
         self.marker_id = None
         self.waiting_for_id = None
         self.websocket = None
+        logger.debug("Connection initializing")
         self.init_connection()
+        logger.debug("Connection initialized")
+
         self.get_user_login()
         self.get_cortex_info()
         self.has_access_right()
@@ -73,14 +79,15 @@ class Cortex(object):
         self.query_headsets()
         if len(self.headsets) > 0:
             if len(self.headsets) > 1:
-                logger.debug("Currently Psychopy only supports a single headset")
-                logger.debug("Connecting to the first headset found")
+                logger.warning("Currently Psychopy only supports a single headset")
+                logger.warning("Connecting to the first headset found")
             time_str = datetime.datetime.now().isoformat()
             self.create_session(activate=True,
                               headset_id=self.headsets[0])
             self.create_record(title="Psychopy record {}".format(time_str))
         else:
-            print("no headset")
+            logger.error("Not able to find a connected headset")
+            raise CortexNoHeadsetException("Unable to find Emotiv headset")
         self.running = False
         self.listen_ws = self.start_listening()
 
@@ -113,7 +120,7 @@ class Cortex(object):
             self.waiting_for_id = self.id_sequence
         self.websocket.send(msg)
         if wait:
-            logger.debug("sent; awaiting response")
+            logger.debug("data sent; awaiting response")
             resp = self.websocket.recv()
             if 'error' in resp:
                 logger.warning(f"Got error in {method} with params {kwargs}:\n{resp}")
@@ -125,14 +132,11 @@ class Cortex(object):
         return None
 
     def init_connection(self):
-        ''' Open a websocket and connect to cortex.  '''
-        print("ws init 1")
+        """ Open a websocket and connect to cortex.  """
         self.websocket = websocket.WebSocket(sslopt=
                                              {"cert_reqs": ssl.CERT_NONE})
-        print("ws init 2")
         self.websocket.connect(self.CORTEX_URL, timeout=60)
         print(self.websocket)
-        print("ws init 3")
 
     def ws_listen(self):
         self.running = True
@@ -147,12 +151,12 @@ class Cortex(object):
                                  .get("uuid", {}))
                     if marker_id:
                         self.marker_id = marker_id
-                logging.debug('received:\n{}'.format(result))
+                logger.debug('received:\n{}'.format(result))
             except Exception as e:
                 import traceback
-                logging.error(traceback.format_exc())
-                logging.error("maybe the websocket was closed" + str(e))
-        logging.debug("Finished listening")
+                logger.error(traceback.format_exc())
+                logger.error("maybe the websocket was closed" + str(e))
+        logger.debug("Finished listening")
 
     def to_epoch(self, dt=None):
         '''
