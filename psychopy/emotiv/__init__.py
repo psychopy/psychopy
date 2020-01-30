@@ -62,6 +62,8 @@ class Cortex(object):
         if client_id_file is None:
             client_id_file = ".emotiv_creds"
         file_path = os.path.join(home, client_id_file)
+        self.client_id = None
+        self.client_secret = None
         self.parse_client_id_file(file_path)
         self.id_sequence = 0
         self.session_id = None
@@ -69,8 +71,6 @@ class Cortex(object):
         self.waiting_for_id = None
         self.websocket = None
         self.auth_token = None
-        self.client_id = None
-        self.client_secret = None
         logger.debug("Connection initializing")
         self.init_connection()
         logger.debug("Connection initialized")
