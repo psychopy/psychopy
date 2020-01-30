@@ -90,7 +90,7 @@ All sessions subject to change. Sessions in **green** and **blue** are optional 
 and specialist sessions, respectively).
 
 .. image:: scheduleCEP.png
-   :scale: 70 %
+   :width: 70 %
    :align: center
 
 .. _Python: http://www.python.org/

@@ -6,13 +6,16 @@ Reference Manual (API)
 Contents:
 
 .. toctree::
-   :maxdepth: 1   
-   :glob:
+    :maxdepth: 1
+    :glob:
 
-   core
-   visual
-   clock
-   *
+    core
+    visual/index
+    clock
+    hardware/index
+    iohub/index
+    tools/index
+    *
 
 .. only:: html
 

@@ -8,8 +8,8 @@ If you also have PsychoPy materials/course then please let us know so that we ca
 .. image:: ../images/BuildingExperimentsCover_sm.jpg
     :align: right
     :width: 200px
-        :alt: PsychoPy Builder book cover
-        :target: https://uk.sagepub.com/en-gb/eur/building-experiments-in-psychopy/book253480
+    :alt: PsychoPy Builder book cover
+    :target: https://uk.sagepub.com/en-gb/eur/building-experiments-in-psychopy/book253480
 
 Workshops
 ---------------------------------------------------------------
