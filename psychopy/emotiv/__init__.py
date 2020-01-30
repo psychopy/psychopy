@@ -47,6 +47,7 @@ class CortexApiException(Exception):
 class CortexTimingException(Exception):
     pass
 
+
 class CortexNoHeadsetException(Exception):
     pass
 
