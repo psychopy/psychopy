@@ -45,6 +45,7 @@ pyoSndServer = None
 Sound = None
 audioLib = None
 audioDriver = None
+bits32 = (sys.maxsize==4294967296)
 
 _audioLibs = ['PTB', 'sounddevice', 'pyo', 'pysoundcard', 'pygame']
 
@@ -97,6 +98,19 @@ if audioLib is None:
             "No sound libs could be loaded. Tried: {}\n"
             "Check whether the necessary sound libs are installed"
             .format(prefs.hardware['audioLib']))
+elif audioLib.lower() is not 'ptb':
+    if constants.PY3 and not bits32:  # Could be running PTB, just aren't?
+        logging.warning("We strongly recommend you activate the PTB sound "
+                        "engine in PsychoPy prefs as the preferred audio "
+                        "engine. Its timing is vastly superior. Your prefs "
+                        "are currently set to use {} (in that order)."
+                        .format(prefs.hardware['audioLib']))
+    else:  # Can't run PTB anyway due to Py2 or 32bit system
+        logging.warning("For experiments that use audio stimuli, timing will "
+                        "be much better if you upgrade your PsychoPy "
+                        "installation to a 64bit Python3 installation and use "
+                        "the PTB backend.")
+
 
 # function to set the device (if current lib allows it)
 def setDevice(dev, kind=None):
