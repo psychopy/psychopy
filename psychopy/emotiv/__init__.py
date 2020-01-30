@@ -43,8 +43,10 @@ if platform == "linux" or platform == "linux2":
 class CortexApiException(Exception):
     pass
 
+
 class CortexTimingException(Exception):
     pass
+
 
 class CortexNoHeadsetException(Exception):
     pass
@@ -79,7 +81,8 @@ class Cortex(object):
         self.query_headsets()
         if len(self.headsets) > 0:
             if len(self.headsets) > 1:
-                logger.warning("Currently Psychopy only supports a single headset")
+                logger.warning(
+                    "Currently Psychopy only supports a single headset")
                 logger.warning("Connecting to the first headset found")
             time_str = datetime.datetime.now().isoformat()
             self.create_session(activate=True,
@@ -333,7 +336,7 @@ class Cortex(object):
         logger.debug(f"{__name__} resp:\n{resp}")
 
     def get_user_login(self):
-        resp = self.send_wait_command('getUserLogin', auth=False,
+        self.send_wait_command('getUserLogin', auth=False,
                                       callback=self.get_user_login_cb)
 
     def get_user_login_cb(self, resp):
