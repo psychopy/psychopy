@@ -2441,8 +2441,9 @@ class BuilderFrame(wx.Frame):
                 sys.stdout.write(stdout)
                 sys.stderr.write(stderr)
             else:
-                psyexpCompile.compileScript(infile=self.exp, version=None, outfile=experimentPath)
-        except Exception:
+                psyexpCompile.compileScript(infile=self.exp, version=None,
+                                            outfile=experimentPath)
+        except Exception as e:
             traceback.print_exc(file=sys.stderr)
             self.gitFeedback(-1)
         finally:
