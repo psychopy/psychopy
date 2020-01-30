@@ -43,8 +43,10 @@ if platform == "linux" or platform == "linux2":
 class CortexApiException(Exception):
     pass
 
+
 class CortexTimingException(Exception):
     pass
+
 
 class CortexNoHeadsetException(Exception):
     pass
@@ -66,6 +68,9 @@ class Cortex(object):
         self.marker_id = None
         self.waiting_for_id = None
         self.websocket = None
+        self.auth_token = None
+        self.client_id = None
+        self.client_secret = None
         logger.debug("Connection initializing")
         self.init_connection()
         logger.debug("Connection initialized")
@@ -76,14 +81,16 @@ class Cortex(object):
         self.request_access()
         self.authorize()
         self.get_license_info()
+        self.headsets = []
         self.query_headsets()
         if len(self.headsets) > 0:
             if len(self.headsets) > 1:
-                logger.warning("Currently Psychopy only supports a single headset")
+                logger.warning(
+                    "Currently Psychopy only supports a single headset")
                 logger.warning("Connecting to the first headset found")
             time_str = datetime.datetime.now().isoformat()
             self.create_session(activate=True,
-                              headset_id=self.headsets[0])
+                                headset_id=self.headsets[0])
             self.create_record(title="Psychopy record {}".format(time_str))
         else:
             logger.error("Not able to find a connected headset")
@@ -96,7 +103,7 @@ class Cortex(object):
 
     def send_wait_command(self, method, auth=True, callback=None,
                           wait=True, **kwargs):
-        '''
+        """
         Send a command to cortex.
 
         Parameters:
@@ -110,7 +117,7 @@ class Cortex(object):
             **kwargs: all other keyword arguments become parameters in the
                 request to cortex.
         Returns: response as dictionary if wait is True
-        '''
+        """
         if not self.websocket:
             self.init_connection()
         if auth and not self.auth_token:
@@ -123,7 +130,8 @@ class Cortex(object):
             logger.debug("data sent; awaiting response")
             resp = self.websocket.recv()
             if 'error' in resp:
-                logger.warning(f"Got error in {method} with params {kwargs}:\n{resp}")
+                logger.warning(
+                    f"Got error in {method} with params {kwargs}:\n{resp}")
                 raise CortexApiException(resp)
             resp = json.loads(resp)
             if callback:
@@ -133,8 +141,8 @@ class Cortex(object):
 
     def init_connection(self):
         """ Open a websocket and connect to cortex.  """
-        self.websocket = websocket.WebSocket(sslopt=
-                                             {"cert_reqs": ssl.CERT_NONE})
+        self.websocket = websocket.WebSocket(
+            sslopt={"cert_reqs": ssl.CERT_NONE})
         self.websocket.connect(self.CORTEX_URL, timeout=60)
         print(self.websocket)
 
@@ -158,13 +166,14 @@ class Cortex(object):
                 logger.error("maybe the websocket was closed" + str(e))
         logger.debug("Finished listening")
 
-    def to_epoch(self, dt=None):
-        '''
+    @staticmethod
+    def to_epoch(dt=None):
+        """
         Convert a python datetime to a unix epoch time.
 
         Parameters:
             dt: input time; defaults to datetime.now()
-        '''
+        """
         if not dt:
             dt = datetime.datetime.now()
             return int(dt.timestamp() * 1000)
@@ -172,14 +181,15 @@ class Cortex(object):
             if dt.tzinfo:
                 return int(dt.timestamp() * 1000)
             else:
-                raise CortexTimingException("datetime without timezone will not convert correctly")
+                raise CortexTimingException(
+                    "datetime without timezone will not convert correctly")
         if isinstance(dt, int):
             if dt > MS_SEC_THRESHOLD:
                 return dt
         return dt * 1000
 
     def parse_client_id_file(self, client_id_file_path):
-        '''
+        """
         Parse a client_id file for client_id and client secret.
 
         Parameter:
@@ -191,11 +201,14 @@ class Cortex(object):
         client_id Jj2RihpwD6U3827GZ7J104URd1O9c0ZqBZut9E0y
         client_secret abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMN
         ```
-        '''
+        """
         self.client_id = None
         self.client_secret = None
         if not os.path.exists(client_id_file_path):
-            raise OSError("no such file: {} Please add Cortex app credentials into '.emotiv_creds' file in home directory".format(client_id_file_path))
+            error_str = ("File {} does not exist. Please add Cortex app client"
+                         "id and secret into '.emotiv_creds' file in home " 
+                         "directory")
+            raise OSError(error_str.format(client_id_file_path))
         with open(client_id_file_path, 'r') as client_id_file:
             for line in client_id_file:
                 if line.startswith('#'):
@@ -216,7 +229,7 @@ class Cortex(object):
                 f"{client_id_file_path}")
 
     def gen_request(self, method, auth, **kwargs):
-        '''
+        """
         Generate a JSON request formatted for Cortex.
 
         Parameters:
@@ -226,7 +239,7 @@ class Cortex(object):
                 authorize())
             **kwargs: all other keyword arguments become parameters in the
                 request.
-        '''
+        """
         self.id_sequence += 1
         params = {key: value for (key, value) in kwargs.items()}
         if auth and self.auth_token:
@@ -241,7 +254,7 @@ class Cortex(object):
         return request
 
     def authorize(self, license_id=None, debit=1):
-        '''
+        """
         Generate an authorization token, required for most actions.
         Requires a valid license file, that the user be logged in via
         the Emotiv App, and that the user has granted access to this app.
@@ -253,7 +266,7 @@ class Cortex(object):
             license_id (optional): a specific license to be used with the app.
                 Can specify another user's license.
             debit (optional): number of sessions to debit from the license
-        '''
+        """
         params = {'clientId': self.client_id,
                   'clientSecret': self.client_secret}
         if license_id:
@@ -310,10 +323,9 @@ class Cortex(object):
     # https://emotiv.gitbook.io/cortex-api
     ##
     def inspectApi(self):
-        ''' Return a list of available cortex methods '''
+        """ Return a list of available cortex methods """
         resp = self.send_wait_command('inspectApi', auth=False)
         logger.debug(f"InspectApi resp:\n{resp}")
-
 
     def get_cortex_info(self):
         resp = self.send_wait_command('getCortexInfo', auth=False)
@@ -333,17 +345,18 @@ class Cortex(object):
         logger.debug(f"{__name__} resp:\n{resp}")
 
     def get_user_login(self):
-        resp = self.send_wait_command('getUserLogin', auth=False,
-                                      callback=self.get_user_login_cb)
+        self.send_wait_command('getUserLogin', auth=False,
+                               callback=self.get_user_login_cb)
 
-    def get_user_login_cb(self, resp):
-        ''' Example of using the callback functionality of send_command '''
+    @staticmethod
+    def get_user_login_cb(resp):
+        """ Example of using the callback functionality of send_command """
         resp = resp['result'][0]
         if 'loggedInOSUId' not in resp:
             logger.debug(resp)
             raise CortexApiException(
                 f"No user logged in! Please log in with the Emotiv App")
-        if (resp['currentOSUId'] != resp['loggedInOSUId']):
+        if resp['currentOSUId'] != resp['loggedInOSUId']:
             logger.debug(resp)
             raise CortexApiException(
                 f"Cortex is already in use by {resp.loggedInOSUsername}")

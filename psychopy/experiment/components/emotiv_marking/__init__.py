@@ -95,7 +95,7 @@ class EmotivMarkingComponent(BaseComponent):  # or (VisualComponent)
         if self.params['stopVal'].val not in ('', None, -1, 'None'):
             # writes an if statement to determine whether to draw etc
             self.writeStopTestCode(buff)
-#TODO understand if this line should be included            self.writeParamUpdates(buff, 'set every frame')
+            self.writeParamUpdates(buff, 'set every frame')
             code = "{}.status = FINISHED\n".format(self.params['name'])
             buff.writeIndented(code)
             if self.params['stop_marker'].val:
