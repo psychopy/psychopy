@@ -27,6 +27,8 @@ from psychopy.experiment import py2js
 excludeComponents = ['BaseComponent', 'BaseVisualComponent',  # templates only
                      'EyetrackerComponent']  # this one isn't ready yet
 
+pluginComponents = {}  # components registered by loaded plugins
+
 # try to remove old pyc files in case they're detected as components
 pycFiles = glob.glob(join(split(__file__)[0], "*.pyc"))
 for filename in pycFiles:
@@ -60,6 +62,10 @@ def getAllComponents(folderList=(), fetchIcons=True):
         userComps = getComponents(folder)
         for thisKey in userComps:
             components[thisKey] = userComps[thisKey]
+
+    # add components registered by plugins that have been loaded
+    components.update(pluginComponents)
+
     return components
 
 
