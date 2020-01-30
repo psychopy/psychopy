@@ -348,7 +348,6 @@ class RunnerPanel(wx.Panel, ScriptProcess):
             return
 
         currentFile = str(self.currentFile)
-        print(currentFile, '**************')
         if self.currentFile.suffix == '.psyexp':
             generateScript(experimentPath=currentFile.replace('.psyexp', '_lastrun.py'),
                            exp=self.experiment())
