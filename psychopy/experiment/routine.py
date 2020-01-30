@@ -89,6 +89,16 @@ class Routine(list):
             if hasattr(thisCompon, 'writeStartCodeJS'):
                 thisCompon.writeStartCodeJS(buff)
 
+    def writeRunOnceInitCode(self, buff):
+        """ Run once init code goes at the beginning of the script (before
+        Window creation) and the code will be run only once no matter how many
+        similar components request it
+        """
+        for thisCompon in self:
+            # check just in case; try to ensure backwards compatibility _base
+            if hasattr(thisCompon, 'writeRunOnceInitCode'):
+                thisCompon.writeRunOnceInitCode(buff)
+
     def writeInitCode(self, buff):
         code = '\n# Initialize components for Routine "%s"\n'
         buff.writeIndentedLines(code % self.name)

@@ -100,28 +100,28 @@ class cedrusButtonBoxComponent(KeyboardComponent):
             hint=msg,
             label=_localized['useBoxTimer'], categ='Advanced')
 
-    def writeStartCode(self, buff):
-        """code for start of the script (import statements)
-        """
+    def writeRunOnceInitCode(self, buff):
         code = ("try:  # to use the Cedrus response box\n"
                 "   import pyxid2 as pyxid\n"
                 "except ImportError:\n"
-                "   import pyxid\n")
-        buff.writeIndentedLines(code)
-
-    def writeInitCode(self, buff):
-        code = ("%(name)s = None\n"
+                "   import pyxid\n"
+                "cedrusBox_%(deviceNumber)s = None\n"
                 "for n in range(10):  # doesn't always work first time!\n"
                 "    try:\n"
                 "        devices = pyxid.get_xid_devices()\n"
                 "        core.wait(0.1)\n"
-                "        %(name)s = devices[%(deviceNumber)s]\n"
-                "        break  # found a device so can break the loop\n"
+                "        cedrusBox_%(deviceNumber)s = devices[%(deviceNumber)s]\n"
+                "        break  # found the device so can break the loop\n"
                 "    except Exception:\n"
                 "        pass\n"
-                "if not %(name)s:\n"
+                "if not cedrusBox_%(deviceNumber)s:\n"
                 "    logging.error('could not find a Cedrus device.')\n"
                 "    core.quit()\n"
+                "%(name)s.clock = core.Clock()\n")
+        buff.writeOnceIndentedLines(code % self.params)
+
+    def writeInitCode(self, buff):
+        code = ("%(name)s = cedrusBox_%(deviceNumber)s\n"
                 "%(name)s.clock = core.Clock()\n")
         buff.writeIndentedLines(code % self.params)
 
