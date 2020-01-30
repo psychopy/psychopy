@@ -16,13 +16,14 @@ import hashlib
 import importlib
 import pkg_resources
 
+import psychopy.experiment.components as components
 from psychopy import logging
 
 # Keep track of plugins that have been loaded
 _plugins_ = collections.OrderedDict()  # use OrderedDict for Py2 compatibility
 
 
-def _objectFromFQN(fqn):
+def _objectFromFQN(fqn, resolve=True):
     """Get an object within a module's namespace using a fully-qualified name
     (FQN) string.
 
@@ -30,6 +31,8 @@ def _objectFromFQN(fqn):
     ----------
     fqn : str
         Fully-qualified name to the object (eg. `psychopy.visual.Window`).
+    resolve : bool
+        Attempt to import modules when resolving a name.
 
     Returns
     -------
@@ -50,16 +53,23 @@ def _objectFromFQN(fqn):
     # get the object the fqn refers to
     try:
         objref = sys.modules[fqn[0]]  # base name
+
     except KeyError:
         raise ModuleNotFoundError(
             'Base module cannot be found, has it been imported yet?')
 
     # walk through the FQN to get the object it refers to
+    path = fqn[0]
     for attr in fqn[1:]:
+        path += '.' + attr
         if not hasattr(objref, attr):
-            raise NameError(
-                "Specified `fqn` does not reference a valid object or is "
-                "unreachable.")
+            # try importing the module
+            if resolve:
+                importlib.import_module(path)
+            else:
+                raise NameError(
+                    "Specified `fqn` does not reference a valid object or is "
+                    "unreachable.")
 
         objref = getattr(objref, attr)
 
@@ -282,8 +292,24 @@ def loadPlugin(plugin, *args, **kwargs):
                 "Plugins declaring entry points into the `psychopy.plugins` "
                 "module is forbidden.")
 
-        # Get the object the fully-qualified name points to which the plugin
-        # wants to modify.
+        # Special case where the group has entry points for builder components.
+        # Note, this does not create any objects inside the namespace of that
+        # module.
+        if fqn.startswith('psychopy.experiment.components'):
+            for attr, ep in attrs.items():
+                compModule = ep.load()
+                # make sure that we only use modules to add builder components
+                if not inspect.ismodule(compModule):
+                    raise TypeError(
+                        "Entry points into `psychopy.experiment.components` "
+                        "must be modules.")
+
+                _registerComponent(compModule)  # add the component
+
+            continue
+
+        # Get the object the fully-qualified name points to the group which the
+        # plugin wants to modify.
         targObj = _objectFromFQN(fqn)
 
         # add and replace names with the plugin entry points
@@ -340,3 +366,48 @@ def loadPlugin(plugin, *args, **kwargs):
     _plugins_[pluginDist.project_name] = entryMap
 
     return True
+
+
+def _registerComponent(module):
+    """Register a PsychoPy builder component module.
+
+    Parameters
+    ----------
+    module : ModuleType
+        Module containing the builder component to register.
+
+    """
+    # give a default category
+    if not hasattr(module, 'categories'):
+        module.categories = ['Custom']
+
+    # check if module contains a component
+    for attrib in dir(module):
+        # fetch the attribs that end with 'Component'
+        if not attrib.endswith('omponent'):
+            continue
+
+        # name and reference to component class
+        name = attrib
+        cls = getattr(module, attrib)
+
+        # check if subclass of component type
+        if not issubclass(cls, components.BaseComponent):
+            raise TypeError(
+                'Component class `{}` is not subclass of `BaseComponent`.')
+
+        components.pluginComponents[attrib] = getattr(module, attrib)
+
+        # skip if this class was imported, not defined here
+        if module.__name__ != components.pluginComponents[attrib].__module__:
+            continue  # class was defined in different module
+
+        if hasattr(module, 'tooltip'):
+            components.tooltips[name] = module.tooltip
+
+        if hasattr(module, 'iconFile'):
+            components.iconFiles[name] = module.iconFile
+
+        # assign the module categories to the Component
+        if not hasattr(components.pluginComponents[attrib], 'categories'):
+            components.pluginComponents[attrib].categories = ['Custom']

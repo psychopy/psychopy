@@ -47,3 +47,5 @@ if 'installing' not in locals():
 
     from psychopy.tools.versionchooser import useVersion, ensureMinimal
 
+import psychopy.plugins as plugins
+plugins.loadPlugin('psychopy-test2')
