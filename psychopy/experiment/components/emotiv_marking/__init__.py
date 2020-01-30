@@ -65,6 +65,7 @@ class EmotivMarkingComponent(BaseComponent):  # or (VisualComponent)
 
         self.exp.requirePsychopyLibs(['emotiv'])
         self.exp.requirePsychopyLibs(['visual'])
+        self.order += ['marker_label', 'marker_value', 'stop_marker']
 
     def writeInitCode(self, buff):
         # replace variable params with defaults
@@ -83,9 +84,9 @@ class EmotivMarkingComponent(BaseComponent):  # or (VisualComponent)
         buff.writeIndented(code)
         self.writeParamUpdates(buff, 'set every frame')
         code = ("{}.inject_marker(value=str({}), label={})\n"
-                    .format(OBJECT_NAME,
-                            self.params['marker_value'],
-                            self.params['marker_label']))
+                .format(OBJECT_NAME,
+                        self.params['marker_value'],
+                        self.params['marker_label']))
         buff.writeIndented(code)
         code = "{}.start_sent = True\n".format(self.params["name"])
         buff.writeIndented(code)
