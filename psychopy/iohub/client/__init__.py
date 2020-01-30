@@ -293,7 +293,7 @@ class ioHubConnection(object):
 
         self.iohub_status = self._startServer(ioHubConfig, ioHubConfigAbsPath)
         if self.iohub_status != 'OK':
-            raise RuntimeError('Error starting ioHub server')
+            raise RuntimeError('Error starting ioHub server: {}'.format(self.iohub_status))
 
     @classmethod
     def getActiveConnection(cls):
@@ -1410,9 +1410,8 @@ class ioEvent(object):
 
 _lazyImports = """
 from {pkgroot}.client.connect import launchHubServer
-
 from {pkgroot}.client import keyboard
-from {pkgroot}.client import wintabtablet
+#from {pkgroot}.client import wintabtablet
 """.format(pkgroot=_pkgroot)
 
 try:

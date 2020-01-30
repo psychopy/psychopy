@@ -402,7 +402,7 @@ CodeComponent.Begin Routine.staticUpdater:None
 CodeComponent.Begin Routine.updates:constant
 CodeComponent.Begin Routine.val:
 CodeComponent.Begin Routine.valType:extendedCode
-CodeComponent.Code Type.default:'Py'
+CodeComponent.Code Type.default:'Auto->JS'
 CodeComponent.Code Type.allowedLabels:[]
 CodeComponent.Code Type.allowedTypes:[]
 CodeComponent.Code Type.allowedUpdates:None
@@ -413,7 +413,7 @@ CodeComponent.Code Type.label:Code Type
 CodeComponent.Code Type.readOnly:False
 CodeComponent.Code Type.staticUpdater:None
 CodeComponent.Code Type.updates:None
-CodeComponent.Code Type.val:Py
+CodeComponent.Code Type.val:Auto->JS
 CodeComponent.Code Type.valType:str
 CodeComponent.Each Frame.default:
 CodeComponent.Each Frame.allowedLabels:[]
@@ -5370,7 +5370,7 @@ SettingsComponent.Full-screen window.staticUpdater:None
 SettingsComponent.Full-screen window.updates:None
 SettingsComponent.Full-screen window.val:True
 SettingsComponent.Full-screen window.valType:bool
-SettingsComponent.HTML path.default:'html'
+SettingsComponent.HTML path.default:''
 SettingsComponent.HTML path.allowedLabels:[]
 SettingsComponent.HTML path.allowedTypes:[]
 SettingsComponent.HTML path.allowedUpdates:None
@@ -5381,7 +5381,7 @@ SettingsComponent.HTML path.label:Output path
 SettingsComponent.HTML path.readOnly:False
 SettingsComponent.HTML path.staticUpdater:None
 SettingsComponent.HTML path.updates:None
-SettingsComponent.HTML path.val:html
+SettingsComponent.HTML path.val:
 SettingsComponent.HTML path.valType:str
 SettingsComponent.Incomplete URL.default:''
 SettingsComponent.Incomplete URL.allowedLabels:[]
@@ -5544,7 +5544,7 @@ SettingsComponent.Use version.default:''
 SettingsComponent.Use version.allowedLabels:[]
 SettingsComponent.Use version.allowedTypes:[]
 SettingsComponent.Use version.allowedUpdates:None
-SettingsComponent.Use version.allowedVals:['latest', '3.2', '3.1', '3.0', '1.90', '', '3.2.4', '3.2.3', '3.2.2', '3.2.1', '3.2.0', '3.1.5', '3.1.4', '3.1.3', '3.1.2', '3.1.1', '3.1.0', '3.0.7', '3.0.6', '3.0.5', '3.0.4', '3.0.3', '3.0.2', '3.0.1', '3.0.0', '1.90.2', '1.90.1', '1.90.0']
+SettingsComponent.Use version.allowedVals:['latest', '3.2', '3.1', '3.0', '1.90', '', '3.2.1', '3.2.0', '3.1.5', '3.1.4', '3.1.3', '3.1.2', '3.1.1', '3.1.0', '3.0.7', '3.0.6', '3.0.5', '3.0.4', '3.0.3', '3.0.2', '3.0.1', '3.0.0', '1.90.2', '1.90.1', '1.90.0']
 SettingsComponent.Use version.categ:Basic
 SettingsComponent.Use version.hint:The version of PsychoPy to use when running the experiment.
 SettingsComponent.Use version.label:Use PsychoPy version
@@ -6596,6 +6596,32 @@ TextComponent.wrapWidth.updates:constant
 TextComponent.wrapWidth.val:
 TextComponent.wrapWidth.valType:code
 UnknownComponent.order:['name']
+UnknownComponent.disabled.default:False
+UnknownComponent.disabled.allowedLabels:[]
+UnknownComponent.disabled.allowedTypes:[]
+UnknownComponent.disabled.allowedUpdates:None
+UnknownComponent.disabled.allowedVals:[]
+UnknownComponent.disabled.categ:Testing
+UnknownComponent.disabled.hint:Disable this component
+UnknownComponent.disabled.label:Disable component
+UnknownComponent.disabled.readOnly:False
+UnknownComponent.disabled.staticUpdater:None
+UnknownComponent.disabled.updates:None
+UnknownComponent.disabled.val:False
+UnknownComponent.disabled.valType:bool
+UnknownComponent.durationEstim.default:
+UnknownComponent.durationEstim.allowedLabels:[]
+UnknownComponent.durationEstim.allowedTypes:[]
+UnknownComponent.durationEstim.allowedUpdates:None
+UnknownComponent.durationEstim.allowedVals:[]
+UnknownComponent.durationEstim.categ:Basic
+UnknownComponent.durationEstim.hint:(Optional) expected duration (s), purely for representing in the timeline
+UnknownComponent.durationEstim.label:Expected duration (s)
+UnknownComponent.durationEstim.readOnly:False
+UnknownComponent.durationEstim.staticUpdater:None
+UnknownComponent.durationEstim.updates:None
+UnknownComponent.durationEstim.val:
+UnknownComponent.durationEstim.valType:code
 UnknownComponent.name.default:
 UnknownComponent.name.allowedLabels:[]
 UnknownComponent.name.allowedTypes:[]
@@ -6608,6 +6634,97 @@ UnknownComponent.name.readOnly:False
 UnknownComponent.name.staticUpdater:None
 UnknownComponent.name.val:
 UnknownComponent.name.valType:code
+UnknownComponent.saveStartStop.default:True
+UnknownComponent.saveStartStop.allowedLabels:[]
+UnknownComponent.saveStartStop.allowedTypes:[]
+UnknownComponent.saveStartStop.allowedUpdates:None
+UnknownComponent.saveStartStop.allowedVals:[]
+UnknownComponent.saveStartStop.categ:Data
+UnknownComponent.saveStartStop.hint:Store the onset/offset times in the data file (as well as in the log file).
+UnknownComponent.saveStartStop.label:Save onset/offset times
+UnknownComponent.saveStartStop.readOnly:False
+UnknownComponent.saveStartStop.staticUpdater:None
+UnknownComponent.saveStartStop.updates:None
+UnknownComponent.saveStartStop.val:True
+UnknownComponent.saveStartStop.valType:bool
+UnknownComponent.startEstim.default:
+UnknownComponent.startEstim.allowedLabels:[]
+UnknownComponent.startEstim.allowedTypes:[]
+UnknownComponent.startEstim.allowedUpdates:None
+UnknownComponent.startEstim.allowedVals:[]
+UnknownComponent.startEstim.categ:Basic
+UnknownComponent.startEstim.hint:(Optional) expected start (s), purely for representing in the timeline
+UnknownComponent.startEstim.label:Expected start (s)
+UnknownComponent.startEstim.readOnly:False
+UnknownComponent.startEstim.staticUpdater:None
+UnknownComponent.startEstim.updates:None
+UnknownComponent.startEstim.val:
+UnknownComponent.startEstim.valType:code
+UnknownComponent.startType.default:'time (s)'
+UnknownComponent.startType.allowedLabels:[]
+UnknownComponent.startType.allowedTypes:[]
+UnknownComponent.startType.allowedUpdates:None
+UnknownComponent.startType.allowedVals:['time (s)', 'frame N', 'condition']
+UnknownComponent.startType.categ:Basic
+UnknownComponent.startType.hint:How do you want to define your start point?
+UnknownComponent.startType.label:start type
+UnknownComponent.startType.readOnly:False
+UnknownComponent.startType.staticUpdater:None
+UnknownComponent.startType.updates:None
+UnknownComponent.startType.val:time (s)
+UnknownComponent.startType.valType:str
+UnknownComponent.startVal.default:
+UnknownComponent.startVal.allowedLabels:[]
+UnknownComponent.startVal.allowedTypes:[]
+UnknownComponent.startVal.allowedUpdates:None
+UnknownComponent.startVal.allowedVals:[]
+UnknownComponent.startVal.categ:Basic
+UnknownComponent.startVal.hint:When does the component start?
+UnknownComponent.startVal.label:Start
+UnknownComponent.startVal.readOnly:False
+UnknownComponent.startVal.staticUpdater:None
+UnknownComponent.startVal.updates:None
+UnknownComponent.startVal.val:
+UnknownComponent.startVal.valType:code
+UnknownComponent.stopType.default:'duration (s)'
+UnknownComponent.stopType.allowedLabels:[]
+UnknownComponent.stopType.allowedTypes:[]
+UnknownComponent.stopType.allowedUpdates:None
+UnknownComponent.stopType.allowedVals:['duration (s)', 'duration (frames)', 'time (s)', 'frame N', 'condition']
+UnknownComponent.stopType.categ:Basic
+UnknownComponent.stopType.hint:How do you want to define your end point?
+UnknownComponent.stopType.label:stop type
+UnknownComponent.stopType.readOnly:False
+UnknownComponent.stopType.staticUpdater:None
+UnknownComponent.stopType.updates:None
+UnknownComponent.stopType.val:duration (s)
+UnknownComponent.stopType.valType:str
+UnknownComponent.stopVal.default:
+UnknownComponent.stopVal.allowedLabels:[]
+UnknownComponent.stopVal.allowedTypes:[]
+UnknownComponent.stopVal.allowedUpdates:[]
+UnknownComponent.stopVal.allowedVals:[]
+UnknownComponent.stopVal.categ:Basic
+UnknownComponent.stopVal.hint:When does the component end? (blank is endless)
+UnknownComponent.stopVal.label:Stop
+UnknownComponent.stopVal.readOnly:False
+UnknownComponent.stopVal.staticUpdater:None
+UnknownComponent.stopVal.updates:constant
+UnknownComponent.stopVal.val:
+UnknownComponent.stopVal.valType:code
+UnknownComponent.syncScreenRefresh.default:False
+UnknownComponent.syncScreenRefresh.allowedLabels:[]
+UnknownComponent.syncScreenRefresh.allowedTypes:[]
+UnknownComponent.syncScreenRefresh.allowedUpdates:None
+UnknownComponent.syncScreenRefresh.allowedVals:[]
+UnknownComponent.syncScreenRefresh.categ:Data
+UnknownComponent.syncScreenRefresh.hint:Synchronize times with screen refresh (good for visual stimuli and responses based on them)
+UnknownComponent.syncScreenRefresh.label:Sync timing with screen refresh
+UnknownComponent.syncScreenRefresh.readOnly:False
+UnknownComponent.syncScreenRefresh.staticUpdater:None
+UnknownComponent.syncScreenRefresh.updates:None
+UnknownComponent.syncScreenRefresh.val:False
+UnknownComponent.syncScreenRefresh.valType:bool
 VariableComponent.order:['name', 'startExpValue', 'saveStartExp', 'startRoutineValue', 'saveStartRoutine', 'startFrameValue', 'saveFrameValue', 'saveEndRoutine', 'saveEndExp']
 VariableComponent.disabled.default:False
 VariableComponent.disabled.allowedLabels:[]

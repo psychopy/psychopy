@@ -1,3 +1,5 @@
+.. _generalIssues:
+
 General issues
 ====================================
 
@@ -13,10 +15,9 @@ These are issues that users should be aware of, whether they are using Builder o
    dataOutputs
    gamma
    rendering
-   projects
 
 .. toctree::
    :maxdepth: 2
 
-   timing/timing
+   timing/index
    glossary
