@@ -310,7 +310,7 @@ class PreferencesDlg(wx.Dialog):
         # b) case-insensitive match for Cmd+ at start of string
         # c) reverse-map locale display names to canonical names (ja_JP)
         re_cmd2ctrl = re.compile('^Cmd\+', re.I)
-        for sectionName in self.prefsCfg:
+        for sectionName in self.prefsSpec:
             for prefName in self.prefsSpec[sectionName]:
                 if prefName in ['version']:  # any other prefs not to show?
                     continue
