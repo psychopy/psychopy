@@ -124,7 +124,7 @@ class GLFWBackend(BaseBackend):
 
     """
     GL = pyglet.gl  # use Pyglet's OpenGL interface for now, should use PyOpenGL
-    backendName = 'glfw'
+    winTypeName = 'glfw'
 
     def __init__(self, win, *args, **kwargs):
         """Set up the backend window according the params of the PsychoPy win

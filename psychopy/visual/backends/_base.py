@@ -35,7 +35,7 @@ class BaseBackend(object):
 
     # define the name of the backend, used to register the name to use when
     # specifying `winType`
-    # e.g. backendName = 'base'
+    # e.g. winTypeName = 'custom'
 
     def __init__(self, win):
         """Set up the backend window according the params of the PsychoPy win

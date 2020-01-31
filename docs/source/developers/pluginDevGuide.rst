@@ -399,31 +399,58 @@ can be enabled using the appropriate ``winType`` argument.
 
 A plugin can add a ``winType`` by specifying class and module entry
 points for ``psychopy.visual.backends``. If the entry point is a subclass of
-``psychopy.visual.backends._base.BaseBackend``, it will be automatically
-registered and can be used by instances of ``psychopy.visual.Window``. If a
-module is given as an entry point, the module will be added to ``backends`` and
-any class within it that is a subclass of ``BaseBackend`` will be registered.
+``psychopy.visual.backends._base.BaseBackend`` and has ``backendName`` defined,
+it will be automatically registered and can be used as a ``winType`` by
+instances of ``psychopy.visual.Window``.
 
-For example, if we have a plugin module named ``custom_backend`` with backend
-class ``CustomBackend`` defined in the plugin. We can tell the plugin loader to
-register it to be used when a ``Window`` instance is created with
-``winType='custom'``, by adding the ``backendName`` class attribute to
-``CustomBackend``::
+.. note::
+
+    If a module is given as an entry point, the whole module will be added to
+    ``backends`` and any class within it that is a subclass of ``BaseBackend``
+    will be registered. This allows one to add multiple window backends to
+    PsychoPy with a single plugin module.
+
+Example
+~~~~~~~
+
+For example, say we have a backend class called ``CustomBackend`` defined in
+module ``custom_backend`` in the plugin package `psychopy-custom-backend`.
+We can tell the plugin loader to register it to be used when a ``Window``
+instance is created with ``winType='custom'`` by adding the ``winTypeName``
+class attribute to ``CustomBackend``::
 
     class CustomBackend(BaseBackend):
-        backendName = 'custom'
+        winTypeName = 'custom'
         ...
+
+.. note::
+
+    If ``winTypeName`` is not defined, the entry points will still get added to
+    ``backends`` but users will not be able to use it directly by specifying
+    ``winType``.
 
 We define the entry point for our custom backend in ``setup.py`` as::
 
     setup(
         ...
-        entry_points={'psychopy.visual.backends': 'custom_backend = custom_backend'},
+        entry_points={
+        `'psychopy.visual.backends': 'custom_backend = custom_backend'},
+        ...
+    )
+
+Optionally, we can point to the backend class directly::
+
+    setup(
+        ...
+        entry_points={
+            'psychopy.visual.backends':
+                'custom_backend = custom_backend:CustomBackend'},
         ...
     )
 
 After the plugin is installed and loaded, we can use our backend for creating
-windows by specifying ``winType``::
+windows by specifying ``winType`` as ``winTypeName``::
 
+    loadPlugin('psychopy-custom-backend')
     win = Window(winType='custom')
 

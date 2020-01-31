@@ -406,8 +406,8 @@ def loadPlugin(plugin, *args, **kwargs):
 def _registerWindowBackend(attr, ep):
     """Make an entry point discoverable as a window backend. This allows it to
     be used by specifying `winType`. All window backends must be subclasses of
-    `BaseBackend` and define a `backendName` attribute. The value of
-    `backendName` will be used for selecting `winType`.
+    `BaseBackend` and define a `winTypeName` attribute. The value of
+    `winTypeName` will be used for selecting `winType`.
 
     Parameters
     ----------
@@ -434,22 +434,22 @@ def _registerWindowBackend(attr, ep):
             if not issubclass(_attr, backend._base.BaseBackend):  # not backend
                 continue
             # check if the class defines a name for `winType`
-            if not hasattr(_attr, 'backendName'):  # has no backend name
+            if not hasattr(_attr, 'winTypeName'):  # has no backend name
                 continue
             # found something that can be a backend
-            foundBackends[_attr.backendName] = '.' + attr + '.' + attrName
+            foundBackends[_attr.winTypeName] = '.' + attr + '.' + attrName
             logging.debug(
                 "Registered window backend class `{}` for `winType={}`.".format(
-                    foundBackends[_attr.backendName], _attr.backendName))
+                    foundBackends[_attr.winTypeName], _attr.winTypeName))
     elif inspect.isclass(ep):  # backend passed as a class
         if not issubclass(ep, backend._base.BaseBackend):
             return
-        if not hasattr(ep, 'backendName'):
+        if not hasattr(ep, 'winTypeName'):
             return
-        foundBackends[ep.backendName] = '.' + attr
+        foundBackends[ep.winTypeName] = '.' + attr
         logging.debug(
             "Registered window backend class `{}` for `winType={}`.".format(
-                foundBackends[ep.backendName], ep.backendName))
+                foundBackends[ep.winTypeName], ep.winTypeName))
 
     backend.winTypes.update(foundBackends)  # update installed backends
 
