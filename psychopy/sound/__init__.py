@@ -141,6 +141,7 @@ def setDevice(dev, kind=None):
                             "not {!r}".format(kind))
 
 # Set the device according to user prefs (if current lib allows it)
+deviceNames = []
 if hasattr(backend, 'defaultOutput'):
     pref = prefs.hardware['audioDevice']
     # is it a list or a simple string?
@@ -154,9 +155,9 @@ if hasattr(backend, 'defaultOutput'):
     if dev=='default' or travisCI:
         pass  # do nothing
     elif dev not in backend.getDevices(kind='output'):
-        devNames = sorted(backend.getDevices(kind='output').keys())
+        deviceNames = sorted(backend.getDevices(kind='output').keys())
         logging.error(u"Requested audio device '{}' that is not available on "
                         "this hardware. The 'audioDevice' preference should be one of "
-                        "{}".format(dev, devNames))
+                        "{}".format(dev, deviceNames))
     else:
         setDevice(dev, kind='output')

@@ -86,11 +86,15 @@ def getDevices(kind=None):
     kind can be None, 'input' or 'output'
     The dict keys are names, and items are dicts of properties
     """
+    if sys.platform=='win32':
+        deviceTypes = 13  # only WASAPI drivers need apply!
+    else:
+        deviceTypes = None
     devs = {}
     if travisCI:  # travis-CI testing does not have a sound device
         return devs
     else:
-        allDevs = audio.get_devices()
+        allDevs = audio.get_devices(device_type=deviceTypes)
 
     # annoyingly query_devices is a DeviceList or a dict depending on number
     if type(allDevs) == dict:
@@ -183,7 +187,6 @@ class _StreamsDict(dict):
             # create new stream
             self[label] = _MasterStream(sampleRate, channels, blockSize,
                                        device=defaultOutput)
-            print('device=', self[label])
         return label, self[label]
 
 
@@ -209,28 +212,26 @@ class _MasterStream(audio.Stream):
         if type(device) == list and len(device):
             device = device[0]
         if type(device)==str:  # we need to convert name to an ID or make None
-            devs = getDevices()
+            devs = getDevices('output')
             if device in devs:
-                device = devs[device]['id']
+                deviceID = devs[device]['DeviceIndex']
             else:
-                device = None
+                deviceID = None
+        else:
+            deviceID = device
         self.sounds = []  # list of dicts for sounds currently playing
         self.takeTimeStamp = False
         self.frameN = 1
         # self.frameTimes = range(5)  # DEBUGGING: store the last 5 callbacks
         if not travisCI:  # travis-CI testing does not have a sound device
             try:
-                audio.Stream.__init__(self, device_id=device, mode=mode+8,
+                audio.Stream.__init__(self, device_id=deviceID, mode=mode+8,
                                     latency_class=audioLatencyClass,
                                     freq=sampleRate, 
                                     channels=channels,
                                     )  # suggested_latency=suggestedLatency
-                # audio.Stream.__init__(self, device_id=device, mode=mode+8,
-                #                     latency_class=audioLatencyClass,
-                #                     freq=sampleRate, channels=channels,
-                #                     )  # suggested_latency=suggestedLatency
             except OSError as e:
-                audio.Stream.__init__(self, device_id=device, mode=mode+8,
+                audio.Stream.__init__(self, device_id=deviceID, mode=mode+8,
                                     latency_class=audioLatencyClass,
                                     # freq=sampleRate, 
                                     channels=channels,
@@ -244,6 +245,19 @@ class _MasterStream(audio.Stream):
                 print("device={}, mode={}, latency_class={}, freq={}, channels={}"
                       .format(device, mode+8, audioLatencyClass, sampleRate, channels))
                 raise(e)
+            except Exception as e:
+                audio.Stream.__init__(self, mode=mode+8,
+                                    latency_class=audioLatencyClass,
+                                    freq=sampleRate, 
+                                    channels=channels,
+                                    )
+                
+                if "there isn't any audio output device" in str(e):
+                    print("Failed to load audio device:\n"
+                          "    '{}'\n"
+                          "so fetching default audio device instead: \n"
+                          "    '{}'"
+                          .format(device, 'test'))
             self.start(0, 0, 1)
             # self.device = self._sdStream.device
             # self.latency = self._sdStream.latency
