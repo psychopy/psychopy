@@ -387,10 +387,14 @@ def loadPlugin(plugin, *args, **kwargs):
 
             # add the object to the module or unbound class
             setattr(targObj, attr, ep)
+            logging.debug(
+                "Assigning to entry point `{}` to `{}`.".format(
+                    ep.__name__, fqn + '.' + attr))
 
             # --- handle special cases ---
             if fqn == 'psychopy.visual.backends':  # if window backend
                 _registerWindowBackend(attr, ep)
+
 
     # retain information about the plugin's entry points, we will use this for
     # conflict resolution
@@ -425,25 +429,29 @@ def _registerWindowBackend(attr, ep):
     if inspect.ismodule(ep):  # if the backend is a module
         for attrName in dir(ep):
             _attr = getattr(ep, attrName)
-            if not inspect.isclass(_attr):
+            if not inspect.isclass(_attr):  # skip if not class
                 continue
-            if not issubclass(_attr, backend._base.BaseBackend):
+            if not issubclass(_attr, backend._base.BaseBackend):  # not backend
                 continue
             # check if the class defines a name for `winType`
-            if not hasattr(_attr, 'backendName'):
+            if not hasattr(_attr, 'backendName'):  # has no backend name
                 continue
             # found something that can be a backend
-
-            foundBackends[_attr.backendName] = \
-                '.' + attr + '.' + attrName
+            foundBackends[_attr.backendName] = '.' + attr + '.' + attrName
+            logging.debug(
+                "Registered window backend class `{}` for `winType={}`.".format(
+                    foundBackends[_attr.backendName], _attr.backendName))
     elif inspect.isclass(ep):  # backend passed as a class
         if not issubclass(ep, backend._base.BaseBackend):
             return
         if not hasattr(ep, 'backendName'):
             return
         foundBackends[ep.backendName] = '.' + attr
+        logging.debug(
+            "Registered window backend class `{}` for `winType={}`.".format(
+                foundBackends[ep.backendName], ep.backendName))
 
-    backend.winTypes.update(foundBackends)
+    backend.winTypes.update(foundBackends)  # update installed backends
 
 
 def _registerComponent(module):
