@@ -481,14 +481,17 @@ class Experiment(object):
                     if params[name].allowedTypes is None:
                         params[name].allowedTypes = []
                     params[name].readOnly = True
-                    msg = _translate(
-                        "Parameter %r is not known to this version of "
-                        "PsychoPy but has come from your experiment file "
-                        "(saved by a future version of PsychoPy?). This "
-                        "experiment may not run correctly in the current "
-                        "version.")
-                    logging.warn(msg % name)
-                    logging.flush()
+                    if name not in ['JS libs', 'OSF Project ID']:
+                        # don't warn people if we know it's OK (e.g. for params
+                        # that have been removed
+                        msg = _translate(
+                            "Parameter %r is not known to this version of "
+                            "PsychoPy but has come from your experiment file "
+                            "(saved by a future version of PsychoPy?). This "
+                            "experiment may not run correctly in the current "
+                            "version.")
+                        logging.warn(msg % name)
+                        logging.flush()
 
         # get the value type and update rate
         if 'valType' in list(paramNode.keys()):

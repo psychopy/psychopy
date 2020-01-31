@@ -48,6 +48,7 @@ audioDriver = None
 bits32 = (sys.maxsize==4294967296)
 
 _audioLibs = ['PTB', 'sounddevice', 'pyo', 'pysoundcard', 'pygame']
+failed = []
 
 # check if this is being imported on Travis (has no audio card)
 travisCI = bool(str(os.environ.get('TRAVIS')).lower() == 'true')
@@ -88,7 +89,8 @@ for thisLibName in prefs.hardware['audioLib']:
             getDevices = backend.getDevices
         logging.info('sound is using audioLib: %s' % audioLib)
         break
-    except exceptions.DependencyError:
+    except exceptions.DependencyError as e:
+        failed.append(thisLibName.lower())
         msg = '%s audio lib was requested but not loaded: %s'
         logging.warning(msg % (thisLibName, sys.exc_info()[1]))
         continue  # to try next audio lib
@@ -98,8 +100,9 @@ if audioLib is None:
             "No sound libs could be loaded. Tried: {}\n"
             "Check whether the necessary sound libs are installed"
             .format(prefs.hardware['audioLib']))
-elif audioLib.lower() is not 'ptb':
-    if constants.PY3 and not bits32:  # Could be running PTB, just aren't?
+elif audioLib.lower() != 'ptb':
+    if constants.PY3 and not bits32 and 'ptb' not in failed:  
+        # Could be running PTB, just aren't?
         logging.warning("We strongly recommend you activate the PTB sound "
                         "engine in PsychoPy prefs as the preferred audio "
                         "engine. Its timing is vastly superior. Your prefs "
@@ -138,6 +141,7 @@ def setDevice(dev, kind=None):
                             "not {!r}".format(kind))
 
 # Set the device according to user prefs (if current lib allows it)
+deviceNames = []
 if hasattr(backend, 'defaultOutput'):
     pref = prefs.hardware['audioDevice']
     # is it a list or a simple string?
@@ -151,9 +155,9 @@ if hasattr(backend, 'defaultOutput'):
     if dev=='default' or travisCI:
         pass  # do nothing
     elif dev not in backend.getDevices(kind='output'):
-        devNames = sorted(backend.getDevices(kind='output').keys())
+        deviceNames = sorted(backend.getDevices(kind='output').keys())
         logging.error(u"Requested audio device '{}' that is not available on "
                         "this hardware. The 'audioDevice' preference should be one of "
-                        "{}".format(dev, devNames))
+                        "{}".format(dev, deviceNames))
     else:
         setDevice(dev, kind='output')
