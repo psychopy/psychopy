@@ -88,7 +88,7 @@ for thisLibName in prefs.hardware['audioLib']:
             getDevices = backend.getDevices
         logging.info('sound is using audioLib: %s' % audioLib)
         break
-    except exceptions.DependencyError:
+    except exceptions.DependencyError as e:
         msg = '%s audio lib was requested but not loaded: %s'
         logging.warning(msg % (thisLibName, sys.exc_info()[1]))
         continue  # to try next audio lib

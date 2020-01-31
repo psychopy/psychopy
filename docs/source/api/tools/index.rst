@@ -1,3 +1,5 @@
+.. _tools:
+
 :mod:`psychopy.tools` - miscellaneous tools
 ==============================================================================
 
@@ -7,6 +9,6 @@
    :maxdepth: 1
    :glob:
    
-   tools/*
+   *
    
    

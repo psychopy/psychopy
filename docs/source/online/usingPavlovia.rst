@@ -1,6 +1,6 @@
 .. include:: ../global.rst
 
-.. _pavlovia:
+.. _usingPavlovia:
 
 Using Pavlovia.org
 -----------------------------------

@@ -1,14 +1,17 @@
+.. _visual:
+
 :mod:`psychopy.visual` - many visual stimuli
 ==============================================================================
 
-:class:`.Window` to display all stimuli below.
-
-
 .. toctree::
+    :maxdepth: 1
     :hidden:
     :glob:
 
-    visual/*
+    *
+
+
+:class:`.Window` to display all stimuli below.
 
 Windows and and display devices:
 

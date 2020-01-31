@@ -3,16 +3,16 @@
 Getting Started
 ===============
 
-As an application, PsychoPy has two main views: the :doc:`Builder <builder/builder>` view, and the :doc:`Coder <coder/coder>` view. It also has a underlying :doc:`API <api/api>` that you can call directly.
+As an application, PsychoPy has two main views: the :doc:`Builder <builder/index>` view, and the :doc:`Coder <coder/index>` view. It also has a underlying :ref:`api` that you can call directly.
 
-#. :doc:`Builder <builder/builder>`. You can generate a wide range of experiments easily from the Builder using its intuitive, graphical user interface (GUI). This might be all you ever need to do. But you can always compile your experiment into a python script for fine-tuning, and this is a quick way for experienced programmers to explore some of PsychoPy's libraries and conventions.
+#. :doc:`Builder <builder/index>`. You can generate a wide range of experiments easily from the Builder using its intuitive, graphical user interface (GUI). This might be all you ever need to do. But you can always compile your experiment into a python script for fine-tuning, and this is a quick way for experienced programmers to explore some of PsychoPy's libraries and conventions.
 
 .. figure:: images/builder.png
   :width: 80%
   :align: center
   :alt: The Builder view
 
-#. :doc:`Coder <coder/coder>`. For those comfortable with programming, the Coder view provides a basic code editor with syntax highlighting, code folding, and so on. Importantly, it has its own output window and Demo menu. The demos illustrate how to do specific tasks or use specific features; they are not whole experiments. The :doc:`Coder tutorials <coder/coder>` should help get you going, and the :doc:`API reference <api/api>` will give you the details.
+#. :doc:`Coder <coder/index>`. For those comfortable with programming, the Coder view provides a basic code editor with syntax highlighting, code folding, and so on. Importantly, it has its own output window and Demo menu. The demos illustrate how to do specific tasks or use specific features; they are not whole experiments. The :doc:`Coder tutorials <coder/index>` should help get you going, and the :ref:`api` will give you the details.
 
 .. figure:: images/coder.png
   :width: 80%
@@ -47,7 +47,7 @@ and a Text Properties dialog will pop up.
 
 * In the `Text` field, replace the default text with your message. When you run the program, the text you type here will be shown on the screen.
 * Click OK (near the bottom of the dialog box). (Properties dialogs have a link to online help---an icon at the bottom, near the OK button.)
-* Your text component now resides in a routine called `trial`. You can click on it to view or edit it. (Components, Routines, and other Builder concepts are explained in the :doc:`Builder documentation <builder/builder>`.)
+* Your text component now resides in a routine called `trial`. You can click on it to view or edit it. (Components, Routines, and other Builder concepts are explained in the :doc:`Builder documentation <builder/index>`.)
 * Back in the main Builder, type `Ctrl-R` (Windows, Linux) or `Cmd-R` (Mac), or use the mouse to click the `Run` icon.
 
 .. image:: ../../psychopy/app/Resources/run32.png
@@ -72,7 +72,7 @@ When running an experiment, you can quit by pressing the `escape` key (this can 
 Getting beyond Hello
 ~~~~~~~~~~~~~~~~~~~~
 
-To do more, you can try things out and see what happens. You may want to consult the :doc:`Builder documentation<builder/builder>`. Many people find it helpful to explore the Builder demos, in part to see what is possible, and especially to see how different things are done.
+To do more, you can try things out and see what happens. You may want to consult the :doc:`Builder documentation<builder/index>`. Many people find it helpful to explore the Builder demos, in part to see what is possible, and especially to see how different things are done.
 
 A good way to develop your own first PsychoPy experiment is to base it on the Builder demo that seems closest. Copy it, and then adapt it step by step to become more and more like the program you have in mind. Being familiar with the Builder demos can only help this process.
 
@@ -147,6 +147,7 @@ and then::
     >>> win = visual.Window()
 
 and so on---watch what happens each line::
+
     >>> msg = visual.TextStim(win, text=u"\u00A1Hola mundo!")
     >>> msg.draw()
     >>> win.flip()

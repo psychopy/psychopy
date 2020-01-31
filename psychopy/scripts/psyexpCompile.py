@@ -5,9 +5,16 @@
 # Copyright (C) 2002-2018 Jonathan Peirce (C) 2019 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
-import argparse
 import io
+import sys
+import os
+import argparse
+import traceback
 from copy import deepcopy
+from subprocess import PIPE, Popen
+
+from psychopy.constants import PY3
+from psychopy import __version__, logging
 
 # parse args for subprocess
 parser = argparse.ArgumentParser(description='Compile your python file from here')
@@ -16,9 +23,61 @@ parser.add_argument('--version', '-v', help='The PsychoPy version to use for com
 parser.add_argument('--outfile', '-o', help='The output (py) file to be generated (defaults to the ')
 
 
+def generateScript(experimentPath, exp, target="PsychoPy"):
+    """
+    Generate python script from the current builder experiment.
+
+    Parameters
+    ----------
+    experimentPath: str
+        Experiment path and filename
+    exp: experiment.Experiment object
+        The current PsychoPy experiment object generated using Builder
+    target: str
+        PsychoPy or PsychoJS - determines whether Python or JS script is generated.
+
+    Returns
+    -------
+    """
+    print("Generating {} script...\n".format(target))
+    exp.expPath = os.path.abspath(experimentPath)
+
+    if sys.platform == 'win32':  # get name of executable
+        pythonExec = sys.executable
+    else:
+        pythonExec = sys.executable.replace(' ', '\ ')
+
+    filename = experimentPath
+    if not PY3:  # encode path in Python2
+        filename = experimentPath = experimentPath.encode(sys.getfilesystemencoding())
+
+    # Compile script from command line using version
+    compiler = 'psychopy.scripts.psyexpCompile'
+    # run compile
+    cmd = [pythonExec, '-m', compiler, exp.filename,
+           '-o', experimentPath]
+    # if version is not specified then don't touch useVersion at all
+    version = exp.settings.params['Use version'].val
+
+    try:
+        if version not in [None, 'None', '', __version__]:
+            cmd.extend(['-v', version])
+            logging.info(' '.join(cmd))
+            output = Popen(cmd,
+                           stdout=PIPE,
+                           stderr=PIPE,
+                           universal_newlines=True)
+            stdout, stderr = output.communicate()
+            sys.stdout.write(stdout)
+            sys.stderr.write(stderr)
+        else:
+            compileScript(infile=exp, version=None, outfile=filename)
+    except Exception:
+        traceback.print_exc(file=sys.stderr)
+
 def compileScript(infile=None, version=None, outfile=None):
     """
-    This function will compile either Python or JS PsychoPy script from .psyexp file.
+    Compile either Python or JS PsychoPy script from .psyexp file.
 
     Paramaters
     ----------
@@ -32,7 +91,6 @@ def compileScript(infile=None, version=None, outfile=None):
     outfile: string
         The output file to be generated (defaults to Python script).
     """
-
     def _setVersion(version):
         """
         Sets the version to be used for compiling using the useVersion function
@@ -61,6 +119,7 @@ def compileScript(infile=None, version=None, outfile=None):
 
     def _getExperiment(infile, version):
         """
+        Get experiment if infile is not type experiment.Experiment.
 
         Parameters
         ----------
@@ -72,7 +131,6 @@ def compileScript(infile=None, version=None, outfile=None):
         -------
         experiment.Experiment
             The experiment object used for generating the experiment script
-
         """
         # import PsychoPy experiment and write script with useVersion active
         from psychopy.app.builder import experiment
@@ -105,7 +163,6 @@ def compileScript(infile=None, version=None, outfile=None):
         -----
         This function leaves the original experiment unchanged as it always
         only works on (and returns) a copy.
-
         """
         # Leave original experiment unchanged.
         exp = deepcopy(exp)
@@ -122,6 +179,7 @@ def compileScript(infile=None, version=None, outfile=None):
 
     def _setTarget(outfile):
         """
+        Set target for compiling i.e., Python or JavaScript.
 
         Parameters
         ----------
@@ -132,7 +190,6 @@ def compileScript(infile=None, version=None, outfile=None):
         string
             The Python or JavaScript target type
         """
-
         # Set output type, either JS or Python
         if outfile.endswith(".js"):
             targetOutput = "PsychoJS"
@@ -157,7 +214,8 @@ def compileScript(infile=None, version=None, outfile=None):
 
     def _makeTarget(thisExp, outfile, targetOutput):
         """
-        This function generates the actual scripts for Python and/or JS
+        Generate the actual scripts for Python and/or JS.
+
         Parameters
         ----------
         thisExp : experiment.Experiment object
@@ -167,7 +225,6 @@ def compileScript(infile=None, version=None, outfile=None):
         targetOutput : string
             The Python or JavaScript target type
         """
-
         # Write script
         if targetOutput == "PsychoJS":
             # Write module JS code

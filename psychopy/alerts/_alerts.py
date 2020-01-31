@@ -6,7 +6,7 @@ import traceback
 import yaml
 import os
 import sys
-from psychopy import logging
+
 
 """
 The Alerts module is used for generating alerts during PsychoPy integrity checks.
@@ -142,7 +142,6 @@ def alert(code=None, obj=object, strFields=None, trace=None):
     msg = AlertEntry(code, obj, strFields, trace)
 
     # format the warning into a string for console and logging targets
-
     msgAsStr = ("Alert {code}: {msg}\n"
                 "For more info see https://docs.psychopy.org/alerts/{code}.html"
                 .format(type=msg.type,
@@ -168,7 +167,6 @@ def alert(code=None, obj=object, strFields=None, trace=None):
         sys.stderr.receiveAlert(msg)
     else:
         sys.stderr.write(msgAsStr)  # For tests detecting output - change when error handler set up
-    logging.warning(msgAsStr)
 
 # Create catalog
 catalog = AlertCatalog()
