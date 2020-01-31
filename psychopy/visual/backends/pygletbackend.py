@@ -48,6 +48,7 @@ class PygletBackend(BaseBackend):
     like GLFW.
     """
     GL = pyglet.gl
+    backendName = 'pyglet'
 
     def __init__(self, win, *args, **kwargs):
         """Set up the backend window according the params of the PsychoPy win

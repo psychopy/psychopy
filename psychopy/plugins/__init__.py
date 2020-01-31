@@ -16,14 +16,22 @@ import hashlib
 import importlib
 import pkg_resources
 
-import psychopy.experiment.components as components
 from psychopy import logging
+import psychopy.experiment.components as components
 
-# Keep track of plugins that have been loaded
+# Keep track of plugins that have been loaded. Keys are plugin names and values
+# are their entry point mappings.
 _plugins_ = collections.OrderedDict()  # use OrderedDict for Py2 compatibility
 
+# Allowed subclasses for each group, this can be used to enforce what kinds of
+# objects are allowed in a given module's namespace. For instance, to restrict
+# plugins from creating classes in `psychopy.visual` that are not subclasses of
+# `psychopy.visual.BaseVisualStim` use the following line:
+#_allowed_subclasses_ = {'psychopy.visual': ('psychopy.visual.BaseVisualStim',)}
+_allowed_subclasses_ = {}
 
-def _objectFromFQN(fqn, resolve=True):
+
+def resolveObjectFromName(fqn, resolve=True):
     """Get an object within a module's namespace using a fully-qualified name
     (FQN) string.
 
@@ -294,7 +302,9 @@ def loadPlugin(plugin, *args, **kwargs):
 
         # Special case where the group has entry points for builder components.
         # Note, this does not create any objects inside the namespace of that
-        # module.
+        # module for now to maintain compatibility with the present system. In
+        # the future, component classes may be loaded and assigned attributes
+        # like any other plugin entry point.
         if fqn.startswith('psychopy.experiment.components'):
             for attr, ep in attrs.items():
                 compModule = ep.load()
@@ -310,7 +320,14 @@ def loadPlugin(plugin, *args, **kwargs):
 
         # Get the object the fully-qualified name points to the group which the
         # plugin wants to modify.
-        targObj = _objectFromFQN(fqn)
+        targObj = resolveObjectFromName(fqn)
+
+        # if there are any sub-classes that are restricted
+        if fqn in _allowed_subclasses_.keys():
+            allowedTypes = \
+                tuple([resolveObjectFromName(i) for i in _allowed_subclasses_[fqn]])
+        else:
+            allowedTypes = None
 
         # add and replace names with the plugin entry points
         for attr, ep in attrs.items():
@@ -329,7 +346,7 @@ def loadPlugin(plugin, *args, **kwargs):
                         if hasattr(imp, imp.__register__):  # local to module
                             func = getattr(imp, imp.__register__)
                         else:  # could be a FQN?
-                            func = _objectFromFQN(imp.__register__)
+                            func = resolveObjectFromName(imp.__register__)
                         # check if the reference object is callable
                         if not callable(func):
                             raise TypeError(
@@ -358,14 +375,75 @@ def loadPlugin(plugin, *args, **kwargs):
                         "Plugin `{}` attempted to override module `{}`.".format(
                             plugin, fqn + '.' + attr))
 
+            ep = ep.load()  # load the entry point
+
+            # allow only adding classes that are of a particular subclass
+            if allowedTypes is not None and inspect.isclass(ep):
+                if not issubclass(ep, allowedTypes):
+                    typestr = _allowed_subclasses_[fqn]
+                    raise TypeError(
+                        "Class had invalid subclass type for module `{}`. Must "
+                        "be `{}`.".format(fqn, '`, `'.join(typestr)))
+
             # add the object to the module or unbound class
-            setattr(targObj, attr, ep.load())
+            setattr(targObj, attr, ep)
+
+            # --- handle special cases ---
+            if fqn == 'psychopy.visual.backends':  # if window backend
+                _registerWindowBackend(attr, ep)
 
     # retain information about the plugin's entry points, we will use this for
     # conflict resolution
     _plugins_[pluginDist.project_name] = entryMap
 
     return True
+
+
+def _registerWindowBackend(attr, ep):
+    """Make an entry point discoverable as a window backend. This allows it to
+    be used by specifying `winType`. All window backends must be subclasses of
+    `BaseBackend` and define a `backendName` attribute. The value of
+    `backendName` will be used for selecting `winType`.
+
+    Parameters
+    ----------
+    attr : str
+        Attribute name the backend is being assigned in
+        'psychopy.visual.backends'.
+    ep : ModuleType of ClassType
+        Entry point which defines an object with window backends. Can be a class
+        or module. If a module, the module will be scanned for subclasses of
+        `BaseBackend` and they will be added as backends.
+
+    """
+    # get reference to the backend class
+    fqn = 'psychopy.visual.backends'
+    backend = resolveObjectFromName(fqn, fqn not in sys.modules)
+
+    # if a module, scan it for valid backends
+    foundBackends = {}
+    if inspect.ismodule(ep):  # if the backend is a module
+        for attrName in dir(ep):
+            _attr = getattr(ep, attrName)
+            if not inspect.isclass(_attr):
+                continue
+            if not issubclass(_attr, backend._base.BaseBackend):
+                continue
+            # check if the class defines a name for `winType`
+            if not hasattr(_attr, 'backendName'):
+                continue
+            # found something that can be a backend
+
+            foundBackends[_attr.backendName] = \
+                '.' + attr + '.' + attrName
+    elif inspect.isclass(ep):  # backend passed as a class
+        if not issubclass(ep, backend._base.BaseBackend):
+            return
+        if not hasattr(ep, 'backendName'):
+            return
+        foundBackends[ep.backendName] = '.' + attr
+
+    backend.winTypes.update(foundBackends)
 
 
 def _registerComponent(module):

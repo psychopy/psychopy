@@ -33,6 +33,10 @@ class BaseBackend(object):
     # define GL here as a class attribute that includes all the opengl funcs
     # e.g. GL = pyglet.gl
 
+    # define the name of the backend, used to register the name to use when
+    # specifying `winType`
+    # e.g. backendName = 'base'
+
     def __init__(self, win):
         """Set up the backend window according the params of the PsychoPy win
 
