@@ -408,9 +408,9 @@ can be enabled using the appropriate ``winType`` argument.
 
 A plugin can add a ``winType`` by specifying class and module entry
 points for ``psychopy.visual.backends``. If the entry point is a subclass of
-``psychopy.visual.backends._base.BaseBackend`` and has ``winTypeName`` defined,
-it will be automatically registered and can be used as a ``winType`` by
-instances of ``psychopy.visual.Window``.
+``psychopy.visual.backends.BaseBackend`` and has ``winTypeName`` defined, it
+will be automatically registered and can be used as a ``winType`` by instances
+of ``psychopy.visual.Window``.
 
 .. note::
 

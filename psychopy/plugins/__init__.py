@@ -31,37 +31,90 @@ _plugins_ = collections.OrderedDict()  # use OrderedDict for Py2 compatibility
 _allowed_subclasses_ = {}
 
 
-def resolveObjectFromName(fqn, resolve=True):
-    """Get an object within a module's namespace using a fully-qualified name
-    (FQN) string.
+def resolveObjectFromName(name, basename=None, resolve=True, error=True):
+    """Get an object within a module's namespace using a fully-qualified or
+    relative dotted name.
+
+    This function is mainly used to get objects associated with entry point
+    groups, so entry points can be assigned to them. It traverses through
+    objects in `name` until it reaches the end, then returns a reference to
+    that object. Other uses of this function is to import objects by using their
+    string names and check if an attribute is defined at `name`.
 
     Parameters
     ----------
-    fqn : str
-        Fully-qualified name to the object (eg. `psychopy.visual.Window`).
+    name : str
+        Fully-qualified or relative name to the object (eg.
+        `psychopy.visual.Window` or `.Window`). If name is relative, `basename`
+        must be specified.
+    basename : str, ModuleType or None
+        If `name` is relative (starts with '.'), `basename` should be the
+        `__name__` of the module or reference to the module itself `name` is
+        relative to. Leave `None` if `name` is already fully qualified.
     resolve : bool
-        Attempt to import modules when resolving a name.
+        If `resolve=True`, any name encountered along the way that isn't present
+        will be assumed to be a module and imported. This guarantees the target
+        object is fully-realized and reachable if the target is valid. If
+        `False`, this function will will fail if the `name` is not reachable.
+        This is used in cases where you just need to check if an object already
+        exists.
+    error : bool
+        Raise an error if an object is not reachable. If `False`, this function
+        will return `None` instead and suppress the error.
 
     Returns
     -------
-    obj
-        Object referred to by the FQN within PsychoPy's namespace. Can be a
-        module, unbound class or method, function or variable.
+    object
+        Object referred to by the name. Returns `None` if the object is not
+        reachable and `error=False`.
 
     Raises
     ------
     ModuleNotFoundError
         The base module the FQN is referring to has not been imported.
     NameError
-        The provided FQN does not point to a valid object.
+        The provided name does not point to a valid object.
+    ValueError
+        A relative name was given to `name` but `basename` was not specified.
+
+    Examples
+    --------
+    Get a reference to the `psychopy.visual.Window` class (will import `visual`
+    in doing so)::
+
+        Window = resolveObjectFromName('psychopy.visual.Window')
+
+    Get the `Window` class if `name` is relative to `basename`::
+
+        import psychopy.visual as visual
+        Window = resolveObjectFromName('.Window', visual)
+
+    Check if an object exists::
+
+        Window = resolveObjectFromName(
+            'psychopy.visual.Window',
+            resolve=False,  # False since we don't want to import anything
+            error=False)  # suppress error, makes function return None
+
+        if Window is None:
+            print('Window has not been imported yet!')
 
     """
-    fqn = fqn.split(".")  # split the fqn
+    # make sure a basename is given if relative
+    if name.startswith('.') and basename is None:
+        raise ValueError('`name` specifies a relative name but `basename` is '
+                         'not specified.')
+
+    # if basename is a module object
+    if inspect.ismodule(basename):
+        basename = basename.__name__
+
+    # get fqn and split
+    fqn = (basename + name if basename is not None else name).split(".")
 
     # get the object the fqn refers to
     try:
         objref = sys.modules[fqn[0]]  # base name
-
     except KeyError:
         raise ModuleNotFoundError(
             'Base module cannot be found, has it been imported yet?')
@@ -73,10 +126,19 @@ def resolveObjectFromName(fqn, resolve=True):
         if not hasattr(objref, attr):
             # try importing the module
             if resolve:
-                importlib.import_module(path)
+                try:
+                    importlib.import_module(path)
+                except ImportError:
+                    if not error:  # return if suppressing error
+                        return None
+                    raise NameError(
+                        "Specified `name` does not reference a valid object or "
+                        "is unreachable.")
             else:
+                if not error:  # return None if we want to suppress errors
+                    return None
                 raise NameError(
-                    "Specified `fqn` does not reference a valid object or is "
+                    "Specified `name` does not reference a valid object or is "
                     "unreachable.")
 
         objref = getattr(objref, attr)
@@ -422,7 +484,7 @@ def _registerWindowBackend(attr, ep):
     """
     # get reference to the backend class
     fqn = 'psychopy.visual.backends'
-    backend = resolveObjectFromName(fqn, fqn not in sys.modules)
+    backend = resolveObjectFromName(fqn, resolve=(fqn not in sys.modules))
 
     # if a module, scan it for valid backends
     foundBackends = {}
