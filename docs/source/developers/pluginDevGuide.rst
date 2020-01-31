@@ -262,6 +262,11 @@ case), however plugins are free to use internally whatever style the author
 chooses (eg. PEP8). You should also use appropriate classifiers for your plugin,
 a full list can be found here (https://pypi.org/pypi?%3Aaction=list_classifiers).
 
+You can also specify ``install_requires`` to indicate which versions of PsychPy
+are compatible with your plugin. Visit
+https://packaging.python.org/discussions/install-requires-vs-requirements/ for
+more information.
+
 One should also include a ``README.md`` file which provides detailed information
 about the plugin. This file can be read and passed to the ``long_description``
 argument of ``setup()`` in `setup.py` if desired by inserting the following into
@@ -336,9 +341,6 @@ class attributes that have been created by a previously loaded plugin.
 Creating patches
 ~~~~~~~~~~~~~~~~
 
-Creating a package for our patch is no different than a regular plugin, see the
-`Plugin example project`_ section for more information.
-
 As an example, consider a fictional scenario where a bug was introduced in a
 recent release of PsychoPy by a hardware vendor updating their drivers. As a
 result, PsychoPy's builtin support for their devices provided by the
@@ -350,9 +352,12 @@ you are in the middle of running scheduled experiments, even worse, you have
 dozens of test stations using the hardware.
 
 In this case, you can create a plugin to not only fix the bug, but apply it
-across multiple installations. You may go about doing this by creating a plugin
-called `psychopy-hotfix` which defines the working version of the ``getData()``
-method in a sub-module called `psychopy_hotfix` like this::
+across multiple existing installations to save the day. Creating a package for
+our patch is no different than a regular plugin (see the
+`Plugin example project`_ section for more information), so you go about
+creating a project for a plugin called `psychopy-hotfix` which defines the
+working version of the ``getData()`` method in a sub-module called
+``psychopy_hotfix`` like this::
 
     # method copy and pasted from the bug fix commit
     def getData(self):
@@ -371,8 +376,8 @@ to override the defective method in our installations::
         ...
     )
 
-That's it, just build a package and install it on all the systems affected by
-the bug.
+That's it, just build a distributable package and install it on all the systems
+affected by the bug.
 
 Applying patches
 ~~~~~~~~~~~~~~~~
@@ -387,8 +392,12 @@ separate installations)::
     import psychopy.plugin as plugin
     plugin.loadPlugin('psychopy-patch')
 
-Once a new release of PsychoPy comes out and your installations are upgraded,
-you can remove the above lines.
+After ``loadPlugin`` is called, the behaviour of the ``getData()`` method of any
+instances of the ``psychopy.hardware.Widget`` class will change to the correct
+one.
+
+Once a new release of PsychoPy comes out with the patch incorporated into
+it and your installations are upgraded, you can remove the above lines.
 
 Creating window backends
 ------------------------
@@ -399,7 +408,7 @@ can be enabled using the appropriate ``winType`` argument.
 
 A plugin can add a ``winType`` by specifying class and module entry
 points for ``psychopy.visual.backends``. If the entry point is a subclass of
-``psychopy.visual.backends._base.BaseBackend`` and has ``backendName`` defined,
+``psychopy.visual.backends._base.BaseBackend`` and has ``winTypeName`` defined,
 it will be automatically registered and can be used as a ``winType`` by
 instances of ``psychopy.visual.Window``.
 
@@ -407,8 +416,8 @@ instances of ``psychopy.visual.Window``.
 
     If a module is given as an entry point, the whole module will be added to
     ``backends`` and any class within it that is a subclass of ``BaseBackend``
-    will be registered. This allows one to add multiple window backends to
-    PsychoPy with a single plugin module.
+    and defines ``winTypeName`` will be registered. This allows one to add
+    multiple window backends to PsychoPy with a single plugin module.
 
 Example
 ~~~~~~~
