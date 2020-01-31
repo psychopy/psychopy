@@ -493,7 +493,7 @@ def _registerWindowBackend(attr, ep):
             _attr = getattr(ep, attrName)
             if not inspect.isclass(_attr):  # skip if not class
                 continue
-            if not issubclass(_attr, backend._base.BaseBackend):  # not backend
+            if not issubclass(_attr, backend.BaseBackend):  # not backend
                 continue
             # check if the class defines a name for `winType`
             if not hasattr(_attr, 'winTypeName'):  # has no backend name
@@ -504,7 +504,7 @@ def _registerWindowBackend(attr, ep):
                 "Registered window backend class `{}` for `winType={}`.".format(
                     foundBackends[_attr.winTypeName], _attr.winTypeName))
     elif inspect.isclass(ep):  # backend passed as a class
-        if not issubclass(ep, backend._base.BaseBackend):
+        if not issubclass(ep, backend.BaseBackend):
             return
         if not hasattr(ep, 'winTypeName'):
             return
