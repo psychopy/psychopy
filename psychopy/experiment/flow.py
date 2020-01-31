@@ -310,19 +310,22 @@ class Flow(list):
         script.writeIndented("psychoJS.start({\n")
         script.setIndentLevel(1, relative=True)
         script.writeIndentedLines("expName: expName,\n"
-                                  "expInfo: expInfo,\n"
-                                  "resources: [\n")
-        script.setIndentLevel(1, relative=True)
-        code = ""
-        for idx, resource in enumerate(resourceFiles):
-            temp = "{{'name': '{0}', 'path': '{1}/{0}'}}".format(resource, resourceFolder)
-            code += temp
-            if idx != (len(resourceFiles)-1):
-                code += ",\n"  # Trailing comma
-        script.writeIndentedLines(code)
-        script.setIndentLevel(-1, relative=True)
-        script.writeIndented("]\n")
-        script.setIndentLevel(-1, relative=True)
+                                  "expInfo: expInfo,\n")
+        # if we have an html folder then we moved files there so just use that
+        # if not, then we'll need to list all known resource files
+        if not self.exp.htmlFolder:
+            script.writeIndentedLines("resources: [\n")
+            script.setIndentLevel(1, relative=True)
+            code = ""
+            for idx, resource in enumerate(resourceFiles):
+                temp = "{{'name': '{0}', 'path': '{1}/{0}'}}".format(resource, resourceFolder)
+                code += temp
+                if idx != (len(resourceFiles)-1):
+                    code += ",\n"  # Trailing comma
+            script.writeIndentedLines(code)
+            script.setIndentLevel(-1, relative=True)
+            script.writeIndented("]\n")
+            script.setIndentLevel(-1, relative=True)
         script.writeIndented("});\n\n")
 
     def writeLoopHandlerJS(self, script, modular):

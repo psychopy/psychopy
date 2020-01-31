@@ -5370,7 +5370,7 @@ SettingsComponent.Full-screen window.staticUpdater:None
 SettingsComponent.Full-screen window.updates:None
 SettingsComponent.Full-screen window.val:True
 SettingsComponent.Full-screen window.valType:bool
-SettingsComponent.HTML path.default:''
+SettingsComponent.HTML path.default:'html'
 SettingsComponent.HTML path.allowedLabels:[]
 SettingsComponent.HTML path.allowedTypes:[]
 SettingsComponent.HTML path.allowedUpdates:None
@@ -5381,7 +5381,7 @@ SettingsComponent.HTML path.label:Output path
 SettingsComponent.HTML path.readOnly:False
 SettingsComponent.HTML path.staticUpdater:None
 SettingsComponent.HTML path.updates:None
-SettingsComponent.HTML path.val:
+SettingsComponent.HTML path.val:html
 SettingsComponent.HTML path.valType:str
 SettingsComponent.Incomplete URL.default:''
 SettingsComponent.Incomplete URL.allowedLabels:[]
@@ -5397,19 +5397,6 @@ SettingsComponent.Incomplete URL.staticUpdater:None
 SettingsComponent.Incomplete URL.updates:None
 SettingsComponent.Incomplete URL.val:
 SettingsComponent.Incomplete URL.valType:str
-SettingsComponent.JS libs.default:'packaged'
-SettingsComponent.JS libs.allowedLabels:[]
-SettingsComponent.JS libs.allowedTypes:[]
-SettingsComponent.JS libs.allowedUpdates:None
-SettingsComponent.JS libs.allowedVals:['packaged']
-SettingsComponent.JS libs.categ:Online
-SettingsComponent.JS libs.hint:Should we package a copy of the JS libs or useremote copies (http:/www.psychopy.org/js)?
-SettingsComponent.JS libs.label:JS libs
-SettingsComponent.JS libs.readOnly:False
-SettingsComponent.JS libs.staticUpdater:None
-SettingsComponent.JS libs.updates:None
-SettingsComponent.JS libs.val:packaged
-SettingsComponent.JS libs.valType:str
 SettingsComponent.Monitor.default:'testMonitor'
 SettingsComponent.Monitor.allowedLabels:[]
 SettingsComponent.Monitor.allowedTypes:[]
