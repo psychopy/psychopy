@@ -37,9 +37,17 @@ def resolveObjectFromName(name, basename=None, resolve=True, error=True):
 
     This function is mainly used to get objects associated with entry point
     groups, so entry points can be assigned to them. It traverses through
-    objects in `name` until it reaches the end, then returns a reference to
-    that object. Other uses of this function is to import objects by using their
-    string names and check if an attribute is defined at `name`.
+    objects along `name` until it reaches the end, then returns a reference to
+    that object.
+
+    You can also use this function to dynamically import modules and fully
+    realize target names without needing to call ``import`` on intermediate
+    modules. For instance, by calling the following::
+
+        Window = resolveObjectFromName('psychopy.visual.Window')
+
+    The function will first `psychopy.visual` then get a reference to the
+    unbound `Window` class within it and assign it to `Window`.
 
     Parameters
     ----------
@@ -55,12 +63,13 @@ def resolveObjectFromName(name, basename=None, resolve=True, error=True):
         If `resolve=True`, any name encountered along the way that isn't present
         will be assumed to be a module and imported. This guarantees the target
         object is fully-realized and reachable if the target is valid. If
-        `False`, this function will will fail if the `name` is not reachable.
-        This is used in cases where you just need to check if an object already
-        exists.
+        `False`, this function will fail if the `name` is not reachable and
+        raise an error or return `None` if `error=False`.
     error : bool
         Raise an error if an object is not reachable. If `False`, this function
-        will return `None` instead and suppress the error.
+        will return `None` instead and suppress the error. This may be useful in
+        cases where having access to the target object is a "soft" requirement
+        and the program can still operate without it.
 
     Returns
     -------
