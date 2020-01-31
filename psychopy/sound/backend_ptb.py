@@ -69,10 +69,12 @@ _verbosities = ((logging.DEBUG, 5),
                 (logging.EXP, 3),
                 (logging.WARNING, 2),
                 (logging.ERROR, 1))
+
 for _logLevel, _verbos in _verbosities:
     if logging.console.level <= _logLevel:
         audio.verbosity(_verbos)
         break
+
 
 def init(rate=48000, stereo=True, buffer=128):
     pass  # for compatibility with other backends
@@ -81,19 +83,29 @@ def init(rate=48000, stereo=True, buffer=128):
 def getDevices(kind=None):
     """Returns a dict of dict of audio devices of specified `kind`
 
-    The dict keys are names and items are dicts of properties
+    kind can be None, 'input' or 'output'
+    The dict keys are names, and items are dicts of properties
     """
     devs = {}
     if travisCI:  # travis-CI testing does not have a sound device
         return devs
     else:
-        allDevs = audio.get_devices(kind)
+        allDevs = audio.get_devices()
+
     # annoyingly query_devices is a DeviceList or a dict depending on number
     if type(allDevs) == dict:
         allDevs = [allDevs]
+
     for ii, dev in enumerate(allDevs):
+        if kind and kind.startswith('in'):
+            if dev['NrInputChannels'] < 1:
+                continue
+        elif kind and kind.startswith('out'):
+            if dev['NrOutputChannels'] < 1:
+                continue
+        # we have a valid device so get its name
         # newline characters must be removed
-        devName = dev['name'].replace('\r\n', '')
+        devName = dev['DeviceName'].replace('\r\n', '')
         devs[devName] = dev
         dev['id'] = ii
     return devs
@@ -167,9 +179,11 @@ class _StreamsDict(dict):
                     .format(label, list(self.keys())[0], sys.platform)
             )
         else:
+
             # create new stream
             self[label] = _MasterStream(sampleRate, channels, blockSize,
                                        device=defaultOutput)
+            print('device=', self[label])
         return label, self[label]
 
 
@@ -188,21 +202,48 @@ class _MasterStream(audio.Stream):
         self.list = []
         # sound stream info
         self.sampleRate = sampleRate
-        self.channels = 2
+        self.channels = channels
         self.duplex = duplex
         self.blockSize = blockSize
         self.label = getStreamLabel(sampleRate, channels, blockSize)
-        if device == 'default':
-            device = None
+        if type(device) == list and len(device):
+            device = device[0]
+        if type(device)==str:  # we need to convert name to an ID or make None
+            devs = getDevices()
+            if device in devs:
+                device = devs[device]['id']
+            else:
+                device = None
         self.sounds = []  # list of dicts for sounds currently playing
         self.takeTimeStamp = False
         self.frameN = 1
         # self.frameTimes = range(5)  # DEBUGGING: store the last 5 callbacks
         if not travisCI:  # travis-CI testing does not have a sound device
-            audio.Stream.__init__(self, [], mode=mode+8,
-                                  latency_class=audioLatencyClass,
-                                  freq=sampleRate, channels=channels,
-                                  )  # suggested_latency=suggestedLatency
+            try:
+                audio.Stream.__init__(self, device_id=device, mode=mode+8,
+                                    latency_class=audioLatencyClass,
+                                    freq=sampleRate, 
+                                    channels=channels,
+                                    )  # suggested_latency=suggestedLatency
+                # audio.Stream.__init__(self, device_id=device, mode=mode+8,
+                #                     latency_class=audioLatencyClass,
+                #                     freq=sampleRate, channels=channels,
+                #                     )  # suggested_latency=suggestedLatency
+            except OSError as e:
+                audio.Stream.__init__(self, device_id=device, mode=mode+8,
+                                    latency_class=audioLatencyClass,
+                                    # freq=sampleRate, 
+                                    channels=channels,
+                                    )
+                self.sampleRate = self.status['SampleRate']
+                print("Failed to start PTB.audio with requested rate of "
+                      "{} but succeeded with a default rate ({}). "
+                      "This is depends on the selected latency class and device."
+                      .format(sampleRate, self.sampleRate))
+            except TypeError as e:
+                print("device={}, mode={}, latency_class={}, freq={}, channels={}"
+                      .format(device, mode+8, audioLatencyClass, sampleRate, channels))
+                raise(e)
             self.start(0, 0, 1)
             # self.device = self._sdStream.device
             # self.latency = self._sdStream.latency
