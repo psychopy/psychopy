@@ -33,7 +33,7 @@ import logging
 logger = logging.getLogger('test_logger')
 logger.setLevel(logging.DEBUG)
 
-MS_SEC_THRESHOLD = 1E+10
+MS_SEC_THRESHOLD = 1E+10  # 2286
 
 
 if platform == "linux" or platform == "linux2":
@@ -175,8 +175,7 @@ class Cortex(object):
             dt: input time; defaults to datetime.now()
         """
         if not dt:
-            dt = datetime.datetime.now()
-            return int(dt.timestamp() * 1000)
+            return int(time.time()*1000)
         if isinstance(dt, datetime.datetime):
             if dt.tzinfo:
                 return int(dt.timestamp() * 1000)
