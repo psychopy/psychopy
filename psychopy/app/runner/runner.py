@@ -272,6 +272,11 @@ class RunnerPanel(wx.Panel, ScriptProcess):
         self.Bind(wx.EVT_BUTTON, self.runOnline, onlineBtn)
         self.Bind(wx.EVT_BUTTON, self.runOnlineDebug, onlineDebugBtn)
 
+        # Add check selection event
+        self.Bind(wx.EVT_BUTTON, self.checkSelect, runLocalBtn)
+        self.Bind(wx.EVT_BUTTON, self.checkSelect, onlineBtn)
+        self.Bind(wx.EVT_BUTTON, self.checkSelect, onlineDebugBtn)
+
         # Box sizers
         self.upperSizer = wx.BoxSizer(wx.HORIZONTAL)
         self.buttonSizer = wx.BoxSizer(wx.VERTICAL)
@@ -342,11 +347,15 @@ class RunnerPanel(wx.Panel, ScriptProcess):
         self.stopBtn.Disable()
         self.runBtn.Enable()
 
+    def checkSelect(self, evt):
+        """If task is not selected, do not propagate button click event."""
+        if self.currentSelection is None:
+            print("##### You must select a task. #####")
+            return
+        evt.Skip()
+
     def runLocal(self, evt):
         """Run experiment from new process using inherited ScriptProcess class methods."""
-        if self.currentSelection is None:
-            return
-
         currentFile = str(self.currentFile)
         if self.currentFile.suffix == '.psyexp':
             generateScript(experimentPath=currentFile.replace('.psyexp', '_lastrun.py'),
@@ -359,7 +368,7 @@ class RunnerPanel(wx.Panel, ScriptProcess):
 
     def runOnline(self, evt):
         """Run PsychoJS task from https://pavlovia.org."""
-        if self.currentProject not in [None, "None", ''] and self.currentFile.suffix == '.psyexp':
+        if self.currentFile.suffix == '.psyexp':
             webbrowser.open(
                 "https://pavlovia.org/run/{}/{}"
                     .format(self.currentProject,
@@ -376,7 +385,7 @@ class RunnerPanel(wx.Panel, ScriptProcess):
         port: int
             The port number used for the localhost server
         """
-        if self.currentSelection is None or self.currentFile.suffix == '.py':
+        if self.currentFile.suffix == '.py':
             return
 
         if self.serverProcess is not None:
@@ -579,5 +588,3 @@ class StdOutText(StdOutRich):
     def statusAppend(self, newText):
         text = self.GetValue() + newText
         self.setStatus(text)
-
-
