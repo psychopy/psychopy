@@ -456,7 +456,7 @@ class RunnerPanel(wx.Panel, ScriptProcess):
             if Path(fileName).suffix not in ['.py', '.psyexp']:
                 print("##### You can only add Python files or psyexp files to the Runner. #####\n")
                 return
-            filePath = [fileName]
+            filePaths = [fileName]
         else:
             with wx.FileDialog(self, "Open task...", wildcard="*.py; *.psyexp | *.py; *.psyexp",
                                style=wx.FD_MULTIPLE | wx.FD_FILE_MUST_EXIST) as fileDialog:
@@ -464,22 +464,27 @@ class RunnerPanel(wx.Panel, ScriptProcess):
                 if fileDialog.ShowModal() == wx.ID_CANCEL:
                     return  # the user changed their mind
 
-                filePath = fileDialog.GetPaths()
+                filePaths = fileDialog.GetPaths()
 
-        for file in filePath:
+        for file in filePaths:
             temp = Path(file)
 
             # Check list for item
-            if self.expCtrl.FindItem(-1, temp.name) > -1:
+            index = self.expCtrl.FindItem(-1, temp.name)
+            if index > -1:
                 continue
 
             # Set new item in listCtrl
-            index = self.expCtrl.InsertItem(self.expCtrl.GetItemCount(), str(temp.name))
-            self.expCtrl.SetItem(index, 1, str(temp))
+            index = self.expCtrl.InsertItem(self.expCtrl.GetItemCount(),
+                                            str(temp.name))
+            self.expCtrl.SetItem(index, 1, str(temp.parent))  # add the folder name
 
+        if filePaths:  # set selection to the final item to be added
             # Set item selection
+            # de-select previous
             self.expCtrl.SetItemState(self.currentSelection or 0, 0, wx.LIST_STATE_SELECTED)
-            self.expCtrl.Select(self.expCtrl.GetItemCount() - 1)
+            # select new
+            self.expCtrl.Select(index)
 
         # Set column width
         self.expCtrl.SetColumnWidth(0, wx.LIST_AUTOSIZE)
@@ -501,7 +506,9 @@ class RunnerPanel(wx.Panel, ScriptProcess):
     def onItemSelected(self, evt):
         """Set currentSelection to index of currently selected list item."""
         self.currentSelection = evt.Index
-        self.currentFile = Path(self.expCtrl.GetItem(self.currentSelection, 1).Text)
+        filename = self.expCtrl.GetItem(self.currentSelection, 0).Text
+        folder = self.expCtrl.GetItem(self.currentSelection, 1).Text
+        self.currentFile = Path(folder, filename)
         self.currentExperiment = self.loadExperiment()
         self._currentProject = None  # until it's needed (slow to update)
 
