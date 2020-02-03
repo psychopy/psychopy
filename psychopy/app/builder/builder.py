@@ -44,7 +44,7 @@ from psychopy.localization import _translate
 
 from ... import experiment
 from .. import dialogs, icons
-from ..icons import getAllIcons
+from ..icons import getAllIcons, combineImageEmblem
 from psychopy import logging, constants
 from psychopy.tools.filetools import mergeFolder
 from .dialogs import (DlgComponentProperties, DlgExperimentProperties,
@@ -1163,7 +1163,9 @@ class BuilderFrame(wx.Frame):
         undoBmp = wx.Bitmap(join(rc, 'undo%i.png' % tbSize), PNG)
         redoBmp = wx.Bitmap(join(rc, 'redo%i.png' % tbSize), PNG)
         stopBmp = wx.Bitmap(join(rc, 'stop%i.png' % tbSize), PNG)
-        runBmp = wx.Bitmap(join(rc, 'run%i.png' % tbSize), PNG)
+        runBmp = combineImageEmblem(join(rc, 'run%i.png' % tbSize),
+                                    join(rc, 'runner16.png'),
+                                    pos = 'bottom_right')
         compileBmp = wx.Bitmap(join(rc, 'compile%i.png' % tbSize), PNG)
         settingsBmp = wx.Bitmap(join(rc, 'cogwindow%i.png' % tbSize), PNG)
         preferencesBmp = wx.Bitmap(join(rc, 'preferences%i.png' % tbSize),
@@ -2126,8 +2128,6 @@ class BuilderFrame(wx.Frame):
 
         self.stdoutFrame.addTask(fileName=self.filename)
         self.stdoutFrame.showRunner()
-        self.stdoutFrame.Center()
-        self.app.SetTopWindow(self.stdoutFrame)
 
     def onCopyRoutine(self, event=None):
         """copy the current routine from self.routinePanel
