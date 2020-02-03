@@ -2444,9 +2444,6 @@ class CoderFrame(wx.Frame):
 
         self.app.runner.addTask(fileName=fullPath)
         self.app.showRunner()
-        self.app.runner.Center()
-        self.app.SetTopWindow(self.app.runner)
-        return
 
     def copy(self, event):
         foc = self.FindFocus()
