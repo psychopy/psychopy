@@ -220,7 +220,7 @@ class RunnerPanel(wx.Panel, ScriptProcess):
         self.serverProcess = None
 
         self.currentFile = None
-        self.currentProject = None
+        self._currentProject = None  # access from self.currentProject property
         self.currentSelection = None
         self.currentExperiment = None
 
@@ -488,6 +488,7 @@ class RunnerPanel(wx.Panel, ScriptProcess):
     def removeTask(self, evt):
         """Remove experiment entry from the expList listctrl."""
         if self.currentSelection is None:
+            self._currentProject = None
             return
 
         self.expCtrl.DeleteItem(self.currentSelection)
@@ -495,14 +496,14 @@ class RunnerPanel(wx.Panel, ScriptProcess):
             self.currentSelection = None
             self.currentFile = None
             self.currentExperiment = None
-            self.currentProject = None
+            self._currentProject = None
 
     def onItemSelected(self, evt):
         """Set currentSelection to index of currently selected list item."""
         self.currentSelection = evt.Index
         self.currentFile = Path(self.expCtrl.GetItem(self.currentSelection, 1).Text)
         self.currentExperiment = self.loadExperiment()
-        self.currentProject = None
+        self._currentProject = None  # until it's needed (slow to update)
 
         self.runBtn.Enable()
         self.stopBtn.Disable()
@@ -512,13 +513,6 @@ class RunnerPanel(wx.Panel, ScriptProcess):
         else:
             self.onlineBtn.Disable()
             self.onlineDebugBtn.Disable()
-        # Check for project
-        try:
-            project = getProject(str(self.currentFile))
-            if hasattr(project, 'id'):
-                self.currentProject = project.id
-        except NotADirectoryError as err:
-            self.stdoutCtrl.write(err)
 
     def onItemDeselected(self, evt):
         """Set currentSelection, currentFile, currentExperiment and currentProject to None."""
@@ -526,7 +520,7 @@ class RunnerPanel(wx.Panel, ScriptProcess):
         self.currentSelection = None
         self.currentFile = None
         self.currentExperiment = None
-        self.currentProject = None
+        self._currentProject = None
         self.runBtn.Disable()
         self.stopBtn.Disable()
         self.onlineBtn.Disable()
@@ -570,6 +564,20 @@ class RunnerPanel(wx.Panel, ScriptProcess):
             traceback.print_exc()
 
         return exp
+
+    @property
+    def currentProject(self):
+        """Returns the current project, updating from the git repo if no
+        project currently found"""
+        if not self._currentProject:
+            # Check for project
+            try:
+                project = getProject(str(self.currentFile))
+                if hasattr(project, 'id'):
+                    self._currentProject = project.id
+            except NotADirectoryError as err:
+                self.stdoutCtrl.write(err)
+        return self._currentProject
 
 
 class StdOutText(StdOutRich):
