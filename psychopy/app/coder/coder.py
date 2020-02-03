@@ -19,7 +19,6 @@ import wx.stc
 import wx.richtext
 from wx.html import HtmlEasyPrinting
 
-import psychopy.app.pavlovia_ui.menu
 
 try:
     from wx import aui
@@ -42,7 +41,9 @@ from psychopy import logging
 from psychopy.localization import _translate
 from ..utils import FileDropTarget
 from psychopy.projects import pavlovia
+import psychopy.app.pavlovia_ui.menu
 from psychopy.app.coder.codeEditorBase import BaseCodeEditor
+from psychopy.app.icons import combineImageEmblem
 
 # advanced prefs (not set in prefs files)
 prefTestSubset = ""
@@ -1739,7 +1740,10 @@ class CoderFrame(wx.Frame):
         undoBmp = wx.Bitmap(join(rc, 'undo%i.png' % size), PNG)
         redoBmp = wx.Bitmap(join(rc, 'redo%i.png' % size), PNG)
         stopBmp = wx.Bitmap(join(rc, 'stop%i.png' % size), PNG)
-        runBmp = wx.Bitmap(join(rc, 'run%i.png' % size), PNG)
+        runBmp = combineImageEmblem(join(rc, 'run%i.png' % size),
+                                    join(rc, 'runner16.png'),
+                                    pos = 'bottom_right')
+        # runBmp = wx.Bitmap(join(rc, 'run%i.png' % size), PNG)
         preferencesBmp = wx.Bitmap(join(rc, 'preferences%i.png' % size), PNG)
         monitorsBmp = wx.Bitmap(join(rc, 'monitors%i.png' % size), PNG)
         colorpickerBmp = wx.Bitmap(join(rc, 'color%i.png' % size), PNG)
