@@ -220,7 +220,7 @@ class RunnerPanel(wx.Panel, ScriptProcess):
         self.serverProcess = None
 
         self.currentFile = None
-        self._currentProject = None  # access from self.currentProject property
+        self.currentProject = None  # access from self.currentProject property
         self.currentSelection = None
         self.currentExperiment = None
 
@@ -493,7 +493,7 @@ class RunnerPanel(wx.Panel, ScriptProcess):
     def removeTask(self, evt):
         """Remove experiment entry from the expList listctrl."""
         if self.currentSelection is None:
-            self._currentProject = None
+            self.currentProject = None
             return
 
         self.expCtrl.DeleteItem(self.currentSelection)
@@ -501,7 +501,7 @@ class RunnerPanel(wx.Panel, ScriptProcess):
             self.currentSelection = None
             self.currentFile = None
             self.currentExperiment = None
-            self._currentProject = None
+            self.currentProject = None
 
     def onItemSelected(self, evt):
         """Set currentSelection to index of currently selected list item."""
@@ -510,7 +510,7 @@ class RunnerPanel(wx.Panel, ScriptProcess):
         folder = self.expCtrl.GetItem(self.currentSelection, 1).Text
         self.currentFile = Path(folder, filename)
         self.currentExperiment = self.loadExperiment()
-        self._currentProject = None  # until it's needed (slow to update)
+        self.currentProject = None  # until it's needed (slow to update)
 
         self.runBtn.Enable()
         self.stopBtn.Disable()
@@ -527,7 +527,7 @@ class RunnerPanel(wx.Panel, ScriptProcess):
         self.currentSelection = None
         self.currentFile = None
         self.currentExperiment = None
-        self._currentProject = None
+        self.currentProject = None
         self.runBtn.Disable()
         self.stopBtn.Disable()
         self.onlineBtn.Disable()
@@ -585,6 +585,10 @@ class RunnerPanel(wx.Panel, ScriptProcess):
             except NotADirectoryError as err:
                 self.stdoutCtrl.write(err)
         return self._currentProject
+
+    @currentProject.setter
+    def currentProject(self, project):
+        self._currentProject = None
 
 
 class StdOutText(StdOutRich):
