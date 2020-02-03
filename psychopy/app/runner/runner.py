@@ -247,8 +247,8 @@ class RunnerPanel(wx.Panel, ScriptProcess):
         negBtn = self.makeBmpButton(main='removeExp32.png')
         self.runBtn = runLocalBtn = self.makeBmpButton(main='run32.png')
         self.stopBtn = stopTaskBtn = self.makeBmpButton(main='stop32.png')
-        onlineBtn = self.makeBmpButton(main='globe32.png', emblem='run16.png')
-        onlineDebugBtn = self.makeBmpButton(main='globe32.png',
+        self.onlineBtn = self.makeBmpButton(main='globe32.png', emblem='run16.png')
+        self.onlineDebugBtn = self.makeBmpButton(main='globe32.png',
                                             emblem='bug16.png')
 
         plusBtn.SetToolTip(wx.ToolTip(
@@ -259,9 +259,9 @@ class RunnerPanel(wx.Panel, ScriptProcess):
             _translate("Run PsychoPy task (Python)")))
         stopTaskBtn.SetToolTip(wx.ToolTip(
             _translate("Stop Task")))
-        onlineBtn.SetToolTip(wx.ToolTip(
+        self.onlineBtn.SetToolTip(wx.ToolTip(
             _translate("Run PsychoJS task from Pavlovia")))
-        onlineDebugBtn.SetToolTip(wx.ToolTip(
+        self.onlineDebugBtn.SetToolTip(wx.ToolTip(
             _translate("Run PsychoJS task in local debug mode")))
 
         # Bind events to buttons
@@ -269,8 +269,8 @@ class RunnerPanel(wx.Panel, ScriptProcess):
         self.Bind(wx.EVT_BUTTON, self.removeTask, negBtn)
         self.Bind(wx.EVT_BUTTON, self.runLocal, runLocalBtn)
         self.Bind(wx.EVT_BUTTON, self.stopTask, stopTaskBtn)
-        self.Bind(wx.EVT_BUTTON, self.runOnline, onlineBtn)
-        self.Bind(wx.EVT_BUTTON, self.runOnlineDebug, onlineDebugBtn)
+        self.Bind(wx.EVT_BUTTON, self.runOnline, self.onlineBtn)
+        self.Bind(wx.EVT_BUTTON, self.runOnlineDebug, self.onlineDebugBtn)
 
         # Box sizers
         self.upperSizer = wx.BoxSizer(wx.HORIZONTAL)
@@ -283,8 +283,8 @@ class RunnerPanel(wx.Panel, ScriptProcess):
         self.buttonSizer.AddStretchSpacer()
         self.buttonSizer.AddMany([(runLocalBtn, 0, wx.ALL, 5),
                                    (stopTaskBtn, 0, wx.ALL, 5),
-                                   (onlineBtn, 0, wx.ALL, 5),
-                                   (onlineDebugBtn, 0, wx.ALL, 5),
+                                   (self.onlineBtn, 0, wx.ALL, 5),
+                                   (self.onlineDebugBtn, 0, wx.ALL, 5),
                                    ])
 
         # Set main sizer
@@ -350,7 +350,7 @@ class RunnerPanel(wx.Panel, ScriptProcess):
         currentFile = str(self.currentFile)
         if self.currentFile.suffix == '.psyexp':
             generateScript(experimentPath=currentFile.replace('.psyexp', '_lastrun.py'),
-                           exp=self.experiment())
+                           exp=self.loadExperiment())
         self.runFile(fileName=currentFile)
 
         # Enable/Disable btns
@@ -376,7 +376,7 @@ class RunnerPanel(wx.Panel, ScriptProcess):
         port: int
             The port number used for the localhost server
         """
-        if self.currentSelection is None or self.currentFile.suffix == '.py':
+        if self.currentSelection is None:
             return
 
         if self.serverProcess is not None:
@@ -396,7 +396,7 @@ class RunnerPanel(wx.Panel, ScriptProcess):
                   'Try exporting your HTML, and try again #####\n'.format(self.outputPath))
             return
 
-        if self.currentProject not in [None, "None", ''] and self.currentFile.suffix == '.psyexp':
+        if self.currentProject not in [None, "None", '']:
             if self.serverProcess is None:
                 self.serverProcess = Popen(command,
                                            bufsize=1,
@@ -501,9 +501,17 @@ class RunnerPanel(wx.Panel, ScriptProcess):
         """Set currentSelection to index of currently selected list item."""
         self.currentSelection = evt.Index
         self.currentFile = Path(self.expCtrl.GetItem(self.currentSelection, 1).Text)
-        self.currentExperiment = self.experiment()
+        self.currentExperiment = self.loadExperiment()
         self.currentProject = None
 
+        self.runBtn.Enable()
+        self.stopBtn.Disable()
+        if self.currentFile.suffix == '.psyexp':
+            self.onlineBtn.Enable()
+            self.onlineDebugBtn.Enable()
+        else:
+            self.onlineBtn.Disable()
+            self.onlineDebugBtn.Disable()
         # Check for project
         try:
             project = getProject(str(self.currentFile))
@@ -519,6 +527,10 @@ class RunnerPanel(wx.Panel, ScriptProcess):
         self.currentFile = None
         self.currentExperiment = None
         self.currentProject = None
+        self.runBtn.Disable()
+        self.stopBtn.Disable()
+        self.onlineBtn.Disable()
+        self.onlineDebugBtn.Disable()
 
     @property
     def outputPath(self):
@@ -532,7 +544,7 @@ class RunnerPanel(wx.Panel, ScriptProcess):
         """
         return self.currentExperiment.settings.params['HTML path'].val
 
-    def experiment(self):
+    def loadExperiment(self):
         """
         Load the experiment object for the current psyexp file.
 
