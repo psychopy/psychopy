@@ -328,6 +328,7 @@ def loadPlugin(plugin, *args, **kwargs):
     """
     global _plugins_
     if plugin in _plugins_.keys():
+        logging.info('Plugin `{}` already loaded. Skipping.'.format(plugin))
         return True  # already loaded, return True
 
     # find all plugins installed on the system
@@ -437,13 +438,13 @@ def loadPlugin(plugin, *args, **kwargs):
     return True
 
 
-def startUpPlugins(plugins, add=True, verify=True, load=False):
+def startUpPlugins(plugins, add=True, verify=True):
     """Specify which plugins should be loaded automatically when a PsychoPy
     session starts.
 
-    The value of `plugins` is added to or overwrites (depending on `add`)
-    ``psychopy.preferences.prefs.general['startUpPlugins']`` and the
-    configuration is saved.
+    This function edits ``psychopy.preferences.prefs.general['startUpPlugins']``
+    and provides a means to verify if entries are valid. The PsychoPy session
+    must be restarted for the plugins specified to take effect.
 
     Parameters
     ----------
@@ -459,13 +460,7 @@ def startUpPlugins(plugins, add=True, verify=True, load=False):
         PsychoPy. Raises an error if any are not. This prevents undefined
         behavior arsing from invalid plugins being loaded in the next session.
         If `False`, plugin names will be added regardless if they are installed
-        or not. However, any invalid plugins will fail to load if `load=True`.
-    load : bool
-        Load plugins after setting, immediately making them available when this
-        function returns. Plugins are loaded in the order they appear in
-        `plugins`. If a `plugin` is already in
-        `prefs.general['startUpPlugins']`, it will not be loaded. Default is
-        `False`.
+        or not.
 
     Raises
     ------
@@ -477,9 +472,9 @@ def startUpPlugins(plugins, add=True, verify=True, load=False):
 
     Examples
     --------
-    Adding plugins to load on startup and loading them into the current session::
+    Adding plugins to load on startup::
 
-        startUpPlugins(['plugin1', 'plugin2'], load=True)
+        startUpPlugins(['plugin1', 'plugin2'])
 
     Clearing the startup plugins list, no plugins will be loaded automatically
     at the start of the next session::
@@ -523,18 +518,9 @@ def startUpPlugins(plugins, add=True, verify=True, load=False):
 
     if add:  # adding plugin names to existing list
         for plugin in plugins:
-            # load the plugins, doesn't do anything if already loaded
-            if load and plugin in installedPlugins:
-                loadPlugin(plugin)
-
             if plugin not in prefs.general['startUpPlugins']:
                 prefs.general['startUpPlugins'].append(plugin)
     else:
-        for plugin in plugins:
-            # load the plugins that were specified if not already loaded
-            if load and plugin in installedPlugins:
-                loadPlugin(plugin)
-
         prefs.general['startUpPlugins'] = plugins  # overwrite
 
     prefs.saveUserPrefs()  # save after loading
