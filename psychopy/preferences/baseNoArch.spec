@@ -42,7 +42,7 @@
     shutdownKeyModifiers = list(default=list())
     # What to do if gamma-correction not possible
     gammaErrorPolicy = option('abort', 'warn', default='abort')
-    # plugins to automatically load on startup
+    # Add names of plugins to load automatically on startup here
     startUpPlugins = list(default=list())
 
 # Application settings, applied to coder, builder, & prefs windows

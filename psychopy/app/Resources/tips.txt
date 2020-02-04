@@ -40,3 +40,4 @@ Sometimes the correct response on a given trial is not to respond at all, such a
 For the best audio timing you need to use the 'PTB' backend (set this in the app Preferences).
 The Keyboard class has better timing than event.getKeys() and also reports key duration when the key has been released.
 Get your department to buy a site licence for Pavlovia.org. You'll be helping fund PsychoPy development and you'll be able to run unlimited online studies.
+Plugins can be loaded automatically when Builder or Coder starts by adding their names to "Preferences" > "General" > "startUpPlugins".
