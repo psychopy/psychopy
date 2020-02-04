@@ -190,22 +190,26 @@ def computeChecksum(fpath, method='sha256'):
     return hashobj.hexdigest()
 
 
-def listPlugins(onlyLoaded=False):
+def listPlugins(which='all'):
     """Get a list of installed or loaded PsychoPy plugins.
 
-    This function searches for potential plugin packages installed or loaded.
-    When searching for installed plugin packages, only those the names of those
-    which advertise entry points specifically for PsychoPy, the version of
-    Python its currently running on, and operating system are returned.
+    This function lists either all potential plugin packages installed on the
+    system, those registered to be loaded automatically when PsychoPy starts, or
+    those that have been previously loaded successfully this session.
+
+    When searching for installed plugin packages, names are listed if packages
+    define entry points specifically for PsychoPy and support the current Python
+    environment.
 
     Parameters
     ----------
-    onlyLoaded : bool
-        If `False`, this function will return all installed packages which can
-        be potentially loaded as plugins, regardless if they have been already
-        loaded. If `True`, the returned values will only be names of plugins
-        that have been successfully loaded previously in this session by
-        `loadPlugin`. They will appear in the order of which they were loaded.
+    which : str
+        Category to list plugins. If 'all', all plugins installed on the system
+        will be listed, whether they have been loaded or not. If 'loaded', only
+        plugins that have been previously loaded successfully this session will
+        be listed. If 'startup', plugins registered to be loaded when a PsychoPy
+        session starts will be listed, whether or not they have been loaded this
+        session.
 
     Returns
     -------
@@ -239,8 +243,13 @@ def listPlugins(onlyLoaded=False):
             print("Plugin installed!")
 
     """
-    if onlyLoaded:  # only list plugins we have already loaded
+    if which not in ('all', 'startup', 'loaded',):
+        raise ValueError("Invalid value specified to argument `which`.")
+
+    if which == 'loaded':  # only list plugins we have already loaded
         return list(_plugins_.keys())
+    elif which == 'startup':
+        return prefs.general['startUpPlugins']
 
     # find all packages with entry points defined
     pluginEnv = pkg_resources.Environment()  # supported by the platform
@@ -451,10 +460,11 @@ def startUpPlugins(plugins, add=True, verify=True):
     plugins : `str`, `list` or `None`
         Name(s) of plugins to have load on startup.
     add : bool
-        If `True` names of plugins will be appended to `startUpPlugins`. If
-        `False`, `startUpPlugins` will be set to `plugins`, overwriting the
-        previous value. If `add=False` and `plugins=[]` or `plugins=None`, no
-        plugins will be loaded in the next session.
+        If `True` names of plugins will be appended to `startUpPlugins` unless a
+        name is already present. If `False`, `startUpPlugins` will be set to
+        `plugins`, overwriting the previous value. If `add=False` and
+        `plugins=[]` or `plugins=None`, no plugins will be loaded in the next
+        session.
     verify : bool
         Check if `plugins` are installed and have valid entry points to
         PsychoPy. Raises an error if any are not. This prevents undefined
