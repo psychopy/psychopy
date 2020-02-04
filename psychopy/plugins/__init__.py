@@ -445,7 +445,6 @@ def loadPlugin(plugin, *args, **kwargs):
             elif fqn == 'psychopy.experiment.components':  # if component
                 _registerBuilderComponent(ep)
 
-
     # retain information about the plugin's entry points, we will use this for
     # conflict resolution
     _plugins_[pluginDist.project_name] = entryMap
