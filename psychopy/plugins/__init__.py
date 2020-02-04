@@ -274,9 +274,11 @@ def loadPlugin(plugin, *args, **kwargs):
 
     Plugins are packages which extend upon PsychoPy's existing functionality by
     dynamically importing code at runtime, without modifying the existing
-    installation files. Plugins create or redefine objects into the namespaces
+    installation files. Plugins create or redefine objects in the namespaces
     of modules (eg. `psychopy.visual`) and unbound classes, allowing them to be
-    used as if they were part of PsychoPy.
+    used as if they were part of PsychoPy. In some cases, objects exported by
+    plugins will be registered for a particular function if they define entry
+    points into specific modules.
 
     Plugins are simply Python packages,`loadPlugin` will search for them in
     directories specified in `sys.path`. Only packages which define entry points
@@ -292,7 +294,7 @@ def loadPlugin(plugin, *args, **kwargs):
         or project name.
     *args, **kwargs
         Optional arguments and keyword arguments to pass to the plugin's
-        `register` function.
+        `__register__` function.
 
     Returns
     -------
@@ -308,7 +310,7 @@ def loadPlugin(plugin, *args, **kwargs):
     NameError
         The plugin attempted to overwrite an entire extant module or modify
         `psychopy.plugins`. Also raised if the plugin module defines
-        `__register__` but the specified object is not valid or present.
+        `__register__` but the specified object is not valid or reachable.
     TypeError
         Plugin defines `__register__` which specifies an object that is not
         callable.
