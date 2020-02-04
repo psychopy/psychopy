@@ -242,6 +242,12 @@ def listPlugins(which='all'):
         if 'plugin-test' in plugins.listPlugins():
             print("Plugin installed!")
 
+    Check if all plugins registered to be loaded on startup are currently
+    active::
+
+        if not all([p in listPlugins('loaded') for p in listPlugins('startup')]):
+            print('Please restart your PsychoPy session for plugins to take effect.')
+
     """
     if which not in ('all', 'startup', 'loaded',):
         raise ValueError("Invalid value specified to argument `which`.")
