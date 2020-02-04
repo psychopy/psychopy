@@ -128,6 +128,24 @@ it::
 
     plugins.loadPlugin('psychopy-plugin', 9600, debug=True)
 
+You can also have specific plugins loaded automatically when PsychoPy starts
+by specifying their names in Preferences. This can be done in programmatically
+by calling::
+
+    from psychopy.preferences import prefs
+    prefs.general['startUpPlugins'].append('plugin-name')
+    prefs.saveUserPrefs()
+
+Or by adding the name to "File" > "Preferences" > "General" > "startUpPlugins"
+in Builder or Coder. After restarting a PsychoPy session, the specified plugins
+will be loaded automatically, and the user does not need to call
+``loadPlugin()`` to enable them.
+
+.. note::
+
+    Plugins which contain Builder components need to be loaded on startup for
+    the components to appear in Builder.
+
 How do I find installed plugins?
 --------------------------------
 

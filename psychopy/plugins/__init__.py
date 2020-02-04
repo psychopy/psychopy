@@ -7,7 +7,7 @@
 """Utilities for extending PsychoPy with plugins."""
 
 from __future__ import absolute_import
-__all__ = ['loadPlugin', 'listPlugins', 'computeChecksum']
+__all__ = ['loadPlugin', 'listPlugins', 'computeChecksum', 'startUpPlugins']
 
 import sys
 import inspect
@@ -17,6 +17,7 @@ import importlib
 import pkg_resources
 
 from psychopy import logging
+from psychopy.preferences import prefs
 import psychopy.experiment.components as components
 
 # Keep track of plugins that have been loaded. Keys are plugin names and values
@@ -434,6 +435,109 @@ def loadPlugin(plugin, *args, **kwargs):
     _plugins_[pluginDist.project_name] = entryMap
 
     return True
+
+
+def startUpPlugins(plugins, add=True, verify=True, load=False):
+    """Specify which plugins should be loaded automatically when a PsychoPy
+    session starts.
+
+    The value of `plugins` is added to or overwrites (depending on `add`)
+    ``psychopy.preferences.prefs.general['startUpPlugins']`` and the
+    configuration is saved.
+
+    Parameters
+    ----------
+    plugins : `str`, `list` or `None`
+        Name(s) of plugins to have load on startup.
+    add : bool
+        If `True` names of plugins will be appended to `startUpPlugins`. If
+        `False`, `startUpPlugins` will be set to `plugins`, overwriting the
+        previous value. If `add=False` and `plugins=[]` or `plugins=None`, no
+        plugins will be loaded in the next session.
+    verify : bool
+        Check if `plugins` are installed and have valid entry points to
+        PsychoPy. Raises an error if any are not. This prevents undefined
+        behavior arsing from invalid plugins being loaded in the next session.
+        If `False`, plugin names will be added regardless if they are installed
+        or not. However, any invalid plugins will fail to load if `load=True`.
+    load : bool
+        Load plugins after setting, immediately making them available when this
+        function returns. Plugins are loaded in the order they appear in
+        `plugins`. If a `plugin` is already in
+        `prefs.general['startUpPlugins']`, it will not be loaded. Default is
+        `False`.
+
+    Raises
+    ------
+    RuntimeError
+        If `verify=True`, any of `plugins` is not installed or does not have
+        entry points to PsychoPy. This is raised to prevent issues in future
+        sessions where invalid plugins are written to the config file and are
+        automatically loaded.
+
+    Examples
+    --------
+    Adding plugins to load on startup and loading them into the current session::
+
+        startUpPlugins(['plugin1', 'plugin2'], load=True)
+
+    Clearing the startup plugins list, no plugins will be loaded automatically
+    at the start of the next session::
+
+        plugins.startUpPlugins([], add=False)
+        # or ..
+        plugins.startUpPlugins(None, add=False)
+
+    If passing `None` or an empty list with `add=True`, the present value of
+    `prefs.general['startUpPlugins']` will remain as-is.
+
+    """
+    # if a string is specified
+    if isinstance(plugins, str):
+        plugins = [plugins]
+
+    # if the list is empty or None, just clear
+    if not plugins or plugins is None:
+        if not add:  # adding nothing gives the original
+            prefs.general['startUpPlugins'] = []
+            prefs.saveUserPrefs()
+
+        return
+
+    # check if the plugins are installed before adding to `startUpPlugins`
+    installedPlugins = listPlugins()
+    if verify:
+        notInstalled = [plugin not in installedPlugins for plugin in plugins]
+        if any(notInstalled):
+            missingIdx = [i for i, x in enumerate(notInstalled) if x]
+            errStr = ''  # build up an error string
+            for i, idx in enumerate(missingIdx):
+                if i < len(missingIdx) - 1:
+                    errStr += '`{}`, '.format(plugins[idx])
+                else:
+                    errStr += '`{}`;'.format(plugins[idx])
+
+            raise RuntimeError(
+                "Cannot add startup plugin(s): {} either not installed or has "
+                "no PsychoPy entry points.".format(errStr))
+
+    if add:  # adding plugin names to existing list
+        for plugin in plugins:
+            # load the plugins, doesn't do anything if already loaded
+            if load and plugin in installedPlugins:
+                loadPlugin(plugin)
+
+            if plugin not in prefs.general['startUpPlugins']:
+                prefs.general['startUpPlugins'].append(plugin)
+    else:
+        for plugin in plugins:
+            # load the plugins that were specified if not already loaded
+            if load and plugin in installedPlugins:
+                loadPlugin(plugin)
+
+        prefs.general['startUpPlugins'] = plugins  # overwrite
+
+    prefs.saveUserPrefs()  # save after loading
 
 
 def _registerWindowBackend(attr, ep):
