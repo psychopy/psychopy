@@ -25,8 +25,6 @@ __build_platform__ = 'n/a'
 __all__ = ["gui", "misc", "visual", "core",
            "event", "data", "sound", "microphone", "plugins"]
 
-from psychopy.preferences import prefs
-
 # for developers the following allows access to the current git sha from
 # their repository
 if __git_sha__ == 'n/a':
@@ -43,14 +41,17 @@ if __git_sha__ == 'n/a':
 
 # update preferences and the user paths
 if 'installing' not in locals():
+    from psychopy.preferences import prefs
     for pathName in prefs.general['paths']:
         sys.path.append(pathName)
 
+    # load plugins on startup
+    if prefs.general['startUpPlugins']:
+        from psychopy.plugins import loadPlugin
+        for plugin in prefs.general['startUpPlugins']:
+            loadPlugin(plugin)
+
     from psychopy.tools.versionchooser import useVersion, ensureMinimal
 
-# load plugins on startup
-if prefs.general['startUpPlugins']:
-    from psychopy.plugins import loadPlugin
-    for plugin in prefs.general['startUpPlugins']:
-        loadPlugin(plugin)
+
 
