@@ -23,13 +23,6 @@ import psychopy.experiment.components as components
 # are their entry point mappings.
 _plugins_ = collections.OrderedDict()  # use OrderedDict for Py2 compatibility
 
-# Allowed subclasses for each group, this can be used to enforce what kinds of
-# objects are allowed in a given module's namespace. For instance, to restrict
-# plugins from creating classes in `psychopy.visual` that are not subclasses of
-# `psychopy.visual.BaseVisualStim` use the following line:
-#_allowed_subclasses_ = {'psychopy.visual': ('psychopy.visual.BaseVisualStim',)}
-_allowed_subclasses_ = {}
-
 
 def resolveObjectFromName(name, basename=None, resolve=True, error=True):
     """Get an object within a module's namespace using a fully-qualified or
@@ -371,34 +364,9 @@ def loadPlugin(plugin, *args, **kwargs):
                 "Plugins declaring entry points into the `psychopy.plugins` "
                 "module is forbidden.")
 
-        # Special case where the group has entry points for builder components.
-        # Note, this does not create any objects inside the namespace of that
-        # module for now to maintain compatibility with the present system. In
-        # the future, component classes may be loaded and assigned attributes
-        # like any other plugin entry point.
-        if fqn.startswith('psychopy.experiment.components'):
-            for attr, ep in attrs.items():
-                compModule = ep.load()
-                # make sure that we only use modules to add builder components
-                if not inspect.ismodule(compModule):
-                    raise TypeError(
-                        "Entry points into `psychopy.experiment.components` "
-                        "must be modules.")
-
-                _registerComponent(compModule)  # add the component
-
-            continue
-
         # Get the object the fully-qualified name points to the group which the
         # plugin wants to modify.
         targObj = resolveObjectFromName(fqn)
-
-        # if there are any sub-classes that are restricted
-        if fqn in _allowed_subclasses_.keys():
-            allowedTypes = \
-                tuple([resolveObjectFromName(i) for i in _allowed_subclasses_[fqn]])
-        else:
-            allowedTypes = None
 
         # add and replace names with the plugin entry points
         for attr, ep in attrs.items():
@@ -448,14 +416,6 @@ def loadPlugin(plugin, *args, **kwargs):
 
             ep = ep.load()  # load the entry point
 
-            # allow only adding classes that are of a particular subclass
-            if allowedTypes is not None and inspect.isclass(ep):
-                if not issubclass(ep, allowedTypes):
-                    typestr = _allowed_subclasses_[fqn]
-                    raise TypeError(
-                        "Class had invalid subclass type for module `{}`. Must "
-                        "be `{}`.".format(fqn, '`, `'.join(typestr)))
-
             # add the object to the module or unbound class
             setattr(targObj, attr, ep)
             logging.debug(
@@ -465,6 +425,8 @@ def loadPlugin(plugin, *args, **kwargs):
             # --- handle special cases ---
             if fqn == 'psychopy.visual.backends':  # if window backend
                 _registerWindowBackend(attr, ep)
+            elif fqn == 'psychopy.experiment.components':  # if component
+                _registerBuilderComponent(ep)
 
 
     # retain information about the plugin's entry points, we will use this for
@@ -525,7 +487,7 @@ def _registerWindowBackend(attr, ep):
     backend.winTypes.update(foundBackends)  # update installed backends
 
 
-def _registerComponent(module):
+def _registerBuilderComponent(ep):
     """Register a PsychoPy builder component module.
 
     Parameters
@@ -534,36 +496,36 @@ def _registerComponent(module):
         Module containing the builder component to register.
 
     """
+    if not inspect.ismodule(ep):  # not a module
+        return
+
     # give a default category
-    if not hasattr(module, 'categories'):
-        module.categories = ['Custom']
+    if not hasattr(ep, 'categories'):
+        ep.categories = ['Custom']
 
-    # check if module contains a component
-    for attrib in dir(module):
-        # fetch the attribs that end with 'Component'
-        if not attrib.endswith('omponent'):
-            continue
-
+    # check if module contains components
+    for attrib in dir(ep):
         # name and reference to component class
         name = attrib
-        cls = getattr(module, attrib)
+        cls = getattr(ep, attrib)
 
-        # check if subclass of component type
+        if not inspect.isclass(cls):
+            continue
+
         if not issubclass(cls, components.BaseComponent):
-            raise TypeError(
-                'Component class `{}` is not subclass of `BaseComponent`.')
+            continue
 
-        components.pluginComponents[attrib] = getattr(module, attrib)
+        components.pluginComponents[attrib] = getattr(ep, attrib)
 
         # skip if this class was imported, not defined here
-        if module.__name__ != components.pluginComponents[attrib].__module__:
+        if ep.__name__ != components.pluginComponents[attrib].__module__:
             continue  # class was defined in different module
 
-        if hasattr(module, 'tooltip'):
-            components.tooltips[name] = module.tooltip
+        if hasattr(ep, 'tooltip'):
+            components.tooltips[name] = ep.tooltip
 
-        if hasattr(module, 'iconFile'):
-            components.iconFiles[name] = module.iconFile
+        if hasattr(ep, 'iconFile'):
+            components.iconFiles[name] = ep.iconFile
 
         # assign the module categories to the Component
         if not hasattr(components.pluginComponents[attrib], 'categories'):
