@@ -5,7 +5,7 @@ from numpy import array
 from psychopy.monitors import Monitor
 from psychopy.tools import monitorunittools
 from psychopy.alerts._alerts import alert
-
+from psychopy import prefs
 
 class TestWin(object):
     """
@@ -36,7 +36,12 @@ def runTest(component):
         The PsychoPy component being tested
     """
     win = TestWin(component.exp, component.exp.settings.params['Monitor'].val)
-    units = component.exp.settings.params['Units'].val
+    # get units for this stimulus
+    units = component.params['units'].val
+    if units == 'use experiment settings':
+        units = component.exp.settings.params['Units'].val  # this 1 uppercase
+    if units == 'use preferences':
+        units = prefs.general['units']
     testSize(component, win, units)
     testPos(component, win, units)
     testDisabled(component)
@@ -44,6 +49,7 @@ def runTest(component):
     testAchievableVisualOnsetOffset(component)
     testValidVisualStimTiming(component)
     testFramesAsInt(component)
+
 
 def convertParamToPix(value, win, units):
     """
