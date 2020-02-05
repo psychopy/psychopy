@@ -46,10 +46,11 @@ if 'installing' not in locals():
         sys.path.append(pathName)
 
     # load plugins on startup
-    if prefs.general['startUpPlugins']:
-        from psychopy.plugins import loadPlugin
-        for plugin in prefs.general['startUpPlugins']:
-            loadPlugin(plugin)
+    if 'startUpPlugins' in prefs.general.keys():
+        if prefs.general['startUpPlugins']:
+            from psychopy.plugins import loadPlugin
+            for plugin in prefs.general['startUpPlugins']:
+                loadPlugin(plugin)
 
     from psychopy.tools.versionchooser import useVersion, ensureMinimal
 

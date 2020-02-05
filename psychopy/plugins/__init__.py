@@ -504,6 +504,13 @@ def startUpPlugins(plugins, add=True, verify=True):
     `prefs.general['startUpPlugins']` will remain as-is.
 
     """
+    # check if there is a config entry
+    if 'startUpPlugins' not in prefs.general.keys():
+        logging.warning(
+            'Config file does not define `startUpPlugins`. Skipping.')
+
+        return
+
     # if a string is specified
     if isinstance(plugins, str):
         plugins = [plugins]
