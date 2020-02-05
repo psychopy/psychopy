@@ -28,8 +28,8 @@ PsychoPy 2020.1.0
 NEW:
 
 - Many exciting tools for 3D rendering. See Coder demos menu for some examples
-- Online studies now support shapes Cross, Star and regular polygons (nVertices) #2673
 - Online studies have better cross-browser compatibility including fixed support for edge
+- Auto-translate Code Components Py-?JS (syntax only)
 - Online studies have substantially improve timing. In fact, PsychoPy now has the
   `best timing of any online system, consistently under 4ms precision for RTs! <https://psyarxiv.com/d6nu5/>`_
 - New Runner dialog:
@@ -37,6 +37,7 @@ NEW:
     - allows you to run/save/open a set of studies without opening a window for each one
     - allows online studies to run locally in "debug" mode to test the study before uploading
 
+- Online studies now support shapes Cross, Star and regular polygons (nVertices) #2673
 - Support for pyglet 1.4, including support for **text alignment in multi-line text** #2693
 - CHANGED: rendering of text stimuli may not look quite the same. We now have new parameters
   `anchorHoriz` and `TextAlign` rather than `alignHoriz` but this may not act the same in all
