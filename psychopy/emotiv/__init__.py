@@ -57,7 +57,7 @@ class Cortex(object):
 
     VERSION = 'debug'
 
-    def __init__(self, client_id_file=None):
+    def __init__(self, client_id_file=None, subject=None):
         home = str(Path.home())
         if client_id_file is None:
             client_id_file = ".emotiv_creds"
@@ -67,7 +67,7 @@ class Cortex(object):
         self.parse_client_id_file(file_path)
         self.id_sequence = 0
         self.session_id = None
-        self.marker_id = None
+        self.marker_dict = {}
         self.waiting_for_id = None
         self.websocket = None
         self.auth_token = None
@@ -91,7 +91,7 @@ class Cortex(object):
             time_str = datetime.datetime.now().isoformat()
             self.create_session(activate=True,
                                 headset_id=self.headsets[0])
-            self.create_record(title="Psychopy record {}".format(time_str))
+            self.create_record(title="Psychopy_{}_{}".format(subject, time_str))
         else:
             logger.error("Not able to find a connected headset")
             raise CortexNoHeadsetException("Unable to find Emotiv headset")
@@ -124,7 +124,8 @@ class Cortex(object):
             self.authorize()
         msg = self.gen_request(method, auth, **kwargs)
         if method == 'injectMarker':
-            self.waiting_for_id = self.id_sequence
+            self.marker_dict[self.id_sequence] = "sent"
+            # print("sending_marker", time.perf_counter())
         self.websocket.send(msg)
         if wait:
             logger.debug("data sent; awaiting response")
@@ -144,7 +145,6 @@ class Cortex(object):
         self.websocket = websocket.WebSocket(
             sslopt={"cert_reqs": ssl.CERT_NONE})
         self.websocket.connect(self.CORTEX_URL, timeout=60)
-        print(self.websocket)
 
     def ws_listen(self):
         self.running = True
@@ -153,12 +153,20 @@ class Cortex(object):
                 result = json.loads(self.websocket.recv())
                 # if inject marker response save marker_id
                 result_id = result.get("id", False)
-                if result_id and self.waiting_for_id == result['id']:
-                    marker_id = (result.get("result", {})
-                                 .get("marker", {})
-                                 .get("uuid", {}))
-                    if marker_id:
-                        self.marker_id = marker_id
+                if result_id and result['id'] in self.marker_dict.keys():
+                    marker = (result.get("result", {})
+                                 .get("marker", {}))
+                    if marker:
+                        marker_id = marker.get("uuid", "")
+                        label = marker.get("label", "")
+                        if marker_id and label:
+                            del self.marker_dict[result_id]
+                            self.marker_dict[label] = marker_id
+                        else:
+                            logger.warning(
+                                "Unable to save marker_id: "
+                                f"'{marker_id}' for label: '{label}'")
+                        # print("marker_received\n", time.perf_counter())
                 logger.debug('received:\n{}'.format(result))
             except Exception as e:
                 import traceback
@@ -167,25 +175,33 @@ class Cortex(object):
         logger.debug("Finished listening")
 
     @staticmethod
-    def to_epoch(dt=None):
+    def to_epoch(t=None, delta_time=0):
         """
-        Convert a python datetime to a unix epoch time.
-
+        Takes either number of seconds or milliseconds since 1st of Jan 1970
+        or a datetime object and outputs the number of milliseconds since Jan
+        1970
         Parameters:
-            dt: input time; defaults to datetime.now()
+            t: input time; defaults to int(time.time()*1000)
+            delta_time: optional time in seconds to add to the time. This is to
+            add the time until the next screen flip (normally between 16 and 8
+            ms
         """
-        if not dt:
-            return int(time.time()*1000)
-        if isinstance(dt, datetime.datetime):
-            if dt.tzinfo:
-                return int(dt.timestamp() * 1000)
+        if t is None:
+            return int((time.time()+delta_time)*1000)
+        if isinstance(t, str) and t.isnumeric():
+            t = float(t)
+        if isinstance(t, float) or isinstance(t, int):
+            if t > MS_SEC_THRESHOLD:
+                return int(t + delta_time*1000)
+            return int((t+delta_time) * 1000)
+        elif isinstance(t, datetime.datetime):
+            if t.tzinfo:
+                return int((t.timestamp()+delta_time) * 1000)
             else:
                 raise CortexTimingException(
                     "datetime without timezone will not convert correctly")
-        if isinstance(dt, int):
-            if dt > MS_SEC_THRESHOLD:
-                return dt
-        return dt * 1000
+        else:
+            raise CortexTimingException(f"Unable to interpret time: '{t}'")
 
     def parse_client_id_file(self, client_id_file_path):
         """
@@ -272,49 +288,16 @@ class Cortex(object):
             params['license_id'] = license_id
         if debit:
             params['debit'] = debit
-
-        resp = self.send_wait_command('authorize', auth=False, **params)
+        try:
+            resp = self.send_wait_command('authorize', auth=False, **params)
+        except CortexApiException as e:
+            msg = json.loads(str(e))['error']['message'].lower()
+            if "no access rights" in msg:
+                raise CortexApiException("Please open the EmotivApp and grant "
+                                         "permission to your applicationId")
         logger.debug(f"{__name__} resp:\n{resp}")
         self.auth_token = resp['result']['cortexToken']
 
-    # def authorize(self, license_id=None, debit=1):
-    #     self.body['method'] = 'authorize'
-    #     self.body['auth'] = False
-    #     self.body['params'] = {
-    #         "clientId": self.client_id,
-    #         "clientSecret": self.client_secret,
-    #         "debit": 1
-    #     }
-    #     if license_id:
-    #         self.body['params']['license_id'] = license_id
-    #     while True:
-    #         logging.debug("Authorizing!!!")
-    #         self.send()
-    #         result = json.loads(self.websocket.recv())
-    #         internal_result = result.get('result', None)
-    #         if internal_result is not None:
-    #             auth = internal_result.get("cortexToken", None)
-    #             if auth is not None:
-    #                 break
-    #     return auth
-
-    # def send(self):
-    #     s = json.dumps(self.body)
-    #     logging.debug('sending:\n{}'.format(s))
-    #     self.websocket.send(s)
-
-    # I dont want to have to show the terms so
-    # I should not accept the terms here
-    # def accept_eula(self):
-    #     self.body['method'] = "acceptLicense"
-    #     self.body['params'] = {
-    #         "_auth": self.auth
-    #     }
-    #     self.send()
-    #     result = json.loads(self.websocket.recv())
-    #     logging.debug('result', result)
-    #     self.auth = result['result']['_auth']
-    #     return result
 
     ##
     # Here down are cortex specific commands
@@ -391,7 +374,13 @@ class Cortex(object):
         params = {'cortexToken': self.auth_token,
                   'headset': headset_id,
                   'status': status}
-        resp = self.send_wait_command('createSession', **params)
+        try:
+            resp = self.send_wait_command('createSession', **params)
+        except CortexApiException as e:
+            msg = json.loads(str(e))['error']['message'].lower()
+            if "headset is missing" in msg:
+                raise CortexApiException("Please connect the headset using "
+                                         "EmotivApp or EmotivPro")
         self.session_id = resp['result']['id']
         logger.debug(f"{__name__} resp:\n{resp}")
 
@@ -422,8 +411,8 @@ class Cortex(object):
         self.disconnect()
 
     def inject_marker(self, label='', value=0, port='psychopy',
-                      dt=None):
-        ms_time = self.to_epoch(dt)
+                      t=None, delta_time=None):
+        ms_time = self.to_epoch(t,delta_time)
         params = {'cortexToken': self.auth_token,
                   'session': self.session_id,
                   'label': label,
@@ -432,13 +421,17 @@ class Cortex(object):
                   'time': ms_time}
         self.send_command('injectMarker', **params)
 
-    def update_marker(self, dt=None):
-        ms_time = self.to_epoch(dt)
+    def update_marker(self, label= None, t=None, delta_time=None):
+        ms_time = self.to_epoch(t, delta_time)
+        marker_id = self.marker_dict.get(label, None)
+        if marker_id is None:
+            raise Exception("no marker with that label")
         params = {'cortexToken': self.auth_token,
                   'session': self.session_id,
-                  'markerId': self.marker_id,
+                  'markerId': marker_id,
                   'time': ms_time}
         self.send_command('updateMarker', **params)
+        del self.marker_dict[label]
 
     def start_listening(self):
         self.running = True

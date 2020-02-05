@@ -6,7 +6,7 @@ Emotiv Record Component
 The emotiv_record component causes Psychopy to connect to the headset so that markers
 can be sent to the datastream.
 
-The emotiv_recording component should be added ONCE before any stimuli have been presented,
+The emotiv_record component should be added ONCE before any stimuli have been presented,
 ideally in its own separate  at the beginning of the experiment.
 
 We recommend that you use the EmotivApp and or EmotivPro software to
@@ -18,10 +18,10 @@ Getting Started
 
 Before you can connect Psychopy to Emotiv hardware, you need to register your AppId on the Emotiv
 website (https://emotiv.com) Goto My Account > Cortex Apps.  There you will get a client_id and
-a client_secret that you need to copy into a file in your home directory. One line should have
-"client_id" (without the quotes) then a space and then the client_id, another line should have
-"client_secret" (without the quotes and then as space and then the client secret.  A line
-beginning with a hash will be ignored. eg
+a client_secret that you need to copy into a file called .emotiv_creds in your home directory.
+One line should have "client_id" (without the quotes) then a space and then the client_id,
+another line should have "client_secret" (without the quotes and then as space and then the
+client secret.  A line beginning with a hash will be ignored. eg
 ---begin file ---
 # client_id and client_secret for Cortex application
 client_id abc123...

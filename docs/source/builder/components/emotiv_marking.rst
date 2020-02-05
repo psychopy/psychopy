@@ -10,7 +10,10 @@ For the Emotiv Marking component to work an emotiv_recording component should ha
 been added to the experiment.
 
 By default markers with labels and values can be added.  A time interval can be specified
-by sending a stop marker. Marker intervals can not overlap.
+by sending a stop marker. If the Marker intervals overlap it is important that the labels are
+unique. Additionally the length of the interval
+must be greater than 0.2 seconds.  If you need higher speeds than this, it is best to
+record the times of your markers manually and compare them to the times in the raw EEG data.
 
 Parameters
 ~~~~~~~~~~~~

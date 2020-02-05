@@ -9,7 +9,7 @@ from psychopy.experiment.components import BaseComponent, getInitVals
 from psychopy.localization import _translate
 
 
-OBJECT_NAME = 'cortex_obj'
+CORTEX_OBJ = 'cortex_obj'
 
 thisFolder = path.abspath(path.dirname(__file__))
 iconFile = path.join(thisFolder, 'emotiv.jpg')
@@ -21,7 +21,7 @@ class EmotivRecordingComponent(BaseComponent):  # or (VisualComponent)
         super(EmotivRecordingComponent, self).__init__(
             exp, parentName, name=name,
             startType='time (s)', startVal=0,
-            stopType='duration (s)', stopVal="",
+            stopType='duration (s)', stopVal=1.0,
             startEstim='', durationEstim='',
             saveStartStop=False
         )
@@ -33,7 +33,8 @@ class EmotivRecordingComponent(BaseComponent):  # or (VisualComponent)
                 'win=win, name="{}")\n'.format(inits['name'])
                 )
         buff.writeIndentedLines(code)
-        code = ('{} = emotiv.Cortex()\n'.format(OBJECT_NAME))
+        code = ("{} = emotiv.Cortex(subject=expInfo['participant'])\n"
+                .format(CORTEX_OBJ))
         buff.writeIndentedLines(code)
 
     def writeFrameCode(self, buff):
@@ -42,6 +43,6 @@ class EmotivRecordingComponent(BaseComponent):  # or (VisualComponent)
     def writeExperimentEndCode(self, buff):
         code = (
                 "core.wait(1) # Wait for EEG data to be packaged\n" +
-                "{}.close_session()\n".format(OBJECT_NAME)
+                "{}.close_session()\n".format(CORTEX_OBJ)
         )
         buff.writeIndentedLines(code)
