@@ -36,6 +36,7 @@ class PygameBackend(BaseBackend):
     """The pygame backend is built on SDL for cross-platform controls
     """
     GL = GL
+    winTypeName = 'pygame'
 
     def __init__(self, win, *args, **kwargs):
         """Set up the backend window according the params of the PsychoPy win
