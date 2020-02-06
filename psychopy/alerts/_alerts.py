@@ -22,6 +22,7 @@ alertLog : List
     lists can be used to feed AlertPanel using in Project Info and new Runner frame.
 """
 
+_activeAlertHandlers = []
 
 class AlertCatalog(object):
     """A class for loading alerts from the alerts catalogue yaml file"""
@@ -167,6 +168,8 @@ def alert(code=None, obj=object, strFields=None, trace=None):
         sys.stderr.receiveAlert(msg)
     else:
         sys.stderr.write(msgAsStr)  # For tests detecting output - change when error handler set up
+        for handler in _activeAlertHandlers:
+            handler.receiveAlert(msg)
 
 # Create catalog
 catalog = AlertCatalog()
