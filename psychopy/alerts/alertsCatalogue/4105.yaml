@@ -2,7 +2,7 @@
 
 code: 4105
 cat: Timing
-msg: Your stimuli start {type} exceeds the stop {type}. Consider using a {type} duration.
+msg: Your stimulus start {type} exceeds the stop {type}. Consider using a {type} duration.
 
 # The following are typically used for online help pages, and support reStructured Text.
 

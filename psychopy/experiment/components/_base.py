@@ -121,9 +121,10 @@ class BaseComponent(object):
 
     def integrityCheck(self):
         """
-        Run component integrity checks.
+        Run component integrity checks for non-visual components
         """
-        pass
+        alerttools.testDisabled(self)
+        alerttools.testStartEndTiming(self)
 
     def _dubiousConstantUpdates(self):
         """Return a list of fields in component that are set to be constant
@@ -657,17 +658,20 @@ class BaseVisualComponent(BaseComponent):
         """
         super().integrityCheck()  # run parent class checks first
 
-        # win = alerttools.TestWin(self.exp)
-        # # get units for this stimulus
-        # units = self.params['units'].val
-        # if units == 'use experiment settings':
-        #     units = self.exp.settings.params[
-        #         'Units'].val  # this 1 uppercase
-        # if units == 'use preferences':
-        #     units = prefs.general['units']
+        win = alerttools.TestWin(self.exp)
+        # get units for this stimulus
+        units = self.params['units'].val
+        if units == 'use experiment settings':
+            units = self.exp.settings.params[
+                'Units'].val  # this 1 uppercase
+        if units == 'use preferences':
+            units = prefs.general['units']
         # tests for visual stimuli
-        # alerttools.testSize(self, win, units)
-        # alerttools.testPos(self, win, units)
+        alerttools.testSize(self, win, units)
+        alerttools.testPos(self, win, units)
+        alerttools.testAchievableVisualOnsetOffset(self)
+        alerttools.testValidVisualStimTiming(self)
+        alerttools.testFramesAsInt(self)
 
     def writeFrameCode(self, buff):
         """Write the code that will be called every frame

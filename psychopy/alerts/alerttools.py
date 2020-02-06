@@ -29,22 +29,6 @@ def validDuration(t, hz, toleranceFrames=0.01):
     return abs(nFrames - round(nFrames)) < toleranceFrames
 
 
-def runTest(component):
-    """
-    Run integrity checks and sends output to the AlertLog system.
-
-    Parameters
-    ----------
-    component : Component
-        The PsychoPy component being tested
-    """
-    testDisabled(component)
-    testStartEndTiming(component)
-    testAchievableVisualOnsetOffset(component)
-    testValidVisualStimTiming(component)
-    testFramesAsInt(component)
-
-
 def convertParamToPix(value, win, units):
     """
     Convert value to numpy array
