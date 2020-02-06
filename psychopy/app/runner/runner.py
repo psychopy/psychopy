@@ -239,6 +239,7 @@ class RunnerPanel(wx.Panel, ScriptProcess):
                           self.onItemSelected, self.expCtrl)
         self.expCtrl.Bind(wx.EVT_LIST_ITEM_DESELECTED,
                           self.onItemDeselected, self.expCtrl)
+        self.Bind(wx.EVT_LIST_ITEM_ACTIVATED, self.onDoubleClick, self.expCtrl)
         self.expCtrl.InsertColumn(0, 'File')
         self.expCtrl.InsertColumn(1, 'Path')
 
@@ -532,6 +533,34 @@ class RunnerPanel(wx.Panel, ScriptProcess):
         self.stopBtn.Disable()
         self.onlineBtn.Disable()
         self.onlineDebugBtn.Disable()
+
+    def onDoubleClick(self, evt):
+        print('got doubleclick evt')
+        self.currentSelection = evt.Index
+        filename = self.expCtrl.GetItem(self.currentSelection, 0).Text
+        folder = self.expCtrl.GetItem(self.currentSelection, 1).Text
+        filepath = os.path.join(folder, filename)
+        if filename.endswith('psyexp'):
+            # do we have that file already in a frame?
+            builderFrames = self.app.getAllFrames("builder")
+            for frame in builderFrames:
+                if filepath == frame.filename:
+                    frame.Show(True)
+                    frame.Raise()
+                    self.app.SetTopWindow(frame)
+                    return  # we're done
+            # that file isn't open so look for a blank frame to reuse
+            for frame in builderFrames:
+                if frame.filename == 'untitled.psyexp' and frame.lastSavedCopy is None:
+                    frame.fileOpen(filename=filepath)
+                    frame.Show(True)
+                    frame.Raise()
+                    self.app.SetTopWindow(frame)
+            # no reusable frame so make one
+            self.app.showBuilder(fileList=[filepath])
+        else:
+            self.app.showCoder()  # ensures that a coder window exists
+            self.app.coder.setCurrentDoc(filepath)
 
     @property
     def outputPath(self):
