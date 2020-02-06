@@ -9,15 +9,18 @@ Distributed under the terms of the GNU General Public License (GPL).
 
 from __future__ import absolute_import, print_function
 
-from builtins import str, object
+from builtins import str, object, super
 from past.builtins import basestring
 
-from psychopy import logging
+from psychopy import prefs
 from psychopy.constants import FOREVER
 from ..params import Param
 from psychopy.experiment.utils import CodeGenerationException
-from psychopy.localization import _translate, _localized
+from psychopy.experiment.utils import unescapedDollarSign_re
+from psychopy.experiment.params import getCodeFromParamStr
 from psychopy.alerts import alerttools
+
+from psychopy.localization import _translate, _localized
 
 
 class BaseComponent(object):
@@ -44,7 +47,7 @@ class BaseComponent(object):
          "condition": "=='n vertices",
          "param": "n vertices",
          "true": "enable",  # what to do with param if condition is True
-         "false": "disable",  # permited: hide, show, enable, disable
+         "false": "disable",  # permitted: hide, show, enable, disable
          }"""
 
         msg = _translate(
@@ -120,7 +123,50 @@ class BaseComponent(object):
         """
         Run component integrity checks.
         """
-        alerttools.runTest(self)
+        pass
+
+    def _dubiousConstantUpdates(self):
+        """Return a list of fields in component that are set to be constant
+        but seem intended to be dynamic. Some code fields are constant, and
+        some denoted as code by $ are constant.
+        """
+        warnings = []
+        # treat expInfo as likely to be constant; also treat its keys as
+        # constant because its handy to make a short-cut in code:
+        # exec(key+'=expInfo[key]')
+        expInfo = self.exp.settings.getInfo()
+        keywords = self.exp.namespace.nonUserBuilder[:]
+        keywords.extend(['expInfo'] + list(expInfo.keys()))
+        reserved = set(keywords).difference({'random', 'rand'})
+        for key in self.params:
+            field = self.params[key]
+            if (not hasattr(field, 'val') or
+                    not isinstance(field.val, basestring)):
+                continue  # continue == no problem, no warning
+            if not (field.allowedUpdates and
+                    isinstance(field.allowedUpdates, list) and
+                    len(field.allowedUpdates) and
+                    field.updates == 'constant'):
+                continue
+            # now have only non-empty, possibly-code, and 'constant' updating
+            if field.valType == 'str':
+                if not bool(unescapedDollarSign_re.search(field.val)):
+                    continue
+                code = getCodeFromParamStr(field.val)
+            elif field.valType == 'code':
+                code = field.val
+            else:
+                continue
+            # get var names in the code; no names == constant
+            try:
+                names = compile(code, '', 'eval').co_names
+            except SyntaxError:
+                continue
+            # ignore reserved words:
+            if not set(names).difference(reserved):
+                continue
+            warnings.append((field, key))
+        return warnings or [(None, None)]
 
     def writeInitCode(self, buff):
         """Write any code that a component needs that should only ever be done
@@ -604,6 +650,24 @@ class BaseVisualComponent(BaseComponent):
             label=_localized['ori'])
 
         self.params['syncScreenRefresh'].readOnly = True
+
+    def integrityCheck(self):
+        """
+        Run component integrity checks.
+        """
+        super().integrityCheck()  # run parent class checks first
+
+        # win = alerttools.TestWin(self.exp)
+        # # get units for this stimulus
+        # units = self.params['units'].val
+        # if units == 'use experiment settings':
+        #     units = self.exp.settings.params[
+        #         'Units'].val  # this 1 uppercase
+        # if units == 'use preferences':
+        #     units = prefs.general['units']
+        # tests for visual stimuli
+        # alerttools.testSize(self, win, units)
+        # alerttools.testPos(self, win, units)
 
     def writeFrameCode(self, buff):
         """Write the code that will be called every frame

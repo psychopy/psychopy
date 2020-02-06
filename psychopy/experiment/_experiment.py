@@ -144,10 +144,19 @@ class Experiment(object):
             self.routines[routineName] = Routine(routineName, exp=self)
         else:
             self.routines[routineName] = routine
+        return self.routines[routineName]
+
+    def integrityCheck(self):
+        """Check the integrity of the Experiment"""
+        # add some checks for things outside the Flow?
+        # then check the contents 1-by-1 from the Flow
+        self.flow.integrityCheck()
 
     def writeScript(self, expPath=None, target="PsychoPy", modular=True):
         """Write a PsychoPy script for the experiment
         """
+        self.integrityCheck()
+
         self.psychopyVersion = psychopy.__version__  # make sure is current
         # set this so that params write for approp target
         utils.scriptTarget = target
