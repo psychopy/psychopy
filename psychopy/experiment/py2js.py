@@ -12,7 +12,6 @@ to JS (ES6/PsychoJS)
 import ast
 import astunparse
 import esprima
-import sys
 from os import path
 from psychopy.constants import PY3
 from psychopy import logging
@@ -82,9 +81,13 @@ def expression2js(expr):
     # into a list for the number of tuples in the expression.
     try:
         syntaxTree = ast.parse(expr)
-    except Exception as err:
-        logging.error(err)
-        syntaxTree = ast.parse(unicode(expr))
+    except Exception:
+        try:
+            syntaxTree = ast.parse(unicode(expr))
+        except Exception as err:
+            logging.error(err)
+            return
+
 
     for node in ast.walk(syntaxTree):
         TupleTransformer().visit(node)  # Transform tuples to list
@@ -147,7 +150,7 @@ def addVariableDeclarations(inputProgram, fileName):
     try:
         ast = esprima.parseScript(inputProgram, {'range': True, 'tolerant': True})
     except esprima.error_handler.Error as err:
-        sys.stderr.write("ERROR: {} in {}\n".format(err, path.split(fileName)[1]))
+        logging.error("{0} in {1}".format(err, path.split(fileName)[1]))
         return inputProgram  # So JS can be written to file
 
     # find undeclared vars in functions and declare them before the function

@@ -50,7 +50,9 @@ __all__ = ['normalize',
            'alignTo',
            'quatYawPitchRoll',
            'intersectRaySphere',
-           'intersectRayAABB']
+           'intersectRayAABB',
+           'intersectRayOBB',
+           'intersectRayTriangle']
 
 import numpy as np
 import functools
@@ -1115,14 +1117,14 @@ def vertexNormal(faceNorms, norm=True, out=None, dtype=None):
 # Collision Detection and Interaction
 #
 
-def intersectRayPlane(orig, dir, planeOrig, planeNormal, dtype=None):
+def intersectRayPlane(rayOrig, rayDir, planeOrig, planeNormal, dtype=None):
     """Get the point which a ray intersects a plane.
 
     Parameters
     ----------
-    orig : array_like
+    rayOrig : array_like
         Origin of the line in space [x, y, z].
-    dir : array_like
+    rayDir : array_like
         Direction vector of the line [x, y, z].
     planeOrig : array_like
         Origin of the plane to test [x, y, z].
@@ -1161,23 +1163,23 @@ def intersectRayPlane(orig, dir, planeOrig, planeNormal, dtype=None):
     dtype = np.float64 if dtype is None else np.dtype(dtype).type
 
     # based off the method from GLM
-    orig = np.asarray(orig, dtype=dtype)
-    dir = np.asarray(dir, dtype=dtype)
+    rayOrig = np.asarray(rayOrig, dtype=dtype)
+    rayDir = np.asarray(rayDir, dtype=dtype)
     planeOrig = np.asarray(planeOrig, dtype=dtype)
     planeNormal = np.asarray(planeNormal, dtype=dtype)
 
-    denom = dot(dir, planeNormal, dtype=dtype)
+    denom = dot(rayDir, planeNormal, dtype=dtype)
     if denom == 0.0:
         return None
 
     # distance to collision
-    dist = dot((planeOrig - orig), planeNormal, dtype=dtype) / denom
-    intersect = dist * dir + orig
+    dist = dot((planeOrig - rayOrig), planeNormal, dtype=dtype) / denom
+    intersect = dist * rayDir + rayOrig
 
     return intersect, dist
 
 
-def intersectRaySphere(orig, dir, sphereOrig=(0., 0., 0.), sphereRadius=1.0,
+def intersectRaySphere(rayOrig, rayDir, sphereOrig=(0., 0., 0.), sphereRadius=1.0,
                        dtype=None):
     """Calculate the points which a ray/line intersects a sphere (if any).
 
@@ -1188,9 +1190,9 @@ def intersectRaySphere(orig, dir, sphereOrig=(0., 0., 0.), sphereRadius=1.0,
 
     Parameters
     ----------
-    orig : array_like
+    rayOrig : array_like
         Origin of the ray in space [x, y, z].
-    dir : array_like
+    rayDir : array_like
         Direction vector of the ray [x, y, z], should be normalized.
     sphereOrig : array_like
         Origin of the sphere to test [x, y, z].
@@ -1211,13 +1213,13 @@ def intersectRaySphere(orig, dir, sphereOrig=(0., 0., 0.), sphereRadius=1.0,
     # based off example from http://antongerdelan.net/opengl/raycasting.html
     dtype = np.float64 if dtype is None else np.dtype(dtype).type
 
-    orig = np.asarray(orig, dtype=dtype)
-    dir = np.asarray(dir, dtype=dtype)
+    rayOrig = np.asarray(rayOrig, dtype=dtype)
+    rayDir = np.asarray(rayDir, dtype=dtype)
     sphereOrig = np.asarray(sphereOrig, dtype=dtype)
     sphereRadius = np.asarray(sphereRadius, dtype=dtype)
 
-    d = orig - sphereOrig
-    b = np.dot(dir, d)
+    d = rayOrig - sphereOrig
+    b = np.dot(rayDir, d)
     c = np.dot(d, d) - np.square(sphereRadius)
     b2mc = np.square(b) - c  # determinant
 
@@ -1226,19 +1228,19 @@ def intersectRaySphere(orig, dir, sphereOrig=(0., 0., 0.), sphereRadius=1.0,
 
     u = np.sqrt(b2mc)
     nearestDist = np.minimum(-b + u, -b - u)
-    pos = (dir * nearestDist) + orig
+    pos = (rayDir * nearestDist) + rayOrig
 
     return pos, nearestDist
 
 
-def intersectRayAABB(orig, dir, boundsOffset, boundsExtents, dtype=None):
+def intersectRayAABB(rayOrig, rayDir, boundsOffset, boundsExtents, dtype=None):
     """Find the point a ray intersects an axis-aligned bounding box (AABB).
 
     Parameters
     ----------
-    orig : array_like
+    rayOrig : array_like
         Origin of the ray in space [x, y, z].
-    dir : array_like
+    rayDir : array_like
         Direction vector of the ray [x, y, z], should be normalized.
     boundsOffset : array_like
         Offset of the bounding box in the scene [x, y, z].
@@ -1253,7 +1255,7 @@ def intersectRayAABB(orig, dir, boundsOffset, boundsExtents, dtype=None):
     -------
     tuple
         Coordinate in world space of the intersection and distance in scene
-        units from `orig`. Returns `None` if there is no intersection.
+        units from `rayOrig`. Returns `None` if there is no intersection.
 
     Examples
     --------
@@ -1277,7 +1279,7 @@ def intersectRayAABB(orig, dir, boundsOffset, boundsExtents, dtype=None):
             cursorModel.draw()  # don't draw anything if there is no intersect
 
     Note that if the model is rotated, the bounding box may not be aligned
-    anymore with the axes.
+    anymore with the axes. Use `intersectRayOBB` if your model rotates.
 
     """
     # based of the example provided here:
@@ -1285,19 +1287,19 @@ def intersectRayAABB(orig, dir, boundsOffset, boundsExtents, dtype=None):
     # minimal-ray-tracer-rendering-simple-shapes/ray-box-intersection
     dtype = np.float64 if dtype is None else np.dtype(dtype).type
 
-    orig = np.asarray(orig, dtype=dtype)
-    dir = np.asarray(dir, dtype=dtype)
+    rayOrig = np.asarray(rayOrig, dtype=dtype)
+    rayDir = np.asarray(rayDir, dtype=dtype)
     boundsOffset = np.asarray(boundsOffset, dtype=dtype)
     extents = np.asarray(boundsExtents, dtype=dtype) + boundsOffset
 
-    invDir = 1.0 / dir
+    invDir = 1.0 / rayDir
     sign = np.zeros((3,), dtype=np.int)
     sign[invDir < 0.0] = 1
 
-    tmin = (extents[sign[0], 0] - orig[0]) * invDir[0]
-    tmax = (extents[1 - sign[0], 0] - orig[0]) * invDir[0]
-    tymin = (extents[sign[1], 1] - orig[1]) * invDir[1]
-    tymax = (extents[1 - sign[1], 1] - orig[1]) * invDir[1]
+    tmin = (extents[sign[0], 0] - rayOrig[0]) * invDir[0]
+    tmax = (extents[1 - sign[0], 0] - rayOrig[0]) * invDir[0]
+    tymin = (extents[sign[1], 1] - rayOrig[1]) * invDir[1]
+    tymax = (extents[1 - sign[1], 1] - rayOrig[1]) * invDir[1]
 
     if tmin > tymax or tymin > tmax:
         return None
@@ -1308,8 +1310,8 @@ def intersectRayAABB(orig, dir, boundsOffset, boundsExtents, dtype=None):
     if tymax < tmax:
         tmax = tymax
 
-    tzmin = (extents[sign[2], 2] - orig[2]) * invDir[2]
-    tzmax = (extents[1 - sign[2], 2] - orig[2]) * invDir[2]
+    tzmin = (extents[sign[2], 2] - rayOrig[2]) * invDir[2]
+    tzmax = (extents[1 - sign[2], 2] - rayOrig[2]) * invDir[2]
 
     if tmin > tzmax or tzmin > tmax:
         return None
@@ -1324,7 +1326,176 @@ def intersectRayAABB(orig, dir, boundsOffset, boundsExtents, dtype=None):
         if tmax < 0:
             return None
 
-    return (dir * tmin) + orig, tmin
+    return (rayDir * tmin) + rayOrig, tmin
+
+
+def intersectRayOBB(rayOrig, rayDir, modelMatrix, boundsExtents, dtype=None):
+    """Find the point a ray intersects an oriented bounding box (OBB).
+
+    Parameters
+    ----------
+    rayOrig : array_like
+        Origin of the ray in space [x, y, z].
+    rayDir : array_like
+        Direction vector of the ray [x, y, z], should be normalized.
+    modelMatrix : array_like
+        4x4 model matrix of the object and bounding box.
+    boundsExtents : array_like
+        Minimum and maximum extents of the bounding box.
+    dtype : dtype or str, optional
+        Data type for computations can either be 'float32' or 'float64'. If
+        `out` is specified, the data type of `out` is used and this argument is
+        ignored. If `out` is not provided, 'float64' is used by default.
+
+    Returns
+    -------
+    tuple
+        Coordinate in world space of the intersection and distance in scene
+        units from `rayOrig`. Returns `None` if there is no intersection.
+
+    Examples
+    --------
+    Get the point on an oriented bounding box that the cursor is over and place
+    a 3D stimulus there. The eye location is defined by `RigidBodyPose` object
+    `camera`::
+
+        # get the mouse position on-screen
+        mx, my = mouse.getPos()
+
+        # find the point which the ray intersects on the box
+        result = intersectRayOBB(
+            camera.pos,
+            camera.transformNormal(win.coordToRay((mx, my))),
+            myStim.thePose.getModelMatrix(),
+            myStim.thePose.bounds.extents)
+
+        # if the ray intersects, set the position of the cursor object to it
+        if result is not None:
+            cursorModel.thePose.pos = result[0]
+            cursorModel.draw()  # don't draw anything if there is no intersect
+
+    """
+    # based off algorithm:
+    # http://www.opengl-tutorial.org/miscellaneous/clicking-on-objects/
+    # picking-with-custom-ray-obb-function/
+    dtype = np.float64 if dtype is None else np.dtype(dtype).type
+
+    rayOrig = np.asarray(rayOrig, dtype=dtype)
+    rayDir = np.asarray(rayDir, dtype=dtype)
+    modelMatrix = np.asarray(modelMatrix, dtype=dtype)
+    boundsOffset = np.asarray(modelMatrix[:3, 3], dtype=dtype)
+    extents = np.asarray(boundsExtents, dtype=dtype)
+
+    tmin = 0.0
+    tmax = np.finfo(dtype).max
+    d = boundsOffset - rayOrig
+
+    # solve intersects for each pair of planes along each axis
+    for i in range(3):
+        axis = modelMatrix[:3, i]
+        e = np.dot(axis, d)
+        f = np.dot(rayDir, axis)
+
+        if np.fabs(f) > 1e-5:
+            t1 = (e + extents[0, i]) / f
+            t2 = (e + extents[1, i]) / f
+
+            if t1 > t2:
+                temp = t1
+                t1 = t2
+                t2 = temp
+
+            if t2 < tmax:
+                tmax = t2
+
+            if t1 > tmin:
+                tmin = t1
+
+            if tmin > tmax:
+                return None
+
+        else:
+            # very close to parallel with the face
+            if -e + extents[0, i] > 0.0 or -e + extents[1, i] < 0.0:
+                return None
+
+    return (rayDir * tmin) + rayOrig, tmin
+
+
+def intersectRayTriangle(rayOrig, rayDir, tri, dtype=None):
+    """Get the intersection of a ray and signle triangle.
+
+    Parameters
+    ----------
+    rayOrig : array_like
+        Origin of the ray in space [x, y, z].
+    rayDir : array_like
+        Direction vector of the ray [x, y, z], should be normalized.
+    tri : array_like
+        Triangle vertices as 2D (3x3) array [p0, p1, p2] where each vertex is a
+        length 3 array [vx, xy, vz]. The input array can be 3D (Nx3x3) to
+        specify multiple triangles.
+    dtype : dtype or str, optional
+        Data type for computations can either be 'float32' or 'float64'. If
+        `out` is specified, the data type of `out` is used and this argument is
+        ignored. If `out` is not provided, 'float64' is used by default.
+
+    Returns
+    -------
+    tuple
+        Coordinate in world space of the intersection, distance in scene
+        units from `rayOrig`, and the barycentric coordinates on the triangle
+        [x, y]. Returns `None` if there is no intersection.
+
+    """
+    # based off `intersectRayTriangle` from GLM (https://glm.g-truc.net)
+    dtype = np.float64 if dtype is None else np.dtype(dtype).type
+
+    rayOrig = np.asarray(rayOrig, dtype=dtype)
+    rayDir = np.asarray(rayDir, dtype=dtype)
+    triVerts = np.asarray(tri, dtype=dtype)
+
+    edge1 = triVerts[1, :] - triVerts[0, :]
+    edge2 = triVerts[2, :] - triVerts[0, :]
+
+    baryPos = np.zeros((2,), dtype=dtype)
+
+    p = np.cross(rayDir, edge2)
+    det = np.dot(edge1, p)
+
+    if det > np.finfo(dtype).eps:
+        dist = rayOrig - triVerts[0, :]
+
+        baryPos[0] = np.dot(dist, p)
+        if baryPos[0] < 0.0 or baryPos[0] > det:
+            return None
+
+        ortho = np.cross(dist, edge1)
+
+        baryPos[1] = np.dot(rayDir, ortho)
+        if baryPos[1] < 0.0 or baryPos[0] + baryPos[1] > det:
+            return None
+
+    elif det < -np.finfo(dtype).eps:
+        dist = rayOrig - triVerts[0, :]
+
+        baryPos[0] = np.dot(dist, p)
+        if baryPos[0] > 0.0 or baryPos[0] < det:
+            return None
+
+        ortho = np.cross(dist, edge1)
+
+        baryPos[1] = np.dot(rayDir, ortho)
+        if baryPos[1] > 0.0 or baryPos[0] + baryPos[1] < det:
+            return None
+    else:
+        return None
+
+    invDet = 1.0 / det
+    dist = np.dot(edge2, ortho) * invDet
+    baryPos *= invDet
+
+    return (rayDir * dist) + rayOrig, dist, baryPos
 
 
 def ortho3Dto2D(p, orig, normal, up, right=None, dtype=None):
@@ -2265,7 +2436,7 @@ def scaleMatrix(s, out=None, dtype=None):
         dtype = np.float64 if dtype is None else np.dtype(dtype).type
         S = np.zeros((4, 4,), dtype=dtype)
     else:
-        dtype = out.dtype
+        dtype = np.dtype(out.dtype).type
         S = out
         S.fill(0.0)
 
@@ -2316,7 +2487,7 @@ def rotationMatrix(angle, axis=(0., 0., -1.), out=None, dtype=None):
         dtype = np.float64 if dtype is None else np.dtype(dtype).type
         R = np.zeros((4, 4,), dtype=dtype)
     else:
-        dtype = out.dtype
+        dtype = np.dtype(out.dtype).type
         R = out
         R.fill(0.0)
 
@@ -2379,7 +2550,7 @@ def translationMatrix(t, out=None, dtype=None):
         dtype = np.float64 if dtype is None else np.dtype(dtype).type
         T = np.identity(4, dtype=dtype)
     else:
-        dtype = out.dtype
+        dtype = np.dtype(out.dtype).type
         T = out
         T.fill(0.0)
         np.fill_diagonal(T, 1.0)
@@ -2398,8 +2569,8 @@ def invertMatrix(m, homogeneous=False, out=None, dtype=None):
         4x4 matrix to invert.
     homogeneous : bool, optional
         Set as ``True`` if the input matrix specifies affine (homogeneous)
-        transformations (scale, rotation, and translation). This will use a
-        faster inverse method which handles such cases. Default is ``False``.
+        transformations (rotation and translation only). This will use a faster
+        inverse method which handles such cases. Default is ``False``.
     out : ndarray, optional
         Optional output array. Must be same `shape` and `dtype` as the expected
         output if `out` was not specified.
@@ -2426,7 +2597,7 @@ def invertMatrix(m, homogeneous=False, out=None, dtype=None):
     assert m.shape == (4, 4,)
 
     if not homogeneous:
-        if not isOrthogonal(m):
+        if not isOrthogonal(m[:3, :3]):
             toReturn[:, :] = np.linalg.inv(m)
         else:
             toReturn[:, :] = m.T
@@ -2656,16 +2827,15 @@ def isOrthogonal(m):
         `True` if the matrix is orthogonal.
 
     """
-    assert 2 <= m.shape[0] <= 4
-    assert m.shape[0] == m.shape[1]
-
     if not isinstance(m, (np.ndarray,)):
         m = np.asarray(m)
 
+    assert 2 <= m.shape[0] <= 4
+    assert m.shape[0] == m.shape[1]
+
     dtype = np.dtype(m.dtype).type
-    eps = np.finfo(dtype).eps
-    return np.all(
-        np.abs(np.matmul(m, m.T) - np.identity(m.shape[0], dtype)) < eps)
+    return np.allclose(np.matmul(m.T, m, dtype=dtype),
+                       np.identity(m.shape[0], dtype))
 
 
 def isAffine(m):

@@ -1,0 +1,21 @@
+# The first key-value pair is used for the alerts package
+
+code: 2120
+cat: Sizing
+msg: Your stimuli size is smaller than 1 pixel ({dimension} dimension).
+
+# The following are typically used for online help pages, and support reStructured Text.
+
+synopsis: |
+  Stimuli size requested is smaller than 1 pixel on X and/oy Y dimensions. Stimuli sized smaller than
+  1 pixel will not be visible.
+
+details: |
+  Longer description with optional links to further information
+
+solutions: |
+  Describe fixes/workarounds for the user
+  `Screen units <https://www.psychopy.org/general/units.html/>`_
+
+versions: |
+  All versions

@@ -374,7 +374,6 @@ class DetailsPanel(scrlpanel.ScrolledPanel):
         self.parent.Raise()
 
 
-
 class ProjectFrame(wx.Dialog):
 
     def __init__(self, app, parent=None, style=None,
@@ -393,9 +392,9 @@ class ProjectFrame(wx.Dialog):
         self.project = project
         self.parent = parent
 
-        # on the right
         self.detailsPanel = DetailsPanel(parent=self, project=self.project)
-        self.mainSizer = wx.BoxSizer(wx.HORIZONTAL)
+
+        self.mainSizer = wx.BoxSizer(wx.VERTICAL)
         self.mainSizer.Add(self.detailsPanel, 1, wx.EXPAND | wx.ALL, 5)
         self.SetSizerAndFit(self.mainSizer)
 
@@ -417,6 +416,26 @@ def syncProject(parent, project=None, closeFrameWhenDone=False):
         return 0
 
     isCoder = hasattr(parent, 'currentDoc')
+
+    # Test and reject sync from invalid folders
+    if isCoder:
+        currentPath = os.path.dirname(parent.currentDoc.filename)
+    else:
+        currentPath = os.path.dirname(parent.filename)
+
+    currentPath = os.path.normcase(os.path.expanduser(currentPath))
+    invalidFolders = [os.path.normcase(os.path.expanduser('~/Desktop')),
+                      os.path.normcase(os.path.expanduser('~/My Documents'))]
+
+    if currentPath in invalidFolders:
+        wx.MessageBox(("You cannot sync projects from:\n\n"
+                      "  - Desktop\n"
+                      "  - My Documents\n\n"
+                      "Please move your project files to another folder, and try again."),
+                      "Project Sync Error",
+                      wx.ICON_QUESTION | wx.OK)
+        return -1
+
     if not project and "BuilderFrame" in repr(parent):
         # try getting one from the frame
         project = parent.project  # type: pavlovia.PavloviaProject
@@ -474,8 +493,8 @@ def syncProject(parent, project=None, closeFrameWhenDone=False):
             logging.error("Failed to recreate project to sync with")
             return 0
 
-    # a sync will be necessary so can create syncFrame
-    syncFrame = sync.SyncFrame(parent=parent, id=wx.ID_ANY, project=project)
+    # a sync will be necessary so set the target to Runner stdout
+    syncFrame = parent.app.runner.stdOut
 
     if project._newRemote:
         # new remote so this will be a first push
@@ -485,49 +504,48 @@ def syncProject(parent, project=None, closeFrameWhenDone=False):
         # add the local files and commit them
         ok = showCommitDialog(parent=parent, project=project,
                               initMsg="First commit",
-                              infoStream=syncFrame.syncPanel.infoStream)
+                              infoStream=syncFrame)
         if ok == -1:  # cancelled
             syncFrame.Destroy()
             return -1
-        syncFrame.syncPanel.setStatus("Pushing files to Pavlovia")
+        syncFrame.setStatus("Pushing files to Pavlovia")
         wx.Yield()
         time.sleep(0.001)
         # git push -u origin master
         try:
-            project.firstPush(infoStream=syncFrame.syncPanel.infoStream)
+            project.firstPush(infoStream=syncFrame)
             project._newRemote = False
         except Exception as e:
             closeFrameWhenDone = False
-            syncFrame.syncPanel.statusAppend(traceback.format_exc())
+            syncFrame.statusAppend(traceback.format_exc())
     else:
         # existing remote which we should sync (or clone)
         try:
-            ok = project.getRepo(syncFrame.syncPanel.infoStream)
+            ok = project.getRepo(syncFrame)
             if not ok:
                 closeFrameWhenDone = False
         except Exception as e:
             closeFrameWhenDone = False
-            syncFrame.syncPanel.statusAppend(traceback.format_exc())
+            syncFrame.statusAppend(traceback.format_exc())
         # check for anything to commit before pull/push
         outcome = showCommitDialog(parent, project,
-                                   infoStream=syncFrame.syncPanel.infoStream)
+                                   infoStream=syncFrame)
         # 0=nothing to do, 1=OK, -1=cancelled
         if outcome == -1:  # user cancelled
-            syncFrame.Destroy()
             return -1
         try:
-            status = project.sync(syncFrame.syncPanel.infoStream)
+            status = project.sync(syncFrame)
             if status == -1:
-                syncFrame.syncPanel.statusAppend("Couldn't sync")
+                syncFrame.statusAppend("Couldn't sync")
         except Exception:  # not yet sure what errors might occur
             # send the error to panel
-            syncFrame.syncPanel.statusAppend(traceback.format_exc())
+            syncFrame.statusAppend(traceback.format_exc())
             return 0
 
     wx.Yield()
     project._lastKnownSync = time.time()
     if closeFrameWhenDone:
-        syncFrame.Destroy()
+        pass
 
     return 1
 

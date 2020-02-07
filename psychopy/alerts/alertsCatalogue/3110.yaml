@@ -1,0 +1,21 @@
+# The first key-value pair is used for the alerts package
+
+code: 3110
+cat: Timing
+msg: Your stimuli {type}-time of {time} is less than a screen refresh for a {Hz}Hz monitor.
+
+# The following are typically used for online help pages, and support reStructured Text.
+
+synopsis: |
+  Requested start or stop times of visual components cannot be presented for times requested.
+  Accurate presentation times must be in increments of your screen refresh rate.
+
+details: |
+  Longer description with optional links to further information
+
+solutions: |
+  Describe fixes/workarounds for the user
+  `Stimuli timing <https://www.psychopy.org/coder/codeStimuli.html/>`_
+
+versions: |
+  All versions.

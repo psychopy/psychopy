@@ -106,12 +106,12 @@ class ExperimentRuntime(ioHubExperimentRuntime):
         title = visual.TextStim(win=self.psychoWindow,
                                 text="ioHub getEvents Delay Test", pos = [0,125],
                                 height=36, color=[1,.5,0], colorSpace='rgb',
-                                alignHoriz='center', wrapWidth=800.0)
+                                wrapWidth=800.0)
 
         instr = visual.TextStim(win=self.psychoWindow,
                                 text='Move the mouse around, press keyboard keys and mouse buttons',
                                 pos = [0,-125], height=32, color=[-1,-1,-1],
-                                colorSpace='rgb',alignHoriz='center',wrapWidth=800.0)
+                                colorSpace='rgb', wrapWidth=800.0)
 
         self.psychoStim['static'] = visual.BufferImageStim(win=self.psychoWindow,
                                          stim=(fixation, title, instr))
@@ -121,7 +121,7 @@ class ExperimentRuntime(ioHubExperimentRuntime):
         self.psychoStim['keytext'] = visual.TextStim(win=self.psychoWindow,
                                         text='key', pos = [0,300], height=48,
                                         color=[-1,-1,-1], colorSpace='rgb',
-                                        alignHoriz='left',wrapWidth=800.0)
+                                        wrapWidth=800.0)
         self.psychoStim['mouseDot'] = visual.GratingStim(win=self.psychoWindow,
                                         tex=None, mask="gauss",
                                         pos=currentPosition,size=(50,50),

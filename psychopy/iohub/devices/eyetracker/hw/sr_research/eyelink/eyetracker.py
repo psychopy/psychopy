@@ -124,7 +124,6 @@ class EyeTracker(EyeTrackerDevice):
 
         try:
             tracker_config = self.getConfiguration()
-
             # Connect to the eye tracker; setting the EyeTracker._eyelink class
             # attribute to a pylink.EYELINK device class if EyeTracker._eyelink
             # is None.
@@ -397,8 +396,8 @@ class EyeTracker(EyeTrackerDevice):
             * ESC can be pressed at any time to exit the current state of the setup procedure and return to the initial blank screen state.
             * O = Exit the runSetupProcedure method and continue with the experiment.
         """
-        if starting_state != EyeTrackerConstants.DEFAULT_SETUP_PROCEDURE:
-            printExceptionDetailsToStdErr()
+#        if starting_state != EyeTrackerConstants.DEFAULT_SETUP_PROCEDURE:
+#            printExceptionDetailsToStdErr()
 
         try:
             from . import eyeLinkCoreGraphicsIOHubPsychopy
@@ -1231,54 +1230,49 @@ class EyeTracker(EyeTrackerDevice):
                 track_eyes = 'RIGHT'
 
             srate = self._getSamplingRate()
-
             self._eyelink.sendCommand('lock_active_eye = NO')
             if track_eyes == 'BOTH':
                 if self._eyelink.getTrackerVersion() == 3:
-                    if srate >= 1000:
-                        print2err(
-                            'ERROR: setEyesToTrack: EyeLink can not record binocularly over 500 hz.')
-                        return EyeTrackerConstants.EYETRACKER_ERROR
-                    else:
-                        trackerVersion = self._eyelink.getTrackerVersionString().strip()
-                        trackerVersion = trackerVersion.split(' ')
-                        tv = float(trackerVersion[len(trackerVersion) - 1])
-                        if tv <= 3:
-                            if srate > 500:
-                                print2err(
-                                    'ERROR: setEyesToTrack: Selected sample rate is not supported in binocular mode')
-                                return EyeTrackerConstants.EYETRACKER_ERROR
-                            else:
-                                self._eyelink.sendCommand(
-                                    'binocular_enabled = YES')
-                                return EyeTrackerConstants.EYETRACKER_OK
+                    trackerVersion = self._eyelink.getTrackerVersionString().strip()
+                    trackerVersion = trackerVersion.split(' ')
+                    tv = float(trackerVersion[len(trackerVersion) - 1])
+                    if tv <= 3:
+                        if srate > 500:
+                            print2err(
+                                'ERROR: setEyesToTrack: Selected sample rate is not supported in binocular mode')
+                            return EyeTrackerConstants.EYETRACKER_ERROR
                         else:
-                            rts = []
-                            modes = self._readResultFromTracker(
-                                'read_mode_list')
-                            if modes is None or modes.strip() == 'Unknown Variable Name':
-                                print2err(
-                                    'ERROR: setEyesToTrack: Failed to get supported modes. ')
-                                return EyeTrackerConstants.EYETRACKER_ERROR
-                            modes = modes.strip().split()
-                            #print2err('EL Modes: ', modes)
-                            for x in modes:
-                                if x[-1] == 'B':
-                                    x = int(x.replace('B', ' ').strip())
-                                    rts.append(x)
-                            #print2err('EL srate: ', srate)
-                            #print2err('EL rts: ', rts)
-                            if srate in rts:
-                                self._eyelink.sendCommand(
-                                    'binocular_enabled = YES')
-                                return True
-                            else:
-                                print2err(
-                                    'ERROR: setEyesToTrack: Selected sample rate is not supported!')
-                                return EyeTrackerConstants.EYETRACKER_ERROR
+                            self._eyelink.sendCommand(
+                                'binocular_enabled = YES')
+                            return EyeTrackerConstants.EYETRACKER_OK
+                    else:
+                        rts = []
+                        modes = self._readResultFromTracker(
+                            'read_mode_list')
+                        if modes is None or modes.strip() == 'Unknown Variable Name':
+                            print2err(
+                                'ERROR: setEyesToTrack: Failed to get supported modes. ')
+                            return EyeTrackerConstants.EYETRACKER_ERROR
+                        modes = modes.strip().split()
+                        #print2err('EL Modes: ', modes)
+                        for x in modes:
+                            if x[-1] == 'B':
+                                x = int(x.replace('B', ' ').strip())
+                                rts.append(x)
+                        #print2err('EL srate: ', srate)
+                        #print2err('EL rts: ', rts)
+                        if srate in rts:
+                            self._eyelink.sendCommand(
+                                'binocular_enabled = YES')
+                            return True
+                        else:
+                            print2err(
+                                'ERROR: setEyesToTrack: Selected sample rate is not supported!')
+                            return EyeTrackerConstants.EYETRACKER_ERROR
             else:
                 self._eyelink.sendCommand('binocular_enabled = NO')
-                self._eyelink.sendCommand('current_camera = %s' % (track_eyes))
+                # Following command fails on el1000+
+                #self._eyelink.sendCommand('current_camera = %s' % (track_eyes))
                 self._eyelink.sendCommand('active_eye = %s' % (track_eyes))
                 self._eyelink.sendCommand('lock_active_eye = YES')
                 return EyeTrackerConstants.EYETRACKER_OK

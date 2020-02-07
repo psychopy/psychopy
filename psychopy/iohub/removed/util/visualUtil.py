@@ -269,8 +269,6 @@ class InstructionScreen(ScreenState):
             height=text_height,
             color=text_color,
             colorSpace='rgb255',
-            alignHoriz='center',
-            alignVert='center',
             units='pix',
             wrapWidth=(
                 r - l) * .9)

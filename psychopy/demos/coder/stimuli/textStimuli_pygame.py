@@ -41,7 +41,7 @@ fpsText = visual.TextStim(win,
     units='norm', height=0.1,
     pos=(-0.98, -0.98), text='starting...',
     font=sans,
-    alignHoriz='left', alignVert='bottom',
+    anchorVert='bottom', anchorHoriz='left',
     color=[1, -1, -1])
 rotating = visual.TextStim(win, text="Fonts rotate!", pos=(0, 0),
     color=[-1, -1, 1], units='deg',
@@ -55,7 +55,8 @@ unicodeStuff = visual.TextStim(win,
 psychopyTxt = visual.TextStim(win, color=1,
     text=u"PsychoPy \u00A9Jon Peirce",
     units='norm', height=0.1,
-    pos=[0.95, 0.95], alignHoriz='right', alignVert='top',
+    pos=[0.95, 0.95],
+    alignText='right', anchorHoriz='right', anchorVert='top',
     font=fancy, italic=True)
 
 trialClock = core.Clock()

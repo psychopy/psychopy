@@ -58,6 +58,7 @@ Manual installations
 See below for options if you don't want to use the Standalone releases:
 
 * :ref:`pip_install`
+* :ref:`brew_install`
 * :ref:`linux_install`
 * :ref:`conda`
 * :ref:`developers_install`
@@ -67,7 +68,7 @@ See below for options if you don't want to use the Standalone releases:
 pip install
 ~~~~~~~~~~~~~~~~~
 
-Now that most python libraries can be install using `pip` it's relatively easy
+Now that most python libraries can be installed using `pip` it's relatively easy
 to manually install PsychoPy and all it's dependencies to your own installation
 of Python.
 
@@ -84,6 +85,15 @@ If you prefer *not* to install *all* the dependencies then you could do::
   pip install psychopy --no-deps
 
 and then install them manually.
+
+.. _brew_install:
+
+brew install
+~~~~~~~~~~~~~~~~~
+
+On a MacOS machine, `brew` can be used to install PsychoPy::
+
+  brew cask install psychopy
 
 .. _linux_install:
 
@@ -139,8 +149,11 @@ open your terminal, navigate to the directory you saved the file to, and run::
 
   conda env create -n psychopy -f psychopy-env.yml
 
-This will create an environment named `psychopy`, which you can subsequently
-acivate to run PsychoPy::
+This will create an environment named ``psychopy``. On Linux, the ``wxPython`` dependency of PsychoPy is linked
+against ``webkitgtk``, which needs to be installed manually, e.g. via ``sudo apt install libwebkitgtk-1.0`` on Debian-based
+systems linke Ubuntu.
+
+To activate the newly-created environment and run PsychoPy, exceute::
 
   conda activate psychopy
   psychopy

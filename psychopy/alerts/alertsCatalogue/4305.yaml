@@ -1,0 +1,20 @@
+
+code: 4305
+cat: Components
+msg: Your component is currently disabled and will not be written to your experiment script.
+
+# The following are typically used for online help pages, and support reStructured Text.
+
+synopsis: |
+  You have a disabled component in your experiment. This alert is created to inform users that
+  disabled components will not be written to your experiment script. This may not be intentional,
+  and will therefore affect your desired outcome.
+
+details: |
+  Longer description with optional links to further information
+
+solutions: |
+  Describe fixes/workarounds for the user
+
+versions: |
+  >= 3.1.0

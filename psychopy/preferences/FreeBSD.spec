@@ -223,6 +223,8 @@
     switchToBuilder = string(default='Ctrl+L')
     # switch to Coder window from Builder
     switchToCoder = string(default='Ctrl+L')
+    # switch to Runner
+    switchToRunner = string(default='Ctrl+Alt+R')
     # increase display size in Flow
     largerFlow = string(default='Ctrl+=')
     # decrease display size in Flow

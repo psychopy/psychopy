@@ -559,8 +559,7 @@ class DotStim(BaseVisualStim, ColorMixin, ContainerMixin):
 
             newDots *= self.fieldSize * .5
         else:
-            newDots = np.random.uniform(
-                -.5 * self.fieldSize[0], .5 * self.fieldSize[1], (nDots, 2))
+            newDots = np.random.uniform(-0.5, 0.5, size = (nDots, 2)) * self.fieldSize
 
         return newDots
 

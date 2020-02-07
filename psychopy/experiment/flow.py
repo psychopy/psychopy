@@ -215,24 +215,6 @@ class Flow(list):
             if hasattr(entry, 'writeStartCode'):
                 entry.writeStartCode(script)
 
-    def writeResourcesCodeJS(self, script):
-        """For JS we need to create a function to fetch all resources needed
-        by each loop
-        """
-        code = (
-            "\nfunction registerResources() {\n"
-            "    psychoJS.resourceManager.scheduleRegistration(resourceScheduler);\n"
-            "\n"
-            "    return psychoJS.NEXT;\n"
-            "}\n"
-            "\nfunction downloadResources() {\n"
-            "    psychoJS.resourceManager.scheduleDownload(resourceScheduler);\n"
-            "\n"
-            "    return psychoJS.NEXT;\n"
-            "}\n"
-        )
-        script.writeIndentedLines(code)
-
     def writeBody(self, script):
         """Write the rest of the code
         """
@@ -324,19 +306,27 @@ class Flow(list):
 
         # Write resource list
         resourceFiles = set([resource['rel'].replace("\\", "/") for resource in self.exp.getResourceFiles()])
-        script.writeIndented("psychoJS.start({expName, expInfo, resources: [\n")
+        resourceFolder = [".","resources"][bool(self.exp.htmlFolder)]
+        script.writeIndented("psychoJS.start({\n")
         script.setIndentLevel(1, relative=True)
-        code = ""
-        for idx, resource in enumerate(resourceFiles):
-            temp = "{{'name': '{0}', 'path': 'resources/{0}'}}".format(resource)
-            code += temp
-            if idx != (len(resourceFiles)-1):
-                code += ",\n"  # Trailing comma
-        script.writeIndentedLines(code)
-        script.setIndentLevel(-1, relative=True)
-        code = "]});\n"
-        script.writeIndentedLines(code)
-        script.writeIndented("\n")
+        script.writeIndentedLines("expName: expName,\n"
+                                  "expInfo: expInfo,\n")
+        # if we have an html folder then we moved files there so just use that
+        # if not, then we'll need to list all known resource files
+        if not self.exp.htmlFolder:
+            script.writeIndentedLines("resources: [\n")
+            script.setIndentLevel(1, relative=True)
+            code = ""
+            for idx, resource in enumerate(resourceFiles):
+                temp = "{{'name': '{0}', 'path': '{1}/{0}'}}".format(resource, resourceFolder)
+                code += temp
+                if idx != (len(resourceFiles)-1):
+                    code += ",\n"  # Trailing comma
+            script.writeIndentedLines(code)
+            script.setIndentLevel(-1, relative=True)
+            script.writeIndented("]\n")
+            script.setIndentLevel(-1, relative=True)
+        script.writeIndented("});\n\n")
 
     def writeLoopHandlerJS(self, script, modular):
         """

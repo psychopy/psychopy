@@ -26,7 +26,14 @@ import weakref
 import serial
 import numpy as np
 from copy import copy, deepcopy
-from time import sleep, clock
+from time import sleep
+import time
+
+# Python 3.8 removed time.clock()
+if sys.version_info < (3, 8):
+    clock = time.clock
+else:
+    clock = time.perf_counter
 
 from . import shaders
 from psychopy import logging, core

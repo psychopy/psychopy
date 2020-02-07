@@ -1,0 +1,21 @@
+# The first key-value pair is used for the alerts package
+
+code: 2115
+cat: Sizing
+msg: Your stimuli size exceeds the {dimension} dimension of your window.
+
+# The following are typically used for online help pages, and support reStructured Text.
+
+synopsis: |
+  Your stimulus size exceeds the X or Y window dimensions. Stimuli sized greater than the window size will
+  not be completely visible.
+
+details: |
+  Longer description with optional links to further information.
+
+solutions: |
+  Describe fixes/workarounds for the user
+  `Screen units <https://www.psychopy.org/general/units.html/>`_
+
+versions: |
+  All versions.

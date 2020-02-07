@@ -13,30 +13,31 @@ Documentation
    :maxdepth: 1
 
    about/index
-   general/general
+   general/index
    download
    gettingStarted
-   Builder - building experiments in a GUI <builder/builder>
-   Coder - writing experiments with scripts <coder/coder>
+   Builder - building experiments in a GUI <builder/index>
+   Coder - writing experiments with scripts <coder/index>
    Online - running experiments on the web <online/index>
-   api/api
+   api/index
 
 Further information:
 
 .. toctree::
    :maxdepth: 1
 
+   timing/index
    troubleshooting
-   recipes/recipes
-   faqs/faqs
-   resources/resources
+   recipes/index
+   faqs/index
+   resources/index
 
 For developers:
 
 .. toctree::
    :maxdepth: 1
 
-   developers/developers
+   developers/index
    psyexp
 
 .. only:: html

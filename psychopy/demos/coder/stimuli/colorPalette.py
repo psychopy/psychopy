@@ -75,15 +75,19 @@ visualFeedback = visual.Rect(win=win, name='visualFeedback',
 hsvText = visual.TextStim(win=win, name='hsvText',
                           text=None, font='Arial',
                           pos=(.4, 0), height=0.03)
-                          
 
 instText = visual.TextStim(win=win, name='instText',
-                           text="Use the sliders to change:\n---hue (top)\n---saturation (right)\n---value (bottom)", font='Arial',
-                           pos=(-.3, 0), height=0.03, wrapWidth=.4, alignHoriz='right')
+                           text=("Use the sliders to change:\n---hue (top)\n---"
+                                "saturation (right)\n---value (bottom)"),
+                           font='Arial',
+                           pos=(-.3, 0), height=0.03, wrapWidth=.4,
+                           alignText='left', anchorHoriz='right')
 
 quitText = visual.TextStim(win=win, name='quitText',
-                           text='Press escape to quit to continue', font='Arial', 
-                           pos=(0, -.35), height=0.025, depth=-8.0, wrapWidth = .4)
+                           text='Press escape to quit to continue',
+                           font='Arial',
+                           pos=(0, -.35), height=0.025, depth=-8.0,
+                           wrapWidth=.4)
 
 
 paletteSize = 400  # in pixels

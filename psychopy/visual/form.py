@@ -326,7 +326,7 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
                                             text=item['questionText'],
                                             units=self.units,
                                             height=self.textHeight,
-                                            alignHoriz='left',
+                                            anchorHoriz='left',
                                             wrapWidth=self._questionTextWrap(item['questionWidth']),
                                             autoLog=False,
                                             color=item['questionColor'])

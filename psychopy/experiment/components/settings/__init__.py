@@ -280,11 +280,6 @@ class SettingsComponent(object):
             'html', valType='str', allowedTypes=[],
             hint=_translate("Place the HTML files will be saved locally "),
             label="Output path", categ='Online')
-        self.params['JS libs'] = Param(
-            'packaged', valType='str', allowedVals=['packaged'],
-            hint=_translate("Should we package a copy of the JS libs or use"
-                            "remote copies (http:/www.psychopy.org/js)?"),
-            label="JS libs", categ='Online')
         self.params['Completed URL'] = Param(
             '', valType='str',
             hint=_translate("Where should participants be redirected after the experiment on completion\n"
@@ -295,8 +290,6 @@ class SettingsComponent(object):
             hint=_translate("Where participants are redirected if they do not complete the task\n"
                             " INSERT INCOMPLETION URL E.G.?"),
             label="Incomplete URL", categ='Online')
-
-
         self.params['exportHTML'] = Param(
             exportHTML, valType='str',
             allowedVals=['on Save', 'on Sync', 'manually'],
@@ -452,10 +445,6 @@ class SettingsComponent(object):
 
         buff.write("\n")
 
-        # Write "run once" code.
-        if self.exp._runOnce:
-            buff.write("\n".join(self.exp._runOnce))
-            buff.write("\n\n")
 
     def prepareResourcesJS(self):
         """Sets up the resources folder and writes the info.php file for PsychoJS
@@ -481,9 +470,9 @@ class SettingsComponent(object):
             """Copies a file but only if doesn't exist or SHA is diff
             """
             if os.path.isfile(dst):
-                with open(dst, 'r') as f:
+                with open(dst, 'rb') as f:
                     dstMD5 = hashlib.md5(f.read()).hexdigest()
-                with open(src, 'r') as f:
+                with open(src, 'rb') as f:
                     srcMD5 = hashlib.md5(f.read()).hexdigest()
                 if srcMD5 == dstMD5:
                     return  # already matches - do nothing
@@ -500,12 +489,7 @@ class SettingsComponent(object):
         folder = os.path.dirname(self.exp.expPath)
         if not os.path.isdir(folder):
             os.mkdir(folder)
-        # get OSF projcet info if there was a project id
-        # projLabel = self.params['OSF Project ID'].val
-        # these are all blank unless we find a valid proj
-        # osfID = osfName = osfToken = ''
-        # osfHtmlFolder = ''
-        # osfDataFolder = 'data'
+
         # is email a defined parameter for this version
         if 'email' in self.params:
             email = repr(self.params['email'].val)
@@ -522,11 +506,12 @@ class SettingsComponent(object):
             dstFolder = os.path.split(dstAbs)[0]
             if not os.path.isdir(dstFolder):
                 os.makedirs(dstFolder)
-            shutil.copy2(srcFile['abs'], dstAbs)
+            copyFileWithMD5(srcFile['abs'], dstAbs)
 
     def writeInitCodeJS(self, buff, version, localDateTime, modular=True):
         # create resources folder
-        self.prepareResourcesJS()
+        if self.exp.htmlFolder:
+            self.prepareResourcesJS()
         jsFilename = os.path.basename(os.path.splitext(self.exp.filename)[0])
 
         # decide if we need anchored useVersion or leave plain
@@ -567,13 +552,13 @@ class SettingsComponent(object):
 
         # Write imports if modular
         if modular:
-            code = ("import {{ PsychoJS }} from 'https://pavlovia.org/lib/core{version}.js';\n"
-                    "import * as core from 'https://pavlovia.org/lib/core{version}.js';\n"
-                    "import {{ TrialHandler }} from 'https://pavlovia.org/lib/data{version}.js';\n"
-                    "import {{ Scheduler }} from 'https://pavlovia.org/lib/util{version}.js';\n"
-                    "import * as util from 'https://pavlovia.org/lib/util{version}.js';\n"
-                    "import * as visual from 'https://pavlovia.org/lib/visual{version}.js';\n"
-                    "import {{ Sound }} from 'https://pavlovia.org/lib/sound{version}.js';\n"
+            code = ("import {{ PsychoJS }} from './lib/core{version}.js';\n"
+                    "import * as core from './lib/core{version}.js';\n"
+                    "import {{ TrialHandler }} from './lib/data{version}.js';\n"
+                    "import {{ Scheduler }} from './lib/util{version}.js';\n"
+                    "import * as util from './lib/util{version}.js';\n"
+                    "import * as visual from './lib/visual{version}.js';\n"
+                    "import * as sound from './lib/sound{version}.js';\n"
                     "\n").format(version=versionStr)
             buff.writeIndentedLines(code)
 
@@ -795,7 +780,7 @@ class SettingsComponent(object):
             units = 'height'
 
         code = ("// init psychoJS:\n"
-                "var psychoJS = new PsychoJS({{\n"
+                "const psychoJS = new PsychoJS({{\n"
                 "  debug: true\n"
                 "}});\n\n"
                 "// open window:\n"
@@ -833,23 +818,25 @@ class SettingsComponent(object):
 
     def writeEndCodeJS(self, buff):
 
-        endLoopInteration = ("\nfunction endLoopIteration(thisScheduler, trials) {\n"
+        endLoopInteration = ("\nfunction endLoopIteration(thisScheduler, loop) {\n"
                     "  // ------Prepare for next entry------\n"
                     "  return function () {\n"
-                    "    // ------Check if user ended loop early------\n"
-                    "    if (currentLoop.finished) {\n"
-                    "      // Check for and save orphaned data\n"
-                    "      if (Object.keys(psychoJS.experiment._thisEntry).length > 0) {\n"
-                    "        psychoJS.experiment.nextEntry(trials);\n"
-                    "      }\n"
+                    "    if (typeof loop !== 'undefined') {\n"
+                    "      // ------Check if user ended loop early------\n"
+                    "      if (loop.finished) {\n"
+                    "        // Check for and save orphaned data\n"
+                    "        if (psychoJS.experiment.isEntryEmpty()) {\n"
+                    "          psychoJS.experiment.nextEntry(loop);\n"
+                    "        }\n"
                     "      thisScheduler.stop();\n"
-                    "    } else if (trials !== undefined) {\n"
-                    "      const thisTrial = trials.getCurrentTrial();\n"
-                    "      if (typeof thisTrial === 'undefined' || !('isTrials' in thisTrial) || thisTrial.isTrials) {\n"
-                    "         psychoJS.experiment.nextEntry(trials);\n"
+                    "      } else {\n"
+                    "        const thisTrial = loop.getCurrentTrial();\n"
+                    "        if (typeof thisTrial === 'undefined' || !('isTrials' in thisTrial) || thisTrial.isTrials) {\n"
+                    "          psychoJS.experiment.nextEntry(loop);\n"
+                    "        }\n"
                     "      }\n"
+                    "    return Scheduler.Event.NEXT;\n"
                     "    }\n"
-                    "  return Scheduler.Event.NEXT;\n"
                     "  };\n"
                     "}\n")
         buff.writeIndentedLines(endLoopInteration)
@@ -861,14 +848,30 @@ class SettingsComponent(object):
                     "    };\n"
                     "}\n")
         buff.writeIndentedLines(recordLoopIterationFunc)
-        quitFunc = ("\nfunction quitPsychoJS(message, isCompleted) {\n"
-                    "  // Check for and save orphaned data\n"
-                    "  if (psychoJS.experiment.isEntryEmpty()) {\n"
-                    "    psychoJS.experiment.nextEntry();\n"
-                    "  }\n"
-                    "  psychoJS.window.close();\n"
-                    "  psychoJS.quit({message: message, isCompleted: isCompleted});\n\n"
-                    "  return Scheduler.Event.QUIT;\n"
-                    "}")
-        buff.writeIndentedLines(quitFunc)
+
+        code = ("\nfunction quitPsychoJS(message, isCompleted) {\n")
+        buff.writeIndented(code)
+        buff.setIndentLevel(1, relative=True)
+        code = ("// Check for and save orphaned data\n"
+                "if (psychoJS.experiment.isEntryEmpty()) {\n"
+                "  psychoJS.experiment.nextEntry();\n"
+                "}\n")
+        buff.writeIndentedLines(code)
+
+        # Write End Experiment code component
+        for thisRoutine in list(self.exp.routines.values()):
+            # a single routine is a list of components:
+            for thisComp in thisRoutine:
+                if thisComp.type == 'Code':
+                    buff.writeIndented("\n")
+                    thisComp.writeExperimentEndCodeJS(buff)
+                    buff.writeIndented("\n")
+
+        code = ("psychoJS.window.close();\n"
+                "psychoJS.quit({message: message, isCompleted: isCompleted});\n\n"
+                "return Scheduler.Event.QUIT;\n")
+        buff.writeIndentedLines(code)
+
+        buff.setIndentLevel(-1, relative=True)
+        buff.writeIndented("}\n")
         buff.setIndentLevel(-1)

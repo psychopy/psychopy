@@ -1,0 +1,21 @@
+# The first key-value pair is used for the alerts package
+
+code: 2155
+cat: Positioning
+msg: Your stimuli position exceeds the {dimension} dimension of your window.
+
+# Each of the following key values are used for formatting online help pages, and support reStructured Text.
+
+synopsis: |
+  Your stimulus position exceeds the X or Y window dimensions. Stimuli positioned greater than the window size will
+  not be completely visible.
+
+details: |
+  Longer description with optional links to further information
+
+solutions: |
+  Describe fixes/workarounds for the user
+  `Screen units <https://www.psychopy.org/general/units.html/>`_
+
+versions: |
+  All versions

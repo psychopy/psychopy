@@ -1,0 +1,19 @@
+
+code: 4205
+cat: Coding
+msg: Python Syntax Error in '{codeTab}' tab. See '{code}' on line number {lineNumber} of the '{codeTab}' tab.
+
+# The following are typically used for online help pages, and support reStructured Text.
+
+synopsis: |
+  Python syntax error found in your code component.
+
+details: |
+  Longer description with optional links to further information
+
+solutions: |
+  Describe fixes/workarounds for the user
+  `Code components <https://www.psychopy.org/builder/components/code.html/>`_
+
+versions: |
+  All versions.

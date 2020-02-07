@@ -84,7 +84,6 @@ class Experiment(object):
         self.requirePsychopyLibs(libs=libs)
         self.requireImport(importName='keyboard',
                            importFrom='psychopy.hardware')
-        self._runOnce = []
 
         _settingsComp = getComponents(fetchIcons=False)['SettingsComponent']
         self.settings = _settingsComp(parentName='', exp=self)
@@ -134,29 +133,6 @@ class Experiment(object):
         if import_ not in self.requiredImports:
             self.requiredImports.append(import_)
 
-    def runOnce(self, code):
-        """Add code to the experiment that is only run exactly once, after
-        all `import`s were done.
-
-        Parameters
-        ----------
-        code : str
-            The code to run. May include newline characters to write several
-            lines of code at once.
-
-        Notes
-        -----
-        For running an `import`, use meth:~`Experiment.requireImport` or
-        :meth:~`Experiment.requirePsychopyLibs` instead.
-
-        See also
-        --------
-        :meth:~`Experiment.requireImport`,
-        :meth:~`Experiment.requirePsychopyLibs`
-        """
-        if code not in self._runOnce:
-            self._runOnce.append(code)
-
     def addRoutine(self, routineName, routine=None):
         """Add a Routine to the current list of them.
 
@@ -199,6 +175,15 @@ class Experiment(object):
         if target == "PsychoPy":
             self_copy.settings.writeInitCode(script, self_copy.psychopyVersion,
                                              localDateTime)
+
+            # Write "run once" code sections
+            for entry in self_copy.flow:
+                # NB each entry is a routine or LoopInitiator/Terminator
+                self_copy._currentRoutine = entry
+                if hasattr(entry, 'writeRunOnceInitCode'):
+                    entry.writeRunOnceInitCode(script)
+            script.write("\n\n")
+
             # present info, make logfile
             self_copy.settings.writeStartCode(script, self_copy.psychopyVersion)
             # writes any components with a writeStartCode()
@@ -496,14 +481,17 @@ class Experiment(object):
                     if params[name].allowedTypes is None:
                         params[name].allowedTypes = []
                     params[name].readOnly = True
-                    msg = _translate(
-                        "Parameter %r is not known to this version of "
-                        "PsychoPy but has come from your experiment file "
-                        "(saved by a future version of PsychoPy?). This "
-                        "experiment may not run correctly in the current "
-                        "version.")
-                    logging.warn(msg % name)
-                    logging.flush()
+                    if name not in ['JS libs', 'OSF Project ID']:
+                        # don't warn people if we know it's OK (e.g. for params
+                        # that have been removed
+                        msg = _translate(
+                            "Parameter %r is not known to this version of "
+                            "PsychoPy but has come from your experiment file "
+                            "(saved by a future version of PsychoPy?). This "
+                            "experiment may not run correctly in the current "
+                            "version.")
+                        logging.warn(msg % name)
+                        logging.flush()
 
         # get the value type and update rate
         if 'valType' in list(paramNode.keys()):
@@ -527,9 +515,11 @@ class Experiment(object):
         self._doc.parse(filename)
         root = self._doc.getroot()
 
+
         # some error checking on the version (and report that this isn't valid
         # .psyexp)?
         filenameBase = os.path.basename(filename)
+
         if root.tag != "PsychoPy2experiment":
             logging.error('%s is not a valid .psyexp file, "%s"' %
                           (filenameBase, root.tag))
@@ -703,6 +693,10 @@ class Experiment(object):
 
     def getExpName(self):
         return self.settings.params['expName'].val
+
+    @property
+    def htmlFolder(self):
+        return self.settings.params['HTML path'].val
 
     def getComponentFromName(self, name):
         """Searches all the Routines in the Experiment for a matching Comp name

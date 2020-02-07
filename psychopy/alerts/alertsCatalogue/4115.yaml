@@ -1,0 +1,21 @@
+# The first key-value pair is used for the alerts package
+
+code: 4115
+cat: Timing
+msg: Your stimuli {type}-type {frameType} must be expressed as a whole number.
+
+
+# The following are typically used for online help pages, and support reStructured Text.
+
+synopsis: |
+  Component start and stop times/durations in frames must be given as whole numbers.
+
+details: |
+  Longer description with optional links to further information
+
+solutions: |
+  Describe fixes/workarounds for the user
+  `Stimuli timing <https://www.psychopy.org/coder/codeStimuli.html/>`_
+
+versions: |
+  All versions.

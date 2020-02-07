@@ -29,12 +29,16 @@ unicodeStuff = visual.TextStim(myWin,
 psychopyTxt = visual.TextStim(myWin, color='#FFFFFF',
                         text = u"PsychoPy \u00A9Jon Peirce",
                         units='norm', height=0.2,
-                        pos=[0.95, 0.95], alignHoriz='right',alignVert='top',
+                        pos=[0.95, 0.95],
+                        alignText='right', anchorHoriz='right',
+                        alignTextVert='top', anchorVert='top',
                         font=fancy)
 longSentence = visual.TextStim(myWin,
                         text = u"Very long sentences can wrap", wrapWidth=0.8,
                         units='norm', height=0.15,color='DarkSlateBlue',
-                        pos=[0.95, -0.95], alignHoriz='right',alignVert='bottom')
+                        pos=[0.95, -0.95],
+                        alignText='left', anchorHoriz='right',
+                        anchorVert='bottom')
 trialClock = core.Clock()
 t=lastFPSupdate=0;
 while t<20:#quits after 20 secs

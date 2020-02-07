@@ -71,14 +71,20 @@ class ExperimentRuntime(ioHubExperimentRuntime):
         image_names=['canal.jpg','fall.jpg','party.jpg','swimming.jpg','lake.jpg']
 
         for iname in image_names:
-            image_cache[iname]=visual.ImageStim(window, image=os.path.join('./images/',iname), 
-                        name=iname,units=display_coord_type)
-                        
-        gaze_dot =visual.GratingStim(window,tex=None, mask="gauss", 
-                                     pos=(0,0 ),size=(66,66),color='green', 
-                                                        units=display_coord_type)
-        instructions_text_stim = visual.TextStim(window, text='', pos = [0,0], height=24, 
-                       color=[-1,-1,-1], colorSpace='rgb',alignHoriz='center', alignVert='center',wrapWidth=window.size[0]*.9)
+            image_cache[iname] = visual.ImageStim(
+                window, image=os.path.join('./images/', iname),
+                name=iname, units=display_coord_type
+            )
+        gaze_dot = visual.GratingStim(
+            window, tex=None, mask="gauss",
+            pos=(0, 0), size=(66, 66), color='green',
+            units=display_coord_type
+        )
+        instructions_text_stim = visual.TextStim(
+            window, text='', pos=[0, 0], height=24,
+            color=[-1, -1, -1], colorSpace='rgb',
+            wrapWidth=window.size[0] * .9
+        )
 
 
         # Update Instruction Text and display on screen.

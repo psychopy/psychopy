@@ -63,8 +63,14 @@ class QuestObject(object):
 
     p2=delta*gamma+(1-delta)*(1-(1-gamma)*exp(-10**(beta*(x2+xThreshold))))
 
-    where x represents log10 contrast relative to threshold. The
-    Weibull function itself appears only in recompute(), which uses
+    where x2 represents log10 intensity relative to threshold
+    (i.e., x2 = x - T, where x is intensity, and T is threshold intensity).
+    xThreshold shifts the psychometric function along the intensity axis
+    such that threshold performance (specified as pThreshold below) will
+    occur at intensity x = T, i.e., x2 = x - T = 0. In the 
+    Watson & Pelli (1983) paper, xThreshold is denoted as epsilon and used
+    to perform testing at the "ideal sweat factor".
+    The Weibull function itself appears only in recompute(), which uses
     the specified parameter values in self to compute a psychometric
     function and store it in self. All the other methods simply use
     the psychometric function stored as instance

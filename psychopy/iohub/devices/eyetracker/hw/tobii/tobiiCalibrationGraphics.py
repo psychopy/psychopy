@@ -225,8 +225,6 @@ class TobiiPsychopyCalibrationGraphics(object):
                                             height=self.TEXT_HEIGHT,
                                             color=self.TEXT_COLOR,
                                             colorSpace='rgb255',
-                                            alignHoriz='center',
-                                            alignVert='center',
                                             units='pix',
                                             wrapWidth=self.width * 0.9)
 

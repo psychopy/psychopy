@@ -75,7 +75,6 @@ class Routine(list):
     def writeStartCode(self, buff):
         """This is start of the *experiment* (before window is created)
         """
-        # few components will have this
         for thisCompon in self:
             # check just in case; try to ensure backwards compatibility _base
             if hasattr(thisCompon, 'writeStartCode'):
@@ -89,6 +88,16 @@ class Routine(list):
             # check just in case; try to ensure backwards compatibility _base
             if hasattr(thisCompon, 'writeStartCodeJS'):
                 thisCompon.writeStartCodeJS(buff)
+
+    def writeRunOnceInitCode(self, buff):
+        """ Run once init code goes at the beginning of the script (before
+        Window creation) and the code will be run only once no matter how many
+        similar components request it
+        """
+        for thisCompon in self:
+            # check just in case; try to ensure backwards compatibility _base
+            if hasattr(thisCompon, 'writeRunOnceInitCode'):
+                thisCompon.writeRunOnceInitCode(buff)
 
     def writeInitCode(self, buff):
         code = '\n# Initialize components for Routine "%s"\n'
@@ -106,10 +115,6 @@ class Routine(list):
         for thisCompon in self:
             if hasattr(thisCompon, 'writeInitCodeJS'):
                 thisCompon.writeInitCodeJS(buff)
-
-    def writeResourcesCodeJS(self, buff):
-        buff.writeIndented("// <<maybe need to load images for {}?>>\n"
-                           .format(self.name))
 
     def writeMainCode(self, buff):
         """This defines the code for the frames of a single routine
@@ -278,7 +283,7 @@ class Routine(list):
 
         buff.writeIndentedLines(code)
         buff.setIndentLevel(-1, relative=True)
-        buff.writeIndentedLines("}\n")
+        buff.writeIndentedLines("};\n")
         buff.setIndentLevel(-1, relative=True)
         buff.writeIndentedLines("}\n")
 
@@ -314,8 +319,7 @@ class Routine(list):
 
         if self.exp.settings.params['Enable Escape'].val:
             code = ("// check for quit (typically the Esc key)\n"
-                    "if (psychoJS.experiment.experimentEnded "
-                    "|| psychoJS.eventManager.getKeys({keyList:['escape']}).length > 0) {\n"
+                    "if (psychoJS.experiment.experimentEnded || psychoJS.eventManager.getKeys({keyList:['escape']}).length > 0) {\n"
                     "  return quitPsychoJS('The [Escape] key was pressed. Goodbye!', false);\n"
                     "}\n\n")
             buff.writeIndentedLines(code)
@@ -340,7 +344,8 @@ class Routine(list):
             code = ("%(name)sComponents.forEach( function(thisComponent) {\n"
                     "  if ('status' in thisComponent && thisComponent.status !== PsychoJS.Status.FINISHED) {\n"
                     "    continueRoutine = true;\n"
-                    "  }});\n")
+                    "  }\n"
+                    "});\n")
         buff.writeIndentedLines(code % self.params)
 
         buff.writeIndentedLines("\n// refresh the screen if continuing\n")
@@ -350,13 +355,12 @@ class Routine(list):
         else:
             buff.writeIndentedLines("if (continueRoutine) {")
         code = ("  return Scheduler.Event.FLIP_REPEAT;\n"
-                "}\n"
-                "else {\n"
+                "} else {\n"
                 "  return Scheduler.Event.NEXT;\n"
                 "}\n")
         buff.writeIndentedLines(code)
         buff.setIndentLevel(-1, relative=True)
-        buff.writeIndentedLines("}\n")
+        buff.writeIndentedLines("};\n")
         buff.setIndentLevel(-1, relative=True)
         buff.writeIndentedLines("}\n")
 
@@ -382,7 +386,8 @@ class Routine(list):
                     "%(name)sComponents.forEach( function(thisComponent) {\n"
                     "  if (typeof thisComponent.setAutoDraw === 'function') {\n"
                     "    thisComponent.setAutoDraw(false);\n"
-                    "  }});\n")
+                    "  }\n"
+                    "});\n")
         buff.writeIndentedLines(code  % self.params)
         # add the EndRoutine code for each component
         for compon in self:
@@ -398,7 +403,7 @@ class Routine(list):
 
         buff.writeIndented('return Scheduler.Event.NEXT;\n')
         buff.setIndentLevel(-1, relative=True)
-        buff.writeIndentedLines("}\n")
+        buff.writeIndentedLines("};\n")
         buff.setIndentLevel(-1, relative=True)
         buff.writeIndentedLines("}\n")
 
