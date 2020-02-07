@@ -2,10 +2,8 @@ import ast
 from esprima import parseScript
 from numpy import array
 
-from psychopy.monitors import Monitor
 from psychopy.tools import monitorunittools
 from psychopy.alerts._alerts import alert
-from psychopy import prefs
 
 
 class TestWin(object):
@@ -16,7 +14,7 @@ class TestWin(object):
     def __init__(self, exp):
         self.useRetina = True
         self.exp = exp
-        self.monitor = Monitor(exp.settings.params['Monitor'].val)
+        self.monitor = self.exp.settings.monitor
         self.size = self.exp.settings.params['Window size (pixels)'].val
 
 
