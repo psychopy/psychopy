@@ -45,7 +45,7 @@ from psychopy.localization import _translate
 from ... import experiment
 from .. import dialogs, icons
 from ..icons import getAllIcons, combineImageEmblem
-from psychopy import logging, constants
+from psychopy import logging, constants, plugins
 from psychopy.tools.filetools import mergeFolder
 from .dialogs import (DlgComponentProperties, DlgExperimentProperties,
                       DlgCodeComponentProperties)
@@ -1383,11 +1383,13 @@ class BuilderFrame(wx.Frame):
         self.Bind(wx.EVT_MENU, self.fileSaveAs, id=wx.ID_SAVEAS)
         self.Bind(wx.EVT_MENU, self.fileOpen, id=wx.ID_OPEN)
         self.Bind(wx.EVT_MENU, self.commandCloseFrame, id=wx.ID_CLOSE)
+        self.fileMenu.AppendSeparator()
         item = menu.Append(
             wx.ID_PREFERENCES,
             _translate("&Preferences\t%s") % keys['preferences'])
         self.Bind(wx.EVT_MENU, self.app.showPrefs, item)
-
+        item = menu.Append(wx.NewId(), "Manage Plugins")
+        self.Bind(wx.EVT_MENU, self.pluginManager, item)
         self.fileMenu.AppendSeparator()
         self.fileMenu.Append(wx.ID_EXIT,
                              _translate("&Quit\t%s") % keys['quit'],
@@ -1796,6 +1798,13 @@ class BuilderFrame(wx.Frame):
         """returns the filename without path or extension
         """
         return os.path.splitext(os.path.split(self.filename)[1])[0]
+
+    def pluginManager(self, evt=None, value=True):
+        """Show the plugin manger frame."""
+        if not hasattr(self, 'pluginFrame') or self.pluginFrame is None:
+            self.pluginFrame = PluginManagerFrame(parent=self)
+
+        self.pluginFrame.Show(value)
 
     def updateReadme(self):
         """Check whether there is a readme file in this folder and try to show
@@ -2554,6 +2563,122 @@ class ExportFileDialog(wx.Dialog):
         sizer.Add(btnsizer, 0, wx.ALIGN_CENTER_VERTICAL | wx.ALL, 5)
 
         self.SetSizerAndFit(sizer)
+
+
+from wx.lib.mixins.listctrl import CheckListCtrlMixin, ListCtrlAutoWidthMixin
+
+
+class CheckListCtrl(wx.ListCtrl, CheckListCtrlMixin, ListCtrlAutoWidthMixin):
+
+    def __init__(self, parent, id):
+        wx.ListCtrl.__init__(self, parent, id, style=wx.LC_REPORT |
+                wx.SUNKEN_BORDER)
+        CheckListCtrlMixin.__init__(self)
+        ListCtrlAutoWidthMixin.__init__(self)
+
+
+class PluginManagerFrame(wx.Frame):
+    """Defines the construction of the plugin manager frame."""
+
+    def __init__(self, parent):
+        """
+        A frame for presenting/loading/saving readme files
+        """
+        self.parent = parent
+        title = "Plugin Manger"
+        pos = wx.Point(parent.Position[0] + 80, parent.Position[1] + 80)
+        _style = wx.DEFAULT_FRAME_STYLE | wx.FRAME_FLOAT_ON_PARENT
+        wx.Frame.__init__(self, parent, title=title,
+                          size=(600, 500), pos=pos, style=_style)
+        self.Bind(wx.EVT_CLOSE, self.onClose)
+        self.Hide()
+        self.initCtrls()
+        self.populateList()
+        #self.makeMenus()
+
+    def populateList(self):
+        """List all the installed plugins."""
+        pList = plugins.listPlugins('all')
+
+        self.lstPlugins.InsertColumn(0, 'Package', width=100)
+        self.lstPlugins.InsertColumn(1, 'Description', wx.LIST_FORMAT_LEFT, 120)
+        self.lstPlugins.InsertColumn(2, 'Load on Start?', wx.LIST_FORMAT_LEFT, 100)
+        for i in pList:
+            index = self.lstPlugins.InsertStringItem(0, i)
+            self.lstPlugins.SetStringItem(index, 1, 'Test')
+
+    def initCtrls(self):
+        """Create window controls."""
+        frameSizer = wx.BoxSizer(wx.VERTICAL)
+        framePanel = wx.Panel(self)
+        panelSizer = wx.BoxSizer(wx.VERTICAL)
+
+        # add the box
+        fraPlugins = wx.StaticBox(framePanel, wx.ID_ANY, "Installed Plugins")
+        fraSizer = wx.StaticBoxSizer(fraPlugins, wx.VERTICAL)
+        pnlPlugins = wx.Panel(fraPlugins)
+        bsizer = wx.BoxSizer(wx.VERTICAL)
+        self.lstPlugins = CheckListCtrl(pnlPlugins, id=wx.ID_ANY)
+        bsizer.Add(self.lstPlugins, flag=wx.EXPAND | wx.ALL, proportion=1)
+        pnlPlugins.SetSizer(bsizer)
+        fraSizer.Add(pnlPlugins, flag=wx.EXPAND | wx.ALL, proportion=1, border=0)
+        #fraPlugins.SetSizer(fraSizer)
+
+        # add the panel to the frame sizer
+        panelSizer.Add(fraSizer, flag=wx.EXPAND | wx.LEFT | wx.RIGHT | wx.TOP | wx.BOTTOM, border=5, proportion=1)
+        framePanel.SetSizer(panelSizer)
+        frameSizer.Add(framePanel, flag=wx.EXPAND | wx.ALL, proportion=1)
+        self.SetSizer(frameSizer)
+
+        # # plugin static box
+        # fraPlugins = wx.StaticBox(pnl, wx.ID_ANY, "Installed Plugins")
+        # #pnlPlugins = wx.Panel(fraPlugins)
+        # hsizer1 = wx.BoxSizer(wx.VERTICAL)
+        # # create a list control to show plugins
+        # lstPlugins = wx.ListCtrl(fraPlugins, id=wx.ID_ANY)
+        # hsizer1.Add(lstPlugins, flag=wx.EXPAND | wx.LEFT | wx.RIGHT | wx.TOP | wx.BOTTOM, border=10, proportion=1)
+        # #pnlPlugins.SetSizer(sizerPlugins)
+        # #frameVSizer.Add(pnlPlugins, flag=wx.EXPAND | wx.LEFT | wx.RIGHT | wx.TOP, border=10, proportion=1)
+        # fraPlugins.SetSizer(hsizer1)
+        # vsizer1.Add(fraPlugins, flag=wx.EXPAND | wx.LEFT | wx.RIGHT | wx.TOP | wx.BOTTOM, border=10, proportion=1)
+        # pnl.SetSizer(vsizer1)
+
+    def onClose(self, evt=None):
+        """
+        Defines behavior on close of the Readme Frame
+        """
+        self.parent.pluginManager = None
+        self.Destroy()
+
+    def makeMenus(self):
+        """Produces menus for the Readme Frame"""
+
+        # ---Menus---#000000#FFFFFF-------------------------------------------
+        menuBar = wx.MenuBar()
+        # ---_file---#000000#FFFFFF-------------------------------------------
+        self.fileMenu = wx.Menu()
+        menuBar.Append(self.fileMenu, _translate('&File'))
+        menu = self.fileMenu
+        keys = self.parent.app.keys
+        menu.Append(wx.ID_SAVE, _translate("&Save\t%s") % keys['save'])
+        menu.Append(wx.ID_CLOSE,
+                    _translate("&Close readme\t%s") % keys['close'])
+        item = menu.Append(-1,
+                           _translate("&Toggle readme\t%s") % keys[
+                               'toggleReadme'],
+                           _translate("Toggle Readme"))
+        self.Bind(wx.EVT_MENU, self.toggleVisible, item)
+        self.Bind(wx.EVT_MENU, self.fileSave, id=wx.ID_SAVE)
+        self.Bind(wx.EVT_MENU, self.toggleVisible, id=wx.ID_CLOSE)
+        self.SetMenuBar(menuBar)
+
+    def toggleVisible(self, evt=None):
+        """Defines visibility toggle for readme frame"""
+        if self.IsShown():
+            self.Hide()
+        else:
+            self.Show()
+
 
 
 def extractText(stream):
