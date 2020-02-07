@@ -659,13 +659,18 @@ class BaseVisualComponent(BaseComponent):
         super().integrityCheck()  # run parent class checks first
 
         win = alerttools.TestWin(self.exp)
+
         # get units for this stimulus
-        units = self.params['units'].val
+        if 'units' in self.params:  # e.g. BrushComponent doesn't have this
+            units = self.params['units'].val
+        else:
+            units = None
         if units == 'use experiment settings':
             units = self.exp.settings.params[
                 'Units'].val  # this 1 uppercase
-        if units == 'use preferences':
+        if not units or units == 'use preferences':
             units = prefs.general['units']
+
         # tests for visual stimuli
         alerttools.testSize(self, win, units)
         alerttools.testPos(self, win, units)
