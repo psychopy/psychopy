@@ -44,6 +44,7 @@ from psychopy.projects import pavlovia
 import psychopy.app.pavlovia_ui.menu
 from psychopy.app.coder.codeEditorBase import BaseCodeEditor
 from psychopy.app.icons import combineImageEmblem
+from ..plugin_manager import PluginManagerFrame
 
 # advanced prefs (not set in prefs files)
 prefTestSubset = ""
@@ -1404,10 +1405,13 @@ class CoderFrame(wx.Frame):
         item = menu.Append(wx.ID_ANY,
                            _translate("Print\t%s") % keyCodes['print'])
         self.Bind(wx.EVT_MENU, self.filePrint, id=item.GetId())
+        menu.AppendSeparator()
         msg = _translate("&Preferences\t%s")
         item = menu.Append(wx.ID_PREFERENCES,
                            msg % keyCodes['preferences'])
         self.Bind(wx.EVT_MENU, self.app.showPrefs, id=item.GetId())
+        item = menu.Append(wx.NewId(), "Plugin &Manager")
+        self.Bind(wx.EVT_MENU, self.pluginManager, id=item.GetId())
         # -------------quit
         menu.AppendSeparator()
         menu.Append(wx.ID_EXIT,
@@ -1969,6 +1973,10 @@ class CoderFrame(wx.Frame):
                     self.app.newBuilderFrame(filename)
                 else:
                     self.setCurrentDoc(filename)
+
+    def pluginManager(self, evt=None, value=True):
+        """Show the plugin manger frame."""
+        PluginManagerFrame(self).ShowModal()
 
     def OnFindOpen(self, event):
         # open the find dialog if not already open

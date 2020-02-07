@@ -7,7 +7,9 @@
 """Utilities for extending PsychoPy with plugins."""
 
 from __future__ import absolute_import
-__all__ = ['loadPlugin', 'listPlugins', 'computeChecksum', 'startUpPlugins']
+__all__ = ['loadPlugin', 'listPlugins', 'computeChecksum', 'startUpPlugins',
+           'pluginMetadata', 'pluginEntryPoints', 'scanPlugins',
+           'requirePlugin']
 
 import sys
 import inspect
@@ -22,7 +24,12 @@ import psychopy.experiment.components as components
 
 # Keep track of plugins that have been loaded. Keys are plugin names and values
 # are their entry point mappings.
-_plugins_ = collections.OrderedDict()  # use OrderedDict for Py2 compatibility
+_loaded_plugins_ = collections.OrderedDict()  # use OrderedDict for Py2 compatibility
+
+# Entry points for all plugins installed on the system, this is populated by
+# calling `scanPlugins`. We are caching entry points to avoid having to rescan
+# packages for them.
+_installed_plugins_ = collections.OrderedDict()
 
 
 def resolveObjectFromName(name, basename=None, resolve=True, error=True):
@@ -190,6 +197,30 @@ def computeChecksum(fpath, method='sha256'):
     return hashobj.hexdigest()
 
 
+def scanPlugins():
+    """Scan the system for installed plugins.
+
+    This function scans installed packages for the current Python environment
+    and looks for ones that specify PsychoPy entry points in their metadata.
+    Afterwards, you can call :func:`listPlugins()` to list them and
+    `loadPlugin()` to load them into the current session. This function is
+    called automatically when PsychoPy starts, so you do not need to call this
+    unless packages have been added since the session began.
+
+    """
+    global _installed_plugins_
+    # find all packages with entry points defined
+    pluginEnv = pkg_resources.Environment()  # supported by the platform
+    dists, _ = pkg_resources.working_set.find_plugins(pluginEnv)
+
+    for dist in dists:
+        entryMap = dist.get_entry_map()
+        if any([i.startswith('psychopy') for i in entryMap.keys()]):
+            logging.debug('Found plugin `{}` at location `{}`.'.format(
+                dist.project_name, dist.location))
+            _installed_plugins_[dist.project_name] = entryMap
+
+
 def listPlugins(which='all'):
     """Get a list of installed or loaded PsychoPy plugins.
 
@@ -253,20 +284,11 @@ def listPlugins(which='all'):
         raise ValueError("Invalid value specified to argument `which`.")
 
     if which == 'loaded':  # only list plugins we have already loaded
-        return list(_plugins_.keys())
+        return list(_loaded_plugins_.keys())
     elif which == 'startup':
         return prefs.general['startUpPlugins']
-
-    # find all packages with entry points defined
-    pluginEnv = pkg_resources.Environment()  # supported by the platform
-    dists, _ = pkg_resources.working_set.find_plugins(pluginEnv)
-
-    installed = []
-    for dist in dists:
-        if any([i.startswith('psychopy') for i in dist.get_entry_map().keys()]):
-            installed.append(dist.project_name)
-
-    return installed
+    else:
+        return list(_installed_plugins_.keys())
 
 
 def loadPlugin(plugin, *args, **kwargs):
@@ -343,31 +365,24 @@ def loadPlugin(plugin, *args, **kwargs):
             # initialize objects which require the plugin here ...
 
     """
-    global _plugins_
-    if plugin in _plugins_.keys():
+    global _loaded_plugins_
+    if plugin in _loaded_plugins_.keys():
         logging.info('Plugin `{}` already loaded. Skipping.'.format(plugin))
         return True  # already loaded, return True
 
-    # find all plugins installed on the system
-    pluginEnv = pkg_resources.Environment()  # supported by the platform
-    dists, _ = pkg_resources.working_set.find_plugins(pluginEnv)
-
-    # check if the plugin is in the distribution list
     try:
-        pluginDist = dists[[dist.project_name for dist in dists].index(plugin)]
-    except ValueError:
+        entryMap = _installed_plugins_[plugin]
+    except KeyError:
         logging.warning(
             'Package `{}` does not appear to be a valid plugin. '
             'Skipping.'.format(plugin))
 
         return False
 
-    # get entry point map and check if there are any for PsychoPy
-    entryMap = pluginDist.get_entry_map()
     if not any([i.startswith('psychopy') for i in entryMap.keys()]):
         logging.warning(
             'Specified package `{}` defines no entry points for PsychoPy. '
-            'Skipping.'.format(pluginDist.project_name))
+            'Skipping.'.format(plugin))
 
         return False  # can't do anything more here, so return
 
@@ -449,9 +464,37 @@ def loadPlugin(plugin, *args, **kwargs):
 
     # retain information about the plugin's entry points, we will use this for
     # conflict resolution
-    _plugins_[pluginDist.project_name] = entryMap
+    _loaded_plugins_[plugin] = entryMap
 
     return True
+
+
+def requirePlugin(plugin):
+    """Require a plugin to be already loaded.
+
+    This function can be used to check if a plugin has already been loaded and
+    is ready for use. This is useful for cases where plugins are needed that
+    cannot be loaded at the present point in the session. For instance, some
+    plugins may need to be loaded at startup to take full effect (eg. plugins
+    that load builder components), this function can raise an error to prevent
+    the application from continuing to avoid undefined behavior from partially
+    loaded plugins.
+
+    Parameters
+    ----------
+    plugin : str
+        Name of the plugin package to require. This usually refers to the package
+        or project name.
+
+    Examples
+    --------
+    Ensure plugin `psychopy-plugin` is loaded at this point in the session::
+
+        requirePlugin('psychopy-plugin')
+
+    """
+    if plugin not in _loaded_plugins_:
+        raise RuntimeError('Required plugin `{}` has not been loaded.')
 
 
 def startUpPlugins(plugins, add=True, verify=True):
@@ -548,6 +591,85 @@ def startUpPlugins(plugins, add=True, verify=True):
         prefs.general['startUpPlugins'] = plugins  # overwrite
 
     prefs.saveUserPrefs()  # save after loading
+
+
+def pluginMetadata(plugin):
+    """Get metadata from a plugin package.
+
+    Reads the package's PKG_INFO and gets fields as a dictionary. Only packages
+    that have valid entry points to PsychoPy can be queried.
+
+    Parameters
+    ----------
+    plugin : str
+        Name of the plugin package to retrieve metadata from.
+
+    Returns
+    -------
+    dict
+        Metadata fields.
+
+    """
+    installedPlugins = listPlugins()
+    if plugin not in installedPlugins:
+        raise ModuleNotFoundError(
+            "Plugin `{}` is not installed or does not have entry points for "
+            "PsychoPy.".format(plugin))
+
+    pkg = pkg_resources.get_distribution(plugin)
+    metadata = pkg.get_metadata(pkg.PKG_INFO)
+
+    metadict = {}
+    for line in metadata.split('\n'):
+        if not line:
+            continue
+
+        line = line.strip().split(': ')
+        if len(line) == 2:
+            field, value = line
+            metadict[field] = value
+
+    return metadict
+
+
+def pluginEntryPoints(plugin):
+    """Get the entry point mapping for a specified plugin."""
+    global _loaded_plugins_
+    if plugin in _loaded_plugins_.keys():
+        return _loaded_plugins_[plugin]  # already loaded, return the mapping we have
+
+    # find all plugins installed on the system
+    pluginEnv = pkg_resources.Environment()  # supported by the platform
+    dists, _ = pkg_resources.working_set.find_plugins(pluginEnv)
+
+    # check if the plugin is in the distribution list
+    try:
+        pluginDist = dists[[dist.project_name for dist in dists].index(plugin)]
+    except ValueError:
+        logging.warning(
+            'Package `{}` does not appear to be a valid plugin. '
+            'Skipping.'.format(plugin))
+
+        return False
+
+    # get entry point map and check if there are any for PsychoPy
+    entryMap = pluginDist.get_entry_map()
+    if not any([i.startswith('psychopy') for i in entryMap.keys()]):
+        logging.warning(
+            'Specified package `{}` defines no entry points for PsychoPy. '
+            'Skipping.'.format(pluginDist.project_name))
+
+        return False  # can't do anything more here, so return
+
+    # go over entry points, looking for objects explicitly for psychopy
+    toReturn = {}
+    for fqn, attrs in entryMap.items():
+        if not fqn.startswith('psychopy'):
+            continue
+
+        toReturn[fqn] = attrs
+
+    return toReturn
 
 
 def _registerWindowBackend(attr, ep):
