@@ -1,25 +1,79 @@
+"""
+Python support for `BrainProducts <https://www.brainproducts.com>`_ hardware.
+
+Here we have implemented support for the Remote Control Server application,
+which allows you to control recordings, send annotations etc. all from Python.
+"""
+
 from __future__ import division, unicode_literals
 
-import numpy as np
 import socket
 import time
+import threading
+import weakref
+from psychopy import logging
 
+_appStates = {
+    'AP:0': 'Closed',
+    'AP:1': 'Open',
+    'AP:-1': 'Errored',
+}
 
-def pauseToSend(pause=0.1):
-    """Simple helper to provide a default pause duration
-    
-    In the future this might also abort early if return
-    signal detected?"""
-    time.sleep(pause)
+_recordingStates = {
+    'RS:0': 'Idle',
+    'RS:1': 'Monitoring',
+    'RS:2': 'Calibration',
+    'RS:3': 'Impedance check',
+    'RS:4': 'Saving recording',
+    'RS:5': 'Saving calibration',
+    'RS:6': 'Paused',
+    'RS:7': 'Paused calibration',
+    'RS:8': 'Paused impedance check',
+}
+
+_acquisitionStates = {
+    'AQ:0': 'Stopped',
+    'AQ:1': 'Running',
+    'AQ:2': 'Warning',
+    'AQ:3': 'Error',
+}
 
 
 class RemoteControlServer(object):
     """
     Provides a remote-control interface to BrainProducts Recorder.
+
+    Example usage::
+
+        from psychopy import logging
+        from psychopy.hardware.brainproducts import RemoteControlServer
+
+        logging.console.setLevel(logging.DEBUG)
+        rcs = RemoteControlServer()
+        rcs.open('testExp',
+                 workspace='C:/Vision/Workfiles/Standard Workspace.rwksp',
+                 participant='S0021')
+        rcs.openRecorder()
+        time.sleep(2)
+        rcs.mode = 'monitor' # or 'impedence', or 'default'
+        rcs.startRecording()
+        time.sleep(2)
+        rcs.sendAnnotation('124', 'STIM')
+        time.sleep(1)
+        rcs.pauseRecording()
+        time.sleep(1)
+        rcs.resumeRecording()
+        time.sleep(1)
+        rcs.stopRecording()
+        time.sleep(1)
+        rcs.mode = 'default'  # stops monitoring mode
+
     """
+
     def __init__(self, host='127.0.0.1', port=6700, timeout=1.0,
                  testMode=False):
-        """
+        """To initialize the remote control recorder.
+
         Parameters
         ----------
         host : string, optional
@@ -38,19 +92,25 @@ class RemoteControlServer(object):
         """
         self._testMode = testMode
 
+        self.applicationState = None
+        self.recordingState = None
+        self.acquisitionState = None
+
         self._host = host
         self._port = port
         self._recording = False
-        self._timeout = 0.5
+        self._timeout = timeout
 
         # various properties that are initially unknown
-        self._mode = None
+        self._mode = 'default'
         self._exp_name = None
         self._participant = None
         self._workspace = None
         self._amplifier = None
         self._overwriteProtection = None
 
+        self._bufferChars = ''  # unprocessed stream from RCS
+        self._bufferList = []  # list of messages
         self._socket = socket.socket(socket.AF_INET,
                                      socket.SOCK_STREAM)
         self._socket.settimeout(self._timeout)
@@ -59,18 +119,18 @@ class RemoteControlServer(object):
             self._socket.connect((self._host, self._port))
         except socket.error:
             if not self._testMode:
-                msg = ('Could not connect to RCS at %s:%s!' %
+                msg = ('Could not connect to RCS at %s:%s. Make sure the '
+                       'Remote Control Server software is running and set '
+                       'to "Connect"' %
                        (self._host, self._port))
                 raise RuntimeError(msg)
             else:
                 pass
 
-        self.mode = 'default'
-        
-    def __del__(self):
-        self._socket.close()
+        self._listener = _ListenerThread(self)
+        self._listener.start()
 
-    def sendRaw(self, message, checkOK='OK'):
+    def sendRaw(self, message, checkOutput='OK'):
         """A helper function to send raw messages (strings) to the RCS.
 
         This is normally only used for debugging purposes and is not
@@ -80,44 +140,41 @@ class RemoteControlServer(object):
         ----------
             message : string
                 The string that will be sent
-            checkOK : string (default='OK')
+            checkOutput : string (default='OK')
                 If a value is provided then this will be checked for by
-                this function. If no check is needed then set checkOK=None
+                this function. If no check is needed then set checkOutput=None
         """
         # Append \r if it's not already part of the message: RCS
         # uses this as command separators.
         if self._testMode:
             return
-        
+
         # check for reply
         if not message.endswith('\r') or not message.endswith('\r\n'):
             message += '\r'
         if type(message) != bytes:
             message = message.encode('utf-8')
         self._socket.sendall(message)
-        reply = ''
-        while not reply.endswith('\r'):
-            reply += self._socket.recv(1).decode('utf-8')
-        reply = reply.strip('\r')
 
         # did reply include OK message?
-        if checkOK and not reply.endswith(checkOK):
-            raise IOError("Sending command '{}' to RCS returned an unexpected "
-                          "reply '{}'".format(message.decode('utf-8'), reply))
-        
-        return reply
-
-    def _clearInputBuffer(self):
-        """Clears the input buffer so that any new messages.
-        Not needed by most users.
-        Will incurr one timeout because will keep clearing chars
-        until a timeout occurs.
-        """
-        while True:
-            try:
-                self._socket.recv(1)
-            except socket.timeout:  # no chars left to clear
-                return
+        if not checkOutput:
+            return
+        # check output
+        OK = False
+        t0 = time.time()
+        while time.time() - t0 < self._timeout and not OK:
+            for reply in self._listener.messages:
+                if reply.endswith(checkOutput):
+                    logging.debug("RCS received {}".format(repr(reply)))
+                    self._listener.messages.remove(reply)
+                    OK = True
+        if not OK:
+            logging.warning(
+                "RCS Didn't receive expected response from RCS to "
+                "the message {}. Reply was '{}'."
+                .format(message, self._listener.messages))
+        else:
+            return True
 
     def open(self, expName, participant, workspace):
         """Opens a study/workspace on the RCS server
@@ -133,33 +190,55 @@ class RemoteControlServer(object):
         workspace : str
             The full path to the workspace file (.rwksp), with forward slashes
             as path separators. e.g. "c:/myFolder/mySetup.rwksp"
-        """        
+        """
         self.workspace = workspace
         self.participant = participant
         self.expName = expName
+        logging.info(
+            'RCS connected: {} - {}'.format(self.expName, self.participant))
+
+    def openRecorder(self):
+        """Opens the Recorder application from the Remote Control.
+
+        Neat, huh?!
+        """
+        msg = 'O'
+        self.sendRaw(msg, checkOutput="O:OK")
+
+    def _updateState(self, msg):
+        # Update our state variables from a state message
+        if msg[:2] == 'AP':
+            self.applicationState = _appStates[msg]
+            logging.info('RCS Recorder app is now {}'
+                         .format(self.applicationState.upper()))
+        elif msg[:2] == 'RS':
+            self.recordingState = _recordingStates[msg]
+            logging.info('RCS Recorder State is now {}'
+                         .format(self.recordingState.upper()))
+        elif msg[:2] == 'AQ':
+            self.acquisitionState = _acquisitionStates[msg]
+            logging.info('RCS Acq is now {}'
+                         .format(self.acquisitionState.upper()))
+        else:
+            raise RuntimeError("RCS._updateState was sent unknown message"
+                               "'{}'".format(msg))
 
     @property
     def workspace(self):
         """
         Get/set the path to the workspace file. An absolute path is required.
 
-        Example Usage
-        --------------
+        Example Usage::
 
-            rcs.workspace = 'C:/Users/EEG/Desktop/testing.rwksp'
+            rcs.workspace = 'C:/Vision/Worksfiles/testing.rwksp'
 
         """
         return self._workspace
 
     @workspace.setter
     def workspace(self, path):
-        msg = '1:{}'.format(path)
-        self.sendRaw(msg)
-        pauseToSend()
-
-        msg = '4'
-        self.sendRaw(msg)
-        pauseToSend()
+        msg = '1:%s' % path
+        self.sendRaw(msg, checkOutput=msg + ':OK')
 
         self._workspace = path
 
@@ -170,8 +249,7 @@ class RemoteControlServer(object):
 
         The name will make up the first part of the EEG filename.
 
-        Example Usage
-        --------------
+        Example Usage::
 
             rcs.expName = 'MyTestStudy'
 
@@ -180,32 +258,25 @@ class RemoteControlServer(object):
 
     @expName.setter
     def expName(self, name):
-        msg = '2:{}'.format(name)
-        self.sendRaw(msg)
-        pauseToSend()
+        msg = '2:%s' % name
+        self.sendRaw(msg, checkOutput=msg + ':OK')
 
         self._exp_name = name
 
     @property
     def participant(self):
         """
-        Get/set the participant identifier.
+        Get/set the participant identifier (a string or numeric).
 
         This identifier will make up the center part of the EEG filename.
-
-        Parameters
-        ----------
-        participant : int or string
-            The participant identifier, e.g., `123`.
 
         """
         return self._participant
 
     @participant.setter
     def participant(self, participant):
-        msg = '3:%s' % (participant)
-        self.sendRaw(msg)
-        pauseToSend()
+        msg = '3:{}'.format(participant)
+        self.sendRaw(msg, checkOutput=msg + ':OK')
         # keep track of the change
         self._participant = participant
 
@@ -219,36 +290,39 @@ class RemoteControlServer(object):
         - 'default' or 'def' or None will exit special modes
         - 'impedance' or 'imp' for impedance checking
         - 'monitoring' or 'mon' 
-        - 'viewtest' or 'view' to go into test view
+        - 'test' or 'tes' to go into test view
 
         """
         return self._mode
 
     @mode.setter
     def mode(self, mode):
-        if (mode == 'impedance') or (mode == 'imp'):
+        if mode in ['impedance', 'imp']:
             self._mode = 'impedance'
             msg = 'I'
-        elif (mode == 'monitor') or (mode == 'mon'):
+        elif mode in ['monitor', 'mon']:
             self._mode = 'monitor'
             msg = 'M'
+        elif mode in ['test', 'tes']:
+            self._mode = 'test'
+            msg = 'T'
         elif mode in ['default', 'def', None]:
             self._mode = 'default'
-            msg = 'X'
+            msg = 'SV'
         else:
-            msg = ('`mode` must be one of: impedance, imp, monitor, mon, '
+            msg = ('`mode` must be one of: impedance, imp, monitor, mon, test '
                    'def, or default.')
             raise ValueError(msg)
-        
-        self.sendRaw(msg)
+
+        self.sendRaw(msg, checkOutput=msg + ':OK')
 
     @property
     def timeout(self):
         """What is a reasonable timeout in seconds (initially set to 0.5)
 
-        For some systems (e.g. when the RCS is the same machine) you might want to set 
-        this to a lower value. For an unpredictable or slow network connection you 
-        might want to set this to a higher value.
+        For some systems (e.g. when the RCS is the same machine) you might want
+        to set this to a lower value. For an unpredictable or slow network
+        connection you might want to set this to a higher value.
         """
         return self._timeout
 
@@ -262,11 +336,11 @@ class RemoteControlServer(object):
         """Get/set the amplifier to use
         """
         return self._amplifier
-    
+
     @amplifier.setter
     def amplifier(self, amplifier):
         if amplifier in ['actiCHamp', 'BrainAmp Family',
-                         'LiveAmp', 'QuickAmp USB', 'Simulated Amplifier', 
+                         'LiveAmp', 'QuickAmp USB', 'Simulated Amplifier',
                          'V-Amp / FirstAmp']:
             msg = "SA:{}".format(amplifier)
         elif amplifier.startswith("LA-"):
@@ -279,15 +353,24 @@ class RemoteControlServer(object):
                       " 'LiveAmp', 'QuickAmp USB', 'Simulated Amplifier',"
                       " 'V-Amp / FirstAmp']")
             raise ValueError(errMsg)
-        self.sendRaw(msg)
+        self.sendRaw(msg, checkOutput=msg + ':OK')
         self._amplifier = amplifier
 
     @property
-    def overwriteProtection(self):
+    def overwriteProtection(self, forceCheck=False):
         """Get/set whether the 
         """
-        if self._overwriteProtection is None:
-            reply = self.sendRaw("OW")
+        if forceCheck or self._overwriteProtection is None:
+            reply = self.sendRaw("OW", checkOutput=None)
+            # reply is OW:0:OK or OW:1:OK
+            if reply == 'OW:0:OK':
+                state = False
+            elif reply == 'OW:1:OK':
+                state = True
+            else:
+                raise IOError("Request for overwrite state received unknown"
+                              "response '{}'".format(reply))
+            self._overwriteProtection = state
         return self._overwriteProtection
 
     @overwriteProtection.setter
@@ -296,7 +379,7 @@ class RemoteControlServer(object):
             raise ValueError("RCS.overwriteProtection should be set to "
                              "True or False, not '{}'".format(value))
         msg = "OW:{}".format(int(value))
-        self.sendRaw(msg)
+        self.sendRaw(msg, checkOutput=msg + ':OK')
         self._overwriteProtection = bool(value)
 
     def dcReset(self):
@@ -357,6 +440,7 @@ class RemoteControlServer(object):
 
         Parameters
         -----------------
+
         annotation : string
             The desription text to be sent in the annotation.
 
@@ -364,10 +448,9 @@ class RemoteControlServer(object):
             The category of the annotation which are user-defined
             strings (e.g. stimulus, response)
 
-        Example usage
-        --------------
+        Example usage::
 
-        rcs.sendAnnotation("face003", "stimulus")
+            rcs.sendAnnotation("face003", "stimulus")
         
         """
         msg = "AN:{};{}".format(annotation, annType)
@@ -381,7 +464,75 @@ class RemoteControlServer(object):
         self.sendRaw(msg)
 
 
-if __name__=="__main__":
+class _ListenerThread(threading.Thread):
+    def __init__(self, parent):
+        self._socket = parent._socket  # type: socket.socket
+        self.messages = []
+        self._buffer = ''
+        threading.Thread.__init__(self, daemon=True)
+        self._parentRef = weakref.ref(parent)
+        self._is_running = None
+
+    def run(self):
+        """Gets run repeatedly until terminates
+        """
+        if self._is_running is None:
+            self._is_running = True
+        while self._is_running:
+            try:
+                if self._socket._closed:
+                    break
+                recvd = self._socket.recv(512).decode('utf-8')
+                self._buffer += recvd
+                self.processBuffer()
+            except socket.timeout:
+                time.sleep(0.1)
+            except OSError:
+                if self._socket._closed:
+                    self._is_running = False
+
+    def processBuffer(self):
+
+        # check for whole messages:
+        nMessages = self._buffer.count('\r')
+        msgList = self._buffer.split('\r')
+        for msgN in range(nMessages):
+            thisMsg = msgList[msgN]
+            # remove message from buffer so we don't reuse
+            self._buffer = self._buffer.replace(thisMsg + '\r', '')
+            # check if the message is a change of state
+            if thisMsg[:2] in ['AP', 'RS', 'AQ']:
+                self._parentRef()._updateState(thisMsg)
+            else:
+                self.messages.append(thisMsg)
+
+    def clear(self):
+        self.messages = []
+        self._buffer = ''
+        while True:
+            try:
+                self._socket.recv(1)
+            except socket.timeout:  # no chars left to clear
+                return
+
+
+if __name__ == "__main__":
+    logging.console.setLevel(logging.DEBUG)
     rcs = RemoteControlServer()
-    rcs.open('testExp', workspace='BrainCap_64_wksp/BC-64.rwksp', 
+    rcs.open('testExp',
+             workspace='C:/Vision/Workfiles/Standard Workspace.rwksp',
              participant='S0021')
+    rcs.openRecorder()
+    time.sleep(2)
+    rcs.mode = 'monitor'  # or 'impedence', or 'default'
+    rcs.startRecording()
+    time.sleep(2)
+    rcs.sendAnnotation('124', 'STIM')
+    time.sleep(1)
+    rcs.pauseRecording()
+    time.sleep(1)
+    rcs.resumeRecording()
+    time.sleep(1)
+    rcs.stopRecording()
+    time.sleep(1)
+    rcs.mode = 'default'  # stops monitoring mode
