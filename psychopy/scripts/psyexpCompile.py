@@ -207,10 +207,7 @@ def compileScript(infile=None, version=None, outfile=None):
         exp : psychopy.experiment.Experiment
             The experiment from which to test all components for integrity.
         """
-        for _, routine in list(exp.routines.items()):  # PY2/3 compat
-            for component in routine:
-                if hasattr(component, "integrityCheck"):
-                    component.integrityCheck()
+        exp.flow.integrityCheck()  # could do this for each Routine
 
     def _makeTarget(thisExp, outfile, targetOutput):
         """

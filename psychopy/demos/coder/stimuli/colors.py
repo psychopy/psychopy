@@ -19,7 +19,7 @@ from __future__ import division
 
 from psychopy import visual, event, core
 
-win = visual.Window(size=(600, 600), monitor='testMonitor')
+win = visual.Window(size=(600, 600), units='norm')
 
 stims = []
 # rgb colors

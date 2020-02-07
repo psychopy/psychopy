@@ -5,15 +5,18 @@
 # Copyright (C) 2002-2018 Jonathan Peirce (C) 2019 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
+from ._alerts import _activeAlertHandlers
 
 class _BaseErrorHandler(object):
     """A base class for handling PsychoPy alerts and exceptions.
     """
 
-    def __init__(self):
+    def __init__(self, alwaysReceive=True, autoFlush=True):
         self.errors = []
         self.alerts = []
-        self.autoFlush = True
+        self.alwaysReceive = alwaysReceive
+        self.autoFlush = autoFlush
+        _activeAlertHandlers.append(self)
 
     def write(self, toWrite):
         """This is needed for any Python Exceptions, which assume the stderr

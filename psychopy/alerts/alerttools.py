@@ -2,7 +2,6 @@ import ast
 from esprima import parseScript
 from numpy import array
 
-from psychopy.monitors import Monitor
 from psychopy.tools import monitorunittools
 from psychopy.alerts._alerts import alert
 
@@ -12,11 +11,12 @@ class TestWin(object):
     Creates a false window with necessary attributes for converting component
     Parameters to pixels.
     """
-    def __init__(self, exp, monitor):
+    def __init__(self, exp):
         self.useRetina = True
         self.exp = exp
-        self.monitor = Monitor(monitor)
-        self.size = self.monitor.getSizePix()
+        self.monitor = self.exp.settings.monitor
+        self.size = self.exp.settings.params['Window size (pixels)'].val
+
 
 def validDuration(t, hz, toleranceFrames=0.01):
     """Test whether this is a possible time duration given the frame rate"""
@@ -26,24 +26,6 @@ def validDuration(t, hz, toleranceFrames=0.01):
     nFrames = float(t) * hz  # t might not be float if given as "0.5"?
     return abs(nFrames - round(nFrames)) < toleranceFrames
 
-def runTest(component):
-    """
-    Run integrity checks and sends output to the AlertLog system.
-
-    Parameters
-    ----------
-    component : Component
-        The PsychoPy component being tested
-    """
-    win = TestWin(component.exp, component.exp.settings.params['Monitor'].val)
-    units = component.exp.settings.params['Units'].val
-    testSize(component, win, units)
-    testPos(component, win, units)
-    testDisabled(component)
-    testStartEndTiming(component)
-    testAchievableVisualOnsetOffset(component)
-    testValidVisualStimTiming(component)
-    testFramesAsInt(component)
 
 def convertParamToPix(value, win, units):
     """
@@ -69,6 +51,7 @@ def convertParamToPix(value, win, units):
         value = array(value)
     return monitorunittools.convertToPix(value, array([0, 0]), units=units, win=win) * 2
 
+
 def testFloat(val):
     """
     Test value for float.
@@ -78,6 +61,7 @@ def testFloat(val):
         return type(float(val)) == float
     except Exception:
         return False
+
 
 def testSize(component, win, units):
     """
