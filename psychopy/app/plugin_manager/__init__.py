@@ -138,11 +138,10 @@ class PluginManagerFrame(wx.Dialog):
         self.lstPlugins.DeleteAllItems()  # clear existing items
 
         # get current state
-        self.installedPlugins = plugins.listPlugins('all')
         self.startupPlugins = plugins.listPlugins('startup')
 
         # populate the list with installed plugins
-        for pName in self.installedPlugins:
+        for pName in plugins._installed_plugins_:
             metadata = plugins.pluginMetadata(pName)
             index = self.lstPlugins.InsertItem(0, pName)
             self.lstPlugins.SetItem(
@@ -194,6 +193,13 @@ class PluginManagerFrame(wx.Dialog):
 
         # plugin buttons
         buttonSizer = wx.BoxSizer(wx.VERTICAL)
+
+        # rescan plugins button
+        self.cmdScanPlugin = wx.Button(pnlPlugins, id=wx.ID_ANY, label='Rescan')
+        self.cmdScanPlugin.Bind(wx.EVT_BUTTON, self.onRescanPlugins)
+        self.cmdScanPlugin.SetToolTip(wx.ToolTip(
+            "Rescan installed packages for PsychoPy plugins."))
+        buttonSizer.Add(self.cmdScanPlugin, flag=wx.EXPAND | wx.BOTTOM, border=5)
 
         # load selected plugin button
         self.cmdLoadPlugin = wx.Button(pnlPlugins, id=wx.ID_ANY, label='Load')
@@ -294,6 +300,12 @@ class PluginManagerFrame(wx.Dialog):
         pluginName = self.lstPlugins.GetItem(
             self.selectedItem, col=0).GetText()
         plugins.loadPlugin(pluginName)
+
+        self.refreshList()
+
+    def onRescanPlugins(self, evt=None):
+        """Pressed the rescan button."""
+        plugins.scanPlugins()
 
         self.refreshList()
 
