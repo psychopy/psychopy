@@ -46,6 +46,8 @@
     shutdownKeyModifiers = list(default=list())
     # What to do if gamma-correction not possible
     gammaErrorPolicy = option('abort', 'warn', default='abort')
+    # Add plugin names here to load when a PsychoPy session starts.
+    startUpPlugins = list(default=list())
 
 # Application settings, applied to coder, builder, & prefs windows
 [app]
