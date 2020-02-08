@@ -156,7 +156,7 @@ def resolveObjectFromName(name, basename=None, resolve=True, error=True):
     return objref
 
 
-def computeChecksum(fpath, method='sha256'):
+def computeChecksum(fpath, method='sha256', writeOut=None):
     """Compute the checksum hash/key for a given package.
 
     Authors of PsychoPy plugins can use this function to compute a checksum
@@ -169,6 +169,9 @@ def computeChecksum(fpath, method='sha256'):
     method : str
         Hashing method to use, values are 'md5' or 'sha256'. Default is
         'sha256'.
+    writeOut : str
+        Path to a text file to write checksum data to. If the file exists, the
+        data will be written as a line at the end of the file.
 
     Returns
     -------
@@ -194,7 +197,13 @@ def computeChecksum(fpath, method='sha256'):
             chunk = f.read(4096)
             hashobj.update(chunk)
 
-    return hashobj.hexdigest()
+    checksumStr = hashobj.hexdigest()
+
+    if writeOut is not None:
+        with open(writeOut, 'a') as f:
+            f.write('\n' + checksumStr)
+
+    return checksumStr
 
 
 def scanPlugins():
