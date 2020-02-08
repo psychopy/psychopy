@@ -16,6 +16,7 @@ import sys
 import psychopy
 from pkg_resources import parse_version
 from psychopy.constants import PY3
+from psychopy.preferences import prefs
 import io
 from . import urls
 from . import frametracker
@@ -61,7 +62,7 @@ else:
 # Enable high-dpi support if on Windows. This fixes blurry text rendering.
 if sys.platform == 'win32':
     try:
-        ctypes.windll.shcore.SetProcessDpiAwareness(True)
+        ctypes.windll.shcore.SetProcessDpiAwareness(prefs.app['highDPI'])
     except:
         pass
 
