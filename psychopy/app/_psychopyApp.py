@@ -40,6 +40,7 @@ from psychopy.localization import _translate
 # take a while
 
 # needed by splash screen for the path to resources/psychopySplash.png
+import ctypes
 from psychopy import preferences, logging, __version__
 from psychopy import projects
 from . import connections
@@ -55,6 +56,14 @@ if not PY3 and sys.platform == 'darwin':
     blockTips = True
 else:
     blockTips = False
+
+
+# Enable high-dpi support if on Windows. This fixes blurry text rendering.
+if sys.platform == 'win32':
+    try:
+        ctypes.windll.shcore.SetProcessDpiAwareness(True)
+    except:
+        pass
 
 
 class MenuFrame(wx.Frame):
