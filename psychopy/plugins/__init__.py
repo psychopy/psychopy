@@ -228,10 +228,6 @@ def listPlugins(which='all'):
     system, those registered to be loaded automatically when PsychoPy starts, or
     those that have been previously loaded successfully this session.
 
-    When searching for installed plugin packages, names are listed if packages
-    define entry points specifically for PsychoPy and support the current Python
-    environment.
-
     Parameters
     ----------
     which : str
