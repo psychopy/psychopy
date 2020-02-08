@@ -1391,7 +1391,7 @@ class BuilderFrame(wx.Frame):
             wx.ID_PREFERENCES,
             _translate("&Preferences\t%s") % keys['preferences'])
         self.Bind(wx.EVT_MENU, self.app.showPrefs, item)
-        item = menu.Append(wx.NewId(), "Plugin &Manager")
+        item = menu.Append(wx.NewId(), "Plug&ins")
         self.Bind(wx.EVT_MENU, self.pluginManager, item)
         self.fileMenu.AppendSeparator()
         self.fileMenu.Append(wx.ID_EXIT,

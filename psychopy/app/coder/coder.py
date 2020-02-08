@@ -1410,7 +1410,7 @@ class CoderFrame(wx.Frame):
         item = menu.Append(wx.ID_PREFERENCES,
                            msg % keyCodes['preferences'])
         self.Bind(wx.EVT_MENU, self.app.showPrefs, id=item.GetId())
-        item = menu.Append(wx.NewId(), "Plugin &Manager")
+        item = menu.Append(wx.NewId(), "Plug&ins")
         self.Bind(wx.EVT_MENU, self.pluginManager, id=item.GetId())
         # -------------quit
         menu.AppendSeparator()

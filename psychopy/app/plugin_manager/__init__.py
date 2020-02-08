@@ -18,12 +18,12 @@ if parse_version(wx.__version__) < parse_version('4.0.3'):
     wx.NewIdRef = wx.NewId
 
 from psychopy import logging, plugins
-from wx.lib.mixins.listctrl import ListCtrlAutoWidthMixin
+from wx.lib.mixins.listctrl import ListCtrlAutoWidthMixin, CheckListCtrlMixin
 
 from psychopy.preferences import prefs
 
 
-class CustomListCtrl(wx.ListCtrl, ListCtrlAutoWidthMixin):
+class CustomListCtrl(wx.ListCtrl, ListCtrlAutoWidthMixin, CheckListCtrlMixin):
     """Custom ListCtrl that allows for automatic resizing of columns."""
     def __init__(self, parent, id):
         wx.ListCtrl.__init__(self,
@@ -31,6 +31,7 @@ class CustomListCtrl(wx.ListCtrl, ListCtrlAutoWidthMixin):
                              id,
                              style=wx.LC_REPORT | wx.LC_SINGLE_SEL)
         ListCtrlAutoWidthMixin.__init__(self)
+        CheckListCtrlMixin.__init__(self)
 
 
 class EntryPointViewer(wx.Dialog):
@@ -124,7 +125,7 @@ class PluginManagerFrame(wx.Dialog):
         pos = wx.Point(parent.Position[0] + 80, parent.Position[1] + 80)
         _style = wx.DEFAULT_DIALOG_STYLE | wx.FRAME_FLOAT_ON_PARENT | wx.RESIZE_BORDER
         wx.Dialog.__init__(self, parent, title=title,
-                           size=(800, 600), pos=pos, style=_style)
+                           size=(1024, 460), pos=pos, style=_style)
         self.Bind(wx.EVT_CLOSE, self.onClose)
 
         self.selectedItem = -1
@@ -141,35 +142,57 @@ class PluginManagerFrame(wx.Dialog):
         self.startupPlugins = plugins.listPlugins('startup')
 
         # populate the list with installed plugins
-        for pName in plugins._installed_plugins_:
-            metadata = plugins.pluginMetadata(pName)
-            index = self.lstPlugins.InsertItem(0, pName)
-            self.lstPlugins.SetItem(
-                index, 1,
-                u'\u2713' if pName in plugins._loaded_plugins_.keys() else u'')
+        for pluginName in plugins._installed_plugins_:
+            metadata = plugins.pluginMetadata(pluginName)
+
+            # check if a plugin is enabled, but needs the session restarted
+            index = self.lstPlugins.InsertItem(0, pluginName)
+
+            if pluginName in plugins.listPlugins('startup'):
+                if pluginName not in plugins._loaded_plugins_.keys():
+                    self.lstPlugins.SetItemBackgroundColour(index, self.attnListCol)
+                    status = 'Needs Restart'
+                else:
+                    self.lstPlugins.SetItemBackgroundColour(index, self.defaultListCol)
+                    status = 'Ready'
+            else:
+
+                if pluginName in plugins._loaded_plugins_.keys():
+                    self.lstPlugins.SetItemBackgroundColour(index, self.attnListCol)
+                    status = 'Needs Restart'
+                else:
+                    self.lstPlugins.SetItemBackgroundColour(index, self.defaultListCol)
+                    status = ''
+
+            self.lstPlugins.CheckItem(index, pluginName in self.startupPlugins)
+            self.lstPlugins.SetItem(index, 1, status)
             self.lstPlugins.SetItem(
                 index, 2,
-                u'\u2713' if pName in self.startupPlugins else u'')
-            self.lstPlugins.SetItem(
-                index, 3,
                 metadata['Version'] if 'Version' in metadata.keys() else 'N/A')
             self.lstPlugins.SetItem(
-                index, 4,
+                index, 3,
                 metadata['Author'] if 'Author' in metadata.keys() else 'N/A')
             self.lstPlugins.SetItem(
-                index, 5,
+                index, 4,
                 metadata['Summary'] if 'Summary' in metadata.keys() else 'N/A')
 
-        self.cmdLoadPlugin.Disable()
         self.cmdEntryPoints.Disable()
-        self.chkStartup.SetValue(False)
-        self.chkStartup.Disable()
 
     def initCtrls(self):
         """Create window controls."""
         frameSizer = wx.BoxSizer(wx.VERTICAL)
         framePanel = wx.Panel(self)
         panelSizer = wx.BoxSizer(wx.VERTICAL)
+
+        # add some text
+        lblInfo = wx.StaticText(
+            framePanel,
+            id=wx.ID_ANY,
+            label="Mark the desired plugins to load when a PsychoPy session is "
+                  "started. Highlighted items indicate that PsychoPy needs to "
+                  "be restarted before the plugin can take full effect.")
+
+        panelSizer.Add(lblInfo, flag=wx.EXPAND | wx.TOP | wx.LEFT | wx.RIGHT, border=10)
 
         # add the box
         fraPlugins = wx.StaticBox(framePanel, wx.ID_ANY, "Installed Plugins")
@@ -181,12 +204,16 @@ class PluginManagerFrame(wx.Dialog):
         self.lstPlugins = CustomListCtrl(pnlPlugins, id=wx.ID_ANY)
         self.lstPlugins.Bind(wx.EVT_LIST_ITEM_SELECTED, self.onItemSelected)
         self.lstPlugins.Bind(wx.EVT_LIST_ITEM_DESELECTED, self.onItemSelected)
-        self.lstPlugins.InsertColumn(0, 'Name', width=120)
-        self.lstPlugins.InsertColumn(1, 'Loaded', wx.LIST_FORMAT_CENTER, width=60)
-        self.lstPlugins.InsertColumn(2, 'Startup', wx.LIST_FORMAT_CENTER, width=60)
-        self.lstPlugins.InsertColumn(3, 'Version', width=100)
-        self.lstPlugins.InsertColumn(4, 'Author', width=150)
-        self.lstPlugins.InsertColumn(5, 'Description', width=250)
+        self.lstPlugins.OnCheckItem = self.callbackItemChecked
+        self.lstPlugins.InsertColumn(0, 'Name', width=180)
+        self.lstPlugins.InsertColumn(1, 'Status', wx.LIST_FORMAT_CENTER, width=100)
+        self.lstPlugins.InsertColumn(2, 'Version', width=60)
+        self.lstPlugins.InsertColumn(3, 'Author', width=150)
+        self.lstPlugins.InsertColumn(4, 'Description', width=250)
+
+        self.defaultListCol = self.lstPlugins.GetBackgroundColour()
+        colordb = wx.ColourDatabase()
+        self.attnListCol = colordb.Find('MEDIUM GOLDENROD')
 
         bsizer.Add(self.lstPlugins, flag=wx.EXPAND | wx.ALL, proportion=1)
         fraSizer.Add(pnlPlugins, flag=wx.EXPAND | wx.ALL, proportion=1, border=5)
@@ -201,12 +228,6 @@ class PluginManagerFrame(wx.Dialog):
             "Rescan installed packages for PsychoPy plugins."))
         buttonSizer.Add(self.cmdScanPlugin, flag=wx.EXPAND | wx.BOTTOM, border=5)
 
-        # load selected plugin button
-        self.cmdLoadPlugin = wx.Button(pnlPlugins, id=wx.ID_ANY, label='Load')
-        self.cmdLoadPlugin.Bind(wx.EVT_BUTTON, self.onLoadPlugin)
-        self.cmdLoadPlugin.SetToolTip(wx.ToolTip("Load the selected plugin."))
-        buttonSizer.Add(self.cmdLoadPlugin, flag=wx.EXPAND | wx.BOTTOM, border=5)
-
         # display entry points button
         self.cmdEntryPoints = wx.Button(pnlPlugins, id=wx.ID_ANY,
                                         label='Entry Points ...')
@@ -215,13 +236,6 @@ class PluginManagerFrame(wx.Dialog):
             "Display the entry points for the selected plugin."))
         buttonSizer.Add(self.cmdEntryPoints, flag=wx.EXPAND | wx.BOTTOM, border=5)
 
-        # load on startup check box
-        self.chkStartup = wx.CheckBox(pnlPlugins, id=wx.ID_ANY, label='Load on startup?')
-        self.chkStartup.Bind(wx.EVT_CHECKBOX, self.onStartupChecked)
-        self.chkStartup.SetToolTip(wx.ToolTip(
-            "Load the selected plugin automatically when a PsychoPy session "
-            "starts."))
-        buttonSizer.Add(self.chkStartup, flag=wx.EXPAND | wx.BOTTOM, border=5)
         bsizer.Add(buttonSizer, flag=wx.EXPAND | wx.BOTTOM | wx.LEFT, border=5)
         pnlPlugins.SetSizer(bsizer)
 
@@ -249,29 +263,6 @@ class PluginManagerFrame(wx.Dialog):
         frameSizer.Add(framePanel, flag=wx.EXPAND | wx.ALL, proportion=1)
         self.SetSizer(frameSizer)
 
-    def onStartupChecked(self, evt=None):
-        """Called when the checkbox for specifying if a plugin should be loaded
-        on startup is clicked."""
-        self.selectedItem = self.lstPlugins.GetFirstSelected()
-        if self.selectedItem != -1:
-            pluginName = self.lstPlugins.GetItem(
-                self.selectedItem, col=0).GetText()
-
-            checked = self.chkStartup.GetValue()
-
-            # check if in startup
-            if not checked:
-                try:
-                    prefs.general['startUpPlugins'].remove(pluginName)
-                except ValueError:
-                    pass
-                prefs.saveUserPrefs()
-            else:
-                plugins.startUpPlugins(pluginName, add=True)
-
-            self.startupPlugins = plugins.listPlugins('startup')
-            self.refreshList()
-
     def onItemSelected(self, evt=None):
         """Get the selected item."""
         self.selectedItem = self.lstPlugins.GetFirstSelected()
@@ -279,18 +270,41 @@ class PluginManagerFrame(wx.Dialog):
             pluginName = self.lstPlugins.GetItem(
                 self.selectedItem, col=0).GetText()
             self.cmdEntryPoints.Enable()
-            self.chkStartup.Enable()
-            if pluginName not in plugins._loaded_plugins_.keys():
-                self.cmdLoadPlugin.Enable()
-            else:
-                self.cmdLoadPlugin.Disable()
-
-            self.chkStartup.SetValue(pluginName in self.startupPlugins)
         else:
-            self.cmdLoadPlugin.Disable()
             self.cmdEntryPoints.Disable()
-            self.chkStartup.SetValue(False)
-            self.chkStartup.Disable()
+
+    def callbackItemChecked(self, index, flag):
+        """Do something when an item is checked."""
+        item = self.lstPlugins.GetItem(index, col=0)
+        pluginName = item.GetText()
+
+        # check if in startup
+        if not flag:
+            try:
+                prefs.general['startUpPlugins'].remove(pluginName)
+            except ValueError:
+                pass
+            prefs.saveUserPrefs()
+        else:
+            plugins.startUpPlugins(pluginName, add=True)
+
+        if pluginName in plugins.listPlugins('startup'):
+            if pluginName not in plugins._loaded_plugins_.keys():
+                self.lstPlugins.SetItemBackgroundColour(index, self.attnListCol)
+                status = 'Needs Restart'
+            else:
+                self.lstPlugins.SetItemBackgroundColour(index, self.defaultListCol)
+                status = 'Ready'
+        else:
+
+            if pluginName in plugins._loaded_plugins_.keys():
+                self.lstPlugins.SetItemBackgroundColour(index, self.attnListCol)
+                status = 'Needs Restart'
+            else:
+                self.lstPlugins.SetItemBackgroundColour(index, self.defaultListCol)
+                status = ''
+
+        self.lstPlugins.SetItem(index, 1, status)
 
     def onLoadPlugin(self, evt=None):
         """Pressed the load button."""
@@ -326,7 +340,16 @@ class PluginManagerFrame(wx.Dialog):
 
     def onClose(self, evt=None):
         """
-        Defines behavior on close of the Readme Frame
+        Defines behavior on close of the plugin manager
         """
+        # if any items indicate a restart is needed, give a message
+        for itemIdx in range(0, self.lstPlugins.GetItemCount()):
+            if self.lstPlugins.GetItem(itemIdx, col=1).GetText() == "Needs Restart":
+                dlg = wx.MessageDialog(
+                    self, "PsychoPy must be restarted for plugin changes to take effect.",
+                    caption="Information", style=wx.OK | wx.CENTRE | wx.ICON_INFORMATION)
+                dlg.ShowModal()
+                break
+
         self.parent.pluginManager = None
         self.Destroy()
