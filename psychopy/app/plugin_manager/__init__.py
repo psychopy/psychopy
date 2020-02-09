@@ -442,7 +442,6 @@ class PluginManagerFrame(wx.Dialog):
 
     def onRescanPlugins(self, evt=None):
         """Event handler for when the rescan button is pressed."""
-        plugins.scanPlugins()
         self.cmdEntryPoints.Disable()
         self.lstPlugins.refreshList()
 
