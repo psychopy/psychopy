@@ -9,7 +9,7 @@
 from __future__ import absolute_import
 __all__ = ['loadPlugin', 'listPlugins', 'computeChecksum', 'startUpPlugins',
            'pluginMetadata', 'pluginEntryPoints', 'scanPlugins',
-           'requirePlugin']
+           'requirePlugin', 'isPluginLoaded']
 
 import sys
 import inspect
@@ -245,7 +245,8 @@ def listPlugins(which='all'):
         plugins that have been previously loaded successfully this session will
         be listed. If 'startup', plugins registered to be loaded when a PsychoPy
         session starts will be listed, whether or not they have been loaded this
-        session.
+        session. If 'unloaded', plugins that have not been loaded but are
+        installed will be listed.
 
     Returns
     -------
@@ -285,15 +286,63 @@ def listPlugins(which='all'):
             print('Please restart your PsychoPy session for plugins to take effect.')
 
     """
-    if which not in ('all', 'startup', 'loaded',):
+    if which not in ('all', 'startup', 'loaded', 'unloaded'):
         raise ValueError("Invalid value specified to argument `which`.")
 
     if which == 'loaded':  # only list plugins we have already loaded
         return list(_loaded_plugins_.keys())
     elif which == 'startup':
         return prefs.general['startUpPlugins']
+    elif which == 'unloaded':
+        return [p for p in listPlugins('all') if p in listPlugins('loaded')]
     else:
         return list(_installed_plugins_.keys())
+
+
+def isPluginLoaded(plugin):
+    """Check if a plugin has been previously loaded successfully by a
+    :func:`loadPlugin` call.
+
+    Parameters
+    ----------
+    plugin : str
+        Name of the plugin package to check if loaded. This usually refers to
+        the package or project name.
+
+    Returns
+    -------
+    bool
+        `True` if a plugin was successfully loaded and active, else `False`.
+
+    """
+    return plugin in listPlugins(which='loaded')
+
+
+def isStartUpPlugin(plugin):
+    """Check if a plugin is registered to be loaded when PsychoPy starts.
+
+    Parameters
+    ----------
+    plugin : str
+        Name of the plugin package to check. This usually refers to the package
+        or project name.
+
+    Returns
+    -------
+    bool
+        `True` if a plugin is registered to be loaded when a PsychoPy session
+        starts, else `False`.
+
+    Examples
+    --------
+    Check if a plugin was loaded successfully at startup::
+
+        pluginName = 'psychopy-plugin'
+        if isStartUpPlugin(pluginName) and isPluginLoaded(pluginName):
+            print('Plugin successfully loaded at startup.')
+
+    """
+    return plugin in listPlugins(which='startup')
 
 
 def loadPlugin(plugin, *args, **kwargs):
@@ -371,7 +420,7 @@ def loadPlugin(plugin, *args, **kwargs):
 
     """
     global _loaded_plugins_
-    if plugin in _loaded_plugins_.keys():
+    if isPluginLoaded(plugin):
         logging.info('Plugin `{}` already loaded. Skipping.'.format(plugin))
         return True  # already loaded, return True
 
@@ -477,11 +526,11 @@ def loadPlugin(plugin, *args, **kwargs):
 def requirePlugin(plugin):
     """Require a plugin to be already loaded.
 
-    This function can be used to check if a plugin has already been loaded and
+    This function can be used to ensure if a plugin has already been loaded and
     is ready for use. This is useful for cases where plugins are needed that
     cannot be loaded at the present point in the session. For instance, some
     plugins may need to be loaded at startup to take full effect (eg. plugins
-    that load builder components), this function can raise an error to prevent
+    that load builder components), this function raises an error to prevent
     the application from continuing to avoid undefined behavior from partially
     loaded plugins.
 
@@ -491,14 +540,26 @@ def requirePlugin(plugin):
         Name of the plugin package to require. This usually refers to the package
         or project name.
 
+    Raises
+    ------
+    RuntimeError
+        Plugin has not been previously loaded this session.
+
     Examples
     --------
     Ensure plugin `psychopy-plugin` is loaded at this point in the session::
 
-        requirePlugin('psychopy-plugin')
+        requirePlugin('psychopy-plugin')  # error if not loaded
+
+    You can catch the error and try to handle the situation by::
+
+        try:
+            requirePlugin('psychopy-plugin')
+        except RuntimeError:
+            # do something about it ...
 
     """
-    if plugin not in _loaded_plugins_:
+    if not isPluginLoaded(plugin):
         raise RuntimeError('Required plugin `{}` has not been loaded.')
 
 

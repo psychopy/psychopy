@@ -34,6 +34,8 @@ try:
 except ImportError:  # if it's not there locally, try the wxPython lib.
     import wx.lib.agw.advancedsplash as AS
 
+from .plugin_manager import saveStartUpPluginsConfig
+
 from psychopy.localization import _translate
 # NB keep imports to a minimum here because splash screen has not yet shown
 # e.g. coder and builder are imported during app.__init__ because they
@@ -683,6 +685,9 @@ class PsychoPyApp(wx.App):
         # start with an empty list to be appended by each frame
         self.prefs.appData['builder']['prevFiles'] = []
         self.prefs.appData['coder']['prevFiles'] = []
+
+        # write plugins config if changed during the session
+        saveStartUpPluginsConfig()
 
         for frame in self.getAllFrames():
             try:
