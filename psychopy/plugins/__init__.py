@@ -848,7 +848,9 @@ def pluginEntryPoints(plugin, parse=False):
         else:
             toReturn = {}
             for group, val in _installed_plugins_[plugin].items():
-                toReturn[group] = {}
+                if group not in toReturn.keys():
+                    toReturn[group] = {}  # create a new group entry
+
                 for attr, ep in val.items():
                     # parse the entry point specifier
                     ex = '.'.join(str(ep).split(' = ')[1].split(':'))  # make fqn
