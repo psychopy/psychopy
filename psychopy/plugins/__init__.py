@@ -589,7 +589,7 @@ def loadPlugin(plugin, *args, **kwargs):
 
     # if we made it here on a previously failed plugin, it was likely fixed and
     # can be removed from the list.
-    if plugin not in _failed_plugins_.keys():
+    if plugin not in _failed_plugins_:
         try:
             _failed_plugins_.remove(plugin)
         except ValueError:

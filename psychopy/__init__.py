@@ -53,11 +53,11 @@ if 'installing' not in locals():
     if 'startUpPlugins' in prefs.general.keys():
         if prefs.general['startUpPlugins']:
             for plugin in prefs.general['startUpPlugins']:
-                try:
-                    loadPlugin(plugin)
-                except:  # broad catch-all for errors
-                    logging.error(
-                        "Failed to load plugin `{}` on startup.".format(plugin))
+                #try:
+                loadPlugin(plugin)
+                #except:  # broad catch-all for errors
+                #    logging.error(
+                #        "Failed to load plugin `{}` on startup.".format(plugin))
 
     from psychopy.tools.versionchooser import useVersion, ensureMinimal
 
