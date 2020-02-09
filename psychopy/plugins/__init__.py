@@ -387,6 +387,13 @@ def loadPlugin(plugin, *args, **kwargs):
     behavior if not present. If you want to halt the application if a plugin
     fails to load, consider using :func:`requirePlugin`.
 
+    It is advised that you use this function only when using PsychoPy as a
+    library. If using the builder or coder GUI, it is recommended that you use
+    the plugin dialog to enable plugins for PsychoPy sessions spawned by the
+    experiment runner. However, you can still use this function if you want to
+    load additional plugins for a given experiment, having their effects
+    isolated from the main application and other experiments.
+
     Parameters
     ----------
     plugin : str
@@ -674,6 +681,10 @@ def startUpPlugins(plugins, add=True, verify=True):
     and provides a means to verify if entries are valid. The PsychoPy session
     must be restarted for the plugins specified to take effect.
 
+    If using PsychoPy as a library, this function serves as a convenience to
+    avoid needing to explicitly call :func:`loadPlugin` every time to use your
+    favorite plugins.
+
     Parameters
     ----------
     plugins : `str`, `list` or `None`
@@ -698,6 +709,12 @@ def startUpPlugins(plugins, add=True, verify=True):
         entry points to PsychoPy. This is raised to prevent issues in future
         sessions where invalid plugins are written to the config file and are
         automatically loaded.
+
+    Warnings
+    --------
+    Do not use this function within the builder or coder GUI! Use the plugin
+    dialog to specify which plugins to load on startup. Only use this function
+    when using PsychoPy as a library!
 
     Examples
     --------
