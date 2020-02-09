@@ -369,6 +369,14 @@ def loadPlugin(plugin, *args, **kwargs):
     callable object in the plugin module to run any initialization routines
     prior to loading entry points.
 
+    This function is robust, simply returning `True` or `False` whether a
+    plugin has been fully loaded or not. If a plugin fails to load, the reason
+    for it will be written to the log as a warning or error, and the application
+    will continue running. This may be undesirable in some cases, since features
+    the plugin provides may be needed at some point and would lead to undefined
+    behavior if not present. If you want to halt the application if a plugin
+    fails to load, consider using :func:`requirePlugin`.
+
     Parameters
     ----------
     plugin : str
@@ -385,17 +393,7 @@ def loadPlugin(plugin, *args, **kwargs):
         Also returns `True` if the plugin was already loaded by a previous
         `loadPlugin` call this session, this function will have no effect in
         this case. `False` is returned if the plugin defines no entry points
-        specific to PsychoPy (a warning is logged).
-
-    Raises
-    ------
-    NameError
-        The plugin attempted to overwrite an entire extant module or modify
-        `psychopy.plugins`. Also raised if the plugin module defines
-        `__register__` but the specified object is not valid or reachable.
-    TypeError
-        Plugin defines `__register__` which specifies an object that is not
-        callable.
+        specific to PsychoPy or crashed (an error is logged).
 
     Warnings
     --------
@@ -602,12 +600,15 @@ def requirePlugin(plugin):
     """Require a plugin to be already loaded.
 
     This function can be used to ensure if a plugin has already been loaded and
-    is ready for use. This is useful for cases where plugins are needed that
-    cannot be loaded at the present point in the session. For instance, some
-    plugins may need to be loaded at startup to take full effect (eg. plugins
-    that load builder components), this function raises an error to prevent
-    the application from continuing to avoid undefined behavior from partially
-    loaded plugins.
+    is ready for use, raising an exception and ending the session if not.
+
+    This function compliments :func:`loadPlugin`, which does not halt the
+    application if plugin fails to load. This allows PsychoPy to continue
+    working, giving the user a chance to deal with the problem (either by
+    disabling or fixing the plugins). However, :func:`requirePlugin` can be used
+    to guard against undefined behavior caused by a failed or partially loaded
+    plugin by raising an exception before any code that uses the plugin's
+    features is executed.
 
     Parameters
     ----------
