@@ -434,11 +434,6 @@ def saveStartUpPluginsConfig():
     config file if there have been changes to the plugin configuration over the
     course of the current session.
 
-    Returns
-    -------
-    list
-        The new list of plugins to write to the config file.
-
     """
     if _startUpPluginsUpdated:
         prefs.general['startUpPlugins'] = _startup_plugins_
