@@ -258,6 +258,10 @@ def listPlugins(which='all'):
         Names of PsychoPy related plugins as strings. You can load all installed
         plugins by passing list elements to `loadPlugin`.
 
+    See Also
+    --------
+    loadPlugin : Load a plugin into the current session.
+
     Examples
     --------
     Load all plugins installed on the system into the current session (assumes
@@ -319,6 +323,10 @@ def isPluginLoaded(plugin):
     -------
     bool
         `True` if a plugin was successfully loaded and active, else `False`.
+
+    See Also
+    --------
+    loadPlugin : Load a plugin into the current session.
 
     """
     return plugin in listPlugins(which='loaded')
@@ -404,6 +412,7 @@ def loadPlugin(plugin, *args, **kwargs):
     See Also
     --------
     listPlugins : Search for and list installed or loaded plugins.
+    requirePlugin : Require a plugin be previously loaded.
 
     Examples
     --------
@@ -632,6 +641,10 @@ def requirePlugin(plugin):
     ------
     RuntimeError
         Plugin has not been previously loaded this session.
+
+    See Also
+    --------
+    loadPlugin : Load a plugin into the current session.
 
     Examples
     --------
