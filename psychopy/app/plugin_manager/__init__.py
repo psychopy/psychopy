@@ -49,6 +49,7 @@ class PluginBrowserListCtrl(wx.ListCtrl, ListCtrlAutoWidthMixin, CheckListCtrlMi
         colordb = wx.ColourDatabase()
         self.defaultRowColor = self.GetBackgroundColour()
         self.attnRowColor = colordb.Find('MEDIUM GOLDENROD')
+        self.failedRowColor = colordb.Find('PLUM')
 
         self.createColumns()
 
@@ -62,6 +63,20 @@ class PluginBrowserListCtrl(wx.ListCtrl, ListCtrlAutoWidthMixin, CheckListCtrlMi
         """
         for itemIdx in range(0, self.GetItemCount()):
             pluginName = self.GetItem(itemIdx, col=0).GetText()
+
+            # deal with failed plugins
+            if pluginName in plugins._failed_plugins_:
+                if pluginName in _startup_plugins_:
+                    self.SetItemBackgroundColour(
+                        itemIdx, self.failedRowColor)
+                    self.SetItem(itemIdx, 1, 'Failed')
+                else:
+                    self.SetItemBackgroundColour(
+                        itemIdx, self.attnRowColor)
+                    self.SetItem(itemIdx, 1, 'Needs Restart')
+
+                continue
+
             if pluginName in _startup_plugins_:
                 if not plugins.isPluginLoaded(pluginName):
                     self.SetItemBackgroundColour(
@@ -82,6 +97,7 @@ class PluginBrowserListCtrl(wx.ListCtrl, ListCtrlAutoWidthMixin, CheckListCtrlMi
                     status = ''
 
             self.SetItem(itemIdx, 1, status)
+
 
     def createColumns(self):
         """Create columns for this widget."""

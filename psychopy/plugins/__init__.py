@@ -31,6 +31,9 @@ _loaded_plugins_ = collections.OrderedDict()  # use OrderedDict for Py2 compatib
 # packages for them.
 _installed_plugins_ = collections.OrderedDict()
 
+# Keep track of plugins that failed to load here
+_failed_plugins_ = []
+
 
 def resolveObjectFromName(name, basename=None, resolve=True, error=True):
     """Get an object within a module's namespace using a fully-qualified or
@@ -246,7 +249,8 @@ def listPlugins(which='all'):
         be listed. If 'startup', plugins registered to be loaded when a PsychoPy
         session starts will be listed, whether or not they have been loaded this
         session. If 'unloaded', plugins that have not been loaded but are
-        installed will be listed.
+        installed will be listed. If 'failed', returns a list of plugin names
+        that attempted to load this session but failed for some reason.
 
     Returns
     -------
@@ -286,15 +290,17 @@ def listPlugins(which='all'):
             print('Please restart your PsychoPy session for plugins to take effect.')
 
     """
-    if which not in ('all', 'startup', 'loaded', 'unloaded'):
+    if which not in ('all', 'startup', 'loaded', 'unloaded', 'failed'):
         raise ValueError("Invalid value specified to argument `which`.")
 
     if which == 'loaded':  # only list plugins we have already loaded
         return list(_loaded_plugins_.keys())
     elif which == 'startup':
-        return prefs.general['startUpPlugins']
+        return list(prefs.general['startUpPlugins'])  # copy this
     elif which == 'unloaded':
         return [p for p in listPlugins('all') if p in listPlugins('loaded')]
+    elif which == 'failed':
+        return list(_failed_plugins_)  # copy
     else:
         return list(_installed_plugins_.keys())
 
@@ -419,7 +425,8 @@ def loadPlugin(plugin, *args, **kwargs):
             # initialize objects which require the plugin here ...
 
     """
-    global _loaded_plugins_
+    global _loaded_plugins_, _failed_plugins_
+
     if isPluginLoaded(plugin):
         logging.info('Plugin `{}` already loaded. Skipping.'.format(plugin))
         return True  # already loaded, return True
@@ -430,6 +437,8 @@ def loadPlugin(plugin, *args, **kwargs):
         logging.warning(
             'Package `{}` does not appear to be a valid plugin. '
             'Skipping.'.format(plugin))
+        if plugin not in _failed_plugins_.keys():
+            _failed_plugins_.append(plugin)
 
         return False
 
@@ -437,6 +446,9 @@ def loadPlugin(plugin, *args, **kwargs):
         logging.warning(
             'Specified package `{}` defines no entry points for PsychoPy. '
             'Skipping.'.format(plugin))
+
+        if plugin not in _failed_plugins_.keys():
+            _failed_plugins_.append(plugin)
 
         return False  # can't do anything more here, so return
 
@@ -448,13 +460,27 @@ def loadPlugin(plugin, *args, **kwargs):
         # forbid plugins from modifying this module
         if fqn.startswith('psychopy.plugins') or \
                 (fqn == 'psychopy' and 'plugins' in attrs):
-            raise NameError(
-                "Plugins declaring entry points into the `psychopy.plugins` "
-                "module is forbidden.")
+            logging.error(
+                "Plugin `{}` declares entry points into the `psychopy.plugins` "
+                "which is forbidden. Skipping.")
+
+            if plugin not in _failed_plugins_:
+                _failed_plugins_.append(plugin)
+
+            return False
 
         # Get the object the fully-qualified name points to the group which the
         # plugin wants to modify.
-        targObj = resolveObjectFromName(fqn)
+        targObj = resolveObjectFromName(fqn, error=False)
+        if targObj is None:
+            logging.error(
+                "Plugin `{}` specified entry point group `{}` that does not "
+                "exist or is unreachable.")
+
+            if plugin not in _failed_plugins_:
+                _failed_plugins_.append(plugin)
+
+            return False
 
         # add and replace names with the plugin entry points
         for attr, ep in attrs.items():
@@ -465,7 +491,17 @@ def loadPlugin(plugin, *args, **kwargs):
             if ep.module_name not in sys.modules:
                 # Do stuff before loading entry points here, any executable code
                 # in the module will run to configure it.
-                imp = importlib.import_module(ep.module_name)
+                try:
+                    imp = importlib.import_module(ep.module_name)
+                except (ModuleNotFoundError, ImportError):
+                    logging.error(
+                        "Plugin `{}` entry point requires module `{}`, but it"
+                        "cannot be imported.".format(plugin, ep.module_name))
+
+                    if plugin not in _failed_plugins_:
+                        _failed_plugins_.append(plugin)
+
+                    return False
 
                 # call the register function, check if exists and valid
                 if hasattr(imp, '__register__') and imp.__register__ is not None:
@@ -473,18 +509,32 @@ def loadPlugin(plugin, *args, **kwargs):
                         if hasattr(imp, imp.__register__):  # local to module
                             func = getattr(imp, imp.__register__)
                         else:  # could be a FQN?
-                            func = resolveObjectFromName(imp.__register__)
+                            func = resolveObjectFromName(
+                                imp.__register__, error=False)
                         # check if the reference object is callable
                         if not callable(func):
-                            raise TypeError(
-                                'Plugin module defines `__register__` but the '
-                                'specified object is not a callable type.')
+                            logging.error(
+                                "Plugin `{}` module defines `__register__` but "
+                                "the specified object is not a callable type. "
+                                "Skipping.".format(plugin))
+
+                            if plugin not in _failed_plugins_:
+                                _failed_plugins_.append(plugin)
+
+                            return False
+
                     elif callable(imp.__register__):  # a function was supplied
                         func = imp.__register__
                     else:
-                        raise TypeError(
-                            'Plugin module defines `__register__` but is not '
-                            '`str` or callable type.')
+                        logging.error(
+                            "Plugin `{}` module defines `__register__` but "
+                            "is not `str` or callable type. Skipping.".format(
+                                plugin))
+
+                        if plugin not in _failed_plugins_:
+                            _failed_plugins_.append(plugin)
+
+                        return False
 
                     # call the register function with arguments
                     func(*args, **kwargs)
@@ -498,11 +548,28 @@ def loadPlugin(plugin, *args, **kwargs):
             if hasattr(targObj, attr):
                 # handle what to do if an attribute exists already here ...
                 if inspect.ismodule(getattr(targObj, attr)):
-                    raise NameError(
+                    logging.error(
                         "Plugin `{}` attempted to override module `{}`.".format(
                             plugin, fqn + '.' + attr))
 
-            ep = ep.load()  # load the entry point
+                    if plugin not in _failed_plugins_:
+                        _failed_plugins_.append(plugin)
+
+                    return False
+            try:
+                ep = ep.load()  # load the entry point
+            except ImportError:
+                logging.error(
+                    "Failed to load entry point `{}` of plugin `{}`. "
+                    " Skipping.".format(str(ep), plugin))
+                logging.warn(
+                    "Plugin `{}` has been partially loaded, undefined behavior "
+                    "may result!".format(plugin))
+
+                if plugin not in _failed_plugins_:
+                    _failed_plugins_.append(plugin)
+
+                return False
 
             # add the object to the module or unbound class
             setattr(targObj, attr, ep)
@@ -519,6 +586,14 @@ def loadPlugin(plugin, *args, **kwargs):
     # retain information about the plugin's entry points, we will use this for
     # conflict resolution
     _loaded_plugins_[plugin] = entryMap
+
+    # if we made it here on a previously failed plugin, it was likely fixed and
+    # can be removed from the list.
+    if plugin not in _failed_plugins_.keys():
+        try:
+            _failed_plugins_.remove(plugin)
+        except ValueError:
+            pass
 
     return True
 
