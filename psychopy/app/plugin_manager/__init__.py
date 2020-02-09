@@ -53,6 +53,8 @@ class PluginBrowserListCtrl(wx.ListCtrl, ListCtrlAutoWidthMixin, CheckListCtrlMi
         self.attnRowColor = colordb.Find('MEDIUM GOLDENROD')
         self.failedRowColor = colordb.Find('PLUM')
 
+        self.pluginRemovedFlag = False
+
         self.createColumns()
 
     @property
@@ -112,10 +114,36 @@ class PluginBrowserListCtrl(wx.ListCtrl, ListCtrlAutoWidthMixin, CheckListCtrlMi
     def refreshList(self):
         """Refresh the plugin list.
         """
+        global _startup_plugins_
         self.DeleteAllItems()  # clear existing items
 
         # populate the list with installed plugins
-        for pluginName in plugins.listPlugins(which='all'):
+        plugins.scanPlugins()
+        allPlugins = plugins.listPlugins(which='all')
+
+        # check if there are startup plugins that have been uninstalled during
+        # the session
+        for pluginName in _startup_plugins_:
+            if pluginName not in allPlugins:
+                # show the warning
+                dlg = wx.MessageDialog(
+                    self,
+                    "Startup plugin `{}` cannot be found on the system! It "
+                    "will be removed from startup plugins.".format(pluginName),
+                    caption="Warning",
+                    style=wx.OK | wx.CENTRE | wx.ICON_WARNING)
+                dlg.ShowModal()
+
+                # remove the startup plugin entry
+                try:
+                    _startup_plugins_.remove(pluginName)
+                except KeyError:
+                    pass
+
+                self.pluginRemovedFlag = True
+
+        # populate the list with installed plugins
+        for pluginName in allPlugins:
             # get the metadata from the plugin to display
             metadata = plugins.pluginMetadata(pluginName)
             index = self.InsertItem(0, pluginName)
@@ -154,6 +182,9 @@ class PluginBrowserListCtrl(wx.ListCtrl, ListCtrlAutoWidthMixin, CheckListCtrlMi
     def needsRestart(self):
         """Check if there are any items with status indicating a restart is
         needed."""
+        self.refreshList()
+        if self.pluginRemovedFlag:
+            return True
 
         # if any items indicate a restart is needed, give a message
         for itemIdx in range(0, self.GetItemCount()):

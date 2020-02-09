@@ -221,6 +221,8 @@ def scanPlugins():
 
     """
     global _installed_plugins_
+    _installed_plugins_ = {}  # clear installed plugins
+
     # find all packages with entry points defined
     pluginEnv = pkg_resources.Environment()  # supported by the platform
     dists, _ = pkg_resources.working_set.find_plugins(pluginEnv)
@@ -444,7 +446,7 @@ def loadPlugin(plugin, *args, **kwargs):
         logging.warning(
             'Package `{}` does not appear to be a valid plugin. '
             'Skipping.'.format(plugin))
-        if plugin not in _failed_plugins_.keys():
+        if plugin not in _failed_plugins_:
             _failed_plugins_.append(plugin)
 
         return False
