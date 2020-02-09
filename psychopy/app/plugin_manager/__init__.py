@@ -280,6 +280,7 @@ class PluginManagerFrame(wx.Dialog):
 
         self.initCtrls()
         self.lstPlugins.refreshList()
+        self.cmdEntryPoints.Disable()
 
     def initCtrls(self):
         """Create window controls."""
