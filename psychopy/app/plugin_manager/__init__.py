@@ -260,18 +260,13 @@ class EntryPointViewer(wx.Dialog):
         lstEntryPoints.InsertColumn(2, 'Entry Point', width=200)
 
         # populate the tree control
-        entryPointMap = plugins.pluginEntryPoints(self.pluginName)
+        entryPointMap = plugins.pluginEntryPoints(self.pluginName, parse=True)
         for group, entryPoints in entryPointMap.items():
             for attr, val in entryPoints.items():
                 index = lstEntryPoints.InsertItem(0, group)
                 lstEntryPoints.SetItem(index, 0, group)
                 lstEntryPoints.SetItem(index, 1, attr)
-
-                # parse the entry point into something more readable
-                epStr = str(val).split(' = ')[1]
-                ex = '.'.join(epStr.split(':'))
-
-                lstEntryPoints.SetItem(index, 2, ex)
+                lstEntryPoints.SetItem(index, 2, val)
 
         fraSizer.Add(
             lstEntryPoints,

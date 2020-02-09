@@ -50,7 +50,7 @@ def resolveObjectFromName(name, basename=None, resolve=True, error=True):
 
         Window = resolveObjectFromName('psychopy.visual.Window')
 
-    The function will first `psychopy.visual` then get a reference to the
+    The function will first import `psychopy.visual` then get a reference to the
     unbound `Window` class within it and assign it to `Window`.
 
     Parameters
@@ -818,51 +818,60 @@ def pluginMetadata(plugin):
     return metadict
 
 
-def pluginEntryPoints(plugin):
-    """Get the entry point mapping for a specified plugin."""
-    global _loaded_plugins_
-    if plugin in _loaded_plugins_.keys():
-        return _loaded_plugins_[plugin]  # already loaded, return the mapping we have
+def pluginEntryPoints(plugin, parse=False):
+    """Get the entry point mapping for a specified plugin.
 
-    # find all plugins installed on the system
-    pluginEnv = pkg_resources.Environment()  # supported by the platform
-    dists, _ = pkg_resources.working_set.find_plugins(pluginEnv)
+    You must call `scanPlugins` before calling this function to get the entry
+    points for a given plugin.
 
-    # check if the plugin is in the distribution list
-    try:
-        pluginDist = dists[[dist.project_name for dist in dists].index(plugin)]
-    except ValueError:
-        logging.warning(
-            'Package `{}` does not appear to be a valid plugin. '
-            'Skipping.'.format(plugin))
+    Note this function is intended for internal use by the PsychoPy plugin
+    system only.
 
-        return False
+    Parameters
+    ----------
+    plugin : str
+        Name of the plugin package to get advertised entry points.
+    parse : bool
+        Parse the entry point specifiers and convert them to fully-qualified
+        names.
 
-    # get entry point map and check if there are any for PsychoPy
-    entryMap = pluginDist.get_entry_map()
-    if not any([i.startswith('psychopy') for i in entryMap.keys()]):
-        logging.warning(
-            'Specified package `{}` defines no entry points for PsychoPy. '
-            'Skipping.'.format(pluginDist.project_name))
+    Returns
+    -------
+    dict
+        Dictionary of target groups/attributes and entry points objects.
 
-        return False  # can't do anything more here, so return
+    """
+    global _installed_plugins_
+    if plugin in _installed_plugins_.keys():
+        if not parse:
+            return _installed_plugins_[plugin]
+        else:
+            toReturn = {}
+            for group, val in _installed_plugins_[plugin].items():
+                toReturn[group] = {}
+                for attr, ep in val.items():
+                    # parse the entry point specifier
+                    ex = '.'.join(str(ep).split(' = ')[1].split(':'))  # make fqn
+                    toReturn[group].update({attr: ex})
 
-    # go over entry points, looking for objects explicitly for psychopy
-    toReturn = {}
-    for fqn, attrs in entryMap.items():
-        if not fqn.startswith('psychopy'):
-            continue
+            return toReturn
 
-        toReturn[fqn] = attrs
+    logging.error("Cannot retrieve entry points for plugin `{}`, either not "
+                  " installed or reachable.")
 
-    return toReturn
+    return None
 
 
 def _registerWindowBackend(attr, ep):
-    """Make an entry point discoverable as a window backend. This allows it to
-    be used by specifying `winType`. All window backends must be subclasses of
-    `BaseBackend` and define a `winTypeName` attribute. The value of
-    `winTypeName` will be used for selecting `winType`.
+    """Make an entry point discoverable as a window backend.
+
+    This allows it the given entry point to be used as a window backend by
+    specifying `winType`. All window backends must be subclasses of `BaseBackend`
+    and define a `winTypeName` attribute. The value of `winTypeName` will be
+    used for selecting `winType`.
+
+    This function is called by :func:`loadPlugin`, it should not be used for any
+    other purpose.
 
     Parameters
     ----------
@@ -877,7 +886,12 @@ def _registerWindowBackend(attr, ep):
     """
     # get reference to the backend class
     fqn = 'psychopy.visual.backends'
-    backend = resolveObjectFromName(fqn, resolve=(fqn not in sys.modules))
+    backend = resolveObjectFromName(
+        fqn, resolve=(fqn not in sys.modules), error=False)
+
+    if backend is None:
+        logging.error("Failed to resolve name `{}`.".format(fqn))
+        return   # something weird happened, just exit
 
     # if a module, scan it for valid backends
     foundBackends = {}
@@ -911,6 +925,20 @@ def _registerWindowBackend(attr, ep):
 
 def _registerBuilderComponent(ep):
     """Register a PsychoPy builder component module.
+
+    This function is called by :func:`loadPlugin` when encountering an entry
+    point group for :mod:`psychopy.experiment.components`. It searches the
+    module at the entry point for sub-classes of `BaseComponent` and registers
+    it as a builder component. It will also search the module for any resources
+    associated with the component (eg. icons and tooltip text) and register them
+    for use.
+
+    Builder component modules in plugins should follow the conventions and
+    structure of a normal, stand-alone components. Any plugins that adds
+    components to PsychoPy must be registered to load on startup.
+
+    This function is called by :func:`loadPlugin`, it should not be used for any
+    other purpose.
 
     Parameters
     ----------
