@@ -9,7 +9,7 @@
 from __future__ import absolute_import
 __all__ = ['loadPlugin', 'listPlugins', 'computeChecksum', 'startUpPlugins',
            'pluginMetadata', 'pluginEntryPoints', 'scanPlugins',
-           'requirePlugin', 'isPluginLoaded']
+           'requirePlugin', 'isPluginLoaded', 'isStartUpPlugin']
 
 import sys
 import inspect
