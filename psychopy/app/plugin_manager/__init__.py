@@ -22,6 +22,8 @@ from wx.lib.mixins.listctrl import ListCtrlAutoWidthMixin, CheckListCtrlMixin
 
 from psychopy.preferences import prefs
 
+import os
+
 
 # Get a copy of startup plugins, we want to defer changes made to preferences to
 # take effect after PsychoPy is shutdown. This prevents any sub-processed
@@ -304,16 +306,31 @@ class PluginManagerFrame(wx.Dialog):
         framePanel = wx.Panel(self)
         panelSizer = wx.BoxSizer(wx.VERTICAL)
 
+        pnlDialogHeader = wx.Panel(framePanel)
+        pnlDialogHeaderSizer = wx.BoxSizer(wx.HORIZONTAL)
+
+        # this should be cached ...
+        PNG = wx.BITMAP_TYPE_PNG
+        rc = prefs.paths['resources']
+        pluginBMP = wx.Bitmap(os.path.join(rc, 'plugins32.png'), PNG)
+        pluginGraphic = wx.StaticBitmap(
+            pnlDialogHeader, wx.ID_ANY, pluginBMP, (0, 0), (32, 32))
+
         # add some text
         lblInfo = wx.StaticText(
-            framePanel,
+            pnlDialogHeader,
             id=wx.ID_ANY,
             label="Plugins are third-party packages used to extend PsychoPy. "
                   "Indicate below which plugins should be loaded when a "
                   "PsychoPy session starts.")
 
+        pnlDialogHeaderSizer.Add(pluginGraphic, flag=wx.ALIGN_CENTRE_VERTICAL)
+        pnlDialogHeaderSizer.Add(
+            lblInfo, flag=wx.ALIGN_CENTRE_VERTICAL | wx.LEFT, border=10)
+
+        pnlDialogHeader.SetSizer(pnlDialogHeaderSizer)
         panelSizer.Add(
-            lblInfo,
+            pnlDialogHeader,
             flag=wx.EXPAND | wx.TOP | wx.LEFT | wx.RIGHT,
             border=10)
 
