@@ -451,6 +451,7 @@ def loadPlugin(plugin, *args, **kwargs):
         return False  # can't do anything more here, so return
 
     # go over entry points, looking for objects explicitly for psychopy
+    validEntryPoints = collections.OrderedDict()  # entry points to assign
     for fqn, attrs in entryMap.items():
         if not fqn.startswith('psychopy'):
             continue
@@ -480,7 +481,12 @@ def loadPlugin(plugin, *args, **kwargs):
 
             return False
 
-        # add and replace names with the plugin entry points
+        validEntryPoints[fqn] = []
+
+        # Import modules assigned to entry points and load those entry points.
+        # We don't assign anything to PsychoPy's namespace until we are sure
+        # that the entry points are valid. This prevents plugins from being
+        # partially loaded which can cause all sorts of undefined behaviour.
         for attr, ep in attrs.items():
             # Load the module the entry point belongs to, this happens
             # anyways when .load() is called, but we get to access it before
@@ -560,15 +566,21 @@ def loadPlugin(plugin, *args, **kwargs):
                 logging.error(
                     "Failed to load entry point `{}` of plugin `{}`. "
                     " Skipping.".format(str(ep), plugin))
-                logging.warn(
-                    "Plugin `{}` has been partially loaded, undefined behavior "
-                    "may result!".format(plugin))
 
                 if plugin not in _failed_plugins_:
                     _failed_plugins_.append(plugin)
 
                 return False
 
+            # If we get here, the entry point is valid and we can safely add it
+            # to PsychoPy's namespace.
+            validEntryPoints[fqn].append((targObj, attr, ep))
+
+    # Assign entry points that have been successfully loaded. We defer
+    # assignment until all entry points are deemed valid to prevent plugins
+    # from being partially loaded.
+    for fqn, vals in validEntryPoints.items():
+        for targObj, attr, ep in vals:
             # add the object to the module or unbound class
             setattr(targObj, attr, ep)
             logging.debug(
@@ -581,11 +593,11 @@ def loadPlugin(plugin, *args, **kwargs):
             elif fqn == 'psychopy.experiment.components':  # if component
                 _registerBuilderComponent(ep)
 
-    # retain information about the plugin's entry points, we will use this for
-    # conflict resolution
+    # Retain information about the plugin's entry points, we will use this for
+    # conflict resolution.
     _loaded_plugins_[plugin] = entryMap
 
-    # if we made it here on a previously failed plugin, it was likely fixed and
+    # If we made it here on a previously failed plugin, it was likely fixed and
     # can be removed from the list.
     if plugin not in _failed_plugins_:
         try:
