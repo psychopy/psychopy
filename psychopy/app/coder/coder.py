@@ -33,6 +33,7 @@ import io
 import threading
 import bdb
 import pickle
+import tokenize
 
 from . import psychoParser
 from .. import stdOutRich, dialogs
@@ -116,6 +117,20 @@ class Printer(HtmlEasyPrinting):
     def Print(self, text, doc_name):
         self.SetHeader(doc_name)
         self.PrintText('<HR>' + self.GetHtmlText(text), doc_name)
+
+
+class CodeObjectDef(object):
+    """Class representing a definition in the document. Used for mapping out
+    the structure of the document."""
+    def __init__(self, name, type, start, attrs=None):
+        self.name = name
+        self.type = type
+        self.start = start
+        self.attrs = [] if attrs is None else list(attrs)
+
+    def __repr__(self):
+        return "CodeObjectDef({}, {}, {}, {})".format(
+            self.name, self.type, self.start, self.attrs)
 
 
 class ScriptThread(threading.Thread):
@@ -486,6 +501,20 @@ class UnitTestFrame(wx.Frame):
         self.Destroy()
 
 
+class SourceStructureTreeCtrl(wx.TreeCtrl):
+    """Source code tree browser."""
+    def __init__(self, parent, id, pos, size, style):
+        self.parent = parent
+        wx.TreeCtrl.__init__(self, parent, id, pos, size, style)
+
+        self.root = None
+
+    def refreshTree(self, vals):
+        """Refresh the source tree."""
+        self.root = self.AddRoot("The Root Item")
+
+
+
 class CodeEditor(BaseCodeEditor):
     # this comes mostly from the wxPython demo styledTextCtrl 2
 
@@ -696,6 +725,7 @@ class CodeEditor(BaseCodeEditor):
             event.Skip(False)
             self.CmdKeyExecute(wx.stc.STC_CMD_NEWLINE)
             self.smartIdentThisLine()
+            self.analyseScript()
             return  # so that we don't reach the skip line at end
 
         event.Skip()
@@ -959,99 +989,74 @@ class CodeEditor(BaseCodeEditor):
 
     # the Source Assistant and introspection functinos were broekn and removed frmo PsychoPy 1.90.0
     def analyseScript(self):
-        # analyse the file
-        buffer = io.StringIO()
-        buffer.write(self.GetText())
-        buffer.seek(0)
+        self.structureMap = []
+        docText = self.GetText()  # get all text in the document
+
+        # get all tokens
+        docTokens = []
         try:
-            ii, tt = psychoParser.getTokensAndImports(buffer)
-            importStatements, tokenDict = ii, tt
-            successfulParse = True
-        except Exception:
-            successfulParse = False
-        buffer.close()
+            for tok in tokenize.generate_tokens(io.StringIO(docText).readline):
+                docTokens.append(tok)
+        except IndentationError:   # indentation is messed up, don't update
+            pass
 
-        #     # if we parsed the tokens then process them
-        if successfulParse:
-            # import the libs used by the script
-            if self.coder.modulesLoaded:
-                for thisLine in importStatements:
-                    # check what file we're importing from
-                    tryImport = True
-                    words = thisLine.split()
-                    # don't import from files in this folder (user files)
-                    for word in words:
-                        if os.path.isfile(word + '.py'):
-                            tryImport = False
-                    if tryImport:
-                        try:  # it might not import
-                            exec(thisLine)
-                        except Exception:
-                            pass
-                    self.locals = locals()  # keep a track of our new locals
-                self.autoCompleteDict = {}
+        # split at the tokens for new lines
+        splitLines = [i for i, j in enumerate(docTokens)
+                      if j.type == tokenize.NEWLINE or
+                      j.type == tokenize.ENDMARKER]
+        lineTokens = [docTokens[i:j] for i, j in zip(splitLines, splitLines[1:])]
 
-            # go through imported symbols (using dir())
-            # loop through to appropriate level of module tree getting all
-            # possible symbols
-            symbols = dir()
-            # remove some tokens that are just from here
-            symbols.remove('self')
-            symbols.remove('buffer')
-            symbols.remove('tokenDict')
-            symbols.remove('successfulParse')
-            for thisSymbol in symbols:
-                # create an actual obj from the name
-                thisObj = eval('%s' % thisSymbol)
-                # (try to) get the attributes of the object
-                try:
-                    newAttrs = dir(thisObj)
-                except Exception:
-                    newAttrs = []
+        # get line information
+        inside = None
+        for lineInfo in lineTokens:
+            # count indents
+            nWhiteSpace = len([i for i in lineInfo
+                               if i.type == tokenize.INDENT or
+                               i.type == tokenize.NL or
+                               i.type == tokenize.DEDENT or
+                               i.type == tokenize.NEWLINE])
 
-                # only dig deeper if we haven't exceeded the max level of
-                # analysis
-                if thisSymbol.find('.') < analysisLevel:
-                    # we should carry on digging deeper
-                    for thisAttr in newAttrs:
-                        # by appending the symbol it will also get analysed!
-                        symbols.append(thisSymbol + '.' + thisAttr)
+            if not lineInfo or len(lineInfo) == nWhiteSpace:  # all whitespace
+                continue
 
-                # but (try to) add data for all symbols including this level
-                try:
-                    self.autoCompleteDict[thisSymbol] = {
-                        'is': thisObj, 'type': type(thisObj),
-                        'attrs': newAttrs, 'help': thisObj.__doc__}
-                except Exception:
-                    pass  # not sure what happened - maybe no __doc__?
+            # start where text is
+            txtOffset = nWhiteSpace
 
-            # add keywords
-            for thisName in keyword.kwlist[:]:
-                self.autoCompleteDict[thisName] = {
-                    'is': 'Keyword', 'type': 'Keyword',
-                    'attrs': None, 'help': None}
-            self.autoCompleteDict['self'] = {
-                'is': 'self', 'type': 'self', 'attrs': None, 'help': None}
+            # is declaration?
+            if lineInfo[txtOffset].type == tokenize.NAME:
+                if lineInfo[-1].string == ':':  # function or class?
+                    if lineInfo[txtOffset].string == 'class':
+                        decl = CodeObjectDef(lineInfo[txtOffset + 1].string,
+                                             lineInfo[txtOffset].string,
+                                             lineInfo[txtOffset].start)
+                        inside = decl
+                        self.structureMap.append(decl)
+                    elif lineInfo[txtOffset].string == 'def':
+                        decl = CodeObjectDef(lineInfo[txtOffset + 1].string,
+                                             lineInfo[txtOffset].string,
+                                             lineInfo[txtOffset].start)
 
-            # then add the tokens (i.e. instances) from this script
-            for thisKey in tokenDict:
-                # the default is to have no fields filled
-                thisObj = thisIs = thisHelp = thisType = thisAttrs = None
-                keyIsStr = tokenDict[thisKey]['is']
-                try:
-                    thisObj = eval('%s' % keyIsStr)
-                    if type(thisObj) == types.FunctionType:
-                        thisIs = 'returned from functon'
+                        # if indent is fewer than what where inside of
+                        if inside:
+                            if decl.start[1] > inside.start[1]:
+                                inside.attrs.append(decl)
+                            else:
+                                self.structureMap.append(decl)
                     else:
-                        thisIs = str(thisObj)
-                        thisType = 'instance'
-                        thisHelp = thisObj.__doc__
-                        thisAttrs = dir(thisObj)
-                except Exception:
-                    pass
-                self.autoCompleteDict[thisKey] = {
-                    'is': thisIs, 'type': thisType,
-                    'attrs': thisAttrs, 'help': thisHelp}
+                        continue
+
+        sa = self.coder.sourceAsstWindow
+        sa.DeleteAllItems()
+        root = sa.AddRoot('Test')
+        for i in self.structureMap:
+            if i.type == 'class':
+                item = sa.AppendItem(root, i.name)
+                for j in i.attrs:
+                    sa.AppendItem(item, j.name)
+            elif i.type == 'def':
+                item = sa.AppendItem(root, i.name)
+
+        sa.ExpandAll()
 
     def setLexer(self, lexer=None):
         """Lexer is a simple string (e.g. 'python', 'html')
@@ -1208,6 +1213,10 @@ class CoderFrame(wx.Frame):
         # make the pane manager
         self.paneManager = aui.AuiManager()
 
+        _style = wx.TR_HAS_BUTTONS
+        self.sourceAsstWindow = SourceStructureTreeCtrl(
+            self, -1, pos=(0,0), size=wx.Size(300, 300), style=_style)
+
         # create an editor pane
         self.paneManager.SetFlags(aui.AUI_MGR_RECTANGLE_HINT)
         self.paneManager.SetManagedWindow(self)
@@ -1288,9 +1297,6 @@ class CoderFrame(wx.Frame):
             self.shelf.AddPage(self.shell, _translate('Shell'))
 
         # add help window
-        _style = wx.TE_MULTILINE | wx.TE_READONLY
-        self.sourceAsstWindow = wx.richtext.RichTextCtrl(
-            self, -1, size=wx.Size(300, 300), style=_style)
         self.paneManager.AddPane(self.sourceAsstWindow,
                                  aui.AuiPaneInfo().
                                  BestSize((600, 600)).
