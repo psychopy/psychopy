@@ -272,7 +272,7 @@ def checkPythonSyntax(component, tab):
     try:
         compile(str(component.params[tab].val), "path", 'exec')
     except Exception as err:
-        strFields = {'codeTab': tab, 'lineNumber': err.lineno, 'code': err.text.strip()}
+        strFields = {'codeTab': tab, 'lineNumber': err.lineno, 'code': err.text}
         # Dont sent traceback because strFields gives better localisation of error
         alert(4205, component, strFields)
 
