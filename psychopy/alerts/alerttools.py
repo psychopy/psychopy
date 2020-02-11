@@ -15,7 +15,9 @@ class TestWin(object):
         self.useRetina = True
         self.exp = exp
         self.monitor = self.exp.settings.monitor
-        self.size = self.exp.settings.params['Window size (pixels)'].val
+        self.size = ast.literal_eval(
+            self.exp.settings.params['Window size (pixels)'].val
+        )
 
 
 def validDuration(t, hz, toleranceFrames=0.01):
