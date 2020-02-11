@@ -15,10 +15,12 @@ class TestWin(object):
         self.useRetina = True
         self.exp = exp
         self.monitor = self.exp.settings.monitor
-        self.size = eval(
-            self.exp.settings.params['Window size (pixels)'].val
-        )
-
+        if self.exp.settings.params['Window size (pixels)'].val:
+            self.size = eval(
+                self.exp.settings.params['Window size (pixels)'].val
+            )
+        else:
+            self.size = (1024, 768)
 
 def validDuration(t, hz, toleranceFrames=0.01):
     """Test whether this is a possible time duration given the frame rate"""
