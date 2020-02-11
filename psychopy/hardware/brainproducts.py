@@ -45,11 +45,12 @@ class RemoteControlServer(object):
 
     Example usage::
 
+        import time
         from psychopy import logging
-        from psychopy.hardware.brainproducts import RemoteControlServer
+        from psychopy.hardware import brainproducts
 
         logging.console.setLevel(logging.DEBUG)
-        rcs = RemoteControlServer()
+        rcs = brainproducts.RemoteControlServer()
         rcs.open('testExp',
                  workspace='C:/Vision/Workfiles/Standard Workspace.rwksp',
                  participant='S0021')
