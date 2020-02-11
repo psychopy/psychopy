@@ -15,7 +15,7 @@ class TestWin(object):
         self.useRetina = True
         self.exp = exp
         self.monitor = self.exp.settings.monitor
-        self.size = ast.literal_eval(
+        self.size = eval(
             self.exp.settings.params['Window size (pixels)'].val
         )
 
