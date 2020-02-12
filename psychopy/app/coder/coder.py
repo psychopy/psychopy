@@ -34,8 +34,7 @@ import io
 import threading
 import bdb
 import pickle
-import tokenize
-import collections
+import time
 import ast
 
 from . import psychoParser
@@ -504,142 +503,336 @@ class UnitTestFrame(wx.Frame):
         self.Destroy()
 
 
-class SourceTreeModel(object):
-    ''' TreeModel holds the domain objects that are shown in the different
-    tree controls. Each domain object is simply a two-tuple consisting of
-    a label and a list of child tuples, i.e. (label, [list of child tuples]).
-    '''
-    def __init__(self, *args, **kwargs):
-        self.items = []
-        self.itemCounter = 0
-        super(SourceTreeModel, self).__init__(*args, **kwargs)
-
-        self.strSource = []  # store source code token data
-
-    def updateTokens(self, src):
-        """Update the tokens in the source tree."""
-        self.strSource = []  # store source code token data
-
-        node = ast.parse(src)
-        print([n.name for n in node.body if isinstance(n, ast.FunctionDef)])
-
-        classNodes = [n for n in node.body if isinstance(n, ast.ClassDef)][0]
-        print([n.lineno for n in classNodes.body if isinstance(n, ast.FunctionDef)])
-
-        # get all tokens
-        # docTokens = []
-        # try:
-        #     for tok in tokenize.generate_tokens(io.StringIO(src).readline):
-        #         docTokens.append(tok)
-        # except IndentationError:   # indentation is messed up, don't update
-        #     pass
-        #
-        # # split at the tokens for new lines
-        # splitLines = [i for i, j in enumerate(docTokens)
-        #               if j.type == tokenize.NEWLINE or
-        #               j.type == tokenize.ENDMARKER]
-        # lineTokens = [docTokens[i:j] for i, j in zip(splitLines, splitLines[1:])]
-        #
-        # # get line information
-        # inside = None
-        # for lineInfo in lineTokens:
-        #     # count indents
-        #     nWhiteSpace = len([i for i in lineInfo
-        #                        if i.type == tokenize.INDENT or
-        #                        i.type == tokenize.NL or
-        #                        i.type == tokenize.DEDENT or
-        #                        i.type == tokenize.NEWLINE])
-        #
-        #     if not lineInfo or len(lineInfo) == nWhiteSpace:  # all whitespace
-        #         continue
-        #
-        #     # start where text is
-        #     txtOffset = nWhiteSpace
-        #
-        #     # is declaration?
-        #     if lineInfo[txtOffset].type == tokenize.NAME and \
-        #             lineInfo[-1].string == ':':  # function or class?
-        #         if lineInfo[txtOffset].string == 'class' or \
-        #                 lineInfo[txtOffset].string == 'def':
-        #             defName = lineInfo[txtOffset + 1].string
-        #             defType = lineInfo[txtOffset].string
-        #             defStart = lineInfo[txtOffset].start
-        #             self.strSource.append((defType, defName, defStart))
-
-    def getModel(self):
-        return self.strSource
-
-
-class SourceStructureTreeCtrl(wx.TreeCtrl):
-    """Source code tree browser."""
-    def __init__(self, parent, id, pos, size, style):
+class SourceTreePanel(wx.Panel):
+    """Panel for the source tree browser."""
+    def __init__(self, parent, frame):
+        wx.Panel.__init__(self, parent, -1)
         self.parent = parent
-        wx.TreeCtrl.__init__(self, parent, id, pos, size, style)
-        self.SetDoubleBuffered(True)
+        self.coder = frame
 
-        rc = self.parent.paths['resources']
+        # get graphics for toolbars and tree items
+        rc = self.coder.paths['resources']
         join = os.path.join
-        PNG = wx.BITMAP_TYPE_PNG
-        bmpClass = wx.Bitmap(join(rc, 'code-class16.png'), PNG)
-        bmpFunc = bmpMethod = wx.Bitmap(join(rc, 'code-function16.png'), PNG)
-        bmpRoot = wx.Bitmap(join(rc, 'text-x-python16.png'), PNG)
 
-        isz = (16, 16)
-        il = wx.ImageList(isz[0], isz[1])
-        self.classIdx = il.Add(bmpClass)
-        self.methodIdx = il.Add(bmpMethod)
-        self.functionIdx = il.Add(bmpFunc)
-        self.rootIdx = il.Add(bmpRoot)
+        # handles for icon graphics in the image list
+        self.treeImgList = wx.ImageList(16, 16)
+        self._treeGfx = {
+            'treeClass': self.treeImgList.Add(
+                wx.Bitmap(join(rc, 'coderclass16.png'), wx.BITMAP_TYPE_PNG)),
+            'treeFunc': self.treeImgList.Add(
+                wx.Bitmap(join(rc, 'coderfunc16.png'), wx.BITMAP_TYPE_PNG)),
+            'treeAttr': self.treeImgList.Add(
+                wx.Bitmap(join(rc, 'codervar16.png'), wx.BITMAP_TYPE_PNG)),
+            'treePyModule': self.treeImgList.Add(
+                wx.Bitmap(join(rc, 'coderpython16.png'), wx.BITMAP_TYPE_PNG)),
+            'treeImport': self.treeImgList.Add(
+                wx.Bitmap(join(rc, 'coderimport16.png'), wx.BITMAP_TYPE_PNG)),
+            'treeFolderClosed': self.treeImgList.Add(
+                wx.Bitmap(join(rc, 'folder16.png'), wx.BITMAP_TYPE_PNG)),
+            'treeFolderOpened': self.treeImgList.Add(
+                wx.Bitmap(join(rc, 'folder-open16.png'), wx.BITMAP_TYPE_PNG)),
+        }
 
-        self.SetImageList(il)
-        self.il = il
+        self.SetDoubleBuffered(True)
+        # create the source tree control
+        self.treeId = wx.NewIdRef()
+        self.srcTree = wx.TreeCtrl(
+            self,
+            self.treeId,
+            pos=(0, 0),
+            size=wx.Size(300, 300),
+            style=wx.TR_HAS_BUTTONS)
+        self.srcTree.SetImageList(self.treeImgList)
 
-        self.root = None
-        self.itemCounter = 0
+        # do layout
+        szr = wx.BoxSizer(wx.VERTICAL)
+        szr.Add(self.srcTree, flag=wx.EXPAND, proportion=1)
+        self.SetSizer(szr)
 
-    def refreshItems(self, model):
-        """Refresh the source tree."""
-        self.Freeze()
+        # bind events
+        self.Bind(
+            wx.EVT_TREE_ITEM_ACTIVATED, self.OnTreeItemActivate, self.srcTree)
 
-        self.DeleteAllItems()
-        self.root = self.AddRoot("The Root Item")
-        self.SetItemImage(self.root, self.rootIdx, wx.TreeItemIcon_Normal)
+    def OnTreeItemActivate(self, evt=None):
+        """When a tree item is clicked on."""
+        if evt is None:
+            evt.Skip()
 
-        indentLevel = [self.root]
-        for i, info in enumerate(model):
-            defType, defName, defStart = info
+        item = evt.GetItem()
+        lineno = self.srcTree.GetItemData(item)
+        if lineno is not None:
+            self.coder.currentDoc.GotoLine(lineno - 1)
+        else:
+            self.srcTree.Expand(item)
 
-            # should we create a new parent?
-            if (i + 1) < len(model):
-                nextIndent = model[i+1][2]
-                itemIndent = int(nextIndent[1] / 4)
-                if itemIndent < len(indentLevel):
-                    indentLevel = indentLevel[:itemIndent+1]
-                    itemIdx = self.AppendItem(indentLevel[-1], defName)
-                elif itemIndent == len(indentLevel):
-                    indentLevel.append(self.AppendItem(indentLevel[-1], defName))
-                    itemIdx = indentLevel[-1]
+    def GetScrollVert(self):
+        """Keep track of where we scrolled for the current document. This keeps
+        the tree viewer from moving back to the top when returning to a
+        document, which may be jarring for users."""
+        return self.srcTree.GetScrollPos(wx.VERTICAL)
+
+    def updatePySourceTree(self):
+        """Update the source tree using the parsed AST from the active document.
+
+        This assumes that we're editing a Python file.
+
+        """
+        self.srcTree.Freeze()
+        self.srcTree.DeleteAllItems()
+        root = self.srcTree.AddRoot(self.coder.currentDoc.filename)
+        self.srcTree.SetItemImage(
+            root, self._treeGfx['treePyModule'], wx.TreeItemIcon_Normal)
+        self.srcTree.SetItemData(root, None)
+
+        # keep track of imports
+        importIdx = self.srcTree.AppendItem(root, '<imports>')
+        self.srcTree.SetItemImage(
+            importIdx,
+            self._treeGfx['treeFolderClosed'],
+            wx.TreeItemIcon_Normal)
+        self.srcTree.SetItemImage(
+            importIdx,
+            self._treeGfx['treeFolderOpened'],
+            wx.TreeItemIcon_Expanded)
+        self.srcTree.SetItemData(importIdx, None)
+
+        for node in self.coder.currentDoc.ast:
+            if isinstance(node, ast.ClassDef):
+                itemIdx = self.srcTree.AppendItem(root, node.name)
+                self.srcTree.SetItemImage(
+                    itemIdx, self._treeGfx['treeClass'], wx.TreeItemIcon_Normal)
+                self.srcTree.SetItemData(itemIdx, node.lineno)
+                for j in [n for n in node.body if isinstance(n, ast.FunctionDef)]:
+                    childIdx = self.srcTree.AppendItem(itemIdx, j.name)
+                    self.srcTree.SetItemImage(
+                        childIdx, self._treeGfx['treeFunc'], wx.TreeItemIcon_Normal)
+                    self.srcTree.SetItemData(childIdx, j.lineno)
+
+                self.srcTree.Expand(itemIdx)
+
+            elif isinstance(node, ast.FunctionDef):
+                itemIdx = self.srcTree.AppendItem(root, node.name)
+                self.srcTree.SetItemImage(
+                    itemIdx, self._treeGfx['treeFunc'], wx.TreeItemIcon_Normal)
+                self.srcTree.SetItemData(itemIdx, node.lineno)
+
+            elif isinstance(node, ast.Assign) and isinstance(node.targets[0], ast.Name):
+                itemIdx = self.srcTree.AppendItem(root, node.targets[0].id)
+                self.srcTree.SetItemImage(
+                    itemIdx,
+                    self._treeGfx['treeAttr'],
+                    wx.TreeItemIcon_Normal)
+                self.srcTree.SetItemData(itemIdx, node.lineno)
+
+            elif isinstance(node, ast.Import):
+                for alias in node.names:
+                    itemIdx = self.srcTree.AppendItem(importIdx, alias.name)
+                    self.srcTree.SetItemImage(
+                        itemIdx,
+                        self._treeGfx['treeImport'],
+                        wx.TreeItemIcon_Normal)
+                    self.srcTree.SetItemData(itemIdx, node.lineno)
+
+            elif isinstance(node, ast.ImportFrom):
+                if node.module is None:
+                    continue
+                # look for an existing tree node with the same module name
+                child, cookie = self.srcTree.GetFirstChild(importIdx)
+                while child.IsOk():
+                    folderName = self.srcTree.GetItemText(child)
+                    if folderName == node.module:
+                        fromImportIdx = child
+                        break
+                    child = self.srcTree.GetNextSibling(child)
                 else:
-                    itemIdx = self.AppendItem(indentLevel[-1], defName)
+                    fromImportIdx = self.srcTree.AppendItem(
+                        importIdx, node.module)
 
-            print(indentLevel, itemIndent, len(indentLevel))
+                self.srcTree.SetItemImage(
+                    fromImportIdx,
+                    self._treeGfx['treeFolderClosed'],
+                    wx.TreeItemIcon_Normal)
+                self.srcTree.SetItemImage(
+                    fromImportIdx,
+                    self._treeGfx['treeFolderOpened'],
+                    wx.TreeItemIcon_Expanded)
+                self.srcTree.SetItemData(fromImportIdx, None)
+                for alias in node.names:
+                    itemIdx = self.srcTree.AppendItem(fromImportIdx, alias.name)
+                    self.srcTree.SetItemImage(
+                        itemIdx,
+                        self._treeGfx['treeImport'],
+                        wx.TreeItemIcon_Normal)
+                    self.srcTree.SetItemData(itemIdx, node.lineno)
 
-            if defType == 'class':
-                self.SetItemImage(itemIdx, self.classIdx, wx.TreeItemIcon_Normal)
-                self.SetItemData(itemIdx, defStart)
-            elif defType == 'def':
-                self.SetItemImage(itemIdx, self.functionIdx, wx.TreeItemIcon_Normal)
-                self.SetItemData(itemIdx, defStart)
+        self.srcTree.Expand(root)
+        self.srcTree.Thaw()
 
-        self.ExpandAll()
-        self.Thaw()
+    def updateSourceTree(self):
+        """Update the source tree using the parsed AST from the active document.
+        """
+        lexer = self.coder.currentDoc.GetLexer()
+        if lexer == wx.stc.STC_LEX_PYTHON:
+            self.updatePySourceTree()
 
-    def OnGetItemText(self, index, column=0):
-        print(index)
 
-    def OnGetChildrenCount(self, index):
-        print(index)
+class FileBrowserPanel(wx.Panel):
+    """Panel for a file browser."""
 
+    def __init__(self, parent, frame):
+        wx.Panel.__init__(self, parent, -1)
+        self.parent = parent
+        self.coder = frame
+        self.currentPath = os.getcwd()
+        self.pathData = {}
+
+        # get graphics for toolbars and tree items
+        rc = self.coder.paths['resources']
+        join = os.path.join
+
+        # handles for icon graphics in the image list
+        self.fileImgList = wx.ImageList(16, 16)
+        self._lstGfx = {
+            'folderClosed': self.fileImgList.Add(
+                wx.Bitmap(join(rc, 'folder16.png'), wx.BITMAP_TYPE_PNG)),
+            'folderOpened': self.fileImgList.Add(
+                wx.Bitmap(join(rc, 'folder-open16.png'), wx.BITMAP_TYPE_PNG)),
+            'fileUnknown': self.fileImgList.Add(
+                wx.Bitmap(join(rc, 'fileunknown16.png'), wx.BITMAP_TYPE_PNG)),
+            'fileCSV': self.fileImgList.Add(
+                wx.Bitmap(join(rc, 'filecsv16.png'), wx.BITMAP_TYPE_PNG)),
+            'fileImg': self.fileImgList.Add(
+                wx.Bitmap(join(rc, 'fileimage16.png'), wx.BITMAP_TYPE_PNG)),
+            'filePy': self.fileImgList.Add(
+                wx.Bitmap(join(rc, 'coderpython16.png'), wx.BITMAP_TYPE_PNG)),
+            'dirUp': self.fileImgList.Add(
+                wx.Bitmap(join(rc, 'dirup16.png'), wx.BITMAP_TYPE_PNG))
+        }
+
+        # self.SetDoubleBuffered(True)
+        # create the source tree control
+        self.flId = wx.NewIdRef()
+        self.fileList = wx.ListCtrl(
+            self,
+            self.flId,
+            pos=(0, 0),
+            size=wx.Size(300, 300),
+            style=wx.LC_REPORT | wx.LC_SINGLE_SEL)
+        self.fileList.SetImageList(self.fileImgList, wx.IMAGE_LIST_SMALL)
+
+        # do layout
+        szr = wx.BoxSizer(wx.VERTICAL)
+        szr.Add(self.fileList, flag=wx.EXPAND, proportion=1)
+        self.SetSizer(szr)
+
+        # bind events
+        self.Bind(
+            wx.EVT_LIST_ITEM_ACTIVATED, self.OnItemSelected, self.fileList)
+
+        # add columns
+        self.fileList.InsertColumn(0, "Name")
+        self.fileList.InsertColumn(1, "Size", wx.LIST_FORMAT_RIGHT)
+        self.fileList.InsertColumn(2, "Modified")
+        self.fileList.SetColumnWidth(0, 250)
+        self.fileList.SetColumnWidth(1, 60)
+        self.fileList.SetColumnWidth(2, 100)
+
+        self.updateFileBrowser()
+
+    def OnItemSelected(self, evt=None):
+        itemData = self.fileList.GetItemData(self.fileList.GetFirstSelected())
+        if itemData >= 0:
+            if os.path.isfile(self.pathData[itemData]):
+                self.coder.fileOpen(None, self.pathData[itemData])
+            elif os.path.isdir(self.pathData[itemData]):
+                print(self.pathData[itemData])
+                self.gotoDir(self.pathData[itemData])
+
+    def updateFileBrowser(self):
+        """Update the contents of the file browser.
+        """
+        folders = [f for f in os.listdir(self.currentPath)
+                   if os.path.isdir(os.path.join(self.currentPath, f))]
+        files = [f for f in os.listdir(self.currentPath)
+                 if os.path.isfile(os.path.join(self.currentPath, f))]
+
+        self.pathData = {}
+        nPaths = 0
+        upPath = os.path.abspath(os.path.join(self.currentPath, '..'))
+        # up directory
+        if upPath != self.currentPath:  # top of the directory structure otherwise
+            index = self.fileList.InsertItem(
+                self.fileList.GetItemCount(),
+                '..',
+                self._lstGfx['dirUp'])
+            self.pathData[nPaths] = upPath
+            self.fileList.SetItemData(index, nPaths)
+
+            nPaths += 1
+
+        # start off with adding folders to the list
+        for folder in folders:
+            index = self.fileList.InsertItem(
+                self.fileList.GetItemCount(),
+                folder,
+                self._lstGfx['folderClosed'])
+            self.pathData[nPaths] = os.path.join(self.currentPath, folder)
+            self.fileList.SetItemData(index, nPaths)
+
+            nPaths += 1
+
+        for file in files:
+            # chose the appropriate icon
+            fileSplit = file.split('.')
+            if len(fileSplit) > 1:
+                ext = fileSplit[-1]
+                if ext == 'py':
+                    useIcon = self._lstGfx['filePy']
+                elif ext in ('csv', 'tsv'):
+                    useIcon = self._lstGfx['fileCSV']
+                else:
+                    useIcon = self._lstGfx['fileUnknown']
+            else:
+                useIcon = self._lstGfx['fileUnknown']
+
+            index = self.fileList.InsertItem(
+                self.fileList.GetItemCount(), file, useIcon)
+            fileAbsPath = os.path.join(self.currentPath, file)
+            self.pathData[nPaths] = fileAbsPath
+            self.fileList.SetItem(index, 1, self.reportFileSize(fileAbsPath))
+            self.fileList.SetItem(index, 2, self.reportModifiedDate(fileAbsPath))
+            self.fileList.SetItemData(index, nPaths)
+
+            nPaths += 1
+
+    def gotoDir(self, path):
+        """Set the file browser to a directory."""
+        self.currentPath = path
+        self.fileList.DeleteAllItems()
+        self.updateFileBrowser()
+
+    def reportFileSize(self, absPath):
+        """Get the size of a file as a string."""
+        filesize = os.stat(absPath).st_size
+
+        if filesize >= 1000000000:
+            filesize = '{:.0f} GB'.format(filesize / 1000000000.)
+        elif filesize >= 1000000:
+            filesize = '{:.0f} MB'.format(filesize / 1000000.)
+        elif filesize >= 1000:
+            filesize = '{:.0f} KB'.format(filesize / 1000.)
+        else:
+            filesize = '{:.0f} B'.format(filesize)
+
+        return filesize
+
+    def reportModifiedDate(self, absPath):
+        """Get the date/time a file as modified."""
+        # (mode, ino, dev, nlink, uid, gid, size, atime, mtime, ctime)
+        mt = time.ctime(os.path.getmtime(absPath))
+        t = time.strptime(mt, "%a %b %d %H:%M:%S %Y")
+
+        return time.strftime("%b %d, %Y, %I:%M %p", t)
 
 
 class CodeEditor(BaseCodeEditor):
@@ -653,6 +846,7 @@ class CodeEditor(BaseCodeEditor):
         BaseCodeEditor.__init__(self, parent, ID, pos, size, style)
 
         self.coder = frame
+        self.sourceAsstScroll = 0  # keep track of scrolling
         self.SetViewWhiteSpace(self.coder.appData['showWhitespace'])
         self.SetViewEOL(self.coder.appData['showEOLs'])
         self.Bind(wx.EVT_DROP_FILES, self.coder.filesDropped)
@@ -670,19 +864,7 @@ class CodeEditor(BaseCodeEditor):
         self.setLexer('python')
 
         # model for source tree data
-        self._ast = None
-
-    def parseAST(self):
-        """Parse the abstract syntax tree for the current document.
-
-        This function gets a list of functions, classes and methods in the
-        source code.
-
-        """
-        fullast = ast.parse(self.GetText())
-
-        # scan the AST for objects we care about
-        self._ast = [n for n in fullast.body if isinstance(n, (ast.ClassDef, ast.FunctionDef))]
+        self.ast = None
 
     def setFonts(self):
         """Make some styles,  The lexer defines what each style is used for,
@@ -1131,29 +1313,31 @@ class CodeEditor(BaseCodeEditor):
 
     # the Source Assistant and introspection functinos were broekn and removed frmo PsychoPy 1.90.0
     def analyseScript(self):
-        self.parseAST()
+        """Parse the abstract syntax tree for the current document.
 
-        sa = self.coder.sourceAsstWindow
-        sa.DeleteAllItems()
-        root = sa.AddRoot('Test')
-        for node in self._ast:
+        This function gets a list of functions, classes and methods in the
+        source code.
 
-            if isinstance(node, ast.ClassDef):
-                itemIdx = sa.AppendItem(root, node.name)
-                sa.SetItemImage(itemIdx, sa.classIdx, wx.TreeItemIcon_Normal)
-                sa.SetItemData(itemIdx, node.lineno)
+        """
+        try:
+            fullast = ast.parse(self.GetText())
+        except (SyntaxError, IndentationError):
+            return
 
-                for j in [n for n in node.body if isinstance(n, ast.FunctionDef)]:
-                    childIdx = sa.AppendItem(itemIdx, j.name)
-                    sa.SetItemImage(childIdx, sa.methodIdx, wx.TreeItemIcon_Normal)
-                    sa.SetItemData(childIdx, j.lineno)
+        # scan the AST for objects we care about
+        self.ast = [node for node in fullast.body if isinstance(
+            node,
+            (ast.ClassDef,
+             ast.FunctionDef,
+             ast.Assign,
+             ast.Attribute,
+             ast.Import,
+             ast.ImportFrom))]
 
-            elif isinstance(node, ast.FunctionDef):
-                itemIdx = sa.AppendItem(root, node.name)
-                sa.SetItemImage(itemIdx, sa.functionIdx, wx.TreeItemIcon_Normal)
-                sa.SetItemData(itemIdx, node.lineno)
-
-        sa.ExpandAll()
+        if hasattr(self.coder, 'sourceAsstWindow'):
+            self.coder.sourceAsstWindow.updateSourceTree()
+            self.coder.sourceAsstWindow.srcTree.SetScrollPos(
+                self.sourceAsstScroll, wx.VERTICAL)
 
     def setLexer(self, lexer=None):
         """Lexer is a simple string (e.g. 'python', 'html')
@@ -1310,10 +1494,6 @@ class CoderFrame(wx.Frame):
         # make the pane manager
         self.paneManager = aui.AuiManager()
 
-        _style = wx.TR_HAS_BUTTONS
-        self.sourceAsstWindow = SourceStructureTreeCtrl(
-            self, -1, pos=(0,0), size=wx.Size(300, 300), style=_style)
-
         # create an editor pane
         self.paneManager.SetFlags(aui.AUI_MGR_RECTANGLE_HINT)
         self.paneManager.SetManagedWindow(self)
@@ -1394,7 +1574,16 @@ class CoderFrame(wx.Frame):
             self.shelf.AddPage(self.shell, _translate('Shell'))
 
         # add help window
-        self.paneManager.AddPane(self.sourceAsstWindow,
+        _style = (aui.AUI_NB_TOP | aui.AUI_NB_TAB_SPLIT | aui.AUI_NB_TAB_MOVE)
+        self.sourceAsst = aui.AuiNotebook(
+            self, wx.ID_ANY, size=wx.Size(600, 600),
+            style=_style)
+        self.sourceAsstWindow = SourceTreePanel(self.sourceAsst, self)
+        self.fileBrowserWindow = FileBrowserPanel(self.sourceAsst, self)
+
+        self.sourceAsst.AddPage(self.sourceAsstWindow, _translate('Structure'))
+        self.sourceAsst.AddPage(self.fileBrowserWindow, _translate('Files'))
+        self.paneManager.AddPane(self.sourceAsst,
                                  aui.AuiPaneInfo().
                                  BestSize((600, 600)).
                                  Name("SourceAsst").
@@ -1403,6 +1592,7 @@ class CoderFrame(wx.Frame):
                                  LeftDockable(True).
                                  CloseButton(False).
                                  Right())
+
         # will we show the pane straight away?
         if self.prefs['showSourceAsst']:
             self.paneManager.GetPane('SourceAsst').Show()
@@ -2046,6 +2236,17 @@ class CoderFrame(wx.Frame):
         self.currentDoc = self.notebook.GetPage(new)
         self.setFileModified(self.currentDoc.UNSAVED)
         self.SetLabel('%s - PsychoPy Coder' % self.currentDoc.filename)
+
+        # scroll the source tree to where it was before for this document,
+        # prevents it from jumping around annoyingly
+        if hasattr(self, 'sourceAsstWindow'):
+            # get the old source assist scroll position, save it
+            self.notebook.GetPage(old).sourceAsstScroll = \
+                self.sourceAsstWindow.GetScrollVert()
+            self.currentDoc.analyseScript()
+            self.sourceAsstWindow.srcTree.SetScrollPos(
+                wx.VERTICAL, self.currentDoc.sourceAsstScroll)
+
         # todo: reduce redundancy w.r.t OnIdle()
         if not self.expectedModTime(self.currentDoc):
             filename = os.path.basename(self.currentDoc.filename)
@@ -2523,6 +2724,8 @@ class CoderFrame(wx.Frame):
         # set new current doc
         if newPageID < 0:
             self.currentDoc = None
+            # clear the source tree
+            self.sourceAsstWindow.srcTree.DeleteAllItems()
             self.SetLabel("PsychoPy v%s (Coder)" % self.app.version)
         else:
             self.currentDoc = self.notebook.GetPage(newPageID)
@@ -2555,8 +2758,8 @@ class CoderFrame(wx.Frame):
     def copy(self, event):
         foc = self.FindFocus()
         foc.Copy()
-        # if isinstance(foc, CodeEditor):
-        #    self.currentDoc.Copy()  # let the text ctrl handle this
+        if isinstance(foc, CodeEditor):
+            self.currentDoc.Copy()  # let the text ctrl handle this
         # elif isinstance(foc, StdOutRich):
 
     def duplicateLine(self, event):
