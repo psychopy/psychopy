@@ -32,7 +32,6 @@ class BaseCodeEditor(wx.stc.StyledTextCtrl):
         self.AUTOCOMPLETE = True
         self.autoCompleteDict = {}
         self._commentType = {'Py': '#', 'JS': '//', 'Both': '//' or '#'}
-        self.needsSourceTreeUpdate = False
 
         # doesn't pause strangely
         self.locals = None  # will contain the local environment of the script
@@ -346,3 +345,9 @@ class BaseCodeEditor(wx.stc.StyledTextCtrl):
                     # if not then wx conversion broke so get raw data instead
                     txt = dataObj.GetDataHere()
             self.ReplaceSelection(txt.replace("\r\n", "\n").replace("\r", "\n"))
+
+        self.analyseScript()
+
+    def analyseScript(self):
+        """Analyse the script."""
+        pass
