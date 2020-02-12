@@ -309,11 +309,12 @@ class _KeyBuffers(dict):
                 if sys.platform == 'darwin':
                     # this is caused by a problem with SysPrefs
                     raise OSError("Failed to connect to Keyboard globally. "
-                                  "Need to adjust the "
+                                  "You need to add PsychoPy App bundle (or the "
+                                  "terminal if you run from terminal) to the "
                                   "System Preferences/Privacy/Accessibility "
-                                  "(up to OS X <= 10.14) or "
+                                  "(MacOS <= 10.14) or "
                                   "System Preferences/Privacy/InputMonitoring "
-                                  "(up to OS X >= 10.15).")
+                                  "(MacOS >= 10.15).")
                 else:
                     raise(e)
 
