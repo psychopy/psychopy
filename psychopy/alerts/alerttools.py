@@ -1,12 +1,10 @@
 import ast
-from os import environ
-from esprima import parseScript
 from numpy import array
+from esprima import parseScript
 
 from psychopy.tools import monitorunittools
 from psychopy.alerts._alerts import alert
 
-_TravisTesting = environ.get('TRAVIS') == 'true'
 
 class TestWin(object):
     """
@@ -18,8 +16,11 @@ class TestWin(object):
         self.exp = exp
         self.monitor = self.exp.settings.monitor
         winSize = self.exp.settings.params['Window size (pixels)'].val
-        if winSize and not _TravisTesting:
+
+        if winSize and isinstance(winSize, str):
             self.size = ast.literal_eval(winSize)
+        elif winSize and (isinstance(winSize, list) or isinstance(winSize, tuple)):
+            self.size = winSize
         else:
             self.size = (1024, 768)
 
