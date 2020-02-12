@@ -340,13 +340,27 @@ class RemoteControlServer(object):
 
     @amplifier.setter
     def amplifier(self, amplifier):
+        # did we get a tuple/list of ampType, ampSN or just name?
+        serialNumber = None
+        if len(amplifier) == 2:  # e.g. ('LiveAmp', '34834727')
+            amplifier, serialNumber = amplifier
+        elif len(amplifier) == 1:  # e.g. ('actiCHamp')
+            amplifier = amplifier[0]  # extract string from tuple/list
+        else:
+            assert type(amplifier) == str  # hopefully then we got the name raw
+        # check for LiveAmp that we also have a SN
+        if amplifier == 'LiveAmp' and not serialNumber:
+            logging.warning("LiveAmp may need a serial number. Use\n"
+                          "  rcs.amplifier = 'Liveamp', 'LA-serialNumberHere'")
         if amplifier in ['actiCHamp', 'BrainAmp Family',
                          'LiveAmp', 'QuickAmp USB', 'Simulated Amplifier',
                          'V-Amp / FirstAmp']:
             msg = "SA:{}".format(amplifier)
-        elif amplifier.startswith("LA-"):
+            self.sendRaw(msg, checkOutput=msg + ':OK')
+        if serialNumber:
             # LiveAmp allows you to send the serial number
             msg = "SN:{}".format(amplifier)
+            self.sendRaw(msg, checkOutput=msg + ':OK')
         else:
             errMsg = ("Unknown amplifier '{amp}'. The `amplifier` value "
                       "should be a LiveAmp serial number or one of "
@@ -354,8 +368,8 @@ class RemoteControlServer(object):
                       " 'LiveAmp', 'QuickAmp USB', 'Simulated Amplifier',"
                       " 'V-Amp / FirstAmp']")
             raise ValueError(errMsg)
-        self.sendRaw(msg, checkOutput=msg + ':OK')
         self._amplifier = amplifier
+        self._amplifierSN = serialNumber
 
     @property
     def overwriteProtection(self, forceCheck=False):
