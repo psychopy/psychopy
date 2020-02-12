@@ -62,7 +62,7 @@ class MessageDialog(wx.Dialog):
             btnSizer.Add(self.cancelBtn, wx.ALIGN_RIGHT)
             btnSizer.Add((5, 20), 0)
             btnSizer.Add(self.yesBtn, wx.ALIGN_RIGHT)
-        if type == 'Query':  # we need Yes,No
+        elif type == 'Query':  # we need Yes,No
             self.yesBtn = wx.Button(self, wx.ID_YES, _translate('Yes'))
             self.yesBtn.SetDefault()
             self.noBtn = wx.Button(self, wx.ID_NO, _translate('No'))

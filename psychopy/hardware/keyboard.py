@@ -312,9 +312,9 @@ class _KeyBuffers(dict):
                                   "You need to add PsychoPy App bundle (or the "
                                   "terminal if you run from terminal) to the "
                                   "System Preferences/Privacy/Accessibility "
-                                  "(MacOS <= 10.14) or "
+                                  "(macOS <= 10.14) or "
                                   "System Preferences/Privacy/InputMonitoring "
-                                  "(MacOS >= 10.15).")
+                                  "(macOS >= 10.15).")
                 else:
                     raise(e)
 
