@@ -1,10 +1,12 @@
 import ast
+from os import environ
 from esprima import parseScript
 from numpy import array
 
 from psychopy.tools import monitorunittools
 from psychopy.alerts._alerts import alert
 
+_TravisTesting = environ.get('TRAVIS') == 'true'
 
 class TestWin(object):
     """
@@ -15,10 +17,11 @@ class TestWin(object):
         self.useRetina = True
         self.exp = exp
         self.monitor = self.exp.settings.monitor
-        self.size = ast.literal_eval(
-            self.exp.settings.params['Window size (pixels)'].val
-        )
-
+        winSize = self.exp.settings.params['Window size (pixels)'].val
+        if winSize and not _TravisTesting:
+            self.size = ast.literal_eval(winSize)
+        else:
+            self.size = (1024, 768)
 
 def validDuration(t, hz, toleranceFrames=0.01):
     """Test whether this is a possible time duration given the frame rate"""
