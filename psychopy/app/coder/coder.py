@@ -18,6 +18,7 @@ import wx
 import wx.stc
 import wx.richtext
 from wx.html import HtmlEasyPrinting
+from wx.lib.mixins.treemixin import VirtualTree
 
 
 try:
@@ -34,6 +35,8 @@ import threading
 import bdb
 import pickle
 import tokenize
+import collections
+import ast
 
 from . import psychoParser
 from .. import stdOutRich, dialogs
@@ -501,17 +504,141 @@ class UnitTestFrame(wx.Frame):
         self.Destroy()
 
 
+class SourceTreeModel(object):
+    ''' TreeModel holds the domain objects that are shown in the different
+    tree controls. Each domain object is simply a two-tuple consisting of
+    a label and a list of child tuples, i.e. (label, [list of child tuples]).
+    '''
+    def __init__(self, *args, **kwargs):
+        self.items = []
+        self.itemCounter = 0
+        super(SourceTreeModel, self).__init__(*args, **kwargs)
+
+        self.strSource = []  # store source code token data
+
+    def updateTokens(self, src):
+        """Update the tokens in the source tree."""
+        self.strSource = []  # store source code token data
+
+        node = ast.parse(src)
+        print([n.name for n in node.body if isinstance(n, ast.FunctionDef)])
+
+        classNodes = [n for n in node.body if isinstance(n, ast.ClassDef)][0]
+        print([n.lineno for n in classNodes.body if isinstance(n, ast.FunctionDef)])
+
+        # get all tokens
+        # docTokens = []
+        # try:
+        #     for tok in tokenize.generate_tokens(io.StringIO(src).readline):
+        #         docTokens.append(tok)
+        # except IndentationError:   # indentation is messed up, don't update
+        #     pass
+        #
+        # # split at the tokens for new lines
+        # splitLines = [i for i, j in enumerate(docTokens)
+        #               if j.type == tokenize.NEWLINE or
+        #               j.type == tokenize.ENDMARKER]
+        # lineTokens = [docTokens[i:j] for i, j in zip(splitLines, splitLines[1:])]
+        #
+        # # get line information
+        # inside = None
+        # for lineInfo in lineTokens:
+        #     # count indents
+        #     nWhiteSpace = len([i for i in lineInfo
+        #                        if i.type == tokenize.INDENT or
+        #                        i.type == tokenize.NL or
+        #                        i.type == tokenize.DEDENT or
+        #                        i.type == tokenize.NEWLINE])
+        #
+        #     if not lineInfo or len(lineInfo) == nWhiteSpace:  # all whitespace
+        #         continue
+        #
+        #     # start where text is
+        #     txtOffset = nWhiteSpace
+        #
+        #     # is declaration?
+        #     if lineInfo[txtOffset].type == tokenize.NAME and \
+        #             lineInfo[-1].string == ':':  # function or class?
+        #         if lineInfo[txtOffset].string == 'class' or \
+        #                 lineInfo[txtOffset].string == 'def':
+        #             defName = lineInfo[txtOffset + 1].string
+        #             defType = lineInfo[txtOffset].string
+        #             defStart = lineInfo[txtOffset].start
+        #             self.strSource.append((defType, defName, defStart))
+
+    def getModel(self):
+        return self.strSource
+
+
 class SourceStructureTreeCtrl(wx.TreeCtrl):
     """Source code tree browser."""
     def __init__(self, parent, id, pos, size, style):
         self.parent = parent
         wx.TreeCtrl.__init__(self, parent, id, pos, size, style)
+        self.SetDoubleBuffered(True)
+
+        rc = self.parent.paths['resources']
+        join = os.path.join
+        PNG = wx.BITMAP_TYPE_PNG
+        bmpClass = wx.Bitmap(join(rc, 'code-class16.png'), PNG)
+        bmpFunc = bmpMethod = wx.Bitmap(join(rc, 'code-function16.png'), PNG)
+        bmpRoot = wx.Bitmap(join(rc, 'text-x-python16.png'), PNG)
+
+        isz = (16, 16)
+        il = wx.ImageList(isz[0], isz[1])
+        self.classIdx = il.Add(bmpClass)
+        self.methodIdx = il.Add(bmpMethod)
+        self.functionIdx = il.Add(bmpFunc)
+        self.rootIdx = il.Add(bmpRoot)
+
+        self.SetImageList(il)
+        self.il = il
 
         self.root = None
+        self.itemCounter = 0
 
-    def refreshTree(self, vals):
+    def refreshItems(self, model):
         """Refresh the source tree."""
+        self.Freeze()
+
+        self.DeleteAllItems()
         self.root = self.AddRoot("The Root Item")
+        self.SetItemImage(self.root, self.rootIdx, wx.TreeItemIcon_Normal)
+
+        indentLevel = [self.root]
+        for i, info in enumerate(model):
+            defType, defName, defStart = info
+
+            # should we create a new parent?
+            if (i + 1) < len(model):
+                nextIndent = model[i+1][2]
+                itemIndent = int(nextIndent[1] / 4)
+                if itemIndent < len(indentLevel):
+                    indentLevel = indentLevel[:itemIndent+1]
+                    itemIdx = self.AppendItem(indentLevel[-1], defName)
+                elif itemIndent == len(indentLevel):
+                    indentLevel.append(self.AppendItem(indentLevel[-1], defName))
+                    itemIdx = indentLevel[-1]
+                else:
+                    itemIdx = self.AppendItem(indentLevel[-1], defName)
+
+            print(indentLevel, itemIndent, len(indentLevel))
+
+            if defType == 'class':
+                self.SetItemImage(itemIdx, self.classIdx, wx.TreeItemIcon_Normal)
+                self.SetItemData(itemIdx, defStart)
+            elif defType == 'def':
+                self.SetItemImage(itemIdx, self.functionIdx, wx.TreeItemIcon_Normal)
+                self.SetItemData(itemIdx, defStart)
+
+        self.ExpandAll()
+        self.Thaw()
+
+    def OnGetItemText(self, index, column=0):
+        print(index)
+
+    def OnGetChildrenCount(self, index):
+        print(index)
 
 
 
@@ -541,6 +668,21 @@ class CodeEditor(BaseCodeEditor):
 
         # set to python syntax code coloring
         self.setLexer('python')
+
+        # model for source tree data
+        self._ast = None
+
+    def parseAST(self):
+        """Parse the abstract syntax tree for the current document.
+
+        This function gets a list of functions, classes and methods in the
+        source code.
+
+        """
+        fullast = ast.parse(self.GetText())
+
+        # scan the AST for objects we care about
+        self._ast = [n for n in fullast.body if isinstance(n, (ast.ClassDef, ast.FunctionDef))]
 
     def setFonts(self):
         """Make some styles,  The lexer defines what each style is used for,
@@ -989,72 +1131,27 @@ class CodeEditor(BaseCodeEditor):
 
     # the Source Assistant and introspection functinos were broekn and removed frmo PsychoPy 1.90.0
     def analyseScript(self):
-        self.structureMap = []
-        docText = self.GetText()  # get all text in the document
-
-        # get all tokens
-        docTokens = []
-        try:
-            for tok in tokenize.generate_tokens(io.StringIO(docText).readline):
-                docTokens.append(tok)
-        except IndentationError:   # indentation is messed up, don't update
-            pass
-
-        # split at the tokens for new lines
-        splitLines = [i for i, j in enumerate(docTokens)
-                      if j.type == tokenize.NEWLINE or
-                      j.type == tokenize.ENDMARKER]
-        lineTokens = [docTokens[i:j] for i, j in zip(splitLines, splitLines[1:])]
-
-        # get line information
-        inside = None
-        for lineInfo in lineTokens:
-            # count indents
-            nWhiteSpace = len([i for i in lineInfo
-                               if i.type == tokenize.INDENT or
-                               i.type == tokenize.NL or
-                               i.type == tokenize.DEDENT or
-                               i.type == tokenize.NEWLINE])
-
-            if not lineInfo or len(lineInfo) == nWhiteSpace:  # all whitespace
-                continue
-
-            # start where text is
-            txtOffset = nWhiteSpace
-
-            # is declaration?
-            if lineInfo[txtOffset].type == tokenize.NAME:
-                if lineInfo[-1].string == ':':  # function or class?
-                    if lineInfo[txtOffset].string == 'class':
-                        decl = CodeObjectDef(lineInfo[txtOffset + 1].string,
-                                             lineInfo[txtOffset].string,
-                                             lineInfo[txtOffset].start)
-                        inside = decl
-                        self.structureMap.append(decl)
-                    elif lineInfo[txtOffset].string == 'def':
-                        decl = CodeObjectDef(lineInfo[txtOffset + 1].string,
-                                             lineInfo[txtOffset].string,
-                                             lineInfo[txtOffset].start)
-
-                        # if indent is fewer than what where inside of
-                        if inside:
-                            if decl.start[1] > inside.start[1]:
-                                inside.attrs.append(decl)
-                            else:
-                                self.structureMap.append(decl)
-                    else:
-                        continue
+        self.parseAST()
 
         sa = self.coder.sourceAsstWindow
         sa.DeleteAllItems()
         root = sa.AddRoot('Test')
-        for i in self.structureMap:
-            if i.type == 'class':
-                item = sa.AppendItem(root, i.name)
-                for j in i.attrs:
-                    sa.AppendItem(item, j.name)
-            elif i.type == 'def':
-                item = sa.AppendItem(root, i.name)
+        for node in self._ast:
+
+            if isinstance(node, ast.ClassDef):
+                itemIdx = sa.AppendItem(root, node.name)
+                sa.SetItemImage(itemIdx, sa.classIdx, wx.TreeItemIcon_Normal)
+                sa.SetItemData(itemIdx, node.lineno)
+
+                for j in [n for n in node.body if isinstance(n, ast.FunctionDef)]:
+                    childIdx = sa.AppendItem(itemIdx, j.name)
+                    sa.SetItemImage(childIdx, sa.methodIdx, wx.TreeItemIcon_Normal)
+                    sa.SetItemData(childIdx, j.lineno)
+
+            elif isinstance(node, ast.FunctionDef):
+                itemIdx = sa.AppendItem(root, node.name)
+                sa.SetItemImage(itemIdx, sa.functionIdx, wx.TreeItemIcon_Normal)
+                sa.SetItemData(itemIdx, node.lineno)
 
         sa.ExpandAll()
 
