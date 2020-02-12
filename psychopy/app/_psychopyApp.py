@@ -41,6 +41,7 @@ from psychopy.localization import _translate
 # take a while
 
 # needed by splash screen for the path to resources/psychopySplash.png
+import ctypes
 from psychopy import preferences, logging, __version__
 from psychopy import projects
 from . import connections
@@ -56,6 +57,24 @@ if not PY3 and sys.platform == 'darwin':
     blockTips = True
 else:
     blockTips = False
+
+
+# Enable high-dpi support if on Windows. This fixes blurry text rendering.
+if sys.platform == 'win32':
+    # get the preference for high DPI
+    if 'highDPI' in preferences.prefs.app.keys():  # check if we have the option
+        enableHighDPI = preferences.prefs.app['highDPI']
+
+        # check if we have OS support for it
+        if hasattr(ctypes.windll.shcore, "SetProcessDpiAwareness"):
+            ctypes.windll.shcore.SetProcessDpiAwareness(enableHighDPI)
+        else:
+            logging.warn(
+                "High DPI support is not appear to be supported by this version"
+                " of Windows. Disabling in preferences.")
+
+            preferences.prefs.app['highDPI'] = False
+            preferences.prefs.saveUserPrefs()
 
 
 class MenuFrame(wx.Frame):
