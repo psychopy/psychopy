@@ -52,10 +52,6 @@ class CortexNoHeadsetException(Exception):
     pass
 
 
-class CortexNoHeadsetException(Exception):
-    pass
-
-
 class Cortex(object):
     CORTEX_URL = "wss://localhost:6868"
 
@@ -82,6 +78,7 @@ class Cortex(object):
         self.get_user_login()
         self.get_cortex_info()
         self.has_access_right()
+        self.tt0 = time.time() - time.perf_counter()
         self.request_access()
         self.authorize()
         self.get_license_info()
@@ -178,8 +175,7 @@ class Cortex(object):
                 logger.error("maybe the websocket was closed" + str(e))
         logger.debug("Finished listening")
 
-    @staticmethod
-    def to_epoch(t=None, delta_time=0):
+    def to_epoch(self, t=None, delta_time=0):
         """
         Takes either number of seconds or milliseconds since 1st of Jan 1970
         or a datetime object and outputs the number of milliseconds since Jan
@@ -187,11 +183,11 @@ class Cortex(object):
         Parameters:
             t: input time; defaults to int(time.time()*1000)
             delta_time: optional time in seconds to add to the time. This is to
-            add the time until the next screen flip (normally between 16 and 8
-            ms
+            add the time until the next screen flip (normally between 16 and 8 ms
         """
         if t is None:
-            return int((time.time()+delta_time)*1000)
+            current_time = time.perf_counter() + self.tt0
+            return int((current_time+delta_time)*1000)
         if isinstance(t, str) and t.isnumeric():
             t = float(t)
         if isinstance(t, float) or isinstance(t, int):
