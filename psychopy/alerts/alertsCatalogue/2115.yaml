@@ -2,7 +2,7 @@
 
 code: 2115
 cat: Sizing
-msg: Your stimuli size exceeds the {dimension} dimension of your window.
+msg: Your stimulus size exceeds the {dimension} dimension of your window.
 
 # The following are typically used for online help pages, and support reStructured Text.
 

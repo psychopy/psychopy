@@ -302,8 +302,22 @@ class _KeyBuffers(dict):
 
     def getBuffer(self, kb_id, bufferSize=defaultBufferSize):
         if kb_id not in self:
-            self[kb_id] = _KeyBuffer(bufferSize=bufferSize,
-                                     kb_id=kb_id)
+            try:
+                self[kb_id] = _KeyBuffer(bufferSize=bufferSize,
+                                         kb_id=kb_id)
+            except FileNotFoundError as e:
+                if sys.platform == 'darwin':
+                    # this is caused by a problem with SysPrefs
+                    raise OSError("Failed to connect to Keyboard globally. "
+                                  "You need to add PsychoPy App bundle (or the "
+                                  "terminal if you run from terminal) to the "
+                                  "System Preferences/Privacy/Accessibility "
+                                  "(macOS <= 10.14) or "
+                                  "System Preferences/Privacy/InputMonitoring "
+                                  "(macOS >= 10.15).")
+                else:
+                    raise(e)
+
         return self[kb_id]
 
 
@@ -494,10 +508,18 @@ keyNamesLinux={
     }
 
 
-
 if sys.platform == 'darwin':
     keyNames = keyNamesMac
 elif sys.platform == 'win32':
     keyNames = keyNamesWin
 else:
     keyNames = keyNamesLinux
+
+# check if mac prefs are working
+macPrefsBad = False
+if sys.platform == 'darwin' and havePTB:
+    try:
+        Keyboard()
+    except OSError:
+        macPrefsBad = True
+        havePTB = False

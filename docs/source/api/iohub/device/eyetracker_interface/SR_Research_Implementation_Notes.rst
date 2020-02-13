@@ -5,8 +5,8 @@ SR Research
 **Platforms:** 
 
 * Windows 7 / 10
-* Linux (not tested)
-* macOS (not tested)
+* Linux
+* macOS
 
 **Required Python Version:** 
 
@@ -15,8 +15,7 @@ SR Research
 **Supported Models:**
 
 * EyeLink 1000
-* EyeLink 1000 Remote (not tested)
-* EyeLink 1000 Plus (not tested)
+* EyeLink 1000 Plus
 
 Additional Software Requirements
 #################################

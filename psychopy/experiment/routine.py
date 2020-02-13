@@ -40,9 +40,16 @@ class Routine(list):
     @property
     def name(self):
         return self.params['name']
+
     @name.setter
     def name(self, name):
         self.params['name'] = name
+
+    def integrityCheck(self):
+        """Run tests on self and on all the Components inside"""
+        for entry in self:
+            if hasattr(entry, "integrityCheck"):
+                entry.integrityCheck()
 
     def addComponent(self, component):
         """Add a component to the end of the routine"""

@@ -2,7 +2,7 @@
 
 code: 2155
 cat: Positioning
-msg: Your stimuli position exceeds the {dimension} dimension of your window.
+msg: Your stimulus position exceeds the {dimension} dimension of your window.
 
 # Each of the following key values are used for formatting online help pages, and support reStructured Text.
 
