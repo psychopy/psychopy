@@ -13,6 +13,7 @@ from builtins import object
 profiling = False  # turning on will save profile files in currDir
 
 import sys
+import platform
 import psychopy
 from pkg_resources import parse_version
 from psychopy.constants import PY3
@@ -40,6 +41,7 @@ from psychopy.localization import _translate
 # take a while
 
 # needed by splash screen for the path to resources/psychopySplash.png
+import ctypes
 from psychopy import preferences, logging, __version__
 from psychopy import projects
 from . import connections
@@ -55,6 +57,24 @@ if not PY3 and sys.platform == 'darwin':
     blockTips = True
 else:
     blockTips = False
+
+
+# Enable high-dpi support if on Windows. This fixes blurry text rendering.
+if sys.platform == 'win32':
+    # get the preference for high DPI
+    if 'highDPI' in preferences.prefs.app.keys():  # check if we have the option
+        enableHighDPI = preferences.prefs.app['highDPI']
+
+        # check if we have OS support for it
+        if hasattr(ctypes.windll.shcore, "SetProcessDpiAwareness"):
+            ctypes.windll.shcore.SetProcessDpiAwareness(enableHighDPI)
+        else:
+            logging.warn(
+                "High DPI support is not appear to be supported by this version"
+                " of Windows. Disabling in preferences.")
+
+            preferences.prefs.app['highDPI'] = False
+            preferences.prefs.saveUserPrefs()
 
 
 class MenuFrame(wx.Frame):
@@ -323,6 +343,40 @@ class PsychoPyApp(wx.App):
         if mainFrame in ['both', 'builder']:
             self.showBuilder(fileList=exps)
 
+        # if darwin, check for inaccessible keyboard
+        if sys.platform == 'darwin':
+            from psychopy.hardware import keyboard
+            if keyboard.macPrefsBad:
+                title = _translate("Mac keyboard security")
+                if platform.mac_ver() < '10.15':
+                    settingName = 'Accessibility'
+                    setting = 'Privacy_Accessibility'
+                else:
+                    setting = 'Privacy_ListenEvent'
+                    settingName = 'Input Monitoring'
+                msg = _translate("To use high-precision keyboard timing you should "
+                      "enable {} for PsychoPy in System Preferences. "
+                      "Shall we go there (and you can drag PsychoPy app into "
+                      "the box)?"
+                      ).format(settingName)
+                dlg = dialogs.MessageDialog(title=title,
+                                            msg=msg,
+                                            type='Query')
+                resp = dlg.ShowModal()
+                if resp == wx.ID_YES:
+                    from AppKit import NSWorkspace
+                    from Foundation import NSURL
+
+                    sys_pref_link = (
+                        'x-apple.systempreferences:'
+                        'com.apple.preference.security?'
+                        '{}'.format(setting))
+
+                    # create workspace object
+                    workspace = NSWorkspace.sharedWorkspace()
+
+                    # Open System Preference
+                    workspace.openURL_(NSURL.URLWithString_(sys_pref_link))
 
         # Runner captures standard streams until program closed
         if not self.testMode:
