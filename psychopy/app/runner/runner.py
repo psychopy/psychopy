@@ -6,6 +6,7 @@
 # Distributed under the terms of the GNU General Public License (GPL).
 
 import wx
+from wx.lib import platebtn
 import os
 import sys
 import time
@@ -230,11 +231,6 @@ class RunnerPanel(wx.Panel, ScriptProcess):
                                    size=expCtrlSize,
                                    style=wx.LC_REPORT | wx.BORDER_SUNKEN)
 
-        # Set stdout
-        self.stdoutCtrl = StdOutText(parent=self,
-                                     size=ctrlSize,
-                                     style=wx.TE_READONLY | wx.TE_MULTILINE)
-
         self.expCtrl.Bind(wx.EVT_LIST_ITEM_SELECTED,
                           self.onItemSelected, self.expCtrl)
         self.expCtrl.Bind(wx.EVT_LIST_ITEM_DESELECTED,
@@ -242,6 +238,32 @@ class RunnerPanel(wx.Panel, ScriptProcess):
         self.Bind(wx.EVT_LIST_ITEM_ACTIVATED, self.onDoubleClick, self.expCtrl)
         self.expCtrl.InsertColumn(0, 'File')
         self.expCtrl.InsertColumn(1, 'Path')
+
+        _style = platebtn.PB_STYLE_DROPARROW
+        # Alerts
+        self._selectedHiddenAlerts = False  # has user manually hidden alerts?
+        self.alertsToggleBtn = platebtn.PlateButton(self, -1, 'Alerts',
+                                          style=_style, name='Alerts')
+        # mouse event must be bound like this
+        self.alertsToggleBtn.Bind(wx.EVT_LEFT_DOWN, self.setAlertsVisible)
+        # mouse event must be bound like this
+        self.alertsToggleBtn.Bind(wx.EVT_RIGHT_DOWN, self.setAlertsVisible)
+        self.alertsCtrl = StdOutText(parent=self,
+                                     size=ctrlSize,
+                                     style=wx.TE_READONLY | wx.TE_MULTILINE)
+        self.setAlertsVisible(True)
+
+        # StdOut
+        self.stdoutToggleBtn = platebtn.PlateButton(self, -1, 'Stdout',
+                                          style=_style, name='Stdout')
+        # mouse event must be bound like this
+        self.stdoutToggleBtn.Bind(wx.EVT_LEFT_DOWN, self.setStdoutVisible)
+        # mouse event must be bound like this
+        self.stdoutToggleBtn.Bind(wx.EVT_RIGHT_DOWN, self.setStdoutVisible)
+        self.stdoutCtrl = StdOutText(parent=self,
+                                     size=ctrlSize,
+                                     style=wx.TE_READONLY | wx.TE_MULTILINE)
+        self.setStdoutVisible(True)
 
         # Set buttons
         plusBtn = self.makeBmpButton(main='addExp32.png')
@@ -290,7 +312,11 @@ class RunnerPanel(wx.Panel, ScriptProcess):
 
         # Set main sizer
         self.mainSizer = wx.BoxSizer(wx.VERTICAL)
-        self.mainSizer.Add(self.upperSizer, 1, wx.EXPAND | wx.ALL, 10)
+        self.mainSizer.Add(self.upperSizer, 0, wx.EXPAND | wx.ALL, 10)
+
+        self.mainSizer.Add(self.alertsToggleBtn, 0, wx.TOP, 10)
+        self.mainSizer.Add(self.alertsCtrl, 1, wx.EXPAND | wx.ALL, 10)
+        self.mainSizer.Add(self.stdoutToggleBtn, 0, wx.TOP, 10)
         self.mainSizer.Add(self.stdoutCtrl, 1, wx.EXPAND | wx.ALL, 10)
 
         self.stopBtn.Disable()
@@ -301,6 +327,25 @@ class RunnerPanel(wx.Panel, ScriptProcess):
     def onProcessEnded(self):
         ScriptProcess.onProcessEnded(self)
         self.stopTask()
+
+    def setAlertsVisible(self, new=True):
+        if type(new) == bool:
+            self.alertsCtrl.Show(new)
+        # or could be an event from button click (a toggle)
+        else:
+            show = (not self.alertsCtrl.IsShown())
+            self.alertsCtrl.Show(show)
+            self._selectedHiddenAlerts = not show
+        self.Layout()
+
+    def setStdoutVisible(self, new=True):
+        # could be a boolean from our own code
+        if type(new) == bool:
+            self.stdoutCtrl.Show(new)
+        # or could be an event (so toggle) from button click
+        else:
+            self.stdoutCtrl.Show(not self.stdoutCtrl.IsShown())
+        self.Layout()
 
     def makeBmpButton(self, main=None, emblem=None):
         """
@@ -512,8 +557,6 @@ class RunnerPanel(wx.Panel, ScriptProcess):
         self.currentFile = Path(folder, filename)
         self.currentExperiment = self.loadExperiment()
         self.currentProject = None  # until it's needed (slow to update)
-        self.currentExperiment.integrityCheck()
-        sys.stdout.flush()
         self.runBtn.Enable()
         self.stopBtn.Disable()
         if self.currentFile.suffix == '.psyexp':
@@ -522,6 +565,26 @@ class RunnerPanel(wx.Panel, ScriptProcess):
         else:
             self.onlineBtn.Disable()
             self.onlineDebugBtn.Disable()
+        self.updateAlerts()
+
+    def updateAlerts(self):
+        # check for alerts
+        sys.stdout = sys.stderr = self.alertsCtrl
+        self.alertsCtrl.Clear()
+        if hasattr(self.currentExperiment, 'integrityCheck'):
+            self.currentExperiment.integrityCheck()
+            nAlerts = len(self.alertsCtrl.alerts)
+        else:
+            nAlerts = 0
+        # update labels and text accordingly
+        self.alertsToggleBtn.SetLabelText("Alerts ({})".format(nAlerts))
+        sys.stdout.flush()
+        sys.stdout = sys.stderr= self.stdoutCtrl
+        if nAlerts == 0:
+            self.setAlertsVisible(False)
+        # elif selected hidden then don't touch
+        elif not self._selectedHiddenAlerts:
+            self.setAlertsVisible(True)
 
     def onItemDeselected(self, evt):
         """Set currentSelection, currentFile, currentExperiment and currentProject to None."""
