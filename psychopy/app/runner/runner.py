@@ -512,7 +512,8 @@ class RunnerPanel(wx.Panel, ScriptProcess):
         self.currentFile = Path(folder, filename)
         self.currentExperiment = self.loadExperiment()
         self.currentProject = None  # until it's needed (slow to update)
-
+        self.currentExperiment.integrityCheck()
+        sys.stdout.flush()
         self.runBtn.Enable()
         self.stopBtn.Disable()
         if self.currentFile.suffix == '.psyexp':
@@ -535,7 +536,6 @@ class RunnerPanel(wx.Panel, ScriptProcess):
         self.onlineDebugBtn.Disable()
 
     def onDoubleClick(self, evt):
-        print('got doubleclick evt')
         self.currentSelection = evt.Index
         filename = self.expCtrl.GetItem(self.currentSelection, 0).Text
         folder = self.expCtrl.GetItem(self.currentSelection, 1).Text
