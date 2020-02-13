@@ -39,16 +39,16 @@ class RunnerFrame(wx.Frame):
                                           name=title,
                                           )
 
-        # Create menu
-        self.runnerMenu = wx.MenuBar()
-        self.makeMenu()
-        self.SetMenuBar(self.runnerMenu)
-
         self.app = app
         self.frameType = 'runner'
         self.app.trackFrame(self)
 
         self.panel = RunnerPanel(self, id, title, app)
+
+        # Create menu
+        self.runnerMenu = wx.MenuBar()
+        self.makeMenu()
+        self.SetMenuBar(self.runnerMenu)
 
         self.mainSizer = wx.BoxSizer(wx.VERTICAL)
         self.mainSizer.Add(self.panel, 1, wx.EXPAND | wx.ALL)
@@ -70,29 +70,64 @@ class RunnerFrame(wx.Frame):
 
     def makeMenu(self):
         """Create Runner menubar."""
+        keys = self.app.prefs.keys
         # Menus
         fileMenu = wx.Menu()
         viewMenu = wx.Menu()
+        runMenu = wx.Menu()
 
         # Menu items
         fileMenuItems = [
-            {'id': wx.ID_ADD, 'label': 'Add task', 'status': 'Adding task...', 'func': self.addTask},
-            {'id': wx.ID_REMOVE, 'label': 'Remove task', 'status': 'Removing task...', 'func': self.removeTask},
-            {'id': wx.ID_CLEAR, 'label': 'Clear all', 'status': 'Clearing tasks...', 'func': self.clearTasks},
-            {'id': wx.ID_SAVE, 'label': 'Save list', 'status': 'Saving task...', 'func': self.saveTaskList},
-            {'id': wx.ID_COPY, 'label': 'Load list', 'status': 'Loading task...', 'func': self.loadTaskList},
-            {'id': wx.ID_CLOSE_FRAME, 'label': 'Close', 'status': 'Closing Runner...', 'func': self.onClose},
-            {'id': wx.ID_EXIT, 'label': 'Quit', 'status': 'Quitting PsychoPy...', 'func': self.onQuit},
+            {'id': wx.ID_ADD, 'label': _translate('Add task'),
+             'status': _translate('Adding task'),
+             'func': self.addTask},
+            {'id': wx.ID_REMOVE, 'label': _translate('Remove task'),
+             'status': 'Removing task',
+             'func': self.removeTask},
+            {'id': wx.ID_CLEAR, 'label': _translate('Clear all'),
+             'status': _translate('Clearing tasks'),
+             'func': self.clearTasks},
+            {'id': wx.ID_SAVE,
+             'label': _translate('Save list')+'\t%s'%keys['save'],
+             'status': _translate('Saving task'),
+             'func': self.saveTaskList},
+            {'id': wx.ID_COPY, 'label': _translate('Open list')+'\tCtrl-O',
+             'status': _translate('Loading task'),
+             'func': self.loadTaskList},
+            {'id': wx.ID_CLOSE_FRAME, 'label': _translate('Close')+'\tCtrl-W',
+             'status': _translate('Closing Runner'),
+             'func': self.onClose},
+            {'id': wx.ID_EXIT, 'label': _translate("&Quit\t%s") % keys['quit'],
+             'status': _translate('Quitting PsychoPy'),
+             'func': self.onQuit},
         ]
 
         viewMenuItems = [
-            {'id': wx.ID_ANY, 'label': 'View Builder', 'status': 'Opening Builder...', 'func': self.viewBuilder},
-            {'id': wx.ID_ANY, 'label': 'View Coder', 'status': 'Opening Coder...', 'func': self.viewCoder},
+            {'id': wx.ID_ANY, 'label': _translate("Open &Builder view"),
+             'status': _translate("Opening Builder"), 'func': self.viewBuilder},
+            {'id': wx.ID_ANY, 'label': _translate("Open &Coder view"),
+             'status': _translate('Opening Coder'), 'func': self.viewCoder},
         ]
+
+        runMenuItems = [
+            {'id': wx.ID_ANY,
+             'label': _translate("Run\t%s") % keys['runScript'],
+             'status': _translate('Running experiment'),
+             'func': self.panel.runLocal},
+            {'id': wx.ID_ANY,
+             'label': _translate('Run JS for local debug'),
+             'status': _translate('Launching local debug of online study'),
+             'func': self.panel.runOnlineDebug},
+            {'id': wx.ID_ANY,
+             'label': _translate('Run JS on Pavlovia'),
+             'status': _translate('Launching online study at Pavlovia'),
+             'func': self.panel.runOnline},
+            ]
 
         menus = [
             {'menu': fileMenu, 'menuItems': fileMenuItems, 'separators': ['clear all', 'load list']},
             {'menu': viewMenu, 'menuItems': viewMenuItems, 'separators': []},
+            {'menu': runMenu, 'menuItems': runMenuItems, 'separators': []},
         ]
 
         # Add items to menus
@@ -105,6 +140,7 @@ class RunnerFrame(wx.Frame):
 
         self.runnerMenu.Append(fileMenu, 'File')
         self.runnerMenu.Append(viewMenu, 'View')
+        self.runnerMenu.Append(runMenu, 'Run')
 
     def onURL(self, evt):
         """Open link in default browser."""
@@ -279,7 +315,7 @@ class RunnerPanel(wx.Panel, ScriptProcess):
         negBtn.SetToolTip(wx.ToolTip(
             _translate("Remove experiment from list")))
         runLocalBtn.SetToolTip(wx.ToolTip(
-            _translate("Run PsychoPy task (Python)")))
+            _translate("Run the current script in Python")))
         stopTaskBtn.SetToolTip(wx.ToolTip(
             _translate("Stop Task")))
         self.onlineBtn.SetToolTip(wx.ToolTip(
