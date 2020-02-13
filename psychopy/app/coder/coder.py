@@ -18,7 +18,7 @@ import wx
 import wx.stc
 import wx.richtext
 from wx.html import HtmlEasyPrinting
-from wx.lib.mixins.treemixin import VirtualTree
+from wx.lib.mixins.listctrl import ListCtrlAutoWidthMixin
 
 
 try:
@@ -676,6 +676,19 @@ class SourceTreePanel(wx.Panel):
             self.updatePySourceTree()
 
 
+class FileBrowserListCtrl(ListCtrlAutoWidthMixin, wx.ListCtrl):
+    """Custom list control for the file browser."""
+    def __init__(self, parent, id, pos, size, style):
+        wx.ListCtrl.__init__(self,
+                             parent,
+                             id,
+                             pos,
+                             size,
+                             style=style)
+        ListCtrlAutoWidthMixin.__init__(self)
+
+
+
 class FileBrowserPanel(wx.Panel):
     """Panel for a file browser."""
 
@@ -710,9 +723,14 @@ class FileBrowserPanel(wx.Panel):
         }
 
         # self.SetDoubleBuffered(True)
+
+        # create an address bar
+        self.lblDir = wx.StaticText(self, label="Directory:")
+        self.txtAddr = wx.TextCtrl(self, style=wx.TE_PROCESS_ENTER)
+
         # create the source tree control
         self.flId = wx.NewIdRef()
-        self.fileList = wx.ListCtrl(
+        self.fileList = FileBrowserListCtrl(
             self,
             self.flId,
             pos=(0, 0),
@@ -721,13 +739,21 @@ class FileBrowserPanel(wx.Panel):
         self.fileList.SetImageList(self.fileImgList, wx.IMAGE_LIST_SMALL)
 
         # do layout
+        szrAddr = wx.BoxSizer(wx.HORIZONTAL)
+        szrAddr.Add(self.lblDir, flag=wx.RIGHT | wx.ALIGN_CENTRE_VERTICAL, border=5)
+        szrAddr.Add(self.txtAddr, flag=wx.EXPAND, proportion=1)
+
         szr = wx.BoxSizer(wx.VERTICAL)
+
+        szr.Add(szrAddr, flag=wx.EXPAND | wx.ALL, border=5)
         szr.Add(self.fileList, flag=wx.EXPAND, proportion=1)
         self.SetSizer(szr)
 
         # bind events
         self.Bind(
             wx.EVT_LIST_ITEM_ACTIVATED, self.OnItemSelected, self.fileList)
+        self.Bind(
+            wx.EVT_TEXT_ENTER, self.OnAddrEnter, self.txtAddr)
 
         # add columns
         self.fileList.InsertColumn(0, "Name")
@@ -739,22 +765,42 @@ class FileBrowserPanel(wx.Panel):
 
         self.updateFileBrowser()
 
+    def OnAddrEnter(self, evt=None):
+        """When enter is pressed."""
+        path = self.txtAddr.GetValue()
+        if path == self.currentPath:
+            return
+
+        if os.path.isdir(path):
+            self.gotoDir(path)
+        else:
+            dlg = wx.MessageDialog(
+                self,
+                "Specified path `{}` is not a directory.".format(path),
+                style=wx.ICON_ERROR | wx.OK)
+            dlg.ShowModal()
+            self.txtAddr.SetValue(self.currentPath)
+
     def OnItemSelected(self, evt=None):
         itemData = self.fileList.GetItemData(self.fileList.GetFirstSelected())
         if itemData >= 0:
             if os.path.isfile(self.pathData[itemData]):
                 self.coder.fileOpen(None, self.pathData[itemData])
             elif os.path.isdir(self.pathData[itemData]):
-                print(self.pathData[itemData])
                 self.gotoDir(self.pathData[itemData])
 
     def updateFileBrowser(self):
         """Update the contents of the file browser.
         """
+
+        # TODO : handle crash on permission errors
         folders = [f for f in os.listdir(self.currentPath)
                    if os.path.isdir(os.path.join(self.currentPath, f))]
         files = [f for f in os.listdir(self.currentPath)
                  if os.path.isfile(os.path.join(self.currentPath, f))]
+
+        # set the address bar
+        self.txtAddr.SetValue(self.currentPath)
 
         self.pathData = {}
         nPaths = 0
@@ -1494,6 +1540,14 @@ class CoderFrame(wx.Frame):
         # make the pane manager
         self.paneManager = aui.AuiManager()
 
+        # add help window
+        _style = (aui.AUI_NB_TOP | aui.AUI_NB_TAB_SPLIT | aui.AUI_NB_TAB_MOVE)
+        self.sourceAsst = aui.AuiNotebook(
+            self, wx.ID_ANY, size=wx.Size(600, 600),
+            style=_style)
+        self.sourceAsstWindow = SourceTreePanel(self.sourceAsst, self)
+        self.fileBrowserWindow = FileBrowserPanel(self.sourceAsst, self)
+
         # create an editor pane
         self.paneManager.SetFlags(aui.AUI_MGR_RECTANGLE_HINT)
         self.paneManager.SetManagedWindow(self)
@@ -1573,24 +1627,14 @@ class CoderFrame(wx.Frame):
                     self.shelf, -1, introText=msg + '\n\n')
             self.shelf.AddPage(self.shell, _translate('Shell'))
 
-        # add help window
-        _style = (aui.AUI_NB_TOP | aui.AUI_NB_TAB_SPLIT | aui.AUI_NB_TAB_MOVE)
-        self.sourceAsst = aui.AuiNotebook(
-            self, wx.ID_ANY, size=wx.Size(600, 600),
-            style=_style)
-        self.sourceAsstWindow = SourceTreePanel(self.sourceAsst, self)
-        self.fileBrowserWindow = FileBrowserPanel(self.sourceAsst, self)
-
-        self.sourceAsst.AddPage(self.sourceAsstWindow, _translate('Structure'))
-        self.sourceAsst.AddPage(self.fileBrowserWindow, _translate('Files'))
+        self.sourceAsst.AddPage(self.sourceAsstWindow, _translate('Code Structure'))
+        self.sourceAsst.AddPage(self.fileBrowserWindow, _translate('File Browser'))
         self.paneManager.AddPane(self.sourceAsst,
                                  aui.AuiPaneInfo().
                                  BestSize((600, 600)).
                                  Name("SourceAsst").
-                                 Caption(_translate("Source Assistant")).
-                                 RightDockable(True).
-                                 LeftDockable(True).
-                                 CloseButton(False).
+                                 Caption(_translate("Tools")).
+                                 CloseButton(True).
                                  Right())
 
         # will we show the pane straight away?
@@ -1606,7 +1650,7 @@ class CoderFrame(wx.Frame):
             self.paneManager.LoadPerspective(self.appData['auiPerspective'])
             self.paneManager.GetPane('Shelf').Caption(_translate("Shelf"))
             self.paneManager.GetPane('SourceAsst').Caption(
-                _translate("Source Assistant"))
+                _translate("Tools"))
             self.paneManager.GetPane('Editor').Caption(_translate("Editor"))
         else:
             self.SetMinSize(wx.Size(400, 600))  # min size for whole window
@@ -2239,7 +2283,7 @@ class CoderFrame(wx.Frame):
 
         # scroll the source tree to where it was before for this document,
         # prevents it from jumping around annoyingly
-        if hasattr(self, 'sourceAsstWindow'):
+        if hasattr(self, 'sourceAsstWindow') and old > -1:
             # get the old source assist scroll position, save it
             self.notebook.GetPage(old).sourceAsstScroll = \
                 self.sourceAsstWindow.GetScrollVert()
@@ -2439,6 +2483,11 @@ class CoderFrame(wx.Frame):
         if doc == self.currentDoc:
             self.toolbar.EnableTool(self.IDs.cdrBtnSave, doc.UNSAVED)
 
+        self.SetStatusText(_translate('Analyzing code'))
+        if hasattr(self, 'sourceAsstWindow'):
+            self.currentDoc.analyseScript()
+        self.SetStatusText('')
+
     def findDocID(self, filename):
         # find the ID of the current doc
         for ii in range(self.notebook.GetPageCount()):
@@ -2489,6 +2538,16 @@ class CoderFrame(wx.Frame):
                 self.currentDoc.setLexer('bash')
             elif filename.endswith('.c'):
                 self.currentDoc.setLexer('c')
+            elif filename.endswith('.h'):
+                self.currentDoc.setLexer('c')
+            elif filename.endswith('.cpp'):
+                self.currentDoc.setLexer('c')
+            elif filename.endswith('.glsl'):
+                self.currentDoc.setLexer('c')
+            elif filename.endswith('.frag'):
+                self.currentDoc.setLexer('c')
+            elif filename.endswith('.vert'):
+                self.currentDoc.setLexer('c')
             elif filename.endswith('.html'):
                 self.currentDoc.setLexer('html')
             elif filename.endswith('.R'):
@@ -2521,7 +2580,8 @@ class CoderFrame(wx.Frame):
             self.setFileModified(False)
             self.currentDoc.SetFocus()
         self.SetLabel('%s - PsychoPy Coder' % self.currentDoc.filename)
-        if analyseAuto and len(self.getOpenFilenames()) > 0:
+        #if len(self.getOpenFilenames()) > 0:
+        if hasattr(self, 'sourceAsstWindow'):
             self.SetStatusText(_translate('Analyzing code'))
             self.currentDoc.analyseScript()
             self.SetStatusText('')
@@ -2851,7 +2911,6 @@ class CoderFrame(wx.Frame):
         else:
             # todo: add _translate()
             txt = 'Open a file from the File menu, or drag one onto this app, or open a demo from the Help menu'
-            print(txt)
 
         self.SetStatusText(_translate('ready'))
 
