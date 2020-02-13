@@ -155,8 +155,9 @@ class RunnerFrame(wx.Frame):
                 lineNumber = int(evt.GetString().split(',')[1][5:])
                 self.app.showCoder()
                 self.app.coder.gotoLine(filename, lineNumber)
-        except Exception:
+        except Exception as e:
             print("##### Could not open URL: {} #####\n".format(evt.String))
+            print(e)
         wx.EndBusyCursor()
 
     def saveTaskList(self, evt=None):
@@ -188,14 +189,16 @@ class RunnerFrame(wx.Frame):
             self.Hide()
 
     def onQuit(self, evt=None):
+        sys.stderr = sys.stdout = sys.__stdout__
         self.panel.stopTask()
         self.app.quit(evt)
 
     def checkSave(self):
         try:
             self.saveTaskList()
-        except Exception:
+        except Exception as e:
             print("##### Task List not saved correctly. #####\n")
+            print(e)
         return True
 
     def viewBuilder(self, evt):
@@ -233,7 +236,9 @@ class RunnerFrame(wx.Frame):
         """
         temp = []
         for idx in range(self.panel.expCtrl.GetItemCount()):
-            temp.append(self.panel.expCtrl.GetItem(idx, 1).Text)
+            filename = self.panel.expCtrl.GetItem(idx, 0).Text
+            folder = self.panel.expCtrl.GetItem(idx, 1).Text
+            temp.append(str(Path(folder) / filename))
         return temp
 
 
@@ -738,5 +743,3 @@ class StdOutText(StdOutRich):
     def statusAppend(self, newText):
         text = self.GetValue() + newText
         self.setStatus(text)
-
-
