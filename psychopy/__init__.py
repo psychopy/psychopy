@@ -48,7 +48,8 @@ if 'installing' not in locals():
     from psychopy.tools.versionchooser import useVersion, ensureMinimal
 
 # import readline here to get around an issue with sounddevice
-# https://github.com/psychopy/psychopy/issues/2230
-# https://github.com/psychopy/psychopy/issues/2344
-# https://github.com/psychopy/psychopy/issues/2662
-import readline
+# issues GH-2230 GH-2344 GH-2662
+try:
+    import readline
+except ImportError:
+    pass  # all that will happen is the stderr/stdout might get redirected
