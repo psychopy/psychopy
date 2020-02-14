@@ -365,7 +365,7 @@ class PsychoPyApp(wx.App):
                       "the box)?"
                       ).format(settingName)
                 dlg = dialogs.MessageDialog(title=title,
-                                            msg=msg,
+                                            message=msg,
                                             type='Query')
                 resp = dlg.ShowModal()
                 if resp == wx.ID_YES:
