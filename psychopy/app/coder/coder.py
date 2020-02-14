@@ -35,7 +35,6 @@ import threading
 import bdb
 import pickle
 import time
-import ast
 
 from . import psychoParser
 from .. import stdOutRich, dialogs
@@ -47,7 +46,7 @@ from psychopy.projects import pavlovia
 import psychopy.app.pavlovia_ui.menu
 from psychopy.app.coder.codeEditorBase import BaseCodeEditor
 from psychopy.app.coder.fileBrowser import FileBrowserPanel
-from psychopy.app.coder.sourceTree import SourceTreePanel, GenericAST
+from psychopy.app.coder.sourceTree import SourceTreePanel
 from psychopy.app.icons import combineImageEmblem
 
 # advanced prefs (not set in prefs files)
@@ -516,11 +515,17 @@ class CodeEditor(BaseCodeEditor):
             self.setFonts()
         self.SetDropTarget(FileDropTarget(targetFrame=self.coder))
 
-        # set to python syntax code coloring
-        self.setLexer('python')
+        # get the file type
+        self.filetype = self.getFileType()
 
-        # model for source tree data
-        self.ast = None
+        # set to python syntax code coloring
+        self.setLexer(self.filetype)
+
+        # Keep track of visual aspects of the source tree viewer when working
+        # with this document. This makes sure the tree maintains it's state when
+        # moving between documents.
+        self.expandedItems = {}
+        self.sourceAsstScroll = 0
 
     def setFonts(self):
         """Make some styles,  The lexer defines what each style is used for,
@@ -601,6 +606,33 @@ class CodeEditor(BaseCodeEditor):
                           "fore:#000000,face:%(code)s,back:#E0C0E0,eol,size:%(size)d" % faces)
 
         self.SetCaretForeground("BLUE")
+
+    def getFileType(self):
+        """Get the file type from the extension."""
+        if os.path.isabs(self.filename):
+            _, filen = os.path.split(self.filename)
+        else:
+            filen = self.filename
+
+        # get the extension, if any
+        fsplit = filen.split('.')
+        if len(fsplit) > 1:   # has enough splits to have an extension
+            ext = fsplit[-1]
+        else:
+            ext = 'txt'  # assume a text file if we wer able to open it
+
+        if ext in ('py', 'pyx', 'pxd', 'pxi',):  # python/cython files
+            return 'python'
+        elif ext in ('html',):  # html file
+            return 'html'
+        elif ext in ('cpp', 'c', 'h', 'glsl', 'vert', 'frag', 'mex'):  # c-like file
+            return 'cpp'
+        elif ext in ('m',):  # MATLAB
+            return 'matlab'
+        elif ext in ('R',):  # R
+            return 'R'
+        else:
+            return 'null'  # default
 
     def OnKeyPressed(self, event):
         # various stuff to handle code completion and tooltips
@@ -976,9 +1008,6 @@ class CodeEditor(BaseCodeEditor):
 
         """
         # scan the AST for objects we care about
-        self.ast = GenericAST.parsePyScript(self.GetText(),
-                                            self.coder.currentDoc.filename)
-
         if hasattr(self.coder, 'sourceAsstWindow'):
             self.coder.sourceAsstWindow.updateSourceTree()
             self.coder.sourceAsstWindow.srcTree.SetScrollPos(
@@ -988,12 +1017,13 @@ class CodeEditor(BaseCodeEditor):
         """Lexer is a simple string (e.g. 'python', 'html')
         that will be converted to use the right STC_LEXER_XXXX value
         """
+        lexer = 'null' if lexer is None else lexer
         try:
             lex = getattr(wx.stc, "STC_LEX_%s" % (lexer.upper()))
         except AttributeError:
-            logging.warn("Unknown lexer %r. Using 'python' instead" % lexer)
-            lex = wx.stc.STC_LEX_PYTHON
-            lexer = 'python'
+            logging.warn("Unknown lexer %r. Using 'plaintext'." % lexer)
+            lex = wx.stc.STC_LEX_NULL
+            lexer = 'plaintext'
         # then actually set it
         self.SetLexer(lex)
         if lexer == 'python':
@@ -2129,6 +2159,7 @@ class CoderFrame(wx.Frame):
             else:
                 self.currentDoc.SetText("")
             self.currentDoc.EmptyUndoBuffer()
+
             if filename.endswith('.py'):
                 self.currentDoc.setLexer('python')
             elif filename.endswith('.m'):
@@ -2136,17 +2167,17 @@ class CoderFrame(wx.Frame):
             elif filename.endswith('.sh'):
                 self.currentDoc.setLexer('bash')
             elif filename.endswith('.c'):
-                self.currentDoc.setLexer('c')
+                self.currentDoc.setLexer('cpp')
             elif filename.endswith('.h'):
-                self.currentDoc.setLexer('c')
+                self.currentDoc.setLexer('cpp')
             elif filename.endswith('.cpp'):
-                self.currentDoc.setLexer('c')
+                self.currentDoc.setLexer('cpp')
             elif filename.endswith('.glsl'):
-                self.currentDoc.setLexer('c')
+                self.currentDoc.setLexer('cpp')
             elif filename.endswith('.frag'):
-                self.currentDoc.setLexer('c')
+                self.currentDoc.setLexer('cpp')
             elif filename.endswith('.vert'):
-                self.currentDoc.setLexer('c')
+                self.currentDoc.setLexer('cpp')
             elif filename.endswith('.html'):
                 self.currentDoc.setLexer('html')
             elif filename.endswith('.R'):
