@@ -471,7 +471,6 @@ class FileBrowserPanel(wx.Panel):
         for obj in self.dirData:
             if isinstance(obj, FolderItem):
                 img = obj.folderType()
-                print(img)
                 index = self.fileList.InsertItem(
                     self.fileList.GetItemCount(), obj.name, self._lstGfx[img])
             elif isinstance(obj, FileItem):

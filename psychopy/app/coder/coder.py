@@ -47,6 +47,7 @@ from psychopy.projects import pavlovia
 import psychopy.app.pavlovia_ui.menu
 from psychopy.app.coder.codeEditorBase import BaseCodeEditor
 from psychopy.app.coder.fileBrowser import FileBrowserPanel
+from psychopy.app.coder.sourceTree import SourceTreePanel, GenericAST
 from psychopy.app.icons import combineImageEmblem
 
 # advanced prefs (not set in prefs files)
@@ -120,20 +121,6 @@ class Printer(HtmlEasyPrinting):
     def Print(self, text, doc_name):
         self.SetHeader(doc_name)
         self.PrintText('<HR>' + self.GetHtmlText(text), doc_name)
-
-
-class CodeObjectDef(object):
-    """Class representing a definition in the document. Used for mapping out
-    the structure of the document."""
-    def __init__(self, name, type, start, attrs=None):
-        self.name = name
-        self.type = type
-        self.start = start
-        self.attrs = [] if attrs is None else list(attrs)
-
-    def __repr__(self):
-        return "CodeObjectDef({}, {}, {}, {})".format(
-            self.name, self.type, self.start, self.attrs)
 
 
 class ScriptThread(threading.Thread):
@@ -502,179 +489,6 @@ class UnitTestFrame(wx.Frame):
 
     def onCloseTests(self, evt):
         self.Destroy()
-
-
-class SourceTreePanel(wx.Panel):
-    """Panel for the source tree browser."""
-    def __init__(self, parent, frame):
-        wx.Panel.__init__(self, parent, -1)
-        self.parent = parent
-        self.coder = frame
-
-        # get graphics for toolbars and tree items
-        rc = self.coder.paths['resources']
-        join = os.path.join
-
-        # handles for icon graphics in the image list
-        self.treeImgList = wx.ImageList(16, 16)
-        self._treeGfx = {
-            'treeClass': self.treeImgList.Add(
-                wx.Bitmap(join(rc, 'coderclass16.png'), wx.BITMAP_TYPE_PNG)),
-            'treeFunc': self.treeImgList.Add(
-                wx.Bitmap(join(rc, 'coderfunc16.png'), wx.BITMAP_TYPE_PNG)),
-            'treeAttr': self.treeImgList.Add(
-                wx.Bitmap(join(rc, 'codervar16.png'), wx.BITMAP_TYPE_PNG)),
-            'treePyModule': self.treeImgList.Add(
-                wx.Bitmap(join(rc, 'coderpython16.png'), wx.BITMAP_TYPE_PNG)),
-            'treeImport': self.treeImgList.Add(
-                wx.Bitmap(join(rc, 'coderimport16.png'), wx.BITMAP_TYPE_PNG)),
-            'treeFolderClosed': self.treeImgList.Add(
-                wx.Bitmap(join(rc, 'folder16.png'), wx.BITMAP_TYPE_PNG)),
-            'treeFolderOpened': self.treeImgList.Add(
-                wx.Bitmap(join(rc, 'folder-open16.png'), wx.BITMAP_TYPE_PNG)),
-        }
-
-        self.SetDoubleBuffered(True)
-        # create the source tree control
-        self.treeId = wx.NewIdRef()
-        self.srcTree = wx.TreeCtrl(
-            self,
-            self.treeId,
-            pos=(0, 0),
-            size=wx.Size(300, 300),
-            style=wx.TR_HAS_BUTTONS)
-        self.srcTree.SetImageList(self.treeImgList)
-
-        # do layout
-        szr = wx.BoxSizer(wx.VERTICAL)
-        szr.Add(self.srcTree, flag=wx.EXPAND, proportion=1)
-        self.SetSizer(szr)
-
-        # bind events
-        self.Bind(
-            wx.EVT_TREE_ITEM_ACTIVATED, self.OnTreeItemActivate, self.srcTree)
-
-    def OnTreeItemActivate(self, evt=None):
-        """When a tree item is clicked on."""
-        if evt is None:
-            evt.Skip()
-
-        item = evt.GetItem()
-        lineno = self.srcTree.GetItemData(item)
-        if lineno is not None:
-            self.coder.currentDoc.GotoLine(lineno - 1)
-        else:
-            self.srcTree.Expand(item)
-
-    def GetScrollVert(self):
-        """Keep track of where we scrolled for the current document. This keeps
-        the tree viewer from moving back to the top when returning to a
-        document, which may be jarring for users."""
-        return self.srcTree.GetScrollPos(wx.VERTICAL)
-
-    def updatePySourceTree(self):
-        """Update the source tree using the parsed AST from the active document.
-
-        This assumes that we're editing a Python file.
-
-        """
-        self.srcTree.Freeze()
-        self.srcTree.DeleteAllItems()
-        root = self.srcTree.AddRoot(self.coder.currentDoc.filename)
-        self.srcTree.SetItemImage(
-            root, self._treeGfx['treePyModule'], wx.TreeItemIcon_Normal)
-        self.srcTree.SetItemData(root, None)
-
-        # keep track of imports
-        importIdx = self.srcTree.AppendItem(root, '<imports>')
-        self.srcTree.SetItemImage(
-            importIdx,
-            self._treeGfx['treeFolderClosed'],
-            wx.TreeItemIcon_Normal)
-        self.srcTree.SetItemImage(
-            importIdx,
-            self._treeGfx['treeFolderOpened'],
-            wx.TreeItemIcon_Expanded)
-        self.srcTree.SetItemData(importIdx, None)
-
-        for node in self.coder.currentDoc.ast:
-            if isinstance(node, ast.ClassDef):
-                itemIdx = self.srcTree.AppendItem(root, node.name)
-                self.srcTree.SetItemImage(
-                    itemIdx, self._treeGfx['treeClass'], wx.TreeItemIcon_Normal)
-                self.srcTree.SetItemData(itemIdx, node.lineno)
-                for j in [n for n in node.body if isinstance(n, ast.FunctionDef)]:
-                    childIdx = self.srcTree.AppendItem(itemIdx, j.name)
-                    self.srcTree.SetItemImage(
-                        childIdx, self._treeGfx['treeFunc'], wx.TreeItemIcon_Normal)
-                    self.srcTree.SetItemData(childIdx, j.lineno)
-
-                self.srcTree.Expand(itemIdx)
-
-            elif isinstance(node, ast.FunctionDef):
-                itemIdx = self.srcTree.AppendItem(root, node.name)
-                self.srcTree.SetItemImage(
-                    itemIdx, self._treeGfx['treeFunc'], wx.TreeItemIcon_Normal)
-                self.srcTree.SetItemData(itemIdx, node.lineno)
-
-            elif isinstance(node, ast.Assign) and isinstance(node.targets[0], ast.Name):
-                itemIdx = self.srcTree.AppendItem(root, node.targets[0].id)
-                self.srcTree.SetItemImage(
-                    itemIdx,
-                    self._treeGfx['treeAttr'],
-                    wx.TreeItemIcon_Normal)
-                self.srcTree.SetItemData(itemIdx, node.lineno)
-
-            elif isinstance(node, ast.Import):
-                for alias in node.names:
-                    itemIdx = self.srcTree.AppendItem(importIdx, alias.name)
-                    self.srcTree.SetItemImage(
-                        itemIdx,
-                        self._treeGfx['treeImport'],
-                        wx.TreeItemIcon_Normal)
-                    self.srcTree.SetItemData(itemIdx, node.lineno)
-
-            elif isinstance(node, ast.ImportFrom):
-                if node.module is None:
-                    continue
-                # look for an existing tree node with the same module name
-                child, cookie = self.srcTree.GetFirstChild(importIdx)
-                while child.IsOk():
-                    folderName = self.srcTree.GetItemText(child)
-                    if folderName == node.module:
-                        fromImportIdx = child
-                        break
-                    child = self.srcTree.GetNextSibling(child)
-                else:
-                    fromImportIdx = self.srcTree.AppendItem(
-                        importIdx, node.module)
-
-                self.srcTree.SetItemImage(
-                    fromImportIdx,
-                    self._treeGfx['treeFolderClosed'],
-                    wx.TreeItemIcon_Normal)
-                self.srcTree.SetItemImage(
-                    fromImportIdx,
-                    self._treeGfx['treeFolderOpened'],
-                    wx.TreeItemIcon_Expanded)
-                self.srcTree.SetItemData(fromImportIdx, None)
-                for alias in node.names:
-                    itemIdx = self.srcTree.AppendItem(fromImportIdx, alias.name)
-                    self.srcTree.SetItemImage(
-                        itemIdx,
-                        self._treeGfx['treeImport'],
-                        wx.TreeItemIcon_Normal)
-                    self.srcTree.SetItemData(itemIdx, node.lineno)
-
-        self.srcTree.Expand(root)
-        self.srcTree.Thaw()
-
-    def updateSourceTree(self):
-        """Update the source tree using the parsed AST from the active document.
-        """
-        lexer = self.coder.currentDoc.GetLexer()
-        if lexer == wx.stc.STC_LEX_PYTHON:
-            self.updatePySourceTree()
 
 
 class CodeEditor(BaseCodeEditor):
@@ -1161,20 +975,9 @@ class CodeEditor(BaseCodeEditor):
         source code.
 
         """
-        try:
-            fullast = ast.parse(self.GetText())
-        except (SyntaxError, IndentationError):
-            return
-
         # scan the AST for objects we care about
-        self.ast = [node for node in fullast.body if isinstance(
-            node,
-            (ast.ClassDef,
-             ast.FunctionDef,
-             ast.Assign,
-             ast.Attribute,
-             ast.Import,
-             ast.ImportFrom))]
+        self.ast = GenericAST.parsePyScript(self.GetText(),
+                                            self.coder.currentDoc.filename)
 
         if hasattr(self.coder, 'sourceAsstWindow'):
             self.coder.sourceAsstWindow.updateSourceTree()
