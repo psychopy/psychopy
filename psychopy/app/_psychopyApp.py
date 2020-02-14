@@ -348,7 +348,7 @@ class PsychoPyApp(wx.App):
             from psychopy.hardware import keyboard
             if keyboard.macPrefsBad:
                 title = _translate("Mac keyboard security")
-                if platform.mac_ver() < '10.15':
+                if platform.mac_ver()[0] < '10.15':
                     settingName = 'Accessibility'
                     setting = 'Privacy_Accessibility'
                 else:
