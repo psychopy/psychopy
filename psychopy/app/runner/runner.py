@@ -609,6 +609,7 @@ class RunnerPanel(wx.Panel, ScriptProcess):
         self.updateAlerts()
 
     def updateAlerts(self):
+        prev = sys.stdout
         # check for alerts
         sys.stdout = sys.stderr = self.alertsCtrl
         self.alertsCtrl.Clear()
@@ -620,7 +621,7 @@ class RunnerPanel(wx.Panel, ScriptProcess):
         # update labels and text accordingly
         self.alertsToggleBtn.SetLabelText("Alerts ({})".format(nAlerts))
         sys.stdout.flush()
-        sys.stdout = sys.stderr= self.stdoutCtrl
+        sys.stdout = sys.stderr = prev
         if nAlerts == 0:
             self.setAlertsVisible(False)
         # elif selected hidden then don't touch
