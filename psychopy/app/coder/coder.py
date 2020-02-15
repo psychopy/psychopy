@@ -527,6 +527,8 @@ class CodeEditor(BaseCodeEditor):
         self.expandedItems = {}
         self.sourceAsstScroll = 0
 
+        self.SetDoubleBuffered(True)
+
     def setFonts(self):
         """Make some styles,  The lexer defines what each style is used for,
         we just have to define what each style looks like.  This set is
@@ -776,6 +778,11 @@ class CodeEditor(BaseCodeEditor):
             self.BraceBadLight(braceAtCaret)
         else:
             self.BraceHighlight(braceAtCaret, braceOpposite)
+
+        # set the current line and column in the status bar
+        line = self.GetCurrentLine() + 1
+        col = self.GetColumn(self.GetCurrentPos()) + 1
+        self.coder.SetStatusText('Line: {} Col: {}'.format(line, col), 1)
 
     #
     # The code to handle the Source Assistant (using introspect) was broken and removed in 1.90.0
@@ -1157,8 +1164,9 @@ class CoderFrame(wx.Frame):
         # setup statusbar
         self.makeToolbar()  # must be before the paneManager for some reason
         self.makeMenus()
-        self.CreateStatusBar()
-        self.SetStatusText("")
+        #self.CreateStatusBar()
+        self.makeStatusBar()
+        self.statusBar.SetStatusText("", 0)
         self.fileMenu = self.editMenu = self.viewMenu = None
         self.helpMenu = self.toolsMenu = None
 
@@ -1863,6 +1871,14 @@ class CoderFrame(wx.Frame):
 
         tb.Realize()
 
+    def makeStatusBar(self):
+        """Make the staus bar for coder."""
+        self.statusBar = wx.StatusBar(self, wx.ID_ANY)
+        self.statusBar.SetFieldsCount(3)
+        self.statusBar.SetStatusWidths([-2, 120, 120])
+
+        self.SetStatusBar(self.statusBar)
+
     def onIdle(self, event):
         # check the script outputs to see if anything has been written to
         # stdout
@@ -1891,12 +1907,12 @@ class CoderFrame(wx.Frame):
                                  "Reload (without saving)?") % filename
                 dlg = dialogs.MessageDialog(self, message=msg, type='Warning')
                 if dlg.ShowModal() == wx.ID_YES:
-                    self.SetStatusText(_translate('Reloading file'))
+                    self.statusBar.SetStatusText(_translate('Reloading file'))
                     self.fileReload(event,
                                     filename=self.currentDoc.filename,
                                     checkSave=False)
                 self.showingReloadDialog = False
-                self.SetStatusText('')
+                self.statusBar.SetStatusText('')
                 try:
                     dlg.destroy()
                 except Exception:
@@ -1927,12 +1943,12 @@ class CoderFrame(wx.Frame):
                              "Reload (without saving)?") % filename
             dlg = dialogs.MessageDialog(self, message=msg, type='Warning')
             if dlg.ShowModal() == wx.ID_YES:
-                self.SetStatusText(_translate('Reloading file'))
+                self.statusBar.SetStatusText(_translate('Reloading file'))
                 self.fileReload(event,
                                 filename=self.currentDoc.filename,
                                 checkSave=False)
                 self.setFileModified(False)
-            self.SetStatusText('')
+            self.statusBar.SetStatusText('')
             try:
                 dlg.destroy()
             except Exception:
@@ -2112,10 +2128,10 @@ class CoderFrame(wx.Frame):
         if doc == self.currentDoc:
             self.toolbar.EnableTool(self.IDs.cdrBtnSave, doc.UNSAVED)
 
-        self.SetStatusText(_translate('Analyzing code'))
+        self.statusBar.SetStatusText(_translate('Analyzing code'))
         if hasattr(self, 'sourceAsstWindow'):
             self.currentDoc.analyseScript()
-        self.SetStatusText('')
+        self.statusBar.SetStatusText('')
 
     def findDocID(self, filename):
         # find the ID of the current doc
@@ -2212,9 +2228,9 @@ class CoderFrame(wx.Frame):
         self.SetLabel('%s - PsychoPy Coder' % self.currentDoc.filename)
         #if len(self.getOpenFilenames()) > 0:
         if hasattr(self, 'sourceAsstWindow'):
-            self.SetStatusText(_translate('Analyzing code'))
+            self.statusBar.SetStatusText(_translate('Analyzing code'))
             self.currentDoc.analyseScript()
-            self.SetStatusText('')
+            self.statusBar.SetStatusText('')
         if not keepHidden:
             self.Show()  # if the user had closed the frame it might be hidden
         if readonly:
@@ -2234,7 +2250,7 @@ class CoderFrame(wx.Frame):
 
             if dlg.ShowModal() == wx.ID_OK:
                 filename = dlg.GetPath()
-                self.SetStatusText(_translate('Loading file'))
+                self.statusBar.SetStatusText(_translate('Loading file'))
             else:
                 return -1
 
@@ -2244,7 +2260,7 @@ class CoderFrame(wx.Frame):
             else:
                 self.setCurrentDoc(filename)
                 self.setFileModified(False)
-        self.SetStatusText('')
+        self.statusBar.SetStatusText('')
         self.app.runner.addTask(fileName=filename)
 
     def expectedModTime(self, doc):
@@ -2312,7 +2328,7 @@ class CoderFrame(wx.Frame):
             try:
                 if failToSave:
                     raise IOError
-                self.SetStatusText(_translate('Saving file'))
+                self.statusBar.SetStatusText(_translate('Saving file'))
                 newlines = '\n'  # system default, os.linesep
                 with io.open(filename, 'w', encoding='utf-8', newline=newlines) as f:
                     f.write(doc.GetText())
@@ -2324,10 +2340,10 @@ class CoderFrame(wx.Frame):
                 self.fileSaveAs(filename)
 
         if analyseAuto and len(self.getOpenFilenames()) > 0:
-            self.SetStatusText(_translate('Analyzing current source code'))
+            self.statusBar.SetStatusText(_translate('Analyzing current source code'))
             self.currentDoc.analyseScript()
         # reset status text
-        self.SetStatusText('')
+        self.statusBar.SetStatusText('')
         self.fileHistory.AddFileToHistory(filename)
 
     def fileSaveAs(self, event, filename=None, doc=None):
@@ -2535,14 +2551,14 @@ class CoderFrame(wx.Frame):
         self.paneManager.Update()
 
     def analyseCodeNow(self, event):
-        self.SetStatusText(_translate('Analyzing code'))
+        self.statusBar.SetStatusText(_translate('Analyzing code'))
         if self.currentDoc is not None:
             self.currentDoc.analyseScript()
         else:
             # todo: add _translate()
             txt = 'Open a file from the File menu, or drag one onto this app, or open a demo from the Help menu'
 
-        self.SetStatusText(_translate('ready'))
+        self.statusBar.SetStatusText(_translate('ready'))
 
     # def setAnalyseAuto(self, event):
     #     set autoanalysis (from the check control in the tools menu)
