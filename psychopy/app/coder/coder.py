@@ -525,7 +525,13 @@ class CodeEditor(BaseCodeEditor):
         self.expandedItems = {}
         self.sourceAsstScroll = 0
 
+        # prevent flickering
         self.SetDoubleBuffered(True)
+
+        # set the current line and column in the status bar
+        line = self.GetCurrentLine() + 1
+        col = self.GetColumn(self.GetCurrentPos()) + 1
+        self.coder.SetStatusText('Line: {} Col: {}'.format(line, col), 1)
 
     def setFonts(self):
         """Make some styles,  The lexer defines what each style is used for,
@@ -2602,6 +2608,7 @@ class CoderFrame(wx.Frame):
         # set new current doc
         if newPageID < 0:
             self.currentDoc = None
+            self.statusBar.SetStatusText("", 1)  # clear line pos
             self.statusBar.SetStatusText("", 2)  # clear file type in status bar
             # clear the source tree
             self.sourceAsstWindow.srcTree.DeleteAllItems()

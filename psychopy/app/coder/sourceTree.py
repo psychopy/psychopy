@@ -239,8 +239,8 @@ def parsePyScript(src):
 
         # is definition?
         if lineText.startswith('class ') or lineText.startswith('def '):
-            # slice off things after the definition
-            lineText = lineText.split(':')[0]
+            # slice off comment
+            lineText = lineText.split('#')[0]
             lineTokens = [
                 tok.strip() for tok in re.split(' |\(|\)', lineText) if tok]
             defType, defName = lineTokens[:2]
