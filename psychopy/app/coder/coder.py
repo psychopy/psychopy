@@ -513,11 +513,8 @@ class CodeEditor(BaseCodeEditor):
             self.setFonts()
         self.SetDropTarget(FileDropTarget(targetFrame=self.coder))
 
-        # get the file type
-        self.filetype = self.getFileType()
-
         # set to python syntax code coloring
-        self.setLexer(self.filetype)
+        self.setLexerFromFileName()
 
         # Keep track of visual aspects of the source tree viewer when working
         # with this document. This makes sure the tree maintains it's state when
@@ -1050,9 +1047,9 @@ class CodeEditor(BaseCodeEditor):
         try:
             lex = getattr(wx.stc, "STC_LEX_%s" % (lexer.upper()))
         except AttributeError:
-            logging.warn("Unknown lexer %r. Using 'plaintext'." % lexer)
+            logging.warn("Unknown lexer %r. Using 'python'." % lexer)
             lex = wx.stc.STC_LEX_NULL
-            lexer = 'plaintext'
+            lexer = 'python'
         # then actually set it
         self.SetLexer(lex)
         if lexer == 'python':
@@ -1398,9 +1395,6 @@ class CoderFrame(wx.Frame):
                     _translate("Close current file"))
         menu.Append(wx.ID_CLOSE_ALL,
                     "Close all files", "Close all files in the editor.")
-        item = menu.Append(wx.ID_ANY,
-                    "Close other files",
-                    "Close all files except the current one in the editor.")
         menu.AppendSeparator()
         self.Bind(wx.EVT_MENU, self.fileNew, id=wx.ID_NEW)
         self.Bind(wx.EVT_MENU, self.fileOpen, id=wx.ID_OPEN)
@@ -1408,7 +1402,6 @@ class CoderFrame(wx.Frame):
         self.Bind(wx.EVT_MENU, self.fileSaveAs, id=wx.ID_SAVEAS)
         self.Bind(wx.EVT_MENU, self.fileClose, id=wx.ID_CLOSE)
         self.Bind(wx.EVT_MENU, self.fileCloseAll, id=wx.ID_CLOSE_ALL)
-        self.Bind(wx.EVT_MENU, self.fileCloseOthers, id=item.GetId())
         item = menu.Append(wx.ID_ANY,
                            _translate("Print\t%s") % keyCodes['print'])
         self.Bind(wx.EVT_MENU, self.filePrint, id=item.GetId())
@@ -2627,17 +2620,6 @@ class CoderFrame(wx.Frame):
 
         for fname in self.getOpenFilenames():
             self.fileClose(event, fname, checkSave)
-
-    def fileCloseOthers(self, event, checkSave=True):
-        """Close all files except the current one in the editor."""
-        if self.currentDoc is None:
-            event.Skip()
-            return
-
-        keepOpen = self.currentDoc.filename
-        for fname in self.getOpenFilenames():
-            if fname != keepOpen:
-                self.fileClose(event, fname, checkSave)
 
     def runFile(self, event=None):
         """Open Runner for running the script."""
