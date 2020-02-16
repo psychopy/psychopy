@@ -9,10 +9,10 @@
 
 from __future__ import absolute_import, print_function
 from collections import deque
+from psychopy.app.coder.psychoParser import parsePyScript
 
 import wx
 import os
-import re
 
 
 class SourceTreePanel(wx.Panel):
@@ -157,7 +157,19 @@ class SourceTreePanel(wx.Panel):
                 lookAheadLevel = 0
 
             # add a node
-            itemIdx = self.srcTree.AppendItem(nodes[0], tok[1])
+            try:
+                # catch an error if the deque is empty, this means something
+                # went wrong
+                itemIdx = self.srcTree.AppendItem(nodes[0], tok[1])
+            except IndexError:
+                self.srcTree.DeleteAllItems()
+                root = self.srcTree.AddRoot(
+                    'Error parsing current document.')
+                self.srcTree.SetItemImage(
+                    root, self._treeGfx['noDoc'],
+                    wx.TreeItemIcon_Normal)
+                return
+
             self.srcTree.SetItemImage(
                 itemIdx, self._treeGfx[tok[0]], wx.TreeItemIcon_Normal)
             self.srcTree.SetItemData(itemIdx, tok)
@@ -174,9 +186,18 @@ class SourceTreePanel(wx.Panel):
                     if itemData is not None:
                         try:
                             if self.coder.currentDoc.expandedItems[itemData[:3]]:
-                                self.srcTree.Expand(nodes.popleft())
+                                self.srcTree.Expand()
                         except KeyError:
-                            nodes.popleft()
+                            if len(nodes) > 1:
+                                nodes.popleft()
+                            else:
+                                self.srcTree.DeleteAllItems()
+                                root = self.srcTree.AddRoot(
+                                    'Error parsing current document.')
+                                self.srcTree.SetItemImage(
+                                    root, self._treeGfx['noDoc'],
+                                    wx.TreeItemIcon_Normal)
+                                return
 
         # clean up expanded items list
         addedItems = [tok[:3] for tok in tokens]
@@ -208,62 +229,3 @@ class SourceTreePanel(wx.Panel):
         self.createPySourceTree()  # only one for now
 
         self.srcTree.Thaw()
-
-
-def parsePyScript(src):
-    """Parse a Python script for the source tree viewer.
-
-    Parameters
-    ----------
-    src : str
-        Python source code to parse.
-
-    Returns
-    -------
-    list
-        List of found items.
-
-    """
-    foundDefs = []
-    for nLine, line in enumerate(src.split('\n')):
-        lineno = nLine + 1
-        lineFullLen = len(line)
-        lineText = line.lstrip()
-        lineIndent = int((lineFullLen - len(lineText)) / 4)  # to indent level
-
-        # filter out defs that are nested in if statements
-        if nLine > 1 and foundDefs:
-            lastIndent = foundDefs[-1][2]
-            if lineIndent - lastIndent > 1:
-                continue
-
-        # is definition?
-        if lineText.startswith('class ') or lineText.startswith('def '):
-            # slice off comment
-            lineText = lineText.split('#')[0]
-            lineTokens = [
-                tok.strip() for tok in re.split(' |\(|\)', lineText) if tok]
-            defType, defName = lineTokens[:2]
-            foundDefs.append((defType, defName, lineIndent, lineno))
-
-        # mdc - holding off on showing attributes and imports for now
-        # elif lineText.startswith('import ') and lineIndent == 0:
-        #     lineText = lineText.split('#')[0]  # clean the line
-        #     # check if we have a regular import statement or an 'as' one
-        #     if ' as ' not in lineText:
-        #         lineTokens = [
-        #             tok.strip() for tok in re.split(
-        #                 ' |,', lineText[len('import '):]) if tok]
-        #
-        #         # create a new import declaration for import if a list
-        #         for name in lineTokens:
-        #             foundDefs.append(('import', name, lineIndent, lineno))
-        #     else:
-        #         impStmt = lineText[len('import '):].strip().split(' as ')
-        #         name, attrs = impStmt
-        #
-        #         foundDefs.append(('importas', name, lineIndent, lineno, attrs))
-        # elif lineText.startswith('from ') and lineIndent == 0:
-        #     pass
-
-    return foundDefs
