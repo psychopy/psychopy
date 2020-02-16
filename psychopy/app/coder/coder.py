@@ -2611,10 +2611,10 @@ class CoderFrame(wx.Frame):
             self.statusBar.SetStatusText("", 1)  # clear line pos
             self.statusBar.SetStatusText("", 2)  # clear file type in status bar
             # clear the source tree
-            self.sourceAsstWindow.srcTree.DeleteAllItems()
             self.SetLabel("PsychoPy v%s (Coder)" % self.app.version)
         else:
             self.currentDoc = self.notebook.GetPage(newPageID)
+            self.sourceAsstWindow.createItems()
             # set to current file status
             self.setFileModified(self.currentDoc.UNSAVED)
         # return 1
