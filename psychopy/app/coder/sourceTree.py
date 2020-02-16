@@ -1,47 +1,18 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+"""Classes and functions for the coder source tree."""
+
+# Part of the PsychoPy library
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019 Open Science Tools Ltd.
+# Distributed under the terms of the GNU General Public License (GPL).
+
 from __future__ import absolute_import, print_function
-from collections import deque, OrderedDict
+from collections import deque
 
 import wx
-import wx.stc
-import wx.richtext
-
-try:
-    from wx import aui
-except Exception:
-    import wx.lib.agw.aui as aui  # some versions of phoenix
-
 import os
 import re
-
-_treeImgList = _treeGfx = None
-
-
-def _initGraphics(rc):
-    """Load graphics needed by the source browser."""
-    global _treeImgList, _treeGfx
-
-    _treeImgList = wx.ImageList(16, 16)
-    _treeGfx = {
-        'class': _treeImgList.Add(
-            wx.Bitmap(os.path.join(rc, 'coderclass16.png'), wx.BITMAP_TYPE_PNG)),
-        'def': _treeImgList.Add(
-            wx.Bitmap(os.path.join(rc, 'coderfunc16.png'), wx.BITMAP_TYPE_PNG)),
-        'attr': _treeImgList.Add(
-            wx.Bitmap(os.path.join(rc, 'codervar16.png'), wx.BITMAP_TYPE_PNG)),
-        'pyModule': _treeImgList.Add(
-            wx.Bitmap(os.path.join(rc, 'coderpython16.png'), wx.BITMAP_TYPE_PNG)),
-        'import': _treeImgList.Add(
-            wx.Bitmap(os.path.join(rc, 'coderimport16.png'), wx.BITMAP_TYPE_PNG)),
-        'treeFolderClosed': _treeImgList.Add(
-            wx.Bitmap(os.path.join(rc, 'folder16.png'), wx.BITMAP_TYPE_PNG)),
-        'treeWindowClass': _treeImgList.Add(
-            wx.Bitmap(os.path.join(rc, 'monitor16.png'), wx.BITMAP_TYPE_PNG)),
-        'treeFolderOpened': _treeImgList.Add(
-            wx.Bitmap(os.path.join(rc, 'folder-open16.png'), wx.BITMAP_TYPE_PNG)),
-        'noDoc': _treeImgList.Add(
-            wx.Bitmap(os.path.join(rc, 'docclose16.png'), wx.BITMAP_TYPE_PNG)),
-        'treeImageStimClass': _treeImgList.Add(
-            wx.Bitmap(os.path.join(rc, 'fileimage16.png'), wx.BITMAP_TYPE_PNG))}
 
 
 class SourceTreePanel(wx.Panel):
@@ -53,7 +24,30 @@ class SourceTreePanel(wx.Panel):
 
         # get graphics for toolbars and tree items
         rc = self.coder.paths['resources']
-        _initGraphics(rc)
+        self._treeImgList = wx.ImageList(16, 16)
+        self._treeGfx = {
+            'class': self._treeImgList.Add(
+                wx.Bitmap(
+                    os.path.join(rc, 'coderclass16.png'), wx.BITMAP_TYPE_PNG)),
+            'def': self._treeImgList.Add(
+                wx.Bitmap(
+                    os.path.join(rc, 'coderfunc16.png'), wx.BITMAP_TYPE_PNG)),
+            'attr': self._treeImgList.Add(
+                wx.Bitmap(
+                    os.path.join(rc, 'codervar16.png'), wx.BITMAP_TYPE_PNG)),
+            'pyModule': self._treeImgList.Add(
+                wx.Bitmap(
+                    os.path.join(rc, 'coderpython16.png'), wx.BITMAP_TYPE_PNG)),
+            'noDoc': self._treeImgList.Add(
+                wx.Bitmap(
+                    os.path.join(rc, 'docclose16.png'), wx.BITMAP_TYPE_PNG))
+            # 'import': self._treeImgList.Add(
+            #     wx.Bitmap(os.path.join(rc, 'coderimport16.png'), wx.BITMAP_TYPE_PNG)),
+            # 'treeFolderClosed': _treeImgList.Add(
+            #     wx.Bitmap(os.path.join(rc, 'folder16.png'), wx.BITMAP_TYPE_PNG)),
+            # 'treeFolderOpened': _treeImgList.Add(
+            #     wx.Bitmap(os.path.join(rc, 'folder-open16.png'), wx.BITMAP_TYPE_PNG))
+        }
 
         self.SetDoubleBuffered(True)
         # create the source tree control
@@ -64,7 +58,7 @@ class SourceTreePanel(wx.Panel):
             pos=(0, 0),
             size=wx.Size(300, 300),
             style=wx.TR_HAS_BUTTONS)
-        self.srcTree.SetImageList(_treeImgList)
+        self.srcTree.SetImageList(self._treeImgList)
 
         # do layout
         szr = wx.BoxSizer(wx.VERTICAL)
@@ -81,16 +75,15 @@ class SourceTreePanel(wx.Panel):
 
     def OnItemActivate(self, evt=None):
         """When a tree item is clicked on."""
-        if evt is None:
-            evt.Skip()
-
         item = evt.GetItem()
         itemData = self.srcTree.GetItemData(item)
         if itemData is not None:
             self.coder.currentDoc.SetFirstVisibleLine(itemData[3] - 2)
-            self.coder.currentDoc.SetSTCFocus()
+            self.coder.currentDoc.GotoLine(itemData[3] - 1)
+            #self.coder.currentDoc.SetSTCFocus(True)
+            wx.CallAfter(self.coder.currentDoc.SetFocus)
         else:
-            self.srcTree.Expand(item)
+            evt.Skip()
 
     def OnItemExpanded(self, evt):
         itemData = self.srcTree.GetItemData(evt.GetItem())
@@ -103,45 +96,56 @@ class SourceTreePanel(wx.Panel):
             self.coder.currentDoc.expandedItems[itemData[:3]] = False
 
     def GetScrollVert(self):
-        """Keep track of where we scrolled for the current document. This keeps
+        """Get the vertical scrolling position fo the tree. This is used to
+        keep track of where we are in the tree by the code editor. This prevents
         the tree viewer from moving back to the top when returning to a
         document, which may be jarring for users."""
         return self.srcTree.GetScrollPos(wx.VERTICAL)
 
     def createPySourceTree(self):
-        """Create a Python source tree."""
+        """Create a Python source tree. This is called when code analysis runs
+        and the document type is 'Python'.
+        """
         # create the root item which is just the file name
-        root = self.srcTree.AddRoot(self.coder.currentDoc.filename)
+        self.root = self.srcTree.AddRoot(self.coder.currentDoc.filename)
         self.srcTree.SetItemImage(
-            root, _treeGfx['pyModule'], wx.TreeItemIcon_Normal)
+            self.root, self._treeGfx['pyModule'], wx.TreeItemIcon_Normal)
 
         # get the tokens for this document
         tokens = parsePyScript(self.coder.currentDoc.GetText())
 
         # split off imports and definitions, these are treated differently
-        importStmts = []
+        # importStmts = []
         defStmts = []
         for tok in tokens:
-            if tok[0] == 'import' or tok[0] == 'from':
-                if tok[2] == 0:
-                    importStmts.append(tok)
-            else:
+            # if tok[0] == 'import' or tok[0] == 'from' or tok[0] == 'importas':
+            #    if tok[2] == 0:
+            #        importStmts.append(tok)
+            # else:
                 defStmts.append(tok)
 
-        # create the entry for imports
-        importItemIdx = self.srcTree.AppendItem(root, '<imports>')
-        # keep track of imports already added for grouping
-        importGroups = {}
-        for i, tok in enumerate(importStmts):
-            if tok[0] == 'import':
-                for name in tok[1]:
-                    itemIdx = self.srcTree.AppendItem(importItemIdx, name)
-                    self.srcTree.SetItemImage(
-                        itemIdx, _treeGfx[tok[0]], wx.TreeItemIcon_Normal)
-                    self.srcTree.SetItemData(itemIdx, tok)
+        # # create the entry for imports
+        # importItemIdx = self.srcTree.AppendItem(root, '<imports>')
+        # # keep track of imports already added for grouping
+        # importGroups = {}
+        # for i, tok in enumerate(importStmts):
+        #     if tok[0] == 'import':
+        #         itemIdx = self.srcTree.AppendItem(importItemIdx, tok[1])
+        #         self.srcTree.SetItemImage(
+        #             itemIdx, _treeGfx[tok[0]], wx.TreeItemIcon_Normal)
+        #         self.srcTree.SetItemData(itemIdx, tok)
+        #     elif tok[0] == 'importas':
+        #         itemIdx = self.srcTree.AppendItem(importItemIdx, tok[1])
+        #         self.srcTree.SetItemImage(
+        #             itemIdx, _treeGfx['import'], wx.TreeItemIcon_Normal)
+        #         self.srcTree.SetItemData(itemIdx, tok)
+        #         subItemIdx = self.srcTree.AppendItem(itemIdx, tok[-1])
+        #         self.srcTree.SetItemImage(
+        #             subItemIdx, _treeGfx['attr'], wx.TreeItemIcon_Normal)
+        #         self.srcTree.SetItemData(subItemIdx, tok)
 
         # build the tree for def statements
-        nodes = deque([root])
+        nodes = deque([self.root])
         for i, tok in enumerate(defStmts):
             if tok[0] == 'import':
                 continue
@@ -155,7 +159,7 @@ class SourceTreePanel(wx.Panel):
             # add a node
             itemIdx = self.srcTree.AppendItem(nodes[0], tok[1])
             self.srcTree.SetItemImage(
-                itemIdx, _treeGfx[tok[0]], wx.TreeItemIcon_Normal)
+                itemIdx, self._treeGfx[tok[0]], wx.TreeItemIcon_Normal)
             self.srcTree.SetItemData(itemIdx, tok)
 
             if lookAheadLevel > tok[2]:
@@ -182,7 +186,7 @@ class SourceTreePanel(wx.Panel):
                 del temp[itemData]
         self.coder.currentDoc.expandedItems = temp
 
-        self.srcTree.Expand(root)
+        self.srcTree.Expand(self.root)
 
     def createItems(self):
         """Walk through all the nodes in the AST and create tree items.
@@ -193,11 +197,11 @@ class SourceTreePanel(wx.Panel):
         self.srcTree.Freeze()
         self.srcTree.DeleteAllItems()
 
-        if self.coder.currentDoc.getFileType() != 'python':
+        if self.coder.currentDoc.getFileType() != 'Python':
             root = self.srcTree.AddRoot(
                 'Source tree not available for this type of file.')
             self.srcTree.SetItemImage(
-                root, _treeGfx['noDoc'], wx.TreeItemIcon_Normal)
+                root, self._treeGfx['noDoc'], wx.TreeItemIcon_Normal)
             self.srcTree.Thaw()
             return
 
@@ -205,14 +209,21 @@ class SourceTreePanel(wx.Panel):
 
         self.srcTree.Thaw()
 
-    def updateSourceTree(self):
-        """Update the source tree using the parsed AST from the active document.
-        """
-        self.createItems()
-
 
 def parsePyScript(src):
-    """Parse a Python script for the source tree viewer."""
+    """Parse a Python script for the source tree viewer.
+
+    Parameters
+    ----------
+    src : str
+        Python source code to parse.
+
+    Returns
+    -------
+    list
+        List of found items.
+
+    """
     foundDefs = []
     for nLine, line in enumerate(src.split('\n')):
         lineno = nLine + 1
@@ -234,16 +245,25 @@ def parsePyScript(src):
                 tok.strip() for tok in re.split(' |\(|\)', lineText) if tok]
             defType, defName = lineTokens[:2]
             foundDefs.append((defType, defName, lineIndent, lineno))
-        elif lineText.startswith('import '):
-            lineText = lineText.split('#')[0]
 
-            if ' as ' not in lineText:
-                lineTokens = [
-                    tok.strip() for tok in re.split(
-                        ' |,', lineText[len('import '):]) if tok]
-            else:
-                lineTokens = [lineText[len('import '):].strip()]
-
-            foundDefs.append(('import', lineTokens, lineIndent, lineno))
+        # mdc - holding off on showing attributes and imports for now
+        # elif lineText.startswith('import ') and lineIndent == 0:
+        #     lineText = lineText.split('#')[0]  # clean the line
+        #     # check if we have a regular import statement or an 'as' one
+        #     if ' as ' not in lineText:
+        #         lineTokens = [
+        #             tok.strip() for tok in re.split(
+        #                 ' |,', lineText[len('import '):]) if tok]
+        #
+        #         # create a new import declaration for import if a list
+        #         for name in lineTokens:
+        #             foundDefs.append(('import', name, lineIndent, lineno))
+        #     else:
+        #         impStmt = lineText[len('import '):].strip().split(' as ')
+        #         name, attrs = impStmt
+        #
+        #         foundDefs.append(('importas', name, lineIndent, lineno, attrs))
+        # elif lineText.startswith('from ') and lineIndent == 0:
+        #     pass
 
     return foundDefs

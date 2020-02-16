@@ -18,8 +18,6 @@ import wx
 import wx.stc
 import wx.richtext
 from wx.html import HtmlEasyPrinting
-from wx.lib.mixins.listctrl import ListCtrlAutoWidthMixin
-
 
 try:
     from wx import aui
@@ -609,6 +607,20 @@ class CodeEditor(BaseCodeEditor):
 
         self.SetCaretForeground("BLUE")
 
+    def setLexerFromFileName(self):
+        """Set the lexer to one that best matches the file name."""
+        # best matching lexers for a given file type
+        lexers = {'Python': 'python',
+                  'HTML': 'html',
+                  'C/C++': 'cpp',
+                  'MATLAB': 'matlab',
+                  'YAML': 'yaml',
+                  'R': 'R',
+                  'JavaScript': 'cpp',
+                  'Text': 'null'}
+
+        self.setLexer(lexers[self.getFileType()])
+
     def getFileType(self):
         """Get the file type from the extension."""
         if os.path.isabs(self.filename):
@@ -624,17 +636,21 @@ class CodeEditor(BaseCodeEditor):
             ext = 'txt'  # assume a text file if we wer able to open it
 
         if ext in ('py', 'pyx', 'pxd', 'pxi',):  # python/cython files
-            return 'python'
+            return 'Python'
         elif ext in ('html',):  # html file
-            return 'html'
+            return 'HTML'
         elif ext in ('cpp', 'c', 'h', 'glsl', 'vert', 'frag', 'mex'):  # c-like file
-            return 'cpp'
+            return 'C/C++'
         elif ext in ('m',):  # MATLAB
-            return 'matlab'
+            return 'MATLAB'
         elif ext in ('R',):  # R
             return 'R'
+        elif ext in ('yaml',):  # R
+            return 'YAML'
+        elif ext in ('js',):  # R
+            return 'JavaScript'
         else:
-            return 'null'  # default
+            return 'Text'  # default
 
     def OnKeyPressed(self, event):
         # various stuff to handle code completion and tooltips
@@ -1016,7 +1032,7 @@ class CodeEditor(BaseCodeEditor):
         """
         # scan the AST for objects we care about
         if hasattr(self.coder, 'sourceAsstWindow'):
-            self.coder.sourceAsstWindow.updateSourceTree()
+            self.coder.sourceAsstWindow.createItems()
             self.coder.sourceAsstWindow.srcTree.SetScrollPos(
                 self.sourceAsstScroll, wx.VERTICAL)
 
@@ -1244,6 +1260,8 @@ class CoderFrame(wx.Frame):
         self.outputWindow.write("v%s\n" % self.app.version)
         # Add context manager to output window
 
+        self._useShell = None
+
         if haveCode:
             useDefaultShell = True
             if self.prefs['preferredShell'].lower() == 'ipython':
@@ -1253,6 +1271,7 @@ class CoderFrame(wx.Frame):
                     self.shell = IPython.gui.wx.ipython_view.IPShellWidget(
                         parent=self, background_color='WHITE', )
                     useDefaultShell = False
+                    self._useShell = 'ipython'
                 except Exception:
                     msg = _translate('IPython failed as shell, using pyshell'
                                      ' (IPython v0.12 can fail on wx)')
@@ -1262,6 +1281,7 @@ class CoderFrame(wx.Frame):
                 msg = _translate('PyShell in PsychoPy - type some commands!')
                 self.shell = py.shell.Shell(
                     self.shelf, -1, introText=msg + '\n\n')
+                self._useShell = 'pyshell'
             self.shelf.AddPage(self.shell, _translate('Shell'))
 
         self.sourceAsst.AddPage(self.sourceAsstWindow, _translate('Code Structure'))
@@ -1287,7 +1307,7 @@ class CoderFrame(wx.Frame):
             self.paneManager.LoadPerspective(self.appData['auiPerspective'])
             self.paneManager.GetPane('Shelf').Caption(_translate("Shelf"))
             self.paneManager.GetPane('SourceAsst').Caption(
-                _translate("Tools"))
+                _translate("Source Assistant"))
             self.paneManager.GetPane('Editor').Caption(_translate("Editor"))
         else:
             self.SetMinSize(wx.Size(400, 600))  # min size for whole window
@@ -1369,15 +1389,24 @@ class CoderFrame(wx.Frame):
                     _translate("Save current python file as..."))
         menu.Append(wx.ID_CLOSE,
                     _translate("&Close file\t%s") % keyCodes['close'],
-                    _translate("Close current python file"))
+                    _translate("Close current file"))
+        menu.Append(wx.ID_CLOSE_ALL,
+                    "Close all files", "Close all files in the editor.")
+        item = menu.Append(wx.ID_ANY,
+                    "Close other files",
+                    "Close all files except the current one in the editor.")
+        menu.AppendSeparator()
         self.Bind(wx.EVT_MENU, self.fileNew, id=wx.ID_NEW)
         self.Bind(wx.EVT_MENU, self.fileOpen, id=wx.ID_OPEN)
         self.Bind(wx.EVT_MENU, self.fileSave, id=wx.ID_SAVE)
         self.Bind(wx.EVT_MENU, self.fileSaveAs, id=wx.ID_SAVEAS)
         self.Bind(wx.EVT_MENU, self.fileClose, id=wx.ID_CLOSE)
+        self.Bind(wx.EVT_MENU, self.fileCloseAll, id=wx.ID_CLOSE_ALL)
+        self.Bind(wx.EVT_MENU, self.fileCloseOthers, id=item.GetId())
         item = menu.Append(wx.ID_ANY,
                            _translate("Print\t%s") % keyCodes['print'])
         self.Bind(wx.EVT_MENU, self.filePrint, id=item.GetId())
+        menu.AppendSeparator()
         msg = _translate("&Preferences\t%s")
         item = menu.Append(wx.ID_PREFERENCES,
                            msg % keyCodes['preferences'])
@@ -1479,6 +1508,31 @@ class CoderFrame(wx.Frame):
                            _translate("Decrease font size"),
                            wx.ITEM_NORMAL)
         self.Bind(wx.EVT_MENU, self.smallFont, id=item.GetId())
+        menu.AppendSeparator()
+
+        # submenu for changing working directory
+        sm = wx.Menu()
+        item = sm.Append(
+            wx.ID_ANY,
+            "Editor file location",
+            "",
+            wx.ITEM_NORMAL)
+        self.Bind(wx.EVT_MENU, self.onSetCWDFromEditor, id=item.GetId())
+        item = sm.Append(
+            wx.ID_ANY,
+            "File browser pane location",
+            "",
+            wx.ITEM_NORMAL)
+        self.Bind(wx.EVT_MENU, self.onSetCWDFromBrowserPane, id=item.GetId())
+        sm.AppendSeparator()
+        item = sm.Append(
+            wx.ID_ANY,
+            "Choose directory ...",
+            "",
+            wx.ITEM_NORMAL)
+        self.Bind(wx.EVT_MENU, self.onSetCWDFromBrowse, id=item.GetId())
+        menu.Append(wx.ID_ANY, "Change working directory to ...", sm)
+
         # menu.Append(ID_UNFOLDALL, "Unfold All\tF3",
         #   "Unfold all lines", wx.ITEM_NORMAL)
         # self.Bind(wx.EVT_MENU,  self.unfoldAll, id=ID_UNFOLDALL)
@@ -1651,6 +1705,17 @@ class CoderFrame(wx.Frame):
             thisID = item.GetId()
             self.demos[thisID] = thisFile
             self.Bind(wx.EVT_MENU, self.loadDemo, id=thisID)
+
+        # ---_shell---#000000#FFFFFF--------------------------------------------
+        # self.shellMenu = wx.Menu()
+        # menu = self.shellMenu
+        # menuBar.Append(menu, '&Shell')
+        #
+        # item = menu.Append(
+        #     wx.ID_ANY,
+        #     "Run selected line\tCtrl+Enter",
+        #     "Pushes selected lines to the shell and executes them.")
+        # self.Bind(wx.EVT_MENU, self.onPushLineToShell, id=item.GetId())
 
         # ---_projects---#000000#FFFFFF---------------------------------------
         self.pavloviaMenu = psychopy.app.pavlovia_ui.menu.PavloviaMenu(parent=self)
@@ -1872,12 +1937,139 @@ class CoderFrame(wx.Frame):
         tb.Realize()
 
     def makeStatusBar(self):
-        """Make the staus bar for coder."""
+        """Make the status bar for Coder."""
         self.statusBar = wx.StatusBar(self, wx.ID_ANY)
         self.statusBar.SetFieldsCount(3)
-        self.statusBar.SetStatusWidths([-2, 120, 120])
+        self.statusBar.SetStatusWidths([-2, 160, 160])
 
         self.SetStatusBar(self.statusBar)
+
+    def onSetCWDFromEditor(self, event):
+        """Set the current working directory to the location of the current file
+        in the editor."""
+        if self.currentDoc is None:
+            dlg = wx.MessageDialog(
+                self,
+                "Cannot set working directory, no document open in editor.",
+                style=wx.ICON_ERROR | wx.OK)
+            dlg.ShowModal()
+            dlg.Destroy()
+            event.Skip()
+            return
+
+        if not os.path.isabs(self.currentDoc.filename):
+            dlg = wx.MessageDialog(
+                self,
+                "Cannot change working directory to location of file `{}`. It"
+                " needs to be saved first.".format(self.currentDoc.filename),
+                style=wx.ICON_ERROR | wx.OK)
+            dlg.ShowModal()
+            dlg.Destroy()
+            event.Skip()
+            return
+
+        # split the file off the path
+        cwdpath, _ = os.path.split(self.currentDoc.filename)
+
+        # set the working directory
+        try:
+            os.chdir(cwdpath)
+        except OSError:
+            dlg = wx.MessageDialog(
+                self,
+                "Cannot set `{}` as working directory.".format(cwdpath),
+                style=wx.ICON_ERROR | wx.OK)
+            dlg.ShowModal()
+            dlg.Destroy()
+            event.Skip()
+            return
+
+        if hasattr(self, 'fileBrowserWindow'):
+            dlg = wx.MessageDialog(
+                self,
+                "Working directory changed, would you like to display it in "
+                "the file browser pane?",
+                'Question', style=wx.YES_NO | wx.YES_DEFAULT | wx.ICON_QUESTION)
+
+            if dlg.ShowModal() == wx.ID_YES:
+                self.fileBrowserWindow.gotoDir(cwdpath)
+
+    def onSetCWDFromBrowserPane(self, event):
+        """Set the current working directory by browsing for it."""
+
+        if not hasattr(self, 'fileBrowserWindow'):
+            dlg = wx.MessageDialog(
+                self,
+                "Cannot set working directory, file browser pane unavailable.",
+                "Error",
+                style=wx.ICON_ERROR | wx.OK)
+            dlg.ShowModal()
+            dlg.Destroy()
+            event.Skip()
+
+        cwdpath = self.fileBrowserWindow.currentPath
+        try:
+            os.chdir(cwdpath)
+        except OSError:
+            dlg = wx.MessageDialog(
+                self,
+                "Cannot set `{}` as working directory.".format(cwdpath),
+                "Error",
+                style=wx.ICON_ERROR | wx.OK)
+            dlg.ShowModal()
+            dlg.Destroy()
+            event.Skip()
+            return
+
+    def onSetCWDFromBrowse(self, event):
+        """Set the current working directory by browsing for it."""
+        dlg = wx.DirDialog(self, "Choose directory ...", "",
+                           wx.DD_DEFAULT_STYLE | wx.DD_DIR_MUST_EXIST)
+
+        if dlg.ShowModal() == wx.ID_OK:
+            cwdpath = dlg.GetPath()
+            dlg.Destroy()
+        else:
+            dlg.Destroy()
+            event.Skip()  # user canceled
+            return
+
+        try:
+            os.chdir(cwdpath)
+        except OSError:
+            dlg = wx.MessageDialog(
+                self,
+                "Cannot set `{}` as working directory.".format(cwdpath),
+                "Error",
+                style=wx.ICON_ERROR | wx.OK)
+            dlg.ShowModal()
+            dlg.Destroy()
+            event.Skip()
+            return
+
+        if hasattr(self, 'fileBrowserWindow'):
+            dlg = wx.MessageDialog(
+                self,
+                "Working directory changed, would you like to display it in "
+                "the file browser pane?",
+                'Question', style=wx.YES_NO | wx.YES_DEFAULT | wx.ICON_QUESTION)
+
+            if dlg.ShowModal() == wx.ID_YES:
+                self.fileBrowserWindow.gotoDir(cwdpath)
+
+    # mdc - potential feature for the future
+    # def onPushLineToShell(self, event=None):
+    #     """Run a line in the code editor in the shell."""
+    #     if self.currentDoc is None:
+    #         return
+    #
+    #     lineno = self.currentDoc.GetCurrentLine()
+    #     cmdText = self.currentDoc.GetLineText(lineno)
+    #
+    #     if self._useShell == 'pyshell':
+    #         self.shell.run(cmdText, prompt=False)
+    #
+    #     self.currentDoc.GotoLine(lineno + 1)
 
     def onIdle(self, event):
         # check the script outputs to see if anything has been written to
@@ -1935,6 +2127,8 @@ class CoderFrame(wx.Frame):
             self.currentDoc.analyseScript()
             self.sourceAsstWindow.srcTree.SetScrollPos(
                 wx.VERTICAL, self.currentDoc.sourceAsstScroll)
+
+        self.statusBar.SetStatusText(self.currentDoc.getFileType(), 2)
 
         # todo: reduce redundancy w.r.t OnIdle()
         if not self.expectedModTime(self.currentDoc):
@@ -2176,33 +2370,6 @@ class CoderFrame(wx.Frame):
                 self.currentDoc.SetText("")
             self.currentDoc.EmptyUndoBuffer()
 
-            if filename.endswith('.py'):
-                self.currentDoc.setLexer('python')
-            elif filename.endswith('.m'):
-                self.currentDoc.setLexer('matlab')
-            elif filename.endswith('.sh'):
-                self.currentDoc.setLexer('bash')
-            elif filename.endswith('.c'):
-                self.currentDoc.setLexer('cpp')
-            elif filename.endswith('.h'):
-                self.currentDoc.setLexer('cpp')
-            elif filename.endswith('.cpp'):
-                self.currentDoc.setLexer('cpp')
-            elif filename.endswith('.glsl'):
-                self.currentDoc.setLexer('cpp')
-            elif filename.endswith('.frag'):
-                self.currentDoc.setLexer('cpp')
-            elif filename.endswith('.vert'):
-                self.currentDoc.setLexer('cpp')
-            elif filename.endswith('.html'):
-                self.currentDoc.setLexer('html')
-            elif filename.endswith('.R'):
-                self.currentDoc.setLexer('r')
-            elif filename.endswith('.xml'):
-                self.currentDoc.setLexer('xml')
-            elif filename.endswith('.yaml'):
-                self.currentDoc.setLexer('yaml')
-
             # line numbers in the margin
             self.currentDoc.SetMarginType(1, wx.stc.STC_MARGIN_NUMBER)
             self.currentDoc.SetMarginWidth(1, 32)
@@ -2223,8 +2390,13 @@ class CoderFrame(wx.Frame):
             elif isinstance(self.notebook, aui.AuiNotebook):
                 self.notebook.SetSelection(nbIndex)
             self.currentDoc.filename = filename
+
+            self.currentDoc.setLexerFromFileName()  # chose the best lexer
+
             self.setFileModified(False)
             self.currentDoc.SetFocus()
+            self.statusBar.SetStatusText(self.currentDoc.getFileType(), 2)
+
         self.SetLabel('%s - PsychoPy Coder' % self.currentDoc.filename)
         #if len(self.getOpenFilenames()) > 0:
         if hasattr(self, 'sourceAsstWindow'):
@@ -2430,6 +2602,7 @@ class CoderFrame(wx.Frame):
         # set new current doc
         if newPageID < 0:
             self.currentDoc = None
+            self.statusBar.SetStatusText("", 2)  # clear file type in status bar
             # clear the source tree
             self.sourceAsstWindow.srcTree.DeleteAllItems()
             self.SetLabel("PsychoPy v%s (Coder)" % self.app.version)
@@ -2438,6 +2611,26 @@ class CoderFrame(wx.Frame):
             # set to current file status
             self.setFileModified(self.currentDoc.UNSAVED)
         # return 1
+
+    def fileCloseAll(self, event, checkSave=True):
+        """Close all files open in the editor."""
+        if self.currentDoc is None:
+            event.Skip()
+            return
+
+        for fname in self.getOpenFilenames():
+            self.fileClose(event, fname, checkSave)
+
+    def fileCloseOthers(self, event, checkSave=True):
+        """Close all files except the current one in the editor."""
+        if self.currentDoc is None:
+            event.Skip()
+            return
+
+        keepOpen = self.currentDoc.filename
+        for fname in self.getOpenFilenames():
+            if fname != keepOpen:
+                self.fileClose(event, fname, checkSave)
 
     def runFile(self, event=None):
         """Open Runner for running the script."""

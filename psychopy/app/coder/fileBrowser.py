@@ -1,10 +1,14 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+"""Classes and functions for the coder file browser pane."""
+
+# Part of the PsychoPy library
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019 Open Science Tools Ltd.
+# Distributed under the terms of the GNU General Public License (GPL).
+
 from __future__ import absolute_import, print_function
 
-# from future import standard_library
-# standard_library.install_aliases()
-from builtins import chr
-from builtins import str
-from builtins import range
 import wx
 from wx.lib.mixins.listctrl import ListCtrlAutoWidthMixin
 
@@ -12,13 +16,9 @@ import os
 import time
 
 # enums for file types
-FILE_TYPE_PYTHON = 0
-FILE_TYPE_DATA = 1
-FILE_TYPE_IMAGE = 2
-FILE_TYPE_UNKNOWN = 3
-FOLDER_TYPE_NORMAL = 4
-FOLDER_TYPE_NAV = 5
-FOLDER_TYPE_NO_ACCESS = 6
+FOLDER_TYPE_NORMAL = 0
+FOLDER_TYPE_NAV = 1
+FOLDER_TYPE_NO_ACCESS = 2
 
 
 def convertBytes(nbytes):
@@ -138,23 +138,6 @@ class FileItem(FileBrowserItem):
 
         return time.strftime("%b %d, %Y, %I:%M %p", t)
 
-    def fileType(self):
-        """Get the enum value for the file type."""
-        ext = self.getExtension()
-
-        if ext is None:
-            return FILE_TYPE_UNKNOWN
-
-        if ext.lower() in ('py',):
-            return FILE_TYPE_PYTHON
-        elif ext.lower() in (
-                'jpg', 'jpeg', 'png', 'tif', 'bmp',):
-            return FILE_TYPE_IMAGE
-        elif ext.lower() in ('csv', 'tsv', 'psydat',):
-            return FILE_TYPE_DATA
-        else:
-            return FILE_TYPE_UNKNOWN
-
 
 class FileBrowserListCtrl(ListCtrlAutoWidthMixin, wx.ListCtrl):
     """Custom list control for the file browser."""
@@ -170,14 +153,13 @@ class FileBrowserListCtrl(ListCtrlAutoWidthMixin, wx.ListCtrl):
 
 
 class FileBrowserPanel(wx.Panel):
-    """Panel for a file browser."""
-
+    """Panel for a file browser.
+    """
     def __init__(self, parent, frame):
         wx.Panel.__init__(self, parent, -1)
         self.parent = parent
         self.coder = frame
         self.currentPath = None
-        self.currentDirContents = {'folders': [], 'files': []}
         self.selectedItem = None
         self.isSubDir = False
         self.pathData = {}
@@ -187,23 +169,79 @@ class FileBrowserPanel(wx.Panel):
         join = os.path.join
 
         # handles for icon graphics in the image list
-        self.fileImgList = wx.ImageList(16, 16)
-        self._lstGfx = {
-            FOLDER_TYPE_NORMAL: self.fileImgList.Add(
-                wx.Bitmap(join(rc, 'folder16.png'), wx.BITMAP_TYPE_PNG)),
-            FOLDER_TYPE_NAV: self.fileImgList.Add(
-                wx.Bitmap(join(rc, 'folder-open16.png'), wx.BITMAP_TYPE_PNG)),
-            FILE_TYPE_UNKNOWN: self.fileImgList.Add(
-                wx.Bitmap(join(rc, 'fileunknown16.png'), wx.BITMAP_TYPE_PNG)),
-            FILE_TYPE_DATA: self.fileImgList.Add(
-                wx.Bitmap(join(rc, 'filecsv16.png'), wx.BITMAP_TYPE_PNG)),
-            FILE_TYPE_IMAGE: self.fileImgList.Add(
-                wx.Bitmap(join(rc, 'fileimage16.png'), wx.BITMAP_TYPE_PNG)),
-            FILE_TYPE_PYTHON: self.fileImgList.Add(
-                wx.Bitmap(join(rc, 'coderpython16.png'), wx.BITMAP_TYPE_PNG))
-        }
+        tsize = (16, 16)
+        self.fileImgList = wx.ImageList(tsize[0], tsize[1])
+        self.gotoParentBmp = self.fileImgList.Add(
+            wx.ArtProvider.GetBitmap(
+                wx.ART_GO_TO_PARENT, wx.ART_TOOLBAR, tsize))
+        self.folderBmp = self.fileImgList.Add(
+            wx.ArtProvider.GetBitmap(
+                wx.ART_FOLDER, wx.ART_TOOLBAR, tsize))
+        self.fileBmp = self.fileImgList.Add(
+            wx.ArtProvider.GetBitmap(
+                wx.ART_NORMAL_FILE, wx.ART_TOOLBAR, tsize))
+
+        # icons for toolbars
+        gotoBmp =  wx.ArtProvider.GetBitmap(
+            wx.ART_GO_FORWARD, wx.ART_TOOLBAR, tsize)
+        newFolder = wx.ArtProvider.GetBitmap(
+            wx.ART_NEW_DIR, wx.ART_TOOLBAR, tsize)
+        # copyBmp = wx.ArtProvider.GetBitmap(
+        #     wx.ART_COPY, wx.ART_TOOLBAR, tsize)
+        deleteBmp = wx.ArtProvider.GetBitmap(
+            wx.ART_DELETE, wx.ART_TOOLBAR, tsize)
+        renameBmp = wx.Bitmap(join(rc, 'rename16.png'), wx.BITMAP_TYPE_PNG)
 
         # self.SetDoubleBuffered(True)
+
+        # create the toolbar
+        szrToolbar = wx.BoxSizer(wx.HORIZONTAL)
+
+        self.toolBar = wx.ToolBar(
+            self, style=wx.TB_HORIZONTAL | wx.NO_BORDER | wx.TB_FLAT |
+                        wx.TB_TEXT | wx.TB_HORZ_LAYOUT)
+        self.toolBar.SetToolBitmapSize((16, 16))
+        self.gotoTool = self.toolBar.AddTool(
+            wx.ID_ANY,
+            'Goto',
+            gotoBmp,
+            "Jump to another folder.",
+            wx.ITEM_DROPDOWN)
+        self.toolBar.AddSeparator()
+        self.newFolderTool = self.toolBar.AddTool(
+            wx.ID_ANY,
+            'New Folder',
+            newFolder,
+            "Create a new folder in the current folder.",
+            wx.ITEM_NORMAL)
+        self.toolBar.AddSeparator()
+        self.renameTool = self.toolBar.AddTool(
+            wx.ID_ANY,
+            'Rename',
+            renameBmp,
+            "Rename the selected folder or file.",
+            wx.ITEM_NORMAL)
+        # self.copyTool = self.toolBar.AddTool(
+        #     wx.ID_ANY,
+        #     'Copy',
+        #     copyBmp,
+        #     "Create a copy of the selected file.",
+        #     wx.ITEM_NORMAL)
+        self.deleteTool = self.toolBar.AddTool(
+            wx.ID_ANY,
+            'Delete',
+            deleteBmp,
+            "Delete the selected folder or file.",
+            wx.ITEM_NORMAL)
+        self.toolBar.Realize()
+
+        self.Bind(wx.EVT_TOOL, self.OnBrowse, self.gotoTool)
+        self.Bind(wx.EVT_TOOL, self.OnNewFolderTool, self.newFolderTool)
+        self.Bind(wx.EVT_TOOL, self.OnDeleteTool, self.deleteTool)
+        # self.Bind(wx.EVT_TOOL, self.OnCopyTool, self.copyTool)
+        self.Bind(wx.EVT_TOOL, self.OnRenameTool, self.renameTool)
+
+        szrToolbar.Add(self.toolBar, 1, flag=wx.ALL | wx.EXPAND)
 
         # create an address bar
         self.lblDir = wx.StaticText(self, label="Directory:")
@@ -219,142 +257,154 @@ class FileBrowserPanel(wx.Panel):
             style=wx.LC_REPORT | wx.LC_SINGLE_SEL)
         self.fileList.SetImageList(self.fileImgList, wx.IMAGE_LIST_SMALL)
 
+        # bind events for list control
+        self.Bind(
+            wx.EVT_LIST_ITEM_SELECTED, self.OnItemSelected, self.fileList)
+        self.Bind(
+            wx.EVT_LIST_ITEM_ACTIVATED, self.OnItemActivated, self.fileList)
+        self.Bind(
+            wx.EVT_TEXT_ENTER, self.OnAddrEnter, self.txtAddr)
+
         # do layout
         szrAddr = wx.BoxSizer(wx.HORIZONTAL)
-        szrAddr.Add(self.lblDir, 0, flag=wx.RIGHT | wx.ALIGN_CENTRE_VERTICAL, border=5)
+        szrAddr.Add(
+            self.lblDir, 0, flag=wx.RIGHT | wx.ALIGN_CENTRE_VERTICAL, border=5)
         szrAddr.Add(self.txtAddr, 1, flag=wx.ALIGN_CENTRE_VERTICAL)
-
         szr = wx.BoxSizer(wx.VERTICAL)
-
+        szr.Add(szrToolbar, 0, flag=wx.EXPAND | wx.ALL)
         szr.Add(szrAddr, 0, flag=wx.EXPAND | wx.ALL, border=5)
         szr.Add(self.fileList, 1, flag=wx.EXPAND)
         self.SetSizer(szr)
 
-        # bind events
-        self.Bind(
-            wx.EVT_LIST_ITEM_ACTIVATED, self.OnItemSelected, self.fileList)
-        self.Bind(
-            wx.EVT_TEXT_ENTER, self.OnAddrEnter, self.txtAddr)
-        self.Bind(wx.EVT_CONTEXT_MENU, self.OnContextMenu, self.fileList)
+        # create the dropdown menu for goto
+        self.gotoMenu = wx.Menu()
+        item = self.gotoMenu.Append(
+            wx.ID_ANY,
+            "Browse ...",
+            "Browse the file system for a directory to open.")
+        self.Bind(wx.EVT_MENU, self.OnBrowse, id=item.GetId())
+        self.gotoMenu.AppendSeparator()
+        item = self.gotoMenu.Append(
+            wx.ID_ANY,
+            "Current working directory",
+            "Open the current working directory.")
+        self.Bind(wx.EVT_MENU, self.OnGotoCWD, id=item.GetId())
+        item = self.gotoMenu.Append(
+            wx.ID_ANY,
+            "Editor file location",
+            "Open the directory the current editor file is located.")
+        self.Bind(wx.EVT_MENU, self.OnGotoFileLocation, id=item.GetId())
+        self.toolBar.SetDropdownMenu(self.gotoTool.GetId(), self.gotoMenu)
 
         # add columns
         self.fileList.InsertColumn(0, "Name")
         self.fileList.InsertColumn(1, "Size", wx.LIST_FORMAT_RIGHT)
         self.fileList.InsertColumn(2, "Modified")
         self.fileList.SetColumnWidth(0, 250)
-        self.fileList.SetColumnWidth(1, 60)
+        self.fileList.SetColumnWidth(1, 80)
         self.fileList.SetColumnWidth(2, 100)
 
         self.gotoDir(os.getcwd())
 
-    def OnContextMenu(self, event):
-        sel = self.fileList.GetFirstSelected()
-        if sel == -1:
+    def OnGotoFileLocation(self, evt):
+        """Goto the currently opened file location."""
+        filename = self.coder.currentDoc.filename
+        filedir = os.path.split(filename)[0]
+        if os.path.isabs(filedir):
+            self.gotoDir(filedir)
+
+            # select the file in the browser
+            for idx, item in enumerate(self.dirData):
+                if item.abspath == filename:
+                    self.fileList.Select(idx, True)
+                    self.fileList.EnsureVisible(idx)
+                    self.selectedItem = self.dirData[idx]
+                    self.fileList.SetFocus()
+                    break
+        else:
+            dlg = wx.MessageDialog(
+                self,
+                "Cannot change working directory to location of file `{}`. It"
+                " needs to be saved first.".format(filename),
+                style=wx.ICON_ERROR | wx.OK)
+            dlg.ShowModal()
+            dlg.Destroy()
+            evt.Skip()
+
+    def OnBrowse(self, event=None):
+        dlg = wx.DirDialog(self, "Choose directory ...", "",
+                           wx.DD_DEFAULT_STYLE | wx.DD_DIR_MUST_EXIST)
+        if dlg.ShowModal() == wx.ID_OK:
+            self.gotoDir(dlg.GetPath())
+
+        dlg.Destroy()
+
+    def OnNewFolderTool(self, event):
+        """When the new folder tool is clicked."""
+
+        # ask for the name of the folder
+        dlg = wx.TextEntryDialog(self, 'Enter folder name:', 'New folder', '')
+
+        if dlg.ShowModal() == wx.ID_CANCEL:
+            dlg.Destroy()
             event.Skip()
             return
 
-        self.selectedItem = self.dirData[sel]
-        if isinstance(self.selectedItem, FolderItem):
-            self.showFolderContextMenu()
-        elif isinstance(self.selectedItem, FileItem):
-            self.showFileContextMenu()
+        folderName = dlg.GetValue()
+        abspath = os.path.join(self.currentPath, folderName)
 
-    def showFolderContextMenu(self):
-        # only do this part the first time so the events are only bound once
-        #
-        # Yet another anternate way to do IDs. Some prefer them up top to
-        # avoid clutter, some prefer them close to the object of interest
-        # for clarity.
-        if not hasattr(self, "popupID1"):
-            self.popupID1 = wx.NewIdRef()
-            self.popupID2 = wx.NewIdRef()
-            self.popupID3 = wx.NewIdRef()
-            self.popupID4 = wx.NewIdRef()
-            self.popupID5 = wx.NewIdRef()
-            self.popupID6 = wx.NewIdRef()
-            self.popupID7 = wx.NewIdRef()
-            self.popupID8 = wx.NewIdRef()
-            self.popupID9 = wx.NewIdRef()
+        if os.path.isdir(abspath):  # folder exists, warn and exit
+            dlg = wx.MessageDialog(
+                self,
+                "Cannot create folder `{}`, already exists.".format(folderName),
+                style=wx.ICON_ERROR | wx.OK)
+            dlg.ShowModal()
+            dlg.Destroy()
+            event.Skip()
+            return
 
-            self.Bind(wx.EVT_MENU, self.OnPopupTwo, id=self.popupID1)
-            self.Bind(wx.EVT_MENU, self.OnPopupOne, id=self.popupID2)
-            self.Bind(wx.EVT_MENU, self.OnPopupThree, id=self.popupID3)
-            self.Bind(wx.EVT_MENU, self.OnPopupFour, id=self.popupID4)
-            self.Bind(wx.EVT_MENU, self.OnPopupFive, id=self.popupID5)
-            self.Bind(wx.EVT_MENU, self.OnPopupSix, id=self.popupID6)
-            self.Bind(wx.EVT_MENU, self.OnPopupSeven, id=self.popupID7)
-            self.Bind(wx.EVT_MENU, self.OnPopupEight, id=self.popupID8)
-            self.Bind(wx.EVT_MENU, self.OnPopupNine, id=self.popupID9)
+        # try to create the folder
+        try:
+            os.mkdir(abspath)
+        except OSError:
+            dlg = wx.MessageDialog(
+                self,
+                "Cannot create folder `{}`, permission denied.".format(folderName),
+                style=wx.ICON_ERROR | wx.OK)
+            dlg.ShowModal()
+            dlg.Destroy()
+            event.Skip()
+            return
 
-        # make a menu
-        menu = wx.Menu()
-        # Show how to put an icon in the menu
-        item = wx.MenuItem(menu, self.popupID1, "Open")
-        # bmp = images.Smiles.GetBitmap()
-        # item.SetBitmap(bmp)
-        menu.Append(item)
-        menu.AppendSeparator()
-        # Make sure we are not renaming the `up` directory item
-        if self.isSubDir:
-            if self.fileList.GetFirstSelected() > 0:
-                menu.Append(self.popupID2, "Rename `{}`".format(self.selectedItem.name))
-        else:
-            menu.Append(self.popupID2, "Rename `{}`".format(self.selectedItem.name))
+        # open the folder we just created
+        self.gotoDir(abspath)
 
-        menu.Append(self.popupID3, "Three")
-        menu.Append(self.popupID4, "Four")
-        menu.Append(self.popupID5, "Five")
-        menu.Append(self.popupID6, "Six")
-        # make a submenu
-        sm = wx.Menu()
-        sm.Append(self.popupID8, "sub item 1")
-        sm.Append(self.popupID9, "sub item 1")
-        menu.Append(self.popupID7, "Test Submenu", sm)
+    def OnDeleteTool(self, event=None):
+        """Activated when the delete tool is pressed."""
+        if self.selectedItem is not None:
+            if isinstance(self.selectedItem, FolderItem):
+                if self.selectedItem.subDirMarker:
+                    return  # is a sub directory marker
 
-        # Popup the menu.  If an item is selected then its handler
-        # will be called before PopupMenu returns.
-        self.PopupMenu(menu)
-        menu.Destroy()
+            self.delete(self.selectedItem.name)
 
-    def showFileContextMenu(self):
-        # only do this part the first time so the events are only bound once
-        #
-        # Yet another anternate way to do IDs. Some prefer them up top to
-        # avoid clutter, some prefer them close to the object of interest
-        # for clarity.
-        if not hasattr(self, "filePopUpID1"):
-            self.filePopUpID1 = wx.NewIdRef()
-            self.Bind(wx.EVT_MENU, self.OnPopupTwo, id=self.filePopUpID1)
+    def OnRenameTool(self, event):
+        """Activated when the rename tool is pressed."""
+        if self.selectedItem is not None:
+            if isinstance(self.selectedItem, FolderItem):
+                if self.selectedItem.subDirMarker:
+                    return  # is a sub directory marker
+            self.rename(self.selectedItem.name)
 
-        # make a menu
-        menu = wx.Menu()
-        # Show how to put an icon in the menu
-        item = wx.MenuItem(menu, self.filePopUpID1,
-                           "Open `{}` in Coder".format(self.selectedItem.name))
-        # bmp = images.Smiles.GetBitmap()
-        # item.SetBitmap(bmp)
-        menu.Append(item)
-        menu.AppendSeparator()
-        # # Make sure we are not renaming the `up` directory item
-        # menu.Append(self.popupID2, "Rename `{}`".format(self.selectedName))
-        #
-        # menu.Append(self.popupID3, "Three")
-        # menu.Append(self.popupID4, "Four")
-        # menu.Append(self.popupID5, "Five")
-        # menu.Append(self.popupID6, "Six")
-        # # make a submenu
-        # sm = wx.Menu()
-        # sm.Append(self.popupID8, "sub item 1")
-        # sm.Append(self.popupID9, "sub item 1")
-        # menu.Append(self.popupID7, "Test Submenu", sm)
-
-        # Popup the menu.  If an item is selected then its handler
-        # will be called before PopupMenu returns.
-        self.PopupMenu(menu)
-        menu.Destroy()
-
-    def OnPopupOne(self, event=None):
-        self.rename(self.selectedItem.name)
+    def OnGotoCWD(self, event):
+        """Activated when the goto CWD menu item is clicked."""
+        cwdpath = os.getcwd()
+        if os.getcwd() != '':
+            self.gotoDir(cwdpath)
+    #
+    # def OnCopyTool(self, event=None):
+    #     """Activated when the copy tool is pressed."""
+    #     pass  # mdc - will add this in a later version
 
     def rename(self, what):
         """Rename a file or directory."""
@@ -377,6 +427,105 @@ class FileBrowserPanel(wx.Panel):
                     dlg.Destroy()
                     return
 
+                self.gotoDir(self.currentPath)  # refresh
+
+                for idx, item in enumerate(self.dirData):
+                    abspath = os.path.join(self.currentPath, newName)
+                    if item.abspath == abspath:
+                        self.fileList.Select(idx, True)
+                        self.fileList.EnsureVisible(idx)
+                        self.selectedItem = self.dirData[idx]
+                        self.fileList.SetFocus()
+                        break
+
+            dlg.Destroy()
+        elif os.path.isfile(absPath):  # rename a directory
+            dlg = wx.TextEntryDialog(
+                self, 'Rename file `{}`.'.format(what),
+                'Rename file', what)
+
+            if dlg.ShowModal() == wx.ID_OK:
+                newName = dlg.GetValue()
+                result = self.selectedItem.rename(newName)
+                if not result:
+                    dlgError = wx.MessageDialog(
+                        self,
+                        "Cannot rename `{}` to `{}`.".format(what, newName),
+                        style=wx.ICON_ERROR | wx.OK)
+                    dlgError.ShowModal()
+                    dlgError.Destroy()
+                    dlg.Destroy()
+                    return
+
+                self.gotoDir(self.currentPath)  # refresh
+
+                for idx, item in enumerate(self.dirData):
+                    abspath = os.path.join(self.currentPath, newName)
+                    if item.abspath == abspath:
+                        self.fileList.Select(idx, True)
+                        self.fileList.EnsureVisible(idx)
+                        self.selectedItem = self.dirData[idx]
+                        self.fileList.SetFocus()
+                        break
+
+            dlg.Destroy()
+
+    def delete(self, what):
+        """Delete a file or directory."""
+        absPath = os.path.join(self.currentPath, what)
+        if os.path.isdir(absPath):  # delete a directory
+            dlg = wx.MessageDialog(
+                self, "Are you sure you want to PERMANENTLY delete folder "
+                      "`{}`?".format(what),
+                'Confirm delete', style=wx.YES_NO | wx.NO_DEFAULT |
+                                        wx.ICON_WARNING)
+
+            if dlg.ShowModal() == wx.ID_YES:
+                try:
+                    os.rmdir(absPath)
+                except FileNotFoundError:  # file was removed
+                    dlgError = wx.MessageDialog(
+                        self, "Cannot delete folder `{}`, directory does not "
+                              "exist.".format(what),
+                        'Error', style=wx.OK | wx.ICON_ERROR)
+                    dlgError.ShowModal()
+                    dlgError.Destroy()
+                except OSError:  # permission or directory not empty error
+                    dlgError = wx.MessageDialog(
+                        self, "Cannot delete folder `{}`, directory is not "
+                              "empty or permission denied.".format(what),
+                        'Error', style=wx.OK | wx.ICON_ERROR)
+                    dlgError.ShowModal()
+                    dlgError.Destroy()
+
+                self.gotoDir(self.currentPath)
+
+            dlg.Destroy()
+        elif os.path.isfile(absPath):  # delete a file
+            dlg = wx.MessageDialog(
+                self, "Are you sure you want to PERMANENTLY delete file "
+                      "`{}`?".format(what),
+                'Confirm delete', style=wx.YES_NO | wx.NO_DEFAULT |
+                                        wx.ICON_WARNING)
+
+            if dlg.ShowModal() == wx.ID_YES:
+                try:
+                    os.remove(absPath)
+                except FileNotFoundError:
+                    dlgError = wx.MessageDialog(
+                        self, "Cannot delete folder `{}`, file does not "
+                              "exist.".format(what),
+                        'Error', style=wx.OK | wx.ICON_ERROR)
+                    dlgError.ShowModal()
+                    dlgError.Destroy()
+                except OSError:
+                    dlgError = wx.MessageDialog(
+                        self, "Cannot delete file `{}`, permission "
+                              "denied.".format(what),
+                        'Error', style=wx.OK | wx.ICON_ERROR)
+                    dlgError.ShowModal()
+                    dlgError.Destroy()
+
                 self.gotoDir(self.currentPath)
 
             dlg.Destroy()
@@ -384,30 +533,6 @@ class FileBrowserPanel(wx.Panel):
     def open(self):
         if self.selectedItem is not None:
             self.selectedItem.open()
-
-    def OnPopupTwo(self, event):
-        self.open()
-
-    def OnPopupThree(self, event):
-        print("Popup three\n")
-
-    def OnPopupFour(self, event):
-        print("Popup four\n")
-
-    def OnPopupFive(self, event):
-        print("Popup five\n")
-
-    def OnPopupSix(self, event):
-        print("Popup six\n")
-
-    def OnPopupSeven(self, event):
-        print("Popup seven\n")
-
-    def OnPopupEight(self, event):
-        print("Popup eight\n")
-
-    def OnPopupNine(self, event):
-        print("Popup nine\n")
 
     def OnAddrEnter(self, evt=None):
         """When enter is pressed."""
@@ -426,10 +551,14 @@ class FileBrowserPanel(wx.Panel):
             dlg.Destroy()
             self.txtAddr.SetValue(self.currentPath)
 
+    def OnItemActivated(self, evt):
+        if self.selectedItem is not None:
+            self.selectedItem.open()
+
     def OnItemSelected(self, evt=None):
         itemIdx = self.fileList.GetFirstSelected()
         if itemIdx >= 0:
-            self.dirData[itemIdx].open()
+            self.selectedItem = self.dirData[itemIdx]
 
     def scanDir(self, path):
         """Scan a directory and update file and folder items."""
@@ -458,7 +587,7 @@ class FileBrowserPanel(wx.Panel):
                 "Cannot access directory `{}`, permission denied.".format(path),
                 style=wx.ICON_ERROR | wx.OK)
             dlg.ShowModal()
-            self.txtAddr.SetValue(self.currentPath)  # use last path
+            dlg.Destroy()
             return False
 
         return True
@@ -470,40 +599,20 @@ class FileBrowserPanel(wx.Panel):
         self.fileList.DeleteAllItems()
         for obj in self.dirData:
             if isinstance(obj, FolderItem):
-                img = obj.folderType()
+                if not obj.subDirMarker:
+                    img = 1
+                else:
+                    img = 0
+
                 index = self.fileList.InsertItem(
-                    self.fileList.GetItemCount(), obj.name, self._lstGfx[img])
+                    self.fileList.GetItemCount(), obj.name, img)
             elif isinstance(obj, FileItem):
                 index = self.fileList.InsertItem(
                     self.fileList.GetItemCount(),
                     obj.name,
-                    self._lstGfx[obj.fileType()])
+                    2)
                 self.fileList.SetItem(index, 1, obj.fileSize())
                 self.fileList.SetItem(index, 2, obj.modifiedDate())
-
-        # for fileName, filePath in self.currentDirContents['files']:
-        #     # chose the appropriate icon
-        #     fileSplit = fileName.split('.')
-        #     if len(fileSplit) > 1:
-        #         ext = fileSplit[-1]
-        #         if ext == 'py':
-        #             useIcon = self._lstGfx['filePy']
-        #         elif ext in ('csv', 'tsv', 'psydat'):
-        #             useIcon = self._lstGfx['fileCSV']
-        #         else:
-        #             useIcon = self._lstGfx['fileUnknown']
-        #     else:
-        #         useIcon = self._lstGfx['fileUnknown']
-        #
-        #     index = self.fileList.InsertItem(
-        #         self.fileList.GetItemCount(), fileName, useIcon)
-        #     fileAbsPath = filePath
-        #     self.pathData[nPaths] = fileAbsPath
-        #     self.fileList.SetItem(index, 1, self.reportFileSize(fileAbsPath))
-        #     self.fileList.SetItem(index, 2, self.reportModifiedDate(fileAbsPath))
-        #     self.fileList.SetItemData(index, nPaths)
-        #
-        #     nPaths += 1
 
     def addItem(self, name, absPath):
         """Add an item to the directory browser."""
@@ -519,7 +628,7 @@ class FileBrowserPanel(wx.Panel):
                 style=wx.ICON_ERROR | wx.OK)
             dlg.ShowModal()
             dlg.Destroy()
-            self.txtAddr.SetValue(self.currentPath)  # use last path
+            return
 
         # check if we have access
         # if not os.access(path, os.R_OK):
@@ -531,12 +640,12 @@ class FileBrowserPanel(wx.Panel):
         #     return
 
         # update files and folders
-        self.scanDir(path)
+        if not self.scanDir(path):  # if failed, return the current directory
+            self.gotoDir(self.currentPath)
+            return
 
         # change the current path
         self.currentPath = path
         self.txtAddr.SetValue(self.currentPath)
         self.updateFileBrowser()
 
-    def getMimeType(self, fileName):
-        pass
