@@ -205,21 +205,21 @@ class FileBrowserPanel(wx.Panel):
             wx.ID_ANY,
             'Goto',
             gotoBmp,
-            "Jump to another folder.",
+            "Jump to another folder",
             wx.ITEM_DROPDOWN)
         self.toolBar.AddSeparator()
         self.newFolderTool = self.toolBar.AddTool(
             wx.ID_ANY,
             'New Folder',
             newFolder,
-            "Create a new folder in the current folder.",
+            "Create a new folder in the current folder",
             wx.ITEM_NORMAL)
         self.toolBar.AddSeparator()
         self.renameTool = self.toolBar.AddTool(
             wx.ID_ANY,
             'Rename',
             renameBmp,
-            "Rename the selected folder or file.",
+            "Rename the selected folder or file",
             wx.ITEM_NORMAL)
         # self.copyTool = self.toolBar.AddTool(
         #     wx.ID_ANY,
@@ -231,7 +231,7 @@ class FileBrowserPanel(wx.Panel):
             wx.ID_ANY,
             'Delete',
             deleteBmp,
-            "Delete the selected folder or file.",
+            "Delete the selected folder or file",
             wx.ITEM_NORMAL)
         self.toolBar.Realize()
 
@@ -281,18 +281,18 @@ class FileBrowserPanel(wx.Panel):
         item = self.gotoMenu.Append(
             wx.ID_ANY,
             "Browse ...",
-            "Browse the file system for a directory to open.")
+            "Browse the file system for a directory to open")
         self.Bind(wx.EVT_MENU, self.OnBrowse, id=item.GetId())
         self.gotoMenu.AppendSeparator()
         item = self.gotoMenu.Append(
             wx.ID_ANY,
             "Current working directory",
-            "Open the current working directory.")
+            "Open the current working directory")
         self.Bind(wx.EVT_MENU, self.OnGotoCWD, id=item.GetId())
         item = self.gotoMenu.Append(
             wx.ID_ANY,
             "Editor file location",
-            "Open the directory the current editor file is located.")
+            "Open the directory the current editor file is located")
         self.Bind(wx.EVT_MENU, self.OnGotoFileLocation, id=item.GetId())
         self.toolBar.SetDropdownMenu(self.gotoTool.GetId(), self.gotoMenu)
 
@@ -441,7 +441,7 @@ class FileBrowserPanel(wx.Panel):
             dlg.Destroy()
         elif os.path.isfile(absPath):  # rename a directory
             dlg = wx.TextEntryDialog(
-                self, 'Rename file `{}`.'.format(what),
+                self, 'Rename file `{}` to:'.format(what),
                 'Rename file', what)
 
             if dlg.ShowModal() == wx.ID_OK:
