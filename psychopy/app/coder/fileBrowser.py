@@ -411,7 +411,7 @@ class FileBrowserPanel(wx.Panel):
         absPath = os.path.join(self.currentPath, what)
         if os.path.isdir(absPath):  # rename a directory
             dlg = wx.TextEntryDialog(
-                self, 'Rename folder `{}`.'.format(what),
+                self, 'Rename folder `{}` to:'.format(what),
                 'Rename Folder', what)
 
             if dlg.ShowModal() == wx.ID_OK:

@@ -69,11 +69,13 @@ class SourceTreePanel(wx.Panel):
         self.Bind(
             wx.EVT_TREE_ITEM_ACTIVATED, self.OnItemActivate, self.srcTree)
         self.Bind(
+            wx.EVT_TREE_SEL_CHANGED, self.OnItemSelected, self.srcTree)
+        self.Bind(
             wx.EVT_TREE_ITEM_EXPANDED, self.OnItemExpanded, self.srcTree)
         self.Bind(
             wx.EVT_TREE_ITEM_COLLAPSED, self.OnItemCollapsed, self.srcTree)
 
-    def OnItemActivate(self, evt=None):
+    def OnItemSelected(self, evt=None):
         """When a tree item is clicked on."""
         item = evt.GetItem()
         itemData = self.srcTree.GetItemData(item)
@@ -84,6 +86,10 @@ class SourceTreePanel(wx.Panel):
             wx.CallAfter(self.coder.currentDoc.SetFocus)
         else:
             evt.Skip()
+
+    def OnItemActivate(self, evt=None):
+        """When a tree item is clicked on."""
+        evt.Skip()
 
     def OnItemExpanded(self, evt):
         itemData = self.srcTree.GetItemData(evt.GetItem())
@@ -186,7 +192,7 @@ class SourceTreePanel(wx.Panel):
                     if itemData is not None:
                         try:
                             if self.coder.currentDoc.expandedItems[itemData[:3]]:
-                                self.srcTree.Expand()
+                                self.srcTree.Expand(nodes.popleft())
                         except KeyError:
                             if len(nodes) > 1:
                                 nodes.popleft()
