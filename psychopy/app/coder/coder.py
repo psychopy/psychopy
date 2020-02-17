@@ -1228,6 +1228,7 @@ class CoderFrame(wx.Frame):
 
         self.notebook.Bind(aui.EVT_AUINOTEBOOK_PAGE_CLOSE, self.fileClose)
         self.notebook.Bind(aui.EVT_AUINOTEBOOK_PAGE_CHANGED, self.pageChanged)
+        self.Bind(aui.EVT_AUI_PANE_CLOSE, self.onCloseSourceAsst)
         # self.Bind(wx.EVT_NOTEBOOK_PAGE_CHANGED, self.pageChanged)
         self.SetDropTarget(FileDropTarget(targetFrame=self))
         self.Bind(wx.EVT_DROP_FILES, self.filesDropped)
@@ -1294,14 +1295,10 @@ class CoderFrame(wx.Frame):
                                  BestSize((600, 600)).
                                  Name("SourceAsst").
                                  Caption(_translate("Tools")).
-                                 CloseButton(True).
                                  Right())
 
-        # will we show the pane straight away?
-        if self.prefs['showSourceAsst']:
-            self.paneManager.GetPane('SourceAsst').Show()
-        else:
-            self.paneManager.GetPane('SourceAsst').Hide()
+        self.sourceAsstChk.Check(self.prefs['showSourceAsst'])
+        self.paneManager.Update()
         self.unitTestFrame = None
 
         # self.SetSizer(self.mainSizer)  # not necessary for aui type controls
@@ -1622,12 +1619,10 @@ class CoderFrame(wx.Frame):
         self.outputChk.Check(self.prefs['showOutput'])
         self.Bind(wx.EVT_MENU, self.setOutputWindow, id=self.outputChk.GetId())
         # source assistant
-        hint = _translate("Provides help functions and attributes of classes"
-                          " in your script")
+        hint = "Hide/show the source assistant pane."
         self.sourceAsstChk = menu.AppendCheckItem(wx.ID_ANY,
-                                                  _translate("&Source Assistant"),
+                                                  "Source Assistant",
                                                   hint)
-        self.sourceAsstChk.Check(self.prefs['showSourceAsst'])
         self.Bind(wx.EVT_MENU, self.setSourceAsst,
                   id=self.sourceAsstChk.GetId())
 
@@ -2722,6 +2717,10 @@ class CoderFrame(wx.Frame):
         self.appData['showEOLs'] = newVal
         for ii in range(self.notebook.GetPageCount()):
             self.notebook.GetPage(ii).SetViewEOL(newVal)
+
+    def onCloseSourceAsst(self, event):
+        """Called when the source assisant is closed."""
+        pass
 
     def setSourceAsst(self, event):
         # show/hide the source assistant (from the view menu control)
