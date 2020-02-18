@@ -5,6 +5,7 @@ cat: Timing
 msg: Your stimulus {type} time of {time} is less than a screen refresh for a {Hz}Hz monitor.
 
 # The following are typically used for online help pages, and support reStructured Text.
+label: Stimulus duration is less than one screen refresh
 
 synopsis: |
   Requested start or stop times of visual components cannot be presented for times requested.

@@ -4,6 +4,7 @@ cat: Components
 msg: Your component is currently disabled and will not be written to your experiment script.
 
 # The following are typically used for online help pages, and support reStructured Text.
+label: Component is currently disabled in your experiment
 
 synopsis: |
   You have a disabled component in your experiment. This alert is created to inform users that

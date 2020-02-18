@@ -6,6 +6,8 @@ msg: Your stimulus size is smaller than 1 pixel ({dimension} dimension).
 
 # The following are typically used for online help pages, and support reStructured Text.
 
+label: Stimulus size is smaller than 1 pixel
+
 synopsis: |
   Stimuli size requested is smaller than 1 pixel on X and/oy Y dimensions. Stimuli sized smaller than
   1 pixel will not be visible.

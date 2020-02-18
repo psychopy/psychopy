@@ -7,6 +7,8 @@ msg: >-
 
 # The following are typically used for online help pages, and support reStructured Text.
 
+label: Stimulus duration is not posible on a standard monitor refresh
+
 synopsis: |
   If using a 60Hz or 100Hz monitor, then for accurate presentation of visual stimuli,
   components must be presented in valid multiples of screen refresh for 60 Hz or 100 Hz.

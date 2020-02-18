@@ -6,6 +6,8 @@ msg: Your stimulus position exceeds the {dimension} dimension of your window.
 
 # Each of the following key values are used for formatting online help pages, and support reStructured Text.
 
+label: Stimulus position is beyond the bounds of the window
+
 synopsis: |
   Your stimulus position exceeds the X or Y window dimensions. Stimuli positioned greater than the window size will
   not be completely visible.

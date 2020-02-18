@@ -6,6 +6,7 @@ msg: Your stimulus {type} type {frameType} must be expressed as a whole number.
 
 
 # The following are typically used for online help pages, and support reStructured Text.
+label: Component start/stop in units of frames must be whole numbers
 
 synopsis: |
   Component start and stop times/durations in frames must be given as whole numbers.

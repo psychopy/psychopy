@@ -31,7 +31,7 @@ class AlertCatalog(object):
 
     @property
     def alertPath(self):
-        return Path(os.path.dirname(os.path.abspath(__file__))) / "alertsCatalogue"
+        return Path(__file__).parent / "alertsCatalogue"
 
     @property
     def alertFiles(self):
@@ -98,6 +98,7 @@ class AlertEntry(object):
             The traceback
     """
     def __init__(self, code, obj, strFields=None, trace=None):
+        self.label = catalog.alert[code]['label']
         self.code = catalog.alert[code]['code']
         self.cat = catalog.alert[code]['cat']
         self.url = catalog.alert[code]['url']
@@ -119,7 +120,8 @@ class AlertEntry(object):
             self.msg = catalog.alert[code]['msg']
 
         if trace:
-            self.trace = ''.join(traceback.format_exception(trace[0], trace[1], trace[2]))
+            self.trace = ''.join(traceback.format_exception(
+                trace[0], trace[1], trace[2]))
         else:
             self.trace = None
 
@@ -146,11 +148,11 @@ def alert(code=None, obj=object, strFields=None, trace=None):
     msgAsStr = ("Alert {code}: {msg}\n"
                 "For more info see https://docs.psychopy.org/alerts/{code}.html"
                 .format(type=msg.type,
-                                            name=msg.name,
-                                            code=msg.code,
-                                            cat=msg.cat,
-                                            msg=msg.msg,
-                                            trace=msg.trace))
+                        name=msg.name,
+                        code=msg.code,
+                        cat=msg.cat,
+                        msg=msg.msg,
+                        trace=msg.trace))
     # msgAsStr = ("Component Type: {type} | "
     #             "Component Name: {name} | "
     #             "Code: {code} | "
@@ -163,13 +165,15 @@ def alert(code=None, obj=object, strFields=None, trace=None):
     #                                         msg=msg.msg,
     #                                         trace=msg.trace))
 
-    # if we have a psychopy warning instead of a file-like stderr then pass on the raw info
+    # if a psychopy warning instead of a file-like stderr then pass a raw str
     if hasattr(sys.stderr, 'receiveAlert'):
         sys.stderr.receiveAlert(msg)
     else:
-        sys.stderr.write(msgAsStr)  # For tests detecting output - change when error handler set up
+        # For tests detecting output - change when error handler set up
+        sys.stderr.write(msgAsStr)
         for handler in _activeAlertHandlers:
             handler.receiveAlert(msg)
+
 
 # Create catalog
 catalog = AlertCatalog()

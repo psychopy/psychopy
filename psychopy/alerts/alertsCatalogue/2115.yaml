@@ -6,6 +6,8 @@ msg: Your stimulus size exceeds the {dimension} dimension of your window.
 
 # The following are typically used for online help pages, and support reStructured Text.
 
+label: Stimulus size is bigger than the window dimensions
+
 synopsis: |
   Your stimulus size exceeds the X or Y window dimensions. Stimuli sized greater than the window size will
   not be completely visible.
