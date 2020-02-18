@@ -1,6 +1,6 @@
 import ast
-from esprima import parseScript
 from numpy import array
+from esprima import parseScript
 
 from psychopy.tools import monitorunittools
 from psychopy.alerts._alerts import alert
@@ -15,8 +15,14 @@ class TestWin(object):
         self.useRetina = True
         self.exp = exp
         self.monitor = self.exp.settings.monitor
-        self.size = self.exp.settings.params['Window size (pixels)'].val
+        winSize = self.exp.settings.params['Window size (pixels)'].val
 
+        if winSize and isinstance(winSize, str):
+            self.size = ast.literal_eval(winSize)
+        elif winSize and (isinstance(winSize, list) or isinstance(winSize, tuple)):
+            self.size = winSize
+        else:
+            self.size = (1024, 768)
 
 def validDuration(t, hz, toleranceFrames=0.01):
     """Test whether this is a possible time duration given the frame rate"""
@@ -272,7 +278,7 @@ def checkPythonSyntax(component, tab):
     try:
         compile(str(component.params[tab].val), "path", 'exec')
     except Exception as err:
-        strFields = {'codeTab': tab, 'lineNumber': err.lineno, 'code': err.text.strip()}
+        strFields = {'codeTab': tab, 'lineNumber': err.lineno, 'code': err.text}
         # Dont sent traceback because strFields gives better localisation of error
         alert(4205, component, strFields)
 

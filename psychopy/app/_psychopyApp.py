@@ -41,6 +41,7 @@ from psychopy.localization import _translate
 # take a while
 
 # needed by splash screen for the path to resources/psychopySplash.png
+import ctypes
 from psychopy import preferences, logging, __version__
 from psychopy import projects
 from . import connections
@@ -56,6 +57,24 @@ if not PY3 and sys.platform == 'darwin':
     blockTips = True
 else:
     blockTips = False
+
+
+# Enable high-dpi support if on Windows. This fixes blurry text rendering.
+if sys.platform == 'win32':
+    # get the preference for high DPI
+    if 'highDPI' in preferences.prefs.app.keys():  # check if we have the option
+        enableHighDPI = preferences.prefs.app['highDPI']
+
+        # check if we have OS support for it
+        if hasattr(ctypes.windll.shcore, "SetProcessDpiAwareness"):
+            ctypes.windll.shcore.SetProcessDpiAwareness(enableHighDPI)
+        else:
+            logging.warn(
+                "High DPI support is not appear to be supported by this version"
+                " of Windows. Disabling in preferences.")
+
+            preferences.prefs.app['highDPI'] = False
+            preferences.prefs.saveUserPrefs()
 
 
 class MenuFrame(wx.Frame):
@@ -164,8 +183,13 @@ class PsychoPyApp(wx.App):
         self._stderr = sys.stderr
         self._stdoutFrame = None
 
-        if self.prefs.app['debugMode']:
+        if not self.testMode:
+            self._lastRunLog = open(os.path.join(
+                    self.prefs.paths['userPrefsDir'], 'last_app_load.log'),
+                    'w')
+            sys.stderr = sys.stdout = lastLoadErrs = self._lastRunLog
             logging.console.setLevel(logging.DEBUG)
+
         # indicates whether we're running for testing purposes
         self.osfSession = None
         self.pavloviaSession = None
@@ -209,7 +233,7 @@ class PsychoPyApp(wx.App):
                                        )  # transparency?
             w, h = splashImage.GetSize()
             splash.SetTextPosition((int(200), h-20))
-            splash.SetText(_translate("Copyright (C) 2019 OpenScienceTools.org"))
+            splash.SetText(_translate("Copyright (C) 2020 OpenScienceTools.org"))
         else:
             splash = None
 
@@ -329,7 +353,7 @@ class PsychoPyApp(wx.App):
             from psychopy.hardware import keyboard
             if keyboard.macPrefsBad:
                 title = _translate("Mac keyboard security")
-                if platform.mac_ver() < '10.15':
+                if platform.mac_ver()[0] < '10.15':
                     settingName = 'Accessibility'
                     setting = 'Privacy_Accessibility'
                 else:
@@ -341,7 +365,7 @@ class PsychoPyApp(wx.App):
                       "the box)?"
                       ).format(settingName)
                 dlg = dialogs.MessageDialog(title=title,
-                                            msg=msg,
+                                            message=msg,
                                             type='Query')
                 resp = dlg.ShowModal()
                 if resp == wx.ID_YES:
@@ -358,12 +382,6 @@ class PsychoPyApp(wx.App):
 
                     # Open System Preference
                     workspace.openURL_(NSURL.URLWithString_(sys_pref_link))
-
-        # Runner captures standard streams until program closed
-        if not self.testMode:
-            self._stdout = sys.stdout = self.runner.stdOut
-            self._stderr = sys.stderr = self.runner.stdOut
-
 
         # send anonymous info to www.psychopy.org/usage.php
         # please don't disable this, it's important for PsychoPy's development
@@ -416,6 +434,18 @@ class PsychoPyApp(wx.App):
         self._appLoaded = True
         if self.coder:
             self.coder.setOutputWindow()  # takes control of sys.stdout
+
+        # flush any errors to the last run log file
+        logging.flush()
+        sys.stdout.flush()
+        # we wanted debug mode while loading but safe to go back to info mode
+        if not self.prefs.app['debugMode']:
+            logging.console.setLevel(logging.INFO)
+        # Runner captures standard streams until program closed
+        if not self.testMode:
+            sys.stdout = self.runner.stdOut
+            sys.stderr = self.runner.stdOut
+
         return True
 
     def _wizard(self, selector, arg=''):

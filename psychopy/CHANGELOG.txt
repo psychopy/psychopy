@@ -2,15 +2,13 @@ Changelog
 ====================
 
 .. note::
-  Version numbers
+  Version numbers: `MAJOR.VERSION.BUGFIX`
 
-  PsychoPy versions take the format: Major.Version.Bugfix
-
-  - Until 2019 Major was the overal PsychoPy version (1, 2, or 3) but from 2020 that indicates the year.
-  - Version (middle number) indicates a release with new features, which we try to limit to 2-3 times per year.
-    We don't recommend you change versions during mid-experiment but you can fix a version for your study with
+  - Until 2019 `MAJOR` was the overall PsychoPy version (1, 2, or 3) but from 2020 that indicates the year.
+  - `VERSION` indicates a release with new features, which we try to limit to 2-3 times per year.
+    We don't recommend you change versions mid-experiment but you can fix a version for your study with
     :ref:`useVersion`.
-  - Bugfix number indicates a minor update purely to fix bugs and hopefully not changing the behavior of your
+  - `BUGFIX` number indicates a minor update purely to fix bugs and hopefully not changing the behavior of your
     study in any way.
 
 CHANGES, which are identified in this red text, typically indicate things that alter the PsychoPy behaviour in a way that could break compatibility. Be especially wary of those!
@@ -22,10 +20,7 @@ PsychoPy 2020.1
 For the new decade we have a new version system. The application is still called PsychoPy3 for now,
 but we're using `year.version.bugfix` from now on to mark versions.
 
-PsychoPy 2020.1.0
-~~~~~~~~~~~~~~~~~~~~~~
-
-NEW:
+NEW FEATURES:
 
 - Many exciting tools for 3D rendering. See Coder demos menu for some examples
 - Online studies have better cross-browser compatibility including fixed support for edge
@@ -52,6 +47,26 @@ NEW:
 - Added a :class:`~psychopy.visual.Pie` (pacman) stimulus #2652
 - Substantially faster rendering of DotStim #2647
 
+PsychoPy 2020.1.1
+~~~~~~~~~~~~~~~~~~~~~~
+
+FIXED:
+
+- Several tweaks to the new Runner dialog:
+    - double-click takes you back to the file in the appropriate Builder/Coder view
+    - Ctrl-R within the Runner run the file (so you can do Ctrl-R twice from builder and you're running)
+    - Alerts separated from stdout so they're more visible
+    - Alerts for Builder are checked on experiemnt selection rather than on script compile time
+    - Alert was testing stim size/pos incorrectly if using units "from experiment settings"
+
+- Mac keyboard access should now bring up a dialog taking you to the correct System Preferences panel
+- Fixes to Eyelink 1000 communications from iohub #1a8c6923b0
+- Better support for high-res displays on Windows #2795
+- Further tweak to readline issues on linux #6975040fae #4a80060b94
+
+PsychoPy 2020.1.0
+~~~~~~~~~~~~~~~~~~~~~~
+
 FIXED:
 
 - Rect stimulus now aliases size with width and height so that users can refer to either #2650
@@ -59,6 +74,7 @@ FIXED:
 - `continueRoutine` can be set in the BeginRoutine block rather than the EachFrame block #2680
 - Tab key was incorrectly reporting itself as 'escape' in new Keyboard object #2620
 - many more!
+- Cedrus response box can be inserted into multiple routines without having to use a Code Component (no "Could not find a Cedrus device" error)
 
 
 PsychoPy 3.2
