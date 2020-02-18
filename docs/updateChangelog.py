@@ -6,9 +6,12 @@
 
 from __future__ import absolute_import, print_function
 import re
+from pathlib import Path
 
-input_path = 'psychopy/CHANGELOG.txt'
-output_path = 'docs/source/changelog.rst'
+thisFolder = Path(__file__).parent
+rootFolder = thisFolder.parent
+input_path = rootFolder / 'psychopy/CHANGELOG.txt'
+output_path = thisFolder / 'source/changelog.rst'
 
 def repl_issue(m):
     g = m.group(1)
@@ -52,6 +55,8 @@ newRST = txt_hash_noncompat.replace('.. note::', """.. raw:: html
 
 with open(output_path, "w", encoding='utf8') as doc:
     doc.write(newRST)
+
+print(f"generated {output_path}")
 
 #test:
 #text = "yes #123\n yes (#4567)\n; none of `#123, #3, #45, #12345 #123a"

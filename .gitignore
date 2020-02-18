@@ -100,5 +100,4 @@ gource_psychopy.mkv
 # Documentation generated files #
 #################################
 .coverage
-builddocs.sh
 nonSphinx
