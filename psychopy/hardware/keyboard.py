@@ -46,7 +46,7 @@ Example usage
 
     # during your trial
     kb.clock.reset()  # when you want to start the timer from
-    keys = kb.getKeys(['right', 'left', 'quit'], waitDuration=True)
+    keys = kb.getKeys(['right', 'left', 'quit'], waitRelease=True)
     if 'quit' in keys:
         core.quit()
     for key in keys:
