@@ -7,22 +7,11 @@ class TestAlertsModule():
 
     def teardown(self):
         sys.stderr = sys.__stderr__
-        del _alerts.alertLog[:]
 
     def test_alert_catalog(self):
         """Test the alerts catalog has been created and loaded correctly"""
         assert (isinstance(_alerts.catalog, _alerts.AlertCatalog))
         assert (9999 in _alerts.catalog.alert.keys())
-
-    def test_alertlog(self):
-        """Tests the creation of the AlertLog object"""
-        assert (isinstance(_alerts.alertLog, list))
-        assert (len(_alerts.alertLog) == 0)
-
-    def test_alertlog_extend(self):
-        """Tests append and retrieve of the alertlog"""
-        _alerts.alertLog.extend([1])
-        assert (_alerts.alertLog == [1])
 
     def test_alertentry(self):
         """Test creation of AlertEntry object"""
@@ -41,8 +30,3 @@ class TestAlertsModule():
         _alerts.alert(9999, self, strFields={"testString": "TEST ALERT"})
         out, err = capsys.readouterr()  # Capture stdout stream and test
         assert ("TEST_MSG TEST ALERT" in err)
-
-    def test_alertlog_clear(self):
-        _alerts.alertLog.extend([1])
-        del _alerts.alertLog[:]
-        assert (_alerts.alertLog == [])

@@ -10,9 +10,9 @@ import os
 import platform
 import subprocess
 from psychopy.constants import PY3
+from pathlib import Path
 
-
-thisLoc = os.path.split(__file__)[0]
+root = Path(__file__).parent.parent
 # import versioneer
 # get version from file
 with open('version') as f:
@@ -33,7 +33,7 @@ def createInitFile(dist=None, version=None, sha=None):
     """
     # get default values if None
     if version is None:
-        with open(os.path.join(thisLoc, 'version')) as f:
+        with open(root/'version') as f:
             version = f.read().strip()
     if sha is None:
         sha = _getGitShaString(dist)
@@ -51,7 +51,7 @@ def createInitFile(dist=None, version=None, sha=None):
                 'platform': platformStr}
 
     # write it
-    with open(os.path.join(thisLoc, 'psychopy', '__init__.py'), 'w') as f:
+    with open(root/'psychopy/__init__.py', 'w') as f:
         outStr = template.format(**infoDict)
         f.write(outStr)
     print('wrote init for ', version, sha)
@@ -107,6 +107,13 @@ if 'installing' not in locals():
         sys.path.append(pathName)
 
     from psychopy.tools.versionchooser import useVersion, ensureMinimal
+
+# import readline here to get around an issue with sounddevice
+# issues GH-2230 GH-2344 GH-2662
+try:
+    import readline
+except ImportError:
+    pass  # all that will happen is the stderr/stdout might get redirected
 
 """
 

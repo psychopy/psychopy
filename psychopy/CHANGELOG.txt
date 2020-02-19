@@ -2,12 +2,79 @@ Changelog
 ====================
 
 .. note::
-  Version numbers
+  Version numbers: `MAJOR.VERSION.BUGFIX`
 
-  In general, when a new feature is added the second number is incremented (e.g. 1.00.05 -> 1.01.00). Those releases might break previous code you've written because new features often need slight changes to other things.
-  Changes to the final digit (1.00.05 -> 1.00.06) indicate a bug-fixing release or very minor new features that shouldn't require code changes from the user.
+  - Until 2019 `MAJOR` was the overall PsychoPy version (1, 2, or 3) but from 2020 that indicates the year.
+  - `VERSION` indicates a release with new features, which we try to limit to 2-3 times per year.
+    We don't recommend you change versions mid-experiment but you can fix a version for your study with
+    :ref:`useVersion`.
+  - `BUGFIX` number indicates a minor update purely to fix bugs and hopefully not changing the behavior of your
+    study in any way.
 
-CHANGES, which are identified in this dark red text, typically indicate things that alter the PsychoPy behaviour in a way that could break compatibility. Be especially wary of those!
+CHANGES, which are identified in this red text, typically indicate things that alter the PsychoPy behaviour in a way that could break compatibility. Be especially wary of those!
+
+
+PsychoPy 2020.1
+----------------
+
+For the new decade we have a new version system. The application is still called PsychoPy3 for now,
+but we're using `year.version.bugfix` from now on to mark versions.
+
+NEW FEATURES:
+
+- Many exciting tools for 3D rendering. See Coder demos menu for some examples
+- Online studies have better cross-browser compatibility including fixed support for edge
+- Auto-translate Code Components Py-?JS (syntax only)
+- Online studies have substantially improve timing. In fact, PsychoPy now has the
+  `best timing of any online system, consistently under 4ms precision for RTs! <https://psyarxiv.com/d6nu5/>`_
+- New Runner dialog:
+    - provides some 'Alerts' about things that might go wrong in their study #2646
+    - allows you to run/save/open a set of studies without opening a window for each one
+    - allows online studies to run locally in "debug" mode to test the study before uploading
+
+- Online studies now support shapes Cross, Star and regular polygons (nVertices) #2673
+- Support for pyglet 1.4, including support for **text alignment in multi-line text** #2693
+- CHANGED: rendering of text stimuli may not look quite the same. We now have new parameters
+  `anchorHoriz` and `TextAlign` rather than `alignHoriz` but this may not act the same in all
+  cases #2693
+- Online studies no longer require a separate `html` folder.  #2687 In some cases (e.g. when adding extra resource files)
+  it may be preferable to keep the html folder and that's currently still the default
+  for new studies but ExperimentSettings>online>folder can now be set to blank and the html/js
+  files will be saved alongside the psyexp/py files. This reduces file duplication.
+- Support for QUESTplus staircases
+- Pyglet backend now supports 10-bit framebuffer #2672
+- Updated support for Oculus Rift #2655
+- Added a :class:`~psychopy.visual.Pie` (pacman) stimulus #2652
+- Substantially faster rendering of DotStim #2647
+
+PsychoPy 2020.1.1
+~~~~~~~~~~~~~~~~~~~~~~
+
+FIXED:
+
+- Several tweaks to the new Runner dialog:
+    - double-click takes you back to the file in the appropriate Builder/Coder view
+    - Ctrl-R within the Runner run the file (so you can do Ctrl-R twice from builder and you're running)
+    - Alerts separated from stdout so they're more visible
+    - Alerts for Builder are checked on experiemnt selection rather than on script compile time
+    - Alert was testing stim size/pos incorrectly if using units "from experiment settings"
+
+- Mac keyboard access should now bring up a dialog taking you to the correct System Preferences panel
+- Fixes to Eyelink 1000 communications from iohub #1a8c6923b0
+- Better support for high-res displays on Windows #2795
+- Further tweak to readline issues on linux #6975040fae #4a80060b94
+
+PsychoPy 2020.1.0
+~~~~~~~~~~~~~~~~~~~~~~
+
+FIXED:
+
+- Rect stimulus now aliases size with width and height so that users can refer to either #2650
+- Faster updating of DotStim dot locations (so fewer dropped frames) #2647
+- `continueRoutine` can be set in the BeginRoutine block rather than the EachFrame block #2680
+- Tab key was incorrectly reporting itself as 'escape' in new Keyboard object #2620
+- many more!
+- Cedrus response box can be inserted into multiple routines without having to use a Code Component (no "Could not find a Cedrus device" error)
 
 
 PsychoPy 3.2
@@ -177,10 +244,12 @@ PsychoPy 3.1.0
 
 NEW:
 
-- hardware.keyboard.Keyboard class, based on C code from the Psychtoolbox project (ported to Python by Mario Kleiner)
- - faster than `event.getKeys()` (polling is asynchronous with drawing loop and the calls go direct 
-   to the USB rather than going via the operating system key calls)
- - supports keyDuration fields as well as `rt` for key down time
+- hardware.keyboard.Keyboard class,
+  based on C code from the Psychtoolbox project (ported to Python by Mario Kleiner):
+   - faster than `event.getKeys()` (polling is asynchronous with drawing loop and the calls go direct
+     to the USB rather than going via the operating system key calls)
+   - supports keyDuration fields as well as `rt` for key down time
+
 - Form class for combining text items and responses (currently ratings and radio items) in a scrollable list
 - each Builder Component is now outputting its start/stop times in the data file by default (can be turned
   off for )
@@ -553,15 +622,15 @@ PsychoPy 1.85.2
 Released: June 2017
 
 FIXED:
-    * several errors with **PsychoJS** outputs from Builder (mostly thanks to Jon Roberts at Colorado):
-        * nReps and randomisation now being handled correctly by PsychoJS #ad9a931
-        * "correct" responses were being overwritten by non-responses #f903210
-        * Text components that were static caused a crash (were erroneously given two single-quotes) #b399a50
+* several errors with **PsychoJS** outputs from Builder (mostly thanks to Jon Roberts at Colorado):
+    * nReps and randomisation now being handled correctly by PsychoJS #ad9a931
+    * "correct" responses were being overwritten by non-responses #f903210
+    * Text components that were static caused a crash (were erroneously given two single-quotes) #b399a50
 
-    * Staircase would finish prematurely if nReversals was None #7148cad
-    * PsychoPy would crash if sound device contained a unicode character #c1ff68f
-    * FrameBufferObject not working correctly for dual-window setups #5e1c045
-    * removed some annoying junk messages about sounddevice #e5ae2fc
+* Staircase would finish prematurely if nReversals was None #7148cad
+* PsychoPy would crash if sound device contained a unicode character #c1ff68f
+* FrameBufferObject not working correctly for dual-window setups #5e1c045
+* removed some annoying junk messages about sounddevice #e5ae2fc
 
 PsychoPy 1.85.1
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -569,22 +638,26 @@ PsychoPy 1.85.1
 Released: April 2017
 
 FIXED:
-    * several errors with **PsychoJS** outputs from Builder
-        * early termination of experiments #f1bd15047
-        * incorrect blank email field in info.php #d68c36bf9
-        * incorrect component name sin endRoutine #e47d90a36
-        * incorrect default units for image stims #8c32d1c9a
+- several errors with **PsychoJS** outputs from Builder:
+    - early termination of experiments #f1bd15047
+    - incorrect blank email field in info.php #d68c36bf9
+    - incorrect component name sin endRoutine #e47d90a36
+    - incorrect default units for image stims #8c32d1c9a
 
-    * several problems with **sound**
-        * pyo not loading #1365
-        * searching for 'auto' instead of 'default' device #d54d14fe
-        * fixed duration calculation (bug in soundfile) for sounddevice #e0e01ad
+- several problems with **sound**:
+    - pyo not loading #1365
+    - searching for 'auto' instead of 'default' device #d54d14fe
+    - fixed duration calculation (bug in soundfile) for sounddevice #e0e01ad
 
-    * textbox v textstim demo wasn't working #b2913c12476
-    * error with colors when using TextStim with blendmode='add'
-    * errors in installer package:
-        * windows installer could overwrite system path setting rather than append (NSIS short-string problem came back!)
-        * freetype 32 bit dll is being provided again (was in matplotlib before but disappeared?)
+- textbox v textstim demo wasn't working #b2913c12476
+
+- error with colors when using TextStim with blendmode='add'
+
+- errors in installer package:
+    - windows installer could overwrite system path setting
+      rather than append (NSIS short-string problem came back!)
+    - freetype 32 bit dll is being provided again (was in matplotlib
+      before but disappeared?)
 
 PsychoPy 1.85.0
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~

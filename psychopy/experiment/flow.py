@@ -11,8 +11,6 @@
 from __future__ import absolute_import, print_function
 from past.builtins import basestring
 
-from psychopy.experiment.utils import unescapedDollarSign_re
-from psychopy.experiment.params import getCodeFromParamStr
 from psychopy.experiment.routine import Routine
 from psychopy.experiment.loops import LoopTerminator, LoopInitiator
 
@@ -110,57 +108,27 @@ class Flow(list):
                 # right-click in GUI)
                 del self[id]
 
-    def _dubiousConstantUpdates(self, component):
-        """Return a list of fields in component that are set to be constant
-        but seem intended to be dynamic. Some code fields are constant, and
-        some denoted as code by $ are constant.
-        """
-        warnings = []
-        # treat expInfo as likely to be constant; also treat its keys as
-        # constant because its handy to make a short-cut in code:
-        # exec(key+'=expInfo[key]')
-        expInfo = self.exp.settings.getInfo()
-        keywords = self.exp.namespace.nonUserBuilder[:]
-        keywords.extend(['expInfo'] + list(expInfo.keys()))
-        reserved = set(keywords).difference({'random', 'rand'})
-        for key in component.params:
-            field = component.params[key]
-            if (not hasattr(field, 'val') or
-                    not isinstance(field.val, basestring)):
-                continue  # continue == no problem, no warning
-            if not (field.allowedUpdates and
-                    isinstance(field.allowedUpdates, list) and
-                    len(field.allowedUpdates) and
-                    field.updates == 'constant'):
-                continue
-            # now have only non-empty, possibly-code, and 'constant' updating
-            if field.valType == 'str':
-                if not bool(unescapedDollarSign_re.search(field.val)):
-                    continue
-                code = getCodeFromParamStr(field.val)
-            elif field.valType == 'code':
-                code = field.val
-            else:
-                continue
-            # get var names in the code; no names == constant
-            try:
-                names = compile(code, '', 'eval').co_names
-            except SyntaxError:
-                continue
-            # ignore reserved words:
-            if not set(names).difference(reserved):
-                continue
-            warnings.append((field, key))
-        return warnings or [(None, None)]
 
-    def _prescreenValues(self):
-        # pre-screen and warn about some conditions in component values:
+    def integrityCheck(self):
+        """Check that the flow makes sense together and check each component"""
+
+        # force monitor to reload for checks (ie. in case monitor has changed)
+        self.exp.settings._monitor = None
+
+        # No checks currently made on flow itself
+
         trailingWhitespace = []
         constWarnings = []
         for entry in self:
+            if hasattr(entry, "integrityCheck"):
+                entry.integrityCheck()
+            # Now check each routine/loop
             # NB each entry is a routine or LoopInitiator/Terminator
             if not isinstance(entry, Routine):
                 continue
+
+            # TODO: the following tests of dubiousConstantUpdates should be
+            #  moved into the alerts mechanism under the comp.integrityCheck()
             for component in entry:
                 # detect and strip trailing whitespace (can cause problems):
                 for key in component.params:
@@ -177,10 +145,11 @@ class Flow(list):
                         field.val = field.val.strip()
                 # detect 'constant update' fields that seem intended to be
                 # dynamic:
-                for field, key in self._dubiousConstantUpdates(component):
+                for field, key in component._dubiousConstantUpdates():
                     if field:
                         constWarnings.append(
                             (field.val, key, component, entry))
+
         if trailingWhitespace:
             warnings = []
             msg = '"%s", in Routine %s (%s: %s)'
@@ -310,19 +279,22 @@ class Flow(list):
         script.writeIndented("psychoJS.start({\n")
         script.setIndentLevel(1, relative=True)
         script.writeIndentedLines("expName: expName,\n"
-                                  "expInfo: expInfo,\n"
-                                  "resources: [\n")
-        script.setIndentLevel(1, relative=True)
-        code = ""
-        for idx, resource in enumerate(resourceFiles):
-            temp = "{{'name': '{0}', 'path': '{1}/{0}'}}".format(resource, resourceFolder)
-            code += temp
-            if idx != (len(resourceFiles)-1):
-                code += ",\n"  # Trailing comma
-        script.writeIndentedLines(code)
-        script.setIndentLevel(-1, relative=True)
-        script.writeIndented("]\n")
-        script.setIndentLevel(-1, relative=True)
+                                  "expInfo: expInfo,\n")
+        # if we have an html folder then we moved files there so just use that
+        # if not, then we'll need to list all known resource files
+        if not self.exp.htmlFolder:
+            script.writeIndentedLines("resources: [\n")
+            script.setIndentLevel(1, relative=True)
+            code = ""
+            for idx, resource in enumerate(resourceFiles):
+                temp = "{{'name': '{0}', 'path': '{1}/{0}'}}".format(resource, resourceFolder)
+                code += temp
+                if idx != (len(resourceFiles)-1):
+                    code += ",\n"  # Trailing comma
+            script.writeIndentedLines(code)
+            script.setIndentLevel(-1, relative=True)
+            script.writeIndented("]\n")
+            script.setIndentLevel(-1, relative=True)
         script.writeIndented("});\n\n")
 
     def writeLoopHandlerJS(self, script, modular):

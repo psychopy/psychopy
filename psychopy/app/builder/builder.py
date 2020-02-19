@@ -34,10 +34,7 @@ import copy
 import traceback
 import codecs
 import numpy
-import time
 
-import subprocess
-import threading
 try:
     from queue import Queue, Empty
 except ImportError:
@@ -46,9 +43,9 @@ except ImportError:
 from psychopy.localization import _translate
 
 from ... import experiment
-from .. import stdOutRich, dialogs, icons
-from ..icons import getAllIcons
-from psychopy import logging, constants, __version__
+from .. import dialogs, icons
+from ..icons import getAllIcons, combineImageEmblem
+from psychopy import logging, constants
 from psychopy.tools.filetools import mergeFolder
 from .dialogs import (DlgComponentProperties, DlgExperimentProperties,
                       DlgCodeComponentProperties)
@@ -59,8 +56,8 @@ from psychopy.experiment import components
 from psychopy.app import pavlovia_ui
 from psychopy.projects import pavlovia
 
-from psychopy.scripts import psyexpCompile
-from psychopy.alerts import ErrorHandler
+from psychopy.scripts.psyexpCompile import generateScript
+
 
 
 canvasColor = [200, 200, 200]  # in prefs? ;-)
@@ -97,45 +94,6 @@ _localized = {
     'move up': _translate('move up'),
     'move down': _translate('move down'),
     'move to bottom': _translate('move to bottom')}
-
-
-class OutputThread(threading.Thread):
-    def __init__(self, proc):
-        self.proc = proc
-        threading.Thread.__init__(self)
-        self.queue = Queue()
-        self.daemon = True
-        self.exit = False
-
-    def run(self):
-        """start the thread"""
-        running = self.doCheck()  # block until process ends
-
-    def doCheck(self):
-        # will do the next line repeatedly until finds EOL
-        # after checking each line check if we should quit
-        try:
-            for line in iter(self.proc.stdout.readline, b''):
-                # this runs repeatedly
-                self.queue.put(line)
-                if not line:
-                    break
-        except ValueError:
-            return False
-            # then check if the process ended
-            # self.exit
-        for line in self.proc.stderr.readlines():
-            self.queue.put(line)
-            if not line:
-                break
-        return True
-
-    def getBuffer(self):
-        """Retrieve all lines currently in buffer"""
-        lines = ''
-        while not self.queue.empty():
-            lines += self.queue.get_nowait()
-        return lines
 
 
 class RoutineCanvas(wx.ScrolledWindow):
@@ -1078,6 +1036,7 @@ class BuilderFrame(wx.Frame):
         self.btnHandles = {}  # stores toolbar buttons so they can be altered
         self.scriptProcess = None
         self.stdoutBuffer = None
+        self.generateScript = generateScript
 
         if fileName in self.appData['frames']:
             self.frameData = self.appData['frames'][fileName]
@@ -1175,7 +1134,6 @@ class BuilderFrame(wx.Frame):
 
         # self.SetAutoLayout(True)
         self.Bind(wx.EVT_CLOSE, self.closeFrame)
-        self.Bind(wx.EVT_END_PROCESS, self.onProcessEnded)
 
         self.app.trackFrame(self)
         self.SetDropTarget(FileDropTarget(targetFrame=self))
@@ -1205,7 +1163,9 @@ class BuilderFrame(wx.Frame):
         undoBmp = wx.Bitmap(join(rc, 'undo%i.png' % tbSize), PNG)
         redoBmp = wx.Bitmap(join(rc, 'redo%i.png' % tbSize), PNG)
         stopBmp = wx.Bitmap(join(rc, 'stop%i.png' % tbSize), PNG)
-        runBmp = wx.Bitmap(join(rc, 'run%i.png' % tbSize), PNG)
+        runBmp = combineImageEmblem(join(rc, 'run%i.png' % tbSize),
+                                    join(rc, 'runner16.png'),
+                                    pos = 'bottom_right')
         compileBmp = wx.Bitmap(join(rc, 'compile%i.png' % tbSize), PNG)
         settingsBmp = wx.Bitmap(join(rc, 'cogwindow%i.png' % tbSize), PNG)
         preferencesBmp = wx.Bitmap(join(rc, 'preferences%i.png' % tbSize),
@@ -1361,21 +1321,6 @@ class BuilderFrame(wx.Frame):
                 _translate("Run experiment"))
         tb.Bind(wx.EVT_TOOL, self.runFile, self.bldrBtnRun)
 
-        if 'phoenix' in wx.PlatformInfo:
-            self.bldrBtnStop = tb.AddTool(
-                wx.ID_ANY,
-                _translate("Stop [%s]") % keys['stopScript'],
-                stopBmp,
-                _translate("Stop experiment"))
-        else:
-            self.bldrBtnStop = tb.AddSimpleTool(
-                wx.ID_ANY,
-                stopBmp,
-                _translate("Stop [%s]") % keys['stopScript'],
-                _translate("Stop experiment"))
-        tb.Bind(wx.EVT_TOOL, self.stopFile, self.bldrBtnStop)
-        self.toolbar.EnableTool(self.bldrBtnStop.Id, False)
-
         self.toolbar.AddSeparator()
         pavButtons = pavlovia_ui.toolbar.PavloviaButtons(self, toolbar=tb, tbSize=tbSize)
         pavButtons.addPavloviaTools()
@@ -1401,7 +1346,8 @@ class BuilderFrame(wx.Frame):
         self.recentFilesMenu = wx.Menu()
         self.fileHistory.UseMenu(self.recentFilesMenu)
         for filename in self.appData['fileHistory']:
-            self.fileHistory.AddFileToHistory(filename)
+            if os.path.exists(filename):
+                self.fileHistory.AddFileToHistory(filename)
         self.Bind(wx.EVT_MENU_RANGE, self.OnFileHistory,
                   id=wx.ID_FILE1, id2=wx.ID_FILE9)
         keys = self.app.keys
@@ -1483,10 +1429,6 @@ class BuilderFrame(wx.Frame):
                            _translate("Run\t%s") % keys['runScript'],
                            _translate("Run the current script"))
         self.Bind(wx.EVT_MENU, self.runFile, item)
-        item = menu.Append(wx.ID_ANY,
-                           _translate("Stop\t%s") % keys['stopScript'],
-                           _translate("Abort the current script"))
-        self.Bind(wx.EVT_MENU, self.stopFile, item)
 
         menu.AppendSeparator()
         item = menu.Append(wx.ID_ANY,
@@ -1511,6 +1453,13 @@ class BuilderFrame(wx.Frame):
                                'switchToCoder'],
                            _translate("Open a new Coder view"))
         self.Bind(wx.EVT_MENU, self.app.showCoder, item)
+
+        item = menu.Append(wx.ID_ANY,
+                           _translate("&Open Runner view\t%s") % keys[
+                               'switchToRunner'],
+                           _translate("Open the Runner view"))
+        self.Bind(wx.EVT_MENU, self.app.showRunner, item)
+
         item = menu.Append(wx.ID_ANY,
                            _translate("&Toggle readme\t%s") % self.app.keys[
                                'toggleReadme'],
@@ -1632,6 +1581,7 @@ class BuilderFrame(wx.Frame):
         self.Bind(wx.EVT_MENU, self.app.showAbout, id=wx.ID_ABOUT)
 
         menu.AppendSeparator()
+        menu.AppendSeparator()
 
         item = menu.Append(wx.ID_ANY,
                            _translate("&News..."),
@@ -1665,6 +1615,10 @@ class BuilderFrame(wx.Frame):
             else:
                 self.app.forgetFrame(self)
                 self.Destroy()  # required
+
+            # Show Runner if hidden
+            if self.app.runner is not None:
+                self.app.showRunner()
 
     def quit(self, event=None):
         """quit the app
@@ -1712,6 +1666,7 @@ class BuilderFrame(wx.Frame):
             if dlg.ShowModal() != wx.ID_OK:
                 return 0
             filename = dlg.GetPath()
+
         # did user try to open a script in Builder?
         if filename.endswith('.py'):
             self.app.showCoder()  # ensures that a coder window exists
@@ -1742,6 +1697,10 @@ class BuilderFrame(wx.Frame):
         self.updateReadme()
         self.fileHistory.AddFileToHistory(filename)
         self.htmlPath = None  # so we won't accidentally save to other html exp
+
+        if self.app.runner:
+            self.app.runner.addTask(fileName=self.filename)  # Add to Runner
+
         try:
             self.project = pavlovia.getProject(filename)
         except Exception as e:  # failed for
@@ -1831,6 +1790,7 @@ class BuilderFrame(wx.Frame):
 
         exportPath = os.path.join(htmlPath, expName.replace('.psyexp', '.js'))
         self.generateScript(experimentPath=exportPath,
+                            exp=self.exp,
                             target="PsychoJS")
 
     def getShortFilename(self):
@@ -2110,8 +2070,7 @@ class BuilderFrame(wx.Frame):
         self.editMenu.Enable(wx.ID_REDO, enable)
 
     def demosUnpack(self, event=None):
-        """Get a folder location from the user and unpack demos into it
-        """
+        """Get a folder location from the user and unpack demos into it."""
         # choose a dir to unpack in
         dlg = wx.DirDialog(parent=self, message=_translate(
             "Location to unpack demos"))
@@ -2131,8 +2090,7 @@ class BuilderFrame(wx.Frame):
         self.updateDemosMenu()
 
     def demoLoad(self, event=None):
-        """Defines Demo Loading Event
-        """
+        """Defines Demo Loading Event."""
         fileDir = self.demos[event.GetId()]
         files = glob.glob(os.path.join(fileDir, '*.psyexp'))
         if len(files) == 0:
@@ -2141,8 +2099,7 @@ class BuilderFrame(wx.Frame):
             self.fileOpen(event=None, filename=files[0], closeCurrent=True)
 
     def updateDemosMenu(self):
-        """Updates Demos menu as needed
-        """
+        """Update Demos menu as needed."""
         unpacked = self.prefs['unpackedDemosDir']
         if not unpacked:
             return
@@ -2159,95 +2116,23 @@ class BuilderFrame(wx.Frame):
             self.Bind(wx.EVT_MENU, self.demoLoad, id=thisID)
 
     def runFile(self, event=None):
-        """Gets absolute path of experiment so it can be stored with data at end of
-           the experiment run
-        """
+        """Open Runner for running the psyexp file."""
         if not os.path.exists(self.filename):
-            self.fileSave(self.filename)
-        fullPath = self.filename.replace('.psyexp', '_lastrun.py')
-        self.generateScript(fullPath)  # Build script based on current version selected
+            ok = self.fileSave(self.filename)
+            if not ok:
+                return  # save file before compiling script
 
-        # redirect standard streams to log window
-        self.setStandardStream(True)
+        if self.getIsModified():
+            ok = self.fileSave(self.filename)
+            if not ok:
+                return  # save file before compiling script
 
-        # provide a running... message
-        self.stdoutFrame.write((u"## Running: %s ##" % (fullPath))
-                               .center(80, "#")+"\n")
-        self.stdoutFrame.lenLastRun = len(self.stdoutFrame.getText())
-
-        if sys.platform == 'win32':
-            # the quotes allow file paths with spaces
-            command = [sys.executable, '-u', fullPath]
-            # self.scriptProcessID = wx.Execute(command, wx.EXEC_ASYNC,
-            #   self.scriptProcess)
-            if hasattr(wx, "EXEC_NOHIDE"):
-                _opts = wx.EXEC_ASYNC | wx.EXEC_NOHIDE  # that hid console!
-            else:
-                _opts = wx.EXEC_ASYNC | wx.EXEC_SHOW_CONSOLE
-        else:
-            command = [sys.executable, '-u', fullPath]
-            _opts = wx.EXEC_ASYNC | wx.EXEC_MAKE_GROUP_LEADER
-        # update app controls
-        self.toolbar.EnableTool(self.bldrBtnRun.Id, False)
-        self.toolbar.EnableTool(self.bldrBtnStop.Id, True)
-        self.app.Yield()
-        # the whileRunning method will check on stdout from the script
-        self._processEndTime = None
-        self.scriptProcess = subprocess.Popen(
-            args=command,
-            bufsize=1, executable=None, stdin=None,
-            stdout=subprocess.PIPE, stderr=subprocess.PIPE, preexec_fn=None,
-            shell=False, cwd=None, env=None,
-            universal_newlines=True,  # gives us back a string instead of bytes
-            creationflags=0,
-        )
-        # this part creates a non-blocking thread to check the stdout/err
-        self._stdoutThread = OutputThread(self.scriptProcess)
-        self._stdoutThread.start()
-        self.Bind(wx.EVT_IDLE, self.whileRunningFile)
-
-    def stopFile(self, event=None):
-        """Kills script processes"""
-        self.app.terminateHubProcess()
-        if self.scriptProcess:
-            self.scriptProcess.kill()
-        self.onProcessEnded()
-
-    def whileRunningFile(self, event=None):
-        """This is an Idle function while study is running. Checks on process
-        and handle stdout"""
-        newOutput = self._stdoutThread.getBuffer()
-        if newOutput:
-            sys.stdout.write(newOutput)
-        returnVal = self.scriptProcess.poll()
-        if returnVal is not None:
-            self.onProcessEnded()
-        else:
-            time.sleep(0.1)  # let's not check too often
-
-    def onProcessEnded(self, event=None):
-        """The script/exp has finished running
-        """
-        # if len(self.stdoutBuffer.getvalue()) > self.stdoutFrame.lenLastRun:
-        #     self.stdoutFrame.write(self.stdoutBuffer.getvalue())
-        self.toolbar.EnableTool(self.bldrBtnRun.Id, True)
-        self.toolbar.EnableTool(self.bldrBtnStop.Id, False)
-        self._stdoutThread.exit = True
-        time.sleep(0.1)  # give time for the buffers to finish writing?
-        buff = self._stdoutThread.getBuffer()
-        self.stdoutFrame.write(buff)
-        if len(self.stdoutFrame.getText()) > self.stdoutFrame.lenLastRun:
-            self.stdoutFrame.Show()
-            self.stdoutFrame.Raise()
-
-        # then return stdout to its org location
-        self.setStandardStream(False)
-        self.scriptProcess = None
-        self.Bind(wx.EVT_IDLE, None)
+        self.stdoutFrame.addTask(fileName=self.filename)
+        self.stdoutFrame.showRunner()
 
     def onCopyRoutine(self, event=None):
         """copy the current routine from self.routinePanel
-        to self.app.copiedRoutine
+        to self.app.copiedRoutine.
         """
         r = copy.deepcopy(self.routinePanel.getCurrentRoutine())
         if r is not None:
@@ -2255,7 +2140,7 @@ class BuilderFrame(wx.Frame):
 
     def onPasteRoutine(self, event=None):
         """Paste the current routine from self.app.copiedRoutine to a new page
-        in self.routinePanel after promting for a new name
+        in self.routinePanel after promting for a new name.
         """
         if self.app.copiedRoutine is None:
             return -1
@@ -2358,7 +2243,11 @@ class BuilderFrame(wx.Frame):
     def compileScript(self, event=None):
         """Defines compile script button behavior"""
         fullPath = self.filename.replace('.psyexp', '.py')
-        self.generateScript(fullPath)
+        self.generateScript(experimentPath=fullPath, exp=self.exp)
+
+        self.stdoutFrame.showRunner()
+        self.stdoutFrame.stdOut.flush()
+
         self.app.showCoder()  # make sure coder is visible
         self.app.coder.fileNew(filepath=fullPath)
         self.app.coder.fileReload(event=None, filename=fullPath)
@@ -2366,89 +2255,11 @@ class BuilderFrame(wx.Frame):
     @property
     def stdoutFrame(self):
         """
-        Initializes app._stdoutFrame if closed.
+        Gets Experiment Runner stdout.
         """
-        if self.app._stdoutFrame is None:
-            self.app._stdoutFrame = stdOutRich.StdOutFrame(
-                parent=None, app=self.app, size=(700, 300))
-        return self.app._stdoutFrame
-
-    @property
-    def errorHandler(self):
-        """
-        Initializes app._errorHandler if not created.
-        """
-        if self.app._errorHandler is None:
-            self.app._errorHandler = ErrorHandler()
-        return self.app._errorHandler
-
-    def setStandardStream(self, capture):
-        """
-        Captures standard stream.
-
-        Parameters
-        ----------
-        capture: bool
-            True to capture std stream, False to release std stream.
-        """
-        if capture:
-            sys.stdout = self.stdoutFrame
-            sys.stderr = self.errorHandler
-        else:  # revert to the application setting (coder out or terminal)
-            sys.stdout = self.app._stdout
-            sys.stderr = self.app._stderr
-
-    def generateScript(self, experimentPath, target="PsychoPy"):
-        """Generates python script from the current builder experiment"""
-        # Set streams
-        self.setStandardStream(True)
-        self.stdoutFrame.write("Generating {} script...\n".format(target))
-
-        if self.getIsModified():
-            ok = self.fileSave(experimentPath)
-            if not ok:
-                return  # save file before compiling script
-        self.exp.expPath = os.path.abspath(experimentPath)
-
-        # Compile script from command line using version
-        compiler = 'psychopy.scripts.psyexpCompile'
-
-        if sys.platform == 'win32':  # get name of executable
-            pythonExec = sys.executable
-        else:
-            pythonExec = sys.executable.replace(' ', '\ ')
-
-        if not constants.PY3:  # encode path in Python2
-            filename = self.filename.encode(sys.getfilesystemencoding())
-            experimentPath = experimentPath.encode(sys.getfilesystemencoding())
-        else:
-            filename = self.filename
-
-        # run compile
-        cmd = [pythonExec, '-m', compiler, filename,
-               '-o', experimentPath]
-        # if version is not specified then don't touch useVersion at all
-        version = self.exp.settings.params['Use version'].val
-        try:
-            if version not in [None, 'None', '', __version__]:
-                cmd.extend(['-v', version])
-                logging.info(' '.join(cmd))
-                output = subprocess.Popen(cmd,
-                                          stdout=subprocess.PIPE,
-                                          stderr=subprocess.PIPE,
-                                          universal_newlines=True)
-                stdout, stderr = output.communicate()
-                sys.stdout.write(stdout)
-                sys.stderr.write(stderr)
-            else:
-                psyexpCompile.compileScript(infile=self.exp, version=None, outfile=experimentPath)
-        except Exception:
-            traceback.print_exc(file=sys.stderr)
-            self.gitFeedback(-1)
-        finally:
-            self.stdoutFrame.Show()
-            self.errorHandler.flush()
-            # self.setStandardStream(False)
+        if not self.app.runner:
+            self.app.runner = self.app.newRunnerFrame()
+        return self.app.runner
 
     def _getHtmlPath(self, filename):
         expPath = os.path.split(filename)[0]

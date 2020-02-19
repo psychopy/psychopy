@@ -1,14 +1,22 @@
-from psychopy.alerts._alerts import alertLog
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
 
+# Part of the PsychoPy library
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019 Open Science Tools Ltd.
+# Distributed under the terms of the GNU General Public License (GPL).
+
+from ._alerts import _activeAlertHandlers
 
 class _BaseErrorHandler(object):
     """A base class for handling PsychoPy alerts and exceptions.
     """
 
-    def __init__(self):
+    def __init__(self, alwaysReceive=True, autoFlush=True):
         self.errors = []
         self.alerts = []
-        self.autoFlush = True
+        self.alwaysReceive = alwaysReceive
+        self.autoFlush = autoFlush
+        _activeAlertHandlers.append(self)
 
     def write(self, toWrite):
         """This is needed for any Python Exceptions, which assume the stderr
@@ -20,7 +28,7 @@ class _BaseErrorHandler(object):
             self.flush()
 
     def flush(self):
-        """Print errors to console and clear errors.
+        """Print errors and alerts to console and clear errors.
         """
         for err in self.errors:
             print(err)
@@ -30,7 +38,6 @@ class _BaseErrorHandler(object):
         """
         Handles PsychoPy alerts (sent by _alerts.alert).
         This function should ONLY be called by _alerts.alert.
-        Each alert is published to the _alerts.alertLog variable.
 
         Parameters:
         -----------
@@ -41,22 +48,3 @@ class _BaseErrorHandler(object):
 
     def __del__(self):
         self.flush()
-
-
-class ErrorHandler(_BaseErrorHandler):
-    """A dialog for handling PsychoPy alerts and exceptions
-    """
-    def __init__(self):
-        super(ErrorHandler, self).__init__()
-
-    def flush(self):
-        """Stores alerts in alertLog, flushes errors, clears errors and alerts attributes.
-        """
-        del alertLog[:]
-        alertLog.extend(self.alerts)
-
-        for err in self.errors:
-            print(err)
-
-        self.errors = []
-        self.alerts = []

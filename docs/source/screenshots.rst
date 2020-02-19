@@ -8,13 +8,13 @@ A few screenshots are provided here to give you a flavour, but it's easier to do
 PsychoPy is one of very few packages that allows a choice of interface. Use the :ref:`coder` view, for those that like to program (or just use your own editor)
 
 .. image:: images/coder_small.gif
-   :target: coder/coder.html
+   :target: coder/index.html
    :alt: The Coder view
 
 and the :ref:`builder` view for those that don't:
 
 .. image:: images/builder.png
-   :target: builder/builder.html
+   :target: builder/index.html
    :alt: The Builder view
    
 PsychoPy can handle every type of stimulus you can imagine...

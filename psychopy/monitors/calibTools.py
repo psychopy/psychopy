@@ -77,14 +77,14 @@ class Monitor(object):
 
     **arguments**:
 
-        - ``width, distance, gamma`` are details about the calibration
-        - ``notes`` is a text field to store any useful info
-        - ``useBits`` True, False, None
-        - ``verbose`` True, False, None
-        - ``currentCalib`` is a dictionary object containing various
-            fields for a calibration. Use with caution since the
-            dictionary may not contain all the necessary fields that
-            a monitor object expects to find.
+    - ``width, distance, gamma`` are details about the calibration
+    - ``notes`` is a text field to store any useful info
+    - ``useBits`` True, False, None
+    - ``verbose`` True, False, None
+    - ``currentCalib`` is a dictionary object containing various
+        fields for a calibration. Use with caution since the
+        dictionary may not contain all the necessary fields that
+        a monitor object expects to find.
 
     **eg**:
 

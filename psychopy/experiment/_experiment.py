@@ -144,14 +144,22 @@ class Experiment(object):
             self.routines[routineName] = Routine(routineName, exp=self)
         else:
             self.routines[routineName] = routine
+        return self.routines[routineName]
+
+    def integrityCheck(self):
+        """Check the integrity of the Experiment"""
+        # add some checks for things outside the Flow?
+        # then check the contents 1-by-1 from the Flow
+        self.flow.integrityCheck()
 
     def writeScript(self, expPath=None, target="PsychoPy", modular=True):
         """Write a PsychoPy script for the experiment
         """
+        # self.integrityCheck()
+
         self.psychopyVersion = psychopy.__version__  # make sure is current
         # set this so that params write for approp target
         utils.scriptTarget = target
-        self.flow._prescreenValues()
         self.expPath = expPath
         script = IndentingBuffer(u'')  # a string buffer object
 
@@ -481,14 +489,17 @@ class Experiment(object):
                     if params[name].allowedTypes is None:
                         params[name].allowedTypes = []
                     params[name].readOnly = True
-                    msg = _translate(
-                        "Parameter %r is not known to this version of "
-                        "PsychoPy but has come from your experiment file "
-                        "(saved by a future version of PsychoPy?). This "
-                        "experiment may not run correctly in the current "
-                        "version.")
-                    logging.warn(msg % name)
-                    logging.flush()
+                    if name not in ['JS libs', 'OSF Project ID']:
+                        # don't warn people if we know it's OK (e.g. for params
+                        # that have been removed
+                        msg = _translate(
+                            "Parameter %r is not known to this version of "
+                            "PsychoPy but has come from your experiment file "
+                            "(saved by a future version of PsychoPy?). This "
+                            "experiment may not run correctly in the current "
+                            "version.")
+                        logging.warn(msg % name)
+                        logging.flush()
 
         # get the value type and update rate
         if 'valType' in list(paramNode.keys()):

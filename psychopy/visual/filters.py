@@ -390,8 +390,8 @@ def butter2d_lp_elliptic(size, cutoff_x, cutoff_y, n=3,
     rows, cols = size
 
     # this time we start up with 2D arrays for easy broadcasting
-    x = (numpy.linspace(-0.5, 0.5, cols) - offset_x)[numpy.newaxis]
-    y = (numpy.linspace(-0.5, 0.5, rows) - offset_y)[:, numpy.newaxis]
+    x = (numpy.linspace(-0.5, 0.5, int(cols)) - offset_x)[numpy.newaxis]
+    y = (numpy.linspace(-0.5, 0.5, int(rows)) - offset_y)[:, numpy.newaxis]
 
     x2 = (x * numpy.cos(alpha) - y * numpy.sin(-alpha))
     y2 = (x * numpy.sin(-alpha) + y * numpy.cos(alpha))

@@ -10,9 +10,10 @@ import re
 import wx.__version__
 import psychopy
 from psychopy import logging
-from psychopy.experiment.components import BaseComponent, Param, _translate
+from psychopy.experiment.components import Param, _translate
 from psychopy.tools.versionchooser import versionOptions, availableVersions, _versionFilter, latestVersion
 from psychopy.constants import PY3
+from psychopy.monitors import Monitor
 
 # for creating html output folders:
 import shutil
@@ -107,6 +108,7 @@ class SettingsComponent(object):
         self.exp.requirePsychopyLibs(['visual', 'gui'])
         self.parentName = parentName
         self.url = "http://www.psychopy.org/builder/settings.html"
+        self._monitor = None
 
         # if filename is the default value fetch the builder pref for the
         # folder instead
@@ -277,14 +279,9 @@ class SettingsComponent(object):
         #     hint=_translate("The ID of this project (e.g. 5bqpc)"),
         #     label="OSF Project ID", categ='Online')
         self.params['HTML path'] = Param(
-            '', valType='str', allowedTypes=[],
+            'html', valType='str', allowedTypes=[],
             hint=_translate("Place the HTML files will be saved locally "),
             label="Output path", categ='Online')
-        self.params['JS libs'] = Param(
-            'packaged', valType='str', allowedVals=['packaged'],
-            hint=_translate("Should we package a copy of the JS libs or use"
-                            "remote copies (http:/www.psychopy.org/js)?"),
-            label="JS libs", categ='Online')
         self.params['Completed URL'] = Param(
             '', valType='str',
             hint=_translate("Where should participants be redirected after the experiment on completion\n"
@@ -295,8 +292,6 @@ class SettingsComponent(object):
             hint=_translate("Where participants are redirected if they do not complete the task\n"
                             " INSERT INCOMPLETION URL E.G.?"),
             label="Incomplete URL", categ='Online')
-
-
         self.params['exportHTML'] = Param(
             exportHTML, valType='str',
             allowedVals=['on Save', 'on Sync', 'manually'],
@@ -477,9 +472,9 @@ class SettingsComponent(object):
             """Copies a file but only if doesn't exist or SHA is diff
             """
             if os.path.isfile(dst):
-                with open(dst, 'r') as f:
+                with open(dst, 'rb') as f:
                     dstMD5 = hashlib.md5(f.read()).hexdigest()
-                with open(src, 'r') as f:
+                with open(src, 'rb') as f:
                     srcMD5 = hashlib.md5(f.read()).hexdigest()
                 if srcMD5 == dstMD5:
                     return  # already matches - do nothing
@@ -496,12 +491,7 @@ class SettingsComponent(object):
         folder = os.path.dirname(self.exp.expPath)
         if not os.path.isdir(folder):
             os.mkdir(folder)
-        # get OSF projcet info if there was a project id
-        # projLabel = self.params['OSF Project ID'].val
-        # these are all blank unless we find a valid proj
-        # osfID = osfName = osfToken = ''
-        # osfHtmlFolder = ''
-        # osfDataFolder = 'data'
+
         # is email a defined parameter for this version
         if 'email' in self.params:
             email = repr(self.params['email'].val)
@@ -518,7 +508,7 @@ class SettingsComponent(object):
             dstFolder = os.path.split(dstAbs)[0]
             if not os.path.isdir(dstFolder):
                 os.makedirs(dstFolder)
-            shutil.copy2(srcFile['abs'], dstAbs)
+            copyFileWithMD5(srcFile['abs'], dstAbs)
 
     def writeInitCodeJS(self, buff, version, localDateTime, modular=True):
         # create resources folder
@@ -887,3 +877,17 @@ class SettingsComponent(object):
         buff.setIndentLevel(-1, relative=True)
         buff.writeIndented("}\n")
         buff.setIndentLevel(-1)
+
+    @property
+    def monitor(self):
+        """Stores a monitor object for the  experiment so that it
+        doesn't have to be fetched from disk repeatedly"""
+        # remember to set _monitor to None periodically (start of script build?)
+        # so that we do reload occasionally
+        if not self._monitor:
+            self._monitor = Monitor(self.params['Monitor'].val)
+        return self._monitor
+
+    @monitor.setter
+    def monitor(self, monitor):
+        self._monitor = monitor

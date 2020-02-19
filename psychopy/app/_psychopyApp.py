@@ -13,6 +13,7 @@ from builtins import object
 profiling = False  # turning on will save profile files in currDir
 
 import sys
+import platform
 import psychopy
 from pkg_resources import parse_version
 from psychopy.constants import PY3
@@ -40,6 +41,7 @@ from psychopy.localization import _translate
 # take a while
 
 # needed by splash screen for the path to resources/psychopySplash.png
+import ctypes
 from psychopy import preferences, logging, __version__
 from psychopy import projects
 from . import connections
@@ -55,6 +57,24 @@ if not PY3 and sys.platform == 'darwin':
     blockTips = True
 else:
     blockTips = False
+
+
+# Enable high-dpi support if on Windows. This fixes blurry text rendering.
+if sys.platform == 'win32':
+    # get the preference for high DPI
+    if 'highDPI' in preferences.prefs.app.keys():  # check if we have the option
+        enableHighDPI = preferences.prefs.app['highDPI']
+
+        # check if we have OS support for it
+        if hasattr(ctypes.windll.shcore, "SetProcessDpiAwareness"):
+            ctypes.windll.shcore.SetProcessDpiAwareness(enableHighDPI)
+        else:
+            logging.warn(
+                "High DPI support is not appear to be supported by this version"
+                " of Windows. Disabling in preferences.")
+
+            preferences.prefs.app['highDPI'] = False
+            preferences.prefs.saveUserPrefs()
 
 
 class MenuFrame(wx.Frame):
@@ -146,6 +166,7 @@ class PsychoPyApp(wx.App):
 
         self._appLoaded = False  # set to true when all frames are created
         self.coder = None
+        self.runner = None
         self.version = psychopy.__version__
         # set default paths and prefs
         self.prefs = psychopy.prefs
@@ -161,10 +182,14 @@ class PsychoPyApp(wx.App):
         self._stdout = sys.stdout
         self._stderr = sys.stderr
         self._stdoutFrame = None
-        self._errorHandler = None
 
-        if self.prefs.app['debugMode']:
+        if not self.testMode:
+            self._lastRunLog = open(os.path.join(
+                    self.prefs.paths['userPrefsDir'], 'last_app_load.log'),
+                    'w')
+            sys.stderr = sys.stdout = lastLoadErrs = self._lastRunLog
             logging.console.setLevel(logging.DEBUG)
+
         # indicates whether we're running for testing purposes
         self.osfSession = None
         self.pavloviaSession = None
@@ -208,7 +233,7 @@ class PsychoPyApp(wx.App):
                                        )  # transparency?
             w, h = splashImage.GetSize()
             splash.SetTextPosition((int(200), h-20))
-            splash.SetText(_translate("Copyright (C) 2019 OpenScienceTools.org"))
+            splash.SetText(_translate("Copyright (C) 2020 OpenScienceTools.org"))
         else:
             splash = None
 
@@ -217,7 +242,7 @@ class PsychoPyApp(wx.App):
 
         from psychopy.compatibility import checkCompatibility
         # import coder and builder here but only use them later
-        from psychopy.app import coder, builder, dialogs
+        from psychopy.app import coder, builder, runner, dialogs
 
         if '--firstrun' in sys.argv:
             del sys.argv[sys.argv.index('--firstrun')]
@@ -316,10 +341,47 @@ class PsychoPyApp(wx.App):
         # create both frame for coder/builder as necess
         if splash:
             splash.SetText(_translate("  Creating frames..."))
+        # Always show runner
+        self.showRunner()
         if mainFrame in ['both', 'coder']:
             self.showCoder(fileList=scripts)
         if mainFrame in ['both', 'builder']:
             self.showBuilder(fileList=exps)
+
+        # if darwin, check for inaccessible keyboard
+        if sys.platform == 'darwin':
+            from psychopy.hardware import keyboard
+            if keyboard.macPrefsBad:
+                title = _translate("Mac keyboard security")
+                if platform.mac_ver()[0] < '10.15':
+                    settingName = 'Accessibility'
+                    setting = 'Privacy_Accessibility'
+                else:
+                    setting = 'Privacy_ListenEvent'
+                    settingName = 'Input Monitoring'
+                msg = _translate("To use high-precision keyboard timing you should "
+                      "enable {} for PsychoPy in System Preferences. "
+                      "Shall we go there (and you can drag PsychoPy app into "
+                      "the box)?"
+                      ).format(settingName)
+                dlg = dialogs.MessageDialog(title=title,
+                                            message=msg,
+                                            type='Query')
+                resp = dlg.ShowModal()
+                if resp == wx.ID_YES:
+                    from AppKit import NSWorkspace
+                    from Foundation import NSURL
+
+                    sys_pref_link = (
+                        'x-apple.systempreferences:'
+                        'com.apple.preference.security?'
+                        '{}'.format(setting))
+
+                    # create workspace object
+                    workspace = NSWorkspace.sharedWorkspace()
+
+                    # Open System Preference
+                    workspace.openURL_(NSURL.URLWithString_(sys_pref_link))
 
         # send anonymous info to www.psychopy.org/usage.php
         # please don't disable this, it's important for PsychoPy's development
@@ -372,6 +434,18 @@ class PsychoPyApp(wx.App):
         self._appLoaded = True
         if self.coder:
             self.coder.setOutputWindow()  # takes control of sys.stdout
+
+        # flush any errors to the last run log file
+        logging.flush()
+        sys.stdout.flush()
+        # we wanted debug mode while loading but safe to go back to info mode
+        if not self.prefs.app['debugMode']:
+            logging.console.setLevel(logging.INFO)
+        # Runner captures standard streams until program closed
+        if not self.testMode:
+            sys.stdout = self.runner.stdOut
+            sys.stderr = self.runner.stdOut
+
         return True
 
     def _wizard(self, selector, arg=''):
@@ -472,7 +546,7 @@ class PsychoPyApp(wx.App):
         return table
 
     def showCoder(self, event=None, fileList=None):
-        # have to reimport because it is ony local to __init__ so far
+        # have to reimport because it is only local to __init__ so far
         from . import coder
         if self.coder is None:
             title = "PsychoPy3 Coder (IDE) (v%s)"
@@ -491,15 +565,15 @@ class PsychoPyApp(wx.App):
         from .builder.builder import BuilderFrame
         title = "PsychoPy3 Experiment Builder (v%s)"
         thisFrame = BuilderFrame(None, -1,
-                                         title=title % self.version,
-                                         fileName=fileName, app=self)
+                                 title=title % self.version,
+                                 fileName=fileName, app=self)
         thisFrame.Show(True)
         thisFrame.Raise()
         self.SetTopWindow(thisFrame)
         return thisFrame
 
     def showBuilder(self, event=None, fileList=()):
-        # have to reimport because it is ony local to __init__ so far
+        # have to reimport because it is only local to __init__ so far
         from psychopy.app import builder
         for fileName in fileList:
             if os.path.isfile(fileName):
@@ -512,17 +586,24 @@ class PsychoPyApp(wx.App):
             thisFrame.Show(True)
             thisFrame.Raise()
             self.SetTopWindow(thisFrame)
-    # def showShell(self, event=None):
-    #    from psychopy.app import ipythonShell  # have to reimport because
-    #        # it is ony local to __init__ so far
-    #    if self.shell is None:
-    #        self.shell = ipythonShell.ShellFrame(None, -1,
-    #            title="IPython in PsychoPy (v%s)" %self.version, app=self)
-    #        self.shell.Show()
-    #        self.shell.SendSizeEvent()
-    #    self.shell.Raise()
-    #    self.SetTopWindow(self.shell)
-    #    self.shell.SetFocus()
+
+    def showRunner(self, event=None):
+        if not self.runner:
+            self.runner = self.newRunnerFrame()
+        if not self.testMode:
+            self.runner.Show()
+            self.runner.Raise()
+            self.SetTopWindow(self.runner)
+
+    def newRunnerFrame(self, event=None):
+        # have to reimport because it is only local to __init__ so far
+        from .runner.runner import RunnerFrame
+        title = "PsychoPy3 Experiment Runner (v{})".format(self.version)
+        runner = RunnerFrame(parent=None,
+                             id=-1,
+                             title=title,
+                             app=self)
+        return runner
 
     def OnDrop(self, x, y, files):
         """Not clear this method ever gets called!"""
@@ -676,6 +757,11 @@ class PsychoPyApp(wx.App):
             except Exception:
                 pass  # we don't care if this fails - we're quitting anyway
         self.Destroy()
+
+        # Reset streams back to default
+        sys.stdout = sys.__stdout__
+        sys.stderr = sys.__stderr__
+
         if not self.testMode:
             sys.exit()
 
@@ -720,10 +806,12 @@ class PsychoPyApp(wx.App):
         info.AddDeveloper('Erik Kastman')
         info.AddDeveloper('Michael MacAskill')
         info.AddDeveloper('Hiroyuki Sogo')
+        info.AddDeveloper('David Bridges')
         info.AddDocWriter('Jonathan Peirce')
         info.AddDocWriter('Jeremy Gray')
         info.AddDocWriter('Rebecca Sharman')
         info.AddTranslator('Hiroyuki Sogo')
+
         if not self.testMode:
             showAbout(info)
 
