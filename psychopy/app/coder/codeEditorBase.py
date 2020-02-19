@@ -253,7 +253,9 @@ class BaseCodeEditor(wx.stc.StyledTextCtrl):
         if len(text.splitlines()) > 1:
             self.SetSelection(selStart, selStart + len(text))
         else:
-            self.SetSelection(self.GetCurrentPos(), self.GetLineEndPosition(self.GetCurrentLine()))
+            self.SetSelection(
+                self.GetCurrentPos(),
+                self.GetLineEndPosition(self.GetCurrentLine()))
 
     def smartIdentThisLine(self):
 
@@ -295,9 +297,11 @@ class BaseCodeEditor(wx.stc.StyledTextCtrl):
         if len(prevLogical) > 0 and prevLogical[-1] == ':':
             incr = incr + 4
         # set each line to the correct indentation
+        self.BeginUndoAction()
         for lineNum in range(startLineNum, endLineNum + 1):
             thisIndent = self.GetLineIndentation(lineNum)
             self.SetLineIndentation(lineNum, thisIndent + incr)
+        self.EndUndoAction()
 
     def shouldTrySmartIndent(self):
         # used when the user presses tab key: decide whether to insert
@@ -321,11 +325,13 @@ class BaseCodeEditor(wx.stc.StyledTextCtrl):
         startLineNum = self.LineFromPosition(self.GetSelectionStart())
         endLineNum = self.LineFromPosition(self.GetSelectionEnd())
         # go through line-by-line
+        self.BeginUndoAction()
         for lineN in range(startLineNum, endLineNum + 1):
             newIndent = self.GetLineIndentation(lineN) + howFar
             if newIndent < 0:
                 newIndent = 0
             self.SetLineIndentation(lineN, newIndent)
+        self.EndUndoAction()
 
     def Paste(self, event=None):
         dataObj = wx.TextDataObject()

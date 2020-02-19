@@ -722,6 +722,9 @@ class CodeEditor(BaseCodeEditor):
             self.analyseScript()
             return  # so that we don't reach the skip line at end
 
+        if keyCode == wx.WXK_BACK:
+            pass
+
         event.Skip()
 
     def MacOpenFile(self, evt):
