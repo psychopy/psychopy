@@ -7,6 +7,7 @@
 from __future__ import absolute_import, print_function
 import re
 from pathlib import Path
+import os
 
 thisFolder = Path(__file__).parent
 rootFolder = thisFolder.parent
@@ -26,8 +27,10 @@ def repl_noncompat(m):
     g = g.replace('`', "'")
     return g.replace('CHANGE', ':noncompat:`CHANGE') + "`\n"
 
+print(thisFolder)
+print(f"looking in {input_path.absolute()} from {os.getcwd()}")
 # raw .txt form of changelog:
-txt = open(input_path, "rU", encoding='utf8').read()
+txt = open(input_path.absolute(), "rU", encoding='utf8').read()
 
 # programmatic replacements:
 hashtag = re.compile(r"([ (]#\d{3,5})\b")

@@ -28,7 +28,7 @@ for ID in catalog.alert:
         if 'versions' in alert:
             f.write(f"PsychoPy versions affected\n")
             f.write(f"---------------------------\n\n")
-            f.write(alert["details"] + "\n\n")
+            f.write(alert["versions"] + "\n\n")
         if 'solutions' in alert:
             f.write(f"Solutions\n")
             f.write(f"-----------\n\n")
