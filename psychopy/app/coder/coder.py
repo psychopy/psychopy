@@ -1030,8 +1030,11 @@ class CodeEditor(BaseCodeEditor):
         elif lexer == 'cpp':
             self.SetKeyWords(0, " ".join(
                 ['typedef', 'if', 'else', 'return', 'struct', 'for', 'while',
-                 'do', 'using namespace', 'uniform', 'varying', 'layout', 'in',
-                 'attribute', 'const']))
+                 'do', 'using', 'namespace', 'uniform', 'varying', 'layout',
+                 'in', 'attribute', 'const', 'function', 'break', 'var',
+                 'delete', 'finally', 'throw', 'try', 'typeof', 'sizeof',
+                 'with', 'new', 'case', 'switch', 'continue', 'catch',
+                 'class', 'import', 'true', 'false', 'NULL', 'let']))
             self.SetKeyWords(1, " ".join(
                 ['int', 'float', 'double', 'char', 'short', 'byte', 'void',
                  'vec2', 'vec3', 'vec4', 'mat3', 'mat4', 'bool', 'sampler',
