@@ -77,6 +77,10 @@
     # Font size (in pts) takes an integer between 6 and 24
     codeFontSize = integer(6,24, default=12)
     # Font size (in pts) takes an integer between 6 and 24
+    # Spacing between lines
+    lineSpacing = integer(0, 64, default=4)
+    # Color theme to use for syntax highlighting
+    theme = option('psychopy', 'wx', 'github', default='psychopy')
     outputFontSize = integer(6,24, default=12)
     # activate the source assistant panel
     showSourceAsst = boolean(default=False)

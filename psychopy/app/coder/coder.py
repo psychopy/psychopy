@@ -9,6 +9,7 @@ from __future__ import absolute_import, print_function
 
 # from future import standard_library
 # standard_library.install_aliases()
+import builtins
 from builtins import chr
 from builtins import str
 from builtins import range
@@ -45,6 +46,7 @@ import psychopy.app.pavlovia_ui.menu
 from psychopy.app.coder.codeEditorBase import BaseCodeEditor
 from psychopy.app.coder.fileBrowser import FileBrowserPanel
 from psychopy.app.coder.sourceTree import SourceTreePanel
+from psychopy.app.coder.editorThemes import applyStyleSpec
 from psychopy.app.icons import combineImageEmblem
 
 # advanced prefs (not set in prefs files)
@@ -509,8 +511,8 @@ class CodeEditor(BaseCodeEditor):
         self.Bind(wx.EVT_KEY_DOWN, self.OnKeyPressed)
 
         # black-and-white text signals read-only file open in Coder window
-        if not readonly:
-            self.setFonts()
+        # if not readonly:
+        #     self.setFonts()
         self.SetDropTarget(FileDropTarget(targetFrame=self.coder))
 
         # set to python syntax code coloring
@@ -524,6 +526,7 @@ class CodeEditor(BaseCodeEditor):
 
         # prevent flickering
         self.SetDoubleBuffered(True)
+        self.SetMarginLeft(6)
 
         # set the current line and column in the status bar
         line = self.GetCurrentLine() + 1
@@ -549,66 +552,24 @@ class CodeEditor(BaseCodeEditor):
         faces['code'] = self.coder.prefs['codeFont']
         # ,'Arial']  # use arial as backup
         faces['comment'] = self.coder.prefs['commentFont']
-        self.StyleSetSpec(wx.stc.STC_STYLE_DEFAULT,
-                          "face:%(code)s,size:%(size)d" % faces)
-        self.StyleClearAll()  # Reset all to be like the default
+        # self.StyleSetSpec(wx.stc.STC_STYLE_DEFAULT,
+        #                   "face:%(code)s,size:%(size)d" % faces)
+        # self.StyleClearAll()  # Reset all to be like the default
 
-        # Global default styles for all languages
-        self.StyleSetSpec(wx.stc.STC_STYLE_DEFAULT,
-                          "face:%(code)s,size:%(size)d" % faces)
-        self.StyleSetSpec(wx.stc.STC_STYLE_LINENUMBER,
-                          "back:#C0C0C0,face:%(code)s,size:%(small)d" % faces)
-        self.StyleSetSpec(wx.stc.STC_STYLE_CONTROLCHAR,
-                          "face:%(comment)s" % faces)
-        self.StyleSetSpec(wx.stc.STC_STYLE_BRACELIGHT,
-                          "fore:#FFFFFF,back:#0000FF,bold")
-        self.StyleSetSpec(wx.stc.STC_STYLE_BRACEBAD,
-                          "fore:#000000,back:#FF0000,bold")
+        # # Global default styles for all languages
+        # self.StyleSetSpec(wx.stc.STC_STYLE_DEFAULT,
+        #                   "face:%(code)s,size:%(size)d" % faces)
+        # self.StyleSetSpec(wx.stc.STC_STYLE_LINENUMBER,
+        #                   "back:#C0C0C0,face:%(code)s,size:%(small)d" % faces)
+        # self.StyleSetSpec(wx.stc.STC_STYLE_CONTROLCHAR,
+        #                   "face:%(comment)s" % faces)
+        # self.StyleSetSpec(wx.stc.STC_STYLE_BRACELIGHT,
+        #                   "fore:#FFFFFF,back:#0000FF,bold")
+        # self.StyleSetSpec(wx.stc.STC_STYLE_BRACEBAD,
+        #                   "fore:#000000,back:#FF0000,bold")
 
-        # Python styles
-        # Default
-        self.StyleSetSpec(wx.stc.STC_P_DEFAULT,
-                          "fore:#000000,face:%(code)s,size:%(size)d" % faces)
-        # Comments
-        self.StyleSetSpec(wx.stc.STC_P_COMMENTLINE,
-                          "fore:#007F00,face:%(comment)s,size:%(size)d" % faces)
-        # Number
-        self.StyleSetSpec(wx.stc.STC_P_NUMBER,
-                          "fore:#007F7F,size:%(size)d" % faces)
-        # String
-        self.StyleSetSpec(wx.stc.STC_P_STRING,
-                          "fore:#7F007F,face:%(code)s,size:%(size)d" % faces)
-        # Single quoted string
-        self.StyleSetSpec(wx.stc.STC_P_CHARACTER,
-                          "fore:#7F007F,face:%(code)s,size:%(size)d" % faces)
-        # Keyword
-        self.StyleSetSpec(wx.stc.STC_P_WORD,
-                          "fore:#00007F,bold,size:%(size)d" % faces)
-        # Triple quotes
-        self.StyleSetSpec(wx.stc.STC_P_TRIPLE,
-                          "fore:#7F0000,size:%(size)d" % faces)
-        # Triple double quotes
-        self.StyleSetSpec(wx.stc.STC_P_TRIPLEDOUBLE,
-                          "fore:#7F0000,size:%(size)d" % faces)
-        # Class name definition
-        self.StyleSetSpec(wx.stc.STC_P_CLASSNAME,
-                          "fore:#0000FF,bold,underline,size:%(size)d" % faces)
-        # Function or method name definition
-        self.StyleSetSpec(wx.stc.STC_P_DEFNAME,
-                          "fore:#007F7F,bold,size:%(size)d" % faces)
-        # Operators
-        self.StyleSetSpec(wx.stc.STC_P_OPERATOR, "bold,size:%(size)d" % faces)
-        # Identifiers
-        self.StyleSetSpec(wx.stc.STC_P_IDENTIFIER,
-                          "fore:#000000,face:%(code)s,size:%(size)d" % faces)
-        # Comment-blocks
-        self.StyleSetSpec(wx.stc.STC_P_COMMENTBLOCK,
-                          "fore:#7F7F7F,size:%(size)d" % faces)
-        # End of line where string is not closed
-        self.StyleSetSpec(wx.stc.STC_P_STRINGEOL,
-                          "fore:#000000,face:%(code)s,back:#E0C0E0,eol,size:%(size)d" % faces)
-
-        self.SetCaretForeground("BLUE")
+        # apply the python themes
+        applyStyleSpec(self, self.coder.prefs['theme'], self.GetLexer(), faces)
 
     def setLexerFromFileName(self):
         """Set the lexer to one that best matches the file name."""
@@ -1048,25 +1009,45 @@ class CodeEditor(BaseCodeEditor):
             lex = getattr(wx.stc, "STC_LEX_%s" % (lexer.upper()))
         except AttributeError:
             logging.warn("Unknown lexer %r. Using 'python'." % lexer)
-            lex = wx.stc.STC_LEX_NULL
+            lex = wx.stc.STC_LEX_PYTHON
             lexer = 'python'
         # then actually set it
         self.SetLexer(lex)
+        self.setFonts()
+
         if lexer == 'python':
             self.SetKeyWords(0, " ".join(keyword.kwlist))
+            self.SetKeyWords(1, " ".join(dir(builtins) + ['self']))
             self.SetIndentationGuides(self.coder.appData['showIndentGuides'])
             self.SetStyleBits(5)  # in case we had html before
-            self.SetProperty("fold", "1")  # wllow folding
+            self.SetProperty("fold", "1")  # allow folding
             self.SetProperty("tab.timmy.whinge.level", "1")
         elif lexer.lower() == 'html':
             self.SetStyleBits(7)  # apprently!
-            self.SetProperty("fold", "1")  # wllow folding
+            self.SetProperty("fold", "1")  # allow folding
             # 4 means 'tabs are bad'; 1 means 'flag inconsistency'
             self.SetProperty("tab.timmy.whinge.level", "1")
+        elif lexer == 'cpp':
+            self.SetKeyWords(0, " ".join(
+                ['typedef', 'if', 'else', 'return', 'struct', 'for', 'while',
+                 'do', 'using namespace', 'uniform', 'varying', 'layout', 'in',
+                 'attribute', 'const']))
+            self.SetKeyWords(1, " ".join(
+                ['int', 'float', 'double', 'char', 'short', 'byte', 'void',
+                 'vec2', 'vec3', 'vec4', 'mat3', 'mat4', 'bool', 'sampler',
+                 'sampler2D']))
+            self.SetIndentationGuides(self.coder.appData['showIndentGuides'])
+            self.SetStyleBits(7)
+            self.SetProperty("fold", "1")
+            self.SetProperty("tab.timmy.whinge.level", "0")
         else:
             self.SetIndentationGuides(0)
             self.SetProperty("tab.timmy.whinge.level", "0")
 
+        # keep text from being squashed and hard to read
+        spacing = self.coder.prefs['lineSpacing'] / 2.
+        self.SetExtraAscent(int(spacing))
+        self.SetExtraDescent(int(spacing))
         self.Colourise(0, -1)
 
     def onModified(self, event):
