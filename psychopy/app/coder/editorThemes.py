@@ -5,7 +5,6 @@ import wx.stc
 
 DEFAULT_CARET_FG_COL = "BLACK"
 
-
 # Mapping between identifiers and style enums for each lexer. This allows a
 # theme to be applied to multiple lexers without needing to specify a theme for
 # each one.
@@ -33,6 +32,10 @@ LEXER_STYLES = {
         'commentline': wx.stc.STC_C_COMMENTLINE,
         'commentdoc': wx.stc.STC_C_COMMENTDOC,
         'commentlinedoc': wx.stc.STC_C_COMMENTLINEDOC,
+        'commentdockeyword': wx.stc.STC_C_COMMENTDOCKEYWORD,
+        'commentdockeyworderror': wx.stc.STC_C_COMMENTDOCKEYWORDERROR,
+        'stringraw': wx.stc.STC_C_STRINGRAW,
+        'uuid': wx.stc.STC_C_UUID,
         'string': wx.stc.STC_C_STRING,
         'character': wx.stc.STC_C_CHARACTER,
         'number': wx.stc.STC_C_NUMBER,
@@ -68,6 +71,7 @@ STYLE_SPEC_LANG = {
             'caretFgCol': "BLUE",
             'selFg': "#000000",
             'selBg': "#C0C0C0",
+            'edgeGuideCol': "#CDCDCD",  # should be the same as the indent guide
             'default': {
                 wx.stc.STC_STYLE_DEFAULT: "face:%(code)s,size:%(size)d",
                 wx.stc.STC_STYLE_CONTROLCHAR: "face:%(comment)s",
@@ -83,13 +87,15 @@ STYLE_SPEC_LANG = {
             'commentline': "fore:#007F00,face:%(comment)s,size:%(size)d",
             'commentblock': "fore:#007F00,face:%(comment)s,size:%(size)d",
             'commentlinedoc': "fore:#007F00,face:%(comment)s,size:%(size)d",
+            'commentdockeyword': "fore:#007F00,bold,face:%(comment)s,size:%(size)d",
+            'commentdockeyworderror': "fore:#007F00,bold,face:%(comment)s,size:%(size)d",
             'string': "fore:#7F007F,face:%(code)s,size:%(size)d",
             'character': "fore:#7F007F,face:%(code)s,size:%(size)d",
             'triple': "fore:#7F0000,size:%(size)d",
             'tripledouble': "fore:#7F0000,size:%(size)d",
             'number': "fore:#007F7F,size:%(size)d",
             'operator': "bold,size:%(size)d",
-            'pyidentifier': "fore:#000000,face:%(code)s,size:%(size)d",  # this looks ugly
+            'pyidentifier': "fore:#000000,face:%(code)s,size:%(size)d",
             'identifier': "fore:#000000,face:%(code)s,size:%(size)d",
             'word': "fore:#00007F,bold,size:%(size)d",
             'word2': "fore:#00007F,bold,size:%(size)d",
@@ -109,6 +115,7 @@ STYLE_SPEC_LANG = {
             'caretFgCol': "BLUE",
             'selFg': "#000000",
             'selBg': "#66CCFF",
+            'edgeGuideCol': "#CDCDCD",
             'default': {
                 wx.stc.STC_STYLE_DEFAULT: "face:%(code)s,size:%(size)d",
                 wx.stc.STC_STYLE_LINENUMBER: 'fore:#000000,back:#99A9C2',
@@ -119,16 +126,20 @@ STYLE_SPEC_LANG = {
         'lexerStyles': {
             'default': "fore:#000000,face:%(code)s,size:%(size)d",
             'comment': "fore:#008000,back:#F0FFF0',size:%(size)d",
-            'commentline': "fore:#008000,back:#F0FFF0',size:%(size)d",
-            'commentblock': "fore:#008000,back:#F0FFF0',size:%(size)d",
-            'commentlinedoc': "fore:#008000,back:#F0FFF0',size:%(size)d",
+            'commentline': "fore:#008000,back:#F0FFF0,size:%(size)d",
+            'commentblock': "fore:#008000,back:#F0FFF0,size:%(size)d",
+            'commentlinedoc': "fore:#008000,back:#F0FFF0,size:%(size)d",
+            'commentdockeyword':
+                "fore:#008000,back:#F0FFF0,bold,face:%(comment)s,size:%(size)d",
+            'commentdockeyworderror':
+                "fore:#008000,back:#F0FFF0,bold,face:%(comment)s,size:%(size)d",
             'string': "fore:#800080,face:%(code)s,size:%(size)d",
             'character': "fore:#800080,face:%(code)s,size:%(size)d",
             'triple': "fore:#800080,back:#FFFFEA,size:%(size)d",
             'tripledouble': "fore:#800080,back:#FFFFEA,size:%(size)d",
             'number': "fore:#005cc5,size:%(size)d",
             'operator': "fore:#800000,bold,size:%(size)d",
-            'pyidentifier': "fore:#000000,face:%(code)s,size:%(size)d",  # this looks ugly
+            'pyidentifier': "fore:#000000,face:%(code)s,size:%(size)d",
             'identifier': "fore:#000000,face:%(code)s,size:%(size)d",
             'word': "fore:#000080,bold,size:%(size)d",
             'word2': "fore:#800080,size:%(size)d",
@@ -145,9 +156,10 @@ STYLE_SPEC_LANG = {
     },
     'github': {  # github style
         'editor': {  # editor default styles, applied before lexer specific
-            'caretFgCol': "BLACK",
+            'caretFgCol': DEFAULT_CARET_FG_COL,
             'selFg': '#000000',
             'selBg': '#add2fc',
+            'edgeGuideCol': "#eeeeee",
             'default': {
                 wx.stc.STC_STYLE_DEFAULT: "fore:#000000,face:%(code)s,size:%(size)d",
                 wx.stc.STC_STYLE_LINENUMBER: 'fore:#B0B0B0',
@@ -162,6 +174,12 @@ STYLE_SPEC_LANG = {
             'commentline': "fore:#969896,face:%(comment)s,size:%(size)d",
             'commentblock': "fore:#969896,face:%(comment)s,size:%(size)d",
             'commentlinedoc': "fore:#969896,face:%(comment)s,size:%(size)d",
+            'commentdockeyword':
+                "fore:#969896,bold,face:%(comment)s,size:%(size)d",
+            'commentdockeyworderror':
+                "fore:#969896,bold,face:%(comment)s,size:%(size)d",
+            'stringraw':
+                "fore:#969896,bold,face:%(comment)s,size:%(size)d",
             'string': "fore:#032f62,face:%(code)s,size:%(size)d",
             'character': "fore:#032f62,face:%(code)s,size:%(size)d",
             'triple': "fore:#032f62,face:%(code)s,size:%(size)d",
@@ -213,12 +231,17 @@ def applyStyleSpec(editor, theme, lexer, faces):
 
     # set the cursor
     try:
+        editor.SetCaretForeground(styles['editor']['caretFgCol'])
+    except KeyError:
+        editor.SetCaretForeground(DEFAULT_CARET_FG_COL)
+
+    # set selection background according to theme
+    try:
         editor.SetSelForeground(True, styles['editor']['selFg'])
     except KeyError:
         editor.SetSelForeground(
             wx.SystemSettings.GetColour(wx.SYS_COLOUR_HIGHLIGHTTEXT))
 
-    # set selection background according to theme
     try:
         editor.SetSelBackground(True, styles['editor']['selBg'])
     except KeyError:
@@ -231,9 +254,13 @@ def applyStyleSpec(editor, theme, lexer, faces):
             continue  # if None, use default
         editor.StyleSetSpec(enum, style % faces)
 
-    #SetEdgeColour(self, edgeColour)
-    # set all the code styles
+    try:
+        edgeGuideCol = styles['editor']['edgeGuideCol']
+        editor.SetEdgeColour(edgeGuideCol)
+    except KeyError:
+        pass
 
+    # set all the code styles
     lexerStyles = styles['lexerStyles']
 
     for key, style in lexerStyles.items():

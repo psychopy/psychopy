@@ -12,7 +12,9 @@ from collections import deque
 from psychopy.app.coder.psychoParser import parsePyScript
 
 import wx
+import wx.stc
 import os
+import re
 
 
 class SourceTreePanel(wx.Panel):
@@ -80,8 +82,8 @@ class SourceTreePanel(wx.Panel):
         item = evt.GetItem()
         itemData = self.srcTree.GetItemData(item)
         if itemData is not None:
-            self.coder.currentDoc.SetFirstVisibleLine(itemData[3] - 2)
-            self.coder.currentDoc.GotoLine(itemData[3] - 1)
+            self.coder.currentDoc.SetFirstVisibleLine(itemData[2] - 1)
+            self.coder.currentDoc.GotoLine(itemData[2])
             #self.coder.currentDoc.SetSTCFocus(True)
             wx.CallAfter(self.coder.currentDoc.SetFocus)
         else:
@@ -94,12 +96,12 @@ class SourceTreePanel(wx.Panel):
     def OnItemExpanded(self, evt):
         itemData = self.srcTree.GetItemData(evt.GetItem())
         if itemData is not None:
-            self.coder.currentDoc.expandedItems[itemData[:3]] = True
+            self.coder.currentDoc.expandedItems[itemData] = True
 
     def OnItemCollapsed(self, evt):
         itemData = self.srcTree.GetItemData(evt.GetItem())
         if itemData is not None:
-            self.coder.currentDoc.expandedItems[itemData[:3]] = False
+            self.coder.currentDoc.expandedItems[itemData] = False
 
     def GetScrollVert(self):
         """Get the vertical scrolling position fo the tree. This is used to
@@ -108,65 +110,91 @@ class SourceTreePanel(wx.Panel):
         document, which may be jarring for users."""
         return self.srcTree.GetScrollPos(wx.VERTICAL)
 
-    def createPySourceTree(self):
+    def refresh(self):
+        """Update the source tree using the current document. Examines all the
+        fold levels and tries to create a tree with them."""
+        doc = self.coder.currentDoc
+        if doc is None:
+            return
+
+        # check if we can parse this file
+        if self.coder.currentDoc.GetLexer() not in [wx.stc.STC_LEX_PYTHON]:
+            self.srcTree.DeleteAllItems()
+            root = self.srcTree.AddRoot(
+                'Source tree unavailable for this file type.')
+            self.srcTree.SetItemImage(
+                root, self._treeGfx['noDoc'],
+                wx.TreeItemIcon_Normal)
+            return
+
+        # Go over file and get all the folds.
+        # We do this instead of parsing the files ourselves since Scintilla
+        # lexers are probably better than anything *I* can come up with. -mdc
+        foldLines = []
+        for lineno in range(doc.GetLineCount()):
+            foldLevelFlags = doc.GetFoldLevel(lineno)
+            foldLevel = \
+                (foldLevelFlags & wx.stc.STC_FOLDLEVELNUMBERMASK) - \
+                wx.stc.STC_FOLDLEVELBASE  # offset
+            isFoldStart = (foldLevelFlags & wx.stc.STC_FOLDLEVELHEADERFLAG) > 0
+
+            if isFoldStart:
+                foldLines.append(
+                    (foldLevel, lineno, doc.GetLineText(lineno).lstrip()))
+
+        # build the trees for the given language
+        if self.coder.currentDoc.GetLexer() == wx.stc.STC_LEX_PYTHON:
+            indent = doc.GetIndent()
+            # filter out only definitions
+            defineList = []
+            lastItem = None
+            for df in foldLines:
+                if not (df[2].startswith('class ') or
+                        df[2].startswith('def ')):
+                    continue
+
+                if lastItem is not None:
+                    if df[0] > lastItem[3] + indent:
+                        continue
+
+                # slice off comment
+                lineText = df[2].split('#')[0]
+                lineTokens = [
+                    tok.strip() for tok in re.split(' |\(|\)', lineText) if tok]
+                defType, defName = lineTokens[:2]
+
+                lastItem = (defType, defName, df[1], df[0])
+                defineList.append(lastItem)
+
+            self.createPySourceTree(defineList, doc.GetIndent())
+
+    def createPySourceTree(self, foldDefs, indents=4):
         """Create a Python source tree. This is called when code analysis runs
         and the document type is 'Python'.
         """
         # create the root item which is just the file name
+        self.srcTree.Freeze()
+        self.srcTree.DeleteAllItems()
         self.root = self.srcTree.AddRoot(self.coder.currentDoc.filename)
         self.srcTree.SetItemImage(
             self.root, self._treeGfx['pyModule'], wx.TreeItemIcon_Normal)
 
-        # get the tokens for this document
-        tokens = parsePyScript(self.coder.currentDoc.GetText())
-
-        # split off imports and definitions, these are treated differently
-        # importStmts = []
-        defStmts = []
-        for tok in tokens:
-            # if tok[0] == 'import' or tok[0] == 'from' or tok[0] == 'importas':
-            #    if tok[2] == 0:
-            #        importStmts.append(tok)
-            # else:
-                defStmts.append(tok)
-
-        # # create the entry for imports
-        # importItemIdx = self.srcTree.AppendItem(root, '<imports>')
-        # # keep track of imports already added for grouping
-        # importGroups = {}
-        # for i, tok in enumerate(importStmts):
-        #     if tok[0] == 'import':
-        #         itemIdx = self.srcTree.AppendItem(importItemIdx, tok[1])
-        #         self.srcTree.SetItemImage(
-        #             itemIdx, _treeGfx[tok[0]], wx.TreeItemIcon_Normal)
-        #         self.srcTree.SetItemData(itemIdx, tok)
-        #     elif tok[0] == 'importas':
-        #         itemIdx = self.srcTree.AppendItem(importItemIdx, tok[1])
-        #         self.srcTree.SetItemImage(
-        #             itemIdx, _treeGfx['import'], wx.TreeItemIcon_Normal)
-        #         self.srcTree.SetItemData(itemIdx, tok)
-        #         subItemIdx = self.srcTree.AppendItem(itemIdx, tok[-1])
-        #         self.srcTree.SetItemImage(
-        #             subItemIdx, _treeGfx['attr'], wx.TreeItemIcon_Normal)
-        #         self.srcTree.SetItemData(subItemIdx, tok)
-
-        # build the tree for def statements
+        # start building the source tree
         nodes = deque([self.root])
-        for i, tok in enumerate(defStmts):
-            if tok[0] == 'import':
-                continue
+        for i, foldLine in enumerate(foldDefs):
+            defType, defName, lineno, foldLevel = foldLine
+            foldLevel = int(foldLevel / indents)
             # Get the next level of the tree, we use this to determine if we
             # should create a new level or move down a few.
             try:
-                lookAheadLevel = defStmts[i + 1][2]
+                lookAheadLevel = int(foldDefs[i + 1][3] / indents)
             except IndexError:
                 lookAheadLevel = 0
 
-            # add a node
             try:
                 # catch an error if the deque is empty, this means something
                 # went wrong
-                itemIdx = self.srcTree.AppendItem(nodes[0], tok[1])
+                itemIdx = self.srcTree.AppendItem(nodes[0], defName)
             except IndexError:
                 self.srcTree.DeleteAllItems()
                 root = self.srcTree.AddRoot(
@@ -177,22 +205,24 @@ class SourceTreePanel(wx.Panel):
                 return
 
             self.srcTree.SetItemImage(
-                itemIdx, self._treeGfx[tok[0]], wx.TreeItemIcon_Normal)
-            self.srcTree.SetItemData(itemIdx, tok)
+                itemIdx, self._treeGfx[defType], wx.TreeItemIcon_Normal)
+            self.srcTree.SetItemData(itemIdx, foldLine)
 
-            if lookAheadLevel > tok[2]:
+            if lookAheadLevel > foldLevel:
                 # create a new branch if the next item is at higher indent level
                 nodes.appendleft(itemIdx)
-            elif lookAheadLevel < tok[2]:
+            elif lookAheadLevel < foldLevel:
                 # remove nodes to match next indent level
-                indentDiff = tok[2] - lookAheadLevel
-                for _ in range(indentDiff):
+                indentDiff = foldLevel - lookAheadLevel
+                for _ in range(int(indentDiff)):
                     # check if we need to expand the item we dropped down from
                     itemData = self.srcTree.GetItemData(nodes[0])
                     if itemData is not None:
                         try:
-                            if self.coder.currentDoc.expandedItems[itemData[:3]]:
+                            if self.coder.currentDoc.expandedItems[itemData]:
                                 self.srcTree.Expand(nodes.popleft())
+                            else:
+                                nodes.popleft()
                         except KeyError:
                             if len(nodes) > 1:
                                 nodes.popleft()
@@ -206,32 +236,11 @@ class SourceTreePanel(wx.Panel):
                                 return
 
         # clean up expanded items list
-        addedItems = [tok[:3] for tok in tokens]
         temp = dict(self.coder.currentDoc.expandedItems)
         for itemData in self.coder.currentDoc.expandedItems.keys():
-            if itemData not in addedItems:
+            if itemData not in foldDefs:
                 del temp[itemData]
         self.coder.currentDoc.expandedItems = temp
 
         self.srcTree.Expand(self.root)
-
-    def createItems(self):
-        """Walk through all the nodes in the AST and create tree items.
-        """
-        if self.coder.currentDoc is None:
-            return
-
-        self.srcTree.Freeze()
-        self.srcTree.DeleteAllItems()
-
-        if self.coder.currentDoc.getFileType() != 'Python':
-            root = self.srcTree.AddRoot(
-                'Source tree not available for this type of file.')
-            self.srcTree.SetItemImage(
-                root, self._treeGfx['noDoc'], wx.TreeItemIcon_Normal)
-            self.srcTree.Thaw()
-            return
-
-        self.createPySourceTree()  # only one for now
-
         self.srcTree.Thaw()

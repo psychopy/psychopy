@@ -804,7 +804,7 @@ class CodeEditor(BaseCodeEditor):
 
     def OnMarginClick(self, evt):
         # fold and unfold as needed
-        if evt.GetMargin() == 2:
+        if evt.GetMargin() == 1:
             if evt.GetShift() and evt.GetControl():
                 self.FoldAll()
             else:
@@ -937,7 +937,7 @@ class CodeEditor(BaseCodeEditor):
         """
         # scan the AST for objects we care about
         if hasattr(self.coder, 'sourceAsstWindow'):
-            self.coder.sourceAsstWindow.createItems()
+            self.coder.sourceAsstWindow.refresh()
             self.coder.sourceAsstWindow.srcTree.SetScrollPos(
                 self.sourceAsstScroll, wx.VERTICAL)
 
@@ -972,14 +972,20 @@ class CodeEditor(BaseCodeEditor):
             self.SetKeyWords(0, " ".join(
                 ['typedef', 'if', 'else', 'return', 'struct', 'for', 'while',
                  'do', 'using', 'namespace', 'uniform', 'varying', 'layout',
-                 'in', 'attribute', 'const', 'function', 'break', 'var',
+                 'in', 'attribute', 'function', 'break', 'var', 'enum',
                  'delete', 'finally', 'throw', 'try', 'typeof', 'sizeof',
                  'with', 'new', 'case', 'switch', 'continue', 'catch',
-                 'class', 'import', 'true', 'false', 'NULL', 'let']))
+                 'class', 'import', 'true', 'false', 'NULL', 'let', 'union']))
             self.SetKeyWords(1, " ".join(
                 ['int', 'float', 'double', 'char', 'short', 'byte', 'void',
                  'vec2', 'vec3', 'vec4', 'mat3', 'mat4', 'bool', 'sampler',
-                 'sampler2D']))
+                 'sampler2D', 'const', 'unsigned', 'signed']))
+            self.SetIndentationGuides(self.coder.appData['showIndentGuides'])
+
+            self.SetProperty("fold", "1")
+            self.SetProperty("tab.timmy.whinge.level", "1")
+        elif lexer == 'R':
+            self.SetKeyWords(0, " ".join(['function']))
             self.SetIndentationGuides(self.coder.appData['showIndentGuides'])
 
             self.SetProperty("fold", "1")
@@ -2530,7 +2536,7 @@ class CoderFrame(wx.Frame):
             self.sourceAsstWindow.srcTree.DeleteAllItems()
         else:
             self.currentDoc = self.notebook.GetPage(newPageID)
-            self.sourceAsstWindow.createItems()
+            self.sourceAsstWindow.refresh()
             # set to current file status
             self.setFileModified(self.currentDoc.UNSAVED)
         # return 1
