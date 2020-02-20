@@ -722,8 +722,14 @@ class CodeEditor(BaseCodeEditor):
             self.analyseScript()
             return  # so that we don't reach the skip line at end
 
+        # deindent when hitting backspace on margin whitespace
         if keyCode == wx.WXK_BACK:
-            pass
+            _, column, lineno = self.PositionToXY(self.GetCurrentPos())
+            indentColumn = self.GetColumn(self.GetLineIndentPosition(lineno))
+            if (indentColumn % self.GetIndent()) == 0 and 0 < column <= indentColumn:
+                event.Skip(False)
+                self.CmdKeyExecute(wx.stc.STC_CMD_BACKTAB)
+                return
 
         event.Skip()
 
