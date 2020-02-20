@@ -46,7 +46,7 @@ Example usage
 
     # during your trial
     kb.clock.reset()  # when you want to start the timer from
-    keys = kb.getKeys(['right', 'left', 'quit'], waitDuration=True)
+    keys = kb.getKeys(['right', 'left', 'quit'], waitRelease=True)
     if 'quit' in keys:
         core.quit()
     for key in keys:
@@ -442,9 +442,9 @@ keyNamesWin = {
     77: 'm', 78: 'n', 79: 'o', 80: 'p', 81: 'q', 82: 'r',
     83: 's', 84: 't', 85: 'u', 86: 'v', 87: 'w', 88: 'x',
     89: 'y', 90: 'z',
-    97: 'end', 98: 'down', 99: 'pagedown',
-    100: 'left', 101: 'right', 102: 'right', 103: 'home',
-    104: 'up', 105: 'pageup', 96: 'insert',
+    97: 'num_1', 98: 'num_2', 99: 'num_3',
+    100: 'num_4', 101: 'num_5', 102: 'num_6', 103: 'num_7',
+    104: 'num_8', 105: 'num_9', 96: 'num_0',
     112: 'f1', 113: 'f2', 114: 'f3', 115: 'f4', 116: 'f5',
     117: 'f6', 118: 'f7', 119: 'f8', 120: 'f9', 121: 'f10',
     122: 'f11', 123: 'f12',
