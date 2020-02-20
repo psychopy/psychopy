@@ -11,10 +11,7 @@ from __future__ import absolute_import, print_function
 # standard_library.install_aliases()
 import builtins
 from builtins import chr
-from builtins import str
 from builtins import range
-import time
-import types
 import wx
 import wx.stc
 import wx.richtext
@@ -506,7 +503,7 @@ class CodeEditor(BaseCodeEditor):
         self.SetViewEOL(self.coder.appData['showEOLs'])
         self.Bind(wx.EVT_DROP_FILES, self.coder.filesDropped)
         self.Bind(wx.stc.EVT_STC_MODIFIED, self.onModified)
-        # self.Bind(wx.stc.EVT_STC_UPDATEUI, self.OnUpdateUI)
+        self.Bind(wx.stc.EVT_STC_UPDATEUI, self.OnUpdateUI)
         self.Bind(wx.stc.EVT_STC_MARGINCLICK, self.OnMarginClick)
         self.Bind(wx.EVT_KEY_DOWN, self.OnKeyPressed)
 
@@ -524,14 +521,42 @@ class CodeEditor(BaseCodeEditor):
         self.expandedItems = {}
         self.sourceAsstScroll = 0
 
-        # prevent flickering
+        # show the long line edge guide, enabled if >0
+        self.edgeGuideColumn = self.coder.prefs['edgeGuideColumn']
+        self.edgeGuideVisible = self.edgeGuideColumn > 0
+
+        # prevent flickering on update
         self.SetDoubleBuffered(True)
-        self.SetMarginLeft(6)
+
+        # give a little space between the margin and text
+        self.SetMarginLeft(4)
+
+        # caret info, these are updated by calling updateCaretInfo()
+        self.indentSize = self.GetIndent()
+        self.caretCurrentPos = self.GetCurrentPos()
+        self.caretVisible, self.caretColumn, self.caretLine = \
+            self.PositionToXY(self.caretCurrentPos)
+
+        # where does the line text start?
+        self.caretLineIndentCol = \
+            self.GetColumn(self.GetLineIndentPosition(self.caretLine))
+
+        # what is the indent level of the line the caret is located
+        self.caretLineIndentLevel = self.caretLineIndentCol / self.indentSize
+
+        # is the caret at an indentation level?
+        self.caretAtIndentLevel = \
+            (self.caretLineIndentCol % self.indentSize) == 0
+
+        # should hitting backspace result in an untab?
+        self.shouldBackspaceUntab = \
+            self.caretAtIndentLevel and \
+            0 < self.caretColumn <= self.caretLineIndentCol
 
         # set the current line and column in the status bar
-        line = self.GetCurrentLine() + 1
-        col = self.GetColumn(self.GetCurrentPos()) + 1
-        self.coder.SetStatusText('Line: {} Col: {}'.format(line, col), 1)
+        self.coder.SetStatusText(
+            'Line: {} Col: {}'.format(
+                self.caretLine + 1, self.caretColumn + 1), 1)
 
     def setFonts(self):
         """Make some styles,  The lexer defines what each style is used for,
@@ -552,23 +577,8 @@ class CodeEditor(BaseCodeEditor):
         faces['code'] = self.coder.prefs['codeFont']
         # ,'Arial']  # use arial as backup
         faces['comment'] = self.coder.prefs['commentFont']
-        # self.StyleSetSpec(wx.stc.STC_STYLE_DEFAULT,
-        #                   "face:%(code)s,size:%(size)d" % faces)
-        # self.StyleClearAll()  # Reset all to be like the default
 
-        # # Global default styles for all languages
-        # self.StyleSetSpec(wx.stc.STC_STYLE_DEFAULT,
-        #                   "face:%(code)s,size:%(size)d" % faces)
-        # self.StyleSetSpec(wx.stc.STC_STYLE_LINENUMBER,
-        #                   "back:#C0C0C0,face:%(code)s,size:%(small)d" % faces)
-        # self.StyleSetSpec(wx.stc.STC_STYLE_CONTROLCHAR,
-        #                   "face:%(comment)s" % faces)
-        # self.StyleSetSpec(wx.stc.STC_STYLE_BRACELIGHT,
-        #                   "fore:#FFFFFF,back:#0000FF,bold")
-        # self.StyleSetSpec(wx.stc.STC_STYLE_BRACEBAD,
-        #                   "fore:#000000,back:#FF0000,bold")
-
-        # apply the python themes
+        # apply the theme to the lexer
         applyStyleSpec(self, self.coder.prefs['theme'], self.GetLexer(), faces)
 
     def setLexerFromFileName(self):
@@ -577,6 +587,7 @@ class CodeEditor(BaseCodeEditor):
         lexers = {'Python': 'python',
                   'HTML': 'html',
                   'C/C++': 'cpp',
+                  'GLSL': 'cpp',
                   'MATLAB': 'matlab',
                   'YAML': 'yaml',
                   'R': 'R',
@@ -724,9 +735,7 @@ class CodeEditor(BaseCodeEditor):
 
         # deindent when hitting backspace on margin whitespace
         if keyCode == wx.WXK_BACK:
-            _, column, lineno = self.PositionToXY(self.GetCurrentPos())
-            indentColumn = self.GetColumn(self.GetLineIndentPosition(lineno))
-            if (indentColumn % self.GetIndent()) == 0 and 0 < column <= indentColumn:
+            if self.shouldBackspaceUntab:
                 event.Skip(False)
                 self.CmdKeyExecute(wx.stc.STC_CMD_BACKTAB)
                 return
@@ -768,112 +777,30 @@ class CodeEditor(BaseCodeEditor):
         else:
             self.BraceHighlight(braceAtCaret, braceOpposite)
 
-        # set the current line and column in the status bar
-        line = self.GetCurrentLine() + 1
-        col = self.GetColumn(self.GetCurrentPos()) + 1
-        self.coder.SetStatusText('Line: {} Col: {}'.format(line, col), 1)
+        # Update data about caret position, this can be done once per UI update
+        # to eliminate the need to recalculate these values when needed
+        # elsewhere.
+        self.updateCaretInfo()
 
-    #
-    # The code to handle the Source Assistant (using introspect) was broken and removed in 1.90.0
-    #     if self.coder.prefs['showSourceAsst']:
-    #         # check current word including .
-    #         if charBefore == ord('('):
-    #             startPos = self.WordStartPosition(caretPos - 2, True)
-    #             endPos = caretPos - 1
-    #         else:
-    #             startPos = self.WordStartPosition(caretPos, True)
-    #             endPos = self.WordEndPosition(caretPos, True)
-    #         # extend starPos back to beginning of class separated by .
-    #         while self.GetCharAt(startPos - 1) == ord('.'):
-    #             startPos = self.WordStartPosition(startPos - 1, True)
-    #         # now retrieve word
-    #         currWord = self.GetTextRange(startPos, endPos)
-    #
-    #         # lookfor word in dictionary
-    #         if currWord in self.autoCompleteDict:
-    #             helpText = self.autoCompleteDict[currWord]['help']
-    #             thisIs = self.autoCompleteDict[currWord]['is']
-    #             thisType = self.autoCompleteDict[currWord]['type']
-    #             thisAttrs = self.autoCompleteDict[currWord]['attrs']
-    #             if type(thisIs) == str:  # if this is a module
-    #                 searchFor = thisIs
-    #             else:
-    #                 searchFor = currWord
-    #         else:
-    #             helpText = None
-    #             thisIs = None
-    #             thisAttrs = None
-    #             thisType = None
-    #             searchFor = currWord
-    #
-    #         if self.prevWord != currWord:
-    #             # if we have a class or function then use introspect (because
-    #             # it retrieves args as well as __doc__)
-    #             if thisType is not 'instance':
-    #                 wd, kwArgs, helpText = introspect.getCallTip(
-    #                     searchFor, locals=self.locals)
-    #             # then pass all info to sourceAsst
-    #             # for an instance inclue known attrs
-    #             self.updateSourceAsst(
-    #                 currWord, thisIs, helpText, thisType, thisAttrs)
-    #
-    #             self.prevWord = currWord  # update for next time
-    #
-    # def updateSourceAsst(self, currWord, thisIs, helpText, thisType=None,
-    #                      knownAttrs=None):
-    #         # update the source assistant window
-    #     sa = self.coder.sourceAsstWindow
-    #     assert isinstance(sa, wx.richtext.RichTextCtrl)
-    #     # clear the buffer
-    #     sa.Clear()
-    #
-    #     # add current symbol
-    #     sa.BeginBold()
-    #     sa.WriteText('Symbol: ')
-    #     sa.BeginTextColour('BLUE')
-    #     sa.WriteText(currWord + '\n')
-    #     sa.EndTextColour()
-    #     sa.EndBold()
-    #
-    #     # add expected type
-    #     sa.BeginBold()
-    #     sa.WriteText('is: ')
-    #     sa.EndBold()
-    #     if thisIs:
-    #         sa.WriteText(str(thisIs) + '\n')
-    #     else:
-    #         sa.WriteText('\n')
-    #
-    #     # add expected type
-    #     sa.BeginBold()
-    #     sa.WriteText('type: ')
-    #     sa.EndBold()
-    #     if thisIs:
-    #         sa.WriteText(str(thisType) + '\n')
-    #     else:
-    #         sa.WriteText('\n')
-    #
-    #     # add help text
-    #     sa.BeginBold()
-    #     sa.WriteText('Help:\n')
-    #     sa.EndBold()
-    #     if helpText:
-    #         sa.WriteText(helpText + '\n')
-    #     else:
-    #         sa.WriteText('\n')
-    #
-    #     # add attrs
-    #     sa.BeginBold()
-    #     sa.WriteText('Known methods:\n')
-    #     sa.EndBold()
-    #     if knownAttrs:
-    #         if len(knownAttrs) > 500:
-    #             sa.WriteText('\ttoo many to list (i.e. more than 500)!!\n')
-    #         else:
-    #             for thisAttr in knownAttrs:
-    #                 sa.WriteText('\t' + thisAttr + '\n')
-    #     else:
-    #         sa.WriteText('\n')
+        # set the current line and column in the status bar
+        self.coder.SetStatusText('Line: {} Col: {}'.format(
+            self.caretLine + 1, self.caretColumn + 1), 1)
+
+    def updateCaretInfo(self):
+        """Update information related to the current caret position in the
+        text."""
+        self.indentSize = self.GetIndent()
+        self.caretCurrentPos = self.GetCurrentPos()
+        self.caretVisible, self.caretColumn, self.caretLine = \
+            self.PositionToXY(self.caretCurrentPos)
+        self.caretLineIndentCol = \
+            self.GetColumn(self.GetLineIndentPosition(self.caretLine))
+        self.caretLineIndentLevel = self.caretLineIndentCol / self.indentSize
+        self.caretAtIndentLevel = \
+            (self.caretLineIndentCol % self.indentSize) == 0
+        self.shouldBackspaceUntab = \
+            self.caretAtIndentLevel and \
+            0 < self.caretColumn <= self.caretLineIndentCol
 
     def OnMarginClick(self, evt):
         # fold and unfold as needed
@@ -956,6 +883,25 @@ class CodeEditor(BaseCodeEditor):
                 line += 1
         return line
 
+    @property
+    def edgeGuideVisible(self):
+        return self.GetEdgeMode() != wx.stc.STC_EDGE_NONE
+
+    @edgeGuideVisible.setter
+    def edgeGuideVisible(self, value):
+        if value is True:
+            self.SetEdgeMode(wx.stc.STC_EDGE_LINE)
+        else:
+            self.SetEdgeMode(wx.stc.STC_EDGE_NONE)
+
+    @property
+    def edgeGuideColumn(self):
+        return self.GetEdgeColumn()
+
+    @edgeGuideColumn.setter
+    def edgeGuideColumn(self, value):
+        self.SetEdgeColumn(value)
+
     def commentLines(self):
         # used for the comment/uncomment machinery from ActiveGrid
         newText = ""
@@ -994,6 +940,10 @@ class CodeEditor(BaseCodeEditor):
             self.SetZoom(self.GetZoom())
         else:
             self.SetZoom(self.GetZoom() - 1)
+
+    def resetFontSize(self):
+        """Reset the zoom level."""
+        self.SetZoom(0)
 
     # the Source Assistant and introspection functinos were broekn and removed frmo PsychoPy 1.90.0
     def analyseScript(self):
@@ -1250,8 +1200,6 @@ class CoderFrame(wx.Frame):
                                  CloseButton(False).
                                  Bottom())
 
-        _style = wx.TE_MULTILINE | wx.TE_READONLY | wx.VSCROLL
-
         self.outputWindow = self.app.runner.stdOut
         self.outputWindow.write(_translate('Welcome to PsychoPy3!') + '\n')
         self.outputWindow.write("v%s\n" % self.app.version)
@@ -1497,6 +1445,11 @@ class CoderFrame(wx.Frame):
                            _translate("Decrease font size"),
                            wx.ITEM_NORMAL)
         self.Bind(wx.EVT_MENU, self.smallFont, id=item.GetId())
+        item = menu.Append(wx.ID_ANY,
+                           "Reset font",
+                           _translate("Return fonts to their original size."),
+                           wx.ITEM_NORMAL)
+        self.Bind(wx.EVT_MENU, self.resetFont, id=item.GetId())
         menu.AppendSeparator()
 
         # submenu for changing working directory
@@ -2357,9 +2310,7 @@ class CoderFrame(wx.Frame):
                 self.currentDoc.SetText("")
             self.currentDoc.EmptyUndoBuffer()
 
-            # line numbers in the margin
-            self.currentDoc.SetMarginType(1, wx.stc.STC_MARGIN_NUMBER)
-            self.currentDoc.SetMarginWidth(1, 32)
+
             # set name for an untitled document
             if filename == "":
                 filename = shortName = 'untitled.py'
@@ -2670,6 +2621,9 @@ class CoderFrame(wx.Frame):
 
     def smallFont(self, event):
         self.currentDoc.decreaseFontSize()
+
+    def resetFont(self, event):
+        self.currentDoc.resetFontSize()
 
     def foldAll(self, event):
         self.currentDoc.FoldAll()

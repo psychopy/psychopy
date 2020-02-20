@@ -79,6 +79,8 @@
     # Font size (in pts) takes an integer between 6 and 24
     # Spacing between lines
     lineSpacing = integer(0, 64, default=4)
+    # Long line edge guide, specify zero to disable
+    edgeGuideColumn = integer(0, 65536, default=80)
     # Color theme to use for syntax highlighting
     theme = option('psychopy', 'wx', 'github', default='psychopy')
     outputFontSize = integer(6,24, default=12)

@@ -51,11 +51,15 @@ class BaseCodeEditor(wx.stc.StyledTextCtrl):
         self.SetBufferedDraw(False)
         self.SetEOLMode(wx.stc.STC_EOL_LF)
 
+        # setup margins for line numbers
+        self.SetMarginType(0, wx.stc.STC_MARGIN_NUMBER)
+        self.SetMarginWidth(0, 40)
+
         # Setup a margin to hold fold markers
-        self.SetMarginType(2, wx.stc.STC_MARGIN_SYMBOL)
-        self.SetMarginMask(2, wx.stc.STC_MASK_FOLDERS)
-        self.SetMarginSensitive(2, True)
-        self.SetMarginWidth(2, 12)
+        self.SetMarginType(1, wx.stc.STC_MARGIN_SYMBOL)
+        self.SetMarginMask(1, wx.stc.STC_MASK_FOLDERS)
+        self.SetMarginSensitive(1, True)
+        self.SetMarginWidth(1, 12)
 
         self.MarkerDefine(wx.stc.STC_MARKNUM_FOLDEROPEN,
                           wx.stc.STC_MARK_BOXMINUS, "white", "#808080")

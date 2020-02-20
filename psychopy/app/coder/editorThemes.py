@@ -5,6 +5,10 @@ import wx.stc
 
 DEFAULT_CARET_FG_COL = "BLACK"
 
+
+# Mapping between identifiers and style enums for each lexer. This allows a
+# theme to be applied to multiple lexers without needing to specify a theme for
+# each one.
 LEXER_STYLES = {
     wx.stc.STC_LEX_PYTHON: {
         'default': wx.stc.STC_P_DEFAULT,
@@ -102,7 +106,7 @@ STYLE_SPEC_LANG = {
     },
     'wx': {  # wxPython demo style
         'editor': {  # editor default styles, applied before lexer specific
-            'caretFgCol': "BLACK",
+            'caretFgCol': "BLUE",
             'selFg': "#000000",
             'selBg': "#66CCFF",
             'default': {
@@ -223,6 +227,8 @@ def applyStyleSpec(editor, theme, lexer, faces):
 
     # apply the default editor styles
     for enum, style in styles['editor']['default'].items():
+        if style is None:
+            continue  # if None, use default
         editor.StyleSetSpec(enum, style % faces)
 
     # set all the code styles
