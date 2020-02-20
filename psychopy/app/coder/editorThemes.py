@@ -231,6 +231,7 @@ def applyStyleSpec(editor, theme, lexer, faces):
             continue  # if None, use default
         editor.StyleSetSpec(enum, style % faces)
 
+    #SetEdgeColour(self, edgeColour)
     # set all the code styles
 
     lexerStyles = styles['lexerStyles']

@@ -883,25 +883,6 @@ class CodeEditor(BaseCodeEditor):
                 line += 1
         return line
 
-    @property
-    def edgeGuideVisible(self):
-        return self.GetEdgeMode() != wx.stc.STC_EDGE_NONE
-
-    @edgeGuideVisible.setter
-    def edgeGuideVisible(self, value):
-        if value is True:
-            self.SetEdgeMode(wx.stc.STC_EDGE_LINE)
-        else:
-            self.SetEdgeMode(wx.stc.STC_EDGE_NONE)
-
-    @property
-    def edgeGuideColumn(self):
-        return self.GetEdgeColumn()
-
-    @edgeGuideColumn.setter
-    def edgeGuideColumn(self, value):
-        self.SetEdgeColumn(value)
-
     def commentLines(self):
         # used for the comment/uncomment machinery from ActiveGrid
         newText = ""
@@ -916,6 +897,7 @@ class CodeEditor(BaseCodeEditor):
                 newText = newText + lineText
             else:
                 newText = newText + "#" + lineText
+
         self._ReplaceSelectedLines(newText)
 
     def uncommentLines(self):
@@ -978,11 +960,11 @@ class CodeEditor(BaseCodeEditor):
             self.SetKeyWords(0, " ".join(keyword.kwlist))
             self.SetKeyWords(1, " ".join(dir(builtins) + ['self']))
             self.SetIndentationGuides(self.coder.appData['showIndentGuides'])
-            self.SetStyleBits(5)  # in case we had html before
+            #self.SetStyleBits(5)  # in case we had html before
             self.SetProperty("fold", "1")  # allow folding
             self.SetProperty("tab.timmy.whinge.level", "1")
         elif lexer.lower() == 'html':
-            self.SetStyleBits(7)  # apprently!
+            #self.SetStyleBits(7)  # apprently!
             self.SetProperty("fold", "1")  # allow folding
             # 4 means 'tabs are bad'; 1 means 'flag inconsistency'
             self.SetProperty("tab.timmy.whinge.level", "1")
@@ -999,7 +981,7 @@ class CodeEditor(BaseCodeEditor):
                  'vec2', 'vec3', 'vec4', 'mat3', 'mat4', 'bool', 'sampler',
                  'sampler2D']))
             self.SetIndentationGuides(self.coder.appData['showIndentGuides'])
-            self.SetStyleBits(7)
+
             self.SetProperty("fold", "1")
             self.SetProperty("tab.timmy.whinge.level", "0")
         else:
@@ -1007,6 +989,7 @@ class CodeEditor(BaseCodeEditor):
             self.SetProperty("tab.timmy.whinge.level", "0")
 
         # keep text from being squashed and hard to read
+        self.SetStyleBits(self.GetStyleBitsNeeded())
         spacing = self.coder.prefs['lineSpacing'] / 2.
         self.SetExtraAscent(int(spacing))
         self.SetExtraDescent(int(spacing))

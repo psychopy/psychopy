@@ -361,3 +361,22 @@ class BaseCodeEditor(wx.stc.StyledTextCtrl):
     def analyseScript(self):
         """Analyse the script."""
         pass
+
+    @property
+    def edgeGuideVisible(self):
+        return self.GetEdgeMode() != wx.stc.STC_EDGE_NONE
+
+    @edgeGuideVisible.setter
+    def edgeGuideVisible(self, value):
+        if value is True:
+            self.SetEdgeMode(wx.stc.STC_EDGE_LINE)
+        else:
+            self.SetEdgeMode(wx.stc.STC_EDGE_NONE)
+
+    @property
+    def edgeGuideColumn(self):
+        return self.GetEdgeColumn()
+
+    @edgeGuideColumn.setter
+    def edgeGuideColumn(self, value):
+        self.SetEdgeColumn(value)
