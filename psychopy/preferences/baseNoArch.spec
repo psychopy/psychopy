@@ -81,7 +81,9 @@
     # Color theme to use for syntax highlighting
     theme = option('psychopy', 'wx', 'github', default='psychopy')
     # activate the source assistant panel
-    showSourceAsst = boolean(default=False)
+    showSourceAsst = boolean(default=True)
+    # activate the file browser panel
+    showFileBrowser = boolean(default=True)
     # activate the output and shell panels
     showOutput = boolean(default=True)
     # reload previously opened files after start
