@@ -18,12 +18,6 @@ import wx.richtext
 from wx.html import HtmlEasyPrinting
 
 try:
-    import jedi
-    _hasJedi = True
-except ImportError:
-    _hasJedi = False
-
-try:
     from wx import aui
 except Exception:
     import wx.lib.agw.aui as aui  # some versions of phoenix
@@ -52,6 +46,15 @@ from psychopy.app.coder.fileBrowser import FileBrowserPanel
 from psychopy.app.coder.sourceTree import SourceTreePanel
 from psychopy.app.coder.editorThemes import applyStyleSpec
 from psychopy.app.icons import combineImageEmblem
+
+try:
+    import jedi
+    _hasJedi = True
+except ImportError:
+    logging.error(
+        "Package `jedi` not installed, code auto-completion and calltips will "
+        "not be available.")
+    _hasJedi = False
 
 # advanced prefs (not set in prefs files)
 prefTestSubset = ""
@@ -513,6 +516,7 @@ class CodeEditor(BaseCodeEditor):
         self.Bind(wx.stc.EVT_STC_UPDATEUI, self.OnUpdateUI)
         self.Bind(wx.stc.EVT_STC_MARGINCLICK, self.OnMarginClick)
         self.Bind(wx.EVT_KEY_DOWN, self.OnKeyPressed)
+        self.Bind(wx.EVT_KEY_UP, self.OnKeyReleased)
 
         # black-and-white text signals read-only file open in Coder window
         # if not readonly:
@@ -641,11 +645,26 @@ class CodeEditor(BaseCodeEditor):
         else:
             return 'Text'  # default
 
-    def getTextUptoCaret(self, offset=0):
+    def getTextUptoCaret(self):
         """Get the text upto the caret."""
-        return self.GetTextRange(0, self.caretCurrentPos + offset)
+        return self.GetTextRange(0, self.caretCurrentPos)
+
+    def OnKeyReleased(self, event):
+        """Called after a key is released."""
+        keyCode = event.GetKeyCode()
+        _mods = event.GetModifiers()
+        if keyCode == ord('.'):
+            # A dot was entered, get suggestions if part of a qualified name
+            wx.CallAfter(self.ShowAutoCompleteList)  # defer
+        elif keyCode == ord('9') and wx.MOD_SHIFT == _mods:
+            # A left bracket was entered, check if there is a calltip available
+            if not self.CallTipActive():
+                wx.CallAfter(self.ShowCalltip)
+
+        event.Skip()
 
     def OnKeyPressed(self, event):
+        """Called when a key is pressed."""
         # various stuff to handle code completion and tooltips
         # enable in the _-init__
         keyCode = event.GetKeyCode()
@@ -676,35 +695,11 @@ class CodeEditor(BaseCodeEditor):
 
         # show completions, very simple at this point
         if keyCode == wx.WXK_SPACE and wx.MOD_CONTROL == _mods:
-            if _hasJedi:
-                self.coder.SetStatusText(
-                    'Getting code completions, please wait ...', 0)
-                compList = [i.name for i in jedi.Script(
-                    self.getTextUptoCaret()).completions(fuzzy=False)]
-
-                # todo - check if have a perfect match and veto AC
-
-                self.coder.SetStatusText('', 0)
-
-                if compList:
-                    self.AutoCompShow(0, " ".join(compList))
+            self.ShowAutoCompleteList()
 
         # show a calltip with signiture
         if keyCode == wx.WXK_SPACE and wx.MOD_CONTROL | wx.MOD_SHIFT == _mods:
-            if _hasJedi:
-                self.coder.SetStatusText('Getting calltip, please wait ...', 0)
-                foundRefs = jedi.Script(self.getTextUptoCaret()).get_signatures()
-                self.coder.SetStatusText('', 0)
-
-                if foundRefs:
-                    # enable text wrapping
-                    calltipText = foundRefs[0].to_string()
-
-                    if calltipText:
-                        calltipText = '\n    '.join(
-                            textwrap.wrap(calltipText, 76))
-                        self.CallTipShow(
-                            self.caretCurrentPos, calltipText)
+            self.ShowCalltip()
 
         if keyCode == wx.WXK_ESCAPE:  # close overlays
             if self.AutoCompActive():
@@ -781,7 +776,6 @@ class CodeEditor(BaseCodeEditor):
         #             subList.sort()
         #             self.AutoCompShow(len(currWord) - 1, " ".join(subList))
         #
-        #     print(jedi.Script(self.getTextUptoCaret()).completions(fuzzy=True))
 
         if keyCode == wx.WXK_RETURN: # and not self.AutoCompActive():
             if not self.AutoCompActive():
@@ -799,15 +793,43 @@ class CodeEditor(BaseCodeEditor):
                 self.CmdKeyExecute(wx.stc.STC_CMD_BACKTAB)
                 return
 
-        # clear the caret line indicator
-        #self.coder.currentDoc.SetCaretLineVisible(False)
-
         event.Skip()
+
+    def ShowAutoCompleteList(self):
+        """Show autocomplete list at the current caret position."""
+        if _hasJedi:
+            self.coder.SetStatusText(
+                'Retrieving code completions, please wait ...', 0)
+            # todo - create Script() periodically
+            compList = [i.name for i in jedi.Script(
+                self.getTextUptoCaret()).completions(fuzzy=False)]
+            # todo - check if have a perfect match and veto AC
+            self.coder.SetStatusText('', 0)
+            if compList:
+                self.AutoCompShow(0, " ".join(compList))
+
+    def ShowCalltip(self):
+        """Show a calltip at the current caret position."""
+        if _hasJedi:
+            self.coder.SetStatusText('Retrieving calltip, please wait ...', 0)
+            foundRefs = jedi.Script(self.getTextUptoCaret()).get_signatures()
+            self.coder.SetStatusText('', 0)
+
+            if foundRefs:
+                # enable text wrapping
+                calltipText = foundRefs[0].to_string()
+                if calltipText:
+                    calltipText = '\n    '.join(
+                        textwrap.wrap(calltipText, 76))  # 80 cols after indent
+                    y, x = foundRefs[0].bracket_start
+                    self.CallTipShow(
+                        self.XYToPosition(x + 1, y - 1), calltipText)
 
     def MacOpenFile(self, evt):
         logging.debug('PsychoPyCoder: got MacOpenFile event')
 
     def OnUpdateUI(self, evt):
+        """Runs when the editor is changed in any way."""
         # check for matching braces
         braceAtCaret = -1
         braceOpposite = -1
@@ -849,8 +871,12 @@ class CodeEditor(BaseCodeEditor):
             self.caretLine + 1, self.caretColumn + 1), 1)
 
     def updateCaretInfo(self):
-        """Update information related to the current caret position in the
-        text."""
+        """Update information related to the current caret position in the text.
+
+        This is done once per UI update which reduces redundant calculations of
+        these values.
+
+        """
         self.indentSize = self.GetIndent()
         self.caretCurrentPos = self.GetCurrentPos()
         self.caretVisible, self.caretColumn, self.caretLine = \
@@ -887,6 +913,7 @@ class CodeEditor(BaseCodeEditor):
                         self.ToggleFold(lineClicked)
 
     def FoldAll(self):
+        """Fold all code blocks."""
         lineCount = self.GetLineCount()
         expanding = True
 
