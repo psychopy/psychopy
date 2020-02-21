@@ -654,12 +654,18 @@ class CodeEditor(BaseCodeEditor):
         keyCode = event.GetKeyCode()
         _mods = event.GetModifiers()
         if keyCode == ord('.'):
-            # A dot was entered, get suggestions if part of a qualified name
-            wx.CallAfter(self.ShowAutoCompleteList)  # defer
+            if self.AUTOCOMPLETE:
+                # A dot was entered, get suggestions if part of a qualified name
+                wx.CallAfter(self.ShowAutoCompleteList)  # defer
+            else:
+                self.coder.SetStatusText(
+                    'Press Ctrl+Space to show code completions', 0)
         elif keyCode == ord('9') and wx.MOD_SHIFT == _mods:
             # A left bracket was entered, check if there is a calltip available
             if not self.CallTipActive():
                 wx.CallAfter(self.ShowCalltip)
+        else:
+            self.coder.SetStatusText('', 0)
 
         event.Skip()
 
