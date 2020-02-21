@@ -37,6 +37,7 @@ import threading
 import bdb
 import pickle
 import time
+import textwrap
 
 from . import psychoParser
 from .. import stdOutRich, dialogs
@@ -564,6 +565,7 @@ class CodeEditor(BaseCodeEditor):
             'Line: {} Col: {}'.format(
                 self.caretLine + 1, self.caretColumn + 1), 1)
 
+        self.CallTipSetBackground('#fffdcc')
         self.AutoCompSetIgnoreCase(True)
         self.AutoCompSetAutoHide(True)
         self.AutoCompStops('. ')
@@ -639,15 +641,13 @@ class CodeEditor(BaseCodeEditor):
         else:
             return 'Text'  # default
 
-    def getTextUptoCaret(self):
+    def getTextUptoCaret(self, offset=0):
         """Get the text upto the caret."""
-        return self.GetTextRange(0, self.caretCurrentPos)
+        return self.GetTextRange(0, self.caretCurrentPos + offset)
 
     def OnKeyPressed(self, event):
         # various stuff to handle code completion and tooltips
         # enable in the _-init__
-        if self.CallTipActive():
-            self.CallTipCancel()
         keyCode = event.GetKeyCode()
         _mods = event.GetModifiers()
 
@@ -678,8 +678,7 @@ class CodeEditor(BaseCodeEditor):
         if keyCode == wx.WXK_SPACE and wx.MOD_CONTROL == _mods:
             if _hasJedi:
                 self.coder.SetStatusText(
-                    'Getting auto completions, please wait ...', 0)
-
+                    'Getting code completions, please wait ...', 0)
                 compList = [i.name for i in jedi.Script(
                     self.getTextUptoCaret()).completions(fuzzy=False)]
 
@@ -693,14 +692,25 @@ class CodeEditor(BaseCodeEditor):
         # show a calltip with signiture
         if keyCode == wx.WXK_SPACE and wx.MOD_CONTROL | wx.MOD_SHIFT == _mods:
             if _hasJedi:
+                self.coder.SetStatusText('Getting calltip, please wait ...', 0)
                 foundRefs = jedi.Script(self.getTextUptoCaret()).get_signatures()
+                self.coder.SetStatusText('', 0)
 
                 if foundRefs:
-                    self.CallTipShow(
-                        self.caretCurrentPos, foundRefs[0].to_string())
+                    # enable text wrapping
+                    calltipText = foundRefs[0].to_string()
 
-        if keyCode == wx.WXK_ESCAPE and self.AutoCompActive():
-            self.AutoCompCancel()  # close the auto completion list
+                    if calltipText:
+                        calltipText = '\n    '.join(
+                            textwrap.wrap(calltipText, 76))
+                        self.CallTipShow(
+                            self.caretCurrentPos, calltipText)
+
+        if keyCode == wx.WXK_ESCAPE:  # close overlays
+            if self.AutoCompActive():
+                self.AutoCompCancel()  # close the auto completion list
+            if self.CallTipActive():
+                self.CallTipCancel()
 
         #
         # # do code completion
