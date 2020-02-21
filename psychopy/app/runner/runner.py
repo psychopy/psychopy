@@ -138,9 +138,9 @@ class RunnerFrame(wx.Frame):
                 if item['label'].lower() in eachMenu['separators']:
                     eachMenu['menu'].AppendSeparator()
 
-        self.runnerMenu.Append(fileMenu, 'File')
-        self.runnerMenu.Append(viewMenu, 'View')
-        self.runnerMenu.Append(runMenu, 'Run')
+        self.runnerMenu.Append(fileMenu, _translate('File'))
+        self.runnerMenu.Append(viewMenu, _translate('View'))
+        self.runnerMenu.Append(runMenu, _translate('Run'))
 
     def onURL(self, evt):
         """Open link in default browser."""
@@ -277,13 +277,13 @@ class RunnerPanel(wx.Panel, ScriptProcess):
         self.expCtrl.Bind(wx.EVT_LIST_ITEM_DESELECTED,
                           self.onItemDeselected, self.expCtrl)
         self.Bind(wx.EVT_LIST_ITEM_ACTIVATED, self.onDoubleClick, self.expCtrl)
-        self.expCtrl.InsertColumn(0, 'File')
-        self.expCtrl.InsertColumn(1, 'Path')
+        self.expCtrl.InsertColumn(0, _translate('File'))
+        self.expCtrl.InsertColumn(1, _translate('Path'))
 
         _style = platebtn.PB_STYLE_DROPARROW
         # Alerts
         self._selectedHiddenAlerts = False  # has user manually hidden alerts?
-        self.alertsToggleBtn = platebtn.PlateButton(self, -1, 'Alerts',
+        self.alertsToggleBtn = platebtn.PlateButton(self, -1, _translate('Alerts'),
                                           style=_style, name='Alerts')
         # mouse event must be bound like this
         self.alertsToggleBtn.Bind(wx.EVT_LEFT_DOWN, self.setAlertsVisible)
@@ -295,7 +295,7 @@ class RunnerPanel(wx.Panel, ScriptProcess):
         self.setAlertsVisible(True)
 
         # StdOut
-        self.stdoutToggleBtn = platebtn.PlateButton(self, -1, 'Stdout',
+        self.stdoutToggleBtn = platebtn.PlateButton(self, -1, _translate('Stdout'),
                                           style=_style, name='Stdout')
         # mouse event must be bound like this
         self.stdoutToggleBtn.Bind(wx.EVT_LEFT_DOWN, self.setStdoutVisible)
@@ -619,7 +619,7 @@ class RunnerPanel(wx.Panel, ScriptProcess):
         else:
             nAlerts = 0
         # update labels and text accordingly
-        self.alertsToggleBtn.SetLabelText("Alerts ({})".format(nAlerts))
+        self.alertsToggleBtn.SetLabelText(_translate("Alerts ({})").format(nAlerts))
         sys.stdout.flush()
         sys.stdout = sys.stderr = prev
         if nAlerts == 0:
