@@ -2,8 +2,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PsychoPy 1.81.00\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-02-20 18:27+0900\n"
-"PO-Revision-Date: 2020-02-20 18:31+0900\n"
+"POT-Creation-Date: 2020-02-21 19:20+0900\n"
+"PO-Revision-Date: 2020-02-21 19:21+0900\n"
 "Last-Translator: Hiroyuki Sogo <hsogo12600@gmail.com>\n"
 "Language-Team: Hiroyuki Sogo <hsogo12600@gmail.com>\n"
 "Language: ja\n"
@@ -2000,6 +2000,23 @@ msgstr "ウィンドウを閉じる(&C)\t%s"
 msgid "Close current window"
 msgstr "現在のウィンドウを閉じます"
 
+#: psychopy/app/pavlovia_ui/_base.py:158
+#: psychopy/app/pavlovia_ui/functions.py:109
+msgid "Committing changes"
+msgstr "変更をコミット"
+
+#: psychopy/app/pavlovia_ui/_base.py:160
+msgid "Summary of changes"
+msgstr "変更の概要"
+
+#: psychopy/app/pavlovia_ui/_base.py:162
+msgid ""
+"Details of changes\n"
+" (optional)"
+msgstr ""
+"変更の詳細\n"
+"(任意)"
+
 #: psychopy/app/pavlovia_ui/_base.py:177
 msgid "Title summarizing the changes you're making in these files"
 msgstr "変更内容を要約したタイトル"
@@ -2011,6 +2028,14 @@ msgstr "変更内容の詳細(任意入力)"
 #: psychopy/app/pavlovia_ui/functions.py:45
 msgid "Choose/create the root location for the synced project"
 msgstr "同期されたプロジェクトの保存位置を指定してください"
+
+#: psychopy/app/pavlovia_ui/functions.py:101
+msgid "Changes to commit:\n"
+msgstr "コミットする変更:\n"
+
+#: psychopy/app/pavlovia_ui/functions.py:107
+msgid "\t{}: {} files\n"
+msgstr "\t{}: {} ファイル\n"
 
 #: psychopy/app/pavlovia_ui/functions.py:131
 msgid "You need to install git to use Pavlovia projects"
@@ -2784,6 +2809,30 @@ msgstr "JavaScriptをPavloviaで実行"
 msgid "Launching online study at Pavlovia"
 msgstr "Pavloviaで実験を実行しています"
 
+#: psychopy/app/runner/runner.py:141 psychopy/app/runner/runner.py:280
+msgid "File"
+msgstr "ファイル"
+
+#: psychopy/app/runner/runner.py:142
+msgid "View"
+msgstr "ビュー"
+
+#: psychopy/app/runner/runner.py:143
+msgid "Run"
+msgstr "実行"
+
+#: psychopy/app/runner/runner.py:281
+msgid "Path"
+msgstr "パス"
+
+#: psychopy/app/runner/runner.py:286
+msgid "Alerts"
+msgstr "注意"
+
+#: psychopy/app/runner/runner.py:298
+msgid "Stdout"
+msgstr "標準出力"
+
 #: psychopy/app/runner/runner.py:319
 msgid "Add experiment to list"
 msgstr "実験をリストに追加"
@@ -2807,6 +2856,10 @@ msgstr "PsychoJSタスクをPavloviaで実行"
 #: psychopy/app/runner/runner.py:329
 msgid "Run PsychoJS task in local debug mode"
 msgstr "PsychoJSタスクをローカルデバッグで実行"
+
+#: psychopy/app/runner/runner.py:622
+msgid "Alerts ({})"
+msgstr "注意"
 
 #: psychopy/app/stdOutRich.py:70
 msgid "For further info see "
@@ -6882,9 +6935,6 @@ msgstr "PsychoPyに戻るにはキャンセルをクリックします"
 
 #~ msgid "Checking for changes"
 #~ msgstr "変更の確認"
-
-#~ msgid "Applying changes"
-#~ msgstr "変更を適用"
 
 #~ msgid "No remote project set"
 #~ msgstr "リモートプロジェクトが設定されていません"
