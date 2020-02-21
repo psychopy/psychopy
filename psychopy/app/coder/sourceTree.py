@@ -84,7 +84,6 @@ class SourceTreePanel(wx.Panel):
         if itemData is not None:
             self.coder.currentDoc.SetFirstVisibleLine(itemData[2] - 1)
             self.coder.currentDoc.GotoLine(itemData[2])
-            #self.coder.currentDoc.SetSTCFocus(True)
             wx.CallAfter(self.coder.currentDoc.SetFocus)
         else:
             evt.Skip()

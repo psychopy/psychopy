@@ -614,8 +614,10 @@ class CodeEditor(BaseCodeEditor):
             return 'Python'
         elif ext in ('html',):  # html file
             return 'HTML'
-        elif ext in ('cpp', 'c', 'h', 'glsl', 'vert', 'frag', 'mex'):  # c-like file
+        elif ext in ('cpp', 'c', 'h', 'mex'):  # c-like file
             return 'C/C++'
+        elif ext in ('glsl', 'vert', 'frag'):  # OpenGL shader program
+            return 'GLSL'
         elif ext in ('m',):  # MATLAB
             return 'MATLAB'
         elif ext in ('R',):  # R
@@ -739,6 +741,9 @@ class CodeEditor(BaseCodeEditor):
                 event.Skip(False)
                 self.CmdKeyExecute(wx.stc.STC_CMD_BACKTAB)
                 return
+
+        # clear the caret line indicator
+        #self.coder.currentDoc.SetCaretLineVisible(False)
 
         event.Skip()
 
@@ -957,7 +962,10 @@ class CodeEditor(BaseCodeEditor):
         self.setFonts()
 
         if lexer == 'python':
-            self.SetKeyWords(0, " ".join(keyword.kwlist))
+            self.SetKeyWords(
+                0, " ".join(keyword.kwlist + [
+                    'cdef', 'ctypedef', 'extern', 'cimport', 'cpdef',
+                    'include']))
             self.SetKeyWords(1, " ".join(dir(builtins) + ['self']))
             self.SetIndentationGuides(self.coder.appData['showIndentGuides'])
             #self.SetStyleBits(5)  # in case we had html before
@@ -2049,10 +2057,11 @@ class CoderFrame(wx.Frame):
 
         # scroll the source tree to where it was before for this document,
         # prevents it from jumping around annoyingly
-        if hasattr(self, 'sourceAsstWindow') and old > -1:
+        if hasattr(self, 'sourceAsstWindow'):
             # get the old source assist scroll position, save it
-            self.notebook.GetPage(old).sourceAsstScroll = \
-                self.sourceAsstWindow.GetScrollVert()
+            if old > -1:
+                self.notebook.GetPage(old).sourceAsstScroll = \
+                    self.sourceAsstWindow.GetScrollVert()
             self.currentDoc.analyseScript()
             self.sourceAsstWindow.srcTree.SetScrollPos(
                 wx.VERTICAL, self.currentDoc.sourceAsstScroll)
@@ -2298,7 +2307,6 @@ class CoderFrame(wx.Frame):
             else:
                 self.currentDoc.SetText("")
             self.currentDoc.EmptyUndoBuffer()
-
 
             # set name for an untitled document
             if filename == "":
