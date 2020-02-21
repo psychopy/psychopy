@@ -95,9 +95,14 @@ class DlgCodeComponentProperties(wx.Dialog):
                 self.nameOKlabel.SetForegroundColour(wx.RED)
             elif paramName == 'Code Type':
                 _codeTypes = self.params['Code Type'].allowedVals
+                _selectedCodeType = self.params['Code Type'].val
+                _selectedCodeTypeIndex = _codeTypes.index(_selectedCodeType)
                 self.codeTypeMenu = wx.Choice(self, choices=_codeTypes)
-                self.codeTypeMenu.SetSelection(
-                    _codeTypes.index(_codeTypes[hasMetapensiero - 2]))
+
+                if not hasMetapensiero and _selectedCodeType.lower() == 'auto->js':
+                    _selectedCodeTypeIndex -= 1
+
+                self.codeTypeMenu.SetSelection(_selectedCodeTypeIndex)
                 self.codeTypeMenu.Bind(wx.EVT_CHOICE, self.onCodeChoice)
                 self.codeTypeName = wx.StaticText(self, wx.ID_ANY,
                                                   _translate(param.label))
