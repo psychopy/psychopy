@@ -1101,9 +1101,9 @@ class CodeEditor(BaseCodeEditor):
 
     def onModified(self, event):
         # update the UNSAVED flag and the save icons
-        notebook = self.GetParent()
-        mainFrame = notebook.GetParent()
-        mainFrame.setFileModified(True)
+        #notebook = self.GetParent()
+        #mainFrame = notebook.GetParent()
+        self.coder.setFileModified(True)
 
     def DoFindNext(self, findData, findDlg=None):
         # this comes straight from wx.py.editwindow  (which is a subclass of
@@ -1184,6 +1184,12 @@ class CoderFrame(wx.Frame):
                           (self.appData['winX'], self.appData['winY']),
                           size=(self.appData['winW'], self.appData['winH']))
 
+        # create a panel which the aui manager can hook onto
+        szr = wx.BoxSizer(wx.VERTICAL)
+        self.pnlMain = wx.Panel(self)
+        szr.Add(self.pnlMain, flag=wx.EXPAND | wx.ALL, proportion=1)
+        self.SetSizer(szr)
+
         # self.panel = wx.Panel(self)
         self.Hide()  # ugly to see it all initialise
         # create icon
@@ -1228,15 +1234,15 @@ class CoderFrame(wx.Frame):
 
         # add help window
         _style = (aui.AUI_NB_TOP | aui.AUI_NB_TAB_SPLIT | aui.AUI_NB_TAB_MOVE)
-        self.sourceAsst = aui.AuiNotebook(
-            self, wx.ID_ANY, size=wx.Size(600, 600),
-            style=_style)
-        self.sourceAsstWindow = SourceTreePanel(self.sourceAsst, self)
-        self.fileBrowserWindow = FileBrowserPanel(self.sourceAsst, self)
+        # self.sourceAsst = aui.AuiNotebook(
+        #     self, wx.ID_ANY, size=wx.Size(600, 600),
+        #     style=_style)
+        self.sourceAsstWindow = SourceTreePanel(self.pnlMain, self)
+        self.fileBrowserWindow = FileBrowserPanel(self.pnlMain, self)
 
         # create an editor pane
         self.paneManager.SetFlags(aui.AUI_MGR_RECTANGLE_HINT)
-        self.paneManager.SetManagedWindow(self)
+        self.paneManager.SetManagedWindow(self.pnlMain)
         # make the notebook
         _style = (aui.AUI_NB_TOP |
                   aui.AUI_NB_SCROLL_BUTTONS |
@@ -1244,7 +1250,7 @@ class CoderFrame(wx.Frame):
                   aui.AUI_NB_TAB_MOVE |
                   aui.AUI_NB_CLOSE_ON_ACTIVE_TAB |
                   aui.AUI_NB_WINDOWLIST_BUTTON)
-        self.notebook = aui.AuiNotebook(self, -1,
+        self.notebook = aui.AuiNotebook(self.pnlMain, -1,
                                         size=wx.Size(600, 600),
                                         style=_style)
         self.paneManager.AddPane(self.notebook, aui.AuiPaneInfo().
@@ -1254,13 +1260,13 @@ class CoderFrame(wx.Frame):
                                  CloseButton(False).
                                  MaximizeButton(True))
         self.notebook.SetFocus()
-        self.notebook.SetDropTarget(FileDropTarget(targetFrame=self))
+        self.notebook.SetDropTarget(FileDropTarget(targetFrame=self.pnlMain))
 
         self.notebook.Bind(aui.EVT_AUINOTEBOOK_PAGE_CLOSE, self.fileClose)
         self.notebook.Bind(aui.EVT_AUINOTEBOOK_PAGE_CHANGED, self.pageChanged)
         self.Bind(aui.EVT_AUI_PANE_CLOSE, self.onCloseSourceAsst)
         # self.Bind(wx.EVT_NOTEBOOK_PAGE_CHANGED, self.pageChanged)
-        self.SetDropTarget(FileDropTarget(targetFrame=self))
+        self.SetDropTarget(FileDropTarget(targetFrame=self.pnlMain))
         self.Bind(wx.EVT_DROP_FILES, self.filesDropped)
         self.Bind(wx.EVT_FIND, self.OnFindNext)
         self.Bind(wx.EVT_FIND_NEXT, self.OnFindNext)
@@ -1274,6 +1280,26 @@ class CoderFrame(wx.Frame):
                     continue
                 self.setCurrentDoc(filename, keepHidden=True)
 
+        self.paneManager.AddPane(self.sourceAsstWindow,
+                                 aui.AuiPaneInfo().
+                                 BestSize((600, 600)).
+                                 BottomDockable(True).BottomDockable(True).
+                                 CloseButton(False).
+                                 Name("SourceAsst").
+                                 Caption(_translate("Source Structure")).
+                                 Right().Show(self.prefs['showSourceAsst']))
+        self.paneManager.AddPane(self.fileBrowserWindow,
+                                 aui.AuiPaneInfo().
+                                 BestSize((600, 600)).
+                                 BottomDockable(True).TopDockable(True).
+                                 CloseButton(False).
+                                 Name("FileBrowser").
+                                 Caption(_translate("File Browser")).
+                                 Right().Show(self.prefs['showFileBrowser']))
+
+        self.paneManager.Update()
+        self.unitTestFrame = None
+
         # create the shelf for shell and output views
         _style = (aui.AUI_NB_TOP | aui.AUI_NB_TAB_SPLIT |
                   aui.AUI_NB_SCROLL_BUTTONS | aui.AUI_NB_TAB_MOVE)
@@ -1283,7 +1309,6 @@ class CoderFrame(wx.Frame):
                                  aui.AuiPaneInfo().
                                  Name("Shelf").
                                  Caption(_translate("Shelf")).
-                                 RightDockable(True).LeftDockable(True).
                                  CloseButton(False).
                                  Bottom())
 
@@ -1316,26 +1341,13 @@ class CoderFrame(wx.Frame):
                 self._useShell = 'pyshell'
             self.shelf.AddPage(self.shell, _translate('Shell'))
 
-        self.sourceAsst.AddPage(self.sourceAsstWindow, _translate('Code Structure'))
-        self.sourceAsst.AddPage(self.fileBrowserWindow, _translate('File Browser'))
-        self.paneManager.AddPane(self.sourceAsst,
-                                 aui.AuiPaneInfo().
-                                 BestSize((600, 600)).
-                                 Name("SourceAsst").
-                                 Caption(_translate("Tools")).
-                                 Right())
-
-        self.sourceAsstChk.Check(self.prefs['showSourceAsst'])
-        self.paneManager.Update()
-        self.unitTestFrame = None
-
         # self.SetSizer(self.mainSizer)  # not necessary for aui type controls
         if (self.appData['auiPerspective'] and
                 'Shelf' in self.appData['auiPerspective']):
             self.paneManager.LoadPerspective(self.appData['auiPerspective'])
             self.paneManager.GetPane('Shelf').Caption(_translate("Shelf"))
-            self.paneManager.GetPane('SourceAsst').Caption(
-                _translate("Source Assistant"))
+            self.paneManager.GetPane('SourceAsst').Caption("Source Structure")
+            self.paneManager.GetPane('FileBrowser').Caption("File Browser")
             self.paneManager.GetPane('Editor').Caption(_translate("Editor"))
         else:
             self.SetMinSize(wx.Size(400, 600))  # min size for whole window
@@ -1344,6 +1356,13 @@ class CoderFrame(wx.Frame):
 
         if self.app._appLoaded:
             self.setOutputWindow()
+
+        self.sourceAsstChk.Check(
+            self.paneManager.GetPane('SourceAsst').IsShown())
+        self.fileBrowserChk.Check(
+            self.paneManager.GetPane('FileBrowser').IsShown())
+        self.fileBrowserChk.Check(
+            self.paneManager.GetPane('FileBrowser').IsShown())
 
         self.SendSizeEvent()
         self.app.trackFrame(self)
@@ -1652,12 +1671,19 @@ class CoderFrame(wx.Frame):
         self.outputChk.Check(self.prefs['showOutput'])
         self.Bind(wx.EVT_MENU, self.setOutputWindow, id=self.outputChk.GetId())
         # source assistant
-        hint = "Hide/show the source assistant pane."
+        hint = "Hide/show the source structure pane."
         self.sourceAsstChk = menu.AppendCheckItem(wx.ID_ANY,
-                                                  "Source Assistant",
+                                                  "Source Structure",
                                                   hint)
         self.Bind(wx.EVT_MENU, self.setSourceAsst,
                   id=self.sourceAsstChk.GetId())
+
+        hint = "Hide/show file browser pane."
+        self.fileBrowserChk = menu.AppendCheckItem(wx.ID_ANY,
+                                                  "File Browser",
+                                                  hint)
+        self.Bind(wx.EVT_MENU, self.setFileBrowser,
+                  id=self.fileBrowserChk.GetId())
 
         menu.AppendSeparator()
 
@@ -2765,6 +2791,16 @@ class CoderFrame(wx.Frame):
         else:
             self.paneManager.GetPane("SourceAsst").Show()
             self.prefs['showSourceAsst'] = True
+        self.paneManager.Update()
+
+    def setFileBrowser(self, event):
+        # show/hide the source file browser
+        if not self.fileBrowserChk.IsChecked():
+            self.paneManager.GetPane("FileBrowser").Hide()
+            self.prefs['showFileBrowser'] = False
+        else:
+            self.paneManager.GetPane("FileBrowser").Show()
+            self.prefs['showFileBrowser'] = True
         self.paneManager.Update()
 
     def analyseCodeNow(self, event):
