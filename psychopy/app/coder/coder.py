@@ -604,6 +604,7 @@ class CodeEditor(BaseCodeEditor):
                   'HTML': 'html',
                   'C/C++': 'cpp',
                   'GLSL': 'cpp',
+                  'Arduino': 'cpp',
                   'MATLAB': 'matlab',
                   'YAML': 'yaml',
                   'R': 'R',
@@ -630,12 +631,14 @@ class CodeEditor(BaseCodeEditor):
             return 'Python'
         elif ext in ('html',):  # html file
             return 'HTML'
-        elif ext in ('cpp', 'c', 'h', 'mex'):  # c-like file
+        elif ext in ('cpp', 'c', 'h', 'mex', 'hpp'):  # c-like file
             return 'C/C++'
         elif ext in ('glsl', 'vert', 'frag'):  # OpenGL shader program
             return 'GLSL'
         elif ext in ('m',):  # MATLAB
             return 'MATLAB'
+        elif ext in ('ino',):  # Arduino
+            return 'Arduino'
         elif ext in ('R',):  # R
             return 'R'
         elif ext in ('yaml',):  # R
@@ -1064,7 +1067,7 @@ class CodeEditor(BaseCodeEditor):
             self.SetProperty("fold", "1")  # allow folding
             # 4 means 'tabs are bad'; 1 means 'flag inconsistency'
             self.SetProperty("tab.timmy.whinge.level", "1")
-        elif lexer == 'cpp':  # JS, C/C++, GLSL, mex
+        elif lexer == 'cpp':  # JS, C/C++, GLSL, mex, arduino
             # self.SetKeyWords(0, " ".join(
             #     ['typedef', 'if', 'else', 'return', 'struct', 'for', 'while',
             #      'do', 'using', 'namespace', 'uniform', 'varying', 'layout',

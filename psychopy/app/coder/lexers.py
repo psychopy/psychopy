@@ -4,6 +4,7 @@ import wx
 import wx.stc
 import builtins
 import keyword
+import copy
 
 DEFAULT_CARET_FG_COL = "BLACK"
 
@@ -19,8 +20,14 @@ LEXER_KWRDS['C/C++'] = {
             'switch', 'continue', 'volatile', 'finally', 'throw', 'try',
             'delete', 'typeof', 'sizeof', 'class', 'volatile'],
         1: ['int', 'float', 'double', 'char', 'short', 'byte', 'void', 'const',
-            'unsigned', 'signed', 'NULL', 'true', 'false', 'bool']}
-LEXER_KWRDS['R'] = {0: 'function'}
+            'unsigned', 'signed', 'NULL', 'true', 'false', 'bool', 'size_t',
+            'long', 'long long']}
+LEXER_KWRDS['Arduino'] = {
+    0: list(LEXER_KWRDS['C/C++'][0]),
+    1: list(LEXER_KWRDS['C/C++'][1]) + [
+        'BIN', 'HEX', 'OCT', 'DEC', 'INPUT', 'OUTPUT', 'HIGH', 'LOW',
+        'INPUT_PULLUP', 'LED_BUILTIN', 'string', 'array']
+}
 
 glslTypes = []
 baseType = ['', 'i', 'b', 'd']
@@ -41,11 +48,13 @@ LEXER_KWRDS['GLSL'] = {
 
 LEXER_KWRDS['JavaScript'] = {
     0: ['var', 'let', 'import', 'function', 'if', 'else', 'return', 'struct',
-        'for', 'while', 'do', 'finally', 'throw', 'try','switch', 'case',
+        'for', 'while', 'do', 'finally', 'throw', 'try', 'switch', 'case',
         'break'],
     1: ['null', 'false', 'true']
 }
-LEXER_KWRDS['R'] = {0: ['function', 'for', 'repeat', 'while', 'if', 'else']}
+LEXER_KWRDS['R'] = {1: ['function', 'for', 'repeat', 'while', 'if', 'else',
+                        'break', 'local', 'global'],
+                    0: ['NA']}
 
 
 # Mapping between identifiers and style enums for each lexer. This allows a
