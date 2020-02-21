@@ -44,7 +44,7 @@ import psychopy.app.pavlovia_ui.menu
 from psychopy.app.coder.codeEditorBase import BaseCodeEditor
 from psychopy.app.coder.fileBrowser import FileBrowserPanel
 from psychopy.app.coder.sourceTree import SourceTreePanel
-from psychopy.app.coder.editorThemes import applyStyleSpec
+from psychopy.app.coder.lexers import applyStyleSpec
 from psychopy.app.icons import combineImageEmblem
 
 try:
@@ -608,7 +608,7 @@ class CodeEditor(BaseCodeEditor):
                   'YAML': 'yaml',
                   'R': 'R',
                   'JavaScript': 'cpp',
-                  'Text': 'null'}
+                  'Plain Text': 'null'}
 
         self.setLexer(lexers[self.getFileType()])
 
@@ -643,7 +643,7 @@ class CodeEditor(BaseCodeEditor):
         elif ext in ('js',):  # R
             return 'JavaScript'
         else:
-            return 'Text'  # default
+            return 'Plain Text'  # default
 
     def getTextUptoCaret(self):
         """Get the text upto the caret."""
@@ -1052,42 +1052,40 @@ class CodeEditor(BaseCodeEditor):
         self.setFonts()
 
         if lexer == 'python':
-            self.SetKeyWords(
-                0, " ".join(keyword.kwlist + [
-                    'cdef', 'ctypedef', 'extern', 'cimport', 'cpdef',
-                    'include']))
-            self.SetKeyWords(1, " ".join(dir(builtins) + ['self']))
+            # self.SetKeyWords(
+            #     0, " ".join(keyword.kwlist + [
+            #         'cdef', 'ctypedef', 'extern', 'cimport', 'cpdef',
+            #         'include']))
+            # self.SetKeyWords(1, " ".join(dir(builtins) + ['self']))
             self.SetIndentationGuides(self.coder.appData['showIndentGuides'])
-            #self.SetStyleBits(5)  # in case we had html before
             self.SetProperty("fold", "1")  # allow folding
             self.SetProperty("tab.timmy.whinge.level", "1")
         elif lexer.lower() == 'html':
-            #self.SetStyleBits(7)  # apprently!
             self.SetProperty("fold", "1")  # allow folding
             # 4 means 'tabs are bad'; 1 means 'flag inconsistency'
             self.SetProperty("tab.timmy.whinge.level", "1")
-        elif lexer == 'cpp':
-            self.SetKeyWords(0, " ".join(
-                ['typedef', 'if', 'else', 'return', 'struct', 'for', 'while',
-                 'do', 'using', 'namespace', 'uniform', 'varying', 'layout',
-                 'in', 'attribute', 'function', 'break', 'var', 'enum',
-                 'delete', 'finally', 'throw', 'try', 'typeof', 'sizeof',
-                 'with', 'new', 'case', 'switch', 'continue', 'catch',
-                 'class', 'import', 'true', 'false', 'NULL', 'let', 'union']))
-            self.SetKeyWords(1, " ".join(
-                ['int', 'float', 'double', 'char', 'short', 'byte', 'void',
-                 'vec2', 'vec3', 'vec4', 'mat3', 'mat4', 'bool', 'sampler',
-                 'sampler2D', 'const', 'unsigned', 'signed']))
+        elif lexer == 'cpp':  # JS, C/C++, GLSL, mex
+            # self.SetKeyWords(0, " ".join(
+            #     ['typedef', 'if', 'else', 'return', 'struct', 'for', 'while',
+            #      'do', 'using', 'namespace', 'uniform', 'varying', 'layout',
+            #      'in', 'attribute', 'function', 'break', 'var', 'enum',
+            #      'delete', 'finally', 'throw', 'try', 'typeof', 'sizeof',
+            #      'with', 'new', 'case', 'switch', 'continue', 'catch',
+            #      'class', 'import', 'true', 'false', 'NULL', 'let', 'union',
+            #      'out', 'invariant', 'precision', 'highp', 'mediump', 'lowp',
+            #      'coherent', 'volatile', 'restrict', 'readonly', 'writeonly']))
+            # self.SetKeyWords(1, " ".join(
+            #     ['int', 'float', 'double', 'char', 'short', 'byte', 'void',
+            #      'vec2', 'vec3', 'vec4', 'mat3', 'mat4', 'bool', 'sampler',
+            #      'sampler2D', 'const', 'unsigned', 'signed']))
             self.SetIndentationGuides(self.coder.appData['showIndentGuides'])
-
             self.SetProperty("fold", "1")
             self.SetProperty("tab.timmy.whinge.level", "1")
         elif lexer == 'R':
-            self.SetKeyWords(0, " ".join(['function']))
+            # self.SetKeyWords(0, " ".join(['function']))
             self.SetIndentationGuides(self.coder.appData['showIndentGuides'])
-
             self.SetProperty("fold", "1")
-            self.SetProperty("tab.timmy.whinge.level", "0")
+            self.SetProperty("tab.timmy.whinge.level", "1")
         else:
             self.SetIndentationGuides(0)
             self.SetProperty("tab.timmy.whinge.level", "0")
@@ -1221,7 +1219,7 @@ class CoderFrame(wx.Frame):
         self.makeMenus()
         #self.CreateStatusBar()
         self.makeStatusBar()
-        self.statusBar.SetStatusText("", 0)
+        self.statusBar.SetStatusText("PsychoPy v{}".format(psychopy.__version__), 3)
         self.fileMenu = self.editMenu = self.viewMenu = None
         self.helpMenu = self.toolsMenu = None
 
@@ -1992,8 +1990,8 @@ class CoderFrame(wx.Frame):
     def makeStatusBar(self):
         """Make the status bar for Coder."""
         self.statusBar = wx.StatusBar(self, wx.ID_ANY)
-        self.statusBar.SetFieldsCount(3)
-        self.statusBar.SetStatusWidths([-2, 160, 160])
+        self.statusBar.SetFieldsCount(4)
+        self.statusBar.SetStatusWidths([-2, 128, 96, 128])
 
         self.SetStatusBar(self.statusBar)
 
@@ -2484,7 +2482,9 @@ class CoderFrame(wx.Frame):
                 self.setCurrentDoc(filename)
                 self.setFileModified(False)
         self.statusBar.SetStatusText('')
-        self.app.runner.addTask(fileName=filename)
+
+        # don't do this, this will add unwanted files to the task list - mdc
+        # self.app.runner.addTask(fileName=filename)
 
     def expectedModTime(self, doc):
         # check for possible external changes to the file, based on
@@ -2656,6 +2656,7 @@ class CoderFrame(wx.Frame):
             self.currentDoc = None
             self.statusBar.SetStatusText("", 1)  # clear line pos
             self.statusBar.SetStatusText("", 2)  # clear file type in status bar
+            self.statusBar.SetStatusText("", 3)  # psyhcopy version
             # clear the source tree
             self.SetLabel("PsychoPy v%s (Coder)" % self.app.version)
             self.sourceAsstWindow.srcTree.DeleteAllItems()

@@ -2,8 +2,51 @@
 
 import wx
 import wx.stc
+import builtins
+import keyword
 
 DEFAULT_CARET_FG_COL = "BLACK"
+
+# Keywords for each file type and level
+LEXER_KWRDS = dict()
+LEXER_KWRDS['Python'] = {
+        0: keyword.kwlist + [
+            'cdef', 'ctypedef', 'extern', 'cimport', 'cpdef', 'include'],
+        1: dir(builtins) + ['self']}
+LEXER_KWRDS['C/C++'] = {
+        0: ['typedef', 'if', 'else', 'return', 'struct', 'for', 'while', 'do',
+            'using', 'namespace', 'union', 'break', 'enum', 'new', 'case',
+            'switch', 'continue', 'volatile', 'finally', 'throw', 'try',
+            'delete', 'typeof', 'sizeof', 'class', 'volatile'],
+        1: ['int', 'float', 'double', 'char', 'short', 'byte', 'void', 'const',
+            'unsigned', 'signed', 'NULL', 'true', 'false', 'bool']}
+LEXER_KWRDS['R'] = {0: 'function'}
+
+glslTypes = []
+baseType = ['', 'i', 'b', 'd']
+dim = ['2', '3', '4']
+name = ['vec', 'mat']
+for i in baseType:
+    for j in name:
+        for k in dim:
+            glslTypes.append(i + j + k)
+
+LEXER_KWRDS['GLSL'] = {
+    0: list(LEXER_KWRDS['C/C++'][0]) + [
+        'invariant', 'precision', 'highp', 'mediump', 'lowp', 'coherent',
+         'restrict', 'readonly', 'writeonly', 'uniform', 'varying', 'layout',
+         'in', 'out', 'attribute', 'sampler', 'sampler2D'],
+    1: list(LEXER_KWRDS['C/C++'][1]) + glslTypes
+}
+
+LEXER_KWRDS['JavaScript'] = {
+    0: ['var', 'let', 'import', 'function', 'if', 'else', 'return', 'struct',
+        'for', 'while', 'do', 'finally', 'throw', 'try','switch', 'case',
+        'break'],
+    1: ['null', 'false', 'true']
+}
+LEXER_KWRDS['R'] = {0: ['function', 'for', 'repeat', 'while', 'if', 'else']}
+
 
 # Mapping between identifiers and style enums for each lexer. This allows a
 # theme to be applied to multiple lexers without needing to specify a theme for
@@ -269,3 +312,13 @@ def applyStyleSpec(editor, theme, lexer, faces):
             editor.StyleSetSpec(enum, style % faces)
         except KeyError:
             pass
+
+    # set keywords
+    ftype = editor.getFileType()
+    try:
+        kwrds = LEXER_KWRDS[ftype]
+    except KeyError:
+        return
+
+    for level, vals in kwrds.items():
+        editor.SetKeyWords(level, " ".join(vals))
