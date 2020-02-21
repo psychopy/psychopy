@@ -18,6 +18,12 @@ import wx.richtext
 from wx.html import HtmlEasyPrinting
 
 try:
+    import jedi
+    _hasJedi = True
+except ImportError:
+    _hasJedi = False
+
+try:
     from wx import aui
 except Exception:
     import wx.lib.agw.aui as aui  # some versions of phoenix
@@ -558,6 +564,10 @@ class CodeEditor(BaseCodeEditor):
             'Line: {} Col: {}'.format(
                 self.caretLine + 1, self.caretColumn + 1), 1)
 
+        self.AutoCompSetIgnoreCase(True)
+        self.AutoCompSetAutoHide(True)
+        self.AutoCompStops('. ')
+
     def setFonts(self):
         """Make some styles,  The lexer defines what each style is used for,
         we just have to define what each style looks like.  This set is
@@ -629,6 +639,10 @@ class CodeEditor(BaseCodeEditor):
         else:
             return 'Text'  # default
 
+    def getTextUptoCaret(self):
+        """Get the text upto the caret."""
+        return self.GetTextRange(0, self.caretCurrentPos)
+
     def OnKeyPressed(self, event):
         # various stuff to handle code completion and tooltips
         # enable in the _-init__
@@ -660,80 +674,113 @@ class CodeEditor(BaseCodeEditor):
         if keyCode == ord('/') and wx.MOD_CONTROL | wx.MOD_SHIFT == _mods:
             self.uncommentLines()
 
-        # do code completion
-        if self.AUTOCOMPLETE:
-            # get last word any previous word (if there was a dot instead of
-            # space)
-            isAlphaNum = bool(keyCode in list(range(65, 91)) + list(range(97, 123)))
-            isDot = bool(keyCode == 46)
-            prevWord = None
-            if isAlphaNum:  # any alphanum
-                # is character key
-                key = chr(keyCode)
-                # if keyCode == 32 and event.ControlDown():  # Ctrl-space
-                pos = self.GetCurrentPos()
-                prevStartPos = startPos = self.WordStartPosition(pos, True)
-                currWord = self.GetTextRange(startPos, pos) + key
+        # show completions, very simple at this point
+        if keyCode == wx.WXK_SPACE and wx.MOD_CONTROL == _mods:
+            if _hasJedi:
+                self.coder.SetStatusText(
+                    'Getting auto completions, please wait ...', 0)
 
-                # check if this is an attribute of another class etc...
-                # then previous char was .
-                while self.GetCharAt(prevStartPos - 1) == 46:
-                    prevStartPos = self.WordStartPosition(
-                        prevStartPos - 1, True)
-                    prevWord = self.GetTextRange(prevStartPos, startPos - 1)
+                compList = [i.name for i in jedi.Script(
+                    self.getTextUptoCaret()).completions(fuzzy=False)]
 
-            # slightly different if this char is itself a dot
-            elif isDot:  # we have a '.' so look for methods/attributes
-                pos = self.GetCurrentPos()
-                prevStartPos = startPos = self.WordStartPosition(pos, True)
-                prevWord = self.GetTextRange(startPos, pos)
-                currWord = ''
-                # then previous char was .
-                while self.GetCharAt(prevStartPos - 1) == 46:
-                    prevStartPos = self.WordStartPosition(prevStartPos - 1,
-                                                          True)
-                    prevWord = self.GetTextRange(prevStartPos, pos - 1)
+                # todo - check if have a perfect match and veto AC
 
-            self.AutoCompSetIgnoreCase(True)
-            self.AutoCompSetAutoHide(True)
-            # try to get attributes for this object
-            event.Skip()
-            if isAlphaNum or isDot:
-                if True:
-                    # use our own dictionary
-                    # after a '.' show attributes
-                    subList = []  # by default
-                    # did we get a word?
-                    if prevWord:
-                        # is it in dictionary?
-                        if prevWord in self.autoCompleteDict:
-                            attrs = self.autoCompleteDict[prevWord]['attrs']
-                            # does it have known attributes?
-                            if type(attrs) == list and len(attrs) >= 1:
-                                subList = [s for s in attrs if
-                                           currWord.lower() in s.lower()]
-                    # for objects show simple completions
-                    else:  # there was no preceding '.'
-                        # start trying after 2 characters
-                        autokeys = list(self.autoCompleteDict.keys())
-                        if len(currWord) > 1 and len(autokeys) > 1:
-                            subList = [s for s in autokeys
-                                       if currWord.lower() in s.lower()]
-                else:
-                    # use introspect (from wxpython's py package)
-                    pass
-                # if there were any reasonable matches then show them
-                if len(subList) > 0:
-                    subList.sort()
-                    self.AutoCompShow(len(currWord) - 1, " ".join(subList))
+                self.coder.SetStatusText('', 0)
 
-        if keyCode == wx.WXK_RETURN and not self.AutoCompActive():
-            # prcoess end of line and then do smart indentation
-            event.Skip(False)
-            self.CmdKeyExecute(wx.stc.STC_CMD_NEWLINE)
-            self.smartIdentThisLine()
-            self.analyseScript()
-            return  # so that we don't reach the skip line at end
+                if compList:
+                    self.AutoCompShow(0, " ".join(compList))
+
+        # show a calltip with signiture
+        if keyCode == wx.WXK_SPACE and wx.MOD_CONTROL | wx.MOD_SHIFT == _mods:
+            if _hasJedi:
+                foundRefs = jedi.Script(self.getTextUptoCaret()).get_signatures()
+
+                if foundRefs:
+                    self.CallTipShow(
+                        self.caretCurrentPos, foundRefs[0].to_string())
+
+        if keyCode == wx.WXK_ESCAPE and self.AutoCompActive():
+            self.AutoCompCancel()  # close the auto completion list
+
+        #
+        # # do code completion
+        # if self.AUTOCOMPLETE:
+        #     # get last word any previous word (if there was a dot instead of
+        #     # space)
+        #     isAlphaNum = bool(keyCode in list(range(65, 91)) + list(range(97, 123)))
+        #     isDot = bool(keyCode == 46)
+        #     prevWord = None
+        #     if isAlphaNum:  # any alphanum
+        #         # is character key
+        #         key = chr(keyCode)
+        #         # if keyCode == 32 and event.ControlDown():  # Ctrl-space
+        #         pos = self.GetCurrentPos()
+        #         prevStartPos = startPos = self.WordStartPosition(pos, True)
+        #         currWord = self.GetTextRange(startPos, pos) + key
+        #
+        #         # check if this is an attribute of another class etc...
+        #         # then previous char was .
+        #         while self.GetCharAt(prevStartPos - 1) == 46:
+        #             prevStartPos = self.WordStartPosition(
+        #                 prevStartPos - 1, True)
+        #             prevWord = self.GetTextRange(prevStartPos, startPos - 1)
+        #
+        #     # slightly different if this char is itself a dot
+        #     elif isDot:  # we have a '.' so look for methods/attributes
+        #         pos = self.GetCurrentPos()
+        #         prevStartPos = startPos = self.WordStartPosition(pos, True)
+        #         prevWord = self.GetTextRange(startPos, pos)
+        #         currWord = ''
+        #         # then previous char was .
+        #         while self.GetCharAt(prevStartPos - 1) == 46:
+        #             prevStartPos = self.WordStartPosition(prevStartPos - 1,
+        #                                                   True)
+        #             prevWord = self.GetTextRange(prevStartPos, pos - 1)
+        #
+        #     self.AutoCompSetIgnoreCase(True)
+        #     self.AutoCompSetAutoHide(True)
+        #     # try to get attributes for this object
+        #     event.Skip()
+        #     if isAlphaNum or isDot:
+        #         if True:
+        #             # use our own dictionary
+        #             # after a '.' show attributes
+        #             subList = []  # by default
+        #             # did we get a word?
+        #             if prevWord:
+        #                 # is it in dictionary?
+        #                 if prevWord in self.autoCompleteDict:
+        #                     attrs = self.autoCompleteDict[prevWord]['attrs']
+        #                     # does it have known attributes?
+        #                     if type(attrs) == list and len(attrs) >= 1:
+        #                         subList = [s for s in attrs if
+        #                                    currWord.lower() in s.lower()]
+        #             # for objects show simple completions
+        #             else:  # there was no preceding '.'
+        #                 # start trying after 2 characters
+        #                 autokeys = list(self.autoCompleteDict.keys())
+        #                 if len(currWord) > 1 and len(autokeys) > 1:
+        #                     subList = [s for s in autokeys
+        #                                if currWord.lower() in s.lower()]
+        #             print(jedi.Script(self.getTextUptoCaret(), self.filename).completions(fuzzy=True))
+        #         else:
+        #             # use introspect (from wxpython's py package)
+        #             pass
+        #         # if there were any reasonable matches then show them
+        #         if len(subList) > 0:
+        #             subList.sort()
+        #             self.AutoCompShow(len(currWord) - 1, " ".join(subList))
+        #
+        #     print(jedi.Script(self.getTextUptoCaret()).completions(fuzzy=True))
+
+        if keyCode == wx.WXK_RETURN: # and not self.AutoCompActive():
+            if not self.AutoCompActive():
+                # prcoess end of line and then do smart indentation
+                event.Skip(False)
+                self.CmdKeyExecute(wx.stc.STC_CMD_NEWLINE)
+                self.smartIdentThisLine()
+                self.analyseScript()
+                return  # so that we don't reach the skip line at end
 
         # deindent when hitting backspace on margin whitespace
         if keyCode == wx.WXK_BACK:
