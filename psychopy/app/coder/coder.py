@@ -767,7 +767,7 @@ class CodeEditor(BaseCodeEditor):
         #                 if len(currWord) > 1 and len(autokeys) > 1:
         #                     subList = [s for s in autokeys
         #                                if currWord.lower() in s.lower()]
-        #             print(jedi.Script(self.getTextUptoCaret(), self.filename).completions(fuzzy=True))
+        #
         #         else:
         #             # use introspect (from wxpython's py package)
         #             pass
@@ -797,7 +797,7 @@ class CodeEditor(BaseCodeEditor):
 
     def ShowAutoCompleteList(self):
         """Show autocomplete list at the current caret position."""
-        if _hasJedi:
+        if _hasJedi and self.getFileType() == 'Python':
             self.coder.SetStatusText(
                 'Retrieving code completions, please wait ...', 0)
             # todo - create Script() periodically
@@ -810,7 +810,7 @@ class CodeEditor(BaseCodeEditor):
 
     def ShowCalltip(self):
         """Show a calltip at the current caret position."""
-        if _hasJedi:
+        if _hasJedi and self.getFileType() == 'Python':
             self.coder.SetStatusText('Retrieving calltip, please wait ...', 0)
             foundRefs = jedi.Script(self.getTextUptoCaret()).get_signatures()
             self.coder.SetStatusText('', 0)
