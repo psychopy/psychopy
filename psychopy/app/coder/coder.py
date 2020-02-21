@@ -2567,6 +2567,7 @@ class CoderFrame(wx.Frame):
             sys.stdout.flush()
             dlg.Destroy()
             if resp == wx.ID_CANCEL:
+                event.Veto()
                 return -1  # return, don't quit
             elif resp == wx.ID_YES:
                 # save then quit
