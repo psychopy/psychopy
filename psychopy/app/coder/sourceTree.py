@@ -9,7 +9,7 @@
 
 from __future__ import absolute_import, print_function
 from collections import deque
-from psychopy.app.coder.psychoParser import parsePyScript
+from psychopy.app.coder.folding import getFolds
 
 import wx
 import wx.stc
@@ -148,8 +148,9 @@ class SourceTreePanel(wx.Panel):
             defineList = []
             lastItem = None
             for df in foldLines:
-                if not (df[2].startswith('class ') or
-                        df[2].startswith('def ')):
+                lineText = doc.GetLineText(df[1]).lstrip()
+                if not (lineText.startswith('class ') or
+                        lineText.startswith('def ')):
                     continue
 
                 if lastItem is not None:
@@ -157,7 +158,7 @@ class SourceTreePanel(wx.Panel):
                         continue
 
                 # slice off comment
-                lineText = df[2].split('#')[0]
+                lineText = lineText.split('#')[0]
                 lineTokens = [
                     tok.strip() for tok in re.split(' |\(|\)', lineText) if tok]
                 defType, defName = lineTokens[:2]

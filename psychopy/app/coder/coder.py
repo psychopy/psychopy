@@ -9,7 +9,6 @@ from __future__ import absolute_import, print_function
 
 # from future import standard_library
 # standard_library.install_aliases()
-import builtins
 from builtins import chr
 from builtins import range
 import wx
@@ -22,7 +21,6 @@ try:
 except Exception:
     import wx.lib.agw.aui as aui  # some versions of phoenix
 
-import keyword
 import os
 import sys
 import glob
@@ -44,7 +42,8 @@ import psychopy.app.pavlovia_ui.menu
 from psychopy.app.coder.codeEditorBase import BaseCodeEditor
 from psychopy.app.coder.fileBrowser import FileBrowserPanel
 from psychopy.app.coder.sourceTree import SourceTreePanel
-from psychopy.app.coder.lexers import applyStyleSpec
+from psychopy.app.coder.styling import applyStyleSpec
+from psychopy.app.coder.folding import CodeEditorFoldingMixin
 from psychopy.app.icons import combineImageEmblem
 
 try:
@@ -497,7 +496,7 @@ class UnitTestFrame(wx.Frame):
         self.Destroy()
 
 
-class CodeEditor(BaseCodeEditor):
+class CodeEditor(BaseCodeEditor, CodeEditorFoldingMixin):
     # this comes mostly from the wxPython demo styledTextCtrl 2
 
     def __init__(self, parent, ID, frame,
@@ -514,9 +513,11 @@ class CodeEditor(BaseCodeEditor):
         self.Bind(wx.EVT_DROP_FILES, self.coder.filesDropped)
         self.Bind(wx.stc.EVT_STC_MODIFIED, self.onModified)
         self.Bind(wx.stc.EVT_STC_UPDATEUI, self.OnUpdateUI)
-        self.Bind(wx.stc.EVT_STC_MARGINCLICK, self.OnMarginClick)
         self.Bind(wx.EVT_KEY_DOWN, self.OnKeyPressed)
         self.Bind(wx.EVT_KEY_UP, self.OnKeyReleased)
+
+        if hasattr(self, 'OnMarginClick'):
+            self.Bind(wx.stc.EVT_STC_MARGINCLICK, self.OnMarginClick)
 
         # black-and-white text signals read-only file open in Coder window
         # if not readonly:
@@ -716,76 +717,6 @@ class CodeEditor(BaseCodeEditor):
             if self.CallTipActive():
                 self.CallTipCancel()
 
-        #
-        # # do code completion
-        # if self.AUTOCOMPLETE:
-        #     # get last word any previous word (if there was a dot instead of
-        #     # space)
-        #     isAlphaNum = bool(keyCode in list(range(65, 91)) + list(range(97, 123)))
-        #     isDot = bool(keyCode == 46)
-        #     prevWord = None
-        #     if isAlphaNum:  # any alphanum
-        #         # is character key
-        #         key = chr(keyCode)
-        #         # if keyCode == 32 and event.ControlDown():  # Ctrl-space
-        #         pos = self.GetCurrentPos()
-        #         prevStartPos = startPos = self.WordStartPosition(pos, True)
-        #         currWord = self.GetTextRange(startPos, pos) + key
-        #
-        #         # check if this is an attribute of another class etc...
-        #         # then previous char was .
-        #         while self.GetCharAt(prevStartPos - 1) == 46:
-        #             prevStartPos = self.WordStartPosition(
-        #                 prevStartPos - 1, True)
-        #             prevWord = self.GetTextRange(prevStartPos, startPos - 1)
-        #
-        #     # slightly different if this char is itself a dot
-        #     elif isDot:  # we have a '.' so look for methods/attributes
-        #         pos = self.GetCurrentPos()
-        #         prevStartPos = startPos = self.WordStartPosition(pos, True)
-        #         prevWord = self.GetTextRange(startPos, pos)
-        #         currWord = ''
-        #         # then previous char was .
-        #         while self.GetCharAt(prevStartPos - 1) == 46:
-        #             prevStartPos = self.WordStartPosition(prevStartPos - 1,
-        #                                                   True)
-        #             prevWord = self.GetTextRange(prevStartPos, pos - 1)
-        #
-        #     self.AutoCompSetIgnoreCase(True)
-        #     self.AutoCompSetAutoHide(True)
-        #     # try to get attributes for this object
-        #     event.Skip()
-        #     if isAlphaNum or isDot:
-        #         if True:
-        #             # use our own dictionary
-        #             # after a '.' show attributes
-        #             subList = []  # by default
-        #             # did we get a word?
-        #             if prevWord:
-        #                 # is it in dictionary?
-        #                 if prevWord in self.autoCompleteDict:
-        #                     attrs = self.autoCompleteDict[prevWord]['attrs']
-        #                     # does it have known attributes?
-        #                     if type(attrs) == list and len(attrs) >= 1:
-        #                         subList = [s for s in attrs if
-        #                                    currWord.lower() in s.lower()]
-        #             # for objects show simple completions
-        #             else:  # there was no preceding '.'
-        #                 # start trying after 2 characters
-        #                 autokeys = list(self.autoCompleteDict.keys())
-        #                 if len(currWord) > 1 and len(autokeys) > 1:
-        #                     subList = [s for s in autokeys
-        #                                if currWord.lower() in s.lower()]
-        #
-        #         else:
-        #             # use introspect (from wxpython's py package)
-        #             pass
-        #         # if there were any reasonable matches then show them
-        #         if len(subList) > 0:
-        #             subList.sort()
-        #             self.AutoCompShow(len(currWord) - 1, " ".join(subList))
-        #
-
         if keyCode == wx.WXK_RETURN: # and not self.AutoCompActive():
             if not self.AutoCompActive():
                 # prcoess end of line and then do smart indentation
@@ -899,88 +830,6 @@ class CodeEditor(BaseCodeEditor):
             self.caretAtIndentLevel and \
             0 < self.caretColumn <= self.caretLineIndentCol
 
-    def OnMarginClick(self, evt):
-        # fold and unfold as needed
-        if evt.GetMargin() == 1:
-            if evt.GetShift() and evt.GetControl():
-                self.FoldAll()
-            else:
-                lineClicked = self.LineFromPosition(evt.GetPosition())
-                _flag = wx.stc.STC_FOLDLEVELHEADERFLAG
-                if self.GetFoldLevel(lineClicked) & _flag:
-                    if evt.GetShift():
-                        self.SetFoldExpanded(lineClicked, True)
-                        self.Expand(lineClicked, True, True, 1)
-                    elif evt.GetControl():
-                        if self.GetFoldExpanded(lineClicked):
-                            self.SetFoldExpanded(lineClicked, False)
-                            self.Expand(lineClicked, False, True, 0)
-                        else:
-                            self.SetFoldExpanded(lineClicked, True)
-                            self.Expand(lineClicked, True, True, 100)
-                    else:
-                        self.ToggleFold(lineClicked)
-
-    def FoldAll(self):
-        """Fold all code blocks."""
-        lineCount = self.GetLineCount()
-        expanding = True
-
-        # find out if we are folding or unfolding
-        for lineNum in range(lineCount):
-            if self.GetFoldLevel(lineNum) & wx.stc.STC_FOLDLEVELHEADERFLAG:
-                expanding = not self.GetFoldExpanded(lineNum)
-                break
-
-        lineNum = 0
-        _flag = wx.stc.STC_FOLDLEVELHEADERFLAG
-        _mask = wx.stc.STC_FOLDLEVELNUMBERMASK
-        _base = wx.stc.STC_FOLDLEVELBASE
-        while lineNum < lineCount:
-            level = self.GetFoldLevel(lineNum)
-            if level & _flag and level & _mask == _base:
-                if expanding:
-                    self.SetFoldExpanded(lineNum, True)
-                    lineNum = self.Expand(lineNum, True)
-                    lineNum -= 1
-                else:
-                    lastChild = self.GetLastChild(lineNum, -1)
-                    self.SetFoldExpanded(lineNum, False)
-                    if lastChild > lineNum:
-                        self.HideLines(lineNum + 1, lastChild)
-            lineNum += 1
-
-    def Expand(self, line, doExpand, force=False, visLevels=0, level=-1):
-        lastChild = self.GetLastChild(line, level)
-        line += 1
-
-        while line <= lastChild:
-            if force:
-                if visLevels > 0:
-                    self.ShowLines(line, line)
-                else:
-                    self.HideLines(line, line)
-            else:
-                if doExpand:
-                    self.ShowLines(line, line)
-            if level == -1:
-                level = self.GetFoldLevel(line)
-            if level & wx.stc.STC_FOLDLEVELHEADERFLAG:
-                if force:
-                    if visLevels > 1:
-                        self.SetFoldExpanded(line, True)
-                    else:
-                        self.SetFoldExpanded(line, False)
-                    line = self.Expand(line, doExpand, force, visLevels - 1)
-                else:
-                    if doExpand and self.GetFoldExpanded(line):
-                        line = self.Expand(line, True, force, visLevels - 1)
-                    else:
-                        line = self.Expand(line, False, force, visLevels - 1)
-            else:
-                line += 1
-        return line
-
     def commentLines(self):
         # used for the comment/uncomment machinery from ActiveGrid
         newText = ""
@@ -1055,11 +904,6 @@ class CodeEditor(BaseCodeEditor):
         self.setFonts()
 
         if lexer == 'python':
-            # self.SetKeyWords(
-            #     0, " ".join(keyword.kwlist + [
-            #         'cdef', 'ctypedef', 'extern', 'cimport', 'cpdef',
-            #         'include']))
-            # self.SetKeyWords(1, " ".join(dir(builtins) + ['self']))
             self.SetIndentationGuides(self.coder.appData['showIndentGuides'])
             self.SetProperty("fold", "1")  # allow folding
             self.SetProperty("tab.timmy.whinge.level", "1")
@@ -1068,19 +912,6 @@ class CodeEditor(BaseCodeEditor):
             # 4 means 'tabs are bad'; 1 means 'flag inconsistency'
             self.SetProperty("tab.timmy.whinge.level", "1")
         elif lexer == 'cpp':  # JS, C/C++, GLSL, mex, arduino
-            # self.SetKeyWords(0, " ".join(
-            #     ['typedef', 'if', 'else', 'return', 'struct', 'for', 'while',
-            #      'do', 'using', 'namespace', 'uniform', 'varying', 'layout',
-            #      'in', 'attribute', 'function', 'break', 'var', 'enum',
-            #      'delete', 'finally', 'throw', 'try', 'typeof', 'sizeof',
-            #      'with', 'new', 'case', 'switch', 'continue', 'catch',
-            #      'class', 'import', 'true', 'false', 'NULL', 'let', 'union',
-            #      'out', 'invariant', 'precision', 'highp', 'mediump', 'lowp',
-            #      'coherent', 'volatile', 'restrict', 'readonly', 'writeonly']))
-            # self.SetKeyWords(1, " ".join(
-            #     ['int', 'float', 'double', 'char', 'short', 'byte', 'void',
-            #      'vec2', 'vec3', 'vec4', 'mat3', 'mat4', 'bool', 'sampler',
-            #      'sampler2D', 'const', 'unsigned', 'signed']))
             self.SetIndentationGuides(self.coder.appData['showIndentGuides'])
             self.SetProperty("fold", "1")
             self.SetProperty("tab.timmy.whinge.level", "1")
