@@ -742,7 +742,9 @@ class CodeEditor(BaseCodeEditor, CodeEditorFoldingMixin):
                 'Retrieving code completions, please wait ...', 0)
             # todo - create Script() periodically
             compList = [i.name for i in jedi.Script(
-                self.getTextUptoCaret()).completions(fuzzy=False)]
+                self.getTextUptoCaret(),
+                path=self.filename if os.path.isabs(self.filename) else
+                None).completions(fuzzy=False)]
             # todo - check if have a perfect match and veto AC
             self.coder.SetStatusText('', 0)
             if compList:
@@ -1173,7 +1175,7 @@ class CoderFrame(wx.Frame):
                 self._useShell = 'pyshell'
             self.shelf.AddPage(self.shell, _translate('Shell'))
 
-        # self.SetSizer(self.mainSizer)  # not necessary for aui type controls
+        #self.SetSizer(self.mainSizer)  # not necessary for aui type controls
         if (self.appData['auiPerspective'] and
                 'Shelf' in self.appData['auiPerspective']):
             self.paneManager.LoadPerspective(self.appData['auiPerspective'])

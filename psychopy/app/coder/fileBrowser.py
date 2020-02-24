@@ -12,13 +12,24 @@ from __future__ import absolute_import, print_function
 import wx
 from wx.lib.mixins.listctrl import ListCtrlAutoWidthMixin
 
+try:
+    from wx import aui
+except Exception:
+    import wx.lib.agw.aui as aui  # some versions of phoenix
+
 import os
 import time
+import collections
 
 # enums for file types
 FOLDER_TYPE_NORMAL = 0
 FOLDER_TYPE_NAV = 1
 FOLDER_TYPE_NO_ACCESS = 2
+
+# IDs for menu events
+ID_GOTO_BROWSE = wx.NewId()
+ID_GOTO_CWD = wx.NewId()
+ID_GOTO_FILE = wx.NewId()
 
 
 def convertBytes(nbytes):
@@ -33,110 +44,14 @@ def convertBytes(nbytes):
         return '{:.1f} B'.format(nbytes)
 
 
-class FileBrowserItem(object):
-    """Class representing a file browser item."""
+FolderItemData = collections.namedtuple(
+    'FolderItemData',
+    field_names=['name', 'abspath', 'basename'])
 
-    def __init__(self, parent, basename, name):
-        self.parent = parent  # browser panel
-        self.basename = basename
-        self.name = name
-        self.abspath = os.path.abspath(os.path.join(self.basename, self.name))
+FileItemData = collections.namedtuple(
+    'FileItemData',
+    field_names=['name', 'abspath', 'basename', 'fsize', 'mod'])
 
-    def open(self):
-        """Called when an item is activated."""
-        pass
-
-
-class FolderItem(FileBrowserItem):
-    """Class representing a folder in the file browser."""
-
-    def __init__(self, parent, basename, name):
-        super(FolderItem, self).__init__(parent, basename, name)
-        self.subDirMarker = name == '..'
-
-    def open(self):
-        """Open the directory in the browser."""
-        self.parent.gotoDir(self.abspath)
-
-    def rename(self, newname):
-        """Rename a folder."""
-        dst = os.path.join(self.basename, newname)
-        try:
-            os.rename(self.abspath, dst)
-        except OSError:
-            return False
-
-        newpath = os.path.abspath(os.path.join(self.basename, newname))
-
-        if os.path.isdir(newpath):  # valid after rename?
-            self.name = newname
-            self.abspath = newpath
-            return True
-
-        return False
-
-    def isValid(self):
-        """Check if the directory still exists."""
-        return os.path.isdir(self.abspath)
-
-    def folderType(self):
-        """Get the enum value for the file type."""
-        if not self.subDirMarker:
-            return FOLDER_TYPE_NORMAL
-        else:
-            return FOLDER_TYPE_NAV
-
-
-class FileItem(FileBrowserItem):
-    """Class representing a file in the file browser."""
-    def __init__(self, parent, basename, name):
-        super(FileItem, self).__init__(parent, basename, name)
-        self.modTime = time.ctime(os.path.getmtime(self.abspath))
-        self.sizeof = os.stat(self.abspath).st_size
-
-    def open(self):
-        """Open the file in PsychoPy."""
-        self.parent.coder.fileOpen(None, self.abspath)
-
-    def rename(self, newname):
-        """Rename a folder."""
-        dst = os.path.join(self.basename, newname)
-        try:
-            os.rename(self.abspath, dst)
-        except OSError:
-            return False
-
-        newpath = os.path.abspath(os.path.join(self.basename, newname))
-
-        if os.path.isfile(newpath):  # valid after rename?
-            self.name = newname
-            self.abspath = newpath
-            return True
-
-        return False
-
-    def isValid(self):
-        """Check if the file still exists."""
-        return os.path.isdir(self.abspath)
-
-    def getExtension(self):
-        """Get the extension for this file."""
-        nameParts = self.name.split('.')
-        if not len(nameParts) > 1:  # actually split
-            return None
-
-        return nameParts[-1]  # likely extension
-
-    def fileSize(self):
-        """Get the size of a file as a string."""
-        return convertBytes(self.sizeof)
-
-    def modifiedDate(self):
-        """Get the date/time a file as modified."""
-        # (mode, ino, dev, nlink, uid, gid, size, atime, mtime, ctime)
-        t = time.strptime(self.modTime, "%a %b %d %H:%M:%S %Y")
-
-        return time.strftime("%b %d, %Y, %I:%M %p", t)
 
 
 class FileBrowserListCtrl(ListCtrlAutoWidthMixin, wx.ListCtrl):
@@ -197,16 +112,16 @@ class FileBrowserPanel(wx.Panel):
         # create the toolbar
         szrToolbar = wx.BoxSizer(wx.HORIZONTAL)
 
-        self.toolBar = wx.ToolBar(
-            self, style=wx.TB_HORIZONTAL | wx.NO_BORDER | wx.TB_FLAT |
-                        wx.TB_TEXT | wx.TB_HORZ_LAYOUT)
+        self.toolBar = wx.aui.AuiToolBar(
+            self, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize,
+            aui.AUI_TB_HORZ_LAYOUT | aui.AUI_TB_HORZ_TEXT)
         self.toolBar.SetToolBitmapSize((16, 16))
         self.gotoTool = self.toolBar.AddTool(
             wx.ID_ANY,
             'Goto',
             gotoBmp,
             "Jump to another folder",
-            wx.ITEM_DROPDOWN)
+            wx.ITEM_NORMAL)
         self.toolBar.AddSeparator()
         self.newFolderTool = self.toolBar.AddTool(
             wx.ID_ANY,
@@ -233,13 +148,19 @@ class FileBrowserPanel(wx.Panel):
             deleteBmp,
             "Delete the selected folder or file",
             wx.ITEM_NORMAL)
+
+        self.toolBar.SetToolDropDown(self.gotoTool.GetId(), True)
         self.toolBar.Realize()
 
         self.Bind(wx.EVT_TOOL, self.OnBrowse, self.gotoTool)
+        self.Bind(aui.EVT_AUITOOLBAR_TOOL_DROPDOWN, self.OnGotoMenu, self.gotoTool)
         self.Bind(wx.EVT_TOOL, self.OnNewFolderTool, self.newFolderTool)
         self.Bind(wx.EVT_TOOL, self.OnDeleteTool, self.deleteTool)
         # self.Bind(wx.EVT_TOOL, self.OnCopyTool, self.copyTool)
         self.Bind(wx.EVT_TOOL, self.OnRenameTool, self.renameTool)
+        self.Bind(wx.EVT_MENU, self.OnBrowse, id=ID_GOTO_BROWSE)
+        self.Bind(wx.EVT_MENU, self.OnGotoCWD, id=ID_GOTO_CWD)
+        self.Bind(wx.EVT_MENU, self.OnGotoFileLocation, id=ID_GOTO_FILE)
 
         szrToolbar.Add(self.toolBar, 1, flag=wx.ALL | wx.EXPAND)
 
@@ -294,7 +215,7 @@ class FileBrowserPanel(wx.Panel):
             "Editor file location",
             "Open the directory the current editor file is located")
         self.Bind(wx.EVT_MENU, self.OnGotoFileLocation, id=item.GetId())
-        self.toolBar.SetDropdownMenu(self.gotoTool.GetId(), self.gotoMenu)
+        #self.toolBar.SetDropdownMenu(self.gotoTool.GetId(), self.gotoMenu)
 
         # add columns
         self.fileList.InsertColumn(0, "Name")
@@ -330,6 +251,27 @@ class FileBrowserPanel(wx.Panel):
             dlg.ShowModal()
             dlg.Destroy()
             evt.Skip()
+
+    def OnGotoMenu(self, event):
+        mnuGoto = wx.Menu()
+        mnuGoto.Append(
+            ID_GOTO_BROWSE,
+            "Browse ...",
+            "Browse the file system for a directory to open")
+        mnuGoto.AppendSeparator()
+        mnuGoto.Append(
+            ID_GOTO_CWD,
+            "Current working directory",
+            "Open the current working directory")
+        mnuGoto.Append(
+            ID_GOTO_FILE,
+            "Editor file location",
+            "Open the directory the current editor file is located")
+
+        self.PopupMenu(mnuGoto)
+        mnuGoto.Destroy()
+
+        #event.Skip()
 
     def OnBrowse(self, event=None):
         dlg = wx.DirDialog(self, "Choose directory ...", "",
@@ -382,19 +324,19 @@ class FileBrowserPanel(wx.Panel):
     def OnDeleteTool(self, event=None):
         """Activated when the delete tool is pressed."""
         if self.selectedItem is not None:
-            if isinstance(self.selectedItem, FolderItem):
-                if self.selectedItem.subDirMarker:
+            if isinstance(self.selectedItem, FolderItemData):
+                if self.selectedItem.name == '..':
                     return  # is a sub directory marker
 
-            self.delete(self.selectedItem.name)
+            self.delete()
 
     def OnRenameTool(self, event):
         """Activated when the rename tool is pressed."""
         if self.selectedItem is not None:
-            if isinstance(self.selectedItem, FolderItem):
-                if self.selectedItem.subDirMarker:
+            if isinstance(self.selectedItem, FolderItemData):
+                if self.selectedItem.name == '..':
                     return  # is a sub directory marker
-            self.rename(self.selectedItem.name)
+            self.rename()
 
     def OnGotoCWD(self, event):
         """Activated when the goto CWD menu item is clicked."""
@@ -406,21 +348,23 @@ class FileBrowserPanel(wx.Panel):
     #     """Activated when the copy tool is pressed."""
     #     pass  # mdc - will add this in a later version
 
-    def rename(self, what):
+    def rename(self):
         """Rename a file or directory."""
-        absPath = os.path.join(self.currentPath, what)
-        if os.path.isdir(absPath):  # rename a directory
+        if os.path.isdir(self.selectedItem.abspath):  # rename a directory
             dlg = wx.TextEntryDialog(
-                self, 'Rename folder `{}` to:'.format(what),
-                'Rename Folder', what)
+                self, 'Rename folder `{}` to:'.format(self.selectedItem.name),
+                'Rename Folder', self.selectedItem.name)
 
             if dlg.ShowModal() == wx.ID_OK:
                 newName = dlg.GetValue()
-                result = self.selectedItem.rename(newName)
-                if not result:
+                try:
+                    os.rename(self.selectedItem.abspath,
+                              os.path.join(self.selectedItem.basename, newName))
+                except OSError:
                     dlg2 = wx.MessageDialog(
                         self,
-                        "Cannot rename `{}` to `{}`.".format(what, newName),
+                        "Cannot rename `{}` to `{}`.".format(
+                            self.selectedItem.name, newName),
                         style=wx.ICON_ERROR | wx.OK)
                     dlg2.ShowModal()
                     dlg2.Destroy()
@@ -439,18 +383,23 @@ class FileBrowserPanel(wx.Panel):
                         break
 
             dlg.Destroy()
-        elif os.path.isfile(absPath):  # rename a directory
+        elif os.path.isfile(self.selectedItem.abspath):  # rename a directory
             dlg = wx.TextEntryDialog(
-                self, 'Rename file `{}` to:'.format(what),
-                'Rename file', what)
+                self, 'Rename file `{}` to:'.format(self.selectedItem.name),
+                'Rename file', self.selectedItem.name)
 
             if dlg.ShowModal() == wx.ID_OK:
                 newName = dlg.GetValue()
-                result = self.selectedItem.rename(newName)
-                if not result:
+
+                try:
+                    newPath = os.path.join(self.selectedItem.basename, newName)
+                    os.rename(self.selectedItem.abspath,
+                              newPath)
+                except OSError:
                     dlgError = wx.MessageDialog(
                         self,
-                        "Cannot rename `{}` to `{}`.".format(what, newName),
+                        "Cannot rename `{}` to `{}`.".format(
+                            self.selectedItem.name, newName),
                         style=wx.ICON_ERROR | wx.OK)
                     dlgError.ShowModal()
                     dlgError.Destroy()
@@ -461,7 +410,7 @@ class FileBrowserPanel(wx.Panel):
 
                 for idx, item in enumerate(self.dirData):
                     abspath = os.path.join(self.currentPath, newName)
-                    if item.abspath == abspath:
+                    if newPath == item.abspath:
                         self.fileList.Select(idx, True)
                         self.fileList.EnsureVisible(idx)
                         self.selectedItem = self.dirData[idx]
@@ -470,30 +419,30 @@ class FileBrowserPanel(wx.Panel):
 
             dlg.Destroy()
 
-    def delete(self, what):
+    def delete(self):
         """Delete a file or directory."""
-        absPath = os.path.join(self.currentPath, what)
-        if os.path.isdir(absPath):  # delete a directory
+        if os.path.isdir(self.selectedItem.abspath):  # delete a directory
             dlg = wx.MessageDialog(
                 self, "Are you sure you want to PERMANENTLY delete folder "
-                      "`{}`?".format(what),
+                      "`{}`?".format(self.selectedItem.name),
                 'Confirm delete', style=wx.YES_NO | wx.NO_DEFAULT |
                                         wx.ICON_WARNING)
 
             if dlg.ShowModal() == wx.ID_YES:
                 try:
-                    os.rmdir(absPath)
+                    os.rmdir(self.selectedItem.abspath)
                 except FileNotFoundError:  # file was removed
                     dlgError = wx.MessageDialog(
                         self, "Cannot delete folder `{}`, directory does not "
-                              "exist.".format(what),
+                              "exist.".format(self.selectedItem.name),
                         'Error', style=wx.OK | wx.ICON_ERROR)
                     dlgError.ShowModal()
                     dlgError.Destroy()
                 except OSError:  # permission or directory not empty error
                     dlgError = wx.MessageDialog(
                         self, "Cannot delete folder `{}`, directory is not "
-                              "empty or permission denied.".format(what),
+                              "empty or permission denied.".format(
+                            self.selectedItem.name),
                         'Error', style=wx.OK | wx.ICON_ERROR)
                     dlgError.ShowModal()
                     dlgError.Destroy()
@@ -501,27 +450,27 @@ class FileBrowserPanel(wx.Panel):
                 self.gotoDir(self.currentPath)
 
             dlg.Destroy()
-        elif os.path.isfile(absPath):  # delete a file
+        elif os.path.isfile(self.selectedItem.abspath):  # delete a file
             dlg = wx.MessageDialog(
                 self, "Are you sure you want to PERMANENTLY delete file "
-                      "`{}`?".format(what),
+                      "`{}`?".format(self.selectedItem.name),
                 'Confirm delete', style=wx.YES_NO | wx.NO_DEFAULT |
                                         wx.ICON_WARNING)
 
             if dlg.ShowModal() == wx.ID_YES:
                 try:
-                    os.remove(absPath)
+                    os.remove(self.selectedItem.abspath)
                 except FileNotFoundError:
                     dlgError = wx.MessageDialog(
                         self, "Cannot delete folder `{}`, file does not "
-                              "exist.".format(what),
+                              "exist.".format(self.selectedItem.name),
                         'Error', style=wx.OK | wx.ICON_ERROR)
                     dlgError.ShowModal()
                     dlgError.Destroy()
                 except OSError:
                     dlgError = wx.MessageDialog(
                         self, "Cannot delete file `{}`, permission "
-                              "denied.".format(what),
+                              "denied.".format(self.selectedItem.name),
                         'Error', style=wx.OK | wx.ICON_ERROR)
                     dlgError.ShowModal()
                     dlgError.Destroy()
@@ -553,7 +502,10 @@ class FileBrowserPanel(wx.Panel):
 
     def OnItemActivated(self, evt):
         if self.selectedItem is not None:
-            self.selectedItem.open()
+            if isinstance(self.selectedItem, FolderItemData):
+                self.gotoDir(self.selectedItem.abspath)
+            elif isinstance(self.selectedItem, FileItemData):
+                self.coder.fileOpen(None, self.selectedItem.abspath)
 
     def OnItemSelected(self, evt=None):
         itemIdx = self.fileList.GetFirstSelected()
@@ -566,9 +518,8 @@ class FileBrowserPanel(wx.Panel):
 
         # are we in a sub directory?
         upPath = os.path.abspath(os.path.join(path, '..'))
-        self.isSubDir = upPath != path
-        if self.isSubDir:  # add special item that goes up a directory
-            self.dirData.append(FolderItem(self, path, '..'))
+        if upPath != path:  # add special item that goes up a directory
+            self.dirData.append(FolderItemData('..', upPath, None))
 
         # scan the directory and create item objects
         try:
@@ -576,11 +527,17 @@ class FileBrowserPanel(wx.Panel):
             for f in contents:
                 absPath = os.path.join(path, f)
                 if os.path.isdir(absPath):
-                    self.dirData.append(FolderItem(self, path, f))
+                    self.dirData.append(FolderItemData(f, absPath, path))
             for f in contents:
                 absPath = os.path.join(path, f)
                 if os.path.isfile(absPath):
-                    self.dirData.append(FileItem(self, path, f))
+                    fsize = convertBytes(os.stat(absPath).st_size)
+                    modTime = time.ctime(os.path.getmtime(absPath))
+                    modTime = time.strftime(
+                        "%b %d, %Y, %I:%M %p",
+                        time.strptime(modTime, "%a %b %d %H:%M:%S %Y"))
+                    self.dirData.append(
+                        FileItemData(f, absPath, path, fsize, modTime))
         except OSError:
             dlg = wx.MessageDialog(
                 self,
@@ -598,21 +555,21 @@ class FileBrowserPanel(wx.Panel):
         # start off with adding folders to the list
         self.fileList.DeleteAllItems()
         for obj in self.dirData:
-            if isinstance(obj, FolderItem):
-                if not obj.subDirMarker:
+            if isinstance(obj, FolderItemData):
+                if not obj.name == '..':
                     img = 1
                 else:
                     img = 0
 
                 index = self.fileList.InsertItem(
                     self.fileList.GetItemCount(), obj.name, img)
-            elif isinstance(obj, FileItem):
+            elif isinstance(obj, FileItemData):
                 index = self.fileList.InsertItem(
                     self.fileList.GetItemCount(),
                     obj.name,
                     2)
-                self.fileList.SetItem(index, 1, obj.fileSize())
-                self.fileList.SetItem(index, 2, obj.modifiedDate())
+                self.fileList.SetItem(index, 1, obj.fsize)
+                self.fileList.SetItem(index, 2, obj.mod)
 
     def addItem(self, name, absPath):
         """Add an item to the directory browser."""
