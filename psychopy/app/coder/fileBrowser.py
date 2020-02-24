@@ -293,6 +293,16 @@ class FileBrowserPanel(wx.Panel):
             return
 
         folderName = dlg.GetValue()
+        if folderName == '':
+            dlg = wx.MessageDialog(
+                self,
+                "Folder name cannot be empty.".format(folderName),
+                style=wx.ICON_ERROR | wx.OK)
+            dlg.ShowModal()
+            dlg.Destroy()
+            event.Skip()
+            return
+
         abspath = os.path.join(self.currentPath, folderName)
 
         if os.path.isdir(abspath):  # folder exists, warn and exit
