@@ -2,8 +2,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PsychoPy 1.81.00\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-02-21 19:20+0900\n"
-"PO-Revision-Date: 2020-02-21 19:21+0900\n"
+"POT-Creation-Date: 2020-02-25 17:33+0900\n"
+"PO-Revision-Date: 2020-02-25 18:00+0900\n"
 "Last-Translator: Hiroyuki Sogo <hsogo12600@gmail.com>\n"
 "Language-Team: Hiroyuki Sogo <hsogo12600@gmail.com>\n"
 "Language: ja\n"
@@ -1220,6 +1220,31 @@ msgstr "最後"
 #: psychopy/app/builder/localizedStrings.py:100
 msgid "all"
 msgstr "すべて"
+
+#: psychopy/app/builder/localizedStrings.py:104
+msgid "one of your Components, Routines, or condition parameters"
+msgstr "他のコンポーネントやルーチン，パラメータ"
+
+#: psychopy/app/builder/localizedStrings.py:106
+msgid " Avoid `this`, `these`, `continue`, `Clock`, or `component` in name"
+msgstr ""
+" this、these、continue、Clock、componentを名前に含まないようにしてください"
+
+#: psychopy/app/builder/localizedStrings.py:107
+msgid "Builder variable"
+msgstr "Builderの変数"
+
+#: psychopy/app/builder/localizedStrings.py:108
+msgid "Psychopy module"
+msgstr "PsychoPyのモジュール名"
+
+#: psychopy/app/builder/localizedStrings.py:109
+msgid "numpy function"
+msgstr "numpyの関数"
+
+#: psychopy/app/builder/localizedStrings.py:110
+msgid "python keyword"
+msgstr "Pythonのキーワード"
 
 #: psychopy/app/builder/validators.py:107
 #, python-format
@@ -6966,19 +6991,6 @@ msgstr "PsychoPyに戻るにはキャンセルをクリックします"
 
 #~ msgid "The ID of this project (e.g. 5bqpc)"
 #~ msgstr "プロジェクトID (例: 5bqpc)"
-
-#~ msgid "one of your Components, Routines, or condition parameters"
-#~ msgstr "ユーザーが使用済み"
-
-#~ msgid " Avoid `this`, `these`, `continue`, `Clock`, or `component` in name"
-#~ msgstr ""
-#~ " this、these、continue、Clock、componentを名前に含まないようにしてください"
-
-#~ msgid "Psychopy module"
-#~ msgstr "PsychoPyのモジュール名"
-
-#~ msgid "python keyword"
-#~ msgstr "Pythonのキーワード"
 
 #~ msgid ""
 #~ "Warning: python 2.6 or 2.7 required; 2.5 is not supported but might work"

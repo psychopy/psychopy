@@ -98,7 +98,17 @@ _localizedDialogs = {
     'first': _translate('first'),
     'last': _translate('last'),
     'all': _translate('all'),
-    'average': _translate('average')}
+    'average': _translate('average'),
+    # NameSpace
+    'one of your Components, Routines, or condition parameters': 
+    _translate('one of your Components, Routines, or condition parameters'),
+    ' Avoid `this`, `these`, `continue`, `Clock`, or `component` in name': 
+    _translate(' Avoid `this`, `these`, `continue`, `Clock`, or `component` in name'),
+    'Builder variable': _translate('Builder variable'),
+    'Psychopy module': _translate('Psychopy module'),
+    'numpy function': _translate('numpy function'),
+    'python keyword': _translate('python keyword')}
+
 
 _localized = copy.copy(_localizedBase)
 _localized.update(_localizedDialogs)
