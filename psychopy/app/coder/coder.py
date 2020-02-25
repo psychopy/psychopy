@@ -560,10 +560,11 @@ class CodeEditor(BaseCodeEditor, CodeEditorFoldingMixin):
         self.caretAtIndentLevel = \
             (self.caretLineIndentCol % self.indentSize) == 0
 
-        # should hitting backspace result in an untab?
-        self.shouldBackspaceUntab = \
-            self.caretAtIndentLevel and \
-            0 < self.caretColumn <= self.caretLineIndentCol
+        # # should hitting backspace result in an untab?
+        # self.shouldBackspaceUntab = \
+        #     self.caretAtIndentLevel and \
+        #     0 < self.caretColumn <= self.caretLineIndentCol
+        self.SetBackSpaceUnIndents(True)
 
         # set the current line and column in the status bar
         self.coder.SetStatusText(
@@ -725,13 +726,6 @@ class CodeEditor(BaseCodeEditor, CodeEditorFoldingMixin):
                 self.smartIdentThisLine()
                 self.analyseScript()
                 return  # so that we don't reach the skip line at end
-
-        # deindent when hitting backspace on margin whitespace
-        if keyCode == wx.WXK_BACK:
-            if self.shouldBackspaceUntab:
-                event.Skip(False)
-                self.CmdKeyExecute(wx.stc.STC_CMD_BACKTAB)
-                return
 
         event.Skip()
 
