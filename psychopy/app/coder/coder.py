@@ -1827,7 +1827,7 @@ class CoderFrame(wx.Frame):
         """Make the status bar for Coder."""
         self.statusBar = wx.StatusBar(self, wx.ID_ANY)
         self.statusBar.SetFieldsCount(4)
-        self.statusBar.SetStatusWidths([-2, 128, 96, 128])
+        self.statusBar.SetStatusWidths([-2, 160, 160, 160])
 
         self.SetStatusBar(self.statusBar)
 
