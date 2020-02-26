@@ -1976,32 +1976,33 @@ class CoderFrame(wx.Frame):
                 text = stream.read()
                 self.outputWindow.write(text)
         # check if we're in the same place as before
-        if hasattr(self.currentDoc, 'GetCurrentPos'):
-            pos = self.currentDoc.GetCurrentPos()
-            if self._lastCaretPos != pos:
-                self.currentDoc.OnUpdateUI(evt=None)
-                self._lastCaretPos = pos
-        last = self.fileStatusLastChecked
-        interval = self.fileStatusCheckInterval
-        if time.time() - last > interval and not self.showingReloadDialog:
-            if not self.expectedModTime(self.currentDoc):
-                self.showingReloadDialog = True
-                filename = os.path.basename(self.currentDoc.filename)
-                msg = _translate("'%s' was modified outside of PsychoPy:\n\n"
-                                 "Reload (without saving)?") % filename
-                dlg = dialogs.MessageDialog(self, message=msg, type='Warning')
-                if dlg.ShowModal() == wx.ID_YES:
-                    self.statusBar.SetStatusText(_translate('Reloading file'))
-                    self.fileReload(event,
-                                    filename=self.currentDoc.filename,
-                                    checkSave=False)
-                self.showingReloadDialog = False
-                self.statusBar.SetStatusText('')
-                try:
-                    dlg.destroy()
-                except Exception:
-                    pass
-            self.fileStatusLastChecked = time.time()
+        if self.currentDoc is not None:
+            if hasattr(self.currentDoc, 'GetCurrentPos'):
+                pos = self.currentDoc.GetCurrentPos()
+                if self._lastCaretPos != pos:
+                    self.currentDoc.OnUpdateUI(evt=None)
+                    self._lastCaretPos = pos
+            last = self.fileStatusLastChecked
+            interval = self.fileStatusCheckInterval
+            if time.time() - last > interval and not self.showingReloadDialog:
+                if not self.expectedModTime(self.currentDoc):
+                    self.showingReloadDialog = True
+                    filename = os.path.basename(self.currentDoc.filename)
+                    msg = _translate("'%s' was modified outside of PsychoPy:\n\n"
+                                     "Reload (without saving)?") % filename
+                    dlg = dialogs.MessageDialog(self, message=msg, type='Warning')
+                    if dlg.ShowModal() == wx.ID_YES:
+                        self.statusBar.SetStatusText(_translate('Reloading file'))
+                        self.fileReload(event,
+                                        filename=self.currentDoc.filename,
+                                        checkSave=False)
+                    self.showingReloadDialog = False
+                    self.statusBar.SetStatusText('')
+                    try:
+                        dlg.destroy()
+                    except Exception:
+                        pass
+                self.fileStatusLastChecked = time.time()
 
     def pageChanged(self, event):
         old = event.GetOldSelection()
@@ -2247,6 +2248,7 @@ class CoderFrame(wx.Frame):
                 try:
                     with io.open(filename, 'r', encoding='utf-8-sig') as f:
                         fileText = f.read()
+                        newlines = f.newlines
                 except UnicodeDecodeError:
                     dlg = dialogs.MessageDialog(self, message=_translate(
                         'Failed to open `{}`. Make sure that encoding of '
@@ -2254,6 +2256,8 @@ class CoderFrame(wx.Frame):
                     dlg.ShowModal()
                     dlg.Destroy()
                     return
+            elif filename == '':
+                pass  # user requested a new document
             else:
                 dlg = dialogs.MessageDialog(
                     self,
@@ -2267,23 +2271,28 @@ class CoderFrame(wx.Frame):
             p = self.currentDoc = CodeEditor(self.notebook, -1, frame=self,
                                              readonly=readonly)
 
-            # put the text in editor
-            self.currentDoc.SetText(fileText)
-            del fileText  # delete the buffer
-            self.currentDoc.newlines = f.newlines
-            self.currentDoc.fileModTime = os.path.getmtime(filename)
-            self.fileHistory.AddFileToHistory(filename)
+            # load text
+            if filename != '':
+                # put the text in editor
+                self.currentDoc.SetText(fileText)
+                self.currentDoc.newlines = newlines
+                del fileText  # delete the buffer
+                self.currentDoc.fileModTime = os.path.getmtime(filename)
+                self.fileHistory.AddFileToHistory(filename)
+            else:
+                # set name for an untitled document
+                filename = shortName = 'untitled.py'
+                allFileNames = self.getOpenFilenames()
+                n = 1
+                while filename in allFileNames:
+                    filename = shortName = 'untitled%i.py' % n
+                    n += 1
+
+                # create modification time for in memory document
+                self.currentDoc.fileModTime = time.ctime()
+
             self.currentDoc.EmptyUndoBuffer()
 
-            # set name for an untitled document
-            # if filename == "":
-            #     filename = shortName = 'untitled.py'
-            #     allFileNames = self.getOpenFilenames()
-            #     n = 1
-            #     while filename in allFileNames:
-            #         filename = shortName = 'untitled%i.py' % n
-            #         n += 1
-            # else:
             path, shortName = os.path.split(filename)
             self.notebook.AddPage(p, shortName)
             nbIndex = len(self.getOpenFilenames()) - 1
@@ -2489,7 +2498,8 @@ class CoderFrame(wx.Frame):
             sys.stdout.flush()
             dlg.Destroy()
             if resp == wx.ID_CANCEL:
-                event.Veto()
+                if isinstance(event, aui.AuiNotebookEvent):
+                    event.Veto()
                 return -1  # return, don't quit
             elif resp == wx.ID_YES:
                 # save then quit
