@@ -497,8 +497,8 @@ class UnitTestFrame(wx.Frame):
 
 
 class CodeEditor(BaseCodeEditor, CodeEditorFoldingMixin):
-    # this comes mostly from the wxPython demo styledTextCtrl 2
-
+    """Code editor class for the Coder GUI.
+    """
     def __init__(self, parent, ID, frame,
                  # set the viewer to be small, then it will increase with aui
                  # control
@@ -571,6 +571,7 @@ class CodeEditor(BaseCodeEditor, CodeEditorFoldingMixin):
             'Line: {} Col: {}'.format(
                 self.caretLine + 1, self.caretColumn + 1), 1)
 
+        # calltips
         self.CallTipSetBackground('#fffdcc')
         self.AutoCompSetIgnoreCase(True)
         self.AutoCompSetAutoHide(True)
@@ -627,7 +628,7 @@ class CodeEditor(BaseCodeEditor, CodeEditorFoldingMixin):
         if len(fsplit) > 1:   # has enough splits to have an extension
             ext = fsplit[-1]
         else:
-            ext = 'txt'  # assume a text file if we wer able to open it
+            ext = 'txt'  # assume a text file if we're able to open it
 
         if ext in ('py', 'pyx', 'pxd', 'pxi',):  # python/cython files
             return 'Python'
@@ -720,12 +721,22 @@ class CodeEditor(BaseCodeEditor, CodeEditorFoldingMixin):
 
         if keyCode == wx.WXK_RETURN: # and not self.AutoCompActive():
             if not self.AutoCompActive():
-                # prcoess end of line and then do smart indentation
+                # process end of line and then do smart indentation
                 event.Skip(False)
                 self.CmdKeyExecute(wx.stc.STC_CMD_NEWLINE)
                 self.smartIdentThisLine()
                 self.analyseScript()
                 return  # so that we don't reach the skip line at end
+
+        # quote line
+        if keyCode == ord("'"):
+            start, end = self.GetSelection()
+            if end - start > 0:
+                txt = self.GetSelectedText()
+                txt = "'" + txt.replace('\n', "'\n'") + "'"
+                self.ReplaceSelection(txt)
+                event.Skip(False)
+                return
 
         event.Skip()
 
@@ -2231,37 +2242,49 @@ class CoderFrame(wx.Frame):
                         self.currentDoc.filename.startswith('untitled')):
                     self.fileClose(self.currentDoc.filename)
 
-            # create an editor window to put the text in
-            p = self.currentDoc = CodeEditor(self.notebook, -1, frame=self,
-                                             readonly=readonly)
             # load text from document
             if os.path.isfile(filename):
                 try:
                     with io.open(filename, 'r', encoding='utf-8-sig') as f:
-                        self.currentDoc.SetText(f.read())
-                        self.currentDoc.newlines = f.newlines
+                        fileText = f.read()
                 except UnicodeDecodeError:
                     dlg = dialogs.MessageDialog(self, message=_translate(
-                        'Failed to open {}. Make sure that encoding of '
+                        'Failed to open `{}`. Make sure that encoding of '
                         'the file is utf-8.').format(filename), type='Info')
                     dlg.ShowModal()
                     dlg.Destroy()
-                self.currentDoc.fileModTime = os.path.getmtime(filename)
-                self.fileHistory.AddFileToHistory(filename)
+                    return
             else:
-                self.currentDoc.SetText("")
+                dlg = dialogs.MessageDialog(
+                    self,
+                    message='Failed to open {}. Not a file.'.format(filename),
+                    type='Info')
+                dlg.ShowModal()
+                dlg.Destroy()
+                return  # do nothing
+
+            # create an editor window to put the text in
+            p = self.currentDoc = CodeEditor(self.notebook, -1, frame=self,
+                                             readonly=readonly)
+
+            # put the text in editor
+            self.currentDoc.SetText(fileText)
+            del fileText  # delete the buffer
+            self.currentDoc.newlines = f.newlines
+            self.currentDoc.fileModTime = os.path.getmtime(filename)
+            self.fileHistory.AddFileToHistory(filename)
             self.currentDoc.EmptyUndoBuffer()
 
             # set name for an untitled document
-            if filename == "":
-                filename = shortName = 'untitled.py'
-                allFileNames = self.getOpenFilenames()
-                n = 1
-                while filename in allFileNames:
-                    filename = shortName = 'untitled%i.py' % n
-                    n += 1
-            else:
-                path, shortName = os.path.split(filename)
+            # if filename == "":
+            #     filename = shortName = 'untitled.py'
+            #     allFileNames = self.getOpenFilenames()
+            #     n = 1
+            #     while filename in allFileNames:
+            #         filename = shortName = 'untitled%i.py' % n
+            #         n += 1
+            # else:
+            path, shortName = os.path.split(filename)
             self.notebook.AddPage(p, shortName)
             nbIndex = len(self.getOpenFilenames()) - 1
             if isinstance(self.notebook, wx.Notebook):

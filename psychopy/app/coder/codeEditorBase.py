@@ -11,6 +11,7 @@
 # Distributed under the terms of the GNU General Public License (GPL).
 
 import wx
+import wx.stc
 import sys
 from pkg_resources import parse_version
 from psychopy.constants import PY3
