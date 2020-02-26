@@ -51,6 +51,10 @@ class HSColorWheel(wx.Panel):
         self.Bind(wx.EVT_ERASE_BACKGROUND, self.OnEraseBackground)
         self.Bind(wx.EVT_MOUSE_EVENTS, self.OnMouseEvent)
 
+        # manage slider
+        self._hueSlider = None
+        self._satSlider = None
+
     def OnPaint(self, event):
         """Event called when the slider is redrawn."""
         dc = wx.AutoBufferedPaintDC(self)
@@ -98,7 +102,7 @@ class HSColorWheel(wx.Panel):
 
         """
         dc.DrawBitmap(
-            self._wheelBitmap, self._wheelRect.x, self._wheelRect.y, True)
+            self._wheelBitmap, self._wheelRect.x + 1, self._wheelRect.y + 1, True)
 
         dc.SetPen(wx.Pen(wx.WHITE, 1))
         dc.SetBrush(wx.TRANSPARENT_BRUSH)
@@ -109,16 +113,57 @@ class HSColorWheel(wx.Panel):
     def OnMouseEvent(self, event):
         """Event when the mouse is clicked or moved over the control."""
         if event.LeftIsDown():
-            self._markerPos = mousePos = wx.Point(event.GetX(), event.GetY())
+            mousePos = wx.Point(event.GetX(), event.GetY())
 
-            self._satDist = \
-                ccd.Distance(self._wheelCentre, mousePos) / self._wheelRadius
+            dist = ccd.Distance(self._wheelCentre, mousePos)
+            self._satDist = dist / self._wheelRadius
+
             self._hueAngle = \
-                int(ccd.rad2deg(ccd.AngleFromPoint(mousePos, self._wheelCentre)))
-            if self._hueAngle < 0:
-                self._hueAngle += 360
+                ccd.rad2deg(ccd.AngleFromPoint(mousePos, self._wheelCentre))
+            if self._hueAngle < 0.:
+                self._hueAngle += 360.
+
+            if self._satDist > 1.0:
+                self._satDist = 1.0
+                self._markerPos = ccd.PtFromAngle(
+                    self._hueAngle, self._satDist * 255, self._wheelCentre)
+            else:
+                self._markerPos = mousePos
+
+            if self._hueSlider is not None:
+                self._hueSlider.SetValue(self._hueAngle)
+            if self._satSlider is not None:
+                self._satSlider.SetValue(self._satDist)
 
         self.Refresh()  # redraw when changed
+
+    def manageHueSlider(self, slider):
+        """Hue slider object to manage."""
+        self._hueSlider = slider
+
+    def manageSatSlider(self, slider):
+        """Saturation slider object to manage."""
+        self._satSlider = slider
+
+    def UpdateHue(self):
+        """Get hue and saturation for child sliders."""
+        if self._hueSlider is not None:
+            self._hueAngle = self._hueSlider.GetValue()
+
+            self._markerPos = ccd.PtFromAngle(
+                self._hueAngle, self._satDist * 255.0, self._wheelCentre)
+
+            self.Refresh()
+
+    def UpdateSat(self):
+        if self._hueSlider is not None:
+            self._satDist = self._satSlider.GetValue()
+
+            self._markerPos = ccd.PtFromAngle(
+                self._hueAngle, self._satDist * 255.0, self._wheelCentre)
+
+            self.Refresh()
+
     #
     # def setSliderChangedCallback(self, cbfunc):
     #     """Set the callback function for when a slider changes."""
@@ -172,6 +217,10 @@ class HSVHueSlider(ColorSlider):
         super(HSVHueSlider, self).__init__(parent, id, pos, size, style)
         self.setGetScaleFunc(lambda x: x * 360.)
         self.setSetScaleFunc(lambda x: x / 360.)
+
+        self._hsvWheel = None
+        self._satSlider = None
+        self._valSlider = None
 
     def realize(self):
         clientRect = self.GetClientSize()
@@ -227,12 +276,34 @@ class HSVHueSlider(ColorSlider):
         dc.SetLogicalFunction(wx.XOR)
         dc.DrawRectangle(self.sliderPosX - 4, 0, 8, rect.height)
 
+    def manageHSVWheel(self, wheel):
+        self._hsvWheel = wheel
+
+    def manageSatSlider(self, slider):
+        self._satSlider = slider
+
+    def manageValSlider(self, slider):
+        self._valSlider = slider
+
+    def OnValueChanged(self):
+        """Called after a value changes."""
+        if self._satSlider is not None:
+            self._satSlider.SetHue(self.GetValue())
+
+        if self._satSlider is not None:
+            self._valSlider.SetHue(self.GetValue())
+
+        if self._hsvWheel is not None:
+            self._hsvWheel.UpdateHue()
+
 
 class HSVSaturationSlider(ColorSlider):
     """Class for creating a slider to pick a hue."""
     def __init__(self, parent, id, pos, size, style):
         super(HSVSaturationSlider, self).__init__(parent, id, pos, size, style)
         self._targetHue = 1.0
+        self._valSlider = None
+        self._hsvWheel = None
 
     def realize(self):
         self.SetValue(0.5)
@@ -265,7 +336,8 @@ class HSVSaturationSlider(ColorSlider):
             dc.SetPen(wx.Pen(colour, 1, wx.PENSTYLE_SOLID))
             dc.SetBrush(wx.Brush(colour, style=wx.BRUSHSTYLE_SOLID))
             if (y_pos + self._quantLevel) >= bgEnd:
-                segWidth = self._quantLevel - int((y_pos + self._quantLevel) - bgEnd)
+                segWidth = \
+                    self._quantLevel - int((y_pos + self._quantLevel) - bgEnd)
             else:
                 segWidth = int(self._quantLevel)
 
@@ -281,6 +353,20 @@ class HSVSaturationSlider(ColorSlider):
         """Set the hue to saturate."""
         self._targetHue = value / 360.
         self.Refresh()
+
+    def manageHSVWheel(self, wheel):
+        self._hsvWheel = wheel
+
+    def manageValSlider(self, slider):
+        self._valSlider = slider
+
+    def OnValueChanged(self):
+        """Called after a value changes."""
+        if self._hsvWheel is not None:
+            self._hsvWheel.UpdateSat()
+
+        if self._valSlider is not None:
+            self._valSlider.SetSaturation(self.GetValue())
 
 
 class HSVValueSlider(ColorSlider):
@@ -321,7 +407,8 @@ class HSVValueSlider(ColorSlider):
             dc.SetPen(wx.Pen(colour, 1, wx.PENSTYLE_SOLID))
             dc.SetBrush(wx.Brush(colour, style=wx.BRUSHSTYLE_SOLID))
             if y_pos + self._quantLevel > bgEnd:
-                segWidth = self._quantLevel + (y_pos - bgEnd)
+                segWidth = \
+                    self._quantLevel - int((y_pos + self._quantLevel) - bgEnd)
             else:
                 segWidth = int(self._quantLevel)
 
@@ -436,6 +523,14 @@ class HSVColorPicker(wx.Panel):
         self.pnlValue.realize()
         self.pnlColorWheel.realize()
 
+        self.pnlColorWheel.manageHueSlider(self.pnlHue)
+        self.pnlColorWheel.manageSatSlider(self.pnlSat)
+        self.pnlHue.manageHSVWheel(self.pnlColorWheel)
+        self.pnlHue.manageSatSlider(self.pnlSat)
+        self.pnlHue.manageValSlider(self.pnlValue)
+        self.pnlSat.manageHSVWheel(self.pnlColorWheel)
+        self.pnlSat.manageValSlider(self.pnlValue)
+
     def updatePickerRGB(self):
         self.GetTopLevelParent().updateColorPicker(cst.hsv2rgb(self._colorHSV))
 
@@ -447,11 +542,6 @@ class HSVColorPicker(wx.Panel):
         self.spnSatHSV.Bind(wx.EVT_TEXT_ENTER, self.OnSatHSVChanged)
         self.spnHueHSV.Bind(wx.EVT_SPINCTRLDOUBLE, self.OnHueHSVChanged)
         self.spnHueHSV.Bind(wx.EVT_TEXT_ENTER, self.OnHueHSVChanged)
-
-        # assign callbacks
-        self.pnlHue.setSliderChangedCallback(self.OnHSVHueChangedCallback)
-        self.pnlSat.setSliderChangedCallback(self.OnHSVSatChangedCallback)
-        self.pnlValue.setSliderChangedCallback(self.OnHSVValueChangedCallback)
 
     def OnHSVHueChangedCallback(self, val):
         self._colorHSV[0] = self.pnlHue.GetValue()
