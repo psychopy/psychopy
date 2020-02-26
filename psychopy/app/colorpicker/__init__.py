@@ -9,15 +9,17 @@ import wx
 import wx.lib.agw.cubecolourdialog as ccd
 from wx.lib.embeddedimage import PyEmbeddedImage
 from psychopy.app.colorpicker.hsv import HSVColorPicker
+from psychopy.app.colorpicker.chip import ColorChip
 
 
 class PsychoColorPicker(wx.Dialog):
 
     def __init__(self, parent):
         wx.Dialog.__init__(self, parent, id=wx.ID_ANY, title=u"Color Picker", pos=wx.DefaultPosition,
-                           size=wx.Size(640, 480), style=wx.DEFAULT_DIALOG_STYLE)
+                           size=wx.Size(640, 500), style=wx.DEFAULT_DIALOG_STYLE)
 
         self._color = [0.0, 0.0, 0.0]
+        self._colorClipped = [0.5, 0.5, 0.5]
 
         self.SetSizeHints(wx.DefaultSize, wx.DefaultSize)
 
@@ -40,22 +42,21 @@ class PsychoColorPicker(wx.Dialog):
 
         fraPreview = wx.StaticBoxSizer(wx.StaticBox(self, wx.ID_ANY, u" Preview "), wx.VERTICAL)
 
-        self.pnlPreview = wx.Panel(fraPreview.GetStaticBox(), wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize,
-                                   wx.BORDER_SUNKEN | wx.TAB_TRAVERSAL)
-        self.pnlPreview.SetBackgroundColour(wx.SystemSettings.GetColour(wx.SYS_COLOUR_ACTIVECAPTION))
+        self.pnlPreview = ColorChip(fraPreview.GetStaticBox(), wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize,
+                                    wx.BORDER_SUNKEN | wx.TAB_TRAVERSAL)
 
         fraPreview.Add(self.pnlPreview, 1, wx.EXPAND | wx.ALL, 5)
 
         sbOutput.Add(fraPreview, 1, wx.EXPAND | wx.LEFT, 5)
 
-        fraColor = wx.StaticBoxSizer(wx.StaticBox(self, wx.ID_ANY, u" PsychoPy RGB "), wx.VERTICAL)
+        fraColor = wx.StaticBoxSizer(wx.StaticBox(self, wx.ID_ANY, u" Output RGB "), wx.VERTICAL)
 
         sbColor = wx.FlexGridSizer(3, 2, 0, 0)
         sbColor.AddGrowableCol(1)
         sbColor.SetFlexibleDirection(wx.HORIZONTAL)
         sbColor.SetNonFlexibleGrowMode(wx.FLEX_GROWMODE_SPECIFIED)
 
-        self.lblRed = wx.StaticText(fraColor.GetStaticBox(), wx.ID_ANY, u"R:", wx.DefaultPosition, wx.DefaultSize, 0)
+        self.lblRed = wx.StaticText(fraColor.GetStaticBox(), wx.ID_ANY, u"Red", wx.DefaultPosition, wx.DefaultSize, 0)
         self.lblRed.Wrap(-1)
 
         sbColor.Add(self.lblRed, 0, wx.ALL | wx.ALIGN_RIGHT | wx.ALIGN_CENTER_VERTICAL, 5)
@@ -63,9 +64,9 @@ class PsychoColorPicker(wx.Dialog):
         self.spnColorRed = wx.SpinCtrlDouble(fraColor.GetStaticBox(), wx.ID_ANY, wx.EmptyString, wx.DefaultPosition,
                                              wx.DefaultSize, wx.SP_ARROW_KEYS, -1, 1, 0, 0.01)
         self.spnColorRed.SetDigits(3)
-        sbColor.Add(self.spnColorRed, 0, wx.ALL | wx.EXPAND, 5)
+        sbColor.Add(self.spnColorRed, 0, wx.ALL | wx.TOP | wx.RIGHT | wx.LEFT, 2)
 
-        self.lblGreen = wx.StaticText(fraColor.GetStaticBox(), wx.ID_ANY, u"G:", wx.DefaultPosition, wx.DefaultSize, 0)
+        self.lblGreen = wx.StaticText(fraColor.GetStaticBox(), wx.ID_ANY, u"Green", wx.DefaultPosition, wx.DefaultSize, 0)
         self.lblGreen.Wrap(-1)
 
         sbColor.Add(self.lblGreen, 0, wx.ALL | wx.ALIGN_RIGHT | wx.ALIGN_CENTER_VERTICAL, 5)
@@ -73,9 +74,9 @@ class PsychoColorPicker(wx.Dialog):
         self.spnColorGreen = wx.SpinCtrlDouble(fraColor.GetStaticBox(), wx.ID_ANY, wx.EmptyString, wx.DefaultPosition,
                                                wx.DefaultSize, wx.SP_ARROW_KEYS, -1, 1, 0, 0.01)
         self.spnColorGreen.SetDigits(3)
-        sbColor.Add(self.spnColorGreen, 0, wx.ALL | wx.EXPAND, 5)
+        sbColor.Add(self.spnColorGreen, 0, wx.TOP | wx.RIGHT | wx.LEFT, 2)
 
-        self.lblBlue = wx.StaticText(fraColor.GetStaticBox(), wx.ID_ANY, u"B:", wx.DefaultPosition, wx.DefaultSize, 0)
+        self.lblBlue = wx.StaticText(fraColor.GetStaticBox(), wx.ID_ANY, u"Blue", wx.DefaultPosition, wx.DefaultSize, 0)
         self.lblBlue.Wrap(-1)
 
         sbColor.Add(self.lblBlue, 0, wx.ALL | wx.ALIGN_RIGHT | wx.ALIGN_CENTER_VERTICAL, 5)
@@ -83,25 +84,35 @@ class PsychoColorPicker(wx.Dialog):
         self.spnColorBlue = wx.SpinCtrlDouble(fraColor.GetStaticBox(), wx.ID_ANY, wx.EmptyString, wx.DefaultPosition,
                                               wx.DefaultSize, wx.SP_ARROW_KEYS, -1, 1, 0, 0.01)
         self.spnColorBlue.SetDigits(3)
-        sbColor.Add(self.spnColorBlue, 0, wx.ALL | wx.EXPAND, 5)
+        sbColor.Add(self.spnColorBlue, 0, wx.ALL, 2)
 
-        fraColor.Add(sbColor, 0, wx.ALL | wx.EXPAND, 5)
+        fraColor.Add(sbColor, 0, wx.TOP | wx.RIGHT | wx.LEFT | wx.EXPAND, 5)
+
+        sbRGBOptions = wx.BoxSizer(wx.HORIZONTAL)
+
+        self.chkNormalized = wx.CheckBox(fraColor.GetStaticBox(), wx.ID_ANY, u"Rescale [0:1]", wx.DefaultPosition,
+                                         wx.DefaultSize, 0)
+        self.chkNormalized.SetToolTip(u"Rescale output values between 0 and 1, useful for OpenGL functions.")
+
+        sbRGBOptions.Add(self.chkNormalized, 0, wx.ALL | wx.EXPAND, 5)
+
+        self.chkClip = wx.CheckBox(fraColor.GetStaticBox(), wx.ID_ANY, u"Clip Range", wx.DefaultPosition,
+                                   wx.DefaultSize, 0)
+        self.chkClip.SetToolTip(u"Clip color values to be representable on the display.")
+
+        sbRGBOptions.Add(self.chkClip, 1, wx.ALL | wx.EXPAND, 5)
+
+        fraColor.Add(sbRGBOptions, 0, wx.ALL | wx.EXPAND, 5)
 
         sbOutput.Add(fraColor, 0, wx.EXPAND | wx.TOP | wx.LEFT, 5)
 
-        fraValues = wx.StaticBoxSizer(wx.StaticBox(self, wx.ID_ANY, u" Options  "), wx.VERTICAL)
+        fraValues = wx.StaticBoxSizer(wx.StaticBox(self, wx.ID_ANY, u" Output Options "), wx.VERTICAL)
 
-        self.chkNormalized = wx.CheckBox(fraValues.GetStaticBox(), wx.ID_ANY, u"Rescale [0:1]", wx.DefaultPosition,
-                                         wx.DefaultSize, 0)
-        self.chkNormalized.SetToolTip(u"Rescale output values between 0 and 1")
-
-        fraValues.Add(self.chkNormalized, 0, wx.ALL | wx.EXPAND, 5)
-
-        self.chkClip = wx.CheckBox(fraValues.GetStaticBox(), wx.ID_ANY, u"Clip Range", wx.DefaultPosition,
-                                   wx.DefaultSize, 0)
-        self.chkClip.SetToolTip(u"Clip color values to be representable on the display")
-
-        fraValues.Add(self.chkClip, 1, wx.ALL | wx.EXPAND, 5)
+        rdoInsertColor = wx.RadioButton(fraValues.GetStaticBox(), id=wx.ID_ANY, label="Insert text at cursor")
+        rdoInsertColor.SetValue(True)
+        rdoClipboardColor = wx.RadioButton(fraValues.GetStaticBox(), id=wx.ID_ANY, label="Copy text to clipboard")
+        fraValues.Add(rdoInsertColor, 0, wx.ALL | wx.EXPAND, 5)
+        fraValues.Add(rdoClipboardColor, 0, wx.ALL | wx.EXPAND, 5)
 
         sbOutput.Add(fraValues, 0, wx.EXPAND | wx.TOP | wx.LEFT, 5)
 
@@ -139,6 +150,10 @@ class PsychoColorPicker(wx.Dialog):
         self.sdbControlsCancel.Bind(wx.EVT_BUTTON, self.OnCancel)
         self.sdbControlsOK.Bind(wx.EVT_BUTTON, self.OnOK)
 
+        # needs to be called after creating the window to ensure client areas
+        # are the correct size after sizing
+        self.pnlHSV.realize()
+
     def __del__(self):
         pass
 
@@ -159,14 +174,34 @@ class PsychoColorPicker(wx.Dialog):
     def OnPageChanged(self, event):
         event.Skip()
 
+    def updateColorPicker(self, rgb):
+        """Update the color picker dialog from a color picker page.
+
+        Parameters
+        ----------
+        rgb : array_like
+            RGB values to display in the spin controls and preview.
+
+        """
+        self._color = list(rgb)
+        self._colorClipped = [(c + 1.) / 2. for c in self._color]
+        previewColor = wx.Colour([int(c * 255.) for c in self._colorClipped])
+        self.pnlPreview.setColor(previewColor)
+        self.spnColorRed.SetValue(self._color[0])
+        self.spnColorGreen.SetValue(self._color[1])
+        self.spnColorBlue.SetValue(self._color[2])
+
     def OnRedChanged(self, event):
-        event.Skip()
+        newColor = [self.spnColorRed.GetValue(), self._color[1], self._color[2]]
+        self.updateColorPicker(newColor)
 
     def OnGreenChanged(self, event):
-        event.Skip()
+        newColor = [self._color[0], self.spnColorGreen.GetValue(), self._color[2]]
+        self.updateColorPicker(newColor)
 
     def OnBlueChanged(self, event):
-        event.Skip()
+        newColor = [self._color[0], self._color[1], self.spnColorBlue.GetValue()]
+        self.updateColorPicker(newColor)
 
     def OnNormalizedChecked(self, event):
         event.Skip()
