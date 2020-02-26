@@ -108,11 +108,11 @@ class PsychoColorPicker(wx.Dialog):
 
         fraValues = wx.StaticBoxSizer(wx.StaticBox(self, wx.ID_ANY, u" Output Options "), wx.VERTICAL)
 
-        rdoInsertColor = wx.RadioButton(fraValues.GetStaticBox(), id=wx.ID_ANY, label="Insert text at cursor")
-        rdoInsertColor.SetValue(True)
+        rdoInsertColor = wx.RadioButton(fraValues.GetStaticBox(), id=wx.ID_ANY, label="Insert text at selection")
         rdoClipboardColor = wx.RadioButton(fraValues.GetStaticBox(), id=wx.ID_ANY, label="Copy text to clipboard")
-        fraValues.Add(rdoInsertColor, 0, wx.ALL | wx.EXPAND, 5)
+        rdoClipboardColor.SetValue(True)
         fraValues.Add(rdoClipboardColor, 0, wx.ALL | wx.EXPAND, 5)
+        fraValues.Add(rdoInsertColor, 0, wx.ALL | wx.EXPAND, 5)
 
         sbOutput.Add(fraValues, 0, wx.EXPAND | wx.TOP | wx.LEFT, 5)
 

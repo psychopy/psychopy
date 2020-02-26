@@ -109,10 +109,12 @@ class ColorSlider(wx.Panel):
             elif self.sliderNormX < 0.0:
                 self.sliderNormX = 0.0
 
-            if self._cbfunc is not None:
-                self._cbfunc(self.sliderNormX)
-
         self.Refresh()  # redraw when changed
+        self.OnValueChanged()
+
+    def OnValueChanged(self):
+        """Called after a value changes."""
+        pass
 
     def setSliderChangedCallback(self, cbfunc):
         """Set the callback function for when a slider changes."""
@@ -156,6 +158,5 @@ class ColorSlider(wx.Panel):
 
         self.Refresh()
 
-        if self._cbfunc is not None:
-            self._cbfunc(self.GetValue())
+        self.OnValueChanged()
 
