@@ -8,16 +8,203 @@
 
 import wx
 import colorsys
+import platform
 from psychopy.app.colorpicker.slider import ColorSlider
+import wx.lib.agw.cubecolourdialog as ccd
+from wx.lib.embeddedimage import PyEmbeddedImage
 
 import psychopy.tools.colorspacetools as cst
+
+
+class HSColorWheel(wx.Panel):
+    """Base class for implementing a color wheel picker."""
+    def __init__(self, parent, id=wx.ID_ANY, pos=wx.DefaultPosition,
+                 size=wx.DefaultSize, style=wx.NO_BORDER):
+        super(HSColorWheel, self).__init__(parent, id, pos, size, style)
+
+        # client draw style
+        self.SetDoubleBuffered(True)
+        self.SetBackgroundStyle(wx.BG_STYLE_CUSTOM)
+
+        # color wheel bitmap
+        self._wheelBitmap = ccd.HSVWheelImage.GetBitmap()
+        self._wheelBitmap.SetMask(
+            wx.Mask(self._wheelBitmap, wx.Colour(192, 192, 192)))
+
+        # marker and wheel bitmap position in client window coordinates
+        self._markerPos = wx.Point()
+        self._wheelCentre = wx.Point(0.0, 0.0)
+        self._wheelRect = wx.Rect(0, 0, 0, 0)
+
+        # angle and distance which corresponds to hue and saturation
+        self._hueAngle = 0.0
+        self._satDist = 0.0
+
+        # radius of the color wheel in client coordinates
+        self._wheelRadius = 100
+
+        # callback function for when the slider position changes
+        self._cbfunc = None
+
+        # events
+        self.Bind(wx.EVT_PAINT, self.OnPaint)
+        self.Bind(wx.EVT_ERASE_BACKGROUND, self.OnEraseBackground)
+        self.Bind(wx.EVT_MOUSE_EVENTS, self.OnMouseEvent)
+
+    def OnPaint(self, event):
+        """Event called when the slider is redrawn."""
+        dc = wx.AutoBufferedPaintDC(self)
+        if platform.system() == 'Windows':
+            dc.SetBackground(  # ugh...
+                wx.Brush(self.GetParent().GetParent().GetParent().GetThemeBackgroundColour()))
+        else:
+            dc.SetBackground(wx.Brush(self.GetParent().GetBackgroundColour()))
+        dc.Clear()
+
+        clientRect = self.GetClientRect()
+
+        self.fill(dc, clientRect)
+        #self.drawBorder(dc, clientRect)
+
+    def realize(self):
+        """Call after sizing is done."""
+        # bitmap offset to centre it
+        clientRect = self.GetClientRect()
+        self._wheelCentre = wx.Point(
+            clientRect.width / 2.0, clientRect.height / 2.0)
+        self._wheelRect = wx.Rect(
+            (clientRect.width - self._wheelBitmap.Width) / 2.0,
+            (clientRect.height - self._wheelBitmap.Height) / 2.0,
+            self._wheelBitmap.Width,
+            self._wheelBitmap.Height)
+        self._markerPos = wx.Point(self._wheelCentre.x, self._wheelCentre.y)
+
+        self.Refresh()
+
+    def OnEraseBackground(self, event):
+        """Called when the DC erases the background, does nothing by default."""
+        pass
+
+    def fill(self, dc, rect):
+        """Art provider function for drawing the slider background. Subclasses
+        can override this.
+
+        Parameters
+        ----------
+        dc : AutoBufferedPaintDC
+            Device context used by the control to draw the background.
+        rect : wx.Rect
+            Client positon and dimensions in window coordinates (x, y, w, h).
+
+        """
+        dc.DrawBitmap(
+            self._wheelBitmap, self._wheelRect.x, self._wheelRect.y, True)
+
+        dc.SetPen(wx.Pen(wx.WHITE, 1))
+        dc.SetBrush(wx.TRANSPARENT_BRUSH)
+        dc.SetLogicalFunction(wx.XOR)
+        dc.DrawRectangle(
+            self._markerPos.x - 3, self._markerPos.y - 3, 7, 7)
+
+    def OnMouseEvent(self, event):
+        """Event when the mouse is clicked or moved over the control."""
+        if event.LeftIsDown():
+            self._markerPos = mousePos = wx.Point(event.GetX(), event.GetY())
+
+            self._satDist = \
+                ccd.Distance(self._wheelCentre, mousePos) / self._wheelRadius
+            self._hueAngle = \
+                int(ccd.rad2deg(ccd.AngleFromPoint(mousePos, self._wheelCentre)))
+            if self._hueAngle < 0:
+                self._hueAngle += 360
+
+        self.Refresh()  # redraw when changed
+    #
+    # def setSliderChangedCallback(self, cbfunc):
+    #     """Set the callback function for when a slider changes."""
+    #     if not callable(cbfunc):
+    #         raise TypeError("Value for `cbfunc` must be callable.")
+    #     self._cbfunc = cbfunc
+    #
+    # def setGetScaleFunc(self, func):
+    #     """Function for scaling the input value."""
+    #     if not callable(func):
+    #         raise TypeError("Value for `_getScaleFunc` must be callable.")
+    #
+    #     self._getScaleFunc = func
+    #
+    # def setSetScaleFunc(self, func):
+    #     """Function for scaling the output value."""
+    #     if not callable(func):
+    #         raise TypeError("Value for `_getSetScaleFunc` must be callable.")
+    #
+    #     self._setScaleFunc = func
+    #
+    # def GetValue(self):
+    #     """Get the current value of the slider."""
+    #     return self._getScaleFunc(self.sliderNormX) \
+    #         if self._getScaleFunc is not None else self.sliderNormX
+    #
+    # def SetValue(self, value):
+    #     """Get the current value of the slider."""
+    #     scaledVal = (self._setScaleFunc(value)
+    #         if self._setScaleFunc is not None else value)
+    #
+    #     self.sliderNormX = scaledVal
+    #     w = self.GetClientRect().width
+    #
+    #     # fit in range
+    #     padleft = 4
+    #     padright = 4
+    #     bgStart = padleft
+    #     bgEnd = w - padright - padleft
+    #     self.sliderPosX = padleft + int((bgEnd - bgStart) * self.sliderNormX)
+    #
+    #     self.Refresh()
+    #
+    #     if self._cbfunc is not None:
+    #         self._cbfunc(self.GetValue())
 
 
 class HSVHueSlider(ColorSlider):
     """Class for creating a slider to pick a hue."""
     def __init__(self, parent, id, pos, size, style):
         super(HSVHueSlider, self).__init__(parent, id, pos, size, style)
-        self.setScaleFunc(lambda x: x * 360.)
+        self.setGetScaleFunc(lambda x: x * 360.)
+        self.setSetScaleFunc(lambda x: x / 360.)
+
+    def realize(self):
+        clientRect = self.GetClientSize()
+        padleft = 4
+        padright = 4
+        bgStart = padleft
+        bgEnd = clientRect.width - padright - padleft
+
+        self._fillBitmap = wx.Bitmap(
+            bgEnd - bgStart, clientRect.height - 6, depth=wx.BITMAP_SCREEN_DEPTH)
+
+        dc = wx.MemoryDC()
+        dc.SelectObject(self._fillBitmap)
+
+        v = 0.0
+        step = self._quantLevel / (bgEnd - bgStart)
+
+        for y_pos in range(0, bgEnd - bgStart, self._quantLevel):
+            r, g, b = \
+                [c * 255.0 for c in colorsys.hsv_to_rgb(
+                    v, 1.0, 1.0)]
+            colour = wx.Colour(int(r), int(g), int(b))
+            dc.SetPen(wx.Pen(colour, 1, wx.PENSTYLE_SOLID))
+            dc.SetBrush(wx.Brush(colour, style=wx.BRUSHSTYLE_SOLID))
+            if y_pos + self._quantLevel > bgEnd:
+                segWidth = int((y_pos + self._quantLevel) - bgEnd)
+            else:
+                segWidth = int(self._quantLevel)
+
+            dc.DrawRectangle(y_pos, 0, segWidth, clientRect.height - 6)
+            v = v + step
+
+        self.SetValue(0.0)
 
     def fill(self, dc, rect):
         """Art provider function for drawing the slider background. Subclasses
@@ -31,22 +218,9 @@ class HSVHueSlider(ColorSlider):
             Client position and dimensions in window coordinates (x, y, w, h).
 
         """
-        padleft = 4
-        padright = 4
-        bgStart = padleft
-        bgEnd = rect.width - padright - padleft
 
-        v = 0.0
-        step = 1.0 / (bgEnd - bgStart)
-
-        for y_pos in range(bgStart, bgEnd):
-            r, g, b = \
-                [c * 255.0 for c in colorsys.hsv_to_rgb(
-                    v, 1.0, 1.0)]
-            colour = wx.Colour(int(r), int(g), int(b))
-            dc.SetPen(wx.Pen(colour, 1, wx.PENSTYLE_SOLID))
-            dc.DrawRectangle(y_pos, 3, 1, rect.height - 6)
-            v = v + step
+        if self._fillBitmap is not None:
+            dc.DrawBitmap(self._fillBitmap, 4, 3, False)
 
         dc.SetPen(wx.Pen(wx.WHITE, 1))
         dc.SetBrush(wx.TRANSPARENT_BRUSH)
@@ -60,6 +234,9 @@ class HSVSaturationSlider(ColorSlider):
         super(HSVSaturationSlider, self).__init__(parent, id, pos, size, style)
         self._targetHue = 1.0
 
+    def realize(self):
+        self.SetValue(0.5)
+
     def fill(self, dc, rect):
         """Art provider function for drawing the slider background. Subclasses
         can override this.
@@ -78,15 +255,21 @@ class HSVSaturationSlider(ColorSlider):
         bgEnd = rect.width - padright - padleft
 
         v = 0.0
-        step = 1.0 / (bgEnd - bgStart)
+        step = self._quantLevel / (bgEnd - bgStart)
 
-        for y_pos in range(bgStart, bgEnd):
+        for y_pos in range(bgStart, bgEnd, self._quantLevel):
             r, g, b = \
                 [c * 255.0 for c in colorsys.hsv_to_rgb(
                     self._targetHue, v, 1.0)]
             colour = wx.Colour(int(r), int(g), int(b))
             dc.SetPen(wx.Pen(colour, 1, wx.PENSTYLE_SOLID))
-            dc.DrawRectangle(y_pos, 3, 1, rect.height - 6)
+            dc.SetBrush(wx.Brush(colour, style=wx.BRUSHSTYLE_SOLID))
+            if (y_pos + self._quantLevel) >= bgEnd:
+                segWidth = self._quantLevel - int((y_pos + self._quantLevel) - bgEnd)
+            else:
+                segWidth = int(self._quantLevel)
+
+            dc.DrawRectangle(y_pos, 3, segWidth, rect.height - 6)
             v = v + step
 
         dc.SetPen(wx.Pen(wx.WHITE, 1))
@@ -107,6 +290,9 @@ class HSVValueSlider(ColorSlider):
         super(HSVValueSlider, self).__init__(parent, id, pos, size, style)
         self._targetHue = self._targetSat = 1.0
 
+    def realize(self):
+        self.SetValue(0.5)
+
     def fill(self, dc, rect):
         """Art provider function for drawing the slider background. Subclasses
         can override this.
@@ -125,15 +311,21 @@ class HSVValueSlider(ColorSlider):
         bgEnd = rect.width - padright - padleft
 
         v = 0.0
-        step = 1.0 / (bgEnd - bgStart)
+        step = self._quantLevel / (bgEnd - bgStart)
 
-        for y_pos in range(bgStart, bgEnd):
+        for y_pos in range(bgStart, bgEnd, self._quantLevel):
             r, g, b = \
                 [c * 255.0 for c in colorsys.hsv_to_rgb(
                     self._targetHue, self._targetSat, v)]
             colour = wx.Colour(int(r), int(g), int(b))
             dc.SetPen(wx.Pen(colour, 1, wx.PENSTYLE_SOLID))
-            dc.DrawRectangle(y_pos, 3, 1, rect.height - 6)
+            dc.SetBrush(wx.Brush(colour, style=wx.BRUSHSTYLE_SOLID))
+            if y_pos + self._quantLevel > bgEnd:
+                segWidth = self._quantLevel + (y_pos - bgEnd)
+            else:
+                segWidth = int(self._quantLevel)
+
+            dc.DrawRectangle(y_pos, 3, segWidth, rect.height - 6)
             v = v + step
 
         dc.SetPen(wx.Pen(wx.WHITE, 1))
@@ -161,11 +353,10 @@ class HSVColorPicker(wx.Panel):
         self._colorHSV = [0.0, 0.0, 0.0]
 
         sbHSVPanel = wx.BoxSizer(wx.VERTICAL)
-        fraColorWheel = wx.StaticBoxSizer(wx.StaticBox(self, wx.ID_ANY, u"Color Wheel"), wx.VERTICAL)
+        fraColorWheel = wx.StaticBoxSizer(wx.StaticBox(self, wx.ID_ANY, u" Hue + Saturation "), wx.VERTICAL)
 
-        self.pnlColorWheel = wx.Panel(fraColorWheel.GetStaticBox(), wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize,
-                                      wx.BORDER_SUNKEN | wx.TAB_TRAVERSAL)
-        self.pnlColorWheel.SetBackgroundColour(wx.SystemSettings.GetColour(wx.SYS_COLOUR_ACTIVEBORDER))
+        self.pnlColorWheel = HSColorWheel(fraColorWheel.GetStaticBox(), wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize,
+                                      wx.TAB_TRAVERSAL)
 
         fraColorWheel.Add(self.pnlColorWheel, 1, wx.EXPAND | wx.ALL, 5)
 
@@ -182,7 +373,7 @@ class HSVColorPicker(wx.Panel):
         fgHSVColor.Add(self.lblHue, 0, wx.ALIGN_CENTER_VERTICAL | wx.BOTTOM | wx.LEFT | wx.RIGHT | wx.ALIGN_RIGHT, 5)
 
         self.spnHueHSV = wx.SpinCtrlDouble(self, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize,
-                                           wx.SP_ARROW_KEYS, 0, 360., 0, 0.01)
+                                           wx.SP_ARROW_KEYS | wx.TE_PROCESS_ENTER, 0, 360., 0, 1.0)
         self.spnHueHSV.SetDigits(3)
         self.spnHueHSV.SetMaxSize(wx.Size(80, -1))
 
@@ -200,7 +391,7 @@ class HSVColorPicker(wx.Panel):
         fgHSVColor.Add(self.lblSat, 0, wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT | wx.BOTTOM | wx.LEFT | wx.RIGHT, 5)
 
         self.spnSatHSV = wx.SpinCtrlDouble(self, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize,
-                                           wx.SP_ARROW_KEYS, 0, 100, 0, 0.01)
+                                           wx.SP_ARROW_KEYS | wx.TE_PROCESS_ENTER, 0, 1, 0, 0.01)
         self.spnSatHSV.SetDigits(3)
         self.spnSatHSV.SetMaxSize(wx.Size(80, -1))
 
@@ -218,7 +409,7 @@ class HSVColorPicker(wx.Panel):
         fgHSVColor.Add(self.lblValue, 0, wx.BOTTOM | wx.LEFT | wx.RIGHT | wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT, 5)
 
         self.spnValueHSV = wx.SpinCtrlDouble(self, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize,
-                                             wx.SP_ARROW_KEYS, 0, 100, 0, 0.01)
+                                             wx.SP_ARROW_KEYS | wx.TE_PROCESS_ENTER, 0, 1, 0, 0.01)
         self.spnValueHSV.SetDigits(3)
         self.spnValueHSV.SetMaxSize(wx.Size(80, -1))
 
@@ -239,24 +430,23 @@ class HSVColorPicker(wx.Panel):
         # bind events
         self.BindEvents()
 
+    def realize(self):
+        self.pnlHue.realize()
+        self.pnlSat.realize()
+        self.pnlValue.realize()
+        self.pnlColorWheel.realize()
+
     def updatePickerRGB(self):
-        r, g, b = cst.hsv2rgb(self._colorHSV)
-        pickerFrame = self.GetTopLevelParent()
-        pickerFrame.spnColorRed.SetValue(r)
-        pickerFrame.spnColorGreen.SetValue(g)
-        pickerFrame.spnColorBlue.SetValue(b)
+        self.GetTopLevelParent().updateColorPicker(cst.hsv2rgb(self._colorHSV))
 
     def BindEvents(self):
         self.pnlColorWheel.Bind(wx.EVT_LEFT_DOWN, self.OnHSVWheelMouseDown)
         self.spnValueHSV.Bind(wx.EVT_SPINCTRLDOUBLE, self.OnValueHSVChanged)
         self.spnValueHSV.Bind(wx.EVT_TEXT_ENTER, self.OnValueHSVChanged)
-        self.pnlHue.Bind(wx.EVT_LEFT_DOWN, self.OnHSVHueMouseDown)
         self.spnSatHSV.Bind(wx.EVT_SPINCTRLDOUBLE, self.OnSatHSVChanged)
         self.spnSatHSV.Bind(wx.EVT_TEXT_ENTER, self.OnSatHSVChanged)
-        self.pnlSat.Bind(wx.EVT_LEFT_DOWN, self.OnHSVSatMouseDown)
         self.spnHueHSV.Bind(wx.EVT_SPINCTRLDOUBLE, self.OnHueHSVChanged)
         self.spnHueHSV.Bind(wx.EVT_TEXT_ENTER, self.OnHueHSVChanged)
-        self.pnlValue.Bind(wx.EVT_LEFT_DOWN, self.OnHSVValMouseDown)
 
         # assign callbacks
         self.pnlHue.setSliderChangedCallback(self.OnHSVHueChangedCallback)
@@ -289,19 +479,24 @@ class HSVColorPicker(wx.Panel):
         event.Skip()
 
     def OnValueHSVChanged(self, event):
-        event.Skip()
-
-    def OnHSVHueMouseDown(self, event):
+        self._colorHSV[2] = self.spnValueHSV.GetValue()
+        self.pnlValue.SetValue(self._colorHSV[2])
+        self.pnlValue.Refresh()
+        self.updatePickerRGB()
         event.Skip()
 
     def OnSatHSVChanged(self, event):
-        print()
-
-    def OnHSVSatMouseDown(self, event):
+        self._colorHSV[1] = self.spnSatHSV.GetValue()
+        self.pnlSat.SetValue(self._colorHSV[1])
+        self.pnlSat.Refresh()
+        self.updatePickerRGB()
         event.Skip()
 
     def OnHueHSVChanged(self, event):
+        self._colorHSV[0] = self.spnHueHSV.GetValue()
+        self.pnlHue.SetValue(self._colorHSV[0])
+        self.pnlHue.Refresh()
+        self.updatePickerRGB()
         event.Skip()
 
-    def OnHSVValMouseDown(self, event):
-        event.Skip()
+

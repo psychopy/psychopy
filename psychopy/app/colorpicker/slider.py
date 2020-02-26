@@ -19,13 +19,19 @@ class ColorSlider(wx.Panel):
         # client draw style
         self.SetDoubleBuffered(True)
         self.SetBackgroundStyle(wx.BG_STYLE_CUSTOM)
+        # fill bitmap if cached
+        self._fillBitmap = None
 
         # slider position in client window coordinates
         self.sliderPosX = 0
         # slider position in normalized coordinates
         self.sliderNormX = 0.0
         # function for scaling the output
-        self._scaleFunc = None
+        self._setScaleFunc = None
+        self._getScaleFunc = None
+        # quantization level for the picker, higher values give better
+        # performance but coarser color gradations
+        self._quantLevel = 5
 
         # callback function for when the slider position changes
         self._cbfunc = None
@@ -49,6 +55,10 @@ class ColorSlider(wx.Panel):
 
         self.fill(dc, clientRect)
         self.drawBorder(dc, clientRect)
+
+    def realize(self):
+        """Call after sizing is done."""
+        self.SetValue(0.0)
 
     def OnEraseBackground(self, event):
         """Called when the DC erases the background, does nothing by default."""
@@ -110,22 +120,42 @@ class ColorSlider(wx.Panel):
             raise TypeError("Value for `cbfunc` must be callable.")
         self._cbfunc = cbfunc
 
-    def setScaleFunc(self, func):
+    def setGetScaleFunc(self, func):
+        """Function for scaling the input value."""
+        if not callable(func):
+            raise TypeError("Value for `_getScaleFunc` must be callable.")
+
+        self._getScaleFunc = func
+
+    def setSetScaleFunc(self, func):
         """Function for scaling the output value."""
         if not callable(func):
-            raise TypeError("Value for `scaleFunc` must be callable.")
+            raise TypeError("Value for `_getSetScaleFunc` must be callable.")
 
-        self._scaleFunc = func
+        self._setScaleFunc = func
 
     def GetValue(self):
         """Get the current value of the slider."""
-        return self._scaleFunc(self.sliderNormX) \
-            if self._scaleFunc is not None else self.sliderNormX
+        return self._getScaleFunc(self.sliderNormX) \
+            if self._getScaleFunc is not None else self.sliderNormX
 
     def SetValue(self, value):
         """Get the current value of the slider."""
+        scaledVal = (self._setScaleFunc(value)
+            if self._setScaleFunc is not None else value)
+
+        self.sliderNormX = scaledVal
         w = self.GetClientRect().width
-        self.sliderPosX = int(w * value)
-        self.sliderNormX = self.sliderPosX / float(w)
+
+        # fit in range
+        padleft = 4
+        padright = 4
+        bgStart = padleft
+        bgEnd = w - padright - padleft
+        self.sliderPosX = padleft + int((bgEnd - bgStart) * self.sliderNormX)
+
         self.Refresh()
+
+        if self._cbfunc is not None:
+            self._cbfunc(self.GetValue())
 
