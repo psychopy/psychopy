@@ -766,10 +766,11 @@ class PsychoPyApp(wx.App):
             sys.exit()
 
     def showPrefs(self, event):
-        from psychopy.app.preferencesDlg import PreferencesDlg
+        from psychopy.app.preferencesDlg import PropGridPreferencesDlg
         logging.debug('PsychoPyApp: Showing prefs dlg')
-        prefsDlg = PreferencesDlg(app=self)
-        prefsDlg.Show()
+        prefsDlg = PropGridPreferencesDlg(app=self)
+        prefsDlg.ShowModal()
+        prefsDlg.Destroy()
 
     def showAbout(self, event):
         logging.debug('PsychoPyApp: Showing about dlg')

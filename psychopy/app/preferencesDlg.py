@@ -12,6 +12,7 @@ import wx.lib.agw.flatnotebook as fnb
 import platform
 import re
 import copy
+import os
 
 from . import dialogs
 from psychopy import logging, localization
@@ -411,7 +412,7 @@ class PrefCtrls(object):
                     options = []
                 try:
                     # TODO: this assumes that the driver loaded is current selected
-                    # we *could* fix that but hopefully PTB will soon dominate and 
+                    # we *could* fix that but hopefully PTB will soon dominate and
                     # then we don't need to worry!
                     for device in devnames:
                         # newline characters must be removed
@@ -502,6 +503,441 @@ class PrefCtrls(object):
         else:
             l = errmsg
         return l
+
+
+import wx
+import wx.propgrid as pg
+
+
+class PropGridPreferencesDlg(wx.Dialog):
+
+    def __init__(self, app):
+        wx.Dialog.__init__(
+            self, None, id=wx.ID_ANY, title=u"PsychoPy Preferences",
+            pos=wx.DefaultPosition, size=wx.Size(800, 600),
+            style=wx.DEFAULT_DIALOG_STYLE | wx.RESIZE_BORDER)
+
+        self.app = app
+        self.prefsCfg = self.app.prefs.userPrefsCfg
+        self.prefsSpec = self.app.prefs.prefsSpec
+
+        self.SetSizeHints(wx.DefaultSize, wx.DefaultSize)
+
+        sbMain = wx.BoxSizer(wx.VERTICAL)
+
+        self.pnlMain = wx.Panel(
+            self, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize,
+            wx.TAB_TRAVERSAL)
+        sbPrefs = wx.BoxSizer(wx.VERTICAL)
+
+        self.nbPrefs = wx.Listbook(
+            self.pnlMain, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize,
+            wx.LB_DEFAULT)
+        nbPrefsImageSize = wx.Size(64, 64)
+        nbPrefsIndex = 0
+        nbPrefsImages = wx.ImageList(
+            nbPrefsImageSize.GetWidth(), nbPrefsImageSize.GetHeight())
+        self.nbPrefs.AssignImageList(nbPrefsImages)
+        self.pnlGeneral = wx.Panel(
+            self.nbPrefs, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize,
+            wx.TAB_TRAVERSAL)
+        sbGeneralConfig = wx.BoxSizer(wx.VERTICAL)
+
+        self.pgMgrGeneral = pg.PropertyGridManager(
+            self.pnlGeneral, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize,
+            wx.propgrid.PGMAN_DEFAULT_STYLE | wx.propgrid.PG_BOLD_MODIFIED |
+            wx.propgrid.PG_DESCRIPTION | wx.propgrid.PG_SPLITTER_AUTO_CENTER |
+            wx.propgrid.PG_TOOLTIPS | wx.TAB_TRAVERSAL)
+        self.pgMgrGeneral.SetExtraStyle(wx.propgrid.PG_EX_MODE_BUTTONS)
+
+        self.pgPageGeneral = self.pgMgrGeneral.AddPage(u"Page", wx.NullBitmap)
+        sbGeneralConfig.Add(self.pgMgrGeneral, 1, wx.EXPAND, 5)
+
+        self.pnlGeneral.SetSizer(sbGeneralConfig)
+        self.pnlGeneral.Layout()
+        sbGeneralConfig.Fit(self.pnlGeneral)
+        self.nbPrefs.AddPage(self.pnlGeneral, u"General", True)
+        nbPrefsBitmap = wx.Bitmap(
+            os.path.join(
+                self.app.prefs.paths['resources'],
+                u"preferences-other.png"),
+            wx.BITMAP_TYPE_ANY)
+        if (nbPrefsBitmap.IsOk()):
+            nbPrefsImages.Add(nbPrefsBitmap)
+            self.nbPrefs.SetPageImage(nbPrefsIndex, nbPrefsIndex)
+            nbPrefsIndex += 1
+
+        self.pnlApp = wx.Panel(
+            self.nbPrefs, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize,
+            wx.TAB_TRAVERSAL)
+        sbApplicationConfig = wx.BoxSizer(wx.VERTICAL)
+
+        self.pgMgrApplication = pg.PropertyGridManager(
+            self.pnlApp, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize,
+            wx.propgrid.PGMAN_DEFAULT_STYLE | wx.propgrid.PG_BOLD_MODIFIED |
+            wx.propgrid.PG_DESCRIPTION | wx.propgrid.PG_SPLITTER_AUTO_CENTER |
+            wx.propgrid.PG_TOOLTIPS | wx.TAB_TRAVERSAL)
+        self.pgMgrApplication.SetExtraStyle(wx.propgrid.PG_EX_MODE_BUTTONS)
+
+        self.pgApplicationPage = self.pgMgrApplication.AddPage(
+            u"Page", wx.NullBitmap)
+        sbApplicationConfig.Add(self.pgMgrApplication, 1, wx.EXPAND, 5)
+
+        self.pnlApp.SetSizer(sbApplicationConfig)
+        self.pnlApp.Layout()
+        sbApplicationConfig.Fit(self.pnlApp)
+        self.nbPrefs.AddPage(self.pnlApp, u"Application", False)
+        nbPrefsBitmap = wx.Bitmap(os.path.join(self.app.prefs.paths['resources'], u"preferences-system-windows-actions.png"), wx.BITMAP_TYPE_ANY)
+        if (nbPrefsBitmap.IsOk()):
+            nbPrefsImages.Add(nbPrefsBitmap)
+            self.nbPrefs.SetPageImage(nbPrefsIndex, nbPrefsIndex)
+            nbPrefsIndex += 1
+
+        self.pnlHardware = wx.Panel(
+            self.nbPrefs, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL)
+        sbHardwareConfig = wx.BoxSizer(wx.VERTICAL)
+
+        self.pgMgrHardware = pg.PropertyGridManager(
+            self.pnlHardware, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize,
+            wx.propgrid.PGMAN_DEFAULT_STYLE | wx.propgrid.PG_BOLD_MODIFIED |
+            wx.propgrid.PG_DESCRIPTION | wx.propgrid.PG_SPLITTER_AUTO_CENTER |
+            wx.propgrid.PG_TOOLTIPS | wx.TAB_TRAVERSAL)
+        self.pgMgrHardware.SetExtraStyle(wx.propgrid.PG_EX_MODE_BUTTONS)
+
+        self.pgHardwarePage = self.pgMgrHardware.AddPage(u"Page", wx.NullBitmap)
+        sbHardwareConfig.Add(self.pgMgrHardware, 1, wx.EXPAND, 5)
+
+        self.pnlHardware.SetSizer(sbHardwareConfig)
+        self.pnlHardware.Layout()
+        sbHardwareConfig.Fit(self.pnlHardware)
+        self.nbPrefs.AddPage(self.pnlHardware, u"Hardware", False)
+        nbPrefsBitmap = wx.Bitmap(os.path.join(self.app.prefs.paths['resources'], 'audio-card.png'), wx.BITMAP_TYPE_ANY)
+        if (nbPrefsBitmap.IsOk()):
+            nbPrefsImages.Add(nbPrefsBitmap)
+            self.nbPrefs.SetPageImage(nbPrefsIndex, nbPrefsIndex)
+            nbPrefsIndex += 1
+
+        self.pnlConnections = wx.Panel(self.nbPrefs, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL)
+        sbConnectionConfig = wx.BoxSizer(wx.VERTICAL)
+
+        self.pgMgrConnections = pg.PropertyGridManager(self.pnlConnections, wx.ID_ANY, wx.DefaultPosition,
+                                                       wx.DefaultSize,
+                                                       wx.propgrid.PGMAN_DEFAULT_STYLE | wx.propgrid.PG_BOLD_MODIFIED | wx.propgrid.PG_DESCRIPTION | wx.propgrid.PG_SPLITTER_AUTO_CENTER | wx.propgrid.PG_TOOLTIPS | wx.TAB_TRAVERSAL)
+        self.pgMgrConnections.SetExtraStyle(wx.propgrid.PG_EX_MODE_BUTTONS)
+
+        self.pgConnectionsPage = self.pgMgrConnections.AddPage(u"Page", wx.NullBitmap)
+        sbConnectionConfig.Add(self.pgMgrConnections, 1, wx.EXPAND, 5)
+
+        self.pnlConnections.SetSizer(sbConnectionConfig)
+        self.pnlConnections.Layout()
+        sbConnectionConfig.Fit(self.pnlConnections)
+        self.nbPrefs.AddPage(self.pnlConnections, u"Connections", False)
+        nbPrefsBitmap = wx.Bitmap(os.path.join(self.app.prefs.paths['resources'], "applications-internet.png"), wx.BITMAP_TYPE_ANY)
+        if nbPrefsBitmap.IsOk():
+            nbPrefsImages.Add(nbPrefsBitmap)
+            self.nbPrefs.SetPageImage(nbPrefsIndex, nbPrefsIndex)
+            nbPrefsIndex += 1
+
+        sbPrefs.Add(self.nbPrefs, 1, wx.EXPAND | wx.ALL, 5)
+
+        self.stlMain = wx.StaticLine(self.pnlMain, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.LI_HORIZONTAL)
+        sbPrefs.Add(self.stlMain, 0, wx.EXPAND | wx.ALL, 5)
+
+        sdbControls = wx.StdDialogButtonSizer()
+        self.sdbControlsOK = wx.Button(self.pnlMain, wx.ID_OK)
+        sdbControls.AddButton(self.sdbControlsOK)
+        self.sdbControlsApply = wx.Button(self.pnlMain, wx.ID_APPLY)
+        sdbControls.AddButton(self.sdbControlsApply)
+        self.sdbControlsCancel = wx.Button(self.pnlMain, wx.ID_CANCEL)
+        sdbControls.AddButton(self.sdbControlsCancel)
+        self.sdbControlsHelp = wx.Button(self.pnlMain, wx.ID_HELP)
+        sdbControls.AddButton(self.sdbControlsHelp)
+        sdbControls.Realize()
+
+        sbPrefs.Add(sdbControls, 0, wx.ALL | wx.EXPAND, 5)
+
+        self.pnlMain.SetSizer(sbPrefs)
+        self.pnlMain.Layout()
+        sbPrefs.Fit(self.pnlMain)
+        sbMain.Add(self.pnlMain, 1, wx.EXPAND | wx.ALL, 5)
+
+        self.SetSizer(sbMain)
+        self.Layout()
+
+        self.Centre(wx.BOTH)
+
+        # Connect Events
+        self.sdbControlsApply.Bind(wx.EVT_BUTTON, self.OnApplyClicked)
+        self.sdbControlsCancel.Bind(wx.EVT_BUTTON, self.OnCancelClicked)
+        self.sdbControlsHelp.Bind(wx.EVT_BUTTON, self.OnHelpClicked)
+        self.sdbControlsOK.Bind(wx.EVT_BUTTON, self.OnOKClicked)
+
+        self.populatePrefs()
+
+    def __del__(self):
+        pass
+
+    def populatePrefs(self):
+        """Populate pages with pref properties from file."""
+        sectionOrdering = ['general', 'app', 'builder', 'coder',
+                           'hardware', 'connections', 'keyBindings']
+
+        secPropGrids = {'general': self.pgPageGeneral,
+                        'app': self.pgApplicationPage,
+                        'builder': self.pgApplicationPage,
+                        'coder': self.pgApplicationPage,
+                        'hardware': self.pgHardwarePage,
+                        'connections': self.pgConnectionsPage,
+                        'keyBindings': self.pgApplicationPage}
+
+        propItems = {'general': dict(),
+                     'app': dict(),
+                     'builder': dict(),
+                     'coder': dict(),
+                     'hardware': dict(),
+                     'connections': dict(),
+                     'keyBindings': dict()}
+
+        # system font enumerator
+        fontEnum = wx.FontEnumerator()
+        fontEnum.EnumerateFacenames()
+        fontList = fontEnum.GetFacenames()
+
+        for sectionName in sectionOrdering:
+            propGrid = secPropGrids[sectionName]
+            prefsSection = self.prefsCfg[sectionName]
+            specSection = self.prefsSpec[sectionName]
+
+            if sectionName == 'general':
+                item = propGrid.Append(
+                            pg.PropertyCategory(u"General", u"General"))
+                propItems[sectionName].update({u"General": item})
+                propGrid.SetPropertyHelpString(
+                    item,
+                    "General preferences for PsychoPy which affect aspects of "
+                    "the library and runtime.")
+            elif sectionName == 'app':
+                item = propGrid.Append(
+                            pg.PropertyCategory(u"Application", u"Application"))
+                propItems[sectionName].update({u"Application": item})
+                propGrid.SetPropertyHelpString(
+                    item,
+                    "General preferences related to the PsychoPy GUI suite "
+                    "(Coder, Builder, etc.)")
+            elif sectionName == 'builder':
+                propItems[sectionName].update(
+                    {u"Builder":
+                        propGrid.Append(
+                            pg.PropertyCategory(u"Builder", u"Builder"))})
+            elif sectionName == 'coder':
+                propItems[sectionName].update(
+                    {u"Coder":
+                        propGrid.Append(
+                            pg.PropertyCategory(u"Coder", u"Coder"))})
+            elif sectionName == 'keyBindings':
+                propItems[sectionName].update(
+                    {u"Key Bindings":
+                        propGrid.Append(
+                            pg.PropertyCategory(
+                                u"Key Bindings", u"Key Bindings"))})
+            elif sectionName == 'hardware':
+                propItems[sectionName].update(
+                    {u"Hardware":
+                        propGrid.Append(
+                            pg.PropertyCategory(
+                                u"Hardware", u"Hardware"))})
+            elif sectionName == 'connections':
+                propItems[sectionName].update(
+                    {u"Connections":
+                        propGrid.Append(
+                            pg.PropertyCategory(
+                                u"Connections", u"Connections"))})
+
+            for prefName in specSection:
+                if prefName in ['version']:  # any other prefs not to show?
+                    continue
+                # allowModuleImports pref is handled by generateSpec.py
+                # NB if something is in prefs but not in spec then it won't be
+                # shown (removes outdated prefs)
+                thisPref = prefsSection[prefName]
+                thisSpec = specSection[prefName]
+                ctrlName = sectionName + '.' + prefName
+
+                # for keybindings replace Ctrl with Cmd on Mac
+                if platform.system() == 'Darwin' and sectionName == 'keyBindings':
+                    if thisSpec.startswith('string'):
+                        thisPref = thisPref.replace('Ctrl+', 'Cmd+')
+
+                # can we translate this pref?
+                try:
+                    pLabel = _localized[prefName]
+                except Exception:
+                    pLabel = prefName
+                if prefName == 'locale':
+                    # fake spec -> option: use available locale info not spec file
+                    thisSpec = 'option(' + ','.join(
+                        [''] + self.app.localization.available) + ', default=xxx)'
+                    thisPref = self.app.prefs.app['locale']
+
+                # get tooltips from comment lines from the spec, as parsed by
+                # configobj
+                helpText = ''
+                hints = self.prefsSpec[sectionName].comments[prefName]  # a list
+                if len(hints):
+                    # use only one comment line, from right above the pref
+                    hint = hints[-1].lstrip().lstrip('#').lstrip()
+                    helpText = _translate(hint)
+
+                if type(thisPref) == bool:
+                    # only True or False - use a checkbox
+                    item = propGrid.Append(
+                        wx.propgrid.BoolProperty(prefName, value=thisPref))
+                    propGrid.SetPropertyAttribute(
+                        prefName,
+                        "UseCheckbox", True)
+                # properties for fonts, dropdown gives a list of system fonts
+                elif prefName in ('codeFont', 'commentFont', 'outputFont'):
+                    item = propGrid.Append(
+                        wx.propgrid.EditEnumProperty(
+                            pLabel, prefName, fontList, value=str(thisPref)))
+                # handle fields for font sizes
+                elif prefName in ('codeFontSize', 'commentFontSize'):
+                    item = propGrid.Append(wx.propgrid.IntProperty(
+                            prefName, value=int(thisPref)))
+                # audio latency mode for the PTB driver
+                elif prefName == 'audioLatencyMode':
+                    # get the labels from above
+                    labels = []
+                    for val, labl in audioLatencyLabels.items():
+                        labels.append(u'{}: {}'.format(val, labl))
+                    #get the options from the config file spec
+                    vals = thisSpec.replace("option(", "").replace("'", "")
+                    # item -1 is 'default=x' from spec
+                    vals = vals.replace(", ", ",").split(',')
+                    options = vals[:-1]
+                    try:
+                        default = options.index(
+                            vals[-1].strip('()').split('=')[1])
+                    except (IndexError, ValueError):
+                        default = 0  # use first if default not in list
+                    item = propGrid.Append(
+                        wx.propgrid.EnumProperty(
+                            pLabel,
+                            prefName,
+                            labels=labels,
+                            values=[i for i in range(len(labels))],
+                            value=default))
+                # option items are given a dropdown, current value is shown
+                # in the box
+                elif thisSpec.startswith('option') or thisPref == 'audioDevice':
+                    if thisPref == 'audioDevice':
+                        devnames = sorted(sound.getDevices('output'))
+                        if type(thisPref) == list:
+                            thisPref = thisPref[0]
+                        if thisPref in devnames:
+                            options = [thisPref]
+                        else:
+                            options = []
+                        try:
+                            # TODO: this assumes that the driver loaded is current selected
+                            # we *could* fix that but hopefully PTB will soon dominate and
+                            # then we don't need to worry!
+                            for device in devnames:
+                                # newline characters must be removed
+                                thisDevName = device.replace('\r\n', '')
+                                if thisDevName not in options:
+                                    options.append(thisDevName)
+                        except (ValueError, OSError, ImportError):
+                            pass
+                        default = 0
+                    else:
+                        vals = thisSpec.replace("option(", "").replace("'", "")
+                        # item -1 is 'default=x' from spec
+                        vals = vals.replace(", ", ",").split(',')
+                        options = vals[:-1]
+                        try:
+                            default = options.index(
+                                vals[-1].strip('()').split('=')[1])
+                        except (IndexError, ValueError):
+                            default = 0  # use first if default not in list
+
+                    labels = []  # display only
+                    for opt in options:
+                        try:
+                            labels.append(_localized[opt])
+                        except Exception:
+                            labels.append(opt)
+
+                    item = propGrid.Append(
+                        wx.propgrid.EnumProperty(
+                            pLabel,
+                            prefName,
+                            labels=labels,
+                            values=[i for i in range(len(labels))],
+                            value=default))
+                # lists are given a property that can edit and reorder items
+                elif thisSpec.startswith('list'):  # list
+                    item = propGrid.Append(
+                        wx.propgrid.ArrayStringProperty(
+                            prefName, value=[str(i) for i in thisPref]))
+                # integer items
+                elif thisSpec.startswith('int'):  # integer
+                    item = propGrid.Append(
+                        wx.propgrid.IntProperty(
+                            prefName, value=int(thisPref)))
+                # all other items just use a string field
+                else:
+                    item = propGrid.Append(
+                        wx.propgrid.StringProperty(
+                            prefName, value=str(thisPref)))
+
+                if item is not None:
+                    propGrid.SetPropertyHelpString(item, helpText)
+
+    def listToString(self, seq, depth=8, errmsg='\'too_deep\''):
+        """Convert list to string.
+
+        This function is necessary because Unicode characters come to be
+        converted to hexadecimal values if unicode() is used to convert a
+        list to string. This function applies str() or unicode() to each
+        element of the list.
+        """
+        if depth > 0:
+            l = '['
+            for e in seq:
+                # if element is a sequence, call listToString recursively.
+                if isinstance(e, basestring):
+                    en = "{!r}, ".format(e)  # using !r adds '' or u'' as needed
+                elif hasattr(e, '__iter__'):  # just tuples and lists (but in Py3 str has __iter__)
+                    en = self.listToString(e, depth - 1) + ','
+                else:
+                    e = e.replace('\\', '\\\\').replace("'", "\\'")  # in path names?
+                    en = "{!r}, ".format(e)
+                l += en
+            # remove unnecessary comma
+            if l[-1] == ',':
+                l = l[:-1]
+            l += ']'
+        else:
+            l = errmsg
+        return l
+
+    def applyPrefs(self):
+        """Write preferences to the current configuration."""
+
+
+    # Virtual event handlers, overide them in your derived class
+    def OnApplyClicked(self, event):
+        event.Skip()
+
+    def OnCancelClicked(self, event):
+        event.Skip()
+
+    def OnHelpClicked(self, event):
+        event.Skip()
+
+    def OnOKClicked(self, event):
+        event.Skip()
 
 
 if __name__ == '__main__':
