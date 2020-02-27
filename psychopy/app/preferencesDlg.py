@@ -644,15 +644,15 @@ class PreferencesDlg(wx.Dialog):
         event.Skip()
 
     def OnHelpClicked(self, event):
-        #currentPane = self.nbPrefs.GetPageText(self.nb.GetSelection())
+        currentPane = self.nbPrefs.GetPageText(self.nbPrefs.GetSelection())
         # # what the url should be called in psychopy.app.urls
-        # urlName = "prefs.%s" % currentPane
-        # if urlName in self.app.urls:
-        #     url = self.app.urls[urlName]
-        # else:
-        #     # couldn't find that section - use default prefs
-        #     url = self.app.urls["prefs"]
-        # self.app.followLink(url=url)
+        urlName = "prefs.%s" % currentPane
+        if urlName in self.app.urls:
+            url = self.app.urls[urlName]
+        else:
+            # couldn't find that section - use default prefs
+            url = self.app.urls["prefs"]
+        self.app.followLink(url=url)
         event.Skip()
 
     def OnOKClicked(self, event):
