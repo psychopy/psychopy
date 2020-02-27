@@ -271,8 +271,7 @@ class PreferencesDlg(wx.Dialog):
         propGridManager = pg.PropertyGridManager(
             pnlPage, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize,
             wx.propgrid.PGMAN_DEFAULT_STYLE | wx.propgrid.PG_BOLD_MODIFIED |
-            wx.propgrid.PG_DESCRIPTION | wx.propgrid.PG_SPLITTER_AUTO_CENTER |
-            wx.propgrid.PG_TOOLTIPS)
+            wx.propgrid.PG_DESCRIPTION | wx.propgrid.PG_SPLITTER_AUTO_CENTER)
         propGridManager.SetExtraStyle(wx.propgrid.PG_EX_MODE_BUTTONS)
 
         _ = propGridManager.AddPage(sectionName, wx.NullBitmap)
