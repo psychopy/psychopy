@@ -5,17 +5,14 @@ from __future__ import absolute_import, print_function
 
 from past.builtins import basestring
 from builtins import str
-from builtins import object
 import wx
 import wx.propgrid as pg
 import platform
 import re
-import copy
 import os
 
 from . import dialogs
-from psychopy import logging, localization
-from psychopy.exceptions import DependencyError
+from psychopy import localization
 from psychopy.localization import _translate
 from pkg_resources import parse_version
 from psychopy import sound
@@ -311,8 +308,13 @@ class PreferencesDlg(wx.Dialog):
             'connections': self._pages['connections'],
             'keyBindings': self._pages['keyBindings']}
 
+        # clear pages
+        for _, propMgr in self._pages.items():
+            propMgr.ClearPage(0)
+
         for sectionName in sectionOrdering:
             propGrid = secPropGrids[sectionName].GetPage(0)
+
             prefsSection = self.prefsCfg[sectionName]
             specSection = self.prefsSpec[sectionName]
 
@@ -628,12 +630,14 @@ class PreferencesDlg(wx.Dialog):
                     self.prefsCfg[sectionName][prefName] = options[thisPref]
 
         self.app.prefs.saveUserPrefs()  # includes a validation
-        # maybe then go back and set GUI from prefs again, because validation
-        # may have changed vals?
 
     # Virtual event handlers, overide them in your derived class
     def OnApplyClicked(self, event):
         self.applyPrefs()
+        # maybe then go back and set GUI from prefs again, because validation
+        # may have changed vals?
+        # > sure, why not? - mdc
+        self.populatePrefs()
         event.Skip()
 
     def OnCancelClicked(self, event):
