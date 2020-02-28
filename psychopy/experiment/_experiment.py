@@ -155,7 +155,7 @@ class Experiment(object):
     def writeScript(self, expPath=None, target="PsychoPy", modular=True):
         """Write a PsychoPy script for the experiment
         """
-        self.integrityCheck()
+        # self.integrityCheck()
 
         self.psychopyVersion = psychopy.__version__  # make sure is current
         # set this so that params write for approp target

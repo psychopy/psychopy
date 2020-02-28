@@ -4,9 +4,12 @@
 # written by Jon with regex code by Jeremy
 
 import re
+from pathlib import Path
 
-input_path = 'psychopy/CHANGELOG.txt'
-output_path = 'docs/source/changelog.md'
+thisFolder = Path(__file__).parent
+rootFolder = thisFolder.parent
+input_path = rootFolder / 'psychopy/CHANGELOG.txt'
+output_path = thisFolder / 'source/changelog.md'
 
 def repl_link(match):
 
@@ -60,6 +63,7 @@ txt_final = noncompat.sub(repl_noncompat, txt_hash)
 
 with open(output_path, "w", encoding='utf8') as doc:
     doc.write(txt_final)
+print(f"generated {output_path}")
 
 #test:
 #text = "yes #123\n yes (#4567)\n; none of `#123, #3, #45, #12345 #123a"

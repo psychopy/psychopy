@@ -67,7 +67,7 @@ class StdOutRich(wx.richtext.RichTextCtrl, _BaseErrorHandler):
             # self.EndTextColour()
 
             # Write URL
-            self.WriteText("\n\t"+_translate("Further into see "))
+            self.WriteText("\n\t"+_translate("For further info see "))
             self.BeginBold()
             self.BeginTextColour(wx.BLUE)
             self.BeginURL(alert.url)

@@ -4,6 +4,7 @@ cat: TEST_ISSUE
 msg: TEST_MSG {testString}
 
 # Each of the following key values supports reStructured Text.
+label: Test Alert
 
 synopsis: |
   Provide a few sentences (at most) about the alert.

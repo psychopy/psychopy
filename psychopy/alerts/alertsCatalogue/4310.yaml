@@ -4,6 +4,7 @@ cat: Components
 msg: Cannot calculate parameter.
 
 # The following are typically used for online help pages, and support reStructured Text.
+label: Builder cannot check your parameter further
 
 synopsis: |
   This alert is received when an integrity check has failed to calculate a parameter.
