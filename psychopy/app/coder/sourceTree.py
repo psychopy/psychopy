@@ -175,7 +175,8 @@ class SourceTreePanel(wx.Panel):
         # create the root item which is just the file name
         self.srcTree.Freeze()
         self.srcTree.DeleteAllItems()
-        self.root = self.srcTree.AddRoot(self.coder.currentDoc.filename)
+        self.root = self.srcTree.AddRoot(
+            os.path.split(self.coder.currentDoc.filename)[-1])
         self.srcTree.SetItemImage(
             self.root, self._treeGfx['pyModule'], wx.TreeItemIcon_Normal)
 

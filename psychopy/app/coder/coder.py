@@ -537,9 +537,6 @@ class CodeEditor(BaseCodeEditor, CodeEditorFoldingMixin):
         self.edgeGuideColumn = self.coder.prefs['edgeGuideColumn']
         self.edgeGuideVisible = self.edgeGuideColumn > 0
 
-        # prevent flickering on update
-        self.SetDoubleBuffered(True)
-
         # give a little space between the margin and text
         self.SetMarginLeft(4)
 
@@ -576,6 +573,14 @@ class CodeEditor(BaseCodeEditor, CodeEditorFoldingMixin):
         self.AutoCompSetIgnoreCase(True)
         self.AutoCompSetAutoHide(True)
         self.AutoCompStops('. ')
+
+        # better font rendering and less flicker on Windows by using Direct2D
+        # for rendering instead of GDI
+        if wx.Platform == '__WXMSW__':
+            self.SetTechnology(3)
+
+        # prevent flickering on update
+        self.SetBufferedDraw(True)
 
     def setFonts(self):
         """Make some styles,  The lexer defines what each style is used for,
@@ -1069,19 +1074,19 @@ class CoderFrame(wx.Frame):
         self.SetAcceleratorTable(accelTable)
 
         # make the pane manager
-        self.paneManager = aui.AuiManager()
+        self.paneManager = aui.AuiManager(self.pnlMain, aui.AUI_MGR_DEFAULT | aui.AUI_MGR_RECTANGLE_HINT)
 
         # add help window
         _style = (aui.AUI_NB_TOP | aui.AUI_NB_TAB_SPLIT | aui.AUI_NB_TAB_MOVE)
-        # self.sourceAsst = aui.AuiNotebook(
-        #     self, wx.ID_ANY, size=wx.Size(600, 600),
-        #     style=_style)
-        self.sourceAsstWindow = SourceTreePanel(self.pnlMain, self)
-        self.fileBrowserWindow = FileBrowserPanel(self.pnlMain, self)
+        self.sourceAsst = aui.AuiNotebook(
+            self.pnlMain, wx.ID_ANY, size=wx.Size(600, 600),
+            style=_style)
+        self.sourceAsstWindow = SourceTreePanel(self.sourceAsst, self)
+        self.fileBrowserWindow = FileBrowserPanel(self.sourceAsst, self)
 
         # create an editor pane
-        self.paneManager.SetFlags(aui.AUI_MGR_RECTANGLE_HINT)
-        self.paneManager.SetManagedWindow(self.pnlMain)
+        # self.paneManager.SetFlags(aui.AUI_MGR_RECTANGLE_HINT)
+        # self.paneManager.SetManagedWindow(self.pnlMain)
         # make the notebook
         _style = (aui.AUI_NB_TOP |
                   aui.AUI_NB_SCROLL_BUTTONS |
@@ -1090,7 +1095,7 @@ class CoderFrame(wx.Frame):
                   aui.AUI_NB_CLOSE_ON_ACTIVE_TAB |
                   aui.AUI_NB_WINDOWLIST_BUTTON)
         self.notebook = aui.AuiNotebook(self.pnlMain, -1,
-                                        size=wx.Size(600, 600),
+                                        size=wx.Size(480, 600),
                                         style=_style)
         self.paneManager.AddPane(self.notebook, aui.AuiPaneInfo().
                                  Name("Editor").
@@ -1119,37 +1124,46 @@ class CoderFrame(wx.Frame):
                     continue
                 self.setCurrentDoc(filename, keepHidden=True)
 
-        self.paneManager.AddPane(self.sourceAsstWindow,
+        self.paneManager.AddPane(self.sourceAsst,
                                  aui.AuiPaneInfo().
                                  BestSize((600, 600)).
-                                 BottomDockable(True).BottomDockable(True).
-                                 CloseButton(False).
-                                 Name("SourceAsst").
-                                 Caption(_translate("Source Structure")).
-                                 Right().Show(self.prefs['showSourceAsst']))
-        self.paneManager.AddPane(self.fileBrowserWindow,
-                                 aui.AuiPaneInfo().
-                                 BestSize((600, 600)).
+                                 Floatable(True).
                                  BottomDockable(True).TopDockable(True).
-                                 CloseButton(False).
-                                 Name("FileBrowser").
-                                 Caption(_translate("File Browser")).
-                                 Right().Show(self.prefs['showFileBrowser']))
+                                 CloseButton(True).
+                                 Name("SourceAsst").
+                                 Caption(_translate("Source Assistant")).
+                                 Left().Show(self.prefs['showSourceAsst']))
+
+        self.sourceAsst.AddPage(self.sourceAsstWindow, "Structure")
+        self.sourceAsst.SetPageBitmap(0, wx.Bitmap(
+                    os.path.join(self.paths['resources'], 'coderclass16.png'),
+            wx.BITMAP_TYPE_PNG))
+        self.sourceAsst.AddPage(self.fileBrowserWindow, "File Browser")
+        self.sourceAsst.SetPageBitmap(1, wx.Bitmap(
+                    os.path.join(self.paths['resources'], 'folder-open16.png'),
+            wx.BITMAP_TYPE_PNG))
 
         self.paneManager.Update()
         self.unitTestFrame = None
 
+
         # create the shelf for shell and output views
         _style = (aui.AUI_NB_TOP | aui.AUI_NB_TAB_SPLIT |
                   aui.AUI_NB_SCROLL_BUTTONS | aui.AUI_NB_TAB_MOVE)
-        self.shelf = aui.AuiNotebook(self, wx.ID_ANY, size=wx.Size(600, 600),
+
+
+        self.shelf = aui.AuiNotebook(self.pnlMain, wx.ID_ANY, size=wx.Size(600, 600),
                                      style=_style)
+
         self.paneManager.AddPane(self.shelf,
                                  aui.AuiPaneInfo().
                                  Name("Shelf").
                                  Caption(_translate("Shelf")).
+                                 BestSize((600, 250)).
+                                 Floatable(True).
+                                 BottomDockable(True).TopDockable(True).
                                  CloseButton(False).
-                                 Bottom())
+                                 Bottom().Show(self.prefs['showOutput']))
 
         self.outputWindow = self.app.runner.stdOut
         self.outputWindow.write(_translate('Welcome to PsychoPy3!') + '\n')
@@ -1178,30 +1192,27 @@ class CoderFrame(wx.Frame):
                 self.shell = py.shell.Shell(
                     self.shelf, -1, introText=msg + '\n\n')
                 self._useShell = 'pyshell'
-            self.shelf.AddPage(self.shell, _translate('Shell'))
+            self.shelf.AddPage(self.shell, _translate('Internal Shell'))
+
+        self.paneManager.Update()
 
         #self.SetSizer(self.mainSizer)  # not necessary for aui type controls
         if (self.appData['auiPerspective'] and
                 'Shelf' in self.appData['auiPerspective']):
             self.paneManager.LoadPerspective(self.appData['auiPerspective'])
-            self.paneManager.GetPane('Shelf').Caption(_translate("Shelf"))
-            self.paneManager.GetPane('SourceAsst').Caption("Source Structure")
-            self.paneManager.GetPane('FileBrowser').Caption("File Browser")
+            #self.paneManager.GetPane('Shelf').Caption(_translate("Shelf"))
+            self.paneManager.GetPane('SourceAsst').Caption("Source Assistant")
             self.paneManager.GetPane('Editor').Caption(_translate("Editor"))
         else:
             self.SetMinSize(wx.Size(400, 600))  # min size for whole window
             self.Fit()
             self.paneManager.Update()
 
-        if self.app._appLoaded:
-            self.setOutputWindow()
+        #if self.app._appLoaded:
+        #    self.setOutputWindow()
 
         self.sourceAsstChk.Check(
             self.paneManager.GetPane('SourceAsst').IsShown())
-        self.fileBrowserChk.Check(
-            self.paneManager.GetPane('FileBrowser').IsShown())
-        self.fileBrowserChk.Check(
-            self.paneManager.GetPane('FileBrowser').IsShown())
 
         self.SendSizeEvent()
         self.app.trackFrame(self)
@@ -2292,6 +2303,7 @@ class CoderFrame(wx.Frame):
                 self.currentDoc.fileModTime = time.ctime()
 
             self.currentDoc.EmptyUndoBuffer()
+            #self.currentDoc.SetScrollWidth(p.GetClientSize().width)
 
             path, shortName = os.path.split(filename)
             self.notebook.AddPage(p, shortName)

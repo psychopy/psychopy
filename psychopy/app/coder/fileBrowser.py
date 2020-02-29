@@ -219,11 +219,11 @@ class FileBrowserPanel(wx.Panel):
 
         # add columns
         self.fileList.InsertColumn(0, "Name")
-        self.fileList.InsertColumn(1, "Size", wx.LIST_FORMAT_RIGHT)
-        self.fileList.InsertColumn(2, "Modified")
-        self.fileList.SetColumnWidth(0, 250)
+        self.fileList.InsertColumn(1, "Size", wx.LIST_FORMAT_LEFT)
+        #self.fileList.InsertColumn(2, "Modified")
+        self.fileList.SetColumnWidth(0, 280)
         self.fileList.SetColumnWidth(1, 80)
-        self.fileList.SetColumnWidth(2, 100)
+        #self.fileList.SetColumnWidth(2, 100)
 
         self.gotoDir(os.getcwd())
 
@@ -579,7 +579,7 @@ class FileBrowserPanel(wx.Panel):
                     obj.name,
                     2)
                 self.fileList.SetItem(index, 1, obj.fsize)
-                self.fileList.SetItem(index, 2, obj.mod)
+                #self.fileList.SetItem(index, 2, obj.mod)
 
     def addItem(self, name, absPath):
         """Add an item to the directory browser."""

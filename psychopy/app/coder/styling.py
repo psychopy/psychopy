@@ -206,6 +206,48 @@ STYLE_SPEC_LANG = {
             'globalclass': "fore:#0000FF,bold,underline,size:%(size)d"
         }
     },
+    'vc6': {  # wxPython demo style
+        'editor': {  # editor default styles, applied before lexer specific
+            'caretFgCol': "BLACK",
+            'selFg': "WHITE",
+            'selBg': "BLUE",
+            'edgeGuideCol': "#CDCDCD",
+            'default': {
+                wx.stc.STC_STYLE_DEFAULT: "face:%(code)s,size:%(size)d",
+                wx.stc.STC_STYLE_LINENUMBER: 'fore:#000000,back:#CDCDCD',
+                wx.stc.STC_STYLE_BRACELIGHT: 'fore:#00009D,back:#FFFF00',
+                wx.stc.STC_STYLE_INDENTGUIDE: "fore:#CDCDCD",
+            }
+        },
+        'lexerStyles': {
+            'default': "fore:#000000,face:%(code)s,size:%(size)d",
+            'comment': "fore:#008000,size:%(size)d",
+            'commentline': "fore:#008000,size:%(size)d",
+            'commentblock': "fore:#008000,size:%(size)d",
+            'commentlinedoc': "fore:#008000,size:%(size)d",
+            'commentdockeyword':
+                "fore:#008000,face:%(comment)s,size:%(size)d",
+            'commentdockeyworderror':
+                "fore:#008000,face:%(comment)s,size:%(size)d",
+            'string': "fore:#4C4C4C,face:%(code)s,size:%(size)d",
+            'character': "fore:#4C4C4C,face:%(code)s,size:%(size)d",
+            'triple': "fore:#4C4C4C,size:%(size)d",
+            'tripledouble': "fore:#4C4C4C,size:%(size)d",
+            'number': "fore:#000000,size:%(size)d",
+            'operator': "fore:#000000,size:%(size)d",
+            'pyidentifier': "fore:#000000,face:%(code)s,size:%(size)d",
+            'identifier': "fore:#000000,face:%(code)s,size:%(size)d",
+            'word': "fore:#0000EE,size:%(size)d",
+            'word2': "fore:#0000EE,size:%(size)d",
+            'defname': "fore:#000000,size:%(size)d",
+            'classname': "fore:#000000,size:%(size)d",
+            'stringeol':
+                "fore:#000000,face:%(code)s,eol,size:%(size)d",
+            'preprocessor': "fore:#0000EE,size:%(size)d",
+            'preprocessorcomment': "fore:#0000EE,size:%(size)d",
+            'globalclass': "fore:#000000,size:%(size)d"
+        }
+    },
     'github': {  # github style
         'editor': {  # editor default styles, applied before lexer specific
             'caretFgCol': DEFAULT_CARET_FG_COL,
