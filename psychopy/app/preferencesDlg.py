@@ -629,14 +629,32 @@ class PreferencesDlg(wx.Dialog):
                     self.prefsCfg[sectionName][prefName] = options[thisPref]
 
         self.app.prefs.saveUserPrefs()  # includes a validation
-
-    # Virtual event handlers, overide them in your derived class
-    def OnApplyClicked(self, event):
-        self.applyPrefs()
         # maybe then go back and set GUI from prefs again, because validation
         # may have changed vals?
         # > sure, why not? - mdc
         self.populatePrefs()
+
+        # after validation, update the UI
+        self.updateCoderUI()
+
+    def updateCoderUI(self):
+        """Update the Coder UI (eg. fonts, themes, etc.) from prefs."""
+        # start applying prefs to take effect
+        coder = self.app.coder
+        if coder is not None:
+            # apply settings over document pages
+            for ii in range(coder.notebook.GetPageCount()):
+                doc = coder.notebook.GetPage(ii)
+                doc.setFonts()
+
+    # Virtual event handlers, overide them in your derived class
+    def OnApplyClicked(self, event):
+        """Apply button clicked, this makes changes to the UI without leaving
+        the preference dialog. This can be used to see the effects of setting
+        changes before closing the dialog.
+
+        """
+        self.applyPrefs()  # saves the preferences
         event.Skip()
 
     def OnCancelClicked(self, event):
@@ -655,6 +673,9 @@ class PreferencesDlg(wx.Dialog):
         event.Skip()
 
     def OnOKClicked(self, event):
+        """Called when OK is clicked. This closes the dialog after applying the
+        settings.
+        """
         self.applyPrefs()
         event.Skip()
 
