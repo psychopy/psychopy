@@ -7,6 +7,7 @@ from past.builtins import basestring
 from builtins import str
 import wx
 import wx.propgrid as pg
+import wx.py
 import platform
 import re
 import os
@@ -390,11 +391,6 @@ class PreferencesDlg(wx.Dialog):
                     pLabel = _localized[prefName]
                 except Exception:
                     pLabel = prefName
-                if prefName == 'locale':
-                    # fake spec -> option: use available locale info not spec file
-                    thisSpec = 'option(' + ','.join(
-                        [''] + self.app.localization.available) + ', default=xxx)'
-                    thisPref = self.app.prefs.app['locale']
 
                 # get tooltips from comment lines from the spec, as parsed by
                 # configobj
@@ -424,6 +420,22 @@ class PreferencesDlg(wx.Dialog):
                             prefName,
                             labels=self.fontList,
                             values=[i for i in range(len(self.fontList))],
+                            value=default))
+                elif prefName == 'locale':
+                    thisPref = self.app.prefs.app['locale']
+                    locales = self.app.localization.available
+                    try:
+                        default = locales.index(thisPref)
+                    except ValueError:
+                        # default to US english
+                        default = locales.index('en_US')
+
+                    item = propGrid.Append(
+                        wx.propgrid.EnumProperty(
+                            pLabel,
+                            prefName,
+                            labels=[_localized[i] for i in locales],
+                            values=[i for i in range(len(locales))],
                             value=default))
                 # single directory
                 elif prefName in ('unpackedDemosDir',):
@@ -575,6 +587,13 @@ class PreferencesDlg(wx.Dialog):
                     self.prefsCfg[sectionName][prefName] = \
                         self.audioDevNames[thisPref]
                     continue
+                elif prefName == 'locale':
+                    # fake spec -> option: use available locale info not spec file
+                    self.app.prefs.app['locale'] = \
+                        self.app.localization.available[thisPref]
+                    self.prefsCfg[sectionName][prefName] = \
+                        self.app.localization.available[thisPref]
+                    continue
 
                 # remove invisible trailing whitespace:
                 if hasattr(thisPref, 'strip'):
@@ -647,7 +666,6 @@ class PreferencesDlg(wx.Dialog):
                 doc = coder.notebook.GetPage(ii)
                 doc.setFonts()
 
-    # Virtual event handlers, overide them in your derived class
     def OnApplyClicked(self, event):
         """Apply button clicked, this makes changes to the UI without leaving
         the preference dialog. This can be used to see the effects of setting
