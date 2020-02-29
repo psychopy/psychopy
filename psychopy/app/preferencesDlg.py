@@ -387,7 +387,6 @@ class PrefPropGrid(wx.Panel):
         except KeyError:
             return None
 
-    # Virtual event handlers, overide them in your derived class
     def OnPrefPageDeselected(self, event):
 
         event.Skip()
