@@ -78,9 +78,12 @@ class ScriptProcess(object):
                 _opts = wx.EXEC_ASYNC | wx.EXEC_NOHIDE  # that hid console!
             else:
                 _opts = wx.EXEC_ASYNC | wx.EXEC_SHOW_CONSOLE
+            fullPathDir = fileName[0:fileName.rfind('\\')+1]  # for making cwd the file path - JK
+        	# Note: This directory can't be a path object in windows prior to Python 3.7. - JK
         else:
             command = [sys.executable, '-u', fullPath]
             _opts = wx.EXEC_ASYNC | wx.EXEC_MAKE_GROUP_LEADER
+            fullPathDir = fileName[0:fileName.rfind('/')+1]  # for making cwd the file path - JK
 
         # the whileRunning method will check on stdout from the script
         self._processEndTime = None
@@ -88,7 +91,7 @@ class ScriptProcess(object):
             args=command,
             bufsize=1, executable=None, stdin=None,
             stdout=PIPE, stderr=PIPE, preexec_fn=None,
-            shell=False, cwd=None, env=None,
+            shell=False, cwd=fullPathDir, env=None,
             universal_newlines=True,  # gives us back a string instead of bytes
             creationflags=0,
         )
