@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2018 Jonathan Peirce
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 from __future__ import absolute_import, division, print_function
@@ -11,7 +11,11 @@ import sys
 import platform
 import psychopy
 from psychopy import web, logging
-import requests
+
+try:
+    import certifi
+except ImportError:
+    certifi = None
 
 
 def sendUsageStats(app=None):
@@ -33,9 +37,10 @@ def sendUsageStats(app=None):
         OSXver, junk, architecture = platform.mac_ver()
         systemInfo = "OSX_%s" % (OSXver)
     elif sys.platform.startswith('linux'):
+        from distro import linux_distribution
         systemInfo = '%s_%s_%s' % (
             'Linux',
-            ':'.join([x for x in platform.dist() if x != '']),
+            ':'.join([x for x in linux_distribution() if x != '']),
             platform.release())
         if len(systemInfo) > 30:  # if it's too long PHP/SQL fails to store!?
             systemInfo = systemInfo[0:30]
@@ -43,11 +48,14 @@ def sendUsageStats(app=None):
         systemInfo = "win32_v" + platform.version()
     else:
         systemInfo = platform.system() + platform.release()
-    u = "https://usage.psychopy.org/submit.php?date=%s&sys=%s&version=%s&misc=%s"
+    u = "http://usage.psychopy.org/submit.php?date=%s&sys=%s&version=%s&misc=%s"
     URL = u % (dateNow, systemInfo, v, miscInfo)
     try:
         req = web.urllib.request.Request(URL)
-        page = web.urllib.request.urlopen(req)  # proxies
+        if certifi:
+            page = web.urllib.request.urlopen(req, cafile=certifi.where())
+        else:
+            page = web.urllib.request.urlopen(req)
     except Exception:
         logging.warning("Couldn't connect to psychopy.org\n"
                         "Check internet settings (and proxy "

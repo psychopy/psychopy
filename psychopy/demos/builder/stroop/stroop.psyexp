@@ -11,8 +11,6 @@
     <Param name="Incomplete URL" updates="None" val="" valType="str"/>
     <Param name="JS libs" updates="None" val="packaged" valType="str"/>
     <Param name="Monitor" updates="None" val="testMonitor" valType="str"/>
-    <Param name="OSF Project ID" updates="None" val="" valType="str"/>
-    <Param name="OSF User" updates="None" val="" valType="str"/>
     <Param name="Save csv file" updates="None" val="False" valType="bool"/>
     <Param name="Save excel file" updates="None" val="True" valType="bool"/>
     <Param name="Save log file" updates="None" val="True" valType="bool"/>
@@ -27,7 +25,6 @@
     <Param name="blendMode" updates="None" val="avg" valType="str"/>
     <Param name="color" updates="None" val="black" valType="str"/>
     <Param name="colorSpace" updates="None" val="rgb" valType="str"/>
-    <Param name="email" updates="None" val="" valType="str"/>
     <Param name="expName" updates="None" val="stroop" valType="str"/>
     <Param name="exportHTML" updates="None" val="on Sync" valType="str"/>
     <Param name="logging level" updates="None" val="warning" valType="code"/>

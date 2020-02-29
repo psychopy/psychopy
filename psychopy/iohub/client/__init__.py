@@ -5,7 +5,7 @@
 # Copyright (C) 2012-2016 iSolver Software Solutions
 # Distributed under the terms of the GNU General Public License (GPL).
 from __future__ import division, absolute_import, print_function
-
+from past.builtins import unicode
 import os
 import sys
 import time
@@ -60,6 +60,12 @@ class DeviceRPC(object):
         # for the method return value sent back from the ioHub Server.
         r = self.sendToHub(('EXP_DEVICE', 'DEV_RPC', self.device_class,
                             self.method_name, args, kwargs))
+        
+        if r is None:
+            print("r is None:",('EXP_DEVICE', 'DEV_RPC', self.device_class,
+                            self.method_name, args, kwargs))
+            return None
+        
         r = r[1:]
         if len(r) == 1:
             r = r[0]
@@ -213,7 +219,7 @@ class ioHubDevices(object):
         self._devicesByName[name] = d
 
     def getDevice(self, name):
-        self._devicesByName.get(name)
+        return self._devicesByName.get(name)
 
     def getAll(self):
         return self._devicesByName.values()
@@ -287,7 +293,7 @@ class ioHubConnection(object):
 
         self.iohub_status = self._startServer(ioHubConfig, ioHubConfigAbsPath)
         if self.iohub_status != 'OK':
-            raise RuntimeError('Error starting ioHub server')
+            raise RuntimeError('Error starting ioHub server: {}'.format(self.iohub_status))
 
     @classmethod
     def getActiveConnection(cls):
@@ -600,7 +606,7 @@ class ioHubConnection(object):
             # variable states to iohub so they can be stored for future
             # reference.
             #
-            io.addTrialHandlerRecord(trial.values())
+            io.addTrialHandlerRecord(trial)
 
         """
         trial = trials.trialList[0]
@@ -615,8 +621,6 @@ class ioHubConnection(object):
             if isinstance(cond_val, basestring):
                 numpy_dtype = (cond_name, 'S', 256)
             elif isinstance(cond_val, int):
-                numpy_dtype = (cond_name, 'i4')
-            elif isinstance(cond_val, long):
                 numpy_dtype = (cond_name, 'i8')
             elif isinstance(cond_val, float):
                 numpy_dtype = (cond_name, 'f8')
@@ -898,13 +902,6 @@ class ioHubConnection(object):
 
         self._iohub_server_config = ioHubConfig
 
-        # >>>>> Create open UDP port to ioHub Server
-
-        server_udp_port = self._iohub_server_config.get('udp_port', 9000)
-        from ..net import UDPClientConnection
-        self.udp_client = UDPClientConnection(remote_port=server_udp_port)
-        # <<<<< Done Creating open UDP port to ioHub Server
-
         # >>>> Check for orphaned ioHub Process and kill if found...
         iopFileName = os.path.join(rootScriptPath, '.iohpid')
         if os.path.exists(iopFileName):
@@ -967,11 +964,23 @@ class ioHubConnection(object):
         # for affinity and process priority setting.
         Computer.iohub_process_id = self._server_process.pid
         Computer.iohub_process = psutil.Process(self._server_process.pid)
-        # If ioHub server did not respond correctly,
+
+        # >>>>> Create open UDP port to ioHub Server
+        server_udp_port = self._iohub_server_config.get('udp_port', 9000)
+        from ..net import UDPClientConnection
+        # initially open with a timeout so macOS does not hang.        
+        self.udp_client = UDPClientConnection(remote_port=server_udp_port, timeout=0.1)
+
+        # If ioHub server does not respond correctly,
         # terminate process and exit the program.
         if self._waitForServerInit() is False:
             self._server_process.terminate()
             return "ioHub startup failed."
+        
+        # close and reopen blocking version of socket
+        self.udp_client.close()
+        self.udp_client = UDPClientConnection(remote_port=server_udp_port)
+        # <<<<< Done Creating open UDP port to ioHub Server
 
         # <<<<< Done starting iohub subprocess
 
@@ -1091,6 +1100,34 @@ class ioHubConnection(object):
             printExceptionDetailsToStdErr()
         return None
 
+    def _convertDict(self, d):
+        r = {}
+        for k, v in d.items():
+            if isinstance(v, bytes):
+                v = str(v, 'utf-8')
+            elif isinstance(v, list) or  isinstance(v, tuple):
+                v = self._convertList(v)
+            elif isinstance(v, dict):
+                v = self._convertDict(v)
+        
+            if isinstance(k, bytes):
+                k = str(k, 'utf-8')
+            r[k]=v
+        return r
+
+    def _convertList(self, l):
+        r = []
+        for i in l:
+            if isinstance(i, bytes):
+                r.append(str(i, 'utf-8'))
+            elif isinstance(i, list) or  isinstance(i, tuple):
+                r.append(self._convertList(i))
+            elif isinstance(i, dict):
+                r.append(self._convertDict(i))
+            else:
+                r.append(i)
+        return r
+
     def _sendToHubServer(self, tx_data):
         """General purpose local <-> iohub server process UDP based
         request - reply code. The method blocks until the request is fulfilled
@@ -1103,19 +1140,23 @@ class ioHubConnection(object):
         """
         try:
             # send request to host, return is # bytes sent.
+            #print("SEND:",tx_data)
             self.udp_client.sendTo(tx_data)
         except Exception as e: # pylint: disable=broad-except
             import traceback
             traceback.print_exc()
             self.shutdown()
             raise e
-
+        
+        result = None
+        
         try:
             # wait for response from ioHub server, which will be the
             # result data and iohub server address (ip4,port).
             result = self.udp_client.receive()
             if result:
                 result, _ = result
+            #print("RESULT:",result)
         except Exception as e: # pylint: disable=broad-except
             import traceback
             traceback.print_exc()
@@ -1126,23 +1167,16 @@ class ioHubConnection(object):
         # TODO: This is not really working as planned, in part because iohub
         #       server does not consistently return error responses when needed
         errorReply = self._isErrorReply(result)
-        if errorReply:
+        if errorReply:           
             raise ioHubError(result)
-
         # Otherwise return the result
+        
         if constants.PY3 and result is not None:
-            if isinstance(result, list):
-                for ind, items in enumerate(result):
-                    if isinstance(items, list) and not items is None:
-                        for nextInd, nested in enumerate(items):
-                            if type(nested) not in [dict, list, int, float, bool] and not nested is None :
-                                result[ind][nextInd] = str(nested, 'utf-8')
-                    elif type(items) not in [dict, list, int, float, bool] and not items is None:
-                        result[ind] = str(items, 'utf-8')
-                    elif type(items) is dict:
-                        result[ind] = {str(keys, 'utf-8'): vals for keys, vals in items.items()}
-            else:
-                result = str(result, 'utf-8')
+            # Use recursive conversion funcs                     
+            if isinstance(result, list) or  isinstance(result, tuple):
+                result = self._convertList(result)
+            elif isinstance(result, dict):
+                result = self._convertDict(result)
         return result
 
     def _sendExperimentInfo(self, experimentInfoDict):
@@ -1376,9 +1410,8 @@ class ioEvent(object):
 
 _lazyImports = """
 from {pkgroot}.client.connect import launchHubServer
-
 from {pkgroot}.client import keyboard
-from {pkgroot}.client import wintabtablet
+#from {pkgroot}.client import wintabtablet
 """.format(pkgroot=_pkgroot)
 
 try:

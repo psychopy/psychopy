@@ -2,13 +2,13 @@
  * Mousecomponent Test *
  ***********************/
 
-import { PsychoJS } from './lib/core-3.0.6.js';
-import * as core from './lib/core-3.0.6.js';
-import { TrialHandler } from './lib/data-3.0.6.js';
-import { Scheduler } from './lib/util-3.0.6.js';
-import * as util from './lib/util-3.0.6.js';
-import * as visual from './lib/visual-3.0.6.js';
-import { Sound } from './lib/sound-3.0.6.js';
+import { PsychoJS } from 'https://pavlovia.org/lib/core.js';
+import * as core from 'https://pavlovia.org/lib/core.js';
+import { TrialHandler } from 'https://pavlovia.org/lib/data.js';
+import { Scheduler } from 'https://pavlovia.org/lib/util.js';
+import * as util from 'https://pavlovia.org/lib/util.js';
+import * as visual from 'https://pavlovia.org/lib/visual.js';
+import { Sound } from 'https://pavlovia.org/lib/sound.js';
 
 // init psychoJS:
 var psychoJS = new PsychoJS({
@@ -47,13 +47,13 @@ flowScheduler.add(quitPsychoJS, '', true);
 // quit if user presses Cancel in dialog box:
 dialogCancelScheduler.add(quitPsychoJS, '', false);
 
-psychoJS.start({configURL: 'config.json', expInfo: expInfo});
+psychoJS.start({expInfo: expInfo});
 
 var frameDur;
 function updateInfo() {
   expInfo['date'] = util.MonotonicClock.getDateStr();  // add a simple timestamp
   expInfo['expName'] = expName;
-  expInfo['psychopyVersion'] = '3.0.6';
+  expInfo['psychopyVersion'] = '3.1.0';
 
   // store frame rate of monitor if we can measure it successfully
   expInfo['frameRate'] = psychoJS.window.getActualFrameRate();
@@ -153,7 +153,7 @@ function trialRoutineEachFrame() {
     return Scheduler.Event.NEXT;
   }
   
-  continueRoutine = false;// reverts to True if at least one component still running
+  continueRoutine = false;  // reverts to True if at least one component still running
   for (const thisComponent of trialComponents)
     if ('status' in thisComponent && thisComponent.status !== PsychoJS.Status.FINISHED) {
       continueRoutine = true;
@@ -189,10 +189,13 @@ function trialRoutineEnd() {
 }
 
 
-function endLoopIteration(thisTrial) {
+function endLoopIteration(thisScheduler, thisTrial) {
   // ------Prepare for next entry------
   return function () {
-    if (typeof thisTrial === 'undefined' || !('isTrials' in thisTrial) || thisTrial.isTrials) {
+    // ------Check if user ended loop early------
+    if (currentLoop.finished) {
+      thisScheduler.stop();
+    } else if (typeof thisTrial === 'undefined' || !('isTrials' in thisTrial) || thisTrial.isTrials) {
       psychoJS.experiment.nextEntry();
     }
   return Scheduler.Event.NEXT;
@@ -212,7 +215,7 @@ function importConditions(loop) {
 
 function quitPsychoJS(message, isCompleted) {
   psychoJS.window.close();
-  psychoJS.quit({message, isCompleted});
+  psychoJS.quit({message: message, isCompleted: isCompleted});
 
   return Scheduler.Event.QUIT;
 }

@@ -1,0 +1,22 @@
+# The first key-value pair is used for the alerts package
+
+code: 2120
+cat: Sizing
+msg: Your stimulus size is smaller than 1 pixel ({dimension} dimension).
+
+# The following are typically used for online help pages, and support reStructured Text.
+
+label: Stimulus size is smaller than 1 pixel
+
+synopsis: |
+  Stimuli size requested is smaller than 1 pixel on X and/or Y dimensions. Stimuli sized smaller than
+  1 pixel will not be visible.
+
+details: |
+  This issue is often caused by an inconsistency betwen the units of your stimulus and the values being requested. For instance a size of 0.1, when the units are `height` is sensible (1/10th the height of the screen) but a size of 0.1 when the units are `pix` would not be sensible (1/10th of a pixel).
+
+solutions: |
+  Check the size and the :ref:`units of the stimulus <units>`_ carefully. You may also need to check the monitor calibration if you're using units that depend on the monitor size and resolution (like `cm` and `deg`).
+
+versions: |
+  All versions

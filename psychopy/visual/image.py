@@ -4,7 +4,7 @@
 """Display an image on `psycopy.visual.Window`"""
 
 # Part of the PsychoPy library
-# Copyright (C) 2018 Jonathan Peirce
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 from __future__ import absolute_import, division, print_function
@@ -198,12 +198,12 @@ class ImageStim(BaseVisualStim, ContainerMixin, ColorMixin, TextureMixin):
         # glColor can interfere with multitextures
         GL.glColor4f(1.0, 1.0, 1.0, 1.0)
         # mask
-        GL.glActiveTextureARB(GL.GL_TEXTURE1_ARB)
+        GL.glActiveTexture(GL.GL_TEXTURE1)
         GL.glEnable(GL.GL_TEXTURE_2D)  # implicitly disables 1D
         GL.glBindTexture(GL.GL_TEXTURE_2D, self._maskID)
 
         # main texture
-        GL.glActiveTextureARB(GL.GL_TEXTURE0_ARB)
+        GL.glActiveTexture(GL.GL_TEXTURE0)
         GL.glEnable(GL.GL_TEXTURE_2D)
         GL.glBindTexture(GL.GL_TEXTURE_2D, self._texID)
 
@@ -285,7 +285,8 @@ class ImageStim(BaseVisualStim, ContainerMixin, ColorMixin, TextureMixin):
                                                   pixFormat=GL.GL_RGB,
                                                   dataType=datatype,
                                                   maskParams=self.maskParams,
-                                                  forcePOW2=False)
+                                                  forcePOW2=False,
+                                                  wrapping=False)
         # if user requested size=None then update the size for new stim here
         if hasattr(self, '_requestedSize') and self._requestedSize is None:
             self.size = None  # set size to default
@@ -315,7 +316,8 @@ class ImageStim(BaseVisualStim, ContainerMixin, ColorMixin, TextureMixin):
                             dataType=GL.GL_UNSIGNED_BYTE,
                             stim=self,
                             res=self.texRes,
-                            maskParams=self.maskParams)
+                            maskParams=self.maskParams,
+                            wrapping=True)
 
     def setMask(self, value, log=None):
         """Usually you can use 'stim.attribute = value' syntax instead,

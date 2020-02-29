@@ -10,14 +10,15 @@ import re
 import wx.__version__
 import psychopy
 from psychopy import logging
-from psychopy.experiment.components import BaseComponent, Param, _translate
-from psychopy.tools.versionchooser import versionOptions, availableVersions, _versionFilter
+from psychopy.experiment.components import Param, _translate
+from psychopy.tools.versionchooser import versionOptions, availableVersions, _versionFilter, latestVersion
 from psychopy.constants import PY3
+from psychopy.monitors import Monitor
 
 # for creating html output folders:
 import shutil
 import hashlib
-import zipfile
+from pkg_resources import parse_version
 import ast  # for doing literal eval to convert '["a","b"]' to a list
 
 
@@ -107,6 +108,7 @@ class SettingsComponent(object):
         self.exp.requirePsychopyLibs(['visual', 'gui'])
         self.parentName = parentName
         self.url = "http://www.psychopy.org/builder/settings.html"
+        self._monitor = None
 
         # if filename is the default value fetch the builder pref for the
         # folder instead
@@ -211,6 +213,28 @@ class SettingsComponent(object):
             hint=_translate("Should the mouse be visible on screen?"),
             label=_localized["Show mouse"], categ='Screen')
 
+        # sound params
+        self.params['Audio lib'] = Param(
+            'use prefs', valType='str',
+            allowedVals=['use prefs', 'ptb', 'pyo', 'sounddevice', 'pygame'],
+            hint=_translate("Which Python sound engine do you want to play your sounds?"),
+            label=_translate("Audio library"), categ='Audio')
+
+        audioLatencyLabels = [
+            _translate('use prefs'),
+            '0: ' + _translate('Latency not important'),
+            '1: ' + _translate('Share low-latency driver'),
+            '2: ' + _translate('Exclusive low-latency'),
+            '3: ' + _translate('Aggressive low-latency'),
+            '4: ' + _translate('Latency critical'),
+        ]
+        self.params['Audio latency priority'] = Param(
+            'use prefs', valType='str',
+            allowedVals=['use prefs', '0', '1', '2', '3', '4'],
+            allowedLabels=audioLatencyLabels,
+            hint=_translate("How important is audio latency for you? If essential then you may need to get all your sounds in correct formats."),
+            label=_translate("Audio latency priority"), categ='Audio')
+
         # data params
         self.params['Data filename'] = Param(
             filename, valType='code', allowedTypes=[],
@@ -258,11 +282,6 @@ class SettingsComponent(object):
             'html', valType='str', allowedTypes=[],
             hint=_translate("Place the HTML files will be saved locally "),
             label="Output path", categ='Online')
-        self.params['JS libs'] = Param(
-            'packaged', valType='str', allowedVals=['packaged'],
-            hint=_translate("Should we package a copy of the JS libs or use"
-                            "remote copies (http:/www.psychopy.org/js)?"),
-            label="JS libs", categ='Online')
         self.params['Completed URL'] = Param(
             '', valType='str',
             hint=_translate("Where should participants be redirected after the experiment on completion\n"
@@ -273,8 +292,6 @@ class SettingsComponent(object):
             hint=_translate("Where participants are redirected if they do not complete the task\n"
                             " INSERT INCOMPLETION URL E.G.?"),
             label="Incomplete URL", categ='Online')
-
-
         self.params['exportHTML'] = Param(
             exportHTML, valType='str',
             allowedVals=['on Save', 'on Sync', 'manually'],
@@ -363,15 +380,13 @@ class SettingsComponent(object):
             '"""\nThis experiment was created using PsychoPy3 Experiment '
             'Builder (v%s),\n'
             '    on %s\n' % (version, localDateTime) +
-            'If you publish work using this script please cite the PsychoPy '
-            'publications:\n'
-            '    Peirce, JW (2007) PsychoPy - Psychophysics software in '
-            'Python.\n'
-            '        Journal of Neuroscience Methods, 162(1-2), 8-13.\n'
-            '    Peirce, JW (2009) Generating stimuli for neuroscience using '
-            'PsychoPy.\n'
-            '        Frontiers in Neuroinformatics, 2:10. doi: 10.3389/'
-            'neuro.11.010.2008\n"""\n'
+            'If you publish work using this script the most relevant '
+            'publication is:\n\n'            
+            u'    Peirce J, Gray JR, Simpson S, MacAskill M, Höchenberger R, Sogo H, '
+            u'Kastman E, Lindeløv JK. (2019) \n'
+            '        PsychoPy2: Experiments in behavior made easy Behav Res 51: 195. \n'
+            '        https://doi.org/10.3758/s13428-018-01193-y\n'
+            '\n"""\n'
             "\nfrom __future__ import absolute_import, division\n")
 
         self.writeUseVersion(buff)
@@ -384,13 +399,25 @@ class SettingsComponent(object):
             else:
                 customImports.append(import_)
 
+        buff.writelines(
+            "\nfrom psychopy import locale_setup\n"
+            "from psychopy import prefs\n"
+        )
+        # adjust the prefs for this study if needed
+        if self.params['Audio lib'].val.lower() != 'use prefs':
+            buff.writelines(
+                "prefs.hardware['audioLib'] = {}\n".format(self.params['Audio lib'])
+            )
+        if self.params['Audio latency priority'].val.lower() != 'use prefs':
+            buff.writelines(
+                "prefs.hardware['audioLatencyMode'] = {}\n".format(self.params['Audio latency priority'])
+            )
         buff.write(
-            "from psychopy import locale_setup, "
-            "%s\n" % ', '.join(psychopyImports) +
+            "from psychopy import %s\n" % ', '.join(psychopyImports) +
             "from psychopy.constants import (NOT_STARTED, STARTED, PLAYING,"
             " PAUSED,\n"
             "                                STOPPED, FINISHED, PRESSED, "
-            "RELEASED, FOREVER)\n"
+            "RELEASED, FOREVER)\n\n"
             "import numpy as np  # whole numpy lib is available, "
             "prepend 'np.'\n"
             "from numpy import (%s,\n" % ', '.join(_numpyImports[:7]) +
@@ -420,10 +447,6 @@ class SettingsComponent(object):
 
         buff.write("\n")
 
-        # Write "run once" code.
-        if self.exp._runOnce:
-            buff.write("\n".join(self.exp._runOnce))
-            buff.write("\n\n")
 
     def prepareResourcesJS(self):
         """Sets up the resources folder and writes the info.php file for PsychoJS
@@ -449,9 +472,9 @@ class SettingsComponent(object):
             """Copies a file but only if doesn't exist or SHA is diff
             """
             if os.path.isfile(dst):
-                with open(dst, 'r') as f:
+                with open(dst, 'rb') as f:
                     dstMD5 = hashlib.md5(f.read()).hexdigest()
-                with open(src, 'r') as f:
+                with open(src, 'rb') as f:
                     srcMD5 = hashlib.md5(f.read()).hexdigest()
                 if srcMD5 == dstMD5:
                     return  # already matches - do nothing
@@ -468,12 +491,7 @@ class SettingsComponent(object):
         folder = os.path.dirname(self.exp.expPath)
         if not os.path.isdir(folder):
             os.mkdir(folder)
-        # get OSF projcet info if there was a project id
-        # projLabel = self.params['OSF Project ID'].val
-        # these are all blank unless we find a valid proj
-        # osfID = osfName = osfToken = ''
-        # osfHtmlFolder = ''
-        # osfDataFolder = 'data'
+
         # is email a defined parameter for this version
         if 'email' in self.params:
             email = repr(self.params['email'].val)
@@ -490,17 +508,34 @@ class SettingsComponent(object):
             dstFolder = os.path.split(dstAbs)[0]
             if not os.path.isdir(dstFolder):
                 os.makedirs(dstFolder)
-            shutil.copy2(srcFile['abs'], dstAbs)
+            copyFileWithMD5(srcFile['abs'], dstAbs)
 
     def writeInitCodeJS(self, buff, version, localDateTime, modular=True):
         # create resources folder
-        self.prepareResourcesJS()
+        if self.exp.htmlFolder:
+            self.prepareResourcesJS()
         jsFilename = os.path.basename(os.path.splitext(self.exp.filename)[0])
+
+        # decide if we need anchored useVersion or leave plain
+        useVer = self.params['Use version'].val
+        if useVer == '':
+            useVer = '.'.join(version.split('.')[:2])
+        elif useVer == 'latest':
+            useVer = '.'.join(latestVersion().split('.')[:2])
+        else:
+            # do we shorten minor versions ('3.4.2' to '3.4')?
+            # only from 3.2 onwards
+            if (parse_version(useVer) > (parse_version('3.2'))
+                    and len(useVer.split('.'))>2):
+                useVer = '.'.join(useVer.split('.')[:2])
+        # prepend the hyphen
+        versionStr = '-{}'.format(useVer)
+
         # html header
         template = readTextFile("JS_htmlHeader.tmpl")
         header = template.format(
             name=jsFilename,
-            version=version,
+            version=versionStr,
             params=self.params)
         jsFile = self.exp.expPath
         folder = os.path.dirname(jsFile)
@@ -519,14 +554,14 @@ class SettingsComponent(object):
 
         # Write imports if modular
         if modular:
-            code = ("import {{ PsychoJS }} from './lib/core-{version}.js';\n"
-                    "import * as core from './lib/core-{version}.js';\n"
-                    "import {{ TrialHandler }} from './lib/data-{version}.js';\n"
-                    "import {{ Scheduler }} from './lib/util-{version}.js';\n"
-                    "import * as util from './lib/util-{version}.js';\n"
-                    "import * as visual from './lib/visual-{version}.js';\n"
-                    "import {{ Sound }} from './lib/sound-{version}.js';\n"
-                    "\n").format(version=version)
+            code = ("import {{ PsychoJS }} from './lib/core{version}.js';\n"
+                    "import * as core from './lib/core{version}.js';\n"
+                    "import {{ TrialHandler }} from './lib/data{version}.js';\n"
+                    "import {{ Scheduler }} from './lib/util{version}.js';\n"
+                    "import * as util from './lib/util{version}.js';\n"
+                    "import * as visual from './lib/visual{version}.js';\n"
+                    "import * as sound from './lib/sound{version}.js';\n"
+                    "\n").format(version=versionStr)
             buff.writeIndentedLines(code)
 
         # Write window code
@@ -585,16 +620,25 @@ class SettingsComponent(object):
             code = ("expName = %s  # from the Builder filename that created"
                     " this script\n")
             buff.writeIndented(code % self.params['expName'])
+
+        if PY3:  # in Py3 dicts are chrono-sorted
+            sorting = "False"
+        else:  # in Py2, with no natural order, at least be alphabetical
+            sorting = "True"
         expInfoDict = self.getInfo()
         buff.writeIndented("expInfo = %s\n" % repr(expInfoDict))
         if self.params['Show info dlg'].val:
             buff.writeIndentedLines(
-                "dlg = gui.DlgFromDict(dictionary=expInfo, title=expName)\n"
-                "if dlg.OK == False:\n    core.quit()  # user pressed cancel\n")
+                "dlg = gui.DlgFromDict(dictionary=expInfo, "
+                "sortKeys={}, title=expName)\n"
+                "if dlg.OK == False:\n"
+                "    core.quit()  # user pressed cancel\n"
+                .format(sorting)
+            )
         buff.writeIndentedLines(
             "expInfo['date'] = data.getDateStr()  # add a simple timestamp\n"
             "expInfo['expName'] = expName\n"
-            "expInfo['psychopyVersion'] = psychopyVersion")
+            "expInfo['psychopyVersion'] = psychopyVersion\n")
         level = self.params['logging level'].val.upper()
 
         saveToDir = self.getSaveDataDir()
@@ -655,6 +699,8 @@ class SettingsComponent(object):
         if self.exp.settings.params['Enable Escape'].val:
             buff.writeIndentedLines("\nendExpNow = False  # flag for 'escape'"
                                     " or other condition => quit the exp\n")
+
+        buff.writeIndented("frameTolerance = 0.001  # how close to onset before 'same' frame\n")
 
     def writeWindowCode(self, buff):
         """Setup the window code.
@@ -722,7 +768,9 @@ class SettingsComponent(object):
                 "if expInfo['frameRate'] != None:\n"
                 "    frameDur = 1.0 / round(expInfo['frameRate'])\n"
                 "else:\n"
-                "    frameDur = 1.0 / 60.0  # could not measure, so guess\n")
+                "    frameDur = 1.0 / 60.0  # could not measure, so guess\n"
+                "\n# create a default keyboard (e.g. to check for escape)\n"
+                "defaultKeyboard = keyboard.Keyboard()")
         buff.writeIndentedLines(code)
 
     def writeWindowCodeJS(self, buff):
@@ -734,14 +782,15 @@ class SettingsComponent(object):
             units = 'height'
 
         code = ("// init psychoJS:\n"
-                "var psychoJS = new PsychoJS({{\n"
+                "const psychoJS = new PsychoJS({{\n"
                 "  debug: true\n"
                 "}});\n\n"
                 "// open window:\n"
                 "psychoJS.openWindow({{\n"
                 "  fullscr: {fullScr},\n"
                 "  color: new util.Color({params[color]}),\n"
-                "  units: '{units}'\n"
+                "  units: '{units}',\n"
+                "  waitBlanking: true\n"
                 "}});\n").format(fullScr=str(self.params['Full-screen window']).lower(),
                                  params=self.params,
                                  units=units)
@@ -771,30 +820,74 @@ class SettingsComponent(object):
 
     def writeEndCodeJS(self, buff):
 
-        endLoopInteration = ("\nfunction endLoopIteration(thisTrial) {\n"
+        endLoopInteration = ("\nfunction endLoopIteration(thisScheduler, loop) {\n"
                     "  // ------Prepare for next entry------\n"
                     "  return function () {\n"
-                    "    if (typeof thisTrial === 'undefined' || !('isTrials' in thisTrial) || thisTrial.isTrials) {\n"
-                    "      psychoJS.experiment.nextEntry();\n"
+                    "    if (typeof loop !== 'undefined') {\n"
+                    "      // ------Check if user ended loop early------\n"
+                    "      if (loop.finished) {\n"
+                    "        // Check for and save orphaned data\n"
+                    "        if (psychoJS.experiment.isEntryEmpty()) {\n"
+                    "          psychoJS.experiment.nextEntry(loop);\n"
+                    "        }\n"
+                    "      thisScheduler.stop();\n"
+                    "      } else {\n"
+                    "        const thisTrial = loop.getCurrentTrial();\n"
+                    "        if (typeof thisTrial === 'undefined' || !('isTrials' in thisTrial) || thisTrial.isTrials) {\n"
+                    "          psychoJS.experiment.nextEntry(loop);\n"
+                    "        }\n"
+                    "      }\n"
+                    "    return Scheduler.Event.NEXT;\n"
                     "    }\n"
-                    "  return Scheduler.Event.NEXT;\n"
                     "  };\n"
                     "}\n")
         buff.writeIndentedLines(endLoopInteration)
 
-        recordLoopIterationFunc = ("\nfunction importConditions(loop) {\n"
-                    "  const trialIndex = loop.getTrialIndex();\n"
+        recordLoopIterationFunc = ("\nfunction importConditions(trials) {\n"
                     "  return function () {\n"
-                    "    loop.setTrialIndex(trialIndex);\n"
-                    "    psychoJS.importAttributes(loop.getCurrentTrial());\n"
+                    "    psychoJS.importAttributes(trials.getCurrentTrial());\n"
                     "    return Scheduler.Event.NEXT;\n"
                     "    };\n"
                     "}\n")
         buff.writeIndentedLines(recordLoopIterationFunc)
-        quitFunc = ("\nfunction quitPsychoJS(message, isCompleted) {\n"
-                    "  psychoJS.window.close();\n"
-                    "  psychoJS.quit({message, isCompleted});\n\n"
-                    "  return Scheduler.Event.QUIT;\n"
-                    "}")
-        buff.writeIndentedLines(quitFunc)
+
+        code = ("\nfunction quitPsychoJS(message, isCompleted) {\n")
+        buff.writeIndented(code)
+        buff.setIndentLevel(1, relative=True)
+        code = ("// Check for and save orphaned data\n"
+                "if (psychoJS.experiment.isEntryEmpty()) {\n"
+                "  psychoJS.experiment.nextEntry();\n"
+                "}\n")
+        buff.writeIndentedLines(code)
+
+        # Write End Experiment code component
+        for thisRoutine in list(self.exp.routines.values()):
+            # a single routine is a list of components:
+            for thisComp in thisRoutine:
+                if thisComp.type == 'Code':
+                    buff.writeIndented("\n")
+                    thisComp.writeExperimentEndCodeJS(buff)
+                    buff.writeIndented("\n")
+
+        code = ("psychoJS.window.close();\n"
+                "psychoJS.quit({message: message, isCompleted: isCompleted});\n\n"
+                "return Scheduler.Event.QUIT;\n")
+        buff.writeIndentedLines(code)
+
+        buff.setIndentLevel(-1, relative=True)
+        buff.writeIndented("}\n")
         buff.setIndentLevel(-1)
+
+    @property
+    def monitor(self):
+        """Stores a monitor object for the  experiment so that it
+        doesn't have to be fetched from disk repeatedly"""
+        # remember to set _monitor to None periodically (start of script build?)
+        # so that we do reload occasionally
+        if not self._monitor:
+            self._monitor = Monitor(self.params['Monitor'].val)
+        return self._monitor
+
+    @monitor.setter
+    def monitor(self, monitor):
+        self._monitor = monitor

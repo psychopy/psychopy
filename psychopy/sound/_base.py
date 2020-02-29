@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2018 Jonathan Peirce
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 from __future__ import absolute_import, division, print_function
@@ -218,6 +218,8 @@ class _SoundBase(object):
             # want infinite duration - create 1 sec sound and loop it
             secs = 10.0
             self.loops = -1
+        if not self.sampleRate:
+            self.sampleRate = self._getDefaultSampleRate()
         nSamples = int(secs * self.sampleRate)
         outArr = numpy.arange(0.0, 1.0, 1.0 / nSamples)
         outArr *= 2 * numpy.pi * thisFreq * secs
@@ -225,6 +227,10 @@ class _SoundBase(object):
         if hamming and nSamples > 30:
             outArr = apodize(outArr, self.sampleRate)
         self._setSndFromArray(outArr)
+
+    def _getDefaultSampleRate(self):
+        """For backends this might depend on what streams are open"""
+        return 44100
 
     def getDuration(self):
         """Return the duration of the sound"""

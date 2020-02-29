@@ -44,6 +44,8 @@
     shutdownKey = string(default='')
     # Modifier keys for shutdown keys
     shutdownKeyModifiers = list(default=list())
+    # What to do if gamma-correction not possible
+    gammaErrorPolicy = option('abort', 'warn', default='abort')
 
 # Application settings, applied to coder, builder, & prefs windows
 [app]
@@ -61,6 +63,8 @@
     debugMode = boolean(default='False')
     # language to use in menus etc; not all translations are available. Select a value, then restart the app.
     locale = string(default='')
+    # Enable High-DPI awareness on Windows, requires restart. (EXPERIMENTAL)
+    highDPI = boolean(default='False')
 
 # Settings for the Coder window
 [coder]
@@ -108,7 +112,9 @@
 
 [hardware]
     # choice of audio library
-    audioLib = list(default=list('sounddevice', 'pyo', 'pygame'))
+    audioLib = list(default=list('sounddevice','PTB', 'pyo', 'pygame'))
+    # latency mode for PsychToolbox audio (3 is good for most applications. See
+    audioLatencyMode = option(0, 1, 2, 3, 4, default=3)
     # audio driver to use
     audioDriver = list(default=list('Primary Sound','ASIO','Audigy'))
     # audio device to use (if audioLib allows control)
@@ -219,6 +225,8 @@
     switchToBuilder = string(default='Ctrl+L')
     # switch to Coder window from Builder
     switchToCoder = string(default='Ctrl+L')
+    # switch to Runner
+    switchToRunner = string(default='Ctrl+Alt+R')
     # increase display size in Flow
     largerFlow = string(default='Ctrl+=')
     # decrease display size in Flow

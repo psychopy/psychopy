@@ -4,7 +4,7 @@
 """
 Defines the behavior of Psychopy's Builder view window
 Part of the PsychoPy library
-Copyright (C) 2018 Jonathan Peirce
+Copyright (C) 2002-2018 Jonathan Peirce (C) 2019 Open Science Tools Ltd.
 Distributed under the terms of the GNU General Public License (GPL).
 """
 
@@ -29,19 +29,23 @@ if parse_version(wx.__version__) < parse_version('4.0.3'):
 
 import sys
 import os
-import subprocess
 import glob
 import copy
 import traceback
 import codecs
 import numpy
 
+try:
+    from queue import Queue, Empty
+except ImportError:
+    from Queue import Queue, Empty  # python 2.x
+
 from psychopy.localization import _translate
 
 from ... import experiment
-from .. import stdOutRich, dialogs
-from ..icons import getAllIcons
-from psychopy import logging, constants, __version__
+from .. import dialogs, icons
+from ..icons import getAllIcons, combineImageEmblem
+from psychopy import logging, constants
 from psychopy.tools.filetools import mergeFolder
 from .dialogs import (DlgComponentProperties, DlgExperimentProperties,
                       DlgCodeComponentProperties)
@@ -52,7 +56,8 @@ from psychopy.experiment import components
 from psychopy.app import pavlovia_ui
 from psychopy.projects import pavlovia
 
-from psychopy.scripts import psyexpCompile
+from psychopy.scripts.psyexpCompile import generateScript
+
 
 
 canvasColor = [200, 200, 200]  # in prefs? ;-)
@@ -101,7 +106,6 @@ class RoutineCanvas(wx.ScrolledWindow):
             self, notebook, id, (0, 0), style=wx.SUNKEN_BORDER)
 
         self.SetBackgroundColour(canvasColor)
-        self.notebook = notebook
         self.frame = notebook.frame
         self.app = self.frame.app
         self.dpi = self.app.dpi
@@ -471,8 +475,10 @@ class RoutineCanvas(wx.ScrolledWindow):
 
             if component.params['disabled'].val:
                 dc.SetBrush(wx.Brush(disabledTimeColor))
+                dc.DrawBitmap(thisIcon.ConvertToDisabled(), self.iconXpos, yPos + iconYOffset, True)
             else:
                 dc.SetBrush(wx.Brush(routineTimeColor))
+                dc.DrawBitmap(thisIcon, self.iconXpos, yPos + iconYOffset, True)
 
             hSize = (3.5, 2.75, 2)[self.drawSize]
             yOffset = (3, 3, 0)[self.drawSize]
@@ -759,7 +765,9 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
         self.makeFavoriteButtons()
         # then add another copy for each category that the component itself
         # lists
-        for thisName in self.components:
+        componentNames = list(self.components.keys())
+        componentNames.sort()
+        for thisName in componentNames:
             thisComp = self.components[thisName]
             # NB thisComp is a class - we can't use its methods/attribs until
             # it is an instance
@@ -1026,6 +1034,9 @@ class BuilderFrame(wx.Frame):
         self.htmlPath = None
         self.project = None  # type: pavlovia.PavloviaProject
         self.btnHandles = {}  # stores toolbar buttons so they can be altered
+        self.scriptProcess = None
+        self.stdoutBuffer = None
+        self.generateScript = generateScript
 
         if fileName in self.appData['frames']:
             self.frameData = self.appData['frames'][fileName]
@@ -1077,12 +1088,6 @@ class BuilderFrame(wx.Frame):
         accelTable = self.app.makeAccelTable()
         self.SetAcceleratorTable(accelTable)
 
-        # set stdout to correct output panel
-        self.stdoutOrig = sys.stdout
-        self.stderrOrig = sys.stderr
-        self.stdoutFrame = stdOutRich.StdOutFrame(
-            parent=self, app=self.app, size=(700, 300))
-
         # setup a default exp
         if fileName is not None and os.path.isfile(fileName):
             self.fileOpen(filename=fileName, closeCurrent=False)
@@ -1129,7 +1134,6 @@ class BuilderFrame(wx.Frame):
 
         # self.SetAutoLayout(True)
         self.Bind(wx.EVT_CLOSE, self.closeFrame)
-        self.Bind(wx.EVT_END_PROCESS, self.onProcessEnded)
 
         self.app.trackFrame(self)
         self.SetDropTarget(FileDropTarget(targetFrame=self))
@@ -1159,7 +1163,9 @@ class BuilderFrame(wx.Frame):
         undoBmp = wx.Bitmap(join(rc, 'undo%i.png' % tbSize), PNG)
         redoBmp = wx.Bitmap(join(rc, 'redo%i.png' % tbSize), PNG)
         stopBmp = wx.Bitmap(join(rc, 'stop%i.png' % tbSize), PNG)
-        runBmp = wx.Bitmap(join(rc, 'run%i.png' % tbSize), PNG)
+        runBmp = combineImageEmblem(join(rc, 'run%i.png' % tbSize),
+                                    join(rc, 'runner16.png'),
+                                    pos = 'bottom_right')
         compileBmp = wx.Bitmap(join(rc, 'compile%i.png' % tbSize), PNG)
         settingsBmp = wx.Bitmap(join(rc, 'cogwindow%i.png' % tbSize), PNG)
         preferencesBmp = wx.Bitmap(join(rc, 'preferences%i.png' % tbSize),
@@ -1315,21 +1321,6 @@ class BuilderFrame(wx.Frame):
                 _translate("Run experiment"))
         tb.Bind(wx.EVT_TOOL, self.runFile, self.bldrBtnRun)
 
-        if 'phoenix' in wx.PlatformInfo:
-            self.bldrBtnStop = tb.AddTool(
-                wx.ID_ANY,
-                _translate("Stop [%s]") % keys['stopScript'],
-                stopBmp,
-                _translate("Stop experiment"))
-        else:
-            self.bldrBtnStop = tb.AddSimpleTool(
-                wx.ID_ANY,
-                stopBmp,
-                _translate("Stop [%s]") % keys['stopScript'],
-                _translate("Stop experiment"))
-        tb.Bind(wx.EVT_TOOL, self.stopFile, self.bldrBtnStop)
-        self.toolbar.EnableTool(self.bldrBtnStop.Id, False)
-
         self.toolbar.AddSeparator()
         pavButtons = pavlovia_ui.toolbar.PavloviaButtons(self, toolbar=tb, tbSize=tbSize)
         pavButtons.addPavloviaTools()
@@ -1355,7 +1346,8 @@ class BuilderFrame(wx.Frame):
         self.recentFilesMenu = wx.Menu()
         self.fileHistory.UseMenu(self.recentFilesMenu)
         for filename in self.appData['fileHistory']:
-            self.fileHistory.AddFileToHistory(filename)
+            if os.path.exists(filename):
+                self.fileHistory.AddFileToHistory(filename)
         self.Bind(wx.EVT_MENU_RANGE, self.OnFileHistory,
                   id=wx.ID_FILE1, id2=wx.ID_FILE9)
         keys = self.app.keys
@@ -1437,10 +1429,6 @@ class BuilderFrame(wx.Frame):
                            _translate("Run\t%s") % keys['runScript'],
                            _translate("Run the current script"))
         self.Bind(wx.EVT_MENU, self.runFile, item)
-        item = menu.Append(wx.ID_ANY,
-                           _translate("Stop\t%s") % keys['stopScript'],
-                           _translate("Abort the current script"))
-        self.Bind(wx.EVT_MENU, self.stopFile, item)
 
         menu.AppendSeparator()
         item = menu.Append(wx.ID_ANY,
@@ -1465,6 +1453,13 @@ class BuilderFrame(wx.Frame):
                                'switchToCoder'],
                            _translate("Open a new Coder view"))
         self.Bind(wx.EVT_MENU, self.app.showCoder, item)
+
+        item = menu.Append(wx.ID_ANY,
+                           _translate("&Open Runner view\t%s") % keys[
+                               'switchToRunner'],
+                           _translate("Open the Runner view"))
+        self.Bind(wx.EVT_MENU, self.app.showRunner, item)
+
         item = menu.Append(wx.ID_ANY,
                            _translate("&Toggle readme\t%s") % self.app.keys[
                                'toggleReadme'],
@@ -1586,6 +1581,7 @@ class BuilderFrame(wx.Frame):
         self.Bind(wx.EVT_MENU, self.app.showAbout, id=wx.ID_ABOUT)
 
         menu.AppendSeparator()
+        menu.AppendSeparator()
 
         item = menu.Append(wx.ID_ANY,
                            _translate("&News..."),
@@ -1612,13 +1608,17 @@ class BuilderFrame(wx.Frame):
             # as of wx3.0 the AUI manager needs to be uninitialised explicitly
             self._mgr.UnInit()
             # is it the last frame?
-            lastFrame = bool(len(wx.GetApp().getAllFrames()) == 1)
-            quitting = wx.GetApp().quitting
+            lastFrame = len(self.app.getAllFrames()) == 1
+            quitting = self.app.quitting
             if lastFrame and sys.platform != 'darwin' and not quitting:
-                wx.GetApp().quit(event)
+                self.app.quit(event)
             else:
                 self.app.forgetFrame(self)
                 self.Destroy()  # required
+
+            # Show Runner if hidden
+            if self.app.runner is not None:
+                self.app.showRunner()
 
     def quit(self, event=None):
         """quit the app
@@ -1666,6 +1666,7 @@ class BuilderFrame(wx.Frame):
             if dlg.ShowModal() != wx.ID_OK:
                 return 0
             filename = dlg.GetPath()
+
         # did user try to open a script in Builder?
         if filename.endswith('.py'):
             self.app.showCoder()  # ensures that a coder window exists
@@ -1696,6 +1697,10 @@ class BuilderFrame(wx.Frame):
         self.updateReadme()
         self.fileHistory.AddFileToHistory(filename)
         self.htmlPath = None  # so we won't accidentally save to other html exp
+
+        if self.app.runner:
+            self.app.runner.addTask(fileName=self.filename)  # Add to Runner
+
         try:
             self.project = pavlovia.getProject(filename)
         except Exception as e:  # failed for
@@ -1755,7 +1760,6 @@ class BuilderFrame(wx.Frame):
             self.fileSave(event=None, filename=newPath)
             self.filename = newPath
             returnVal = 1
-
         try:  # this seems correct on PC, but not on mac
             dlg.destroy()
         except Exception:
@@ -1769,26 +1773,25 @@ class BuilderFrame(wx.Frame):
         """
         # get path if not given one
         expPath, expName = os.path.split(self.filename)
-        if htmlPath is None and self.exp.settings.params['HTML path']:
+        if htmlPath is None:
             htmlPath = self._getHtmlPath(self.filename)
 
-        # present dialog box
-        if htmlPath:
-            dlg = ExportFileDialog(self, wx.ID_ANY,
-                                   title=_translate("Export HTML file"),
-                                   filePath=htmlPath,
-                                   exp=self.exp)
-            export = dlg.exportOnSave
-            if self.exp.settings.params['exportHTML'].val == 'manually':
-                retVal = dlg.ShowModal()
-                self.exp.settings.params['exportHTML'].val = export.GetString(export.GetCurrentSelection())
-                if retVal != wx.ID_OK:  # User cancelled export
-                    return False
+        dlg = ExportFileDialog(self, wx.ID_ANY,
+                               title=_translate("Export HTML file"),
+                               filePath=htmlPath,
+                               exp=self.exp)
 
-            htmlPath = os.path.join(htmlPath, expName.replace('.psyexp', '.js'))
-            # then save the actual script
-            self.generateScript(experimentPath=htmlPath,
-                                target="PsychoJS")
+        export = dlg.exportOnSave
+        if self.exp.settings.params['exportHTML'].val == 'manually':
+            retVal = dlg.ShowModal()
+            self.exp.settings.params['exportHTML'].val = export.GetString(export.GetCurrentSelection())
+            if retVal != wx.ID_OK:  # User cancelled export
+                return False
+
+        exportPath = os.path.join(htmlPath, expName.replace('.psyexp', '.js'))
+        self.generateScript(experimentPath=exportPath,
+                            exp=self.exp,
+                            target="PsychoJS")
 
     def getShortFilename(self):
         """returns the filename without path or extension
@@ -2067,8 +2070,7 @@ class BuilderFrame(wx.Frame):
         self.editMenu.Enable(wx.ID_REDO, enable)
 
     def demosUnpack(self, event=None):
-        """Get a folder location from the user and unpack demos into it
-        """
+        """Get a folder location from the user and unpack demos into it."""
         # choose a dir to unpack in
         dlg = wx.DirDialog(parent=self, message=_translate(
             "Location to unpack demos"))
@@ -2088,8 +2090,7 @@ class BuilderFrame(wx.Frame):
         self.updateDemosMenu()
 
     def demoLoad(self, event=None):
-        """Defines Demo Loading Event
-        """
+        """Defines Demo Loading Event."""
         fileDir = self.demos[event.GetId()]
         files = glob.glob(os.path.join(fileDir, '*.psyexp'))
         if len(files) == 0:
@@ -2098,8 +2099,7 @@ class BuilderFrame(wx.Frame):
             self.fileOpen(event=None, filename=files[0], closeCurrent=True)
 
     def updateDemosMenu(self):
-        """Updates Demos menu as needed
-        """
+        """Update Demos menu as needed."""
         unpacked = self.prefs['unpackedDemosDir']
         if not unpacked:
             return
@@ -2116,88 +2116,23 @@ class BuilderFrame(wx.Frame):
             self.Bind(wx.EVT_MENU, self.demoLoad, id=thisID)
 
     def runFile(self, event=None):
-        """Gets absolute path of experiment so it can be stored with data at end of
-           the experiment run
-        """
+        """Open Runner for running the psyexp file."""
         if not os.path.exists(self.filename):
-            self.fileSave(self.filename)
-        fullPath = self.filename.replace('.psyexp', '_lastrun.py')
-        self.generateScript(fullPath)  # Build script based on current version selected
+            ok = self.fileSave(self.filename)
+            if not ok:
+                return  # save file before compiling script
 
-        try:
-            self.stdoutFrame.getText()
-        except Exception:
-            self.stdoutFrame = stdOutRich.StdOutFrame(
-                parent=self, app=self.app, size=(700, 300))
+        if self.getIsModified():
+            ok = self.fileSave(self.filename)
+            if not ok:
+                return  # save file before compiling script
 
-        # redirect standard streams to log window
-        sys.stdout = self.stdoutFrame
-        sys.stderr = self.stdoutFrame
-
-        # provide a running... message
-        print("\n" + (" Running: %s " % (fullPath)).center(80, "#"))
-        self.stdoutFrame.lenLastRun = len(self.stdoutFrame.getText())
-
-        # self is the parent (which will receive an event when the process ends)
-        self.scriptProcess = wx.Process(self)
-        self.scriptProcess.Redirect()  # builder will receive the stdout/stdin
-
-        if sys.platform == 'win32':
-            # the quotes allow file paths with spaces
-            command = '"%s" -u "%s"' % (sys.executable, fullPath)
-            # self.scriptProcessID = wx.Execute(command, wx.EXEC_ASYNC,
-            #   self.scriptProcess)
-            if hasattr(wx, "EXEC_NOHIDE"):
-                _opts = wx.EXEC_ASYNC | wx.EXEC_NOHIDE  # that hid console!
-            else:
-                _opts = wx.EXEC_ASYNC | wx.EXEC_SHOW_CONSOLE
-        else:
-            # for unix this signifies a space in a filename
-            fullPath = fullPath.replace(' ', '\ ')
-            # for unix this signifies a space in a filename
-            pythonExec = sys.executable.replace(' ', '\ ')
-            # the quotes would break a unix system command
-            command = '%s -u %s' % (pythonExec, fullPath)
-            _opts = wx.EXEC_ASYNC | wx.EXEC_MAKE_GROUP_LEADER
-        # launch the command
-        self.scriptProcessID = wx.Execute(command, _opts, self.scriptProcess)
-        self.toolbar.EnableTool(self.bldrBtnRun.Id, False)
-        self.toolbar.EnableTool(self.bldrBtnStop.Id, True)
-
-    def stopFile(self, event=None):
-        """Kills script processes"""
-        self.app.terminateHubProcess()
-        # try to kill it gently first
-        success = wx.Kill(self.scriptProcessID, wx.SIGTERM)
-        if success[0] != wx.KILL_OK:
-            wx.Kill(self.scriptProcessID, wx.SIGKILL)  # kill it aggressively
-
-    def onProcessEnded(self, event=None):
-        """The script/exp has finished running
-        """
-        self.toolbar.EnableTool(self.bldrBtnRun.Id, True)
-        self.toolbar.EnableTool(self.bldrBtnStop.Id, False)
-        # update the output window and show it
-        text = u""
-        if self.scriptProcess.IsInputAvailable():
-            text += extractText(self.scriptProcess.GetInputStream())
-        if self.scriptProcess.IsErrorAvailable():
-            text += extractText(self.scriptProcess.GetErrorStream())
-        if len(text):
-            # if some text hadn't yet been written (possible?)
-            self.stdoutFrame.write(text)
-        if len(self.stdoutFrame.getText()) > self.stdoutFrame.lenLastRun:
-            self.stdoutFrame.Show()
-            self.stdoutFrame.Raise()
-
-        # then return stdout to its org location
-        sys.stdout = self.stdoutOrig
-        sys.stderr = self.stderrOrig
-        self.scriptProcess.Destroy()
+        self.stdoutFrame.addTask(fileName=self.filename)
+        self.stdoutFrame.showRunner()
 
     def onCopyRoutine(self, event=None):
         """copy the current routine from self.routinePanel
-        to self.app.copiedRoutine
+        to self.app.copiedRoutine.
         """
         r = copy.deepcopy(self.routinePanel.getCurrentRoutine())
         if r is not None:
@@ -2205,7 +2140,7 @@ class BuilderFrame(wx.Frame):
 
     def onPasteRoutine(self, event=None):
         """Paste the current routine from self.app.copiedRoutine to a new page
-        in self.routinePanel after promting for a new name
+        in self.routinePanel after promting for a new name.
         """
         if self.app.copiedRoutine is None:
             return -1
@@ -2308,47 +2243,23 @@ class BuilderFrame(wx.Frame):
     def compileScript(self, event=None):
         """Defines compile script button behavior"""
         fullPath = self.filename.replace('.psyexp', '.py')
-        self.generateScript(fullPath)
+        self.generateScript(experimentPath=fullPath, exp=self.exp)
+
+        self.stdoutFrame.showRunner()
+        self.stdoutFrame.stdOut.flush()
+
         self.app.showCoder()  # make sure coder is visible
         self.app.coder.fileNew(filepath=fullPath)
         self.app.coder.fileReload(event=None, filename=fullPath)
 
-    def generateScript(self, experimentPath, target="PsychoPy"):
-        """Generates python script from the current builder experiment"""
-        if self.getIsModified():
-            ok = self.fileSave(experimentPath)
-            if not ok:
-                return  # save file before compiling script
-        self.exp.expPath = os.path.abspath(experimentPath)
-
-        # Compile script from command line using version
-        compiler = 'psychopy.scripts.psyexpCompile'
-
-        if sys.platform == 'win32':  # get name of executable
-            pythonExec = sys.executable
-        else:
-            pythonExec = sys.executable.replace(' ', '\ ')
-
-        if not constants.PY3:  # encode path in Python2
-            filename = self.filename.encode(sys.getfilesystemencoding())
-            experimentPath = experimentPath.encode(sys.getfilesystemencoding())
-        else:
-            filename = self.filename
-
-        # run compile
-        cmd = [pythonExec, '-m', compiler, filename,
-               '-o', experimentPath]
-        # if version is not specified then don't touch useVersion at all
-        version = self.exp.settings.params['Use version'].val
-        if version not in [None, 'None', '', __version__]:
-            cmd.extend(['-v', version])
-            logging.info(' '.join(cmd))
-            out = subprocess.check_output(cmd)
-            if len(out):
-                out = out.decode('utf-8-sig').split('\n')
-                [print(line) for line in out] # so that any errors messages in compile are printed
-        else:
-            psyexpCompile.compileScript(infile=self.exp, version=None, outfile=experimentPath)
+    @property
+    def stdoutFrame(self):
+        """
+        Gets Experiment Runner stdout.
+        """
+        if not self.app.runner:
+            self.app.runner = self.app.newRunnerFrame()
+        return self.app.runner
 
     def _getHtmlPath(self, filename):
         expPath = os.path.split(filename)[0]
@@ -2358,8 +2269,8 @@ class BuilderFrame(wx.Frame):
                 return self._getHtmlPath(self.filename)
             else:
                 return False
-        htmlFolder = self.exp.settings.params['HTML path'].val
-        htmlPath = os.path.join(expPath, htmlFolder)
+
+        htmlPath = os.path.join(expPath, self.exp.htmlFolder)
         return htmlPath
 
     def _getExportPref(self, pref):
@@ -2376,20 +2287,23 @@ class BuilderFrame(wx.Frame):
 
         self.enablePavloviaButton(['pavloviaSync', 'pavloviaRun'], False)
         try:
-            pavlovia_ui.syncProject(parent=self, project=self.project)
+            retVal = pavlovia_ui.syncProject(parent=self, project=self.project)
             pavlovia.knownProjects.save()  # update projects.json
+            self.gitFeedback(retVal)
         finally:
             self.enablePavloviaButton(['pavloviaSync', 'pavloviaRun'], True)
 
     def onPavloviaRun(self, evt=None):
         if self._getExportPref('on save'):
             self.fileSave()
-            pavlovia_ui.syncProject(parent=self, project=self.project,
-                                    closeFrameWhenDone=False)
+            retVal = pavlovia_ui.syncProject(parent=self, project=self.project,
+                                             closeFrameWhenDone=False)
+            self.gitFeedback(retVal)
         elif self._getExportPref('on sync'):
             self.fileExport(htmlPath=self._getHtmlPath(self.filename))
-            pavlovia_ui.syncProject(parent=self, project=self.project,
-                                    closeFrameWhenDone=False)
+            retVal = pavlovia_ui.syncProject(parent=self, project=self.project,
+                                             closeFrameWhenDone=False)
+            self.gitFeedback(retVal)
         elif self._getExportPref('manually'):
             # Check htmlpath and projects exists
             noHtmlFolder = not os.path.isdir(self._getHtmlPath(self.filename))
@@ -2397,12 +2311,13 @@ class BuilderFrame(wx.Frame):
             if noHtmlFolder:
                 self.fileExport()
             if noProject or noHtmlFolder:
-                pavlovia_ui.syncProject(parent=self, project=self.project,
-                                        closeFrameWhenDone=False)
-
+                retVal = pavlovia_ui.syncProject(parent=self, project=self.project,
+                                                 closeFrameWhenDone=False)
+                self.gitFeedback(retVal)
         if self.project:
+            htmlPath = self.exp.settings.params['HTML path'].val
             self.project.pavloviaStatus = 'ACTIVATED'
-            url = "https://pavlovia.org/run/{}/html".format(self.project.id)
+            url = "https://pavlovia.org/run/{}/{}".format(self.project.id, htmlPath)
             wx.LaunchDefaultBrowser(url)
 
     def enablePavloviaButton(self, buttons, enable):
@@ -2426,6 +2341,44 @@ class BuilderFrame(wx.Frame):
     def setPavloviaUser(self, user):
         # TODO: update user icon on button to user avatar
         pass
+
+    def gitFeedback(self, val):
+        """
+        Set feedback color for the Pavlovia Sync toolbar button.
+
+        Parameters
+        ----------
+        val: int
+            Status of git sync. 1 for SUCCESS (green), 0 or -1 for FAIL (RED)
+        """
+        rc = self.app.prefs.paths['resources']
+        feedbackTime = 1500
+        colour = {0: "red", -1: "red", 1: "green"}
+
+        if sys.platform == 'win32' or sys.platform.startswith('linux'):
+            if self.appPrefs['largeIcons']:
+                toolbarSize = 32
+            else:
+                toolbarSize = 16
+        else:
+            toolbarSize = 32  # mac: 16 either doesn't work, or looks ba
+
+        # Store original
+        origBtn = self.btnHandles['pavloviaSync'].NormalBitmap
+        # Create new feedback bitmap
+        feedbackBtn = icons.combineImageEmblem(
+            main=os.path.join(rc, '%sglobe%i.png' % (colour[val], toolbarSize)),
+            emblem=os.path.join(rc, 'sync_green16.png'), pos='bottom_right')
+
+        # Set feedback button
+        self.btnHandles['pavloviaSync'].SetNormalBitmap(feedbackBtn)
+        self.toolbar.Realize()
+        self.toolbar.Refresh()
+
+        # Reset button to default state after time
+        wx.CallLater(feedbackTime, self.btnHandles['pavloviaSync'].SetNormalBitmap, origBtn)
+        wx.CallLater(feedbackTime+50, self.toolbar.Realize)
+        wx.CallLater(feedbackTime+50, self.toolbar.Refresh)
 
     @property
     def project(self):
@@ -2555,12 +2508,6 @@ class ExportFileDialog(wx.Dialog):
         # contents
         self.exp = exp
         sizer = wx.BoxSizer(wx.VERTICAL)
-        msg = _translate("Warning, HTML outputs are very new.\n"
-                         "Treat with caution (CHECK YOUR EXPERIMENT)!")
-        warning = wx.StaticText(self, wx.ID_ANY, msg)
-        warning.SetForegroundColour((200, 0, 0))
-        sizer.Add(warning, 0, wx.ALIGN_CENTRE | wx.ALL, 5)
-
         box = wx.BoxSizer(wx.HORIZONTAL)
 
         label = wx.StaticText(self, wx.ID_ANY, _translate("Filepath:"))

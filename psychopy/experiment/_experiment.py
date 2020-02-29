@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2018 Jonathan Peirce
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 """Experiment classes:
@@ -84,7 +84,6 @@ class Experiment(object):
         self.requirePsychopyLibs(libs=libs)
         self.requireImport(importName='keyboard',
                            importFrom='psychopy.hardware')
-        self._runOnce = []
 
         _settingsComp = getComponents(fetchIcons=False)['SettingsComponent']
         self.settings = _settingsComp(parentName='', exp=self)
@@ -134,29 +133,6 @@ class Experiment(object):
         if import_ not in self.requiredImports:
             self.requiredImports.append(import_)
 
-    def runOnce(self, code):
-        """Add code to the experiment that is only run exactly once, after
-        all `import`s were done.
-
-        Parameters
-        ----------
-        code : str
-            The code to run. May include newline characters to write several
-            lines of code at once.
-
-        Notes
-        -----
-        For running an `import`, use meth:~`Experiment.requireImport` or
-        :meth:~`Experiment.requirePsychopyLibs` instead.
-
-        See also
-        --------
-        :meth:~`Experiment.requireImport`,
-        :meth:~`Experiment.requirePsychopyLibs`
-        """
-        if code not in self._runOnce:
-            self._runOnce.append(code)
-
     def addRoutine(self, routineName, routine=None):
         """Add a Routine to the current list of them.
 
@@ -168,14 +144,22 @@ class Experiment(object):
             self.routines[routineName] = Routine(routineName, exp=self)
         else:
             self.routines[routineName] = routine
+        return self.routines[routineName]
+
+    def integrityCheck(self):
+        """Check the integrity of the Experiment"""
+        # add some checks for things outside the Flow?
+        # then check the contents 1-by-1 from the Flow
+        self.flow.integrityCheck()
 
     def writeScript(self, expPath=None, target="PsychoPy", modular=True):
         """Write a PsychoPy script for the experiment
         """
+        # self.integrityCheck()
+
         self.psychopyVersion = psychopy.__version__  # make sure is current
         # set this so that params write for approp target
         utils.scriptTarget = target
-        self.flow._prescreenValues()
         self.expPath = expPath
         script = IndentingBuffer(u'')  # a string buffer object
 
@@ -199,6 +183,15 @@ class Experiment(object):
         if target == "PsychoPy":
             self_copy.settings.writeInitCode(script, self_copy.psychopyVersion,
                                              localDateTime)
+
+            # Write "run once" code sections
+            for entry in self_copy.flow:
+                # NB each entry is a routine or LoopInitiator/Terminator
+                self_copy._currentRoutine = entry
+                if hasattr(entry, 'writeRunOnceInitCode'):
+                    entry.writeRunOnceInitCode(script)
+            script.write("\n\n")
+
             # present info, make logfile
             self_copy.settings.writeStartCode(script, self_copy.psychopyVersion)
             # writes any components with a writeStartCode()
@@ -247,20 +240,17 @@ class Experiment(object):
             routinesToWrite = list(self_copy.routines)
             for thisItem in self_copy.flow:
                 if thisItem.getType() in ['LoopInitiator', 'LoopTerminator']:
-                    self_copy.flow.writeLoopHandlerJS(script)
+                    self_copy.flow.writeLoopHandlerJS(script, modular)
                 elif thisItem.name in routinesToWrite:
                     self_copy._currentRoutine = self_copy.routines[thisItem.name]
-                    self_copy._currentRoutine.writeRoutineBeginCodeJS(script)
-                    self_copy._currentRoutine.writeEachFrameCodeJS(script)
-                    self_copy._currentRoutine.writeRoutineEndCodeJS(script)
+                    self_copy._currentRoutine.writeRoutineBeginCodeJS(script, modular)
+                    self_copy._currentRoutine.writeEachFrameCodeJS(script, modular)
+                    self_copy._currentRoutine.writeRoutineEndCodeJS(script, modular)
                     routinesToWrite.remove(thisItem.name)
             self_copy.settings.writeEndCodeJS(script)
 
-            try:
-                script = py2js.addVariableDeclarations(script.getvalue())
-            except py2js.esprima.error_handler.Error:
-                script = script.getvalue()
-                print("Failed to parse as JS by esprima")
+            # Add JS variable declarations e.g., var msg;
+            script = py2js.addVariableDeclarations(script.getvalue(), fileName=self.expPath)
 
             # Reset loop controller ready for next call to writeScript
             self_copy.flow._resetLoopController()
@@ -456,6 +446,9 @@ class Experiment(object):
                                 " and log files (blank defaults to the "
                                 "builder pref)"),
                 categ='Data')
+        elif name == 'channel':  # was incorrectly set to be valType='str' until 3.1.2
+            params[name].val = val
+            params[name].valType = 'code'  # override
         elif 'val' in list(paramNode.keys()):
             if val == 'window units':  # changed this value in 1.70.00
                 params[name].val = 'from exp settings'
@@ -496,14 +489,17 @@ class Experiment(object):
                     if params[name].allowedTypes is None:
                         params[name].allowedTypes = []
                     params[name].readOnly = True
-                    msg = _translate(
-                        "Parameter %r is not known to this version of "
-                        "PsychoPy but has come from your experiment file "
-                        "(saved by a future version of PsychoPy?). This "
-                        "experiment may not run correctly in the current "
-                        "version.")
-                    logging.warn(msg % name)
-                    logging.flush()
+                    if name not in ['JS libs', 'OSF Project ID']:
+                        # don't warn people if we know it's OK (e.g. for params
+                        # that have been removed
+                        msg = _translate(
+                            "Parameter %r is not known to this version of "
+                            "PsychoPy but has come from your experiment file "
+                            "(saved by a future version of PsychoPy?). This "
+                            "experiment may not run correctly in the current "
+                            "version.")
+                        logging.warn(msg % name)
+                        logging.flush()
 
         # get the value type and update rate
         if 'valType' in list(paramNode.keys()):
@@ -527,20 +523,17 @@ class Experiment(object):
         self._doc.parse(filename)
         root = self._doc.getroot()
 
+
         # some error checking on the version (and report that this isn't valid
         # .psyexp)?
         filenameBase = os.path.basename(filename)
+
         if root.tag != "PsychoPy2experiment":
             logging.error('%s is not a valid .psyexp file, "%s"' %
                           (filenameBase, root.tag))
             # the current exp is already vaporized at this point, oops
             return
         self.psychopyVersion = root.get('version')
-        versionf = float(self.psychopyVersion.rsplit('.', 1)[0])
-        if versionf < 1.63:
-            msg = 'note: v%s was used to create %s ("%s")'
-            vals = (self.psychopyVersion, filenameBase, root.tag)
-            logging.warning(msg % vals)
 
         # Parse document nodes
         # first make sure we're empty
@@ -709,6 +702,10 @@ class Experiment(object):
     def getExpName(self):
         return self.settings.params['expName'].val
 
+    @property
+    def htmlFolder(self):
+        return self.settings.params['HTML path'].val
+
     def getComponentFromName(self, name):
         """Searches all the Routines in the Experiment for a matching Comp name
 
@@ -749,16 +746,16 @@ class Experiment(object):
             :return: dict of 'asb' and 'rel' paths or None
             """
             thisFile = {}
-            if len(filePath) > 2 and (filePath[0] == "/" or filePath[1] == ":"):
+            if len(filePath) > 2 and (filePath[0] == "/" or filePath[1] == ":")\
+                    and os.path.isfile(filePath):
                 thisFile['abs'] = filePath
                 thisFile['rel'] = os.path.relpath(filePath, srcRoot)
+                return thisFile
             else:
                 thisFile['rel'] = filePath
                 thisFile['abs'] = os.path.normpath(join(srcRoot, filePath))
-            if os.path.isfile(thisFile['abs']):
-                return thisFile
-            else:
-                return None
+                if os.path.isfile(thisFile['abs']):
+                    return thisFile
 
         def findPathsInFile(filePath):
             """Recursively search a conditions file (xlsx or csv)

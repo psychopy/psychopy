@@ -1,6 +1,3 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
-
 """
 Demo using a custom serial rx parser to generate ioHub Serial Device events.
 
@@ -11,14 +8,13 @@ custom parser function that the ioHub Serial device uses during runtime.
 serial device receives back as rx data. **
 
 """
-from __future__ import absolute_import, division, print_function
-
+from __future__ import print_function
 import time
 from psychopy import core, visual
 from psychopy.iohub import launchHubServer
 
 # Settings for serial port communication.
-SERIAL_PORT = 'COM16'
+SERIAL_PORT = 'COM226'
 BAUDRATE = 19200
 
 # event_parser_info dict:
@@ -73,10 +69,14 @@ io.clearEvents('all')
 # Print any serial events.
 #
 while not keyboard.getPresses():
-    serial_device.write("TEST")
+    serial_device.write('aaa')
+    io.wait(0.05)
+    serial_device.write('bbb')
+    io.wait(0.05)
+    serial_device.write('ccc')
+    io.wait(.500)
     for serevt in serial_device.getEvents():
         print(serevt)
-    io.wait(.500)
 
 # Stop recording events from the PST box and switch off all lamps.
 serial_device.enableEventReporting(False)

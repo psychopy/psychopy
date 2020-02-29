@@ -64,6 +64,7 @@ class Slider(MinimalStim):
                  depth=0,
                  name=None,
                  labelHeight=None,
+                 labelWrapWidth=None,
                  autoDraw=False,
                  autoLog=True):
         """
@@ -162,6 +163,7 @@ class Slider(MinimalStim):
         self.tickLines = []
         self.tickLocs = None
         self.labelLocs = None
+        self.labelWrapWidth = labelWrapWidth
         self.labelHeight = labelHeight or min(self._size)
         self._lineAspectRatio = 0.01
         self._updateMarkerPos = True
@@ -280,10 +282,11 @@ class Slider(MinimalStim):
                     continue
 
                 obj = TextStim(self.win, label, font=self.font,
-                               alignHoriz=alignHoriz, alignVert=alignVert,
+                               anchorHoriz=alignHoriz, anchorVert=alignVert,
                                units=self.units, color=self.color,
                                pos=self.labelLocs[tickN, :],
-                               height=self.labelHeight,
+                               height=self.labelHeight, 
+                               wrapWidth=self.labelWrapWidth,
                                autoLog=False)
                 self.labelObjs.append(obj)
 

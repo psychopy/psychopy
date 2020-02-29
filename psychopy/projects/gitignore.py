@@ -38,4 +38,8 @@ Thumbs.db
 .Spotlight-V100
 .Trashes
 
+# lib files used for local debugging
+/lib/
+/html/lib/
+
 """

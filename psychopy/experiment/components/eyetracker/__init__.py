@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2018 Jonathan Peirce
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 from __future__ import absolute_import, print_function
@@ -148,7 +148,7 @@ class EyetrackerComponent(BaseComponent):
             buff.writeIndentedLines(code % self.params)
 
             # to get out of the if statement
-            buff.setIndentLevel(-1, relative=True)
+            buff.setIndentLevel(-2, relative=True)
 
         # if STARTED and not FINISHED!
         code = "if %(name)s.status == STARTED:  # only update if started and not finished!\n" % self.params

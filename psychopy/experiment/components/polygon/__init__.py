@@ -2,13 +2,14 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2018 Jonathan Peirce
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 from __future__ import absolute_import, print_function
 
 from builtins import str
 from os import path
+import copy
 from psychopy.experiment.components import BaseVisualComponent, Param, getInitVals, _translate
 from psychopy import logging
 
@@ -211,15 +212,19 @@ class PolygonComponent(BaseVisualComponent):
 
     def writeInitCodeJS(self, buff):
 
+        inits = getInitVals(self.params)
+
         # Check for unsupported units
-        if self.params['units'].val in ['from exp settings', 'cm', 'deg', 'degFlatPos', 'degFlat']:
+        if self.params['units'].val == 'from exp settings':
+            unitsStr = ""
+        elif inits['units'].val in ['cm', 'deg', 'degFlatPos', 'degFlat']:
             msg = "'{units}' units for your '{name}' shape is not currently supported for PsychoJS: " \
                   "switching units to 'height'."
-            logging.warning(msg.format(units=self.params['units'].val,
+            logging.warning(msg.format(units=inits['units'].val,
                                        name=self.params['name'].val,))
-            unitsStr = "'height'"
+            unitsStr = "units : 'height', "
         else:
-            unitsStr = self.params['units']
+            unitsStr = "units : %(units)s, " % self.params
 
         # replace variable params with defaults
         inits = getInitVals(self.params)
@@ -237,32 +242,30 @@ class PolygonComponent(BaseVisualComponent):
         else:
             vertices = self.params['shape']
 
-        # Temporary checks to catch use of unsupported shapes/polygons
-        if vertices in ['cross', 'star']:
-            msg = "{} shape is in development. Not currently supported in PsychoJS.".format(vertices)
-            raise NotImplementedError(msg)
-
-        elif self.params['shape'] == 'regular polygon...' and self.params['nVertices'].val not in ['2', '3', '4']:
-            msg = ("Regular polygon is currently in development "
-                   "and not yet supported in PsychoJS.".
-                   format(vertices))
-            raise NotImplementedError(msg)
-
         if vertices in ['line', '2']:
             code = ("{name} = new visual.ShapeStim ({{\n"
-                    "  win: psychoJS.window, name: '{name}',\n"
-                    "  units: {unitsStr},\n"
+                    "  win: psychoJS.window, name: '{name}', {unitsStr}\n"
                     "  vertices: [[-{size}[0]/2.0, 0], [+{size}[0]/2.0, 0]],\n")
         elif vertices in ['triangle', '3']:
             code = ("{name} = new visual.ShapeStim ({{\n"
-                    "  win: psychoJS.window, name: '{name}',\n"
-                    "  units: {unitsStr},\n"
+                    "  win: psychoJS.window, name: '{name}', {unitsStr}\n"
                     "  vertices: [[-{size}[0]/2.0, -{size}[1]/2.0], [+{size}[0]/2.0, -{size}[1]/2.0], [0, {size}[1]/2.0]],\n")
         elif vertices in ['rectangle', '4']:
             code = ("{name} = new visual.Rect ({{\n"
-                    "  win: psychoJS.window, name: '{name}',\n"
-                    "  units: {unitsStr},\n"
+                    "  win: psychoJS.window, name: '{name}', {unitsStr}\n"
                     "  width: {size}[0], height: {size}[1],\n")
+        elif vertices in ['star']:
+            code = ("{name} = new visual.ShapeStim ({{\n"
+                    "  win: psychoJS.window, name: '{name}', {unitsStr}\n"
+                    "  vertices: 'star7', size: {size},\n")
+        elif vertices in ['cross']:
+            code = ("{name} = new visual.ShapeStim ({{\n"
+                    "  win: psychoJS.window, name: '{name}', {unitsStr}\n"
+                    "  vertices: 'cross', size:{size},\n")
+        else:
+            code = ("{name} = new visual.Polygon ({{\n"
+                    "  win: psychoJS.window, name: '{name}', {unitsStr}\n"
+                    "  edges: {nVertices}, size:{size},\n")
 
         depth = -self.getPosInRoutine()
 
@@ -287,4 +290,5 @@ class PolygonComponent(BaseVisualComponent):
                                             opacity=inits['opacity'],
                                             depth=depth,
                                             interpolate=interpolate,
+                                            nVertices=inits['nVertices']
                                             ))

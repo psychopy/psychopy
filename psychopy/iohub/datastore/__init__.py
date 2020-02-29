@@ -89,15 +89,18 @@ class DataStoreFile(object):
 
         atexit.register(close_open_data_files, False)
 
-        if fmode == 'w' or len(self.emrtFile.title) == 0:
+        if len(self.emrtFile.title) == 0:
             self.buildOutTemplate()
             self.flush()
         else:
             self.loadTableMappings()
 
     def loadTableMappings(self):
-        raise NotImplementedError
-
+        # create meta-data tables
+        self.TABLES['EXPERIMENT_METADETA']=self.emrtFile.root.data_collection.experiment_meta_data
+        self.TABLES['SESSION_METADETA']=self.emrtFile.root.data_collection.session_meta_data
+        self.TABLES['CLASS_TABLE_MAPPINGS']=self.emrtFile.root.class_table_mapping
+        
     def buildOutTemplate(self):
         self.emrtFile.title = DATA_FILE_TITLE
         self.emrtFile.FILE_VERSION = FILE_VERSION
@@ -149,12 +152,13 @@ class DataStoreFile(object):
         getattr(self.emrtFile, create_group)(self.emrtFile.root.data_collection.events, 'experiment', title='Experiment Device Events.')
         getattr(self.emrtFile, create_group)(self.emrtFile.root.data_collection.events, 'keyboard', title='Keyboard Device Events.')
         getattr(self.emrtFile, create_group)(self.emrtFile.root.data_collection.events, 'mouse', title='Mouse Device Events.')
-        getattr(self.emrtFile, create_group)(self.emrtFile.root.data_collection.events, 'touch', title='Touch Device Events.')
-        getattr(self.emrtFile, create_group)(self.emrtFile.root.data_collection.events, 'gamepad', title='GamePad Device Events.')
-        getattr(self.emrtFile, create_group)(self.emrtFile.root.data_collection.events, 'analog_input', title='AnalogInput Device Events.')
+        #getattr(self.emrtFile, create_group)(self.emrtFile.root.data_collection.events, 'touch', title='Touch Device Events.')
+        #getattr(self.emrtFile, create_group)(self.emrtFile.root.data_collection.events, 'gamepad', title='GamePad Device Events.')
+        #getattr(self.emrtFile, create_group)(self.emrtFile.root.data_collection.events, 'analog_input', title='AnalogInput Device Events.')
         getattr(self.emrtFile, create_group)(self.emrtFile.root.data_collection.events, 'eyetracker', title='EyeTracker Device Events.')
-        getattr(self.emrtFile, create_group)(self.emrtFile.root.data_collection.events, 'mcu', title='MCU Device Events.')
+        #getattr(self.emrtFile, create_group)(self.emrtFile.root.data_collection.events, 'mcu', title='MCU Device Events.')
         getattr(self.emrtFile, create_group)(self.emrtFile.root.data_collection.events, 'serial', title='Serial Interface Events.')
+        getattr(self.emrtFile, create_group)(self.emrtFile.root.data_collection.events, 'pstbox', title='Serial Pstbox Device Events.')
         self.flush()
 
     @staticmethod
@@ -293,7 +297,6 @@ class DataStoreFile(object):
     def initConditionVariableTable(
             self, experiment_id, session_id, np_dtype):
         expcv_table = None
-        expcv_node = self.emrtFile.root.data_collection.condition_variables
         exp_session = [('EXPERIMENT_ID','i4'),('SESSION_ID','i4')]
         exp_session.extend(np_dtype)
         np_dtype = []
@@ -304,6 +307,16 @@ class DataStoreFile(object):
                 np_dtype.append(tuple(nv))
             else:
                 np_dtype.append(npctype)
+
+        np_dtype2=[]
+        for adtype in np_dtype:
+            adtype2=[]
+            for a in adtype:
+                if isinstance(a, bytes): 
+                    a = str(a, 'utf-8')
+                adtype2.append(a)
+            np_dtype2.append(tuple(adtype2))
+        np_dtype = np_dtype2    
         self._EXP_COND_DTYPE = np.dtype(np_dtype)
         try:
             expCondTableName = "EXP_CV_%d"%(experiment_id)

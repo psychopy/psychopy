@@ -1,0 +1,357 @@
+/*!
+ * PsychoPy Bootstrap CSS based on the Modern Business template
+ * Copyright 2013-2017 Start Bootstrap
+ * Licensed under MIT (https://github.com/BlackrockDigital/startbootstrap-logomodern-business-nav/blob/master/LICENSE)
+ */
+@import url("./bootswatch-3.3.7/readable/bootstrap.min.css");
+@import url("./bootstrap-sphinx.css");
+@import url("https://use.fontawesome.com/releases/v5.6.3/css/all.css");
+@import url("https://use.fontawesome.com/releases/v5.6.3/css/brands.css");
+@import url("https://use.fontawesome.com/releases/v5.6.3/css/fontawesome.css");
+@import url("https://use.fontawesome.com/releases/v5.6.3/css/fontawesome.css");
+@import url("https://fonts.googleapis.com/css?family=Indie+Flower");
+
+body {
+    padding-top: 54px;
+    height: 100%; /* needed for the full-height sections to work*/
+    font-family: sans-serif;
+    /* Smooth scroll broken: causes buttons to need 2 presses!  */
+    /* scroll-behavior: smooth; */
+}
+
+html {
+    height: 100%; /* needed for the full-height sections to work*/
+    font-family: sans-serif;
+}
+
+h1, .h1 {
+    font-size: 34px;
+}
+
+h2, .h2 {
+    font-size: 28px;
+}
+
+h3, .h3 {
+    font-size: 24px;
+}
+
+.row {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  width: 100%;
+}
+
+.column-collapse { /* will convert to row for <768 */
+  display: flex;
+  flex-direction: column;
+  flex-basis: 100%;
+  flex: 1;
+}
+
+/* logos (big and small) in top left */
+.large-logo img {
+    position: absolute;
+    /*top: -84px;*/
+    top: 5px;
+    left: 10px;
+    width: auto;
+    height: 120px;
+}
+
+.small-logo img {
+    display: none;
+    height: 60px;
+    top: 5px;
+    width: auto !important;
+}
+
+/* Logo with straplines in center of landing page */
+.central-logo {
+    object-fit: cover;
+    align-content: center;
+    position: relative;
+    width: 90%;
+    padding: 2vw;
+    height: auto;
+}
+ 
+.central-logo .img-layer {
+    position: absolute;
+    object-fit: cover;
+    top: 25px;
+    left: 0px;
+    width: 90%;
+    height: auto;
+}
+
+.central-logo .icon3-layer {
+    position: absolute;
+    font-family: 'Indie Flower';
+    color: 'dark red';
+    font-size: 8vw;
+    top: 2vw;
+    left: 83vw;
+}
+
+.central-logo .text-layer {
+    position: absolute;
+    top: 35%;
+    left: 40%;
+    font-family: sans-serif;
+    font-size: 1.8vw;
+}
+
+.central-logo .text-layer-abbr {
+    position: absolute;
+    top: 20%;
+    left: 40%;
+    font-family: sans-serif;
+    font-size: 2.5vw; /*bigger font but few words*/
+} 
+
+.delay0 {
+    opacity: 0;
+    animation: fadeIn 2s;
+    animation-fill-mode: forwards;
+}
+
+.delay1 {
+    opacity: 0;
+    animation: fadeIn 2s;
+    animation-delay: 0.5s;
+    animation-fill-mode: forwards;
+}
+
+.delay2 {
+    opacity: 0;
+    animation: fadeIn 2s;
+    animation-delay: 1s;
+    animation-fill-mode: forwards;
+}
+
+.delay3 {
+    opacity: 0;
+    animation: fadeIn 2s;
+    animation-delay: 1.5s;
+    animation-fill-mode: forwards;
+}
+
+.delay4 {
+    opacity: 0;
+    animation: fadeIn 2s;
+    animation-delay: 2s;
+    animation-fill-mode: forwards;
+}
+.delay5 {
+    opacity: 0;
+    animation: fadeIn 2s;
+    animation-delay: 2.5s;
+    animation-fill-mode: forwards;
+}
+
+/* to set a section to be the height of the browser window*/
+.full-height {
+    height: 100%;
+}
+
+.full-height-with-ticker {
+    height: 100%;
+    overflow: auto;
+}
+
+/* @media (min-width: 992px) {
+  body {
+    padding-top: 56px;
+  }
+} */
+
+.bg-primary a {
+    color: white;
+    text-decoration: underline;
+}
+.bg-primary a:hover {
+    color: 'red';
+    text-decoration: underline;
+}
+
+.carousel-item {
+    height: 65vh;
+    min-height: 300px;
+    background: no-repeat center center scroll;
+    -webkit-background-size: cover;
+    -moz-background-size: cover;
+    -o-background-size: cover;
+    background-size: cover;
+}
+
+.portfolio-item {
+    margin-bottom: 30px;
+}
+
+/* Fixed/sticky icon bar (vertically aligned 50% from the top of the screen) */
+.social-bar {
+    background-color: white;
+    position: fixed;
+    right: 0;
+    top: 200px;
+    padding: 8px;
+    -webkit-transform: translateY(-50%);
+    -ms-transform: translateY(-50%);
+    transform: translateY(-50%);
+}
+
+/* Style the icon bar links */
+.social-bar a {
+    display: block;
+    text-align: center;
+    transition: all 0.3s ease;
+    font-size: 20px;
+    padding: 8px;
+}
+
+/* Style the social media icons with color, if you want */
+.icon-bar a:hover {
+    background-color: #000;
+}
+
+.facebook {
+    background: white;
+    color: #3B5998;
+}
+
+.twitter {
+    /* background: white; */
+    color: #55ACEE;
+}
+
+.google {
+    /* background: white; */
+    color: #dd4b39;
+}
+
+.github {
+    /* background: white; */
+    color: black;
+}
+
+.youtube {
+    /* background: white; */
+    color: #bb0000;
+}
+
+
+/* landing page transitions */
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+
+/* set our responsive mode controls */
+
+@media (max-width: 768px) {
+    .large-logo {
+        display: none;
+    }
+
+    .small-logo img {
+        display: block;
+    }
+
+    .social-bar {
+        display: none;
+    }  
+    .column-collapse {
+        flex-direction: column;
+    }
+
+    body {
+        padding-top: 80px;
+    }
+
+    .container {
+        padding-right: 15px;
+        padding-left: 15px;
+    }
+}
+
+@media (min-width: 769px) {
+    .large-logo {
+        display: block;
+    }
+
+    .small-logo img {
+        display: none;
+    }
+
+    .social-bar {
+        display: block;
+    }
+
+    body {
+        padding-top: 80px;
+    }
+
+    .container {
+        padding-right: 100px;
+        padding-left: 100px;
+    }
+}
+
+/* override the bootstrap max-widths to prevent jerky expanding */
+
+@media (max-width: 576px) {
+    .container {
+        max-width: 90%
+    }
+
+    .text-layer {
+        display: none
+    }
+
+    .text-layer-abbr {
+        display: block
+    }
+}
+
+@media (min-width: 576px) {
+    .container {
+        max-width: 90%;
+    }
+
+    .text-layer {
+        display: block;
+    }
+
+    .text-layer-abbr {
+        display: none
+    }
+}
+
+@media (min-width: 768px) {
+    .container {
+        max-width: 90%;
+    }
+}
+
+@media (min-width: 992px) {
+    .container {
+        max-width: 90%;
+    }
+}
+
+@media (min-width: 1200px) {
+    .container {
+        max-width: 100%;
+    }
+    .central-logo {
+        padding: 80px;
+    }
+}

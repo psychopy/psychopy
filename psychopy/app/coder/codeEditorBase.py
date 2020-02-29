@@ -7,7 +7,7 @@
 """
 
 # Part of the PsychoPy library
-# Copyright (C) 2018 Jonathan Peirce
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 import wx
@@ -183,8 +183,11 @@ class BaseCodeEditor(wx.stc.StyledTextCtrl):
                 nTags += 2
         return nTags
 
-    def toggleCommentLines(self, codeType='Py'):
-        # toggle comment
+    def toggleCommentLines(self):
+
+        codeType = "Py"
+        if hasattr(self, "codeType"):
+            codeType = self.codeType
 
         startText, endText = self._GetPositionsBoundingSelectedLines()
         nLines = len(self._GetSelectedLineNumbers())
@@ -252,27 +255,28 @@ class BaseCodeEditor(wx.stc.StyledTextCtrl):
         else:
             self.SetSelection(self.GetCurrentPos(), self.GetLineEndPosition(self.GetCurrentLine()))
 
-    def smartIdentThisLine(self, codeType='Py'):
+    def smartIdentThisLine(self):
+
+        codeType = "Py"
+        if hasattr(self, "codeType"):
+            codeType = self.codeType
+
         startLineNum = self.LineFromPosition(self.GetSelectionStart())
         endLineNum = self.LineFromPosition(self.GetSelectionEnd())
         prevLine = self.GetLine(startLineNum - 1)
         prevIndent = self.GetLineIndentation(startLineNum - 1)
-        signal = {'Py': [':'], 'JS': ['{'], 'Both': ['{', ':']}
+        signal = {'Py': ':', 'JS': '{'}
 
         # set the indent
         self.SetLineIndentation(startLineNum, prevIndent)
-        # self.LineEnd()  # move cursor to end of line - is good if user
-        #     is starting a new line but not if they hit shift-tab
-        # self.SetPosition(startLineNum+prevIndent)  # move cursor to the end
-        # of the indented section
         self.VCHome()
 
         # check for a colon (Python) or curly brace (JavaScript) to signal an indent
         prevLogical = prevLine.split(self._commentType[codeType])[0]
         prevLogical = prevLogical.strip()
-        if len(prevLogical) > 0 and prevLogical[-1] in signal[codeType]:
+        if len(prevLogical) > 0 and prevLogical[-1] == signal[codeType]:
             self.CmdKeyExecute(wx.stc.STC_CMD_TAB)
-        elif len(prevLogical) > 0 and prevLogical[-1] == '}' and codeType in ['JS', 'Both']:
+        elif len(prevLogical) > 0 and prevLogical[-1] == '}' and codeType == 'JS':
             self.CmdKeyExecute(wx.stc.STC_SCMOD_SHIFT + wx.stc.STC_CMD_TAB)
 
     def smartIndent(self):

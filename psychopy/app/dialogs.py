@@ -36,7 +36,8 @@ class MessageDialog(wx.Dialog):
         if not title:
             title = type
         labels = {'Warning': _translate('Warning'),
-                  'Info': _translate('Info')}
+                  'Info': _translate('Info'),
+                  'Query': _translate('Query')}
         try:
             label = labels[title]
         except Exception:
@@ -60,6 +61,15 @@ class MessageDialog(wx.Dialog):
             btnSizer.Add((60, 20), 0, wx.EXPAND)
             btnSizer.Add(self.cancelBtn, wx.ALIGN_RIGHT)
             btnSizer.Add((5, 20), 0)
+            btnSizer.Add(self.yesBtn, wx.ALIGN_RIGHT)
+        elif type == 'Query':  # we need Yes,No
+            self.yesBtn = wx.Button(self, wx.ID_YES, _translate('Yes'))
+            self.yesBtn.SetDefault()
+            self.noBtn = wx.Button(self, wx.ID_NO, _translate('No'))
+            self.Bind(wx.EVT_BUTTON, self.onButton, id=wx.ID_YES)
+            self.Bind(wx.EVT_BUTTON, self.onButton, id=wx.ID_NO)
+#            self.Bind(wx.EVT_CLOSE, self.onEscape)
+            btnSizer.Add(self.noBtn, wx.ALIGN_RIGHT)
             btnSizer.Add(self.yesBtn, wx.ALIGN_RIGHT)
         elif type == 'Info':  # just an OK button
             self.okBtn = wx.Button(self, wx.ID_OK, _translate('OK'))
@@ -535,6 +545,8 @@ class ListWidget(GlobSizer):
         self.fieldNames.extend(allNames)
         # set up controls
         self.createGrid()
+        self.AddGrowableCol(0)
+        self.AddGrowableCol(1)
 
     def createGrid(self):
         row = 0
@@ -549,7 +561,7 @@ class ListWidget(GlobSizer):
     def addEntryCtrls(self, row, entry):
         for col, field in enumerate(self.fieldNames):
             c = wx.TextCtrl(self.parent, -1, str(entry[field]))
-            self.Add(c, (row, col), flag=wx.ALL)
+            self.Add(c, (row, col), flag=wx.ALL | wx.EXPAND)
         plusBtn = wx.Button(self.parent, -1, '+', style=wx.BU_EXACTFIT)
         self.Add(plusBtn, (row, col + 1), flag=wx.ALL)
         plusBtn.Bind(wx.EVT_BUTTON, self.onAddElement)

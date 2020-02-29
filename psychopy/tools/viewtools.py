@@ -5,15 +5,21 @@
 """
 
 # Part of the PsychoPy library
-# Copyright (C) 2018 Jonathan Peirce
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
-__all__ = ['Frustum', 'computeFrustum', 'generalizedPerspectiveProjection',
-           'orthoProjectionMatrix', 'perspectiveProjectionMatrix', 'lookAt',
-           'pointToNdc']
+__all__ = ['Frustum',
+           'computeFrustum',
+           'generalizedPerspectiveProjection',
+           'orthoProjectionMatrix',
+           'perspectiveProjectionMatrix',
+           'lookAt',
+           'pointToNdc',
+           'cursorToRay']
 
 import numpy as np
 from collections import namedtuple
+import psychopy.tools.mathtools as mt
 
 # convenient named tuple for storing frustum parameters
 Frustum = namedtuple(
@@ -112,12 +118,12 @@ def computeFrustum(scrWidth,
 
     """
     # mdc - uses display size instead of the horizontal FOV gluPerspective needs
-    d = scrWidth * (convergeOffset + scrDist)
+    d = scrWidth / 2.0
     ratio = nearClip / float((convergeOffset + scrDist))
 
     right = (d - eyeOffset) * ratio
     left = (d + eyeOffset) * -ratio
-    top = (scrWidth / float(scrAspect)) * nearClip
+    top = d / float(scrAspect) * ratio
     bottom = -top
 
     return Frustum(left, right, bottom, top, nearClip, farClip)
@@ -128,7 +134,8 @@ def generalizedPerspectiveProjection(posBottomLeft,
                                      posTopLeft,
                                      eyePos,
                                      nearClip=0.01,
-                                     farClip=100.0):
+                                     farClip=100.0,
+                                     dtype=None):
     """Generalized derivation of projection and view matrices based on the
     physical configuration of the display system.
 
@@ -149,6 +156,10 @@ def generalizedPerspectiveProjection(posBottomLeft,
         Near clipping plane distance from viewer in meters.
     farClip : float
         Far clipping plane distance from viewer in meters.
+    dtype : dtype or str, optional
+        Data type for arrays, can either be 'float32' or 'float64'. If `None` is
+        specified, the data type is inferred by `out`. If `out` is not provided,
+        the default is 'float64'.
 
     Returns
     -------
@@ -170,7 +181,7 @@ def generalizedPerspectiveProjection(posBottomLeft,
     References
     ----------
     .. [1] Kooima, R. (2009). Generalized perspective projection. J. Sch.
-    Electron. Eng. Comput. Sci.
+       Electron. Eng. Comput. Sci.
 
     Examples
     --------
@@ -199,11 +210,14 @@ def generalizedPerspectiveProjection(posBottomLeft,
             posBottomLeft, posBottomRight, posTopLeft, posRightEye)
 
     """
+    # get data type of arrays
+    dtype = np.float64 if dtype is None else np.dtype(dtype).type
+
     # convert everything to numpy arrays
-    posBottomLeft = np.asarray(posBottomLeft, np.float32)
-    posBottomRight = np.asarray(posBottomRight, np.float32)
-    posTopLeft = np.asarray(posTopLeft, np.float32)
-    eyePos = np.asarray(eyePos, np.float32)
+    posBottomLeft = np.asarray(posBottomLeft, dtype=dtype)
+    posBottomRight = np.asarray(posBottomRight, dtype=dtype)
+    posTopLeft = np.asarray(posTopLeft, dtype=dtype)
+    eyePos = np.asarray(eyePos, dtype=dtype)
 
     # orthonormal basis of the screen plane
     vr = posBottomRight - posBottomLeft
@@ -220,29 +234,30 @@ def generalizedPerspectiveProjection(posBottomLeft,
 
     dist = -np.dot(va, vn)
     nearOverDist = nearClip / dist
-    left = float(np.dot(vr, va) * nearOverDist)
-    right = float(np.dot(vr, vb) * nearOverDist)
-    bottom = float(np.dot(vu, va) * nearOverDist)
-    top = float(np.dot(vu, vc) * nearOverDist)
+    left = np.dot(vr, va) * nearOverDist
+    right = np.dot(vr, vb) * nearOverDist
+    bottom = np.dot(vu, va) * nearOverDist
+    top = np.dot(vu, vc) * nearOverDist
 
     # projection matrix to return
     projMat = perspectiveProjectionMatrix(
-        left, right, bottom, top, nearClip, farClip)
+        left, right, bottom, top, nearClip, farClip, dtype=dtype)
 
     # view matrix to return, first compute the rotation component
-    rotMat = np.zeros((4, 4), np.float32)
+    rotMat = np.zeros((4, 4), dtype=dtype)
     rotMat[0, :3] = vr
     rotMat[1, :3] = vu
     rotMat[2, :3] = vn
     rotMat[3, 3] = 1.0
 
-    transMat = np.identity(4, np.float32)
+    transMat = np.identity(4, dtype=dtype)
     transMat[:3, 3] = -eyePos
 
     return projMat, np.matmul(rotMat, transMat)
 
 
-def orthoProjectionMatrix(left, right, bottom, top, nearClip, farClip):
+def orthoProjectionMatrix(left, right, bottom, top, nearClip, farClip,
+                          out=None, dtype=None):
     """Compute an orthographic projection matrix with provided frustum
     parameters.
 
@@ -260,6 +275,13 @@ def orthoProjectionMatrix(left, right, bottom, top, nearClip, farClip):
         Near clipping plane distance from viewer.
     farClip : float
         Far clipping plane distance from viewer.
+    out : ndarray, optional
+        Optional output array. Must be same `shape` and `dtype` as the expected
+        output if `out` was not specified.
+    dtype : dtype or str, optional
+        Data type for arrays, can either be 'float32' or 'float64'. If `None` is
+        specified, the data type is inferred by `out`. If `out` is not provided,
+        the default is 'float64'.
 
     Returns
     -------
@@ -277,19 +299,28 @@ def orthoProjectionMatrix(left, right, bottom, top, nearClip, farClip):
       precision stored as a contiguous (C-order) array.
 
     """
-    projMat = np.zeros((4, 4), np.float32)
-    projMat[0, 0] = 2.0 / (right - left)
-    projMat[1, 1] = 2.0 / (top - bottom)
-    projMat[2, 2] = -2.0 / (farClip - nearClip)
-    projMat[0, 3] = (right + left) / (right - left)
-    projMat[1, 3] = (top + bottom) / (top - bottom)
-    projMat[2, 3] = (farClip + nearClip) / (farClip - nearClip)
+    if out is None:
+        dtype = np.float64 if dtype is None else np.dtype(dtype).type
+    else:
+        dtype = np.dtype(out.dtype).type
+
+    projMat = np.zeros((4, 4,), dtype=dtype) if out is None else out
+    projMat.fill(0.0)
+
+    u = dtype(2.0)
+    projMat[0, 0] = u / (right - left)
+    projMat[1, 1] = u / (top - bottom)
+    projMat[2, 2] = -u / (farClip - nearClip)
+    projMat[0, 3] = -((right + left) / (right - left))
+    projMat[1, 3] = -((top + bottom) / (top - bottom))
+    projMat[2, 3] = -((farClip + nearClip) / (farClip - nearClip))
     projMat[3, 3] = 1.0
 
     return projMat
 
 
-def perspectiveProjectionMatrix(left, right, bottom, top, nearClip, farClip):
+def perspectiveProjectionMatrix(left, right, bottom, top, nearClip, farClip,
+                                out=None, dtype=None):
     """Compute an perspective projection matrix with provided frustum
     parameters. The frustum can be asymmetric.
 
@@ -307,6 +338,13 @@ def perspectiveProjectionMatrix(left, right, bottom, top, nearClip, farClip):
         Near clipping plane distance from viewer.
     farClip : float
         Far clipping plane distance from viewer.
+    out : ndarray, optional
+        Optional output array. Must be same `shape` and `dtype` as the expected
+        output if `out` was not specified.
+    dtype : dtype or str, optional
+        Data type for arrays, can either be 'float32' or 'float64'. If `None` is
+        specified, the data type is inferred by `out`. If `out` is not provided,
+        the default is 'float64'.
 
     Returns
     -------
@@ -324,19 +362,27 @@ def perspectiveProjectionMatrix(left, right, bottom, top, nearClip, farClip):
       precision stored as a contiguous (C-order) array.
 
     """
-    projMat = np.zeros((4, 4), np.float32)
-    projMat[0, 0] = (2.0 * nearClip) / (right - left)
-    projMat[1, 1] = (2.0 * nearClip) / (top - bottom)
+    if out is None:
+        dtype = np.float64 if dtype is None else np.dtype(dtype).type
+    else:
+        dtype = np.dtype(out.dtype).type
+
+    projMat = np.zeros((4, 4,), dtype=dtype) if out is None else out
+    projMat.fill(0.0)
+
+    u = dtype(2.0)
+    projMat[0, 0] = (u * nearClip) / (right - left)
+    projMat[1, 1] = (u * nearClip) / (top - bottom)
     projMat[0, 2] = (right + left) / (right - left)
     projMat[1, 2] = (top + bottom) / (top - bottom)
     projMat[2, 2] = -(farClip + nearClip) / (farClip - nearClip)
     projMat[3, 2] = -1.0
-    projMat[2, 3] = -(2.0 * farClip * nearClip) / (farClip - nearClip)
+    projMat[2, 3] = -(u * farClip * nearClip) / (farClip - nearClip)
 
     return projMat
 
 
-def lookAt(eyePos, centerPos, upVec=(0.0, 1.0, 0.0)):
+def lookAt(eyePos, centerPos, upVec=(0.0, 1.0, 0.0), out=None, dtype=None):
     """Create a transformation matrix to orient a view towards some point. Based
     on the same algorithm as 'gluLookAt'. This does not generate a projection
     matrix, but rather the matrix to transform the observer's view in the scene.
@@ -352,6 +398,13 @@ def lookAt(eyePos, centerPos, upVec=(0.0, 1.0, 0.0)):
         Position of the object center in the scene.
     upVec : list of float or ndarray, optional
         Vector defining the up vector. Default is +Y is up.
+    out : ndarray, optional
+        Optional output array. Must be same `shape` and `dtype` as the expected
+        output if `out` was not specified.
+    dtype : dtype or str, optional
+        Data type for arrays, can either be 'float32' or 'float64'. If `None` is
+        specified, the data type is inferred by `out`. If `out` is not provided,
+        the default is 'float64'.
 
     Returns
     -------
@@ -365,9 +418,17 @@ def lookAt(eyePos, centerPos, upVec=(0.0, 1.0, 0.0)):
       precision stored as a contiguous (C-order) array.
 
     """
-    eyePos = np.asarray(eyePos, np.float32)
-    centerPos = np.asarray(centerPos, np.float32)
-    upVec = np.asarray(upVec, np.float32)
+    if out is None:
+        dtype = np.float64 if dtype is None else np.dtype(dtype).type
+    else:
+        dtype = np.dtype(out.dtype).type
+
+    toReturn = np.zeros((4, 4,), dtype=dtype) if out is None else out
+    toReturn.fill(0.0)
+
+    eyePos = np.asarray(eyePos, dtype=dtype)
+    centerPos = np.asarray(centerPos, dtype=dtype)
+    upVec = np.asarray(upVec, dtype=dtype)
 
     f = centerPos - eyePos
     f /= np.linalg.norm(f)
@@ -376,30 +437,37 @@ def lookAt(eyePos, centerPos, upVec=(0.0, 1.0, 0.0)):
     s = np.cross(f, upVec)
     u = np.cross(s / np.linalg.norm(s), f)
 
-    rotMat = np.zeros((4, 4), np.float32)
+    rotMat = np.zeros((4, 4), dtype=dtype)
     rotMat[0, :3] = s
     rotMat[1, :3] = u
     rotMat[2, :3] = -f
     rotMat[3, 3] = 1.0
 
-    transMat = np.identity(4, np.float32)
+    transMat = np.identity(4, dtype=dtype)
     transMat[:3, 3] = -eyePos
 
-    return np.matmul(rotMat, transMat)
+    return np.matmul(rotMat, transMat, out=toReturn)
 
 
-def pointToNdc(wcsPos, viewMatrix, projectionMatrix):
+def pointToNdc(wcsPos, viewMatrix, projectionMatrix, out=None, dtype=None):
     """Map the position of a point in world space to normalized device
     coordinates/space.
 
     Parameters
     ----------
     wcsPos : tuple, list or ndarray
-        3x1 position vector(s) (xyz) in world space coordinates
+        Nx3 position vector(s) (xyz) in world space coordinates.
     viewMatrix : ndarray
-        4x4 view matrix
+        4x4 view matrix.
     projectionMatrix : ndarray
-        4x4 projection matrix
+        4x4 projection matrix.
+    out : ndarray, optional
+        Optional output array. Must be same `shape` and `dtype` as the expected
+        output if `out` was not specified.
+    dtype : dtype or str, optional
+        Data type for arrays, can either be 'float32' or 'float64'. If `None` is
+        specified, the data type is inferred by `out`. If `out` is not provided,
+        the default is 'float64'.
 
     Returns
     -------
@@ -438,22 +506,121 @@ def pointToNdc(wcsPos, viewMatrix, projectionMatrix):
         # object at point will appear at (pixelX, pixelY)
 
     """
-    # TODO - this would be more useful if this function accepted 3xN input too
-    coord = np.asarray(wcsPos, dtype=np.float32)  # convert to array
+    if out is None:
+        dtype = np.float64 if dtype is None else np.dtype(dtype).type
+    else:
+        dtype = np.dtype(out.dtype).type
+
+    wcsPos = np.asarray(wcsPos, dtype=dtype)  # convert to array
+    toReturn = np.zeros_like(wcsPos, dtype=dtype) if out is None else out
 
     # forward transform from world to clipping space
-    viewProjMatrix = np.zeros((4, 4), dtype=np.float32)
-    np.matmul(projectionMatrix, viewMatrix, viewProjMatrix)  # c-order
+    viewProjMatrix = np.zeros((4, 4,), dtype=dtype)
+    np.matmul(projectionMatrix, viewMatrix, viewProjMatrix)
+
+    pnts, rtn = np.atleast_2d(wcsPos, toReturn)
 
     # convert to 4-vector with W=1.0
-    wcsVec = np.zeros((4,), dtype=np.float32)
-    wcsVec[:3] = coord
-    wcsVec[3] = 1.0
+    wcsVec = np.zeros((pnts.shape[0], 4), dtype=dtype)
+    wcsVec[:, :3] = wcsPos
+    wcsVec[:, 3] = 1.0
 
-    clipCoords = viewProjMatrix.dot(wcsVec)  # convert to clipping space
+    # convert to homogeneous clip space
+    wcsVec = mt.applyMatrix(viewProjMatrix, wcsVec, dtype=dtype)
 
     # handle the singularity where perspective division will fail
-    if clipCoords[3] < 1e-05:
-        clipCoords[3] = 1e-05
+    wcsVec[np.abs(wcsVec[:, 3]) <= np.finfo(dtype).eps] = np.finfo(dtype).eps
+    rtn[:, :] = wcsVec[:, :3] / wcsVec[:, 3:]  # xyz / w
 
-    return clipCoords[:3] / clipCoords[3]  # xyz / w
+    return toReturn
+
+
+def cursorToRay(cursorX, cursorY, winSize, viewport, projectionMatrix,
+                normalize=True, out=None, dtype=None):
+    """Convert a 2D mouse coordinate to a 3D ray.
+
+    Takes a 2D window/mouse coordinate and transforms it to a 3D direction
+    vector from the viewpoint in eye space (vector origin is [0, 0, 0]). The
+    center of the screen projects to vector [0, 0, -1].
+
+    Parameters
+    ----------
+    cursorX, cursorY :  float or int
+        Window coordinates. These need to be scaled if you are using a
+        framebuffer that does not have 1:1 pixel mapping (i.e. retina display).
+    winSize : array_like
+        Size of the window client area [w, h].
+    viewport : array_like
+        Viewport rectangle [x, y, w, h] being used.
+    projectionMatrix : ndarray
+        4x4 projection matrix being used.
+    normalize : bool
+        Normalize the resulting vector.
+    out : ndarray, optional
+        Optional output array. Must be same `shape` and `dtype` as the expected
+        output if `out` was not specified.
+    dtype : dtype or str, optional
+        Data type for arrays, can either be 'float32' or 'float64'. If `None` is
+        specified, the data type is inferred by `out`. If `out` is not provided,
+        the default is 'float64'.
+
+    Returns
+    -------
+    ndarray
+        Direction vector (x, y, z).
+
+    Examples
+    --------
+    Place a 3D stim at the mouse location 5.0 scene units (meters) away::
+
+        # define camera
+        camera = RigidBodyPose((-3.0, 5.0, 3.5))
+        camera.alignTo((0, 0, 0))
+
+        # in the render loop
+
+        dist = 5.0
+        mouseRay = vt.cursorToRay(x, y, win.size, win.viewport, win.projectionMatrix)
+        mouseRay *= dist  # scale the vector
+
+        # set the sphere position by transforming vector to world space
+        sphere.thePose.pos = camera.transform(mouseRay)
+
+    """
+    if out is None:
+        dtype = np.float64 if dtype is None else np.dtype(dtype).type
+    else:
+        dtype = np.dtype(out.dtype).type
+
+    toReturn = np.zeros((3,), dtype=dtype) if out is None else out
+
+    projectionMatrix = np.asarray(projectionMatrix, dtype=dtype)
+
+    # compute the inverse model/view and projection matrix
+    invPM = np.linalg.inv(projectionMatrix)
+
+    # transform psychopy mouse coordinates to viewport coordinates
+    cursorX = cursorX + (winSize[0] / 2.0)
+    cursorY = cursorY + (winSize[1] / 2.0)
+
+    # get the NDC coordinates of the
+    projX = 2. * (cursorX - viewport[0]) / viewport[2] - 1.0
+    projY = 2. * (cursorY - viewport[1]) / viewport[3] - 1.0
+
+    vecNear = np.array((projX, projY, 0.0, 1.0), dtype=dtype)
+    vecFar = np.array((projX, projY, 1.0, 1.0), dtype=dtype)
+
+    vecNear[:] = vecNear.dot(invPM.T)
+    vecFar[:] = vecFar.dot(invPM.T)
+
+    vecNear /= vecNear[3]
+    vecFar /= vecFar[3]
+
+    # direction vector
+    toReturn[:] = (vecFar - vecNear)[:3]
+
+    if normalize:
+        mt.normalize(toReturn, out=toReturn)
+
+    return toReturn
+

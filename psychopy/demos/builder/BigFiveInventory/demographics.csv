@@ -1,0 +1,5 @@
+index,questionText,options,layout,type,questionWidth,responseWidth,questionColor,responseColor
+1,Please select your gender,"Male, Female, Other",horiz,rating,0.6,0.4,lightblue,pink
+2,Please select your age,"18 - 26, 26 - 34, 34 - 42, 42 - 50, 50+",vert,radio,0.6,0.4,lightblue,pink
+3,Please select your highest qualification,"None, GCSE, A-Levels or similar, Under- graduate degree, Post- graduate degree",horiz,radio,0.6,0.4,lightblue,pink
+4,Please select your mood,"Happy, Sad",horiz,slider,0.6,0.4,lightblue,pink

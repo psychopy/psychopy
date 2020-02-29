@@ -6,7 +6,7 @@ ports and check for the expected device
 """
 
 # Part of the PsychoPy library
-# Copyright (C) 2018 Jonathan Peirce
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 from __future__ import absolute_import, division, print_function
@@ -38,7 +38,11 @@ class BlackBoxToolkit(serialdevice.SerialDevice):
     longName = b"BlackBoxToolkit 2"
     # list of supported devices (if more than one supports same protocol)
     driverFor = [b"BlackBoxToolkit 2"]
-    def __init__(self, port=None, sendBreak=False, bufferSize = 262144):
+    def __init__(self,
+                 port=None,
+                 sendBreak=False,
+                 smoothing=False,
+                 bufferSize=262144):
         # if we're trying to send the break signal then presumably the device
         # is sleeping
         if sendBreak:
@@ -54,6 +58,14 @@ class BlackBoxToolkit(serialdevice.SerialDevice):
         if sendBreak:
             self.sendBreak()
             time.sleep(3.0)  # give time to reset
+
+        if smoothing == False:
+            # For use with CRT monitors which require smoothing. LCD monitors do not.
+            # Remove smoothing for optos, but keep mic smoothing - refer to BBTK handbook re: mic smoothing latency
+            # Important to remove smoothing for optos, as smoothing adds 20ms delay to timing.
+            logging.info("Opto sensor smoothing removed.  Mic1 and Mic2 smoothing still active.")
+            self.setSmoothing('11000000')
+            self.pause()
 
         try: # set buffer size - can make proportional to size of data (32 bytes per line * events)+1000
             self.com.set_buffer_size(bufferSize)
@@ -249,7 +261,7 @@ class BlackBoxToolkit(serialdevice.SerialDevice):
         return events
 
     def setResponse(self, sensor=None, outputPin = None, testDuration = None,
-                    responseTime=None, nTrials=None, setSmoothing = False,
+                    responseTime=None, nTrials=None,
                     responseDuration = None):
         """
         Sets Digi Stim Capture and Response (DSCAR) for BBTK.
@@ -260,7 +272,6 @@ class BlackBoxToolkit(serialdevice.SerialDevice):
         :param testDuration: The duration of the testing session in seconds
         :param responseTime: Time in seconds from stimulus capture that robotic actuator should respond
         :param nTrials: Number of trials for testing session
-        :param setSmoothing: For use with CRT monitors - Defaults to False for common LCD screens. Mic smoothing active.
         :param responseDuration: Time in seconds that robotic actuator should stay activated for each response
         """
 
@@ -391,12 +402,6 @@ class BlackBoxToolkit(serialdevice.SerialDevice):
         saveTrials = open('trialList.txt', 'w')
         saveTrials.write(trialList)
         saveTrials.close()
-        # Begin sending BBTK commands
-        if setSmoothing == False:
-            #remove smoothing for optos, but keep mic smoothing - refer to BBTK handbook re: mic smoothing latency
-            logging.info("Opto sensor smoothing removed.  Mic1 and Mic2 smoothing still active.")
-            self.setSmoothing('11000000')
-            self.pause()
         # Send instructions to program BBTK
         self.sendMessage(b'PDCR')  # program DSCAR
         self.pause()

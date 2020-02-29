@@ -4,39 +4,44 @@
 """Simple iohub eye tracker device demo. Shows how monitoring for central
 fixation monitoring could be done.
 No iohub config .yaml files are needed for this demo.
-Demo config is setup for an EyeLink(C) 1000 Desktop System. 
-To to use a different eye tracker implementation, change the 
-iohub_tracker_class_path and eyetracker_config dict script variables.
+Comment / uncomment appropriate tracker_config to select which implementation to use.
 """
 from __future__ import absolute_import, division, print_function
 
 from psychopy import core, visual
 from psychopy.iohub.client import launchHubServer
+import time
 
 # Number if 'trials' to run in demo
 TRIAL_COUNT = 2
 # Maximum trial time / time timeout
-T_MAX = 10.0
+T_MAX = 5.0
 
-iohub_tracker_class_path = 'eyetracker.hw.sr_research.eyelink.EyeTracker'
-eyetracker_config = dict()
-eyetracker_config['name'] = 'tracker'
-eyetracker_config['model_name'] = 'EYELINK 1000 DESKTOP'
-#eyetracker_config['simulation_mode'] = True
-eyetracker_config['runtime_settings'] = dict(sampling_rate=1000,
-                                             track_eyes='RIGHT')
+## Uncomment to use EyeLink device and default settings.
+#
+#eyetracker_config = dict(name='tracker')
+#eyetracker_config['model_name'] = 'EYELINK 1000 DESKTOP'
+#eyetracker_config['simulation_mode'] = False
+#eyetracker_config['runtime_settings'] = dict(sampling_rate=1000, track_eyes='RIGHT')
+#tracker_config = {'eyetracker.hw.sr_research.eyelink.EyeTracker':eyetracker_config}
+
+## Uncomment to use GP3 device and default settings.
+#
+tracker_config = {'eyetracker.hw.gazepoint.gp3.EyeTracker':
+    {'name': 'tracker', 'device_timer': {'interval': 0.005}}}
 
 # Since no experiment or session code is given, no iohub hdf5 file
 # will be saved, but device events are still available at runtime.
-io = launchHubServer(**{iohub_tracker_class_path: eyetracker_config})
+io = launchHubServer(**tracker_config)
 
 # Get some iohub devices for future access.
-keyboard = io.devices.keyboard
-display = io.devices.display
-tracker = io.devices.tracker
+keyboard = io.getDevice('keyboard')
+display = io.getDevice('display')
+tracker = io.getDevice('tracker')
 
 # run eyetracker calibration
-r = tracker.runSetupProcedure()
+tracker.runSetupProcedure()
+
 win = visual.Window(display.getPixelResolution(),
                     units='pix',
                     fullscr=True,
@@ -55,8 +60,6 @@ missing_gpos_str += 'Press space key to start next trial.'
 text_stim = visual.TextStim(win, text=text_stim_str,
                             pos=[0, int((-win.size[1]/2)*0.8)], height=24,
                                  color='black',
-                                 alignHoriz='center',
-                                 alignVert='center', 
                                  wrapWidth=win.size[0] * .9)
 
 # Run Trials.....
@@ -69,7 +72,7 @@ while t < TRIAL_COUNT:
     while run_trial is True:
         # Get the latest gaze position in dispolay coord space..
         gpos = tracker.getLastGazePosition()
-
+        #print("gpos:",gpos)
         # Update stim based on gaze position
         valid_gaze_pos = isinstance(gpos, (tuple, list))
         gaze_in_region = valid_gaze_pos and gaze_ok_region.contains(gpos)
@@ -99,7 +102,9 @@ while t < TRIAL_COUNT:
         # Check any new keyboard char events for a space key.
         # If one is found, set the trial end variable.
         #
-        if ' ' in keyboard.getPresses() or core.getTime()-tstart_time > T_MAX:
+        if keyboard.getPresses(keys=' '):
+            run_trial = False
+        elif core.getTime()-tstart_time > T_MAX:
             run_trial = False
 
     # Current Trial is Done
@@ -109,7 +114,7 @@ while t < TRIAL_COUNT:
 
 # All Trials are done
 # End experiment
-win.close()
 tracker.setConnectionState(False)
+
 io.quit()
 core.quit()

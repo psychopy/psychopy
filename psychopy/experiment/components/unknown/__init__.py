@@ -39,6 +39,7 @@ class UnknownComponent(BaseComponent):
                                     hint=_hint,
                                     label=_localized['name'])
         self.order = ['name']  # name first, then timing, then others
+        super(UnknownComponent, self).__init__(exp, parentName)
     # make sure nothing gets written into experiment for an unknown object
     # class!
 

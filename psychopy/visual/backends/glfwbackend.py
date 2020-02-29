@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2018 Jonathan Peirce
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 """A Backend class defines the core low-level functions required by a Window
@@ -27,7 +27,7 @@ from PIL import Image
 
 # on mac Standalone app check for packaged libglfw dylib
 if prefs.paths['libs']:
-    _possLibPaths = glob.glob(os.path.join(self.paths['libs'], 'libglfw*'))
+    _possLibPaths = glob.glob(os.path.join(prefs.paths['libs'], 'libglfw*'))
     if _possLibPaths:
         os.environ['PYGLFW_LIBRARY'] = _possLibPaths[0]
 
@@ -176,7 +176,12 @@ class GLFWBackend(BaseBackend):
                              "so setting to False has no effect.")
 
         # window framebuffer configuration
-        win.bpc = kwargs.get('bpc', (8, 8, 8))  # nearly all displays use 8 bpc
+        bpc = kwargs.get('bpc', (8, 8, 8))
+        if isinstance(bpc, int):
+            win.bpc = (bpc, bpc, bpc)
+        else:
+            win.bpc = bpc
+
         win.refreshHz = int(kwargs.get('refreshHz', 60))
         win.depthBits = int(kwargs.get('depthBits', 8))
         win.stencilBits = int(kwargs.get('stencilBits', 8))
@@ -214,18 +219,33 @@ class GLFWBackend(BaseBackend):
             logging.warning(
                 ("The specified video mode is not supported by this display, "
                  "using native mode ..."))
-            logging.warning(
-                ("Overriding user video settings: size {} -> {}, bpc {} -> "
-                 "{}, refreshHz {} -> {}".format(
-                    tuple(win.size),
-                    nativeVidmode[0],
-                    tuple(win.bpc),
-                    nativeVidmode[1],
-                    win.refreshHz,
-                    nativeVidmode[2])))
 
+            actualWidth, actualHeight = nativeVidmode.size
+            redBits, greenBits, blueBits = nativeVidmode.bits
             # change the window settings
-            win.size, win.bpc, win.refreshHz = nativeVidmode
+            if win._isFullScr:
+                logging.warning(
+                    ("Overriding user video settings: size {} -> {}, bpc {} -> "
+                     "{}, refreshHz {} -> {}".format(
+                        tuple(win.size),
+                        (actualWidth, actualHeight),
+                        tuple(win.bpc),
+                        (redBits, greenBits, blueBits),
+                        win.refreshHz,
+                        nativeVidmode.refresh_rate)))
+
+                win.clientSize = np.array((actualWidth, actualHeight), np.int)
+            else:
+                logging.warning(
+                    ("Overriding user video settings: bpc {} -> "
+                     "{}, refreshHz {} -> {}".format(
+                        tuple(win.bpc),
+                        (redBits, greenBits, blueBits),
+                        win.refreshHz,
+                        nativeVidmode.refresh_rate)))
+
+            win.bpc = (redBits, greenBits, blueBits)
+            win.refreshHz = nativeVidmode.refresh_rate
 
         if win._isFullScr:
             useDisplay = thisScreen
@@ -286,8 +306,8 @@ class GLFWBackend(BaseBackend):
 
         # create the window
         self.winHandle = glfw.create_window(
-            width=win.size[0],
-            height=win.size[1],
+            width=win.clientSize[0],
+            height=win.clientSize[1],
             title=str(kwargs.get('winTitle', "PsychoPy (GLFW)")),
             monitor=useDisplay,
             share=shareContext)
@@ -302,8 +322,8 @@ class GLFWBackend(BaseBackend):
             # if no window position is specified, centre it on-screen
             if win.pos is None:
                 size, bpc, hz = nativeVidmode
-                win.pos = [(size[0] - win.size[0]) / 2.0,
-                           (size[1] - win.size[1]) / 2.0]
+                win.pos = [(size[0] - win.clientSize[0]) / 2.0,
+                           (size[1] - win.clientSize[1]) / 2.0]
 
             # get the virtual position of the monitor, apply offset to the
             # window position
@@ -316,10 +336,11 @@ class GLFWBackend(BaseBackend):
             logging.warn("Ignoring window 'pos' in fullscreen mode.")
 
         # set the window icon
-        glfw.set_window_icon(self.winHandle, 1, _WINDOW_ICON_)
+        if hasattr(glfw, 'set_window_icon'):
+            glfw.set_window_icon(self.winHandle, 1, _WINDOW_ICON_)
 
         # set the window size to the framebuffer size
-        win.size = np.array(glfw.get_framebuffer_size(self.winHandle))
+        self._frameBufferSize = np.array(glfw.get_framebuffer_size(self.winHandle))
 
         if win.useFBO:  # check for necessary extensions
             if not glfw.extension_supported('GL_EXT_framebuffer_object'):
@@ -362,6 +383,11 @@ class GLFWBackend(BaseBackend):
         # on pyglet shaders are fine so just check GL>2.0
         return pyglet.gl.gl_info.get_version() >= '2.0'
 
+    @property
+    def frameBufferSize(self):
+        """Framebuffer size (w, h)."""
+        return self._frameBufferSize
+
     def swapBuffers(self, flipThisFrame=True):
         """Performs various hardware events around the window flip and then
         performs the actual flip itself (assuming that flipThisFrame is true)
@@ -403,18 +429,21 @@ class GLFWBackend(BaseBackend):
         They may vary in appearance and hot spot location across platforms. The
         following names are valid on most platforms:
 
-                'arrow' : Default pointer
-                'ibeam' : Indicates text can be edited
-            'crosshair' : Crosshair with hot-spot at center
-                 'hand' : A pointing hand
-              'hresize' : Double arrows pointing horizontally
-              'vresize' : Double arrows pointing vertically
+        * ``arrow`` : Default pointer
+        * ``ibeam`` : Indicates text can be edited
+        * ``crosshair`` : Crosshair with hot-spot at center
+        * ``hand`` : A pointing hand
+        * ``hresize`` : Double arrows pointing horizontally
+        * ``vresize`` : Double arrows pointing vertically
 
-        Note, on Windows the 'crosshair' option is XORed with the background
+        Requires the GLFW backend, otherwise this function does nothing! Note,
+        on Windows the ``crosshair`` option is negated with the background
         color. It will not be visible when placed over 50% grey fields.
 
-        :param name: str, type of standard cursor to use
-        :return:
+        Parameters
+        ----------
+        name : str
+            Type of standard cursor to use.
 
         """
         try:
@@ -427,30 +456,23 @@ class GLFWBackend(BaseBackend):
     def setCurrent(self):
         """Sets this window to be the current rendering target.
 
-        :return: None
+        Returns
+        -------
+        bool
+            ``True`` if the context was switched from another. ``False`` is
+            returned if ``setCurrent`` was called on an already current window.
 
         """
         if self != globalVars.currWindow:
             glfw.make_context_current(self.winHandle)
             globalVars.currWindow = self
 
-            win = self.win  # it's a weakref so faster to call just once
-            # if we are using an FBO, bind it
-            if hasattr(win, 'frameBuffer'):
-                GL.glBindFramebufferEXT(GL.GL_FRAMEBUFFER_EXT,
-                                        win.frameBuffer)
-                GL.glReadBuffer(GL.GL_COLOR_ATTACHMENT0_EXT)
-                GL.glDrawBuffer(GL.GL_COLOR_ATTACHMENT0_EXT)
+            return True
 
-                # NB - check if we need these
-                GL.glActiveTexture(GL.GL_TEXTURE0)
-                GL.glBindTexture(GL.GL_TEXTURE_2D, 0)
-                GL.glEnable(GL.GL_STENCIL_TEST)
+        return False
 
     def dispatchEvents(self):
         """Dispatch events to the event handler (typically called on each frame)
-
-        :return:
         """
         pass
 
@@ -630,7 +652,7 @@ def _onResize(width, height):
     else:
         back_width, back_height = width, height
 
-    GL.glViewport(0, 0, width, height)
+    GL.glViewport(0, 0, back_width, back_height)
     GL.glMatrixMode(GL.GL_PROJECTION)
     GL.glLoadIdentity()
     GL.glOrtho(-1, 1, -1, 1, -1, 1)

@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2018 Jonathan Peirce
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 """Converting code parameters and components from python (PsychoPy)
@@ -12,6 +12,7 @@ to JS (ES6/PsychoJS)
 import ast
 import astunparse
 import esprima
+from os import path
 from psychopy.constants import PY3
 from psychopy import logging
 
@@ -80,9 +81,13 @@ def expression2js(expr):
     # into a list for the number of tuples in the expression.
     try:
         syntaxTree = ast.parse(expr)
-    except Exception as err:
-        logging.error(err)
-        syntaxTree = ast.parse(unicode(expr))
+    except Exception:
+        try:
+            syntaxTree = ast.parse(unicode(expr))
+        except Exception as err:
+            logging.error(err)
+            return
+
 
     for node in ast.walk(syntaxTree):
         TupleTransformer().visit(node)  # Transform tuples to list
@@ -119,7 +124,6 @@ def findUndeclaredVariables(ast, allUndeclaredVariables):
                 if variableName not in allUndeclaredVariables:
                     undeclaredVariables.append(variableName)
                     allUndeclaredVariables.append(variableName)
-
         elif expression.type == 'IfStatement':
             if expression.consequent.body is None:
                 consequentVariables = findUndeclaredVariables(
@@ -128,18 +132,26 @@ def findUndeclaredVariables(ast, allUndeclaredVariables):
                 consequentVariables = findUndeclaredVariables(
                     expression.consequent.body, allUndeclaredVariables)
             undeclaredVariables.extend(consequentVariables)
-
+        elif expression.type == "ReturnStatement":
+            if expression.argument.type == "FunctionExpression":
+                consequentVariables = findUndeclaredVariables(
+                    expression.argument.body.body, allUndeclaredVariables)
+                undeclaredVariables.extend(consequentVariables)
     return undeclaredVariables
 
 
-def addVariableDeclarations(inputProgram):
+def addVariableDeclarations(inputProgram, fileName):
     """Transform the input program by adding just before each function
     a declaration for its undeclared variables
     """
 
     # parse Javascript code into abstract syntax tree:
     # NB: esprima: https://media.readthedocs.org/pdf/esprima/4.0/esprima.pdf
-    ast = esprima.parseScript(inputProgram, {'range': True, 'tolerant': True})
+    try:
+        ast = esprima.parseScript(inputProgram, {'range': True, 'tolerant': True})
+    except esprima.error_handler.Error as err:
+        logging.error("{0} in {1}".format(err, path.split(fileName)[1]))
+        return inputProgram  # So JS can be written to file
 
     # find undeclared vars in functions and declare them before the function
     outputProgram = inputProgram
@@ -153,7 +165,8 @@ def addVariableDeclarations(inputProgram):
                                                           allUndeclaredVariables)
 
             # add declarations (var) just before the function:
-            declaration = '\n'.join(['var ' + variable + ';' for variable in
+            funSpacing = ['', '\n'][len(undeclaredVariables) > 0]  # for consistent function spacing
+            declaration = funSpacing + '\n'.join(['var ' + variable + ';' for variable in
                                      undeclaredVariables]) + '\n'
             startIndex = expression.range[0] + offset
             outputProgram = outputProgram[

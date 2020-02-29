@@ -62,8 +62,9 @@ includes = ['Tkinter', 'tkFileDialog',
             'hid',
             'pyo', 'greenlet', 'zmq', 'tornado',
             'psutil',  # for iohub
+            'tobii_research',  # need tobii_research file and tobiiresearch pkg
             'pysoundcard', 'soundfile', 'sounddevice', 'readline',
-            'cv2', 'hid',
+            'hid',
             'xlwt',  # writes excel files for pandas
             'vlc',  # install with pip install python-vlc
             'msgpack_numpy',
@@ -86,8 +87,8 @@ packages = ['wx', 'psychopy',
             'coverage',
             # handy external science libs
             'serial',
-            'egi', 'pylink',
-            'pyxid',
+            'egi', 'pylink', 'tobiiresearch',
+            'pyxid', 'pyxid2', 'ftd2xx',  # ftd2xx is used by cedrus
             'pandas', 'tables',  # 'cython',
             'msgpack', 'yaml', 'gevent',  # for ioHub
             # these aren't needed, but liked
@@ -98,7 +99,11 @@ packages = ['wx', 'psychopy',
             'json_tricks',  # allows saving arrays/dates in json
             'git', 'gitlab',
             'astunparse', 'esprima',  # for translating/adapting py/JS
-            'pylsl', 'pygaze',
+            'pylsl', 'pygaze', 'smite',
+            'cv2',
+            'badapted', 'darc_toolbox',  # adaptive methods from Ben Vincent
+            'questplus',
+            'metapensiero.pj', 'dukpy', 'macropy',
             ]
 
 if sys.version_info.major >= 3:

@@ -1,0 +1,19 @@
+
+code: 9999
+cat: AlertCategory
+msg: Alert description (brief) - can use Python style string formatting e.g., The alert affects {component}
+
+# The following are typically used for online help pages, and support reStructured Text.
+label: A very brief label for the html page title
+
+synopsis: |
+  Provide a few sentences (at most) about the alert.
+
+details: |
+  Longer description with optional links to further information
+
+solutions: |
+  Describe fixes/workarounds for the user
+
+versions: |
+  Info about what versions are affected if this has been fixed

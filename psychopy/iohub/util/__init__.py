@@ -11,6 +11,7 @@ import warnings
 import numpy
 import collections
 import numbers  # numbers.Integral is like (int, long) but supports Py3
+import datetime
 
 from ..errors import print2err
 
@@ -159,6 +160,14 @@ def convertCamelToSnake(name, lower_snake=True):
     if lower_snake:
         return all_cap_re.sub(r'\1_\2', s1).lower()
     return all_cap_re.sub(r'\1_\2', s1).upper()
+
+###############################################################################
+#
+## A couple date / time related utility functions
+#
+
+getCurrentDateTime = datetime.datetime.now
+getCurrentDateTimeString = lambda : getCurrentDateTime().strftime("%Y-%m-%d %H:%M")
 
 ########################
 

@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2018 Jonathan Peirce
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 from __future__ import absolute_import, print_function
@@ -14,6 +14,7 @@ from past.builtins import basestring
 
 from os import path
 
+from psychopy.constants import PY3
 from psychopy.experiment.components import BaseComponent, Param, _translate
 from psychopy.experiment import CodeGenerationException, valid_var_re
 from pkgutil import find_loader
@@ -130,23 +131,25 @@ class KeyboardComponent(BaseComponent):
             hint=msg,
             label=_localized['syncScreenRefresh'])
 
-    def writeRoutineStartCode(self, buff):
+    def writeInitCode(self, buff):
         code = "%(name)s = keyboard.Keyboard()\n"
         buff.writeIndentedLines(code % self.params)
 
-        if (self.params['store'].val == 'nothing' and
-                self.params['storeCorrect'].val == False):
-            # the user doesn't want to store anything so don't bother
-            return
-
-    def writeRoutineStartCodeJS(self, buff):
-        code = "%(name)s = new core.BuilderKeyResponse(psychoJS);\n\n"
+    def writeInitCodeJS(self, buff):
+        code = "%(name)s = new core.Keyboard({psychoJS: psychoJS, clock: new util.Clock(), waitForStart: true});\n\n"
         buff.writeIndentedLines(code % self.params)
 
-        if (self.params['store'].val == 'nothing' and
-                self.params['storeCorrect'].val == False):
-            # the user doesn't want to store anything so don't bother
-            return
+    def writeRoutineStartCode(self, buff):
+        code = ("%(name)s.keys = []\n"
+                "%(name)s.rt = []\n"
+                "_%(name)s_allKeys = []\n")
+        buff.writeIndentedLines(code % self.params)
+
+    def writeRoutineStartCodeJS(self, buff):
+        code = ("%(name)s.keys = undefined;\n"
+                "%(name)s.rt = undefined;\n"
+                "_%(name)s_allKeys = [];\n")
+        buff.writeIndentedLines(code % self.params)
 
     def writeFrameCode(self, buff):
         """Write the code that will be called every frame
@@ -156,9 +159,12 @@ class KeyboardComponent(BaseComponent):
         storeCorr = self.params['storeCorrect'].val
         forceEnd = self.params['forceEndRoutine'].val
         allowedKeys = self.params['allowedKeys'].val.strip()
+        visualSync = self.params['syncScreenRefresh'].val
 
         buff.writeIndented("\n")
         buff.writeIndented("# *%s* updates\n" % self.params['name'])
+        if visualSync:
+            buff.writeIndented("waitOnFlip = False\n")
         # writes an if statement to determine whether to draw etc
         self.writeStartTestCode(buff)
         buff.writeIndented("%(name)s.status = STARTED\n" % self.params)
@@ -169,35 +175,41 @@ class KeyboardComponent(BaseComponent):
         if allowedKeysIsVar:
             # if it looks like a variable, check that the variable is suitable
             # to eval at run-time
+            stringType = '{}'.format(['basestring', 'str'][PY3])
             code = ("# AllowedKeys looks like a variable named `{0}`\n"
                     "if not type({0}) in [list, tuple, np.ndarray]:\n"
-                    "    if not isinstance({0}, basestring):\n"
+                    "    if not isinstance({0}, {1}):\n"
                     "        logging.error('AllowedKeys variable `{0}` is "
                     "not string- or list-like.')\n"
                     "        core.quit()\n"
-                    .format(allowedKeys))
+                    .format(allowedKeys, stringType))
 
             code += (
-                "    elif not ',' in {0}: {0} = ({0},)\n"
-                "    else:  {0} = eval({0})\n"
+                "    elif not ',' in {0}:\n"
+                "        {0} = ({0},)\n"
+                "    else:\n"
+                "        {0} = eval({0})\n"
                 .format(allowedKeys))
             buff.writeIndentedLines(code)
 
-            keyListStr = "keyList=list(%s)" % allowedKeys  # eval at run time
+            keyListStr = "list(%s)" % allowedKeys  # eval at run time
 
         buff.writeIndented("# keyboard checking is just starting\n")
 
-        if store != 'nothing':
-            if self.params['syncScreenRefresh'].val:
-                code = ("win.callOnFlip(%(name)s.clock.reset)  # t=0 on next"
-                        " screen flip\n") % self.params
-            else:
-                code = "%(name)s.clock.reset()  # now t=0\n" % self.params
-
-            buff.writeIndented(code)
+        if visualSync:
+            code = ("waitOnFlip = True\n"
+                    "win.callOnFlip(%(name)s.clock.reset)  "
+                    "# t=0 on next screen flip\n") % self.params
+        else:
+            code = "%(name)s.clock.reset()  # now t=0\n" % self.params
+        buff.writeIndentedLines(code)
 
         if self.params['discard previous'].val:
-            code = "%(name)s.clearEvents(eventType='keyboard')\n" % self.params
+            if visualSync:
+                code = ("win.callOnFlip(%(name)s.clearEvents, eventType='keyboard')  "
+                        "# clear events on next screen flip\n") % self.params
+            else:
+                code = "%(name)s.clearEvents(eventType='keyboard')\n" % self.params
             buff.writeIndented(code)
 
         # to get out of the if statement
@@ -208,9 +220,10 @@ class KeyboardComponent(BaseComponent):
             self.writeStopTestCode(buff)
             buff.writeIndented("%(name)s.status = FINISHED\n" % self.params)
             # to get out of the if statement
-            buff.setIndentLevel(-1, relative=True)
+            buff.setIndentLevel(-2, relative=True)
 
-        buff.writeIndented("if %(name)s.status == STARTED:\n" % self.params)
+        buff.writeIndented("if %s.status == STARTED%s:\n"
+                           % (self.params['name'], ['', ' and not waitOnFlip'][visualSync]))
         buff.setIndentLevel(1, relative=True)  # to get out of if statement
         dedentAtEnd = 1  # keep track of how far to dedent later
         # do we need a list of keys? (variable case is already handled)
@@ -227,54 +240,51 @@ class KeyboardComponent(BaseComponent):
                 keyList = list(keyList)
             elif isinstance(keyList, basestring):  # a single string/key
                 keyList = [keyList]
-            keyListStr = "keyList=%s" % repr(keyList)
+            keyListStr = "%s" % repr(keyList)
 
         # check for keypresses
-        code = "theseKeys = %s.getKeys(%s, waitRelease=False)\n" % (self.params['name'], keyListStr)
-        buff.writeIndented(code)
+        code = ("theseKeys = {name}.getKeys(keyList={keyStr}, waitRelease=False)\n"
+                "_{name}_allKeys.extend(theseKeys)\n"
+                "if len(_{name}_allKeys):\n")
+        buff.writeIndentedLines(
+            code.format(
+                name=self.params['name'],
+                keyStr=(keyListStr or None)
+            )
+        )
 
-        # Check for response
-        buff.writeIndented("if len(theseKeys):\n")
         buff.setIndentLevel(1, True)
-        dedentAtEnd += 1  # indent by 1
-        buff.writeIndented("theseKeys = theseKeys[0]  # at least one key was pressed\n")
+        dedentAtEnd += 1
+        if store == 'first key':  # then see if a key has already been pressed
+            code = ("{name}.keys = _{name}_allKeys[0].name  # just the first key pressed\n"
+                    "{name}.rt = _{name}_allKeys[0].rt\n")
+            buff.writeIndentedLines(code.format(name=self.params['name']))
+        elif store == 'last key' or store == "nothing":  # If store nothing, save last key for correct answer test
+            code = ("{name}.keys = _{name}_allKeys[-1].name  # just the last key pressed\n"
+                    "{name}.rt = _{name}_allKeys[-1].rt\n")
+            buff.writeIndentedLines(code.format(name=self.params['name']))
+        elif store == 'all keys':
+            code = ("{name}.keys = [key.name for key in _{name}_allKeys]  # storing all keys\n"
+                    "{name}.rt = [key.rt for key in _{name}_allKeys]\n")
+            buff.writeIndentedLines(code.format(name=self.params['name']))
 
-        if self.exp.settings.params['Enable Escape'].val:
-            code = ('\n# check for quit:\n'
-                    'if "escape" == theseKeys:\n'
-                    '    endExpNow = True\n')
-            buff.writeIndentedLines(code)
-
-        if store != 'nothing' or forceEnd:
-            if store == 'first key':  # then see if a key has already been pressed
-                code = ("if %(name)s.keys == []:  # then this was the first keypress\n") % self.params
-                buff.writeIndented(code)
-                buff.setIndentLevel(1, True)
-                dedentAtEnd += 1  # indent by 1
-                code = ("%(name)s.keys = theseKeys.name  # just the first key pressed\n"
-                        "%(name)s.rt = theseKeys.rt\n")
-                buff.writeIndentedLines(code % self.params)
-            elif store == 'last key':
-                code = ("%(name)s.keys = theseKeys.name  # just the last key pressed\n"
-                        "%(name)s.rt = theseKeys.rt\n")
-                buff.writeIndentedLines(code % self.params)
-            elif store == 'all keys':
-                code = ("%(name)s.keys.append(theseKeys.name)  # storing all keys\n"
-                        "%(name)s.rt.append(theseKeys.rt)\n")
-                buff.writeIndentedLines(code % self.params)
-
-            if storeCorr:
-                code = ("# was this 'correct'?\n"
-                        "if (%(name)s.keys == str(%(correctAns)s)) or (%(name)s.keys == %(correctAns)s):\n"
-                        "    %(name)s.corr = 1\n"
-                        "else:\n"
-                        "    %(name)s.corr = 0\n")
-                buff.writeIndentedLines(code % self.params)
+        if storeCorr:
+            code = ("# was this correct?\n"
+                    "if ({name}.keys == str({correctAns})) or ({name}.keys == {correctAns}):\n"
+                    "    {name}.corr = 1\n"
+                    "else:\n"
+                    "    {name}.corr = 0\n")
+            buff.writeIndentedLines(
+                code.format(
+                    name=self.params['name'],
+                    correctAns=self.params['correctAns']
+                )
+            )
 
         if forceEnd == True:
             code = ("# a response ends the routine\n"
                     "continueRoutine = False\n")
-            buff.writeIndentedLines(code % self.params)
+            buff.writeIndentedLines(code)
 
         buff.setIndentLevel(-(dedentAtEnd), relative=True)
 
@@ -289,7 +299,6 @@ class KeyboardComponent(BaseComponent):
         buff.writeIndented("// *%s* updates\n" % self.params['name'])
         # writes an if statement to determine whether to draw etc
         self.writeStartTestCodeJS(buff)
-        buff.writeIndented("%(name)s.status = PsychoJS.Status.STARTED;\n" % self.params)
 
         allowedKeysIsVar = (valid_var_re.match(str(allowedKeys)) and not
                             allowedKeys == 'None')
@@ -320,17 +329,24 @@ class KeyboardComponent(BaseComponent):
 
         buff.writeIndented("// keyboard checking is just starting\n")
 
-        if store != 'nothing':
-            if self.params['syncScreenRefresh'].val:
-                code = ("psychoJS.window.callOnFlip(function() { %(name)s.clock.reset(); });"
-                        " // t = 0 on screen flip\n") % self.params
-            else:
-                code = "%(name)s.clock.reset();  // now t=0\n" % self.params
+        if self.params['syncScreenRefresh'].val:
+            code = ("psychoJS.window.callOnFlip(function() { %(name)s.clock.reset(); });  "
+                    "// t=0 on next screen flip\n"
+                    "psychoJS.window.callOnFlip(function() { %(name)s.start(); }); "
+                    "// start on screen flip\n") % self.params
+        else:
+            code = ("%(name)s.clock.reset();\n"
+                    "%(name)s.start();\n") % self.params
 
-            buff.writeIndented(code)
+        buff.writeIndentedLines(code)
 
         if self.params['discard previous'].val:
-            buff.writeIndented("psychoJS.eventManager.clearEvents({eventType:'keyboard'});\n")
+            if self.params['syncScreenRefresh'].val:
+                 buff.writeIndented("psychoJS.window.callOnFlip(function() { %(name)s.clearEvents(); });\n"
+                                    % self.params)
+            else:
+                buff.writeIndented("%(name)s.clearEvents();\n" % self.params)
+
         # to get out of the if statement
         buff.setIndentLevel(-1, relative=True)
         buff.writeIndented("}\n\n")
@@ -350,7 +366,7 @@ class KeyboardComponent(BaseComponent):
         dedentAtEnd = 1  # keep track of how far to dedent later
         # do we need a list of keys? (variable case is already handled)
         if allowedKeys in [None, "none", "None", "", "[]", "()"]:
-            keyListStr = ""
+            keyListStr = "[]"
         elif not allowedKeysIsVar:
             try:
                 keyList = eval(allowedKeys)
@@ -362,62 +378,52 @@ class KeyboardComponent(BaseComponent):
                 keyList = list(keyList)
             elif isinstance(keyList, basestring):  # a single string/key
                 keyList = [keyList]
-            keyListStr = "{keyList:%s}" % repr(keyList)
+            keyListStr = "%s" % repr(keyList)
 
         # check for keypresses
-        buff.writeIndented("let theseKeys = psychoJS.eventManager.getKeys(%s);\n" % keyListStr)
-
-        if self.exp.settings.params['Enable Escape'].val:
-            code = ("\n// check for quit:\n"
-                    "if (theseKeys.indexOf('escape') > -1) {\n"
-                    "  psychoJS.experiment.experimentEnded = true;\n"
-                    "}\n\n")
-            buff.writeIndentedLines(code)
-
+        code = ("let theseKeys = {name}.getKeys({{keyList: {keyStr}, waitRelease: false}});\n"
+                "_{name}_allKeys = _{name}_allKeys.concat(theseKeys);\n"
+                "if (_{name}_allKeys.length > 0) {{\n")
+        buff.writeIndentedLines(
+            code.format(
+                name=self.params['name'],
+                keyStr=keyListStr
+            )
+        )
+        buff.setIndentLevel(1, True)
+        dedentAtEnd += 1
         # how do we store it?
-        if store != 'nothing' or forceEnd:
-            # we are going to store something
-            code = ("if (theseKeys.length > 0) {"
-                    "  // at least one key was pressed\n")
-            buff.writeIndented(code)
-            buff.setIndentLevel(1, True)
-            dedentAtEnd += 1  # indent by 1
-
         if store == 'first key':  # then see if a key has already been pressed
-            code = ("if (%(name)s.keys.length === 0) {"
-                    "  // then this was the first keypress\n") % self.params
-            buff.writeIndented(code)
-
-            buff.setIndentLevel(1, True)
-            dedentAtEnd += 1  # to undo this level of "if"
-
-            code = ("%(name)s.keys = theseKeys[0];"
-                    "  // just the first key pressed\n"
-                    "%(name)s.rt = %(name)s.clock.getTime();\n")
-            buff.writeIndentedLines(code % self.params)
-        elif store == 'last key':
-            code = ("%(name)s.keys = theseKeys[theseKeys.length-1];"
-                    "  // just the last key pressed\n"
-                    "%(name)s.rt = %(name)s.clock.getTime();\n")
-            buff.writeIndentedLines(code % self.params)
+            code = ("{name}.keys = _{name}_allKeys[0].name;  // just the first key pressed\n"
+                    "{name}.rt = _{name}_allKeys[0].rt;\n")
+            buff.writeIndentedLines(code.format(name=self.params['name']))
+        elif store == 'last key' or store =='nothing':
+            code = ("{name}.keys = _{name}_allKeys[_{name}_allKeys.length - 1].name;  // just the last key pressed\n"
+                    "{name}.rt = _{name}_allKeys[_{name}_allKeys.length - 1].rt;\n")
+            buff.writeIndentedLines(code.format(name=self.params['name']))
         elif store == 'all keys':
-            code = ("%(name)s.keys = %(name)s.keys.concat(theseKeys);  // storing all keys\n"
-                    "%(name)s.rt = %(name)s.rt.concat(%(name)s.clock.getTime());\n")
-            buff.writeIndentedLines(code % self.params)
+            code = ("{name}.keys = _{name}_allKeys.map((key) => key.name);  // storing all keys\n"
+                    "{name}.rt = _{name}_allKeys.map((key) => key.rt);\n")
+            buff.writeIndentedLines(code.format(name=self.params['name']))
 
         if storeCorr:
-            code = ("// was this 'correct'?\n"
-                    "if (%(name)s.keys == %(correctAns)s) {\n"
-                    "    %(name)s.corr = 1;\n"
-                    "} else {\n"
-                    "    %(name)s.corr = 0;\n"
-                    "}\n")
-            buff.writeIndentedLines(code % self.params)
+            code = ("// was this correct?\n"
+                    "if ({name}.keys == {correctAns}) {{\n"
+                    "    {name}.corr = 1;\n"
+                    "}} else {{\n"
+                    "    {name}.corr = 0;\n"
+                    "}}\n")
+            buff.writeIndentedLines(
+                code.format(
+                    name=self.params['name'],
+                    correctAns=self.params['correctAns']
+                )
+            )
 
         if forceEnd == True:
             code = ("// a response ends the routine\n"
                     "continueRoutine = false;\n")
-            buff.writeIndentedLines(code % self.params)
+            buff.writeIndentedLines(code)
 
         for dedents in range(dedentAtEnd):
             buff.setIndentLevel(-1, relative=True)
@@ -496,21 +502,13 @@ class KeyboardComponent(BaseComponent):
         else:
             currLoop = self.exp._expHandler
 
-        # write the actual code
-        code = ("\n// check responses\n"
-                "if (%(name)s.keys === undefined || %(name)s.keys.length === 0) {"
-                "    // No response was made\n"
-                "    %(name)s.keys = undefined;\n"
-                "}\n\n")
-        buff.writeIndentedLines(code % self.params)
-
         if self.params['storeCorrect'].val:  # check for correct NON-repsonse
             code = ("// was no response the correct answer?!\n"
                     "if (%(name)s.keys === undefined) {\n"
                     "  if (['None','none',undefined].includes(%(correctAns)s)) {\n"
-                    "     %(name)s.corr = 1  // correct non-response\n"
+                    "     %(name)s.corr = 1;  // correct non-response\n"
                     "  } else {\n"
-                    "     %(name)s.corr = 0  // failed to respond (incorrectly)\n"
+                    "     %(name)s.corr = 0;  // failed to respond (incorrectly)\n"
                     "  }\n"
                     "}\n"
                     % self.params)
@@ -539,3 +537,5 @@ class KeyboardComponent(BaseComponent):
             else:
                 code += "    }}\n\n"
             buff.writeIndentedLines(code.format(loopName=currLoop.params['name'], name=name))
+        # Stop keyboard
+        buff.writeIndentedLines("%(name)s.stop();\n" % self.params)

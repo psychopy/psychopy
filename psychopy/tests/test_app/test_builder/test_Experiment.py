@@ -427,7 +427,7 @@ class TestExpImports(object):
         assert import_ in self.exp.requiredImports
 
         script = self.exp.writeScript()
-        assert 'from psychopy import locale_setup, foo\n' in script
+        assert 'from psychopy import foo\n' in script
 
     def test_requirePsychopyLibs2(self):
         import_0 = RequiredImport(importName='foo', importFrom='psychopy',
@@ -440,7 +440,7 @@ class TestExpImports(object):
         assert import_1 in self.exp.requiredImports
 
         script = self.exp.writeScript()
-        assert 'from psychopy import locale_setup, foo, bar\n' in script
+        assert 'from psychopy import foo, bar\n' in script
 
     def test_requireImportAndPsychopyLib(self):
         import_0 = RequiredImport(importName='foo', importFrom='psychopy',
@@ -454,43 +454,46 @@ class TestExpImports(object):
         assert import_1 in self.exp.requiredImports
 
         script = self.exp.writeScript()
-        assert 'from psychopy import locale_setup, foo\n' in script
+        print(script)
+        assert 'from psychopy import foo\n' in script
         assert 'import bar\n' in script
 
 
 class TestRunOnce(object):
     def setup(self):
-        self.exp = psychopy.experiment.Experiment()
+        from psychopy.experiment import exports
+        self.buff = exports.IndentingBuffer()
+
+    def _doSingleTest(self, code):
+        self.buff.writeOnceIndentedLines(code)
+        assert code in self.buff._writtenOnce
+        script = self.buff.getvalue()
+        assert code + '\n' in script
 
     def test_runOnceSingleLine(self):
-        code = 'foo bar baz'
-        self.exp.runOnce(code)
-        assert code in self.exp._runOnce
-
-        script = self.exp.writeScript()
-        assert code + '\n' in script
+        self._doSingleTest('foo bar baz')
 
     def test_runOnceMultiLine(self):
-        code = 'foo bar baz\nbla bla bla'
-        self.exp.runOnce(code)
-        assert code in self.exp._runOnce
-
-        script = self.exp.writeScript()
-        assert code + '\n' in script
+        self._doSingleTest('foo bar baz\nbla bla bla')
 
     def test_runOnceMultipleStatements(self):
-        code_0 = 'foo bar baz'
-        self.exp.runOnce(code_0)
+        code_0 = 'foo bar code0'
+        self.buff.writeOnceIndentedLines(code_0)
+        code_1 = 'bla bla code1'
+        self.buff.writeOnceIndentedLines(code_1)
 
-        code_1 = 'bla bla bla'
-        self.exp.runOnce(code_1)
-
-        assert code_0 in self.exp._runOnce
-        assert code_1 in self.exp._runOnce
-
-        script = self.exp.writeScript()
+        assert code_0 in self.buff._writtenOnce
+        assert code_1 in self.buff._writtenOnce
+        script = self.buff.getvalue()
         assert (code_0 + '\n' + code_1 + '\n') in script
 
+    def test_repeatedInsert(self):
+        code = 'uniqueBlah'
+        self.buff.writeOnceIndentedLines(code)  # write it twice
+        self.buff.writeOnceIndentedLines(code)
+        # check it appears only once
+        script = self.buff.getvalue()
+        assert script.count(code) == 1
 
 class TestDisabledComponents(object):
     def setup(self):

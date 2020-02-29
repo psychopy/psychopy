@@ -58,7 +58,7 @@ Testing has only been done on Windows and Linux so far.
 """
 
 # Part of the PsychoPy library
-# Copyright (C) 2018 Jonathan Peirce
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 #
 # Contributed by Sol Simpson, April 2014.
@@ -396,7 +396,7 @@ class MovieStim2(BaseVisualStim, ContainerMixin):
             vlc.EventType.MediaPlayerEndReached, _audioEndCallback,
             weakref.ref(self))
 
-    def _releaseeAudioStream(self):
+    def _releaseAudioStream(self):
         if self._audio_stream_player:
             self._audio_stream_player.stop()
 
@@ -410,7 +410,6 @@ class MovieStim2(BaseVisualStim, ContainerMixin):
             self._audio_stream.release()
 
         if self._vlc_instance:
-            self._vlc_instance.vlm_release()
             self._vlc_instance.release()
 
         self._audio_stream = None
@@ -649,9 +648,11 @@ class MovieStim2(BaseVisualStim, ContainerMixin):
             GL.glEnable(GL.GL_TEXTURE_2D)
             # bind that name to the target
             GL.glBindTexture(GL.GL_TEXTURE_2D, self._texID)
-            # makes the texture map wrap (this is actually default anyway)
+            # don't allow a movie texture to wrap around
             GL.glTexParameteri(
-                GL.GL_TEXTURE_2D, GL.GL_TEXTURE_WRAP_S, GL.GL_REPEAT)
+                GL.GL_TEXTURE_2D, GL.GL_TEXTURE_WRAP_S, GL.GL_CLAMP)
+            GL.glTexParameteri(
+                GL.GL_TEXTURE_2D, GL.GL_TEXTURE_WRAP_T, GL.GL_CLAMP)
             # data from PIL/numpy is packed, but default for GL is 4 bytes
             GL.glPixelStorei(GL.GL_UNPACK_ALIGNMENT, 1)
             # important if using bits++ because GL_LINEAR
@@ -791,7 +792,7 @@ class MovieStim2(BaseVisualStim, ContainerMixin):
         self._video_stream.release()
         # self._video_stream = None
         self._numpy_frame = None
-        self._releaseeAudioStream()
+        self._releaseAudioStream()
         self.status = FINISHED
 
     def _onEos(self):

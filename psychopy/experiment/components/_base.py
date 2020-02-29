@@ -3,19 +3,23 @@
 
 """
 Part of the PsychoPy library
-Copyright (C) 2018 Jonathan Peirce
+Copyright (C) 2002-2018 Jonathan Peirce (C) 2019 Open Science Tools Ltd.
 Distributed under the terms of the GNU General Public License (GPL).
 """
 
 from __future__ import absolute_import, print_function
 
-from builtins import str, object
+from builtins import str, object, super
 from past.builtins import basestring
 
-from psychopy import logging
+from psychopy import prefs
 from psychopy.constants import FOREVER
 from ..params import Param
 from psychopy.experiment.utils import CodeGenerationException
+from psychopy.experiment.utils import unescapedDollarSign_re
+from psychopy.experiment.params import getCodeFromParamStr
+from psychopy.alerts import alerttools
+
 from psychopy.localization import _translate, _localized
 
 
@@ -43,7 +47,7 @@ class BaseComponent(object):
          "condition": "=='n vertices",
          "param": "n vertices",
          "true": "enable",  # what to do with param if condition is True
-         "false": "disable",  # permited: hide, show, enable, disable
+         "false": "disable",  # permitted: hide, show, enable, disable
          }"""
 
         msg = _translate(
@@ -115,6 +119,56 @@ class BaseComponent(object):
 
         self.order = ['name']  # name first, then timing, then others
 
+    def integrityCheck(self):
+        """
+        Run component integrity checks for non-visual components
+        """
+        alerttools.testDisabled(self)
+        alerttools.testStartEndTiming(self)
+
+    def _dubiousConstantUpdates(self):
+        """Return a list of fields in component that are set to be constant
+        but seem intended to be dynamic. Some code fields are constant, and
+        some denoted as code by $ are constant.
+        """
+        warnings = []
+        # treat expInfo as likely to be constant; also treat its keys as
+        # constant because its handy to make a short-cut in code:
+        # exec(key+'=expInfo[key]')
+        expInfo = self.exp.settings.getInfo()
+        keywords = self.exp.namespace.nonUserBuilder[:]
+        keywords.extend(['expInfo'] + list(expInfo.keys()))
+        reserved = set(keywords).difference({'random', 'rand'})
+        for key in self.params:
+            field = self.params[key]
+            if (not hasattr(field, 'val') or
+                    not isinstance(field.val, basestring)):
+                continue  # continue == no problem, no warning
+            if not (field.allowedUpdates and
+                    isinstance(field.allowedUpdates, list) and
+                    len(field.allowedUpdates) and
+                    field.updates == 'constant'):
+                continue
+            # now have only non-empty, possibly-code, and 'constant' updating
+            if field.valType == 'str':
+                if not bool(unescapedDollarSign_re.search(field.val)):
+                    continue
+                code = getCodeFromParamStr(field.val)
+            elif field.valType == 'code':
+                code = field.val
+            else:
+                continue
+            # get var names in the code; no names == constant
+            try:
+                names = compile(code, '', 'eval').co_names
+            except SyntaxError:
+                continue
+            # ignore reserved words:
+            if not set(names).difference(reserved):
+                continue
+            warnings.append((field, key))
+        return warnings or [(None, None)]
+
     def writeInitCode(self, buff):
         """Write any code that a component needs that should only ever be done
         at start of an experiment, BEFORE window creation.
@@ -158,18 +212,24 @@ class BaseComponent(object):
             else:
                 currLoop = self.exp._expHandler
 
+            if 'Stair' in currLoop.type:
+                addDataFunc = 'addOtherData'
+            else:
+                addDataFunc = 'addData'
+
             if self.params['syncScreenRefresh'].val:
                 code = (
-                    "{loop}.addData('{name}.started', {name}.tStartRefresh)\n"
-                    "{loop}.addData('{name}.stopped', {name}.tStopRefresh)\n"
+                    "{loop}.{addDataFunc}('{name}.started', {name}.tStartRefresh)\n"
+                    "{loop}.{addDataFunc}('{name}.stopped', {name}.tStopRefresh)\n"
                 )
             else:
                 code = (
-                    "{loop}.addData('{name}.started', {name}.tStart)\n"
-                    "{loop}.addData('{name}.stopped', {name}.tStop)\n"
+                    "{loop}.{addDataFunc}('{name}.started', {name}.tStart)\n"
+                    "{loop}.{addDataFunc}('{name}.stopped', {name}.tStop)\n"
                 )
             buff.writeIndentedLines(code.format(loop=currLoop.params['name'],
-                                                name=self.params['name']))
+                                                name=self.params['name'],
+                                                addDataFunc=addDataFunc))
 
     def writeRoutineEndCodeJS(self, buff):
         """Write the code that will be called at the end of
@@ -183,50 +243,41 @@ class BaseComponent(object):
         """
         pass
 
-    def writeTimeTestCode(self, buff):
-        """Original code for testing whether to draw.
-        All objects have now migrated to using writeStartTestCode and
-        writeEndTestCode
-        """
-        # unused internally; deprecated March 2016 v1.83.x, will remove 1.85
-        logging.warning(
-            'Deprecation warning: writeTimeTestCode() is not supported;\n'
-            'will be removed. Please use writeStartTestCode() instead')
-        if self.params['duration'].val == '':
-            code = "if %(startTime)s <= t:\n"
-        else:
-            code = "if %(startTime)s <= t < %(startTime)s + %(duration)s:\n"
-        buff.writeIndentedLines(code % self.params)
-
     def writeStartTestCode(self, buff):
         """Test whether we need to start
         """
+        if self.params['syncScreenRefresh']:
+            tCompare = 'tThisFlip'
+        else:
+            tCompare = 't'
         if self.params['startType'].val == 'time (s)':
             # if startVal is an empty string then set to be 0.0
             if (isinstance(self.params['startVal'].val, basestring) and
                     not self.params['startVal'].val.strip()):
                 self.params['startVal'].val = '0.0'
-            code = ("if t >= %(startVal)s "
-                    "and %(name)s.status == NOT_STARTED:\n")
+            code = ("if {params[name]}.status == NOT_STARTED and "
+                    "{t} >= {params[startVal]}-frameTolerance:\n")
         elif self.params['startType'].val == 'frame N':
-            code = ("if frameN >= %(startVal)s "
-                    "and %(name)s.status == NOT_STARTED:\n")
+            code = ("if {params[name]}.status == NOT_STARTED and "
+                    "frameN >= {params[startVal]}:\n")
         elif self.params['startType'].val == 'condition':
-            code = ("if (%(startVal)s) "
-                    "and %(name)s.status == NOT_STARTED:\n")
+            code = ("if {params[name]}.status == NOT_STARTED and "
+                    "{params[startVal]}:\n")
         else:
             msg = "Not a known startType (%(startType)s) for %(name)s"
             raise CodeGenerationException(msg % self.params)
 
-        buff.writeIndented(code % self.params)
+        buff.writeIndented(code.format(params=self.params, t=tCompare))
 
         buff.setIndentLevel(+1, relative=True)
         code = ("# keep track of start time/frame for later\n"
-                "%(name)s.tStart = t  # not accounting for scr refresh\n"
-                "%(name)s.frameNStart = frameN  # exact frame index\n"
-                "win.timeOnFlip(%(name)s, 'tStartRefresh')"
-                "  # time at next scr refresh\n")
-        buff.writeIndentedLines(code % self.params)
+                "{params[name]}.frameNStart = frameN  # exact frame index\n"
+                "{params[name]}.tStart = t  # local t and not account for scr refresh\n"
+                "{params[name]}.tStartRefresh = tThisFlipGlobal  # on global time\n")
+        if self.type != "Sound":  # for sounds, don't update to actual frame time
+                code += ("win.timeOnFlip({params[name]}, 'tStartRefresh')"
+                         "  # time at next scr refresh\n")
+        buff.writeIndentedLines(code.format(params=self.params))
 
     def writeStartTestCodeJS(self, buff):
         """Test whether we need to start
@@ -253,35 +304,30 @@ class BaseComponent(object):
         buff.setIndentLevel(+1, relative=True)
         code = ("// keep track of start time/frame for later\n"
                 "%(name)s.tStart = t;  // (not accounting for frame time here)\n"
-                "%(name)s.frameNStart = frameN;  // exact frame index\n")
+                "%(name)s.frameNStart = frameN;  // exact frame index\n\n")
         buff.writeIndentedLines(code % self.params)
 
     def writeStopTestCode(self, buff):
         """Test whether we need to stop
         """
+        buff.writeIndentedLines("if %(name)s.status == STARTED:\n" % self.params)
+        buff.setIndentLevel(+1, relative=True)
+
         if self.params['stopType'].val == 'time (s)':
-            code = ("frameRemains = %(stopVal)s "
-                    "- win.monitorFramePeriod * 0.75"
-                    "  # most of one frame period left\n"
-                    "if %(name)s.status == STARTED and t >= frameRemains:\n")
+            code = ("# is it time to stop? (based on local clock)\n"
+                    "if tThisFlip > %(stopVal)s-frameTolerance:\n"
+                    )
         # duration in time (s)
-        elif (self.params['stopType'].val == 'duration (s)' and
-              self.params['startType'].val == 'time (s)'):
-            code = ("frameRemains = %(startVal)s + %(stopVal)s"
-                    "- win.monitorFramePeriod * 0.75"
-                    "  # most of one frame period left\n"
-                    "if %(name)s.status == STARTED and t >= frameRemains:\n")
-        # start at frame and end with duration (need to use approximate)
-        elif self.params['stopType'].val == 'duration (s)':
-            code = ("if %(name)s.status == STARTED and t >= (%(name)s.tStart "
-                    "+ %(stopVal)s):\n")
+        elif (self.params['stopType'].val == 'duration (s)'):
+            code = ("# is it time to stop? (based on global clock, using actual start)\n"
+                    "if tThisFlipGlobal > %(name)s.tStartRefresh + %(stopVal)s-frameTolerance:\n"
+                    )
         elif self.params['stopType'].val == 'duration (frames)':
-            code = ("if %(name)s.status == STARTED and frameN >= "
-                    "(%(name)s.frameNStart + %(stopVal)s):\n")
+            code = ("if frameN >= (%(name)s.frameNStart + %(stopVal)s):\n")
         elif self.params['stopType'].val == 'frame N':
-            code = "if %(name)s.status == STARTED and frameN >= %(stopVal)s:\n"
+            code = "if frameN >= %(stopVal)s:\n"
         elif self.params['stopType'].val == 'condition':
-            code = "if %(name)s.status == STARTED and bool(%(stopVal)s):\n"
+            code = "if bool(%(stopVal)s):\n"
         else:
             msg = ("Didn't write any stop line for startType=%(startType)s, "
                    "stopType=%(stopType)s")
@@ -325,7 +371,7 @@ class BaseComponent(object):
                     "&& frameN >= %(stopVal)s) {\n")
         elif self.params['stopType'].val == 'condition':
             code = ("if (%(name)s.status === PsychoJS.Status.STARTED "
-                    "&& bool(%(stopVal)s)) {\n")
+                    "&& Boolean(%(stopVal)s)) {\n")
         else:
             msg = ("Didn't write any stop line for startType="
                    "%(startType)s, "
@@ -428,6 +474,9 @@ class BaseComponent(object):
                 buff.write("%s)%s\n" % (loggingStr, endStr))
             elif paramName == 'fillColor':
                 buff.writeIndented("%s.setFillColor(new util.Color(%s)" % (compName, params['fillColor']))
+                buff.write("%s)%s\n" % (loggingStr, endStr))
+            elif paramName == 'lineColor':
+                buff.writeIndented("%s.setLineColor(new util.Color(%s)" % (compName, params['lineColor']))
                 buff.write("%s)%s\n" % (loggingStr, endStr))
             elif paramName == 'sound':
                 stopVal = params['stopVal']
@@ -603,6 +652,32 @@ class BaseVisualComponent(BaseComponent):
 
         self.params['syncScreenRefresh'].readOnly = True
 
+    def integrityCheck(self):
+        """
+        Run component integrity checks.
+        """
+        super().integrityCheck()  # run parent class checks first
+
+        win = alerttools.TestWin(self.exp)
+
+        # get units for this stimulus
+        if 'units' in self.params:  # e.g. BrushComponent doesn't have this
+            units = self.params['units'].val
+        else:
+            units = None
+        if units == 'use experiment settings':
+            units = self.exp.settings.params[
+                'Units'].val  # this 1 uppercase
+        if not units or units == 'use preferences':
+            units = prefs.general['units']
+
+        # tests for visual stimuli
+        alerttools.testSize(self, win, units)
+        alerttools.testPos(self, win, units)
+        alerttools.testAchievableVisualOnsetOffset(self)
+        alerttools.testValidVisualStimTiming(self)
+        alerttools.testFramesAsInt(self)
+
     def writeFrameCode(self, buff):
         """Write the code that will be called every frame
         """
@@ -620,7 +695,7 @@ class BaseVisualComponent(BaseComponent):
             self.writeStopTestCode(buff)
             buff.writeIndented("%(name)s.setAutoDraw(False)\n" % self.params)
             # to get out of the if statement
-            buff.setIndentLevel(-1, relative=True)
+            buff.setIndentLevel(-2, relative=True)
 
         # set parameters that need updating every frame
         # do any params need updating? (this method inherited from _base)

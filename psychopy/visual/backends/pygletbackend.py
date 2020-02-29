@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2018 Jonathan Peirce
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 """A Backend class defines the core low-level functions required by a Window
@@ -35,6 +35,13 @@ GL = pyglet.gl
 
 retinaContext = None  # it will be set to an actual context if needed
 
+# get the default display
+if pyglet.version < '1.4':
+    _default_display_ = pyglet.window.get_platform().get_default_display()
+else:
+    _default_display_ = pyglet.canvas.get_display()
+
+
 class PygletBackend(BaseBackend):
     """The pyglet backend is the most used backend. It has no dependencies
     or C libs that need compiling, but may not be as fast or efficient as libs
@@ -50,11 +57,12 @@ class PygletBackend(BaseBackend):
         :param: win is a PsychoPy Window (usually not fully created yet)
         """
         BaseBackend.__init__(self, win)  # sets up self.win=win as weakref
+        self._TravisTesting = (os.environ.get('TRAVIS') == 'true')
 
-        if win.allowStencil:
-            stencil_size = 8
-        else:
-            stencil_size = 0
+        self._gammaErrorPolicy = win.gammaErrorPolicy
+        self._origGammaRamp = None
+        self._rampSize = None
+
         vsync = 0
 
         # provide warning if stereo buffers are requested but unavailable
@@ -70,6 +78,20 @@ class PygletBackend(BaseBackend):
                              "Pyglet 1.3 appears to be forcing "
                              "us to use retina on any retina-capable screen "
                              "so setting to False has no effect.")
+
+        # window framebuffer configuration
+        bpc = kwargs.get('bpc', (8, 8, 8))
+        if isinstance(bpc, int):
+            win.bpc = (bpc, bpc, bpc)
+        else:
+            win.bpc = bpc
+
+        win.depthBits = int(kwargs.get('depthBits', 8))
+
+        if win.allowStencil:
+            win.stencilBits = int(kwargs.get('stencilBits', 8))
+        else:
+            win.stencilBits = 0
 
         # multisampling
         sample_buffers = 0
@@ -91,15 +113,11 @@ class PygletBackend(BaseBackend):
                     'integer greater than two. Disabling.')
                 win.multiSample = False
 
-        # options that the user might want
-        config = GL.Config(depth_size=8, double_buffer=True,
-                           sample_buffers=sample_buffers,
-                           samples=aa_samples, stencil_size=stencil_size,
-                           stereo=win.stereo,
-                           vsync=vsync)
+        if pyglet.version < '1.4':
+            allScrs = _default_display_.get_screens()
+        else:
+            allScrs = _default_display_.get_screens()
 
-        defDisp = pyglet.window.get_platform().get_default_display()
-        allScrs = defDisp.get_screens()
         # Screen (from Exp Settings) is 1-indexed,
         # so the second screen is Screen 1
         if len(allScrs) < int(win.screen) + 1:
@@ -109,14 +127,35 @@ class PygletBackend(BaseBackend):
         else:
             thisScreen = allScrs[win.screen]
             if win.autoLog:
-                logging.info('configured pyglet screen %i' % self.screen)
+                logging.info('configured pyglet screen %i' % win.screen)
+
+        # options that the user might want
+        config = GL.Config(depth_size=win.depthBits,
+                           double_buffer=True,
+                           sample_buffers=sample_buffers,
+                           samples=aa_samples,
+                           stencil_size=win.stencilBits,
+                           stereo=win.stereo,
+                           vsync=vsync,
+                           red_size=win.bpc[0],
+                           green_size=win.bpc[1],
+                           blue_size=win.bpc[2])
+
+        # check if we can have this configuration
+        validConfigs = thisScreen.get_matching_configs(config)
+        if not validConfigs:
+            # check which configs are invalid for the display
+            raise RuntimeError(
+                "Specified window configuration is not supported by this "
+                "display.")
+
         # if fullscreen check screen size
         if win._isFullScr:
-            win._checkMatchingSizes(win.size, [thisScreen.width,
-                                                 thisScreen.height])
+            win._checkMatchingSizes(win.clientSize, [thisScreen.width,
+                                                  thisScreen.height])
             w = h = None
         else:
-            w, h = win.size
+            w, h = win.clientSize
         if win.allowGUI:
             style = None
         else:
@@ -153,15 +192,19 @@ class PygletBackend(BaseBackend):
                 win._hw_handle = self.winHandle._view_hwnd
             else:
                 win._hw_handle = self.winHandle._hwnd
+
+            self._frameBufferSize = win.clientSize
         elif sys.platform == 'darwin':
             if win.useRetina:
                 global retinaContext
                 retinaContext = self.winHandle.context._nscontext
                 view = retinaContext.view()
                 bounds = view.convertRectToBacking_(view.bounds()).size
-                if win.size[0] == bounds.width:
+                if win.clientSize[0] == bounds.width:
                     win.useRetina = False  # the screen is not a retina display
-                win.size = np.array([int(bounds.width), int(bounds.height)])
+                self._frameBufferSize = np.array([int(bounds.width), int(bounds.height)])
+            else:
+                self._frameBufferSize = win.clientSize
             try:
                 # python 32bit (1.4. or 1.2 pyglet)
                 win._hw_handle = self.winHandle._window.value
@@ -170,6 +213,7 @@ class PygletBackend(BaseBackend):
                 win._hw_handle = self.winHandle._nswindow.windowNumber()
         elif sys.platform.startswith('linux'):
             win._hw_handle = self.winHandle._window
+            self._frameBufferSize = win.clientSize
 
         if win.useFBO:  # check for necessary extensions
             if not GL.gl_info.have_extension('GL_EXT_framebuffer_object'):
@@ -204,11 +248,11 @@ class PygletBackend(BaseBackend):
         if not win.pos:
             # work out where the centre should be 
             if win.useRetina:
-                win.pos = [(thisScreen.width - win.size[0]/2) / 2,
-                            (thisScreen.height - win.size[1]/2) / 2]
+                win.pos = [(thisScreen.width - win.clientSize[0]/2) / 2,
+                            (thisScreen.height - win.clientSize[1]/2) / 2]
             else:
-                win.pos = [(thisScreen.width - win.size[0]) / 2,
-                            (thisScreen.height - win.size[1]) / 2]
+                win.pos = [(thisScreen.width - win.clientSize[0]) / 2,
+                            (thisScreen.height - win.clientSize[1]) / 2]
         if not win._isFullScr:
             # add the necessary amount for second screen
             self.winHandle.set_location(int(win.pos[0] + thisScreen.x),
@@ -224,10 +268,11 @@ class PygletBackend(BaseBackend):
 
         # store properties of the system
         self._driver = pyglet.gl.gl_info.get_renderer()
-        self._origGammaRamp = self.getGammaRamp()
-        self._rampSize = getGammaRampSize(self.screenID, self.xDisplay)
-        self._TravisTesting = (os.environ.get('TRAVIS') == 'true')
 
+    @property
+    def frameBufferSize(self):
+        """Size of the presently active framebuffer in pixels (w, h)."""
+        return self._frameBufferSize
 
     @property
     def shadersSupported(self):
@@ -269,33 +314,30 @@ class PygletBackend(BaseBackend):
         self.winHandle.set_mouse_visible(visibility)
 
     def setCurrent(self):
-        """Sets this window to be the current rendering target
+        """Sets this window to be the current rendering target.
 
-        :return: None
+        Returns
+        -------
+        bool
+            ``True`` if the context was switched from another. ``False`` is
+            returned if ``setCurrent`` was called on an already current window.
+
         """
         if self != globalVars.currWindow:
             self.winHandle.switch_to()
             globalVars.currWindow = self
 
-            win = self.win  # it's a weakref so faster to call just once
-            # if we are using an FBO, bind it
-            if hasattr(win, 'frameBuffer'):
-                GL.glBindFramebufferEXT(GL.GL_FRAMEBUFFER_EXT,
-                                        win.frameBuffer)
-                GL.glReadBuffer(GL.GL_COLOR_ATTACHMENT0_EXT)
-                GL.glDrawBuffer(GL.GL_COLOR_ATTACHMENT0_EXT)
+            return True
 
-                # NB - check if we need these
-                GL.glActiveTexture(GL.GL_TEXTURE0)
-                GL.glBindTexture(GL.GL_TEXTURE_2D, 0)
-                GL.glEnable(GL.GL_STENCIL_TEST)
+        return False
 
     def dispatchEvents(self):
         """Dispatch events to the event handler (typically called on each frame)
 
         :return:
         """
-        wins = pyglet.window.get_platform().get_default_display().get_windows()
+        wins = _default_display_.get_windows()
+
         for win in wins:
             win.dispatch_events()
 
@@ -305,13 +347,18 @@ class PygletBackend(BaseBackend):
     @attributeSetter
     def gamma(self, gamma):
         self.__dict__['gamma'] = gamma
+        if self._TravisTesting:
+            return
+        if self._origGammaRamp is None:  # get the original if we haven't yet
+            self._getOrigGammaRamp()
         if gamma is not None:
             setGamma(
                 screenID=self.screenID,
                 newGamma=gamma,
                 rampSize=self._rampSize,
                 driver=self._driver,
-                xDisplay=self.xDisplay
+                xDisplay=self.xDisplay,
+                gammaErrorPolicy=self._gammaErrorPolicy
             )
 
     @attributeSetter
@@ -319,11 +366,34 @@ class PygletBackend(BaseBackend):
         """Gets the gamma ramp or sets it to a new value (an Nx3 or Nx1 array)
         """
         self.__dict__['gammaRamp'] = gammaRamp
-        setGammaRamp(self.screenID, gammaRamp, nAttempts=3,
-                     xDisplay=self.xDisplay)
+        if self._TravisTesting:
+            return
+        if self._origGammaRamp is None:  # get the original if we haven't yet
+            self._getOrigGammaRamp()
+        setGammaRamp(
+            self.screenID,
+            gammaRamp,
+            nAttempts=3,
+            xDisplay=self.xDisplay,
+            gammaErrorPolicy=self._gammaErrorPolicy
+        )
 
     def getGammaRamp(self):
-        return getGammaRamp(self.screenID, self.xDisplay)
+        return getGammaRamp(self.screenID, self.xDisplay,
+                            gammaErrorPolicy=self._gammaErrorPolicy)
+
+    def getGammaRampSize(self):
+        return getGammaRampSize(self.screenID, self.xDisplay,
+                                gammaErrorPolicy=self._gammaErrorPolicy)
+
+    def _getOrigGammaRamp(self):
+        """This is just used to get origGammaRamp and will populate that if
+        needed on the first call"""
+        if self._origGammaRamp is None:
+            self._origGammaRamp = self.getGammaRamp()
+            self._rampSize = self.getGammaRampSize()
+        else:
+            return self._origGammaRamp
 
     @property
     def screenID(self):
@@ -367,7 +437,7 @@ class PygletBackend(BaseBackend):
             return
 
         # restore the gamma ramp that was active when window was opened
-        if not self._TravisTesting:
+        if self._origGammaRamp is not None:
             self.gammaRamp = self._origGammaRamp
 
         _hw_handle = None
@@ -390,6 +460,7 @@ class PygletBackend(BaseBackend):
     def setFullScr(self, value):
         """Sets the window to/from full-screen mode"""
         self.winHandle.set_fullscreen(value)
+
 
 def _onResize(width, height):
     """A default resize event handler.

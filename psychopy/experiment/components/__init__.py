@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2018 Jonathan Peirce
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 """Extensible set of components for the PsychoPy Builder view
@@ -186,12 +186,10 @@ def getInitVals(params, target="PsychoPy"):
     """
     inits = copy.deepcopy(params)
     for name in params:
-
         if target == "PsychoJS":
-            # convert (0,0.5) to [0,0.5] but don't convert "rand()" to "rand[]"
+            # convert (0,0.5) to [0,0.5] but don't convert "rand()" to "rand[]" and don't convert text
             valStr = str(inits[name].val).strip()
-
-            if valStr.startswith("(") and valStr.endswith(")"):
+            if valStr.startswith("(") and valStr.endswith(")") and name != 'text':
                 inits[name].val = py2js.expression2js(inits[name].val)
             # filenames (e.g. for image) need to be loaded from resources
             if name in ["sound"]:
@@ -221,7 +219,7 @@ def getInitVals(params, target="PsychoPy"):
             inits[name].val = 'white'
             inits[name].valType = 'str'
         elif name in ['ori', 'sf', 'size', 'height', 'letterHeight',
-                      'lineColor', 'fillColor',
+                      'lineColor', 'fillColor', 'lineWidth',
                       'phase', 'opacity',
                       'volume',  # sounds
                       'coherence', 'nDots', 'fieldSize', 'dotSize', 'dotLife',

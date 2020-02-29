@@ -35,6 +35,7 @@ if "%1" == "clean" (
 if "%1" == "html" (
 	%SPHINXBUILD% -b html %ALLSPHINXOPTS% build/html
 	echo.
+	copy source/index.html build/html/
 	echo.Build finished. The HTML pages are in build/html.
 	goto end
 )
@@ -109,4 +110,17 @@ results in build/doctest/output.txt.
 	goto end
 )
 
+if "%1" == "latexpdf" (
+	%SPHINXBUILD% -b latex %ALLSPHINXOPTS% build/latex
+	echo "Running LaTeX files through pdflatex..."
+	cd build/latex
+	xelatex.exe PsychoPyManual.tex
+	cd ../..
+	echo "pdflatex finished; the PDF files are in build/latex."
+	goto end
+)
+if "%1" == "pdf" (
+    ./make.bat latexpdf
+	goto end
+)
 :end

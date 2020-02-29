@@ -1,0 +1,21 @@
+# The first key-value pair is used for the alerts package
+
+code: 2155
+cat: Positioning
+msg: Your stimulus position exceeds the {dimension} dimension of your window.
+
+# Each of the following key values are used for formatting online help pages, and support reStructured Text.
+
+label: Stimulus position is beyond the bounds of the window
+
+synopsis: |  
+  Your stimulus position exceeds the X or Y window dimensions. Stimuli centered beyond the window will not be completely visible.
+
+details: |
+  This issue is often caused by an inconsistency betwen the units of your stimulus and the values being requested. For instance a position of (3, 0), when the units are `deg` is sensible (3 degrees to the right of the screen center) but a position of (3, 0) when the units are `height` would not be sensible (3 times the height of the screen to the right of the center).
+
+solutions: |
+  Check the position and the :ref:`units of the stimulus <units>`_ carefully. You may also need to check the monitor calibration if you're using units that depend on the monitor size and resolution (like `cm` and `deg`).
+
+versions: |
+  All versions

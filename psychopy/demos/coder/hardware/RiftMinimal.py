@@ -12,6 +12,14 @@ hmd = visual.Rift()
 # loop until the user quits the app through the GUI menu
 stopApp = False
 while not stopApp:
+    # You must call these functions before drawing anything. First, you need to
+    # get the current tracking state of the head, then pass the pose to
+    # `calcEyePoses` to compute the eye positions. Only then you can begin
+    # rendering scenes. If `calcEyePoses` is not called, the application will
+    # stall.
+    trackingState = hmd.getTrackingState()
+    hmd.calcEyePoses(trackingState.headPose.thePose)
+
     for i in ('left', 'right'):
         hmd.setBuffer(i)  # select the eye buffer to draw to
 

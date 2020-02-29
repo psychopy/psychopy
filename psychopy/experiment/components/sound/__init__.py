@@ -3,7 +3,7 @@
 
 """
 Part of the PsychoPy library
-Copyright (C) 2018 Jonathan Peirce
+Copyright (C) 2002-2018 Jonathan Peirce (C) 2019 Open Science Tools Ltd.
 Distributed under the terms of the GNU General Public License (GPL).
 """
 
@@ -73,6 +73,12 @@ class SoundComponent(BaseComponent):
             updates='constant',
             hint=msg,
             label=_localized['syncScreenRefresh'])
+        self.params['hamming'] = Param(
+            True, valType='bool', updates='constant',
+            hint=_translate(
+                  "For tones we can apply a Hamming window to prevent 'clicks' that "
+                  "are caused by a sudden onset. This delays onset by roughly 1ms."),
+            label=_translate('Hamming window'))
 
     def writeInitCode(self, buff):
         # replaces variable params with sensible defaults
@@ -84,16 +90,19 @@ class SoundComponent(BaseComponent):
                 inits['stopVal'].val = -1
             elif float(inits['stopVal'].val) > 2:
                 inits['stopVal'].val = -1
-        buff.writeIndented("%s = sound.Sound(%s, secs=%s, stereo=%s)\n" %
-                           (inits['name'], inits['sound'], inits['stopVal'], self.exp.settings.params['Force stereo']))
+        buff.writeIndented("%s = sound.Sound(%s, secs=%s, stereo=%s, hamming=%s,\n"
+                           "    name='%s')\n" %
+                           (inits['name'], inits['sound'], inits['stopVal'],
+                            self.exp.settings.params['Force stereo'],
+                            inits['hamming'], inits['name']))
         buff.writeIndented("%(name)s.setVolume(%(volume)s)\n" % (inits))
 
     def writeRoutineStartCode(self, buff):
         if self.params['stopVal'].val in [None, 'None', '']:
-            buff.writeIndentedLines("%(name)s.setSound(%(sound)s)\n"
+            buff.writeIndentedLines("%(name)s.setSound(%(sound)s, hamming=%(hamming)s)\n"
                                     "%(name)s.setVolume(%(volume)s, log=False)\n" % self.params)
         else:
-            buff.writeIndentedLines("%(name)s.setSound(%(sound)s, secs=%(stopVal)s)\n"
+            buff.writeIndentedLines("%(name)s.setSound(%(sound)s, secs=%(stopVal)s, hamming=%(hamming)s)\n"
                                     "%(name)s.setVolume(%(volume)s, log=False)\n" % self.params)
 
     def writeInitCodeJS(self, buff):
@@ -105,7 +114,7 @@ class SoundComponent(BaseComponent):
             inits['stopVal'].val = -1
         elif float(inits['stopVal'].val) > 2:
             inits['stopVal'].val = -1
-        buff.writeIndented("%s = new Sound({\n"
+        buff.writeIndented("%s = new sound.Sound({\n"
                            "    win: psychoJS.window,\n"
                            "    value: %s,\n"
                            "    secs: %s,\n"
@@ -115,12 +124,12 @@ class SoundComponent(BaseComponent):
         buff.writeIndented("%(name)s.setVolume(%(volume)s);\n" % (inits))
 
     def writeRoutineStartCodeJS(self, buff):
-        stopVal = self.params['stopVal'].val
+        stopVal = self.params['stopVal']
         if stopVal in ['', None, 'None']:
             stopVal = -1
 
         if self.params['sound'].updates == 'set every repeat':
-            buff.writeIndented("%s = new Sound({\n"
+            buff.writeIndented("%s = new sound.Sound({\n"
                                "    win: psychoJS.window,\n"
                                "    value: %s,\n"
                                "    secs: %s,\n"
@@ -128,10 +137,10 @@ class SoundComponent(BaseComponent):
                                               self.params['sound'],
                                               stopVal))
         if stopVal == -1:
-            buff.writeIndentedLines("%(name)s.setVolume(%(volume)s)\n" % self.params)
+            buff.writeIndentedLines("%(name)s.setVolume(%(volume)s);\n" % self.params)
         else:
-            buff.writeIndentedLines("%(name)s.secs=%(stopVal)s\n"
-                                    "%(name)s.setVolume(%(volume)s)\n" % self.params)
+            buff.writeIndentedLines("%(name)s.secs=%(stopVal)s;\n"
+                                    "%(name)s.setVolume(%(volume)s);\n" % self.params)
 
     def writeFrameCode(self, buff):
         """Write the code that will be called every frame
@@ -142,24 +151,18 @@ class SoundComponent(BaseComponent):
         self.writeParamUpdates(buff, 'set every frame')
         self.writeStartTestCode(buff)
         if self.params['syncScreenRefresh'].val:
-            code = ("win.callOnFlip(%(name)s.play)  # screen flip\n") % self.params
+            code = ("%(name)s.play(when=win)  # sync with win flip\n") % self.params
         else:
             code = "%(name)s.play()  # start the sound (it finishes automatically)\n" % self.params
         buff.writeIndented(code)
         # because of the 'if' statement of the time test
         buff.setIndentLevel(-1, relative=True)
         if not self.params['stopVal'].val in ['', None, -1, 'None']:
-
-            if '$' in self.params['stopVal'].val:
-                code = 'if %(name)s.status == STARTED and t >= %(stopVal)s:\n' \
-                       '    %(name)s.stop()  # stop the sound (if longer than duration)\n'
-                buff.writeIndentedLines(code % self.params)
-            elif not float(self.params['stopVal'].val) < 2:  # Reduce spectral splatter but not stopping short sounds
-                self.writeStopTestCode(buff)
-                code = "%s.stop()  # stop the sound (if longer than duration)\n"
-                buff.writeIndented(code % self.params['name'])
-                # because of the 'if' statement of the time test
-                buff.setIndentLevel(-1, relative=True)
+            self.writeStopTestCode(buff)
+            code = ("%(name)s.stop()\n")
+            buff.writeIndentedLines(code % self.params)
+            # because of the 'if' statement of the time test
+            buff.setIndentLevel(-2, relative=True)
 
     def writeFrameCodeJS(self, buff):
         """Write the code that will be called every frame
@@ -180,23 +183,22 @@ class SoundComponent(BaseComponent):
         buff.writeIndentedLines('}\n')
         knownNote = (self.params['sound'] in knownNoteNames) or (self.params['sound'].val.isdigit())
         if self.params['stopVal'].val in [None, 'None', '']:
-            code = ('if (t >= (%(name)s.getDuration() + %(name)s.tStart) '
-                    '&& %(name)s.status === PsychoJS.Status.STARTED) {\n'
-                    '  %(name)s.stop();  // stop the sound (if longer than duration)\n'
-                    '  %(name)s.status = PsychoJS.Status.FINISHED;\n'
-                    '}\n')
             if not knownNote:  # Known notes have no getDuration function because duration is infinite or not None
+                # infinite sounds
+                code = ('if (t >= (%(name)s.getDuration() + %(name)s.tStart) '
+                        '    && %(name)s.status === PsychoJS.Status.STARTED) {\n'
+                        '  %(name)s.stop();  // stop the sound (if longer than duration)\n'
+                        '  %(name)s.status = PsychoJS.Status.FINISHED;\n'
+                        '}\n')
                 buff.writeIndentedLines(code % self.params)
-        elif '$' in self.params['stopVal'].val:
-            code = ('if (t >= (%(stopVal)s && %(name)s.status === PsychoJS.Status.STARTED)) {\n'
-                    '  %(name)s.stop();  // stop the sound (if longer than duration)\n'
-                    '  %(name)s.status = PsychoJS.Status.FINISHED;\n'
-                    '}\n')
-            buff.writeIndentedLines(code % self.params)
-        elif not float(self.params['stopVal'].val) < 2:  # Reduce spectral splatter but not stopping short sounds
+        else:
+            # sounds with stop values
             self.writeStopTestCodeJS(buff)
-            code = "%s.stop();  // stop the sound (if longer than duration)\n"
-            buff.writeIndented(code % self.params['name'])
+            code = ("if (%(stopVal)s > 0.5) {"
+                    "  %(name)s.stop();  // stop the sound (if longer than duration)\n"
+                    "  %(name)s.status = PsychoJS.Status.FINISHED;\n"
+                    "}\n")
+            buff.writeIndentedLines(code % self.params)
             # because of the 'if' statement of the time test
             buff.setIndentLevel(-1, relative=True)
             buff.writeIndented('}\n')
@@ -205,7 +207,7 @@ class SoundComponent(BaseComponent):
         code = "%s.stop()  # ensure sound has stopped at end of routine\n"
         buff.writeIndented(code % self.params['name'])
         # get parent to write code too (e.g. store onset/offset times)
-        super().writeRoutineEndCode(buff)
+        super().writeRoutineEndCode(buff)  # noinspection
 
     def writeRoutineEndCodeJS(self, buff):
         code = "%s.stop();  // ensure sound has stopped at end of routine\n"

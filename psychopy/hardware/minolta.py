@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2018 Jonathan Peirce
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 """Minolta light-measuring devices
@@ -227,10 +227,12 @@ class LS100(object):
 
         # flush the read buffer first
         # read as many chars as are in the buffer
-        self.com.read(self.com.inWaiting())
+        self.com.read(self.com.inWaiting()).encode('utf-8')
         for attemptN in range(self.maxAttempts):
             # send the message
             time.sleep(0.1)
+            if type(message)!=bytes:
+                message = message.decode('utf-8')
             self.com.write(message)
             self.com.flush()
             time.sleep(0.1)
@@ -238,7 +240,7 @@ class LS100(object):
             self.com.timeout = timeout
             # send complete message
             logging.debug('Sent command:' + message[:-2])
-            retVal = self.com.readline()
+            retVal = self.com.readline().encode('utf-8')
             if len(retVal) > 0:
                 break  # we got a reply so can stop trying
 

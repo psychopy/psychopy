@@ -18,6 +18,7 @@ from psychopy import logging, localization
 from psychopy.exceptions import DependencyError
 from psychopy.localization import _translate
 from pkg_resources import parse_version
+from psychopy import sound
 
 # this will be overridden by the size of the scrolled panel making the prefs
 dlgSize = (600, 500)
@@ -41,6 +42,7 @@ _localized = {
     'audioLib': _translate("audio library"),
     'audioDriver': _translate("audio driver"),
     'audioDevice': _translate("audio device"),
+    'audioLatencyMode': _translate("audio latency mode"),
     'flac': _translate('flac audio compression'),
     'parallelPorts': _translate("parallel ports"),
     'qmixConfiguration': _translate("Qmix configuration"),
@@ -118,6 +120,7 @@ _localized = {
     'renameRoutine': _translate('rename Routine'),
     'switchToBuilder': _translate('switch to Builder'),
     'switchToCoder': _translate('switch to Coder'),
+    'switchToRunner': _translate('switch to Runner'),
     'largerFlow': _translate('larger Flow'),
     'smallerFlow': _translate('smaller Flow'),
     'largerRoutine': _translate('larger routine'),
@@ -145,6 +148,12 @@ _localized = {
 }
 # add pre-translated names-of-langauges, for display in locale pref:
 _localized.update(localization.locname)
+
+audioLatencyLabels = {0:_translate('Latency not important'),
+                      1:_translate('Share low-latency driver'),
+                      2:_translate('Exclusive low-latency'),
+                      3:_translate('Aggressive low-latency'),
+                      4:_translate('Latency critical')}
 
 
 class PreferencesDlg(wx.Dialog):
@@ -302,7 +311,7 @@ class PreferencesDlg(wx.Dialog):
         # b) case-insensitive match for Cmd+ at start of string
         # c) reverse-map locale display names to canonical names (ja_JP)
         re_cmd2ctrl = re.compile('^Cmd\+', re.I)
-        for sectionName in self.prefsCfg:
+        for sectionName in self.prefsSpec:
             for prefName in self.prefsSpec[sectionName]:
                 if prefName in ['version']:  # any other prefs not to show?
                     continue
@@ -378,20 +387,37 @@ class PrefCtrls(object):
             # only True or False - use a checkbox
             self.valueCtrl = wx.CheckBox(self.parent)
             self.valueCtrl.SetValue(value)
+        elif name == 'audioLatencyMode':
+            # get the labels from above
+            labels = []
+            for val, labl in audioLatencyLabels.items():
+                labels.append(u'{}: {}'.format(val, labl))
+            #get the options from the config file spec
+            options = spec.replace("option(", "").replace("'", "")
+            # item -1 is 'default=x' from spec
+            options = options.replace(", ", ",").split(',')[:-1]
+
+            self.valueCtrl = wx.Choice(self.parent, choices=labels)
+            self.valueCtrl._choices = copy.copy(options)  # internal values
+            self.valueCtrl.SetSelection(options.index(value))
         elif spec.startswith('option') or name == 'audioDevice':
             if name == 'audioDevice':
-                options = copy.copy(value)
-                value = value[0]
+                devnames = sorted(sound.getDevices('output'))
+                if type(value) == list:
+                    value = value[0]
+                if value in devnames:
+                    options = [value]
+                else:
+                    options = []
                 try:
-                    # getting device name using sounddevice
-                    import sounddevice
-                    devices = sounddevice.query_devices()
-                    for device in devices:
-                        if device['max_output_channels'] > 0:
-                            # newline characters must be removed
-                            thisDevName = device['name'].replace('\r\n','')
-                            if thisDevName not in options:
-                                options.append(thisDevName)
+                    # TODO: this assumes that the driver loaded is current selected
+                    # we *could* fix that but hopefully PTB will soon dominate and 
+                    # then we don't need to worry!
+                    for device in devnames:
+                        # newline characters must be removed
+                        thisDevName = device.replace('\r\n', '')
+                        if thisDevName not in options:
+                            options.append(thisDevName)
                 except (ValueError, OSError, ImportError):
                     pass
             else:
@@ -407,7 +433,7 @@ class PrefCtrls(object):
             self.valueCtrl = wx.Choice(self.parent, choices=labels)
             self.valueCtrl._choices = copy.copy(options)  # internal values
             try:
-                self.valueCtrl.SetSelection(options.index(value))
+                self.valueCtrl.SetSelection(0)
             except:
                 pass
         elif spec.startswith('list'):  # list
@@ -453,7 +479,7 @@ class PrefCtrls(object):
         """Convert list to string.
 
         This function is necessary because Unicode characters come to be
-        converted to hexadicimal values if unicode() is used to convert a
+        converted to hexadecimal values if unicode() is used to convert a
         list to string. This function applies str() or unicode() to each
         element of the list.
         """

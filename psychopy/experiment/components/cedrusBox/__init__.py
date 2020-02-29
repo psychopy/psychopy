@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2018 Jonathan Peirce
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 from __future__ import absolute_import, print_function
@@ -11,6 +11,7 @@ from builtins import str
 from past.builtins import basestring
 from os import path
 
+from psychopy.constants import PY3
 from psychopy.experiment.components import Param, _translate
 from psychopy.experiment.components.keyboard import KeyboardComponent
 from psychopy.experiment import CodeGenerationException, valid_var_re
@@ -99,27 +100,28 @@ class cedrusButtonBoxComponent(KeyboardComponent):
             hint=msg,
             label=_localized['useBoxTimer'], categ='Advanced')
 
-    def writeStartCode(self, buff):
-        """code for start of the script (import statements)
-        """
-        buff.writeIndented("import pyxid  # to use the Cedrus response box\n")
-        if self.params['useBoxTimer'].val:
-            buff.writeIndented("pyxid.use_response_pad_timer = True\n")
-
-    def writeInitCode(self, buff):
-        code = ("%(name)s = None\n"
+    def writeRunOnceInitCode(self, buff):
+        code = ("try:  # to use the Cedrus response box\n"
+                "   import pyxid2 as pyxid\n"
+                "except ImportError:\n"
+                "   import pyxid\n"
+                "cedrusBox_%(deviceNumber)s = None\n"
                 "for n in range(10):  # doesn't always work first time!\n"
                 "    try:\n"
                 "        devices = pyxid.get_xid_devices()\n"
                 "        core.wait(0.1)\n"
-                "        %(name)s = devices[%(deviceNumber)s]\n"
-                "        break  # found a device so can break the loop\n"
+                "        cedrusBox_%(deviceNumber)s = devices[%(deviceNumber)s]\n"
+                "        cedrusBox_%(deviceNumber)s.clock = core.Clock()\n"
+                "        break  # found the device so can break the loop\n"
                 "    except Exception:\n"
                 "        pass\n"
-                "if not %(name)s:\n"
+                "if not cedrusBox_%(deviceNumber)s:\n"
                 "    logging.error('could not find a Cedrus device.')\n"
-                "    core.quit()\n"
-                "%(name)s.clock = core.Clock()\n")
+                "    core.quit()\n")
+        buff.writeOnceIndentedLines(code % self.params)
+
+    def writeInitCode(self, buff):
+        code = ("%(name)s = cedrusBox_%(deviceNumber)s\n")
         buff.writeIndentedLines(code % self.params)
 
     def writeRoutineStartCode(self, buff):
@@ -146,22 +148,23 @@ class cedrusButtonBoxComponent(KeyboardComponent):
         if allowedKeysIsVar:
             # only insert this code if we think allowed keys is a variable.
             # check at run-time that the var is suitable to eval
-            key = {'key': allowedKeys}
-            code = ("# AllowedKeys looks like a variable named `%(key)s`\n"
-                    "if not '%(key)s' in locals():\n"
-                    "    logging.error('AllowedKeys variable `%(key)s` "
+            stringType = '{}'.format(['basestring', 'str'][PY3])
+            code = ("# AllowedKeys looks like a variable named `{0}`\n"
+                    "if not '{0}' in locals():\n"
+                    "    logging.error('AllowedKeys variable `{0}` "
                     "is not defined.')\n"
                     "    core.quit()\n" +
-                    "if not type(%(key)s) in [list, tuple, np.ndarray]:\n"
-                    "    if not isinstance(%(key)s, basestring):\n"
-                    "        logging.error('AllowedKeys variable `%(key)s`"
+                    "if not type({0}) in [list, tuple, np.ndarray]:\n"
+                    "    if not isinstance({0}, basestring):\n"
+                    "        logging.error('AllowedKeys variable `{0}`"
                     " is not string- or list-like.')\n"
                     "        core.quit()\n" +
-                    "    elif not ',' in %s(key): %(key)s = (%(key)s,)\n"
-                    "    else:  %(key)s = eval(%(key)s)\n")
-            buff.writeIndentedLines(code % key)
+                    "    elif not ',' in {0}: {0} = ({0},)\n"
+                    "    else:  {0} = eval({0})\n").format(allowedKeys, stringType)
+            buff.writeIndentedLines(code)
 
-            keyListStr = "keyList=list(%s)" % allowedKeys  # eval() @ run time
+            keyCheckStr = "keyList=list(%s)" % allowedKeys  # eval() @ run time
+            keyList = allowedKeys
 
         # now create the string that will loop-continue if
         if allowedKeys in [None, "none", "None", "", "[]", "()"]:
@@ -209,7 +212,7 @@ class cedrusButtonBoxComponent(KeyboardComponent):
             # writes an if statement to determine whether to draw etc
             self.writeStopTestCode(buff)
             buff.writeIndented("%(name)s.status = FINISHED\n" % self.params)
-            buff.setIndentLevel(-1, True)
+            buff.setIndentLevel(-2, True)
 
         buff.writeIndented("if %(name)s.status == STARTED:\n" % self.params)
         buff.setIndentLevel(1, relative=True)  # to get out of if statement

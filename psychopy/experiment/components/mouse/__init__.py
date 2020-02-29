@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2018 Jonathan Peirce
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 from __future__ import absolute_import, print_function
@@ -89,8 +89,8 @@ class MouseComponent(BaseComponent):
             label=_localized['timeRelativeTo'])
 
 
-        msg = _translate('If the mouse button is already down when we start'
-                         'checking then wait for it to be released before'
+        msg = _translate('If the mouse button is already down when we start '
+                         'checking then wait for it to be released before '
                          'recording as a new click.'
                          )
         self.params['newClicksOnly'] = Param(
@@ -275,7 +275,7 @@ class MouseComponent(BaseComponent):
             self.writeStopTestCode(buff)
             buff.writeIndented("%(name)s.status = FINISHED\n" % self.params)
             # to get out of the if statement
-            buff.setIndentLevel(-1, relative=True)
+            buff.setIndentLevel(-2, relative=True)
 
         # if STARTED and not FINISHED!
         code = ("if %(name)s.status == STARTED:  "
@@ -388,7 +388,7 @@ class MouseComponent(BaseComponent):
                 "  // if button is down already this ISN'T a new click\n")
         else:
             code += (
-                "let prevButtonState = [0, 0, 0];"
+                "prevButtonState = [0, 0, 0];"
                 "  // if now button is down we will treat as 'new' click\n")
         code+=("}\n")
         buff.writeIndentedLines(code % self.params)

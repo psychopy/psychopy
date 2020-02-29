@@ -2,27 +2,10 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2018 Jonathan Peirce
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
-import time
 import wx
-
-
-class SyncFrame(wx.Frame):
-    def __init__(self, parent, id, project):
-        title = "{} / {}".format(project.group, project.title)
-        style = wx.DEFAULT_FRAME_STYLE | wx.RESIZE_BORDER
-        wx.Frame.__init__(self, parent=None, id=id, style=style,
-                          title=title)
-        self.parent = parent
-        self.project = project
-
-        # create the sync panel and start sync(!)
-        self.syncPanel = SyncStatusPanel(parent=self, id=wx.ID_ANY)
-        self.Fit()
-        self.Show()
-        wx.Yield()
 
 
 class SyncStatusPanel(wx.Panel):

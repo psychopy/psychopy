@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2018 Jonathan Peirce
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 """Helper functions in PsychoPy for interacting with Pavlovia.org
@@ -931,7 +931,8 @@ class PavloviaProject(dict):
                         'The `files` provided to PavloviaProject.stageFiles '
                         'should be a list not a {}'.format(type(files)))
             try:
-                self.repo.git.add(files)
+                for thisFile in files:
+                    self.repo.git.add(thisFile)
             except git.exc.GitCommandError:
                 if infoStream:
                     infoStream.SetValue(traceback.format_exc())
@@ -1063,8 +1064,14 @@ def getProject(filename):
         proj = None
         for remote in localRepo.remotes:
             for url in remote.urls:
-                if "gitlab.pavlovia.org/" in url:
-                    namespaceName = url.split('gitlab.pavlovia.org/')[1]
+                if "gitlab.pavlovia.org" in url:
+                    # could be 'https://gitlab.pavlovia.org/NameSpace/Name.git'
+                    # or may be 'git@gitlab.pavlovia.org:NameSpace/Name.git'
+                    namespaceName = url.split('gitlab.pavlovia.org')[1]
+                    # remove the first char (: or /)
+                    if namespaceName[0] in ['/', ':']:
+                        namespaceName = namespaceName[1:]
+                    # remove the .git at the end if present
                     namespaceName = namespaceName.replace('.git', '')
                     pavSession = getCurrentSession()
                     if not pavSession.user:
@@ -1073,7 +1080,10 @@ def getProject(filename):
                             login(nameSpace, rememberMe=True)
                         else:  # Check whether project repo is found in any of the known users accounts
                             for user in knownUsers:
-                                login(user)
+                                try:
+                                    login(user)
+                                except requests.exceptions.ConnectionError:
+                                    break
                                 foundProject = False
                                 for repo in pavSession.findUserProjects():
                                     if namespaceName in repo['id']:
@@ -1087,8 +1097,9 @@ def getProject(filename):
                     if pavSession.user:
                         proj = pavSession.getProject(namespaceName,
                                                      repo=localRepo)
-                        if proj.pavlovia == 0:
-                            logging.warning(_translate("We found a repository pointing to {} "
+                        if proj.pavlovia and proj.pavlovia.get_id() == 0:
+                            logging.warning(
+                                _translate("We found a repository pointing to {} "
                                                        "but no project was found there (deleted?)").format(url))
                     else:
                         logging.warning(_translate("We found a repository pointing to {} "

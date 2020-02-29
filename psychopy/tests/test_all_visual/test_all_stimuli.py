@@ -135,6 +135,45 @@ class _baseVisualTest(object):
             utils.compareScreenshot('envelopeandrcos_%s.png' %(self.contextName), win)
             win.flip()
             "{}".format(image)
+            
+    def test_envelopeGratingPowerAndRaisedCos(self):
+        win = self.win
+        size = numpy.array([2.0,2.0])*self.scaleFactor
+        if win.units in ['norm','height']:
+            sf = 5
+        else:
+            sf = 5.0/size #this will do the flipping and get exactly one cycle
+        if win._haveShaders==True:  # can't draw envelope gratings without shaders so skip this test
+            image = visual.EnvelopeGrating(win, carrier='sin', envelope='sin',
+                                           size=size, sf=sf, mask='raisedCos',
+                                           ori=-45, envsf=sf / 2, envori=45,
+                                           envphase=90, moddepth=0.5, power=0.5,
+                                           contrast=0.5)
+            image.draw()
+            utils.compareScreenshot('envelopepowerandrcos_%s.png' %(self.contextName), win)
+            win.flip()
+            "{}".format(image)
+
+    def test_NoiseStim_defaults(self):
+        noiseTypes = ['binary', 'uniform', 'normal', 'white', 'filtered']
+
+        for noiseType in noiseTypes:
+            stim = visual.NoiseStim(win=self.win,
+                                    noiseType=noiseType,
+                                    size=(32, 32),
+                                    units='pix')
+            stim.updateNoise()
+            stim.draw()
+
+    def test_NoiseStim_defaults_image(self):
+        noiseType = 'image'
+
+        # noiseImage kwarg missing.
+        with pytest.raises(ValueError):
+            visual.NoiseStim(win=self.win,
+                             noiseType=noiseType,
+                             size=(32, 32),
+                             units='pix')
 
     def test_noiseAndRaisedCos(self):
         numpy.random.seed(1)
@@ -176,6 +215,62 @@ class _baseVisualTest(object):
             noiseBW=0.5, noiseBWO=7, noiseFractalPower=-1,noiseFilterLower=4.0/size[0], noiseFilterUpper=16.0/size[0], noiseFilterOrder=1, noiseClip=4.0, interpolate=False, depth=-1.0)
         image.draw()
         utils.compareScreenshot('noiseAndRcos_%s.png' %(self.contextName), win)
+        win.flip()
+        str(image)
+        
+    def test_noiseFiltersAndRaisedCos(self):
+        numpy.random.seed(1)
+        win = self.win
+        size = numpy.array([2.0,2.0])*self.scaleFactor
+        tres=128
+        elementsize=4
+        sf=None
+        ntype='Binary'
+        comp='Amplitude'
+        fileName = os.path.join(utils.TESTS_DATA_PATH, 'testimagegray.jpg')
+        if win.units in ['pix']:
+            ftype='Butterworth'
+            size = numpy.array([128,128])
+        elif win.units in ['degFlatPos']:
+            ftype='Gabor'
+            sf=0.125
+            elementsize=1
+        elif win.units in ['degFlat']:
+            ftype='Isotropic'
+            sf=0.125
+            elementsize=1
+        elif win.units in ['deg']:
+            ntype='Image'
+            ftype='Butterworth'
+            sf=0.125
+        elif win.units in ['cm']:
+            ntype='Image'
+            ftype='Butterworth'
+            comp='Phase'
+            sf=0.25
+        else:
+            if self.contextName=='stencil':
+                ntype='White'
+                ftype='Butterworth'
+            elif self.contextName=='height':
+                ntype='Uniform'
+                ftype='Butterworth'
+            else:
+                ntype='Normal'
+                ftype='Butterworth'
+            elementsize=1.0/8.0
+        image  = visual.NoiseStim(win=win, name='noise',units=win.units, 
+            noiseImage=fileName, mask='raisedCos',
+            ori=0, pos=(0, 0), size=size, sf=sf, phase=0,
+            color=[1,1,1], colorSpace='rgb', opacity=1, blendmode='avg', contrast=0.5,
+            texRes=tres,
+            noiseType=ntype, noiseElementSize=elementsize, noiseBaseSf=32.0/size[0],
+            noiseBW=0.5, noiseBWO=7, noiseFractalPower=-1,noiseFilterLower=4.0/size[0], 
+            noiseFilterUpper=16.0/size[0], noiseFilterOrder=1, noiseOri=45.0,
+            noiseClip=4.0, imageComponent=comp, filter=ftype, interpolate=False, depth=-1.0)
+ 
+        image.draw()
+        utils.compareScreenshot('noiseFiltersAndRcos_%s.png' %(self.contextName), win)
         win.flip()
         str(image)
 
@@ -488,9 +583,10 @@ class _baseVisualTest(object):
         wedge = visual.RadialStim(win, tex='sqrXsqr', color=1,size=2*self.scaleFactor,
             visibleWedge=[0, 45], radialCycles=2, angularCycles=2, interpolate=False)
         wedge.draw()
-        thresh = 10
+        thresh = 15  # there are often a slight interpolation differences
         if win.winType != 'pygame':  # pygame definitely gets radialstim wrong!
-            utils.compareScreenshot('wedge1_%s.png' %(self.contextName), win, crit=thresh)
+            utils.compareScreenshot('wedge1_%s.png' %(self.contextName),
+                                    win, crit=thresh)
         win.flip()#AFTER compare screenshot
 
         #using .set()
@@ -506,7 +602,8 @@ class _baseVisualTest(object):
         wedge.draw()
         "{}".format(wedge) #check that str(xxx) is working
         if win.winType != 'pygame':  # pygame definitely gets radialstim wrong!
-            utils.compareScreenshot('wedge2_%s.png' %(self.contextName), win, crit=10.0)
+            utils.compareScreenshot('wedge2_%s.png' %(self.contextName),
+                                    win, crit=thresh)
         else:
             pytest.skip("Pygame fails to render RadialStim properly :-/")
 
@@ -577,8 +674,9 @@ class _baseVisualTest(object):
         radii = numpy.linspace(0,1.0,N)*self.scaleFactor
         x, y = pol2cart(theta=thetas, radius=radii)
         xys = numpy.array([x,y]).transpose()
-        spiral = visual.ElementArrayStim(win, opacities = 0, nElements=N,sizes=0.5*self.scaleFactor,
-            sfs=1.0, xys=xys, oris=-thetas)
+        spiral = visual.ElementArrayStim(
+                win, opacities = 0, nElements=N, sizes=0.5*self.scaleFactor,
+                sfs=1.0, xys=xys, oris=-thetas)
         spiral.draw()
         #check that the update function is working by changing vals after first draw() call
         spiral.opacities = 1.0
@@ -594,8 +692,11 @@ class _baseVisualTest(object):
         win = self.win
         if not win.allowStencil:
             pytest.skip("Don't run aperture test when no stencil is available")
-        grating = visual.GratingStim(win, mask='gauss',sf=8.0, size=2,color='FireBrick', units='norm')
-        aperture = visual.Aperture(win, size=1*self.scaleFactor,pos=[0.8*self.scaleFactor,0])
+        grating = visual.GratingStim(
+                win, mask='gauss',sf=8.0, size=2,color='FireBrick',
+                units='norm')
+        aperture = visual.Aperture(win, size=1*self.scaleFactor,
+                                   pos=[0.8*self.scaleFactor,0])
         aperture.enabled = False
         grating.draw()
         aperture.enabled = True
@@ -616,8 +717,10 @@ class _baseVisualTest(object):
         fileName = os.path.join(utils.TESTS_DATA_PATH, 'testwedges.png')
         if not win.allowStencil:
             pytest.skip("Don't run aperture test when no stencil is available")
-        grating = visual.GratingStim(win, mask='gauss',sf=8.0, size=2,color='FireBrick', units='norm')
-        aperture = visual.Aperture(win, size=1*self.scaleFactor,pos=[0.8*self.scaleFactor,0], shape=fileName)
+        grating = visual.GratingStim(win, mask='gauss',sf=8.0, size=2,
+                                     color='FireBrick', units='norm')
+        aperture = visual.Aperture(win, size=1*self.scaleFactor,
+                                   pos=[0.8*self.scaleFactor,0], shape=fileName)
         aperture.enabled = False
         grating.draw()
         aperture.enabled = True
@@ -625,7 +728,8 @@ class _baseVisualTest(object):
         grating.ori = 90
         grating.color = 'black'
         grating.draw()
-        utils.compareScreenshot('aperture2_%s.png' %(self.contextName), win, crit=30)
+        utils.compareScreenshot('aperture2_%s.png' %(self.contextName),
+                                win, crit=30)
         #aperture should automatically disable on exit
 
     def test_rating_scale(self):
@@ -783,7 +887,7 @@ class TestPygletDegFlatPos(_baseVisualTest):
         self.contextName='degFlatPos'
         self.scaleFactor=4#applied to size/pos values
 
-
+@pytest.mark.needs_pygame
 class TestPygameNorm(_baseVisualTest):
    @classmethod
    def setup_class(self):

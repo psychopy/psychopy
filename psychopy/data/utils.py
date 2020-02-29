@@ -172,7 +172,7 @@ def importConditions(fileName, returnFieldNames=False, selection=""):
     """Imports a list of conditions from an .xlsx, .csv, or .pkl file
 
     The output is suitable as an input to :class:`TrialHandler`
-    `trialTypes` or to :class:`MultiStairHandler` as a `conditions` list.
+    `trialList` or to :class:`MultiStairHandler` as a `conditions` list.
 
     If `fileName` ends with:
 

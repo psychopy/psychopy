@@ -5,7 +5,7 @@
 """
 
 # Part of the PsychoPy library
-# Copyright (C) 2018 Jonathan Peirce
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 from __future__ import absolute_import, division, print_function
@@ -77,14 +77,14 @@ class Monitor(object):
 
     **arguments**:
 
-        - ``width, distance, gamma`` are details about the calibration
-        - ``notes`` is a text field to store any useful info
-        - ``useBits`` True, False, None
-        - ``verbose`` True, False, None
-        - ``currentCalib`` is a dictionary object containing various
-            fields for a calibration. Use with caution since the
-            dictionary may not contain all the necessary fields that
-            a monitor object expects to find.
+    - ``width, distance, gamma`` are details about the calibration
+    - ``notes`` is a text field to store any useful info
+    - ``useBits`` True, False, None
+    - ``verbose`` True, False, None
+    - ``currentCalib`` is a dictionary object containing various
+        fields for a calibration. Use with caution since the
+        dictionary may not contain all the necessary fields that
+        a monitor object expects to find.
 
     **eg**:
 

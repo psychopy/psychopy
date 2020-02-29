@@ -1,8 +1,8 @@
 ﻿#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-This experiment was created using PsychoPy3 Experiment Builder (v3.0.6),
-    on March 21, 2019, at 13:45
+This experiment was created using PsychoPy3 Experiment Builder (v3.1.1),
+    on Thu May  9 17:56:55 2019
 If you publish work using this script please cite the PsychoPy publications:
     Peirce, JW (2007) PsychoPy - Psychophysics software in Python.
         Journal of Neuroscience Methods, 162(1-2), 8-13.
@@ -28,10 +28,10 @@ _thisDir = os.path.dirname(os.path.abspath(__file__))
 os.chdir(_thisDir)
 
 # Store info about the experiment session
-psychopyVersion = '3.0.6'
+psychopyVersion = '3.1.1'
 expName = 'untitled.py'
 expInfo = {'participant': '', 'session': '001'}
-dlg = gui.DlgFromDict(dictionary=expInfo, title=expName)
+dlg = gui.DlgFromDict(dictionary=expInfo, sortKeys=False, title=expName)
 if dlg.OK == False:
     core.quit()  # user pressed cancel
 expInfo['date'] = data.getDateStr()  # add a simple timestamp
@@ -55,7 +55,7 @@ endExpNow = False  # flag for 'escape' or other condition => quit the exp
 
 # Start Code - component code to be run before the window creation
 from psychopy.hardware import joystick as joysticklib  # joystick/gamepad accsss
-from psychopy.experiment.components.joystick import mouseJoystick as fakejoysticklib
+from psychopy.experiment.components.joystick import virtualJoystick as virtualjoysticklib
 
 # Setup the Window
 win = visual.Window(
@@ -84,12 +84,18 @@ joystick.yFactor = 1
 try:
     numJoysticks = joysticklib.getNumJoysticks()
     if numJoysticks > 0:
-        joystick.device = joysticklib.Joystick(0)
+        try:
+            joystickCache
+        except NameError:
+            joystickCache={}
+        if not 0 in joystickCache:
+            joystickCache[0] = joysticklib.Joystick(0)
+        joystick.device = joystickCache[0]
         if win.units == 'height':
             joystick.xFactor = 0.5 * win.size[0]/win.size[1]
             joystick.yFactor = 0.5
     else:
-        joystick.device = fakejoysticklib.Joystick(0)
+        joystick.device = virtualjoysticklib.VirtualJoystick(0)
         logging.warning("joystick_{}: Using keyboard+mouse emulation 'ctrl' + 'Alt' + digit.".format(joystick.device_number))
 except Exception:
     pass
@@ -116,7 +122,6 @@ t = 0
 trialClock.reset()  # clock
 frameN = -1
 continueRoutine = True
-routineTimer.add(1.000000)
 # update component parameters for each repeat
 joystick.oldButtonState = joystick.device.getAllButtons()[:]
 joystick.activeButtons=[i for i in range(joystick.numButtons)]
@@ -133,7 +138,7 @@ for thisComponent in trialComponents:
         thisComponent.status = NOT_STARTED
 
 # -------Start Routine "trial"-------
-while continueRoutine and routineTimer.getTime() > 0:
+while continueRoutine:
     # get current time
     t = trialClock.getTime()
     frameN = frameN + 1  # number of completed frames (so 0 is the first frame)
@@ -146,13 +151,6 @@ while continueRoutine and routineTimer.getTime() > 0:
         win.timeOnFlip(joystick, 'tStartRefresh')  # time at next scr refresh
         joystick.status = STARTED
         joystick.joystickClock.reset()
-    frameRemains = 0.0 + 1.0- win.monitorFramePeriod * 0.75  # most of one frame period left
-    if joystick.status == STARTED and t >= frameRemains:
-        # keep track of stop time/frame for later
-        joystick.tStop = t  # not accounting for scr refresh
-        joystick.frameNStop = frameN  # exact frame index
-        win.timeOnFlip(joystick, 'tStopRefresh')  # time at next scr refresh
-        joystick.status = FINISHED
     if joystick.status == STARTED:  # only update if started and not finished!
         joystick.newButtonState = joystick.getAllButtons()[:]
         if joystick.newButtonState != joystick.oldButtonState: # New button press
@@ -200,6 +198,8 @@ thisExp.addData('joystick.time', joystick.time)
 thisExp.addData('joystick.started', joystick.tStart)
 thisExp.addData('joystick.stopped', joystick.tStop)
 thisExp.nextEntry()
+# the Routine "trial" was not non-slip safe, so reset the non-slip timer
+routineTimer.reset()
 
 # Flip one final time so any remaining win.callOnFlip() 
 # and win.timeOnFlip() tasks get executed before quitting

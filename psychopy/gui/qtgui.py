@@ -4,21 +4,41 @@
 # To build simple dialogues etc. (requires pyqt4)
 #
 #  Part of the PsychoPy library
-# Copyright (C) 2018 Jonathan Peirce
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 from __future__ import absolute_import, print_function
+from .. import constants
 
 from builtins import str
 from past.builtins import unicode
-try:
-    from PyQt4 import QtGui  
-    QtWidgets = QtGui  # in qt4 these were all in one package
-    from PyQt4.QtCore import Qt
-except ImportError:
+
+haveQt = False  # until we confirm otherwise
+if constants.PY3:  # much more like to have PyQt5 on Python3
+    importOrder = ['PyQt5', 'PyQt4']
+else:  # more likely the other way on Py27
+    importOrder = ['PyQt4', 'PyQt5']
+
+haveQt = False
+for libname in importOrder:
+    try:
+        exec("import {}".format(libname))
+        haveQt = libname
+        break
+    except ImportError:
+        pass
+
+if not haveQt:
+    # do the main import again not in a try...except to recreate error
+    exec("import {}".format(importOrder[0]))
+elif haveQt == 'PyQt5':
     from PyQt5 import QtWidgets
     from PyQt5 import QtGui
     from PyQt5.QtCore import Qt
+else:
+    from PyQt4 import QtGui  
+    QtWidgets = QtGui  # in qt4 these were all in one package
+    from PyQt4.QtCore import Qt
 
 from psychopy import logging
 import numpy as np
@@ -105,7 +125,9 @@ class Dlg(QtWidgets.QDialog):
             raise RuntimeWarning("Dlg does not currently support the "
                                  "style kwarg.")
         self.size = size
-        self.screen = screen
+
+        nScreens = len(qtapp.screens())
+        self.screen = -1 if screen >= nScreens else screen
         # self.labelButtonOK = labelButtonOK
         # self.labelButtonCancel = labelButtonCancel
 

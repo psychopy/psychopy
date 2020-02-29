@@ -6,7 +6,7 @@ the resolution and color in the file (subject to gamma correction if set).
 """
 
 # Part of the PsychoPy library
-# Copyright (C) 2018 Jonathan Peirce
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 from __future__ import absolute_import, division, print_function
@@ -176,10 +176,10 @@ class SimpleImageStim(MinimalStim, WindowMixin):
         if self._needStrUpdate:
             self._updateImageStr()
         # unbind any textures
-        GL.glActiveTextureARB(GL.GL_TEXTURE0_ARB)
+        GL.glActiveTexture(GL.GL_TEXTURE0)
         GL.glEnable(GL.GL_TEXTURE_2D)
         GL.glBindTexture(GL.GL_TEXTURE_2D, 0)
-        GL.glActiveTextureARB(GL.GL_TEXTURE1_ARB)
+        GL.glActiveTexture(GL.GL_TEXTURE1)
         GL.glEnable(GL.GL_TEXTURE_2D)
         GL.glBindTexture(GL.GL_TEXTURE_2D, 0)
 

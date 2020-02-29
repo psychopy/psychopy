@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2018 Jonathan Peirce
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 """Describes the Flow of an experiment
@@ -40,9 +40,16 @@ class Routine(list):
     @property
     def name(self):
         return self.params['name']
+
     @name.setter
     def name(self, name):
         self.params['name'] = name
+
+    def integrityCheck(self):
+        """Run tests on self and on all the Components inside"""
+        for entry in self:
+            if hasattr(entry, "integrityCheck"):
+                entry.integrityCheck()
 
     def addComponent(self, component):
         """Add a component to the end of the routine"""
@@ -75,7 +82,6 @@ class Routine(list):
     def writeStartCode(self, buff):
         """This is start of the *experiment* (before window is created)
         """
-        # few components will have this
         for thisCompon in self:
             # check just in case; try to ensure backwards compatibility _base
             if hasattr(thisCompon, 'writeStartCode'):
@@ -89,6 +95,16 @@ class Routine(list):
             # check just in case; try to ensure backwards compatibility _base
             if hasattr(thisCompon, 'writeStartCodeJS'):
                 thisCompon.writeStartCodeJS(buff)
+
+    def writeRunOnceInitCode(self, buff):
+        """ Run once init code goes at the beginning of the script (before
+        Window creation) and the code will be run only once no matter how many
+        similar components request it
+        """
+        for thisCompon in self:
+            # check just in case; try to ensure backwards compatibility _base
+            if hasattr(thisCompon, 'writeRunOnceInitCode'):
+                thisCompon.writeRunOnceInitCode(buff)
 
     def writeInitCode(self, buff):
         code = '\n# Initialize components for Routine "%s"\n'
@@ -107,20 +123,15 @@ class Routine(list):
             if hasattr(thisCompon, 'writeInitCodeJS'):
                 thisCompon.writeInitCodeJS(buff)
 
-    def writeResourcesCodeJS(self, buff):
-        buff.writeIndented("// <<maybe need to load images for {}?>>\n"
-                           .format(self.name))
-
     def writeMainCode(self, buff):
         """This defines the code for the frames of a single routine
         """
         # create the frame loop for this routine
-        code = ('\n# ------Prepare to start Routine "%s"-------\n'
-                't = 0\n'
-                '%s.reset()  # clock\n'
-                'frameN = -1\n'
-                'continueRoutine = True\n')
-        buff.writeIndentedLines(code % (self.name, self._clockName))
+        code = ('\n# ------Prepare to start Routine "%s"-------\n')
+        buff.writeIndentedLines(code % (self.name))
+        code = 'continueRoutine = True\n'
+        buff.writeIndentedLines(code)
+
         # can we use non-slip timing?
         maxTime, useNonSlip = self.getMaxTime()
         if useNonSlip:
@@ -134,18 +145,26 @@ class Routine(list):
 
         code = '# keep track of which components have finished\n'
         buff.writeIndentedLines(code)
+        # Get list of components, but leave out Variable components, which may not support attributes
         compStr = ', '.join([c.params['name'].val for c in self
-                             if 'startType' in c.params])
+                             if 'startType' in c.params and c.type != 'Variable'])
         buff.writeIndented('%sComponents = [%s]\n' % (self.name, compStr))
-        code = ("for thisComponent in %sComponents:\n"
+
+        code = ("for thisComponent in {name}Components:\n"
                 "    thisComponent.tStart = None\n"
                 "    thisComponent.tStop = None\n"
                 "    thisComponent.tStartRefresh = None\n"
                 "    thisComponent.tStopRefresh = None\n"
                 "    if hasattr(thisComponent, 'status'):\n"
                 "        thisComponent.status = NOT_STARTED\n"
-                '\n# -------Start Routine "%s"-------\n')
-        buff.writeIndentedLines(code % (self.name, self.name))
+                "# reset timers\n"
+                't = 0\n'
+                '_timeToFirstFrame = win.getFutureFlipTime(clock="now")\n'
+                '{clockName}.reset(-_timeToFirstFrame)  # t0 is time of first possible flip\n'
+                'frameN = -1\n'
+                '\n# -------Run Routine "{name}"-------\n')
+        buff.writeIndentedLines(code.format(name=self.name,
+                                            clockName=self._clockName))
         if useNonSlip:
             code = 'while continueRoutine and routineTimer.getTime() > 0:\n'
         else:
@@ -155,10 +174,12 @@ class Routine(list):
         buff.setIndentLevel(1, True)
         # on each frame
         code = ('# get current time\n'
-                't = %s.getTime()\n'
+                't = {clockName}.getTime()\n'
+                'tThisFlip = win.getFutureFlipTime(clock={clockName})\n'
+                'tThisFlipGlobal = win.getFutureFlipTime(clock=None)\n'
                 'frameN = frameN + 1  # number of completed frames '
                 '(so 0 is the first frame)\n')
-        buff.writeIndentedLines(code % self._clockName)
+        buff.writeIndentedLines(code.format(clockName=self._clockName))
 
         # write the code for each component during frame
         buff.writeIndentedLines('# update/draw components on each frame\n')
@@ -174,7 +195,7 @@ class Routine(list):
         # allow subject to quit via Esc key?
         if self.exp.settings.params['Enable Escape'].val:
             code = ('\n# check for quit (typically the Esc key)\n'
-                    'if endExpNow or keyboard.Keyboard().getKeys(keyList=["escape"]):\n'
+                    'if endExpNow or defaultKeyboard.getKeys(keyList=["escape"]):\n'
                     '    core.quit()\n')
             buff.writeIndentedLines(code)
 
@@ -220,12 +241,16 @@ class Routine(list):
             buff.writeIndentedLines(code % self.name)
 
 
-    def writeRoutineBeginCodeJS(self, buff):
+    def writeRoutineBeginCodeJS(self, buff, modular):
 
         # create the frame loop for this routine
-        code = ("\nfunction %(name)sRoutineBegin() {\n" % self.params)
+
+        code = ("\nfunction %(name)sRoutineBegin(trials) {\n" % self.params)
         buff.writeIndentedLines(code)
         buff.setIndentLevel(1, relative=True)
+        buff.writeIndentedLines("return function () {\n")
+        buff.setIndentLevel(1, relative=True)
+
         code = ("//------Prepare to start Routine '%(name)s'-------\n"
                 "t = 0;\n"
                 "%(name)sClock.reset(); // clock\n"
@@ -247,27 +272,40 @@ class Routine(list):
                 "%(name)sComponents = [];\n" % self.params)
         buff.writeIndentedLines(code)
         for thisCompon in self:
-            if ('startType' in thisCompon.params
-                    and "PsychoJS" in thisCompon.targets):
+            if (('startType' in thisCompon.params) and ("PsychoJS" in thisCompon.targets)):
                 code = ("%sComponents.push(%s);\n" % (self.name, thisCompon.params['name']))
                 buff.writeIndentedLines(code)
-        code = ("\nfor (const thisComponent of %(name)sComponents)\n"
-                "  if ('status' in thisComponent)\n"
-                "    thisComponent.status = PsychoJS.Status.NOT_STARTED;\n"
-                "\nreturn Scheduler.Event.NEXT;\n" % self.params)
+
+        if modular:
+            code = ("\nfor (const thisComponent of %(name)sComponents)\n"
+                    "  if ('status' in thisComponent)\n"
+                    "    thisComponent.status = PsychoJS.Status.NOT_STARTED;\n"
+                    "\nreturn Scheduler.Event.NEXT;\n" % self.params)
+        else:
+            code = ("\n%(name)sComponents.forEach( function(thisComponent) {\n"
+                    "  if ('status' in thisComponent)\n"
+                    "    thisComponent.status = PsychoJS.Status.NOT_STARTED;\n"
+                    "   });\n"
+                    "\nreturn Scheduler.Event.NEXT;\n" % self.params)
+
         buff.writeIndentedLines(code)
+        buff.setIndentLevel(-1, relative=True)
+        buff.writeIndentedLines("};\n")
         buff.setIndentLevel(-1, relative=True)
         buff.writeIndentedLines("}\n")
 
-
-    def writeEachFrameCodeJS(self, buff):
+    def writeEachFrameCodeJS(self, buff, modular):
         # can we use non-slip timing?
         maxTime, useNonSlip = self.getMaxTime()
 
         # write code for each frame
-        code = ("\nfunction %(name)sRoutineEachFrame() {\n" % self.params)
+
+        code = ("\nfunction %(name)sRoutineEachFrame(trials) {\n" % self.params)
         buff.writeIndentedLines(code)
         buff.setIndentLevel(1, relative=True)
+        buff.writeIndentedLines("return function () {\n")
+        buff.setIndentLevel(1, relative=True)
+
         code = ("//------Loop for each frame of Routine '%(name)s'-------\n"
                 "let continueRoutine = true; // until we're told otherwise\n"
                 "// get current time\n"
@@ -288,9 +326,8 @@ class Routine(list):
 
         if self.exp.settings.params['Enable Escape'].val:
             code = ("// check for quit (typically the Esc key)\n"
-                    "if (psychoJS.experiment.experimentEnded "
-                    "|| psychoJS.eventManager.getKeys({keyList:['escape']}).length > 0) {\n"
-                    "  return psychoJS.quit('The [Escape] key was pressed. Goodbye!', false);\n"
+                    "if (psychoJS.experiment.experimentEnded || psychoJS.eventManager.getKeys({keyList:['escape']}).length > 0) {\n"
+                    "  return quitPsychoJS('The [Escape] key was pressed. Goodbye!', false);\n"
                     "}\n\n")
             buff.writeIndentedLines(code)
 
@@ -300,13 +337,22 @@ class Routine(list):
                 "  // a component has requested a forced-end of Routine\n"
                 "  return Scheduler.Event.NEXT;\n"
                 "}\n\n"
-                "continueRoutine = false;"
-                "// reverts to True if at least one component still running\n"
-                "for (const thisComponent of %(name)sComponents)\n"
-                "  if ('status' in thisComponent && thisComponent.status !== PsychoJS.Status.FINISHED) {\n"
-                "    continueRoutine = true;\n"
-                "    break;\n"
-                "  }\n")
+                "continueRoutine = false;  "
+                "// reverts to True if at least one component still running\n")
+        buff.writeIndentedLines(code)
+
+        if modular:
+            code = ("for (const thisComponent of %(name)sComponents)\n"
+                    "  if ('status' in thisComponent && thisComponent.status !== PsychoJS.Status.FINISHED) {\n"
+                    "    continueRoutine = true;\n"
+                    "    break;\n"
+                    "  }\n")
+        else:
+            code = ("%(name)sComponents.forEach( function(thisComponent) {\n"
+                    "  if ('status' in thisComponent && thisComponent.status !== PsychoJS.Status.FINISHED) {\n"
+                    "    continueRoutine = true;\n"
+                    "  }\n"
+                    "});\n")
         buff.writeIndentedLines(code % self.params)
 
         buff.writeIndentedLines("\n// refresh the screen if continuing\n")
@@ -316,30 +362,40 @@ class Routine(list):
         else:
             buff.writeIndentedLines("if (continueRoutine) {")
         code = ("  return Scheduler.Event.FLIP_REPEAT;\n"
-                "}\n"
-                "else {\n"
+                "} else {\n"
                 "  return Scheduler.Event.NEXT;\n"
                 "}\n")
         buff.writeIndentedLines(code)
-
+        buff.setIndentLevel(-1, relative=True)
+        buff.writeIndentedLines("};\n")
         buff.setIndentLevel(-1, relative=True)
         buff.writeIndentedLines("}\n")
 
-    def writeRoutineEndCodeJS(self, buff):
+    def writeRoutineEndCodeJS(self, buff, modular):
         # can we use non-slip timing?
         maxTime, useNonSlip = self.getMaxTime()
 
-        code = ("\nfunction %(name)sRoutineEnd() {\n" % self.params)
+        code = ("\nfunction %(name)sRoutineEnd(trials) {\n" % self.params)
         buff.writeIndentedLines(code)
         buff.setIndentLevel(1, relative=True)
+        buff.writeIndentedLines("return function () {\n")
+        buff.setIndentLevel(1, relative=True)
 
-        code = ("//------Ending Routine '%(name)s'-------\n"
-                "for (const thisComponent of %(name)sComponents) {\n"
-                "  if (typeof thisComponent.setAutoDraw === 'function') {\n"
-                "    thisComponent.setAutoDraw(false);\n"
-                "  }\n"
-                "}\n" % self.params)
-        buff.writeIndentedLines(code)
+        if modular:
+            code = ("//------Ending Routine '%(name)s'-------\n"
+                    "for (const thisComponent of %(name)sComponents) {\n"
+                    "  if (typeof thisComponent.setAutoDraw === 'function') {\n"
+                    "    thisComponent.setAutoDraw(false);\n"
+                    "  }\n"
+                    "}\n")
+        else:
+            code = ("//------Ending Routine '%(name)s'-------\n"
+                    "%(name)sComponents.forEach( function(thisComponent) {\n"
+                    "  if (typeof thisComponent.setAutoDraw === 'function') {\n"
+                    "    thisComponent.setAutoDraw(false);\n"
+                    "  }\n"
+                    "});\n")
+        buff.writeIndentedLines(code  % self.params)
         # add the EndRoutine code for each component
         for compon in self:
             if "PsychoJS" in compon.targets:
@@ -353,6 +409,8 @@ class Routine(list):
             buff.writeIndentedLines(code % self.name)
 
         buff.writeIndented('return Scheduler.Event.NEXT;\n')
+        buff.setIndentLevel(-1, relative=True)
+        buff.writeIndentedLines("};\n")
         buff.setIndentLevel(-1, relative=True)
         buff.writeIndentedLines("}\n")
 

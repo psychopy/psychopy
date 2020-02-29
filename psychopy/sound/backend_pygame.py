@@ -80,7 +80,8 @@ class SoundPygame(_SoundBase):
     """
 
     def __init__(self, value="C", secs=0.5, octave=4, sampleRate=44100,
-                 bits=16, name='', autoLog=True, loops=0, stereo=True):
+                 bits=16, name='', autoLog=True, loops=0, stereo=True,
+                 hamming=False):
         """
         """
         self.name = name  # only needed for autoLogging
@@ -104,15 +105,20 @@ class SoundPygame(_SoundBase):
             inits = mixer.get_init()
         self.sampleRate, self.format, self.isStereo = inits
 
+        if hamming:
+            logging.warning("Hamming was requested using the 'pygame' sound "
+                            "library but hamming is not supported there.")
+        self.hamming = False
+
         # try to create sound
         self._snd = None
         # distinguish the loops requested from loops actual because of
         # infinite tones (which have many loops but none requested)
         # -1 for infinite or a number of loops
         self.requestedLoops = self.loops = int(loops)
-        self.setSound(value=value, secs=secs, octave=octave)
+        self.setSound(value=value, secs=secs, octave=octave, hamming=False)
 
-    def play(self, fromStart=True, log=True, loops=None):
+    def play(self, fromStart=True, log=True, loops=None, when=None):
         """Starts playing the sound on an available channel.
 
         :Parameters:
@@ -125,6 +131,7 @@ class SoundPygame(_SoundBase):
                 How many times to repeat the sound after it plays once. If
                 `loops` == -1, the sound will repeat indefinitely until
                 stopped.
+            when: not used but included for compatibility purposes
 
         :Notes:
 
