@@ -3,7 +3,6 @@
 
 from __future__ import absolute_import, print_function
 
-from past.builtins import basestring
 from builtins import str
 import wx
 import wx.propgrid as pg
@@ -18,6 +17,7 @@ from psychopy.localization import _translate
 from pkg_resources import parse_version
 from psychopy import sound
 from psychopy.app.utils import getSystemFonts
+import collections
 
 # this will be overridden by the size of the scrolled panel making the prefs
 dlgSize = (600, 500)
@@ -148,11 +148,263 @@ _localized = {
 # add pre-translated names-of-langauges, for display in locale pref:
 _localized.update(localization.locname)
 
-audioLatencyLabels = {0:_translate('Latency not important'),
-                      1:_translate('Share low-latency driver'),
-                      2:_translate('Exclusive low-latency'),
-                      3:_translate('Aggressive low-latency'),
-                      4:_translate('Latency critical')}
+audioLatencyLabels = {0: _translate('Latency not important'),
+                      1: _translate('Share low-latency driver'),
+                      2: _translate('Exclusive low-latency'),
+                      3: _translate('Aggressive low-latency'),
+                      4: _translate('Latency critical')}
+
+
+class PrefPropGrid(wx.Panel):
+    """Class for the property grid portion of the preference window."""
+
+    def __init__(self, parent, id=wx.ID_ANY, pos=wx.DefaultPosition,
+                 size=wx.DefaultSize, style=wx.TAB_TRAVERSAL,
+                 name=wx.EmptyString):
+        wx.Panel.__init__(
+            self, parent, id=id, pos=pos, size=size, style=style, name=name)
+        bSizer1 = wx.BoxSizer(wx.HORIZONTAL)
+
+        self.lstPrefPages = wx.ListCtrl(
+            self, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize,
+            wx.LC_ALIGN_TOP | wx.LC_ICON | wx.LC_SINGLE_SEL)
+        bSizer1.Add(self.lstPrefPages, 0,
+                    wx.BOTTOM | wx.EXPAND | wx.LEFT | wx.TOP, 5)
+
+        prefsImageSize = wx.Size(48, 48)
+        self.prefsIndex = 0
+        self.prefsImages = wx.ImageList(
+            prefsImageSize.GetWidth(), prefsImageSize.GetHeight())
+        self.lstPrefPages.AssignImageList(self.prefsImages, wx.IMAGE_LIST_NORMAL)
+
+        self.proPrefs = pg.PropertyGridManager(
+            self, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize,
+            wx.propgrid.PGMAN_DEFAULT_STYLE | wx.propgrid.PG_BOLD_MODIFIED |
+            wx.propgrid.PG_DESCRIPTION | wx.TAB_TRAVERSAL)
+        self.proPrefs.SetExtraStyle(wx.propgrid.PG_EX_MODE_BUTTONS)
+
+        bSizer1.Add(self.proPrefs, 1, wx.ALL | wx.EXPAND, 5)
+
+        self.SetSizer(bSizer1)
+        self.Layout()
+
+        # Connect Events
+        self.lstPrefPages.Bind(
+            wx.EVT_LIST_ITEM_DESELECTED, self.OnPrefPageDeselected)
+        self.lstPrefPages.Bind(
+            wx.EVT_LIST_ITEM_SELECTED, self.OnPrefPageSelected)
+        self.proPrefs.Bind(pg.EVT_PG_CHANGED, self.OnPropPageChanged)
+        self.proPrefs.Bind(pg.EVT_PG_CHANGING, self.OnPropPageChanging)
+
+        # categories and their items are stored here
+        self.sections = collections.OrderedDict()
+
+        # pages in the property manager
+        self.pages = dict()
+        self.pageNames = dict()
+
+        # help text
+        self.helpText = dict()
+
+        self.pageIdx = 0
+
+    def __del__(self):
+        pass
+
+    def addPage(self, label, name, sections=(), bitmap=None):
+        """Add a page to the property grid manager."""
+
+        if name in self.pages.keys():
+            raise ValueError("Page already exists.")
+
+        for s in sections:
+            if s not in self.sections.keys():
+                self.sections[s] = dict()
+
+        nbBitmap = wx.Bitmap(
+            os.path.join(
+                self.GetTopLevelParent().app.prefs.paths['resources'],
+                bitmap),
+            wx.BITMAP_TYPE_ANY)
+        if nbBitmap.IsOk():
+            self.prefsImages.Add(nbBitmap)
+
+        self.pages[self.pageIdx] = (self.proPrefs.AddPage(name, wx.NullBitmap),
+                                    list(sections))
+        self.pageNames[name] = self.pageIdx
+        self.lstPrefPages.InsertItem(
+            self.lstPrefPages.GetItemCount(), label, self.pageIdx)
+
+        self.pageIdx += 1
+
+    def addStringItem(self, section, label=wx.propgrid.PG_LABEL,
+                      name=wx.propgrid.PG_LABEL, value='', helpText=""):
+        """Add a string property to a category.
+
+        Parameters
+        ----------
+        section : str
+            Category name to add the item too.
+        label : str
+            Label to be displayed in the property grid.
+        name : str
+            Internal name for the property.
+        value : str
+            Default value for the property.
+        helpText: str
+            Help text for this item.
+
+        """
+        # create a new category if not present
+        if section not in self.sections.keys():
+            self.sections[section] = dict()
+
+        # if isinstance(page, str):
+        #     page = self.proPrefs.GetPageByName(page)
+        # else
+        #     page = self.proPrefs.GetPage(page)
+        self.sections[section].update(
+            {name: wx.propgrid.StringProperty(label, name, value=str(value))})
+
+        self.helpText[name] = helpText
+
+    def addStringArrayItem(self, section, label=wx.propgrid.PG_LABEL,
+                           name=wx.propgrid.PG_LABEL, values=(), helpText=""):
+        """Add a string array item."""
+        if section not in self.sections.keys():
+            self.sections[section] = dict()
+
+        self.sections[section].update(
+            {name: wx.propgrid.ArrayStringProperty(
+                label, name, value=[str(i) for i in values])})
+
+        self.helpText[name] = helpText
+
+    def addBoolItem(self, section, label=wx.propgrid.PG_LABEL,
+                    name=wx.propgrid.PG_LABEL, value=False, helpText=""):
+        if section not in self.sections.keys():
+            self.sections[section] = dict()
+
+        self.sections[section].update(
+            {name: wx.propgrid.BoolProperty(label, name, value)})
+
+        self.helpText[name] = helpText
+
+    def addFileItem(self, section, label=wx.propgrid.PG_LABEL,
+                    name=wx.propgrid.PG_LABEL, value='', helpText=""):
+        if section not in self.sections.keys():
+            self.sections[section] = []
+
+        self.sections[section].update(
+            {name: wx.propgrid.FileProperty(label, name, value)})
+
+        self.helpText[name] = helpText
+
+    def addDirItem(self, section, label=wx.propgrid.PG_LABEL,
+                    name=wx.propgrid.PG_LABEL, value='', helpText=""):
+        if section not in self.sections.keys():
+            self.sections[section] = dict()
+
+        self.sections[section].update(
+            {name: wx.propgrid.DirProperty(label, name, value)})
+
+        self.helpText[name] = helpText
+
+    def addIntegerItem(self, section, label=wx.propgrid.PG_LABEL,
+                       name=wx.propgrid.PG_LABEL, value=0, helpText=""):
+        """Add an integer property to a category.
+
+        Parameters
+        ----------
+        section : str
+            Category name to add the item too.
+        label : str
+            Label to be displayed in the property grid.
+        name : str
+            Internal name for the property.
+        value : int
+            Default value for the property.
+        helpText: str
+            Help text for this item.
+
+        """
+        if section not in self.sections.keys():
+            self.sections[section] = dict()
+
+        self.sections[section].update(
+            {name: wx.propgrid.IntProperty(label, name, value=int(value))})
+
+        self.helpText[name] = helpText
+
+    def addEnumItem(self, section, label=wx.propgrid.PG_LABEL,
+                    name=wx.propgrid.PG_LABEL, labels=(), values=(), value=0,
+                    helpText=""):
+        if section not in self.sections.keys():
+            self.sections[section] = dict()
+
+        self.sections[section].update({
+            name: wx.propgrid.EnumProperty(label, name, labels, values, value)})
+
+        self.helpText[name] = helpText
+
+    def populateGrid(self):
+        """Go over pages and add items to the property grid."""
+        for i in range(self.proPrefs.GetPageCount()):
+            pagePtr, sections = self.pages[i]
+            pagePtr.Clear()
+
+            for s in sections:
+                _ = pagePtr.Append(pg.PropertyCategory(s, s))
+                for name, prop in self.sections[s].items():
+                    item = pagePtr.Append(prop)
+
+                    # set the appropriate control to edit the attribute
+                    if isinstance(prop, wx.propgrid.IntProperty):
+                        self.proPrefs.SetPropertyEditor(item, "SpinCtrl")
+                    elif isinstance(prop, wx.propgrid.BoolProperty):
+                        self.proPrefs.SetPropertyAttribute(
+                            item, "UseCheckbox", True)
+                    try:
+                        self.proPrefs.SetPropertyHelpString(
+                            item, self.helpText[item.GetName()])
+                    except KeyError:
+                        pass
+
+        self.proPrefs.SetSplitterLeft()
+
+    def updatePref(self, section, name, value):
+        """Set the value of a preference."""
+        try:
+            self.sections[section][name].SetValue(value)
+            return True
+        except KeyError:
+            return False
+
+    def getPrefVal(self, section, name):
+        """Get the value of a preference."""
+        try:
+            return self.sections[section][name].GetValue()
+        except KeyError:
+            return None
+
+    # Virtual event handlers, overide them in your derived class
+    def OnPrefPageDeselected(self, event):
+
+        event.Skip()
+
+    def OnPrefPageSelected(self, event):
+        sel = self.lstPrefPages.GetFirstSelected()
+
+        if sel >= 0:
+            self.proPrefs.SelectPage(sel)
+
+        event.Skip()
+
+    def OnPropPageChanged(self, event):
+        event.Skip()
+
+    def OnPropPageChanging(self, event):
+        event.Skip()
 
 
 class PreferencesDlg(wx.Dialog):
@@ -179,38 +431,35 @@ class PreferencesDlg(wx.Dialog):
             wx.TAB_TRAVERSAL)
         sbPrefs = wx.BoxSizer(wx.VERTICAL)
 
-        self.nbPrefs = wx.Listbook(
+        self.proPrefs = PrefPropGrid(
             self.pnlMain, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize,
             wx.LB_DEFAULT)
 
-        nbPrefsImageSize = wx.Size(48, 48)
-        self.nbPrefsIndex = 0
-        self.nbPrefsImages = wx.ImageList(
-            nbPrefsImageSize.GetWidth(), nbPrefsImageSize.GetHeight())
-        self.nbPrefs.AssignImageList(self.nbPrefsImages)
+        # add property pages to the manager
+        self.proPrefs.addPage(
+            'General', 'general', ['general'],
+            'preferences-general48.png')
+        self.proPrefs.addPage(
+            'Application', 'app', ['app', 'builder', 'coder'],
+            'preferences-app48.png')
+        self.proPrefs.addPage(
+            'Key Bindings', 'keyBindings', ['keyBindings'],
+            'preferences-keyboard48.png')
+        self.proPrefs.addPage(
+            'Hardware', 'hardware', ['hardware'], 'preferences-hardware48.png')
+        self.proPrefs.addPage(
+            'Connections', 'connections', ['connections'],
+            'preferences-conn48.png')
+        self.proPrefs.populateGrid()
 
-        # add pages
-        self._pages = {
-            'general': self.addPrefPage(
-                'General', 'general', 'preferences-general48.png', True),
-            'app': self.addPrefPage(
-                'Application', 'app', 'preferences-app48.png'),
-            'keyBindings': self.addPrefPage(
-                'Key Bindings', 'keyBindings',
-                'preferences-keyboard48.png'),
-            'hardware': self.addPrefPage(
-                'Hardware', 'hardware', 'preferences-hardware48.png'),
-            'connections': self.addPrefPage(
-                'Connections', 'connections', 'preferences-conn48.png')
-        }
-
-        sbPrefs.Add(self.nbPrefs, 1, wx.EXPAND | wx.ALL, 5)
+        sbPrefs.Add(self.proPrefs, 1, wx.EXPAND)
 
         self.stlMain = wx.StaticLine(
             self.pnlMain, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize,
             wx.LI_HORIZONTAL)
         sbPrefs.Add(self.stlMain, 0, wx.EXPAND | wx.ALL, 5)
 
+        # dialog controls, have builtin localization
         sdbControls = wx.StdDialogButtonSizer()
         self.sdbControlsHelp = wx.Button(self.pnlMain, wx.ID_HELP)
         sdbControls.AddButton(self.sdbControlsHelp)
@@ -262,114 +511,12 @@ class PreferencesDlg(wx.Dialog):
     def __del__(self):
         pass
 
-    def addPrefPage(self, label, sectionName, bitmap, sel=False):
-        """Add a preferences page."""
-        pnlPage = wx.Panel(
-            self.nbPrefs, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize,
-            wx.TAB_TRAVERSAL)
-        sbPage = wx.BoxSizer(wx.VERTICAL)
-
-        propGridManager = pg.PropertyGridManager(
-            pnlPage, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize,
-            wx.propgrid.PGMAN_DEFAULT_STYLE | wx.propgrid.PG_BOLD_MODIFIED |
-            wx.propgrid.PG_DESCRIPTION | wx.propgrid.PG_SPLITTER_AUTO_CENTER)
-        propGridManager.SetExtraStyle(wx.propgrid.PG_EX_MODE_BUTTONS)
-
-        _ = propGridManager.AddPage(sectionName, wx.NullBitmap)
-        sbPage.Add(propGridManager, 1, wx.EXPAND, 5)
-
-        pnlPage.SetSizer(sbPage)
-        pnlPage.Layout()
-        sbPage.Fit(pnlPage)
-        self.nbPrefs.AddPage(pnlPage, label, sel)
-        nbBitmap = wx.Bitmap(
-            os.path.join(
-                self.app.prefs.paths['resources'],
-                bitmap),
-            wx.BITMAP_TYPE_ANY)
-        if nbBitmap.IsOk():
-            self.nbPrefsImages.Add(nbBitmap)
-            self.nbPrefs.SetPageImage(self.nbPrefsIndex, self.nbPrefsIndex)
-            self.nbPrefsIndex += 1
-
-        return propGridManager
-
     def populatePrefs(self):
-        """Populate pages with pref properties from file."""
-        sectionOrdering = ['general', 'app', 'builder', 'coder',
-                           'keyBindings', 'hardware', 'connections']
-
-        self.secPropGrids = secPropGrids = {
-            'general': self._pages['general'],
-            'app': self._pages['app'],
-            'builder': self._pages['app'],
-            'coder': self._pages['app'],
-            'hardware': self._pages['hardware'],
-            'connections': self._pages['connections'],
-            'keyBindings': self._pages['keyBindings']}
-
+        """Populate pages with property items for each preference."""
         # clear pages
-        for _, propMgr in self._pages.items():
-            propMgr.ClearPage(0)
-
-        for sectionName in sectionOrdering:
-            propGrid = secPropGrids[sectionName].GetPage(0)
-
+        for sectionName in self.prefsSpec.keys():
             prefsSection = self.prefsCfg[sectionName]
             specSection = self.prefsSpec[sectionName]
-
-            if sectionName == 'general':
-                item = propGrid.Append(
-                            pg.PropertyCategory(u"General", u"General"))
-                propGrid.SetPropertyHelpString(
-                    item,
-                    "General preferences for PsychoPy which affect aspects of "
-                    "the library and runtime.")
-                secPropGrids[sectionName].SelectProperty(item, focus=False)
-            elif sectionName == 'app':
-                item = propGrid.Append(
-                            pg.PropertyCategory(u"Application", u"Application"))
-                propGrid.SetPropertyHelpString(
-                    item,
-                    "General preferences related to the PsychoPy GUI suite "
-                    "(Coder, Builder, etc.)")
-                secPropGrids[sectionName].SelectProperty(item, focus=False)
-            elif sectionName == 'builder':
-                item = propGrid.Append(
-                            pg.PropertyCategory(u"Builder", u"builder"))
-                propGrid.SetPropertyHelpString(
-                    item,
-                    "Preferences specific to the Builder GUI.")
-            elif sectionName == 'coder':
-                item = propGrid.Append(
-                            pg.PropertyCategory(u"Coder", u"coder"))
-                propGrid.SetPropertyHelpString(
-                    item,
-                    "Preferences specific to the Coder GUI.")
-            elif sectionName == 'keyBindings':
-                item = propGrid.Append(
-                            pg.PropertyCategory(u"Key Bindings", u"keyBindings"))
-                propGrid.SetPropertyHelpString(
-                    item,
-                    "Key bindings for the PsychoPy GUI suite (Builder, Coder, "
-                    "etc.) Requires a restart to take effect.")
-                secPropGrids[sectionName].SelectProperty(item, focus=False)
-            elif sectionName == 'hardware':
-                item = propGrid.Append(
-                            pg.PropertyCategory(u"Hardware", u"Hardware"))
-                propGrid.SetPropertyHelpString(
-                    item,
-                    "Settings for hardware interfaces and drivers.")
-                secPropGrids[sectionName].SelectProperty(item, focus=False)
-            elif sectionName == 'connections':
-                item = propGrid.Append(
-                            pg.PropertyCategory(u"Connections", u"Connections"))
-                propGrid.SetPropertyHelpString(
-                    item,
-                    "Settings for network and internet connections.")
-                secPropGrids[sectionName].SelectProperty(item, focus=False)
-            else:
-                continue
 
             for prefName in specSection:
                 if prefName in ['version']:  # any other prefs not to show?
@@ -403,24 +550,23 @@ class PreferencesDlg(wx.Dialog):
 
                 if type(thisPref) == bool:
                     # only True or False - use a checkbox
-                    item = propGrid.Append(
-                        wx.propgrid.BoolProperty(prefName, value=thisPref))
-                    propGrid.SetPropertyAttribute(
-                        prefName,
-                        "UseCheckbox", True)
-                # properties for fonts, dropdown gives a list of system fonts
+                    self.proPrefs.addBoolItem(
+                        sectionName, pLabel, prefName, thisPref,
+                        helpText=helpText)
+
+                # # properties for fonts, dropdown gives a list of system fonts
                 elif prefName in ('codeFont', 'commentFont', 'outputFont'):
                     try:
                         default = self.fontList.index(thisPref)
                     except ValueError:
                         default = 0
-                    item = propGrid.Append(
-                        wx.propgrid.EnumProperty(
+                    self.proPrefs.addEnumItem(
+                            sectionName,
                             pLabel,
                             prefName,
                             labels=self.fontList,
                             values=[i for i in range(len(self.fontList))],
-                            value=default))
+                            value=default, helpText=helpText)
                 elif prefName == 'locale':
                     thisPref = self.app.prefs.app['locale']
                     locales = self.app.localization.available
@@ -429,25 +575,24 @@ class PreferencesDlg(wx.Dialog):
                     except ValueError:
                         # default to US english
                         default = locales.index('en_US')
-
-                    item = propGrid.Append(
-                        wx.propgrid.EnumProperty(
+                    self.proPrefs.addEnumItem(
+                            sectionName,
                             pLabel,
                             prefName,
                             labels=[_localized[i] for i in locales],
                             values=[i for i in range(len(locales))],
-                            value=default))
-                # single directory
+                            value=default, helpText=helpText)
+                # # single directory
                 elif prefName in ('unpackedDemosDir',):
-                    item = propGrid.Append(
-                        wx.propgrid.DirProperty(
-                            pLabel, prefName, thisPref))
+                    self.proPrefs.addDirItem(
+                        sectionName, pLabel, prefName, thisPref,
+                        helpText=helpText)
                 # single file
                 elif prefName in ('flac',):
-                    item = propGrid.Append(
-                        wx.propgrid.FileProperty(
-                            pLabel, prefName, thisPref))
-                # audio latency mode for the PTB driver
+                    self.proPrefs.addFileItem(
+                        sectionName, pLabel, prefName, thisPref,
+                        helpText=helpText)
+                # # audio latency mode for the PTB driver
                 elif prefName == 'audioLatencyMode':
                     # get the labels from above
                     labels = []
@@ -470,15 +615,15 @@ class PreferencesDlg(wx.Dialog):
                             # no default
                             default = 0
 
-                    item = propGrid.Append(
-                        wx.propgrid.EnumProperty(
+                    self.proPrefs.addEnumItem(
+                            sectionName,
                             pLabel,
                             prefName,
                             labels=labels,
                             values=[i for i in range(len(labels))],
-                            value=default))
-                # option items are given a dropdown, current value is shown
-                # in the box
+                            value=default, helpText=helpText)
+                # # option items are given a dropdown, current value is shown
+                # # in the box
                 elif thisSpec.startswith('option') or prefName == 'audioDevice':
                     if prefName == 'audioDevice':
                         options = self.audioDevNames
@@ -510,74 +655,40 @@ class PreferencesDlg(wx.Dialog):
                         except Exception:
                             labels.append(opt)
 
-                    item = propGrid.Append(
-                        wx.propgrid.EnumProperty(
+                    self.proPrefs.addEnumItem(
+                            sectionName,
                             pLabel,
                             prefName,
                             labels=labels,
                             values=[i for i in range(len(labels))],
-                            value=default))
-                # lists are given a property that can edit and reorder items
+                            value=default, helpText=helpText)
+                # # lists are given a property that can edit and reorder items
                 elif thisSpec.startswith('list'):  # list
-                    item = propGrid.Append(
-                        wx.propgrid.ArrayStringProperty(pLabel,
-                            prefName, value=[str(i) for i in thisPref]))
+                    self.proPrefs.addStringArrayItem(
+                        sectionName, pLabel, prefName,
+                        [str(i) for i in thisPref], helpText)
                 # integer items
                 elif thisSpec.startswith('integer'):  # integer
-                    item = propGrid.Append(
-                        wx.propgrid.IntProperty(pLabel,
-                            prefName, value=int(thisPref)))
-                    propGrid.SetPropertyEditor(prefName, "SpinCtrl")
-                # all other items just use a string field
+                    self.proPrefs.addIntegerItem(
+                        sectionName, pLabel, prefName, thisPref, helpText)
+                # # all other items just use a string field
                 else:
-                    item = propGrid.Append(
-                        wx.propgrid.StringProperty(pLabel,
-                            prefName, value=str(thisPref)))
+                    self.proPrefs.addStringItem(
+                        sectionName, pLabel, prefName, thisPref, helpText)
 
-                if item is not None:
-                    propGrid.SetPropertyHelpString(item, helpText)
-
-            secPropGrids[sectionName].SetSplitterLeft()
-
-    def listToString(self, seq, depth=8, errmsg='\'too_deep\''):
-        """Convert list to string.
-
-        This function is necessary because Unicode characters come to be
-        converted to hexadecimal values if unicode() is used to convert a
-        list to string. This function applies str() or unicode() to each
-        element of the list.
-        """
-        if depth > 0:
-            l = '['
-            for e in seq:
-                # if element is a sequence, call listToString recursively.
-                if isinstance(e, basestring):
-                    en = "{!r}, ".format(e)  # using !r adds '' or u'' as needed
-                elif hasattr(e, '__iter__'):  # just tuples and lists (but in Py3 str has __iter__)
-                    en = self.listToString(e, depth - 1) + ','
-                else:
-                    e = e.replace('\\', '\\\\').replace("'", "\\'")  # in path names?
-                    en = "{!r}, ".format(e)
-                l += en
-            # remove unnecessary comma
-            if l[-1] == ',':
-                l = l[:-1]
-            l += ']'
-        else:
-            l = errmsg
-        return l
+        self.proPrefs.populateGrid()
 
     def applyPrefs(self):
         """Write preferences to the current configuration."""
-        re_cmd2ctrl = re.compile('^Cmd\+', re.I)
+        if platform.system() == 'Darwin':
+            re_cmd2ctrl = re.compile('^Cmd\+', re.I)
+
         for sectionName in self.prefsSpec:
-            ctrls = self.secPropGrids[sectionName].GetPropertyValues(
-                inc_attributes=False)
             for prefName in self.prefsSpec[sectionName]:
                 if prefName in ['version']:  # any other prefs not to show?
                     continue
 
-                thisPref = ctrls[prefName]
+                thisPref = self.proPrefs.getPrefVal(sectionName, prefName)
                 # handle special cases
                 if prefName in ('codeFont', 'commentFont', 'outputFont'):
                     self.prefsCfg[sectionName][prefName] = \
@@ -679,15 +790,7 @@ class PreferencesDlg(wx.Dialog):
         event.Skip()
 
     def OnHelpClicked(self, event):
-        currentPane = self.nbPrefs.GetPageText(self.nbPrefs.GetSelection())
-        # # what the url should be called in psychopy.app.urls
-        urlName = "prefs.%s" % currentPane
-        if urlName in self.app.urls:
-            url = self.app.urls[urlName]
-        else:
-            # couldn't find that section - use default prefs
-            url = self.app.urls["prefs"]
-        self.app.followLink(url=url)
+        self.app.followLink(url=self.app.urls["prefs"])
         event.Skip()
 
     def OnOKClicked(self, event):
