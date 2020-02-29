@@ -372,7 +372,7 @@ class PrefPropGrid(wx.Panel):
 
         self.proPrefs.SetSplitterLeft()
 
-    def updatePref(self, section, name, value):
+    def setPrefVal(self, section, name, value):
         """Set the value of a preference."""
         try:
             self.sections[section][name].SetValue(value)
@@ -388,7 +388,6 @@ class PrefPropGrid(wx.Panel):
             return None
 
     def OnPrefPageDeselected(self, event):
-
         event.Skip()
 
     def OnPrefPageSelected(self, event):
