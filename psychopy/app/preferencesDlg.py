@@ -404,6 +404,9 @@ class PrefPropGrid(wx.Panel):
     def OnPropPageChanging(self, event):
         event.Skip()
 
+    def isModified(self):
+        return self.proPrefs.IsAnyModified()
+
 
 class PreferencesDlg(wx.Dialog):
     """Class for a dialog which edits PsychoPy's preferences.
@@ -678,6 +681,9 @@ class PreferencesDlg(wx.Dialog):
 
     def applyPrefs(self):
         """Write preferences to the current configuration."""
+        if not self.proPrefs.isModified():
+            return
+
         if platform.system() == 'Darwin':
             re_cmd2ctrl = re.compile('^Cmd\+', re.I)
 
