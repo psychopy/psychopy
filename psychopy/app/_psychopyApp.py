@@ -66,15 +66,16 @@ if sys.platform == 'win32':
         enableHighDPI = preferences.prefs.app['highDPI']
 
         # check if we have OS support for it
-        if hasattr(ctypes.windll.shcore, "SetProcessDpiAwareness"):
-            ctypes.windll.shcore.SetProcessDpiAwareness(enableHighDPI)
-        else:
-            logging.warn(
-                "High DPI support is not appear to be supported by this version"
-                " of Windows. Disabling in preferences.")
+        if enableHighDPI:
+            try:
+                ctypes.windll.shcore.SetProcessDpiAwareness(enableHighDPI)
+            except OSError:
+                logging.warn(
+                    "High DPI support is not appear to be supported by this version"
+                    " of Windows. Disabling in preferences.")
 
-            preferences.prefs.app['highDPI'] = False
-            preferences.prefs.saveUserPrefs()
+                preferences.prefs.app['highDPI'] = False
+                preferences.prefs.saveUserPrefs()
 
 
 class MenuFrame(wx.Frame):
