@@ -745,6 +745,7 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
         self.SetSizer(self.sizer)
         self.SetAutoLayout(True)
         self.SetupScrolling()
+        self.SetDoubleBuffered(True)
 
     def on_resize(self, event):
         if self.app.prefs.app['largeIcons']:
