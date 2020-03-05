@@ -770,7 +770,8 @@ class PsychoPyApp(wx.App):
         from psychopy.app.preferencesDlg import PreferencesDlg
         logging.debug('PsychoPyApp: Showing prefs dlg')
         prefsDlg = PreferencesDlg(app=self)
-        prefsDlg.Show()
+        prefsDlg.ShowModal()
+        prefsDlg.Destroy()
 
     def showAbout(self, event):
         logging.debug('PsychoPyApp: Showing about dlg')
