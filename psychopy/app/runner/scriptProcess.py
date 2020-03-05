@@ -4,6 +4,7 @@ import time
 from queue import Queue
 from subprocess import Popen, PIPE
 from threading import Thread
+from pathlib import Path
 
 try:
     FileNotFoundError
@@ -82,13 +83,15 @@ class ScriptProcess(object):
             command = [sys.executable, '-u', fullPath]
             _opts = wx.EXEC_ASYNC | wx.EXEC_MAKE_GROUP_LEADER
 
+        fullPathDir = Path(fullPath).parent  # for making cwd the file path - JK
+        # Note: This directory can't be a path object in Windows prior to Python 3.7. - JK
         # the whileRunning method will check on stdout from the script
         self._processEndTime = None
         self.scriptProcess = Popen(
             args=command,
             bufsize=1, executable=None, stdin=None,
             stdout=PIPE, stderr=PIPE, preexec_fn=None,
-            shell=False, cwd=None, env=None,
+            shell=False, cwd=fullPathDir, env=None,
             universal_newlines=True,  # gives us back a string instead of bytes
             creationflags=0,
         )
