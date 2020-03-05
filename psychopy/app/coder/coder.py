@@ -45,6 +45,7 @@ from psychopy.app.coder.sourceTree import SourceTreePanel
 from psychopy.app.coder.styling import applyStyleSpec
 from psychopy.app.coder.folding import CodeEditorFoldingMixin
 from psychopy.app.icons import combineImageEmblem
+from psychopy.app.errorDlg import ErrorMsgDialog
 
 try:
     import jedi

@@ -191,6 +191,9 @@ class PsychoPyApp(wx.App):
             sys.stderr = sys.stdout = lastLoadErrs = self._lastRunLog
             logging.console.setLevel(logging.DEBUG)
 
+        from psychopy.app.errorDlg import exceptionCallback
+        sys.excepthook = exceptionCallback
+
         # indicates whether we're running for testing purposes
         self.osfSession = None
         self.pavloviaSession = None
