@@ -273,16 +273,27 @@ def importConditions(fileName, returnFieldNames=False, selection=""):
     if fileName.endswith('.csv') or (fileName.endswith(('.xlsx','.xls','.xlsm'))
                                      and haveXlrd):
         if fileName.endswith('.csv'):
-            trialsArr = pd.read_csv(fileName, encoding='utf-8-sig')
-            logging.debug(u"Read csv file with pandas: {}".format(fileName))
+            try:
+                trialsArr = pd.read_csv(fileName, encoding='utf-8-sig',sep = ',')
+                logging.debug(u"Read csv file with pandas: {}".format(fileName))
+                unnamed = trialsArr.columns.to_series().str.contains('^Unnamed: ')
+                trialsArr = trialsArr.loc[:, ~unnamed]  # clear unnamed cols
+                logging.debug(u"Clearing unnamed columns from {}".format(fileName))
+                trialList, fieldNames = pandasToDictList(trialsArr)
+            except ValueError:
+                trialsArr = pd.read_csv(fileName, encoding='utf-8-sig',sep = ';')
+                logging.debug(u"Read csv file with pandas: {}".format(fileName))
+                unnamed = trialsArr.columns.to_series().str.contains('^Unnamed: ')
+                trialsArr = trialsArr.loc[:, ~unnamed]  # clear unnamed cols
+                logging.debug(u"Clearing unnamed columns from {}".format(fileName))
+                trialList, fieldNames = pandasToDictList(trialsArr)
         else:
             trialsArr = pd.read_excel(fileName)
             logging.debug(u"Read Excel file with pandas: {}".format(fileName))
-
-        unnamed = trialsArr.columns.to_series().str.contains('^Unnamed: ')
-        trialsArr = trialsArr.loc[:, ~unnamed]  # clear unnamed cols
-        logging.debug(u"Clearing unnamed columns from {}".format(fileName))
-        trialList, fieldNames = pandasToDictList(trialsArr)
+            unnamed = trialsArr.columns.to_series().str.contains('^Unnamed: ')
+            trialsArr = trialsArr.loc[:, ~unnamed]  # clear unnamed cols
+            logging.debug(u"Clearing unnamed columns from {}".format(fileName))
+            trialList, fieldNames = pandasToDictList(trialsArr)
 
     elif fileName.endswith(('.xlsx','.xlsm')):
         if not haveOpenpyxl:
