@@ -9,6 +9,7 @@
 app."""
 
 import wx
+import sys
 import traceback
 
 _error_dlg = None  # keep error dialogs from stacking
@@ -45,11 +46,18 @@ class ErrorMsgDialog(wx.Dialog):
         self.lblErrorMsg = wx.StaticText(
             self, wx.ID_ANY, msg, wx.DefaultPosition, wx.DefaultSize, 0)
         self.lblErrorMsg.Wrap(560)
-        szHeader.Add(self.lblErrorMsg, 0, wx.ALL | wx.ALIGN_CENTER_VERTICAL, 5)
+        szHeader.Add(self.lblErrorMsg, 0, wx.ALL, 5)
+        szHeaderButtons = wx.BoxSizer(wx.VERTICAL)
         self.cmdOK = wx.Button(
             self, wx.ID_OK, u"&OK", wx.DefaultPosition, wx.DefaultSize, 0)
-        szHeader.Add(self.cmdOK, 0, wx.ALL | wx.ALIGN_TOP, 5)
-        szErrorMsg.Add(szHeader, 0, wx.ALL | wx.EXPAND, 5)
+        szHeaderButtons.Add(self.cmdOK, 0, wx.LEFT | wx.EXPAND, 5)
+        self.cmdExit = wx.Button(
+            self, wx.ID_EXIT, u"E&xit PsychoPy", wx.DefaultPosition,
+            wx.DefaultSize, 0)
+        szHeaderButtons.Add(self.cmdExit, 0, wx.TOP | wx.LEFT | wx.EXPAND, 5)
+        szHeader.Add(szHeaderButtons, 0, wx.ALL | wx.EXPAND, 5)
+        szErrorMsg.Add(szHeader, 0, wx.TOP | wx.LEFT | wx.RIGHT | wx.EXPAND, 5)
+
         self.pnlDetails = wx.CollapsiblePane(
             self, wx.ID_ANY, u"&Details", wx.DefaultPosition, wx.DefaultSize,
             wx.CP_DEFAULT_STYLE)
@@ -85,6 +93,7 @@ class ErrorMsgDialog(wx.Dialog):
 
         # Connect Events
         self.cmdOK.Bind(wx.EVT_BUTTON, self.onOkay)
+        self.cmdExit.Bind(wx.EVT_BUTTON, self.onExit)
         self.cmdCopyError.Bind(wx.EVT_BUTTON, self.onCopyDetails)
         self.cmdSaveError.Bind(wx.EVT_BUTTON, self.onSaveDetails)
 
@@ -97,6 +106,28 @@ class ErrorMsgDialog(wx.Dialog):
     def onOkay(self, event):
         """Called when OK is clicked."""
         event.Skip()
+
+    def onExit(self, event):
+        """Called when the user requests to close PsychoPy. This can be called
+        if the error if unrecoverable or if the errors are being constantly
+        generated.
+
+        Will try to close things safely, allowing the user to save files while
+        suppressing further errors.
+
+        """
+        dlg = wx.MessageDialog(
+            self,
+            "Are you sure you want to exit PsychoPy? Unsaved work may be lost "
+            "(but we'll try to save opened files).",
+            "Exit PsychoPy?",
+            wx.YES_NO | wx.NO_DEFAULT | wx.ICON_WARNING | wx.CENTRE)
+        if dlg.ShowModal() == wx.ID_YES:
+            wx.GetApp().quit()
+            # wx.Exit()  # nuclear option
+        else:
+            dlg.Destroy()
+            event.Skip()
 
     def onCopyDetails(self, event):
         """Copy the contents of the details text box to the clipboard. This is
