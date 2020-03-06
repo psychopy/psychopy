@@ -1977,7 +1977,6 @@ class CoderFrame(wx.Frame):
     def onIdle(self, event):
         # check the script outputs to see if anything has been written to
         # stdout
-        raise RuntimeError
         if self.scriptProcess is not None:
             if self.scriptProcess.IsInputAvailable():
                 stream = self.scriptProcess.GetInputStream()
@@ -2317,7 +2316,7 @@ class CoderFrame(wx.Frame):
 
             self.currentDoc.setLexerFromFileName()  # chose the best lexer
 
-            self.setFileModified(True)
+            self.setFileModified(False)
             self.currentDoc.SetFocus()
             self.statusBar.SetStatusText(self.currentDoc.getFileType(), 2)
 
