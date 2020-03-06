@@ -1134,11 +1134,11 @@ class CoderFrame(wx.Frame):
                                  Caption(_translate("Source Assistant")).
                                  Left().Show(self.prefs['showSourceAsst']))
 
-        self.sourceAsst.AddPage(self.sourceAsstWindow, "Structure")
+        self.sourceAsst.AddPage(self.sourceAsstWindow, _translate("Structure"))
         self.sourceAsst.SetPageBitmap(0, wx.Bitmap(
                     os.path.join(self.paths['resources'], 'coderclass16.png'),
             wx.BITMAP_TYPE_PNG))
-        self.sourceAsst.AddPage(self.fileBrowserWindow, "File Browser")
+        self.sourceAsst.AddPage(self.fileBrowserWindow, _translate("File Browser"))
         self.sourceAsst.SetPageBitmap(1, wx.Bitmap(
                     os.path.join(self.paths['resources'], 'folder-open16.png'),
             wx.BITMAP_TYPE_PNG))
@@ -1288,7 +1288,8 @@ class CoderFrame(wx.Frame):
                     _translate("&Close file\t%s") % keyCodes['close'],
                     _translate("Close current file"))
         menu.Append(wx.ID_CLOSE_ALL,
-                    "Close all files", "Close all files in the editor.")
+                    _translate("Close all files"),
+                    _translate("Close all files in the editor."))
         menu.AppendSeparator()
         self.Bind(wx.EVT_MENU, self.fileNew, id=wx.ID_NEW)
         self.Bind(wx.EVT_MENU, self.fileOpen, id=wx.ID_OPEN)
@@ -1402,7 +1403,7 @@ class CoderFrame(wx.Frame):
                            wx.ITEM_NORMAL)
         self.Bind(wx.EVT_MENU, self.smallFont, id=item.GetId())
         item = menu.Append(wx.ID_ANY,
-                           "Reset font",
+                           _translate("Reset font"),
                            _translate("Return fonts to their original size."),
                            wx.ITEM_NORMAL)
         self.Bind(wx.EVT_MENU, self.resetFont, id=item.GetId())
@@ -1412,24 +1413,24 @@ class CoderFrame(wx.Frame):
         sm = wx.Menu()
         item = sm.Append(
             wx.ID_ANY,
-            "Editor file location",
+            _translate("Editor file location"),
             "",
             wx.ITEM_NORMAL)
         self.Bind(wx.EVT_MENU, self.onSetCWDFromEditor, id=item.GetId())
         item = sm.Append(
             wx.ID_ANY,
-            "File browser pane location",
+            _translate("File browser pane location"),
             "",
             wx.ITEM_NORMAL)
         self.Bind(wx.EVT_MENU, self.onSetCWDFromBrowserPane, id=item.GetId())
         sm.AppendSeparator()
         item = sm.Append(
             wx.ID_ANY,
-            "Choose directory ...",
+            _translate("Choose directory ..."),
             "",
             wx.ITEM_NORMAL)
         self.Bind(wx.EVT_MENU, self.onSetCWDFromBrowse, id=item.GetId())
-        menu.Append(wx.ID_ANY, "Change working directory to ...", sm)
+        menu.Append(wx.ID_ANY, _translate("Change working directory to ..."), sm)
 
         # menu.Append(ID_UNFOLDALL, "Unfold All\tF3",
         #   "Unfold all lines", wx.ITEM_NORMAL)
@@ -1521,16 +1522,16 @@ class CoderFrame(wx.Frame):
         self.outputChk.Check(self.prefs['showOutput'])
         self.Bind(wx.EVT_MENU, self.setOutputWindow, id=self.outputChk.GetId())
         # source assistant
-        hint = "Hide/show the source structure pane."
+        hint = _translate("Hide/show the source structure pane.")
         self.sourceAsstChk = menu.AppendCheckItem(wx.ID_ANY,
-                                                  "Source Structure",
+                                                  _translate("Source Structure"),
                                                   hint)
         self.Bind(wx.EVT_MENU, self.setSourceAsst,
                   id=self.sourceAsstChk.GetId())
 
-        hint = "Hide/show file browser pane."
+        hint = _translate("Hide/show file browser pane.")
         self.fileBrowserChk = menu.AppendCheckItem(wx.ID_ANY,
-                                                  "File Browser",
+                                                  _translate("File Browser"),
                                                   hint)
         self.Bind(wx.EVT_MENU, self.setFileBrowser,
                   id=self.fileBrowserChk.GetId())
