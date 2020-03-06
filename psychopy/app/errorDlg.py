@@ -9,7 +9,6 @@
 app."""
 
 import wx
-import sys
 import traceback
 
 _error_dlg = None  # keep error dialogs from stacking
