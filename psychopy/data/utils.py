@@ -19,7 +19,7 @@ import pandas as pd
 from collections import OrderedDict
 from pkg_resources import parse_version
 
-from psychopy import logging
+from psychopy import logging, exceptions
 from psychopy.constants import PY3
 from psychopy.tools.filetools import pathToString
 
@@ -205,6 +205,30 @@ def importConditions(fileName, returnFieldNames=False, selection=""):
 
     """
 
+    def _attemptImport(fileName, sep=',', dec='.'):
+        """Attempts to import file with specified settings and raises
+        ConditionsImportError if fails due to invalid format
+
+        :param filename: str
+        :param sep: str indicating the separator for cells (',', ';' etc)
+        :param dec: str indicating the decimal point ('.', '.')
+        :return: trialList, fieldNames
+        """
+        if fileName.endswith(('.csv', '.tsv')):
+            trialsArr = pd.read_csv(fileName, encoding='utf-8-sig',
+                                    sep=sep, decimal=dec)
+            logging.debug(u"Read csv file with pandas: {}".format(fileName))
+        elif fileName.endswith(('.xlsx', '.xls', '.xlsm')):
+            trialsArr = pd.read_excel(fileName)
+            logging.debug(u"Read Excel file with pandas: {}".format(fileName))
+        # then try to convert array to trialList and fieldnames
+        unnamed = trialsArr.columns.to_series().str.contains('^Unnamed: ')
+        trialsArr = trialsArr.loc[:, ~unnamed]  # clear unnamed cols
+        logging.debug(u"Clearing unnamed columns from {}".format(fileName))
+        trialList, fieldNames = pandasToDictList(trialsArr)
+
+        return trialList, fieldNames
+
     def _assertValidVarNames(fieldNames, fileName):
         """screens a list of names as candidate variable names. if all
         names are OK, return silently; else raise  with msg
@@ -213,14 +237,15 @@ def importConditions(fileName, returnFieldNames=False, selection=""):
         if not all(fieldNames):
             msg = ('Conditions file %s: Missing parameter name(s); '
                    'empty cell(s) in the first row?')
-            raise ValueError(msg % fileName)
+            raise exceptions.ConditionsImportError(msg % fileName)
         for name in fieldNames:
             OK, msg = isValidVariableName(name)
             if not OK:
                 # tailor message to importConditions
                 msg = msg.replace('Variables', 'Parameters (column headers)')
-                raise ValueError('Conditions file %s: %s%s"%s"' %
-                                  (fileName, msg, os.linesep * 2, name))
+                raise exceptions.ConditionsImportError(
+                    'Conditions file %s: %s%s"%s"' %
+                    (fileName, msg, os.linesep * 2, name))
 
     if fileName in ['None', 'none', None]:
         if returnFieldNames:
@@ -270,32 +295,21 @@ def importConditions(fileName, returnFieldNames=False, selection=""):
             trialList.append(thisTrial)
         return trialList, fieldNames
 
-    if fileName.endswith('.csv') or (fileName.endswith(('.xlsx','.xls','.xlsm'))
-                                     and haveXlrd):
-        if fileName.endswith('.csv'):
-            try:
-                trialsArr = pd.read_csv(fileName, encoding='utf-8-sig',sep = ',')
-                logging.debug(u"Read csv file with pandas: {}".format(fileName))
-                unnamed = trialsArr.columns.to_series().str.contains('^Unnamed: ')
-                trialsArr = trialsArr.loc[:, ~unnamed]  # clear unnamed cols
-                logging.debug(u"Clearing unnamed columns from {}".format(fileName))
-                trialList, fieldNames = pandasToDictList(trialsArr)
-            except ValueError:
-                trialsArr = pd.read_csv(fileName, encoding='utf-8-sig',sep = ';')
-                logging.debug(u"Read csv file with pandas: {}".format(fileName))
-                unnamed = trialsArr.columns.to_series().str.contains('^Unnamed: ')
-                trialsArr = trialsArr.loc[:, ~unnamed]  # clear unnamed cols
-                logging.debug(u"Clearing unnamed columns from {}".format(fileName))
-                trialList, fieldNames = pandasToDictList(trialsArr)
+    if (fileName.endswith(('.csv', '.tsv'))
+            or (fileName.endswith(('.xlsx', '.xls', '.xlsm')) and haveXlrd)):
+        if fileName.endswith(('.csv', '.tsv', '.dlm')):  # delimited text file
+            for sep, dec in [ (',', '.'), (';', ','),  # most common in US, EU
+                              ('\t', '.'), ('\t', ','), (';', '.')]:
+                try:
+                    trialList, fieldNames = _attemptImport(fileName=fileName,
+                                                           sep=sep, dec=dec)
+                    break  # seems to have worked
+                except exceptions.ConditionsImportError as e:
+                    continue  # try a different format
         else:
-            trialsArr = pd.read_excel(fileName)
-            logging.debug(u"Read Excel file with pandas: {}".format(fileName))
-            unnamed = trialsArr.columns.to_series().str.contains('^Unnamed: ')
-            trialsArr = trialsArr.loc[:, ~unnamed]  # clear unnamed cols
-            logging.debug(u"Clearing unnamed columns from {}".format(fileName))
-            trialList, fieldNames = pandasToDictList(trialsArr)
+            trialList, fieldNames = _attemptImport(fileName=fileName)
 
-    elif fileName.endswith(('.xlsx','.xlsm')):
+    elif fileName.endswith(('.xlsx','.xlsm')):  # no xlsread so use openpyxl
         if not haveOpenpyxl:
             raise ImportError('openpyxl or xlrd is required for loading excel '
                               'files, but neither was found.')
@@ -377,7 +391,7 @@ def importConditions(fileName, returnFieldNames=False, selection=""):
             trialList.append(thisTrial)
     else:
         raise IOError('Your conditions file should be an '
-                      'xlsx, csv or pkl file')
+                      'xlsx, csv, dlm, tsv or pkl file')
 
     # if we have a selection then try to parse it
     if isinstance(selection, basestring) and len(selection) > 0:
