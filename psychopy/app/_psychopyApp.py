@@ -66,15 +66,16 @@ if sys.platform == 'win32':
         enableHighDPI = preferences.prefs.app['highDPI']
 
         # check if we have OS support for it
-        if hasattr(ctypes.windll.shcore, "SetProcessDpiAwareness"):
-            ctypes.windll.shcore.SetProcessDpiAwareness(enableHighDPI)
-        else:
-            logging.warn(
-                "High DPI support is not appear to be supported by this version"
-                " of Windows. Disabling in preferences.")
+        if enableHighDPI:
+            try:
+                ctypes.windll.shcore.SetProcessDpiAwareness(enableHighDPI)
+            except OSError:
+                logging.warn(
+                    "High DPI support is not appear to be supported by this version"
+                    " of Windows. Disabling in preferences.")
 
-            preferences.prefs.app['highDPI'] = False
-            preferences.prefs.saveUserPrefs()
+                preferences.prefs.app['highDPI'] = False
+                preferences.prefs.saveUserPrefs()
 
 
 class MenuFrame(wx.Frame):
@@ -769,7 +770,8 @@ class PsychoPyApp(wx.App):
         from psychopy.app.preferencesDlg import PreferencesDlg
         logging.debug('PsychoPyApp: Showing prefs dlg')
         prefsDlg = PreferencesDlg(app=self)
-        prefsDlg.Show()
+        prefsDlg.ShowModal()
+        prefsDlg.Destroy()
 
     def showAbout(self, event):
         logging.debug('PsychoPyApp: Showing about dlg')

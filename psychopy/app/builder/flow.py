@@ -141,6 +141,9 @@ class FlowPanel(wx.ScrolledWindow):
         ])
         self.SetAcceleratorTable(aTable)
 
+        # set double buffering to reduce flicker
+        self.SetDoubleBuffered(True)
+
     def clearMode(self, event=None):
         """If we were in middle of doing something (like inserting routine)
         then end it, allowing user to cancel
