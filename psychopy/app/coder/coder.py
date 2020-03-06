@@ -581,7 +581,7 @@ class CodeEditor(BaseCodeEditor, CodeEditorFoldingMixin):
             self.SetTechnology(3)
 
         # prevent flickering on update
-        self.SetBufferedDraw(True)
+        self.SetDoubleBuffered(True)
 
     def setFonts(self):
         """Make some styles,  The lexer defines what each style is used for,
@@ -696,7 +696,7 @@ class CodeEditor(BaseCodeEditor, CodeEditorFoldingMixin):
             if charPos == 0:
                 # if caret is at start of line, move to start of text instead
                 self.VCHome()
-        if keyCode == ord(']') and wx.MOD_CONTROL == _mods:
+        elif keyCode == ord(']') and wx.MOD_CONTROL == _mods:
             self.indentSelection(4)
             # if there are no characters on the line then also move caret to
             # end of indentation
@@ -705,26 +705,26 @@ class CodeEditor(BaseCodeEditor, CodeEditorFoldingMixin):
                 # if caret is at start of line, move to start of text instead
                 self.VCHome()
 
-        if keyCode == ord('/') and wx.MOD_CONTROL == _mods:
+        elif keyCode == ord('/') and wx.MOD_CONTROL == _mods:
             self.commentLines()
-        if keyCode == ord('/') and wx.MOD_CONTROL | wx.MOD_SHIFT == _mods:
+        elif keyCode == ord('/') and wx.MOD_CONTROL | wx.MOD_SHIFT == _mods:
             self.uncommentLines()
 
         # show completions, very simple at this point
-        if keyCode == wx.WXK_SPACE and wx.MOD_CONTROL == _mods:
+        elif keyCode == wx.WXK_SPACE and wx.MOD_CONTROL == _mods:
             self.ShowAutoCompleteList()
 
         # show a calltip with signiture
-        if keyCode == wx.WXK_SPACE and wx.MOD_CONTROL | wx.MOD_SHIFT == _mods:
+        elif keyCode == wx.WXK_SPACE and wx.MOD_CONTROL | wx.MOD_SHIFT == _mods:
             self.ShowCalltip()
 
-        if keyCode == wx.WXK_ESCAPE:  # close overlays
+        elif keyCode == wx.WXK_ESCAPE:  # close overlays
             if self.AutoCompActive():
                 self.AutoCompCancel()  # close the auto completion list
             if self.CallTipActive():
                 self.CallTipCancel()
 
-        if keyCode == wx.WXK_RETURN: # and not self.AutoCompActive():
+        elif keyCode == wx.WXK_RETURN: # and not self.AutoCompActive():
             if not self.AutoCompActive():
                 # process end of line and then do smart indentation
                 event.Skip(False)
@@ -734,7 +734,7 @@ class CodeEditor(BaseCodeEditor, CodeEditorFoldingMixin):
                 return  # so that we don't reach the skip line at end
 
         # quote line
-        if keyCode == ord("'"):
+        elif keyCode == ord("'"):
             start, end = self.GetSelection()
             if end - start > 0:
                 txt = self.GetSelectedText()
