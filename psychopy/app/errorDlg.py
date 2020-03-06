@@ -1,70 +1,77 @@
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
+
+# Part of the PsychoPy library
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019 Open Science Tools Ltd.
+# Distributed under the terms of the GNU General Public License (GPL).
+
 """Error dialog for showing unhandled exceptions that occur within the PsychoPy
 app."""
 
 import wx
 import traceback
 
-_error_dlg_visible = False  # keep error dialogs from stacking
+_error_dlg = None  # keep error dialogs from stacking
 
 
 class ErrorMsgDialog(wx.Dialog):
-    """Class for creating an error report dialog"""
-    def __init__(self, parent, details=None):
+    """Class for creating an error report dialog. Should never be created
+    directly.
+    """
+    def __init__(self, parent, traceback=''):
         wx.Dialog.__init__(self, parent, id=wx.ID_ANY, title=u"PsychoPy3 Error",
-                           pos=wx.DefaultPosition, size=wx.Size(735, 118),
+                           pos=wx.DefaultPosition, size=wx.Size(750, -1),
                            style=wx.DEFAULT_DIALOG_STYLE | wx.RESIZE_BORDER)
 
-        self.details = details
+        self.details = traceback
+
+        # message to show at the top of the error box, needs translation
+        msg = u"PsychoPy encountered an unhandled internal error! " \
+              u"Please send the report under \"Details\" to the " \
+              u"developers with a description of what you were doing " \
+              u"with the software when the error occurred."
+
         self.SetSizeHints(wx.DefaultSize, wx.DefaultSize)
-
         szErrorMsg = wx.BoxSizer(wx.VERTICAL)
-
         szHeader = wx.FlexGridSizer(0, 3, 0, 0)
         szHeader.AddGrowableCol(1)
         szHeader.SetFlexibleDirection(wx.BOTH)
         szHeader.SetNonFlexibleGrowMode(wx.FLEX_GROWMODE_SPECIFIED)
-
-        self.imgErrorIcon = wx.StaticBitmap(self, wx.ID_ANY, wx.ArtProvider.GetBitmap(wx.ART_ERROR, wx.ART_MESSAGE_BOX),
-                                            wx.DefaultPosition, wx.DefaultSize, 0)
+        self.imgErrorIcon = wx.StaticBitmap(
+            self, wx.ID_ANY, wx.ArtProvider.GetBitmap(
+                wx.ART_ERROR, wx.ART_MESSAGE_BOX),
+            wx.DefaultPosition, wx.DefaultSize, 0)
         szHeader.Add(self.imgErrorIcon, 0, wx.ALL, 5)
-
-        self.lblErrorMsg = wx.StaticText(self, wx.ID_ANY,
-                                         u"PsychoPy has encountered an unhandled internal error! Click \"Details\" to view the error report and please send it to the developers to help improve PsychoPy.",
-                                         wx.DefaultPosition, wx.DefaultSize, 0)
+        self.lblErrorMsg = wx.StaticText(
+            self, wx.ID_ANY, msg, wx.DefaultPosition, wx.DefaultSize, 0)
         self.lblErrorMsg.Wrap(560)
-
         szHeader.Add(self.lblErrorMsg, 0, wx.ALL | wx.ALIGN_CENTER_VERTICAL, 5)
-
-        self.cmdOK = wx.Button(self, wx.ID_OK, u"&OK", wx.DefaultPosition, wx.DefaultSize, 0)
-        szHeader.Add(self.cmdOK, 0, wx.ALL | wx.ALIGN_CENTER_VERTICAL, 5)
-
+        self.cmdOK = wx.Button(
+            self, wx.ID_OK, u"&OK", wx.DefaultPosition, wx.DefaultSize, 0)
+        szHeader.Add(self.cmdOK, 0, wx.ALL | wx.ALIGN_TOP, 5)
         szErrorMsg.Add(szHeader, 0, wx.ALL | wx.EXPAND, 5)
-
-        self.pnlDetails = wx.CollapsiblePane(self, wx.ID_ANY, u"&Details", wx.DefaultPosition, wx.DefaultSize,
-                                             wx.CP_DEFAULT_STYLE)
+        self.pnlDetails = wx.CollapsiblePane(
+            self, wx.ID_ANY, u"&Details", wx.DefaultPosition, wx.DefaultSize,
+            wx.CP_DEFAULT_STYLE)
         self.pnlDetails.Collapse(True)
-
         szDetailsPane = wx.BoxSizer(wx.VERTICAL)
-
-        self.txtErrorOutput = wx.TextCtrl(self.pnlDetails.GetPane(), wx.ID_ANY, self.details, wx.DefaultPosition,
-                                          wx.Size(640, 150),
-                                          wx.TE_AUTO_URL | wx.TE_BESTWRAP | wx.TE_MULTILINE | wx.TE_READONLY | wx.TE_WORDWRAP)
-
+        self.txtErrorOutput = wx.TextCtrl(
+            self.pnlDetails.GetPane(), wx.ID_ANY, self.details,
+            wx.DefaultPosition, wx.Size(640, 150),
+            wx.TE_AUTO_URL | wx.TE_BESTWRAP | wx.TE_MULTILINE | wx.TE_READONLY |
+            wx.TE_WORDWRAP)
         szDetailsPane.Add(self.txtErrorOutput, 1, wx.ALL | wx.EXPAND, 5)
-
         szTextButtons = wx.BoxSizer(wx.HORIZONTAL)
-
-        self.cmdCopyError = wx.Button(self.pnlDetails.GetPane(), wx.ID_ANY, u"&Copy", wx.DefaultPosition,
-                                      wx.DefaultSize, 0)
+        self.cmdCopyError = wx.Button(
+            self.pnlDetails.GetPane(), wx.ID_ANY, u"&Copy", wx.DefaultPosition,
+            wx.DefaultSize, 0)
         szTextButtons.Add(self.cmdCopyError, 0, wx.RIGHT, 5)
-
-        self.cmdSaveError = wx.Button(self.pnlDetails.GetPane(), wx.ID_ANY, u"&Save", wx.DefaultPosition,
-                                      wx.DefaultSize, 0)
+        self.cmdSaveError = wx.Button(
+            self.pnlDetails.GetPane(), wx.ID_ANY, u"&Save", wx.DefaultPosition,
+            wx.DefaultSize, 0)
         szTextButtons.Add(self.cmdSaveError, 0)
-
         szDetailsPane.Add(szTextButtons, 0, wx.ALL | wx.ALIGN_RIGHT, 5)
-
+        self.pnlDetails.Expand()
         self.pnlDetails.GetPane().SetSizer(szDetailsPane)
         self.pnlDetails.GetPane().Layout()
         szDetailsPane.Fit(self.pnlDetails.GetPane())
@@ -88,29 +95,84 @@ class ErrorMsgDialog(wx.Dialog):
         pass
 
     def onOkay(self, event):
+        """Called when OK is clicked."""
         event.Skip()
 
     def onCopyDetails(self, event):
+        """Copy the contents of the details text box to the clipboard. This is
+        to allow the user to paste the traceback into an email, forum post,
+        issue ticket, etc. to report the error to the developers.
+
+        """
+        if wx.TheClipboard.Open():
+            wx.TheClipboard.SetData(
+                wx.TextDataObject(self.txtErrorOutput.GetValue()))
+            wx.TheClipboard.Close()
+
         event.Skip()
 
     def onSaveDetails(self, event):
+        """Dump the traceback data to a file. This can be used to save the error
+        data so it can be reported to the developers at a later time. Brings up
+        a file save dialog to select where to write the file.
+
+        """
+        with wx.FileDialog(
+                self, "Save error traceback",
+                wildcard="Text files (*.txt)|*.txt",
+                defaultFile='psychopy_traceback.txt',
+                style=wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT) as fileDialog:
+
+            if fileDialog.ShowModal() == wx.ID_CANCEL:
+                return  # the user changed their mind
+
+            # dump traceback to file
+            pathname = fileDialog.GetPath()
+            try:
+                with open(pathname, 'w') as file:
+                    file.write(self.txtErrorOutput.GetValue())
+            except IOError:
+                # error in an error ... ;)
+                errdlg = wx.MessageDialog(
+                    self,
+                    "Cannot save to file '%s'." % pathname,
+                    "File save error",
+                    wx.OK_DEFAULT | wx.ICON_ERROR | wx.CENTRE)
+                errdlg.ShowModal()
+                errdlg.Destroy()
+
         event.Skip()
+
+
+def isErrorDialogVisible():
+    """Check if the error dialog is open. This can be used to prevent background
+    routines from running while the user deals with an error.
+
+    Returns
+    -------
+    bool
+        Error dialog is currently active.
+
+    """
+    return _error_dlg is not None
 
 
 def exceptionCallback(exc_type, exc_value, exc_traceback):
     """Hook when an unhandled exception is raised within the current application
-    thread. Gets the exception message and creates and error dialog box.
+    thread. Gets the exception message and creates an error dialog box.
+
+    When this function is patched into `sys.excepthook`, all unhandled
+    exceptions will result in a dialog being displayed.
 
     """
-    global _error_dlg_visible
-    if not _error_dlg_visible:
-        _error_dlg_visible = True
+    global _error_dlg
+    if not isErrorDialogVisible():
         # format the traceback text
         tbText = ''.join(traceback.format_exception(
             exc_type, exc_value, exc_traceback, limit=8))
+        _error_dlg = ErrorMsgDialog(None, tbText)
 
         # show the dialog
-        dlg = ErrorMsgDialog(None, details=tbText)
-        dlg.ShowModal()
-        dlg.Destroy()
-        _error_dlg_visible = False
+        _error_dlg.ShowModal()
+        _error_dlg.Destroy()
+        _error_dlg = None

@@ -687,7 +687,6 @@ class CodeEditor(BaseCodeEditor, CodeEditorFoldingMixin):
         # enable in the _-init__
         keyCode = event.GetKeyCode()
         _mods = event.GetModifiers()
-
         # handle some special keys
         if keyCode == ord('[') and wx.MOD_CONTROL == _mods:
             self.indentSelection(-4)
@@ -839,9 +838,9 @@ class CodeEditor(BaseCodeEditor, CodeEditorFoldingMixin):
         self.caretLineIndentLevel = self.caretLineIndentCol / self.indentSize
         self.caretAtIndentLevel = \
             (self.caretLineIndentCol % self.indentSize) == 0
-        self.shouldBackspaceUntab = \
-            self.caretAtIndentLevel and \
-            0 < self.caretColumn <= self.caretLineIndentCol
+        # self.shouldBackspaceUntab = \
+        #     self.caretAtIndentLevel and \
+        #     0 < self.caretColumn <= self.caretLineIndentCol
 
     def commentLines(self):
         # used for the comment/uncomment machinery from ActiveGrid

@@ -191,9 +191,6 @@ class PsychoPyApp(wx.App):
             sys.stderr = sys.stdout = lastLoadErrs = self._lastRunLog
             logging.console.setLevel(logging.DEBUG)
 
-        from psychopy.app.errorDlg import exceptionCallback
-        sys.excepthook = exceptionCallback
-
         # indicates whether we're running for testing purposes
         self.osfSession = None
         self.pavloviaSession = None
@@ -209,6 +206,10 @@ class PsychoPyApp(wx.App):
         self.localization = localization
         self.locale = localization.setLocaleWX()
         self.locale.AddCatalog(self.GetAppName())
+
+        # set the exception hook to present unhandled errors in a dialog
+        from psychopy.app.errorDlg import exceptionCallback
+        sys.excepthook = exceptionCallback
 
         self.onInit(testMode=testMode, **kwargs)
         if profiling:
