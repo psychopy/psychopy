@@ -30,3 +30,7 @@ class ConnectionError(Exception):
 
 class NoGitError(DependencyError):
     pass
+
+
+class ConditionsImportError(Exception):
+    pass
