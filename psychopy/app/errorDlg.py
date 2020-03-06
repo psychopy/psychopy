@@ -10,6 +10,8 @@ app."""
 
 import wx
 import traceback
+import psychopy.preferences
+import sys
 
 _error_dlg = None  # keep error dialogs from stacking
 
@@ -195,6 +197,12 @@ def exceptionCallback(exc_type, exc_value, exc_traceback):
     exceptions will result in a dialog being displayed.
 
     """
+    if psychopy.preferences.prefs.app['errorDialog'] is False:
+        # have the error go out to stdout if dialogs are disabled
+        traceback.print_exception(
+            exc_type, exc_value, exc_traceback, file=sys.stdout)
+        return
+
     global _error_dlg
     if not isErrorDialogVisible():
         # format the traceback text
