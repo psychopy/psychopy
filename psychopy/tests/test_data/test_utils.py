@@ -58,7 +58,7 @@ class Test_utilsClass:
         # test assertion for invalid file type
         with pytest.raises(IOError) as errMsg:
             utils.importConditions(fileName_docx)
-        assert ('Your conditions file should be an ''xlsx, csv or pkl file') == str(errMsg.value)
+        assert ('Your conditions file should be an ''xlsx, csv, dlm, tsv or pkl file') == str(errMsg.value)
 
     def test_isValidVariableName(self):
         assert utils.isValidVariableName('Name') == (True, '')
