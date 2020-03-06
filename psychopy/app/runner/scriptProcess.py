@@ -83,8 +83,7 @@ class ScriptProcess(object):
             command = [sys.executable, '-u', fullPath]
             _opts = wx.EXEC_ASYNC | wx.EXEC_MAKE_GROUP_LEADER
 
-        fullPathDir = Path(fullPath).parent  # for making cwd the file path - JK
-        # Note: This directory can't be a path object in Windows prior to Python 3.7. - JK
+        fullPathDir = str(Path(fullPath).parent)  # for cwd the file path - JK
         # the whileRunning method will check on stdout from the script
         self._processEndTime = None
         self.scriptProcess = Popen(
