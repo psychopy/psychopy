@@ -15,10 +15,8 @@ import wx
 import wx.stc
 from wx.lib import platebtn, scrolledpanel
 
-try:
-    from wx import aui
-except ImportError:
-    import wx.lib.agw.aui as aui  # some versions of phoenix
+import wx.lib.agw.aui as aui  # some versions of phoenix
+
 try:
     from wx.adv import PseudoDC
 except ImportError:
@@ -55,6 +53,7 @@ from psychopy.experiment import components
 
 from psychopy.app import pavlovia_ui
 from psychopy.projects import pavlovia
+from psychopy.app.themes import applyDockartTheme
 
 from psychopy.scripts.psyexpCompile import generateScript
 
@@ -1124,6 +1123,10 @@ class BuilderFrame(wx.Frame):
             self._mgr.GetPane('Routines').CenterPane()
         # tell the manager to 'commit' all the changes just made
         self._mgr.Update()
+
+        # apply the theme
+        applyDockartTheme(self._mgr)
+
         # self.SetSizer(self.mainSizer)  # not necessary for aui type controls
         if self.frameData['auiPerspective']:
             self._mgr.LoadPerspective(self.frameData['auiPerspective'])
