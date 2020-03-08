@@ -742,6 +742,7 @@ class CodeEditor(BaseCodeEditor, CodeEditorFoldingMixin):
 
         # quote line
         elif keyCode == ord("'"):
+            raise RuntimeError
             start, end = self.GetSelection()
             if end - start > 0:
                 txt = self.GetSelectedText()

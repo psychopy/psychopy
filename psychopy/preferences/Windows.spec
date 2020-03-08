@@ -63,7 +63,9 @@
     debugMode = boolean(default='False')
     # language to use in menus etc; not all translations are available. Select a value, then restart the app.
     locale = string(default='')
-    # Enable High-DPI awareness on Windows, requires restart. (EXPERIMENTAL)
+    # Show an error dialog when PsychoPy encounters an unhandled internal error.
+    errorDialog = boolean(default='True')
+    # Enable High-DPI awareness on Windows, requires restart. Note that this feature is currently experimental and may cause graphical artifacts in some places.
     highDPI = boolean(default='False')
 
 # Settings for the Coder window
