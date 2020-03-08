@@ -95,87 +95,17 @@ class FileBrowserPanel(wx.Panel):
         self.fileBmp = self.fileImgList.Add(
             wx.ArtProvider.GetBitmap(
                 wx.ART_NORMAL_FILE, wx.ART_TOOLBAR, tsize))
-
-        # icons for toolbars
-        gotoBmp =  wx.ArtProvider.GetBitmap(
-            wx.ART_GO_FORWARD, wx.ART_TOOLBAR, tsize)
-        newFolder = wx.ArtProvider.GetBitmap(
-            wx.ART_NEW_DIR, wx.ART_TOOLBAR, tsize)
-        # copyBmp = wx.ArtProvider.GetBitmap(
-        #     wx.ART_COPY, wx.ART_TOOLBAR, tsize)
-        deleteBmp = wx.ArtProvider.GetBitmap(
-            wx.ART_DELETE, wx.ART_TOOLBAR, tsize)
-        renameBmp = wx.Bitmap(join(rc, 'rename16.png'), wx.BITMAP_TYPE_PNG)
-
-        # self.SetDoubleBuffered(True)
-
-        # create the toolbar
-        szrToolbar = wx.BoxSizer(wx.HORIZONTAL)
-
-        self.toolBar = wx.aui.AuiToolBar(
-            self, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize,
-            aui.AUI_TB_HORZ_LAYOUT | aui.AUI_TB_HORZ_TEXT)
-        self.toolBar.SetToolBitmapSize((16, 16))
-        self.gotoTool = self.toolBar.AddTool(
-            wx.ID_ANY,
-            'Goto',
-            gotoBmp,
-            "Jump to another folder",
-            wx.ITEM_NORMAL)
-        self.toolBar.AddSeparator()
-        self.newFolderTool = self.toolBar.AddTool(
-            wx.ID_ANY,
-            'New Folder',
-            newFolder,
-            "Create a new folder in the current folder",
-            wx.ITEM_NORMAL)
-        self.toolBar.AddSeparator()
-        self.renameTool = self.toolBar.AddTool(
-            wx.ID_ANY,
-            'Rename',
-            renameBmp,
-            "Rename the selected folder or file",
-            wx.ITEM_NORMAL)
-        # self.copyTool = self.toolBar.AddTool(
-        #     wx.ID_ANY,
-        #     'Copy',
-        #     copyBmp,
-        #     "Create a copy of the selected file.",
-        #     wx.ITEM_NORMAL)
-        self.deleteTool = self.toolBar.AddTool(
-            wx.ID_ANY,
-            'Delete',
-            deleteBmp,
-            "Delete the selected folder or file",
-            wx.ITEM_NORMAL)
-
-        self.toolBar.SetToolDropDown(self.gotoTool.GetId(), True)
-        self.toolBar.Realize()
-
-        self.Bind(wx.EVT_TOOL, self.OnBrowse, self.gotoTool)
-        self.Bind(aui.EVT_AUITOOLBAR_TOOL_DROPDOWN, self.OnGotoMenu, self.gotoTool)
-        self.Bind(wx.EVT_TOOL, self.OnNewFolderTool, self.newFolderTool)
-        self.Bind(wx.EVT_TOOL, self.OnDeleteTool, self.deleteTool)
-        # self.Bind(wx.EVT_TOOL, self.OnCopyTool, self.copyTool)
-        self.Bind(wx.EVT_TOOL, self.OnRenameTool, self.renameTool)
-        self.Bind(wx.EVT_MENU, self.OnBrowse, id=ID_GOTO_BROWSE)
-        self.Bind(wx.EVT_MENU, self.OnGotoCWD, id=ID_GOTO_CWD)
-        self.Bind(wx.EVT_MENU, self.OnGotoFileLocation, id=ID_GOTO_FILE)
-
-        szrToolbar.Add(self.toolBar, 1, flag=wx.ALL | wx.EXPAND)
-
-        # create an address bar
-        self.lblDir = wx.StaticText(self, label="Directory:")
-        self.txtAddr = wx.TextCtrl(self, style=wx.TE_PROCESS_ENTER)
+        self.imgBmp = self.fileImgList.Add(
+            wx.Bitmap(join(rc, 'fileimage16.png'), wx.BITMAP_TYPE_PNG))
 
         # create the source tree control
         self.flId = wx.NewIdRef()
         self.fileList = FileBrowserListCtrl(
             self,
             self.flId,
-            pos=(0, 0),
-            size=wx.Size(300, 300),
-            style=wx.LC_REPORT | wx.LC_SINGLE_SEL)
+            pos=wx.DefaultPosition,
+            size=wx.DefaultSize,
+            style=wx.LC_REPORT | wx.LC_SINGLE_SEL | wx.LC_NO_HEADER | wx.NO_BORDER)
         self.fileList.SetImageList(self.fileImgList, wx.IMAGE_LIST_SMALL)
 
         # bind events for list control
@@ -183,49 +113,15 @@ class FileBrowserPanel(wx.Panel):
             wx.EVT_LIST_ITEM_SELECTED, self.OnItemSelected, self.fileList)
         self.Bind(
             wx.EVT_LIST_ITEM_ACTIVATED, self.OnItemActivated, self.fileList)
-        self.Bind(
-            wx.EVT_TEXT_ENTER, self.OnAddrEnter, self.txtAddr)
 
-        # do layout
-        szrAddr = wx.BoxSizer(wx.HORIZONTAL)
-        szrAddr.Add(
-            self.lblDir, 0, flag=wx.RIGHT | wx.ALIGN_CENTRE_VERTICAL, border=5)
-        szrAddr.Add(self.txtAddr, 1, flag=wx.ALIGN_CENTRE_VERTICAL)
         szr = wx.BoxSizer(wx.VERTICAL)
-        szr.Add(szrToolbar, 0, flag=wx.EXPAND | wx.ALL)
-        szr.Add(szrAddr, 0, flag=wx.EXPAND | wx.ALL, border=5)
         szr.Add(self.fileList, 1, flag=wx.EXPAND)
         self.SetSizer(szr)
 
-        # create the dropdown menu for goto
-        self.gotoMenu = wx.Menu()
-        item = self.gotoMenu.Append(
-            wx.ID_ANY,
-            "Browse ...",
-            "Browse the file system for a directory to open")
-        self.Bind(wx.EVT_MENU, self.OnBrowse, id=item.GetId())
-        self.gotoMenu.AppendSeparator()
-        item = self.gotoMenu.Append(
-            wx.ID_ANY,
-            "Current working directory",
-            "Open the current working directory")
-        self.Bind(wx.EVT_MENU, self.OnGotoCWD, id=item.GetId())
-        item = self.gotoMenu.Append(
-            wx.ID_ANY,
-            "Editor file location",
-            "Open the directory the current editor file is located")
-        self.Bind(wx.EVT_MENU, self.OnGotoFileLocation, id=item.GetId())
-        #self.toolBar.SetDropdownMenu(self.gotoTool.GetId(), self.gotoMenu)
-
         # add columns
         self.fileList.InsertColumn(0, "Name")
-        self.fileList.InsertColumn(1, "Size", wx.LIST_FORMAT_LEFT)
-        #self.fileList.InsertColumn(2, "Modified")
         self.fileList.SetColumnWidth(0, 280)
-        self.fileList.SetColumnWidth(1, 80)
-        #self.fileList.SetColumnWidth(2, 100)
-
-        self.gotoDir(os.getcwd())
+        self.gotoDir(os.path.expanduser("~"))
 
     def OnGotoFileLocation(self, evt):
         """Goto the currently opened file location."""
@@ -272,6 +168,22 @@ class FileBrowserPanel(wx.Panel):
         mnuGoto.Destroy()
 
         #event.Skip()
+
+    def gotoFile(self, fpath):
+        """Go to a file location and highlight it."""
+        if os.path.isabs(fpath):
+            path, filen = os.path.split(fpath)
+
+            self.gotoDir(path)
+
+            # select the file in the browser
+            for idx, item in enumerate(self.dirData):
+                if item.abspath == fpath:
+                    self.fileList.Select(idx, True)
+                    self.fileList.EnsureVisible(idx)
+                    self.selectedItem = self.dirData[idx]
+                    #self.fileList.SetFocus()
+                    break
 
     def OnBrowse(self, event=None):
         dlg = wx.DirDialog(self, "Choose directory ...", "",
@@ -493,23 +405,6 @@ class FileBrowserPanel(wx.Panel):
         if self.selectedItem is not None:
             self.selectedItem.open()
 
-    def OnAddrEnter(self, evt=None):
-        """When enter is pressed."""
-        path = self.txtAddr.GetValue()
-        if path == self.currentPath:
-            return
-
-        if os.path.isdir(path):
-            self.gotoDir(path)
-        else:
-            dlg = wx.MessageDialog(
-                self,
-                "Specified path `{}` is not a directory.".format(path),
-                style=wx.ICON_ERROR | wx.OK)
-            dlg.ShowModal()
-            dlg.Destroy()
-            self.txtAddr.SetValue(self.currentPath)
-
     def OnItemActivated(self, evt):
         if self.selectedItem is not None:
             if isinstance(self.selectedItem, FolderItemData):
@@ -541,9 +436,13 @@ class FileBrowserPanel(wx.Panel):
             for f in contents:
                 absPath = os.path.join(path, f)
                 if os.path.isfile(absPath):
-                    fsize = convertBytes(os.stat(absPath).st_size)
+                    # fsize = convertBytes(os.stat(absPath).st_size)
+                    # modTime = time.ctime(os.path.getmtime(absPath))
+                    # modTime = time.strftime(
+                    #     "%b %d, %Y, %I:%M %p",
+                    #     time.strptime(modTime, "%a %b %d %H:%M:%S %Y"))
                     self.dirData.append(
-                        FileItemData(f, absPath, path, fsize, None))
+                        FileItemData(f, absPath, path, None, None))
         except OSError:
             dlg = wx.MessageDialog(
                 self,
@@ -571,10 +470,8 @@ class FileBrowserPanel(wx.Panel):
                     self.fileList.GetItemCount(), obj.name, img)
             elif isinstance(obj, FileItemData):
                 index = self.fileList.InsertItem(
-                    self.fileList.GetItemCount(),
-                    obj.name,
-                    2)
-                self.fileList.SetItem(index, 1, obj.fsize)
+                    self.fileList.GetItemCount(), obj.name, 2)
+                #self.fileList.SetItem(index, 1, obj.fsize)
                 #self.fileList.SetItem(index, 2, obj.mod)
 
     def addItem(self, name, absPath):
@@ -609,6 +506,6 @@ class FileBrowserPanel(wx.Panel):
 
         # change the current path
         self.currentPath = path
-        self.txtAddr.SetValue(self.currentPath)
+        #self.txtAddr.SetValue(self.currentPath)
         self.updateFileBrowser()
 

@@ -59,7 +59,7 @@ class SourceTreePanel(wx.Panel):
             self.treeId,
             pos=(0, 0),
             size=wx.Size(300, 300),
-            style=wx.TR_HAS_BUTTONS)
+            style=wx.TR_HAS_BUTTONS | wx.NO_BORDER)
         self.srcTree.SetImageList(self._treeImgList)
 
         # do layout
