@@ -6,9 +6,13 @@
 
 from __future__ import absolute_import, print_function
 import re
+from pathlib import Path
+import os
 
-input_path = 'psychopy/CHANGELOG.txt'
-output_path = 'docs/source/changelog.rst'
+thisFolder = Path(__file__).parent
+rootFolder = thisFolder.parent
+input_path = rootFolder / 'psychopy/CHANGELOG.txt'
+output_path = thisFolder / 'source/changelog.rst'
 
 def repl_issue(m):
     g = m.group(1)
@@ -23,8 +27,10 @@ def repl_noncompat(m):
     g = g.replace('`', "'")
     return g.replace('CHANGE', ':noncompat:`CHANGE') + "`\n"
 
+print(thisFolder)
+print(f"looking in {input_path.absolute()} from {os.getcwd()}")
 # raw .txt form of changelog:
-txt = open(input_path, "rU", encoding='utf8').read()
+txt = open(input_path.absolute(), "rU", encoding='utf8').read()
 
 # programmatic replacements:
 hashtag = re.compile(r"([ (]#\d{3,5})\b")
@@ -52,6 +58,8 @@ newRST = txt_hash_noncompat.replace('.. note::', """.. raw:: html
 
 with open(output_path, "w", encoding='utf8') as doc:
     doc.write(newRST)
+
+print(f"generated {output_path}")
 
 #test:
 #text = "yes #123\n yes (#4567)\n; none of `#123, #3, #45, #12345 #123a"

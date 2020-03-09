@@ -7,9 +7,12 @@
 from __future__ import absolute_import, print_function
 import os
 from psychopy import experiment, __version__
+from pathlib import Path
+
+thisFolder = Path(__file__).parent
 
 nFiles = 0
-for root, dirs, files in os.walk("../psychopy/demos/builder"):
+for root, dirs, files in os.walk(thisFolder.parent/"psychopy/demos/builder"):
     for filename in files:
         if filename.endswith('.psyexp'):
 
@@ -19,4 +22,4 @@ for root, dirs, files in os.walk("../psychopy/demos/builder"):
             origVersion = exp.psychopyVersion
             exp.psychopyVersion = __version__
             exp.saveToXML(filepath)
-            print ("switching {} from {} to {}".format(filepath, origVersion, __version__))
+            print("switching {} from {} to {}".format(filepath, origVersion, __version__))

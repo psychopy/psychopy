@@ -7,6 +7,7 @@ import wx
 import re
 import wx.richtext
 import locale
+from psychopy.localization import _translate
 
 _prefEncoding = locale.getpreferredencoding()
 
@@ -47,33 +48,32 @@ class StdOutRich(wx.richtext.RichTextCtrl, _BaseErrorHandler):
         if type(inStr) == AlertEntry:
             alert = inStr
             # Write Code
-            self.BeginTextColour([255, 105, 0])
-            self.WriteText("{:<8}".format(alert.code))
-            self.EndTextColour()
-
-            # Write category
-            self.BeginTextColour([255, 0, 0])
-            self.WriteText("{:<13}".format(alert.cat))
-            self.EndTextColour()
-
-            # Write name of component
-            self.BeginTextColour([200, 0, 230])
-            self.WriteText("{:<20}".format(alert.name))
-            self.EndTextColour()
-
-            # Write URL
             self.BeginBold()
             self.BeginTextColour(wx.BLUE)
             self.BeginURL(alert.url)
-            urlLabel = [alert.url, "Learn more"][type(alert.code) == int]  # Set header as "URL"
-            self.WriteText("{:<15}".format(urlLabel))
+            self.WriteText("Alert {}:".format(alert.code))
             self.EndURL()
             self.EndBold()
             self.EndTextColour()
 
             # Write Message
-            self.BeginTextColour([0, 150, 0])
+            self.BeginTextColour([0, 0, 0])
             self.WriteText(alert.msg)
+            self.EndTextColour()
+
+            # Write name of component
+            # self.BeginTextColour([200, 0, 230])
+            # self.WriteText("{:<20}".format(alert.name))
+            # self.EndTextColour()
+
+            # Write URL
+            self.WriteText("\n\t"+_translate("For further info see "))
+            self.BeginBold()
+            self.BeginTextColour(wx.BLUE)
+            self.BeginURL(alert.url)
+            self.WriteText("{:<15}".format(alert.url))
+            self.EndURL()
+            self.EndBold()
             self.EndTextColour()
 
             self.Newline()

@@ -10,9 +10,10 @@ import re
 import wx.__version__
 import psychopy
 from psychopy import logging
-from psychopy.experiment.components import BaseComponent, Param, _translate
+from psychopy.experiment.components import Param, _translate
 from psychopy.tools.versionchooser import versionOptions, availableVersions, _versionFilter, latestVersion
 from psychopy.constants import PY3
+from psychopy.monitors import Monitor
 
 # for creating html output folders:
 import shutil
@@ -107,6 +108,7 @@ class SettingsComponent(object):
         self.exp.requirePsychopyLibs(['visual', 'gui'])
         self.parentName = parentName
         self.url = "http://www.psychopy.org/builder/settings.html"
+        self._monitor = None
 
         # if filename is the default value fetch the builder pref for the
         # folder instead
@@ -875,3 +877,17 @@ class SettingsComponent(object):
         buff.setIndentLevel(-1, relative=True)
         buff.writeIndented("}\n")
         buff.setIndentLevel(-1)
+
+    @property
+    def monitor(self):
+        """Stores a monitor object for the  experiment so that it
+        doesn't have to be fetched from disk repeatedly"""
+        # remember to set _monitor to None periodically (start of script build?)
+        # so that we do reload occasionally
+        if not self._monitor:
+            self._monitor = Monitor(self.params['Monitor'].val)
+        return self._monitor
+
+    @monitor.setter
+    def monitor(self, monitor):
+        self._monitor = monitor

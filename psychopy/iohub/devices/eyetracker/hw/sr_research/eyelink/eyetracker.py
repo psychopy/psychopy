@@ -371,18 +371,22 @@ class EyeTracker(EyeTrackerDevice):
 
         """
         try:
+            if isinstance(message_contents, bytes):
+                message_contents = message_contents.decode('utf-8')
+
             if time_offset:
                 r = self._eyelink.sendMessage(
                     '\t%d\t%s' %
                     (time_offset, message_contents))
             else:
-                r = self._eyelink.sendMessage(message_contents)
+                r = self._eyelink.sendMessage('%s'%message_contents)
 
             if r == 0:
                 return EyeTrackerConstants.EYETRACKER_OK
             return EyeTrackerConstants.EYETRACKER_ERROR
         except Exception as e:
             printExceptionDetailsToStdErr()
+        return EyeTrackerConstants.EYETRACKER_ERROR
 
     def runSetupProcedure(self):
         """Start the EyeLink Camera Setup and Calibration procedure.
