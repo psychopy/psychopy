@@ -570,17 +570,21 @@ class PreferencesDlg(wx.Dialog):
                             value=default, helpText=helpText)
                 elif prefName == 'locale':
                     thisPref = self.app.prefs.app['locale']
-                    locales = self.app.localization.available
+                    # '' corresponds to system locale
+                    locales = [''] + self.app.localization.available
                     try:
                         default = locales.index(thisPref)
                     except ValueError:
-                        # default to US english
-                        default = locales.index('en_US')
+                        # set default locale ''
+                        default = locales.index('')
+                    # '' must be appended after other labels are translated
+                    labels = [''] + [_localized[i] 
+                                     for i in self.app.localization.available]
                     self.proPrefs.addEnumItem(
                             sectionName,
                             pLabel,
                             prefName,
-                            labels=[_localized[i] for i in locales],
+                            labels=labels,
                             values=[i for i in range(len(locales))],
                             value=default, helpText=helpText)
                 # # single directory
@@ -703,11 +707,12 @@ class PreferencesDlg(wx.Dialog):
                         self.audioDevNames[thisPref]
                     continue
                 elif prefName == 'locale':
-                    # fake spec -> option: use available locale info not spec file
+                    # '' corresponds to system locale
+                    locales = [''] + self.app.localization.available
                     self.app.prefs.app['locale'] = \
-                        self.app.localization.available[thisPref]
+                        locales[thisPref]
                     self.prefsCfg[sectionName][prefName] = \
-                        self.app.localization.available[thisPref]
+                        locales[thisPref]
                     continue
 
                 # remove invisible trailing whitespace:
