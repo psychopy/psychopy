@@ -24,14 +24,20 @@ dlgSize = (600, 500)
 
 # labels mappings for display:
 _localized = {
+    # category labels
+    'General': _translate('General'),
+    'Application': _translate('Application'),
+    'Key Bindings': _translate('Key Bindings'),
+    'Hardware': _translate('Hardware'),
+    'Connections': _translate('Connections'),
     # section labels:
-    'general': _translate('General'),
-    'app': _translate('App'),
+    'general': _translate('general'),
+    'app': _translate('app'),
     'builder': "Builder",  # not localized
     'coder': "Coder",  # not localized
-    'hardware': _translate('Hardware'),
-    'connections': _translate('Connections'),
-    'keyBindings': _translate('Key bindings'),
+    'hardware': _translate('hardware'),
+    'connections': _translate('connections'),
+    'keyBindings': _translate('keyBindings'),
     # pref labels:
     'winType': _translate("window type"),
     'units': _translate("units"),
@@ -233,7 +239,7 @@ class PrefPropGrid(wx.Panel):
                                     list(sections))
         self.pageNames[name] = self.pageIdx
         self.lstPrefPages.InsertItem(
-            self.lstPrefPages.GetItemCount(), label, self.pageIdx)
+            self.lstPrefPages.GetItemCount(), _localized[label], self.pageIdx)
 
         self.pageIdx += 1
 
@@ -354,7 +360,7 @@ class PrefPropGrid(wx.Panel):
             pagePtr.Clear()
 
             for s in sections:
-                _ = pagePtr.Append(pg.PropertyCategory(s, s))
+                _ = pagePtr.Append(pg.PropertyCategory(_localized[s], s))
                 for name, prop in self.sections[s].items():
                     item = pagePtr.Append(prop)
 
@@ -413,7 +419,8 @@ class PreferencesDlg(wx.Dialog):
     """
     def __init__(self, app):
         wx.Dialog.__init__(
-            self, None, id=wx.ID_ANY, title=u"PsychoPy Preferences",
+            self, None, id=wx.ID_ANY,
+            title=_translate('PsychoPy Preferences'),
             pos=wx.DefaultPosition, size=wx.Size(800, 600),
             style=wx.DEFAULT_DIALOG_STYLE | wx.RESIZE_BORDER)
 

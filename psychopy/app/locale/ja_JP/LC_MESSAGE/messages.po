@@ -2,8 +2,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PsychoPy 1.81.00\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-03-06 17:41+0900\n"
-"PO-Revision-Date: 2020-03-06 17:47+0900\n"
+"POT-Creation-Date: 2020-03-09 20:27+0900\n"
+"PO-Revision-Date: 2020-03-09 20:27+0900\n"
 "Last-Translator: Hiroyuki Sogo <hsogo12600@gmail.com>\n"
 "Language-Team: Hiroyuki Sogo <hsogo12600@gmail.com>\n"
 "Language: ja\n"
@@ -156,7 +156,7 @@ msgstr "編集"
 msgid "remove"
 msgstr "削除"
 
-#: psychopy/app/builder/builder.py:92 psychopy/app/preferencesDlg.py:91
+#: psychopy/app/builder/builder.py:92 psychopy/app/preferencesDlg.py:97
 msgid "copy"
 msgstr "コピー"
 
@@ -197,7 +197,7 @@ msgstr "新しいRoutine"
 msgid "Create a routine (Experiment menu) before adding components"
 msgstr "コンポーネントを追加する前にRoutineを作成してください"
 
-#: psychopy/app/builder/builder.py:880 psychopy/app/preferencesDlg.py:747
+#: psychopy/app/builder/builder.py:880 psychopy/app/preferencesDlg.py:762
 msgid "Error"
 msgstr "エラー"
 
@@ -1290,7 +1290,7 @@ msgstr "刺激"
 msgid "exp control"
 msgstr "実験制御"
 
-#: psychopy/app/coder/coder.py:76
+#: psychopy/app/coder/coder.py:76 psychopy/app/preferencesDlg.py:38
 msgid "hardware"
 msgstr "ハードウェア"
 
@@ -2330,451 +2330,471 @@ msgid "General"
 msgstr "一般"
 
 #: psychopy/app/preferencesDlg.py:29
-msgid "App"
+msgid "Application"
 msgstr "アプリケーション"
 
-#: psychopy/app/preferencesDlg.py:32
+#: psychopy/app/preferencesDlg.py:30
+msgid "Key Bindings"
+msgstr "キー設定"
+
+#: psychopy/app/preferencesDlg.py:31
 msgid "Hardware"
 msgstr "ハードウェア"
 
-#: psychopy/app/preferencesDlg.py:33
+#: psychopy/app/preferencesDlg.py:32
 msgid "Connections"
 msgstr "ネットワーク"
 
 #: psychopy/app/preferencesDlg.py:34
-msgid "Key bindings"
+msgid "general"
+msgstr "一般"
+
+#: psychopy/app/preferencesDlg.py:35
+msgid "app"
+msgstr "アプリケーション"
+
+#: psychopy/app/preferencesDlg.py:39
+msgid "connections"
+msgstr "ネットワーク"
+
+#: psychopy/app/preferencesDlg.py:40
+msgid "keyBindings"
 msgstr "キー設定"
 
-#: psychopy/app/preferencesDlg.py:36
+#: psychopy/app/preferencesDlg.py:42
 msgid "window type"
 msgstr "ウィンドウ描画ライブラリ"
 
-#: psychopy/app/preferencesDlg.py:37
+#: psychopy/app/preferencesDlg.py:43
 msgid "units"
 msgstr "単位"
 
-#: psychopy/app/preferencesDlg.py:38 psychopy/tools/wizard.py:37
+#: psychopy/app/preferencesDlg.py:44 psychopy/tools/wizard.py:37
 msgid "full-screen"
 msgstr "フルスクリーン"
 
-#: psychopy/app/preferencesDlg.py:39
+#: psychopy/app/preferencesDlg.py:45
 msgid "allow GUI"
 msgstr "GUIを使用"
 
-#: psychopy/app/preferencesDlg.py:40
+#: psychopy/app/preferencesDlg.py:46
 msgid "paths"
 msgstr "パス"
 
-#: psychopy/app/preferencesDlg.py:41
+#: psychopy/app/preferencesDlg.py:47
 msgid "audio library"
 msgstr "オーディオライブラリ"
 
-#: psychopy/app/preferencesDlg.py:42
+#: psychopy/app/preferencesDlg.py:48
 msgid "audio driver"
 msgstr "オーディオドライバ"
 
-#: psychopy/app/preferencesDlg.py:43
+#: psychopy/app/preferencesDlg.py:49
 msgid "audio device"
 msgstr "オーディオデバイス"
 
-#: psychopy/app/preferencesDlg.py:44
+#: psychopy/app/preferencesDlg.py:50
 msgid "audio latency mode"
 msgstr "オーディオレイテンシの設定"
 
-#: psychopy/app/preferencesDlg.py:45
+#: psychopy/app/preferencesDlg.py:51
 msgid "flac audio compression"
 msgstr "flacオーディオ圧縮"
 
-#: psychopy/app/preferencesDlg.py:46
+#: psychopy/app/preferencesDlg.py:52
 msgid "parallel ports"
 msgstr "パラレルポート"
 
-#: psychopy/app/preferencesDlg.py:47
+#: psychopy/app/preferencesDlg.py:53
 msgid "Qmix configuration"
 msgstr "Qmixの設定"
 
-#: psychopy/app/preferencesDlg.py:48
+#: psychopy/app/preferencesDlg.py:54
 msgid "shutdown key"
 msgstr "実験終了キー"
 
-#: psychopy/app/preferencesDlg.py:49
+#: psychopy/app/preferencesDlg.py:55
 msgid "shutdown key modifier keys"
 msgstr "実験終了キーのモディファイア"
 
-#: psychopy/app/preferencesDlg.py:50
+#: psychopy/app/preferencesDlg.py:56
 msgid "show start-up tips"
 msgstr "起動時にチップを表示"
 
-#: psychopy/app/preferencesDlg.py:51
+#: psychopy/app/preferencesDlg.py:57
 msgid "large icons"
 msgstr "大きいアイコン"
 
-#: psychopy/app/preferencesDlg.py:52
+#: psychopy/app/preferencesDlg.py:58
 msgid "default view"
 msgstr "標準で開くウィンドウ"
 
-#: psychopy/app/preferencesDlg.py:53
+#: psychopy/app/preferencesDlg.py:59
 msgid "reset preferences"
 msgstr "設定の初期化"
 
-#: psychopy/app/preferencesDlg.py:54
+#: psychopy/app/preferencesDlg.py:60
 msgid "auto-save prefs"
 msgstr "設定の自動保存"
 
-#: psychopy/app/preferencesDlg.py:55
+#: psychopy/app/preferencesDlg.py:61
 msgid "debug mode"
 msgstr "デバッグモード"
 
-#: psychopy/app/preferencesDlg.py:56 psychopy/tools/wizard.py:42
+#: psychopy/app/preferencesDlg.py:62 psychopy/tools/wizard.py:42
 msgid "locale"
 msgstr "ロケール"
 
-#: psychopy/app/preferencesDlg.py:57
+#: psychopy/app/preferencesDlg.py:63
 msgid "read-only"
 msgstr "読み込み専用で開く"
 
-#: psychopy/app/preferencesDlg.py:58
+#: psychopy/app/preferencesDlg.py:64
 msgid "code font"
 msgstr "コード用フォント"
 
-#: psychopy/app/preferencesDlg.py:59
+#: psychopy/app/preferencesDlg.py:65
 msgid "comment font"
 msgstr "コメント用フォント"
 
-#: psychopy/app/preferencesDlg.py:60
+#: psychopy/app/preferencesDlg.py:66
 msgid "output font"
 msgstr "出力用フォント"
 
-#: psychopy/app/preferencesDlg.py:61
+#: psychopy/app/preferencesDlg.py:67
 msgid "output font size"
 msgstr "出力用フォントサイズ"
 
-#: psychopy/app/preferencesDlg.py:62
+#: psychopy/app/preferencesDlg.py:68
 msgid "code font size"
 msgstr "コード用フォントサイズ"
 
-#: psychopy/app/preferencesDlg.py:63
+#: psychopy/app/preferencesDlg.py:69
 msgid "show source asst"
 msgstr "ソースアシスタントを表示"
 
-#: psychopy/app/preferencesDlg.py:64
+#: psychopy/app/preferencesDlg.py:70
 msgid "show output"
 msgstr "出力パネルを表示"
 
-#: psychopy/app/preferencesDlg.py:65
+#: psychopy/app/preferencesDlg.py:71
 msgid "reload previous files"
 msgstr "前回のファイルを開く"
 
-#: psychopy/app/preferencesDlg.py:66
+#: psychopy/app/preferencesDlg.py:72
 msgid "preferred shell"
 msgstr "優先するシェル"
 
-#: psychopy/app/preferencesDlg.py:67
+#: psychopy/app/preferencesDlg.py:73
 msgid "reload previous exp"
 msgstr "前回の実験を開く"
 
-#: psychopy/app/preferencesDlg.py:68
+#: psychopy/app/preferencesDlg.py:74
 msgid "uncluttered namespace"
 msgstr "名前空間の整理"
 
-#: psychopy/app/preferencesDlg.py:69
+#: psychopy/app/preferencesDlg.py:75
 msgid "components folders"
 msgstr "コンポーネントフォルダ"
 
-#: psychopy/app/preferencesDlg.py:70
+#: psychopy/app/preferencesDlg.py:76
 msgid "hidden components"
 msgstr "表示しないコンポーネント"
 
-#: psychopy/app/preferencesDlg.py:71
+#: psychopy/app/preferencesDlg.py:77
 msgid "unpacked demos dir"
 msgstr "デモのディレクトリ"
 
-#: psychopy/app/preferencesDlg.py:72
+#: psychopy/app/preferencesDlg.py:78
 msgid "saved data folder"
 msgstr "データ保存フォルダ"
 
-#: psychopy/app/preferencesDlg.py:73
+#: psychopy/app/preferencesDlg.py:79
 msgid "Flow at top"
 msgstr "フローを上に表示"
 
-#: psychopy/app/preferencesDlg.py:74
+#: psychopy/app/preferencesDlg.py:80
 msgid "always show readme"
 msgstr "常にreadmeを表示"
 
-#: psychopy/app/preferencesDlg.py:75
+#: psychopy/app/preferencesDlg.py:81
 msgid "max favorites"
 msgstr "お気に入りの最大登録数"
 
-#: psychopy/app/preferencesDlg.py:76
+#: psychopy/app/preferencesDlg.py:82
 msgid "proxy"
 msgstr "プロキシ"
 
-#: psychopy/app/preferencesDlg.py:77
+#: psychopy/app/preferencesDlg.py:83
 msgid "auto-proxy"
 msgstr "プロキシの自動構成"
 
-#: psychopy/app/preferencesDlg.py:78
+#: psychopy/app/preferencesDlg.py:84
 msgid "allow usage stats"
 msgstr "利用統計の送信を許可"
 
-#: psychopy/app/preferencesDlg.py:79
+#: psychopy/app/preferencesDlg.py:85
 msgid "check for updates"
 msgstr "更新の確認"
 
-#: psychopy/app/preferencesDlg.py:80
+#: psychopy/app/preferencesDlg.py:86
 msgid "timeout"
 msgstr "タイムアウト"
 
-#: psychopy/app/preferencesDlg.py:81
+#: psychopy/app/preferencesDlg.py:87
 msgid "open"
 msgstr "開く"
 
-#: psychopy/app/preferencesDlg.py:82
+#: psychopy/app/preferencesDlg.py:88
 msgid "new"
 msgstr "新規作成"
 
-#: psychopy/app/preferencesDlg.py:83
+#: psychopy/app/preferencesDlg.py:89
 msgid "save"
 msgstr "保存"
 
-#: psychopy/app/preferencesDlg.py:84
+#: psychopy/app/preferencesDlg.py:90
 msgid "save as"
 msgstr "名前を付けて保存"
 
-#: psychopy/app/preferencesDlg.py:85
+#: psychopy/app/preferencesDlg.py:91
 msgid "print"
 msgstr "印刷"
 
-#: psychopy/app/preferencesDlg.py:86
+#: psychopy/app/preferencesDlg.py:92
 msgid "close"
 msgstr "閉じる"
 
-#: psychopy/app/preferencesDlg.py:87
+#: psychopy/app/preferencesDlg.py:93
 msgid "quit"
 msgstr "終了"
 
-#: psychopy/app/preferencesDlg.py:88
+#: psychopy/app/preferencesDlg.py:94
 msgid "preferences"
 msgstr "設定"
 
-#: psychopy/app/preferencesDlg.py:89
+#: psychopy/app/preferencesDlg.py:95
 msgid "export HTML"
 msgstr "HTML形式でエクスポート"
 
-#: psychopy/app/preferencesDlg.py:90
+#: psychopy/app/preferencesDlg.py:96
 msgid "cut"
 msgstr "切り取り"
 
-#: psychopy/app/preferencesDlg.py:92
+#: psychopy/app/preferencesDlg.py:98
 msgid "paste"
 msgstr "貼り付け"
 
-#: psychopy/app/preferencesDlg.py:93
+#: psychopy/app/preferencesDlg.py:99
 msgid "duplicate"
 msgstr "複製"
 
-#: psychopy/app/preferencesDlg.py:94
+#: psychopy/app/preferencesDlg.py:100
 msgid "indent"
 msgstr "インデントを増やす"
 
-#: psychopy/app/preferencesDlg.py:95
+#: psychopy/app/preferencesDlg.py:101
 msgid "dedent"
 msgstr "インデントを減らす"
 
-#: psychopy/app/preferencesDlg.py:96
+#: psychopy/app/preferencesDlg.py:102
 msgid "smart indent"
 msgstr "スマートインデント"
 
-#: psychopy/app/preferencesDlg.py:97
+#: psychopy/app/preferencesDlg.py:103
 msgid "find"
 msgstr "検索"
 
-#: psychopy/app/preferencesDlg.py:98
+#: psychopy/app/preferencesDlg.py:104
 msgid "find again"
 msgstr "次を検索"
 
-#: psychopy/app/preferencesDlg.py:99
+#: psychopy/app/preferencesDlg.py:105
 msgid "undo"
 msgstr "元に戻す"
 
-#: psychopy/app/preferencesDlg.py:100
+#: psychopy/app/preferencesDlg.py:106
 msgid "redo"
 msgstr "やり直す"
 
-#: psychopy/app/preferencesDlg.py:101
+#: psychopy/app/preferencesDlg.py:107
 msgid "comment"
 msgstr "コメント化"
 
-#: psychopy/app/preferencesDlg.py:102
+#: psychopy/app/preferencesDlg.py:108
 msgid "uncomment"
 msgstr "コメント解除"
 
-#: psychopy/app/preferencesDlg.py:103
+#: psychopy/app/preferencesDlg.py:109
 msgid "toggle comment"
 msgstr "コメント化と解除"
 
-#: psychopy/app/preferencesDlg.py:104
+#: psychopy/app/preferencesDlg.py:110
 msgid "fold"
 msgstr "折りたたみ"
 
-#: psychopy/app/preferencesDlg.py:105
+#: psychopy/app/preferencesDlg.py:111
 msgid "enlarge Font"
 msgstr "フォントを拡大"
 
-#: psychopy/app/preferencesDlg.py:106
+#: psychopy/app/preferencesDlg.py:112
 msgid "shrink Font"
 msgstr "フォントを縮小"
 
-#: psychopy/app/preferencesDlg.py:107
+#: psychopy/app/preferencesDlg.py:113
 msgid "analyze code"
 msgstr "コードの解析"
 
-#: psychopy/app/preferencesDlg.py:108
+#: psychopy/app/preferencesDlg.py:114
 msgid "compile script"
 msgstr "スクリプトの生成(コンパイル)"
 
-#: psychopy/app/preferencesDlg.py:109
+#: psychopy/app/preferencesDlg.py:115
 msgid "run script"
 msgstr "スクリプトを実行"
 
-#: psychopy/app/preferencesDlg.py:110
+#: psychopy/app/preferencesDlg.py:116
 msgid "stop script"
 msgstr "実行を中止"
 
-#: psychopy/app/preferencesDlg.py:111
+#: psychopy/app/preferencesDlg.py:117
 msgid "toggle whitespace"
 msgstr "空白文字表示の切り替え"
 
-#: psychopy/app/preferencesDlg.py:112
+#: psychopy/app/preferencesDlg.py:118
 msgid "toggle EOLs"
 msgstr "改行文字表示の切り替え"
 
-#: psychopy/app/preferencesDlg.py:113
+#: psychopy/app/preferencesDlg.py:119
 msgid "toggle indent guides"
 msgstr "インデントガイド表示の切り替え"
 
-#: psychopy/app/preferencesDlg.py:114
+#: psychopy/app/preferencesDlg.py:120
 msgid "new Routine"
 msgstr "新規Routine"
 
-#: psychopy/app/preferencesDlg.py:115
+#: psychopy/app/preferencesDlg.py:121
 msgid "copy Routine"
 msgstr "Routineのコピー"
 
-#: psychopy/app/preferencesDlg.py:116
+#: psychopy/app/preferencesDlg.py:122
 msgid "paste Routine"
 msgstr "Routineの貼り付け"
 
-#: psychopy/app/preferencesDlg.py:117
+#: psychopy/app/preferencesDlg.py:123
 msgid "paste Component"
 msgstr "Componentの貼り付け"
 
-#: psychopy/app/preferencesDlg.py:118
+#: psychopy/app/preferencesDlg.py:124
 msgid "toggle output panel"
 msgstr "出力パネルの切り替え"
 
-#: psychopy/app/preferencesDlg.py:119
+#: psychopy/app/preferencesDlg.py:125
 msgid "rename Routine"
 msgstr "Routineの名前を変更"
 
-#: psychopy/app/preferencesDlg.py:120
+#: psychopy/app/preferencesDlg.py:126
 msgid "switch to Builder"
 msgstr "Builderへ切り替え"
 
-#: psychopy/app/preferencesDlg.py:121
+#: psychopy/app/preferencesDlg.py:127
 msgid "switch to Coder"
 msgstr "Coderへ切り替え"
 
-#: psychopy/app/preferencesDlg.py:122 psychopy/preferences/hints.py:271
+#: psychopy/app/preferencesDlg.py:128 psychopy/preferences/hints.py:271
 msgid "switch to Runner"
 msgstr "Runnerへ切り替え"
 
-#: psychopy/app/preferencesDlg.py:123
+#: psychopy/app/preferencesDlg.py:129
 msgid "larger Flow"
 msgstr "Flowのアイテムを大きく表示"
 
-#: psychopy/app/preferencesDlg.py:124
+#: psychopy/app/preferencesDlg.py:130
 msgid "smaller Flow"
 msgstr "Flowのアイテムを小さく表示"
 
-#: psychopy/app/preferencesDlg.py:125
+#: psychopy/app/preferencesDlg.py:131
 msgid "larger routine"
 msgstr "Routineのアイテムを大きく表示"
 
-#: psychopy/app/preferencesDlg.py:126
+#: psychopy/app/preferencesDlg.py:132
 msgid "smaller routine"
 msgstr "Routineのアイテムを小さく表示"
 
-#: psychopy/app/preferencesDlg.py:127
+#: psychopy/app/preferencesDlg.py:133
 msgid "toggle readme"
 msgstr "Readmeファイル表示の切り替え"
 
-#: psychopy/app/preferencesDlg.py:128
+#: psychopy/app/preferencesDlg.py:134
 msgid "login to projects"
 msgstr "プロジェクトへログイン"
 
-#: psychopy/app/preferencesDlg.py:129
+#: psychopy/app/preferencesDlg.py:135
 msgid "login to pavlovia"
 msgstr "Pavloviaにログイン"
 
-#: psychopy/app/preferencesDlg.py:130
+#: psychopy/app/preferencesDlg.py:136
 msgid "login to OSF"
 msgstr "OSFにログイン"
 
-#: psychopy/app/preferencesDlg.py:131
+#: psychopy/app/preferencesDlg.py:137
 msgid "sync projects"
 msgstr "プロジェクトを同期"
 
-#: psychopy/app/preferencesDlg.py:132
+#: psychopy/app/preferencesDlg.py:138
 msgid "find projects"
 msgstr "プロジェクトを検索"
 
-#: psychopy/app/preferencesDlg.py:133
+#: psychopy/app/preferencesDlg.py:139
 msgid "open projects"
 msgstr "プロジェクトを開く"
 
-#: psychopy/app/preferencesDlg.py:134
+#: psychopy/app/preferencesDlg.py:140
 msgid "new projects"
 msgstr "新規プロジェクト"
 
-#: psychopy/app/preferencesDlg.py:136
+#: psychopy/app/preferencesDlg.py:142
 msgid "same as last session"
 msgstr "前回使用時のウィンドウを開く"
 
-#: psychopy/app/preferencesDlg.py:137
+#: psychopy/app/preferencesDlg.py:143
 msgid "both Builder & Coder"
 msgstr "BuilderとCoderを開く"
 
-#: psychopy/app/preferencesDlg.py:138
+#: psychopy/app/preferencesDlg.py:144
 msgid "same as in the file"
 msgstr "改行コードを変更しない"
 
-#: psychopy/app/preferencesDlg.py:151
+#: psychopy/app/preferencesDlg.py:157
 #: psychopy/experiment/components/settings/__init__.py:225
 msgid "Latency not important"
 msgstr "遅延にはこだわらない"
 
-#: psychopy/app/preferencesDlg.py:152
+#: psychopy/app/preferencesDlg.py:158
 #: psychopy/experiment/components/settings/__init__.py:226
 msgid "Share low-latency driver"
 msgstr "共有可能な範囲で遅延が短いデバイスを選択"
 
-#: psychopy/app/preferencesDlg.py:153
+#: psychopy/app/preferencesDlg.py:159
 #: psychopy/experiment/components/settings/__init__.py:227
 msgid "Exclusive low-latency"
 msgstr "遅延が短いデバイスを排他利用する"
 
-#: psychopy/app/preferencesDlg.py:154
+#: psychopy/app/preferencesDlg.py:160
 #: psychopy/experiment/components/settings/__init__.py:228
 msgid "Aggressive low-latency"
 msgstr "2.に加えて遅延を最も短くする設定を要求"
 
-#: psychopy/app/preferencesDlg.py:155
+#: psychopy/app/preferencesDlg.py:161
 #: psychopy/experiment/components/settings/__init__.py:229
 msgid "Latency critical"
 msgstr "3.で厳密に要求が満たされない場合はエラー"
 
-#: psychopy/app/preferencesDlg.py:745
+#: psychopy/app/preferencesDlg.py:426
+msgid "PsychoPy Preferences"
+msgstr "PsychoPyの設定"
+
+#: psychopy/app/preferencesDlg.py:760
 #, python-format
 msgid "Invalid value in \"%(pref)s\" (\"%(section)s\" Tab)"
 msgstr "「%(pref)s」の値が不正です (「%(section)s」タブ)"
@@ -6742,6 +6762,9 @@ msgstr "ベンチマークテストの全結果を確認するにはOKをクリ�
 msgid "Click Cancel to stay in PsychoPy."
 msgstr "PsychoPyに戻るにはキャンセルをクリックします"
 
+#~ msgid "Key bindings"
+#~ msgstr "キー設定"
+
 #~ msgid "Shell"
 #~ msgstr "シェル"
 
@@ -6750,9 +6773,6 @@ msgstr "PsychoPyに戻るにはキャンセルをクリックします"
 
 #~ msgid "&Source Assistant"
 #~ msgstr "ソースアシスタント(&S)"
-
-#~ msgid "PsychoPy Preferences"
-#~ msgstr "PsychoPyの設定"
 
 #~ msgid "Save prefs (in all sections) and close window"
 #~ msgstr "全てのセクションの設定を保存してウィンドウを閉じます"
@@ -6831,9 +6851,6 @@ msgstr "PsychoPyに戻るにはキャンセルをクリックします"
 
 #~ msgid "Preferences"
 #~ msgstr "設定"
-
-#~ msgid "Application preferences"
-#~ msgstr "アプリケーションの設定を変更します"
 
 #~ msgid "Settings for this exp"
 #~ msgstr "現在編集中の実験の設定を変更します"
