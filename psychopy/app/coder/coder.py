@@ -1193,6 +1193,7 @@ class CoderFrame(wx.Frame):
                     self.shelf, -1, introText=msg + '\n\n')
                 self._useShell = 'pyshell'
             self.shelf.AddPage(self.shell, _translate('Internal Shell'))
+            
 
         self.paneManager.Update()
 
@@ -1201,7 +1202,7 @@ class CoderFrame(wx.Frame):
                 'Shelf' in self.appData['auiPerspective']):
             self.paneManager.LoadPerspective(self.appData['auiPerspective'])
             #self.paneManager.GetPane('Shelf').Caption(_translate("Shelf"))
-            self.paneManager.GetPane('SourceAsst').Caption("Source Assistant")
+            self.paneManager.GetPane('SourceAsst').Caption(_translate("Source Assistant"))
             self.paneManager.GetPane('Editor').Caption(_translate("Editor"))
         else:
             self.SetMinSize(wx.Size(400, 600))  # min size for whole window

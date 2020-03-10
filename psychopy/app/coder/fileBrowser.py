@@ -21,6 +21,8 @@ import os
 import time
 import collections
 
+from psychopy.localization import _translate
+
 # enums for file types
 FOLDER_TYPE_NORMAL = 0
 FOLDER_TYPE_NAV = 1
@@ -118,23 +120,23 @@ class FileBrowserPanel(wx.Panel):
         self.toolBar.SetToolBitmapSize((16, 16))
         self.gotoTool = self.toolBar.AddTool(
             wx.ID_ANY,
-            'Goto',
+            _translate('Goto'),
             gotoBmp,
-            "Jump to another folder",
+            _translate("Jump to another folder"),
             wx.ITEM_NORMAL)
         self.toolBar.AddSeparator()
         self.newFolderTool = self.toolBar.AddTool(
             wx.ID_ANY,
-            'New Folder',
+            _translate('New Folder'),
             newFolder,
-            "Create a new folder in the current folder",
+            _translate("Create a new folder in the current folder"),
             wx.ITEM_NORMAL)
         self.toolBar.AddSeparator()
         self.renameTool = self.toolBar.AddTool(
             wx.ID_ANY,
-            'Rename',
+            _translate('Rename'),
             renameBmp,
-            "Rename the selected folder or file",
+            _translate("Rename the selected folder or file"),
             wx.ITEM_NORMAL)
         # self.copyTool = self.toolBar.AddTool(
         #     wx.ID_ANY,
@@ -144,9 +146,9 @@ class FileBrowserPanel(wx.Panel):
         #     wx.ITEM_NORMAL)
         self.deleteTool = self.toolBar.AddTool(
             wx.ID_ANY,
-            'Delete',
+            _translate('Delete'),
             deleteBmp,
-            "Delete the selected folder or file",
+            _translate("Delete the selected folder or file"),
             wx.ITEM_NORMAL)
 
         self.toolBar.SetToolDropDown(self.gotoTool.GetId(), True)
@@ -165,7 +167,7 @@ class FileBrowserPanel(wx.Panel):
         szrToolbar.Add(self.toolBar, 1, flag=wx.ALL | wx.EXPAND)
 
         # create an address bar
-        self.lblDir = wx.StaticText(self, label="Directory:")
+        self.lblDir = wx.StaticText(self, label=_translate("Directory:"))
         self.txtAddr = wx.TextCtrl(self, style=wx.TE_PROCESS_ENTER)
 
         # create the source tree control
@@ -201,26 +203,26 @@ class FileBrowserPanel(wx.Panel):
         self.gotoMenu = wx.Menu()
         item = self.gotoMenu.Append(
             wx.ID_ANY,
-            "Browse ...",
-            "Browse the file system for a directory to open")
+            _translate("Browse ..."),
+            _translate("Browse the file system for a directory to open"))
         self.Bind(wx.EVT_MENU, self.OnBrowse, id=item.GetId())
         self.gotoMenu.AppendSeparator()
         item = self.gotoMenu.Append(
             wx.ID_ANY,
-            "Current working directory",
-            "Open the current working directory")
+            _translate("Current working directory"),
+            _translate("Open the current working directory"))
         self.Bind(wx.EVT_MENU, self.OnGotoCWD, id=item.GetId())
         item = self.gotoMenu.Append(
             wx.ID_ANY,
-            "Editor file location",
-            "Open the directory the current editor file is located")
+            _translate("Editor file location"),
+            _translate("Open the directory the current editor file is located"))
         self.Bind(wx.EVT_MENU, self.OnGotoFileLocation, id=item.GetId())
         #self.toolBar.SetDropdownMenu(self.gotoTool.GetId(), self.gotoMenu)
 
         # add columns
-        self.fileList.InsertColumn(0, "Name")
-        self.fileList.InsertColumn(1, "Size", wx.LIST_FORMAT_LEFT)
-        #self.fileList.InsertColumn(2, "Modified")
+        self.fileList.InsertColumn(0, _translate("Name"))
+        self.fileList.InsertColumn(1, _translate("Size"), wx.LIST_FORMAT_LEFT)
+        #self.fileList.InsertColumn(2, _translate("Modified"))
         self.fileList.SetColumnWidth(0, 280)
         self.fileList.SetColumnWidth(1, 80)
         #self.fileList.SetColumnWidth(2, 100)
@@ -245,8 +247,9 @@ class FileBrowserPanel(wx.Panel):
         else:
             dlg = wx.MessageDialog(
                 self,
+                _translate(
                 "Cannot change working directory to location of file `{}`. It"
-                " needs to be saved first.".format(filename),
+                " needs to be saved first.").format(filename),
                 style=wx.ICON_ERROR | wx.OK)
             dlg.ShowModal()
             dlg.Destroy()
@@ -256,17 +259,17 @@ class FileBrowserPanel(wx.Panel):
         mnuGoto = wx.Menu()
         mnuGoto.Append(
             ID_GOTO_BROWSE,
-            "Browse ...",
-            "Browse the file system for a directory to open")
+            _translate("Browse ..."),
+            _translate("Browse the file system for a directory to open"))
         mnuGoto.AppendSeparator()
         mnuGoto.Append(
             ID_GOTO_CWD,
-            "Current working directory",
-            "Open the current working directory")
+            _translate("Current working directory"),
+            _translate("Open the current working directory"))
         mnuGoto.Append(
             ID_GOTO_FILE,
-            "Editor file location",
-            "Open the directory the current editor file is located")
+            _translate("Editor file location"),
+            _translate("Open the directory the current editor file is located"))
 
         self.PopupMenu(mnuGoto)
         mnuGoto.Destroy()
@@ -274,7 +277,7 @@ class FileBrowserPanel(wx.Panel):
         #event.Skip()
 
     def OnBrowse(self, event=None):
-        dlg = wx.DirDialog(self, "Choose directory ...", "",
+        dlg = wx.DirDialog(self, _translate("Choose directory ..."), "",
                            wx.DD_DEFAULT_STYLE | wx.DD_DIR_MUST_EXIST)
         if dlg.ShowModal() == wx.ID_OK:
             self.gotoDir(dlg.GetPath())
@@ -285,7 +288,8 @@ class FileBrowserPanel(wx.Panel):
         """When the new folder tool is clicked."""
 
         # ask for the name of the folder
-        dlg = wx.TextEntryDialog(self, 'Enter folder name:', 'New folder', '')
+        dlg = wx.TextEntryDialog(self, _translate('Enter folder name:'), 
+                                       _translate('New folder'), '')
 
         if dlg.ShowModal() == wx.ID_CANCEL:
             dlg.Destroy()
@@ -296,7 +300,7 @@ class FileBrowserPanel(wx.Panel):
         if folderName == '':
             dlg = wx.MessageDialog(
                 self,
-                "Folder name cannot be empty.".format(folderName),
+                _translate("Folder name cannot be empty.").format(folderName),
                 style=wx.ICON_ERROR | wx.OK)
             dlg.ShowModal()
             dlg.Destroy()
@@ -308,7 +312,7 @@ class FileBrowserPanel(wx.Panel):
         if os.path.isdir(abspath):  # folder exists, warn and exit
             dlg = wx.MessageDialog(
                 self,
-                "Cannot create folder `{}`, already exists.".format(folderName),
+                _translate("Cannot create folder `{}`, already exists.").format(folderName),
                 style=wx.ICON_ERROR | wx.OK)
             dlg.ShowModal()
             dlg.Destroy()
@@ -321,7 +325,7 @@ class FileBrowserPanel(wx.Panel):
         except OSError:
             dlg = wx.MessageDialog(
                 self,
-                "Cannot create folder `{}`, permission denied.".format(folderName),
+                _translate("Cannot create folder `{}`, permission denied.").format(folderName),
                 style=wx.ICON_ERROR | wx.OK)
             dlg.ShowModal()
             dlg.Destroy()
@@ -362,8 +366,9 @@ class FileBrowserPanel(wx.Panel):
         """Rename a file or directory."""
         if os.path.isdir(self.selectedItem.abspath):  # rename a directory
             dlg = wx.TextEntryDialog(
-                self, 'Rename folder `{}` to:'.format(self.selectedItem.name),
-                'Rename Folder', self.selectedItem.name)
+                self,
+                _translate('Rename folder `{}` to:').format(self.selectedItem.name),
+                _translate('Rename Folder'), self.selectedItem.name)
 
             if dlg.ShowModal() == wx.ID_OK:
                 newName = dlg.GetValue()
@@ -373,7 +378,7 @@ class FileBrowserPanel(wx.Panel):
                 except OSError:
                     dlg2 = wx.MessageDialog(
                         self,
-                        "Cannot rename `{}` to `{}`.".format(
+                        _translate("Cannot rename `{}` to `{}`.").format(
                             self.selectedItem.name, newName),
                         style=wx.ICON_ERROR | wx.OK)
                     dlg2.ShowModal()
@@ -395,8 +400,9 @@ class FileBrowserPanel(wx.Panel):
             dlg.Destroy()
         elif os.path.isfile(self.selectedItem.abspath):  # rename a directory
             dlg = wx.TextEntryDialog(
-                self, 'Rename file `{}` to:'.format(self.selectedItem.name),
-                'Rename file', self.selectedItem.name)
+                self,
+                _translate('Rename file `{}` to:').format(self.selectedItem.name),
+                _translate('Rename file'), self.selectedItem.name)
 
             if dlg.ShowModal() == wx.ID_OK:
                 newName = dlg.GetValue()
@@ -408,7 +414,7 @@ class FileBrowserPanel(wx.Panel):
                 except OSError:
                     dlgError = wx.MessageDialog(
                         self,
-                        "Cannot rename `{}` to `{}`.".format(
+                        _translate("Cannot rename `{}` to `{}`.").format(
                             self.selectedItem.name, newName),
                         style=wx.ICON_ERROR | wx.OK)
                     dlgError.ShowModal()
@@ -433,8 +439,9 @@ class FileBrowserPanel(wx.Panel):
         """Delete a file or directory."""
         if os.path.isdir(self.selectedItem.abspath):  # delete a directory
             dlg = wx.MessageDialog(
-                self, "Are you sure you want to PERMANENTLY delete folder "
-                      "`{}`?".format(self.selectedItem.name),
+                self,
+                _translate("Are you sure you want to PERMANENTLY delete folder "
+                      "`{}`?").format(self.selectedItem.name),
                 'Confirm delete', style=wx.YES_NO | wx.NO_DEFAULT |
                                         wx.ICON_WARNING)
 
@@ -443,15 +450,15 @@ class FileBrowserPanel(wx.Panel):
                     os.rmdir(self.selectedItem.abspath)
                 except FileNotFoundError:  # file was removed
                     dlgError = wx.MessageDialog(
-                        self, "Cannot delete folder `{}`, directory does not "
-                              "exist.".format(self.selectedItem.name),
+                        self, _translate("Cannot delete folder `{}`, directory does not "
+                              "exist.").format(self.selectedItem.name),
                         'Error', style=wx.OK | wx.ICON_ERROR)
                     dlgError.ShowModal()
                     dlgError.Destroy()
                 except OSError:  # permission or directory not empty error
                     dlgError = wx.MessageDialog(
-                        self, "Cannot delete folder `{}`, directory is not "
-                              "empty or permission denied.".format(
+                        self, _translate("Cannot delete folder `{}`, directory is not "
+                              "empty or permission denied.").format(
                             self.selectedItem.name),
                         'Error', style=wx.OK | wx.ICON_ERROR)
                     dlgError.ShowModal()
@@ -462,8 +469,8 @@ class FileBrowserPanel(wx.Panel):
             dlg.Destroy()
         elif os.path.isfile(self.selectedItem.abspath):  # delete a file
             dlg = wx.MessageDialog(
-                self, "Are you sure you want to PERMANENTLY delete file "
-                      "`{}`?".format(self.selectedItem.name),
+                self, _translate("Are you sure you want to PERMANENTLY delete file "
+                      "`{}`?").format(self.selectedItem.name),
                 'Confirm delete', style=wx.YES_NO | wx.NO_DEFAULT |
                                         wx.ICON_WARNING)
 
@@ -472,15 +479,15 @@ class FileBrowserPanel(wx.Panel):
                     os.remove(self.selectedItem.abspath)
                 except FileNotFoundError:
                     dlgError = wx.MessageDialog(
-                        self, "Cannot delete folder `{}`, file does not "
-                              "exist.".format(self.selectedItem.name),
+                        self, _translate("Cannot delete folder `{}`, file does not "
+                              "exist.").format(self.selectedItem.name),
                         'Error', style=wx.OK | wx.ICON_ERROR)
                     dlgError.ShowModal()
                     dlgError.Destroy()
                 except OSError:
                     dlgError = wx.MessageDialog(
-                        self, "Cannot delete file `{}`, permission "
-                              "denied.".format(self.selectedItem.name),
+                        self, _translate("Cannot delete file `{}`, permission "
+                              "denied.").format(self.selectedItem.name),
                         'Error', style=wx.OK | wx.ICON_ERROR)
                     dlgError.ShowModal()
                     dlgError.Destroy()
@@ -504,7 +511,7 @@ class FileBrowserPanel(wx.Panel):
         else:
             dlg = wx.MessageDialog(
                 self,
-                "Specified path `{}` is not a directory.".format(path),
+                _translate("Specified path `{}` is not a directory.").format(path),
                 style=wx.ICON_ERROR | wx.OK)
             dlg.ShowModal()
             dlg.Destroy()
@@ -542,16 +549,12 @@ class FileBrowserPanel(wx.Panel):
                 absPath = os.path.join(path, f)
                 if os.path.isfile(absPath):
                     fsize = convertBytes(os.stat(absPath).st_size)
-                    modTime = time.ctime(os.path.getmtime(absPath))
-                    modTime = time.strftime(
-                        "%b %d, %Y, %I:%M %p",
-                        time.strptime(modTime, "%a %b %d %H:%M:%S %Y"))
                     self.dirData.append(
-                        FileItemData(f, absPath, path, fsize, modTime))
+                        FileItemData(f, absPath, path, fsize, None))
         except OSError:
             dlg = wx.MessageDialog(
                 self,
-                "Cannot access directory `{}`, permission denied.".format(path),
+                _translate("Cannot access directory `{}`, permission denied.").format(path),
                 style=wx.ICON_ERROR | wx.OK)
             dlg.ShowModal()
             dlg.Destroy()
@@ -591,7 +594,7 @@ class FileBrowserPanel(wx.Panel):
         if not os.path.isdir(path):
             dlg = wx.MessageDialog(
                 self,
-                "Cannot access directory `{}`, not a directory.".format(path),
+                _translate("Cannot access directory `{}`, not a directory.").format(path),
                 style=wx.ICON_ERROR | wx.OK)
             dlg.ShowModal()
             dlg.Destroy()
