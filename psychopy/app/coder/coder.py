@@ -674,15 +674,21 @@ class CodeEditor(BaseCodeEditor, CodeEditorFoldingMixin):
         keyCode = event.GetKeyCode()
         _mods = event.GetModifiers()
         if keyCode == ord('.'):
-            if self.AUTOCOMPLETE:
+            if self.coder.prefs['showAutoComplete']:
                 # A dot was entered, get suggestions if part of a qualified name
                 wx.CallAfter(self.ShowAutoCompleteList)  # defer
             else:
-                self.coder.SetStatusText(
-                    'Press Ctrl+Space to show code completions', 0)
+                if wx.Platform != '__WXMAC__':
+                    self.coder.SetStatusText(
+                        'Press Ctrl+Space to show code completion suggestions',
+                        0)
+                else:
+                    self.coder.SetStatusText(
+                        'Press Cmd+Space to show code completions suggestions',
+                        0)
         elif keyCode == ord('9') and wx.MOD_SHIFT == _mods:
             # A left bracket was entered, check if there is a calltip available
-            if not self.CallTipActive():
+            if self.coder.prefs['showCalltips']:
                 wx.CallAfter(self.ShowCalltip)
         else:
             self.coder.SetStatusText('', 0)
@@ -757,6 +763,9 @@ class CodeEditor(BaseCodeEditor, CodeEditorFoldingMixin):
     def ShowAutoCompleteList(self):
         """Show autocomplete list at the current caret position."""
         if _hasJedi and self.getFileType() == 'Python':
+            if self.AutoCompActive():  # auto-comp active
+                return
+
             self.coder.SetStatusText(
                 'Retrieving code completions, please wait ...', 0)
             # todo - create Script() periodically
@@ -772,6 +781,9 @@ class CodeEditor(BaseCodeEditor, CodeEditorFoldingMixin):
     def ShowCalltip(self):
         """Show a calltip at the current caret position."""
         if _hasJedi and self.getFileType() == 'Python':
+            if self.CallTipActive():
+                return  # calltip already visible
+
             self.coder.SetStatusText('Retrieving calltip, please wait ...', 0)
             foundRefs = jedi.Script(self.getTextUptoCaret()).get_signatures()
             self.coder.SetStatusText('', 0)
@@ -1086,7 +1098,6 @@ class CoderFrame(wx.Frame):
         self.paneManager = aui.AuiManager(
             self.pnlMain, aui.AUI_MGR_DEFAULT)
 
-
         # add help window
         _style = aui.AUI_NB_TOP | aui.AUI_NB_TAB_SPLIT
         self.sourceAsst = aui.AuiNotebook(
@@ -1144,7 +1155,6 @@ class CoderFrame(wx.Frame):
                                  Movable(True).
                                  Dockable(True).
                                  CloseButton(True).
-                                 PinButton(True).
                                  Name("SourceAsst").
                                  Caption(_translate('Tools')).
                                  CaptionVisible(True).
@@ -1178,7 +1188,6 @@ class CoderFrame(wx.Frame):
                                  BestSize((640, 480)).
                                  Floatable(True).
                                  BottomDockable(True).TopDockable(True).
-                                 PinButton(True).
                                  MaximizeButton(True).
                                  CloseButton(True).
                                  Bottom().Show(self.prefs['showOutput']))
@@ -1215,28 +1224,27 @@ class CoderFrame(wx.Frame):
         self.paneManager.Update()
 
         #self.SetSizer(self.mainSizer)  # not necessary for aui type controls
-        # if (self.appData['auiPerspective'] and
-        #         'Shelf' in self.appData['auiPerspective']):
-        #     self.paneManager.LoadPerspective(self.appData['auiPerspective'])
-        #     #self.paneManager.GetPane('Shelf').Caption(_translate("Shelf"))
-        #     self.paneManager.GetPane('SourceAsst').Caption("Source Assistant")
-        #     self.paneManager.GetPane('Editor').Caption(_translate("Editor"))
-        # else:
-        self.SetMinSize(wx.Size(640, 480))  # min size for whole window
-        self.Fit()
-        self.paneManager.Update()
+        if (self.appData['auiPerspective'] and
+                'Shelf' in self.appData['auiPerspective']):
+            self.paneManager.LoadPerspective(self.appData['auiPerspective'])
+            self.paneManager.GetPane('Shelf').Caption(_translate("Shelf"))
+            self.paneManager.GetPane('SourceAsst').Caption("Tools")
+            self.paneManager.GetPane('Editor').Caption(_translate("Editor"))
+        else:
+            self.SetMinSize(wx.Size(640, 480))  # min size for whole window
+            self.Fit()
+            self.paneManager.Update()
 
         # switch colors, makes caption headers look nicer
         applyDockartTheme(self.paneManager)
 
-        #self.toolbar.SetBackgroundColour(bg)
-        #ap.SetMetric(aui.AUI_DOCKART, '#a4d3ff')
-
-        #if self.app._appLoaded:
-        #    self.setOutputWindow()
+        if self.app._appLoaded:
+           self.setOutputWindow()
 
         self.sourceAsstChk.Check(
             self.paneManager.GetPane('SourceAsst').IsShown())
+        self.outputChk.Check(
+            self.paneManager.GetPane('Shelf').IsShown())
 
         self.SendSizeEvent()
         self.app.trackFrame(self)
@@ -1545,19 +1553,12 @@ class CoderFrame(wx.Frame):
         self.outputChk.Check(self.prefs['showOutput'])
         self.Bind(wx.EVT_MENU, self.setOutputWindow, id=self.outputChk.GetId())
         # source assistant
-        hint = "Hide/show the source structure pane."
+        hint = "Hide/show the tools side pane."
         self.sourceAsstChk = menu.AppendCheckItem(wx.ID_ANY,
-                                                  "Source Structure",
+                                                  "Show Tools Pane",
                                                   hint)
         self.Bind(wx.EVT_MENU, self.setSourceAsst,
                   id=self.sourceAsstChk.GetId())
-
-        hint = "Hide/show file browser pane."
-        self.fileBrowserChk = menu.AppendCheckItem(wx.ID_ANY,
-                                                  "Files",
-                                                  hint)
-        self.Bind(wx.EVT_MENU, self.setFileBrowser,
-                  id=self.fileBrowserChk.GetId())
 
         menu.AppendSeparator()
 
