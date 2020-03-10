@@ -82,6 +82,10 @@
     theme = option('psychopy', 'wx', 'github', 'vc6', default='psychopy')
     # activate the source assistant panel
     showSourceAsst = boolean(default=True)
+    # Show auto-completion suggestions while typing.
+    showAutoComplete = boolean(default=True)
+    # Show call tips automatically while typing. This shows the arguments for the current class and function being typed.
+    showCalltips = boolean(default=True)
     # activate the output and shell panels
     showOutput = boolean(default=True)
     # reload previously opened files after start
