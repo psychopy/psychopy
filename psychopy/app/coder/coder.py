@@ -2536,10 +2536,18 @@ class CoderFrame(wx.Frame):
             self.statusBar.SetStatusText("", 2)  # clear file type in status bar
             # clear the source tree
             self.SetLabel("PsychoPy Coder v{}".format(self.app.version))
-            self.sourceAsstWindow.srcTree.DeleteAllItems()
+            if hasattr(self, 'sourceAsstWindow'):
+                self.sourceAsstWindow.srcTree.DeleteAllItems()
+            if hasattr(self, 'fileBrowserWindow'):
+                # goto defualt dir
+                self.fileBrowserWindow.gotoDir(os.path.expanduser("~"))
         else:
             self.currentDoc = self.notebook.GetPage(newPageID)
-            self.sourceAsstWindow.refresh()
+            if hasattr(self, 'sourceAsstWindow'):
+                self.sourceAsstWindow.refresh()
+            if hasattr(self, 'fileBrowserWindow'):
+                self.fileBrowserWindow.gotoDir(os.path.expanduser("~"))
+
             # set to current file status
             self.setFileModified(self.currentDoc.UNSAVED)
         # return 1
