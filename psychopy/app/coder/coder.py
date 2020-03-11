@@ -16,9 +16,6 @@ import wx.stc
 import wx.richtext
 from wx.html import HtmlEasyPrinting
 
-# try:
-#     from wx import aui
-# except Exception:
 import wx.lib.agw.aui as aui  # some versions of phoenix
 
 import os
@@ -45,8 +42,7 @@ from psychopy.app.coder.sourceTree import SourceTreePanel
 from psychopy.app.coder.styling import applyStyleSpec
 from psychopy.app.coder.folding import CodeEditorFoldingMixin
 from psychopy.app.icons import combineImageEmblem
-from psychopy.app.errorDlg import ErrorMsgDialog
-from psychopy.app.themes import applyDockartTheme
+from psychopy.app.themes import defaultDockArt
 
 try:
     import jedi
@@ -1233,8 +1229,8 @@ class CoderFrame(wx.Frame):
             self.Fit()
             self.paneManager.Update()
 
-        # switch colors, makes caption headers look nicer
-        applyDockartTheme(self.paneManager)
+        # set theme
+        self.paneManager.SetArtProvider(defaultDockArt)
 
         if self.app._appLoaded:
            self.setOutputWindow()

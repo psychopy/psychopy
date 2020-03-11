@@ -1,30 +1,16 @@
 """Functions and classes for applying UI themes."""
 
-import wx
 import wx.lib.agw.aui as aui
-# from wx.lib.agw.aui.aui_utilities import GetBaseColour, LightColour
 
 
-defaultArt = aui.AuiDefaultDockArt()  # defines default theme
+defaultDockArt = aui.AuiDefaultDockArt()  # defines default theme
+topCol = defaultDockArt.GetColor(aui.AUI_DOCKART_INACTIVE_CAPTION_COLOUR)
+bottomCol = defaultDockArt.GetColor(
+    aui.AUI_DOCKART_INACTIVE_CAPTION_GRADIENT_COLOUR)
 
-# UI themes
-UI_THEMES = {
-    # This theme is mostly the same as the default except the caption header
-    # gradient is inverted (looks nicer).
-    'PsychoPy Light': {
-        'dockart': {
-            'colors': {
-                aui.AUI_DOCKART_INACTIVE_CAPTION_GRADIENT_COLOUR:
-                    defaultArt.GetColor(
-                        aui.AUI_DOCKART_INACTIVE_CAPTION_COLOUR),
-                aui.AUI_DOCKART_INACTIVE_CAPTION_COLOUR:
-                    defaultArt.GetColor(
-                        aui.AUI_DOCKART_INACTIVE_CAPTION_GRADIENT_COLOUR),
-            },
-            'metrics': {}
-        }
-    }
-}
+# switch caption gradient colors, looks nicer
+defaultDockArt.SetColor(aui.AUI_DOCKART_INACTIVE_CAPTION_COLOUR, bottomCol)
+defaultDockArt.SetColor(aui.AUI_DOCKART_INACTIVE_CAPTION_GRADIENT_COLOUR, topCol)
 
 
 class CustomTabArt(aui.AuiDefaultTabArt):
