@@ -12,13 +12,7 @@ from __future__ import absolute_import, print_function
 import wx
 from wx.lib.mixins.listctrl import ListCtrlAutoWidthMixin
 
-try:
-    from wx import aui
-except Exception:
-    import wx.lib.agw.aui as aui  # some versions of phoenix
-
 import os
-import time
 import collections
 
 # enums for file types
