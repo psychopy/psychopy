@@ -34,27 +34,3 @@ class CustomTabArt(aui.AuiDefaultTabArt):
     def SetTabHighlightColor(self, color):
         self._tab_gradient_highlight_colour = color
 
-
-def applyDockartTheme(auiMgr, theme='PsychoPy Light'):
-    """Apply a theme to AUI dock art.
-
-    Parameters
-    ----------
-    auiMgr : wx.lib.agw.aui.AuiManager
-        AUI manager to theme.
-    theme : str
-        Name of theme to apply.
-
-    """
-    try:
-        themeSpec = UI_THEMES[theme]
-    except KeyError:
-        themeSpec = UI_THEMES['PsychoPy Light']
-
-    # get handle to art provider
-    ap = auiMgr.GetArtProvider()
-
-    # setup dock art for AUI manager
-    for key, val in themeSpec['dockart']['colors'].items():
-        ap.SetColor(key, val)
-
