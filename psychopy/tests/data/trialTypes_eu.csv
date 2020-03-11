@@ -1,0 +1,7 @@
+text;congruent;corrAns;letterColor;n;float
+red;1;1;red;2;1,1
+red;0;2;green;2;2
+green;1;2;green;2;
+green;0;3;blue;2;3,5
+blue;1;3;blue;2;2,1
+blue;0;1;red;2;1

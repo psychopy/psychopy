@@ -33,7 +33,7 @@ def createInitFile(dist=None, version=None, sha=None):
     """
     # get default values if None
     if version is None:
-        with open(root/'version') as f:
+        with open(str(root/'version')) as f:
             version = f.read().strip()
     if sha is None:
         sha = _getGitShaString(dist)
@@ -51,7 +51,7 @@ def createInitFile(dist=None, version=None, sha=None):
                 'platform': platformStr}
 
     # write it
-    with open(root/'psychopy/__init__.py', 'w') as f:
+    with open(str(root/'psychopy/__init__.py'), 'w') as f:
         outStr = template.format(**infoDict)
         f.write(outStr)
     print('wrote init for ', version, sha)
