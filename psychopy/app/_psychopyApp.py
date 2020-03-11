@@ -207,6 +207,10 @@ class PsychoPyApp(wx.App):
         self.locale = localization.setLocaleWX()
         self.locale.AddCatalog(self.GetAppName())
 
+        # set the exception hook to present unhandled errors in a dialog
+        from psychopy.app.errorDlg import exceptionCallback
+        sys.excepthook = exceptionCallback
+
         self.onInit(testMode=testMode, **kwargs)
         if profiling:
             profile.disable()
