@@ -542,12 +542,8 @@ class FileBrowserPanel(wx.Panel):
                 absPath = os.path.join(path, f)
                 if os.path.isfile(absPath):
                     fsize = convertBytes(os.stat(absPath).st_size)
-                    modTime = time.ctime(os.path.getmtime(absPath))
-                    modTime = time.strftime(
-                        "%b %d, %Y, %I:%M %p",
-                        time.strptime(modTime, "%a %b %d %H:%M:%S %Y"))
                     self.dirData.append(
-                        FileItemData(f, absPath, path, fsize, modTime))
+                        FileItemData(f, absPath, path, fsize, None))
         except OSError:
             dlg = wx.MessageDialog(
                 self,

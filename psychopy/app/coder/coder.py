@@ -1192,7 +1192,7 @@ class CoderFrame(wx.Frame):
                 self.shell = py.shell.Shell(
                     self.shelf, -1, introText=msg + '\n\n')
                 self._useShell = 'pyshell'
-            self.shelf.AddPage(self.shell, _translate('Internal Shell'))
+            self.shelf.AddPage(self.shell, _translate('Shell'))
 
         self.paneManager.Update()
 
