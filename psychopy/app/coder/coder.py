@@ -1432,30 +1432,6 @@ class CoderFrame(wx.Frame):
                            _translate("Return fonts to their original size."),
                            wx.ITEM_NORMAL)
         self.Bind(wx.EVT_MENU, self.resetFont, id=item.GetId())
-        menu.AppendSeparator()
-
-        # submenu for changing working directory
-        sm = wx.Menu()
-        item = sm.Append(
-            wx.ID_ANY,
-            "Editor file location",
-            "",
-            wx.ITEM_NORMAL)
-        self.Bind(wx.EVT_MENU, self.onSetCWDFromEditor, id=item.GetId())
-        item = sm.Append(
-            wx.ID_ANY,
-            "File browser pane location",
-            "",
-            wx.ITEM_NORMAL)
-        self.Bind(wx.EVT_MENU, self.onSetCWDFromBrowserPane, id=item.GetId())
-        sm.AppendSeparator()
-        item = sm.Append(
-            wx.ID_ANY,
-            "Choose directory ...",
-            "",
-            wx.ITEM_NORMAL)
-        self.Bind(wx.EVT_MENU, self.onSetCWDFromBrowse, id=item.GetId())
-        menu.Append(wx.ID_ANY, "Change working directory to ...", sm)
 
         # menu.Append(ID_UNFOLDALL, "Unfold All\tF3",
         #   "Unfold all lines", wx.ITEM_NORMAL)
