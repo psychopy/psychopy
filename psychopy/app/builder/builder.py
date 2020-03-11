@@ -53,7 +53,7 @@ from psychopy.experiment import components
 
 from psychopy.app import pavlovia_ui
 from psychopy.projects import pavlovia
-from psychopy.app.themes import applyDockartTheme
+from psychopy.app.themes import defaultDockArt
 
 from psychopy.scripts.psyexpCompile import generateScript
 
@@ -1125,7 +1125,7 @@ class BuilderFrame(wx.Frame):
         self._mgr.Update()
 
         # apply the theme
-        applyDockartTheme(self._mgr)
+        self._mgr.SetArtProvider(defaultDockArt)
 
         # self.SetSizer(self.mainSizer)  # not necessary for aui type controls
         if self.frameData['auiPerspective']:
