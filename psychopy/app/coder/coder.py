@@ -2029,7 +2029,10 @@ class CoderFrame(wx.Frame):
                 wx.VERTICAL, self.currentDoc.sourceAsstScroll)
 
         if hasattr(self, 'fileBrowserWindow'):
-            self.fileBrowserWindow.gotoFile(self.currentDoc.filename)
+            if not os.path.isabs(self.currentDoc.filename):
+                self.fileBrowserWindow.gotoDir(os.path.expanduser("~"))
+            else:
+                self.fileBrowserWindow.gotoFile(self.currentDoc.filename)
 
         self.statusBar.SetStatusText(self.currentDoc.getFileType(), 2)
 
