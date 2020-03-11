@@ -1018,7 +1018,7 @@ class CodeEditor(BaseCodeEditor, CodeEditorFoldingMixin):
 
 
 class CoderFrame(wx.Frame):
-
+    """Class for the main Coder frame."""
     def __init__(self, parent, ID, title, files=(), app=None):
         self.app = app  # type: PsychoPyApp
         self.frameType = 'coder'
@@ -1080,13 +1080,11 @@ class CoderFrame(wx.Frame):
         self.scriptProcessID = None
         self.db = None  # debugger
         self._lastCaretPos = None
-        sys.stdout = sys.__stdout__
         # setup statusbar
         self.makeToolbar()  # must be before the paneManager for some reason
         self.makeMenus()
         #self.CreateStatusBar()
         self.makeStatusBar()
-        self.statusBar.SetStatusText("PsychoPy v{}".format(psychopy.__version__), 3)
         self.fileMenu = self.editMenu = self.viewMenu = None
         self.helpMenu = self.toolsMenu = None
 
@@ -1866,8 +1864,8 @@ class CoderFrame(wx.Frame):
     def makeStatusBar(self):
         """Make the status bar for Coder."""
         self.statusBar = wx.StatusBar(self, wx.ID_ANY)
-        self.statusBar.SetFieldsCount(4)
-        self.statusBar.SetStatusWidths([-2, 160, 160, 160])
+        self.statusBar.SetFieldsCount(3)
+        self.statusBar.SetStatusWidths([-2, 160, 160])
 
         self.SetStatusBar(self.statusBar)
 
@@ -2044,7 +2042,8 @@ class CoderFrame(wx.Frame):
         new = event.GetSelection()
         self.currentDoc = self.notebook.GetPage(new)
         self.setFileModified(self.currentDoc.UNSAVED)
-        self.SetLabel('%s - PsychoPy Coder' % self.currentDoc.filename)
+        self.SetLabel('{} - PsychoPy Coder v{}'.format(
+            self.currentDoc.filename, self.app.version))
 
         # scroll the source tree to where it was before for this document,
         # prevents it from jumping around annoyingly
@@ -2347,7 +2346,8 @@ class CoderFrame(wx.Frame):
             self.currentDoc.SetFocus()
             self.statusBar.SetStatusText(self.currentDoc.getFileType(), 2)
 
-        self.SetLabel('%s - PsychoPy Coder' % self.currentDoc.filename)
+        self.SetLabel('{} - PsychoPy Coder v{}'.format(
+            self.currentDoc.filename, self.app.version))
         #if len(self.getOpenFilenames()) > 0:
         if hasattr(self, 'sourceAsstWindow'):
             self.statusBar.SetStatusText(_translate('Analyzing code'))
@@ -2562,9 +2562,8 @@ class CoderFrame(wx.Frame):
             self.currentDoc = None
             self.statusBar.SetStatusText("", 1)  # clear line pos
             self.statusBar.SetStatusText("", 2)  # clear file type in status bar
-            self.statusBar.SetStatusText("", 3)  # psyhcopy version
             # clear the source tree
-            self.SetLabel("PsychoPy v%s (Coder)" % self.app.version)
+            self.SetLabel("PsychoPy Coder v{}".format(self.app.version))
             self.sourceAsstWindow.srcTree.DeleteAllItems()
         else:
             self.currentDoc = self.notebook.GetPage(newPageID)
@@ -2584,6 +2583,10 @@ class CoderFrame(wx.Frame):
 
     def runFile(self, event=None):
         """Open Runner for running the script."""
+        if self.currentDoc is None:
+            self.app.showRunner()
+            return
+
         fullPath = self.currentDoc.filename
         filename = os.path.split(fullPath)[1]
         # does the file need saving before running?

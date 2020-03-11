@@ -554,7 +554,7 @@ class PsychoPyApp(wx.App):
         # have to reimport because it is only local to __init__ so far
         from . import coder
         if self.coder is None:
-            title = "PsychoPy3 Coder (IDE) (v%s)"
+            title = "PsychoPy Coder v%s"
             self.coder = coder.CoderFrame(None, -1,
                                           title=title % self.version,
                                           files=fileList, app=self)
