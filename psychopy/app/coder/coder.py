@@ -14,6 +14,7 @@ from builtins import range
 import wx
 import wx.stc
 import wx.richtext
+import wx.py
 from wx.html import HtmlEasyPrinting
 
 try:
@@ -995,6 +996,29 @@ class CodeEditor(BaseCodeEditor, CodeEditorFoldingMixin):
             else:
                 findDlg.Close()
 
+class LocalizedShell(wx.py.shell.Shell):
+    """This class replaces context menu of wx.py.shell.Shell
+       to enable translation.
+    """
+    def GetContextMenu(self):
+        menu = wx.Menu()
+        menu.Append(self.ID_UNDO, _translate("Undo"))
+        menu.Append(self.ID_REDO, _translate("Redo"))
+
+        menu.AppendSeparator()
+
+        menu.Append(self.ID_CUT, _translate("Cut"))
+        menu.Append(self.ID_COPY, _translate("Copy"))
+        menu.Append(wx.py.frame.ID_COPY_PLUS, _translate("Copy With Prompts"))
+        menu.Append(self.ID_PASTE, _translate("Paste"))
+        menu.Append(wx.py.frame.ID_PASTE_PLUS, _translate("Paste And Run"))
+        menu.Append(self.ID_CLEAR, _translate("Clear"))
+
+        menu.AppendSeparator()
+
+        menu.Append(self.ID_SELECTALL, _translate("Select All"))
+        return menu
+
 
 class CoderFrame(wx.Frame):
 
@@ -1187,9 +1211,8 @@ class CoderFrame(wx.Frame):
                                      ' (IPython v0.12 can fail on wx)')
                     logging.warn(msg)
             if useDefaultShell:
-                from wx import py
                 msg = _translate('PyShell in PsychoPy - type some commands!')
-                self.shell = py.shell.Shell(
+                self.shell = LocalizedShell(
                     self.shelf, -1, introText=msg + '\n\n')
                 self._useShell = 'pyshell'
             self.shelf.AddPage(self.shell, _translate('Internal Shell'))
