@@ -63,6 +63,8 @@
     debugMode = boolean(default='False')
     # language to use in menus etc; not all translations are available. Select a value, then restart the app.
     locale = string(default='')
+    # Show an error dialog when PsychoPy encounters an unhandled internal error.
+    errorDialog = boolean(default='True')
 
 # Settings for the Coder window
 [coder]

@@ -46,6 +46,7 @@ from psychopy.app.coder.sourceTree import SourceTreePanel
 from psychopy.app.coder.styling import applyStyleSpec
 from psychopy.app.coder.folding import CodeEditorFoldingMixin
 from psychopy.app.icons import combineImageEmblem
+from psychopy.app.errorDlg import ErrorMsgDialog
 
 try:
     import jedi
@@ -581,7 +582,14 @@ class CodeEditor(BaseCodeEditor, CodeEditorFoldingMixin):
             self.SetTechnology(3)
 
         # prevent flickering on update
-        self.SetBufferedDraw(True)
+        self.SetDoubleBuffered(True)
+
+    def updateSettings(self):
+        """Update editor settings after preference change."""
+        # show the long line edge guide, enabled if >0
+        self.edgeGuideColumn = self.coder.prefs['edgeGuideColumn']
+        self.edgeGuideVisible = self.edgeGuideColumn > 0
+        self.setFonts()
 
     def setFonts(self):
         """Make some styles,  The lexer defines what each style is used for,
@@ -687,7 +695,6 @@ class CodeEditor(BaseCodeEditor, CodeEditorFoldingMixin):
         # enable in the _-init__
         keyCode = event.GetKeyCode()
         _mods = event.GetModifiers()
-
         # handle some special keys
         if keyCode == ord('[') and wx.MOD_CONTROL == _mods:
             self.indentSelection(-4)
@@ -697,7 +704,7 @@ class CodeEditor(BaseCodeEditor, CodeEditorFoldingMixin):
             if charPos == 0:
                 # if caret is at start of line, move to start of text instead
                 self.VCHome()
-        if keyCode == ord(']') and wx.MOD_CONTROL == _mods:
+        elif keyCode == ord(']') and wx.MOD_CONTROL == _mods:
             self.indentSelection(4)
             # if there are no characters on the line then also move caret to
             # end of indentation
@@ -706,26 +713,26 @@ class CodeEditor(BaseCodeEditor, CodeEditorFoldingMixin):
                 # if caret is at start of line, move to start of text instead
                 self.VCHome()
 
-        if keyCode == ord('/') and wx.MOD_CONTROL == _mods:
+        elif keyCode == ord('/') and wx.MOD_CONTROL == _mods:
             self.commentLines()
-        if keyCode == ord('/') and wx.MOD_CONTROL | wx.MOD_SHIFT == _mods:
+        elif keyCode == ord('/') and wx.MOD_CONTROL | wx.MOD_SHIFT == _mods:
             self.uncommentLines()
 
         # show completions, very simple at this point
-        if keyCode == wx.WXK_SPACE and wx.MOD_CONTROL == _mods:
+        elif keyCode == wx.WXK_SPACE and wx.MOD_CONTROL == _mods:
             self.ShowAutoCompleteList()
 
         # show a calltip with signiture
-        if keyCode == wx.WXK_SPACE and wx.MOD_CONTROL | wx.MOD_SHIFT == _mods:
+        elif keyCode == wx.WXK_SPACE and wx.MOD_CONTROL | wx.MOD_SHIFT == _mods:
             self.ShowCalltip()
 
-        if keyCode == wx.WXK_ESCAPE:  # close overlays
+        elif keyCode == wx.WXK_ESCAPE:  # close overlays
             if self.AutoCompActive():
                 self.AutoCompCancel()  # close the auto completion list
             if self.CallTipActive():
                 self.CallTipCancel()
 
-        if keyCode == wx.WXK_RETURN: # and not self.AutoCompActive():
+        elif keyCode == wx.WXK_RETURN: # and not self.AutoCompActive():
             if not self.AutoCompActive():
                 # process end of line and then do smart indentation
                 event.Skip(False)
@@ -735,7 +742,8 @@ class CodeEditor(BaseCodeEditor, CodeEditorFoldingMixin):
                 return  # so that we don't reach the skip line at end
 
         # quote line
-        if keyCode == ord("'"):
+        elif keyCode == ord("'"):
+            raise RuntimeError
             start, end = self.GetSelection()
             if end - start > 0:
                 txt = self.GetSelectedText()
@@ -839,9 +847,9 @@ class CodeEditor(BaseCodeEditor, CodeEditorFoldingMixin):
         self.caretLineIndentLevel = self.caretLineIndentCol / self.indentSize
         self.caretAtIndentLevel = \
             (self.caretLineIndentCol % self.indentSize) == 0
-        self.shouldBackspaceUntab = \
-            self.caretAtIndentLevel and \
-            0 < self.caretColumn <= self.caretLineIndentCol
+        # self.shouldBackspaceUntab = \
+        #     self.caretAtIndentLevel and \
+        #     0 < self.caretColumn <= self.caretLineIndentCol
 
     def commentLines(self):
         # used for the comment/uncomment machinery from ActiveGrid
@@ -1215,8 +1223,7 @@ class CoderFrame(wx.Frame):
                 self.shell = LocalizedShell(
                     self.shelf, -1, introText=msg + '\n\n')
                 self._useShell = 'pyshell'
-            self.shelf.AddPage(self.shell, _translate('Internal Shell'))
-            
+            self.shelf.AddPage(self.shell, _translate('Shell'))
 
         self.paneManager.Update()
 
@@ -2792,3 +2799,5 @@ class CoderFrame(wx.Frame):
     def setPavloviaUser(self, user):
         # TODO: update user icon on button to user avatar
         pass
+
+

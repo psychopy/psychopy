@@ -30,7 +30,7 @@ win.lights = [
 # are relative to the pivot point.
 spherePose1 = RigidBodyPose((0.1, -0.1, 0.1))
 spherePose2 = RigidBodyPose((-0.1, 0.1, 0.1))
-spherePose3 = RigidBodyPose((0.1, -0.1, -0.1))
+spherePose3 = RigidBodyPose((0.1, -0.1 , -0.1))
 
 # create some sphere stim objects
 lightSphere = SphereStim(win, radius=0.05, color='white', useShaders=False)

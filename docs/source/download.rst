@@ -15,7 +15,7 @@ For the easiest installation download and install the Standalone package.
 
     let filename;
     let url;
-    let version='2020.1.1'
+    let version='2020.1.3'
 
     let clientInfo = UAParser(navigator.userAgent);
     var osLabel;

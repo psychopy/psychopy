@@ -134,10 +134,11 @@ setup(
                   CFBundleIconFile='psychopy.icns',
                   CFBundleName               = "PsychoPy3",
                   CFBundleShortVersionString = version,  # must be in X.X.X format
-                  CFBundleGetInfoString      = "PsychoPy3 "+version,
+                  CFBundleVersion            = version,
                   CFBundleExecutable         = "PsychoPy3",
                   CFBundleIdentifier         = "org.psychopy.PsychoPy3",
                   CFBundleLicense            = "GNU GPLv3+",
+                  NSHumanReadableCopyright   = "Open Science Tools Ltd.",
                   CFBundleDocumentTypes=[dict(CFBundleTypeExtensions=['*'],
                                               CFBundleTypeRole='Editor')],
                   LSEnvironment=dict(PATH="/usr/local/git/bin:/usr/local/bin:"
