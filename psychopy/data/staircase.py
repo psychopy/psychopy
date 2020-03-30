@@ -466,42 +466,42 @@ class StairHandler(_BaseTrialHandler):
 
         # write the data
         reversalStr = str(self.reversalIntensities)
-        reversalStr = string.replace(reversalStr, ',', delim)
-        reversalStr = string.replace(reversalStr, '[', '')
-        reversalStr = string.replace(reversalStr, ']', '')
+        reversalStr = reversalStr.replace(',', delim)
+        reversalStr = reversalStr.replace('[', '')
+        reversalStr = reversalStr.replace(']', '')
         f.write('\nreversalIntensities=\t%s\n' % reversalStr)
 
         reversalPts = str(self.reversalPoints)
-        reversalPts = string.replace(reversalPts, ',', delim)
-        reversalPts = string.replace(reversalPts, '[', '')
-        reversalPts = string.replace(reversalPts, ']', '')
+        reversalPts = reversalPts.replace(',', delim)
+        reversalPts = reversalPts.replace('[', '')
+        reversalPts = reversalPts.replace(']', '')
         f.write('reversalIndices=\t%s\n' % reversalPts)
 
         rawIntens = str(self.intensities)
-        rawIntens = string.replace(rawIntens, ',', delim)
-        rawIntens = string.replace(rawIntens, '[', '')
-        rawIntens = string.replace(rawIntens, ']', '')
+        rawIntens = rawIntens.replace(',', delim)
+        rawIntens = rawIntens.replace('[', '')
+        rawIntens = rawIntens.replace(']', '')
         f.write('\nintensities=\t%s\n' % rawIntens)
 
         responses = str(self.data)
-        responses = string.replace(responses, ',', delim)
-        responses = string.replace(responses, '[', '')
-        responses = string.replace(responses, ']', '')
+        responses = responses.replace(',', delim)
+        responses = responses.replace('[', '')
+        responses = responses.replace(']', '')
         f.write('responses=\t%s\n' % responses)
 
         # add self.extraInfo
         if self.extraInfo is not None and not matrixOnly:
             strInfo = str(self.extraInfo)
             # dict begins and ends with {} - remove
-            # string.replace(strInfo, '{','')
-            # strInfo = string.replace(strInfo, '}','')
+            # strInfo.replace('{','')
+            # strInfo = strInfo.replace('}','')
             strInfo = strInfo[1:-1]
             # separate value from keyname
-            strInfo = string.replace(strInfo, ': ', ':\n')
+            strInfo = strInfo.replace(strInfo, ': ', ':\n')
             # separate values from each other
-            strInfo = string.replace(strInfo, ',', '\n')
-            strInfo = string.replace(strInfo, 'array([ ', '')
-            strInfo = string.replace(strInfo, '])', '')
+            strInfo = strInfo.replace(',', '\n')
+            strInfo = strInfo.replace('array([ ', '')
+            strInfo = strInfo.replace('])', '')
 
             f.write('\n%s\n' % strInfo)
 
