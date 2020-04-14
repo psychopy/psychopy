@@ -856,6 +856,305 @@ DotsComponent.units.staticUpdater:None
 DotsComponent.units.updates:None
 DotsComponent.units.val:from exp settings
 DotsComponent.units.valType:str
+EmotivMarkingComponent.order:['name', 'marker_label', 'marker_value', 'stop_marker']
+EmotivMarkingComponent.disabled.default:False
+EmotivMarkingComponent.disabled.allowedLabels:[]
+EmotivMarkingComponent.disabled.allowedTypes:[]
+EmotivMarkingComponent.disabled.allowedUpdates:None
+EmotivMarkingComponent.disabled.allowedVals:[]
+EmotivMarkingComponent.disabled.categ:Testing
+EmotivMarkingComponent.disabled.hint:Disable this component
+EmotivMarkingComponent.disabled.label:Disable component
+EmotivMarkingComponent.disabled.readOnly:False
+EmotivMarkingComponent.disabled.staticUpdater:None
+EmotivMarkingComponent.disabled.updates:None
+EmotivMarkingComponent.disabled.val:False
+EmotivMarkingComponent.disabled.valType:bool
+EmotivMarkingComponent.durationEstim.default:0.01
+EmotivMarkingComponent.durationEstim.allowedLabels:[]
+EmotivMarkingComponent.durationEstim.allowedTypes:[]
+EmotivMarkingComponent.durationEstim.allowedUpdates:None
+EmotivMarkingComponent.durationEstim.allowedVals:[]
+EmotivMarkingComponent.durationEstim.categ:Basic
+EmotivMarkingComponent.durationEstim.hint:(Optional) expected duration (s), purely for representing in the timeline
+EmotivMarkingComponent.durationEstim.label:Expected duration (s)
+EmotivMarkingComponent.durationEstim.readOnly:False
+EmotivMarkingComponent.durationEstim.staticUpdater:None
+EmotivMarkingComponent.durationEstim.updates:None
+EmotivMarkingComponent.durationEstim.val:0.01
+EmotivMarkingComponent.durationEstim.valType:code
+EmotivMarkingComponent.marker_label.default:'label'
+EmotivMarkingComponent.marker_label.allowedLabels:[]
+EmotivMarkingComponent.marker_label.allowedTypes:[]
+EmotivMarkingComponent.marker_label.allowedUpdates:['constant', 'set every repeat']
+EmotivMarkingComponent.marker_label.allowedVals:[]
+EmotivMarkingComponent.marker_label.categ:Basic
+EmotivMarkingComponent.marker_label.hint:Label of the marker to be inserted (interpreted as a string)
+EmotivMarkingComponent.marker_label.label:Marker Label
+EmotivMarkingComponent.marker_label.readOnly:False
+EmotivMarkingComponent.marker_label.staticUpdater:None
+EmotivMarkingComponent.marker_label.updates:constant
+EmotivMarkingComponent.marker_label.val:label
+EmotivMarkingComponent.marker_label.valType:str
+EmotivMarkingComponent.marker_value.default:'1'
+EmotivMarkingComponent.marker_value.allowedLabels:[]
+EmotivMarkingComponent.marker_value.allowedTypes:[]
+EmotivMarkingComponent.marker_value.allowedUpdates:['constant', 'set every repeat']
+EmotivMarkingComponent.marker_value.allowedVals:[]
+EmotivMarkingComponent.marker_value.categ:Basic
+EmotivMarkingComponent.marker_value.hint:Value of the marker to be inserted (interpreted as a string)
+EmotivMarkingComponent.marker_value.label:Marker Value
+EmotivMarkingComponent.marker_value.readOnly:False
+EmotivMarkingComponent.marker_value.staticUpdater:None
+EmotivMarkingComponent.marker_value.updates:constant
+EmotivMarkingComponent.marker_value.val:1
+EmotivMarkingComponent.marker_value.valType:str
+EmotivMarkingComponent.name.default:eeg_marker
+EmotivMarkingComponent.name.allowedLabels:[]
+EmotivMarkingComponent.name.allowedTypes:[]
+EmotivMarkingComponent.name.allowedUpdates:None
+EmotivMarkingComponent.name.allowedVals:[]
+EmotivMarkingComponent.name.categ:Basic
+EmotivMarkingComponent.name.hint:Name of this component (alpha-numeric or _, no spaces)
+EmotivMarkingComponent.name.label:Name
+EmotivMarkingComponent.name.readOnly:False
+EmotivMarkingComponent.name.staticUpdater:None
+EmotivMarkingComponent.name.val:eeg_marker
+EmotivMarkingComponent.name.valType:code
+EmotivMarkingComponent.saveStartStop.default:True
+EmotivMarkingComponent.saveStartStop.allowedLabels:[]
+EmotivMarkingComponent.saveStartStop.allowedTypes:[]
+EmotivMarkingComponent.saveStartStop.allowedUpdates:None
+EmotivMarkingComponent.saveStartStop.allowedVals:[]
+EmotivMarkingComponent.saveStartStop.categ:Data
+EmotivMarkingComponent.saveStartStop.hint:Store the onset/offset times in the data file (as well as in the log file).
+EmotivMarkingComponent.saveStartStop.label:Save onset/offset times
+EmotivMarkingComponent.saveStartStop.readOnly:False
+EmotivMarkingComponent.saveStartStop.staticUpdater:None
+EmotivMarkingComponent.saveStartStop.updates:None
+EmotivMarkingComponent.saveStartStop.val:True
+EmotivMarkingComponent.saveStartStop.valType:bool
+EmotivMarkingComponent.startEstim.default:
+EmotivMarkingComponent.startEstim.allowedLabels:[]
+EmotivMarkingComponent.startEstim.allowedTypes:[]
+EmotivMarkingComponent.startEstim.allowedUpdates:None
+EmotivMarkingComponent.startEstim.allowedVals:[]
+EmotivMarkingComponent.startEstim.categ:Basic
+EmotivMarkingComponent.startEstim.hint:(Optional) expected start (s), purely for representing in the timeline
+EmotivMarkingComponent.startEstim.label:Expected start (s)
+EmotivMarkingComponent.startEstim.readOnly:False
+EmotivMarkingComponent.startEstim.staticUpdater:None
+EmotivMarkingComponent.startEstim.updates:None
+EmotivMarkingComponent.startEstim.val:
+EmotivMarkingComponent.startEstim.valType:code
+EmotivMarkingComponent.startType.default:'time (s)'
+EmotivMarkingComponent.startType.allowedLabels:[]
+EmotivMarkingComponent.startType.allowedTypes:[]
+EmotivMarkingComponent.startType.allowedUpdates:None
+EmotivMarkingComponent.startType.allowedVals:['time (s)', 'frame N', 'condition']
+EmotivMarkingComponent.startType.categ:Basic
+EmotivMarkingComponent.startType.hint:How do you want to define your start point?
+EmotivMarkingComponent.startType.label:start type
+EmotivMarkingComponent.startType.readOnly:False
+EmotivMarkingComponent.startType.staticUpdater:None
+EmotivMarkingComponent.startType.updates:None
+EmotivMarkingComponent.startType.val:time (s)
+EmotivMarkingComponent.startType.valType:str
+EmotivMarkingComponent.startVal.default:0.0
+EmotivMarkingComponent.startVal.allowedLabels:[]
+EmotivMarkingComponent.startVal.allowedTypes:[]
+EmotivMarkingComponent.startVal.allowedUpdates:None
+EmotivMarkingComponent.startVal.allowedVals:[]
+EmotivMarkingComponent.startVal.categ:Basic
+EmotivMarkingComponent.startVal.hint:When does the component start?
+EmotivMarkingComponent.startVal.label:Start
+EmotivMarkingComponent.startVal.readOnly:False
+EmotivMarkingComponent.startVal.staticUpdater:None
+EmotivMarkingComponent.startVal.updates:None
+EmotivMarkingComponent.startVal.val:0.0
+EmotivMarkingComponent.startVal.valType:code
+EmotivMarkingComponent.stopType.default:'time (s)'
+EmotivMarkingComponent.stopType.allowedLabels:[]
+EmotivMarkingComponent.stopType.allowedTypes:[]
+EmotivMarkingComponent.stopType.allowedUpdates:None
+EmotivMarkingComponent.stopType.allowedVals:['duration (s)', 'duration (frames)', 'time (s)', 'frame N', 'condition']
+EmotivMarkingComponent.stopType.categ:Basic
+EmotivMarkingComponent.stopType.hint:How do you want to define your end point?
+EmotivMarkingComponent.stopType.label:stop type
+EmotivMarkingComponent.stopType.readOnly:False
+EmotivMarkingComponent.stopType.staticUpdater:None
+EmotivMarkingComponent.stopType.updates:None
+EmotivMarkingComponent.stopType.val:time (s)
+EmotivMarkingComponent.stopType.valType:str
+EmotivMarkingComponent.stopVal.default:2
+EmotivMarkingComponent.stopVal.allowedLabels:[]
+EmotivMarkingComponent.stopVal.allowedTypes:[]
+EmotivMarkingComponent.stopVal.allowedUpdates:[]
+EmotivMarkingComponent.stopVal.allowedVals:[]
+EmotivMarkingComponent.stopVal.categ:Basic
+EmotivMarkingComponent.stopVal.hint:When does the component end? (blank is endless)
+EmotivMarkingComponent.stopVal.label:Stop
+EmotivMarkingComponent.stopVal.readOnly:False
+EmotivMarkingComponent.stopVal.staticUpdater:None
+EmotivMarkingComponent.stopVal.updates:constant
+EmotivMarkingComponent.stopVal.val:2
+EmotivMarkingComponent.stopVal.valType:code
+EmotivMarkingComponent.stop_marker.default:False
+EmotivMarkingComponent.stop_marker.allowedLabels:[]
+EmotivMarkingComponent.stop_marker.allowedTypes:[]
+EmotivMarkingComponent.stop_marker.allowedUpdates:[]
+EmotivMarkingComponent.stop_marker.allowedVals:[True, False]
+EmotivMarkingComponent.stop_marker.categ:Basic
+EmotivMarkingComponent.stop_marker.hint:Check this box to include a stop marker
+EmotivMarkingComponent.stop_marker.label:Stop Marker
+EmotivMarkingComponent.stop_marker.readOnly:False
+EmotivMarkingComponent.stop_marker.staticUpdater:None
+EmotivMarkingComponent.stop_marker.updates:constant
+EmotivMarkingComponent.stop_marker.val:False
+EmotivMarkingComponent.stop_marker.valType:bool
+EmotivMarkingComponent.syncScreenRefresh.default:False
+EmotivMarkingComponent.syncScreenRefresh.allowedLabels:[]
+EmotivMarkingComponent.syncScreenRefresh.allowedTypes:[]
+EmotivMarkingComponent.syncScreenRefresh.allowedUpdates:None
+EmotivMarkingComponent.syncScreenRefresh.allowedVals:[]
+EmotivMarkingComponent.syncScreenRefresh.categ:Data
+EmotivMarkingComponent.syncScreenRefresh.hint:Synchronize times with screen refresh (good for visual stimuli and responses based on them)
+EmotivMarkingComponent.syncScreenRefresh.label:Sync timing with screen refresh
+EmotivMarkingComponent.syncScreenRefresh.readOnly:False
+EmotivMarkingComponent.syncScreenRefresh.staticUpdater:None
+EmotivMarkingComponent.syncScreenRefresh.updates:None
+EmotivMarkingComponent.syncScreenRefresh.val:False
+EmotivMarkingComponent.syncScreenRefresh.valType:bool
+EmotivRecordingComponent.order:['name']
+EmotivRecordingComponent.disabled.default:False
+EmotivRecordingComponent.disabled.allowedLabels:[]
+EmotivRecordingComponent.disabled.allowedTypes:[]
+EmotivRecordingComponent.disabled.allowedUpdates:None
+EmotivRecordingComponent.disabled.allowedVals:[]
+EmotivRecordingComponent.disabled.categ:Testing
+EmotivRecordingComponent.disabled.hint:Disable this component
+EmotivRecordingComponent.disabled.label:Disable component
+EmotivRecordingComponent.disabled.readOnly:False
+EmotivRecordingComponent.disabled.staticUpdater:None
+EmotivRecordingComponent.disabled.updates:None
+EmotivRecordingComponent.disabled.val:False
+EmotivRecordingComponent.disabled.valType:bool
+EmotivRecordingComponent.durationEstim.default:
+EmotivRecordingComponent.durationEstim.allowedLabels:[]
+EmotivRecordingComponent.durationEstim.allowedTypes:[]
+EmotivRecordingComponent.durationEstim.allowedUpdates:None
+EmotivRecordingComponent.durationEstim.allowedVals:[]
+EmotivRecordingComponent.durationEstim.categ:Basic
+EmotivRecordingComponent.durationEstim.hint:(Optional) expected duration (s), purely for representing in the timeline
+EmotivRecordingComponent.durationEstim.label:Expected duration (s)
+EmotivRecordingComponent.durationEstim.readOnly:False
+EmotivRecordingComponent.durationEstim.staticUpdater:None
+EmotivRecordingComponent.durationEstim.updates:None
+EmotivRecordingComponent.durationEstim.val:
+EmotivRecordingComponent.durationEstim.valType:code
+EmotivRecordingComponent.name.default:cortex_rec
+EmotivRecordingComponent.name.allowedLabels:[]
+EmotivRecordingComponent.name.allowedTypes:[]
+EmotivRecordingComponent.name.allowedUpdates:None
+EmotivRecordingComponent.name.allowedVals:[]
+EmotivRecordingComponent.name.categ:Basic
+EmotivRecordingComponent.name.hint:Name of this component (alpha-numeric or _, no spaces)
+EmotivRecordingComponent.name.label:Name
+EmotivRecordingComponent.name.readOnly:False
+EmotivRecordingComponent.name.staticUpdater:None
+EmotivRecordingComponent.name.val:cortex_rec
+EmotivRecordingComponent.name.valType:code
+EmotivRecordingComponent.saveStartStop.default:False
+EmotivRecordingComponent.saveStartStop.allowedLabels:[]
+EmotivRecordingComponent.saveStartStop.allowedTypes:[]
+EmotivRecordingComponent.saveStartStop.allowedUpdates:None
+EmotivRecordingComponent.saveStartStop.allowedVals:[]
+EmotivRecordingComponent.saveStartStop.categ:Data
+EmotivRecordingComponent.saveStartStop.hint:Store the onset/offset times in the data file (as well as in the log file).
+EmotivRecordingComponent.saveStartStop.label:Save onset/offset times
+EmotivRecordingComponent.saveStartStop.readOnly:False
+EmotivRecordingComponent.saveStartStop.staticUpdater:None
+EmotivRecordingComponent.saveStartStop.updates:None
+EmotivRecordingComponent.saveStartStop.val:False
+EmotivRecordingComponent.saveStartStop.valType:bool
+EmotivRecordingComponent.startEstim.default:
+EmotivRecordingComponent.startEstim.allowedLabels:[]
+EmotivRecordingComponent.startEstim.allowedTypes:[]
+EmotivRecordingComponent.startEstim.allowedUpdates:None
+EmotivRecordingComponent.startEstim.allowedVals:[]
+EmotivRecordingComponent.startEstim.categ:Basic
+EmotivRecordingComponent.startEstim.hint:(Optional) expected start (s), purely for representing in the timeline
+EmotivRecordingComponent.startEstim.label:Expected start (s)
+EmotivRecordingComponent.startEstim.readOnly:False
+EmotivRecordingComponent.startEstim.staticUpdater:None
+EmotivRecordingComponent.startEstim.updates:None
+EmotivRecordingComponent.startEstim.val:
+EmotivRecordingComponent.startEstim.valType:code
+EmotivRecordingComponent.startType.default:'time (s)'
+EmotivRecordingComponent.startType.allowedLabels:[]
+EmotivRecordingComponent.startType.allowedTypes:[]
+EmotivRecordingComponent.startType.allowedUpdates:None
+EmotivRecordingComponent.startType.allowedVals:['time (s)', 'frame N', 'condition']
+EmotivRecordingComponent.startType.categ:Basic
+EmotivRecordingComponent.startType.hint:How do you want to define your start point?
+EmotivRecordingComponent.startType.label:start type
+EmotivRecordingComponent.startType.readOnly:False
+EmotivRecordingComponent.startType.staticUpdater:None
+EmotivRecordingComponent.startType.updates:None
+EmotivRecordingComponent.startType.val:time (s)
+EmotivRecordingComponent.startType.valType:str
+EmotivRecordingComponent.startVal.default:0
+EmotivRecordingComponent.startVal.allowedLabels:[]
+EmotivRecordingComponent.startVal.allowedTypes:[]
+EmotivRecordingComponent.startVal.allowedUpdates:None
+EmotivRecordingComponent.startVal.allowedVals:[]
+EmotivRecordingComponent.startVal.categ:Basic
+EmotivRecordingComponent.startVal.hint:When does the component start?
+EmotivRecordingComponent.startVal.label:Start
+EmotivRecordingComponent.startVal.readOnly:False
+EmotivRecordingComponent.startVal.staticUpdater:None
+EmotivRecordingComponent.startVal.updates:None
+EmotivRecordingComponent.startVal.val:0
+EmotivRecordingComponent.startVal.valType:code
+EmotivRecordingComponent.stopType.default:'duration (s)'
+EmotivRecordingComponent.stopType.allowedLabels:[]
+EmotivRecordingComponent.stopType.allowedTypes:[]
+EmotivRecordingComponent.stopType.allowedUpdates:None
+EmotivRecordingComponent.stopType.allowedVals:['duration (s)', 'duration (frames)', 'time (s)', 'frame N', 'condition']
+EmotivRecordingComponent.stopType.categ:Basic
+EmotivRecordingComponent.stopType.hint:How do you want to define your end point?
+EmotivRecordingComponent.stopType.label:stop type
+EmotivRecordingComponent.stopType.readOnly:False
+EmotivRecordingComponent.stopType.staticUpdater:None
+EmotivRecordingComponent.stopType.updates:None
+EmotivRecordingComponent.stopType.val:duration (s)
+EmotivRecordingComponent.stopType.valType:str
+EmotivRecordingComponent.stopVal.default:
+EmotivRecordingComponent.stopVal.allowedLabels:[]
+EmotivRecordingComponent.stopVal.allowedTypes:[]
+EmotivRecordingComponent.stopVal.allowedUpdates:[]
+EmotivRecordingComponent.stopVal.allowedVals:[]
+EmotivRecordingComponent.stopVal.categ:Basic
+EmotivRecordingComponent.stopVal.hint:When does the component end? (blank is endless)
+EmotivRecordingComponent.stopVal.label:Stop
+EmotivRecordingComponent.stopVal.readOnly:False
+EmotivRecordingComponent.stopVal.staticUpdater:None
+EmotivRecordingComponent.stopVal.updates:constant
+EmotivRecordingComponent.stopVal.val:
+EmotivRecordingComponent.stopVal.valType:code
+EmotivRecordingComponent.syncScreenRefresh.default:False
+EmotivRecordingComponent.syncScreenRefresh.allowedLabels:[]
+EmotivRecordingComponent.syncScreenRefresh.allowedTypes:[]
+EmotivRecordingComponent.syncScreenRefresh.allowedUpdates:None
+EmotivRecordingComponent.syncScreenRefresh.allowedVals:[]
+EmotivRecordingComponent.syncScreenRefresh.categ:Data
+EmotivRecordingComponent.syncScreenRefresh.hint:Synchronize times with screen refresh (good for visual stimuli and responses based on them)
+EmotivRecordingComponent.syncScreenRefresh.label:Sync timing with screen refresh
+EmotivRecordingComponent.syncScreenRefresh.readOnly:False
+EmotivRecordingComponent.syncScreenRefresh.staticUpdater:None
+EmotivRecordingComponent.syncScreenRefresh.updates:None
+EmotivRecordingComponent.syncScreenRefresh.val:False
+EmotivRecordingComponent.syncScreenRefresh.valType:bool
 EnvGratingComponent.order:['carrier', 'mask']
 EnvGratingComponent.beat.default:False
 EnvGratingComponent.beat.allowedLabels:[]
@@ -5531,7 +5830,7 @@ SettingsComponent.Use version.default:''
 SettingsComponent.Use version.allowedLabels:[]
 SettingsComponent.Use version.allowedTypes:[]
 SettingsComponent.Use version.allowedUpdates:None
-SettingsComponent.Use version.allowedVals:['latest', '3.2', '3.1', '3.0', '1.90', '', '3.2.1', '3.2.0', '3.1.5', '3.1.4', '3.1.3', '3.1.2', '3.1.1', '3.1.0', '3.0.7', '3.0.6', '3.0.5', '3.0.4', '3.0.3', '3.0.2', '3.0.1', '3.0.0', '1.90.2', '1.90.1', '1.90.0']
+SettingsComponent.Use version.allowedVals:['latest', '3.2', '3.1', '3.0', '1.90', '', '3.2.4', '3.2.3', '3.2.2', '3.2.1', '3.2.0', '3.1.5', '3.1.4', '3.1.3', '3.1.2', '3.1.1', '3.1.0', '3.0.7', '3.0.6', '3.0.5', '3.0.4', '3.0.3', '3.0.2', '3.0.1', '3.0.0', '1.90.2', '1.90.1', '1.90.0']
 SettingsComponent.Use version.categ:Basic
 SettingsComponent.Use version.hint:The version of PsychoPy to use when running the experiment.
 SettingsComponent.Use version.label:Use PsychoPy version
