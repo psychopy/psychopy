@@ -63,6 +63,7 @@ class EmotivMarkingComponent(BaseComponent):  # or (VisualComponent)
             hint=msg,
             label=_localized["stop_marker"])
 
+        self.type = 'EmotivMarking'
         self.exp.requirePsychopyLibs(['emotiv'])
         self.exp.requirePsychopyLibs(['visual'])
         self.order += ['marker_label', 'marker_value', 'stop_marker']

@@ -26,6 +26,7 @@ class EmotivRecordingComponent(BaseComponent):  # or (VisualComponent)
             saveStartStop=False
         )
         self.exp.requirePsychopyLibs(['emotiv'])
+        self.type = 'EmotivRecord'
 
     def writeInitCode(self, buff):
         inits = getInitVals(self.params, 'PsychoPy')
