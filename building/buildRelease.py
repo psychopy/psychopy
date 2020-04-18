@@ -19,9 +19,12 @@ import os, sys, shutil, subprocess
 from os.path import join
 from createInitFile import createInitFile
 from psychopy.constants import PY3
+from pathlib import Path
 
-MAIN = os.path.abspath(os.path.split(__file__)[0])
-VERSIONS = join(MAIN, '..', 'versions')
+# MAIN is the root of the psychopy repo
+MAIN = Path(__file__).parent.parent
+# versions repo is next to MAIN
+VERSIONS = MAIN.parent / 'versions'
 
 if sys.platform == "darwin":
     gitgui = ["git", "gui"]

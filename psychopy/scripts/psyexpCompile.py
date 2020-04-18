@@ -198,20 +198,6 @@ def compileScript(infile=None, version=None, outfile=None):
 
         return targetOutput
 
-    def _integrityCheck(exp):
-        """
-        Run integrity tests for each component in Experiment.
-
-        Parameters
-        ---------
-        exp : psychopy.experiment.Experiment
-            The experiment from which to test all components for integrity.
-        """
-        for _, routine in list(exp.routines.items()):  # PY2/3 compat
-            for component in routine:
-                if hasattr(component, "integrityCheck"):
-                    component.integrityCheck()
-
     def _makeTarget(thisExp, outfile, targetOutput):
         """
         Generate the actual scripts for Python and/or JS.
@@ -254,7 +240,6 @@ def compileScript(infile=None, version=None, outfile=None):
     ###### Write script #####
     version = _setVersion(version)
     thisExp = _getExperiment(infile, version)
-    _integrityCheck(thisExp)
     thisExp = _removeDisabledComponents(thisExp)
     targetOutput = _setTarget(outfile)
     _makeTarget(thisExp, outfile, targetOutput)

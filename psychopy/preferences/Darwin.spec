@@ -63,6 +63,8 @@
     debugMode = boolean(default='False')
     # language to use in menus etc; not all translations are available. Select a value, then restart the app.
     locale = string(default='')
+    # Show an error dialog when PsychoPy encounters an unhandled internal error.
+    errorDialog = boolean(default='True')
 
 # Settings for the Coder window
 [coder]
@@ -78,8 +80,14 @@
     codeFontSize = integer(6,24, default=14)
     # Font size (in pts) takes an integer between 6 and 24
     outputFontSize = integer(6,24, default=14)
+    # Spacing between lines
+    lineSpacing = integer(0, 64, default=4)
+    # Long line edge guide, specify zero to disable
+    edgeGuideColumn = integer(0, 65536, default=80)
+    # Color theme to use for syntax highlighting
+    theme = option('psychopy', 'wx', 'github', 'vc6', default='psychopy')
     # activate the source assistant panel
-    showSourceAsst = boolean(default=False)
+    showSourceAsst = boolean(default=True)
     # activate the output and shell panels
     showOutput = boolean(default=True)
     # reload previously opened files after start

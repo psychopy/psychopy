@@ -72,3 +72,28 @@ class WindowFrozen(object):
         # check it hasn't been deleted
         if self.ctrl is not None and self.ctrl.IsFrozen():
             self.ctrl.Thaw()
+
+
+def getSystemFonts(encoding='system', fixedWidthOnly=False):
+    """Get a list of installed system fonts.
+
+    Parameters
+    ----------
+    encoding : str
+        Get fonts with matching encodings.
+    fixedWidthOnly : bool
+        Return on fixed width fonts.
+
+    Returns
+    -------
+    list
+        List of font facenames.
+
+    """
+    fontEnum = wx.FontEnumerator()
+
+    encoding = "FONTENCODING_" + encoding.upper()
+    if hasattr(wx, encoding):
+        encoding = getattr(wx, encoding)
+
+    return fontEnum.GetFacenames(encoding, fixedWidthOnly=fixedWidthOnly)
