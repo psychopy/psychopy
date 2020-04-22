@@ -41,6 +41,6 @@ The table below shows you the current state of play with capabilities of online 
   Synchronize with Pavlovia.org, , 
   Sona Systems, ,
   Mechanical Turk, ,
-  Prolific Academic, ,
+  Prolific, ,
 
 Anything else we should add to the list above?
