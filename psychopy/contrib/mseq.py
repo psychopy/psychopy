@@ -1,4 +1,4 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
 '''
@@ -64,7 +64,7 @@ def _get_tap(baseVal, powerVal):
     """Retrieve pre-defined list of tap sequences for a given base & power, or raise ValueError.
     """
     if not baseVal in [2,3,5,9]:
-        sys.exit('baseVal must be in [2,3,5,9], not %s' % str(baseVal))
+        raise ValueError('baseVal must be in [2,3,5,9], not %s' % str(baseVal))
     tap = []
     if baseVal == 2:
         if powerVal == 2:
