@@ -27,6 +27,7 @@ from psychopy.contrib.lazy_import import lazy_import
 from psychopy import colors
 import math
 from psychopy.clock import monotonicClock
+from psychopy.visual.framebuffer import RenderContext, Framebuffer
 
 # try to find avbin (we'll overload pyglet's load_library tool and then
 # add some paths)
@@ -442,6 +443,23 @@ class Window(object):
         # but that should be done after context is created
         self._haveShaders = self.backend.shadersSupported
 
+        # The current buffer used for drawing. Unless your are doing stereo
+        # or off-screen rendering, you don't need to worry about this value.
+        # This value is updated when `setBuffer` is called.
+        self._buffer = 'back'
+
+        # Device contexts are referenced by name, when `setBuffer` is called,
+        # the corresponding device context is used. These objects are used to
+        # configure rendering to their respective buffers. This allows you to
+        # preserve OpenGL settings when switching between buffers. Names 'back'
+        # and 'front' are reserved for the windows's buffers.
+        self._dc = {
+            'back': RenderContext(
+                self, (0, 0, size[0], size[1]), 'back'),
+            'front': RenderContext(
+                self, (0, 0, size[0], size[1]), 'front')
+        }
+
         self._setupGL()
 
         self.blendMode = self.blendMode
@@ -496,6 +514,23 @@ class Window(object):
         # stereo rendering settings, set later by the user
         self._eyeOffset = 0.0
         self._convergeOffset = 0.0
+
+        # If `useFBO` is `True`, add a device context with name 'main' which is
+        # reserved for it.
+        if self.useFBO:
+            self._dc['main'] = RenderContext(
+                self, (0, 0, self.size[0], self.size[1]), 'main')
+            self._buffer = 'main'  # set the buffer to the FBO
+
+        # Framebuffers needed for off-screen rendering are stored in
+        # `_frameBuffers` here. This includes the framebuffer created when
+        # 'useFBO' is enabled named 'main'. Additional framebuffers show up
+        # here when using a stereo mode or when `useFBO` is enabled with MSAA
+        # is enabled. Values in the dictionary can either be `Framebuffer`
+        # objects or OpenGL ids. Multiple keys can reference the same buffer
+        # allowing for different device contexts to render to different regions
+        # of the buffer.
+        self._frameBuffers = {'back': GL.GL_BACK, 'front': GL.GL_FRONT}
 
         # gamma
         self.bits = None  # this may change in a few lines time!
@@ -1086,6 +1121,8 @@ class Window(object):
                         obj=logEntry['obj'])
         del self._toLog[:]
 
+        self.setBuffer('back')
+
         # keep the system awake (prevent screen-saver or sleep)
         platform_specific.sendStayAwake()
 
@@ -1193,14 +1230,232 @@ class Window(object):
                 win.flip()
 
         """
-        if buffer == 'left':
-            GL.glDrawBuffer(GL.GL_BACK_LEFT)
-        elif buffer == 'right':
-            GL.glDrawBuffer(GL.GL_BACK_RIGHT)
-        else:
+        try:
+            # set the buffer and its context
+            useBuffer = self._frameBuffers[buffer]
+            self._buffer = buffer  # buffer name is valid
+            self._dc[buffer].use()
+        except KeyError:
             raise "Unknown buffer '%s' requested in Window.setBuffer" % buffer
+
+        if isinstance(useBuffer, int):  # built-in GL names i.e. GL_BACK
+            GL.glBindFramebuffer(GL.GL_FRAMEBUFFER, 0)
+            GL.glReadBuffer(useBuffer)
+            GL.glDrawBuffer(useBuffer)
+        else:
+            gltools.bindFBO(useBuffer.fbo, GL.GL_FRAMEBUFFER)
+            GL.glReadBuffer(GL.GL_COLOR_ATTACHMENT0)
+            GL.glDrawBuffer(GL.GL_COLOR_ATTACHMENT0)
+
         if clear:
             self.clearBuffer()
+
+    def createBufferFromRect(self, name, targetBuffer=None, viewport=None):
+        """Create a new buffer from a sub-region of an existing buffer.
+
+        Creates a new buffer that references a region of an existing framebuffer
+        defined by `viewport`. This is useful for "frame packing" where multiple
+        images are packed into a single image buffer.
+
+        Parameters
+        ----------
+        name : str
+            Name to assign for the new buffer.
+        targetBuffer : str or None
+            Name of the existing buffer to reference. If `None`, the current
+            buffer will be used.
+        viewport : array_like or None
+            Rectangle defining the region of the buffer to use (x, y, w, h). If
+            `None`, a rectangle the shape of the current buffer will be used.
+
+        Examples
+        --------
+        Create a buffer which contains `left` and `right` eye views packed
+        side-by-side::
+
+            # create the buffer that holds both images
+            win.createBuffer('fullFrame')
+
+            # create render contexts for the `left` and `right` views
+            leftEyeRect = (0, 0, int(self.size[0] / 2), self.size[1])
+            rightEyeRect = (leftEyeRect[2], 0, leftEyeRect[2], leftEyeRect[3])
+
+            win.createBufferFromRect('left', 'fullFrame', leftEyeRect)
+            win.createBufferFromRect('right', 'fullFrame', rightEyeRect)
+
+            # set the buffer for the right eye
+            win.setBuffer('right')
+            # draw thing to the right eye buffer ...
+
+            # before flipping, copy the buffer to the back buffer (assume they
+            # are the same size)
+            win.setBuffer('fullFrame')
+            win.blitBuffer('back')
+
+        """
+        # ensure we are not overwriting an existing buffer
+        if name in self._dc.keys():
+            raise ValueError('Buffer with key `name` already in use.')
+
+        if targetBuffer is None:
+            targetBuffer = self._frameBuffers[self.buffer]
+        else:
+            try:
+                targetBuffer = self._frameBuffers[targetBuffer]
+            except KeyError:
+                raise KeyError('Name for `targetBuffer` is invalid.')
+
+        if viewport is None:
+            w, h = targetBuffer.size
+            viewport = (0, 0, w, h)
+
+        self._dc[name] = RenderContext(self, viewport, name)
+        self._frameBuffers[name] = targetBuffer  # create new reference
+
+    def createBuffer(self, name, size=None, samples=1):
+        """Create a new image buffer for off-screen rendering.
+
+        Creates a buffer than can be used for off-screen rendering of stimuli as
+        would be done for a window. The buffer's image can then be rendered to
+        the another buffer (eg. the back buffer to be displayed) or accessed as
+        a 2D texture in video memory for use elsewhere. You can set and use the
+        buffer for drawing by calling `setBuffer`.
+
+        A corresponding `RenderContext` is automatically created for the buffer
+        which can be configured afterwards.
+
+        Parameters
+        ----------
+        name : str
+            Name of buffer to create. Used for selecting the buffer when calling
+            `setBuffer`.
+        size : array_like
+            Width and height of the buffer (w, h). If `None`, the buffer will
+            have the same size as the window's back buffer.
+        samples : int
+            Number of samples for multi-sampling. Buffer will have image storage
+            for multi-sampling if >1. Note that multi-sample buffer needs to be
+            resolved by blitting onto a regular buffer to be used.
+
+        Notes
+        -----
+            * This functionality requires support for OpenGL 2.1+ in your
+              graphics driver.
+
+        """
+        # ensure we are not overwriting an existing buffer
+        if name in self._frameBuffers.keys() or name in self._dc.keys():
+            raise ValueError('Buffer with key `name` already in use.')
+
+        size = self.size if size is None else size
+        rect = (0, 0, self.size[0], self.size[1])
+        self._frameBuffers[name] = Framebuffer(self, name, size, samples)
+        self._dc[name] = RenderContext(self, rect, name)
+
+    def deleteBuffer(self, name):
+        """Delete a buffer.
+
+        Frees resources related for a buffer and makes the name available for
+        a new buffer.
+
+        Parameters
+        ----------
+        name : str
+            Name of the buffer to delete.
+
+        """
+        pass
+
+    def blitBuffer(self, dstName, pos=(0, 0), ori=0.0, scale=1.0, warp=None,
+                   colorAttachment=0, shaderProg='fragFBOtoFrame',
+                   switchToDst=False):
+        """Blit a buffer's color data into another buffer using a mesh.
+        Similar to `copyBuffer`, but allows for image blending, transformations,
+        and warping.
+
+        """
+        pass
+
+    def copyBuffer(self, dstName, srcRect=None, dstRect=None, filtering='linear',
+                   color=True, depth=False, stencil=False, switchToDst=False):
+        """Copy pixel data of the current buffer to another.
+
+        Parameters
+        ----------
+        dstName : str
+            Name of the buffer to copy to.
+        srcRect, dstRect : array_like
+            Source and destination rectangles in pixels (x, y, w, h).
+        filtering : str
+            Filtering mode to use, value can either be 'linear' or 'nearest'.
+            Using 'linear' will apply interpolation if `srcRect` and `dstRect`
+            have different sizes.
+        color, depth, stencil : bool
+            Data to copy. By default only color data is copied.
+        switchToDst : bool
+            Change the buffer to the destination buffer after completing the
+            copy. Same as calling `setBuffer(dstName)` after calling this
+            function. Default is `False`.
+
+        """
+        # get handles to the framebuffer
+        srcFBO = self._frameBuffers[self._buffer]
+        dstFBO = self._frameBuffers[dstName]
+
+        # if `srcRect` not given, use the device context viewport
+        srcRect = srcRect if srcRect is not None else self._dc[self._buffer].viewport
+
+        # use `srcRect` if `dstRect` is not specified
+        dstRect = dstRect if dstRect is not None else srcRect
+
+        # get the read buffer
+        if not isinstance(srcFBO, Framebuffer):
+            GL.glBindFramebuffer(GL.GL_READ_FRAMEBUFFER, 0)
+            GL.glReadBuffer(srcFBO)
+        else:
+            srcFBO.bind('read')
+
+        # get the draw buffer
+        if not isinstance(dstFBO, Framebuffer):
+            GL.glBindFramebuffer(GL.GL_DRAW_FRAMEBUFFER, 0)
+            GL.glDrawBuffer(dstFBO)
+        else:
+            dstFBO.bind('draw')
+
+        if filtering == 'linear':
+            useFilter = GL.GL_LINEAR
+        elif filtering == 'nearest':
+            useFilter = GL.GL_NEAREST
+        else:
+            raise ValueError(
+                'Value for `filtering` must be either `linear` or `nearest`.')
+
+        bufferBits = GL.GL_NONE
+        if color:
+            bufferBits |= GL.GL_COLOR_BUFFER_BIT
+        if depth:
+            bufferBits |= GL.GL_DEPTH_BUFFER_BIT
+        if stencil:
+            bufferBits |= GL.GL_STENCIL_BUFFER_BIT
+
+        GL.glBlitFramebuffer(srcRect[0], srcRect[1], srcRect[2], srcRect[3],
+                             dstRect[0], dstRect[1], dstRect[2], dstRect[3],
+                             GL.GL_COLOR_BUFFER_BIT, useFilter)
+
+        if not isinstance(srcFBO, Framebuffer):
+            GL.glReadBuffer(srcFBO)
+            GL.glDrawBuffer(srcFBO)
+        else:
+            srcFBO.bind('readDraw')
+
+        # # switch the buffer
+        # if not switchToDst:
+        #     if not isinstance(srcFBO, Framebuffer):
+        #         GL.glDrawBuffer(srcFBO)
+        #     else:
+        #         srcFBO.bind('read')
+        # else:
+        #     self._buffer = dstName
 
     def clearBuffer(self, color=True, depth=False, stencil=False):
         """Clear the present buffer (to which you are currently drawing) without
@@ -1252,7 +1507,7 @@ class Window(object):
         # report clientSize until we get framebuffer size from
         # the backend, needs to be done properly in the future
         if self.backend is not None:
-            return self.viewport[2:]
+            return self._dc[self.buffer].size
         else:
             return self.clientSize
 
@@ -1265,7 +1520,99 @@ class Window(object):
     @property
     def aspect(self):
         """Aspect ratio of the current viewport (width / height)."""
-        return self._viewport[2] / float(self._viewport[3])
+        return self._dc[self._buffer].aspect
+
+    @property
+    def buffer(self):
+        return self._buffer
+
+    @buffer.setter
+    def buffer(self, value):
+        if value is not None:
+            self.setBuffer(value)
+
+        self._buffer = value
+
+    def setStereoMode(self, mode):
+        """Change the stereo mode for this window.
+
+        Parameters
+        ----------
+        mode : str
+            Stereo mode to set, valid values are `span`, `wheatstone`, `fuse`
+            or `quad`.
+
+        """
+        self.stereo = mode
+        self._setupStereo()
+
+    def _finalizeBuffers(self):
+        """Finalize buffers for presentation."""
+        pass
+
+    def _setupStereo(self):
+        """Setup the window for stereo rendering.
+
+        Applies the appropriate configuration needed for the specified stereo
+        mode, including creating appropriate device contexts and additional 
+        framebuffers.
+
+        """
+        # convert the flag if bool to 'quad'
+        if self.stereo is True:
+            self.stereo = 'quad'
+
+        # check if the mode specified was valid
+        if self.stereo not in ('span', 'wheatstone', 'fuse', 'quad'):
+            raise ValueError('Invalid value for `stereo` specified.')
+
+        # apply the configuration for the specified stereo mode
+        if self.stereo == 'span':
+            # Side-by-side with aspect ratio preserved, this mode is used for
+            # presenting using 'extended desktop' mode across independent
+            # displays. Displays are assumed to be matched.
+            leftEyeRect = (0, 0, int(self.size[0] / 2), self.size[1])
+            rightEyeRect = (leftEyeRect[2], 0, leftEyeRect[2], leftEyeRect[3])
+            self._dc['left'] = RenderContext(self, leftEyeRect, 'left')
+            self._dc['right'] = RenderContext(self, rightEyeRect, 'right')
+            self._frameBuffers['left'] = GL.GL_BACK
+            self._frameBuffers['right'] = GL.GL_BACK
+
+        elif self.stereo == 'wheatstone':
+            # Like 'span', but buffers are mirrored horizontally before being
+            # rendered. This is intended to be used with Wheatstone-style
+            # stereoscopes which images are viewed through mirrors.
+            leftEyeRect = (0, 0, int(self.size[0] / 2), self.size[1])
+            rightEyeRect = (leftEyeRect[2], 0, leftEyeRect[2], leftEyeRect[3])
+            self._dc['left'] = RenderContext(self, leftEyeRect, 'left')
+            self._dc['right'] = RenderContext(self, rightEyeRect, 'right')
+            self._frameBuffers['left'] = GL.GL_BACK
+            self._frameBuffers['right'] = GL.GL_BACK
+
+        elif self.stereo == 'fuse':
+            # Side-by-side with aspect ratio preserved like 'span', but allows
+            # for crossed eye free-fusion by reversing the images
+            w = int(self.size[0] / 2)
+            leftEyeRect = (w, 0, w, self.size[1])
+            rightEyeRect = (0, 0, leftEyeRect[2], leftEyeRect[3])
+            self._dc['left'] = RenderContext(self, leftEyeRect, 'left')
+            self._dc['right'] = RenderContext(self, rightEyeRect, 'right')
+            self._frameBuffers['left'] = GL.GL_BACK
+            self._frameBuffers['right'] = GL.GL_BACK
+
+        elif self.stereo == 'quad' or self.stereo is True:
+            # Quad-buffered stereo used by supported hardware and operating
+            # systems. To maintain legacy support, if `stereo=True`, this will
+            # be enabled.
+            rect = (0, 0, self.size[0], self.size[1])
+            self._dc['left'] = RenderContext(self, rect, 'left')
+            self._dc['right'] = RenderContext(self, rect, 'right')
+            self._frameBuffers['left'] = GL.GL_BACK_LEFT
+            self._frameBuffers['right'] = GL.GL_BACK_RIGHT
+
+        elif self.stereo == 'libovr':
+            # Stereo rendering to the Oculus Rift HMD using PsychXR.
+            pass
 
     @property
     def ambientLight(self):
@@ -1498,12 +1845,11 @@ class Window(object):
             win.viewport = win.scissor = [x, y, w, h]
 
         """
-        return self._viewport
+        return self._dc[self.buffer].viewport
 
     @viewport.setter
     def viewport(self, value):
-        self._viewport = numpy.array(value, numpy.int)
-        GL.glViewport(*self._viewport)
+        self._dc[self.buffer].viewport = numpy.array(value, numpy.int)
 
     @property
     def scissor(self):
@@ -1523,12 +1869,11 @@ class Window(object):
         not changing the positions of stimuli.
 
         """
-        return self._scissor
+        return self._dc[self.buffer].scissor
 
     @scissor.setter
     def scissor(self, value):
-        self._scissor = numpy.array(value, numpy.int)
-        GL.glScissor(*self._scissor)
+        self._dc[self.buffer].scissor = numpy.array(value, numpy.int)
 
     @property
     def scissorTest(self):
@@ -1583,22 +1928,22 @@ class Window(object):
     @property
     def projectionMatrix(self):
         """Projection matrix defined as a 4x4 numpy array."""
-        return self._projectionMatrix
+        return self._dc[self._buffer]._projectionMatrix
 
     @projectionMatrix.setter
     def projectionMatrix(self, value):
-        self._projectionMatrix = numpy.asarray(value, numpy.float32)
-        assert self._projectionMatrix.shape == (4, 4)
+        self._dc[self._buffer]._projectionMatrix = numpy.asarray(value, numpy.float32)
+        assert self._dc[self._buffer]._projectionMatrix.shape == (4, 4)
 
     @property
     def viewMatrix(self):
         """View matrix defined as a 4x4 numpy array."""
-        return self._viewMatrix
+        return self._dc[self._buffer]._viewMatrix
 
     @viewMatrix.setter
     def viewMatrix(self, value):
-        self._viewMatrix = numpy.asarray(value, numpy.float32)
-        assert self._viewMatrix.shape == (4, 4)
+        self._dc[self._buffer]._viewMatrix = numpy.asarray(value, numpy.float32)
+        assert self._dc[self._buffer]._viewMatrix.shape == (4, 4)
 
     @property
     def eyeOffset(self):
@@ -2605,8 +2950,8 @@ class Window(object):
         GL.glClearDepth(1.0)
 
         # viewport or drawable area of the framebuffer
-        self.viewport = self.scissor = \
-            (0, 0, self.frameBufferSize[0], self.frameBufferSize[1])
+        # self.viewport = self.scissor = \
+        #     (0, 0, self.frameBufferSize[0], self.frameBufferSize[1])
         self.scissorTest = True
         self.stencilTest = False
 
