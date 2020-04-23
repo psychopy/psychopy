@@ -1123,19 +1123,35 @@ def getAbsTimeGPU():
 #
 # The functions below simplify the creation and management of Framebuffer
 # Objects (FBOs). FBO are containers for image buffers (textures or
-# renderbuffers) frequently used for off-screen rendering.
+# renderbuffers) used for off-screen rendering.
 #
 
-# FBO descriptor
-Framebuffer = namedtuple(
-    'Framebuffer',
-    ['id',
-     'target',
-     'userData']
-)
+class Framebuffer(object):
+    """Descriptor for an OpenGL framebuffer object (FBO). This object is usually
+    created using the `createFBO` function.
+
+    Descriptors of objects which contain information about some object in an
+    OpenGL context. Note that a descriptor's fields may not be contemporaneous
+    with the actual configuration of the referenced OpenGL object.
+
+    """
+    __slots__ = ['name', 'target', 'attachments', 'sRGB', '_isBound', 'userData']
+
+    def __init__(self, name=0, target=GL.GL_FRAMEBUFFER, sRGB=False, userData=None):
+        self.name = name
+        self.target = target
+        self.attachments = dict()
+        self.sRGB = sRGB
+        self.userData = dict() if userData is None else userData
+        self._isBound = False
+
+    def isBound(self):
+        """`True` if the framebuffer was previously bound using the `bindFBO`
+        function."""
+        return self._isBound
 
 
-def createFBO(attachments=()):
+def createFBO(attachments=None, sRGB=False):
     """Create a Framebuffer Object.
 
     Parameters
@@ -1173,16 +1189,19 @@ def createFBO(attachments=()):
 
     Create a render target with multiple color texture attachments::
 
-        colorTex = createTexImage2D(1024,1024)  # empty texture
-        depthRb = createRenderbuffer(800,600,internalFormat=GL.GL_DEPTH24_STENCIL8)
+        colorTex = createTexImage2D(1024, 1024)  # empty texture
+        depthRb = createRenderbuffer(800, 600,
+            internalFormat=GL.GL_DEPTH24_STENCIL8)
 
         # attach images
-        GL.glBindFramebuffer(GL.GL_FRAMEBUFFER, fbo.id)
+        GL.glBindFramebuffer(fbo.target, fbo.name)
+        # or bindFBO(fbo)
         attach(GL.GL_COLOR_ATTACHMENT0, colorTex)
         attach(GL.GL_DEPTH_ATTACHMENT, depthRb)
         attach(GL.GL_STENCIL_ATTACHMENT, depthRb)
         # or attach(GL.GL_DEPTH_STENCIL_ATTACHMENT, depthRb)
-        GL.glBindFramebuffer(GL.GL_FRAMEBUFFER, 0)
+        GL.glBindFramebuffer(fbo.target, 0)
+        # or unbindFBO(fbo)
 
         # above is the same as
         with useFBO(fbo):
@@ -1190,7 +1209,7 @@ def createFBO(attachments=()):
             attach(GL.GL_DEPTH_ATTACHMENT, depthRb)
             attach(GL.GL_STENCIL_ATTACHMENT, depthRb)
 
-    Examples of userData some custom function might access::
+    Examples of `userData` some custom function might access::
 
         fbo.userData['flags'] = ['left_eye', 'clear_before_use']
 
@@ -1202,30 +1221,31 @@ def createFBO(attachments=()):
         fbo = createFBO([(GL.GL_DEPTH_ATTACHMENT, depthTex)])  # is valid
 
         # discard FBO descriptor, just give me the ID
-        frameBuffer = createFBO().id
+        frameBuffer = createFBO().name
 
     """
     fboId = GL.GLuint()
     GL.glGenFramebuffers(1, ctypes.byref(fboId))
 
     # create a framebuffer descriptor
-    fboDesc = Framebuffer(fboId, GL.GL_FRAMEBUFFER, dict())
+    fboDesc = Framebuffer(fboId, GL.GL_FRAMEBUFFER, sRGB, dict())
 
     # initial attachments for this framebuffer
-    if attachments:
+    if attachments is not None:
         with useFBO(fboDesc):
-            for attachPoint, imageBuffer in attachments:
-                attach(attachPoint, imageBuffer)
+            for attachPoint, imageBuffer in attachments.items():
+                attach(fboDesc, attachPoint, imageBuffer)
 
     return fboDesc
 
 
-def attach(attachPoint, imageBuffer):
-    """Attach an image to a specified attachment point on the presently bound
-    FBO.
+def attach(fbo, attachPoint, imageBuffer):
+    """Attach an image to a specified attachment point of `fbo`.
 
     Parameters
     ----------
+    fbo : Framebuffer
+        Framebuffer to attach the image buffer to.
     attachPoint :obj:`int`
         Attachment point for 'imageBuffer' (e.g. GL.GL_COLOR_ATTACHMENT0).
     imageBuffer : :obj:`TexImage2D` or :obj:`Renderbuffer`
@@ -1254,17 +1274,54 @@ def attach(attachPoint, imageBuffer):
             GL.GL_FRAMEBUFFER,
             attachPoint,
             imageBuffer.target,
-            imageBuffer.id, 0)
+            imageBuffer.name, 0)
     elif isinstance(imageBuffer, Renderbuffer):
         GL.glFramebufferRenderbuffer(
             GL.GL_FRAMEBUFFER,
             attachPoint,
             imageBuffer.target,
-            imageBuffer.id)
+            imageBuffer.name)
+
+    # keep a reference to the attachment in the FBo object
+    fbo.attachments[attachPoint] = imageBuffer
 
 
-def isComplete():
-    """Check if the currently bound framebuffer is complete.
+def detach(fbo, attachPoint):
+    """Detach an image buffer from a given FBO attachment point.
+
+    Parameters
+    ----------
+    fbo : Framebuffer
+        Framebuffer to detach an attachment from.
+    attachPoint :obj:`int`
+        Attachment point to free (e.g. GL_COLOR_ATTACHMENT0).
+
+    """
+    # get the object representing the attachment at the attachment point
+    try:
+        imageBuffer = fbo.attachments[attachPoint]
+    except KeyError:  # the framebuffer does not have the attachment
+        return
+
+    # depending on the type of attachment, set it to zero to clear it
+    if isinstance(imageBuffer, (TexImage2D, TexImage2DMultisample)):
+        GL.glFramebufferTexture2D(
+            GL.GL_FRAMEBUFFER,
+            attachPoint,
+            imageBuffer.target,
+            0, 0)
+    elif isinstance(imageBuffer, Renderbuffer):
+        GL.glFramebufferRenderbuffer(
+            GL.GL_FRAMEBUFFER,
+            attachPoint,
+            imageBuffer.target, 0)
+
+    # remove the reference to the attachment
+    del fbo.attachments[attachPoint]
+
+
+def isComplete(target=GL.GL_FRAMEBUFFER):
+    """Check if the currently bound framebuffer at `target` is complete.
 
     Returns
     -------
@@ -1272,16 +1329,16 @@ def isComplete():
         `True` if the presently bound FBO is complete.
 
     """
-    return GL.glCheckFramebufferStatus(GL.GL_FRAMEBUFFER) == \
-           GL.GL_FRAMEBUFFER_COMPLETE
+    return GL.glCheckFramebufferStatus(target) == GL.GL_FRAMEBUFFER_COMPLETE
 
 
 def deleteFBO(fbo):
-    """Delete a framebuffer.
+    """Delete a framebuffer. Deletes a framebuffer associated with the given
+    descriptor.
 
     """
     GL.glDeleteFramebuffers(
-        1, fbo.id if isinstance(fbo, Framebuffer) else int(fbo))
+        1, fbo.name if isinstance(fbo, Framebuffer) else int(fbo))
 
 
 def blitFBO(srcRect, dstRect=None, filter=GL.GL_LINEAR):
@@ -1326,15 +1383,10 @@ def blitFBO(srcRect, dstRect=None, filter=GL.GL_LINEAR):
     if dstRect is None:
         dstRect = srcRect
 
-    # GL.glViewport(*dstRect)
-    # GL.glEnable(GL.GL_SCISSOR_TEST)
-    # GL.glScissor(*dstRect)
     GL.glBlitFramebuffer(srcRect[0], srcRect[1], srcRect[2], srcRect[3],
                          dstRect[0], dstRect[1], dstRect[2], dstRect[3],
                          GL.GL_COLOR_BUFFER_BIT,  # colors only for now
                          filter)
-
-    # GL.glDisable(GL.GL_SCISSOR_TEST)
 
 
 @contextmanager
@@ -1376,12 +1428,47 @@ def useFBO(fbo):
     """
     prevFBO = GL.GLint()
     GL.glGetIntegerv(GL.GL_FRAMEBUFFER_BINDING, ctypes.byref(prevFBO))
-    toBind = fbo.id if isinstance(fbo, Framebuffer) else int(fbo)
+    toBind = fbo.name if isinstance(fbo, Framebuffer) else int(fbo)
     GL.glBindFramebuffer(GL.GL_FRAMEBUFFER, toBind)
     try:
         yield toBind
     finally:
         GL.glBindFramebuffer(GL.GL_FRAMEBUFFER, prevFBO.value)
+
+
+def bindFBO(fbo, target=None):
+    """Bind the framebuffer object.
+
+    Parameters
+    ----------
+    fbo : Framebuffer or None
+        Framebuffer object to bind.
+    target : GLenum or None
+        Target to bind the FBO to, will update the target field of the `fbo`
+        instance. Values may be `GL_FRAMEBUFFER`, `GL_DRAW_FRAMEBUFFER` or
+        `GL_READ_FRAMEBUFFER`. If `None`, the `fbo` object's `target` property
+        will be used and remain unchanged.
+
+    """
+    fboId = 0
+    if isinstance(fbo, Framebuffer):
+        fboId = fbo.name
+        if target is not None:
+            fbo.target = target
+
+    GL.glBindFramebuffer(target, fboId)
+
+    # enable sRGB mode if required
+    if fbo.sRGB:
+        GL.glEnable(GL.GL_FRAMEBUFFER_SRGB)
+
+
+def unbindFBO(fbo):
+    """Unbind a previously bound `Framebuffer` object, setting it's target to
+    the default framebuffer."""
+    GL.glBindFramebuffer(fbo.target, 0)
+    if fbo.sRGB:
+        GL.glDisable(GL.GL_FRAMEBUFFER_SRGB)
 
 
 # ------------------------------
@@ -1393,17 +1480,43 @@ def useFBO(fbo):
 #
 
 # Renderbuffer descriptor type
-Renderbuffer = namedtuple(
-    'Renderbuffer',
-    ['id',
-     'target',
-     'width',
-     'height',
-     'internalFormat',
-     'samples',
-     'multiSample',  # boolean, check if a texture is multisample
-     'userData']  # dictionary for user defined data
-)
+# Renderbuffer = namedtuple(
+#     'Renderbuffer',
+#     ['id',
+#      'target',
+#      'width',
+#      'height',
+#      'internalFormat',
+#      'samples',
+#      'multiSample',  # boolean, check if a texture is multisample
+#      'userData']  # dictionary for user defined data
+# )
+
+
+class Renderbuffer(object):
+    """Descriptor representing an OpenGL render buffer object. These objects are
+    usually generated by calling `createRenderbuffer`
+    """
+    __slots__ = [
+        'name',
+        'target',
+        'width',
+        'height',
+        'internalFormat',
+        'samples',
+        'multiSample',  # boolean, check if a texture is multisample
+        'userData']  # dictionary for user defined data
+
+    def __init__(self, name, target, width, height, internalFormat, samples,
+                 userData=None):
+        self.name = name
+        self.target = target  # should be GL_RENDERBUFFER
+        self.width = width
+        self.height = height
+        self.internalFormat = internalFormat
+        self.samples = samples
+        self.multiSample = self.samples > 1
+        self.userData = userData if userData is not None else dict()
 
 
 def createRenderbuffer(width, height, internalFormat=GL.GL_RGBA8, samples=1):
@@ -1478,7 +1591,6 @@ def createRenderbuffer(width, height, internalFormat=GL.GL_RGBA8, samples=1):
                         height,
                         internalFormat,
                         samples,
-                        samples > 1,
                         dict())
 
 
