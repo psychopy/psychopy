@@ -131,8 +131,6 @@ class NullWarp(BaseWarp):
         be set to the current buffer and the draw buffer to the target buffer.
         After this function returns, the draw buffer should contain the warped
         texture."""
-        # no-op if not a framebuffer object
-        #GL.glPolygonMode(GL.GL_FRONT_AND_BACK, GL.GL_LINE)
         gltools.drawVAO(self._vao, GL.GL_TRIANGLE_STRIP)
 
     def _prepareFBOrender(self):

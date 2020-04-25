@@ -1254,6 +1254,8 @@ class Window(object):
         if clear:
             self.clearBuffer()
 
+        GL.glDisable(GL.GL_TEXTURE_2D)
+
     def createBufferFromRect(self, name, targetBuffer=None, viewport=None):
         """Create a new buffer from a sub-region of an existing buffer.
 
@@ -1389,35 +1391,26 @@ class Window(object):
 
         GL.glDisable(GL.GL_BLEND)
 
-        #GL.glViewport(0, 0, 800, 600)
-        #GL.glScissor(0, 0, 800, 600)
+        GL.glViewport(0, 0, 800, 600)
+        GL.glScissor(0, 0, 800, 600)
 
         texId = self.frameTexture.name
 
-        # set the texture to the framebuffer texture attachment
         self.setBuffer(dstName, clear=False)
+
+        warp._prepareFBOrender()
+
+        # set the texture to the framebuffer texture attachment
 
         GL.glEnable(GL.GL_TEXTURE_2D)
         GL.glActiveTexture(GL.GL_TEXTURE0)
         GL.glBindTexture(GL.GL_TEXTURE_2D, texId)
 
-        GL.glTexEnvf(GL.GL_TEXTURE_ENV, GL.GL_TEXTURE_ENV_MODE, GL.GL_DECAL)
-
         GL.glColor4f(1.0, 1.0, 1.0, 1.0)  # glColor multiplies with texture
         GL.glColorMask(True, True, True, True)
 
-        warp._prepareFBOrender()
-
-        GL.glBegin(GL.GL_QUADS)
-        GL.glTexCoord2f(0.0, 0.0)
-        GL.glVertex2f(-1.0, -1.0)
-        GL.glTexCoord2f(0.0, 1.0)
-        GL.glVertex2f(-1.0, 1.0)
-        GL.glTexCoord2f(1.0, 1.0)
-        GL.glVertex2f(1.0, 1.0)
-        GL.glTexCoord2f(1.0, 0.0)
-        GL.glVertex2f(1.0, -1.0)
-        GL.glEnd()
+        GL.glPolygonMode(GL.GL_FRONT_AND_BACK, GL.GL_LINE)
+        warp._renderFBO()
 
         GL.glBindTexture(GL.GL_TEXTURE_2D, 0)
         GL.glDisable(GL.GL_TEXTURE_2D)
