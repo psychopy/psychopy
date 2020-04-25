@@ -28,6 +28,7 @@ from psychopy import colors, event
 import math
 from psychopy.clock import monotonicClock
 from psychopy.visual.framebuffer import RenderContext, Framebuffer
+from psychopy.visual.warp import NullWarp
 
 # try to find avbin (we'll overload pyglet's load_library tool and then
 # add some paths)
@@ -780,15 +781,7 @@ class Window(object):
             return
 
         # if we are using an FBO, bind it
-        if hasattr(self, 'frameBuffer'):
-            GL.glBindFramebufferEXT(GL.GL_FRAMEBUFFER_EXT,
-                                    self.frameBuffer)
-            GL.glReadBuffer(GL.GL_COLOR_ATTACHMENT0_EXT)
-            GL.glDrawBuffer(GL.GL_COLOR_ATTACHMENT0_EXT)
-
-            # NB - check if we need these
-            GL.glActiveTexture(GL.GL_TEXTURE0)
-            GL.glBindTexture(GL.GL_TEXTURE_2D, 0)
+        self.setBuffer(self._buffer, clear=False)
 
         # set these to match the current window or buffer's settings
         fbw, fbh = self.frameBufferSize
@@ -1275,6 +1268,17 @@ class Window(object):
             self.flip(clearBuffer=False)
         self.flip(clearBuffer=clearBuffer)
 
+    @property
+    def frameTexture(self):
+        """Current buffer's texture attachment. Only valid when the buffer is
+        an off-screen window. If not, this will give `None`.
+        """
+        buffer = self._frameBuffers[self._buffer]
+        if not isinstance(buffer, Framebuffer):
+            return None
+
+        return buffer.fbo.attachments[GL.GL_COLOR_ATTACHMENT0]
+
 
 
     def setBuffer(self, buffer, clear=True):
@@ -1452,7 +1456,55 @@ class Window(object):
         and warping.
 
         """
-        pass
+        warp = warp if warp is not None else NullWarp(self)
+
+        # clear the projection and modelview matrix for FBO blit
+        GL.glMatrixMode(GL.GL_PROJECTION)
+        GL.glLoadIdentity()
+        GL.glOrtho(-1, 1, -1, 1, -1, 1)
+        GL.glMatrixMode(GL.GL_MODELVIEW)
+        GL.glLoadIdentity()
+
+        GL.glDisable(GL.GL_BLEND)
+
+        #GL.glViewport(0, 0, 800, 600)
+        #GL.glScissor(0, 0, 800, 600)
+
+        texId = self.frameTexture.name
+
+        # set the texture to the framebuffer texture attachment
+        self.setBuffer(dstName, clear=False)
+
+        GL.glEnable(GL.GL_TEXTURE_2D)
+        GL.glActiveTexture(GL.GL_TEXTURE0)
+        GL.glBindTexture(GL.GL_TEXTURE_2D, texId)
+
+        GL.glTexEnvf(GL.GL_TEXTURE_ENV, GL.GL_TEXTURE_ENV_MODE, GL.GL_DECAL)
+
+        GL.glColor4f(1.0, 1.0, 1.0, 1.0)  # glColor multiplies with texture
+        GL.glColorMask(True, True, True, True)
+
+        warp._prepareFBOrender()
+
+        GL.glBegin(GL.GL_QUADS)
+        GL.glTexCoord2f(0.0, 0.0)
+        GL.glVertex2f(-1.0, -1.0)
+        GL.glTexCoord2f(0.0, 1.0)
+        GL.glVertex2f(-1.0, 1.0)
+        GL.glTexCoord2f(1.0, 1.0)
+        GL.glVertex2f(1.0, 1.0)
+        GL.glTexCoord2f(1.0, 0.0)
+        GL.glVertex2f(1.0, -1.0)
+        GL.glEnd()
+
+        GL.glBindTexture(GL.GL_TEXTURE_2D, 0)
+        GL.glDisable(GL.GL_TEXTURE_2D)
+        GL.glEnable(GL.GL_BLEND)
+        GL.glPolygonMode(GL.GL_FRONT_AND_BACK, GL.GL_FILL)
+
+        warp._finishFBOrender()
+        warp._afterFBOrender()
+
 
     def copyBuffer(self, dstName, srcRect=None, dstRect=None, filtering='linear',
                    color=True, depth=False, stencil=False, switchToDst=False):
@@ -1535,7 +1587,7 @@ class Window(object):
         # else:
         #     self._buffer = dstName
 
-    def clearBuffer(self, color=True, depth=False, stencil=False):
+    def clearBuffer(self, color=True, depth=True, stencil=True):
         """Clear the present buffer (to which you are currently drawing) without
         flipping the window.
 

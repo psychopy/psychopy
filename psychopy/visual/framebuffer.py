@@ -19,17 +19,16 @@ import psychopy.tools.gltools as gltools
 import psychopy.tools.viewtools as viewtools
 import numpy as np
 
-
+# OpenGL constants mapped to strings, needed to avoid having users to define
+# these in their scripts.
 depthFuncs = {'never': GL.GL_NEVER, 'less': GL.GL_LESS,
               'equal': GL.GL_EQUAL, 'lequal': GL.GL_LEQUAL,
               'greater': GL.GL_GREATER, 'notequal': GL.GL_NOTEQUAL,
               'gequal': GL.GL_GEQUAL, 'always': GL.GL_ALWAYS}
-
 cullFaceMode = {'back': GL.GL_BACK,
                 'front': GL.GL_FRONT,
                 'both': GL.GL_FRONT_AND_BACK,
                 'frontBack': GL.GL_FRONT_AND_BACK}
-
 frontFace = {'ccw': GL.GL_CCW, 'cw': GL.GL_CW}
 
 
@@ -39,16 +38,20 @@ class Framebuffer(object):
 
     A render surface references a framebuffer with attachments for color, depth,
     and stencil data. When bound, OpenGL draw operations will be diverted to
-    the buffers associated with this object. Usually, `RenderSurface` is used
-    internally by the `Window` class for creating images to be presented.
-    However, you can also use a `RenderSurface` for general purpose off-screen
-    rendering to textures and use them elsewhere.
+    the buffers associated with this object. Usually, `Framebuffer` is used
+    internally by the `Window` class for creating images to be presented. Users
+    usually would create additional buffers by calling `createBuffer()` instead
+    of directly instancing `Framebuffer` objects. A `RenderContext` should be
+    created alongside a `Framebuffer` and activated after binding.
 
-    Multi-sample anti-aliasing (MSAA) is supported with `RenderSurface`, however
-    you must call `finalize` before using color image data.
+    Multi-sample anti-aliasing (MSAA) is supported with `Framebuffer` by
+    setting `samples` >1. This will automatically create a buffer with
+    multi-sample storage, however multi-sample `Framebuffers` will use a
+    render buffer attachment instead of a texture for color data. This will
+    require blitting the buffer to a regular framebuffer prior to warping.
 
     """
-    def __init__(self, win, name, size=None, samples=1):
+    def __init__(self, win, name, size=None, samples=1, warper=None):
         self._win = win
         self._name = name
         self._size = np.array(win.size if size is None else size, dtype=int)
@@ -69,9 +72,12 @@ class Framebuffer(object):
         # multisample framebuffer if needed
         self.fboMSAA = None
 
+        # warping object which describes how this object should be drawn
+        self._warper = warper
+
     @property
     def size(self):
-        return self._size  # read-only
+        return self._size  # read-only, changed only by setting `viewport`
 
     def isMultisample(self):
         """`True` if this is a multisample buffer."""
@@ -97,6 +103,22 @@ class Framebuffer(object):
             raise ValueError("Invalid option for `mode` in call `bind()`.")
 
         gltools.bindFBO(self.fbo, target)
+
+    @property
+    def warper(self):
+        """Warping object for this framebuffer. This will be used for warping
+        when rendering the framebuffer to an output buffer. You cannot specify
+        a warper for multi-sample framebuffers.
+        """
+        return self._warper
+
+    @warper.setter
+    def warper(self, value):
+        if not self.isMultisample():
+            self._warper = value
+        else:
+            raise RuntimeError(
+                "Cannot assign a warper to multi-sample framebuffers.")
 
 
 class RenderContext(object):
@@ -143,7 +165,7 @@ class RenderContext(object):
             self._depthMask = self._cullFace = False
         self._depthFunc = 'less'
         self._cullFaceMode = 'back'
-        self._frontFace = 'ccw'
+        self._frontFace = 'cw'
 
         # Keep track of the shader program used the last time transforms were
         # called. Uniform locations are cached until this changes.
