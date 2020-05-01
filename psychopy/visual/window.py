@@ -608,6 +608,8 @@ class Window(object):
 
         atexit.register(close_on_exit)
 
+        self.setBuffer('back')
+
     def __del__(self):
         if self._closed is False:
             self.close()
@@ -1020,17 +1022,18 @@ class Window(object):
 
         self.backend.swapBuffers(flipThisFrame)
 
-        if self.useFBO and flipThisFrame:
-            # set rendering back to the framebuffer object
-            GL.glBindFramebufferEXT(
-                GL.GL_FRAMEBUFFER_EXT, self.frameBuffer)
-            GL.glReadBuffer(GL.GL_COLOR_ATTACHMENT0_EXT)
-            GL.glDrawBuffer(GL.GL_COLOR_ATTACHMENT0_EXT)
-            # set to no active rendering texture
-            GL.glActiveTexture(GL.GL_TEXTURE0)
-            GL.glBindTexture(GL.GL_TEXTURE_2D, 0)
-            if stencilOn:
-                self.stencilTest = True
+        # if self.useFBO and flipThisFrame:
+        #     # set rendering back to the framebuffer object
+        #     # GL.glBindFramebufferEXT(
+        #     #     GL.GL_FRAMEBUFFER_EXT, self.frameBuffer)
+        #     # GL.glReadBuffer(GL.GL_COLOR_ATTACHMENT0_EXT)
+        #     # GL.glDrawBuffer(GL.GL_COLOR_ATTACHMENT0_EXT)
+        #     # # set to no active rendering texture
+        #     # GL.glActiveTexture(GL.GL_TEXTURE0)
+        #     # GL.glBindTexture(GL.GL_TEXTURE_2D, 0)
+        #     if stencilOn:
+        #         self.stencilTest = True
+        #self.setBuffer('back')
 
         # rescale, reposition, & rotate
         GL.glMatrixMode(GL.GL_MODELVIEW)
@@ -1204,19 +1207,12 @@ class Window(object):
         return buffer.fbo.attachments[GL.GL_COLOR_ATTACHMENT0]
 
     def setBuffer(self, buffer, clear=True):
-        """Choose which buffer to draw to ('left' or 'right').
-
-        Requires the Window to be initialised with stereo=True and requires a
-        graphics card that supports quad buffering (e,g nVidia Quadro series)
-
-        PsychoPy always draws to the back buffers, so 'left' will use
-        ``GL_BACK_LEFT`` This then needs to be flipped once both eye's buffers
-        have been rendered.
+        """Choose which buffer to draw to.
 
         Parameters
         ----------
         buffer : str
-            Buffer to draw to. Can either be 'left' or 'right'.
+            Name of buffer to draw to.
         clear : bool, optional
             Clear the buffer before drawing. Default is ``True``.
 
@@ -1238,7 +1234,6 @@ class Window(object):
             # set the buffer and its context
             useBuffer = self._frameBuffers[buffer]
             self._buffer = buffer  # buffer name is valid
-            self._dc[buffer].use()
         except KeyError:
             raise "Unknown buffer '%s' requested in Window.setBuffer" % buffer
 
@@ -1247,9 +1242,11 @@ class Window(object):
             GL.glReadBuffer(useBuffer)
             GL.glDrawBuffer(useBuffer)
         else:
-            gltools.bindFBO(useBuffer.fbo, GL.GL_FRAMEBUFFER)
+            GL.glBindFramebuffer(GL.GL_FRAMEBUFFER, useBuffer.fbo.name)
             GL.glReadBuffer(GL.GL_COLOR_ATTACHMENT0)
             GL.glDrawBuffer(GL.GL_COLOR_ATTACHMENT0)
+
+        self._dc[self._buffer].use()
 
         if clear:
             self.clearBuffer()
@@ -1381,45 +1378,65 @@ class Window(object):
 
         """
         warp = warp if warp is not None else NullWarp(self)
+        #val = GL.GLint()
+        #GL.glGetFramebufferAttachmentParameteriv(GL.GL_FRAMEBUFFER, GL.GL_COLOR_ATTACHMENT0, GL. GL_FRAMEBUFFER_ATTACHMENT_OBJECT_NAME, ctypes.byref(val))
 
-        # clear the projection and modelview matrix for FBO blit
-        GL.glMatrixMode(GL.GL_PROJECTION)
-        GL.glLoadIdentity()
-        GL.glOrtho(-1, 1, -1, 1, -1, 1)
-        GL.glMatrixMode(GL.GL_MODELVIEW)
-        GL.glLoadIdentity()
-
-        GL.glDisable(GL.GL_BLEND)
-
-        GL.glViewport(0, 0, 800, 600)
-        GL.glScissor(0, 0, 800, 600)
-
-        texId = self.frameTexture.name
-
+        oldBuffer = self._buffer
         self.setBuffer(dstName, clear=False)
+        # clear the projection and modelview matrix for FBO blit
+        # GL.glMatrixMode(GL.GL_PROJECTION)
+        # GL.glLoadIdentity()
+        # GL.glOrtho(-1, 1, -1, 1, -1, 1)
+        # GL.glMatrixMode(GL.GL_MODELVIEW)
+        # GL.glLoadIdentity()
 
-        warp._prepareFBOrender()
+        #GL.glBindFramebuffer(GL.GL_FRAMEBUFFER, 0)
+        #warp._prepareFBOrender()
 
         # set the texture to the framebuffer texture attachment
+        #GL.glPolygonMode(GL.GL_FRONT_AND_BACK, GL.GL_LINE)
 
-        GL.glEnable(GL.GL_TEXTURE_2D)
-        GL.glActiveTexture(GL.GL_TEXTURE0)
-        GL.glBindTexture(GL.GL_TEXTURE_2D, texId)
+        #GL.glPolygonMode(GL.GL_FRONT_AND_BACK, GL.GL_FILL)
 
-        GL.glColor4f(1.0, 1.0, 1.0, 1.0)  # glColor multiplies with texture
+        # need blit the framebuffer object to the actual back buffer
+
+        # unbind the framebuffer as the render target
+        #GL.glBindFramebuffer(GL.GL_FRAMEBUFFER, 0)
+        GL.glDisable(GL.GL_BLEND)
+
+        #GL.glDisable(GL.GL_STENCIL_TEST)
+        #stencilOn = self.stencilTest
+        #self.stencilTest = False
+
+        # before flipping need to copy the renderBuffer to the
+        # frameBuffer
+
+        tex = self._frameBuffers['newBuffer'].fbo.getColorBuffer(0)
+
+        self.draw3d = False  # disable 3d drawing
+        #self._prepareFBOrender()
+        GL.glUseProgram(self._progFBOtoFrame)
+        # need blit the framebuffer object to the actual back buffer
+
+        # unbind the framebuffer as the render target
+        #GL.glBindFramebuffer(GL.GL_FRAMEBUFFER, 0)
+        GL.glDisable(GL.GL_BLEND)
+        stencilOn = self.stencilTest
+        self.stencilTest = False
+
+
+        # before flipping need to copy the renderBuffer to the
+        # frameBuffer
+        gltools.bindTexture(tex, 0, True)
+        GL.glColor3f(1.0, 1.0, 1.0)  # glColor multiplies with texture
         GL.glColorMask(True, True, True, True)
 
-        GL.glPolygonMode(GL.GL_FRONT_AND_BACK, GL.GL_LINE)
-        warp._renderFBO()
+        self._renderFBO()
 
-        GL.glBindTexture(GL.GL_TEXTURE_2D, 0)
-        GL.glDisable(GL.GL_TEXTURE_2D)
-        GL.glEnable(GL.GL_BLEND)
-        GL.glPolygonMode(GL.GL_FRONT_AND_BACK, GL.GL_FILL)
+        gltools.unbindTexture(tex)
+        GL.glUseProgram(0)
 
-        warp._finishFBOrender()
-        warp._afterFBOrender()
-
+        self.setBuffer(oldBuffer, clear=False)
 
     def copyBuffer(self, dstName, srcRect=None, dstRect=None, filtering='linear',
                    color=True, depth=False, stencil=False, switchToDst=False):
@@ -1448,7 +1465,8 @@ class Window(object):
         dstFBO = self._frameBuffers[dstName]
 
         # if `srcRect` not given, use the device context viewport
-        srcRect = srcRect if srcRect is not None else self._dc[self._buffer].viewport
+        srcRect = \
+            srcRect if srcRect is not None else self._dc[self._buffer].viewport
 
         # use `srcRect` if `dstRect` is not specified
         dstRect = dstRect if dstRect is not None else srcRect
@@ -1458,14 +1476,16 @@ class Window(object):
             GL.glBindFramebuffer(GL.GL_READ_FRAMEBUFFER, 0)
             GL.glReadBuffer(srcFBO)
         else:
-            srcFBO.bind('read')
+            GL.glBindFramebuffer(GL.GL_READ_FRAMEBUFFER, srcFBO.fbo.name)
+            GL.glReadBuffer(GL.GL_COLOR_ATTACHMENT0)
 
         # get the draw buffer
         if not isinstance(dstFBO, Framebuffer):
             GL.glBindFramebuffer(GL.GL_DRAW_FRAMEBUFFER, 0)
             GL.glDrawBuffer(dstFBO)
         else:
-            dstFBO.bind('draw')
+            GL.glBindFramebuffer(GL.GL_DRAW_FRAMEBUFFER, dstFBO.fbo.name)
+            GL.glDrawBuffer(GL.GL_COLOR_ATTACHMENT0)
 
         if filtering == 'linear':
             useFilter = GL.GL_LINEAR
