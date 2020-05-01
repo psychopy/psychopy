@@ -60,17 +60,18 @@ class Framebuffer(object):
 
         # IDs for FBO and its attachments
         w, h = self._size
-        colorTex = gltools.createTexImage2D(w, h)
+        print(w, h)
+        colorTex = gltools.createTexImage2D(w, h, texParams={
+            GL.GL_TEXTURE_MAG_FILTER: GL.GL_LINEAR,
+            GL.GL_TEXTURE_MIN_FILTER: GL.GL_LINEAR})
         depthRb = gltools.createRenderbuffer(
             w, h, internalFormat=GL.GL_DEPTH24_STENCIL8)
 
         # framebuffer object
         self.fbo = gltools.createFBO(
             {GL.GL_COLOR_ATTACHMENT0: colorTex,
-             GL.GL_DEPTH_STENCIL_ATTACHMENT: depthRb})
-
-        # multisample framebuffer if needed
-        self.fboMSAA = None
+             GL.GL_DEPTH_ATTACHMENT: depthRb,
+             GL.GL_STENCIL_ATTACHMENT: depthRb})
 
         # warping object which describes how this object should be drawn
         self._warper = warper
@@ -119,6 +120,16 @@ class Framebuffer(object):
         else:
             raise RuntimeError(
                 "Cannot assign a warper to multi-sample framebuffers.")
+
+    def getColorBuffer(self, idx=0):
+        """Get the color buffer attachment.
+
+        Parameters
+        ----------
+        idx : int
+            Color attachment index.
+
+        """
 
 
 class RenderContext(object):
@@ -259,7 +270,8 @@ class RenderContext(object):
     def viewport(self, value):
         self._viewport[:] = value
         self._size[:] = self._viewport[2:]
-        GL.glViewport(*self._viewport)
+        if self.win.buffer == self.name:
+            GL.glViewport(*self._viewport)
 
     @property
     def scissor(self):
@@ -284,7 +296,9 @@ class RenderContext(object):
     @scissor.setter
     def scissor(self, value):
         self._scissor[:] = value
-        GL.glScissor(*self._scissor)
+
+        if self.win.buffer == self.name:
+            GL.glScissor(*self._scissor)
 
     @property
     def size(self):

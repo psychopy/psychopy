@@ -1135,9 +1135,11 @@ class Framebuffer(object):
     with the actual configuration of the referenced OpenGL object.
 
     """
-    __slots__ = ['name', 'target', 'attachments', 'sRGB', '_isBound', 'userData']
+    __slots__ = ['name', 'target', 'attachments', 'sRGB', '_isBound',
+                 'userData']
 
-    def __init__(self, name=0, target=GL.GL_FRAMEBUFFER, sRGB=False, userData=None):
+    def __init__(self, name=0, target=GL.GL_FRAMEBUFFER, sRGB=False,
+                 userData=None):
         self.name = name
         self.target = target
         self.attachments = dict()
@@ -1150,13 +1152,69 @@ class Framebuffer(object):
         function."""
         return self._isBound
 
+    def getColorBuffer(self, idx=0):
+        """Get the color buffer attachment.
+
+        Parameters
+        ----------
+        idx : int
+            Color attachment index.
+
+        Returns
+        -------
+        TexImage2D, Renderbuffer or `None`
+            Descriptor for the attachment. Gives `None` if there is no color
+            attachment at `idx`.
+
+        """
+        try:
+            toReturn = self.attachments[GL.GL_COLOR_ATTACHMENT0 + idx]
+        except KeyError:
+            return None
+
+        return toReturn
+
+    def getDepthBuffer(self):
+        """Get the depth buffer attachment.
+
+        Returns
+        -------
+        TexImage2D or Renderbuffer
+            Descriptor for the attachment. Gives `None` if there is no depth
+            attachment.
+
+        """
+        if GL.GL_DEPTH_STENCIL_ATTACHMENT in self.attachments:
+            return self.attachments[GL.GL_DEPTH_STENCIL_ATTACHMENT]
+        elif GL.GL_DEPTH_ATTACHMENT in self.attachments:
+            return self.attachments[GL.GL_DEPTH_ATTACHMENT]
+        else:
+            return None
+
+    def getStencilBuffer(self):
+        """Get the stencil buffer attachment.
+
+        Returns
+        -------
+        TexImage2D or Renderbuffer
+            Descriptor for the attachment. Gives `None` if there is no stencil
+            attachment.
+
+        """
+        if GL.GL_DEPTH_STENCIL_ATTACHMENT in self.attachments:
+            return self.attachments[GL.GL_DEPTH_STENCIL_ATTACHMENT]
+        elif GL.GL_STENCIL_ATTACHMENT in self.attachments:
+            return self.attachments[GL.GL_STENCIL_ATTACHMENT]
+        else:
+            return None
+
 
 def createFBO(attachments=None, sRGB=False):
     """Create a Framebuffer Object.
 
     Parameters
     ----------
-    attachments : :obj:`list` or :obj:`tuple` of :obj:`tuple`
+    attachments : :obj:`dict` or `None`
         Optional attachments to initialize the Framebuffer with. Attachments are
         specified as a list of tuples. Each tuple must contain an attachment
         point (e.g. GL_COLOR_ATTACHMENT0, GL_DEPTH_ATTACHMENT, etc.) and a
@@ -1165,9 +1223,9 @@ def createFBO(attachments=None, sRGB=False):
         and GL_STENCIL_ATTACHMENT must be passed the same buffer. Alternatively,
         one can use GL_DEPTH_STENCIL_ATTACHMENT instead. If using multisample
         buffers, all attachment images must use the same number of samples!. As
-        an example, one may specify attachments as 'attachments=((
-        GL.GL_COLOR_ATTACHMENT0, frameTexture), (GL.GL_DEPTH_STENCIL_ATTACHMENT,
-        depthRenderBuffer))'.
+        an example, one may specify attachments as `attachments={
+        GL.GL_COLOR_ATTACHMENT0: frameTexture, GL.GL_DEPTH_STENCIL_ATTACHMENT:
+        depthRenderBuffer}`.
 
     Returns
     -------
@@ -1218,7 +1276,7 @@ def createFBO(attachments=None, sRGB=False):
         depthTex = createTexImage2D(800, 600,
                                     internalFormat=GL.GL_DEPTH_COMPONENT24,
                                     pixelFormat=GL.GL_DEPTH_COMPONENT)
-        fbo = createFBO([(GL.GL_DEPTH_ATTACHMENT, depthTex)])  # is valid
+        fbo = createFBO({GL.GL_DEPTH_ATTACHMENT: depthTex})  # is valid
 
         # discard FBO descriptor, just give me the ID
         frameBuffer = createFBO().name
@@ -1232,9 +1290,28 @@ def createFBO(attachments=None, sRGB=False):
 
     # initial attachments for this framebuffer
     if attachments is not None:
-        with useFBO(fboDesc):
-            for attachPoint, imageBuffer in attachments.items():
-                attach(fboDesc, attachPoint, imageBuffer)
+        # keep the OpenGL framebuffer state
+        readFBO = GL.GLint()
+        drawFBO = GL.GLint()
+        GL.glGetIntegerv(GL.GL_READ_FRAMEBUFFER_BINDING, ctypes.byref(readFBO))
+        GL.glGetIntegerv(GL.GL_DRAW_FRAMEBUFFER_BINDING, ctypes.byref(drawFBO))
+
+        # bind the new FBO
+        GL.glBindFramebuffer(GL.GL_FRAMEBUFFER, fboId)
+        for attachPoint, imageBuffer in attachments.items():
+            attach(fboDesc, attachPoint, imageBuffer)
+
+        # clear it
+        #GL.glClear(GL.GL_COLOR_BUFFER_BIT)
+        #GL.glClear(GL.GL_STENCIL_BUFFER_BIT)
+        #GL.glClear(GL.GL_DEPTH_BUFFER_BIT)
+
+        # restore the previous state
+        if readFBO.value == drawFBO.value:
+            GL.glBindFramebuffer(GL.GL_FRAMEBUFFER, readFBO.value)
+        else:
+            GL.glBindFramebuffer(GL.GL_READ_FRAMEBUFFER, readFBO.value)
+            GL.glBindFramebuffer(GL.GL_DRAW_FRAMEBUFFER, drawFBO.value)
 
     return fboDesc
 
@@ -1270,6 +1347,7 @@ def attach(fbo, attachPoint, imageBuffer):
     # you need as descriptor which contains the target and name for the buffer.
     #
     if isinstance(imageBuffer, (TexImage2D, TexImage2DMultisample)):
+        print(attachPoint, GL.GL_COLOR_ATTACHMENT0)
         GL.glFramebufferTexture2D(
             GL.GL_FRAMEBUFFER,
             attachPoint,

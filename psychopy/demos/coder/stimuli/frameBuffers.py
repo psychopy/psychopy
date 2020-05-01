@@ -13,25 +13,28 @@ import psychopy.tools.gltools as gltools
 import pyglet.gl as GL
 
 # Create a visual window:
-win = visual.Window(useFBO=False, units='norm')
+win = visual.Window(useFBO=False, units='norm', winType='glfw')
 msg1 = visual.TextStim(win, text=u"Hello world!", pos=(0, 0))  # default position = centered
 msg2 = visual.TextStim(win, text=u"Hello world2!")
 
 
 win.createBuffer('newBuffer', (800, 600))
 #print(win._frameBuffers)
+win.setBuffer('back')
+win.color = (1, 0, 0)
+win.clearBuffer()
 win.setBuffer('newBuffer')
 # GL.gluPerspective(90, 1.0 * width / height, 0.1, 100.0)
 #win.resetEyeTransform(False)
-win.color = (1, 0, 0)
+win.color = (0, 1, 0)
 win.clearBuffer()
 # Draw the text to the hidden visual buffer:
-msg1.draw()
-#win.copyBuffer('back') #, (0, 0, 800, 600), (0, 0, 400, 600))
+#msg1.draw()
+#win.copyBuffer('back', (0, 0, 800, 600), (0, 0, 400, 600))
 win.blitBuffer('back')
 win.setBuffer('back', clear=False)
 
-msg2.draw()
+#msg2.draw()
 
 
 #win.color = (0, 0, 0)
