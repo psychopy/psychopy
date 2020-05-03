@@ -17,7 +17,11 @@ import pyglet.gl as GL  # using only pyglet for now
 import ctypes
 import psychopy.tools.gltools as gltools
 import psychopy.tools.viewtools as viewtools
+import psychopy.tools.mathtools as mathtools
 import numpy as np
+from .helpers import setColor
+from psychopy import colors
+
 
 # OpenGL constants mapped to strings, needed to avoid having users to define
 # these in their scripts.
@@ -30,6 +34,10 @@ cullFaceMode = {'back': GL.GL_BACK,
                 'both': GL.GL_FRONT_AND_BACK,
                 'frontBack': GL.GL_FRONT_AND_BACK}
 frontFace = {'ccw': GL.GL_CCW, 'cw': GL.GL_CW}
+
+internalColorFormats = {
+    'RGBA': GL.GL_RGBA
+}
 
 
 class Framebuffer(object):
@@ -60,7 +68,6 @@ class Framebuffer(object):
 
         # IDs for FBO and its attachments
         w, h = self._size
-        print(w, h)
         colorTex = gltools.createTexImage2D(w, h, texParams={
             GL.GL_TEXTURE_MAG_FILTER: GL.GL_LINEAR,
             GL.GL_TEXTURE_MIN_FILTER: GL.GL_LINEAR})
@@ -75,6 +82,11 @@ class Framebuffer(object):
 
         # warping object which describes how this object should be drawn
         self._warper = warper
+
+    def __del__(self):
+        """When refcount drops to zero, delete the framebuffer and attachments.
+        """
+        gltools.deleteFBO(self.fbo, deep=True)
 
     @property
     def size(self):
@@ -129,7 +141,38 @@ class Framebuffer(object):
         idx : int
             Color attachment index.
 
+        Returns
+        -------
+        TexImage2D, Renderbuffer or `None`
+            Descriptor for the attachment. Gives `None` if there is no color
+            attachment at `idx`.
+
         """
+        return self.fbo.getColorBuffer(idx)
+
+    def getDepthBuffer(self):
+        """Get the depth buffer attachment.
+
+        Returns
+        -------
+        TexImage2D or Renderbuffer
+            Descriptor for the attachment. Gives `None` if there is no depth
+            attachment.
+
+        """
+        return self.fbo.getDepthBuffer()
+
+    def getStencilBuffer(self):
+        """Get the stencil buffer attachment.
+
+        Returns
+        -------
+        TexImage2D or Renderbuffer
+            Descriptor for the attachment. Gives `None` if there is no stencil
+            attachment.
+
+        """
+        return self.fbo.getStencilBuffer()
 
 
 class RenderContext(object):
@@ -137,15 +180,32 @@ class RenderContext(object):
 
     A render context describes how stimuli are drawn to a framebuffer. When
     `setBuffer` is called, the render context is made current and successive
-    draw/read operations will be
+    draw/read operations to the associated framebuffer will be mediated by the
+    context.
+
+    OpenGL capability states and other information such as clear color,
+    viewport, model/view matrix, etc. are saved and restored when switching
+    between contexts.
 
     """
     def __init__(self, win, viewport, name):
-        """Constructor for DeviceContext."""
+        """Constructor for DeviceContext.
+
+        Parameters
+        ----------
+        win : `~psychopy.visual.Window`
+            Window associated with this buffer.
+        viewport : array_like
+            Viewport rectangle [x, y, w, h] for the buffer.
+        name : str
+            Buffer name.
+
+        """
         self.win = win
 
-        # name of buffer, used to determine whether the window is using the
-        # device context
+        # Name of buffer, used to determine whether the window is using the
+        # context. This is used to prevent changing OpenGL capabilities and
+        # other settings if the context is not current.
         self.name = name
 
         self._viewport = np.asarray(viewport, dtype=int)
@@ -155,10 +215,14 @@ class RenderContext(object):
         # retain binding information
         self._bindMode = None
 
+        # clipping planes
+        self._nearClip = -1
+        self._farClip = 1
+
         # transformations related to the device context
         self._viewMatrix = np.identity(4, dtype=np.float32)
         self._projectionMatrix = viewtools.orthoProjectionMatrix(
-            -1, 1, -1, 1, -1, 1, dtype=np.float32)
+            -1, 1, -1, 1, self._nearClip, self._farClip, dtype=np.float32)
 
         # stereo rendering settings, set later by the user
         self._eyeOffset = 0.0
@@ -172,7 +236,8 @@ class RenderContext(object):
                 ctypes.POINTER(ctypes.c_float))
 
         # OpenGL states
-        self._scissorTest = self._stencilTest = self._depthTest = \
+        self._scissorTest = True
+        self._stencilTest = self._depthTest = \
             self._depthMask = self._cullFace = False
         self._depthFunc = 'less'
         self._cullFaceMode = 'back'
@@ -302,11 +367,21 @@ class RenderContext(object):
 
     @property
     def size(self):
+        """Size [w, h] of the buffer is pixels."""
         return self._size
+
+    @size.setter
+    def size(self, value):
+        self._size[:] = self._viewport[:2] = value
 
     @property
     def origin(self):
+        """Origin [x, y] of the buffer is pixels."""
         return self._viewport[:2]
+
+    @origin.setter
+    def origin(self, value):
+        self._viewport[:2] = value
 
     @property
     def scissorTest(self):
@@ -366,11 +441,6 @@ class RenderContext(object):
 
     @depthFunc.setter
     def depthFunc(self, value):
-        depthFuncs = {'never': GL.GL_NEVER, 'less': GL.GL_LESS,
-                      'equal': GL.GL_EQUAL, 'lequal': GL.GL_LEQUAL,
-                      'greater': GL.GL_GREATER, 'notequal': GL.GL_NOTEQUAL,
-                      'gequal': GL.GL_GEQUAL, 'always': GL.GL_ALWAYS}
-
         try:
             if self.win.buffer == self.name:
                 GL.glDepthFunc(depthFuncs[value])
@@ -413,7 +483,7 @@ class RenderContext(object):
                 GL.glCullFace(GL.GL_BACK)
             elif value == 'front':
                 GL.glCullFace(GL.GL_FRONT)
-            elif value == 'both':
+            elif value == 'both' or value == 'frontBack':
                 GL.glCullFace(GL.GL_FRONT_AND_BACK)
             else:
                 raise ValueError('Invalid face cull mode.')
@@ -454,15 +524,41 @@ class RenderContext(object):
 
         self._frontFace = value
 
+    @property
+    def draw3d(self):
+        """`True` if 3D drawing is enabled on this window."""
+        return self._draw3d
+
+    @draw3d.setter
+    def draw3d(self, value):
+        if value is True:
+            if self.depthMask is False:
+                self.depthMask = True
+            if self.depthTest is False:
+                self.depthTest = True
+            if self.cullFace is False:
+                self.cullFace = True
+        elif value is False:
+            if self.depthMask is True:
+                self.depthMask = False
+            if self.depthTest is True:
+                self.depthTest = False
+            if self.cullFace is True:
+                self.cullFace = False
+        else:
+            raise TypeError('Value must be type `bool`.')
+
+        self._draw3d = value
+
     def use(self):
         """Make this DeviceContext active."""
         # set the viewport and scissor
         GL.glViewport(*self._viewport)
-        GL.glScissor(*self._scissor)
 
         # set OpenGL capabilities related to this device context
         if self._scissorTest:
             GL.glEnable(GL.GL_SCISSOR_TEST)
+            GL.glScissor(*self._scissor)
         else:
             GL.glDisable(GL.GL_SCISSOR_TEST)
 
@@ -490,19 +586,36 @@ class RenderContext(object):
         self.applyEyeTransform()
 
     def clearBuffer(self, color=True, depth=False, stencil=False):
-        """Clear the buffer."""
+        """Clear the buffer, uses the Window color."""
         flags = GL.GL_NONE
-
         if color:
             flags |= GL.GL_COLOR_BUFFER_BIT
-
         if depth:
             flags |= GL.GL_DEPTH_BUFFER_BIT
-
         if stencil:
             flags |= GL.GL_STENCIL_BUFFER_BIT
 
         GL.glClear(flags)
+
+    def setEyePose(self, rigidBodyPose):
+        """Set the buffer's view matrix from a `RigidBodyPose`."""
+        self._viewMatrix[:] = rigidBodyPose.getViewMatrix()
+
+    def setEyePosOri(self, pos=(0., 0., 0.), ori=(0., 0., 0., 1.)):
+        """Set the eye position from a position vector [x, y, z] and
+        orientation quaternion [x, y, z, w]."""
+        # forward and up vectors
+        axes = np.asarray([[0, 0, -1], [0, 1, 0]], dtype=np.float32)
+
+        rotMatrix = mathtools.quatToMatrix(ori, dtype=np.float32)
+        transformedAxes = mathtools.applyMatrix(
+            rotMatrix, axes, dtype=np.float32)
+
+        fwdVec = transformedAxes[0, :] + pos
+        upVec = transformedAxes[1, :]
+
+        self._viewMatrix[:] = \
+            viewtools.lookAt(pos, fwdVec, upVec, dtype=np.float32)
 
     def resetEyeTransform(self, clearDepth=True):
         """Restore the default projection and view settings to PsychoPy
@@ -537,12 +650,9 @@ class RenderContext(object):
         """
         # should eventually have the same effect as calling _onResize(), so we
         # need to add the retina mode stuff eventually
-        if hasattr(self, '_viewMatrix'):
-            self._viewMatrix = np.identity(4, dtype=np.float32)
-
-        if hasattr(self, '_projectionMatrix'):
-            self._projectionMatrix = viewtools.orthoProjectionMatrix(
-                -1, 1, -1, 1, -1, 1, dtype=np.float32)
+        self._viewMatrix[:] = np.identity(4, dtype=np.float32)
+        self._projectionMatrix[:] = viewtools.orthoProjectionMatrix(
+            -1, 1, -1, 1, -1, 1, dtype=np.float32)
 
         self.applyEyeTransform(clearDepth)
 
@@ -623,6 +733,203 @@ class RenderContext(object):
 
             if oldDepthMask is False:   # return to old state if needed
                 GL.glDepthMask(GL.GL_FALSE)
+
+    @property
+    def nearClip(self):
+        """Distance to the near clipping plane in meters."""
+        return self._nearClip
+
+    @nearClip.setter
+    def nearClip(self, value):
+        self._nearClip = value
+
+    @property
+    def farClip(self):
+        """Distance to the far clipping plane in meters."""
+        return self._farClip
+
+    @farClip.setter
+    def farClip(self, value):
+        self._farClip = value
+
+    @property
+    def projectionMatrix(self):
+        """Projection matrix defined as a 4x4 numpy array."""
+        return self._projectionMatrix
+
+    @projectionMatrix.setter
+    def projectionMatrix(self, value):
+        self._projectionMatrix[:] = value
+
+    @property
+    def viewMatrix(self):
+        """View matrix defined as a 4x4 numpy array."""
+        return self._viewMatrix
+
+    @viewMatrix.setter
+    def viewMatrix(self, value):
+        self._viewMatrix[:] = value
+
+    def setOffAxisView(self, applyTransform=True, clearDepth=True):
+        """Set an off-axis projection.
+
+        Create an off-axis projection for subsequent rendering calls. Sets the
+        `viewMatrix` and `projectionMatrix` accordingly so the scene origin is
+        on the screen plane. If `eyeOffset` is correct and the view distance and
+        screen size is defined in the monitor configuration, the resulting view
+        will approximate `ortho-stereo` viewing.
+
+        The convergence plane can be adjusted by setting `convergeOffset`. By
+        default, the convergence plane is set to the screen plane. Any points
+        on the screen plane will have zero disparity.
+
+        Parameters
+        ----------
+        applyTransform : bool
+            Apply transformations after computing them in immediate mode. Same
+            as calling :py:attr:`~Window.applyEyeTransform()` afterwards.
+        clearDepth : bool, optional
+            Clear the depth buffer.
+
+        """
+        scrDistCM = self.win.scrDistCM
+        scrWidthCM = self.win.scrWidthCM
+        scrDistM = 0.5 if scrDistCM is None else scrDistCM / 100.0
+        scrWidthM = 0.5 if scrWidthCM is None else scrWidthCM / 100.0
+
+        # Not in full screen mode? Need to compute the dimensions of the display
+        # area to ensure disparities are correct even when in windowed-mode.
+        if not self.win._isFullScr:
+            scrWidthM = (self.size[0] / self.win.scrWidthPIX) * scrWidthM
+
+        frustum = viewtools.computeFrustum(
+            scrWidthM,  # width of screen
+            self.aspect,  # aspect ratio
+            scrDistM,  # distance to screen
+            eyeOffset=self._eyeOffset,
+            convergeOffset=self._convergeOffset,
+            nearClip=self._nearClip,
+            farClip=self._farClip)
+
+        self._projectionMatrix[:] = \
+            viewtools.perspectiveProjectionMatrix(*frustum)
+
+        # translate away from screen
+        self._viewMatrix[:] = np.identity(4, dtype=np.float32)
+        self._viewMatrix[0, 3] = -self._eyeOffset  # apply eye offset
+        self._viewMatrix[2, 3] = -scrDistM  # displace scene away from viewer
+
+        if applyTransform:
+            self.applyEyeTransform(clearDepth=clearDepth)
+
+    def setToeInView(self, applyTransform=True, clearDepth=True):
+        """Set toe-in projection.
+
+        Create a toe-in projection for subsequent rendering calls. Sets the
+        `viewMatrix` and `projectionMatrix` accordingly so the scene origin is
+        on the screen plane. The value of `convergeOffset` will define the
+        convergence point of the view, which is offset perpendicular to the
+        center of the screen plane. Points falling on a vertical line at the
+        convergence point will have zero disparity.
+
+        Parameters
+        ----------
+        applyTransform : bool
+            Apply transformations after computing them in immediate mode. Same
+            as calling :py:attr:`~Window.applyEyeTransform()` afterwards.
+        clearDepth : bool, optional
+            Clear the depth buffer.
+
+        Notes
+        -----
+        * This projection mode is only 'correct' if the viewer's eyes are
+          converged at the convergence point. Due to perspective, this
+          projection introduces vertical disparities which increase in magnitude
+          with eccentricity. Use `setOffAxisView` if you want to display
+          something the viewer can look around the screen comfortably.
+
+        """
+        scrDistCM = self.win.scrDistCM
+        scrWidthCM = self.win.scrWidthCM
+        scrDistM = 0.5 if scrDistCM is None else scrDistCM / 100.0
+        scrWidthM = 0.5 if scrWidthCM is None else scrWidthCM / 100.0
+
+        # Not in full screen mode? Need to compute the dimensions of the display
+        # area to ensure disparities are correct even when in windowed-mode.
+        if not self.win._isFullScr:
+            scrWidthM = (self.size[0] / self.win.scrWidthPIX) * scrWidthM
+
+        frustum = viewtools.computeFrustum(
+            scrWidthM,  # width of screen
+            self.aspect,  # aspect ratio
+            scrDistM,  # distance to screen
+            nearClip=self._nearClip,
+            farClip=self._farClip)
+
+        self._projectionMatrix[:] = \
+            viewtools.perspectiveProjectionMatrix(*frustum)
+
+        # translate away from screen
+        eyePos = (self._eyeOffset, 0.0, scrDistM)
+        convergePoint = (0.0, 0.0, self.convergeOffset)
+        self._viewMatrix = viewtools.lookAt(eyePos, convergePoint)
+
+        if applyTransform:
+            self.applyEyeTransform(clearDepth=clearDepth)
+
+    def setPerspectiveView(self, applyTransform=True, clearDepth=True):
+        """Set the projection and view matrix to render with perspective.
+
+        Matrices are computed using values specified in the monitor
+        configuration with the scene origin on the screen plane. Calculations
+        assume units are in meters. If `eyeOffset != 0`, the view will be
+        transformed laterally, however the frustum shape will remain the
+        same.
+
+        Note that the values of :py:attr:`~Window.projectionMatrix` and
+        :py:attr:`~Window.viewMatrix` will be replaced when calling this
+        function.
+
+        Parameters
+        ----------
+        applyTransform : bool
+            Apply transformations after computing them in immediate mode. Same
+            as calling :py:attr:`~Window.applyEyeTransform()` afterwards if
+            `False`.
+        clearDepth : bool, optional
+            Clear the depth buffer.
+
+        """
+        # NB - we should eventually compute these matrices lazily since they may
+        # not change over the course of an experiment under most circumstances.
+        #
+        scrDistCM = self.win.scrDistCM
+        scrWidthCM = self.win.scrWidthCM
+        scrDistM = 0.5 if scrDistCM is None else scrDistCM / 100.0
+        scrWidthM = 0.5 if scrWidthCM is None else scrWidthCM / 100.0
+
+        # Not in full screen mode? Need to compute the dimensions of the display
+        # area to ensure disparities are correct even when in windowed-mode.
+        if not self.win._isFullScr:
+            scrWidthM = (self.size[0] / self.win.scrWidthPIX) * scrWidthM
+
+        frustum = viewtools.computeFrustum(
+            scrWidthM,  # width of screen
+            self.aspect,  # aspect ratio
+            scrDistM,  # distance to screen
+            nearClip=self._nearClip,
+            farClip=self._farClip)
+
+        self._projectionMatrix[:] = \
+            viewtools.perspectiveProjectionMatrix(*frustum, dtype=np.float32)
+
+        # translate away from screen
+        self._viewMatrix[:] = np.identity(4, dtype=np.float32)
+        self._viewMatrix[0, 3] = -self._eyeOffset  # apply eye offset
+        self._viewMatrix[2, 3] = -scrDistM  # displace scene away from viewer
+
+        if applyTransform:
+            self.applyEyeTransform(clearDepth=clearDepth)
 
     @property
     def ambientLight(self):

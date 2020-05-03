@@ -1209,7 +1209,7 @@ class Framebuffer(object):
             return None
 
 
-def createFBO(attachments=None, sRGB=False):
+def createFBO(attachments=None, sRGB=False, bindAfter=False):
     """Create a Framebuffer Object.
 
     Parameters
@@ -1226,6 +1226,11 @@ def createFBO(attachments=None, sRGB=False):
         an example, one may specify attachments as `attachments={
         GL.GL_COLOR_ATTACHMENT0: frameTexture, GL.GL_DEPTH_STENCIL_ATTACHMENT:
         depthRenderBuffer}`.
+    sRGB : bool
+        Enable sRGB mode when the FBO is bound.
+    bindAfter : bool
+        Bind the framebuffer afterwards. If `False`, the last framebuffer
+        state will be used.
 
     Returns
     -------
@@ -1234,10 +1239,10 @@ def createFBO(attachments=None, sRGB=False):
 
     Notes
     -----
-        - All buffers must have the same number of samples.
-        - The 'userData' field of the returned descriptor is a dictionary that
+        * All buffers must have the same number of samples.
+        * The 'userData' field of the returned descriptor is a dictionary that
           can be used to store arbitrary data associated with the FBO.
-        - Framebuffers need a single attachment to be complete.
+        * Framebuffers need a single attachment to be complete.
 
     Examples
     --------
@@ -1291,29 +1296,35 @@ def createFBO(attachments=None, sRGB=False):
     # initial attachments for this framebuffer
     if attachments is not None:
         # keep the OpenGL framebuffer state
-        readFBO = GL.GLint()
-        drawFBO = GL.GLint()
-        GL.glGetIntegerv(GL.GL_READ_FRAMEBUFFER_BINDING, ctypes.byref(readFBO))
-        GL.glGetIntegerv(GL.GL_DRAW_FRAMEBUFFER_BINDING, ctypes.byref(drawFBO))
+        readFBO = drawFBO = None
+        if not bindAfter:
+            readFBO = GL.GLint()
+            drawFBO = GL.GLint()
+            GL.glGetIntegerv(
+                GL.GL_READ_FRAMEBUFFER_BINDING, ctypes.byref(readFBO))
+            GL.glGetIntegerv(
+                GL.GL_DRAW_FRAMEBUFFER_BINDING, ctypes.byref(drawFBO))
 
         # bind the new FBO
         GL.glBindFramebuffer(GL.GL_FRAMEBUFFER, fboId)
         for attachPoint, imageBuffer in attachments.items():
             attach(fboDesc, attachPoint, imageBuffer)
 
-        # clear it
-        #GL.glClear(GL.GL_COLOR_BUFFER_BIT)
-        #GL.glClear(GL.GL_STENCIL_BUFFER_BIT)
-        #GL.glClear(GL.GL_DEPTH_BUFFER_BIT)
-
         # restore the previous state
-        if readFBO.value == drawFBO.value:
-            GL.glBindFramebuffer(GL.GL_FRAMEBUFFER, readFBO.value)
+        if not bindAfter:
+            if readFBO.value == drawFBO.value:
+                GL.glBindFramebuffer(GL.GL_FRAMEBUFFER, readFBO.value)
+            else:
+                GL.glBindFramebuffer(GL.GL_READ_FRAMEBUFFER, readFBO.value)
+                GL.glBindFramebuffer(GL.GL_DRAW_FRAMEBUFFER, drawFBO.value)
         else:
-            GL.glBindFramebuffer(GL.GL_READ_FRAMEBUFFER, readFBO.value)
-            GL.glBindFramebuffer(GL.GL_DRAW_FRAMEBUFFER, drawFBO.value)
+            fboDesc._isBound = True
 
     return fboDesc
+
+
+# def createFromExistingFBO(fboId):
+#     """Create a `Framebuffer` object from an existing FBO handle."""
 
 
 def attach(fbo, attachPoint, imageBuffer):
@@ -1345,7 +1356,6 @@ def attach(fbo, attachPoint, imageBuffer):
     """
     # We should also support binding GL names specified as integers. Right now
     # you need as descriptor which contains the target and name for the buffer.
-    #
     if isinstance(imageBuffer, (TexImage2D, TexImage2DMultisample)):
         print(attachPoint, GL.GL_COLOR_ATTACHMENT0)
         GL.glFramebufferTexture2D(
@@ -1365,7 +1375,8 @@ def attach(fbo, attachPoint, imageBuffer):
 
 
 def detach(fbo, attachPoint):
-    """Detach an image buffer from a given FBO attachment point.
+    """Detach an image buffer from a given FBO attachment point. Framebuffer
+    must be previously bound.
 
     Parameters
     ----------
@@ -1410,16 +1421,27 @@ def isComplete(target=GL.GL_FRAMEBUFFER):
     return GL.glCheckFramebufferStatus(target) == GL.GL_FRAMEBUFFER_COMPLETE
 
 
-def deleteFBO(fbo):
+def deleteFBO(fbo, deep=False):
     """Delete a framebuffer. Deletes a framebuffer associated with the given
     descriptor.
 
+    Parameters
+    ----------
+    deep : bool
+        Delete attachments too.
+
     """
-    GL.glDeleteFramebuffers(
-        1, fbo.name if isinstance(fbo, Framebuffer) else int(fbo))
+    GL.glDeleteFramebuffers(1, fbo.name)
+
+    # Delete references to attachments, if there are no references they will
+    # also be deleted from the OpenGL state.
+    if deep:
+        for _, buffer in fbo.attachments.items():
+            del buffer
 
 
-def blitFBO(srcRect, dstRect=None, filter=GL.GL_LINEAR):
+def blitFBO(srcRect, dstRect=None, filter=GL.GL_LINEAR,
+            flags=GL.GL_COLOR_BUFFER_BIT):
     """Copy a block of pixels between framebuffers via blitting. Read and draw
     framebuffers must be bound prior to calling this function. Beware, the
     scissor box and viewport are changed when this is called to dstRect.
@@ -1436,6 +1458,10 @@ def blitFBO(srcRect, dstRect=None, filter=GL.GL_LINEAR):
     filter : :obj:`int`
         Interpolation method to use if the image is stretched, default is
         GL_LINEAR, but can also be GL_NEAREST.
+    flags : :obj:`int`
+        Values can be either GL_COLOR_BUFFER_BIT, GL_DEPTH_BUFFER_BIT or
+        GL_STENCIL_BUFFER_BIT. Flags can be ORed together for blitting multiple
+        planes simultaneosuly.
 
     Returns
     -------
@@ -1463,8 +1489,7 @@ def blitFBO(srcRect, dstRect=None, filter=GL.GL_LINEAR):
 
     GL.glBlitFramebuffer(srcRect[0], srcRect[1], srcRect[2], srcRect[3],
                          dstRect[0], dstRect[1], dstRect[2], dstRect[3],
-                         GL.GL_COLOR_BUFFER_BIT,  # colors only for now
-                         filter)
+                         flags, filter)
 
 
 @contextmanager
@@ -1539,14 +1564,31 @@ def bindFBO(fbo, target=None):
     # enable sRGB mode if required
     if fbo.sRGB:
         GL.glEnable(GL.GL_FRAMEBUFFER_SRGB)
+    else:
+        GL.glDisable(GL.GL_FRAMEBUFFER_SRGB)
 
 
 def unbindFBO(fbo):
     """Unbind a previously bound `Framebuffer` object, setting it's target to
-    the default framebuffer."""
+    the default framebuffer.
+
+    Parameters
+    ----------
+    fbo : Framebuffer or None
+        Framebuffer object to bind.
+
+    """
+    if not fbo._isBound:
+        raise RuntimeError(
+            "Framebuffer has not been previously bound with `bindFBO`.")
+
     GL.glBindFramebuffer(fbo.target, 0)
     if fbo.sRGB:
+        GL.glEnable(GL.GL_FRAMEBUFFER_SRGB)
+    else:
         GL.glDisable(GL.GL_FRAMEBUFFER_SRGB)
+
+    fbo._isBound = False
 
 
 # ------------------------------
@@ -1556,21 +1598,6 @@ def unbindFBO(fbo):
 # The functions below handle the creation and management of Renderbuffers
 # Objects.
 #
-
-# Renderbuffer descriptor type
-# Renderbuffer = namedtuple(
-#     'Renderbuffer',
-#     ['id',
-#      'target',
-#      'width',
-#      'height',
-#      'internalFormat',
-#      'samples',
-#      'multiSample',  # boolean, check if a texture is multisample
-#      'userData']  # dictionary for user defined data
-# )
-
-
 class Renderbuffer(object):
     """Descriptor representing an OpenGL render buffer object. These objects are
     usually generated by calling `createRenderbuffer`
@@ -1595,6 +1622,9 @@ class Renderbuffer(object):
         self.samples = samples
         self.multiSample = self.samples > 1
         self.userData = userData if userData is not None else dict()
+
+    def __del__(self):
+        GL.glDeleteRenderbuffers(1, self.name)
 
 
 def createRenderbuffer(width, height, internalFormat=GL.GL_RGBA8, samples=1):
@@ -1677,7 +1707,9 @@ def deleteRenderbuffer(renderBuffer):
     renderbuffer's ID.
 
     """
-    GL.glDeleteRenderbuffers(1, renderBuffer.id)
+    GL.glDeleteRenderbuffers(1, renderBuffer.name)
+    # invalidate in case there are references out there still
+    renderBuffer.name = GL.GLuint(0)
 
 
 # -----------------
@@ -1802,6 +1834,10 @@ class TexImage2D(object):
         """Texture parameters."""
         self._texParamsNeedUpdate = True
         self._texParams = value
+
+    def __del__(self):
+        """Deletes the texture when there are no more references to it."""
+        GL.glDeleteTextures(1, self.name)
 
 
 def createTexImage2D(width, height, target=GL.GL_TEXTURE_2D, level=0,
