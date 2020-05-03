@@ -244,6 +244,8 @@ class Window(object):
         checkTiming : `bool`
             Whether to calculate frame duration on initialization. Estimated
             duration is saved in :py:attr:`~Window.monitorFramePeriod`.
+        useFBO : `bool`
+            Create and additional framebuffer to render stimuli to.
         allowStencil : `bool`
             When set to `True`, this allows operations that use the OpenGL
             stencil buffer (notably, allowing the
@@ -286,10 +288,11 @@ class Window(object):
             be undefined for non-fullscreen windows, or if multiple screens are
             attached with varying color output depths.
         depthBits : int,
-            Back buffer depth bits. Default is 8, but can be set higher (eg. 24)
-            if drawing 3D stimuli to minimize artifacts such a 'Z-fighting'.
+            Back/front buffer depth bits. Default is 8, but can be set higher
+            (eg. 24) if drawing 3D stimuli to minimize artifacts such a
+            'Z-fighting'.
         stencilBits : int
-            Back buffer stencil bits. Default is 8.
+            Back/front buffer stencil bits. Default is 8.
 
         Notes
         -----
@@ -454,12 +457,21 @@ class Window(object):
         # configure rendering to their respective buffers. This allows you to
         # preserve OpenGL settings when switching between buffers. Names 'back'
         # and 'front' are reserved for the windows's buffers.
-        self._dc = {
+        self._renderContexts = {
             'back': RenderContext(
                 self, (0, 0, size[0], size[1]), 'back'),
             'front': RenderContext(
                 self, (0, 0, size[0], size[1]), 'front')
         }
+        # Framebuffers needed for off-screen rendering are stored in
+        # `_frameBuffers` here. This includes the framebuffer created when
+        # 'useFBO' is enabled named 'main'. Additional framebuffers show up
+        # here when using a stereo mode or when `useFBO` is enabled with MSAA
+        # is enabled. Values in the dictionary can either be `Framebuffer`
+        # objects or OpenGL ids. Multiple keys can reference the same buffer
+        # allowing for different device contexts to render to different regions
+        # of the buffer.
+        self._frameBuffers = {'back': GL.GL_BACK, 'front': GL.GL_FRONT}
 
         self._setupGL()
 
@@ -515,23 +527,6 @@ class Window(object):
         # stereo rendering settings, set later by the user
         self._eyeOffset = 0.0
         self._convergeOffset = 0.0
-
-        # If `useFBO` is `True`, add a device context with name 'main' which is
-        # reserved for it.
-        if self.useFBO:
-            self._dc['main'] = RenderContext(
-                self, (0, 0, self.size[0], self.size[1]), 'main')
-            self._buffer = 'main'  # set the buffer to the FBO
-
-        # Framebuffers needed for off-screen rendering are stored in
-        # `_frameBuffers` here. This includes the framebuffer created when
-        # 'useFBO' is enabled named 'main'. Additional framebuffers show up
-        # here when using a stereo mode or when `useFBO` is enabled with MSAA
-        # is enabled. Values in the dictionary can either be `Framebuffer`
-        # objects or OpenGL ids. Multiple keys can reference the same buffer
-        # allowing for different device contexts to render to different regions
-        # of the buffer.
-        self._frameBuffers = {'back': GL.GL_BACK, 'front': GL.GL_FRONT}
 
         # gamma
         self.bits = None  # this may change in a few lines time!
@@ -1022,18 +1017,13 @@ class Window(object):
 
         self.backend.swapBuffers(flipThisFrame)
 
-        # if self.useFBO and flipThisFrame:
-        #     # set rendering back to the framebuffer object
-        #     # GL.glBindFramebufferEXT(
-        #     #     GL.GL_FRAMEBUFFER_EXT, self.frameBuffer)
-        #     # GL.glReadBuffer(GL.GL_COLOR_ATTACHMENT0_EXT)
-        #     # GL.glDrawBuffer(GL.GL_COLOR_ATTACHMENT0_EXT)
-        #     # # set to no active rendering texture
-        #     # GL.glActiveTexture(GL.GL_TEXTURE0)
-        #     # GL.glBindTexture(GL.GL_TEXTURE_2D, 0)
-        #     if stencilOn:
-        #         self.stencilTest = True
-        #self.setBuffer('back')
+        if self.useFBO and flipThisFrame:
+            # set rendering back to the framebuffer object
+            self.setBuffer('main')
+            if stencilOn:
+                self.stencilTest = True
+        else:
+            self.setBuffer('back')
 
         # rescale, reposition, & rotate
         GL.glMatrixMode(GL.GL_MODELVIEW)
@@ -1117,8 +1107,6 @@ class Window(object):
                         obj=logEntry['obj'])
         del self._toLog[:]
 
-        self.setBuffer('back')
-
         # keep the system awake (prevent screen-saver or sleep)
         platform_specific.sendStayAwake()
 
@@ -1195,16 +1183,44 @@ class Window(object):
             self.flip(clearBuffer=False)
         self.flip(clearBuffer=clearBuffer)
 
-    @property
-    def frameTexture(self):
-        """Current buffer's texture attachment. Only valid when the buffer is
-        an off-screen window. If not, this will give `None`.
-        """
-        buffer = self._frameBuffers[self._buffer]
-        if not isinstance(buffer, Framebuffer):
-            return None
+    def getRenderContext(self, buffer):
+        """Get the `RenderContext` object associated with a given buffer. Use
+        this to configure a buffer without switching to it. Settings that are
+        specified will be applied when the buffer is switched to with
+        `setBuffer`.
 
-        return buffer.fbo.attachments[GL.GL_COLOR_ATTACHMENT0]
+        Parameters
+        ----------
+        buffer : str
+            Name of the buffer to get.
+
+        Returns
+        -------
+        RenderContext
+            Context for `buffer`.
+
+        Examples
+        --------
+        Configuring a buffer after creation without switching to it::
+
+            win.createBuffer('newBuffer')
+            win.setBuffer('back')  # current buffer is back
+            win.depthTest = False
+
+            # get a reference to the context for 'newBuffer'
+            ctx = win.getRenderContext('newBuffer')
+            # configure 'newBuffer', does not affect the `depthTest` setting of
+            # current buffer
+            ctx.depthTest = True
+
+            win.setBuffer('newBuffer')  # `depthTest` is now `False`
+            win.setBuffer('back') # `depthTest` is now `True`
+
+        """
+        try:
+            return self._renderContexts[buffer]
+        except KeyError:
+            raise NameError("No buffer named `{}`.".format(buffer))
 
     def setBuffer(self, buffer, clear=True):
         """Choose which buffer to draw to.
@@ -1246,7 +1262,7 @@ class Window(object):
             GL.glReadBuffer(GL.GL_COLOR_ATTACHMENT0)
             GL.glDrawBuffer(GL.GL_COLOR_ATTACHMENT0)
 
-        self._dc[self._buffer].use()
+        self._renderContexts[self._buffer].use()
 
         if clear:
             self.clearBuffer()
@@ -1297,7 +1313,7 @@ class Window(object):
 
         """
         # ensure we are not overwriting an existing buffer
-        if name in self._dc.keys():
+        if name in self._renderContexts.keys():
             raise ValueError('Buffer with key `name` already in use.')
 
         if targetBuffer is None:
@@ -1312,7 +1328,7 @@ class Window(object):
             w, h = targetBuffer.size
             viewport = (0, 0, w, h)
 
-        self._dc[name] = RenderContext(self, viewport, name)
+        self._renderContexts[name] = RenderContext(self, viewport, name)
         self._frameBuffers[name] = targetBuffer  # create new reference
 
     def createBuffer(self, name, size=None, samples=1):
@@ -1347,19 +1363,21 @@ class Window(object):
 
         """
         # ensure we are not overwriting an existing buffer
-        if name in self._frameBuffers.keys() or name in self._dc.keys():
+        if name in self._frameBuffers.keys() or name in self._renderContexts.keys():
             raise ValueError('Buffer with key `name` already in use.')
 
         size = self.size if size is None else size
         rect = (0, 0, self.size[0], self.size[1])
         self._frameBuffers[name] = Framebuffer(self, name, size, samples)
-        self._dc[name] = RenderContext(self, rect, name)
+        self._renderContexts[name] = RenderContext(self, rect, name)
 
     def deleteBuffer(self, name):
         """Delete a buffer.
 
-        Frees resources related for a buffer and makes the name available for
-        a new buffer.
+        Frees resources related for a buffer if not shared with other buffers
+        and makes the name available. Buffer being deleted cannot be the current
+        one (indicated by the `buffer` property) or either 'back', 'front',
+        or 'main').
 
         Parameters
         ----------
@@ -1367,63 +1385,54 @@ class Window(object):
             Name of the buffer to delete.
 
         """
-        pass
+        # Check if the buffer can be deleted, it cannot be the current buffer
+        # and must be valid.
+        if self._buffer == name:
+            raise ValueError("Cannot delete active buffer. Change to another "
+                             "buffer before calling `deleteBuffer`.")
+        elif name in ('back', 'front'):
+            raise ValueError("Cannot delete 'back' or 'front' buffer.")
+        elif name == 'main' and self.useFBO:
+            raise ValueError("Cannot delete 'main' buffer if `useFBO=True`.")
 
-    def blitBuffer(self, dstName, pos=(0, 0), ori=0.0, scale=1.0, warp=None,
-                   colorAttachment=0, shaderProg='fragFBOtoFrame',
-                   switchToDst=False):
-        """Blit a buffer's color data into another buffer using a mesh.
+        # Deletes a reference, is multiple contexts share the same framebuffer,
+        # the framebuffer will be kept alive.
+        try:
+            del self._renderContexts[name]
+            del self._frameBuffers[name]
+        except KeyError:
+            raise ValueError("Value for `name` not a buffer.")
+
+    def renderBuffer(self, dstName, pos=(0, 0), ori=0.0, scale=1.0, warp=None,
+                     colorAttachment=0, shaderProg='fragFBOtoFrame', blend=False,
+                     switchToDst=False):
+        """Render a buffer's color data into another buffer using a mesh.
         Similar to `copyBuffer`, but allows for image blending, transformations,
-        and warping.
+        and warping. Be default, a null warp operation is used.
 
         """
+        if not isinstance(self._frameBuffers[self._buffer], Framebuffer):
+            raise TypeError(
+                "Current buffer must be `Framebuffer` for `waprBuffer`.")
+
         warp = warp if warp is not None else NullWarp(self)
-        #val = GL.GLint()
-        #GL.glGetFramebufferAttachmentParameteriv(GL.GL_FRAMEBUFFER, GL.GL_COLOR_ATTACHMENT0, GL. GL_FRAMEBUFFER_ATTACHMENT_OBJECT_NAME, ctypes.byref(val))
 
         oldBuffer = self._buffer
         self.setBuffer(dstName, clear=False)
-        # clear the projection and modelview matrix for FBO blit
-        # GL.glMatrixMode(GL.GL_PROJECTION)
-        # GL.glLoadIdentity()
-        # GL.glOrtho(-1, 1, -1, 1, -1, 1)
-        # GL.glMatrixMode(GL.GL_MODELVIEW)
-        # GL.glLoadIdentity()
 
-        #GL.glBindFramebuffer(GL.GL_FRAMEBUFFER, 0)
-        #warp._prepareFBOrender()
-
-        # set the texture to the framebuffer texture attachment
-        #GL.glPolygonMode(GL.GL_FRONT_AND_BACK, GL.GL_LINE)
-
-        #GL.glPolygonMode(GL.GL_FRONT_AND_BACK, GL.GL_FILL)
-
-        # need blit the framebuffer object to the actual back buffer
-
-        # unbind the framebuffer as the render target
-        #GL.glBindFramebuffer(GL.GL_FRAMEBUFFER, 0)
-        GL.glDisable(GL.GL_BLEND)
+        if not blend:
+            GL.glDisable(GL.GL_BLEND)
 
         #GL.glDisable(GL.GL_STENCIL_TEST)
-        #stencilOn = self.stencilTest
-        #self.stencilTest = False
-
-        # before flipping need to copy the renderBuffer to the
-        # frameBuffer
-
-        tex = self._frameBuffers['newBuffer'].fbo.getColorBuffer(0)
-
-        self.draw3d = False  # disable 3d drawing
-        #self._prepareFBOrender()
-        GL.glUseProgram(self._progFBOtoFrame)
-        # need blit the framebuffer object to the actual back buffer
-
-        # unbind the framebuffer as the render target
-        #GL.glBindFramebuffer(GL.GL_FRAMEBUFFER, 0)
-        GL.glDisable(GL.GL_BLEND)
         stencilOn = self.stencilTest
         self.stencilTest = False
 
+        # before flipping need to copy the renderBuffer to the
+        # frameBuffer
+        tex = self._frameBuffers[oldBuffer].fbo.getColorBuffer(colorAttachment)
+
+        self.draw3d = False  # disable 3d drawing
+        warp._prepareFBOrender()
 
         # before flipping need to copy the renderBuffer to the
         # frameBuffer
@@ -1431,12 +1440,20 @@ class Window(object):
         GL.glColor3f(1.0, 1.0, 1.0)  # glColor multiplies with texture
         GL.glColorMask(True, True, True, True)
 
-        self._renderFBO()
-
+        warp._renderFBO()
+        warp._finishFBOrender()
         gltools.unbindTexture(tex)
-        GL.glUseProgram(0)
 
-        self.setBuffer(oldBuffer, clear=False)
+        if not blend:
+            GL.glEnable(GL.GL_BLEND)
+
+        self.stencilTest = stencilOn
+
+        # switch to the new buffer
+        if not switchToDst:
+            self.setBuffer(oldBuffer, clear=False)
+        else:
+            self.setBuffer(dstName, clear=False)
 
     def copyBuffer(self, dstName, srcRect=None, dstRect=None, filtering='linear',
                    color=True, depth=False, stencil=False, switchToDst=False):
@@ -1446,7 +1463,7 @@ class Window(object):
         ----------
         dstName : str
             Name of the buffer to copy to.
-        srcRect, dstRect : array_like
+        srcRect, dstRect : array_like or None
             Source and destination rectangles in pixels (x, y, w, h).
         filtering : str
             Filtering mode to use, value can either be 'linear' or 'nearest'.
@@ -1464,9 +1481,12 @@ class Window(object):
         srcFBO = self._frameBuffers[self._buffer]
         dstFBO = self._frameBuffers[dstName]
 
+        # keep track of the old buffer
+        oldBuffer = self._buffer
+
         # if `srcRect` not given, use the device context viewport
-        srcRect = \
-            srcRect if srcRect is not None else self._dc[self._buffer].viewport
+        if srcRect is None:
+            srcRect = self._renderContexts[oldBuffer].viewport
 
         # use `srcRect` if `dstRect` is not specified
         dstRect = dstRect if dstRect is not None else srcRect
@@ -1503,24 +1523,18 @@ class Window(object):
         if stencil:
             bufferBits |= GL.GL_STENCIL_BUFFER_BIT
 
-        GL.glBlitFramebuffer(srcRect[0], srcRect[1], srcRect[2], srcRect[3],
-                             dstRect[0], dstRect[1], dstRect[2], dstRect[3],
-                             GL.GL_COLOR_BUFFER_BIT, useFilter)
-
-        if not isinstance(srcFBO, Framebuffer):
-            GL.glReadBuffer(srcFBO)
-            GL.glDrawBuffer(srcFBO)
-        else:
-            srcFBO.bind('readDraw')
+        GL.glBlitFramebuffer(
+            srcRect[0], srcRect[1],
+            srcRect[0] + srcRect[2], srcRect[1] + srcRect[3],
+            dstRect[0], dstRect[1],
+            dstRect[0] + dstRect[2], dstRect[1] + dstRect[3],
+            bufferBits, useFilter)
 
         # # switch the buffer
-        # if not switchToDst:
-        #     if not isinstance(srcFBO, Framebuffer):
-        #         GL.glDrawBuffer(srcFBO)
-        #     else:
-        #         srcFBO.bind('read')
-        # else:
-        #     self._buffer = dstName
+        if not switchToDst:
+            self.setBuffer(oldBuffer, clear=False)
+        else:
+            self.setBuffer(dstName, clear=False)
 
     def clearBuffer(self, color=True, depth=True, stencil=True):
         """Clear the present buffer (to which you are currently drawing) without
@@ -1572,7 +1586,7 @@ class Window(object):
         # report clientSize until we get framebuffer size from
         # the backend, needs to be done properly in the future
         if self.backend is not None:
-            return self._dc[self.buffer].size
+            return self._renderContexts[self.buffer].size
         else:
             return self.clientSize
 
@@ -1585,7 +1599,7 @@ class Window(object):
     @property
     def aspect(self):
         """Aspect ratio of the current viewport (width / height)."""
-        return self._dc[self._buffer].aspect
+        return self._renderContexts[self._buffer].aspect
 
     @property
     def buffer(self):
@@ -1638,8 +1652,8 @@ class Window(object):
             # displays. Displays are assumed to be matched.
             leftEyeRect = (0, 0, int(self.size[0] / 2), self.size[1])
             rightEyeRect = (leftEyeRect[2], 0, leftEyeRect[2], leftEyeRect[3])
-            self._dc['left'] = RenderContext(self, leftEyeRect, 'left')
-            self._dc['right'] = RenderContext(self, rightEyeRect, 'right')
+            self._renderContexts['left'] = RenderContext(self, leftEyeRect, 'left')
+            self._renderContexts['right'] = RenderContext(self, rightEyeRect, 'right')
             self._frameBuffers['left'] = GL.GL_BACK
             self._frameBuffers['right'] = GL.GL_BACK
 
@@ -1649,8 +1663,8 @@ class Window(object):
             # stereoscopes which images are viewed through mirrors.
             leftEyeRect = (0, 0, int(self.size[0] / 2), self.size[1])
             rightEyeRect = (leftEyeRect[2], 0, leftEyeRect[2], leftEyeRect[3])
-            self._dc['left'] = RenderContext(self, leftEyeRect, 'left')
-            self._dc['right'] = RenderContext(self, rightEyeRect, 'right')
+            self._renderContexts['left'] = RenderContext(self, leftEyeRect, 'left')
+            self._renderContexts['right'] = RenderContext(self, rightEyeRect, 'right')
             self._frameBuffers['left'] = GL.GL_BACK
             self._frameBuffers['right'] = GL.GL_BACK
 
@@ -1660,8 +1674,8 @@ class Window(object):
             w = int(self.size[0] / 2)
             leftEyeRect = (w, 0, w, self.size[1])
             rightEyeRect = (0, 0, leftEyeRect[2], leftEyeRect[3])
-            self._dc['left'] = RenderContext(self, leftEyeRect, 'left')
-            self._dc['right'] = RenderContext(self, rightEyeRect, 'right')
+            self._renderContexts['left'] = RenderContext(self, leftEyeRect, 'left')
+            self._renderContexts['right'] = RenderContext(self, rightEyeRect, 'right')
             self._frameBuffers['left'] = GL.GL_BACK
             self._frameBuffers['right'] = GL.GL_BACK
 
@@ -1670,8 +1684,8 @@ class Window(object):
             # systems. To maintain legacy support, if `stereo=True`, this will
             # be enabled.
             rect = (0, 0, self.size[0], self.size[1])
-            self._dc['left'] = RenderContext(self, rect, 'left')
-            self._dc['right'] = RenderContext(self, rect, 'right')
+            self._renderContexts['left'] = RenderContext(self, rect, 'left')
+            self._renderContexts['right'] = RenderContext(self, rect, 'right')
             self._frameBuffers['left'] = GL.GL_BACK_LEFT
             self._frameBuffers['right'] = GL.GL_BACK_RIGHT
 
@@ -1910,11 +1924,11 @@ class Window(object):
             win.viewport = win.scissor = [x, y, w, h]
 
         """
-        return self._dc[self.buffer].viewport
+        return self._renderContexts[self.buffer].viewport
 
     @viewport.setter
     def viewport(self, value):
-        self._dc[self.buffer].viewport = numpy.array(value, numpy.int)
+        self._renderContexts[self.buffer].viewport = numpy.array(value, numpy.int)
 
     @property
     def scissor(self):
@@ -1934,43 +1948,29 @@ class Window(object):
         not changing the positions of stimuli.
 
         """
-        return self._dc[self.buffer].scissor
+        return self._renderContexts[self.buffer].scissor
 
     @scissor.setter
     def scissor(self, value):
-        self._dc[self.buffer].scissor = numpy.array(value, numpy.int)
+        self._renderContexts[self.buffer].scissor = numpy.array(value, numpy.int)
 
     @property
     def scissorTest(self):
         """`True` if scissor testing is enabled."""
-        return self._scissorTest
+        return self._renderContexts[self._buffer].scissorTest
 
     @scissorTest.setter
     def scissorTest(self, value):
-        if value is True:
-            GL.glEnable(GL.GL_SCISSOR_TEST)
-        elif value is False:
-            GL.glDisable(GL.GL_SCISSOR_TEST)
-        else:
-            raise TypeError("Value must be boolean.")
-
-        self._scissorTest = value
+        self._renderContexts[self._buffer].scissorTest = value
 
     @property
     def stencilTest(self):
         """`True` if stencil testing is enabled."""
-        return self._stencilTest
+        return self._renderContexts[self._buffer].stencilTest
 
     @stencilTest.setter
     def stencilTest(self, value):
-        if value is True:
-            GL.glEnable(GL.GL_STENCIL_TEST)
-        elif value is False:
-            GL.glDisable(GL.GL_STENCIL_TEST)
-        else:
-            raise TypeError("Value must be boolean.")
-
-        self._stencilTest = value
+        self._renderContexts[self._buffer].stencilTest = value
 
     @property
     def nearClip(self):
@@ -1993,22 +1993,20 @@ class Window(object):
     @property
     def projectionMatrix(self):
         """Projection matrix defined as a 4x4 numpy array."""
-        return self._dc[self._buffer]._projectionMatrix
+        return self._renderContexts[self._buffer].projectionMatrix
 
     @projectionMatrix.setter
     def projectionMatrix(self, value):
-        self._dc[self._buffer]._projectionMatrix = numpy.asarray(value, numpy.float32)
-        assert self._dc[self._buffer]._projectionMatrix.shape == (4, 4)
+        self._renderContexts[self._buffer].projectionMatrix = value
 
     @property
     def viewMatrix(self):
         """View matrix defined as a 4x4 numpy array."""
-        return self._dc[self._buffer]._viewMatrix
+        return self._renderContexts[self._buffer].viewMatrix
 
     @viewMatrix.setter
     def viewMatrix(self, value):
-        self._dc[self._buffer]._viewMatrix = numpy.asarray(value, numpy.float32)
-        assert self._dc[self._buffer]._viewMatrix.shape == (4, 4)
+        self._renderContexts[self._buffer].viewMatrix = value
 
     @property
     def eyeOffset(self):
@@ -2021,11 +2019,11 @@ class Window(object):
         center of the eye, or half the inter-ocular distance.
 
         """
-        return self._eyeOffset * 100.0
+        return self._renderContexts[self._buffer].eyeOffset
 
     @eyeOffset.setter
     def eyeOffset(self, value):
-        self._eyeOffset = value / 100.0
+        self._renderContexts[self._buffer].eyeOffset = value
 
     @property
     def convergeOffset(self):
@@ -2042,11 +2040,11 @@ class Window(object):
         * This value is only applicable for `setToeIn` and `setOffAxisView`.
 
         """
-        return self._convergeOffset * 100.0
+        return self._renderContexts[self._buffer].convergeOffset
 
     @convergeOffset.setter
     def convergeOffset(self, value):
-        self._convergeOffset = value / 100.0
+        self._renderContexts[self._buffer].convergeOffset = value
 
     def setOffAxisView(self, applyTransform=True, clearDepth=True):
         """Set an off-axis projection.
@@ -2070,33 +2068,8 @@ class Window(object):
             Clear the depth buffer.
 
         """
-        scrDistM = 0.5 if self.scrDistCM is None else self.scrDistCM / 100.0
-        scrWidthM = 0.5 if self.scrWidthCM is None else self.scrWidthCM / 100.0
-
-        # Not in full screen mode? Need to compute the dimensions of the display
-        # area to ensure disparities are correct even when in windowed-mode.
-        aspect = self.size[0] / self.size[1]
-        if not self._isFullScr:
-            scrWidthM = (self.size[0] / self.scrWidthPIX) * scrWidthM
-
-        frustum = viewtools.computeFrustum(
-            scrWidthM,  # width of screen
-            aspect,  # aspect ratio
-            scrDistM,  # distance to screen
-            eyeOffset=self._eyeOffset,
-            convergeOffset=self._convergeOffset,
-            nearClip=self._nearClip,
-            farClip=self._farClip)
-
-        self._projectionMatrix = viewtools.perspectiveProjectionMatrix(*frustum)
-
-        # translate away from screen
-        self._viewMatrix = numpy.identity(4, dtype=numpy.float32)
-        self._viewMatrix[0, 3] = -self._eyeOffset  # apply eye offset
-        self._viewMatrix[2, 3] = -scrDistM  # displace scene away from viewer
-
-        if applyTransform:
-            self.applyEyeTransform(clearDepth=clearDepth)
+        self._renderContexts[self._buffer].setOffAxisView(
+            applyTransform, clearDepth)
 
     def setToeInView(self, applyTransform=True, clearDepth=True):
         """Set toe-in projection.
@@ -2125,31 +2098,8 @@ class Window(object):
           something the viewer can look around the screen comfortably.
 
         """
-        scrDistM = 0.5 if self.scrDistCM is None else self.scrDistCM / 100.0
-        scrWidthM = 0.5 if self.scrWidthCM is None else self.scrWidthCM / 100.0
-
-        # Not in full screen mode? Need to compute the dimensions of the display
-        # area to ensure disparities are correct even when in windowed-mode.
-        aspect = self.size[0] / self.size[1]
-        if not self._isFullScr:
-            scrWidthM = (self.size[0] / self.scrWidthPIX) * scrWidthM
-
-        frustum = viewtools.computeFrustum(
-            scrWidthM,  # width of screen
-            aspect,  # aspect ratio
-            scrDistM,  # distance to screen
-            nearClip=self._nearClip,
-            farClip=self._farClip)
-
-        self._projectionMatrix = viewtools.perspectiveProjectionMatrix(*frustum)
-
-        # translate away from screen
-        eyePos = (self._eyeOffset, 0.0, scrDistM)
-        convergePoint = (0.0, 0.0, self.convergeOffset)
-        self._viewMatrix = viewtools.lookAt(eyePos, convergePoint)
-
-        if applyTransform:
-            self.applyEyeTransform(clearDepth=clearDepth)
+        self._renderContexts[self._buffer].setToeInView(
+            applyTransform, clearDepth)
 
     def setPerspectiveView(self, applyTransform=True, clearDepth=True):
         """Set the projection and view matrix to render with perspective.
@@ -2174,35 +2124,8 @@ class Window(object):
             Clear the depth buffer.
 
         """
-        # NB - we should eventually compute these matrices lazily since they may
-        # not change over the course of an experiment under most circumstances.
-        #
-        scrDistM = 0.5 if self.scrDistCM is None else self.scrDistCM / 100.0
-        scrWidthM = 0.5 if self.scrWidthCM is None else self.scrWidthCM / 100.0
-
-        # Not in full screen mode? Need to compute the dimensions of the display
-        # area to ensure disparities are correct even when in windowed-mode.
-        aspect = self.size[0] / self.size[1]
-        if not self._isFullScr:
-            scrWidthM = (self.size[0] / self.scrWidthPIX) * scrWidthM
-
-        frustum = viewtools.computeFrustum(
-            scrWidthM,  # width of screen
-            aspect,  # aspect ratio
-            scrDistM,  # distance to screen
-            nearClip=self._nearClip,
-            farClip=self._farClip)
-
-        self._projectionMatrix = \
-            viewtools.perspectiveProjectionMatrix(*frustum, dtype=numpy.float32)
-
-        # translate away from screen
-        self._viewMatrix = numpy.identity(4, dtype=numpy.float32)
-        self._viewMatrix[0, 3] = -self._eyeOffset  # apply eye offset
-        self._viewMatrix[2, 3] = -scrDistM  # displace scene away from viewer
-
-        if applyTransform:
-            self.applyEyeTransform(clearDepth=clearDepth)
+        self._renderContexts[self._buffer].setPerspectiveView(
+            applyTransform, clearDepth)
 
     def applyEyeTransform(self, clearDepth=True):
         """Apply the current view and projection matrices.
@@ -3132,59 +3055,25 @@ class Window(object):
             self._shaders['stim3d_phong'][flag] = prog
 
     def _setupFrameBuffer(self):
+        # If `useFBO` is `True`, add a device context with name 'main' which is
+        # reserved for it.
+        self._renderContexts['main'] = RenderContext(
+            self, (0, 0, self.size[0], self.size[1]), 'main')
 
-        # Setup framebuffer
-        self.frameBuffer = GL.GLuint()
-        GL.glGenFramebuffersEXT(1, ctypes.byref(self.frameBuffer))
-        GL.glBindFramebufferEXT(GL.GL_FRAMEBUFFER_EXT, self.frameBuffer)
+        # If `useFBO` is `True`, make another framebuffer
+        self._frameBuffers['main'] = Framebuffer(
+            self, 'main', (self.size[0], self.size[1]))
 
-        # Create texture to render to
-        self.frameTexture = GL.GLuint()
-        GL.glGenTextures(1, ctypes.byref(self.frameTexture))
-        GL.glBindTexture(GL.GL_TEXTURE_2D, self.frameTexture)
-        GL.glTexParameteri(GL.GL_TEXTURE_2D,
-                           GL.GL_TEXTURE_MAG_FILTER,
-                           GL.GL_LINEAR)
-        GL.glTexParameteri(GL.GL_TEXTURE_2D,
-                           GL.GL_TEXTURE_MIN_FILTER,
-                           GL.GL_LINEAR)
-        GL.glTexImage2D(GL.GL_TEXTURE_2D, 0, GL.GL_RGBA32F_ARB,
-                        int(self.size[0]), int(self.size[1]), 0,
-                        GL.GL_RGBA, GL.GL_FLOAT, None)
-        # attach texture to the frame buffer
-        GL.glFramebufferTexture2DEXT(GL.GL_FRAMEBUFFER_EXT,
-                                     GL.GL_COLOR_ATTACHMENT0_EXT,
-                                     GL.GL_TEXTURE_2D, self.frameTexture, 0)
-
-        # add a stencil buffer
-        self._stencilTexture = GL.GLuint()
-        GL.glGenRenderbuffersEXT(1, ctypes.byref(
-            self._stencilTexture))  # like glGenTextures
-        GL.glBindRenderbufferEXT(GL.GL_RENDERBUFFER_EXT, self._stencilTexture)
-        GL.glRenderbufferStorageEXT(GL.GL_RENDERBUFFER_EXT,
-                                    GL.GL_DEPTH24_STENCIL8_EXT,
-                                    int(self.size[0]), int(self.size[1]))
-        GL.glFramebufferRenderbufferEXT(GL.GL_FRAMEBUFFER_EXT,
-                                        GL.GL_DEPTH_ATTACHMENT_EXT,
-                                        GL.GL_RENDERBUFFER_EXT,
-                                        self._stencilTexture)
-        GL.glFramebufferRenderbufferEXT(GL.GL_FRAMEBUFFER_EXT,
-                                        GL.GL_STENCIL_ATTACHMENT_EXT,
-                                        GL.GL_RENDERBUFFER_EXT,
-                                        self._stencilTexture)
-
-        status = GL.glCheckFramebufferStatusEXT(GL.GL_FRAMEBUFFER_EXT)
-        if status != GL.GL_FRAMEBUFFER_COMPLETE_EXT:
-            logging.error("Error in framebuffer activation")
-            # UNBIND THE FRAME BUFFER OBJECT THAT WE HAD CREATED
-            GL.glBindFramebufferEXT(GL.GL_FRAMEBUFFER_EXT, 0)
-            return False
+        self.frameBuffer = self._frameBuffers['main'].fbo.name
+        self.frameTexture = self._frameBuffers['main'].getColorBuffer().name
+        self._stencilTexture = self._frameBuffers['main'].getDepthBuffer().name
         GL.glDisable(GL.GL_TEXTURE_2D)
-        # clear the buffers (otherwise the texture memory can contain
-        # junk from other app)
-        GL.glClear(GL.GL_COLOR_BUFFER_BIT)
-        GL.glClear(GL.GL_STENCIL_BUFFER_BIT)
-        GL.glClear(GL.GL_DEPTH_BUFFER_BIT)
+
+        print(self.frameTexture)
+
+        self.setBuffer('main', clear=False)
+        self.clearBuffer(color=True, depth=True, stencil=True)
+
         return True
 
     @attributeSetter
