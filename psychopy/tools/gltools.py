@@ -1136,16 +1136,32 @@ class Framebuffer(object):
 
     """
     __slots__ = ['name', 'target', 'attachments', 'sRGB', '_isBound',
-                 'userData']
+                 'userData', '_sizeHint']
 
-    def __init__(self, name=0, target=GL.GL_FRAMEBUFFER, sRGB=False,
-                 userData=None):
+    def __init__(self, name=0, target=GL.GL_FRAMEBUFFER, sizeHint=None,
+                 sRGB=False, userData=None):
+        """
+        Parameters
+        ----------
+        name : int
+            OpenGL name of assigned to the framebuffer.
+        target : int
+            Target type for the framebuffer.
+        sizeHint : array_like
+            Size hint for the framebuffer. Not required, but can be used to
+            ensure all the attachments have the same size.
+        sRGB : bool
+            Should this framebuffer be drawn to with sRGB enabled?
+        userData : dict of None
+            Optional user data associated with this descriptor.
+        """
         self.name = name
         self.target = target
         self.attachments = dict()
         self.sRGB = sRGB
         self.userData = dict() if userData is None else userData
         self._isBound = False
+        self._sizeHint = sizeHint
 
     def isBound(self):
         """`True` if the framebuffer was previously bound using the `bindFBO`
@@ -1209,7 +1225,7 @@ class Framebuffer(object):
             return None
 
 
-def createFBO(attachments=None, sRGB=False, bindAfter=False):
+def createFBO(attachments=None, sizeHint=None, sRGB=False, bindAfter=False):
     """Create a Framebuffer Object.
 
     Parameters
@@ -1226,6 +1242,9 @@ def createFBO(attachments=None, sRGB=False, bindAfter=False):
         an example, one may specify attachments as `attachments={
         GL.GL_COLOR_ATTACHMENT0: frameTexture, GL.GL_DEPTH_STENCIL_ATTACHMENT:
         depthRenderBuffer}`.
+    sizeHint : array_like or None
+        Size hint for the framebuffer (w, h). Not required, but can be used to
+        ensure all the attachments have the same size.
     sRGB : bool
         Enable sRGB mode when the FBO is bound.
     bindAfter : bool
@@ -1291,7 +1310,7 @@ def createFBO(attachments=None, sRGB=False, bindAfter=False):
     GL.glGenFramebuffers(1, ctypes.byref(fboId))
 
     # create a framebuffer descriptor
-    fboDesc = Framebuffer(fboId, GL.GL_FRAMEBUFFER, sRGB, dict())
+    fboDesc = Framebuffer(fboId, GL.GL_FRAMEBUFFER, sizeHint, sRGB, dict())
 
     # initial attachments for this framebuffer
     if attachments is not None:
@@ -1357,7 +1376,6 @@ def attach(fbo, attachPoint, imageBuffer):
     # We should also support binding GL names specified as integers. Right now
     # you need as descriptor which contains the target and name for the buffer.
     if isinstance(imageBuffer, (TexImage2D, TexImage2DMultisample)):
-        print(attachPoint, GL.GL_COLOR_ATTACHMENT0)
         GL.glFramebufferTexture2D(
             GL.GL_FRAMEBUFFER,
             attachPoint,
