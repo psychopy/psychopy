@@ -66,7 +66,8 @@ class PygletBackend(BaseBackend):
         vsync = 0
 
         # provide warning if stereo buffers are requested but unavailable
-        if win.stereo and not GL.gl_info.have_extension('GL_STEREO'):
+        if (win.stereo is True or win.stereo == 'quad') and \
+                not GL.gl_info.have_extension('GL_STEREO'):
             logging.warning(
                 'A stereo window was requested but the graphics '
                 'card does not appear to support GL_STEREO')
@@ -135,7 +136,7 @@ class PygletBackend(BaseBackend):
                            sample_buffers=sample_buffers,
                            samples=aa_samples,
                            stencil_size=win.stencilBits,
-                           stereo=win.stereo,
+                           stereo=win.stereo is 'quad',
                            vsync=vsync,
                            red_size=win.bpc[0],
                            green_size=win.bpc[1],

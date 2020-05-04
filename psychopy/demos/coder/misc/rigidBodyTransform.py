@@ -40,13 +40,12 @@ sphere3 = SphereStim(win, radius=0.075, color='blue', useShaders=False)
 
 angle = 0.0
 while not event.getKeys():
-
     # rotate the pivot pose
     pivotPose.setOriAxisAngle((0, 1, 0), angle)
-
     # setup drawing
-    win.setPerspectiveView()
 
+    win.eyeOffset = -3.2
+    win.setOffAxisView()
     # sphere for the light source, note this does not actually emit light
     lightSphere.thePose = pivotPose
     lightSphere.draw()

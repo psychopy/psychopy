@@ -27,7 +27,7 @@ from psychopy.contrib.lazy_import import lazy_import
 from psychopy import colors
 import math
 from psychopy.clock import monotonicClock
-from psychopy.visual.framebuffer import RenderContext, Framebuffer
+from psychopy.visual.framebuffer import WindowBuffer
 from psychopy.visual.warp import NullWarp
 
 # try to find avbin (we'll overload pyglet's load_library tool and then
@@ -245,7 +245,12 @@ class Window(object):
             Whether to calculate frame duration on initialization. Estimated
             duration is saved in :py:attr:`~Window.monitorFramePeriod`.
         useFBO : `bool`
-            Create and additional framebuffer to render stimuli to.
+            Create and additional framebuffer to render stimuli to. This option
+            is mainly used to maintain compatibility with existing PsychoPy
+            code that needs it. Note that when `True`, the primary draw buffer
+            is named 'main' instead of 'back'. When `flip()` is called, 'main'
+            is automatically drawn to 'back', so anything that was previously
+            drawn to 'back' will be overdrawn.
         allowStencil : `bool`
             When set to `True`, this allows operations that use the OpenGL
             stencil buffer (notably, allowing the
@@ -262,7 +267,7 @@ class Window(object):
             image quality, but can delay frame flipping. The largest number of
             samples is determined by ``GL_MAX_SAMPLES``, usually 16 or 32 on
             newer hardware, will crash if number is invalid.
-        stereo : `bool`
+        stereo : `str` or `bool`
             If `True` and your graphics card supports quad buffers then
             this will be enabled. You can switch between left and right-eye
             scenes for drawing operations using
@@ -452,15 +457,18 @@ class Window(object):
         # This value is updated when `setBuffer` is called.
         self._buffer = 'back'
 
+        # read and draw buffers
+        self._readBuffer = self._drawBuffer = self._buffer
+
         # Device contexts are referenced by name, when `setBuffer` is called,
         # the corresponding device context is used. These objects are used to
         # configure rendering to their respective buffers. This allows you to
         # preserve OpenGL settings when switching between buffers. Names 'back'
         # and 'front' are reserved for the windows's buffers.
-        self._renderContexts = {
-            'back': RenderContext(
+        self._windowBuffers = {
+            'back': WindowBuffer(
                 self, (0, 0, size[0], size[1]), 'back'),
-            'front': RenderContext(
+            'front': WindowBuffer(
                 self, (0, 0, size[0], size[1]), 'front')
         }
         # Framebuffers needed for off-screen rendering are stored in
@@ -1183,10 +1191,33 @@ class Window(object):
             self.flip(clearBuffer=False)
         self.flip(clearBuffer=clearBuffer)
 
-    def getRenderContext(self, buffer):
-        """Get the `RenderContext` object associated with a given buffer. Use
-        this to configure a buffer without switching to it. Settings that are
-        specified will be applied when the buffer is switched to with
+    @property
+    def windowBuffer(self):
+        """Current window buffer object for `buffer`."""
+        return self._windowBuffers[self._buffer]
+
+    @property
+    def windowBuffers(self):
+        """Dictionary of window buffer objects.
+
+        Examples
+        --------
+        Configure a window buffer without switching to it::
+
+            win.setBuffer('back')
+            # While active buffer is 'back', we can configure 'main' before
+            # switching to it.
+            win.windowBuffers['main'].depthTest = True
+            win.windowBuffers['main'].depthFunc = 'less'
+            win.setBuffer('main')  # settings are now applied
+
+        """
+        return self._windowBuffers
+
+    def getWindowBuffer(self, buffer):
+        """Get the `WindowBuffer` object associated with a given buffer name.
+        Use this to configure a buffer without switching to it. Settings that
+        are specified will be applied when the buffer is switched to with
         `setBuffer`.
 
         Parameters
@@ -1196,7 +1227,7 @@ class Window(object):
 
         Returns
         -------
-        RenderContext
+        WindowBuffer
             Context for `buffer`.
 
         Examples
@@ -1218,12 +1249,112 @@ class Window(object):
 
         """
         try:
-            return self._renderContexts[buffer]
+            return self._windowBuffers[buffer]
         except KeyError:
             raise NameError("No buffer named `{}`.".format(buffer))
 
+    def _bufferNames(self):
+        """List of buffer names associated with this window."""
+        return self._windowBuffers.keys()
+
+    def setReadBuffer(self, buffer, attachment='color', colorIdx=0):
+        """Set the buffer for read operations.
+
+        Parameters
+        ----------
+        buffer : str
+            Name of buffer to read from.
+        attachment : str
+            Buffer attachment to read from. Values can be 'color', 'depth',
+            'stencil' and 'depthStencil' which map to `GL_COLOR_ATTACHMENTn`,
+            `GL_DEPTH_ATTACHMENT`, `GL_STENCIL_ATTACHMENT`, and
+            `GL_DEPTH_STENCIL_ATTACHMENT`, respectively.
+        colorIdx : int
+            Index of the color attachment. If `attachment` is 'color' and
+            `buffer` is an off-screen buffer, this will select the color
+            attachment at the given index. For instance, `colorIdx=1` will
+            set `GL_COLOR_ATTACHMENT1` as the read buffer.
+
+        """
+        useBuffer = self._frameBuffers[buffer]
+        if isinstance(useBuffer, int):
+            GL.glBindFramebuffer(GL.GL_READ_FRAMEBUFFER, 0)
+            GL.glReadBuffer(useBuffer)
+        else:
+            GL.glBindFramebuffer(GL.GL_READ_FRAMEBUFFER, useBuffer.name)
+            if attachment == 'color':
+                GL.glReadBuffer(GL.GL_COLOR_ATTACHMENT0 + colorIdx)
+            elif attachment == 'depth':
+                GL.glReadBuffer(GL.GL_DEPTH_ATTACHMENT)
+            elif attachment == 'stencil':
+                GL.glReadBuffer(GL.GL_STENCIL_ATTACHMENT)
+            elif attachment == 'depthStencil':
+                GL.glReadBuffer(GL.GL_DEPTH_STENCIL_ATTACHMENT)
+
+        self._readBuffer = buffer
+
+    def setDrawBuffer(self, buffer, attachment='color', colorIdx=0):
+        """Set the buffer for draw operations.
+
+        Parameters
+        ----------
+        buffer : str
+            Name of buffer to draw to.
+        attachment : str
+            Buffer attachment to draw to. Values can be 'color', 'depth',
+            'stencil' and 'depthStencil' which map to `GL_COLOR_ATTACHMENTn`,
+            `GL_DEPTH_ATTACHMENT`, `GL_STENCIL_ATTACHMENT`, and
+            `GL_DEPTH_STENCIL_ATTACHMENT`, respectively.
+        colorIdx : int
+            Index of the color attachment. If `attachment` is 'color' and
+            `buffer` is an off-screen buffer, this will select the color
+            attachment at the given index. For instance, `colorIdx=1` will
+            set `GL_COLOR_ATTACHMENT1` as the draw buffer.
+
+        Notes
+        -----
+            * Changing the draw buffer will also change the window's `buffer`.
+
+        """
+        useBuffer = self._frameBuffers[buffer]
+        if isinstance(useBuffer, int):
+            GL.glBindFramebuffer(GL.GL_DRAW_FRAMEBUFFER, 0)
+            GL.glDrawBuffer(useBuffer)
+        else:
+            GL.glBindFramebuffer(GL.GL_DRAW_FRAMEBUFFER, useBuffer.name)
+            if attachment == 'color':
+                GL.glReadBuffer(GL.GL_COLOR_ATTACHMENT0 + colorIdx)
+            elif attachment == 'depth':
+                GL.glReadBuffer(GL.GL_DEPTH_ATTACHMENT)
+            elif attachment == 'stencil':
+                GL.glReadBuffer(GL.GL_STENCIL_ATTACHMENT)
+            elif attachment == 'depthStencil':
+                GL.glReadBuffer(GL.GL_DEPTH_STENCIL_ATTACHMENT)
+
+        self._drawBuffer = self._buffer = buffer
+        self.windowBuffer.use()
+
+    def getBuffer(self):
+        """Get the name of the current buffer.
+
+        Returns
+        -------
+        str
+            Buffer name.
+
+        """
+        return self.buffer
+
     def setBuffer(self, buffer, clear=True):
-        """Choose which buffer to draw to.
+        """Choose which buffer to draw to. Sets the read and draw buffer to the
+        buffer's color attachment.
+
+        This is equivalent to making the following calls::
+
+            # using 'back' as an example, but can be any buffer name
+            win.readBuffer('back')
+            win.drawBuffer('back')
+            win.clearBuffer()
 
         Parameters
         ----------
@@ -1249,7 +1380,8 @@ class Window(object):
         try:
             # set the buffer and its context
             useBuffer = self._frameBuffers[buffer]
-            self._buffer = buffer  # buffer name is valid
+            # buffer name is valid
+            self._buffer = self._readBuffer = self._drawBuffer = buffer
         except KeyError:
             raise "Unknown buffer '%s' requested in Window.setBuffer" % buffer
 
@@ -1258,11 +1390,14 @@ class Window(object):
             GL.glReadBuffer(useBuffer)
             GL.glDrawBuffer(useBuffer)
         else:
-            GL.glBindFramebuffer(GL.GL_FRAMEBUFFER, useBuffer.fbo.name)
+            GL.glBindFramebuffer(GL.GL_FRAMEBUFFER, useBuffer.name)
+            # check if the framebuffer is complete
+            # if not gltools.isComplete():
+            #     raise RuntimeError("Cannot use buffer, not complete.")
             GL.glReadBuffer(GL.GL_COLOR_ATTACHMENT0)
             GL.glDrawBuffer(GL.GL_COLOR_ATTACHMENT0)
 
-        self._renderContexts[self._buffer].use()
+        self.windowBuffer.use()
 
         if clear:
             self.clearBuffer()
@@ -1313,7 +1448,7 @@ class Window(object):
 
         """
         # ensure we are not overwriting an existing buffer
-        if name in self._renderContexts.keys():
+        if name in self._windowBuffers.keys():
             raise ValueError('Buffer with key `name` already in use.')
 
         if targetBuffer is None:
@@ -1328,7 +1463,7 @@ class Window(object):
             w, h = targetBuffer.size
             viewport = (0, 0, w, h)
 
-        self._renderContexts[name] = RenderContext(self, viewport, name)
+        self._windowBuffers[name] = WindowBuffer(self, viewport, name)
         self._frameBuffers[name] = targetBuffer  # create new reference
 
     def createBuffer(self, name, size=None, samples=1):
@@ -1340,7 +1475,7 @@ class Window(object):
         a 2D texture in video memory for use elsewhere. You can set and use the
         buffer for drawing by calling `setBuffer`.
 
-        A corresponding `RenderContext` is automatically created for the buffer
+        A corresponding `WindowBuffer` is automatically created for the buffer
         which can be configured afterwards.
 
         Parameters
@@ -1363,13 +1498,98 @@ class Window(object):
 
         """
         # ensure we are not overwriting an existing buffer
-        if name in self._frameBuffers.keys() or name in self._renderContexts.keys():
+        if name in self._frameBuffers.keys() or \
+                name in self._windowBuffers.keys():
             raise ValueError('Buffer with key `name` already in use.')
 
         size = self.size if size is None else size
+
+        # Create a buffer for color data. If `samples` > 1, create a multi-
+        # sample render buffer instead of a texture.
+        if samples == 1:
+            colorRb = gltools.createTexImage2D(
+                size[0], size[1], texParams={
+                    GL.GL_TEXTURE_MAG_FILTER: GL.GL_LINEAR,
+                    GL.GL_TEXTURE_MIN_FILTER: GL.GL_LINEAR})
+        elif samples > 1:
+            colorRb = gltools.createRenderbuffer(size[0], size[1],
+                                                 samples=samples)
+        else:
+            raise ValueError("Value for `samples` must be >=1.")
+
+        depthStencilRb = gltools.createRenderbuffer(
+            size[0], size[1], internalFormat=GL.GL_DEPTH24_STENCIL8)
+
+        attachments = {GL.GL_COLOR_ATTACHMENT0: colorRb,
+                       GL.GL_DEPTH_ATTACHMENT: depthStencilRb,
+                       GL.GL_STENCIL_ATTACHMENT: depthStencilRb}
+
         rect = (0, 0, self.size[0], self.size[1])
-        self._frameBuffers[name] = Framebuffer(self, name, size, samples)
-        self._renderContexts[name] = RenderContext(self, rect, name)
+        self._frameBuffers[name] = gltools.createFBO(attachments)
+        self._windowBuffers[name] = WindowBuffer(self, rect, name)
+
+    def createBufferWithDescriptors(self, name, attachments=None):
+        """Create a new buffer using attachment descriptors.
+
+        For advanced control over the creation of a buffer, you can use
+        descriptors for each attachment with the classes provided in the
+        `~psychopy.tools.gltools` module.
+
+        This method is useful for creating special buffers for things like
+        shadow mapping, instead of the `createBuffer` which is intended for
+        making additional render targets for PsychoPy stimulus classes.
+        Requires some knowledge of OpenGL, but allows for any possible
+        configuration supported by the OpenGL implementation.
+
+        Parameters
+        ----------
+        name : str
+            Name of the buffer to create. Must not be an existing name.
+        attachments : dict or None
+            Attachments to initialize the Framebuffer with.
+
+        Examples
+        --------
+        Create a buffer named 'newBuffer' from attachment descriptors::
+
+            # needs `import pyglet.gl as GL` and
+            # `import psychopy.tools.gltools as gltools`
+
+            # descriptors for color and depth attachments
+            colorTex =  gltools.createTexImage2D(
+                    800, 600, texParams={
+                        GL.GL_TEXTURE_MAG_FILTER: GL.GL_LINEAR,
+                        GL.GL_TEXTURE_MIN_FILTER: GL.GL_LINEAR})
+            depthRb = createRenderbuffer(800, 600,
+                internalFormat=GL.GL_DEPTH24_STENCIL8)
+
+            # dictionary of attachments to use
+            attachments = {GL.GL_COLOR_ATTACHMENT0: colorRb,
+                GL.GL_DEPTH_STENCIL_ATTACHMENT: depthRb}
+
+            # create the buffer
+            win.createBufferWithDescriptors('newBuffer', attachments)
+            win.setBuffer('newBuffer')
+            print(win.size)  # (800, 600)
+
+        """
+        if name in self._bufferNames:
+            raise ValueError("Buffer name `{}` already exists.".format(name))
+
+        # get the largest attachment size
+        maxWidth = maxHeight = -1
+        for _, buffer in attachments.items():
+            maxWidth = buffer.width if maxWidth < buffer.width else maxWidth
+            maxHeight = buffer.height if maxHeight < buffer.height else maxHeight
+
+        size = (maxWidth, maxHeight)
+
+        # create a new Framebuffer object with no attachments
+
+        # make the buffer available
+        self._frameBuffers[name] = gltools.createFBO(attachments)
+        self._windowBuffers[name] = WindowBuffer(
+            self, (0, 0, size[0], size[1]), name)
 
     def deleteBuffer(self, name):
         """Delete a buffer.
@@ -1398,7 +1618,7 @@ class Window(object):
         # Deletes a reference, is multiple contexts share the same framebuffer,
         # the framebuffer will be kept alive.
         try:
-            del self._renderContexts[name]
+            del self._windowBuffers[name]
             del self._frameBuffers[name]
         except KeyError:
             raise ValueError("Value for `name` not a buffer.")
@@ -1411,7 +1631,7 @@ class Window(object):
         and warping. Be default, a null warp operation is used.
 
         """
-        if not isinstance(self._frameBuffers[self._buffer], Framebuffer):
+        if not isinstance(self._frameBuffers[self._buffer], gltools.Framebuffer):
             raise TypeError(
                 "Current buffer must be `Framebuffer` for `waprBuffer`.")
 
@@ -1429,7 +1649,7 @@ class Window(object):
 
         # before flipping need to copy the renderBuffer to the
         # frameBuffer
-        tex = self._frameBuffers[oldBuffer].fbo.getColorBuffer(colorAttachment)
+        tex = self._frameBuffers[oldBuffer].getColorBuffer(colorAttachment)
 
         self.draw3d = False  # disable 3d drawing
         warp._prepareFBOrender()
@@ -1486,25 +1706,25 @@ class Window(object):
 
         # if `srcRect` not given, use the device context viewport
         if srcRect is None:
-            srcRect = self._renderContexts[oldBuffer].viewport
+            srcRect = self._windowBuffers[oldBuffer].viewport
 
         # use `srcRect` if `dstRect` is not specified
         dstRect = dstRect if dstRect is not None else srcRect
 
         # get the read buffer
-        if not isinstance(srcFBO, Framebuffer):
+        if not isinstance(srcFBO, gltools.Framebuffer):
             GL.glBindFramebuffer(GL.GL_READ_FRAMEBUFFER, 0)
             GL.glReadBuffer(srcFBO)
         else:
-            GL.glBindFramebuffer(GL.GL_READ_FRAMEBUFFER, srcFBO.fbo.name)
+            GL.glBindFramebuffer(GL.GL_READ_FRAMEBUFFER, srcFBO.name)
             GL.glReadBuffer(GL.GL_COLOR_ATTACHMENT0)
 
         # get the draw buffer
-        if not isinstance(dstFBO, Framebuffer):
+        if not isinstance(dstFBO, gltools.Framebuffer):
             GL.glBindFramebuffer(GL.GL_DRAW_FRAMEBUFFER, 0)
             GL.glDrawBuffer(dstFBO)
         else:
-            GL.glBindFramebuffer(GL.GL_DRAW_FRAMEBUFFER, dstFBO.fbo.name)
+            GL.glBindFramebuffer(GL.GL_DRAW_FRAMEBUFFER, dstFBO.name)
             GL.glDrawBuffer(GL.GL_COLOR_ATTACHMENT0)
 
         if filtering == 'linear':
@@ -1530,7 +1750,7 @@ class Window(object):
             dstRect[0] + dstRect[2], dstRect[1] + dstRect[3],
             bufferBits, useFilter)
 
-        # # switch the buffer
+        # switch the buffer
         if not switchToDst:
             self.setBuffer(oldBuffer, clear=False)
         else:
@@ -1566,19 +1786,7 @@ class Window(object):
             win.clearBuffer(color=False, depth=True, stencil=False)
 
         """
-        clearBufferBits = GL.GL_NONE
-
-        if color:
-            clearBufferBits |= GL.GL_COLOR_BUFFER_BIT
-
-        if depth:
-            clearBufferBits |= GL.GL_DEPTH_BUFFER_BIT
-
-        if stencil:
-            clearBufferBits |= GL.GL_STENCIL_BUFFER_BIT
-
-        # reset returned buffer for next frame
-        GL.glClear(clearBufferBits)
+        self.windowBuffer.clearBuffer(color, depth, stencil)
 
     @property
     def size(self):
@@ -1586,7 +1794,7 @@ class Window(object):
         # report clientSize until we get framebuffer size from
         # the backend, needs to be done properly in the future
         if self.backend is not None:
-            return self._renderContexts[self.buffer].size
+            return self.windowBuffer.size
         else:
             return self.clientSize
 
@@ -1599,7 +1807,7 @@ class Window(object):
     @property
     def aspect(self):
         """Aspect ratio of the current viewport (width / height)."""
-        return self._renderContexts[self._buffer].aspect
+        return self.windowBuffer.aspect
 
     @property
     def buffer(self):
@@ -1638,7 +1846,9 @@ class Window(object):
 
         """
         # convert the flag if bool to 'quad'
-        if self.stereo is True:
+        if self.stereo is False:
+            return  # nop
+        elif self.stereo is True:
             self.stereo = 'quad'
 
         # check if the mode specified was valid
@@ -1652,8 +1862,8 @@ class Window(object):
             # displays. Displays are assumed to be matched.
             leftEyeRect = (0, 0, int(self.size[0] / 2), self.size[1])
             rightEyeRect = (leftEyeRect[2], 0, leftEyeRect[2], leftEyeRect[3])
-            self._renderContexts['left'] = RenderContext(self, leftEyeRect, 'left')
-            self._renderContexts['right'] = RenderContext(self, rightEyeRect, 'right')
+            self._windowBuffers['left'] = WindowBuffer(self, leftEyeRect, 'left')
+            self._windowBuffers['right'] = WindowBuffer(self, rightEyeRect, 'right')
             self._frameBuffers['left'] = GL.GL_BACK
             self._frameBuffers['right'] = GL.GL_BACK
 
@@ -1663,8 +1873,8 @@ class Window(object):
             # stereoscopes which images are viewed through mirrors.
             leftEyeRect = (0, 0, int(self.size[0] / 2), self.size[1])
             rightEyeRect = (leftEyeRect[2], 0, leftEyeRect[2], leftEyeRect[3])
-            self._renderContexts['left'] = RenderContext(self, leftEyeRect, 'left')
-            self._renderContexts['right'] = RenderContext(self, rightEyeRect, 'right')
+            self._windowBuffers['left'] = WindowBuffer(self, leftEyeRect, 'left')
+            self._windowBuffers['right'] = WindowBuffer(self, rightEyeRect, 'right')
             self._frameBuffers['left'] = GL.GL_BACK
             self._frameBuffers['right'] = GL.GL_BACK
 
@@ -1674,8 +1884,8 @@ class Window(object):
             w = int(self.size[0] / 2)
             leftEyeRect = (w, 0, w, self.size[1])
             rightEyeRect = (0, 0, leftEyeRect[2], leftEyeRect[3])
-            self._renderContexts['left'] = RenderContext(self, leftEyeRect, 'left')
-            self._renderContexts['right'] = RenderContext(self, rightEyeRect, 'right')
+            self._windowBuffers['left'] = WindowBuffer(self, leftEyeRect, 'left')
+            self._windowBuffers['right'] = WindowBuffer(self, rightEyeRect, 'right')
             self._frameBuffers['left'] = GL.GL_BACK
             self._frameBuffers['right'] = GL.GL_BACK
 
@@ -1684,12 +1894,12 @@ class Window(object):
             # systems. To maintain legacy support, if `stereo=True`, this will
             # be enabled.
             rect = (0, 0, self.size[0], self.size[1])
-            self._renderContexts['left'] = RenderContext(self, rect, 'left')
-            self._renderContexts['right'] = RenderContext(self, rect, 'right')
+            self._windowBuffers['left'] = WindowBuffer(self, rect, 'left')
+            self._windowBuffers['right'] = WindowBuffer(self, rect, 'right')
             self._frameBuffers['left'] = GL.GL_BACK_LEFT
             self._frameBuffers['right'] = GL.GL_BACK_RIGHT
 
-        elif self.stereo == 'libovr':
+        elif self.stereo == 'rift':
             # Stereo rendering to the Oculus Rift HMD using PsychXR.
             pass
 
@@ -1711,13 +1921,11 @@ class Window(object):
 
         """
         # TODO - use signed color and colorspace instead
-        return self._ambientLight[:3]
+        return self.windowBuffer.ambientLight
 
     @ambientLight.setter
     def ambientLight(self, value):
-        self._ambientLight[:3] = value
-        GL.glLightModelfv(GL.GL_LIGHT_MODEL_AMBIENT,
-                          numpy.ctypeslib.as_ctypes(self._ambientLight))
+        self.windowBuffer.ambientLight = value
 
     @property
     def lights(self):
@@ -1744,56 +1952,11 @@ class Window(object):
             win.lights = myLights
 
         """
-        return self._lights
+        return self.windowBuffer.lights
 
     @lights.setter
     def lights(self, value):
-        # if None or empty list, disable all lights
-        if value is None or not value:
-            for index in range(self._nLights):
-                GL.glDisable(GL.GL_LIGHT0 + index)
-
-            self._nLights = 0  # set number of lights to zero
-            self._lights = value
-
-            return
-
-        # set the lights and make sure it's a list if a single value was passed
-        self._lights = value if isinstance(value, (list, tuple,)) else [value]
-
-        # disable excess lights if less lights were specified this time
-        oldNumLights = self._nLights
-        self._nLights = len(self._lights)  # number of lights enabled
-        if oldNumLights > self._nLights:
-            for index in range(self._nLights, oldNumLights):
-                GL.glDisable(GL.GL_LIGHT0 + index)
-
-        # Setup legacy lights, new spec shader programs should access the
-        # `lights` attribute directly to setup lighting uniforms.
-        # The index of the lights is defined by the order it appears in
-        # `self._lights`.
-        for index, light in enumerate(self._lights):
-            enumLight = GL.GL_LIGHT0 + index
-
-            # convert data in light class to ctypes
-            #pos = numpy.ctypeslib.as_ctypes(light.pos)
-            diffuse = numpy.ctypeslib.as_ctypes(light._diffuseRGB)
-            specular = numpy.ctypeslib.as_ctypes(light._specularRGB)
-            ambient = numpy.ctypeslib.as_ctypes(light._ambientRGB)
-
-            # pass values to OpenGL
-            #GL.glLightfv(enumLight, GL.GL_POSITION, pos)
-            GL.glLightfv(enumLight, GL.GL_DIFFUSE, diffuse)
-            GL.glLightfv(enumLight, GL.GL_SPECULAR, specular)
-            GL.glLightfv(enumLight, GL.GL_AMBIENT, ambient)
-
-            constant, linear, quadratic = light._kAttenuation
-            GL.glLightf(enumLight, GL.GL_CONSTANT_ATTENUATION, constant)
-            GL.glLightf(enumLight, GL.GL_LINEAR_ATTENUATION, linear)
-            GL.glLightf(enumLight, GL.GL_QUADRATIC_ATTENUATION, quadratic)
-
-            # enable the light
-            GL.glEnable(enumLight)
+        self.windowBuffer.lights = value
 
     @property
     def useLights(self):
@@ -1814,28 +1977,11 @@ class Window(object):
         This flag is reset to `False` at the beginning of each frame. Should be
         `False` if rendering 2D stimuli or else the colors will be incorrect.
         """
-        return self._useLights
+        return self.windowBuffer.useLights
 
     @useLights.setter
     def useLights(self, value):
-        self._useLights = value
-
-        # Setup legacy lights, new spec shader programs should access the
-        # `lights` attribute directly to setup lighting uniforms.
-        if self._useLights and self._lights:
-            GL.glEnable(GL.GL_LIGHTING)
-            # make sure specular lights are computed relative to eye position,
-            # this is more realistic than the default. Does not affect shaders.
-            GL.glLightModeli(GL.GL_LIGHT_MODEL_LOCAL_VIEWER, GL.GL_TRUE)
-
-            # update light positions for current model matrix
-            for index, light in enumerate(self._lights):
-                enumLight = GL.GL_LIGHT0 + index
-                pos = numpy.ctypeslib.as_ctypes(light.pos)
-                GL.glLightfv(enumLight, GL.GL_POSITION, pos)
-        else:
-            # disable lights
-            GL.glDisable(GL.GL_LIGHTING)
+        self.windowBuffer.useLights = value
 
     def updateLights(self, index=None):
         """Explicitly update scene lights if they were modified.
@@ -1858,31 +2004,56 @@ class Window(object):
             win.updateLights(1)
 
         """
-        if self._lights is None:
-            return  # nop if there are no lights
+        self.windowBuffer.updateLights(index)
 
-        if index is None:
-            self.lights = self._lights
-        else:
-            if index > len(self._lights) - 1:
-                raise IndexError('Invalid index for `lights`.')
+    def syncLights(self, syncWith=None, bufferNames=()):
+        """Synchronize lighting settings across multiple buffers.
 
-            enumLight = GL.GL_LIGHT0 + index
+        Usually, lights need to be assigned to each buffer separately. This can
+        be inconvenient when buffers are displaying multiple views of the same
+        scene which will share the same lighting configuration. Calling the
+        function will synchronize lighting settings across multiple view
+        buffers so you don't need to set them directly.
 
-            # light object to modify
-            light = self._lights[index]
+        Since each buffer's light settings will reference the same light
+        objects. Making changes to lights when any of the synchronized buffers
+        are active will be applied to other buffers.
 
-            # convert data in light class to ctypes
-            # pos = numpy.ctypeslib.as_ctypes(light.pos)
-            diffuse = numpy.ctypeslib.as_ctypes(light.diffuse)
-            specular = numpy.ctypeslib.as_ctypes(light.specular)
-            ambient = numpy.ctypeslib.as_ctypes(light.ambient)
+        Parameters
+        ----------
+        syncWith : str or None
+            Name of buffer whose lighting settings other buffers will be
+            synchronized to use. If `None`, the current buffer's lighting
+            settings will be used.
+        bufferNames : str, tuple or list
+            Name of or list of names of buffers to apply the lighting settings
+            of `syncWith` to.
 
-            # pass values to OpenGL
-            # GL.glLightfv(enumLight, GL.GL_POSITION, pos)
-            GL.glLightfv(enumLight, GL.GL_DIFFUSE, diffuse)
-            GL.glLightfv(enumLight, GL.GL_SPECULAR, specular)
-            GL.glLightfv(enumLight, GL.GL_AMBIENT, ambient)
+        Examples
+        --------
+        Synchronizing light settings between buffers named 'left' and 'right'::
+
+            win.setBuffer('left')
+            win.lights = [LightSource(win)]
+            win.syncLights('left', 'right')
+
+        If you have multiple buffers, you can specify a list to sync (eg. for a
+        VR cave)::
+
+            win.syncLights('left', ('right', 'top', 'bottom', 'front', 'back'))
+
+        """
+        if syncWith is None:
+            syncWith = self._buffer
+
+        bufferToSync = self._windowBuffers[syncWith]
+
+        if isinstance(bufferNames, str):
+            bufferNames = (bufferNames,)
+
+        for name in bufferNames:
+            self._windowBuffers[name].lights = bufferToSync.lights
+            self._windowBuffers[name].ambientLight = bufferToSync.ambientLight
 
     def resetViewport(self):
         """Reset the viewport to cover the whole framebuffer.
@@ -1924,11 +2095,11 @@ class Window(object):
             win.viewport = win.scissor = [x, y, w, h]
 
         """
-        return self._renderContexts[self.buffer].viewport
+        return self.windowBuffer.viewport
 
     @viewport.setter
     def viewport(self, value):
-        self._renderContexts[self.buffer].viewport = numpy.array(value, numpy.int)
+        self.windowBuffer.viewport = numpy.array(value, numpy.int)
 
     @property
     def scissor(self):
@@ -1948,65 +2119,65 @@ class Window(object):
         not changing the positions of stimuli.
 
         """
-        return self._renderContexts[self.buffer].scissor
+        return self.windowBuffer.scissor
 
     @scissor.setter
     def scissor(self, value):
-        self._renderContexts[self.buffer].scissor = numpy.array(value, numpy.int)
+        self.windowBuffer.scissor = numpy.array(value, numpy.int)
 
     @property
     def scissorTest(self):
         """`True` if scissor testing is enabled."""
-        return self._renderContexts[self._buffer].scissorTest
+        return self.windowBuffer.scissorTest
 
     @scissorTest.setter
     def scissorTest(self, value):
-        self._renderContexts[self._buffer].scissorTest = value
+        self.windowBuffer.scissorTest = value
 
     @property
     def stencilTest(self):
         """`True` if stencil testing is enabled."""
-        return self._renderContexts[self._buffer].stencilTest
+        return self.windowBuffer.stencilTest
 
     @stencilTest.setter
     def stencilTest(self, value):
-        self._renderContexts[self._buffer].stencilTest = value
+        self.windowBuffer.stencilTest = value
 
     @property
     def nearClip(self):
         """Distance to the near clipping plane in meters."""
-        return self._nearClip
+        return self.windowBuffer.nearClip
 
     @nearClip.setter
     def nearClip(self, value):
-        self._nearClip = value
+        self.windowBuffer.nearClip = value
 
     @property
     def farClip(self):
         """Distance to the far clipping plane in meters."""
-        return self._farClip
+        return self.windowBuffer.farClip
 
     @farClip.setter
     def farClip(self, value):
-        self._farClip = value
+        self.windowBuffer.farClip = value
 
     @property
     def projectionMatrix(self):
         """Projection matrix defined as a 4x4 numpy array."""
-        return self._renderContexts[self._buffer].projectionMatrix
+        return self.windowBuffer.projectionMatrix
 
     @projectionMatrix.setter
     def projectionMatrix(self, value):
-        self._renderContexts[self._buffer].projectionMatrix = value
+        self.windowBuffer.projectionMatrix = value
 
     @property
     def viewMatrix(self):
         """View matrix defined as a 4x4 numpy array."""
-        return self._renderContexts[self._buffer].viewMatrix
+        return self.windowBuffer.viewMatrix
 
     @viewMatrix.setter
     def viewMatrix(self, value):
-        self._renderContexts[self._buffer].viewMatrix = value
+        self.windowBuffer.viewMatrix = value
 
     @property
     def eyeOffset(self):
@@ -2019,11 +2190,11 @@ class Window(object):
         center of the eye, or half the inter-ocular distance.
 
         """
-        return self._renderContexts[self._buffer].eyeOffset
+        return self.windowBuffer.eyeOffset
 
     @eyeOffset.setter
     def eyeOffset(self, value):
-        self._renderContexts[self._buffer].eyeOffset = value
+        self.windowBuffer.eyeOffset = value
 
     @property
     def convergeOffset(self):
@@ -2040,11 +2211,11 @@ class Window(object):
         * This value is only applicable for `setToeIn` and `setOffAxisView`.
 
         """
-        return self._renderContexts[self._buffer].convergeOffset
+        return self.windowBuffer.convergeOffset
 
     @convergeOffset.setter
     def convergeOffset(self, value):
-        self._renderContexts[self._buffer].convergeOffset = value
+        self.windowBuffer.convergeOffset = value
 
     def setOffAxisView(self, applyTransform=True, clearDepth=True):
         """Set an off-axis projection.
@@ -2068,8 +2239,7 @@ class Window(object):
             Clear the depth buffer.
 
         """
-        self._renderContexts[self._buffer].setOffAxisView(
-            applyTransform, clearDepth)
+        self.windowBuffer.setOffAxisView(applyTransform, clearDepth)
 
     def setToeInView(self, applyTransform=True, clearDepth=True):
         """Set toe-in projection.
@@ -2098,8 +2268,7 @@ class Window(object):
           something the viewer can look around the screen comfortably.
 
         """
-        self._renderContexts[self._buffer].setToeInView(
-            applyTransform, clearDepth)
+        self.windowBuffer.setToeInView(applyTransform, clearDepth)
 
     def setPerspectiveView(self, applyTransform=True, clearDepth=True):
         """Set the projection and view matrix to render with perspective.
@@ -2124,10 +2293,9 @@ class Window(object):
             Clear the depth buffer.
 
         """
-        self._renderContexts[self._buffer].setPerspectiveView(
-            applyTransform, clearDepth)
+        self.windowBuffer.setPerspectiveView(applyTransform, clearDepth)
 
-    def applyEyeTransform(self, clearDepth=True):
+    def applyEyeTransform(self, clearDepth=True, shaderProg=None):
         """Apply the current view and projection matrices.
 
         Matrices specified by attributes :py:attr:`~Window.viewMatrix` and
@@ -2143,6 +2311,8 @@ class Window(object):
         clearDepth : bool
             Clear the depth buffer. This may be required prior to rendering 3D
             objects.
+        shaderProg : int, object or None
+            Optional handle for the active shader.
 
         Examples
         --------
@@ -2156,28 +2326,7 @@ class Window(object):
             # draw 3D objects here ...
 
         """
-        # apply the projection and view transformations
-        if hasattr(self, '_projectionMatrix'):
-            GL.glMatrixMode(GL.GL_PROJECTION)
-            GL.glLoadIdentity()
-            projMat = self._projectionMatrix.ctypes.data_as(
-                ctypes.POINTER(ctypes.c_float))
-            GL.glMultTransposeMatrixf(projMat)
-
-        if hasattr(self, '_viewMatrix'):
-            GL.glMatrixMode(GL.GL_MODELVIEW)
-            GL.glLoadIdentity()
-            viewMat = self._viewMatrix.ctypes.data_as(
-                ctypes.POINTER(ctypes.c_float))
-            GL.glMultTransposeMatrixf(viewMat)
-
-        oldDepthMask = self.depthMask
-        if clearDepth:
-            GL.glDepthMask(GL.GL_TRUE)
-            GL.glClear(GL.GL_DEPTH_BUFFER_BIT)
-
-            if oldDepthMask is False:   # return to old state if needed
-                GL.glDepthMask(GL.GL_FALSE)
+        self.windowBuffer.applyEyeTransform(clearDepth, shaderProg)
 
     def resetEyeTransform(self, clearDepth=True):
         """Restore the default projection and view settings to PsychoPy
@@ -2212,14 +2361,7 @@ class Window(object):
         """
         # should eventually have the same effect as calling _onResize(), so we
         # need to add the retina mode stuff eventually
-        if hasattr(self, '_viewMatrix'):
-            self._viewMatrix = numpy.identity(4, dtype=numpy.float32)
-
-        if hasattr(self, '_projectionMatrix'):
-            self._projectionMatrix = viewtools.orthoProjectionMatrix(
-                -1, 1, -1, 1, -1, 1, dtype=numpy.float32)
-
-        self.applyEyeTransform(clearDepth)
+        self.windowBuffer.resetEyeTransform(clearDepth)
 
     def coordToRay(self, screenXY):
         """Convert a screen coordinate to a direction vector.
@@ -2561,128 +2703,67 @@ class Window(object):
     @property
     def depthTest(self):
         """`True` if depth testing is enabled."""
-        return self._depthTest
+        return self.windowBuffer.depthTest
 
     @depthTest.setter
     def depthTest(self, value):
-        if value is True:
-            GL.glEnable(GL.GL_DEPTH_TEST)
-        elif value is False:
-            GL.glDisable(GL.GL_DEPTH_TEST)
-        else:
-            raise TypeError("Value must be boolean.")
-
-        self._depthTest = value
+        self.windowBuffer.depthTest = value
 
     @property
     def depthFunc(self):
         """Depth test comparison function for rendering."""
-        return self._depthFunc
+        return self.windowBuffer.depthFunc
 
     @depthFunc.setter
     def depthFunc(self, value):
-        depthFuncs = {'never': GL.GL_NEVER, 'less': GL.GL_LESS,
-                      'equal': GL.GL_EQUAL, 'lequal': GL.GL_LEQUAL,
-                      'greater': GL.GL_GREATER, 'notequal': GL.GL_NOTEQUAL,
-                      'gequal': GL.GL_GEQUAL, 'always': GL.GL_ALWAYS}
-
-        GL.glDepthFunc(depthFuncs[value])
-
-        self._depthFunc = value
+        self.windowBuffer.depthFunc = value
 
     @property
     def depthMask(self):
         """`True` if depth masking is enabled. Writing to the depth buffer will
         be disabled.
         """
-        return self._depthMask
+        return self.windowBuffer.depthMask
 
     @depthMask.setter
     def depthMask(self, value):
-        if value is True:
-            GL.glDepthMask(GL.GL_TRUE)
-        elif value is False:
-            GL.glDepthMask(GL.GL_FALSE)
-        else:
-            raise TypeError("Value must be boolean.")
-
-        self._depthMask = value
+        self.windowBuffer.depthMask = value
 
     @property
     def cullFaceMode(self):
         """Face culling mode, either `back`, `front` or `both`."""
-        return self._cullFaceMode
+        return self.windowBuffer.cullFaceMode
 
     @cullFaceMode.setter
     def cullFaceMode(self, value):
-        if value == 'back':
-            GL.glCullFace(GL.GL_BACK)
-        elif value == 'front':
-            GL.glCullFace(GL.GL_FRONT)
-        elif value == 'both':
-            GL.glCullFace(GL.GL_FRONT_AND_BACK)
-        else:
-            raise ValueError('Invalid face cull mode.')
-
-        self._cullFaceMode = value
+        self.windowBuffer.cullFaceMode = value
 
     @property
     def cullFace(self):
         """`True` if face culling is enabled.`"""
-        return self._cullFace
+        return self.windowBuffer.cullFace
 
     @cullFace.setter
     def cullFace(self, value):
-        if value is True:
-            GL.glEnable(GL.GL_CULL_FACE)
-        elif value is False:
-            GL.glDisable(GL.GL_CULL_FACE)
-        else:
-            raise TypeError('Value must be type `bool`.')
-
-        self._cullFace = value
+        self.windowBuffer.cullFace = value
 
     @property
     def frontFace(self):
         """Face winding order to define front, either `ccw` or `cw`."""
-        return self._frontFace
+        return self.windowBuffer.frontFace
 
     @frontFace.setter
     def frontFace(self, value):
-        if value == 'ccw':
-            GL.glFrontFace(GL.GL_CCW)
-        elif value == 'cw':
-            GL.glFrontFace(GL.GL_CW)
-        else:
-            raise ValueError('Invalid value, must be `ccw` or `cw`.')
-
-        self._frontFace = value
+        self.windowBuffer.frontFace = value
 
     @property
     def draw3d(self):
         """`True` if 3D drawing is enabled on this window."""
-        return self._draw3d
+        return self.windowBuffer.draw3d
 
     @draw3d.setter
     def draw3d(self, value):
-        if value is True:
-            if self.depthMask is False:
-                self.depthMask = True
-            if self.depthTest is False:
-                self.depthTest = True
-            if self.cullFace is False:
-                self.cullFace = True
-        elif value is False:
-            if self.depthMask is True:
-                self.depthMask = False
-            if self.depthTest is True:
-                self.depthTest = False
-            if self.cullFace is True:
-                self.cullFace = False
-        else:
-            raise TypeError('Value must be type `bool`.')
-
-        self._draw3d = value
+        self.windowBuffer.draw3d = value
 
     @attributeSetter
     def blendMode(self, blendMode):
@@ -2986,6 +3067,9 @@ class Window(object):
                             "blendMode='add'. Reverting to blendMode='avg'")
             self.blendMode = 'avg'
 
+        # setup stereo
+        self._setupStereo()
+
     def _setupShaders(self):
         self._progSignedTexFont = _shaders.compileProgram(
             _shaders.vertSimple, _shaders.fragSignedColorTexFont)
@@ -3055,23 +3139,37 @@ class Window(object):
             self._shaders['stim3d_phong'][flag] = prog
 
     def _setupFrameBuffer(self):
+        """Setup the main framebuffer if `useFBO=True`. This creates a new
+        window buffer named 'main' that will serve as the primary render target.
+
+        For backwards compatibility, attributes `frameBuffer`, `frameTexture`,
+        and `_stencilTexture` will be given references to OpenGL names
+        associated with the `Framebuffer` object. This allows classes like
+        `Warper` to still work.
+
+        """
         # If `useFBO` is `True`, add a device context with name 'main' which is
         # reserved for it.
-        self._renderContexts['main'] = RenderContext(
+        self._windowBuffers['main'] = WindowBuffer(
             self, (0, 0, self.size[0], self.size[1]), 'main')
+
+        #colorRb = gltools.
+
+        self.createBufferWithDescriptors('main', attachments)
 
         # If `useFBO` is `True`, make another framebuffer
         self._frameBuffers['main'] = Framebuffer(
             self, 'main', (self.size[0], self.size[1]))
 
-        self.frameBuffer = self._frameBuffers['main'].fbo.name
+        self.frameBuffer = self._frameBuffers['main'].name
         self.frameTexture = self._frameBuffers['main'].getColorBuffer().name
-        self._stencilTexture = self._frameBuffers['main'].getDepthBuffer().name
+        # depth and stencil are combined, this call gets both
+        self._stencilTexture = self._frameBuffers['main'].getStencilBuffer().name
         GL.glDisable(GL.GL_TEXTURE_2D)
 
-        print(self.frameTexture)
-
         self.setBuffer('main', clear=False)
+
+        # clear all the cruft in each buffer's memory
         self.clearBuffer(color=True, depth=True, stencil=True)
 
         return True

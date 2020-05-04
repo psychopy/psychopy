@@ -254,7 +254,7 @@ class GLFWBackend(BaseBackend):
 
         # configure stereo
         useStereo = 0
-        if win.stereo:
+        if win.stereo is True:
             # provide warning if stereo buffers are requested but unavailable
             if not glfw.extension_supported('GL_STEREO'):
                 logging.warning(

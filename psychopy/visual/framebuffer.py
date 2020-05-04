@@ -25,15 +25,37 @@ from psychopy import colors
 
 # OpenGL constants mapped to strings, needed to avoid having users to define
 # these in their scripts.
-depthFuncs = {'never': GL.GL_NEVER, 'less': GL.GL_LESS,
-              'equal': GL.GL_EQUAL, 'lequal': GL.GL_LEQUAL,
-              'greater': GL.GL_GREATER, 'notequal': GL.GL_NOTEQUAL,
-              'gequal': GL.GL_GEQUAL, 'always': GL.GL_ALWAYS}
-cullFaceMode = {'back': GL.GL_BACK,
-                'front': GL.GL_FRONT,
-                'both': GL.GL_FRONT_AND_BACK,
-                'frontBack': GL.GL_FRONT_AND_BACK}
+depthFuncs = {
+    'never': GL.GL_NEVER,
+    'less': GL.GL_LESS,
+    'equal': GL.GL_EQUAL,
+    'lequal': GL.GL_LEQUAL,
+    'greater': GL.GL_GREATER,
+    'notequal': GL.GL_NOTEQUAL,
+    'gequal': GL.GL_GEQUAL,
+    'always': GL.GL_ALWAYS
+}
+
+cullFaceMode = {
+    'back': GL.GL_BACK,
+    'front': GL.GL_FRONT,
+    'both': GL.GL_FRONT_AND_BACK,
+    'frontBack': GL.GL_FRONT_AND_BACK
+}
+
 frontFace = {'ccw': GL.GL_CCW, 'cw': GL.GL_CW}
+
+depthBufferSize = {
+    16: GL.GL_DEPTH_COMPONENT16,
+    24: GL.GL_DEPTH_COMPONENT24,
+    32: GL.GL_DEPTH_COMPONENT32}
+
+stencilBufferSize = {
+    1: GL.GL_STENCIL_INDEX1,
+    4: GL.GL_STENCIL_INDEX4,
+    8: GL.GL_STENCIL_INDEX8,
+    16: GL.GL_STENCIL_INDEX16
+}
 
 internalColorFormats = {
     'RGBA': GL.GL_RGBA
@@ -59,26 +81,82 @@ class Framebuffer(object):
     require blitting the buffer to a regular framebuffer prior to warping.
 
     """
-    def __init__(self, win, name, size=None, samples=1, warper=None):
+    def __init__(self, win, size=None, samples=1, warper=None,
+                 colorBuffer=True, depthBuffer=True, stencilBuffer=True,
+                 depthBits=24, stencilBits=8):
+        """
+        Parameters
+        ----------
+        win : `~psychopy.visual.Window`
+            Window with OpenGL context to create the framebuffer for.
+        size : array_like or None
+            Size of the framebuffer. If `None`, the size will be set from the
+            window back buffer size.
+        samples : int
+            Number of samples for the color buffer. If >1, the color buffer will
+            be a render buffer.
+        depthBuffer : bool
+            Create a depth buffer attachment for this framebuffer.
+        stencilBuffer : bool
+            Create a stencil buffer attachment for this framebuffer.
+        depthBits : int
+            Size of the depth buffer per-pixel. Valid values are 8, 16, 24, and
+            32.
+        stencilBits : int
+            Size of the stencil buffer per-pixel. Valid values are 1, 4, 8, and
+            16.
+
+        Notes
+        -----
+        * If `depthBits=24` and `stencilBits=8`, a combined depth/stencil
+          attachment will be created.
+
+        """
         self._win = win
-        self._name = name
         self._size = np.array(win.size if size is None else size, dtype=int)
 
         self._samples = samples
 
         # IDs for FBO and its attachments
         w, h = self._size
-        colorTex = gltools.createTexImage2D(w, h, texParams={
-            GL.GL_TEXTURE_MAG_FILTER: GL.GL_LINEAR,
-            GL.GL_TEXTURE_MIN_FILTER: GL.GL_LINEAR})
-        depthRb = gltools.createRenderbuffer(
-            w, h, internalFormat=GL.GL_DEPTH24_STENCIL8)
 
-        # framebuffer object
-        self.fbo = gltools.createFBO(
-            {GL.GL_COLOR_ATTACHMENT0: colorTex,
-             GL.GL_DEPTH_ATTACHMENT: depthRb,
-             GL.GL_STENCIL_ATTACHMENT: depthRb})
+        attachments = dict()  # snowball for attachments
+        # Create a buffer for color data. If `samples` > 1, create a multi-
+        # sample render buffer instead of a texture.
+        if colorBuffer:
+            if samples == 1:
+                colorRb = gltools.createTexImage2D(
+                    w, h, texParams={
+                        GL.GL_TEXTURE_MAG_FILTER: GL.GL_LINEAR,
+                        GL.GL_TEXTURE_MIN_FILTER: GL.GL_LINEAR})
+            elif samples > 1:
+                colorRb = gltools.createRenderbuffer(
+                    w, h, samples=self._samples)
+            else:
+                raise ValueError("Value for `samples` must be >=1.")
+
+            attachments.update({GL.GL_COLOR_ATTACHMENT0: colorRb})
+
+        # create a stencil and depth buffer if requested
+        if (depthBuffer and stencilBuffer) and \
+                (depthBits == 24 and stencilBits == 8):  # if both are specified, combine them
+            depthStencilRb = gltools.createRenderbuffer(
+                w, h, internalFormat=GL.GL_DEPTH24_STENCIL8)
+            attachments.update(
+                {GL.GL_DEPTH_ATTACHMENT: depthStencilRb,
+                 GL.GL_STENCIL_ATTACHMENT: depthStencilRb})
+        else:
+            if depthBuffer:
+                depthRb = gltools.createRenderbuffer(
+                    w, h, internalFormat=depthBufferSize[depthBits])
+                attachments.update({GL.GL_DEPTH_ATTACHMENT: depthRb})
+            if stencilBuffer:
+                stencilRb = gltools.createRenderbuffer(
+                    w, h, internalFormat=stencilBuffer[stencilBits])
+                attachments.update({GL.GL_STENCIL_ATTACHMENT: stencilRb})
+
+        # create the framebuffer object
+        self.fbo = gltools.createFBO(attachments)
 
         # warping object which describes how this object should be drawn
         self._warper = warper
@@ -175,8 +253,8 @@ class Framebuffer(object):
         return self.fbo.getStencilBuffer()
 
 
-class RenderContext(object):
-    """Class representing a render context.
+class WindowBuffer(object):
+    """Class representing a render context for a window buffer.
 
     A render context describes how stimuli are drawn to a framebuffer. When
     `setBuffer` is called, the render context is made current and successive
@@ -187,9 +265,13 @@ class RenderContext(object):
     viewport, model/view matrix, etc. are saved and restored when switching
     between contexts.
 
+    This object is created when `~psychopy.visual.Window.createBuffer` and
+    `~psychopy.visual.Window.createBufferFromRect` is called. It should not be
+    instanced directly.
+
     """
     def __init__(self, win, viewport, name):
-        """Constructor for DeviceContext.
+        """Constructor for WindowBuffer.
 
         Parameters
         ----------
@@ -211,9 +293,6 @@ class RenderContext(object):
         self._viewport = np.asarray(viewport, dtype=int)
         self._scissor = np.array(self._viewport, dtype=int)
         self._size = np.array(self.viewport[2:])
-
-        # retain binding information
-        self._bindMode = None
 
         # clipping planes
         self._nearClip = -1
@@ -361,7 +440,6 @@ class RenderContext(object):
     @scissor.setter
     def scissor(self, value):
         self._scissor[:] = value
-
         if self.win.buffer == self.name:
             GL.glScissor(*self._scissor)
 
@@ -372,7 +450,7 @@ class RenderContext(object):
 
     @size.setter
     def size(self, value):
-        self._size[:] = self._viewport[:2] = value
+        self._size[:] = self._viewport[2:] = value
 
     @property
     def origin(self):
@@ -486,7 +564,9 @@ class RenderContext(object):
             elif value == 'both' or value == 'frontBack':
                 GL.glCullFace(GL.GL_FRONT_AND_BACK)
             else:
-                raise ValueError('Invalid face cull mode.')
+                raise ValueError(
+                    'Invalid face cull mode. Values can be `back`, `front` or '
+                    'both.')
 
         self._cullFaceMode = value
 
@@ -532,29 +612,26 @@ class RenderContext(object):
     @draw3d.setter
     def draw3d(self, value):
         if value is True:
-            if self.depthMask is False:
-                self.depthMask = True
-            if self.depthTest is False:
-                self.depthTest = True
-            if self.cullFace is False:
-                self.cullFace = True
+            self.depthMask = self.depthTest = self.cullFace = True
+            self.frontFace = 'ccw'
         elif value is False:
-            if self.depthMask is True:
-                self.depthMask = False
-            if self.depthTest is True:
-                self.depthTest = False
-            if self.cullFace is True:
-                self.cullFace = False
+            self.depthMask = self.depthTest = self.cullFace = False
+            self.frontFace = 'cw'
         else:
             raise TypeError('Value must be type `bool`.')
 
         self._draw3d = value
 
     def use(self):
-        """Make this DeviceContext active."""
+        """Make this buffer object active.
+
+        Applies OpenGL capabilities, transformations and other settings
+        associated with the buffer. Successive rendering operations will use
+        this object's settings.
+
+        """
         # set the viewport and scissor
         GL.glViewport(*self._viewport)
-
         # set OpenGL capabilities related to this device context
         if self._scissorTest:
             GL.glEnable(GL.GL_SCISSOR_TEST)
@@ -574,10 +651,10 @@ class RenderContext(object):
 
         GL.glDepthMask(GL.GL_TRUE if self._depthMask else GL.GL_FALSE)
         GL.glDepthFunc(depthFuncs[self._depthFunc])
+        GL.glCullFace(cullFaceMode[self._cullFaceMode])
 
         if self._cullFace:
             GL.glEnable(GL.GL_CULL_FACE)
-            GL.glCullFace(cullFaceMode[self._cullFaceMode])
         else:
             GL.glDisable(GL.GL_CULL_FACE)
 
@@ -586,7 +663,35 @@ class RenderContext(object):
         self.applyEyeTransform()
 
     def clearBuffer(self, color=True, depth=False, stencil=False):
-        """Clear the buffer, uses the Window color."""
+        """Clear the present buffer (to which you are currently drawing) without
+        flipping the window.
+
+        Useful if you want to generate movie sequences from the back buffer
+        without actually taking the time to flip the window.
+
+        Set `color` prior to clearing to set the color to clear the color buffer
+        to. By default, the depth buffer is cleared to a value of 1.0.
+
+        Parameters
+        ----------
+        color, depth, stencil : bool
+            Buffers to clear.
+
+        Examples
+        --------
+        Clear the color buffer to a specified color::
+
+            win.color = (1, 0, 0)
+            win.clearBuffer(color=True)
+
+        Clear only the depth buffer, `depthMask` must be `True` or else this
+        will have no effect. Depth mask is usually `True` by default, but
+        may change::
+
+            win.depthMask = True
+            win.clearBuffer(color=False, depth=True, stencil=False)
+
+        """
         flags = GL.GL_NONE
         if color:
             flags |= GL.GL_COLOR_BUFFER_BIT
@@ -616,6 +721,9 @@ class RenderContext(object):
 
         self._viewMatrix[:] = \
             viewtools.lookAt(pos, fwdVec, upVec, dtype=np.float32)
+
+    #def setProjectionFromFrustum(self, left, right, top, down, near, far):
+    #    """Set the projection matrix from frustum."""
 
     def resetEyeTransform(self, clearDepth=True):
         """Restore the default projection and view settings to PsychoPy
@@ -651,8 +759,10 @@ class RenderContext(object):
         # should eventually have the same effect as calling _onResize(), so we
         # need to add the retina mode stuff eventually
         self._viewMatrix[:] = np.identity(4, dtype=np.float32)
+        self._nearClip = -1
+        self._farClip = 1
         self._projectionMatrix[:] = viewtools.orthoProjectionMatrix(
-            -1, 1, -1, 1, -1, 1, dtype=np.float32)
+            -1, 1, -1, 1, self._nearClip, self._farClip, dtype=np.float32)
 
         self.applyEyeTransform(clearDepth)
 
@@ -770,7 +880,8 @@ class RenderContext(object):
     def viewMatrix(self, value):
         self._viewMatrix[:] = value
 
-    def setOffAxisView(self, applyTransform=True, clearDepth=True):
+    def setOffAxisView(self, applyTransform=True, clearDepth=True, nearClip=0.1,
+                       farClip=100.):
         """Set an off-axis projection.
 
         Create an off-axis projection for subsequent rendering calls. Sets the
@@ -782,6 +893,9 @@ class RenderContext(object):
         The convergence plane can be adjusted by setting `convergeOffset`. By
         default, the convergence plane is set to the screen plane. Any points
         on the screen plane will have zero disparity.
+
+        Before calling this function, make sure `nearClip` and `farClip` are
+        appropriately set.
 
         Parameters
         ----------
@@ -801,6 +915,9 @@ class RenderContext(object):
         # area to ensure disparities are correct even when in windowed-mode.
         if not self.win._isFullScr:
             scrWidthM = (self.size[0] / self.win.scrWidthPIX) * scrWidthM
+
+        self._nearClip = nearClip
+        self._farClip = farClip
 
         frustum = viewtools.computeFrustum(
             scrWidthM,  # width of screen
@@ -822,7 +939,8 @@ class RenderContext(object):
         if applyTransform:
             self.applyEyeTransform(clearDepth=clearDepth)
 
-    def setToeInView(self, applyTransform=True, clearDepth=True):
+    def setToeInView(self, applyTransform=True, clearDepth=True, nearClip=0.1,
+                     farClip=100.):
         """Set toe-in projection.
 
         Create a toe-in projection for subsequent rendering calls. Sets the
@@ -831,6 +949,9 @@ class RenderContext(object):
         convergence point of the view, which is offset perpendicular to the
         center of the screen plane. Points falling on a vertical line at the
         convergence point will have zero disparity.
+
+        Before calling this function, make sure `nearClip` and `farClip` are
+        appropriately set.
 
         Parameters
         ----------
@@ -859,6 +980,9 @@ class RenderContext(object):
         if not self.win._isFullScr:
             scrWidthM = (self.size[0] / self.win.scrWidthPIX) * scrWidthM
 
+        self._nearClip = nearClip
+        self._farClip = farClip
+
         frustum = viewtools.computeFrustum(
             scrWidthM,  # width of screen
             self.aspect,  # aspect ratio
@@ -877,7 +1001,8 @@ class RenderContext(object):
         if applyTransform:
             self.applyEyeTransform(clearDepth=clearDepth)
 
-    def setPerspectiveView(self, applyTransform=True, clearDepth=True):
+    def setPerspectiveView(self, applyTransform=True, clearDepth=True,
+                           nearClip=0.1, farClip=100.):
         """Set the projection and view matrix to render with perspective.
 
         Matrices are computed using values specified in the monitor
@@ -890,12 +1015,14 @@ class RenderContext(object):
         :py:attr:`~Window.viewMatrix` will be replaced when calling this
         function.
 
+        Before calling this function, make sure `nearClip` and `farClip` are
+        appropriately set.
+
         Parameters
         ----------
         applyTransform : bool
-            Apply transformations after computing them in immediate mode. Same
-            as calling :py:attr:`~Window.applyEyeTransform()` afterwards if
-            `False`.
+            Apply transformations after computing them. Same as calling
+            :py:attr:`~Window.applyEyeTransform()` afterwards if `False`.
         clearDepth : bool, optional
             Clear the depth buffer.
 
@@ -912,6 +1039,9 @@ class RenderContext(object):
         # area to ensure disparities are correct even when in windowed-mode.
         if not self.win._isFullScr:
             scrWidthM = (self.size[0] / self.win.scrWidthPIX) * scrWidthM
+
+        self._nearClip = nearClip
+        self._farClip = farClip
 
         frustum = viewtools.computeFrustum(
             scrWidthM,  # width of screen
@@ -1014,7 +1144,7 @@ class RenderContext(object):
             enumLight = GL.GL_LIGHT0 + index
 
             # convert data in light class to ctypes
-            #pos = numpy.ctypeslib.as_ctypes(light.pos)
+            #pos = np.ctypeslib.as_ctypes(light.pos)
             diffuse = np.ctypeslib.as_ctypes(light._diffuseRGB)
             specular = np.ctypeslib.as_ctypes(light._specularRGB)
             ambient = np.ctypeslib.as_ctypes(light._ambientRGB)
@@ -1065,7 +1195,6 @@ class RenderContext(object):
             # make sure specular lights are computed relative to eye position,
             # this is more realistic than the default. Does not affect shaders.
             GL.glLightModeli(GL.GL_LIGHT_MODEL_LOCAL_VIEWER, GL.GL_TRUE)
-
             # update light positions for current model matrix
             for index, light in enumerate(self._lights):
                 enumLight = GL.GL_LIGHT0 + index
