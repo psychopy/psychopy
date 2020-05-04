@@ -397,7 +397,7 @@ class DlgCodeComponentProperties(wx.Dialog):
         nameSizer = wx.BoxSizer(wx.HORIZONTAL)
         nameSizer.Add(self.nameLabel, 0, wx.ALL | wx.ALIGN_CENTER_VERTICAL, 10)
         nameSizer.Add(self.componentName,
-                      flag=wx.EXPAND | wx.ALL | wx.ALIGN_CENTER_VERTICAL,
+                      flag=wx.EXPAND | wx.ALL,
                       border=10, proportion=1)
         nameSizer.Add(self.nameOKlabel, 0, wx.ALL, 10)
         nameSizer.Add(self.codeTypeName,

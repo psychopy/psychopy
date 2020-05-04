@@ -16,6 +16,7 @@
 /.vscode
 /.cache
 /.idea
+/.untitled.py
 
 # Compiled source #
 ###################
@@ -27,6 +28,8 @@
 *.o
 *.py[ocd]
 *.so
+*.egg
+.eggs
 
 # Python files #
 ################
