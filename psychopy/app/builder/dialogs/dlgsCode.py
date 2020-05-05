@@ -626,7 +626,7 @@ class CodeOverwriteDialog(wx.Dialog):
 
         # Set divider
         line = wx.StaticLine(self, wx.ID_ANY, size=(20, -1), style=wx.LI_HORIZONTAL)
-        sizer.Add(line, 0, wx.GROW | wx.ALIGN_CENTER_VERTICAL | wx.RIGHT | wx.TOP, 5)
+        sizer.Add(line, 0, wx.GROW | wx.RIGHT | wx.TOP, 5)
 
         # Set buttons
         btnsizer = wx.StdDialogButtonSizer()
