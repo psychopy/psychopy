@@ -94,14 +94,15 @@ class DlgCodeComponentProperties(wx.Dialog):
                                                  style=wx.ALIGN_RIGHT)
                 self.nameOKlabel.SetForegroundColour(wx.RED)
             elif paramName == 'Code Type':
+                # Create code type choice menu
                 _codeTypes = self.params['Code Type'].allowedVals
                 _selectedCodeType = self.params['Code Type'].val
                 _selectedCodeTypeIndex = _codeTypes.index(_selectedCodeType)
                 self.codeTypeMenu = wx.Choice(self, choices=_codeTypes)
-
+                # If user does not have metapensiero but codetype is auto-js, revert to (Py?)
                 if not hasMetapensiero and _selectedCodeType.lower() == 'auto->js':
                     _selectedCodeTypeIndex -= 1
-
+                # Set selection to value stored in self params
                 self.codeTypeMenu.SetSelection(_selectedCodeTypeIndex)
                 self.codeTypeMenu.Bind(wx.EVT_CHOICE, self.onCodeChoice)
                 self.codeTypeName = wx.StaticText(self, wx.ID_ANY,
@@ -255,7 +256,7 @@ class DlgCodeComponentProperties(wx.Dialog):
         newCodeType : str
             New code type selected
         """
-        # If new codetype is auto-js, terminate function
+        # If new codetype is not auto-js, terminate function
         if not newCodeType.lower() == "auto->js":
             return
         # If code type has changed and previous code type isn't auto-js...
@@ -265,7 +266,7 @@ class DlgCodeComponentProperties(wx.Dialog):
                    "Press OK to continue, or Cancel.\n")
             dlg = CodeOverwriteDialog(self, -1, "Warning: Python to JavaScript Translation", msg)
             retVal = dlg.ShowModal()
-            # When window closes, revert to previous codetype
+            # When window closes, if OK was not clicked revert to previous codetype
             if not retVal == wx.ID_OK:
                 self.undoCodeTypeChoice(prevCodeType)
                 return
