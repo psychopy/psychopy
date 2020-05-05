@@ -630,7 +630,7 @@ class SettingsComponent(object):
         if self.params['Show info dlg'].val:
             buff.writeIndentedLines(
                 "dlg = gui.DlgFromDict(dictionary=expInfo, "
-                "sortKeys={}, title=expName)\n"
+                "sort_keys={}, title=expName)\n"
                 "if dlg.OK == False:\n"
                 "    core.quit()  # user pressed cancel\n"
                 .format(sorting)
