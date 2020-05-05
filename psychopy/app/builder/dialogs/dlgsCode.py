@@ -94,14 +94,15 @@ class DlgCodeComponentProperties(wx.Dialog):
                                                  style=wx.ALIGN_RIGHT)
                 self.nameOKlabel.SetForegroundColour(wx.RED)
             elif paramName == 'Code Type':
+                # Create code type choice menu
                 _codeTypes = self.params['Code Type'].allowedVals
                 _selectedCodeType = self.params['Code Type'].val
                 _selectedCodeTypeIndex = _codeTypes.index(_selectedCodeType)
                 self.codeTypeMenu = wx.Choice(self, choices=_codeTypes)
-
+                # If user does not have metapensiero but codetype is auto-js, revert to (Py?)
                 if not hasMetapensiero and _selectedCodeType.lower() == 'auto->js':
                     _selectedCodeTypeIndex -= 1
-
+                # Set selection to value stored in self params
                 self.codeTypeMenu.SetSelection(_selectedCodeTypeIndex)
                 self.codeTypeMenu.Bind(wx.EVT_CHOICE, self.onCodeChoice)
                 self.codeTypeName = wx.StaticText(self, wx.ID_ANY,
@@ -224,15 +225,17 @@ class DlgCodeComponentProperties(wx.Dialog):
         Calls translation and updates to visible windows
         """
         prevCodeType, param = self.codeChoice
-
+        # If user doesn't have metapensiero and current choice is auto-js...
         if not hasMetapensiero and param.val.lower() == "auto->js" :
+            # Throw up error dlg instructing to get metapensiero
             msg = ("\nPy to JS auto-translation requires the metapensiero library.\n"
                    "Available for Python 3.5+.\n")
             dlg = CodeOverwriteDialog(self, -1, "Warning: requires the metapensiero library", msg)
             dlg.ShowModal()
+            # Revert to previous choice
             self.undoCodeTypeChoice(prevCodeType)
             return
-
+        # Translate from previous language to new, make sure correct box is visible
         self.translateCode(event, prevCodeType, param.val)
         self.updateVisibleCode(event)
 
@@ -253,20 +256,25 @@ class DlgCodeComponentProperties(wx.Dialog):
         newCodeType : str
             New code type selected
         """
+        # If new codetype is not auto-js, terminate function
         if not newCodeType.lower() == "auto->js":
             return
-
+        # If code type has changed and previous code type isn't auto-js...
         if prevCodeType.lower() != 'auto->js' and self.codeChangeDetected():
+            # Throw up a warning dlg to alert user of overwriting
             msg = ("\nAuto-JS translation will overwrite your existing JavaScript code.\n"
                    "Press OK to continue, or Cancel.\n")
             dlg = CodeOverwriteDialog(self, -1, "Warning: Python to JavaScript Translation", msg)
             retVal = dlg.ShowModal()
+            # When window closes, if OK was not clicked revert to previous codetype
             if not retVal == wx.ID_OK:
                 self.undoCodeTypeChoice(prevCodeType)
                 return
-
+        # For each codebox...
         for boxName in self.codeBoxes:
+            # If it is not JS...
             if 'JS' not in boxName:
+                # Traslate to JS
                 self.runTranslation(boxName)
 
         if event:
@@ -341,21 +349,23 @@ class DlgCodeComponentProperties(wx.Dialog):
 
         for boxName in self.codeBoxes:
             self.readOnlyCodeBox(codeType.lower() == 'auto->js')
+            # If type is both or autojs, show split codebox
             if codeType.lower() in ['both', 'auto->js']:
                 self.codeBoxes[boxName].Show()
+            # If type is JS, hide the non-JS box
             elif codeType == 'JS':
-                # user only wants JS code visible
                 if 'JS' in boxName:
                     self.codeBoxes[boxName].Show()
                 else:
                     self.codeBoxes[boxName].Hide()
+            # If type is Py, hide the JS box
             else:
                 # user only wants Py code visible
                 if 'JS' in boxName:
                     self.codeBoxes[boxName].Hide()
                 else:
                     self.codeBoxes[boxName].Show()
-
+        # Name codebox tabs
         for thisTabname in self.tabs:
             self.tabs[thisTabname].Layout()
 
@@ -397,7 +407,7 @@ class DlgCodeComponentProperties(wx.Dialog):
         nameSizer = wx.BoxSizer(wx.HORIZONTAL)
         nameSizer.Add(self.nameLabel, 0, wx.ALL | wx.ALIGN_CENTER_VERTICAL, 10)
         nameSizer.Add(self.componentName,
-                      flag=wx.EXPAND | wx.ALL | wx.ALIGN_CENTER_VERTICAL,
+                      flag=wx.EXPAND | wx.ALL,
                       border=10, proportion=1)
         nameSizer.Add(self.nameOKlabel, 0, wx.ALL, 10)
         nameSizer.Add(self.codeTypeName,
@@ -626,7 +636,7 @@ class CodeOverwriteDialog(wx.Dialog):
 
         # Set divider
         line = wx.StaticLine(self, wx.ID_ANY, size=(20, -1), style=wx.LI_HORIZONTAL)
-        sizer.Add(line, 0, wx.GROW | wx.ALIGN_CENTER_VERTICAL | wx.RIGHT | wx.TOP, 5)
+        sizer.Add(line, 0, wx.GROW | wx.RIGHT | wx.TOP, 5)
 
         # Set buttons
         btnsizer = wx.StdDialogButtonSizer()

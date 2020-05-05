@@ -717,7 +717,7 @@ class _BaseParamsDlg(wx.Dialog):
         stopAllCrtlSizer = wx.BoxSizer(orient=wx.VERTICAL)
         stopAllCrtlSizer.Add(stopSizer, flag=wx.EXPAND)
         stopAllCrtlSizer.Add(stopEstimSizer,
-                             flag=wx.ALIGN_RIGHT | wx.ALIGN_CENTRE_VERTICAL)
+                             flag=wx.ALIGN_RIGHT)
         sizer.Add(label, (currRow, 0), (1, 1), wx.ALIGN_RIGHT)
         # add our new row
         sizer.Add(stopAllCrtlSizer, (currRow, 1), (1, 1), flag=wx.EXPAND)
@@ -758,14 +758,14 @@ class _BaseParamsDlg(wx.Dialog):
             ctrls.valueCtrl.Bind(wx.EVT_KEY_UP, self.doValidate)
 
         # add the controls to the sizer
-        _flag = wx.ALIGN_RIGHT | wx.ALIGN_CENTRE_VERTICAL | wx.LEFT | wx.RIGHT
+        _flag = wx.ALIGN_RIGHT | wx.LEFT | wx.RIGHT
         sizer.Add(ctrls.nameCtrl, (currRow, 0), border=5, flag=_flag)
         if ctrls.updateCtrl:
             sizer.Add(ctrls.updateCtrl, (currRow, 2), flag=_flag)
         if ctrls.typeCtrl:
             sizer.Add(ctrls.typeCtrl, (currRow, 3), flag=_flag)
         # different flag for the value control (expand)
-        _flag = wx.EXPAND | wx.ALIGN_CENTRE_VERTICAL | wx.ALL
+        _flag = wx.EXPAND | wx.ALL
         sizer.Add(ctrls.valueCtrl, (currRow, 1), border=5, flag=_flag)
 
         # use monospace font to signal code:
@@ -1262,9 +1262,9 @@ class DlgLoopProperties(_BaseParamsDlg):
                 dlg=self, parent=panel, label=label, fieldName=fieldName,
                 param=self.currentHandler.params[fieldName])
             panelSizer.Add(ctrls.nameCtrl, [row, 0], border=1,
-                           flag=wx.EXPAND | wx.ALIGN_CENTRE_VERTICAL | wx.ALL)
+                           flag=wx.EXPAND | wx.ALL)
             panelSizer.Add(ctrls.valueCtrl, [row, 1], border=1,
-                           flag=wx.EXPAND | wx.ALIGN_CENTRE_VERTICAL | wx.ALL)
+                           flag=wx.EXPAND | wx.ALL)
             row += 1
 
         self.globalCtrls['name'].valueCtrl.Bind(wx.EVT_TEXT, self.doValidate)
