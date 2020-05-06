@@ -37,9 +37,20 @@ class CodeComponent(BaseComponent):
     categories = ['Custom']
     """An event class for inserting arbitrary code into Builder experiments"""
 
-    def __init__(self, exp, parentName, name='code', beforeExp="",
-                 beginExp="", beginRoutine="", eachFrame="", endRoutine="",
-                 endExperiment="", codeType="Auto->JS", translator="manual"):
+    def __init__(self, exp, parentName, name='code',
+                 beforeExp="# This code will run before the experiment window is opened, after importing all of the "
+                           "necessary packages",
+                 beginExp="# This code will run before the experiment starts, after the window is opened and your other "
+                          "components are initialised but before the experiment timer starts",
+                 beginRoutine="# This code will run at the start of the routine containing this component, after "
+                              "starting the necessary timers but before loading components",
+                 eachFrame="# This code will run on each frame refresh during the routine containing this component, "
+                           "after iterating the frame but before the screen flip",
+                 endRoutine="# This code will run at the end of the routine containing this component, after breaking "
+                            "the frame loop but before resetting the timer",
+                 endExperiment="# This code will run at the end of the experiment, just before saving the data and "
+                               "closing the window",
+                 codeType="Auto->JS", translator="manual"):
         super(CodeComponent, self).__init__(exp, parentName, name)
         self.type = 'Code'
         self.targets = ['PsychoPy', 'PsychoJS']
@@ -111,18 +122,18 @@ class CodeComponent(BaseComponent):
             updates='constant', allowedUpdates=[],
             hint=msg,
             label=_localized['End Experiment'])
-
+        # todo: copy initial vals once javscript interp can do comments
         msg = _translate("Code before the start of the experiment (initialization"
                          "); right-click checks syntax")
         self.params['Before JS Experiment'] = Param(
-            beginExp, valType='extendedCode', allowedTypes=[],
+            '', valType='extendedCode', allowedTypes=[],
             updates='constant', allowedUpdates=[],
             hint=msg,
             label=_localized['Before JS Experiment'])
         msg = _translate("Code at the start of the experiment (initialization"
                          "); right-click checks syntax")
         self.params['Begin JS Experiment'] = Param(
-            beginExp, valType='extendedCode', allowedTypes=[],
+            '', valType='extendedCode', allowedTypes=[],
             updates='constant', allowedUpdates=[],
             hint=msg,
             label=_localized['Begin JS Experiment'])
@@ -131,7 +142,7 @@ class CodeComponent(BaseComponent):
                          "Routine (e.g. each trial); "
                          "right-click checks syntax")
         self.params['Begin JS Routine'] = Param(
-            beginRoutine, valType='extendedCode', allowedTypes=[],
+            '', valType='extendedCode', allowedTypes=[],
             updates='constant', allowedUpdates=[],
             hint=msg,
             label=_localized['Begin JS Routine'])
@@ -140,7 +151,7 @@ class CodeComponent(BaseComponent):
                          " duration of this Routine; "
                          "right-click checks syntax")
         self.params['Each JS Frame'] = Param(
-            eachFrame, valType='extendedCode', allowedTypes=[],
+            '', valType='extendedCode', allowedTypes=[],
             updates='constant', allowedUpdates=[],
             hint=msg,
             label=_localized['Each JS Frame'])
@@ -149,7 +160,7 @@ class CodeComponent(BaseComponent):
                          " getting/storing responses); "
                          "right-click checks syntax")
         self.params['End JS Routine'] = Param(
-            endRoutine, valType='extendedCode', allowedTypes=[],
+            '', valType='extendedCode', allowedTypes=[],
             updates='constant', allowedUpdates=[],
             hint=msg,
             label=_localized['End JS Routine'])
@@ -158,7 +169,7 @@ class CodeComponent(BaseComponent):
                          "saving files, resetting computer); "
                          "right-click checks syntax")
         self.params['End JS Experiment'] = Param(
-            endExperiment, valType='extendedCode', allowedTypes=[],
+            '', valType='extendedCode', allowedTypes=[],
             updates='constant', allowedUpdates=[],
             hint=msg,
             label=_localized['End JS Experiment'])
