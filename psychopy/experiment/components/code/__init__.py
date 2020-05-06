@@ -39,17 +39,17 @@ class CodeComponent(BaseComponent):
 
     def __init__(self, exp, parentName, name='code',
                  beforeExp="# This code will run before the experiment window is opened, after importing all of the "
-                           "necessary packages",
+                           "necessary packages \n\n",
                  beginExp="# This code will run before the experiment starts, after the window is opened and your other "
-                          "components are initialised but before the experiment timer starts",
+                          "components are initialised but before the experiment timer starts\n\n",
                  beginRoutine="# This code will run at the start of the routine containing this component, after "
-                              "starting the necessary timers but before loading components",
+                              "starting the necessary timers but before loading components\n\n",
                  eachFrame="# This code will run on each frame refresh during the routine containing this component, "
-                           "after iterating the frame but before the screen flip",
+                           "after iterating the frame but before the screen flip\n\n",
                  endRoutine="# This code will run at the end of the routine containing this component, after breaking "
-                            "the frame loop but before resetting the timer",
+                            "the frame loop but before resetting the timer\n\n",
                  endExperiment="# This code will run at the end of the experiment, just before saving the data and "
-                               "closing the window",
+                               "closing the window\n\n",
                  codeType="Auto->JS", translator="manual"):
         super(CodeComponent, self).__init__(exp, parentName, name)
         self.type = 'Code'
