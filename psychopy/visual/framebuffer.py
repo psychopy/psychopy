@@ -1,11 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""Framebuffer related classes and functions.
-
-This module is intended to provide simplified interface for creating image
-buffers (including textures) in OpenGL without the need to work with OpenGL
-objects directly. This allows for multiple OpenGL implementations to use the
-same objects.
+"""Window buffer related classes and functions.
 
 """
 
@@ -107,10 +102,30 @@ class WindowBuffer(object):
         # other settings if the context is not current.
         self.name = name
 
+        # screen/monitor parameters, needed for computing various projections,
+        # not expected to change over the course of the application runtime
+        scrDistCM = self.win.scrDistCM
+        scrWidthCM = self.win.scrWidthCM
+        scrWidthPIX = self.win.scrWidthPIX
+        if self.win.scrDistCM is not None:
+            self.scrDistM = scrDistCM / 100.0
+        else:
+            self.scrDistM = 0.5  # default if nothing provided
+
+        if self.win.scrWidthCM is not None:
+            self.scrWidthM = scrWidthCM / 100.0
+        else:
+            self.scrWidthM = 0.5
+
         # viewports and buffer size
         self._viewport = np.asarray(viewport, dtype=int)
         self._scissor = np.array(self._viewport, dtype=int)
         self._size = np.array(self.viewport[2:])
+
+        # if fullscreen, adjust the screen width so that it is as wide as the
+        # window, this ensures that the projection is correct in all cases
+        if not self.win._isFullScr:
+            self.scrWidthM = (self.size[0] / scrWidthPIX) * self.scrWidthM
 
         # clipping planes
         self._nearClip = -1
@@ -178,6 +193,9 @@ class WindowBuffer(object):
         self._useLights = False
         self._nLights = 0
         self._ambientLight = np.array([0.0, 0.0, 0.0, 1.0], dtype=np.float32)
+
+        # depth clear value
+        self._clearDepthValue = 1.0
 
         # configure the default view
         self.setDefaultView(clearDepth=False)
@@ -334,7 +352,7 @@ class WindowBuffer(object):
     def viewport(self, value):
         self._viewport[:] = value
         self._size[:] = self._viewport[2:]
-        if self.win.buffer == self.name:
+        if self.isCurrent:
             GL.glViewport(*self._viewport)
 
         self._viewTransformNeedsUpdate = True
@@ -362,7 +380,7 @@ class WindowBuffer(object):
     @scissor.setter
     def scissor(self, value):
         self._scissor[:] = value
-        if self.win.buffer == self.name:
+        if self.isCurrent:
             GL.glScissor(*self._scissor)
 
     @property
@@ -390,14 +408,7 @@ class WindowBuffer(object):
 
     @scissorTest.setter
     def scissorTest(self, value):
-        if self.win.buffer == self.name:
-            if value is True:
-                GL.glEnable(GL.GL_SCISSOR_TEST)
-            elif value is False:
-                GL.glDisable(GL.GL_SCISSOR_TEST)
-            else:
-                raise TypeError("Value must be boolean.")
-
+        self._setCapability(GL.GL_SCISSOR_TEST, value)
         self._scissorTest = value
 
     @property
@@ -407,14 +418,7 @@ class WindowBuffer(object):
 
     @sRGB.setter
     def sRGB(self, value):
-        if self.win.buffer == self.name:
-            if value is True:
-                GL.glEnable(GL.GL_FRAMEBUFFER_SRGB)
-            elif value is False:
-                GL.glDisable(GL.GL_FRAMEBUFFER_SRGB)
-            else:
-                raise TypeError("Value must be boolean.")
-
+        self._setCapability(GL.GL_FRAMEBUFFER_SRGB, value)
         self._sRGB = value
 
     @property
@@ -424,14 +428,7 @@ class WindowBuffer(object):
 
     @stencilTest.setter
     def stencilTest(self, value):
-        if self.win.buffer == self.name:
-            if value is True:
-                GL.glEnable(GL.GL_STENCIL_TEST)
-            elif value is False:
-                GL.glDisable(GL.GL_STENCIL_TEST)
-            else:
-                raise TypeError("Value must be boolean.")
-
+        self._setCapability(GL.GL_STENCIL_TEST, value)
         self._stencilTest = value
 
     @property
@@ -441,14 +438,7 @@ class WindowBuffer(object):
 
     @depthTest.setter
     def depthTest(self, value):
-        if self.win.buffer == self.name:
-            if value is True:
-                GL.glEnable(GL.GL_DEPTH_TEST)
-            elif value is False:
-                GL.glDisable(GL.GL_DEPTH_TEST)
-            else:
-                raise TypeError("Value must be boolean.")
-
+        self._setCapability(GL.GL_DEPTH_TEST, value)
         self._depthTest = value
 
     @property
@@ -459,7 +449,7 @@ class WindowBuffer(object):
     @depthFunc.setter
     def depthFunc(self, value):
         try:
-            if self.win.buffer == self.name:
+            if self.isCurrent:
                 GL.glDepthFunc(depthFuncs[value])
         except KeyError:
             raise KeyError(
@@ -478,7 +468,7 @@ class WindowBuffer(object):
 
     @depthMask.setter
     def depthMask(self, value):
-        if self.win.buffer == self.name:
+        if self.isCurrent:
             if value is True:
                 GL.glDepthMask(GL.GL_TRUE)
             elif value is False:
@@ -495,7 +485,7 @@ class WindowBuffer(object):
 
     @cullFaceMode.setter
     def cullFaceMode(self, value):
-        if self.win.buffer == self.name:
+        if self.isCurrent:
             if value == 'back':
                 GL.glCullFace(GL.GL_BACK)
             elif value == 'front':
@@ -516,14 +506,7 @@ class WindowBuffer(object):
 
     @cullFace.setter
     def cullFace(self, value):
-        if self.win.buffer == self.name:
-            if value is True:
-                GL.glEnable(GL.GL_CULL_FACE)
-            elif value is False:
-                GL.glDisable(GL.GL_CULL_FACE)
-            else:
-                raise TypeError('Value must be type `bool`.')
-
+        self._setCapability(GL.GL_CULL_FACE, value)
         self._cullFace = value
 
     @property
@@ -533,7 +516,7 @@ class WindowBuffer(object):
 
     @frontFace.setter
     def frontFace(self, value):
-        if self.win.buffer == self.name:
+        if self.isCurrent:
             if value == 'ccw':
                 GL.glFrontFace(GL.GL_CCW)
             elif value == 'cw':
@@ -561,6 +544,22 @@ class WindowBuffer(object):
 
         self._draw3d = value
 
+    @property
+    def clearDepth(self):
+        """Value to clear depth with, ranging form 0.0 to 1.0. If `1.0`, depth
+        samples will be cleared to the far clipping plane of the frustum."""
+        return self._clearDepthValue
+
+    @clearDepth.setter
+    def clearDepth(self, value):
+        if 0.0 > value > 1.0:
+            raise ValueError('Value for `clearDepth` must be >0 and <1.')
+
+        if self.isCurrent:
+            GL.glClearDepth(value)
+
+        self._clearDepthValue = value
+
     def use(self):
         """Make this buffer object active.
 
@@ -571,35 +570,53 @@ class WindowBuffer(object):
         """
         # set the viewport and scissor
         GL.glViewport(*self._viewport)
-        # set OpenGL capabilities related to this device context
         if self._scissorTest:
-            GL.glEnable(GL.GL_SCISSOR_TEST)
             GL.glScissor(*self._scissor)
-        else:
-            GL.glDisable(GL.GL_SCISSOR_TEST)
 
-        if self._stencilTest:
-            GL.glEnable(GL.GL_STENCIL_TEST)
-        else:
-            GL.glDisable(GL.GL_STENCIL_TEST)
-
-        if self._depthTest:
-            GL.glEnable(GL.GL_DEPTH_TEST)
-        else:
-            GL.glDisable(GL.GL_DEPTH_TEST)
-
+        # set OpenGL capabilities related to this context
+        self._setCapability(GL.GL_SCISSOR_TEST, self._scissorTest)
+        self._setCapability(GL.GL_DEPTH_TEST, self._depthTest)
+        self._setCapability(GL.GL_STENCIL_TEST, self._stencilTest)
+        self._setCapability(GL.GL_CULL_FACE, self._cullFace)
         GL.glDepthMask(GL.GL_TRUE if self._depthMask else GL.GL_FALSE)
         GL.glDepthFunc(depthFuncs[self._depthFunc])
         GL.glCullFace(cullFaceMode[self._cullFaceMode])
-
-        if self._cullFace:
-            GL.glEnable(GL.GL_CULL_FACE)
-        else:
-            GL.glDisable(GL.GL_CULL_FACE)
-
         GL.glFrontFace(frontFace[self._frontFace])
+        GL.glClearDepth(self._clearDepthValue)
 
+        # apply view transformation
         self.applyEyeTransform()
+
+    def _setCapability(self, cap, state=True):
+        """Enable/disable an OpenGL capability. This method will *no-op* if the
+        window buffer is not current. Used to set capabilities which are set
+        with `glEnable` and `glDisable` functions.
+
+        This method is used internally by `WindowBuffer`, don't call this
+        function directly or undefined behavior will occur.
+
+        Parameters
+        ----------
+        cap : int
+            OpenGL capability to enable/disable.
+        state : bool
+            State of the capability to set.
+
+        """
+        # This function reduces the amount of `if` statements used to set OpenGL
+        # capabilities.
+        if self.isCurrent:
+            if state is True:
+                GL.glEnable(cap)
+            elif state is False:
+                GL.glDisable(cap)
+            else:
+                raise TypeError('Value must be type `bool`.')
+
+    @property
+    def isCurrent(self):
+        """`True` if the buffer is currently being used by the parent window."""
+        return self.win.buffer == self.name
 
     def clearBuffer(self, color=True, depth=False, stencil=False):
         """Clear the present buffer (to which you are currently drawing) without
@@ -609,12 +626,12 @@ class WindowBuffer(object):
         without actually taking the time to flip the window.
 
         Set `color` prior to clearing to set the color to clear the color buffer
-        to. By default, the depth buffer is cleared to a value of 1.0.
+        to.
 
         Parameters
         ----------
         color, depth, stencil : bool
-            Buffers to clear.
+            Logical buffers to clear.
 
         Examples
         --------
@@ -631,6 +648,9 @@ class WindowBuffer(object):
             win.clearBuffer(color=False, depth=True, stencil=False)
 
         """
+        if not self.isCurrent:  # only allow the current buffer to be cleared
+            return
+
         flags = GL.GL_NONE
         if color:
             flags |= GL.GL_COLOR_BUFFER_BIT
@@ -640,6 +660,21 @@ class WindowBuffer(object):
             flags |= GL.GL_STENCIL_BUFFER_BIT
 
         GL.glClear(flags)
+
+    def clearColorBuffer(self):  # these calls are more explicit
+        """Clear the only the color buffer."""
+        if self.isCurrent:
+            GL.glClear(GL.GL_COLOR_BUFFER_BIT)
+
+    def clearDepthBuffer(self):
+        """Clear the only the depth buffer."""
+        if self.isCurrent:
+            GL.glClear(GL.GL_DEPTH_BUFFER_BIT)
+
+    def clearStencilBuffer(self):
+        """Clear the only the stencil buffer."""
+        if self.isCurrent:
+            GL.glClear(GL.GL_STENCIL_BUFFER_BIT)
 
     def setEyePose(self, rigidBodyPose):
         """Set the buffer's view matrix from a `RigidBodyPose`."""
@@ -679,23 +714,29 @@ class WindowBuffer(object):
                     (normRfPosX, normRfPosY, 0.0), dtype=np.float32)
             rotMatrix = mathtools.rotationMatrix(
                      self._viewOri, (0., 0., -1.), dtype=np.float32)
+
+            # apply flipping
+            scaleX, scaleY = self._viewScale
+            if self._flipHorizontal:
+                scaleX *= -1.0
+            if self._flipVertical:
+                scaleY *= -1.0
+
             scaleMatrix = mathtools.scaleMatrix(
-                     (self._viewScale[0], self._viewScale[1], 1.0),
-                     dtype=np.float32)
+                (scaleX, scaleY, 1.0), dtype=np.float32)
 
             self._orthoViewMatrix[:] = mathtools.concatenate(
                 [scaleMatrix, rotMatrix, posMatrix, aspectMatrix],
                 dtype=np.float32)
 
             self._viewTransformNeedsUpdate = False
-            print('here')
 
-        # reset
+        # reset to ortho projection
         self._viewMatrix[:] = self._orthoViewMatrix
         self._projectionMatrix[:] = self._orthoProjectionMatrix
 
         if applyTransform:
-            self.applyEyeTransform()
+            self.applyEyeTransform(clearDepth)
 
     def resetEyeTransform(self, clearDepth=True):
         """Restore the default projection and view settings to PsychoPy
@@ -880,23 +921,16 @@ class WindowBuffer(object):
             Clear the depth buffer.
 
         """
-        scrDistCM = self.win.scrDistCM
-        scrWidthCM = self.win.scrWidthCM
-        scrDistM = 0.5 if scrDistCM is None else scrDistCM / 100.0
-        scrWidthM = 0.5 if scrWidthCM is None else scrWidthCM / 100.0
+        if nearClip is not None:
+            self._nearClip = nearClip
 
-        # Not in full screen mode? Need to compute the dimensions of the display
-        # area to ensure disparities are correct even when in windowed-mode.
-        if not self.win._isFullScr:
-            scrWidthM = (self.size[0] / self.win.scrWidthPIX) * scrWidthM
-
-        self._nearClip = nearClip
-        self._farClip = farClip
+        if farClip is not None:
+            self._farClip = farClip
 
         frustum = viewtools.computeFrustum(
-            scrWidthM,  # width of screen
+            self.scrWidthM,  # width of screen
             self.aspect,  # aspect ratio
-            scrDistM,  # distance to screen
+            self.scrDistM,  # distance to screen
             eyeOffset=self._eyeOffset,
             convergeOffset=self._convergeOffset,
             nearClip=self._nearClip,
@@ -908,7 +942,7 @@ class WindowBuffer(object):
         # translate away from screen
         self._viewMatrix[:] = np.identity(4, dtype=np.float32)
         self._viewMatrix[0, 3] = -self._eyeOffset  # apply eye offset
-        self._viewMatrix[2, 3] = -scrDistM  # displace scene away from viewer
+        self._viewMatrix[2, 3] = -self.scrDistM  # displace scene away from viewer
 
         if applyTransform:
             self.applyEyeTransform(clearDepth=clearDepth)
@@ -934,6 +968,9 @@ class WindowBuffer(object):
             as calling :py:attr:`~Window.applyEyeTransform()` afterwards.
         clearDepth : bool, optional
             Clear the depth buffer.
+        nearClip, farClip : float
+            Near and far clipping planes to use. If `None`, the existing values
+            of `nearClip` and `farClip` will be used.
 
         Notes
         -----
@@ -944,23 +981,16 @@ class WindowBuffer(object):
           something the viewer can look around the screen comfortably.
 
         """
-        scrDistCM = self.win.scrDistCM
-        scrWidthCM = self.win.scrWidthCM
-        scrDistM = 0.5 if scrDistCM is None else scrDistCM / 100.0
-        scrWidthM = 0.5 if scrWidthCM is None else scrWidthCM / 100.0
+        if nearClip is not None:
+            self._nearClip = nearClip
 
-        # Not in full screen mode? Need to compute the dimensions of the display
-        # area to ensure disparities are correct even when in windowed-mode.
-        if not self.win._isFullScr:
-            scrWidthM = (self.size[0] / self.win.scrWidthPIX) * scrWidthM
-
-        self._nearClip = nearClip
-        self._farClip = farClip
+        if farClip is not None:
+            self._farClip = farClip
 
         frustum = viewtools.computeFrustum(
-            scrWidthM,  # width of screen
+            self.scrWidthM,  # width of screen
             self.aspect,  # aspect ratio
-            scrDistM,  # distance to screen
+            self.scrDistM,  # distance to screen
             nearClip=self._nearClip,
             farClip=self._farClip)
 
@@ -968,7 +998,7 @@ class WindowBuffer(object):
             viewtools.perspectiveProjectionMatrix(*frustum)
 
         # translate away from screen
-        eyePos = (self._eyeOffset, 0.0, scrDistM)
+        eyePos = (self._eyeOffset, 0.0, self.scrDistM)
         convergePoint = (0.0, 0.0, self.convergeOffset)
         self._viewMatrix = viewtools.lookAt(eyePos, convergePoint)
 
@@ -1001,26 +1031,16 @@ class WindowBuffer(object):
             Clear the depth buffer.
 
         """
-        # NB - we should eventually compute these matrices lazily since they may
-        # not change over the course of an experiment under most circumstances.
-        #
-        scrDistCM = self.win.scrDistCM
-        scrWidthCM = self.win.scrWidthCM
-        scrDistM = 0.5 if scrDistCM is None else scrDistCM / 100.0
-        scrWidthM = 0.5 if scrWidthCM is None else scrWidthCM / 100.0
+        if nearClip is not None:
+            self._nearClip = nearClip
 
-        # Not in full screen mode? Need to compute the dimensions of the display
-        # area to ensure disparities are correct even when in windowed-mode.
-        if not self.win._isFullScr:
-            scrWidthM = (self.size[0] / self.win.scrWidthPIX) * scrWidthM
-
-        self._nearClip = nearClip
-        self._farClip = farClip
+        if farClip is not None:
+            self._farClip = farClip
 
         frustum = viewtools.computeFrustum(
-            scrWidthM,  # width of screen
+            self.scrWidthM,  # width of screen
             self.aspect,  # aspect ratio
-            scrDistM,  # distance to screen
+            self.scrDistM,  # distance to screen
             nearClip=self._nearClip,
             farClip=self._farClip)
 
@@ -1030,7 +1050,7 @@ class WindowBuffer(object):
         # translate away from screen
         self._viewMatrix[:] = np.identity(4, dtype=np.float32)
         self._viewMatrix[0, 3] = -self._eyeOffset  # apply eye offset
-        self._viewMatrix[2, 3] = -scrDistM  # displace scene away from viewer
+        self._viewMatrix[2, 3] = -self.scrDistM  # displace scene away from viewer
 
         if applyTransform:
             self.applyEyeTransform(clearDepth=clearDepth)

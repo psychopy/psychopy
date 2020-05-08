@@ -486,7 +486,7 @@ class Window(object):
 
         self._setupGL()
 
-        # keep track of the mode used
+        # keep track of the mode used, needed to restore settings
         if not self.useFBO:
             self._readBufferMode = self._drawBufferMode = GL.GL_BACK
         else:
@@ -790,17 +790,8 @@ class Window(object):
         """
         # don't configure if we haven't changed context
         self.backend.setCurrent()
-
-        # if we are using an FBO, bind it
-        self.setBuffer(self._buffer, clear=False)
-
-        # set these to match the current window or buffer's settings
-        # fbw, fbh = self.frameBufferSize
-        # self.viewport = self.scissor = [0, 0, fbw, fbh]
-        # self.scissorTest = True
-
-        # apply the view transforms for this window
-        #self.applyEyeTransform()
+        # restore the buffer state if case things have changed
+        self.restoreBuffers()
 
     def onResize(self, width, height):
         """A default resize event handler.
@@ -971,7 +962,6 @@ class Window(object):
 
         Examples
         --------
-
         Results in a clear screen after flipping::
 
             win.flip(clearBuffer=True)
@@ -984,36 +974,37 @@ class Window(object):
         if self._toDraw:
             for thisStim in self._toDraw:
                 thisStim.draw()
-        else:
-            self.backend.setCurrent()
-
-            # set these to match the current window or buffer's settings
-            self.viewport = self.scissor = \
-                (0, 0, self.frameBufferSize[0], self.frameBufferSize[1])
-            if not self.scissorTest:
-                self.scissorTest = True
-
-            # clear the projection and modelview matrix for FBO blit
-            GL.glMatrixMode(GL.GL_PROJECTION)
-            GL.glLoadIdentity()
-            GL.glOrtho(-1, 1, -1, 1, -1, 1)
-            GL.glMatrixMode(GL.GL_MODELVIEW)
-            GL.glLoadIdentity()
 
         # disable lighting
         self.useLights = False
 
+        stencilOn = False
         flipThisFrame = self._startOfFlip()
         if self.useFBO and flipThisFrame:
-            self.draw3d = False  # disable 3d drawing
-            self._prepareFBOrender()
-            # need blit the framebuffer object to the actual back buffer
+            self.draw3d = False  # disable 3d drawing settings
 
-            # unbind the framebuffer as the render target
+            self._prepareFBOrender()
+
+            # need blit the framebuffer object to the actual back buffer
             GL.glBindFramebuffer(GL.GL_FRAMEBUFFER, 0)
             GL.glDisable(GL.GL_BLEND)
+
+            # keep stencil settings
             stencilOn = self.stencilTest
             self.stencilTest = False
+
+            # unbind the framebuffer as the render target
+            backWidth, backHeight = self.frameBufferSize
+            GL.glViewport(0, 0, backWidth, backHeight)
+            GL.glScissor(0, 0, backWidth, backHeight)
+
+            # clear the projection and model/view matrix for FBO blit, this is
+            # reset after the flip.
+            GL.glMatrixMode(GL.GL_PROJECTION)
+            GL.glLoadIdentity()
+            GL.glOrtho(-1, 1, -1, 1, -1, 1)  # no aspect ratio correction
+            GL.glMatrixMode(GL.GL_MODELVIEW)
+            GL.glLoadIdentity()
 
             if self.bits is not None:
                 self.bits._prepareFBOrender()
@@ -1043,34 +1034,6 @@ class Window(object):
                 self.stencilTest = True
         else:
             self.setBuffer('back')
-
-        # # rescale, reposition, & rotate
-        # GL.glMatrixMode(GL.GL_MODELVIEW)
-        # GL.glLoadIdentity()
-        # if self.viewScale is not None:
-        #     GL.glScalef(self.viewScale[0], self.viewScale[1], 1)
-        #     absScaleX = abs(self.viewScale[0])
-        #     absScaleY = abs(self.viewScale[1])
-        # else:
-        #     absScaleX, absScaleY = 1, 1
-        #
-        # if self.viewPos is not None:
-        #     # here we must use normalised units in _viewPosNorm,
-        #     # see the corresponding attributeSetter above
-        #     normRfPosX = self._viewPosNorm[0] / absScaleX
-        #     normRfPosY = self._viewPosNorm[1] / absScaleY
-        #
-        #     GL.glTranslatef(normRfPosX, normRfPosY, 0.0)
-        #
-        # if self.viewOri:  # float
-        #     # the logic below for flip is partially correct, but does not
-        #     # handle a nonzero viewPos
-        #     flip = 1
-        #     if self.viewScale is not None:
-        #         _f = self.viewScale[0] * self.viewScale[1]
-        #         if _f < 0:
-        #             flip = -1
-        #     GL.glRotatef(flip * self.viewOri, 0.0, 0.0, -1.0)
 
         # reset returned buffer for next frame
         self._endOfFlip(clearBuffer)
@@ -1209,7 +1172,15 @@ class Window(object):
 
     @property
     def windowBuffers(self):
-        """Dictionary of window buffer objects.
+        """Dictionary of window buffer objects. Can be used to pre-configure
+        buffers without switching to them. Settings will be applied once
+        `setBuffer` is called.
+
+        Do not delete or alter items (keys and references to `WindowBuffer`
+        objects in the dictionary) as this will break the buffer management
+        system and cause errors requiring a restart to fix. You can however
+        access and change attributes of those `WindowBuffer` objects (See
+        Examples).
 
         Examples
         --------
@@ -1443,6 +1414,9 @@ class Window(object):
                 win.flip()
 
         """
+        if buffer == self._buffer:  # nop if current buffer
+            return
+
         try:
             # set the buffer and its context
             useBuffer = self._frameBuffers[buffer]
