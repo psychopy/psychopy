@@ -1136,7 +1136,7 @@ class Framebuffer(object):
 
     """
     __slots__ = ['name', 'target', 'attachments', 'sRGB', '_isBound',
-                 'userData', '_sizeHint']
+                 'userData', 'sizeHint']
 
     def __init__(self, name=0, target=GL.GL_FRAMEBUFFER, sizeHint=None,
                  sRGB=False, userData=None):
@@ -1149,7 +1149,8 @@ class Framebuffer(object):
             Target type for the framebuffer.
         sizeHint : array_like
             Size hint for the framebuffer. Not required, but can be used to
-            ensure all the attachments have the same size.
+            ensure all the attachments have the same size when creating
+            logical buffers later.
         sRGB : bool
             Should this framebuffer be drawn to with sRGB enabled?
         userData : dict of None
@@ -1161,7 +1162,7 @@ class Framebuffer(object):
         self.sRGB = sRGB
         self.userData = dict() if userData is None else userData
         self._isBound = False
-        self._sizeHint = sizeHint
+        self.sizeHint = np.array(sizeHint, dtype=int)
 
     def isBound(self):
         """`True` if the framebuffer was previously bound using the `bindFBO`
@@ -1456,6 +1457,9 @@ def deleteFBO(fbo, deep=False):
     if deep:
         for _, buffer in fbo.attachments.items():
             del buffer
+
+    # invalidate
+    fbo.name = GL.GLuint(0)
 
 
 def blitFBO(srcRect, dstRect=None, filter=GL.GL_LINEAR,

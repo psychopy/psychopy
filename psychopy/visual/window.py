@@ -268,10 +268,10 @@ class Window(object):
             samples is determined by ``GL_MAX_SAMPLES``, usually 16 or 32 on
             newer hardware, will crash if number is invalid.
         stereo : `str` or `bool`
-            If `True` and your graphics card supports quad buffers then
-            this will be enabled. You can switch between left and right-eye
-            scenes for drawing operations using
-            :py:attr:`~psychopy.visual.Window.setBuffer()`.
+            Set the display mode for stereoscopy.
+        stereoConfig : dict or None
+            Configuration options for the specified `stereo` mode as a
+            dictionary. If `None`, the default configuration will be used.
         useRetina : `bool`
             In PsychoPy >1.85.3 this should always be `True` as pyglet
             (or Apple) no longer allows us to create a non-retina display.
@@ -469,7 +469,9 @@ class Window(object):
             'back': WindowBuffer(
                 self, (0, 0, size[0], size[1]), 'back'),
             'front': WindowBuffer(
-                self, (0, 0, size[0], size[1]), 'front')
+                self, (0, 0, size[0], size[1]), 'front'),
+            'none': WindowBuffer(
+                self, (0, 0, size[0], size[1]), 'none')
         }
         # Framebuffers needed for off-screen rendering are stored in
         # `_frameBuffers` here. This includes the framebuffer created when
@@ -479,21 +481,18 @@ class Window(object):
         # objects or OpenGL ids. Multiple keys can reference the same buffer
         # allowing for different device contexts to render to different regions
         # of the buffer.
-        self._frameBuffers = {'back': GL.GL_BACK, 'front': GL.GL_FRONT}
+        self._frameBuffers = {'back': GL.GL_BACK, 'front': GL.GL_FRONT,
+                              'none': GL.GL_NONE}
 
         self._setupGL()
 
-        self.blendMode = self.blendMode
+        # keep track of the mode used
+        if not self.useFBO:
+            self._readBufferMode = self._drawBufferMode = GL.GL_BACK
+        else:
+            self._readBufferMode = self._drawBufferMode = GL.GL_COLOR_ATTACHMENT0
 
-        # parameters for transforming the overall view
-        self.viewScale = val2array(viewScale)
-        if self.viewPos is not None and self.units is None:
-            raise ValueError('You must define the window units to use viewPos')
-        self.viewPos = val2array(viewPos, withScalar=False)
-        self.viewOri = float(viewOri)
-        if self.viewOri != 0. and self.viewPos is not None:
-            msg = "Window: viewPos & viewOri are currently incompatible"
-            raise NotImplementedError(msg)
+        self.blendMode = self.blendMode
 
         # Code to allow iohub to know id of any psychopy windows created
         # so kb and mouse event filtering by window id can be supported.
@@ -598,8 +597,8 @@ class Window(object):
         openWindows.append(self)
 
         self.autoLog = autoLog
-        if self.autoLog:
-            logging.exp("Created %s = %s" % (self.name, str(self)))
+        # if self.autoLog:
+        #     logging.exp("Created %s = %s" % (self.name, str(self)))
 
         # Make sure this window's close method is called when exiting, even in
         # the event of an error we should be able to restore the original gamma
@@ -611,7 +610,14 @@ class Window(object):
 
         atexit.register(close_on_exit)
 
-        self.setBuffer('back')
+        self.setBuffer('back' if not self.useFBO else 'main')  # set the back buffer and configure
+
+        # parameters for transforming the overall view
+        if self.viewPos is not None and self.units is None:
+            raise ValueError('You must define the window units to use viewPos')
+        self.viewPos = viewPos if viewPos is not None else (0, 0)
+        self.viewScale = viewScale if viewScale is not None else (1, 1)
+        self.viewOri = viewOri if viewOri is not None else 0.0
 
     def __del__(self):
         if self._closed is False:
@@ -639,6 +645,9 @@ class Window(object):
         s = "%s(%s)" % (className, params)
         return s
 
+    def _setupMonitors(self):
+        """Setup monitors."""
+
     @attributeSetter
     def units(self, value):
         """*None*, 'height' (of the window), 'norm', 'deg', 'cm', 'pix'
@@ -657,8 +666,8 @@ class Window(object):
     def setUnits(self, value, log=True):
         setAttribute(self, 'units', value, log=log)
 
-    @attributeSetter
-    def viewPos(self, value):
+    @property
+    def viewPos(self):
         """The origin of the window onto which stimulus-objects are drawn.
 
         The value should be given in the units defined for the window. NB:
@@ -669,24 +678,27 @@ class Window(object):
             win.viewPos[0] = new_xval  # DO NOT DO THIS! Errors will result.
 
         """
-        self.__dict__['viewPos'] = value
-        if value is not None:
-            # let setter take care of normalisation
-            setattr(self, '_viewPosNorm', value)
+        return self._windowBuffers[self._buffer].viewPos
 
-    @attributeSetter
-    def _viewPosNorm(self, value):
-        """Normalised value of viewPos, hidden from user view."""
-        # first convert to pixels, then normalise to window units
-        viewPos_pix = convertToPix([0, 0], list(value),
-                                   units=self.units, win=self)[:2]
-        viewPos_norm = viewPos_pix / (self.size / 2.0)
-        # Clip to +/- 1; should going out-of-window raise an exception?
-        viewPos_norm = numpy.clip(viewPos_norm, a_min=-1., a_max=1.)
-        self.__dict__['_viewPosNorm'] = viewPos_norm
+    @viewPos.setter
+    def viewPos(self, value):
+        self._windowBuffers[self._buffer].viewPos = value
 
-    def setViewPos(self, value, log=True):
-        setAttribute(self, 'viewPos', value, log=log)
+    @property
+    def viewOri(self):
+        return self._windowBuffers[self._buffer].viewOri
+
+    @viewOri.setter
+    def viewOri(self, value):
+        self._windowBuffers[self._buffer].viewOri = value
+
+    @property
+    def viewScale(self):
+        return self._windowBuffers[self._buffer].viewScale
+
+    @viewScale.setter
+    def viewScale(self, value):
+        self._windowBuffers[self._buffer].viewScale = value
 
     @attributeSetter
     def fullscr(self, value):
@@ -777,16 +789,15 @@ class Window(object):
 
         """
         # don't configure if we haven't changed context
-        if not self.backend.setCurrent():
-            return
+        self.backend.setCurrent()
 
         # if we are using an FBO, bind it
         self.setBuffer(self._buffer, clear=False)
 
         # set these to match the current window or buffer's settings
-        fbw, fbh = self.frameBufferSize
-        self.viewport = self.scissor = [0, 0, fbw, fbh]
-        self.scissorTest = True
+        # fbw, fbh = self.frameBufferSize
+        # self.viewport = self.scissor = [0, 0, fbw, fbh]
+        # self.scissorTest = True
 
         # apply the view transforms for this window
         #self.applyEyeTransform()
@@ -999,7 +1010,7 @@ class Window(object):
             # need blit the framebuffer object to the actual back buffer
 
             # unbind the framebuffer as the render target
-            GL.glBindFramebufferEXT(GL.GL_FRAMEBUFFER_EXT, 0)
+            GL.glBindFramebuffer(GL.GL_FRAMEBUFFER, 0)
             GL.glDisable(GL.GL_BLEND)
             stencilOn = self.stencilTest
             self.stencilTest = False
@@ -1033,33 +1044,33 @@ class Window(object):
         else:
             self.setBuffer('back')
 
-        # rescale, reposition, & rotate
-        GL.glMatrixMode(GL.GL_MODELVIEW)
-        GL.glLoadIdentity()
-        if self.viewScale is not None:
-            GL.glScalef(self.viewScale[0], self.viewScale[1], 1)
-            absScaleX = abs(self.viewScale[0])
-            absScaleY = abs(self.viewScale[1])
-        else:
-            absScaleX, absScaleY = 1, 1
-
-        if self.viewPos is not None:
-            # here we must use normalised units in _viewPosNorm,
-            # see the corresponding attributeSetter above
-            normRfPosX = self._viewPosNorm[0] / absScaleX
-            normRfPosY = self._viewPosNorm[1] / absScaleY
-
-            GL.glTranslatef(normRfPosX, normRfPosY, 0.0)
-
-        if self.viewOri:  # float
-            # the logic below for flip is partially correct, but does not
-            # handle a nonzero viewPos
-            flip = 1
-            if self.viewScale is not None:
-                _f = self.viewScale[0] * self.viewScale[1]
-                if _f < 0:
-                    flip = -1
-            GL.glRotatef(flip * self.viewOri, 0.0, 0.0, -1.0)
+        # # rescale, reposition, & rotate
+        # GL.glMatrixMode(GL.GL_MODELVIEW)
+        # GL.glLoadIdentity()
+        # if self.viewScale is not None:
+        #     GL.glScalef(self.viewScale[0], self.viewScale[1], 1)
+        #     absScaleX = abs(self.viewScale[0])
+        #     absScaleY = abs(self.viewScale[1])
+        # else:
+        #     absScaleX, absScaleY = 1, 1
+        #
+        # if self.viewPos is not None:
+        #     # here we must use normalised units in _viewPosNorm,
+        #     # see the corresponding attributeSetter above
+        #     normRfPosX = self._viewPosNorm[0] / absScaleX
+        #     normRfPosY = self._viewPosNorm[1] / absScaleY
+        #
+        #     GL.glTranslatef(normRfPosX, normRfPosY, 0.0)
+        #
+        # if self.viewOri:  # float
+        #     # the logic below for flip is partially correct, but does not
+        #     # handle a nonzero viewPos
+        #     flip = 1
+        #     if self.viewScale is not None:
+        #         _f = self.viewScale[0] * self.viewScale[1]
+        #         if _f < 0:
+        #             flip = -1
+        #     GL.glRotatef(flip * self.viewOri, 0.0, 0.0, -1.0)
 
         # reset returned buffer for next frame
         self._endOfFlip(clearBuffer)
@@ -1253,89 +1264,144 @@ class Window(object):
         except KeyError:
             raise NameError("No buffer named `{}`.".format(buffer))
 
+    @property
     def _bufferNames(self):
         """List of buffer names associated with this window."""
         return self._windowBuffers.keys()
 
-    def setReadBuffer(self, buffer, attachment='color', colorIdx=0):
-        """Set the buffer for read operations.
+    @property
+    def isFramebuffer(self):
+        """`True` if the current buffer is an off-screen framebuffer object with
+        attachments. If `False`, buffer is attached to the window (eg. GL_BACK,
+        GL_FRONT, etc.)
+        """
+        return isinstance(self._frameBuffers[self._buffer], gltools.Framebuffer)
+
+    def setReadBuffer(self, buffer, colorIdx=0):
+        """Set the color buffer used for read operations.
 
         Parameters
         ----------
-        buffer : str
-            Name of buffer to read from.
-        attachment : str
-            Buffer attachment to read from. Values can be 'color', 'depth',
-            'stencil' and 'depthStencil' which map to `GL_COLOR_ATTACHMENTn`,
-            `GL_DEPTH_ATTACHMENT`, `GL_STENCIL_ATTACHMENT`, and
-            `GL_DEPTH_STENCIL_ATTACHMENT`, respectively.
+        buffer : str or None
+            Name of buffer to read from. Value can be 'back', 'front' or 'none'.
         colorIdx : int
-            Index of the color attachment. If `attachment` is 'color' and
-            `buffer` is an off-screen buffer, this will select the color
-            attachment at the given index. For instance, `colorIdx=1` will
-            set `GL_COLOR_ATTACHMENT1` as the read buffer.
+            If `buffer` is an off-screen window, `colorIdx` specifies the
+            color attachment to use. For example, using `colorIdx=1` will
+            set the color buffer to `GL_COLOR_ATTACHMENT0`. You can check if a
+            buffer is an offscreen window by checking if `isFramebuffer` is
+            `True`.
 
         """
         useBuffer = self._frameBuffers[buffer]
         if isinstance(useBuffer, int):
             GL.glBindFramebuffer(GL.GL_READ_FRAMEBUFFER, 0)
-            GL.glReadBuffer(useBuffer)
+            self._readBufferMode = useBuffer
         else:
-            GL.glBindFramebuffer(GL.GL_READ_FRAMEBUFFER, useBuffer.name)
-            if attachment == 'color':
-                GL.glReadBuffer(GL.GL_COLOR_ATTACHMENT0 + colorIdx)
-            elif attachment == 'depth':
-                GL.glReadBuffer(GL.GL_DEPTH_ATTACHMENT)
-            elif attachment == 'stencil':
-                GL.glReadBuffer(GL.GL_STENCIL_ATTACHMENT)
-            elif attachment == 'depthStencil':
-                GL.glReadBuffer(GL.GL_DEPTH_STENCIL_ATTACHMENT)
+            # switch to the buffer if not current
+            if self._readBuffer != buffer:
+                GL.glBindFramebuffer(GL.GL_READ_FRAMEBUFFER, useBuffer.name)
+
+            self._readBufferMode = GL.GL_COLOR_ATTACHMENT0 + colorIdx
+
+        GL.glReadBuffer(self._drawBufferMode)
 
         self._readBuffer = buffer
 
-    def setDrawBuffer(self, buffer, attachment='color', colorIdx=0):
-        """Set the buffer for draw operations.
+    def setDrawBuffer(self, buffer, colorIdx=0):
+        """Set the color buffer used for draw operations.
 
         Parameters
         ----------
-        buffer : str
-            Name of buffer to draw to.
-        attachment : str
-            Buffer attachment to draw to. Values can be 'color', 'depth',
-            'stencil' and 'depthStencil' which map to `GL_COLOR_ATTACHMENTn`,
-            `GL_DEPTH_ATTACHMENT`, `GL_STENCIL_ATTACHMENT`, and
-            `GL_DEPTH_STENCIL_ATTACHMENT`, respectively.
+        buffer : str or None
+            Name of buffer to draw to. Value can be 'back', 'front' or 'none'.
         colorIdx : int
-            Index of the color attachment. If `attachment` is 'color' and
-            `buffer` is an off-screen buffer, this will select the color
-            attachment at the given index. For instance, `colorIdx=1` will
-            set `GL_COLOR_ATTACHMENT1` as the draw buffer.
+            If `buffer` is an off-screen window, `colorIdx` specifies the
+            color attachment to use. For example, using `colorIdx=1` will
+            set the color buffer to `GL_COLOR_ATTACHMENT0`. You can check if a
+            buffer is an offscreen window by checking if `isFramebuffer` is
+            `True`.
 
         Notes
         -----
             * Changing the draw buffer will also change the window's `buffer`.
 
+        Examples
+        --------
+        Set the draw buffer to the color attachment 0 (`GL_COLOR_ATTACHMENT0`)
+        of buffer 'main'::
+
+            # needs `import pyglet.gl as GL`
+            win.setDrawBuffer('main', 0)
+
         """
+        # should include some functionality to fan-out drawing to multiple
+        # draw buffers
         useBuffer = self._frameBuffers[buffer]
         if isinstance(useBuffer, int):
             GL.glBindFramebuffer(GL.GL_DRAW_FRAMEBUFFER, 0)
-            GL.glDrawBuffer(useBuffer)
+            self._drawBufferMode = useBuffer
         else:
-            GL.glBindFramebuffer(GL.GL_DRAW_FRAMEBUFFER, useBuffer.name)
-            if attachment == 'color':
-                GL.glReadBuffer(GL.GL_COLOR_ATTACHMENT0 + colorIdx)
-            elif attachment == 'depth':
-                GL.glReadBuffer(GL.GL_DEPTH_ATTACHMENT)
-            elif attachment == 'stencil':
-                GL.glReadBuffer(GL.GL_STENCIL_ATTACHMENT)
-            elif attachment == 'depthStencil':
-                GL.glReadBuffer(GL.GL_DEPTH_STENCIL_ATTACHMENT)
+            # switch to the buffer if not current
+            if self._drawBuffer != buffer:
+                GL.glBindFramebuffer(GL.GL_DRAW_FRAMEBUFFER, useBuffer.name)
+
+            self._drawBufferMode = GL.GL_COLOR_ATTACHMENT0 + colorIdx
+
+        GL.glDrawBuffer(self._drawBufferMode)
 
         self._drawBuffer = self._buffer = buffer
         self.windowBuffer.use()
 
+    def restoreBuffers(self):
+        """Restore the `read` and `draw` buffer states for this window. Call
+        this if some code made changes to OpenGL buffer bindings which puts the
+        current window settings out-of-sync with the OpenGL state.
+
+        Examples
+        --------
+        Here we make some changes to the OpenGL buffer binding state which are
+        not managed by the window (i.e. using `setBuffer`)::
+
+            GL.glBindFramebuffer(GL.GL_FRAMEBUFFER, fboId)
+            GL.glReadBuffer(GL.GL_COLOR_ATTACHMENT0)
+            GL.glDrawBuffer(GL.GL_BACK)
+            # do stuff ...
+
+        Values for window attributes `buffer`, `readBuffer`, and `drawBuffer`
+        are now invalid. By calling `restoreBuffer()`, we can return the buffer
+        bindings to the previous state::
+
+            win.restoreBuffers()
+
+        """
+        if self._readBuffer == self._drawBuffer:  # make fewer calls if same
+            useBuffer = self._frameBuffers[self._drawBuffer]
+            if isinstance(useBuffer, int):
+                GL.glBindFramebuffer(GL.GL_FRAMEBUFFER, 0)
+            else:
+                GL.glBindFramebuffer(GL.GL_FRAMEBUFFER, useBuffer.name)
+
+            GL.glReadBuffer(self._drawBufferMode)
+            GL.glDrawBuffer(self._drawBufferMode)
+        else:
+            useReadBuffer = self._frameBuffers[self._readBuffer]
+            useDrawBuffer = self._frameBuffers[self._drawBuffer]
+
+            if isinstance(useReadBuffer, int):
+                GL.glBindFramebuffer(GL.GL_READ_FRAMEBUFFER, 0)
+            else:
+                GL.glBindFramebuffer(GL.GL_READ_FRAMEBUFFER, useReadBuffer.name)
+
+            if isinstance(useDrawBuffer, int):
+                GL.glBindFramebuffer(GL.GL_DRAW_FRAMEBUFFER, 0)
+            else:
+                GL.glBindFramebuffer(GL.GL_DRAW_FRAMEBUFFER, useDrawBuffer.name)
+
+            GL.glReadBuffer(self._readBufferMode)
+            GL.glDrawBuffer(self._drawBufferMode)
+
     def getBuffer(self):
-        """Get the name of the current buffer.
+        """Get the name of the current draw buffer.
 
         Returns
         -------
@@ -1367,7 +1433,7 @@ class Window(object):
         --------
         Stereoscopic rendering example using quad-buffers::
 
-            win = visual.Window(...., stereo=True)
+            win = visual.Window(...., stereo='quad')
             while True:
                 # clear may not actually be needed
                 win.setBuffer('left', clear=True)
@@ -1387,15 +1453,14 @@ class Window(object):
 
         if isinstance(useBuffer, int):  # built-in GL names i.e. GL_BACK
             GL.glBindFramebuffer(GL.GL_FRAMEBUFFER, 0)
-            GL.glReadBuffer(useBuffer)
-            GL.glDrawBuffer(useBuffer)
+            self._readBufferMode = self._drawBufferMode = useBuffer
         else:
             GL.glBindFramebuffer(GL.GL_FRAMEBUFFER, useBuffer.name)
-            # check if the framebuffer is complete
-            # if not gltools.isComplete():
-            #     raise RuntimeError("Cannot use buffer, not complete.")
-            GL.glReadBuffer(GL.GL_COLOR_ATTACHMENT0)
-            GL.glDrawBuffer(GL.GL_COLOR_ATTACHMENT0)
+            self._readBufferMode = self._drawBufferMode = GL.GL_COLOR_ATTACHMENT0
+
+        # set logical buffers
+        GL.glReadBuffer(self._readBufferMode)
+        GL.glDrawBuffer(self._drawBufferMode)
 
         self.windowBuffer.use()
 
@@ -1403,6 +1468,95 @@ class Window(object):
             self.clearBuffer()
 
         GL.glDisable(GL.GL_TEXTURE_2D)
+
+    def createBuffer(self, name, size=None, samples=1):
+        """Create a new image buffer for off-screen rendering.
+
+        Creates a buffer than can be used for off-screen rendering of stimuli as
+        would be done for a window. The buffer's image can then be rendered to
+        the another buffer (eg. the back buffer to be displayed) or accessed as
+        a 2D texture in video memory for use elsewhere. You can set and use the
+        buffer for drawing by calling `setBuffer`.
+
+        A corresponding `WindowBuffer` is automatically created for the buffer
+        which can be configured afterwards.
+
+        A buffer created with this method will use the same color depth as the
+        window's back buffer, a 24-bit depth buffer, and 8-bit stencil buffer.
+        This is adequate for most use cases, but for greater control over the
+        creation of buffers (albiet more complex), consider using
+        `createBufferWithDescriptors` instead.
+
+        Parameters
+        ----------
+        name : str
+            Name of buffer to create. Used for selecting the buffer when calling
+            `setBuffer`.
+        size : array_like
+            Width and height of the buffer (w, h). If `None`, the buffer will
+            have the same size as the window's back buffer. All attachments
+            (i.e. color, depth and stencil) will have this size allocated.
+        samples : int
+            Number of samples for multi-sampling. Buffer will have image storage
+            for multi-sampling if >1. Note that multi-sample buffer needs to be
+            resolved by blitting onto a regular buffer to be used.
+
+        Notes
+        -----
+            * This functionality requires support for OpenGL 2.1+ in your
+              graphics driver.
+            * Creating buffers are costly operations, don't create buffers
+              during time-sensitive operations.
+            * Creating too many buffers can quickly fill up your graphics
+              adapter memory, consider ways of reusing the same buffer for
+              multiple operations.
+            * Supersampling anti-aliasing (SSAA) can be done by creating a
+              buffer larger than your back buffer for rendering. When the larger
+              buffer is copied/rendered to the smaller back buffer with linear
+              filtering, the downsampling effectively smooths out aliasing
+              artifacts present in the larger buffer. Keep in mind that you will
+              need to scale your SSAA buffer's units accordingly so things
+              appear int the correct spot when downsampled.
+
+        Examples
+        --------
+        Creating a buffer named 'newBuffer' and setting it as the drawing
+        target::
+
+            win.createBuffer('newBuffer')
+            win.setBuffer('newBuffer')
+
+        """
+        # ensure we are not overwriting an existing buffer
+        if name in self._frameBuffers.keys() or \
+                name in self._windowBuffers.keys():
+            raise ValueError('Buffer with key `name` already in use.')
+
+        size = self.size if size is None else size
+
+        # Create a buffer for color data. If `samples` > 1, create a multi-
+        # sample render buffer instead of a texture.
+        if samples == 1:
+            colorRb = gltools.createTexImage2D(
+                size[0], size[1], texParams={
+                    GL.GL_TEXTURE_MAG_FILTER: GL.GL_LINEAR,
+                    GL.GL_TEXTURE_MIN_FILTER: GL.GL_LINEAR})
+        elif samples > 1:
+            colorRb = gltools.createRenderbuffer(size[0], size[1],
+                                                 samples=samples)
+        else:
+            raise ValueError("Value for `samples` must be >=1.")
+
+        depthStencilRb = gltools.createRenderbuffer(
+            size[0], size[1], internalFormat=GL.GL_DEPTH24_STENCIL8)
+
+        attachments = {GL.GL_COLOR_ATTACHMENT0: colorRb,
+                       GL.GL_DEPTH_ATTACHMENT: depthStencilRb,
+                       GL.GL_STENCIL_ATTACHMENT: depthStencilRb}
+
+        rect = (0, 0, self.size[0], self.size[1])
+        self._frameBuffers[name] = gltools.createFBO(attachments)
+        self._windowBuffers[name] = WindowBuffer(self, rect, name)
 
     def createBufferFromRect(self, name, targetBuffer=None, viewport=None):
         """Create a new buffer from a sub-region of an existing buffer.
@@ -1466,86 +1620,25 @@ class Window(object):
         self._windowBuffers[name] = WindowBuffer(self, viewport, name)
         self._frameBuffers[name] = targetBuffer  # create new reference
 
-    def createBuffer(self, name, size=None, samples=1):
-        """Create a new image buffer for off-screen rendering.
-
-        Creates a buffer than can be used for off-screen rendering of stimuli as
-        would be done for a window. The buffer's image can then be rendered to
-        the another buffer (eg. the back buffer to be displayed) or accessed as
-        a 2D texture in video memory for use elsewhere. You can set and use the
-        buffer for drawing by calling `setBuffer`.
-
-        A corresponding `WindowBuffer` is automatically created for the buffer
-        which can be configured afterwards.
-
-        Parameters
-        ----------
-        name : str
-            Name of buffer to create. Used for selecting the buffer when calling
-            `setBuffer`.
-        size : array_like
-            Width and height of the buffer (w, h). If `None`, the buffer will
-            have the same size as the window's back buffer.
-        samples : int
-            Number of samples for multi-sampling. Buffer will have image storage
-            for multi-sampling if >1. Note that multi-sample buffer needs to be
-            resolved by blitting onto a regular buffer to be used.
-
-        Notes
-        -----
-            * This functionality requires support for OpenGL 2.1+ in your
-              graphics driver.
-
-        """
-        # ensure we are not overwriting an existing buffer
-        if name in self._frameBuffers.keys() or \
-                name in self._windowBuffers.keys():
-            raise ValueError('Buffer with key `name` already in use.')
-
-        size = self.size if size is None else size
-
-        # Create a buffer for color data. If `samples` > 1, create a multi-
-        # sample render buffer instead of a texture.
-        if samples == 1:
-            colorRb = gltools.createTexImage2D(
-                size[0], size[1], texParams={
-                    GL.GL_TEXTURE_MAG_FILTER: GL.GL_LINEAR,
-                    GL.GL_TEXTURE_MIN_FILTER: GL.GL_LINEAR})
-        elif samples > 1:
-            colorRb = gltools.createRenderbuffer(size[0], size[1],
-                                                 samples=samples)
-        else:
-            raise ValueError("Value for `samples` must be >=1.")
-
-        depthStencilRb = gltools.createRenderbuffer(
-            size[0], size[1], internalFormat=GL.GL_DEPTH24_STENCIL8)
-
-        attachments = {GL.GL_COLOR_ATTACHMENT0: colorRb,
-                       GL.GL_DEPTH_ATTACHMENT: depthStencilRb,
-                       GL.GL_STENCIL_ATTACHMENT: depthStencilRb}
-
-        rect = (0, 0, self.size[0], self.size[1])
-        self._frameBuffers[name] = gltools.createFBO(attachments)
-        self._windowBuffers[name] = WindowBuffer(self, rect, name)
-
-    def createBufferWithDescriptors(self, name, attachments=None):
-        """Create a new buffer using attachment descriptors.
+    def createBufferWithDescriptors(self, name, attachments):
+        """Create a new buffer using descriptors of framebuffer-attachable
+        images as its logical buffers.
 
         For advanced control over the creation of a buffer, you can use
-        descriptors for each attachment with the classes provided in the
-        `~psychopy.tools.gltools` module.
+        descriptors for each attachment which are instances of classes provided
+        in the `~psychopy.tools.gltools` module.
 
         This method is useful for creating special buffers for things like
         shadow mapping, instead of the `createBuffer` which is intended for
         making additional render targets for PsychoPy stimulus classes.
         Requires some knowledge of OpenGL, but allows for any possible
-        configuration supported by the OpenGL implementation.
+        configuration supported by the system's OpenGL implementation.
 
         Parameters
         ----------
         name : str
             Name of the buffer to create. Must not be an existing name.
-        attachments : dict or None
+        attachments : dict
             Attachments to initialize the Framebuffer with.
 
         Examples
@@ -1584,10 +1677,8 @@ class Window(object):
 
         size = (maxWidth, maxHeight)
 
-        # create a new Framebuffer object with no attachments
-
         # make the buffer available
-        self._frameBuffers[name] = gltools.createFBO(attachments)
+        self._frameBuffers[name] = gltools.createFBO(attachments, sizeHint=size)
         self._windowBuffers[name] = WindowBuffer(
             self, (0, 0, size[0], size[1]), name)
 
@@ -1821,13 +1912,59 @@ class Window(object):
         self._buffer = value
 
     def setStereoMode(self, mode):
-        """Change the stereo mode for this window.
+        """Change the stereo mode for this window. This is usually set by
+        specifying the mode name to `stereo` when creating the window, but the
+        mode can be changed afterwards if needed.
+
+        Many common configurations for stereoscopic displays are supported. They
+        can be set by passing their names to `mode`. Below are the possible
+        options.
+
+        * **span**: Arrange left and right eye views horizontally, with the
+          width of each buffer being half the size of the window. Aspect ratios
+          of stimuli are preserved. This mode is intended to be used with
+          multiple displays operating in "extended desktop" mode on Windows and
+          Linux, where a single window is spanned across the displays. This mode
+          is not supported on MacOS. Montiors are assumed to be matched, having
+          the same dimensions and color depth.
+        * **wheatstone**: Same as 'span', but the images are automatically
+          mirrored horizontally. This is used to support Wheatstone-style
+          stereoscopes which have mirrors in the optical path between the screen
+          and viewer.
+        * **freeFuse**: Same as 'span', but left and right eye images have their
+          positions swapped. This allows for viewing stimuli using crossed-eyed
+          free fusion. This mode does not require extended desktop mode.
+        * **leftOnly** or **rightOnly**: Render only the left or right eye's
+          view to the window. This allows you to display a single eye's image
+          without needing to modify code intended to work with stereoscopic
+          displays. Can be used for debugging purposes. You can still switch to
+          the other eye's buffer, but nothing will be drawn.
+
+        The following modes cannot be set or changed using `setStereoMode`,
+        however they are available when passed to `stereo` when creating the
+        window.
+
+        * **quad**: Quad-buffered stereo for graphics hardware that supports it.
+          Usually used with shutter glasses and an emitter connected to the
+          3-pin VESA port coming off the graphics card. However, some operating
+          systems may allow this mode to work with other configurations.
 
         Parameters
         ----------
         mode : str
             Stereo mode to set, valid values are `span`, `wheatstone`, `fuse`
             or `quad`.
+
+        Notes
+        -----
+        * Not all stereo modes can be changed on-the-fly. This method will have
+          no effect if changing the current stereo mode is not possible.
+
+        Examples
+        --------
+        Setting the stereo mode to 'span':
+
+                win.setStereoMode('span')
 
         """
         self.stereo = mode
@@ -1852,7 +1989,8 @@ class Window(object):
             self.stereo = 'quad'
 
         # check if the mode specified was valid
-        if self.stereo not in ('span', 'wheatstone', 'fuse', 'quad'):
+        if self.stereo not in ('span', 'wheatstone', 'freeFuse', 'quad',
+                               'leftOnly', 'rightOnly'):
             raise ValueError('Invalid value for `stereo` specified.')
 
         # apply the configuration for the specified stereo mode
@@ -1864,8 +2002,13 @@ class Window(object):
             rightEyeRect = (leftEyeRect[2], 0, leftEyeRect[2], leftEyeRect[3])
             self._windowBuffers['left'] = WindowBuffer(self, leftEyeRect, 'left')
             self._windowBuffers['right'] = WindowBuffer(self, rightEyeRect, 'right')
-            self._frameBuffers['left'] = GL.GL_BACK
-            self._frameBuffers['right'] = GL.GL_BACK
+
+            if not self.useFBO:
+                self._frameBuffers['left'] = GL.GL_BACK
+                self._frameBuffers['right'] = GL.GL_BACK
+            else:
+                self._frameBuffers['left'] = self._frameBuffers['main']
+                self._frameBuffers['right'] = self._frameBuffers['main']
 
         elif self.stereo == 'wheatstone':
             # Like 'span', but buffers are mirrored horizontally before being
@@ -1875,10 +2018,15 @@ class Window(object):
             rightEyeRect = (leftEyeRect[2], 0, leftEyeRect[2], leftEyeRect[3])
             self._windowBuffers['left'] = WindowBuffer(self, leftEyeRect, 'left')
             self._windowBuffers['right'] = WindowBuffer(self, rightEyeRect, 'right')
-            self._frameBuffers['left'] = GL.GL_BACK
-            self._frameBuffers['right'] = GL.GL_BACK
 
-        elif self.stereo == 'fuse':
+            if not self.useFBO:
+                self._frameBuffers['left'] = GL.GL_BACK
+                self._frameBuffers['right'] = GL.GL_BACK
+            else:
+                self._frameBuffers['left'] = self._frameBuffers['main']
+                self._frameBuffers['right'] = self._frameBuffers['main']
+
+        elif self.stereo == 'freeFuse':
             # Side-by-side with aspect ratio preserved like 'span', but allows
             # for crossed eye free-fusion by reversing the images
             w = int(self.size[0] / 2)
@@ -1886,8 +2034,13 @@ class Window(object):
             rightEyeRect = (0, 0, leftEyeRect[2], leftEyeRect[3])
             self._windowBuffers['left'] = WindowBuffer(self, leftEyeRect, 'left')
             self._windowBuffers['right'] = WindowBuffer(self, rightEyeRect, 'right')
-            self._frameBuffers['left'] = GL.GL_BACK
-            self._frameBuffers['right'] = GL.GL_BACK
+
+            if not self.useFBO:
+                self._frameBuffers['left'] = GL.GL_BACK
+                self._frameBuffers['right'] = GL.GL_BACK
+            else:
+                self._frameBuffers['left'] = self._frameBuffers['main']
+                self._frameBuffers['right'] = self._frameBuffers['main']
 
         elif self.stereo == 'quad' or self.stereo is True:
             # Quad-buffered stereo used by supported hardware and operating
@@ -1898,6 +2051,35 @@ class Window(object):
             self._windowBuffers['right'] = WindowBuffer(self, rect, 'right')
             self._frameBuffers['left'] = GL.GL_BACK_LEFT
             self._frameBuffers['right'] = GL.GL_BACK_RIGHT
+
+        elif self.stereo == 'leftOnly':
+            # Only commit the left eye's buffer to the back buffer. This allows
+            # you to view that eye's image using the full window. Draw
+            # operations to the right buffer will still occur but won't have an
+            # effect.
+            rect = (0, 0, self.size[0], self.size[1])
+            self._windowBuffers['left'] = WindowBuffer(self, rect, 'left')
+            self._windowBuffers['right'] = WindowBuffer(self, rect, 'right')
+
+            if not self.useFBO:
+                self._frameBuffers['left'] = GL.GL_BACK
+            else:
+                self._frameBuffers['left'] = self._frameBuffers['main']
+
+            self._frameBuffers['right'] = GL.GL_NONE
+
+        elif self.stereo == 'rightOnly':
+            # Same as `leftOnly`, but for the right eye image
+            rect = (0, 0, self.size[0], self.size[1])
+            self._windowBuffers['left'] = WindowBuffer(self, rect, 'left')
+            self._windowBuffers['right'] = WindowBuffer(self, rect, 'right')
+
+            if not self.useFBO:
+                self._frameBuffers['right'] = GL.GL_BACK
+            else:
+                self._frameBuffers['right'] = self._frameBuffers['main']
+
+            self._frameBuffers['left'] = GL.GL_NONE
 
         elif self.stereo == 'rift':
             # Stereo rendering to the Oculus Rift HMD using PsychXR.
@@ -2216,6 +2398,21 @@ class Window(object):
     @convergeOffset.setter
     def convergeOffset(self, value):
         self.windowBuffer.convergeOffset = value
+
+    def setDefaultView(self, applyTransform=True, clearDepth=True):
+        """Set the projection and view matrix to the default for rendering
+        2D stimuli.
+
+        Parameters
+        ----------
+        applyTransform : bool
+            Apply transformations after computing them in immediate mode. Same
+            as calling :py:attr:`~Window.applyEyeTransform()` afterwards.
+        clearDepth : bool, optional
+            Clear the depth buffer.
+
+        """
+        self.windowBuffer.setDefaultView(applyTransform, clearDepth)
 
     def setOffAxisView(self, applyTransform=True, clearDepth=True):
         """Set an off-axis projection.
@@ -3148,19 +3345,22 @@ class Window(object):
         `Warper` to still work.
 
         """
-        # If `useFBO` is `True`, add a device context with name 'main' which is
-        # reserved for it.
-        self._windowBuffers['main'] = WindowBuffer(
-            self, (0, 0, self.size[0], self.size[1]), 'main')
+        # create descriptors for attachments
+        colorRb = gltools.createTexImage2D(
+            self.size[0], self.size[1], internalFormat=GL.GL_RGBA32F_ARB,
+            texParams={GL.GL_TEXTURE_MAG_FILTER: GL.GL_LINEAR,
+                       GL.GL_TEXTURE_MIN_FILTER: GL.GL_LINEAR})
+        depthStencilRb = gltools.createRenderbuffer(
+            self.size[0], self.size[1], internalFormat=GL.GL_DEPTH24_STENCIL8)
 
-        #colorRb = gltools.
-
-        self.createBufferWithDescriptors('main', attachments)
+        # create the buffer
+        self.createBufferWithDescriptors(
+            'main', attachments={
+                GL.GL_COLOR_ATTACHMENT0: colorRb,
+                GL.GL_DEPTH_ATTACHMENT: depthStencilRb,
+                GL.GL_STENCIL_ATTACHMENT: depthStencilRb})
 
         # If `useFBO` is `True`, make another framebuffer
-        self._frameBuffers['main'] = Framebuffer(
-            self, 'main', (self.size[0], self.size[1]))
-
         self.frameBuffer = self._frameBuffers['main'].name
         self.frameTexture = self._frameBuffers['main'].getColorBuffer().name
         # depth and stencil are combined, this call gets both
@@ -3428,6 +3628,11 @@ class Window(object):
         """
         if clearBuffer:
             GL.glClear(GL.GL_COLOR_BUFFER_BIT)
+
+    def _finalizeFrame(self):
+        """Finalize the frame to be presented. This is called before
+        `_startOfFlip()`."""
+        pass
 
 
 def getMsPerFrame(myWin, nFrames=60, showVisual=False, msg='', msDelay=0.):

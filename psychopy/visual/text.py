@@ -799,7 +799,7 @@ class TextStim(BaseVisualStim, ColorMixin, ContainerMixin):
         GL.glPushMatrix()
         # for PyOpenGL this is necessary despite pop/PushMatrix, (not for
         # pyglet)
-        GL.glLoadIdentity()
+        #GL.glLoadIdentity()
         #scale and rotate
         prevScale = win.setScale('pix')  # to units for translations
         # NB depth is set already
@@ -828,6 +828,9 @@ class TextStim(BaseVisualStim, ColorMixin, ContainerMixin):
 
         else:  # color is set in texture, so set glColor to white
             GL.glColor4f(1, 1, 1, 1)
+
+        # correct aspect ratio
+        #GL.glScalef(self.win.aspect, 1.0, 1.0)  # x,y,z; -1=flipped
 
         # should text have a depth or just on top?
         GL.glDisable(GL.GL_DEPTH_TEST)

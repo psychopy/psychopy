@@ -21,6 +21,8 @@ import psychopy.tools.mathtools as mathtools
 import numpy as np
 from .helpers import setColor
 from psychopy import colors
+from psychopy.tools.arraytools import val2array
+from psychopy.tools.monitorunittools import convertToPix
 
 
 # OpenGL constants mapped to strings, needed to avoid having users to define
@@ -62,197 +64,6 @@ internalColorFormats = {
 }
 
 
-class Framebuffer(object):
-    """Class representing an image buffer in video memory for off-screen
-    rendering of stimuli.
-
-    A render surface references a framebuffer with attachments for color, depth,
-    and stencil data. When bound, OpenGL draw operations will be diverted to
-    the buffers associated with this object. Usually, `Framebuffer` is used
-    internally by the `Window` class for creating images to be presented. Users
-    usually would create additional buffers by calling `createBuffer()` instead
-    of directly instancing `Framebuffer` objects. A `RenderContext` should be
-    created alongside a `Framebuffer` and activated after binding.
-
-    Multi-sample anti-aliasing (MSAA) is supported with `Framebuffer` by
-    setting `samples` >1. This will automatically create a buffer with
-    multi-sample storage, however multi-sample `Framebuffers` will use a
-    render buffer attachment instead of a texture for color data. This will
-    require blitting the buffer to a regular framebuffer prior to warping.
-
-    """
-    def __init__(self, win, size=None, samples=1, warper=None,
-                 colorBuffer=True, depthBuffer=True, stencilBuffer=True,
-                 depthBits=24, stencilBits=8):
-        """
-        Parameters
-        ----------
-        win : `~psychopy.visual.Window`
-            Window with OpenGL context to create the framebuffer for.
-        size : array_like or None
-            Size of the framebuffer. If `None`, the size will be set from the
-            window back buffer size.
-        samples : int
-            Number of samples for the color buffer. If >1, the color buffer will
-            be a render buffer.
-        depthBuffer : bool
-            Create a depth buffer attachment for this framebuffer.
-        stencilBuffer : bool
-            Create a stencil buffer attachment for this framebuffer.
-        depthBits : int
-            Size of the depth buffer per-pixel. Valid values are 8, 16, 24, and
-            32.
-        stencilBits : int
-            Size of the stencil buffer per-pixel. Valid values are 1, 4, 8, and
-            16.
-
-        Notes
-        -----
-        * If `depthBits=24` and `stencilBits=8`, a combined depth/stencil
-          attachment will be created.
-
-        """
-        self._win = win
-        self._size = np.array(win.size if size is None else size, dtype=int)
-
-        self._samples = samples
-
-        # IDs for FBO and its attachments
-        w, h = self._size
-
-        attachments = dict()  # snowball for attachments
-        # Create a buffer for color data. If `samples` > 1, create a multi-
-        # sample render buffer instead of a texture.
-        if colorBuffer:
-            if samples == 1:
-                colorRb = gltools.createTexImage2D(
-                    w, h, texParams={
-                        GL.GL_TEXTURE_MAG_FILTER: GL.GL_LINEAR,
-                        GL.GL_TEXTURE_MIN_FILTER: GL.GL_LINEAR})
-            elif samples > 1:
-                colorRb = gltools.createRenderbuffer(
-                    w, h, samples=self._samples)
-            else:
-                raise ValueError("Value for `samples` must be >=1.")
-
-            attachments.update({GL.GL_COLOR_ATTACHMENT0: colorRb})
-
-        # create a stencil and depth buffer if requested
-        if (depthBuffer and stencilBuffer) and \
-                (depthBits == 24 and stencilBits == 8):  # if both are specified, combine them
-            depthStencilRb = gltools.createRenderbuffer(
-                w, h, internalFormat=GL.GL_DEPTH24_STENCIL8)
-            attachments.update(
-                {GL.GL_DEPTH_ATTACHMENT: depthStencilRb,
-                 GL.GL_STENCIL_ATTACHMENT: depthStencilRb})
-        else:
-            if depthBuffer:
-                depthRb = gltools.createRenderbuffer(
-                    w, h, internalFormat=depthBufferSize[depthBits])
-                attachments.update({GL.GL_DEPTH_ATTACHMENT: depthRb})
-            if stencilBuffer:
-                stencilRb = gltools.createRenderbuffer(
-                    w, h, internalFormat=stencilBuffer[stencilBits])
-                attachments.update({GL.GL_STENCIL_ATTACHMENT: stencilRb})
-
-        # create the framebuffer object
-        self.fbo = gltools.createFBO(attachments)
-
-        # warping object which describes how this object should be drawn
-        self._warper = warper
-
-    def __del__(self):
-        """When refcount drops to zero, delete the framebuffer and attachments.
-        """
-        gltools.deleteFBO(self.fbo, deep=True)
-
-    @property
-    def size(self):
-        return self._size  # read-only, changed only by setting `viewport`
-
-    def isMultisample(self):
-        """`True` if this is a multisample buffer."""
-        return self._samples > 1
-
-    def bind(self, mode='readDraw'):
-        """Bind the framebuffer associated with this object. Successive draw
-        operations will be diverted to that framebuffer.
-
-        Parameters
-        ----------
-        mode : str
-            Mode to bind framebuffer.
-
-        """
-        if mode == 'readDraw':
-            target = GL.GL_FRAMEBUFFER
-        elif mode == 'draw':
-            target = GL.GL_DRAW_FRAMEBUFFER
-        elif mode == 'read':
-            target = GL.GL_READ_FRAMEBUFFER
-        else:
-            raise ValueError("Invalid option for `mode` in call `bind()`.")
-
-        gltools.bindFBO(self.fbo, target)
-
-    @property
-    def warper(self):
-        """Warping object for this framebuffer. This will be used for warping
-        when rendering the framebuffer to an output buffer. You cannot specify
-        a warper for multi-sample framebuffers.
-        """
-        return self._warper
-
-    @warper.setter
-    def warper(self, value):
-        if not self.isMultisample():
-            self._warper = value
-        else:
-            raise RuntimeError(
-                "Cannot assign a warper to multi-sample framebuffers.")
-
-    def getColorBuffer(self, idx=0):
-        """Get the color buffer attachment.
-
-        Parameters
-        ----------
-        idx : int
-            Color attachment index.
-
-        Returns
-        -------
-        TexImage2D, Renderbuffer or `None`
-            Descriptor for the attachment. Gives `None` if there is no color
-            attachment at `idx`.
-
-        """
-        return self.fbo.getColorBuffer(idx)
-
-    def getDepthBuffer(self):
-        """Get the depth buffer attachment.
-
-        Returns
-        -------
-        TexImage2D or Renderbuffer
-            Descriptor for the attachment. Gives `None` if there is no depth
-            attachment.
-
-        """
-        return self.fbo.getDepthBuffer()
-
-    def getStencilBuffer(self):
-        """Get the stencil buffer attachment.
-
-        Returns
-        -------
-        TexImage2D or Renderbuffer
-            Descriptor for the attachment. Gives `None` if there is no stencil
-            attachment.
-
-        """
-        return self.fbo.getStencilBuffer()
-
-
 class WindowBuffer(object):
     """Class representing a render context for a window buffer.
 
@@ -270,7 +81,7 @@ class WindowBuffer(object):
     instanced directly.
 
     """
-    def __init__(self, win, viewport, name):
+    def __init__(self, win, viewport, name, screen=None):
         """Constructor for WindowBuffer.
 
         Parameters
@@ -281,15 +92,22 @@ class WindowBuffer(object):
             Viewport rectangle [x, y, w, h] for the buffer.
         name : str
             Buffer name.
+        screen : int or None
+            Screen that this buffer is being viewed on. Change this to the
+            screen number the buffer appears on if a window is being spanned
+            across multiple screens. If `None`, this will use the screen the
+            window was created on.
 
         """
         self.win = win
+        self.screen = screen
 
         # Name of buffer, used to determine whether the window is using the
         # context. This is used to prevent changing OpenGL capabilities and
         # other settings if the context is not current.
         self.name = name
 
+        # viewports and buffer size
         self._viewport = np.asarray(viewport, dtype=int)
         self._scissor = np.array(self._viewport, dtype=int)
         self._size = np.array(self.viewport[2:])
@@ -298,17 +116,43 @@ class WindowBuffer(object):
         self._nearClip = -1
         self._farClip = 1
 
-        # transformations related to the device context
-        self._viewMatrix = np.identity(4, dtype=np.float32)
-        self._projectionMatrix = viewtools.orthoProjectionMatrix(
-            -1, 1, -1, 1, self._nearClip, self._farClip, dtype=np.float32)
-
         # stereo rendering settings, set later by the user
-        self._eyeOffset = 0.0
-        self._convergeOffset = 0.0
+        self._eyeOffset = self._convergeOffset = 0.0
+
+        # Global view position, orientation and scale, used to adjust the
+        # display.
+        self._viewPos = np.zeros((2,), dtype=np.float32)
+        self._viewPosNorm = np.zeros((2,), dtype=np.float32)
+        self._viewScale = np.ones((2,), dtype=np.float32)
+        self._viewOri = 0.0
+
+        # horizontal and vertical flip for the buffer
+        self._flipHorizontal = self._flipVertical = False
+
+        # Transformation matrices for generating the orthographic view matrix,
+        # these are cached and only updated when attributes change. Allocated
+        # and configured before the buffer is realized.
+        self._orthoProjectionMatrix = np.zeros((4, 4), dtype=np.float32)
+        self._orthoPosMatrix = np.zeros((4, 4), dtype=np.float32)
+        self._orthoRotateMatrix = np.zeros((4, 4), dtype=np.float32)
+        self._orthoScaleMatrix = np.zeros((4, 4), dtype=np.float32)
+        self._orthoViewMatrix = np.zeros((4, 4), dtype=np.float32)
+
+        # Update flags, reduces overhead for redundant calls when settings don't
+        # change between buffer changes.
+        self._viewTransformNeedsUpdate = True
+
+        # Transformations actually used, orthographic and projection matrices
+        # stored in these objects.
+        self._projectionMatrix = np.array(
+            self._orthoProjectionMatrix, dtype=np.float32)
+        self._viewMatrix = np.array(
+            self._orthoViewMatrix, dtype=np.float32)
 
         # Pointers to transforms, reduces overhead when passing these off to
-        # OpenGL.
+        # OpenGL. Note that overwriting `_projectionMatrix` and `_viewMatrix`
+        # makes these invalid. So only access and update those through their
+        # properties which ensures that they point to valid data.
         self._viewMatrixPtr = self._viewMatrix.ctypes.data_as(
                 ctypes.POINTER(ctypes.c_float))
         self._projectionMatrixPtr = self._projectionMatrix.ctypes.data_as(
@@ -317,7 +161,7 @@ class WindowBuffer(object):
         # OpenGL states
         self._scissorTest = True
         self._stencilTest = self._depthTest = \
-            self._depthMask = self._cullFace = False
+            self._depthMask = self._cullFace = self._sRGB = False
         self._depthFunc = 'less'
         self._cullFaceMode = 'back'
         self._frontFace = 'cw'
@@ -334,6 +178,82 @@ class WindowBuffer(object):
         self._useLights = False
         self._nLights = 0
         self._ambientLight = np.array([0.0, 0.0, 0.0, 1.0], dtype=np.float32)
+
+        # configure the default view
+        self.setDefaultView(clearDepth=False)
+
+    @property
+    def flipHorizontal(self):
+        """If `True`, the display will be flipped horizontally."""
+        return self._flipHorizontal
+
+    @flipHorizontal.setter
+    def flipHorizontal(self, value):
+        self._flipHorizontal = value
+
+    @property
+    def flipVertical(self):
+        """If `True`, the display will be flipped vertically."""
+        return self._flipVertical
+
+    @flipVertical.setter
+    def flipVertical(self, value):
+        self._flipVertical = value
+
+    @property
+    def viewPos(self):
+        """The origin of the window onto which stimulus-objects are drawn.
+
+        The value should be given in the units defined for the window. NB:
+        Never change a single component (x or y) of the origin, instead replace
+        the viewPos-attribute in one shot, e.g.::
+
+            win.viewPos = [new_xval, new_yval]  # This is the way to do it
+            win.viewPos[0] = new_xval  # DO NOT DO THIS! Errors will result.
+
+        """
+        return self._viewPos
+
+    @viewPos.setter
+    def viewPos(self, value):
+        self._viewPos[:] = value
+        viewPos_pix = convertToPix(
+            [0, 0], list(value), units=self.win.units, win=self.win)[:2]
+        viewPos_norm = viewPos_pix / (self.size / 2.0)
+        # Clip to +/- 1; should going out-of-window raise an exception?
+        self._viewPosNorm = np.clip(viewPos_norm, a_min=-1., a_max=1.)
+
+        self._viewTransformNeedsUpdate = True
+
+    @property
+    def viewOri(self):
+        """Global orientation for the display in degress.
+        """
+        return self._viewOri
+
+    @viewOri.setter
+    def viewOri(self, value):
+        self._viewOri = float(value)
+        self._viewTransformNeedsUpdate = True
+
+    @property
+    def viewScale(self):
+        """Global scaling of the display [sx, sy].
+
+        Examples
+        --------
+        Setting the view scale::
+
+            win.viewScale = [new_xval, new_yval]  # This is the way to do it
+            win.viewScale[0] = new_xval  # DO NOT DO THIS! Errors will result.
+
+        """
+        return self._viewScale
+
+    @viewScale.setter
+    def viewScale(self, value):
+        self._viewScale[:] = value
+        self._viewTransformNeedsUpdate = True
 
     @property
     def aspect(self):
@@ -417,6 +337,8 @@ class WindowBuffer(object):
         if self.win.buffer == self.name:
             GL.glViewport(*self._viewport)
 
+        self._viewTransformNeedsUpdate = True
+
     @property
     def scissor(self):
         """Scissor rectangle (x, y, w, h) for the current draw buffer.
@@ -477,6 +399,23 @@ class WindowBuffer(object):
                 raise TypeError("Value must be boolean.")
 
         self._scissorTest = value
+
+    @property
+    def sRGB(self):
+        """`True` if sRGB is enabled."""
+        return self._sRGB
+
+    @sRGB.setter
+    def sRGB(self, value):
+        if self.win.buffer == self.name:
+            if value is True:
+                GL.glEnable(GL.GL_FRAMEBUFFER_SRGB)
+            elif value is False:
+                GL.glDisable(GL.GL_FRAMEBUFFER_SRGB)
+            else:
+                raise TypeError("Value must be boolean.")
+
+        self._sRGB = value
 
     @property
     def stencilTest(self):
@@ -722,8 +661,41 @@ class WindowBuffer(object):
         self._viewMatrix[:] = \
             viewtools.lookAt(pos, fwdVec, upVec, dtype=np.float32)
 
-    #def setProjectionFromFrustum(self, left, right, top, down, near, far):
-    #    """Set the projection matrix from frustum."""
+    def setDefaultView(self, applyTransform=True, clearDepth=True):
+        """Set the projection and view matrix to the default for rendering
+        2D stimuli."""
+        # update the projection if
+        if self._viewTransformNeedsUpdate:
+            self._orthoProjectionMatrix[:] = viewtools.orthoProjectionMatrix(
+                -self.aspect, self.aspect, -1, 1, -1, 1)
+
+            normRfPosX = self._viewPosNorm[0] / abs(self._viewScale[0])
+            normRfPosY = self._viewPosNorm[1] / abs(self._viewScale[1])
+
+            # matrices
+            aspectMatrix = mathtools.scaleMatrix(
+                (self.aspect, 1.0, 1.0), dtype=np.float32)  # correct aspect ratio
+            posMatrix = mathtools.translationMatrix(
+                    (normRfPosX, normRfPosY, 0.0), dtype=np.float32)
+            rotMatrix = mathtools.rotationMatrix(
+                     self._viewOri, (0., 0., -1.), dtype=np.float32)
+            scaleMatrix = mathtools.scaleMatrix(
+                     (self._viewScale[0], self._viewScale[1], 1.0),
+                     dtype=np.float32)
+
+            self._orthoViewMatrix[:] = mathtools.concatenate(
+                [scaleMatrix, rotMatrix, posMatrix, aspectMatrix],
+                dtype=np.float32)
+
+            self._viewTransformNeedsUpdate = False
+            print('here')
+
+        # reset
+        self._viewMatrix[:] = self._orthoViewMatrix
+        self._projectionMatrix[:] = self._orthoProjectionMatrix
+
+        if applyTransform:
+            self.applyEyeTransform()
 
     def resetEyeTransform(self, clearDepth=True):
         """Restore the default projection and view settings to PsychoPy
@@ -758,11 +730,10 @@ class WindowBuffer(object):
         """
         # should eventually have the same effect as calling _onResize(), so we
         # need to add the retina mode stuff eventually
-        self._viewMatrix[:] = np.identity(4, dtype=np.float32)
+        self._viewMatrix[:] = self._orthoViewMatrix
         self._nearClip = -1
         self._farClip = 1
-        self._projectionMatrix[:] = viewtools.orthoProjectionMatrix(
-            -1, 1, -1, 1, self._nearClip, self._farClip, dtype=np.float32)
+        self._projectionMatrix[:] = self._orthoProjectionMatrix
 
         self.applyEyeTransform(clearDepth)
 
@@ -797,6 +768,9 @@ class WindowBuffer(object):
             # draw 3D objects here ...
 
         """
+        if self.name != self.win.buffer:  # only apply if current buffer
+            return
+
         # check if we need to update the shader program
         if shaderProg != self._shaderProg:
             self._shaderProg = shaderProg
