@@ -11,7 +11,8 @@ from psychopy import core, event
 import psychopy.visual as visual
 from psychopy.visual import SphereStim, LightSource, RigidBodyPose
 
-win = visual.Window((600, 600), allowGUI=False, monitor='testMonitor')
+
+win = visual.Window((600, 600), useFBO=True, allowGUI=False, monitor='testMonitor')
 
 # create a rigid body defining the pivot point of objects in the scene
 pivotPose = RigidBodyPose((0, 0, -5))
