@@ -64,7 +64,7 @@ while not event.getKeys():
         win.eyeOffset = -3. if eye == 'left' else 3.
         win.convergeOffset = 0.0
         #win.viewOri = 45.0
-        #win.setOffAxisView()
+        win.setOffAxisView()
         # sphere for the light source, note this does not actually emit light
         lightSphere.thePose = pivotPose
         lightSphere.draw()
