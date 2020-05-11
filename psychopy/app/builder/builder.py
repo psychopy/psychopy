@@ -119,7 +119,7 @@ class RoutineCanvas(wx.ScrolledWindow):
         # auto-rescale based on number of components and window size is jumpy
         # when switch between routines of diff drawing sizes
         self.iconSize = (24, 24, 48)[self.drawSize]  # only 24, 48 so far
-        self.fontBaseSize = (800, 900, 1000)[self.drawSize]  # depends on OS?
+        self.fontBaseSize = (1100, 1200, 1300)[self.drawSize]  # depends on OS?
 
         self.SetVirtualSize((self.maxWidth, self.maxHeight))
         self.SetScrollRate(self.dpi / 4, self.dpi / 4)
