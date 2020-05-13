@@ -143,7 +143,8 @@ class TextBox2(BaseVisualStim, ContainerMixin):
         # caret
         self.editable = editable
         self.caretIndex = None
-
+        if editable:
+            self.win.addEditable(self)
 
     @attributeSetter
     def font(self, fontName, italic=False, bold=False):
@@ -192,6 +193,16 @@ class TextBox2(BaseVisualStim, ContainerMixin):
         width of the margins, which might differ from the width of the text
         within them."""
         return self.__dict__['boundingBox']
+
+    @property
+    def caretIndex(self):
+        if 'caretIndex' not in self.__dict__ or self.__dict__['caretIndex'] is None:
+            self.__dict__['caretIndex'] = len(self.text)
+        return self.__dict__['caretIndex']
+
+    @caretIndex.setter
+    def caretIndex(self, newIndex):
+        self.__dict__['caretIndex'] = newIndex
 
     def _layout(self):
         """Layout the text, calculating the vertex locations
@@ -254,12 +265,6 @@ class TextBox2(BaseVisualStim, ContainerMixin):
             # handle newline
             if charcode == '\n':
                 printable = False
-
-            # have we stored the top/bottom of this line yet
-            if lineN + 1 > len(self._lineTops):
-                self._lineBottoms.append(current[1] + font.descender)
-                self._lineTops.append(current[1] + self._lineHeight
-                                      + font.descender/2)
 
             # handle printable characters
             if printable:
@@ -327,6 +332,11 @@ class TextBox2(BaseVisualStim, ContainerMixin):
                 current[1] -= self._lineHeight
                 charsThisLine = wordLen
 
+            # have we stored the top/bottom of this line yet
+            if lineN + 1 > len(self._lineTops):
+                self._lineBottoms.append(current[1] + font.descender)
+                self._lineTops.append(current[1] + self._lineHeight
+                                      + font.descender/2)
 
         # convert the vertices to stimulus units
         self.vertices = vertices / self._pixelScaling
@@ -371,7 +381,7 @@ class TextBox2(BaseVisualStim, ContainerMixin):
         self._needVertexUpdate = True
 
     def draw(self):
-
+        """Draw the text to the back buffer"""
         if self._needVertexUpdate:
             self._updateVertices()
         if self.fillColor is not None or self.borderColor is not None:
@@ -442,15 +452,8 @@ class TextBox2(BaseVisualStim, ContainerMixin):
                              win=self.win, units=self.units)
         self.__dict__['verticesPix'] = verts
 
-        if hasattr(self, 'border'):
-            # border = self.border
-            border = np.dot(self.size * self.border *
-                            flip, self._rotationMatrix)
-            border = convertToPix(
-                    vertices=border, pos=self.pos, win=self.win,
-                    units=self.units)
-            self.__dict__['_borderPix'] = border
-
+        self.box.size = self.size
+        print('updatedBoxSize')
         self._needVertexUpdate = False
 
     @property
@@ -469,8 +472,10 @@ class TextBox2(BaseVisualStim, ContainerMixin):
             chrVerts = self._index2vertices(self.caretIndex)
             lineN = self._lineNs[self.caretIndex]
             x = chrVerts[1, 0]  # x-coord of left edge
+        # the y locations are the top and bottom of this line
         y1 = self._lineBottoms[lineN] / self._pixelScaling
         y2 = self._lineTops[lineN] / self._pixelScaling
+
         # char x pos has been corrected for anchor location already but lines
         # haven't
         verts = (np.array([[x, y1], [x, y2]])
@@ -498,28 +503,74 @@ class TextBox2(BaseVisualStim, ContainerMixin):
         ii = sum(self._lineLenChars[:line]) + chars
         return ii
 
-    def _moveCaret(self, chars=0, lines=0):
-        if chars and lines:
-            raise ValueError("Changing lines and characters in a single "
-                             "operation is ambiguous. Do one first then the"
-                             "other.")
-        elif chars:
-            caret = self.caretIndex + chars
-        else:
-            line, chr = self._index2lineChar(self.caretIndex)
-            line += lines
-            line = max(0, line)
-            line = min(line, len(self._lineLenChars))
-            caret = self._lineChar2index(line, chr)
+    def _caretCheckBounds(self):
         # then check if out of bounds
-        caret = max(caret, 0)
-        caret = min(caret, len(self.text))
-        self.caretIndex = caret
+        self.caretIndex = max(self.caretIndex, 0)
+        self.caretIndex = min(self.caretIndex, len(self.text))
+
+    def _caretMoveChars(self, chars=0):
+        self.caretIndex = self.caretIndex + chars
+
+    def _caretMoveLines(self, lines=0):
+        line, chr = self._index2lineChar(self.caretIndex)
+        line += lines
+        line = max(0, line)
+        line = min(line, len(self._lineLenChars))
+        self.caretIndex = self._lineChar2index(line, chr)
+
+    def _caretMoveLineStart(self):
+        line, chr = self._index2lineChar(self.caretIndex)
+        self.caretIndex = self._lineChar2index(line, 0)
+
+    def _caretMoveLineEnd(self):
+        line, chr = self._index2lineChar(self.caretIndex)
+        self.caretIndex = self._lineChar2index(line, self._lineLenChars[line]-1)
 
     # def _vertices2Index(self, XY):
     #
     # def _lineChar2vertices(self, line, chrN):
 
-    def processKeyEvents(self, keys=[]):
-        for key in keys:
-            ...
+    def _onText(self, chr):
+        """Called by the window when characters are received"""
+        if chr == '\t':
+            self.win.nextEditable()
+            return
+        if chr == '\r':  # make it newline not Carriage Return
+            chr = '\n'
+        txt = self.text
+        self.text = txt[:self.caretIndex] + chr + txt[self.caretIndex:]
+        self.caretIndex += 1
+
+    def _onCursorKeys(self, key):
+        """Called by the window when cursor/del/backspace... are received"""
+        if key == 'MOTION_UP':
+            self._caretMoveLines(-1)
+        elif key == 'MOTION_DOWN':
+            self._caretMoveLines(+1)
+        elif key == 'MOTION_RIGHT':
+            self._caretMoveChars(+1)
+        elif key == 'MOTION_LEFT':
+            self._caretMoveChars(-1)
+        elif key == 'MOTION_BACKSPACE':
+            self.text = txt[:self.caretIndex-1] + txt[self.caretIndex:]
+            self.caretIndex -= 1
+        elif key == 'MOTION_DELETE':
+            self.text = txt[:self.caretIndex] + txt[self.caretIndex+1:]
+        elif key == 'MOTION_NEXT_WORD':
+            pass
+        elif key == 'MOTION_PREVIOUS_WORD':
+            pass
+        elif key == 'MOTION_BEGINNING_OF_LINE':
+            self._caretMoveLineStart()
+        elif key == 'MOTION_END_OF_LINE':
+            self._caretMoveLineEnd()
+        elif key == 'MOTION_NEXT_PAGE':
+            pass
+        elif key == 'MOTION_PREVIOUS_PAGE':
+            pass
+        elif key == 'MOTION_BEGINNING_OF_FILE':
+            pass
+        elif key == 'MOTION_END_OF_FILE':
+            pass
+        else:
+            print("Received unhandled cursor motion type: ", key)
