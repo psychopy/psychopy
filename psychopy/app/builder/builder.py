@@ -797,8 +797,9 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
                                     thisIcon.GetHeight() + 10),
                               name=thisComp.__name__,
                               style=wx.BORDER_NONE)
-        btn.SetBackgroundColour('#F2F2F2')
-        btn.Bind(wx.EVT_)
+        btn.SetBackgroundColour('#FFFFFF') # Button background
+        btn.Bind(wx.EVT_ENTER_WINDOW, self.onHover) # Link on hover event to on hover effect
+        btn.Bind(wx.EVT_LEAVE_WINDOW, self.offHover) # Link off hover event to off hover effect
         if name in components.tooltips:
             thisTip = components.tooltips[name]
         else:
@@ -952,11 +953,13 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
         self.sizer.Layout()
         self._rightClicked = None
 
-    def onHover(self, evt=None, btn=None):
-        if btn is None:
-            self.setBackgroundColour('#F2F2F2')
-        else:
-            btn.setBackgroundColour('#F2F2F2')
+    def onHover(self, evt=None):
+        btn = evt.GetEventObject()
+        btn.SetBackgroundColour('#F2F2F2')
+
+    def offHover(self, evt=None):
+        btn = evt.GetEventObject()
+        btn.SetBackgroundColour('#FFFFFF')
 
 
 
