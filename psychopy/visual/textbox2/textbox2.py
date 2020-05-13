@@ -453,7 +453,6 @@ class TextBox2(BaseVisualStim, ContainerMixin):
         self.__dict__['verticesPix'] = verts
 
         self.box.size = self.size
-        print('updatedBoxSize')
         self._needVertexUpdate = False
 
     @property
@@ -552,10 +551,10 @@ class TextBox2(BaseVisualStim, ContainerMixin):
         elif key == 'MOTION_LEFT':
             self._caretMoveChars(-1)
         elif key == 'MOTION_BACKSPACE':
-            self.text = txt[:self.caretIndex-1] + txt[self.caretIndex:]
+            self.text = self.text[:self.caretIndex-1] + self.text[self.caretIndex:]
             self.caretIndex -= 1
         elif key == 'MOTION_DELETE':
-            self.text = txt[:self.caretIndex] + txt[self.caretIndex+1:]
+            self.text = self.text[:self.caretIndex] + self.text[self.caretIndex+1:]
         elif key == 'MOTION_NEXT_WORD':
             pass
         elif key == 'MOTION_PREVIOUS_WORD':
