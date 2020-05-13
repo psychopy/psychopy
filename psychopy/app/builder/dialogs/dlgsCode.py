@@ -14,6 +14,7 @@ from builtins import str
 import keyword
 import wx
 from collections import OrderedDict
+from psychopy.experiment.components.code import CodeComponent
 
 try:
     from wx.lib.agw import flatnotebook
@@ -400,7 +401,9 @@ class DlgCodeComponentProperties(wx.Dialog):
             panel.SetSizer(sizer)
             tabLabel = _translate(tabName)
             # Add a visual indicator when tab contains code
-            if (self.params.get(pyName).val or self.params.get(jsName).val):
+            emptyCodeComp = CodeComponent('', '') # Spawn empty code component
+            # If code tab is not empty and not the same as in empty code component, add an asterisk to tab name
+            if (self.params.get(pyName).val or self.params.get(jsName).val) and not (self.params.get(pyName).val == emptyCodeComp.params.get(pyName).val or self.params.get(jsName).val == emptyCodeComp.params.get(jsName).val):
                 tabLabel += ' *'
             self.codeNotebook.AddPage(panel, tabLabel)
 
