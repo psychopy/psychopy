@@ -693,8 +693,9 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
         else:
             panelWidth = 3 * 24 + 50
         scrolledpanel.ScrolledPanel.__init__(
-            self, frame, id, size=(panelWidth, 10 * self.dpi))
+            self, frame, id, size=(panelWidth, 10 * self.dpi), style=wx.BORDER_DOUBLE)
         self.sizer = wx.BoxSizer(wx.VERTICAL)
+        self.SetBackgroundColour('#FFFFFF')
         self.components = experiment.getAllComponents(
             self.app.prefs.builder['componentsFolders'])
         categories = ['Favorites']
@@ -794,7 +795,10 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
         btn = wx.BitmapButton(self, -1, thisIcon,
                               size=(thisIcon.GetWidth() + 10,
                                     thisIcon.GetHeight() + 10),
-                              name=thisComp.__name__)
+                              name=thisComp.__name__,
+                              style=wx.BORDER_NONE)
+        btn.SetBackgroundColour('#F2F2F2')
+        btn.Bind(wx.EVT_)
         if name in components.tooltips:
             thisTip = components.tooltips[name]
         else:
@@ -947,6 +951,13 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
             btn.Destroy()
         self.sizer.Layout()
         self._rightClicked = None
+
+    def onHover(self, evt=None, btn=None):
+        if btn is None:
+            self.setBackgroundColour('#F2F2F2')
+        else:
+            btn.setBackgroundColour('#F2F2F2')
+
 
 
 class FavoriteComponents(object):
