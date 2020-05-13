@@ -59,7 +59,30 @@ from psychopy.projects import pavlovia
 from psychopy.scripts.psyexpCompile import generateScript
 
 
-
+cs = {
+    'None': [127, 127, 255, 0],
+    'Black': [0, 0, 0],
+    'Grey': [102, 102, 110],
+    'White': [255, 255, 255],
+    'Red': [242, 84, 91],
+    'Green': [133, 255, 199],
+    'Blue': [2, 169, 234],
+    'Yellow': [241, 211, 2],
+    'Orange': [236, 151, 3],
+    'Purple': [195, 190, 247],
+    'Off': {
+        'Black': wx.Colour(10, 10, 20),
+        'Grey': wx.Colour(117, 117, 125),
+        'White': wx.Colour(242, 242, 242),
+        'Red': wx.Colour(245, 108, 113),
+        'Green': wx.Colour(120, 232, 179),
+        'Blue': wx.Colour(2, 154, 217),
+        'Yellow': wx.Colour(249, 237, 46),
+        'Orange': wx.Colour(240, 168, 24),
+        'Purple': wx.Colour(195, 190, 247)
+    }
+}
+cs['Up'] = {}
 canvasColor = [200, 200, 200]  # in prefs? ;-)
 routineTimeColor = wx.Colour(50, 100, 200, 200)
 staticTimeColor = wx.Colour(200, 50, 50, 100)
@@ -68,7 +91,7 @@ nonSlipFill = wx.Colour(150, 200, 150, 255)
 nonSlipEdge = wx.Colour(0, 100, 0, 255)
 relTimeFill = wx.Colour(200, 150, 150, 255)
 relTimeEdge = wx.Colour(200, 50, 50, 255)
-routineFlowColor = wx.Colour(200, 150, 150, 255)
+routineFlowColor = wx.Colour(242, 84, 91, 255)
 darkgrey = wx.Colour(65, 65, 65, 255)
 white = wx.Colour(255, 255, 255, 255)
 darkblue = wx.Colour(30, 30, 150, 255)
@@ -105,7 +128,7 @@ class RoutineCanvas(wx.ScrolledWindow):
         wx.ScrolledWindow.__init__(
             self, notebook, id, (0, 0), style=wx.BORDER_NONE)
 
-        self.SetBackgroundColour(canvasColor)
+        self.SetBackgroundColour(cs['White'])
         self.frame = notebook.frame
         self.app = self.frame.app
         self.dpi = self.app.dpi
@@ -332,7 +355,7 @@ class RoutineCanvas(wx.ScrolledWindow):
         xEnd = self.timeXposEnd
 
         # dc.SetId(wx.NewIdRef())
-        dc.SetPen(wx.Pen(wx.Colour(0, 0, 0, 150)))
+        dc.SetPen(wx.Pen(cs['Black']))
         # draw horizontal lines on top and bottom
         dc.DrawLine(x1=xSt, y1=yPosTop,
                     x2=xEnd, y2=yPosTop)
@@ -401,12 +424,13 @@ class RoutineCanvas(wx.ScrolledWindow):
             unknownTiming = True
         # calculate rectangle for component
         xScale = self.getSecsPerPixel()
-        dc.SetPen(wx.Pen(wx.Colour(200, 100, 100, 0), style=wx.TRANSPARENT))
+        dc.SetPen(wx.Pen(cs['Grey'] + [100], style=wx.TRANSPARENT))
 
         if component.params['disabled'].val:
-            dc.SetBrush(wx.Brush(disabledTimeColor))
+            dc.SetBrush(wx.Brush(cs['Grey'] + [100]))
+
         else:
-            dc.SetBrush(wx.Brush(staticTimeColor))
+            dc.SetBrush(wx.Brush(cs['Red'] + [100]))
 
         xSt = self.timeXposStart + startTime // xScale
         w = duration // xScale + 1  # +1 b/c border alpha=0 in dc.SetPen
@@ -470,14 +494,14 @@ class RoutineCanvas(wx.ScrolledWindow):
         if startTime is not None and duration is not None:
             # then we can draw a sensible time bar!
             xScale = self.getSecsPerPixel()
-            dc.SetPen(wx.Pen(wx.Colour(200, 100, 100, 0),
+            dc.SetPen(wx.Pen(cs['Red'],
                              style=wx.TRANSPARENT))
 
             if component.params['disabled'].val:
                 dc.SetBrush(wx.Brush(disabledTimeColor))
                 dc.DrawBitmap(thisIcon.ConvertToDisabled(), self.iconXpos, yPos + iconYOffset, True)
             else:
-                dc.SetBrush(wx.Brush(routineTimeColor))
+                dc.SetBrush(wx.Brush(cs['Red']))
                 dc.DrawBitmap(thisIcon, self.iconXpos, yPos + iconYOffset, True)
 
             hSize = (3.5, 2.75, 2)[self.drawSize]
