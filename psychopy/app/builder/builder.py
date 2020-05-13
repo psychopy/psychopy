@@ -103,7 +103,7 @@ class RoutineCanvas(wx.ScrolledWindow):
         """This window is based heavily on the PseudoDC demo of wxPython
         """
         wx.ScrolledWindow.__init__(
-            self, notebook, id, (0, 0), style=wx.SUNKEN_BORDER)
+            self, notebook, id, (0, 0), style=wx.BORDER_NONE)
 
         self.SetBackgroundColour(canvasColor)
         self.frame = notebook.frame
@@ -692,8 +692,11 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
             panelWidth = 3 * 48 + 50
         else:
             panelWidth = 3 * 24 + 50
-        scrolledpanel.ScrolledPanel.__init__(
-            self, frame, id, size=(panelWidth, 10 * self.dpi), style=wx.BORDER_DOUBLE)
+        scrolledpanel.ScrolledPanel.__init__(self,
+                                             frame,
+                                             id,
+                                             size=(panelWidth, 10 * self.dpi),
+                                             style=wx.BORDER_NONE)
         self.sizer = wx.BoxSizer(wx.VERTICAL)
         self.SetBackgroundColour('#FFFFFF')
         self.components = experiment.getAllComponents(
