@@ -60,29 +60,25 @@ from psychopy.scripts.psyexpCompile import generateScript
 
 
 cs = {
-    'None': [127, 127, 255, 0],
+    'None': [127, 127, 127, 0],
     'Black': [0, 0, 0],
     'Grey': [102, 102, 110],
     'White': [255, 255, 255],
     'Red': [242, 84, 91],
-    'Green': [133, 255, 199],
+    'Green': [138, 234, 146],
     'Blue': [2, 169, 234],
     'Yellow': [241, 211, 2],
     'Orange': [236, 151, 3],
     'Purple': [195, 190, 247],
-    'Off': {
-        'Black': wx.Colour(10, 10, 20),
-        'Grey': wx.Colour(117, 117, 125),
-        'White': wx.Colour(242, 242, 242),
-        'Red': wx.Colour(245, 108, 113),
-        'Green': wx.Colour(120, 232, 179),
-        'Blue': wx.Colour(2, 154, 217),
-        'Yellow': wx.Colour(249, 237, 46),
-        'Orange': wx.Colour(240, 168, 24),
-        'Purple': wx.Colour(195, 190, 247)
-    }
+    'Dark': {},
+    'Light': {}
 }
-cs['Up'] = {}
+# Create light and dark variants of each colour by +-15 to each value
+for c in cs:
+     if not c in ['Dark', 'Light', 'None']:
+         cs['Dark'][c] = [max(0, n-15) for n in cs[c]]
+         cs['Light'][c] = [min(255, n+15) for n in cs[c]]
+
 canvasColor = [200, 200, 200]  # in prefs? ;-)
 routineTimeColor = wx.Colour(50, 100, 200, 200)
 staticTimeColor = wx.Colour(200, 50, 50, 100)
@@ -377,7 +373,7 @@ class RoutineCanvas(wx.ScrolledWindow):
                         xSt + lineN * unitSize / xScale, yPosBottom + 4)
             # label above:
             dc.DrawText('%.2g' % (lineN * unitSize), xSt + lineN *
-                        unitSize / xScale - 4, yPosTop - 20)
+                        unitSize / xScale - 4, yPosTop - 30)
             if yPosBottom > 300:
                 # if bottom of grid is far away then draw labels here too
                 dc.DrawText('%.2g' % (lineN * unitSize), xSt + lineN *
@@ -427,10 +423,10 @@ class RoutineCanvas(wx.ScrolledWindow):
         dc.SetPen(wx.Pen(cs['Grey'] + [100], style=wx.TRANSPARENT))
 
         if component.params['disabled'].val:
-            dc.SetBrush(wx.Brush(cs['Grey'] + [100]))
+            dc.SetBrush(wx.Brush(cs['Grey'] + [75]))
 
         else:
-            dc.SetBrush(wx.Brush(cs['Red'] + [100]))
+            dc.SetBrush(wx.Brush(cs['Red'] + [75]))
 
         xSt = self.timeXposStart + startTime // xScale
         w = duration // xScale + 1  # +1 b/c border alpha=0 in dc.SetPen
@@ -504,8 +500,8 @@ class RoutineCanvas(wx.ScrolledWindow):
                 dc.SetBrush(wx.Brush(cs['Red']))
                 dc.DrawBitmap(thisIcon, self.iconXpos, yPos + iconYOffset, True)
 
-            hSize = (3.5, 2.75, 2)[self.drawSize]
-            yOffset = (3, 3, 0)[self.drawSize]
+            hSize = (5.5, 4.75, 4)[self.drawSize]
+            yOffset = (5, 5, 2)[self.drawSize]
             h = self.componentStep // hSize
             xSt = self.timeXposStart + startTime // xScale
             w = duration // xScale + 1
@@ -982,11 +978,11 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
 
     def onHover(self, evt=None):
         btn = evt.GetEventObject()
-        btn.SetBackgroundColour('#F2F2F2')
+        btn.SetBackgroundColour(cs['Dark']['White'])
 
     def offHover(self, evt=None):
         btn = evt.GetEventObject()
-        btn.SetBackgroundColour('#FFFFFF')
+        btn.SetBackgroundColour(cs['White'])
 
 
 
