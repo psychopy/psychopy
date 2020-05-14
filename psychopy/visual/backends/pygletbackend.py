@@ -235,8 +235,9 @@ class PygletBackend(BaseBackend):
         self.winHandle.setGammaRamp = setGammaRamp
         self.winHandle.getGammaRamp = getGammaRamp
         self.winHandle.set_vsync(True)
-        self.winHandle.on_text = event._onPygletText
-        self.winHandle.on_key_press = event._onPygletKey
+        self.winHandle.on_text = self.onText
+        self.winHandle.on_text_motion = self.onCursorKey
+        self.winHandle.on_key_press = self.onKey
         self.winHandle.on_mouse_press = event._onPygletMousePress
         self.winHandle.on_mouse_release = event._onPygletMouseRelease
         self.winHandle.on_mouse_scroll = event._onPygletMouseWheel
@@ -340,6 +341,29 @@ class PygletBackend(BaseBackend):
 
         for win in wins:
             win.dispatch_events()
+
+    def onKey(self, evt, modifiers):
+        "Check for tab key then pass all events to event package"
+        thisKey = pyglet.window.key.symbol_string(evt).lower()
+        if thisKey == 'tab':
+            self.onText('\t')
+        event._onPygletKey(evt, modifiers)
+
+    def onText(self, evt):
+        """Retrieve the character event(s?) for this window"""
+        currentEditable = self.win.currentEditable
+        if currentEditable:
+            currentEditable._onText(evt)
+        event._onPygletText(evt)  # duplicate the event to the psychopy.events lib
+
+    def onCursorKey(self, evt):
+        """Processes the events from pyglet.window.on_text_motion
+
+        which is keys like cursor, delete, backspace etc."""
+        currentEditable = self.win.currentEditable
+        if currentEditable:
+            keyName = pyglet.window.key.motion_string(evt)
+            currentEditable._onCursorKeys(keyName)
 
     def onResize(self, width, height):
         _onResize(width, height)
