@@ -79,19 +79,19 @@ for c in cs:
          cs['Dark'][c] = [max(0, n-15) for n in cs[c]]
          cs['Light'][c] = [min(255, n+15) for n in cs[c]]
 
-canvasColor = [200, 200, 200]  # in prefs? ;-)
-routineTimeColor = wx.Colour(50, 100, 200, 200)
-staticTimeColor = wx.Colour(200, 50, 50, 100)
-disabledTimeColor = wx.Colour(127, 127, 127, 100)
-nonSlipFill = wx.Colour(150, 200, 150, 255)
-nonSlipEdge = wx.Colour(0, 100, 0, 255)
-relTimeFill = wx.Colour(200, 150, 150, 255)
-relTimeEdge = wx.Colour(200, 50, 50, 255)
-routineFlowColor = wx.Colour(242, 84, 91, 255)
-darkgrey = wx.Colour(65, 65, 65, 255)
-white = wx.Colour(255, 255, 255, 255)
-darkblue = wx.Colour(30, 30, 150, 255)
-codeSyntaxOkay = wx.Colour(220, 250, 220, 255)  # light green
+#canvasColor = [200, 200, 200]  # in prefs? ;-)
+#routineTimeColor = wx.Colour(50, 100, 200, 200)
+#staticTimeColor = wx.Colour(200, 50, 50, 100)
+#disabledTimeColor = wx.Colour(127, 127, 127, 100)
+#nonSlipFill = wx.Colour(150, 200, 150, 255)
+#nonSlipEdge = wx.Colour(0, 100, 0, 255)
+#relTimeFill = wx.Colour(200, 150, 150, 255)
+#relTimeEdge = wx.Colour(200, 50, 50, 255)
+#routineFlowColor = wx.Colour(242, 84, 91, 255)
+#darkgrey = wx.Colour(65, 65, 65, 255)
+#white = wx.Colour(255, 255, 255, 255)
+#darkblue = wx.Colour(30, 30, 150, 255)
+#codeSyntaxOkay = wx.Colour(220, 250, 220, 255)  # light green
 
 # _localized separates internal (functional) from displayed strings
 # long form here allows poedit string discovery
@@ -717,7 +717,7 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
                                              size=(panelWidth, 10 * self.dpi),
                                              style=wx.BORDER_NONE)
         self.sizer = wx.BoxSizer(wx.VERTICAL)
-        self.SetBackgroundColour('#FFFFFF')
+        self.SetBackgroundColour(cs['White'])
         self.components = experiment.getAllComponents(
             self.app.prefs.builder['componentsFolders'])
         categories = ['Favorites']
@@ -746,10 +746,13 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
             _style = platebtn.PB_STYLE_DROPARROW
             sectionBtn = platebtn.PlateButton(self, -1, label,
                                               style=_style, name=categ)
-            # mouse event must be bound like this
+            # Link to onclick functions
             sectionBtn.Bind(wx.EVT_LEFT_DOWN, self.onSectionBtn)
-            # mouse event must be bound like this
             sectionBtn.Bind(wx.EVT_RIGHT_DOWN, self.onSectionBtn)
+            # Set button background and link to onhover functions
+            sectionBtn.SetBackgroundColour(cs['White'])
+            #sectionBtn.Bind(wx.EVT_ENTER_WINDOW, self.onHover)
+            #sectionBtn.Bind(wx.EVT_LEAVE_WINDOW, self.offHover)
             if self.app.prefs.app['largeIcons']:
                 self.panels[categ] = wx.FlexGridSizer(cols=1)
             else:
@@ -819,9 +822,12 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
                                     thisIcon.GetHeight() + 10),
                               name=thisComp.__name__,
                               style=wx.BORDER_NONE)
-        btn.SetBackgroundColour('#FFFFFF') # Button background
-        btn.Bind(wx.EVT_ENTER_WINDOW, self.onHover) # Link on hover event to on hover effect
-        btn.Bind(wx.EVT_LEAVE_WINDOW, self.offHover) # Link off hover event to off hover effect
+        # Set button background and hover effect
+        btn.SetBackgroundColour(cs['White'])
+        btn.Bind(wx.EVT_ENTER_WINDOW, self.onHover)
+        btn.Bind(wx.EVT_LEAVE_WINDOW, self.offHover)
+
+        # Configure tooltip
         if name in components.tooltips:
             thisTip = components.tooltips[name]
         else:
@@ -975,14 +981,25 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
         self.sizer.Layout()
         self._rightClicked = None
 
-    def onHover(self, evt=None):
+    def onHover(self, evt):
         btn = evt.GetEventObject()
-        btn.SetBackgroundColour(cs['Dark']['White'])
+        if isinstance(btn, wx.BitmapButton):
+            btn.SetBackgroundColour(cs['Dark']['White'])
+        elif isinstance(btn, wx.lib.platebtn.PlateButton):
+            btn.SetBackgroundColour(cs['Dark']['White'])
+            print('hovon')
+        else:
+            pass
 
-    def offHover(self, evt=None):
+    def offHover(self, evt):
         btn = evt.GetEventObject()
-        btn.SetBackgroundColour(cs['White'])
-
+        if isinstance(btn, wx.BitmapButton):
+            btn.SetBackgroundColour(cs['White'])
+        elif isinstance(btn, wx.lib.platebtn.PlateButton):
+            btn.SetBackgroundColour(cs['White'])
+            print('hovoff')
+        else:
+            pass
 
 
 class FavoriteComponents(object):
