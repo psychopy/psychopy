@@ -489,20 +489,19 @@ class RoutineCanvas(wx.ScrolledWindow):
         # draw entries on timeline (if they have some time definition)
         if startTime is not None and duration is not None:
             # then we can draw a sensible time bar!
-            xScale = self.getSecsPerPixel()
             dc.SetPen(wx.Pen(cs['Red'],
                              style=wx.TRANSPARENT))
 
             if component.params['disabled'].val:
-                dc.SetBrush(wx.Brush(disabledTimeColor))
+                dc.SetBrush(wx.Brush(cs['Grey']))
                 dc.DrawBitmap(thisIcon.ConvertToDisabled(), self.iconXpos, yPos + iconYOffset, True)
             else:
                 dc.SetBrush(wx.Brush(cs['Red']))
                 dc.DrawBitmap(thisIcon, self.iconXpos, yPos + iconYOffset, True)
 
-            hSize = (5.5, 4.75, 4)[self.drawSize]
+            xScale = self.getSecsPerPixel()
             yOffset = (5, 5, 2)[self.drawSize]
-            h = self.componentStep // hSize
+            h = self.componentStep // (5.5, 4.75, 4)[self.drawSize]
             xSt = self.timeXposStart + startTime // xScale
             w = duration // xScale + 1
             if w > 10000:
