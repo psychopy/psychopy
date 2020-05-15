@@ -11,7 +11,6 @@
 from __future__ import absolute_import, division, print_function
 
 from builtins import str
-import re
 import sys
 
 from pkg_resources import parse_version
@@ -28,23 +27,24 @@ if parse_version(wx.__version__) < parse_version('4.0.3'):
     wx.NewIdRef = wx.NewId
 
 from psychopy import logging, data
+from psychopy.app.style import cLib
 from .dialogs import DlgLoopProperties
 from .. import dialogs
 from psychopy.localization import _translate
 
 
-canvasColor = [200, 200, 200]  # in prefs? ;-)
-routineTimeColor = wx.Colour(50, 100, 200, 200)
-staticTimeColor = wx.Colour(200, 50, 50, 100)
-nonSlipFill = wx.Colour(150, 200, 150, 255)
-nonSlipEdge = wx.Colour(0, 100, 0, 255)
-relTimeFill = wx.Colour(200, 150, 150, 255)
-relTimeEdge = wx.Colour(200, 50, 50, 255)
-routineFlowColor = wx.Colour(200, 150, 150, 255)
-darkgrey = wx.Colour(65, 65, 65, 255)
-white = wx.Colour(255, 255, 255, 255)
-darkblue = wx.Colour(30, 30, 150, 255)
-codeSyntaxOkay = wx.Colour(220, 250, 220, 255)  # light green
+#canvasColor = [200, 200, 200]  # in prefs? ;-)
+#routineTimeColor = wx.Colour(50, 100, 200, 200)
+#staticTimeColor = wx.Colour(200, 50, 50, 100)
+#nonSlipFill = wx.Colour(150, 200, 150, 255)
+#nonSlipEdge = wx.Colour(0, 100, 0, 255)
+#relTimeFill = wx.Colour(200, 150, 150, 255)
+#relTimeEdge = wx.Colour(200, 50, 50, 255)
+#routineFlowColor = wx.Colour(200, 150, 150, 255)
+#darkgrey = wx.Colour(65, 65, 65, 255)
+#white = wx.Colour(255, 255, 255, 255)
+#darkblue = wx.Colour(30, 30, 150, 255)
+#codeSyntaxOkay = wx.Colour(220, 250, 220, 255)  # light green
 
 
 class FlowPanel(wx.ScrolledWindow):
@@ -57,8 +57,8 @@ class FlowPanel(wx.ScrolledWindow):
         self.dpi = self.app.dpi
         wx.ScrolledWindow.__init__(self, frame, id, (0, 0),
                                    size=wx.Size(8 * self.dpi, 3 * self.dpi),
-                                   style=wx.HSCROLL | wx.VSCROLL)
-        self.SetBackgroundColour(canvasColor)
+                                   style=wx.HSCROLL | wx.VSCROLL | wx.BORDER_NONE)
+        self.SetBackgroundColour(cLib['darker']['white'])
         self.needUpdate = True
         self.maxWidth = 50 * self.dpi
         self.maxHeight = 2 * self.dpi
@@ -114,8 +114,8 @@ class FlowPanel(wx.ScrolledWindow):
         self.btnInsertLoop = platebtn.PlateButton(
             self, -1, labelLoop, pos=(10, 30))  # spaces give size for CANCEL
 
-        self.btnInsertRoutine.SetBackgroundColour(canvasColor)
-        self.btnInsertLoop.SetBackgroundColour(canvasColor)
+        self.btnInsertRoutine.SetBackgroundColour(cLib['darker']['white'])
+        self.btnInsertLoop.SetBackgroundColour(cLib['darker']['white'])
 
         self.labelTextRed = {'normal': wx.Colour(
             250, 10, 10, 250), 'hlight': wx.Colour(250, 10, 10, 250)}
@@ -747,8 +747,8 @@ class FlowPanel(wx.ScrolledWindow):
         # draws direction arrow on left side of a loop
         tmpId = wx.NewIdRef()
         dc.SetId(tmpId)
-        dc.SetBrush(wx.Brush(wx.Colour(0, 0, 0, 250)))
-        dc.SetPen(wx.Pen(wx.Colour(0, 0, 0, 255)))
+        dc.SetBrush(wx.Brush(cLib['grey']))
+        dc.SetPen(wx.Pen(cLib['grey']))
         size = (3, 4, 5)[self.appData['flowSize']]
         offset = (3, 2, 0)[self.appData['flowSize']]
         if downwards:
@@ -785,11 +785,13 @@ class FlowPanel(wx.ScrolledWindow):
 
         maxTime, nonSlip = routine.getMaxTime()
         if nonSlip:
-            rgbFill = nonSlipFill
-            rgbEdge = nonSlipEdge
+            rtFill = cLib['blue']
+            rtEdge = cLib['blue']
+            rtText = cLib['white']
         else:
-            rgbFill = relTimeFill
-            rgbEdge = relTimeEdge
+            rtFill = cLib['red']
+            rtEdge = cLib['red']
+            rtText = cLib['white']
 
         # get size based on text
         self.SetFont(font)
@@ -803,13 +805,13 @@ class FlowPanel(wx.ScrolledWindow):
         endX = pos[0] + w + pad
         # the edge should match the text
         if draw:
-            dc.SetPen(wx.Pen(wx.Colour(rgbEdge[0], rgbEdge[1],
-                                       rgbEdge[2], wx.ALPHA_OPAQUE)))
-            dc.SetBrush(wx.Brush(rgbFill))
+            dc.SetPen(wx.Pen(wx.Colour(rtEdge[0], rtEdge[1],
+                                       rtEdge[2], wx.ALPHA_OPAQUE)))
+            dc.SetBrush(wx.Brush(rtFill))
             dc.DrawRoundedRectangle(
                 rect, (4, 6, 8)[self.appData['flowSize']])
             # draw text
-            dc.SetTextForeground(rgbEdge)
+            dc.SetTextForeground(rtText)
             dc.DrawLabel(name, rect, alignment=wx.ALIGN_CENTRE)
             if nonSlip and self.appData['flowSize'] != 0:
                 font.SetPointSize(font.GetPointSize() * 0.6)
