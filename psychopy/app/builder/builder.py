@@ -44,6 +44,7 @@ from psychopy.localization import _translate
 
 from ... import experiment
 from .. import dialogs, icons
+from psychopy.app.style import cLib
 from ..icons import getAllIcons, combineImageEmblem
 from psychopy import logging, constants
 from psychopy.tools.filetools import mergeFolder
@@ -58,26 +59,6 @@ from psychopy.projects import pavlovia
 
 from psychopy.scripts.psyexpCompile import generateScript
 
-
-cs = {
-    'None': [127, 127, 127, 0],
-    'Black': [0, 0, 0],
-    'Grey': [102, 102, 110],
-    'White': [255, 255, 255],
-    'Red': [242, 84, 91],
-    'Green': [138, 234, 146],
-    'Blue': [2, 169, 234],
-    'Yellow': [241, 211, 2],
-    'Orange': [236, 151, 3],
-    'Purple': [195, 190, 247],
-    'Dark': {},
-    'Light': {}
-}
-# Create light and dark variants of each colour by +-15 to each value
-for c in cs:
-     if not c in ['Dark', 'Light', 'None']:
-         cs['Dark'][c] = [max(0, n-15) for n in cs[c]]
-         cs['Light'][c] = [min(255, n+15) for n in cs[c]]
 
 #canvasColor = [200, 200, 200]  # in prefs? ;-)
 #routineTimeColor = wx.Colour(50, 100, 200, 200)
@@ -124,7 +105,7 @@ class RoutineCanvas(wx.ScrolledWindow):
         wx.ScrolledWindow.__init__(
             self, notebook, id, (0, 0), style=wx.BORDER_NONE)
 
-        self.SetBackgroundColour(cs['White'])
+        self.SetBackgroundColour(cLib['lighter']['white'])
         self.frame = notebook.frame
         self.app = self.frame.app
         self.dpi = self.app.dpi
@@ -351,7 +332,7 @@ class RoutineCanvas(wx.ScrolledWindow):
         xEnd = self.timeXposEnd
 
         # dc.SetId(wx.NewIdRef())
-        dc.SetPen(wx.Pen(cs['Black']))
+        dc.SetPen(wx.Pen(cLib['black']))
         # draw horizontal lines on top and bottom
         dc.DrawLine(x1=xSt, y1=yPosTop,
                     x2=xEnd, y2=yPosTop)
@@ -420,13 +401,13 @@ class RoutineCanvas(wx.ScrolledWindow):
             unknownTiming = True
         # calculate rectangle for component
         xScale = self.getSecsPerPixel()
-        dc.SetPen(wx.Pen(cs['Grey'] + [100], style=wx.TRANSPARENT))
+        dc.SetPen(wx.Pen(cLib['grey'] + [100], style=wx.TRANSPARENT))
 
         if component.params['disabled'].val:
-            dc.SetBrush(wx.Brush(cs['Grey'] + [75]))
+            dc.SetBrush(wx.Brush(cLib['grey'] + [75]))
 
         else:
-            dc.SetBrush(wx.Brush(cs['Red'] + [75]))
+            dc.SetBrush(wx.Brush(cLib['red'] + [75]))
 
         xSt = self.timeXposStart + startTime // xScale
         w = duration // xScale + 1  # +1 b/c border alpha=0 in dc.SetPen
@@ -489,14 +470,14 @@ class RoutineCanvas(wx.ScrolledWindow):
         # draw entries on timeline (if they have some time definition)
         if startTime is not None and duration is not None:
             # then we can draw a sensible time bar!
-            dc.SetPen(wx.Pen(cs['Red'],
+            dc.SetPen(wx.Pen(cLib['red'],
                              style=wx.TRANSPARENT))
 
             if component.params['disabled'].val:
-                dc.SetBrush(wx.Brush(cs['Grey']))
+                dc.SetBrush(wx.Brush(cLib['grey']))
                 dc.DrawBitmap(thisIcon.ConvertToDisabled(), self.iconXpos, yPos + iconYOffset, True)
             else:
-                dc.SetBrush(wx.Brush(cs['Red']))
+                dc.SetBrush(wx.Brush(cLib['red']))
                 dc.DrawBitmap(thisIcon, self.iconXpos, yPos + iconYOffset, True)
 
             xScale = self.getSecsPerPixel()
@@ -717,7 +698,7 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
                                              size=(panelWidth, 10 * self.dpi),
                                              style=wx.BORDER_NONE)
         self.sizer = wx.BoxSizer(wx.VERTICAL)
-        self.SetBackgroundColour(cs['White'])
+        self.SetBackgroundColour(cLib['white'])
         self.components = experiment.getAllComponents(
             self.app.prefs.builder['componentsFolders'])
         categories = ['Favorites']
@@ -750,7 +731,7 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
             sectionBtn.Bind(wx.EVT_LEFT_DOWN, self.onSectionBtn)
             sectionBtn.Bind(wx.EVT_RIGHT_DOWN, self.onSectionBtn)
             # Set button background and link to onhover functions
-            sectionBtn.SetBackgroundColour(cs['White'])
+            sectionBtn.SetBackgroundColour(cLib['white'])
             #sectionBtn.Bind(wx.EVT_ENTER_WINDOW, self.onHover)
             #sectionBtn.Bind(wx.EVT_LEAVE_WINDOW, self.offHover)
             if self.app.prefs.app['largeIcons']:
@@ -823,7 +804,7 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
                               name=thisComp.__name__,
                               style=wx.BORDER_NONE)
         # Set button background and hover effect
-        btn.SetBackgroundColour(cs['White'])
+        btn.SetBackgroundColour(cLib['white'])
         btn.Bind(wx.EVT_ENTER_WINDOW, self.onHover)
         btn.Bind(wx.EVT_LEAVE_WINDOW, self.offHover)
 
@@ -984,9 +965,9 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
     def onHover(self, evt):
         btn = evt.GetEventObject()
         if isinstance(btn, wx.BitmapButton):
-            btn.SetBackgroundColour(cs['Dark']['White'])
+            btn.SetBackgroundColour(cLib['darker']['white'])
         elif isinstance(btn, wx.lib.platebtn.PlateButton):
-            btn.SetBackgroundColour(cs['Dark']['White'])
+            btn.SetBackgroundColour(cLib['darker']['white'])
             print('hovon')
         else:
             pass
@@ -994,9 +975,9 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
     def offHover(self, evt):
         btn = evt.GetEventObject()
         if isinstance(btn, wx.BitmapButton):
-            btn.SetBackgroundColour(cs['White'])
+            btn.SetBackgroundColour(cLib['white'])
         elif isinstance(btn, wx.lib.platebtn.PlateButton):
-            btn.SetBackgroundColour(cs['White'])
+            btn.SetBackgroundColour(cLib['white'])
             print('hovoff')
         else:
             pass
