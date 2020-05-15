@@ -580,7 +580,6 @@ class RoutinesNotebook(aui.AuiNotebook):
         self.routineMaxSize = 2
         self.appData = self.app.prefs.appData
         aui.AuiNotebook.__init__(self, frame, id)
-
         self.Bind(aui.EVT_AUINOTEBOOK_PAGE_CLOSE, self.onClosePane)
         if not hasattr(self.frame, 'exp'):
             return  # we haven't yet added an exp
@@ -978,7 +977,6 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
             btn.SetBackgroundColour(cLib['white'])
         elif isinstance(btn, wx.lib.platebtn.PlateButton):
             btn.SetBackgroundColour(cLib['white'])
-            print('hovoff')
         else:
             pass
 
@@ -1189,34 +1187,35 @@ class BuilderFrame(wx.Frame):
         # ---toolbar---#000000#FFFFFF-----------------------------------------
         _style = wx.TB_HORIZONTAL | wx.NO_BORDER | wx.TB_FLAT
         self.toolbar = self.CreateToolBar(_style)
-
+        self.toolbar.SetMargins(10, 10)
+        self.toolbar.SetBackgroundColour(cLib['darker']['white'])
         if sys.platform == 'win32' or sys.platform.startswith('linux'):
             if self.appPrefs['largeIcons']:
-                toolbarSize = 32
+                iconSize = 32
             else:
-                toolbarSize = 16
+                iconSize = 16
         else:
-            toolbarSize = 32  # mac: 16 either doesn't work, or looks bad
-        self.toolbar.SetToolBitmapSize((toolbarSize, toolbarSize))
+            iconSize = 32  # mac: 16 either doesn't work, or looks bad
+        toolbarSize = iconSize
+        self.toolbar.SetToolBitmapSize((iconSize, toolbarSize))
         rc = self.app.prefs.paths['resources']
         join = os.path.join
         PNG = wx.BITMAP_TYPE_PNG
-        tbSize = toolbarSize
-        newBmp = wx.Bitmap(join(rc, 'filenew%i.png' % tbSize), PNG)
-        openBmp = wx.Bitmap(join(rc, 'fileopen%i.png' % tbSize), PNG)
-        saveBmp = wx.Bitmap(join(rc, 'filesave%i.png' % tbSize), PNG)
-        saveAsBmp = wx.Bitmap(join(rc, 'filesaveas%i.png' % tbSize), PNG)
-        undoBmp = wx.Bitmap(join(rc, 'undo%i.png' % tbSize), PNG)
-        redoBmp = wx.Bitmap(join(rc, 'redo%i.png' % tbSize), PNG)
-        stopBmp = wx.Bitmap(join(rc, 'stop%i.png' % tbSize), PNG)
-        runBmp = combineImageEmblem(join(rc, 'run%i.png' % tbSize),
+        newBmp = wx.Bitmap(join(rc, 'filenew%i.png' % iconSize), PNG)
+        openBmp = wx.Bitmap(join(rc, 'fileopen%i.png' % iconSize), PNG)
+        saveBmp = wx.Bitmap(join(rc, 'filesave%i.png' % iconSize), PNG)
+        saveAsBmp = wx.Bitmap(join(rc, 'filesaveas%i.png' % iconSize), PNG)
+        undoBmp = wx.Bitmap(join(rc, 'undo%i.png' % iconSize), PNG)
+        redoBmp = wx.Bitmap(join(rc, 'redo%i.png' % iconSize), PNG)
+        stopBmp = wx.Bitmap(join(rc, 'stop%i.png' % iconSize), PNG)
+        runBmp = combineImageEmblem(join(rc, 'run%i.png' % iconSize),
                                     join(rc, 'runner16.png'),
                                     pos = 'bottom_right')
-        compileBmp = wx.Bitmap(join(rc, 'compile%i.png' % tbSize), PNG)
-        settingsBmp = wx.Bitmap(join(rc, 'cogwindow%i.png' % tbSize), PNG)
-        preferencesBmp = wx.Bitmap(join(rc, 'preferences%i.png' % tbSize),
+        compileBmp = wx.Bitmap(join(rc, 'compile%i.png' % iconSize), PNG)
+        settingsBmp = wx.Bitmap(join(rc, 'cogwindow%i.png' % iconSize), PNG)
+        preferencesBmp = wx.Bitmap(join(rc, 'preferences%i.png' % iconSize),
                                    PNG)
-        monitorsBmp = wx.Bitmap(join(rc, 'monitors%i.png' % tbSize), PNG)
+        monitorsBmp = wx.Bitmap(join(rc, 'monitors%i.png' % iconSize), PNG)
 
         ctrlKey = 'Ctrl+'  # OS-dependent tool-tips
         if sys.platform == 'darwin':
@@ -1368,7 +1367,7 @@ class BuilderFrame(wx.Frame):
         tb.Bind(wx.EVT_TOOL, self.runFile, self.bldrBtnRun)
 
         self.toolbar.AddSeparator()
-        pavButtons = pavlovia_ui.toolbar.PavloviaButtons(self, toolbar=tb, tbSize=tbSize)
+        pavButtons = pavlovia_ui.toolbar.PavloviaButtons(self, toolbar=tb, tbSize=iconSize)
         pavButtons.addPavloviaTools()
         self.btnHandles.update(pavButtons.btnHandles)
 
