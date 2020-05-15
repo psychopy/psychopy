@@ -595,6 +595,7 @@ class FlowPanel(wx.ScrolledWindow):
         # step through components in flow, get spacing from text size, etc
         currX = self.linePos[0]
         lineId = wx.NewIdRef()
+        pdc.SetPen(wx.Pen(colour=cLib['grey']))
         pdc.DrawLine(x1=self.linePos[0] - gap, y1=self.linePos[1],
                      x2=self.linePos[0], y2=self.linePos[1])
         # NB the loop is itself the key, value is further info about it
@@ -622,7 +623,7 @@ class FlowPanel(wx.ScrolledWindow):
             self.gapMidPoints.append(currX + gap / 2)
             self.gapNestLevels.append(nestLevel)
             pdc.SetId(lineId)
-            pdc.SetPen(wx.Pen(wx.Colour(0, 0, 0, 255)))
+            pdc.SetPen(wx.Pen(colour=cLib['grey']))
             pdc.DrawLine(x1=currX, y1=self.linePos[1],
                          x2=currX + gap, y2=self.linePos[1])
             currX += gap
@@ -653,7 +654,7 @@ class FlowPanel(wx.ScrolledWindow):
             if entry.getType() == 'Routine':
                 currX = self.drawFlowRoutine(pdc, entry, id=ii,
                                              pos=[currX, self.linePos[1] - 10])
-            pdc.SetPen(wx.Pen(wx.Colour(0, 0, 0, 255)))
+            pdc.SetPen(wx.Pen(wx.Pen(colour=cLib['grey'])))
             pdc.DrawLine(x1=currX, y1=self.linePos[1],
                          x2=currX + gap, y2=self.linePos[1])
             currX += gap
@@ -674,7 +675,7 @@ class FlowPanel(wx.ScrolledWindow):
                 id = wx.NewIdRef()
                 self.entryPointIDlist.append(id)
                 self.pdc.SetId(id)
-                self.pdc.SetBrush(wx.Brush(wx.Colour(0, 0, 0, 255)))
+                self.pdc.SetBrush(wx.Brush(cLib['grey']))
                 self.pdc.DrawCircle(pos, self.linePos[1], ptSize)
                 r = self.pdc.GetIdBounds(id)
                 self.OffsetRect(r)
@@ -710,18 +711,19 @@ class FlowPanel(wx.ScrolledWindow):
 
     def drawLineStart(self, dc, pos):
         # draw bar at start of timeline; circle looked bad, offset vertically
-        ptSize = (3, 3, 4)[self.appData['flowSize']]
-        dc.SetBrush(wx.Brush(wx.Colour(0, 0, 0, 255)))
-        dc.SetPen(wx.Pen(wx.Colour(0, 0, 0, 255)))
-        dc.DrawPolygon([[0, -ptSize], [1, -ptSize],
-                        [1, ptSize], [0, ptSize]], pos[0], pos[1])
+        ptSize = (9, 9, 12)[self.appData['flowSize']]
+        thic = (1, 1, 2)[self.appData['flowSize']]
+        dc.SetBrush(wx.Brush(cLib['grey']))
+        dc.SetPen(wx.Pen(cLib['grey']))
+        dc.DrawPolygon([[0, -ptSize], [thic, -ptSize],
+                        [thic, ptSize], [0, ptSize]], pos[0], pos[1])
 
     def drawLineEnd(self, dc, pos):
         # draws arrow at end of timeline
         # tmpId = wx.NewIdRef()
         # dc.SetId(tmpId)
-        dc.SetBrush(wx.Brush(wx.Colour(0, 0, 0, 255)))
-        dc.SetPen(wx.Pen(wx.Colour(0, 0, 0, 255)))
+        dc.SetBrush(wx.Brush(cLib['grey']))
+        dc.SetPen(wx.Pen(cLib['grey']))
         dc.DrawPolygon([[0, -3], [5, 0], [0, 3]], pos[0], pos[1])
         # dc.SetIdBounds(tmpId,wx.Rect(pos[0],pos[1]+3,5,6))
 
@@ -826,7 +828,7 @@ class FlowPanel(wx.ScrolledWindow):
         return endX
 
     def drawLoop(self, dc, loop, id, startX, endX,
-                 base, height, rgb=(0, 0, 0), downwards=True):
+                 base, height, downwards=True):
         if downwards:
             up = -1
         else:
@@ -839,8 +841,7 @@ class FlowPanel(wx.ScrolledWindow):
         curve = (6, 11, 15)[self.appData['flowSize']]
         yy = [base, height + curve * up, height +
               curve * up / 2, height]  # for area
-        r, g, b = rgb
-        dc.SetPen(wx.Pen(wx.Colour(r, g, b, 200)))
+        dc.SetPen(wx.Pen(cLib['grey']))
         vertOffset = 0  # 1 is interesting too
         area = wx.Rect(startX, base + vertOffset,
                        endX - startX, max(yy) - min(yy))
@@ -902,13 +903,13 @@ class FlowPanel(wx.ScrolledWindow):
         # draw box
         rect = wx.Rect(x, y, w + pad, h + pad)
         # the edge should match the text
-        dc.SetPen(wx.Pen(wx.Colour(r, g, b, 100)))
+        dc.SetPen(wx.Pen(cLib['grey']))
         # try to make the loop fill brighter than the background canvas:
-        dc.SetBrush(wx.Brush(wx.Colour(235, 235, 235, 250)))
+        dc.SetBrush(wx.Brush(cLib['grey']))
 
         dc.DrawRoundedRectangle(rect, (4, 6, 8)[flowsize])
         # draw text
-        dc.SetTextForeground([r, g, b])
+        dc.SetTextForeground(cLib['white'])
         dc.DrawText(name, x + pad / 2, y + pad / 2)
 
         self.componentFromID[id] = loop
