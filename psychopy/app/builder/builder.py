@@ -1139,12 +1139,14 @@ class BuilderFrame(wx.Frame):
                           Name("Routines").Caption("Routines").
                           CloseButton(False).MaximizeButton(True).
                           CenterPane())  # 'center panes' expand
+        rtPane = self._mgr.GetPane('Routines')
         self._mgr.AddPane(self.componentButtons,
                           aui.AuiPaneInfo().
                           Name("Components").Caption("Components").
                           RightDockable(True).LeftDockable(True).
                           CloseButton(False).
                           Right())
+        compPane = self._mgr.GetPane('Components')
         self._mgr.AddPane(self.flowPanel,
                           aui.AuiPaneInfo().
                           Name("Flow").Caption("Flow").
@@ -1152,10 +1154,19 @@ class BuilderFrame(wx.Frame):
                           RightDockable(True).LeftDockable(True).
                           CloseButton(False).
                           Bottom())
+        flowPane = self._mgr.GetPane('Flow')
+        # Arrange panes
         if self.prefs['topFlow']:
-            self._mgr.GetPane('Flow').Top()
-            self._mgr.GetPane('Components').Left()
-            self._mgr.GetPane('Routines').CenterPane()
+            flowPane.Top()
+            compPane.Left()
+            rtPane.CenterPane()
+        # Apply modern flat style to panes
+        flowPane.CaptionVisible(visible=True)
+        flowPane.PaneBorder(visible=False)
+        compPane.CaptionVisible(visible=True)
+        compPane.PaneBorder(visible=False)
+        rtPane.CaptionVisible(visible=True)
+        rtPane.PaneBorder(visible=False)
         # tell the manager to 'commit' all the changes just made
         self._mgr.Update()
         # self.SetSizer(self.mainSizer)  # not necessary for aui type controls
