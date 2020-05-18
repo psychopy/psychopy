@@ -164,7 +164,7 @@ class BuilderFrame(wx.Frame):
         self.routinePanel = RoutinesNotebook(self)
         self.componentButtons = ComponentsPanel(self)
         # menus and toolbars
-        self.makeToolbar()
+        self.toolbar = PsychopyToolbar(frame=self)
         self.makeMenus()
         self.CreateStatusBar()
         self.SetStatusText("")
@@ -233,198 +233,6 @@ class BuilderFrame(wx.Frame):
 
         self.app.trackFrame(self)
         self.SetDropTarget(FileDropTarget(targetFrame=self))
-
-    def makeToolbar(self):
-        """Produces Toolbar for the Builder Frame"""
-        # ---toolbar---#000000#FFFFFF-----------------------------------------
-        _style = wx.TB_HORIZONTAL | wx.NO_BORDER | wx.TB_FLAT
-        self.toolbar = self.CreateToolBar(_style)
-        self.toolbar.SetMargins(10, 10)
-        self.toolbar.SetBackgroundColour(cLib['darker']['white'])
-        if sys.platform == 'win32' or sys.platform.startswith('linux'):
-            if self.appPrefs['largeIcons']:
-                iconSize = 32
-            else:
-                iconSize = 16
-        else:
-            iconSize = 32  # mac: 16 either doesn't work, or looks bad
-        toolbarSize = iconSize
-        self.toolbar.SetToolBitmapSize((iconSize, toolbarSize))
-        rc = self.app.prefs.paths['resources']
-        join = os.path.join
-        PNG = wx.BITMAP_TYPE_PNG
-        newBmp = wx.Bitmap(join(rc, 'filenew%i.png' % iconSize), PNG)
-        openBmp = wx.Bitmap(join(rc, 'fileopen%i.png' % iconSize), PNG)
-        saveBmp = wx.Bitmap(join(rc, 'filesave%i.png' % iconSize), PNG)
-        saveAsBmp = wx.Bitmap(join(rc, 'filesaveas%i.png' % iconSize), PNG)
-        undoBmp = wx.Bitmap(join(rc, 'undo%i.png' % iconSize), PNG)
-        redoBmp = wx.Bitmap(join(rc, 'redo%i.png' % iconSize), PNG)
-        stopBmp = wx.Bitmap(join(rc, 'stop%i.png' % iconSize), PNG)
-        runBmp = combineImageEmblem(join(rc, 'run%i.png' % iconSize),
-                                    join(rc, 'runner16.png'),
-                                    pos='bottom_right')
-        compileBmp = wx.Bitmap(join(rc, 'compile%i.png' % iconSize), PNG)
-        settingsBmp = wx.Bitmap(join(rc, 'cogwindow%i.png' % iconSize), PNG)
-        preferencesBmp = wx.Bitmap(join(rc, 'preferences%i.png' % iconSize),
-                                   PNG)
-        monitorsBmp = wx.Bitmap(join(rc, 'monitors%i.png' % iconSize), PNG)
-
-        ctrlKey = 'Ctrl+'  # OS-dependent tool-tips
-        if sys.platform == 'darwin':
-            ctrlKey = 'Cmd+'
-        tb = self.toolbar
-        # keys are the keyboard keys, not the keys of the dict
-        keys = {k: self.app.keys[k].replace('Ctrl+', ctrlKey)
-                for k in self.app.keys}
-
-        if 'phoenix' in wx.PlatformInfo:
-            item = tb.AddTool(wx.ID_ANY,
-                              _translate("New [%s]") % keys['new'],
-                              newBmp,
-                              _translate("Create new experiment file"))
-        else:
-            item = tb.AddSimpleTool(wx.ID_ANY,
-                                    newBmp,
-                                    _translate("New [%s]") % keys['new'],
-                                    _translate("Create new experiment file"))
-        tb.Bind(wx.EVT_TOOL, self.app.newBuilderFrame, item)
-
-        if 'phoenix' in wx.PlatformInfo:
-            item = tb.AddTool(wx.ID_ANY,
-                              _translate("Open [%s]") % keys['open'],
-                              openBmp,
-                              _translate("Open an existing experiment file"))
-        else:
-            item = tb.AddSimpleTool(wx.ID_ANY,
-                                    openBmp,
-                                    _translate("Open [%s]") % keys['open'],
-                                    _translate("Open an existing experiment file"))
-        tb.Bind(wx.EVT_TOOL, self.fileOpen, item)
-
-        if 'phoenix' in wx.PlatformInfo:
-            self.bldrBtnSave = tb.AddTool(
-                -1,
-                _translate("Save [%s]") % keys['save'],
-                saveBmp,
-                _translate("Save current experiment file"))
-        else:
-            self.bldrBtnSave = tb.AddSimpleTool(
-                -1,
-                saveBmp,
-                _translate("Save [%s]") % keys['save'],
-                _translate("Save current experiment file"))
-        self.toolbar.EnableTool(self.bldrBtnSave.Id, False)
-        tb.Bind(wx.EVT_TOOL, self.fileSave, self.bldrBtnSave)
-
-        if 'phoenix' in wx.PlatformInfo:
-            item = tb.AddTool(
-                wx.ID_ANY,
-                _translate("Save As... [%s]") % keys['saveAs'],
-                saveAsBmp,
-                _translate("Save current experiment file as..."))
-        else:
-            item = tb.AddSimpleTool(
-                wx.ID_ANY,
-                saveAsBmp,
-                _translate("Save As... [%s]") % keys['saveAs'],
-                _translate("Save current experiment file as..."))
-        tb.Bind(wx.EVT_TOOL, self.fileSaveAs, item)
-
-        if 'phoenix' in wx.PlatformInfo:
-            self.bldrBtnUndo = tb.AddTool(
-                wx.ID_ANY,
-                _translate("Undo [%s]") % keys['undo'],
-                undoBmp,
-                _translate("Undo last action"))
-        else:
-            self.bldrBtnUndo = tb.AddSimpleTool(
-                wx.ID_ANY,
-                undoBmp,
-                _translate("Undo [%s]") % keys['undo'],
-                _translate("Undo last action"))
-        tb.Bind(wx.EVT_TOOL, self.undo, self.bldrBtnUndo)
-
-        if 'phoenix' in wx.PlatformInfo:
-            self.bldrBtnRedo = tb.AddTool(
-                wx.ID_ANY,
-                _translate("Redo [%s]") % keys['redo'],
-                redoBmp,
-                _translate("Redo last action"))
-        else:
-            self.bldrBtnRedo = tb.AddSimpleTool(
-                wx.ID_ANY,
-                redoBmp,
-                _translate("Redo [%s]") % keys['redo'],
-                _translate("Redo last action"))
-        tb.Bind(wx.EVT_TOOL, self.redo, self.bldrBtnRedo)
-
-        tb.AddSeparator()
-
-        if 'phoenix' in wx.PlatformInfo:
-            item = tb.AddTool(
-                wx.ID_ANY,
-                _translate("Monitor Center"),
-                monitorsBmp,
-                _translate("Monitor settings and calibration"))
-        else:
-            item = tb.AddSimpleTool(
-                wx.ID_ANY,
-                monitorsBmp,
-                _translate("Monitor Center"),
-                _translate("Monitor settings and calibration"))
-        tb.Bind(wx.EVT_TOOL, self.app.openMonitorCenter, id=item.GetId())
-
-        if 'phoenix' in wx.PlatformInfo:
-            item = tb.AddTool(
-                wx.ID_ANY,
-                _translate("Experiment Settings"),
-                settingsBmp,
-                _translate("Experiment settings"))
-        else:
-            item = tb.AddSimpleTool(
-                wx.ID_ANY,
-                settingsBmp,
-                _translate("Experiment Settings"),
-                _translate("Experiment settings"))
-        tb.Bind(wx.EVT_TOOL, self.setExperimentSettings, item)
-
-        tb.AddSeparator()
-
-        if 'phoenix' in wx.PlatformInfo:
-            item = tb.AddTool(
-                wx.ID_ANY,
-                _translate("Compile Script [%s]") % keys['compileScript'],
-                compileBmp,
-                _translate("Compile to script"))
-        else:
-            item = tb.AddSimpleTool(
-                wx.ID_ANY,
-                compileBmp,
-                _translate("Compile Script [%s]") % keys['compileScript'],
-                _translate("Compile to script"))
-        tb.Bind(wx.EVT_TOOL, self.compileScript, item)
-
-        if 'phoenix' in wx.PlatformInfo:
-            self.bldrBtnRun = tb.AddTool(
-                wx.ID_ANY,
-                _translate("Run [%s]") % keys['runScript'],
-                runBmp,
-                _translate("Run experiment"))
-        else:
-            self.bldrBtnRun = tb.AddSimpleTool(
-                wx.ID_ANY,
-                runBmp,
-                _translate("Run [%s]") % keys['runScript'],
-                _translate("Run experiment"))
-        tb.Bind(wx.EVT_TOOL, self.runFile, self.bldrBtnRun)
-
-        self.toolbar.AddSeparator()
-        pavButtons = pavlovia_ui.toolbar.PavloviaButtons(self, toolbar=tb, tbSize=iconSize)
-        pavButtons.addPavloviaTools()
-        self.btnHandles.update(pavButtons.btnHandles)
-
-        # Finished setup. Make it happen
-        tb.Realize()
 
     def makeMenus(self):
         """
@@ -1491,6 +1299,107 @@ class BuilderFrame(wx.Frame):
     @project.setter
     def project(self, project):
         self.__dict__['project'] = project
+
+
+class PsychopyToolbar(wx.ToolBar):
+    """Toolbar for the Builder/Coder Frame"""
+    def __init__(self, frame):
+        wx.ToolBar.__init__(self)
+        self.SetWindowStyle(wx.TB_HORIZONTAL | wx.NO_BORDER | wx.TB_FLAT)
+        self.frame = frame
+
+        # Configure toolbar appearance
+        self.SetBackgroundColour(cLib['darker']['black'])
+        self.SetMargins(10, 10)
+        # Set icon size (16 for win/linux small mode, 32 for everything else
+        if (sys.platform == 'win32' or sys.platform.startswith('linux')) \
+                and not self.frame.appPrefs['largeIcons']:
+            self.iconSize = 16
+        else:
+            self.iconSize = 32  # mac: 16 either doesn't work, or looks bad
+        self.SetToolBitmapSize((self.iconSize, self.iconSize))
+        # OS-dependent tool-tips
+        ctrlKey = 'Ctrl+'
+        if sys.platform == 'darwin':
+            ctrlKey = 'Cmd+'
+        # keys are the keyboard keys, not the keys of the dict
+        self.keys = {k: self.frame.app.keys[k].replace('Ctrl+', ctrlKey)
+                for k in self.frame.app.keys}
+        self.keys['none'] = ''
+        # Create tools
+        self.AddPsychopyTool('filenew', 'New', 'new',
+                        "Create new experiment file",
+                        self.frame.app.newBuilderFrame) # New
+        self.AddPsychopyTool('fileopen', 'Open', 'open',
+                             "Open an existing experiment file",
+                             self.frame.fileOpen)  # Open
+        self.frame.bldrBtnSave = \
+            self.AddPsychopyTool('filesave', 'Save', 'save',
+                             "Save current experiment file",
+                             self.frame.fileSave)  # Save
+        self.AddPsychopyTool('filesaveas', 'Save As...', 'saveAs',
+                             "Save current experiment file as...",
+                             self.frame.fileSaveAs)  # SaveAs
+        self.frame.bldrBtnUndo = \
+            self.AddPsychopyTool('undo', 'Undo', 'undo',
+                             "Undo last action",
+                             self.frame.undo)  # Undo
+        self.frame.bldrBtnRedo = \
+            self.AddPsychopyTool('redo', 'Redo', 'redo',
+                             "Redo last action",
+                             self.frame.redo)  # Redo
+        self.AddSeparator() # Seperator
+        self.AddPsychopyTool('monitors', 'Monitor Center', 'none',
+                             "Monitor settings and calibration",
+                             self.frame.app.openMonitorCenter)  # Monitor Center
+        self.AddPsychopyTool('cogwindow', 'Experiment Settings', 'none',
+                             "Edit experiment settings",
+                             self.frame.setExperimentSettings)  # Settings
+        self.AddSeparator()
+        self.AddPsychopyTool('compile', 'Compile Script', 'compileScript',
+                             "Compile to script",
+                             self.frame.compileScript)  # Compile
+        self.frame.bldrBtnRun = self.AddPsychopyTool(('run', 'runner'), 'Run', 'runScript',
+                             "Run experiment",
+                             self.frame.runFile)  # Run
+        self.AddSeparator()
+        pavButtons = pavlovia_ui.toolbar.PavloviaButtons(frame, toolbar=self, tbSize=self.iconSize)
+        pavButtons.addPavloviaTools()
+        frame.btnHandles.update(pavButtons.btnHandles)
+
+        # Finished setup. Make it happen
+        self.Realize()
+
+
+    def AddPsychopyTool(self, fName, label, shortcut, tooltip, func):
+        # Load in graphic resource
+        rc = self.frame.app.prefs.paths['resources']
+        if isinstance(fName, str):
+            # If one stimulus is supplied, read bitmap
+            bmp = wx.Bitmap(os.path.join(
+                rc, fName+'%i.png' % self.iconSize
+            ), wx.BITMAP_TYPE_PNG)
+        elif isinstance(fName, tuple) and len(fName) == 2:
+            # If two are supplied, create combined bitmap
+            bmp = combineImageEmblem(os.path.join(rc, fName[0]+'%i.png' % self.iconSize),
+                               os.path.join(rc, fName[1]+'16.png'),
+                               pos='bottom_right')
+        else:
+            return
+        # Create tool object
+        if 'phoenix' in wx.PlatformInfo:
+            item = self.AddTool(wx.ID_ANY,
+                              _translate(label + " [%s]") % self.keys[shortcut],
+                              bmp,
+                              _translate(tooltip))
+        else:
+            item = self.AddSimpleTool(wx.ID_ANY,
+                                    bmp,
+                                    _translate(label + " [%s]") % self.keys[shortcut],
+                                    _translate(tooltip))
+        # Bind function
+        self.Bind(wx.EVT_TOOL, func, item)
+        return item
 
 
 class RoutinesNotebook(aui.AuiNotebook):
