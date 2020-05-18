@@ -165,6 +165,7 @@ class BuilderFrame(wx.Frame):
         self.componentButtons = ComponentsPanel(self)
         # menus and toolbars
         self.toolbar = PsychopyToolbar(frame=self)
+        self.ToolBar = self.toolbar
         self.makeMenus()
         self.CreateStatusBar()
         self.SetStatusText("")
@@ -1304,12 +1305,12 @@ class BuilderFrame(wx.Frame):
 class PsychopyToolbar(wx.ToolBar):
     """Toolbar for the Builder/Coder Frame"""
     def __init__(self, frame):
-        wx.ToolBar.__init__(self)
-        self.SetWindowStyle(wx.TB_HORIZONTAL | wx.NO_BORDER | wx.TB_FLAT)
+        wx.ToolBar.__init__(self, frame)
         self.frame = frame
 
         # Configure toolbar appearance
-        self.SetBackgroundColour(cLib['darker']['black'])
+        self.SetWindowStyle(wx.TB_HORIZONTAL | wx.NO_BORDER | wx.TB_FLAT)
+        self.SetBackgroundColour(cLib['darker']['white'])
         self.SetMargins(10, 10)
         # Set icon size (16 for win/linux small mode, 32 for everything else
         if (sys.platform == 'win32' or sys.platform.startswith('linux')) \
