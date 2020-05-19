@@ -35,7 +35,8 @@ cs_light = {
     'frame_bg': cLib['darker']['white'],
     'grippers': cLib['darker']['white'],
     'note_bg': cLib['darker']['white'],
-    'tab_face': cLib['lighter']['white'],
+    'tab_face': cLib['white'],
+    'tab_active': cLib['lighter']['white'],
     'tab_txt': cLib['lighter']['black'],
     'docker_face': cLib['very']['darker']['white'],
     'docker_txt': cLib['black'],
@@ -55,6 +56,9 @@ cs_light = {
     # Component panel
     'cpanel_bg': cLib['white'],
     'cbutton_hover': cLib['darker']['white'],
+    'catbutton_bg': cLib['white'],
+    'catbutton_hover': cLib['blue'],
+    'catbutton_txt': cLib['black'],
     # Flow panel
     'fpanel_bg': cLib['darker']['white'],
     'fpanel_ln': cLib['very']['lighter']['grey'],
@@ -75,10 +79,11 @@ cs_dark = {
     # Frame
     'frame_bg': cLib['darker']['grey'],
     'grippers': cLib['darker']['grey'],
-    'note_bg': cLib['darker']['grey'],
-    'tab_face': cLib['lighter']['black'],
+    'note_bg': cLib['very']['lighter']['grey'],
+    'tab_face': cLib['grey'],
+    'tab_active': cLib['lighter']['grey'],
     'tab_txt': cLib['lighter']['white'],
-    'docker_face': cLib['very']['lighter']['grey'],
+    'docker_face': cLib['very']['darker']['grey'],
     'docker_txt': cLib['white'],
     ## Builder
     # Routine canvas
@@ -96,6 +101,9 @@ cs_dark = {
     # Component panel
     'cpanel_bg': cLib['grey'],
     'cbutton_hover': cLib['lighter']['grey'],
+    'catbutton_bg': cLib['grey'],
+    'catbutton_hover': cLib['blue'],
+    'catbutton_txt': cLib['white'],
     # Flow panel
     'fpanel_bg': cLib['darker']['grey'],
     'fpanel_ln': cLib['lighter']['grey'],
@@ -108,4 +116,3 @@ cs_dark = {
     'fbtns_hover': cLib['grey'],
     'fbtns_txt': cLib['white']
     }
-
