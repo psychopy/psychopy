@@ -27,24 +27,12 @@ if parse_version(wx.__version__) < parse_version('4.0.3'):
     wx.NewIdRef = wx.NewId
 
 from psychopy import logging, data
-from psychopy.app.style import cLib
+from psychopy.app.style import cLib, cs_light, cs_dark
 from .dialogs import DlgLoopProperties
 from .. import dialogs
 from psychopy.localization import _translate
 
-
-#canvasColor = [200, 200, 200]  # in prefs? ;-)
-#routineTimeColor = wx.Colour(50, 100, 200, 200)
-#staticTimeColor = wx.Colour(200, 50, 50, 100)
-#nonSlipFill = wx.Colour(150, 200, 150, 255)
-#nonSlipEdge = wx.Colour(0, 100, 0, 255)
-#relTimeFill = wx.Colour(200, 150, 150, 255)
-#relTimeEdge = wx.Colour(200, 50, 50, 255)
-#routineFlowColor = wx.Colour(200, 150, 150, 255)
-#darkgrey = wx.Colour(65, 65, 65, 255)
-#white = wx.Colour(255, 255, 255, 255)
-#darkblue = wx.Colour(30, 30, 150, 255)
-#codeSyntaxOkay = wx.Colour(220, 250, 220, 255)  # light green
+cs = cs_light #todo: light/dark switcher in prefs
 
 
 class FlowPanel(wx.ScrolledWindow):
@@ -58,7 +46,7 @@ class FlowPanel(wx.ScrolledWindow):
         wx.ScrolledWindow.__init__(self, frame, id, (0, 0),
                                    size=wx.Size(8 * self.dpi, 3 * self.dpi),
                                    style=wx.HSCROLL | wx.VSCROLL | wx.BORDER_NONE)
-        self.SetBackgroundColour(cLib['darker']['white'])
+        self.SetBackgroundColour(cs['fpanel_bg'])
         self.needUpdate = True
         self.maxWidth = 50 * self.dpi
         self.maxHeight = 2 * self.dpi
@@ -114,8 +102,8 @@ class FlowPanel(wx.ScrolledWindow):
         self.btnInsertLoop = platebtn.PlateButton(
             self, -1, labelLoop, pos=(10, 30))  # spaces give size for CANCEL
 
-        self.btnInsertRoutine.SetBackgroundColour(cLib['darker']['white'])
-        self.btnInsertLoop.SetBackgroundColour(cLib['darker']['white'])
+        self.btnInsertRoutine.SetBackgroundColour(cs['fbtns_face'])
+        self.btnInsertLoop.SetBackgroundColour(cs['fbtns_face'])
 
         self.labelTextRed = {'normal': wx.Colour(
             250, 10, 10, 250), 'hlight': wx.Colour(250, 10, 10, 250)}
@@ -595,7 +583,7 @@ class FlowPanel(wx.ScrolledWindow):
         # step through components in flow, get spacing from text size, etc
         currX = self.linePos[0]
         lineId = wx.NewIdRef()
-        pdc.SetPen(wx.Pen(colour=cLib['grey']))
+        pdc.SetPen(wx.Pen(colour=cs['fpanel_ln']))
         pdc.DrawLine(x1=self.linePos[0] - gap, y1=self.linePos[1],
                      x2=self.linePos[0], y2=self.linePos[1])
         # NB the loop is itself the key, value is further info about it
@@ -623,7 +611,7 @@ class FlowPanel(wx.ScrolledWindow):
             self.gapMidPoints.append(currX + gap / 2)
             self.gapNestLevels.append(nestLevel)
             pdc.SetId(lineId)
-            pdc.SetPen(wx.Pen(colour=cLib['grey']))
+            pdc.SetPen(wx.Pen(colour=cs['fpanel_ln']))
             pdc.DrawLine(x1=currX, y1=self.linePos[1],
                          x2=currX + gap, y2=self.linePos[1])
             currX += gap
@@ -654,7 +642,7 @@ class FlowPanel(wx.ScrolledWindow):
             if entry.getType() == 'Routine':
                 currX = self.drawFlowRoutine(pdc, entry, id=ii,
                                              pos=[currX, self.linePos[1] - 10])
-            pdc.SetPen(wx.Pen(wx.Pen(colour=cLib['grey'])))
+            pdc.SetPen(wx.Pen(wx.Pen(colour=cs['fpanel_ln'])))
             pdc.DrawLine(x1=currX, y1=self.linePos[1],
                          x2=currX + gap, y2=self.linePos[1])
             currX += gap
@@ -675,7 +663,7 @@ class FlowPanel(wx.ScrolledWindow):
                 id = wx.NewIdRef()
                 self.entryPointIDlist.append(id)
                 self.pdc.SetId(id)
-                self.pdc.SetBrush(wx.Brush(cLib['grey']))
+                self.pdc.SetBrush(wx.Brush(cs['loop_face']))
                 self.pdc.DrawCircle(pos, self.linePos[1], ptSize)
                 r = self.pdc.GetIdBounds(id)
                 self.OffsetRect(r)
@@ -713,8 +701,8 @@ class FlowPanel(wx.ScrolledWindow):
         # draw bar at start of timeline; circle looked bad, offset vertically
         ptSize = (9, 9, 12)[self.appData['flowSize']]
         thic = (1, 1, 2)[self.appData['flowSize']]
-        dc.SetBrush(wx.Brush(cLib['grey']))
-        dc.SetPen(wx.Pen(cLib['grey']))
+        dc.SetBrush(wx.Brush(cs['fpanel_ln']))
+        dc.SetPen(wx.Pen(cs['fpanel_ln']))
         dc.DrawPolygon([[0, -ptSize], [thic, -ptSize],
                         [thic, ptSize], [0, ptSize]], pos[0], pos[1])
 
@@ -722,8 +710,8 @@ class FlowPanel(wx.ScrolledWindow):
         # draws arrow at end of timeline
         # tmpId = wx.NewIdRef()
         # dc.SetId(tmpId)
-        dc.SetBrush(wx.Brush(cLib['grey']))
-        dc.SetPen(wx.Pen(cLib['grey']))
+        dc.SetBrush(wx.Brush(cs['fpanel_ln']))
+        dc.SetPen(wx.Pen(cs['fpanel_ln']))
         dc.DrawPolygon([[0, -3], [5, 0], [0, 3]], pos[0], pos[1])
         # dc.SetIdBounds(tmpId,wx.Rect(pos[0],pos[1]+3,5,6))
 
@@ -749,8 +737,8 @@ class FlowPanel(wx.ScrolledWindow):
         # draws direction arrow on left side of a loop
         tmpId = wx.NewIdRef()
         dc.SetId(tmpId)
-        dc.SetBrush(wx.Brush(cLib['grey']))
-        dc.SetPen(wx.Pen(cLib['grey']))
+        dc.SetBrush(wx.Brush(cs['fpanel_ln']))
+        dc.SetPen(wx.Pen(cs['fpanel_ln']))
         size = (3, 4, 5)[self.appData['flowSize']]
         offset = (3, 2, 0)[self.appData['flowSize']]
         if downwards:
@@ -787,13 +775,13 @@ class FlowPanel(wx.ScrolledWindow):
 
         maxTime, nonSlip = routine.getMaxTime()
         if nonSlip:
-            rtFill = cLib['blue']
-            rtEdge = cLib['blue']
-            rtText = cLib['white']
+            rtFill = cs['frt_nonslip']
+            rtEdge = cs['frt_nonslip']
+            rtText = cs['frt_txt']
         else:
-            rtFill = cLib['red']
-            rtEdge = cLib['red']
-            rtText = cLib['white']
+            rtFill = cs['frt_slip']
+            rtEdge = cs['frt_slip']
+            rtText = cs['frt_txt']
 
         # get size based on text
         self.SetFont(font)
@@ -841,7 +829,7 @@ class FlowPanel(wx.ScrolledWindow):
         curve = (6, 11, 15)[self.appData['flowSize']]
         yy = [base, height + curve * up, height +
               curve * up / 2, height]  # for area
-        dc.SetPen(wx.Pen(cLib['grey']))
+        dc.SetPen(wx.Pen(cs['fpanel_ln']))
         vertOffset = 0  # 1 is interesting too
         area = wx.Rect(startX, base + vertOffset,
                        endX - startX, max(yy) - min(yy))
@@ -903,13 +891,13 @@ class FlowPanel(wx.ScrolledWindow):
         # draw box
         rect = wx.Rect(x, y, w + pad, h + pad)
         # the edge should match the text
-        dc.SetPen(wx.Pen(cLib['grey']))
+        dc.SetPen(wx.Pen(cs['loop_face']))
         # try to make the loop fill brighter than the background canvas:
-        dc.SetBrush(wx.Brush(cLib['grey']))
+        dc.SetBrush(wx.Brush(cs['loop_face']))
 
         dc.DrawRoundedRectangle(rect, (4, 6, 8)[flowsize])
         # draw text
-        dc.SetTextForeground(cLib['white'])
+        dc.SetTextForeground(cs['loop_txt'])
         dc.DrawText(name, x + pad / 2, y + pad / 2)
 
         self.componentFromID[id] = loop

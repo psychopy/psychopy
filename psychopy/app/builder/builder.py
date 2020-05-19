@@ -44,7 +44,7 @@ from psychopy.localization import _translate
 
 from ... import experiment
 from .. import dialogs, icons
-from psychopy.app.style import cLib
+from psychopy.app.style import cLib, cs_light, cs_dark
 from ..icons import getAllIcons, combineImageEmblem
 from psychopy import logging, constants
 from psychopy.tools.filetools import mergeFolder
@@ -58,21 +58,6 @@ from psychopy.app import pavlovia_ui
 from psychopy.projects import pavlovia
 
 from psychopy.scripts.psyexpCompile import generateScript
-
-
-#canvasColor = [200, 200, 200]  # in prefs? ;-)
-#routineTimeColor = wx.Colour(50, 100, 200, 200)
-#staticTimeColor = wx.Colour(200, 50, 50, 100)
-#disabledTimeColor = wx.Colour(127, 127, 127, 100)
-#nonSlipFill = wx.Colour(150, 200, 150, 255)
-#nonSlipEdge = wx.Colour(0, 100, 0, 255)
-#relTimeFill = wx.Colour(200, 150, 150, 255)
-#relTimeEdge = wx.Colour(200, 50, 50, 255)
-#routineFlowColor = wx.Colour(242, 84, 91, 255)
-#darkgrey = wx.Colour(65, 65, 65, 255)
-#white = wx.Colour(255, 255, 255, 255)
-#darkblue = wx.Colour(30, 30, 150, 255)
-#codeSyntaxOkay = wx.Colour(220, 250, 220, 255)  # light green
 
 # _localized separates internal (functional) from displayed strings
 # long form here allows poedit string discovery
@@ -93,7 +78,9 @@ _localized = {
     'move to top': _translate('move to top'),
     'move up': _translate('move up'),
     'move down': _translate('move down'),
-    'move to bottom': _translate('move to bottom')}
+    'move to bottom': _translate('move to bottom')
+}
+cs = cs_light #todo: light/dark switcher in prefs
 
 
 class BuilderFrame(wx.Frame):
@@ -1310,7 +1297,7 @@ class PsychopyToolbar(wx.ToolBar):
 
         # Configure toolbar appearance
         self.SetWindowStyle(wx.TB_HORIZONTAL | wx.NO_BORDER | wx.TB_FLAT)
-        self.SetBackgroundColour(cLib['darker']['white'])
+        self.SetBackgroundColour(cs['toolbar_bg'])
         self.SetMargins(10, 10)
         # Set icon size (16 for win/linux small mode, 32 for everything else
         if (sys.platform == 'win32' or sys.platform.startswith('linux')) \
@@ -1327,6 +1314,7 @@ class PsychopyToolbar(wx.ToolBar):
         self.keys = {k: self.frame.app.keys[k].replace('Ctrl+', ctrlKey)
                 for k in self.frame.app.keys}
         self.keys['none'] = ''
+
         # Create tools
         self.AddPsychopyTool('filenew', 'New', 'new',
                         "Create new experiment file",
@@ -1521,7 +1509,7 @@ class RoutineCanvas(wx.ScrolledWindow):
         wx.ScrolledWindow.__init__(
             self, notebook, id, (0, 0), style=wx.BORDER_NONE)
 
-        self.SetBackgroundColour(cLib['lighter']['white'])
+        self.SetBackgroundColour(cs['rtcanvas_bg'])
         self.frame = notebook.frame
         self.app = self.frame.app
         self.dpi = self.app.dpi
@@ -1748,7 +1736,7 @@ class RoutineCanvas(wx.ScrolledWindow):
         xEnd = self.timeXposEnd
 
         # dc.SetId(wx.NewIdRef())
-        dc.SetPen(wx.Pen(cLib['black']))
+        dc.SetPen(wx.Pen(cs['time_grid']))
         # draw horizontal lines on top and bottom
         dc.DrawLine(x1=xSt, y1=yPosTop,
                     x2=xEnd, y2=yPosTop)
@@ -1817,13 +1805,14 @@ class RoutineCanvas(wx.ScrolledWindow):
             unknownTiming = True
         # calculate rectangle for component
         xScale = self.getSecsPerPixel()
-        dc.SetPen(wx.Pen(cLib['grey'] + [100], style=wx.TRANSPARENT))
 
         if component.params['disabled'].val:
-            dc.SetBrush(wx.Brush(cLib['grey'] + [75]))
+            dc.SetBrush(wx.Brush(cs['isi_disbar']))
+            dc.SetPen(wx.Pen(cs['isi_disbar']))
 
         else:
-            dc.SetBrush(wx.Brush(cLib['red'] + [75]))
+            dc.SetBrush(wx.Brush(cs['isi_bar']))
+            dc.SetPen(wx.Pen(cs['isi_bar']))
 
         xSt = self.timeXposStart + startTime // xScale
         w = duration // xScale + 1  # +1 b/c border alpha=0 in dc.SetPen
@@ -1886,14 +1875,14 @@ class RoutineCanvas(wx.ScrolledWindow):
         # draw entries on timeline (if they have some time definition)
         if startTime is not None and duration is not None:
             # then we can draw a sensible time bar!
-            dc.SetPen(wx.Pen(cLib['red'],
+            dc.SetPen(wx.Pen(cs['rtcomp_bar'],
                              style=wx.TRANSPARENT))
 
             if component.params['disabled'].val:
-                dc.SetBrush(wx.Brush(cLib['grey']))
+                dc.SetBrush(wx.Brush(cs['rtcomp_disbar']))
                 dc.DrawBitmap(thisIcon.ConvertToDisabled(), self.iconXpos, yPos + iconYOffset, True)
             else:
-                dc.SetBrush(wx.Brush(cLib['red']))
+                dc.SetBrush(wx.Brush(cs['rtcomp_bar']))
                 dc.DrawBitmap(thisIcon, self.iconXpos, yPos + iconYOffset, True)
 
             xScale = self.getSecsPerPixel()
@@ -2004,7 +1993,7 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
                                              size=(panelWidth, 10 * self.dpi),
                                              style=wx.BORDER_NONE)
         self.sizer = wx.BoxSizer(wx.VERTICAL)
-        self.SetBackgroundColour(cLib['white'])
+        self.SetBackgroundColour(cs['cpanel_bg'])
         self.components = experiment.getAllComponents(
             self.app.prefs.builder['componentsFolders'])
         categories = ['Favorites']
@@ -2037,7 +2026,7 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
             sectionBtn.Bind(wx.EVT_LEFT_DOWN, self.onSectionBtn)
             sectionBtn.Bind(wx.EVT_RIGHT_DOWN, self.onSectionBtn)
             # Set button background and link to onhover functions
-            sectionBtn.SetBackgroundColour(cLib['white'])
+            sectionBtn.SetBackgroundColour(cs['cpanel_bg'])
             #sectionBtn.Bind(wx.EVT_ENTER_WINDOW, self.onHover)
             #sectionBtn.Bind(wx.EVT_LEAVE_WINDOW, self.offHover)
             if self.app.prefs.app['largeIcons']:
@@ -2110,7 +2099,7 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
                               name=thisComp.__name__,
                               style=wx.BORDER_NONE)
         # Set button background and hover effect
-        btn.SetBackgroundColour(cLib['white'])
+        btn.SetBackgroundColour(cs['cpanel_bg'])
         btn.Bind(wx.EVT_ENTER_WINDOW, self.onHover)
         btn.Bind(wx.EVT_LEAVE_WINDOW, self.offHover)
 
@@ -2271,19 +2260,18 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
     def onHover(self, evt):
         btn = evt.GetEventObject()
         if isinstance(btn, wx.BitmapButton):
-            btn.SetBackgroundColour(cLib['darker']['white'])
+            btn.SetBackgroundColour(cs['cbutton_hover'])
         elif isinstance(btn, wx.lib.platebtn.PlateButton):
-            btn.SetBackgroundColour(cLib['darker']['white'])
-            print('hovon')
+            btn.SetBackgroundColour(cs['cbutton_hover'])
         else:
             pass
 
     def offHover(self, evt):
         btn = evt.GetEventObject()
         if isinstance(btn, wx.BitmapButton):
-            btn.SetBackgroundColour(cLib['white'])
+            btn.SetBackgroundColour(cs['cpanel_bg'])
         elif isinstance(btn, wx.lib.platebtn.PlateButton):
-            btn.SetBackgroundColour(cLib['white'])
+            btn.SetBackgroundColour(cs['cpanel_bg'])
         else:
             pass
 
