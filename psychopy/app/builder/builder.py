@@ -139,6 +139,7 @@ class BuilderFrame(wx.Frame):
                           style=style)
         self.Bind(wx.EVT_CLOSE, self.closeFrame)
         self.panel = wx.Panel(self)
+        self.SetBackgroundColour(cs['frame_bg'])
         # create icon
         if sys.platform != 'darwin':
             # doesn't work on darwin and not necessary: handled by app bundle
@@ -172,6 +173,20 @@ class BuilderFrame(wx.Frame):
 
         # control the panes using aui manager
         self._mgr = aui.AuiManager(self)
+        self._art = self._mgr.GetArtProvider()
+        # Setup modern flat look
+        self._art.SetMetric(aui.AUI_DOCKART_GRADIENT_TYPE,
+                               aui.AUI_GRADIENT_NONE)  # Remove gradient from caption bar
+        self._art.SetMetric(aui.AUI_DOCKART_CAPTION_SIZE,
+                            25) # Make caption bar bigger
+        self._art.SetColour(aui.AUI_DOCKART_INACTIVE_CAPTION_COLOUR,
+            wx.Colour(cs['docker_face'])) # Set caption bar colour
+        self._art.SetColour(aui.AUI_DOCKART_INACTIVE_CAPTION_TEXT_COLOUR,
+            wx.Colour(cs['docker_txt'])) # Set caption colour
+        self._art.SetColour(aui.AUI_DOCKART_BORDER_COLOUR,
+            wx.Colour(cs['grippers']))
+
+        # Create panels
         self._mgr.AddPane(self.routinePanel,
                           aui.AuiPaneInfo().
                           Name("Routines").Caption("Routines").
@@ -1402,6 +1417,9 @@ class RoutinesNotebook(aui.AuiNotebook):
         self.appData = self.app.prefs.appData
         aui.AuiNotebook.__init__(self, frame, id)
         self.Bind(aui.EVT_AUINOTEBOOK_PAGE_CLOSE, self.onClosePane)
+        self.SetBackgroundColour(cs['note_bg'])
+        self.GetActiveTabCtrl().SetBackgroundColour(cs['note_bg']) # Sets colour on area behind tab
+
         if not hasattr(self.frame, 'exp'):
             return  # we haven't yet added an exp
 
