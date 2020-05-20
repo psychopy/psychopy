@@ -28,6 +28,7 @@ for c in cLib['darker']:
 
 # Create light and dark colour schemes
 cs_light = {
+    'txt_default': cLib['black'],
     # Toolbar
     'toolbar_bg': cLib['darker']['white'],
     'tool_hover': cLib['very']['darker']['white'],
@@ -44,7 +45,7 @@ cs_light = {
     # Routine canvas
     'rtcanvas_bg': cLib['lighter']['white'],
     'time_grid': cLib['very']['darker']['white'],
-    'time_txt': cLib['black'],
+    'time_txt': cLib['grey'],
     'rtcomp_txt': cLib['black'],
     'rtcomp_bar': cLib['red'],
     'rtcomp_distxt': cLib['very']['darker']['white'],
@@ -75,6 +76,7 @@ cs_light = {
     ## Coder
     }
 cs_dark = {
+    'txt_default': cLib['white'],
     # Toolbar
     'toolbar_bg': cLib['darker']['grey'],
     'tool_hover': ['grey'],
