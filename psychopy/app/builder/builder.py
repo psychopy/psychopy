@@ -1754,6 +1754,7 @@ class RoutineCanvas(wx.ScrolledWindow):
 
         # dc.SetId(wx.NewIdRef())
         dc.SetPen(wx.Pen(cs['time_grid']))
+        dc.SetTextForeground(wx.Colour(cs['time_txt']))
         # draw horizontal lines on top and bottom
         dc.DrawLine(x1=xSt, y1=yPosTop,
                     x2=xEnd, y2=yPosTop)
@@ -1792,6 +1793,7 @@ class RoutineCanvas(wx.ScrolledWindow):
             # y is y-half height of text
             dc.DrawText('t (sec)', xEnd + 5,
                         yPosBottom - self.GetFullTextExtent('t')[1] / 2.0)
+        dc.SetTextForeground(wx.Colour(cs['txt_default']))
 
     def setFontSize(self, size, dc):
         font = self.GetFont()
