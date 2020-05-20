@@ -37,6 +37,7 @@ from .. import pavlovia_ui
 from psychopy import logging
 from psychopy.localization import _translate
 from ..utils import FileDropTarget
+from psychopy.app import toolbar
 from psychopy.projects import pavlovia
 import psychopy.app.pavlovia_ui.menu
 from psychopy.app.coder.codeEditorBase import BaseCodeEditor
@@ -1068,8 +1069,6 @@ class CoderFrame(wx.Frame):
         self.db = None  # debugger
         self._lastCaretPos = None
 
-        # setup statusbar
-        self.makeToolbar()  # must be before the paneManager for some reason
         self.makeMenus()
         #self.CreateStatusBar()
         self.makeStatusBar()
@@ -1084,6 +1083,7 @@ class CoderFrame(wx.Frame):
         # make the pane manager
         self.paneManager = aui.AuiManager(self.pnlMain, aui.AUI_MGR_DEFAULT | aui.AUI_MGR_RECTANGLE_HINT)
 
+        self.ToolBar = toolbar.PsychopyToolbar(self)
         # add help window
         _style = (aui.AUI_NB_TOP | aui.AUI_NB_TAB_SPLIT | aui.AUI_NB_TAB_MOVE)
         self.sourceAsst = aui.AuiNotebook(

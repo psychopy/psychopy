@@ -44,6 +44,7 @@ from psychopy.localization import _translate
 
 from ... import experiment
 from .. import dialogs, icons
+from psychopy.app import toolbar
 from psychopy.app.style import cLib, cs_light, cs_dark
 from ..icons import getAllIcons, combineImageEmblem
 from psychopy import logging, constants, data
@@ -152,7 +153,7 @@ class BuilderFrame(wx.Frame):
         self.routinePanel = RoutinesNotebook(self)
         self.componentButtons = ComponentsPanel(self)
         # menus and toolbars
-        self.toolbar = PsychopyToolbar(frame=self)
+        self.toolbar = toolbar.PsychopyToolbar(frame=self)
         self.ToolBar = self.toolbar
         self.makeMenus()
         self.CreateStatusBar()
@@ -1302,107 +1303,6 @@ class BuilderFrame(wx.Frame):
     @project.setter
     def project(self, project):
         self.__dict__['project'] = project
-
-
-class PsychopyToolbar(wx.ToolBar):
-    """Toolbar for the Builder/Coder Frame"""
-    def __init__(self, frame):
-        wx.ToolBar.__init__(self, frame)
-        self.frame = frame
-
-        # Configure toolbar appearance
-        self.SetWindowStyle(wx.TB_HORIZONTAL | wx.NO_BORDER | wx.TB_FLAT)
-        self.SetBackgroundColour(cs['toolbar_bg'])
-        # Set icon size (16 for win/linux small mode, 32 for everything else
-        if (sys.platform == 'win32' or sys.platform.startswith('linux')) \
-                and not self.frame.appPrefs['largeIcons']:
-            self.iconSize = 16
-        else:
-            self.iconSize = 32  # mac: 16 either doesn't work, or looks bad
-        self.SetToolBitmapSize((self.iconSize, self.iconSize))
-        # OS-dependent tool-tips
-        ctrlKey = 'Ctrl+'
-        if sys.platform == 'darwin':
-            ctrlKey = 'Cmd+'
-        # keys are the keyboard keys, not the keys of the dict
-        self.keys = {k: self.frame.app.keys[k].replace('Ctrl+', ctrlKey)
-                for k in self.frame.app.keys}
-        self.keys['none'] = ''
-
-        # Create tools
-        self.AddPsychopyTool('filenew', 'New', 'new',
-                        "Create new experiment file",
-                        self.frame.app.newBuilderFrame) # New
-        self.AddPsychopyTool('fileopen', 'Open', 'open',
-                             "Open an existing experiment file",
-                             self.frame.fileOpen)  # Open
-        self.frame.bldrBtnSave = \
-            self.AddPsychopyTool('filesave', 'Save', 'save',
-                             "Save current experiment file",
-                             self.frame.fileSave)  # Save
-        self.AddPsychopyTool('filesaveas', 'Save As...', 'saveAs',
-                             "Save current experiment file as...",
-                             self.frame.fileSaveAs)  # SaveAs
-        self.frame.bldrBtnUndo = \
-            self.AddPsychopyTool('undo', 'Undo', 'undo',
-                             "Undo last action",
-                             self.frame.undo)  # Undo
-        self.frame.bldrBtnRedo = \
-            self.AddPsychopyTool('redo', 'Redo', 'redo',
-                             "Redo last action",
-                             self.frame.redo)  # Redo
-        self.AddSeparator() # Seperator
-        self.AddPsychopyTool('monitors', 'Monitor Center', 'none',
-                             "Monitor settings and calibration",
-                             self.frame.app.openMonitorCenter)  # Monitor Center
-        self.AddPsychopyTool('cogwindow', 'Experiment Settings', 'none',
-                             "Edit experiment settings",
-                             self.frame.setExperimentSettings)  # Settings
-        self.AddSeparator()
-        self.AddPsychopyTool('compile', 'Compile Script', 'compileScript',
-                             "Compile to script",
-                             self.frame.compileScript)  # Compile
-        self.frame.bldrBtnRun = self.AddPsychopyTool(('run', 'runner'), 'Run', 'runScript',
-                             "Run experiment",
-                             self.frame.runFile)  # Run
-        self.AddSeparator()
-        pavButtons = pavlovia_ui.toolbar.PavloviaButtons(frame, toolbar=self, tbSize=self.iconSize)
-        pavButtons.addPavloviaTools()
-        frame.btnHandles.update(pavButtons.btnHandles)
-
-        # Finished setup. Make it happen
-        self.Realize()
-
-
-    def AddPsychopyTool(self, fName, label, shortcut, tooltip, func):
-        # Load in graphic resource
-        rc = self.frame.app.prefs.paths['resources']
-        if isinstance(fName, str):
-            # If one stimulus is supplied, read bitmap
-            bmp = wx.Bitmap(os.path.join(
-                rc, fName+'%i.png' % self.iconSize
-            ), wx.BITMAP_TYPE_PNG)
-        elif isinstance(fName, tuple) and len(fName) == 2:
-            # If two are supplied, create combined bitmap
-            bmp = combineImageEmblem(os.path.join(rc, fName[0]+'%i.png' % self.iconSize),
-                               os.path.join(rc, fName[1]+'16.png'),
-                               pos='bottom_right')
-        else:
-            return
-        # Create tool object
-        if 'phoenix' in wx.PlatformInfo:
-            item = self.AddTool(wx.ID_ANY,
-                              _translate(label + " [%s]") % self.keys[shortcut],
-                              bmp,
-                              _translate(tooltip))
-        else:
-            item = self.AddSimpleTool(wx.ID_ANY,
-                                    bmp,
-                                    _translate(label + " [%s]") % self.keys[shortcut],
-                                    _translate(tooltip))
-        # Bind function
-        self.Bind(wx.EVT_TOOL, func, item)
-        return item
 
 
 class RoutinesNotebook(aui.AuiNotebook):
