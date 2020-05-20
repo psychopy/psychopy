@@ -38,6 +38,7 @@ from psychopy import logging
 from psychopy.localization import _translate
 from ..utils import FileDropTarget
 from psychopy.app import toolbar
+from psychopy.app.style import cLib, cs_light, cs_dark
 from psychopy.projects import pavlovia
 import psychopy.app.pavlovia_ui.menu
 from psychopy.app.coder.codeEditorBase import BaseCodeEditor
@@ -79,6 +80,7 @@ _localized = {'basic': _translate('basic'),
               'timing': _translate('timing'),
               'misc': _translate('misc')}
 
+cs = cs_light
 
 def toPickle(filename, data):
     """save data (of any sort) as a pickle file
@@ -1082,6 +1084,18 @@ class CoderFrame(wx.Frame):
 
         # make the pane manager
         self.paneManager = aui.AuiManager(self.pnlMain, aui.AUI_MGR_DEFAULT | aui.AUI_MGR_RECTANGLE_HINT)
+        self._art = self.paneManager.GetArtProvider()
+        # Setup modern flat look
+        self._art.SetMetric(aui.AUI_DOCKART_GRADIENT_TYPE,
+                            aui.AUI_GRADIENT_NONE)  # Remove gradient from caption bar
+        self._art.SetMetric(aui.AUI_DOCKART_CAPTION_SIZE,
+                            25)  # Make caption bar bigger
+        self._art.SetColour(aui.AUI_DOCKART_INACTIVE_CAPTION_COLOUR,
+                            wx.Colour(cs['docker_face']))  # Set caption bar colour
+        self._art.SetColour(aui.AUI_DOCKART_INACTIVE_CAPTION_TEXT_COLOUR,
+                            wx.Colour(cs['docker_txt']))  # Set caption colour
+        self._art.SetColour(aui.AUI_DOCKART_BORDER_COLOUR,
+                            wx.Colour(cs['grippers']))
 
         self.ToolBar = toolbar.PsychopyToolbar(self)
         # add help window
