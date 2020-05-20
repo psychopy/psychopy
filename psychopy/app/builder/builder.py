@@ -2036,9 +2036,13 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
                 label = _localized[categ]
             else:
                 label = categ
-            _style = platebtn.PB_STYLE_DROPARROW
+            _style = platebtn.PB_STYLE_DROPARROW | platebtn.PB_STYLE_SQUARE
             sectionBtn = platebtn.PlateButton(self, -1, label,
                                               style=_style, name=categ)
+            sectionBtn.SetBackgroundColour(wx.Colour(cs['catbutton_bg']))
+            sectionBtn.SetPressColor(wx.Colour(cs['catbutton_hover']))
+            sectionBtn.SetLabelColor(wx.Colour(cs['catbutton_txt']),
+                                     wx.Colour(cs['catbutton_hovertxt']))
             # Link to onclick functions
             sectionBtn.Bind(wx.EVT_LEFT_DOWN, self.onSectionBtn)
             sectionBtn.Bind(wx.EVT_RIGHT_DOWN, self.onSectionBtn)

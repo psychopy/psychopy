@@ -57,8 +57,9 @@ cs_light = {
     'cpanel_bg': cLib['white'],
     'cbutton_hover': cLib['darker']['white'],
     'catbutton_bg': cLib['white'],
-    'catbutton_hover': cLib['blue'],
+    'catbutton_hover': cLib['red'],
     'catbutton_txt': cLib['black'],
+    'catbutton_hovertxt': cLib['white'],
     # Flow panel
     'fpanel_bg': cLib['darker']['white'],
     'fpanel_ln': cLib['very']['lighter']['grey'],
@@ -69,7 +70,8 @@ cs_light = {
     'loop_txt': cLib['lighter']['white'],
     'fbtns_face': cLib['very']['darker']['white'],
     'fbtns_hover': cLib['red'],
-    'fbtns_txt': cLib['black']
+    'fbtns_txt': cLib['black'],
+    'fbtns_hovertxt': cLib['white']
     ## Coder
     }
 cs_dark = {
@@ -102,8 +104,9 @@ cs_dark = {
     'cpanel_bg': cLib['grey'],
     'cbutton_hover': cLib['lighter']['grey'],
     'catbutton_bg': cLib['grey'],
-    'catbutton_hover': cLib['blue'],
+    'catbutton_hover': cLib['red'],
     'catbutton_txt': cLib['white'],
+    'catbutton_hovertxt': cLib['white'],
     # Flow panel
     'fpanel_bg': cLib['darker']['grey'],
     'fpanel_ln': cLib['lighter']['grey'],
@@ -114,5 +117,6 @@ cs_dark = {
     'loop_txt': cLib['black'],
     'fbtns_face': cLib['grey'],
     'fbtns_hover': cLib['red'],
-    'fbtns_txt': cLib['white']
+    'fbtns_txt': cLib['white'],
+    'fbtns_hovertxt': cLib['white']
     }
