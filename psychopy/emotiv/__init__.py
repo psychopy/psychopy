@@ -92,7 +92,7 @@ class Cortex(object):
             time_str = datetime.datetime.now().isoformat()
             self.create_session(activate=True,
                                 headset_id=self.headsets[0])
-            self.create_record(title="Psychopy_{}_{}".format(subject, time_str))
+            self.create_record(title=f"Psychopy_{subject}_{time_str}".replace(":",""))
         else:
             logger.error("Not able to find a connected headset")
             raise CortexNoHeadsetException("Unable to find Emotiv headset")
