@@ -2591,16 +2591,19 @@ class FlowPanel(wx.ScrolledWindow):
         )
         self.btnInsertRoutine.SetBackgroundColour(wx.Colour(cs['fbtns_face']))
         self.btnInsertRoutine.SetPressColor(wx.Colour(cs['fbtns_hover']))
-        self.btnInsertRoutine.SetLabelColor(wx.Colour(cs['fbtns_txt']))
+        self.btnInsertRoutine.SetLabelColor(wx.Colour(cs['fbtns_txt']),
+                                            wx.Colour(cs['fbtns_hovertxt']))
         self.btnInsertRoutine.Update()
         # Create add loop button
         self.btnInsertLoop = platebtn.PlateButton(
-            self, -1, labelLoop, pos=(10, btnHeight+20), size=(120, btnHeight),
+            self, -1, labelLoop, pos=(10, btnHeight+20),
+            size=(120, btnHeight),
             style=platebtn.PB_STYLE_SQUARE
         )  # spaces give size for CANCEL
         self.btnInsertLoop.SetBackgroundColour(wx.Colour(cs['fbtns_face']))
         self.btnInsertLoop.SetPressColor(wx.Colour(cs['fbtns_hover']))
-        self.btnInsertLoop.SetLabelColor(wx.Colour(cs['fbtns_txt']))
+        self.btnInsertLoop.SetLabelColor(wx.Colour(cs['fbtns_txt']),
+                                         wx.Colour(cs['fbtns_hovertxt']))
         self.btnInsertLoop.Update()
 
         # use self.appData['flowSize'] to index a tuple to get a specific
