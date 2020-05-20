@@ -2579,18 +2579,25 @@ class FlowPanel(wx.ScrolledWindow):
         # self.btnInsertLoop = wx.Button(self,-1,'Insert Loop', pos=(10,30))
         labelRoutine = _translate('Insert Routine ')
         labelLoop = _translate('Insert Loop     ')
+        btnHeight = 50
+        # Create add routine button
         self.btnInsertRoutine = platebtn.PlateButton(
-            self, -1, labelRoutine, pos=(10, 10))
+            self, -1, labelRoutine, pos=(10, 10), size=(120, btnHeight),
+            style=platebtn.PB_STYLE_SQUARE
+        )
+        self.btnInsertRoutine.SetBackgroundColour(wx.Colour(cs['fbtns_face']))
+        self.btnInsertRoutine.SetPressColor(wx.Colour(cs['fbtns_hover']))
+        self.btnInsertRoutine.SetLabelColor(wx.Colour(cs['fbtns_txt']))
+        self.btnInsertRoutine.Update()
+        # Create add loop button
         self.btnInsertLoop = platebtn.PlateButton(
-            self, -1, labelLoop, pos=(10, 30))  # spaces give size for CANCEL
-
-        self.btnInsertRoutine.SetBackgroundColour(cs['fbtns_face'])
-        self.btnInsertLoop.SetBackgroundColour(cs['fbtns_face'])
-
-        self.labelTextRed = {'normal': wx.Colour(
-            250, 10, 10, 250), 'hlight': wx.Colour(250, 10, 10, 250)}
-        self.labelTextBlack = {'normal': wx.Colour(
-            0, 0, 0, 250), 'hlight': wx.Colour(250, 250, 250, 250)}
+            self, -1, labelLoop, pos=(10, btnHeight+20), size=(120, btnHeight),
+            style=platebtn.PB_STYLE_SQUARE
+        )  # spaces give size for CANCEL
+        self.btnInsertLoop.SetBackgroundColour(wx.Colour(cs['fbtns_face']))
+        self.btnInsertLoop.SetPressColor(wx.Colour(cs['fbtns_hover']))
+        self.btnInsertLoop.SetLabelColor(wx.Colour(cs['fbtns_txt']))
+        self.btnInsertLoop.Update()
 
         # use self.appData['flowSize'] to index a tuple to get a specific
         # value, eg: (4,6,8)[self.appData['flowSize']]
@@ -2628,9 +2635,13 @@ class FlowPanel(wx.ScrolledWindow):
         self.draw()
         self.frame.SetStatusText("")
         self.btnInsertRoutine.SetLabel(_translate('Insert Routine'))
+        self.btnInsertRoutine.SetLabelColor(wx.Colour(cs['fbtns_txt']))
+        self.btnInsertRoutine.SetBackgroundColour(wx.Colour(cs['fbtns_face']))
+        self.btnInsertRoutine.Update()
         self.btnInsertLoop.SetLabel(_translate('Insert Loop'))
-        self.btnInsertRoutine.SetLabelColor(**self.labelTextBlack)
-        self.btnInsertLoop.SetLabelColor(**self.labelTextBlack)
+        self.btnInsertLoop.SetLabelColor(wx.Colour(cs['fbtns_txt']))
+        self.btnInsertLoop.SetBackgroundColour(wx.Colour(cs['fbtns_face']))
+        self.btnInsertRoutine.Update()
 
     def ConvertEventCoords(self, event):
         xView, yView = self.GetViewStart()
@@ -2694,7 +2705,6 @@ class FlowPanel(wx.ScrolledWindow):
         """
         self.mode = 'routine'
         self.btnInsertRoutine.SetLabel(_translate('CANCEL Insert'))
-        self.btnInsertRoutine.SetLabelColor(**self.labelTextRed)
         self.frame.SetStatusText(_translate(
             'Click where you want to insert the Routine, or CANCEL insert.'))
         self.insertingRoutine = self.routinesFromID[event.GetId()]
@@ -2726,7 +2736,6 @@ class FlowPanel(wx.ScrolledWindow):
             self.clearMode()
             return
         self.btnInsertLoop.SetLabel(_translate('CANCEL insert'))
-        self.btnInsertLoop.SetLabelColor(**self.labelTextRed)
         self.mode = 'loopPoint1'
         self.frame.SetStatusText(_translate(
             'Click where you want the loop to start/end, or CANCEL insert.'))

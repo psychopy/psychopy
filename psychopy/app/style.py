@@ -67,8 +67,8 @@ cs_light = {
     'frt_txt': cLib['lighter']['white'],
     'loop_face': cLib['grey'],
     'loop_txt': cLib['lighter']['white'],
-    'fbtns_face': cLib['darker']['white'],
-    'fbtns_hover': cLib['white'],
+    'fbtns_face': cLib['very']['darker']['white'],
+    'fbtns_hover': cLib['red'],
     'fbtns_txt': cLib['black']
     ## Coder
     }
@@ -111,8 +111,8 @@ cs_dark = {
     'frt_nonslip': cLib['blue'],
     'frt_txt': cLib['lighter']['white'],
     'loop_face': cLib['darker']['white'],
-    'loop_txt': cLib['lighter']['white'],
-    'fbtns_face': cLib['darker']['grey'],
-    'fbtns_hover': cLib['grey'],
+    'loop_txt': cLib['black'],
+    'fbtns_face': cLib['grey'],
+    'fbtns_hover': cLib['red'],
     'fbtns_txt': cLib['white']
     }
