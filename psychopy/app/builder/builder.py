@@ -46,14 +46,14 @@ from ... import experiment
 from .. import dialogs, icons
 from psychopy.app.style import cLib, cs_light, cs_dark
 from ..icons import getAllIcons, combineImageEmblem
-from psychopy import logging, constants
+from psychopy import logging, constants, data
 from psychopy.tools.filetools import mergeFolder
 from .dialogs import (DlgComponentProperties, DlgExperimentProperties,
-                      DlgCodeComponentProperties)
+                      DlgCodeComponentProperties, DlgLoopProperties)
 #from .flow import FlowPanel
 from ..utils import FileDropTarget, WindowFrozen
 from psychopy.experiment import components
-
+from builtins import str
 from psychopy.app import pavlovia_ui
 from psychopy.projects import pavlovia
 
