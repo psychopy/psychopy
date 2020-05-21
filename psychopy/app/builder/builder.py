@@ -140,7 +140,6 @@ class BuilderFrame(wx.Frame):
                           style=style)
         self.Bind(wx.EVT_CLOSE, self.closeFrame)
         self.panel = wx.Panel(self)
-        self.SetBackgroundColour(cs['frame_bg'])
         # create icon
         if sys.platform != 'darwin':
             # doesn't work on darwin and not necessary: handled by app bundle
@@ -184,29 +183,29 @@ class BuilderFrame(wx.Frame):
             wx.Colour(cs['docker_face'])) # Set caption bar colour
         self._art.SetColour(aui.AUI_DOCKART_INACTIVE_CAPTION_TEXT_COLOUR,
             wx.Colour(cs['docker_txt'])) # Set caption colour
-        self._art.SetColour(aui.AUI_DOCKART_BORDER_COLOUR,
+        self._art.SetColour(aui.AUI_DOCKART_GRIPPER_COLOUR,
             wx.Colour(cs['grippers']))
 
         # Create panels
         self._mgr.AddPane(self.routinePanel,
                           aui.AuiPaneInfo().
-                          Name("Routines").Caption("Routines").
-                          CloseButton(False).MaximizeButton(True).
-                          CenterPane())  # 'center panes' expand
+                          Name("Routines").Caption("Routines").CaptionVisible(True).
+                          CloseButton(False).MaximizeButton(True).PaneBorder(False).
+                          Center())  # 'center panes' expand
         rtPane = self._mgr.GetPane('Routines')
         self._mgr.AddPane(self.componentButtons,
                           aui.AuiPaneInfo().
-                          Name("Components").Caption("Components").
+                          Name("Components").Caption("Components").CaptionVisible(True).
                           RightDockable(True).LeftDockable(True).
-                          CloseButton(False).
+                          CloseButton(False).PaneBorder(False).
                           Right())
         compPane = self._mgr.GetPane('Components')
         self._mgr.AddPane(self.flowPanel,
                           aui.AuiPaneInfo().
-                          Name("Flow").Caption("Flow").
+                          Name("Flow").Caption("Flow").CaptionVisible(True).
                           BestSize((8 * self.dpi, 2 * self.dpi)).
                           RightDockable(True).LeftDockable(True).
-                          CloseButton(False).
+                          CloseButton(False).PaneBorder(False).
                           Bottom())
         flowPane = self._mgr.GetPane('Flow')
         # Arrange panes
@@ -214,13 +213,6 @@ class BuilderFrame(wx.Frame):
             flowPane.Top()
             compPane.Left()
             rtPane.CenterPane()
-        # Apply modern flat style to panes
-        flowPane.CaptionVisible(visible=True)
-        flowPane.PaneBorder(visible=False)
-        compPane.CaptionVisible(visible=True)
-        compPane.PaneBorder(visible=False)
-        rtPane.CaptionVisible(visible=True)
-        rtPane.PaneBorder(visible=False)
         # tell the manager to 'commit' all the changes just made
         self._mgr.Update()
         # self.SetSizer(self.mainSizer)  # not necessary for aui type controls
