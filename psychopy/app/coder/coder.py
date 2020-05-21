@@ -80,7 +80,7 @@ _localized = {'basic': _translate('basic'),
               'timing': _translate('timing'),
               'misc': _translate('misc')}
 
-cs = cs_light
+cs = cs_dark
 
 def toPickle(filename, data):
     """save data (of any sort) as a pickle file
@@ -1077,6 +1077,7 @@ class CoderFrame(wx.Frame):
         self.statusBar.SetStatusText("PsychoPy v{}".format(psychopy.__version__), 3)
         self.fileMenu = self.editMenu = self.viewMenu = None
         self.helpMenu = self.toolsMenu = None
+        self.SetBackgroundColour(cs['frame_bg'])
 
         # setup universal shortcuts
         accelTable = self.app.makeAccelTable()
@@ -1094,7 +1095,7 @@ class CoderFrame(wx.Frame):
                             wx.Colour(cs['docker_face']))  # Set caption bar colour
         self._art.SetColour(aui.AUI_DOCKART_INACTIVE_CAPTION_TEXT_COLOUR,
                             wx.Colour(cs['docker_txt']))  # Set caption colour
-        self._art.SetColour(aui.AUI_DOCKART_BORDER_COLOUR,
+        self._art.SetColour(aui.AUI_DOCKART_GRIPPER_COLOUR,
                             wx.Colour(cs['grippers']))
 
         self.toolbar = toolbar.PsychopyToolbar(self)
@@ -1104,8 +1105,12 @@ class CoderFrame(wx.Frame):
         self.sourceAsst = aui.AuiNotebook(
             self.pnlMain, wx.ID_ANY, size=wx.Size(600, 600),
             style=_style)
+        self.sourceAsst.SetBackgroundColour(cs['note_bg'])
+        self.sourceAsst.GetActiveTabCtrl().SetBackgroundColour(cs['note_bg'])  # Sets colour on area behind tab
         self.sourceAsstWindow = SourceTreePanel(self.sourceAsst, self)
+        self.sourceAsstWindow.SetBackgroundColour(cs['rtcanvas_bg'])
         self.fileBrowserWindow = FileBrowserPanel(self.sourceAsst, self)
+        self.fileBrowserWindow.SetBackgroundColour(cs['rtcanvas_bg'])
 
         # create an editor pane
         # self.paneManager.SetFlags(aui.AUI_MGR_RECTANGLE_HINT)

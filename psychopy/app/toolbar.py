@@ -81,7 +81,7 @@ _localized = {
     'move down': _translate('move down'),
     'move to bottom': _translate('move to bottom')
 }
-cs = cs_light #todo: light/dark switcher in prefs
+cs = cs_dark #todo: light/dark switcher in prefs
 
 class PsychopyToolbar(wx.ToolBar):
     """Toolbar for the Builder/Coder Frame"""
