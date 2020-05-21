@@ -1309,6 +1309,9 @@ class RoutinesNotebook(aui.AuiNotebook):
         aui.AuiNotebook.__init__(self, frame, id)
         self.Bind(aui.EVT_AUINOTEBOOK_PAGE_CLOSE, self.onClosePane)
         self.SetBackgroundColour(cs['note_bg'])
+        self._art = self._art.GetArtProvider()
+        self._art.SetColour(wx.Colour(cs['tab_active']))
+        self._art.SetColour(wx.Colour(cs['tab_face']))
         self.GetActiveTabCtrl().SetBackgroundColour(cs['note_bg']) # Sets colour on area behind tab
 
         if not hasattr(self.frame, 'exp'):
