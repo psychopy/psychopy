@@ -29,11 +29,18 @@ import ssl
 import time
 from pathlib import Path
 import logging
+import pandas as pd
 # Set up logging for websockets library
-logger = logging.getLogger('test_logger')
-logger.setLevel(logging.DEBUG)
 
-MS_SEC_THRESHOLD = 1E+10  # 2286
+logger = logging.getLogger('test_logger')
+logger.setLevel(logging.INFO)
+fh = logging.FileHandler('cortex.log')
+logger.addHandler(fh)
+
+
+MS_SEC_THRESHOLD = 1E+10  # if timestamp is greater than this it is in ms
+EEG_ON = os.environ.get('CORTEX_DATA', False)
+
 
 
 if platform == "linux" or platform == "linux2":
@@ -54,8 +61,6 @@ class CortexNoHeadsetException(Exception):
 
 class Cortex(object):
     CORTEX_URL = "wss://localhost:6868"
-
-    VERSION = 'debug'
 
     def __init__(self, client_id_file=None, subject=None):
         home = str(Path.home())
@@ -96,6 +101,13 @@ class Cortex(object):
         else:
             logger.error("Not able to find a connected headset")
             raise CortexNoHeadsetException("Unable to find Emotiv headset")
+        # EEG data 
+        if EEG_ON:
+            self.timestamps = []
+            self.data = []
+            self.columns = None
+            self.subscribe(['eeg'])
+
         self.running = False
         self.listen_ws = self.start_listening()
 
@@ -167,12 +179,20 @@ class Cortex(object):
                             logger.warning(
                                 "Unable to save marker_id: "
                                 f"'{marker_id}' for label: '{label}'")
-                        # print("marker_received\n", time.perf_counter())
-                logger.debug('received:\n{}'.format(result))
+                elif result.get('eeg', False):  #EEG data
+                    if EEG_ON:
+                        self.timestamps.append(result['time'])
+                        self.data.append(result['eeg'])
+                else:
+                    logger.debug(f'unhandled:\n{result}')
             except Exception as e:
                 import traceback
                 logger.error(traceback.format_exc())
                 logger.error("maybe the websocket was closed" + str(e))
+        if EEG_ON:
+            df = pd.DataFrame(self.data, columns=self.columns)
+            df.insert(0, 'timestamp', self.timestamps)
+            df.to_csv(f"eeg_data_{self.timestamps[0]}.csv.gz", compression='gzip', index=False)
         logger.debug("Finished listening")
 
     def to_epoch(self, t=None, delta_time=0):
@@ -432,6 +452,19 @@ class Cortex(object):
                   'time': ms_time}
         self.send_command('updateMarker', **params)
         del self.marker_dict[label]
+
+    def subscribe(self, streamList):
+        params = {'cortexToken': self.auth_token,
+                  'session': self.session_id,
+                  'streams': streamList}
+        resp = self.send_wait_command('subscribe', **params)
+        if resp['result']['failure']:
+            raise CortexApiException(resp['result']['failure'])
+        else:
+            self.columns = resp['result']['success'][0]['cols']
+        logger.debug(f"subscribe response {resp}")
+        return resp
+
 
     def start_listening(self):
         self.running = True

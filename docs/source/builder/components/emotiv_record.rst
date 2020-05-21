@@ -6,12 +6,16 @@ Emotiv Record Component
 The emotiv_record component causes Psychopy to connect to the headset so that markers
 can be sent to the datastream.
 
-The emotiv_record component should be added ONCE before any stimuli have been presented,
-ideally in its own separate  at the beginning of the experiment.
+The emotiv_record component should be added ONCE before any stimuli have been presented at the top of 
+first trial of the experiment. 
 
 We recommend that you use the EmotivApp and or EmotivPro software to
 establish that the headset is connected and the quality of the signals are good before running
 the experiment with Psychopy.
+
+If you do want PschoPy to record the data into a gzipped csv file you need to set an environment
+variable CORTEX_DATA=1. Otherwise we recommend viewing the eeg data in EmotivPro from which it can be 
+exported as a csv or edf file.
 
 Getting Started
 ===============
