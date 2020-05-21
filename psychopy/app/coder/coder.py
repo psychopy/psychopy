@@ -1095,7 +1095,7 @@ class CoderFrame(wx.Frame):
                             wx.Colour(cs['docker_face']))  # Set caption bar colour
         self._art.SetColour(aui.AUI_DOCKART_INACTIVE_CAPTION_TEXT_COLOUR,
                             wx.Colour(cs['docker_txt']))  # Set caption colour
-        self._art.SetColour(aui.AUI_DOCKART_GRIPPER_COLOUR,
+        self._art.SetColour(aui.AUI_DOCKART_SASH_COLOUR,
                             wx.Colour(cs['grippers']))
 
         self.toolbar = toolbar.PsychopyToolbar(self)
