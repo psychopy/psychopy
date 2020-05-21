@@ -208,5 +208,5 @@ latex_use_parts = False
 # If false, no module index is generated.
 #latex_use_modindex = True
 
-# path to mathjax on a public server (or could put on our own in static path?)
-mathjax_path = 'http://mathjax.connectmv.com/MathJax.js'
+# path to mathjax. Use default to load from cdnjs content delivery network.
+#mathjax_path = 'https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.0.0/es5/latest?tex-mml-chtml.js'

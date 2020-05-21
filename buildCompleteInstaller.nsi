@@ -22,8 +22,8 @@ var PRODUCT_REGISTRY_ROOT
 !include MultiUser.nsh
 
 !include "MUI2.nsh"
-!include "fileassoc.nsh"
-!include "EnvVarUpdate.nsh"
+!include "building\fileassoc.nsh"
+!include "building\EnvVarUpdate.nsh"
 !include "Library.nsh"
 !include LogicLib.nsh
 

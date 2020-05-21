@@ -5,18 +5,23 @@ import os
 import pytest
 from psychopy.data import utils
 from psychopy.constants import PY3
+from os.path import join
 
 thisDir, _ = os.path.split(os.path.abspath(__file__))
-fixturesPath = os.path.join(thisDir, '..', 'data')
+fixturesPath = join(thisDir, '..', 'data')
 #
 class Test_utilsClass:
 
     def test_importConditions(self):
-        fileName_xlsx = os.path.join(fixturesPath, 'trialTypes.xlsx')
-        fileName_xls = os.path.join(fixturesPath, 'trialTypes.xls')
-        fileName_csv = os.path.join(fixturesPath, 'trialTypes.csv')
-        fileName_pkl = os.path.join(fixturesPath, 'trialTypes.pkl')
-        fileName_docx = os.path.join(fixturesPath, 'trialTypes.docx')
+        standard_files = []
+        standard_files.append(join(fixturesPath, 'trialTypes.xlsx'))
+        standard_files.append(join(fixturesPath, 'trialTypes.xls'))
+        standard_files.append(join(fixturesPath, 'trialTypes.csv'))
+        standard_files.append(join(fixturesPath, 'trialTypes_eu.csv'))
+        standard_files.append(join(fixturesPath, 'trialTypes.tsv'))
+        # some extra formats (expected fails)
+        fileName_pkl = join(fixturesPath, 'trialTypes.pkl')
+        fileName_docx = join(fixturesPath, 'trialTypes.docx')
 
         expected_cond = utils.OrderedDict(
             [('text', 'red'),
@@ -25,8 +30,13 @@ class Test_utilsClass:
              ('letterColor', 'red'),
              ('n', 2),
              ('float', 1.1)])
-        conds = utils.importConditions(fileName_xlsx)
-        assert conds[0] == expected_cond
+        # check import worked for standard file formats
+        for filename in standard_files:
+            conds = utils.importConditions(filename)
+            assert conds[0] == expected_cond, (
+                "Did not correctly import for '{}': "
+                "expected({}) != imported({})"
+                .format(filename, expected_cond, conds[0]))
 
         # test for None in filename with _assertValidVarNames
         assert utils.importConditions(fileName=None) == []
@@ -35,11 +45,6 @@ class Test_utilsClass:
         with pytest.raises(ValueError) as errMsg:
             utils.importConditions(fileName='raiseErrorfileName')
         assert 'Conditions file not found: %s' % os.path.abspath('raiseErrorfileName') in str(errMsg.value)
-        # Check file extensions in nested pandasToDictList()
-        conds = utils.importConditions(fileName_csv)
-        assert conds[0] == expected_cond
-        conds = utils.importConditions(fileName_xls)
-        assert conds[0] == expected_cond
 
         if PY3:
             conds = utils.importConditions(fileName_pkl)
@@ -53,7 +58,7 @@ class Test_utilsClass:
         # test assertion for invalid file type
         with pytest.raises(IOError) as errMsg:
             utils.importConditions(fileName_docx)
-        assert ('Your conditions file should be an ''xlsx, csv or pkl file') == str(errMsg.value)
+        assert ('Your conditions file should be an ''xlsx, csv, dlm, tsv or pkl file') == str(errMsg.value)
 
     def test_isValidVariableName(self):
         assert utils.isValidVariableName('Name') == (True, '')
@@ -69,7 +74,7 @@ class Test_utilsClass:
         assert utils._getExcelCellName(2, 1) == 'C2'
 
     def test_importTrialTypes(self):
-        filename = os.path.join(fixturesPath, 'dataTest.xlsx')
+        filename = join(fixturesPath, 'dataTest.xlsx')
         expected_cond = utils.OrderedDict(
             [('text', 'red'),
              ('congruent', 1),
@@ -120,7 +125,7 @@ class Test_utilsClass:
         assert utils.getDateStr() == time.strftime("%Y_%b_%d_%H%M", time.localtime())
 
     def test_import_blankColumns(self):
-        fileName_blanks = os.path.join(fixturesPath, 'trialsBlankCols.xlsx')
+        fileName_blanks = join(fixturesPath, 'trialsBlankCols.xlsx')
         conds = utils.importConditions(fileName_blanks)
         assert len(conds) == 6
         assert len(list(conds[0].keys())) == 6

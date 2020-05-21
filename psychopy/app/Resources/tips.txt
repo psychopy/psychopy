@@ -40,3 +40,6 @@ Sometimes the correct response on a given trial is not to respond at all, such a
 For the best audio timing you need to use the 'PTB' backend (set this in the app Preferences).
 The Keyboard class has better timing than event.getKeys() and also reports key duration when the key has been released.
 Get your department to buy a site licence for Pavlovia.org. You'll be helping fund PsychoPy development and you'll be able to run unlimited online studies.
+Coder: Can't remember arguments for a class or function? Use "Ctrl + Shift + Space" after the first brace to bring up a calltip. Press "Esc" or "Enter" to close it.
+Coder: Use "Ctrl + Space" to bring up a list of code completion suggestions. Press "Enter" to insert the selected suggestion into your code or "Esc" to cancel.
+Coder: The "Code Structure" pane shows an outline of classes and functions defined in the current file. Click on items to go to where they are defined.

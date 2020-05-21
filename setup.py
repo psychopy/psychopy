@@ -53,9 +53,9 @@ else:
 # regenerate __init__.py only if we're in the source repos (not in a source
 # zip file)
 try:
-    import createInitFile  # won't exist in a sdist.zip
+    from building import createInitFile   # won't exist in a sdist.zip
     writeNewInit = True
-except Exception:
+except ImportError:
     writeNewInit = False
 
 if writeNewInit:

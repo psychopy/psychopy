@@ -11,9 +11,10 @@ import codecs
 import warnings
 from datetime import datetime
 from psychopy.core import shellCall
+from pathlib import Path
 
-repo_path = os.path.split(__file__)[0]
-authors_path = os.path.join(repo_path, 'AUTHORS.md')
+repo_path = Path(__file__).parent.parent
+authors_path = repo_path/'AUTHORS.md'
 git_command = 'git --no-pager shortlog -s HEAD %s' % repo_path
 last_run = datetime.utcnow().strftime('%B %d, %Y')
 

@@ -11,6 +11,7 @@
 # Distributed under the terms of the GNU General Public License (GPL).
 
 import wx
+import wx.stc
 import sys
 from pkg_resources import parse_version
 from psychopy.constants import PY3
@@ -51,11 +52,15 @@ class BaseCodeEditor(wx.stc.StyledTextCtrl):
         self.SetBufferedDraw(False)
         self.SetEOLMode(wx.stc.STC_EOL_LF)
 
+        # setup margins for line numbers
+        self.SetMarginType(0, wx.stc.STC_MARGIN_NUMBER)
+        self.SetMarginWidth(0, 40)
+
         # Setup a margin to hold fold markers
-        self.SetMarginType(2, wx.stc.STC_MARGIN_SYMBOL)
-        self.SetMarginMask(2, wx.stc.STC_MASK_FOLDERS)
-        self.SetMarginSensitive(2, True)
-        self.SetMarginWidth(2, 12)
+        self.SetMarginType(1, wx.stc.STC_MARGIN_SYMBOL)
+        self.SetMarginMask(1, wx.stc.STC_MASK_FOLDERS)
+        self.SetMarginSensitive(1, True)
+        self.SetMarginWidth(1, 12)
 
         self.MarkerDefine(wx.stc.STC_MARKNUM_FOLDEROPEN,
                           wx.stc.STC_MARK_BOXMINUS, "white", "#808080")
@@ -253,7 +258,9 @@ class BaseCodeEditor(wx.stc.StyledTextCtrl):
         if len(text.splitlines()) > 1:
             self.SetSelection(selStart, selStart + len(text))
         else:
-            self.SetSelection(self.GetCurrentPos(), self.GetLineEndPosition(self.GetCurrentLine()))
+            self.SetSelection(
+                self.GetCurrentPos(),
+                self.GetLineEndPosition(self.GetCurrentLine()))
 
     def smartIdentThisLine(self):
 
@@ -295,9 +302,11 @@ class BaseCodeEditor(wx.stc.StyledTextCtrl):
         if len(prevLogical) > 0 and prevLogical[-1] == ':':
             incr = incr + 4
         # set each line to the correct indentation
+        self.BeginUndoAction()
         for lineNum in range(startLineNum, endLineNum + 1):
             thisIndent = self.GetLineIndentation(lineNum)
             self.SetLineIndentation(lineNum, thisIndent + incr)
+        self.EndUndoAction()
 
     def shouldTrySmartIndent(self):
         # used when the user presses tab key: decide whether to insert
@@ -321,11 +330,13 @@ class BaseCodeEditor(wx.stc.StyledTextCtrl):
         startLineNum = self.LineFromPosition(self.GetSelectionStart())
         endLineNum = self.LineFromPosition(self.GetSelectionEnd())
         # go through line-by-line
+        self.BeginUndoAction()
         for lineN in range(startLineNum, endLineNum + 1):
             newIndent = self.GetLineIndentation(lineN) + howFar
             if newIndent < 0:
                 newIndent = 0
             self.SetLineIndentation(lineN, newIndent)
+        self.EndUndoAction()
 
     def Paste(self, event=None):
         dataObj = wx.TextDataObject()
@@ -345,3 +356,28 @@ class BaseCodeEditor(wx.stc.StyledTextCtrl):
                     # if not then wx conversion broke so get raw data instead
                     txt = dataObj.GetDataHere()
             self.ReplaceSelection(txt.replace("\r\n", "\n").replace("\r", "\n"))
+
+        self.analyseScript()
+
+    def analyseScript(self):
+        """Analyse the script."""
+        pass
+
+    @property
+    def edgeGuideVisible(self):
+        return self.GetEdgeMode() != wx.stc.STC_EDGE_NONE
+
+    @edgeGuideVisible.setter
+    def edgeGuideVisible(self, value):
+        if value is True:
+            self.SetEdgeMode(wx.stc.STC_EDGE_LINE)
+        else:
+            self.SetEdgeMode(wx.stc.STC_EDGE_NONE)
+
+    @property
+    def edgeGuideColumn(self):
+        return self.GetEdgeColumn()
+
+    @edgeGuideColumn.setter
+    def edgeGuideColumn(self, value):
+        self.SetEdgeColumn(value)

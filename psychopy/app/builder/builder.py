@@ -745,6 +745,7 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
         self.SetSizer(self.sizer)
         self.SetAutoLayout(True)
         self.SetupScrolling()
+        self.SetDoubleBuffered(True)
 
     def on_resize(self, event):
         if self.app.prefs.app['largeIcons']:
@@ -1346,7 +1347,8 @@ class BuilderFrame(wx.Frame):
         self.recentFilesMenu = wx.Menu()
         self.fileHistory.UseMenu(self.recentFilesMenu)
         for filename in self.appData['fileHistory']:
-            self.fileHistory.AddFileToHistory(filename)
+            if os.path.exists(filename):
+                self.fileHistory.AddFileToHistory(filename)
         self.Bind(wx.EVT_MENU_RANGE, self.OnFileHistory,
                   id=wx.ID_FILE1, id2=wx.ID_FILE9)
         keys = self.app.keys

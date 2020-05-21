@@ -12,10 +12,10 @@ For the easiest installation download and install the Standalone package.
 
    <script src="https://cdn.jsdelivr.net/npm/ua-parser-js@0/dist/ua-parser.min.js"></script>
    <script>
-    
+
     let filename;
     let url;
-    let version='3.2.4'
+    let version='2020.1.3'
 
     let clientInfo = UAParser(navigator.userAgent);
     var osLabel;
@@ -124,8 +124,8 @@ find and install the correct wheel for your particular flavor of linux.
 **Building Python PsychToolbox bindings:**
 
 The PsychToolbox bindings for Python provide superior timing for sounds and
-keyboard responses. Unfortunately we haven't bee able to build universal wheels
-for these yet so you may have to build the pkg yourself. That should be hard.
+keyboard responses. Unfortunately we haven't been able to build universal wheels
+for these yet so you may have to build the pkg yourself. That should not be hard.
 You need the necessary dev libraries installed first:
 
 .. code-block:: bash
