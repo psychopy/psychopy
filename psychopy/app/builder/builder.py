@@ -15,10 +15,7 @@ import wx
 import wx.stc
 from wx.lib import platebtn, scrolledpanel
 
-try:
-    from wx import aui
-except ImportError:
-    import wx.lib.agw.aui as aui  # some versions of phoenix
+import wx.lib.agw.aui as aui  # some versions of phoenix
 try:
     from wx.adv import PseudoDC
 except ImportError:
@@ -52,7 +49,7 @@ from psychopy.tools.filetools import mergeFolder
 from .dialogs import (DlgComponentProperties, DlgExperimentProperties,
                       DlgCodeComponentProperties, DlgLoopProperties)
 #from .flow import FlowPanel
-from ..utils import FileDropTarget, WindowFrozen
+from ..utils import FileDropTarget, WindowFrozen, PsychoPyTabArt
 from psychopy.experiment import components
 from builtins import str
 from psychopy.app import pavlovia_ui
@@ -1308,12 +1305,7 @@ class RoutinesNotebook(aui.AuiNotebook):
         self.appData = self.app.prefs.appData
         aui.AuiNotebook.__init__(self, frame, id)
         self.Bind(aui.EVT_AUINOTEBOOK_PAGE_CLOSE, self.onClosePane)
-        self.SetBackgroundColour(cs['note_bg'])
-        self._art = self.GetArtProvider()
-        self._art.SetColour(wx.Colour(cs['tab_active']))
-        self._art.SetColour(wx.Colour(cs['tab_face']))
-        self.GetActiveTabCtrl().SetBackgroundColour(cs['note_bg']) # Sets colour on area behind tab
-
+        self.SetArtProvider(PsychoPyTabArt())
         if not hasattr(self.frame, 'exp'):
             return  # we haven't yet added an exp
 
