@@ -16,10 +16,7 @@ import wx.stc
 import wx.richtext
 from wx.html import HtmlEasyPrinting
 
-try:
-    from wx import aui
-except Exception:
-    import wx.lib.agw.aui as aui  # some versions of phoenix
+import wx.lib.agw.aui as aui  # some versions of phoenix
 
 import os
 import sys
@@ -1101,16 +1098,15 @@ class CoderFrame(wx.Frame):
         self.toolbar = toolbar.PsychopyToolbar(self)
         self.SetToolBar(self.toolbar)
         # add help window
-        _style = (aui.AUI_NB_TOP | aui.AUI_NB_TAB_SPLIT | aui.AUI_NB_TAB_MOVE)
+        _style = (aui.AUI_NB_TOP | aui.AUI_NB_TAB_SPLIT |
+                  aui.AUI_NB_TAB_MOVE | wx.BORDER_NONE)
         self.sourceAsst = aui.AuiNotebook(
             self.pnlMain, wx.ID_ANY, size=wx.Size(600, 600),
             style=_style)
-        self.sourceAsst.SetBackgroundColour(cs['note_bg'])
-        self.sourceAsst.GetActiveTabCtrl().SetBackgroundColour(cs['note_bg'])  # Sets colour on area behind tab
+        self.sourceAsst.SetBackgroundColour(cs['srcnote_bg'])
+        self.sourceAsst.GetActiveTabCtrl().SetBackgroundColour(cs['srcnote_bg'])  # Sets colour on area behind tab
         self.sourceAsstWindow = SourceTreePanel(self.sourceAsst, self)
-        self.sourceAsstWindow.SetBackgroundColour(cs['rtcanvas_bg'])
         self.fileBrowserWindow = FileBrowserPanel(self.sourceAsst, self)
-        self.fileBrowserWindow.SetBackgroundColour(cs['rtcanvas_bg'])
 
         # create an editor pane
         # self.paneManager.SetFlags(aui.AUI_MGR_RECTANGLE_HINT)
@@ -1121,14 +1117,17 @@ class CoderFrame(wx.Frame):
                   aui.AUI_NB_TAB_SPLIT |
                   aui.AUI_NB_TAB_MOVE |
                   aui.AUI_NB_CLOSE_ON_ACTIVE_TAB |
-                  aui.AUI_NB_WINDOWLIST_BUTTON)
+                  aui.AUI_NB_WINDOWLIST_BUTTON |
+                  wx.BORDER_NONE)
         self.notebook = aui.AuiNotebook(self.pnlMain, -1,
                                         size=wx.Size(480, 600),
                                         style=_style)
+        self.notebook.SetBackgroundColour(cs['srcnote_bg'])
+        self.notebook.GetActiveTabCtrl().SetBackgroundColour(cs['srcnote_bg'])
         self.paneManager.AddPane(self.notebook, aui.AuiPaneInfo().
                                  Name("Editor").
                                  Caption(_translate("Editor")).
-                                 CenterPane().  # 'center panes' expand
+                                 Center().PaneBorder(False).  # 'center panes' expand
                                  CloseButton(False).
                                  MaximizeButton(True))
         self.notebook.SetFocus()
@@ -1157,7 +1156,7 @@ class CoderFrame(wx.Frame):
                                  BestSize((600, 600)).
                                  Floatable(True).
                                  BottomDockable(True).TopDockable(True).
-                                 CloseButton(True).
+                                 CloseButton(True).PaneBorder(False).
                                  Name("SourceAsst").
                                  Caption(_translate("Source Assistant")).
                                  Left().Show(self.prefs['showSourceAsst']))
@@ -1177,7 +1176,7 @@ class CoderFrame(wx.Frame):
 
         # create the shelf for shell and output views
         _style = (aui.AUI_NB_TOP | aui.AUI_NB_TAB_SPLIT |
-                  aui.AUI_NB_SCROLL_BUTTONS | aui.AUI_NB_TAB_MOVE)
+                  aui.AUI_NB_SCROLL_BUTTONS | aui.AUI_NB_TAB_MOVE | wx.BORDER_NONE)
 
 
         self.shelf = aui.AuiNotebook(self.pnlMain, wx.ID_ANY, size=wx.Size(600, 600),
@@ -1187,7 +1186,7 @@ class CoderFrame(wx.Frame):
                                  aui.AuiPaneInfo().
                                  Name("Shelf").
                                  Caption(_translate("Shelf")).
-                                 BestSize((600, 250)).
+                                 BestSize((600, 250)).PaneBorder(False).
                                  Floatable(True).
                                  BottomDockable(True).TopDockable(True).
                                  CloseButton(False).
@@ -1220,6 +1219,7 @@ class CoderFrame(wx.Frame):
                 self.shell = py.shell.Shell(
                     self.shelf, -1, introText=msg + '\n\n')
                 self._useShell = 'pyshell'
+            self.shell.SetBackgroundColour(wx.Colour(cs['shell_bg']))
             self.shelf.AddPage(self.shell, _translate('Shell'))
 
         self.paneManager.Update()

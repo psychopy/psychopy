@@ -120,5 +120,10 @@ cs_dark = {
     'fbtns_face': cLib['grey'],
     'fbtns_hover': cLib['red'],
     'fbtns_txt': cLib['white'],
-    'fbtns_hovertxt': cLib['white']
+    'fbtns_hovertxt': cLib['white'],
+    ## Coder
+    'srcnote_bg': cLib['darker']['grey'],
+    'src_bg': cLib['grey'],
+    'src_txt': cLib['white'],
+    'shell_bg': cLib['darker']['grey']
     }
