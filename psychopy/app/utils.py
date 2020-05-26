@@ -17,8 +17,8 @@ import sys
 import wx
 import wx.lib.agw.aui as aui
 from psychopy import logging
-from psychopy.app. style import cLib, cs_light, cs_dark
-cs = cs_dark
+from psychopy.app. style import cLib, cs
+
 
 
 class FileDropTarget(wx.FileDropTarget):

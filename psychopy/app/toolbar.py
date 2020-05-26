@@ -46,7 +46,7 @@ from .. import experiment
 from . import dialogs, icons
 from .builder import builder
 from .coder import coder
-from psychopy.app.style import cLib, cs_light, cs_dark
+from psychopy.app.style import cLib, cs
 from .icons import getAllIcons, combineImageEmblem
 from psychopy import logging, constants, data
 from psychopy.tools.filetools import mergeFolder
@@ -81,7 +81,6 @@ _localized = {
     'move down': _translate('move down'),
     'move to bottom': _translate('move to bottom')
 }
-cs = cs_dark #todo: light/dark switcher in prefs
 
 class PsychopyToolbar(wx.ToolBar):
     """Toolbar for the Builder/Coder Frame"""
@@ -216,4 +215,3 @@ class PsychopyToolbar(wx.ToolBar):
         # Bind function
         self.Bind(wx.EVT_TOOL, func, item)
         return item
-

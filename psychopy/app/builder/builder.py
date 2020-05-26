@@ -42,7 +42,7 @@ from psychopy.localization import _translate
 from ... import experiment
 from .. import dialogs, icons
 from psychopy.app import toolbar
-from psychopy.app.style import cLib, cs_light, cs_dark
+from psychopy.app.style import cLib, cs
 from ..icons import getAllIcons, combineImageEmblem
 from psychopy import logging, constants, data
 from psychopy.tools.filetools import mergeFolder
@@ -78,7 +78,6 @@ _localized = {
     'move down': _translate('move down'),
     'move to bottom': _translate('move to bottom')
 }
-cs = cs_dark #todo: light/dark switcher in prefs
 
 
 class BuilderFrame(wx.Frame):

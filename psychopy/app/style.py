@@ -84,7 +84,7 @@ cs_dark = {
     'frame_bg': cLib['darker']['grey'],
     'grippers': cLib['darker']['grey'],
     'note_bg': cLib['grey'],
-    'tab_face': cLib['darker']['grey'],
+    'tab_face': cLib['grey'],
     'tab_active': cLib['lighter']['grey'],
     'tab_txt': cLib['lighter']['white'],
     'docker_face': cLib['very']['darker']['grey'],
@@ -127,3 +127,6 @@ cs_dark = {
     'src_txt': cLib['white'],
     'shell_bg': cLib['darker']['grey']
     }
+
+#cs = cs_light
+cs = cs_dark
