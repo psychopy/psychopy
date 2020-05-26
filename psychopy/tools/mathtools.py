@@ -2658,17 +2658,15 @@ def translationMatrix(t, out=None, dtype=None):
     return T
 
 
-def invertMatrix(m, homogeneous=False, out=None, dtype=None):
-    """Invert a 4x4 matrix.
+def invertMatrix(m, out=None, dtype=None):
+    """Invert a square matrix.
+
+    This function is usually used for inverting 4x4 transformation matrices.
 
     Parameters
     ----------
     m : array_like
-        4x4 matrix to invert.
-    homogeneous : bool, optional
-        Set as ``True`` if the input matrix specifies affine (homogeneous)
-        transformations (rotation and translation only). This will use a faster
-        inverse method which handles such cases. Default is ``False``.
+        Square matrix to invert.
     out : ndarray, optional
         Optional output array. Must be same `shape` and `dtype` as the expected
         output if `out` was not specified.
@@ -2680,31 +2678,42 @@ def invertMatrix(m, homogeneous=False, out=None, dtype=None):
     Returns
     -------
     ndarray
-        4x4 matrix which is the inverse of `m`
+        Matrix which is the inverse of `m`
 
     """
     if out is None:
         dtype = np.float64 if dtype is None else np.dtype(dtype).type
-        toReturn = np.zeros((4, 4), dtype=dtype)
     else:
         dtype = out.dtype
-        toReturn = out
-        toReturn.fill(0.0)
 
     m = np.asarray(m, dtype=dtype)  # input as array
-    assert m.shape == (4, 4,)
+    toReturn = np.empty_like(m, dtype=dtype) if out is None else out
+    toReturn.fill(0.0)
 
-    if not homogeneous:
-        if not isOrthogonal(m[:3, :3]):
+    if m.shape == (4, 4,):
+        # Special handling of 4x4 matrices, if affine and orthogonal
+        # (homogeneous), simply transpose the matrix rather than doing a full
+        # invert.
+        if isAffine(m) and isOrthogonal(m[:3, :3]):
+            rg = m[:3, :3]
+            toReturn[:3, :3] = rg.T
+            toReturn[:3, 3] = -m[:3, 3].dot(rg)
+            #toReturn[0, 3] = \
+            #    -(m[0, 0] * m[0, 3] + m[1, 0] * m[1, 3] + m[2, 0] * m[2, 3])
+            #toReturn[1, 3] = \
+            #    -(m[0, 1] * m[0, 3] + m[1, 1] * m[1, 3] + m[2, 1] * m[2, 3])
+            #toReturn[2, 3] = \
+            #    -(m[0, 2] * m[0, 3] + m[1, 2] * m[1, 3] + m[2, 2] * m[2, 3])
+            toReturn[3, 3] = 1.0
+        else:
+            toReturn[:, :] = np.linalg.inv(m)
+    elif m.shape[0] == m.shape[1]:  # square, other than 4x4
+        if not isOrthogonal(m):
             toReturn[:, :] = np.linalg.inv(m)
         else:
             toReturn[:, :] = m.T
     else:
-        toReturn[:3, :3] = m[:3, :3].T
-        toReturn[0, 3] = -(m[0, 0] * m[0, 3] + m[1, 0] * m[1, 3] + m[2, 0] * m[2, 3])
-        toReturn[1, 3] = -(m[0, 1] * m[0, 3] + m[1, 1] * m[1, 3] + m[2, 1] * m[2, 3])
-        toReturn[2, 3] = -(m[0, 2] * m[0, 3] + m[1, 2] * m[1, 3] + m[2, 2] * m[2, 3])
-        toReturn[3, 3] = 1.0
+        toReturn[:, :] = np.linalg.inv(m)
 
     toReturn[np.abs(toReturn) <= np.finfo(dtype).eps] = 0.0  # very small, make zero
 
@@ -2780,7 +2789,7 @@ def multMatrix(matrices, reverse=False, out=None, dtype=None):
     Using `reverse=True` allows you to specify transformation matrices in the
     order which they will be applied::
 
-        SRT = np.array((scale, rotate, translate), reverse=True)
+        SRT = multMatrix(np.array((scale, rotate, translate)), reverse=True)
 
     """
     # convert matrix types
@@ -3008,8 +3017,8 @@ def isOrthogonal(m):
     if not isinstance(m, (np.ndarray,)):
         m = np.asarray(m)
 
-    assert 2 <= m.shape[0] <= 4
-    assert m.shape[0] == m.shape[1]
+    assert 2 <= m.shape[0] <= 4   # 2x2 to 4x4
+    assert m.shape[0] == m.shape[1]  # must be square
 
     dtype = np.dtype(m.dtype).type
     return np.allclose(np.matmul(m.T, m, dtype=dtype),
@@ -3038,10 +3047,7 @@ def isAffine(m):
     dtype = np.dtype(m.dtype).type
     eps = np.finfo(dtype).eps
 
-    if np.all(m[3, :3] < eps) and (dtype(1.0) - m[3, 3]) < eps:
-        return True
-
-    return False
+    return np.all(m[3, :3] < eps) and (dtype(1.0) - m[3, 3]) < eps
 
 
 def applyMatrix(m, points, out=None, dtype=None):
@@ -3504,7 +3510,3 @@ def lensCorrection(xys, coefK=(1.0,), distCenter=(0., 0.), out=None,
     toReturn[:, :] = xys + (d_minus_c / denom[:, np.newaxis])
 
     return toReturn
-
-
-if __name__ == "__main__":
-    print(rotationMatrix(90., '-b'))
