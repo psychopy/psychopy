@@ -2714,7 +2714,8 @@ def multMatrix(matrices, reverse=False, out=None, dtype=None):
 
     Multiply a sequence of matrices together, reducing to a single product
     matrix. For instance, specifying `matrices` the sequence of matrices (A, B,
-    C, D) will return the product (((AB)C)D).
+    C, D) will return the product (((AB)C)D). If `reverse=True`, the product
+    will be (A(B(CD))).
 
     Alternatively, a 3D array can be specified to `matrices` as a stack, where
     an index along axis 0 references a 2D slice storing matrix values. The
