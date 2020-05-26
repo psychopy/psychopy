@@ -64,6 +64,11 @@ import numpy as np
 import functools
 
 
+VEC_AXES = {'+x': (1, 0, 0), '-x': (-1, 0, 0),
+            '+y': (0, 1, 0), '-y': (0, -1, 0),
+            '+z': (0, 0, 1), '-z': (0, 0, -1)}
+
+
 # ------------------------------------------------------------------------------
 # Vector Operations
 #
@@ -2544,8 +2549,10 @@ def rotationMatrix(angle, axis=(0., 0., -1.), out=None, dtype=None):
     ----------
     angle : float
         Rotation angle in degrees.
-    axis : ndarray, list, or tuple of float
-        Axis vector components.
+    axis : array_like or str
+        Axis vector components or axis name. If a vector, input must be length
+        3. A string can be specified for rotations about world axes (eg. `'+x'`,
+        `'-z'`, `'+y'`, etc.)
     out : ndarray, optional
         Optional output array. Must be same `shape` and `dtype` as the expected
         output if `out` was not specified.
@@ -2572,6 +2579,13 @@ def rotationMatrix(angle, axis=(0., 0., -1.), out=None, dtype=None):
         dtype = np.dtype(out.dtype).type
         R = out
         R.fill(0.0)
+
+    try:
+        axis = VEC_AXES[axis] if isinstance(axis, str) else axis
+    except KeyError:
+        raise ValueError(
+            "Value of `axis` must be either '+X', '-X', '+Y', '-Y', '+Z' or "
+            "'-Z' or length 3 vector.")
 
     axis = normalize(axis, dtype=dtype)
     if np.count_nonzero(axis) == 0:
@@ -2600,6 +2614,8 @@ def rotationMatrix(angle, axis=(0., 0., -1.), out=None, dtype=None):
 
     R[3, 3] = dtype(1.0)
     R[:, :] += 0.0  # remove negative zeros
+
+    R[np.abs(R) <= np.finfo(dtype).eps] = 0.0  # very small, make zero
 
     return R
 
@@ -3488,3 +3504,7 @@ def lensCorrection(xys, coefK=(1.0,), distCenter=(0., 0.), out=None,
     toReturn[:, :] = xys + (d_minus_c / denom[:, np.newaxis])
 
     return toReturn
+
+
+if __name__ == "__main__":
+    print(rotationMatrix(90., '-b'))
