@@ -33,8 +33,7 @@ from .. import stdOutRich, dialogs
 from .. import pavlovia_ui
 from psychopy import logging
 from psychopy.localization import _translate
-from ..utils import FileDropTarget
-from psychopy.app import toolbar
+from ..utils import FileDropTarget, PsychopyToolbar
 from psychopy.app.style import cLib, cs_light, cs_dark
 from psychopy.projects import pavlovia
 import psychopy.app.pavlovia_ui.menu
@@ -1095,7 +1094,7 @@ class CoderFrame(wx.Frame):
         self._art.SetColour(aui.AUI_DOCKART_SASH_COLOUR,
                             wx.Colour(cs['grippers']))
 
-        self.toolbar = toolbar.PsychopyToolbar(self)
+        self.toolbar = PsychopyToolbar(self)
         self.SetToolBar(self.toolbar)
         # add help window
         _style = (aui.AUI_NB_TOP | aui.AUI_NB_TAB_SPLIT |

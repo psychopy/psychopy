@@ -41,7 +41,6 @@ from psychopy.localization import _translate
 
 from ... import experiment
 from .. import dialogs, icons
-from psychopy.app import toolbar
 from psychopy.app.style import cLib, cs
 from ..icons import getAllIcons, combineImageEmblem
 from psychopy import logging, constants, data
@@ -49,7 +48,7 @@ from psychopy.tools.filetools import mergeFolder
 from .dialogs import (DlgComponentProperties, DlgExperimentProperties,
                       DlgCodeComponentProperties, DlgLoopProperties)
 #from .flow import FlowPanel
-from ..utils import FileDropTarget, WindowFrozen, PsychoPyTabArt
+from ..utils import FileDropTarget, WindowFrozen, PsychoPyTabArt, PsychopyToolbar
 from psychopy.experiment import components
 from builtins import str
 from psychopy.app import pavlovia_ui
@@ -148,7 +147,7 @@ class BuilderFrame(wx.Frame):
         self.routinePanel = RoutinesNotebook(self)
         self.componentButtons = ComponentsPanel(self)
         # menus and toolbars
-        self.toolbar = toolbar.PsychopyToolbar(frame=self)
+        self.toolbar = PsychopyToolbar(frame=self)
         self.ToolBar = self.toolbar
         self.makeMenus()
         self.CreateStatusBar()
