@@ -57,7 +57,8 @@ __all__ = ['normalize',
            'multMatrix',
            'normalMatrix',
            'fitBBox',
-           'computeBBoxCorners']
+           'computeBBoxCorners',
+           'zeroFix']
 
 
 import numpy as np
@@ -2204,9 +2205,6 @@ def applyQuat(q, points, out=None, dtype=None):
     else:
         raise ValueError("Input arguments have invalid dimensions.")
 
-    # remove values very close to zero
-    toReturn[np.abs(toReturn) <= np.finfo(dtype).eps] = 0.0
-
     return toReturn
 
 
@@ -2615,8 +2613,6 @@ def rotationMatrix(angle, axis=(0., 0., -1.), out=None, dtype=None):
     R[3, 3] = dtype(1.0)
     R[:, :] += 0.0  # remove negative zeros
 
-    R[np.abs(R) <= np.finfo(dtype).eps] = 0.0  # very small, make zero
-
     return R
 
 
@@ -2661,12 +2657,10 @@ def translationMatrix(t, out=None, dtype=None):
 def invertMatrix(m, out=None, dtype=None):
     """Invert a square matrix.
 
-    This function is usually used for inverting 4x4 transformation matrices.
-
     Parameters
     ----------
     m : array_like
-        Square matrix to invert.
+        Square matrix to invert. Inputs can be 4x4, 3x3 or 2x2.
     out : ndarray, optional
         Optional output array. Must be same `shape` and `dtype` as the expected
         output if `out` was not specified.
@@ -2694,7 +2688,7 @@ def invertMatrix(m, out=None, dtype=None):
         # Special handling of 4x4 matrices, if affine and orthogonal
         # (homogeneous), simply transpose the matrix rather than doing a full
         # invert.
-        if isAffine(m) and isOrthogonal(m[:3, :3]):
+        if isOrthogonal(m[:3, :3]) and isAffine(m):
             rg = m[:3, :3]
             toReturn[:3, :3] = rg.T
             toReturn[:3, 3] = -m[:3, 3].dot(rg)
@@ -2708,14 +2702,9 @@ def invertMatrix(m, out=None, dtype=None):
         else:
             toReturn[:, :] = np.linalg.inv(m)
     elif m.shape[0] == m.shape[1]:  # square, other than 4x4
-        if not isOrthogonal(m):
-            toReturn[:, :] = np.linalg.inv(m)
-        else:
-            toReturn[:, :] = m.T
+        toReturn[:, :] = np.linalg.inv(m) if not isOrthogonal(m) else m.T
     else:
         toReturn[:, :] = np.linalg.inv(m)
-
-    toReturn[np.abs(toReturn) <= np.finfo(dtype).eps] = 0.0  # very small, make zero
 
     return toReturn
 
@@ -2805,8 +2794,6 @@ def multMatrix(matrices, reverse=False, out=None, dtype=None):
         toReturn[:, :] = prod
     else:
         toReturn = prod
-
-    toReturn[np.abs(toReturn) <= np.finfo(dtype).eps] = 0.0  # make zero
 
     return toReturn
 
@@ -2989,9 +2976,6 @@ def matrixFromEulerAngles(rx, ry, rz, degrees=True, out=None, dtype=None):
     toReturn[2, 1] = ad * f + b * e
     toReturn[2, 2] = a * c
     toReturn[3, 3] = 1.0
-
-    # very small, make zero
-    toReturn[np.abs(toReturn) <= np.finfo(dtype).eps] = 0.0
 
     return toReturn
 
@@ -3184,8 +3168,6 @@ def applyMatrix(m, points, out=None, dtype=None):
     else:
         raise ValueError(
             'Only a square matrix with dimensions 2, 3 or 4 can be used.')
-
-    pout[np.abs(pout) <= np.finfo(dtype).eps] = 0.0  # very small, make zero
 
     return toReturn
 
@@ -3429,6 +3411,39 @@ def normalMatrix(modelMatrix, out=None, dtype=None):
 # ------------------------------------------------------------------------------
 # Misc. Math Functions
 #
+
+def zeroFix(a, inplace=False, threshold=None):
+    """Fix zeros in an array.
+
+    This function truncates very small numbers in an array to zero and removes
+    any negative zeros.
+
+    Parameters
+    ----------
+    a : ndarray
+        Input array, must be a Numpy array.
+    inplace : bool
+        Fix an array inplace. If `True`, the input array will be modified,
+        otherwise a new array will be returned with same `dtype` and shape with
+        the fixed values.
+    threshold : float or None
+        Threshold for truncation. If `None`, the machine epsilon value for the
+        input array `dtype` will be used. You can specify a custom threshold as
+        a float.
+
+    Returns
+    -------
+    ndarray
+        Output array with zeros fixed.
+
+    """
+    toReturn = np.copy(a) if not inplace else a
+    toReturn += 0.0  # remove negative zeros
+    threshold = np.finfo(a.dtype).eps if threshold is None else float(threshold)
+    toReturn[np.abs(toReturn) < threshold] = 0.0  # make zero
+
+    return toReturn
+
 
 def lensCorrection(xys, coefK=(1.0,), distCenter=(0., 0.), out=None,
                    dtype=None):
