@@ -3023,7 +3023,7 @@ def isAffine(m):
         `True` if the matrix is affine.
 
     """
-    assert m.shape[0] == m.shape[1]
+    assert m.shape[0] == m.shape[1] == 4
 
     if not isinstance(m, (np.ndarray,)):
         m = np.asarray(m)
