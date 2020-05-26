@@ -1126,7 +1126,7 @@ def getAbsTimeGPU():
 # renderbuffers) used for off-screen rendering.
 #
 
-class Framebuffer(object):
+class FramebufferInfo(object):
     """Descriptor for an OpenGL framebuffer object (FBO). This object is usually
     created using the `createFBO` function.
 
@@ -1225,6 +1225,12 @@ class Framebuffer(object):
         else:
             return None
 
+    def __del__(self):
+        try:
+            GL.glDeleteFramebuffers(1, self.name)
+        except TypeError:
+            pass
+
 
 def createFBO(attachments=None, sizeHint=None, sRGB=False, bindAfter=False):
     """Create a Framebuffer Object.
@@ -1254,7 +1260,7 @@ def createFBO(attachments=None, sizeHint=None, sRGB=False, bindAfter=False):
 
     Returns
     -------
-    Framebuffer
+    FramebufferInfo
         Framebuffer descriptor.
 
     Notes
@@ -1311,7 +1317,7 @@ def createFBO(attachments=None, sizeHint=None, sRGB=False, bindAfter=False):
     GL.glGenFramebuffers(1, ctypes.byref(fboId))
 
     # create a framebuffer descriptor
-    fboDesc = Framebuffer(fboId, GL.GL_FRAMEBUFFER, sizeHint, sRGB, dict())
+    fboDesc = FramebufferInfo(fboId, GL.GL_FRAMEBUFFER, sizeHint, sRGB, dict())
 
     # initial attachments for this framebuffer
     if attachments is not None:
@@ -1352,7 +1358,7 @@ def attach(fbo, attachPoint, imageBuffer):
 
     Parameters
     ----------
-    fbo : Framebuffer
+    fbo : FramebufferInfo
         Framebuffer to attach the image buffer to.
     attachPoint :obj:`int`
         Attachment point for 'imageBuffer' (e.g. GL.GL_COLOR_ATTACHMENT0).
@@ -1399,7 +1405,7 @@ def detach(fbo, attachPoint):
 
     Parameters
     ----------
-    fbo : Framebuffer
+    fbo : FramebufferInfo
         Framebuffer to detach an attachment from.
     attachPoint :obj:`int`
         Attachment point to free (e.g. GL_COLOR_ATTACHMENT0).
@@ -1553,7 +1559,7 @@ def useFBO(fbo):
     """
     prevFBO = GL.GLint()
     GL.glGetIntegerv(GL.GL_FRAMEBUFFER_BINDING, ctypes.byref(prevFBO))
-    toBind = fbo.name if isinstance(fbo, Framebuffer) else int(fbo)
+    toBind = fbo.name if isinstance(fbo, FramebufferInfo) else int(fbo)
     GL.glBindFramebuffer(GL.GL_FRAMEBUFFER, toBind)
     try:
         yield toBind
@@ -1566,7 +1572,7 @@ def bindFBO(fbo, target=None):
 
     Parameters
     ----------
-    fbo : Framebuffer or None
+    fbo : FramebufferInfo or None
         Framebuffer object to bind.
     target : GLenum or None
         Target to bind the FBO to, will update the target field of the `fbo`
@@ -1576,7 +1582,7 @@ def bindFBO(fbo, target=None):
 
     """
     fboId = 0
-    if isinstance(fbo, Framebuffer):
+    if isinstance(fbo, FramebufferInfo):
         fboId = fbo.name
         if target is not None:
             fbo.target = target
@@ -1596,7 +1602,7 @@ def unbindFBO(fbo):
 
     Parameters
     ----------
-    fbo : Framebuffer or None
+    fbo : FramebufferInfo or None
         Framebuffer object to bind.
 
     """
@@ -2445,6 +2451,12 @@ class VertexArrayInfo(object):
         """Inequality test between VAO object names."""
         return self.name != other.name
 
+    def __del__(self):
+        try:
+            GL.glDeleteVertexArrays(1, self.name)
+        except TypeError:
+            pass
+
 
 def createVAO(attribBuffers, indexBuffer=None, attribDivisors=None, legacy=False):
     """Create a Vertex Array object (VAO). VAOs store buffer binding states,
@@ -2830,6 +2842,12 @@ class VertexBufferInfo(object):
         GL.glBindBuffer(self.target, currentVBO.value)
 
         return isValid
+
+    def __del__(self):
+        try:
+            GL.glDeleteBuffers(1, self.name)
+        except TypeError:
+            pass
 
 
 def createVBO(data,

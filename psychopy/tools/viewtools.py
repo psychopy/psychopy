@@ -5,7 +5,7 @@
 """
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2020 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 __all__ = ['Frustum',
@@ -21,7 +21,11 @@ __all__ = ['Frustum',
            'pointToNdc',
            'cursorToRay',
            'visible',
-           'visibleBBox']
+           'visibleBBox',
+           'visualAngle',
+           'projectFrustum',
+           'projectFrustumToPlane']
+
 
 import numpy as np
 from collections import namedtuple
@@ -253,12 +257,19 @@ def computeFrustumFOV(scrFOV,
         specified, the data type is inferred by `out`. If `out` is not provided,
         the default is 'float64'.
 
+    Returns
+    -------
+    ndarray
+        Array of frustum parameters. Can be directly passed to
+        glFrustum (e.g. glFrustum(*f)).
+
     Examples
     --------
     Equivalent to `gluPerspective`::
 
         frustum =  computeFrustumFOV(45.0, 1.0, 0.5)
         projectionMatrix = perspectiveProjectionMatrix(*frustum)
+
     """
     d = np.tan(scrFOV * DEG_TO_RAD)
     ratio = nearClip / float((convergeOffset + scrDist))
@@ -1082,3 +1093,17 @@ def visible(points, mvp, mode='discrete', dtype=None):
     else:
         raise ValueError(
             "Invalid `mode` specified, should be either 'discrete' or 'group'.")
+
+
+if __name__ == "__main__":
+    proj = perspectiveProjectionMatrix(*computeFrustum(0.5, 1.0, 0.5))
+    modelView = np.identity(4)
+
+    extents = mt.fitBBox([[-15.0, -1.0, -1.0],  # minimum extents of the bounding box
+               [5.0, 1.0, 1.0]])  # maximum extents
+
+    print(mt.computeBBoxCorners(extents))
+    mvp = np.matmul(proj, modelView)
+    print(visible([0.0, 0.0, -1.0], mvp, mode='discrete'))
+
+

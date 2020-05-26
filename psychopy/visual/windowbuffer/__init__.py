@@ -14,7 +14,7 @@ import psychopy.tools.gltools as gltools
 import psychopy.tools.viewtools as viewtools
 import psychopy.tools.mathtools as mathtools
 import numpy as np
-from .helpers import setColor
+from psychopy.visual.helpers import setColor
 from psychopy import colors
 from psychopy.tools.arraytools import val2array
 from psychopy.tools.monitorunittools import convertToPix
@@ -174,12 +174,15 @@ class WindowBuffer(object):
                 ctypes.POINTER(ctypes.c_float))
 
         # OpenGL states
-        self._scissorTest = True
+        self._scissorTest = self._multiSample = True
         self._stencilTest = self._depthTest = \
             self._depthMask = self._cullFace = self._sRGB = False
         self._depthFunc = 'less'
         self._cullFaceMode = 'back'
         self._frontFace = 'cw'
+
+        # color related states
+        self._colorMask = [True, True, True, True]
 
         # Keep track of the shader program used the last time transforms were
         # called. Uniform locations are cached until this changes.
@@ -236,11 +239,9 @@ class WindowBuffer(object):
     def viewPos(self, value):
         self._viewPos[:] = value
         viewPos_pix = convertToPix(
-            [0, 0], list(value), units=self.win.units, win=self.win)[:2]
+            [0, 0], self._viewPos, units=self.win.units, win=self.win)[:2]
         viewPos_norm = viewPos_pix / (self.size / 2.0)
-        # Clip to +/- 1; should going out-of-window raise an exception?
-        self._viewPosNorm = np.clip(viewPos_norm, a_min=-1., a_max=1.)
-
+        self._viewPosNorm[:] = viewPos_norm
         self._viewTransformNeedsUpdate = True
 
     @property
@@ -275,7 +276,7 @@ class WindowBuffer(object):
 
     @property
     def aspect(self):
-        """Aspect ratio of the current viewport (width / height)."""
+        """Aspect ratio of the buffer viewport (width / height)."""
         return self._viewport[2] / float(self._viewport[3])
 
     @property
@@ -510,6 +511,17 @@ class WindowBuffer(object):
         self._cullFace = value
 
     @property
+    def multiSample(self):
+        """`True` if multisampling is enabled. Only works if the target buffer
+        has `samples>1`."""
+        return self._multiSample
+
+    @multiSample.setter
+    def multiSample(self, value):
+        self._setCapability(GL.GL_MULTISAMPLE, value)
+        self._multiSample = value
+
+    @property
     def frontFace(self):
         """Face winding order to define front, either `ccw` or `cw`."""
         return self._frontFace
@@ -545,6 +557,30 @@ class WindowBuffer(object):
         self._draw3d = value
 
     @property
+    def colorMask(self):
+        """Color mask [r, g, b, a]. Values are boolean specifying which color
+        channels to mask.
+
+        Examples
+        --------
+        Setting the color mask to only draw in the red channel::
+
+            win.colorMask = [True, False, False, True]  # alpha is True too
+
+            # DON'T do this, may break things
+            win.colorMask[0] = True
+
+        """
+        return self._colorMask
+
+    @colorMask.setter
+    def colorMask(self, value):
+        if self.isCurrent:
+            GL.glColorMask(*value)
+
+        self._colorMask = value
+
+    @property
     def clearDepth(self):
         """Value to clear depth with, ranging form 0.0 to 1.0. If `1.0`, depth
         samples will be cleared to the far clipping plane of the frustum."""
@@ -578,11 +614,13 @@ class WindowBuffer(object):
         self._setCapability(GL.GL_DEPTH_TEST, self._depthTest)
         self._setCapability(GL.GL_STENCIL_TEST, self._stencilTest)
         self._setCapability(GL.GL_CULL_FACE, self._cullFace)
+        self._setCapability(GL.GL_MULTISAMPLE, self._multiSample)
         GL.glDepthMask(GL.GL_TRUE if self._depthMask else GL.GL_FALSE)
         GL.glDepthFunc(depthFuncs[self._depthFunc])
         GL.glCullFace(cullFaceMode[self._cullFaceMode])
         GL.glFrontFace(frontFace[self._frontFace])
         GL.glClearDepth(self._clearDepthValue)
+        GL.glColorMask(*self._colorMask)
 
         # apply view transformation
         self.applyEyeTransform()
@@ -662,17 +700,17 @@ class WindowBuffer(object):
         GL.glClear(flags)
 
     def clearColorBuffer(self):  # these calls are more explicit
-        """Clear the only the color buffer."""
+        """Clear the only the logical color buffer."""
         if self.isCurrent:
             GL.glClear(GL.GL_COLOR_BUFFER_BIT)
 
     def clearDepthBuffer(self):
-        """Clear the only the depth buffer."""
+        """Clear the only the logical depth buffer."""
         if self.isCurrent:
             GL.glClear(GL.GL_DEPTH_BUFFER_BIT)
 
     def clearStencilBuffer(self):
-        """Clear the only the stencil buffer."""
+        """Clear the only the logical stencil buffer."""
         if self.isCurrent:
             GL.glClear(GL.GL_STENCIL_BUFFER_BIT)
 
@@ -698,8 +736,11 @@ class WindowBuffer(object):
 
     def setDefaultView(self, applyTransform=True, clearDepth=True):
         """Set the projection and view matrix to the default for rendering
-        2D stimuli."""
-        # update the projection if
+        2D stimuli.
+        """
+        # Update the projection if any of the attributes were updated. This
+        # eliminates redundant calculations of this matrix if the view hasn't
+        # changed since the last frame was drawn.
         if self._viewTransformNeedsUpdate:
             self._orthoProjectionMatrix[:] = viewtools.orthoProjectionMatrix(
                 -self.aspect, self.aspect, -1, 1, -1, 1)
@@ -731,9 +772,9 @@ class WindowBuffer(object):
 
             self._viewTransformNeedsUpdate = False
 
-        # reset to ortho projection
-        self._viewMatrix[:] = self._orthoViewMatrix
+        # reset to ortho projection and view matrix
         self._projectionMatrix[:] = self._orthoProjectionMatrix
+        self._viewMatrix[:] = self._orthoViewMatrix
 
         if applyTransform:
             self.applyEyeTransform(clearDepth)
@@ -916,7 +957,8 @@ class WindowBuffer(object):
         ----------
         applyTransform : bool
             Apply transformations after computing them in immediate mode. Same
-            as calling :py:attr:`~Window.applyEyeTransform()` afterwards.
+            as calling :py:attr:`~Window.applyEyeTransform()` afterwards. This
+            will only have an immediate effect if the buffer is current.
         clearDepth : bool, optional
             Clear the depth buffer.
 
@@ -1013,7 +1055,7 @@ class WindowBuffer(object):
         configuration with the scene origin on the screen plane. Calculations
         assume units are in meters. If `eyeOffset != 0`, the view will be
         transformed laterally, however the frustum shape will remain the
-        same.
+        same. You can use this to create 'parallel' frustums for stereoscopy.
 
         Note that the values of :py:attr:`~Window.projectionMatrix` and
         :py:attr:`~Window.viewMatrix` will be replaced when calling this

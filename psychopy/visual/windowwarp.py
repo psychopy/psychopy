@@ -133,7 +133,8 @@ class Warper(object):
         self.mon_height_cm = self.mon_width_cm / self.aspect
         self.mon_width_pix = w
         self.mon_height_pix = h
-        self.changeProjection(self.warp, self.warpfile, self.eyepoint)
+        self.changeProjection(self.warp, self.warpfile, self.eyepoint,
+                              self.flipHorizontal, self.flipVertical)
 
     def drawWarp(self):
         """Warp the output, using the vertex, texture, and optionally an
