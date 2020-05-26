@@ -52,7 +52,13 @@ __all__ = ['normalize',
            'intersectRaySphere',
            'intersectRayAABB',
            'intersectRayOBB',
-           'intersectRayTriangle']
+           'intersectRayTriangle',
+           'scale',
+           'multMatrix',
+           'normalMatrix',
+           'fitBBox',
+           'computeBBoxCorners']
+
 
 import numpy as np
 import functools
@@ -1116,6 +1122,78 @@ def vertexNormal(faceNorms, norm=True, out=None, dtype=None):
 # ------------------------------------------------------------------------------
 # Collision Detection and Interaction
 #
+def fitBBox(points, dtype=None):
+    """Fit an axis-aligned bounding box around points.
+
+    This computes the minimum and maximum extents for a bounding box to
+    completely enclose `points`. Keep in mind the the output in bounds are
+    axis-aligned and may not optimally fits the points (i.e. fits the points
+    with the minimum required volume). However, this should work well enough for
+    applications such as visibility testing (see
+    `~psychopy.tools.viewtools.volumeVisible` for more information..
+
+    Parameters
+    ----------
+    points : array_like
+        Nx3 or Nx4 array of points to fit the bounding box to.
+    dtype : dtype or str, optional
+        Data type for computations can either be 'float32' or 'float64'. If
+        `out` is specified, the data type of `out` is used and this argument is
+        ignored. If `out` is not provided, 'float64' is used by default.
+
+    Returns
+    -------
+    ndarray
+        Extents (mins, maxs) as a 2x3 array.
+
+    See Also
+    --------
+    computeBBoxCorners : Convert bounding box extents to corners.
+
+    """
+    dtype = np.float64 if dtype is None else np.dtype(dtype).type
+
+    points = np.asarray(points, dtype=dtype)
+    extents = np.zeros((2, 3), dtype=dtype)
+
+    extents[0, :] = (np.min(points[:, 0]),
+                     np.min(points[:, 1]),
+                     np.min(points[:, 2]))
+    extents[1, :] = (np.max(points[:, 0]),
+                     np.max(points[:, 1]),
+                     np.max(points[:, 2]))
+
+    return extents
+
+
+def computeBBoxCorners(extents, dtype=None):
+    """Get the corners of an axis-aligned bounding box.
+
+    Parameters
+    ----------
+    extents : array_like
+        2x3 array indicating the minimum and maximum extents of the bounding
+        box.
+    dtype : dtype or str, optional
+        Data type for computations can either be 'float32' or 'float64'. If
+        `out` is specified, the data type of `out` is used and this argument is
+        ignored. If `out` is not provided, 'float64' is used by default.
+
+    Returns
+    -------
+    ndarray
+        8x4 array of points defining the corners of the bounding box.
+
+    """
+    corners = np.zeros((8, 4), dtype=dtype)
+    idx = np.arange(0, 8)
+    corners[:, 0] = np.where(idx[:] & 1, extents[0, 0], extents[1, 0])
+    corners[:, 1] = np.where(idx[:] & 2, extents[0, 1], extents[1, 1])
+    corners[:, 2] = np.where(idx[:] & 4, extents[0, 2], extents[1, 2])
+    corners[:, 3] = 1.0
+
+    return corners
+
 
 def intersectRayPlane(rayOrig, rayDir, planeOrig, planeNormal, dtype=None):
     """Get the point which a ray intersects a plane.
@@ -1423,7 +1501,11 @@ def intersectRayOBB(rayOrig, rayDir, modelMatrix, boundsExtents, dtype=None):
 
 
 def intersectRayTriangle(rayOrig, rayDir, tri, dtype=None):
-    """Get the intersection of a ray and signle triangle.
+    """Get the intersection of a ray and triangle(s).
+
+    This function can be used to achieve 'pixel-perfect' ray picking/casting on
+    meshes defined with triangles. However, high-poly meshes may lead to
+    performance issues.
 
     Parameters
     ----------
@@ -2193,7 +2275,7 @@ def alignTo(v, t, out=None, dtype=None):
     b = bisector(v2d, t2d, norm=True, dtype=dtype)
     cosHalfAngle = dot(v2d, b, dtype=dtype)
 
-    nonparallel = cosHalfAngle > 0.0 # rotation is not 180 degrees
+    nonparallel = cosHalfAngle > 0.0  # rotation is not 180 degrees
     qr[nonparallel, :3] = cross(v2d[nonparallel], b[nonparallel], dtype=dtype)
     qr[nonparallel, 3] = cosHalfAngle[nonparallel]
 
@@ -2613,23 +2695,30 @@ def invertMatrix(m, homogeneous=False, out=None, dtype=None):
     return toReturn
 
 
-def concatenate(matrices, out=None, dtype=None):
-    """Concatenate matrix transformations.
+def multMatrix(matrices, reverse=False, out=None, dtype=None):
+    """Chain multiplication of two or more matrices.
 
-    Combine 4x4 transformation matrices into a single matrix. This is similar to
-    what occurs when building a matrix stack in OpenGL using `glRotate`,
-    `glTranslate`, and `glScale` calls. Matrices are multiplied together from
-    right-to-left, or the last item to first. Note that changing the order of
-    the input matrices changes the final result.
+    Multiply a sequence of matrices together, reducing to a single product
+    matrix. For instance, specifying `matrices` the sequence of matrices (A, B,
+    C, D) will return the product (((AB)C)D).
 
-    The data types of input matrices are coerced to match that of `out` or
-    `dtype` if `out` is `None`. For performance reasons, it is best that all
-    arrays passed to this function have matching data types.
+    Alternatively, a 3D array can be specified to `matrices` as a stack, where
+    an index along axis 0 references a 2D slice storing matrix values. The
+    product of the matrices along the axis will be returned. This is a bit more
+    efficient than specifying separate matrices in a sequence, but the
+    difference is negligible when only a few matrices are being multiplied.
 
     Parameters
     ----------
-    matrices : list or tuple
-        List of matrices to concatenate. All matrices must be 4x4.
+    matrices : list, tuple or ndarray
+        Sequence or stack of matrices to multiply. All matrices must have the
+        same dimensions.
+    reverse : bool, optional
+        Multiply matrices right-to-left. This is useful when dealing with
+        transformation matrices, where the order of operations for transforms
+        will appear the same as the order the matrices are specified. Default is
+        'False'. When `True`, this function behaves similarly to
+        :func:`concatenate`.
     out : ndarray, optional
         Optional output array. Must be same `shape` and `dtype` as the expected
         output if `out` was not specified.
@@ -2641,7 +2730,90 @@ def concatenate(matrices, out=None, dtype=None):
     Returns
     -------
     ndarray
-        Concatenation of input matrices as a 4x4 matrix in row-major order.
+        Matrix product.
+
+    Notes
+    -----
+    * You may use `numpy.matmul` when dealing with only two matrices instead of
+      `multMatrix`.
+    * If a single matrix is specified, the returned product will have the same
+      values.
+
+    Examples
+    --------
+    Chain multiplication of SRT matrices::
+
+        translate = translationMatrix((0.035, 0, -0.5))
+        rotate = rotationMatrix(90.0, (0, 1, 0))
+        scale = scaleMatrix(2.0)
+
+        SRT = multMatrix((translate, rotate, scale))
+
+    Same as above, but matrices are in a 3x4x4 array::
+
+        matStack = np.array((translate, rotate, scale))
+
+        # or ...
+        # matStack = np.zeros((3, 4, 4))
+        # matStack[0, :, :] = translate
+        # matStack[1, :, :] = rotate
+        # matStack[2, :, :] = scale
+
+        SRT = multMatrix(matStack)
+
+    Using `reverse=True` allows you to specify transformation matrices in the
+    order which they will be applied::
+
+        SRT = np.array((scale, rotate, translate), reverse=True)
+
+    """
+    # convert matrix types
+    dtype = np.float64 if dtype is None else np.dtype(dtype).type
+    matrices = np.asarray(matrices, dtype=dtype)  # convert to array
+
+    matrices = np.atleast_3d(matrices)
+    prod = functools.reduce(
+        np.matmul, matrices[:] if not reverse else matrices[::-1])
+
+    if out is not None:
+        toReturn = out
+        toReturn[:, :] = prod
+    else:
+        toReturn = prod
+
+    toReturn[np.abs(toReturn) <= np.finfo(dtype).eps] = 0.0  # make zero
+
+    return toReturn
+
+
+def concatenate(matrices, out=None, dtype=None):
+    """Concatenate matrix transformations.
+
+    Chain multiply matrices describing transform operations into a single matrix
+    product, that when applied, transforms points and vectors with each
+    operation in the order they're specified.
+
+    Parameters
+    ----------
+    matrices : list or tuple
+        List of matrices to concatenate. All matrices must all have the same
+        size, usually 4x4 or 3x3.
+    out : ndarray, optional
+        Optional output array. Must be same `shape` and `dtype` as the expected
+        output if `out` was not specified.
+    dtype : dtype or str, optional
+        Data type for computations can either be 'float32' or 'float64'. If
+        `out` is specified, the data type of `out` is used and this argument is
+        ignored. If `out` is not provided, 'float64' is used by default.
+
+    Returns
+    -------
+    ndarray
+        Matrix product.
+
+    See Also
+    --------
+    * multMatrix : Chain multiplication of matrices.
 
     Examples
     --------
@@ -2651,6 +2823,9 @@ def concatenate(matrices, out=None, dtype=None):
         S = scaleMatrix([2.0, 2.0, 2.0])  # scale model 2x
         R = rotationMatrix(-90., [0., 0., -1])  # rotate -90 about -Z axis
         T = translationMatrix([0., 0., -5.])  # translate point 5 units away
+
+        # product matrix when applied to points will scale, rotate and transform
+        # in that order.
         SRT = concatenate([S, R, T])
 
         # transform a point in model-space coordinates to world-space
@@ -2712,20 +2887,7 @@ def concatenate(matrices, out=None, dtype=None):
         pointClipSpace = np.matmul(MVP, pointModel.T)
 
     """
-    if out is None:
-        dtype = np.float64 if dtype is None else np.dtype(dtype).type
-        toReturn = np.zeros((4, 4,), dtype=dtype)
-    else:
-        dtype = np.dtype(dtype).type
-        toReturn = out
-
-    toReturn[:, :] = functools.reduce(
-        np.matmul,
-        map(lambda x: np.asarray(x, dtype=dtype), reversed(matrices)))
-
-    toReturn[np.abs(toReturn) <= np.finfo(dtype).eps] = 0.0  # very small, make zero
-
-    return toReturn
+    return multMatrix(matrices, reverse=True, out=out, dtype=dtype)
 
 
 def matrixFromEulerAngles(rx, ry, rz, degrees=True, out=None, dtype=None):
@@ -3135,11 +3297,119 @@ def transform(pos, ori, points, out=None, dtype=None):
     return toReturn
 
 
+def scale(sf, points, out=None, dtype=None):
+    """Scale points by a factor.
+
+    This is useful for converting points between units, and to stretch or
+    compress points along a given axis. Scaling can be uniform which the same
+    factor is applied along all axes, or anisotropic along specific axes.
+
+    Parameters
+    ----------
+    sf : array_like or float
+        Scaling factor. If scalar, all points will be scaled uniformly by that
+        factor. If a vector, scaling will be anisotropic along an axis.
+    points : array_like
+        Point(s) [x, y, z] to scale.
+    out : ndarray, optional
+        Optional output array. Must be same `shape` and `dtype` as the expected
+        output if `out` was not specified.
+    dtype : dtype or str, optional
+        Data type for computations can either be 'float32' or 'float64'. If
+        `out` is specified, the data type of `out` is used and this argument is
+        ignored. If `out` is not provided, 'float64' is used by default.
+
+    Returns
+    -------
+    ndarray
+        Scaled points.
+
+    Examples
+    --------
+    Apply uniform scaling to points, here we scale to convert points in
+    centimeters to meters::
+
+        CM_TO_METERS = 1.0 / 100.0
+        pointsCM = [[1, 2, 3], [4, 5, 6], [-1, 1, 0]]
+        pointsM = scale(CM_TO_METERS, pointsCM)
+
+    Anisotropic scaling along the X and Y axis::
+
+        pointsM = scale((SCALE_FACTOR_X, SCALE_FACTOR_Y), pointsCM)
+
+    Scale only on the X axis::
+
+        pointsM = scale((SCALE_FACTOR_X,), pointsCM)
+
+    Apply scaling on the Z axis only::
+
+        pointsM = scale((1.0, 1.0, SCALE_FACTOR_Z), pointsCM)
+
+    """
+    if out is None:
+        dtype = np.float64 if dtype is None else np.dtype(dtype).type
+    else:
+        dtype = np.dtype(dtype).type
+
+    points = np.asarray(points, dtype=dtype)
+    toReturn = np.zeros_like(points, dtype=dtype) if out is None else out
+    toReturn, points = np.atleast_2d(toReturn, points)  # create 2d views
+
+    # uniform scaling
+    if isinstance(sf, (float, int)):
+        toReturn[:, :] = points * sf
+    elif isinstance(sf, (list, tuple, np.ndarray)):  # anisotropic
+        sf = np.asarray(sf, dtype=dtype)
+        sfLen = len(sf)
+        if sfLen <= 3:
+            toReturn[:, :] = points
+            toReturn[:, :len(sf)] *= sf
+        else:
+            raise ValueError("Scale factor array must have length <= 3.")
+
+    return toReturn
+
+
+def normalMatrix(modelMatrix, out=None, dtype=None):
+    """Get the normal matrix from a model matrix.
+
+    Parameters
+    ----------
+    modelMatrix : array_like
+        4x4 homogeneous model matrix.
+    out : ndarray, optional
+        Optional output array. Must be same `shape` and `dtype` as the expected
+        output if `out` was not specified.
+    dtype : dtype or str, optional
+        Data type for computations can either be 'float32' or 'float64'. If
+        `out` is specified, the data type of `out` is used and this argument is
+        ignored. If `out` is not provided, 'float64' is used by default.
+
+    Returns
+    -------
+    ndarray
+        Normal matrix.
+
+    """
+    if out is None:
+        dtype = np.float64 if dtype is None else np.dtype(dtype).type
+    else:
+        dtype = np.dtype(dtype).type
+
+    modelMatrix = np.asarray(modelMatrix, dtype=dtype)
+
+    toReturn = np.zeros((4, 4), dtype=dtype) if out is None else out
+    toReturn[:, :] = np.linalg.inv(modelMatrix).T
+
+    return toReturn
+
+
 # ------------------------------------------------------------------------------
 # Misc. Math Functions
 #
 
-def lensCorrection(xys, coefK=(1.0,), distCenter=(0., 0.), out=None, dtype=None):
+def lensCorrection(xys, coefK=(1.0,), distCenter=(0., 0.), out=None,
+                   dtype=None):
     """Lens correction (or distortion) using the division model with even
     polynomial terms.
 
@@ -3219,3 +3489,13 @@ def lensCorrection(xys, coefK=(1.0,), distCenter=(0., 0.), out=None, dtype=None)
 
     return toReturn
 
+
+if __name__ == "__main__":
+    translate = translationMatrix((0.035, 0, -0.5))
+    rotate = rotationMatrix(90.0, (0, 1, 0))
+    scale = scaleMatrix(2.0)
+
+    SRT = multMatrix((scale, rotate, translate), reverse=True)
+
+    print(SRT)
+    print(concatenate((scale, rotate, translate)))
