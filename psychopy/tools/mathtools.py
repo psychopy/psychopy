@@ -58,11 +58,13 @@ __all__ = ['normalize',
            'normalMatrix',
            'fitBBox',
            'computeBBoxCorners',
-           'zeroFix']
+           'zeroFix',
+           'accumQuat']
 
 
 import numpy as np
 import functools
+import itertools
 
 
 VEC_AXES = {'+x': (1, 0, 0), '-x': (-1, 0, 0),
@@ -1830,8 +1832,10 @@ def quatFromAxisAngle(axis, angle, degrees=True, dtype=None):
 
     Parameters
     ----------
-    axis : tuple, list or ndarray, optional
-        Axis of rotation [x, y, z].
+    axis : tuple, list, ndarray or str
+        Axis vector components or axis name. If a vector, input must be length
+        3 [x, y, z]. A string can be specified for rotations about world axes
+        (eg. `'+x'`, `'-z'`, `'+y'`, etc.)
     angle : float
         Rotation angle in radians (or degrees if `degrees` is `True`. Rotations
         are right-handed about the specified `axis`.
@@ -1864,6 +1868,13 @@ def quatFromAxisAngle(axis, angle, degrees=True, dtype=None):
         halfRad = np.radians(angle, dtype=dtype) / dtype(2.0)
     else:
         halfRad = np.dtype(dtype).type(angle) / dtype(2.0)
+
+    try:
+        axis = VEC_AXES[axis] if isinstance(axis, str) else axis
+    except KeyError:
+        raise ValueError(
+            "Value of `axis` must be either '+X', '-X', '+Y', '-Y', '+Z' or "
+            "'-Z' or length 3 vector.")
 
     axis = normalize(axis, dtype=dtype)
     if np.count_nonzero(axis) == 0:
@@ -2206,6 +2217,60 @@ def applyQuat(q, points, out=None, dtype=None):
         raise ValueError("Input arguments have invalid dimensions.")
 
     return toReturn
+
+
+def accumQuat(qlist, out=None, dtype=None):
+    """Accumulate quaternion rotations.
+
+    Chain multiplies an Nx4 array of quaternions, accumulating their rotations.
+    This function can be used for computing the orientation of joints in an
+    armature for forward kinematics. The first quaternion is treated as the
+    'root' and the last is the orientation of the end effector.
+
+    Parameters
+    ----------
+    q : array_like
+        Nx4 array of quaternions to accumulate, where each row is a quaternion.
+    out : ndarray, optional
+        Optional output array. Must be same `shape` and `dtype` as the expected
+        output if `out` was not specified. In this case, the same shape as
+        `qlist`.
+    dtype : dtype or str, optional
+        Data type for computations can either be 'float32' or 'float64'. If
+        `out` is specified, the data type of `out` is used and this argument is
+        ignored. If `out` is not provided, 'float64' is used by default.
+
+    Returns
+    -------
+    ndarray
+        Nx4 array of quaternions.
+
+    Examples
+    --------
+    Get the orientation of joints in an armature if we know their relative
+    angles::
+
+        shoulder = quatFromAxisAngle('-x', 45.0)  # rotate shoulder down 45 deg
+        elbow = quatFromAxisAngle('+x', 45.0)  # rotate elbow up 45 deg
+        wrist = quatFromAxisAngle('-x', 45.0)  # rotate wrist down 45 deg
+        finger = quatFromAxisAngle('+x', 0.0)  # keep finger in-line with wrist
+
+        armRotations = accumQuat([shoulder, elbow, wrist, finger])
+
+    """
+    if out is None:
+        dtype = np.float64 if dtype is None else np.dtype(dtype).type
+    else:
+        dtype = np.dtype(out.dtype).type
+
+    qlist = np.asarray(qlist, dtype=dtype)
+    qlist = np.atleast_2d(qlist)
+
+    qr = np.zeros_like(qlist, dtype=dtype) if out is None else out
+    qr[:, :] = tuple(itertools.accumulate(
+        qlist[:], lambda a, b: multQuat(a, b, dtype=dtype)))
+
+    return qr
 
 
 def alignTo(v, t, out=None, dtype=None):
@@ -2558,7 +2623,7 @@ def rotationMatrix(angle, axis=(0., 0., -1.), out=None, dtype=None):
         Data type for computations can either be 'float32' or 'float64'. If
         `out` is specified, the data type of `out` is used and this argument is
         ignored. If `out` is not provided, 'float64' is used by default.
-
+x
     Returns
     -------
     ndarray
@@ -3526,3 +3591,13 @@ def lensCorrection(xys, coefK=(1.0,), distCenter=(0., 0.), out=None,
     toReturn[:, :] = xys + (d_minus_c / denom[:, np.newaxis])
 
     return toReturn
+
+
+if __name__ == "__main__":
+    shoulder = quatFromAxisAngle('-x', 45.0)
+    elbow = quatFromAxisAngle('+x', 45.0)
+    wrist = quatFromAxisAngle('-x', 45.5)
+    finger = quatFromAxisAngle('+x', 0.0)
+
+    armRotations = accumQuat([shoulder, elbow, wrist, finger])
+    print(armRotations)
