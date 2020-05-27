@@ -3591,13 +3591,3 @@ def lensCorrection(xys, coefK=(1.0,), distCenter=(0., 0.), out=None,
     toReturn[:, :] = xys + (d_minus_c / denom[:, np.newaxis])
 
     return toReturn
-
-
-if __name__ == "__main__":
-    shoulder = quatFromAxisAngle('-x', 45.0)
-    elbow = quatFromAxisAngle('+x', 45.0)
-    wrist = quatFromAxisAngle('-x', 45.5)
-    finger = quatFromAxisAngle('+x', 0.0)
-
-    armRotations = accumQuat([shoulder, elbow, wrist, finger])
-    print(armRotations)
