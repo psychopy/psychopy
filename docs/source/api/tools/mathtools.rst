@@ -86,6 +86,8 @@ Overview
     surfaceBitangent
     surfaceTangent
     vertexNormal
+    fitBBox
+    computeBBoxCorners
     intersectRayPlane
     intersectRaySphere
     intersectRayAABB
@@ -99,6 +101,7 @@ Overview
     alignTo
     quatMagnitude
     multQuat
+    accumQuat
     invertQuat
     applyQuat
     quatToMatrix
@@ -110,11 +113,16 @@ Overview
     invertMatrix
     isOrthogonal
     isAffine
+    multMatrix
+    normalMatrix
     concatenate
     applyMatrix
     posOriToMatrix
     transform
+    scale
     lensCorrection
+    zeroFix
+
 
 Details
 ~~~~~~~
@@ -135,6 +143,8 @@ Details
 .. autofunction:: surfaceBitangent
 .. autofunction:: surfaceTangent
 .. autofunction:: vertexNormal
+.. autofunction:: fitBBox
+.. autofunction:: computeBBoxCorners
 .. autofunction:: intersectRayPlane
 .. autofunction:: intersectRaySphere
 .. autofunction:: intersectRayAABB
@@ -159,8 +169,12 @@ Details
 .. autofunction:: invertMatrix
 .. autofunction:: isOrthogonal
 .. autofunction:: isAffine
+.. autofunction:: multMatrix
+.. autofunction:: normalMatrix
 .. autofunction:: concatenate
 .. autofunction:: applyMatrix
 .. autofunction:: posOriToMatrix
 .. autofunction:: transform
+.. autofunction:: scale
 .. autofunction:: lensCorrection
+.. autofunction:: zeroFix
