@@ -158,6 +158,7 @@ Details
 .. autofunction:: alignTo
 .. autofunction:: quatMagnitude
 .. autofunction:: multQuat
+.. autofunction:: accumQuat
 .. autofunction:: invertQuat
 .. autofunction:: applyQuat
 .. autofunction:: quatToMatrix
