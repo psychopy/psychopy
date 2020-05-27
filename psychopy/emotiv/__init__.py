@@ -105,7 +105,9 @@ class Cortex(object):
         if EEG_ON:
             self.timestamps = []
             self.data = []
+            self.marker_buffer = []
             self.columns = None
+            self.marker_idx = None
             self.subscribe(['eeg'])
 
         self.running = False
@@ -143,6 +145,7 @@ class Cortex(object):
         if wait:
             logger.debug("data sent; awaiting response")
             resp = self.websocket.recv()
+            logger.debug(f"raw response received: {resp}")
             if 'error' in resp:
                 logger.warning(
                     f"Got error in {method} with params {kwargs}:\n{resp}")
@@ -181,10 +184,18 @@ class Cortex(object):
                                 f"'{marker_id}' for label: '{label}'")
                 elif result.get('eeg', False):  #EEG data
                     if EEG_ON:
+                        logger.debug(f"result: {result}")
                         self.timestamps.append(result['time'])
-                        self.data.append(result['eeg'])
+                        row = result['eeg']
+                        if row[self.marker_idx]:
+                            self.marker_buffer.append(row[self.marker_idx][0]['value'])
+                        if self.marker_buffer:
+                            row.append(self.marker_buffer.pop(0))
+                        else:
+                            row.append(0)
+                        self.data.append(row)
                 else:
-                    logger.debug(f'unhandled:\n{result}')
+                    logger.debug(f'unhandled cortex response:\n{result}')
             except Exception as e:
                 import traceback
                 logger.error(traceback.format_exc())
@@ -458,10 +469,20 @@ class Cortex(object):
                   'session': self.session_id,
                   'streams': streamList}
         resp = self.send_wait_command('subscribe', **params)
-        if resp['result']['failure']:
+        logger.debug(f"subscribe response: {resp}")
+        if resp.get('result', {}).get('failure', []):
             raise CortexApiException(resp['result']['failure'])
         else:
-            self.columns = resp['result']['success'][0]['cols']
+            if resp.get('result', {}).get('success', []):
+                # logger.debug(f"Success: {resp['result']['success']}")
+                if resp['result']['success'][0].get('cols'):
+                    self.columns = resp['result']['success'][0]['cols']
+                    self.columns.append('MARKER_VALUE')
+                    self.marker_idx = self.columns.index('MARKERS')
+                else:
+                    logger.debug("No columns")
+            else:
+                logger.debug("No success")
         logger.debug(f"subscribe response {resp}")
         return resp
 
