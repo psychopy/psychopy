@@ -59,7 +59,8 @@ __all__ = ['normalize',
            'fitBBox',
            'computeBBoxCorners',
            'zeroFix',
-           'accumQuat']
+           'accumQuat',
+           'fixTangentHandedness']
 
 
 import numpy as np
@@ -1123,6 +1124,52 @@ def vertexNormal(faceNorms, norm=True, out=None, dtype=None):
 
     if norm:
         normalize(toReturn, out=toReturn, dtype=dtype)
+
+    return toReturn
+
+
+def fixTangentHandedness(tangents, normals, bitangents, out=None, dtype=None):
+    """Ensure the handedness of tangent vectors are all the same.
+
+    Often 3D computed tangents may not have the same handedness due to how
+    texture coordinates are specified. This function takes input surface vectors
+    are ensures that tangents have the same handedness. Use this function if you
+    notice that normal mapping shading appears reversed with respect to the
+    incident light direction. The output array of corrected tangents can be used
+    inplace of the original.
+
+    Parameters
+    ----------
+    tangents, normals, bitangents : array_like
+        Input Nx3 arrays of triangle tangents, normals and bitangents. All
+        arrays must have the same size.
+    out : ndarray, optional
+        Optional output array for tangents. If not specified, a new array of
+        tangents will be allocated.
+    dtype : dtype or str, optional
+        Data type for computations can either be 'float32' or 'float64'. If
+        `out` is specified, the data type of `out` is used and this argument is
+        ignored. If `out` is not provided, 'float64' is used by default.
+
+    Returns
+    -------
+    ndarray
+        Array of tangents with handedness corrected.
+
+    """
+    if out is None:
+        dtype = np.float64 if dtype is None else np.dtype(dtype).type
+    else:
+        dtype = np.dtype(out.dtype).type
+
+    tangents = np.asarray(tangents, dtype=dtype)
+    normals = np.asarray(normals, dtype=dtype)
+    bitangents = np.asarray(bitangents, dtype=dtype)
+
+    toReturn = np.zeros_like(tangents, dtype=dtype) if out is None else out
+    toReturn[:, :] = tangents
+    toReturn[dot(cross(normals, tangents, dtype=dtype),
+                 bitangents, dtype=dtype) < 0.0, :] *= -1.0
 
     return toReturn
 

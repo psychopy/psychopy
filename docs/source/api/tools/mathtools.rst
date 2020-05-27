@@ -86,6 +86,7 @@ Overview
     surfaceBitangent
     surfaceTangent
     vertexNormal
+    fixTangentHandedness
     fitBBox
     computeBBoxCorners
     intersectRayPlane
@@ -143,6 +144,7 @@ Details
 .. autofunction:: surfaceBitangent
 .. autofunction:: surfaceTangent
 .. autofunction:: vertexNormal
+.. autofunction:: fixTangentHandedness
 .. autofunction:: fitBBox
 .. autofunction:: computeBBoxCorners
 .. autofunction:: intersectRayPlane
