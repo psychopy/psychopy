@@ -80,7 +80,8 @@ class TextBox2(BaseVisualStim, ContainerMixin):
                  flipHoriz=False,
                  flipVert=False,
                  editable=False,
-                 name='', autoLog=None):
+                 name='',
+                 autoLog=None):
 
         BaseVisualStim.__init__(self, win, units=units, name=name,
                                 autoLog=autoLog)
