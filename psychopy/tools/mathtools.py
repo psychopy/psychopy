@@ -1765,17 +1765,13 @@ def articulate(boneVecs, boneOris, dtype=None):
     boneOris = np.asarray(boneOris, dtype=dtype)
 
     jointOri = accumQuat(boneOris, dtype=dtype)  # get joint orientations
-    boneVecs = np.atleast_2d(boneVecs)
     bonesRotated = applyQuat(jointOri, boneVecs, dtype=dtype)  # rotate bones
 
     # accumulate
-    bonesTranslated = np.zeros_like(boneVecs, dtype=dtype)
-    bonesTranslated[:, :3] = \
-        tuple(itertools.accumulate(bonesRotated[:, :3], lambda a, b: a + b))
-    bonesTranslated[0, :3] -= bonesTranslated[0, :3]  # offset root length
-
-    if bonesTranslated.shape[1] == 4:
-        bonesTranslated[:, 3] = 1.0
+    bonesTranslated = np.asarray(
+        tuple(itertools.accumulate(bonesRotated[:], lambda a, b: a + b)),
+        dtype=dtype)
+    bonesTranslated -= bonesTranslated[0, :]  # offset root length
 
     return bonesTranslated, jointOri
 
