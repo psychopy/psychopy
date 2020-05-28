@@ -60,7 +60,8 @@ __all__ = ['normalize',
            'computeBBoxCorners',
            'zeroFix',
            'accumQuat',
-           'fixTangentHandedness']
+           'fixTangentHandedness',
+           'articulate']
 
 
 import numpy as np
@@ -1175,7 +1176,7 @@ def fixTangentHandedness(tangents, normals, bitangents, out=None, dtype=None):
 
 
 # ------------------------------------------------------------------------------
-# Collision Detection and Interaction
+# Collision Detection, Interaction and Kinematics
 #
 def fitBBox(points, dtype=None):
     """Fit an axis-aligned bounding box around points.
@@ -1707,6 +1708,76 @@ def ortho3Dto2D(p, orig, normal, up, right=None, dtype=None):
     toReturn[1] = dot(offset, up)
 
     return toReturn
+
+
+def articulate(boneVecs, boneOris, dtype=None):
+    """Articulate an armature.
+
+    This function is used for forward kinematics and posing by specifying a list
+    of 'bones'. A bone has a length and orientation, where sequential bones are
+    linked end-to-end. Returns the transformed origins of the bones in scene
+    coordinates and their orientations.
+
+    Parameters
+    ----------
+    boneVecs : array_like
+        Bone lengths [x, y, z] as an Nx3 array.
+    boneOris : array_like
+        Orientation of the bones as quaternions in form [x, y, z, w], relative
+        to the previous bone.
+    dtype : dtype or str, optional
+        Data type for computations can either be 'float32' or 'float64'. If
+        `out` is specified, the data type of `out` is used and this argument is
+        ignored. If `out` is not provided, 'float64' is used by default.
+
+    Returns
+    -------
+    tuple
+        Array of bone origins and orientations. The first origin is root
+        position which is always at [0, 0, 0]. Use :func:`transform` to
+        reposition the armature, or create a transformation matrix and use
+        `applyMatrix` to translate and rotate the whole armiture into position.
+
+    Examples
+    --------
+    Compute the orientations and origins of segments of an arm::
+
+        # bone lengths
+        boneLengths = [[0., 1., 0.], [0., 1., 0.], [0., 1., 0.]]
+
+        # create quaternions for joints
+        shoulder = mt.quatFromAxisAngle('-y', 45.0)
+        elbow = mt.quatFromAxisAngle('+z', 45.0)
+        wrist = mt.quatFromAxisAngle('+z', 45.0)
+
+        # articulate the parts of the arm
+        boxPos, boxOri = mt.articulate(pos, [shoulder, elbow, wrist])
+
+        # assign positions and orientations to 3D objects
+        shoulderModel.thePose.posOri = (boxPos[0, :], boxOri[0, :])
+        elbowModel.thePose.posOri = (boxPos[1, :], boxOri[1, :])
+        wristModel.thePose.posOri = (boxPos[2, :], boxOri[2, :])
+
+    """
+    dtype = np.float64 if dtype is None else np.dtype(dtype).type
+
+    boneVecs = np.asarray(boneVecs, dtype=dtype)
+    boneOris = np.asarray(boneOris, dtype=dtype)
+
+    jointOri = accumQuat(boneOris, dtype=dtype)  # get joint orientations
+    boneVecs = np.atleast_2d(boneVecs)
+    bonesRotated = applyQuat(jointOri, boneVecs, dtype=dtype)  # rotate bones
+
+    # accumulate
+    bonesTranslated = np.zeros_like(boneVecs, dtype=dtype)
+    bonesTranslated[:, :3] = \
+        tuple(itertools.accumulate(bonesRotated[:, :3], lambda a, b: a + b))
+    bonesTranslated[0, :3] -= bonesTranslated[0, :3]  # offset root length
+
+    if bonesTranslated.shape[1] == 4:
+        bonesTranslated[:, 3] = 1.0
+
+    return bonesTranslated, jointOri
 
 
 # ------------------------------------------------------------------------------
@@ -2694,8 +2765,8 @@ x
         axis = VEC_AXES[axis] if isinstance(axis, str) else axis
     except KeyError:
         raise ValueError(
-            "Value of `axis` must be either '+X', '-X', '+Y', '-Y', '+Z' or "
-            "'-Z' or length 3 vector.")
+            "Value of `axis` must be either '+x', '-x', '+y', '-x', '+z' or "
+            "'-z' or length 3 vector.")
 
     axis = normalize(axis, dtype=dtype)
     if np.count_nonzero(axis) == 0:
