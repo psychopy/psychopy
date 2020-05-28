@@ -1736,7 +1736,7 @@ def articulate(boneVecs, boneOris, dtype=None):
         Array of bone origins and orientations. The first origin is root
         position which is always at [0, 0, 0]. Use :func:`transform` to
         reposition the armature, or create a transformation matrix and use
-        `applyMatrix` to translate and rotate the whole armiture into position.
+        `applyMatrix` to translate and rotate the whole armature into position.
 
     Examples
     --------

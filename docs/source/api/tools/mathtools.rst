@@ -95,6 +95,7 @@ Overview
     intersectRayOBB
     intersectRayTriangle
     ortho3Dto2D
+    articulate
     slerp
     quatToAxisAngle
     quatFromAxisAngle
@@ -153,6 +154,7 @@ Details
 .. autofunction:: intersectRayOBB
 .. autofunction:: intersectRayTriangle
 .. autofunction:: ortho3Dto2D
+.. autofunction:: articulate
 .. autofunction:: slerp
 .. autofunction:: quatToAxisAngle
 .. autofunction:: quatFromAxisAngle
