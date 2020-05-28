@@ -133,7 +133,7 @@ class TextBox2(BaseVisualStim, ContainerMixin):
         self.colorSpace = colorSpace
         self.opacity = opacity
         self.ori = 0.0
-        self.depth = 1.0
+        self.depth = 0.0
         # used at render time
         self._lines = None  # np.array the line numbers for each char
         self._colors = None
@@ -146,9 +146,9 @@ class TextBox2(BaseVisualStim, ContainerMixin):
                         width=self.size[0], height=self.size[1], units=units,
                         lineWidth=borderWidth, lineColor=borderColor, fillColor=fillColor)
         self.styleStore = {
-            'lineColor': self.box.lineColor,
-            'lineWidth': self.box.lineWidth,
-            'fillColor': self.box.fillColor
+            'lineColor': borderColor,
+            'lineWidth': borderWidth,
+            'fillColor': fillColor
         }
         self.borderWidth = borderWidth
         self.borderColor = borderColor
@@ -610,7 +610,7 @@ class TextBox2(BaseVisualStim, ContainerMixin):
                     [max(c-0.05, 0.05) for c in self.win.color]) # Use window colour as base if border colour is none
             else:
                 self.box.setLineColor(
-                    [max(c - 0.05, 0.05) for c in self.styleStore['lineColor']])
+                    [max(c - 0.05, 0.05) for c in self.styleStore['lineColor']], colorSpace='rgb')
             self.borderColor = self.box.lineColor
             # Lighten background
             if self.styleStore['fillColor'] is None:
@@ -618,15 +618,18 @@ class TextBox2(BaseVisualStim, ContainerMixin):
                     [min(c+0.05, 0.95) for c in self.win.color])  # Use window colour as base if fill colour is none
             else:
                 self.box.setFillColor(
-                    [min(c+0.05, 0.95) for c in self.styleStore['fillColor']])
+                    [min(c+0.05, 0.95) for c in self.styleStore['fillColor']], colorSpace='rgb')
             self.fillColor = self.box.fillColor
             # Redraw text box
             self.draw()
         else:
             # Set box properties back to their original values
             self.box.setLineWidth(self.styleStore['lineWidth'])
-            self.box.setLineColor(self.styleStore['lineColor'])
-            self.box.setFillColor(self.styleStore['fillColor'])
+            self.borderWidth = self.box.lineWidth
+            self.box.setLineColor(self.styleStore['lineColor'], colorSpace='rgb')
+            self.borderColor = self.box.lineColor
+            self.box.setFillColor(self.styleStore['fillColor'], colorSpace='rgb')
+            self.fillColor = self.box.fillColor
             self.box.draw()
         # Store focus
         self._hasFocus = state
