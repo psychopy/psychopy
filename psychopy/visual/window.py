@@ -24,7 +24,7 @@ from past.builtins import basestring
 from collections import deque
 
 from psychopy.contrib.lazy_import import lazy_import
-from psychopy import colors
+from psychopy import colors, event
 import math
 from psychopy.clock import monotonicClock
 
@@ -574,6 +574,8 @@ class Window(object):
 
         atexit.register(close_on_exit)
 
+        self._mouse = event.Mouse(win=self)
+
     def __del__(self):
         if self._closed is False:
             self.close()
@@ -917,6 +919,9 @@ class Window(object):
     @currentEditable.setter
     def currentEditable(self, editable):
         """Keeps the current editable stored as a weak ref"""
+        lastEditable = self.currentEditable
+        if lastEditable is not None and lastEditable is not editable:
+            lastEditable.hasFocus = False
         if not isinstance(editable, weakref.ref):
             thisRef = weakref.ref(editable)
         else:
@@ -925,6 +930,7 @@ class Window(object):
             self._currentEditableIndex = self.addEditable(editable)
         else:
             self._currentEditableIndex = self._editableChildren.index(thisRef)
+        editable.hasFocus = True
 
     def addEditable(self, editable):
         """Adds an editable element to the screen (something to which
@@ -1013,6 +1019,14 @@ class Window(object):
 
         # disable lighting
         self.useLights = False
+
+        # Check for mouse clicks on editables
+        if hasattr(self, '_editableChildren'):  # Make sure _editableChildren has actually been created
+            for thisObj in self._editableChildren:
+                if isinstance(thisObj, weakref.ref):
+                    thisObj = thisObj()  # Solidify weakref
+                if self._mouse.isPressedIn(thisObj):
+                    self.currentEditable = thisObj
 
         flipThisFrame = self._startOfFlip()
         if self.useFBO and flipThisFrame:
@@ -1216,6 +1230,8 @@ class Window(object):
         for _ in range(flips - 1):
             self.flip(clearBuffer=False)
         self.flip(clearBuffer=clearBuffer)
+
+
 
     def setBuffer(self, buffer, clear=True):
         """Choose which buffer to draw to ('left' or 'right').

@@ -76,6 +76,7 @@ class TextBox2(BaseVisualStim, ContainerMixin):
                  padding=None,  # gap between box and text
                  anchor='center',
                  fillColor=None,
+                 borderWidth=0,
                  borderColor=None,
                  flipHoriz=False,
                  flipVert=False,
@@ -124,9 +125,15 @@ class TextBox2(BaseVisualStim, ContainerMixin):
         self._needVertexUpdate = False  # this will be set True during layout
         # standard stimulus params
         self.pos = pos
+        self.posPix = convertToPix(vertices=[0, 0],
+                                   pos=self.pos,
+                                   units=self.units,
+                                   win=self.win)
         self.color = color
         self.colorSpace = colorSpace
         self.opacity = opacity
+        self.ori = 0.0
+        self.depth = 1.0
         # used at render time
         self._lines = None  # np.array the line numbers for each char
         self._colors = None
@@ -137,7 +144,13 @@ class TextBox2(BaseVisualStim, ContainerMixin):
         # box border and fill
         self.box = Rect(win, pos=pos,
                         width=self.size[0], height=self.size[1], units=units,
-                        lineColor=borderColor, fillColor=fillColor)
+                        lineWidth=borderWidth, lineColor=borderColor, fillColor=fillColor)
+        self.styleStore = {
+            'lineColor': self.box.lineColor,
+            'lineWidth': self.box.lineWidth,
+            'fillColor': self.box.fillColor
+        }
+        self.borderWidth = borderWidth
         self.borderColor = borderColor
         self.fillColor = fillColor
 
@@ -193,7 +206,10 @@ class TextBox2(BaseVisualStim, ContainerMixin):
         (w,h). This differs from `width` in that the width represents the
         width of the margins, which might differ from the width of the text
         within them."""
-        return self.__dict__['boundingBox']
+        if 'boundingBox' in self.__dict__:
+            return self.__dict__['boundingBox']
+        else:
+            return self.size
 
     @property
     def caretIndex(self):
@@ -574,3 +590,43 @@ class TextBox2(BaseVisualStim, ContainerMixin):
             pass
         else:
             print("Received unhandled cursor motion type: ", key)
+
+    @property
+    def hasFocus(self):
+        return self._hasFocus
+
+    @hasFocus.setter
+    def hasFocus(self, state):
+        if state:
+            # Double border width
+            if self.styleStore['lineWidth'] is None:
+                self.box.setLineWidth(10*2) # Use 1 as base if border width is none
+            else:
+                self.box.setLineColor(max(self.styleStore['lineWidth'], 10)*2)
+            self.borderWidth = self.box.lineWidth
+            # Darken border
+            if self.styleStore['lineColor'] is None:
+                self.box.setLineColor(
+                    [max(c-0.05, 0.05) for c in self.win.color]) # Use window colour as base if border colour is none
+            else:
+                self.box.setLineColor(
+                    [max(c - 0.05, 0.05) for c in self.styleStore['lineColor']])
+            self.borderColor = self.box.lineColor
+            # Lighten background
+            if self.styleStore['fillColor'] is None:
+                self.box.setFillColor(
+                    [min(c+0.05, 0.95) for c in self.win.color])  # Use window colour as base if fill colour is none
+            else:
+                self.box.setFillColor(
+                    [min(c+0.05, 0.95) for c in self.styleStore['fillColor']])
+            self.fillColor = self.box.fillColor
+            # Redraw text box
+            self.draw()
+        else:
+            # Set box properties back to their original values
+            self.box.setLineWidth(self.styleStore['lineWidth'])
+            self.box.setLineColor(self.styleStore['lineColor'])
+            self.box.setFillColor(self.styleStore['fillColor'])
+            self.box.draw()
+        # Store focus
+        self._hasFocus = state
