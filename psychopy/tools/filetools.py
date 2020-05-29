@@ -52,6 +52,10 @@ def fromFile(filename, encoding='utf-8-sig'):
     filename = pathToString(filename)
     if filename.endswith('.psydat'):
         with open(filename, 'rb') as f:
+            try:
+                contents = pickle.load(f)
+            except UnicodeDecodeError:
+                contents = pickle.load(f, encoding='latin1')  # python 2 data files
             contents = pickle.load(f)
             # if loading an experiment file make sure we don't save further
             # copies using __del__
