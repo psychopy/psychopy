@@ -55,8 +55,8 @@ def fromFile(filename, encoding='utf-8-sig'):
             try:
                 contents = pickle.load(f)
             except UnicodeDecodeError:
+                f.seek(0)  # reset to start of file to try again
                 contents = pickle.load(f, encoding='latin1')  # python 2 data files
-            contents = pickle.load(f)
             # if loading an experiment file make sure we don't save further
             # copies using __del__
             if hasattr(contents, 'abort'):
