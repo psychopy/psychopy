@@ -1718,6 +1718,15 @@ def articulate(boneVecs, boneOris, dtype=None):
     linked end-to-end. Returns the transformed origins of the bones in scene
     coordinates and their orientations.
 
+    There are many applications for forward kinematics such as posing armatures
+    and stimuli for display (eg. mocap data). Another application is for getting
+    the location of the end effector of coordinate measuring hardware, where
+    encoders measure the joint angles and the length of linking members are
+    known. This can be used for computing pose from "Sword of Damocles"[1]_ like
+    hardware or some other haptic input devices which the participant wears (eg.
+    a glove that measures joint angles in the hand). The computed pose of the
+    joints can be used to interact with virtual stimuli.
+
     Parameters
     ----------
     boneVecs : array_like
@@ -1737,6 +1746,11 @@ def articulate(boneVecs, boneOris, dtype=None):
         position which is always at [0, 0, 0]. Use :func:`transform` to
         reposition the armature, or create a transformation matrix and use
         `applyMatrix` to translate and rotate the whole armature into position.
+
+    References
+    ----------
+    .. [1] Sutherland, I. E. (1968). "A head-mounted three dimensional display".
+           Proceedings of AFIPS 68, pp. 757-764
 
     Examples
     --------
