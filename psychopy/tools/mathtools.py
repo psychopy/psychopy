@@ -62,7 +62,8 @@ __all__ = ['normalize',
            'accumQuat',
            'fixTangentHandedness',
            'articulate',
-           'matrixAngle']
+           'matrixAngle',
+           'unproject']
 
 
 import numpy as np
@@ -2467,7 +2468,7 @@ def alignTo(v, t, out=None, dtype=None):
     else:
         toReturn = out
 
-    qr, v2d, t2d = np.atleast_2d(toReturn, v,t)
+    qr, v2d, t2d = np.atleast_2d(toReturn, v, t)
 
     b = bisector(v2d, t2d, norm=True, dtype=dtype)
     cosHalfAngle = dot(v2d, b, dtype=dtype)
@@ -3638,6 +3639,65 @@ def normalMatrix(modelMatrix, out=None, dtype=None):
     toReturn[:, :] = np.linalg.inv(modelMatrix).T
 
     return toReturn
+
+
+def unproject(winPos, modelView, proj, viewport=None, out=None, dtype=None):
+    """Unproject window coordinates into object or scene coordinates.
+
+    This function works like `gluUnProject`.
+
+    Parameters
+    ----------
+    winPos : array_like
+        Window coordinates (x, y, z). If `viewport` is not specified, these
+        should be normalized device coordinates. If an Nx3 array of coordinates
+        is specified, where each row contains a window coordinate this function
+        will return an array of unprojected coordinates with the same size.
+    modelView : array_like
+        4x4 combined model and view matrix for returned value to be object
+        coordinates. Specify only the view matrix for a coordinate in the scene.
+    proj : array_like
+        4x4 projection matrix used for rendering.
+    viewport : array_like
+        Viewport rectangle [x, y, w, h]. Do not specify one if `winPos` is in
+        already in normalized device coordinates.
+    out : ndarray, optional
+        Optional output array. Must be same `shape` and `dtype` as the expected
+        output if `out` was not specified.
+    dtype : dtype or str, optional
+        Data type for computations can either be 'float32' or 'float64'. If
+        `out` is specified, the data type of `out` is used and this argument is
+        ignored. If `out` is not provided, 'float64' is used by default.
+
+    Returns
+    -------
+    ndarray
+        Object or scene coordinates.
+
+    """
+    if out is None:
+        dtype = np.float64 if dtype is None else np.dtype(dtype).type
+    else:
+        dtype = np.dtype(dtype).type
+
+    toReturn = np.zeros_like(winPos, dtype=dtype) if out is None else out
+    objCoord, winPos = np.atleast_2d(toReturn, winPos)
+
+    # get inverse of model and projection matrix
+    invMVP = np.linalg.inv(np.matmul(proj, modelView))
+
+    if viewport is not None:
+        # if we have a viewport, we need to transform to NDC first
+        objCoord[:, 0] = ((2 * winPos[:, 0] - viewport[0]) / viewport[2])
+        objCoord[:, 1] = ((2 * winPos[:, 1] - viewport[1]) / viewport[3])
+        objCoord[:, 2] = 2 * winPos[:, 2]
+        objCoord -= 1
+        objCoord[:, :] = applyMatrix(invMVP, objCoord, dtype=dtype)
+    else:
+        # already in NDC, just apply
+        objCoord[:, :] = applyMatrix(invMVP, winPos, dtype=dtype)
+
+    return toReturn  # ref to objCoord
 
 
 # ------------------------------------------------------------------------------
