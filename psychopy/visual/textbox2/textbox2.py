@@ -304,12 +304,13 @@ class TextBox2(BaseVisualStim, ContainerMixin):
                 v1 = glyph.texcoords[3]
             else:
                 glyph = font[u"·"]
-                xBotL = current[0]
-                xTopL = current[0]
+                x = current[0] + glyph.offset[0]
                 yTop = current[1] + glyph.offset[1]
-                xBotR = current[0]
-                xTopR = current[0]
                 yBot = yTop - glyph.size[1]
+                xBotL = x
+                xTopL = x
+                xBotR = x
+                xTopR = x
                 u0 = glyph.texcoords[0]
                 v0 = glyph.texcoords[1]
                 u1 = glyph.texcoords[2]
@@ -587,21 +588,36 @@ class Caret(Line, ColorMixin):
         self.textbox = textbox
         self.index = None
         self._row = 0 # todo: Have this be a pseudoproperty which edits index according to _index2lineChar
-        verts = self.ownVertices
         Line.__init__(self,
                       self.textbox.win,
-                      start=[verts[0, 0], verts[0, 1]],
-                      end=[verts[1, 0], verts[1, 1]],
-                      vertices=verts,
                       lineColor=self.textbox.color[0:3], #todo: ppy colours
                       opacity=0, # Hide on first draw
                       lineWidth=2
                       )
+        self.update()
 
     def update(self):
-        verts = self.ownVertices
-        self.setStart([verts[0, 0], verts[0, 1]])
-        self.setEnd([verts[1, 0], verts[1, 1]])
+        # check we have a caret index
+        if self.index is None or self.index > len(self.textbox._lineNs):
+            self.index = len(self.textbox._lineNs)
+        # get the verts of character next to caret (chr is the next one so use
+        # left edge unless last index then use the right of prev chr)
+        # lastChar = [bottLeft, topLeft, **bottRight**, **topRight**]
+        ii = self.index - 1
+        chrVerts = self.textbox.vertices[range(ii * 4, ii * 4 + 4)]  # Get vertices of character at this index
+        if self.index >= len(self.textbox._lineNs):  # caret is after last chr
+            x = chrVerts[2, 0]  # x-coord of right edge (of final char)
+        else:
+            x = chrVerts[1, 0]  # x-coord of left edge
+        # the y locations are the top and bottom of this line
+        y1 = self.textbox._lineBottoms[self.row] / self.textbox._pixelScaling
+        y2 = self.textbox._lineTops[self.row] / self.textbox._pixelScaling
+
+        # char x pos has been corrected for anchor location already but lines haven't
+        verts = (np.array([[x, y1], [x, y2]])
+                 + (0, self.textbox._anchorOffsetY))
+        self.vertices = convertToPix(vertices=verts, pos=self.textbox.pos,
+                           win=self.textbox.win, units=self.textbox.units)
 
     @property
     def row(self):
@@ -620,7 +636,7 @@ class Caret(Line, ColorMixin):
         if value >= len(self.textbox._lineLenChars):
             value = len(self.textbox._lineLenChars)-1
             charsIn = self.textbox._lineLenChars[value]-1
-        # If this is more than number of chars in new row, send it to end of row
+        # If charsIn is more than number of chars in new row, send it to end of row
         if charsIn > self.textbox._lineLenChars[value]:
             charsIn = self.textbox._lineLenChars[value]-1
         # Set new index in new row
@@ -651,30 +667,6 @@ class Caret(Line, ColorMixin):
             value = 1
         self.index = self.textbox._lineLenChars[:self.row] + value
 
-    @property
-    def ownVertices(self):
-        # check we have a caret index
-        if self.index is None or self.index > len(self.textbox._lineNs):
-            self.index = len(self.textbox._lineNs)
-        # get the verts of character next to caret (chr is the next one so use
-        # left edge unless last index then use the right of prev chr)
-        # lastChar = [bottLeft, topLeft, **bottRight**, **topRight**]
-        ii = self.index-1
-        chrVerts = self.textbox.vertices[range(ii*4, ii*4+4)]  # Get vertices of character at this index
-        if self.index >= len(self.textbox._lineNs):  # caret is after last chr
-            x = chrVerts[2, 0]  # x-coord of right edge (of final char)
-        else:
-            x = chrVerts[1, 0]  # x-coord of left edge
-        # the y locations are the top and bottom of this line
-        y1 = self.textbox._lineBottoms[self.row] / self.textbox._pixelScaling
-        y2 = self.textbox._lineTops[self.row] / self.textbox._pixelScaling
-
-        # char x pos has been corrected for anchor location already but lines
-        # haven't
-        verts = (np.array([[x, y1], [x, y2]])
-                 + (0, self.textbox._anchorOffsetY))
-        return convertToPix(vertices=verts, pos=self.textbox.pos,
-                            win=self.textbox.win, units=self.textbox.units)
 
     # def _index2vertices(self, ii):
     #     if ii > len(self.textbox.text):  # If the index is greater than the number of characters
