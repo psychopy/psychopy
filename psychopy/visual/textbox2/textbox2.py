@@ -102,7 +102,7 @@ class TextBox2(BaseVisualStim, ContainerMixin):
         self._pixLetterHeight = convertToPix(
                 self.letterHeight, pos=0, units=scaleUnits, win=self.win)
         if size is None:
-            size = (defaultBoxWidth[units], -1)
+            size = [defaultBoxWidth[units], -1]
         self._requestedSize = size  # (-1 in either dim means not constrained)
         self.size = size  # but this will be updated later to actual size
         self.bold = bold
@@ -497,7 +497,8 @@ class TextBox2(BaseVisualStim, ContainerMixin):
             chr = '\n'
         txt = self.text
         self.text = txt[:self.caret.index] + chr + txt[self.caret.index:]
-        self.caret.char += 1
+        self.caret.index += 1
+        self.caret.update()
 
     def _onCursorKeys(self, key):
         """Called by the window when cursor/del/backspace... are received"""
