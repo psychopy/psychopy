@@ -636,6 +636,10 @@ class Caret(Line, ColorMixin):
         if value >= len(self.textbox._lineLenChars):
             value = len(self.textbox._lineLenChars)-1
             charsIn = self.textbox._lineLenChars[value]-1
+        # If new row is less than 0, move to beginning of first row
+        if value < 0:
+            value = 0
+            charsIn = 1
         # If charsIn is more than number of chars in new row, send it to end of row
         if charsIn > self.textbox._lineLenChars[value]:
             charsIn = self.textbox._lineLenChars[value]-1
