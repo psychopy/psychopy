@@ -3644,7 +3644,11 @@ def normalMatrix(modelMatrix, out=None, dtype=None):
 def unproject(winPos, modelView, proj, viewport=None, out=None, dtype=None):
     """Unproject window coordinates into object or scene coordinates.
 
-    This function works like `gluUnProject`.
+    This function works like `gluUnProject` and can be used to find to an object
+    or scene coordinate at the point on-screen (mouse coordinate or pixel). The
+    coordinate can then be used to create a direction vector from the viewer's
+    eye location. Another use of this function is to convert depth buffer
+    samples to object or scene coordinates.
 
     Parameters
     ----------
@@ -3653,14 +3657,17 @@ def unproject(winPos, modelView, proj, viewport=None, out=None, dtype=None):
         should be normalized device coordinates. If an Nx3 array of coordinates
         is specified, where each row contains a window coordinate this function
         will return an array of unprojected coordinates with the same size.
+        Usually, you only need to specify the `x` and `y` coordinate, leaving
+        `z` as zero. However, you can specify `z` if sampling from a depth map
+        or buffer to convert a depth sample to an actual location.
     modelView : array_like
         4x4 combined model and view matrix for returned value to be object
         coordinates. Specify only the view matrix for a coordinate in the scene.
     proj : array_like
         4x4 projection matrix used for rendering.
     viewport : array_like
-        Viewport rectangle [x, y, w, h]. Do not specify one if `winPos` is in
-        already in normalized device coordinates.
+        Viewport rectangle for the window [x, y, w, h]. Do not specify one if
+        `winPos` is in already in normalized device coordinates.
     out : ndarray, optional
         Optional output array. Must be same `shape` and `dtype` as the expected
         output if `out` was not specified.
