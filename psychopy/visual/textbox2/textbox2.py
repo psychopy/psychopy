@@ -267,7 +267,7 @@ class TextBox2(BaseVisualStim, ContainerMixin):
         wordLen = 0
         charsThisLine = 0
         lineN = 0
-        for i, charcode in enumerate(text):
+        for i, charcode in enumerate(text+"\n"):
 
             printable = True  # unless we decide otherwise
             # handle formatting codes
