@@ -228,7 +228,7 @@ class TextBox2(BaseVisualStim, ContainerMixin):
         """Layout the text, calculating the vertex locations
         """
 
-        text = self.text
+        text = self.text + "\n"
         text = text.replace('<i>', codes['ITAL_START'])
         text = text.replace('</i>', codes['ITAL_END'])
         text = text.replace('<b>', codes['BOLD_START'])
@@ -267,7 +267,7 @@ class TextBox2(BaseVisualStim, ContainerMixin):
         wordLen = 0
         charsThisLine = 0
         lineN = 0
-        for i, charcode in enumerate(text+"\n"):
+        for i, charcode in enumerate(text):
 
             printable = True  # unless we decide otherwise
             # handle formatting codes
@@ -302,19 +302,31 @@ class TextBox2(BaseVisualStim, ContainerMixin):
                 v0 = glyph.texcoords[1]
                 u1 = glyph.texcoords[2]
                 v1 = glyph.texcoords[3]
+            else:
+                glyph = font[u"·"]
+                xBotL = current[0]
+                xTopL = current[0]
+                yTop = current[1] + glyph.offset[1]
+                xBotR = current[0]
+                xTopR = current[0]
+                yBot = yTop - glyph.size[1]
+                u0 = glyph.texcoords[0]
+                v0 = glyph.texcoords[1]
+                u1 = glyph.texcoords[2]
+                v1 = glyph.texcoords[3]
 
-                index = i * 4
-                theseVertices = [[xTopL, yTop], [xBotL, yBot],
-                                 [xBotR, yBot], [xTopR, yTop]]
-                texcoords = [[u0, v0], [u0, v1],
-                             [u1, v1], [u1, v0]]
+            index = i * 4
+            theseVertices = [[xTopL, yTop], [xBotL, yBot],
+                             [xBotR, yBot], [xTopR, yTop]]
+            texcoords = [[u0, v0], [u0, v1],
+                         [u1, v1], [u1, v0]]
 
-                vertices[i * 4:i * 4 + 4] = theseVertices
-                self._texcoords[i * 4:i * 4 + 4] = texcoords
-                self._colors[i * 4:i * 4 + 4] = color
-                self._lineNs[i] = lineN
-                current[0] = current[0] + glyph.advance[0] + fakeBold / 2
-                current[1] = current[1] + glyph.advance[1]
+            vertices[i * 4:i * 4 + 4] = theseVertices
+            self._texcoords[i * 4:i * 4 + 4] = texcoords
+            self._colors[i * 4:i * 4 + 4] = color
+            self._lineNs[i] = lineN
+            current[0] = current[0] + glyph.advance[0] + fakeBold / 2
+            current[1] = current[1] + glyph.advance[1]
 
             # are we wrapping the line?
             if charcode == "\n":
@@ -322,6 +334,7 @@ class TextBox2(BaseVisualStim, ContainerMixin):
                 current[0] = 0
                 current[1] -= self._lineHeight
                 lineN += 1
+                charsThisLine += 1
                 self._lineLenChars.append(charsThisLine)
                 lineWidth = lineWPix / self._pixelScaling + self.padding * 2
                 self._lineWidths.append(lineWidth)
@@ -484,14 +497,14 @@ class TextBox2(BaseVisualStim, ContainerMixin):
             chr = '\n'
         txt = self.text
         self.text = txt[:self.caret.index] + chr + txt[self.caret.index:]
-        self.caret.index += 1
+        self.caret.char += 1
 
     def _onCursorKeys(self, key):
         """Called by the window when cursor/del/backspace... are received"""
         if key == 'MOTION_UP':
             self.caret.row -= 1
         elif key == 'MOTION_DOWN':
-            self.caret.row += 1 #todo: Why doesn't this work?
+            self.caret.row += 1
         elif key == 'MOTION_RIGHT':
             self.caret.index += 1
         elif key == 'MOTION_LEFT':
@@ -603,12 +616,12 @@ class Caret(Line, ColorMixin):
         # Figure out how many characters into previous row the cursor was
         charsIn = self.char
         # If new row is more than total number of rows, move to end of current row
-        if value > len(self.textbox._lineLenChars):
-            value = len(self.textbox._lineLenChars)
-            charsIn = self.textbox._lineLenChars[value]
+        if value >= len(self.textbox._lineLenChars):
+            value = len(self.textbox._lineLenChars)-1
+            charsIn = self.textbox._lineLenChars[value]-1
         # If this is more than number of chars in new row, send it to end of row
         if charsIn > self.textbox._lineLenChars[value]:
-            charsIn = self.textbox._lineLenChars[value]
+            charsIn = self.textbox._lineLenChars[value]-1
         # Set new index in new row
         self.index = sum(self.textbox._lineLenChars[:value]) + charsIn
 
@@ -616,22 +629,26 @@ class Caret(Line, ColorMixin):
     def char(self):
         """What character within current line is caret on?"""
         # Check that index is with range of all character indices
-        if self.index >= len(self.textbox._lineNs):
-            self.index = len(self.textbox._lineNs) - 1
+        self.index = min(self.index, len(self.textbox._lineNs) - 1)
+        self.index = max(self.index, 1)
         # Get first index of line, subtract from index to get char
         return self.index - sum(self.textbox._lineLenChars[:self.row])
     @char.setter
     def char(self, value):
         """Set character within row"""
         print(value)
-        # If setting char to less than 0, set to that many chars from end of row
-        # Continue doing this until value is positive
-        while value < 0:
-            value = self.textbox._lineLenChars[self.row] + value
-        # If value exceeds row length, set value to end of row
+        # If setting char to less than 0, move to last char on previous line
+        if value < 0:
+            if self.row == 0:
+                value = 0
+            else:
+                self.row -= 1
+                value = self.textbox._lineLenChars[self.row]
+        # If value exceeds row length, set value to beginning of next row
         if value >= self.textbox._lineLenChars[self.row]:
-            value = self.textbox._lineLenChars[self.row]-1
-        self.index = self.row + value
+            self.row += 1
+            value = 1
+        self.index = self.textbox._lineLenChars[:self.row] + value
 
     @property
     def ownVertices(self):
