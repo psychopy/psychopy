@@ -111,13 +111,15 @@ Overview
     matrixFromEulerAngles
     scaleMatrix
     rotationMatrix
+    matrixAngle
     translationMatrix
     invertMatrix
     isOrthogonal
     isAffine
     multMatrix
-    normalMatrix
     concatenate
+    normalMatrix
+    unproject
     applyMatrix
     posOriToMatrix
     transform
@@ -170,13 +172,15 @@ Details
 .. autofunction:: matrixFromEulerAngles
 .. autofunction:: scaleMatrix
 .. autofunction:: rotationMatrix
+.. autofunction:: matrixAngle
 .. autofunction:: translationMatrix
 .. autofunction:: invertMatrix
 .. autofunction:: isOrthogonal
 .. autofunction:: isAffine
 .. autofunction:: multMatrix
-.. autofunction:: normalMatrix
 .. autofunction:: concatenate
+.. autofunction:: normalMatrix
+.. autofunction:: unproject
 .. autofunction:: applyMatrix
 .. autofunction:: posOriToMatrix
 .. autofunction:: transform
