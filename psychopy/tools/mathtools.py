@@ -61,7 +61,8 @@ __all__ = ['normalize',
            'zeroFix',
            'accumQuat',
            'fixTangentHandedness',
-           'articulate']
+           'articulate',
+           'matrixAngle']
 
 
 import numpy as np
@@ -2751,7 +2752,7 @@ def rotationMatrix(angle, axis=(0., 0., -1.), out=None, dtype=None):
         Data type for computations can either be 'float32' or 'float64'. If
         `out` is specified, the data type of `out` is used and this argument is
         ignored. If `out` is not provided, 'float64' is used by default.
-x
+
     Returns
     -------
     ndarray
@@ -2807,6 +2808,43 @@ x
     R[:, :] += 0.0  # remove negative zeros
 
     return R
+
+
+def matrixAngle(r, degrees=True, dtype=None):
+    """Get the rotation angle of an extant rotation matrix.
+
+    Parameters
+    ----------
+    m : array_like
+        Rotation matrix (2x2, 3x3, 4x4) with orthogonal rotation group.
+    degrees : bool
+        Return rotation angle in degrees. If `False`, this function will return
+        the angle in radians.
+    dtype : dtype or str, optional
+        Data type for computations can either be 'float32' or 'float64'. If
+        `out` is specified, the data type of `out` is used and this argument is
+        ignored. If `out` is not provided, 'float64' is used by default.
+
+    Returns
+    -------
+    float
+        Rotation angle in degrees or radians.
+
+    Examples
+    --------
+    Getting the angle of rotation from a rotation matrix::
+
+        r = rotationMatrix(90., normalize((1, 2, 3)))
+        angle = matrixAngle(r)  # 90.0
+
+    """
+    dtype = np.float64 if dtype is None else np.dtype(dtype).type
+    r = np.asarray(r, dtype=dtype)
+
+    r = r[:3, :3] if r.shape == (4, 4) or r.shape == (3, 4) else r
+    theta = np.arccos((np.sum(np.diagonal(r), dtype=dtype) - 1) / 2., dtype=dtype)
+
+    return np.degrees(theta, dtype=dtype) if degrees else theta
 
 
 def translationMatrix(t, out=None, dtype=None):
@@ -3719,3 +3757,7 @@ def lensCorrection(xys, coefK=(1.0,), distCenter=(0., 0.), out=None,
     toReturn[:, :] = xys + (d_minus_c / denom[:, np.newaxis])
 
     return toReturn
+
+
+if __name__ == "__main__":
+    pass
