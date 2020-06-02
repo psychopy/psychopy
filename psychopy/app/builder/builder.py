@@ -210,6 +210,7 @@ class BuilderFrame(wx.Frame):
             flowPane.Top()
             compPane.Left()
             rtPane.CenterPane()
+        rtPane.CaptionVisible(True)
         # tell the manager to 'commit' all the changes just made
         self._mgr.Update()
         # self.SetSizer(self.mainSizer)  # not necessary for aui type controls
