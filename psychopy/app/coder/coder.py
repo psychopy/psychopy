@@ -2070,7 +2070,7 @@ class CoderFrame(wx.Frame):
             self.UNSAVED = True
 
         if doc == self.currentDoc:
-            self.toolbar.EnableTool(self.IDs.cdrBtnSave, doc.UNSAVED)
+            self.cdrBtnSave.Enable(doc.UNSAVED)
 
         self.statusBar.SetStatusText(_translate('Analyzing code'))
         if hasattr(self, 'sourceAsstWindow'):
@@ -2569,7 +2569,7 @@ class CoderFrame(wx.Frame):
         # changes the document flag, updates save buttons
         self.currentDoc.UNSAVED = isModified
         # disabled when not modified
-        self.toolbar.EnableTool(self.IDs.cdrBtnSave, isModified)
+        self.cdrBtnSave.Enable(isModified)
         # self.fileMenu.Enable(self.fileMenu.FindItem('&Save\tCtrl+S"'),
         #     isModified)
 

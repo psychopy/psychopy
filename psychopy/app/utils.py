@@ -254,18 +254,18 @@ class PsychopyToolbar(wx.ToolBar):
             self.AddPsychopyTool('fileopen', 'Open', 'open',
                                  "Open an existing experiment file",
                                  self.frame.fileOpen)  # Open
-            self.frame.bldrBtnSave = \
+            self.frame.cdrBtnSave = \
                 self.AddPsychopyTool('filesave', 'Save', 'save',
                                      "Save current experiment file",
                                      self.frame.fileSave)  # Save
             self.AddPsychopyTool('filesaveas', 'Save As...', 'saveAs',
                                  "Save current experiment file as...",
                                  self.frame.fileSaveAs)  # SaveAs
-            self.frame.bldrBtnUndo = \
+            self.frame.cdrBtnUndo = \
                 self.AddPsychopyTool('undo', 'Undo', 'undo',
                                      "Undo last action",
                                      self.frame.undo)  # Undo
-            self.frame.bldrBtnRedo = \
+            self.frame.cdrBtnRedo = \
                 self.AddPsychopyTool('redo', 'Redo', 'redo',
                                      "Redo last action",
                                      self.frame.redo)  # Redo
@@ -277,7 +277,7 @@ class PsychopyToolbar(wx.ToolBar):
                                  "Color Picker -> clipboard",
                                  self.frame.app.colorPicker)
             self.AddSeparator()
-            self.frame.bldrBtnRun = self.AddPsychopyTool(('run', 'runner'), 'Run', 'runScript',
+            self.frame.cdrBtnRun = self.AddPsychopyTool(('run', 'runner'), 'Run', 'runScript',
                                                          "Run experiment",
                                                          self.frame.runFile)  # Run
         self.AddSeparator()
