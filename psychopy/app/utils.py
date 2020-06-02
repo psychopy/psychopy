@@ -18,6 +18,7 @@ from wx.lib.agw.aui.aui_utilities import IndentPressedBitmap, ChopText, TakeScre
 import sys
 import wx
 import wx.lib.agw.aui as aui
+from wx.lib import platebtn
 from psychopy import logging
 from psychopy.app import pavlovia_ui
 from psychopy.app.icons import combineImageEmblem
@@ -318,3 +319,22 @@ class PsychopyToolbar(wx.ToolBar):
         # Bind function
         self.Bind(wx.EVT_TOOL, func, item)
         return item
+
+class PsychopyPlateBtn(platebtn.PlateButton):
+    def __init__(self, parent, id=wx.ID_ANY, label='', bmp=None,
+                 pos=wx.DefaultPosition, size=wx.DefaultSize,
+                 style=1, name=wx.ButtonNameStr):
+        platebtn.PlateButton.__init__(self, parent, id, label, bmp, pos, size, style, name)
+        self.__InitColors()
+        self.SetBackgroundColour(wx.Colour(parent.GetBackgroundColour()))
+        self.SetPressColor(wx.Colour(cs['platebtn_hover']))
+        self.SetLabelColor(wx.Colour(cs['platebtn_txt']),
+                           wx.Colour(cs['platebtn_hovertxt']))
+
+    def __InitColors(self):
+        """Initialize the default colors"""
+        colors = dict(default=True,
+                      hlight=cs['platebtn_hover'],
+                      press=cs['platebtn_hover'],
+                      htxt=cs['platebtn_txt'])
+        return colors

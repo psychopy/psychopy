@@ -41,6 +41,11 @@ cs_light = {
     'tab_txt': cLib['lighter']['black'],
     'docker_face': cLib['very']['darker']['white'],
     'docker_txt': cLib['black'],
+    # Plate Buttons
+    'platebtn_bg': cLib['white'],
+    'platebtn_txt': cLib['black'],
+    'platebtn_hover': cLib['red'],
+    'platebtn_hovertxt': cLib['white'],
     ## Builder
     # Routine canvas
     'rtcanvas_bg': cLib['lighter']['white'],
@@ -57,10 +62,6 @@ cs_light = {
     # Component panel
     'cpanel_bg': cLib['white'],
     'cbutton_hover': cLib['darker']['white'],
-    'catbutton_bg': cLib['white'],
-    'catbutton_hover': cLib['red'],
-    'catbutton_txt': cLib['black'],
-    'catbutton_hovertxt': cLib['white'],
     # Flow panel
     'fpanel_bg': cLib['darker']['white'],
     'fpanel_ln': cLib['very']['lighter']['grey'],
@@ -70,10 +71,11 @@ cs_light = {
     'loop_face': cLib['grey'],
     'loop_txt': cLib['lighter']['white'],
     'fbtns_face': cLib['very']['darker']['white'],
-    'fbtns_hover': cLib['red'],
-    'fbtns_txt': cLib['black'],
-    'fbtns_hovertxt': cLib['white']
     ## Coder
+    'srcnote_bg': cLib['darker']['white'],
+    'src_bg': cLib['white'],
+    'src_txt': cLib['black'],
+    'shell_bg': cLib['darker']['white']
     }
 cs_dark = {
     'txt_default': cLib['white'],
@@ -89,6 +91,11 @@ cs_dark = {
     'tab_txt': cLib['lighter']['white'],
     'docker_face': cLib['very']['darker']['grey'],
     'docker_txt': cLib['white'],
+    # Plate Buttons
+    'platebtn_bg': cLib['grey'],
+    'platebtn_txt': cLib['white'],
+    'platebtn_hover': cLib['red'],
+    'platebtn_hovertxt': cLib['white'],
     ## Builder
     # Routine canvas
     'rtcanvas_bg': cLib['lighter']['grey'],
@@ -105,10 +112,6 @@ cs_dark = {
     # Component panel
     'cpanel_bg': cLib['grey'],
     'cbutton_hover': cLib['lighter']['grey'],
-    'catbutton_bg': cLib['grey'],
-    'catbutton_hover': cLib['red'],
-    'catbutton_txt': cLib['white'],
-    'catbutton_hovertxt': cLib['white'],
     # Flow panel
     'fpanel_bg': cLib['darker']['grey'],
     'fpanel_ln': cLib['lighter']['grey'],
@@ -118,9 +121,6 @@ cs_dark = {
     'loop_face': cLib['darker']['white'],
     'loop_txt': cLib['black'],
     'fbtns_face': cLib['grey'],
-    'fbtns_hover': cLib['red'],
-    'fbtns_txt': cLib['white'],
-    'fbtns_hovertxt': cLib['white'],
     ## Coder
     'srcnote_bg': cLib['darker']['grey'],
     'src_bg': cLib['grey'],

@@ -48,7 +48,7 @@ from psychopy.tools.filetools import mergeFolder
 from .dialogs import (DlgComponentProperties, DlgExperimentProperties,
                       DlgCodeComponentProperties, DlgLoopProperties)
 #from .flow import FlowPanel
-from ..utils import FileDropTarget, WindowFrozen, PsychopyToolbar, PsychopyTabArt, PsychopyDockArt
+from ..utils import FileDropTarget, WindowFrozen, PsychopyToolbar, PsychopyTabArt, PsychopyDockArt, PsychopyPlateBtn
 from psychopy.experiment import components
 from builtins import str
 from psychopy.app import pavlovia_ui
@@ -1927,17 +1927,11 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
             else:
                 label = categ
             _style = platebtn.PB_STYLE_DROPARROW | platebtn.PB_STYLE_SQUARE
-            sectionBtn = platebtn.PlateButton(self, -1, label,
-                                              style=_style, name=categ)
-            sectionBtn.SetBackgroundColour(wx.Colour(cs['catbutton_bg']))
-            sectionBtn.SetPressColor(wx.Colour(cs['catbutton_hover']))
-            sectionBtn.SetLabelColor(wx.Colour(cs['catbutton_txt']),
-                                     wx.Colour(cs['catbutton_hovertxt']))
+            sectionBtn = PsychopyPlateBtn(self, -1, label, style=_style, name=categ)
             # Link to onclick functions
             sectionBtn.Bind(wx.EVT_LEFT_DOWN, self.onSectionBtn)
             sectionBtn.Bind(wx.EVT_RIGHT_DOWN, self.onSectionBtn)
             # Set button background and link to onhover functions
-            sectionBtn.SetBackgroundColour(cs['cpanel_bg'])
             #sectionBtn.Bind(wx.EVT_ENTER_WINDOW, self.onHover)
             #sectionBtn.Bind(wx.EVT_LEAVE_WINDOW, self.offHover)
             if self.app.prefs.app['largeIcons']:
@@ -2475,25 +2469,19 @@ class FlowPanel(wx.ScrolledWindow):
         labelLoop = _translate('Insert Loop     ')
         btnHeight = 50
         # Create add routine button
-        self.btnInsertRoutine = platebtn.PlateButton(
+        self.btnInsertRoutine = PsychopyPlateBtn(
             self, -1, labelRoutine, pos=(10, 10), size=(120, btnHeight),
             style=platebtn.PB_STYLE_SQUARE
         )
         self.btnInsertRoutine.SetBackgroundColour(wx.Colour(cs['fbtns_face']))
-        self.btnInsertRoutine.SetPressColor(wx.Colour(cs['fbtns_hover']))
-        self.btnInsertRoutine.SetLabelColor(wx.Colour(cs['fbtns_txt']),
-                                            wx.Colour(cs['fbtns_hovertxt']))
         self.btnInsertRoutine.Update()
         # Create add loop button
-        self.btnInsertLoop = platebtn.PlateButton(
+        self.btnInsertLoop = PsychopyPlateBtn(
             self, -1, labelLoop, pos=(10, btnHeight+20),
             size=(120, btnHeight),
             style=platebtn.PB_STYLE_SQUARE
         )  # spaces give size for CANCEL
         self.btnInsertLoop.SetBackgroundColour(wx.Colour(cs['fbtns_face']))
-        self.btnInsertLoop.SetPressColor(wx.Colour(cs['fbtns_hover']))
-        self.btnInsertLoop.SetLabelColor(wx.Colour(cs['fbtns_txt']),
-                                         wx.Colour(cs['fbtns_hovertxt']))
         self.btnInsertLoop.Update()
 
         # use self.appData['flowSize'] to index a tuple to get a specific
