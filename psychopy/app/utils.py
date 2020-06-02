@@ -107,7 +107,7 @@ def getSystemFonts(encoding='system', fixedWidthOnly=False):
 
     return fontEnum.GetFacenames(encoding, fixedWidthOnly=fixedWidthOnly)
 
-class PsychoPyTabArt(aui.AuiDefaultTabArt):
+class PsychopyTabArt(aui.AuiDefaultTabArt):
     def __init__(self):
         aui.AuiDefaultTabArt.__init__(self)
 
@@ -125,17 +125,16 @@ class PsychoPyTabArt(aui.AuiDefaultTabArt):
         self._background_top_colour = wx.Colour(cs['note_bg'])
         self._background_bottom_colour = wx.Colour(cs['note_bg'])
 
+        self._tab_text_colour = lambda page: cs['tab_txt']
         self._tab_top_colour = wx.Colour(cs['tab_active'])
         self._tab_bottom_colour = wx.Colour(cs['tab_active'])
         self._tab_gradient_highlight_colour = wx.Colour(cs['tab_active'])
         self._border_colour = wx.Colour(cs['tab_active'])
         self._border_pen = wx.Pen(self._border_colour)
 
+        self._tab_disabled_text_colour = cs['tab_txt']
         self._tab_inactive_top_colour = wx.Colour(cs['tab_face'])
         self._tab_inactive_bottom_colour = wx.Colour(cs['tab_face'])
-
-        self._tab_text_colour = self._tab_text_colour = lambda page: page.text_colour
-        self._tab_disabled_text_colour = wx.SystemSettings.GetColour(wx.SYS_COLOUR_GRAYTEXT)
 
     def DrawTab(self, dc, wnd, page, in_rect, close_button_state, paint_control=False):
         """
@@ -149,6 +148,41 @@ class PsychoPyTabArt(aui.AuiDefaultTabArt):
         out_tab_rect, out_button_rect, x_extent = aui.AuiDefaultTabArt.DrawTab(self, dc, wnd, page, in_rect, close_button_state, paint_control)
 
         return out_tab_rect, out_button_rect, x_extent
+
+class PsychopyDockArt(aui.AuiDefaultDockArt):
+    def __init__(self):
+        aui.AuiDefaultDockArt.__init__(self)
+        # Gradient
+        self._gradient_type = aui.AUI_GRADIENT_NONE
+        # Background
+        self._background_colour = wx.Colour(cs['frame_bg'])
+        self._background_gradient_colour = wx.Colour(cs['frame_bg'])
+        self._background_brush = wx.Brush(self._background_colour)
+        # Border
+        self._border_size = 0
+        self._border_pen = wx.Pen(cs['grippers'])
+        # Sash
+        self._draw_sash = True
+        self._sash_size = 5
+        self._sash_brush = wx.Brush(cs['grippers'])
+        # Gripper
+        self._gripper_brush = wx.Brush(cs['grippers'])
+        self._gripper_pen1 = wx.Pen(cs['grippers'])
+        self._gripper_pen2 = wx.Pen(cs['grippers'])
+        self._gripper_pen3 = wx.Pen(cs['grippers'])
+        self._gripper_size = 0
+        # Hint
+        self._hint_background_colour = wx.Colour(cs['frame_bg'])
+        # Caption bar
+        self._inactive_caption_colour = wx.Colour(cs['docker_face'])
+        self._inactive_caption_gradient_colour = wx.Colour(cs['docker_face'])
+        self._inactive_caption_text_colour = wx.Colour(cs['docker_txt'])
+        self._active_caption_colour = wx.Colour(cs['docker_face'])
+        self._active_caption_gradient_colour = wx.Colour(cs['docker_face'])
+        self._active_caption_text_colour = wx.Colour(cs['docker_txt'])
+        # self._caption_font
+        self._caption_size = 25
+        self._button_size = 20
 
 class PsychopyToolbar(wx.ToolBar):
     """Toolbar for the Builder/Coder Frame"""

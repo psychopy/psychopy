@@ -48,7 +48,7 @@ from psychopy.tools.filetools import mergeFolder
 from .dialogs import (DlgComponentProperties, DlgExperimentProperties,
                       DlgCodeComponentProperties, DlgLoopProperties)
 #from .flow import FlowPanel
-from ..utils import FileDropTarget, WindowFrozen, PsychoPyTabArt, PsychopyToolbar
+from ..utils import FileDropTarget, WindowFrozen, PsychopyToolbar, PsychopyTabArt, PsychopyDockArt
 from psychopy.experiment import components
 from builtins import str
 from psychopy.app import pavlovia_ui
@@ -168,18 +168,20 @@ class BuilderFrame(wx.Frame):
 
         # control the panes using aui manager
         self._mgr = aui.AuiManager(self)
-        self._art = self._mgr.GetArtProvider()
+        self._art = PsychopyDockArt()
+        self._mgr.SetArtProvider(self._art)
+        #self._art = self._mgr.GetArtProvider()
         # Setup modern flat look
-        self._art.SetMetric(aui.AUI_DOCKART_GRADIENT_TYPE,
-                               aui.AUI_GRADIENT_NONE)  # Remove gradient from caption bar
-        self._art.SetMetric(aui.AUI_DOCKART_CAPTION_SIZE,
-                            25) # Make caption bar bigger
-        self._art.SetColour(aui.AUI_DOCKART_INACTIVE_CAPTION_COLOUR,
-            wx.Colour(cs['docker_face'])) # Set caption bar colour
-        self._art.SetColour(aui.AUI_DOCKART_INACTIVE_CAPTION_TEXT_COLOUR,
-            wx.Colour(cs['docker_txt'])) # Set caption colour
-        self._art.SetColour(aui.AUI_DOCKART_SASH_COLOUR,
-            wx.Colour(cs['grippers']))
+        # self._art.SetMetric(aui.AUI_DOCKART_GRADIENT_TYPE,
+        #                        aui.AUI_GRADIENT_NONE)  # Remove gradient from caption bar
+        # self._art.SetMetric(aui.AUI_DOCKART_CAPTION_SIZE,
+        #                     25) # Make caption bar bigger
+        # self._art.SetColour(aui.AUI_DOCKART_INACTIVE_CAPTION_COLOUR,
+        #     wx.Colour(cs['docker_face'])) # Set caption bar colour
+        # self._art.SetColour(aui.AUI_DOCKART_INACTIVE_CAPTION_TEXT_COLOUR,
+        #     wx.Colour(cs['docker_txt'])) # Set caption colour
+        # self._art.SetColour(aui.AUI_DOCKART_SASH_COLOUR,
+        #     wx.Colour(cs['grippers']))
 
         # Create panels
         self._mgr.AddPane(self.routinePanel,
@@ -1303,7 +1305,7 @@ class RoutinesNotebook(aui.AuiNotebook):
         self.appData = self.app.prefs.appData
         aui.AuiNotebook.__init__(self, frame, id)
         self.Bind(aui.EVT_AUINOTEBOOK_PAGE_CLOSE, self.onClosePane)
-        self.SetArtProvider(PsychoPyTabArt())
+        self.SetArtProvider(PsychopyTabArt())
         if not hasattr(self.frame, 'exp'):
             return  # we haven't yet added an exp
 
