@@ -558,11 +558,9 @@ class TextBox2(BaseVisualStim, ContainerMixin):
             self.borderColor = self.box.lineColor
             # Lighten background
             if self.styleStore['fillColor'] is None:
-                self.box.setFillColor(
-                    [min(c+0.05, 0.95) for c in self.win.color])  # Use window colour as base if fill colour is none
+                self.box.color = [min(c+0.05, 0.95) for c in self.win.color]  # Use window colour as base if fill colour is none
             else:
-                self.box.setFillColor(
-                    [min(c+0.05, 0.95) for c in self.styleStore['fillColor']], colorSpace='rgb')
+                self.box.color = [min(c+0.05, 0.95) for c in self.styleStore['fillColor']]
             self.fillColor = self.box.fillColor
             # Redraw text box
             self.draw()
@@ -587,10 +585,9 @@ class Caret(Line, ColorMixin):
     def __init__(self, textbox):
         self.textbox = textbox
         self.index = None
-        self._row = 0 # todo: Have this be a pseudoproperty which edits index according to _index2lineChar
         Line.__init__(self,
                       self.textbox.win,
-                      lineColor=self.textbox.color[0:3], #todo: ppy colours
+                      lineColor=self.textbox.color[:3],
                       opacity=0, # Hide on first draw
                       lineWidth=2
                       )
