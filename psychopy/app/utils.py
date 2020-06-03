@@ -19,6 +19,7 @@ import sys
 import wx
 import wx.lib.agw.aui as aui
 from wx.lib import platebtn
+from wx.lib import dragscroller
 from psychopy import logging
 from psychopy.app import pavlovia_ui
 from psychopy.app.icons import combineImageEmblem
@@ -113,6 +114,7 @@ class PsychopyTabArt(aui.AuiDefaultTabArt):
         aui.AuiDefaultTabArt.__init__(self)
 
         self.SetDefaultColours()
+        self.SetAGWFlags(aui.AUI_NB_NO_TAB_FOCUS)
 
     def SetDefaultColours(self):
         """
@@ -338,3 +340,46 @@ class PsychopyPlateBtn(platebtn.PlateButton):
                       press=cs['platebtn_hover'],
                       htxt=cs['platebtn_txt'])
         return colors
+
+class PsychopyScrollbar(wx.ScrollBar):
+    def __init__(self, parent, ori=wx.VERTICAL):
+        wx.ScrollBar.__init__(self)
+        if ori == wx.HORIZONTAL:
+            style = wx.SB_HORIZONTAL
+        else:
+            style = wx.SB_VERTICAL
+        self.Create(parent, style=style)
+        self.ori = ori
+        self.parent = parent
+        self.Bind(wx.EVT_SCROLL, self.DoScroll)
+        self.Resize()
+
+    def DoScroll(self, event):
+        if self.ori == wx.HORIZONTAL:
+            w = event.GetPosition()
+            h = self.parent.GetScrollPos(wx.VERTICAL)
+        elif self.ori == wx.VERTICAL:
+            w = self.parent.GetScrollPos(wx.HORIZONTAL)
+            h = event.GetPosition()
+        else:
+            return
+        self.parent.Scroll(w, h)
+        self.Resize()
+
+    def Resize(self):
+        sz = self.parent.GetSize()
+        vsz = self.parent.GetVirtualSize()
+        start = self.parent.GetViewStart()
+        if self.ori == wx.HORIZONTAL:
+            sz = (sz.GetWidth(), 20)
+            vsz = vsz.GetWidth()
+        elif self.ori == wx.VERTICAL:
+            sz = (20, sz.GetHeight())
+            vsz = vsz.GetHeight()
+        self.SetDimensions(start[0], start[1], sz[0], sz[1])
+        self.SetScrollbar(
+            position=self.GetScrollPos(self.ori),
+            thumbSize=10,
+            range=1,
+            pageSize=vsz
+        )

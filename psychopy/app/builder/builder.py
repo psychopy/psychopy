@@ -48,7 +48,7 @@ from psychopy.tools.filetools import mergeFolder
 from .dialogs import (DlgComponentProperties, DlgExperimentProperties,
                       DlgCodeComponentProperties, DlgLoopProperties)
 #from .flow import FlowPanel
-from ..utils import FileDropTarget, WindowFrozen, PsychopyToolbar, PsychopyTabArt, PsychopyDockArt, PsychopyPlateBtn
+from ..utils import *
 from psychopy.experiment import components
 from builtins import str
 from psychopy.app import pavlovia_ui
@@ -1412,7 +1412,7 @@ class RoutineCanvas(wx.ScrolledWindow):
         """This window is based heavily on the PseudoDC demo of wxPython
         """
         wx.ScrolledWindow.__init__(
-            self, notebook, id, (0, 0), style=wx.BORDER_NONE)
+            self, notebook, id, (0, 0), style=wx.BORDER_NONE | wx.VSCROLL)
 
         self.SetBackgroundColour(cs['rtcanvas_bg'])
         self.frame = notebook.frame
@@ -1429,7 +1429,7 @@ class RoutineCanvas(wx.ScrolledWindow):
         # when switch between routines of diff drawing sizes
         self.iconSize = (24, 24, 48)[self.drawSize]  # only 24, 48 so far
         self.fontBaseSize = (1100, 1200, 1300)[self.drawSize]  # depends on OS?
-
+        #self.scroller = PsychopyScrollbar(self, wx.VERTICAL)
         self.SetVirtualSize((self.maxWidth, self.maxHeight))
         self.SetScrollRate(self.dpi / 4, self.dpi / 4)
 
@@ -1623,6 +1623,7 @@ class RoutineCanvas(wx.ScrolledWindow):
         # the 50 allows space for labels below the time axis
         self.SetVirtualSize((self.maxWidth, yPos + 50))
         self.Refresh()  # refresh the visible window after drawing (OnPaint)
+        #self.scroller.Resize()
 
     def getMaxTime(self):
         """Return the max time to be drawn in the window
