@@ -1419,7 +1419,7 @@ class RoutineCanvas(wx.ScrolledWindow):
         self.app = self.frame.app
         self.dpi = self.app.dpi
         self.lines = []
-        self.maxWidth = 15 * self.dpi
+        self.maxWidth = self.GetSize().GetWidth()
         self.maxHeight = 15 * self.dpi
         self.x = self.y = 0
         self.curLine = []
