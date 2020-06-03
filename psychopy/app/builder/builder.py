@@ -2475,6 +2475,7 @@ class FlowPanel(wx.ScrolledWindow):
             style=platebtn.PB_STYLE_SQUARE
         )
         self.btnInsertRoutine.SetBackgroundColour(wx.Colour(cs['fbtns_face']))
+        self.btnInsertRoutine.SetForegroundColour(wx.Colour(cs['fbtns_txt']))
         self.btnInsertRoutine.Update()
         # Create add loop button
         self.btnInsertLoop = PsychopyPlateBtn(
@@ -2483,6 +2484,7 @@ class FlowPanel(wx.ScrolledWindow):
             style=platebtn.PB_STYLE_SQUARE
         )  # spaces give size for CANCEL
         self.btnInsertLoop.SetBackgroundColour(wx.Colour(cs['fbtns_face']))
+        self.btnInsertLoop.SetForegroundColour(wx.Colour(cs['fbtns_txt']))
         self.btnInsertLoop.Update()
 
         # use self.appData['flowSize'] to index a tuple to get a specific
