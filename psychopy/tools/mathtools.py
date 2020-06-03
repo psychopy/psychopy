@@ -63,7 +63,8 @@ __all__ = ['normalize',
            'fixTangentHandedness',
            'articulate',
            'matrixAngle',
-           'unproject']
+           'forwardProject',
+           'reverseProject']
 
 
 import numpy as np
@@ -3641,14 +3642,82 @@ def normalMatrix(modelMatrix, out=None, dtype=None):
     return toReturn
 
 
-def unproject(winPos, modelView, proj, viewport=None, out=None, dtype=None):
+def forwardProject(objPos, modelView, proj, viewport=None, out=None, dtype=None):
+    """Project a point in a scene to a window coordinate.
+
+    This function is similar to `gluProject` and can be used to find the window
+    coordinate which a point projects to.
+
+    Parameters
+    ----------
+    objPos : array_like
+        Object coordinates (x, y, z). If an Nx3 array of coordinates is
+        specified, where each row contains a window coordinate this function
+        will return an array of projected coordinates with the same size.
+    modelView : array_like
+        4x4 combined model and view matrix for returned value to be object
+        coordinates. Specify only the view matrix for a coordinate in the scene.
+    proj : array_like
+        4x4 projection matrix used for rendering.
+    viewport : array_like
+        Viewport rectangle for the window [x, y, w, h]. If not specified, the
+        returned values will be in normalized device coordinates.
+    out : ndarray, optional
+        Optional output array. Must be same `shape` and `dtype` as the expected
+        output if `out` was not specified.
+    dtype : dtype or str, optional
+        Data type for computations can either be 'float32' or 'float64'. If
+        `out` is specified, the data type of `out` is used and this argument is
+        ignored. If `out` is not provided, 'float64' is used by default.
+
+    Returns
+    -------
+    ndarray
+        Normalized device or viewport coordinates [x, y, z] of the point. The
+        `z` component is similar to the depth buffer value for the object point.
+
+    """
+    if out is None:
+        dtype = np.float64 if dtype is None else np.dtype(dtype).type
+    else:
+        dtype = np.dtype(dtype).type
+
+    toReturn = np.zeros_like(objPos, dtype=dtype) if out is None else out
+    winCoord, objPos = np.atleast_2d(toReturn, objPos)
+
+    # transformation matrix
+    mvp = np.matmul(proj, modelView)
+
+    # must have `w` for this one
+    if objPos.shape[1] == 3:
+        objPos = (np.zeros((objPos.shape[1], 4), dtype=dtype))[:, :3] = objPos
+
+    # transform the points
+    objNorm = applyMatrix(mvp, objPos, dtype=dtype)
+
+    if viewport is not None:
+        # if we have a viewport, transform it
+        objNorm[:, :] += 1.0
+        winCoord[:, 0] = viewport[0] + viewport[2] * objNorm[:, 0]
+        winCoord[:, 1] = viewport[1] + viewport[3] * objNorm[:, 1]
+        winCoord[:, 2] = objNorm[:, 2]
+        winCoord[:, :] /= 2.0
+    else:
+        # already in NDC
+        winCoord[:, :] = objNorm
+
+    return toReturn  # ref to winCoord
+
+
+def reverseProject(winPos, modelView, proj, viewport=None, out=None, dtype=None):
     """Unproject window coordinates into object or scene coordinates.
 
     This function works like `gluUnProject` and can be used to find to an object
     or scene coordinate at the point on-screen (mouse coordinate or pixel). The
     coordinate can then be used to create a direction vector from the viewer's
     eye location. Another use of this function is to convert depth buffer
-    samples to object or scene coordinates.
+    samples to object or scene coordinates. This is the inverse operation of
+    :func:`forwardProject`.
 
     Parameters
     ----------

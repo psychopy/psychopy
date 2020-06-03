@@ -119,7 +119,8 @@ Overview
     multMatrix
     concatenate
     normalMatrix
-    unproject
+    forwardProject
+    reverseProject
     applyMatrix
     posOriToMatrix
     transform
@@ -180,7 +181,8 @@ Details
 .. autofunction:: multMatrix
 .. autofunction:: concatenate
 .. autofunction:: normalMatrix
-.. autofunction:: unproject
+.. autofunction:: forwardProject
+.. autofunction:: reverseProject
 .. autofunction:: applyMatrix
 .. autofunction:: posOriToMatrix
 .. autofunction:: transform
