@@ -138,11 +138,12 @@ class Preferences(object):
                 tmp = os.path.join(self.paths['userPrefsDir'], '.tmp')
                 with open(tmp, 'w') as fileh:
                     fileh.write('')
-                open(tmp).read()
+                with open(tmp) as fileh:
+                    fileh.read()
                 os.remove(tmp)
-            except Exception:  # OSError, WindowsError, ...?
-                msg = 'PsychoPy3 error: need read-write permissions for `%s`'
-                sys.exit(msg % self.paths['userPrefsDir'])
+            except Exception as err:  # OSError, WindowsError, ...?
+                msg = 'PsychoPy3 error: need read-write permissions for `%s` - `%s`'
+                sys.exit(msg % (self.paths['userPrefsDir'], err))
 
     def loadAll(self):
         """Load the user prefs and the application data
