@@ -1,3 +1,5 @@
+import psychopy
+
 # Create library of "on brand" colours
 cLib = {
     'none': [127, 127, 127, 0],
@@ -129,6 +131,11 @@ cs_dark = {
     'src_txt': cLib['white'],
     'shell_bg': cLib['darker']['grey']
     }
-
-#cs = cs_light
-cs = cs_dark
+try:
+    dark = eval(psychopy.prefs.app['darkmode'])
+except:
+    dark = False
+if dark:
+    cs = cs_dark
+else:
+    cs = cs_light

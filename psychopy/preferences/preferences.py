@@ -31,7 +31,6 @@ else:  # Use our contrib package if configobj is not installed or too old.
     from psychopy.contrib import configobj
     from psychopy.contrib.configobj import ConfigObj
     from psychopy.contrib.configobj import validate
-
 join = os.path.join
 
 
@@ -178,6 +177,12 @@ class Preferences(object):
 
         # keybindings:
         self.keys = self.userPrefsCfg['keyBindings']
+        # darkmode paths
+        if self.app['darkmode'] == 'True':
+            fldr = 'dark'
+        else:
+            fldr = 'light'
+        self.paths['resources'] = join(self.paths['resources'], fldr)
 
     def loadUserPrefs(self):
         """load user prefs, if any; don't save to a file because doing so

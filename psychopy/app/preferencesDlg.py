@@ -50,6 +50,7 @@ _localized = {
     'showStartupTips': _translate("show start-up tips"),
     'largeIcons': _translate("large icons"),
     'defaultView': _translate("default view"),
+    'darkMode': _translate("dark mode"),
     'resetPrefs': _translate('reset preferences'),
     'autoSavePrefs': _translate('auto-save prefs'),
     'debugMode': _translate('debug mode'),
