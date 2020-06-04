@@ -65,12 +65,12 @@ cs_light = {
     # Flow panel
     'fpanel_bg': cLib['darker']['white'],
     'fpanel_ln': cLib['very']['lighter']['grey'],
-    'frt_slip': cLib['red'],
-    'frt_nonslip': cLib['blue'],
+    'frt_slip': cLib['blue'],
+    'frt_nonslip': cLib['green'],
     'frt_txt': cLib['lighter']['white'],
     'loop_face': cLib['grey'],
     'loop_txt': cLib['lighter']['white'],
-    'fbtns_face': cLib['red'],
+    'fbtns_face': cLib['blue'],
     'fbtns_txt': cLib['white'],
     ## Coder
     'srcnote_bg': cLib['darker']['white'],
@@ -116,12 +116,12 @@ cs_dark = {
     # Flow panel
     'fpanel_bg': cLib['darker']['grey'],
     'fpanel_ln': cLib['lighter']['grey'],
-    'frt_slip': cLib['red'],
-    'frt_nonslip': cLib['blue'],
+    'frt_slip': cLib['blue'],
+    'frt_nonslip': cLib['green'],
     'frt_txt': cLib['lighter']['white'],
     'loop_face': cLib['darker']['white'],
     'loop_txt': cLib['black'],
-    'fbtns_face': cLib['red'],
+    'fbtns_face': cLib['blue'],
     'fbtns_txt': cLib['white'],
     ## Coder
     'srcnote_bg': cLib['darker']['grey'],
@@ -130,5 +130,5 @@ cs_dark = {
     'shell_bg': cLib['darker']['grey']
     }
 
-cs = cs_light
-#cs = cs_dark
+#cs = cs_light
+cs = cs_dark

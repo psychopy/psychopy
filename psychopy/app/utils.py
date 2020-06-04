@@ -19,7 +19,6 @@ import sys
 import wx
 import wx.lib.agw.aui as aui
 from wx.lib import platebtn
-from wx.lib import dragscroller
 from psychopy import logging
 from psychopy.app import pavlovia_ui
 from psychopy.app.icons import combineImageEmblem
