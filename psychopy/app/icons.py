@@ -9,7 +9,7 @@
 """
 
 from __future__ import absolute_import, division, print_function
-from os.path import join, abspath, dirname
+from os.path import join, abspath, dirname, basename
 
 from pkg_resources import parse_version
 from PIL import Image
@@ -81,6 +81,15 @@ def getAllIcons(folderList=(), forceReload=False):
         _allIcons = {}
         for thisName, thisCompon in compons.items():
             if thisName in components.iconFiles:
+                # darkmode paths
+                if prefs.app['darkmode'] == 'True':
+                    fldr = 'dark'
+                else:
+                    fldr = 'light'
+                if "base.png" not in components.iconFiles[thisName]:
+                    components.iconFiles[thisName] = join(
+                        dirname(components.iconFiles[thisName]), fldr, basename(components.iconFiles[thisName])
+                    )
                 _allIcons[thisName] = getIcons(components.iconFiles[thisName])
             else:
                 _allIcons[thisName] = getIcons(None)
@@ -110,11 +119,6 @@ def getIcons(filename=None):
     else:
         im = Image.open(filename)
     icons['48'] = pilToBitmap(im)
-    # add the plus sign
-    add = Image.open(join(resourcesPath, 'add.png'))
-    im.paste(add, (0, 0, add.size[0], add.size[1]), mask=add)
-    # im.paste(add, [im.size[0]-add.size[0], im.size[1]-add.size[1],
-    #               im.size[0], im.size[1]], mask=add)
     icons['48add'] = pilToBitmap(im)
 
     return icons
