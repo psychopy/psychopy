@@ -46,7 +46,7 @@ cs_light = {
     # Plate Buttons
     'platebtn_bg': cLib['white'],
     'platebtn_txt': cLib['black'],
-    'platebtn_hover': cLib['darker']['red'],
+    'platebtn_hover': cLib['red'],
     'platebtn_hovertxt': cLib['white'],
     ## Builder
     # Routine canvas
@@ -72,8 +72,8 @@ cs_light = {
     'frt_txt': cLib['lighter']['white'],
     'loop_face': cLib['grey'],
     'loop_txt': cLib['lighter']['white'],
-    'fbtns_face': cLib['blue'],
-    'fbtns_txt': cLib['white'],
+    'fbtns_face': cLib['very']['darker']['white'],
+    'fbtns_txt': cLib['black'],
     ## Coder
     'srcnote_bg': cLib['darker']['white'],
     'src_bg': cLib['white'],
@@ -97,7 +97,7 @@ cs_dark = {
     # Plate Buttons
     'platebtn_bg': cLib['grey'],
     'platebtn_txt': cLib['white'],
-    'platebtn_hover': cLib['darker']['red'],
+    'platebtn_hover': cLib['red'],
     'platebtn_hovertxt': cLib['white'],
     ## Builder
     # Routine canvas
@@ -123,7 +123,7 @@ cs_dark = {
     'frt_txt': cLib['lighter']['white'],
     'loop_face': cLib['darker']['white'],
     'loop_txt': cLib['black'],
-    'fbtns_face': cLib['blue'],
+    'fbtns_face': cLib['grey'],
     'fbtns_txt': cLib['white'],
     ## Coder
     'srcnote_bg': cLib['darker']['grey'],
