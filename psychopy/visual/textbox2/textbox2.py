@@ -580,7 +580,7 @@ class TextBox2(BaseVisualStim, ContainerMixin):
         # Store focus
         self._hasFocus = state
 
-class Caret(Line, ColorMixin):
+class Caret(Line):
     #todo: vertices calc is way off
     def __init__(self, textbox):
         self.textbox = textbox
