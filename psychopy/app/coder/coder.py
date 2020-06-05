@@ -900,9 +900,9 @@ class CodeEditor(BaseCodeEditor, CodeEditorFoldingMixin):
 
         """
         # scan the AST for objects we care about
-        if hasattr(self.coder, 'sourceAsstWindow'):
-            self.coder.sourceAsstWindow.refresh()
-            self.coder.sourceAsstWindow.srcTree.SetScrollPos(
+        if hasattr(self.coder, 'structureWindow'):
+            self.coder.structureWindow.refresh()
+            self.coder.structureWindow.srcTree.SetScrollPos(
                 self.sourceAsstScroll, wx.VERTICAL)
 
     def setLexer(self, lexer=None):
@@ -1065,77 +1065,66 @@ class CoderFrame(wx.Frame):
         self.db = None  # debugger
         self._lastCaretPos = None
 
-        self.makeMenus()
-        #self.CreateStatusBar()
-        self.makeStatusBar()
-        self.statusBar.SetStatusText("PsychoPy v{}".format(psychopy.__version__), 3)
-        self.fileMenu = self.editMenu = self.viewMenu = None
-        self.helpMenu = self.toolsMenu = None
-        self.SetBackgroundColour(cs['frame_bg'])
-
         # setup universal shortcuts
         accelTable = self.app.makeAccelTable()
         self.SetAcceleratorTable(accelTable)
 
-        # make the pane manager
+        # Setup pane and art managers
         self.paneManager = aui.AuiManager(self.pnlMain, aui.AUI_MGR_DEFAULT | aui.AUI_MGR_RECTANGLE_HINT)
         self._art = PsychopyDockArt()
         self.paneManager.SetArtProvider(self._art)
-        # Setup modern flat look
-        # self._art.SetMetric(aui.AUI_DOCKART_GRADIENT_TYPE,
-        #                     aui.AUI_GRADIENT_NONE)  # Remove gradient from caption bar
-        # self._art.SetMetric(aui.AUI_DOCKART_CAPTION_SIZE,
-        #                     25)  # Make caption bar bigger
-        # self._art.SetColour(aui.AUI_DOCKART_INACTIVE_CAPTION_COLOUR,
-        #                     wx.Colour(cs['docker_face']))  # Set caption bar colour
-        # self._art.SetColour(aui.AUI_DOCKART_INACTIVE_CAPTION_TEXT_COLOUR,
-        #                     wx.Colour(cs['docker_txt']))  # Set caption colour
-        # self._art.SetColour(aui.AUI_DOCKART_SASH_COLOUR,
-        #                     wx.Colour(cs['grippers']))
-
+        # Create toolbar
         self.toolbar = PsychopyToolbar(self)
         self.SetToolBar(self.toolbar)
-        # add help window
-        _style = (aui.AUI_NB_TOP | aui.AUI_NB_TAB_SPLIT |
-                  aui.AUI_NB_TAB_MOVE | wx.BORDER_NONE)
-        self.sourceAsst = aui.AuiNotebook(
-            self.pnlMain, wx.ID_ANY, size=wx.Size(600, 600),
-            style=_style)
-        self.sourceAsst.SetBackgroundColour(cs['srcnote_bg'])
-        self.sourceAsst.GetActiveTabCtrl().SetBackgroundColour(cs['srcnote_bg'])  # Sets colour on area behind tab
-        self.sourceAsstWindow = SourceTreePanel(self.sourceAsst, self)
-        self.fileBrowserWindow = FileBrowserPanel(self.sourceAsst, self)
+        # Create menus and status bar
+        self.makeMenus()
+        self.makeStatusBar()
+        self.statusBar.SetStatusText("PsychoPy v{}".format(psychopy.__version__), 3)
+        self.fileMenu = self.editMenu = self.viewMenu = None
+        self.helpMenu = self.toolsMenu = None
 
-        # create an editor pane
-        # self.paneManager.SetFlags(aui.AUI_MGR_RECTANGLE_HINT)
-        # self.paneManager.SetManagedWindow(self.pnlMain)
-        # make the notebook
-        _style = (aui.AUI_NB_TOP |
-                  aui.AUI_NB_SCROLL_BUTTONS |
-                  aui.AUI_NB_TAB_SPLIT |
-                  aui.AUI_NB_TAB_MOVE |
-                  aui.AUI_NB_CLOSE_ON_ACTIVE_TAB |
-                  aui.AUI_NB_WINDOWLIST_BUTTON |
-                  wx.BORDER_NONE)
-        self.notebook = aui.AuiNotebook(self.pnlMain, -1,
-                                        size=wx.Size(480, 600),
-                                        style=_style)
+        # Create source assistant notebook
+        self.sourceAsst = aui.AuiNotebook(self.pnlMain, wx.ID_ANY)
+        self.sourceAsst.SetArtProvider(PsychopyTabArt())
+        self.structureWindow = SourceTreePanel(self.sourceAsst, self)
+        self.fileBrowserWindow = FileBrowserPanel(self.sourceAsst, self)
+        # Add source assistant panel
+        self.paneManager.AddPane(self.sourceAsst,
+                                 aui.AuiPaneInfo().
+                                 BestSize((600, 600)).
+                                 Floatable(True).
+                                 BottomDockable(True).TopDockable(True).
+                                 CloseButton(False).PaneBorder(False).
+                                 Name("SourceAsst").
+                                 Caption(_translate("Source Assistant")).
+                                 Left().Show(self.prefs['showSourceAsst']))
+        # Add structure page to source assistant
+        self.sourceAsst.AddPage(self.structureWindow, "Structure")
+        self.sourceAsst.SetPageBitmap(0, wx.Bitmap(
+            os.path.join(self.paths['resources'], 'coderclass16.png'),
+            wx.BITMAP_TYPE_PNG))
+        # Add file browser page to source assistant
+        self.sourceAsst.AddPage(self.fileBrowserWindow, "File Browser")
+        self.sourceAsst.SetPageBitmap(1, wx.Bitmap(
+            os.path.join(self.paths['resources'], 'folder-open16.png'),
+            wx.BITMAP_TYPE_PNG))
+
+        # Create editor notebook
+        self.notebook = aui.AuiNotebook(self.pnlMain, -1, size=wx.Size(480, 600))
         self.notebook.SetArtProvider(PsychopyTabArt())
-        self.notebook.SetBackgroundColour(cs['srcnote_bg'])
-        self.notebook.GetActiveTabCtrl().SetBackgroundColour(cs['srcnote_bg'])
+        # Add editor panel
         self.paneManager.AddPane(self.notebook, aui.AuiPaneInfo().
                                  Name("Editor").
                                  Caption(_translate("Editor")).
+                                 BestSize((600,600)).
                                  Center().PaneBorder(False).  # 'center panes' expand
                                  CloseButton(False).
                                  MaximizeButton(True))
         self.notebook.SetFocus()
+        # Link functions
         self.notebook.SetDropTarget(FileDropTarget(targetFrame=self.pnlMain))
-
         self.notebook.Bind(aui.EVT_AUINOTEBOOK_PAGE_CLOSE, self.fileClose)
         self.notebook.Bind(aui.EVT_AUINOTEBOOK_PAGE_CHANGED, self.pageChanged)
-        self.Bind(aui.EVT_AUI_PANE_CLOSE, self.onCloseSourceAsst)
-        # self.Bind(wx.EVT_NOTEBOOK_PAGE_CHANGED, self.pageChanged)
         self.SetDropTarget(FileDropTarget(targetFrame=self.pnlMain))
         self.Bind(wx.EVT_DROP_FILES, self.filesDropped)
         self.Bind(wx.EVT_FIND, self.OnFindNext)
@@ -1150,55 +1139,15 @@ class CoderFrame(wx.Frame):
                     continue
                 self.setCurrentDoc(filename, keepHidden=True)
 
-        self.paneManager.AddPane(self.sourceAsst,
-                                 aui.AuiPaneInfo().
-                                 BestSize((600, 600)).
-                                 Floatable(True).
-                                 BottomDockable(True).TopDockable(True).
-                                 CloseButton(True).PaneBorder(False).
-                                 Name("SourceAsst").
-                                 Caption(_translate("Source Assistant")).
-                                 Left().Show(self.prefs['showSourceAsst']))
-
-        self.sourceAsst.AddPage(self.sourceAsstWindow, "Structure")
-        self.sourceAsst.SetPageBitmap(0, wx.Bitmap(
-                    os.path.join(self.paths['resources'], 'coderclass16.png'),
-            wx.BITMAP_TYPE_PNG))
-        self.sourceAsst.AddPage(self.fileBrowserWindow, "File Browser")
-        self.sourceAsst.SetPageBitmap(1, wx.Bitmap(
-                    os.path.join(self.paths['resources'], 'folder-open16.png'),
-            wx.BITMAP_TYPE_PNG))
-        self.sourceAsst.SetArtProvider(PsychopyTabArt())
-
-        self.paneManager.Update()
-        self.unitTestFrame = None
-
-
-        # create the shelf for shell and output views
-        _style = (aui.AUI_NB_TOP | aui.AUI_NB_TAB_SPLIT |
-                  aui.AUI_NB_SCROLL_BUTTONS | aui.AUI_NB_TAB_MOVE | wx.BORDER_NONE)
-
-
-        self.shelf = aui.AuiNotebook(self.pnlMain, wx.ID_ANY, size=wx.Size(600, 600),
-                                     style=_style)
+        # Create shelf notebook
+        self.shelf = aui.AuiNotebook(self.pnlMain, wx.ID_ANY, size=wx.Size(600, 600))
         self.shelf.SetArtProvider(PsychopyTabArt())
-        self.paneManager.AddPane(self.shelf,
-                                 aui.AuiPaneInfo().
-                                 Name("Shelf").
-                                 Caption(_translate("Shelf")).
-                                 BestSize((600, 250)).PaneBorder(False).
-                                 Floatable(True).
-                                 BottomDockable(True).TopDockable(True).
-                                 CloseButton(False).
-                                 Bottom().Show(self.prefs['showOutput']))
-
+        # Create output page
         self.outputWindow = self.app.runner.stdOut
         self.outputWindow.write(_translate('Welcome to PsychoPy3!') + '\n')
         self.outputWindow.write("v%s\n" % self.app.version)
         # Add context manager to output window
-
         self._useShell = None
-
         if haveCode:
             useDefaultShell = True
             if self.prefs['preferredShell'].lower() == 'ipython':
@@ -1219,16 +1168,26 @@ class CoderFrame(wx.Frame):
                 self.shell = py.shell.Shell(
                     self.shelf, -1, introText=msg + '\n\n')
                 self._useShell = 'pyshell'
-            self.shell.SetBackgroundColour(wx.Colour(cs['shell_bg']))
             self.shelf.AddPage(self.shell, _translate('Shell'))
+        # Add shelf panel
+        self.paneManager.AddPane(self.shelf,
+                                 aui.AuiPaneInfo().
+                                 Name("Shelf").
+                                 Caption(_translate("Shelf")).
+                                 BestSize((600, 250)).PaneBorder(False).
+                                 Floatable(True).
+                                 BottomDockable(True).TopDockable(True).
+                                 CloseButton(False).
+                                 Bottom().Show(self.prefs['showOutput']))
 
+        # Update panes
         self.paneManager.Update()
+        self.unitTestFrame = None
 
-        #self.SetSizer(self.mainSizer)  # not necessary for aui type controls
+        # Manage perspective
         if (self.appData['auiPerspective'] and
                 'Shelf' in self.appData['auiPerspective']):
             self.paneManager.LoadPerspective(self.appData['auiPerspective'])
-            #self.paneManager.GetPane('Shelf').Caption(_translate("Shelf"))
             self.paneManager.GetPane('SourceAsst').Caption("Source Assistant")
             self.paneManager.GetPane('Editor').Caption(_translate("Editor"))
         else:
@@ -1236,12 +1195,8 @@ class CoderFrame(wx.Frame):
             self.Fit()
             self.paneManager.Update()
 
-        #if self.app._appLoaded:
-        #    self.setOutputWindow()
-
         self.sourceAsstChk.Check(
             self.paneManager.GetPane('SourceAsst').IsShown())
-
         self.SendSizeEvent()
         self.app.trackFrame(self)
 
@@ -1869,13 +1824,13 @@ class CoderFrame(wx.Frame):
 
         # scroll the source tree to where it was before for this document,
         # prevents it from jumping around annoyingly
-        if hasattr(self, 'sourceAsstWindow'):
+        if hasattr(self, 'structureWindow'):
             # get the old source assist scroll position, save it
             if old > -1:
                 self.notebook.GetPage(old).sourceAsstScroll = \
-                    self.sourceAsstWindow.GetScrollVert()
+                    self.structureWindow.GetScrollVert()
             self.currentDoc.analyseScript()
-            self.sourceAsstWindow.srcTree.SetScrollPos(
+            self.structureWindow.srcTree.SetScrollPos(
                 wx.VERTICAL, self.currentDoc.sourceAsstScroll)
 
         self.statusBar.SetStatusText(self.currentDoc.getFileType(), 2)
@@ -2073,7 +2028,7 @@ class CoderFrame(wx.Frame):
             self.cdrBtnSave.Enable(doc.UNSAVED)
 
         self.statusBar.SetStatusText(_translate('Analyzing code'))
-        if hasattr(self, 'sourceAsstWindow'):
+        if hasattr(self, 'structureWindow'):
             self.currentDoc.analyseScript()
         self.statusBar.SetStatusText('')
 
@@ -2167,7 +2122,7 @@ class CoderFrame(wx.Frame):
 
         self.SetLabel('%s - PsychoPy Coder' % self.currentDoc.filename)
         #if len(self.getOpenFilenames()) > 0:
-        if hasattr(self, 'sourceAsstWindow'):
+        if hasattr(self, 'structureWindow'):
             self.statusBar.SetStatusText(_translate('Analyzing code'))
             self.currentDoc.analyseScript()
             self.statusBar.SetStatusText('')
@@ -2379,10 +2334,10 @@ class CoderFrame(wx.Frame):
             self.statusBar.SetStatusText("", 3)  # psyhcopy version
             # clear the source tree
             self.SetLabel("PsychoPy v%s (Coder)" % self.app.version)
-            self.sourceAsstWindow.srcTree.DeleteAllItems()
+            self.structureWindow.srcTree.DeleteAllItems()
         else:
             self.currentDoc = self.notebook.GetPage(newPageID)
-            self.sourceAsstWindow.refresh()
+            self.structureWindow.refresh()
             # set to current file status
             self.setFileModified(self.currentDoc.UNSAVED)
         # return 1
