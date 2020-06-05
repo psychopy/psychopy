@@ -65,8 +65,8 @@
     locale = string(default='')
     # Show an error dialog when PsychoPy encounters an unhandled internal error.
     errorDialog = boolean(default='True')
-    # Enable High-DPI awareness on Windows, requires restart. Note that this feature is currently experimental and may cause graphical artifacts in some places.
-    highDPI = boolean(default='False')
+    # Whether or not to use dark mode
+    darkmode = boolean(default='False')
 
 # Settings for the Coder window
 [coder]
