@@ -65,14 +65,14 @@ cs_light = {
     'cpanel_bg': cLib['white'],
     'cbutton_hover': cLib['darker']['white'],
     # Flow panel
-    'fpanel_bg': cLib['darker']['white'],
+    'fpanel_bg': cLib['white'],
     'fpanel_ln': cLib['very']['lighter']['grey'],
     'frt_slip': cLib['blue'],
     'frt_nonslip': cLib['green'],
     'frt_txt': cLib['lighter']['white'],
     'loop_face': cLib['grey'],
     'loop_txt': cLib['lighter']['white'],
-    'fbtns_face': cLib['very']['darker']['white'],
+    'fbtns_face': cLib['darker']['white'],
     'fbtns_txt': cLib['black'],
     ## Coder
     # Source Assistant
