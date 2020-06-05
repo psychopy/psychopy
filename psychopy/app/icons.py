@@ -82,13 +82,11 @@ def getAllIcons(folderList=(), forceReload=False):
         for thisName, thisCompon in compons.items():
             if thisName in components.iconFiles:
                 # darkmode paths
-                if prefs.app['darkmode'] == 'True':
-                    fldr = 'dark'
-                else:
-                    fldr = 'light'
                 if "base.png" not in components.iconFiles[thisName]:
                     components.iconFiles[thisName] = join(
-                        dirname(components.iconFiles[thisName]), fldr, basename(components.iconFiles[thisName])
+                        dirname(components.iconFiles[thisName]),
+                        ('light', 'dark')[prefs.app['darkmode']],
+                        basename(components.iconFiles[thisName])
                     )
                 _allIcons[thisName] = getIcons(components.iconFiles[thisName])
             else:

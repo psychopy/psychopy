@@ -131,11 +131,7 @@ cs_dark = {
     'src_txt': cLib['white'],
     'shell_bg': cLib['darker']['grey']
     }
-try:
-    dark = eval(psychopy.prefs.app['darkmode'])
-except:
-    dark = False
-if dark:
+if psychopy.prefs.app['darkmode']:
     cs = cs_dark
 else:
     cs = cs_light
