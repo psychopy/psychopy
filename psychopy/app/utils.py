@@ -193,7 +193,7 @@ class PsychopyToolbar(wx.ToolBar):
         self.frame = frame
 
         # Configure toolbar appearance
-        self.SetWindowStyle(wx.TB_HORIZONTAL | wx.NO_BORDER | wx.TB_FLAT)
+        self.SetWindowStyle(wx.TB_HORIZONTAL | wx.NO_BORDER | wx.TB_FLAT | wx.TB_NODIVIDER)
         self.SetBackgroundColour(cs['toolbar_bg'])
         # Set icon size (16 for win/linux small mode, 32 for everything else
         if (sys.platform == 'win32' or sys.platform.startswith('linux')) \
