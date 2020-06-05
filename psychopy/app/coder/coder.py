@@ -1110,6 +1110,7 @@ class CoderFrame(wx.Frame):
             wx.BITMAP_TYPE_PNG))
 
         # Create editor notebook
+        #todo: Why is editor default background not same as usual frame backgrounds?
         self.notebook = aui.AuiNotebook(self.pnlMain, -1, size=wx.Size(480, 600))
         self.notebook.SetArtProvider(PsychopyTabArt())
         # Add editor panel

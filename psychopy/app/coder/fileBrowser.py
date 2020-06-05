@@ -20,6 +20,7 @@ except Exception:
 import os
 import time
 import collections
+from ..style import cs, cLib
 
 # enums for file types
 FOLDER_TYPE_NORMAL = 0
@@ -65,20 +66,26 @@ class FileBrowserListCtrl(ListCtrlAutoWidthMixin, wx.ListCtrl):
                              size,
                              style=style)
         ListCtrlAutoWidthMixin.__init__(self)
+        # Set colours
+        self.SetBackgroundColour(wx.Colour(cs['src_bg']))
+        self.SetForegroundColour(wx.Colour(cs['brws_txt']))
+
 
 
 class FileBrowserPanel(wx.Panel):
     """Panel for a file browser.
     """
     def __init__(self, parent, frame):
-        wx.Panel.__init__(self, parent, -1)
+        wx.Panel.__init__(self, parent, -1, style=wx.BORDER_NONE)
         self.parent = parent
         self.coder = frame
         self.currentPath = None
         self.selectedItem = None
         self.isSubDir = False
         self.pathData = {}
-
+        # Set background for Directory bar
+        self.SetBackgroundColour(wx.Colour(cs['tab_active']))
+        self.SetForegroundColour(wx.Colour(cs['brws_txt']))
         # get graphics for toolbars and tree items
         rc = self.coder.paths['resources']
         join = os.path.join
@@ -112,24 +119,25 @@ class FileBrowserPanel(wx.Panel):
         # create the toolbar
         szrToolbar = wx.BoxSizer(wx.HORIZONTAL)
 
-        self.toolBar = wx.aui.AuiToolBar(
+        self.toolBar = wx.ToolBar(
             self, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize,
-            aui.AUI_TB_HORZ_LAYOUT | aui.AUI_TB_HORZ_TEXT)
-        self.toolBar.SetToolBitmapSize((16, 16))
+            aui.AUI_TB_HORZ_LAYOUT | aui.AUI_TB_HORZ_TEXT | wx.BORDER_NONE | wx.TB_FLAT | wx.TB_NODIVIDER)
+        self.toolBar.AdjustForLayoutDirection(16, 300, 300)
+        self.toolBar.SetToolBitmapSize((21, 16))
+        self.toolBar.SetBackgroundColour(cs['tab_active'])
+        self.toolBar.SetForegroundColour(cs['brws_txt'])
         self.gotoTool = self.toolBar.AddTool(
             wx.ID_ANY,
             'Goto',
             gotoBmp,
             "Jump to another folder",
-            wx.ITEM_NORMAL)
-        self.toolBar.AddSeparator()
+            wx.ITEM_DROPDOWN)
         self.newFolderTool = self.toolBar.AddTool(
             wx.ID_ANY,
             'New Folder',
             newFolder,
             "Create a new folder in the current folder",
             wx.ITEM_NORMAL)
-        self.toolBar.AddSeparator()
         self.renameTool = self.toolBar.AddTool(
             wx.ID_ANY,
             'Rename',
@@ -148,8 +156,6 @@ class FileBrowserPanel(wx.Panel):
             deleteBmp,
             "Delete the selected folder or file",
             wx.ITEM_NORMAL)
-
-        self.toolBar.SetToolDropDown(self.gotoTool.GetId(), True)
         self.toolBar.Realize()
 
         self.Bind(wx.EVT_TOOL, self.OnBrowse, self.gotoTool)
@@ -175,7 +181,7 @@ class FileBrowserPanel(wx.Panel):
             self.flId,
             pos=(0, 0),
             size=wx.Size(300, 300),
-            style=wx.LC_REPORT | wx.LC_SINGLE_SEL)
+            style=wx.LC_REPORT | wx.LC_SINGLE_SEL | wx.BORDER_NONE | wx.LC_NO_HEADER)
         self.fileList.SetImageList(self.fileImgList, wx.IMAGE_LIST_SMALL)
 
         # bind events for list control
@@ -216,6 +222,7 @@ class FileBrowserPanel(wx.Panel):
             "Open the directory the current editor file is located")
         self.Bind(wx.EVT_MENU, self.OnGotoFileLocation, id=item.GetId())
         #self.toolBar.SetDropdownMenu(self.gotoTool.GetId(), self.gotoMenu)
+        self.gotoTool.SetDropdownMenu(self.gotoMenu)
 
         # add columns
         self.fileList.InsertColumn(0, "Name")

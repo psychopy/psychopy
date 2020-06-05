@@ -75,10 +75,19 @@ cs_light = {
     'fbtns_face': cLib['very']['darker']['white'],
     'fbtns_txt': cLib['black'],
     ## Coder
-    'srcnote_bg': cLib['darker']['white'],
+    # Source Assistant
     'src_bg': cLib['white'],
-    'src_txt': cLib['black'],
-    'shell_bg': cLib['darker']['white']
+    # Source Assistant: Structure
+    'struct_bg': cLib['white'],
+    'struct_txt': cLib['black'],
+    'struct_hover': cLib['red'],
+    'struct_hovertxt': cLib['white'],
+    # Source Assistant: File Browser
+    'brws_bg': cLib['white'],
+    'brws_txt': cLib['black'],
+    'brws_hover': cLib['red'],
+    'brws_hovertxt': cLib['white']
+    # Shell
     }
 cs_dark = {
     'txt_default': cLib['white'],
@@ -126,10 +135,17 @@ cs_dark = {
     'fbtns_face': cLib['grey'],
     'fbtns_txt': cLib['white'],
     ## Coder
-    'srcnote_bg': cLib['darker']['grey'],
+    # Source Assistant
     'src_bg': cLib['grey'],
-    'src_txt': cLib['white'],
-    'shell_bg': cLib['darker']['grey']
+    # Source Assistant: Structure
+    'struct_txt': cLib['white'],
+    'struct_hover': cLib['red'],
+    'struct_hovertxt': cLib['white'],
+    # Source Assistant: File Browser
+    'brws_txt': cLib['white'],
+    'brws_hover': cLib['red'],
+    'brws_hovertxt': cLib['white']
+    # Shell
     }
 if psychopy.prefs.app['darkmode']:
     cs = cs_dark

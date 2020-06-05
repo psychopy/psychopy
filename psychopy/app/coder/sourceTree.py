@@ -9,6 +9,7 @@
 
 from __future__ import absolute_import, print_function
 from collections import deque
+from ..style import cs, cLib
 from psychopy.app.coder.folding import getFolds
 
 import wx
