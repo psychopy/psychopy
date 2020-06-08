@@ -26,8 +26,7 @@
 "word2": "fore:#800080,size:%(size)d",
 "defname": "fore:#800080,size:%(size)d",
 "classname": "fore:#e36209,size:%(size)d",
-"stringeol":
-"fore:#000000,face:%(code)s,back:#E0C0E0,eol,size:%(size)d",
+"stringeol": "fore:#000000,face:%(code)s,back:#E0C0E0,eol,size:%(size)d",
 "preprocessor": "fore:#d73a49,size:%(size)d",
 "preprocessorcomment": "fore:#d73a49,size:%(size)d",
 "verbatim": "fore:#032f62,size:%(size)d",

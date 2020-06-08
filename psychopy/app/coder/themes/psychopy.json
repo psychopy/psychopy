@@ -1,3 +1,4 @@
+
 {
 "editor": {
 "caretFgCol": "BLUE",
@@ -7,12 +8,12 @@
 },
 "lexerStyles": {
 "default": "fore:#000000,face:%(code)s,size:%(size)d",
-"comment": "fore:#007F00,face:%(comment)s,size:%(size)d",
-"commentline": "fore:#007F00,face:%(comment)s,size:%(size)d",
-"commentblock": "fore:#007F00,face:%(comment)s,size:%(size)d",
-"commentlinedoc": "fore:#007F00,face:%(comment)s,size:%(size)d",
-"commentdockeyword": "fore:#007F00,bold,face:%(comment)s,size:%(size)d",
-"commentdockeyworderror": "fore:#007F00,bold,face:%(comment)s,size:%(size)d",
+"comment": "fore:#66666E,face:%(comment)s,size:%(size)d",
+"commentline": "fore:#66666E,face:%(comment)s,size:%(size)d",
+"commentblock": "fore:#66666E,face:%(comment)s,size:%(size)d",
+"commentlinedoc": "fore:#66666E,face:%(comment)s,size:%(size)d",
+"commentdockeyword": "fore:#66666E,bold,face:%(comment)s,size:%(size)d",
+"commentdockeyworderror": "fore:#66666E,bold,face:%(comment)s,size:%(size)d",
 "string": "fore:#7F007F,face:%(code)s,size:%(size)d",
 "character": "fore:#7F007F,face:%(code)s,size:%(size)d",
 "triple": "fore:#7F0000,size:%(size)d",
@@ -25,8 +26,7 @@
 "word2": "fore:#00007F,bold,size:%(size)d",
 "defname": "fore:#007F7F,bold,size:%(size)d",
 "classname": "fore:#0000FF,bold,underline,size:%(size)d",
-"stringeol":
-    "fore:#000000,face:%(code)s,back:#E0C0E0,eol,size:%(size)d",
+"stringeol": "fore:#000000,face:%(code)s,back:#E0C0E0,eol,size:%(size)d",
 "preprocessor": "fore:#00007F,size:%(size)d",
 "preprocessorcomment": "fore:#00007F,size:%(size)d",
 "verbatim": "fore:#7F0000,size:%(size)d",
