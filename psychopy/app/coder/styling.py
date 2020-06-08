@@ -5,6 +5,8 @@ import wx.stc
 import builtins
 import keyword
 import copy
+import json
+import os
 
 DEFAULT_CARET_FG_COL = "BLACK"
 
@@ -117,185 +119,20 @@ LEXER_STYLES = {
     },
 }
 
-STYLE_SPEC_LANG = {
-    'psychopy': {  # wxPython demo style
-        'editor': {  # editor default styles, applied before lexer specific
-            'caretFgCol': "BLUE",
-            'selFg': "#000000",
-            'selBg': "#C0C0C0",
-            'edgeGuideCol': "#CDCDCD",  # should be the same as the indent guide
-            'default': {
-                wx.stc.STC_STYLE_DEFAULT: "face:%(code)s,size:%(size)d",
-                wx.stc.STC_STYLE_CONTROLCHAR: "face:%(comment)s",
-                wx.stc.STC_STYLE_LINENUMBER: "back:#C0C0C0,face:%(code)s,size:%(small)d",
-                wx.stc.STC_STYLE_BRACELIGHT: "fore:#FFFFFF,back:#0000FF,bold",
-                wx.stc.STC_STYLE_BRACEBAD: "fore:#000000,back:#FF0000,bold",
-                wx.stc.STC_STYLE_INDENTGUIDE: "fore:#CDCDCD",
-            }
-        },
-        'lexerStyles': {
-            'default': "fore:#000000,face:%(code)s,size:%(size)d",
-            'comment': "fore:#007F00,face:%(comment)s,size:%(size)d",
-            'commentline': "fore:#007F00,face:%(comment)s,size:%(size)d",
-            'commentblock': "fore:#007F00,face:%(comment)s,size:%(size)d",
-            'commentlinedoc': "fore:#007F00,face:%(comment)s,size:%(size)d",
-            'commentdockeyword': "fore:#007F00,bold,face:%(comment)s,size:%(size)d",
-            'commentdockeyworderror': "fore:#007F00,bold,face:%(comment)s,size:%(size)d",
-            'string': "fore:#7F007F,face:%(code)s,size:%(size)d",
-            'character': "fore:#7F007F,face:%(code)s,size:%(size)d",
-            'triple': "fore:#7F0000,size:%(size)d",
-            'tripledouble': "fore:#7F0000,size:%(size)d",
-            'number': "fore:#007F7F,size:%(size)d",
-            'operator': "bold,size:%(size)d",
-            'pyidentifier': "fore:#000000,face:%(code)s,size:%(size)d",
-            'identifier': "fore:#000000,face:%(code)s,size:%(size)d",
-            'word': "fore:#00007F,bold,size:%(size)d",
-            'word2': "fore:#00007F,bold,size:%(size)d",
-            'defname': "fore:#007F7F,bold,size:%(size)d",
-            'classname': "fore:#0000FF,bold,underline,size:%(size)d",
-            'stringeol':
-                "fore:#000000,face:%(code)s,back:#E0C0E0,eol,size:%(size)d",
-            'preprocessor': "fore:#00007F,size:%(size)d",
-            'preprocessorcomment': "fore:#00007F,size:%(size)d",
-            'verbatim': "fore:#7F0000,size:%(size)d",
-            'tripleverbatim': "fore:#7F0000,size:%(size)d",
-            'globalclass': "fore:#0000FF,bold,underline,size:%(size)d"
-        }
-    },
-    'wx': {  # wxPython demo style
-        'editor': {  # editor default styles, applied before lexer specific
-            'caretFgCol': "BLUE",
-            'selFg': "#000000",
-            'selBg': "#66CCFF",
-            'edgeGuideCol': "#CDCDCD",
-            'default': {
-                wx.stc.STC_STYLE_DEFAULT: "face:%(code)s,size:%(size)d",
-                wx.stc.STC_STYLE_LINENUMBER: 'fore:#000000,back:#99A9C2',
-                wx.stc.STC_STYLE_BRACELIGHT: 'fore:#00009D,back:#FFFF00',
-                wx.stc.STC_STYLE_INDENTGUIDE: "fore:#CDCDCD",
-            }
-        },
-        'lexerStyles': {
-            'default': "fore:#000000,face:%(code)s,size:%(size)d",
-            'comment': "fore:#008000,back:#F0FFF0',size:%(size)d",
-            'commentline': "fore:#008000,back:#F0FFF0,size:%(size)d",
-            'commentblock': "fore:#008000,back:#F0FFF0,size:%(size)d",
-            'commentlinedoc': "fore:#008000,back:#F0FFF0,size:%(size)d",
-            'commentdockeyword':
-                "fore:#008000,back:#F0FFF0,bold,face:%(comment)s,size:%(size)d",
-            'commentdockeyworderror':
-                "fore:#008000,back:#F0FFF0,bold,face:%(comment)s,size:%(size)d",
-            'string': "fore:#800080,face:%(code)s,size:%(size)d",
-            'character': "fore:#800080,face:%(code)s,size:%(size)d",
-            'triple': "fore:#800080,back:#FFFFEA,size:%(size)d",
-            'tripledouble': "fore:#800080,back:#FFFFEA,size:%(size)d",
-            'number': "fore:#005cc5,size:%(size)d",
-            'operator': "fore:#800000,bold,size:%(size)d",
-            'pyidentifier': "fore:#000000,face:%(code)s,size:%(size)d",
-            'identifier': "fore:#000000,face:%(code)s,size:%(size)d",
-            'word': "fore:#000080,bold,size:%(size)d",
-            'word2': "fore:#800080,size:%(size)d",
-            'defname': "fore:#008080,bold,size:%(size)d",
-            'classname': "fore:#0000FF,bold,size:%(size)d",
-            'stringeol':
-                "fore:#000000,face:%(code)s,back:#E0C0E0,eol,size:%(size)d",
-            'preprocessor': "fore:#00007F,size:%(size)d",
-            'preprocessorcomment': "fore:#00007F,size:%(size)d",
-            'verbatim': "fore:#7F0000,size:%(size)d",
-            'tripleverbatim': "fore:#7F0000,size:%(size)d",
-            'globalclass': "fore:#0000FF,bold,underline,size:%(size)d"
-        }
-    },
-    'vc6': {  # wxPython demo style
-        'editor': {  # editor default styles, applied before lexer specific
-            'caretFgCol': "BLACK",
-            'selFg': "WHITE",
-            'selBg': "BLUE",
-            'edgeGuideCol': "#CDCDCD",
-            'default': {
-                wx.stc.STC_STYLE_DEFAULT: "face:%(code)s,size:%(size)d",
-                wx.stc.STC_STYLE_LINENUMBER: 'fore:#000000,back:#CDCDCD',
-                wx.stc.STC_STYLE_BRACELIGHT: 'fore:#00009D,back:#FFFF00',
-                wx.stc.STC_STYLE_INDENTGUIDE: "fore:#CDCDCD",
-            }
-        },
-        'lexerStyles': {
-            'default': "fore:#000000,face:%(code)s,size:%(size)d",
-            'comment': "fore:#008000,size:%(size)d",
-            'commentline': "fore:#008000,size:%(size)d",
-            'commentblock': "fore:#008000,size:%(size)d",
-            'commentlinedoc': "fore:#008000,size:%(size)d",
-            'commentdockeyword':
-                "fore:#008000,face:%(comment)s,size:%(size)d",
-            'commentdockeyworderror':
-                "fore:#008000,face:%(comment)s,size:%(size)d",
-            'string': "fore:#4C4C4C,face:%(code)s,size:%(size)d",
-            'character': "fore:#4C4C4C,face:%(code)s,size:%(size)d",
-            'triple': "fore:#4C4C4C,size:%(size)d",
-            'tripledouble': "fore:#4C4C4C,size:%(size)d",
-            'number': "fore:#000000,size:%(size)d",
-            'operator': "fore:#000000,size:%(size)d",
-            'pyidentifier': "fore:#000000,face:%(code)s,size:%(size)d",
-            'identifier': "fore:#000000,face:%(code)s,size:%(size)d",
-            'word': "fore:#0000EE,size:%(size)d",
-            'word2': "fore:#0000EE,size:%(size)d",
-            'defname': "fore:#000000,size:%(size)d",
-            'classname': "fore:#000000,size:%(size)d",
-            'stringeol':
-                "fore:#000000,face:%(code)s,eol,size:%(size)d",
-            'preprocessor': "fore:#0000EE,size:%(size)d",
-            'preprocessorcomment': "fore:#0000EE,size:%(size)d",
-            'globalclass': "fore:#000000,size:%(size)d"
-        }
-    },
-    'github': {  # github style
-        'editor': {  # editor default styles, applied before lexer specific
-            'caretFgCol': DEFAULT_CARET_FG_COL,
-            'selFg': '#000000',
-            'selBg': '#add2fc',
-            'edgeGuideCol': "#eeeeee",
-            'default': {
-                wx.stc.STC_STYLE_DEFAULT: "fore:#000000,face:%(code)s,size:%(size)d",
-                wx.stc.STC_STYLE_LINENUMBER: 'fore:#B0B0B0',
-                wx.stc.STC_STYLE_BRACELIGHT: 'fore:#000000,back:#f1f8ff',
-                wx.stc.STC_STYLE_INDENTGUIDE: "fore:#eeeeee",
-                wx.stc.STC_STYLE_BRACEBAD: "fore:#000000,back:#FF0000",
-            },
-        },
-        'lexerStyles': {
-            'default': "fore:#000000,face:%(code)s,size:%(size)d",
-            'comment': "fore:#969896,face:%(comment)s,size:%(size)d",
-            'commentline': "fore:#969896,face:%(comment)s,size:%(size)d",
-            'commentblock': "fore:#969896,face:%(comment)s,size:%(size)d",
-            'commentlinedoc': "fore:#969896,face:%(comment)s,size:%(size)d",
-            'commentdockeyword':
-                "fore:#969896,bold,face:%(comment)s,size:%(size)d",
-            'commentdockeyworderror':
-                "fore:#969896,bold,face:%(comment)s,size:%(size)d",
-            'stringraw':
-                "fore:#969896,bold,face:%(comment)s,size:%(size)d",
-            'string': "fore:#032f62,face:%(code)s,size:%(size)d",
-            'character': "fore:#032f62,face:%(code)s,size:%(size)d",
-            'triple': "fore:#032f62,face:%(code)s,size:%(size)d",
-            'tripledouble': "fore:#032f62,face:%(code)s,size:%(size)d",
-            'number': "fore:#005cc5,size:%(size)d",
-            'operator': "fore:#005cc5,size:%(size)d",
-            'pyidentifier': "face:%(code)s,size:%(size)d",  # this looks ugly
-            'identifier': "face:%(code)s,size:%(size)d",
-            'word': "fore:#d73a49,size:%(size)d",
-            'word2': "fore:#800080,size:%(size)d",
-            'defname': "fore:#800080,size:%(size)d",
-            'classname': "fore:#e36209,size:%(size)d",
-            'stringeol':
-                "fore:#000000,face:%(code)s,back:#E0C0E0,eol,size:%(size)d",
-            'preprocessor': "fore:#d73a49,size:%(size)d",
-            'preprocessorcomment': "fore:#d73a49,size:%(size)d",
-            'verbatim': "fore:#032f62,size:%(size)d",
-            'tripleverbatim': "fore:#032f62,size:%(size)d",
-            'globalclass': "fore:#e36209,size:%(size)d"
-        }
+stylenames = os.listdir("coder//themes")
+STYLE_SPEC_LANG = {}
+for style in stylenames:
+    with open("coder//themes//"+style, "rb") as fp:
+        STYLE_SPEC_LANG[style.replace('.json', '')] = json.load(fp)
+
+    STYLE_SPEC_LANG[style.replace('.json', '')]['editor']['default'] = {
+            wx.stc.STC_STYLE_DEFAULT: "face:%(code)s,size:%(size)d",
+            wx.stc.STC_STYLE_CONTROLCHAR: "face:%(comment)s",
+            wx.stc.STC_STYLE_LINENUMBER: "back:#C0C0C0,face:%(code)s,size:%(small)d",
+            wx.stc.STC_STYLE_BRACELIGHT: "fore:#FFFFFF,back:#0000FF,bold",
+            wx.stc.STC_STYLE_BRACEBAD: "fore:#000000,back:#FF0000,bold",
+            wx.stc.STC_STYLE_INDENTGUIDE: "fore:#CDCDCD",
     }
-}
 
 
 def applyStyleSpec(editor, theme, lexer, faces):

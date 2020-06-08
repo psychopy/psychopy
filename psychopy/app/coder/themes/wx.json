@@ -1,0 +1,35 @@
+{
+"editor": {
+"caretFgCol": "BLUE",
+"selFg": "#000000",
+"selBg": "#66CCFF",
+"edgeGuideCol": "#CDCDCD"
+},
+"lexerStyles": {
+"default": "fore:#000000,face:%(code)s,size:%(size)d",
+"comment": "fore:#008000,back:#F0FFF0,size:%(size)d",
+"commentline": "fore:#008000,back:#F0FFF0,size:%(size)d",
+"commentblock": "fore:#008000,back:#F0FFF0,size:%(size)d",
+"commentlinedoc": "fore:#008000,back:#F0FFF0,size:%(size)d",
+"commentdockeyword": "fore:#008000,back:#F0FFF0,bold,face:%(comment)s,size:%(size)d",
+"commentdockeyworderror": "fore:#008000,back:#F0FFF0,bold,face:%(comment)s,size:%(size)d",
+"string": "fore:#800080,face:%(code)s,size:%(size)d",
+"character": "fore:#800080,face:%(code)s,size:%(size)d",
+"triple": "fore:#800080,back:#FFFFEA,size:%(size)d",
+"tripledouble": "fore:#800080,back:#FFFFEA,size:%(size)d",
+"number": "fore:#005cc5,size:%(size)d",
+"operator": "fore:#800000,bold,size:%(size)d",
+"pyidentifier": "fore:#000000,face:%(code)s,size:%(size)d",
+"identifier": "fore:#000000,face:%(code)s,size:%(size)d",
+"word": "fore:#000080,bold,size:%(size)d",
+"word2": "fore:#800080,size:%(size)d",
+"defname": "fore:#008080,bold,size:%(size)d",
+"classname": "fore:#0000FF,bold,size:%(size)d",
+"stringeol": "fore:#000000,face:%(code)s,back:#E0C0E0,eol,size:%(size)d",
+"preprocessor": "fore:#00007F,size:%(size)d",
+"preprocessorcomment": "fore:#00007F,size:%(size)d",
+"verbatim": "fore:#7F0000,size:%(size)d",
+"tripleverbatim": "fore:#7F0000,size:%(size)d",
+"globalclass": "fore:#0000FF,bold,underline,size:%(size)d"
+}
+}
