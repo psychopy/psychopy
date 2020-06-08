@@ -1170,6 +1170,9 @@ class CoderFrame(wx.Frame):
                     self.shelf, -1, introText=msg + '\n\n')
                 self._useShell = 'pyshell'
             self.shelf.AddPage(self.shell, _translate('Shell'))
+            self.shelf.SetPageBitmap(0, wx.Bitmap(
+                os.path.join(self.paths['resources'], 'coderpython16.png'),
+                wx.BITMAP_TYPE_PNG))
         # Add shelf panel
         self.paneManager.AddPane(self.shelf,
                                  aui.AuiPaneInfo().
@@ -1180,7 +1183,6 @@ class CoderFrame(wx.Frame):
                                  BottomDockable(True).TopDockable(True).
                                  CloseButton(False).
                                  Bottom().Show(self.prefs['showOutput']))
-
         # Update panes
         self.paneManager.Update()
         self.unitTestFrame = None

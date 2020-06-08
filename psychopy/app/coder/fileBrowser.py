@@ -93,25 +93,17 @@ class FileBrowserPanel(wx.Panel):
         # handles for icon graphics in the image list
         tsize = (16, 16)
         self.fileImgList = wx.ImageList(tsize[0], tsize[1])
-        self.gotoParentBmp = self.fileImgList.Add(
-            wx.ArtProvider.GetBitmap(
-                wx.ART_GO_TO_PARENT, wx.ART_TOOLBAR, tsize))
-        self.folderBmp = self.fileImgList.Add(
-            wx.ArtProvider.GetBitmap(
-                wx.ART_FOLDER, wx.ART_TOOLBAR, tsize))
-        self.fileBmp = self.fileImgList.Add(
-            wx.ArtProvider.GetBitmap(
-                wx.ART_NORMAL_FILE, wx.ART_TOOLBAR, tsize))
+        self.gotoParentBmp = self.fileImgList.Add(wx.Bitmap(join(rc, 'dirup16.png'), wx.BITMAP_TYPE_PNG))
+        self.folderBmp = self.fileImgList.Add(wx.Bitmap(join(rc, 'folder16.png'), wx.BITMAP_TYPE_PNG))
+        self.fileBmp = self.fileImgList.Add(wx.Bitmap(join(rc, 'fileunknown16.png'), wx.BITMAP_TYPE_PNG))
+        self.csvBmp = self.fileImgList.Add(wx.Bitmap(join(rc, 'filecsv16.png'), wx.BITMAP_TYPE_PNG))
+        self.imageBmp = self.fileImgList.Add(wx.Bitmap(join(rc, 'fileimage16.png'), wx.BITMAP_TYPE_PNG))
 
         # icons for toolbars
-        gotoBmp =  wx.ArtProvider.GetBitmap(
-            wx.ART_GO_FORWARD, wx.ART_TOOLBAR, tsize)
-        newFolder = wx.ArtProvider.GetBitmap(
-            wx.ART_NEW_DIR, wx.ART_TOOLBAR, tsize)
-        # copyBmp = wx.ArtProvider.GetBitmap(
-        #     wx.ART_COPY, wx.ART_TOOLBAR, tsize)
-        deleteBmp = wx.ArtProvider.GetBitmap(
-            wx.ART_DELETE, wx.ART_TOOLBAR, tsize)
+        gotoBmp = wx.Bitmap(join(rc, 'goto16.png'), wx.BITMAP_TYPE_PNG)
+        newFolder = wx.Bitmap(join(rc, 'foldernew16.png'), wx.BITMAP_TYPE_PNG)
+        copyBmp = wx.Bitmap(join(rc, 'copy16.png'), wx.BITMAP_TYPE_PNG)
+        deleteBmp = wx.Bitmap(join(rc, 'delete16.png'), wx.BITMAP_TYPE_PNG)
         renameBmp = wx.Bitmap(join(rc, 'rename16.png'), wx.BITMAP_TYPE_PNG)
 
         # self.SetDoubleBuffered(True)
@@ -126,12 +118,6 @@ class FileBrowserPanel(wx.Panel):
         self.toolBar.SetToolBitmapSize((21, 16))
         self.toolBar.SetBackgroundColour(cs['tab_active'])
         self.toolBar.SetForegroundColour(cs['brws_txt'])
-        self.gotoTool = self.toolBar.AddTool(
-            wx.ID_ANY,
-            'Goto',
-            gotoBmp,
-            "Jump to another folder",
-            wx.ITEM_DROPDOWN)
         self.newFolderTool = self.toolBar.AddTool(
             wx.ID_ANY,
             'New Folder',
@@ -156,6 +142,12 @@ class FileBrowserPanel(wx.Panel):
             deleteBmp,
             "Delete the selected folder or file",
             wx.ITEM_NORMAL)
+        self.gotoTool = self.toolBar.AddTool(
+            wx.ID_ANY,
+            'Goto',
+            gotoBmp,
+            "Jump to another folder",
+            wx.ITEM_DROPDOWN)
         self.toolBar.Realize()
 
         self.Bind(wx.EVT_TOOL, self.OnBrowse, self.gotoTool)
