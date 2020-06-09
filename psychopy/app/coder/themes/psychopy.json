@@ -1,36 +1,106 @@
-
 {
-"editor": {
-"caretFgCol": "BLUE",
-"selFg": "#000000",
-"selBg": "#C0C0C0",
-"edgeGuideCol": "#CDCDCD"
-},
-"lexerStyles": {
-"default": "fore:#000000,face:%(code)s,size:%(size)d",
-"comment": "fore:#66666E,face:%(comment)s,size:%(size)d",
-"commentline": "fore:#66666E,face:%(comment)s,size:%(size)d",
-"commentblock": "fore:#66666E,face:%(comment)s,size:%(size)d",
-"commentlinedoc": "fore:#66666E,face:%(comment)s,size:%(size)d",
-"commentdockeyword": "fore:#66666E,bold,face:%(comment)s,size:%(size)d",
-"commentdockeyworderror": "fore:#66666E,bold,face:%(comment)s,size:%(size)d",
-"string": "fore:#7F007F,face:%(code)s,size:%(size)d",
-"character": "fore:#7F007F,face:%(code)s,size:%(size)d",
-"triple": "fore:#7F0000,size:%(size)d",
-"tripledouble": "fore:#7F0000,size:%(size)d",
-"number": "fore:#007F7F,size:%(size)d",
-"operator": "bold,size:%(size)d",
-"pyidentifier": "fore:#000000,face:%(code)s,size:%(size)d",
-"identifier": "fore:#000000,face:%(code)s,size:%(size)d",
-"word": "fore:#00007F,bold,size:%(size)d",
-"word2": "fore:#00007F,bold,size:%(size)d",
-"defname": "fore:#007F7F,bold,size:%(size)d",
-"classname": "fore:#0000FF,bold,underline,size:%(size)d",
-"stringeol": "fore:#000000,face:%(code)s,back:#E0C0E0,eol,size:%(size)d",
-"preprocessor": "fore:#00007F,size:%(size)d",
-"preprocessorcomment": "fore:#00007F,size:%(size)d",
-"verbatim": "fore:#7F0000,size:%(size)d",
-"tripleverbatim": "fore:#7F0000,size:%(size)d",
-"globalclass": "fore:#0000FF,bold,underline,size:%(size)d"
-}
+  "python": {
+    "base": {
+      "tag": "wx.stc.STC_STYLE_DEFAULT",
+      "fg": "#000000",
+      "bg": "#FFFFFF",
+      "font": "Consolas"
+    },
+    "margin": {
+      "tag": "wx.stc.STC_STYLE_LINENUMBER",
+      "fg": "",
+      "bg": "#D4D4D4",
+      "font": ""
+    },
+    "operator": {
+      "tag": "wx.stc.STC_P_OPERATOR",
+      "fg": "",
+      "bg": "",
+      "font": ""
+    },
+    "keyword": {
+      "tag": "wx.stc.STC_P_WORD",
+      "fg": "#F2545B",
+      "bg": "",
+      "font": ""
+    },
+    "keyword2": {
+      "tag": "wx.stc.STC_P_WORD2",
+      "fg": "#EC9703",
+      "bg": "",
+      "font": ""
+    },
+    "id": {
+      "tag": "wx.stc.STC_P_IDENTIFIER",
+      "fg": "",
+      "bg": "",
+      "font": ""
+    },
+    "num": {
+      "tag": "wx.stc.STC_P_NUMBER",
+      "fg": "#02A9EA",
+      "bg": "",
+      "font": ""
+    },
+    "char": {
+      "tag": "wx.stc.STC_P_CHARACTER",
+      "fg": "#6CCC74",
+      "bg": "",
+      "font": ""
+    },
+    "str": {
+      "tag": "wx.stc.STC_P_STRING",
+      "fg": "#6CCC74",
+      "bg": "",
+      "font": ""
+    },
+    "openstr": {
+      "tag": "wx.stc.STC_P_STRINGEOL",
+      "fg": "#6CCC74",
+      "bg": "#f2f2f2",
+      "font": ""
+    },
+    "class": {
+      "tag": "wx.stc.STC_P_CLASSNAME",
+      "fg": "#f2545b",
+      "bg": "",
+      "font": ""
+    },
+    "commblock": {
+      "tag": "wx.stc.STC_P_COMMENTBLOCK",
+      "fg": "#B6B6B6",
+      "bg": "#f2f2f2",
+      "font": ""
+    },
+    "commline": {
+      "tag": "wx.stc.STC_P_COMMENTLINE",
+      "fg": "#B6B6B6",
+      "bg": "",
+      "font": ""
+    },
+    "tripdoubquotes": {
+      "tag": "wx.stc.STC_P_TRIPLEDOUBLE",
+      "fg": "#B6B6B6",
+      "bg": "",
+      "font": ""
+    },
+    "tripsingquotes": {
+      "tag": "wx.stc.STC_P_TRIPLE",
+      "fg": "#B6B6B6",
+      "bg": "",
+      "font": ""
+    },
+    "whitespace": {
+      "tag": "wx.stc.STC_P_DEFAULT",
+      "fg": "",
+      "bg": "",
+      "font": ""
+    },
+    "def": {
+      "tag": "wx.stc.STC_P_DEFNAME",
+      "fg": "#f2545b",
+      "bg": "",
+      "font": ""
+    }
+  }
 }
