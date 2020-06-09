@@ -22,21 +22,62 @@ class StylerMixin:
         # Check that Psychopy has configuration for this language
         if self.GetLexer() not in self.lexers:
             return
+
+        # Check that minimum spec is defined
+        if 'base' in spec:
+            base = spec['base']
+            if 'tag' in base \
+                    or 'bg' in base \
+                    or 'fg' in base \
+                    or 'font' in base:
+                base = spec['base']
+            else:
+                return
+        else:
+            return
+        # Pythonise base data (hex -> rgb, tag -> wx int)
+        base['tag'] = eval(base['tag'])
+        base['bg'] = self.hex2rgb(base['bg'])
+        base['fg'] = self.hex2rgb(base['fg'])
+        base['size'] = int(self.coder.prefs['codeFontSize'])
+        # Set base colours
+        self.StyleSetBackground(base['tag'], base['bg'])
+        self.StyleSetForeground(base['tag'], base['fg'])
+        self.StyleSetSpec(base['tag'], "face:%(font)s,size:%(size)d" % base)
+
+        # Check that margin spec is defined
+        if 'margin' in spec:
+            margin = spec['margin']
+            if 'tag' in margin \
+                    or 'bg' in margin \
+                    or 'fg' in margin \
+                    or 'font' in margin:
+                # Pythonise margin data
+                margin['tag'] = eval(margin['tag'])
+                margin['bg'] = self.hex2rgb(margin['bg'])
+                margin['fg'] = self.hex2rgb(margin['fg'])
+                if not margin['font']:
+                    margin['font'] = base['font']
+                # Set margin colours
+                self.StyleSetBackground(margin['tag'], margin['bg'])
+                self.StyleSetForeground(margin['tag'], margin['fg'])
+                margin['size'] = int(self.coder.prefs['codeFontSize'])
+                self.StyleSetSpec(margin['tag'], "face:%(font)s,size:%(size)d" % margin)
+                # Set fold margin to match lineno margin
+                mar = margin['bg']
+            else:
+                mar = base['bg']
+        else:
+            mar = base['bg']
+        self.SetFoldMarginColour(True, mar)
+        self.SetFoldMarginHiColour(True, mar)
+
         # Check that json file has spec for this language
         if self.lexers[self.GetLexer()] in spec:
             spec = spec[self.lexers[self.GetLexer()]]
         else:
             return
-        # Check that minimum spec is defined
-        if 'base' not in spec:
-            return
-        else:
-            base = spec['base']
-            if 'tag' not in base \
-                    or 'bg' not in base \
-                    or 'fg' not in base \
-                    or 'font' not in base:
-                raise Exception()
+
         # Pythonise the json data (hex -> rgb, tag -> wx int)
         for key in spec:
             spec[key]['tag'] = eval(spec[key]['tag'])
@@ -44,13 +85,6 @@ class StylerMixin:
             spec[key]['fg'] = self.hex2rgb(spec[key]['fg'], base['fg'])
             if not spec[key]['font']:
                 spec[key]['font'] = base['font']
-        # Set fold margin to match lineno margin
-        if 'margin' in spec:
-            mar = spec['margin']['bg']
-        else:
-            mar = base['bg']
-        self.SetFoldMarginColour(True, mar)
-        self.SetFoldMarginHiColour(True, mar)
         # Set colours from spec
         for key in spec:
             self.StyleSetBackground(spec[key]['tag'], spec[key]['bg'])

@@ -1,17 +1,17 @@
 {
-  "python": {
-    "base": {
+  "base": {
       "tag": "wx.stc.STC_STYLE_DEFAULT",
       "fg": "#000000",
       "bg": "#FFFFFF",
       "font": "Consolas"
     },
-    "margin": {
+  "margin": {
       "tag": "wx.stc.STC_STYLE_LINENUMBER",
       "fg": "",
       "bg": "#D4D4D4",
       "font": ""
     },
+  "python": {
     "operator": {
       "tag": "wx.stc.STC_P_OPERATOR",
       "fg": "",
