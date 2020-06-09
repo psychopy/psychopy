@@ -7,7 +7,9 @@ import builtins
 
 class StylerMixin:
     lexers = {
-        wx.stc.STC_LEX_PYTHON: "python"
+        stc.STC_LEX_PYTHON: "python",
+        stc.STC_LEX_CPP: "c++",
+        stc.STC_LEX_R: "R"
     }
 
     @property
@@ -19,9 +21,6 @@ class StylerMixin:
         # Load theme from json file
         with open("coder//themes//" + value + ".json", "rb") as fp:
             spec = json.load(fp)
-        # Check that Psychopy has configuration for this language
-        if self.GetLexer() not in self.lexers:
-            return
 
         # Check that minimum spec is defined
         if 'base' in spec:
@@ -36,7 +35,7 @@ class StylerMixin:
         else:
             return
         # Pythonise base data (hex -> rgb, tag -> wx int)
-        base['tag'] = eval(base['tag'])
+        base['tag'] = getattr(stc, base['tag'])
         base['bg'] = self.hex2rgb(base['bg'])
         base['fg'] = self.hex2rgb(base['fg'])
         base['size'] = int(self.coder.prefs['codeFontSize'])
@@ -45,52 +44,58 @@ class StylerMixin:
         self.StyleSetForeground(base['tag'], base['fg'])
         self.StyleSetSpec(base['tag'], "face:%(font)s,size:%(size)d" % base)
 
-        # Check that margin spec is defined
-        if 'margin' in spec:
-            margin = spec['margin']
-            if 'tag' in margin \
-                    or 'bg' in margin \
-                    or 'fg' in margin \
-                    or 'font' in margin:
-                # Pythonise margin data
-                margin['tag'] = eval(margin['tag'])
-                margin['bg'] = self.hex2rgb(margin['bg'])
-                margin['fg'] = self.hex2rgb(margin['fg'])
-                if not margin['font']:
-                    margin['font'] = base['font']
-                # Set margin colours
-                self.StyleSetBackground(margin['tag'], margin['bg'])
-                self.StyleSetForeground(margin['tag'], margin['fg'])
-                margin['size'] = int(self.coder.prefs['codeFontSize'])
-                self.StyleSetSpec(margin['tag'], "face:%(font)s,size:%(size)d" % margin)
-                # Set fold margin to match lineno margin
-                mar = margin['bg']
-            else:
-                mar = base['bg']
+        # Check that universal spec is defined
+        if 'universal' in spec:
+            universal = spec['universal']
+        else:
+            return
+        # Pythonise the universal data (hex -> rgb, tag -> wx int)
+        for key in universal:
+            universal[key]['tag'] = [getattr(stc, tag) for tag in universal[key]['tag']]
+            universal[key]['bg'] = self.hex2rgb(universal[key]['bg'], base['bg'])
+            universal[key]['fg'] = self.hex2rgb(universal[key]['fg'], base['fg'])
+            if not universal[key]['font']:
+                universal[key]['font'] = base['font']
+            universal[key]['size'] = int(self.coder.prefs['codeFontSize'])
+        # Set colours from spec
+        for key in universal:
+            for tag in universal[key]['tag']:
+                self.StyleSetBackground(tag, universal[key]['bg'])
+                self.StyleSetForeground(tag, universal[key]['fg'])
+                self.StyleSetSpec(tag, "face:%(font)s,size:%(size)d" % universal[key])
+        # Apply keywords
+        for level, val in self.lexkw.items():
+            self.SetKeyWords(level, " ".join(val))
+
+        # Set margin colours to match linenumbers if set
+        if 'margin' in universal:
+            mar = universal['margin']['bg']
         else:
             mar = base['bg']
         self.SetFoldMarginColour(True, mar)
         self.SetFoldMarginHiColour(True, mar)
 
+        # Check that Psychopy has configuration for this language
+        if self.GetLexer() not in self.lexers:
+            return
         # Check that json file has spec for this language
         if self.lexers[self.GetLexer()] in spec:
-            spec = spec[self.lexers[self.GetLexer()]]
+            lang = spec[self.lexers[self.GetLexer()]]
         else:
             return
-
-        # Pythonise the json data (hex -> rgb, tag -> wx int)
-        for key in spec:
-            spec[key]['tag'] = eval(spec[key]['tag'])
-            spec[key]['bg'] = self.hex2rgb(spec[key]['bg'], base['bg'])
-            spec[key]['fg'] = self.hex2rgb(spec[key]['fg'], base['fg'])
+        # Pythonise language specific data (hex -> rgb, tag -> wx int)
+        for key in lang:
+            lang[key]['tag'] = getattr(stc, lang[key]['tag'])
+            lang[key]['bg'] = self.hex2rgb(lang[key]['bg'], base['bg'])
+            lang[key]['fg'] = self.hex2rgb(lang[key]['fg'], base['fg'])
             if not spec[key]['font']:
-                spec[key]['font'] = base['font']
+                lang[key]['font'] = base['font']
         # Set colours from spec
-        for key in spec:
-            self.StyleSetBackground(spec[key]['tag'], spec[key]['bg'])
-            self.StyleSetForeground(spec[key]['tag'], spec[key]['fg'])
-            spec[key]['size'] = int(self.coder.prefs['codeFontSize'])
-            self.StyleSetSpec(spec[key]['tag'], "face:%(font)s,size:%(size)d" % spec[key])
+        for key in lang:
+            self.StyleSetBackground(lang[key]['tag'], spec[key]['bg'])
+            self.StyleSetForeground(lang[key]['tag'], spec[key]['fg'])
+            lang[key]['size'] = int(self.coder.prefs['codeFontSize'])
+            self.StyleSetSpec(lang[key]['tag'], "face:%(font)s,size:%(size)d" % lang[key])
         # Apply keywords
         for level, val in self.lexkw.items():
             self.SetKeyWords(level, " ".join(val))
@@ -126,9 +131,9 @@ class StylerMixin:
                  'break', 'local', 'global'],
                 0: ['NA']
             }
-        # elif self.GetLexer == stc.STC_LEX_C:
-        #     # C/C++
-        #     keywords = baseC
+        elif self.GetLexer == stc.STC_LEX_CPP:
+            # C/C++
+            keywords = baseC
         # elif self.GetLexer() == stc.STC_LEX_ARDUINO:
         #     # Arduino
         #     keywords = {
@@ -152,6 +157,11 @@ class StylerMixin:
         #                                 'sampler', 'sampler2D'],
         #         1: baseC[1]
         #     }
+        else:
+            keywords = {
+                0: [],
+                1: []
+            }
         return keywords
 
     def hex2rgb(self, hex, base=(0, 0, 0, 0)):
