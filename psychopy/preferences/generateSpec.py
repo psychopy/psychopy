@@ -26,13 +26,6 @@ warning = '''\n\n# !! This file is auto-generated and will be overwritten!!
     # Edit baseNoArch.spec (all platforms) or generateSpec.py
     # (platform-specific) instead.'''.replace('    ', '')
 
-# Add dynamic theme options according to json files in Themes folder
-themes = [theme.replace('.json', '') for theme in os.listdir("..//app//coder//themes")]
-themes_str = ""
-for theme in themes:
-    themes_str += "'" + theme + "', "
-baseSpec = baseSpec.replace('''DYNAMIC_THEMES''', themes_str)
-
 # Darwin:
 darwinSpec = baseSpec.replace('psychopy prefs for ALL PLATFORMS',
                               'psychopy prefs for Darwin.' + warning)
