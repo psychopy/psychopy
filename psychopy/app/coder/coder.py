@@ -40,7 +40,7 @@ import psychopy.app.pavlovia_ui.menu
 from psychopy.app.coder.codeEditorBase import BaseCodeEditor
 from psychopy.app.coder.fileBrowser import FileBrowserPanel
 from psychopy.app.coder.sourceTree import SourceTreePanel
-from psychopy.app.coder.styling import applyStyleSpec
+from psychopy.app.coder.styling import StylerMixin
 from psychopy.app.coder.folding import CodeEditorFoldingMixin
 from psychopy.app.icons import combineImageEmblem
 from psychopy.app.errorDlg import ErrorMsgDialog
@@ -494,14 +494,14 @@ class UnitTestFrame(wx.Frame):
         self.Destroy()
 
 
-class CodeEditor(BaseCodeEditor, CodeEditorFoldingMixin):
+class CodeEditor(BaseCodeEditor, CodeEditorFoldingMixin, StylerMixin):
     """Code editor class for the Coder GUI.
     """
     def __init__(self, parent, ID, frame,
                  # set the viewer to be small, then it will increase with aui
                  # control
                  pos=wx.DefaultPosition, size=wx.Size(100, 100),
-                 style=0, readonly=False):
+                 style=wx.BORDER_NONE, readonly=False):
         BaseCodeEditor.__init__(self, parent, ID, pos, size, style)
 
         self.coder = frame
@@ -608,7 +608,8 @@ class CodeEditor(BaseCodeEditor, CodeEditorFoldingMixin):
         faces['comment'] = self.coder.prefs['commentFont']
 
         # apply the theme to the lexer
-        applyStyleSpec(self, self.coder.prefs['theme'], self.GetLexer(), faces)
+        self.theme = self.coder.prefs['theme']
+        #applyStyleSpec(self, self.coder.prefs['theme'], self.GetLexer(), faces)
 
     def setLexerFromFileName(self):
         """Set the lexer to one that best matches the file name."""

@@ -1,212 +1,141 @@
-"""Themes for the editor in Coder."""
-
 import wx
-import wx.stc
-import builtins
-import keyword
-import copy
+import wx.stc as stc
 import json
-import os
-
-DEFAULT_CARET_FG_COL = "BLACK"
-
-# Keywords for each file type and level
-LEXER_KWRDS = dict()
-LEXER_KWRDS['Python'] = {
-        0: keyword.kwlist + [
-            'cdef', 'ctypedef', 'extern', 'cimport', 'cpdef', 'include'],
-        1: dir(builtins) + ['self']}
-LEXER_KWRDS['C/C++'] = {
-        0: ['typedef', 'if', 'else', 'return', 'struct', 'for', 'while', 'do',
-            'using', 'namespace', 'union', 'break', 'enum', 'new', 'case',
-            'switch', 'continue', 'volatile', 'finally', 'throw', 'try',
-            'delete', 'typeof', 'sizeof', 'class', 'volatile'],
-        1: ['int', 'float', 'double', 'char', 'short', 'byte', 'void', 'const',
-            'unsigned', 'signed', 'NULL', 'true', 'false', 'bool', 'size_t',
-            'long', 'long long']}
-LEXER_KWRDS['Arduino'] = {
-    0: list(LEXER_KWRDS['C/C++'][0]),
-    1: list(LEXER_KWRDS['C/C++'][1]) + [
-        'BIN', 'HEX', 'OCT', 'DEC', 'INPUT', 'OUTPUT', 'HIGH', 'LOW',
-        'INPUT_PULLUP', 'LED_BUILTIN', 'string', 'array']
-}
-
-glslTypes = []
-baseType = ['', 'i', 'b', 'd']
-dim = ['2', '3', '4']
-name = ['vec', 'mat']
-for i in baseType:
-    for j in name:
-        for k in dim:
-            glslTypes.append(i + j + k)
-
-LEXER_KWRDS['GLSL'] = {
-    0: list(LEXER_KWRDS['C/C++'][0]) + [
-        'invariant', 'precision', 'highp', 'mediump', 'lowp', 'coherent',
-         'restrict', 'readonly', 'writeonly', 'uniform', 'varying', 'layout',
-         'in', 'out', 'attribute', 'sampler', 'sampler2D'],
-    1: list(LEXER_KWRDS['C/C++'][1]) + glslTypes
-}
-
-LEXER_KWRDS['JavaScript'] = {
-    0: ['var', 'let', 'import', 'function', 'if', 'else', 'return', 'struct',
-        'for', 'while', 'do', 'finally', 'throw', 'try', 'switch', 'case',
-        'break'],
-    1: ['null', 'false', 'true']
-}
-LEXER_KWRDS['R'] = {1: ['function', 'for', 'repeat', 'while', 'if', 'else',
-                        'break', 'local', 'global'],
-                    0: ['NA']}
+import keyword
+import builtins
 
 
-# Mapping between identifiers and style enums for each lexer. This allows a
-# theme to be applied to multiple lexers without needing to specify a theme for
-# each one.
-LEXER_STYLES = {
-    wx.stc.STC_LEX_PYTHON: {
-        'default': wx.stc.STC_P_DEFAULT,
-        'commentline': wx.stc.STC_P_COMMENTLINE,
-        'commentblock': wx.stc.STC_P_COMMENTBLOCK,
-        'string': wx.stc.STC_P_STRING,
-        'character': wx.stc.STC_P_CHARACTER,
-        'number': wx.stc.STC_P_NUMBER,
-        'operator': wx.stc.STC_P_OPERATOR,
-        'pyidentifier': wx.stc.STC_P_IDENTIFIER,
-        'word': wx.stc.STC_P_WORD,
-        'word2': wx.stc.STC_P_WORD2,
-        'defname': wx.stc.STC_P_DEFNAME,
-        'classname': wx.stc.STC_P_CLASSNAME,
-        'stringeol': wx.stc.STC_P_STRINGEOL,
-        'tripledouble': wx.stc.STC_P_TRIPLEDOUBLE,
-        'triple': wx.stc.STC_P_TRIPLE
-    },
-    wx.stc.STC_LEX_CPP: {
-        'default': wx.stc.STC_C_DEFAULT,
-        'comment': wx.stc.STC_C_COMMENT,
-        'commentline': wx.stc.STC_C_COMMENTLINE,
-        'commentdoc': wx.stc.STC_C_COMMENTDOC,
-        'commentlinedoc': wx.stc.STC_C_COMMENTLINEDOC,
-        'commentdockeyword': wx.stc.STC_C_COMMENTDOCKEYWORD,
-        'commentdockeyworderror': wx.stc.STC_C_COMMENTDOCKEYWORDERROR,
-        'stringraw': wx.stc.STC_C_STRINGRAW,
-        'uuid': wx.stc.STC_C_UUID,
-        'string': wx.stc.STC_C_STRING,
-        'character': wx.stc.STC_C_CHARACTER,
-        'number': wx.stc.STC_C_NUMBER,
-        'operator': wx.stc.STC_C_OPERATOR,
-        'identifier': wx.stc.STC_C_IDENTIFIER,
-        'word': wx.stc.STC_C_WORD,
-        'word2': wx.stc.STC_C_WORD2,
-        'stringeol': wx.stc.STC_C_STRINGEOL,
-        'preprocessor': wx.stc.STC_C_PREPROCESSOR,
-        'preprocessorcomment': wx.stc.STC_C_PREPROCESSORCOMMENT,
-        'verbatim': wx.stc.STC_C_VERBATIM,
-        'tripleverbatim': wx.stc.STC_C_TRIPLEVERBATIM,
-        'globalclass': wx.stc.STC_C_GLOBALCLASS
-    },
-    wx.stc.STC_LEX_R: {
-        'default': wx.stc.STC_R_DEFAULT,
-        'comment': wx.stc.STC_R_COMMENT,
-        'string': wx.stc.STC_R_STRING,
-        'character': wx.stc.STC_R_STRING2,
-        'number': wx.stc.STC_R_NUMBER,
-        'operator': wx.stc.STC_R_OPERATOR,
-        'identifier': wx.stc.STC_R_IDENTIFIER,
-        'word': wx.stc.STC_R_BASEKWORD,
-        'word2': wx.stc.STC_R_KWORD,
-        'infix': wx.stc.STC_R_INFIX,
-        'infixeol': wx.stc.STC_R_INFIXEOL
-    },
-}
-
-stylenames = os.listdir("coder//themes")
-STYLE_SPEC_LANG = {}
-for style in stylenames:
-    with open("coder//themes//"+style, "rb") as fp:
-        STYLE_SPEC_LANG[style.replace('.json', '')] = json.load(fp)
-
-    STYLE_SPEC_LANG[style.replace('.json', '')]['editor']['default'] = {
-            wx.stc.STC_STYLE_DEFAULT: "face:%(code)s,size:%(size)d",
-            wx.stc.STC_STYLE_CONTROLCHAR: "face:%(comment)s",
-            wx.stc.STC_STYLE_LINENUMBER: "back:#C0C0C0,face:%(code)s,size:%(small)d",
-            wx.stc.STC_STYLE_BRACELIGHT: "fore:#FFFFFF,back:#0000FF,bold",
-            wx.stc.STC_STYLE_BRACEBAD: "fore:#000000,back:#FF0000,bold",
-            wx.stc.STC_STYLE_INDENTGUIDE: "fore:#CDCDCD",
+class StylerMixin:
+    lexers = {
+        wx.stc.STC_LEX_PYTHON: "python"
     }
 
+    @property
+    def theme(self):
+        return self.coder.prefs['theme']
 
-def applyStyleSpec(editor, theme, lexer, faces):
-    """Apply a theme based on the specified lexer.
+    @theme.setter
+    def theme(self, value):
+        # Load theme from json file
+        with open("coder//themes//" + value + ".json", "rb") as fp:
+            spec = json.load(fp)
+        # Check that Psychopy has configuration for this language
+        if self.GetLexer() not in self.lexers:
+            return
+        # Check that json file has spec for this language
+        if self.lexers[self.GetLexer()] in spec:
+            spec = spec[self.lexers[self.GetLexer()]]
+        else:
+            return
+        # Check that minimum spec is defined
+        if 'base' not in spec:
+            return
+        else:
+            base = spec['base']
+            if 'tag' not in base \
+                    or 'bg' not in base \
+                    or 'fg' not in base \
+                    or 'font' not in base:
+                raise Exception()
+        # Pythonise the json data (hex -> rgb, tag -> wx int)
+        for key in spec:
+            spec[key]['tag'] = eval(spec[key]['tag'])
+            spec[key]['bg'] = self.hex2rgb(spec[key]['bg'], base['bg'])
+            spec[key]['fg'] = self.hex2rgb(spec[key]['fg'], base['fg'])
+            if not spec[key]['font']:
+                spec[key]['font'] = base['font']
+        # Set fold margin to match lineno margin
+        if 'margin' in spec:
+            mar = spec['margin']['bg']
+        else:
+            mar = base['bg']
+        self.SetFoldMarginColour(True, mar)
+        self.SetFoldMarginHiColour(True, mar)
+        # Set colours from spec
+        for key in spec:
+            self.StyleSetBackground(spec[key]['tag'], spec[key]['bg'])
+            self.StyleSetForeground(spec[key]['tag'], spec[key]['fg'])
+            spec[key]['size'] = int(self.coder.prefs['codeFontSize'])
+            self.StyleSetSpec(spec[key]['tag'], "face:%(font)s,size:%(size)d" % spec[key])
+        # Apply keywords
+        for level, val in self.lexkw.items():
+            self.SetKeyWords(level, " ".join(val))
 
-    Parameters
-    ----------
-    editor : CodeEditor
-        Styled Text control to apply the theme to.
-    theme : str
-        Name of the theme to use.
-    lexer : int
-        Lexer identifier.
-    faces : dict
-        Faces for fonts to use.
+    @property
+    def lexkw(self):
+        baseC = {
+            0: ['typedef', 'if', 'else', 'return', 'struct', 'for', 'while', 'do',
+                'using', 'namespace', 'union', 'break', 'enum', 'new', 'case',
+                'switch', 'continue', 'volatile', 'finally', 'throw', 'try',
+                'delete', 'typeof', 'sizeof', 'class', 'volatile'],
+            1: ['int', 'float', 'double', 'char', 'short', 'byte', 'void', 'const',
+                'unsigned', 'signed', 'NULL', 'true', 'false', 'bool', 'size_t',
+                'long', 'long long']
+        }
+        if self.GetLexer() == stc.STC_LEX_PYTHON:
+            # Python
+            keywords = {
+                0: keyword.kwlist + ['cdef', 'ctypedef', 'extern', 'cimport', 'cpdef', 'include'],
+                1: dir(builtins) + ['self']
+            }
+        # elif self.GetLexer() == stc.STC_LEX_JAVASCRIPT:
+        #     # JavaScript
+        #     keywords = {
+        #         0: ['var', 'let', 'import', 'function', 'if', 'else', 'return', 'struct', 'for', 'while', 'do',
+        #             'finally', 'throw', 'try', 'switch', 'case', 'break'],
+        #         1: ['null', 'false', 'true']
+        #     }
+        elif self.GetLexer() == stc.STC_LEX_R:
+            # R
+            keywords = {
+                1: ['function', 'for', 'repeat', 'while', 'if', 'else',
+                 'break', 'local', 'global'],
+                0: ['NA']
+            }
+        # elif self.GetLexer == stc.STC_LEX_C:
+        #     # C/C++
+        #     keywords = baseC
+        # elif self.GetLexer() == stc.STC_LEX_ARDUINO:
+        #     # Arduino
+        #     keywords = {
+        #         0: baseC[0],
+        #         1: baseC[1] + [
+        #             'BIN', 'HEX', 'OCT', 'DEC', 'INPUT', 'OUTPUT', 'HIGH', 'LOW',
+        #             'INPUT_PULLUP', 'LED_BUILTIN', 'string', 'array']
+        #     }
+        # elif self.GetLexer() == stc.STC_LEX_GLSL:
+        #     # GLSL
+        #     glslTypes = []
+        #     baseType = ['', 'i', 'b', 'd']
+        #     dim = ['2', '3', '4']
+        #     name = ['vec', 'mat']
+        #     for i in baseType:
+        #         for j in name:
+        #             for k in dim:
+        #                 glslTypes.append(i + j + k)
+        #     keywords = {
+        #         0: baseC[0] + ['invariant', 'precision', 'highp', 'mediump', 'lowp', 'coherent',
+        #                                 'sampler', 'sampler2D'],
+        #         1: baseC[1]
+        #     }
+        return keywords
 
-    """
-    try:
-        styles = STYLE_SPEC_LANG[theme]
-    except KeyError:
-        styles = STYLE_SPEC_LANG['psychopy']  # use default
+    def hex2rgb(self, hex, base=(0, 0, 0, 0)):
+        if not isinstance(hex, str):
+            raise Exception("Hex code must be a string in format #xxxxxx")
+        # Make hex code case irrelevant
+        hex = hex.lower()
+        # dict of hex -> int conversions
+        hexkeys = {'0': 0, '1': 1, '2': 2, '3': 3, '4': 4, '5': 5, '6': 6, '7': 7, '8': 8, '9': 9,
+                   'a': 10, 'b': 11, 'c': 12, 'd': 13, 'e': 14, 'f': 15,
+                   '#': None}
+        # Check that hex is a hex code
+        if not all(c in hexkeys.keys() for c in hex) or not len(hex) == 7:
+            # Default to transparent if not
+            return wx.Colour(base)
 
-    # apply default style
-    editor.StyleSetSpec(
-        wx.stc.STC_STYLE_DEFAULT, "face:%(code)s,size:%(size)d" % faces)
-    editor.StyleClearAll()
-
-    # set the cursor
-    try:
-        editor.SetCaretForeground(styles['editor']['caretFgCol'])
-    except KeyError:
-        editor.SetCaretForeground(DEFAULT_CARET_FG_COL)
-
-    # set selection background according to theme
-    try:
-        editor.SetSelForeground(True, styles['editor']['selFg'])
-    except KeyError:
-        editor.SetSelForeground(
-            wx.SystemSettings.GetColour(wx.SYS_COLOUR_HIGHLIGHTTEXT))
-
-    try:
-        editor.SetSelBackground(True, styles['editor']['selBg'])
-    except KeyError:
-        editor.SetSelBackground(
-            wx.SystemSettings.GetColour(wx.SYS_COLOUR_HIGHLIGHT))
-
-    # apply the default editor styles
-    for enum, style in styles['editor']['default'].items():
-        if style is None:
-            continue  # if None, use default
-        editor.StyleSetSpec(enum, style % faces)
-
-    try:
-        edgeGuideCol = styles['editor']['edgeGuideCol']
-        editor.SetEdgeColour(edgeGuideCol)
-    except KeyError:
-        pass
-
-    # set all the code styles
-    lexerStyles = styles['lexerStyles']
-
-    for key, style in lexerStyles.items():
-        try:
-            enum = LEXER_STYLES[lexer][key]
-            editor.StyleSetSpec(enum, style % faces)
-        except KeyError:
-            pass
-
-    # set keywords
-    ftype = editor.getFileType()
-    try:
-        kwrds = LEXER_KWRDS[ftype]
-    except KeyError:
-        return
-
-    for level, vals in kwrds.items():
-        editor.SetKeyWords(level, " ".join(vals))
+        # Convert to rgb
+        r = hexkeys[hex[1]] * 16 + hexkeys[hex[2]]
+        g = hexkeys[hex[3]] * 16 + hexkeys[hex[4]]
+        b = hexkeys[hex[5]] * 16 + hexkeys[hex[6]]
+        return wx.Colour(r, g, b, 1)
