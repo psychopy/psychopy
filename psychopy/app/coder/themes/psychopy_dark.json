@@ -1,156 +1,148 @@
 {
   "base": {
-    "tag": "STC_STYLE_DEFAULT",
     "fg": "#f2f2f2",
     "bg": "#66666E",
     "font": "Consolas"
   },
-  "universal": {
-    "margin": {
-      "tag": ["STC_STYLE_LINENUMBER"],
-      "fg": "",
-      "bg": "#75757D",
-      "font": ""
-    },
-    "operator": {
-      "tag": ["STC_P_OPERATOR", "STC_C_OPERATOR"],
-      "fg": "",
-      "bg": "",
-      "font": ""
-    },
-    "keyword": {
-      "tag": ["STC_P_WORD", "STC_C_WORD"],
-      "fg": "#F2545B",
-      "bg": "",
-      "font": ""
-    },
-    "keyword2": {
-      "tag": ["STC_P_WORD2", "STC_C_WORD2"],
-      "fg": "#EC9703",
-      "bg": "",
-      "font": ""
-    },
-    "id": {
-      "tag": ["STC_P_IDENTIFIER", "STC_C_IDENTIFIER"],
-      "fg": "",
-      "bg": "",
-      "font": ""
-    },
-    "num": {
-      "tag": ["STC_P_NUMBER", "STC_C_NUMBER"],
-      "fg": "#6CCC74",
-      "bg": "",
-      "font": ""
-    },
-    "char": {
-      "tag": ["STC_P_CHARACTER", "STC_C_CHARACTER"],
-      "fg": "#C3BEF7",
-      "bg": "",
-      "font": ""
-    },
-    "str": {
-      "tag": ["STC_P_STRING", "STC_C_STRINGRAW", "STC_C_STRING"],
-      "fg": "#C3BEF7",
-      "bg": "",
-      "font": ""
-    },
-    "openstr": {
-      "tag": ["STC_P_STRINGEOL", "STC_C_STRINGEOL"],
-      "fg": "#6CCC74",
-      "bg": "#f2f2f2",
-      "font": ""
-    },
-    "def": {
-      "tag": ["STC_P_DEFNAME", "STC_P_CLASSNAME","STC_C_GLOBALCLASS"],
-      "fg": "#f2545b",
-      "bg": "",
-      "font": ""
-    },
-    "comments": {
-      "tag": ["STC_C_COMMENT", "STC_P_COMMENTLINE", "STC_C_STRINGEOL"],
-      "fg": "#B6B6B6",
-      "bg": "",
-      "font": ""
-    },
-    "commentblock": {
-      "tag": ["STC_P_COMMENTBLOCK"],
-      "fg": "#B6B6B6",
-      "bg": "#f2f2f2",
-      "font": ""
-    },
-    "triplequotes": {
-      "tag": ["STC_P_TRIPLE","STC_P_TRIPLEDOUBLE","STC_C_VERBATIM","STC_C_TRIPLEVERBATIM"],
-      "fg": "#B6B6B6",
-      "bg": "",
-      "font": ""
-    },
-    "whitespace": {
-      "tag": ["STC_P_DEFAULT"],
-      "fg": "",
-      "bg": "",
-      "font": ""
-    }
+  "margin": {
+    "fg": "",
+    "bg": "#75757D",
+    "font": ""
+  },
+  "indent": {
+    "fg": "#75757D",
+    "bg": "#75757D",
+    "font": ""
+  },
+  "brace": {
+    "fg": "",
+    "bg": "#75757D",
+    "font": ""
+  },
+  "operator": {
+    "fg": "",
+    "bg": "",
+    "font": ""
+  },
+  "keyword": {
+    "fg": "#F2545B",
+    "bg": "",
+    "font": ""
+  },
+  "keyword2": {
+    "fg": "#EC9703",
+    "bg": "",
+    "font": ""
+  },
+  "controlchar": {
+    "fg": "#EC9703",
+    "bg": "",
+    "font": ""
+  },
+  "id": {
+    "fg": "",
+    "bg": "",
+    "font": ""
+  },
+  "num": {
+    "fg": "#6CCC74",
+    "bg": "",
+    "font": ""
+  },
+  "char": {
+    "fg": "#C3BEF7",
+    "bg": "",
+    "font": ""
+  },
+  "str": {
+    "fg": "#C3BEF7",
+    "bg": "",
+    "font": ""
+  },
+  "openstr": {
+    "fg": "#6CCC74",
+    "bg": "#75757D",
+    "font": ""
+  },
+  "def": {
+    "fg": "#f2545b",
+    "bg": "",
+    "font": ""
+  },
+  "comment": {
+    "fg": "#B6B6B6",
+    "bg": "",
+    "font": ""
+  },
+  "commentblock": {
+    "fg": "#B6B6B6",
+    "bg": "#75757D",
+    "font": ""
+  },
+  "triplequotes": {
+    "fg": "#B6B6B6",
+    "bg": "",
+    "font": ""
+  },
+  "tripledoublequotes": {
+    "fg": "#B6B6B6",
+    "bg": "",
+    "font": ""
+  },
+  "whitespace": {
+    "fg": "",
+    "bg": "",
+    "font": ""
   },
   "python": {
-
   },
   "c++": {
     "comments": {
-      "tag": "STC_C_COMMENT"
       "fg": "#6CCC74",
       "bg": "",
       "font": ""
     },
     "verbatim": {
-      "tag": "STC_C_VERBATIM",
       "fg": "#6CCC74",
       "bg": "",
       "font": ""
     },
     "tripleverbatim": {
-      "tag": "STC_C_TRIPLEVERBATIM",
       "fg": "#6CCC74",
       "bg": "",
       "font": ""
     },
     "commentline": {
-      "tag": "STC_C_COMMENTLINE",
       "fg": "#6CCC74",
       "bg": "",
       "font": ""
     },
     "commentlinedoc": {
-      "tag": "STC_C_COMMENTLINEDOC",
       "fg": "#EC9703",
       "bg": "",
       "font": ""
     },
     "commentdockeyword": {
-      "tag": "STC_C_COMMENTDOCKEYWORD",
       "fg": "#EC9703",
       "bg": "",
       "font": ""
     },
     "commentdockeyworderror": {
-      "tag": "STC_C_COMMENTDOCKEYWORDERROR",
       "fg": "#EC9703",
       "bg": "",
       "font": ""
     },
     "uuid": {
-      "tag": "STC_C_UUID",
       "fg": "#EC9703",
       "bg": "",
       "font": ""
     },
     "preprocessor": {
-      "tag": "STC_C_PREPROCESSOR",
       "fg": "#EC9703",
       "bg": "",
       "font": ""
     },
     "preprocessorcomment": {
-      "tag": "STC_C_PREPROCESSORCOMMENT",
       "fg": "#EC9703",
       "bg": "",
       "font": ""

@@ -25,80 +25,60 @@ class StylerMixin:
         # Check that minimum spec is defined
         if 'base' in spec:
             base = spec['base']
-            if 'tag' in base \
-                    or 'bg' in base \
-                    or 'fg' in base \
-                    or 'font' in base:
-                base = spec['base']
-            else:
+            if not (
+                all(key in base for key in ['bg', 'fg', 'font'])
+            ):
                 return
         else:
             return
-        # Pythonise base data (hex -> rgb, tag -> wx int)
-        base['tag'] = getattr(stc, base['tag'])
-        base['bg'] = self.hex2rgb(base['bg'])
-        base['fg'] = self.hex2rgb(base['fg'])
-        base['size'] = int(self.coder.prefs['codeFontSize'])
-        # Set base colours
-        self.StyleSetBackground(base['tag'], base['bg'])
-        self.StyleSetForeground(base['tag'], base['fg'])
-        self.StyleSetSpec(base['tag'], "face:%(font)s,size:%(size)d" % base)
-
-        # Check that universal spec is defined
-        if 'universal' in spec:
-            universal = spec['universal']
+        # Check for language specific spec
+        if self.GetLexer() in self.lexers:
+            lexer = self.lexers[self.GetLexer()]
         else:
-            return
+            lexer = 'invlex'
+        if lexer in spec:
+            # If there is lang specific spec, delete subkey...
+            lang = spec[lexer]
+            del spec[lexer]
+            #...and append spec to root, overriding any generic spec
+            spec.update({key: lang[key] for key in lang})
+        else:
+            lang = {}
+
         # Pythonise the universal data (hex -> rgb, tag -> wx int)
-        for key in universal:
-            universal[key]['tag'] = [getattr(stc, tag) for tag in universal[key]['tag']]
-            universal[key]['bg'] = self.hex2rgb(universal[key]['bg'], base['bg'])
-            universal[key]['fg'] = self.hex2rgb(universal[key]['fg'], base['fg'])
-            if not universal[key]['font']:
-                universal[key]['font'] = base['font']
-            universal[key]['size'] = int(self.coder.prefs['codeFontSize'])
-        # Set colours from spec
-        for key in universal:
-            for tag in universal[key]['tag']:
-                self.StyleSetBackground(tag, universal[key]['bg'])
-                self.StyleSetForeground(tag, universal[key]['fg'])
-                self.StyleSetSpec(tag, "face:%(font)s,size:%(size)d" % universal[key])
+        invalid = []
+        for key in spec:
+            # Check that key is in tag list and full spec is defined, discard if not
+            if key in self.tags \
+                    and all(subkey in spec[key] for subkey in ['bg', 'fg', 'font']):
+                spec[key]['bg'] = self.hex2rgb(spec[key]['bg'], base['bg'])
+                spec[key]['fg'] = self.hex2rgb(spec[key]['fg'], base['fg'])
+                if not spec[key]['font']:
+                    spec[key]['font'] = base['font']
+                spec[key]['size'] = int(self.coder.prefs['codeFontSize'])
+            else:
+                invalid += [key]
+        for key in invalid:
+            del spec[key]
+        # Set style from universal data
+        for key in spec:
+            self.StyleSetBackground(self.tags[key], spec[key]['bg'])
+            self.StyleSetForeground(self.tags[key], spec[key]['fg'])
+            self.StyleSetSpec(self.tags[key], "face:%(font)s,size:%(size)d" % spec[key])
         # Apply keywords
         for level, val in self.lexkw.items():
             self.SetKeyWords(level, " ".join(val))
 
+        # Make sure there's some spec for margins
+        if 'margin' not in spec:
+            spec['margin'] = base
         # Set margin colours to match linenumbers if set
-        if 'margin' in universal:
-            mar = universal['margin']['bg']
+        if 'margin' in spec:
+            mar = spec['margin']['bg']
         else:
             mar = base['bg']
         self.SetFoldMarginColour(True, mar)
         self.SetFoldMarginHiColour(True, mar)
-
-        # Check that Psychopy has configuration for this language
-        if self.GetLexer() not in self.lexers:
-            return
-        # Check that json file has spec for this language
-        if self.lexers[self.GetLexer()] in spec:
-            lang = spec[self.lexers[self.GetLexer()]]
-        else:
-            return
-        # Pythonise language specific data (hex -> rgb, tag -> wx int)
-        for key in lang:
-            lang[key]['tag'] = getattr(stc, lang[key]['tag'])
-            lang[key]['bg'] = self.hex2rgb(lang[key]['bg'], base['bg'])
-            lang[key]['fg'] = self.hex2rgb(lang[key]['fg'], base['fg'])
-            if not spec[key]['font']:
-                lang[key]['font'] = base['font']
-        # Set colours from spec
-        for key in lang:
-            self.StyleSetBackground(lang[key]['tag'], spec[key]['bg'])
-            self.StyleSetForeground(lang[key]['tag'], spec[key]['fg'])
-            lang[key]['size'] = int(self.coder.prefs['codeFontSize'])
-            self.StyleSetSpec(lang[key]['tag'], "face:%(font)s,size:%(size)d" % lang[key])
-        # Apply keywords
-        for level, val in self.lexkw.items():
-            self.SetKeyWords(level, " ".join(val))
 
     @property
     def lexkw(self):
@@ -163,6 +143,36 @@ class StylerMixin:
                 1: []
             }
         return keywords
+
+    @property
+    def tags(self):
+        tags = {
+            "base": stc.STC_STYLE_DEFAULT,
+            "margin": stc.STC_STYLE_LINENUMBER,
+            "indent": stc.STC_STYLE_INDENTGUIDE,
+            "brace": stc.STC_STYLE_BRACELIGHT,
+            "controlchar": stc.STC_STYLE_CONTROLCHAR
+        }
+        if self.GetLexer() == stc.STC_LEX_PYTHON:
+            tags.update({
+                "operator": stc.STC_P_OPERATOR,
+                "keyword": stc.STC_P_WORD,
+                "keyword2": stc.STC_P_WORD2,
+                "id": stc.STC_P_IDENTIFIER,
+                "num": stc.STC_P_NUMBER,
+                "char": stc.STC_P_CHARACTER,
+                "str": stc.STC_P_STRING,
+                "openstr": stc.STC_P_STRINGEOL,
+                "def": stc.STC_P_DEFNAME,
+                "class": stc.STC_P_CLASSNAME,
+                "comment": stc.STC_P_COMMENTLINE,
+                "commentblock": stc.STC_P_COMMENTBLOCK,
+                "triplequotes": stc.STC_P_TRIPLE,
+                "tripledoublequotes": stc.STC_P_TRIPLEDOUBLE,
+                "whitespace": stc.STC_P_DEFAULT
+            })
+        return tags
+
 
     def hex2rgb(self, hex, base=(0, 0, 0, 0)):
         if not isinstance(hex, str):
