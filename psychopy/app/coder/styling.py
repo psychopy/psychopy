@@ -154,6 +154,7 @@ class StylerMixin:
             "controlchar": stc.STC_STYLE_CONTROLCHAR
         }
         if self.GetLexer() == stc.STC_LEX_PYTHON:
+            # Python
             tags.update({
                 "operator": stc.STC_P_OPERATOR,
                 "keyword": stc.STC_P_WORD,
@@ -167,9 +168,44 @@ class StylerMixin:
                 "class": stc.STC_P_CLASSNAME,
                 "comment": stc.STC_P_COMMENTLINE,
                 "commentblock": stc.STC_P_COMMENTBLOCK,
-                "triplequotes": stc.STC_P_TRIPLE,
-                "tripledoublequotes": stc.STC_P_TRIPLEDOUBLE,
+                "documentation": stc.STC_P_TRIPLE,
+                "documentation2": stc.STC_P_TRIPLEDOUBLE,
                 "whitespace": stc.STC_P_DEFAULT
+            })
+        elif self.GetLexer() == stc.STC_LEX_R:
+            # R
+            tags.update({
+                "operator": stc.STC_R_OPERATOR,
+                "keyword": stc.STC_R_BASEKWORD,
+                "keyword2": stc.STC_R_KWORD,
+                "id": stc.STC_R_IDENTIFIER,
+                "num": stc.STC_R_NUMBER,
+                "char": stc.STC_R_STRING2,
+                "str": stc.STC_R_STRING,
+                "infix": stc.STC_R_INFIX,
+                "openinfix": stc.STC_R_INFIXEOL,
+                "comment": stc.STC_R_COMMENT,
+                "whitespace": stc.STC_R_DEFAULT
+            })
+        elif self.GetLexer() == stc.STC_LEX_CPP:
+            # C/C++
+            tags.update({
+                "operator": stc.STC_C_OPERATOR,
+                "keyword": stc.STC_C_WORD,
+                "keyword2": stc.STC_C_WORD2,
+                "id": stc.STC_C_IDENTIFIER,
+                "num": stc.STC_C_NUMBER,
+                "char": stc.STC_C_CHARACTER,
+                "str": stc.STC_C_STRING,
+                "openstr": stc.STC_C_STRINGEOL,
+                "class": stc.STC_C_GLOBALCLASS,
+                "comment": stc.STC_C_COMMENT,
+                "commentblock": stc.STC_C_COMMENTLINE,
+                "commentkw": stc.STC_C_COMMENTDOCKEYWORD,
+                "commenterror": stc.STC_C_COMMENTDOCKEYWORDERROR,
+                "documentation": stc.STC_C_COMMENTLINEDOC,
+                "documentation2": stc.STC_C_COMMENTDOC,
+                "whitespace": stc.STC_C_DEFAULT
             })
         return tags
 

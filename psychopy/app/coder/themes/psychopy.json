@@ -64,6 +64,16 @@
     "bg": "#f2f2f2",
     "font": ""
   },
+  "infix": {
+    "fg": "#f2545b",
+    "bg": "",
+    "font": ""
+  },
+  "openinfix": {
+    "fg": "#f2545b",
+    "bg": "#f2f2f2",
+    "font": ""
+  },
   "class": {
     "fg": "#f2545b",
     "bg": "",
@@ -84,12 +94,22 @@
     "bg": "#f2f2f2",
     "font": ""
   },
-  "triplequotes": {
+  "commentkw": {
+    "fg": "#C3BEF7",
+    "bg": "",
+    "font": ""
+  },
+  "commenterror": {
+    "fg": "#F2545B",
+    "bg": "",
+    "font": ""
+  },
+  "documentation": {
     "fg": "#75757D",
     "bg": "",
     "font": ""
   },
-  "tripledoublequotes": {
+  "documentation2": {
     "fg": "#75757D",
     "bg": "",
     "font": ""
@@ -103,56 +123,7 @@
 
   },
   "c++": {
-    "comments": {
-      "fg": "#6CCC74",
-      "bg": "",
-      "font": ""
-    },
-    "verbatim": {
-      "fg": "#6CCC74",
-      "bg": "",
-      "font": ""
-    },
-    "tripleverbatim": {
-      "fg": "#6CCC74",
-      "bg": "",
-      "font": ""
-    },
-    "commentline": {
-      "fg": "#6CCC74",
-      "bg": "",
-      "font": ""
-    },
-    "commentlinedoc": {
-      "fg": "#EC9703",
-      "bg": "",
-      "font": ""
-    },
-    "commentdockeyword": {
-      "fg": "#EC9703",
-      "bg": "",
-      "font": ""
-    },
-    "commentdockeyworderror": {
-      "fg": "#EC9703",
-      "bg": "",
-      "font": ""
-    },
-    "uuid": {
-      "fg": "#EC9703",
-      "bg": "",
-      "font": ""
-    },
-    "preprocessor": {
-      "fg": "#EC9703",
-      "bg": "",
-      "font": ""
-    },
-    "preprocessorcomment": {
-      "fg": "#EC9703",
-      "bg": "",
-      "font": ""
-    }
+
   },
   "r": {
 

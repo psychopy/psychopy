@@ -60,8 +60,23 @@
     "font": ""
   },
   "openstr": {
-    "fg": "#6CCC74",
+    "fg": "#C3BEF7",
     "bg": "#75757D",
+    "font": ""
+  },
+  "infix": {
+    "fg": "#f2545b",
+    "bg": "",
+    "font": ""
+  },
+  "openinfix": {
+    "fg": "#f2545b",
+    "bg": "#75757D",
+    "font": ""
+  },
+  "class": {
+    "fg": "#f2545b",
+    "bg": "",
     "font": ""
   },
   "def": {
@@ -79,12 +94,22 @@
     "bg": "#75757D",
     "font": ""
   },
-  "triplequotes": {
+  "commentkw": {
+    "fg": "#EC9703",
+    "bg": "",
+    "font": ""
+  },
+  "commenterror": {
+    "fg": "#F2545B",
+    "bg": "",
+    "font": ""
+  },
+  "documentation": {
     "fg": "#B6B6B6",
     "bg": "",
     "font": ""
   },
-  "tripledoublequotes": {
+  "documentation2": {
     "fg": "#B6B6B6",
     "bg": "",
     "font": ""
@@ -97,55 +122,5 @@
   "python": {
   },
   "c++": {
-    "comments": {
-      "fg": "#6CCC74",
-      "bg": "",
-      "font": ""
-    },
-    "verbatim": {
-      "fg": "#6CCC74",
-      "bg": "",
-      "font": ""
-    },
-    "tripleverbatim": {
-      "fg": "#6CCC74",
-      "bg": "",
-      "font": ""
-    },
-    "commentline": {
-      "fg": "#6CCC74",
-      "bg": "",
-      "font": ""
-    },
-    "commentlinedoc": {
-      "fg": "#EC9703",
-      "bg": "",
-      "font": ""
-    },
-    "commentdockeyword": {
-      "fg": "#EC9703",
-      "bg": "",
-      "font": ""
-    },
-    "commentdockeyworderror": {
-      "fg": "#EC9703",
-      "bg": "",
-      "font": ""
-    },
-    "uuid": {
-      "fg": "#EC9703",
-      "bg": "",
-      "font": ""
-    },
-    "preprocessor": {
-      "fg": "#EC9703",
-      "bg": "",
-      "font": ""
-    },
-    "preprocessorcomment": {
-      "fg": "#EC9703",
-      "bg": "",
-      "font": ""
-    }
   }
 }
