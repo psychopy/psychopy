@@ -3,6 +3,8 @@ import wx.stc as stc
 import json
 import keyword
 import builtins
+from wx import py
+from psychopy.tools.versionchooser import _translate
 
 
 class StylerMixin:
@@ -229,3 +231,13 @@ class StylerMixin:
         g = hexkeys[hex[3]] * 16 + hexkeys[hex[4]]
         b = hexkeys[hex[5]] * 16 + hexkeys[hex[6]]
         return wx.Colour(r, g, b, 1)
+
+
+class PsychopyPyShell(wx.py.shell.Shell, StylerMixin):
+    '''Simple class wrapper for Pyshell which uses the Psychopy StylerMixin'''
+    def __init__(self, coder):
+        msg = _translate('PyShell in PsychoPy - type some commands!')
+        wx.py.shell.Shell.__init__(self, coder.shelf, -1, introText=msg + '\n\n', style=wx.BORDER_NONE)
+        self.coder = coder
+        # Set theme to match code editor
+        self.theme = self.coder.prefs['theme']

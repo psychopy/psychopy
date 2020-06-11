@@ -40,7 +40,7 @@ import psychopy.app.pavlovia_ui.menu
 from psychopy.app.coder.codeEditorBase import BaseCodeEditor
 from psychopy.app.coder.fileBrowser import FileBrowserPanel
 from psychopy.app.coder.sourceTree import SourceTreePanel
-from psychopy.app.coder.styling import StylerMixin
+from psychopy.app.coder.styling import StylerMixin, PsychopyPyShell
 from psychopy.app.coder.folding import CodeEditorFoldingMixin
 from psychopy.app.icons import combineImageEmblem
 from psychopy.app.errorDlg import ErrorMsgDialog
@@ -1142,22 +1142,17 @@ class CoderFrame(wx.Frame):
                 self.setCurrentDoc(filename, keepHidden=True)
 
         # Create shelf notebook
-        self.shelf = aui.AuiNotebook(self.pnlMain, wx.ID_ANY, size=wx.Size(600, 600))
+        self.shelf = aui.AuiNotebook(self.pnlMain, wx.ID_ANY, size=wx.Size(600, 600), style=wx.BORDER_NONE)
         self.shelf.SetArtProvider(PsychopyTabArt())
-        # Create output page
-        self.outputWindow = self.app.runner.stdOut
-        self.outputWindow.write(_translate('Welcome to PsychoPy3!') + '\n')
-        self.outputWindow.write("v%s\n" % self.app.version)
-        # Add context manager to output window
+        # Create shell
         self._useShell = None
         if haveCode:
             useDefaultShell = True
             if self.prefs['preferredShell'].lower() == 'ipython':
                 try:
-                    import IPython.gui.wx.ipython_view
-                    # IPython shell is nice, but crashes if you draw stimuli
-                    self.shell = IPython.gui.wx.ipython_view.IPShellWidget(
-                        parent=self, background_color='WHITE', )
+                    # Try to use iPython
+                    from IPython.gui.wx.ipython_view import IPShellWidget
+                    self.shell = IPShellWidget(self)
                     useDefaultShell = False
                     self._useShell = 'ipython'
                 except Exception:
@@ -1165,11 +1160,10 @@ class CoderFrame(wx.Frame):
                                      ' (IPython v0.12 can fail on wx)')
                     logging.warn(msg)
             if useDefaultShell:
-                from wx import py
-                msg = _translate('PyShell in PsychoPy - type some commands!')
-                self.shell = py.shell.Shell(
-                    self.shelf, -1, introText=msg + '\n\n')
+                # Default to Pyshell if iPython fails
+                self.shell = PsychopyPyShell(self)
                 self._useShell = 'pyshell'
+            # Add shell to output pane
             self.shelf.AddPage(self.shell, _translate('Shell'))
             self.shelf.SetPageBitmap(0, wx.Bitmap(
                 os.path.join(self.paths['resources'], 'coderpython16.png'),
@@ -1187,6 +1181,11 @@ class CoderFrame(wx.Frame):
         # Update panes
         self.paneManager.Update()
         self.unitTestFrame = None
+
+        # Link to Runner output
+        self.outputWindow = self.app.runner.stdOut
+        self.outputWindow.write(_translate('Welcome to PsychoPy3!') + '\n')
+        self.outputWindow.write("v%s\n" % self.app.version)
 
         # Manage perspective
         if (self.appData['auiPerspective'] and
