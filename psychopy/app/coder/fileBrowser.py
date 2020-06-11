@@ -91,13 +91,24 @@ class FileBrowserPanel(wx.Panel):
         join = os.path.join
 
         # handles for icon graphics in the image list
-        tsize = (16, 16)
-        self.fileImgList = wx.ImageList(tsize[0], tsize[1])
-        self.gotoParentBmp = self.fileImgList.Add(wx.Bitmap(join(rc, 'dirup16.png'), wx.BITMAP_TYPE_PNG))
-        self.folderBmp = self.fileImgList.Add(wx.Bitmap(join(rc, 'folder16.png'), wx.BITMAP_TYPE_PNG))
-        self.fileBmp = self.fileImgList.Add(wx.Bitmap(join(rc, 'fileunknown16.png'), wx.BITMAP_TYPE_PNG))
-        self.csvBmp = self.fileImgList.Add(wx.Bitmap(join(rc, 'filecsv16.png'), wx.BITMAP_TYPE_PNG))
-        self.imageBmp = self.fileImgList.Add(wx.Bitmap(join(rc, 'fileimage16.png'), wx.BITMAP_TYPE_PNG))
+        self.fileImgExt = {
+            "..": 'dirup16.png',
+            "\\": 'folder16.png',
+            ".?": 'fileunknown16.png',
+            ".csv": 'filecsv16.png',
+            ".xlsx": 'filecsv16.png',
+            ".xls": 'filecsv16.png',
+            ".tsv": 'filecsv16.png',
+            ".png": 'fileimage16.png',
+            ".jpeg": 'fileimage16.png',
+            ".bmp": 'fileimage16.png',
+            ".gif": 'fileimage16.png',
+            ".py": 'coderpython16.png'
+        }
+        self.fileImgInds = {}
+        self.fileImgList = wx.ImageList(16, 16)
+        for key in self.fileImgExt:
+            self.fileImgInds[key] = self.fileImgList.Add(wx.Bitmap(join(rc, self.fileImgExt[key]), wx.BITMAP_TYPE_PNG))
 
         # icons for toolbars
         gotoBmp = wx.Bitmap(join(rc, 'goto16.png'), wx.BITMAP_TYPE_PNG)
@@ -561,18 +572,23 @@ class FileBrowserPanel(wx.Panel):
         self.fileList.DeleteAllItems()
         for obj in self.dirData:
             if isinstance(obj, FolderItemData):
-                if not obj.name == '..':
-                    img = 1
+                if obj.name == '..':
+                    img = self.fileImgInds['..']
                 else:
-                    img = 0
+                    img = self.fileImgInds['\\']
 
                 index = self.fileList.InsertItem(
                     self.fileList.GetItemCount(), obj.name, img)
             elif isinstance(obj, FileItemData):
+                ext = os.path.splitext(obj.name)[1]
+                if ext in self.fileImgInds:
+                    img = self.fileImgInds[ext]
+                else:
+                    img = self.fileImgInds['.?']
                 index = self.fileList.InsertItem(
                     self.fileList.GetItemCount(),
                     obj.name,
-                    2)
+                    img)
                 self.fileList.SetItem(index, 1, obj.fsize)
                 #self.fileList.SetItem(index, 2, obj.mod)
 
