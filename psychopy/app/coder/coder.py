@@ -742,7 +742,7 @@ class CodeEditor(BaseCodeEditor, CodeEditorFoldingMixin):
 
         # quote line
         elif keyCode == ord("'"):
-            raise RuntimeError
+            #raise RuntimeError
             start, end = self.GetSelection()
             if end - start > 0:
                 txt = self.GetSelectedText()
@@ -2034,7 +2034,7 @@ class CoderFrame(wx.Frame):
         # prevents it from jumping around annoyingly
         if hasattr(self, 'sourceAsstWindow'):
             # get the old source assist scroll position, save it
-            if old > -1:
+            if old > -1 and old < self.notebook.GetPageCount()-1:
                 self.notebook.GetPage(old).sourceAsstScroll = \
                     self.sourceAsstWindow.GetScrollVert()
             self.currentDoc.analyseScript()
