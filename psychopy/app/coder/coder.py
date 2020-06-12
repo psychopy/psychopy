@@ -62,7 +62,6 @@ runScripts = 'process'
 
 try:  # needed for wx.py shell
     import code
-
     haveCode = True
 except Exception:
     haveCode = False
