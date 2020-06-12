@@ -213,6 +213,7 @@ class PsychopyToolbar(wx.ToolBar):
 
         # Create tools
         cl = frame.__class__.__name__
+        pavButtons = pavlovia_ui.toolbar.PavloviaButtons(frame, toolbar=self, tbSize=self.iconSize)
         if frame.__class__.__name__ == 'BuilderFrame':
             self.AddPsychopyTool('filenew', 'New', 'new',
                             "Create new experiment file",
@@ -249,6 +250,7 @@ class PsychopyToolbar(wx.ToolBar):
             self.frame.bldrBtnRun = self.AddPsychopyTool(('run', 'runner'), 'Run', 'runScript',
                                  "Run experiment",
                                  self.frame.runFile)  # Run
+            pavButtons.addPavloviaTools()
         elif frame.__class__.__name__ == 'CoderFrame':
             self.AddPsychopyTool('filenew', 'New', 'new',
                                  "Create new experiment file",
@@ -282,9 +284,9 @@ class PsychopyToolbar(wx.ToolBar):
             self.frame.cdrBtnRun = self.AddPsychopyTool(('run', 'runner'), 'Run', 'runScript',
                                                          "Run experiment",
                                                          self.frame.runFile)  # Run
-        self.AddSeparator()
-        pavButtons = pavlovia_ui.toolbar.PavloviaButtons(frame, toolbar=self, tbSize=self.iconSize)
-        pavButtons.addPavloviaTools()
+            self.AddSeparator()
+            pavButtons.addPavloviaTools(
+                buttons=['pavloviaSync', 'pavloviaSearch', 'pavloviaUser'])
         frame.btnHandles.update(pavButtons.btnHandles)
 
         # Finished setup. Make it happen
