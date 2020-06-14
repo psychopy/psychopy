@@ -90,6 +90,8 @@ class ParamCtrls(object):
                 except Exception:
                     tryForExp.parent
 
+        self.app = self.parent.app
+
         # param has the fields:
         #   val, valType, allowedVals=[],allowedTypes=[],
         #   hint="", updates=None, allowedUpdates=None
@@ -125,7 +127,8 @@ class ParamCtrls(object):
             else:
                 sx, sy = 100, 200
             # set viewer small, then it SHOULD increase with wx.aui control
-            self.valueCtrl = CodeBox(parent, -1, pos=wx.DefaultPosition,
+            self.valueCtrl = CodeBox(parent, -1, app=self.app,
+                                     pos=wx.DefaultPosition,
                                      size=wx.Size(sx, sy), style=0,
                                      prefs=appPrefs)
             if len(param.val):
@@ -139,7 +142,8 @@ class ParamCtrls(object):
                 parent, val, order=['Field', 'Default'])
         elif param.valType == 'extendedCode':
             # set viewer small, then it will increase with wx.aui control
-            self.valueCtrl = CodeBox(parent, -1, pos=wx.DefaultPosition,
+            self.valueCtrl = CodeBox(parent, -1, app=self.app,
+                                     pos=wx.DefaultPosition,
                                      size=wx.Size(100, 100), style=0,
                                      prefs=appPrefs)
             if len(param.val):

@@ -602,7 +602,7 @@ class CodeEditor(BaseCodeEditor, CodeEditorFoldingMixin, StylerMixin):
         faces['small'] = faces['size'] - 2
         # Global default styles for all languages
         # ,'Arial']  # use arial as backup
-        faces['code'] = self.coder.prefs['codeFont']
+        # faces['code'] = self.coder.prefs['codeFont']  # now defined in the styling
         # ,'Arial']  # use arial as backup
         faces['comment'] = self.coder.prefs['commentFont']
 

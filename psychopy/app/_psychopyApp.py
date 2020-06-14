@@ -334,7 +334,7 @@ class PsychoPyApp(wx.App):
                                      wx.FONTFAMILY_MODERN,
                                      wx.FONTSTYLE_NORMAL,
                                      wx.FONTWEIGHT_NORMAL)
-        self._codeFont.SetFaceName(self.prefs.coder['codeFont'])
+        # self._codeFont.SetFaceName(self.prefs.coder['codeFont'])
 
         # removed Aug 2017: on newer versions of wx (at least on mac)
         # this looks too big

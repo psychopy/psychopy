@@ -119,6 +119,7 @@ class DlgCodeComponentProperties(wx.Dialog):
                     tabN += 1
 
                 self.codeBoxes[paramName] = CodeBox(_panel, wx.ID_ANY,
+                                                    app=self.app,
                                                     pos=wx.DefaultPosition,
                                                     style=0,
                                                     prefs=self.app.prefs,
@@ -460,6 +461,7 @@ class CodeBox(BaseCodeEditor):
     # this comes mostly from the wxPython demo styledTextCtrl 2
 
     def __init__(self, parent, ID, prefs,
+                 app,
                  # set the viewer to be small, then it will increase with
                  # wx.aui control
                  pos=wx.DefaultPosition, size=wx.Size(100, 160),
@@ -471,6 +473,7 @@ class CodeBox(BaseCodeEditor):
 
         self.parent = parent
         self.prefs = prefs
+        self.app = app
         self.params = params
         self.codeType = codeType
         self.SetLexer(wx.stc.STC_LEX_PYTHON)
@@ -524,7 +527,7 @@ class CodeBox(BaseCodeEditor):
         faces['small'] = faces['size'] - 2
         # Global default styles for all languages
         # ,'Arial']  # use arial as backup
-        faces['code'] = self.prefs.coder['codeFont']
+        faces['code'] = self.app._codeFont.GetFaceName()
         # ,'Arial']  # use arial as backup
         faces['comment'] = self.prefs.coder['commentFont']
         self.StyleSetSpec(wx.stc.STC_STYLE_DEFAULT,
