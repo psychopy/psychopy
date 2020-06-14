@@ -19,6 +19,7 @@ dependencies:
 - imageio
 - imageio-ffmpeg
 - javascripthon
+- jedi
 - json_tricks
 - lxml
 - matplotlib
