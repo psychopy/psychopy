@@ -529,7 +529,7 @@ class CodeBox(BaseCodeEditor):
         # ,'Arial']  # use arial as backup
         faces['code'] = self.app._codeFont.GetFaceName()
         # ,'Arial']  # use arial as backup
-        faces['comment'] = self.prefs.coder['commentFont']
+        faces['comment'] = faces['code']  # self.prefs.coder['commentFont']
         self.StyleSetSpec(wx.stc.STC_STYLE_DEFAULT,
                           "face:%(code)s,size:%(size)d" % faces)
         self.StyleClearAll()  # Reset all to be like the default

@@ -604,7 +604,7 @@ class CodeEditor(BaseCodeEditor, CodeEditorFoldingMixin, StylerMixin):
         # ,'Arial']  # use arial as backup
         # faces['code'] = self.coder.prefs['codeFont']  # now defined in the styling
         # ,'Arial']  # use arial as backup
-        faces['comment'] = self.coder.prefs['commentFont']
+        # faces['comment'] = faces['code']  # self.coder.prefs['commentFont']
 
         # apply the theme to the lexer
         self.theme = self.coder.prefs['theme']
