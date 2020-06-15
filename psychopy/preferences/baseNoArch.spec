@@ -81,7 +81,7 @@
     # Long line edge guide, specify zero to disable
     edgeGuideColumn = integer(0, 65536, default=80)
     # Color theme to use for syntax highlighting
-    theme = option('psychopy', 'psychopy_dark', default='psychopy')
+    theme = option('psychopy', 'psychopy_dark', 'github', 'vc6', 'wx', default='psychopy')
     # activate the source assistant panel
     showSourceAsst = boolean(default=True)
     # activate the output and shell panels

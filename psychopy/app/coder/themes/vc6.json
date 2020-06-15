@@ -1,33 +1,131 @@
 {
-"editor": {
-"caretFgCol": "BLACK",
-"selFg": "WHITE",
-"selBg": "BLUE",
-"edgeGuideCol": "#CDCDCD"
-},
-"lexerStyles": {
-"default": "fore:#000000,face:%(code)s,size:%(size)d",
-"comment": "fore:#008000,size:%(size)d",
-"commentline": "fore:#008000,size:%(size)d",
-"commentblock": "fore:#008000,size:%(size)d",
-"commentlinedoc": "fore:#008000,size:%(size)d",
-"commentdockeyword": "fore:#008000,face:%(comment)s,size:%(size)d",
-"commentdockeyworderror": "fore:#008000,face:%(comment)s,size:%(size)d",
-"string": "fore:#4C4C4C,face:%(code)s,size:%(size)d",
-"character": "fore:#4C4C4C,face:%(code)s,size:%(size)d",
-"triple": "fore:#4C4C4C,size:%(size)d",
-"tripledouble": "fore:#4C4C4C,size:%(size)d",
-"number": "fore:#000000,size:%(size)d",
-"operator": "fore:#000000,size:%(size)d",
-"pyidentifier": "fore:#000000,face:%(code)s,size:%(size)d",
-"identifier": "fore:#000000,face:%(code)s,size:%(size)d",
-"word": "fore:#0000EE,size:%(size)d",
-"word2": "fore:#0000EE,size:%(size)d",
-"defname": "fore:#000000,size:%(size)d",
-"classname": "fore:#000000,size:%(size)d",
-"stringeol": "fore:#000000,face:%(code)s,eol,size:%(size)d",
-"preprocessor": "fore:#0000EE,size:%(size)d",
-"preprocessorcomment": "fore:#0000EE,size:%(size)d",
-"globalclass": "fore:#000000,size:%(size)d"
-}
+  "base": {
+    "fg": "#000000",
+    "bg": "#FFFFFF",
+    "font": "Consolas"
+  },
+  "margin": {
+    "fg": "",
+    "bg": "#CDCDCD",
+    "font": ""
+  },
+  "indent": {
+    "fg": "",
+    "bg": "",
+    "font": ""
+  },
+  "brace": {
+    "fg": "",
+    "bg": "",
+    "font": ""
+  },
+  "operator": {
+    "fg": "",
+    "bg": "",
+    "font": ""
+  },
+  "keyword": {
+    "fg": "#0000EE",
+    "bg": "",
+    "font": ""
+  },
+  "keyword2": {
+    "fg": "#0000EE",
+    "bg": "",
+    "font": ""
+  },
+  "controlchar": {
+    "fg": "",
+    "bg": "",
+    "font": ""
+  },
+  "id": {
+    "fg": "",
+    "bg": "",
+    "font": ""
+  },
+  "num": {
+    "fg": "",
+    "bg": "",
+    "font": ""
+  },
+  "char": {
+    "fg": "#4C4C4C",
+    "bg": "",
+    "font": ""
+  },
+  "str": {
+    "fg": "#4C4C4C",
+    "bg": "",
+    "font": ""
+  },
+  "openstr": {
+    "fg": "",
+    "bg": "",
+    "font": ""
+  },
+  "infix": {
+    "fg": "",
+    "bg": "",
+    "font": ""
+  },
+  "openinfix": {
+    "fg": "",
+    "bg": "",
+    "font": ""
+  },
+  "class": {
+    "fg": "",
+    "bg": "",
+    "font": ""
+  },
+  "def": {
+    "fg": "",
+    "bg": "",
+    "font": ""
+  },
+  "comment": {
+    "fg": "#008000",
+    "bg": "",
+    "font": ""
+  },
+  "commentblock": {
+    "fg": "#008000",
+    "bg": "",
+    "font": ""
+  },
+  "commentkw": {
+    "fg": "#008000",
+    "bg": "",
+    "font": ""
+  },
+  "commenterror": {
+    "fg": "#008000",
+    "bg": "",
+    "font": ""
+  },
+  "documentation": {
+    "fg": "#4C4C4C",
+    "bg": "",
+    "font": ""
+  },
+  "documentation2": {
+    "fg": "#4C4C4C",
+    "bg": "",
+    "font": ""
+  },
+  "whitespace": {
+    "fg": "",
+    "bg": "",
+    "font": ""
+  },
+  "python": {
+
+  },
+  "c++": {
+
+  },
+  "r": {
+
+  }
 }

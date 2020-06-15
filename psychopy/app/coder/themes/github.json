@@ -1,36 +1,131 @@
 {
-"editor": {
-"caretFgCol": "BLACK",
-"selFg": "#000000",
-"selBg": "#add2fc",
-"edgeGuideCol": "#eeeeee"
-},
-"lexerStyles": {
-"default": "fore:#000000,face:%(code)s,size:%(size)d",
-"comment": "fore:#969896,face:%(comment)s,size:%(size)d",
-"commentline": "fore:#969896,face:%(comment)s,size:%(size)d",
-"commentblock": "fore:#969896,face:%(comment)s,size:%(size)d",
-"commentlinedoc": "fore:#969896,face:%(comment)s,size:%(size)d",
-"commentdockeyword":"fore:#969896,bold,face:%(comment)s,size:%(size)d",
-"commentdockeyworderror":"fore:#969896,bold,face:%(comment)s,size:%(size)d",
-"stringraw":"fore:#969896,bold,face:%(comment)s,size:%(size)d",
-"string": "fore:#032f62,face:%(code)s,size:%(size)d",
-"character": "fore:#032f62,face:%(code)s,size:%(size)d",
-"triple": "fore:#032f62,face:%(code)s,size:%(size)d",
-"tripledouble": "fore:#032f62,face:%(code)s,size:%(size)d",
-"number": "fore:#005cc5,size:%(size)d",
-"operator": "fore:#005cc5,size:%(size)d",
-"pyidentifier": "face:%(code)s,size:%(size)d",
-"identifier": "face:%(code)s,size:%(size)d",
-"word": "fore:#d73a49,size:%(size)d",
-"word2": "fore:#800080,size:%(size)d",
-"defname": "fore:#800080,size:%(size)d",
-"classname": "fore:#e36209,size:%(size)d",
-"stringeol": "fore:#000000,face:%(code)s,back:#E0C0E0,eol,size:%(size)d",
-"preprocessor": "fore:#d73a49,size:%(size)d",
-"preprocessorcomment": "fore:#d73a49,size:%(size)d",
-"verbatim": "fore:#032f62,size:%(size)d",
-"tripleverbatim": "fore:#032f62,size:%(size)d",
-"globalclass": "fore:#e36209,size:%(size)d"
-}
+  "base": {
+    "fg": "#333333",
+    "bg": "#FFFFFF",
+    "font": "Consolas"
+  },
+  "margin": {
+    "fg": "",
+    "bg": "#eeeeee",
+    "font": ""
+  },
+  "indent": {
+    "fg": "#969896",
+    "bg": "",
+    "font": ""
+  },
+  "brace": {
+    "fg": "",
+    "bg": "",
+    "font": ""
+  },
+  "operator": {
+    "fg": "#A71D5D",
+    "bg": "",
+    "font": ""
+  },
+  "keyword": {
+    "fg": "#a71d5d",
+    "bg": "",
+    "font": ""
+  },
+  "keyword2": {
+    "fg": "#0086B3",
+    "bg": "",
+    "font": ""
+  },
+  "controlchar": {
+    "fg": "#63a35c",
+    "bg": "",
+    "font": ""
+  },
+  "id": {
+    "fg": "",
+    "bg": "",
+    "font": ""
+  },
+  "num": {
+    "fg": "#0086B3",
+    "bg": "",
+    "font": ""
+  },
+  "char": {
+    "fg": "#032f62",
+    "bg": "",
+    "font": ""
+  },
+  "str": {
+    "fg": "#032f62",
+    "bg": "",
+    "font": ""
+  },
+  "openstr": {
+    "fg": "#032f62",
+    "bg": "#969896",
+    "font": ""
+  },
+  "infix": {
+    "fg": "",
+    "bg": "",
+    "font": ""
+  },
+  "openinfix": {
+    "fg": "",
+    "bg": "",
+    "font": ""
+  },
+  "class": {
+    "fg": "#795da3",
+    "bg": "",
+    "font": ""
+  },
+  "def": {
+    "fg": "#795da3",
+    "bg": "",
+    "font": ""
+  },
+  "comment": {
+    "fg": "#969896",
+    "bg": "",
+    "font": ""
+  },
+  "commentblock": {
+    "fg": "#969896",
+    "bg": "",
+    "font": ""
+  },
+  "commentkw": {
+    "fg": "#969896",
+    "bg": "",
+    "font": ""
+  },
+  "commenterror": {
+    "fg": "#969896",
+    "bg": "",
+    "font": ""
+  },
+  "documentation": {
+    "fg": "",
+    "bg": "",
+    "font": ""
+  },
+  "documentation2": {
+    "fg": "",
+    "bg": "",
+    "font": ""
+  },
+  "whitespace": {
+    "fg": "",
+    "bg": "",
+    "font": ""
+  },
+  "python": {
+
+  },
+  "c++": {
+
+  },
+  "r": {
+
+  }
 }
