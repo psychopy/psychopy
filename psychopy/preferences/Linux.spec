@@ -74,6 +74,8 @@
     readonly = boolean(default=False)
     # a list of font names; the first one found on the system will be used
     outputFont = string(default='Ubuntu Mono, DejaVu Sans Mono')
+    # a list of font names; the first one found on the system will be used
+    codeFont = string(default='Ubuntu Mono, DejaVu Sans Mono')
     # Font size (in pts) takes an integer between 6 and 24
     codeFontSize = integer(6,24, default=12)
     # Font size (in pts) takes an integer between 6 and 24
