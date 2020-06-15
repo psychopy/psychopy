@@ -1807,8 +1807,8 @@ class RoutineCanvas(wx.ScrolledWindow):
                 dc.DrawBitmap(thisIcon, self.iconXpos, yPos + iconYOffset, True)
 
             xScale = self.getSecsPerPixel()
-            yOffset = (5, 5, 2)[self.drawSize]
-            h = self.componentStep // (5.5, 4.75, 4)[self.drawSize]
+            yOffset = (3.5, 3.5, 0.5)[self.drawSize]
+            h = self.componentStep // (4, 3.25, 2.5)[self.drawSize]
             xSt = self.timeXposStart + startTime // xScale
             w = duration // xScale + 1
             if w > 10000:
