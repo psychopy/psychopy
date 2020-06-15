@@ -10,13 +10,13 @@
     "font": ""
   },
   "indent": {
-    "fg": "#d4d4d4",
-    "bg": "#d4d4d4",
+    "fg": "#D4D4D4",
+    "bg": "#D4D4D4",
     "font": ""
   },
   "brace": {
     "fg": "",
-    "bg": "#f2f2f2",
+    "bg": "#F2F2F2",
     "font": ""
   },
   "operator": {
@@ -30,12 +30,12 @@
     "font": ""
   },
   "keyword2": {
-    "fg": "#EC9703",
+    "fg": "#02A9EA",
     "bg": "",
-    "font": ""
+    "font": "Consolas,italic"
   },
   "controlchar": {
-    "fg": "#EC9703",
+    "fg": "",
     "bg": "",
     "font": ""
   },
@@ -50,17 +50,17 @@
     "font": ""
   },
   "char": {
-    "fg": "#6CCC74",
+    "fg": "#EC9703",
     "bg": "",
     "font": ""
   },
   "str": {
-    "fg": "#6CCC74",
+    "fg": "#EC9703",
     "bg": "",
     "font": ""
   },
   "openstr": {
-    "fg": "#6CCC74",
+    "fg": "#EC9703",
     "bg": "#f2f2f2",
     "font": ""
   },
@@ -75,12 +75,12 @@
     "font": ""
   },
   "class": {
-    "fg": "#f2545b",
+    "fg": "",
     "bg": "",
     "font": ""
   },
   "def": {
-    "fg": "#f2545b",
+    "fg": "",
     "bg": "",
     "font": ""
   },
@@ -95,12 +95,12 @@
     "font": ""
   },
   "commentkw": {
-    "fg": "#C3BEF7",
+    "fg": "#F2545B",
     "bg": "",
     "font": ""
   },
   "commenterror": {
-    "fg": "#F2545B",
+    "fg": "#F46E75",
     "bg": "",
     "font": ""
   },

@@ -10,8 +10,8 @@
     "font": ""
   },
   "indent": {
-    "fg": "#75757D",
-    "bg": "#75757D",
+    "fg": "#D4D4D4",
+    "bg": "#D4D4D4",
     "font": ""
   },
   "brace": {
@@ -25,17 +25,17 @@
     "font": ""
   },
   "keyword": {
-    "fg": "#F2545B",
+    "fg": "#F46E75",
     "bg": "",
     "font": ""
   },
   "keyword2": {
-    "fg": "#EC9703",
+    "fg": "#C3BEF7",
     "bg": "",
-    "font": ""
+    "font": "Consolas,italic"
   },
   "controlchar": {
-    "fg": "#EC9703",
+    "fg": "",
     "bg": "",
     "font": ""
   },
@@ -45,22 +45,22 @@
     "font": ""
   },
   "num": {
-    "fg": "#6CCC74",
+    "fg": "#C3BEF7",
     "bg": "",
     "font": ""
   },
   "char": {
-    "fg": "#C3BEF7",
+    "fg": "#6CCC74",
     "bg": "",
     "font": ""
   },
   "str": {
-    "fg": "#C3BEF7",
+    "fg": "#6CCC74",
     "bg": "",
     "font": ""
   },
   "openstr": {
-    "fg": "#C3BEF7",
+    "fg": "#6CCC74",
     "bg": "#75757D",
     "font": ""
   },
@@ -75,12 +75,12 @@
     "font": ""
   },
   "class": {
-    "fg": "#f2545b",
+    "fg": "",
     "bg": "",
     "font": ""
   },
   "def": {
-    "fg": "#f2545b",
+    "fg": "",
     "bg": "",
     "font": ""
   },
@@ -95,7 +95,7 @@
     "font": ""
   },
   "commentkw": {
-    "fg": "#EC9703",
+    "fg": "#F46E75",
     "bg": "",
     "font": ""
   },
