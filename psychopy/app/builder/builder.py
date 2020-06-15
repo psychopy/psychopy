@@ -1787,9 +1787,22 @@ class RoutineCanvas(wx.ScrolledWindow):
                              style=wx.TRANSPARENT))
 
             if component.params['disabled'].val:
+                # Grey bar if comp is disabled
                 dc.SetBrush(wx.Brush(cs['rtcomp_disbar']))
                 dc.DrawBitmap(thisIcon.ConvertToDisabled(), self.iconXpos, yPos + iconYOffset, True)
+            elif 'forceEndRoutine' in component.params \
+                    or 'forceEndRoutineOnPress' in component.params:
+                if any(component.params[key].val
+                       for key in ['forceEndRoutine', 'forceEndRoutineOnPress']
+                       if key in component.params):
+                    # Orange bar if component has forceEndRoutine or forceEndRoutineOnPress and either are true
+                    dc.SetBrush(wx.Brush(cs['rtcomp_force']))
+                else:
+                    # Blue bar if component has forceEndRoutine or forceEndRoutineOnPress but none are true
+                    dc.SetBrush(wx.Brush(cs['rtcomp_bar']))
+                dc.DrawBitmap(thisIcon, self.iconXpos, yPos + iconYOffset, True)
             else:
+                # Blue bar otherwise
                 dc.SetBrush(wx.Brush(cs['rtcomp_bar']))
                 dc.DrawBitmap(thisIcon, self.iconXpos, yPos + iconYOffset, True)
 
@@ -1853,6 +1866,14 @@ class RoutineCanvas(wx.ScrolledWindow):
         # check current timing settings of component (if it changes we
         # need to update views)
         initialTimings = component.getStartAndDuration()
+        if 'forceEndRoutine' in component.params \
+                or 'forceEndRoutineOnPress' in component.params:
+            # If component can force end routine, check if it did before
+            initialForce = [component.params[key].val
+                            for key in ['forceEndRoutine', 'forceEndRoutineOnPress']
+                            if key in component.params]
+        else:
+            initialForce = False
         # create the dialog
         if hasattr(component, 'type') and component.type.lower() == 'code':
             _Dlg = DlgCodeComponentProperties
@@ -1864,6 +1885,17 @@ class RoutineCanvas(wx.ScrolledWindow):
                    order=component.order, helpUrl=helpUrl, editing=True,
                    depends=component.depends)
         if dlg.OK:
+            # Redraw if force end routine has changed
+            if 'forceEndRoutine' in component.params \
+                    or 'forceEndRoutineOnPress' in component.params:
+                newForce = [component.params[key].val
+                            for key in ['forceEndRoutine', 'forceEndRoutineOnPress']
+                            if key in component.params]
+                if initialForce != newForce:
+                    self.redrawRoutine()  # need to refresh timings section
+                    self.Refresh()  # then redraw visible
+                    self.frame.flowPanel.draw()
+            # Redraw if timings have changed
             if component.getStartAndDuration() != initialTimings:
                 self.redrawRoutine()  # need to refresh timings section
                 self.Refresh()  # then redraw visible
