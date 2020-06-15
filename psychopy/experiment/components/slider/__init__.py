@@ -54,7 +54,7 @@ knownStyles = slider.Slider.knownStyles
 class SliderComponent(BaseVisualComponent):
     """A class for presenting a rating scale as a builder component
     """
-    categories = ['Responses', 'Custom']
+    categories = ['Responses']
 
     def __init__(self, exp, parentName,
                  name='slider',
