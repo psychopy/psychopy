@@ -168,6 +168,7 @@ class StylerMixin:
                 "char": stc.STC_P_CHARACTER,
                 "str": stc.STC_P_STRING,
                 "openstr": stc.STC_P_STRINGEOL,
+                "decorator": stc.STC_P_DECORATOR,
                 "def": stc.STC_P_DEFNAME,
                 "class": stc.STC_P_CLASSNAME,
                 "comment": stc.STC_P_COMMENTLINE,

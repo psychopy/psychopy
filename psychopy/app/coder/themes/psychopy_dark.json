@@ -74,6 +74,11 @@
     "bg": "#75757D",
     "font": ""
   },
+  "decorator": {
+    "fg": "#C3BEF7",
+    "bg": "",
+    "font": ""
+  },
   "class": {
     "fg": "",
     "bg": "",

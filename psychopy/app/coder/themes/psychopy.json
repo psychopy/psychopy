@@ -30,7 +30,7 @@
     "font": ""
   },
   "keyword2": {
-    "fg": "#02A9EA",
+    "fg": "#028EC5",
     "bg": "",
     "font": "Consolas,italic"
   },
@@ -45,7 +45,7 @@
     "font": ""
   },
   "num": {
-    "fg": "#02A9EA",
+    "fg": "#028EC5",
     "bg": "",
     "font": ""
   },
@@ -72,6 +72,11 @@
   "openinfix": {
     "fg": "#f2545b",
     "bg": "#f2f2f2",
+    "font": ""
+  },
+  "decorator": {
+    "fg": "#028EC5",
+    "bg": "",
     "font": ""
   },
   "class": {
