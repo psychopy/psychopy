@@ -133,19 +133,6 @@ class Preferences(object):
         # Find / copy themes
         self.paths['themes'] = join(self.paths['userPrefsDir'], 'themes')
         baseThemes = join(self.paths['appDir'], 'coder', 'themes')
-        # Create themes folder in user space if not one already
-        try:
-            os.makedirs(self.paths['themes'])
-        except OSError as err:
-            if err.errno != errno.EEXIST:
-                raise
-        # Make sure all the base themes are present in user's folder
-        for file in os.listdir(baseThemes):
-            shutil.copyfile(
-                join(baseThemes, file),
-                join(self.paths['themes'], file)
-            )
-
         # avoid silent fail-to-launch-app if bad permissions:
         if os.path.exists(self.paths['userPrefsDir']):
             try:
@@ -160,6 +147,21 @@ class Preferences(object):
             except Exception:  # OSError, WindowsError, ...?
                 msg = 'PsychoPy3 error: need read-write permissions for `%s`'
                 sys.exit(msg % self.paths['userPrefsDir'])
+            # Create themes folder in user space if not one already
+            try:
+                os.makedirs(self.paths['themes'])
+            except OSError as err:
+                if err.errno != errno.EEXIST:
+                    raise
+            # Make sure all the base themes are present in user's folder
+            try:
+                for file in os.listdir(baseThemes):
+                    shutil.copyfile(
+                        join(baseThemes, file),
+                        join(self.paths['themes'], file)
+                    )
+            except:
+                pass
 
     def loadAll(self):
         """Load the user prefs and the application data
