@@ -32,7 +32,7 @@
   "keyword2": {
     "fg": "#028EC5",
     "bg": "",
-    "font": "Consolas,italic"
+    "font": "Consolas,italic,bold"
   },
   "controlchar": {
     "fg": "",
