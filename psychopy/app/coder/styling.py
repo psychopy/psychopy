@@ -35,6 +35,10 @@ class StylerMixin:
                 return
         else:
             return
+        # Override base font with user spec if present
+        key = 'outputFont' if isinstance(self, PsychopyPyShell) else 'codeFont'
+        if self.coder.prefs[key] != "From theme...":
+            base['font'] = self.coder.prefs[key]
         # Check for language specific spec
         if self.GetLexer() in self.lexers:
             lexer = self.lexers[self.GetLexer()]

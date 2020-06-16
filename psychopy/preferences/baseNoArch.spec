@@ -69,9 +69,9 @@
     # open Coder files as read-only (allows running without accidental changes)
     readonly = boolean(default=False)
     # a list of font names; the first one found on the system will be used
-    outputFont = string(default='Helvetica')
+    outputFont = string(default='From Theme...')
     # a list of font names; the first one found on the system will be used
-    codeFont = string(default='Helvetica')
+    codeFont = string(default='From Theme...')
     # Font size (in pts) takes an integer between 6 and 24
     codeFontSize = integer(6,24, default=14)
     # Font size (in pts) takes an integer between 6 and 24

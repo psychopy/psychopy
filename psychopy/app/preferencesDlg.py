@@ -493,7 +493,7 @@ class PreferencesDlg(wx.Dialog):
         self.sdbControlsOK.Bind(wx.EVT_BUTTON, self.OnOKClicked)
 
         # system fonts for font properties
-        self.fontList = list(getSystemFonts(fixedWidthOnly=True))
+        self.fontList = list(getSystemFonts(fixedWidthOnly=True)) + ['From theme...']
 
         # get sound devices for "audioDevice" property
         try:

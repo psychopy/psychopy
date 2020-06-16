@@ -73,9 +73,9 @@
     # open Coder files as read-only (allows running without accidental changes)
     readonly = boolean(default=False)
     # a list of font names; the first one found on the system will be used
-    outputFont = string(default='Palatino Linotype')
+    outputFont = string(default='From Theme...')
     # a list of font names; the first one found on the system will be used
-    codeFont = string(default='Palatino Linotype')
+    codeFont = string(default='From Theme...')
     # Font size (in pts) takes an integer between 6 and 24
     codeFontSize = integer(6,24, default=12)
     # Font size (in pts) takes an integer between 6 and 24
