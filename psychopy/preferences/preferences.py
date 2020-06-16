@@ -3,6 +3,7 @@
 
 from __future__ import absolute_import, division, print_function
 
+import errno
 from builtins import object
 import os
 import sys
@@ -133,8 +134,11 @@ class Preferences(object):
         self.paths['themes'] = join(self.paths['userPrefsDir'], 'themes')
         baseThemes = join(self.paths['appDir'], 'coder', 'themes')
         # Create themes folder in user space if not one already
-        if not os.path.exists(self.paths['themes']):
-            os.mkdir(self.paths['themes'])
+        try:
+            os.makedirs(self.paths['themes'])
+        except OSError as err:
+            if err.errno != errno.EEXIST:
+                raise
         # Make sure all the base themes are present in user's folder
         for file in os.listdir(baseThemes):
             shutil.copyfile(
