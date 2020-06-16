@@ -23,7 +23,6 @@ arabic_reshaper
 cffi
 future
 json_tricks
-json
 codecov
 pytest
 pytest-cov
