@@ -35,7 +35,7 @@ cs_light = {
     'toolbar_bg': cLib['darker']['white'],
     'tool_hover': cLib['very']['darker']['white'],
     # Frame
-    'frame_bg': cLib['darker']['white'],
+    'frame_bg': cLib['white'],
     'grippers': cLib['darker']['white'],
     'note_bg': cLib['white'],
     'tab_face': cLib['white'],
