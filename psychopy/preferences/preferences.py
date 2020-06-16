@@ -137,11 +137,10 @@ class Preferences(object):
             os.mkdir(self.paths['themes'])
         # Make sure all the base themes are present in user's folder
         for file in os.listdir(baseThemes):
-            if file not in os.listdir(self.paths['themes']):
-                shutil.copyfile(
-                    join(baseThemes, file),
-                    join(self.paths['themes'], file)
-                )
+            shutil.copyfile(
+                join(baseThemes, file),
+                join(self.paths['themes'], file)
+            )
 
         # avoid silent fail-to-launch-app if bad permissions:
         if os.path.exists(self.paths['userPrefsDir']):
