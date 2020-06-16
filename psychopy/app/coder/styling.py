@@ -219,7 +219,7 @@ class StylerMixin:
 
     def hex2rgb(self, hex, base=(0, 0, 0, 0)):
         if not isinstance(hex, str):
-            raise Exception("Hex code must be a string in format #xxxxxx")
+            return base
         # Make hex code case irrelevant
         hex = hex.lower()
         # dict of hex -> int conversions
