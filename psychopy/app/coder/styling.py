@@ -86,6 +86,15 @@ class StylerMixin:
         self.SetFoldMarginColour(True, mar)
         self.SetFoldMarginHiColour(True, mar)
 
+        # Set wrap point
+        self.edgeGuideColumn = self.coder.prefs['edgeGuideColumn']
+        self.edgeGuideVisible = self.edgeGuideColumn > 0
+
+        # Set line spacing
+        spacing = min(int(self.coder.prefs['lineSpacing'] / 2), 64) # Max out at 64
+        self.SetExtraAscent(spacing)
+        self.SetExtraDescent(spacing)
+
     @property
     def lexkw(self):
         baseC = {
