@@ -812,7 +812,10 @@ class PreferencesDlg(wx.Dialog):
             # apply settings over document pages
             for ii in range(coder.notebook.GetPageCount()):
                 doc = coder.notebook.GetPage(ii)
-                doc.updateSettings()
+                doc.theme = doc.coder.prefs['theme']
+            for ii in range(coder.shelf.GetPageCount()):
+                doc = coder.shelf.GetPage(ii)
+                doc.theme = doc.coder.prefs['theme']
 
     def OnApplyClicked(self, event):
         """Apply button clicked, this makes changes to the UI without leaving

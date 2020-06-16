@@ -579,13 +579,6 @@ class CodeEditor(BaseCodeEditor, CodeEditorFoldingMixin, StylerMixin):
         # prevent flickering on update
         self.SetDoubleBuffered(True)
 
-    def updateSettings(self):
-        """Update editor settings after preference change."""
-        # show the long line edge guide, enabled if >0
-        self.edgeGuideColumn = self.coder.prefs['edgeGuideColumn']
-        self.edgeGuideVisible = self.edgeGuideColumn > 0
-        self.setFonts()
-
     def setFonts(self):
         """Make some styles,  The lexer defines what each style is used for,
         we just have to define what each style looks like.  This set is
