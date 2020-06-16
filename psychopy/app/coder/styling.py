@@ -5,9 +5,7 @@ import keyword
 import builtins
 from wx import py
 from psychopy.tools.versionchooser import _translate
-from pathlib import Path
 
-thisFolder = Path(__file__).parent
 
 class StylerMixin:
     lexers = {
@@ -23,7 +21,7 @@ class StylerMixin:
     @theme.setter
     def theme(self, value):
         # Load theme from json file
-        with open("{}/themes/{}.json".format(thisFolder, value), "rb") as fp:
+        with open("{}//{}.json".format(self.coder.paths['themes'], value), "rb") as fp:
             spec = json.load(fp)
 
         # Check that minimum spec is defined

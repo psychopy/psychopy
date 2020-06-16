@@ -9,6 +9,7 @@ import sys
 import platform
 from psychopy.constants import PY3
 from pkg_resources import parse_version
+import shutil
 
 
 try:
@@ -127,6 +128,20 @@ class Preferences(object):
                                                platform.system() + '.spec')
             self.paths['userPrefsDir'] = join(os.environ['HOME'],
                                               '.psychopy3')
+
+        # Find / copy themes
+        self.paths['themes'] = join(self.paths['userPrefsDir'], 'themes')
+        baseThemes = join(self.paths['appDir'], 'coder', 'themes')
+        # Create themes folder in user space if not one already
+        if not os.path.exists(self.paths['themes']):
+            os.mkdir(self.paths['themes'])
+        # Make sure all the base themes are present in user's folder
+        for file in os.listdir(baseThemes):
+            if file not in os.listdir(self.paths['themes']):
+                shutil.copyfile(
+                    join(baseThemes, file),
+                    join(self.paths['themes'], file)
+                )
 
         # avoid silent fail-to-launch-app if bad permissions:
         if os.path.exists(self.paths['userPrefsDir']):

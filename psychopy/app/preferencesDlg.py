@@ -3,6 +3,7 @@
 
 from __future__ import absolute_import, print_function
 
+import json
 from builtins import str
 import wx
 import wx.propgrid as pg
@@ -495,6 +496,21 @@ class PreferencesDlg(wx.Dialog):
         # system fonts for font properties
         self.fontList = ['From theme...'] + list(getSystemFonts(fixedWidthOnly=True))
 
+        # valid themes
+        themePath = self.GetTopLevelParent().app.prefs.paths['themes']
+        self.themeList = []
+        for themeFile in os.listdir(themePath):
+            try:
+                # Load theme from json file
+                with open(os.path.join(themePath, themeFile), "rb") as fp:
+                    theme = json.load(fp)
+                # Add themes to list only if min spec is defined
+                base = theme['base']
+                if all(key in base for key in ['bg', 'fg', 'font']):
+                    self.themeList += [themeFile.replace('.json', '')]
+            except:
+                pass
+
         # get sound devices for "audioDevice" property
         try:
             devnames = sorted(sound.getDevices('output'))
@@ -568,6 +584,18 @@ class PreferencesDlg(wx.Dialog):
                             prefName,
                             labels=self.fontList,
                             values=[i for i in range(len(self.fontList))],
+                            value=default, helpText=helpText)
+                elif prefName in ('theme',):
+                    try:
+                        default = self.themeList.index(thisPref)
+                    except ValueError:
+                        default = 0
+                    self.proPrefs.addEnumItem(
+                            sectionName,
+                            pLabel,
+                            prefName,
+                            labels=self.themeList,
+                            values=[i for i in range(len(self.themeList))],
                             value=default, helpText=helpText)
                 elif prefName == 'locale':
                     thisPref = self.app.prefs.app['locale']
@@ -698,6 +726,10 @@ class PreferencesDlg(wx.Dialog):
                 if prefName in ('codeFont', 'commentFont', 'outputFont'):
                     self.prefsCfg[sectionName][prefName] = \
                         self.fontList[thisPref]
+                    continue
+                if prefName in ('theme',):
+                    self.prefsCfg[sectionName][prefName] = \
+                        self.themeList[thisPref]
                     continue
                 elif prefName == 'audioDevice':
                     self.prefsCfg[sectionName][prefName] = \
