@@ -144,9 +144,9 @@ class Preferences(object):
                     fileh.write('')
                 open(tmp).read()
                 os.remove(tmp)
-            except Exception:  # OSError, WindowsError, ...?
-                msg = 'PsychoPy3 error: need read-write permissions for `%s`'
-                sys.exit(msg % self.paths['userPrefsDir'])
+            except Exception as err:  # OSError, WindowsError, ...?
+                msg = 'PsychoPy3 error: need read-write permissions for `%s` - `%s`'
+                sys.exit(msg % (self.paths['userPrefsDir'], err))
             # Create themes folder in user space if not one already
             try:
                 os.makedirs(self.paths['themes'])
