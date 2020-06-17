@@ -752,8 +752,12 @@ class StdOutText(StdOutRich):
     @theme.setter
     def theme(self, value):
         # Load theme from json file
-        with open("{}//{}.json".format(self.parent.paths['themes'], value), "rb") as fp:
-            spec = json.load(fp)
+        try:
+            with open("{}//{}.json".format(self.parent.paths['themes'], value), "rb") as fp:
+                spec = json.load(fp)
+        except:
+            with open("{}//{}.json".format(self.parent.paths['themes'], "PsychopyLight"), "rb") as fp:
+                spec = json.load(fp)
         # Check that minimum spec is defined
         if 'base' in spec:
             base = spec['base']

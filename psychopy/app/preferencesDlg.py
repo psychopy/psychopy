@@ -589,7 +589,7 @@ class PreferencesDlg(wx.Dialog):
                     try:
                         default = self.themeList.index(thisPref)
                     except ValueError:
-                        default = 0
+                        default = self.themeList.index("PsychopyLight")
                     self.proPrefs.addEnumItem(
                             sectionName,
                             pLabel,
