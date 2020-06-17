@@ -9,6 +9,7 @@ from __future__ import absolute_import, print_function
 
 # from future import standard_library
 # standard_library.install_aliases()
+import json
 from builtins import chr
 from builtins import range
 import wx
@@ -1461,6 +1462,21 @@ class CoderFrame(wx.Frame):
         menu = self.viewMenu
         menuBar.Append(self.viewMenu, _translate('&View'))
 
+        # Get list of themes
+        themePath = self.GetTopLevelParent().app.prefs.paths['themes']
+        self.themeList = {}
+        for themeFile in os.listdir(themePath):
+            try:
+                # Load theme from json file
+                with open(os.path.join(themePath, themeFile), "rb") as fp:
+                    theme = json.load(fp)
+                # Add themes to list only if min spec is defined
+                base = theme['base']
+                if all(key in base for key in ['bg', 'fg', 'font']):
+                    self.themeList[themeFile.replace('.json', '')] = []
+            except:
+                pass
+
         # indent guides
         key = keyCodes['toggleIndentGuides']
         hint = _translate("Shows guides in the editor for your "
@@ -1487,6 +1503,13 @@ class CoderFrame(wx.Frame):
             hint)
         self.showEOLsChk.Check(self.appData['showEOLs'])
         self.Bind(wx.EVT_MENU, self.setShowEOLs, id=self.showEOLsChk.GetId())
+        # Theme Switcher
+        self.themesMenu = wx.Menu()
+        menu.AppendSubMenu(self.themesMenu,
+                           _translate("Themes..."))
+        for theme in self.themeList:
+            self.themeList[theme] = self.themesMenu.Append(wx.ID_ANY, _translate(theme))
+            self.Bind(wx.EVT_MENU, self.switchTheme, self.themeList[theme])
 
         menu.AppendSeparator()
         # output window
@@ -2430,6 +2453,23 @@ class CoderFrame(wx.Frame):
             self.paneManager.GetPane('Shelf').Hide()
         self.app.prefs.saveUserPrefs()  # includes a validation
         self.paneManager.Update()
+
+    def switchTheme(self, event):
+        # Switch theme for coder view
+
+        # Use menu item Id to find value
+        newVal = [item.ItemLabel
+                  for item in self.themesMenu.GetMenuItems()
+                  if item.GetId() == event.GetId()]
+        # Update user prefs
+        self.app.prefs.userPrefsCfg['coder']['theme'] = newVal[0]
+        # Apply new theme to coder view
+        for ii in range(self.notebook.GetPageCount()):
+            doc = self.notebook.GetPage(ii)
+            doc.theme = newVal[0]
+        for ii in range(self.shelf.GetPageCount()):
+            doc = self.shelf.GetPage(ii)
+            doc.theme = newVal[0]
 
     def setShowIndentGuides(self, event):
         # show/hide the source assistant (from the view menu control)
