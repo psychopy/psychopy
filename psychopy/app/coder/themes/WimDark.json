@@ -1,22 +1,22 @@
 {
   "base": {
-    "fg": "#f2f2f2",
+    "fg": "#F2F2F2",
     "bg": "#66666E",
     "font": "Consolas"
   },
   "margin": {
-    "fg": "",
-    "bg": "#75757D",
+    "fg": "#F2F2F2",
+    "bg": "#7C7C86",
     "font": ""
   },
   "indent": {
-    "fg": "#75757D",
-    "bg": "#75757D",
+    "fg": "#7C7C86",
+    "bg": "#7C7C86",
     "font": ""
   },
   "brace": {
     "fg": "",
-    "bg": "#75757D",
+    "bg": "#7C7C86",
     "font": ""
   },
   "operator": {
@@ -30,12 +30,12 @@
     "font": ""
   },
   "keyword2": {
-    "fg": "#C3BEF7",
+    "fg": "",
     "bg": "",
     "font": "Consolas,italic,bold"
   },
   "controlchar": {
-    "fg": "",
+    "fg": "#F46E75",
     "bg": "",
     "font": ""
   },
@@ -45,39 +45,39 @@
     "font": ""
   },
   "num": {
-    "fg": "#C3BEF7",
+    "fg": "#F46E75",
     "bg": "",
     "font": ""
   },
   "char": {
-    "fg": "#B6B6B6",
+    "fg": "#ACACB0",
     "bg": "",
     "font": ""
   },
   "str": {
-    "fg": "#B6B6B6",
+    "fg": "#ACACB0",
     "bg": "",
     "font": ""
   },
   "openstr": {
-    "fg": "#B6B6B6",
-    "bg": "#75757D",
+    "fg": "#ACACB0",
+    "bg": "#7C7C86",
     "font": ""
   },
   "infix": {
-    "fg": "#f2545b",
+    "fg": "#F46E75",
     "bg": "",
     "font": ""
   },
   "openinfix": {
-    "fg": "#f2545b",
-    "bg": "#75757D",
+    "fg": "#F46E75",
+    "bg": "#7C7C86",
     "font": ""
   },
   "decorator": {
-    "fg": "#C3BEF7",
+    "fg": "#F46E75",
     "bg": "",
-    "font": ""
+    "font": "Consolas,bold"
   },
   "class": {
     "fg": "",
@@ -90,42 +90,47 @@
     "font": ""
   },
   "comment": {
-    "fg": "#EC9703",
+    "fg": "#ACACB0",
     "bg": "",
     "font": ""
   },
   "commentblock": {
-    "fg": "#EC9703",
-    "bg": "#75757D",
+    "fg": "#ACACB0",
+    "bg": "#7C7C86",
     "font": ""
   },
   "commentkw": {
-    "fg": "#F46E75",
+    "fg": "#ACACB0",
     "bg": "",
     "font": ""
   },
   "commenterror": {
-    "fg": "#F2545B",
+    "fg": "#ACACB0",
     "bg": "",
     "font": ""
   },
   "documentation": {
-    "fg": "#B6B6B6",
+    "fg": "#ACACB0",
     "bg": "",
     "font": ""
   },
   "documentation2": {
-    "fg": "#B6B6B6",
+    "fg": "#ACACB0",
     "bg": "",
     "font": ""
   },
   "whitespace": {
-    "fg": "#B8B8BB",
+    "fg": "#7C7C86",
     "bg": "",
-    "font": "Consolas,bold"
+    "font": ""
   },
   "python": {
+
   },
   "c++": {
+
+  },
+  "r": {
+
   }
 }
