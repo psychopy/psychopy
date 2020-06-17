@@ -2463,6 +2463,7 @@ class CoderFrame(wx.Frame):
                   if item.GetId() == event.GetId()]
         # Update user prefs
         self.app.prefs.userPrefsCfg['coder']['theme'] = newVal[0]
+        self.app.prefs.userPrefsCfg.write()
         # Apply new theme to coder view
         for ii in range(self.notebook.GetPageCount()):
             doc = self.notebook.GetPage(ii)
