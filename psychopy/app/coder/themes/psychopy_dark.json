@@ -50,17 +50,17 @@
     "font": ""
   },
   "char": {
-    "fg": "#6CCC74",
+    "fg": "#B6B6B6",
     "bg": "",
     "font": ""
   },
   "str": {
-    "fg": "#6CCC74",
+    "fg": "#B6B6B6",
     "bg": "",
     "font": ""
   },
   "openstr": {
-    "fg": "#6CCC74",
+    "fg": "#B6B6B6",
     "bg": "#75757D",
     "font": ""
   },
@@ -90,12 +90,12 @@
     "font": ""
   },
   "comment": {
-    "fg": "#B6B6B6",
+    "fg": "#EC9703",
     "bg": "",
     "font": ""
   },
   "commentblock": {
-    "fg": "#B6B6B6",
+    "fg": "#EC9703",
     "bg": "#75757D",
     "font": ""
   },

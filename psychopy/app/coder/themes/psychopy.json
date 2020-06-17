@@ -25,12 +25,12 @@
     "font": ""
   },
   "keyword": {
-    "fg": "#F2545B",
+    "fg": "#028EC5",
     "bg": "",
     "font": ""
   },
   "keyword2": {
-    "fg": "#028EC5",
+    "fg": "#EC9703",
     "bg": "",
     "font": "Consolas,italic,bold"
   },
@@ -50,17 +50,17 @@
     "font": ""
   },
   "char": {
-    "fg": "#EC9703",
+    "fg": "#75757D",
     "bg": "",
     "font": ""
   },
   "str": {
-    "fg": "#EC9703",
+    "fg": "#75757D",
     "bg": "",
     "font": ""
   },
   "openstr": {
-    "fg": "#EC9703",
+    "fg": "#75757D",
     "bg": "#f2f2f2",
     "font": ""
   },
@@ -75,7 +75,7 @@
     "font": ""
   },
   "decorator": {
-    "fg": "#028EC5",
+    "fg": "#EC9703",
     "bg": "",
     "font": ""
   },
@@ -90,12 +90,12 @@
     "font": ""
   },
   "comment": {
-    "fg": "#75757D",
+    "fg": "#F2545B",
     "bg": "",
     "font": ""
   },
   "commentblock": {
-    "fg": "#75757D",
+    "fg": "#F2545B",
     "bg": "#f2f2f2",
     "font": ""
   },
