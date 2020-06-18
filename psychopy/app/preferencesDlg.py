@@ -815,7 +815,7 @@ class PreferencesDlg(wx.Dialog):
                 doc.theme = doc.coder.prefs['theme']
             for ii in range(coder.shelf.GetPageCount()):
                 doc = coder.shelf.GetPage(ii)
-                doc.theme = doc.coder.prefs['theme']
+                doc.theme = doc.prefs['theme']
 
     def OnApplyClicked(self, event):
         """Apply button clicked, this makes changes to the UI without leaving
