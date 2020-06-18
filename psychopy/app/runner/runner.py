@@ -556,9 +556,17 @@ class RunnerPanel(wx.Panel, ScriptProcess):
         for file in filePaths:
             temp = Path(file)
 
-            # Check list for item
-            index = self.expCtrl.FindItem(-1, temp.name)
-            if index > -1:
+            # Check list for items
+            start = -1
+            fullPaths = []
+            while start < self.expCtrl.GetItemCount()-1:
+                index = self.expCtrl.FindItem(start, temp.name)
+                if index > -1:
+                    fullPaths += [Path(self.expCtrl.GetItem(index, 1).Text, self.expCtrl.GetItem(index, 0).Text)]
+                    start = index+1
+                else:
+                    start = self.expCtrl.GetItemCount()
+            if temp in fullPaths:
                 continue
 
             # Set new item in listCtrl
