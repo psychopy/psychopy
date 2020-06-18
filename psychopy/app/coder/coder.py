@@ -505,6 +505,8 @@ class CodeEditor(BaseCodeEditor, CodeEditorFoldingMixin, StylerMixin):
         BaseCodeEditor.__init__(self, parent, ID, pos, size, style)
 
         self.coder = frame
+        self.prefs = self.coder.prefs
+        self.paths = self.coder.paths
         self.sourceAsstScroll = 0  # keep track of scrolling
         self.SetViewWhiteSpace(self.coder.appData['showWhitespace'])
         self.SetViewEOL(self.coder.appData['showEOLs'])

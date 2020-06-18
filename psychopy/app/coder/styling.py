@@ -16,16 +16,16 @@ class StylerMixin:
 
     @property
     def theme(self):
-        return self.coder.prefs['theme']
+        return self.prefs['theme']
 
     @theme.setter
     def theme(self, value):
         # Load theme from json file
         try:
-            with open("{}//{}.json".format(self.coder.paths['themes'], value), "rb") as fp:
+            with open("{}//{}.json".format(self.paths['themes'], value), "rb") as fp:
                 spec = json.load(fp)
         except:
-            with open("{}//{}.json".format(self.coder.paths['themes'], "PsychopyLight"), "rb") as fp:
+            with open("{}//{}.json".format(self.paths['themes'], "PsychopyLight"), "rb") as fp:
                 spec = json.load(fp)
 
         # Check that minimum spec is defined
@@ -39,8 +39,8 @@ class StylerMixin:
             return
         # Override base font with user spec if present
         key = 'outputFont' if isinstance(self, PsychopyPyShell) else 'codeFont'
-        if self.coder.prefs[key] != "From theme...":
-            base['font'] = self.coder.prefs[key]
+        if self.prefs[key] != "From theme...":
+            base['font'] = self.prefs[key]
         # Check for language specific spec
         if self.GetLexer() in self.lexers:
             lexer = self.lexers[self.GetLexer()]
@@ -65,7 +65,7 @@ class StylerMixin:
                 spec[key]['fg'] = self.hex2rgb(spec[key]['fg'], base['fg'])
                 if not spec[key]['font']:
                     spec[key]['font'] = base['font']
-                spec[key]['size'] = int(self.coder.prefs['codeFontSize'])
+                spec[key]['size'] = int(self.prefs['codeFontSize'])
             else:
                 invalid += [key]
         for key in invalid:
@@ -91,11 +91,11 @@ class StylerMixin:
         self.SetFoldMarginHiColour(True, mar)
 
         # Set wrap point
-        self.edgeGuideColumn = self.coder.prefs['edgeGuideColumn']
+        self.edgeGuideColumn = self.prefs['edgeGuideColumn']
         self.edgeGuideVisible = self.edgeGuideColumn > 0
 
         # Set line spacing
-        spacing = min(int(self.coder.prefs['lineSpacing'] / 2), 64) # Max out at 64
+        spacing = min(int(self.prefs['lineSpacing'] / 2), 64) # Max out at 64
         self.SetExtraAscent(spacing)
         self.SetExtraDescent(spacing)
 
@@ -256,6 +256,8 @@ class PsychopyPyShell(wx.py.shell.Shell, StylerMixin):
     def __init__(self, coder):
         msg = _translate('PyShell in PsychoPy - type some commands!')
         wx.py.shell.Shell.__init__(self, coder.shelf, -1, introText=msg + '\n\n', style=wx.BORDER_NONE)
-        self.coder = coder
+        self.prefs = coder.prefs
+        self.paths = coder.paths
+
         # Set theme to match code editor
-        self.theme = self.coder.prefs['theme']
+        self.theme = self.prefs['theme']
