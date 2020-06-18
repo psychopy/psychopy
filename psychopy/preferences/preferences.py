@@ -144,6 +144,7 @@ class Preferences(object):
                     fileh.write('')
                 open(tmp).read()
                 os.remove(tmp)
+                msg = 'PsychoPy3 error: need read-write permissions for `%s` - `%s`'
             except Exception as err:  # OSError, WindowsError, ...?
                 msg = 'PsychoPy3 error: need read-write permissions for `%s` - `%s`'
                 sys.exit(msg % (self.paths['userPrefsDir'], err))
