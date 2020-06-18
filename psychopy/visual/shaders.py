@@ -12,6 +12,98 @@ from __future__ import absolute_import, print_function
 
 import pyglet.gl as GL
 import psychopy.tools.gltools as gltools
+from ctypes import c_int, c_char_p, c_char, cast, POINTER, byref
+
+
+class Shader:
+    def __init__(self, vertexSource=None, fragmentSource=None):
+
+        def compileShader(source, shaderType):
+            """Compile shader source of given type (only needed by compileProgram)
+            """
+            shader = GL.glCreateShaderObjectARB(shaderType)
+            # if Py3 then we need to convert our (unicode) str into bytes for C
+            if type(source) != bytes:
+                source = source.encode()
+            prog = c_char_p(source)
+            length = c_int(-1)
+            GL.glShaderSourceARB(shader,
+                                 1,
+                                 cast(byref(prog), POINTER(POINTER(c_char))),
+                                 byref(length))
+            GL.glCompileShaderARB(shader)
+
+            # check for errors
+            status = c_int()
+            GL.glGetShaderiv(shader, GL.GL_COMPILE_STATUS, byref(status))
+            if not status.value:
+                print_log(shader)
+                GL.glDeleteShader(shader)
+                raise ValueError('Shader compilation failed')
+            return shader
+
+        self.handle = GL.glCreateProgramObjectARB()
+
+        if vertexSource:
+            vertexShader = compileShader(
+                vertexSource, GL.GL_VERTEX_SHADER_ARB
+            )
+            GL.glAttachObjectARB(self.handle, vertexShader)
+        if fragmentSource:
+            fragmentShader = compileShader(
+                fragmentSource, GL.GL_FRAGMENT_SHADER_ARB
+            )
+            GL.glAttachObjectARB(self.handle, fragmentShader)
+
+        GL.glValidateProgramARB(self.handle)
+        GL.glLinkProgramARB(self.handle)
+
+        if vertexShader:
+            GL.glDeleteObjectARB(vertexShader)
+        if fragmentShader:
+            GL.glDeleteObjectARB(fragmentShader)
+
+    def bind(self):
+        GL.glUseProgram(self.handle)
+
+    def unbind(self):
+        GL.glUseProgram(0)
+
+    def setFloat(self, name, value):
+        if type(name) is not bytes:
+            name = bytes(name, 'utf-8')
+        loc = GL.glGetUniformLocation(self.handle, name)
+        if not hasattr(value, '__len__'):
+            GL.glUniform1f(loc, value)
+        elif len(value) in range(1, 5):
+            # Select the correct function
+            { 1 : GL.glUniform1f,
+              2 : GL.glUniform2f,
+              3 : GL.glUniform3f,
+              4 : GL.glUniform4f
+              # Retrieve uniform location, and set it
+            }[len(value)](loc, *value)
+        else:
+            raise ValueError("Shader.setInt '{}' should be length 1-4 not {}"
+                             .format(name, len(value)))
+
+    def setInt(self, name, value):
+        if type(name) is not bytes:
+            name = bytes(name, 'utf-8')
+        loc = GL.glGetUniformLocation(self.handle, name)
+        if not hasattr(value, '__len__'):
+            GL.glUniform1i(loc, value)
+        elif len(value) in range(1, 5):
+            # Select the correct function
+            { 1 : GL.glUniform1i,
+              2 : GL.glUniform2i,
+              3 : GL.glUniform3i,
+              4 : GL.glUniform4i
+              # Retrieve uniform location, and set it
+            }[len(value)](loc, value)
+        else:
+            raise ValueError("Shader.setInt '{}' should be length 1-4 not {}"
+                             .format(name, len(value)))
 
 
 def compileProgram(vertexSource=None, fragmentSource=None):
@@ -340,3 +432,24 @@ void main (void)
     gl_FragColor = texture(SkyTexture, texCoord);
 }
 """
+
+fragTextBox2 = '''
+    uniform sampler2D texture;
+    void main() {
+        vec2 uv      = gl_TexCoord[0].xy;
+        vec4 current = texture2D(texture, uv);
+
+        float r = current.r;
+        float g = current.g;
+        float b = current.b;
+        float a = current.a;
+        gl_FragColor = vec4( gl_Color.rgb, (r+g+b)/2.);
+    }
+    '''
+fragTextBox2alpha = '''
+    uniform sampler2D texture;
+    void main() {
+        vec4 current = texture2D(texture,gl_TexCoord[0].st);
+        gl_FragColor = vec4( gl_Color.rgb, current.a);
+    }
+    '''
