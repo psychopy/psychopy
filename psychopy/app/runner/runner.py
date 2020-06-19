@@ -148,6 +148,29 @@ class RunnerFrame(wx.Frame):
                 if item['label'].lower() in eachMenu['separators']:
                     eachMenu['menu'].AppendSeparator()
 
+        # Get list of themes
+        themePath = self.GetTopLevelParent().app.prefs.paths['themes']
+        self.themeList = {}
+        for themeFile in os.listdir(themePath):
+            try:
+                # Load theme from json file
+                with open(os.path.join(themePath, themeFile), "rb") as fp:
+                    theme = json.load(fp)
+                # Add themes to list only if min spec is defined
+                base = theme['base']
+                if all(key in base for key in ['bg', 'fg', 'font']):
+                    self.themeList[themeFile.replace('.json', '')] = []
+            except:
+                pass
+        # Add Theme Switcher
+        self.themesMenu = wx.Menu()
+        viewMenu.AppendSubMenu(self.themesMenu,
+                           _translate("Themes..."))
+        for theme in self.themeList:
+            self.themeList[theme] = self.themesMenu.Append(wx.ID_ANY, _translate(theme))
+            self.Bind(wx.EVT_MENU, self.switchTheme, self.themeList[theme])
+
+        # Create menus
         self.runnerMenu.Append(fileMenu, 'File')
         self.runnerMenu.Append(viewMenu, 'View')
         self.runnerMenu.Append(runMenu, 'Run')
@@ -250,6 +273,30 @@ class RunnerFrame(wx.Frame):
             folder = self.panel.expCtrl.GetItem(idx, 1).Text
             temp.append(str(Path(folder) / filename))
         return temp
+
+    def switchTheme(self, event):
+        # Switch theme for coder view
+
+        # Use menu item Id to find value
+        win = event.EventObject.Window
+        newVal = [item.ItemLabel
+                  for item in win.themesMenu.GetMenuItems()
+                  if item.GetId() == event.GetId()]
+        # Update user prefs
+        self.app.prefs.userPrefsCfg['coder']['theme'] = newVal[0]
+        self.app.prefs.userPrefsCfg.write()
+        # Apply new theme to runner view
+        self.panel.stdoutCtrl.theme = newVal[0]
+        self.panel.alertsCtrl.theme = newVal[0]
+        # Apply new theme to coder view
+        # Apply new theme to coder view
+        coder = self.app.coder
+        for ii in range(coder.notebook.GetPageCount()):
+            doc = coder.notebook.GetPage(ii)
+            doc.theme = newVal[0]
+        for ii in range(coder.shelf.GetPageCount()):
+            doc = coder.shelf.GetPage(ii)
+            doc.theme = newVal[0]
 
 
 class RunnerPanel(wx.Panel, ScriptProcess):
