@@ -5,6 +5,8 @@
 # Copyright (C) 2002-2018 Jonathan Peirce (C) 2019 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 import json
+
+from psychopy.app.coder import StylerMixin
 from psychopy.app.style import cLib, cs
 
 import wx
@@ -745,48 +747,14 @@ class RunnerPanel(wx.Panel, ScriptProcess):
         self._currentProject = None
 
 
-class StdOutText(StdOutRich):
+class StdOutText(StdOutRich, StylerMixin):
     """StdOutRich subclass which also handles Git messages from Pavlovia projects."""
 
     def __init__(self, parent=None, style=wx.TE_READONLY | wx.TE_MULTILINE | wx.BORDER_NONE, size=wx.DefaultSize):
         StdOutRich.__init__(self, parent=parent, style=style, size=size)
-        self.parent = parent
-        self.theme = self.parent.prefs['theme']
-
-    @property
-    def theme(self):
-        return self.parent.prefs['theme']
-
-    @theme.setter
-    def theme(self, value):
-        # Load theme from json file
-        try:
-            with open("{}//{}.json".format(self.parent.paths['themes'], value), "rb") as fp:
-                spec = json.load(fp)
-        except:
-            with open("{}//{}.json".format(self.parent.paths['themes'], "PsychopyLight"), "rb") as fp:
-                spec = json.load(fp)
-        # Check that minimum spec is defined
-        if 'base' in spec:
-            base = spec['base']
-            if not (
-                    all(key in base for key in ['bg', 'fg', 'font'])
-            ):
-                return
-        else:
-            return
-        # Override base font with user spec if present
-        if self.parent.prefs['outputFont'] != "From theme...":
-            base['font'] = self.parent.prefs['outputFont']
-        # Apply spec
-        self.SetBackgroundColour(self.hex2rgb(base['bg'], base['bg']))
-        self.BeginTextColour(self.hex2rgb(base['fg'], base['fg']))
-        self.BeginFont(
-            wx.Font(int(self.parent.prefs['outputFontSize']),
-                    wx.FONTFAMILY_TELETYPE, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL, False,
-                    faceName=base['font'])
-        )
-
+        self.prefs = parent.prefs
+        self.paths = parent.paths
+        self.theme = self.prefs['theme']
 
     def getText(self):
         """Get and return the text of the current buffer."""
@@ -802,22 +770,7 @@ class StdOutText(StdOutRich):
         text = self.GetValue() + newText
         self.setStatus(text)
 
-    def hex2rgb(self, hex, base=(0, 0, 0, 0)):
-        if not isinstance(hex, str):
-            return base
-        # Make hex code case irrelevant
-        hex = hex.lower()
-        # dict of hex -> int conversions
-        hexkeys = {'0': 0, '1': 1, '2': 2, '3': 3, '4': 4, '5': 5, '6': 6, '7': 7, '8': 8, '9': 9,
-                   'a': 10, 'b': 11, 'c': 12, 'd': 13, 'e': 14, 'f': 15,
-                   '#': None}
-        # Check that hex is a hex code
-        if not all(c in hexkeys.keys() for c in hex) or not len(hex) == 7:
-            # Default to transparent if not
-            return wx.Colour(base)
-
-        # Convert to rgb
-        r = hexkeys[hex[1]] * 16 + hexkeys[hex[2]]
-        g = hexkeys[hex[3]] * 16 + hexkeys[hex[4]]
-        b = hexkeys[hex[5]] * 16 + hexkeys[hex[6]]
-        return wx.Colour(r, g, b, 1)
+    def write(self, inStr, evt=False):
+        # Override default write behaviour to also updte theme on each write
+        StdOutRich.write(self, inStr, evt)
+        self.theme = self.prefs['theme']
