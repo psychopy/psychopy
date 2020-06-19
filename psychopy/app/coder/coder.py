@@ -9,6 +9,7 @@ from __future__ import absolute_import, print_function
 
 # from future import standard_library
 # standard_library.install_aliases()
+import json
 from builtins import chr
 from builtins import range
 import wx
@@ -16,10 +17,7 @@ import wx.stc
 import wx.richtext
 from wx.html import HtmlEasyPrinting
 
-try:
-    from wx import aui
-except Exception:
-    import wx.lib.agw.aui as aui  # some versions of phoenix
+import wx.lib.agw.aui as aui  # some versions of phoenix
 
 import os
 import sys
@@ -36,13 +34,14 @@ from .. import stdOutRich, dialogs
 from .. import pavlovia_ui
 from psychopy import logging
 from psychopy.localization import _translate
-from ..utils import FileDropTarget
+from ..utils import FileDropTarget, PsychopyToolbar, PsychopyTabArt, PsychopyDockArt
+from psychopy.app.style import cLib, cs
 from psychopy.projects import pavlovia
 import psychopy.app.pavlovia_ui.menu
 from psychopy.app.coder.codeEditorBase import BaseCodeEditor
 from psychopy.app.coder.fileBrowser import FileBrowserPanel
 from psychopy.app.coder.sourceTree import SourceTreePanel
-from psychopy.app.coder.styling import applyStyleSpec
+from psychopy.app.coder.styling import StylerMixin, PsychopyPyShell
 from psychopy.app.coder.folding import CodeEditorFoldingMixin
 from psychopy.app.icons import combineImageEmblem
 from psychopy.app.errorDlg import ErrorMsgDialog
@@ -64,7 +63,6 @@ runScripts = 'process'
 
 try:  # needed for wx.py shell
     import code
-
     haveCode = True
 except Exception:
     haveCode = False
@@ -77,7 +75,6 @@ _localized = {'basic': _translate('basic'),
               'hardware': _translate('hardware'),
               'timing': _translate('timing'),
               'misc': _translate('misc')}
-
 
 def toPickle(filename, data):
     """save data (of any sort) as a pickle file
@@ -497,17 +494,19 @@ class UnitTestFrame(wx.Frame):
         self.Destroy()
 
 
-class CodeEditor(BaseCodeEditor, CodeEditorFoldingMixin):
+class CodeEditor(BaseCodeEditor, CodeEditorFoldingMixin, StylerMixin):
     """Code editor class for the Coder GUI.
     """
     def __init__(self, parent, ID, frame,
                  # set the viewer to be small, then it will increase with aui
                  # control
                  pos=wx.DefaultPosition, size=wx.Size(100, 100),
-                 style=0, readonly=False):
+                 style=wx.BORDER_NONE, readonly=False):
         BaseCodeEditor.__init__(self, parent, ID, pos, size, style)
 
         self.coder = frame
+        self.prefs = self.coder.prefs
+        self.paths = self.coder.paths
         self.sourceAsstScroll = 0  # keep track of scrolling
         self.SetViewWhiteSpace(self.coder.appData['showWhitespace'])
         self.SetViewEOL(self.coder.appData['showEOLs'])
@@ -583,13 +582,6 @@ class CodeEditor(BaseCodeEditor, CodeEditorFoldingMixin):
         # prevent flickering on update
         self.SetDoubleBuffered(True)
 
-    def updateSettings(self):
-        """Update editor settings after preference change."""
-        # show the long line edge guide, enabled if >0
-        self.edgeGuideColumn = self.coder.prefs['edgeGuideColumn']
-        self.edgeGuideVisible = self.edgeGuideColumn > 0
-        self.setFonts()
-
     def setFonts(self):
         """Make some styles,  The lexer defines what each style is used for,
         we just have to define what each style looks like.  This set is
@@ -608,10 +600,11 @@ class CodeEditor(BaseCodeEditor, CodeEditorFoldingMixin):
         # ,'Arial']  # use arial as backup
         faces['code'] = self.coder.prefs['codeFont']
         # ,'Arial']  # use arial as backup
-        faces['comment'] = self.coder.prefs['commentFont']
+        faces['comment'] = self.coder.prefs['codeFont']
 
         # apply the theme to the lexer
-        applyStyleSpec(self, self.coder.prefs['theme'], self.GetLexer(), faces)
+        self.theme = self.coder.prefs['theme']
+        #applyStyleSpec(self, self.coder.prefs['theme'], self.GetLexer(), faces)
 
     def setLexerFromFileName(self):
         """Set the lexer to one that best matches the file name."""
@@ -903,9 +896,9 @@ class CodeEditor(BaseCodeEditor, CodeEditorFoldingMixin):
 
         """
         # scan the AST for objects we care about
-        if hasattr(self.coder, 'sourceAsstWindow'):
-            self.coder.sourceAsstWindow.refresh()
-            self.coder.sourceAsstWindow.srcTree.SetScrollPos(
+        if hasattr(self.coder, 'structureWindow'):
+            self.coder.structureWindow.refresh()
+            self.coder.structureWindow.srcTree.SetScrollPos(
                 self.sourceAsstScroll, wx.VERTICAL)
 
     def setLexer(self, lexer=None):
@@ -1068,56 +1061,67 @@ class CoderFrame(wx.Frame):
         self.db = None  # debugger
         self._lastCaretPos = None
 
-        # setup statusbar
-        self.makeToolbar()  # must be before the paneManager for some reason
+        # setup universal shortcuts
+        accelTable = self.app.makeAccelTable()
+        self.SetAcceleratorTable(accelTable)
+
+        # Setup pane and art managers
+        self.paneManager = aui.AuiManager(self.pnlMain, aui.AUI_MGR_DEFAULT | aui.AUI_MGR_RECTANGLE_HINT)
+        self._art = PsychopyDockArt()
+        self.paneManager.SetArtProvider(self._art)
+        # Create toolbar
+        self.toolbar = PsychopyToolbar(self)
+        self.SetToolBar(self.toolbar)
+        # Create menus and status bar
         self.makeMenus()
-        #self.CreateStatusBar()
         self.makeStatusBar()
         self.statusBar.SetStatusText("PsychoPy v{}".format(psychopy.__version__), 3)
         self.fileMenu = self.editMenu = self.viewMenu = None
         self.helpMenu = self.toolsMenu = None
 
-        # setup universal shortcuts
-        accelTable = self.app.makeAccelTable()
-        self.SetAcceleratorTable(accelTable)
-
-        # make the pane manager
-        self.paneManager = aui.AuiManager(self.pnlMain, aui.AUI_MGR_DEFAULT | aui.AUI_MGR_RECTANGLE_HINT)
-
-        # add help window
-        _style = (aui.AUI_NB_TOP | aui.AUI_NB_TAB_SPLIT | aui.AUI_NB_TAB_MOVE)
-        self.sourceAsst = aui.AuiNotebook(
-            self.pnlMain, wx.ID_ANY, size=wx.Size(600, 600),
-            style=_style)
-        self.sourceAsstWindow = SourceTreePanel(self.sourceAsst, self)
+        # Create source assistant notebook
+        self.sourceAsst = aui.AuiNotebook(self.pnlMain, wx.ID_ANY)
+        self.sourceAsst.SetArtProvider(PsychopyTabArt())
+        self.structureWindow = SourceTreePanel(self.sourceAsst, self)
         self.fileBrowserWindow = FileBrowserPanel(self.sourceAsst, self)
+        # Add source assistant panel
+        self.paneManager.AddPane(self.sourceAsst,
+                                 aui.AuiPaneInfo().
+                                 BestSize((600, 600)).
+                                 Floatable(True).
+                                 BottomDockable(True).TopDockable(True).
+                                 CloseButton(False).PaneBorder(False).
+                                 Name("SourceAsst").
+                                 Caption(_translate("Source Assistant")).
+                                 Left().Show(self.prefs['showSourceAsst']))
+        # Add structure page to source assistant
+        self.sourceAsst.AddPage(self.structureWindow, "Structure")
+        self.sourceAsst.SetPageBitmap(0, wx.Bitmap(
+            os.path.join(self.paths['resources'], 'coderclass16.png'),
+            wx.BITMAP_TYPE_PNG))
+        # Add file browser page to source assistant
+        self.sourceAsst.AddPage(self.fileBrowserWindow, "File Browser")
+        self.sourceAsst.SetPageBitmap(1, wx.Bitmap(
+            os.path.join(self.paths['resources'], 'folder-open16.png'),
+            wx.BITMAP_TYPE_PNG))
 
-        # create an editor pane
-        # self.paneManager.SetFlags(aui.AUI_MGR_RECTANGLE_HINT)
-        # self.paneManager.SetManagedWindow(self.pnlMain)
-        # make the notebook
-        _style = (aui.AUI_NB_TOP |
-                  aui.AUI_NB_SCROLL_BUTTONS |
-                  aui.AUI_NB_TAB_SPLIT |
-                  aui.AUI_NB_TAB_MOVE |
-                  aui.AUI_NB_CLOSE_ON_ACTIVE_TAB |
-                  aui.AUI_NB_WINDOWLIST_BUTTON)
-        self.notebook = aui.AuiNotebook(self.pnlMain, -1,
-                                        size=wx.Size(480, 600),
-                                        style=_style)
+        # Create editor notebook
+        #todo: Why is editor default background not same as usual frame backgrounds?
+        self.notebook = aui.AuiNotebook(self.pnlMain, -1, size=wx.Size(480, 600))
+        self.notebook.SetArtProvider(PsychopyTabArt())
+        # Add editor panel
         self.paneManager.AddPane(self.notebook, aui.AuiPaneInfo().
                                  Name("Editor").
                                  Caption(_translate("Editor")).
-                                 CenterPane().  # 'center panes' expand
+                                 BestSize((600,600)).
+                                 Center().PaneBorder(False).  # 'center panes' expand
                                  CloseButton(False).
                                  MaximizeButton(True))
         self.notebook.SetFocus()
+        # Link functions
         self.notebook.SetDropTarget(FileDropTarget(targetFrame=self.pnlMain))
-
         self.notebook.Bind(aui.EVT_AUINOTEBOOK_PAGE_CLOSE, self.fileClose)
         self.notebook.Bind(aui.EVT_AUINOTEBOOK_PAGE_CHANGED, self.pageChanged)
-        self.Bind(aui.EVT_AUI_PANE_CLOSE, self.onCloseSourceAsst)
-        # self.Bind(wx.EVT_NOTEBOOK_PAGE_CHANGED, self.pageChanged)
         self.SetDropTarget(FileDropTarget(targetFrame=self.pnlMain))
         self.Bind(wx.EVT_DROP_FILES, self.filesDropped)
         self.Bind(wx.EVT_FIND, self.OnFindNext)
@@ -1132,62 +1136,18 @@ class CoderFrame(wx.Frame):
                     continue
                 self.setCurrentDoc(filename, keepHidden=True)
 
-        self.paneManager.AddPane(self.sourceAsst,
-                                 aui.AuiPaneInfo().
-                                 BestSize((600, 600)).
-                                 Floatable(True).
-                                 BottomDockable(True).TopDockable(True).
-                                 CloseButton(True).
-                                 Name("SourceAsst").
-                                 Caption(_translate("Source Assistant")).
-                                 Left().Show(self.prefs['showSourceAsst']))
-
-        self.sourceAsst.AddPage(self.sourceAsstWindow, "Structure")
-        self.sourceAsst.SetPageBitmap(0, wx.Bitmap(
-                    os.path.join(self.paths['resources'], 'coderclass16.png'),
-            wx.BITMAP_TYPE_PNG))
-        self.sourceAsst.AddPage(self.fileBrowserWindow, "File Browser")
-        self.sourceAsst.SetPageBitmap(1, wx.Bitmap(
-                    os.path.join(self.paths['resources'], 'folder-open16.png'),
-            wx.BITMAP_TYPE_PNG))
-
-        self.paneManager.Update()
-        self.unitTestFrame = None
-
-
-        # create the shelf for shell and output views
-        _style = (aui.AUI_NB_TOP | aui.AUI_NB_TAB_SPLIT |
-                  aui.AUI_NB_SCROLL_BUTTONS | aui.AUI_NB_TAB_MOVE)
-
-
-        self.shelf = aui.AuiNotebook(self.pnlMain, wx.ID_ANY, size=wx.Size(600, 600),
-                                     style=_style)
-
-        self.paneManager.AddPane(self.shelf,
-                                 aui.AuiPaneInfo().
-                                 Name("Shelf").
-                                 Caption(_translate("Shelf")).
-                                 BestSize((600, 250)).
-                                 Floatable(True).
-                                 BottomDockable(True).TopDockable(True).
-                                 CloseButton(False).
-                                 Bottom().Show(self.prefs['showOutput']))
-
-        self.outputWindow = self.app.runner.stdOut
-        self.outputWindow.write(_translate('Welcome to PsychoPy3!') + '\n')
-        self.outputWindow.write("v%s\n" % self.app.version)
-        # Add context manager to output window
-
+        # Create shelf notebook
+        self.shelf = aui.AuiNotebook(self.pnlMain, wx.ID_ANY, size=wx.Size(600, 600), style=wx.BORDER_NONE)
+        self.shelf.SetArtProvider(PsychopyTabArt())
+        # Create shell
         self._useShell = None
-
         if haveCode:
             useDefaultShell = True
             if self.prefs['preferredShell'].lower() == 'ipython':
                 try:
-                    import IPython.gui.wx.ipython_view
-                    # IPython shell is nice, but crashes if you draw stimuli
-                    self.shell = IPython.gui.wx.ipython_view.IPShellWidget(
-                        parent=self, background_color='WHITE', )
+                    # Try to use iPython
+                    from IPython.gui.wx.ipython_view import IPShellWidget
+                    self.shell = IPShellWidget(self)
                     useDefaultShell = False
                     self._useShell = 'ipython'
                 except Exception:
@@ -1195,20 +1155,37 @@ class CoderFrame(wx.Frame):
                                      ' (IPython v0.12 can fail on wx)')
                     logging.warn(msg)
             if useDefaultShell:
-                from wx import py
-                msg = _translate('PyShell in PsychoPy - type some commands!')
-                self.shell = py.shell.Shell(
-                    self.shelf, -1, introText=msg + '\n\n')
+                # Default to Pyshell if iPython fails
+                self.shell = PsychopyPyShell(self)
                 self._useShell = 'pyshell'
+            # Add shell to output pane
             self.shelf.AddPage(self.shell, _translate('Shell'))
-
+            self.shelf.SetPageBitmap(0, wx.Bitmap(
+                os.path.join(self.paths['resources'], 'coderpython16.png'),
+                wx.BITMAP_TYPE_PNG))
+        # Add shelf panel
+        self.paneManager.AddPane(self.shelf,
+                                 aui.AuiPaneInfo().
+                                 Name("Shelf").
+                                 Caption(_translate("Shelf")).
+                                 BestSize((600, 250)).PaneBorder(False).
+                                 Floatable(True).
+                                 BottomDockable(True).TopDockable(True).
+                                 CloseButton(False).
+                                 Bottom().Show(self.prefs['showOutput']))
+        # Update panes
         self.paneManager.Update()
+        self.unitTestFrame = None
 
-        #self.SetSizer(self.mainSizer)  # not necessary for aui type controls
+        # Link to Runner output
+        self.outputWindow = self.app.runner.stdOut
+        self.outputWindow.write(_translate('Welcome to PsychoPy3!') + '\n')
+        self.outputWindow.write("v%s\n" % self.app.version)
+
+        # Manage perspective
         if (self.appData['auiPerspective'] and
                 'Shelf' in self.appData['auiPerspective']):
             self.paneManager.LoadPerspective(self.appData['auiPerspective'])
-            #self.paneManager.GetPane('Shelf').Caption(_translate("Shelf"))
             self.paneManager.GetPane('SourceAsst').Caption("Source Assistant")
             self.paneManager.GetPane('Editor').Caption(_translate("Editor"))
         else:
@@ -1216,12 +1193,8 @@ class CoderFrame(wx.Frame):
             self.Fit()
             self.paneManager.Update()
 
-        #if self.app._appLoaded:
-        #    self.setOutputWindow()
-
         self.sourceAsstChk.Check(
             self.paneManager.GetPane('SourceAsst').IsShown())
-
         self.SendSizeEvent()
         self.app.trackFrame(self)
 
@@ -1491,6 +1464,21 @@ class CoderFrame(wx.Frame):
         menu = self.viewMenu
         menuBar.Append(self.viewMenu, _translate('&View'))
 
+        # Get list of themes
+        themePath = self.GetTopLevelParent().app.prefs.paths['themes']
+        self.themeList = {}
+        for themeFile in os.listdir(themePath):
+            try:
+                # Load theme from json file
+                with open(os.path.join(themePath, themeFile), "rb") as fp:
+                    theme = json.load(fp)
+                # Add themes to list only if min spec is defined
+                base = theme['base']
+                if all(key in base for key in ['bg', 'fg', 'font']):
+                    self.themeList[themeFile.replace('.json', '')] = []
+            except:
+                pass
+
         # indent guides
         key = keyCodes['toggleIndentGuides']
         hint = _translate("Shows guides in the editor for your "
@@ -1517,6 +1505,13 @@ class CoderFrame(wx.Frame):
             hint)
         self.showEOLsChk.Check(self.appData['showEOLs'])
         self.Bind(wx.EVT_MENU, self.setShowEOLs, id=self.showEOLsChk.GetId())
+        # Theme Switcher
+        self.themesMenu = wx.Menu()
+        menu.AppendSubMenu(self.themesMenu,
+                           _translate("Themes..."))
+        for theme in self.themeList:
+            self.themeList[theme] = self.themesMenu.Append(wx.ID_ANY, _translate(theme))
+            self.Bind(wx.EVT_MENU, self.switchTheme, self.themeList[theme])
 
         menu.AppendSeparator()
         # output window
@@ -1663,189 +1658,6 @@ class CoderFrame(wx.Frame):
         self.Bind(wx.EVT_MENU, self.app.showNews, id=item.GetId())
 
         self.SetMenuBar(menuBar)
-
-    def makeToolbar(self):
-        # ---toolbar---#000000#FFFFFF-----------------------------------------
-        _style = wx.TB_HORIZONTAL | wx.NO_BORDER | wx.TB_FLAT
-        self.toolbar = self.CreateToolBar(_style)
-
-        if sys.platform == 'win32' or sys.platform.startswith('linux'):
-            if self.appPrefs['largeIcons']:
-                toolbarSize = 32
-            else:
-                toolbarSize = 16
-        else:
-            # mac: 16 either doesn't work, or looks really bad with wx3
-            toolbarSize = 32
-
-        self.toolbar.SetToolBitmapSize((toolbarSize, toolbarSize))
-        rc = self.paths['resources']
-        join = os.path.join
-        PNG = wx.BITMAP_TYPE_PNG
-        size = toolbarSize
-        newBmp = wx.Bitmap(join(rc, 'filenew%i.png' % size), PNG)
-        openBmp = wx.Bitmap(join(rc, 'fileopen%i.png' % size), PNG)
-        saveBmp = wx.Bitmap(join(rc, 'filesave%i.png' % size), PNG)
-        saveAsBmp = wx.Bitmap(join(rc, 'filesaveas%i.png' % size), PNG)
-        undoBmp = wx.Bitmap(join(rc, 'undo%i.png' % size), PNG)
-        redoBmp = wx.Bitmap(join(rc, 'redo%i.png' % size), PNG)
-        stopBmp = wx.Bitmap(join(rc, 'stop%i.png' % size), PNG)
-        runBmp = combineImageEmblem(join(rc, 'run%i.png' % size),
-                                    join(rc, 'runner16.png'),
-                                    pos = 'bottom_right')
-        # runBmp = wx.Bitmap(join(rc, 'run%i.png' % size), PNG)
-        preferencesBmp = wx.Bitmap(join(rc, 'preferences%i.png' % size), PNG)
-        monitorsBmp = wx.Bitmap(join(rc, 'monitors%i.png' % size), PNG)
-        colorpickerBmp = wx.Bitmap(join(rc, 'color%i.png' % size), PNG)
-
-        # show key-bindings in tool-tips in an OS-dependent way
-        if sys.platform == 'darwin':
-            ctrlKey = 'Cmd+'
-        else:
-            ctrlKey = 'Ctrl+'
-        tb = self.toolbar
-
-        key = _translate("New [%s]") % self.app.keys['new']
-        if 'phoenix' in wx.PlatformInfo:
-            item = tb.AddTool(wx.ID_ANY,
-                              key.replace('Ctrl+', ctrlKey),
-                              newBmp,
-                              _translate("Create new python file"))
-        else:
-            item = tb.AddSimpleTool(wx.ID_ANY,
-                                    newBmp,
-                                    key.replace('Ctrl+', ctrlKey),
-                                    _translate("Create new python file"))
-        tb.Bind(wx.EVT_TOOL, self.fileNew, id=item.GetId())
-
-        key = _translate("Open [%s]") % self.app.keys['open']
-        if 'phoenix' in wx.PlatformInfo:
-            item = tb.AddTool(wx.ID_ANY,
-                              key.replace('Ctrl+', ctrlKey),
-                              openBmp,
-                              _translate("Open an existing file"))
-        else:
-            item = tb.AddSimpleTool(wx.ID_ANY,
-                                    openBmp,
-                                    key.replace('Ctrl+', ctrlKey),
-                                    _translate("Open an existing file"))
-        tb.Bind(wx.EVT_TOOL, self.fileOpen, id=item.GetId())
-
-        key = _translate("Save [%s]") % self.app.keys['save']
-        if 'phoenix' in wx.PlatformInfo:
-            self.IDs.cdrBtnSave = tb.AddTool(
-                wx.ID_ANY,
-                key.replace('Ctrl+', ctrlKey),
-                saveBmp,
-                _translate("Save current file")).GetId()
-        else:
-            self.IDs.cdrBtnSave = tb.AddSimpleTool(
-                wx.ID_ANY,
-                saveBmp,
-                key.replace('Ctrl+', ctrlKey),
-                _translate("Save current file")).GetId()
-        tb.EnableTool(self.IDs.cdrBtnSave, False)
-        tb.Bind(wx.EVT_TOOL, self.fileSave, id=self.IDs.cdrBtnSave)
-
-        key = _translate("Save As... [%s]") % self.app.keys['saveAs']
-        if 'phoenix' in wx.PlatformInfo:
-            item = tb.AddTool(
-                wx.ID_ANY,
-                key.replace('Ctrl+', ctrlKey),
-                saveAsBmp,
-                _translate("Save current python file as..."))
-        else:
-            item = tb.AddSimpleTool(
-                wx.ID_ANY,
-                saveAsBmp,
-                key.replace('Ctrl+', ctrlKey),
-                _translate("Save current python file as..."))
-        tb.Bind(wx.EVT_TOOL, self.fileSaveAs, id=item.GetId())
-
-        key = _translate("Undo [%s]") % self.app.keys['undo']
-        if 'phoenix' in wx.PlatformInfo:
-            self.IDs.cdrBtUndo = tb.AddTool(
-                wx.ID_ANY,
-                key.replace('Ctrl+', ctrlKey),
-                undoBmp,
-                _translate("Undo last action")).GetId()
-        else:
-            self.IDs.cdrBtUndo = tb.AddSimpleTool(
-                wx.ID_ANY,
-                undoBmp,
-                key.replace('Ctrl+', ctrlKey),
-                _translate("Undo last action")).GetId()
-        tb.Bind(wx.EVT_TOOL, self.undo, id=self.IDs.cdrBtUndo)
-
-        key = _translate("Redo [%s]") % self.app.keys['redo']
-        if 'phoenix' in wx.PlatformInfo:
-            self.IDs.cdrBtRedo = tb.AddTool(
-                wx.ID_ANY,
-                key.replace('Ctrl+', ctrlKey),
-                redoBmp,
-                _translate("Redo last action")).GetId()
-        else:
-            self.IDs.cdrBtRedo = tb.AddSimpleTool(
-                wx.ID_ANY,
-                redoBmp,
-                key.replace('Ctrl+', ctrlKey),
-                _translate("Redo last action")).GetId()
-        tb.Bind(wx.EVT_TOOL, self.redo, id=self.IDs.cdrBtRedo)
-
-        tb.AddSeparator()
-
-        if 'phoenix' in wx.PlatformInfo:
-            item = tb.AddTool(
-                wx.ID_ANY,
-                _translate("Monitor Center"),
-                monitorsBmp,
-                _translate("Monitor settings and calibration"))
-        else:
-            item = tb.AddSimpleTool(
-                wx.ID_ANY,
-                monitorsBmp,
-                _translate("Monitor Center"),
-                _translate("Monitor settings and calibration"))
-        tb.Bind(wx.EVT_TOOL, self.app.openMonitorCenter, id=item.GetId())
-
-        if 'phoenix' in wx.PlatformInfo:
-            item = tb.AddTool(
-                wx.ID_ANY,
-                _translate("Color Picker -> clipboard"),
-                colorpickerBmp,
-                _translate("Color Picker -> clipboard"))
-        else:
-            item = tb.AddSimpleTool(
-                wx.ID_ANY,
-                colorpickerBmp,
-                _translate("Color Picker -> clipboard"),
-                _translate("Color Picker -> clipboard"))
-        tb.Bind(wx.EVT_TOOL, self.app.colorPicker, id=item.GetId())
-
-        self.toolbar.AddSeparator()
-
-        key = _translate("Run [%s]") % self.app.keys['runScript']
-        if 'phoenix' in wx.PlatformInfo:
-            self.IDs.cdrBtnRun = self.toolbar.AddTool(
-                wx.ID_ANY,
-                key.replace('Ctrl+', ctrlKey),
-                runBmp,
-                _translate("Run current script")).GetId()
-        else:
-            self.IDs.cdrBtnRun = self.toolbar.AddSimpleTool(
-                wx.ID_ANY,
-                runBmp,
-                key.replace('Ctrl+', ctrlKey),
-                _translate("Run current script")).GetId()
-        self.toolbar.Bind(wx.EVT_TOOL, self.runFile, id=self.IDs.cdrBtnRun)
-
-        self.toolbar.AddSeparator()
-        pavButtons = pavlovia_ui.toolbar.PavloviaButtons(self, toolbar=tb, tbSize=size)
-        pavButtons.addPavloviaTools(
-                buttons=['pavloviaSync', 'pavloviaSearch', 'pavloviaUser'])
-        self.btnHandles.update(pavButtons.btnHandles)
-
-        tb.Realize()
 
     def makeStatusBar(self):
         """Make the status bar for Coder."""
@@ -2032,13 +1844,13 @@ class CoderFrame(wx.Frame):
 
         # scroll the source tree to where it was before for this document,
         # prevents it from jumping around annoyingly
-        if hasattr(self, 'sourceAsstWindow'):
+        if hasattr(self, 'structureWindow'):
             # get the old source assist scroll position, save it
             if old > -1 and old < self.notebook.GetPageCount()-1:
                 self.notebook.GetPage(old).sourceAsstScroll = \
-                    self.sourceAsstWindow.GetScrollVert()
+                    self.structureWindow.GetScrollVert()
             self.currentDoc.analyseScript()
-            self.sourceAsstWindow.srcTree.SetScrollPos(
+            self.structureWindow.srcTree.SetScrollPos(
                 wx.VERTICAL, self.currentDoc.sourceAsstScroll)
 
         self.statusBar.SetStatusText(self.currentDoc.getFileType(), 2)
@@ -2233,10 +2045,10 @@ class CoderFrame(wx.Frame):
             self.UNSAVED = True
 
         if doc == self.currentDoc:
-            self.toolbar.EnableTool(self.IDs.cdrBtnSave, doc.UNSAVED)
+            self.cdrBtnSave.Enable(doc.UNSAVED)
 
         self.statusBar.SetStatusText(_translate('Analyzing code'))
-        if hasattr(self, 'sourceAsstWindow'):
+        if hasattr(self, 'structureWindow'):
             self.currentDoc.analyseScript()
         self.statusBar.SetStatusText('')
 
@@ -2330,7 +2142,7 @@ class CoderFrame(wx.Frame):
 
         self.SetLabel('%s - PsychoPy Coder' % self.currentDoc.filename)
         #if len(self.getOpenFilenames()) > 0:
-        if hasattr(self, 'sourceAsstWindow'):
+        if hasattr(self, 'structureWindow'):
             self.statusBar.SetStatusText(_translate('Analyzing code'))
             self.currentDoc.analyseScript()
             self.statusBar.SetStatusText('')
@@ -2542,10 +2354,10 @@ class CoderFrame(wx.Frame):
             self.statusBar.SetStatusText("", 3)  # psyhcopy version
             # clear the source tree
             self.SetLabel("PsychoPy v%s (Coder)" % self.app.version)
-            self.sourceAsstWindow.srcTree.DeleteAllItems()
+            self.structureWindow.srcTree.DeleteAllItems()
         else:
             self.currentDoc = self.notebook.GetPage(newPageID)
-            self.sourceAsstWindow.refresh()
+            self.structureWindow.refresh()
             # set to current file status
             self.setFileModified(self.currentDoc.UNSAVED)
         # return 1
@@ -2644,6 +2456,24 @@ class CoderFrame(wx.Frame):
         self.app.prefs.saveUserPrefs()  # includes a validation
         self.paneManager.Update()
 
+    def switchTheme(self, event):
+        # Switch theme for coder view
+
+        # Use menu item Id to find value
+        newVal = [item.ItemLabel
+                  for item in self.themesMenu.GetMenuItems()
+                  if item.GetId() == event.GetId()]
+        # Update user prefs
+        self.app.prefs.userPrefsCfg['coder']['theme'] = newVal[0]
+        self.app.prefs.userPrefsCfg.write()
+        # Apply new theme to coder view
+        for ii in range(self.notebook.GetPageCount()):
+            doc = self.notebook.GetPage(ii)
+            doc.theme = newVal[0]
+        for ii in range(self.shelf.GetPageCount()):
+            doc = self.shelf.GetPage(ii)
+            doc.theme = newVal[0]
+
     def setShowIndentGuides(self, event):
         # show/hide the source assistant (from the view menu control)
         newVal = self.indentGuideChk.IsChecked()
@@ -2732,7 +2562,7 @@ class CoderFrame(wx.Frame):
         # changes the document flag, updates save buttons
         self.currentDoc.UNSAVED = isModified
         # disabled when not modified
-        self.toolbar.EnableTool(self.IDs.cdrBtnSave, isModified)
+        self.cdrBtnSave.Enable(isModified)
         # self.fileMenu.Enable(self.fileMenu.FindItem('&Save\tCtrl+S"'),
         #     isModified)
 

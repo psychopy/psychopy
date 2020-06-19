@@ -29,7 +29,7 @@ _localized = {'pumpIndex': _translate('Pump index'),
 
 class QmixPumpComponent(BaseComponent):
     """Operate a Cetoni neMESYS syringe pump"""
-    categories = ['Custom']
+    categories = ['I/O']
 
     def __init__(self, exp, parentName, name='pump',
                  startType='time (s)', startVal=0.0,

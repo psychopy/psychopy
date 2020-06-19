@@ -3,12 +3,14 @@
 
 from __future__ import absolute_import, division, print_function
 
+import errno
 from builtins import object
 import os
 import sys
 import platform
 from psychopy.constants import PY3
 from pkg_resources import parse_version
+import shutil
 
 
 try:
@@ -31,7 +33,6 @@ else:  # Use our contrib package if configobj is not installed or too old.
     from psychopy.contrib import configobj
     from psychopy.contrib.configobj import ConfigObj
     from psychopy.contrib.configobj import validate
-
 join = os.path.join
 
 
@@ -129,6 +130,9 @@ class Preferences(object):
             self.paths['userPrefsDir'] = join(os.environ['HOME'],
                                               '.psychopy3')
 
+        # Find / copy themes
+        self.paths['themes'] = join(self.paths['userPrefsDir'], 'themes')
+        baseThemes = join(self.paths['appDir'], 'coder', 'themes')
         # avoid silent fail-to-launch-app if bad permissions:
         if os.path.exists(self.paths['userPrefsDir']):
             try:
@@ -138,12 +142,27 @@ class Preferences(object):
                 tmp = os.path.join(self.paths['userPrefsDir'], '.tmp')
                 with open(tmp, 'w') as fileh:
                     fileh.write('')
-                with open(tmp) as fileh:
-                    fileh.read()
+                open(tmp).read()
                 os.remove(tmp)
+                msg = 'PsychoPy3 error: need read-write permissions for `%s` - `%s`'
             except Exception as err:  # OSError, WindowsError, ...?
                 msg = 'PsychoPy3 error: need read-write permissions for `%s` - `%s`'
                 sys.exit(msg % (self.paths['userPrefsDir'], err))
+            # Create themes folder in user space if not one already
+            try:
+                os.makedirs(self.paths['themes'])
+            except OSError as err:
+                if err.errno != errno.EEXIST:
+                    raise
+            # Make sure all the base themes are present in user's folder
+            try:
+                for file in os.listdir(baseThemes):
+                    shutil.copyfile(
+                        join(baseThemes, file),
+                        join(self.paths['themes'], file)
+                    )
+            except:
+                pass
 
     def loadAll(self):
         """Load the user prefs and the application data
@@ -179,6 +198,8 @@ class Preferences(object):
 
         # keybindings:
         self.keys = self.userPrefsCfg['keyBindings']
+        # darkmode paths
+        self.paths['resources'] = join(self.paths['resources'], ('light', 'dark')[self.app['darkmode']])
 
     def loadUserPrefs(self):
         """load user prefs, if any; don't save to a file because doing so
