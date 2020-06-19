@@ -101,6 +101,7 @@ class StylerMixin:
             self.SetExtraAscent(spacing)
             self.SetExtraDescent(spacing)
         elif isinstance(self, wx.richtext.RichTextCtrl):
+            # todo: Add element-specific styling (it must be possible...)
             # If dealing with a StdOut, set background from base
             self.SetBackgroundColour(self.hex2rgb(base['bg'], base['bg']))
             # Then construct default styles
