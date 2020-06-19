@@ -37,7 +37,7 @@ class PavloviaButtons:
             'label': _translate('Search Pavlovia.org'),
             'tip': _translate('Find existing studies online (at pavlovia.org)')}
         info['pavloviaUser'] = {
-            'emblem': 'user22.png',
+            'emblem': 'user16.png',
             'func': self.onPavloviaUser,
             'label': _translate('Log in to Pavlovia'),
             'tip': _translate('Log in to (or create user at) Pavlovia.org')}

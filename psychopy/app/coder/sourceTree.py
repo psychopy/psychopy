@@ -9,6 +9,7 @@
 
 from __future__ import absolute_import, print_function
 from collections import deque
+from ..style import cs, cLib
 from psychopy.app.coder.folding import getFolds
 
 import wx
@@ -59,9 +60,10 @@ class SourceTreePanel(wx.Panel):
             self.treeId,
             pos=(0, 0),
             size=wx.Size(300, 300),
-            style=wx.TR_HAS_BUTTONS)
+            style=wx.TR_HAS_BUTTONS | wx.BORDER_NONE)
         self.srcTree.SetImageList(self._treeImgList)
-
+        self.srcTree.SetOwnBackgroundColour(cs['tab_active'])
+        self.srcTree.SetOwnForegroundColour(cs['struct_txt'])
         # do layout
         szr = wx.BoxSizer(wx.VERTICAL)
         szr.Add(self.srcTree, flag=wx.EXPAND, proportion=1)

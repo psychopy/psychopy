@@ -251,6 +251,9 @@ class ParamCtrls(object):
             self.updateCtrl = wx.Choice(parent, choices=updateLabels)
             # stash non-localized choices to allow retrieval by index:
             self.updateCtrl._choices = copy.copy(allowedUpdates)
+            # If parameter isn't in list, default to the first choice
+            if param.updates not in allowedUpdates:
+                param.updates = allowedUpdates[0]
             # get index of the currently set update value, set display:
             index = allowedUpdates.index(param.updates)
             # set by integer index, not string value
