@@ -4,9 +4,12 @@
 # Part of the PsychoPy library
 # Copyright (C) 2002-2018 Jonathan Peirce (C) 2019 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
+import json
+from psychopy.app.style import cLib, cs
 
 import wx
 from wx.lib import platebtn
+import wx.lib.agw.aui as aui  # some versions of phoenix
 import os
 import sys
 import time
@@ -18,6 +21,7 @@ from subprocess import Popen, PIPE
 
 from psychopy.app import icons
 from psychopy import experiment
+from psychopy.app.utils import PsychopyDockArt, PsychopyPlateBtn, PsychopyTabArt, PsychopyToolbar
 from psychopy.constants import PY3
 from psychopy.localization import _translate
 from psychopy.app.stdOutRich import StdOutRich
@@ -253,11 +257,14 @@ class RunnerPanel(wx.Panel, ScriptProcess):
                                           )
         ScriptProcess.__init__(self, app)
         self.Bind(wx.EVT_END_PROCESS, self.onProcessEnded)
+        self.SetBackgroundColour(cs['frame_bg'])
 
         expCtrlSize = [500, 150]
         ctrlSize = [500, 150]
 
         self.app = app
+        self.prefs = self.app.prefs.coder
+        self.paths = self.app.prefs.paths
         self.parent = parent
         self.serverProcess = None
 
@@ -270,7 +277,9 @@ class RunnerPanel(wx.Panel, ScriptProcess):
         self.expCtrl = wx.ListCtrl(self,
                                    id=wx.ID_ANY,
                                    size=expCtrlSize,
-                                   style=wx.LC_REPORT | wx.BORDER_SUNKEN)
+                                   style=wx.LC_REPORT | wx.BORDER_NONE | wx.LC_NO_HEADER)
+        self.expCtrl.SetBackgroundColour(cs['tab_active'])
+        self.expCtrl.SetForegroundColour(cs['tab_txt'])
 
         self.expCtrl.Bind(wx.EVT_LIST_ITEM_SELECTED,
                           self.onItemSelected, self.expCtrl)
@@ -280,10 +289,10 @@ class RunnerPanel(wx.Panel, ScriptProcess):
         self.expCtrl.InsertColumn(0, 'File')
         self.expCtrl.InsertColumn(1, 'Path')
 
-        _style = platebtn.PB_STYLE_DROPARROW
+        _style = platebtn.PB_STYLE_DROPARROW | platebtn.PB_STYLE_SQUARE
         # Alerts
         self._selectedHiddenAlerts = False  # has user manually hidden alerts?
-        self.alertsToggleBtn = platebtn.PlateButton(self, -1, 'Alerts',
+        self.alertsToggleBtn = PsychopyPlateBtn(self, -1, 'Alerts',
                                           style=_style, name='Alerts')
         # mouse event must be bound like this
         self.alertsToggleBtn.Bind(wx.EVT_LEFT_DOWN, self.setAlertsVisible)
@@ -291,11 +300,12 @@ class RunnerPanel(wx.Panel, ScriptProcess):
         self.alertsToggleBtn.Bind(wx.EVT_RIGHT_DOWN, self.setAlertsVisible)
         self.alertsCtrl = StdOutText(parent=self,
                                      size=ctrlSize,
-                                     style=wx.TE_READONLY | wx.TE_MULTILINE)
+                                     style=wx.TE_READONLY | wx.TE_MULTILINE | wx.BORDER_NONE)
+
         self.setAlertsVisible(True)
 
         # StdOut
-        self.stdoutToggleBtn = platebtn.PlateButton(self, -1, 'Stdout',
+        self.stdoutToggleBtn = PsychopyPlateBtn(self, -1, 'Stdout',
                                           style=_style, name='Stdout')
         # mouse event must be bound like this
         self.stdoutToggleBtn.Bind(wx.EVT_LEFT_DOWN, self.setStdoutVisible)
@@ -303,7 +313,7 @@ class RunnerPanel(wx.Panel, ScriptProcess):
         self.stdoutToggleBtn.Bind(wx.EVT_RIGHT_DOWN, self.setStdoutVisible)
         self.stdoutCtrl = StdOutText(parent=self,
                                      size=ctrlSize,
-                                     style=wx.TE_READONLY | wx.TE_MULTILINE)
+                                     style=wx.TE_READONLY | wx.TE_MULTILINE | wx.BORDER_NONE)
         self.setStdoutVisible(True)
 
         # Set buttons
@@ -355,9 +365,9 @@ class RunnerPanel(wx.Panel, ScriptProcess):
         self.mainSizer = wx.BoxSizer(wx.VERTICAL)
         self.mainSizer.Add(self.upperSizer, 0, wx.EXPAND | wx.ALL, 10)
 
-        self.mainSizer.Add(self.alertsToggleBtn, 0, wx.TOP, 10)
+        self.mainSizer.Add(self.alertsToggleBtn, 0, wx.TOP | wx.EXPAND, 10)
         self.mainSizer.Add(self.alertsCtrl, 1, wx.EXPAND | wx.ALL, 10)
-        self.mainSizer.Add(self.stdoutToggleBtn, 0, wx.TOP, 10)
+        self.mainSizer.Add(self.stdoutToggleBtn, 0, wx.TOP | wx.EXPAND, 10)
         self.mainSizer.Add(self.stdoutCtrl, 1, wx.EXPAND | wx.ALL, 10)
 
         self.stopBtn.Disable()
@@ -413,7 +423,9 @@ class RunnerPanel(wx.Panel, ScriptProcess):
                 emblem=join(rc, emblem), pos='bottom_right')
         else:
             bmp = wx.Bitmap(join(rc, main), PNG)
-        return wx.BitmapButton(self, -1, bmp, size=[buttonSize, buttonSize], style=wx.NO_BORDER )
+        button = wx.BitmapButton(self, -1, bmp, size=[buttonSize, buttonSize], style=wx.NO_BORDER)
+        button.SetBackgroundColour(cs['frame_bg'])
+        return button
 
     def stopTask(self, event=None):
         """Kill script processes currently running."""
@@ -556,9 +568,17 @@ class RunnerPanel(wx.Panel, ScriptProcess):
         for file in filePaths:
             temp = Path(file)
 
-            # Check list for item
-            index = self.expCtrl.FindItem(-1, temp.name)
-            if index > -1:
+            # Check list for items
+            start = -1
+            fullPaths = []
+            while start < self.expCtrl.GetItemCount()-1:
+                index = self.expCtrl.FindItem(start, temp.name)
+                if index > -1:
+                    fullPaths += [Path(self.expCtrl.GetItem(index, 1).Text, self.expCtrl.GetItem(index, 0).Text)]
+                    start = index+1
+                else:
+                    start = self.expCtrl.GetItemCount()
+            if temp in fullPaths:
                 continue
 
             # Set new item in listCtrl
@@ -728,8 +748,45 @@ class RunnerPanel(wx.Panel, ScriptProcess):
 class StdOutText(StdOutRich):
     """StdOutRich subclass which also handles Git messages from Pavlovia projects."""
 
-    def __init__(self, parent=None, style=wx.TE_READONLY | wx.TE_MULTILINE, size=wx.DefaultSize):
+    def __init__(self, parent=None, style=wx.TE_READONLY | wx.TE_MULTILINE | wx.BORDER_NONE, size=wx.DefaultSize):
         StdOutRich.__init__(self, parent=parent, style=style, size=size)
+        self.parent = parent
+        self.theme = self.parent.prefs['theme']
+
+    @property
+    def theme(self):
+        return self.parent.prefs['theme']
+
+    @theme.setter
+    def theme(self, value):
+        # Load theme from json file
+        try:
+            with open("{}//{}.json".format(self.parent.paths['themes'], value), "rb") as fp:
+                spec = json.load(fp)
+        except:
+            with open("{}//{}.json".format(self.parent.paths['themes'], "PsychopyLight"), "rb") as fp:
+                spec = json.load(fp)
+        # Check that minimum spec is defined
+        if 'base' in spec:
+            base = spec['base']
+            if not (
+                    all(key in base for key in ['bg', 'fg', 'font'])
+            ):
+                return
+        else:
+            return
+        # Override base font with user spec if present
+        if self.parent.prefs['outputFont'] != "From theme...":
+            base['font'] = self.parent.prefs['outputFont']
+        # Apply spec
+        self.SetBackgroundColour(self.hex2rgb(base['bg'], base['bg']))
+        self.BeginTextColour(self.hex2rgb(base['fg'], base['fg']))
+        self.BeginFont(
+            wx.Font(int(self.parent.prefs['outputFontSize']),
+                    wx.FONTFAMILY_TELETYPE, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL, False,
+                    faceName=base['font'])
+        )
+
 
     def getText(self):
         """Get and return the text of the current buffer."""
@@ -744,3 +801,23 @@ class StdOutText(StdOutRich):
     def statusAppend(self, newText):
         text = self.GetValue() + newText
         self.setStatus(text)
+
+    def hex2rgb(self, hex, base=(0, 0, 0, 0)):
+        if not isinstance(hex, str):
+            return base
+        # Make hex code case irrelevant
+        hex = hex.lower()
+        # dict of hex -> int conversions
+        hexkeys = {'0': 0, '1': 1, '2': 2, '3': 3, '4': 4, '5': 5, '6': 6, '7': 7, '8': 8, '9': 9,
+                   'a': 10, 'b': 11, 'c': 12, 'd': 13, 'e': 14, 'f': 15,
+                   '#': None}
+        # Check that hex is a hex code
+        if not all(c in hexkeys.keys() for c in hex) or not len(hex) == 7:
+            # Default to transparent if not
+            return wx.Colour(base)
+
+        # Convert to rgb
+        r = hexkeys[hex[1]] * 16 + hexkeys[hex[2]]
+        g = hexkeys[hex[3]] * 16 + hexkeys[hex[4]]
+        b = hexkeys[hex[5]] * 16 + hexkeys[hex[6]]
+        return wx.Colour(r, g, b, 1)
