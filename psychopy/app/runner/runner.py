@@ -74,6 +74,10 @@ class RunnerFrame(wx.Frame):
     def stdOut(self):
         return self.panel.stdoutCtrl
 
+    @property
+    def alerts(self):
+        return self.panel.alertsCtrl
+
     def makeMenu(self):
         """Create Runner menubar."""
         keys = self.app.prefs.keys
