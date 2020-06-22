@@ -23,7 +23,6 @@ from .text import TextStim
 from ..tools.attributetools import logAttrib, setAttribute, attributeSetter
 from ..constants import FINISHED, STARTED, NOT_STARTED
 
-defaultSizes = {'norm': [1.0, 0.1]}
 
 
 class Slider(MinimalStim):
@@ -139,6 +138,14 @@ class Slider(MinimalStim):
             self.units = units
 
         if size is None:
+            defaultSizes = {
+                None: [self.win.size[0]*1.0, self.win.size[1]*0.1],
+                'height': [1.0, 0.1],
+                'norm': [1.0, 0.1],
+                'deg': [3.14, 0.314],
+                'cm': [10, 1],
+                'pix': [self.win.size[0]*1.0, self.win.size[1]*0.1]
+            }
             self._size = defaultSizes[self.units]
         else:
             self._size = size

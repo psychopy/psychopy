@@ -2474,6 +2474,9 @@ class CoderFrame(wx.Frame):
         for ii in range(self.shelf.GetPageCount()):
             doc = self.shelf.GetPage(ii)
             doc.theme = newVal[0]
+        # Apply new theme to runner view
+        self.app.runner.stdOut.theme = newVal[0]
+        self.app.runner.alerts.theme = newVal[0]
 
     def setShowIndentGuides(self, event):
         # show/hide the source assistant (from the view menu control)
