@@ -11,6 +11,8 @@ from os import path
 from psychopy.experiment.components import BaseVisualComponent, Param, getInitVals, _translate
 
 # the absolute path to the folder containing this path
+from psychopy.visual.textbox import FontManager
+
 thisFolder = path.abspath(path.dirname(__file__))
 iconFile = path.join(thisFolder, 'textbox.png')
 tooltip = _translate('Textbox: present text stimuli but cooler')
@@ -43,8 +45,8 @@ class TextboxComponent(BaseVisualComponent):
                  # effectively just a display-value
                  text=_translate('Any text\n\nincluding line breaks'),
                  font='Arial', units='from exp settings', bold=False, italic=False,
-                 color=[1, 1, 1, 1], colorSpace='rgb', opacity=1.0,
-                 pos=(0, 0), size=None, letterHeight=0.1, ori=0,
+                 color='$[1, 1, 1, 1]', colorSpace='rgb', opacity=1.0,
+                 pos=(0, 0), size=None, letterHeight=20, ori=0,
                  lineSpacing=1.0,padding=None,  # gap between box and text
                  startType='time (s)', startVal=0.0, anchor='center',
                  stopType='duration (s)', stopVal=1.0,
@@ -78,6 +80,7 @@ class TextboxComponent(BaseVisualComponent):
             label=_localized['text'])
         self.params['font'] = Param(
             font, valType='str', allowedTypes=[],
+            allowedVals=FontManager().getFontFamilyNames(),
             updates='constant', allowedUpdates=_allow3[:],  # copy the list
             hint=_translate("The font name (e.g. Comic Sans)"),
             label=_localized['font'])
