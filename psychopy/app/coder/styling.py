@@ -76,6 +76,11 @@ class StylerMixin:
                 invalid += [key]
         for key in invalid:
             del spec[key]
+        # Set style for undefined lexers
+        for key in [getattr(wx._stc, item) for item in dir(wx._stc) if item.startswith("STC_LEX")]:
+            self.StyleSetBackground(key, base['bg'])
+            self.StyleSetForeground(key, base['fg'])
+            self.StyleSetSpec(key, "face:%(font)s,size:%(size)d" % base)
         # Set style from universal data
         for key in spec:
             if self.tags[key] is not None:
