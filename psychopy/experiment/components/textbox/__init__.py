@@ -73,6 +73,7 @@ class TextboxComponent(BaseVisualComponent):
 
         # params
         _allow3 = ['constant', 'set every repeat', 'set every frame']  # list
+        _fonts = [font.decode() for font in FontManager().getFontFamilyNames()]
         self.params['text'] = Param(
             text, valType='str', allowedTypes=[],
             updates='constant', allowedUpdates=_allow3[:],  # copy the list
@@ -80,7 +81,7 @@ class TextboxComponent(BaseVisualComponent):
             label=_localized['text'])
         self.params['font'] = Param(
             font, valType='str', allowedTypes=[],
-            allowedVals=FontManager().getFontFamilyNames(),
+            allowedVals=_fonts,
             updates='constant', allowedUpdates=_allow3[:],  # copy the list
             hint=_translate("The font name (e.g. Comic Sans)"),
             label=_localized['font'])
