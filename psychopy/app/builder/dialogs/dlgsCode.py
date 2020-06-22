@@ -478,11 +478,12 @@ class CodeBox(BaseCodeEditor, StylerMixin):
         self.paths = prefs.paths
         self.params = params
         self.codeType = codeType
-        if codeType == 'Py':
-            self.SetLexer(wx.stc.STC_LEX_PYTHON)
-        elif codeType == 'JS':
-            self.SetLexer(wx.stc.STC_LEX_CPP)
-        self.SetKeyWords(0, " ".join(keyword.kwlist))
+        lexers = {
+            'Py': wx.stc.STC_LEX_PYTHON,
+            'JS': wx.stc.STC_LEX_CPP,
+            'txt': wx.stc.STC_LEX_CONTAINER
+        }
+        self.SetLexer(lexers[codeType])
 
         self.SetProperty("fold", "1")
         # 4 means 'tabs are bad'; 1 means 'flag inconsistency'
