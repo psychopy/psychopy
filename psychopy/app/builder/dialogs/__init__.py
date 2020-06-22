@@ -127,7 +127,7 @@ class ParamCtrls(object):
             # set viewer small, then it SHOULD increase with wx.aui control
             self.valueCtrl = CodeBox(parent, -1, pos=wx.DefaultPosition,
                                      size=wx.Size(sx, sy), style=0,
-                                     prefs=appPrefs)
+                                     prefs=appPrefs, codeType='txt')
             if len(param.val):
                 self.valueCtrl.AddText(str(param.val))
             if fieldName == 'text':
@@ -510,6 +510,7 @@ class _BaseParamsDlg(wx.Dialog):
         for categName in categNames:
             theseParams = categs[categName]
             page = wx.Panel(self.ctrls, -1)
+            page.app = self.app
             ctrls = self.addCategoryOfParams(theseParams, parent=page)
             if categName in categLabel:
                 cat = categLabel[categName]
