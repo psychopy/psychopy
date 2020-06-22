@@ -108,7 +108,8 @@ class FileBrowserPanel(wx.Panel):
         self.fileImgInds = {}
         self.fileImgList = wx.ImageList(16, 16)
         for key in self.fileImgExt:
-            self.fileImgInds[key] = self.fileImgList.Add(wx.Bitmap(join(rc, self.fileImgExt[key]), wx.BITMAP_TYPE_PNG))
+            self.fileImgInds[key] = self.fileImgList.Add(
+                wx.Bitmap(join(rc, self.fileImgExt[key]), wx.BITMAP_TYPE_PNG))
 
         # icons for toolbars
         gotoBmp = wx.Bitmap(join(rc, 'goto16.png'), wx.BITMAP_TYPE_PNG)
@@ -124,7 +125,8 @@ class FileBrowserPanel(wx.Panel):
 
         self.toolBar = wx.ToolBar(
             self, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize,
-            aui.AUI_TB_HORZ_LAYOUT | aui.AUI_TB_HORZ_TEXT | wx.BORDER_NONE | wx.TB_FLAT | wx.TB_NODIVIDER)
+            aui.AUI_TB_HORZ_LAYOUT | aui.AUI_TB_HORZ_TEXT | wx.BORDER_NONE |
+            wx.TB_FLAT | wx.TB_NODIVIDER)
         self.toolBar.AdjustForLayoutDirection(16, 300, 300)
         self.toolBar.SetToolBitmapSize((21, 16))
         self.toolBar.SetBackgroundColour(cs['tab_active'])
@@ -184,7 +186,7 @@ class FileBrowserPanel(wx.Panel):
             self.flId,
             pos=(0, 0),
             size=wx.Size(300, 300),
-            style=wx.LC_REPORT | wx.LC_SINGLE_SEL | wx.BORDER_NONE | wx.LC_NO_HEADER)
+            style=wx.LC_REPORT | wx.LC_SINGLE_SEL | wx.BORDER_NONE)
         self.fileList.SetImageList(self.fileImgList, wx.IMAGE_LIST_SMALL)
 
         # bind events for list control

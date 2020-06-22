@@ -898,8 +898,6 @@ class CodeEditor(BaseCodeEditor, CodeEditorFoldingMixin, StylerMixin):
         # scan the AST for objects we care about
         if hasattr(self.coder, 'structureWindow'):
             self.coder.structureWindow.refresh()
-            self.coder.structureWindow.srcTree.SetScrollPos(
-                self.sourceAsstScroll, wx.VERTICAL)
 
     def setLexer(self, lexer=None):
         """Lexer is a simple string (e.g. 'python', 'html')
@@ -1080,7 +1078,8 @@ class CoderFrame(wx.Frame):
         self.helpMenu = self.toolsMenu = None
 
         # Create source assistant notebook
-        self.sourceAsst = aui.AuiNotebook(self.pnlMain, wx.ID_ANY)
+        self.sourceAsst = aui.AuiNotebook(
+            self.pnlMain, wx.ID_ANY, agwStyle=aui.AUI_NB_CLOSE_ON_ALL_TABS)
         self.sourceAsst.SetArtProvider(PsychopyTabArt())
         self.structureWindow = SourceTreePanel(self.sourceAsst, self)
         self.fileBrowserWindow = FileBrowserPanel(self.sourceAsst, self)
@@ -1104,6 +1103,10 @@ class CoderFrame(wx.Frame):
         self.sourceAsst.SetPageBitmap(1, wx.Bitmap(
             os.path.join(self.paths['resources'], 'folder-open16.png'),
             wx.BITMAP_TYPE_PNG))
+
+        # remove close buttons
+        self.sourceAsst.SetCloseButton(0, False)
+        self.sourceAsst.SetCloseButton(1, False)
 
         # Create editor notebook
         #todo: Why is editor default background not same as usual frame backgrounds?
