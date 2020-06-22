@@ -72,9 +72,10 @@ class StylerMixin:
             del spec[key]
         # Set style from universal data
         for key in spec:
-            self.StyleSetBackground(self.tags[key], spec[key]['bg'])
-            self.StyleSetForeground(self.tags[key], spec[key]['fg'])
-            self.StyleSetSpec(self.tags[key], "face:%(font)s,size:%(size)d" % spec[key])
+            if self.tags[key] is not None:
+                self.StyleSetBackground(self.tags[key], spec[key]['bg'])
+                self.StyleSetForeground(self.tags[key], spec[key]['fg'])
+                self.StyleSetSpec(self.tags[key], "face:%(font)s,size:%(size)d" % spec[key])
         # Apply keywords
         for level, val in self.lexkw.items():
             self.SetKeyWords(level, " ".join(val))
@@ -89,6 +90,22 @@ class StylerMixin:
             mar = base['bg']
         self.SetFoldMarginColour(True, mar)
         self.SetFoldMarginHiColour(True, mar)
+
+        # Make sure there's some spec for caret
+        if 'caret' not in spec:
+            spec['caret'] = base
+        # Set caret colour
+        self.SetCaretForeground(spec['caret']['fg'])
+        self.SetCaretLineBackground(spec['caret']['bg'])
+        self.SetCaretWidth(1 + ('bold' in spec['caret']['font']))
+
+        # Make sure there's some spec for selection
+        if 'select' not in spec:
+            spec['select'] = base
+            spec['select']['bg'] = self.shiftColour(base['bg'], 30)
+        # Set selection colour
+        self.SetSelForeground(True, spec['select']['fg'])
+        self.SetSelBackground(True, spec['select']['bg'])
 
         # Set wrap point
         self.edgeGuideColumn = self.prefs['edgeGuideColumn']
@@ -168,6 +185,8 @@ class StylerMixin:
         tags = {
             "base": stc.STC_STYLE_DEFAULT,
             "margin": stc.STC_STYLE_LINENUMBER,
+            "caret": None,
+            "select": None,
             "indent": stc.STC_STYLE_INDENTGUIDE,
             "brace": stc.STC_STYLE_BRACELIGHT,
             "controlchar": stc.STC_STYLE_CONTROLCHAR
@@ -249,6 +268,21 @@ class StylerMixin:
         g = hexkeys[hex[3]] * 16 + hexkeys[hex[4]]
         b = hexkeys[hex[5]] * 16 + hexkeys[hex[6]]
         return wx.Colour(r, g, b, 1)
+
+    def shiftColour(self, col, offset=15):
+        """Shift colour up or down by a set amount"""
+        if not isinstance(col, wx.Colour):
+            return
+        if col.GetLuminance() < 0.5:
+            newCol = wx.Colour(
+                [c+offset for c in col.Get()]
+            )
+        else:
+            newCol = wx.Colour(
+                [c - offset for c in col.Get()]
+            )
+
+        return newCol
 
 
 class PsychopyPyShell(wx.py.shell.Shell, StylerMixin):

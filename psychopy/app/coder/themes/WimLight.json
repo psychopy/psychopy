@@ -1,4 +1,5 @@
 {
+  "app": "light",
   "base": {
     "fg": "#030308",
     "bg": "#FFFFFF",
@@ -7,6 +8,16 @@
   "margin": {
     "fg": "",
     "bg": "#F2F2F2",
+    "font": ""
+  },
+  "caret": {
+    "fg": "#F46E75",
+    "bg": "#F2F2F2",
+    "font": ""
+  },
+  "select": {
+    "fg": "#FFFFFF",
+    "bg": "#75757D",
     "font": ""
   },
   "indent": {
@@ -50,17 +61,17 @@
     "font": ""
   },
   "char": {
-    "fg": "#66666E",
+    "fg": "#F2545B",
     "bg": "",
     "font": ""
   },
   "str": {
-    "fg": "#66666E",
+    "fg": "#F2545B",
     "bg": "",
     "font": ""
   },
   "openstr": {
-    "fg": "#66666E",
+    "fg": "#F2545B",
     "bg": "#F2F2F2",
     "font": ""
   },

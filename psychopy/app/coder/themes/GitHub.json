@@ -1,4 +1,5 @@
 {
+  "app": "light",
   "base": {
     "fg": "#333333",
     "bg": "#FFFFFF",
@@ -7,6 +8,16 @@
   "margin": {
     "fg": "",
     "bg": "#eeeeee",
+    "font": ""
+  },
+  "caret": {
+    "fg": "",
+    "bg": "",
+    "font": ""
+  },
+  "select": {
+    "fg": "#FFFFFF",
+    "bg": "#969896",
     "font": ""
   },
   "indent": {
