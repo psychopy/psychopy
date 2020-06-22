@@ -463,14 +463,34 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
 
         if self.editable:  # draw caret line
             self.caret.draw()
-            #gl.glLineWidth(2)
-            #gl.glColor4f(0, 0, 0, 0.9)
-            #gl.glBegin(gl.GL_LINES)
-            #gl.glVertex2f(caretVerts[0, 0], caretVerts[0, 1])
-            #gl.glVertex2f(caretVerts[1, 0], caretVerts[1, 1])
-            #gl.glEnd()
 
         gl.glPopMatrix()
+
+    def updateCaret(self):
+        if not hasattr(self, 'caret'):
+            self.caret = Caret(self)
+        caret = self.caret
+        # check we have a caret index
+        if caret.index is None or caret.index > len(self._lineNs):
+            caret.index = len(self._lineNs)
+        # get the verts of character next to caret (chr is the next one so use
+        # left edge unless last index then use the right of prev chr)
+        # lastChar = [bottLeft, topLeft, **bottRight**, **topRight**]
+        ii = caret.index - 1
+        chrVerts = self.vertices[range(ii * 4, ii * 4 + 4)]  # Get vertices of character at this index
+        if caret.index >= len(self._lineNs):  # caret is after last chr
+            x = chrVerts[2, 0]  # x-coord of right edge (of final char)
+        else:
+            x = chrVerts[1, 0]  # x-coord of left edge
+        # the y locations are the top and bottom of this line
+        y1 = self._lineBottoms[self.row] / self._pixelScaling
+        y2 = self._lineTops[self.row] / self._pixelScaling
+
+        # char x pos has been corrected for anchor location already but lines haven't
+        verts = (np.array([[x, y1], [x, y2]])
+                 + (0, self._anchorOffsetY))
+        caret.vertices = convertToPix(vertices=verts, pos=self.pos,
+                           win=self.win, units=self.units)
 
     def _updateVertices(self):
         """Sets Stim.verticesPix and ._borderPix from pos, size, ori,
@@ -505,7 +525,7 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
         txt = self.text
         self.text = txt[:self.caret.index] + chr + txt[self.caret.index:]
         self.caret.index += 1
-        self.caret.update()
+        self.updateCaret()
 
     def _onCursorKeys(self, key):
         """Called by the window when cursor/del/backspace... are received"""
@@ -540,7 +560,7 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
             pass
         else:
             print("Received unhandled cursor motion type: ", key)
-        self.caret.update()
+        self.updateCaret()
 
     @property
     def hasFocus(self):
@@ -586,43 +606,29 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
         # Store focus
         self._hasFocus = state
 
-class Caret(Line):
+class Caret:
     #todo: vertices calc is way off
     def __init__(self, textbox):
         self.textbox = textbox
         self.index = None
-        Line.__init__(self,
-                      self.textbox.win,
-                      lineColor=self.textbox.color,
-                      lineColorSpace=self.textbox.colorSpace,
-                      opacity=0, # Hide on first draw
-                      lineWidth=2,
-                      autoLog=False,
-                      )
-        self.update()
+        # Line.__init__(self,
+        #               self.textbox.win,
+        #               units='pix',
+        #               lineColor=self.textbox.color,
+        #               lineColorSpace=self.textbox.colorSpace,
+        #               opacity=0, # Hide on first draw
+        #               lineWidth=2,
+        #               autoLog=False,
+        #               )
+        textbox.updateCaret()
 
-    def update(self):
-        # check we have a caret index
-        if self.index is None or self.index > len(self.textbox._lineNs):
-            self.index = len(self.textbox._lineNs)
-        # get the verts of character next to caret (chr is the next one so use
-        # left edge unless last index then use the right of prev chr)
-        # lastChar = [bottLeft, topLeft, **bottRight**, **topRight**]
-        ii = self.index - 1
-        chrVerts = self.textbox.vertices[range(ii * 4, ii * 4 + 4)]  # Get vertices of character at this index
-        if self.index >= len(self.textbox._lineNs):  # caret is after last chr
-            x = chrVerts[2, 0]  # x-coord of right edge (of final char)
-        else:
-            x = chrVerts[1, 0]  # x-coord of left edge
-        # the y locations are the top and bottom of this line
-        y1 = self.textbox._lineBottoms[self.row] / self.textbox._pixelScaling
-        y2 = self.textbox._lineTops[self.row] / self.textbox._pixelScaling
-
-        # char x pos has been corrected for anchor location already but lines haven't
-        verts = (np.array([[x, y1], [x, y2]])
-                 + (0, self.textbox._anchorOffsetY))
-        self.vertices = convertToPix(vertices=verts, pos=self.textbox.pos,
-                           win=self.textbox.win, units=self.textbox.units)
+    def draw(self):
+        gl.glLineWidth(2)
+        gl.glColor4f(0, 0, 0, 0.9)
+        gl.glBegin(gl.GL_LINES)
+        gl.glVertex2f(self.vertices[0, 0], self.vertices[0, 1])
+        gl.glVertex2f(self.vertices[1, 0], self.vertices[1, 1])
+        gl.glEnd()
 
     @property
     def row(self):
