@@ -10,7 +10,7 @@ import os
 import platform
 
 
-class SystemInfoDlg(wx.Dialog):
+class SystemInfoDialog(wx.Dialog):
     """Dialog for retrieving system information within the PsychoPy app suite.
 
     Shows the same information as the 'sysinfo.py' script and provide options
@@ -65,9 +65,9 @@ class SystemInfoDlg(wx.Dialog):
 
     def getInfoText(self):
         """Get system information text."""
+        outputText = ""  # text to return
 
-        outputText = ""
-
+        # show the PsychoPy version
         from psychopy import __version__
         outputText += self.getLine("PsychoPy", __version__)
 
@@ -77,11 +77,13 @@ class SystemInfoDlg(wx.Dialog):
             outputText += self.getLine(
                 "    %s: %s" % (key, preferences.prefs.paths[key]))
 
+        # system information such as OS, CPU and memory
         outputText += self.getLine("\nSystem Info:")
         outputText += self.getLine(
             ' '*4, 'Operating System: {}'.format(platform.platform()))
         outputText += self.getLine(
             ' ' * 4, 'Processor: {}'.format(platform.processor()))
+
         # requires psutil
         try:
             import psutil
@@ -99,12 +101,13 @@ class SystemInfoDlg(wx.Dialog):
                 ' ' * 4, 'CPU cores: {} (logical)'.format(os.cpu_count()))
             outputText += self.getLine(' ' * 4, 'Installed memory: N/A')
 
-
+        # if on MacOS
         if sys.platform == 'darwin':
             OSXver, junk, architecture = platform.mac_ver()
             outputText += self.getLine(
-                "macOS %s running on %s" % (OSXver, architecture))
+                ' ' * 4, "macOS %s running on %s" % (OSXver, architecture))
 
+        # Python information
         outputText += self.getLine("\nPython info:")
         outputText += self.getLine(' '*4, 'Executable path:', sys.executable)
         outputText += self.getLine(' '*4, 'Version:', sys.version)
@@ -178,7 +181,8 @@ class SystemInfoDlg(wx.Dialog):
         for ext in extensionsOfInterest:
             outputText += self.getLine(
                 ' '*8, ext + ':', bool(gl_info.have_extension(ext)))
-        # # also determine nVertices that can be used in vertex arrays
+
+        # also determine nVertices that can be used in vertex arrays
         maxVerts = GLint()
         glGetIntegerv(GL_MAX_ELEMENTS_VERTICES, maxVerts)
         outputText += self.getLine(
@@ -208,13 +212,11 @@ class SystemInfoDlg(wx.Dialog):
             if fileDialog.ShowModal() == wx.ID_CANCEL:
                 return  # the user changed their mind
 
-            # dump traceback to file
             pathname = fileDialog.GetPath()
             try:
                 with open(pathname, 'w') as file:
                     file.write(self.txtSystemInfo.GetValue())
             except IOError:
-                # error in an error ... ;)
                 errdlg = wx.MessageDialog(
                     self,
                     "Cannot save to file '%s'." % pathname,

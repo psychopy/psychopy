@@ -828,8 +828,8 @@ class PsychoPyApp(wx.App):
 
     def showSystemInfo(self, event=None):
         """Show system information."""
-        from psychopy.app.sysInfoDlg import SystemInfoDlg
-        dlg = SystemInfoDlg(None)
+        from psychopy.app.sysInfoDlg import SystemInfoDialog
+        dlg = SystemInfoDialog(None)
         dlg.Show()
 
     def followLink(self, event=None, url=None):
