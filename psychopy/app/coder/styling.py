@@ -41,91 +41,110 @@ class StylerMixin:
         key = 'outputFont' if isinstance(self, PsychopyPyShell) else 'codeFont'
         if self.prefs[key] != "From theme...":
             base['font'] = self.prefs[key]
-        # Check for language specific spec
-        if self.GetLexer() in self.lexers:
-            lexer = self.lexers[self.GetLexer()]
-        else:
-            lexer = 'invlex'
-        if lexer in spec:
-            # If there is lang specific spec, delete subkey...
-            lang = spec[lexer]
-            del spec[lexer]
-            #...and append spec to root, overriding any generic spec
-            spec.update({key: lang[key] for key in lang})
-        else:
-            lang = {}
-
-        # Apply app spec (default to light)
-        if 'app' not in spec:
-            spec['app'] = 'light'
-        self.app.prefs.userPrefsCfg['app']['darkmode'] = spec['app'] == 'dark'
-        self.app.prefs.userPrefsCfg.write()
-
-        # Pythonise the universal data (hex -> rgb, tag -> wx int)
-        invalid = []
-        for key in spec:
-            # Check that key is in tag list and full spec is defined, discard if not
-            if key in self.tags \
-                    and all(subkey in spec[key] for subkey in ['bg', 'fg', 'font']):
-                spec[key]['bg'] = self.hex2rgb(spec[key]['bg'], base['bg'])
-                spec[key]['fg'] = self.hex2rgb(spec[key]['fg'], base['fg'])
-                if not spec[key]['font']:
-                    spec[key]['font'] = base['font']
-                spec[key]['size'] = int(self.prefs['codeFontSize'])
+        if isinstance(self, wx.stc.StyledTextCtrl):
+            # Check for language specific spec
+            if self.GetLexer() in self.lexers:
+                lexer = self.lexers[self.GetLexer()]
             else:
-                invalid += [key]
-        for key in invalid:
-            del spec[key]
-        # Set style for undefined lexers
-        for key in [getattr(wx._stc, item) for item in dir(wx._stc) if item.startswith("STC_LEX")]:
-            self.StyleSetBackground(key, base['bg'])
-            self.StyleSetForeground(key, base['fg'])
-            self.StyleSetSpec(key, "face:%(font)s,size:%(size)d" % base)
-        # Set style from universal data
-        for key in spec:
-            if self.tags[key] is not None:
-                self.StyleSetBackground(self.tags[key], spec[key]['bg'])
-                self.StyleSetForeground(self.tags[key], spec[key]['fg'])
-                self.StyleSetSpec(self.tags[key], "face:%(font)s,size:%(size)d" % spec[key])
-        # Apply keywords
-        for level, val in self.lexkw.items():
-            self.SetKeyWords(level, " ".join(val))
+                lexer = 'invlex'
+            if lexer in spec:
+                # If there is lang specific spec, delete subkey...
+                lang = spec[lexer]
+                del spec[lexer]
+                #...and append spec to root, overriding any generic spec
+                spec.update({key: lang[key] for key in lang})
+            else:
+                lang = {}
 
-        # Make sure there's some spec for margins
-        if 'margin' not in spec:
-            spec['margin'] = base
-        # Set margin colours to match linenumbers if set
-        if 'margin' in spec:
-            mar = spec['margin']['bg']
-        else:
-            mar = base['bg']
-        self.SetFoldMarginColour(True, mar)
-        self.SetFoldMarginHiColour(True, mar)
+            # Apply app spec (default to light)
+            if 'app' not in spec:
+                spec['app'] = 'light'
+            self.app.prefs.userPrefsCfg['app']['darkmode'] = spec['app'] == 'dark'
+            self.app.prefs.userPrefsCfg.write()
 
-        # Make sure there's some spec for caret
-        if 'caret' not in spec:
-            spec['caret'] = base
-        # Set caret colour
-        self.SetCaretForeground(spec['caret']['fg'])
-        self.SetCaretLineBackground(spec['caret']['bg'])
-        self.SetCaretWidth(1 + ('bold' in spec['caret']['font']))
+            # Pythonise the universal data (hex -> rgb, tag -> wx int)
+            invalid = []
+            for key in spec:
+                # Check that key is in tag list and full spec is defined, discard if not
+                if key in self.tags \
+                        and all(subkey in spec[key] for subkey in ['bg', 'fg', 'font']):
+                    spec[key]['bg'] = self.hex2rgb(spec[key]['bg'], base['bg'])
+                    spec[key]['fg'] = self.hex2rgb(spec[key]['fg'], base['fg'])
+                    if not spec[key]['font']:
+                        spec[key]['font'] = base['font']
+                    spec[key]['size'] = int(self.prefs['codeFontSize'])
+                else:
+                    invalid += [key]
+            for key in invalid:
+                del spec[key]
+            # Set style for undefined lexers
+            for key in [getattr(wx._stc, item) for item in dir(wx._stc) if item.startswith("STC_LEX")]:
+                self.StyleSetBackground(key, base['bg'])
+                self.StyleSetForeground(key, base['fg'])
+                self.StyleSetSpec(key, "face:%(font)s,size:%(size)d" % base)
+            # Set style from universal data
+            for key in spec:
+                if self.tags[key] is not None:
+                    self.StyleSetBackground(self.tags[key], spec[key]['bg'])
+                    self.StyleSetForeground(self.tags[key], spec[key]['fg'])
+                    self.StyleSetSpec(self.tags[key], "face:%(font)s,size:%(size)d" % spec[key])
+            # Apply keywords
+            for level, val in self.lexkw.items():
+                self.SetKeyWords(level, " ".join(val))
 
-        # Make sure there's some spec for selection
-        if 'select' not in spec:
-            spec['select'] = base
-            spec['select']['bg'] = self.shiftColour(base['bg'], 30)
-        # Set selection colour
-        self.SetSelForeground(True, spec['select']['fg'])
-        self.SetSelBackground(True, spec['select']['bg'])
+            # Make sure there's some spec for margins
+            if 'margin' not in spec:
+                spec['margin'] = base
+            # Set margin colours to match linenumbers if set
+            if 'margin' in spec:
+                mar = spec['margin']['bg']
+            else:
+                mar = base['bg']
+            self.SetFoldMarginColour(True, mar)
+            self.SetFoldMarginHiColour(True, mar)
 
-        # Set wrap point
-        self.edgeGuideColumn = self.prefs['edgeGuideColumn']
-        self.edgeGuideVisible = self.edgeGuideColumn > 0
+            # Make sure there's some spec for caret
+            if 'caret' not in spec:
+                spec['caret'] = base
+            # Set caret colour
+            self.SetCaretForeground(spec['caret']['fg'])
+            self.SetCaretLineBackground(spec['caret']['bg'])
+            self.SetCaretWidth(1 + ('bold' in spec['caret']['font']))
 
-        # Set line spacing
-        spacing = min(int(self.prefs['lineSpacing'] / 2), 64) # Max out at 64
-        self.SetExtraAscent(spacing)
-        self.SetExtraDescent(spacing)
+            # Make sure there's some spec for selection
+            if 'select' not in spec:
+                spec['select'] = base
+                spec['select']['bg'] = self.shiftColour(base['bg'], 30)
+            # Set selection colour
+            self.SetSelForeground(True, spec['select']['fg'])
+            self.SetSelBackground(True, spec['select']['bg'])
+
+            # Set wrap point
+            self.edgeGuideColumn = self.prefs['edgeGuideColumn']
+            self.edgeGuideVisible = self.edgeGuideColumn > 0
+
+            # Set line spacing
+            spacing = min(int(self.prefs['lineSpacing'] / 2), 64) # Max out at 64
+            self.SetExtraAscent(spacing)
+            self.SetExtraDescent(spacing)
+        elif isinstance(self, wx.richtext.RichTextCtrl):
+            # todo: Add element-specific styling (it must be possible...)
+            # If dealing with a StdOut, set background from base
+            self.SetBackgroundColour(self.hex2rgb(base['bg'], base['bg']))
+            # Then construct default styles
+            _font = wx.Font(
+                int(self.prefs['outputFontSize']),
+                wx.FONTFAMILY_TELETYPE, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL, False,
+                faceName=base['font']
+            )
+            _style = wx.TextAttr(colText=wx.Colour(self.hex2rgb(base['fg'], base['fg'])),
+                                 colBack=wx.Colour(self.hex2rgb(base['bg'], base['bg'])),
+                                 font=_font)
+            # Then style all text as base
+            i = 0
+            for ln in range(self.GetNumberOfLines()):
+                i += self.GetLineLength(ln)+1 # +1 as \n is not included in character count
+            self.SetStyle(0, i, _style)
 
     @property
     def lexkw(self):
