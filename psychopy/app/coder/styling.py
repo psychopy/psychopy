@@ -144,13 +144,6 @@ class StylerMixin:
                 0: keyword.kwlist + ['cdef', 'ctypedef', 'extern', 'cimport', 'cpdef', 'include'],
                 1: dir(builtins) + ['self']
             }
-        # elif self.GetLexer() == stc.STC_LEX_JAVASCRIPT:
-        #     # JavaScript
-        #     keywords = {
-        #         0: ['var', 'let', 'import', 'function', 'if', 'else', 'return', 'struct', 'for', 'while', 'do',
-        #             'finally', 'throw', 'try', 'switch', 'case', 'break'],
-        #         1: ['null', 'false', 'true']
-        #     }
         elif self.GetLexer() == stc.STC_LEX_R:
             # R
             keywords = {
@@ -161,6 +154,14 @@ class StylerMixin:
         elif self.GetLexer == stc.STC_LEX_CPP:
             # C/C++
             keywords = baseC
+            if hasattr(self, 'filename'):
+                if self.filename.endswith('.js'):
+                    # JavaScript
+                    keywords = {
+                        0: ['var', 'let', 'import', 'function', 'if', 'else', 'return', 'struct', 'for', 'while', 'do',
+                            'finally', 'throw', 'try', 'switch', 'case', 'break'],
+                        1: ['null', 'false', 'true']
+                    }
         # elif self.GetLexer() == stc.STC_LEX_ARDUINO:
         #     # Arduino
         #     keywords = {
