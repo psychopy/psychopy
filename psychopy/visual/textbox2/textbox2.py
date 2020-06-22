@@ -598,6 +598,7 @@ class Caret(Line):
                       opacity=0, # Hide on first draw
                       lineWidth=2,
                       autoLog=False,
+                      units='pix',
                       )
         self.update()
 
@@ -721,6 +722,6 @@ class Caret(Line):
 
     def flash(self):
         if round(core.getTime() % 2 /2): # Every other second
-            self.setColor(self.win.color[0:3])
+            self.opacity = self.textbox.opacity
         else:
-            self.setColor(self.textbox.color[0:3])
+            self.opacity = 0
