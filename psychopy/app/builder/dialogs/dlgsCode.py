@@ -116,6 +116,7 @@ class DlgCodeComponentProperties(wx.Dialog):
                     _panel = self.tabs[tabName]
                 else:
                     _panel = wx.Panel(self.codeNotebook, wx.ID_ANY)
+                    _panel.app = self.app
                     self.tabs[tabName] = _panel
                     tabN += 1
 
@@ -477,7 +478,10 @@ class CodeBox(BaseCodeEditor, StylerMixin):
         self.paths = prefs.paths
         self.params = params
         self.codeType = codeType
-        self.SetLexer(wx.stc.STC_LEX_PYTHON)
+        if codeType == 'Py':
+            self.SetLexer(wx.stc.STC_LEX_PYTHON)
+        elif codeType == 'JS':
+            self.SetLexer(wx.stc.STC_LEX_CPP)
         self.SetKeyWords(0, " ".join(keyword.kwlist))
 
         self.SetProperty("fold", "1")
