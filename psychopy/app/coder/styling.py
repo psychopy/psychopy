@@ -55,6 +55,12 @@ class StylerMixin:
         else:
             lang = {}
 
+        # Apply app spec (default to light)
+        if 'app' not in spec:
+            spec['app'] = 'light'
+        self.app.prefs.userPrefsCfg['app']['darkmode'] = spec['app'] == 'dark'
+        self.app.prefs.userPrefsCfg.write()
+
         # Pythonise the universal data (hex -> rgb, tag -> wx int)
         invalid = []
         for key in spec:
@@ -292,6 +298,7 @@ class PsychopyPyShell(wx.py.shell.Shell, StylerMixin):
         wx.py.shell.Shell.__init__(self, coder.shelf, -1, introText=msg + '\n\n', style=wx.BORDER_NONE)
         self.prefs = coder.prefs
         self.paths = coder.paths
+        self.app = coder.app
 
         # Set theme to match code editor
         self.theme = self.prefs['theme']
