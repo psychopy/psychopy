@@ -65,12 +65,13 @@ wordBreaks = " -\n"  # what about ",."?
 
 # If text is ". " we don't want to start next line with single space?
 
-class TextBox2(BaseVisualStim, ContainerMixin):
+class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
     def __init__(self, win, text, font,
                  pos=(0, 0), units='pix', letterHeight=None,
                  size=None,
                  color=(1.0, 1.0, 1.0),
                  colorSpace='rgb',
+                 contrast=1,
                  opacity=1.0,
                  bold=False,
                  italic=False,
@@ -89,6 +90,12 @@ class TextBox2(BaseVisualStim, ContainerMixin):
         BaseVisualStim.__init__(self, win, units=units, name=name,
                                 autoLog=autoLog)
         self.win = win
+
+        self.colorSpace = colorSpace
+        self.color = color
+        self.contrast = contrast
+        self.opacity = opacity
+
         # first set params needed to create font (letter sizes etc)
         if letterHeight is None:
             self.letterHeight = defaultLetterHeight[units]
@@ -131,9 +138,6 @@ class TextBox2(BaseVisualStim, ContainerMixin):
                                    pos=self.pos,
                                    units=self.units,
                                    win=self.win)
-        self.color = color
-        self.colorSpace = colorSpace
-        self.opacity = opacity
         self.ori = 0.0
         self.depth = 0.0
         # used at render time
@@ -146,7 +150,8 @@ class TextBox2(BaseVisualStim, ContainerMixin):
         # box border and fill
         self.box = Rect(win, pos=pos,
                         width=self.size[0], height=self.size[1], units=units,
-                        lineWidth=borderWidth, lineColor=borderColor, fillColor=fillColor)
+                        lineWidth=borderWidth, lineColor=borderColor, fillColor=fillColor,
+                        autoLog=False)
         self.styleStore = {
             'lineColor': borderColor,
             'lineWidth': borderWidth,
@@ -233,7 +238,7 @@ class TextBox2(BaseVisualStim, ContainerMixin):
         text = text.replace('</i>', codes['ITAL_END'])
         text = text.replace('<b>', codes['BOLD_START'])
         text = text.replace('</b>', codes['BOLD_END'])
-        color = self.color
+        rgb = self._getDesiredRGB(self.rgb, self.colorSpace, self.contrast)
         font = self.glFont
 
         # the vertices are initially pix (natural for freetype)
@@ -324,7 +329,8 @@ class TextBox2(BaseVisualStim, ContainerMixin):
 
             vertices[i * 4:i * 4 + 4] = theseVertices
             self._texcoords[i * 4:i * 4 + 4] = texcoords
-            self._colors[i * 4:i * 4 + 4] = color
+            self._colors[i*4 : i*4+4, :3] = rgb
+            self._colors[i*4 : i*4+4, 3] = self.opacity
             self._lineNs[i] = lineN
             current[0] = current[0] + glyph.advance[0] + fakeBold / 2
             current[1] = current[1] + glyph.advance[1]
@@ -587,9 +593,11 @@ class Caret(Line):
         self.index = None
         Line.__init__(self,
                       self.textbox.win,
-                      lineColor=self.textbox.color[:3],
+                      lineColor=self.textbox.color,
+                      lineColorSpace=self.textbox.colorSpace,
                       opacity=0, # Hide on first draw
-                      lineWidth=2
+                      lineWidth=2,
+                      autoLog=False,
                       )
         self.update()
 
