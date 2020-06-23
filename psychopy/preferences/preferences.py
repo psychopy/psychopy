@@ -199,7 +199,9 @@ class Preferences(object):
         # keybindings:
         self.keys = self.userPrefsCfg['keyBindings']
         # darkmode paths
-        self.paths['resources'] = join(self.paths['resources'], ('light', 'dark')[self.app['darkmode']])
+        self.paths['resources'] = join(self.paths['resources'],
+                                       'classic' if self.app['iconset'] == 'classic'
+                                       else ('light', 'dark')[self.app['darkmode']])
 
     def loadUserPrefs(self):
         """load user prefs, if any; don't save to a file because doing so
