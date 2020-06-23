@@ -1,4 +1,5 @@
 {
+  "app": "dark",
   "base": {
     "fg": "#F2F2F2",
     "bg": "#66666E",
@@ -7,6 +8,16 @@
   "margin": {
     "fg": "#F2F2F2",
     "bg": "#7C7C86",
+    "font": ""
+  },
+  "caret": {
+    "fg": "#F46E75",
+    "bg": "#000000",
+    "font": ""
+  },
+  "select": {
+    "fg": "#FFFFFF",
+    "bg": "#75757D",
     "font": ""
   },
   "indent": {
@@ -50,18 +61,18 @@
     "font": ""
   },
   "char": {
-    "fg": "#ACACB0",
+    "fg": "#F46E75",
     "bg": "",
     "font": ""
   },
   "str": {
-    "fg": "#ACACB0",
+    "fg": "#F46E75",
     "bg": "",
     "font": ""
   },
   "openstr": {
-    "fg": "#ACACB0",
-    "bg": "#7C7C86",
+    "fg": "#F46E75",
+    "bg": "#F2F2F2",
     "font": ""
   },
   "infix": {
