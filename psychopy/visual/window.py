@@ -1027,7 +1027,7 @@ class Window(object):
                     thisObj = thisObj()  # Solidify weakref
                 if self._mouse.isPressedIn(thisObj):
                     self.currentEditable = thisObj
-                thisObj.caret.flash() # Flash cursor on current editable
+                thisObj.caret.draw() # Flash cursor on current editable
 
         flipThisFrame = self._startOfFlip()
         if self.useFBO and flipThisFrame:
