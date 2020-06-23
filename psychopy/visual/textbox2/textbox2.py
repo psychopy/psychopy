@@ -650,7 +650,7 @@ class Caret(ColorMixin):
         """What character within current line is caret on?"""
         # Check that index is with range of all character indices
         self.index = min(self.index, len(self.textbox._lineNs) - 1)
-        self.index = max(self.index, 1)
+        self.index = max(self.index, 0)
         # Get first index of line, subtract from index to get char
         return self.index - sum(self.textbox._lineLenChars[:self.row])
     @char.setter
@@ -667,7 +667,7 @@ class Caret(ColorMixin):
         # If value exceeds row length, set value to beginning of next row
         if value >= self.textbox._lineLenChars[self.row]:
             self.row += 1
-            value = 1
+            value = 0
         self.index = self.textbox._lineLenChars[:self.row] + value
         # Redraw caret at new char
         self.draw()
