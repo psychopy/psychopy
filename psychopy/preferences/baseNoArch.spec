@@ -63,6 +63,8 @@
     errorDialog = boolean(default='True')
     # Dark mode
     darkmode = boolean(default='False')
+    # Icons
+    iconset = option('modern', 'classic', default='modern')
 
 # Settings for the Coder window
 [coder]
