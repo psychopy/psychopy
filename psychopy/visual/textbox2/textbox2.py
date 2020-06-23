@@ -663,7 +663,7 @@ class Caret(ColorMixin):
                 value = 0
             else:
                 self.row -= 1
-                value = self.textbox._lineLenChars[self.row]
+                value = self.textbox._lineLenChars[self.row]-1
         # If value exceeds row length, set value to beginning of next row
         if value >= self.textbox._lineLenChars[self.row]:
             self.row += 1
@@ -677,16 +677,16 @@ class Caret(ColorMixin):
         textbox = self.textbox
         # check we have a caret index
         if self.index is None or self.index > len(textbox._lineNs):
-            self.index = len(textbox._lineNs)
+            self.index = len(textbox._lineNs)-1
         # get the verts of character next to caret (chr is the next one so use
         # left edge unless last index then use the right of prev chr)
         # lastChar = [bottLeft, topLeft, **bottRight**, **topRight**]
-        ii = self.index-1
+        ii = self.index
         chrVerts = textbox.vertices[range(ii * 4, ii * 4 + 4)]  # Get vertices of character at this index
         if self.index >= len(textbox._lineNs):  # caret is after last chr
-            x = chrVerts[1, 0]  # x-coord of left edge (of final char)
+            x = chrVerts[2, 0]  # x-coord of left edge (of final char)
         else:
-            x = chrVerts[2, 0]  # x-coord of right edge
+            x = chrVerts[1, 0]  # x-coord of right edge
         # the y locations are the top and bottom of this line
         y1 = textbox._lineBottoms[self.row] / textbox._pixelScaling
         y2 = textbox._lineTops[self.row] / textbox._pixelScaling
