@@ -347,6 +347,7 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
                 lineWidth = lineWPix / self._pixelScaling + self.padding * 2
                 self._lineWidths.append(lineWidth)
                 charsThisLine = 0
+                wordLen = 0
             elif charcode in wordBreaks:
                 wordLen = 0
                 charsThisLine += 1
@@ -359,19 +360,22 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
                 # move the current word to next line
                 lineBreakPt = vertices[(i - wordLen + 1) * 4, 0]
                 wordWidth = current[0] - lineBreakPt
-                # shift all chars of the word left by wordStartX
-                vertices[(i - wordLen + 1) * 4: (i + 1) * 4, 0] -= lineBreakPt
-                vertices[(i - wordLen + 1) * 4: (i + 1) * 4, 1] -= self._lineHeight
-                # update line values
-                self._lineNs[i - wordLen + 1: i + 1] += 1
-                self._lineLenChars.append(charsThisLine - wordLen)
-                self._lineWidths.append(
-                        lineBreakPt / self._pixelScaling + self.padding * 2)
-                lineN += 1
-                # and set current to correct location
-                current[0] = wordWidth
-                current[1] -= self._lineHeight
-                charsThisLine = wordLen
+                if wordWidth < lineMax:
+                    # shift all chars of the word left by wordStartX
+                    vertices[(i - wordLen + 1) * 4: (i + 1) * 4, 0] -= lineBreakPt
+                    vertices[(i - wordLen + 1) * 4: (i + 1) * 4, 1] -= self._lineHeight
+                    # update line values
+                    self._lineNs[i - wordLen + 1: i + 1] += 1
+                    self._lineLenChars.append(charsThisLine - wordLen)
+                    self._lineWidths.append(
+                            lineBreakPt / self._pixelScaling + self.padding * 2)
+                    lineN += 1
+                    # and set current to correct location
+                    current[0] = wordWidth
+                    current[1] -= self._lineHeight
+                    charsThisLine = wordLen
+                else:
+                    wordLen = 0
 
             # have we stored the top/bottom of this line yet
             if lineN + 1 > len(self._lineTops):
