@@ -60,9 +60,12 @@ class ThemeMixin:
             else:
                 lang = {}
 
-            # Apply app spec (default to light)
+            # Apply app spec (default to light & modern)
             if 'app' not in spec:
                 spec['app'] = 'light'
+            if 'icons' not in spec:
+                spec['icons'] = 'modern'
+            self.app.prefs.userPrefsCfg['app']['iconset'] = spec['icons']
             self.app.prefs.userPrefsCfg['app']['darkmode'] = spec['app'] == 'dark'
             self.app.prefs.userPrefsCfg.write()
 
