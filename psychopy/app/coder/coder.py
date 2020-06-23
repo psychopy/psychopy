@@ -1108,12 +1108,12 @@ class CoderFrame(wx.Frame):
         # Add structure page to source assistant
         self.sourceAsst.AddPage(self.structureWindow, "Structure")
         self.sourceAsst.SetPageBitmap(0, wx.Bitmap(
-            os.path.join(self.paths['resources'], 'coderclass16.png'),
+            os.path.join(self.paths['icons'], 'coderclass16.png'),
             wx.BITMAP_TYPE_PNG))
         # Add file browser page to source assistant
         self.sourceAsst.AddPage(self.fileBrowserWindow, "File Browser")
         self.sourceAsst.SetPageBitmap(1, wx.Bitmap(
-            os.path.join(self.paths['resources'], 'folder-open16.png'),
+            os.path.join(self.paths['icons'], 'folder-open16.png'),
             wx.BITMAP_TYPE_PNG))
 
         # Create editor notebook
@@ -1172,7 +1172,7 @@ class CoderFrame(wx.Frame):
             # Add shell to output pane
             self.shelf.AddPage(self.shell, _translate('Shell'))
             self.shelf.SetPageBitmap(0, wx.Bitmap(
-                os.path.join(self.paths['resources'], 'coderpython16.png'),
+                os.path.join(self.paths['icons'], 'coderpython16.png'),
                 wx.BITMAP_TYPE_PNG))
         # Add shelf panel
         self.paneManager.AddPane(self.shelf,

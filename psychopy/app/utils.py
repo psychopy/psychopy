@@ -295,7 +295,7 @@ class PsychopyToolbar(wx.ToolBar):
 
     def AddPsychopyTool(self, fName, label, shortcut, tooltip, func):
         # Load in graphic resource
-        rc = self.frame.app.prefs.paths['resources']
+        rc = self.frame.app.prefs.paths['icons']
         if isinstance(fName, str):
             # If one stimulus is supplied, read bitmap
             bmp = wx.Bitmap(os.path.join(

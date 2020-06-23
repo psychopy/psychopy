@@ -20,6 +20,7 @@ from psychopy.constants import PY3
 import io
 from . import urls
 from . import frametracker
+from .themes import ThemeMixin
 
 if not hasattr(sys, 'frozen'):
     try:
@@ -79,7 +80,7 @@ if sys.platform == 'win32':
                 preferences.prefs.saveUserPrefs()
 
 
-class MenuFrame(wx.Frame):
+class MenuFrame(wx.Frame, ThemeMixin):
     """A simple empty frame with a menubar, should be last frame closed on mac
     """
 
@@ -154,7 +155,7 @@ class _Showgui_Hack(object):
         core.shellCall([sys.executable, noopPath])
 
 
-class PsychoPyApp(wx.App):
+class PsychoPyApp(wx.App, ThemeMixin):
 
     def __init__(self, arg=0, testMode=False, **kwargs):
         """With a wx.App some things get done here, before App.__init__
@@ -319,6 +320,7 @@ class PsychoPyApp(wx.App):
                        float(wx.GetDisplaySizeMM()[0]) * 25.4)
         if not (50 < self.dpi < 120):
             self.dpi = 80  # dpi was unreasonable, make one up
+        self.theme = prefs.app['theme']
 
         if sys.platform == 'win32':
             # wx.SYS_DEFAULT_GUI_FONT is default GUI font in Win32

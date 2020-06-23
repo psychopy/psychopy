@@ -26,7 +26,7 @@ class SourceTreePanel(wx.Panel):
         self.coder = frame
 
         # get graphics for toolbars and tree items
-        rc = self.coder.paths['resources']
+        rc = self.coder.paths['icons']
         self._treeImgList = wx.ImageList(16, 16)
         self._treeGfx = {
             'class': self._treeImgList.Add(

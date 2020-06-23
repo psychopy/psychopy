@@ -87,7 +87,7 @@ class FileBrowserPanel(wx.Panel):
         self.SetBackgroundColour(wx.Colour(cs['tab_active']))
         self.SetForegroundColour(wx.Colour(cs['brws_txt']))
         # get graphics for toolbars and tree items
-        rc = self.coder.paths['resources']
+        rc = self.coder.paths['icons']
         join = os.path.join
 
         # handles for icon graphics in the image list

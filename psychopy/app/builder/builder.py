@@ -135,6 +135,7 @@ class BuilderFrame(wx.Frame):
                           style=style)
         self.Bind(wx.EVT_CLOSE, self.closeFrame)
         self.panel = wx.Panel(self)
+
         # create icon
         if sys.platform != 'darwin':
             # doesn't work on darwin and not necessary: handled by app bundle
@@ -1256,7 +1257,7 @@ class BuilderFrame(wx.Frame):
         val: int
             Status of git sync. 1 for SUCCESS (green), 0 or -1 for FAIL (RED)
         """
-        rc = self.app.prefs.paths['resources']
+        rc = self.app.prefs.paths['icons']
         feedbackTime = 1500
         colour = {0: "red", -1: "red", 1: "green"}
 

@@ -18,7 +18,7 @@ class PavloviaButtons:
         self.btnHandles = {}
 
     def addPavloviaTools(self, buttons=[]):
-        rc = self.frame.app.prefs.paths['resources']
+        rc = self.frame.app.prefs.paths['icons']
 
         info = {}
         info['pavloviaRun'] = {

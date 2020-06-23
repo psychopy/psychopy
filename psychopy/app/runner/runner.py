@@ -466,7 +466,7 @@ class RunnerPanel(wx.Panel, ScriptProcess):
         wx.BitmapButton
         """
         buttonSize = 32
-        rc = self.app.prefs.paths['resources']
+        rc = self.app.prefs.paths['icons']
         join = os.path.join
         PNG = wx.BITMAP_TYPE_PNG
 

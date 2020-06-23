@@ -18,7 +18,7 @@ import wx
 from psychopy import experiment, prefs
 from psychopy.experiment import components
 
-resourcesPath = prefs.paths['resources']
+iconsPath = prefs.paths['icons']
 
 def pilToBitmap(pil, scaleFactor=1.0):
     if parse_version(wx.__version__) < parse_version('4.0.0a1'):
@@ -106,7 +106,7 @@ def getIcons(filename=None):
     """
     icons = {}
     if filename is None:
-        filename = join(resourcesPath, 'base.png')
+        filename = join(iconsPath, 'base.png')
 
     # get the low-res version first
     im = Image.open(filename)

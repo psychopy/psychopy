@@ -17,7 +17,7 @@ try:
 except ImportError:
     import wx.lib.hyperlink as wxhl # <3.0.2
 
-resources = prefs.paths['resources']
+iconsPath = prefs.paths['icons']
 
 
 class UserEditor(wx.Dialog):
@@ -52,7 +52,8 @@ class UserEditor(wx.Dialog):
         if self.user.avatar:
             userBitmap = wx.Bitmap(self.user.avatar)
         else:
-            userBitmap = wx.Bitmap(os.path.join(resources, "user128invisible.png"))
+            userBitmap = wx.Bitmap(os.path.join(iconsPath,
+                                                "user128invisible.png"))
         # self.avatarBtn = wx.Button(panel, wx.ID_ANY, name="Avatar")
         # self.avatarBtn.SetBitmap(userBitmap)
         self.avatarBtn = wx.BitmapButton(panel, wx.ID_ANY,

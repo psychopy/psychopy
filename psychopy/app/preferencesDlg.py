@@ -225,7 +225,7 @@ class PrefPropGrid(wx.Panel):
 
         nbBitmap = wx.Bitmap(
             os.path.join(
-                self.GetTopLevelParent().app.prefs.paths['resources'],
+                self.GetTopLevelParent().app.prefs.paths['icons'],
                 bitmap),
             wx.BITMAP_TYPE_ANY)
         if nbBitmap.IsOk():
