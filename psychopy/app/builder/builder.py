@@ -1932,6 +1932,7 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
                                              id,
                                              size=(panelWidth, 10 * self.dpi),
                                              style=wx.BORDER_NONE)
+        self._maxBtnWidth = 0  # will store width of widest button
         self.sizer = wx.BoxSizer(wx.VERTICAL)
         self.SetBackgroundColour(cs['cpanel_bg'])
         self.components = experiment.getAllComponents(
@@ -1975,7 +1976,7 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
             self.sizerList.append(sectionBtn)
             self.sizer.Add(self.panels[categ], flag=wx.ALIGN_CENTER)
             self.sizerList.append(self.panels[categ])
-        self.makeComponentButtons()
+        maxWidth = self.makeComponentButtons()
         self._rightClicked = None
         # start all except for Favorites collapsed
         for section in categories[1:]:
@@ -1989,9 +1990,9 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
 
     def on_resize(self, event):
         if self.app.prefs.app['largeIcons']:
-            cols = self.GetClientSize()[0] // 58
+            cols = self.GetClientSize()[0] // self._maxBtnWidth
         else:
-            cols = self.GetClientSize()[0] // 34
+            cols = self.GetClientSize()[0] // self._maxBtnWidth
         for category in list(self.panels.values()):
             category.SetCols(max(1, cols))
 
@@ -2031,11 +2032,19 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
         else:
             thisIcon = componIcons[name][
                 '24add']  # index 1 is the 'add' icon
-        btn = wx.BitmapButton(self, -1, thisIcon,
-                              size=(thisIcon.GetWidth() + 10,
-                                    thisIcon.GetHeight() + 10),
+
+        # btn = wx.BitmapButton(self, -1, thisIcon,
+        #                       size=(thisIcon.GetWidth() + 10,
+        #                             thisIcon.GetHeight() + 10),
+        #                       name=thisComp.__name__,
+        #                       style=wx.BORDER_NONE)
+        label = thisComp.__name__.replace("Component", "")
+        label = label.replace("ButtonBox", "")
+        btn = wx.Button(self, -1, label=label,
                               name=thisComp.__name__,
                               style=wx.BORDER_NONE)
+        btn.SetBitmap(thisIcon)  # also setBitmapPresseed setBitmapDisabled etc
+        btn.SetBitmapPosition(wx.TOP)
         # Set button background and hover effect
         btn.SetBackgroundColour(cs['cpanel_bg'])
         btn.Bind(wx.EVT_ENTER_WINDOW, self.onHover)
@@ -2053,6 +2062,7 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
         self.Bind(wx.EVT_BUTTON, self.onClick, btn)
         # ,wx.EXPAND|wx.ALIGN_CENTER )
         panel.Add(btn, proportion=0, flag=wx.ALIGN_RIGHT)
+        self._maxBtnWidth = max(btn.GetSize()[0], self._maxBtnWidth)
 
     def onSectionBtn(self, evt):
         if hasattr(evt, 'GetString'):
