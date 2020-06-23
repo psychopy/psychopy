@@ -15,7 +15,7 @@ import keyword
 import wx
 from collections import OrderedDict
 from psychopy.experiment.components.code import CodeComponent
-from ...coder import StylerMixin
+from ...themes import ThemeMixin
 
 try:
     from wx.lib.agw import flatnotebook
@@ -458,7 +458,7 @@ class DlgCodeComponentProperties(wx.Dialog):
         self.app.followLink(url=self.helpUrl)
 
 
-class CodeBox(BaseCodeEditor, StylerMixin):
+class CodeBox(BaseCodeEditor, ThemeMixin):
     # this comes mostly from the wxPython demo styledTextCtrl 2
 
     def __init__(self, parent, ID, prefs,

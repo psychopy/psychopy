@@ -35,16 +35,13 @@ from .. import pavlovia_ui
 from psychopy import logging
 from psychopy.localization import _translate
 from ..utils import FileDropTarget, PsychopyToolbar, PsychopyTabArt, PsychopyDockArt
-from psychopy.app.style import cLib, cs
 from psychopy.projects import pavlovia
 import psychopy.app.pavlovia_ui.menu
 from psychopy.app.coder.codeEditorBase import BaseCodeEditor
 from psychopy.app.coder.fileBrowser import FileBrowserPanel
 from psychopy.app.coder.sourceTree import SourceTreePanel
-from psychopy.app.coder.styling import StylerMixin, PsychopyPyShell
+from psychopy.app.themes import ThemeMixin
 from psychopy.app.coder.folding import CodeEditorFoldingMixin
-from psychopy.app.icons import combineImageEmblem
-from psychopy.app.errorDlg import ErrorMsgDialog
 
 try:
     import jedi
@@ -94,6 +91,19 @@ def fromPickle(filename):
         contents = pickle.load(f)
 
     return contents
+
+
+class PsychopyPyShell(wx.py.shell.Shell, ThemeMixin):
+    '''Simple class wrapper for Pyshell which uses the Psychopy ThemeMixin'''
+    def __init__(self, coder):
+        msg = _translate('PyShell in PsychoPy - type some commands!')
+        wx.py.shell.Shell.__init__(self, coder.shelf, -1, introText=msg + '\n\n', style=wx.BORDER_NONE)
+        self.prefs = coder.prefs
+        self.paths = coder.paths
+        self.app = coder.app
+
+        # Set theme to match code editor
+        self.theme = self.prefs['theme']
 
 
 class Printer(HtmlEasyPrinting):
@@ -494,7 +504,7 @@ class UnitTestFrame(wx.Frame):
         self.Destroy()
 
 
-class CodeEditor(BaseCodeEditor, CodeEditorFoldingMixin, StylerMixin):
+class CodeEditor(BaseCodeEditor, CodeEditorFoldingMixin, ThemeMixin):
     """Code editor class for the Coder GUI.
     """
     def __init__(self, parent, ID, frame,

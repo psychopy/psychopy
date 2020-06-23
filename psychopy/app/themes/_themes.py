@@ -5,9 +5,13 @@ import keyword
 import builtins
 from wx import py
 from psychopy.tools.versionchooser import _translate
+from pathlib import Path
 
 
-class StylerMixin:
+thisFolder = Path(__file__).parent
+
+
+class ThemeMixin:
     lexers = {
         stc.STC_LEX_PYTHON: "python",
         stc.STC_LEX_CPP: "c++",
@@ -38,7 +42,7 @@ class StylerMixin:
         else:
             return
         # Override base font with user spec if present
-        key = 'outputFont' if isinstance(self, PsychopyPyShell) else 'codeFont'
+        key = 'outputFont' if isinstance(self, wx.py.shell.Shell) else 'codeFont'
         if self.prefs[key] != "From theme...":
             base['font'] = self.prefs[key]
         if isinstance(self, wx.stc.StyledTextCtrl):
@@ -145,6 +149,42 @@ class StylerMixin:
             for ln in range(self.GetNumberOfLines()):
                 i += self.GetLineLength(ln)+1 # +1 as \n is not included in character count
             self.SetStyle(0, i, _style)
+        else:
+            self.setThemeRecursive(base)
+
+    def setThemeRecursive(self, colorScheme, target=None, depth=0):
+        """Applies colorScheme recursively to the target and its children"""
+        if target is None:
+            target = self
+
+        if isinstance(target, wx.Sizer):
+            sizer = target
+            children = sizer.Children
+        else:
+            children = []
+            if hasattr(target, 'Children'):
+                children.extend(target.Children)
+            elif hasattr(target, 'immune'):
+                pass
+            elif hasattr(target, 'paneManager'):
+                for pane in target.paneManager.AllPanes:
+                    children.append(pane.window)
+            elif target.Sizer:
+                children.append(target.Sizer)
+            else:
+                try:
+                    target.SetBackgroundColour(colorScheme['bg'])
+                    target.SetForegroundColour(colorScheme['fg'])
+                except AttributeError:
+                    pass
+
+        # then apply to all children as well
+        for c in children:
+            if hasattr(c, 'Window') and c.Window is not None:
+                self.setThemeRecursive(c.Window, depth+1)
+            elif hasattr(c, 'Sizer') and c.Sizer is not None:
+                self.setThemeRecursive(c.Sizer, depth+1)
+            self.setThemeRecursive(c, depth+1)
 
     @property
     def lexkw(self):
@@ -279,7 +319,6 @@ class StylerMixin:
             })
         return tags
 
-
     def hex2rgb(self, hex, base=(0, 0, 0, 0)):
         if not isinstance(hex, str):
             return base
@@ -314,16 +353,3 @@ class StylerMixin:
             )
 
         return newCol
-
-
-class PsychopyPyShell(wx.py.shell.Shell, StylerMixin):
-    '''Simple class wrapper for Pyshell which uses the Psychopy StylerMixin'''
-    def __init__(self, coder):
-        msg = _translate('PyShell in PsychoPy - type some commands!')
-        wx.py.shell.Shell.__init__(self, coder.shelf, -1, introText=msg + '\n\n', style=wx.BORDER_NONE)
-        self.prefs = coder.prefs
-        self.paths = coder.paths
-        self.app = coder.app
-
-        # Set theme to match code editor
-        self.theme = self.prefs['theme']

@@ -132,7 +132,7 @@ class Preferences(object):
 
         # Find / copy themes
         self.paths['themes'] = join(self.paths['userPrefsDir'], 'themes')
-        baseThemes = join(self.paths['appDir'], 'coder', 'themes')
+        baseThemes = join(self.paths['appDir'], 'themes')
         # avoid silent fail-to-launch-app if bad permissions:
         if os.path.exists(self.paths['userPrefsDir']):
             try:

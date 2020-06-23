@@ -6,7 +6,7 @@
 # Distributed under the terms of the GNU General Public License (GPL).
 import json
 
-from psychopy.app.coder import StylerMixin
+from psychopy.app.themes import ThemeMixin
 from psychopy.app.style import cLib, cs
 
 import wx
@@ -798,7 +798,7 @@ class RunnerPanel(wx.Panel, ScriptProcess):
         self._currentProject = None
 
 
-class StdOutText(StdOutRich, StylerMixin):
+class StdOutText(StdOutRich, ThemeMixin):
     """StdOutRich subclass which also handles Git messages from Pavlovia projects."""
 
     def __init__(self, parent=None, style=wx.TE_READONLY | wx.TE_MULTILINE | wx.BORDER_NONE, size=wx.DefaultSize):
