@@ -164,7 +164,7 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
 
         # caret
         self.editable = editable
-        self.caret = Caret(self, self.color[:3], 2)
+        self.caret = Caret(self, self.color, 2)
         self.caret.draw()
         if editable:
             self.win.addEditable(self)
@@ -573,8 +573,6 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
             self.box.setFillColor(self.styleStore['fillColor'], colorSpace='rgb')
             self.fillColor = self.box.fillColor
             self.box.draw()
-            # Hide caret
-            self.caret.visible = False
         # Store focus
         self._hasFocus = state
 
@@ -676,8 +674,10 @@ class Caret(ColorMixin):
     def vertices(self):
         textbox = self.textbox
         # check we have a caret index
-        if self.index is None or self.index > len(textbox._lineNs):
+        if self.index is None or self.index > len(textbox._lineNs)-1:
             self.index = len(textbox._lineNs)-1
+        if self.index < 0:
+            self.index = 0
         # get the verts of character next to caret (chr is the next one so use
         # left edge unless last index then use the right of prev chr)
         # lastChar = [bottLeft, topLeft, **bottRight**, **topRight**]
