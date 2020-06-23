@@ -475,6 +475,12 @@ class BuilderFrame(wx.Frame):
         self.app.urls[item.GetId()] = self.app.urls['builderHelp']
 
         menu.AppendSeparator()
+        item = menu.Append(wx.ID_ANY,
+                           _translate("&System Info..."),
+                           _translate("Get system information."))
+        self.Bind(wx.EVT_MENU, self.app.showSystemInfo, id=item.GetId())
+
+        menu.AppendSeparator()
         menu.Append(wx.ID_ABOUT, _translate(
             "&About..."), _translate("About PsychoPy"))
         self.Bind(wx.EVT_MENU, self.app.showAbout, id=wx.ID_ABOUT)

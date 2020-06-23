@@ -1646,6 +1646,11 @@ class CoderFrame(wx.Frame):
         self.Bind(wx.EVT_MENU, self.app.followLink, id=item.GetId())
         self.app.urls[item.GetId()] = self.app.urls['psychopyReference']
         self.helpMenu.AppendSeparator()
+        item = self.helpMenu.Append(wx.ID_ANY,
+                                    _translate("&System Info..."),
+                                    _translate("Get system information."))
+        self.Bind(wx.EVT_MENU, self.app.showSystemInfo, id=item.GetId())
+        self.helpMenu.AppendSeparator()
         # on mac this will move to the application menu
         self.helpMenu.Append(wx.ID_ABOUT,
                              _translate("&About..."),

@@ -826,6 +826,12 @@ class PsychoPyApp(wx.App):
     def showNews(self, event=None):
         connections.showNews(self, checkPrev=False)
 
+    def showSystemInfo(self, event=None):
+        """Show system information."""
+        from psychopy.app.sysInfoDlg import SystemInfoDialog
+        dlg = SystemInfoDialog(None)
+        dlg.Show()
+
     def followLink(self, event=None, url=None):
         """Follow either an event id (= a key to an url defined in urls.py)
         or follow a complete url (a string beginning "http://")
