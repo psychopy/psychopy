@@ -584,15 +584,6 @@ class Caret(ColorMixin):
         self.autoLog = False
         self.color = color
         self.width = width
-        # Line.__init__(self,
-        #               self.textbox.win,
-        #               units='pix',
-        #               lineColor=self.textbox.color,
-        #               lineColorSpace=self.textbox.colorSpace,
-        #               opacity=0, # Hide on first draw
-        #               lineWidth=2,
-        #               autoLog=False,
-        #               )
 
     def draw(self):
         gl.glLineWidth(self.width)
