@@ -684,9 +684,9 @@ class Caret(ColorMixin):
         ii = self.index-1
         chrVerts = textbox.vertices[range(ii * 4, ii * 4 + 4)]  # Get vertices of character at this index
         if self.index >= len(textbox._lineNs):  # caret is after last chr
-            x = chrVerts[2, 0]  # x-coord of right edge (of final char)
+            x = chrVerts[1, 0]  # x-coord of left edge (of final char)
         else:
-            x = chrVerts[1, 0]  # x-coord of left edge
+            x = chrVerts[2, 0]  # x-coord of right edge
         # the y locations are the top and bottom of this line
         y1 = textbox._lineBottoms[self.row] / textbox._pixelScaling
         y2 = textbox._lineTops[self.row] / textbox._pixelScaling
