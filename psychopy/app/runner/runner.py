@@ -23,7 +23,8 @@ from subprocess import Popen, PIPE
 
 from psychopy.app import icons
 from psychopy import experiment
-from psychopy.app.utils import PsychopyDockArt, PsychopyPlateBtn, PsychopyTabArt, PsychopyToolbar
+from psychopy.app.utils import PsychopyDockArt, PsychopyPlateBtn, \
+    PsychopyTabArt, PsychopyToolbar
 from psychopy.constants import PY3
 from psychopy.localization import _translate
 from psychopy.app.stdOutRich import StdOutRich

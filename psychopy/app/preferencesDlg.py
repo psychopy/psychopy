@@ -782,7 +782,7 @@ class PreferencesDlg(wx.Dialog):
                                                         message=msg,
                                                         type='Info',
                                                         title=title)
-                        resp = warnDlg.ShowModal()
+                        warnDlg.ShowModal()
                         return
                     if type(newVal) != list:
                         self.prefsCfg[sectionName][prefName] = [newVal]

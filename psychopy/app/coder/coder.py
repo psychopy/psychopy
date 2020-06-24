@@ -662,21 +662,27 @@ class CodeEditor(BaseCodeEditor, CodeEditorFoldingMixin, StylerMixin):
 
     def OnKeyReleased(self, event):
         """Called after a key is released."""
-        keyCode = event.GetKeyCode()
-        _mods = event.GetModifiers()
-        if keyCode == ord('.'):
-            if self.AUTOCOMPLETE:
-                # A dot was entered, get suggestions if part of a qualified name
-                wx.CallAfter(self.ShowAutoCompleteList)  # defer
+
+        if hasattr(self.coder, "useAutoComp"):
+            keyCode = event.GetKeyCode()
+            _mods = event.GetModifiers()
+            if keyCode == ord('.'):
+                if self.coder.useAutoComp:
+                    # A dot was entered, get suggestions if part of a qualified name
+                    wx.CallAfter(self.ShowAutoCompleteList)  # defer
+                else:
+                    self.coder.SetStatusText(
+                        'Press Ctrl+Space to show code completions', 0)
+            elif keyCode == ord('9') and wx.MOD_SHIFT == _mods:
+                # A left bracket was entered, check if there is a calltip available
+                if self.coder.useAutoComp:
+                    if not self.CallTipActive():
+                        wx.CallAfter(self.ShowCalltip)
+                else:
+                    self.coder.SetStatusText(
+                        'Press Ctrl+Space to show calltip', 0)
             else:
-                self.coder.SetStatusText(
-                    'Press Ctrl+Space to show code completions', 0)
-        elif keyCode == ord('9') and wx.MOD_SHIFT == _mods:
-            # A left bracket was entered, check if there is a calltip available
-            if not self.CallTipActive():
-                wx.CallAfter(self.ShowCalltip)
-        else:
-            self.coder.SetStatusText('', 0)
+                self.coder.SetStatusText('', 0)
 
         event.Skip()
 
@@ -1011,6 +1017,7 @@ class CoderFrame(wx.Frame):
         self.fileStatusCheckInterval = 5 * 60  # sec
         self.showingReloadDialog = False
         self.btnHandles = {}  # stores toolbar buttons so they can be altered
+        self.useAutoComp = False
 
         # we didn't have the key or the win was minimized/invalid
         if self.appData['winH'] == 0 or self.appData['winW'] == 0:
@@ -1197,6 +1204,8 @@ class CoderFrame(wx.Frame):
 
         self.sourceAsstChk.Check(
             self.paneManager.GetPane('SourceAsst').IsShown())
+        #self.chkShowAutoComp.Check(self.prefs['autocomplete'])
+        self.useAutoComp = self.prefs['autocomplete']
         self.SendSizeEvent()
         self.app.trackFrame(self)
 
@@ -1520,9 +1529,8 @@ class CoderFrame(wx.Frame):
         key = keyCodes['toggleOutputPanel']
         hint = _translate("Shows the output and shell panes (and starts "
                           "capturing stdout)")
-        self.outputChk = menu.AppendCheckItem(wx.ID_ANY,
-                                              _translate("Show &Output/Shell\t%s") % key,
-                                              hint)
+        self.outputChk = menu.AppendCheckItem(
+            wx.ID_ANY, _translate("Show &Output/Shell\t%s") % key, hint)
         self.outputChk.Check(self.prefs['showOutput'])
         self.Bind(wx.EVT_MENU, self.setOutputWindow, id=self.outputChk.GetId())
         # source assistant
@@ -1533,13 +1541,13 @@ class CoderFrame(wx.Frame):
         self.Bind(wx.EVT_MENU, self.setSourceAsst,
                   id=self.sourceAsstChk.GetId())
 
-        # hint = "Hide/show file browser pane."
-        # self.fileBrowserChk = menu.AppendCheckItem(wx.ID_ANY,
-        #                                           "File Browser",
-        #                                           hint)
-        # self.Bind(wx.EVT_MENU, self.setFileBrowser,
-        #           id=self.fileBrowserChk.GetId())
-
+        # menu.AppendSeparator()
+        # hint = "Enable code autocomplete and calltips while typing. Disable " \
+        #        "to manually bring up suggestions (Ctrl+Space)."
+        # self.chkShowAutoComp = menu.AppendCheckItem(
+        #     wx.ID_ANY, "Show code suggestion while typing", hint)
+        # self.Bind(wx.EVT_MENU, self.setAutoComplete,
+        #           id=self.chkShowAutoComp.GetId())
         menu.AppendSeparator()
 
         key = self.app.keys['switchToBuilder']
@@ -2507,6 +2515,11 @@ class CoderFrame(wx.Frame):
             self.paneManager.GetPane("SourceAsst").Show()
             self.prefs['showSourceAsst'] = True
         self.paneManager.Update()
+
+    # def setAutoComplete(self, event=None):
+    #     # show/hide the source assistant (from the view menu control)
+    #     self.prefs['autocomplete'] = self.useAutoComp = \
+    #         self.chkShowAutoComp.IsChecked()
 
     # def setFileBrowser(self, event):
     #     # show/hide the source file browser
