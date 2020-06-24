@@ -508,7 +508,6 @@ class CodeEditor(BaseCodeEditor, CodeEditorFoldingMixin, StylerMixin):
         self.prefs = self.coder.prefs
         self.paths = self.coder.paths
         self.app = self.coder.app
-        self.sourceAsstScroll = 0  # keep track of scrolling
         self.SetViewWhiteSpace(self.coder.appData['showWhitespace'])
         self.SetViewEOL(self.coder.appData['showEOLs'])
         self.Bind(wx.EVT_DROP_FILES, self.coder.filesDropped)
@@ -532,7 +531,6 @@ class CodeEditor(BaseCodeEditor, CodeEditorFoldingMixin, StylerMixin):
         # with this document. This makes sure the tree maintains it's state when
         # moving between documents.
         self.expandedItems = {}
-        self.sourceAsstScroll = 0
 
         # show the long line edge guide, enabled if >0
         self.edgeGuideColumn = self.coder.prefs['edgeGuideColumn']
@@ -1851,16 +1849,8 @@ class CoderFrame(wx.Frame):
         self.setFileModified(self.currentDoc.UNSAVED)
         self.SetLabel('%s - PsychoPy Coder' % self.currentDoc.filename)
 
-        # scroll the source tree to where it was before for this document,
-        # prevents it from jumping around annoyingly
         if hasattr(self, 'structureWindow'):
-            # get the old source assist scroll position, save it
-            if old > -1 and old < self.notebook.GetPageCount()-1:
-                self.notebook.GetPage(old).sourceAsstScroll = \
-                    self.structureWindow.GetScrollVert()
             self.currentDoc.analyseScript()
-            self.structureWindow.srcTree.SetScrollPos(
-                wx.VERTICAL, self.currentDoc.sourceAsstScroll)
 
         self.statusBar.SetStatusText(self.currentDoc.getFileType(), 2)
 
@@ -2132,7 +2122,6 @@ class CoderFrame(wx.Frame):
                 self.currentDoc.fileModTime = time.ctime()
 
             self.currentDoc.EmptyUndoBuffer()
-            #self.currentDoc.SetScrollWidth(p.GetClientSize().width)
 
             path, shortName = os.path.split(filename)
             self.notebook.AddPage(p, shortName)
