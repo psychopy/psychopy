@@ -50,6 +50,7 @@ class RunnerFrame(wx.Frame):
         self.app.trackFrame(self)
 
         self.panel = RunnerPanel(self, id, title, app)
+        self.panel.SetDoubleBuffered(True)
 
         # Create menu
         self.runnerMenu = wx.MenuBar()
