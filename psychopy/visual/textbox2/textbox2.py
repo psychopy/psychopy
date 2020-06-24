@@ -149,18 +149,18 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
         self.flipVert = flipVert
         self.text = text  # setting this triggers a _layout() call so do last
         # box border and fill
-        self.box = Rect(win, pos=pos,
-                        width=self.size[0], height=self.size[1], units=units,
-                        lineWidth=borderWidth, lineColor=borderColor, fillColor=fillColor,
-                        autoLog=False)
-        self.styleStore = {
-            'lineColor': borderColor,
-            'lineWidth': borderWidth,
-            'fillColor': fillColor
-        }
         self.borderWidth = borderWidth
         self.borderColor = borderColor
         self.fillColor = fillColor
+        self.box = Rect(win, pos=pos,
+                        width=self.size[0], height=self.size[1], units=units,
+                        lineWidth=self.borderWidth, lineColor=self.borderColor, fillColor=self.fillColor,
+                        autoLog=False)
+        self.styleStore = {
+            'lineColor': self.borderRGB,
+            'lineWidth': self.borderWidth,
+            'fillColor': self.fillRGB
+        }
 
         # caret
         self.editable = editable

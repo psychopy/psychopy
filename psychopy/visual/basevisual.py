@@ -337,6 +337,30 @@ class ColorMixin(object):
             value, log=False)  # logging already done by attributeSettter
 
     @attributeSetter
+    def fillColor(self, value):
+        """Clone of color, but for objects which specifically have fillColor (e.g. textboxes)"""
+        # NB: the setColor helper function! Not this function itself :-)
+        setColor(self, value, colorSpace=self.colorSpace, operation='',
+                 rgbAttrib='fillRGB',  # or 'fillRGB' etc
+                 colorAttrib='fillColor')
+        if self.__class__.__name__ == 'TextStim' and not self.useShaders:
+            self._needSetText = True
+        logAttrib(self, False, 'fillColor',
+                  value='%s (%s)' % (self.fillColor, self.colorSpace))
+
+    @attributeSetter
+    def borderColor(self, value):
+        """Clone of color, but for objects which specifically have fillColor (e.g. textboxes)"""
+        # NB: the setColor helper function! Not this function itself :-)
+        setColor(self, value, colorSpace=self.colorSpace, operation='',
+                 rgbAttrib='borderRGB',  # or 'fillRGB' etc
+                 colorAttrib='borderColor')
+        if self.__class__.__name__ == 'TextStim' and not self.useShaders:
+            self._needSetText = True
+        logAttrib(self, False, 'borderColor',
+                  value='%s (%s)' % (self.borderColor, self.colorSpace))
+
+    @attributeSetter
     def colorSpace(self, value):
         """The name of the color space currently being used
 
