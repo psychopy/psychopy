@@ -330,7 +330,8 @@ class RunnerPanel(wx.Panel, ScriptProcess):
         self.expCtrl = wx.ListCtrl(self,
                                    id=wx.ID_ANY,
                                    size=expCtrlSize,
-                                   style=wx.LC_REPORT | wx.BORDER_NONE | wx.LC_NO_HEADER)
+                                   style=wx.LC_REPORT | wx.BORDER_NONE |
+                                         wx.LC_NO_HEADER | wx.LC_SINGLE_SEL)
         self.expCtrl.SetBackgroundColour(cs['tab_active'])
         self.expCtrl.SetForegroundColour(cs['tab_txt'])
 
