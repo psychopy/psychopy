@@ -432,7 +432,6 @@ class FileBrowserPanel(wx.Panel):
                 self.gotoDir(self.currentPath)  # refresh
 
                 for idx, item in enumerate(self.dirData):
-                    abspath = os.path.join(self.currentPath, newName)
                     if newPath == item.abspath:
                         self.fileList.Select(idx, True)
                         self.fileList.EnsureVisible(idx)
@@ -580,7 +579,7 @@ class FileBrowserPanel(wx.Panel):
                 else:
                     img = self.fileImgInds['\\']
 
-                index = self.fileList.InsertItem(
+                self.fileList.InsertItem(
                     self.fileList.GetItemCount(), obj.name, img)
             elif isinstance(obj, FileItemData):
                 ext = os.path.splitext(obj.name)[1]
@@ -588,7 +587,7 @@ class FileBrowserPanel(wx.Panel):
                     img = self.fileImgInds[ext]
                 else:
                     img = self.fileImgInds['.?']
-                index = self.fileList.InsertItem(
+                self.fileList.InsertItem(
                     self.fileList.GetItemCount(),
                     obj.name,
                     img)
