@@ -1526,19 +1526,19 @@ class CoderFrame(wx.Frame):
         self.outputChk.Check(self.prefs['showOutput'])
         self.Bind(wx.EVT_MENU, self.setOutputWindow, id=self.outputChk.GetId())
         # source assistant
-        hint = "Hide/show the source structure pane."
+        hint = "Hide/show the source assistant pane."
         self.sourceAsstChk = menu.AppendCheckItem(wx.ID_ANY,
-                                                  "Source Structure",
+                                                  "Source Assistant",
                                                   hint)
         self.Bind(wx.EVT_MENU, self.setSourceAsst,
                   id=self.sourceAsstChk.GetId())
 
-        hint = "Hide/show file browser pane."
-        self.fileBrowserChk = menu.AppendCheckItem(wx.ID_ANY,
-                                                  "File Browser",
-                                                  hint)
-        self.Bind(wx.EVT_MENU, self.setFileBrowser,
-                  id=self.fileBrowserChk.GetId())
+        # hint = "Hide/show file browser pane."
+        # self.fileBrowserChk = menu.AppendCheckItem(wx.ID_ANY,
+        #                                           "File Browser",
+        #                                           hint)
+        # self.Bind(wx.EVT_MENU, self.setFileBrowser,
+        #           id=self.fileBrowserChk.GetId())
 
         menu.AppendSeparator()
 
@@ -2508,15 +2508,15 @@ class CoderFrame(wx.Frame):
             self.prefs['showSourceAsst'] = True
         self.paneManager.Update()
 
-    def setFileBrowser(self, event):
-        # show/hide the source file browser
-        if not self.fileBrowserChk.IsChecked():
-            self.paneManager.GetPane("FileBrowser").Hide()
-            self.prefs['showFileBrowser'] = False
-        else:
-            self.paneManager.GetPane("FileBrowser").Show()
-            self.prefs['showFileBrowser'] = True
-        self.paneManager.Update()
+    # def setFileBrowser(self, event):
+    #     # show/hide the source file browser
+    #     if not self.fileBrowserChk.IsChecked():
+    #         self.paneManager.GetPane("FileBrowser").Hide()
+    #         self.prefs['showFileBrowser'] = False
+    #     else:
+    #         self.paneManager.GetPane("FileBrowser").Show()
+    #         self.prefs['showFileBrowser'] = True
+    #     self.paneManager.Update()
 
     def analyseCodeNow(self, event):
         self.statusBar.SetStatusText(_translate('Analyzing code'))

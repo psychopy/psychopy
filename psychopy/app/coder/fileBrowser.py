@@ -18,7 +18,6 @@ except Exception:
     import wx.lib.agw.aui as aui  # some versions of phoenix
 
 import os
-import time
 import collections
 from ..style import cs, cLib
 
@@ -54,7 +53,6 @@ FileItemData = collections.namedtuple(
     field_names=['name', 'abspath', 'basename', 'fsize', 'mod'])
 
 
-
 class FileBrowserListCtrl(ListCtrlAutoWidthMixin, wx.ListCtrl):
     """Custom list control for the file browser."""
 
@@ -69,7 +67,6 @@ class FileBrowserListCtrl(ListCtrlAutoWidthMixin, wx.ListCtrl):
         # Set colours
         self.SetBackgroundColour(wx.Colour(cs['src_bg']))
         self.SetForegroundColour(wx.Colour(cs['brws_txt']))
-
 
 
 class FileBrowserPanel(wx.Panel):
@@ -114,7 +111,7 @@ class FileBrowserPanel(wx.Panel):
         # icons for toolbars
         gotoBmp = wx.Bitmap(join(rc, 'goto16.png'), wx.BITMAP_TYPE_PNG)
         newFolder = wx.Bitmap(join(rc, 'foldernew16.png'), wx.BITMAP_TYPE_PNG)
-        copyBmp = wx.Bitmap(join(rc, 'copy16.png'), wx.BITMAP_TYPE_PNG)
+        #copyBmp = wx.Bitmap(join(rc, 'copy16.png'), wx.BITMAP_TYPE_PNG)
         deleteBmp = wx.Bitmap(join(rc, 'delete16.png'), wx.BITMAP_TYPE_PNG)
         renameBmp = wx.Bitmap(join(rc, 'rename16.png'), wx.BITMAP_TYPE_PNG)
 
@@ -143,12 +140,6 @@ class FileBrowserPanel(wx.Panel):
             renameBmp,
             "Rename the selected folder or file",
             wx.ITEM_NORMAL)
-        # self.copyTool = self.toolBar.AddTool(
-        #     wx.ID_ANY,
-        #     'Copy',
-        #     copyBmp,
-        #     "Create a copy of the selected file.",
-        #     wx.ITEM_NORMAL)
         self.deleteTool = self.toolBar.AddTool(
             wx.ID_ANY,
             'Delete',
