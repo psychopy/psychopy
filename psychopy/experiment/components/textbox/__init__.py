@@ -45,12 +45,12 @@ class TextboxComponent(BaseVisualComponent):
                  # effectively just a display-value
                  text=_translate('Any text\n\nincluding line breaks'),
                  font='Arial', units='from exp settings', bold=False, italic=False,
-                 color='$[1, 1, 1, 1]', colorSpace='rgb', opacity=1.0,
+                 color='white', colorSpace='rgb', opacity=1.0,
                  pos=(0, 0), size=None, letterHeight=20, ori=0,
                  lineSpacing=1.0,padding=None,  # gap between box and text
                  startType='time (s)', startVal=0.0, anchor='center',
                  stopType='duration (s)', stopVal=1.0,
-                 flip='', startEstim='', durationEstim='', wrapWidth='',
+                 flip=False, startEstim='', durationEstim='', wrapWidth='',
                  languageStyle='LTR', fillColor=None,
                  borderColor=None,
                  flipHoriz=False,
@@ -70,6 +70,12 @@ class TextboxComponent(BaseVisualComponent):
                                             durationEstim=durationEstim)
         self.type = 'TextBox2'
         self.url = "http://www.psychopy.org/builder/components/text.html"
+
+        self.order = [
+            'editable', 'fillColor', 'borderColor', 'padding', 'pos', 'size',
+            'color', 'font', 'anchor', 'letterHeight',
+            'text', 'italic', 'bold',
+        ]
 
         # params
         _allow3 = ['constant', 'set every repeat', 'set every frame']  # list
@@ -99,14 +105,14 @@ class TextboxComponent(BaseVisualComponent):
                             " the specified units)"),
             label=_localized['wrapWidth'])
         self.params['flipHoriz'] = Param(
-            flip, valType='str', allowedTypes=[],
-            updates='constant', allowedUpdates=_allow3[:],  # copy the list
+            flipVert, valType='bool', allowedTypes=[],
+            updates='constant', # copy the list
             hint=_translate("horiz = left-right reversed; vert = up-down"
                             " reversed; $var = variable"),
             label=_localized['flip'])
         self.params['flipVert'] = Param(
-            flip, valType='str', allowedTypes=[],
-            updates='constant', allowedUpdates=_allow3[:],  # copy the list
+            flipHoriz, valType='bool', allowedTypes=[],
+            updates='constant', # copy the list
             hint=_translate("horiz = left-right reversed; vert = up-down"
                             " reversed; $var = variable"),
             label=_localized['flip'])
@@ -117,13 +123,13 @@ class TextboxComponent(BaseVisualComponent):
             label=_localized['languageStyle'])
 
         self.params['italic'] = Param(
-            italic, valType='code', allowedTypes=[],
-            updates='constant', allowedUpdates=_allow3[:],
+            italic, valType='bool', allowedTypes=[],
+            updates='constant',
             hint=_translate("Should text be italic?"),
             label=_localized['italic'])
         self.params['bold'] = Param(
-            bold, valType='code', allowedTypes=[],
-            updates='constant', allowedUpdates=_allow3[:],
+            bold, valType='bool', allowedTypes=[],
+            updates='constant',
             hint=_translate("Should text be bold?"),
             label=_localized['bold'])
         self.params['lineSpacing'] = Param(
@@ -138,22 +144,23 @@ class TextboxComponent(BaseVisualComponent):
             label=_localized['padding'])
         self.params['anchor'] = Param(
             anchor, valType='str', allowedTypes=[],
+            allowedVals=['top', 'center', 'bottom'],
             updates='constant', allowedUpdates=_allow3[:],
             hint=_translate("Should text anchor to the top, center or bottom of the box?"),
             label=_localized['anchor'])
         self.params['fillColor'] = Param(
-            fillColor, valType='code', allowedTypes=[],
+            fillColor, valType='str', allowedTypes=[],
             updates='constant', allowedUpdates=_allow3[:],
             hint=_translate("Textbox background colour"),
             label=_localized['fillColor'])
         self.params['borderColor'] = Param(
-            borderColor, valType='code', allowedTypes=[],
+            borderColor, valType='str', allowedTypes=[],
             updates='constant', allowedUpdates=_allow3[:],
             hint=_translate("Textbox border colour"),
             label=_localized['borderColor'])
         self.params['editable'] = Param(
-            editable, valType='code', allowedTypes=[],
-            updates='constant', allowedUpdates=_allow3[:],
+            editable, valType='bool', allowedTypes=[],
+            updates='constant',
             hint=_translate("Should textbox be editable?"),
             label=_localized['editable'])
         self.params['autoLog'] = Param(
@@ -163,7 +170,7 @@ class TextboxComponent(BaseVisualComponent):
             label=_localized['autoLog'])
 
         for prm in ('ori', 'opacity', 'colorSpace', 'units', 'wrapWidth',
-                    'flipHoriz', 'flipVert', 'languageStyle'):
+                    'flipHoriz', 'flipVert', 'languageStyle', 'lineSpacing', 'autoLog'):
             self.params[prm].categ = 'Advanced'
 
     def writeInitCode(self, buff):
