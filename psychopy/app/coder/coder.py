@@ -45,6 +45,7 @@ from psychopy.app.coder.styling import StylerMixin, PsychopyPyShell
 from psychopy.app.coder.folding import CodeEditorFoldingMixin
 from psychopy.app.icons import combineImageEmblem
 from psychopy.app.errorDlg import ErrorMsgDialog
+from psychopy.preferences import prefs
 
 try:
     import jedi
@@ -106,7 +107,7 @@ class Printer(HtmlEasyPrinting):
         HtmlEasyPrinting.__init__(self)
 
     def GetHtmlText(self, text):
-        "Simple conversion of text."
+        """Simple conversion of text."""
 
         text = text.replace('&', '&amp;')
         text = text.replace('<P>', '&#60;P&#62;')
@@ -122,8 +123,11 @@ class Printer(HtmlEasyPrinting):
         return html_text
 
     def Print(self, text, doc_name):
-        self.SetHeader(doc_name)
-        self.PrintText('<HR>' + self.GetHtmlText(text), doc_name)
+        self.SetStandardFonts(size=prefs.coder['codeFontSize'], normal_face="",
+                              fixed_face=prefs.coder['codeFont'])
+        self.SetHeader(doc_name + "<HR>")
+        # use <tt> tag since we're dealing with old school HTML here
+        self.PrintText("<tt>" + self.GetHtmlText(text) + '</tt>', doc_name)
 
 
 class ScriptThread(threading.Thread):
