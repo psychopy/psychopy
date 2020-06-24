@@ -20,9 +20,6 @@ from psychopy import sound
 from psychopy.app.utils import getSystemFonts
 import collections
 
-# this will be overridden by the size of the scrolled panel making the prefs
-dlgSize = (600, 500)
-
 # labels mappings for display:
 _localized = {
     # section labels:
