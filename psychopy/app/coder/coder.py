@@ -125,7 +125,10 @@ class Printer(HtmlEasyPrinting):
     def Print(self, text, doc_name):
         self.SetStandardFonts(size=prefs.coder['codeFontSize'], normal_face="",
                               fixed_face=prefs.coder['codeFont'])
-        self.SetHeader(doc_name + "<HR>")
+
+        _, fname = os.path.split(doc_name)
+        self.SetHeader("Page @PAGENUM@ of @PAGESCNT@ - " + fname +
+                       " (@DATE@ @TIME@)<HR>")
         # use <tt> tag since we're dealing with old school HTML here
         self.PrintText("<tt>" + self.GetHtmlText(text) + '</tt>', doc_name)
 
