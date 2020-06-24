@@ -41,22 +41,30 @@ class StylerMixin:
         key = 'outputFont' if isinstance(self, PsychopyPyShell) else 'codeFont'
         if self.prefs[key] != "From theme...":
             base['font'] = self.prefs[key]
-
         if isinstance(self, wx.stc.StyledTextCtrl):
             # Check for language specific spec
-            if isinstance(self, wx.stc.StyledTextCtrl):
-                if self.GetLexer() in self.lexers:
-                    lexer = self.lexers[self.GetLexer()]
-                else:
-                    lexer = 'invlex'
-                if lexer in spec:
-                    # If there is lang specific spec, delete subkey...
-                    lang = spec[lexer]
-                    del spec[lexer]
-                    #...and append spec to root, overriding any generic spec
-                    spec.update({key: lang[key] for key in lang})
-                else:
-                    lang = {}
+            if self.GetLexer() in self.lexers:
+                lexer = self.lexers[self.GetLexer()]
+            else:
+                lexer = 'invlex'
+            if lexer in spec:
+                # If there is lang specific spec, delete subkey...
+                lang = spec[lexer]
+                del spec[lexer]
+                #...and append spec to root, overriding any generic spec
+                spec.update({key: lang[key] for key in lang})
+            else:
+                lang = {}
+
+            # Apply app spec (default to light & modern)
+            if 'app' not in spec:
+                spec['app'] = 'light'
+            if 'icons' not in spec:
+                spec['icons'] = 'modern'
+            self.app.prefs.userPrefsCfg['app']['iconset'] = spec['icons']
+            self.app.prefs.userPrefsCfg['app']['darkmode'] = spec['app'] == 'dark'
+            self.app.prefs.userPrefsCfg.write()
+
             # Pythonise the universal data (hex -> rgb, tag -> wx int)
             invalid = []
             for key in spec:
@@ -72,11 +80,17 @@ class StylerMixin:
                     invalid += [key]
             for key in invalid:
                 del spec[key]
+            # Set style for undefined lexers
+            for key in [getattr(wx._stc, item) for item in dir(wx._stc) if item.startswith("STC_LEX")]:
+                self.StyleSetBackground(key, base['bg'])
+                self.StyleSetForeground(key, base['fg'])
+                self.StyleSetSpec(key, "face:%(font)s,size:%(size)d" % base)
             # Set style from universal data
             for key in spec:
-                self.StyleSetBackground(self.tags[key], spec[key]['bg'])
-                self.StyleSetForeground(self.tags[key], spec[key]['fg'])
-                self.StyleSetSpec(self.tags[key], "face:%(font)s,size:%(size)d" % spec[key])
+                if self.tags[key] is not None:
+                    self.StyleSetBackground(self.tags[key], spec[key]['bg'])
+                    self.StyleSetForeground(self.tags[key], spec[key]['fg'])
+                    self.StyleSetSpec(self.tags[key], "face:%(font)s,size:%(size)d" % spec[key])
             # Apply keywords
             for level, val in self.lexkw.items():
                 self.SetKeyWords(level, " ".join(val))
@@ -91,6 +105,22 @@ class StylerMixin:
                 mar = base['bg']
             self.SetFoldMarginColour(True, mar)
             self.SetFoldMarginHiColour(True, mar)
+
+            # Make sure there's some spec for caret
+            if 'caret' not in spec:
+                spec['caret'] = base
+            # Set caret colour
+            self.SetCaretForeground(spec['caret']['fg'])
+            self.SetCaretLineBackground(spec['caret']['bg'])
+            self.SetCaretWidth(1 + ('bold' in spec['caret']['font']))
+
+            # Make sure there's some spec for selection
+            if 'select' not in spec:
+                spec['select'] = base
+                spec['select']['bg'] = self.shiftColour(base['bg'], 30)
+            # Set selection colour
+            self.SetSelForeground(True, spec['select']['fg'])
+            self.SetSelBackground(True, spec['select']['bg'])
 
             # Set wrap point
             self.edgeGuideColumn = self.prefs['edgeGuideColumn']
@@ -136,13 +166,6 @@ class StylerMixin:
                 0: keyword.kwlist + ['cdef', 'ctypedef', 'extern', 'cimport', 'cpdef', 'include'],
                 1: dir(builtins) + ['self']
             }
-        # elif self.GetLexer() == stc.STC_LEX_JAVASCRIPT:
-        #     # JavaScript
-        #     keywords = {
-        #         0: ['var', 'let', 'import', 'function', 'if', 'else', 'return', 'struct', 'for', 'while', 'do',
-        #             'finally', 'throw', 'try', 'switch', 'case', 'break'],
-        #         1: ['null', 'false', 'true']
-        #     }
         elif self.GetLexer() == stc.STC_LEX_R:
             # R
             keywords = {
@@ -153,6 +176,14 @@ class StylerMixin:
         elif self.GetLexer == stc.STC_LEX_CPP:
             # C/C++
             keywords = baseC
+            if hasattr(self, 'filename'):
+                if self.filename.endswith('.js'):
+                    # JavaScript
+                    keywords = {
+                        0: ['var', 'let', 'import', 'function', 'if', 'else', 'return', 'struct', 'for', 'while', 'do',
+                            'finally', 'throw', 'try', 'switch', 'case', 'break'],
+                        1: ['null', 'false', 'true']
+                    }
         # elif self.GetLexer() == stc.STC_LEX_ARDUINO:
         #     # Arduino
         #     keywords = {
@@ -188,6 +219,8 @@ class StylerMixin:
         tags = {
             "base": stc.STC_STYLE_DEFAULT,
             "margin": stc.STC_STYLE_LINENUMBER,
+            "caret": None,
+            "select": None,
             "indent": stc.STC_STYLE_INDENTGUIDE,
             "brace": stc.STC_STYLE_BRACELIGHT,
             "controlchar": stc.STC_STYLE_CONTROLCHAR
@@ -270,6 +303,21 @@ class StylerMixin:
         b = hexkeys[hex[5]] * 16 + hexkeys[hex[6]]
         return wx.Colour(r, g, b, 1)
 
+    def shiftColour(self, col, offset=15):
+        """Shift colour up or down by a set amount"""
+        if not isinstance(col, wx.Colour):
+            return
+        if col.GetLuminance() < 0.5:
+            newCol = wx.Colour(
+                [c+offset for c in col.Get()]
+            )
+        else:
+            newCol = wx.Colour(
+                [c - offset for c in col.Get()]
+            )
+
+        return newCol
+
 
 class PsychopyPyShell(wx.py.shell.Shell, StylerMixin):
     '''Simple class wrapper for Pyshell which uses the Psychopy StylerMixin'''
@@ -278,6 +326,7 @@ class PsychopyPyShell(wx.py.shell.Shell, StylerMixin):
         wx.py.shell.Shell.__init__(self, coder.shelf, -1, introText=msg + '\n\n', style=wx.BORDER_NONE)
         self.prefs = coder.prefs
         self.paths = coder.paths
+        self.app = coder.app
 
         # Set theme to match code editor
         self.theme = self.prefs['theme']

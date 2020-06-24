@@ -1,4 +1,6 @@
 {
+  "app": "dark",
+  "icons": "modern",
   "base": {
     "fg": "#f2f2f2",
     "bg": "#66666E",
@@ -6,6 +8,16 @@
   },
   "margin": {
     "fg": "",
+    "bg": "#75757D",
+    "font": ""
+  },
+  "caret": {
+    "fg": "#F46E75",
+    "bg": "#000000",
+    "font": "bold"
+  },
+  "select": {
+    "fg": "#FFFFFF",
     "bg": "#75757D",
     "font": ""
   },

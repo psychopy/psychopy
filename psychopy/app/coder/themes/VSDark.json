@@ -1,4 +1,6 @@
 {
+  "app": "dark",
+  "icons": "modern",
   "base": {
     "fg": "#DCDCDC",
     "bg": "#1E1E1E",
@@ -7,6 +9,16 @@
   "margin": {
     "fg": "",
     "bg": "#264F78",
+    "font": ""
+  },
+  "caret": {
+    "fg": "",
+    "bg": "",
+    "font": "bold"
+  },
+  "select": {
+    "fg": "#FFFFFF",
+    "bg": "#75757D",
     "font": ""
   },
   "indent": {
