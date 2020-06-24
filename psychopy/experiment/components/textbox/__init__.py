@@ -31,6 +31,7 @@ _localized = {'text': _translate('Text'),
               'anchor': _translate('Anchor'),
               'fillColor': _translate('Fill Colour'),
               'borderColor': _translate('Border Colour'),
+              'borderWidth': _translate('Border Width'),
               'editable': _translate('Editable?'),
               'autoLog': _translate('Auto Log')
               }
@@ -44,7 +45,7 @@ class TextboxComponent(BaseVisualComponent):
     def __init__(self, exp, parentName, name='text',
                  # effectively just a display-value
                  text=_translate('Any text\n\nincluding line breaks'),
-                 font='Arial', units='from exp settings', bold=False, italic=False,
+                 font='Consolas', units='from exp settings', bold=False, italic=False,
                  color='white', colorSpace='rgb', opacity=1.0,
                  pos=(0, 0), size=None, letterHeight=20, ori=0,
                  lineSpacing=1.0,padding=None,  # gap between box and text
@@ -52,7 +53,7 @@ class TextboxComponent(BaseVisualComponent):
                  stopType='duration (s)', stopVal=1.0,
                  flip=False, startEstim='', durationEstim='', wrapWidth='',
                  languageStyle='LTR', fillColor=None,
-                 borderColor=None,
+                 borderColor=None, borderWidth=0,
                  flipHoriz=False,
                  flipVert=False,
                  editable=False, autoLog=None):
@@ -72,7 +73,7 @@ class TextboxComponent(BaseVisualComponent):
         self.url = "http://www.psychopy.org/builder/components/text.html"
 
         self.order = [
-            'editable', 'fillColor', 'borderColor', 'padding', 'pos', 'size',
+            'editable', 'fillColor', 'borderColor', 'borderWidth', 'padding', 'pos', 'size',
             'color', 'font', 'anchor', 'letterHeight',
             'text', 'italic', 'bold',
         ]
@@ -158,6 +159,11 @@ class TextboxComponent(BaseVisualComponent):
             updates='constant', allowedUpdates=_allow3[:],
             hint=_translate("Textbox border colour"),
             label=_localized['borderColor'])
+        self.params['borderWidth'] = Param(
+            borderWidth, valType='num', allowedTypes=[],
+            updates='constant', allowedUpdates=_allow3[:],
+            hint=_translate("Textbox border width"),
+            label=_localized['borderWidth'])
         self.params['editable'] = Param(
             editable, valType='bool', allowedTypes=[],
             updates='constant',
@@ -199,6 +205,7 @@ class TextboxComponent(BaseVisualComponent):
             "     anchor=%(anchor)s,\n"
             "     fillColor=%(fillColor)s,\n"
             "     borderColor=%(borderColor)s,\n"
+            "     borderWidth=%(borderWidth)s,\n"
             "     flipHoriz=%(flipHoriz)s,\n"
             "     flipVert=%(flipVert)s,\n"
             "     editable=%(editable)s,\n"
