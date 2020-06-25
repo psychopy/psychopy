@@ -24,6 +24,7 @@ from psychopy.tools.attributetools import attributeSetter
 from psychopy.tools.monitorunittools import convertToPix
 from .fontmanager import FontManager, GLFont
 from .. import shaders
+from ..helpers import setColor
 from ..rect import Rect
 from ..line import Line
 from ... import core
@@ -149,18 +150,17 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
         self.flipVert = flipVert
         self.text = text  # setting this triggers a _layout() call so do last
         # box border and fill
-        self.borderWidth = borderWidth
-        self.borderColor = borderColor
-        self.fillColor = fillColor
         self.box = Rect(win, pos=pos,
                         width=self.size[0], height=self.size[1], units=units,
-                        lineWidth=self.borderWidth, lineColor=self.borderColor, fillColor=self.fillColor,
+                        lineWidth=borderWidth, lineColor=borderColor, fillColor=fillColor,
                         autoLog=False)
-        self.styleStore = {
+        # Store what style box was on spawn, so it can get back after changes
+        self.baseStyle = {
             'lineColor': self.borderRGB,
             'lineWidth': self.borderWidth,
             'fillColor': self.fillRGB
         }
+        print(self.baseStyle)
 
         # caret
         self.editable = editable
@@ -208,6 +208,47 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
     def text(self, text):
         self.__dict__['text'] = text
         self._layout()
+
+    # Synonymise textbox fill & border with box fill & colour
+    @property
+    def fillColor(self):
+        return self.box.fillColor
+    @fillColor.setter
+    def fillColor(self, value):
+        self.box.setFillColor(value)
+    @property
+    def fillRGB(self):
+        if self.box.fillRGB is None:
+            return (self.win.rgb + 0.5) * 255
+        else:
+            return self.box.fillRGB
+    @fillRGB.setter
+    def fillRGB(self, value):
+        self.box.setFillColor(value, colorSpace='rgb255')
+
+    @property
+    def borderColor(self):
+        return self.box.lineColor
+    @borderColor.setter
+    def borderColor(self, value):
+        self.box.setLineColor(value)
+    @property
+    def borderRGB(self):
+        if self.box.lineRGB is None:
+            return (self.win.rgb + 1)*255
+        else:
+            return self.box.lineRGB
+    @borderRGB.setter
+    def borderRGB(self, value):
+        self.box.setLineColor(value, colorSpace='rgb255')
+
+
+    @property
+    def borderWidth(self):
+        return self.box.lineWidth
+    @borderWidth.setter
+    def borderWidth(self, value):
+        self.box.setLineWidth(value)
 
     @property
     def boundingBox(self):
@@ -546,36 +587,13 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
     @hasFocus.setter
     def hasFocus(self, state):
         if state:
-            # Double border width
-            if self.styleStore['lineWidth'] is None:
-                self.box.setLineWidth(10*2) # Use 1 as base if border width is none
-            else:
-                self.box.setLineColor(max(self.styleStore['lineWidth'], 10)*2)
-            self.borderWidth = self.box.lineWidth
-            # Darken border
-            if self.styleStore['lineColor'] is None:
-                self.box.setLineColor(
-                    [max(c-0.05, 0.05) for c in self.win.color]) # Use window colour as base if border colour is none
-            else:
-                self.box.setLineColor(
-                    [max(c - 0.05, 0.05) for c in self.styleStore['lineColor']], colorSpace='rgb')
-            self.borderColor = self.box.lineColor
-            # Lighten background
-            if self.styleStore['fillColor'] is None:
-                self.box.color = [min(c+0.05, 0.95) for c in self.win.color]  # Use window colour as base if fill colour is none
-            else:
-                self.box.color = [min(c+0.05, 0.95) for c in self.styleStore['fillColor']]
-            self.fillColor = self.box.fillColor
-            # Redraw text box
+            # Adjust fill colour
+            self.fillRGB = self.baseStyle['fillColor'] + 30*\
+                           (-1 if np.mean(self.baseStyle['fillColor']) >= 126 else 1)
             self.draw()
         else:
             # Set box properties back to their original values
-            self.box.setLineWidth(self.styleStore['lineWidth'])
-            self.borderWidth = self.box.lineWidth
-            self.box.setLineColor(self.styleStore['lineColor'], colorSpace='rgb')
-            self.borderColor = self.box.lineColor
-            self.box.setFillColor(self.styleStore['fillColor'], colorSpace='rgb')
-            self.fillColor = self.box.fillColor
+            self.fillColor = self.baseStyle['fillColor']
             self.box.draw()
         # Store focus
         self._hasFocus = state
