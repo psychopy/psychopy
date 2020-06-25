@@ -235,7 +235,7 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
     @property
     def borderRGB(self):
         if self.box.lineRGB is None:
-            return (self.win.rgb + 1)*255
+            return (self.win.rgb + 0.5)*255
         else:
             return self.box.lineRGB
     @borderRGB.setter
@@ -593,7 +593,7 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
             self.draw()
         else:
             # Set box properties back to their original values
-            self.fillColor = self.baseStyle['fillColor']
+            self.fillRGB = self.baseStyle['fillColor']
             self.box.draw()
         # Store focus
         self._hasFocus = state
