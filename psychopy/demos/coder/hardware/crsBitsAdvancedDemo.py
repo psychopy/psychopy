@@ -1,4 +1,4 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
 This demo was created by Andrew Schofield to show how to use the advanced input/output 
@@ -75,14 +75,14 @@ _thisDir = os.path.dirname(os.path.abspath(__file__))#.decode(sys.getfilesysteme
 os.chdir(_thisDir)
 
 # Store info about the experiment session
-expName = u'crsTest'  # from the Builder filename that created this script
-expInfo = {u'Device': u'Display++', 
-           u'Analog': u'No',
-           u'Touch screen': u'Yes',
-           u'Button box': u'CB6',
-           u'Monitor': u'Display++160',
-           u'LUTfile': u'invGammaLUT.txt',
-           u'Screen': u'1'}
+expName = 'crsTest'  # from the Builder filename that created this script
+expInfo = {'Device': 'Display++',
+           'Analog': 'No',
+           'Touch screen': 'Yes',
+           'Button box': 'CB6',
+           'Monitor': 'Display++160',
+           'LUTfile': 'invGammaLUT.txt',
+           'Screen': '1'}
 dlg = gui.DlgFromDict(dictionary=expInfo, title=expName)
 if dlg.OK == False:
     core.quit()  # user pressed cancel
@@ -145,11 +145,7 @@ if  expInfo['Device'] != 'Bits++':
     bits.read(timeout=0.1)
     lutfile = expInfo['LUTfile']
     msg='$enableGammaCorrection=['+lutfile+']\r'
-    # deals with differences between strings and bytes in PY2 and PY3
-    try: 
-        bits.sendMessage(bytes(msg.decode("utf-8")))
-    except Exception:
-        bits.sendMessage(msg)
+    bits.sendMessage(msg)
     bits.read(timeout=0.1)
     bits.sendMessage('$EnableTouchScreen=[OFF]\e')
     bits.read(timeout=0.1)

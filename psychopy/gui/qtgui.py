@@ -126,7 +126,10 @@ class Dlg(QtWidgets.QDialog):
                                  "style kwarg.")
         self.size = size
 
-        nScreens = len(qtapp.screens())
+        if haveQt == 'PyQt5':
+            nScreens = len(qtapp.screens())
+        else:
+            nScreens = QtWidgets.QDesktopWidget().screenCount()
         self.screen = -1 if screen >= nScreens else screen
         # self.labelButtonOK = labelButtonOK
         # self.labelButtonCancel = labelButtonCancel

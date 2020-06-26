@@ -4,9 +4,14 @@
 # Part of the PsychoPy library
 # Copyright (C) 2002-2018 Jonathan Peirce (C) 2019 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
+import json
+
+from psychopy.app.coder import StylerMixin
+from psychopy.app.style import cLib, cs
 
 import wx
 from wx.lib import platebtn
+import wx.lib.agw.aui as aui  # some versions of phoenix
 import os
 import sys
 import time
@@ -18,6 +23,7 @@ from subprocess import Popen, PIPE
 
 from psychopy.app import icons
 from psychopy import experiment
+from psychopy.app.utils import PsychopyDockArt, PsychopyPlateBtn, PsychopyTabArt, PsychopyToolbar
 from psychopy.constants import PY3
 from psychopy.localization import _translate
 from psychopy.app.stdOutRich import StdOutRich
@@ -67,6 +73,10 @@ class RunnerFrame(wx.Frame):
     @property
     def stdOut(self):
         return self.panel.stdoutCtrl
+
+    @property
+    def alerts(self):
+        return self.panel.alertsCtrl
 
     def makeMenu(self):
         """Create Runner menubar."""
@@ -138,9 +148,32 @@ class RunnerFrame(wx.Frame):
                 if item['label'].lower() in eachMenu['separators']:
                     eachMenu['menu'].AppendSeparator()
 
-        self.runnerMenu.Append(fileMenu, _translate('File'))
-        self.runnerMenu.Append(viewMenu, _translate('View'))
-        self.runnerMenu.Append(runMenu, _translate('Run'))
+        # Get list of themes
+        themePath = self.GetTopLevelParent().app.prefs.paths['themes']
+        self.themeList = {}
+        for themeFile in os.listdir(themePath):
+            try:
+                # Load theme from json file
+                with open(os.path.join(themePath, themeFile), "rb") as fp:
+                    theme = json.load(fp)
+                # Add themes to list only if min spec is defined
+                base = theme['base']
+                if all(key in base for key in ['bg', 'fg', 'font']):
+                    self.themeList[themeFile.replace('.json', '')] = []
+            except:
+                pass
+        # Add Theme Switcher
+        self.themesMenu = wx.Menu()
+        viewMenu.AppendSubMenu(self.themesMenu,
+                           _translate("Themes..."))
+        for theme in self.themeList:
+            self.themeList[theme] = self.themesMenu.Append(wx.ID_ANY, _translate(theme))
+            self.Bind(wx.EVT_MENU, self.switchTheme, self.themeList[theme])
+
+        # Create menus
+        self.runnerMenu.Append(fileMenu, 'File')
+        self.runnerMenu.Append(viewMenu, 'View')
+        self.runnerMenu.Append(runMenu, 'Run')
 
     def onURL(self, evt):
         """Open link in default browser."""
@@ -241,6 +274,30 @@ class RunnerFrame(wx.Frame):
             temp.append(str(Path(folder) / filename))
         return temp
 
+    def switchTheme(self, event):
+        # Switch theme for coder view
+
+        # Use menu item Id to find value
+        win = event.EventObject.Window
+        newVal = [item.ItemLabel
+                  for item in win.themesMenu.GetMenuItems()
+                  if item.GetId() == event.GetId()]
+        # Update user prefs
+        self.app.prefs.userPrefsCfg['coder']['theme'] = newVal[0]
+        self.app.prefs.userPrefsCfg.write()
+        # Apply new theme to runner view
+        self.panel.stdoutCtrl.theme = newVal[0]
+        self.panel.alertsCtrl.theme = newVal[0]
+        # Apply new theme to coder view
+        # Apply new theme to coder view
+        coder = self.app.coder
+        for ii in range(coder.notebook.GetPageCount()):
+            doc = coder.notebook.GetPage(ii)
+            doc.theme = newVal[0]
+        for ii in range(coder.shelf.GetPageCount()):
+            doc = coder.shelf.GetPage(ii)
+            doc.theme = newVal[0]
+
 
 class RunnerPanel(wx.Panel, ScriptProcess):
     def __init__(self, parent=None, id=wx.ID_ANY, title='', app=None):
@@ -253,11 +310,14 @@ class RunnerPanel(wx.Panel, ScriptProcess):
                                           )
         ScriptProcess.__init__(self, app)
         self.Bind(wx.EVT_END_PROCESS, self.onProcessEnded)
+        self.SetBackgroundColour(cs['frame_bg'])
 
         expCtrlSize = [500, 150]
         ctrlSize = [500, 150]
 
         self.app = app
+        self.prefs = self.app.prefs.coder
+        self.paths = self.app.prefs.paths
         self.parent = parent
         self.serverProcess = None
 
@@ -270,7 +330,9 @@ class RunnerPanel(wx.Panel, ScriptProcess):
         self.expCtrl = wx.ListCtrl(self,
                                    id=wx.ID_ANY,
                                    size=expCtrlSize,
-                                   style=wx.LC_REPORT | wx.BORDER_SUNKEN)
+                                   style=wx.LC_REPORT | wx.BORDER_NONE | wx.LC_NO_HEADER)
+        self.expCtrl.SetBackgroundColour(cs['tab_active'])
+        self.expCtrl.SetForegroundColour(cs['tab_txt'])
 
         self.expCtrl.Bind(wx.EVT_LIST_ITEM_SELECTED,
                           self.onItemSelected, self.expCtrl)
@@ -280,10 +342,10 @@ class RunnerPanel(wx.Panel, ScriptProcess):
         self.expCtrl.InsertColumn(0, _translate('File'))
         self.expCtrl.InsertColumn(1, _translate('Path'))
 
-        _style = platebtn.PB_STYLE_DROPARROW
+        _style = platebtn.PB_STYLE_DROPARROW | platebtn.PB_STYLE_SQUARE
         # Alerts
         self._selectedHiddenAlerts = False  # has user manually hidden alerts?
-        self.alertsToggleBtn = platebtn.PlateButton(self, -1, _translate('Alerts'),
+        self.alertsToggleBtn = PsychopyPlateBtn(self, -1, 'Alerts',
                                           style=_style, name='Alerts')
         # mouse event must be bound like this
         self.alertsToggleBtn.Bind(wx.EVT_LEFT_DOWN, self.setAlertsVisible)
@@ -291,11 +353,12 @@ class RunnerPanel(wx.Panel, ScriptProcess):
         self.alertsToggleBtn.Bind(wx.EVT_RIGHT_DOWN, self.setAlertsVisible)
         self.alertsCtrl = StdOutText(parent=self,
                                      size=ctrlSize,
-                                     style=wx.TE_READONLY | wx.TE_MULTILINE)
+                                     style=wx.TE_READONLY | wx.TE_MULTILINE | wx.BORDER_NONE)
+
         self.setAlertsVisible(True)
 
         # StdOut
-        self.stdoutToggleBtn = platebtn.PlateButton(self, -1, _translate('Stdout'),
+        self.stdoutToggleBtn = PsychopyPlateBtn(self, -1, 'Stdout',
                                           style=_style, name='Stdout')
         # mouse event must be bound like this
         self.stdoutToggleBtn.Bind(wx.EVT_LEFT_DOWN, self.setStdoutVisible)
@@ -303,7 +366,7 @@ class RunnerPanel(wx.Panel, ScriptProcess):
         self.stdoutToggleBtn.Bind(wx.EVT_RIGHT_DOWN, self.setStdoutVisible)
         self.stdoutCtrl = StdOutText(parent=self,
                                      size=ctrlSize,
-                                     style=wx.TE_READONLY | wx.TE_MULTILINE)
+                                     style=wx.TE_READONLY | wx.TE_MULTILINE | wx.BORDER_NONE)
         self.setStdoutVisible(True)
 
         # Set buttons
@@ -355,9 +418,9 @@ class RunnerPanel(wx.Panel, ScriptProcess):
         self.mainSizer = wx.BoxSizer(wx.VERTICAL)
         self.mainSizer.Add(self.upperSizer, 0, wx.EXPAND | wx.ALL, 10)
 
-        self.mainSizer.Add(self.alertsToggleBtn, 0, wx.TOP, 10)
+        self.mainSizer.Add(self.alertsToggleBtn, 0, wx.TOP | wx.EXPAND, 10)
         self.mainSizer.Add(self.alertsCtrl, 1, wx.EXPAND | wx.ALL, 10)
-        self.mainSizer.Add(self.stdoutToggleBtn, 0, wx.TOP, 10)
+        self.mainSizer.Add(self.stdoutToggleBtn, 0, wx.TOP | wx.EXPAND, 10)
         self.mainSizer.Add(self.stdoutCtrl, 1, wx.EXPAND | wx.ALL, 10)
 
         self.stopBtn.Disable()
@@ -413,7 +476,9 @@ class RunnerPanel(wx.Panel, ScriptProcess):
                 emblem=join(rc, emblem), pos='bottom_right')
         else:
             bmp = wx.Bitmap(join(rc, main), PNG)
-        return wx.BitmapButton(self, -1, bmp, size=[buttonSize, buttonSize], style=wx.NO_BORDER )
+        button = wx.BitmapButton(self, -1, bmp, size=[buttonSize, buttonSize], style=wx.NO_BORDER)
+        button.SetBackgroundColour(cs['frame_bg'])
+        return button
 
     def stopTask(self, event=None):
         """Kill script processes currently running."""
@@ -556,9 +621,17 @@ class RunnerPanel(wx.Panel, ScriptProcess):
         for file in filePaths:
             temp = Path(file)
 
-            # Check list for item
-            index = self.expCtrl.FindItem(-1, temp.name)
-            if index > -1:
+            # Check list for items
+            start = -1
+            fullPaths = []
+            while start < self.expCtrl.GetItemCount()-1:
+                index = self.expCtrl.FindItem(start, temp.name)
+                if index > -1:
+                    fullPaths += [Path(self.expCtrl.GetItem(index, 1).Text, self.expCtrl.GetItem(index, 0).Text)]
+                    start = index+1
+                else:
+                    start = self.expCtrl.GetItemCount()
+            if temp in fullPaths:
                 continue
 
             # Set new item in listCtrl
@@ -725,11 +798,14 @@ class RunnerPanel(wx.Panel, ScriptProcess):
         self._currentProject = None
 
 
-class StdOutText(StdOutRich):
+class StdOutText(StdOutRich, StylerMixin):
     """StdOutRich subclass which also handles Git messages from Pavlovia projects."""
 
-    def __init__(self, parent=None, style=wx.TE_READONLY | wx.TE_MULTILINE, size=wx.DefaultSize):
+    def __init__(self, parent=None, style=wx.TE_READONLY | wx.TE_MULTILINE | wx.BORDER_NONE, size=wx.DefaultSize):
         StdOutRich.__init__(self, parent=parent, style=style, size=size)
+        self.prefs = parent.prefs
+        self.paths = parent.paths
+        self.theme = self.prefs['theme']
 
     def getText(self):
         """Get and return the text of the current buffer."""
@@ -744,3 +820,8 @@ class StdOutText(StdOutRich):
     def statusAppend(self, newText):
         text = self.GetValue() + newText
         self.setStatus(text)
+
+    def write(self, inStr, evt=False):
+        # Override default write behaviour to also updte theme on each write
+        StdOutRich.write(self, inStr, evt)
+        self.theme = self.prefs['theme']

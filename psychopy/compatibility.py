@@ -87,8 +87,11 @@ def fromFile(filename):
         try:
             # Try to load the psydat file into the new-style class.
             contents = pickle.load(f)
+        except UnicodeDecodeError:
+            f.seek(0)  # reset to start of file to try again
+            contents = pickle.load(f, encoding='latin1')  # python 2 data files
         except TypeError as e:
-            f.seek(0)
+            f.seek(0)  # reset to start of file to try again
             # check er as string for one of our handlers
             errStr = "{}".format(e)
             name = ''

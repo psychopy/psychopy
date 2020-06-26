@@ -3,21 +3,22 @@
 PsychoPy official workshops
 ===============================
 
-You can `BOOK NOW ON Creating Experiments in PsychoPy <https://store.nottingham.ac.uk/conferences-and-events/conferences/schools-and-departments/psychology/cep-2020-creating-experiments-in-psychopy>`_
+You can
+`BOOK NOW ON our REMOTE workshop: Creating Experiments in PsychoPy <https://store.nottingham.ac.uk/conferences-and-events/conferences/schools-and-departments/psychology/cep-2020-remote-creating-experiments-in-psychopy>`_
 
-
+Do you want to get started using Python_ (and PsychoPy_) for your studies in behavioural sciences?
+Maybe you keep meaning to switch from another applications and haven't gotten around to it. These
+workshops, run by the creators of PsychoPy, will get you off the ground with building and analysing
+your experiments using Python.
 
 We typically run PsychoPy workshops at University of Nottingham in the Easter break.
 
-In 2020, we plan to run **two** workshops:
+Due to Coronavirus this Easter we will run our 3-day workshop remotely via Zoom! See :ref:`CEP1`
 
-- a dedicated PsychoPy workshop in Easter break, :ref:`CEP1`
-- a new modular Summer School, called :ref:`pampr`
+We were planning also to run a new modular Summer School, called :ref:`pampr`.
+We'll be monitoring the situation to see whether that can run either remotely
+or in-person.
 
-Do you want to get started using Python_ (and PsychoPy_) for your studies in behavioural sciences? 
-Maybe you keep meaning to switch from another applications and haven't gotten around to it. These 
-workshops, run by the creators of PsychoPy, will get you off the ground with building and analysing 
-your experiments using Python.
 
 .. image:: jumpAnimate.gif
    :width: 100 %
@@ -55,19 +56,19 @@ For queries about any of these please email `jonathan.peirce at nottingham.ac.uk
 CEP: Creating Experiments in PsychoPy
 --------------------------------------------
 
-Building and Coding in PsychoPy/Python
+Building and Coding in PsychoPy/Python is running online for the first time this year! Obviously Coronavirus has prevented any in-person workshop at this time.
 
-Bookings open now at `the Nottingham online store <https://store.nottingham.ac.uk/conferences-and-events/conferences/schools-and-departments/psychology/cep-2020-creating-experiments-in-psychopy>`_
+Bookings open now at
+`the Nottingham online store <https://store.nottingham.ac.uk/conferences-and-events/conferences/schools-and-departments/psychology/cep-2020-remote-creating-experiments-in-psychopy>`_
 
 Details
 ~~~~~~~~~~~~
 
 :When: 28-30th Apr 2020 (inclusive)
-:Where: School of Psychology, University of Nottingham
-:Cost: £350
-:Includes: Refreshments and lunch. There is an accommodation package too, costing £55 per night including bed, full breakfast and free wifi
+:Where: Zoom.us
+:Cost: £250 (reduced from the normal £350 for in-person attendance)
 :Content:
-    Material will cover *Python* programming basics as well as PsychoPy-specific coding. Unlike previous years (which were pure Python coding we will teach Builder as well this year).
+    Material will cover Builder, Coder and Online studies (unlike previous years on pure Python coding).
 
 Is this suitable for you?
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -86,10 +87,9 @@ We will not start the first formal session until 10am on Day 1 (coffee available
 and we'll finish at 4pm on Day 3 to allow some travel flexibility. But you are welcome to hang 
 around and continue working if you prefer.
 
-All sessions subject to change. Sessions in **green** and **blue** are optional (for self-paced 
-and specialist sessions, respectively).
+All sessions subject to change. Sessions in **green** are optional self-paced sessions.
 
-.. image:: scheduleCEP.png
+.. image:: scheduleCEP2020.png
    :width: 70 %
    :align: center
 

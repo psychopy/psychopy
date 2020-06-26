@@ -210,7 +210,7 @@ class StairHandler(_BaseTrialHandler):
 
     def addResponse(self, result, intensity=None):
         """Add a 1 or 0 to signify a correct / detected or
-        incorrect / missed trial
+        incorrect / missed trial.
 
         This is essential to advance the staircase to a new intensity level!
 
@@ -466,42 +466,42 @@ class StairHandler(_BaseTrialHandler):
 
         # write the data
         reversalStr = str(self.reversalIntensities)
-        reversalStr = string.replace(reversalStr, ',', delim)
-        reversalStr = string.replace(reversalStr, '[', '')
-        reversalStr = string.replace(reversalStr, ']', '')
+        reversalStr = reversalStr.replace(',', delim)
+        reversalStr = reversalStr.replace('[', '')
+        reversalStr = reversalStr.replace(']', '')
         f.write('\nreversalIntensities=\t%s\n' % reversalStr)
 
         reversalPts = str(self.reversalPoints)
-        reversalPts = string.replace(reversalPts, ',', delim)
-        reversalPts = string.replace(reversalPts, '[', '')
-        reversalPts = string.replace(reversalPts, ']', '')
+        reversalPts = reversalPts.replace(',', delim)
+        reversalPts = reversalPts.replace('[', '')
+        reversalPts = reversalPts.replace(']', '')
         f.write('reversalIndices=\t%s\n' % reversalPts)
 
         rawIntens = str(self.intensities)
-        rawIntens = string.replace(rawIntens, ',', delim)
-        rawIntens = string.replace(rawIntens, '[', '')
-        rawIntens = string.replace(rawIntens, ']', '')
+        rawIntens = rawIntens.replace(',', delim)
+        rawIntens = rawIntens.replace('[', '')
+        rawIntens = rawIntens.replace(']', '')
         f.write('\nintensities=\t%s\n' % rawIntens)
 
         responses = str(self.data)
-        responses = string.replace(responses, ',', delim)
-        responses = string.replace(responses, '[', '')
-        responses = string.replace(responses, ']', '')
+        responses = responses.replace(',', delim)
+        responses = responses.replace('[', '')
+        responses = responses.replace(']', '')
         f.write('responses=\t%s\n' % responses)
 
         # add self.extraInfo
         if self.extraInfo is not None and not matrixOnly:
             strInfo = str(self.extraInfo)
             # dict begins and ends with {} - remove
-            # string.replace(strInfo, '{','')
-            # strInfo = string.replace(strInfo, '}','')
+            # strInfo.replace('{','')
+            # strInfo = strInfo.replace('}','')
             strInfo = strInfo[1:-1]
             # separate value from keyname
-            strInfo = string.replace(strInfo, ': ', ':\n')
+            strInfo = strInfo.replace(strInfo, ': ', ':\n')
             # separate values from each other
-            strInfo = string.replace(strInfo, ',', '\n')
-            strInfo = string.replace(strInfo, 'array([ ', '')
-            strInfo = string.replace(strInfo, '])', '')
+            strInfo = strInfo.replace(',', '\n')
+            strInfo = strInfo.replace('array([ ', '')
+            strInfo = strInfo.replace('])', '')
 
             f.write('\n%s\n' % strInfo)
 
@@ -538,7 +538,7 @@ class StairHandler(_BaseTrialHandler):
 
             fileName: string
                 the name of the file to create or append. Can include
-                relative or absolute path
+                relative or absolute path.
 
             sheetName: string
                 the name of the worksheet within the file
@@ -556,7 +556,7 @@ class StairHandler(_BaseTrialHandler):
             fileCollisionMethod: string
                 Collision method passed to
                 :func:`~psychopy.tools.fileerrortools.handleFileCollision`
-                This is ignored if ``append`` is ``True``.
+                This is ignored if ``appendFile`` is ``True``.
 
         """
 
@@ -650,7 +650,7 @@ class StairHandler(_BaseTrialHandler):
     def saveAsPickle(self, fileName, fileCollisionMethod='rename'):
         """Basically just saves a copy of self (with data) to a pickle file.
 
-        This can be reloaded if necess and further analyses carried out.
+        This can be reloaded if necessary and further analyses carried out.
 
         :Parameters:
 
@@ -694,7 +694,7 @@ class QuestHandler(StairHandler):
 
     The Weibull psychometric function is given by the formula
     
-    :math:`\Psi(x) = \delta \gamma + (1 - \delta) [1 - (1 - \gamma)\, \exp(-10^{\beta (x - T + \epsilon)})]`
+    :math:`\Psi(x) = \delta \gamma + (1 - \delta) [1 - (1 - \gamma)\, \exp(-10^{\\beta (x - T + \epsilon)})]`
 
     Here, :math:`x` is an intensity or a contrast (in log10 units), and :math:`T` is estimated threshold.
     
@@ -1273,7 +1273,7 @@ class PsiHandler(StairHandler):
     next = __next__  # allows user to call without a loop `val = trials.next()`
 
     def _checkFinished(self):
-        """checks if we are finished
+        """checks if we are finished.
         Updates attribute: `finished`
         """
         if self.nTrials is not None and len(self.intensities) >= self.nTrials:
@@ -1425,7 +1425,7 @@ class QuestPlusHandler(StairHandler):
             select a stimulus for presentation in the next trial.
             `maxConsecutiveReps` defines how many times the exact same stimulus
             can be presented on consecutive trials.
-            For exmaple, to randomly pick a stimulus from those which will
+            For example, to randomly pick a stimulus from those which will
             produce the 4 smallest expected entropies, and to allow the same
             stimulus to be presented on two consecutive trials max, use
             `stimSelectionOptions=dict(N=4, maxConsecutiveReps=2)`.
@@ -1735,14 +1735,14 @@ class MultiStairHandler(_BaseTrialHandler):
         :class:`StairHandler` or
         :class:`QuestHandler` (e.g. the `startVal`, `minVal`, `maxVal`...)
         should be specified in the `conditions` list and may vary between
-        each staircase. In particular, the conditions /must/ include the
+        each staircase. In particular, the conditions **must** include
         a `startVal` (because this is a required argument to the above
-        handlers) a `label` to tag the staircase and a `startValSd`
+        handlers), a `label` to tag the staircase and a `startValSd`
         (only for QUEST staircases). Any parameters not specified in the
         conditions file will revert to the default for that individual
         handler.
 
-        If you need to custom the behaviour further you may want to
+        If you need to customize the behaviour further you may want to
         look at the recipe on :ref:`interleavedStairs`.
 
         :params:
@@ -1761,7 +1761,7 @@ class MultiStairHandler(_BaseTrialHandler):
                 If `sequential`, don't perform any randomization.
 
             conditions: a list of dictionaries specifying conditions
-                Can be used to control parameters for the different staicases.
+                Can be used to control parameters for the different staircases.
                 Can be imported from an Excel file using
                 `psychopy.data.importConditions`
                 MUST include keys providing, 'startVal', 'label' and
@@ -1804,7 +1804,7 @@ class MultiStairHandler(_BaseTrialHandler):
         Raises
         ------
             ValueError
-                If an unknown randomiation option was passed via the `method`
+                If an unknown randomization option was passed via the `method`
                 keyword argument.
 
         """
@@ -2054,7 +2054,7 @@ class MultiStairHandler(_BaseTrialHandler):
         """Save a summary data file in Excel OpenXML format workbook
         (:term:`xlsx`) for processing in most spreadsheet packages.
         This format is compatible with versions of Excel (2007 or greater)
-        and and with OpenOffice (>=3.0).
+        and with OpenOffice (>=3.0).
 
         It has the advantage over the simpler text files (see
         :func:`TrialHandler.saveAsText()` )
@@ -2125,7 +2125,7 @@ class MultiStairHandler(_BaseTrialHandler):
                 `.tsv` will be added if not included.
 
             delim: a string
-                the delimitter to be used (e.g. '\t' for tab-delimitted,
+                the delimiter to be used (e.g. '\t' for tab-delimited,
                 ',' for csv files)
 
             matrixOnly: True/False
