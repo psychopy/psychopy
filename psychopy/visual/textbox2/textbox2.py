@@ -155,12 +155,9 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
                         lineWidth=borderWidth, lineColor=borderColor, fillColor=fillColor,
                         autoLog=False)
         # Store what style box was on spawn, so it can get back after changes
-        self.baseStyle = {
-            'lineColor': self.borderRGB,
-            'lineWidth': self.borderWidth,
-            'fillColor': self.fillRGB
-        }
-        print(self.baseStyle)
+        self._fillColor = fillColor
+        self._borderColor = borderColor
+        self._borderWidth = borderWidth
 
         # caret
         self.editable = editable
@@ -212,42 +209,29 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
     # Synonymise textbox fill & border with box fill & colour
     @property
     def fillColor(self):
-        return self.box.fillColor
+        # When fill colour is requested, give base fill...
+        return self._fillColor
     @fillColor.setter
     def fillColor(self, value):
+        # ...but when fill colour is set, set the box fill
         self.box.setFillColor(value)
-    @property
-    def fillRGB(self):
-        if self.box.fillRGB is None:
-            return (self.win.rgb + 0.5) * 255
-        else:
-            return self.box.fillRGB
-    @fillRGB.setter
-    def fillRGB(self, value):
-        self.box.setFillColor(value, colorSpace='rgb255')
 
     @property
     def borderColor(self):
+        # When border colour is requested, give base border...
         return self.box.lineColor
     @borderColor.setter
     def borderColor(self, value):
+        # ...but when border colour is set, set the box border
         self.box.setLineColor(value)
-    @property
-    def borderRGB(self):
-        if self.box.lineRGB is None:
-            return (self.win.rgb + 0.5)*255
-        else:
-            return self.box.lineRGB
-    @borderRGB.setter
-    def borderRGB(self, value):
-        self.box.setLineColor(value, colorSpace='rgb255')
-
 
     @property
     def borderWidth(self):
+        # When border width is requested, give base border...
         return self.box.lineWidth
     @borderWidth.setter
     def borderWidth(self, value):
+        # ...but when border width is set, set the box border
         self.box.setLineWidth(value)
 
     @property
@@ -588,18 +572,32 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
     def hasFocus(self, state):
         if state:
             # Adjust fill colour
-            self.fillRGB = self.baseStyle['fillColor'] + 30*\
-                           (-1 if np.mean(self.baseStyle['fillColor']) >= 126 else 1)
+            if self._fillColor is None:
+                # Check whether background is light or dark
+                self.fillColor = 'white' if np.mean(self.win.rgb) < 0 else 'black'
+                self.box.setOpacity(0.1)
+            elif self.box.fillColorSpace in ['rgb', 'dkl', 'lms', 'hsv']:
+                self.fillColor = [c + 0.1 * \
+                                 (1 if np.mean(self._fillColor) < 0.5 else -1)
+                for c in self.fillColor]
+            elif self.box.colorSpace in ['rgb255', 'named']:
+                self.fillColor = [c + 30 * \
+                                 (1 if np.mean(self._fillColor) < 127 else -1)
+                                  for c in self.fillColor]
+            elif self.box.colorSpace in ['hex']:
+                self.fillColor = [c + 30 * \
+                                 (1 if np.mean(self.box.fillRGB) < 127 else -1)
+                                  for c in self.box.fillRGB]
             self.draw()
         else:
             # Set box properties back to their original values
-            self.fillRGB = self.baseStyle['fillColor']
+            self.fillColor = self._fillColor
+            self.box.opacity = self.opacity
             self.box.draw()
         # Store focus
         self._hasFocus = state
 
 class Caret(ColorMixin):
-    #todo: vertices calc is way off
     def __init__(self, textbox, color, width):
         self.textbox = textbox
         self.index = None
