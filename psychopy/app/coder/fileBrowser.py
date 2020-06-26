@@ -20,7 +20,7 @@ except Exception:
 import os
 import time
 import collections
-from ..style import cs, cLib
+from ..themes import ThemeMixin
 
 # enums for file types
 FOLDER_TYPE_NORMAL = 0
@@ -55,7 +55,7 @@ FileItemData = collections.namedtuple(
 
 
 
-class FileBrowserListCtrl(ListCtrlAutoWidthMixin, wx.ListCtrl):
+class FileBrowserListCtrl(ListCtrlAutoWidthMixin, wx.ListCtrl, ThemeMixin):
     """Custom list control for the file browser."""
 
     def __init__(self, parent, id, pos, size, style):
@@ -66,17 +66,19 @@ class FileBrowserListCtrl(ListCtrlAutoWidthMixin, wx.ListCtrl):
                              size,
                              style=style)
         ListCtrlAutoWidthMixin.__init__(self)
-        # Set colours
+
+    def _applyAppTheme(self, target=None):
+        cs = ThemeMixin.appColors
         self.SetBackgroundColour(wx.Colour(cs['src_bg']))
         self.SetForegroundColour(wx.Colour(cs['brws_txt']))
 
 
-
-class FileBrowserPanel(wx.Panel):
+class FileBrowserPanel(wx.Panel, ThemeMixin):
     """Panel for a file browser.
     """
     def __init__(self, parent, frame):
         wx.Panel.__init__(self, parent, -1, style=wx.BORDER_NONE)
+        cs = cs = ThemeMixin.appColors
         self.parent = parent
         self.coder = frame
         self.currentPath = None
@@ -236,6 +238,12 @@ class FileBrowserPanel(wx.Panel):
         #self.fileList.SetColumnWidth(2, 100)
 
         self.gotoDir(os.getcwd())
+
+    def _applyAppTheme(self, target=None):
+        cs = cs = ThemeMixin.appColors
+        # Set background for Directory bar
+        self.SetBackgroundColour(wx.Colour(cs['tab_active']))
+        self.SetForegroundColour(wx.Colour(cs['brws_txt']))
 
     def OnGotoFileLocation(self, evt):
         """Goto the currently opened file location."""

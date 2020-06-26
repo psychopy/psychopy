@@ -41,7 +41,6 @@ from psychopy.localization import _translate
 
 from ... import experiment
 from .. import dialogs, icons
-from psychopy.app.style import cLib, cs
 from ..icons import getAllIcons, combineImageEmblem
 from psychopy import logging, constants, data
 from psychopy.tools.filetools import mergeFolder
@@ -78,8 +77,9 @@ _localized = {
     'move to bottom': _translate('move to bottom')
 }
 
+cs = ThemeMixin.appColors
 
-class BuilderFrame(wx.Frame):
+class BuilderFrame(wx.Frame, ThemeMixin):
     """Defines construction of the Psychopy Builder Frame"""
 
     def __init__(self, parent, id=-1, title='PsychoPy (Experiment Builder)',
@@ -1941,7 +1941,7 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
                                              style=wx.BORDER_NONE)
         self._maxBtnWidth = 0  # will store width of widest button
         self.sizer = wx.BoxSizer(wx.VERTICAL)
-        self.SetBackgroundColour(cs['cpanel_bg'])
+        self.SetBackgroundColour(ThemeMixin.appColors['cpanel_bg'])
         self.components = experiment.getAllComponents(
             self.app.prefs.builder['componentsFolders'])
         categories = ['Favorites']
@@ -2053,7 +2053,7 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
         btn.SetBitmap(thisIcon)  # also setBitmapPresseed setBitmapDisabled etc
         btn.SetBitmapPosition(wx.TOP)
         # Set button background and hover effect
-        btn.SetBackgroundColour(cs['cpanel_bg'])
+        btn.SetBackgroundColour(ThemeMixin.appColors['cpanel_bg'])
         btn.Bind(wx.EVT_ENTER_WINDOW, self.onHover)
         btn.Bind(wx.EVT_LEAVE_WINDOW, self.offHover)
 

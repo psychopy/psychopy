@@ -1189,6 +1189,8 @@ class CoderFrame(wx.Frame):
         self.unitTestFrame = None
 
         # Link to Runner output
+        if self.app.runner is None:
+            self.app.newRunnerFrame()
         self.outputWindow = self.app.runner.stdOut
         self.outputWindow.write(_translate('Welcome to PsychoPy3!') + '\n')
         self.outputWindow.write("v%s\n" % self.app.version)
@@ -1522,7 +1524,7 @@ class CoderFrame(wx.Frame):
                            _translate("Themes..."))
         for theme in self.themeList:
             self.themeList[theme] = self.themesMenu.Append(wx.ID_ANY, _translate(theme))
-            self.Bind(wx.EVT_MENU, self.switchTheme, self.themeList[theme])
+            self.Bind(wx.EVT_MENU, self.app.onThemeChange, self.themeList[theme])
 
         menu.AppendSeparator()
         # output window
@@ -2472,26 +2474,16 @@ class CoderFrame(wx.Frame):
         self.app.prefs.saveUserPrefs()  # includes a validation
         self.paneManager.Update()
 
-    def switchTheme(self, event):
-        # Switch theme for coder view
-
-        # Use menu item Id to find value
-        newVal = [item.ItemLabel
-                  for item in self.themesMenu.GetMenuItems()
-                  if item.GetId() == event.GetId()]
-        # Update user prefs
-        self.app.prefs.userPrefsCfg['coder']['theme'] = newVal[0]
-        self.app.prefs.userPrefsCfg.write()
-        # Apply new theme to coder view
+    def _applyAppTheme(self, target=None):
+        """Overrides theme change from ThemeMixin.
+        Don't call - this is called at the end of theme.setter"""
+        # ThemeMixin._applyAppTheme(self)  # handles most recursive setting
         for ii in range(self.notebook.GetPageCount()):
             doc = self.notebook.GetPage(ii)
-            doc.theme = newVal[0]
+            doc._applyAppTheme()
         for ii in range(self.shelf.GetPageCount()):
             doc = self.shelf.GetPage(ii)
-            doc.theme = newVal[0]
-        # Apply new theme to runner view
-        self.app.runner.stdOut.theme = newVal[0]
-        self.app.runner.alerts.theme = newVal[0]
+            doc._applyAppTheme()
 
     def setShowIndentGuides(self, event):
         # show/hide the source assistant (from the view menu control)

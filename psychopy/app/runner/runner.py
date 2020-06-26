@@ -7,7 +7,6 @@
 import json
 
 from psychopy.app.themes import ThemeMixin
-from psychopy.app.style import cLib, cs
 
 import wx
 from wx.lib import platebtn
@@ -32,7 +31,7 @@ from psychopy.scripts.psyexpCompile import generateScript
 from psychopy.app.runner.scriptProcess import ScriptProcess
 
 
-class RunnerFrame(wx.Frame):
+class RunnerFrame(wx.Frame, ThemeMixin):
     """Construct the Psychopy Runner Frame."""
 
     def __init__(self, parent=None, id=wx.ID_ANY, title='', app=None):
@@ -63,6 +62,7 @@ class RunnerFrame(wx.Frame):
         self.loadTaskList()
 
         self.Bind(wx.EVT_CLOSE, self.onClose)
+        self.theme = app.theme
 
     def addTask(self, evt=None, fileName=None):
         self.panel.addTask(fileName=fileName)
@@ -168,7 +168,7 @@ class RunnerFrame(wx.Frame):
                            _translate("Themes..."))
         for theme in self.themeList:
             self.themeList[theme] = self.themesMenu.Append(wx.ID_ANY, _translate(theme))
-            self.Bind(wx.EVT_MENU, self.switchTheme, self.themeList[theme])
+            self.Bind(wx.EVT_MENU, self.app.onThemeChange, self.themeList[theme])
 
         # Create menus
         self.runnerMenu.Append(fileMenu, 'File')
@@ -274,32 +274,8 @@ class RunnerFrame(wx.Frame):
             temp.append(str(Path(folder) / filename))
         return temp
 
-    def switchTheme(self, event):
-        # Switch theme for coder view
 
-        # Use menu item Id to find value
-        win = event.EventObject.Window
-        newVal = [item.ItemLabel
-                  for item in win.themesMenu.GetMenuItems()
-                  if item.GetId() == event.GetId()]
-        # Update user prefs
-        self.app.prefs.userPrefsCfg['coder']['theme'] = newVal[0]
-        self.app.prefs.userPrefsCfg.write()
-        # Apply new theme to runner view
-        self.panel.stdoutCtrl.theme = newVal[0]
-        self.panel.alertsCtrl.theme = newVal[0]
-        # Apply new theme to coder view
-        # Apply new theme to coder view
-        coder = self.app.coder
-        for ii in range(coder.notebook.GetPageCount()):
-            doc = coder.notebook.GetPage(ii)
-            doc.theme = newVal[0]
-        for ii in range(coder.shelf.GetPageCount()):
-            doc = coder.shelf.GetPage(ii)
-            doc.theme = newVal[0]
-
-
-class RunnerPanel(wx.Panel, ScriptProcess):
+class RunnerPanel(wx.Panel, ScriptProcess, ThemeMixin):
     def __init__(self, parent=None, id=wx.ID_ANY, title='', app=None):
         super(RunnerPanel, self).__init__(parent=parent,
                                           id=id,
@@ -310,7 +286,8 @@ class RunnerPanel(wx.Panel, ScriptProcess):
                                           )
         ScriptProcess.__init__(self, app)
         self.Bind(wx.EVT_END_PROCESS, self.onProcessEnded)
-        self.SetBackgroundColour(cs['frame_bg'])
+        self.SetBackgroundColour(ThemeMixin.appColors['frame_bg'])
+        self.SetForegroundColour(ThemeMixin.appColors['txt_default'])
 
         expCtrlSize = [500, 150]
         ctrlSize = [500, 150]
@@ -331,8 +308,6 @@ class RunnerPanel(wx.Panel, ScriptProcess):
                                    id=wx.ID_ANY,
                                    size=expCtrlSize,
                                    style=wx.LC_REPORT | wx.BORDER_NONE | wx.LC_NO_HEADER)
-        self.expCtrl.SetBackgroundColour(cs['tab_active'])
-        self.expCtrl.SetForegroundColour(cs['tab_txt'])
 
         self.expCtrl.Bind(wx.EVT_LIST_ITEM_SELECTED,
                           self.onItemSelected, self.expCtrl)
@@ -476,8 +451,9 @@ class RunnerPanel(wx.Panel, ScriptProcess):
                 emblem=join(rc, emblem), pos='bottom_right')
         else:
             bmp = wx.Bitmap(join(rc, main), PNG)
-        button = wx.BitmapButton(self, -1, bmp, size=[buttonSize, buttonSize], style=wx.NO_BORDER)
-        button.SetBackgroundColour(cs['frame_bg'])
+        button = wx.BitmapButton(self, -1, bmp, size=[buttonSize, buttonSize],
+                                 style=wx.NO_BORDER)
+        button.SetBackgroundColour(ThemeMixin.appColors['frame_bg'])
         return button
 
     def stopTask(self, event=None):
@@ -798,7 +774,7 @@ class RunnerPanel(wx.Panel, ScriptProcess):
         self._currentProject = None
 
 
-class StdOutText(StdOutRich, ThemeMixin):
+class StdOutText(StdOutRich):
     """StdOutRich subclass which also handles Git messages from Pavlovia projects."""
 
     def __init__(self, parent=None, style=wx.TE_READONLY | wx.TE_MULTILINE | wx.BORDER_NONE, size=wx.DefaultSize):

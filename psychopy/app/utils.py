@@ -20,9 +20,9 @@ import wx
 import wx.lib.agw.aui as aui
 from wx.lib import platebtn
 from psychopy import logging
-from psychopy.app import pavlovia_ui
-from psychopy.app.icons import combineImageEmblem
-from psychopy.app. style import cLib, cs
+from . import pavlovia_ui
+from .icons import combineImageEmblem
+from .themes import ThemeMixin
 from psychopy.tools.versionchooser import _translate
 
 
@@ -108,7 +108,8 @@ def getSystemFonts(encoding='system', fixedWidthOnly=False):
 
     return fontEnum.GetFacenames(encoding, fixedWidthOnly=fixedWidthOnly)
 
-class PsychopyTabArt(aui.AuiDefaultTabArt):
+
+class PsychopyTabArt(aui.AuiDefaultTabArt, ThemeMixin):
     def __init__(self):
         aui.AuiDefaultTabArt.__init__(self)
 
@@ -122,7 +123,7 @@ class PsychopyTabArt(aui.AuiDefaultTabArt):
         :param `base_colour`: an instance of :class:`wx.Colour`. If defaulted to ``None``, a colour
          is generated accordingly to the platform and theme.
         """
-
+        cs = ThemeMixin.appColors
         self.SetBaseColour( wx.Colour(cs['tab_active']) )
         self._background_top_colour = wx.Colour(cs['note_bg'])
         self._background_bottom_colour = wx.Colour(cs['note_bg'])
@@ -154,6 +155,7 @@ class PsychopyTabArt(aui.AuiDefaultTabArt):
 class PsychopyDockArt(aui.AuiDefaultDockArt):
     def __init__(self):
         aui.AuiDefaultDockArt.__init__(self)
+        cs = ThemeMixin.appColors
         # Gradient
         self._gradient_type = aui.AUI_GRADIENT_NONE
         # Background
@@ -194,7 +196,7 @@ class PsychopyToolbar(wx.ToolBar):
 
         # Configure toolbar appearance
         self.SetWindowStyle(wx.TB_HORIZONTAL | wx.NO_BORDER | wx.TB_FLAT | wx.TB_NODIVIDER)
-        self.SetBackgroundColour(cs['toolbar_bg'])
+        self.SetBackgroundColour(ThemeMixin.appColors['toolbar_bg'])
         # Set icon size (16 for win/linux small mode, 32 for everything else
         if (sys.platform == 'win32' or sys.platform.startswith('linux')) \
                 and not self.frame.appPrefs['largeIcons']:
@@ -329,12 +331,14 @@ class PsychopyPlateBtn(platebtn.PlateButton):
                  style=1, name=wx.ButtonNameStr):
         platebtn.PlateButton.__init__(self, parent, id, label, bmp, pos, size, style, name)
         self.__InitColors()
+        cs = ThemeMixin.appColors
         self.SetBackgroundColour(wx.Colour(parent.GetBackgroundColour()))
         self.SetPressColor(wx.Colour(cs['platebtn_hover']))
         self.SetLabelColor(wx.Colour(cs['platebtn_txt']),
                            wx.Colour(cs['platebtn_hovertxt']))
 
     def __InitColors(self):
+        cs = ThemeMixin.appColors
         """Initialize the default colors"""
         colors = dict(default=True,
                       hlight=cs['platebtn_hover'],

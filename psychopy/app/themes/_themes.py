@@ -1,12 +1,10 @@
 import wx
 import wx.stc as stc
-import json
+from wx import py
 import keyword
 import builtins
-from wx import py
-from psychopy.tools.versionchooser import _translate
 from pathlib import Path
-
+from psychopy import prefs
 
 thisFolder = Path(__file__).parent
 
@@ -17,177 +15,88 @@ class ThemeMixin:
         stc.STC_LEX_CPP: "c++",
         stc.STC_LEX_R: "R"
     }
+    # these are populated and modified by PsychoPyApp.theme.setter
+    mode = ''
+    icons = ''
+    codeColors = {}
+    appColors = {}
 
-    @property
-    def theme(self):
-        return self.prefs['theme']
+    def _applyAppTheme(self, target=None):
+        """Applies colorScheme recursively to the target and its children
 
-    @theme.setter
-    def theme(self, value):
-        # Load theme from json file
-        try:
-            with open("{}//{}.json".format(self.paths['themes'], value), "rb") as fp:
-                spec = json.load(fp)
-        except:
-            with open("{}//{}.json".format(self.paths['themes'], "PsychopyLight"), "rb") as fp:
-                spec = json.load(fp)
+        Parameters
+        ----------
+        colorScheme: the new color spec being applied (dict)
+        target: the wx object to which being applied
+        depth: depth in the tree of wx objects
 
-        # Check that minimum spec is defined
-        if 'base' in spec:
-            base = spec['base']
-            if not (
-                all(key in base for key in ['bg', 'fg', 'font'])
-            ):
-                return
-        else:
-            return
-        # Override base font with user spec if present
-        key = 'outputFont' if isinstance(self, wx.py.shell.Shell) else 'codeFont'
-        if self.prefs[key] != "From theme...":
-            base['font'] = self.prefs[key]
-        if isinstance(self, wx.stc.StyledTextCtrl):
-            # Check for language specific spec
-            if self.GetLexer() in self.lexers:
-                lexer = self.lexers[self.GetLexer()]
-            else:
-                lexer = 'invlex'
-            if lexer in spec:
-                # If there is lang specific spec, delete subkey...
-                lang = spec[lexer]
-                del spec[lexer]
-                #...and append spec to root, overriding any generic spec
-                spec.update({key: lang[key] for key in lang})
-            else:
-                lang = {}
-
-            # Apply app spec (default to light & modern)
-            if 'app' not in spec:
-                spec['app'] = 'light'
-            if 'icons' not in spec:
-                spec['icons'] = 'modern'
-            self.app.prefs.userPrefsCfg['app']['iconset'] = spec['icons']
-            self.app.prefs.userPrefsCfg['app']['darkmode'] = spec['app'] == 'dark'
-            self.app.prefs.userPrefsCfg.write()
-
-            # Pythonise the universal data (hex -> rgb, tag -> wx int)
-            invalid = []
-            for key in spec:
-                # Check that key is in tag list and full spec is defined, discard if not
-                if key in self.tags \
-                        and all(subkey in spec[key] for subkey in ['bg', 'fg', 'font']):
-                    spec[key]['bg'] = self.hex2rgb(spec[key]['bg'], base['bg'])
-                    spec[key]['fg'] = self.hex2rgb(spec[key]['fg'], base['fg'])
-                    if not spec[key]['font']:
-                        spec[key]['font'] = base['font']
-                    spec[key]['size'] = int(self.prefs['codeFontSize'])
-                else:
-                    invalid += [key]
-            for key in invalid:
-                del spec[key]
-            # Set style for undefined lexers
-            for key in [getattr(wx._stc, item) for item in dir(wx._stc) if item.startswith("STC_LEX")]:
-                self.StyleSetBackground(key, base['bg'])
-                self.StyleSetForeground(key, base['fg'])
-                self.StyleSetSpec(key, "face:%(font)s,size:%(size)d" % base)
-            # Set style from universal data
-            for key in spec:
-                if self.tags[key] is not None:
-                    self.StyleSetBackground(self.tags[key], spec[key]['bg'])
-                    self.StyleSetForeground(self.tags[key], spec[key]['fg'])
-                    self.StyleSetSpec(self.tags[key], "face:%(font)s,size:%(size)d" % spec[key])
-            # Apply keywords
-            for level, val in self.lexkw.items():
-                self.SetKeyWords(level, " ".join(val))
-
-            # Make sure there's some spec for margins
-            if 'margin' not in spec:
-                spec['margin'] = base
-            # Set margin colours to match linenumbers if set
-            if 'margin' in spec:
-                mar = spec['margin']['bg']
-            else:
-                mar = base['bg']
-            self.SetFoldMarginColour(True, mar)
-            self.SetFoldMarginHiColour(True, mar)
-
-            # Make sure there's some spec for caret
-            if 'caret' not in spec:
-                spec['caret'] = base
-            # Set caret colour
-            self.SetCaretForeground(spec['caret']['fg'])
-            self.SetCaretLineBackground(spec['caret']['bg'])
-            self.SetCaretWidth(1 + ('bold' in spec['caret']['font']))
-
-            # Make sure there's some spec for selection
-            if 'select' not in spec:
-                spec['select'] = base
-                spec['select']['bg'] = self.shiftColour(base['bg'], 30)
-            # Set selection colour
-            self.SetSelForeground(True, spec['select']['fg'])
-            self.SetSelBackground(True, spec['select']['bg'])
-
-            # Set wrap point
-            self.edgeGuideColumn = self.prefs['edgeGuideColumn']
-            self.edgeGuideVisible = self.edgeGuideColumn > 0
-
-            # Set line spacing
-            spacing = min(int(self.prefs['lineSpacing'] / 2), 64) # Max out at 64
-            self.SetExtraAscent(spacing)
-            self.SetExtraDescent(spacing)
-        elif isinstance(self, wx.richtext.RichTextCtrl):
-            # todo: Add element-specific styling (it must be possible...)
-            # If dealing with a StdOut, set background from base
-            self.SetBackgroundColour(self.hex2rgb(base['bg'], base['bg']))
-            # Then construct default styles
-            _font = wx.Font(
-                int(self.prefs['outputFontSize']),
-                wx.FONTFAMILY_TELETYPE, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL, False,
-                faceName=base['font']
-            )
-            _style = wx.TextAttr(colText=wx.Colour(self.hex2rgb(base['fg'], base['fg'])),
-                                 colBack=wx.Colour(self.hex2rgb(base['bg'], base['bg'])),
-                                 font=_font)
-            # Then style all text as base
-            i = 0
-            for ln in range(self.GetNumberOfLines()):
-                i += self.GetLineLength(ln)+1 # +1 as \n is not included in character count
-            self.SetStyle(0, i, _style)
-        else:
-            self.setThemeRecursive(base)
-
-    def setThemeRecursive(self, colorScheme, target=None, depth=0):
-        """Applies colorScheme recursively to the target and its children"""
+        """
         if target is None:
             target = self
+        appCS = ThemeMixin.appColors
+        base = ThemeMixin.codeColors['base']
 
+        # try and set colors for target
+        try:
+            target.SetBackgroundColour(ThemeMixin.appColors['frame_bg'])
+            target.SetForegroundColour(ThemeMixin.appColors['txt_default'])
+        except AttributeError:
+            pass
+
+        # search for children (set in a second step)
         if isinstance(target, wx.Sizer):
             sizer = target
             children = sizer.Children
         else:
             children = []
-            if hasattr(target, 'Children'):
+            if isinstance(target, wx.richtext.RichTextCtrl):
+                base = ThemeMixin.codeColors['base']
+                # todo: Add element-specific styling (it must be possible...)
+                # If dealing with a StdOut, set background from base
+                target.SetBackgroundColour(
+                    self.hex2rgb(base['bg'], base['bg']))
+                # Then construct default styles
+                _font = wx.Font(
+                        int(prefs.coder['outputFontSize']),
+                        wx.FONTFAMILY_TELETYPE, wx.FONTSTYLE_NORMAL,
+                        wx.FONTWEIGHT_NORMAL, False,
+                        faceName=base['font']
+                )
+                _style = wx.TextAttr(
+                        colText=wx.Colour(
+                            self.hex2rgb(base['fg'], base['fg'])),
+                        colBack=wx.Colour(
+                            self.hex2rgb(base['bg'], base['bg'])),
+                        font=_font)
+                # Then style all text as base
+                i = 0
+                for ln in range(target.GetNumberOfLines()):
+                    i += target.GetLineLength(
+                            ln) + 1  # +1 as \n is not included in character count
+                target.SetStyle(0, i, _style)
+            elif hasattr(target, 'Children'):
                 children.extend(target.Children)
             elif hasattr(target, 'immune'):
                 pass
             elif hasattr(target, 'paneManager'):
                 for pane in target.paneManager.AllPanes:
                     children.append(pane.window)
-            elif target.Sizer:
+            elif hasattr(target, 'Sizer') and target.Sizer:
                 children.append(target.Sizer)
-            else:
-                try:
-                    target.SetBackgroundColour(colorScheme['bg'])
-                    target.SetForegroundColour(colorScheme['fg'])
-                except AttributeError:
-                    pass
 
         # then apply to all children as well
         for c in children:
-            if hasattr(c, 'Window') and c.Window is not None:
-                self.setThemeRecursive(c.Window, depth+1)
-            elif hasattr(c, 'Sizer') and c.Sizer is not None:
-                self.setThemeRecursive(c.Sizer, depth+1)
-            self.setThemeRecursive(c, depth+1)
+            if hasattr(c, '_applyAppTheme'):
+            # if the object understands themes then request that
+                c._applyAppTheme()
+            else:
+                # if not then use our own recursive method to search
+                if hasattr(c, 'Window') and c.Window is not None:
+                    self._applyAppTheme(c.Window)
+                elif hasattr(c, 'Sizer') and c.Sizer is not None:
+                    self._applyAppTheme(c.Sizer)
+                # and then apply
+                self._applyAppTheme(c)
 
     @property
     def lexkw(self):
@@ -356,3 +265,154 @@ class ThemeMixin:
             )
 
         return newCol
+
+
+# Create library of "on brand" colours
+cLib = {
+    'none': [127, 127, 127, 0],
+    'black': [0, 0, 0],
+    'grey': [102, 102, 110],
+    'white': [242, 242, 242],
+    'red': [242, 84, 91],
+    'green': [108, 204, 116],
+    'blue': [2, 169, 234],
+    'yellow': [241, 211, 2],
+    'orange': [236, 151, 3],
+    'purple': [195, 190, 247],
+    'darker': {},
+    'lighter': {},
+    'very': {'lighter': {},
+             'darker': {}}
+}
+# Create light and dark variants of each colour by +-15 to each value
+for c in cLib:
+     if not c in ['darker', 'lighter', 'none', 'very']:
+         cLib['darker'][c] = [max(0, n-15) for n in cLib[c]]
+         cLib['lighter'][c] = [min(255, n+15) for n in cLib[c]]
+# Create very light and very dark variants of each colour by a further +-30 to each value
+for c in cLib['lighter']:
+    cLib['very']['lighter'][c] = [min(255, n+30) for n in cLib['lighter'][c]]
+for c in cLib['darker']:
+    cLib['very']['darker'][c] = [max(0, n-30) for n in cLib['darker'][c]]
+
+# Create light and dark colour schemes
+cs_light = {
+    'txt_default': cLib['black'],
+    # Toolbar
+    'toolbar_bg': cLib['darker']['white'],
+    'tool_hover': cLib['very']['darker']['white'],
+    # Frame
+    'frame_bg': cLib['white'],
+    'grippers': cLib['darker']['white'],
+    'note_bg': cLib['white'],
+    'tab_face': cLib['white'],
+    'tab_active': cLib['lighter']['white'],
+    'tab_txt': cLib['lighter']['black'],
+    'docker_face': cLib['very']['darker']['white'],
+    'docker_txt': cLib['black'],
+    # Plate Buttons
+    'platebtn_bg': cLib['white'],
+    'platebtn_txt': cLib['black'],
+    'platebtn_hover': cLib['red'],
+    'platebtn_hovertxt': cLib['white'],
+    ## Builder
+    # Routine canvas
+    'rtcanvas_bg': cLib['lighter']['white'],
+    'time_grid': cLib['very']['darker']['white'],
+    'time_txt': cLib['grey'],
+    'rtcomp_txt': cLib['black'],
+    'rtcomp_bar': cLib['blue'],
+    'rtcomp_force': cLib['orange'],
+    'rtcomp_distxt': cLib['very']['darker']['white'],
+    'rtcomp_disbar': cLib['very']['darker']['white'],
+    'isi_bar': cLib['red'] + [75],
+    'isi_txt': cLib['lighter']['white'],
+    'isi_disbar': cLib['grey'] + [75],
+    'isi_distxt': cLib['lighter']['white'],
+    # Component panel
+    'cpanel_bg': cLib['white'],
+    'cbutton_hover': cLib['darker']['white'],
+    # Flow panel
+    'fpanel_bg': cLib['white'],
+    'fpanel_ln': cLib['very']['lighter']['grey'],
+    'frt_slip': cLib['blue'],
+    'frt_nonslip': cLib['green'],
+    'frt_txt': cLib['lighter']['white'],
+    'loop_face': cLib['grey'],
+    'loop_txt': cLib['lighter']['white'],
+    'fbtns_face': cLib['darker']['white'],
+    'fbtns_txt': cLib['black'],
+    ## Coder
+    # Source Assistant
+    'src_bg': cLib['white'],
+    # Source Assistant: Structure
+    'struct_bg': cLib['white'],
+    'struct_txt': cLib['black'],
+    'struct_hover': cLib['red'],
+    'struct_hovertxt': cLib['white'],
+    # Source Assistant: File Browser
+    'brws_bg': cLib['white'],
+    'brws_txt': cLib['black'],
+    'brws_hover': cLib['red'],
+    'brws_hovertxt': cLib['white']
+    # Shell
+    }
+cs_dark = {
+    'txt_default': cLib['white'],
+    # Toolbar
+    'toolbar_bg': cLib['darker']['grey'],
+    'tool_hover': ['grey'],
+    # Frame
+    'frame_bg': cLib['darker']['grey'],
+    'grippers': cLib['darker']['grey'],
+    'note_bg': cLib['grey'],
+    'tab_face': cLib['grey'],
+    'tab_active': cLib['lighter']['grey'],
+    'tab_txt': cLib['lighter']['white'],
+    'docker_face': cLib['very']['darker']['grey'],
+    'docker_txt': cLib['white'],
+    # Plate Buttons
+    'platebtn_bg': cLib['grey'],
+    'platebtn_txt': cLib['white'],
+    'platebtn_hover': cLib['red'],
+    'platebtn_hovertxt': cLib['white'],
+    ## Builder
+    # Routine canvas
+    'rtcanvas_bg': cLib['lighter']['grey'],
+    'time_grid': cLib['very']['lighter']['grey'],
+    'time_txt': cLib['darker']['white'],
+    'rtcomp_txt': cLib['white'],
+    'rtcomp_bar': cLib['blue'],
+    'rtcomp_force': cLib['orange'],
+    'rtcomp_distxt': cLib['grey'],
+    'rtcomp_disbar': cLib['grey'],
+    'isi_bar': cLib['red'] + [75],
+    'isi_txt': cLib['lighter']['white'],
+    'isi_disbar': cLib['grey'] + [75],
+    'isi_distxt': cLib['lighter']['white'],
+    # Component panel
+    'cpanel_bg': cLib['grey'],
+    'cbutton_hover': cLib['lighter']['grey'],
+    # Flow panel
+    'fpanel_bg': cLib['darker']['grey'],
+    'fpanel_ln': cLib['lighter']['grey'],
+    'frt_slip': cLib['blue'],
+    'frt_nonslip': cLib['green'],
+    'frt_txt': cLib['lighter']['white'],
+    'loop_face': cLib['darker']['white'],
+    'loop_txt': cLib['black'],
+    'fbtns_face': cLib['grey'],
+    'fbtns_txt': cLib['white'],
+    ## Coder
+    # Source Assistant
+    'src_bg': cLib['grey'],
+    # Source Assistant: Structure
+    'struct_txt': cLib['white'],
+    'struct_hover': cLib['red'],
+    'struct_hovertxt': cLib['white'],
+    # Source Assistant: File Browser
+    'brws_txt': cLib['white'],
+    'brws_hover': cLib['red'],
+    'brws_hovertxt': cLib['white']
+    # Shell
+    }
