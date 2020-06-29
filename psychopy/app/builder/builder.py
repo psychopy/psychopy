@@ -169,8 +169,7 @@ class BuilderFrame(wx.Frame, ThemeMixin):
 
         # control the panes using aui manager
         self._mgr = aui.AuiManager(self)
-        self._art = PsychopyDockArt()
-        self._mgr.SetArtProvider(self._art)
+        self._mgr.SetArtProvider(PsychopyDockArt())
         #self._art = self._mgr.GetArtProvider()
         # Setup modern flat look
         # self._art.SetMetric(aui.AUI_DOCKART_GRADIENT_TYPE,
@@ -228,6 +227,13 @@ class BuilderFrame(wx.Frame, ThemeMixin):
 
         self.app.trackFrame(self)
         self.SetDropTarget(FileDropTarget(targetFrame=self))
+        self._applyAppTheme()
+
+    def _applyAppTheme(self, target=None):
+        self._mgr.SetArtProvider(PsychopyDockArt())
+        for c in self.GetChildren():
+            if hasattr(c, '_applyAppTheme'):
+                c._applyAppTheme()
 
     def makeMenus(self):
         """
@@ -1313,9 +1319,16 @@ class RoutinesNotebook(aui.AuiNotebook):
         self.appData = self.app.prefs.appData
         aui.AuiNotebook.__init__(self, frame, id)
         self.Bind(aui.EVT_AUINOTEBOOK_PAGE_CLOSE, self.onClosePane)
-        self.SetArtProvider(PsychopyTabArt())
+        self._applyAppTheme()
         if not hasattr(self.frame, 'exp'):
             return  # we haven't yet added an exp
+
+    def _applyAppTheme(self, target=None):
+        self.SetArtProvider(PsychopyTabArt())
+        self.GetAuiManager().SetArtProvider(PsychopyDockArt())
+        for index in range(self.GetPageCount()):
+            page = self.GetPage(index)
+            page._applyAppTheme()
 
     def getCurrentRoutine(self):
         routinePage = self.getCurrentPage()
@@ -1421,7 +1434,6 @@ class RoutineCanvas(wx.ScrolledWindow):
         wx.ScrolledWindow.__init__(
             self, notebook, id, (0, 0), style=wx.BORDER_NONE | wx.VSCROLL)
 
-        self.SetBackgroundColour(cs['rtcanvas_bg'])
         self.frame = notebook.frame
         self.app = self.frame.app
         self.dpi = self.app.dpi
@@ -1473,7 +1485,7 @@ class RoutineCanvas(wx.ScrolledWindow):
             self.contextItemFromID[id] = item
             self.contextIDFromItem[item] = id
 
-        self.redrawRoutine()
+        self._applyAppTheme()
 
         self.Bind(wx.EVT_PAINT, self.OnPaint)
         self.Bind(wx.EVT_ERASE_BACKGROUND, lambda x: None)
@@ -1481,6 +1493,10 @@ class RoutineCanvas(wx.ScrolledWindow):
         self.Bind(wx.EVT_SIZE, self.onResize)
         # crashes if drop on OSX:
         # self.SetDropTarget(FileDropTarget(builder = self.frame))
+
+    def _applyAppTheme(self, target=None):
+        """Synonymise app theme method with redraw method"""
+        return self.redrawRoutine()
 
     def onResize(self, event):
         self.sizePix = event.GetSize()
@@ -1592,6 +1608,7 @@ class RoutineCanvas(wx.ScrolledWindow):
         self.pdc.Clear()  # clear the screen
         self.pdc.RemoveAll()  # clear all objects (icon buttons)
 
+        self.SetBackgroundColour(ThemeMixin.appColors['rtcanvas_bg'])
         # work out where the component names and icons should be from name
         # lengths
         self.setFontSize(self.fontBaseSize // self.dpi, self.pdc)
@@ -1649,8 +1666,8 @@ class RoutineCanvas(wx.ScrolledWindow):
         xEnd = self.timeXposEnd
 
         # dc.SetId(wx.NewIdRef())
-        dc.SetPen(wx.Pen(cs['time_grid']))
-        dc.SetTextForeground(wx.Colour(cs['time_txt']))
+        dc.SetPen(wx.Pen(ThemeMixin.appColors['time_grid']))
+        dc.SetTextForeground(wx.Colour(ThemeMixin.appColors['time_txt']))
         # draw horizontal lines on top and bottom
         dc.DrawLine(x1=xSt, y1=yPosTop,
                     x2=xEnd, y2=yPosTop)
@@ -1689,7 +1706,7 @@ class RoutineCanvas(wx.ScrolledWindow):
             # y is y-half height of text
             dc.DrawText('t (sec)', xEnd + 5,
                         yPosBottom - self.GetFullTextExtent('t')[1] / 2.0)
-        dc.SetTextForeground(wx.Colour(cs['txt_default']))
+        dc.SetTextForeground(wx.Colour(ThemeMixin.appColors['txt_default']))
 
     def setFontSize(self, size, dc):
         font = self.GetFont()
@@ -1722,12 +1739,12 @@ class RoutineCanvas(wx.ScrolledWindow):
         xScale = self.getSecsPerPixel()
 
         if component.params['disabled'].val:
-            dc.SetBrush(wx.Brush(cs['isi_disbar']))
-            dc.SetPen(wx.Pen(cs['isi_disbar']))
+            dc.SetBrush(wx.Brush(ThemeMixin.appColors['isi_disbar']))
+            dc.SetPen(wx.Pen(ThemeMixin.appColors['isi_disbar']))
 
         else:
-            dc.SetBrush(wx.Brush(cs['isi_bar']))
-            dc.SetPen(wx.Pen(cs['isi_bar']))
+            dc.SetBrush(wx.Brush(ThemeMixin.appColors['isi_bar']))
+            dc.SetPen(wx.Pen(ThemeMixin.appColors['isi_bar']))
 
         xSt = self.timeXposStart + startTime // xScale
         w = duration // xScale + 1  # +1 b/c border alpha=0 in dc.SetPen
@@ -1790,12 +1807,12 @@ class RoutineCanvas(wx.ScrolledWindow):
         # draw entries on timeline (if they have some time definition)
         if startTime is not None and duration is not None:
             # then we can draw a sensible time bar!
-            dc.SetPen(wx.Pen(cs['rtcomp_bar'],
+            dc.SetPen(wx.Pen(ThemeMixin.appColors['rtcomp_bar'],
                              style=wx.TRANSPARENT))
 
             if component.params['disabled'].val:
                 # Grey bar if comp is disabled
-                dc.SetBrush(wx.Brush(cs['rtcomp_disbar']))
+                dc.SetBrush(wx.Brush(ThemeMixin.appColors['rtcomp_disbar']))
                 dc.DrawBitmap(thisIcon.ConvertToDisabled(), self.iconXpos, yPos + iconYOffset, True)
             elif 'forceEndRoutine' in component.params \
                     or 'forceEndRoutineOnPress' in component.params:
@@ -1803,14 +1820,14 @@ class RoutineCanvas(wx.ScrolledWindow):
                        for key in ['forceEndRoutine', 'forceEndRoutineOnPress']
                        if key in component.params):
                     # Orange bar if component has forceEndRoutine or forceEndRoutineOnPress and either are true
-                    dc.SetBrush(wx.Brush(cs['rtcomp_force']))
+                    dc.SetBrush(wx.Brush(ThemeMixin.appColors['rtcomp_force']))
                 else:
                     # Blue bar if component has forceEndRoutine or forceEndRoutineOnPress but none are true
-                    dc.SetBrush(wx.Brush(cs['rtcomp_bar']))
+                    dc.SetBrush(wx.Brush(ThemeMixin.appColors['rtcomp_bar']))
                 dc.DrawBitmap(thisIcon, self.iconXpos, yPos + iconYOffset, True)
             else:
                 # Blue bar otherwise
-                dc.SetBrush(wx.Brush(cs['rtcomp_bar']))
+                dc.SetBrush(wx.Brush(ThemeMixin.appColors['rtcomp_bar']))
                 dc.DrawBitmap(thisIcon, self.iconXpos, yPos + iconYOffset, True)
 
             xScale = self.getSecsPerPixel()
@@ -1941,7 +1958,7 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
                                              style=wx.BORDER_NONE)
         self._maxBtnWidth = 0  # will store width of widest button
         self.sizer = wx.BoxSizer(wx.VERTICAL)
-        self.SetBackgroundColour(ThemeMixin.appColors['cpanel_bg'])
+        self.componentButtons = []
         self.components = experiment.getAllComponents(
             self.app.prefs.builder['componentsFolders'])
         categories = ['Favorites']
@@ -1994,6 +2011,22 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
         self.SetAutoLayout(True)
         self.SetupScrolling()
         self.SetDoubleBuffered(True)
+
+        self._applyAppTheme()
+
+    def _applyAppTheme(self, target=None):
+        cs = ThemeMixin.appColors
+        # Style component panel
+        self.SetForegroundColour(cs['txt_default'])
+        self.SetBackgroundColour(cs['cpanel_bg'])
+        # Style component buttons
+        for btn in self.componentButtons:
+            btn.SetForegroundColour(cs['txt_default'])
+            btn.SetBackgroundColour(cs['cpanel_bg'])
+            # Set hover effect
+            btn.Bind(wx.EVT_ENTER_WINDOW, self.onHover)
+            btn.Bind(wx.EVT_LEAVE_WINDOW, self.offHover)
+            #btn.SetBitmap(thisIcon)
 
     def on_resize(self, event):
         if self.app.prefs.app['largeIcons']:
@@ -2052,10 +2085,6 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
                               style=wx.BORDER_NONE)
         btn.SetBitmap(thisIcon)  # also setBitmapPresseed setBitmapDisabled etc
         btn.SetBitmapPosition(wx.TOP)
-        # Set button background and hover effect
-        btn.SetBackgroundColour(ThemeMixin.appColors['cpanel_bg'])
-        btn.Bind(wx.EVT_ENTER_WINDOW, self.onHover)
-        btn.Bind(wx.EVT_LEAVE_WINDOW, self.offHover)
 
         # Configure tooltip
         if name in components.tooltips:
@@ -2070,6 +2099,7 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
         # ,wx.EXPAND|wx.ALIGN_CENTER )
         panel.Add(btn, proportion=0, flag=wx.ALIGN_RIGHT)
         self._maxBtnWidth = max(btn.GetSize()[0], self._maxBtnWidth)
+        self.componentButtons.append(btn)
 
     def onSectionBtn(self, evt):
         if hasattr(evt, 'GetString'):
@@ -2213,6 +2243,7 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
         self._rightClicked = None
 
     def onHover(self, evt):
+        cs = ThemeMixin.appColors
         btn = evt.GetEventObject()
         if isinstance(btn, wx.BitmapButton):
             btn.SetBackgroundColour(cs['cbutton_hover'])
@@ -2222,6 +2253,7 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
             pass
 
     def offHover(self, evt):
+        cs = ThemeMixin.appColors
         btn = evt.GetEventObject()
         if isinstance(btn, wx.BitmapButton):
             btn.SetBackgroundColour(cs['cpanel_bg'])
@@ -2466,7 +2498,6 @@ class FlowPanel(wx.ScrolledWindow):
         wx.ScrolledWindow.__init__(self, frame, id, (0, 0),
                                    size=wx.Size(8 * self.dpi, 3 * self.dpi),
                                    style=wx.HSCROLL | wx.VSCROLL | wx.BORDER_NONE)
-        self.SetBackgroundColour(cs['fpanel_bg'])
         self.needUpdate = True
         self.maxWidth = 50 * self.dpi
         self.maxHeight = 2 * self.dpi
@@ -2523,24 +2554,16 @@ class FlowPanel(wx.ScrolledWindow):
             self, -1, labelRoutine, pos=(10, 10), size=(120, btnHeight),
             style=platebtn.PB_STYLE_SQUARE
         )
-        self.btnInsertRoutine.SetBackgroundColour(wx.Colour(cs['fbtns_face']))
-        self.btnInsertRoutine.SetForegroundColour(wx.Colour(cs['fbtns_txt']))
-        self.btnInsertRoutine.Update()
         # Create add loop button
         self.btnInsertLoop = PsychopyPlateBtn(
             self, -1, labelLoop, pos=(10, btnHeight+20),
             size=(120, btnHeight),
             style=platebtn.PB_STYLE_SQUARE
         )  # spaces give size for CANCEL
-        self.btnInsertLoop.SetBackgroundColour(wx.Colour(cs['fbtns_face']))
-        self.btnInsertLoop.SetForegroundColour(wx.Colour(cs['fbtns_txt']))
-        self.btnInsertLoop.Update()
 
         # use self.appData['flowSize'] to index a tuple to get a specific
         # value, eg: (4,6,8)[self.appData['flowSize']]
         self.flowMaxSize = 2  # upper limit on increaseSize
-
-        self.draw()
 
         # bind events
         self.Bind(wx.EVT_MOUSE_EVENTS, self.OnMouse)
@@ -2557,6 +2580,23 @@ class FlowPanel(wx.ScrolledWindow):
 
         # set double buffering to reduce flicker
         self.SetDoubleBuffered(True)
+
+        self._applyAppTheme()
+
+    def _applyAppTheme(self, target=None):
+        """Apply any changes which have been made to the theme since panel was last loaded"""
+        cs = ThemeMixin.appColors
+        # Style loop/routine buttons
+        self.btnInsertLoop.SetBackgroundColour(wx.Colour(cs['fbtns_face']))
+        self.btnInsertLoop.SetForegroundColour(wx.Colour(cs['fbtns_txt']))
+        self.btnInsertLoop.Update()
+        self.btnInsertRoutine.SetBackgroundColour(wx.Colour(cs['fbtns_face']))
+        self.btnInsertRoutine.SetForegroundColour(wx.Colour(cs['fbtns_txt']))
+        self.btnInsertRoutine.Update()
+        # Set background
+        self.SetBackgroundColour(cs['fpanel_bg'])
+
+        self.draw()
 
     def clearMode(self, event=None):
         """If we were in middle of doing something (like inserting routine)

@@ -330,9 +330,15 @@ class PsychopyPlateBtn(platebtn.PlateButton):
                  pos=wx.DefaultPosition, size=wx.DefaultSize,
                  style=1, name=wx.ButtonNameStr):
         platebtn.PlateButton.__init__(self, parent, id, label, bmp, pos, size, style, name)
+        self.parent = parent
         self.__InitColors()
+        self._applyAppTheme()
+
+
+    def _applyAppTheme(self):
         cs = ThemeMixin.appColors
-        self.SetBackgroundColour(wx.Colour(parent.GetBackgroundColour()))
+        self.__InitColors()
+        self.SetBackgroundColour(wx.Colour(self.parent.GetBackgroundColour()))
         self.SetPressColor(wx.Colour(cs['platebtn_hover']))
         self.SetLabelColor(wx.Colour(cs['platebtn_txt']),
                            wx.Colour(cs['platebtn_hovertxt']))

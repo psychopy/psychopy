@@ -884,7 +884,7 @@ class PsychoPyApp(wx.App, themes.ThemeMixin):
     def onThemeChange(self, event):
         """Handles a theme change event (from a window with a themesMenu)"""
         win = event.EventObject.Window
-        newTheme = win.themesMenu.FindItemById(event.GetId()).Label
+        newTheme = win.themesMenu.FindItemById(event.GetId()).ItemLabel
         self.theme = newTheme
 
     def _applyAppTheme(self):

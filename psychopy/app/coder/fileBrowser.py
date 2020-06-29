@@ -66,6 +66,7 @@ class FileBrowserListCtrl(ListCtrlAutoWidthMixin, wx.ListCtrl, ThemeMixin):
                              size,
                              style=style)
         ListCtrlAutoWidthMixin.__init__(self)
+        self._applyAppTheme()
 
     def _applyAppTheme(self, target=None):
         cs = ThemeMixin.appColors
@@ -78,16 +79,13 @@ class FileBrowserPanel(wx.Panel, ThemeMixin):
     """
     def __init__(self, parent, frame):
         wx.Panel.__init__(self, parent, -1, style=wx.BORDER_NONE)
-        cs = cs = ThemeMixin.appColors
+        cs = ThemeMixin.appColors
         self.parent = parent
         self.coder = frame
         self.currentPath = None
         self.selectedItem = None
         self.isSubDir = False
         self.pathData = {}
-        # Set background for Directory bar
-        self.SetBackgroundColour(wx.Colour(cs['tab_active']))
-        self.SetForegroundColour(wx.Colour(cs['brws_txt']))
         # get graphics for toolbars and tree items
         rc = self.coder.paths['icons']
         join = os.path.join
@@ -129,8 +127,6 @@ class FileBrowserPanel(wx.Panel, ThemeMixin):
             aui.AUI_TB_HORZ_LAYOUT | aui.AUI_TB_HORZ_TEXT | wx.BORDER_NONE | wx.TB_FLAT | wx.TB_NODIVIDER)
         self.toolBar.AdjustForLayoutDirection(16, 300, 300)
         self.toolBar.SetToolBitmapSize((21, 16))
-        self.toolBar.SetBackgroundColour(cs['tab_active'])
-        self.toolBar.SetForegroundColour(cs['brws_txt'])
         self.newFolderTool = self.toolBar.AddTool(
             wx.ID_ANY,
             'New Folder',
@@ -207,7 +203,7 @@ class FileBrowserPanel(wx.Panel, ThemeMixin):
         szr.Add(szrAddr, 0, flag=wx.EXPAND | wx.ALL, border=5)
         szr.Add(self.fileList, 1, flag=wx.EXPAND)
         self.SetSizer(szr)
-
+        self._applyAppTheme()
         # create the dropdown menu for goto
         self.gotoMenu = wx.Menu()
         item = self.gotoMenu.Append(
@@ -240,10 +236,13 @@ class FileBrowserPanel(wx.Panel, ThemeMixin):
         self.gotoDir(os.getcwd())
 
     def _applyAppTheme(self, target=None):
-        cs = cs = ThemeMixin.appColors
+        cs = ThemeMixin.appColors
         # Set background for Directory bar
         self.SetBackgroundColour(wx.Colour(cs['tab_active']))
         self.SetForegroundColour(wx.Colour(cs['brws_txt']))
+        self.fileList._applyAppTheme()
+        self.toolBar.SetBackgroundColour(cs['tab_active'])
+        self.toolBar.SetForegroundColour(cs['brws_txt'])
 
     def OnGotoFileLocation(self, evt):
         """Goto the currently opened file location."""

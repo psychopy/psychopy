@@ -1078,8 +1078,6 @@ class CoderFrame(wx.Frame):
 
         # Setup pane and art managers
         self.paneManager = aui.AuiManager(self.pnlMain, aui.AUI_MGR_DEFAULT | aui.AUI_MGR_RECTANGLE_HINT)
-        self._art = PsychopyDockArt()
-        self.paneManager.SetArtProvider(self._art)
         # Create toolbar
         self.toolbar = PsychopyToolbar(self)
         self.SetToolBar(self.toolbar)
@@ -1092,7 +1090,7 @@ class CoderFrame(wx.Frame):
 
         # Create source assistant notebook
         self.sourceAsst = aui.AuiNotebook(self.pnlMain, wx.ID_ANY)
-        self.sourceAsst.SetArtProvider(PsychopyTabArt())
+        #self.sourceAsst.SetArtProvider(PsychopyTabArt())
         self.structureWindow = SourceTreePanel(self.sourceAsst, self)
         self.fileBrowserWindow = FileBrowserPanel(self.sourceAsst, self)
         # Add source assistant panel
@@ -1119,7 +1117,7 @@ class CoderFrame(wx.Frame):
         # Create editor notebook
         #todo: Why is editor default background not same as usual frame backgrounds?
         self.notebook = aui.AuiNotebook(self.pnlMain, -1, size=wx.Size(480, 600))
-        self.notebook.SetArtProvider(PsychopyTabArt())
+        #self.notebook.SetArtProvider(PsychopyTabArt())
         # Add editor panel
         self.paneManager.AddPane(self.notebook, aui.AuiPaneInfo().
                                  Name("Editor").
@@ -1149,7 +1147,7 @@ class CoderFrame(wx.Frame):
 
         # Create shelf notebook
         self.shelf = aui.AuiNotebook(self.pnlMain, wx.ID_ANY, size=wx.Size(600, 600), style=wx.BORDER_NONE)
-        self.shelf.SetArtProvider(PsychopyTabArt())
+        #self.shelf.SetArtProvider(PsychopyTabArt())
         # Create shell
         self._useShell = None
         if haveCode:
@@ -1185,6 +1183,7 @@ class CoderFrame(wx.Frame):
                                  CloseButton(False).
                                  Bottom().Show(self.prefs['showOutput']))
         # Update panes
+        self._applyAppTheme()
         self.paneManager.Update()
         self.unitTestFrame = None
 
@@ -1210,6 +1209,8 @@ class CoderFrame(wx.Frame):
             self.paneManager.GetPane('SourceAsst').IsShown())
         self.SendSizeEvent()
         self.app.trackFrame(self)
+
+
 
     def outputContextMenu(self, event):
         """Custom context menu for output window.
@@ -2474,16 +2475,29 @@ class CoderFrame(wx.Frame):
         self.app.prefs.saveUserPrefs()  # includes a validation
         self.paneManager.Update()
 
+    # def _applyAppTheme(self, target=None):
+    #     """Overrides theme change from ThemeMixin.
+    #     Don't call - this is called at the end of theme.setter"""
+    #     # ThemeMixin._applyAppTheme(self)  # handles most recursive setting
+    #     for ii in range(self.notebook.GetPageCount()):
+    #         doc = self.notebook.GetPage(ii)
+    #         doc._applyAppTheme()
+    #     for ii in range(self.shelf.GetPageCount()):
+    #         doc = self.shelf.GetPage(ii)
+    #         doc._applyAppTheme()
+
     def _applyAppTheme(self, target=None):
-        """Overrides theme change from ThemeMixin.
-        Don't call - this is called at the end of theme.setter"""
-        # ThemeMixin._applyAppTheme(self)  # handles most recursive setting
-        for ii in range(self.notebook.GetPageCount()):
-            doc = self.notebook.GetPage(ii)
-            doc._applyAppTheme()
-        for ii in range(self.shelf.GetPageCount()):
-            doc = self.shelf.GetPage(ii)
-            doc._applyAppTheme()
+        self.paneManager.SetArtProvider(PsychopyDockArt())
+        for c in self.pnlMain.GetChildren():
+            if isinstance(c, aui.AuiNotebook):
+                c.SetArtProvider(PsychopyTabArt())
+                c.GetAuiManager().SetArtProvider(PsychopyDockArt())
+                for index in range(c.GetPageCount()):
+                    page = c.GetPage(index)
+                    page.SetBackgroundColour(ThemeMixin.appColors['frame_bg'])
+                    page._applyAppTheme()
+            if hasattr(c, '_applyAppTheme'):
+                c._applyAppTheme()
 
     def setShowIndentGuides(self, event):
         # show/hide the source assistant (from the view menu control)

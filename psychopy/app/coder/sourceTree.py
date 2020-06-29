@@ -25,7 +25,40 @@ class SourceTreePanel(wx.Panel):
         self.parent = parent
         self.coder = frame
 
+
+
+
+        self.SetDoubleBuffered(True)
+        # create the source tree control
+        self.treeId = wx.NewIdRef()
+        self.srcTree = wx.TreeCtrl(
+            self,
+            self.treeId,
+            pos=(0, 0),
+            size=wx.Size(300, 300),
+            style=wx.TR_HAS_BUTTONS | wx.BORDER_NONE)
+
+        # do layout
+        szr = wx.BoxSizer(wx.VERTICAL)
+        szr.Add(self.srcTree, flag=wx.EXPAND, proportion=1)
+        self.SetSizer(szr)
+
+        # bind events
+        self.Bind(
+            wx.EVT_TREE_ITEM_ACTIVATED, self.OnItemActivate, self.srcTree)
+        self.Bind(
+            wx.EVT_TREE_SEL_CHANGED, self.OnItemSelected, self.srcTree)
+        self.Bind(
+            wx.EVT_TREE_ITEM_EXPANDED, self.OnItemExpanded, self.srcTree)
+        self.Bind(
+            wx.EVT_TREE_ITEM_COLLAPSED, self.OnItemCollapsed, self.srcTree)
+
+        self._applyAppTheme()
+
+    def _applyAppTheme(self, target=None):
         cs = ThemeMixin.appColors
+        self.srcTree.SetOwnBackgroundColour(cs['tab_active'])
+        self.srcTree.SetOwnForegroundColour(cs['struct_txt'])
 
         # get graphics for toolbars and tree items
         rc = self.coder.paths['icons']
@@ -53,33 +86,8 @@ class SourceTreePanel(wx.Panel):
             # 'treeFolderOpened': _treeImgList.Add(
             #     wx.Bitmap(os.path.join(rc, 'folder-open16.png'), wx.BITMAP_TYPE_PNG))
         }
-
-        self.SetDoubleBuffered(True)
-        # create the source tree control
-        self.treeId = wx.NewIdRef()
-        self.srcTree = wx.TreeCtrl(
-            self,
-            self.treeId,
-            pos=(0, 0),
-            size=wx.Size(300, 300),
-            style=wx.TR_HAS_BUTTONS | wx.BORDER_NONE)
         self.srcTree.SetImageList(self._treeImgList)
-        self.srcTree.SetOwnBackgroundColour(cs['tab_active'])
-        self.srcTree.SetOwnForegroundColour(cs['struct_txt'])
-        # do layout
-        szr = wx.BoxSizer(wx.VERTICAL)
-        szr.Add(self.srcTree, flag=wx.EXPAND, proportion=1)
-        self.SetSizer(szr)
 
-        # bind events
-        self.Bind(
-            wx.EVT_TREE_ITEM_ACTIVATED, self.OnItemActivate, self.srcTree)
-        self.Bind(
-            wx.EVT_TREE_SEL_CHANGED, self.OnItemSelected, self.srcTree)
-        self.Bind(
-            wx.EVT_TREE_ITEM_EXPANDED, self.OnItemExpanded, self.srcTree)
-        self.Bind(
-            wx.EVT_TREE_ITEM_COLLAPSED, self.OnItemCollapsed, self.srcTree)
 
     def OnItemSelected(self, evt=None):
         """When a tree item is clicked on."""
