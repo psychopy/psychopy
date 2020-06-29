@@ -485,8 +485,9 @@ class _BaseParamsDlg(wx.Dialog):
             # not available in wxPython 2.8.10
             agwStyle |= flatnotebook.FNB_NO_TAB_FOCUS
         self.ctrls = flatnotebook.FlatNotebook(self, style=agwStyle)
-        self.mainSizer.Add(self.ctrls,  # ctrls is the notebook of params
-                           proportion=1, flag=wx.EXPAND | wx.ALL, border=5)
+        if self.__class__ != DlgExperimentProperties:
+            self.mainSizer.Add(self.ctrls,  # ctrls is the notebook of params
+                               proportion=1, flag=wx.EXPAND | wx.ALL, border=5)
         categNames = sorted(categs)
         if 'Basic' in categNames:
             # move it to be the first category we see
@@ -1866,17 +1867,17 @@ class DlgExperimentProperties(_BaseParamsDlg):
             helpBtn = wx.Button(self, wx.ID_HELP, _translate(" Help "))
             helpBtn.SetHelpText(_translate("Get help about this component"))
             helpBtn.Bind(wx.EVT_BUTTON, self.onHelp)
-            buttons.Add(helpBtn, 0, wx.ALL, border=3)
+            buttons.Add(helpBtn, 0, border=3)
         self.OKbtn = wx.Button(self, wx.ID_OK, _translate(" OK "))
         self.OKbtn.SetDefault()
-        buttons.Add(self.OKbtn, 0, wx.ALL, border=3)
+        buttons.Add(self.OKbtn, 0, border=3)
         CANCEL = wx.Button(self, wx.ID_CANCEL, _translate(" Cancel "))
-        buttons.Add(CANCEL, 0, wx.ALL, border=3)
+        buttons.Add(CANCEL, 0, border=3)
 
         buttons.Realize()
         self.ctrls.Fit()
         self.mainSizer.Add(self.ctrls, proportion=1, flag=wx.EXPAND)
-        self.mainSizer.Add(buttons)
+        self.mainSizer.Add(buttons, border=3, flag=wx.ALL | wx.ALIGN_RIGHT)
         self.SetSizerAndFit(self.mainSizer)
 
         # move the position to be v near the top of screen and to the
