@@ -16,14 +16,25 @@ from psychopy.app._psychopyApp import PsychoPyApp
 from PIL import Image
 Image.DEBUG = False
 
-def pytest_configure():
+# def pytest_configure():
+#     psychopyApp._called_from_test = True
+#     psychopyApp._app = PsychoPyApp(testMode=True, showSplash=False)
+#     # then use from psychopy import psychopyApp` to access _app
+#
+# def pytest_unconfigure():
+#     psychopyApp._app.quit()
+
+@pytest.fixture(scope='session', autouse=True)
+def app_fixture():
+    # set_up
     psychopyApp._called_from_test = True
     psychopyApp._app = PsychoPyApp(testMode=True, showSplash=False)
-    # then use from psychopy import psychopyApp` to access _app
 
-def pytest_unconfigure():
+    # yield, to let all tests within the scope run
+    yield
+
+    # tear_down: then clear table at the end of the scope
     psychopyApp._app.quit()
-
 
 if __name__ == '__main__':
     pytest.main()
