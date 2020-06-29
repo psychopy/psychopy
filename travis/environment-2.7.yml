@@ -40,8 +40,8 @@ dependencies:
 - pyserial
 - pysoundfile
 - pytables
-- attrs<18.0
-- pytest<4.1
+- attrs
+- pytest
 - python-bidi
 - pytest-cov
 - python-gitlab
