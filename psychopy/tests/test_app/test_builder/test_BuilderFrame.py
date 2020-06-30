@@ -32,9 +32,8 @@ class Test_BuilderFrame(object):
     settings, they can be added to a Routine and result in a script that compiles
     """
 
-    @pytest.mark.usefixtures('pytest_namespace')
     def setup(self):
-        self.app = pytest.app
+        self.app = psychopyApp._app
 
         self.builder = self.app.newBuilderFrame()
         self.exp = self.builder.exp

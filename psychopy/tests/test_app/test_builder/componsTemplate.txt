@@ -349,19 +349,53 @@ BrushComponent.syncScreenRefresh.staticUpdater:None
 BrushComponent.syncScreenRefresh.updates:None
 BrushComponent.syncScreenRefresh.val:True
 BrushComponent.syncScreenRefresh.valType:bool
-CodeComponent.order:['name', 'Code Type', 'Begin Experiment', 'Begin Routine', 'Each Frame', 'End Routine', 'End Experiment', 'Begin JS Experiment', 'Begin JS Routine', 'Each JS Frame', 'End JS Routine', 'End JS Experiment']
-CodeComponent.Begin Experiment.default:
+CodeComponent.order:['name', 'Code Type', 'Before Experiment', 'Begin Experiment', 'Begin Routine', 'Each Frame', 'End Routine', 'End Experiment', 'Before JS Experiment', 'Begin JS Experiment', 'Begin JS Routine', 'Each JS Frame', 'End JS Routine', 'End JS Experiment']
+CodeComponent.Before Experiment.default:# This code will run before the experiment window is opened, after importing all of the necessary packages 
+
+
+CodeComponent.Before Experiment.allowedLabels:[]
+CodeComponent.Before Experiment.allowedTypes:[]
+CodeComponent.Before Experiment.allowedUpdates:[]
+CodeComponent.Before Experiment.allowedVals:[]
+CodeComponent.Before Experiment.categ:Basic
+CodeComponent.Before Experiment.hint:Code to run before the experiment starts (initialization); right-click checks syntax
+CodeComponent.Before Experiment.label:BeforeExperiment
+CodeComponent.Before Experiment.readOnly:False
+CodeComponent.Before Experiment.staticUpdater:None
+CodeComponent.Before Experiment.updates:constant
+CodeComponent.Before Experiment.val:# This code will run before the experiment window is opened, after importing all of the necessary packages 
+
+
+CodeComponent.Before Experiment.valType:extendedCode
+CodeComponent.Before JS Experiment.default:
+CodeComponent.Before JS Experiment.allowedLabels:[]
+CodeComponent.Before JS Experiment.allowedTypes:[]
+CodeComponent.Before JS Experiment.allowedUpdates:[]
+CodeComponent.Before JS Experiment.allowedVals:[]
+CodeComponent.Before JS Experiment.categ:Basic
+CodeComponent.Before JS Experiment.hint:Code before the start of the experiment (initialization); right-click checks syntax
+CodeComponent.Before JS Experiment.label:Before JS Experiment
+CodeComponent.Before JS Experiment.readOnly:False
+CodeComponent.Before JS Experiment.staticUpdater:None
+CodeComponent.Before JS Experiment.updates:constant
+CodeComponent.Before JS Experiment.val:
+CodeComponent.Before JS Experiment.valType:extendedCode
+CodeComponent.Begin Experiment.default:# This code will run before the experiment starts, after the window is opened and your other components are initialised but before the experiment timer starts
+
+
 CodeComponent.Begin Experiment.allowedLabels:[]
 CodeComponent.Begin Experiment.allowedTypes:[]
 CodeComponent.Begin Experiment.allowedUpdates:[]
 CodeComponent.Begin Experiment.allowedVals:[]
 CodeComponent.Begin Experiment.categ:Basic
-CodeComponent.Begin Experiment.hint:Code at the start of the experiment (initialization); right-click checks syntax
+CodeComponent.Begin Experiment.hint:Code at the start of the experiment ; right-click checks syntax
 CodeComponent.Begin Experiment.label:Begin Experiment
 CodeComponent.Begin Experiment.readOnly:False
 CodeComponent.Begin Experiment.staticUpdater:None
 CodeComponent.Begin Experiment.updates:constant
-CodeComponent.Begin Experiment.val:
+CodeComponent.Begin Experiment.val:# This code will run before the experiment starts, after the window is opened and your other components are initialised but before the experiment timer starts
+
+
 CodeComponent.Begin Experiment.valType:extendedCode
 CodeComponent.Begin JS Experiment.default:
 CodeComponent.Begin JS Experiment.allowedLabels:[]
@@ -389,7 +423,9 @@ CodeComponent.Begin JS Routine.staticUpdater:None
 CodeComponent.Begin JS Routine.updates:constant
 CodeComponent.Begin JS Routine.val:
 CodeComponent.Begin JS Routine.valType:extendedCode
-CodeComponent.Begin Routine.default:
+CodeComponent.Begin Routine.default:# This code will run at the start of the routine containing this component, after starting the necessary timers but before loading components
+
+
 CodeComponent.Begin Routine.allowedLabels:[]
 CodeComponent.Begin Routine.allowedTypes:[]
 CodeComponent.Begin Routine.allowedUpdates:[]
@@ -400,7 +436,9 @@ CodeComponent.Begin Routine.label:Begin Routine
 CodeComponent.Begin Routine.readOnly:False
 CodeComponent.Begin Routine.staticUpdater:None
 CodeComponent.Begin Routine.updates:constant
-CodeComponent.Begin Routine.val:
+CodeComponent.Begin Routine.val:# This code will run at the start of the routine containing this component, after starting the necessary timers but before loading components
+
+
 CodeComponent.Begin Routine.valType:extendedCode
 CodeComponent.Code Type.default:'Auto->JS'
 CodeComponent.Code Type.allowedLabels:[]
@@ -415,7 +453,9 @@ CodeComponent.Code Type.staticUpdater:None
 CodeComponent.Code Type.updates:None
 CodeComponent.Code Type.val:Auto->JS
 CodeComponent.Code Type.valType:str
-CodeComponent.Each Frame.default:
+CodeComponent.Each Frame.default:# This code will run on each frame refresh during the routine containing this component, after iterating the frame but before the screen flip
+
+
 CodeComponent.Each Frame.allowedLabels:[]
 CodeComponent.Each Frame.allowedTypes:[]
 CodeComponent.Each Frame.allowedUpdates:[]
@@ -426,7 +466,9 @@ CodeComponent.Each Frame.label:Each Frame
 CodeComponent.Each Frame.readOnly:False
 CodeComponent.Each Frame.staticUpdater:None
 CodeComponent.Each Frame.updates:constant
-CodeComponent.Each Frame.val:
+CodeComponent.Each Frame.val:# This code will run on each frame refresh during the routine containing this component, after iterating the frame but before the screen flip
+
+
 CodeComponent.Each Frame.valType:extendedCode
 CodeComponent.Each JS Frame.default:
 CodeComponent.Each JS Frame.allowedLabels:[]
@@ -441,7 +483,9 @@ CodeComponent.Each JS Frame.staticUpdater:None
 CodeComponent.Each JS Frame.updates:constant
 CodeComponent.Each JS Frame.val:
 CodeComponent.Each JS Frame.valType:extendedCode
-CodeComponent.End Experiment.default:
+CodeComponent.End Experiment.default:# This code will run at the end of the experiment, just before saving the data and closing the window
+
+
 CodeComponent.End Experiment.allowedLabels:[]
 CodeComponent.End Experiment.allowedTypes:[]
 CodeComponent.End Experiment.allowedUpdates:[]
@@ -452,7 +496,9 @@ CodeComponent.End Experiment.label:End Experiment
 CodeComponent.End Experiment.readOnly:False
 CodeComponent.End Experiment.staticUpdater:None
 CodeComponent.End Experiment.updates:constant
-CodeComponent.End Experiment.val:
+CodeComponent.End Experiment.val:# This code will run at the end of the experiment, just before saving the data and closing the window
+
+
 CodeComponent.End Experiment.valType:extendedCode
 CodeComponent.End JS Experiment.default:
 CodeComponent.End JS Experiment.allowedLabels:[]
@@ -480,7 +526,9 @@ CodeComponent.End JS Routine.staticUpdater:None
 CodeComponent.End JS Routine.updates:constant
 CodeComponent.End JS Routine.val:
 CodeComponent.End JS Routine.valType:extendedCode
-CodeComponent.End Routine.default:
+CodeComponent.End Routine.default:# This code will run at the end of the routine containing this component, after breaking the frame loop but before resetting the timer
+
+
 CodeComponent.End Routine.allowedLabels:[]
 CodeComponent.End Routine.allowedTypes:[]
 CodeComponent.End Routine.allowedUpdates:[]
@@ -491,7 +539,9 @@ CodeComponent.End Routine.label:End Routine
 CodeComponent.End Routine.readOnly:False
 CodeComponent.End Routine.staticUpdater:None
 CodeComponent.End Routine.updates:constant
-CodeComponent.End Routine.val:
+CodeComponent.End Routine.val:# This code will run at the end of the routine containing this component, after breaking the frame loop but before resetting the timer
+
+
 CodeComponent.End Routine.valType:extendedCode
 CodeComponent.disabled.default:False
 CodeComponent.disabled.allowedLabels:[]
@@ -5531,7 +5581,7 @@ SettingsComponent.Use version.default:''
 SettingsComponent.Use version.allowedLabels:[]
 SettingsComponent.Use version.allowedTypes:[]
 SettingsComponent.Use version.allowedUpdates:None
-SettingsComponent.Use version.allowedVals:['latest', '3.2', '3.1', '3.0', '1.90', '', '3.2.1', '3.2.0', '3.1.5', '3.1.4', '3.1.3', '3.1.2', '3.1.1', '3.1.0', '3.0.7', '3.0.6', '3.0.5', '3.0.4', '3.0.3', '3.0.2', '3.0.1', '3.0.0', '1.90.2', '1.90.1', '1.90.0']
+SettingsComponent.Use version.allowedVals:['latest', '3.2', '3.1', '3.0', '1.90', '', '3.2.4', '3.2.3', '3.2.2', '3.2.1', '3.2.0', '3.1.5', '3.1.4', '3.1.3', '3.1.2', '3.1.1', '3.1.0', '3.0.7', '3.0.6', '3.0.5', '3.0.4', '3.0.3', '3.0.2', '3.0.1', '3.0.0', '1.90.2', '1.90.1', '1.90.0']
 SettingsComponent.Use version.categ:Basic
 SettingsComponent.Use version.hint:The version of PsychoPy to use when running the experiment.
 SettingsComponent.Use version.label:Use PsychoPy version
