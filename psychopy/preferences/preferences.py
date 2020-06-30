@@ -133,6 +133,7 @@ class Preferences(object):
         # Find / copy themes
         self.paths['themes'] = join(self.paths['userPrefsDir'], 'themes')
         baseThemes = join(self.paths['appDir'], 'themes')
+        baseAppThemes = join(self.paths['appDir'], 'themes', 'app')
         # avoid silent fail-to-launch-app if bad permissions:
         if os.path.exists(self.paths['userPrefsDir']):
             try:
@@ -160,6 +161,11 @@ class Preferences(object):
                     shutil.copyfile(
                         join(baseThemes, file),
                         join(self.paths['themes'], file)
+                    )
+                for file in os.listdir(baseAppThemes):
+                    shutil.copyfile(
+                        join(baseAppThemes, file),
+                        join(self.paths['themes'], "app", file)
                     )
             except:
                 pass

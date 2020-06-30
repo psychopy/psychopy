@@ -117,7 +117,7 @@ class PsychopyToolbar(wx.ToolBar, ThemeMixin):
 
         # Configure toolbar appearance
         self.SetWindowStyle(wx.TB_HORIZONTAL | wx.NO_BORDER | wx.TB_FLAT | wx.TB_NODIVIDER)
-        self.SetBackgroundColour(ThemeMixin.appColors['toolbar_bg'])
+        self.SetBackgroundColour(ThemeMixin.appColors['frame_bg'])
         # Set icon size (16 for win/linux small mode, 32 for everything else
         if (sys.platform == 'win32' or sys.platform.startswith('linux')) \
                 and not self.frame.appPrefs['largeIcons']:
@@ -260,17 +260,17 @@ class PsychopyPlateBtn(platebtn.PlateButton):
         cs = ThemeMixin.appColors
         self.__InitColors()
         self.SetBackgroundColour(wx.Colour(self.parent.GetBackgroundColour()))
-        self.SetPressColor(wx.Colour(cs['platebtn_hover']))
-        self.SetLabelColor(wx.Colour(cs['platebtn_txt']),
-                           wx.Colour(cs['platebtn_hovertxt']))
+        self.SetPressColor(wx.Colour(cs['txtbutton_bg_hover']))
+        self.SetLabelColor(wx.Colour(cs['text']),
+                           wx.Colour(cs['txtbutton_fg_hover']))
 
     def __InitColors(self):
         cs = ThemeMixin.appColors
         """Initialize the default colors"""
         colors = dict(default=True,
-                      hlight=cs['platebtn_hover'],
-                      press=cs['platebtn_hover'],
-                      htxt=cs['platebtn_txt'])
+                      hlight=cs['txtbutton_bg_hover'],
+                      press=cs['txtbutton_bg_hover'],
+                      htxt=cs['txtbutton_fg_hover'])
         return colors
 
 class PsychopyScrollbar(wx.ScrollBar):

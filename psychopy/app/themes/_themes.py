@@ -7,6 +7,7 @@ import builtins
 from pathlib import Path
 from psychopy import prefs
 import psychopy
+import json
 
 thisFolder = Path(__file__).parent
 
@@ -21,7 +22,29 @@ class ThemeMixin:
     mode = ''
     icons = ''
     codeColors = {}
-    appColors = {}
+    appColors = {
+        "text": [],
+        "frame_bg": [],
+        "docker_bg": [],
+        "docker_fg": [],
+        "panel_bg": [],
+        "tab_bg": [],
+        "bmpbutton_bg_hover": [],
+        "bmpbutton_fg_hover": [],
+        "txtbutton_bg_hover": [],
+        "txtbutton_fg_hover": [],
+        "rt_timegrid": [],
+        "rt_comp": [],
+        "rt_comp_force": [],
+        "rt_comp_disabled": [],
+        "rt_static": [],
+        "rt_static_disabled": [],
+        "fl_routine_fg": [],
+        "fl_routine_bg_slip": [],
+        "fl_routine_bg_nonslip": [],
+        "fl_flowline_bg": [],
+        "fl_flowline_fg": []
+    }
 
     def _applyAppTheme(self, target=None):
         """Applies colorScheme recursively to the target and its children
@@ -38,21 +61,21 @@ class ThemeMixin:
 
         def applyToFrame(target):
             target.SetBackgroundColour(ThemeMixin.appColors['frame_bg'])
-            target.SetForegroundColour(ThemeMixin.appColors['txt_default'])
+            target.SetForegroundColour(ThemeMixin.appColors['text'])
             if hasattr(target, 'GetAuiManager'):
                 target.GetAuiManager().SetArtProvider(PsychopyDockArt())
                 target.GetAuiManager().Update()
 
         def applyToPanel(target):
-            target.SetBackgroundColour(ThemeMixin.appColors['frame_bg'])
-            target.SetForegroundColour(ThemeMixin.appColors['txt_default'])
+            target.SetBackgroundColour(ThemeMixin.appColors['panel_bg'])
+            target.SetForegroundColour(ThemeMixin.appColors['text'])
 
         def applyToNotebook(target):
             target.SetArtProvider(PsychopyTabArt())
             target.GetAuiManager().SetArtProvider(PsychopyDockArt())
             for index in range(target.GetPageCount()):
                 page = target.GetPage(index)
-                page.SetBackgroundColour(ThemeMixin.appColors['frame_bg'])
+                page.SetBackgroundColour(ThemeMixin.appColors['tab_bg'])
                 page._applyAppTheme()
 
         def applyToCodeEditor(target):
@@ -196,8 +219,8 @@ class ThemeMixin:
         else:
             # try and set colors for target
             try:
-                target.SetBackgroundColour(ThemeMixin.appColors['frame_bg'])
-                target.SetForegroundColour(ThemeMixin.appColors['txt_default'])
+                target.SetBackgroundColour(ThemeMixin.appColors['panel_bg'])
+                target.SetForegroundColour(ThemeMixin.appColors['text'])
             except AttributeError:
                 pass
 
@@ -402,6 +425,83 @@ class ThemeMixin:
         return newCol
 
 
+    def loadAppColours(self, theme):
+        try:
+            with open("{}//app//{}.json".format(prefs.paths['themes'], theme), "rb") as fp:
+                spec = json.load(fp)
+        except:
+            with open("{}//app//{}.json".format(prefs.paths['themes'], "light"), "rb") as fp:
+                spec = json.load(fp)
+
+        hexchars = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
+                    'a', 'b', 'c', 'd', 'e', 'f']
+        formats = {
+            "hex|named": [str],
+            "subnamed1": [str, str],
+            "subnamed2": [str, str, str],
+            "hex|named_opacity1": [str, int],
+            "subnamed1_opacity1": [str, str, int],
+            "subnamed2_opacity1": [str, str, str, int],
+            "hex|named_opacity2": [str, float],
+            "subnamed1_opacity2": [str, str, float],
+            "subnamed2_opacity2": [str, str, str, float]
+        }
+        # Cycle through all values
+        for key in spec:
+            # if key not in output:
+            #    continue
+            val = spec[key]
+            color = ['invalid']
+            # Make sure every value is a list
+            if not isinstance(val, list):
+                val = [val]
+
+            # Figure out what format current spec is in
+            types = [type(v) for v in val]
+            format = "invalid"
+            for f in formats:
+                if formats[f] == types:
+                    format = f
+            # Pop out opacity so that it can be assumed not present
+            if "_opacity" in format:
+                opacity = round(val.pop(-1))
+                format = format.replace("_opacity", "")
+            else:
+                opacity = 255
+            # Tell the difference between hex and single named values
+            if "hex|named" in format:
+                if val[0] in cLib:
+                    # Extract named colour
+                    color = cLib[val[0]]
+                    format = format.replace("hex|", "")
+                elif len(val[0]) == 7:
+                    hex = val[0]
+                    if hex[0] == "#" and all([h in hexchars for h in hex[1:].lower()]):
+                        # Convert hex colour
+                        format = format.replace("|named", "")
+                        wxcolor = ThemeMixin.hex2rgb(None, hex)
+                        color = list(wxcolor[:3])
+                    else:
+                        format = "invalid"
+                else:
+                    format = "invalid"
+
+            if "subnamed" in format:
+                if len(val) == 2 and all([v in cLib for v in val]):
+                    color = cLib[val[0]][val[1]]
+                elif len(val) == 3 and all([v in cLib for v in val]):
+                    color = cLib[val[0]][val[1]][val[2]]
+                else:
+                    format = "invalid"
+
+            if format == "invalid" \
+                    or "color" not in locals() \
+                    or "opacity" not in locals() \
+                    or "invalid" in color:
+                raise Exception("Invalid app colour spec")
+            else:
+                self.appColors[key] = wx.Colour(color + [opacity])
+
 # Create library of "on brand" colours
 cLib = {
     'none': [127, 127, 127, 0],
@@ -430,128 +530,6 @@ for c in cLib['lighter']:
 for c in cLib['darker']:
     cLib['very']['darker'][c] = [max(0, n-30) for n in cLib['darker'][c]]
 
-# Create light and dark colour schemes
-cs_light = {
-    'txt_default': cLib['black'],
-    # Toolbar
-    'toolbar_bg': cLib['darker']['white'],
-    'tool_hover': cLib['very']['darker']['white'],
-    # Frame
-    'frame_bg': cLib['white'],
-    'grippers': cLib['darker']['white'],
-    'note_bg': cLib['white'],
-    'tab_face': cLib['white'],
-    'tab_active': cLib['lighter']['white'],
-    'tab_txt': cLib['lighter']['black'],
-    'docker_face': cLib['very']['darker']['white'],
-    'docker_txt': cLib['black'],
-    # Plate Buttons
-    'platebtn_bg': cLib['white'],
-    'platebtn_txt': cLib['black'],
-    'platebtn_hover': cLib['red'],
-    'platebtn_hovertxt': cLib['white'],
-    ## Builder
-    # Routine canvas
-    'rtcanvas_bg': cLib['lighter']['white'],
-    'time_grid': cLib['very']['darker']['white'],
-    'time_txt': cLib['grey'],
-    'rtcomp_txt': cLib['black'],
-    'rtcomp_bar': cLib['blue'],
-    'rtcomp_force': cLib['orange'],
-    'rtcomp_distxt': cLib['very']['darker']['white'],
-    'rtcomp_disbar': cLib['very']['darker']['white'],
-    'isi_bar': cLib['red'] + [75],
-    'isi_txt': cLib['lighter']['white'],
-    'isi_disbar': cLib['grey'] + [75],
-    'isi_distxt': cLib['lighter']['white'],
-    # Component panel
-    'cpanel_bg': cLib['white'],
-    'cbutton_hover': cLib['darker']['white'],
-    # Flow panel
-    'fpanel_bg': cLib['white'],
-    'fpanel_ln': cLib['very']['lighter']['grey'],
-    'frt_slip': cLib['blue'],
-    'frt_nonslip': cLib['green'],
-    'frt_txt': cLib['lighter']['white'],
-    'loop_face': cLib['grey'],
-    'loop_txt': cLib['lighter']['white'],
-    'fbtns_face': cLib['darker']['white'],
-    'fbtns_txt': cLib['black'],
-    ## Coder
-    # Source Assistant
-    'src_bg': cLib['white'],
-    # Source Assistant: Structure
-    'struct_bg': cLib['white'],
-    'struct_txt': cLib['black'],
-    'struct_hover': cLib['red'],
-    'struct_hovertxt': cLib['white'],
-    # Source Assistant: File Browser
-    'brws_bg': cLib['white'],
-    'brws_txt': cLib['black'],
-    'brws_hover': cLib['red'],
-    'brws_hovertxt': cLib['white']
-    # Shell
-    }
-cs_dark = {
-    'txt_default': cLib['white'],
-    # Toolbar
-    'toolbar_bg': cLib['darker']['grey'],
-    'tool_hover': ['grey'],
-    # Frame
-    'frame_bg': cLib['darker']['grey'],
-    'grippers': cLib['darker']['grey'],
-    'note_bg': cLib['grey'],
-    'tab_face': cLib['grey'],
-    'tab_active': cLib['lighter']['grey'],
-    'tab_txt': cLib['lighter']['white'],
-    'docker_face': cLib['very']['darker']['grey'],
-    'docker_txt': cLib['white'],
-    # Plate Buttons
-    'platebtn_bg': cLib['grey'],
-    'platebtn_txt': cLib['white'],
-    'platebtn_hover': cLib['red'],
-    'platebtn_hovertxt': cLib['white'],
-    ## Builder
-    # Routine canvas
-    'rtcanvas_bg': cLib['lighter']['grey'],
-    'time_grid': cLib['very']['lighter']['grey'],
-    'time_txt': cLib['darker']['white'],
-    'rtcomp_txt': cLib['white'],
-    'rtcomp_bar': cLib['blue'],
-    'rtcomp_force': cLib['orange'],
-    'rtcomp_distxt': cLib['grey'],
-    'rtcomp_disbar': cLib['grey'],
-    'isi_bar': cLib['red'] + [75],
-    'isi_txt': cLib['lighter']['white'],
-    'isi_disbar': cLib['grey'] + [75],
-    'isi_distxt': cLib['lighter']['white'],
-    # Component panel
-    'cpanel_bg': cLib['grey'],
-    'cbutton_hover': cLib['lighter']['grey'],
-    # Flow panel
-    'fpanel_bg': cLib['darker']['grey'],
-    'fpanel_ln': cLib['lighter']['grey'],
-    'frt_slip': cLib['blue'],
-    'frt_nonslip': cLib['green'],
-    'frt_txt': cLib['lighter']['white'],
-    'loop_face': cLib['darker']['white'],
-    'loop_txt': cLib['black'],
-    'fbtns_face': cLib['grey'],
-    'fbtns_txt': cLib['white'],
-    ## Coder
-    # Source Assistant
-    'src_bg': cLib['grey'],
-    # Source Assistant: Structure
-    'struct_txt': cLib['white'],
-    'struct_hover': cLib['red'],
-    'struct_hovertxt': cLib['white'],
-    # Source Assistant: File Browser
-    'brws_txt': cLib['white'],
-    'brws_hover': cLib['red'],
-    'brws_hovertxt': cLib['white']
-    # Shell
-    }
-
 
 class PsychopyTabArt(aui.AuiDefaultTabArt, ThemeMixin):
     def __init__(self):
@@ -568,20 +546,20 @@ class PsychopyTabArt(aui.AuiDefaultTabArt, ThemeMixin):
          is generated accordingly to the platform and theme.
         """
         cs = ThemeMixin.appColors
-        self.SetBaseColour( wx.Colour(cs['tab_active']) )
-        self._background_top_colour = wx.Colour(cs['note_bg'])
-        self._background_bottom_colour = wx.Colour(cs['note_bg'])
+        self.SetBaseColour( wx.Colour(cs['tab_bg']) )
+        self._background_top_colour = wx.Colour(cs['panel_bg'])
+        self._background_bottom_colour = wx.Colour(cs['panel_bg'])
 
-        self._tab_text_colour = lambda page: cs['tab_txt']
-        self._tab_top_colour = wx.Colour(cs['tab_active'])
-        self._tab_bottom_colour = wx.Colour(cs['tab_active'])
-        self._tab_gradient_highlight_colour = wx.Colour(cs['tab_active'])
-        self._border_colour = wx.Colour(cs['tab_active'])
+        self._tab_text_colour = lambda page: cs['text']
+        self._tab_top_colour = wx.Colour(cs['tab_bg'])
+        self._tab_bottom_colour = wx.Colour(cs['tab_bg'])
+        self._tab_gradient_highlight_colour = wx.Colour(cs['tab_bg'])
+        self._border_colour = wx.Colour(cs['tab_bg'])
         self._border_pen = wx.Pen(self._border_colour)
 
-        self._tab_disabled_text_colour = cs['tab_txt']
-        self._tab_inactive_top_colour = wx.Colour(cs['tab_face'])
-        self._tab_inactive_bottom_colour = wx.Colour(cs['tab_face'])
+        self._tab_disabled_text_colour = cs['text']
+        self._tab_inactive_top_colour = wx.Colour(cs['tab_bg'])
+        self._tab_inactive_bottom_colour = wx.Colour(cs['tab_bg'])
 
     def DrawTab(self, dc, wnd, page, in_rect, close_button_state, paint_control=False):
         """
@@ -608,26 +586,26 @@ class PsychopyDockArt(aui.AuiDefaultDockArt):
         self._background_brush = wx.Brush(self._background_colour)
         # Border
         self._border_size = 0
-        self._border_pen = wx.Pen(cs['grippers'])
+        self._border_pen = wx.Pen(cs['frame_bg'])
         # Sash
         self._draw_sash = True
         self._sash_size = 5
-        self._sash_brush = wx.Brush(cs['grippers'])
+        self._sash_brush = wx.Brush(cs['frame_bg'])
         # Gripper
-        self._gripper_brush = wx.Brush(cs['grippers'])
-        self._gripper_pen1 = wx.Pen(cs['grippers'])
-        self._gripper_pen2 = wx.Pen(cs['grippers'])
-        self._gripper_pen3 = wx.Pen(cs['grippers'])
+        self._gripper_brush = wx.Brush(cs['frame_bg'])
+        self._gripper_pen1 = wx.Pen(cs['frame_bg'])
+        self._gripper_pen2 = wx.Pen(cs['frame_bg'])
+        self._gripper_pen3 = wx.Pen(cs['frame_bg'])
         self._gripper_size = 0
         # Hint
         self._hint_background_colour = wx.Colour(cs['frame_bg'])
         # Caption bar
-        self._inactive_caption_colour = wx.Colour(cs['docker_face'])
-        self._inactive_caption_gradient_colour = wx.Colour(cs['docker_face'])
-        self._inactive_caption_text_colour = wx.Colour(cs['docker_txt'])
-        self._active_caption_colour = wx.Colour(cs['docker_face'])
-        self._active_caption_gradient_colour = wx.Colour(cs['docker_face'])
-        self._active_caption_text_colour = wx.Colour(cs['docker_txt'])
+        self._inactive_caption_colour = wx.Colour(cs['docker_bg'])
+        self._inactive_caption_gradient_colour = wx.Colour(cs['docker_bg'])
+        self._inactive_caption_text_colour = wx.Colour(cs['docker_fg'])
+        self._active_caption_colour = wx.Colour(cs['docker_bg'])
+        self._active_caption_gradient_colour = wx.Colour(cs['docker_bg'])
+        self._active_caption_text_colour = wx.Colour(cs['docker_fg'])
         # self._caption_font
         self._caption_size = 25
         self._button_size = 20

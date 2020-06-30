@@ -70,8 +70,8 @@ class FileBrowserListCtrl(ListCtrlAutoWidthMixin, wx.ListCtrl, ThemeMixin):
 
     def _applyAppTheme(self, target=None):
         cs = ThemeMixin.appColors
-        self.SetBackgroundColour(wx.Colour(cs['src_bg']))
-        self.SetForegroundColour(wx.Colour(cs['brws_txt']))
+        self.SetBackgroundColour(wx.Colour(cs['frame_bg']))
+        self.SetForegroundColour(wx.Colour(cs['text']))
 
 
 class FileBrowserPanel(wx.Panel, ThemeMixin):
@@ -238,11 +238,11 @@ class FileBrowserPanel(wx.Panel, ThemeMixin):
     def _applyAppTheme(self, target=None):
         cs = ThemeMixin.appColors
         # Set background for Directory bar
-        self.SetBackgroundColour(wx.Colour(cs['tab_active']))
-        self.SetForegroundColour(wx.Colour(cs['brws_txt']))
+        self.SetBackgroundColour(wx.Colour(cs['tab_bg']))
+        self.SetForegroundColour(wx.Colour(cs['text']))
         self.fileList._applyAppTheme()
-        self.toolBar.SetBackgroundColour(cs['tab_active'])
-        self.toolBar.SetForegroundColour(cs['brws_txt'])
+        self.toolBar.SetBackgroundColour(cs['tab_bg'])
+        self.toolBar.SetForegroundColour(cs['text'])
 
     def OnGotoFileLocation(self, evt):
         """Goto the currently opened file location."""

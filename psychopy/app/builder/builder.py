@@ -171,18 +171,6 @@ class BuilderFrame(wx.Frame, ThemeMixin):
         self._mgr = aui.AuiManager(self)
         #self._mgr.SetArtProvider(PsychopyDockArt())
         #self._art = self._mgr.GetArtProvider()
-        # Setup modern flat look
-        # self._art.SetMetric(aui.AUI_DOCKART_GRADIENT_TYPE,
-        #                        aui.AUI_GRADIENT_NONE)  # Remove gradient from caption bar
-        # self._art.SetMetric(aui.AUI_DOCKART_CAPTION_SIZE,
-        #                     25) # Make caption bar bigger
-        # self._art.SetColour(aui.AUI_DOCKART_INACTIVE_CAPTION_COLOUR,
-        #     wx.Colour(cs['docker_face'])) # Set caption bar colour
-        # self._art.SetColour(aui.AUI_DOCKART_INACTIVE_CAPTION_TEXT_COLOUR,
-        #     wx.Colour(cs['docker_txt'])) # Set caption colour
-        # self._art.SetColour(aui.AUI_DOCKART_SASH_COLOUR,
-        #     wx.Colour(cs['grippers']))
-
         # Create panels
         self._mgr.AddPane(self.routinePanel,
                           aui.AuiPaneInfo().
@@ -1612,7 +1600,7 @@ class RoutineCanvas(wx.ScrolledWindow):
         self.pdc.Clear()  # clear the screen
         self.pdc.RemoveAll()  # clear all objects (icon buttons)
 
-        self.SetBackgroundColour(ThemeMixin.appColors['rtcanvas_bg'])
+        self.SetBackgroundColour(ThemeMixin.appColors['tab_bg'])
         # work out where the component names and icons should be from name
         # lengths
         self.setFontSize(self.fontBaseSize // self.dpi, self.pdc)
@@ -1670,8 +1658,8 @@ class RoutineCanvas(wx.ScrolledWindow):
         xEnd = self.timeXposEnd
 
         # dc.SetId(wx.NewIdRef())
-        dc.SetPen(wx.Pen(ThemeMixin.appColors['time_grid']))
-        dc.SetTextForeground(wx.Colour(ThemeMixin.appColors['time_txt']))
+        dc.SetPen(wx.Pen(ThemeMixin.appColors['rt_timegrid']))
+        dc.SetTextForeground(wx.Colour(ThemeMixin.appColors['rt_timegrid']))
         # draw horizontal lines on top and bottom
         dc.DrawLine(x1=xSt, y1=yPosTop,
                     x2=xEnd, y2=yPosTop)
@@ -1710,7 +1698,7 @@ class RoutineCanvas(wx.ScrolledWindow):
             # y is y-half height of text
             dc.DrawText('t (sec)', xEnd + 5,
                         yPosBottom - self.GetFullTextExtent('t')[1] / 2.0)
-        dc.SetTextForeground(wx.Colour(ThemeMixin.appColors['txt_default']))
+        dc.SetTextForeground(ThemeMixin.appColors['text'])
 
     def setFontSize(self, size, dc):
         font = self.GetFont()
@@ -1743,12 +1731,12 @@ class RoutineCanvas(wx.ScrolledWindow):
         xScale = self.getSecsPerPixel()
 
         if component.params['disabled'].val:
-            dc.SetBrush(wx.Brush(ThemeMixin.appColors['isi_disbar']))
-            dc.SetPen(wx.Pen(ThemeMixin.appColors['isi_disbar']))
+            dc.SetBrush(wx.Brush(ThemeMixin.appColors['rt_static_disabled']))
+            dc.SetPen(wx.Pen(ThemeMixin.appColors['rt_static_disabled']))
 
         else:
-            dc.SetBrush(wx.Brush(ThemeMixin.appColors['isi_bar']))
-            dc.SetPen(wx.Pen(ThemeMixin.appColors['isi_bar']))
+            dc.SetBrush(wx.Brush(ThemeMixin.appColors['rt_static']))
+            dc.SetPen(wx.Pen(ThemeMixin.appColors['rt_static']))
 
         xSt = self.timeXposStart + startTime // xScale
         w = duration // xScale + 1  # +1 b/c border alpha=0 in dc.SetPen
@@ -1811,12 +1799,12 @@ class RoutineCanvas(wx.ScrolledWindow):
         # draw entries on timeline (if they have some time definition)
         if startTime is not None and duration is not None:
             # then we can draw a sensible time bar!
-            dc.SetPen(wx.Pen(ThemeMixin.appColors['rtcomp_bar'],
+            dc.SetPen(wx.Pen(ThemeMixin.appColors['rt_comp'],
                              style=wx.TRANSPARENT))
 
             if component.params['disabled'].val:
                 # Grey bar if comp is disabled
-                dc.SetBrush(wx.Brush(ThemeMixin.appColors['rtcomp_disbar']))
+                dc.SetBrush(wx.Brush(ThemeMixin.appColors['rt_comp_disabled']))
                 dc.DrawBitmap(thisIcon.ConvertToDisabled(), self.iconXpos, yPos + iconYOffset, True)
             elif 'forceEndRoutine' in component.params \
                     or 'forceEndRoutineOnPress' in component.params:
@@ -1824,14 +1812,14 @@ class RoutineCanvas(wx.ScrolledWindow):
                        for key in ['forceEndRoutine', 'forceEndRoutineOnPress']
                        if key in component.params):
                     # Orange bar if component has forceEndRoutine or forceEndRoutineOnPress and either are true
-                    dc.SetBrush(wx.Brush(ThemeMixin.appColors['rtcomp_force']))
+                    dc.SetBrush(wx.Brush(ThemeMixin.appColors['rt_comp_force']))
                 else:
                     # Blue bar if component has forceEndRoutine or forceEndRoutineOnPress but none are true
-                    dc.SetBrush(wx.Brush(ThemeMixin.appColors['rtcomp_bar']))
+                    dc.SetBrush(wx.Brush(ThemeMixin.appColors['rt_comp']))
                 dc.DrawBitmap(thisIcon, self.iconXpos, yPos + iconYOffset, True)
             else:
                 # Blue bar otherwise
-                dc.SetBrush(wx.Brush(ThemeMixin.appColors['rtcomp_bar']))
+                dc.SetBrush(wx.Brush(ThemeMixin.appColors['rt_comp']))
                 dc.DrawBitmap(thisIcon, self.iconXpos, yPos + iconYOffset, True)
 
             xScale = self.getSecsPerPixel()
@@ -2021,12 +2009,12 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
     def _applyAppTheme(self, target=None):
         cs = ThemeMixin.appColors
         # Style component panel
-        self.SetForegroundColour(cs['txt_default'])
-        self.SetBackgroundColour(cs['cpanel_bg'])
+        self.SetForegroundColour(cs['text'])
+        self.SetBackgroundColour(cs['panel_bg'])
         # Style component buttons
         for btn in self.componentButtons:
-            btn.SetForegroundColour(cs['txt_default'])
-            btn.SetBackgroundColour(cs['cpanel_bg'])
+            btn.SetForegroundColour(cs['text'])
+            btn.SetBackgroundColour(cs['panel_bg'])
             # Set hover effect
             btn.Bind(wx.EVT_ENTER_WINDOW, self.onHover)
             btn.Bind(wx.EVT_LEAVE_WINDOW, self.offHover)
@@ -2591,14 +2579,16 @@ class FlowPanel(wx.ScrolledWindow):
         """Apply any changes which have been made to the theme since panel was last loaded"""
         cs = ThemeMixin.appColors
         # Style loop/routine buttons
-        self.btnInsertLoop.SetBackgroundColour(wx.Colour(cs['fbtns_face']))
-        self.btnInsertLoop.SetForegroundColour(wx.Colour(cs['fbtns_txt']))
+        self.btnInsertLoop.SetBackgroundColour(
+            ThemeMixin.shiftColour(cs['frame_bg'], -15))
+        self.btnInsertLoop.SetForegroundColour(cs['text'])
         self.btnInsertLoop.Update()
-        self.btnInsertRoutine.SetBackgroundColour(wx.Colour(cs['fbtns_face']))
-        self.btnInsertRoutine.SetForegroundColour(wx.Colour(cs['fbtns_txt']))
+        self.btnInsertRoutine.SetBackgroundColour(
+            ThemeMixin.shiftColour(cs['frame_bg'], -15))
+        self.btnInsertRoutine.SetForegroundColour(cs['text'])
         self.btnInsertRoutine.Update()
         # Set background
-        self.SetBackgroundColour(cs['fpanel_bg'])
+        self.SetBackgroundColour(cs['frame_bg'])
 
         self.draw()
 
@@ -3055,7 +3045,7 @@ class FlowPanel(wx.ScrolledWindow):
         # step through components in flow, get spacing from text size, etc
         currX = self.linePos[0]
         lineId = wx.NewIdRef()
-        pdc.SetPen(wx.Pen(colour=cs['fpanel_ln']))
+        pdc.SetPen(wx.Pen(colour=cs['fl_flowline_bg']))
         pdc.DrawLine(x1=self.linePos[0] - gap, y1=self.linePos[1],
                      x2=self.linePos[0], y2=self.linePos[1])
         # NB the loop is itself the key, value is further info about it
@@ -3083,7 +3073,7 @@ class FlowPanel(wx.ScrolledWindow):
             self.gapMidPoints.append(currX + gap / 2)
             self.gapNestLevels.append(nestLevel)
             pdc.SetId(lineId)
-            pdc.SetPen(wx.Pen(colour=cs['fpanel_ln']))
+            pdc.SetPen(wx.Pen(colour=cs['fl_flowline_bg']))
             pdc.DrawLine(x1=currX, y1=self.linePos[1],
                          x2=currX + gap, y2=self.linePos[1])
             currX += gap
@@ -3114,7 +3104,7 @@ class FlowPanel(wx.ScrolledWindow):
             if entry.getType() == 'Routine':
                 currX = self.drawFlowRoutine(pdc, entry, id=ii,
                                              pos=[currX, self.linePos[1] - 10])
-            pdc.SetPen(wx.Pen(wx.Pen(colour=cs['fpanel_ln'])))
+            pdc.SetPen(wx.Pen(wx.Pen(colour=cs['fl_flowline_bg'])))
             pdc.DrawLine(x1=currX, y1=self.linePos[1],
                          x2=currX + gap, y2=self.linePos[1])
             currX += gap
@@ -3135,7 +3125,7 @@ class FlowPanel(wx.ScrolledWindow):
                 id = wx.NewIdRef()
                 self.entryPointIDlist.append(id)
                 self.pdc.SetId(id)
-                self.pdc.SetBrush(wx.Brush(cs['loop_face']))
+                self.pdc.SetBrush(wx.Brush(cs['fl_flowline_bg']))
                 self.pdc.DrawCircle(pos, self.linePos[1], ptSize)
                 r = self.pdc.GetIdBounds(id)
                 self.OffsetRect(r)
@@ -3173,8 +3163,8 @@ class FlowPanel(wx.ScrolledWindow):
         # draw bar at start of timeline; circle looked bad, offset vertically
         ptSize = (9, 9, 12)[self.appData['flowSize']]
         thic = (1, 1, 2)[self.appData['flowSize']]
-        dc.SetBrush(wx.Brush(cs['fpanel_ln']))
-        dc.SetPen(wx.Pen(cs['fpanel_ln']))
+        dc.SetBrush(wx.Brush(cs['fl_flowline_bg']))
+        dc.SetPen(wx.Pen(cs['fl_flowline_bg']))
         dc.DrawPolygon([[0, -ptSize], [thic, -ptSize],
                         [thic, ptSize], [0, ptSize]], pos[0], pos[1])
 
@@ -3182,8 +3172,8 @@ class FlowPanel(wx.ScrolledWindow):
         # draws arrow at end of timeline
         # tmpId = wx.NewIdRef()
         # dc.SetId(tmpId)
-        dc.SetBrush(wx.Brush(cs['fpanel_ln']))
-        dc.SetPen(wx.Pen(cs['fpanel_ln']))
+        dc.SetBrush(wx.Brush(cs['fl_flowline_bg']))
+        dc.SetPen(wx.Pen(cs['fl_flowline_bg']))
         dc.DrawPolygon([[0, -3], [5, 0], [0, 3]], pos[0], pos[1])
         # dc.SetIdBounds(tmpId,wx.Rect(pos[0],pos[1]+3,5,6))
 
@@ -3209,8 +3199,8 @@ class FlowPanel(wx.ScrolledWindow):
         # draws direction arrow on left side of a loop
         tmpId = wx.NewIdRef()
         dc.SetId(tmpId)
-        dc.SetBrush(wx.Brush(cs['fpanel_ln']))
-        dc.SetPen(wx.Pen(cs['fpanel_ln']))
+        dc.SetBrush(wx.Brush(cs['fl_flowline_bg']))
+        dc.SetPen(wx.Pen(cs['fl_flowline_bg']))
         size = (3, 4, 5)[self.appData['flowSize']]
         offset = (3, 2, 0)[self.appData['flowSize']]
         if downwards:
@@ -3247,13 +3237,13 @@ class FlowPanel(wx.ScrolledWindow):
 
         maxTime, nonSlip = routine.getMaxTime()
         if nonSlip:
-            rtFill = cs['frt_nonslip']
-            rtEdge = cs['frt_nonslip']
-            rtText = cs['frt_txt']
+            rtFill = cs['fl_routine_bg_nonslip']
+            rtEdge = cs['fl_routine_bg_nonslip']
+            rtText = cs['fl_routine_fg']
         else:
-            rtFill = cs['frt_slip']
-            rtEdge = cs['frt_slip']
-            rtText = cs['frt_txt']
+            rtFill = cs['fl_routine_bg_slip']
+            rtEdge = cs['fl_routine_bg_slip']
+            rtText = cs['fl_routine_fg']
 
         # get size based on text
         self.SetFont(font)
@@ -3301,7 +3291,7 @@ class FlowPanel(wx.ScrolledWindow):
         curve = (6, 11, 15)[self.appData['flowSize']]
         yy = [base, height + curve * up, height +
               curve * up / 2, height]  # for area
-        dc.SetPen(wx.Pen(cs['fpanel_ln']))
+        dc.SetPen(wx.Pen(cs['fl_flowline_bg']))
         vertOffset = 0  # 1 is interesting too
         area = wx.Rect(startX, base + vertOffset,
                        endX - startX, max(yy) - min(yy))
@@ -3363,13 +3353,13 @@ class FlowPanel(wx.ScrolledWindow):
         # draw box
         rect = wx.Rect(x, y, w + pad, h + pad)
         # the edge should match the text
-        dc.SetPen(wx.Pen(cs['loop_face']))
+        dc.SetPen(wx.Pen(cs['fl_flowline_bg']))
         # try to make the loop fill brighter than the background canvas:
-        dc.SetBrush(wx.Brush(cs['loop_face']))
+        dc.SetBrush(wx.Brush(cs['fl_flowline_bg']))
 
         dc.DrawRoundedRectangle(rect, (4, 6, 8)[flowsize])
         # draw text
-        dc.SetTextForeground(cs['loop_txt'])
+        dc.SetTextForeground(cs['fl_flowline_fg'])
         dc.DrawText(name, x + pad / 2, y + pad / 2)
 
         self.componentFromID[id] = loop

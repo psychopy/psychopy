@@ -924,11 +924,7 @@ class PsychoPyApp(wx.App, themes.ThemeMixin):
         themes.ThemeMixin.codeColors = spec  # class attribute for all mixin subclasses
         themes.ThemeMixin.mode = spec['app'] if 'app' in spec else 'light'
         themes.ThemeMixin.icons = spec['icons'] if 'icons' in spec else 'modern'
-        if spec['app'] == 'dark':
-            themes.ThemeMixin.appColors = themes.cs_dark
-        elif spec['app'] == 'light':
-            themes.ThemeMixin.appColors = themes.cs_light
-
+        themes.ThemeMixin.loadAppColours(self, spec['app'])
         self._applyAppTheme()
 
 if __name__ == '__main__':

@@ -57,8 +57,8 @@ class SourceTreePanel(wx.Panel):
 
     def _applyAppTheme(self, target=None):
         cs = ThemeMixin.appColors
-        self.srcTree.SetOwnBackgroundColour(cs['tab_active'])
-        self.srcTree.SetOwnForegroundColour(cs['struct_txt'])
+        self.srcTree.SetOwnBackgroundColour(cs['tab_bg'])
+        self.srcTree.SetOwnForegroundColour(cs['text'])
 
         # get graphics for toolbars and tree items
         rc = self.coder.paths['icons']
