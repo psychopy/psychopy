@@ -34,7 +34,7 @@ from .. import stdOutRich, dialogs
 from .. import pavlovia_ui
 from psychopy import logging
 from psychopy.localization import _translate
-from ..utils import FileDropTarget, PsychopyToolbar, PsychopyTabArt, PsychopyDockArt
+from ..utils import FileDropTarget, PsychopyToolbar
 from psychopy.projects import pavlovia
 import psychopy.app.pavlovia_ui.menu
 from psychopy.app.coder.codeEditorBase import BaseCodeEditor
@@ -103,7 +103,7 @@ class PsychopyPyShell(wx.py.shell.Shell, ThemeMixin):
         self.app = coder.app
 
         # Set theme to match code editor
-        self.theme = self.prefs['theme']
+        self._applyAppTheme()
 
 
 class Printer(HtmlEasyPrinting):
@@ -593,6 +593,9 @@ class CodeEditor(BaseCodeEditor, CodeEditorFoldingMixin, ThemeMixin):
         # prevent flickering on update
         self.SetDoubleBuffered(True)
 
+        self.theme = self.prefs['theme']
+        self._applyAppTheme()
+
     def setFonts(self):
         """Make some styles,  The lexer defines what each style is used for,
         we just have to define what each style looks like.  This set is
@@ -1008,7 +1011,7 @@ class CodeEditor(BaseCodeEditor, CodeEditorFoldingMixin, ThemeMixin):
                 findDlg.Close()
 
 
-class CoderFrame(wx.Frame):
+class CoderFrame(wx.Frame, ThemeMixin):
 
     def __init__(self, parent, ID, title, files=(), app=None):
         self.app = app  # type: PsychoPyApp
@@ -1210,21 +1213,25 @@ class CoderFrame(wx.Frame):
         self.SendSizeEvent()
         self.app.trackFrame(self)
 
-    def _applyAppTheme(self, target=None):
-        self.paneManager.SetArtProvider(PsychopyDockArt())
-        for c in self.pnlMain.GetChildren():
-            if isinstance(c, aui.AuiNotebook):
-                c.SetArtProvider(PsychopyTabArt())
-                c.GetAuiManager().SetArtProvider(PsychopyDockArt())
-                for index in range(c.GetPageCount()):
-                    page = c.GetPage(index)
-                    page.SetBackgroundColour(ThemeMixin.appColors['frame_bg'])
-                    page._applyAppTheme()
-            if hasattr(c, '_applyAppTheme'):
-                c._applyAppTheme()
-        for c in self.GetChildren():
-            if hasattr(c, '_applyAppTheme'):
-                c._applyAppTheme()
+    # def _applyAppTheme(self, target=None):
+    #     self.paneManager.SetArtProvider(PsychopyDockArt())
+    #     for c in self.pnlMain.GetChildren():
+    #         if isinstance(c, aui.AuiNotebook):
+    #             c.SetArtProvider(PsychopyTabArt())
+    #             c.GetAuiManager().SetArtProvider(PsychopyDockArt())
+    #             for index in range(c.GetPageCount()):
+    #                 page = c.GetPage(index)
+    #                 page.SetBackgroundColour(ThemeMixin.appColors['frame_bg'])
+    #                 page._applyAppTheme()
+    #                 page.theme = self.prefs['theme']
+    #         if hasattr(c, '_applyAppTheme'):
+    #             c._applyAppTheme()
+    #     for c in self.GetChildren():
+    #         if hasattr(c, '_applyAppTheme'):
+    #             c._applyAppTheme()
+
+    def GetAuiManager(self):
+        return self.paneManager
 
     def outputContextMenu(self, event):
         """Custom context menu for output window.

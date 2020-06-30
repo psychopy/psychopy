@@ -1,10 +1,12 @@
 import wx
+import wx.lib.agw.aui as aui
 import wx.stc as stc
 from wx import py
 import keyword
 import builtins
 from pathlib import Path
 from psychopy import prefs
+import psychopy
 
 thisFolder = Path(__file__).parent
 
@@ -31,17 +33,172 @@ class ThemeMixin:
         depth: depth in the tree of wx objects
 
         """
+
+        # Define subfunctions to handle different object types
+
+        def applyToFrame(target):
+            target.SetBackgroundColour(ThemeMixin.appColors['frame_bg'])
+            target.SetForegroundColour(ThemeMixin.appColors['txt_default'])
+            if hasattr(target, 'GetAuiManager'):
+                target.GetAuiManager().SetArtProvider(PsychopyDockArt())
+                target.GetAuiManager().Update()
+
+        def applyToPanel(target):
+            target.SetBackgroundColour(ThemeMixin.appColors['frame_bg'])
+            target.SetForegroundColour(ThemeMixin.appColors['txt_default'])
+
+        def applyToNotebook(target):
+            target.SetArtProvider(PsychopyTabArt())
+            target.GetAuiManager().SetArtProvider(PsychopyDockArt())
+            for index in range(target.GetPageCount()):
+                page = target.GetPage(index)
+                page.SetBackgroundColour(ThemeMixin.appColors['frame_bg'])
+                page._applyAppTheme()
+
+        def applyToCodeEditor(target):
+            spec = ThemeMixin.codeColors
+            base = spec['base']
+
+            # Check for language specific spec
+            if target.GetLexer() in self.lexers:
+                lexer = self.lexers[target.GetLexer()]
+            else:
+                lexer = 'invlex'
+            if lexer in spec:
+                # If there is lang specific spec, delete subkey...
+                lang = spec[lexer]
+                del spec[lexer]
+                # ...and append spec to root, overriding any generic spec
+                spec.update({key: lang[key] for key in lang})
+            else:
+                lang = {}
+
+            # Override base font with user spec if present
+            key = 'outputFont' if isinstance(target, wx.py.shell.Shell) else 'codeFont'
+            if prefs.coder[key] != "From Theme...":
+                base['font'] = prefs.coder[key]
+
+            # Pythonise the universal data (hex -> rgb, tag -> wx int)
+            invalid = []
+            for key in spec:
+                # Check that key is in tag list and full spec is defined, discard if not
+                if key in target.tags \
+                        and all(subkey in spec[key] for subkey in ['bg', 'fg', 'font']):
+                    spec[key]['bg'] = target.hex2rgb(spec[key]['bg'], base['bg'])
+                    spec[key]['fg'] = target.hex2rgb(spec[key]['fg'], base['fg'])
+                    if not spec[key]['font']:
+                        spec[key]['font'] = base['font']
+                    spec[key]['size'] = int(target.prefs['codeFontSize'])
+                else:
+                    invalid += [key]
+            for key in invalid:
+                del spec[key]
+            # Set style for undefined lexers
+            for key in [getattr(wx._stc, item) for item in dir(wx._stc) if item.startswith("STC_LEX")]:
+                target.StyleSetBackground(key, base['bg'])
+                target.StyleSetForeground(key, base['fg'])
+                target.StyleSetSpec(key, "face:%(font)s,size:%(size)d" % base)
+            # Set style from universal data
+            for key in spec:
+                if target.tags[key] is not None:
+                    target.StyleSetBackground(target.tags[key], spec[key]['bg'])
+                    target.StyleSetForeground(target.tags[key], spec[key]['fg'])
+                    target.StyleSetSpec(target.tags[key], "face:%(font)s,size:%(size)d" % spec[key])
+            # Apply keywords
+            for level, val in target.lexkw.items():
+                target.SetKeyWords(level, " ".join(val))
+
+            # Make sure there's some spec for margins
+            if 'margin' not in spec:
+                spec['margin'] = base
+            # Set margin colours to match linenumbers if set
+            if 'margin' in spec:
+                mar = spec['margin']['bg']
+            else:
+                mar = base['bg']
+            target.SetFoldMarginColour(True, mar)
+            target.SetFoldMarginHiColour(True, mar)
+
+            # Make sure there's some spec for caret
+            if 'caret' not in spec:
+                spec['caret'] = base
+            # Set caret colour
+            target.SetCaretForeground(spec['caret']['fg'])
+            target.SetCaretLineBackground(spec['caret']['bg'])
+            target.SetCaretWidth(1 + ('bold' in spec['caret']['font']))
+
+            # Make sure there's some spec for selection
+            if 'select' not in spec:
+                spec['select'] = base
+                spec['select']['bg'] = target.shiftColour(base['bg'], 30)
+            # Set selection colour
+            target.SetSelForeground(True, spec['select']['fg'])
+            target.SetSelBackground(True, spec['select']['bg'])
+
+            # Set wrap point
+            target.edgeGuideColumn = target.prefs['edgeGuideColumn']
+            target.edgeGuideVisible = target.edgeGuideColumn > 0
+
+            # Set line spacing
+            spacing = min(int(target.prefs['lineSpacing'] / 2), 64)  # Max out at 64
+            target.SetExtraAscent(spacing)
+            target.SetExtraDescent(spacing)
+
+        def applyToRichText(target):
+            base = ThemeMixin.codeColors['base']
+            # todo: Add element-specific styling (it must be possible...)
+            # If dealing with a StdOut, set background from base
+            target.SetBackgroundColour(
+                self.hex2rgb(base['bg'], base['bg']))
+            # Then construct default styles
+            _font = wx.Font(
+                int(prefs.coder['outputFontSize']),
+                wx.FONTFAMILY_TELETYPE, wx.FONTSTYLE_NORMAL,
+                wx.FONTWEIGHT_NORMAL, False,
+                faceName=base['font']
+            )
+            _style = wx.TextAttr(
+                colText=wx.Colour(
+                    self.hex2rgb(base['fg'], base['fg'])),
+                colBack=wx.Colour(
+                    self.hex2rgb(base['bg'], base['bg'])),
+                font=_font)
+            # Then style all text as base
+            i = 0
+            for ln in range(target.GetNumberOfLines()):
+                i += target.GetLineLength(
+                    ln) + 1  # +1 as \n is not included in character count
+            target.SetStyle(0, i, _style)
+
+        # Define dict linking object types to subfunctions
+        handlers = {
+            wx.Frame: applyToFrame,
+            wx.Panel: applyToPanel,
+            aui.AuiNotebook: applyToNotebook,
+            psychopy.app.coder.coder.BaseCodeEditor: applyToCodeEditor,
+            wx.richtext.RichTextCtrl: applyToRichText
+        }
+
+        # If no target supplied, default to using self
         if target is None:
             target = self
         appCS = ThemeMixin.appColors
         base = ThemeMixin.codeColors['base']
+        # Abort if target is immune
+        if hasattr(target, 'immune'):
+            return
 
-        # try and set colors for target
-        try:
-            target.SetBackgroundColour(ThemeMixin.appColors['frame_bg'])
-            target.SetForegroundColour(ThemeMixin.appColors['txt_default'])
-        except AttributeError:
-            pass
+        # Style target
+        for thisType in handlers:
+            if isinstance(target, thisType):
+                handlers[thisType](target)
+        else:
+            # try and set colors for target
+            try:
+                target.SetBackgroundColour(ThemeMixin.appColors['frame_bg'])
+                target.SetForegroundColour(ThemeMixin.appColors['txt_default'])
+            except AttributeError:
+                pass
 
         # search for children (set in a second step)
         if isinstance(target, wx.Sizer):
@@ -50,30 +207,7 @@ class ThemeMixin:
         else:
             children = []
             if isinstance(target, wx.richtext.RichTextCtrl):
-                base = ThemeMixin.codeColors['base']
-                # todo: Add element-specific styling (it must be possible...)
-                # If dealing with a StdOut, set background from base
-                target.SetBackgroundColour(
-                    self.hex2rgb(base['bg'], base['bg']))
-                # Then construct default styles
-                _font = wx.Font(
-                        int(prefs.coder['outputFontSize']),
-                        wx.FONTFAMILY_TELETYPE, wx.FONTSTYLE_NORMAL,
-                        wx.FONTWEIGHT_NORMAL, False,
-                        faceName=base['font']
-                )
-                _style = wx.TextAttr(
-                        colText=wx.Colour(
-                            self.hex2rgb(base['fg'], base['fg'])),
-                        colBack=wx.Colour(
-                            self.hex2rgb(base['bg'], base['bg'])),
-                        font=_font)
-                # Then style all text as base
-                i = 0
-                for ln in range(target.GetNumberOfLines()):
-                    i += target.GetLineLength(
-                            ln) + 1  # +1 as \n is not included in character count
-                target.SetStyle(0, i, _style)
+                applyToRichText(target)
             elif hasattr(target, 'Children'):
                 children.extend(target.Children)
             elif hasattr(target, 'immune'):
@@ -416,3 +550,83 @@ cs_dark = {
     'brws_hovertxt': cLib['white']
     # Shell
     }
+
+
+class PsychopyTabArt(aui.AuiDefaultTabArt, ThemeMixin):
+    def __init__(self):
+        aui.AuiDefaultTabArt.__init__(self)
+
+        self.SetDefaultColours()
+        self.SetAGWFlags(aui.AUI_NB_NO_TAB_FOCUS)
+
+    def SetDefaultColours(self):
+        """
+        Sets the default colours, which are calculated from the given base colour.
+
+        :param `base_colour`: an instance of :class:`wx.Colour`. If defaulted to ``None``, a colour
+         is generated accordingly to the platform and theme.
+        """
+        cs = ThemeMixin.appColors
+        self.SetBaseColour( wx.Colour(cs['tab_active']) )
+        self._background_top_colour = wx.Colour(cs['note_bg'])
+        self._background_bottom_colour = wx.Colour(cs['note_bg'])
+
+        self._tab_text_colour = lambda page: cs['tab_txt']
+        self._tab_top_colour = wx.Colour(cs['tab_active'])
+        self._tab_bottom_colour = wx.Colour(cs['tab_active'])
+        self._tab_gradient_highlight_colour = wx.Colour(cs['tab_active'])
+        self._border_colour = wx.Colour(cs['tab_active'])
+        self._border_pen = wx.Pen(self._border_colour)
+
+        self._tab_disabled_text_colour = cs['tab_txt']
+        self._tab_inactive_top_colour = wx.Colour(cs['tab_face'])
+        self._tab_inactive_bottom_colour = wx.Colour(cs['tab_face'])
+
+    def DrawTab(self, dc, wnd, page, in_rect, close_button_state, paint_control=False):
+        """
+        Extends AuiDefaultTabArt.DrawTab to add a transparent border to inactive tabs
+        """
+        if page.active:
+            self._border_pen = wx.Pen(self._border_colour)
+        else:
+            self._border_pen = wx.TRANSPARENT_PEN
+
+        out_tab_rect, out_button_rect, x_extent = aui.AuiDefaultTabArt.DrawTab(self, dc, wnd, page, in_rect, close_button_state, paint_control)
+
+        return out_tab_rect, out_button_rect, x_extent
+
+class PsychopyDockArt(aui.AuiDefaultDockArt):
+    def __init__(self):
+        aui.AuiDefaultDockArt.__init__(self)
+        cs = ThemeMixin.appColors
+        # Gradient
+        self._gradient_type = aui.AUI_GRADIENT_NONE
+        # Background
+        self._background_colour = wx.Colour(cs['frame_bg'])
+        self._background_gradient_colour = wx.Colour(cs['frame_bg'])
+        self._background_brush = wx.Brush(self._background_colour)
+        # Border
+        self._border_size = 0
+        self._border_pen = wx.Pen(cs['grippers'])
+        # Sash
+        self._draw_sash = True
+        self._sash_size = 5
+        self._sash_brush = wx.Brush(cs['grippers'])
+        # Gripper
+        self._gripper_brush = wx.Brush(cs['grippers'])
+        self._gripper_pen1 = wx.Pen(cs['grippers'])
+        self._gripper_pen2 = wx.Pen(cs['grippers'])
+        self._gripper_pen3 = wx.Pen(cs['grippers'])
+        self._gripper_size = 0
+        # Hint
+        self._hint_background_colour = wx.Colour(cs['frame_bg'])
+        # Caption bar
+        self._inactive_caption_colour = wx.Colour(cs['docker_face'])
+        self._inactive_caption_gradient_colour = wx.Colour(cs['docker_face'])
+        self._inactive_caption_text_colour = wx.Colour(cs['docker_txt'])
+        self._active_caption_colour = wx.Colour(cs['docker_face'])
+        self._active_caption_gradient_colour = wx.Colour(cs['docker_face'])
+        self._active_caption_text_colour = wx.Colour(cs['docker_txt'])
+        # self._caption_font
+        self._caption_size = 25
+        self._button_size = 20

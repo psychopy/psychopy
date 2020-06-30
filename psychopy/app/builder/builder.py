@@ -169,7 +169,7 @@ class BuilderFrame(wx.Frame, ThemeMixin):
 
         # control the panes using aui manager
         self._mgr = aui.AuiManager(self)
-        self._mgr.SetArtProvider(PsychopyDockArt())
+        #self._mgr.SetArtProvider(PsychopyDockArt())
         #self._art = self._mgr.GetArtProvider()
         # Setup modern flat look
         # self._art.SetMetric(aui.AUI_DOCKART_GRADIENT_TYPE,
@@ -229,11 +229,15 @@ class BuilderFrame(wx.Frame, ThemeMixin):
         self.SetDropTarget(FileDropTarget(targetFrame=self))
         self._applyAppTheme()
 
-    def _applyAppTheme(self, target=None):
-        self._mgr.SetArtProvider(PsychopyDockArt())
-        for c in self.GetChildren():
-            if hasattr(c, '_applyAppTheme'):
-                c._applyAppTheme()
+    # def _applyAppTheme(self, target=None):
+    #     self.SetArtProvider(PsychopyDockArt())
+    #     for c in self.GetChildren():
+    #         if hasattr(c, '_applyAppTheme'):
+    #             c._applyAppTheme()
+
+    # Synonymise Aui manager for use with theme mixin
+    def GetAuiManager(self):
+        return self._mgr
 
     def makeMenus(self):
         """
@@ -1308,7 +1312,7 @@ class BuilderFrame(wx.Frame, ThemeMixin):
         self.__dict__['project'] = project
 
 
-class RoutinesNotebook(aui.AuiNotebook):
+class RoutinesNotebook(aui.AuiNotebook, ThemeMixin):
     """A notebook that stores one or more routines
     """
 
@@ -1323,12 +1327,12 @@ class RoutinesNotebook(aui.AuiNotebook):
         if not hasattr(self.frame, 'exp'):
             return  # we haven't yet added an exp
 
-    def _applyAppTheme(self, target=None):
-        self.SetArtProvider(PsychopyTabArt())
-        self.GetAuiManager().SetArtProvider(PsychopyDockArt())
-        for index in range(self.GetPageCount()):
-            page = self.GetPage(index)
-            page._applyAppTheme()
+    # def _applyAppTheme(self, target=None):
+    #     self.SetArtProvider(PsychopyTabArt())
+    #     self.GetAuiManager().SetArtProvider(PsychopyDockArt())
+    #     for index in range(self.GetPageCount()):
+    #         page = self.GetPage(index)
+    #         page._applyAppTheme()
 
     def getCurrentRoutine(self):
         routinePage = self.getCurrentPage()

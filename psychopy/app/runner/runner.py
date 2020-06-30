@@ -22,7 +22,7 @@ from subprocess import Popen, PIPE
 
 from psychopy.app import icons
 from psychopy import experiment
-from psychopy.app.utils import PsychopyDockArt, PsychopyPlateBtn, PsychopyTabArt, PsychopyToolbar
+from psychopy.app.utils import PsychopyPlateBtn, PsychopyToolbar
 from psychopy.constants import PY3
 from psychopy.localization import _translate
 from psychopy.app.stdOutRich import StdOutRich
@@ -286,8 +286,8 @@ class RunnerPanel(wx.Panel, ScriptProcess, ThemeMixin):
                                           )
         ScriptProcess.__init__(self, app)
         self.Bind(wx.EVT_END_PROCESS, self.onProcessEnded)
-        self.SetBackgroundColour(ThemeMixin.appColors['frame_bg'])
-        self.SetForegroundColour(ThemeMixin.appColors['txt_default'])
+        #self.SetBackgroundColour(ThemeMixin.appColors['frame_bg'])
+        #self.SetForegroundColour(ThemeMixin.appColors['txt_default'])
 
         expCtrlSize = [500, 150]
         ctrlSize = [500, 150]
@@ -782,6 +782,10 @@ class StdOutText(StdOutRich):
         self.prefs = parent.prefs
         self.paths = parent.paths
         self.theme = self.prefs['theme']
+        self._mgr = aui.AuiManager(self)
+
+    def GetAuiManager(self):
+        return self._mgr
 
     def getText(self):
         """Get and return the text of the current buffer."""

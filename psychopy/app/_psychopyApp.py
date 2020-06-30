@@ -929,10 +929,6 @@ class PsychoPyApp(wx.App, themes.ThemeMixin):
         elif spec['app'] == 'light':
             themes.ThemeMixin.appColors = themes.cs_light
 
-        # Override base font with user spec if present
-        key = 'outputFont' if isinstance(self, wx.py.shell.Shell) else 'codeFont'
-        if prefs.coder[key] != "From theme...":
-            base['font'] = prefs.coder[key]
         self._applyAppTheme()
 
 if __name__ == '__main__':
