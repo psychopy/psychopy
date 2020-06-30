@@ -21,7 +21,6 @@ import os
 import sys
 import subprocess
 import imghdr
-from ..style import cs, cLib
 from ..themes import ThemeMixin
 
 # enums for file types
@@ -90,7 +89,7 @@ class FileBrowserPanel(wx.Panel, ThemeMixin):
     """
     def __init__(self, parent, frame):
         wx.Panel.__init__(self, parent, -1, style=wx.BORDER_NONE)
-        cs = cs = ThemeMixin.appColors
+        cs = ThemeMixin.appColors
         self.parent = parent
         self.coder = frame
         self.currentPath = None
