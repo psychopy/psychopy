@@ -2579,16 +2579,14 @@ class FlowPanel(wx.ScrolledWindow):
         """Apply any changes which have been made to the theme since panel was last loaded"""
         cs = ThemeMixin.appColors
         # Style loop/routine buttons
-        self.btnInsertLoop.SetBackgroundColour(
-            ThemeMixin.shiftColour(cs['frame_bg'], -15))
+        self.btnInsertLoop.SetBackgroundColour(cs['frame_bg'])
         self.btnInsertLoop.SetForegroundColour(cs['text'])
         self.btnInsertLoop.Update()
-        self.btnInsertRoutine.SetBackgroundColour(
-            ThemeMixin.shiftColour(cs['frame_bg'], -15))
+        self.btnInsertRoutine.SetBackgroundColour(cs['frame_bg'])
         self.btnInsertRoutine.SetForegroundColour(cs['text'])
         self.btnInsertRoutine.Update()
         # Set background
-        self.SetBackgroundColour(cs['frame_bg'])
+        self.SetBackgroundColour(cs['panel_bg'])
 
         self.draw()
 

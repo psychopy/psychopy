@@ -156,19 +156,21 @@ class Preferences(object):
                 if err.errno != errno.EEXIST:
                     raise
             # Make sure all the base themes are present in user's folder
-            try:
-                for file in os.listdir(baseThemes):
+            #try:
+            for file in os.listdir(baseThemes):
+                if file.endswith('.json'):
                     shutil.copyfile(
                         join(baseThemes, file),
                         join(self.paths['themes'], file)
                     )
-                for file in os.listdir(baseAppThemes):
+            for file in os.listdir(baseAppThemes):
+                if file.endswith('.json'):
                     shutil.copyfile(
                         join(baseAppThemes, file),
                         join(self.paths['themes'], "app", file)
                     )
-            except:
-                pass
+            #except:
+            #    pass
 
     def loadAll(self):
         """Load the user prefs and the application data

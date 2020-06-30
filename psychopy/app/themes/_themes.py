@@ -58,6 +58,8 @@ class ThemeMixin:
         """
 
         # Define subfunctions to handle different object types
+        def applyToToolbar(target):
+            target.SetBackgroundColour(ThemeMixin.appColors['frame_bg'])
 
         def applyToFrame(target):
             target.SetBackgroundColour(ThemeMixin.appColors['frame_bg'])
@@ -200,7 +202,8 @@ class ThemeMixin:
             aui.AuiNotebook: applyToNotebook,
             psychopy.app.coder.coder.BaseCodeEditor: applyToCodeEditor,
             wx.richtext.RichTextCtrl: applyToRichText,
-            wx.py.shell.Shell: applyToCodeEditor
+            wx.py.shell.Shell: applyToCodeEditor,
+            wx.ToolBar: applyToToolbar
         }
 
         # If no target supplied, default to using self
@@ -216,13 +219,13 @@ class ThemeMixin:
         for thisType in handlers:
             if isinstance(target, thisType):
                 handlers[thisType](target)
-        else:
-            # try and set colors for target
-            try:
-                target.SetBackgroundColour(ThemeMixin.appColors['panel_bg'])
-                target.SetForegroundColour(ThemeMixin.appColors['text'])
-            except AttributeError:
-                pass
+            else:
+                # try and set colors for target
+                try:
+                    target.SetBackgroundColour(ThemeMixin.appColors['panel_bg'])
+                    target.SetForegroundColour(ThemeMixin.appColors['text'])
+                except AttributeError:
+                    pass
 
         # search for children (set in a second step)
         if isinstance(target, wx.Sizer):

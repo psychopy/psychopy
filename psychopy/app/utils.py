@@ -114,10 +114,9 @@ class PsychopyToolbar(wx.ToolBar, ThemeMixin):
     def __init__(self, frame):
         wx.ToolBar.__init__(self, frame)
         self.frame = frame
-
         # Configure toolbar appearance
         self.SetWindowStyle(wx.TB_HORIZONTAL | wx.NO_BORDER | wx.TB_FLAT | wx.TB_NODIVIDER)
-        self.SetBackgroundColour(ThemeMixin.appColors['frame_bg'])
+        #self.SetBackgroundColour(ThemeMixin.appColors['frame_bg'])
         # Set icon size (16 for win/linux small mode, 32 for everything else
         if (sys.platform == 'win32' or sys.platform.startswith('linux')) \
                 and not self.frame.appPrefs['largeIcons']:
