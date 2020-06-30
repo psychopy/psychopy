@@ -188,7 +188,7 @@ class PsychopyDockArt(aui.AuiDefaultDockArt):
         self._caption_size = 25
         self._button_size = 20
 
-class PsychopyToolbar(wx.ToolBar):
+class PsychopyToolbar(wx.ToolBar, ThemeMixin):
     """Toolbar for the Builder/Coder Frame"""
     def __init__(self, frame):
         wx.ToolBar.__init__(self, frame)

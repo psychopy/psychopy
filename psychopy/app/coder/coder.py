@@ -1210,7 +1210,21 @@ class CoderFrame(wx.Frame):
         self.SendSizeEvent()
         self.app.trackFrame(self)
 
-
+    def _applyAppTheme(self, target=None):
+        self.paneManager.SetArtProvider(PsychopyDockArt())
+        for c in self.pnlMain.GetChildren():
+            if isinstance(c, aui.AuiNotebook):
+                c.SetArtProvider(PsychopyTabArt())
+                c.GetAuiManager().SetArtProvider(PsychopyDockArt())
+                for index in range(c.GetPageCount()):
+                    page = c.GetPage(index)
+                    page.SetBackgroundColour(ThemeMixin.appColors['frame_bg'])
+                    page._applyAppTheme()
+            if hasattr(c, '_applyAppTheme'):
+                c._applyAppTheme()
+        for c in self.GetChildren():
+            if hasattr(c, '_applyAppTheme'):
+                c._applyAppTheme()
 
     def outputContextMenu(self, event):
         """Custom context menu for output window.
@@ -2485,19 +2499,6 @@ class CoderFrame(wx.Frame):
     #     for ii in range(self.shelf.GetPageCount()):
     #         doc = self.shelf.GetPage(ii)
     #         doc._applyAppTheme()
-
-    def _applyAppTheme(self, target=None):
-        self.paneManager.SetArtProvider(PsychopyDockArt())
-        for c in self.pnlMain.GetChildren():
-            if isinstance(c, aui.AuiNotebook):
-                c.SetArtProvider(PsychopyTabArt())
-                c.GetAuiManager().SetArtProvider(PsychopyDockArt())
-                for index in range(c.GetPageCount()):
-                    page = c.GetPage(index)
-                    page.SetBackgroundColour(ThemeMixin.appColors['frame_bg'])
-                    page._applyAppTheme()
-            if hasattr(c, '_applyAppTheme'):
-                c._applyAppTheme()
 
     def setShowIndentGuides(self, event):
         # show/hide the source assistant (from the view menu control)
