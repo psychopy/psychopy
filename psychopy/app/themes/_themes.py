@@ -176,7 +176,8 @@ class ThemeMixin:
             wx.Panel: applyToPanel,
             aui.AuiNotebook: applyToNotebook,
             psychopy.app.coder.coder.BaseCodeEditor: applyToCodeEditor,
-            wx.richtext.RichTextCtrl: applyToRichText
+            wx.richtext.RichTextCtrl: applyToRichText,
+            wx.py.shell.Shell: applyToCodeEditor
         }
 
         # If no target supplied, default to using self
