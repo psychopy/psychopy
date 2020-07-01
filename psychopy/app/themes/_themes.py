@@ -561,8 +561,8 @@ class PsychopyTabArt(aui.AuiDefaultTabArt, ThemeMixin):
         self._border_pen = wx.Pen(self._border_colour)
 
         self._tab_disabled_text_colour = cs['text']
-        self._tab_inactive_top_colour = wx.Colour(cs['tab_bg'])
-        self._tab_inactive_bottom_colour = wx.Colour(cs['tab_bg'])
+        self._tab_inactive_top_colour = wx.Colour(cs['panel_bg'])
+        self._tab_inactive_bottom_colour = wx.Colour(cs['panel_bg'])
 
     def DrawTab(self, dc, wnd, page, in_rect, close_button_state, paint_control=False):
         """
