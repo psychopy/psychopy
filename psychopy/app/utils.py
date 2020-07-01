@@ -132,7 +132,10 @@ class PsychopyToolbar(wx.ToolBar, ThemeMixin):
         self.keys = {k: self.frame.app.keys[k].replace('Ctrl+', ctrlKey)
                 for k in self.frame.app.keys}
         self.keys['none'] = ''
+        self.makeTools()
 
+    def makeTools(self):
+        frame = self.frame
         # Create tools
         cl = frame.__class__.__name__
         pavButtons = pavlovia_ui.toolbar.PavloviaButtons(frame, toolbar=self, tbSize=self.iconSize)
@@ -269,7 +272,7 @@ class PsychopyPlateBtn(platebtn.PlateButton):
         colors = dict(default=True,
                       hlight=cs['txtbutton_bg_hover'],
                       press=cs['txtbutton_bg_hover'],
-                      htxt=cs['txtbutton_fg_hover'])
+                      htxt=cs['text'])
         return colors
 
 class PsychopyScrollbar(wx.ScrollBar):

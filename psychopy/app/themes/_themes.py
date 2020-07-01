@@ -6,8 +6,13 @@ import keyword
 import builtins
 from pathlib import Path
 from psychopy import prefs
+from psychopy import experiment
+from psychopy import logging
 import psychopy
 import json
+from psychopy.app import icons
+import os
+import sys
 
 thisFolder = Path(__file__).parent
 
@@ -19,11 +24,13 @@ class ThemeMixin:
         stc.STC_LEX_R: "R"
     }
     # these are populated and modified by PsychoPyApp.theme.setter
-    mode = ''
-    icons = ''
+    codetheme = 'PsychopyDark'
+    mode = 'light'
+    iconmode = 'modern'
     codeColors = {}
     appColors = {}
-    appIcons = {}
+    appIcons = {'components': {},
+                'resources': {}}
 
     def _applyAppTheme(self, target=None):
         """Applies colorScheme recursively to the target and its children
@@ -39,6 +46,11 @@ class ThemeMixin:
         # Define subfunctions to handle different object types
         def applyToToolbar(target):
             target.SetBackgroundColour(ThemeMixin.appColors['frame_bg'])
+            # Clear tools
+            for i in range(target.GetToolsCount()):
+                target.DeleteToolByPos(0)
+            # Redraw tools
+            target.makeTools()
 
         def applyToFrame(target):
             target.SetBackgroundColour(ThemeMixin.appColors['frame_bg'])
@@ -381,23 +393,12 @@ class ThemeMixin:
 
         return newCol
 
-    def setCodeColors(self, theme):
-        try:
-            with open("{}//{}.json".format(self.prefs.paths['themes'], theme), "rb") as fp:
-                spec = json.load(fp)
-            # Check that minimum spec is defined
-            if 'base' in spec:
-                base = spec['base']
-                if not (
-                        all(key in base for key in ['bg', 'fg', 'font'])
-                ):
-                    raise Exception
-            else:
-                raise Exception
-        except:
-            with open("{}//{}.json".format(self.prefs.paths['themes'], "PsychopyLight"), "rb") as fp:
-                spec = json.load(fp)
-            base = spec['base']
+    def setCodeColors(self, spec):
+        """To be called from _psychopyApp only"""
+        if not self.GetTopWindow() == self:
+            psychopy.logging.warning("This function should only be called from _psychopyApp")
+
+        base = spec['base']
 
         # Make sure there's some spec for margins
         if 'margin' not in spec:
@@ -420,6 +421,8 @@ class ThemeMixin:
                 if not spec[key]['font']:
                     spec[key]['font'] = base['font']
                 spec[key]['size'] = int(self.prefs.coder['codeFontSize'])
+            elif key in ['app', 'icons']:
+                pass
             else:
                 invalid += [key]
         for key in invalid:
@@ -427,13 +430,13 @@ class ThemeMixin:
 
         # we have a valid theme so continue
         for key in spec:
-            self.codeColors[key] = spec[key]  # class attribute for all mixin subclasses
-        self.mode = spec['app'] if 'app' in spec else 'light'
-        self.icons = spec['icons'] if 'icons' in spec else 'modern'
+            ThemeMixin.codeColors[key] = spec[key]  # class attribute for all mixin subclasses
+        ThemeMixin.mode = spec['app'] if 'app' in spec else 'light'
+        ThemeMixin.iconmode = spec['icons'] if 'icons' in spec else 'modern'
 
-    def setAppColors(self, theme):
+    def setAppColors(self, mode):
         try:
-            with open("{}//app//{}.json".format(prefs.paths['themes'], theme), "rb") as fp:
+            with open("{}//app//{}.json".format(prefs.paths['themes'], mode), "rb") as fp:
                 spec = json.load(fp)
         except:
             with open("{}//app//{}.json".format(prefs.paths['themes'], "light"), "rb") as fp:
@@ -506,7 +509,24 @@ class ThemeMixin:
                     or "invalid" in color:
                 raise Exception("Invalid app colour spec")
             else:
-                self.appColors[key] = wx.Colour(color + [opacity])
+                ThemeMixin.appColors[key] = wx.Colour(color + [opacity])
+
+    def setAppIcons(self, mode):
+
+        # Set icons for component buttons
+        ThemeMixin.appIcons['components'] = icons.getAllIcons(self.prefs.builder['componentsFolders'], forceReload=True)
+        # Set icons for general app buttons
+        iconSize = 16 \
+            if (sys.platform == 'win32' or sys.platform.startswith('linux')) \
+               and not self.prefs.app['largeIcons'] \
+            else 32
+        for file in os.listdir(self.prefs.paths['icons']):
+            if file.endswith('.png'):
+                file = file.replace('.png', '')
+                bmp = wx.Bitmap(os.path.join(
+                    self.prefs.paths['icons'], file+'.png'
+                ), wx.BITMAP_TYPE_PNG)
+                ThemeMixin.appIcons['resources'][file] = bmp
 
 # Create library of "on brand" colours
 cLib = {

@@ -11,7 +11,8 @@ import platform
 from psychopy.constants import PY3
 from pkg_resources import parse_version
 import shutil
-
+import json
+#import psychopy.app.themes
 
 try:
     import configobj
@@ -204,12 +205,21 @@ class Preferences(object):
         self.keys = self.userPrefsCfg['keyBindings']
         self.appData = self.appDataCfg
 
+        # darkmode paths
+        try:
+            with open("{}//{}.json".format(self.paths['themes'], self.app['theme']), "rb") as fp:
+                spec = json.load(fp)
+            if 'icons' not in spec or 'app' not in spec:
+                raise Exception()
+        except:
+            with open("{}//{}.json".format(self.paths['themes'], "PsychopyLight"), "rb") as fp:
+                spec = json.load(fp)
+        self.paths['icons'] = join(self.paths['resources'],
+                                   'classic' if spec['icons'] == 'classic'
+                                   else spec['app'])
+
         # keybindings:
         self.keys = self.userPrefsCfg['keyBindings']
-        # darkmode paths
-        self.paths['icons'] = join(self.paths['resources'],
-                                   'classic' if self.app['iconset'] == 'classic'
-                                   else ('light', 'dark')[self.app['darkmode']])
 
     def loadUserPrefs(self):
         """load user prefs, if any; don't save to a file because doing so

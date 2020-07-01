@@ -15,6 +15,7 @@ from pkg_resources import parse_version
 from PIL import Image
 import wx
 
+import psychopy
 from psychopy import experiment, prefs
 from psychopy.experiment import components
 
@@ -83,11 +84,12 @@ def getAllIcons(folderList=(), forceReload=False):
             if thisName in components.iconFiles:
                 # darkmode paths
                 if "base.png" not in components.iconFiles[thisName]:
-
+                    iconFolder = 'classic' \
+                        if psychopy.app.themes.ThemeMixin.iconmode == 'classic' \
+                        else psychopy.app.themes.ThemeMixin.mode
                     components.iconFiles[thisName] = join(
                         dirname(components.iconFiles[thisName]),
-                        'classic' if prefs.app['iconset'] == 'classic'
-                        else ('light', 'dark')[prefs.app['darkmode']],
+                        iconFolder,
                         basename(components.iconFiles[thisName])
                     )
                 _allIcons[thisName] = getIcons(components.iconFiles[thisName])

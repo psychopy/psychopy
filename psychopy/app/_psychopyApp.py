@@ -577,13 +577,13 @@ class PsychoPyApp(wx.App, themes.ThemeMixin):
         # have to reimport because it is ony local to __init__ so far
         from .builder.builder import BuilderFrame
         title = "PsychoPy3 Experiment Builder (v%s)"
-        thisFrame = BuilderFrame(None, -1,
+        self.builder = BuilderFrame(None, -1,
                                  title=title % self.version,
                                  fileName=fileName, app=self)
-        thisFrame.Show(True)
-        thisFrame.Raise()
-        self.SetTopWindow(thisFrame)
-        return thisFrame
+        self.builder.Show(True)
+        self.builder.Raise()
+        self.SetTopWindow(self.builder)
+        return self.builder
 
     def showBuilder(self, event=None, fileList=()):
         # have to reimport because it is only local to __init__ so far
@@ -885,6 +885,8 @@ class PsychoPyApp(wx.App, themes.ThemeMixin):
         """Handles a theme change event (from a window with a themesMenu)"""
         win = event.EventObject.Window
         newTheme = win.themesMenu.FindItemById(event.GetId()).ItemLabel
+        prefs.app['theme'] = newTheme
+        prefs.saveUserPrefs()
         self.theme = newTheme
 
     def _applyAppTheme(self):
@@ -902,11 +904,37 @@ class PsychoPyApp(wx.App, themes.ThemeMixin):
     @theme.setter
     def theme(self, value):
         """The theme to be used through the application"""
+        prefs.loadAll()
 
-        themes.ThemeMixin.setCodeColors(self, prefs.paths['themes'])
-        themes.ThemeMixin.setAppColors(self, self.mode)
-        #themes.ThemeMixin.setAppIcons(self, self.icons)
-        self._currentThemeSpec = themes.ThemeMixin.codeColors
+        # Load in theme spec
+        try:
+            with open("{}//{}.json".format(self.prefs.paths['themes'], value), "rb") as fp:
+                spec = json.load(fp)
+            # Check that minimum spec is defined
+            if 'base' not in spec:
+                raise Exception
+            elif not (all(key in spec['base'] for key in ['bg', 'fg', 'font'])):
+                raise Exception
+        except:
+            value = "PsychopyLight"
+            with open("{}//{}.json".format(self.prefs.paths['themes'], "PsychopyLight"), "rb") as fp:
+                spec = json.load(fp)
+
+        self._currentThemeSpec = spec
+        # Set app theme
+        apptheme = spec.pop('app')
+        themes.ThemeMixin.mode = apptheme
+        themes.ThemeMixin.setAppColors(self, apptheme)
+        # Set app icons
+        appicons = spec.pop('icons')
+        themes.ThemeMixin.iconmode = appicons
+        themes.ThemeMixin.setAppIcons(self, appicons)
+        # Set coder theme
+        codertheme = spec
+        themes.ThemeMixin.codetheme = value
+        themes.ThemeMixin.setCodeColors(self, codertheme)
+
+        # Apply theme
         self._applyAppTheme()
 
 if __name__ == '__main__':

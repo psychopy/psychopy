@@ -2015,6 +2015,9 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
         for btn in self.componentButtons:
             btn.SetForegroundColour(cs['text'])
             btn.SetBackgroundColour(cs['panel_bg'])
+            sz = '48add' if self.app.prefs.app['largeIcons'] else '24add'
+            btn.SetBitmap(ThemeMixin.appIcons['components'][btn.GetName()][sz])
+            btn.SetBitmapPosition(wx.TOP)
             # Set hover effect
             btn.Bind(wx.EVT_ENTER_WINDOW, self.onHover)
             btn.Bind(wx.EVT_LEAVE_WINDOW, self.offHover)
