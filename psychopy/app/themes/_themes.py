@@ -22,29 +22,8 @@ class ThemeMixin:
     mode = ''
     icons = ''
     codeColors = {}
-    appColors = {
-        "text": [],
-        "frame_bg": [],
-        "docker_bg": [],
-        "docker_fg": [],
-        "panel_bg": [],
-        "tab_bg": [],
-        "bmpbutton_bg_hover": [],
-        "bmpbutton_fg_hover": [],
-        "txtbutton_bg_hover": [],
-        "txtbutton_fg_hover": [],
-        "rt_timegrid": [],
-        "rt_comp": [],
-        "rt_comp_force": [],
-        "rt_comp_disabled": [],
-        "rt_static": [],
-        "rt_static_disabled": [],
-        "fl_routine_fg": [],
-        "fl_routine_bg_slip": [],
-        "fl_routine_bg_nonslip": [],
-        "fl_flowline_bg": [],
-        "fl_flowline_fg": []
-    }
+    appColors = {}
+    appIcons = {}
 
     def _applyAppTheme(self, target=None):
         """Applies colorScheme recursively to the target and its children
