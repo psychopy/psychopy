@@ -902,29 +902,11 @@ class PsychoPyApp(wx.App, themes.ThemeMixin):
     @theme.setter
     def theme(self, value):
         """The theme to be used through the application"""
-        try:
-            with open("{}//{}.json".format(prefs.paths['themes'], value), "rb") as fp:
-                spec = json.load(fp)
-        except:
-            with open("{}//{}.json".format(prefs.paths['themes'], "PsychopyLight"), "rb") as fp:
-                spec = json.load(fp)
 
-        # Check that minimum spec is defined
-        if 'base' in spec:
-            base = spec['base']
-            if not (
-                all(key in base for key in ['bg', 'fg', 'font'])
-            ):
-                return
-        else:
-            return
-
-        # we have a valid theme so continue
-        self._currentThemeSpec = spec
-        themes.ThemeMixin.codeColors = spec  # class attribute for all mixin subclasses
-        themes.ThemeMixin.mode = spec['app'] if 'app' in spec else 'light'
-        themes.ThemeMixin.icons = spec['icons'] if 'icons' in spec else 'modern'
-        themes.ThemeMixin.loadAppColours(self, spec['app'])
+        themes.ThemeMixin.setCodeColors(self, prefs.paths['themes'])
+        themes.ThemeMixin.setAppColors(self, self.mode)
+        #themes.ThemeMixin.setAppIcons(self, self.icons)
+        self._currentThemeSpec = themes.ThemeMixin.codeColors
         self._applyAppTheme()
 
 if __name__ == '__main__':

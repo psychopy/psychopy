@@ -84,6 +84,14 @@ class ThemeMixin:
             spec = ThemeMixin.codeColors
             base = spec['base']
 
+            # Check that key is in tag list
+            invalid = []
+            for key in spec:
+                if key not in self.tags:
+                    invalid += [key]
+            for key in invalid:
+                del spec[key]
+
             # Check for language specific spec
             if target.GetLexer() in self.lexers:
                 lexer = self.lexers[target.GetLexer()]
@@ -103,21 +111,6 @@ class ThemeMixin:
             if prefs.coder[key] != "From Theme...":
                 base['font'] = prefs.coder[key]
 
-            # Pythonise the universal data (hex -> rgb, tag -> wx int)
-            invalid = []
-            for key in spec:
-                # Check that key is in tag list and full spec is defined, discard if not
-                if key in target.tags \
-                        and all(subkey in spec[key] for subkey in ['bg', 'fg', 'font']):
-                    spec[key]['bg'] = target.hex2rgb(spec[key]['bg'], base['bg'])
-                    spec[key]['fg'] = target.hex2rgb(spec[key]['fg'], base['fg'])
-                    if not spec[key]['font']:
-                        spec[key]['font'] = base['font']
-                    spec[key]['size'] = int(target.prefs['codeFontSize'])
-                else:
-                    invalid += [key]
-            for key in invalid:
-                del spec[key]
             # Set style for undefined lexers
             for key in [getattr(wx._stc, item) for item in dir(wx._stc) if item.startswith("STC_LEX")]:
                 target.StyleSetBackground(key, base['bg'])
@@ -133,37 +126,19 @@ class ThemeMixin:
             for level, val in target.lexkw.items():
                 target.SetKeyWords(level, " ".join(val))
 
-            # Make sure there's some spec for margins
-            if 'margin' not in spec:
-                spec['margin'] = base
-            # Set margin colours to match linenumbers if set
-            if 'margin' in spec:
-                mar = spec['margin']['bg']
-            else:
-                mar = base['bg']
-            target.SetFoldMarginColour(True, mar)
-            target.SetFoldMarginHiColour(True, mar)
-
-            # Make sure there's some spec for caret
-            if 'caret' not in spec:
-                spec['caret'] = base
+            # Set margin
+            target.SetFoldMarginColour(True, spec['margin']['bg'])
+            target.SetFoldMarginHiColour(True, spec['margin']['bg'])
             # Set caret colour
             target.SetCaretForeground(spec['caret']['fg'])
             target.SetCaretLineBackground(spec['caret']['bg'])
             target.SetCaretWidth(1 + ('bold' in spec['caret']['font']))
-
-            # Make sure there's some spec for selection
-            if 'select' not in spec:
-                spec['select'] = base
-                spec['select']['bg'] = target.shiftColour(base['bg'], 30)
             # Set selection colour
             target.SetSelForeground(True, spec['select']['fg'])
             target.SetSelBackground(True, spec['select']['bg'])
-
             # Set wrap point
             target.edgeGuideColumn = target.prefs['edgeGuideColumn']
             target.edgeGuideVisible = target.edgeGuideColumn > 0
-
             # Set line spacing
             spacing = min(int(target.prefs['lineSpacing'] / 2), 64)  # Max out at 64
             target.SetExtraAscent(spacing)
@@ -427,8 +402,57 @@ class ThemeMixin:
 
         return newCol
 
+    def setCodeColors(self, theme):
+        try:
+            with open("{}//{}.json".format(self.prefs.paths['themes'], theme), "rb") as fp:
+                spec = json.load(fp)
+            # Check that minimum spec is defined
+            if 'base' in spec:
+                base = spec['base']
+                if not (
+                        all(key in base for key in ['bg', 'fg', 'font'])
+                ):
+                    raise Exception
+            else:
+                raise Exception
+        except:
+            with open("{}//{}.json".format(self.prefs.paths['themes'], "PsychopyLight"), "rb") as fp:
+                spec = json.load(fp)
+            base = spec['base']
 
-    def loadAppColours(self, theme):
+        # Make sure there's some spec for margins
+        if 'margin' not in spec:
+            spec['margin'] = base
+        # Make sure there's some spec for caret
+        if 'caret' not in spec:
+            spec['caret'] = base
+        # Make sure there's some spec for selection
+        if 'select' not in spec:
+            spec['select'] = base
+            spec['select']['bg'] = self.shiftColour(base['bg'], 30)
+
+        # Pythonise the universal data (hex -> rgb, tag -> wx int)
+        invalid = []
+        for key in spec:
+            # Check that full spec is defined, discard if not
+            if all(subkey in spec[key] for subkey in ['bg', 'fg', 'font']):
+                spec[key]['bg'] = self.hex2rgb(spec[key]['bg'], base['bg'])
+                spec[key]['fg'] = self.hex2rgb(spec[key]['fg'], base['fg'])
+                if not spec[key]['font']:
+                    spec[key]['font'] = base['font']
+                spec[key]['size'] = int(self.prefs.coder['codeFontSize'])
+            else:
+                invalid += [key]
+        for key in invalid:
+            del spec[key]
+
+        # we have a valid theme so continue
+        for key in spec:
+            self.codeColors[key] = spec[key]  # class attribute for all mixin subclasses
+        self.mode = spec['app'] if 'app' in spec else 'light'
+        self.icons = spec['icons'] if 'icons' in spec else 'modern'
+
+    def setAppColors(self, theme):
         try:
             with open("{}//app//{}.json".format(prefs.paths['themes'], theme), "rb") as fp:
                 spec = json.load(fp)
