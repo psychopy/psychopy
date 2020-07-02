@@ -1072,7 +1072,6 @@ class CoderFrame(wx.Frame):
         self.paneManager.SetArtProvider(self._art)
         # Create toolbar
         self.toolbar = PsychopyToolbar(self)
-        self.SetToolBar(self.toolbar)
         # Create menus and status bar
         self.makeMenus()
         self.makeStatusBar()
