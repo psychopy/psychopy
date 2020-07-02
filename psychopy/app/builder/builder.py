@@ -2046,6 +2046,15 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
             btn.Bind(wx.EVT_ENTER_WINDOW, self.onHover)
             btn.Bind(wx.EVT_LEAVE_WINDOW, self.offHover)
             #btn.SetBitmap(thisIcon)
+            # then apply to all children as well
+        for c in self.GetChildren():
+            if hasattr(c, '_applyAppTheme'):
+                # if the object understands themes then request that
+                c._applyAppTheme()
+            if hasattr(c, 'Refresh'):
+                c.Refresh()
+            if hasattr(c, 'Update'):
+                c.Update()
 
     def on_resize(self, event):
         if self.app.prefs.app['largeIcons']:
