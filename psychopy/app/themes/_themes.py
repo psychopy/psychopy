@@ -184,16 +184,18 @@ class ThemeMixin:
             return
 
         # Style target
+        isHandled = False
         for thisType in handlers:
             if isinstance(target, thisType):
                 handlers[thisType](target)
-            else:
-                # try and set colors for target
-                try:
-                    target.SetBackgroundColour(ThemeMixin.appColors['panel_bg'])
-                    target.SetForegroundColour(ThemeMixin.appColors['text'])
-                except AttributeError:
-                    pass
+                isHandled = True
+        if not isHandled:
+            # try and set colors for target
+            try:
+                target.SetBackgroundColour(ThemeMixin.appColors['panel_bg'])
+                target.SetForegroundColour(ThemeMixin.appColors['text'])
+            except AttributeError:
+                pass
 
         # search for children (set in a second step)
         if isinstance(target, wx.Sizer):
