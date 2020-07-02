@@ -18,7 +18,9 @@ except Exception:
     import wx.lib.agw.aui as aui  # some versions of phoenix
 
 import os
-import collections
+import sys
+import subprocess
+import imghdr
 from ..style import cs, cLib
 
 # enums for file types
@@ -44,13 +46,24 @@ def convertBytes(nbytes):
         return '{:.1f} B'.format(nbytes)
 
 
-FolderItemData = collections.namedtuple(
-    'FolderItemData',
-    field_names=['name', 'abspath', 'basename'])
+class FolderItemData(object):
+    """Class representing a folder item in the file browser."""
+    __slots__ = ['name', 'abspath', 'basename']
+    def __init__(self, name, abspath, basename):
+        self.name = name
+        self.abspath = abspath
+        self.basename = basename
 
-FileItemData = collections.namedtuple(
-    'FileItemData',
-    field_names=['name', 'abspath', 'basename', 'fsize', 'mod'])
+
+class FileItemData(object):
+    """Class representing a file item in the file browser."""
+    __slots__ = ['name', 'abspath', 'basename', 'fsize', 'mod']
+    def __init__(self, name, abspath, basename, fsize, mod):
+        self.name = name
+        self.abspath = abspath
+        self.basename = basename
+        self.fsize = fsize
+        self.mod = mod
 
 
 class FileBrowserListCtrl(ListCtrlAutoWidthMixin, wx.ListCtrl):
@@ -98,10 +111,15 @@ class FileBrowserPanel(wx.Panel):
             ".tsv": 'filecsv16.png',
             ".png": 'fileimage16.png',
             ".jpeg": 'fileimage16.png',
+            ".jpg": 'fileimage16.png',
             ".bmp": 'fileimage16.png',
+            ".tiff": 'fileimage16.png',
+            ".tif": 'fileimage16.png',
+            ".ppm": 'fileimage16.png',
             ".gif": 'fileimage16.png',
             ".py": 'coderpython16.png'
         }
+
         self.fileImgInds = {}
         self.fileImgList = wx.ImageList(16, 16)
         for key in self.fileImgExt:
@@ -111,7 +129,7 @@ class FileBrowserPanel(wx.Panel):
         # icons for toolbars
         gotoBmp = wx.Bitmap(join(rc, 'goto16.png'), wx.BITMAP_TYPE_PNG)
         newFolder = wx.Bitmap(join(rc, 'foldernew16.png'), wx.BITMAP_TYPE_PNG)
-        #copyBmp = wx.Bitmap(join(rc, 'copy16.png'), wx.BITMAP_TYPE_PNG)
+        # copyBmp = wx.Bitmap(join(rc, 'copy16.png'), wx.BITMAP_TYPE_PNG)
         deleteBmp = wx.Bitmap(join(rc, 'delete16.png'), wx.BITMAP_TYPE_PNG)
         renameBmp = wx.Bitmap(join(rc, 'rename16.png'), wx.BITMAP_TYPE_PNG)
 
@@ -492,10 +510,6 @@ class FileBrowserPanel(wx.Panel):
 
             dlg.Destroy()
 
-    def open(self):
-        if self.selectedItem is not None:
-            self.selectedItem.open()
-
     def OnAddrEnter(self, evt=None):
         """When enter is pressed."""
         path = self.txtAddr.GetValue()
@@ -514,13 +528,30 @@ class FileBrowserPanel(wx.Panel):
             self.txtAddr.SetValue(self.currentPath)
 
     def OnItemActivated(self, evt):
+        """Even for when an item is double-clicked or activated."""
         if self.selectedItem is not None:
             if isinstance(self.selectedItem, FolderItemData):
                 self.gotoDir(self.selectedItem.abspath)
             elif isinstance(self.selectedItem, FileItemData):
-                self.coder.fileOpen(None, self.selectedItem.abspath)
+                # check if an image file
+                if not imghdr.what(self.selectedItem.abspath):
+                    self.coder.fileOpen(None, self.selectedItem.abspath)
+                else:
+                    if sys.platform == 'win32':
+                        imgCmd = 'explorer'
+                    elif sys.platform == 'darwin':
+                        imgCmd = 'open'
+                    elif sys.platform == 'linux':
+                        imgCmd = 'xdg-open'
+                    else:
+                        return  # not supported
+
+                    # show image in viewer
+                    subprocess.run(
+                        [imgCmd, self.selectedItem.abspath], shell=True)
 
     def OnItemSelected(self, evt=None):
+        """Event for when an item is selected."""
         itemIdx = self.fileList.GetFirstSelected()
         if itemIdx >= 0:
             self.selectedItem = self.dirData[itemIdx]
