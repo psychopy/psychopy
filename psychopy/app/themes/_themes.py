@@ -224,6 +224,10 @@ class ThemeMixin:
                     self._applyAppTheme(c.Sizer)
                 # and then apply
                 self._applyAppTheme(c)
+            if hasattr(c, 'Refresh'):
+                c.Refresh()
+            if hasattr(c, 'Update'):
+                c.Update()
 
     @property
     def lexkw(self):
