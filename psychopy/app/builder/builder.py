@@ -10,6 +10,8 @@ Distributed under the terms of the GNU General Public License (GPL).
 
 from __future__ import absolute_import, division, print_function
 
+import json
+
 from pkg_resources import parse_version
 import wx
 import wx.stc
@@ -383,6 +385,28 @@ class BuilderFrame(wx.Frame, ThemeMixin):
                                'smallerRoutine'],
                            _translate("Smaller routine items"))
         self.Bind(wx.EVT_MENU, self.routinePanel.decreaseSize, item)
+        menu.AppendSeparator()
+        # Get list of themes
+        themePath = self.GetTopLevelParent().app.prefs.paths['themes']
+        self.themeList = {}
+        for themeFile in os.listdir(themePath):
+            try:
+                # Load theme from json file
+                with open(os.path.join(themePath, themeFile), "rb") as fp:
+                    theme = json.load(fp)
+                # Add themes to list only if min spec is defined
+                base = theme['base']
+                if all(key in base for key in ['bg', 'fg', 'font']):
+                    self.themeList[themeFile.replace('.json', '')] = []
+            except:
+                pass
+        # Add Theme Switcher
+        self.themesMenu = wx.Menu()
+        item = menu.AppendSubMenu(self.themesMenu,
+                               _translate("Themes..."))
+        for theme in self.themeList:
+            self.themeList[theme] = self.themesMenu.Append(wx.ID_ANY, _translate(theme))
+            self.Bind(wx.EVT_MENU, self.app.onThemeChange, self.themeList[theme])
 
         # ---_experiment---#000000#FFFFFF-------------------------------------
         self.expMenu = wx.Menu()
