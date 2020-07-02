@@ -923,9 +923,9 @@ class CodeEditor(BaseCodeEditor, CodeEditorFoldingMixin, ThemeMixin):
         try:
             lex = getattr(wx.stc, "STC_LEX_%s" % (lexer.upper()))
         except AttributeError:
-            logging.warn("Unknown lexer %r. Using 'python'." % lexer)
-            lex = wx.stc.STC_LEX_PYTHON
-            lexer = 'python'
+            logging.warn("Unknown lexer %r. Using plain text." % lexer)
+            lex = wx.stc.STC_LEX_NULL
+            lexer = 'null'
         # then actually set it
         self.SetLexer(lex)
         self.setFonts()

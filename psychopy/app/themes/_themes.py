@@ -90,9 +90,7 @@ class ThemeMixin:
                 lexer = 'invlex'
             if lexer in spec:
                 # If there is lang specific spec, delete subkey...
-                lang = spec[lexer]
-                del spec[lexer]
-                # ...and append spec to root, overriding any generic spec
+                lang = spec.pop('lexer') # ...and append spec to root, overriding any generic spec
                 spec.update({key: lang[key] for key in lang})
             else:
                 lang = {}
