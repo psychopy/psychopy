@@ -52,6 +52,9 @@ class ThemeMixin:
             # Redraw tools
             target.makeTools()
 
+        def applyToStatusBar(target):
+            target.SetBackgroundColour(cLib['white'])
+
         def applyToFrame(target):
             target.SetBackgroundColour(ThemeMixin.appColors['frame_bg'])
             target.SetForegroundColour(ThemeMixin.appColors['text'])
@@ -167,7 +170,8 @@ class ThemeMixin:
             psychopy.app.coder.coder.BaseCodeEditor: applyToCodeEditor,
             wx.richtext.RichTextCtrl: applyToRichText,
             wx.py.shell.Shell: applyToCodeEditor,
-            wx.ToolBar: applyToToolbar
+            wx.ToolBar: applyToToolbar,
+            wx.StatusBar: applyToStatusBar
         }
 
         # If no target supplied, default to using self
