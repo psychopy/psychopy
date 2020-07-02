@@ -344,14 +344,62 @@ class RunnerPanel(wx.Panel, ScriptProcess, ThemeMixin):
                                      style=wx.TE_READONLY | wx.TE_MULTILINE | wx.BORDER_NONE)
         self.setStdoutVisible(True)
 
+        # Box sizers
+        self.upperSizer = wx.BoxSizer(wx.HORIZONTAL)
+        self.upperSizer.Add(self.expCtrl, 1, wx.ALL | wx.EXPAND, 5)
+
+        # Set main sizer
+        self.mainSizer = wx.BoxSizer(wx.VERTICAL)
+        self.mainSizer.Add(self.upperSizer, 0, wx.EXPAND | wx.ALL, 10)
+        self.mainSizer.Add(self.alertsToggleBtn, 0, wx.TOP | wx.EXPAND, 10)
+        self.mainSizer.Add(self.alertsCtrl, 1, wx.EXPAND | wx.ALL, 10)
+        self.mainSizer.Add(self.stdoutToggleBtn, 0, wx.TOP | wx.EXPAND, 10)
+        self.mainSizer.Add(self.stdoutCtrl, 1, wx.EXPAND | wx.ALL, 10)
+
+        self.buttonSizer = wx.BoxSizer(wx.VERTICAL)
+        self.upperSizer.Add(self.buttonSizer, 0, wx.ALL | wx.EXPAND, 5)
+        self.makeButtons()
+        self._applyAppTheme()
+
+
+    def _applyAppTheme(self, target=None):
+        if target == None:
+            target = self
+
+        target.SetBackgroundColour(ThemeMixin.appColors['frame_bg'])
+        target.SetForegroundColour(ThemeMixin.appColors['text'])
+        ThemeMixin._applyAppTheme(self.expCtrl)
+
+        buttons = {
+            self.plusBtn: {'main': 'addExp32.png'},
+            self.negBtn: {'main':'removeExp32.png'},
+            self.runBtn: {'main':'run32.png'},
+            self.stopBtn: {'main':'stop32.png'},
+            self.onlineBtn: {'main':'globe32.png', 'emblem':'run16.png'},
+            self.onlineDebugBtn: {'main':'globe32.png', 'emblem':'bug16.png'},
+        }
+        rc = self.app.prefs.paths['icons']
+        for btn in buttons:
+            param = buttons[btn]
+            if hasattr(btn, 'emblem'):
+                bmp = icons.combineImageEmblem(
+                    main=os.path.join(rc, param['main']),
+                    emblem=os.path.join(rc, param['emblem']), pos='bottom_right')
+            else:
+                bmp = wx.Bitmap(os.path.join(rc, param['main']), wx.BITMAP_TYPE_PNG)
+            btn.SetBitmap(bmp)
+            btn.SetBackgroundColour(ThemeMixin.appColors['frame_bg'])
+            btn.Update()
+
+    def makeButtons(self):
         # Set buttons
-        plusBtn = self.makeBmpButton(main='addExp32.png')
-        negBtn = self.makeBmpButton(main='removeExp32.png')
+        self.plusBtn = plusBtn = self.makeBmpButton(main='addExp32.png')
+        self.negBtn = negBtn = self.makeBmpButton(main='removeExp32.png')
         self.runBtn = runLocalBtn = self.makeBmpButton(main='run32.png')
         self.stopBtn = stopTaskBtn = self.makeBmpButton(main='stop32.png')
         self.onlineBtn = self.makeBmpButton(main='globe32.png', emblem='run16.png')
         self.onlineDebugBtn = self.makeBmpButton(main='globe32.png',
-                                            emblem='bug16.png')
+                                                 emblem='bug16.png')
 
         plusBtn.SetToolTip(wx.ToolTip(
             _translate("Add experiment to list")))
@@ -374,32 +422,15 @@ class RunnerPanel(wx.Panel, ScriptProcess, ThemeMixin):
         self.Bind(wx.EVT_BUTTON, self.runOnline, self.onlineBtn)
         self.Bind(wx.EVT_BUTTON, self.runOnlineDebug, self.onlineDebugBtn)
 
-        # Box sizers
-        self.upperSizer = wx.BoxSizer(wx.HORIZONTAL)
-        self.buttonSizer = wx.BoxSizer(wx.VERTICAL)
-
-        self.upperSizer.Add(self.expCtrl, 1, wx.ALL | wx.EXPAND, 5)
-        self.upperSizer.Add(self.buttonSizer, 0, wx.ALL | wx.EXPAND, 5)
         self.buttonSizer.Add(plusBtn, 0, wx.ALL | wx.ALIGN_TOP, 5)
         self.buttonSizer.Add(negBtn, 0, wx.ALL | wx.ALIGN_TOP, 5)
         self.buttonSizer.AddStretchSpacer()
         self.buttonSizer.AddMany([(runLocalBtn, 0, wx.ALL, 5),
-                                   (stopTaskBtn, 0, wx.ALL, 5),
-                                   (self.onlineBtn, 0, wx.ALL, 5),
-                                   (self.onlineDebugBtn, 0, wx.ALL, 5),
-                                   ])
-
-        # Set main sizer
-        self.mainSizer = wx.BoxSizer(wx.VERTICAL)
-        self.mainSizer.Add(self.upperSizer, 0, wx.EXPAND | wx.ALL, 10)
-
-        self.mainSizer.Add(self.alertsToggleBtn, 0, wx.TOP | wx.EXPAND, 10)
-        self.mainSizer.Add(self.alertsCtrl, 1, wx.EXPAND | wx.ALL, 10)
-        self.mainSizer.Add(self.stdoutToggleBtn, 0, wx.TOP | wx.EXPAND, 10)
-        self.mainSizer.Add(self.stdoutCtrl, 1, wx.EXPAND | wx.ALL, 10)
-
+                                  (stopTaskBtn, 0, wx.ALL, 5),
+                                  (self.onlineBtn, 0, wx.ALL, 5),
+                                  (self.onlineDebugBtn, 0, wx.ALL, 5),
+                                  ])
         self.stopBtn.Disable()
-
         self.SetSizerAndFit(self.mainSizer)
         self.SetMinSize(self.Size)
 
