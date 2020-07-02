@@ -66,7 +66,7 @@
     # Show an error dialog when PsychoPy encounters an unhandled internal error.
     errorDialog = boolean(default='True')
     # Theme
-    theme = option('PsychopyLight', 'PsychopyDark', default='PsychopyLight')
+    theme = string(default='PsychopyLight')
 
 # Settings for the Coder window
 [coder]
@@ -84,8 +84,6 @@
     lineSpacing = integer(0, 64, default=4)
     # Long line edge guide, specify zero to disable
     edgeGuideColumn = integer(0, 65536, default=80)
-    # Color theme to use for syntax highlighting
-    theme = string(default='PsychopyLight')
     # activate the source assistant panel
     showSourceAsst = boolean(default=True)
     # activate the output and shell panels
