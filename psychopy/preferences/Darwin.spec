@@ -65,10 +65,8 @@
     locale = string(default='')
     # Show an error dialog when PsychoPy encounters an unhandled internal error.
     errorDialog = boolean(default='True')
-    # Dark mode
-    darkmode = boolean(default='False')
-    # Icons
-    iconset = option('modern', 'classic', default='modern')
+    # Theme
+    theme = option('PsychopyLight', 'PsychopyDark', default='PsychopyLight')
 
 # Settings for the Coder window
 [coder]
