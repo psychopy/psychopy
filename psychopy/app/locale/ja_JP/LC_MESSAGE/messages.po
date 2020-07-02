@@ -1,9 +1,9 @@
 msgid ""
 msgstr ""
-"Project-Id-Version: PsychoPy 1.81.00\n"
+"Project-Id-Version: PsychoPy 2020.1.3\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-06-26 20:17+0900\n"
-"PO-Revision-Date: 2020-06-26 20:18+0900\n"
+"POT-Creation-Date: 2020-07-01 20:44+0900\n"
+"PO-Revision-Date: 2020-07-01 20:51+0900\n"
 "Last-Translator: Hiroyuki Sogo <hsogo12600@gmail.com>\n"
 "Language-Team: Hiroyuki Sogo <hsogo12600@gmail.com>\n"
 "Language: ja\n"
@@ -17,6 +17,76 @@ msgstr ""
 "Plural-Forms: nplurals=1; plural=0;\n"
 "X-Poedit-SearchPath-0: psychopy\n"
 "X-Poedit-SearchPathExcluded-0: psychopy/app/localization/utils\n"
+
+#: psychopy/alerts/alertsCatalogue/alertmsg.py:13
+#, python-brace-format
+msgid "Your stimulus size exceeds the {dimension} dimension of your window."
+msgstr "刺激のサイズがウィンドウの{dimension}軸の範囲を超えています"
+
+#: psychopy/alerts/alertsCatalogue/alertmsg.py:17
+#, python-brace-format
+msgid "Your stimulus size is smaller than 1 pixel ({dimension} dimension)."
+msgstr "刺激のサイズが1ピクセル未満です({dimension}軸方向)"
+
+#: psychopy/alerts/alertsCatalogue/alertmsg.py:21
+#, python-brace-format
+msgid ""
+"Your stimulus position exceeds the {dimension} dimension of your window."
+msgstr "刺激の位置がウィンドウの{dimension}軸の範囲を超えています"
+
+#: psychopy/alerts/alertsCatalogue/alertmsg.py:25
+#, python-brace-format
+msgid ""
+"Your stimulus {type} time of {time} is less than a screen refresh for a {Hz}"
+"Hz monitor."
+msgstr ""
+
+#: psychopy/alerts/alertsCatalogue/alertmsg.py:29
+#, python-brace-format
+msgid ""
+"Your stimulus {type} time of {time} seconds cannot be accurately presented "
+"for {time} on a {Hz}Hz monitor."
+msgstr ""
+
+#: psychopy/alerts/alertsCatalogue/alertmsg.py:33
+#, fuzzy, python-brace-format
+#| msgid "Your stimulus size exceeds the {dimension} dimension of your window."
+msgid ""
+"Your stimulus start {type} exceeds the stop {type}. Consider using a {type} "
+"duration."
+msgstr "刺激のサイズがウィンドウの{dimension}軸の範囲を超えています"
+
+#: psychopy/alerts/alertsCatalogue/alertmsg.py:37
+#, python-brace-format
+msgid ""
+"Your stimulus {type} type {frameType} must be expressed as a whole number."
+msgstr ""
+
+#: psychopy/alerts/alertsCatalogue/alertmsg.py:41
+#, python-brace-format
+msgid ""
+"Python Syntax Error in '{codeTab}' tab. See '{code}' on line number "
+"{lineNumber} of the '{codeTab}' tab."
+msgstr ""
+"'{codeTab}'タブに含まれるコードにPythonの文法エラーがあります '{codeTab}'の"
+"{lineNumber}行目の'{code}'を確認してください"
+
+#: psychopy/alerts/alertsCatalogue/alertmsg.py:45
+#, python-brace-format
+msgid ""
+"JavaScript Syntax Error in '{codeTab}' tab. See '{lineNumber}' in the "
+"'{codeTab}' tab."
+msgstr ""
+
+#: psychopy/alerts/alertsCatalogue/alertmsg.py:49
+msgid ""
+"Your component is currently disabled and will not be written to your "
+"experiment script."
+msgstr "コンポーネントが無効化されているため実験のスクリプトに出力されません"
+
+#: psychopy/alerts/alertsCatalogue/alertmsg.py:52
+msgid "Cannot calculate parameter."
+msgstr "パラメータを計算できません"
 
 #: psychopy/app/Resources/classic/psychopy.desktop:5
 #: psychopy/app/Resources/classic/psychopy.desktop:6
@@ -81,8 +151,13 @@ msgid "Mac keyboard security"
 msgstr "Macキーボードセキュリティ"
 
 #: psychopy/app/_psychopyApp.py:369
-msgid "To use high-precision keyboard timing you should enable {} for PsychoPy in System Preferences. Shall we go there (and you can drag PsychoPy app into the box)?"
-msgstr "時間精度が高いキーボードを利用するにはシステム環境設定で{}を有効にする必要があります。開きますか？"
+msgid ""
+"To use high-precision keyboard timing you should enable {} for PsychoPy in "
+"System Preferences. Shall we go there (and you can drag PsychoPy app into "
+"the box)?"
+msgstr ""
+"時間精度が高いキーボードを利用するにはシステム環境設定で{}を有効にする必要が"
+"あります。開きますか？"
 
 #: psychopy/app/_psychopyApp.py:405
 msgid "Compatibility information"
@@ -97,10 +172,12 @@ msgid "Select .psydat file(s) to extract"
 msgstr "変換する.psydatファイルを選択してください"
 
 #: psychopy/app/_psychopyApp.py:790
-msgid "For stimulus generation and experimental control in python.\n"
+msgid ""
+"For stimulus generation and experimental control in python.\n"
 "PsychoPy depends on your feedback. If something doesn't work\n"
 "then let us know at psychopy-users@googlegroups.com"
-msgstr "Pythonによる刺激作成および実験制御アプリケーション\n"
+msgstr ""
+"Pythonによる刺激作成および実験制御アプリケーション\n"
 "PsychoPyはあなたからのフィードバックを求めています。不具合を見つけたら\n"
 "psychopy-users@googlegroups.com に御連絡ください"
 
@@ -574,9 +651,11 @@ msgid "Filepath:"
 msgstr "HTMLファイルのパス："
 
 #: psychopy/app/builder/builder.py:2422
-msgid "Select 'manually' to receive this alert when exporting HTML.\n"
+msgid ""
+"Select 'manually' to receive this alert when exporting HTML.\n"
 "Click 'OK' to export HTML, or click 'Cancel' to return."
-msgstr "HTML出力時にこのダイアログを表示する場合はmanuallyを選択してください\n"
+msgstr ""
+"HTML出力時にこのダイアログを表示する場合はmanuallyを選択してください\n"
 "HTMLに出力するならOK、出力しないならキャンセルをクリックしてください"
 
 #: psychopy/app/builder/builder.py:2505
@@ -625,8 +704,11 @@ msgstr "挿入するLoopのもう一端をクリックしてください"
 
 #: psychopy/app/builder/builder.py:2914
 #, python-format
-msgid "The \"%s\" Loop is about to be deleted as well (by collapsing). OK to proceed?"
-msgstr "「%s」というLoopの内容が空になるため削除されようとしています よろしいですか？"
+msgid ""
+"The \"%s\" Loop is about to be deleted as well (by collapsing). OK to "
+"proceed?"
+msgstr ""
+"「%s」というLoopの内容が空になるため削除されようとしています よろしいですか？"
 
 #: psychopy/app/builder/builder.py:2916
 msgid "Impending Loop collapse"
@@ -780,9 +862,11 @@ msgstr "パラメータが定義されていません(ファイルを選んで�
 
 #: psychopy/app/builder/dialogs/__init__.py:1478
 #, python-format
-msgid "%(nCondition)i conditions, with %(nParam)i parameters\n"
+msgid ""
+"%(nCondition)i conditions, with %(nParam)i parameters\n"
 "%(paramStr)s"
-msgstr "%(nParam)iパラメータ, %(nCondition)i条件\n"
+msgstr ""
+"%(nParam)iパラメータ, %(nCondition)i条件\n"
 "%(paramStr)s"
 
 #: psychopy/app/builder/dialogs/__init__.py:1487
@@ -811,9 +895,11 @@ msgid "Badly formed condition name(s) in file:\n"
 msgstr "不適切な条件名がファイルに含まれています:\n"
 
 #: psychopy/app/builder/dialogs/__init__.py:1725
-msgid ".\n"
+msgid ""
+".\n"
 "Need to be legal as var name; edit file, try again."
-msgstr ".\n"
+msgstr ""
+".\n"
 "条件名はPythonの変数として使用できる文字列でなければいけません"
 
 #: psychopy/app/builder/dialogs/__init__.py:1869
@@ -866,15 +952,21 @@ msgid "+param"
 msgstr "パラメータ追加"
 
 #: psychopy/app/builder/dialogs/dlgsConditions.py:492
-msgid "Add a parameter (column); to delete a param, set its type to None, or delete all of its values."
-msgstr "パラメータ(列)を追加します パラメータを削除するにはtypeをNoneにするか、すべての値を削除します"
+msgid ""
+"Add a parameter (column); to delete a param, set its type to None, or delete "
+"all of its values."
+msgstr ""
+"パラメータ(列)を追加します パラメータを削除するにはtypeをNoneにするか、すべて"
+"の値を削除します"
 
 #: psychopy/app/builder/dialogs/dlgsConditions.py:498
 msgid "Preview"
 msgstr "プレビュー"
 
 #: psychopy/app/builder/dialogs/dlgsConditions.py:499
-msgid "Show all values as they would appear after saving to a file, without actually saving anything."
+msgid ""
+"Show all values as they would appear after saving to a file, without "
+"actually saving anything."
 msgstr "セーブせずにセーブ後のファイルのすべての値を確認します"
 
 #: psychopy/app/builder/dialogs/dlgsConditions.py:505
@@ -1136,7 +1228,8 @@ msgstr "他のコンポーネントやルーチン，パラメータ"
 
 #: psychopy/app/builder/localizedStrings.py:106
 msgid " Avoid `this`, `these`, `continue`, `Clock`, or `component` in name"
-msgstr " this、these、continue、Clock、componentを名前に含まないようにしてください"
+msgstr ""
+" this、these、continue、Clock、componentを名前に含まないようにしてください"
 
 #: psychopy/app/builder/localizedStrings.py:107
 msgid "Builder variable"
@@ -1161,8 +1254,11 @@ msgstr "%sで使用されている名前です。名前を変更してくださ�
 
 #: psychopy/app/builder/validators.py:198
 #, python-brace-format
-msgid "It looks like your 'Correct answer' contains a variable - prepend variables with '$' e.g. ${val}"
-msgstr "「正答」が変数を含んでいるようです ${val}のように'$'を前につけてください"
+msgid ""
+"It looks like your 'Correct answer' contains a variable - prepend variables "
+"with '$' e.g. ${val}"
+msgstr ""
+"「正答」が変数を含んでいるようです ${val}のように'$'を前につけてください"
 
 #: psychopy/app/builder/validators.py:210
 msgid "Python syntax error in field `{}`:  {}"
@@ -1170,8 +1266,10 @@ msgstr "{}の`{}`にPythonの構文エラーがあります"
 
 #: psychopy/app/builder/validators.py:221
 #, python-brace-format
-msgid "Looks like your variable '{code}' in '{displayName}' should be set to update."
-msgstr "'{displayName}'の'{code}'は更新されるように設定すべき変数を含んでいるようです"
+msgid ""
+"Looks like your variable '{code}' in '{displayName}' should be set to update."
+msgstr ""
+"'{displayName}'の'{code}'は更新されるように設定すべき変数を含んでいるようです"
 
 #: psychopy/app/builder/validators.py:237
 msgid "Python var `{}` in `{}` is same as Name"
@@ -1273,9 +1371,11 @@ msgid "&Preferences"
 msgstr "設定"
 
 #: psychopy/app/coder/coder.py:353
-msgid "Select the test(s) to run, from:\n"
+msgid ""
+"Select the test(s) to run, from:\n"
 "psychopy/tests/test*"
-msgstr "テストを以下から選んで実行します\n"
+msgstr ""
+"テストを以下から選んで実行します\n"
 "psychopy/tests/test*"
 
 #: psychopy/app/coder/coder.py:360
@@ -1331,7 +1431,9 @@ msgstr "エディタ"
 
 #: psychopy/app/coder/coder.py:1179
 msgid "IPython failed as shell, using pyshell (IPython v0.12 can fail on wx)"
-msgstr "IPythonをシェルとして実行できません pyshellを使用します (IPython 0.12はwx上で動作しない場合があります)"
+msgstr ""
+"IPythonをシェルとして実行できません pyshellを使用します (IPython 0.12はwx上で"
+"動作しない場合があります)"
 
 #: psychopy/app/coder/coder.py:1187
 msgid "Shell"
@@ -1604,10 +1706,12 @@ msgstr "PsychoPyのオンラインリファレンスマニュアルを開きま�
 
 #: psychopy/app/coder/coder.py:1853 psychopy/app/coder/coder.py:1892
 #, python-format
-msgid "'%s' was modified outside of PsychoPy:\n"
+msgid ""
+"'%s' was modified outside of PsychoPy:\n"
 "\n"
 "Reload (without saving)?"
-msgstr "'%s'は\n"
+msgstr ""
+"'%s'は\n"
 "PsychoPy以外のアプリケーションで変更されました\n"
 "(保存せずに)再読み込みしますか？"
 
@@ -1627,7 +1731,8 @@ msgstr "解析中"
 
 #: psychopy/app/coder/coder.py:2116
 msgid "Failed to open `{}`. Make sure that encoding of the file is utf-8."
-msgstr "{}を開けませんでした ファイルの文字コードがutf-8であることを確認してください"
+msgstr ""
+"{}を開けませんでした ファイルの文字コードがutf-8であることを確認してください"
 
 #: psychopy/app/coder/coder.py:2199
 msgid "Loading file"
@@ -1635,18 +1740,22 @@ msgstr "ファイルの読み込み中"
 
 #: psychopy/app/coder/coder.py:2253
 #, python-format
-msgid "File appears to have been modified outside of PsychoPy:\n"
+msgid ""
+"File appears to have been modified outside of PsychoPy:\n"
 "   %s\n"
 "OK to overwrite?"
-msgstr "ファイルがPsychoPyの外部で変更されました:\n"
+msgstr ""
+"ファイルがPsychoPyの外部で変更されました:\n"
 "   %s\n"
 "上書きしますか？"
 
 #: psychopy/app/coder/coder.py:2265
 #, python-format
-msgid "File '%s' lacks write-permission:\n"
+msgid ""
+"File '%s' lacks write-permission:\n"
 "Will try save-as instead."
-msgstr "'%s'への書き込みパーミッションがありません\n"
+msgstr ""
+"'%s'への書き込みパーミッションがありません\n"
 "別名で保存します"
 
 #: psychopy/app/coder/coder.py:2279
@@ -1659,11 +1768,15 @@ msgstr "現在のコードを解析中"
 
 #: psychopy/app/coder/coder.py:2321
 msgid "Python scripts (*.py)|*.py|Text file (*.txt)|*.txt|Any file (*.*)|*.*"
-msgstr "Pythonスクリプト (*.py)|*.py|テキストファイル (*.txt)|*.txt|すべてのファイル (*.*)|*.*"
+msgstr ""
+"Pythonスクリプト (*.py)|*.py|テキストファイル (*.txt)|*.txt|すべてのファイル "
+"(*.*)|*.*"
 
 #: psychopy/app/coder/coder.py:2324
 msgid "Python scripts (*.py)|*.py|Text file (*.txt)|*.txt|Any file (*.*)|*"
-msgstr "Pythonスクリプト (*.py)|*.py|テキストファイル (*.txt)|*.txt|すべてのファイル (*.*)|*"
+msgstr ""
+"Pythonスクリプト (*.py)|*.py|テキストファイル (*.txt)|*.txt|すべてのファイル "
+"(*.*)|*"
 
 #: psychopy/app/coder/coder.py:2412
 #, python-format
@@ -1730,8 +1843,11 @@ msgid "Size"
 msgstr "サイズ"
 
 #: psychopy/app/coder/fileBrowser.py:261
-msgid "Cannot change working directory to location of file `{}`. It needs to be saved first."
-msgstr "作業ディレクトリを`{}`がある場所に変更できません。まず保存する必要があります"
+msgid ""
+"Cannot change working directory to location of file `{}`. It needs to be "
+"saved first."
+msgstr ""
+"作業ディレクトリを`{}`がある場所に変更できません。まず保存する必要があります"
 
 #: psychopy/app/coder/fileBrowser.py:301
 msgid "Enter folder name:"
@@ -1819,7 +1935,9 @@ msgstr "更新の確認のためにpsychopy.orgに接続できませんでした
 
 #: psychopy/app/connections/updates.py:101
 msgid "Check internet settings (and proxy setting in PsychoPy Preferences)."
-msgstr "インターネット接続の設定(およびPsychoPyの設定のプロキシの項目)を確認してください"
+msgstr ""
+"インターネット接続の設定(およびPsychoPyの設定のプロキシの項目)を確認してくだ"
+"さい"
 
 #: psychopy/app/connections/updates.py:105
 #: psychopy/app/connections/updates.py:154
@@ -1829,9 +1947,11 @@ msgstr "PsychoPyの更新"
 
 #: psychopy/app/connections/updates.py:144
 #, python-format
-msgid "PsychoPy v%(latest)s is available (you are running %(running)s).\n"
+msgid ""
+"PsychoPy v%(latest)s is available (you are running %(running)s).\n"
 "\n"
-msgstr "Psyuchopy v%(latest)sが利用できます (%(running)sを利用中)\n"
+msgstr ""
+"Psyuchopy v%(latest)sが利用できます (%(running)sを利用中)\n"
 "\n"
 
 #: psychopy/app/connections/updates.py:148
@@ -1839,8 +1959,11 @@ msgid "This version is too big an update to be handled automatically.\n"
 msgstr "このバージョンは変更が大きすぎて自動更新できません\n"
 
 #: psychopy/app/connections/updates.py:150
-msgid "Please fetch the latest version from www.psychopy.org and install manually."
-msgstr "最新バージョンを www.psychopy.org から入手して手作業でインストールしてください"
+msgid ""
+"Please fetch the latest version from www.psychopy.org and install manually."
+msgstr ""
+"最新バージョンを www.psychopy.org から入手して手作業でインストールしてくださ"
+"い"
 
 #: psychopy/app/connections/updates.py:155
 msgid "Go to downloads"
@@ -1861,23 +1984,31 @@ msgstr "最新バージョンのPsychoPy (%s)を利用中です "
 
 #: psychopy/app/connections/updates.py:195
 #, python-format
-msgid "PsychoPy v%(latest)s is available (you are running %(running)s).\n"
+msgid ""
+"PsychoPy v%(latest)s is available (you are running %(running)s).\n"
 "\n"
 "(To disable this check, see Preferences > connections > checkForUpdates)"
-msgstr "PsychoPy v%(latest)sが利用できます (%(running)sを使用中)\n"
+msgstr ""
+"PsychoPy v%(latest)sが利用できます (%(running)sを使用中)\n"
 "\n"
-"(更新チェックを無効にするには「設定」の「接続」の「更新の確認」をオフにしてください)"
+"(更新チェックを無効にするには「設定」の「接続」の「更新の確認」をオフにしてく"
+"ださい)"
 
 #: psychopy/app/connections/updates.py:202
-msgid "This version MAY require you to modify your\n"
+msgid ""
+"This version MAY require you to modify your\n"
 "scripts/exps slightly. Read the changelog carefully."
-msgstr "このバージョンは前バージョンで作成したスクリプトや実験の修正を必要とするかもしれません\n"
+msgstr ""
+"このバージョンは前バージョンで作成したスクリプトや実験の修正を必要とするかも"
+"しれません\n"
 "更新履歴を確認してください"
 
 #: psychopy/app/connections/updates.py:208
-msgid "There are no known compatibility\n"
+msgid ""
+"There are no known compatibility\n"
 "issues with your current version."
-msgstr "現在利用中のバージョンとの互換性の問題は\n"
+msgstr ""
+"現在利用中のバージョンとの互換性の問題は\n"
 "報告されていません"
 
 #: psychopy/app/connections/updates.py:212
@@ -1923,7 +2054,8 @@ msgstr " 自動更新(最新バージョンを取得します)"
 
 #: psychopy/app/connections/updates.py:299
 msgid " Use zip file below (download a PsychoPy release file ending .zip)"
-msgstr " 以下のZipファイルを使用 (拡張子.zipの配布ファイルをダウンロードしてください)"
+msgstr ""
+" 以下のZipファイルを使用 (拡張子.zipの配布ファイルをダウンロードしてください)"
 
 #: psychopy/app/connections/updates.py:310
 msgid "Install"
@@ -1935,15 +2067,19 @@ msgstr "閉じる"
 
 #: psychopy/app/connections/updates.py:333
 #, python-format
-msgid "You are running PsychoPy v%s.\n"
+msgid ""
+"You are running PsychoPy v%s.\n"
 " "
-msgstr "PsychoPy v%sを利用中です\n"
+msgstr ""
+"PsychoPy v%sを利用中です\n"
 " "
 
 #: psychopy/app/connections/updates.py:334
-msgid "PsychoPy could not connect to the \n"
+msgid ""
+"PsychoPy could not connect to the \n"
 " internet to check for more recent versions.\n"
-msgstr "PsychoPyはより新しいバージョンの確認のための\n"
+msgstr ""
+"PsychoPyはより新しいバージョンの確認のための\n"
 "インターネット接続に失敗しました\n"
 
 #: psychopy/app/connections/updates.py:336
@@ -1952,38 +2088,54 @@ msgstr "「設定」のプロキシの設定を確認してください"
 
 #: psychopy/app/connections/updates.py:340
 #, python-format
-msgid "You are running PsychoPy (%(running)s), which is ahead of the latest official version (%(latest)s)"
-msgstr "PsychoPy %(running)s を実行中です 公式の最新バージョン(%(latest)s)より新しいバージョンです"
+msgid ""
+"You are running PsychoPy (%(running)s), which is ahead of the latest "
+"official version (%(latest)s)"
+msgstr ""
+"PsychoPy %(running)s を実行中です 公式の最新バージョン(%(latest)s)より新しい"
+"バージョンです"
 
 #: psychopy/app/connections/updates.py:345
 #, python-format
-msgid "You are running the latest version of PsychoPy (%s)\n"
+msgid ""
+"You are running the latest version of PsychoPy (%s)\n"
 " "
-msgstr "最新バージョンのPsychoPy (%s)を利用中です\n"
+msgstr ""
+"最新バージョンのPsychoPy (%s)を利用中です\n"
 " "
 
 #: psychopy/app/connections/updates.py:346
-msgid "You can revert to a previous version by selecting a specific .zip source installation file"
-msgstr "特定のバージョンの.zip形式のソースファイルを選択して以前のバージョンへ戻すことができます"
+msgid ""
+"You can revert to a previous version by selecting a specific .zip source "
+"installation file"
+msgstr ""
+"特定のバージョンの.zip形式のソースファイルを選択して以前のバージョンへ戻すこ"
+"とができます"
 
 #: psychopy/app/connections/updates.py:350
 #, python-format
-msgid "PsychoPy v%(latest)s is available\n"
+msgid ""
+"PsychoPy v%(latest)s is available\n"
 "You are running v%(running)s"
-msgstr "PsychoPy v%(latest)sが利用できます\n"
+msgstr ""
+"PsychoPy v%(latest)sが利用できます\n"
 "v%(running)sを利用中"
 
 #: psychopy/app/connections/updates.py:355
-msgid "\n"
+msgid ""
+"\n"
 "You can update to the latest version automatically"
-msgstr "\n"
+msgstr ""
+"\n"
 "自動的に最新バージョンに更新できます"
 
 #: psychopy/app/connections/updates.py:357
-msgid "\n"
+msgid ""
+"\n"
 "You cannot update to the latest version automatically.\n"
 "Please fetch the latest Standalone package from www.psychopy.org"
-msgstr "\n"
+msgstr ""
+"\n"
 "最新バージョンに自動的に更新できません\n"
 "www.psychopy.org から最新のStandaloneパッケージを取得してください"
 
@@ -2003,8 +2155,12 @@ msgid "Successfully downloaded PsychoPy-%s.zip"
 msgstr "PsychoPy-%s.zipのダウンロードに成功しました"
 
 #: psychopy/app/connections/updates.py:484
-msgid "To upgrade you need to restart the app as admin (Right-click the app and 'Run as admin')"
-msgstr "PsychoPyを更新するためには管理者として実行する必要があります(アイコンを右クリックして'管理者として実行')"
+msgid ""
+"To upgrade you need to restart the app as admin (Right-click the app and "
+"'Run as admin')"
+msgstr ""
+"PsychoPyを更新するためには管理者として実行する必要があります(アイコンを右ク"
+"リックして'管理者として実行')"
 
 #: psychopy/app/connections/updates.py:488
 msgid "Could not move existing PsychoPy installation (permissions error?)"
@@ -2012,22 +2168,28 @@ msgstr "インストール済みのPsychoPyを移動できません (パーミ�
 
 #: psychopy/app/connections/updates.py:517
 #, python-format
-msgid "Right-click the app and 'Run as admin'):\n"
+msgid ""
+"Right-click the app and 'Run as admin'):\n"
 "%s"
-msgstr "アイコンを右クリックして'管理者として実行'):\n"
+msgstr ""
+"アイコンを右クリックして'管理者として実行'):\n"
 "%s"
 
 #: psychopy/app/connections/updates.py:519
 #, python-format
-msgid "Failed to create directory for new version (permissions error?):\n"
+msgid ""
+"Failed to create directory for new version (permissions error?):\n"
 "%s"
-msgstr "新バージョン用のディレクトリの作成に失敗しました (パーミッションエラー？):\n"
+msgstr ""
+"新バージョン用のディレクトリの作成に失敗しました (パーミッションエラー？):\n"
 "%s"
 
 #: psychopy/app/connections/updates.py:544
-msgid "Success. \n"
+msgid ""
+"Success. \n"
 "Changes to PsychoPy will be completed when the application is next run"
-msgstr "成功しました\n"
+msgstr ""
+"成功しました\n"
 "PsychoPyの更新は次回PsychoPyを実行したときに完了します"
 
 #: psychopy/app/connections/updates.py:553
@@ -2036,9 +2198,11 @@ msgid "Downloading PsychoPy v%s"
 msgstr "PsychoPy v%sをダウンロード中です"
 
 #: psychopy/app/connections/updates.py:558
-msgid "Failed to fetch PsychoPy release.\n"
+msgid ""
+"Failed to fetch PsychoPy release.\n"
 "Check proxy setting in preferences"
-msgstr "PsychoPyの取得に失敗しました\n"
+msgstr ""
+"PsychoPyの取得に失敗しました\n"
 "「設定」のプロキシの設定を確認してください"
 
 #: psychopy/app/dialogs.py:38 psychopy/gui/qtgui.py:602
@@ -2081,9 +2245,11 @@ msgid "Summary of changes"
 msgstr "変更の概要"
 
 #: psychopy/app/pavlovia_ui/_base.py:162
-msgid "Details of changes\n"
+msgid ""
+"Details of changes\n"
 " (optional)"
-msgstr "変更の詳細\n"
+msgstr ""
+"変更の詳細\n"
 "(任意)"
 
 #: psychopy/app/pavlovia_ui/_base.py:177
@@ -2108,7 +2274,8 @@ msgstr "\t{}: {} ファイル\n"
 
 #: psychopy/app/pavlovia_ui/functions.py:131
 msgid "You need to install git to use Pavlovia projects"
-msgstr "Pavloviaのプロジェクトを利用するにはgitをインストールする必要があります"
+msgstr ""
+"Pavloviaのプロジェクトを利用するにはgitをインストールする必要があります"
 
 #: psychopy/app/pavlovia_ui/menu.py:53
 msgid "Log in to Pavlovia...\t{}"
@@ -2235,7 +2402,8 @@ msgstr "プロジェクトを作成"
 
 #: psychopy/app/pavlovia_ui/project.py:596
 msgid "points to a remote that doesn't exist (deleted?)."
-msgstr "存在しないリモートプロジェクトを指しています(削除された可能性があります)"
+msgstr ""
+"存在しないリモートプロジェクトを指しています(削除された可能性があります)"
 
 #: psychopy/app/pavlovia_ui/project.py:597
 msgid "What shall we do?"
@@ -2255,7 +2423,8 @@ msgstr "まだサポートされていません"
 
 #: psychopy/app/pavlovia_ui/project.py:602
 msgid "Forget the local git repository (deletes history keeps files)"
-msgstr "ローカルなgitレポジトリを無視する(履歴は削除されるがファイルはそのまま)"
+msgstr ""
+"ローカルなgitレポジトリを無視する(履歴は削除されるがファイルはそのまま)"
 
 #: psychopy/app/pavlovia_ui/search.py:36
 msgid "Search for projects online"
@@ -3017,23 +3186,38 @@ msgid "Color Picker -> clipboard"
 msgstr "カラーピッカー(クリップボードへ)"
 
 #: psychopy/experiment/_experiment.py:447
-msgid "Name of the folder in which to save data and log files (blank defaults to the builder pref)"
-msgstr "ログファイルと実験データが保存されるフォルダ名 (空白の場合はPsychoPyの設定に従います)"
+msgid ""
+"Name of the folder in which to save data and log files (blank defaults to "
+"the builder pref)"
+msgstr ""
+"ログファイルと実験データが保存されるフォルダ名 (空白の場合はPsychoPyの設定に"
+"従います)"
 
 #: psychopy/experiment/_experiment.py:488
-msgid "This parameter is not known by this version of PsychoPy. It might be worth upgrading"
-msgstr "このパラメータは現在のPsychoPyのバージョンでは定義されていません 新しいバージョンに更新すると解決する可能性があります"
+msgid ""
+"This parameter is not known by this version of PsychoPy. It might be worth "
+"upgrading"
+msgstr ""
+"このパラメータは現在のPsychoPyのバージョンでは定義されていません 新しいバー"
+"ジョンに更新すると解決する可能性があります"
 
 #: psychopy/experiment/_experiment.py:498
 #, python-format
-msgid "Parameter %r is not known to this version of PsychoPy but has come from your experiment file (saved by a future version of PsychoPy?). This experiment may not run correctly in the current version."
-msgstr "パラメータ %r は現在のバージョンのPsychoPyでは定義されていませんが、実験ファイルに含まれています(新バージョンのPsychoPyで作成、保存された実験かもしれません)。この実験は現在のバージョンでは正常に動作しない可能性があります。"
+msgid ""
+"Parameter %r is not known to this version of PsychoPy but has come from your "
+"experiment file (saved by a future version of PsychoPy?). This experiment "
+"may not run correctly in the current version."
+msgstr ""
+"パラメータ %r は現在のバージョンのPsychoPyでは定義されていませんが、実験ファ"
+"イルに含まれています(新バージョンのPsychoPyで作成、保存された実験かもしれませ"
+"ん)。この実験は現在のバージョンでは正常に動作しない可能性があります。"
 
 #: psychopy/experiment/components/_base.py:54
 #: psychopy/experiment/components/eyetracker/__init__.py:41
 #: psychopy/experiment/components/unknown/__init__.py:36
 msgid "Name of this component (alpha-numeric or _, no spaces)"
-msgstr "このコンポーネントの名前を指定します (英数字と_のみ;スペースを含まない)"
+msgstr ""
+"このコンポーネントの名前を指定します (英数字と_のみ;スペースを含まない)"
 
 #: psychopy/experiment/components/_base.py:60
 #: psychopy/experiment/components/eyetracker/__init__.py:50
@@ -3064,16 +3248,22 @@ msgstr "終了時刻を指定します (空白の場合はRoutine終了まで)"
 #: psychopy/experiment/components/eyetracker/__init__.py:67
 #: psychopy/experiment/components/static/__init__.py:68
 msgid "(Optional) expected start (s), purely for representing in the timeline"
-msgstr "(オプション) 予想開始時刻; 開始時刻が不確定の場合などのタイムライン表示専用です"
+msgstr ""
+"(オプション) 予想開始時刻; 開始時刻が不確定の場合などのタイムライン表示専用で"
+"す"
 
 #: psychopy/experiment/components/_base.py:93
 #: psychopy/experiment/components/eyetracker/__init__.py:73
 #: psychopy/experiment/components/static/__init__.py:73
-msgid "(Optional) expected duration (s), purely for representing in the timeline"
-msgstr "(オプション) 予想実行時間; 実行時間が不確定の場合などのタイムライン表示専用です"
+msgid ""
+"(Optional) expected duration (s), purely for representing in the timeline"
+msgstr ""
+"(オプション) 予想実行時間; 実行時間が不確定の場合などのタイムライン表示専用で"
+"す"
 
 #: psychopy/experiment/components/_base.py:100
-msgid "Store the onset/offset times in the data file (as well as in the log file)."
+msgid ""
+"Store the onset/offset times in the data file (as well as in the log file)."
 msgstr "開始・終了時刻を(ログファイルと同様に)データファイルに出力します"
 
 #: psychopy/experiment/components/_base.py:105
@@ -3081,8 +3271,12 @@ msgid "Save onset/offset times"
 msgstr "開始・終了時刻を保存"
 
 #: psychopy/experiment/components/_base.py:107
-msgid "Synchronize times with screen refresh (good for visual stimuli and responses based on them)"
-msgstr "時刻をスクリーンの描画に同期します(視覚刺激および視覚刺激への反応の記録に有効です)"
+msgid ""
+"Synchronize times with screen refresh (good for visual stimuli and responses "
+"based on them)"
+msgstr ""
+"時刻をスクリーンの描画に同期します(視覚刺激および視覚刺激への反応の記録に有効"
+"です)"
 
 #: psychopy/experiment/components/_base.py:112
 msgid "Sync timing with screen refresh"
@@ -3101,11 +3295,16 @@ msgid "Units of dimensions for this stimulus"
 msgstr "この刺激に適用する単位を指定します"
 
 #: psychopy/experiment/components/_base.py:602
-msgid "Color of this stimulus (e.g. $[1,1,0], red ); Right-click to bring up a color-picker (rgb only)"
-msgstr "色($[1.0,1.0,0.0],redなど)を指定します; 右クリックで色選択ダイアログを表示します"
+msgid ""
+"Color of this stimulus (e.g. $[1,1,0], red ); Right-click to bring up a "
+"color-picker (rgb only)"
+msgstr ""
+"色($[1.0,1.0,0.0],redなど)を指定します; 右クリックで色選択ダイアログを表示し"
+"ます"
 
 #: psychopy/experiment/components/_base.py:611
-msgid "Opacity of the stimulus (1=opaque, 0=fully transparent, 0.5=translucent)"
+msgid ""
+"Opacity of the stimulus (1=opaque, 0=fully transparent, 0.5=translucent)"
 msgstr "刺激の不透明度を指定します (1=不透明, 0=完全に透明, 0.5=半透明)"
 
 #: psychopy/experiment/components/_base.py:621
@@ -3117,8 +3316,10 @@ msgid "Position of this stimulus (e.g. [1,2] )"
 msgstr "刺激の位置を指定します (例:[1,2])"
 
 #: psychopy/experiment/components/_base.py:637
-msgid "Size of this stimulus (either a single value or x,y pair, e.g. 2.5, [1,2] "
-msgstr "刺激の大きさを指定します (単一の値または縦横の値のペア, 例: 2.5, [1,2]) "
+msgid ""
+"Size of this stimulus (either a single value or x,y pair, e.g. 2.5, [1,2] "
+msgstr ""
+"刺激の大きさを指定します (単一の値または縦横の値のペア, 例: 2.5, [1,2]) "
 
 #: psychopy/experiment/components/_base.py:650
 #: psychopy/experiment/components/envelopegrating/__init__.py:71
@@ -3163,11 +3364,14 @@ msgid "Opacity"
 msgstr "不透明度"
 
 #: psychopy/experiment/components/brush/__init__.py:58
-msgid "Line color of this brush; Right-click to bring up a color-picker (rgb only)"
-msgstr "ブラシの色を指定します; 右クリックで色選択ダイアログを表示します(rgbのみ)"
+msgid ""
+"Line color of this brush; Right-click to bring up a color-picker (rgb only)"
+msgstr ""
+"ブラシの色を指定します; 右クリックで色選択ダイアログを表示します(rgbのみ)"
 
 #: psychopy/experiment/components/brush/__init__.py:67
-msgid "Width of the brush's line (always in pixels and limited to 10px max width)"
+msgid ""
+"Width of the brush's line (always in pixels and limited to 10px max width)"
 msgstr "ブラシの幅を指定します (単位の設定に関わらずpixで指定、上限は10px)"
 
 #: psychopy/experiment/components/brush/__init__.py:75
@@ -3181,8 +3385,12 @@ msgid "The line opacity"
 msgstr "線の不透明度"
 
 #: psychopy/experiment/components/cedrusBox/__init__.py:24
-msgid "Cedrus Button Box: Cedrus response boxes, using the pyxid library provided by Cedrus"
-msgstr "Cedrus Button Box: Cedrus社から提供されるpyxidライブラリを用いてCedrus response boxを使用します"
+msgid ""
+"Cedrus Button Box: Cedrus response boxes, using the pyxid library provided "
+"by Cedrus"
+msgstr ""
+"Cedrus Button Box: Cedrus社から提供されるpyxidライブラリを用いてCedrus "
+"response boxを使用します"
 
 #: psychopy/experiment/components/cedrusBox/__init__.py:28
 #: psychopy/experiment/components/joyButtons/__init__.py:30
@@ -3195,7 +3403,11 @@ msgid "Use box timer"
 msgstr "キーボックスのタイマーを使用"
 
 #: psychopy/experiment/components/cedrusBox/__init__.py:69
-msgid "What is the 'correct' response? NB, buttons are labelled 0 to 6 on a 7-button box. Enter 'None' (no quotes) if withholding a response is correct. Might be helpful to add a correctAns column and use $correctAns to compare to the key press."
+msgid ""
+"What is the 'correct' response? NB, buttons are labelled 0 to 6 on a 7-"
+"button box. Enter 'None' (no quotes) if withholding a response is correct. "
+"Might be helpful to add a correctAns column and use $correctAns to compare "
+"to the key press."
 msgstr "正答のボタンを指定します 押さないのが正答であればNoneを指定します"
 
 #: psychopy/experiment/components/cedrusBox/__init__.py:77
@@ -3205,12 +3417,18 @@ msgstr "読み取るキーの番号をカンマ区切りで並べます (空白�
 #: psychopy/experiment/components/cedrusBox/__init__.py:80
 #: psychopy/experiment/components/joyButtons/__init__.py:120
 #: psychopy/experiment/components/joystick/__init__.py:113
-msgid "Device number, if you have multiple devices which one do you want (0, 1, 2...)"
-msgstr "複数のデバイスをコンピュータに接続している場合は使用するデバイスの番号(0, 1, 2...)を指定します"
+msgid ""
+"Device number, if you have multiple devices which one do you want (0, 1, "
+"2...)"
+msgstr ""
+"複数のデバイスをコンピュータに接続している場合は使用するデバイスの番号(0, 1, "
+"2...)を指定します"
 
 #: psychopy/experiment/components/cedrusBox/__init__.py:95
-msgid "According to Cedrus the response box timer has a drift - use with caution!"
-msgstr "キーボックスのタイマーを使用します (Cedrusによるとドリフトがあるので注意！)"
+msgid ""
+"According to Cedrus the response box timer has a drift - use with caution!"
+msgstr ""
+"キーボックスのタイマーを使用します (Cedrusによるとドリフトがあるので注意！)"
 
 #: psychopy/experiment/components/code/__init__.py:18
 msgid "Code: insert python commands into an experiment"
@@ -3273,7 +3491,9 @@ msgid "Display Python or JS Code"
 msgstr "PythonとJavaScriptのコード表示を切り替えます"
 
 #: psychopy/experiment/components/code/__init__.py:74
-msgid "Code to run before the experiment starts (initialization); right-click checks syntax"
+msgid ""
+"Code to run before the experiment starts (initialization); right-click "
+"checks syntax"
 msgstr "実験初期化処理の前に実行されるコード; 右クリックで文法をチェック"
 
 #: psychopy/experiment/components/code/__init__.py:82
@@ -3282,31 +3502,52 @@ msgstr "実験開始時に実行されるコード; 右クリックで文法を�
 
 #: psychopy/experiment/components/code/__init__.py:90
 #: psychopy/experiment/components/code/__init__.py:141
-msgid "Code to be run at the start of each repeat of the Routine (e.g. each trial); right-click checks syntax"
-msgstr "Routineが繰り返し開始される度に実行されるコード; 右クリックで文法をチェック"
+msgid ""
+"Code to be run at the start of each repeat of the Routine (e.g. each trial); "
+"right-click checks syntax"
+msgstr ""
+"Routineが繰り返し開始される度に実行されるコード; 右クリックで文法をチェック"
 
 #: psychopy/experiment/components/code/__init__.py:99
 #: psychopy/experiment/components/code/__init__.py:150
-msgid "Code to be run on every video frame during for the duration of this Routine; right-click checks syntax"
-msgstr "このRoutineの実行中、フレームが描画される度に実行されるコード; 右クリックで文法をチェック"
+msgid ""
+"Code to be run on every video frame during for the duration of this Routine; "
+"right-click checks syntax"
+msgstr ""
+"このRoutineの実行中、フレームが描画される度に実行されるコード; 右クリックで文"
+"法をチェック"
 
 #: psychopy/experiment/components/code/__init__.py:108
 #: psychopy/experiment/components/code/__init__.py:159
-msgid "Code at the end of this repeat of the Routine (e.g. getting/storing responses); right-click checks syntax"
-msgstr "Routineが終了する度に実行されるコード (反応の取得や記録など); 右クリックで文法をチェック"
+msgid ""
+"Code at the end of this repeat of the Routine (e.g. getting/storing "
+"responses); right-click checks syntax"
+msgstr ""
+"Routineが終了する度に実行されるコード (反応の取得や記録など); 右クリックで文"
+"法をチェック"
 
 #: psychopy/experiment/components/code/__init__.py:117
 #: psychopy/experiment/components/code/__init__.py:168
-msgid "Code at the end of the entire experiment (e.g. saving files, resetting computer); right-click checks syntax"
-msgstr "実験全体の終了時に実験されるコード (ファイルの保存など); 右クリックで文法をチェック"
+msgid ""
+"Code at the end of the entire experiment (e.g. saving files, resetting "
+"computer); right-click checks syntax"
+msgstr ""
+"実験全体の終了時に実験されるコード (ファイルの保存など); 右クリックで文法を"
+"チェック"
 
 #: psychopy/experiment/components/code/__init__.py:126
-msgid "Code before the start of the experiment (initialization); right-click checks syntax"
+msgid ""
+"Code before the start of the experiment (initialization); right-click checks "
+"syntax"
 msgstr "実験初期化処理の前に実行されるコード; 右クリックで文法をチェック"
 
 #: psychopy/experiment/components/code/__init__.py:133
-msgid "Code at the start of the experiment (initialization); right-click checks syntax"
-msgstr "実験開始時に実行されるコード (実験の初期化処理など); 右クリックで文法をチェック"
+msgid ""
+"Code at the start of the experiment (initialization); right-click checks "
+"syntax"
+msgstr ""
+"実験開始時に実行されるコード (実験の初期化処理など); 右クリックで文法をチェッ"
+"ク"
 
 #: psychopy/experiment/components/dots/__init__.py:16
 msgid "Dots: Random Dot Kinematogram"
@@ -3361,8 +3602,11 @@ msgid "Dot refresh rule"
 msgstr "ドットの更新ルール"
 
 #: psychopy/experiment/components/dots/__init__.py:58
-msgid "Number of dots in the field (for circular fields this will be average number of dots)"
-msgstr "フィールドに含まれるドットの数を指定します (円形のフィールドでは平均ドット数)"
+msgid ""
+"Number of dots in the field (for circular fields this will be average number "
+"of dots)"
+msgstr ""
+"フィールドに含まれるドットの数を指定します (円形のフィールドでは平均ドット数)"
 
 #: psychopy/experiment/components/dots/__init__.py:66
 msgid "Direction of motion for the signal dots (degrees)"
@@ -3370,22 +3614,34 @@ msgstr "シグナルのドットの運動方向を指定します (単位は度)
 
 #: psychopy/experiment/components/dots/__init__.py:74
 msgid "Speed of the dots (displacement per frame in the specified units)"
-msgstr "ドットの速度を指定します (1フレームでの移動量; 移動量の単位はダイアログの設定に従う)"
+msgstr ""
+"ドットの速度を指定します (1フレームでの移動量; 移動量の単位はダイアログの設定"
+"に従う)"
 
 #: psychopy/experiment/components/dots/__init__.py:83
-msgid "Coherence of the dots (fraction moving in the signal direction on any one frame)"
-msgstr "ドットのコヒーレンスを指定します (各フレームにおいてシグナル方向に運動するドットの割合)"
+msgid ""
+"Coherence of the dots (fraction moving in the signal direction on any one "
+"frame)"
+msgstr ""
+"ドットのコヒーレンスを指定します (各フレームにおいてシグナル方向に運動する"
+"ドットの割合)"
 
 #: psychopy/experiment/components/dots/__init__.py:92
 msgid "Size of the dots IN PIXELS regardless of the set units"
 msgstr "ドットの大きさをを指定します (単位の設定に関わらずpix)"
 
 #: psychopy/experiment/components/dots/__init__.py:101
-msgid "Number of frames before each dot is killed and randomly assigned a new position"
-msgstr "ドットが消去されてランダムに新しい位置に割り当てられるまでのフレーム数を指定します"
+msgid ""
+"Number of frames before each dot is killed and randomly assigned a new "
+"position"
+msgstr ""
+"ドットが消去されてランダムに新しい位置に割り当てられるまでのフレーム数を指定"
+"します"
 
 #: psychopy/experiment/components/dots/__init__.py:108
-msgid "On each frame are the signals dots remaining the same or changing? See Scase et al."
+msgid ""
+"On each frame are the signals dots remaining the same or changing? See Scase "
+"et al."
 msgstr "「同一方向」にするとシグナルのドットはフレーム間で変化しません"
 
 #: psychopy/experiment/components/dots/__init__.py:115
@@ -3394,7 +3650,9 @@ msgstr "ドット全体が更新されるタイミングを指定します"
 
 #: psychopy/experiment/components/dots/__init__.py:123
 msgid "What governs the behaviour of the noise dots? See Scase et al."
-msgstr "「一定方向」にすると一定方向に、「ランダム位置」であればフレーム間でランダムな位置に、\n"
+msgstr ""
+"「一定方向」にすると一定方向に、「ランダム位置」であればフレーム間でランダム"
+"な位置に、\n"
 "「ランダムウォーク」であればフレーム間でランダムな方向にノイズが運動します"
 
 #: psychopy/experiment/components/dots/__init__.py:135
@@ -3410,8 +3668,12 @@ msgid "Where is the field centred (in the specified units)?"
 msgstr "フィールドの中心位置を指定します"
 
 #: psychopy/experiment/components/envelopegrating/__init__.py:17
-msgid "Envelope Grating: present cyclic textures including 2nd order envelope stimuli, prebuilt or from a file"
-msgstr "Envelope Grating: 二次のエンベロープ刺激を含む周期的なテクスチャ刺激を描画します"
+msgid ""
+"Envelope Grating: present cyclic textures including 2nd order envelope "
+"stimuli, prebuilt or from a file"
+msgstr ""
+"Envelope Grating: 二次のエンベロープ刺激を含む周期的なテクスチャ刺激を描画し"
+"ます"
 
 #: psychopy/experiment/components/envelopegrating/__init__.py:21
 msgid "Carrier texture"
@@ -3493,23 +3755,34 @@ msgid "OpenGL blend mode"
 msgstr "OpenGLのブレンドモード"
 
 #: psychopy/experiment/components/envelopegrating/__init__.py:74
-msgid "The (2D) texture of the background - can be sin, sqr, sinXsin... or a filename (including path)"
-msgstr "背景となる(2D)テクスチャ (sin, sqr, sinXsin, ファイル名など)を指定します。"
+msgid ""
+"The (2D) texture of the background - can be sin, sqr, sinXsin... or a "
+"filename (including path)"
+msgstr ""
+"背景となる(2D)テクスチャ (sin, sqr, sinXsin, ファイル名など)を指定します。"
 
 #: psychopy/experiment/components/envelopegrating/__init__.py:83
 #: psychopy/experiment/components/grating/__init__.py:62
 #: psychopy/experiment/components/noise/__init__.py:97
 #: psychopy/experiment/components/patch/__init__.py:61
-msgid "An image to define the alpha mask (ie shape)- gauss, circle... or a filename (including path)"
-msgstr "αマスクを指定して形状を変更します(gauss, circle, ... パスを含むファイル名など)。"
+msgid ""
+"An image to define the alpha mask (ie shape)- gauss, circle... or a filename "
+"(including path)"
+msgstr ""
+"αマスクを指定して形状を変更します(gauss, circle, ... パスを含むファイル名な"
+"ど)。"
 
 #: psychopy/experiment/components/envelopegrating/__init__.py:92
 msgid "Contrast of background carrier"
 msgstr "背景となるキャリアのコントラストを指定します"
 
 #: psychopy/experiment/components/envelopegrating/__init__.py:100
-msgid "Spatial frequency of background carrier repeats across the grating in 1 or 2 dimensions, e.g. 4 or [2,3]"
-msgstr "背景となるキャリアの空間周波数を１次元または２次元(例えば4 や[2,3])で指定ます。"
+msgid ""
+"Spatial frequency of background carrier repeats across the grating in 1 or 2 "
+"dimensions, e.g. 4 or [2,3]"
+msgstr ""
+"背景となるキャリアの空間周波数を１次元または２次元(例えば4 や[2,3])で指定ま"
+"す。"
 
 #: psychopy/experiment/components/envelopegrating/__init__.py:109
 msgid "Spatial positioning of the background carrier (wraps in range 0-1.0)"
@@ -3519,8 +3792,11 @@ msgstr "背景となるキャリアの位相を指定します(0.0から1.0の�
 #: psychopy/experiment/components/grating/__init__.py:90
 #: psychopy/experiment/components/noise/__init__.py:137
 #: psychopy/experiment/components/patch/__init__.py:89
-msgid "Resolution of the texture for standard ones such as sin, sqr etc. For most cases a value of 256 pixels will suffice"
-msgstr "Sin, sqrといったテクスチャの解像度を指定します 多くの場合256pixで十分です"
+msgid ""
+"Resolution of the texture for standard ones such as sin, sqr etc. For most "
+"cases a value of 256 pixels will suffice"
+msgstr ""
+"Sin, sqrといったテクスチャの解像度を指定します 多くの場合256pixで十分です"
 
 #: psychopy/experiment/components/envelopegrating/__init__.py:128
 #: psychopy/experiment/components/grating/__init__.py:99
@@ -3532,12 +3808,19 @@ msgid "How should the image be interpolated if/when rescaled"
 msgstr "画像がリサイズされた時の補間方法を指定します"
 
 #: psychopy/experiment/components/envelopegrating/__init__.py:137
-msgid "The (2D) texture of the envelope - can be sin, sqr, sinXsin... or a filename (including path)"
-msgstr "エンベロープとなる(2D)テクスチャ(sin, sqr, sinXsin, ファイル名など)を指定します。"
+msgid ""
+"The (2D) texture of the envelope - can be sin, sqr, sinXsin... or a filename "
+"(including path)"
+msgstr ""
+"エンベロープとなる(2D)テクスチャ(sin, sqr, sinXsin, ファイル名など)を指定しま"
+"す。"
 
 #: psychopy/experiment/components/envelopegrating/__init__.py:146
-msgid "Spatial frequency of the modulation envelope repeats across the grating in 1 or 2 dimensions, e.g. 4 or [2,3]"
-msgstr "変調エンベロープの空間周波数を1次元または2次元(例えば4や[2,3])で指定します。"
+msgid ""
+"Spatial frequency of the modulation envelope repeats across the grating in 1 "
+"or 2 dimensions, e.g. 4 or [2,3]"
+msgstr ""
+"変調エンベロープの空間周波数を1次元または2次元(例えば4や[2,3])で指定します。"
 
 #: psychopy/experiment/components/envelopegrating/__init__.py:155
 msgid "Spatial positioning of the modulation envelope(wraps in range 0-1.0)"
@@ -3552,24 +3835,55 @@ msgid "Modulation depth of modulation envelope"
 msgstr "変調エンベロープによる変調幅を指定します"
 
 #: psychopy/experiment/components/envelopegrating/__init__.py:181
-msgid "Power of modulation envelope. The modulator will be raised to this power according to the equation S=cC*(1+mM)^power, where C is the carrier and M is the modulator. and c and m are there respective contrast and modulation depth. Only works with AM envelopes (hence +1) in equation. Power is ignored if a beat is requested. This is used to obtain the square root of the modulator (power = 0.5) which is useful if combining two envelope gratings with different carriers and a 180 degree phase shift as the resulting combined signal will not have any reduction in local contrast at any point in the image. This is similar - but not identical to - the method used by Landy and Oruc, Vis Res 2002. Note overall contrast (apparent carrier contrast) will be altered."
-msgstr "変調エンベロープのパワー。モジュレータはS=cC*(1+mM)^pの式に従って持ち上げられます(Cはキャリア、Mはモジュレータ、pはパワー)。cとmはコントラストと変調幅です。AMエンベロープでのみ機能します。ビートが設定された場合はパワーは無視されます。異なるキャリアと180度位相が異なるモジュレータを持つ2つのエンベロープグレーティングを結合して画像の任意の位置において局所的なコントラストが減少しない刺激を作成するときに便利なモジュレータの平方根(パワー=0.5)を得るために便利です。この刺激はLandy and Oruc, Vis Res 2002で用いられた刺激と同一ではありませんがよく似ています。全体的なコントラスト(見た目上のキャリアのコントラスト)は変化しないことに注意してください。"
+msgid ""
+"Power of modulation envelope. The modulator will be raised to this power "
+"according to the equation S=cC*(1+mM)^power, where C is the carrier and M is "
+"the modulator. and c and m are there respective contrast and modulation "
+"depth. Only works with AM envelopes (hence +1) in equation. Power is ignored "
+"if a beat is requested. This is used to obtain the square root of the "
+"modulator (power = 0.5) which is useful if combining two envelope gratings "
+"with different carriers and a 180 degree phase shift as the resulting "
+"combined signal will not have any reduction in local contrast at any point "
+"in the image. This is similar - but not identical to - the method used by "
+"Landy and Oruc, Vis Res 2002. Note overall contrast (apparent carrier "
+"contrast) will be altered."
+msgstr ""
+"変調エンベロープのパワー。モジュレータはS=cC*(1+mM)^pの式に従って持ち上げられ"
+"ます(Cはキャリア、Mはモジュレータ、pはパワー)。cとmはコントラストと変調幅で"
+"す。AMエンベロープでのみ機能します。ビートが設定された場合はパワーは無視され"
+"ます。異なるキャリアと180度位相が異なるモジュレータを持つ2つのエンベロープグ"
+"レーティングを結合して画像の任意の位置において局所的なコントラストが減少しな"
+"い刺激を作成するときに便利なモジュレータの平方根(パワー=0.5)を得るために便利"
+"です。この刺激はLandy and Oruc, Vis Res 2002で用いられた刺激と同一ではありま"
+"せんがよく似ています。全体的なコントラスト(見た目上のキャリアのコントラスト)"
+"は変化しないことに注意してください。"
 
 #: psychopy/experiment/components/envelopegrating/__init__.py:203
-msgid "Do you want a 'beat'? [beat = carrier*envelope, no beat = carrier*(1+envelope), True/False, Y/N]"
-msgstr "ビートを使用しますか？(ビート=carrier*envelope, ビート無し=carrier*(1+envelope)　True/FalseまたはY/Nで指定)"
+msgid ""
+"Do you want a 'beat'? [beat = carrier*envelope, no beat = "
+"carrier*(1+envelope), True/False, Y/N]"
+msgstr ""
+"ビートを使用しますか？(ビート=carrier*envelope, ビート無し"
+"=carrier*(1+envelope)　True/FalseまたはY/Nで指定)"
 
 #: psychopy/experiment/components/envelopegrating/__init__.py:212
-msgid "OpenGL Blendmode. Avg is most common mode in PsychoPy, add is useful if combining a beat with the carrier image or numpy array at point of display"
-msgstr "OpenGLのブレンドモードを指定します avgはPsychoPyの標準モードです addはビートをキャリア画像やNumpyの行列とディスプレイ上で結合したい場合に便利です"
+msgid ""
+"OpenGL Blendmode. Avg is most common mode in PsychoPy, add is useful if "
+"combining a beat with the carrier image or numpy array at point of display"
+msgstr ""
+"OpenGLのブレンドモードを指定します avgはPsychoPyの標準モードです addはビート"
+"をキャリア画像やNumpyの行列とディスプレイ上で結合したい場合に便利です"
 
 #: psychopy/experiment/components/eyetracker/__init__.py:17
 msgid "Eyetracker: use one of several eyetrackers to follow gaze"
 msgstr "Eyetracker: サポートするアイトラッカーを利用して視線位置を取得します"
 
 #: psychopy/experiment/components/eyetracker/__init__.py:85
-msgid "How often should the eyetracker state (x,y,pupilsize...) be stored? On every video frame, every click or just at the end of the Routine?"
-msgstr "アイトラッカーの状態(x, y, 瞳孔サイズ...)を保存するタイミングを指定します"
+msgid ""
+"How often should the eyetracker state (x,y,pupilsize...) be stored? On every "
+"video frame, every click or just at the end of the Routine?"
+msgstr ""
+"アイトラッカーの状態(x, y, 瞳孔サイズ...)を保存するタイミングを指定します"
 
 #: psychopy/experiment/components/form/__init__.py:18
 msgid "Form: a Psychopy survey tool"
@@ -3604,8 +3918,12 @@ msgid "The csv filename containing the items for your survey."
 msgstr "調査項目を定義したcsvまたはxlsxファイル"
 
 #: psychopy/experiment/components/form/__init__.py:80
-msgid "Size of the Form on screen in 'height' units. e.g. (1, .7) height units for horizontal,and vertical, respectively"
-msgstr "単位'height'で示したフォームの大きさ：例えば(1, .7)とするとそれぞれheightで幅1、高さ0.7"
+msgid ""
+"Size of the Form on screen in 'height' units. e.g. (1, .7) height units for "
+"horizontal,and vertical, respectively"
+msgstr ""
+"単位'height'で示したフォームの大きさ：例えば(1, .7)とするとそれぞれheightで幅"
+"1、高さ0.7"
 
 #: psychopy/experiment/components/form/__init__.py:87
 msgid "x,y position of the form on screen"
@@ -3629,7 +3947,9 @@ msgstr "項目データが行方向か列方向かを指定"
 
 #: psychopy/experiment/components/grating/__init__.py:17
 msgid "Grating: present cyclic textures, prebuilt or from a file"
-msgstr "Grating: 組み込みの、またはファイルから読み込んだテクスチャを周期的に描画します"
+msgstr ""
+"Grating: 組み込みの、またはファイルから読み込んだテクスチャを周期的に描画しま"
+"す"
 
 #: psychopy/experiment/components/grating/__init__.py:21
 msgid "Texture"
@@ -3647,19 +3967,29 @@ msgid "Phase (in cycles)"
 msgstr "位相 (周期に対する比)"
 
 #: psychopy/experiment/components/grating/__init__.py:53
-msgid "The (2D) texture of the grating - can be sin, sqr, sinXsin... or a filename (including path)"
-msgstr "グレーティングのテクスチャを指定します(sin, sqr, sinXsin, ... ファイル名など)。"
+msgid ""
+"The (2D) texture of the grating - can be sin, sqr, sinXsin... or a filename "
+"(including path)"
+msgstr ""
+"グレーティングのテクスチャを指定します(sin, sqr, sinXsin, ... ファイル名な"
+"ど)。"
 
 #: psychopy/experiment/components/grating/__init__.py:71
-msgid "Spatial frequency of image repeats across the grating in 1 or 2 dimensions, e.g. 4 or [2,3]"
-msgstr "グレーティングの空間周波数(テクスチャが繰り返される回数)を指定します。1次元または2次元の値を指定できます。"
+msgid ""
+"Spatial frequency of image repeats across the grating in 1 or 2 dimensions, "
+"e.g. 4 or [2,3]"
+msgstr ""
+"グレーティングの空間周波数(テクスチャが繰り返される回数)を指定します。1次元ま"
+"たは2次元の値を指定できます。"
 
 #: psychopy/experiment/components/grating/__init__.py:80
 msgid "Spatial positioning of the image on the grating (wraps in range 0-1.0)"
 msgstr "グレーティングの位相を指定します (0.0から1.0の範囲に丸められます)"
 
 #: psychopy/experiment/components/grating/__init__.py:107
-msgid "OpenGL Blendmode: avg gives traditional transparency, add is important to combine gratings)]"
+msgid ""
+"OpenGL Blendmode: avg gives traditional transparency, add is important to "
+"combine gratings)]"
 msgstr "OpenGLのブレンドモードを指定します。"
 
 #: psychopy/experiment/components/image/__init__.py:17
@@ -3683,8 +4013,12 @@ msgid "The image to be displayed - a filename, including path"
 msgstr "描画する画像ファイルをパスも含めて指定します"
 
 #: psychopy/experiment/components/image/__init__.py:66
-msgid "An image to define the alpha mask through which the image is seen - gauss, circle, None or a filename (including path)"
-msgstr "αマスクを指定して形状を変更します(gauss, circle, ... パスを含むファイル名など)"
+msgid ""
+"An image to define the alpha mask through which the image is seen - gauss, "
+"circle, None or a filename (including path)"
+msgstr ""
+"αマスクを指定して形状を変更します(gauss, circle, ... パスを含むファイル名な"
+"ど)"
 
 #: psychopy/experiment/components/image/__init__.py:75
 msgid "Resolution of the mask if one is used."
@@ -3699,8 +4033,12 @@ msgid "Should the image be flipped horizontally (left to right)?"
 msgstr "画像を左右に反転します"
 
 #: psychopy/experiment/components/ioLabs/__init__.py:21
-msgid "ioLabs ButtonBox: check and record response buttons on ioLab Systems ButtonBox"
-msgstr "ioLabs ButtonBox: ioLab Systems製ボタンボックスを使ってボタン押し反応を記録します"
+msgid ""
+"ioLabs ButtonBox: check and record response buttons on ioLab Systems "
+"ButtonBox"
+msgstr ""
+"ioLabs ButtonBox: ioLab Systems製ボタンボックスを使ってボタン押し反応を記録し"
+"ます"
 
 #: psychopy/experiment/components/ioLabs/__init__.py:25
 msgid "Active buttons"
@@ -3715,7 +4053,11 @@ msgid "Lights off"
 msgstr "ライトOFF"
 
 #: psychopy/experiment/components/ioLabs/__init__.py:69
-msgid "What is the 'correct' response? NB, buttons are labelled 0 to 7 on a 8-button box. Enter 'None' (no quotes) if withholding a response is correct. Might be helpful to add a correctAns column and use $correctAns to compare to the key press."
+msgid ""
+"What is the 'correct' response? NB, buttons are labelled 0 to 7 on a 8-"
+"button box. Enter 'None' (no quotes) if withholding a response is correct. "
+"Might be helpful to add a correctAns column and use $correctAns to compare "
+"to the key press."
 msgstr "正答のボタンを指定します 押さないのが正答であればNoneを指定します"
 
 #: psychopy/experiment/components/ioLabs/__init__.py:79
@@ -3736,7 +4078,8 @@ msgstr "ボタンのライトをRoutine終了時にオフにします"
 
 #: psychopy/experiment/components/joyButtons/__init__.py:22
 msgid "JoyButtons: check and record joystick/gamepad button presses"
-msgstr "JoyButtons: ジョイスティック/ゲームパッドのボタン押しをチェックし記録します"
+msgstr ""
+"JoyButtons: ジョイスティック/ゲームパッドのボタン押しをチェックし記録します"
 
 #: psychopy/experiment/components/joyButtons/__init__.py:25
 msgid "Allowed buttons"
@@ -3782,7 +4125,9 @@ msgstr "記録するキーを指定します"
 #: psychopy/experiment/components/joyButtons/__init__.py:84
 #: psychopy/experiment/components/keyboard/__init__.py:99
 msgid "Should a response force the end of the Routine (e.g end the trial)?"
-msgstr "キー押しを検出すると強制的にRoutineを終了します(「有効なクリック」なら「クリック可能な視覚刺激」をクリック時のみ終了)"
+msgstr ""
+"キー押しを検出すると強制的にRoutineを終了します(「有効なクリック」なら「ク"
+"リック可能な視覚刺激」をクリック時のみ終了)"
 
 #: psychopy/experiment/components/joyButtons/__init__.py:92
 #: psychopy/experiment/components/keyboard/__init__.py:107
@@ -3791,12 +4136,18 @@ msgstr "反応の正誤を記録します"
 
 #: psychopy/experiment/components/joyButtons/__init__.py:101
 #: psychopy/experiment/components/keyboard/__init__.py:116
-msgid "What is the 'correct' key? Might be helpful to add a correctAns column and use $correctAns to compare to the key press."
-msgstr "正答とするキーを指定します 条件ファイルにcorrectAnsという列を追加して$thisTrial.correctAnsとすると条件ファイルで正答を指定できます"
+msgid ""
+"What is the 'correct' key? Might be helpful to add a correctAns column and "
+"use $correctAns to compare to the key press."
+msgstr ""
+"正答とするキーを指定します 条件ファイルにcorrectAnsという列を追加して"
+"$thisTrial.correctAnsとすると条件ファイルで正答を指定できます"
 
 #: psychopy/experiment/components/joyButtons/__init__.py:111
 #: psychopy/experiment/components/keyboard/__init__.py:126
-msgid "A reaction time to a visual stimulus should be based on when the screen flipped"
+msgid ""
+"A reaction time to a visual stimulus should be based on when the screen "
+"flipped"
 msgstr "視覚刺激に対する反応時間計測をスクリーンのフリップに合わせて開始します"
 
 #: psychopy/experiment/components/joystick/__init__.py:19
@@ -3832,7 +4183,9 @@ msgid "Allowed Buttons"
 msgstr "検出するボタン"
 
 #: psychopy/experiment/components/joystick/__init__.py:61
-msgid "How often should the joystick state (x,y,buttons) be stored? On every video frame, every click or just at the end of the Routine?"
+msgid ""
+"How often should the joystick state (x,y,buttons) be stored? On every video "
+"frame, every click or just at the end of the Routine?"
 msgstr "ジョイスティックの状態を保存するタイミングを指定します"
 
 #: psychopy/experiment/components/joystick/__init__.py:70
@@ -3842,16 +4195,28 @@ msgstr "ボタン押しを検出すると強制的にRoutineを終了します"
 
 #: psychopy/experiment/components/joystick/__init__.py:83
 msgid "What should the values of joystick.time should be relative to?"
-msgstr "ジョイスティックの時計の開始時刻を実験開始時にするかRoutine開始時にするか指定します"
+msgstr ""
+"ジョイスティックの時計の開始時刻を実験開始時にするかRoutine開始時にするか指定"
+"します"
 
 #: psychopy/experiment/components/joystick/__init__.py:92
 #: psychopy/experiment/components/mouse/__init__.py:101
-msgid "A comma-separated list of your stimulus names that can be \"clicked\" by the participant. e.g. target, foil"
-msgstr "クリックの判定対象となる刺激名(例: target, foil)をカンマ区切りのリストで指定します"
+msgid ""
+"A comma-separated list of your stimulus names that can be \"clicked\" by the "
+"participant. e.g. target, foil"
+msgstr ""
+"クリックの判定対象となる刺激名(例: target, foil)をカンマ区切りのリストで指定"
+"します"
 
 #: psychopy/experiment/components/joystick/__init__.py:102
-msgid "The params (e.g. name, text), for which you want to store the current value, for the stimulus that was\"clicked\" by the joystick. Make sure that all the clickable objects have all these params."
-msgstr "クリックしたと判定された刺激のパラメータ(例: name, text)のうち、クリック時の値を保存したいものの名前を指定します すべてのクリック可能な刺激がここに挙げたパラメータを全て持っていなければいけません"
+msgid ""
+"The params (e.g. name, text), for which you want to store the current value, "
+"for the stimulus that was\"clicked\" by the joystick. Make sure that all the "
+"clickable objects have all these params."
+msgstr ""
+"クリックしたと判定された刺激のパラメータ(例: name, text)のうち、クリック時の"
+"値を保存したいものの名前を指定します すべてのクリック可能な刺激がここに挙げた"
+"パラメータを全て持っていなければいけません"
 
 #: psychopy/experiment/components/joystick/__init__.py:122
 msgid "Buttons to be read (blank for any) numbers separated by commas"
@@ -3874,15 +4239,22 @@ msgid "Sync timing with screen"
 msgstr "時間計測をスクリーンに同期"
 
 #: psychopy/experiment/components/keyboard/__init__.py:71
-msgid "A comma-separated list of keys (with quotes), such as 'q','right','space','left'"
-msgstr "カンマ区切りのキー名のリスト(引用符が必要), 例: 'q','right','space','left'"
+msgid ""
+"A comma-separated list of keys (with quotes), such as "
+"'q','right','space','left'"
+msgstr ""
+"カンマ区切りのキー名のリスト(引用符が必要), 例: 'q','right','space','left'"
 
 #: psychopy/experiment/components/keyboard/__init__.py:82
-msgid "Do you want to discard all responses occuring before the onset of this component?"
+msgid ""
+"Do you want to discard all responses occuring before the onset of this "
+"component?"
 msgstr "計測開始前のすべてのキー押しを破棄します"
 
 #: psychopy/experiment/components/microphone/__init__.py:19
-msgid "Microphone: basic sound capture (fixed onset & duration), okay for spoken words"
+msgid ""
+"Microphone: basic sound capture (fixed onset & duration), okay for spoken "
+"words"
 msgstr "Microphone: 録音を行います(開始時刻と録音時間は固定)"
 
 #: psychopy/experiment/components/microphone/__init__.py:22
@@ -3895,15 +4267,22 @@ msgstr "チャネル"
 
 #: psychopy/experiment/components/microphone/__init__.py:45
 msgid "Record two channels (stereo) or one (mono, smaller file)"
-msgstr "チェックするとステレオ録音、チェックを外すとモノラル録音(ファイルサイズ小)をします"
+msgstr ""
+"チェックするとステレオ録音、チェックを外すとモノラル録音(ファイルサイズ小)を"
+"します"
 
 #: psychopy/experiment/components/microphone/__init__.py:54
 msgid "The duration of the recording in seconds; blank = 0 sec"
 msgstr "録音時間を秒で指定します(空白は0秒)"
 
 #: psychopy/experiment/components/microphone/__init__.py:57
-msgid "Enter a channel number. Default value is 0. If unsure, run 'sound.backend.get_input_devices()' to locate the system's selected device/channel."
-msgstr "チャネル番号を指定します。初期値は0です。わからない場合はsound.backend.get_input_devices()を実行して選択されているデバイスとチャネルを確認してください。"
+msgid ""
+"Enter a channel number. Default value is 0. If unsure, run 'sound.backend."
+"get_input_devices()' to locate the system's selected device/channel."
+msgstr ""
+"チャネル番号を指定します。初期値は0です。わからない場合はsound.backend."
+"get_input_devices()を実行して選択されているデバイスとチャネルを確認してくださ"
+"い。"
 
 #: psychopy/experiment/components/mouse/__init__.py:18
 msgid "Mouse: query mouse position and buttons"
@@ -3918,20 +4297,33 @@ msgid "New clicks only"
 msgstr "新たなクリックのみ検出"
 
 #: psychopy/experiment/components/mouse/__init__.py:60
-msgid "How often should the mouse state (x,y,buttons) be stored? On every video frame, every click or just at the end of the Routine?"
+msgid ""
+"How often should the mouse state (x,y,buttons) be stored? On every video "
+"frame, every click or just at the end of the Routine?"
 msgstr "マウスの状態を保存するタイミングを指定します"
 
 #: psychopy/experiment/components/mouse/__init__.py:82
 msgid "What should the values of mouse.time should be relative to?"
-msgstr "マウスの時計の開始時刻を実験開始時にするかRoutine開始時にするか指定します"
+msgstr ""
+"マウスの時計の開始時刻を実験開始時にするかRoutine開始時にするか指定します"
 
 #: psychopy/experiment/components/mouse/__init__.py:92
-msgid "If the mouse button is already down when we start checking then wait for it to be released before recording as a new click."
-msgstr "ボタン押し検出開始時にすでにボタンが押されていた場合、ボタンがいったん離されてからボタン押しのチェックを開始します"
+msgid ""
+"If the mouse button is already down when we start checking then wait for it "
+"to be released before recording as a new click."
+msgstr ""
+"ボタン押し検出開始時にすでにボタンが押されていた場合、ボタンがいったん離され"
+"てからボタン押しのチェックを開始します"
 
 #: psychopy/experiment/components/mouse/__init__.py:111
-msgid "The params (e.g. name, text), for which you want to store the current value, for the stimulus that was\"clicked\" by the mouse. Make sure that all the clickable objects have all these params."
-msgstr "クリックしたと判定された刺激のパラメータ(例: name, text)のうち、クリック時の値を保存したいものの名前を指定します すべてのクリック可能な刺激がここに挙げたパラメータを全て持っていなければいけません"
+msgid ""
+"The params (e.g. name, text), for which you want to store the current value, "
+"for the stimulus that was\"clicked\" by the mouse. Make sure that all the "
+"clickable objects have all these params."
+msgstr ""
+"クリックしたと判定された刺激のパラメータ(例: name, text)のうち、クリック時の"
+"値を保存したいものの名前を指定します すべてのクリック可能な刺激がここに挙げた"
+"パラメータを全て持っていなければいけません"
 
 #: psychopy/experiment/components/movie/__init__.py:17
 msgid "Movie: play movie files"
@@ -3963,8 +4355,12 @@ msgid "What underlying lib to use for loading movies"
 msgstr "動画再生に使用するライブラリを選択します"
 
 #: psychopy/experiment/components/movie/__init__.py:73
-msgid "Prevent the audio stream from being loaded/processed (moviepy and opencv only)"
-msgstr "オーディオストリームの読み込みおよび処理を行いません (moviepyとopencvバックエンドのみ)"
+msgid ""
+"Prevent the audio stream from being loaded/processed (moviepy and opencv "
+"only)"
+msgstr ""
+"オーディオストリームの読み込みおよび処理を行いません (moviepyとopencvバックエ"
+"ンドのみ)"
 
 #: psychopy/experiment/components/movie/__init__.py:80
 msgid "Should the end of the movie cause the end of the routine (e.g. trial)?"
@@ -3979,7 +4375,8 @@ msgid "Loop playback"
 msgstr "ループ再生"
 
 #: psychopy/experiment/components/noise/__init__.py:17
-msgid "Noise stimuli: generates a range of different types of random visual patterns"
+msgid ""
+"Noise stimuli: generates a range of different types of random visual patterns"
 msgstr "Noise stimuli: 様々な異なる種類のランダムパターンの刺激を生成します"
 
 #: psychopy/experiment/components/noise/__init__.py:20
@@ -4060,7 +4457,9 @@ msgid "When to update noise sample"
 msgstr "ノイズサンプルの更新タイミング"
 
 #: psychopy/experiment/components/noise/__init__.py:82
-msgid "An image from which to derive the frequency spectrum for the noise. Give filename (including path)"
+msgid ""
+"An image from which to derive the frequency spectrum for the noise. Give "
+"filename (including path)"
 msgstr "周波数スペクトルを得るために使用する画像のファイル名を指定します"
 
 #: psychopy/experiment/components/noise/__init__.py:106
@@ -4068,32 +4467,73 @@ msgid "Michaelson contrast of the image"
 msgstr "画像のマイケルソンコントラスト"
 
 #: psychopy/experiment/components/noise/__init__.py:114
-msgid "Final spatial frequency of image in 1 or 2 dimensions, e.g. 4 or [2,3]. Use None to set to 1 copy of noise per unit length of image or 1 copy of noise per image if units=pix. Set to 1/size (or [1/size,1/size]) where size is a number (or variable) equal to the size of the stimulus to get one copy of noise per image regardless of the units."
-msgstr "最終的な空間周波数を1また2次元の値(例えば4や[2,3])で指定します。単位幅につき1回の繰り返しのノイズ(単位がpixの場合は刺激につき1回の繰り返し)にしたい場合はNoneに設定します。sizeを刺激のサイズに等しい値として、1/size(または[1/size, 1/size])に設定すると、刺激の単位に関わらず1回の繰り返しのノイズが得られます。"
+msgid ""
+"Final spatial frequency of image in 1 or 2 dimensions, e.g. 4 or [2,3]. Use "
+"None to set to 1 copy of noise per unit length of image or 1 copy of noise "
+"per image if units=pix. Set to 1/size (or [1/size,1/size]) where size is a "
+"number (or variable) equal to the size of the stimulus to get one copy of "
+"noise per image regardless of the units."
+msgstr ""
+"最終的な空間周波数を1また2次元の値(例えば4や[2,3])で指定します。単位幅につき1"
+"回の繰り返しのノイズ(単位がpixの場合は刺激につき1回の繰り返し)にしたい場合は"
+"Noneに設定します。sizeを刺激のサイズに等しい値として、1/size(または[1/size, "
+"1/size])に設定すると、刺激の単位に関わらず1回の繰り返しのノイズが得られます。"
 
 #: psychopy/experiment/components/noise/__init__.py:127
-msgid "Spatial positioning of the noise within the stimulus (wraps in range 0-1.0)"
+msgid ""
+"Spatial positioning of the noise within the stimulus (wraps in range 0-1.0)"
 msgstr "ノイズの位相を指定します (0.0から1.0の範囲に丸められます)"
 
 #: psychopy/experiment/components/noise/__init__.py:154
-msgid "Type of noise (Binary, Normal, Gabor, Isotropic, White, Coloured, Filtered, Image)"
-msgstr "ノイズの種類 (Binary, Normal, Gabor, Isotropic, White, Coloured, Filtered, Image)"
+msgid ""
+"Type of noise (Binary, Normal, Gabor, Isotropic, White, Coloured, Filtered, "
+"Image)"
+msgstr ""
+"ノイズの種類 (Binary, Normal, Gabor, Isotropic, White, Coloured, Filtered, "
+"Image)"
 
 #: psychopy/experiment/components/noise/__init__.py:162
-msgid "Apply filter to noise sample? [Butterworth, Gabor, Isoptopic]. A filter with parameters taken from the either the Filtered (Butterworth) or Gabor/Isotropic tab will be applied to OTHER noise types. [NOTE: if noise of the same type as the filter is requested the filter is applied, once only, to a white noise sample.]"
-msgstr "ノイズにフィルタを適用しますか？ Filtered (Butterworth)とGabor/Isotropicタブで設定されたパラメータを持つフィルタが「他の」種類のノイズに適用されます(ノイズの種類とフィルタの種類として同じものが指定されると、ホワイトノイズに対して一回だけフィルタが適用されます)。"
+msgid ""
+"Apply filter to noise sample? [Butterworth, Gabor, Isoptopic]. A filter with "
+"parameters taken from the either the Filtered (Butterworth) or Gabor/"
+"Isotropic tab will be applied to OTHER noise types. [NOTE: if noise of the "
+"same type as the filter is requested the filter is applied, once only, to a "
+"white noise sample.]"
+msgstr ""
+"ノイズにフィルタを適用しますか？ Filtered (Butterworth)とGabor/Isotropicタブ"
+"で設定されたパラメータを持つフィルタが「他の」種類のノイズに適用されます(ノイ"
+"ズの種類とフィルタの種類として同じものが指定されると、ホワイトノイズに対して"
+"一回だけフィルタが適用されます)。"
 
 #: psychopy/experiment/components/noise/__init__.py:174
-msgid "Which image component should be randomised? [Amplitude,Phase]. Randomizing amplitude will keep the phase spectrum of the image but set the amplitude spectrum to random values [0...1]. This keeps spatial structure in tact. Randoming the phase spectrum will keep the amplitude spectrum of the image  but set the phase spectrum to random values [-pi...pi] in radians. This makes a noise sample with no obvious structure. "
-msgstr "画像のどの要素をランダム化しますか(振幅,(Amplitude) 位相(Phase))？ 振幅のランダム化は画像の位相スペクトルを保ったまま振幅スペクトルを[0... 1]の範囲でランダム化します。画像の構造は保たれます。位相スペクトルのランダム化は振幅スペクトルを保ったまま位相スペクトルをラジアンで[-pi...pi]の範囲でランダム化します。明瞭な構造がないノイズ画像となります。"
+msgid ""
+"Which image component should be randomised? [Amplitude,Phase]. Randomizing "
+"amplitude will keep the phase spectrum of the image but set the amplitude "
+"spectrum to random values [0...1]. This keeps spatial structure in tact. "
+"Randoming the phase spectrum will keep the amplitude spectrum of the image  "
+"but set the phase spectrum to random values [-pi...pi] in radians. This "
+"makes a noise sample with no obvious structure. "
+msgstr ""
+"画像のどの要素をランダム化しますか(振幅,(Amplitude) 位相(Phase))？ 振幅のラン"
+"ダム化は画像の位相スペクトルを保ったまま振幅スペクトルを[0... 1]の範囲でラン"
+"ダム化します。画像の構造は保たれます。位相スペクトルのランダム化は振幅スペク"
+"トルを保ったまま位相スペクトルをラジアンで[-pi...pi]の範囲でランダム化しま"
+"す。明瞭な構造がないノイズ画像となります。"
 
 #: psychopy/experiment/components/noise/__init__.py:186
-msgid "(Binary, Normal and Uniform only) Size of noise elements in the stimulus units."
-msgstr "ノイズ要素のサイズを刺激の単位で指定 (Binary, Normal an Uniformの場合のみ)"
+msgid ""
+"(Binary, Normal and Uniform only) Size of noise elements in the stimulus "
+"units."
+msgstr ""
+"ノイズ要素のサイズを刺激の単位で指定 (Binary, Normal an Uniformの場合のみ)"
 
 #: psychopy/experiment/components/noise/__init__.py:194
-msgid "Base spatial frequency in cycles per unit length If units = pix this value should be < 0.5."
-msgstr "ベース空間周波数を単位幅(単位がdegなら1deg)におけるサイクル数で指定します。単位がpixの場合はこの値は0.5未満にすべきです。"
+msgid ""
+"Base spatial frequency in cycles per unit length If units = pix this value "
+"should be < 0.5."
+msgstr ""
+"ベース空間周波数を単位幅(単位がdegなら1deg)におけるサイクル数で指定します。単"
+"位がpixの場合はこの値は0.5未満にすべきです。"
 
 #: psychopy/experiment/components/noise/__init__.py:203
 msgid "Spatial frequency bandwidth in octaves - Full width half height"
@@ -4104,40 +4544,94 @@ msgid "Orientation bandwidth in degrees (Gabor only) - Full width half height"
 msgstr "方位の帯域幅を角度で指定します (半値幅, Gaborのみ)"
 
 #: psychopy/experiment/components/noise/__init__.py:219
-msgid "Orientation of Gabor filter in degrees. Used to set the orienation of a Gabor filter to be applied to another noise sample with a different overall orientation. The best way to set the orientation of a Gabor noise sample is to leave this as 0 degree and use the overall orientation on the Advanced tab to vary the dominant orientation of the noise. If using this setting for orientation it is strongly recomended to set the interpolation method to 'linear' on the Advanced tab to avoid pixelization."
-msgstr "Gaborフィルタの方向をdegで指定します。他の異なる方向を持つノイズサンプルに対して適用するGaborフィルタの方向を設定する際に用いられます。Gaborノイズの方向を設定する最も良い方法は、この値を0にして「高度」タブの「回転角度」を使ってノイズの主要な方向を指定することです。この設定を使用する場合は画像がぎざぎざになるのを避けるために「高度」タブの「補完」を「一次」にすることを強く推奨します。"
+msgid ""
+"Orientation of Gabor filter in degrees. Used to set the orienation of a "
+"Gabor filter to be applied to another noise sample with a different overall "
+"orientation. The best way to set the orientation of a Gabor noise sample is "
+"to leave this as 0 degree and use the overall orientation on the Advanced "
+"tab to vary the dominant orientation of the noise. If using this setting for "
+"orientation it is strongly recomended to set the interpolation method to "
+"'linear' on the Advanced tab to avoid pixelization."
+msgstr ""
+"Gaborフィルタの方向をdegで指定します。他の異なる方向を持つノイズサンプルに対"
+"して適用するGaborフィルタの方向を設定する際に用いられます。Gaborノイズの方向"
+"を設定する最も良い方法は、この値を0にして「高度」タブの「回転角度」を使ってノ"
+"イズの主要な方向を指定することです。この設定を使用する場合は画像がぎざぎざに"
+"なるのを避けるために「高度」タブの「補完」を「一次」にすることを強く推奨しま"
+"す。"
 
 #: psychopy/experiment/components/noise/__init__.py:234
-msgid "Exponent for the slope of the filter's amplitude spectrum (A=f^Exponent). 0 = flat, -1 = slope of 1/f. When used on its own the 'filtered' noise type applies the filter to white noise so the resulting noise samples have the spectral properties of the filter.  When filtering a noise sample of another type this term takes the original spectrum and multiplies it by a ramp in frequency space with values set by the exponent. It does not force the spectrum to a specific slope. "
-msgstr "フィルタの振幅スペクトルにおける傾きを決める次数を設定します(A=f^次数)。0ならフラット、-1なら1/fの傾きとなります。単独で使用された場合、「ノイズの種類」で'filtered'を選択するとホワイトノイズにフィルタが適用されてフィルタのスペクトル特性を持つノイズが生成されます。他のタイプのノイズに対して使用された場合、この項目は元のスペクトルにフィルタの曲線を周波数空間上で乗算します。スペクトルを強制的に特定の曲線にしてしまうことはありません。"
+msgid ""
+"Exponent for the slope of the filter's amplitude spectrum (A=f^Exponent). 0 "
+"= flat, -1 = slope of 1/f. When used on its own the 'filtered' noise type "
+"applies the filter to white noise so the resulting noise samples have the "
+"spectral properties of the filter.  When filtering a noise sample of another "
+"type this term takes the original spectrum and multiplies it by a ramp in "
+"frequency space with values set by the exponent. It does not force the "
+"spectrum to a specific slope. "
+msgstr ""
+"フィルタの振幅スペクトルにおける傾きを決める次数を設定します(A=f^次数)。0なら"
+"フラット、-1なら1/fの傾きとなります。単独で使用された場合、「ノイズの種類」"
+"で'filtered'を選択するとホワイトノイズにフィルタが適用されてフィルタのスペク"
+"トル特性を持つノイズが生成されます。他のタイプのノイズに対して使用された場"
+"合、この項目は元のスペクトルにフィルタの曲線を周波数空間上で乗算します。スペ"
+"クトルを強制的に特定の曲線にしてしまうことはありません。"
 
 #: psychopy/experiment/components/noise/__init__.py:247
 msgid "Order of filter - higher = steeper fall off, zero = no filter"
 msgstr "フィルタの次数 高次元なほど急峻となり,ゼロならフィルタなしとなります"
 
 #: psychopy/experiment/components/noise/__init__.py:255
-msgid "Upper cutoff frequency in cycles per unit length. Set very high to avoid an upper cutoff and make a high pass filter."
-msgstr "高周波数側の遮断周波数を単位幅におけるサイクル数で指定します。ハイパスフィルタにするには0を設定します。"
+msgid ""
+"Upper cutoff frequency in cycles per unit length. Set very high to avoid an "
+"upper cutoff and make a high pass filter."
+msgstr ""
+"高周波数側の遮断周波数を単位幅におけるサイクル数で指定します。ハイパスフィル"
+"タにするには0を設定します。"
 
 #: psychopy/experiment/components/noise/__init__.py:264
-msgid "Lower cutoff frequency in cycles per unit length. Set to zero to avoid a lower cuttoff and make a low pass filter."
-msgstr "低周波数側の遮断周波数を単位幅におけるサイクル数で指定します。ローパスフィルタにするには0を設定します。"
+msgid ""
+"Lower cutoff frequency in cycles per unit length. Set to zero to avoid a "
+"lower cuttoff and make a low pass filter."
+msgstr ""
+"低周波数側の遮断周波数を単位幅におけるサイクル数で指定します。ローパスフィル"
+"タにするには0を設定します。"
 
 #: psychopy/experiment/components/noise/__init__.py:273
-msgid "Truncate high and low values beyond stated standard deviations from mean and rescale greyscale range. This is not used at all for 'binary' or 'uniform' noise and scales rather than clips 'normal' noise). The higher this is the lower the final RMS contrast. If very low noise may appear binarised. NOTE: If a filter is used clipping and rescaling are applied after the filter, regardless of the noise type."
-msgstr "平均値から指定した標準偏差より離れている値を切り捨てて輝度範囲を再調整します(binaryまたはuniformノイズでは使用されず、normalノイズでは切り捨てではなくスケーリングされます) この値を高くするほど最終的なRMSコントラストは低下します 値を低くするとbinaryノイズのような見た目になります"
+msgid ""
+"Truncate high and low values beyond stated standard deviations from mean and "
+"rescale greyscale range. This is not used at all for 'binary' or 'uniform' "
+"noise and scales rather than clips 'normal' noise). The higher this is the "
+"lower the final RMS contrast. If very low noise may appear binarised. NOTE: "
+"If a filter is used clipping and rescaling are applied after the filter, "
+"regardless of the noise type."
+msgstr ""
+"平均値から指定した標準偏差より離れている値を切り捨てて輝度範囲を再調整します"
+"(binaryまたはuniformノイズでは使用されず、normalノイズでは切り捨てではなくス"
+"ケーリングされます) この値を高くするほど最終的なRMSコントラストは低下します "
+"値を低くするとbinaryノイズのような見た目になります"
 
 #: psychopy/experiment/components/noise/__init__.py:284
-msgid "How to update noise if not otherwise required by other changes (none, repeat, N-frames, Seconds)"
+msgid ""
+"How to update noise if not otherwise required by other changes (none, "
+"repeat, N-frames, Seconds)"
 msgstr "自動的なノイズ更新の方法(None, repeat, N-frames, Seconds)"
 
 #: psychopy/experiment/components/noise/__init__.py:292
-msgid "How often to update noise (in frames or seconds) - can be a variable, ignored if any noise characteristic is updating on every frame"
-msgstr "ノイズ更新の頻度(フレーム数または秒) フレーム毎にノイズ特性が更新される場合は無視されます"
+msgid ""
+"How often to update noise (in frames or seconds) - can be a variable, "
+"ignored if any noise characteristic is updating on every frame"
+msgstr ""
+"ノイズ更新の頻度(フレーム数または秒) フレーム毎にノイズ特性が更新される場合は"
+"無視されます"
 
 #: psychopy/experiment/components/noise/__init__.py:300
-msgid "OpenGL Blendmode [avg, add (avg is most common mode in PsychoPy, add is used if you want to generate the sum of two components)]"
-msgstr "OpenGLのブレンドモードを指定します。avgはPsychoPyの標準モードです。addは複数の成分を合成したい場合に便利です。"
+msgid ""
+"OpenGL Blendmode [avg, add (avg is most common mode in PsychoPy, add is used "
+"if you want to generate the sum of two components)]"
+msgstr ""
+"OpenGLのブレンドモードを指定します。avgはPsychoPyの標準モードです。addは複数"
+"の成分を合成したい場合に便利です。"
 
 #: psychopy/experiment/components/parallelOut/__init__.py:18
 msgid "Parallel out: send signals from the parallel port"
@@ -4161,7 +4655,9 @@ msgid "Sync to screen"
 msgstr "スクリーンに同期"
 
 #: psychopy/experiment/components/parallelOut/__init__.py:56
-msgid "Parallel port to be used (you can change these options in preferences>general)"
+msgid ""
+"Parallel port to be used (you can change these options in "
+"preferences>general)"
 msgstr "使用するパラレルポート (選択肢はPsychoPyの設定の「一般」から変更可能)"
 
 #: psychopy/experiment/components/parallelOut/__init__.py:65
@@ -4173,24 +4669,33 @@ msgid "Data to be sent at 'end'"
 msgstr "終了時に送信するデータを指定します"
 
 #: psychopy/experiment/components/parallelOut/__init__.py:73
-msgid "If the parallel port data relates to visual stimuli then sync its pulse to the screen refresh"
+msgid ""
+"If the parallel port data relates to visual stimuli then sync its pulse to "
+"the screen refresh"
 msgstr "パラレルポートのシグナルをスクリーンの描画と同期させます"
 
 #: psychopy/experiment/components/patch/__init__.py:16
 msgid "Patch: present images (bmp, jpg, tif...) or textures like gratings"
-msgstr "Patch: 画像ファイル(bmp, jpg, tif...)やグレーティング等のテクスチャを描画します"
+msgstr ""
+"Patch: 画像ファイル(bmp, jpg, tif...)やグレーティング等のテクスチャを描画しま"
+"す"
 
 #: psychopy/experiment/components/patch/__init__.py:20
 msgid "Image/tex"
 msgstr "画像/テクスチャ"
 
 #: psychopy/experiment/components/patch/__init__.py:52
-msgid "The image to be displayed - 'sin','sqr'... or a filename (including path)"
-msgstr "グレーティングのテクスチャを指定します(sin, sqr, ... パスを含むファイル名など)。"
+msgid ""
+"The image to be displayed - 'sin','sqr'... or a filename (including path)"
+msgstr ""
+"グレーティングのテクスチャを指定します(sin, sqr, ... パスを含むファイル名な"
+"ど)。"
 
 #: psychopy/experiment/components/patch/__init__.py:70
 msgid "Spatial frequency of image repeats across the patch, e.g. 4 or [2,3]"
-msgstr "グレーティングの空間周波数(テクスチャが繰り返される回数)を指定します。1次元または2次元の値を指定できます。"
+msgstr ""
+"グレーティングの空間周波数(テクスチャが繰り返される回数)を指定します。1次元ま"
+"たは2次元の値を指定できます。"
 
 #: psychopy/experiment/components/patch/__init__.py:80
 msgid "Spatial positioning of the image on the patch (in range 0-1.0)"
@@ -4226,26 +4731,37 @@ msgid "How many vertices in your regular polygon?"
 msgstr "正多角形の頂点数を指定します"
 
 #: psychopy/experiment/components/polygon/__init__.py:76
-msgid "What shape is this? With 'regular polygon...' you can set number of vertices"
+msgid ""
+"What shape is this? With 'regular polygon...' you can set number of vertices"
 msgstr "形状を選択します regular polygonを選んだ場合は頂点数を指定できます"
 
 #: psychopy/experiment/components/polygon/__init__.py:96
-msgid "Fill color of this shape; Right-click to bring up a color-picker (rgb only)"
-msgstr "塗りつぶし色を指定します; 右クリックで色選択ダイアログを表示します(rgbのみ)"
+msgid ""
+"Fill color of this shape; Right-click to bring up a color-picker (rgb only)"
+msgstr ""
+"塗りつぶし色を指定します; 右クリックで色選択ダイアログを表示します(rgbのみ)"
 
 #: psychopy/experiment/components/polygon/__init__.py:114
-msgid "Line color of this shape; Right-click to bring up a color-picker (rgb only)"
-msgstr "輪郭線の色を指定します; 右クリックで色選択ダイアログを表示します(rgbのみ)"
+msgid ""
+"Line color of this shape; Right-click to bring up a color-picker (rgb only)"
+msgstr ""
+"輪郭線の色を指定します; 右クリックで色選択ダイアログを表示します(rgbのみ)"
 
 #: psychopy/experiment/components/polygon/__init__.py:123
-msgid "Width of the shape's line (always in pixels - this does NOT use 'units')"
+msgid ""
+"Width of the shape's line (always in pixels - this does NOT use 'units')"
 msgstr "輪郭線の幅を指定します (単位の設定に関わらずpixで指定)"
 
 #: psychopy/experiment/components/polygon/__init__.py:141
-msgid "Size of this stimulus [w,h]. Note that for a line only the first value is used, for triangle and rect the [w,h] is as expected,\n"
-" but for higher-order polygons it represents the [w,h] of the ellipse that the polygon sits on!! "
-msgstr "刺激の大きさを指定します 直線の場合は最初の要素のみが使用されます\n"
-"三角形と正方形の場合は刺激の幅と高さに、五角形以上の多角形の場合は多角形に外接する楕円の幅と高さに対応します"
+msgid ""
+"Size of this stimulus [w,h]. Note that for a line only the first value is "
+"used, for triangle and rect the [w,h] is as expected,\n"
+" but for higher-order polygons it represents the [w,h] of the ellipse that "
+"the polygon sits on!! "
+msgstr ""
+"刺激の大きさを指定します 直線の場合は最初の要素のみが使用されます\n"
+"三角形と正方形の場合は刺激の幅と高さに、五角形以上の多角形の場合は多角形に外"
+"接する楕円の幅と高さに対応します"
 
 #: psychopy/experiment/components/pump/__init__.py:19
 msgid "Pump: deliver liquid stimuli via a Cetoni neMESYS syringe pump"
@@ -4375,15 +4891,25 @@ msgid "Customize everything :"
 msgstr "全てをカスタマイズ:"
 
 #: psychopy/experiment/components/ratingScale/__init__.py:92
-msgid "Show a continuous visual analog scale; returns 0.00 to 1.00; takes precedence over numeric scale or categorical choices"
-msgstr "0.0から1.0の値を返す連続的なアナログ尺度を表示しますl 数値やカテゴリー尺度の設定より優先されます"
+msgid ""
+"Show a continuous visual analog scale; returns 0.00 to 1.00; takes "
+"precedence over numeric scale or categorical choices"
+msgstr ""
+"0.0から1.0の値を返す連続的なアナログ尺度を表示しますl 数値やカテゴリー尺度の"
+"設定より優先されます"
 
 #: psychopy/experiment/components/ratingScale/__init__.py:99
-msgid "A list of categories (non-numeric alternatives) to present, space or comma-separated; these take precedence over a numeric scale"
-msgstr "カテゴリカルな反応の選択肢のリストをスペースまたはカンマ区切りで指定します 数値尺度の設定より優先されます"
+msgid ""
+"A list of categories (non-numeric alternatives) to present, space or comma-"
+"separated; these take precedence over a numeric scale"
+msgstr ""
+"カテゴリカルな反応の選択肢のリストをスペースまたはカンマ区切りで指定します 数"
+"値尺度の設定より優先されます"
 
 #: psychopy/experiment/components/ratingScale/__init__.py:106
-msgid "Brief instructions, such as a description of the scale numbers as seen by the subject."
+msgid ""
+"Brief instructions, such as a description of the scale numbers as seen by "
+"the subject."
 msgstr "尺度番号のような短い教示を表示します"
 
 #: psychopy/experiment/components/ratingScale/__init__.py:112
@@ -4407,11 +4933,15 @@ msgid "initial position for the marker"
 msgstr "マーカーの初期位置を指定します"
 
 #: psychopy/experiment/components/ratingScale/__init__.py:143
-msgid "Should clicking the line accept that rating (without needing to confirm via 'accept')?"
-msgstr "尺度上を一度クリックすると反応を確定します(accept?を押す必要がありません)"
+msgid ""
+"Should clicking the line accept that rating (without needing to confirm via "
+"'accept')?"
+msgstr ""
+"尺度上を一度クリックすると反応を確定します(accept?を押す必要がありません)"
 
 #: psychopy/experiment/components/ratingScale/__init__.py:149
-msgid "Hide the scale when a rating has been accepted; False to remain on-screen"
+msgid ""
+"Hide the scale when a rating has been accepted; False to remain on-screen"
 msgstr "反応が確定したらスクリーン上から隠します"
 
 #: psychopy/experiment/components/ratingScale/__init__.py:155
@@ -4437,7 +4967,9 @@ msgid "Should accepting a rating cause the end of the routine (e.g. trial)?"
 msgstr "選択を確定したらRoutineを終了させます"
 
 #: psychopy/experiment/components/ratingScale/__init__.py:182
-msgid "Relative size on the screen; size > 1 is larger than default; size < 1 is smaller"
+msgid ""
+"Relative size on the screen; size > 1 is larger than default; size < 1 is "
+"smaller"
 msgstr "スクリーンに対する相対的な大きさ; 1が標準的な大きさです"
 
 #: psychopy/experiment/components/ratingScale/__init__.py:188
@@ -4450,8 +4982,14 @@ msgid "x,y position on the screen"
 msgstr "位置を指定します"
 
 #: psychopy/experiment/components/ratingScale/__init__.py:201
-msgid "Use this text to create the rating scale as you would in a code component; overrides all dialog settings except time parameters, forceEndRoutine, storeRatingTime, storeRating"
-msgstr "RatingScale関数へ渡す引数を直接記述して尺度をカスタマイズします; 時間関連のパラメータとforceEndRoutine, storeRatingTime, storeRating以外の全ての設定を上書きします"
+msgid ""
+"Use this text to create the rating scale as you would in a code component; "
+"overrides all dialog settings except time parameters, forceEndRoutine, "
+"storeRatingTime, storeRating"
+msgstr ""
+"RatingScale関数へ渡す引数を直接記述して尺度をカスタマイズします; 時間関連のパ"
+"ラメータとforceEndRoutine, storeRatingTime, storeRating以外の全ての設定を上書"
+"きします"
 
 #: psychopy/experiment/components/settings/__init__.py:41
 msgid "Experiment name"
@@ -4562,20 +5100,29 @@ msgid "Export HTML"
 msgstr "HTML形式でエクスポート"
 
 #: psychopy/experiment/components/settings/__init__.py:135
-msgid "Name of the entire experiment (taken by default from the filename on save)"
+msgid ""
+"Name of the entire experiment (taken by default from the filename on save)"
 msgstr "この実験の名前を指定します(初期値はこの実験を保存したファイル名です)"
 
 #: psychopy/experiment/components/settings/__init__.py:140
-msgid "Start the experiment with a dialog to set info (e.g.participant or condition)"
-msgstr "実験開始時に実験情報(参加者名や条件名など)を入力するためのダイアログを表示します"
+msgid ""
+"Start the experiment with a dialog to set info (e.g.participant or condition)"
+msgstr ""
+"実験開始時に実験情報(参加者名や条件名など)を入力するためのダイアログを表示し"
+"ます"
 
 #: psychopy/experiment/components/settings/__init__.py:145
-msgid "Enable the <esc> key, to allow subjects to quit / break out of the experiment"
+msgid ""
+"Enable the <esc> key, to allow subjects to quit / break out of the experiment"
 msgstr "Escapeキーによる実験の中断/終了を許可します"
 
 #: psychopy/experiment/components/settings/__init__.py:150
-msgid "The info to present in a dialog box. Right-click to check syntax and preview the dialog box."
-msgstr "実験情報ダイアログに表示する情報を指定します 右クリックすると文法の確認とダイアログのプレビューを行います"
+msgid ""
+"The info to present in a dialog box. Right-click to check syntax and preview "
+"the dialog box."
+msgstr ""
+"実験情報ダイアログに表示する情報を指定します 右クリックすると文法の確認とダイ"
+"アログのプレビューを行います"
 
 #: psychopy/experiment/components/settings/__init__.py:159
 msgid "The version of PsychoPy to use when running the experiment."
@@ -4591,30 +5138,47 @@ msgstr "実験をフルスクリーンモードで実行します(推奨)"
 
 #: psychopy/experiment/components/settings/__init__.py:174
 msgid "Size of window (if not fullscreen)"
-msgstr "フルスクリーンモードを使用しない時の刺激描画ウィンドウのサイズを指定します"
+msgstr ""
+"フルスクリーンモードを使用しない時の刺激描画ウィンドウのサイズを指定します"
 
 #: psychopy/experiment/components/settings/__init__.py:178
 msgid "Which physical screen to run on (1 or 2)"
-msgstr "2台のモニターが接続されている時にどちらのモニターを使用するかを指定します(1または2)"
+msgstr ""
+"2台のモニターが接続されている時にどちらのモニターを使用するかを指定します(1ま"
+"たは2)"
 
 #: psychopy/experiment/components/settings/__init__.py:182
-msgid "Name of the monitor (from Monitor Center). Right-click to go there, then copy & paste a monitor name here."
-msgstr "モニターセンターで定義されたモニター名を指定します; 右クリックでモニターセンターを開きます"
+msgid ""
+"Name of the monitor (from Monitor Center). Right-click to go there, then "
+"copy & paste a monitor name here."
+msgstr ""
+"モニターセンターで定義されたモニター名を指定します; 右クリックでモニターセン"
+"ターを開きます"
 
 #: psychopy/experiment/components/settings/__init__.py:188
-msgid "Color of the screen (e.g. black, $[1.0,1.0,1.0], $variable. Right-click to bring up a color-picker.)"
-msgstr "スクリーンを塗りつぶす色($[1.0,1.0,1.0],$variable,blackなど)を指定します; 右クリックで色選択ダイアログを表示します"
+msgid ""
+"Color of the screen (e.g. black, $[1.0,1.0,1.0], $variable. Right-click to "
+"bring up a color-picker.)"
+msgstr ""
+"スクリーンを塗りつぶす色($[1.0,1.0,1.0],$variable,blackなど)を指定します; 右"
+"クリックで色選択ダイアログを表示します"
 
 #: psychopy/experiment/components/settings/__init__.py:194
-msgid "Needed if color is defined numerically (see PsychoPy documentation on color spaces)"
+msgid ""
+"Needed if color is defined numerically (see PsychoPy documentation on color "
+"spaces)"
 msgstr "スクリーンの色を数値で指定する場合の色空間を選択します"
 
 #: psychopy/experiment/components/settings/__init__.py:202
 msgid "Units to use for window/stimulus coordinates (e.g. cm, pix, deg)"
-msgstr "この実験においてウィンドウや刺激の描画に用いられる標準の単位(cm, pix, degなど)を指定します"
+msgstr ""
+"この実験においてウィンドウや刺激の描画に用いられる標準の単位(cm, pix, degな"
+"ど)を指定します"
 
 #: psychopy/experiment/components/settings/__init__.py:208
-msgid "Should new stimuli be added or averaged with the stimuli that have been drawn already"
+msgid ""
+"Should new stimuli be added or averaged with the stimuli that have been "
+"drawn already"
 msgstr "描画済みの刺激に新しい刺激をブレンドする時の方法を指定します"
 
 #: psychopy/experiment/components/settings/__init__.py:213
@@ -4634,51 +5198,75 @@ msgid "use prefs"
 msgstr "PsychoPyの設定を用いる"
 
 #: psychopy/experiment/components/settings/__init__.py:235
-msgid "How important is audio latency for you? If essential then you may need to get all your sounds in correct formats."
-msgstr "オーディオ遅延の短さを重視しますか？遅延の短さが必須ならすべてのサウンドデータを適切なフォーマットにする必要があるでしょう"
+msgid ""
+"How important is audio latency for you? If essential then you may need to "
+"get all your sounds in correct formats."
+msgstr ""
+"オーディオ遅延の短さを重視しますか？遅延の短さが必須ならすべてのサウンドデー"
+"タを適切なフォーマットにする必要があるでしょう"
 
 #: psychopy/experiment/components/settings/__init__.py:236
 msgid "Audio latency priority"
 msgstr "オーディオ遅延の優先度"
 
 #: psychopy/experiment/components/settings/__init__.py:241
-msgid "Code to create your custom file name base. Don't give a file extension - this will be added."
-msgstr "実験記録ファイルの名前をカスタマイズするためのコードを入力します - 拡張子は自動的に付加されるので指定しないでください"
+msgid ""
+"Code to create your custom file name base. Don't give a file extension - "
+"this will be added."
+msgstr ""
+"実験記録ファイルの名前をカスタマイズするためのコードを入力します - 拡張子は自"
+"動的に付加されるので指定しないでください"
 
 #: psychopy/experiment/components/settings/__init__.py:246
-msgid "Save a detailed log (more detailed than the excel/csv files) of the entire experiment"
+msgid ""
+"Save a detailed log (more detailed than the excel/csv files) of the entire "
+"experiment"
 msgstr "(CSV/Excelファイルに出力されるよりも)詳細な実験のログを出力します"
 
 #: psychopy/experiment/components/settings/__init__.py:251
 #: psychopy/experiment/components/settings/__init__.py:256
-msgid "Save data from loops in comma-separated-value (.csv) format for maximum portability"
-msgstr "実験データをカンマ区切りのテキストファイル(.csv)で保存します; さまざまな環境やソフトウェアから利用できます"
+msgid ""
+"Save data from loops in comma-separated-value (.csv) format for maximum "
+"portability"
+msgstr ""
+"実験データをカンマ区切りのテキストファイル(.csv)で保存します; さまざまな環境"
+"やソフトウェアから利用できます"
 
 #: psychopy/experiment/components/settings/__init__.py:261
 msgid "Save data from loops in Excel (.xlsx) format"
 msgstr "実験で得られたデータをExcel形式(.xlsx)で保存します"
 
 #: psychopy/experiment/components/settings/__init__.py:265
-msgid "Save data from loops in psydat format. This is useful for python programmers to generate analysis scripts."
-msgstr "実験で得られたデータをpydat形式で保存します; Pythonで独自の解析スクリプトを書く時に便利です"
+msgid ""
+"Save data from loops in psydat format. This is useful for python programmers "
+"to generate analysis scripts."
+msgstr ""
+"実験で得られたデータをpydat形式で保存します; Pythonで独自の解析スクリプトを書"
+"く時に便利です"
 
 #: psychopy/experiment/components/settings/__init__.py:272
-msgid "How much output do you want in the log files? ('error' is fewest messages, 'debug' is most)"
-msgstr "実験ログの出力レベルを指定します('error'が最も簡潔で'debug'が最も詳細です)"
+msgid ""
+"How much output do you want in the log files? ('error' is fewest messages, "
+"'debug' is most)"
+msgstr ""
+"実験ログの出力レベルを指定します('error'が最も簡潔で'debug'が最も詳細です)"
 
 #: psychopy/experiment/components/settings/__init__.py:283
 msgid "Place the HTML files will be saved locally "
 msgstr "HTMLファイルがローカルに保存される場所 "
 
 #: psychopy/experiment/components/settings/__init__.py:287
-msgid "Where should participants be redirected after the experiment on completion\n"
+msgid ""
+"Where should participants be redirected after the experiment on completion\n"
 " INSERT COMPLETION URL E.G.?"
 msgstr "実験終了時にリダイレクトされるページのURLを入力してください"
 
 #: psychopy/experiment/components/settings/__init__.py:292
-msgid "Where participants are redirected if they do not complete the task\n"
+msgid ""
+"Where participants are redirected if they do not complete the task\n"
 " INSERT INCOMPLETION URL E.G.?"
-msgstr "実験が途中で中断された時にリダイレクトされるページのURLを入力してください"
+msgstr ""
+"実験が途中で中断された時にリダイレクトされるページのURLを入力してください"
 
 #: psychopy/experiment/components/settings/__init__.py:298
 msgid "When to export experiment to the HTML folder."
@@ -4701,7 +5289,9 @@ msgid "Labels for the tick marks on the scale, separated by commas"
 msgstr "尺度の目盛ラベルをカンマ区切りで指定します"
 
 #: psychopy/experiment/components/slider/__init__.py:112
-msgid "Specifies the minimum step size (0 for a continuous scale, 1 for integer rating scale)"
+msgid ""
+"Specifies the minimum step size (0 for a continuous scale, 1 for integer "
+"rating scale)"
 msgstr "評定値のステップの最小値を指定します(0なら連続値、1なら整数)"
 
 #: psychopy/experiment/components/slider/__init__.py:115
@@ -4709,16 +5299,25 @@ msgid "Granularity"
 msgstr "精度"
 
 #: psychopy/experiment/components/slider/__init__.py:119
-msgid "Should setting a rating (releasing the mouse) cause the end of the routine (e.g. trial)?"
+msgid ""
+"Should setting a rating (releasing the mouse) cause the end of the routine "
+"(e.g. trial)?"
 msgstr "選択を確定したらRoutineを終了させます"
 
 #: psychopy/experiment/components/slider/__init__.py:135
-msgid "Size on screen. e.g. (500,10) pix for horizontal,(10,500) pix for vertical"
-msgstr "スクリーン上での大きさを指定します。例えば(500, 10) pixなら横向き、(10,500) pixなら縦向きとなります"
+msgid ""
+"Size on screen. e.g. (500,10) pix for horizontal,(10,500) pix for vertical"
+msgstr ""
+"スクリーン上での大きさを指定します。例えば(500, 10) pixなら横向き、(10,500) "
+"pixなら縦向きとなります"
 
 #: psychopy/experiment/components/slider/__init__.py:144
-msgid "By default the labels will be on the bottom or left of the scale, but this can be flipped to the other side."
-msgstr "標準ではラベルは尺度の下または左に表示されますが、この項目をチェックすると上または右に表示させることが出来ます。"
+msgid ""
+"By default the labels will be on the bottom or left of the scale, but this "
+"can be flipped to the other side."
+msgstr ""
+"標準ではラベルは尺度の下または左に表示されますが、この項目をチェックすると上"
+"または右に表示させることが出来ます。"
 
 #: psychopy/experiment/components/slider/__init__.py:147
 msgid "Flip"
@@ -4726,7 +5325,8 @@ msgstr "反転"
 
 #: psychopy/experiment/components/slider/__init__.py:155
 msgid "Color of the lines and labels (might beoverridden by the style setting)"
-msgstr "線とラベルの色を指定します(スタイルの設定で上書きされる可能性があります)"
+msgstr ""
+"線とラベルの色を指定します(スタイルの設定で上書きされる可能性があります)"
 
 #: psychopy/experiment/components/slider/__init__.py:164
 msgid "Font for the labels"
@@ -4766,28 +5366,40 @@ msgid "The maximum duration of a sound in seconds"
 msgstr "音声の最大再生時間(秒)を指定します"
 
 #: psychopy/experiment/components/sound/__init__.py:55
-msgid "A sound can be a note name (e.g. A or Bf), a number to specify Hz (e.g. 440) or a filename"
-msgstr "音を指定します 音名(例: A, Bf)、周波数(例: 440)、ファイル名を指定できます"
+msgid ""
+"A sound can be a note name (e.g. A or Bf), a number to specify Hz (e.g. 440) "
+"or a filename"
+msgstr ""
+"音を指定します 音名(例: A, Bf)、周波数(例: 440)、ファイル名を指定できます"
 
 #: psychopy/experiment/components/sound/__init__.py:66
 msgid "The volume (in range 0 to 1)"
 msgstr "ボリュームを指定します (0.0から1.0)"
 
 #: psychopy/experiment/components/sound/__init__.py:69
-msgid "A reaction time to a sound stimulus should be based on when the screen flipped"
+msgid ""
+"A reaction time to a sound stimulus should be based on when the screen "
+"flipped"
 msgstr "視覚刺激に対する反応時間計測をスクリーンのフリップに合わせて開始します"
 
 #: psychopy/experiment/components/sound/__init__.py:79
-msgid "For tones we can apply a Hamming window to prevent 'clicks' that are caused by a sudden onset. This delays onset by roughly 1ms."
-msgstr "トーンの突然のオンセットによる「クリック」音を防ぐためにハミング窓を適用します 適用するとおよそ1msの遅延が生じます"
+msgid ""
+"For tones we can apply a Hamming window to prevent 'clicks' that are caused "
+"by a sudden onset. This delays onset by roughly 1ms."
+msgstr ""
+"トーンの突然のオンセットによる「クリック」音を防ぐためにハミング窓を適用しま"
+"す 適用するとおよそ1msの遅延が生じます"
 
 #: psychopy/experiment/components/sound/__init__.py:81
 msgid "Hamming window"
 msgstr "ハミング窓"
 
 #: psychopy/experiment/components/static/__init__.py:21
-msgid "Static: Static screen period (e.g. an ISI). Useful for pre-loading stimuli."
-msgstr "Static: 刺激の更新を行わない時間帯(ISIなど)を確保します 刺激データの読み込みに便利です"
+msgid ""
+"Static: Static screen period (e.g. an ISI). Useful for pre-loading stimuli."
+msgstr ""
+"Static: 刺激の更新を行わない時間帯(ISIなど)を確保します 刺激データの読み込み"
+"に便利です"
 
 #: psychopy/experiment/components/static/__init__.py:23
 msgid "Custom code"
@@ -4822,10 +5434,12 @@ msgid "Language style"
 msgstr "言語スタイル"
 
 #: psychopy/experiment/components/text/__init__.py:34
-msgid "Any text\n"
+msgid ""
+"Any text\n"
 "\n"
 "including line breaks"
-msgstr "表示するテキスト\n"
+msgstr ""
+"表示するテキスト\n"
 "\n"
 "改行もできます"
 
@@ -4838,7 +5452,8 @@ msgid "The font name (e.g. Comic Sans)"
 msgstr "フォント名を指定します (例: Comic Sans)"
 
 #: psychopy/experiment/components/text/__init__.py:73
-msgid "Specifies the height of the letter (the width is then determined by the font)"
+msgid ""
+"Specifies the height of the letter (the width is then determined by the font)"
 msgstr "文字列の高さを指定します (幅は高さとフォントの種類から決定)"
 
 #: psychopy/experiment/components/text/__init__.py:80
@@ -4854,9 +5469,12 @@ msgid "Handle right-to-left (RTL) languages and Arabic reshaping"
 msgstr "右から左へ書く(right-to-left:RTL)言語やアラビア文字の変形に対応します"
 
 #: psychopy/experiment/components/unknown/__init__.py:14
-msgid "Unknown: A component that is not known by the current installed version of PsychoPy\n"
+msgid ""
+"Unknown: A component that is not known by the current installed version of "
+"PsychoPy\n"
 "(most likely from the future)"
-msgstr "Unknown: 現在インストールされているPsychoPyで認識できないコンポーネント\n"
+msgstr ""
+"Unknown: 現在インストールされているPsychoPyで認識できないコンポーネント\n"
 "(将来のバージョンで作成された実験を読みこんだ時などに使用されます)"
 
 #: psychopy/experiment/components/variable/__init__.py:20
@@ -4941,29 +5559,46 @@ msgid "A list of dictionaries describing the parameters in each condition"
 msgstr "それぞれの条件におけるパラメータを保持した辞書オブジェクトのリスト"
 
 #: psychopy/experiment/loops.py:74
-msgid "Name of a file specifying the parameters for each condition (.csv, .xlsx, or .pkl). Browse to select a file. Right-click to preview file contents, or create a new file."
-msgstr "実験の各条件におけるパラメータを記述したファイル(.csv, .xlsx, .pkl)の名前を指定します 右クリックすると内容を確認したり新しくファイルを作成したりできます"
+msgid ""
+"Name of a file specifying the parameters for each condition (.csv, .xlsx, "
+"or .pkl). Browse to select a file. Right-click to preview file contents, or "
+"create a new file."
+msgstr ""
+"実験の各条件におけるパラメータを記述したファイル(.csv, .xlsx, .pkl)の名前を指"
+"定します 右クリックすると内容を確認したり新しくファイルを作成したりできます"
 
 #: psychopy/experiment/loops.py:81
 msgid "The start and end of the loop (see flow timeline)"
 msgstr "Loopの始点と終点"
 
 #: psychopy/experiment/loops.py:87
-msgid "Select just a subset of rows from your condition file (the first is 0 not 1!). Examples: 0, 0:5, 5:-1"
-msgstr "条件ファイルから条件として使用する行(最初の行は1ではなく0)を指定します (例: 0:5, 5:-1)"
+msgid ""
+"Select just a subset of rows from your condition file (the first is 0 not "
+"1!). Examples: 0, 0:5, 5:-1"
+msgstr ""
+"条件ファイルから条件として使用する行(最初の行は1ではなく0)を指定します (例: "
+"0:5, 5:-1)"
 
 #: psychopy/experiment/loops.py:96
 msgid "How should the next condition value(s) be chosen?"
 msgstr "各条件の実施順の決定方法を指定します"
 
 #: psychopy/experiment/loops.py:101
-msgid "To have a fixed random sequence provide an integer of your choosing here. Leave blank to have a new random sequence on each run of the experiment."
-msgstr "疑似乱数のシードを整数で指定します 実験実行の度に新たな疑似乱数系列を作成する場合は空白にします"
+msgid ""
+"To have a fixed random sequence provide an integer of your choosing here. "
+"Leave blank to have a new random sequence on each run of the experiment."
+msgstr ""
+"疑似乱数のシードを整数で指定します 実験実行の度に新たな疑似乱数系列を作成する"
+"場合は空白にします"
 
 #: psychopy/experiment/loops.py:108 psychopy/experiment/loops.py:398
 #: psychopy/experiment/loops.py:521
-msgid "Indicates that this loop generates TRIALS, rather than BLOCKS of trials or stimuli within a trial. It alters how data files are output"
-msgstr "このLoopが試行のブロックを作成するものではなく試行を繰り返すためのものであればチェックしてください\n"
+msgid ""
+"Indicates that this loop generates TRIALS, rather than BLOCKS of trials or "
+"stimuli within a trial. It alters how data files are output"
+msgstr ""
+"このLoopが試行のブロックを作成するものではなく試行を繰り返すためのものであれ"
+"ばチェックしてください\n"
 "チェックの有無でデータの出力形式が変わります"
 
 #: psychopy/experiment/loops.py:342
@@ -4987,7 +5622,9 @@ msgid "The size of the jump at each step (can change on each 'reversal')"
 msgstr "各ステップでの値の変化量を指定します"
 
 #: psychopy/experiment/loops.py:363
-msgid "The units of the step size (e.g. 'linear' will add/subtract that value each step, whereas 'log' will ad that many log units)"
+msgid ""
+"The units of the step size (e.g. 'linear' will add/subtract that value each "
+"step, whereas 'log' will ad that many log units)"
 msgstr "ステップサイズの単位を指定します"
 
 #: psychopy/experiment/loops.py:369
@@ -4999,7 +5636,8 @@ msgid "The number of 'correct' answers before the value goes down"
 msgstr "値を減少させるまでの「正しい」反応数を指定します"
 
 #: psychopy/experiment/loops.py:379
-msgid "Minimum number of times the staircase must change direction before ending"
+msgid ""
+"Minimum number of times the staircase must change direction before ending"
 msgstr "計測を終了するまでに必要な最小の方向反転回数"
 
 #: psychopy/experiment/loops.py:388 psychopy/experiment/loops.py:501
@@ -5019,7 +5657,8 @@ msgid "How to select the next staircase to run"
 msgstr "次のステアケースを選択する方法を指定します"
 
 #: psychopy/experiment/loops.py:511
-msgid "A list of dictionaries describing the differences between each staircase"
+msgid ""
+"A list of dictionaries describing the differences between each staircase"
 msgstr "個々のステアケースの差を定義する辞書オブジェクトのリストを指定します"
 
 #: psychopy/experiment/loops.py:516
@@ -5203,7 +5842,9 @@ msgstr "このモニター用の新しいキャリブレーションを作成し
 
 #: psychopy/monitors/MonitorCenter.py:298
 msgid "Remove this calibration entry (finalized when monitor is saved)"
-msgstr "このキャリブレーション結果を削除します (モニター設定を保存したときに確定します)"
+msgstr ""
+"このキャリブレーション結果を削除します (モニター設定を保存したときに確定しま"
+"す)"
 
 #: psychopy/monitors/MonitorCenter.py:318
 msgid "Screen Distance (cm):"
@@ -5312,8 +5953,12 @@ msgid "Dark calibration of ColorCAL"
 msgstr "ColorCAL用のダークキャリブレーション"
 
 #: psychopy/monitors/MonitorCenter.py:993
-msgid "Your ColorCAL needs to be calibrated first. Please block all light from getting into the lens and press OK."
-msgstr "ColorCALを最初にキャリブレーションする必要があります。レンズに光が入らないように塞いでOKを押してください。"
+msgid ""
+"Your ColorCAL needs to be calibrated first. Please block all light from "
+"getting into the lens and press OK."
+msgstr ""
+"ColorCALを最初にキャリブレーションする必要があります。レンズに光が入らないよ"
+"うに塞いでOKを押してください。"
 
 #: psychopy/monitors/MonitorCenter.py:1010
 msgid "Try again. Cover the lens fully and press OK"
@@ -5422,13 +6067,19 @@ msgid "enable features for debugging PsychoPy itself, including unit-tests"
 msgstr "PsychoPyのデバッグ用の機能を有効にします(ユニットテストを含む)"
 
 #: psychopy/preferences/hints.py:61
-msgid "language to use in menus etc; not all translations are available. Select a value, then restart the app."
-msgstr "メニュー等の表示に使用する言語; 変更は再起動後に有効になります\n"
+msgid ""
+"language to use in menus etc; not all translations are available. Select a "
+"value, then restart the app."
+msgstr ""
+"メニュー等の表示に使用する言語; 変更は再起動後に有効になります\n"
 "翻訳済みではない言語もあります"
 
 #: psychopy/preferences/hints.py:65
-msgid "Show an error dialog when PsychoPy encounters an unhandled internal error."
-msgstr "PsychoPyの内部でハンドルされていないエラーが発生した時にエラーダイアログを表示します"
+msgid ""
+"Show an error dialog when PsychoPy encounters an unhandled internal error."
+msgstr ""
+"PsychoPyの内部でハンドルされていないエラーが発生した時にエラーダイアログを表"
+"示します"
 
 #: psychopy/preferences/hints.py:68
 msgid "Dark mode"
@@ -5439,8 +6090,10 @@ msgid "Icons"
 msgstr "アイコンセットを選択します"
 
 #: psychopy/preferences/hints.py:75
-msgid "open Coder files as read-only (allows running without accidental changes)"
-msgstr "ファイルを読み込み専用で開きます(誤って変更したまま実行することを防ぎます)"
+msgid ""
+"open Coder files as read-only (allows running without accidental changes)"
+msgstr ""
+"ファイルを読み込み専用で開きます(誤って変更したまま実行することを防ぎます)"
 
 #: psychopy/preferences/hints.py:78
 msgid "a list of font names; the first one found on the system will be used"
@@ -5456,7 +6109,9 @@ msgstr "行間のスペース"
 
 #: psychopy/preferences/hints.py:87
 msgid "Long line edge guide, specify zero to disable"
-msgstr "行の長さの目安となる縦線を引く位置を文字数で指定します。無効にするには0を指定します"
+msgstr ""
+"行の長さの目安となる縦線を引く位置を文字数で指定します。無効にするには0を指定"
+"します"
 
 #: psychopy/preferences/hints.py:90
 msgid "Color theme to use for syntax highlighting"
@@ -5483,28 +6138,39 @@ msgid "whether to automatically reload a previously open experiment"
 msgstr "起動時に前回開いていた実験を自動的に開くか否かを指定します"
 
 #: psychopy/preferences/hints.py:109
-msgid "if False will create scripts with an 'easier' but more cluttered namespace"
+msgid ""
+"if False will create scripts with an 'easier' but more cluttered namespace"
 msgstr "チェックを外すと扱いやすい代わりに雑然とした名前空間となります"
 
 #: psychopy/preferences/hints.py:112
 msgid "folder names for custom components; expects a comma-separated list"
-msgstr "カスタムBuilderコンポーネントのフォルダ名を指定します(カンマ区切りのリストで指定)"
+msgstr ""
+"カスタムBuilderコンポーネントのフォルダ名を指定します(カンマ区切りのリストで"
+"指定)"
 
 #: psychopy/preferences/hints.py:115
 msgid "a list of components to hide (eg, because you never use them)"
-msgstr "非表示にするコンポーネントのリストを指定します (使用しないものなどを記述してください)"
+msgstr ""
+"非表示にするコンポーネントのリストを指定します (使用しないものなどを記述して"
+"ください)"
 
 #: psychopy/preferences/hints.py:118
 msgid "where the Builder demos are located on this computer (after unpacking)"
 msgstr "Builderのデモを展開した位置(デモ展開後のみ有効)"
 
 #: psychopy/preferences/hints.py:122
-msgid "name of the folder where subject data should be saved (relative to the script)"
-msgstr "実験データが保存されるフォルダ名を指定します(スクリプトからの相対パスで指定します)"
+msgid ""
+"name of the folder where subject data should be saved (relative to the "
+"script)"
+msgstr ""
+"実験データが保存されるフォルダ名を指定します(スクリプトからの相対パスで指定し"
+"ます)"
 
 #: psychopy/preferences/hints.py:125
 msgid "Panels arrangement: topFlow = Flow on top, Components on left"
-msgstr "ペインの配置を指定します: topFlowにするとFlowが上に、Componentsが左に配置されます"
+msgstr ""
+"ペインの配置を指定します: topFlowにするとFlowが上に、Componentsが左に配置され"
+"ます"
 
 #: psychopy/preferences/hints.py:128
 msgid "Display text in a floating window that describes the experiment"
@@ -5515,8 +6181,10 @@ msgid "choice of audio library"
 msgstr "使用するオーディオライブラリを指定します"
 
 #: psychopy/preferences/hints.py:135
-msgid "latency mode for PsychToolbox audio (3 is good for most applications. See"
-msgstr "PsychToolboxオーディオのレイテンシモード（3はほとんどの用途に適しています)"
+msgid ""
+"latency mode for PsychToolbox audio (3 is good for most applications. See"
+msgstr ""
+"PsychToolboxオーディオのレイテンシモード（3はほとんどの用途に適しています)"
 
 #: psychopy/preferences/hints.py:138
 msgid "audio driver to use"
@@ -5524,7 +6192,8 @@ msgstr "使用するオーディオドライバのリストを指定します"
 
 #: psychopy/preferences/hints.py:141
 msgid "audio device to use (if audioLib allows control)"
-msgstr "使用するオーディオデバイス (オーディオライブラリが制御可能な場合のみ有効)"
+msgstr ""
+"使用するオーディオデバイス (オーディオライブラリが制御可能な場合のみ有効)"
 
 #: psychopy/preferences/hints.py:144
 msgid "a list of parallel ports"
@@ -5536,15 +6205,24 @@ msgstr "使用するQmixポンプの設定名"
 
 #: psychopy/preferences/hints.py:150
 msgid "the http proxy for usage stats and auto-updating; format is host: port"
-msgstr "利用状況の送信と自動更新に使用するHTTPプロキシを指定します; 書式はhost: portです"
+msgstr ""
+"利用状況の送信と自動更新に使用するHTTPプロキシを指定します; 書式はhost: port"
+"です"
 
 #: psychopy/preferences/hints.py:154
-msgid "override the above proxy settings with values found in the environment (if possible)"
-msgstr "自動的にプロキシ設定を検出できる場合は上記の設定より自動設定を優先します"
+msgid ""
+"override the above proxy settings with values found in the environment (if "
+"possible)"
+msgstr ""
+"自動的にプロキシ設定を検出できる場合は上記の設定より自動設定を優先します"
 
 #: psychopy/preferences/hints.py:157
-msgid "allow PsychoPy to send anonymous usage stats; please allow if possible, it helps PsychoPy's development"
-msgstr "匿名で利用状況のデータを送信します; PsychoPy開発の参考とするため出来ればチェックしてください"
+msgid ""
+"allow PsychoPy to send anonymous usage stats; please allow if possible, it "
+"helps PsychoPy's development"
+msgstr ""
+"匿名で利用状況のデータを送信します; PsychoPy開発の参考とするため出来れば"
+"チェックしてください"
 
 #: psychopy/preferences/hints.py:160
 msgid "allow PsychoPy to check for new features and bug fixes"
@@ -5663,7 +6341,9 @@ msgid "Coder: check for basic syntax errors"
 msgstr "Coder: 基本的な文法エラーをチェックします"
 
 #: psychopy/preferences/hints.py:248
-msgid "convert a Builder .psyexp script into a python script and open it in the Coder"
+msgid ""
+"convert a Builder .psyexp script into a python script and open it in the "
+"Coder"
 msgstr "Builderの.psyexpファイルをPythonのスクリプトに変換してCoderで開きます"
 
 #: psychopy/preferences/hints.py:251
@@ -5763,15 +6443,24 @@ msgid "Projects: Create new project"
 msgstr "Projects: プロジェクトを新規作成します"
 
 #: psychopy/projects/pavlovia.py:1102
-msgid "We found a repository pointing to {} but no project was found there (deleted?)"
-msgstr "{}に対応するリポジトリが見つかりましたが、プロジェクトが見つかりません(削除済み？)"
+msgid ""
+"We found a repository pointing to {} but no project was found there "
+"(deleted?)"
+msgstr ""
+"{}に対応するリポジトリが見つかりましたが、プロジェクトが見つかりません(削除済"
+"み？)"
 
 #: psychopy/projects/pavlovia.py:1105
-msgid "We found a repository pointing to {} but no user is logged in for us to check it"
-msgstr "{}に対応するリポジトリが見つかりましたが、チェックできるユーザーでログインしていません"
+msgid ""
+"We found a repository pointing to {} but no user is logged in for us to "
+"check it"
+msgstr ""
+"{}に対応するリポジトリが見つかりましたが、チェックできるユーザーでログインし"
+"ていません"
 
 #: psychopy/tools/versionchooser.py:73
-msgid "Please request a version before importing any PsychoPy modules. (Found: {})"
+msgid ""
+"Please request a version before importing any PsychoPy modules. (Found: {})"
 msgstr "PsychoPyのモジュールをimportする前にバージョンを指定してください ({})"
 
 #: psychopy/tools/versionchooser.py:82
@@ -5779,8 +6468,14 @@ msgid "Unknown version `{}`"
 msgstr "未知のバージョン `{}`"
 
 #: psychopy/tools/versionchooser.py:94
-msgid "Please request a version of PsychoPy that is compatible with Python 3. You can choose from the following versions: {}. Alternatively, run a Python 2 installation of PsychoPy < v1.9.0.\n"
-msgstr "Python 3と互換性があるバージョンのPsychoPyを指定してください。バージョン{}が指定できます。1.90以前のPsychoPyで実行する場合はPython 2を使用してください。\n"
+msgid ""
+"Please request a version of PsychoPy that is compatible with Python 3. You "
+"can choose from the following versions: {}. Alternatively, run a Python 2 "
+"installation of PsychoPy < v1.9.0.\n"
+msgstr ""
+"Python 3と互換性があるバージョンのPsychoPyを指定してください。バージョン{}が"
+"指定できます。1.90以前のPsychoPyで実行する場合はPython 2を使用してくださ"
+"い。\n"
 
 #: psychopy/tools/versionchooser.py:103
 msgid "Please install git; needed by useVersion()"
@@ -5804,7 +6499,8 @@ msgstr "{}は現在利用できません"
 
 #: psychopy/tools/versionchooser.py:354
 msgid "Downloading the PsychoPy Library from Github (may take a while)"
-msgstr "PsychoPyライブラリをGithubからダウンロードしています (時間がかかります)"
+msgstr ""
+"PsychoPyライブラリをGithubからダウンロードしています (時間がかかります)"
 
 #: psychopy/tools/wizard.py:35
 msgid "Benchmark"
@@ -5926,7 +6622,8 @@ msgstr "設定テストで利用可能な物理RAM(全%.1fG)"
 
 #: psychopy/tools/wizard.py:108
 #, python-format
-msgid "Warning: low available physical RAM for configuration test (of %.1fG total)"
+msgid ""
+"Warning: low available physical RAM for configuration test (of %.1fG total)"
 msgstr "警告：テストで利用できた物理RAM(全%.1fG)が少なすぎます"
 
 #: psychopy/tools/wizard.py:119
@@ -5934,12 +6631,20 @@ msgid "avoid upgrading during an experiment"
 msgstr "一連の実験を実施している期間中にアップグレードしないでください"
 
 #: psychopy/tools/wizard.py:122
-msgid "can be set in <a href=\"http://www.psychopy.org/general/prefs.html#application-settings-app\">Preferences -> App</a>"
-msgstr "<a href=\"http://www.psychopy.org/general/prefs.html#application-settings\">設定 -> アプリケーション</a>で設定できます"
+msgid ""
+"can be set in <a href=\"http://www.psychopy.org/general/prefs."
+"html#application-settings-app\">Preferences -> App</a>"
+msgstr ""
+"<a href=\"http://www.psychopy.org/general/prefs.html#application-settings\">"
+"設定 -> アプリケーション</a>で設定できます"
 
 #: psychopy/tools/wizard.py:130
-msgid "Warning: python 2.7 or 3.6 are recommended; 2.6 and 3.5 might work. Others probably won't."
-msgstr "警告：Python 2.7または3.6を推奨します。2.6および3.5でも動作するかもしれませんが、それ以前のバージョンでは恐らく動作しません。"
+msgid ""
+"Warning: python 2.7 or 3.6 are recommended; 2.6 and 3.5 might work. Others "
+"probably won't."
+msgstr ""
+"警告：Python 2.7または3.6を推奨します。2.6および3.5でも動作するかもしれません"
+"が、それ以前のバージョンでは恐らく動作しません。"
 
 #: psychopy/tools/wizard.py:148
 msgid "Warning: wx 2.8.10 or higher required"
@@ -5950,36 +6655,62 @@ msgid "for high-priority threads"
 msgstr "高プライオリティのスレッド実行に必要です"
 
 #: psychopy/tools/wizard.py:163
-msgid "Warning: <a href=\"http://www.psychopy.org/general/timing/reducingFrameDrops.html?highlight=OpenGL+2.0\">OpenGL 2.0 or higher is ideal</a>."
-msgstr "警告：<a href=\"http://www.psychopy.org/general/timing/reducingFrameDrops.html?highlight=OpenGL+2.0\">OpenGL 2.0以上の利用が望ましいです</a>."
+msgid ""
+"Warning: <a href=\"http://www.psychopy.org/general/timing/reducingFrameDrops."
+"html?highlight=OpenGL+2.0\">OpenGL 2.0 or higher is ideal</a>."
+msgstr ""
+"警告：<a href=\"http://www.psychopy.org/general/timing/reducingFrameDrops."
+"html?highlight=OpenGL+2.0\">OpenGL 2.0以上の利用が望ましいです</a>."
 
 #: psychopy/tools/wizard.py:178
-msgid "Warning: <a href=\"http://www.psychopy.org/general/timing/reducingFrameDrops.html?highlight=shader\">Rendering of complex stimuli will be slow</a>."
-msgstr "警告：<a href=\"http://www.psychopy.org/general/timing/reducingFrameDrops.html?highlight=shader\">複雑な刺激の描画が遅くなります</a>."
+msgid ""
+"Warning: <a href=\"http://www.psychopy.org/general/timing/reducingFrameDrops."
+"html?highlight=shader\">Rendering of complex stimuli will be slow</a>."
+msgstr ""
+"警告：<a href=\"http://www.psychopy.org/general/timing/reducingFrameDrops."
+"html?highlight=shader\">複雑な刺激の描画が遅くなります</a>."
 
 #: psychopy/tools/wizard.py:187
-msgid "during the drifting <a href=\"http://www.psychopy.org/api/visual/gratingstim.html\">GratingStim</a>"
-msgstr "<a href=\"http://www.psychopy.org/api/visual/gratingstim.html\">GratingStim</a>をドリフトを描画して計測"
+msgid ""
+"during the drifting <a href=\"http://www.psychopy.org/api/visual/gratingstim."
+"html\">GratingStim</a>"
+msgstr ""
+"<a href=\"http://www.psychopy.org/api/visual/gratingstim.html\">GratingStim</"
+"a>をドリフトを描画して計測"
 
 #: psychopy/tools/wizard.py:191
-msgid "Warning: too fast? visual sync'ing with the monitor seems unlikely at 300+ Hz"
-msgstr "警告：垂直同期が早すぎ？通常のモニターで垂直同期が300Hzを超えることはありません"
+msgid ""
+"Warning: too fast? visual sync'ing with the monitor seems unlikely at 300+ Hz"
+msgstr ""
+"警告：垂直同期が早すぎ？通常のモニターで垂直同期が300Hzを超えることはありませ"
+"ん"
 
 #: psychopy/tools/wizard.py:196
 msgid "SD &lt; 0.5 ms is ideal (want low variability)"
 msgstr "標準偏差0.5未満が理想です"
 
 #: psychopy/tools/wizard.py:200
-msgid "Warning: the refresh rate has high frame-to-frame variability (SD &gt; 0.5 ms)"
-msgstr "警告：フレーム間の描画間隔のばらつきが大きい(標準偏差が0.5より大きい)です"
+msgid ""
+"Warning: the refresh rate has high frame-to-frame variability (SD &gt; 0.5 "
+"ms)"
+msgstr ""
+"警告：フレーム間の描画間隔のばらつきが大きい(標準偏差が0.5より大きい)です"
 
 #: psychopy/tools/wizard.py:219
-msgid "during <a href=\"http://www.psychopy.org/api/visual/dotstim.html\">DotStim</a> with 100 random dots"
-msgstr "<a href=\"http://www.psychopy.org/api/visual/dotstim.html\">DotStim</a>で100点のランダムドットを描画して計測"
+msgid ""
+"during <a href=\"http://www.psychopy.org/api/visual/dotstim.html\">DotStim</"
+"a> with 100 random dots"
+msgstr ""
+"<a href=\"http://www.psychopy.org/api/visual/dotstim.html\">DotStim</a>で100"
+"点のランダムドットを描画して計測"
 
 #: psychopy/tools/wizard.py:227
-msgid "Warning: could not keep up during <a href=\"http://www.psychopy.org/api/visual/dotstim.html\">DotStim</a> with 100 random dots."
-msgstr "警告：<a href=\"http://www.psychopy.org/api/visual/dotstim.html\">DotStim</a>で100点のランダムドット描画が間に合いませんでした"
+msgid ""
+"Warning: could not keep up during <a href=\"http://www.psychopy.org/api/"
+"visual/dotstim.html\">DotStim</a> with 100 random dots."
+msgstr ""
+"警告：<a href=\"http://www.psychopy.org/api/visual/dotstim.html\">DotStim</a>"
+"で100点のランダムドット描画が間に合いませんでした"
 
 #: psychopy/tools/wizard.py:255
 msgid "Warning: pyo is needed for sound and microphone."
@@ -6003,19 +6734,30 @@ msgstr "データの可視化; 高速な重なり判定"
 
 #: psychopy/tools/wizard.py:277
 msgid "for online help, usage statistics, software updates, and google-speech"
-msgstr "オンラインヘルプ, 利用統計, ソフトウェアの更新, Google Speechに必要です"
+msgstr ""
+"オンラインヘルプ, 利用統計, ソフトウェアの更新, Google Speechに必要です"
 
 #: psychopy/tools/wizard.py:282
 msgid "Warning: could not connect (no proxy attempted)"
 msgstr "警告：接続できません(プロキシの利用は試みていません)"
 
 #: psychopy/tools/wizard.py:290
-msgid "try to auto-detect a proxy if needed; see <a href=\"http://www.psychopy.org/general/prefs.html#connection-settings-connections\">Preferences -> Connections</a>"
-msgstr "必要であればプロキシの自動検出を試みます <a href=\"http://www.psychopy.org/general/prefs.html#connection-settings-connections\">設定 -> ネットワーク</a>を見てください"
+msgid ""
+"try to auto-detect a proxy if needed; see <a href=\"http://www.psychopy.org/"
+"general/prefs.html#connection-settings-connections\">Preferences -> "
+"Connections</a>"
+msgstr ""
+"必要であればプロキシの自動検出を試みます <a href=\"http://www.psychopy.org/"
+"general/prefs.html#connection-settings-connections\">設定 -> ネットワーク</a>"
+"を見てください"
 
 #: psychopy/tools/wizard.py:300
-msgid "current manual proxy setting from <a href=\"http://www.psychopy.org/general/prefs.html#connection-settings-connections\">Preferences -> Connections</a>"
-msgstr "<a href=\"http://www.psychopy.org/general/prefs.html#connection-settings-connections\">設定 -> ネットワーク</a>で手動設定されているプロキシです"
+msgid ""
+"current manual proxy setting from <a href=\"http://www.psychopy.org/general/"
+"prefs.html#connection-settings-connections\">Preferences -> Connections</a>"
+msgstr ""
+"<a href=\"http://www.psychopy.org/general/prefs.html#connection-settings-"
+"connections\">設定 -> ネットワーク</a>で手動設定されているプロキシです"
 
 #: psychopy/tools/wizard.py:307
 msgid "numpy.std() of 1,000,000 data points"
@@ -6052,18 +6794,28 @@ msgid "Configuration report"
 msgstr "設定テストのレポート"
 
 #: psychopy/tools/wizard.py:421
-msgid "<p>All values seem reasonable (no warnings, but there might still be room for improvement).</p>\n"
-msgstr "<p>すべての値に問題はないようです (警告はありませんが、さらにパフォーマンス改善の余地があるかも知れません)</p>\n"
+msgid ""
+"<p>All values seem reasonable (no warnings, but there might still be room "
+"for improvement).</p>\n"
+msgstr ""
+"<p>すべての値に問題はないようです (警告はありませんが、さらにパフォーマンス改"
+"善の余地があるかも知れません)</p>\n"
 
 #: psychopy/tools/wizard.py:425
 #, python-format
 msgid "1 suboptimal value was detected</font>, see details below (%s).</p>\n"
-msgstr "基準値を下回る項目が1個見つかりました</font> 詳細は以下を確認してください (%s).</p>\n"
+msgstr ""
+"基準値を下回る項目が1個見つかりました</font> 詳細は以下を確認してください "
+"(%s).</p>\n"
 
 #: psychopy/tools/wizard.py:430
 #, python-format
-msgid "%(num)i suboptimal values were detected</font>, see details below (%(warn)s).</p>\n"
-msgstr "基準値を下回る項目が%(num)i個見つかりました</font> 詳細は以下を確認してください (%(warn)s).</p>\n"
+msgid ""
+"%(num)i suboptimal values were detected</font>, see details below (%(warn)s)."
+"</p>\n"
+msgstr ""
+"基準値を下回る項目が%(num)i個見つかりました</font> 詳細は以下を確認してくださ"
+"い (%(warn)s).</p>\n"
 
 #: psychopy/tools/wizard.py:452
 msgid "Only show suboptimal values"
@@ -6074,15 +6826,23 @@ msgid "Show all information"
 msgstr "全ての情報を表示"
 
 #: psychopy/tools/wizard.py:456
-msgid "<p>Resources:\n"
-"                | <a href=\"http://www.psychopy.org/documentation.html\">On-line documentation</a>\n"
-"                | Download <a href=\"http://www.psychopy.org/PsychoPyManual.pdf\">PDF manual</a>\n"
-"                | <a href=\"https://discourse.osychopy.org\">Search the user-group archives</a>\n"
+msgid ""
+"<p>Resources:\n"
+"                | <a href=\"http://www.psychopy.org/documentation.html\">On-"
+"line documentation</a>\n"
+"                | Download <a href=\"http://www.psychopy.org/PsychoPyManual."
+"pdf\">PDF manual</a>\n"
+"                | <a href=\"https://discourse.osychopy.org\">Search the user-"
+"group archives</a>\n"
 "                </p>"
-msgstr "<p>リソース:\n"
-"                | <a href=\"http://www.psychopy.org/documentation.html\">オンラインドキュメント</a>\n"
-"                | <a href=\"http://www.psychopy.org/PsychoPyManual.pdf\">PDFマニュアル</a>のダウンロード\n"
-"                | <a href=\"https://discourse.osychopy.org\">ユーザー向けメーリングリストを検索</a>\n"
+msgstr ""
+"<p>リソース:\n"
+"                | <a href=\"http://www.psychopy.org/documentation.html\">オン"
+"ラインドキュメント</a>\n"
+"                | <a href=\"http://www.psychopy.org/PsychoPyManual.pdf\">PDF"
+"マニュアル</a>のダウンロード\n"
+"                | <a href=\"https://discourse.osychopy.org\">ユーザー向けメー"
+"リングリストを検索</a>\n"
 "                </p>"
 
 #: psychopy/tools/wizard.py:463
@@ -6115,7 +6875,9 @@ msgstr "設定ウィザードへようこそ"
 
 #: psychopy/tools/wizard.py:531
 msgid "The first configuration check is your video card's drivers. The current"
-msgstr "ビデオカードドライバを確認したところ、現在のドライバではPsychoPyを実行できませんでした"
+msgstr ""
+"ビデオカードドライバを確認したところ、現在のドライバではPsychoPyを実行できま"
+"せんでした"
 
 #: psychopy/tools/wizard.py:534
 msgid "drivers cannot support PsychoPy, so you'll need to update the drivers."
@@ -6123,53 +6885,70 @@ msgstr "ドライバをアップデートする必要があります"
 
 #: psychopy/tools/wizard.py:537
 #, python-format
-msgid "<p>Critical issue:\n"
+msgid ""
+"<p>Critical issue:\n"
 "</p><p>Your video card (%(card)s) has drivers\n"
-"                that cannot support the high-performance features that PsychoPy depends on.\n"
-"                Fortunately, it's typically free and straightforward to get new drivers\n"
+"                that cannot support the high-performance features that "
+"PsychoPy depends on.\n"
+"                Fortunately, it's typically free and straightforward to get "
+"new drivers\n"
 "                directly from the manufacturer.</p>\n"
 "                <p><strong>To update the drivers:</strong>\n"
 "                <li> You'll need administrator privileges.\n"
-"                <li> On Windows, don't use the windows option to check for updates\n"
+"                <li> On Windows, don't use the windows option to check for "
+"updates\n"
 "                  - it can report that there are no updates available.\n"
 "                <li> If your card is made by NVIDIA, go to\n"
-"                  <a href=\"http://www.nvidia.com/Drivers\">the NVIDIA website</a>\n"
+"                  <a href=\"http://www.nvidia.com/Drivers\">the NVIDIA "
+"website</a>\n"
 "                  and use the 'auto detect' option. Try here for\n"
-"                  <a href=\"http://support.amd.com/\">ATI / Radeon drivers</a>. Or try\n"
-"                  <a href=\"http://www.google.com/search?q=download+drivers+%(card2)s\">\n"
+"                  <a href=\"http://support.amd.com/\">ATI / Radeon drivers</"
+"a>. Or try\n"
+"                  <a href=\"http://www.google.com/search?q=download+drivers+"
+"%(card2)s\">\n"
 "                  this google search</a> [google.com].\n"
 "                <li> Download and install the driver.\n"
 "                <li> Reboot the computer.\n"
 "                <li> Restart PsychoPy.</p>\n"
-"                <p>If you updated the drivers and still get this message, you'll\n"
+"                <p>If you updated the drivers and still get this message, "
+"you'll\n"
 "                  need a different video card to use PsychoPy. Click\n"
-"                <a href=\"http://www.psychopy.org/installation.html#recommended-hardware\">here\n"
+"                <a href=\"http://www.psychopy.org/installation."
+"html#recommended-hardware\">here\n"
 "                for more information</a> [psychopy.org].</p>\n"
 "            "
-msgstr "<p>致命的な問題: \n"
+msgstr ""
+"<p>致命的な問題: \n"
 "</p></p>使用中のビデオカード(%(card)s)のデバイスドライバは\n"
 "PsychoPyの実行に必須のハイパフォーマンス機能をサポートしていません\n"
 "多くの場合、ビデオカードの製造元から新しいドライバを無料で入手する\n"
 "ことが出来ます\n"
-"<p><strong>ドライバのアップデートするには:</strong><li>管理者の権限が必要です。</li><li>Windowsの場合、Windowsの更新機能(Windows Update)では\n"
-"新しいドライバが見つからない場合があります。</li><li>NVIDIA製のカードの場合は、\n"
+"<p><strong>ドライバのアップデートするには:</strong><li>管理者の権限が必要で"
+"す。</li><li>Windowsの場合、Windowsの更新機能(Windows Update)では\n"
+"新しいドライバが見つからない場合があります。</li><li>NVIDIA製のカードの場合"
+"は、\n"
 "<a href=\"http://www.nvidia.com/Drivers\">NVIDIAのwebサイト</a>\n"
 "にアクセスして自動検索を試みてください。ATI製のカードの場合は\n"
-"<a href=\"http://support.amd.com/\">ATI / Radeon drivers</a>にアクセスしてください。\n"
-"見つからない場合は<a href=\"http://www.google.com/search?q=download+drivers+%(card2)s\">\n"
+"<a href=\"http://support.amd.com/\">ATI / Radeon drivers</a>にアクセスしてく"
+"ださい。\n"
+"見つからない場合は<a href=\"http://www.google.com/search?q=download+drivers+"
+"%(card2)s\">\n"
 "Google検索</a>も試してみてください。</li>\n"
 "<li>ドライバをダウンロードしてインストールください。</li>\n"
 "<li>コンピューターを再起動してください。</li>\n"
 "<li>PsychoPyを実行してください。</li></p>\n"
 "<p>ドライバをアップデートしてもまだこのメッセージが表示される場合は\n"
 "ビデオカードを変更する必要があります。詳しくは\n"
-"<a href=\"http://www.psychopy.org/installation.html#recommended-hardware\">こちらのページ\n"
+"<a href=\"http://www.psychopy.org/installation.html#recommended-hardware\">こ"
+"ちらのページ\n"
 "</a>をご覧ください。</p>"
 
 #: psychopy/tools/wizard.py:562
-msgid "<p>Critical issue:\n"
+msgid ""
+"<p>Critical issue:\n"
 "</p>"
-msgstr "<p>致命的な問題:\n"
+msgstr ""
+"<p>致命的な問題:\n"
 "</p>"
 
 #: psychopy/tools/wizard.py:568
@@ -6185,12 +6964,15 @@ msgid "then switch back. You don't need to do anything."
 msgstr "元に戻ります 確認中は何も操作する必要はありません"
 
 #: psychopy/tools/wizard.py:576
-msgid "Optional: For best results, please quit all email programs, web-browsers, "
-msgstr "オプション：最良の結果を得るために, Eメール用アプリケーションやwebブラウザ, "
+msgid ""
+"Optional: For best results, please quit all email programs, web-browsers, "
+msgstr ""
+"オプション：最良の結果を得るために, Eメール用アプリケーションやwebブラウザ, "
 
 #: psychopy/tools/wizard.py:579
 msgid "Dropbox, backup or sync services, and others."
-msgstr "Dropboxやバックアップ, 同期サービス等のアプリケーションを停止してください"
+msgstr ""
+"Dropboxやバックアップ, 同期サービス等のアプリケーションを停止してください"
 
 #: psychopy/tools/wizard.py:581
 msgid "Click OK to start, or Cancel to skip."
@@ -6202,7 +6984,9 @@ msgstr "詳細なテスト"
 
 #: psychopy/tools/wizard.py:588
 msgid "Click OK for more information, or Cancel to skip."
-msgstr "さらなる情報を表示する場合はOK, スキップする場合はキャンセルをクリックしてください"
+msgstr ""
+"さらなる情報を表示する場合はOK, スキップする場合はキャンセルをクリックしてく"
+"ださい"
 
 #: psychopy/tools/wizard.py:617
 msgid "Configuration testing complete!"
@@ -6271,7 +7055,6 @@ msgstr "PsychoPyに戻るにはキャンセルをクリックします"
 
 #, fuzzy
 #~| msgid "New [%s]"
-
 #~ msgid " [%s]"
 #~ msgstr "新規 [%s]"
 
