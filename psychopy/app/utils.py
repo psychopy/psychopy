@@ -290,6 +290,7 @@ class PsychopyToolbar(wx.ToolBar):
         frame.btnHandles.update(pavButtons.btnHandles)
 
         # Finished setup. Make it happen
+        frame.SetToolBar(self)
         self.Realize()
 
 
