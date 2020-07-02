@@ -248,7 +248,7 @@ class PsychopyToolbar(wx.ToolBar, ThemeMixin):
         self.Bind(wx.EVT_TOOL, func, item)
         return item
 
-class PsychopyPlateBtn(platebtn.PlateButton):
+class PsychopyPlateBtn(platebtn.PlateButton, ThemeMixin):
     def __init__(self, parent, id=wx.ID_ANY, label='', bmp=None,
                  pos=wx.DefaultPosition, size=wx.DefaultSize,
                  style=1, name=wx.ButtonNameStr):
@@ -262,9 +262,9 @@ class PsychopyPlateBtn(platebtn.PlateButton):
         cs = ThemeMixin.appColors
         self.__InitColors()
         self.SetBackgroundColour(wx.Colour(self.parent.GetBackgroundColour()))
-        self.SetPressColor(wx.Colour(cs['txtbutton_bg_hover']))
-        self.SetLabelColor(wx.Colour(cs['text']),
-                           wx.Colour(cs['txtbutton_fg_hover']))
+        self.SetPressColor(cs['txtbutton_bg_hover'])
+        self.SetLabelColor(cs['text'],
+                           cs['txtbutton_fg_hover'])
 
     def __InitColors(self):
         cs = ThemeMixin.appColors
