@@ -15,6 +15,7 @@ import keyword
 import wx
 from collections import OrderedDict
 from psychopy.experiment.components.code import CodeComponent
+from ...coder import StylerMixin
 
 try:
     from wx.lib.agw import flatnotebook
@@ -115,6 +116,7 @@ class DlgCodeComponentProperties(wx.Dialog):
                     _panel = self.tabs[tabName]
                 else:
                     _panel = wx.Panel(self.codeNotebook, wx.ID_ANY)
+                    _panel.app = self.app
                     self.tabs[tabName] = _panel
                     tabN += 1
 
@@ -456,7 +458,7 @@ class DlgCodeComponentProperties(wx.Dialog):
         self.app.followLink(url=self.helpUrl)
 
 
-class CodeBox(BaseCodeEditor):
+class CodeBox(BaseCodeEditor, StylerMixin):
     # this comes mostly from the wxPython demo styledTextCtrl 2
 
     def __init__(self, parent, ID, prefs,
@@ -470,24 +472,32 @@ class CodeBox(BaseCodeEditor):
         BaseCodeEditor.__init__(self, parent, ID, pos, size, style)
 
         self.parent = parent
-        self.prefs = prefs
+        self.app = parent.app
+        self.prefs = prefs.coder
+        self.appData = prefs.appData
+        self.paths = prefs.paths
         self.params = params
         self.codeType = codeType
-        self.SetLexer(wx.stc.STC_LEX_PYTHON)
-        self.SetKeyWords(0, " ".join(keyword.kwlist))
+        lexers = {
+            'Py': wx.stc.STC_LEX_PYTHON,
+            'JS': wx.stc.STC_LEX_CPP,
+            'txt': wx.stc.STC_LEX_CONTAINER
+        }
+        self.SetLexer(lexers[codeType])
 
         self.SetProperty("fold", "1")
         # 4 means 'tabs are bad'; 1 means 'flag inconsistency'
         self.SetProperty("tab.timmy.whinge.level", "4")
-        self.SetViewWhiteSpace(self.prefs.appData['coder']['showWhitespace'])
-        self.SetViewEOL(self.prefs.appData['coder']['showEOLs'])
+        self.SetViewWhiteSpace(self.appData['coder']['showWhitespace'])
+        self.SetViewEOL(self.appData['coder']['showEOLs'])
 
         self.Bind(wx.stc.EVT_STC_MARGINCLICK, self.OnMarginClick)
         self.SetIndentationGuides(False)
 
         self.Bind(wx.EVT_KEY_DOWN, self.OnKeyPressed)
 
-        self.setupStyles()
+        # apply the theme to the lexer
+        self.theme = self.prefs['theme']
 
     def OnKeyPressed(self, event):
         keyCode = event.GetKeyCode()
@@ -510,83 +520,6 @@ class CodeBox(BaseCodeEditor):
             return  # so that we don't reach the skip line at end
 
         event.Skip()
-
-    def setupStyles(self):
-
-        if wx.Platform == '__WXMSW__':
-            faces = {'size': 10}
-        elif wx.Platform == '__WXMAC__':
-            faces = {'size': 14}
-        else:
-            faces = {'size': 12}
-        if self.prefs.coder['codeFontSize']:
-            faces['size'] = int(self.prefs.coder['codeFontSize'])
-        faces['small'] = faces['size'] - 2
-        # Global default styles for all languages
-        # ,'Arial']  # use arial as backup
-        faces['code'] = self.prefs.coder['codeFont']
-        # ,'Arial']  # use arial as backup
-        faces['comment'] = self.prefs.coder['commentFont']
-        self.StyleSetSpec(wx.stc.STC_STYLE_DEFAULT,
-                          "face:%(code)s,size:%(size)d" % faces)
-        self.StyleClearAll()  # Reset all to be like the default
-
-        # Global default styles for all languages
-        self.StyleSetSpec(wx.stc.STC_STYLE_DEFAULT,
-                          "face:%(code)s,size:%(size)d" % faces)
-        self.StyleSetSpec(wx.stc.STC_STYLE_LINENUMBER,
-                          "back:#C0C0C0,face:%(code)s,size:%(small)d" % faces)
-        self.StyleSetSpec(wx.stc.STC_STYLE_CONTROLCHAR,
-                          "face:%(comment)s" % faces)
-        self.StyleSetSpec(wx.stc.STC_STYLE_BRACELIGHT,
-                          "fore:#FFFFFF,back:#0000FF,bold")
-        self.StyleSetSpec(wx.stc.STC_STYLE_BRACEBAD,
-                          "fore:#000000,back:#FF0000,bold")
-
-        # Python styles
-        # Default
-        self.StyleSetSpec(wx.stc.STC_P_DEFAULT,
-                          "fore:#000000,face:%(code)s,size:%(size)d" % faces)
-        # Comments
-        spec = "fore:#007F00,face:%(comment)s,size:%(size)d"
-        self.StyleSetSpec(wx.stc.STC_P_COMMENTLINE, spec % faces)
-        # Number
-        self.StyleSetSpec(wx.stc.STC_P_NUMBER,
-                          "fore:#007F7F,size:%(size)d" % faces)
-        # String
-        self.StyleSetSpec(wx.stc.STC_P_STRING,
-                          "fore:#7F007F,face:%(code)s,size:%(size)d" % faces)
-        # Single quoted string
-        self.StyleSetSpec(wx.stc.STC_P_CHARACTER,
-                          "fore:#7F007F,face:%(code)s,size:%(size)d" % faces)
-        # Keyword
-        self.StyleSetSpec(wx.stc.STC_P_WORD,
-                          "fore:#00007F,bold,size:%(size)d" % faces)
-        # Triple quotes
-        self.StyleSetSpec(wx.stc.STC_P_TRIPLE,
-                          "fore:#7F0000,size:%(size)d" % faces)
-        # Triple double quotes
-        self.StyleSetSpec(wx.stc.STC_P_TRIPLEDOUBLE,
-                          "fore:#7F0000,size:%(size)d" % faces)
-        # Class name definition
-        self.StyleSetSpec(wx.stc.STC_P_CLASSNAME,
-                          "fore:#0000FF,bold,underline,size:%(size)d" % faces)
-        # Function or method name definition
-        self.StyleSetSpec(wx.stc.STC_P_DEFNAME,
-                          "fore:#007F7F,bold,size:%(size)d" % faces)
-        # Operators
-        self.StyleSetSpec(wx.stc.STC_P_OPERATOR, "bold,size:%(size)d" % faces)
-        # Identifiers
-        self.StyleSetSpec(wx.stc.STC_P_IDENTIFIER,
-                          "fore:#000000,face:%(code)s,size:%(size)d" % faces)
-        # Comment-blocks
-        self.StyleSetSpec(wx.stc.STC_P_COMMENTBLOCK,
-                          "fore:#7F7F7F,size:%(size)d" % faces)
-        # End of line where string is not closed
-        spec = "fore:#000000,face:%(code)s,back:#E0C0E0,eol,size:%(size)d"
-        self.StyleSetSpec(wx.stc.STC_P_STRINGEOL, spec % faces)
-
-        self.SetCaretForeground("BLUE")
 
     def setStatus(self, status):
         if status == 'error':

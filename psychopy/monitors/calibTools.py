@@ -25,6 +25,7 @@ try:
     haveSerial = True
 except Exception:
     haveSerial = False
+import errno
 import os
 import time
 import glob
@@ -63,8 +64,11 @@ else:
 if isinstance(monitorFolder, bytes):
     monitorFolder = monitorFolder.decode(sys.getfilesystemencoding())
 
-if not os.path.isdir(monitorFolder):
+try:
     os.makedirs(monitorFolder)
+except OSError as err:
+    if err.errno != errno.EEXIST:
+        raise
 
 
 class Monitor(object):

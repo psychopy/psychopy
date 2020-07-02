@@ -58,6 +58,7 @@ if not PY3 and sys.platform == 'darwin':
 else:
     blockTips = False
 
+travisCI = bool(str(os.environ.get('TRAVIS')).lower() == 'true')
 
 # Enable high-dpi support if on Windows. This fixes blurry text rendering.
 if sys.platform == 'win32':
@@ -208,8 +209,9 @@ class PsychoPyApp(wx.App):
         self.locale.AddCatalog(self.GetAppName())
 
         # set the exception hook to present unhandled errors in a dialog
-        from psychopy.app.errorDlg import exceptionCallback
-        sys.excepthook = exceptionCallback
+        if not travisCI:
+            from psychopy.app.errorDlg import exceptionCallback
+            sys.excepthook = exceptionCallback
 
         self.onInit(testMode=testMode, **kwargs)
         if profiling:
@@ -823,6 +825,12 @@ class PsychoPyApp(wx.App):
 
     def showNews(self, event=None):
         connections.showNews(self, checkPrev=False)
+
+    def showSystemInfo(self, event=None):
+        """Show system information."""
+        from psychopy.app.sysInfoDlg import SystemInfoDialog
+        dlg = SystemInfoDialog(None)
+        dlg.Show()
 
     def followLink(self, event=None, url=None):
         """Follow either an event id (= a key to an url defined in urls.py)

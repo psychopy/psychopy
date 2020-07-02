@@ -127,7 +127,7 @@ class ParamCtrls(object):
             # set viewer small, then it SHOULD increase with wx.aui control
             self.valueCtrl = CodeBox(parent, -1, pos=wx.DefaultPosition,
                                      size=wx.Size(sx, sy), style=0,
-                                     prefs=appPrefs)
+                                     prefs=appPrefs, codeType='txt')
             if len(param.val):
                 self.valueCtrl.AddText(str(param.val))
             if fieldName == 'text':
@@ -251,6 +251,9 @@ class ParamCtrls(object):
             self.updateCtrl = wx.Choice(parent, choices=updateLabels)
             # stash non-localized choices to allow retrieval by index:
             self.updateCtrl._choices = copy.copy(allowedUpdates)
+            # If parameter isn't in list, default to the first choice
+            if param.updates not in allowedUpdates:
+                param.updates = allowedUpdates[0]
             # get index of the currently set update value, set display:
             index = allowedUpdates.index(param.updates)
             # set by integer index, not string value
@@ -507,6 +510,7 @@ class _BaseParamsDlg(wx.Dialog):
         for categName in categNames:
             theseParams = categs[categName]
             page = wx.Panel(self.ctrls, -1)
+            page.app = self.app
             ctrls = self.addCategoryOfParams(theseParams, parent=page)
             if categName in categLabel:
                 cat = categLabel[categName]
@@ -758,7 +762,7 @@ class _BaseParamsDlg(wx.Dialog):
             ctrls.valueCtrl.Bind(wx.EVT_KEY_UP, self.doValidate)
 
         # add the controls to the sizer
-        _flag = wx.ALIGN_RIGHT | wx.LEFT | wx.RIGHT
+        _flag = wx.ALIGN_RIGHT | wx.LEFT | wx.RIGHT | wx.ALIGN_CENTER_VERTICAL
         sizer.Add(ctrls.nameCtrl, (currRow, 0), border=5, flag=_flag)
         if ctrls.updateCtrl:
             sizer.Add(ctrls.updateCtrl, (currRow, 2), flag=_flag)
