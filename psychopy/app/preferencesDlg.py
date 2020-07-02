@@ -803,6 +803,7 @@ class PreferencesDlg(wx.Dialog):
 
         # after validation, update the UI
         self.updateCoderUI()
+        self.app.theme = self.app.theme
 
     def updateCoderUI(self):
         """Update the Coder UI (eg. fonts, themes, etc.) from prefs."""
