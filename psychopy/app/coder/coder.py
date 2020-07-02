@@ -594,7 +594,6 @@ class CodeEditor(BaseCodeEditor, CodeEditorFoldingMixin, ThemeMixin):
         self.SetDoubleBuffered(True)
 
         self.theme = self.prefs['theme']
-        self._applyAppTheme()
 
     def setFonts(self):
         """Make some styles,  The lexer defines what each style is used for,
