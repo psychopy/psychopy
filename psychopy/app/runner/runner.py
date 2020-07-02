@@ -381,7 +381,7 @@ class RunnerPanel(wx.Panel, ScriptProcess, ThemeMixin):
         rc = self.app.prefs.paths['icons']
         for btn in buttons:
             param = buttons[btn]
-            if hasattr(btn, 'emblem'):
+            if 'emblem' in param:
                 bmp = icons.combineImageEmblem(
                     main=os.path.join(rc, param['main']),
                     emblem=os.path.join(rc, param['emblem']), pos='bottom_right')
