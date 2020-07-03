@@ -17,8 +17,8 @@
     "font": "bold"
   },
   "select": {
-    "fg": "#FFFFFF",
-    "bg": "#75757D",
+    "fg": "",
+    "bg": "#7C7C86",
     "font": ""
   },
   "indent": {
