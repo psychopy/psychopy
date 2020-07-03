@@ -1106,15 +1106,11 @@ class CoderFrame(wx.Frame, ThemeMixin):
                                  Caption(_translate("Source Assistant")).
                                  Left().Show(self.prefs['showSourceAsst']))
         # Add structure page to source assistant
+        self.structureWindow.SetName("Structure")
         self.sourceAsst.AddPage(self.structureWindow, "Structure")
-        self.sourceAsst.SetPageBitmap(0, wx.Bitmap(
-            os.path.join(self.paths['icons'], 'coderclass16.png'),
-            wx.BITMAP_TYPE_PNG))
         # Add file browser page to source assistant
+        self.fileBrowserWindow.SetName("FileBrowser")
         self.sourceAsst.AddPage(self.fileBrowserWindow, "File Browser")
-        self.sourceAsst.SetPageBitmap(1, wx.Bitmap(
-            os.path.join(self.paths['icons'], 'folder-open16.png'),
-            wx.BITMAP_TYPE_PNG))
 
         # Create editor notebook
         #todo: Why is editor default background not same as usual frame backgrounds?
@@ -1170,10 +1166,8 @@ class CoderFrame(wx.Frame, ThemeMixin):
                 self.shell = PsychopyPyShell(self)
                 self._useShell = 'pyshell'
             # Add shell to output pane
+            self.shell.SetName("PythonShell")
             self.shelf.AddPage(self.shell, _translate('Shell'))
-            self.shelf.SetPageBitmap(0, wx.Bitmap(
-                os.path.join(self.paths['icons'], 'coderpython16.png'),
-                wx.BITMAP_TYPE_PNG))
         # Add shelf panel
         self.paneManager.AddPane(self.shelf,
                                  aui.AuiPaneInfo().
@@ -1211,23 +1205,6 @@ class CoderFrame(wx.Frame, ThemeMixin):
             self.paneManager.GetPane('SourceAsst').IsShown())
         self.SendSizeEvent()
         self.app.trackFrame(self)
-
-    # def _applyAppTheme(self, target=None):
-    #     self.paneManager.SetArtProvider(PsychopyDockArt())
-    #     for c in self.pnlMain.GetChildren():
-    #         if isinstance(c, aui.AuiNotebook):
-    #             c.SetArtProvider(PsychopyTabArt())
-    #             c.GetAuiManager().SetArtProvider(PsychopyDockArt())
-    #             for index in range(c.GetPageCount()):
-    #                 page = c.GetPage(index)
-    #                 page.SetBackgroundColour(ThemeMixin.appColors['frame_bg'])
-    #                 page._applyAppTheme()
-    #                 page.theme = self.prefs['theme']
-    #         if hasattr(c, '_applyAppTheme'):
-    #             c._applyAppTheme()
-    #     for c in self.GetChildren():
-    #         if hasattr(c, '_applyAppTheme'):
-    #             c._applyAppTheme()
 
     def GetAuiManager(self):
         return self.paneManager

@@ -67,12 +67,23 @@ class ThemeMixin:
             target.SetForegroundColour(ThemeMixin.appColors['text'])
 
         def applyToNotebook(target):
+            # Dict of icons to apply to specific tabs
+            tabIcons = {
+                "Structure": "coderclass16.png",
+                "FileBrowser": "folder-open16.png",
+                "PythonShell": "coderpython16.png"
+            }
             target.SetArtProvider(PsychopyTabArt())
             target.GetAuiManager().SetArtProvider(PsychopyDockArt())
             for index in range(target.GetPageCount()):
                 page = target.GetPage(index)
                 page.SetBackgroundColour(ThemeMixin.appColors['tab_bg'])
+                if page.GetName() in tabIcons:
+                    target.SetPageBitmap(index, wx.Bitmap(
+                        os.path.join(self.paths['icons'], tabIcons[page.GetName()]),
+                        wx.BITMAP_TYPE_PNG))
                 page._applyAppTheme()
+
 
         def applyToCodeEditor(target):
             spec = ThemeMixin.codeColors
