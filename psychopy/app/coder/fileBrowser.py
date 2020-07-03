@@ -21,7 +21,7 @@ import os
 import sys
 import subprocess
 import imghdr
-from ..style import cs, cLib
+from ..themes import ThemeMixin
 
 # enums for file types
 FOLDER_TYPE_NORMAL = 0
