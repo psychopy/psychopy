@@ -805,18 +805,14 @@ class RunnerPanel(wx.Panel, ScriptProcess, ThemeMixin):
         self._currentProject = None
 
 
-class StdOutText(StdOutRich):
+class StdOutText(StdOutRich, ThemeMixin):
     """StdOutRich subclass which also handles Git messages from Pavlovia projects."""
 
     def __init__(self, parent=None, style=wx.TE_READONLY | wx.TE_MULTILINE | wx.BORDER_NONE, size=wx.DefaultSize):
         StdOutRich.__init__(self, parent=parent, style=style, size=size)
         self.prefs = parent.prefs
         self.paths = parent.paths
-        self.theme = self.prefs['theme']
-        self._mgr = aui.AuiManager(self)
-
-    def GetAuiManager(self):
-        return self._mgr
+        self._applyAppTheme()
 
     def getText(self):
         """Get and return the text of the current buffer."""
@@ -835,4 +831,4 @@ class StdOutText(StdOutRich):
     def write(self, inStr, evt=False):
         # Override default write behaviour to also updte theme on each write
         StdOutRich.write(self, inStr, evt)
-        self.theme = self.prefs['theme']
+        self._applyAppTheme()
