@@ -136,21 +136,12 @@ class Preferences(object):
         baseThemes = join(self.paths['appDir'], 'themes')
         baseAppThemes = join(self.paths['appDir'], 'themes', 'app')
         # avoid silent fail-to-launch-app if bad permissions:
-        if os.path.exists(self.paths['userPrefsDir']):
-            try:
-                if not os.access(self.paths['userPrefsDir'],
-                                 os.W_OK | os.R_OK):
-                    raise OSError
-                tmp = os.path.join(self.paths['userPrefsDir'], '.tmp')
-                with open(tmp, 'w') as fileh:
-                    fileh.write('')
-                open(tmp).read()
-                os.remove(tmp)
-                msg = 'PsychoPy3 error: need read-write permissions for `%s` - `%s`'
-            except Exception as err:  # OSError, WindowsError, ...?
-                msg = 'PsychoPy3 error: need read-write permissions for `%s` - `%s`'
-                sys.exit(msg % (self.paths['userPrefsDir'], err))
 
+        try:
+            os.makedirs(self.paths['userPrefsDir'])
+        except OSError as err:
+            if err.errno != errno.EEXIST:
+                raise
         # Create themes folder in user space if not one already
         try:
             os.makedirs(self.paths['themes'])
