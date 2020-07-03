@@ -497,7 +497,7 @@ class CodeBox(BaseCodeEditor, ThemeMixin):
         self.Bind(wx.EVT_KEY_DOWN, self.OnKeyPressed)
 
         # apply the theme to the lexer
-        self.theme = self.prefs['theme']
+        self._applyAppTheme()
 
     def OnKeyPressed(self, event):
         keyCode = event.GetKeyCode()
