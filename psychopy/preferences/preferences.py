@@ -217,7 +217,7 @@ class Preferences(object):
             if 'icons' not in spec or 'app' not in spec:
                 raise Exception()
         except:
-            with open("{}//{}.json".format(self.paths['themes'], "PsychopyLight"), "rb") as fp:
+            with open("{}/{}.json".format(self.paths['themes'], "PsychopyLight"), "rb") as fp:
                 spec = json.load(fp)
         self.paths['icons'] = join(self.paths['resources'],
                                    'classic' if spec['icons'] == 'classic'
