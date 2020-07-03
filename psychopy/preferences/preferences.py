@@ -156,6 +156,11 @@ class Preferences(object):
             except OSError as err:
                 if err.errno != errno.EEXIST:
                     raise
+            try:
+                os.makedirs(join(self.paths['themes'], "app"))
+            except OSError as err:
+                if err.errno != errno.EEXIST:
+                    raise
             # Make sure all the base themes are present in user's folder
             #try:
             for file in os.listdir(baseThemes):
@@ -207,7 +212,7 @@ class Preferences(object):
 
         # darkmode paths
         try:
-            with open("{}//{}.json".format(self.paths['themes'], self.app['theme']), "rb") as fp:
+            with open("{}/{}.json".format(self.paths['themes'], self.app['theme']), "rb") as fp:
                 spec = json.load(fp)
             if 'icons' not in spec or 'app' not in spec:
                 raise Exception()
