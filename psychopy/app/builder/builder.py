@@ -2040,7 +2040,12 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
             btn.SetForegroundColour(cs['text'])
             btn.SetBackgroundColour(cs['panel_bg'])
             sz = '48add' if self.app.prefs.app['largeIcons'] else '24add'
+            # Set all bitmap attributes
             btn.SetBitmap(ThemeMixin.appIcons['components'][btn.GetName()][sz])
+            btn.SetBitmapCurrent(ThemeMixin.appIcons['components'][btn.GetName()][sz])
+            btn.SetBitmapPressed(ThemeMixin.appIcons['components'][btn.GetName()][sz])
+            btn.SetBitmapFocus(ThemeMixin.appIcons['components'][btn.GetName()][sz])
+            btn.SetBitmapDisabled(ThemeMixin.appIcons['components'][btn.GetName()][sz])
             btn.SetBitmapPosition(wx.TOP)
             # Set hover effect
             btn.Bind(wx.EVT_ENTER_WINDOW, self.onHover)
@@ -2273,22 +2278,14 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
     def onHover(self, evt):
         cs = ThemeMixin.appColors
         btn = evt.GetEventObject()
-        if isinstance(btn, wx.BitmapButton):
-            btn.SetBackgroundColour(cs['cbutton_hover'])
-        elif isinstance(btn, wx.lib.platebtn.PlateButton):
-            btn.SetBackgroundColour(cs['cbutton_hover'])
-        else:
-            pass
+        btn.SetBackgroundColour(cs['bmpbutton_bg_hover'])
+        btn.SetForegroundColour(cs['bmpbutton_fg_hover'])
 
     def offHover(self, evt):
         cs = ThemeMixin.appColors
         btn = evt.GetEventObject()
-        if isinstance(btn, wx.BitmapButton):
-            btn.SetBackgroundColour(cs['cpanel_bg'])
-        elif isinstance(btn, wx.lib.platebtn.PlateButton):
-            btn.SetBackgroundColour(cs['cpanel_bg'])
-        else:
-            pass
+        btn.SetBackgroundColour(cs['panel_bg'])
+        btn.SetForegroundColour(cs['text'])
 
 
 class FavoriteComponents(object):
