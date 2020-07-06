@@ -115,7 +115,12 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
         if size is None:
             size = [defaultBoxWidth[units], -1]
         self._requestedSize = size  # (-1 in either dim means not constrained)
-        self.size = size  # but this will be updated later to actual size
+        if boxsizing == 'border-box':
+            self.size = size  # but this will be updated later to actual size
+        elif boxsizing == 'content-box':
+            self.size = tuple(dim+padding for dim in size) # but this will be updated later to actual size
+        else:
+            raise Exception('invalid box sizing value')
         self.bold = bold
         self.italic = italic
         self.lineSpacing = lineSpacing
