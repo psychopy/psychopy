@@ -526,6 +526,9 @@ class ThemeMixin:
                     or "color" not in locals() \
                     or "opacity" not in locals() \
                     or "invalid" in color:
+                print(spec)
+                print(color)
+                print(opacity)
                 raise Exception("Invalid app colour spec")
             else:
                 ThemeMixin.appColors[key] = wx.Colour(color + [opacity])
