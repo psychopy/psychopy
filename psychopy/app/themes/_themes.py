@@ -77,7 +77,7 @@ class ThemeMixin:
             target.GetAuiManager().SetArtProvider(PsychopyDockArt())
             for index in range(target.GetPageCount()):
                 page = target.GetPage(index)
-                page.SetBackgroundColour(ThemeMixin.appColors['tab_bg'])
+                page.SetBackgroundColour(ThemeMixin.appColors['panel_bg'])
                 if page.GetName() in tabIcons:
                     target.SetPageBitmap(index, wx.Bitmap(
                         os.path.join(self.paths['icons'], tabIcons[page.GetName()]),
@@ -455,10 +455,10 @@ class ThemeMixin:
 
     def setAppColors(self, mode):
         try:
-            with open("{}//app//{}.json".format(prefs.paths['themes'], mode), "rb") as fp:
+            with open("{}/app/{}.json".format(prefs.paths['themes'], mode), "rb") as fp:
                 spec = json.load(fp)
-        except:
-            with open("{}//app//{}.json".format(prefs.paths['themes'], "light"), "rb") as fp:
+        except FileNotFoundError:
+            with open("{}/app/{}.json".format(prefs.paths['themes'], "light"), "rb") as fp:
                 spec = json.load(fp)
 
         hexchars = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
