@@ -150,30 +150,30 @@ class Preferences(object):
             except Exception as err:  # OSError, WindowsError, ...?
                 msg = 'PsychoPy3 error: need read-write permissions for `%s` - `%s`'
                 sys.exit(msg % (self.paths['userPrefsDir'], err))
-            # Create themes folder in user space if not one already
-            try:
-                os.makedirs(self.paths['themes'])
-            except OSError as err:
-                if err.errno != errno.EEXIST:
-                    raise
-            try:
-                os.makedirs(join(self.paths['themes'], "app"))
-            except OSError as err:
-                if err.errno != errno.EEXIST:
-                    raise
-            # Make sure all the base themes are present in user's folder
-            #try:
-            for file in os.listdir(baseThemes):
-                if file.endswith('.json'):
-                    shutil.copyfile(
-                        join(baseThemes, file),
-                        join(self.paths['themes'], file)
-                    )
-            for file in os.listdir(baseAppThemes):
-                if file.endswith('.json'):
-                    shutil.copyfile(
-                        join(baseAppThemes, file),
-                        join(self.paths['themes'], "app", file)
+        # Create themes folder in user space if not one already
+        try:
+            os.makedirs(self.paths['themes'])
+        except OSError as err:
+            if err.errno != errno.EEXIST:
+                raise
+        try:
+            os.makedirs(join(self.paths['themes'], "app"))
+        except OSError as err:
+            if err.errno != errno.EEXIST:
+                raise
+        # Make sure all the base themes are present in user's folder
+        #try:
+        for file in os.listdir(baseThemes):
+            if file.endswith('.json'):
+                shutil.copyfile(
+                    join(baseThemes, file),
+                    join(self.paths['themes'], file)
+                )
+        for file in os.listdir(baseAppThemes):
+            if file.endswith('.json'):
+                shutil.copyfile(
+                    join(baseAppThemes, file),
+                    join(self.paths['themes'], "app", file)
                     )
             #except:
             #    pass
