@@ -28,7 +28,9 @@ _localized = {'text': _translate('Text'),
               'italic': _translate('Italic'),
               'lineSpacing': _translate('Line Spacing'),
               'padding': _translate('Padding'),
-              'anchor': _translate('Anchor'),
+              'boxsizing': _translate('Box Sizing'),
+              'anchorx': _translate('Horizontal Alignment'),
+              'anchory': _translate('Vertical Alignment'),
               'fillColor': _translate('Fill Colour'),
               'borderColor': _translate('Border Colour'),
               'borderWidth': _translate('Border Width'),
@@ -48,8 +50,8 @@ class TextboxComponent(BaseVisualComponent):
                  font='Consolas', units='from exp settings', bold=False, italic=False,
                  color='white', colorSpace='rgb', opacity=1.0,
                  pos=(0, 0), size=None, letterHeight=20, ori=0,
-                 lineSpacing=1.0,padding=None,  # gap between box and text
-                 startType='time (s)', startVal=0.0, anchor='center',
+                 lineSpacing=1.0,padding=None, boxsizing='content-box', # gap between box and text
+                 startType='time (s)', startVal=0.0, anchorX='center', anchorY='center',
                  stopType='duration (s)', stopVal=1.0,
                  flip=False, startEstim='', durationEstim='', wrapWidth='',
                  languageStyle='LTR', fillColor=None,
@@ -74,7 +76,7 @@ class TextboxComponent(BaseVisualComponent):
 
         self.order = [
             'editable', 'fillColor', 'borderColor', 'borderWidth', 'padding', 'pos', 'size',
-            'color', 'font', 'anchor', 'letterHeight',
+            'color', 'font', 'anchorX', 'anchorY', 'letterHeight',
             'text', 'italic', 'bold',
         ]
 
@@ -143,12 +145,24 @@ class TextboxComponent(BaseVisualComponent):
             updates='constant', allowedUpdates=_allow3[:],
             hint=_translate("Defines the space between text and the textbox border"),
             label=_localized['padding'])
-        self.params['anchor'] = Param(
-            anchor, valType='str', allowedTypes=[],
+        self.params['boxsizing'] = Param(
+            boxsizing, valType='str', allowedTypes=[],
+            allowedVals=['border-box', 'content-box'],
+            updates='constant', allowedUpdates=_allow3[:],
+            hint=_translate("Should padding extend the box beyond its specified size (content-box), or retract the text within it (border-box)? This works the same as box-sizing in CSS."),
+            label=_localized['boxsizing'])
+        self.params['anchorX'] = Param(
+            anchorX, valType='str', allowedTypes=[],
+            allowedVals=['left', 'center', 'right'],
+            updates='constant', allowedUpdates=_allow3[:],
+            hint=_translate("Should text anchor to the left, center or right of the box?"),
+            label=_localized['anchorx'])
+        self.params['anchorY'] = Param(
+            anchorY, valType='str', allowedTypes=[],
             allowedVals=['top', 'center', 'bottom'],
             updates='constant', allowedUpdates=_allow3[:],
             hint=_translate("Should text anchor to the top, center or bottom of the box?"),
-            label=_localized['anchor'])
+            label=_localized['anchory'])
         self.params['fillColor'] = Param(
             fillColor, valType='str', allowedTypes=[],
             updates='constant', allowedUpdates=_allow3[:],
@@ -175,7 +189,7 @@ class TextboxComponent(BaseVisualComponent):
             hint=_translate("Auto log"),
             label=_localized['autoLog'])
 
-        for prm in ('ori', 'opacity', 'colorSpace', 'units', 'wrapWidth',
+        for prm in ('ori', 'opacity', 'colorSpace', 'units', 'wrapWidth', 'boxsizing',
                     'flipHoriz', 'flipVert', 'languageStyle', 'lineSpacing', 'autoLog'):
             self.params[prm].categ = 'Advanced'
 
@@ -202,7 +216,9 @@ class TextboxComponent(BaseVisualComponent):
             "     italic=%(italic)s,\n"
             "     lineSpacing=%(lineSpacing)s,\n"
             "     padding=%(padding)s,\n"
-            "     anchor=%(anchor)s,\n"
+            "     boxsizing=%(boxsizing)s,\n"
+            "     anchorX=%(anchorX)s,\n"
+            "     anchorY=%(anchorY)s,\n"
             "     fillColor=%(fillColor)s,\n"
             "     borderColor=%(borderColor)s,\n"
             "     borderWidth=%(borderWidth)s,\n"

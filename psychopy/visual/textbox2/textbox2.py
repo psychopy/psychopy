@@ -78,7 +78,9 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
                  italic=False,
                  lineSpacing=1.0,
                  padding=None,  # gap between box and text
-                 anchor='center',
+                 boxsizing='content-box',
+                 anchorX='center',
+                 anchorY='center',
                  fillColor=None,
                  borderWidth=0,
                  borderColor=None,
@@ -132,7 +134,8 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
             self.shader = alphaShader = shaders.Shader(
                     shaders.vertSimple, shaders.fragTextBox2alpha)
         # params about positioning
-        self.anchor = anchor  # 'center', 'top_left', 'bottom-center'...
+        self._anchorX = anchorX  # 'left', 'right' or 'center'
+        self._anchorY = anchorY # 'top', 'bottom' or 'center'
         self._needVertexUpdate = False  # this will be set True during layout
         # standard stimulus params
         self.pos = pos
@@ -179,29 +182,6 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
                     bold=self.bold, italic=self.italic)
 
     @attributeSetter
-    def anchor(self, anchor):
-        """anchor is a string of terms, top, bottom, left, right, center
-
-        e.g. 'top_center', 'center-right', 'topleft', 'center' are all valid"""
-        self.__dict__['anchor'] = anchor
-        # look for unambiguous terms first (top, bottom, left, right)
-        self._anchorY = None
-        self._anchorX = None
-        if 'top' in anchor:
-            self._anchorY = 'top'
-        elif 'bottom' in anchor:
-            self._anchorY = 'bottom'
-        if 'right' in anchor:
-            self._anchorX = 'right'
-        elif 'left' in anchor:
-            self._anchorX = 'left'
-        # then 'center' can apply to either axis that isn't already set
-        if self._anchorX is None:
-            self._anchorX = 'center'
-        if self._anchorY is None:
-            self._anchorY = 'center'
-
-    @attributeSetter
     def text(self, text):
         self.__dict__['text'] = text
         self._layout()
@@ -245,6 +225,66 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
         else:
             return self.size
 
+    @property
+    def anchorY(self):
+        return self._anchorY
+
+    @anchorY.setter
+    def anchorY(self, value):
+        self._pixelScaling = self._pixLetterHeight / self.letterHeight
+        self._anchorY = value
+        font = self.glFont
+        # Vertical position of bottom edge of first line, relative to center of box
+        if value == 'top':
+            self._anchorOffsetY = (
+                                          self.size[1] / 2  # Move up by half the box size to get from center to top
+                                          - font.ascender  # Move down so top of first line == top of box
+                                          - self.padding  # Move down to give padding
+                                  ) / self._pixelScaling  # Scale
+        elif value == 'center':
+            self._anchorOffsetY = (
+                                          font.height * len(self._lineLenChars) / 2  # Move up by half of total text height
+                                          - font.ascender  # Move down so top of first line == center of box
+                                  ) / self._pixelScaling  # Scale
+        elif value == 'bottom':
+            self._anchorOffsetY = (
+                                          - self.size[1] / 2  # Move down by half the box size to get from center to bottom
+                                          + font.height * len(self._lineLenChars)  # Move up by total text height
+                                          - font.ascender  # Move down so top of first line == bottom of box
+                                          + self.padding # Move up to give padding
+                                  ) / self._pixelScaling  # Scale
+        else:
+            raise ValueError('Unexpected error for _anchorY')
+
+    @property
+    def anchorX(self):
+        return self._anchorX
+
+    @anchorX.setter
+    def anchorX(self, value):
+        self._pixelScaling = self._pixLetterHeight / self.letterHeight
+        self._anchorX = value
+        font = self.glFont
+        # Horizontal position of left edge of first line, relative to center of box
+        if value == 'left':
+            self._anchorOffsetX = (
+                - self.size[0]/2 # Move left by half the box size to get from center to left
+                + self.padding # Move right to give padding
+            ) / self._pixelScaling  # Scale
+        elif value == 'center':
+            self._anchorOffsetX = (
+               0
+               # todo:Move left by half of total text width
+            ) / self._pixelScaling  # Scale
+        elif value == 'right':
+            self._anchorOffsetX = (
+                self.size[0]/2 # Move right by half the box size to get from center to right
+                - self.padding # Move left to give padding
+                # todo:Move left by total text width (and anchor the the right/center, somehow)
+            ) / self._pixelScaling  # Scale
+        else:
+            raise ValueError('Unexpected error for _anchorX')
+
     # @property
     # def caretIndex(self):
     #     if 'caretIndex' not in self.__dict__ or self.__dict__['caretIndex'] is None:
@@ -258,7 +298,6 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
     def _layout(self):
         """Layout the text, calculating the vertex locations
         """
-
         text = self.text + "\n"
         text = text.replace('<i>', codes['ITAL_START'])
         text = text.replace('</i>', codes['ITAL_END'])
@@ -419,29 +458,8 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
             self.size[1] = ((lineN + 1) * self._lineHeight / self._pixelScaling
                             + self.padding * 2)
 
-        # to start with the anchor is bottom left of *first line*
-        if self._anchorY == 'top':
-            self._anchorOffsetY = (-font.ascender / self._pixelScaling
-                                   - self.padding)
-        elif self._anchorY == 'center':
-            self._anchorOffsetY = (
-                    self.size[1] / 2
-                    - (font.height / 2 - font.descender) / self._pixelScaling
-                    - self.padding)
-        elif self._anchorY == 'bottom':
-            self._anchorOffsetY = (
-                        self.size[1] / 2 - font.descender / self._pixelScaling)
-        else:
-            raise ValueError('Unexpected error for _anchorY')
-
-        if self._anchorX == 'right':
-            self._anchorOffsetX = - (self.size[0] - self.padding) / 1.0
-        elif self._anchorX == 'center':
-            self._anchorOffsetX = - (self.size[0] - self.padding) / 2.0
-        elif self._anchorX == 'left':
-            self._anchorOffsetX = 0
-        else:
-            raise ValueError('Unexpected error for _anchorX')
+        self.anchorX = self._anchorX
+        self.anchorY = self._anchorY
         self.vertices += (self._anchorOffsetX, self._anchorOffsetY)
 
         # if we had to add more glyphs to make possible then 
