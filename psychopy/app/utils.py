@@ -215,6 +215,7 @@ class PsychopyToolbar(wx.ToolBar, ThemeMixin):
         frame.btnHandles.update(pavButtons.btnHandles)
 
         # Finished setup. Make it happen
+        frame.SetToolBar(self)
         self.Realize()
 
 
