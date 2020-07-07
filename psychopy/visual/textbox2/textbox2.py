@@ -113,9 +113,9 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
             Whether or not text should be bold
         italic : bool
             Whether or not text should be italic
-        anchorX : str
+        alignX : str
             Which horizontal point to anchor text to (left, right, center)
-        anchorY : str
+        alignY : str
             Vertical alignment of text (top, bottom, center)
         flipHoriz : bool
             Whether to flip text horizontally
@@ -134,8 +134,8 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
                  lineSpacing=1.0,
                  padding=None,  # gap between box and text
                  boxsizing=False,
-                 anchorX='left',
-                 anchorY='top',
+                 alignX='left',
+                 alignY='top',
                  fillColor=None,
                  borderWidth=0,
                  borderColor=None,
@@ -170,6 +170,9 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
         if size is None:
             size = [defaultBoxWidth[units], -1]
         self._requestedSize = size  # (-1 in either dim means not constrained)
+        if padding is None:
+            padding = defaultLetterHeight[units] / 2.0
+        self.padding = padding
         if boxsizing:
             self.size = size  # but this will be updated later to actual size
         else:
@@ -177,9 +180,6 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
         self.bold = bold
         self.italic = italic
         self.lineSpacing = lineSpacing
-        if padding is None:
-            padding = defaultLetterHeight[units] / 2.0
-        self.padding = padding
         self.glFont = None  # will be set by the self.font attribute setter
         self.font = font
         # once font is set up we can set the shader (depends on rgb/a of font)
@@ -192,8 +192,8 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
             self.shader = alphaShader = shaders.Shader(
                     shaders.vertSimple, shaders.fragTextBox2alpha)
         # params about positioning
-        self._anchorX = anchorX  # 'left', 'right' or 'center'
-        self._anchorY = anchorY # 'top', 'bottom' or 'center'
+        self._alignX = alignX  # 'left', 'right' or 'center'
+        self._alignY = alignY # 'top', 'bottom' or 'center'
         self._needVertexUpdate = False  # this will be set True during layout
         # standard stimulus params
         self.pos = pos
@@ -284,28 +284,28 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
             return self.size
 
     @property
-    def anchorY(self):
-        return self._anchorY
+    def alignY(self):
+        return self._alignY
 
-    @anchorY.setter
-    def anchorY(self, value):
+    @alignY.setter
+    def alignY(self, value):
         self._pixelScaling = self._pixLetterHeight / self.letterHeight
-        self._anchorY = value
+        self._alignY = value
         font = self.glFont
         # Vertical position of bottom edge of first line, relative to center of box
         if value == 'top':
-            self._anchorOffsetY = (
+            self._alignOffsetY = (
                                           self.size[1] / 2  # Move up by half the box size to get from center to top
                                           - font.ascender  # Move down so top of first line == top of box
                                           - self.padding  # Move down to give padding
                                   ) / self._pixelScaling  # Scale
         elif value == 'center':
-            self._anchorOffsetY = (
+            self._alignOffsetY = (
                                           font.height * len(self._lineLenChars) / 2  # Move up by half of total text height
                                           - font.ascender  # Move down so top of first line == center of box
                                   ) / self._pixelScaling  # Scale
         elif value == 'bottom':
-            self._anchorOffsetY = (
+            self._alignOffsetY = (
                                           - self.size[1] / 2  # Move down by half the box size to get from center to bottom
                                           + font.height * len(self._lineLenChars)  # Move up by total text height
                                           - font.ascender  # Move down so top of first line == bottom of box
@@ -315,27 +315,27 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
             raise ValueError('Unexpected error for _anchorY')
 
     @property
-    def anchorX(self):
-        return self._anchorX
+    def alignX(self):
+        return self._alignX
 
-    @anchorX.setter
-    def anchorX(self, value):
+    @alignX.setter
+    def alignX(self, value):
         self._pixelScaling = self._pixLetterHeight / self.letterHeight
-        self._anchorX = value
+        self._alignX = value
         font = self.glFont
         # Horizontal position of left edge of first line, relative to center of box
         if value == 'left':
-            self._anchorOffsetX = (
+            self._alignOffsetX = (
                 - self.size[0]/2 # Move left by half the box size to get from center to left
                 + self.padding # Move right to give padding
             ) / self._pixelScaling  # Scale
         elif value == 'center':
-            self._anchorOffsetX = (
+            self._alignOffsetX = (
                0
                # todo:Move left by half of total text width
             ) / self._pixelScaling  # Scale
         elif value == 'right':
-            self._anchorOffsetX = (
+            self._alignOffsetX = (
                 self.size[0]/2 # Move right by half the box size to get from center to right
                 - self.padding # Move left to give padding
                 # todo:Move left by total text width (and anchor the the right/center, somehow)
@@ -516,9 +516,9 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
             self.size[1] = ((lineN + 1) * self._lineHeight / self._pixelScaling
                             + self.padding * 2)
 
-        self.anchorX = self._anchorX
-        self.anchorY = self._anchorY
-        self.vertices += (self._anchorOffsetX, self._anchorOffsetY)
+        self.alignX = self._alignX
+        self.alignY = self._alignY
+        self.vertices += (self._alignOffsetX, self._alignOffsetY)
 
         # if we had to add more glyphs to make possible then 
         if self.glFont._dirty:
@@ -803,6 +803,6 @@ class Caret(ColorMixin):
 
         # char x pos has been corrected for anchor location already but lines haven't
         verts = (np.array([[x, y1], [x, y2]])
-                 + (0, textbox._anchorOffsetY))
+                 + (0, textbox._alignOffsetY))
         return convertToPix(vertices=verts, pos=textbox.pos,
                                       win=textbox.win, units=textbox.units)

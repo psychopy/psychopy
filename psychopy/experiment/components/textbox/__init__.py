@@ -29,8 +29,8 @@ _localized = {'text': _translate('Text'),
               'lineSpacing': _translate('Line spacing'),
               'padding': _translate('Padding'),
               'boxsizing': _translate('Padding inside box?'),
-              'anchorx': _translate('Horizontal alignment'),
-              'anchory': _translate('Vertical alignment'),
+              #'alignx': _translate('Horizontal alignment'),
+              'aligny': _translate('Vertical alignment'),
               'fillColor': _translate('Fill colour'),
               'borderColor': _translate('Border colour'),
               'borderWidth': _translate('Border width'),
@@ -51,7 +51,7 @@ class TextboxComponent(BaseVisualComponent):
                  color='white', colorSpace='rgb', opacity=1.0,
                  pos=(0, 0), size=None, letterHeight=20, ori=0,
                  lineSpacing=1.0,padding=None, boxsizing=False, # gap between box and text
-                 startType='time (s)', startVal=0.0, anchorX='left', anchorY='top',
+                 startType='time (s)', startVal=0.0, alignX='left', alignY='top',
                  stopType='duration (s)', stopVal=1.0,
                  flip=False, startEstim='', durationEstim='', wrapWidth='',
                  languageStyle='LTR', fillColor=None,
@@ -76,7 +76,7 @@ class TextboxComponent(BaseVisualComponent):
 
         self.order = [
             'editable', 'fillColor', 'borderColor', 'borderWidth', 'padding', 'pos', 'size',
-            'color', 'font', 'anchorX', 'anchorY', 'letterHeight',
+            'color', 'font', 'alignX', 'alignY', 'letterHeight',
             'text', 'italic', 'bold',
         ]
 
@@ -150,18 +150,18 @@ class TextboxComponent(BaseVisualComponent):
             updates='constant', allowedUpdates=_allow3[:],
             hint=_translate("Should the box size include its padding?"),
             label=_localized['boxsizing'])
-        # self.params['anchorX'] = Param(
-        #     anchorX, valType='str', allowedTypes=[],
+        # self.params['alignX'] = Param(
+        #     alignX, valType='str', allowedTypes=[],
         #     allowedVals=['left', 'center', 'right'],
         #     updates='constant', allowedUpdates=_allow3[:],
         #     hint=_translate("Should text anchor to the left, center or right of the box?"),
-        #     label=_localized['anchorx'])
-        self.params['anchorY'] = Param(
-            anchorY, valType='str', allowedTypes=[],
+        #     label=_localized['alignx'])
+        self.params['alignY'] = Param(
+            alignY, valType='str', allowedTypes=[],
             allowedVals=['top', 'center', 'bottom'],
             updates='constant', allowedUpdates=_allow3[:],
             hint=_translate("Should text anchor to the top, center or bottom of the box?"),
-            label=_localized['anchory'])
+            label=_localized['aligny'])
         self.params['fillColor'] = Param(
             fillColor, valType='str', allowedTypes=[],
             updates='constant', allowedUpdates=_allow3[:],
@@ -216,8 +216,7 @@ class TextboxComponent(BaseVisualComponent):
             "     lineSpacing=%(lineSpacing)s,\n"
             "     padding=%(padding)s,\n"
             "     boxsizing=%(boxsizing)s,\n"
-            "     anchorX=%(anchorX)s,\n"
-            "     anchorY=%(anchorY)s,\n"
+            "     alignY=%(alignY)s,\n"
             "     fillColor=%(fillColor)s,\n"
             "     borderColor=%(borderColor)s,\n"
             "     borderWidth=%(borderWidth)s,\n"
