@@ -778,16 +778,13 @@ class Caret(ColorMixin):
         self.width = width
 
     def draw(self):
+        if not round(core.getTime() % 2 / 2):  # Flash every other second
+            return
         gl.glLineWidth(self.width)
         col = tuple(self.rgb)
-        if round(core.getTime() % 2 / 2):  # Flash every other second
-            gl.glColor4f(
-                int(col[0]), int(col[1]), int(col[2]), int(self.visible)
-            )
-        else:
-            gl.glColor4f(
-                int(col[0]), int(col[1]), int(col[2]), 0
-            )
+        gl.glColor4f(
+            int(col[0]), int(col[1]), int(col[2]), int(self.visible)
+        )
         gl.glBegin(gl.GL_LINES)
         gl.glVertex2f(self.vertices[0, 0], self.vertices[0, 1])
         gl.glVertex2f(self.vertices[1, 0], self.vertices[1, 1])
