@@ -50,7 +50,6 @@ from .dialogs import (DlgComponentProperties, DlgExperimentProperties,
 
 from ..plugin_manager import PluginManagerFrame
 
-from .flow import FlowPanel
 from ..utils import FileDropTarget, WindowFrozen
 from psychopy.experiment import components
 from builtins import str
