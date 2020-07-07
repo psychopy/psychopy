@@ -67,6 +67,61 @@ wordBreaks = " -\n"  # what about ",."?
 # If text is ". " we don't want to start next line with single space?
 
 class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
+    """A class to add a Textbox to a `psycopy.visual.Window`
+
+        The Textbox allows participants to input text into an editable box which will wrap that text for them.
+
+        Example
+        -------
+        txtbox = Textbox2(win, font='Consolas', color='black', size=(500,500), padding=50, editable=True)
+
+        Parameters
+        ----------
+        win : psychopy.visual.Window
+            The window object to present the form.
+        editable : bool
+            Whether or not participants can edit text
+        text : str
+            Text to display.
+        font : str
+            Which font to use for the text.
+        pos : list, tuple
+            Position of textbox on screen.
+        letterHeight : int, float
+            Height of lines on screen.
+        lineSpacing : int, float
+            Amount of space between lines
+        boxsizing : bool
+            Whether or not padding should be included in the overall size of box
+        padding : int, float
+            Empty space between box edge and text
+        size : list, tuple
+            Size of textbox on screen.
+        opacity : float
+            Opacity of box and text
+        color : list, tuple, str
+            Colour of text
+        fillColor : list, tuple, str
+            Colour of box
+        borderColor : list, tuple, str
+            Colour of box outline
+        colorSpace : str
+            Colourspace in which to interpret `color`, `fillColor` and `borderColor`
+        borderWidth : int, float
+            Width of box border
+        bold : bool
+            Whether or not text should be bold
+        italic : bool
+            Whether or not text should be italic
+        anchorX : str
+            Which horizontal point to anchor text to (left, right, center)
+        anchorY : str
+            Vertical alignment of text (top, bottom, center)
+        flipHoriz : bool
+            Whether to flip text horizontally
+        flipVert : bool
+            Whether to flip text vertically
+        """
     def __init__(self, win, text, font,
                  pos=(0, 0), units='pix', letterHeight=None,
                  size=None,
@@ -619,6 +674,29 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
         self._hasFocus = state
 
 class Caret(ColorMixin):
+    """
+    Class to handle the caret (cursor) within a textbox. Do **not** call without a textbox.
+
+    Parameters
+        ----------
+        textbox : psychopy.visual.TextBox2
+            Textbox which caret corresponds to
+        visible : bool
+            Whether the caret is visible
+        row : int
+            Textbox row which caret is on
+        char : int
+            Text character within row which caret is on
+        index : int
+            Index of character which caret is on
+        vertices : list, tuple
+            Coordinates of each corner of caret
+        width : int, float
+            Width of caret line
+        color : list, tuple, str
+            Caret colour
+    """
+
     def __init__(self, textbox, color, width):
         self.textbox = textbox
         self.index = None
