@@ -23,8 +23,7 @@ The use of git and the following workflow allows people to contribute changes th
 - For substantial changes (new features)
     - create a branch
     - when finished run unit tests
-    - when the unit tests pass merge changes back into the `master` branch
-    - submit a pull request to the central repository
+    - when the unit tests pass, submit a pull request to the central repository
 
 .. createClone:
 

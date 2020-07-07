@@ -155,7 +155,7 @@ class Experiment(object):
     def writeScript(self, expPath=None, target="PsychoPy", modular=True):
         """Write a PsychoPy script for the experiment
         """
-        self.integrityCheck()
+        # self.integrityCheck()
 
         self.psychopyVersion = psychopy.__version__  # make sure is current
         # set this so that params write for approp target
@@ -190,6 +190,8 @@ class Experiment(object):
                 self_copy._currentRoutine = entry
                 if hasattr(entry, 'writeRunOnceInitCode'):
                     entry.writeRunOnceInitCode(script)
+                if hasattr(entry, 'writePreCode'):
+                    entry.writePreCode(script)
             script.write("\n\n")
 
             # present info, make logfile

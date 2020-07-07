@@ -156,9 +156,14 @@ def getComponents(folder=None, fetchIcons=True):
         except ImportError:
             continue  # not a valid module (no __init__.py?)
         # check for orphaned pyc files (__file__ is not a .py file)
-        if hasattr(module, '__file__') and module.__file__.endswith('.pyc'):
-            if not os.path.isfile(module.__file__[:-1]):
-                continue  # looks like an orphaned pyc file
+        if hasattr(module, '__file__'):
+            if not module.__file__:
+                # with Py3, orphans have a __pycharm__ folder but no file
+                continue
+            elif module.__file__.endswith('.pyc'):
+                # with Py2, orphans have a xxxxx.pyc file
+                if not os.path.isfile(module.__file__[:-1]):
+                    continue  # looks like an orphaned pyc file
         # give a default category
         if not hasattr(module, 'categories'):
             module.categories = ['Custom']

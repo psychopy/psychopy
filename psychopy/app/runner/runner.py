@@ -4,8 +4,14 @@
 # Part of the PsychoPy library
 # Copyright (C) 2002-2018 Jonathan Peirce (C) 2019 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
+import json
+
+from psychopy.app.coder import StylerMixin
+from psychopy.app.style import cLib, cs
 
 import wx
+from wx.lib import platebtn
+import wx.lib.agw.aui as aui  # some versions of phoenix
 import os
 import sys
 import time
@@ -17,6 +23,7 @@ from subprocess import Popen, PIPE
 
 from psychopy.app import icons
 from psychopy import experiment
+from psychopy.app.utils import PsychopyDockArt, PsychopyPlateBtn, PsychopyTabArt, PsychopyToolbar
 from psychopy.constants import PY3
 from psychopy.localization import _translate
 from psychopy.app.stdOutRich import StdOutRich
@@ -38,16 +45,16 @@ class RunnerFrame(wx.Frame):
                                           name=title,
                                           )
 
-        # Create menu
-        self.runnerMenu = wx.MenuBar()
-        self.makeMenu()
-        self.SetMenuBar(self.runnerMenu)
-
         self.app = app
         self.frameType = 'runner'
         self.app.trackFrame(self)
 
         self.panel = RunnerPanel(self, id, title, app)
+
+        # Create menu
+        self.runnerMenu = wx.MenuBar()
+        self.makeMenu()
+        self.SetMenuBar(self.runnerMenu)
 
         self.mainSizer = wx.BoxSizer(wx.VERTICAL)
         self.mainSizer.Add(self.panel, 1, wx.EXPAND | wx.ALL)
@@ -67,31 +74,70 @@ class RunnerFrame(wx.Frame):
     def stdOut(self):
         return self.panel.stdoutCtrl
 
+    @property
+    def alerts(self):
+        return self.panel.alertsCtrl
+
     def makeMenu(self):
         """Create Runner menubar."""
+        keys = self.app.prefs.keys
         # Menus
         fileMenu = wx.Menu()
         viewMenu = wx.Menu()
+        runMenu = wx.Menu()
 
         # Menu items
         fileMenuItems = [
-            {'id': wx.ID_ADD, 'label': 'Add task', 'status': 'Adding task...', 'func': self.addTask},
-            {'id': wx.ID_REMOVE, 'label': 'Remove task', 'status': 'Removing task...', 'func': self.removeTask},
-            {'id': wx.ID_CLEAR, 'label': 'Clear all', 'status': 'Clearing tasks...', 'func': self.clearTasks},
-            {'id': wx.ID_SAVE, 'label': 'Save list', 'status': 'Saving task...', 'func': self.saveTaskList},
-            {'id': wx.ID_COPY, 'label': 'Load list', 'status': 'Loading task...', 'func': self.loadTaskList},
-            {'id': wx.ID_CLOSE_FRAME, 'label': 'Close', 'status': 'Closing Runner...', 'func': self.onClose},
-            {'id': wx.ID_EXIT, 'label': 'Quit', 'status': 'Quitting PsychoPy...', 'func': self.onQuit},
+            {'id': wx.ID_ADD, 'label': _translate('Add task'),
+             'status': _translate('Adding task'),
+             'func': self.addTask},
+            {'id': wx.ID_REMOVE, 'label': _translate('Remove task'),
+             'status': 'Removing task',
+             'func': self.removeTask},
+            {'id': wx.ID_CLEAR, 'label': _translate('Clear all'),
+             'status': _translate('Clearing tasks'),
+             'func': self.clearTasks},
+            {'id': wx.ID_SAVE,
+             'label': _translate('Save list')+'\t%s'%keys['save'],
+             'status': _translate('Saving task'),
+             'func': self.saveTaskList},
+            {'id': wx.ID_COPY, 'label': _translate('Open list')+'\tCtrl-O',
+             'status': _translate('Loading task'),
+             'func': self.loadTaskList},
+            {'id': wx.ID_CLOSE_FRAME, 'label': _translate('Close')+'\tCtrl-W',
+             'status': _translate('Closing Runner'),
+             'func': self.onClose},
+            {'id': wx.ID_EXIT, 'label': _translate("&Quit\t%s") % keys['quit'],
+             'status': _translate('Quitting PsychoPy'),
+             'func': self.onQuit},
         ]
 
         viewMenuItems = [
-            {'id': wx.ID_ANY, 'label': 'View Builder', 'status': 'Opening Builder...', 'func': self.viewBuilder},
-            {'id': wx.ID_ANY, 'label': 'View Coder', 'status': 'Opening Coder...', 'func': self.viewCoder},
+            {'id': wx.ID_ANY, 'label': _translate("Open &Builder view"),
+             'status': _translate("Opening Builder"), 'func': self.viewBuilder},
+            {'id': wx.ID_ANY, 'label': _translate("Open &Coder view"),
+             'status': _translate('Opening Coder'), 'func': self.viewCoder},
         ]
+
+        runMenuItems = [
+            {'id': wx.ID_ANY,
+             'label': _translate("Run\t%s") % keys['runScript'],
+             'status': _translate('Running experiment'),
+             'func': self.panel.runLocal},
+            {'id': wx.ID_ANY,
+             'label': _translate('Run JS for local debug'),
+             'status': _translate('Launching local debug of online study'),
+             'func': self.panel.runOnlineDebug},
+            {'id': wx.ID_ANY,
+             'label': _translate('Run JS on Pavlovia'),
+             'status': _translate('Launching online study at Pavlovia'),
+             'func': self.panel.runOnline},
+            ]
 
         menus = [
             {'menu': fileMenu, 'menuItems': fileMenuItems, 'separators': ['clear all', 'load list']},
             {'menu': viewMenu, 'menuItems': viewMenuItems, 'separators': []},
+            {'menu': runMenu, 'menuItems': runMenuItems, 'separators': []},
         ]
 
         # Add items to menus
@@ -102,8 +148,32 @@ class RunnerFrame(wx.Frame):
                 if item['label'].lower() in eachMenu['separators']:
                     eachMenu['menu'].AppendSeparator()
 
+        # Get list of themes
+        themePath = self.GetTopLevelParent().app.prefs.paths['themes']
+        self.themeList = {}
+        for themeFile in os.listdir(themePath):
+            try:
+                # Load theme from json file
+                with open(os.path.join(themePath, themeFile), "rb") as fp:
+                    theme = json.load(fp)
+                # Add themes to list only if min spec is defined
+                base = theme['base']
+                if all(key in base for key in ['bg', 'fg', 'font']):
+                    self.themeList[themeFile.replace('.json', '')] = []
+            except:
+                pass
+        # Add Theme Switcher
+        self.themesMenu = wx.Menu()
+        viewMenu.AppendSubMenu(self.themesMenu,
+                           _translate("Themes..."))
+        for theme in self.themeList:
+            self.themeList[theme] = self.themesMenu.Append(wx.ID_ANY, _translate(theme))
+            self.Bind(wx.EVT_MENU, self.switchTheme, self.themeList[theme])
+
+        # Create menus
         self.runnerMenu.Append(fileMenu, 'File')
         self.runnerMenu.Append(viewMenu, 'View')
+        self.runnerMenu.Append(runMenu, 'Run')
 
     def onURL(self, evt):
         """Open link in default browser."""
@@ -118,8 +188,9 @@ class RunnerFrame(wx.Frame):
                 lineNumber = int(evt.GetString().split(',')[1][5:])
                 self.app.showCoder()
                 self.app.coder.gotoLine(filename, lineNumber)
-        except Exception:
+        except Exception as e:
             print("##### Could not open URL: {} #####\n".format(evt.String))
+            print(e)
         wx.EndBusyCursor()
 
     def saveTaskList(self, evt=None):
@@ -151,14 +222,16 @@ class RunnerFrame(wx.Frame):
             self.Hide()
 
     def onQuit(self, evt=None):
+        sys.stderr = sys.stdout = sys.__stdout__
         self.panel.stopTask()
         self.app.quit(evt)
 
     def checkSave(self):
         try:
             self.saveTaskList()
-        except Exception:
+        except Exception as e:
             print("##### Task List not saved correctly. #####\n")
+            print(e)
         return True
 
     def viewBuilder(self, evt):
@@ -196,8 +269,34 @@ class RunnerFrame(wx.Frame):
         """
         temp = []
         for idx in range(self.panel.expCtrl.GetItemCount()):
-            temp.append(self.panel.expCtrl.GetItem(idx, 1).Text)
+            filename = self.panel.expCtrl.GetItem(idx, 0).Text
+            folder = self.panel.expCtrl.GetItem(idx, 1).Text
+            temp.append(str(Path(folder) / filename))
         return temp
+
+    def switchTheme(self, event):
+        # Switch theme for coder view
+
+        # Use menu item Id to find value
+        win = event.EventObject.Window
+        newVal = [item.ItemLabel
+                  for item in win.themesMenu.GetMenuItems()
+                  if item.GetId() == event.GetId()]
+        # Update user prefs
+        self.app.prefs.userPrefsCfg['coder']['theme'] = newVal[0]
+        self.app.prefs.userPrefsCfg.write()
+        # Apply new theme to runner view
+        self.panel.stdoutCtrl.theme = newVal[0]
+        self.panel.alertsCtrl.theme = newVal[0]
+        # Apply new theme to coder view
+        # Apply new theme to coder view
+        coder = self.app.coder
+        for ii in range(coder.notebook.GetPageCount()):
+            doc = coder.notebook.GetPage(ii)
+            doc.theme = newVal[0]
+        for ii in range(coder.shelf.GetPageCount()):
+            doc = coder.shelf.GetPage(ii)
+            doc.theme = newVal[0]
 
 
 class RunnerPanel(wx.Panel, ScriptProcess):
@@ -211,11 +310,14 @@ class RunnerPanel(wx.Panel, ScriptProcess):
                                           )
         ScriptProcess.__init__(self, app)
         self.Bind(wx.EVT_END_PROCESS, self.onProcessEnded)
+        self.SetBackgroundColour(cs['frame_bg'])
 
         expCtrlSize = [500, 150]
         ctrlSize = [500, 150]
 
         self.app = app
+        self.prefs = self.app.prefs.coder
+        self.paths = self.app.prefs.paths
         self.parent = parent
         self.serverProcess = None
 
@@ -228,12 +330,9 @@ class RunnerPanel(wx.Panel, ScriptProcess):
         self.expCtrl = wx.ListCtrl(self,
                                    id=wx.ID_ANY,
                                    size=expCtrlSize,
-                                   style=wx.LC_REPORT | wx.BORDER_SUNKEN)
-
-        # Set stdout
-        self.stdoutCtrl = StdOutText(parent=self,
-                                     size=ctrlSize,
-                                     style=wx.TE_READONLY | wx.TE_MULTILINE)
+                                   style=wx.LC_REPORT | wx.BORDER_NONE | wx.LC_NO_HEADER)
+        self.expCtrl.SetBackgroundColour(cs['tab_active'])
+        self.expCtrl.SetForegroundColour(cs['tab_txt'])
 
         self.expCtrl.Bind(wx.EVT_LIST_ITEM_SELECTED,
                           self.onItemSelected, self.expCtrl)
@@ -242,6 +341,33 @@ class RunnerPanel(wx.Panel, ScriptProcess):
         self.Bind(wx.EVT_LIST_ITEM_ACTIVATED, self.onDoubleClick, self.expCtrl)
         self.expCtrl.InsertColumn(0, 'File')
         self.expCtrl.InsertColumn(1, 'Path')
+
+        _style = platebtn.PB_STYLE_DROPARROW | platebtn.PB_STYLE_SQUARE
+        # Alerts
+        self._selectedHiddenAlerts = False  # has user manually hidden alerts?
+        self.alertsToggleBtn = PsychopyPlateBtn(self, -1, 'Alerts',
+                                          style=_style, name='Alerts')
+        # mouse event must be bound like this
+        self.alertsToggleBtn.Bind(wx.EVT_LEFT_DOWN, self.setAlertsVisible)
+        # mouse event must be bound like this
+        self.alertsToggleBtn.Bind(wx.EVT_RIGHT_DOWN, self.setAlertsVisible)
+        self.alertsCtrl = StdOutText(parent=self,
+                                     size=ctrlSize,
+                                     style=wx.TE_READONLY | wx.TE_MULTILINE | wx.BORDER_NONE)
+
+        self.setAlertsVisible(True)
+
+        # StdOut
+        self.stdoutToggleBtn = PsychopyPlateBtn(self, -1, 'Stdout',
+                                          style=_style, name='Stdout')
+        # mouse event must be bound like this
+        self.stdoutToggleBtn.Bind(wx.EVT_LEFT_DOWN, self.setStdoutVisible)
+        # mouse event must be bound like this
+        self.stdoutToggleBtn.Bind(wx.EVT_RIGHT_DOWN, self.setStdoutVisible)
+        self.stdoutCtrl = StdOutText(parent=self,
+                                     size=ctrlSize,
+                                     style=wx.TE_READONLY | wx.TE_MULTILINE | wx.BORDER_NONE)
+        self.setStdoutVisible(True)
 
         # Set buttons
         plusBtn = self.makeBmpButton(main='addExp32.png')
@@ -257,7 +383,7 @@ class RunnerPanel(wx.Panel, ScriptProcess):
         negBtn.SetToolTip(wx.ToolTip(
             _translate("Remove experiment from list")))
         runLocalBtn.SetToolTip(wx.ToolTip(
-            _translate("Run PsychoPy task (Python)")))
+            _translate("Run the current script in Python")))
         stopTaskBtn.SetToolTip(wx.ToolTip(
             _translate("Stop Task")))
         self.onlineBtn.SetToolTip(wx.ToolTip(
@@ -290,7 +416,11 @@ class RunnerPanel(wx.Panel, ScriptProcess):
 
         # Set main sizer
         self.mainSizer = wx.BoxSizer(wx.VERTICAL)
-        self.mainSizer.Add(self.upperSizer, 1, wx.EXPAND | wx.ALL, 10)
+        self.mainSizer.Add(self.upperSizer, 0, wx.EXPAND | wx.ALL, 10)
+
+        self.mainSizer.Add(self.alertsToggleBtn, 0, wx.TOP | wx.EXPAND, 10)
+        self.mainSizer.Add(self.alertsCtrl, 1, wx.EXPAND | wx.ALL, 10)
+        self.mainSizer.Add(self.stdoutToggleBtn, 0, wx.TOP | wx.EXPAND, 10)
         self.mainSizer.Add(self.stdoutCtrl, 1, wx.EXPAND | wx.ALL, 10)
 
         self.stopBtn.Disable()
@@ -301,6 +431,25 @@ class RunnerPanel(wx.Panel, ScriptProcess):
     def onProcessEnded(self):
         ScriptProcess.onProcessEnded(self)
         self.stopTask()
+
+    def setAlertsVisible(self, new=True):
+        if type(new) == bool:
+            self.alertsCtrl.Show(new)
+        # or could be an event from button click (a toggle)
+        else:
+            show = (not self.alertsCtrl.IsShown())
+            self.alertsCtrl.Show(show)
+            self._selectedHiddenAlerts = not show
+        self.Layout()
+
+    def setStdoutVisible(self, new=True):
+        # could be a boolean from our own code
+        if type(new) == bool:
+            self.stdoutCtrl.Show(new)
+        # or could be an event (so toggle) from button click
+        else:
+            self.stdoutCtrl.Show(not self.stdoutCtrl.IsShown())
+        self.Layout()
 
     def makeBmpButton(self, main=None, emblem=None):
         """
@@ -327,7 +476,9 @@ class RunnerPanel(wx.Panel, ScriptProcess):
                 emblem=join(rc, emblem), pos='bottom_right')
         else:
             bmp = wx.Bitmap(join(rc, main), PNG)
-        return wx.BitmapButton(self, -1, bmp, size=[buttonSize, buttonSize], style=wx.NO_BORDER )
+        button = wx.BitmapButton(self, -1, bmp, size=[buttonSize, buttonSize], style=wx.NO_BORDER)
+        button.SetBackgroundColour(cs['frame_bg'])
+        return button
 
     def stopTask(self, event=None):
         """Kill script processes currently running."""
@@ -470,9 +621,17 @@ class RunnerPanel(wx.Panel, ScriptProcess):
         for file in filePaths:
             temp = Path(file)
 
-            # Check list for item
-            index = self.expCtrl.FindItem(-1, temp.name)
-            if index > -1:
+            # Check list for items
+            start = -1
+            fullPaths = []
+            while start < self.expCtrl.GetItemCount()-1:
+                index = self.expCtrl.FindItem(start, temp.name)
+                if index > -1:
+                    fullPaths += [Path(self.expCtrl.GetItem(index, 1).Text, self.expCtrl.GetItem(index, 0).Text)]
+                    start = index+1
+                else:
+                    start = self.expCtrl.GetItemCount()
+            if temp in fullPaths:
                 continue
 
             # Set new item in listCtrl
@@ -512,7 +671,6 @@ class RunnerPanel(wx.Panel, ScriptProcess):
         self.currentFile = Path(folder, filename)
         self.currentExperiment = self.loadExperiment()
         self.currentProject = None  # until it's needed (slow to update)
-
         self.runBtn.Enable()
         self.stopBtn.Disable()
         if self.currentFile.suffix == '.psyexp':
@@ -521,6 +679,27 @@ class RunnerPanel(wx.Panel, ScriptProcess):
         else:
             self.onlineBtn.Disable()
             self.onlineDebugBtn.Disable()
+        self.updateAlerts()
+
+    def updateAlerts(self):
+        prev = sys.stdout
+        # check for alerts
+        sys.stdout = sys.stderr = self.alertsCtrl
+        self.alertsCtrl.Clear()
+        if hasattr(self.currentExperiment, 'integrityCheck'):
+            self.currentExperiment.integrityCheck()
+            nAlerts = len(self.alertsCtrl.alerts)
+        else:
+            nAlerts = 0
+        # update labels and text accordingly
+        self.alertsToggleBtn.SetLabelText("Alerts ({})".format(nAlerts))
+        sys.stdout.flush()
+        sys.stdout = sys.stderr = prev
+        if nAlerts == 0:
+            self.setAlertsVisible(False)
+        # elif selected hidden then don't touch
+        elif not self._selectedHiddenAlerts:
+            self.setAlertsVisible(True)
 
     def onItemDeselected(self, evt):
         """Set currentSelection, currentFile, currentExperiment and currentProject to None."""
@@ -535,7 +714,6 @@ class RunnerPanel(wx.Panel, ScriptProcess):
         self.onlineDebugBtn.Disable()
 
     def onDoubleClick(self, evt):
-        print('got doubleclick evt')
         self.currentSelection = evt.Index
         filename = self.expCtrl.GetItem(self.currentSelection, 0).Text
         folder = self.expCtrl.GetItem(self.currentSelection, 1).Text
@@ -620,11 +798,14 @@ class RunnerPanel(wx.Panel, ScriptProcess):
         self._currentProject = None
 
 
-class StdOutText(StdOutRich):
+class StdOutText(StdOutRich, StylerMixin):
     """StdOutRich subclass which also handles Git messages from Pavlovia projects."""
 
-    def __init__(self, parent=None, style=wx.TE_READONLY | wx.TE_MULTILINE, size=wx.DefaultSize):
+    def __init__(self, parent=None, style=wx.TE_READONLY | wx.TE_MULTILINE | wx.BORDER_NONE, size=wx.DefaultSize):
         StdOutRich.__init__(self, parent=parent, style=style, size=size)
+        self.prefs = parent.prefs
+        self.paths = parent.paths
+        self.theme = self.prefs['theme']
 
     def getText(self):
         """Get and return the text of the current buffer."""
@@ -640,4 +821,7 @@ class StdOutText(StdOutRich):
         text = self.GetValue() + newText
         self.setStatus(text)
 
-
+    def write(self, inStr, evt=False):
+        # Override default write behaviour to also updte theme on each write
+        StdOutRich.write(self, inStr, evt)
+        self.theme = self.prefs['theme']

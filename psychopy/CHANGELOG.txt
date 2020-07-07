@@ -13,7 +13,7 @@ Changelog
   - Bugfix number indicates a minor update purely to fix bugs and hopefully not changing the behavior of your
     study in any way.
 
-CHANGES, which are identified in this red text, typically indicate things that alter the PsychoPy behaviour in a way that could break compatibility. Be especially wary of those!
+CHANGES, which are identified in this dark red text, typically indicate things that alter the PsychoPy behaviour in a way that could break compatibility. Be especially wary of those!
 
 
 PsychoPy 2020.1
@@ -22,10 +22,7 @@ PsychoPy 2020.1
 For the new decade we have a new version system. The application is still called PsychoPy3 for now,
 but we're using `year.version.bugfix` from now on to mark versions.
 
-PsychoPy 2020.1.0
-~~~~~~~~~~~~~~~~~~~~~~
-
-NEW:
+NEW FEATURES:
 
 - Many exciting tools for 3D rendering. See Coder demos menu for some examples
 - Online studies have better cross-browser compatibility including fixed support for edge
@@ -52,6 +49,40 @@ NEW:
 - Added a :class:`~psychopy.visual.Pie` (pacman) stimulus #2652
 - Substantially faster rendering of DotStim #2647
 
+PsychoPy 2020.1.3
+~~~~~~~~~~~~~~~~~~~~~~
+
+- Runner was not launching Coder scripts from their own directory #2819
+- csv files should allow separator to be `;` and decimal place to be `,` #2825 #2828
+- PsychoPy application was now launching in Windows versions <8.1 (which don't know about high-dpi displays) #2820
+
+PsychoPy 2020.1.2
+~~~~~~~~~~~~~~~~~~~~~~
+
+- Keypad key responses were not showing up as numbered responses under the new Keyboard class #2812
+- Cedrus button box had an error int he Builder-output code added in 2020.1.1 #186ec587634
+- Code Component was accidentally *forcing* people to use code auto-conversion #5c57d0c9d
+
+PsychoPy 2020.1.1
+~~~~~~~~~~~~~~~~~~~~~~
+
+FIXED:
+
+- Several tweaks to the new Runner dialog:
+    - Double-click takes you back to the file in the appropriate Builder/Coder view
+    - Ctrl-R within the Runner run the file (so you can do Ctrl-R twice from builder and you're running)
+    - Alerts separated from stdout so they're more visible
+    - Alerts for Builder are checked on experiemnt selection rather than on script compile time
+    - Alert was testing stim size/pos incorrectly if using units "from experiment settings"
+
+- Mac keyboard access should now bring up a dialog taking you to the correct System Preferences panel
+- Fixes to Eyelink 1000 communications from iohub #1a8c6923b0
+- Better support for high-res displays on Windows #2795
+- Further tweak to readline issues on linux #6975040fae #4a80060b94
+
+PsychoPy 2020.1.0
+~~~~~~~~~~~~~~~~~~~~~~
+
 FIXED:
 
 - Rect stimulus now aliases size with width and height so that users can refer to either #2650
@@ -59,6 +90,7 @@ FIXED:
 - `continueRoutine` can be set in the BeginRoutine block rather than the EachFrame block #2680
 - Tab key was incorrectly reporting itself as 'escape' in new Keyboard object #2620
 - many more!
+- Cedrus response box can be inserted into multiple routines without having to use a Code Component (no "Could not find a Cedrus device" error)
 
 
 PsychoPy 3.2
@@ -71,7 +103,7 @@ FIXED:
 
 - Mitigated the gamma get/set fails caused by Microsoft Windows release 1903. PsychoPy
     - now avoids using these calls unless gamma-setting is really needed
-    - gives more info about the cause. See more info in `troubleshooting gamma ramp <https://www.psychopy.org/troubleshooting.html#errors-with-getting-setting-the-gamma-ramp>`_
+    - gives more info about the cause. See more info in [troubleshooting gamma ramp](https://www.psychopy.org/troubleshooting.html#errors-with-getting-setting-the-gamma-ramp)
     - provides an option to skip gamma-setting entirely
 - Slider wasn't allowing the units to be "from experiment settings" #23d80b49f
 - Setting the conditions rows from another conditions file was causing "Error path is on mount... start on mount..." #2e8cd2183
@@ -228,12 +260,10 @@ PsychoPy 3.1.0
 
 NEW:
 
-- hardware.keyboard.Keyboard class,
-  based on C code from the Psychtoolbox project (ported to Python by Mario Kleiner):
-   - faster than `event.getKeys()` (polling is asynchronous with drawing loop and the calls go direct
-     to the USB rather than going via the operating system key calls)
-   - supports keyDuration fields as well as `rt` for key down time
-
+- hardware.keyboard.Keyboard class, based on C code from the Psychtoolbox project (ported to Python by Mario Kleiner)
+ - faster than `event.getKeys()` (polling is asynchronous with drawing loop and the calls go direct
+   to the USB rather than going via the operating system key calls)
+ - supports keyDuration fields as well as `rt` for key down time
 - Form class for combining text items and responses (currently ratings and radio items) in a scrollable list
 - each Builder Component is now outputting its start/stop times in the data file by default (can be turned
   off for )

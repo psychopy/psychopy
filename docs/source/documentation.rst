@@ -28,6 +28,7 @@ Further information:
 
    timing/index
    troubleshooting
+   alerts/index
    recipes/index
    faqs/index
    resources/index

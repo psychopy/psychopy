@@ -65,23 +65,33 @@
     debugMode = boolean(default='False')
     # language to use in menus etc; not all translations are available. Select a value, then restart the app.
     locale = string(default='')
+    # Show an error dialog when PsychoPy encounters an unhandled internal error.
+    errorDialog = boolean(default='True')
+    # Dark mode
+    darkmode = boolean(default='False')
+    # Icons
+    iconset = option('modern', 'classic', default='modern')
 
 # Settings for the Coder window
 [coder]
     # open Coder files as read-only (allows running without accidental changes)
     readonly = boolean(default=False)
     # a list of font names; the first one found on the system will be used
-    codeFont = string(default='Ubuntu Mono, DejaVu Sans Mono')
+    outputFont = string(default='From Theme...')
     # a list of font names; the first one found on the system will be used
-    commentFont = string(default='Ubuntu Mono, DejaVu Sans Mono')
-    # a list of font names; the first one found on the system will be used
-    outputFont = string(default='Ubuntu Mono, DejaVu Sans Mono')
+    codeFont = string(default='From Theme...')
     # Font size (in pts) takes an integer between 6 and 24
     codeFontSize = integer(6,24, default=12)
     # Font size (in pts) takes an integer between 6 and 24
     outputFontSize = integer(6,24, default=12)
+    # Spacing between lines
+    lineSpacing = integer(0, 64, default=4)
+    # Long line edge guide, specify zero to disable
+    edgeGuideColumn = integer(0, 65536, default=80)
+    # Color theme to use for syntax highlighting
+    theme = string(default='PsychopyLight')
     # activate the source assistant panel
-    showSourceAsst = boolean(default=False)
+    showSourceAsst = boolean(default=True)
     # activate the output and shell panels
     showOutput = boolean(default=True)
     # reload previously opened files after start

@@ -3,22 +3,22 @@
 
 from __future__ import absolute_import, print_function
 
-from past.builtins import basestring
+import json
 from builtins import str
-from builtins import object
 import wx
-import wx.lib.scrolledpanel as scrolled
-import wx.lib.agw.flatnotebook as fnb
+import wx.propgrid as pg
+import wx.py
 import platform
 import re
-import copy
+import os
 
 from . import dialogs
-from psychopy import logging, localization
-from psychopy.exceptions import DependencyError
+from psychopy import localization
 from psychopy.localization import _translate
 from pkg_resources import parse_version
 from psychopy import sound
+from psychopy.app.utils import getSystemFonts
+import collections
 
 # this will be overridden by the size of the scrolled panel making the prefs
 dlgSize = (600, 500)
@@ -51,6 +51,7 @@ _localized = {
     'showStartupTips': _translate("show start-up tips"),
     'largeIcons': _translate("large icons"),
     'defaultView': _translate("default view"),
+    'darkMode': _translate("dark mode"),
     'resetPrefs': _translate('reset preferences'),
     'autoSavePrefs': _translate('auto-save prefs'),
     'debugMode': _translate('debug mode'),
@@ -149,175 +150,599 @@ _localized = {
 # add pre-translated names-of-langauges, for display in locale pref:
 _localized.update(localization.locname)
 
-audioLatencyLabels = {0:_translate('Latency not important'),
-                      1:_translate('Share low-latency driver'),
-                      2:_translate('Exclusive low-latency'),
-                      3:_translate('Aggressive low-latency'),
-                      4:_translate('Latency critical')}
+audioLatencyLabels = {0: _translate('Latency not important'),
+                      1: _translate('Share low-latency driver'),
+                      2: _translate('Exclusive low-latency'),
+                      3: _translate('Aggressive low-latency'),
+                      4: _translate('Latency critical')}
+
+
+class PrefPropGrid(wx.Panel):
+    """Class for the property grid portion of the preference window."""
+
+    def __init__(self, parent, id=wx.ID_ANY, pos=wx.DefaultPosition,
+                 size=wx.DefaultSize, style=wx.TAB_TRAVERSAL,
+                 name=wx.EmptyString):
+        wx.Panel.__init__(
+            self, parent, id=id, pos=pos, size=size, style=style, name=name)
+        bSizer1 = wx.BoxSizer(wx.HORIZONTAL)
+
+        self.lstPrefPages = wx.ListCtrl(
+            self, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize,
+            wx.LC_ALIGN_TOP | wx.LC_ICON | wx.LC_SINGLE_SEL)
+        bSizer1.Add(self.lstPrefPages, 0,
+                    wx.BOTTOM | wx.EXPAND | wx.LEFT | wx.TOP, 5)
+
+        prefsImageSize = wx.Size(48, 48)
+        self.prefsIndex = 0
+        self.prefsImages = wx.ImageList(
+            prefsImageSize.GetWidth(), prefsImageSize.GetHeight())
+        self.lstPrefPages.AssignImageList(self.prefsImages, wx.IMAGE_LIST_NORMAL)
+
+        self.proPrefs = pg.PropertyGridManager(
+            self, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize,
+            wx.propgrid.PGMAN_DEFAULT_STYLE | wx.propgrid.PG_BOLD_MODIFIED |
+            wx.propgrid.PG_DESCRIPTION | wx.TAB_TRAVERSAL)
+        self.proPrefs.SetExtraStyle(wx.propgrid.PG_EX_MODE_BUTTONS)
+
+        bSizer1.Add(self.proPrefs, 1, wx.ALL | wx.EXPAND, 5)
+
+        self.SetSizer(bSizer1)
+        self.Layout()
+
+        # Connect Events
+        self.lstPrefPages.Bind(
+            wx.EVT_LIST_ITEM_DESELECTED, self.OnPrefPageDeselected)
+        self.lstPrefPages.Bind(
+            wx.EVT_LIST_ITEM_SELECTED, self.OnPrefPageSelected)
+        self.proPrefs.Bind(pg.EVT_PG_CHANGED, self.OnPropPageChanged)
+        self.proPrefs.Bind(pg.EVT_PG_CHANGING, self.OnPropPageChanging)
+
+        # categories and their items are stored here
+        self.sections = collections.OrderedDict()
+
+        # pages in the property manager
+        self.pages = dict()
+        self.pageNames = dict()
+
+        # help text
+        self.helpText = dict()
+
+        self.pageIdx = 0
+
+    def __del__(self):
+        pass
+
+    def addPage(self, label, name, sections=(), bitmap=None):
+        """Add a page to the property grid manager."""
+
+        if name in self.pages.keys():
+            raise ValueError("Page already exists.")
+
+        for s in sections:
+            if s not in self.sections.keys():
+                self.sections[s] = dict()
+
+        nbBitmap = wx.Bitmap(
+            os.path.join(
+                self.GetTopLevelParent().app.prefs.paths['resources'],
+                bitmap),
+            wx.BITMAP_TYPE_ANY)
+        if nbBitmap.IsOk():
+            self.prefsImages.Add(nbBitmap)
+
+        self.pages[self.pageIdx] = (self.proPrefs.AddPage(name, wx.NullBitmap),
+                                    list(sections))
+        self.pageNames[name] = self.pageIdx
+        self.lstPrefPages.InsertItem(
+            self.lstPrefPages.GetItemCount(), label, self.pageIdx)
+
+        self.pageIdx += 1
+
+    def addStringItem(self, section, label=wx.propgrid.PG_LABEL,
+                      name=wx.propgrid.PG_LABEL, value='', helpText=""):
+        """Add a string property to a category.
+
+        Parameters
+        ----------
+        section : str
+            Category name to add the item too.
+        label : str
+            Label to be displayed in the property grid.
+        name : str
+            Internal name for the property.
+        value : str
+            Default value for the property.
+        helpText: str
+            Help text for this item.
+
+        """
+        # create a new category if not present
+        if section not in self.sections.keys():
+            self.sections[section] = dict()
+
+        # if isinstance(page, str):
+        #     page = self.proPrefs.GetPageByName(page)
+        # else
+        #     page = self.proPrefs.GetPage(page)
+        self.sections[section].update(
+            {name: wx.propgrid.StringProperty(label, name, value=str(value))})
+
+        self.helpText[name] = helpText
+
+    def addStringArrayItem(self, section, label=wx.propgrid.PG_LABEL,
+                           name=wx.propgrid.PG_LABEL, values=(), helpText=""):
+        """Add a string array item."""
+        if section not in self.sections.keys():
+            self.sections[section] = dict()
+
+        self.sections[section].update(
+            {name: wx.propgrid.ArrayStringProperty(
+                label, name, value=[str(i) for i in values])})
+
+        self.helpText[name] = helpText
+
+    def addBoolItem(self, section, label=wx.propgrid.PG_LABEL,
+                    name=wx.propgrid.PG_LABEL, value=False, helpText=""):
+        if section not in self.sections.keys():
+            self.sections[section] = dict()
+
+        self.sections[section].update(
+            {name: wx.propgrid.BoolProperty(label, name, value)})
+
+        self.helpText[name] = helpText
+
+    def addFileItem(self, section, label=wx.propgrid.PG_LABEL,
+                    name=wx.propgrid.PG_LABEL, value='', helpText=""):
+        if section not in self.sections.keys():
+            self.sections[section] = []
+
+        self.sections[section].update(
+            {name: wx.propgrid.FileProperty(label, name, value)})
+
+        self.helpText[name] = helpText
+
+    def addDirItem(self, section, label=wx.propgrid.PG_LABEL,
+                    name=wx.propgrid.PG_LABEL, value='', helpText=""):
+        if section not in self.sections.keys():
+            self.sections[section] = dict()
+
+        self.sections[section].update(
+            {name: wx.propgrid.DirProperty(label, name, value)})
+
+        self.helpText[name] = helpText
+
+    def addIntegerItem(self, section, label=wx.propgrid.PG_LABEL,
+                       name=wx.propgrid.PG_LABEL, value=0, helpText=""):
+        """Add an integer property to a category.
+
+        Parameters
+        ----------
+        section : str
+            Category name to add the item too.
+        label : str
+            Label to be displayed in the property grid.
+        name : str
+            Internal name for the property.
+        value : int
+            Default value for the property.
+        helpText: str
+            Help text for this item.
+
+        """
+        if section not in self.sections.keys():
+            self.sections[section] = dict()
+
+        self.sections[section].update(
+            {name: wx.propgrid.IntProperty(label, name, value=int(value))})
+
+        self.helpText[name] = helpText
+
+    def addEnumItem(self, section, label=wx.propgrid.PG_LABEL,
+                    name=wx.propgrid.PG_LABEL, labels=(), values=(), value=0,
+                    helpText=""):
+        if section not in self.sections.keys():
+            self.sections[section] = dict()
+
+        self.sections[section].update({
+            name: wx.propgrid.EnumProperty(label, name, labels, values, value)})
+
+        self.helpText[name] = helpText
+
+    def populateGrid(self):
+        """Go over pages and add items to the property grid."""
+        for i in range(self.proPrefs.GetPageCount()):
+            pagePtr, sections = self.pages[i]
+            pagePtr.Clear()
+
+            for s in sections:
+                _ = pagePtr.Append(pg.PropertyCategory(s, s))
+                for name, prop in self.sections[s].items():
+                    item = pagePtr.Append(prop)
+
+                    # set the appropriate control to edit the attribute
+                    if isinstance(prop, wx.propgrid.IntProperty):
+                        self.proPrefs.SetPropertyEditor(item, "SpinCtrl")
+                    elif isinstance(prop, wx.propgrid.BoolProperty):
+                        self.proPrefs.SetPropertyAttribute(
+                            item, "UseCheckbox", True)
+                    try:
+                        self.proPrefs.SetPropertyHelpString(
+                            item, self.helpText[item.GetName()])
+                    except KeyError:
+                        pass
+
+        self.proPrefs.SetSplitterLeft()
+
+    def setPrefVal(self, section, name, value):
+        """Set the value of a preference."""
+        try:
+            self.sections[section][name].SetValue(value)
+            return True
+        except KeyError:
+            return False
+
+    def getPrefVal(self, section, name):
+        """Get the value of a preference."""
+        try:
+            return self.sections[section][name].GetValue()
+        except KeyError:
+            return None
+
+    def OnPrefPageDeselected(self, event):
+        event.Skip()
+
+    def OnPrefPageSelected(self, event):
+        sel = self.lstPrefPages.GetFirstSelected()
+
+        if sel >= 0:
+            self.proPrefs.SelectPage(sel)
+
+        event.Skip()
+
+    def OnPropPageChanged(self, event):
+        event.Skip()
+
+    def OnPropPageChanging(self, event):
+        event.Skip()
+
+    def isModified(self):
+        return self.proPrefs.IsAnyModified()
 
 
 class PreferencesDlg(wx.Dialog):
-    defaultStyle = (wx.DEFAULT_DIALOG_STYLE | wx.DIALOG_NO_PARENT |
-                    wx.TAB_TRAVERSAL | wx.RESIZE_BORDER)
+    """Class for a dialog which edits PsychoPy's preferences.
+    """
+    def __init__(self, app):
+        wx.Dialog.__init__(
+            self, None, id=wx.ID_ANY, title=u"PsychoPy Preferences",
+            pos=wx.DefaultPosition, size=wx.Size(800, 600),
+            style=wx.DEFAULT_DIALOG_STYLE | wx.RESIZE_BORDER)
 
-    def __init__(self, app, pos=wx.DefaultPosition, size=dlgSize,
-                 style=defaultStyle):
-        title = _translate("PsychoPy Preferences")
-        wx.Dialog.__init__(self, None, -1, title, pos, size, style)
         self.app = app
-        self.Center()
         self.prefsCfg = self.app.prefs.userPrefsCfg
         self.prefsSpec = self.app.prefs.prefsSpec
-        sizer = wx.BoxSizer(wx.VERTICAL)
 
-        line = wx.StaticLine(self, -1, size=(20, -1), style=wx.LI_HORIZONTAL)
-        lineStyle = wx.GROW | wx.ALIGN_CENTER_VERTICAL | wx.RIGHT | wx.TOP
-        sizer.Add(line, 0, lineStyle, 5)
+        self._pages = {}  # property grids for each page
 
-        # notebook, flatnotebook or something else?
+        self.SetSizeHints(wx.DefaultSize, wx.DefaultSize)
 
-        self.nb = fnb.FlatNotebook(
-            self, style=fnb.FNB_NO_X_BUTTON | fnb.FNB_NO_NAV_BUTTONS)
-        # self.nb = wx.Notebook(self)  # notebook not nice with lots of pages
+        sbMain = wx.BoxSizer(wx.VERTICAL)
 
-        self.ctrls = {}
-        sectionOrdering = ['general', 'app', 'builder', 'coder',
-                           'hardware', 'connections', 'keyBindings']
-        for section in sectionOrdering:
-            prefsPage = self.makePrefPage(parent=self.nb,
-                                          sectionName=section,
-                                          prefsSection=self.prefsCfg[section],
-                                          specSection=self.prefsSpec[section])
-            self.nb.AddPage(prefsPage, _localized[section])
-        self.nb.SetSelection(self.app.prefs.pageCurrent)
-        sizer.Add(self.nb, 1, wx.EXPAND)
+        self.pnlMain = wx.Panel(
+            self, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize,
+            wx.TAB_TRAVERSAL)
+        sbPrefs = wx.BoxSizer(wx.VERTICAL)
 
-        aTable = wx.AcceleratorTable([
-            (wx.ACCEL_NORMAL, wx.WXK_ESCAPE, wx.ID_CANCEL),
-            (wx.ACCEL_NORMAL, wx.WXK_RETURN, wx.ID_OK),
-        ])
-        self.SetAcceleratorTable(aTable)
+        self.proPrefs = PrefPropGrid(
+            self.pnlMain, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize,
+            wx.LB_DEFAULT)
 
-        # create buttons
-        line = wx.StaticLine(self, -1, size=(20, -1), style=wx.LI_HORIZONTAL)
-        sizer.Add(line, 0, wx.GROW | wx.ALIGN_CENTER_VERTICAL |
-                  wx.RIGHT | wx.TOP, 5)
-        btnsizer = wx.StdDialogButtonSizer()
-        # ok
-        btn = wx.Button(self, wx.ID_OK, _translate('OK'))
-        btn.SetHelpText(_translate("Save prefs (in all sections) and close "
-                                   "window"))
-        btn.Bind(wx.EVT_BUTTON, self.onOK)
-        btn.SetDefault()
-        btnsizer.AddButton(btn)
-        # cancel
-        btn = wx.Button(self, wx.ID_CANCEL, _translate('Cancel'))
-        btn.SetHelpText(_translate("Cancel any changes (to any panel)"))
-        btn.Bind(wx.EVT_BUTTON, self.onCancel)
-        btnsizer.AddButton(btn)
-        # help
-        btn = wx.Button(self, wx.ID_HELP, _translate('Help'))
-        btn.SetHelpText(_translate("Get help on prefs"))
-        btn.Bind(wx.EVT_BUTTON, self.onHelp)
-        btnsizer.AddButton(btn)
-        btnsizer.Realize()
-        # add buttons to dlg
-        sizer.Add(btnsizer, 0, wx.BOTTOM | wx.ALL, 5)
+        # add property pages to the manager
+        self.proPrefs.addPage(
+            'General', 'general', ['general'],
+            'preferences-general48.png')
+        self.proPrefs.addPage(
+            'Application', 'app', ['app', 'builder', 'coder'],
+            'preferences-app48.png')
+        self.proPrefs.addPage(
+            'Key Bindings', 'keyBindings', ['keyBindings'],
+            'preferences-keyboard48.png')
+        self.proPrefs.addPage(
+            'Hardware', 'hardware', ['hardware'], 'preferences-hardware48.png')
+        self.proPrefs.addPage(
+            'Connections', 'connections', ['connections'],
+            'preferences-conn48.png')
+        self.proPrefs.populateGrid()
 
-        self.SetSizerAndFit(sizer)
-        self.SetAutoLayout(True)
-        sizer.Fit(self)
+        sbPrefs.Add(self.proPrefs, 1, wx.EXPAND)
 
-    def onHelp(self, event=None):
-        """Uses self.app.followLink() and app/urls.py to go to correct url
-        """
-        currentPane = self.nb.GetPageText(self.nb.GetSelection())
-        # what the url should be called in psychopy.app.urls
-        urlName = "prefs.%s" % currentPane
-        if urlName in self.app.urls:
-            url = self.app.urls[urlName]
-        else:
-            # couldn't find that section - use default prefs
-            url = self.app.urls["prefs"]
-        self.app.followLink(url=url)
+        self.stlMain = wx.StaticLine(
+            self.pnlMain, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize,
+            wx.LI_HORIZONTAL)
+        sbPrefs.Add(self.stlMain, 0, wx.EXPAND | wx.ALL, 5)
 
-    def onCancel(self, event=None):
-        self.Destroy()
+        # dialog controls, have builtin localization
+        sdbControls = wx.StdDialogButtonSizer()
+        self.sdbControlsHelp = wx.Button(self.pnlMain, wx.ID_HELP)
+        sdbControls.AddButton(self.sdbControlsHelp)
+        self.sdbControlsApply = wx.Button(self.pnlMain, wx.ID_APPLY)
+        sdbControls.AddButton(self.sdbControlsApply)
+        self.sdbControlsOK = wx.Button(self.pnlMain, wx.ID_OK)
+        sdbControls.AddButton(self.sdbControlsOK)
+        self.sdbControlsCancel = wx.Button(self.pnlMain, wx.ID_CANCEL)
+        sdbControls.AddButton(self.sdbControlsCancel)
 
-    def onOK(self, event=None):
-        self.setPrefsFromCtrls()
-        self.app.prefs.pageCurrent = self.nb.GetSelection()
-        self.Destroy()
+        sdbControls.Realize()
 
-    def makePrefPage(self, parent, sectionName, prefsSection, specSection):
-        panel = scrolled.ScrolledPanel(
-            parent, -1, size=(dlgSize[0] - 100, dlgSize[1] - 200))
-        vertBox = wx.BoxSizer(wx.VERTICAL)
-        # add each pref for this section
-        for prefName in specSection:
-            if prefName in ['version']:  # any other prefs not to show?
-                continue
-            # allowModuleImports pref is handled by generateSpec.py
-            # NB if something is in prefs but not in spec then it won't be
-            # shown (removes outdated prefs)
-            thisPref = prefsSection[prefName]
-            thisSpec = specSection[prefName]
-            ctrlName = sectionName + '.' + prefName
+        sbPrefs.Add(sdbControls, 0, wx.ALL | wx.ALIGN_RIGHT, 0)
 
-            # for keybindings replace Ctrl with Cmd on Mac
-            if platform.system() == 'Darwin' and sectionName == 'keyBindings':
-                if thisSpec.startswith('string'):
-                    thisPref = thisPref.replace('Ctrl+', 'Cmd+')
+        self.pnlMain.SetSizer(sbPrefs)
+        self.pnlMain.Layout()
+        sbPrefs.Fit(self.pnlMain)
+        sbMain.Add(self.pnlMain, 1, wx.EXPAND | wx.ALL, 8)
 
-            # can we translate this pref?
+        self.SetSizer(sbMain)
+        self.Layout()
+
+        self.Centre(wx.BOTH)
+
+        # Connect Events
+        self.sdbControlsApply.Bind(wx.EVT_BUTTON, self.OnApplyClicked)
+        self.sdbControlsCancel.Bind(wx.EVT_BUTTON, self.OnCancelClicked)
+        self.sdbControlsHelp.Bind(wx.EVT_BUTTON, self.OnHelpClicked)
+        self.sdbControlsOK.Bind(wx.EVT_BUTTON, self.OnOKClicked)
+
+        # system fonts for font properties
+        self.fontList = ['From theme...'] + list(getSystemFonts(fixedWidthOnly=True))
+
+        # valid themes
+        themePath = self.GetTopLevelParent().app.prefs.paths['themes']
+        self.themeList = []
+        for themeFile in os.listdir(themePath):
             try:
-                pLabel = _localized[prefName]
-            except Exception:
-                pLabel = prefName
-            if prefName == 'locale':
-                # fake spec -> option: use available locale info not spec file
-                thisSpec = 'option(' + ','.join(
-                    [''] + self.app.localization.available) + ', default=xxx)'
-                thisPref = self.app.prefs.app['locale']
+                # Load theme from json file
+                with open(os.path.join(themePath, themeFile), "rb") as fp:
+                    theme = json.load(fp)
+                # Add themes to list only if min spec is defined
+                base = theme['base']
+                if all(key in base for key in ['bg', 'fg', 'font']):
+                    self.themeList += [themeFile.replace('.json', '')]
+            except:
+                pass
 
-            # create the actual controls
-            self.ctrls[ctrlName] = ctrls = PrefCtrls(
-                parent=panel, name=prefName, value=thisPref,
-                spec=thisSpec, plabel=pLabel)
-            ctrlSizer = wx.BoxSizer(wx.HORIZONTAL)
-            ctrlSizer.Add(ctrls.nameCtrl, 0, wx.ALL, 5)
-            ctrlSizer.Add(ctrls.valueCtrl, 0, wx.ALL, 5)
+        # get sound devices for "audioDevice" property
+        try:
+            devnames = sorted(sound.getDevices('output'))
+        except (ValueError, OSError, ImportError):
+            devnames = []
 
-            # get tooltips from comment lines from the spec, as parsed by
-            # configobj
-            hints = self.prefsSpec[sectionName].comments[prefName]  # a list
-            if len(hints):
-                # use only one comment line, from right above the pref
-                hint = hints[-1].lstrip().lstrip('#').lstrip()
-                ctrls.valueCtrl.SetToolTip(wx.ToolTip(_translate(hint)))
-            else:
-                ctrls.valueCtrl.SetToolTip(wx.ToolTip(''))
+        audioConf = self.prefsCfg['hardware']['audioDevice']
+        self.audioDevDefault = audioConf \
+            if type(audioConf) != list else list(audioConf)
+        self.audioDevNames = [
+            dev.replace('\r\n', '') for dev in devnames
+            if dev != self.audioDevDefault]
 
-            vertBox.Add(ctrlSizer)
-        # size the panel and setup scrolling
-        panel.SetSizer(vertBox)
-        panel.SetAutoLayout(True)
-        panel.SetupScrolling()
-        return panel
+        self.populatePrefs()
 
-    def setPrefsFromCtrls(self):
-        # extract values, adjust as needed:
-        # a) strip() to remove whitespace
-        # b) case-insensitive match for Cmd+ at start of string
-        # c) reverse-map locale display names to canonical names (ja_JP)
-        re_cmd2ctrl = re.compile('^Cmd\+', re.I)
+    def __del__(self):
+        pass
+
+    def populatePrefs(self):
+        """Populate pages with property items for each preference."""
+        # clear pages
+        for sectionName in self.prefsSpec.keys():
+            prefsSection = self.prefsCfg[sectionName]
+            specSection = self.prefsSpec[sectionName]
+
+            for prefName in specSection:
+                if prefName in ['version']:  # any other prefs not to show?
+                    continue
+                # allowModuleImports pref is handled by generateSpec.py
+                # NB if something is in prefs but not in spec then it won't be
+                # shown (removes outdated prefs)
+                thisPref = prefsSection[prefName]
+                thisSpec = specSection[prefName]
+
+                # for keybindings replace Ctrl with Cmd on Mac
+                if platform.system() == 'Darwin' and \
+                        sectionName == 'keyBindings':
+                    if thisSpec.startswith('string'):
+                        thisPref = thisPref.replace('Ctrl+', 'Cmd+')
+
+                # can we translate this pref?
+                try:
+                    pLabel = _localized[prefName]
+                except Exception:
+                    pLabel = prefName
+
+                # get tooltips from comment lines from the spec, as parsed by
+                # configobj
+                helpText = ''
+                hints = self.prefsSpec[sectionName].comments[prefName]  # a list
+                if len(hints):
+                    # use only one comment line, from right above the pref
+                    hint = hints[-1].lstrip().lstrip('#').lstrip()
+                    helpText = _translate(hint)
+
+                if type(thisPref) == bool:
+                    # only True or False - use a checkbox
+                    self.proPrefs.addBoolItem(
+                        sectionName, pLabel, prefName, thisPref,
+                        helpText=helpText)
+
+                # # properties for fonts, dropdown gives a list of system fonts
+                elif prefName in ('codeFont', 'commentFont', 'outputFont'):
+                    try:
+                        default = self.fontList.index(thisPref)
+                    except ValueError:
+                        default = 0
+                    self.proPrefs.addEnumItem(
+                            sectionName,
+                            pLabel,
+                            prefName,
+                            labels=self.fontList,
+                            values=[i for i in range(len(self.fontList))],
+                            value=default, helpText=helpText)
+                elif prefName in ('theme',):
+                    try:
+                        default = self.themeList.index(thisPref)
+                    except ValueError:
+                        default = self.themeList.index("PsychopyLight")
+                    self.proPrefs.addEnumItem(
+                            sectionName,
+                            pLabel,
+                            prefName,
+                            labels=self.themeList,
+                            values=[i for i in range(len(self.themeList))],
+                            value=default, helpText=helpText)
+                elif prefName == 'locale':
+                    thisPref = self.app.prefs.app['locale']
+                    locales = self.app.localization.available
+                    try:
+                        default = locales.index(thisPref)
+                    except ValueError:
+                        # default to US english
+                        default = locales.index('en_US')
+                    self.proPrefs.addEnumItem(
+                            sectionName,
+                            pLabel,
+                            prefName,
+                            labels=[_localized[i] for i in locales],
+                            values=[i for i in range(len(locales))],
+                            value=default, helpText=helpText)
+                # # single directory
+                elif prefName in ('unpackedDemosDir',):
+                    self.proPrefs.addDirItem(
+                        sectionName, pLabel, prefName, thisPref,
+                        helpText=helpText)
+                # single file
+                elif prefName in ('flac',):
+                    self.proPrefs.addFileItem(
+                        sectionName, pLabel, prefName, thisPref,
+                        helpText=helpText)
+                # # audio latency mode for the PTB driver
+                elif prefName == 'audioLatencyMode':
+                    # get the labels from above
+                    labels = []
+                    for val, labl in audioLatencyLabels.items():
+                        labels.append(u'{}: {}'.format(val, labl))
+
+                    # get the options from the config file spec
+                    vals = thisSpec.replace("option(", "").replace("'", "")
+                    # item -1 is 'default=x' from spec
+                    vals = vals.replace(", ", ",").split(',')
+
+                    try:
+                        # set the field to the value in the pref
+                        default = int(thisPref)
+                    except ValueError:
+                        try:
+                            # use first if default not in list
+                            default = int(vals[-1].strip('()').split('=')[1])
+                        except (IndexError, TypeError, ValueError):
+                            # no default
+                            default = 0
+
+                    self.proPrefs.addEnumItem(
+                            sectionName,
+                            pLabel,
+                            prefName,
+                            labels=labels,
+                            values=[i for i in range(len(labels))],
+                            value=default, helpText=helpText)
+                # # option items are given a dropdown, current value is shown
+                # # in the box
+                elif thisSpec.startswith('option') or prefName == 'audioDevice':
+                    if prefName == 'audioDevice':
+                        options = self.audioDevNames
+                        try:
+                            default = self.audioDevNames.index(
+                                self.audioDevDefault)
+                        except ValueError:
+                            default = 0
+                    else:
+                        vals = thisSpec.replace("option(", "").replace("'", "")
+                        # item -1 is 'default=x' from spec
+                        vals = vals.replace(", ", ",").split(',')
+                        options = vals[:-1]
+                        try:
+                            # set the field to the value in the pref
+                            default = options.index(thisPref)
+                        except ValueError:
+                            try:
+                                # use first if default not in list
+                                default = vals[-1].strip('()').split('=')[1]
+                            except IndexError:
+                                # no default
+                                default = 0
+
+                    labels = []  # display only
+                    for opt in options:
+                        try:
+                            labels.append(_localized[opt])
+                        except Exception:
+                            labels.append(opt)
+
+                    self.proPrefs.addEnumItem(
+                            sectionName,
+                            pLabel,
+                            prefName,
+                            labels=labels,
+                            values=[i for i in range(len(labels))],
+                            value=default, helpText=helpText)
+                # # lists are given a property that can edit and reorder items
+                elif thisSpec.startswith('list'):  # list
+                    self.proPrefs.addStringArrayItem(
+                        sectionName, pLabel, prefName,
+                        [str(i) for i in thisPref], helpText)
+                # integer items
+                elif thisSpec.startswith('integer'):  # integer
+                    self.proPrefs.addIntegerItem(
+                        sectionName, pLabel, prefName, thisPref, helpText)
+                # # all other items just use a string field
+                else:
+                    self.proPrefs.addStringItem(
+                        sectionName, pLabel, prefName, thisPref, helpText)
+
+        self.proPrefs.populateGrid()
+
+    def applyPrefs(self):
+        """Write preferences to the current configuration."""
+        if not self.proPrefs.isModified():
+            return
+
+        if platform.system() == 'Darwin':
+            re_cmd2ctrl = re.compile('^Cmd\+', re.I)
+
         for sectionName in self.prefsSpec:
             for prefName in self.prefsSpec[sectionName]:
                 if prefName in ['version']:  # any other prefs not to show?
                     continue
-                ctrlName = sectionName + '.' + prefName
-                ctrl = self.ctrls[ctrlName]
-                thisPref = ctrl.getValue()
+
+                thisPref = self.proPrefs.getPrefVal(sectionName, prefName)
+                # handle special cases
+                if prefName in ('codeFont', 'commentFont', 'outputFont'):
+                    self.prefsCfg[sectionName][prefName] = \
+                        self.fontList[thisPref]
+                    continue
+                if prefName in ('theme',):
+                    self.prefsCfg[sectionName][prefName] = \
+                        self.themeList[thisPref]
+                    continue
+                elif prefName == 'audioDevice':
+                    self.prefsCfg[sectionName][prefName] = \
+                        self.audioDevNames[thisPref]
+                    continue
+                elif prefName == 'locale':
+                    # fake spec -> option: use available locale info not spec file
+                    self.app.prefs.app['locale'] = \
+                        self.app.localization.available[thisPref]
+                    self.prefsCfg[sectionName][prefName] = \
+                        self.app.localization.available[thisPref]
+                    continue
+
                 # remove invisible trailing whitespace:
                 if hasattr(thisPref, 'strip'):
                     thisPref = thisPref.strip()
@@ -331,6 +756,7 @@ class PreferencesDlg(wx.Dialog):
                         # 'Ctrl+O' internally
                         thisPref = re_cmd2ctrl.sub('Ctrl+', thisPref)
                 self.prefsCfg[sectionName][prefName] = thisPref
+
                 # make sure list values are converted back to lists (from str)
                 if self.prefsSpec[sectionName][prefName].startswith('list'):
                     try:
@@ -362,146 +788,57 @@ class PreferencesDlg(wx.Dialog):
                         self.prefsCfg[sectionName][prefName] = [newVal]
                     else:
                         self.prefsCfg[sectionName][prefName] = newVal
+                elif self.prefsSpec[sectionName][prefName].startswith('option'):
+                    vals = self.prefsSpec[sectionName][prefName].replace(
+                        "option(", "").replace("'", "")
+                    # item -1 is 'default=x' from spec
+                    options = vals.replace(", ", ",").split(',')[:-1]
+                    self.prefsCfg[sectionName][prefName] = options[thisPref]
+
         self.app.prefs.saveUserPrefs()  # includes a validation
         # maybe then go back and set GUI from prefs again, because validation
         # may have changed vals?
+        # > sure, why not? - mdc
+        self.populatePrefs()
 
+        # after validation, update the UI
+        self.updateCoderUI()
 
-class PrefCtrls(object):
+    def updateCoderUI(self):
+        """Update the Coder UI (eg. fonts, themes, etc.) from prefs."""
+        # start applying prefs to take effect
+        coder = self.app.coder
+        if coder is not None:
+            # apply settings over document pages
+            for ii in range(coder.notebook.GetPageCount()):
+                doc = coder.notebook.GetPage(ii)
+                doc.theme = doc.coder.prefs['theme']
+            for ii in range(coder.shelf.GetPageCount()):
+                doc = coder.shelf.GetPage(ii)
+                doc.theme = doc.prefs['theme']
 
-    def __init__(self, parent, name, value, spec, plabel):
-        """Create a set of ctrls for a particular preference entry
+    def OnApplyClicked(self, event):
+        """Apply button clicked, this makes changes to the UI without leaving
+        the preference dialog. This can be used to see the effects of setting
+        changes before closing the dialog.
+
         """
-        super(PrefCtrls, self).__init__()
-        self.pref = value
-        self.parent = parent
-        self.name = name
-        valueWidth = 200
-        labelWidth = 200
-        self.nameCtrl = self.valueCtrl = None
+        self.applyPrefs()  # saves the preferences
+        event.Skip()
 
-        _style = wx.ALIGN_RIGHT | wx.ALIGN_CENTER_VERTICAL
-        self.nameCtrl = wx.StaticText(self.parent, -1, plabel,
-                                      size=(labelWidth, -1), style=_style)
-        if type(value) == bool:
-            # only True or False - use a checkbox
-            self.valueCtrl = wx.CheckBox(self.parent)
-            self.valueCtrl.SetValue(value)
-        elif name == 'audioLatencyMode':
-            # get the labels from above
-            labels = []
-            for val, labl in audioLatencyLabels.items():
-                labels.append(u'{}: {}'.format(val, labl))
-            #get the options from the config file spec
-            options = spec.replace("option(", "").replace("'", "")
-            # item -1 is 'default=x' from spec
-            options = options.replace(", ", ",").split(',')[:-1]
+    def OnCancelClicked(self, event):
+        event.Skip()
 
-            self.valueCtrl = wx.Choice(self.parent, choices=labels)
-            self.valueCtrl._choices = copy.copy(options)  # internal values
-            self.valueCtrl.SetSelection(options.index(value))
-        elif spec.startswith('option') or name == 'audioDevice':
-            if name == 'audioDevice':
-                devnames = sorted(sound.getDevices('output'))
-                if type(value) == list:
-                    value = value[0]
-                if value in devnames:
-                    options = [value]
-                else:
-                    options = []
-                try:
-                    # TODO: this assumes that the driver loaded is current selected
-                    # we *could* fix that but hopefully PTB will soon dominate and 
-                    # then we don't need to worry!
-                    for device in devnames:
-                        # newline characters must be removed
-                        thisDevName = device.replace('\r\n', '')
-                        if thisDevName not in options:
-                            options.append(thisDevName)
-                except (ValueError, OSError, ImportError):
-                    pass
-            else:
-                options = spec.replace("option(", "").replace("'", "")
-                # item -1 is 'default=x' from spec
-                options = options.replace(", ", ",").split(',')[:-1]
-            labels = []  # display only
-            for opt in options:
-                try:
-                    labels.append(_localized[opt])
-                except Exception:
-                    labels.append(opt)
-            self.valueCtrl = wx.Choice(self.parent, choices=labels)
-            self.valueCtrl._choices = copy.copy(options)  # internal values
-            try:
-                self.valueCtrl.SetSelection(0)
-            except:
-                pass
-        elif spec.startswith('list'):  # list
-            valuestring = self.listToString(value)
-            self.valueCtrl = wx.TextCtrl(self.parent, -1, valuestring,
-                                         size=(valueWidth, -1))
-        else:  # just use a string
-            self.valueCtrl = wx.TextCtrl(self.parent, -1, str(value),
-                                         size=(valueWidth, -1))
+    def OnHelpClicked(self, event):
+        self.app.followLink(url=self.app.urls["prefs"])
+        event.Skip()
 
-    def _getCtrlValue(self, ctrl):
-        """Retrieve the current value from the control (whatever type of ctrl
-        it is, e.g. checkbox.GetValue, textctrl.GetStringSelection
-        Different types of control have different methods for retrieving the
-        value.  This function checks them all and returns the value or None.
+    def OnOKClicked(self, event):
+        """Called when OK is clicked. This closes the dialog after applying the
+        settings.
         """
-        if ctrl is None:
-            return None
-        elif hasattr(ctrl, '_choices'):  # for wx.Choice
-            if self.name == 'audioDevice':
-                # convert the option back to a list with preferred at top
-                val = ctrl._choices
-                preferred = ctrl._choices.pop(ctrl.GetSelection())
-                val.insert(0, preferred)
-                return val
-            else:
-                return ctrl._choices[ctrl.GetSelection()]
-        elif hasattr(ctrl, 'GetValue'):  # e.g. TextCtrl
-            return ctrl.GetValue()
-        elif hasattr(ctrl, 'GetLabel'):  # for wx.StaticText
-            return ctrl.GetLabel()
-        else:
-            msg = "failed to retrieve the value for pref: %s"
-            logging.warning(msg % ctrl.valueCtrl)
-            return None
-
-    def getValue(self):
-        """Get the current value of the value ctrl
-        """
-        return self._getCtrlValue(self.valueCtrl)
-
-    def listToString(self, seq, depth=8, errmsg='\'too_deep\''):
-        """Convert list to string.
-
-        This function is necessary because Unicode characters come to be
-        converted to hexadecimal values if unicode() is used to convert a
-        list to string. This function applies str() or unicode() to each
-        element of the list.
-        """
-        if depth > 0:
-            l = '['
-            for e in seq:
-                # if element is a sequence, call listToString recursively.
-                if isinstance(e, basestring):
-                    en = "{!r}, ".format(e)  # using !r adds '' or u'' as needed
-                elif hasattr(e, '__iter__'):  # just tuples and lists (but in Py3 str has __iter__)
-                    en = self.listToString(e, depth - 1) + ','
-                else:
-                    e = e.replace('\\', '\\\\').replace("'", "\\'")  # in path names?
-                    en = "{!r}, ".format(e)
-                l += en
-            # remove unnecessary comma
-            if l[-1] == ',':
-                l = l[:-1]
-            l += ']'
-        else:
-            l = errmsg
-        return l
+        self.applyPrefs()
+        event.Skip()
 
 
 if __name__ == '__main__':

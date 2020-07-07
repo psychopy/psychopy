@@ -47,7 +47,7 @@ _localized = {'visualAnalogScale': _translate('Visual analog scale'),
 class RatingScaleComponent(BaseComponent):
     """A class for presenting a rating scale as a builder component
     """
-    categories = ['Responses', 'Custom']
+    categories = ['Responses']
 
     def __init__(self, exp, parentName,
                  name='rating',

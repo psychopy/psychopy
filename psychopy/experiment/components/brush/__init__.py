@@ -27,7 +27,7 @@ _localized = {'lineColorSpace': _translate('Line color-space'),
 class BrushComponent(BaseVisualComponent):
     """A class for drawing freehand responses"""
 
-    categories = ['Responses', 'Custom']
+    categories = ['Responses']
 
     def __init__(self, exp, parentName, name='brush',
                  lineColor='$[1,1,1]', lineColorSpace='rgb',

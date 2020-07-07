@@ -35,11 +35,11 @@ for ($i=0; $i -lt $pyPaths.Length; $i++) {
 
     echo 'moving files to ..\dist'
 
+    Invoke-Expression ("{0}python.exe setup.py clean --all" -f $pyPaths[$i])  # clean up our build dir
     # try to uninstall psychopy from site-packages
     Invoke-Expression ("{0}python.exe -m pip uninstall -y psychopy" -f $pyPaths[$i])
     # re-install the current version as editable/developer
     Invoke-Expression ("{0}python.exe -m pip install -e . --no-deps" -f $pyPaths[$i])
-    Invoke-Expression ("{0}python.exe setup.py clean --all" -f $pyPaths[$i])  # clean up our build dir
 
 }
 
