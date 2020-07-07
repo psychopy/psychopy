@@ -366,7 +366,7 @@ class RunnerPanel(wx.Panel, ScriptProcess, ThemeMixin):
         if target == None:
             target = self
 
-        target.SetBackgroundColour(ThemeMixin.appColors['frame_bg'])
+        target.SetBackgroundColour(ThemeMixin.appColors['panel_bg'])
         target.SetForegroundColour(ThemeMixin.appColors['text'])
         ThemeMixin._applyAppTheme(self.expCtrl)
 
@@ -387,8 +387,10 @@ class RunnerPanel(wx.Panel, ScriptProcess, ThemeMixin):
                     emblem=os.path.join(rc, param['emblem']), pos='bottom_right')
             else:
                 bmp = wx.Bitmap(os.path.join(rc, param['main']), wx.BITMAP_TYPE_PNG)
+            btn.Bind(wx.EVT_ENTER_WINDOW, self.onHover)
+            btn.Bind(wx.EVT_LEAVE_WINDOW, self.offHover)
             btn.SetBitmap(bmp)
-            btn.SetBackgroundColour(ThemeMixin.appColors['frame_bg'])
+            btn.SetBackgroundColour(ThemeMixin.appColors['panel_bg'])
             btn.Update()
 
     def makeButtons(self):
@@ -746,6 +748,18 @@ class RunnerPanel(wx.Panel, ScriptProcess, ThemeMixin):
         else:
             self.app.showCoder()  # ensures that a coder window exists
             self.app.coder.setCurrentDoc(filepath)
+
+    def onHover(self, evt):
+        cs = ThemeMixin.appColors
+        btn = evt.GetEventObject()
+        btn.SetBackgroundColour(cs['bmpbutton_bg_hover'])
+        btn.SetForegroundColour(cs['bmpbutton_fg_hover'])
+
+    def offHover(self, evt):
+        cs = ThemeMixin.appColors
+        btn = evt.GetEventObject()
+        btn.SetBackgroundColour(cs['panel_bg'])
+        btn.SetForegroundColour(cs['text'])
 
     @property
     def outputPath(self):

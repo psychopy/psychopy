@@ -137,7 +137,7 @@ class Preferences(object):
         baseAppThemes = join(self.paths['appDir'], 'themes', 'app')
         # avoid silent fail-to-launch-app if bad permissions:
 
-        try:
+            try:
             os.makedirs(self.paths['userPrefsDir'])
         except OSError as err:
             if err.errno != errno.EEXIST:
@@ -166,7 +166,7 @@ class Preferences(object):
                 shutil.copyfile(
                     join(baseAppThemes, file),
                     join(self.paths['themes'], "app", file)
-                )
+                    )
 
     def loadAll(self):
         """Load the user prefs and the application data
