@@ -30,7 +30,7 @@ _localized = {'Items': _translate('Items'),
 class FormComponent(BaseComponent):
     """A class for presenting a survey as a Builder component"""
 
-    categories = ['Stimuli', 'Responses', 'Custom']
+    categories = ['Stimuli', 'Responses']
 
     def __init__(self, exp, parentName,
                  name='form',

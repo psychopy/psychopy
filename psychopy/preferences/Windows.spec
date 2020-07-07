@@ -65,19 +65,19 @@
     locale = string(default='')
     # Show an error dialog when PsychoPy encounters an unhandled internal error.
     errorDialog = boolean(default='True')
-    # Enable High-DPI awareness on Windows, requires restart. Note that this feature is currently experimental and may cause graphical artifacts in some places.
-    highDPI = boolean(default='False')
+    # Dark mode
+    darkmode = boolean(default='False')
+    # Icons
+    iconset = option('modern', 'classic', default='modern')
 
 # Settings for the Coder window
 [coder]
     # open Coder files as read-only (allows running without accidental changes)
     readonly = boolean(default=False)
     # a list of font names; the first one found on the system will be used
-    codeFont = string(default='Lucida Console')
+    outputFont = string(default='From Theme...')
     # a list of font names; the first one found on the system will be used
-    commentFont = string(default='Lucida Console')
-    # a list of font names; the first one found on the system will be used
-    outputFont = string(default='Lucida Console')
+    codeFont = string(default='From Theme...')
     # Font size (in pts) takes an integer between 6 and 24
     codeFontSize = integer(6,24, default=10)
     # Font size (in pts) takes an integer between 6 and 24
@@ -87,7 +87,7 @@
     # Long line edge guide, specify zero to disable
     edgeGuideColumn = integer(0, 65536, default=80)
     # Color theme to use for syntax highlighting
-    theme = option('psychopy', 'wx', 'github', 'vc6', default='psychopy')
+    theme = string(default='PsychopyLight')
     # activate the source assistant panel
     showSourceAsst = boolean(default=True)
     # activate the output and shell panels

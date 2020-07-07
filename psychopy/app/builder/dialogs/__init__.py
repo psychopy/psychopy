@@ -105,8 +105,7 @@ class ParamCtrls(object):
         label = _translate(label)
         if param.valType == 'code' and fieldName not in _nonCode:
             label += ' $'
-        self.nameCtrl = wx.StaticText(parent, -1, label, size=wx.DefaultSize,
-                                      style=wx.ALIGN_RIGHT)
+        self.nameCtrl = wx.StaticText(parent, -1, label, size=wx.DefaultSize)
 
         if fieldName == 'Use version':
             # _localVersionsCache is the default (faster) when creating
@@ -127,7 +126,7 @@ class ParamCtrls(object):
             # set viewer small, then it SHOULD increase with wx.aui control
             self.valueCtrl = CodeBox(parent, -1, pos=wx.DefaultPosition,
                                      size=wx.Size(sx, sy), style=0,
-                                     prefs=appPrefs)
+                                     prefs=appPrefs, codeType='txt')
             if len(param.val):
                 self.valueCtrl.AddText(str(param.val))
             if fieldName == 'text':
@@ -251,6 +250,9 @@ class ParamCtrls(object):
             self.updateCtrl = wx.Choice(parent, choices=updateLabels)
             # stash non-localized choices to allow retrieval by index:
             self.updateCtrl._choices = copy.copy(allowedUpdates)
+            # If parameter isn't in list, default to the first choice
+            if param.updates not in allowedUpdates:
+                param.updates = allowedUpdates[0]
             # get index of the currently set update value, set display:
             index = allowedUpdates.index(param.updates)
             # set by integer index, not string value
@@ -483,8 +485,9 @@ class _BaseParamsDlg(wx.Dialog):
             # not available in wxPython 2.8.10
             agwStyle |= flatnotebook.FNB_NO_TAB_FOCUS
         self.ctrls = flatnotebook.FlatNotebook(self, style=agwStyle)
-        self.mainSizer.Add(self.ctrls,  # ctrls is the notebook of params
-                           proportion=1, flag=wx.EXPAND | wx.ALL, border=5)
+        if self.__class__ != DlgExperimentProperties:
+            self.mainSizer.Add(self.ctrls,  # ctrls is the notebook of params
+                               proportion=1, flag=wx.EXPAND | wx.ALL, border=5)
         categNames = sorted(categs)
         if 'Basic' in categNames:
             # move it to be the first category we see
@@ -507,6 +510,7 @@ class _BaseParamsDlg(wx.Dialog):
         for categName in categNames:
             theseParams = categs[categName]
             page = wx.Panel(self.ctrls, -1)
+            page.app = self.app
             ctrls = self.addCategoryOfParams(theseParams, parent=page)
             if categName in categLabel:
                 cat = categLabel[categName]
@@ -672,8 +676,8 @@ class _BaseParamsDlg(wx.Dialog):
         startEstimSizer.Add(self.startEstimCtrl, flag=wx.ALIGN_BOTTOM)
         startAllCrtlSizer = wx.BoxSizer(orient=wx.VERTICAL)
         startAllCrtlSizer.Add(startSizer, flag=wx.EXPAND)
-        startAllCrtlSizer.Add(startEstimSizer, flag=wx.ALIGN_RIGHT)
-        sizer.Add(label, (currRow, 0), (1, 1), wx.ALIGN_RIGHT)
+        startAllCrtlSizer.Add(startEstimSizer)
+        sizer.Add(label, (currRow, 0), (1, 1))
         # add our new row
         sizer.Add(startAllCrtlSizer, (currRow, 1), (1, 1), flag=wx.EXPAND)
         currRow += 1
@@ -716,9 +720,8 @@ class _BaseParamsDlg(wx.Dialog):
                            flag=wx.ALIGN_CENTRE_VERTICAL)
         stopAllCrtlSizer = wx.BoxSizer(orient=wx.VERTICAL)
         stopAllCrtlSizer.Add(stopSizer, flag=wx.EXPAND)
-        stopAllCrtlSizer.Add(stopEstimSizer,
-                             flag=wx.ALIGN_RIGHT | wx.ALIGN_CENTRE_VERTICAL)
-        sizer.Add(label, (currRow, 0), (1, 1), wx.ALIGN_RIGHT)
+        stopAllCrtlSizer.Add(stopEstimSizer)
+        sizer.Add(label, (currRow, 0), (1, 1))
         # add our new row
         sizer.Add(stopAllCrtlSizer, (currRow, 1), (1, 1), flag=wx.EXPAND)
         currRow += 1
@@ -758,14 +761,14 @@ class _BaseParamsDlg(wx.Dialog):
             ctrls.valueCtrl.Bind(wx.EVT_KEY_UP, self.doValidate)
 
         # add the controls to the sizer
-        _flag = wx.ALIGN_RIGHT | wx.ALIGN_CENTRE_VERTICAL | wx.LEFT | wx.RIGHT
+        _flag = wx.LEFT | wx.RIGHT
         sizer.Add(ctrls.nameCtrl, (currRow, 0), border=5, flag=_flag)
         if ctrls.updateCtrl:
             sizer.Add(ctrls.updateCtrl, (currRow, 2), flag=_flag)
         if ctrls.typeCtrl:
             sizer.Add(ctrls.typeCtrl, (currRow, 3), flag=_flag)
         # different flag for the value control (expand)
-        _flag = wx.EXPAND | wx.ALIGN_CENTRE_VERTICAL | wx.ALL
+        _flag = wx.EXPAND | wx.ALL
         sizer.Add(ctrls.valueCtrl, (currRow, 1), border=5, flag=_flag)
 
         # use monospace font to signal code:
@@ -858,7 +861,7 @@ class _BaseParamsDlg(wx.Dialog):
         buttons.Add(CANCEL, 0, wx.ALL, border=3)
         buttons.Realize()
         # add to sizer
-        self.mainSizer.Add(buttons, flag=wx.ALIGN_RIGHT | wx.ALL, border=2)
+        self.mainSizer.Add(buttons, flag=wx.ALL, border=2)
         self.SetSizerAndFit(self.mainSizer)
         self.mainSizer.Layout()
         # move the position to be v near the top of screen and
@@ -1262,9 +1265,9 @@ class DlgLoopProperties(_BaseParamsDlg):
                 dlg=self, parent=panel, label=label, fieldName=fieldName,
                 param=self.currentHandler.params[fieldName])
             panelSizer.Add(ctrls.nameCtrl, [row, 0], border=1,
-                           flag=wx.EXPAND | wx.ALIGN_CENTRE_VERTICAL | wx.ALL)
+                           flag=wx.EXPAND | wx.ALL)
             panelSizer.Add(ctrls.valueCtrl, [row, 1], border=1,
-                           flag=wx.EXPAND | wx.ALIGN_CENTRE_VERTICAL | wx.ALL)
+                           flag=wx.EXPAND | wx.ALL)
             row += 1
 
         self.globalCtrls['name'].valueCtrl.Bind(wx.EVT_TEXT, self.doValidate)
@@ -1864,17 +1867,17 @@ class DlgExperimentProperties(_BaseParamsDlg):
             helpBtn = wx.Button(self, wx.ID_HELP, _translate(" Help "))
             helpBtn.SetHelpText(_translate("Get help about this component"))
             helpBtn.Bind(wx.EVT_BUTTON, self.onHelp)
-            buttons.Add(helpBtn, 0, wx.ALIGN_RIGHT | wx.ALL, border=3)
+            buttons.Add(helpBtn, 0, border=3)
         self.OKbtn = wx.Button(self, wx.ID_OK, _translate(" OK "))
         self.OKbtn.SetDefault()
-        buttons.Add(self.OKbtn, 0, wx.ALIGN_RIGHT | wx.ALL, border=3)
+        buttons.Add(self.OKbtn, 0, border=3)
         CANCEL = wx.Button(self, wx.ID_CANCEL, _translate(" Cancel "))
-        buttons.Add(CANCEL, 0, wx.ALIGN_RIGHT | wx.ALL, border=3)
+        buttons.Add(CANCEL, 0, border=3)
 
         buttons.Realize()
         self.ctrls.Fit()
         self.mainSizer.Add(self.ctrls, proportion=1, flag=wx.EXPAND)
-        self.mainSizer.Add(buttons, flag=wx.ALIGN_RIGHT)
+        self.mainSizer.Add(buttons, border=3, flag=wx.ALL | wx.ALIGN_RIGHT)
         self.SetSizerAndFit(self.mainSizer)
 
         # move the position to be v near the top of screen and to the
