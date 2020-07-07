@@ -46,11 +46,12 @@ from ..icons import getAllIcons, combineImageEmblem
 from psychopy import logging, constants, data
 from psychopy.tools.filetools import mergeFolder
 from .dialogs import (DlgComponentProperties, DlgExperimentProperties,
-                      DlgCodeComponentProperties)
+                      DlgCodeComponentProperties, DlgLoopProperties)
 
 from ..plugin_manager import PluginManagerFrame
 
-from ..utils import FileDropTarget, WindowFrozen
+from ..utils import (FileDropTarget, WindowFrozen, PsychopyToolbar,
+                     PsychopyPlateBtn, PsychopyTabArt)
 from psychopy.experiment import components
 from builtins import str
 from psychopy.app import pavlovia_ui
