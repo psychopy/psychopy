@@ -29,6 +29,7 @@ _localized = {'text': _translate('Text'),
               'lineSpacing': _translate('Line spacing'),
               'padding': _translate('Padding'),
               'sizeIncludesBox': _translate('Size includes padding?'),
+              'anchor': _translate('Text anchoring'),
               #'alignx': _translate('Horizontal alignment'),
               'aligny': _translate('Vertical alignment'),
               'fillColor': _translate('Fill colour'),
@@ -51,7 +52,7 @@ class TextboxComponent(BaseVisualComponent):
                  color='white', colorSpace='rgb', opacity=1.0,
                  pos=(0, 0), size=None, letterHeight=20, ori=0,
                  lineSpacing=1.0,padding=None, sizeIncludesBox=False, # gap between box and text
-                 startType='time (s)', startVal=0.0, alignX='left', alignY='top',
+                 startType='time (s)', startVal=0.0, alignX='left', alignY='top', anchor='center',
                  stopType='duration (s)', stopVal=1.0,
                  flip=False, startEstim='', durationEstim='', wrapWidth='',
                  languageStyle='LTR', fillColor=None,
@@ -156,11 +157,20 @@ class TextboxComponent(BaseVisualComponent):
         #     updates='constant', allowedUpdates=_allow3[:],
         #     hint=_translate("Should text anchor to the left, center or right of the box?"),
         #     label=_localized['alignx'])
+        self.params['anchor'] = Param(
+            anchor, valType='str', allowedTypes=[],
+            allowedVals=['top-left', 'top', 'top-right',
+                         'left', 'center', 'right',
+                         'bottom-left', 'bottom', 'bottom-right'],
+            updates='constant', allowedUpdates=_allow3[:],
+            hint=_translate("Which corner of the text should anchor to the box?"),
+            label=_localized['anchor']
+        )
         self.params['alignY'] = Param(
             alignY, valType='str', allowedTypes=[],
             allowedVals=['top', 'center', 'bottom'],
             updates='constant', allowedUpdates=_allow3[:],
-            hint=_translate("Should text anchor to the top, center or bottom of the box?"),
+            hint=_translate("Vertial alignment of text within the box"),
             label=_localized['aligny'])
         self.params['fillColor'] = Param(
             fillColor, valType='str', allowedTypes=[],
@@ -188,7 +198,7 @@ class TextboxComponent(BaseVisualComponent):
             hint=_translate("Auto log"),
             label=_localized['autoLog'])
 
-        for prm in ('ori', 'opacity', 'colorSpace', 'units', 'wrapWidth', 'sizeIncludesBox',
+        for prm in ('ori', 'opacity', 'anchor', 'colorSpace', 'units', 'wrapWidth', 'sizeIncludesBox',
                     'flipHoriz', 'flipVert', 'languageStyle', 'lineSpacing', 'autoLog'):
             self.params[prm].categ = 'Advanced'
 
@@ -217,6 +227,7 @@ class TextboxComponent(BaseVisualComponent):
             "     padding=%(padding)s,\n"
             "     sizeIncludesBox=%(sizeIncludesBox)s,\n"
             "     alignY=%(alignY)s,\n"
+            "     anchor=%(anchor)s,\n"
             "     fillColor=%(fillColor)s,\n"
             "     borderColor=%(borderColor)s,\n"
             "     borderWidth=%(borderWidth)s,\n"
