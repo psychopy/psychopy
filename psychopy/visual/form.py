@@ -492,12 +492,11 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
             The height of the response object as type float
         """
         # TODO: Use new textbox when complete
-        resp = psychopy.visual.Rect(self.win,
+        resp = psychopy.visual.TextBox2(self.win,
                                     pos=pos,
                                     size=(item['responseWidth']*2, .25),
                                     units=self.units,
-                                    lineColor='black',
-                                    fillColor='white')
+                                    color='white')
 
         respHeight = resp.size[1] / 2
         return resp, respHeight
