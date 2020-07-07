@@ -26,14 +26,14 @@ _localized = {'text': _translate('Text'),
               'languageStyle': _translate('Language style'),
               'bold': _translate('Bold'),
               'italic': _translate('Italic'),
-              'lineSpacing': _translate('Line Spacing'),
+              'lineSpacing': _translate('Line spacing'),
               'padding': _translate('Padding'),
-              'boxsizing': _translate('Box Sizing'),
-              'anchorx': _translate('Horizontal Alignment'),
-              'anchory': _translate('Vertical Alignment'),
-              'fillColor': _translate('Fill Colour'),
-              'borderColor': _translate('Border Colour'),
-              'borderWidth': _translate('Border Width'),
+              'boxsizing': _translate('Padding inside box?'),
+              'anchorx': _translate('Horizontal alignment'),
+              'anchory': _translate('Vertical alignment'),
+              'fillColor': _translate('Fill colour'),
+              'borderColor': _translate('Border colour'),
+              'borderWidth': _translate('Border width'),
               'editable': _translate('Editable?'),
               'autoLog': _translate('Auto Log')
               }
@@ -50,8 +50,8 @@ class TextboxComponent(BaseVisualComponent):
                  font='Consolas', units='from exp settings', bold=False, italic=False,
                  color='white', colorSpace='rgb', opacity=1.0,
                  pos=(0, 0), size=None, letterHeight=20, ori=0,
-                 lineSpacing=1.0,padding=None, boxsizing='content-box', # gap between box and text
-                 startType='time (s)', startVal=0.0, anchorX='center', anchorY='center',
+                 lineSpacing=1.0,padding=None, boxsizing=False, # gap between box and text
+                 startType='time (s)', startVal=0.0, anchorX='left', anchorY='top',
                  stopType='duration (s)', stopVal=1.0,
                  flip=False, startEstim='', durationEstim='', wrapWidth='',
                  languageStyle='LTR', fillColor=None,
@@ -146,17 +146,16 @@ class TextboxComponent(BaseVisualComponent):
             hint=_translate("Defines the space between text and the textbox border"),
             label=_localized['padding'])
         self.params['boxsizing'] = Param(
-            boxsizing, valType='str', allowedTypes=[],
-            allowedVals=['border-box', 'content-box'],
+            boxsizing, valType='bool', allowedTypes=[],
             updates='constant', allowedUpdates=_allow3[:],
-            hint=_translate("Should padding extend the box beyond its specified size (content-box), or retract the text within it (border-box)? This works the same as box-sizing in CSS."),
+            hint=_translate("Should the box size include its padding?"),
             label=_localized['boxsizing'])
-        self.params['anchorX'] = Param(
-            anchorX, valType='str', allowedTypes=[],
-            allowedVals=['left', 'center', 'right'],
-            updates='constant', allowedUpdates=_allow3[:],
-            hint=_translate("Should text anchor to the left, center or right of the box?"),
-            label=_localized['anchorx'])
+        # self.params['anchorX'] = Param(
+        #     anchorX, valType='str', allowedTypes=[],
+        #     allowedVals=['left', 'center', 'right'],
+        #     updates='constant', allowedUpdates=_allow3[:],
+        #     hint=_translate("Should text anchor to the left, center or right of the box?"),
+        #     label=_localized['anchorx'])
         self.params['anchorY'] = Param(
             anchorY, valType='str', allowedTypes=[],
             allowedVals=['top', 'center', 'bottom'],

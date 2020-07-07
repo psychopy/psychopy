@@ -78,9 +78,9 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
                  italic=False,
                  lineSpacing=1.0,
                  padding=None,  # gap between box and text
-                 boxsizing='content-box',
-                 anchorX='center',
-                 anchorY='center',
+                 boxsizing=False,
+                 anchorX='left',
+                 anchorY='top',
                  fillColor=None,
                  borderWidth=0,
                  borderColor=None,
@@ -115,12 +115,10 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
         if size is None:
             size = [defaultBoxWidth[units], -1]
         self._requestedSize = size  # (-1 in either dim means not constrained)
-        if boxsizing == 'border-box':
+        if boxsizing:
             self.size = size  # but this will be updated later to actual size
-        elif boxsizing == 'content-box':
-            self.size = tuple(dim+padding for dim in size) # but this will be updated later to actual size
         else:
-            raise Exception('invalid box sizing value')
+            self.size = tuple(dim+padding for dim in size) # but this will be updated later to actual size
         self.bold = bold
         self.italic = italic
         self.lineSpacing = lineSpacing
