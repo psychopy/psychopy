@@ -91,7 +91,7 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
             Height of lines on screen.
         lineSpacing : int, float
             Amount of space between lines
-        boxsizing : bool
+        sizeIncludesBox : bool
             Whether or not padding should be included in the overall size of box
         padding : int, float
             Empty space between box edge and text
@@ -117,6 +117,8 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
             Which horizontal point to anchor text to (left, right, center)
         alignY : str
             Vertical alignment of text (top, bottom, center)
+        anchor : str
+            Point within the text area which pos is relative to
         flipHoriz : bool
             Whether to flip text horizontally
         flipVert : bool
@@ -133,9 +135,10 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
                  italic=False,
                  lineSpacing=1.0,
                  padding=None,  # gap between box and text
-                 boxsizing=False,
+                 sizeIncludesBox=False,
                  alignX='left',
                  alignY='top',
+                 anchor='top-left',
                  fillColor=None,
                  borderWidth=0,
                  borderColor=None,

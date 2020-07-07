@@ -28,7 +28,7 @@ _localized = {'text': _translate('Text'),
               'italic': _translate('Italic'),
               'lineSpacing': _translate('Line spacing'),
               'padding': _translate('Padding'),
-              'boxsizing': _translate('Padding inside box?'),
+              'sizeIncludesBox': _translate('Size includes padding?'),
               #'alignx': _translate('Horizontal alignment'),
               'aligny': _translate('Vertical alignment'),
               'fillColor': _translate('Fill colour'),
@@ -50,7 +50,7 @@ class TextboxComponent(BaseVisualComponent):
                  font='Consolas', units='from exp settings', bold=False, italic=False,
                  color='white', colorSpace='rgb', opacity=1.0,
                  pos=(0, 0), size=None, letterHeight=20, ori=0,
-                 lineSpacing=1.0,padding=None, boxsizing=False, # gap between box and text
+                 lineSpacing=1.0,padding=None, sizeIncludesBox=False, # gap between box and text
                  startType='time (s)', startVal=0.0, alignX='left', alignY='top',
                  stopType='duration (s)', stopVal=1.0,
                  flip=False, startEstim='', durationEstim='', wrapWidth='',
@@ -145,11 +145,11 @@ class TextboxComponent(BaseVisualComponent):
             updates='constant', allowedUpdates=_allow3[:],
             hint=_translate("Defines the space between text and the textbox border"),
             label=_localized['padding'])
-        self.params['boxsizing'] = Param(
-            boxsizing, valType='bool', allowedTypes=[],
+        self.params['sizeIncludesBox'] = Param(
+            sizeIncludesBox, valType='bool', allowedTypes=[],
             updates='constant', allowedUpdates=_allow3[:],
             hint=_translate("Should the box size include its padding?"),
-            label=_localized['boxsizing'])
+            label=_localized['sizeIncludesBox'])
         # self.params['alignX'] = Param(
         #     alignX, valType='str', allowedTypes=[],
         #     allowedVals=['left', 'center', 'right'],
@@ -188,7 +188,7 @@ class TextboxComponent(BaseVisualComponent):
             hint=_translate("Auto log"),
             label=_localized['autoLog'])
 
-        for prm in ('ori', 'opacity', 'colorSpace', 'units', 'wrapWidth', 'boxsizing',
+        for prm in ('ori', 'opacity', 'colorSpace', 'units', 'wrapWidth', 'sizeIncludesBox',
                     'flipHoriz', 'flipVert', 'languageStyle', 'lineSpacing', 'autoLog'):
             self.params[prm].categ = 'Advanced'
 
@@ -215,7 +215,7 @@ class TextboxComponent(BaseVisualComponent):
             "     italic=%(italic)s,\n"
             "     lineSpacing=%(lineSpacing)s,\n"
             "     padding=%(padding)s,\n"
-            "     boxsizing=%(boxsizing)s,\n"
+            "     sizeIncludesBox=%(sizeIncludesBox)s,\n"
             "     alignY=%(alignY)s,\n"
             "     fillColor=%(fillColor)s,\n"
             "     borderColor=%(borderColor)s,\n"
