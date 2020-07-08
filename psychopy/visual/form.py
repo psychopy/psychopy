@@ -498,6 +498,7 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
                                       text="",
                                       font="Consolas",
                                       pos=pos, letterHeight=None,
+                                      size = (-1,-1),
                                       color=(-1.0, -1.0, -1.0),
                                       contrast=1,
                                       opacity=1.0,

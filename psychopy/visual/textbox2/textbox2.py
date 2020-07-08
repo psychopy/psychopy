@@ -753,6 +753,13 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
         # Store focus
         self._hasFocus = state
 
+    def getRating(self):
+        """For the purposes of integration with form, "getRating" returns the textbox's text"""
+        return self.text
+
+    def getRT(self):
+        return None
+
 class Caret(ColorMixin):
     """
     Class to handle the caret (cursor) within a textbox. Do **not** call without a textbox.
