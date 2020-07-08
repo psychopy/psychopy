@@ -171,7 +171,7 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
         self._pixLetterHeight = convertToPix(
                 self.letterHeight, pos=0, units=scaleUnits, win=self.win)
         if size is None:
-            size = [defaultBoxWidth[units], -1]
+            size = [defaultBoxWidth[units], defaultBoxWidth[units]]
         self._requestedSize = size  # (-1 in either dim means not constrained)
         if padding is None:
             padding = defaultLetterHeight[units] / 2.0
@@ -240,7 +240,7 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
             self.__dict__['font'] = fontName
             self.glFont = allFonts.getFont(
                     fontName,
-                    size=int(round(self._pixLetterHeight)),
+                    size=self._pixLetterHeight,
                     bold=self.bold, italic=self.italic)
 
     @attributeSetter
@@ -781,7 +781,12 @@ class Caret(ColorMixin):
         if not round(core.getTime() % 2 / 2):  # Flash every other second
             return
         gl.glLineWidth(self.width)
-        col = tuple(self.rgb)
+        if hasattr(self, 'rgb'):
+            col = tuple(self.rgb)
+        elif hasattr(self.textbox, 'rgb'):
+            col = tuple(self.textbox.rgb)
+        else:
+            col = (1.0, 1.0, 1.0)
         gl.glColor4f(
             int(col[0]), int(col[1]), int(col[2]), int(self.visible)
         )

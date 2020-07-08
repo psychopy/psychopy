@@ -19,6 +19,8 @@ from psychopy.constants import PY3
 
 __author__ = 'Jon Peirce, David Bridges, Anthony Haffey'
 
+from ..tools.monitorunittools import convertToPix
+
 
 class Form(BaseVisualStim, ContainerMixin, ColorMixin):
     """A class to add Forms to a `psycopy.visual.Window`
@@ -493,12 +495,30 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
         """
         # TODO: Use new textbox when complete
         resp = psychopy.visual.TextBox2(self.win,
-                                    pos=pos,
-                                    size=(item['responseWidth']*2, .25),
-                                    units=self.units,
-                                    color='white')
+                                      text="",
+                                      font="Consolas",
+                                      pos=pos, letterHeight=None,
+                                      color=(-1.0, -1.0, -1.0),
+                                      contrast=1,
+                                      opacity=1.0,
+                                      bold=False,
+                                      italic=False,
+                                      lineSpacing=1.0,
+                                      padding=None,  # gap between box and text
+                                      sizeIncludesBox=False,
+                                      alignX='left',
+                                      alignY='top',
+                                      anchor='center',
+                                      fillColor=(1.0, 1.0, 1.0),
+                                      borderWidth=0,
+                                      borderColor=None,
+                                      flipHoriz=False,
+                                      flipVert=False,
+                                      editable=True,
+                                      name='',
+                                      autoLog=None)
 
-        respHeight = resp.size[1] / 2
+        respHeight = resp.size[1]
         return resp, respHeight
 
     def _getQuestionHeight(self, question=None):
