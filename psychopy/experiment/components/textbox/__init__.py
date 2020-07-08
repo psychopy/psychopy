@@ -50,7 +50,7 @@ class TextboxComponent(BaseVisualComponent):
                  text=_translate('Any text\n\nincluding line breaks'),
                  font='Consolas', units='from exp settings', bold=False, italic=False,
                  color='white', colorSpace='rgb', opacity=1.0,
-                 pos=(0, 0), size=None, letterHeight=20, ori=0,
+                 pos=(0, 0), size=(-1,-1), letterHeight=20, ori=0,
                  lineSpacing=1.0,padding=None, sizeIncludesBox=False, # gap between box and text
                  startType='time (s)', startVal=0.0, alignX='left', alignY='top', anchor='center',
                  stopType='duration (s)', stopVal=1.0,

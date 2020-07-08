@@ -126,7 +126,7 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
         """
     def __init__(self, win, text, font,
                  pos=(0, 0), units='pix', letterHeight=None,
-                 size=None,
+                 size=(-1,-1),
                  color=(1.0, 1.0, 1.0),
                  colorSpace='rgb',
                  contrast=1,
@@ -172,7 +172,7 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
                 self.letterHeight, pos=0, units=scaleUnits, win=self.win)
         if size is None:
             size = [defaultBoxWidth[units], defaultBoxWidth[units]]
-        self._requestedSize = size  # (-1 in either dim means not constrained)
+        self._requestedTextboxSize = size  # (-1 in either dim means not constrained)
         if padding is None:
             padding = defaultLetterHeight[units] / 2.0
         self.padding = padding
@@ -581,11 +581,18 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
 
         # thisW = current[0] - glyph.advance[0] + glyph.size[0] * alphaCorrection
         # calculate final self.size and tightBox
-        if self.size[0] == -1:
-            self.size[0] = max(self._lineWidths)
-        if self.size[1] == -1:
-            self.size[1] = ((lineN + 1) * self._lineHeight / self._pixelScaling
-                            + self.padding * 2)
+        if -1 in self._requestedTextboxSize:
+            if self._requestedTextboxSize[0] == -1:
+                width = (max(self._lineWidths) + self.padding*2) / self._pixelScaling
+            else:
+                width = self._requestedTextboxSize[0]
+            if self._requestedTextboxSize[1] == -1:
+                height = ((lineN + 1) * self._lineHeight / self._pixelScaling
+                                + self.padding * 2)
+            else:
+                height = self._requestedTextboxSize[1]
+            self.setSize((width, height), units=self.units)
+
 
         self.anchorX = self._anchorX
         self.anchorY = self._anchorY
