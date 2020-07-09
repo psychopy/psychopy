@@ -47,7 +47,7 @@ defaultLetterHeight = {'cm': 1.0,
                        'degFlatPos': 1.0,
                        'degFlat': 1.0,
                        'norm': 0.1,
-                       'height': 0.2,
+                       'height': 0.05,
                        'pix': 20,
                        'pixels': 20}
 
@@ -582,12 +582,11 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
             else:
                 width = self._requestedTextboxSize[0]
             if self._requestedTextboxSize[1] == -1:
-                height = ((lineN + 1) * self._lineHeight
+                height = ((lineN + 1) * self._lineHeight  / self._pixelScaling
                                 + self.padding * 2)
             else:
                 height = self._requestedTextboxSize[1]
             self.setSize((width, height), units=self.units)
-
 
         self.anchorX = self._anchorX
         self.anchorY = self._anchorY

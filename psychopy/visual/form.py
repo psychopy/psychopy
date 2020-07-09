@@ -498,7 +498,7 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
                                       text="",
                                       font="Consolas",
                                       pos=pos, units=self.units, letterHeight=None,
-                                      size = (-1,-1),
+                                      size = (item['responseWidth'],-1),
                                       color=(-1.0, -1.0, -1.0),
                                       contrast=1,
                                       opacity=1.0,
@@ -506,10 +506,10 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
                                       italic=False,
                                       lineSpacing=1.0,
                                       padding=None,  # gap between box and text
-                                      sizeIncludesBox=False,
+                                      sizeIncludesBox=True,
                                       alignX='left',
                                       alignY='top',
-                                      anchor='center',
+                                      anchor='top-left',
                                       fillColor=(1.0, 1.0, 1.0),
                                       borderWidth=0,
                                       borderColor=None,
@@ -518,8 +518,6 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
                                       editable=True,
                                       name='',
                                       autoLog=None)
-        print(pos)
-        print(self.units)
 
         respHeight = resp.size[1]
         return resp, respHeight
