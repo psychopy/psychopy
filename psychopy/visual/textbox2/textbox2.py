@@ -170,6 +170,9 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
             scaleUnits = units
         self._pixLetterHeight = convertToPix(
                 self.letterHeight, pos=0, units=scaleUnits, win=self.win)
+        # If units are normalised, we will get two scale values, so remove one
+        if not isinstance(self._pixLetterHeight, (int, float)):
+            self._pixLetterHeight = min(self._pixLetterHeight)
         self._pixelScaling = self._pixLetterHeight / self.letterHeight
         if size is None:
             size = [defaultBoxWidth[units], defaultBoxWidth[units]]
