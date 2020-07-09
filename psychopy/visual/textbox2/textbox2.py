@@ -207,10 +207,6 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
         self._needVertexUpdate = False  # this will be set True during layout
         # standard stimulus params
         self.pos = (pos[0], pos[1]+self._anchorOffsetY) # For some reason _anchorOffsetX gets applied twice is specified here, but not _anchorOffsetY
-        self.posPix = convertToPix(vertices=[0, 0],
-                                   pos=self.pos,
-                                   units=self.units,
-                                   win=self.win)
         self.ori = 0.0
         self.depth = 0.0
         # used at render time
@@ -291,7 +287,13 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
         if 'boundingBox' in self.__dict__:
             return self.__dict__['boundingBox']
         else:
-            return self.size
+            return self.size * self._pixelScaling
+
+    @property
+    def posPix(self):
+        """(read only) attribute representing the position of textbox, adjusted according to anchor"""
+        return ((self.pos[0] + self._anchorOffsetX) * self._pixelScaling,
+                (self.pos[1] + self._anchorOffsetY) * self._pixelScaling)
 
     def interpretAnchor(self, value):
         """anchor is a string of terms, top, bottom, left, right, center
@@ -792,7 +794,6 @@ class Caret(ColorMixin):
         self.units = textbox.units
 
     def draw(self):
-        print(self.visible)
         if not round(core.getTime() % 2 / 2):  # Flash every other second
             return
         gl.glLineWidth(self.width)
@@ -854,7 +855,6 @@ class Caret(ColorMixin):
     @char.setter
     def char(self, value):
         """Set character within row"""
-        print(value)
         # If setting char to less than 0, move to last char on previous line
         if value < 0:
             if self.row == 0:

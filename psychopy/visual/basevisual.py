@@ -590,6 +590,9 @@ class ContainerMixin(object):
         else:
             poly = self.verticesPix  # e.g., tessellated vertices
 
+        print(poly)
+        print(poly / self._pixelScaling)
+
         return pointInPolygon(xy[0], xy[1], poly=poly)
 
     def overlaps(self, polygon):
