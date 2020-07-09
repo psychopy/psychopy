@@ -171,8 +171,10 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
         self._pixLetterHeight = convertToPix(
                 self.letterHeight, pos=0, units=scaleUnits, win=self.win)
         # If units are normalised, we will get two scale values, so remove one
-        if not isinstance(self._pixLetterHeight, (int, float)):
+        try:
             self._pixLetterHeight = min(self._pixLetterHeight)
+        except:
+            pass
         self._pixelScaling = self._pixLetterHeight / self.letterHeight
         if size is None:
             size = [defaultBoxWidth[units], defaultBoxWidth[units]]
@@ -790,6 +792,7 @@ class Caret(ColorMixin):
         self.units = textbox.units
 
     def draw(self):
+        print(self.visible)
         if not round(core.getTime() % 2 / 2):  # Flash every other second
             return
         gl.glLineWidth(self.width)
