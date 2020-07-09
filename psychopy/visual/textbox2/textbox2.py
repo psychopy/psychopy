@@ -449,7 +449,7 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
         self._lineWidths = []  # width in stim units of each line
 
         self._lineHeight = font.height * self.lineSpacing
-        lineMax = (self.size[0] - self.padding - self.lineSpacing) * self._pixelScaling # Scale irrelevant
+        lineMax = (self.size[0] - self.padding) * self._pixelScaling - self.lineSpacing # Scale irrelevant
         current = [0, 0]
         fakeItalic = 0.0
         fakeBold = 0.0
