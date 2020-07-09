@@ -170,6 +170,7 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
             scaleUnits = units
         self._pixLetterHeight = convertToPix(
                 self.letterHeight, pos=0, units=scaleUnits, win=self.win)
+        self._pixelScaling = self._pixLetterHeight / self.letterHeight
         if size is None:
             size = [defaultBoxWidth[units], defaultBoxWidth[units]]
         self._requestedTextboxSize = size  # (-1 in either dim means not constrained)
@@ -313,21 +314,20 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
         return self._anchorX
     @anchorX.setter
     def anchorX(self, value):
-        self._pixelScaling = self._pixLetterHeight / self.letterHeight
         self._anchorX = value
         font = self.glFont
         if value == 'left':
             self._anchorOffsetX = (
                 self.size[1]/2  # Move anchor to left side
-            ) / self._pixelScaling  # Scale
+            )
         elif value == 'center':
             self._anchorOffsetX = (
                 0 # Remain at center
-            ) / self._pixelScaling  # Scale
+            )
         elif value == 'right':
             self._anchorOffsetX = (
                 -self.size[1]/2 # Move anchor to right side
-            ) / self._pixelScaling  # Scale
+            )
         else:
             raise ValueError('Unexpected error for _anchorX')
 
@@ -336,23 +336,22 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
         return self._anchorY
     @anchorY.setter
     def anchorY(self, value):
-        self._pixelScaling = self._pixLetterHeight / self.letterHeight
         self._anchorY = value
         font = self.glFont
         if value == 'top':
             self._anchorOffsetY = (
                 -self.size[1]/2 # Move anchor to top
-            ) / self._pixelScaling  # Scale
+            )
 
         elif value == 'center':
             self._anchorOffsetY = (
                 0 # Remain at ceter
-            ) / self._pixelScaling  # Scale
+            )
 
         elif value == 'bottom':
             self._anchorOffsetY = (
                 self.size[1]/2 # Move anchor to bottom
-            ) / self._pixelScaling  # Scale
+            )
         else:
             raise ValueError('Unexpected error for _anchorY')
 
@@ -361,28 +360,27 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
         return self._alignY
     @alignY.setter
     def alignY(self, value):
-        self._pixelScaling = self._pixLetterHeight / self.letterHeight
         self._alignY = value
         font = self.glFont
         # Vertical position of bottom edge of first line, relative to center of box
         if value == 'top':
             self._alignOffsetY = (
-                - font.ascender  # Move down so top of first line == top of box
+                - font.ascender / self._pixelScaling  # Move down so top of first line == top of box
                 + self.size[1] / 2  # Move up by half the box size to get from center to top
                 - self.padding  # Move down to give padding
-            ) / self._pixelScaling  # Scale
+            )
         elif value == 'center':
             self._alignOffsetY = (
-                - font.ascender - font.descender  # Move down so top of first line == center of box
-                + font.height * len(self._lineLenChars) / 2  # Move up by half of total text height
-            ) / self._pixelScaling # Scale
+                - font.ascender / self._pixelScaling  # Move down so top of first line == center of box
+                + font.height / self._pixelScaling  * len(self._lineLenChars) / 2  # Move up by half of total text height
+            )
         elif value == 'bottom':
             self._alignOffsetY = (
-                - font.ascender - font.descender  # Move down so top of first line == bottom of box
-                + font.height * len(self._lineLenChars)  # Move up by total text height
+                - font.ascender / self._pixelScaling  # Move down so top of first line == bottom of box
+                + font.height / self._pixelScaling  * len(self._lineLenChars)  # Move up by total text height
                 - self.size[1] / 2  # Move down by half the box size to get from center to bottom
                 + self.padding # Move up to give padding
-            ) / self._pixelScaling # Scale
+            )
         else:
             raise ValueError('Unexpected error for _alignY')
 
@@ -391,7 +389,6 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
         return self._alignX
     @alignX.setter
     def alignX(self, value):
-        self._pixelScaling = self._pixLetterHeight / self.letterHeight
         self._alignX = value
         font = self.glFont
         # Horizontal position of left edge of first line, relative to center of box
@@ -399,18 +396,18 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
             self._alignOffsetX = (
                 - self.size[0]/2 # Move left by half the box size to get from center to left
                 + self.padding # Move right to give padding
-            ) / self._pixelScaling + self._anchorOffsetX # Scale & anchor
+            ) + self._anchorOffsetX # Scale & anchor
         elif value == 'center':
             self._alignOffsetX = (
                0
                # todo:Move left by half of total text width
-            ) / self._pixelScaling + self._anchorOffsetX  # Scale & anchor
+            ) + self._anchorOffsetX  # Scale & anchor
         elif value == 'right':
             self._alignOffsetX = (
                 self.size[0]/2 # Move right by half the box size to get from center to right
                 - self.padding # Move left to give padding
                 # todo:Move left by total text width (and anchor the the right/center, somehow)
-            ) / self._pixelScaling + self._anchorOffsetX  # Scale & anchor
+            ) + self._anchorOffsetX  # Scale & anchor
         else:
             raise ValueError('Unexpected error for _alignX')
 
@@ -451,9 +448,8 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
         self._lineLenChars = []  #
         self._lineWidths = []  # width in stim units of each line
 
-        self._pixelScaling = self._pixLetterHeight / self.letterHeight
         self._lineHeight = font.height * self.lineSpacing
-        lineMax = (self.size[0] - self.padding) * self._pixelScaling
+        lineMax = (self.size[0] - self.padding - self.lineSpacing) * self._pixelScaling # Scale irrelevant
         current = [0, 0]
         fakeItalic = 0.0
         fakeBold = 0.0
@@ -547,7 +543,6 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
             elif printable:
                 wordLen += 1
                 charsThisLine += 1
-
             # end line with auto-wrap
             if current[0] >= lineMax and wordLen > 0:
                 # move the current word to next line
@@ -561,7 +556,7 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
                     self._lineNs[i - wordLen + 1: i + 1] += 1
                     self._lineLenChars.append(charsThisLine - wordLen)
                     self._lineWidths.append(
-                            lineBreakPt / self._pixelScaling + self.padding * 2)
+                            lineBreakPt + self.padding * 2)
                     lineN += 1
                     # and set current to correct location
                     current[0] = wordWidth
@@ -576,18 +571,15 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
                 self._lineTops.append(current[1] + self._lineHeight
                                       + font.descender/2)
 
-        # convert the vertices to stimulus units
-        self.vertices = vertices / self._pixelScaling
-
         # thisW = current[0] - glyph.advance[0] + glyph.size[0] * alphaCorrection
         # calculate final self.size and tightBox
         if -1 in self._requestedTextboxSize:
             if self._requestedTextboxSize[0] == -1:
-                width = (max(self._lineWidths) + self.padding*2) / self._pixelScaling
+                width = (max(self._lineWidths) + self.padding*2)
             else:
                 width = self._requestedTextboxSize[0]
             if self._requestedTextboxSize[1] == -1:
-                height = ((lineN + 1) * self._lineHeight / self._pixelScaling
+                height = ((lineN + 1) * self._lineHeight
                                 + self.padding * 2)
             else:
                 height = self._requestedTextboxSize[1]
@@ -598,13 +590,16 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
         self.anchorY = self._anchorY
         self.alignX = self._alignX
         self.alignY = self._alignY
-        self.vertices += (self._alignOffsetX, self._alignOffsetY)
 
         # if we had to add more glyphs to make possible then 
         if self.glFont._dirty:
             self.glFont.upload()
             self.glFont._dirty = False
         self._needVertexUpdate = True
+
+        # convert the vertices to stimulus units
+        vertices /= self._pixelScaling
+        self.vertices = vertices + (self._alignOffsetX, self._alignOffsetY)
 
     def draw(self):
         """Draw the text to the back buffer"""
@@ -790,6 +785,7 @@ class Caret(ColorMixin):
         self.autoLog = False
         self.color = color
         self.width = width
+        self.units = textbox.units
 
     def draw(self):
         if not round(core.getTime() % 2 / 2):  # Flash every other second

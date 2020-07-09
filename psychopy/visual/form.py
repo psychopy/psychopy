@@ -497,7 +497,7 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
         resp = psychopy.visual.TextBox2(self.win,
                                       text="",
                                       font="Consolas",
-                                      pos=pos, letterHeight=None,
+                                      pos=pos, units=self.units, letterHeight=None,
                                       size = (-1,-1),
                                       color=(-1.0, -1.0, -1.0),
                                       contrast=1,
@@ -518,6 +518,8 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
                                       editable=True,
                                       name='',
                                       autoLog=None)
+        print(pos)
+        print(self.units)
 
         respHeight = resp.size[1]
         return resp, respHeight
