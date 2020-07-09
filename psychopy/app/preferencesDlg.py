@@ -166,6 +166,7 @@ class PrefPropGrid(wx.Panel):
         wx.Panel.__init__(
             self, parent, id=id, pos=pos, size=size, style=style, name=name)
         bSizer1 = wx.BoxSizer(wx.HORIZONTAL)
+        self.app = wx.GetApp()
 
         self.lstPrefPages = wx.ListCtrl(
             self, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize,
@@ -223,11 +224,7 @@ class PrefPropGrid(wx.Panel):
             if s not in self.sections.keys():
                 self.sections[s] = dict()
 
-        nbBitmap = wx.Bitmap(
-            os.path.join(
-                self.GetTopLevelParent().app.prefs.paths['icons'],
-                bitmap),
-            wx.BITMAP_TYPE_ANY)
+        nbBitmap = app.iconCache.getBitmap(bitmap)
         if nbBitmap.IsOk():
             self.prefsImages.Add(nbBitmap)
 

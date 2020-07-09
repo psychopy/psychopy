@@ -617,7 +617,6 @@ class CodeEditor(BaseCodeEditor, CodeEditorFoldingMixin, ThemeMixin):
 
         # apply the theme to the lexer
         self.theme = self.coder.prefs['theme']
-        #applyStyleSpec(self, self.coder.prefs['theme'], self.GetLexer(), faces)
 
     def setLexerFromFileName(self):
         """Set the lexer to one that best matches the file name."""
@@ -1178,9 +1177,7 @@ class CoderFrame(wx.Frame, ThemeMixin):
                                  BottomDockable(True).TopDockable(True).
                                  CloseButton(False).
                                  Bottom().Show(self.prefs['showOutput']))
-        # Update panes
-        self._applyAppTheme()
-        self.paneManager.Update()
+
         self.unitTestFrame = None
 
         # Link to Runner output
@@ -1199,7 +1196,9 @@ class CoderFrame(wx.Frame, ThemeMixin):
         else:
             self.SetMinSize(wx.Size(400, 600))  # min size for whole window
             self.Fit()
-            self.paneManager.Update()
+        # Update panes
+        self._applyAppTheme()
+        self.paneManager.Update()
 
         self.sourceAsstChk.Check(
             self.paneManager.GetPane('SourceAsst').IsShown())
@@ -2060,7 +2059,7 @@ class CoderFrame(wx.Frame, ThemeMixin):
             # give the user a chance to save his file.
             self.UNSAVED = True
 
-        if doc == self.currentDoc:
+        if doc == self.currentDoc and hasattr(self, 'cdrBtnSave'):
             self.cdrBtnSave.Enable(doc.UNSAVED)
 
         self.statusBar.SetStatusText(_translate('Analyzing code'))
@@ -2473,17 +2472,6 @@ class CoderFrame(wx.Frame, ThemeMixin):
         self.app.prefs.saveUserPrefs()  # includes a validation
         self.paneManager.Update()
 
-    # def _applyAppTheme(self, target=None):
-    #     """Overrides theme change from ThemeMixin.
-    #     Don't call - this is called at the end of theme.setter"""
-    #     # ThemeMixin._applyAppTheme(self)  # handles most recursive setting
-    #     for ii in range(self.notebook.GetPageCount()):
-    #         doc = self.notebook.GetPage(ii)
-    #         doc._applyAppTheme()
-    #     for ii in range(self.shelf.GetPageCount()):
-    #         doc = self.shelf.GetPage(ii)
-    #         doc._applyAppTheme()
-
     def setShowIndentGuides(self, event):
         # show/hide the source assistant (from the view menu control)
         newVal = self.indentGuideChk.IsChecked()
@@ -2572,7 +2560,8 @@ class CoderFrame(wx.Frame, ThemeMixin):
         # changes the document flag, updates save buttons
         self.currentDoc.UNSAVED = isModified
         # disabled when not modified
-        self.cdrBtnSave.Enable(isModified)
+        if hasattr(self, 'cdrBtnSave'):
+            self.cdrBtnSave.Enable(isModified)
         # self.fileMenu.Enable(self.fileMenu.FindItem('&Save\tCtrl+S"'),
         #     isModified)
 
@@ -2616,4 +2605,19 @@ class CoderFrame(wx.Frame, ThemeMixin):
         # TODO: update user icon on button to user avatar
         pass
 
+    def _applyAppTheme(self, target=None):
+        """Overrides theme change from ThemeMixin.
+        Don't call - this is called at the end of theme.setter"""
+        # ThemeMixin._applyAppTheme(target=self)  # handles most recursive setting
+        self.toolbar.SetBackgroundColour(ThemeMixin.appColors['frame_bg'])
+        self.toolbar.ClearTools()
+        self.toolbar.makeTools()
 
+        # ThemeMixin._applyAppTheme(self.fileBrowserWindow)
+        ThemeMixin._applyAppTheme(self.statusBar)
+        # updating sourceAsst will incl fileBrowser and sourcetree
+        ThemeMixin._applyAppTheme(self.sourceAsst)
+        ThemeMixin._applyAppTheme(self.notebook)
+        if hasattr(self, 'shelf'):
+            ThemeMixin._applyAppTheme(self.shelf)
+        self.Update()

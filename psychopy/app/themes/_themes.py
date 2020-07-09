@@ -6,15 +6,43 @@ import keyword
 import builtins
 from pathlib import Path
 from psychopy import prefs
-from psychopy import experiment
 from psychopy import logging
 import psychopy
+from ...experiment import components
 import json
-from psychopy.app import icons
-import os
-import sys
 
 thisFolder = Path(__file__).parent
+
+iconsPath = Path(prefs.paths['resources'])
+
+
+# Create library of "on brand" colours
+cLib = {
+    'none': [127, 127, 127, 0],
+    'black': [0, 0, 0],
+    'grey': [102, 102, 110],
+    'white': [242, 242, 242],
+    'red': [242, 84, 91],
+    'green': [108, 204, 116],
+    'blue': [2, 169, 234],
+    'yellow': [241, 211, 2],
+    'orange': [236, 151, 3],
+    'purple': [195, 190, 247],
+    'darker': {},
+    'lighter': {},
+    'very': {'lighter': {},
+             'darker': {}}
+}
+# Create light and dark variants of each colour by +-15 to each value
+for c in cLib:
+     if not c in ['darker', 'lighter', 'none', 'very']:
+         cLib['darker'][c] = [max(0, n-15) for n in cLib[c]]
+         cLib['lighter'][c] = [min(255, n+15) for n in cLib[c]]
+# Create very light and very dark variants of each colour by a further +-30 to each value
+for c in cLib['lighter']:
+    cLib['very']['lighter'][c] = [min(255, n+30) for n in cLib['lighter'][c]]
+for c in cLib['darker']:
+    cLib['very']['darker'][c] = [max(0, n-30) for n in cLib['darker'][c]]
 
 
 class ThemeMixin:
@@ -24,13 +52,49 @@ class ThemeMixin:
         stc.STC_LEX_R: "R"
     }
     # these are populated and modified by PsychoPyApp.theme.setter
+    spec = None
     codetheme = 'PsychopyDark'
     mode = 'light'
-    iconmode = 'modern'
+    icons = 'light'
     codeColors = {}
     appColors = {}
     appIcons = {'components': {},
                 'resources': {}}
+
+    def loadThemeSpec(self, themeName):
+        """Load a spec file from disk"""
+        # a theme spec contains the spec for the *code* theme as well as a mode
+        # that determines which colorscheme to load for the app (separate)
+        themesPath = Path(prefs.paths['themes'])
+
+        # first load the *theme* which contains the mode name for the app
+        try:
+            with open(themesPath / (themeName+".json"), "rb") as fp:
+                ThemeMixin.spec = themeSpec = json.load(fp)
+        except FileNotFoundError:
+            with open(themesPath / "PsychopyLight.json", "rb") as fp:
+                ThemeMixin.spec = themeSpec = json.load(fp)
+        appColorMode = themeSpec['app']
+
+        try:
+            with open(themesPath / "app/{}.json".format(appColorMode), "rb") as fp:
+                ThemeMixin.spec = appColors = json.load(fp)
+        except FileNotFoundError:
+            with open(themesPath / "app/light.json", "rb") as fp:
+                ThemeMixin.spec = appColors = json.load(fp)
+
+        # Set app theme
+        ThemeMixin.mode = appColorMode
+        self._setAppColors(appColors)
+        # Set app icons
+        if 'icons' in themeSpec:
+            ThemeMixin.icons = themeSpec['icons']
+        else:
+            ThemeMixin.icons = themeSpec['app']
+        # Set coder theme
+        codertheme = themeSpec
+        ThemeMixin.codetheme = themeName
+        self._setCodeColors(codertheme)
 
     def _applyAppTheme(self, target=None):
         """Applies colorScheme recursively to the target and its children
@@ -47,9 +111,8 @@ class ThemeMixin:
         def applyToToolbar(target):
             target.SetBackgroundColour(ThemeMixin.appColors['frame_bg'])
             # Clear tools
-            for i in range(target.GetToolsCount()):
-                target.DeleteToolByPos(0)
-            # Redraw tools
+            target.ClearTools()
+            # # Redraw tools
             target.makeTools()
 
         def applyToStatusBar(target):
@@ -79,11 +142,9 @@ class ThemeMixin:
                 page = target.GetPage(index)
                 page.SetBackgroundColour(ThemeMixin.appColors['panel_bg'])
                 if page.GetName() in tabIcons:
-                    target.SetPageBitmap(index, wx.Bitmap(
-                        os.path.join(self.paths['icons'], tabIcons[page.GetName()]),
-                        wx.BITMAP_TYPE_PNG))
+                    bmp = IconCache.getBitmap(tabIcons[page.GetName()])
+                    target.SetPageBitmap(bmp)
                 page._applyAppTheme()
-
 
         def applyToCodeEditor(target):
             spec = ThemeMixin.codeColors
@@ -98,13 +159,13 @@ class ThemeMixin:
                 del spec[key]
 
             # Check for language specific spec
-            if target.GetLexer() in self.lexers:
-                lexer = self.lexers[target.GetLexer()]
+            if target.GetLexer() in target.lexers:
+                lexer = target.lexers[target.GetLexer()]
             else:
                 lexer = 'invlex'
             if lexer in spec:
                 # If there is lang specific spec, delete subkey...
-                lang = spec.pop('lexer') # ...and append spec to root, overriding any generic spec
+                lang = spec['lexer'] # ...and append spec to root, overriding any generic spec
                 spec.update({key: lang[key] for key in lang})
             else:
                 lang = {}
@@ -188,6 +249,10 @@ class ThemeMixin:
         # If no target supplied, default to using self
         if target is None:
             target = self
+            self._recursionDepth = 0  # used to store depth in children
+        else:
+            self._recursionDepth += 1
+
         appCS = ThemeMixin.appColors
         base = ThemeMixin.codeColors['base']
         # Abort if target is immune
@@ -200,6 +265,7 @@ class ThemeMixin:
             if isinstance(target, thisType):
                 handlers[thisType](target)
                 isHandled = True
+                break
         if not isHandled:
             # try and set colors for target
             try:
@@ -226,11 +292,16 @@ class ThemeMixin:
             elif hasattr(target, 'Sizer') and target.Sizer:
                 children.append(target.Sizer)
 
+        if hasattr(self, 'btnHandles'):
+            for thisBtn in self.btnHandles:
+                pass
         # then apply to all children as well
         for c in children:
             if hasattr(c, '_applyAppTheme'):
             # if the object understands themes then request that
                 c._applyAppTheme()
+            elif self._recursionDepth>10:
+                return
             else:
                 # if not then use our own recursive method to search
                 if hasattr(c, 'Window') and c.Window is not None:
@@ -238,11 +309,15 @@ class ThemeMixin:
                 elif hasattr(c, 'Sizer') and c.Sizer is not None:
                     self._applyAppTheme(c.Sizer)
                 # and then apply
-                self._applyAppTheme(c)
-            if hasattr(c, 'Refresh'):
-                c.Refresh()
-            if hasattr(c, 'Update'):
-                c.Update()
+                # try:
+                #     self._applyAppTheme(c)
+                # except AttributeError:
+                #     pass
+
+        if hasattr(self, 'Refresh'):
+            self.Refresh()
+        if hasattr(self, 'Update'):
+            self.Update()
 
     @property
     def lexkw(self):
@@ -412,7 +487,7 @@ class ThemeMixin:
 
         return newCol
 
-    def setCodeColors(self, spec):
+    def _setCodeColors(self, spec):
         """To be called from _psychopyApp only"""
         if not self.GetTopWindow() == self:
             psychopy.logging.warning("This function should only be called from _psychopyApp")
@@ -450,16 +525,8 @@ class ThemeMixin:
         # we have a valid theme so continue
         for key in spec:
             ThemeMixin.codeColors[key] = spec[key]  # class attribute for all mixin subclasses
-        ThemeMixin.mode = spec['app'] if 'app' in spec else 'light'
-        ThemeMixin.iconmode = spec['icons'] if 'icons' in spec else 'modern'
 
-    def setAppColors(self, mode):
-        try:
-            with open("{}/app/{}.json".format(prefs.paths['themes'], mode), "rb") as fp:
-                spec = json.load(fp)
-        except FileNotFoundError:
-            with open("{}/app/{}.json".format(prefs.paths['themes'], "light"), "rb") as fp:
-                spec = json.load(fp)
+    def _setAppColors(self, spec):
 
         hexchars = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
                     'a', 'b', 'c', 'd', 'e', 'f']
@@ -530,50 +597,208 @@ class ThemeMixin:
             else:
                 ThemeMixin.appColors[key] = wx.Colour(color + [opacity])
 
-    def setAppIcons(self, mode):
 
-        # Set icons for component buttons
-        ThemeMixin.appIcons['components'] = icons.getAllIcons(self.prefs.builder['componentsFolders'], forceReload=True)
-        # Set icons for general app buttons
-        iconSize = 16 \
-            if (sys.platform == 'win32' or sys.platform.startswith('linux')) \
-               and not self.prefs.app['largeIcons'] \
-            else 32
-        for file in os.listdir(self.prefs.paths['icons']):
-            if file.endswith('.png'):
-                file = file.replace('.png', '')
-                bmp = wx.Bitmap(os.path.join(
-                    self.prefs.paths['icons'], file+'.png'
-                ), wx.BITMAP_TYPE_PNG)
-                ThemeMixin.appIcons['resources'][file] = bmp
+def getBitmap(name, theme, size=None,
+                emblem=None, emblemPos='bottom_right'):
+    """Retrieves the wx.Bitmap based on name, theme, size and emblem"""
+    global _allIcons
+    return _allIcons.getBitmap(name, theme, size, emblem, emblemPos)
 
-# Create library of "on brand" colours
-cLib = {
-    'none': [127, 127, 127, 0],
-    'black': [0, 0, 0],
-    'grey': [102, 102, 110],
-    'white': [242, 242, 242],
-    'red': [242, 84, 91],
-    'green': [108, 204, 116],
-    'blue': [2, 169, 234],
-    'yellow': [241, 211, 2],
-    'orange': [236, 151, 3],
-    'purple': [195, 190, 247],
-    'darker': {},
-    'lighter': {},
-    'very': {'lighter': {},
-             'darker': {}}
-}
-# Create light and dark variants of each colour by +-15 to each value
-for c in cLib:
-     if not c in ['darker', 'lighter', 'none', 'very']:
-         cLib['darker'][c] = [max(0, n-15) for n in cLib[c]]
-         cLib['lighter'][c] = [min(255, n+15) for n in cLib[c]]
-# Create very light and very dark variants of each colour by a further +-30 to each value
-for c in cLib['lighter']:
-    cLib['very']['lighter'][c] = [min(255, n+30) for n in cLib['lighter'][c]]
-for c in cLib['darker']:
-    cLib['very']['darker'][c] = [max(0, n-30) for n in cLib['darker'][c]]
+
+class IconCache:
+    """A class to load icons and store them just once as a dict of wx.Bitmap
+    objects according to theme"""
+    _theme = ThemeMixin
+    _bitmaps = {}
+    _buttons = []  # a list of all created buttons
+    _lastBGColor = None
+    _lastIcons = None
+
+    # def _loadComponentIcons(self, folderList=(), theme=None, forceReload=False):
+    #     """load the icons for all the components
+    #     """
+    #     if theme is None:
+    #         theme = _IconCache.iconTheme
+    #     if forceReload or len(self)==0:
+    #         compons = experiment.getAllComponents(folderList)
+    #         _allIcons = {}
+    #         for thisName, thisCompon in compons.items():
+    #             if thisName in components.iconFiles:
+    #                 # darkmode paths
+    #                 if "base.png" not in components.iconFiles[thisName]:
+    #                     iconFolder = theme
+    #                     components.iconFiles[thisName] = join(
+    #                             dirname(components.iconFiles[thisName]),
+    #                             iconFolder,
+    #                             basename(components.iconFiles[thisName])
+    #                     )
+    #                 _allIcons[thisName] = self._loadIcons(
+    #                         components.iconFiles[thisName])
+    #             else:
+    #                 _allIcons[thisName] = self._loadIcons(None)
+    #         return _allIcons
+    #     else:
+    #         return _allIcons
+
+    def _findImageFile(self, name, theme, emblem=None, size=None):
+        """Tries to find a valid icon in a range of places with and without a
+        size suffix"""
+        orig = Path(name)
+        if not orig.suffix:  # check we have an image suffix
+            orig = Path(name+'.png')
+        if emblem:  # add the emblem into the name
+            orig = orig.with_name(
+                    "{}_{}{}".format(orig.stem, emblem, orig.suffix))
+        nameAndSize = orig.with_name(orig.stem+str(size)+orig.suffix)
+        nameAndDouble = orig.with_name(orig.stem+str(size*2)+orig.suffix)
+        for filename in [nameAndSize, orig, nameAndDouble]:
+            # components with no themes folders (themes were added in 2020.2)
+            if filename.exists():
+                return str(filename)
+            # components with theme folders
+            # try using the theme name (or 'light' as a default name)
+            for themeName in [theme, 'light']:
+                thisPath = filename.parent / themeName / filename.name
+                if thisPath.exists():
+                    return str(thisPath)
+            # try in the app icons folder (e.g. for "run.png")
+            thisPath = iconsPath / theme / filename
+            if thisPath.exists():
+                return str(thisPath)
+            # and in the root of the app icons
+            thisPath = iconsPath / filename
+            if thisPath.exists():
+                return str(thisPath)
+        # still haven't returned nay path. Out of ideas!
+        logging.warning("Failed to find icon name={}, theme={}, "
+                        "size={}, emblem={}"
+                        .format(name, theme, size, emblem))
+
+    def _loadBitmap(self, name, theme, size=None, emblem=None):
+        """Creates wxBitmaps based on the image.
+        png files work best, but anything that wx.Image can load should be fine
+
+        Doesn't return the icons, just stores them in the dict
+        """
+        if name is None:
+            name = 'base.png'
+        filename = self._findImageFile(name, theme, emblem, size)
+        if not filename:
+            filename = self._findImageFile('base.png', theme, emblem, size)
+
+        # load image with wx.LogNull() to stop libpng complaining about sRGB
+        nologging = wx.LogNull()
+        try:
+            im = wx.Image(filename)
+        except TypeError:
+            raise FileNotFoundError("Failed to find icon name={}, theme={}, "
+                        "size={}, emblem={}"
+                        .format(name, theme, size, emblem))
+        del nologging  # turns logging back on
+
+        pix = im.GetSize()[0]
+        if pix > size:
+            im = im.Scale(pix, pix)
+        nameMain = _getIdentifier(name, theme, emblem, size)
+        self._bitmaps[nameMain] = wx.Bitmap(im)
+        if pix > 24:  # for bigger images lets create a 1/2 size one too
+            nameSmall = _getIdentifier(name, theme, emblem, pix//2)
+            self._bitmaps[nameSmall] = wx.Bitmap(im.Scale(pix//2, pix//2))
+
+    def getBitmap(self, name, theme=None, size=None, emblem=None):
+        """Retrieves an icon based on its name, theme, size and emblem
+        either from the cache or loading from file as needed"""
+        if theme is None:
+            theme = ThemeMixin.icons
+        if size is None:
+            size = 48
+        identifier = _getIdentifier(name, theme=theme, emblem=emblem, size=size)
+        # find/load the bitmaps first
+        if identifier not in IconCache._bitmaps:
+            # load all size icons for this name
+            self._loadBitmap(name, theme, emblem=emblem, size=size)
+        return IconCache._bitmaps[identifier]
+
+    def makeBitmapButton(self, parent, name, theme=None, size=None, emblem=None,
+                         toolbar=None, tip=None, label="",
+                         tbKind=wx.ITEM_NORMAL):
+        if theme is None:
+            theme = ThemeMixin.icons
+        bmp = self.getBitmap(name, theme, size, emblem)
+        if toolbar:
+            if 'phoenix' in wx.PlatformInfo:
+                button = toolbar.AddTool(wx.ID_ANY, label=label,
+                                         bitmap=bmp, shortHelp=tip,
+                                         kind=tbKind)
+            else:
+                button = toolbar.AddSimpleTool(wx.ID_ANY, label=label,
+                                               bitmap=bmp, shortHelp=tip,
+                                               kind=tbKind)
+        else:
+            button = wx.Button(parent, wx.ID_ANY,
+                               label=label, style=wx.NO_BORDER)
+            button.SetBitmap(bmp)
+            button.SetBitmapPosition(wx.TOP)
+            button.SetBackgroundColour(ThemeMixin.appColors['frame_bg'])
+            # just for regular buttons (not toolbar objects) we can re-use
+            buttonInfo = {'btn':button,
+                          'name':name,
+                          'size':size,
+                          'emblem':emblem,
+                          'theme':theme}
+            self._buttons.append(buttonInfo)
+
+            if tip:
+                button.SetToolTip(wx.ToolTip(tip))
+
+        return button
+
+    def getComponentButton(self, parent, name, theme=None, size=None, emblem=None,
+                         tip="", label="",):
+        """Checks in the experiment.components.iconFiles for filename and
+        loads it into a wx.Bitmap"""
+        if name in components.iconFiles:
+            filename = components.iconFiles[name]
+            btn = self.makeBitmapButton(parent=parent,
+                                        name=filename, size=size,
+                                        label=label, tip=tip)
+            return btn
+
+    def getComponentBitmap(self, name, size=None):
+        """Checks in the experiment.components.iconFiles for filename and
+        loads it into a wx.Bitmap"""
+        if name in components.iconFiles:
+            filename = components.iconFiles[name]
+            bmp = self.getBitmap(name=filename, size=size)
+            return bmp
+
+    def setTheme(self, theme):
+        if theme.icons != IconCache._lastIcons:
+            for thisBtn in IconCache._buttons:
+                newBmp = self.getBitmap(name=thisBtn['name'],
+                                        size=thisBtn['size'],
+                                        theme=theme.icons,
+                                        emblem=thisBtn['emblem'])
+
+                thisBtn['btn'].SetBitmap(newBmp)
+                thisBtn['btn'].SetBitmapCurrent(newBmp)
+                thisBtn['btn'].SetBitmapPressed(newBmp)
+                thisBtn['btn'].SetBitmapFocus(newBmp)
+                thisBtn['btn'].SetBitmapDisabled(newBmp)
+                thisBtn['btn'].SetBitmapPosition(wx.TOP)
+        IconCache._lastIcons = theme.icons
+        if theme.appColors['frame_bg'] != IconCache._lastBGColor:
+            for thisBtn in IconCache._buttons:
+                thisBtn['btn'].SetBackgroundColour(
+                        theme.appColors['frame_bg'])
+        IconCache._lastBGColor = theme
+
+
+def _getIdentifier(name, theme, emblem, size=None):
+    if size is None:
+        return "{}_{}_{}".format(name, theme, emblem)
+    else:
+        return "{}_{}_{}_{}".format(name, theme, emblem, size)
 
 
 class PsychopyTabArt(aui.AuiDefaultTabArt, ThemeMixin):

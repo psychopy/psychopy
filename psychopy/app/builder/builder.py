@@ -11,11 +11,17 @@ Distributed under the terms of the GNU General Public License (GPL).
 from __future__ import absolute_import, division, print_function
 
 import json
+import os, sys
+import glob
+import copy
+import traceback
+import codecs
+import numpy
 
 from pkg_resources import parse_version
-import wx
 import wx.stc
-from wx.lib import platebtn, scrolledpanel
+from wx.lib import scrolledpanel
+from wx.lib import platebtn
 
 import wx.lib.agw.aui as aui  # some versions of phoenix
 try:
@@ -26,30 +32,24 @@ except ImportError:
 if parse_version(wx.__version__) < parse_version('4.0.3'):
     wx.NewIdRef = wx.NewId
 
-import sys
-import os
-import glob
-import copy
-import traceback
-import codecs
-import numpy
-
 try:
     from queue import Queue, Empty
 except ImportError:
     from Queue import Queue, Empty  # python 2.x
 
 from psychopy.localization import _translate
-
 from ... import experiment
 from .. import dialogs, icons
-from ..icons import getAllIcons, combineImageEmblem
+from ..themes import IconCache, ThemeMixin
+from ..themes._themes import PsychopyDockArt, PsychopyTabArt
 from psychopy import logging, constants, data
 from psychopy.tools.filetools import mergeFolder
 from .dialogs import (DlgComponentProperties, DlgExperimentProperties,
                       DlgCodeComponentProperties, DlgLoopProperties)
 #from .flow import FlowPanel
-from ..utils import *
+from ..utils import (PsychopyToolbar, PsychopyPlateBtn, WindowFrozen,
+                     FileDropTarget)
+
 from psychopy.experiment import components
 from builtins import str
 from psychopy.app import pavlovia_ui
@@ -151,7 +151,7 @@ class BuilderFrame(wx.Frame, ThemeMixin):
         self.componentButtons = ComponentsPanel(self)
         # menus and toolbars
         self.toolbar = PsychopyToolbar(frame=self)
-        self.ToolBar = self.toolbar
+        self.SetToolBar(self.toolbar)
         self.makeMenus()
         self.CreateStatusBar()
         self.SetStatusText("")
@@ -220,10 +220,12 @@ class BuilderFrame(wx.Frame, ThemeMixin):
         self._applyAppTheme()
 
     # def _applyAppTheme(self, target=None):
-    #     self.SetArtProvider(PsychopyDockArt())
+    #     # self.SetArtProvider(PsychopyDockArt())
     #     for c in self.GetChildren():
     #         if hasattr(c, '_applyAppTheme'):
     #             c._applyAppTheme()
+    #     self.Refresh()
+    #     self.Update()
 
     # Synonymise Aui manager for use with theme mixin
     def GetAuiManager(self):
@@ -883,7 +885,8 @@ class BuilderFrame(wx.Frame, ThemeMixin):
             newVal = self.getIsModified()
         else:
             self.isModified = newVal
-        self.toolbar.EnableTool(self.bldrBtnSave.Id, newVal)
+        if hasattr(self, 'bldrBtnSave'):
+            self.toolbar.EnableTool(self.bldrBtnSave.Id, newVal)
         self.fileMenu.Enable(wx.ID_SAVE, newVal)
 
     def getIsModified(self):
@@ -980,7 +983,8 @@ class BuilderFrame(wx.Frame, ThemeMixin):
             label = txt % fmt
             enable = True
         self._undoLabel.SetItemLabel(label)
-        self.toolbar.EnableTool(self.bldrBtnUndo.Id, enable)
+        if hasattr(self, 'bldrBtnUndo'):
+            self.toolbar.EnableTool(self.bldrBtnUndo.Id, enable)
         self.editMenu.Enable(wx.ID_UNDO, enable)
 
         # check redo
@@ -994,7 +998,8 @@ class BuilderFrame(wx.Frame, ThemeMixin):
             label = txt % fmt
             enable = True
         self._redoLabel.SetItemLabel(label)
-        self.toolbar.EnableTool(self.bldrBtnRedo.Id, enable)
+        if hasattr(self, 'bldrBtnRedo'):
+            self.toolbar.EnableTool(self.bldrBtnRedo.Id, enable)
         self.editMenu.Enable(wx.ID_REDO, enable)
 
     def demosUnpack(self, event=None):
@@ -1294,12 +1299,12 @@ class BuilderFrame(wx.Frame, ThemeMixin):
         # Store original
         origBtn = self.btnHandles['pavloviaSync'].NormalBitmap
         # Create new feedback bitmap
-        feedbackBtn = icons.combineImageEmblem(
-            main=os.path.join(rc, '%sglobe%i.png' % (colour[val], toolbarSize)),
-            emblem=os.path.join(rc, 'sync_green16.png'), pos='bottom_right')
+        feedbackBmp = IconCache.getBitmap(
+                '{}globe.png'.format(colour[val]),
+                size=toolbarSize)
 
         # Set feedback button
-        self.btnHandles['pavloviaSync'].SetNormalBitmap(feedbackBtn)
+        self.btnHandles['pavloviaSync'].SetNormalBitmap(feedbackBmp)
         self.toolbar.Realize()
         self.toolbar.Refresh()
 
@@ -1339,12 +1344,13 @@ class RoutinesNotebook(aui.AuiNotebook, ThemeMixin):
         if not hasattr(self.frame, 'exp'):
             return  # we haven't yet added an exp
 
-    # def _applyAppTheme(self, target=None):
-    #     self.SetArtProvider(PsychopyTabArt())
-    #     self.GetAuiManager().SetArtProvider(PsychopyDockArt())
-    #     for index in range(self.GetPageCount()):
-    #         page = self.GetPage(index)
-    #         page._applyAppTheme()
+    def _applyAppTheme(self, target=None):
+        self.SetArtProvider(PsychopyTabArt())
+        self.GetAuiManager().SetArtProvider(PsychopyDockArt())
+        for index in range(self.GetPageCount()):
+            page = self.GetPage(index)
+            page._applyAppTheme()
+        self.Refresh()
 
     def getCurrentRoutine(self):
         routinePage = self.getCurrentPage()
@@ -1798,9 +1804,9 @@ class RoutineCanvas(wx.ScrolledWindow):
         dc.SetId(id)
 
         iconYOffset = (6, 6, 0)[self.drawSize]
-        componIcons = getAllIcons(self.app.prefs.builder['componentsFolders'])
-        thisIcon = componIcons[component.getType()]["{}".format(
-            self.iconSize)]  # getType index 0 is main icon
+        icons = self.app.iconCache
+
+        thisIcon = icons.getComponentBitmap(component, self.iconSize)
         dc.DrawBitmap(thisIcon, self.iconXpos, yPos + iconYOffset, True)
         fullRect = wx.Rect(self.iconXpos, yPos,
                            thisIcon.GetWidth(), thisIcon.GetHeight())
@@ -2027,11 +2033,11 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
         self.SetAutoLayout(True)
         self.SetupScrolling()
         self.SetDoubleBuffered(True)
-
-        self._applyAppTheme()
+        self._applyAppTheme()  # bitmaps only just loaded
 
     def _applyAppTheme(self, target=None):
         cs = ThemeMixin.appColors
+        self.app.iconCache
         # Style component panel
         self.SetForegroundColour(cs['text'])
         self.SetBackgroundColour(cs['panel_bg'])
@@ -2039,27 +2045,13 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
         for btn in self.componentButtons:
             btn.SetForegroundColour(cs['text'])
             btn.SetBackgroundColour(cs['panel_bg'])
-            sz = '48add' if self.app.prefs.app['largeIcons'] else '24add'
-            # Set all bitmap attributes
-            btn.SetBitmap(ThemeMixin.appIcons['components'][btn.GetName()][sz])
-            btn.SetBitmapCurrent(ThemeMixin.appIcons['components'][btn.GetName()][sz])
-            btn.SetBitmapPressed(ThemeMixin.appIcons['components'][btn.GetName()][sz])
-            btn.SetBitmapFocus(ThemeMixin.appIcons['components'][btn.GetName()][sz])
-            btn.SetBitmapDisabled(ThemeMixin.appIcons['components'][btn.GetName()][sz])
-            btn.SetBitmapPosition(wx.TOP)
-            # Set hover effect
-            btn.Bind(wx.EVT_ENTER_WINDOW, self.onHover)
-            btn.Bind(wx.EVT_LEAVE_WINDOW, self.offHover)
-            #btn.SetBitmap(thisIcon)
             # then apply to all children as well
         for c in self.GetChildren():
             if hasattr(c, '_applyAppTheme'):
                 # if the object understands themes then request that
                 c._applyAppTheme()
-            if hasattr(c, 'Refresh'):
-                c.Refresh()
-            if hasattr(c, 'Update'):
-                c.Update()
+        self.Refresh()
+        self.Update()
 
     def on_resize(self, event):
         if self.app.prefs.app['largeIcons']:
@@ -2093,38 +2085,30 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
     def addComponentButton(self, name, panel):
         """Create a component button and add it to a specific panel's sizer
         """
-        componIcons = getAllIcons(self.app.prefs.builder['componentsFolders'])
+        iconCache = self.app.iconCache
         thisComp = self.components[name]
+        # get a shorter name too (without "Component")
         shortName = name
-        for redundant in ['component', 'Component']:
-            if redundant in name:
-                shortName = name.replace(redundant, "")
+        for redundant in ['component', 'Component', "ButtonBox"]:
+            shortName = shortName.replace(redundant, "")
+        # set size
         if self.app.prefs.app['largeIcons']:
-            thisIcon = componIcons[name][
-                '48add']  # index 1 is the 'add' icon
+            size = 48
         else:
-            thisIcon = componIcons[name][
-                '24add']  # index 1 is the 'add' icon
-
-        # btn = wx.BitmapButton(self, -1, thisIcon,
-        #                       size=(thisIcon.GetWidth() + 10,
-        #                             thisIcon.GetHeight() + 10),
-        #                       name=thisComp.__name__,
-        #                       style=wx.BORDER_NONE)
-        label = thisComp.__name__.replace("Component", "")
-        label = label.replace("ButtonBox", "")
-        btn = wx.Button(self, -1, label=label,
-                              name=thisComp.__name__,
-                              style=wx.BORDER_NONE)
-        btn.SetBitmap(thisIcon)  # also setBitmapPresseed setBitmapDisabled etc
-        btn.SetBitmapPosition(wx.TOP)
-
-        # Configure tooltip
+            size = 24
+        # get tooltip
         if name in components.tooltips:
             thisTip = components.tooltips[name]
         else:
             thisTip = shortName
-        btn.SetToolTip(wx.ToolTip(thisTip))
+        btn = iconCache.getComponentButton(
+                parent=self,
+                name=name,
+                label=shortName,
+                size=size,
+                tip=thisTip,
+        )
+        btn.SetBitmapPosition(wx.TOP)
         self.componentFromID[btn.GetId()] = name
         # use btn.bind instead of self.Bind in oder to trap event here
         btn.Bind(wx.EVT_RIGHT_DOWN, self.onRightClick)

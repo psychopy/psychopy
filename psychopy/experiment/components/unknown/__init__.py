@@ -10,7 +10,7 @@ from psychopy import prefs
 # the absolute path to the folder containing this path
 thisFolder = path.abspath(path.dirname(__file__))
 
-iconFile = path.join(prefs.paths['icons'], 'base.png')
+iconFile = path.join(prefs.paths['resources'], 'base.png')
 tooltip = _translate('Unknown: A component that is not known by the current '
                      'installed version of PsychoPy\n(most likely from the '
                      'future)')

@@ -1,1 +1,1 @@
-from ._themes import ThemeMixin
+from ._themes import ThemeMixin, IconCache

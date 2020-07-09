@@ -21,7 +21,7 @@ import wx.lib.agw.aui as aui
 from wx.lib import platebtn
 from psychopy import logging
 from . import pavlovia_ui
-from .icons import combineImageEmblem
+from . import icons
 from .themes import ThemeMixin
 from psychopy.tools.versionchooser import _translate
 
@@ -114,6 +114,7 @@ class PsychopyToolbar(wx.ToolBar, ThemeMixin):
     def __init__(self, frame):
         wx.ToolBar.__init__(self, frame)
         self.frame = frame
+        self.app = self.frame.app
         # Configure toolbar appearance
         self.SetWindowStyle(wx.TB_HORIZONTAL | wx.NO_BORDER | wx.TB_FLAT | wx.TB_NODIVIDER)
         #self.SetBackgroundColour(ThemeMixin.appColors['frame_bg'])
@@ -132,121 +133,133 @@ class PsychopyToolbar(wx.ToolBar, ThemeMixin):
         self.keys = {k: self.frame.app.keys[k].replace('Ctrl+', ctrlKey)
                 for k in self.frame.app.keys}
         self.keys['none'] = ''
-        self.makeTools()
+        # self.makeTools()  # will be done when theme is applied
+        # Finished setup. Make it happen
 
     def makeTools(self):
         frame = self.frame
         # Create tools
         cl = frame.__class__.__name__
-        pavButtons = pavlovia_ui.toolbar.PavloviaButtons(frame, toolbar=self, tbSize=self.iconSize)
+        pavButtons = pavlovia_ui.toolbar.PavloviaButtons(
+                frame, toolbar=self, tbSize=self.iconSize)
         if frame.__class__.__name__ == 'BuilderFrame':
-            self.AddPsychopyTool('filenew', 'New', 'new',
-                            "Create new experiment file",
-                            self.frame.app.newBuilderFrame) # New
-            self.AddPsychopyTool('fileopen', 'Open', 'open',
-                                 "Open an existing experiment file",
-                                 self.frame.fileOpen)  # Open
-            self.frame.bldrBtnSave = \
-                self.AddPsychopyTool('filesave', 'Save', 'save',
-                                 "Save current experiment file",
-                                 self.frame.fileSave)  # Save
-            self.AddPsychopyTool('filesaveas', 'Save As...', 'saveAs',
-                                 "Save current experiment file as...",
-                                 self.frame.fileSaveAs)  # SaveAs
-            self.frame.bldrBtnUndo = \
-                self.AddPsychopyTool('undo', 'Undo', 'undo',
-                                 "Undo last action",
-                                 self.frame.undo)  # Undo
-            self.frame.bldrBtnRedo = \
-                self.AddPsychopyTool('redo', 'Redo', 'redo',
-                                 "Redo last action",
-                                 self.frame.redo)  # Redo
+            self.addPsychopyTool(
+                    name='filenew',
+                    label=_translate('New'),
+                    shortcut='new',
+                    tooltip=_translate("Create new experiment file"),
+                    func=self.frame.app.newBuilderFrame)  # New
+            self.addPsychopyTool(
+                    name='fileopen',
+                    label=_translate('Open'),
+                    shortcut='open',
+                    tooltip=_translate("Open an existing experiment file"),
+                    func=self.frame.fileOpen)  # Open
+            self.frame.bldrBtnSave = self.addPsychopyTool(
+                        name='filesave',
+                        label=_translate('Save'),
+                        shortcut='save',
+                        tooltip=_translate("Save current experiment file"),
+                        func=self.frame.fileSave)  # Save
+            self.addPsychopyTool(
+                    name='filesaveas',
+                    label=_translate('Save As...'),
+                    shortcut='saveAs',
+                    tooltip=_translate("Save current experiment file as..."),
+                    func=self.frame.fileSaveAs)  # SaveAs
+            self.frame.bldrBtnUndo = self.addPsychopyTool(
+                        name='undo',
+                        label=_translate('Undo'),
+                        shortcut='undo',
+                        tooltip=_translate("Undo last action"),
+                        func=self.frame.undo)  # Undo
+            self.frame.bldrBtnRedo = self.addPsychopyTool(
+                        name='redo',
+                        label=_translate('Redo'),
+                        shortcut='redo',
+                        tooltip=_translate("Redo last action"),
+                        func=self.frame.redo)  # Redo
             self.AddSeparator() # Seperator
-            self.AddPsychopyTool('monitors', 'Monitor Center', 'none',
-                                 "Monitor settings and calibration",
-                                 self.frame.app.openMonitorCenter)  # Monitor Center
-            self.AddPsychopyTool('cogwindow', 'Experiment Settings', 'none',
-                                 "Edit experiment settings",
-                                 self.frame.setExperimentSettings)  # Settings
+            self.addPsychopyTool(
+                    name='monitors',
+                    label=_translate('Monitor Center'),
+                    shortcut='none',
+                    tooltip=_translate("Monitor settings and calibration"),
+                    func=self.frame.app.openMonitorCenter)  # Monitor Center
+            self.addPsychopyTool(
+                    name='cogwindow',
+                    label=_translate('Experiment Settings'),
+                    shortcut='none',
+                    tooltip=_translate("Edit experiment settings"),
+                    func=self.frame.setExperimentSettings)  # Settings
             self.AddSeparator()
-            self.AddPsychopyTool('compile', 'Compile Script', 'compileScript',
-                                 "Compile to script",
-                                 self.frame.compileScript)  # Compile
-            self.frame.bldrBtnRun = self.AddPsychopyTool(('run', 'runner'), 'Run', 'runScript',
-                                 "Run experiment",
-                                 self.frame.runFile)  # Run
+            self.addPsychopyTool(
+                    name='compile',
+                    label=_translate('Compile Script'),
+                    shortcut='compileScript',
+                    tooltip=_translate("Compile to script"),
+                    func=self.frame.compileScript)  # Compile
+            self.frame.bldrBtnRun = self.addPsychopyTool(
+                    name='runner',
+                    label=_translate('Run'),
+                    shortcut='runScript',
+                    tooltip=_translate("Run experiment"),
+                    func=self.frame.runFile)  # Run
             pavButtons.addPavloviaTools()
         elif frame.__class__.__name__ == 'CoderFrame':
-            self.AddPsychopyTool('filenew', 'New', 'new',
+            self.addPsychopyTool('filenew', 'New', 'new',
                                  "Create new experiment file",
                                  self.frame.app.newBuilderFrame)  # New
-            self.AddPsychopyTool('fileopen', 'Open', 'open',
+            self.addPsychopyTool('fileopen', 'Open', 'open',
                                  "Open an existing experiment file",
                                  self.frame.fileOpen)  # Open
             self.frame.cdrBtnSave = \
-                self.AddPsychopyTool('filesave', 'Save', 'save',
+                self.addPsychopyTool('filesave', 'Save', 'save',
                                      "Save current experiment file",
                                      self.frame.fileSave)  # Save
-            self.AddPsychopyTool('filesaveas', 'Save As...', 'saveAs',
+            self.addPsychopyTool('filesaveas', 'Save As...', 'saveAs',
                                  "Save current experiment file as...",
                                  self.frame.fileSaveAs)  # SaveAs
             self.frame.cdrBtnUndo = \
-                self.AddPsychopyTool('undo', 'Undo', 'undo',
+                self.addPsychopyTool('undo', 'Undo', 'undo',
                                      "Undo last action",
                                      self.frame.undo)  # Undo
             self.frame.cdrBtnRedo = \
-                self.AddPsychopyTool('redo', 'Redo', 'redo',
+                self.addPsychopyTool('redo', 'Redo', 'redo',
                                      "Redo last action",
                                      self.frame.redo)  # Redo
             self.AddSeparator()  # Seperator
-            self.AddPsychopyTool('monitors', 'Monitor Center', 'none',
+            self.addPsychopyTool('monitors', 'Monitor Center', 'none',
                                  "Monitor settings and calibration",
-                                 self.frame.app.openMonitorCenter)  # Monitor Center
-            self.AddPsychopyTool('color', 'Color Picker', 'none',
+                                 self.frame.app.openMonitorCenter)
+            self.addPsychopyTool('color', 'Color Picker', 'none',
                                  "Color Picker -> clipboard",
                                  self.frame.app.colorPicker)
             self.AddSeparator()
-            self.frame.cdrBtnRun = self.AddPsychopyTool(('run', 'runner'), 'Run', 'runScript',
-                                                         "Run experiment",
-                                                         self.frame.runFile)  # Run
+            self.frame.cdrBtnRun = self.addPsychopyTool(
+                    'runner', 'Run', 'runScript',
+                    "Run experiment",
+                    self.frame.runFile)
             self.AddSeparator()
             pavButtons.addPavloviaTools(
                 buttons=['pavloviaSync', 'pavloviaSearch', 'pavloviaUser'])
         frame.btnHandles.update(pavButtons.btnHandles)
-
-        # Finished setup. Make it happen
         self.Realize()
 
-
-    def AddPsychopyTool(self, fName, label, shortcut, tooltip, func):
-        # Load in graphic resource
-        rc = self.frame.app.prefs.paths['icons']
-        if isinstance(fName, str):
-            # If one stimulus is supplied, read bitmap
-            bmp = wx.Bitmap(os.path.join(
-                rc, fName+'%i.png' % self.iconSize
-            ), wx.BITMAP_TYPE_PNG)
-        elif isinstance(fName, tuple) and len(fName) == 2:
-            # If two are supplied, create combined bitmap
-            bmp = combineImageEmblem(os.path.join(rc, fName[0]+'%i.png' % self.iconSize),
-                               os.path.join(rc, fName[1]+'16.png'),
-                               pos='bottom_right')
-        else:
-            return
-        # Create tool object
-        if 'phoenix' in wx.PlatformInfo:
-            item = self.AddTool(wx.ID_ANY,
-                              _translate(label + " [%s]") % self.keys[shortcut],
-                              bmp,
-                              _translate(tooltip))
-        else:
-            item = self.AddSimpleTool(wx.ID_ANY,
-                                    bmp,
-                                    _translate(label + " [%s]") % self.keys[shortcut],
-                                    _translate(tooltip))
+    def addPsychopyTool(self, name, label, shortcut, tooltip, func,
+                        emblem=None):
+        if not name.endswith('.png'):
+            name += '.png'
+        item = self.app.iconCache.makeBitmapButton(
+                parent=self,
+                name=name, emblem=emblem, size=self.iconSize,
+                label=_translate(label + " [%s]") % self.keys[shortcut],
+                tip=tooltip,
+                toolbar=self)
         # Bind function
         self.Bind(wx.EVT_TOOL, func, item)
         return item
+
 
 class PsychopyPlateBtn(platebtn.PlateButton, ThemeMixin):
     def __init__(self, parent, id=wx.ID_ANY, label='', bmp=None,
@@ -256,7 +269,6 @@ class PsychopyPlateBtn(platebtn.PlateButton, ThemeMixin):
         self.parent = parent
         self.__InitColors()
         self._applyAppTheme()
-
 
     def _applyAppTheme(self):
         cs = ThemeMixin.appColors
