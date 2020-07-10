@@ -15,11 +15,16 @@ profiling = False  # turning on will save profile files in currDir
 import sys
 import platform
 import psychopy
+from psychopy import prefs
 from pkg_resources import parse_version
 from psychopy.constants import PY3
-import io
 from . import urls
 from . import frametracker
+from . import themes
+from . import icons
+
+import io
+import json
 
 if not hasattr(sys, 'frozen'):
     try:
@@ -42,7 +47,7 @@ from psychopy.localization import _translate
 
 # needed by splash screen for the path to resources/psychopySplash.png
 import ctypes
-from psychopy import preferences, logging, __version__
+from psychopy import logging, __version__
 from psychopy import projects
 from . import connections
 from .utils import FileDropTarget
@@ -63,8 +68,8 @@ travisCI = bool(str(os.environ.get('TRAVIS')).lower() == 'true')
 # Enable high-dpi support if on Windows. This fixes blurry text rendering.
 if sys.platform == 'win32':
     # get the preference for high DPI
-    if 'highDPI' in preferences.prefs.app.keys():  # check if we have the option
-        enableHighDPI = preferences.prefs.app['highDPI']
+    if 'highDPI' in psychopy.prefs.app.keys():  # check if we have the option
+        enableHighDPI = psychopy.prefs.app['highDPI']
 
         # check if we have OS support for it
         if enableHighDPI:
@@ -75,11 +80,11 @@ if sys.platform == 'win32':
                     "High DPI support is not appear to be supported by this version"
                     " of Windows. Disabling in preferences.")
 
-                preferences.prefs.app['highDPI'] = False
-                preferences.prefs.saveUserPrefs()
+                psychopy.prefs.app['highDPI'] = False
+                psychopy.prefs.saveUserPrefs()
 
 
-class MenuFrame(wx.Frame):
+class MenuFrame(wx.Frame, themes.ThemeMixin):
     """A simple empty frame with a menubar, should be last frame closed on mac
     """
 
@@ -154,7 +159,7 @@ class _Showgui_Hack(object):
         core.shellCall([sys.executable, noopPath])
 
 
-class PsychoPyApp(wx.App):
+class PsychoPyApp(wx.App, themes.ThemeMixin):
 
     def __init__(self, arg=0, testMode=False, **kwargs):
         """With a wx.App some things get done here, before App.__init__
@@ -172,6 +177,7 @@ class PsychoPyApp(wx.App):
         self.version = psychopy.__version__
         # set default paths and prefs
         self.prefs = psychopy.prefs
+        self._currentThemeSpec = None
 
         self.keys = self.prefs.keys
         self.prefs.pageCurrent = 0  # track last-viewed page, can return there
@@ -184,6 +190,7 @@ class PsychoPyApp(wx.App):
         self._stdout = sys.stdout
         self._stderr = sys.stderr
         self._stdoutFrame = None
+        self.iconCache = themes.IconCache()
 
         if not self.testMode:
             self._lastRunLog = open(os.path.join(
@@ -228,7 +235,7 @@ class PsychoPyApp(wx.App):
         """
         self.SetAppName('PsychoPy3')
 
-        if showSplash:
+        if False: #showSplash:
             # show splash screen
             splashFile = os.path.join(
                 self.prefs.paths['resources'], 'psychopySplash.png')
@@ -319,6 +326,7 @@ class PsychoPyApp(wx.App):
                        float(wx.GetDisplaySizeMM()[0]) * 25.4)
         if not (50 < self.dpi < 120):
             self.dpi = 80  # dpi was unreasonable, make one up
+        self.theme = self.prefs.app['theme']
 
         if sys.platform == 'win32':
             # wx.SYS_DEFAULT_GUI_FONT is default GUI font in Win32
@@ -571,13 +579,13 @@ class PsychoPyApp(wx.App):
         # have to reimport because it is ony local to __init__ so far
         from .builder.builder import BuilderFrame
         title = "PsychoPy3 Experiment Builder (v%s)"
-        thisFrame = BuilderFrame(None, -1,
+        self.builder = BuilderFrame(None, -1,
                                  title=title % self.version,
                                  fileName=fileName, app=self)
-        thisFrame.Show(True)
-        thisFrame.Raise()
-        self.SetTopWindow(thisFrame)
-        return thisFrame
+        self.builder.Show(True)
+        self.builder.Raise()
+        self.SetTopWindow(self.builder)
+        return self.builder
 
     def showBuilder(self, event=None, fileList=()):
         # have to reimport because it is only local to __init__ so far
@@ -606,11 +614,11 @@ class PsychoPyApp(wx.App):
         # have to reimport because it is only local to __init__ so far
         from .runner.runner import RunnerFrame
         title = "PsychoPy3 Experiment Runner (v{})".format(self.version)
-        runner = RunnerFrame(parent=None,
+        self.runner = RunnerFrame(parent=None,
                              id=-1,
                              title=title,
                              app=self)
-        return runner
+        return self.runner
 
     def OnDrop(self, x, y, files):
         """Not clear this method ever gets called!"""
@@ -874,6 +882,37 @@ class PsychoPyApp(wx.App):
         from . import idle
         idle.doIdleTasks(app=self)
         evt.Skip()
+
+    def onThemeChange(self, event):
+        """Handles a theme change event (from a window with a themesMenu)"""
+        win = event.EventObject.Window
+        newTheme = win.themesMenu.FindItemById(event.GetId()).ItemLabel
+        prefs.app['theme'] = newTheme
+        prefs.saveUserPrefs()
+        self.theme = newTheme
+
+    @property
+    def theme(self):
+        """The theme to be used through the application"""
+        return prefs.app['theme']
+
+    @theme.setter
+    def theme(self, value):
+        """The theme to be used through the application"""
+        themes.ThemeMixin.loadThemeSpec(self, themeName=value)
+        prefs.app['theme'] = value
+        self._currentThemeSpec = themes.ThemeMixin.spec
+        # Apply theme
+        self._applyAppTheme()
+
+    def _applyAppTheme(self):
+        """Overrides ThemeMixin for this class"""
+        self.iconCache.setTheme(themes.ThemeMixin)
+
+        for frameRef in self._allFrames:
+            frame = frameRef()
+            if hasattr(frame, '_applyAppTheme'):
+                frame._applyAppTheme()
 
 
 if __name__ == '__main__':

@@ -20,9 +20,6 @@ from psychopy import sound
 from psychopy.app.utils import getSystemFonts
 import collections
 
-# this will be overridden by the size of the scrolled panel making the prefs
-dlgSize = (600, 500)
-
 # labels mappings for display:
 _localized = {
     # section labels:
@@ -166,6 +163,7 @@ class PrefPropGrid(wx.Panel):
         wx.Panel.__init__(
             self, parent, id=id, pos=pos, size=size, style=style, name=name)
         bSizer1 = wx.BoxSizer(wx.HORIZONTAL)
+        self.app = wx.GetApp()
 
         self.lstPrefPages = wx.ListCtrl(
             self, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize,
@@ -223,11 +221,7 @@ class PrefPropGrid(wx.Panel):
             if s not in self.sections.keys():
                 self.sections[s] = dict()
 
-        nbBitmap = wx.Bitmap(
-            os.path.join(
-                self.GetTopLevelParent().app.prefs.paths['resources'],
-                bitmap),
-            wx.BITMAP_TYPE_ANY)
+        nbBitmap = app.iconCache.getBitmap(bitmap)
         if nbBitmap.IsOk():
             self.prefsImages.Add(nbBitmap)
 
@@ -782,7 +776,7 @@ class PreferencesDlg(wx.Dialog):
                                                         message=msg,
                                                         type='Info',
                                                         title=title)
-                        resp = warnDlg.ShowModal()
+                        warnDlg.ShowModal()
                         return
                     if type(newVal) != list:
                         self.prefsCfg[sectionName][prefName] = [newVal]
@@ -803,6 +797,7 @@ class PreferencesDlg(wx.Dialog):
 
         # after validation, update the UI
         self.updateCoderUI()
+        self.app.theme = self.app.theme
 
     def updateCoderUI(self):
         """Update the Coder UI (eg. fonts, themes, etc.) from prefs."""
