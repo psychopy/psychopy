@@ -2378,6 +2378,7 @@ class CoderFrame(wx.Frame):
 
     def runFile(self, event=None):
         """Open Runner for running the script."""
+
         fullPath = self.currentDoc.filename
         filename = os.path.split(fullPath)[1]
         # does the file need saving before running?
@@ -2394,9 +2395,11 @@ class CoderFrame(wx.Frame):
                 self.fileSave(None)  # save then run
             elif resp == wx.ID_NO:
                 pass  # just run
-
-        self.app.runner.addTask(fileName=fullPath)
-        self.app.showRunner()
+        if self.app.prefs.general['useRunner']:
+            self.app.runner.addTask(fileName=fullPath)
+            self.app.showRunner()
+        else:
+            self.app.runner.panel.runFile(fileName=fullPath)
 
     def copy(self, event):
         foc = self.FindFocus()

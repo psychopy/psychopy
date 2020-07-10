@@ -348,8 +348,9 @@ class PsychoPyApp(wx.App):
         # create both frame for coder/builder as necess
         if splash:
             splash.SetText(_translate("  Creating frames..."))
-        # Always show runner
-        self.showRunner()
+        # Show runner if set to use it
+        if self.prefs.general['useRunner']:
+            self.showRunner()
         if mainFrame in ['both', 'coder']:
             self.showCoder(fileList=scripts)
         if mainFrame in ['both', 'builder']:
@@ -595,12 +596,12 @@ class PsychoPyApp(wx.App):
             self.SetTopWindow(thisFrame)
 
     def showRunner(self, event=None):
-        if not self.runner:
+        if not self.runner and self.prefs.general['useRunner']:
             self.runner = self.newRunnerFrame()
-        if not self.testMode:
-            self.runner.Show()
-            self.runner.Raise()
-            self.SetTopWindow(self.runner)
+            if not self.testMode:
+                self.runner.Show()
+                self.runner.Raise()
+                self.SetTopWindow(self.runner)
 
     def newRunnerFrame(self, event=None):
         # have to reimport because it is only local to __init__ so far

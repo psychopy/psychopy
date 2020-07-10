@@ -1031,9 +1031,11 @@ class BuilderFrame(wx.Frame):
             ok = self.fileSave(self.filename)
             if not ok:
                 return  # save file before compiling script
-
-        self.stdoutFrame.addTask(fileName=self.filename)
-        self.stdoutFrame.showRunner()
+        if self.app.prefs.general['useRunner']:
+            self.stdoutFrame.addTask(fileName=self.filename)
+            self.stdoutFrame.showRunner()
+        else:
+            self.app.runner.panel.runFile(fileName=self.filename)
 
     def onCopyRoutine(self, event=None):
         """copy the current routine from self.routinePanel
@@ -1150,8 +1152,9 @@ class BuilderFrame(wx.Frame):
         fullPath = self.filename.replace('.psyexp', '.py')
         self.generateScript(experimentPath=fullPath, exp=self.exp)
 
-        self.stdoutFrame.showRunner()
-        self.stdoutFrame.stdOut.flush()
+        if self.app.prefs.general['useRunner']:
+            self.stdoutFrame.showRunner()
+            self.stdoutFrame.stdOut.flush()
 
         self.app.showCoder()  # make sure coder is visible
         self.app.coder.fileNew(filepath=fullPath)
