@@ -15,6 +15,11 @@ thisFolder = Path(__file__).parent
 
 iconsPath = Path(prefs.paths['resources'])
 
+try:
+    FileNotFoundError
+except NameError:
+    # Py2 has no FileNotFoundError
+    FileNotFoundError = IOError
 
 # Create library of "on brand" colours
 cLib = {
