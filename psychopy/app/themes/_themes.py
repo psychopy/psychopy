@@ -76,18 +76,18 @@ class ThemeMixin:
 
         # first load the *theme* which contains the mode name for the app
         try:
-            with open(themesPath / (themeName+".json"), "rb") as fp:
+            with open(str(themesPath / (themeName+".json")), "rb") as fp:
                 ThemeMixin.spec = themeSpec = json.load(fp)
         except FileNotFoundError:
-            with open(themesPath / "PsychopyLight.json", "rb") as fp:
+            with open(str(themesPath / "PsychopyLight.json"), "rb") as fp:
                 ThemeMixin.spec = themeSpec = json.load(fp)
         appColorMode = themeSpec['app']
 
         try:
-            with open(themesPath / "app/{}.json".format(appColorMode), "rb") as fp:
+            with open(str(themesPath / "app/{}.json".format(appColorMode)), "rb") as fp:
                 ThemeMixin.spec = appColors = json.load(fp)
         except FileNotFoundError:
-            with open(themesPath / "app/light.json", "rb") as fp:
+            with open(str(themesPath / "app/light.json"), "rb") as fp:
                 ThemeMixin.spec = appColors = json.load(fp)
 
         # Set app theme
