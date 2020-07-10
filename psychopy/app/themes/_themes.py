@@ -21,6 +21,8 @@ except NameError:
     # Py2 has no FileNotFoundError
     FileNotFoundError = IOError
 
+allCompons = components.getAllComponents()  # ensures that the icons get checked
+
 # Create library of "on brand" colours
 cLib = {
     'none': [127, 127, 127, 0],
@@ -772,10 +774,16 @@ class IconCache:
     def getComponentBitmap(self, name, size=None):
         """Checks in the experiment.components.iconFiles for filename and
         loads it into a wx.Bitmap"""
+        if type(name) != str:  # got a class instead of a name?
+            name = name.getType()
         if name in components.iconFiles:
             filename = components.iconFiles[name]
             bmp = self.getBitmap(name=filename, size=size)
             return bmp
+        else:
+            print(components.iconFiles)
+            raise ValueError("Failed to find '{}' in components.iconFiles"
+                             .format(name))
 
     def setTheme(self, theme):
         if theme.icons != IconCache._lastIcons:
