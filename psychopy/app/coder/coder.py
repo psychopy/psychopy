@@ -1085,7 +1085,6 @@ class CoderFrame(wx.Frame, ThemeMixin):
         self.paneManager = aui.AuiManager(self.pnlMain, aui.AUI_MGR_DEFAULT | aui.AUI_MGR_RECTANGLE_HINT)
         # Create toolbar
         self.toolbar = PsychopyToolbar(self)
-        self.SetToolBar(self.toolbar)
         # Create menus and status bar
         self.makeMenus()
         self.makeStatusBar()
