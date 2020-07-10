@@ -138,6 +138,10 @@ class BuilderFrame(wx.Frame, ThemeMixin):
         self.Bind(wx.EVT_CLOSE, self.closeFrame)
         self.panel = wx.Panel(self)
 
+        # detect retina displays (then don't use double-buffering)
+        self.isRetina = self.GetContentScaleFactor() != 1
+        self.SetDoubleBuffered(not self.isRetina)
+
         # create icon
         if sys.platform != 'darwin':
             # doesn't work on darwin and not necessary: handled by app bundle
@@ -1340,6 +1344,10 @@ class RoutinesNotebook(aui.AuiNotebook, ThemeMixin):
         self.appData = self.app.prefs.appData
         aui.AuiNotebook.__init__(self, frame, id)
         self.Bind(aui.EVT_AUINOTEBOOK_PAGE_CLOSE, self.onClosePane)
+
+        # double buffered better rendering except if retina
+        self.SetDoubleBuffered(self.frame.IsDoubleBuffered())
+
         self._applyAppTheme()
         if not hasattr(self.frame, 'exp'):
             return  # we haven't yet added an exp
@@ -1349,6 +1357,8 @@ class RoutinesNotebook(aui.AuiNotebook, ThemeMixin):
         self.GetAuiManager().SetArtProvider(PsychopyDockArt())
         for index in range(self.GetPageCount()):
             page = self.GetPage(index)
+            # double buffered better rendering except if retina
+            self.SetDoubleBuffered(self.frame.IsDoubleBuffered())
             page._applyAppTheme()
         self.Refresh()
 
@@ -2032,7 +2042,8 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
         self.SetSizer(self.sizer)
         self.SetAutoLayout(True)
         self.SetupScrolling()
-        self.SetDoubleBuffered(True)
+        # double buffered better rendering except if retina
+        self.SetDoubleBuffered(self.frame.IsDoubleBuffered())
         self._applyAppTheme()  # bitmaps only just loaded
 
     def _applyAppTheme(self, target=None):
@@ -2587,8 +2598,8 @@ class FlowPanel(wx.ScrolledWindow):
         ])
         self.SetAcceleratorTable(aTable)
 
-        # set double buffering to reduce flicker
-        self.SetDoubleBuffered(True)
+        # double buffered better rendering except if retina
+        self.SetDoubleBuffered(self.frame.IsDoubleBuffered())
 
         self._applyAppTheme()
 

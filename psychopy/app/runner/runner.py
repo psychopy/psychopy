@@ -49,6 +49,12 @@ class RunnerFrame(wx.Frame, ThemeMixin):
 
         self.panel = RunnerPanel(self, id, title, app)
 
+        # detect retina displays (then don't use double-buffering)
+        self.isRetina = self.GetContentScaleFactor() != 1
+        self.SetDoubleBuffered(not self.isRetina)
+        # double buffered better rendering except if retina
+        self.panel.SetDoubleBuffered(not self.isRetina)
+
         # Create menu
         self.runnerMenu = wx.MenuBar()
         self.makeMenu()
@@ -287,6 +293,9 @@ class RunnerPanel(wx.Panel, ScriptProcess, ThemeMixin):
         self.Bind(wx.EVT_END_PROCESS, self.onProcessEnded)
         #self.SetBackgroundColour(ThemeMixin.appColors['frame_bg'])
         #self.SetForegroundColour(ThemeMixin.appColors['txt_default'])
+
+        # double buffered better rendering except if retina
+        self.SetDoubleBuffered(parent.IsDoubleBuffered())
 
         expCtrlSize = [500, 150]
         ctrlSize = [500, 150]

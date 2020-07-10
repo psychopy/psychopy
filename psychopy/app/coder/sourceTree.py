@@ -26,9 +26,9 @@ class SourceTreePanel(wx.Panel):
         self.coder = frame
         self.app = frame.app
 
-        # prevent flickering on update
-        if not sys.platform=='darwin':
-            self.SetDoubleBuffered(True)  # on mac blocks retina rendering
+        # double buffered better rendering except if retina
+        self.SetDoubleBuffered(self.coder.IsDoubleBuffered())
+
         # create the source tree control
         self.treeId = wx.NewIdRef()
         self.srcTree = wx.TreeCtrl(
