@@ -116,7 +116,7 @@ class Printer(HtmlEasyPrinting):
         HtmlEasyPrinting.__init__(self)
 
     def GetHtmlText(self, text):
-        "Simple conversion of text."
+        """Simple conversion of text."""
 
         text = text.replace('&', '&amp;')
         text = text.replace('<P>', '&#60;P&#62;')
@@ -132,8 +132,14 @@ class Printer(HtmlEasyPrinting):
         return html_text
 
     def Print(self, text, doc_name):
-        self.SetHeader(doc_name)
-        self.PrintText('<HR>' + self.GetHtmlText(text), doc_name)
+        self.SetStandardFonts(size=prefs.coder['codeFontSize'], normal_face="",
+                              fixed_face=prefs.coder['codeFont'])
+
+        _, fname = os.path.split(doc_name)
+        self.SetHeader("Page @PAGENUM@ of @PAGESCNT@ - " + fname +
+                       " (@DATE@ @TIME@)<HR>")
+        # use <tt> tag since we're dealing with old school HTML here
+        self.PrintText("<tt>" + self.GetHtmlText(text) + '</tt>', doc_name)
 
 
 class ScriptThread(threading.Thread):
@@ -518,7 +524,6 @@ class CodeEditor(BaseCodeEditor, CodeEditorFoldingMixin, ThemeMixin):
         self.prefs = self.coder.prefs
         self.paths = self.coder.paths
         self.app = self.coder.app
-        self.sourceAsstScroll = 0  # keep track of scrolling
         self.SetViewWhiteSpace(self.coder.appData['showWhitespace'])
         self.SetViewEOL(self.coder.appData['showEOLs'])
         self.Bind(wx.EVT_DROP_FILES, self.coder.filesDropped)
@@ -542,7 +547,6 @@ class CodeEditor(BaseCodeEditor, CodeEditorFoldingMixin, ThemeMixin):
         # with this document. This makes sure the tree maintains it's state when
         # moving between documents.
         self.expandedItems = {}
-        self.sourceAsstScroll = 0
 
         # show the long line edge guide, enabled if >0
         self.edgeGuideColumn = self.coder.prefs['edgeGuideColumn']
@@ -675,21 +679,27 @@ class CodeEditor(BaseCodeEditor, CodeEditorFoldingMixin, ThemeMixin):
 
     def OnKeyReleased(self, event):
         """Called after a key is released."""
-        keyCode = event.GetKeyCode()
-        _mods = event.GetModifiers()
-        if keyCode == ord('.'):
-            if self.AUTOCOMPLETE:
-                # A dot was entered, get suggestions if part of a qualified name
-                wx.CallAfter(self.ShowAutoCompleteList)  # defer
+
+        if hasattr(self.coder, "useAutoComp"):
+            keyCode = event.GetKeyCode()
+            _mods = event.GetModifiers()
+            if keyCode == ord('.'):
+                if self.coder.useAutoComp:
+                    # A dot was entered, get suggestions if part of a qualified name
+                    wx.CallAfter(self.ShowAutoCompleteList)  # defer
+                else:
+                    self.coder.SetStatusText(
+                        'Press Ctrl+Space to show code completions', 0)
+            elif keyCode == ord('9') and wx.MOD_SHIFT == _mods:
+                # A left bracket was entered, check if there is a calltip available
+                if self.coder.useAutoComp:
+                    if not self.CallTipActive():
+                        wx.CallAfter(self.ShowCalltip)
+                else:
+                    self.coder.SetStatusText(
+                        'Press Ctrl+Space to show calltip', 0)
             else:
-                self.coder.SetStatusText(
-                    'Press Ctrl+Space to show code completions', 0)
-        elif keyCode == ord('9') and wx.MOD_SHIFT == _mods:
-            # A left bracket was entered, check if there is a calltip available
-            if not self.CallTipActive():
-                wx.CallAfter(self.ShowCalltip)
-        else:
-            self.coder.SetStatusText('', 0)
+                self.coder.SetStatusText('', 0)
 
         event.Skip()
 
@@ -910,8 +920,6 @@ class CodeEditor(BaseCodeEditor, CodeEditorFoldingMixin, ThemeMixin):
         # scan the AST for objects we care about
         if hasattr(self.coder, 'structureWindow'):
             self.coder.structureWindow.refresh()
-            self.coder.structureWindow.srcTree.SetScrollPos(
-                self.sourceAsstScroll, wx.VERTICAL)
 
     def setLexer(self, lexer=None):
         """Lexer is a simple string (e.g. 'python', 'html')
@@ -1026,6 +1034,7 @@ class CoderFrame(wx.Frame, ThemeMixin):
         self.fileStatusCheckInterval = 5 * 60  # sec
         self.showingReloadDialog = False
         self.btnHandles = {}  # stores toolbar buttons so they can be altered
+        self.useAutoComp = False
 
         # we didn't have the key or the win was minimized/invalid
         if self.appData['winH'] == 0 or self.appData['winW'] == 0:
@@ -1085,6 +1094,7 @@ class CoderFrame(wx.Frame, ThemeMixin):
         self.paneManager = aui.AuiManager(self.pnlMain, aui.AUI_MGR_DEFAULT | aui.AUI_MGR_RECTANGLE_HINT)
         # Create toolbar
         self.toolbar = PsychopyToolbar(self)
+        self.SetToolBar(self.toolbar)
         # Create menus and status bar
         self.makeMenus()
         self.makeStatusBar()
@@ -1093,7 +1103,7 @@ class CoderFrame(wx.Frame, ThemeMixin):
         self.helpMenu = self.toolsMenu = None
 
         # Create source assistant notebook
-        self.sourceAsst = aui.AuiNotebook(self.pnlMain, wx.ID_ANY)
+        self.sourceAsst = aui.AuiNotebook(self.pnlMain, wx.ID_ANY, agwStyle=aui.AUI_NB_CLOSE_ON_ALL_TABS)
         #self.sourceAsst.SetArtProvider(PsychopyTabArt())
         self.structureWindow = SourceTreePanel(self.sourceAsst, self)
         self.fileBrowserWindow = FileBrowserPanel(self.sourceAsst, self)
@@ -1113,6 +1123,10 @@ class CoderFrame(wx.Frame, ThemeMixin):
         # Add file browser page to source assistant
         self.fileBrowserWindow.SetName("FileBrowser")
         self.sourceAsst.AddPage(self.fileBrowserWindow, "File Browser")
+
+        # remove close buttons
+        self.sourceAsst.SetCloseButton(0, False)
+        self.sourceAsst.SetCloseButton(1, False)
 
         # Create editor notebook
         #todo: Why is editor default background not same as usual frame backgrounds?
@@ -1204,7 +1218,10 @@ class CoderFrame(wx.Frame, ThemeMixin):
         self.paneManager.Update()
 
         self.sourceAsstChk.Check(
-            self.paneManager.GetPane('SourceAsst').IsShown())
+            self.paneManager.GetPane('SourceAsst').IsShown()
+        )
+        #self.chkShowAutoComp.Check(self.prefs['autocomplete'])
+        self.useAutoComp = self.prefs['autocomplete']
         self.SendSizeEvent()
         self.app.trackFrame(self)
 
@@ -1531,26 +1548,25 @@ class CoderFrame(wx.Frame, ThemeMixin):
         key = keyCodes['toggleOutputPanel']
         hint = _translate("Shows the output and shell panes (and starts "
                           "capturing stdout)")
-        self.outputChk = menu.AppendCheckItem(wx.ID_ANY,
-                                              _translate("Show &Output/Shell\t%s") % key,
-                                              hint)
+        self.outputChk = menu.AppendCheckItem(
+            wx.ID_ANY, _translate("Show &Output/Shell\t%s") % key, hint)
         self.outputChk.Check(self.prefs['showOutput'])
         self.Bind(wx.EVT_MENU, self.setOutputWindow, id=self.outputChk.GetId())
         # source assistant
-        hint = "Hide/show the source structure pane."
+        hint = "Hide/show the source assistant pane."
         self.sourceAsstChk = menu.AppendCheckItem(wx.ID_ANY,
-                                                  "Source Structure",
+                                                  "Source Assistant",
                                                   hint)
         self.Bind(wx.EVT_MENU, self.setSourceAsst,
                   id=self.sourceAsstChk.GetId())
 
-        hint = "Hide/show file browser pane."
-        self.fileBrowserChk = menu.AppendCheckItem(wx.ID_ANY,
-                                                  "File Browser",
-                                                  hint)
-        self.Bind(wx.EVT_MENU, self.setFileBrowser,
-                  id=self.fileBrowserChk.GetId())
-
+        # menu.AppendSeparator()
+        # hint = "Enable code autocomplete and calltips while typing. Disable " \
+        #        "to manually bring up suggestions (Ctrl+Space)."
+        # self.chkShowAutoComp = menu.AppendCheckItem(
+        #     wx.ID_ANY, "Show code suggestion while typing", hint)
+        # self.Bind(wx.EVT_MENU, self.setAutoComplete,
+        #           id=self.chkShowAutoComp.GetId())
         menu.AppendSeparator()
 
         key = self.app.keys['switchToBuilder']
@@ -1860,16 +1876,8 @@ class CoderFrame(wx.Frame, ThemeMixin):
         self.setFileModified(self.currentDoc.UNSAVED)
         self.SetLabel('%s - PsychoPy Coder' % self.currentDoc.filename)
 
-        # scroll the source tree to where it was before for this document,
-        # prevents it from jumping around annoyingly
         if hasattr(self, 'structureWindow'):
-            # get the old source assist scroll position, save it
-            if old > -1 and old < self.notebook.GetPageCount()-1:
-                self.notebook.GetPage(old).sourceAsstScroll = \
-                    self.structureWindow.GetScrollVert()
             self.currentDoc.analyseScript()
-            self.structureWindow.srcTree.SetScrollPos(
-                wx.VERTICAL, self.currentDoc.sourceAsstScroll)
 
         self.statusBar.SetStatusText(self.currentDoc.getFileType(), 2)
 
@@ -2141,7 +2149,6 @@ class CoderFrame(wx.Frame, ThemeMixin):
                 self.currentDoc.fileModTime = time.ctime()
 
             self.currentDoc.EmptyUndoBuffer()
-            #self.currentDoc.SetScrollWidth(p.GetClientSize().width)
 
             path, shortName = os.path.split(filename)
             self.notebook.AddPage(p, shortName)
@@ -2508,15 +2515,20 @@ class CoderFrame(wx.Frame, ThemeMixin):
             self.prefs['showSourceAsst'] = True
         self.paneManager.Update()
 
-    def setFileBrowser(self, event):
-        # show/hide the source file browser
-        if not self.fileBrowserChk.IsChecked():
-            self.paneManager.GetPane("FileBrowser").Hide()
-            self.prefs['showFileBrowser'] = False
-        else:
-            self.paneManager.GetPane("FileBrowser").Show()
-            self.prefs['showFileBrowser'] = True
-        self.paneManager.Update()
+    # def setAutoComplete(self, event=None):
+    #     # show/hide the source assistant (from the view menu control)
+    #     self.prefs['autocomplete'] = self.useAutoComp = \
+    #         self.chkShowAutoComp.IsChecked()
+
+    # def setFileBrowser(self, event):
+    #     # show/hide the source file browser
+    #     if not self.fileBrowserChk.IsChecked():
+    #         self.paneManager.GetPane("FileBrowser").Hide()
+    #         self.prefs['showFileBrowser'] = False
+    #     else:
+    #         self.paneManager.GetPane("FileBrowser").Show()
+    #         self.prefs['showFileBrowser'] = True
+    #     self.paneManager.Update()
 
     def analyseCodeNow(self, event):
         self.statusBar.SetStatusText(_translate('Analyzing code'))

@@ -48,6 +48,7 @@ class RunnerFrame(wx.Frame, ThemeMixin):
         self.app.trackFrame(self)
 
         self.panel = RunnerPanel(self, id, title, app)
+        self.panel.SetDoubleBuffered(True)
 
         # detect retina displays (then don't use double-buffering)
         self.isRetina = self.GetContentScaleFactor() != 1
@@ -315,7 +316,8 @@ class RunnerPanel(wx.Panel, ScriptProcess, ThemeMixin):
         self.expCtrl = wx.ListCtrl(self,
                                    id=wx.ID_ANY,
                                    size=expCtrlSize,
-                                   style=wx.LC_REPORT | wx.BORDER_NONE | wx.LC_NO_HEADER)
+                                   style=wx.LC_REPORT | wx.BORDER_NONE |
+                                         wx.LC_NO_HEADER | wx.LC_SINGLE_SEL)
 
         self.expCtrl.Bind(wx.EVT_LIST_ITEM_SELECTED,
                           self.onItemSelected, self.expCtrl)

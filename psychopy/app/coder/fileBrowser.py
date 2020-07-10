@@ -88,23 +88,23 @@ class FileBrowserPanel(wx.Panel):
     """Panel for a file browser.
     """
     fileImgExt = {
-        "..": 'dirup16.png',
-        "\\": 'folder16.png',
-        ".?": 'fileunknown16.png',
-        ".csv": 'filecsv16.png',
-        ".xlsx": 'filecsv16.png',
-        ".xls": 'filecsv16.png',
-        ".tsv": 'filecsv16.png',
-        ".png": 'fileimage16.png',
-        ".jpeg": 'fileimage16.png',
-        ".jpg": 'fileimage16.png',
-        ".bmp": 'fileimage16.png',
-        ".tiff": 'fileimage16.png',
-        ".tif": 'fileimage16.png',
-        ".ppm": 'fileimage16.png',
-        ".gif": 'fileimage16.png',
-        ".py": 'coderpython16.png'
-    }
+            "..": 'dirup16.png',
+            "\\": 'folder16.png',
+            ".?": 'fileunknown16.png',
+            ".csv": 'filecsv16.png',
+            ".xlsx": 'filecsv16.png',
+            ".xls": 'filecsv16.png',
+            ".tsv": 'filecsv16.png',
+            ".png": 'fileimage16.png',
+            ".jpeg": 'fileimage16.png',
+            ".jpg": 'fileimage16.png',
+            ".bmp": 'fileimage16.png',
+            ".tiff": 'fileimage16.png',
+            ".tif": 'fileimage16.png',
+            ".ppm": 'fileimage16.png',
+            ".gif": 'fileimage16.png',
+            ".py": 'coderpython16.png'
+        }
 
     def __init__(self, parent, frame):
         wx.Panel.__init__(self, parent, -1, style=wx.BORDER_NONE)
@@ -166,11 +166,11 @@ class FileBrowserPanel(wx.Panel):
 
         # add columns
         self.fileList.InsertColumn(0, "Name")
-        self.fileList.InsertColumn(1, "Size", wx.LIST_FORMAT_LEFT)
-        # self.fileList.InsertColumn(2, "Modified")
-        self.fileList.SetColumnWidth(0, 200)
-        self.fileList.SetColumnWidth(1, 80)
-        # self.fileList.SetColumnWidth(2, 100)
+        #self.fileList.InsertColumn(1, "Size", wx.LIST_FORMAT_LEFT)
+        #self.fileList.InsertColumn(2, "Modified")
+        self.fileList.SetColumnWidth(0, 280)
+        #self.fileList.SetColumnWidth(1, 80)
+        #self.fileList.SetColumnWidth(2, 100)
 
         self.gotoDir(os.getcwd())
 
@@ -454,7 +454,6 @@ class FileBrowserPanel(wx.Panel):
                 self.gotoDir(self.currentPath)  # refresh
 
                 for idx, item in enumerate(self.dirData):
-                    abspath = os.path.join(self.currentPath, newName)
                     if newPath == item.abspath:
                         self.fileList.Select(idx, True)
                         self.fileList.EnsureVisible(idx)
@@ -615,7 +614,7 @@ class FileBrowserPanel(wx.Panel):
                 else:
                     img = self.fileImgInds['\\']
 
-                index = self.fileList.InsertItem(
+                self.fileList.InsertItem(
                     self.fileList.GetItemCount(), obj.name, img)
             elif isinstance(obj, FileItemData):
                 ext = os.path.splitext(obj.name)[1]
@@ -623,11 +622,11 @@ class FileBrowserPanel(wx.Panel):
                     img = self.fileImgInds[ext]
                 else:
                     img = self.fileImgInds['.?']
-                index = self.fileList.InsertItem(
+                self.fileList.InsertItem(
                     self.fileList.GetItemCount(),
                     obj.name,
                     img)
-                self.fileList.SetItem(index, 1, obj.fsize)
+                #self.fileList.SetItem(index, 1, obj.fsize)
                 #self.fileList.SetItem(index, 2, obj.mod)
 
     def addItem(self, name, absPath):

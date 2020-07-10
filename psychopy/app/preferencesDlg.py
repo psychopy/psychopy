@@ -20,9 +20,6 @@ from psychopy import sound
 from psychopy.app.utils import getSystemFonts
 import collections
 
-# this will be overridden by the size of the scrolled panel making the prefs
-dlgSize = (600, 500)
-
 # labels mappings for display:
 _localized = {
     # section labels:
@@ -779,7 +776,7 @@ class PreferencesDlg(wx.Dialog):
                                                         message=msg,
                                                         type='Info',
                                                         title=title)
-                        resp = warnDlg.ShowModal()
+                        warnDlg.ShowModal()
                         return
                     if type(newVal) != list:
                         self.prefsCfg[sectionName][prefName] = [newVal]

@@ -175,6 +175,8 @@ class SourceTreePanel(wx.Panel):
 
             self.createPySourceTree(defineList, doc.GetIndent())
 
+        self.srcTree.Refresh()
+
     def createPySourceTree(self, foldDefs, indents=4):
         """Create a Python source tree. This is called when code analysis runs
         and the document type is 'Python'.
