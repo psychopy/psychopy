@@ -650,7 +650,7 @@ class IconCache:
             orig = orig.with_name(
                     "{}_{}{}".format(orig.stem, emblem, orig.suffix))
         nameAndSize = orig.with_name(orig.stem+str(size)+orig.suffix)
-        nameAndDouble = orig.with_name(orig.stem+str(size*2)+orig.suffix)
+        nameAndDouble = orig.with_name(orig.stem+str(size)+"@2x"+orig.suffix)
         for filename in [nameAndSize, orig, nameAndDouble]:
             # components with no themes folders (themes were added in 2020.2)
             if filename.exists():

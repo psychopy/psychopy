@@ -221,7 +221,7 @@ class PrefPropGrid(wx.Panel):
             if s not in self.sections.keys():
                 self.sections[s] = dict()
 
-        nbBitmap = app.iconCache.getBitmap(bitmap)
+        nbBitmap = self.app.iconCache.getBitmap(bitmap)
         if nbBitmap.IsOk():
             self.prefsImages.Add(nbBitmap)
 
@@ -796,8 +796,8 @@ class PreferencesDlg(wx.Dialog):
         self.populatePrefs()
 
         # after validation, update the UI
-        self.updateCoderUI()
         self.app.theme = self.app.theme
+        self.updateCoderUI()
 
     def updateCoderUI(self):
         """Update the Coder UI (eg. fonts, themes, etc.) from prefs."""

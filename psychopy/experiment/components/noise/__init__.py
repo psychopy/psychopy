@@ -13,7 +13,7 @@ from psychopy.experiment.components import BaseVisualComponent, Param, getInitVa
 
 # the absolute path to the folder containing this path
 thisFolder = path.abspath(path.dirname(__file__))
-iconFile = path.join(thisFolder, 'NoiseStim.png')
+iconFile = path.join(thisFolder, 'noise.png')
 tooltip = _translate('Noise stimuli: generates a range of different types of random visual patterns')
 
 # only use _localized values for label values, nothing functional:

@@ -2103,10 +2103,7 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
         for redundant in ['component', 'Component', "ButtonBox"]:
             shortName = shortName.replace(redundant, "")
         # set size
-        if self.app.prefs.app['largeIcons']:
-            size = 48
-        else:
-            size = 24
+        size = 48
         # get tooltip
         if name in components.tooltips:
             thisTip = components.tooltips[name]
