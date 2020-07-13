@@ -32,7 +32,7 @@ import textwrap
 from . import psychoParser
 from .. import stdOutRich, dialogs
 from .. import pavlovia_ui
-from psychopy import logging
+from psychopy import logging, prefs
 from psychopy.localization import _translate
 from ..utils import FileDropTarget, PsychopyToolbar
 from psychopy.projects import pavlovia

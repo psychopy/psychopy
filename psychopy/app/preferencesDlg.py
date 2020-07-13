@@ -13,7 +13,7 @@ import re
 import os
 
 from . import dialogs
-from psychopy import localization
+from psychopy import localization, prefs
 from psychopy.localization import _translate
 from pkg_resources import parse_version
 from psychopy import sound
@@ -807,10 +807,11 @@ class PreferencesDlg(wx.Dialog):
             # apply settings over document pages
             for ii in range(coder.notebook.GetPageCount()):
                 doc = coder.notebook.GetPage(ii)
-                doc.theme = doc.coder.prefs['theme']
+                doc.theme = prefs.app['theme']
             for ii in range(coder.shelf.GetPageCount()):
                 doc = coder.shelf.GetPage(ii)
-                doc.theme = doc.prefs['theme']
+                doc.theme = prefs.app['theme']
+
 
     def OnApplyClicked(self, event):
         """Apply button clicked, this makes changes to the UI without leaving

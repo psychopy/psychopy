@@ -516,7 +516,7 @@ class ThemeMixin:
                 spec[key]['fg'] = self.hex2rgb(spec[key]['fg'], base['fg'])
                 if not spec[key]['font']:
                     spec[key]['font'] = base['font']
-                spec[key]['size'] = int(self.prefs.coder['codeFontSize'])
+                spec[key]['size'] = int(prefs.coder['codeFontSize'])
             elif key in ['app', 'icons']:
                 pass
             else:
@@ -793,8 +793,11 @@ class IconCache:
         IconCache._lastIcons = theme.icons
         if theme.appColors['frame_bg'] != IconCache._lastBGColor:
             for thisBtn in IconCache._buttons:
-                thisBtn['btn'].SetBackgroundColour(
-                        theme.appColors['frame_bg'])
+                try:
+                    thisBtn['btn'].SetBackgroundColour(
+                            theme.appColors['frame_bg'])
+                except RuntimeError:
+                    pass
         IconCache._lastBGColor = theme
 
 

@@ -38,7 +38,7 @@ except ImportError:
     from Queue import Queue, Empty  # python 2.x
 
 from psychopy.localization import _translate
-from ... import experiment
+from ... import experiment, prefs
 from .. import dialogs, icons
 from ..themes import IconCache, ThemeMixin
 from ..themes._themes import PsychopyDockArt, PsychopyTabArt
@@ -1288,7 +1288,7 @@ class BuilderFrame(wx.Frame, ThemeMixin):
         val: int
             Status of git sync. 1 for SUCCESS (green), 0 or -1 for FAIL (RED)
         """
-        rc = self.app.prefs.paths['icons']
+        rc = prefs.paths['icons']
         feedbackTime = 1500
         colour = {0: "red", -1: "red", 1: "green"}
 
