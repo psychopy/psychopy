@@ -282,9 +282,7 @@ class ThemeMixin:
             children = sizer.Children
         else:
             children = []
-            if isinstance(target, wx.richtext.RichTextCtrl):
-                applyToRichText(target)
-            elif hasattr(target, 'Children'):
+            if hasattr(target, 'Children'):
                 children.extend(target.Children)
             elif hasattr(target, 'immune'):
                 pass
