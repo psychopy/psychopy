@@ -101,8 +101,7 @@ class PavloviaMenu(wx.Menu):
             self.searchDlg.updateUserProjs()
 
     def onSync(self, event):
-        retVal = syncProject(parent=self.parent, project=self.parent.project)
-        self.parent.gitFeedback(retVal)
+        syncProject(parent=self.parent, project=self.parent.project)
 
     def onSearch(self, event):
         PavloviaMenu.searchDlg = SearchFrame(app=self.parent.app)
@@ -119,8 +118,7 @@ class PavloviaMenu(wx.Menu):
             if projEditor.ShowModal() == wx.ID_OK:
                 self.parent.project = projEditor.project
                 # do a first sync as well
-                retVal = syncProject(parent=self.parent, project=projEditor.project)
-                self.parent.gitFeedback(retVal)
+                syncProject(parent=self.parent, project=projEditor.project)
         else:
             infoDlg = dialogs.MessageDialog(parent=None, type='Info',
                                             message=_translate(

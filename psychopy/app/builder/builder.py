@@ -1224,23 +1224,20 @@ class BuilderFrame(wx.Frame, ThemeMixin):
 
         self.enablePavloviaButton(['pavloviaSync', 'pavloviaRun'], False)
         try:
-            retVal = pavlovia_ui.syncProject(parent=self, project=self.project)
+            pavlovia_ui.syncProject(parent=self, project=self.project)
             pavlovia.knownProjects.save()  # update projects.json
-            self.gitFeedback(retVal)
         finally:
             self.enablePavloviaButton(['pavloviaSync', 'pavloviaRun'], True)
 
     def onPavloviaRun(self, evt=None):
         if self._getExportPref('on save'):
             self.fileSave()
-            retVal = pavlovia_ui.syncProject(parent=self, project=self.project,
+            pavlovia_ui.syncProject(parent=self, project=self.project,
                                              closeFrameWhenDone=False)
-            self.gitFeedback(retVal)
         elif self._getExportPref('on sync'):
             self.fileExport(htmlPath=self._getHtmlPath(self.filename))
-            retVal = pavlovia_ui.syncProject(parent=self, project=self.project,
+            pavlovia_ui.syncProject(parent=self, project=self.project,
                                              closeFrameWhenDone=False)
-            self.gitFeedback(retVal)
         elif self._getExportPref('manually'):
             # Check htmlpath and projects exists
             noHtmlFolder = not os.path.isdir(self._getHtmlPath(self.filename))
@@ -1248,9 +1245,8 @@ class BuilderFrame(wx.Frame, ThemeMixin):
             if noHtmlFolder:
                 self.fileExport()
             if noProject or noHtmlFolder:
-                retVal = pavlovia_ui.syncProject(parent=self, project=self.project,
-                                                 closeFrameWhenDone=False)
-                self.gitFeedback(retVal)
+                pavlovia_ui.syncProject(parent=self, project=self.project,
+                                        closeFrameWhenDone=False)
         if self.project:
             htmlPath = self.exp.settings.params['HTML path'].val
             self.project.pavloviaStatus = 'ACTIVATED'
@@ -1278,44 +1274,6 @@ class BuilderFrame(wx.Frame, ThemeMixin):
     def setPavloviaUser(self, user):
         # TODO: update user icon on button to user avatar
         pass
-
-    def gitFeedback(self, val):
-        """
-        Set feedback color for the Pavlovia Sync toolbar button.
-
-        Parameters
-        ----------
-        val: int
-            Status of git sync. 1 for SUCCESS (green), 0 or -1 for FAIL (RED)
-        """
-        rc = self.app.prefs.paths['icons']
-        feedbackTime = 1500
-        colour = {0: "red", -1: "red", 1: "green"}
-
-        if sys.platform == 'win32' or sys.platform.startswith('linux'):
-            if self.appPrefs['largeIcons']:
-                toolbarSize = 32
-            else:
-                toolbarSize = 16
-        else:
-            toolbarSize = 32  # mac: 16 either doesn't work, or looks ba
-
-        # Store original
-        origBtn = self.btnHandles['pavloviaSync'].NormalBitmap
-        # Create new feedback bitmap
-        feedbackBmp = IconCache.getBitmap(
-                '{}globe.png'.format(colour[val]),
-                size=toolbarSize)
-
-        # Set feedback button
-        self.btnHandles['pavloviaSync'].SetNormalBitmap(feedbackBmp)
-        self.toolbar.Realize()
-        self.toolbar.Refresh()
-
-        # Reset button to default state after time
-        wx.CallLater(feedbackTime, self.btnHandles['pavloviaSync'].SetNormalBitmap, origBtn)
-        wx.CallLater(feedbackTime + 50, self.toolbar.Realize)
-        wx.CallLater(feedbackTime + 50, self.toolbar.Refresh)
 
     @property
     def project(self):
