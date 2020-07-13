@@ -375,10 +375,9 @@ class RunnerPanel(wx.Panel, ScriptProcess, ThemeMixin):
     def _applyAppTheme(self, target=None):
         if target == None:
             target = self
-
-        target.SetBackgroundColour(ThemeMixin.appColors['panel_bg'])
-        target.SetForegroundColour(ThemeMixin.appColors['text'])
         ThemeMixin._applyAppTheme(self.expCtrl)
+        target.SetBackgroundColour(ThemeMixin.appColors['frame_bg'])
+        target.SetForegroundColour(ThemeMixin.appColors['text'])
 
         buttons = {
             self.plusBtn: {'main': 'addExp32.png'},
