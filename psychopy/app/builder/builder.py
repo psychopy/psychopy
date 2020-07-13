@@ -39,8 +39,8 @@ except ImportError:
 
 from psychopy.localization import _translate
 from ... import experiment
-from .. import dialogs, icons
-from ..themes import IconCache, ThemeMixin
+from .. import dialogs
+from ..themes import ThemeMixin
 from ..themes._themes import PsychopyDockArt, PsychopyTabArt
 from psychopy import logging, constants, data
 from psychopy.tools.filetools import mergeFolder
