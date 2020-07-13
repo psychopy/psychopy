@@ -2628,7 +2628,7 @@ class CoderFrame(wx.Frame, ThemeMixin):
         self.toolbar.ClearTools()
         self.toolbar.makeTools()
 
-        # ThemeMixin._applyAppTheme(self.fileBrowserWindow)
+        ThemeMixin._applyAppTheme(self.toolbar)
         ThemeMixin._applyAppTheme(self.statusBar)
         # updating sourceAsst will incl fileBrowser and sourcetree
         ThemeMixin._applyAppTheme(self.sourceAsst)

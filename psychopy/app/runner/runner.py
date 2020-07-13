@@ -375,6 +375,9 @@ class RunnerPanel(wx.Panel, ScriptProcess, ThemeMixin):
     def _applyAppTheme(self, target=None):
         if target == None:
             target = self
+
+        self.alertsCtrl._applyAppTheme()
+        self.stdoutCtrl._applyAppTheme()
         ThemeMixin._applyAppTheme(self.expCtrl)
         target.SetBackgroundColour(ThemeMixin.appColors['frame_bg'])
         target.SetForegroundColour(ThemeMixin.appColors['text'])
@@ -813,6 +816,6 @@ class StdOutText(StdOutRich, ThemeMixin):
         self.setStatus(text)
 
     def write(self, inStr, evt=False):
-        # Override default write behaviour to also updte theme on each write
+        # Override default write behaviour to also update theme on each write
         StdOutRich.write(self, inStr, evt)
         self._applyAppTheme()
