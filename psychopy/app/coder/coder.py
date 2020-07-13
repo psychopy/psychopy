@@ -597,7 +597,7 @@ class CodeEditor(BaseCodeEditor, CodeEditorFoldingMixin, ThemeMixin):
         # double buffered better rendering except if retina
         self.SetDoubleBuffered(self.coder.IsDoubleBuffered())
 
-        self.theme = self.prefs['theme']
+        self.theme = self.app.prefs.app['theme']
 
     def setFonts(self):
         """Make some styles,  The lexer defines what each style is used for,
@@ -620,7 +620,7 @@ class CodeEditor(BaseCodeEditor, CodeEditorFoldingMixin, ThemeMixin):
         faces['comment'] = self.coder.prefs['codeFont']
 
         # apply the theme to the lexer
-        self.theme = self.coder.prefs['theme']
+        self.theme = self.coder.app.prefs.app['theme']
 
     def setLexerFromFileName(self):
         """Set the lexer to one that best matches the file name."""

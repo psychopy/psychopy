@@ -682,11 +682,9 @@ class IconCache:
 
         Doesn't return the icons, just stores them in the dict
         """
-        if name is None:
-            name = 'base.png'
         filename = self._findImageFile(name, theme, emblem, size)
         if not filename:
-            filename = self._findImageFile('base.png', theme, emblem, size)
+            filename = self._findImageFile('unknown.png', theme, emblem, size)
 
         # load image with wx.LogNull() to stop libpng complaining about sRGB
         nologging = wx.LogNull()
@@ -771,8 +769,12 @@ class IconCache:
         loads it into a wx.Bitmap"""
         if name in components.iconFiles:
             filename = components.iconFiles[name]
-            bmp = self.getBitmap(name=filename, size=size)
-            return bmp
+        elif name.__class__.__name__ in components.iconFiles:
+            filename = components.iconFiles[name.__class__.__name__]
+        else:
+            filename = None
+        bmp = self.getBitmap(name=filename, size=size)
+        return bmp
 
     def setTheme(self, theme):
         if theme.icons != IconCache._lastIcons:
