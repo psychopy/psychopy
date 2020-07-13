@@ -136,7 +136,7 @@ class BuilderFrame(wx.Frame, ThemeMixin):
                               self.frameData['winH'])),
                           style=style)
         self.Bind(wx.EVT_CLOSE, self.closeFrame)
-        self.panel = wx.Panel(self)
+        #self.panel = wx.Panel(self)
 
         # detect retina displays (then don't use double-buffering)
         self.isRetina = self.GetContentScaleFactor() != 1
