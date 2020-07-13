@@ -142,8 +142,8 @@ class ThemeMixin:
                 page = target.GetPage(index)
                 page.SetBackgroundColour(ThemeMixin.appColors['panel_bg'])
                 if page.GetName() in tabIcons:
-                    bmp = IconCache.getBitmap(tabIcons[page.GetName()])
-                    target.SetPageBitmap(bmp)
+                    bmp = IconCache.getBitmap(IconCache(), tabIcons[page.GetName()])
+                    target.SetPageBitmap(index, bmp)
                 page._applyAppTheme()
 
         def applyToCodeEditor(target):
@@ -249,7 +249,9 @@ class ThemeMixin:
         # If no target supplied, default to using self
         if target is None:
             target = self
-            self._recursionDepth = 0  # used to store depth in children
+
+        if not hasattr(self, '_recursionDepth'):
+            self._recursionDepth = 0
         else:
             self._recursionDepth += 1
 
@@ -265,7 +267,7 @@ class ThemeMixin:
             if isinstance(target, thisType):
                 handlers[thisType](target)
                 isHandled = True
-                break
+
         if not isHandled:
             # try and set colors for target
             try:

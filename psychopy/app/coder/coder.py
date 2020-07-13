@@ -2623,8 +2623,8 @@ class CoderFrame(wx.Frame, ThemeMixin):
     def _applyAppTheme(self, target=None):
         """Overrides theme change from ThemeMixin.
         Don't call - this is called at the end of theme.setter"""
-        # ThemeMixin._applyAppTheme(target=self)  # handles most recursive setting
-        self.toolbar.SetBackgroundColour(ThemeMixin.appColors['frame_bg'])
+        ThemeMixin._applyAppTheme(self)  # handles most recursive setting
+
         self.toolbar.ClearTools()
         self.toolbar.makeTools()
 
