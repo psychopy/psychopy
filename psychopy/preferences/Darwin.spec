@@ -88,6 +88,8 @@
     showSourceAsst = boolean(default=True)
     # activate the output and shell panels
     showOutput = boolean(default=True)
+    # Show code completion suggestion and calltips automatically when typing.
+    autocomplete = boolean(default=True)
     # reload previously opened files after start
     reloadPrevFiles = boolean(default=True)
     # for coder shell window, which shell to use

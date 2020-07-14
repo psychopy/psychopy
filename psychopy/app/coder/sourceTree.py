@@ -14,7 +14,7 @@ from psychopy.app.coder.folding import getFolds
 
 import wx
 import wx.stc
-import os
+import os, sys
 import re
 
 
@@ -24,11 +24,11 @@ class SourceTreePanel(wx.Panel):
         wx.Panel.__init__(self, parent, -1)
         self.parent = parent
         self.coder = frame
+        self.app = frame.app
 
+        # double buffered better rendering except if retina
+        self.SetDoubleBuffered(self.coder.IsDoubleBuffered())
 
-
-
-        self.SetDoubleBuffered(True)
         # create the source tree control
         self.treeId = wx.NewIdRef()
         self.srcTree = wx.TreeCtrl(
@@ -57,28 +57,23 @@ class SourceTreePanel(wx.Panel):
 
     def _applyAppTheme(self, target=None):
         cs = ThemeMixin.appColors
+        iconCache = self.app.iconCache
         self.srcTree.SetOwnBackgroundColour(cs['tab_bg'])
         self.srcTree.SetOwnForegroundColour(cs['text'])
 
         # get graphics for toolbars and tree items
-        rc = self.coder.paths['icons']
         self._treeImgList = wx.ImageList(16, 16)
         self._treeGfx = {
             'class': self._treeImgList.Add(
-                wx.Bitmap(
-                    os.path.join(rc, 'coderclass16.png'), wx.BITMAP_TYPE_PNG)),
+                iconCache.getBitmap(name='coderclass.png', size=16)),
             'def': self._treeImgList.Add(
-                wx.Bitmap(
-                    os.path.join(rc, 'coderfunc16.png'), wx.BITMAP_TYPE_PNG)),
+                iconCache.getBitmap(name='coderfunc.png', size=16)),
             'attr': self._treeImgList.Add(
-                wx.Bitmap(
-                    os.path.join(rc, 'codervar16.png'), wx.BITMAP_TYPE_PNG)),
+                iconCache.getBitmap(name='codervar.png', size=16)),
             'pyModule': self._treeImgList.Add(
-                wx.Bitmap(
-                    os.path.join(rc, 'coderpython16.png'), wx.BITMAP_TYPE_PNG)),
+                iconCache.getBitmap(name='coderpython.png', size=16)),
             'noDoc': self._treeImgList.Add(
-                wx.Bitmap(
-                    os.path.join(rc, 'docclose16.png'), wx.BITMAP_TYPE_PNG))
+                iconCache.getBitmap(name='docclose.png', size=16))
             # 'import': self._treeImgList.Add(
             #     wx.Bitmap(os.path.join(rc, 'coderimport16.png'), wx.BITMAP_TYPE_PNG)),
             # 'treeFolderClosed': _treeImgList.Add(
@@ -179,6 +174,8 @@ class SourceTreePanel(wx.Panel):
                 defineList.append(lastItem)
 
             self.createPySourceTree(defineList, doc.GetIndent())
+
+        self.srcTree.Refresh()
 
     def createPySourceTree(self, foldDefs, indents=4):
         """Create a Python source tree. This is called when code analysis runs

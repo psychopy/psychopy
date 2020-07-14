@@ -6,7 +6,7 @@
 # Distributed under the terms of the GNU General Public License (GPL).
 import json
 
-from psychopy.app.themes import ThemeMixin
+from ..themes import ThemeMixin
 
 import wx
 from wx.lib import platebtn
@@ -20,7 +20,6 @@ import webbrowser
 from pathlib import Path
 from subprocess import Popen, PIPE
 
-from psychopy.app import icons
 from psychopy import experiment
 from psychopy.app.utils import PsychopyPlateBtn, PsychopyToolbar
 from psychopy.constants import PY3
@@ -49,6 +48,13 @@ class RunnerFrame(wx.Frame, ThemeMixin):
         self.app.trackFrame(self)
 
         self.panel = RunnerPanel(self, id, title, app)
+        self.panel.SetDoubleBuffered(True)
+
+        # detect retina displays (then don't use double-buffering)
+        self.isRetina = self.GetContentScaleFactor() != 1
+        self.SetDoubleBuffered(not self.isRetina)
+        # double buffered better rendering except if retina
+        self.panel.SetDoubleBuffered(not self.isRetina)
 
         # Create menu
         self.runnerMenu = wx.MenuBar()
@@ -289,6 +295,9 @@ class RunnerPanel(wx.Panel, ScriptProcess, ThemeMixin):
         #self.SetBackgroundColour(ThemeMixin.appColors['frame_bg'])
         #self.SetForegroundColour(ThemeMixin.appColors['txt_default'])
 
+        # double buffered better rendering except if retina
+        self.SetDoubleBuffered(parent.IsDoubleBuffered())
+
         expCtrlSize = [500, 150]
         ctrlSize = [500, 150]
 
@@ -307,7 +316,8 @@ class RunnerPanel(wx.Panel, ScriptProcess, ThemeMixin):
         self.expCtrl = wx.ListCtrl(self,
                                    id=wx.ID_ANY,
                                    size=expCtrlSize,
-                                   style=wx.LC_REPORT | wx.BORDER_NONE | wx.LC_NO_HEADER)
+                                   style=wx.LC_REPORT | wx.BORDER_NONE |
+                                         wx.LC_NO_HEADER | wx.LC_SINGLE_SEL)
 
         self.expCtrl.Bind(wx.EVT_LIST_ITEM_SELECTED,
                           self.onItemSelected, self.expCtrl)
@@ -378,57 +388,48 @@ class RunnerPanel(wx.Panel, ScriptProcess, ThemeMixin):
             self.onlineBtn: {'main':'globe32.png', 'emblem':'run16.png'},
             self.onlineDebugBtn: {'main':'globe32.png', 'emblem':'bug16.png'},
         }
-        rc = self.app.prefs.paths['icons']
-        for btn in buttons:
-            param = buttons[btn]
-            if 'emblem' in param:
-                bmp = icons.combineImageEmblem(
-                    main=os.path.join(rc, param['main']),
-                    emblem=os.path.join(rc, param['emblem']), pos='bottom_right')
-            else:
-                bmp = wx.Bitmap(os.path.join(rc, param['main']), wx.BITMAP_TYPE_PNG)
-            btn.Bind(wx.EVT_ENTER_WINDOW, self.onHover)
-            btn.Bind(wx.EVT_LEAVE_WINDOW, self.offHover)
-            btn.SetBitmap(bmp)
-            btn.SetBackgroundColour(ThemeMixin.appColors['panel_bg'])
-            btn.Update()
 
     def makeButtons(self):
         # Set buttons
-        self.plusBtn = plusBtn = self.makeBmpButton(main='addExp32.png')
-        self.negBtn = negBtn = self.makeBmpButton(main='removeExp32.png')
-        self.runBtn = runLocalBtn = self.makeBmpButton(main='run32.png')
-        self.stopBtn = stopTaskBtn = self.makeBmpButton(main='stop32.png')
-        self.onlineBtn = self.makeBmpButton(main='globe32.png', emblem='run16.png')
-        self.onlineDebugBtn = self.makeBmpButton(main='globe32.png',
-                                                 emblem='bug16.png')
-
-        plusBtn.SetToolTip(wx.ToolTip(
-            _translate("Add experiment to list")))
-        negBtn.SetToolTip(wx.ToolTip(
-            _translate("Remove experiment from list")))
-        runLocalBtn.SetToolTip(wx.ToolTip(
-            _translate("Run the current script in Python")))
-        stopTaskBtn.SetToolTip(wx.ToolTip(
-            _translate("Stop Task")))
-        self.onlineBtn.SetToolTip(wx.ToolTip(
-            _translate("Run PsychoJS task from Pavlovia")))
-        self.onlineDebugBtn.SetToolTip(wx.ToolTip(
-            _translate("Run PsychoJS task in local debug mode")))
+        icons = self.app.iconCache  # type: IconCache
+        self.plusBtn = icons.makeBitmapButton(
+                parent=self,
+                name='addExp.png', size=32,
+                tip=_translate("Add experiment to list"))
+        self.negBtn = icons.makeBitmapButton(
+                parent=self,
+                name='removeExp.png', size=32,
+                tip=_translate("Remove experiment to list"))
+        self.runBtn = icons.makeBitmapButton(
+                parent=self,
+                name='run.png', size=32,
+                tip=_translate("Run the current script in Python"))
+        self.stopBtn = icons.makeBitmapButton(
+                parent=self,
+                name='stop.png', size=32,
+                tip=_translate("Stop task"))
+        self.onlineBtn = icons.makeBitmapButton(
+                parent=self,
+                name='globe.png', size=32, emblem='run',
+                tip=_translate("Run PsychoJS task from Pavlovia"))
+        self.onlineDebugBtn = icons.makeBitmapButton(
+                parent=self,
+                name='globe.png', size=32, emblem='bug',
+                tip=_translate("Run PsychoJS task in local debug mode"))
 
         # Bind events to buttons
-        self.Bind(wx.EVT_BUTTON, self.addTask, plusBtn)
-        self.Bind(wx.EVT_BUTTON, self.removeTask, negBtn)
-        self.Bind(wx.EVT_BUTTON, self.runLocal, runLocalBtn)
-        self.Bind(wx.EVT_BUTTON, self.stopTask, stopTaskBtn)
+        self.Bind(wx.EVT_BUTTON, self.addTask, self.plusBtn)
+        self.Bind(wx.EVT_BUTTON, self.removeTask, self.negBtn)
+        self.Bind(wx.EVT_BUTTON, self.runLocal, self.runBtn)
+        self.Bind(wx.EVT_BUTTON, self.stopTask, self.stopBtn)
         self.Bind(wx.EVT_BUTTON, self.runOnline, self.onlineBtn)
         self.Bind(wx.EVT_BUTTON, self.runOnlineDebug, self.onlineDebugBtn)
 
-        self.buttonSizer.Add(plusBtn, 0, wx.ALL | wx.ALIGN_TOP, 5)
-        self.buttonSizer.Add(negBtn, 0, wx.ALL | wx.ALIGN_TOP, 5)
+        self.buttonSizer.Add(self.plusBtn, 0, wx.ALL | wx.ALIGN_TOP, 5)
+        self.buttonSizer.Add(self.negBtn, 0, wx.ALL | wx.ALIGN_TOP, 5)
         self.buttonSizer.AddStretchSpacer()
-        self.buttonSizer.AddMany([(runLocalBtn, 0, wx.ALL, 5),
-                                  (stopTaskBtn, 0, wx.ALL, 5),
+        self.buttonSizer.AddMany([(self.runBtn, 0, wx.ALL, 5),
+                                  (self.stopBtn, 0, wx.ALL, 5),
                                   (self.onlineBtn, 0, wx.ALL, 5),
                                   (self.onlineDebugBtn, 0, wx.ALL, 5),
                                   ])
@@ -458,36 +459,6 @@ class RunnerPanel(wx.Panel, ScriptProcess, ThemeMixin):
         else:
             self.stdoutCtrl.Show(not self.stdoutCtrl.IsShown())
         self.Layout()
-
-    def makeBmpButton(self, main=None, emblem=None):
-        """
-        Produce buttons for the Runner.
-
-        Parameters
-        ----------
-        main: str
-            Name of main icon from Resources
-        emblem: str
-            Name of emblem icon from Resources
-        Returns
-        -------
-        wx.BitmapButton
-        """
-        buttonSize = 32
-        rc = self.app.prefs.paths['icons']
-        join = os.path.join
-        PNG = wx.BITMAP_TYPE_PNG
-
-        if main and emblem:
-            bmp = icons.combineImageEmblem(
-                main=join(rc, main),
-                emblem=join(rc, emblem), pos='bottom_right')
-        else:
-            bmp = wx.Bitmap(join(rc, main), PNG)
-        button = wx.BitmapButton(self, -1, bmp, size=[buttonSize, buttonSize],
-                                 style=wx.NO_BORDER)
-        button.SetBackgroundColour(ThemeMixin.appColors['frame_bg'])
-        return button
 
     def stopTask(self, event=None):
         """Kill script processes currently running."""

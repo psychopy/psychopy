@@ -22,7 +22,7 @@ import sys
 import subprocess
 import imghdr
 from ..themes import ThemeMixin
-
+from psychopy.localization import _translate
 # enums for file types
 FOLDER_TYPE_NORMAL = 0
 FOLDER_TYPE_NAV = 1
@@ -88,31 +88,33 @@ class FileBrowserPanel(wx.Panel):
     """Panel for a file browser.
     """
     fileImgExt = {
-        "..": 'dirup16.png',
-        "\\": 'folder16.png',
-        ".?": 'fileunknown16.png',
-        ".csv": 'filecsv16.png',
-        ".xlsx": 'filecsv16.png',
-        ".xls": 'filecsv16.png',
-        ".tsv": 'filecsv16.png',
-        ".png": 'fileimage16.png',
-        ".jpeg": 'fileimage16.png',
-        ".jpg": 'fileimage16.png',
-        ".bmp": 'fileimage16.png',
-        ".tiff": 'fileimage16.png',
-        ".tif": 'fileimage16.png',
-        ".ppm": 'fileimage16.png',
-        ".gif": 'fileimage16.png',
-        ".py": 'coderpython16.png'
-    }
+            "..": 'dirup16.png',
+            "\\": 'folder16.png',
+            ".?": 'fileunknown16.png',
+            ".csv": 'filecsv16.png',
+            ".xlsx": 'filecsv16.png',
+            ".xls": 'filecsv16.png',
+            ".tsv": 'filecsv16.png',
+            ".png": 'fileimage16.png',
+            ".jpeg": 'fileimage16.png',
+            ".jpg": 'fileimage16.png',
+            ".bmp": 'fileimage16.png',
+            ".tiff": 'fileimage16.png',
+            ".tif": 'fileimage16.png',
+            ".ppm": 'fileimage16.png',
+            ".gif": 'fileimage16.png',
+            ".py": 'coderpython16.png'
+        }
 
     def __init__(self, parent, frame):
         wx.Panel.__init__(self, parent, -1, style=wx.BORDER_NONE)
         self.parent = parent
         self.coder = frame
+        self.app = frame.app
         self.currentPath = None
         self.selectedItem = None
         self.isSubDir = False
+        self.fileImgList = None  # will be a wx ImageList to store icons
         self.pathData = {}
         # create the toolbar
         szrToolbar = wx.BoxSizer(wx.HORIZONTAL)
@@ -159,15 +161,16 @@ class FileBrowserPanel(wx.Panel):
         szr.Add(szrAddr, 0, flag=wx.EXPAND | wx.ALL, border=5)
         szr.Add(self.fileList, 1, flag=wx.EXPAND)
         self.SetSizer(szr)
-        self.buttonIcons()
+        self.makeFileImgIcons()
+        self.makeTools()
 
         # add columns
         self.fileList.InsertColumn(0, "Name")
-        self.fileList.InsertColumn(1, "Size", wx.LIST_FORMAT_LEFT)
-        # self.fileList.InsertColumn(2, "Modified")
-        self.fileList.SetColumnWidth(0, 200)
-        self.fileList.SetColumnWidth(1, 80)
-        # self.fileList.SetColumnWidth(2, 100)
+        #self.fileList.InsertColumn(1, "Size", wx.LIST_FORMAT_LEFT)
+        #self.fileList.InsertColumn(2, "Modified")
+        self.fileList.SetColumnWidth(0, 280)
+        #self.fileList.SetColumnWidth(1, 80)
+        #self.fileList.SetColumnWidth(2, 100)
 
         self.gotoDir(os.getcwd())
 
@@ -179,31 +182,56 @@ class FileBrowserPanel(wx.Panel):
         self.fileList._applyAppTheme()
         self.toolBar.SetBackgroundColour(cs['tab_bg'])
         self.toolBar.SetForegroundColour(cs['text'])
-        self.buttonIcons()
+        self.makeFileImgIcons()
+
+    def makeFileImgIcons(self):
+
+        iconCache = self.app.iconCache
+        # handles for icon graphics in the image list
+        self.fileImgInds = {}
+        if self.fileImgList:
+            self.fileImgList.RemoveAll()
+        else:
+            self.fileImgList = wx.ImageList(16, 16)
+        for key in self.fileImgExt:
+            self.fileImgInds[key] = self.fileImgList.Add(
+                    iconCache.getBitmap(name=self.fileImgExt[key],
+                                        theme=ThemeMixin.icons,
+                                        ))
+        self.fileList.SetImageList(self.fileImgList, wx.IMAGE_LIST_SMALL)
+        self.Update()
 
     def makeTools(self):
-        rc = self.coder.paths['icons']
-        join = os.path.join
-        # Delete any existing toolbar buttons
-        for i in range(self.toolBar.GetToolsCount()):
-            self.toolBar.DeleteToolByPos(0)
+
+        iconCache = self.app.iconCache
+        iconSize = 16
+        # Load in icons for toolbars
         # Redraw toolbar buttons
-        self.newFolderTool = self.toolBar.AddTool(wx.ID_ANY,
-                                                  'New Folder', self.toolbarBmps['newFolder'],
-                                                  "Create a new folder in the current folder",
-                                                  wx.ITEM_NORMAL)
-        self.renameTool = self.toolBar.AddTool(wx.ID_ANY,
-                                               'Rename', self.toolbarBmps['rename'],
-                                               "Rename the selected folder or file",
-                                               wx.ITEM_NORMAL)
-        self.deleteTool = self.toolBar.AddTool(wx.ID_ANY,
-                                               'Delete', self.toolbarBmps['delete'],
-                                               "Delete the selected folder or file",
-                                               wx.ITEM_NORMAL)
-        self.gotoTool = self.toolBar.AddTool(wx.ID_ANY,
-                                             'Goto', self.toolbarBmps['goto'],
-                                             "Jump to another folder",
-                                             wx.ITEM_DROPDOWN)
+        self.newFolderTool = iconCache.makeBitmapButton(
+                self,
+                name='foldernew', size=iconSize,
+                label=_translate('New Folder'),
+                tip=_translate("Create a new folder in the current folder"),
+                toolbar=self.toolBar)
+        self.renameTool = iconCache.makeBitmapButton(
+                self,
+                name='rename', size=iconSize,
+                label=_translate('Rename'),
+                tip=_translate("Rename the selected folder or file"),
+                toolbar=self.toolBar)
+        self.deleteTool = iconCache.makeBitmapButton(
+                self,
+                name='delete', size=iconSize,
+                label=_translate('Delete'),
+                tip=_translate("Delete the selected folder or file"),
+                toolbar=self.toolBar)
+        self.gotoTool = iconCache.makeBitmapButton(
+                self,
+                name='goto', size=iconSize,
+                label=_translate('Goto'),
+                tip=_translate("Jump to another folder"),
+                toolbar=self.toolBar,
+                tbKind=wx.ITEM_DROPDOWN)
         # create the dropdown menu for goto
         self.gotoMenu = wx.Menu()
         item = self.gotoMenu.Append(
@@ -233,29 +261,6 @@ class FileBrowserPanel(wx.Panel):
         # Realise
         self.toolBar.Realize()
 
-
-    def buttonIcons(self):
-        rc = self.coder.paths['icons']
-        join = os.path.join
-
-        # handles for icon graphics in the image list
-        self.fileImgInds = {}
-        self.fileImgList = wx.ImageList(16, 16)
-        for key in self.fileImgExt:
-            self.fileImgInds[key] = self.fileImgList.Add(wx.Bitmap(join(rc, self.fileImgExt[key]), wx.BITMAP_TYPE_PNG))
-        self.fileList.SetImageList(self.fileImgList, wx.IMAGE_LIST_SMALL)
-
-        # Load in icons for toolbars
-        self.toolbarBmps = {
-            'goto': wx.Bitmap(join(rc, 'goto16.png'), wx.BITMAP_TYPE_PNG),
-            'newFolder': wx.Bitmap(join(rc, 'foldernew16.png'), wx.BITMAP_TYPE_PNG),
-            'copy': wx.Bitmap(join(rc, 'copy16.png'), wx.BITMAP_TYPE_PNG),
-            'delete': wx.Bitmap(join(rc, 'delete16.png'), wx.BITMAP_TYPE_PNG),
-            'rename': wx.Bitmap(join(rc, 'rename16.png'), wx.BITMAP_TYPE_PNG)
-        }
-
-        # Redraw toolbar buttons
-        self.makeTools()
 
     def OnGotoFileLocation(self, evt):
         """Goto the currently opened file location."""
@@ -449,7 +454,6 @@ class FileBrowserPanel(wx.Panel):
                 self.gotoDir(self.currentPath)  # refresh
 
                 for idx, item in enumerate(self.dirData):
-                    abspath = os.path.join(self.currentPath, newName)
                     if newPath == item.abspath:
                         self.fileList.Select(idx, True)
                         self.fileList.EnsureVisible(idx)
@@ -610,7 +614,7 @@ class FileBrowserPanel(wx.Panel):
                 else:
                     img = self.fileImgInds['\\']
 
-                index = self.fileList.InsertItem(
+                self.fileList.InsertItem(
                     self.fileList.GetItemCount(), obj.name, img)
             elif isinstance(obj, FileItemData):
                 ext = os.path.splitext(obj.name)[1]
@@ -618,11 +622,11 @@ class FileBrowserPanel(wx.Panel):
                     img = self.fileImgInds[ext]
                 else:
                     img = self.fileImgInds['.?']
-                index = self.fileList.InsertItem(
+                self.fileList.InsertItem(
                     self.fileList.GetItemCount(),
                     obj.name,
                     img)
-                self.fileList.SetItem(index, 1, obj.fsize)
+                #self.fileList.SetItem(index, 1, obj.fsize)
                 #self.fileList.SetItem(index, 2, obj.mod)
 
     def addItem(self, name, absPath):

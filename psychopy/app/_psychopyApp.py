@@ -21,6 +21,7 @@ from psychopy.constants import PY3
 from . import urls
 from . import frametracker
 from . import themes
+from . import icons
 
 import io
 import json
@@ -189,6 +190,7 @@ class PsychoPyApp(wx.App, themes.ThemeMixin):
         self._stdout = sys.stdout
         self._stderr = sys.stderr
         self._stdoutFrame = None
+        self.iconCache = themes.IconCache()
 
         if not self.testMode:
             self._lastRunLog = open(os.path.join(
@@ -233,7 +235,7 @@ class PsychoPyApp(wx.App, themes.ThemeMixin):
         """
         self.SetAppName('PsychoPy3')
 
-        if showSplash:
+        if False: #showSplash:
             # show splash screen
             splashFile = os.path.join(
                 self.prefs.paths['resources'], 'psychopySplash.png')
@@ -889,13 +891,6 @@ class PsychoPyApp(wx.App, themes.ThemeMixin):
         prefs.saveUserPrefs()
         self.theme = newTheme
 
-    def _applyAppTheme(self):
-        """Overrides ThemeMixin for this class"""
-        for frameRef in self._allFrames:
-            frame = frameRef()
-            if hasattr(frame, '_applyAppTheme'):
-                frame._applyAppTheme()
-
     @property
     def theme(self):
         """The theme to be used through the application"""
@@ -904,38 +899,21 @@ class PsychoPyApp(wx.App, themes.ThemeMixin):
     @theme.setter
     def theme(self, value):
         """The theme to be used through the application"""
-        prefs.loadAll()
-
-        # Load in theme spec
-        try:
-            with open("{}//{}.json".format(self.prefs.paths['themes'], value), "rb") as fp:
-                spec = json.load(fp)
-            # Check that minimum spec is defined
-            if 'base' not in spec:
-                raise Exception
-            elif not (all(key in spec['base'] for key in ['bg', 'fg', 'font'])):
-                raise Exception
-        except:
-            value = "PsychopyLight"
-            with open("{}//{}.json".format(self.prefs.paths['themes'], "PsychopyLight"), "rb") as fp:
-                spec = json.load(fp)
-
-        self._currentThemeSpec = spec
-        # Set app theme
-        apptheme = spec.pop('app')
-        themes.ThemeMixin.mode = apptheme
-        themes.ThemeMixin.setAppColors(self, apptheme)
-        # Set app icons
-        appicons = spec.pop('icons')
-        themes.ThemeMixin.iconmode = appicons
-        themes.ThemeMixin.setAppIcons(self, appicons)
-        # Set coder theme
-        codertheme = spec
-        themes.ThemeMixin.codetheme = value
-        themes.ThemeMixin.setCodeColors(self, codertheme)
-
+        themes.ThemeMixin.loadThemeSpec(self, themeName=value)
+        prefs.app['theme'] = value
+        self._currentThemeSpec = themes.ThemeMixin.spec
         # Apply theme
         self._applyAppTheme()
+
+    def _applyAppTheme(self):
+        """Overrides ThemeMixin for this class"""
+        self.iconCache.setTheme(themes.ThemeMixin)
+
+        for frameRef in self._allFrames:
+            frame = frameRef()
+            if hasattr(frame, '_applyAppTheme'):
+                frame._applyAppTheme()
+
 
 if __name__ == '__main__':
     # never run; stopped earlier at cannot do relative import in a non-package

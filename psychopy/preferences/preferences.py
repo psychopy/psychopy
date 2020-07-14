@@ -12,7 +12,6 @@ from psychopy.constants import PY3
 from pkg_resources import parse_version
 import shutil
 import json
-#import psychopy.app.themes
 
 try:
     import configobj
@@ -136,20 +135,12 @@ class Preferences(object):
         baseThemes = join(self.paths['appDir'], 'themes')
         baseAppThemes = join(self.paths['appDir'], 'themes', 'app')
         # avoid silent fail-to-launch-app if bad permissions:
-        if os.path.exists(self.paths['userPrefsDir']):
-            try:
-                if not os.access(self.paths['userPrefsDir'],
-                                 os.W_OK | os.R_OK):
-                    raise OSError
-                tmp = os.path.join(self.paths['userPrefsDir'], '.tmp')
-                with open(tmp, 'w') as fileh:
-                    fileh.write('')
-                open(tmp).read()
-                os.remove(tmp)
-                msg = 'PsychoPy3 error: need read-write permissions for `%s` - `%s`'
-            except Exception as err:  # OSError, WindowsError, ...?
-                msg = 'PsychoPy3 error: need read-write permissions for `%s` - `%s`'
-                sys.exit(msg % (self.paths['userPrefsDir'], err))
+
+        try:
+            os.makedirs(self.paths['userPrefsDir'])
+        except OSError as err:
+            if err.errno != errno.EEXIST:
+                raise
         # Create themes folder in user space if not one already
         try:
             os.makedirs(self.paths['themes'])
@@ -175,8 +166,6 @@ class Preferences(object):
                     join(baseAppThemes, file),
                     join(self.paths['themes'], "app", file)
                     )
-            #except:
-            #    pass
 
     def loadAll(self):
         """Load the user prefs and the application data
@@ -209,19 +198,6 @@ class Preferences(object):
         self.connections = self.userPrefsCfg['connections']
         self.keys = self.userPrefsCfg['keyBindings']
         self.appData = self.appDataCfg
-
-        # darkmode paths
-        try:
-            with open("{}/{}.json".format(self.paths['themes'], self.app['theme']), "rb") as fp:
-                spec = json.load(fp)
-            if 'icons' not in spec or 'app' not in spec:
-                raise Exception()
-        except:
-            with open("{}/{}.json".format(self.paths['themes'], "PsychopyLight"), "rb") as fp:
-                spec = json.load(fp)
-        self.paths['icons'] = join(self.paths['resources'],
-                                   'classic' if spec['icons'] == 'classic'
-                                   else spec['app'])
 
         # keybindings:
         self.keys = self.userPrefsCfg['keyBindings']
