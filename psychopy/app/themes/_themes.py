@@ -15,6 +15,13 @@ thisFolder = Path(__file__).parent
 
 iconsPath = Path(prefs.paths['resources'])
 
+try:
+    FileNotFoundError
+except NameError:
+    # Py2 has no FileNotFoundError
+    FileNotFoundError = IOError
+
+allCompons = components.getAllComponents()  # ensures that the icons get checked
 
 # Create library of "on brand" colours
 cLib = {
@@ -69,18 +76,18 @@ class ThemeMixin:
 
         # first load the *theme* which contains the mode name for the app
         try:
-            with open(themesPath / (themeName+".json"), "rb") as fp:
+            with open(str(themesPath / (themeName+".json")), "rb") as fp:
                 ThemeMixin.spec = themeSpec = json.load(fp)
         except FileNotFoundError:
-            with open(themesPath / "PsychopyLight.json", "rb") as fp:
+            with open(str(themesPath / "PsychopyLight.json"), "rb") as fp:
                 ThemeMixin.spec = themeSpec = json.load(fp)
         appColorMode = themeSpec['app']
 
         try:
-            with open(themesPath / "app/{}.json".format(appColorMode), "rb") as fp:
+            with open(str(themesPath / "app/{}.json".format(appColorMode)), "rb") as fp:
                 ThemeMixin.spec = appColors = json.load(fp)
         except FileNotFoundError:
-            with open(themesPath / "app/light.json", "rb") as fp:
+            with open(str(themesPath / "app/light.json"), "rb") as fp:
                 ThemeMixin.spec = appColors = json.load(fp)
 
         # Set app theme
@@ -765,14 +772,16 @@ class IconCache:
     def getComponentBitmap(self, name, size=None):
         """Checks in the experiment.components.iconFiles for filename and
         loads it into a wx.Bitmap"""
+        if type(name) != str:  # got a class instead of a name?
+            name = name.getType()
         if name in components.iconFiles:
             filename = components.iconFiles[name]
-        elif name.__class__.__name__ in components.iconFiles:
-            filename = components.iconFiles[name.__class__.__name__]
+            bmp = self.getBitmap(name=filename, size=size)
+            return bmp
         else:
-            filename = None
-        bmp = self.getBitmap(name=filename, size=size)
-        return bmp
+            print(components.iconFiles)
+            raise ValueError("Failed to find '{}' in components.iconFiles"
+                             .format(name))
 
     def setTheme(self, theme):
         if theme.icons != IconCache._lastIcons:
