@@ -179,7 +179,7 @@ class ThemeMixin:
 
             # Override base font with user spec if present
             key = 'outputFont' if isinstance(target, wx.py.shell.Shell) else 'codeFont'
-            if prefs.coder[key] != "From Theme...":
+            if prefs.coder[key].lower() != "From Theme...".lower():
                 base['font'] = prefs.coder[key]
 
             # Set style for undefined lexers
