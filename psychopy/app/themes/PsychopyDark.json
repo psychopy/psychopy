@@ -4,7 +4,7 @@
   "base": {
     "fg": "#f2f2f2",
     "bg": "#75757D",
-    "font": "Consolas"
+    "font": ["Consolas", "Monaco", "Lucida Console"]
   },
   "margin": {
     "fg": "",
@@ -44,7 +44,7 @@
   "keyword2": {
     "fg": "#C3BEF7",
     "bg": "",
-    "font": "Consolas,italic,bold"
+    "font": ["italic","bold"]
   },
   "controlchar": {
     "fg": "",
@@ -134,7 +134,7 @@
   "whitespace": {
     "fg": "#B8B8BB",
     "bg": "",
-    "font": "Consolas,bold"
+    "font": "bold"
   },
   "python": {
   },

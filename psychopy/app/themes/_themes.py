@@ -10,9 +10,10 @@ from psychopy import logging
 import psychopy
 from ...experiment import components
 import json
+from matplotlib import font_manager
 
 thisFolder = Path(__file__).parent
-
+fm = font_manager.FontManager()
 iconsPath = Path(prefs.paths['resources'])
 
 try:
@@ -82,7 +83,7 @@ class ThemeMixin:
             with open(str(themesPath / "PsychopyLight.json"), "rb") as fp:
                 ThemeMixin.spec = themeSpec = json.load(fp)
         appColorMode = themeSpec['app']
-
+        # Get app spec
         try:
             with open(str(themesPath / "app/{}.json".format(appColorMode)), "rb") as fp:
                 ThemeMixin.spec = appColors = json.load(fp)
@@ -180,7 +181,7 @@ class ThemeMixin:
             # Override base font with user spec if present
             key = 'outputFont' if isinstance(target, wx.py.shell.Shell) else 'codeFont'
             if prefs.coder[key].lower() != "From Theme...".lower():
-                base['font'] = prefs.coder[key]
+                base['font'] = [prefs.coder[key]]
 
             # Set style for undefined lexers
             for key in [getattr(wx._stc, item) for item in dir(wx._stc) if item.startswith("STC_LEX")]:
@@ -222,11 +223,14 @@ class ThemeMixin:
             target.SetBackgroundColour(
                 self.hex2rgb(base['bg'], base['bg']))
             # Then construct default styles
+            bold = wx.FONTWEIGHT_BOLD if "bold" in base['font'] else wx.FONTWEIGHT_NORMAL
+            italic = wx.FONTSTYLE_ITALIC if "italic" in base['font'] else wx.FONTSTYLE_NORMAL
+            fontName = base['font'].replace("bold", "").replace("italic", "").replace(",", "")
             _font = wx.Font(
                 int(prefs.coder['outputFontSize']),
-                wx.FONTFAMILY_TELETYPE, wx.FONTSTYLE_NORMAL,
-                wx.FONTWEIGHT_NORMAL, False,
-                faceName=base['font']
+                wx.FONTFAMILY_TELETYPE, italic,
+                bold, False,
+                faceName=fontName
             )
             _style = wx.TextAttr(
                 colText=wx.Colour(
@@ -494,12 +498,46 @@ class ThemeMixin:
 
         return newCol
 
+    def extractFont(self, fontList, base=[]):
+        """Extract specified font from theme spec"""
+        global fm
+        # Convert to list if not already
+        if isinstance(base, str):
+            base = base.split(",")
+            base = base if isinstance(base, list) else [base]
+        if isinstance(fontList, str):
+            fontList = fontList.split(",")
+            fontList = fontList if isinstance(fontList, list) else [fontList]
+        # Extract styles
+        bold, italic = [], []
+        if "bold" in fontList:
+            bold = [fontList.pop(fontList.index("bold"))]
+        if "italic" in fontList:
+            italic = [fontList.pop(fontList.index("italic"))]
+        # Extract styles from base, if needed
+        if "bold" in base:
+            bold = [base.pop(base.index("bold"))]
+        if "italic" in base:
+            italic = [base.pop(base.index("italic"))]
+        # Append base and default fonts
+        fontList.extend(base+["Consolas", "Monaco", "Lucida Console"])
+        # Cycle through font names, stop at first valid font
+        for font in fontList:
+            if fm.findfont(font, fallback_to_default=False) not in fm.defaultFont.values():
+                finalFont = [font] + bold + italic
+                break
+        try:
+            return ','.join(finalFont)
+        except NameError:
+            raise Exception("No valid fonts found in theme spec")
+
     def _setCodeColors(self, spec):
         """To be called from _psychopyApp only"""
         if not self.GetTopWindow() == self:
             psychopy.logging.warning("This function should only be called from _psychopyApp")
 
         base = spec['base']
+        base['font'] = self.extractFont(base['font'])
 
         # Make sure there's some spec for margins
         if 'margin' not in spec:
@@ -519,8 +557,7 @@ class ThemeMixin:
             if all(subkey in spec[key] for subkey in ['bg', 'fg', 'font']):
                 spec[key]['bg'] = self.hex2rgb(spec[key]['bg'], base['bg'])
                 spec[key]['fg'] = self.hex2rgb(spec[key]['fg'], base['fg'])
-                if not spec[key]['font']:
-                    spec[key]['font'] = base['font']
+                spec[key]['font'] = self.extractFont(spec[key]['font'], base['font'])
                 spec[key]['size'] = int(prefs.coder['codeFontSize'])
             elif key in ['app', 'icons']:
                 pass

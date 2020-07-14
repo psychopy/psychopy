@@ -4,7 +4,7 @@
   "base": {
     "fg": "#000000",
     "bg": "#FFFFFF",
-    "font": "Consolas"
+    "font": ["Consolas", "Monaco", "Lucida Console"]
   },
   "margin": {
     "fg": "",
@@ -14,7 +14,7 @@
   "caret": {
     "fg": "",
     "bg": "",
-    "font": "Consolas,bold"
+    "font": "bold"
   },
   "select": {
     "fg": "#FFFFFF",
@@ -29,7 +29,7 @@
   "brace": {
     "fg": "",
     "bg": "",
-    "font": "Consolas,bold"
+    "font": "bold"
   },
   "operator": {
     "fg": "",
@@ -39,7 +39,7 @@
   "keyword": {
     "fg": "#0000EE",
     "bg": "",
-    "font": "Consolas,bold"
+    "font": "bold"
   },
   "keyword2": {
     "fg": "",
@@ -74,7 +74,7 @@
   "openstr": {
     "fg": "#9900EE",
     "bg": "",
-    "font": "Consolas,bold"
+    "font": "bold"
   },
   "infix": {
     "fg": "",
