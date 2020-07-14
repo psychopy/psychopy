@@ -42,6 +42,8 @@
     shutdownKeyModifiers = list(default=list())
     # What to do if gamma-correction not possible
     gammaErrorPolicy = option('abort', 'warn', default='abort')
+    # Should the Builder and Coder "run" buttons add the experiment to runner view or skip straight to running it?
+    useRunner = boolean(default='True')
 
 # Application settings, applied to coder, builder, & prefs windows
 [app]

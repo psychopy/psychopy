@@ -262,7 +262,8 @@ class RunnerFrame(wx.Frame, ThemeMixin):
         self.app.coder.setFileModified(False)
 
     def showRunner(self):
-        self.app.showRunner()
+        if self.app.prefs.general['useRunner']:
+            self.app.showRunner()
 
     @property
     def taskList(self):
