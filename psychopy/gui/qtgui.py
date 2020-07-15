@@ -623,16 +623,15 @@ def aboutDlg(title=_translate("About Experiment"), prompt=None):
 def hideWindow(win):
     global wasMouseVisible
     if win.winHandle._visible is True:
-        win.winHandle.set_visible(False)
+        wasMouseVisible = win.mouseVisible
+        win.setMouseVisible(True, log=False)
         win.winHandle.minimize()
-        wasMouseVisible = win.winHandle._mouse_visible
-        win.winHandle.set_mouse_visible(True)
 
 
 def showWindow(win):
     global wasMouseVisible
     if win.winHandle._visible is False:
-        win.winHandle.set_mouse_visible(wasMouseVisible)
+        win.setMouseVisible(wasMouseVisible, log=False)
         win.winHandle.maximize()
         win.winHandle.set_visible(True)
         win.winHandle.activate()
