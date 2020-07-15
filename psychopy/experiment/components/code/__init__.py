@@ -9,6 +9,8 @@ from __future__ import absolute_import, print_function
 
 from builtins import str
 from os import path
+
+from psychopy import prefs
 from psychopy.experiment.components import BaseComponent, Param, _translate
 from psychopy.alerts import alerttools
 
@@ -44,7 +46,7 @@ class CodeComponent(BaseComponent):
                  eachFrame="",
                  endRoutine="",
                  endExperiment="",
-                 codeType="Auto->JS", translator="manual"):
+                 codeType=None, translator="manual"):
         super(CodeComponent, self).__init__(exp, parentName, name)
         self.type = 'Code'
         self.targets = ['PsychoPy', 'PsychoJS']
@@ -57,6 +59,8 @@ class CodeComponent(BaseComponent):
                       'Before JS Experiment', 'Begin JS Experiment', 'Begin JS Routine',
                       'Each JS Frame', 'End JS Routine', 'End JS Experiment',
                       ]
+        if not codeType:
+            codeType = prefs.builder['codeComponentLanguage']
 
         msg = _translate("Display Python or JS Code")
         self.params['Code Type'] = Param(
