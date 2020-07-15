@@ -1,3 +1,5 @@
+import sys
+
 import wx
 import wx.lib.agw.aui as aui
 import wx.stc as stc
@@ -521,15 +523,18 @@ class ThemeMixin:
             italic = [base.pop(base.index("italic"))]
         # Append base and default fonts
         fontList.extend(base+["Consolas", "Monaco", "Lucida Console"])
+        # Set starting font in case none are found
+        if sys.platform == 'win32':
+            finalFont = [wx.SystemSettings.GetFont(wx.SYS_DEFAULT_GUI_FONT).GetFaceName()]
+        else:
+            finalFont = [wx.SystemSettings.GetFont(wx.SYS_ANSI_FIXED_FONT).GetFaceName()]
         # Cycle through font names, stop at first valid font
         for font in fontList:
             if fm.findfont(font, fallback_to_default=False) not in fm.defaultFont.values():
                 finalFont = [font] + bold + italic
                 break
-        try:
-            return ','.join(finalFont)
-        except NameError:
-            raise Exception("No valid fonts found in theme spec")
+
+        return ','.join(finalFont)
 
     def _setCodeColors(self, spec):
         """To be called from _psychopyApp only"""
