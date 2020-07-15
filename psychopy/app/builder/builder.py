@@ -408,7 +408,7 @@ class BuilderFrame(wx.Frame, ThemeMixin):
                 pass
         # Add Theme Switcher
         self.themesMenu = wx.Menu()
-        item = menu.AppendSubMenu(self.themesMenu,
+        menu.AppendSubMenu(self.themesMenu,
                                _translate("Themes..."))
         for theme in self.themeList:
             self.themeList[theme] = self.themesMenu.Append(wx.ID_ANY, _translate(theme))

@@ -1098,7 +1098,7 @@ class CoderFrame(wx.Frame, ThemeMixin):
         # Create menus and status bar
         self.makeMenus()
         self.makeStatusBar()
-        self.statusBar.SetStatusText("PsychoPy v{}".format(psychopy.__version__), 3)
+        #self.statusBar.SetStatusText("PsychoPy v{}".format(psychopy.__version__), 3)
         self.fileMenu = self.editMenu = self.viewMenu = None
         self.helpMenu = self.toolsMenu = None
 
@@ -2138,11 +2138,11 @@ class CoderFrame(wx.Frame, ThemeMixin):
                 self.fileHistory.AddFileToHistory(filename)
             else:
                 # set name for an untitled document
-                filename = shortName = 'untitled.py'
+                filename = 'untitled.py'
                 allFileNames = self.getOpenFilenames()
                 n = 1
                 while filename in allFileNames:
-                    filename = shortName = 'untitled%i.py' % n
+                    filename = 'untitled%i.py' % n
                     n += 1
 
                 # create modification time for in memory document

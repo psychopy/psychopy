@@ -1,8 +1,7 @@
 import os
-from os.path import join, split, abspath, isdir
+from os.path import join, split, isdir
 import shutil
 
-global components, cmpFolder
 cmpFolder = join("..", "..", "experiment", "components")
 components = os.listdir(cmpFolder)
 
