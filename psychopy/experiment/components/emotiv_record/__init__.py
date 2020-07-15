@@ -12,7 +12,7 @@ from psychopy.localization import _translate
 CORTEX_OBJ = 'cortex_obj'
 
 thisFolder = path.abspath(path.dirname(__file__))
-iconFile = path.join(thisFolder, 'emotiv.jpg')
+iconFile = path.join(thisFolder, 'emotiv48.png')
 tooltip = _translate('Initialize EMOTIV hardware connection')
 
 

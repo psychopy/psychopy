@@ -14,7 +14,7 @@ from psychopy.experiment.components import (BaseComponent, Param, getInitVals,
 from ..emotiv_record import CORTEX_OBJ
 
 thisFolder = path.abspath(path.dirname(__file__))
-iconFile = path.join(thisFolder, 'marker.jpg')
+iconFile = path.join(thisFolder, 'marker48.png')
 tooltip = _translate('Mark a period of EEG')
 
 _localized = {
