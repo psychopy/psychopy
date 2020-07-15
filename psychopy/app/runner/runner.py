@@ -512,6 +512,7 @@ class RunnerPanel(wx.Panel, ScriptProcess, ThemeMixin):
         if self.currentSelection is None:
             return
 
+        # we only want one server process open
         if self.serverProcess is not None:
             self.serverProcess.kill()
             self.serverProcess = None
@@ -529,21 +530,19 @@ class RunnerPanel(wx.Panel, ScriptProcess, ThemeMixin):
                   'Try exporting your HTML, and try again #####\n'.format(self.outputPath))
             return
 
-        if self.currentProject not in [None, "None", '']:
-            if self.serverProcess is None:
-                self.serverProcess = Popen(command,
-                                           bufsize=1,
-                                           cwd=htmlPath,
-                                           stdout=PIPE,
-                                           stderr=PIPE,
-                                           shell=False,
-                                           universal_newlines=True,
-                                           )
+        self.serverProcess = Popen(command,
+                                   bufsize=1,
+                                   cwd=htmlPath,
+                                   stdout=PIPE,
+                                   stderr=PIPE,
+                                   shell=False,
+                                   universal_newlines=True,
+                                   )
 
-            time.sleep(.1)  # Wait for subprocess to start server
-            webbrowser.open("http://localhost:{}".format(port))
-            print("##### Local server started! #####\n\n"
-                  "##### Running PsychoJS task from {} #####\n".format(htmlPath))
+        time.sleep(.1)  # Wait for subprocess to start server
+        webbrowser.open("http://localhost:{}".format(port))
+        print("##### Local server started! #####\n\n"
+              "##### Running PsychoJS task from {} #####\n".format(htmlPath))
 
     def onURL(self, evt):
         self.parent.onURL(evt)
