@@ -1065,7 +1065,7 @@ class BuilderFrame(wx.Frame, ThemeMixin):
                 return  # save file before compiling script
         if self.app.prefs.general['useRunner']:
             self.stdoutFrame.addTask(fileName=self.filename)
-            self.stdoutFrame.showRunner()
+            self.app.showRunner()
         else:
             self.app.runner.panel.runFile(fileName=self.filename)
 
@@ -1185,7 +1185,7 @@ class BuilderFrame(wx.Frame, ThemeMixin):
         self.generateScript(experimentPath=fullPath, exp=self.exp)
 
         if self.app.prefs.general['useRunner']:
-            self.stdoutFrame.showRunner()
+            self.app.showRunner()
             self.stdoutFrame.stdOut.flush()
 
         self.app.showCoder()  # make sure coder is visible
