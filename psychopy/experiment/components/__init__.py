@@ -23,7 +23,6 @@ from ..params import Param
 from psychopy.localization import _translate
 from psychopy.experiment import py2js
 
-
 excludeComponents = ['BaseComponent', 'BaseVisualComponent',  # templates only
                      'EyetrackerComponent']  # this one isn't ready yet
 
@@ -270,6 +269,12 @@ def getInitVals(params, target="PsychoPy"):
             inits[name].valType = 'str'
         elif name == 'noiseType':
             inits[name].val = 'Binary'
+            inits[name].valType = 'str'
+        elif name == 'marker_label':
+            inits[name].val = 'Label'
+            inits[name].valType = 'str'
+        elif name == 'marker_value':
+            inits[name].val = 'Value'
             inits[name].valType = 'str'
         else:
             print("I don't know the appropriate default value for a '%s' "

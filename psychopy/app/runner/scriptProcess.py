@@ -65,7 +65,8 @@ class ScriptProcess(object):
 
     def runFile(self, event=None, fileName=None):
         """Begin new process to run experiment."""
-        self.app.showRunner()
+        if self.app.prefs.general['useRunner']:
+            self.app.showRunner()
         fullPath = fileName.replace('.psyexp', '_lastrun.py')
 
         # provide a running... message

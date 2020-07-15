@@ -10,10 +10,18 @@ Distributed under the terms of the GNU General Public License (GPL).
 
 from __future__ import absolute_import, division, print_function
 
+import json
+import os, sys
+import glob
+import copy
+import traceback
+import codecs
+import numpy
+
 from pkg_resources import parse_version
-import wx
 import wx.stc
-from wx.lib import platebtn, scrolledpanel
+from wx.lib import scrolledpanel
+from wx.lib import platebtn
 
 import wx.lib.agw.aui as aui  # some versions of phoenix
 try:
@@ -24,31 +32,24 @@ except ImportError:
 if parse_version(wx.__version__) < parse_version('4.0.3'):
     wx.NewIdRef = wx.NewId
 
-import sys
-import os
-import glob
-import copy
-import traceback
-import codecs
-import numpy
-
 try:
     from queue import Queue, Empty
 except ImportError:
     from Queue import Queue, Empty  # python 2.x
 
 from psychopy.localization import _translate
-
-from ... import experiment
+from ... import experiment, prefs
 from .. import dialogs, icons
-from psychopy.app.style import cLib, cs
-from ..icons import getAllIcons, combineImageEmblem
+from ..themes import IconCache, ThemeMixin
+from ..themes._themes import PsychopyDockArt, PsychopyTabArt
 from psychopy import logging, constants, data
 from psychopy.tools.filetools import mergeFolder
 from .dialogs import (DlgComponentProperties, DlgExperimentProperties,
                       DlgCodeComponentProperties, DlgLoopProperties)
 #from .flow import FlowPanel
-from ..utils import *
+from ..utils import (PsychopyToolbar, PsychopyPlateBtn, WindowFrozen,
+                     FileDropTarget)
+
 from psychopy.experiment import components
 from builtins import str
 from psychopy.app import pavlovia_ui
@@ -78,8 +79,9 @@ _localized = {
     'move to bottom': _translate('move to bottom')
 }
 
+cs = ThemeMixin.appColors
 
-class BuilderFrame(wx.Frame):
+class BuilderFrame(wx.Frame, ThemeMixin):
     """Defines construction of the Psychopy Builder Frame"""
 
     def __init__(self, parent, id=-1, title='PsychoPy (Experiment Builder)',
@@ -134,7 +136,12 @@ class BuilderFrame(wx.Frame):
                               self.frameData['winH'])),
                           style=style)
         self.Bind(wx.EVT_CLOSE, self.closeFrame)
-        self.panel = wx.Panel(self)
+        #self.panel = wx.Panel(self)
+
+        # detect retina displays (then don't use double-buffering)
+        self.isRetina = self.GetContentScaleFactor() != 1
+        self.SetDoubleBuffered(not self.isRetina)
+
         # create icon
         if sys.platform != 'darwin':
             # doesn't work on darwin and not necessary: handled by app bundle
@@ -148,7 +155,7 @@ class BuilderFrame(wx.Frame):
         self.componentButtons = ComponentsPanel(self)
         # menus and toolbars
         self.toolbar = PsychopyToolbar(frame=self)
-        self.ToolBar = self.toolbar
+        self.SetToolBar(self.toolbar)
         self.makeMenus()
         self.CreateStatusBar()
         self.SetStatusText("")
@@ -168,21 +175,8 @@ class BuilderFrame(wx.Frame):
 
         # control the panes using aui manager
         self._mgr = aui.AuiManager(self)
-        self._art = PsychopyDockArt()
-        self._mgr.SetArtProvider(self._art)
+        #self._mgr.SetArtProvider(PsychopyDockArt())
         #self._art = self._mgr.GetArtProvider()
-        # Setup modern flat look
-        # self._art.SetMetric(aui.AUI_DOCKART_GRADIENT_TYPE,
-        #                        aui.AUI_GRADIENT_NONE)  # Remove gradient from caption bar
-        # self._art.SetMetric(aui.AUI_DOCKART_CAPTION_SIZE,
-        #                     25) # Make caption bar bigger
-        # self._art.SetColour(aui.AUI_DOCKART_INACTIVE_CAPTION_COLOUR,
-        #     wx.Colour(cs['docker_face'])) # Set caption bar colour
-        # self._art.SetColour(aui.AUI_DOCKART_INACTIVE_CAPTION_TEXT_COLOUR,
-        #     wx.Colour(cs['docker_txt'])) # Set caption colour
-        # self._art.SetColour(aui.AUI_DOCKART_SASH_COLOUR,
-        #     wx.Colour(cs['grippers']))
-
         # Create panels
         self._mgr.AddPane(self.routinePanel,
                           aui.AuiPaneInfo().
@@ -227,6 +221,19 @@ class BuilderFrame(wx.Frame):
 
         self.app.trackFrame(self)
         self.SetDropTarget(FileDropTarget(targetFrame=self))
+        self._applyAppTheme()
+
+    # def _applyAppTheme(self, target=None):
+    #     # self.SetArtProvider(PsychopyDockArt())
+    #     for c in self.GetChildren():
+    #         if hasattr(c, '_applyAppTheme'):
+    #             c._applyAppTheme()
+    #     self.Refresh()
+    #     self.Update()
+
+    # Synonymise Aui manager for use with theme mixin
+    def GetAuiManager(self):
+        return self._mgr
 
     def makeMenus(self):
         """
@@ -384,6 +391,28 @@ class BuilderFrame(wx.Frame):
                                'smallerRoutine'],
                            _translate("Smaller routine items"))
         self.Bind(wx.EVT_MENU, self.routinePanel.decreaseSize, item)
+        menu.AppendSeparator()
+        # Get list of themes
+        themePath = self.GetTopLevelParent().app.prefs.paths['themes']
+        self.themeList = {}
+        for themeFile in os.listdir(themePath):
+            try:
+                # Load theme from json file
+                with open(os.path.join(themePath, themeFile), "rb") as fp:
+                    theme = json.load(fp)
+                # Add themes to list only if min spec is defined
+                base = theme['base']
+                if all(key in base for key in ['bg', 'fg', 'font']):
+                    self.themeList[themeFile.replace('.json', '')] = []
+            except:
+                pass
+        # Add Theme Switcher
+        self.themesMenu = wx.Menu()
+        menu.AppendSubMenu(self.themesMenu,
+                               _translate("Themes..."))
+        for theme in self.themeList:
+            self.themeList[theme] = self.themesMenu.Append(wx.ID_ANY, _translate(theme))
+            self.Bind(wx.EVT_MENU, self.app.onThemeChange, self.themeList[theme])
 
         # ---_experiment---#000000#FFFFFF-------------------------------------
         self.expMenu = wx.Menu()
@@ -860,7 +889,8 @@ class BuilderFrame(wx.Frame):
             newVal = self.getIsModified()
         else:
             self.isModified = newVal
-        self.toolbar.EnableTool(self.bldrBtnSave.Id, newVal)
+        if hasattr(self, 'bldrBtnSave'):
+            self.toolbar.EnableTool(self.bldrBtnSave.Id, newVal)
         self.fileMenu.Enable(wx.ID_SAVE, newVal)
 
     def getIsModified(self):
@@ -957,7 +987,8 @@ class BuilderFrame(wx.Frame):
             label = txt % fmt
             enable = True
         self._undoLabel.SetItemLabel(label)
-        self.toolbar.EnableTool(self.bldrBtnUndo.Id, enable)
+        if hasattr(self, 'bldrBtnUndo'):
+            self.toolbar.EnableTool(self.bldrBtnUndo.Id, enable)
         self.editMenu.Enable(wx.ID_UNDO, enable)
 
         # check redo
@@ -971,7 +1002,8 @@ class BuilderFrame(wx.Frame):
             label = txt % fmt
             enable = True
         self._redoLabel.SetItemLabel(label)
-        self.toolbar.EnableTool(self.bldrBtnRedo.Id, enable)
+        if hasattr(self, 'bldrBtnRedo'):
+            self.toolbar.EnableTool(self.bldrBtnRedo.Id, enable)
         self.editMenu.Enable(wx.ID_REDO, enable)
 
     def demosUnpack(self, event=None):
@@ -1031,9 +1063,11 @@ class BuilderFrame(wx.Frame):
             ok = self.fileSave(self.filename)
             if not ok:
                 return  # save file before compiling script
-
-        self.stdoutFrame.addTask(fileName=self.filename)
-        self.stdoutFrame.showRunner()
+        if self.app.prefs.general['useRunner']:
+            self.stdoutFrame.addTask(fileName=self.filename)
+            self.stdoutFrame.showRunner()
+        else:
+            self.app.runner.panel.runFile(fileName=self.filename)
 
     def onCopyRoutine(self, event=None):
         """copy the current routine from self.routinePanel
@@ -1150,8 +1184,9 @@ class BuilderFrame(wx.Frame):
         fullPath = self.filename.replace('.psyexp', '.py')
         self.generateScript(experimentPath=fullPath, exp=self.exp)
 
-        self.stdoutFrame.showRunner()
-        self.stdoutFrame.stdOut.flush()
+        if self.app.prefs.general['useRunner']:
+            self.stdoutFrame.showRunner()
+            self.stdoutFrame.stdOut.flush()
 
         self.app.showCoder()  # make sure coder is visible
         self.app.coder.fileNew(filepath=fullPath)
@@ -1256,7 +1291,7 @@ class BuilderFrame(wx.Frame):
         val: int
             Status of git sync. 1 for SUCCESS (green), 0 or -1 for FAIL (RED)
         """
-        rc = self.app.prefs.paths['resources']
+        rc = prefs.paths['icons']
         feedbackTime = 1500
         colour = {0: "red", -1: "red", 1: "green"}
 
@@ -1271,12 +1306,12 @@ class BuilderFrame(wx.Frame):
         # Store original
         origBtn = self.btnHandles['pavloviaSync'].NormalBitmap
         # Create new feedback bitmap
-        feedbackBtn = icons.combineImageEmblem(
-            main=os.path.join(rc, '%sglobe%i.png' % (colour[val], toolbarSize)),
-            emblem=os.path.join(rc, 'sync_green16.png'), pos='bottom_right')
+        feedbackBmp = IconCache.getBitmap(
+                '{}globe.png'.format(colour[val]),
+                size=toolbarSize)
 
         # Set feedback button
-        self.btnHandles['pavloviaSync'].SetNormalBitmap(feedbackBtn)
+        self.btnHandles['pavloviaSync'].SetNormalBitmap(feedbackBmp)
         self.toolbar.Realize()
         self.toolbar.Refresh()
 
@@ -1301,7 +1336,7 @@ class BuilderFrame(wx.Frame):
         self.__dict__['project'] = project
 
 
-class RoutinesNotebook(aui.AuiNotebook):
+class RoutinesNotebook(aui.AuiNotebook, ThemeMixin):
     """A notebook that stores one or more routines
     """
 
@@ -1312,9 +1347,23 @@ class RoutinesNotebook(aui.AuiNotebook):
         self.appData = self.app.prefs.appData
         aui.AuiNotebook.__init__(self, frame, id)
         self.Bind(aui.EVT_AUINOTEBOOK_PAGE_CLOSE, self.onClosePane)
-        self.SetArtProvider(PsychopyTabArt())
+
+        # double buffered better rendering except if retina
+        self.SetDoubleBuffered(self.frame.IsDoubleBuffered())
+
+        self._applyAppTheme()
         if not hasattr(self.frame, 'exp'):
             return  # we haven't yet added an exp
+
+    def _applyAppTheme(self, target=None):
+        self.SetArtProvider(PsychopyTabArt())
+        self.GetAuiManager().SetArtProvider(PsychopyDockArt())
+        for index in range(self.GetPageCount()):
+            page = self.GetPage(index)
+            # double buffered better rendering except if retina
+            self.SetDoubleBuffered(self.frame.IsDoubleBuffered())
+            page._applyAppTheme()
+        self.Refresh()
 
     def getCurrentRoutine(self):
         routinePage = self.getCurrentPage()
@@ -1420,7 +1469,6 @@ class RoutineCanvas(wx.ScrolledWindow):
         wx.ScrolledWindow.__init__(
             self, notebook, id, (0, 0), style=wx.BORDER_NONE | wx.VSCROLL)
 
-        self.SetBackgroundColour(cs['rtcanvas_bg'])
         self.frame = notebook.frame
         self.app = self.frame.app
         self.dpi = self.app.dpi
@@ -1472,7 +1520,7 @@ class RoutineCanvas(wx.ScrolledWindow):
             self.contextItemFromID[id] = item
             self.contextIDFromItem[item] = id
 
-        self.redrawRoutine()
+        self._applyAppTheme()
 
         self.Bind(wx.EVT_PAINT, self.OnPaint)
         self.Bind(wx.EVT_ERASE_BACKGROUND, lambda x: None)
@@ -1480,6 +1528,10 @@ class RoutineCanvas(wx.ScrolledWindow):
         self.Bind(wx.EVT_SIZE, self.onResize)
         # crashes if drop on OSX:
         # self.SetDropTarget(FileDropTarget(builder = self.frame))
+
+    def _applyAppTheme(self, target=None):
+        """Synonymise app theme method with redraw method"""
+        return self.redrawRoutine()
 
     def onResize(self, event):
         self.sizePix = event.GetSize()
@@ -1591,6 +1643,7 @@ class RoutineCanvas(wx.ScrolledWindow):
         self.pdc.Clear()  # clear the screen
         self.pdc.RemoveAll()  # clear all objects (icon buttons)
 
+        self.SetBackgroundColour(ThemeMixin.appColors['tab_bg'])
         # work out where the component names and icons should be from name
         # lengths
         self.setFontSize(self.fontBaseSize // self.dpi, self.pdc)
@@ -1648,8 +1701,8 @@ class RoutineCanvas(wx.ScrolledWindow):
         xEnd = self.timeXposEnd
 
         # dc.SetId(wx.NewIdRef())
-        dc.SetPen(wx.Pen(cs['time_grid']))
-        dc.SetTextForeground(wx.Colour(cs['time_txt']))
+        dc.SetPen(wx.Pen(ThemeMixin.appColors['rt_timegrid']))
+        dc.SetTextForeground(wx.Colour(ThemeMixin.appColors['rt_timegrid']))
         # draw horizontal lines on top and bottom
         dc.DrawLine(x1=xSt, y1=yPosTop,
                     x2=xEnd, y2=yPosTop)
@@ -1688,7 +1741,7 @@ class RoutineCanvas(wx.ScrolledWindow):
             # y is y-half height of text
             dc.DrawText('t (sec)', xEnd + 5,
                         yPosBottom - self.GetFullTextExtent('t')[1] / 2.0)
-        dc.SetTextForeground(wx.Colour(cs['txt_default']))
+        dc.SetTextForeground(ThemeMixin.appColors['text'])
 
     def setFontSize(self, size, dc):
         font = self.GetFont()
@@ -1721,12 +1774,12 @@ class RoutineCanvas(wx.ScrolledWindow):
         xScale = self.getSecsPerPixel()
 
         if component.params['disabled'].val:
-            dc.SetBrush(wx.Brush(cs['isi_disbar']))
-            dc.SetPen(wx.Pen(cs['isi_disbar']))
+            dc.SetBrush(wx.Brush(ThemeMixin.appColors['rt_static_disabled']))
+            dc.SetPen(wx.Pen(ThemeMixin.appColors['rt_static_disabled']))
 
         else:
-            dc.SetBrush(wx.Brush(cs['isi_bar']))
-            dc.SetPen(wx.Pen(cs['isi_bar']))
+            dc.SetBrush(wx.Brush(ThemeMixin.appColors['rt_static']))
+            dc.SetPen(wx.Pen(ThemeMixin.appColors['rt_static']))
 
         xSt = self.timeXposStart + startTime // xScale
         w = duration // xScale + 1  # +1 b/c border alpha=0 in dc.SetPen
@@ -1764,9 +1817,9 @@ class RoutineCanvas(wx.ScrolledWindow):
         dc.SetId(id)
 
         iconYOffset = (6, 6, 0)[self.drawSize]
-        componIcons = getAllIcons(self.app.prefs.builder['componentsFolders'])
-        thisIcon = componIcons[component.getType()]["{}".format(
-            self.iconSize)]  # getType index 0 is main icon
+        icons = self.app.iconCache
+
+        thisIcon = icons.getComponentBitmap(component, self.iconSize)
         dc.DrawBitmap(thisIcon, self.iconXpos, yPos + iconYOffset, True)
         fullRect = wx.Rect(self.iconXpos, yPos,
                            thisIcon.GetWidth(), thisIcon.GetHeight())
@@ -1789,12 +1842,12 @@ class RoutineCanvas(wx.ScrolledWindow):
         # draw entries on timeline (if they have some time definition)
         if startTime is not None and duration is not None:
             # then we can draw a sensible time bar!
-            dc.SetPen(wx.Pen(cs['rtcomp_bar'],
+            dc.SetPen(wx.Pen(ThemeMixin.appColors['rt_comp'],
                              style=wx.TRANSPARENT))
 
             if component.params['disabled'].val:
                 # Grey bar if comp is disabled
-                dc.SetBrush(wx.Brush(cs['rtcomp_disbar']))
+                dc.SetBrush(wx.Brush(ThemeMixin.appColors['rt_comp_disabled']))
                 dc.DrawBitmap(thisIcon.ConvertToDisabled(), self.iconXpos, yPos + iconYOffset, True)
             elif 'forceEndRoutine' in component.params \
                     or 'forceEndRoutineOnPress' in component.params:
@@ -1802,14 +1855,14 @@ class RoutineCanvas(wx.ScrolledWindow):
                        for key in ['forceEndRoutine', 'forceEndRoutineOnPress']
                        if key in component.params):
                     # Orange bar if component has forceEndRoutine or forceEndRoutineOnPress and either are true
-                    dc.SetBrush(wx.Brush(cs['rtcomp_force']))
+                    dc.SetBrush(wx.Brush(ThemeMixin.appColors['rt_comp_force']))
                 else:
                     # Blue bar if component has forceEndRoutine or forceEndRoutineOnPress but none are true
-                    dc.SetBrush(wx.Brush(cs['rtcomp_bar']))
+                    dc.SetBrush(wx.Brush(ThemeMixin.appColors['rt_comp']))
                 dc.DrawBitmap(thisIcon, self.iconXpos, yPos + iconYOffset, True)
             else:
                 # Blue bar otherwise
-                dc.SetBrush(wx.Brush(cs['rtcomp_bar']))
+                dc.SetBrush(wx.Brush(ThemeMixin.appColors['rt_comp']))
                 dc.DrawBitmap(thisIcon, self.iconXpos, yPos + iconYOffset, True)
 
             xScale = self.getSecsPerPixel()
@@ -1940,7 +1993,7 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
                                              style=wx.BORDER_NONE)
         self._maxBtnWidth = 0  # will store width of widest button
         self.sizer = wx.BoxSizer(wx.VERTICAL)
-        self.SetBackgroundColour(cs['cpanel_bg'])
+        self.componentButtons = []
         self.components = experiment.getAllComponents(
             self.app.prefs.builder['componentsFolders'])
         categories = ['Favorites']
@@ -1992,7 +2045,27 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
         self.SetSizer(self.sizer)
         self.SetAutoLayout(True)
         self.SetupScrolling()
-        self.SetDoubleBuffered(True)
+        # double buffered better rendering except if retina
+        self.SetDoubleBuffered(self.frame.IsDoubleBuffered())
+        self._applyAppTheme()  # bitmaps only just loaded
+
+    def _applyAppTheme(self, target=None):
+        cs = ThemeMixin.appColors
+        self.app.iconCache
+        # Style component panel
+        self.SetForegroundColour(cs['text'])
+        self.SetBackgroundColour(cs['panel_bg'])
+        # Style component buttons
+        for btn in self.componentButtons:
+            btn.SetForegroundColour(cs['text'])
+            btn.SetBackgroundColour(cs['panel_bg'])
+            # then apply to all children as well
+        for c in self.GetChildren():
+            if hasattr(c, '_applyAppTheme'):
+                # if the object understands themes then request that
+                c._applyAppTheme()
+        self.Refresh()
+        self.Update()
 
     def on_resize(self, event):
         if self.app.prefs.app['largeIcons']:
@@ -2026,42 +2099,27 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
     def addComponentButton(self, name, panel):
         """Create a component button and add it to a specific panel's sizer
         """
-        componIcons = getAllIcons(self.app.prefs.builder['componentsFolders'])
+        iconCache = self.app.iconCache
         thisComp = self.components[name]
+        # get a shorter name too (without "Component")
         shortName = name
-        for redundant in ['component', 'Component']:
-            if redundant in name:
-                shortName = name.replace(redundant, "")
-        if self.app.prefs.app['largeIcons']:
-            thisIcon = componIcons[name][
-                '48add']  # index 1 is the 'add' icon
-        else:
-            thisIcon = componIcons[name][
-                '24add']  # index 1 is the 'add' icon
-
-        # btn = wx.BitmapButton(self, -1, thisIcon,
-        #                       size=(thisIcon.GetWidth() + 10,
-        #                             thisIcon.GetHeight() + 10),
-        #                       name=thisComp.__name__,
-        #                       style=wx.BORDER_NONE)
-        label = thisComp.__name__.replace("Component", "")
-        label = label.replace("ButtonBox", "")
-        btn = wx.Button(self, -1, label=label,
-                              name=thisComp.__name__,
-                              style=wx.BORDER_NONE)
-        btn.SetBitmap(thisIcon)  # also setBitmapPresseed setBitmapDisabled etc
-        btn.SetBitmapPosition(wx.TOP)
-        # Set button background and hover effect
-        btn.SetBackgroundColour(cs['cpanel_bg'])
-        btn.Bind(wx.EVT_ENTER_WINDOW, self.onHover)
-        btn.Bind(wx.EVT_LEAVE_WINDOW, self.offHover)
-
-        # Configure tooltip
+        for redundant in ['component', 'Component', "ButtonBox"]:
+            shortName = shortName.replace(redundant, "")
+        # set size
+        size = 48
+        # get tooltip
         if name in components.tooltips:
             thisTip = components.tooltips[name]
         else:
             thisTip = shortName
-        btn.SetToolTip(wx.ToolTip(thisTip))
+        btn = iconCache.getComponentButton(
+                parent=self,
+                name=name,
+                label=shortName,
+                size=size,
+                tip=thisTip,
+        )
+        btn.SetBitmapPosition(wx.TOP)
         self.componentFromID[btn.GetId()] = name
         # use btn.bind instead of self.Bind in oder to trap event here
         btn.Bind(wx.EVT_RIGHT_DOWN, self.onRightClick)
@@ -2069,6 +2127,7 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
         # ,wx.EXPAND|wx.ALIGN_CENTER )
         panel.Add(btn, proportion=0, flag=wx.ALIGN_RIGHT)
         self._maxBtnWidth = max(btn.GetSize()[0], self._maxBtnWidth)
+        self.componentButtons.append(btn)
 
     def onSectionBtn(self, evt):
         if hasattr(evt, 'GetString'):
@@ -2212,22 +2271,16 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
         self._rightClicked = None
 
     def onHover(self, evt):
+        cs = ThemeMixin.appColors
         btn = evt.GetEventObject()
-        if isinstance(btn, wx.BitmapButton):
-            btn.SetBackgroundColour(cs['cbutton_hover'])
-        elif isinstance(btn, wx.lib.platebtn.PlateButton):
-            btn.SetBackgroundColour(cs['cbutton_hover'])
-        else:
-            pass
+        btn.SetBackgroundColour(cs['bmpbutton_bg_hover'])
+        btn.SetForegroundColour(cs['bmpbutton_fg_hover'])
 
     def offHover(self, evt):
+        cs = ThemeMixin.appColors
         btn = evt.GetEventObject()
-        if isinstance(btn, wx.BitmapButton):
-            btn.SetBackgroundColour(cs['cpanel_bg'])
-        elif isinstance(btn, wx.lib.platebtn.PlateButton):
-            btn.SetBackgroundColour(cs['cpanel_bg'])
-        else:
-            pass
+        btn.SetBackgroundColour(cs['panel_bg'])
+        btn.SetForegroundColour(cs['text'])
 
 
 class FavoriteComponents(object):
@@ -2465,7 +2518,6 @@ class FlowPanel(wx.ScrolledWindow):
         wx.ScrolledWindow.__init__(self, frame, id, (0, 0),
                                    size=wx.Size(8 * self.dpi, 3 * self.dpi),
                                    style=wx.HSCROLL | wx.VSCROLL | wx.BORDER_NONE)
-        self.SetBackgroundColour(cs['fpanel_bg'])
         self.needUpdate = True
         self.maxWidth = 50 * self.dpi
         self.maxHeight = 2 * self.dpi
@@ -2522,24 +2574,16 @@ class FlowPanel(wx.ScrolledWindow):
             self, -1, labelRoutine, pos=(10, 10), size=(120, btnHeight),
             style=platebtn.PB_STYLE_SQUARE
         )
-        self.btnInsertRoutine.SetBackgroundColour(wx.Colour(cs['fbtns_face']))
-        self.btnInsertRoutine.SetForegroundColour(wx.Colour(cs['fbtns_txt']))
-        self.btnInsertRoutine.Update()
         # Create add loop button
         self.btnInsertLoop = PsychopyPlateBtn(
             self, -1, labelLoop, pos=(10, btnHeight+20),
             size=(120, btnHeight),
             style=platebtn.PB_STYLE_SQUARE
         )  # spaces give size for CANCEL
-        self.btnInsertLoop.SetBackgroundColour(wx.Colour(cs['fbtns_face']))
-        self.btnInsertLoop.SetForegroundColour(wx.Colour(cs['fbtns_txt']))
-        self.btnInsertLoop.Update()
 
         # use self.appData['flowSize'] to index a tuple to get a specific
         # value, eg: (4,6,8)[self.appData['flowSize']]
         self.flowMaxSize = 2  # upper limit on increaseSize
-
-        self.draw()
 
         # bind events
         self.Bind(wx.EVT_MOUSE_EVENTS, self.OnMouse)
@@ -2554,8 +2598,25 @@ class FlowPanel(wx.ScrolledWindow):
         ])
         self.SetAcceleratorTable(aTable)
 
-        # set double buffering to reduce flicker
-        self.SetDoubleBuffered(True)
+        # double buffered better rendering except if retina
+        self.SetDoubleBuffered(self.frame.IsDoubleBuffered())
+
+        self._applyAppTheme()
+
+    def _applyAppTheme(self, target=None):
+        """Apply any changes which have been made to the theme since panel was last loaded"""
+        cs = ThemeMixin.appColors
+        # Style loop/routine buttons
+        self.btnInsertLoop.SetBackgroundColour(cs['frame_bg'])
+        self.btnInsertLoop.SetForegroundColour(cs['text'])
+        self.btnInsertLoop.Update()
+        self.btnInsertRoutine.SetBackgroundColour(cs['frame_bg'])
+        self.btnInsertRoutine.SetForegroundColour(cs['text'])
+        self.btnInsertRoutine.Update()
+        # Set background
+        self.SetBackgroundColour(cs['panel_bg'])
+
+        self.draw()
 
     def clearMode(self, event=None):
         """If we were in middle of doing something (like inserting routine)
@@ -3010,7 +3071,7 @@ class FlowPanel(wx.ScrolledWindow):
         # step through components in flow, get spacing from text size, etc
         currX = self.linePos[0]
         lineId = wx.NewIdRef()
-        pdc.SetPen(wx.Pen(colour=cs['fpanel_ln']))
+        pdc.SetPen(wx.Pen(colour=cs['fl_flowline_bg']))
         pdc.DrawLine(x1=self.linePos[0] - gap, y1=self.linePos[1],
                      x2=self.linePos[0], y2=self.linePos[1])
         # NB the loop is itself the key, value is further info about it
@@ -3038,7 +3099,7 @@ class FlowPanel(wx.ScrolledWindow):
             self.gapMidPoints.append(currX + gap / 2)
             self.gapNestLevels.append(nestLevel)
             pdc.SetId(lineId)
-            pdc.SetPen(wx.Pen(colour=cs['fpanel_ln']))
+            pdc.SetPen(wx.Pen(colour=cs['fl_flowline_bg']))
             pdc.DrawLine(x1=currX, y1=self.linePos[1],
                          x2=currX + gap, y2=self.linePos[1])
             currX += gap
@@ -3069,7 +3130,7 @@ class FlowPanel(wx.ScrolledWindow):
             if entry.getType() == 'Routine':
                 currX = self.drawFlowRoutine(pdc, entry, id=ii,
                                              pos=[currX, self.linePos[1] - 10])
-            pdc.SetPen(wx.Pen(wx.Pen(colour=cs['fpanel_ln'])))
+            pdc.SetPen(wx.Pen(wx.Pen(colour=cs['fl_flowline_bg'])))
             pdc.DrawLine(x1=currX, y1=self.linePos[1],
                          x2=currX + gap, y2=self.linePos[1])
             currX += gap
@@ -3090,7 +3151,7 @@ class FlowPanel(wx.ScrolledWindow):
                 id = wx.NewIdRef()
                 self.entryPointIDlist.append(id)
                 self.pdc.SetId(id)
-                self.pdc.SetBrush(wx.Brush(cs['loop_face']))
+                self.pdc.SetBrush(wx.Brush(cs['fl_flowline_bg']))
                 self.pdc.DrawCircle(pos, self.linePos[1], ptSize)
                 r = self.pdc.GetIdBounds(id)
                 self.OffsetRect(r)
@@ -3128,8 +3189,8 @@ class FlowPanel(wx.ScrolledWindow):
         # draw bar at start of timeline; circle looked bad, offset vertically
         ptSize = (9, 9, 12)[self.appData['flowSize']]
         thic = (1, 1, 2)[self.appData['flowSize']]
-        dc.SetBrush(wx.Brush(cs['fpanel_ln']))
-        dc.SetPen(wx.Pen(cs['fpanel_ln']))
+        dc.SetBrush(wx.Brush(cs['fl_flowline_bg']))
+        dc.SetPen(wx.Pen(cs['fl_flowline_bg']))
         dc.DrawPolygon([[0, -ptSize], [thic, -ptSize],
                         [thic, ptSize], [0, ptSize]], pos[0], pos[1])
 
@@ -3137,8 +3198,8 @@ class FlowPanel(wx.ScrolledWindow):
         # draws arrow at end of timeline
         # tmpId = wx.NewIdRef()
         # dc.SetId(tmpId)
-        dc.SetBrush(wx.Brush(cs['fpanel_ln']))
-        dc.SetPen(wx.Pen(cs['fpanel_ln']))
+        dc.SetBrush(wx.Brush(cs['fl_flowline_bg']))
+        dc.SetPen(wx.Pen(cs['fl_flowline_bg']))
         dc.DrawPolygon([[0, -3], [5, 0], [0, 3]], pos[0], pos[1])
         # dc.SetIdBounds(tmpId,wx.Rect(pos[0],pos[1]+3,5,6))
 
@@ -3164,8 +3225,8 @@ class FlowPanel(wx.ScrolledWindow):
         # draws direction arrow on left side of a loop
         tmpId = wx.NewIdRef()
         dc.SetId(tmpId)
-        dc.SetBrush(wx.Brush(cs['fpanel_ln']))
-        dc.SetPen(wx.Pen(cs['fpanel_ln']))
+        dc.SetBrush(wx.Brush(cs['fl_flowline_bg']))
+        dc.SetPen(wx.Pen(cs['fl_flowline_bg']))
         size = (3, 4, 5)[self.appData['flowSize']]
         offset = (3, 2, 0)[self.appData['flowSize']]
         if downwards:
@@ -3202,13 +3263,13 @@ class FlowPanel(wx.ScrolledWindow):
 
         maxTime, nonSlip = routine.getMaxTime()
         if nonSlip:
-            rtFill = cs['frt_nonslip']
-            rtEdge = cs['frt_nonslip']
-            rtText = cs['frt_txt']
+            rtFill = cs['fl_routine_bg_nonslip']
+            rtEdge = cs['fl_routine_bg_nonslip']
+            rtText = cs['fl_routine_fg']
         else:
-            rtFill = cs['frt_slip']
-            rtEdge = cs['frt_slip']
-            rtText = cs['frt_txt']
+            rtFill = cs['fl_routine_bg_slip']
+            rtEdge = cs['fl_routine_bg_slip']
+            rtText = cs['fl_routine_fg']
 
         # get size based on text
         self.SetFont(font)
@@ -3256,7 +3317,7 @@ class FlowPanel(wx.ScrolledWindow):
         curve = (6, 11, 15)[self.appData['flowSize']]
         yy = [base, height + curve * up, height +
               curve * up / 2, height]  # for area
-        dc.SetPen(wx.Pen(cs['fpanel_ln']))
+        dc.SetPen(wx.Pen(cs['fl_flowline_bg']))
         vertOffset = 0  # 1 is interesting too
         area = wx.Rect(startX, base + vertOffset,
                        endX - startX, max(yy) - min(yy))
@@ -3318,13 +3379,13 @@ class FlowPanel(wx.ScrolledWindow):
         # draw box
         rect = wx.Rect(x, y, w + pad, h + pad)
         # the edge should match the text
-        dc.SetPen(wx.Pen(cs['loop_face']))
+        dc.SetPen(wx.Pen(cs['fl_flowline_bg']))
         # try to make the loop fill brighter than the background canvas:
-        dc.SetBrush(wx.Brush(cs['loop_face']))
+        dc.SetBrush(wx.Brush(cs['fl_flowline_bg']))
 
         dc.DrawRoundedRectangle(rect, (4, 6, 8)[flowsize])
         # draw text
-        dc.SetTextForeground(cs['loop_txt'])
+        dc.SetTextForeground(cs['fl_flowline_fg'])
         dc.DrawText(name, x + pad / 2, y + pad / 2)
 
         self.componentFromID[id] = loop
