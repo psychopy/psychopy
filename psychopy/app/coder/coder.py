@@ -1098,7 +1098,7 @@ class CoderFrame(wx.Frame, ThemeMixin):
         # Create menus and status bar
         self.makeMenus()
         self.makeStatusBar()
-        self.statusBar.SetStatusText("PsychoPy v{}".format(psychopy.__version__), 3)
+        #self.statusBar.SetStatusText("PsychoPy v{}".format(psychopy.__version__), 3)
         self.fileMenu = self.editMenu = self.viewMenu = None
         self.helpMenu = self.toolsMenu = None
 
