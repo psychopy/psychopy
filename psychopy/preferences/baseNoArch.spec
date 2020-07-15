@@ -42,6 +42,8 @@
     shutdownKeyModifiers = list(default=list())
     # What to do if gamma-correction not possible
     gammaErrorPolicy = option('abort', 'warn', default='abort')
+    # Should the Builder and Coder "run" buttons add the experiment to runner view or skip straight to running it?
+    useRunner = boolean(default='True')
 
 # Application settings, applied to coder, builder, & prefs windows
 [app]
@@ -61,8 +63,8 @@
     locale = string(default='')
     # Show an error dialog when PsychoPy encounters an unhandled internal error.
     errorDialog = boolean(default='True')
-    # Whether or not to use dark mode
-    darkmode = boolean(default='False')
+    # Theme
+    theme = string(default='PsychopyLight')
 
 # Settings for the Coder window
 [coder]
@@ -80,12 +82,12 @@
     lineSpacing = integer(0, 64, default=4)
     # Long line edge guide, specify zero to disable
     edgeGuideColumn = integer(0, 65536, default=80)
-    # Color theme to use for syntax highlighting
-    theme = string(default='PsychopyLight')
     # activate the source assistant panel
     showSourceAsst = boolean(default=True)
     # activate the output and shell panels
     showOutput = boolean(default=True)
+    # Show code completion suggestion and calltips automatically when typing.
+    autocomplete = boolean(default=True)
     # reload previously opened files after start
     reloadPrevFiles = boolean(default=True)
     # for coder shell window, which shell to use

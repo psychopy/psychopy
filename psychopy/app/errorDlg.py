@@ -207,7 +207,7 @@ def exceptionCallback(exc_type, exc_value, exc_traceback):
     if not isErrorDialogVisible():
         # format the traceback text
         tbText = ''.join(traceback.format_exception(
-            exc_type, exc_value, exc_traceback, limit=8))
+            exc_type, exc_value, exc_traceback))
         _error_dlg = ErrorMsgDialog(None, tbText)
 
         # show the dialog

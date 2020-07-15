@@ -15,7 +15,7 @@ import keyword
 import wx
 from collections import OrderedDict
 from psychopy.experiment.components.code import CodeComponent
-from ...coder import StylerMixin
+from ...themes import ThemeMixin
 
 try:
     from wx.lib.agw import flatnotebook
@@ -116,6 +116,7 @@ class DlgCodeComponentProperties(wx.Dialog):
                     _panel = self.tabs[tabName]
                 else:
                     _panel = wx.Panel(self.codeNotebook, wx.ID_ANY)
+                    _panel.app = self.app
                     self.tabs[tabName] = _panel
                     tabN += 1
 
@@ -457,7 +458,7 @@ class DlgCodeComponentProperties(wx.Dialog):
         self.app.followLink(url=self.helpUrl)
 
 
-class CodeBox(BaseCodeEditor, StylerMixin):
+class CodeBox(BaseCodeEditor, ThemeMixin):
     # this comes mostly from the wxPython demo styledTextCtrl 2
 
     def __init__(self, parent, ID, prefs,
@@ -471,13 +472,18 @@ class CodeBox(BaseCodeEditor, StylerMixin):
         BaseCodeEditor.__init__(self, parent, ID, pos, size, style)
 
         self.parent = parent
+        self.app = parent.app
         self.prefs = prefs.coder
         self.appData = prefs.appData
         self.paths = prefs.paths
         self.params = params
         self.codeType = codeType
-        self.SetLexer(wx.stc.STC_LEX_PYTHON)
-        self.SetKeyWords(0, " ".join(keyword.kwlist))
+        lexers = {
+            'Py': wx.stc.STC_LEX_PYTHON,
+            'JS': wx.stc.STC_LEX_CPP,
+            'txt': wx.stc.STC_LEX_CONTAINER
+        }
+        self.SetLexer(lexers[codeType])
 
         self.SetProperty("fold", "1")
         # 4 means 'tabs are bad'; 1 means 'flag inconsistency'
@@ -491,7 +497,7 @@ class CodeBox(BaseCodeEditor, StylerMixin):
         self.Bind(wx.EVT_KEY_DOWN, self.OnKeyPressed)
 
         # apply the theme to the lexer
-        self.theme = self.prefs['theme']
+        self._applyAppTheme()
 
     def OnKeyPressed(self, event):
         keyCode = event.GetKeyCode()
