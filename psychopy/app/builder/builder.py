@@ -38,7 +38,7 @@ except ImportError:
     from Queue import Queue, Empty  # python 2.x
 
 from psychopy.localization import _translate
-from ... import experiment
+from ... import experiment, prefs
 from .. import dialogs, icons
 from ..themes import IconCache, ThemeMixin
 from ..themes._themes import PsychopyDockArt, PsychopyTabArt
@@ -136,7 +136,7 @@ class BuilderFrame(wx.Frame, ThemeMixin):
                               self.frameData['winH'])),
                           style=style)
         self.Bind(wx.EVT_CLOSE, self.closeFrame)
-        self.panel = wx.Panel(self)
+        #self.panel = wx.Panel(self)
 
         # detect retina displays (then don't use double-buffering)
         self.isRetina = self.GetContentScaleFactor() != 1
@@ -1291,7 +1291,7 @@ class BuilderFrame(wx.Frame, ThemeMixin):
         val: int
             Status of git sync. 1 for SUCCESS (green), 0 or -1 for FAIL (RED)
         """
-        rc = self.app.prefs.paths['icons']
+        rc = prefs.paths['icons']
         feedbackTime = 1500
         colour = {0: "red", -1: "red", 1: "green"}
 
@@ -2106,10 +2106,7 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
         for redundant in ['component', 'Component', "ButtonBox"]:
             shortName = shortName.replace(redundant, "")
         # set size
-        if self.app.prefs.app['largeIcons']:
-            size = 48
-        else:
-            size = 24
+        size = 48
         # get tooltip
         if name in components.tooltips:
             thisTip = components.tooltips[name]

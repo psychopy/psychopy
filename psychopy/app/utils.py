@@ -205,6 +205,7 @@ class PsychopyToolbar(wx.ToolBar, ThemeMixin):
                     shortcut='runScript',
                     tooltip=_translate("Run experiment"),
                     func=self.frame.runFile)  # Run
+            self.AddSeparator()  # Seperator
             pavButtons.addPavloviaTools()
         elif frame.__class__.__name__ == 'CoderFrame':
             self.addPsychopyTool('filenew', 'New', 'new',

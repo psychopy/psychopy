@@ -20,7 +20,7 @@ import webbrowser
 from pathlib import Path
 from subprocess import Popen, PIPE
 
-from psychopy import experiment
+from psychopy import experiment, prefs
 from psychopy.app.utils import PsychopyPlateBtn, PsychopyToolbar
 from psychopy.constants import PY3
 from psychopy.localization import _translate
@@ -377,9 +377,11 @@ class RunnerPanel(wx.Panel, ScriptProcess, ThemeMixin):
         if target == None:
             target = self
 
-        target.SetBackgroundColour(ThemeMixin.appColors['panel_bg'])
-        target.SetForegroundColour(ThemeMixin.appColors['text'])
+        self.alertsCtrl._applyAppTheme()
+        self.stdoutCtrl._applyAppTheme()
         ThemeMixin._applyAppTheme(self.expCtrl)
+        target.SetBackgroundColour(ThemeMixin.appColors['frame_bg'])
+        target.SetForegroundColour(ThemeMixin.appColors['text'])
 
         buttons = {
             self.plusBtn: {'main': 'addExp32.png'},
@@ -815,6 +817,6 @@ class StdOutText(StdOutRich, ThemeMixin):
         self.setStatus(text)
 
     def write(self, inStr, evt=False):
-        # Override default write behaviour to also updte theme on each write
+        # Override default write behaviour to also update theme on each write
         StdOutRich.write(self, inStr, evt)
         self._applyAppTheme()

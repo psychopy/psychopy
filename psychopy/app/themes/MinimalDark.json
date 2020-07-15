@@ -4,7 +4,7 @@
   "base": {
     "fg": "#F2F2F2",
     "bg": "#75757D",
-    "font": "Consolas"
+    "font": ["Consolas", "Monaco", "Lucida Console"]
   },
   "margin": {
     "fg": "#F2F2F2",
@@ -44,7 +44,7 @@
   "keyword2": {
     "fg": "",
     "bg": "",
-    "font": "Consolas,italic,bold"
+    "font": ["italic","bold"]
   },
   "controlchar": {
     "fg": "#F46E75",
@@ -89,7 +89,7 @@
   "decorator": {
     "fg": "#F46E75",
     "bg": "",
-    "font": "Consolas,bold"
+    "font": "bold"
   },
   "class": {
     "fg": "",

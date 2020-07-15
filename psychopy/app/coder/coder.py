@@ -32,7 +32,7 @@ import textwrap
 from . import psychoParser
 from .. import stdOutRich, dialogs
 from .. import pavlovia_ui
-from psychopy import logging
+from psychopy import logging, prefs
 from psychopy.localization import _translate
 from ..utils import FileDropTarget, PsychopyToolbar
 from psychopy.projects import pavlovia
@@ -597,7 +597,7 @@ class CodeEditor(BaseCodeEditor, CodeEditorFoldingMixin, ThemeMixin):
         # double buffered better rendering except if retina
         self.SetDoubleBuffered(self.coder.IsDoubleBuffered())
 
-        self.theme = self.prefs['theme']
+        self.theme = self.app.prefs.app['theme']
 
     def setFonts(self):
         """Make some styles,  The lexer defines what each style is used for,
@@ -620,7 +620,7 @@ class CodeEditor(BaseCodeEditor, CodeEditorFoldingMixin, ThemeMixin):
         faces['comment'] = self.coder.prefs['codeFont']
 
         # apply the theme to the lexer
-        self.theme = self.coder.prefs['theme']
+        self.theme = self.coder.app.prefs.app['theme']
 
     def setLexerFromFileName(self):
         """Set the lexer to one that best matches the file name."""
@@ -2626,12 +2626,12 @@ class CoderFrame(wx.Frame, ThemeMixin):
     def _applyAppTheme(self, target=None):
         """Overrides theme change from ThemeMixin.
         Don't call - this is called at the end of theme.setter"""
-        # ThemeMixin._applyAppTheme(target=self)  # handles most recursive setting
-        self.toolbar.SetBackgroundColour(ThemeMixin.appColors['frame_bg'])
+        ThemeMixin._applyAppTheme(self)  # handles most recursive setting
+
         self.toolbar.ClearTools()
         self.toolbar.makeTools()
 
-        # ThemeMixin._applyAppTheme(self.fileBrowserWindow)
+        ThemeMixin._applyAppTheme(self.toolbar)
         ThemeMixin._applyAppTheme(self.statusBar)
         # updating sourceAsst will incl fileBrowser and sourcetree
         ThemeMixin._applyAppTheme(self.sourceAsst)
