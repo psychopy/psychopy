@@ -221,7 +221,7 @@ class PrefPropGrid(wx.Panel):
             if s not in self.sections.keys():
                 self.sections[s] = dict()
 
-        nbBitmap = app.iconCache.getBitmap(bitmap)
+        nbBitmap = self.app.iconCache.getBitmap(bitmap)
         if nbBitmap.IsOk():
             self.prefsImages.Add(nbBitmap)
 
