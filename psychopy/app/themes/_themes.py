@@ -1,8 +1,11 @@
+import os
+import subprocess
 import sys
 
 import wx
 import wx.lib.agw.aui as aui
 import wx.stc as stc
+from psychopy.localization import _translate
 from wx import py
 import keyword
 import builtins
@@ -942,3 +945,28 @@ class PsychopyDockArt(aui.AuiDefaultDockArt):
         # self._caption_font
         self._caption_size = 25
         self._button_size = 20
+
+
+class ThemeSwitcher(wx.Menu):
+    """Class to make a submenu for switching theme, meaning that the menu will always be the same across frames."""
+    def __init__(self, frame):
+        # Get list of themes
+        themePath = prefs.paths['themes']
+        themeList = {}
+        for themeFile in os.listdir(themePath):
+            try:
+                # Load theme from json file
+                with open(os.path.join(themePath, themeFile), "rb") as fp:
+                    theme = json.load(fp)
+                # Add themes to list only if min spec is defined
+                base = theme['base']
+                if all(key in base for key in ['bg', 'fg', 'font']):
+                    themeList[themeFile.replace('.json', '')] = []
+            except:
+                pass
+        # Make menu
+        wx.Menu.__init__(self)
+        # Make buttons
+        for theme in themeList:
+            item = self.Append(wx.ID_ANY, _translate(theme))
+            frame.Bind(wx.EVT_MENU, frame.app.onThemeChange, item)
