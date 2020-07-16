@@ -408,7 +408,7 @@ class BuilderFrame(wx.Frame, ThemeMixin):
                 pass
         # Add Theme Switcher
         self.themesMenu = wx.Menu()
-        item = menu.AppendSubMenu(self.themesMenu,
+        menu.AppendSubMenu(self.themesMenu,
                                _translate("Themes..."))
         for theme in self.themeList:
             self.themeList[theme] = self.themesMenu.Append(wx.ID_ANY, _translate(theme))
@@ -1063,10 +1063,10 @@ class BuilderFrame(wx.Frame, ThemeMixin):
             ok = self.fileSave(self.filename)
             if not ok:
                 return  # save file before compiling script
-        if self.app.prefs.general['useRunner']:
-            self.stdoutFrame.addTask(fileName=self.filename)
-            self.stdoutFrame.showRunner()
-        else:
+
+        self.stdoutFrame.addTask(fileName=self.filename)
+        self.app.showRunner()
+        if prefs.app['skipToRun']:
             self.app.runner.panel.runFile(fileName=self.filename)
 
     def onCopyRoutine(self, event=None):
@@ -1185,7 +1185,7 @@ class BuilderFrame(wx.Frame, ThemeMixin):
         self.generateScript(experimentPath=fullPath, exp=self.exp)
 
         if self.app.prefs.general['useRunner']:
-            self.stdoutFrame.showRunner()
+            self.app.showRunner()
             self.stdoutFrame.stdOut.flush()
 
         self.app.showCoder()  # make sure coder is visible
@@ -1905,6 +1905,7 @@ class RoutineCanvas(wx.ScrolledWindow):
             if 'name' in dir(newCompon):
                 newCompon.name = newName
             self.routine.addComponent(newCompon)
+            self.frame.exp.namespace.user.append(newName)
             # could do redrawRoutines but would be slower?
             self.redrawRoutine()
             self.frame.addToUndoStack("PASTE Component `%s`" % newName)

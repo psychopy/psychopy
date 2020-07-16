@@ -235,7 +235,7 @@ class PsychoPyApp(wx.App, themes.ThemeMixin):
         """
         self.SetAppName('PsychoPy3')
 
-        if True: #showSplash:
+        if showSplash: #showSplash:
             # show splash screen
             splashFile = os.path.join(
                 self.prefs.paths['resources'], 'psychopySplash.png')
@@ -604,12 +604,12 @@ class PsychoPyApp(wx.App, themes.ThemeMixin):
             self.SetTopWindow(thisFrame)
 
     def showRunner(self, event=None):
-        if not self.runner and self.prefs.general['useRunner']:
+        if not self.runner:
             self.runner = self.newRunnerFrame()
-            if not self.testMode:
-                self.runner.Show()
-                self.runner.Raise()
-                self.SetTopWindow(self.runner)
+        if not self.testMode:
+            self.runner.Show()
+            self.runner.Raise()
+            self.SetTopWindow(self.runner)
 
     def newRunnerFrame(self, event=None):
         # have to reimport because it is only local to __init__ so far

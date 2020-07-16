@@ -53,6 +53,8 @@
 [app]
     # display tips when starting PsychoPy
     showStartupTips = boolean(default='True')
+    # Should the Builder and Coder "run" buttons skip straight to running the file?
+    skipToRun = boolean(default='False')
     # size of icons in the Coder and Builder toolbars (top of window)
     largeIcons = boolean(default='True')
     # what windows to display when PsychoPy starts
@@ -101,6 +103,8 @@
 [builder]
     # whether to automatically reload a previously open experiment
     reloadPrevExp = boolean(default=False)
+    # Default to when writing code components
+    codeComponentLanguage = option('Py', 'JS', 'Both', 'Auto->JS', default='Auto->JS')
     # if False will create scripts with an 'easier' but more cluttered namespace
     unclutteredNamespace = boolean(default=False)
     # folder names for custom components; expects a comma-separated list

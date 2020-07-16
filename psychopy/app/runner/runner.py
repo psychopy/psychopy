@@ -20,7 +20,7 @@ import webbrowser
 from pathlib import Path
 from subprocess import Popen, PIPE
 
-from psychopy import experiment, prefs
+from psychopy import experiment
 from psychopy.app.utils import PsychopyPlateBtn, PsychopyToolbar
 from psychopy.constants import PY3
 from psychopy.localization import _translate
@@ -262,8 +262,7 @@ class RunnerFrame(wx.Frame, ThemeMixin):
         self.app.coder.setFileModified(False)
 
     def showRunner(self):
-        if self.app.prefs.general['useRunner']:
-            self.app.showRunner()
+        self.app.showRunner()
 
     @property
     def taskList(self):
@@ -514,6 +513,7 @@ class RunnerPanel(wx.Panel, ScriptProcess, ThemeMixin):
         if self.currentSelection is None:
             return
 
+        # we only want one server process open
         if self.serverProcess is not None:
             self.serverProcess.kill()
             self.serverProcess = None
@@ -531,21 +531,19 @@ class RunnerPanel(wx.Panel, ScriptProcess, ThemeMixin):
                   'Try exporting your HTML, and try again #####\n'.format(self.outputPath))
             return
 
-        if self.currentProject not in [None, "None", '']:
-            if self.serverProcess is None:
-                self.serverProcess = Popen(command,
-                                           bufsize=1,
-                                           cwd=htmlPath,
-                                           stdout=PIPE,
-                                           stderr=PIPE,
-                                           shell=False,
-                                           universal_newlines=True,
-                                           )
+        self.serverProcess = Popen(command,
+                                   bufsize=1,
+                                   cwd=htmlPath,
+                                   stdout=PIPE,
+                                   stderr=PIPE,
+                                   shell=False,
+                                   universal_newlines=True,
+                                   )
 
-            time.sleep(.1)  # Wait for subprocess to start server
-            webbrowser.open("http://localhost:{}".format(port))
-            print("##### Local server started! #####\n\n"
-                  "##### Running PsychoJS task from {} #####\n".format(htmlPath))
+        time.sleep(.1)  # Wait for subprocess to start server
+        webbrowser.open("http://localhost:{}".format(port))
+        print("##### Local server started! #####\n\n"
+              "##### Running PsychoJS task from {} #####\n".format(htmlPath))
 
     def onURL(self, evt):
         self.parent.onURL(evt)

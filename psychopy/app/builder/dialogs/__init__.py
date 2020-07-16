@@ -127,6 +127,9 @@ class ParamCtrls(object):
             self.valueCtrl = CodeBox(parent, -1, pos=wx.DefaultPosition,
                                      size=wx.Size(sx, sy), style=0,
                                      prefs=appPrefs, codeType='txt')
+            if fieldName == 'text':
+                # Hide margin for textbox
+                self.valueCtrl.SetMarginWidth(0,0)
             if len(param.val):
                 self.valueCtrl.AddText(str(param.val))
             if fieldName == 'text':

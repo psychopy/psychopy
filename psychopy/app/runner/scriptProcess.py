@@ -65,9 +65,9 @@ class ScriptProcess(object):
 
     def runFile(self, event=None, fileName=None):
         """Begin new process to run experiment."""
-        if self.app.prefs.general['useRunner']:
-            self.app.showRunner()
+        self.app.showRunner()
         fullPath = fileName.replace('.psyexp', '_lastrun.py')
+        wx.BeginBusyCursor()
 
         # provide a running... message
         self.app.runner.stdOut.write((u"## Running: {} ##".format(fullPath)).center(80, "#")+"\n")
@@ -124,6 +124,10 @@ class ScriptProcess(object):
 
     def onProcessEnded(self, event=None):
         """Perform when script has finished running."""
+        try:
+            wx.EndBusyCursor()
+        except wx._core.wxAssertionError:
+            pass
         self._stdoutThread.exit = True
         time.sleep(0.1)  # give time for the buffers to finish writing?
         buff = self._stdoutThread.getBuffer()

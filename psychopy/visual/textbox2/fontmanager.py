@@ -767,8 +767,6 @@ class FontManager(object):
 
         return self.addFontFiles(fontPaths)
 
-        return fi
-
     # Class methods for FontManager below this comment should not need to be
     # used by user scripts in most situations. Accessing them is okay.
 
