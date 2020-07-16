@@ -262,8 +262,7 @@ class RunnerFrame(wx.Frame, ThemeMixin):
         self.app.coder.setFileModified(False)
 
     def showRunner(self):
-        if self.app.prefs.general['useRunner']:
-            self.app.showRunner()
+        self.app.showRunner()
 
     @property
     def taskList(self):
@@ -377,9 +376,11 @@ class RunnerPanel(wx.Panel, ScriptProcess, ThemeMixin):
         if target == None:
             target = self
 
-        target.SetBackgroundColour(ThemeMixin.appColors['panel_bg'])
-        target.SetForegroundColour(ThemeMixin.appColors['text'])
+        self.alertsCtrl._applyAppTheme()
+        self.stdoutCtrl._applyAppTheme()
         ThemeMixin._applyAppTheme(self.expCtrl)
+        target.SetBackgroundColour(ThemeMixin.appColors['frame_bg'])
+        target.SetForegroundColour(ThemeMixin.appColors['text'])
 
         buttons = {
             self.plusBtn: {'main': 'addExp32.png'},
@@ -512,6 +513,7 @@ class RunnerPanel(wx.Panel, ScriptProcess, ThemeMixin):
         if self.currentSelection is None:
             return
 
+        # we only want one server process open
         if self.serverProcess is not None:
             self.serverProcess.kill()
             self.serverProcess = None
@@ -529,21 +531,19 @@ class RunnerPanel(wx.Panel, ScriptProcess, ThemeMixin):
                   'Try exporting your HTML, and try again #####\n'.format(self.outputPath))
             return
 
-        if self.currentProject not in [None, "None", '']:
-            if self.serverProcess is None:
-                self.serverProcess = Popen(command,
-                                           bufsize=1,
-                                           cwd=htmlPath,
-                                           stdout=PIPE,
-                                           stderr=PIPE,
-                                           shell=False,
-                                           universal_newlines=True,
-                                           )
+        self.serverProcess = Popen(command,
+                                   bufsize=1,
+                                   cwd=htmlPath,
+                                   stdout=PIPE,
+                                   stderr=PIPE,
+                                   shell=False,
+                                   universal_newlines=True,
+                                   )
 
-            time.sleep(.1)  # Wait for subprocess to start server
-            webbrowser.open("http://localhost:{}".format(port))
-            print("##### Local server started! #####\n\n"
-                  "##### Running PsychoJS task from {} #####\n".format(htmlPath))
+        time.sleep(.1)  # Wait for subprocess to start server
+        webbrowser.open("http://localhost:{}".format(port))
+        print("##### Local server started! #####\n\n"
+              "##### Running PsychoJS task from {} #####\n".format(htmlPath))
 
     def onURL(self, evt):
         self.parent.onURL(evt)
@@ -815,6 +815,6 @@ class StdOutText(StdOutRich, ThemeMixin):
         self.setStatus(text)
 
     def write(self, inStr, evt=False):
-        # Override default write behaviour to also updte theme on each write
+        # Override default write behaviour to also update theme on each write
         StdOutRich.write(self, inStr, evt)
         self._applyAppTheme()

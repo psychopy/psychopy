@@ -1,3 +1,5 @@
+import sys
+
 import wx
 import wx.lib.agw.aui as aui
 import wx.stc as stc
@@ -10,9 +12,10 @@ from psychopy import logging
 import psychopy
 from ...experiment import components
 import json
+from matplotlib import font_manager
 
 thisFolder = Path(__file__).parent
-
+fm = font_manager.FontManager()
 iconsPath = Path(prefs.paths['resources'])
 
 try:
@@ -60,7 +63,7 @@ class ThemeMixin:
     }
     # these are populated and modified by PsychoPyApp.theme.setter
     spec = None
-    codetheme = 'PsychopyDark'
+    codetheme = 'PsychopyLight'
     mode = 'light'
     icons = 'light'
     codeColors = {}
@@ -82,7 +85,7 @@ class ThemeMixin:
             with open(str(themesPath / "PsychopyLight.json"), "rb") as fp:
                 ThemeMixin.spec = themeSpec = json.load(fp)
         appColorMode = themeSpec['app']
-
+        # Get app spec
         try:
             with open(str(themesPath / "app/{}.json".format(appColorMode)), "rb") as fp:
                 ThemeMixin.spec = appColors = json.load(fp)
@@ -149,13 +152,21 @@ class ThemeMixin:
                 page = target.GetPage(index)
                 page.SetBackgroundColour(ThemeMixin.appColors['panel_bg'])
                 if page.GetName() in tabIcons:
-                    bmp = IconCache.getBitmap(tabIcons[page.GetName()])
-                    target.SetPageBitmap(bmp)
+                    bmp = IconCache.getBitmap(IconCache(), tabIcons[page.GetName()])
+                    target.SetPageBitmap(index, bmp)
                 page._applyAppTheme()
 
         def applyToCodeEditor(target):
             spec = ThemeMixin.codeColors
             base = spec['base']
+            # Override base font with user spec if present
+            prefkey = 'outputFont' if isinstance(target, wx.py.shell.Shell) else 'codeFont'
+            if prefs.coder[prefkey].lower() != "From Theme...".lower():
+                for key in spec:
+                    if 'font' in spec[key]:
+                        spec[key]['font'] = prefs.coder[prefkey] if spec[key]['font'] == base['font'] \
+                            else base['font']
+                base['font'] = prefs.coder[prefkey]
 
             # Check that key is in tag list
             invalid = []
@@ -176,11 +187,6 @@ class ThemeMixin:
                 spec.update({key: lang[key] for key in lang})
             else:
                 lang = {}
-
-            # Override base font with user spec if present
-            key = 'outputFont' if isinstance(target, wx.py.shell.Shell) else 'codeFont'
-            if prefs.coder[key] != "From Theme...":
-                base['font'] = prefs.coder[key]
 
             # Set style for undefined lexers
             for key in [getattr(wx._stc, item) for item in dir(wx._stc) if item.startswith("STC_LEX")]:
@@ -222,11 +228,19 @@ class ThemeMixin:
             target.SetBackgroundColour(
                 self.hex2rgb(base['bg'], base['bg']))
             # Then construct default styles
+            bold = wx.FONTWEIGHT_BOLD if "bold" in base['font'] else wx.FONTWEIGHT_NORMAL
+            italic = wx.FONTSTYLE_ITALIC if "italic" in base['font'] else wx.FONTSTYLE_NORMAL
+            # Override base font with user spec if present
+            if prefs.coder['outputFont'].lower() == "From Theme...".lower():
+                fontName = base['font'].replace("bold", "").replace("italic", "").replace(",", "")
+            else:
+                fontName = prefs.coder['outputFont']
+
             _font = wx.Font(
                 int(prefs.coder['outputFontSize']),
-                wx.FONTFAMILY_TELETYPE, wx.FONTSTYLE_NORMAL,
-                wx.FONTWEIGHT_NORMAL, False,
-                faceName=base['font']
+                wx.FONTFAMILY_TELETYPE, italic,
+                bold, False,
+                faceName=fontName
             )
             _style = wx.TextAttr(
                 colText=wx.Colour(
@@ -256,7 +270,9 @@ class ThemeMixin:
         # If no target supplied, default to using self
         if target is None:
             target = self
-            self._recursionDepth = 0  # used to store depth in children
+
+        if not hasattr(self, '_recursionDepth'):
+            self._recursionDepth = 0
         else:
             self._recursionDepth += 1
 
@@ -272,7 +288,7 @@ class ThemeMixin:
             if isinstance(target, thisType):
                 handlers[thisType](target)
                 isHandled = True
-                break
+
         if not isHandled:
             # try and set colors for target
             try:
@@ -287,9 +303,7 @@ class ThemeMixin:
             children = sizer.Children
         else:
             children = []
-            if isinstance(target, wx.richtext.RichTextCtrl):
-                applyToRichText(target)
-            elif hasattr(target, 'Children'):
+            if hasattr(target, 'Children'):
                 children.extend(target.Children)
             elif hasattr(target, 'immune'):
                 pass
@@ -494,12 +508,48 @@ class ThemeMixin:
 
         return newCol
 
+    def extractFont(self, fontList, base=[]):
+        """Extract specified font from theme spec"""
+        # Convert to list if not already
+        if isinstance(base, str):
+            base = base.split(",")
+            base = base if isinstance(base, list) else [base]
+        if isinstance(fontList, str):
+            fontList = fontList.split(",")
+            fontList = fontList if isinstance(fontList, list) else [fontList]
+        # Extract styles
+        bold, italic = [], []
+        if "bold" in fontList:
+            bold = [fontList.pop(fontList.index("bold"))]
+        if "italic" in fontList:
+            italic = [fontList.pop(fontList.index("italic"))]
+        # Extract styles from base, if needed
+        if "bold" in base:
+            bold = [base.pop(base.index("bold"))]
+        if "italic" in base:
+            italic = [base.pop(base.index("italic"))]
+        # Append base and default fonts
+        fontList.extend(base+["Consolas", "Monaco", "Lucida Console"])
+        # Set starting font in case none are found
+        if sys.platform == 'win32':
+            finalFont = [wx.SystemSettings.GetFont(wx.SYS_DEFAULT_GUI_FONT).GetFaceName()]
+        else:
+            finalFont = [wx.SystemSettings.GetFont(wx.SYS_ANSI_FIXED_FONT).GetFaceName()]
+        # Cycle through font names, stop at first valid font
+        for font in fontList:
+            if fm.findfont(font, fallback_to_default=False) not in fm.defaultFont.values():
+                finalFont = [font] + bold + italic
+                break
+
+        return ','.join(finalFont)
+
     def _setCodeColors(self, spec):
         """To be called from _psychopyApp only"""
         if not self.GetTopWindow() == self:
             psychopy.logging.warning("This function should only be called from _psychopyApp")
 
         base = spec['base']
+        base['font'] = self.extractFont(base['font'])
 
         # Make sure there's some spec for margins
         if 'margin' not in spec:
@@ -519,9 +569,8 @@ class ThemeMixin:
             if all(subkey in spec[key] for subkey in ['bg', 'fg', 'font']):
                 spec[key]['bg'] = self.hex2rgb(spec[key]['bg'], base['bg'])
                 spec[key]['fg'] = self.hex2rgb(spec[key]['fg'], base['fg'])
-                if not spec[key]['font']:
-                    spec[key]['font'] = base['font']
-                spec[key]['size'] = int(self.prefs.coder['codeFontSize'])
+                spec[key]['font'] = self.extractFont(spec[key]['font'], base['font'])
+                spec[key]['size'] = int(prefs.coder['codeFontSize'])
             elif key in ['app', 'icons']:
                 pass
             else:
@@ -657,7 +706,7 @@ class IconCache:
             orig = orig.with_name(
                     "{}_{}{}".format(orig.stem, emblem, orig.suffix))
         nameAndSize = orig.with_name(orig.stem+str(size)+orig.suffix)
-        nameAndDouble = orig.with_name(orig.stem+str(size*2)+orig.suffix)
+        nameAndDouble = orig.with_name(orig.stem+str(size)+"@2x"+orig.suffix)
         for filename in [nameAndSize, orig, nameAndDouble]:
             # components with no themes folders (themes were added in 2020.2)
             if filename.exists():
@@ -687,11 +736,9 @@ class IconCache:
 
         Doesn't return the icons, just stores them in the dict
         """
-        if name is None:
-            name = 'base.png'
         filename = self._findImageFile(name, theme, emblem, size)
         if not filename:
-            filename = self._findImageFile('base.png', theme, emblem, size)
+            filename = self._findImageFile('unknown.png', theme, emblem, size)
 
         # load image with wx.LogNull() to stop libpng complaining about sRGB
         nologging = wx.LogNull()
@@ -802,8 +849,11 @@ class IconCache:
         IconCache._lastIcons = theme.icons
         if theme.appColors['frame_bg'] != IconCache._lastBGColor:
             for thisBtn in IconCache._buttons:
-                thisBtn['btn'].SetBackgroundColour(
-                        theme.appColors['frame_bg'])
+                try:
+                    thisBtn['btn'].SetBackgroundColour(
+                            theme.appColors['frame_bg'])
+                except RuntimeError:
+                    pass
         IconCache._lastBGColor = theme
 
 

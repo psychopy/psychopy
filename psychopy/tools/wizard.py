@@ -562,7 +562,6 @@ class ConfigWizard(BaseWizard):
             msg = _translate("""<p>Critical issue:\n</p>""")
             msg += cardInfo
             fatalItemsList.append(msg)
-            pass
         # other fatal conditions? append a 'Critical issue' msg to itemsList
         if not fatalItemsList:
             dlg.addText(_translate("We'll go through a series of configura"
