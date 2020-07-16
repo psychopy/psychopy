@@ -11,6 +11,7 @@ system.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 import ctypes
+import numpy as np
 import pyglet.gl as GL
 from psychopy.visual import window
 from psychopy import logging
@@ -111,7 +112,37 @@ class VisualSystemHD(window.Window):
         """Setup the VAOs needed for lens correction."""
         self._warpVAOs = {}
         for eye in ('left', 'right'):
-            pass
+            # setup vertex arrays for the output quad
+            aspect = self._bufferViewports[eye][2] / self._bufferViewports[eye][3]
+            vertices, texCoord, normals, faces = gt.createMeshGrid(
+                (2.0, 2.0), subdiv=256, tessMode='radial')
+
+            vertices[:, 0] *= 0.5
+
+            # recompute vertex positions
+            vertices[:, :2] = mt.lensCorrection(
+                vertices[:, :2], coefK=(.2, 0.1), distCenter=(0.0, 0.0))
+
+            # normalize
+            w = np.max(vertices[:, 0]) - np.min(vertices[:, 0])
+            h = np.max(vertices[:, 1]) - np.min(vertices[:, 1])
+            vertices[:, 0] *= (1.0 / w)
+            vertices[:, 1] *= 2.0 * (1.0 / h)
+
+            # transform to the side of the screen
+            vertices[:, 0] += 0.5 if eye == 'right' else -0.5
+
+            vertexVBO = gt.createVBO(vertices, usage=GL.GL_DYNAMIC_DRAW)
+            texCoordVBO = gt.createVBO(texCoord, usage=GL.GL_DYNAMIC_DRAW)
+            indexBuffer = gt.createVBO(
+                faces.flatten(),
+                target=GL.GL_ELEMENT_ARRAY_BUFFER,
+                dataType=GL.GL_UNSIGNED_INT)
+            attribBuffers = {GL.GL_VERTEX_ARRAY: vertexVBO,
+                             GL.GL_TEXTURE_COORD_ARRAY: texCoordVBO}
+            self._warpVAOs[eye] = gt.createVAO(attribBuffers,
+                                               indexBuffer=indexBuffer,
+                                               legacy=True)
 
     def _setupEyeBuffers(self):
         """Setup additional buffers for rendering content to each eye.
@@ -255,30 +286,15 @@ class VisualSystemHD(window.Window):
         GL.glBindTexture(GL.GL_TEXTURE_2D,
                          self._eyeBuffers[eye]['frameTexture'])
 
-        # blit the quad covering the side of the display the eye is viewing
-        GL.glBegin(GL.GL_QUADS)
-        if eye == 'left':
-            GL.glTexCoord2f(0.0, 0.0)
-            GL.glVertex2f(-1.0, -1.0)
-            GL.glTexCoord2f(0.0, 1.0)
-            GL.glVertex2f(-1.0, 1.0)
-            GL.glTexCoord2f(1.0, 1.0)
-            GL.glVertex2f(0.0, 1.0)
-            GL.glTexCoord2f(1.0, 0.0)
-            GL.glVertex2f(0.0, -1.0)
-        elif eye == 'right':
-            GL.glTexCoord2f(0.0, 0.0)
-            GL.glVertex2f(0.0, -1.0)
-            GL.glTexCoord2f(0.0, 1.0)
-            GL.glVertex2f(0.0, 1.0)
-            GL.glTexCoord2f(1.0, 1.0)
-            GL.glVertex2f(1.0, 1.0)
-            GL.glTexCoord2f(1.0, 0.0)
-            GL.glVertex2f(1.0, -1.0)
-        else:
-            raise ValueError("Invalid eye buffer specified for blit.")
+        GL.glMatrixMode(GL.GL_PROJECTION)
+        GL.glLoadIdentity()
+        GL.glOrtho(-1, 1, -1, 1, -1, 1)
+        GL.glMatrixMode(GL.GL_MODELVIEW)
+        GL.glLoadIdentity()
 
-        GL.glEnd()
+        # blit the quad covering the side of the display the eye is viewing
+
+        gt.drawVAO(self._warpVAOs[eye])
 
     def _startOfFlip(self):
         """Custom :py:class:`~Rift._startOfFlip` for HMD rendering. This
@@ -298,6 +314,8 @@ class VisualSystemHD(window.Window):
 
         # Switch off multi-sampling
         # GL.glDisable(GL.GL_MULTISAMPLE)
+        oldColor = self.color
+        self.setColor((-1, -1, -1))
         self.setBuffer('back', clear=True)
 
         self._prepareFBOrender()
@@ -323,6 +341,8 @@ class VisualSystemHD(window.Window):
         self._finishFBOrender()
 
         self.stencilTest = stencilOn
+
+        self.setColor(oldColor)
 
         # This always returns True
         return True
