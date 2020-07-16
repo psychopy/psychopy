@@ -39,14 +39,13 @@ except ImportError:
 
 from psychopy.localization import _translate
 from ... import experiment
-from .. import dialogs, icons
-from ..themes import IconCache, ThemeMixin
+from .. import dialogs
+from ..themes import ThemeMixin
 from ..themes._themes import PsychopyDockArt, PsychopyTabArt
 from psychopy import logging, constants, data
 from psychopy.tools.filetools import mergeFolder
 from .dialogs import (DlgComponentProperties, DlgExperimentProperties,
                       DlgCodeComponentProperties, DlgLoopProperties)
-#from .flow import FlowPanel
 from ..utils import (PsychopyToolbar, PsychopyPlateBtn, WindowFrozen,
                      FileDropTarget)
 
@@ -1291,7 +1290,6 @@ class BuilderFrame(wx.Frame, ThemeMixin):
         val: int
             Status of git sync. 1 for SUCCESS (green), 0 or -1 for FAIL (RED)
         """
-        rc = self.app.prefs.paths['icons']
         feedbackTime = 1500
         colour = {0: "red", -1: "red", 1: "green"}
 
@@ -1306,8 +1304,8 @@ class BuilderFrame(wx.Frame, ThemeMixin):
         # Store original
         origBtn = self.btnHandles['pavloviaSync'].NormalBitmap
         # Create new feedback bitmap
-        feedbackBmp = IconCache.getBitmap(
-                '{}globe.png'.format(colour[val]),
+        feedbackBmp = self.app.iconCache.getBitmap(
+                name='{}globe.png'.format(colour[val]),
                 size=toolbarSize)
 
         # Set feedback button
@@ -2051,7 +2049,6 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
 
     def _applyAppTheme(self, target=None):
         cs = ThemeMixin.appColors
-        self.app.iconCache
         # Style component panel
         self.SetForegroundColour(cs['text'])
         self.SetBackgroundColour(cs['panel_bg'])
