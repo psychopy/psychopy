@@ -30,7 +30,7 @@ class VisualSystemHD(window.Window):
     display system.
 
     """
-    def __init__(self, *args, **kwargs):
+    def __init__(self, monoscopic=False, *args, **kwargs):
         """
         Parameters
         ----------
@@ -44,7 +44,7 @@ class VisualSystemHD(window.Window):
         super(VisualSystemHD, self).__init__(*args, **kwargs)
 
         # is monoscopic mode enabled?
-        self._monoscopic = False
+        self._monoscopic = monoscopic
 
         # get the dimensions of the buffer for each eye
         bufferWidth, bufferHieght = self.frameBufferSize
@@ -154,6 +154,8 @@ class VisualSystemHD(window.Window):
                 'frameTexture': texId,
                 'frameStencil': rbId}
 
+            self._eyeBuffers['right'] = self._eyeBuffers['left']
+
     def setBuffer(self, buffer, clear=True):
         """Set the eye buffer to draw to. Subsequent draw calls will be diverted
         to the specified eye.
@@ -261,7 +263,6 @@ class VisualSystemHD(window.Window):
         # need blit the framebuffer object to the actual back buffer
 
         # unbind the framebuffer as the render target
-        #GL.glBindFramebuffer(GL.GL_FRAMEBUFFER, 0)
         GL.glDisable(GL.GL_BLEND)
         stencilOn = self.stencilTest
         self.stencilTest = False
