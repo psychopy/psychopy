@@ -11,11 +11,12 @@ system.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 import ctypes
-import numpy as np
 import pyglet.gl as GL
 from psychopy.visual import window
-from psychopy import platform_specific, logging, core
-from psychopy.tools.attributetools import setAttribute
+from psychopy import logging
+import psychopy.tools.mathtools as mt
+import psychopy.tools.viewtools as vt
+import psychopy.tools.gltools as gt
 
 try:
     from PIL import Image
@@ -89,12 +90,28 @@ class VisualSystemHD(window.Window):
                 'frameStencil': self._stencilTexture}
 
         self._setupEyeBuffers()  # setup additional framebuffers
+        self._setupLensCorrection()  # setup lens correction meshes
         self.setBuffer('left')  # set to the back buffer on start
 
     @property
     def monoscopic(self):
         """`True` if using monoscopic mode."""
         return self._monoscopic
+
+    @property
+    def lensCorrection(self):
+        """`True` if using lens correction."""
+        return self._lensCorrection
+
+    @lensCorrection.setter
+    def lensCorrection(self, value):
+        self._lensCorrection = value
+
+    def _setupLensCorrection(self):
+        """Setup the VAOs needed for lens correction."""
+        self._warpVAOs = {}
+        for eye in ('left', 'right'):
+            pass
 
     def _setupEyeBuffers(self):
         """Setup additional buffers for rendering content to each eye.
