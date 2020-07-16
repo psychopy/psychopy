@@ -326,7 +326,6 @@ class PsychoPyApp(wx.App, themes.ThemeMixin):
                        float(wx.GetDisplaySizeMM()[0]) * 25.4)
         if not (50 < self.dpi < 120):
             self.dpi = 80  # dpi was unreasonable, make one up
-        self.theme = self.prefs.app['theme']
 
         if sys.platform == 'win32':
             # wx.SYS_DEFAULT_GUI_FONT is default GUI font in Win32
@@ -342,7 +341,9 @@ class PsychoPyApp(wx.App, themes.ThemeMixin):
                                      wx.FONTFAMILY_MODERN,
                                      wx.FONTSTYLE_NORMAL,
                                      wx.FONTWEIGHT_NORMAL)
-        self._codeFont.SetFaceName(self.prefs.coder['codeFont'])
+        # that gets most of the properties of _codeFont but the FaceName
+        # FaceName is set in the setting of the theme:
+        self.theme = self.prefs.app['theme']
 
         # removed Aug 2017: on newer versions of wx (at least on mac)
         # this looks too big
@@ -903,6 +904,8 @@ class PsychoPyApp(wx.App, themes.ThemeMixin):
         themes.ThemeMixin.loadThemeSpec(self, themeName=value)
         prefs.app['theme'] = value
         self._currentThemeSpec = themes.ThemeMixin.spec
+        codeFont = themes.ThemeMixin.codeColors['base']['font']
+        self._codeFont.SetFaceName(codeFont)
         # Apply theme
         self._applyAppTheme()
 
