@@ -1063,10 +1063,10 @@ class BuilderFrame(wx.Frame, ThemeMixin):
             ok = self.fileSave(self.filename)
             if not ok:
                 return  # save file before compiling script
-        if self.app.prefs.general['useRunner']:
-            self.stdoutFrame.addTask(fileName=self.filename)
-            self.app.showRunner()
-        else:
+
+        self.stdoutFrame.addTask(fileName=self.filename)
+        self.app.showRunner()
+        if prefs.app['skipToRun']:
             self.app.runner.panel.runFile(fileName=self.filename)
 
     def onCopyRoutine(self, event=None):

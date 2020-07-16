@@ -2416,10 +2416,9 @@ class CoderFrame(wx.Frame, ThemeMixin):
                 self.fileSave(None)  # save then run
             elif resp == wx.ID_NO:
                 pass  # just run
-        if self.app.prefs.general['useRunner']:
-            self.app.runner.addTask(fileName=fullPath)
-            self.app.showRunner()
-        else:
+        self.app.runner.addTask(fileName=fullPath)
+        self.app.showRunner()
+        if prefs.app['skipToRun']:
             self.app.runner.panel.runFile(fileName=fullPath)
 
     def copy(self, event):
