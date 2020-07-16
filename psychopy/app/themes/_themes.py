@@ -970,3 +970,10 @@ class ThemeSwitcher(wx.Menu):
         for theme in themeList:
             item = self.Append(wx.ID_ANY, _translate(theme))
             frame.Bind(wx.EVT_MENU, frame.app.onThemeChange, item)
+        self.AppendSeparator()
+        # Add Theme Folder button
+        item = self.Append(wx.ID_ANY, _translate("Open theme folder..."))
+        frame.Bind(wx.EVT_MENU, self.openThemeFolder, item)
+
+    def openThemeFolder(self, event):
+        subprocess.call("explorer %(themes)s" % prefs.paths, shell=True)
