@@ -49,6 +49,8 @@
 [app]
     # display tips when starting PsychoPy
     showStartupTips = boolean(default='True')
+    # Should the Builder and Coder "run" buttons skip straight to running the file?
+    skipToRun = boolean(default='False')
     # size of icons in the Coder and Builder toolbars (top of window)
     largeIcons = boolean(default='True')
     # what windows to display when PsychoPy starts
