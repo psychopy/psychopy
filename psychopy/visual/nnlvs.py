@@ -29,6 +29,15 @@ class VisualSystemHD(window.Window):
     """Class provides support for NordicNeuralLab's VisualSystemHD(tm) fMRI
     display system.
 
+    Use this class in-place of the window class for use with the VSHD hardware.
+    Ensure that the VSHD headset display output is configured in extended
+    desktop mode. Extended desktops are only supported on Windows and Linux
+    systems.
+
+    The VSHD is capable of both 2D and stereoscopic 3D rendering. You can select
+    which eye to draw to by calling `setBuffer`, much like how stereoscopic
+    rendering is implemented in the base `Window` class.
+
     """
     def __init__(self, monoscopic=False, *args, **kwargs):
         """
@@ -37,7 +46,10 @@ class VisualSystemHD(window.Window):
         monoscopic : bool
             Use monoscopic rendering. If `True`, the same image will be drawn to
             both eye buffers. You will not need to call `setBuffer`. It is not
-            possible to set monoscopic mode after the window is created.
+            possible to set monoscopic mode after the window is created. It is
+            recommended that you use monoscopic mode if you intend to display
+            only 2D stimuli as it uses a less memory intensive rendering
+            pipeline.
 
         """
         # call up a new window object
@@ -51,23 +63,25 @@ class VisualSystemHD(window.Window):
         bufferWidth = int(bufferWidth / 2.0)
 
         # viewports for each buffer
-        self._bufferViewports = {
-            'left': (0, 0, bufferWidth, bufferHieght),
-            'right': (0, 0, bufferWidth, bufferHieght),
-            'back': (0, 0, self.frameBufferSize[0], self.frameBufferSize[1])
-        }
+        self._bufferViewports = dict()
+        self._bufferViewports['left'] = (0, 0, bufferWidth, bufferHieght)
+        self._bufferViewports['right'] = self._bufferViewports['left']
+        self._bufferViewports['back'] = \
+            (0, 0, self.frameBufferSize[0], self.frameBufferSize[1])
 
         # create render targets for each eye buffer
         self.buffer = None
-        self._eyeBuffers = {}
+        self._eyeBuffers = dict()
 
         # if we are using an FBO, keep a reference to its handles
         if self.useFBO:
-            self._eyeBuffers = {'frameBuffer': self.frameBuffer,
-                                'frameTexture': self.frameTexture,
-                                'frameStencil': self._stencilTexture}
+            self._eyeBuffers['back'] = {
+                'frameBuffer': self.frameBuffer,
+                'frameTexture': self.frameTexture,
+                'frameStencil': self._stencilTexture}
 
         self._setupEyeBuffers()  # setup additional framebuffers
+        self.setBuffer('left')  # set to the back buffer on start
 
     @property
     def monoscopic(self):
@@ -77,8 +91,8 @@ class VisualSystemHD(window.Window):
     def _setupEyeBuffers(self):
         """Setup additional buffers for rendering content to each eye.
         """
-
         def createFramebuffer(width, height):
+            """Function for setting up additional buffer"""
             # create a new framebuffer
             fboId = GL.GLuint()
             GL.glGenFramebuffers(1, ctypes.byref(fboId))
@@ -95,7 +109,7 @@ class VisualSystemHD(window.Window):
                                GL.GL_TEXTURE_MIN_FILTER,
                                GL.GL_LINEAR)
             GL.glTexImage2D(GL.GL_TEXTURE_2D, 0, GL.GL_RGBA32F_ARB,
-                            int(bufferW), int(bufferH), 0,
+                            int(width), int(height), 0,
                             GL.GL_RGBA, GL.GL_FLOAT, None)
             GL.glFramebufferTexture2D(GL.GL_FRAMEBUFFER,
                                       GL.GL_COLOR_ATTACHMENT0,
@@ -110,8 +124,8 @@ class VisualSystemHD(window.Window):
             GL.glRenderbufferStorage(
                 GL.GL_RENDERBUFFER,
                 GL.GL_DEPTH24_STENCIL8,
-                int(bufferW),
-                int(bufferH))
+                int(width),
+                int(height))
             GL.glFramebufferRenderbuffer(
                 GL.GL_FRAMEBUFFER,
                 GL.GL_DEPTH_ATTACHMENT,
@@ -172,23 +186,25 @@ class VisualSystemHD(window.Window):
         if buffer not in ('left', 'right', 'back'):
             raise RuntimeError("Invalid buffer name specified.")
 
-        # handle when the back buffer is selected
-        if buffer == 'back':
-            if self.useFBO:
-                GL.glBindFramebuffer(
-                    GL.GL_FRAMEBUFFER,
-                    self._eyeBuffers[buffer]['frameBuffer'])
+        # don't change the buffer if same, but allow clearing
+        if buffer != self.buffer:
+            # handle when the back buffer is selected
+            if buffer == 'back':
+                if self.useFBO:
+                    GL.glBindFramebuffer(
+                        GL.GL_FRAMEBUFFER,
+                        self._eyeBuffers[buffer]['frameBuffer'])
+                else:
+                    GL.glBindFramebuffer(GL.GL_FRAMEBUFFER, 0)
             else:
-                GL.glBindFramebuffer(GL.GL_FRAMEBUFFER, 0)
-        else:
-            GL.glBindFramebuffer(
-                GL.GL_FRAMEBUFFER, self._eyeBuffers[buffer]['frameBuffer'])
+                GL.glBindFramebuffer(
+                    GL.GL_FRAMEBUFFER, self._eyeBuffers[buffer]['frameBuffer'])
 
-        self.buffer = buffer  # set buffer string
+            self.buffer = buffer  # set buffer string
 
-        GL.glEnable(GL.GL_SCISSOR_TEST)
-        # set the viewport and scissor rect for the buffer
-        self.viewport = self.scissor = self._bufferViewports[buffer]
+            GL.glEnable(GL.GL_SCISSOR_TEST)
+            # set the viewport and scissor rect for the buffer
+            self.viewport = self.scissor = self._bufferViewports[buffer]
 
         if clear:
             self.setColor(self.color)  # clear the buffer to the window color
