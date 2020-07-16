@@ -63,7 +63,7 @@ class ThemeMixin:
     }
     # these are populated and modified by PsychoPyApp.theme.setter
     spec = None
-    codetheme = 'PsychopyDark'
+    codetheme = 'PsychopyLight'
     mode = 'light'
     icons = 'light'
     codeColors = {}
@@ -159,6 +159,14 @@ class ThemeMixin:
         def applyToCodeEditor(target):
             spec = ThemeMixin.codeColors
             base = spec['base']
+            # Override base font with user spec if present
+            prefkey = 'outputFont' if isinstance(target, wx.py.shell.Shell) else 'codeFont'
+            if prefs.coder[prefkey].lower() != "From Theme...".lower():
+                for key in spec:
+                    if 'font' in spec[key]:
+                        spec[key]['font'] = prefs.coder[prefkey] if spec[key]['font'] == base['font'] \
+                            else base['font']
+                base['font'] = prefs.coder[prefkey]
 
             # Check that key is in tag list
             invalid = []
@@ -179,11 +187,6 @@ class ThemeMixin:
                 spec.update({key: lang[key] for key in lang})
             else:
                 lang = {}
-
-            # Override base font with user spec if present
-            key = 'outputFont' if isinstance(target, wx.py.shell.Shell) else 'codeFont'
-            if prefs.coder[key].lower() != "From Theme...".lower():
-                base['font'] = [prefs.coder[key]]
 
             # Set style for undefined lexers
             for key in [getattr(wx._stc, item) for item in dir(wx._stc) if item.startswith("STC_LEX")]:
@@ -227,7 +230,12 @@ class ThemeMixin:
             # Then construct default styles
             bold = wx.FONTWEIGHT_BOLD if "bold" in base['font'] else wx.FONTWEIGHT_NORMAL
             italic = wx.FONTSTYLE_ITALIC if "italic" in base['font'] else wx.FONTSTYLE_NORMAL
-            fontName = base['font'].replace("bold", "").replace("italic", "").replace(",", "")
+            # Override base font with user spec if present
+            if prefs.coder['outputFont'].lower() == "From Theme...".lower():
+                fontName = base['font'].replace("bold", "").replace("italic", "").replace(",", "")
+            else:
+                fontName = prefs.coder['outputFont']
+
             _font = wx.Font(
                 int(prefs.coder['outputFontSize']),
                 wx.FONTFAMILY_TELETYPE, italic,
@@ -502,7 +510,6 @@ class ThemeMixin:
 
     def extractFont(self, fontList, base=[]):
         """Extract specified font from theme spec"""
-        global fm
         # Convert to list if not already
         if isinstance(base, str):
             base = base.split(",")
