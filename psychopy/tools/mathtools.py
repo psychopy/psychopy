@@ -3690,7 +3690,9 @@ def forwardProject(objPos, modelView, proj, viewport=None, out=None, dtype=None)
 
     # must have `w` for this one
     if objPos.shape[1] == 3:
-        objPos = (np.zeros((objPos.shape[1], 4), dtype=dtype))[:, :3] = objPos
+        temp = np.zeros((objPos.shape[1], 4), dtype=dtype)
+        temp[:, :3] = objPos
+        objPos = temp
 
     # transform the points
     objNorm = applyMatrix(mvp, objPos, dtype=dtype)
