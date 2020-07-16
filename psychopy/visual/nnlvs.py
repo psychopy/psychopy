@@ -27,7 +27,7 @@ reportNDroppedFrames = 5
 
 class VisualSystemHD(window.Window):
     """Class provides support for NordicNeuralLab's VisualSystemHD(tm) fMRI
-    display system.
+    display hardware.
 
     Use this class in-place of the window class for use with the VSHD hardware.
     Ensure that the VSHD headset display output is configured in extended
@@ -39,7 +39,7 @@ class VisualSystemHD(window.Window):
     rendering is implemented in the base `Window` class.
 
     """
-    def __init__(self, monoscopic=False, *args, **kwargs):
+    def __init__(self, monoscopic=False, lensCorrection=True, *args, **kwargs):
         """
         Parameters
         ----------
@@ -50,13 +50,21 @@ class VisualSystemHD(window.Window):
             recommended that you use monoscopic mode if you intend to display
             only 2D stimuli as it uses a less memory intensive rendering
             pipeline.
+        lensCorrection : bool
+            Apply lens correction (barrel distortion) to the output.
 
         """
+        # warn if given `useFBO`
+        if kwargs.get('useFBO', False):
+            logging.warning(
+                "Creating a window with `useFBO` is not recommended.")
+
         # call up a new window object
         super(VisualSystemHD, self).__init__(*args, **kwargs)
 
         # is monoscopic mode enabled?
         self._monoscopic = monoscopic
+        self._lensCorrection = lensCorrection
 
         # get the dimensions of the buffer for each eye
         bufferWidth, bufferHieght = self.frameBufferSize
