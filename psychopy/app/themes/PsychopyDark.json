@@ -3,7 +3,7 @@
   "icons": "dark",
   "base": {
     "fg": "#f2f2f2",
-    "bg": "#75757D",
+    "bg": "#66666E",
     "font": ["Consolas", "Monaco", "Lucida Console"]
   },
   "margin": {

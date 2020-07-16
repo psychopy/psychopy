@@ -1905,6 +1905,7 @@ class RoutineCanvas(wx.ScrolledWindow):
             if 'name' in dir(newCompon):
                 newCompon.name = newName
             self.routine.addComponent(newCompon)
+            self.frame.exp.namespace.user.append(newName)
             # could do redrawRoutines but would be slower?
             self.redrawRoutine()
             self.frame.addToUndoStack("PASTE Component `%s`" % newName)
