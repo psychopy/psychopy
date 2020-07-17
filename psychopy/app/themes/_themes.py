@@ -255,6 +255,11 @@ class ThemeMixin:
                     ln) + 1  # +1 as \n is not included in character count
             target.SetStyle(0, i, _style)
 
+        def applyToTextCtrl(target):
+            base = ThemeMixin.codeColors['base']
+            target.SetForegroundColour(base['fg'])
+            target.SetBackgroundColour(base['bg'])
+
         # Define dict linking object types to subfunctions
         handlers = {
             wx.Frame: applyToFrame,
@@ -264,7 +269,8 @@ class ThemeMixin:
             wx.richtext.RichTextCtrl: applyToRichText,
             wx.py.shell.Shell: applyToCodeEditor,
             wx.ToolBar: applyToToolbar,
-            wx.StatusBar: applyToStatusBar
+            wx.StatusBar: applyToStatusBar,
+            wx.TextCtrl: applyToTextCtrl
         }
 
         # If no target supplied, default to using self
