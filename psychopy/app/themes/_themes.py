@@ -837,17 +837,17 @@ class IconCache:
     def setTheme(self, theme):
         if theme.icons != IconCache._lastIcons:
             for thisBtn in IconCache._buttons:
-                newBmp = self.getBitmap(name=thisBtn['name'],
-                                        size=thisBtn['size'],
-                                        theme=theme.icons,
-                                        emblem=thisBtn['emblem'])
-
-                thisBtn['btn'].SetBitmap(newBmp)
-                thisBtn['btn'].SetBitmapCurrent(newBmp)
-                thisBtn['btn'].SetBitmapPressed(newBmp)
-                thisBtn['btn'].SetBitmapFocus(newBmp)
-                thisBtn['btn'].SetBitmapDisabled(newBmp)
-                thisBtn['btn'].SetBitmapPosition(wx.TOP)
+                if thisBtn['btn']:  # Check that button hasn't been deleted
+                    newBmp = self.getBitmap(name=thisBtn['name'],
+                                            size=thisBtn['size'],
+                                            theme=theme.icons,
+                                            emblem=thisBtn['emblem'])
+                    thisBtn['btn'].SetBitmap(newBmp)
+                    thisBtn['btn'].SetBitmapCurrent(newBmp)
+                    thisBtn['btn'].SetBitmapPressed(newBmp)
+                    thisBtn['btn'].SetBitmapFocus(newBmp)
+                    thisBtn['btn'].SetBitmapDisabled(newBmp)
+                    thisBtn['btn'].SetBitmapPosition(wx.TOP)
         IconCache._lastIcons = theme.icons
         if theme.appColors['frame_bg'] != IconCache._lastBGColor:
             for thisBtn in IconCache._buttons:
