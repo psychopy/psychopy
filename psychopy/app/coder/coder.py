@@ -1163,7 +1163,7 @@ class CoderFrame(wx.Frame, ThemeMixin):
                 self.setCurrentDoc(filename, keepHidden=True)
 
         # Create shelf notebook
-        self.shelf = aui.AuiNotebook(self.pnlMain, wx.ID_ANY, size=wx.Size(600, 600), style=wx.BORDER_NONE)
+        self.shelf = aui.AuiNotebook(self.pnlMain, wx.ID_ANY, size=wx.Size(600, 600), agwStyle=aui.AUI_NB_CLOSE_ON_ALL_TABS)
         #self.shelf.SetArtProvider(PsychopyTabArt())
         # Create shell
         self._useShell = None
@@ -1187,6 +1187,9 @@ class CoderFrame(wx.Frame, ThemeMixin):
             # Add shell to output pane
             self.shell.SetName("PythonShell")
             self.shelf.AddPage(self.shell, _translate('Shell'))
+            # Hide close button
+            for i in range(self.shelf.GetPageCount()):
+                self.shelf.SetCloseButton(i, False)
         # Add shelf panel
         self.paneManager.AddPane(self.shelf,
                                  aui.AuiPaneInfo().
