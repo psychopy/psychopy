@@ -911,6 +911,8 @@ class PavloviaProject(dict):
                 changeDict['renamed'].append((this.rename_from, this.rename_to))
             elif this.change_type == 'M':
                 changeDict['changed'].append(this.b_path)
+            elif this.change_type == 'U':
+                changeDict['changed'].append(this.b_path)
             else:
                 raise ValueError("Found an unexpected change_type '{}' in gitpython Diff".format(this.change_type))
         changeList = []
