@@ -335,10 +335,12 @@ class ThemeMixin:
                 # except AttributeError:
                 #     pass
 
-        if hasattr(self, 'Refresh'):
-            self.Refresh()
-        if hasattr(self, 'Update'):
-            self.Update()
+        if hasattr(target, 'Refresh'):
+            target.Refresh()
+        if hasattr(target, 'Update'):
+            target.Update()
+        if hasattr(target, '_mgr'):
+            target._mgr.Update()
 
     @property
     def lexkw(self):
