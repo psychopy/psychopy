@@ -2629,12 +2629,12 @@ class FlowPanel(wx.ScrolledWindow):
         self.draw()
         self.frame.SetStatusText("")
         self.btnInsertRoutine.SetLabel(_translate('Insert Routine'))
-        self.btnInsertRoutine.SetLabelColor(wx.Colour(cs['fbtns_txt']))
-        self.btnInsertRoutine.SetBackgroundColour(wx.Colour(cs['fbtns_face']))
+        self.btnInsertRoutine.SetLabelColor(wx.Colour(cs['text']))
+        self.btnInsertRoutine.SetBackgroundColour(wx.Colour(cs['frame_bg']))
         self.btnInsertRoutine.Update()
         self.btnInsertLoop.SetLabel(_translate('Insert Loop'))
-        self.btnInsertLoop.SetLabelColor(wx.Colour(cs['fbtns_txt']))
-        self.btnInsertLoop.SetBackgroundColour(wx.Colour(cs['fbtns_face']))
+        self.btnInsertLoop.SetLabelColor(wx.Colour(cs['text']))
+        self.btnInsertLoop.SetBackgroundColour(wx.Colour(cs['frame_bg']))
         self.btnInsertRoutine.Update()
 
     def ConvertEventCoords(self, event):
