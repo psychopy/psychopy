@@ -1117,7 +1117,7 @@ class RigidBodyPose(object):
         viewMatrix = vt.lookAt(self._pos, fwdVec, upVec, dtype=np.float32)
 
         if inverse:
-            viewMatrix = mt.invertMatrix(viewMatrix, homogeneous=True)
+            viewMatrix = mt.invertMatrix(viewMatrix)
 
         return viewMatrix
 
