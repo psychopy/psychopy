@@ -251,12 +251,14 @@ class PsychopyToolbar(wx.ToolBar, ThemeMixin):
                         emblem=None):
         if not name.endswith('.png'):
             name += '.png'
-        item = self.app.iconCache.makeBitmapButton(
-                parent=self,
-                name=name, emblem=emblem, size=self.iconSize,
-                label=_translate(label + " [%s]") % self.keys[shortcut],
-                tip=tooltip,
-                toolbar=self)
+        item = self.app.iconCache.makeBitmapButton(parent=self, filename=name,
+                                                   name=label,
+                                                   label=_translate(
+                                                       label + " [%s]") %
+                                                         self.keys[shortcut],
+                                                   emblem=emblem, toolbar=self,
+                                                   tip=tooltip,
+                                                   size=self.iconSize)
         # Bind function
         self.Bind(wx.EVT_TOOL, func, item)
         return item
