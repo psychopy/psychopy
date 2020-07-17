@@ -255,6 +255,11 @@ class ThemeMixin:
                     ln) + 1  # +1 as \n is not included in character count
             target.SetStyle(0, i, _style)
 
+        def applyToTextCtrl(target):
+            base = ThemeMixin.codeColors['base']
+            target.SetForegroundColour(base['fg'])
+            target.SetBackgroundColour(base['bg'])
+
         # Define dict linking object types to subfunctions
         handlers = {
             wx.Frame: applyToFrame,
@@ -264,7 +269,8 @@ class ThemeMixin:
             wx.richtext.RichTextCtrl: applyToRichText,
             wx.py.shell.Shell: applyToCodeEditor,
             wx.ToolBar: applyToToolbar,
-            wx.StatusBar: applyToStatusBar
+            wx.StatusBar: applyToStatusBar,
+            wx.TextCtrl: applyToTextCtrl
         }
 
         # If no target supplied, default to using self
@@ -335,10 +341,12 @@ class ThemeMixin:
                 # except AttributeError:
                 #     pass
 
-        if hasattr(self, 'Refresh'):
-            self.Refresh()
-        if hasattr(self, 'Update'):
-            self.Update()
+        if hasattr(target, 'Refresh'):
+            target.Refresh()
+        if hasattr(target, 'Update'):
+            target.Update()
+        if hasattr(target, '_mgr'):
+            target._mgr.Update()
 
     @property
     def lexkw(self):
@@ -835,17 +843,17 @@ class IconCache:
     def setTheme(self, theme):
         if theme.icons != IconCache._lastIcons:
             for thisBtn in IconCache._buttons:
-                newBmp = self.getBitmap(name=thisBtn['name'],
-                                        size=thisBtn['size'],
-                                        theme=theme.icons,
-                                        emblem=thisBtn['emblem'])
-
-                thisBtn['btn'].SetBitmap(newBmp)
-                thisBtn['btn'].SetBitmapCurrent(newBmp)
-                thisBtn['btn'].SetBitmapPressed(newBmp)
-                thisBtn['btn'].SetBitmapFocus(newBmp)
-                thisBtn['btn'].SetBitmapDisabled(newBmp)
-                thisBtn['btn'].SetBitmapPosition(wx.TOP)
+                if thisBtn['btn']:  # Check that button hasn't been deleted
+                    newBmp = self.getBitmap(name=thisBtn['name'],
+                                            size=thisBtn['size'],
+                                            theme=theme.icons,
+                                            emblem=thisBtn['emblem'])
+                    thisBtn['btn'].SetBitmap(newBmp)
+                    thisBtn['btn'].SetBitmapCurrent(newBmp)
+                    thisBtn['btn'].SetBitmapPressed(newBmp)
+                    thisBtn['btn'].SetBitmapFocus(newBmp)
+                    thisBtn['btn'].SetBitmapDisabled(newBmp)
+                    thisBtn['btn'].SetBitmapPosition(wx.TOP)
         IconCache._lastIcons = theme.icons
         if theme.appColors['frame_bg'] != IconCache._lastBGColor:
             for thisBtn in IconCache._buttons:
