@@ -764,7 +764,7 @@ class _BaseParamsDlg(wx.Dialog):
             ctrls.valueCtrl.Bind(wx.EVT_KEY_UP, self.doValidate)
 
         # add the controls to the sizer
-        _flag = wx.LEFT | wx.RIGHT
+        _flag = wx.LEFT | wx.RIGHT | wx.ALIGN_CENTER_VERTICAL
         sizer.Add(ctrls.nameCtrl, (currRow, 0), border=5, flag=_flag)
         if ctrls.updateCtrl:
             sizer.Add(ctrls.updateCtrl, (currRow, 2), flag=_flag)
