@@ -2235,8 +2235,9 @@ class CoderFrame(wx.Frame, ThemeMixin):
         If the ``filename`` is ``None`` then the ``doc``'s current filename
         is used or a dlg is presented to get a new filename.
         """
-        if self.currentDoc.AutoCompActive():
-            self.currentDoc.AutoCompCancel()
+        if hasattr(self.currentDoc, 'AutoCompActive'):
+            if self.currentDoc.AutoCompActive():
+                self.currentDoc.AutoCompCancel()
 
         if doc is None:
             doc = self.currentDoc
