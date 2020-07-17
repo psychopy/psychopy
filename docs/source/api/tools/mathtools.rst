@@ -86,12 +86,16 @@ Overview
     surfaceBitangent
     surfaceTangent
     vertexNormal
+    fixTangentHandedness
+    fitBBox
+    computeBBoxCorners
     intersectRayPlane
     intersectRaySphere
     intersectRayAABB
     intersectRayOBB
     intersectRayTriangle
     ortho3Dto2D
+    articulate
     slerp
     quatToAxisAngle
     quatFromAxisAngle
@@ -99,6 +103,7 @@ Overview
     alignTo
     quatMagnitude
     multQuat
+    accumQuat
     invertQuat
     applyQuat
     quatToMatrix
@@ -106,15 +111,23 @@ Overview
     matrixFromEulerAngles
     scaleMatrix
     rotationMatrix
+    matrixAngle
     translationMatrix
     invertMatrix
     isOrthogonal
     isAffine
+    multMatrix
     concatenate
+    normalMatrix
+    forwardProject
+    reverseProject
     applyMatrix
     posOriToMatrix
     transform
+    scale
     lensCorrection
+    zeroFix
+
 
 Details
 ~~~~~~~
@@ -135,12 +148,16 @@ Details
 .. autofunction:: surfaceBitangent
 .. autofunction:: surfaceTangent
 .. autofunction:: vertexNormal
+.. autofunction:: fixTangentHandedness
+.. autofunction:: fitBBox
+.. autofunction:: computeBBoxCorners
 .. autofunction:: intersectRayPlane
 .. autofunction:: intersectRaySphere
 .. autofunction:: intersectRayAABB
 .. autofunction:: intersectRayOBB
 .. autofunction:: intersectRayTriangle
 .. autofunction:: ortho3Dto2D
+.. autofunction:: articulate
 .. autofunction:: slerp
 .. autofunction:: quatToAxisAngle
 .. autofunction:: quatFromAxisAngle
@@ -148,6 +165,7 @@ Details
 .. autofunction:: alignTo
 .. autofunction:: quatMagnitude
 .. autofunction:: multQuat
+.. autofunction:: accumQuat
 .. autofunction:: invertQuat
 .. autofunction:: applyQuat
 .. autofunction:: quatToMatrix
@@ -155,12 +173,19 @@ Details
 .. autofunction:: matrixFromEulerAngles
 .. autofunction:: scaleMatrix
 .. autofunction:: rotationMatrix
+.. autofunction:: matrixAngle
 .. autofunction:: translationMatrix
 .. autofunction:: invertMatrix
 .. autofunction:: isOrthogonal
 .. autofunction:: isAffine
+.. autofunction:: multMatrix
 .. autofunction:: concatenate
+.. autofunction:: normalMatrix
+.. autofunction:: forwardProject
+.. autofunction:: reverseProject
 .. autofunction:: applyMatrix
 .. autofunction:: posOriToMatrix
 .. autofunction:: transform
+.. autofunction:: scale
 .. autofunction:: lensCorrection
+.. autofunction:: zeroFix

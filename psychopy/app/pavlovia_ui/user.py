@@ -69,8 +69,8 @@ class UserEditor(wx.Dialog):
 
         # layout
         userAndLogout = wx.BoxSizer(wx.VERTICAL)
-        userAndLogout.Add(userField, 1, wx.ALL | wx.CENTER | wx.ALIGN_CENTER_VERTICAL, 5)
-        userAndLogout.Add(logoutBtn, 0, wx.ALL | wx.CENTER | wx.ALIGN_CENTER_VERTICAL , 5)
+        userAndLogout.Add(userField, 1, wx.ALL | wx.CENTER, 5)
+        userAndLogout.Add(logoutBtn, 0, wx.ALL | wx.CENTER , 5)
         topRow = wx.BoxSizer(wx.HORIZONTAL)
         topRow.Add(userAndLogout, 1, wx.ALL | wx.CENTER, 5)
         topRow.Add(self.avatarBtn, 0, wx.ALL | wx.RIGHT, 5)
