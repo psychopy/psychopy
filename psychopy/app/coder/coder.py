@@ -2175,7 +2175,7 @@ class CoderFrame(wx.Frame, ThemeMixin):
             self.Show()  # if the user had closed the frame it might be hidden
         if readonly:
             self.currentDoc.SetReadOnly(True)
-        self._applyAppTheme()
+        self.currentDoc._applyAppTheme()
 
     def fileOpen(self, event=None, filename=None):
         if not filename:
