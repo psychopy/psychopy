@@ -494,6 +494,8 @@ class _BaseParamsDlg(wx.Dialog):
 
         # get categories in order
         categNamesRemaining = sorted(categs.keys())
+        if 'Basic' in categNamesRemaining:
+            categNamesRemaining.remove('Basic')
         categNames = ['Basic']
         for thisParamName in self.order:
             thisParam = self.params[thisParamName]
@@ -505,6 +507,8 @@ class _BaseParamsDlg(wx.Dialog):
 
         # move into _localized after merge branches:
         categLabel = {'Basic': _translate('Basic'),
+                      'Color': _translate('Color'),
+                      'Layout': _translate('Layout'),
                       'Data': _translate('Data'),
                       'Screen': _translate('Screen'),
                       'Dots': _translate('Dots'),
