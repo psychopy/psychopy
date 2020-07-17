@@ -1016,8 +1016,8 @@ class CodeEditor(BaseCodeEditor, CodeEditorFoldingMixin, ThemeMixin):
             if loc == -1:
                 wx.CallAfter(findDlg.SetFocus)
                 return
-            else:
-                findDlg.Close()
+            # else:
+            #     findDlg.Close()
 
 
 class CoderFrame(wx.Frame, ThemeMixin):
@@ -1152,7 +1152,7 @@ class CoderFrame(wx.Frame, ThemeMixin):
         self.Bind(wx.EVT_DROP_FILES, self.filesDropped)
         self.Bind(wx.EVT_FIND, self.OnFindNext)
         self.Bind(wx.EVT_FIND_NEXT, self.OnFindNext)
-        self.Bind(wx.EVT_FIND_CLOSE, self.OnFindClose)
+        #self.Bind(wx.EVT_FIND_CLOSE, self.OnFindClose)
         self.Bind(wx.EVT_END_PROCESS, self.onProcessEnded)
 
         # take files from arguments and append the previously opened files
@@ -1926,12 +1926,12 @@ class CoderFrame(wx.Frame, ThemeMixin):
             self.OnFindOpen(event)
             return
         self.currentDoc.DoFindNext(self.findData, self.findDlg)
-        if self.findDlg is not None:
-            self.OnFindClose(None)
+        # if self.findDlg is not None:
+        #     self.OnFindClose(None)
 
-    def OnFindClose(self, event):
-        self.findDlg.Destroy()
-        self.findDlg = None
+    # def OnFindClose(self, event):
+    #     self.findDlg.Destroy()
+    #     self.findDlg = None
 
     def OnFileHistory(self, evt=None):
         # get the file based on the menu ID
