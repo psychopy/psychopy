@@ -87,8 +87,7 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
                  name='',
                  autoLog=None):
 
-        BaseVisualStim.__init__(self, win, units=units, name=name,
-                                autoLog=autoLog)
+        BaseVisualStim.__init__(self, win, units=units, name=name)
         self.win = win
 
         self.colorSpace = colorSpace
@@ -152,10 +151,12 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
                         width=self.size[0], height=self.size[1], units=units,
                         lineWidth=borderWidth, lineColor=borderColor, fillColor=fillColor,
                         autoLog=False)
-        self.styleStore = {
+        self._requested = {
             'lineColor': borderColor,
+            'lineRGB': self.box.lineRGB,
             'lineWidth': borderWidth,
-            'fillColor': fillColor
+            'fillColor': fillColor,
+            'fillRGB': self.box.fillRGB
         }
         self.borderWidth = borderWidth
         self.borderColor = borderColor
@@ -167,6 +168,8 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
         self.caret.draw()
         if editable:
             self.win.addEditable(self)
+
+        self.autoLog = autoLog
 
     @attributeSetter
     def font(self, fontName, italic=False, bold=False):
@@ -549,36 +552,45 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
     def hasFocus(self, state):
         if state:
             # Double border width
-            if self.styleStore['lineWidth'] is None:
-                self.box.setLineWidth(10*2) # Use 1 as base if border width is none
+            if self._requested['lineWidth'] is None:
+                self.box.setLineWidth(5*2) # Use 1 as base if border width is none
             else:
-                self.box.setLineColor(max(self.styleStore['lineWidth'], 10)*2)
+                self.box.setLineWidth(max(self._requested['lineWidth'], 5) * 2)
             self.borderWidth = self.box.lineWidth
             # Darken border
-            if self.styleStore['lineColor'] is None:
+            if self._requested['lineColor'] is None:
+                # Use window colour as base if border colour is none
                 self.box.setLineColor(
-                    [max(c-0.05, 0.05) for c in self.win.color]) # Use window colour as base if border colour is none
+                        [max(c - 0.05, 0.05) for c in self.win.color])
             else:
                 self.box.setLineColor(
-                    [max(c - 0.05, 0.05) for c in self.styleStore['lineColor']], colorSpace='rgb')
+                        [max(c - 0.05, 0.05) for c in self._requested['lineRGB']],
+                        colorSpace='rgb')
             self.borderColor = self.box.lineColor
             # Lighten background
-            if self.styleStore['fillColor'] is None:
-                self.box.color = [min(c+0.05, 0.95) for c in self.win.color]  # Use window colour as base if fill colour is none
+            if self._requested['fillColor'] is None:
+                # Use window colour as base if fill colour is none
+                self.box.color = [
+                    min(c+0.05, 0.95) for c in self.win.color
+                ]
             else:
-                self.box.color = [min(c+0.05, 0.95) for c in self.styleStore['fillColor']]
+                self.box.color = [
+                    min(c+0.05, 0.95) for c in self._requested['fillRGB']
+                ]
             self.fillColor = self.box.fillColor
             # Redraw text box
             self.draw()
             # Show caret
-            self.caret.setOpacity(self.caret.textbox.color[3])
+            self.caret.setOpacity(self.opacity)
         else:
             # Set box properties back to their original values
-            self.box.setLineWidth(self.styleStore['lineWidth'])
+            self.box.setLineWidth(self._requested['lineWidth'])
             self.borderWidth = self.box.lineWidth
-            self.box.setLineColor(self.styleStore['lineColor'], colorSpace='rgb')
+            self.box.setLineColor(self._requested['lineColor'],
+                                  colorSpace=self.colorSpace)
             self.borderColor = self.box.lineColor
-            self.box.setFillColor(self.styleStore['fillColor'], colorSpace='rgb')
+            self.box.setFillColor(self._requested['fillColor'],
+                                  colorSpace=self.colorSpace)
             self.fillColor = self.box.fillColor
             self.box.draw()
             # Hide caret
