@@ -540,7 +540,7 @@ class ThemeMixin:
             finalFont = [wx.SystemSettings.GetFont(wx.SYS_ANSI_FIXED_FONT).GetFaceName()]
         # Cycle through font names, stop at first valid font
         for font in fontList:
-            if fm.findfont(font, fallback_to_default=False) not in fm.defaultFont.values():
+            if fm.findfont(font) not in fm.defaultFont.values():
                 finalFont = [font] + bold + italic
                 break
 
