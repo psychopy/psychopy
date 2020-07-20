@@ -115,7 +115,7 @@ class ParamCtrls(object):
                 options = vc._versionFilter(vc.versionOptions(local=False), wx.__version__)
                 versions = vc._versionFilter(vc.availableVersions(local=False), wx.__version__)
                 param.allowedVals = (options + [''] + versions)
-        if fieldName in ['text', 'customize_everything', 'customize']:
+        if param.valType == 'extendedStr':
             # for text input we need a bigger (multiline) box
             if fieldName == 'customize_everything':
                 sx, sy = 300, 400
@@ -124,14 +124,8 @@ class ParamCtrls(object):
             else:
                 sx, sy = 100, 200
             # set viewer small, then it SHOULD increase with wx.aui control
-            self.valueCtrl = CodeBox(parent, -1, pos=wx.DefaultPosition,
-                                     size=wx.Size(sx, sy), style=0,
-                                     prefs=appPrefs, codeType='txt')
-            if fieldName == 'text':
-                # Hide margin for textbox
-                self.valueCtrl.SetMarginWidth(0,0)
-            if len(param.val):
-                self.valueCtrl.AddText(str(param.val))
+            self.valueCtrl = wx.TextCtrl(parent, -1, value=str(param.val), pos=wx.DefaultPosition,
+                                     size=wx.Size(sx, sy), style=wx.TE_MULTILINE)
             if fieldName == 'text':
                 self.valueCtrl.SetFocus()
         elif fieldName == 'Experiment info':

@@ -196,7 +196,7 @@ class RatingScaleComponent(BaseComponent):
 
         # customization:
         self.params['customize_everything'] = Param(
-            customize_everything, valType='str', allowedTypes=[],
+            customize_everything, valType='extendedStr', allowedTypes=[],
             updates='constant', allowedUpdates=[], categ="Custom",
             hint=_translate("Use this text to create the rating scale as you"
                             " would in a code component; overrides all"
