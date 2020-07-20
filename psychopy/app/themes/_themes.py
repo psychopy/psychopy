@@ -961,7 +961,7 @@ class ThemeSwitcher(wx.Menu):
                     base = theme['base']
                     if all(key in base for key in ['bg', 'fg', 'font']):
                         themeList[themeFile.replace('.json', '')] = []
-            except FileNotFoundError:
+            except (FileNotFoundError, IsADirectoryError):
                 pass
         # Make menu
         wx.Menu.__init__(self)
