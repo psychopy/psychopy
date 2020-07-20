@@ -183,6 +183,9 @@ class FileBrowserPanel(wx.Panel):
         self.toolBar.SetBackgroundColour(cs['tab_bg'])
         self.toolBar.SetForegroundColour(cs['text'])
         self.makeFileImgIcons()
+        ThemeMixin._applyAppTheme(self.coder, self.txtAddr)
+        self.lblDir.SetForegroundColour(ThemeMixin.codeColors['base']['fg'])
+
 
     def makeFileImgIcons(self):
 
