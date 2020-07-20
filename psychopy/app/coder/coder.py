@@ -2418,8 +2418,9 @@ class CoderFrame(wx.Frame, ThemeMixin):
                 pass  # just run
         self.app.runner.addTask(fileName=fullPath)
         self.app.showRunner()
-        if prefs.app['skipToRun']:
-            self.app.runner.panel.runFile(fileName=fullPath)
+        if event:
+            if event.Id == self.cdrBtnRun.Id:
+                self.app.runner.panel.runFile(fileName=fullPath)
 
     def copy(self, event):
         foc = self.FindFocus()
