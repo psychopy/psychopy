@@ -215,8 +215,8 @@ class TextboxComponent(BaseVisualComponent):
             "     flipVert=%(flipVert)s,\n"
             "     editable=%(editable)s,\n"
             "     name='%(name)s',\n"
-            "     autoLog=%(autoLog),\n"
-            ");\n"
+            "     autoLog=%(autoLog)s,\n"
+            ")\n"
         )
         buff.writeIndentedLines(code % inits)
 
