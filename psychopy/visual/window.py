@@ -922,12 +922,15 @@ class Window(object):
         lastEditable = self.currentEditable
         if lastEditable is not None and lastEditable is not editable:
             lastEditable.hasFocus = False
+        # we want both the weakref and the actual object
         if not isinstance(editable, weakref.ref):
             thisRef = weakref.ref(editable)
         else:
             thisRef = editable
+            editable = thisRef()
+        # then get/set index in list
         if thisRef not in self._editableChildren:
-            self._currentEditableIndex = self.addEditable(editable)
+            self._currentEditableIndex = self.addEditable(thisRef)
         else:
             self._currentEditableIndex = self._editableChildren.index(thisRef)
         editable.hasFocus = True
