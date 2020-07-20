@@ -59,21 +59,18 @@ def generateScript(experimentPath, exp, target="PsychoPy"):
     # if version is not specified then don't touch useVersion at all
     version = exp.settings.params['Use version'].val
 
-    try:
-        if version not in [None, 'None', '', __version__]:
-            cmd.extend(['-v', version])
-            logging.info(' '.join(cmd))
-            output = Popen(cmd,
-                           stdout=PIPE,
-                           stderr=PIPE,
-                           universal_newlines=True)
-            stdout, stderr = output.communicate()
-            sys.stdout.write(stdout)
-            sys.stderr.write(stderr)
-        else:
-            compileScript(infile=exp, version=None, outfile=filename)
-    except Exception:
-        traceback.print_exc(file=sys.stderr)
+    if version not in [None, 'None', '', __version__]:
+        cmd.extend(['-v', version])
+        logging.info(' '.join(cmd))
+        output = Popen(cmd,
+                       stdout=PIPE,
+                       stderr=PIPE,
+                       universal_newlines=True)
+        stdout, stderr = output.communicate()
+        sys.stdout.write(stdout)
+        sys.stderr.write(stderr)
+    else:
+        compileScript(infile=exp, version=None, outfile=filename)
 
 def compileScript(infile=None, version=None, outfile=None):
     """
