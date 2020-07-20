@@ -41,7 +41,7 @@ class VisualSystemHD(window.Window):
     rendering is implemented in the base `Window` class.
 
     """
-    def __init__(self, monoscopic=False, lensCorrection=True, *args, **kwargs):
+    def __init__(self, monoscopic=False, lensCorrection=True, model='vshd', *args, **kwargs):
         """
         Parameters
         ----------
@@ -54,6 +54,9 @@ class VisualSystemHD(window.Window):
             pipeline.
         lensCorrection : bool
             Apply lens correction (barrel distortion) to the output.
+        model : str
+            VisualSystemHD model in use. This value is used to configure the
+            display.
 
         """
         # warn if given `useFBO`
@@ -67,6 +70,21 @@ class VisualSystemHD(window.Window):
         # is monoscopic mode enabled?
         self._monoscopic = monoscopic
         self._lensCorrection = lensCorrection
+
+        # hardware information for a given model of the display, used for
+        # configuration
+        self._model = model
+        self._hwDesc = {
+            'vshd': {
+                'diopterMin': -7.,  # minimum diopter value for the display
+                'diopterMax': 5,  # maximum diopter value for the display
+                'scrHeightM': 9.6 * 1200. / 1e-6,  # screen height in meters
+                'scrWidthM': 9.6 * 1920. / 1e-6  # screen width in meters
+            }
+        }[self._model]
+
+        # diopter settings for each eye, needed to compute actual FOV
+        self._diopters = {'left': 1., 'right': 1.}
 
         # get the dimensions of the buffer for each eye
         bufferWidth, bufferHieght = self.frameBufferSize
@@ -107,6 +125,107 @@ class VisualSystemHD(window.Window):
     @lensCorrection.setter
     def lensCorrection(self, value):
         self._lensCorrection = value
+
+    @property
+    def diopters(self):
+        """Diopters value of the current eye buffer."""
+        return self._diopters[self.buffer]
+
+    @diopters.setter
+    def diopters(self, value):
+        self.setDiopters(value)
+
+    def setDiopters(self, diopters, eye=None):
+        """Set the diopters for a given eye.
+
+        Parameters
+        ----------
+        diopters : float
+            Set diopters for a given eye, ranging between -7 and +5.
+        eye : str or None
+            Eye to set, either 'left' or 'right'. If `None`, the currently
+            set buffer will be used.
+
+        """
+        eye = self.buffer if eye is None else eye
+
+        # check if diopters is in a valid range
+        if self._hwDesc['diopterMin'] > diopters > self._hwDesc['diopterMax']:
+            raise ValueError(
+                "Diopter setting out of range, must be between -7 and +5.")
+
+        try:
+            self._diopters[eye] = float(diopters)
+        except KeyError:
+            raise ValueError(
+                "Invalid `eye` specified, must be 'left' or 'right'.")
+
+    def _getFocalLength(self, eye=None):
+        """Get the focal length for a given `eye` in meters.
+
+        Parameters
+        ----------
+        eye : str or None
+            Eye to use, either 'left' or 'right'. If `None`, the currently
+            set buffer will be used.
+
+        """
+        try:
+            focalLength = 1. / self._diopters[eye]
+        except KeyError:
+            raise ValueError(
+                "Invalid value for `eye`, must be ;left' or 'right'.")
+        except ZeroDivisionError:
+            raise ValueError("Value for diopters cannot be zero.")
+
+        return focalLength
+
+    def _getMagFactor(self, eye=None):
+        """Get the magnification factor of the lens for a given eye. Used to
+        in part to compute the actual size of the object.
+
+        Parameters
+        ----------
+        eye : str or None
+            Eye to use, either 'left' or 'right'. If `None`, the currently
+            set buffer will be used.
+
+        """
+        eye = self.buffer if eye is None else eye
+        return (self._diopters[eye] / 4.) + 1.
+
+    def _getPredictedFOV(self, size, eye=None):
+        """Get the predicted vertical FOV of the display for a given eye.
+
+        Parameters
+        ----------
+        size : float
+            Size of the object on screen in meters.
+        eye : str or None
+            Eye to use, either 'left' or 'right'. If `None`, the currently
+            set buffer will be used.
+
+        """
+        return np.degrees(2. * np.arctan(size / (2. * self._getFocalLength(eye))))
+
+    def _getActualFOV(self, size, eye=None):
+        """Get the actual FOV of an object of `size` for a given eye."""
+        if eye not in ('left', 'right'):
+            raise ValueError(
+                "Invalid value for `eye`, must be 'left' or 'right'.")
+
+        # predFOV = self._getPredictedFOV(size, eye)
+        actualFOV = 0.0098 * size ** 3 - 0.0576 * size ** 2 + 2.6728 * size - 0.0942
+
+        return actualFOV
+
+    def getDistortion(self, size, eye=None):
+        """Get the optical distortion amount (percent) for a stimulus of given
+        `size` in degrees positioned at the center of the display."""
+        predFOV = self._getPredictedFOV(size, eye)
+        actualFOV = self._getActualFOV(size, eye)
+
+        return ((actualFOV - predFOV) * predFOV) * 100.
 
     def _setupLensCorrection(self):
         """Setup the VAOs needed for lens correction."""
