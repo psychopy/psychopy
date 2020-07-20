@@ -199,7 +199,7 @@ class pythonTransformer(ast.NodeTransformer):
                     keywords=[]
                 )
 
-            # randint(a,b) => Math.floor(Math.random() * (b - a + 1)) + a
+            # randint(a,b) => Math.floor(Math.random() * (b - a)) + a
             elif attribute == 'randint':
 
                 left = ast.Call(
@@ -221,13 +221,10 @@ class pythonTransformer(ast.NodeTransformer):
                             ),
                             op=ast.Mult(),
                             right=ast.BinOp(
-                                left=ast.BinOp(
                                     left=args[1],
                                     op=ast.Sub(),
                                     right=args[0]
-                                ),
-                                op=ast.Add(),
-                                right=ast.Num(n=1)))
+                                ))
                     ],
                     keywords=[]
                 )
@@ -303,7 +300,7 @@ def transformPsychoJsCode(psychoJsCode, addons):
                 // otherwise we return s:
                 return s;
         }
-        
+
         """
 
     if 'pad' in addons:
@@ -317,7 +314,7 @@ def transformPsychoJsCode(psychoJsCode, addons):
                 decimalPart = '';
             return (integerPart+'').padStart(width,'0') + decimalPart;
         }
-        
+
         """
 
     lines = psychoJsCode.splitlines()

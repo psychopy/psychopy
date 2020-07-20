@@ -33,14 +33,13 @@ class Test_PsychoJS_from_Builder(object):
     """Some tests just for the window - we don't really care about what's drawn inside it
     """
 
-    @pytest.mark.usefixtures('pytest_namespace')
     def setup_class(self):
         if keepFiles:
             self.temp_dir = join(home, "Desktop", "tmp")
         else:
             self.temp_dir = mkdtemp(prefix='psychopy-test_psychojs')
 
-        self.app = pytest.app
+        self.app = psychopyApp._app
         self.builderView = self.app.newBuilderFrame()
 
     def teardown_class(self):

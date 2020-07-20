@@ -28,18 +28,20 @@ Data settings
 
 .. _dataFileName:
 
-Data filename: (new in version 1.80.00):
+Data filename:
     A :ref:`formatted string <formattedStrings>` to control the base filename and path, often based on variables such as the date and/or the participant. This base filename will be given the various extensions for the different file types as needed. Examples::
         
-        # all in data folder: data/JWP_memoryTask_2014_Feb_15_1648
+        # all in data folder relative to experiment file: data/JWP_memoryTask_2014_Feb_15_1648
         'data/%s_%s_%s' %(expInfo['participant'], expName, expInfo['date'])
         
         # group by participant folder: data/JWP/memoryTask-2014_Feb_15_1648
         'data/%s/%s-%s' %(expInfo['participant'], expName, expInfo['date'])
         
         # put into dropbox: ~/dropbox/data/memoryTask/JWP-2014_Feb_15_1648
-        # on Windows you may need to replace ~ with your home directory
-        '~/dropbox/data/%s/%s-%s' %(expName, expInfo['participant'], expInfo['date'])
+        # os.path.expanduser replaces '~' with the path to your home directory,
+        # os.path.join joins the path components together correctly, regardless of OS
+        # os.path.relpath creates a relative path between the specified path and the current directory
+        '$os.path.relpath(os.path.join(os.path.expanduser('~'), 'dropbox', 'data', expName, expInfo['participant'] + '-' + expInfo['date']))
 
 Save Excel file:
 	If this box is checked an Excel data file (.xlsx) will be stored.

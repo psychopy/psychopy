@@ -539,6 +539,8 @@ class Window(object):
         # if self.autoLog:
         #     logging.exp("Created %s = %s" % (self.name, str(self)))
 
+        self._editableChildren = []
+        self._currentEditableIndex = None
         # Make sure this window's close method is called when exiting, even in
         # the event of an error we should be able to restore the original gamma
         # table. Note that a reference to this window object will live in this
@@ -925,6 +927,60 @@ class Window(object):
                             "object and its attribute or a dict and its key. "
                             "In this case it was called with obj={}"
                             .format(repr(obj)))
+
+    @property
+    def currentEditable(self):
+        """The editable (Text?) object that currently has key focus"""
+        if not self._editableChildren:
+            return None
+        ii = self._currentEditableIndex
+        # make sure the object still exists or get another
+        object = None
+        while object is None and self._editableChildren:  # not found an object yet
+            objectRef = self._editableChildren[ii]  # extract the weak reference
+            object = objectRef()  # get the actual object (None if deleted)
+            if not object:
+                self._editableChildren.remove(objectRef)  # remove and try another
+                if ii >= len(self._editableChildren):
+                    ii -= 1
+            else:
+                self._currentEditableIndex = ii
+        return object
+
+    @currentEditable.setter
+    def currentEditable(self, editable):
+        """Keeps the current editable stored as a weak ref"""
+        if not isinstance(editable, weakref.ref):
+            thisRef = weakref.ref(editable)
+        else:
+            thisRef = editable
+        if thisRef not in self._editableChildren:
+            self._currentEditableIndex = self.addEditable(editable)
+        else:
+            self._currentEditableIndex = self._editableChildren.index(thisRef)
+
+    def addEditable(self, editable):
+        """Adds an editable element to the screen (something to which
+        characters can be sent with meaning from the keyboard).
+
+        The current editable object receiving chars is Window.currentEditable
+
+        :param editable:
+        :return:
+        """
+        if self._currentEditableIndex is None:
+            self._currentEditableIndex = 0
+        self._editableChildren.append(weakref.ref(editable))
+        ii = len(self._editableChildren)-1  # the index of appended item
+        return ii
+
+    def nextEditable(self, chars=''):
+        """Moves focus of the cursor to the next editable window"""
+        ii = self._currentEditableIndex + 1
+        if ii > len(self._editableChildren)-1:
+            ii = 0  # wrap back to the first editable object
+        self.currentEditable = self._editableChildren[ii]
+        self._currentEditableIndex = ii
 
     @classmethod
     def dispatchAllWindowEvents(cls):
@@ -2254,7 +2310,7 @@ class Window(object):
         """Setup the window for stereo rendering.
 
         Applies the appropriate configuration needed for the specified stereo
-        mode, including creating appropriate device contexts and additional 
+        mode, including creating appropriate device contexts and additional
         framebuffers.
 
         """

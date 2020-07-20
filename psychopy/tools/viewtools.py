@@ -1093,17 +1093,3 @@ def visible(points, mvp, mode='discrete', dtype=None):
     else:
         raise ValueError(
             "Invalid `mode` specified, should be either 'discrete' or 'group'.")
-
-
-if __name__ == "__main__":
-    proj = perspectiveProjectionMatrix(*computeFrustum(0.5, 1.0, 0.5))
-    modelView = np.identity(4)
-
-    extents = mt.fitBBox([[-15.0, -1.0, -1.0],  # minimum extents of the bounding box
-               [5.0, 1.0, 1.0]])  # maximum extents
-
-    print(mt.computeBBoxCorners(extents))
-    mvp = np.matmul(proj, modelView)
-    print(visible([0.0, 0.0, -1.0], mvp, mode='discrete'))
-
-

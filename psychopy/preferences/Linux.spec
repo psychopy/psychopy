@@ -46,11 +46,15 @@
     shutdownKeyModifiers = list(default=list())
     # What to do if gamma-correction not possible
     gammaErrorPolicy = option('abort', 'warn', default='abort')
+    # Should the Builder and Coder "run" buttons add the experiment to runner view or skip straight to running it?
+    useRunner = boolean(default='True')
 
 # Application settings, applied to coder, builder, & prefs windows
 [app]
     # display tips when starting PsychoPy
     showStartupTips = boolean(default='True')
+    # Should the Builder and Coder "run" buttons skip straight to running the file?
+    skipToRun = boolean(default='False')
     # size of icons in the Coder and Builder toolbars (top of window)
     largeIcons = boolean(default='True')
     # what windows to display when PsychoPy starts
@@ -65,17 +69,17 @@
     locale = string(default='')
     # Show an error dialog when PsychoPy encounters an unhandled internal error.
     errorDialog = boolean(default='True')
+    # Theme
+    theme = string(default='PsychopyLight')
 
 # Settings for the Coder window
 [coder]
     # open Coder files as read-only (allows running without accidental changes)
     readonly = boolean(default=False)
     # a list of font names; the first one found on the system will be used
-    codeFont = string(default='Ubuntu Mono, DejaVu Sans Mono')
+    outputFont = string(default='From Theme...')
     # a list of font names; the first one found on the system will be used
-    commentFont = string(default='Ubuntu Mono, DejaVu Sans Mono')
-    # a list of font names; the first one found on the system will be used
-    outputFont = string(default='Ubuntu Mono, DejaVu Sans Mono')
+    codeFont = string(default='From Theme...')
     # Font size (in pts) takes an integer between 6 and 24
     codeFontSize = integer(6,24, default=12)
     # Font size (in pts) takes an integer between 6 and 24
@@ -84,12 +88,12 @@
     lineSpacing = integer(0, 64, default=4)
     # Long line edge guide, specify zero to disable
     edgeGuideColumn = integer(0, 65536, default=80)
-    # Color theme to use for syntax highlighting
-    theme = option('psychopy', 'wx', 'github', 'vc6', default='psychopy')
     # activate the source assistant panel
     showSourceAsst = boolean(default=True)
     # activate the output and shell panels
     showOutput = boolean(default=True)
+    # Show code completion suggestion and calltips automatically when typing.
+    autocomplete = boolean(default=True)
     # reload previously opened files after start
     reloadPrevFiles = boolean(default=True)
     # for coder shell window, which shell to use
@@ -99,6 +103,8 @@
 [builder]
     # whether to automatically reload a previously open experiment
     reloadPrevExp = boolean(default=False)
+    # Default to when writing code components
+    codeComponentLanguage = option('Py', 'JS', 'Both', 'Auto->JS', default='Auto->JS')
     # if False will create scripts with an 'easier' but more cluttered namespace
     unclutteredNamespace = boolean(default=False)
     # folder names for custom components; expects a comma-separated list

@@ -23,7 +23,6 @@ from ..params import Param
 from psychopy.localization import _translate
 from psychopy.experiment import py2js
 
-
 excludeComponents = ['BaseComponent', 'BaseVisualComponent',  # templates only
                      'EyetrackerComponent']  # this one isn't ready yet
 
@@ -150,9 +149,14 @@ def getComponents(folder=None, fetchIcons=True):
         except ImportError:
             continue  # not a valid module (no __init__.py?)
         # check for orphaned pyc files (__file__ is not a .py file)
-        if hasattr(module, '__file__') and module.__file__.endswith('.pyc'):
-            if not os.path.isfile(module.__file__[:-1]):
-                continue  # looks like an orphaned pyc file
+        if hasattr(module, '__file__'):
+            if not module.__file__:
+                # with Py3, orphans have a __pycharm__ folder but no file
+                continue
+            elif module.__file__.endswith('.pyc'):
+                # with Py2, orphans have a xxxxx.pyc file
+                if not os.path.isfile(module.__file__[:-1]):
+                    continue  # looks like an orphaned pyc file
         # give a default category
         if not hasattr(module, 'categories'):
             module.categories = ['Custom']
@@ -265,6 +269,12 @@ def getInitVals(params, target="PsychoPy"):
             inits[name].valType = 'str'
         elif name == 'noiseType':
             inits[name].val = 'Binary'
+            inits[name].valType = 'str'
+        elif name == 'marker_label':
+            inits[name].val = 'Label'
+            inits[name].valType = 'str'
+        elif name == 'marker_value':
+            inits[name].val = 'Value'
             inits[name].valType = 'str'
         else:
             print("I don't know the appropriate default value for a '%s' "

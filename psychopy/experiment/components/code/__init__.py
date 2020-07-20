@@ -9,6 +9,8 @@ from __future__ import absolute_import, print_function
 
 from builtins import str
 from os import path
+
+from psychopy import prefs
 from psychopy.experiment.components import BaseComponent, Param, _translate
 from psychopy.alerts import alerttools
 
@@ -17,11 +19,13 @@ thisFolder = path.abspath(path.dirname(__file__))
 iconFile = path.join(thisFolder, 'code.png')
 tooltip = _translate('Code: insert python commands into an experiment')
 _localized = {'Code Type': _translate('Code Type'),
+              'Before Experiment': _translate('BeforeExperiment'),
               'Begin Experiment': _translate('Begin Experiment'),
               'Begin Routine': _translate('Begin Routine'),
               'Each Frame': _translate('Each Frame'),
               'End Routine': _translate('End Routine'),
               'End Experiment': _translate('End Experiment'),
+              'Before JS Experiment': _translate('Before JS Experiment'),
               'Begin JS Experiment': _translate('Begin JS Experiment'),
               'Begin JS Routine': _translate('Begin JS Routine'),
               'Each JS Frame': _translate('Each JS Frame'),
@@ -36,8 +40,13 @@ class CodeComponent(BaseComponent):
     """An event class for inserting arbitrary code into Builder experiments"""
 
     def __init__(self, exp, parentName, name='code',
-                 beginExp="", beginRoutine="", eachFrame="", endRoutine="",
-                 endExperiment="", codeType="Auto->JS", translator="manual"):
+                 beforeExp="",
+                 beginExp="",
+                 beginRoutine="",
+                 eachFrame="",
+                 endRoutine="",
+                 endExperiment="",
+                 codeType=None, translator="manual"):
         super(CodeComponent, self).__init__(exp, parentName, name)
         self.type = 'Code'
         self.targets = ['PsychoPy', 'PsychoJS']
@@ -45,11 +54,13 @@ class CodeComponent(BaseComponent):
         # params
         # want a copy, else codeParamNames list gets mutated
         self.order = ['name', 'Code Type',
-                      'Begin Experiment', 'Begin Routine',
+                      'Before Experiment', 'Begin Experiment', 'Begin Routine',
                       'Each Frame', 'End Routine', 'End Experiment',
-                      'Begin JS Experiment', 'Begin JS Routine',
+                      'Before JS Experiment', 'Begin JS Experiment', 'Begin JS Routine',
                       'Each JS Frame', 'End JS Routine', 'End JS Experiment',
                       ]
+        if not codeType:
+            codeType = prefs.builder['codeComponentLanguage']
 
         msg = _translate("Display Python or JS Code")
         self.params['Code Type'] = Param(
@@ -58,8 +69,16 @@ class CodeComponent(BaseComponent):
             hint=msg,
             label=_localized['Code Type'])
 
-        msg = _translate("Code at the start of the experiment (initialization"
-                         "); right-click checks syntax")
+        msg = _translate("Code to run before the experiment starts "
+                         "(initialization); right-click checks syntax")
+        self.params['Before Experiment'] = Param(
+            beforeExp, valType='extendedCode', allowedTypes=[],
+            updates='constant', allowedUpdates=[],
+            hint=msg,
+            label=_localized['Before Experiment'])
+
+        msg = _translate("Code at the start of the experiment ; right-click "
+                         "checks syntax")
         self.params['Begin Experiment'] = Param(
             beginExp, valType='extendedCode', allowedTypes=[],
             updates='constant', allowedUpdates=[],
@@ -101,11 +120,18 @@ class CodeComponent(BaseComponent):
             updates='constant', allowedUpdates=[],
             hint=msg,
             label=_localized['End Experiment'])
-
+        # todo: copy initial vals once javscript interp can do comments
+        msg = _translate("Code before the start of the experiment (initialization"
+                         "); right-click checks syntax")
+        self.params['Before JS Experiment'] = Param(
+            '', valType='extendedCode', allowedTypes=[],
+            updates='constant', allowedUpdates=[],
+            hint=msg,
+            label=_localized['Before JS Experiment'])
         msg = _translate("Code at the start of the experiment (initialization"
                          "); right-click checks syntax")
         self.params['Begin JS Experiment'] = Param(
-            beginExp, valType='extendedCode', allowedTypes=[],
+            '', valType='extendedCode', allowedTypes=[],
             updates='constant', allowedUpdates=[],
             hint=msg,
             label=_localized['Begin JS Experiment'])
@@ -114,7 +140,7 @@ class CodeComponent(BaseComponent):
                          "Routine (e.g. each trial); "
                          "right-click checks syntax")
         self.params['Begin JS Routine'] = Param(
-            beginRoutine, valType='extendedCode', allowedTypes=[],
+            '', valType='extendedCode', allowedTypes=[],
             updates='constant', allowedUpdates=[],
             hint=msg,
             label=_localized['Begin JS Routine'])
@@ -123,7 +149,7 @@ class CodeComponent(BaseComponent):
                          " duration of this Routine; "
                          "right-click checks syntax")
         self.params['Each JS Frame'] = Param(
-            eachFrame, valType='extendedCode', allowedTypes=[],
+            '', valType='extendedCode', allowedTypes=[],
             updates='constant', allowedUpdates=[],
             hint=msg,
             label=_localized['Each JS Frame'])
@@ -132,7 +158,7 @@ class CodeComponent(BaseComponent):
                          " getting/storing responses); "
                          "right-click checks syntax")
         self.params['End JS Routine'] = Param(
-            endRoutine, valType='extendedCode', allowedTypes=[],
+            '', valType='extendedCode', allowedTypes=[],
             updates='constant', allowedUpdates=[],
             hint=msg,
             label=_localized['End JS Routine'])
@@ -141,7 +167,7 @@ class CodeComponent(BaseComponent):
                          "saving files, resetting computer); "
                          "right-click checks syntax")
         self.params['End JS Experiment'] = Param(
-            endExperiment, valType='extendedCode', allowedTypes=[],
+            '', valType='extendedCode', allowedTypes=[],
             updates='constant', allowedUpdates=[],
             hint=msg,
             label=_localized['End JS Experiment'])
@@ -152,6 +178,11 @@ class CodeComponent(BaseComponent):
                   'saveStartStop', 'syncScreenRefresh'):
             if p in self.params:
                 del self.params[p]
+
+    def writePreCode(self, buff):
+        if len(str(self.params['Before Experiment'])):
+            alerttools.checkPythonSyntax(self, 'Before Experiment')
+            buff.writeIndentedLines(str(self.params['Before Experiment']) + '\n')
 
     def writeInitCode(self, buff):
         if len(str(self.params['Begin Experiment'])):

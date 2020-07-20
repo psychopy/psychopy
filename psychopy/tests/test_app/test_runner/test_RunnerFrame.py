@@ -1,21 +1,21 @@
 import pytest
 import os
 from psychopy import prefs
+from psychopy.app import psychopyApp
 
 class Test_RunnerFrame(object):
     """
     This test opens Runner, and several processes.
     """
-    @pytest.mark.usefixtures('pytest_namespace')
     def setup(self):
-        self.app = pytest.app
+        self.app = psychopyApp._app
         self.runner = self.app.newRunnerFrame()
         self.runner.clearTasks()
         self.tempFile = os.path.join(prefs.paths['tests'], 'data', 'test001EntryImporting.psyexp')
 
     def test_RunnerFrame(self):
         self.runner = self.app.newRunnerFrame()
-        self.runner.showRunner()
+        self.app.showRunner()
 
     def test_addFile(self):
         self.runner.addTask(fileName=self.tempFile)

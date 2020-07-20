@@ -6,7 +6,7 @@
 import re
 from pathlib import Path
 
-thisFolder = Path(__file__).parent
+thisFolder = Path(__file__).absolute().parent
 rootFolder = thisFolder.parent
 input_path = rootFolder / 'psychopy/CHANGELOG.txt'
 output_path = thisFolder / 'source/changelog.md'

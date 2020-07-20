@@ -3,13 +3,15 @@
 
 from __future__ import absolute_import, division, print_function
 
+import errno
 from builtins import object
 import os
 import sys
 import platform
 from psychopy.constants import PY3
 from pkg_resources import parse_version
-
+import shutil
+import json
 
 try:
     import configobj
@@ -31,7 +33,6 @@ else:  # Use our contrib package if configobj is not installed or too old.
     from psychopy.contrib import configobj
     from psychopy.contrib.configobj import ConfigObj
     from psychopy.contrib.configobj import validate
-
 join = os.path.join
 
 
@@ -129,20 +130,42 @@ class Preferences(object):
             self.paths['userPrefsDir'] = join(os.environ['HOME'],
                                               '.psychopy3')
 
+        # Find / copy themes
+        self.paths['themes'] = join(self.paths['userPrefsDir'], 'themes')
+        baseThemes = join(self.paths['appDir'], 'themes')
+        baseAppThemes = join(self.paths['appDir'], 'themes', 'app')
         # avoid silent fail-to-launch-app if bad permissions:
-        if os.path.exists(self.paths['userPrefsDir']):
-            try:
-                if not os.access(self.paths['userPrefsDir'],
-                                 os.W_OK | os.R_OK):
-                    raise OSError
-                tmp = os.path.join(self.paths['userPrefsDir'], '.tmp')
-                with open(tmp, 'w') as fileh:
-                    fileh.write('')
-                open(tmp).read()
-                os.remove(tmp)
-            except Exception:  # OSError, WindowsError, ...?
-                msg = 'PsychoPy3 error: need read-write permissions for `%s`'
-                sys.exit(msg % self.paths['userPrefsDir'])
+
+        try:
+            os.makedirs(self.paths['userPrefsDir'])
+        except OSError as err:
+            if err.errno != errno.EEXIST:
+                raise
+        # Create themes folder in user space if not one already
+        try:
+            os.makedirs(self.paths['themes'])
+        except OSError as err:
+            if err.errno != errno.EEXIST:
+                raise
+        try:
+            os.makedirs(join(self.paths['themes'], "app"))
+        except OSError as err:
+            if err.errno != errno.EEXIST:
+                raise
+        # Make sure all the base themes are present in user's folder
+        #try:
+        for file in os.listdir(baseThemes):
+            if file.endswith('.json'):
+                shutil.copyfile(
+                    join(baseThemes, file),
+                    join(self.paths['themes'], file)
+                )
+        for file in os.listdir(baseAppThemes):
+            if file.endswith('.json'):
+                shutil.copyfile(
+                    join(baseAppThemes, file),
+                    join(self.paths['themes'], "app", file)
+                    )
 
     def loadAll(self):
         """Load the user prefs and the application data

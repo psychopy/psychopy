@@ -104,6 +104,7 @@ packages = ['wx', 'psychopy',
             'badapted', 'darc_toolbox',  # adaptive methods from Ben Vincent
             'questplus',
             'metapensiero.pj', 'dukpy', 'macropy',
+            'jedi',
             ]
 
 if sys.version_info.major >= 3:
@@ -168,6 +169,3 @@ os.symlink(realPath, fakePath)
 if writeNewInit:
     # remove unwanted info about this system post-build
     createInitFile.createInitFile(dist=None)
-
-# running testApp from within the app raises wx errors
-# shutil.rmtree("dist/PsychoPy3.app/Contents/Resources/lib/python2.6/psychopy/tests/testTheApp")

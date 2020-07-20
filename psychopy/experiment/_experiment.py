@@ -190,6 +190,8 @@ class Experiment(object):
                 self_copy._currentRoutine = entry
                 if hasattr(entry, 'writeRunOnceInitCode'):
                     entry.writeRunOnceInitCode(script)
+                if hasattr(entry, 'writePreCode'):
+                    entry.writePreCode(script)
             script.write("\n\n")
 
             # present info, make logfile

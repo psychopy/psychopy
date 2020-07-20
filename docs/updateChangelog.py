@@ -9,10 +9,11 @@ import re
 from pathlib import Path
 import os
 
-thisFolder = Path(__file__).parent
+thisFolder = Path(__file__).absolute().parent
 rootFolder = thisFolder.parent
 input_path = rootFolder / 'psychopy/CHANGELOG.txt'
 output_path = thisFolder / 'source/changelog.rst'
+
 
 def repl_issue(m):
     g = m.group(1)
@@ -30,7 +31,7 @@ def repl_noncompat(m):
 print(thisFolder)
 print(f"looking in {input_path.absolute()} from {os.getcwd()}")
 # raw .txt form of changelog:
-txt = open(input_path.absolute(), "rU", encoding='utf8').read()
+txt = open(input_path, "rU", encoding='utf8').read()
 
 # programmatic replacements:
 hashtag = re.compile(r"([ (]#\d{3,5})\b")

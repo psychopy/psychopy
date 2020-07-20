@@ -562,7 +562,6 @@ class ConfigWizard(BaseWizard):
             msg = _translate("""<p>Critical issue:\n</p>""")
             msg += cardInfo
             fatalItemsList.append(msg)
-            pass
         # other fatal conditions? append a 'Critical issue' msg to itemsList
         if not fatalItemsList:
             dlg.addText(_translate("We'll go through a series of configura"
@@ -788,9 +787,9 @@ class BenchmarkWizard(BaseWizard):
                 fps = win.fps()  # get frames per sec
                 if len(event.getKeys(['escape'])):
                     sys.exit()
-                if fps < baseline * 0.6:
+                if (fps < baseline * 0.6) or (dotCount > 5000):
                     # only break when start dropping a LOT of frames (80% or
-                    # more)
+                    # more) or exceeded 5,000 dots
                     dotsInfo.append(
                         ('dots_' + fieldShape, str(bestDots), '', False))
                     break
@@ -800,10 +799,6 @@ class BenchmarkWizard(BaseWizard):
                     bestDots = dotCount
                 # but do allow to continue in case do better with more dots:
                 dotCount += 100
-                if dotCount > 1200:
-                    dotCount += 100
-                if dotCount > 2400:
-                    dotCount += 100
                 # show the dot count:
                 count.setText(str(dotCount), log=False)
                 count.draw()

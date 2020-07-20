@@ -19,6 +19,7 @@ dependencies:
 - imageio
 - imageio-ffmpeg
 - javascripthon
+- jedi
 - json_tricks
 - lxml
 - matplotlib
@@ -41,8 +42,8 @@ dependencies:
 - pyserial
 - pysoundfile
 - pytables
-- attrs<18.0
-- pytest<4.1
+- attrs
+- pytest
 - pytest-cov
 - python-bidi
 - python-gitlab

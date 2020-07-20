@@ -3,6 +3,7 @@
 
 from __future__ import absolute_import, print_function
 
+import json
 from builtins import str
 import wx
 import wx.propgrid as pg
@@ -12,15 +13,12 @@ import re
 import os
 
 from . import dialogs
-from psychopy import localization
+from psychopy import localization, prefs
 from psychopy.localization import _translate
 from pkg_resources import parse_version
 from psychopy import sound
 from psychopy.app.utils import getSystemFonts
 import collections
-
-# this will be overridden by the size of the scrolled panel making the prefs
-dlgSize = (600, 500)
 
 # labels mappings for display:
 _localized = {
@@ -50,6 +48,7 @@ _localized = {
     'showStartupTips': _translate("show start-up tips"),
     'largeIcons': _translate("large icons"),
     'defaultView': _translate("default view"),
+    'darkMode': _translate("dark mode"),
     'resetPrefs': _translate('reset preferences'),
     'autoSavePrefs': _translate('auto-save prefs'),
     'debugMode': _translate('debug mode'),
@@ -164,6 +163,7 @@ class PrefPropGrid(wx.Panel):
         wx.Panel.__init__(
             self, parent, id=id, pos=pos, size=size, style=style, name=name)
         bSizer1 = wx.BoxSizer(wx.HORIZONTAL)
+        self.app = wx.GetApp()
 
         self.lstPrefPages = wx.ListCtrl(
             self, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize,
@@ -221,11 +221,7 @@ class PrefPropGrid(wx.Panel):
             if s not in self.sections.keys():
                 self.sections[s] = dict()
 
-        nbBitmap = wx.Bitmap(
-            os.path.join(
-                self.GetTopLevelParent().app.prefs.paths['resources'],
-                bitmap),
-            wx.BITMAP_TYPE_ANY)
+        nbBitmap = self.app.iconCache.getBitmap(bitmap)
         if nbBitmap.IsOk():
             self.prefsImages.Add(nbBitmap)
 
@@ -492,7 +488,22 @@ class PreferencesDlg(wx.Dialog):
         self.sdbControlsOK.Bind(wx.EVT_BUTTON, self.OnOKClicked)
 
         # system fonts for font properties
-        self.fontList = list(getSystemFonts(fixedWidthOnly=True))
+        self.fontList = ['From theme...'] + list(getSystemFonts(fixedWidthOnly=True))
+
+        # valid themes
+        themePath = self.GetTopLevelParent().app.prefs.paths['themes']
+        self.themeList = []
+        for themeFile in os.listdir(themePath):
+            try:
+                # Load theme from json file
+                with open(os.path.join(themePath, themeFile), "rb") as fp:
+                    theme = json.load(fp)
+                # Add themes to list only if min spec is defined
+                base = theme['base']
+                if all(key in base for key in ['bg', 'fg', 'font']):
+                    self.themeList += [themeFile.replace('.json', '')]
+            except:
+                pass
 
         # get sound devices for "audioDevice" property
         try:
@@ -567,6 +578,18 @@ class PreferencesDlg(wx.Dialog):
                             prefName,
                             labels=self.fontList,
                             values=[i for i in range(len(self.fontList))],
+                            value=default, helpText=helpText)
+                elif prefName in ('theme',):
+                    try:
+                        default = self.themeList.index(thisPref)
+                    except ValueError:
+                        default = self.themeList.index("PsychopyLight")
+                    self.proPrefs.addEnumItem(
+                            sectionName,
+                            pLabel,
+                            prefName,
+                            labels=self.themeList,
+                            values=[i for i in range(len(self.themeList))],
                             value=default, helpText=helpText)
                 elif prefName == 'locale':
                     thisPref = self.app.prefs.app['locale']
@@ -698,6 +721,10 @@ class PreferencesDlg(wx.Dialog):
                     self.prefsCfg[sectionName][prefName] = \
                         self.fontList[thisPref]
                     continue
+                if prefName in ('theme',):
+                    self.prefsCfg[sectionName][prefName] = \
+                        self.themeList[thisPref]
+                    continue
                 elif prefName == 'audioDevice':
                     self.prefsCfg[sectionName][prefName] = \
                         self.audioDevNames[thisPref]
@@ -749,7 +776,7 @@ class PreferencesDlg(wx.Dialog):
                                                         message=msg,
                                                         type='Info',
                                                         title=title)
-                        resp = warnDlg.ShowModal()
+                        warnDlg.ShowModal()
                         return
                     if type(newVal) != list:
                         self.prefsCfg[sectionName][prefName] = [newVal]
@@ -769,6 +796,7 @@ class PreferencesDlg(wx.Dialog):
         self.populatePrefs()
 
         # after validation, update the UI
+        self.app.theme = self.app.theme
         self.updateCoderUI()
 
     def updateCoderUI(self):
@@ -779,7 +807,11 @@ class PreferencesDlg(wx.Dialog):
             # apply settings over document pages
             for ii in range(coder.notebook.GetPageCount()):
                 doc = coder.notebook.GetPage(ii)
-                doc.updateSettings()
+                doc.theme = prefs.app['theme']
+            for ii in range(coder.shelf.GetPageCount()):
+                doc = coder.shelf.GetPage(ii)
+                doc.theme = prefs.app['theme']
+
 
     def OnApplyClicked(self, event):
         """Apply button clicked, this makes changes to the UI without leaving
