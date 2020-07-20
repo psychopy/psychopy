@@ -962,15 +962,17 @@ class ThemeSwitcher(wx.Menu):
         themePath = prefs.paths['themes']
         themeList = {}
         for themeFile in os.listdir(themePath):
-            try:
-                with open(os.path.join(themePath, themeFile), "rb") as fp:
-                    theme = json.load(fp)
-                    # Add themes to list only if min spec is defined
-                    base = theme['base']
-                    if all(key in base for key in ['bg', 'fg', 'font']):
-                        themeList[themeFile.replace('.json', '')] = []
-            except (FileNotFoundError, IsADirectoryError):
-                pass
+            path = os.path.join(themePath, themeFile)
+            if os.path.isfile(path):
+                try:
+                    with open(path, "rb") as fp:
+                        theme = json.load(fp)
+                        # Add themes to list only if min spec is defined
+                        base = theme['base']
+                        if all(key in base for key in ['bg', 'fg', 'font']):
+                            themeList[themeFile.replace('.json', '')] = []
+                except (FileNotFoundError, IsADirectoryError):
+                    pass
         # Make menu
         wx.Menu.__init__(self)
         # Make buttons
