@@ -955,14 +955,13 @@ class ThemeSwitcher(wx.Menu):
         themeList = {}
         for themeFile in os.listdir(themePath):
             try:
-                # Load theme from json file
                 with open(os.path.join(themePath, themeFile), "rb") as fp:
                     theme = json.load(fp)
-                # Add themes to list only if min spec is defined
-                base = theme['base']
-                if all(key in base for key in ['bg', 'fg', 'font']):
-                    themeList[themeFile.replace('.json', '')] = []
-            except:
+                    # Add themes to list only if min spec is defined
+                    base = theme['base']
+                    if all(key in base for key in ['bg', 'fg', 'font']):
+                        themeList[themeFile.replace('.json', '')] = []
+            except FileNotFoundError:
                 pass
         # Make menu
         wx.Menu.__init__(self)
