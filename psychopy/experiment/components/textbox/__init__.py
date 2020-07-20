@@ -237,28 +237,16 @@ class TextboxComponent(BaseVisualComponent):
                 if param == 'text':
                     inits[param].val = "''"
 
-        code = ("%(name)s = new visual.TextStim({\n"
+        code = ("%(name)s = new visual.TextBox({\n"
                 "  win: psychoJS.window,\n"
                 "  name: '%(name)s',\n"
                 "  text: %(text)s,\n"
                 "  font: %(font)s,\n" + unitsStr +
                 "  pos: %(pos)s, height: %(letterHeight)s,"
-                "  color: new util.Color(%(color)s),"
                 "  opacity: %(opacity)s,")
         buff.writeIndentedLines(code % inits)
 
-        flip = self.params['flip'].val.strip()
-        if flip == 'horiz':
-            flipStr = 'flipHoriz : true, '
-        elif flip == 'vert':
-            flipStr = 'flipVert : true, '
-        elif flip:
-            msg = ("flip value should be 'horiz' or 'vert' (no quotes)"
-                   " in component '%s'")
-            raise ValueError(msg % self.params['name'].val)
-        else:
-            flipStr = ''
         depth = -self.getPosInRoutine()
-        code = ("  %sdepth: %.1f \n"
-                "});\n\n" % (flipStr, depth))
+        code = ("  depth: %.1f \n"
+                "});\n\n" % (depth))
         buff.writeIndentedLines(code)
