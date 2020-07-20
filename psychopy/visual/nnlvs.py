@@ -41,7 +41,8 @@ class VisualSystemHD(window.Window):
     rendering is implemented in the base `Window` class.
 
     """
-    def __init__(self, monoscopic=False, lensCorrection=True, model='vshd', *args, **kwargs):
+    def __init__(self, monoscopic=False, lensCorrection=True, model='vshd',
+                 *args, **kwargs):
         """
         Parameters
         ----------
@@ -232,7 +233,7 @@ class VisualSystemHD(window.Window):
         self._warpVAOs = {}
         for eye in ('left', 'right'):
             # setup vertex arrays for the output quad
-            aspect = self._bufferViewports[eye][2] / self._bufferViewports[eye][3]
+            # aspect = self._bufferViewports[eye][2] / self._bufferViewports[eye][3]
             vertices, texCoord, normals, faces = gt.createMeshGrid(
                 (2.0, 2.0), subdiv=256, tessMode='radial')
 
