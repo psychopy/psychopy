@@ -92,20 +92,22 @@ __all__ = [
     'quadBuffersSupported'
 ]
 
+import os
+import sys
 import ctypes
-from io import StringIO
+import warnings
 from collections import namedtuple
-import pyglet.gl as GL  # using Pyglet for now
+from io import StringIO
 from contextlib import contextmanager
+
+import pyglet.gl as GL  # using Pyglet for now
 from PIL import Image
 import numpy as np
-import os, sys
-import warnings
+
 import psychopy.tools.mathtools as mt
 from psychopy.visual.helpers import setColor
 
 # create a query counter to get absolute GPU time
-
 QUERY_COUNTER = None  # prevent genQueries from being called
 
 
