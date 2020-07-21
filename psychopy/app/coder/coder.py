@@ -15,6 +15,7 @@ from builtins import range
 import wx
 import wx.stc
 import wx.richtext
+from psychopy.app.themes._themes import ThemeSwitcher
 from wx.html import HtmlEasyPrinting
 
 import wx.lib.agw.aui as aui  # some versions of phoenix
@@ -588,6 +589,7 @@ class CodeEditor(BaseCodeEditor, CodeEditorFoldingMixin, ThemeMixin):
         self.AutoCompSetIgnoreCase(True)
         self.AutoCompSetAutoHide(True)
         self.AutoCompStops('. ')
+        self.openBrackets = 0
 
         # better font rendering and less flicker on Windows by using Direct2D
         # for rendering instead of GDI
@@ -695,9 +697,17 @@ class CodeEditor(BaseCodeEditor, CodeEditorFoldingMixin, ThemeMixin):
                 if self.coder.useAutoComp:
                     if not self.CallTipActive():
                         wx.CallAfter(self.ShowCalltip)
+
+                    self.openBrackets += 1
                 else:
                     self.coder.SetStatusText(
                         'Press Ctrl+Space to show calltip', 0)
+            elif keyCode == ord('0') and wx.MOD_SHIFT == _mods:  # close if brace matches
+                if self.CallTipActive():
+                    self.openBrackets -= 1
+                    if self.openBrackets <= 0:
+                        self.CallTipCancel()
+                        self.openBrackets = 0
             else:
                 self.coder.SetStatusText('', 0)
 
@@ -745,6 +755,7 @@ class CodeEditor(BaseCodeEditor, CodeEditorFoldingMixin, ThemeMixin):
                 self.AutoCompCancel()  # close the auto completion list
             if self.CallTipActive():
                 self.CallTipCancel()
+                self.openBrackets = 0
 
         elif keyCode == wx.WXK_RETURN: # and not self.AutoCompActive():
             if not self.AutoCompActive():
@@ -754,6 +765,10 @@ class CodeEditor(BaseCodeEditor, CodeEditorFoldingMixin, ThemeMixin):
                 self.smartIdentThisLine()
                 self.analyseScript()
                 return  # so that we don't reach the skip line at end
+
+            if self.CallTipActive():
+                self.CallTipCancel()
+                self.openBrackets = 0
 
         # quote line
         elif keyCode == ord("'"):
@@ -1037,7 +1052,6 @@ class CoderFrame(wx.Frame, ThemeMixin):
         self.fileStatusCheckInterval = 5 * 60  # sec
         self.showingReloadDialog = False
         self.btnHandles = {}  # stores toolbar buttons so they can be altered
-        self.useAutoComp = False
 
         # we didn't have the key or the win was minimized/invalid
         if self.appData['winH'] == 0 or self.appData['winW'] == 0:
@@ -1227,9 +1241,13 @@ class CoderFrame(wx.Frame, ThemeMixin):
             self.paneManager.GetPane('SourceAsst').IsShown()
         )
         #self.chkShowAutoComp.Check(self.prefs['autocomplete'])
-        self.useAutoComp = self.prefs['autocomplete']
         self.SendSizeEvent()
         self.app.trackFrame(self)
+
+    @property
+    def useAutoComp(self):
+        """Show autocomplete while typing."""
+        return self.prefs['autocomplete']
 
     def GetAuiManager(self):
         return self.paneManager
@@ -1542,13 +1560,9 @@ class CoderFrame(wx.Frame, ThemeMixin):
         self.showEOLsChk.Check(self.appData['showEOLs'])
         self.Bind(wx.EVT_MENU, self.setShowEOLs, id=self.showEOLsChk.GetId())
         # Theme Switcher
-        self.themesMenu = wx.Menu()
+        self.themesMenu = ThemeSwitcher(self)
         menu.AppendSubMenu(self.themesMenu,
                            _translate("Themes..."))
-        for theme in self.themeList:
-            self.themeList[theme] = self.themesMenu.Append(wx.ID_ANY, _translate(theme))
-            self.Bind(wx.EVT_MENU, self.app.onThemeChange, self.themeList[theme])
-
         menu.AppendSeparator()
         # output window
         key = keyCodes['toggleOutputPanel']

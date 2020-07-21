@@ -1,8 +1,11 @@
+import os
+import subprocess
 import sys
 
 import wx
 import wx.lib.agw.aui as aui
 import wx.stc as stc
+from psychopy.localization import _translate
 from wx import py
 import keyword
 import builtins
@@ -543,11 +546,7 @@ class ThemeMixin:
             finalFont = [wx.SystemSettings.GetFont(wx.SYS_ANSI_FIXED_FONT).GetFaceName()]
         # Cycle through font names, stop at first valid font
         for font in fontList:
-            try:
-                thisFont = fm.findfont(font, fallback_to_default=False)
-            except ValueError:
-                thisFont = None
-            if thisFont not in fm.defaultFont.values():
+            if fm.findfont(font) not in fm.defaultFont.values():
                 finalFont = [font] + bold + italic
                 break
 
@@ -808,11 +807,11 @@ class IconCache:
             button.SetBitmapPosition(wx.TOP)
             button.SetBackgroundColour(ThemeMixin.appColors['frame_bg'])
             # just for regular buttons (not toolbar objects) we can re-use
-            buttonInfo = {'btn': button,
+            buttonInfo = {'btn':button,
                           'filename': filename,
-                          'size': size,
-                          'emblem': emblem,
-                          'theme': theme}
+                          'size':size,
+                          'emblem':emblem,
+                          'theme':theme}
             self._buttons.append(buttonInfo)
 
             if tip:
@@ -957,3 +956,36 @@ class PsychopyDockArt(aui.AuiDefaultDockArt):
         # self._caption_font
         self._caption_size = 25
         self._button_size = 20
+
+
+class ThemeSwitcher(wx.Menu):
+    """Class to make a submenu for switching theme, meaning that the menu will always be the same across frames."""
+    def __init__(self, frame):
+        # Get list of themes
+        themePath = prefs.paths['themes']
+        themeList = {}
+        for themeFile in os.listdir(themePath):
+            path = os.path.join(themePath, themeFile)
+            if os.path.isfile(path):
+                try:
+                    with open(path, "rb") as fp:
+                        theme = json.load(fp)
+                        # Add themes to list only if min spec is defined
+                        base = theme['base']
+                        if all(key in base for key in ['bg', 'fg', 'font']):
+                            themeList[themeFile.replace('.json', '')] = []
+                except (FileNotFoundError, IsADirectoryError):
+                    pass
+        # Make menu
+        wx.Menu.__init__(self)
+        # Make buttons
+        for theme in themeList:
+            item = self.Append(wx.ID_ANY, _translate(theme))
+            frame.Bind(wx.EVT_MENU, frame.app.onThemeChange, item)
+        self.AppendSeparator()
+        # Add Theme Folder button
+        item = self.Append(wx.ID_ANY, _translate("Open theme folder..."))
+        frame.Bind(wx.EVT_MENU, self.openThemeFolder, item)
+
+    def openThemeFolder(self, event):
+        subprocess.call("explorer %(themes)s" % prefs.paths, shell=True)
