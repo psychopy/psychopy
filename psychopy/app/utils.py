@@ -216,7 +216,7 @@ class PsychopyToolbar(wx.ToolBar, ThemeMixin):
         elif frame.__class__.__name__ == 'CoderFrame':
             self.addPsychopyTool('filenew', 'New', 'new',
                                  "Create new experiment file",
-                                 self.frame.app.newBuilderFrame)  # New
+                                 self.frame.fileNew)  # New
             self.addPsychopyTool('fileopen', 'Open', 'open',
                                  "Open an existing experiment file",
                                  self.frame.fileOpen)  # Open
