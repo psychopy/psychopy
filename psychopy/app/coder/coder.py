@@ -1170,6 +1170,7 @@ class CoderFrame(wx.Frame, ThemeMixin):
         self.Bind(wx.EVT_END_PROCESS, self.onProcessEnded)
 
         # take files from arguments and append the previously opened files
+        filename = ""
         if files not in [None, [], ()]:
             for filename in files:
                 if not os.path.isfile(filename):
@@ -1235,6 +1236,9 @@ class CoderFrame(wx.Frame, ThemeMixin):
             self.Fit()
         # Update panes
         self._applyAppTheme()
+        isExp = filename.endswith(".py") or filename.endswith(".psyexp")
+        self.toolbar.EnableTool(self.cdrBtnRunner.Id, isExp)
+        self.toolbar.EnableTool(self.cdrBtnRun.Id, isExp)
         self.paneManager.Update()
 
         self.sourceAsstChk.Check(
@@ -1562,7 +1566,7 @@ class CoderFrame(wx.Frame, ThemeMixin):
         # Theme Switcher
         self.themesMenu = ThemeSwitcher(self)
         menu.AppendSubMenu(self.themesMenu,
-                           _translate("Themes..."))
+                           _translate("Themes"))
         menu.AppendSeparator()
         # output window
         key = keyCodes['toggleOutputPanel']
@@ -2196,6 +2200,10 @@ class CoderFrame(wx.Frame, ThemeMixin):
         if readonly:
             self.currentDoc.SetReadOnly(True)
         self._applyAppTheme()
+        isExp = filename.endswith(".py") or filename.endswith(".psyexp")
+        self.toolbar.EnableTool(self.cdrBtnRunner.Id, isExp)
+        self.toolbar.EnableTool(self.cdrBtnRun.Id, isExp)
+
 
     def fileOpen(self, event=None, filename=None):
         if not filename:
@@ -2439,8 +2447,9 @@ class CoderFrame(wx.Frame, ThemeMixin):
                 pass  # just run
         self.app.runner.addTask(fileName=fullPath)
         self.app.showRunner()
-        if prefs.app['skipToRun']:
-            self.app.runner.panel.runFile(fileName=fullPath)
+        if event:
+            if event.Id == self.cdrBtnRun.Id:
+                self.app.runner.panel.runFile(fileName=fullPath)
 
     def copy(self, event):
         foc = self.FindFocus()
@@ -2608,7 +2617,8 @@ class CoderFrame(wx.Frame, ThemeMixin):
         self.onIdle(event=None)
         self.scriptProcess = None
         self.scriptProcessID = None
-        self.toolbar.EnableTool(self.IDs.cdrBtnRun, True)
+        self.toolbar.EnableTool(self.cdrBtnRun.Id, True)
+        self.toolbar.EnableTool(self.cdrBtnRunner.Id, True)
 
     def onURL(self, evt):
         """decompose the URL of a file and line number"""

@@ -173,7 +173,7 @@ class RunnerFrame(wx.Frame, ThemeMixin):
         # Add Theme Switcher
         self.themesMenu = ThemeSwitcher(self)
         viewMenu.AppendSubMenu(self.themesMenu,
-                           _translate("Themes..."))
+                           _translate("Themes"))
 
         # Create menus
         self.runnerMenu.Append(fileMenu, 'File')
