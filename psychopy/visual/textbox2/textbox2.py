@@ -147,9 +147,15 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
         self.flipVert = flipVert
         self.text = text  # setting this triggers a _layout() call so do last
         # box border and fill
+        w, h = self.size
         self.box = Rect(win, pos=pos,
-                        width=self.size[0], height=self.size[1], units=units,
+                        width=w, height=h, units=units,
                         lineWidth=borderWidth, lineColor=borderColor, fillColor=fillColor,
+                        autoLog=False)
+        # also bounding box (not normally drawn but gives tight box around chrs)
+        self.boundingBox = Rect(win, pos=pos,
+                        width=w, height=h, units=units,
+                        lineWidth=1, lineColor='lightgray', fillColor=None,
                         autoLog=False)
         self._requested = {
             'lineColor': borderColor,
@@ -210,17 +216,6 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
     def text(self, text):
         self.__dict__['text'] = text
         self._layout()
-
-    @property
-    def boundingBox(self):
-        """(read only) attribute representing the bounding box of the text
-        (w,h). This differs from `width` in that the width represents the
-        width of the margins, which might differ from the width of the text
-        within them."""
-        if 'boundingBox' in self.__dict__:
-            return self.__dict__['boundingBox']
-        else:
-            return self.size
 
     # @property
     # def caretIndex(self):
@@ -475,6 +470,55 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
 
         gl.glPopMatrix()
 
+    def contains(self, x, y=None, units=None, tight=False):
+        """Returns True if a point x,y is inside the stimulus' border.
+
+        Can accept variety of input options:
+            + two separate args, x and y
+            + one arg (list, tuple or array) containing two vals (x,y)
+            + an object with a getPos() method that returns x,y, such
+                as a :class:`~psychopy.event.Mouse`.
+
+        Returns `True` if the point is within the area defined either by its
+        `border` attribute (if one defined), or its `vertices` attribute if
+        there is no .border. This method handles
+        complex shapes, including concavities and self-crossings.
+
+        Note that, if your stimulus uses a mask (such as a Gaussian) then
+        this is not accounted for by the `contains` method; the extent of the
+        stimulus is determined purely by the size, position (pos), and
+        orientation (ori) settings (and by the vertices for shape stimuli).
+
+        See Coder demos: shapeContains.py
+        See Coder demos: shapeContains.py
+        """
+        if tight:
+            return self.boundingBox.contains(x, y, units)
+        else:
+            return self.box.contains(x, y, units)
+
+    def overlaps(self, polygon, tight=False):
+        """Returns `True` if this stimulus intersects another one.
+
+        If `polygon` is another stimulus instance, then the vertices
+        and location of that stimulus will be used as the polygon.
+        Overlap detection is typically very good, but it
+        can fail with very pointy shapes in a crossed-swords configuration.
+
+        Note that, if your stimulus uses a mask (such as a Gaussian blob)
+        then this is not accounted for by the `overlaps` method; the extent
+        of the stimulus is determined purely by the size, pos, and
+        orientation settings (and by the vertices for shape stimuli).
+
+        Parameters
+
+        See coder demo, shapeContains.py
+        """
+        if tight:
+            return self.boundingBox.overlaps(polygon)
+        else:
+            return self.box.overlaps(polygon)
+
     def _updateVertices(self):
         """Sets Stim.verticesPix and ._borderPix from pos, size, ori,
         flipVert, flipHoriz
@@ -486,16 +530,22 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
         if hasattr(self, 'flipVert') and self.flipVert:
             flip[1] = -1  # True=(-1), False->(+1)
 
-        if hasattr(self, 'vertices'):
-            verts = self.vertices
-        else:
-            verts = self._verticesBase
 
-        verts = convertToPix(vertices=verts, pos=self.pos,
+        vertsPix = convertToPix(vertices=self.vertices, pos=self.pos,
                              win=self.win, units=self.units)
-        self.__dict__['verticesPix'] = verts
+        self.__dict__['verticesPix'] = vertsPix
 
-        self.box.size = self.size
+        # tight bounding box
+        L = self.vertices[:, 0].min()
+        R = self.vertices[:, 0].max()
+        B = self.vertices[:, 1].min()
+        T = self.vertices[:, 1].max()
+        tightW = R-L
+        Xmid = (R+L)/2
+        tightH = T-B
+        Ymid = (T+B)/2
+        self.box.size = tightW, tightH
+        self.box.pos = Xmid, Ymid
         self._needVertexUpdate = False
 
     def _onText(self, chr):
@@ -672,6 +722,7 @@ class Caret(Line):
         self.index = max(self.index, 1)
         # Get first index of line, subtract from index to get char
         return self.index - sum(self.textbox._lineLenChars[:self.row])
+
     @char.setter
     def char(self, value):
         """Set character within row"""
