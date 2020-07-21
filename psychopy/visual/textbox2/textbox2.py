@@ -78,6 +78,7 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
                  lineSpacing=1.0,
                  padding=None,  # gap between box and text
                  anchor='center',
+                 alignment='left',
                  fillColor=None,
                  borderWidth=0,
                  borderColor=None,
@@ -107,6 +108,7 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
             scaleUnits = units
         self._pixLetterHeight = convertToPix(
                 self.letterHeight, pos=0, units=scaleUnits, win=self.win)
+        self._pixelScaling = self._pixLetterHeight / self.letterHeight
         if size is None:
             size = [defaultBoxWidth[units], -1]
         self._requestedSize = size  # (-1 in either dim means not constrained)
@@ -128,8 +130,6 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
             global alphaShader
             self.shader = alphaShader = shaders.Shader(
                     shaders.vertSimple, shaders.fragTextBox2alpha)
-        # params about positioning
-        self.anchor = anchor  # 'center', 'top_left', 'bottom-center'...
         self._needVertexUpdate = False  # this will be set True during layout
         # standard stimulus params
         self.pos = pos
@@ -145,7 +145,11 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
 
         self.flipHoriz = flipHoriz
         self.flipVert = flipVert
-        self.text = text  # setting this triggers a _layout() call so do last
+        # params about positioning (after layout has occurred)
+        self.anchor = anchor  # 'center', 'top_left', 'bottom-center'...
+        self.alignment = alignment
+        # then layout the text (setting text triggers _layout())
+        self.text = text
         # box border and fill
         w, h = self.size
         self.box = Rect(win, pos=pos,
@@ -170,10 +174,10 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
 
         # caret
         self.editable = editable
-        self.caret = Caret(self)
-        if editable:
-            self.win.addEditable(self)
+        self.caret = Caret(self, color=self.color, width=5)
         self._hasFocus = False
+        if editable:  # may yet gain focus if the first editable obj
+            self.win.addEditable(self)
 
         self.autoLog = autoLog
 
@@ -211,6 +215,69 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
             self._anchorX = 'center'
         if self._anchorY is None:
             self._anchorY = 'center'
+
+    @attributeSetter
+    def alignment(self, alignment):
+        self.__dict__['alignment'] = alignment
+        # look for unambiguous terms first (top, bottom, left, right)
+        self._alignY = None
+        self._alignX = None
+        if 'top' in alignment:
+            self._alignY = 'top'
+        elif 'bottom' in alignment:
+            self._alignY = 'bottom'
+        if 'right' in alignment:
+            self._alignX = 'right'
+        elif 'left' in alignment:
+            self._alignX = 'left'
+        # then 'center' can apply to either axis that isn't already set
+        if self._alignX is None:
+            self._alignX = 'center'
+        if self._alignY is None:
+            self._alignY = 'center'
+
+        self._needVertexUpdate = True
+
+        # Vertical position of bottom edge of first line, relative to center of box
+        # if self._alignY == 'top':
+        #     self._alignOffsetY = (
+        #         - font.ascender / self._pixelScaling  # Move down so top of first line == top of box
+        #         + self.size[1] / 2  # Move up by half the box size to get from center to top
+        #         - self.padding  # Move down to give padding
+        #     )
+        # elif self._alignY == 'center':
+        #     self._alignOffsetY = (
+        #         - font.ascender / self._pixelScaling  # Move down so top of first line == center of box
+        #         + font.height / self._pixelScaling * len(self._lineLenChars) / 2  # Move up by half of total text height
+        #     )
+        # elif self._alignY == 'bottom':
+        #     self._alignOffsetY = (
+        #         - font.ascender / self._pixelScaling  # Move down so top of first line == bottom of box
+        #         + font.height / self._pixelScaling  * len(self._lineLenChars)  # Move up by total text height
+        #         - self.size[1] / 2  # Move down by half the box size to get from center to bottom
+        #         + self.padding # Move up to give padding
+        #     )
+        # else:
+        #     raise ValueError('Unexpected error for _alignY')
+        #
+        # if self._alignX == 'left':
+        #     self._alignOffsetX = (
+        #         - self.size[0]/2  # Move left by half the box size to get from center to left
+        #         + self.padding  # Move right to give padding
+        #     ) + self._anchorOffsetX # Scale & anchor
+        # elif self._alignX == 'center':
+        #     self._alignOffsetX = (
+        #        0
+        #        # todo:Move left by half of total text width
+        #     ) + self._anchorOffsetX  # Scale & anchor
+        # elif self._alignX == 'right':
+        #     self._alignOffsetX = (
+        #         self.size[0]/2  # Move right by half the box size to get from center to right
+        #         - self.padding  # Move left to give padding
+        #         # todo:Move left by total text width (and anchor the the right/center, somehow)
+        #     ) + self._anchorOffsetX  # Scale & anchor
+        # else:
+        #     raise ValueError('Unexpected error for _alignX')
 
     @attributeSetter
     def text(self, text):
@@ -255,7 +322,6 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
         self._lineLenChars = []  #
         self._lineWidths = []  # width in stim units of each line
 
-        self._pixelScaling = self._pixLetterHeight / self.letterHeight
         self._lineHeight = font.height * self.lineSpacing
         lineMax = (self.size[0] - self.padding) * self._pixelScaling
         current = [0, 0]
@@ -270,7 +336,7 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
         wordLen = 0
         charsThisLine = 0
         lineN = 0
-        for i, charcode in enumerate(text+"\n"):
+        for i, charcode in enumerate(text):
 
             printable = True  # unless we decide otherwise
             # handle formatting codes
@@ -387,31 +453,6 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
             self.size[1] = ((lineN + 1) * self._lineHeight / self._pixelScaling
                             + self.padding * 2)
 
-        # to start with the anchor is bottom left of *first line*
-        if self._anchorY == 'top':
-            self._anchorOffsetY = (-font.ascender / self._pixelScaling
-                                   - self.padding)
-        elif self._anchorY == 'center':
-            self._anchorOffsetY = (
-                    self.size[1] / 2
-                    - (font.height / 2 - font.descender) / self._pixelScaling
-                    - self.padding)
-        elif self._anchorY == 'bottom':
-            self._anchorOffsetY = (
-                        self.size[1] / 2 - font.descender / self._pixelScaling)
-        else:
-            raise ValueError('Unexpected error for _anchorY')
-
-        if self._anchorX == 'right':
-            self._anchorOffsetX = - (self.size[0] - self.padding) / 1.0
-        elif self._anchorX == 'center':
-            self._anchorOffsetX = - (self.size[0] - self.padding) / 2.0
-        elif self._anchorX == 'left':
-            self._anchorOffsetX = 0
-        else:
-            raise ValueError('Unexpected error for _anchorX')
-        self.vertices += (self._anchorOffsetX, self._anchorOffsetY)
-
         # if we had to add more glyphs to make possible then 
         if self.glFont._dirty:
             self.glFont.upload()
@@ -459,14 +500,8 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
         gl.glBindTexture(gl.GL_TEXTURE_2D, 0)
         gl.glDisable(gl.GL_TEXTURE_2D)
 
-        if self._hasFocus:  # draw caret line
+        if self.hasFocus:  # draw caret line
             self.caret.draw()
-            #gl.glLineWidth(2)
-            #gl.glColor4f(0, 0, 0, 0.9)
-            #gl.glBegin(gl.GL_LINES)
-            #gl.glVertex2f(caretVerts[0, 0], caretVerts[0, 1])
-            #gl.glVertex2f(caretVerts[1, 0], caretVerts[1, 1])
-            #gl.glEnd()
 
         gl.glPopMatrix()
 
@@ -530,6 +565,31 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
         if hasattr(self, 'flipVert') and self.flipVert:
             flip[1] = -1  # True=(-1), False->(+1)
 
+        font = self.glFont
+        # to start with the anchor is bottom left of *first line*
+        if self._anchorY == 'top':
+            self._anchorOffsetY = (-font.ascender / self._pixelScaling
+                                   - self.padding)
+        elif self._anchorY == 'center':
+            self._anchorOffsetY = (
+                    self.size[1] / 2
+                    - (font.height / 2 - font.descender) / self._pixelScaling
+                    - self.padding)
+        elif self._anchorY == 'bottom':
+            self._anchorOffsetY = (
+                        self.size[1] / 2 - font.descender / self._pixelScaling)
+        else:
+            raise ValueError('Unexpected error for _anchorY')
+
+        if self._anchorX == 'right':
+            self._anchorOffsetX = - (self.size[0] - self.padding) / 1.0
+        elif self._anchorX == 'center':
+            self._anchorOffsetX = - (self.size[0] - self.padding) / 2.0
+        elif self._anchorX == 'left':
+            self._anchorOffsetX = 0
+        else:
+            raise ValueError('Unexpected error for _anchorX')
+        self.vertices += (self._anchorOffsetX, self._anchorOffsetY)
 
         vertsPix = convertToPix(vertices=self.vertices, pos=self.pos,
                              win=self.win, units=self.units)
@@ -558,7 +618,6 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
         txt = self.text
         self.text = txt[:self.caret.index] + chr + txt[self.caret.index:]
         self.caret.index += 1
-        self.caret.update()
 
     def _onCursorKeys(self, key):
         """Called by the window when cursor/del/backspace... are received"""
@@ -593,11 +652,11 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
             pass
         else:
             print("Received unhandled cursor motion type: ", key)
-        self.caret.update()
 
     @property
     def hasFocus(self):
         return self._hasFocus
+
     @hasFocus.setter
     def hasFocus(self, state):
         if state:
@@ -657,7 +716,7 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
         # todo : shouldn't calculate these on change do it once and store
         if state:
             # Adjust fill colour
-            if self._fillColor is None:
+            if self._requested['fillColor'] is None:
                 # Check whether background is light or dark
                 self.fillColor = 'white' if np.mean(self.win.rgb) < 0 else 'black'
                 self.box.setOpacity(0.1)
@@ -676,7 +735,7 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
             self.draw()
         else:
             # Set box properties back to their original values
-            self.fillColor = self._fillColor
+            self.fillColor = self._requested['fillColor']
             self.box.opacity = self.opacity
             self.box.draw()
         # Store focus
@@ -712,24 +771,29 @@ class Caret(ColorMixin):
 
     def __init__(self, textbox, color, width):
         self.textbox = textbox
-        self.index = None
+        self.index = len(textbox.text)  # start off at the end
         self.autoLog = False
-        self.color = color
         self.width = width
         self.units = textbox.units
+        self.color = color
+
+    @attributeSetter
+    def color(self, color):
+        ColorMixin.setColor(self, color)
+        if self.colorSpace not in ['rgb', 'dkl', 'lms', 'hsv']:
+            self._desiredRGB = self.rgb / 127.5 - 1
+        else:
+            self._desiredRGB = self.rgb
 
     def draw(self):
-        if not round(core.getTime() % 2 / 2):  # Flash every other second
+        if not self.visible:
+            return
+        if core.getTime() % 1 > 0.6:  # Flash every other second
             return
         gl.glLineWidth(self.width)
-        if hasattr(self, 'rgb'):
-            col = tuple(self.rgb)
-        elif hasattr(self.textbox, 'rgb'):
-            col = tuple(self.textbox.rgb)
-        else:
-            col = (1.0, 1.0, 1.0)
+        rgb = self._desiredRGB
         gl.glColor4f(
-            int(col[0]), int(col[1]), int(col[2]), int(self.visible)
+            rgb[0], rgb[1], rgb[2], self.textbox.opacity
         )
         gl.glBegin(gl.GL_LINES)
         gl.glVertex2f(self.vertices[0, 0], self.vertices[0, 1])
@@ -816,8 +880,8 @@ class Caret(ColorMixin):
         y1 = textbox._lineBottoms[self.row] / textbox._pixelScaling
         y2 = textbox._lineTops[self.row] / textbox._pixelScaling
 
-        # char x pos has been corrected for anchor location already but lines haven't
+        # char x pos has been corrected for anchor already but lines haven't
         verts = (np.array([[x, y1], [x, y2]])
-                 + (0, textbox._alignOffsetY))
+                 + (0, textbox._anchorOffsetY))
         return convertToPix(vertices=verts, pos=textbox.pos,
-                                      win=textbox.win, units=textbox.units)
+                            win=textbox.win, units=textbox.units)

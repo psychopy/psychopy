@@ -906,6 +906,8 @@ class Window(object):
         # make sure the object still exists or get another
         object = None
         while object is None and self._editableChildren:  # not found an object yet
+            if ii is None or ii < 0:  # None if not yet set one, <0 if all gone
+                return None
             objectRef = self._editableChildren[ii]  # extract the weak reference
             object = objectRef()  # get the actual object (None if deleted)
             if not object:
@@ -944,10 +946,11 @@ class Window(object):
         :param editable:
         :return:
         """
-        if self._currentEditableIndex is None:
-            self._currentEditableIndex = 0
         self._editableChildren.append(weakref.ref(editable))
         ii = len(self._editableChildren)-1  # the index of appended item
+        # if this is the first editable obj then make it the
+        if len(self._editableChildren) == 1:
+            self.currentEditable = editable
         return ii
 
     def nextEditable(self, chars=''):
@@ -1030,7 +1033,6 @@ class Window(object):
                     thisObj = thisObj()  # Solidify weakref
                 if self._mouse.isPressedIn(thisObj):
                     self.currentEditable = thisObj
-                thisObj.caret.flash() # Flash cursor on current editable
 
         flipThisFrame = self._startOfFlip()
         if self.useFBO and flipThisFrame:
