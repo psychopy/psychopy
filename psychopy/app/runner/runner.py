@@ -374,21 +374,12 @@ class RunnerPanel(wx.Panel, ScriptProcess, ThemeMixin):
     def _applyAppTheme(self, target=None):
         if target == None:
             target = self
-
+        ThemeMixin._applyAppTheme(self, self)
         self.alertsCtrl._applyAppTheme()
         self.stdoutCtrl._applyAppTheme()
         ThemeMixin._applyAppTheme(self.expCtrl)
-        target.SetBackgroundColour(ThemeMixin.appColors['frame_bg'])
-        target.SetForegroundColour(ThemeMixin.appColors['text'])
-
-        buttons = {
-            self.plusBtn: {'main': 'addExp32.png'},
-            self.negBtn: {'main':'removeExp32.png'},
-            self.runBtn: {'main':'run32.png'},
-            self.stopBtn: {'main':'stop32.png'},
-            self.onlineBtn: {'main':'globe32.png', 'emblem':'run16.png'},
-            self.onlineDebugBtn: {'main':'globe32.png', 'emblem':'bug16.png'},
-        }
+        for btn in [self.plusBtn, self.negBtn, self.runBtn, self.stopBtn, self.onlineBtn, self.onlineDebugBtn]:
+            btn.SetBackgroundColour(ThemeMixin.appColors['panel_bg'])
 
     def makeButtons(self):
         # Set buttons
