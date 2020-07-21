@@ -346,8 +346,8 @@ class ThemeMixin:
 
         if hasattr(target, 'Refresh'):
             target.Refresh()
-        if hasattr(target, 'Update'):
-            target.Update()
+        #if hasattr(target, 'Update'): # Using .Update() caused code editors to always think there were changes made
+        #    target.Update()
         if hasattr(target, '_mgr'):
             target._mgr.Update()
 
