@@ -5017,7 +5017,7 @@ RatingScaleComponent.customize_everything.readOnly:False
 RatingScaleComponent.customize_everything.staticUpdater:None
 RatingScaleComponent.customize_everything.updates:constant
 RatingScaleComponent.customize_everything.val:
-RatingScaleComponent.customize_everything.valType:str
+RatingScaleComponent.customize_everything.valType:extendedStr
 RatingScaleComponent.disabled.default:False
 RatingScaleComponent.disabled.allowedLabels:[]
 RatingScaleComponent.disabled.allowedTypes:[]
@@ -6659,7 +6659,7 @@ TextComponent.text.updates:constant
 TextComponent.text.val:Any text
 
 including line breaks
-TextComponent.text.valType:str
+TextComponent.text.valType:extendedStr
 TextComponent.units.default:'from exp settings'
 TextComponent.units.allowedLabels:[]
 TextComponent.units.allowedTypes:[]
