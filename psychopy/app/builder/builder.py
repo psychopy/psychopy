@@ -393,7 +393,7 @@ class BuilderFrame(wx.Frame, ThemeMixin):
         # Add Theme Switcher
         self.themesMenu = ThemeSwitcher(self)
         menu.AppendSubMenu(self.themesMenu,
-                               _translate("Themes..."))
+                               _translate("Themes"))
 
 
         # ---_experiment---#000000#FFFFFF-------------------------------------
