@@ -1562,7 +1562,7 @@ class CoderFrame(wx.Frame, ThemeMixin):
         # Theme Switcher
         self.themesMenu = ThemeSwitcher(self)
         menu.AppendSubMenu(self.themesMenu,
-                           _translate("Themes..."))
+                           _translate("Themes"))
         menu.AppendSeparator()
         # output window
         key = keyCodes['toggleOutputPanel']
