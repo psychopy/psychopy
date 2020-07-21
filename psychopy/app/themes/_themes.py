@@ -977,8 +977,12 @@ class ThemeSwitcher(wx.Menu):
         wx.Menu.__init__(self)
         # Make buttons
         for theme in themeList:
-            item = self.Append(wx.ID_ANY, _translate(theme))
+            item = self.AppendRadioItem(wx.ID_ANY, _translate(theme))
             frame.Bind(wx.EVT_MENU, frame.app.onThemeChange, item)
+            if item.ItemLabel.lower() == ThemeMixin.codetheme.lower():
+                item.Check(True)
+            else:
+                item.Check(False)
         self.AppendSeparator()
         # Add Theme Folder button
         item = self.Append(wx.ID_ANY, _translate("Open theme folder"))
