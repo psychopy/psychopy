@@ -199,8 +199,14 @@ class PsychopyToolbar(wx.ToolBar, ThemeMixin):
                     shortcut='compileScript',
                     tooltip=_translate("Compile to script"),
                     func=self.frame.compileScript)  # Compile
-            self.frame.bldrBtnRun = self.addPsychopyTool(
+            self.frame.bldrBtnRunner = self.addPsychopyTool(
                     name='runner',
+                    label=_translate('Runner'),
+                    shortcut='runnerScript',
+                    tooltip=_translate("Send experiment to Runner"),
+                    func=self.frame.runFile)  # Run
+            self.frame.bldrBtnRun = self.addPsychopyTool(
+                    name='run',
                     label=_translate('Run'),
                     shortcut='runScript',
                     tooltip=_translate("Run experiment"),
@@ -237,10 +243,12 @@ class PsychopyToolbar(wx.ToolBar, ThemeMixin):
                                  "Color Picker -> clipboard",
                                  self.frame.app.colorPicker)
             self.AddSeparator()
-            self.frame.cdrBtnRun = self.addPsychopyTool(
-                    'runner', 'Run', 'runScript',
-                                                         "Run experiment",
-                    self.frame.runFile)
+            self.frame.cdrBtnRunner = self.addPsychopyTool('runner', 'Runner', 'runnerScript',
+                                                        "Send experiment to Runner",
+                                                        self.frame.runFile)
+            self.frame.cdrBtnRun = self.addPsychopyTool('run', 'Run', 'runScript',
+                                                        "Run experiment",
+                                                        self.frame.runFile)
             self.AddSeparator()
             pavButtons.addPavloviaTools(
                 buttons=['pavloviaSync', 'pavloviaSearch', 'pavloviaUser'])
