@@ -962,20 +962,18 @@ class ThemeSwitcher(wx.Menu):
     """Class to make a submenu for switching theme, meaning that the menu will always be the same across frames."""
     def __init__(self, frame):
         # Get list of themes
-        themePath = prefs.paths['themes']
+        themePath = Path(prefs.paths['themes'])
         themeList = {}
-        for themeFile in os.listdir(themePath):
-            path = os.path.join(themePath, themeFile)
-            if os.path.isfile(path):
-                try:
-                    with open(path, "rb") as fp:
-                        theme = json.load(fp)
-                        # Add themes to list only if min spec is defined
-                        base = theme['base']
-                        if all(key in base for key in ['bg', 'fg', 'font']):
-                            themeList[themeFile.replace('.json', '')] = []
-                except (FileNotFoundError, IsADirectoryError):
-                    pass
+        for themeFile in themePath.glob("*.json"):
+            try:
+                with open(themeFile, "rb") as fp:
+                    theme = json.load(fp)
+                    # Add themes to list only if min spec is defined
+                    base = theme['base']
+                    if all(key in base for key in ['bg', 'fg', 'font']):
+                        themeList[themeFile.stem] = []
+            except (FileNotFoundError, IsADirectoryError):
+                pass
         # Make menu
         wx.Menu.__init__(self)
         # Make buttons
