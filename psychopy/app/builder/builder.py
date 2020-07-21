@@ -10,7 +10,6 @@ Distributed under the terms of the GNU General Public License (GPL).
 
 from __future__ import absolute_import, division, print_function
 
-import json
 import os, sys
 import glob
 import copy
@@ -41,12 +40,11 @@ from psychopy.localization import _translate
 from ... import experiment, prefs
 from .. import dialogs, icons
 from ..themes import IconCache, ThemeMixin
-from ..themes._themes import PsychopyDockArt, PsychopyTabArt
+from ..themes._themes import PsychopyDockArt, PsychopyTabArt, ThemeSwitcher
 from psychopy import logging, constants, data
 from psychopy.tools.filetools import mergeFolder
 from .dialogs import (DlgComponentProperties, DlgExperimentProperties,
                       DlgCodeComponentProperties, DlgLoopProperties)
-#from .flow import FlowPanel
 from ..utils import (PsychopyToolbar, PsychopyPlateBtn, WindowFrozen,
                      FileDropTarget)
 
@@ -392,27 +390,11 @@ class BuilderFrame(wx.Frame, ThemeMixin):
                            _translate("Smaller routine items"))
         self.Bind(wx.EVT_MENU, self.routinePanel.decreaseSize, item)
         menu.AppendSeparator()
-        # Get list of themes
-        themePath = self.GetTopLevelParent().app.prefs.paths['themes']
-        self.themeList = {}
-        for themeFile in os.listdir(themePath):
-            try:
-                # Load theme from json file
-                with open(os.path.join(themePath, themeFile), "rb") as fp:
-                    theme = json.load(fp)
-                # Add themes to list only if min spec is defined
-                base = theme['base']
-                if all(key in base for key in ['bg', 'fg', 'font']):
-                    self.themeList[themeFile.replace('.json', '')] = []
-            except:
-                pass
         # Add Theme Switcher
-        self.themesMenu = wx.Menu()
+        self.themesMenu = ThemeSwitcher(self)
         menu.AppendSubMenu(self.themesMenu,
                                _translate("Themes..."))
-        for theme in self.themeList:
-            self.themeList[theme] = self.themesMenu.Append(wx.ID_ANY, _translate(theme))
-            self.Bind(wx.EVT_MENU, self.app.onThemeChange, self.themeList[theme])
+
 
         # ---_experiment---#000000#FFFFFF-------------------------------------
         self.expMenu = wx.Menu()
@@ -1292,7 +1274,6 @@ class BuilderFrame(wx.Frame, ThemeMixin):
         val: int
             Status of git sync. 1 for SUCCESS (green), 0 or -1 for FAIL (RED)
         """
-        rc = prefs.paths['icons']
         feedbackTime = 1500
         colour = {0: "red", -1: "red", 1: "green"}
 
@@ -1307,8 +1288,8 @@ class BuilderFrame(wx.Frame, ThemeMixin):
         # Store original
         origBtn = self.btnHandles['pavloviaSync'].NormalBitmap
         # Create new feedback bitmap
-        feedbackBmp = IconCache.getBitmap(
-                '{}globe.png'.format(colour[val]),
+        feedbackBmp = self.app.iconCache.getBitmap(
+                name='{}globe.png'.format(colour[val]),
                 size=toolbarSize)
 
         # Set feedback button
@@ -1906,6 +1887,7 @@ class RoutineCanvas(wx.ScrolledWindow):
             if 'name' in dir(newCompon):
                 newCompon.name = newName
             self.routine.addComponent(newCompon)
+            self.frame.exp.namespace.user.append(newName)
             # could do redrawRoutines but would be slower?
             self.redrawRoutine()
             self.frame.addToUndoStack("PASTE Component `%s`" % newName)
@@ -2052,7 +2034,6 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
 
     def _applyAppTheme(self, target=None):
         cs = ThemeMixin.appColors
-        self.app.iconCache
         # Style component panel
         self.SetForegroundColour(cs['text'])
         self.SetBackgroundColour(cs['panel_bg'])
@@ -2101,7 +2082,6 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
         """Create a component button and add it to a specific panel's sizer
         """
         iconCache = self.app.iconCache
-        thisComp = self.components[name]
         # get a shorter name too (without "Component")
         shortName = name
         for redundant in ['component', 'Component', "ButtonBox"]:
@@ -2468,7 +2448,7 @@ class ExportFileDialog(wx.Dialog):
         self.filePath = wx.StaticText(self, wx.ID_ANY, filePath, size=(500, -1))
         box.Add(self.filePath, 1, wx.ALIGN_CENTRE | wx.ALL, 5)
 
-        sizer.Add(box, 0, wx.GROW | wx.ALIGN_CENTER_VERTICAL | wx.ALL, 5)
+        sizer.Add(box, 0, wx.GROW | wx.ALL, 5)
 
         # Set save on export HTML choice
         box = wx.BoxSizer(wx.HORIZONTAL)
@@ -2484,12 +2464,12 @@ class ExportFileDialog(wx.Dialog):
         box.Add(self.exportOnSave, .5, wx.ALIGN_CENTRE | wx.ALL, 5)
         box.Add(self.exportText, 1, wx.ALIGN_CENTRE | wx.ALL, 5)
 
-        sizer.Add(box, 0, wx.GROW | wx.ALIGN_CENTER_VERTICAL | wx.ALL, 5)
+        sizer.Add(box, 0, wx.GROW | wx.ALL, 5)
 
         line = wx.StaticLine(self, wx.ID_ANY, size=(20, -1),
                              style=wx.LI_HORIZONTAL)
         sizer.Add(line, 0,
-                  wx.GROW | wx.ALIGN_CENTER_VERTICAL | wx.RIGHT | wx.TOP, 5)
+                  wx.GROW | wx.RIGHT | wx.TOP, 5)
 
         btnsizer = wx.StdDialogButtonSizer()
 
@@ -2503,7 +2483,7 @@ class ExportFileDialog(wx.Dialog):
         btnsizer.AddButton(btn)
         btnsizer.Realize()
 
-        sizer.Add(btnsizer, 0, wx.ALIGN_CENTER_VERTICAL | wx.ALL, 5)
+        sizer.Add(btnsizer, 0, wx.ALL, 5)
 
         self.SetSizerAndFit(sizer)
 

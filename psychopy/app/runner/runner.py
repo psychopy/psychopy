@@ -6,6 +6,8 @@
 # Distributed under the terms of the GNU General Public License (GPL).
 import json
 
+from psychopy.app.themes._themes import ThemeSwitcher
+
 from ..themes import ThemeMixin
 
 import wx
@@ -169,12 +171,9 @@ class RunnerFrame(wx.Frame, ThemeMixin):
             except:
                 pass
         # Add Theme Switcher
-        self.themesMenu = wx.Menu()
+        self.themesMenu = ThemeSwitcher(self)
         viewMenu.AppendSubMenu(self.themesMenu,
                            _translate("Themes..."))
-        for theme in self.themeList:
-            self.themeList[theme] = self.themesMenu.Append(wx.ID_ANY, _translate(theme))
-            self.Bind(wx.EVT_MENU, self.app.onThemeChange, self.themeList[theme])
 
         # Create menus
         self.runnerMenu.Append(fileMenu, 'File')
