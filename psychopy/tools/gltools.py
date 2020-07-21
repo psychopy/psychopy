@@ -87,7 +87,9 @@ __all__ = [
     'createCubeMap',
     'TexCubeMap',
     'getModelViewMatrix',
-    'getProjectionMatrix'
+    'getProjectionMatrix',
+    'maxSamples',
+    'quadBuffersSupported'
 ]
 
 import ctypes
@@ -1648,9 +1650,24 @@ class RenderbufferInfo(object):
         self.width = width
         self.height = height
         self.internalFormat = internalFormat
-        self.samples = samples
-        self.multiSample = self.samples > 1
+        self._samples = samples
+        self._multiSample = self.samples > 1
         self.userData = userData if userData is not None else dict()
+
+    @property
+    def size(self):
+        """Size of the renderbuffer (w, h)."""
+        return (self.width, self.height)
+
+    @property
+    def samples(self):
+        """Number of samples per-pixels for this buffer."""
+        return self._samples
+
+    @property
+    def isMultisample(self):
+        """`True` if this is a multi-sample renderbuffer."""
+        return self._multiSample
 
     def __del__(self):
         GL.glDeleteRenderbuffers(1, self.name)
@@ -1949,6 +1966,10 @@ def createTexImage2D(width, height, target=GL.GL_TEXTURE_2D, level=0,
 
         GL.glBindTexture(GL.GL_TEXTURE_2D, textureDesc.id)
 
+    Notes
+    -----
+    * Texture 0 is bound after creating the texture.
+
     """
     width = int(width)
     height = int(height)
@@ -2015,6 +2036,10 @@ def createTexImage2dFromFile(imgFile, transpose=True):
     -------
     TexImage2DInfo
         Texture descriptor.
+
+    Notes
+    -----
+    * Texture 0 is bound after creating the texture.
 
     """
     im = Image.open(imgFile)  # 8bpp!
@@ -2153,6 +2178,16 @@ class TexCubeMapInfo(object):
         self._texParamsNeedUpdate = True
         self._texParams = value
 
+    @property
+    def samples(self):
+        """Number of samples per-pixel for this texture. Always returns 1."""
+        return 1
+
+    @property
+    def isMultisample(self):
+        """Is texture multisample, always returns `False`."""
+        return False
+
 
 def createCubeMap(width, height, target=GL.GL_TEXTURE_CUBE_MAP, level=0,
                   internalFormat=GL.GL_RGBA, pixelFormat=GL.GL_RGBA,
@@ -2191,6 +2226,10 @@ def createCubeMap(width, height, target=GL.GL_TEXTURE_CUBE_MAP, level=0,
         GL.GL_TEXTURE_MIN_FILTER: GL.GL_LINEAR, GL.GL_TEXTURE_MAG_FILTER:
         GL.GL_LINEAR}`. These can be changed and will be updated the next
         time this instance is passed to :func:`bindTexture`.
+
+    Notes
+    -----
+    * Texture 0 is bound after creating the texture.
 
     """
     texId = GL.GLuint()
@@ -2283,22 +2322,125 @@ def unbindTexture(texture=None):
                            'bound.')
 
 
-# Descriptor for 2D mutlisampled texture
-TexImage2DMultisampleInfo = namedtuple(
-    'TexImage2DMultisampleInfo',
-    ['id',
-     'target',
-     'width',
-     'height',
-     'internalFormat',
-     'samples',
-     'multisample',
-     'userData'])
+class TexImage2DMultisampleInfo(object):
+    """Descriptor for a multisampled 2D texture.
+
+    This class is used for bookkeeping 2D textures stored in video memory.
+    Information about the texture (eg. `width` and `height`) is available via
+    class attributes. Attributes should never be modified directly.
+
+    """
+    __slots__ = ['width',
+                 'height',
+                 'target',
+                 '_name',
+                 'internalFormat',
+                 'samples',
+                 'multisample',
+                 '_texParams',
+                 '_isBound',
+                 '_unit',
+                 '_texParamsNeedUpdate']
+
+    def __init__(self,
+                 name=0,
+                 target=GL.GL_TEXTURE_2D,
+                 width=64,
+                 height=64,
+                 samples=2,
+                 internalFormat=GL.GL_RGBA,
+                 texParams=None):
+        """
+        Parameters
+        ----------
+        name : `int` or `GLuint`
+            OpenGL handle for texture. Is `0` if uninitialized.
+        target : :obj:`int`
+            The target texture should only be `GL_TEXTURE_2D_MULTISAMPLE`.
+        width : :obj:`int`
+            Texture width in pixels.
+        height : :obj:`int`
+            Texture height in pixels.
+        samples : :obj:`int`
+            Number of samples for the texture per-pixel. This should be a
+            power-of-two (eg. 2, 4, 8, 16, etc.) Number of samples is limited
+            by the graphics hardware.
+        internalFormat : :obj:`int`
+            Internal format for texture data (e.g. GL_RGBA8, GL_R11F_G11F_B10F).
+        texParams : :obj:`list` of :obj:`tuple` of :obj:`int`
+            Optional texture parameters specified as `dict`. These values are
+            passed to `glTexParameteri`. Each tuple must contain a parameter
+            name and value. For example, `texParameters={
+            GL.GL_TEXTURE_MIN_FILTER: GL.GL_LINEAR, GL.GL_TEXTURE_MAG_FILTER:
+            GL.GL_LINEAR}`. These can be changed and will be updated the next
+            time this instance is passed to :func:`bindTexture`.
+
+        """
+        # fields for texture information
+        self.name = name
+        self.width = width
+        self.height = height
+        self.target = target
+        self._samples = samples
+        self.internalFormat = internalFormat
+        self._texParams = {}
+
+        # set texture parameters
+        if texParams is not None:
+            for key, val in texParams.items():
+                self._texParams[key] = val
+
+        # internal data
+        self._isBound = False  # True if the texture has been bound
+        self._unit = None  # texture unit assigned to this texture
+        self._texParamsNeedUpdate = True  # update texture parameters
+
+    @property
+    def name(self):
+        return self._name
+
+    @name.setter
+    def name(self, value):
+        if not isinstance(value, GL.GLuint):
+            self._name = GL.GLuint(int(value))
+        else:
+            self._name = value
+
+    @property
+    def size(self):
+        """Size of the texture [w, h] in pixels (`int`, `int`)."""
+        return self.width, self.height
+
+    @property
+    def texParams(self):
+        """Texture parameters."""
+        self._texParamsNeedUpdate = True
+        return self._texParams
+
+    @texParams.setter
+    def texParams(self, value):
+        """Texture parameters."""
+        self._texParamsNeedUpdate = True
+        self._texParams = value
+
+    @property
+    def samples(self):
+        """Number of samples per-pixel for this texture."""
+        return self._samples
+
+    @property
+    def isMultisample(self):
+        """Is this texture multisample, always returns `True`."""
+        return True
+
+    def __del__(self):
+        """Deletes the texture when there are no more references to it."""
+        GL.glDeleteTextures(1, self.name)
 
 
 def createTexImage2DMultisample(width, height,
                                 target=GL.GL_TEXTURE_2D_MULTISAMPLE, samples=1,
-                                internalFormat=GL.GL_RGBA8, texParameters=()):
+                                internalFormat=GL.GL_RGBA8, texParameters=None):
     """Create a 2D multisampled texture.
 
     Parameters
@@ -2322,8 +2464,12 @@ def createTexImage2DMultisample(width, height,
 
     Returns
     -------
-    TexImage2DMultisample
-        A TexImage2DMultisample descriptor.
+    TexImage2DMultisampleInfo
+        A `TexImage2DMultisampleInfo` descriptor.
+
+    Notes
+    -----
+    * Texture 0 is bound after creating the texture.
 
     """
     width = int(width)
@@ -2334,7 +2480,7 @@ def createTexImage2DMultisample(width, height,
             width, height))
 
     # determine if the 'samples' value is valid
-    maxSamples = getIntegerv(GL.GL_MAX_SAMPLES)
+    maxSamples = getMaxSamples()
     if (samples & (samples - 1)) != 0:
         raise ValueError('Invalid number of samples, must be power-of-two.')
     elif samples <= 0 or samples > maxSamples:
@@ -2347,9 +2493,11 @@ def createTexImage2DMultisample(width, height,
     GL.glTexImage2DMultisample(
         target, samples, internalFormat, width, height, GL.GL_TRUE)
 
+    texParameters = dict() if texParameters is None else texParameters
+
     # apply texture parameters
     if texParameters:
-        for pname, param in texParameters:
+        for pname, param in texParameters.items():
             GL.glTexParameteri(target, pname, param)
 
     GL.glBindTexture(target, 0)
@@ -2358,9 +2506,8 @@ def createTexImage2DMultisample(width, height,
                                      target,
                                      width,
                                      height,
-                                     internalFormat,
                                      samples,
-                                     True,
+                                     internalFormat,
                                      dict())
 
 
@@ -2369,6 +2516,9 @@ def deleteTexture(texture):
     texture's ID.
 
     """
+    if not isinstance(texture, (TexImage2DInfo, TexImage2DMultisampleInfo)):
+        raise TypeError("Object specified to `texture` is not a texture.")
+
     if not texture._isBound:
         GL.glDeleteTextures(1, texture.name)
         texture.name = 0  # invalidate
@@ -5044,6 +5194,31 @@ def getOpenGLInfo():
                       getIntegerv(GL.GL_MAX_SAMPLES),
                       [i for i in getString(GL.GL_EXTENSIONS).split(' ')],
                       dict())
+
+
+def maxSamples():
+    """Get the maximum number of samples supported by the current graphics
+    device used by the context.
+
+    Returns
+    -------
+    int
+        Maximum number of samples.
+
+    """
+    return getIntegerv(GL.GL_MAX_SAMPLES)
+
+
+def quadBuffersSupported():
+    """Check if the hardware support quad-buffered stereo.
+
+    Returns
+    -------
+    bool
+        `True` if the hardware supports quad-buffered stereo.
+
+    """
+    return getIntegerv(GL.GL_STEREO) == 1
 
 
 # ---------------------
