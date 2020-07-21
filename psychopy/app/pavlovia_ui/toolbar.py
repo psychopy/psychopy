@@ -57,8 +57,9 @@ class PavloviaButtons:
             tip = info[buttonName]['tip']
             self.btnHandles[buttonName] = self.app.iconCache.makeBitmapButton(
                     parent=self,
-                    name='globe.png', size=self.tbSize, emblem=emblem,
-                    toolbar=self.toolbar, label=label, tip=tip)
+                    filename='globe.png', label=label, name=buttonName,
+                    emblem=emblem,
+                    toolbar=self.toolbar, tip=tip, size=self.tbSize)
             self.toolbar.Bind(wx.EVT_TOOL, btnFunc, self.btnHandles[buttonName])
 
     def onPavloviaSync(self, evt=None):

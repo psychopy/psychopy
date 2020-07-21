@@ -386,28 +386,42 @@ class RunnerPanel(wx.Panel, ScriptProcess, ThemeMixin):
         icons = self.app.iconCache  # type: IconCache
         self.plusBtn = icons.makeBitmapButton(
                 parent=self,
-                name='addExp.png', size=32,
-                tip=_translate("Add experiment to list"))
+                filename='addExp.png',
+                name='addExp',
+                tip=_translate(
+                        "Add experiment to list"),
+                size=32)
         self.negBtn = icons.makeBitmapButton(
                 parent=self,
-                name='removeExp.png', size=32,
-                tip=_translate("Remove experiment to list"))
+                filename='removeExp.png',
+                name='removeExp',
+                tip=_translate(
+                        "Remove experiment to list"),
+                size=32)
         self.runBtn = icons.makeBitmapButton(
-                parent=self,
-                name='run.png', size=32,
-                tip=_translate("Run the current script in Python"))
+                parent=self, filename='run.png',
+                name='run',
+                tip=_translate(
+                        "Run the current script in Python"),
+                size=32)
         self.stopBtn = icons.makeBitmapButton(
-                parent=self,
-                name='stop.png', size=32,
-                tip=_translate("Stop task"))
+                parent=self, filename='stop.png',
+                name='stop',
+                tip=_translate("Stop task"),
+                size=32)
         self.onlineBtn = icons.makeBitmapButton(
                 parent=self,
-                name='globe.png', size=32, emblem='run',
-                tip=_translate("Run PsychoJS task from Pavlovia"))
+                filename='globe.png',
+                emblem='run', tip=_translate(
+                        "Run PsychoJS task from Pavlovia"), size=32)
         self.onlineDebugBtn = icons.makeBitmapButton(
                 parent=self,
-                name='globe.png', size=32, emblem='bug',
-                tip=_translate("Run PsychoJS task in local debug mode"))
+                filename='globe.png',
+                name='globe',
+                emblem='bug',
+                tip=_translate(
+                        "Run PsychoJS task in local debug mode"),
+                size=32)
 
         # Bind events to buttons
         self.Bind(wx.EVT_BUTTON, self.addTask, self.plusBtn)
