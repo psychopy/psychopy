@@ -171,9 +171,9 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
         # caret
         self.editable = editable
         self.caret = Caret(self)
-        self.caret.draw()
         if editable:
             self.win.addEditable(self)
+        self._hasFocus = False
 
         self.autoLog = autoLog
 
@@ -459,7 +459,7 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
         gl.glBindTexture(gl.GL_TEXTURE_2D, 0)
         gl.glDisable(gl.GL_TEXTURE_2D)
 
-        if self.editable:  # draw caret line
+        if self._hasFocus:  # draw caret line
             self.caret.draw()
             #gl.glLineWidth(2)
             #gl.glColor4f(0, 0, 0, 0.9)
@@ -648,44 +648,97 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
         # Store focus
         self._hasFocus = state
 
-class Caret(Line):
-    #todo: vertices calc is way off
-    def __init__(self, textbox):
+    @property
+    def hasFocus(self):
+        return self._hasFocus
+
+    @hasFocus.setter
+    def hasFocus(self, state):
+        # todo : shouldn't calculate these on change do it once and store
+        if state:
+            # Adjust fill colour
+            if self._fillColor is None:
+                # Check whether background is light or dark
+                self.fillColor = 'white' if np.mean(self.win.rgb) < 0 else 'black'
+                self.box.setOpacity(0.1)
+            elif self.box.fillColorSpace in ['rgb', 'dkl', 'lms', 'hsv']:
+                self.fillColor = [c + 0.1 * \
+                                 (1 if np.mean(self._fillColor) < 0.5 else -1)
+                for c in self.fillColor]
+            elif self.box.colorSpace in ['rgb255', 'named']:
+                self.fillColor = [c + 30 * \
+                                 (1 if np.mean(self._fillColor) < 127 else -1)
+                                  for c in self.fillColor]
+            elif self.box.colorSpace in ['hex']:
+                self.fillColor = [c + 30 * \
+                                 (1 if np.mean(self.box.fillRGB) < 127 else -1)
+                                  for c in self.box.fillRGB]
+            self.draw()
+        else:
+            # Set box properties back to their original values
+            self.fillColor = self._fillColor
+            self.box.opacity = self.opacity
+            self.box.draw()
+        # Store focus
+        self._hasFocus = state
+
+    def getText(self):
+        """Returns the current text in the box"""
+        return self.text
+
+
+class Caret(ColorMixin):
+    """
+    Class to handle the caret (cursor) within a textbox. Do **not** call without a textbox.
+    Parameters
+        ----------
+        textbox : psychopy.visual.TextBox2
+            Textbox which caret corresponds to
+        visible : bool
+            Whether the caret is visible
+        row : int
+            Textbox row which caret is on
+        char : int
+            Text character within row which caret is on
+        index : int
+            Index of character which caret is on
+        vertices : list, tuple
+            Coordinates of each corner of caret
+        width : int, float
+            Width of caret line
+        color : list, tuple, str
+            Caret colour
+    """
+
+    def __init__(self, textbox, color, width):
         self.textbox = textbox
         self.index = None
-        Line.__init__(self,
-                      self.textbox.win,
-                      lineColor=self.textbox.color,
-                      lineColorSpace=self.textbox.colorSpace,
-                      opacity=0, # Hide on first draw
-                      lineWidth=2,
-                      autoLog=False,
-                      units='pix',
-                      )
-        self.update()
+        self.autoLog = False
+        self.color = color
+        self.width = width
+        self.units = textbox.units
 
-    def update(self):
-        # check we have a caret index
-        if self.index is None or self.index > len(self.textbox._lineNs):
-            self.index = len(self.textbox._lineNs)
-        # get the verts of character next to caret (chr is the next one so use
-        # left edge unless last index then use the right of prev chr)
-        # lastChar = [bottLeft, topLeft, **bottRight**, **topRight**]
-        ii = self.index - 1
-        chrVerts = self.textbox.vertices[range(ii * 4, ii * 4 + 4)]  # Get vertices of character at this index
-        if self.index >= len(self.textbox._lineNs):  # caret is after last chr
-            x = chrVerts[2, 0]  # x-coord of right edge (of final char)
+    def draw(self):
+        if not round(core.getTime() % 2 / 2):  # Flash every other second
+            return
+        gl.glLineWidth(self.width)
+        if hasattr(self, 'rgb'):
+            col = tuple(self.rgb)
+        elif hasattr(self.textbox, 'rgb'):
+            col = tuple(self.textbox.rgb)
         else:
-            x = chrVerts[1, 0]  # x-coord of left edge
-        # the y locations are the top and bottom of this line
-        y1 = self.textbox._lineBottoms[self.row] / self.textbox._pixelScaling
-        y2 = self.textbox._lineTops[self.row] / self.textbox._pixelScaling
+            col = (1.0, 1.0, 1.0)
+        gl.glColor4f(
+            int(col[0]), int(col[1]), int(col[2]), int(self.visible)
+        )
+        gl.glBegin(gl.GL_LINES)
+        gl.glVertex2f(self.vertices[0, 0], self.vertices[0, 1])
+        gl.glVertex2f(self.vertices[1, 0], self.vertices[1, 1])
+        gl.glEnd()
 
-        # char x pos has been corrected for anchor location already but lines haven't
-        verts = (np.array([[x, y1], [x, y2]])
-                 + (0, self.textbox._anchorOffsetY))
-        self.vertices = convertToPix(vertices=verts, pos=self.textbox.pos,
-                           win=self.textbox.win, units=self.textbox.units)
+    @property
+    def visible(self):
+        return self.textbox.hasFocus
 
     @property
     def row(self):
@@ -707,84 +760,64 @@ class Caret(Line):
         # If new row is less than 0, move to beginning of first row
         if value < 0:
             value = 0
-            charsIn = 1
+            charsIn = 0
         # If charsIn is more than number of chars in new row, send it to end of row
         if charsIn > self.textbox._lineLenChars[value]:
             charsIn = self.textbox._lineLenChars[value]-1
         # Set new index in new row
         self.index = sum(self.textbox._lineLenChars[:value]) + charsIn
+        # Redraw caret at new row
+        self.draw()
 
     @property
     def char(self):
         """What character within current line is caret on?"""
         # Check that index is with range of all character indices
         self.index = min(self.index, len(self.textbox._lineNs) - 1)
-        self.index = max(self.index, 1)
+        self.index = max(self.index, 0)
         # Get first index of line, subtract from index to get char
         return self.index - sum(self.textbox._lineLenChars[:self.row])
-
     @char.setter
     def char(self, value):
         """Set character within row"""
-        print(value)
         # If setting char to less than 0, move to last char on previous line
         if value < 0:
             if self.row == 0:
                 value = 0
             else:
                 self.row -= 1
-                value = self.textbox._lineLenChars[self.row]
+                value = self.textbox._lineLenChars[self.row]-1
         # If value exceeds row length, set value to beginning of next row
         if value >= self.textbox._lineLenChars[self.row]:
             self.row += 1
-            value = 1
+            value = 0
         self.index = self.textbox._lineLenChars[:self.row] + value
+        # Redraw caret at new char
+        self.draw()
 
-
-    # def _index2vertices(self, ii):
-    #     if ii > len(self.textbox.text):  # If the index is greater than the number of characters
-    #         ii = len(self.textbox.text)-1  # Index maxes out at number of characters-1
-    #     return self.textbox.vertices[range(ii*4, ii*4+4)]  # Get vertices of character at this index
-
-    # def _index2lineChar(self, ii):
-    #     """Figure out which line an index is on"""
-    #     if ii >= len(self.textbox._lineNs):
-    #         ii = len(self.textbox._lineNs)-1
-    #     line = self.textbox._lineNs[ii]
-    #     chars = ii - sum(self.textbox._lineLenChars[:line])
-    #     return line, chars
-
-    # def _lineChar2index(self, line, chars):
-    #     """Figure out which indices a line covers"""
-    #     # if this isn't the last line then check if there are more chars on this
-    #     # line that the requested number
-    #     if line<len(self.textbox._lineLenChars):
-    #         chars = min(chars, self.textbox._lineLenChars[line])
-    #     ii = sum(self.textbox._lineLenChars[:line]) + chars
-    #     return ii
-
-    # def _caretCheckBounds(self):
-    #     # then check if out of bounds
-    #     self.index = max(self.index, 0)
-    #     self.index = min(self.index, len(self.text))
-
-    # def _caretMoveLines(self, lines=0):
-    #     line, chr = self._index2lineChar(self.index)
-    #     line += lines
-    #     line = max(0, line)
-    #     line = min(line, len(self.textbox._lineLenChars))
-    #     self.index = self._lineChar2index(line, chr)
-
-    # def _caretMoveLineStart(self):
-    #     line, chr = self._index2lineChar(self.index)
-    #     self.index = self._lineChar2index(line, 0)
-
-    # def _caretMoveLineEnd(self):
-    #     line, chr = self._index2lineChar(self.index)
-    #     self.index = self._lineChar2index(line, self.textbox._lineLenChars[line]-1)
-
-    def flash(self):
-        if round(core.getTime() % 2 /2): # Every other second
-            self.opacity = self.textbox.opacity
+    @property
+    def vertices(self):
+        textbox = self.textbox
+        # check we have a caret index
+        if self.index is None or self.index > len(textbox._lineNs)-1:
+            self.index = len(textbox._lineNs)-1
+        if self.index < 0:
+            self.index = 0
+        # get the verts of character next to caret (chr is the next one so use
+        # left edge unless last index then use the right of prev chr)
+        # lastChar = [bottLeft, topLeft, **bottRight**, **topRight**]
+        ii = self.index
+        chrVerts = textbox.vertices[range(ii * 4, ii * 4 + 4)]  # Get vertices of character at this index
+        if self.index >= len(textbox._lineNs):  # caret is after last chr
+            x = chrVerts[2, 0]  # x-coord of left edge (of final char)
         else:
-            self.opacity = 0
+            x = chrVerts[1, 0]  # x-coord of right edge
+        # the y locations are the top and bottom of this line
+        y1 = textbox._lineBottoms[self.row] / textbox._pixelScaling
+        y2 = textbox._lineTops[self.row] / textbox._pixelScaling
+
+        # char x pos has been corrected for anchor location already but lines haven't
+        verts = (np.array([[x, y1], [x, y2]])
+                 + (0, textbox._alignOffsetY))
+        return convertToPix(vertices=verts, pos=textbox.pos,
+                                      win=textbox.win, units=textbox.units)
