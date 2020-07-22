@@ -19,12 +19,13 @@ import sys
 import wx
 import wx.lib.agw.aui as aui
 from wx.lib import platebtn
+
+import psychopy
 from psychopy import logging
 from . import pavlovia_ui
 from . import icons
 from .themes import ThemeMixin
 from psychopy.tools.versionchooser import _translate
-import psychopy
 
 
 class FileDropTarget(wx.FileDropTarget):
@@ -345,38 +346,54 @@ class PsychopyScrollbar(wx.ScrollBar):
 
 class FrameSwitcher(wx.Menu):
     """Menu for switching between different frames"""
-    def __init__(self, frame):
+    def __init__(self, parent):
         wx.Menu.__init__(self)
-        self.frame = frame
-        self.items = {}
-        if not isinstance(frame, psychopy.app.builder.BuilderFrame):
-            # Make builder view button
-            key = frame.app.keys['switchToBuilder']
-            self.items['builder'] = self.AppendCheckItem(0,
-                               _translate("&Builder view\t%s") % key,
-                               _translate("Toggle Builder view"))
-            self.Bind(wx.EVT_MENU, frame.app.toggleFrame, self.items['builder'])
-
-        if not isinstance(frame, psychopy.app.coder.CoderFrame):
-            # Make coder view button
-            key = frame.app.keys['switchToCoder']
-            self.items['coder'] = self.AppendCheckItem(1,
-                               _translate("&Coder view\t%s") % key,
-                               _translate("Toggle Coder view"))
-            self.Bind(wx.EVT_MENU, frame.app.toggleFrame, self.items['coder'])
-        if not isinstance(frame, psychopy.app.runner.RunnerFrame):
-            # Make runner view button
-            key = frame.app.keys['switchToRunner']
-            self.items['runner'] = self.AppendCheckItem(2,
-                               _translate("&Runner view\t%s") % key,
-                               _translate("Toggle Runner view"))
-            self.Bind(wx.EVT_MENU, frame.app.toggleFrame, self.items['runner'])
+        self.parent = parent
+        self.itemFrames = {}
         self.Update()
 
+    @property
+    def frames(self):
+        return self.parent.app.getAllFrames()
+
     def Update(self):
-        """Determine which buttons should be checked"""
-        for key in self.items:
-            if hasattr(self.frame.app,key):
-                self.items[key].Check(bool(getattr(self.frame.app,key)))
-            else:
-                self.items[key].Check(False)
+        """Set items according to which windows are open"""
+        for item in self.GetMenuItems():
+            self.DestroyItem(item)
+
+        # Add standard buttons
+        if not isinstance(self.parent, psychopy.app.builder.BuilderFrame):
+            self.builderBtn = self.Append(wx.ID_ANY,
+                                          _translate("Builder"),
+                                          _translate("Builder View"))
+            self.Bind(wx.EVT_MENU, self.parent.app.showBuilder, self.builderBtn)
+        if not isinstance(self.parent, psychopy.app.coder.CoderFrame):
+            self.coderBtn = self.Append(wx.ID_ANY,
+                                          _translate("Coder"),
+                                          _translate("Coder View"))
+            self.Bind(wx.EVT_MENU, self.parent.app.showCoder, self.coderBtn)
+        if not isinstance(self.parent, psychopy.app.runner.RunnerFrame):
+            self.runnerBtn = self.Append(wx.ID_ANY,
+                                        _translate("Runner"),
+                                        _translate("Runner View"))
+            self.Bind(wx.EVT_MENU, self.parent.app.showRunner, self.runnerBtn)
+        self.AppendSeparator()
+
+        # Make buttons for each open file
+        for frame in self.frames:
+            if hasattr(frame, "filename"):
+                label = type(frame).__name__.replace("Frame", "") + ": " + frame.filename
+                item = self.Append(wx.ID_ANY,
+                            _translate(label),
+                            _translate(label))
+                self.itemFrames[item.GetId()] = frame
+                self.Bind(wx.EVT_MENU, self.showFrame, item)
+        pass
+
+    def showFrame(self, event):
+        frame = self.itemFrames[event.Id]
+        frame.Show(True)
+        frame.Raise()
+        self.parent.app.SetTopWindow(frame)
+        self.Update()
+

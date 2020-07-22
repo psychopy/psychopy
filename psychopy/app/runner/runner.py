@@ -72,10 +72,10 @@ class RunnerFrame(wx.Frame, ThemeMixin):
         self.Bind(wx.EVT_CLOSE, self.onClose)
         self.theme = app.theme
 
-    def closeFrame(self, event=None):
+    def Close(self, event=None):
         self.app.runner = None
-        self.app.toggleFrame()
-        self.Close()
+        self.app.updateWindowMenu()
+        super(self).Close(self)
 
     def addTask(self, evt=None, fileName=None):
         self.panel.addTask(fileName=fileName)
@@ -165,11 +165,14 @@ class RunnerFrame(wx.Frame, ThemeMixin):
         self.themesMenu = ThemeSwitcher(self)
         viewMenu.AppendSubMenu(self.themesMenu,
                            _translate("Themes"))
+        # Add frame switcher
+        self.windowMenu = FrameSwitcher(self)
 
         # Create menus
         self.runnerMenu.Append(fileMenu, 'File')
         self.runnerMenu.Append(viewMenu, 'View')
         self.runnerMenu.Append(runMenu, 'Run')
+        self.runnerMenu.Append(self.windowMenu, 'Window')
 
     def onURL(self, evt):
         """Open link in default browser."""

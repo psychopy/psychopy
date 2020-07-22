@@ -352,12 +352,6 @@ class BuilderFrame(wx.Frame, ThemeMixin):
         menuBar.Append(self.viewMenu, _translate('&View'))
         menu = self.viewMenu
 
-        # View switcher
-        self.framesMenu = FrameSwitcher(self)
-        menu.AppendSubMenu(self.framesMenu,
-                           _translate("Frames"))
-        menu.AppendSeparator()
-
         item = menu.Append(wx.ID_ANY,
                            _translate("&Toggle readme\t%s") % self.app.keys[
                                'toggleReadme'],
@@ -438,6 +432,11 @@ class BuilderFrame(wx.Frame, ThemeMixin):
                            _translate("Insert Loop in Flow"),
                            _translate("Create a new loop in your flow window"))
         self.Bind(wx.EVT_MENU, self.flowPanel.insertLoop, item)
+
+        # ---_window---#000000#FFFFFF-----------------------------------------
+        self.windowMenu = FrameSwitcher(self)
+        menuBar.Append(self.windowMenu,
+                    _translate("Window"))
 
         # ---_demos---#000000#FFFFFF------------------------------------------
         # for demos we need a dict where the event ID will correspond to a
@@ -529,8 +528,7 @@ class BuilderFrame(wx.Frame, ThemeMixin):
             # Show Runner if hidden
             if self.app.runner is not None:
                 self.app.showRunner()
-        self.app.builder = None
-        self.app.toggleFrame()
+        self.app.updateWindowMenu()
 
     def quit(self, event=None):
         """quit the app
@@ -566,6 +564,7 @@ class BuilderFrame(wx.Frame, ThemeMixin):
         self.resetUndoStack()
         self.setIsModified(False)
         self.updateAllViews()
+        self.app.updateWindowMenu()
 
     def fileOpen(self, event=None, filename=None, closeCurrent=True):
         """Open a FileDialog, then load the file if possible.
@@ -618,6 +617,7 @@ class BuilderFrame(wx.Frame, ThemeMixin):
         except Exception as e:  # failed for
             self.project = None
             print(e)
+        self.app.updateWindowMenu()
 
     def fileSave(self, event=None, filename=None):
         """Save file, revert to SaveAs if the file hasn't yet been saved

@@ -1523,8 +1523,8 @@ class CoderFrame(wx.Frame, ThemeMixin):
         menuBar.Append(self.viewMenu, _translate('&View'))
 
         # View switcher
-        self.framesMenu = FrameSwitcher(self)
-        menu.AppendSubMenu(self.framesMenu,
+        self.windowMenu = FrameSwitcher(self)
+        menu.AppendSubMenu(self.windowMenu,
                            _translate("Frames"))
 
         # Panel switcher
@@ -1580,7 +1580,12 @@ class CoderFrame(wx.Frame, ThemeMixin):
         menu.AppendSubMenu(self.themesMenu,
                            _translate("Themes"))
 
-        #
+        # ---_window---#000000#FFFFFF-----------------------------------------
+        self.windowMenu = FrameSwitcher(self)
+        menuBar.Append(self.windowMenu,
+                    _translate("Window"))
+
+        # ---_demos---#000000#FFFFFF------------------------------------------
         self.demosMenu = wx.Menu()
         self.demos = {}
         menuBar.Append(self.demosMenu, _translate('&Demos'))
@@ -2028,7 +2033,7 @@ class CoderFrame(wx.Frame, ThemeMixin):
         self.app.forgetFrame(self)
         self.Destroy()
         self.app.coder = None
-        self.app.toggleFrame()
+        self.app.updateWindowMenu()
 
     def filePrint(self, event=None):
         pr = Printer()
