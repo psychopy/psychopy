@@ -238,11 +238,11 @@ class DlgFromDict(Dlg):
     Parameters
     ----------
 
-    sort_keys : bool
+    sortKeys : bool
         Whether the dictionary keys should be ordered alphabetically
         for displaying.
 
-    copy_dict : bool
+    copyDict : bool
         If False, modify ``dictionary`` in-place. If True, a copy of
         the dictionary is created, and the altered version (after
         user interaction) can be retrieved from
@@ -278,7 +278,8 @@ class DlgFromDict(Dlg):
     """
 
     def __init__(self, dictionary, title='', fixed=None, order=None, tip=None,
-                 sort_keys=True, copy_dict=False, show=True):
+                 sortKeys=True, copyDict=False, show=True,
+                 sort_keys=None, copy_dict=None):
         # We don't explicitly check for None identity
         # for backward-compatibility reasons.
         if not fixed:
@@ -298,7 +299,7 @@ class DlgFromDict(Dlg):
 
         self._keys = list(self.dictionary.keys())
 
-        if sort_keys:
+        if sortKeys:
             self._keys.sort()
         if order:
             self._keys = list(order) + list(set(self._keys).difference(set(order)))
