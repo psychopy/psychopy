@@ -361,13 +361,18 @@ class FrameSwitcher(wx.Menu):
         for item in self.GetMenuItems():
             self.DestroyItem(item)
 
+        # Determine whether to show standard buttons based on open state
+        showBuilder = not any(isinstance(frame, psychopy.app.builder.BuilderFrame) and hasattr(frame, 'filename')
+                             for frame in self.parent.app.getAllFrames())
+        showCoder = not any(isinstance(frame, psychopy.app.coder.CoderFrame) and hasattr(frame, 'filename')
+                             for frame in self.parent.app.getAllFrames())
         # Add standard buttons
-        if not isinstance(self.parent, psychopy.app.builder.BuilderFrame):
+        if showBuilder and not isinstance(self.parent, psychopy.app.builder.BuilderFrame):
             self.builderBtn = self.Append(wx.ID_ANY,
                                           _translate("Builder"),
                                           _translate("Builder View"))
             self.Bind(wx.EVT_MENU, self.parent.app.showBuilder, self.builderBtn)
-        if not isinstance(self.parent, psychopy.app.coder.CoderFrame):
+        if showCoder and not isinstance(self.parent, psychopy.app.coder.CoderFrame):
             self.coderBtn = self.Append(wx.ID_ANY,
                                           _translate("Coder"),
                                           _translate("Coder View"))
@@ -377,18 +382,16 @@ class FrameSwitcher(wx.Menu):
                                         _translate("Runner"),
                                         _translate("Runner View"))
             self.Bind(wx.EVT_MENU, self.parent.app.showRunner, self.runnerBtn)
-        self.AppendSeparator()
 
         # Make buttons for each open file
         for frame in self.frames:
-            if hasattr(frame, "filename"):
+            if hasattr(frame, "filename") and frame != self.parent:
                 label = type(frame).__name__.replace("Frame", "") + ": " + os.path.basename(frame.filename)
                 item = self.Append(wx.ID_ANY,
                             _translate(label),
                             _translate(label))
                 self.itemFrames[item.GetId()] = frame
                 self.Bind(wx.EVT_MENU, self.showFrame, item)
-        pass
 
     def showFrame(self, event):
         frame = self.itemFrames[event.Id]
