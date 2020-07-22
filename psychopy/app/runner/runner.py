@@ -160,7 +160,7 @@ class RunnerFrame(wx.Frame, ThemeMixin):
         self.framesMenu = FrameSwitcher(self)
         viewMenu.AppendSubMenu(self.framesMenu,
                            _translate("Frames"))
-
+        viewMenu.AppendSeparator()
         # Add Theme Switcher
         self.themesMenu = ThemeSwitcher(self)
         viewMenu.AppendSubMenu(self.themesMenu,
