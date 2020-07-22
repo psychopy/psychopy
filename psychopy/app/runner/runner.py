@@ -131,6 +131,10 @@ class RunnerFrame(wx.Frame, ThemeMixin):
         ]
 
         viewMenuItems = [
+            {'id': wx.ID_ANY, 'label': _translate("Open &Builder view"),
+             'status': _translate("Opening Builder"), 'func': self.viewBuilder},
+            {'id': wx.ID_ANY, 'label': _translate("Open &Coder view"),
+             'status': _translate('Opening Coder'), 'func': self.viewCoder},
         ]
 
         runMenuItems = [

@@ -1522,6 +1522,18 @@ class CoderFrame(wx.Frame, ThemeMixin):
         menu = self.viewMenu
         menuBar.Append(self.viewMenu, _translate('&View'))
 
+        # Frame switcher (legacy
+        item = menu.Append(wx.ID_ANY,
+                           _translate("Go to Builder view"),
+                           _translate("Go to the Builder view"))
+        self.Bind(wx.EVT_MENU, self.app.showBuilder, id=item.GetId())
+
+        key = self.app.keys['switchToRunner']
+        item = menu.Append(wx.ID_ANY,
+                           _translate("Open Runner view"),
+                           _translate("Open the Runner view"))
+        self.Bind(wx.EVT_MENU, self.app.showRunner, item)
+        menu.AppendSeparator()
         # Panel switcher
         self.panelsMenu = wx.Menu()
         menu.AppendSubMenu(self.panelsMenu,
@@ -1541,7 +1553,6 @@ class CoderFrame(wx.Frame, ThemeMixin):
                                                   hint)
         self.Bind(wx.EVT_MENU, self.setSourceAsst,
                   id=self.sourceAsstChk.GetId())
-        menu.AppendSeparator()
 
         # indent guides
         key = keyCodes['toggleIndentGuides']
