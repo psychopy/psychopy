@@ -125,7 +125,7 @@ class ThemeMixin:
             target.SetBackgroundColour(ThemeMixin.appColors['frame_bg'])
             # Clear tools
             target.ClearTools()
-            # # Redraw tools
+            # Redraw tools
             target.makeTools()
 
         def applyToStatusBar(target):

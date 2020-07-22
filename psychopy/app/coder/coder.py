@@ -1169,6 +1169,7 @@ class CoderFrame(wx.Frame, ThemeMixin):
         #self.Bind(wx.EVT_FIND_CLOSE, self.OnFindClose)
         self.Bind(wx.EVT_END_PROCESS, self.onProcessEnded)
 
+        self._applyAppTheme()
         # take files from arguments and append the previously opened files
         filename = ""
         if files not in [None, [], ()]:
@@ -1234,8 +1235,7 @@ class CoderFrame(wx.Frame, ThemeMixin):
         else:
             self.SetMinSize(wx.Size(400, 600))  # min size for whole window
             self.Fit()
-        # Update panes
-        self._applyAppTheme()
+        # Update panes PsychopyToolbar
         isExp = filename.endswith(".py") or filename.endswith(".psyexp")
         self.toolbar.EnableTool(self.cdrBtnRunner.Id, isExp)
         self.toolbar.EnableTool(self.cdrBtnRun.Id, isExp)
@@ -2199,8 +2199,9 @@ class CoderFrame(wx.Frame, ThemeMixin):
             self.Show()  # if the user had closed the frame it might be hidden
         if readonly:
             self.currentDoc.SetReadOnly(True)
-        self. currentDoc._applyAppTheme()
+        self.currentDoc._applyAppTheme()
         isExp = filename.endswith(".py") or filename.endswith(".psyexp")
+
         self.toolbar.EnableTool(self.cdrBtnRunner.Id, isExp)
         self.toolbar.EnableTool(self.cdrBtnRun.Id, isExp)
 
@@ -2657,10 +2658,6 @@ class CoderFrame(wx.Frame, ThemeMixin):
         """Overrides theme change from ThemeMixin.
         Don't call - this is called at the end of theme.setter"""
         ThemeMixin._applyAppTheme(self)  # handles most recursive setting
-
-        self.toolbar.ClearTools()
-        self.toolbar.makeTools()
-
         ThemeMixin._applyAppTheme(self.toolbar)
         ThemeMixin._applyAppTheme(self.statusBar)
         # updating sourceAsst will incl fileBrowser and sourcetree
