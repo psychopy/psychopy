@@ -373,6 +373,7 @@ class PrefPropGrid(wx.Panel):
                         pass
 
         self.proPrefs.SetSplitterLeft()
+        self.setSelection(0)
 
     def setPrefVal(self, section, name, value):
         """Set the value of a preference."""
@@ -525,8 +526,6 @@ class PreferencesDlg(wx.Dialog):
             if dev != self.audioDevDefault]
 
         self.populatePrefs()
-
-        self.proPrefs.setSelection(0)
 
     def __del__(self):
         pass
