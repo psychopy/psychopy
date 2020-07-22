@@ -2100,6 +2100,11 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
                 size=size,
                 tip=thisTip,
         )
+        # btn will be none if a favorite is not found (e.g. user has multiple
+        # versions of psychopy installed
+        if btn is None:
+            return
+        # then set up positioning etc
         btn.SetBitmapPosition(wx.TOP)
         self.componentFromID[btn.GetId()] = name
         # use btn.bind instead of self.Bind in oder to trap event here
