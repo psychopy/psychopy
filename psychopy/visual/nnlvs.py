@@ -175,7 +175,7 @@ class VisualSystemHD(window.Window):
             focalLength = 1. / self._diopters[eye]
         except KeyError:
             raise ValueError(
-                "Invalid value for `eye`, must be ;left' or 'right'.")
+                "Invalid value for `eye`, must be 'left' or 'right'.")
         except ZeroDivisionError:
             raise ValueError("Value for diopters cannot be zero.")
 
