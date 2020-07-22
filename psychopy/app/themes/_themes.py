@@ -807,11 +807,11 @@ class IconCache:
             button.SetBitmapPosition(wx.TOP)
             button.SetBackgroundColour(ThemeMixin.appColors['frame_bg'])
             # just for regular buttons (not toolbar objects) we can re-use
-            buttonInfo = {'btn':button,
+            buttonInfo = {'btn': button,
                           'filename': filename,
-                          'size':size,
-                          'emblem':emblem,
-                          'theme':theme}
+                          'size': size,
+                          'emblem': emblem,
+                          'theme': theme}
             self._buttons.append(buttonInfo)
 
             if tip:
@@ -959,7 +959,8 @@ class PsychopyDockArt(aui.AuiDefaultDockArt):
 
 
 class ThemeSwitcher(wx.Menu):
-    """Class to make a submenu for switching theme, meaning that the menu will always be the same across frames."""
+    """Class to make a submenu for switching theme, meaning that the menu will
+    always be the same across frames."""
     def __init__(self, frame):
         # Get list of themes
         themePath = Path(prefs.paths['themes'])
