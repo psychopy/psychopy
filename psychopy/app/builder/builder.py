@@ -433,11 +433,6 @@ class BuilderFrame(wx.Frame, ThemeMixin):
                            _translate("Create a new loop in your flow window"))
         self.Bind(wx.EVT_MENU, self.flowPanel.insertLoop, item)
 
-        # ---_window---#000000#FFFFFF-----------------------------------------
-        self.windowMenu = FrameSwitcher(self)
-        menuBar.Append(self.windowMenu,
-                    _translate("Window"))
-
         # ---_demos---#000000#FFFFFF------------------------------------------
         # for demos we need a dict where the event ID will correspond to a
         # filename
@@ -459,6 +454,11 @@ class BuilderFrame(wx.Frame, ThemeMixin):
         # ---_onlineStudies---#000000#FFFFFF-------------------------------------------
         self.pavloviaMenu = pavlovia_ui.menu.PavloviaMenu(parent=self)
         menuBar.Append(self.pavloviaMenu, _translate("Pavlovia.org"))
+
+        # ---_window---#000000#FFFFFF-----------------------------------------
+        self.windowMenu = FrameSwitcher(self)
+        menuBar.Append(self.windowMenu,
+                    _translate("Window"))
 
         # ---_help---#000000#FFFFFF-------------------------------------------
         self.helpMenu = wx.Menu()

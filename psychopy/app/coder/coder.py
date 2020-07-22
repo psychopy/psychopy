@@ -1575,11 +1575,6 @@ class CoderFrame(wx.Frame, ThemeMixin):
         menu.AppendSubMenu(self.themesMenu,
                            _translate("Themes"))
 
-        # ---_window---#000000#FFFFFF-----------------------------------------
-        self.windowMenu = FrameSwitcher(self)
-        menuBar.Append(self.windowMenu,
-                    _translate("Window"))
-
         # ---_demos---#000000#FFFFFF------------------------------------------
         self.demosMenu = wx.Menu()
         self.demos = {}
@@ -1645,6 +1640,11 @@ class CoderFrame(wx.Frame, ThemeMixin):
         # ---_projects---#000000#FFFFFF---------------------------------------
         self.pavloviaMenu = psychopy.app.pavlovia_ui.menu.PavloviaMenu(parent=self)
         menuBar.Append(self.pavloviaMenu, _translate("Pavlovia.org"))
+
+        # ---_window---#000000#FFFFFF-----------------------------------------
+        self.windowMenu = FrameSwitcher(self)
+        menuBar.Append(self.windowMenu,
+                    _translate("Window"))
 
         # ---_help---#000000#FFFFFF-------------------------------------------
         self.helpMenu = wx.Menu()
