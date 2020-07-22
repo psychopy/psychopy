@@ -1522,31 +1522,20 @@ class CoderFrame(wx.Frame, ThemeMixin):
         menu = self.viewMenu
         menuBar.Append(self.viewMenu, _translate('&View'))
 
-        # View switcher
-        self.framesMenu = FrameSwitcher(self)
-        menu.AppendSubMenu(self.framesMenu,
-                           _translate("Frames"))
-
-        # Panel switcher
-        self.panelsMenu = wx.Menu()
-        menu.AppendSubMenu(self.panelsMenu,
-                           _translate("Panels"))
-        # output window
-        key = keyCodes['toggleOutputPanel']
-        hint = _translate("Shows the output and shell panes (and starts "
-                          "capturing stdout)")
-        self.outputChk = self.panelsMenu.AppendCheckItem(
-            wx.ID_ANY, _translate("&Output/Shell\t%s") % key, hint)
-        self.outputChk.Check(self.prefs['showOutput'])
-        self.Bind(wx.EVT_MENU, self.setOutputWindow, id=self.outputChk.GetId())
-        # source assistant
-        hint = "Hide/show the source assistant pane."
-        self.sourceAsstChk = self.panelsMenu.AppendCheckItem(wx.ID_ANY,
-                                                  "Source Assistant",
-                                                  hint)
-        self.Bind(wx.EVT_MENU, self.setSourceAsst,
-                  id=self.sourceAsstChk.GetId())
-        menu.AppendSeparator()
+        # Get list of themes
+        themePath = self.GetTopLevelParent().app.prefs.paths['themes']
+        self.themeList = {}
+        for themeFile in os.listdir(themePath):
+            try:
+                # Load theme from json file
+                with open(os.path.join(themePath, themeFile), "rb") as fp:
+                    theme = json.load(fp)
+                # Add themes to list only if min spec is defined
+                base = theme['base']
+                if all(key in base for key in ['bg', 'fg', 'font']):
+                    self.themeList[themeFile.replace('.json', '')] = []
+            except:
+                pass
 
         # indent guides
         key = keyCodes['toggleIndentGuides']
@@ -1574,13 +1563,49 @@ class CoderFrame(wx.Frame, ThemeMixin):
             hint)
         self.showEOLsChk.Check(self.appData['showEOLs'])
         self.Bind(wx.EVT_MENU, self.setShowEOLs, id=self.showEOLsChk.GetId())
-        menu.AppendSeparator()
         # Theme Switcher
         self.themesMenu = ThemeSwitcher(self)
         menu.AppendSubMenu(self.themesMenu,
                            _translate("Themes"))
+        menu.AppendSeparator()
+        # output window
+        key = keyCodes['toggleOutputPanel']
+        hint = _translate("Shows the output and shell panes (and starts "
+                          "capturing stdout)")
+        self.outputChk = menu.AppendCheckItem(
+            wx.ID_ANY, _translate("Show &Output/Shell\t%s") % key, hint)
+        self.outputChk.Check(self.prefs['showOutput'])
+        self.Bind(wx.EVT_MENU, self.setOutputWindow, id=self.outputChk.GetId())
+        # source assistant
+        hint = "Hide/show the source assistant pane."
+        self.sourceAsstChk = menu.AppendCheckItem(wx.ID_ANY,
+                                                  "Source Assistant",
+                                                  hint)
+        self.Bind(wx.EVT_MENU, self.setSourceAsst,
+                  id=self.sourceAsstChk.GetId())
 
-        #
+        # menu.AppendSeparator()
+        # hint = "Enable code autocomplete and calltips while typing. Disable " \
+        #        "to manually bring up suggestions (Ctrl+Space)."
+        # self.chkShowAutoComp = menu.AppendCheckItem(
+        #     wx.ID_ANY, "Show code suggestion while typing", hint)
+        # self.Bind(wx.EVT_MENU, self.setAutoComplete,
+        #           id=self.chkShowAutoComp.GetId())
+        menu.AppendSeparator()
+        # View switcher
+        self.framesMenu = FrameSwitcher(self)
+        menu.AppendSubMenu(self.framesMenu,
+                           _translate("Frames"))
+        # self.viewMenu.Append(self.IDs.openShell,
+        #   "Go to &IPython Shell\t%s" %self.app.keys['switchToShell'],
+        #   "Go to a shell window for interactive commands")
+        # self.Bind(wx.EVT_MENU,  self.app.showShell, id=self.IDs.openShell)
+        # self.viewMenu.Append(self.IDs.openIPythonNotebook,
+        #   "Go to &IPython notebook",
+        #   "Open an IPython notebook (unconnected in a browser)")
+        # self.Bind(wx.EVT_MENU, self.app.openIPythonNotebook,
+        #    id=self.IDs.openIPythonNotebook)
+
         self.demosMenu = wx.Menu()
         self.demos = {}
         menuBar.Append(self.demosMenu, _translate('&Demos'))

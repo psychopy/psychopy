@@ -356,7 +356,6 @@ class BuilderFrame(wx.Frame, ThemeMixin):
         self.framesMenu = FrameSwitcher(self)
         menu.AppendSubMenu(self.framesMenu,
                            _translate("Frames"))
-        menu.AppendSeparator()
 
         item = menu.Append(wx.ID_ANY,
                            _translate("&Toggle readme\t%s") % self.app.keys[
