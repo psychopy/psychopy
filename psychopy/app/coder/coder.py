@@ -1868,6 +1868,7 @@ class CoderFrame(wx.Frame, ThemeMixin):
         old = event.GetOldSelection()
         new = event.GetSelection()
         self.currentDoc = self.notebook.GetPage(new)
+        self.app.updateWindowMenu()
         self.setFileModified(self.currentDoc.UNSAVED)
         self.SetLabel('%s - PsychoPy Coder' % self.currentDoc.filename)
 
@@ -2074,6 +2075,10 @@ class CoderFrame(wx.Frame, ThemeMixin):
             self.currentDoc.analyseScript()
         self.statusBar.SetStatusText('')
 
+    @property
+    def filename(self):
+        return self.currentDoc.filename
+
     def findDocID(self, filename):
         # find the ID of the current doc
         for ii in range(self.notebook.GetPageCount()):
@@ -2175,6 +2180,7 @@ class CoderFrame(wx.Frame, ThemeMixin):
         isExp = filename.endswith(".py") or filename.endswith(".psyexp")
         self.toolbar.EnableTool(self.cdrBtnRunner.Id, isExp)
         self.toolbar.EnableTool(self.cdrBtnRun.Id, isExp)
+        self.app.updateWindowMenu()
 
 
     def fileOpen(self, event=None, filename=None):

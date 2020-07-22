@@ -382,7 +382,7 @@ class FrameSwitcher(wx.Menu):
         # Make buttons for each open file
         for frame in self.frames:
             if hasattr(frame, "filename"):
-                label = type(frame).__name__.replace("Frame", "") + ": " + frame.filename
+                label = type(frame).__name__.replace("Frame", "") + ": " + os.path.basename(frame.filename)
                 item = self.Append(wx.ID_ANY,
                             _translate(label),
                             _translate(label))
