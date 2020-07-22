@@ -46,7 +46,7 @@ from psychopy.tools.filetools import mergeFolder
 from .dialogs import (DlgComponentProperties, DlgExperimentProperties,
                       DlgCodeComponentProperties, DlgLoopProperties)
 from ..utils import (PsychopyToolbar, PsychopyPlateBtn, WindowFrozen,
-                     FileDropTarget, FrameSwitcher)
+                     FileDropTarget)
 
 from psychopy.experiment import components
 from builtins import str
@@ -352,10 +352,17 @@ class BuilderFrame(wx.Frame, ThemeMixin):
         menuBar.Append(self.viewMenu, _translate('&View'))
         menu = self.viewMenu
 
-        # View switcher
-        self.framesMenu = FrameSwitcher(self)
-        menu.AppendSubMenu(self.framesMenu,
-                           _translate("Frames"))
+        item = menu.Append(wx.ID_ANY,
+                           _translate("&Open Coder view\t%s") % keys[
+                               'switchToCoder'],
+                           _translate("Open a new Coder view"))
+        self.Bind(wx.EVT_MENU, self.app.showCoder, item)
+
+        item = menu.Append(wx.ID_ANY,
+                           _translate("&Open Runner view\t%s") % keys[
+                               'switchToRunner'],
+                           _translate("Open the Runner view"))
+        self.Bind(wx.EVT_MENU, self.app.showRunner, item)
 
         item = menu.Append(wx.ID_ANY,
                            _translate("&Toggle readme\t%s") % self.app.keys[
@@ -528,8 +535,6 @@ class BuilderFrame(wx.Frame, ThemeMixin):
             # Show Runner if hidden
             if self.app.runner is not None:
                 self.app.showRunner()
-        self.app.builder = None
-        self.app.toggleFrame()
 
     def quit(self, event=None):
         """quit the app

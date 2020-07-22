@@ -174,7 +174,6 @@ class PsychoPyApp(wx.App, themes.ThemeMixin):
         self._appLoaded = False  # set to true when all frames are created
         self.coder = None
         self.runner = None
-        self.builder = None
         self.version = psychopy.__version__
         # set default paths and prefs
         self.prefs = psychopy.prefs
@@ -563,26 +562,6 @@ class PsychoPyApp(wx.App, themes.ThemeMixin):
         table = wx.AcceleratorTable(entries)
         return table
 
-    def toggleFrame(self, event=None):
-        """Toggle the open/close state of a particular frame"""
-        if event:
-            # If function was called from menu
-            showFunctions = {
-                self.builder: self.showBuilder,
-                self.coder: self.showCoder,
-                self.runner: self.showRunner
-            }
-            frame = getattr(self, ['builder', 'coder', 'runner'][event.GetId()])
-            if frame:
-                frame.closeFrame()
-            else:
-                showFunctions[frame]()
-        else:
-            # Update checks on menus in all frames
-            for openFrame in [self.builder, self.coder, self.runner]:
-                if hasattr(openFrame, "framesMenu"):
-                    openFrame.framesMenu.Update()
-
     def showCoder(self, event=None, fileList=None):
         # have to reimport because it is only local to __init__ so far
         from . import coder
@@ -597,7 +576,6 @@ class PsychoPyApp(wx.App, themes.ThemeMixin):
         self.coder.Show(True)
         self.SetTopWindow(self.coder)
         self.coder.Raise()
-        self.toggleFrame()
 
     def newBuilderFrame(self, event=None, fileName=None):
         # have to reimport because it is ony local to __init__ so far
@@ -609,7 +587,6 @@ class PsychoPyApp(wx.App, themes.ThemeMixin):
         self.builder.Show(True)
         self.builder.Raise()
         self.SetTopWindow(self.builder)
-        self.toggleFrame()
         return self.builder
 
     def showBuilder(self, event=None, fileList=()):
@@ -643,7 +620,6 @@ class PsychoPyApp(wx.App, themes.ThemeMixin):
                              id=-1,
                              title=title,
                              app=self)
-        self.toggleFrame()
         return self.runner
 
     def OnDrop(self, x, y, files):

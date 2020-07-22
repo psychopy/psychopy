@@ -35,7 +35,7 @@ from .. import stdOutRich, dialogs
 from .. import pavlovia_ui
 from psychopy import logging, prefs
 from psychopy.localization import _translate
-from ..utils import FileDropTarget, PsychopyToolbar, FrameSwitcher
+from ..utils import FileDropTarget, PsychopyToolbar
 from psychopy.projects import pavlovia
 import psychopy.app.pavlovia_ui.menu
 from psychopy.app.coder.codeEditorBase import BaseCodeEditor
@@ -1592,10 +1592,19 @@ class CoderFrame(wx.Frame, ThemeMixin):
         # self.Bind(wx.EVT_MENU, self.setAutoComplete,
         #           id=self.chkShowAutoComp.GetId())
         menu.AppendSeparator()
-        # View switcher
-        self.framesMenu = FrameSwitcher(self)
-        menu.AppendSubMenu(self.framesMenu,
-                           _translate("Frames"))
+
+        key = self.app.keys['switchToBuilder']
+        item = menu.Append(wx.ID_ANY,
+                           _translate("Go to &Builder view\t%s") % key,
+                           _translate("Go to the Builder view"))
+        self.Bind(wx.EVT_MENU, self.app.showBuilder, id=item.GetId())
+
+        key = self.app.keys['switchToRunner']
+        item = menu.Append(wx.ID_ANY,
+                           _translate("&Open Runner view\t%s") % key,
+                           _translate("Open the Runner view"))
+        self.Bind(wx.EVT_MENU, self.app.showRunner, item)
+
         # self.viewMenu.Append(self.IDs.openShell,
         #   "Go to &IPython Shell\t%s" %self.app.keys['switchToShell'],
         #   "Go to a shell window for interactive commands")
@@ -2053,7 +2062,6 @@ class CoderFrame(wx.Frame, ThemeMixin):
         self.app.forgetFrame(self)
         self.Destroy()
         self.app.coder = None
-        self.app.toggleFrame()
 
     def filePrint(self, event=None):
         pr = Printer()
