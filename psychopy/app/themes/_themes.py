@@ -482,7 +482,7 @@ class ThemeMixin:
             })
         return tags
 
-    def hex2rgb(self, hex, base=(0, 0, 0, 0)):
+    def hex2rgb(self, hex, base=(0, 0, 0, 255)):
         if not isinstance(hex, str):
             return base
         # Make hex code case irrelevant
@@ -500,7 +500,7 @@ class ThemeMixin:
         r = hexkeys[hex[1]] * 16 + hexkeys[hex[2]]
         g = hexkeys[hex[3]] * 16 + hexkeys[hex[4]]
         b = hexkeys[hex[5]] * 16 + hexkeys[hex[6]]
-        return wx.Colour(r, g, b, 1)
+        return wx.Colour(r, g, b, 255)
 
     def shiftColour(self, col, offset=15):
         """Shift colour up or down by a set amount"""
