@@ -1,8 +1,11 @@
+import os
+import subprocess
 import sys
 
 import wx
 import wx.lib.agw.aui as aui
 import wx.stc as stc
+from psychopy.localization import _translate
 from wx import py
 import keyword
 import builtins
@@ -343,8 +346,8 @@ class ThemeMixin:
 
         if hasattr(target, 'Refresh'):
             target.Refresh()
-        if hasattr(target, 'Update'):
-            target.Update()
+        #if hasattr(target, 'Update'): # Using .Update() caused code editors to always think there were changes made
+        #    target.Update()
         if hasattr(target, '_mgr'):
             target._mgr.Update()
 
@@ -545,7 +548,7 @@ class ThemeMixin:
             finalFont = [wx.SystemSettings.GetFont(wx.SYS_ANSI_FIXED_FONT).GetFaceName()]
         # Cycle through font names, stop at first valid font
         for font in fontList:
-            if fm.findfont(font, fallback_to_default=False) not in fm.defaultFont.values():
+            if fm.findfont(font) not in fm.defaultFont.values():
                 finalFont = [font] + bold + italic
                 break
 
@@ -781,12 +784,15 @@ class IconCache:
             self._loadBitmap(name, theme, emblem=emblem, size=size)
         return IconCache._bitmaps[identifier]
 
-    def makeBitmapButton(self, parent, name, theme=None, size=None, emblem=None,
-                         toolbar=None, tip=None, label="",
-                         tbKind=wx.ITEM_NORMAL):
+    def makeBitmapButton(self, parent, filename,
+                         name="",  # name of Component e.g. TextComponent
+                         label="", # label on the button, often short name
+                         emblem=None,
+                         toolbar=None, tip=None, size=None,
+                         tbKind=wx.ITEM_NORMAL, theme=None):
         if theme is None:
             theme = ThemeMixin.icons
-        bmp = self.getBitmap(name, theme, size, emblem)
+        bmp = self.getBitmap(filename, theme, size, emblem)
         if toolbar:
             if 'phoenix' in wx.PlatformInfo:
                 button = toolbar.AddTool(wx.ID_ANY, label=label,
@@ -798,16 +804,16 @@ class IconCache:
                                                kind=tbKind)
         else:
             button = wx.Button(parent, wx.ID_ANY,
-                               label=label, style=wx.NO_BORDER)
+                               label=label, name=name, style=wx.NO_BORDER)
             button.SetBitmap(bmp)
             button.SetBitmapPosition(wx.TOP)
             button.SetBackgroundColour(ThemeMixin.appColors['frame_bg'])
             # just for regular buttons (not toolbar objects) we can re-use
-            buttonInfo = {'btn':button,
-                          'name':name,
-                          'size':size,
-                          'emblem':emblem,
-                          'theme':theme}
+            buttonInfo = {'btn': button,
+                          'filename': filename,
+                          'size': size,
+                          'emblem': emblem,
+                          'theme': theme}
             self._buttons.append(buttonInfo)
 
             if tip:
@@ -815,15 +821,17 @@ class IconCache:
 
         return button
 
-    def getComponentButton(self, parent, name, theme=None, size=None, emblem=None,
-                         tip="", label="",):
+    def getComponentButton(self, parent, name, label,
+                           theme=None, size=None, emblem=None,
+                           tip=""):
         """Checks in the experiment.components.iconFiles for filename and
         loads it into a wx.Bitmap"""
         if name in components.iconFiles:
             filename = components.iconFiles[name]
-            btn = self.makeBitmapButton(parent=parent,
-                                        name=filename, size=size,
-                                        label=label, tip=tip)
+            btn = self.makeBitmapButton(
+                    parent=parent,
+                    filename=filename, name=name, label=label,
+                    tip=tip, size=size)
             return btn
 
     def getComponentBitmap(self, name, size=None):
@@ -844,10 +852,10 @@ class IconCache:
         if theme.icons != IconCache._lastIcons:
             for thisBtn in IconCache._buttons:
                 if thisBtn['btn']:  # Check that button hasn't been deleted
-                    newBmp = self.getBitmap(name=thisBtn['name'],
-                                            size=thisBtn['size'],
-                                            theme=theme.icons,
-                                            emblem=thisBtn['emblem'])
+                    newBmp = self.getBitmap(name=thisBtn['filename'],
+                                        size=thisBtn['size'],
+                                        theme=theme.icons,
+                                        emblem=thisBtn['emblem'])
                     thisBtn['btn'].SetBitmap(newBmp)
                     thisBtn['btn'].SetBitmapCurrent(newBmp)
                     thisBtn['btn'].SetBitmapPressed(newBmp)
@@ -950,3 +958,38 @@ class PsychopyDockArt(aui.AuiDefaultDockArt):
         # self._caption_font
         self._caption_size = 25
         self._button_size = 20
+
+
+class ThemeSwitcher(wx.Menu):
+    """Class to make a submenu for switching theme, meaning that the menu will always be the same across frames."""
+    def __init__(self, frame):
+        # Get list of themes
+        themePath = Path(prefs.paths['themes'])
+        themeList = {}
+        for themeFile in themePath.glob("*.json"):
+            try:
+                with open(themeFile, "rb") as fp:
+                    theme = json.load(fp)
+                    # Add themes to list only if min spec is defined
+                    base = theme['base']
+                    if all(key in base for key in ['bg', 'fg', 'font']):
+                        themeList[themeFile.stem] = []
+            except (FileNotFoundError, IsADirectoryError):
+                pass
+        # Make menu
+        wx.Menu.__init__(self)
+        # Make buttons
+        for theme in themeList:
+            item = self.AppendRadioItem(wx.ID_ANY, _translate(theme))
+            frame.Bind(wx.EVT_MENU, frame.app.onThemeChange, item)
+            if item.ItemLabel.lower() == ThemeMixin.codetheme.lower():
+                item.Check(True)
+            else:
+                item.Check(False)
+        self.AppendSeparator()
+        # Add Theme Folder button
+        item = self.Append(wx.ID_ANY, _translate("Open theme folder"))
+        frame.Bind(wx.EVT_MENU, self.openThemeFolder, item)
+
+    def openThemeFolder(self, event):
+        subprocess.call("explorer %(themes)s" % prefs.paths, shell=True)
