@@ -366,6 +366,8 @@ class FrameSwitcher(wx.Menu):
                              for frame in self.parent.app.getAllFrames())
         showCoder = not any(isinstance(frame, psychopy.app.coder.CoderFrame) and hasattr(frame, 'filename')
                              for frame in self.parent.app.getAllFrames())
+        showRunner = not any(isinstance(frame, psychopy.app.runner.RunnerFrame) and hasattr(frame, 'filename')
+                            for frame in self.parent.app.getAllFrames())
         # Add standard buttons
         if showBuilder and not isinstance(self.parent, psychopy.app.builder.BuilderFrame):
             self.builderBtn = self.Append(wx.ID_ANY,
@@ -377,7 +379,7 @@ class FrameSwitcher(wx.Menu):
                                           _translate("Coder"),
                                           _translate("Coder View"))
             self.Bind(wx.EVT_MENU, self.parent.app.showCoder, self.coderBtn)
-        if not isinstance(self.parent, psychopy.app.runner.RunnerFrame):
+        if showRunner and not isinstance(self.parent, psychopy.app.runner.RunnerFrame):
             self.runnerBtn = self.Append(wx.ID_ANY,
                                         _translate("Runner"),
                                         _translate("Runner View"))
@@ -386,7 +388,10 @@ class FrameSwitcher(wx.Menu):
         # Make buttons for each open file
         for frame in self.frames:
             if hasattr(frame, "filename") and frame != self.parent:
-                label = type(frame).__name__.replace("Frame", "") + ": " + os.path.basename(frame.filename)
+                if frame.filename:
+                    label = type(frame).__name__.replace("Frame", "") + ": " + os.path.basename(frame.filename)
+                else:
+                    label = type(frame).__name__.replace("Frame", "")
                 item = self.Append(wx.ID_ANY,
                             _translate(label),
                             _translate(label))

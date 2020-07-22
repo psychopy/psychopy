@@ -72,6 +72,11 @@ class RunnerFrame(wx.Frame, ThemeMixin):
         self.Bind(wx.EVT_CLOSE, self.onClose)
         self.theme = app.theme
 
+    @property
+    def filename(self):
+        if self.panel.currentSelection or self.panel.currentSelection == 0:
+            return self.panel.expCtrl.GetItem(self.panel.currentSelection).Text
+
     def Close(self, event=None):
         self.app.runner = None
         self.app.updateWindowMenu()
@@ -156,11 +161,6 @@ class RunnerFrame(wx.Frame, ThemeMixin):
                 self.Bind(wx.EVT_MENU, item['func'], fileItem)
                 if item['label'].lower() in eachMenu['separators']:
                     eachMenu['menu'].AppendSeparator()
-        # View switcher
-        self.framesMenu = FrameSwitcher(self)
-        viewMenu.AppendSubMenu(self.framesMenu,
-                           _translate("Frames"))
-        viewMenu.AppendSeparator()
         # Add Theme Switcher
         self.themesMenu = ThemeSwitcher(self)
         viewMenu.AppendSubMenu(self.themesMenu,
@@ -641,6 +641,7 @@ class RunnerPanel(wx.Panel, ScriptProcess, ThemeMixin):
             self.currentFile = None
             self.currentExperiment = None
             self.currentProject = None
+        self.app.updateWindowMenu()
 
     def onItemSelected(self, evt):
         """Set currentSelection to index of currently selected list item."""
@@ -659,6 +660,7 @@ class RunnerPanel(wx.Panel, ScriptProcess, ThemeMixin):
             self.onlineBtn.Disable()
             self.onlineDebugBtn.Disable()
         self.updateAlerts()
+        self.app.updateWindowMenu()
 
     def updateAlerts(self):
         prev = sys.stdout
@@ -691,6 +693,7 @@ class RunnerPanel(wx.Panel, ScriptProcess, ThemeMixin):
         self.stopBtn.Disable()
         self.onlineBtn.Disable()
         self.onlineDebugBtn.Disable()
+        self.app.updateWindowMenu()
 
     def onDoubleClick(self, evt):
         self.currentSelection = evt.Index

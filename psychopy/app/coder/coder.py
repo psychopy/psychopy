@@ -1522,11 +1522,6 @@ class CoderFrame(wx.Frame, ThemeMixin):
         menu = self.viewMenu
         menuBar.Append(self.viewMenu, _translate('&View'))
 
-        # View switcher
-        self.windowMenu = FrameSwitcher(self)
-        menu.AppendSubMenu(self.windowMenu,
-                           _translate("Frames"))
-
         # Panel switcher
         self.panelsMenu = wx.Menu()
         menu.AppendSubMenu(self.panelsMenu,
@@ -2077,7 +2072,8 @@ class CoderFrame(wx.Frame, ThemeMixin):
 
     @property
     def filename(self):
-        return self.currentDoc.filename
+        if self.currentDoc:
+            return self.currentDoc.filename
 
     def findDocID(self, filename):
         # find the ID of the current doc
