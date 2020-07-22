@@ -23,7 +23,7 @@ from pathlib import Path
 from subprocess import Popen, PIPE
 
 from psychopy import experiment
-from psychopy.app.utils import PsychopyPlateBtn, PsychopyToolbar
+from psychopy.app.utils import PsychopyPlateBtn, PsychopyToolbar, FrameSwitcher
 from psychopy.constants import PY3
 from psychopy.localization import _translate
 from psychopy.app.stdOutRich import StdOutRich
@@ -71,6 +71,11 @@ class RunnerFrame(wx.Frame, ThemeMixin):
 
         self.Bind(wx.EVT_CLOSE, self.onClose)
         self.theme = app.theme
+
+    def closeFrame(self, event=None):
+        self.app.runner = None
+        self.app.toggleFrame()
+        self.Close()
 
     def addTask(self, evt=None, fileName=None):
         self.panel.addTask(fileName=fileName)
@@ -121,10 +126,6 @@ class RunnerFrame(wx.Frame, ThemeMixin):
         ]
 
         viewMenuItems = [
-            {'id': wx.ID_ANY, 'label': _translate("Open &Builder view"),
-             'status': _translate("Opening Builder"), 'func': self.viewBuilder},
-            {'id': wx.ID_ANY, 'label': _translate("Open &Coder view"),
-             'status': _translate('Opening Coder'), 'func': self.viewCoder},
         ]
 
         runMenuItems = [
@@ -155,21 +156,11 @@ class RunnerFrame(wx.Frame, ThemeMixin):
                 self.Bind(wx.EVT_MENU, item['func'], fileItem)
                 if item['label'].lower() in eachMenu['separators']:
                     eachMenu['menu'].AppendSeparator()
+        # View switcher
+        self.framesMenu = FrameSwitcher(self)
+        viewMenu.AppendSubMenu(self.framesMenu,
+                           _translate("Frames"))
 
-        # Get list of themes
-        themePath = self.GetTopLevelParent().app.prefs.paths['themes']
-        self.themeList = {}
-        for themeFile in os.listdir(themePath):
-            try:
-                # Load theme from json file
-                with open(os.path.join(themePath, themeFile), "rb") as fp:
-                    theme = json.load(fp)
-                # Add themes to list only if min spec is defined
-                base = theme['base']
-                if all(key in base for key in ['bg', 'fg', 'font']):
-                    self.themeList[themeFile.replace('.json', '')] = []
-            except:
-                pass
         # Add Theme Switcher
         self.themesMenu = ThemeSwitcher(self)
         viewMenu.AppendSubMenu(self.themesMenu,
