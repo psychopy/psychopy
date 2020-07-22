@@ -35,7 +35,7 @@ from .. import stdOutRich, dialogs
 from .. import pavlovia_ui
 from psychopy import logging, prefs
 from psychopy.localization import _translate
-from ..utils import FileDropTarget, PsychopyToolbar
+from ..utils import FileDropTarget, PsychopyToolbar, FrameSwitcher
 from psychopy.projects import pavlovia
 import psychopy.app.pavlovia_ui.menu
 from psychopy.app.coder.codeEditorBase import BaseCodeEditor
@@ -1522,20 +1522,37 @@ class CoderFrame(wx.Frame, ThemeMixin):
         menu = self.viewMenu
         menuBar.Append(self.viewMenu, _translate('&View'))
 
-        # Get list of themes
-        themePath = self.GetTopLevelParent().app.prefs.paths['themes']
-        self.themeList = {}
-        for themeFile in os.listdir(themePath):
-            try:
-                # Load theme from json file
-                with open(os.path.join(themePath, themeFile), "rb") as fp:
-                    theme = json.load(fp)
-                # Add themes to list only if min spec is defined
-                base = theme['base']
-                if all(key in base for key in ['bg', 'fg', 'font']):
-                    self.themeList[themeFile.replace('.json', '')] = []
-            except:
-                pass
+        # Frame switcher (legacy
+        item = menu.Append(wx.ID_ANY,
+                           _translate("Go to Builder view"),
+                           _translate("Go to the Builder view"))
+        self.Bind(wx.EVT_MENU, self.app.showBuilder, id=item.GetId())
+
+        key = self.app.keys['switchToRunner']
+        item = menu.Append(wx.ID_ANY,
+                           _translate("Open Runner view"),
+                           _translate("Open the Runner view"))
+        self.Bind(wx.EVT_MENU, self.app.showRunner, item)
+        menu.AppendSeparator()
+        # Panel switcher
+        self.panelsMenu = wx.Menu()
+        menu.AppendSubMenu(self.panelsMenu,
+                           _translate("Panels"))
+        # output window
+        key = keyCodes['toggleOutputPanel']
+        hint = _translate("Shows the output and shell panes (and starts "
+                          "capturing stdout)")
+        self.outputChk = self.panelsMenu.AppendCheckItem(
+            wx.ID_ANY, _translate("&Output/Shell\t%s") % key, hint)
+        self.outputChk.Check(self.prefs['showOutput'])
+        self.Bind(wx.EVT_MENU, self.setOutputWindow, id=self.outputChk.GetId())
+        # source assistant
+        hint = "Hide/show the source assistant pane."
+        self.sourceAsstChk = self.panelsMenu.AppendCheckItem(wx.ID_ANY,
+                                                  "Source Assistant",
+                                                  hint)
+        self.Bind(wx.EVT_MENU, self.setSourceAsst,
+                  id=self.sourceAsstChk.GetId())
 
         # indent guides
         key = keyCodes['toggleIndentGuides']
@@ -1563,58 +1580,13 @@ class CoderFrame(wx.Frame, ThemeMixin):
             hint)
         self.showEOLsChk.Check(self.appData['showEOLs'])
         self.Bind(wx.EVT_MENU, self.setShowEOLs, id=self.showEOLsChk.GetId())
+        menu.AppendSeparator()
         # Theme Switcher
         self.themesMenu = ThemeSwitcher(self)
         menu.AppendSubMenu(self.themesMenu,
                            _translate("Themes"))
-        menu.AppendSeparator()
-        # output window
-        key = keyCodes['toggleOutputPanel']
-        hint = _translate("Shows the output and shell panes (and starts "
-                          "capturing stdout)")
-        self.outputChk = menu.AppendCheckItem(
-            wx.ID_ANY, _translate("Show &Output/Shell\t%s") % key, hint)
-        self.outputChk.Check(self.prefs['showOutput'])
-        self.Bind(wx.EVT_MENU, self.setOutputWindow, id=self.outputChk.GetId())
-        # source assistant
-        hint = "Hide/show the source assistant pane."
-        self.sourceAsstChk = menu.AppendCheckItem(wx.ID_ANY,
-                                                  "Source Assistant",
-                                                  hint)
-        self.Bind(wx.EVT_MENU, self.setSourceAsst,
-                  id=self.sourceAsstChk.GetId())
 
-        # menu.AppendSeparator()
-        # hint = "Enable code autocomplete and calltips while typing. Disable " \
-        #        "to manually bring up suggestions (Ctrl+Space)."
-        # self.chkShowAutoComp = menu.AppendCheckItem(
-        #     wx.ID_ANY, "Show code suggestion while typing", hint)
-        # self.Bind(wx.EVT_MENU, self.setAutoComplete,
-        #           id=self.chkShowAutoComp.GetId())
-        menu.AppendSeparator()
-
-        key = self.app.keys['switchToBuilder']
-        item = menu.Append(wx.ID_ANY,
-                           _translate("Go to &Builder view\t%s") % key,
-                           _translate("Go to the Builder view"))
-        self.Bind(wx.EVT_MENU, self.app.showBuilder, id=item.GetId())
-
-        key = self.app.keys['switchToRunner']
-        item = menu.Append(wx.ID_ANY,
-                           _translate("&Open Runner view\t%s") % key,
-                           _translate("Open the Runner view"))
-        self.Bind(wx.EVT_MENU, self.app.showRunner, item)
-
-        # self.viewMenu.Append(self.IDs.openShell,
-        #   "Go to &IPython Shell\t%s" %self.app.keys['switchToShell'],
-        #   "Go to a shell window for interactive commands")
-        # self.Bind(wx.EVT_MENU,  self.app.showShell, id=self.IDs.openShell)
-        # self.viewMenu.Append(self.IDs.openIPythonNotebook,
-        #   "Go to &IPython notebook",
-        #   "Open an IPython notebook (unconnected in a browser)")
-        # self.Bind(wx.EVT_MENU, self.app.openIPythonNotebook,
-        #    id=self.IDs.openIPythonNotebook)
-
+        # ---_demos---#000000#FFFFFF------------------------------------------
         self.demosMenu = wx.Menu()
         self.demos = {}
         menuBar.Append(self.demosMenu, _translate('&Demos'))
@@ -1679,6 +1651,11 @@ class CoderFrame(wx.Frame, ThemeMixin):
         # ---_projects---#000000#FFFFFF---------------------------------------
         self.pavloviaMenu = psychopy.app.pavlovia_ui.menu.PavloviaMenu(parent=self)
         menuBar.Append(self.pavloviaMenu, _translate("Pavlovia.org"))
+
+        # ---_window---#000000#FFFFFF-----------------------------------------
+        self.windowMenu = FrameSwitcher(self)
+        menuBar.Append(self.windowMenu,
+                    _translate("Window"))
 
         # ---_help---#000000#FFFFFF-------------------------------------------
         self.helpMenu = wx.Menu()
@@ -1897,6 +1874,7 @@ class CoderFrame(wx.Frame, ThemeMixin):
         old = event.GetOldSelection()
         new = event.GetSelection()
         self.currentDoc = self.notebook.GetPage(new)
+        self.app.updateWindowMenu()
         self.setFileModified(self.currentDoc.UNSAVED)
         self.SetLabel('%s - PsychoPy Coder' % self.currentDoc.filename)
 
@@ -2062,6 +2040,7 @@ class CoderFrame(wx.Frame, ThemeMixin):
         self.app.forgetFrame(self)
         self.Destroy()
         self.app.coder = None
+        self.app.updateWindowMenu()
 
     def filePrint(self, event=None):
         pr = Printer()
@@ -2101,6 +2080,11 @@ class CoderFrame(wx.Frame, ThemeMixin):
         if hasattr(self, 'structureWindow'):
             self.currentDoc.analyseScript()
         self.statusBar.SetStatusText('')
+
+    @property
+    def filename(self):
+        if self.currentDoc:
+            return self.currentDoc.filename
 
     def findDocID(self, filename):
         # find the ID of the current doc
@@ -2203,6 +2187,7 @@ class CoderFrame(wx.Frame, ThemeMixin):
         isExp = filename.endswith(".py") or filename.endswith(".psyexp")
         self.toolbar.EnableTool(self.cdrBtnRunner.Id, isExp)
         self.toolbar.EnableTool(self.cdrBtnRun.Id, isExp)
+        self.app.updateWindowMenu()
 
 
     def fileOpen(self, event=None, filename=None):
