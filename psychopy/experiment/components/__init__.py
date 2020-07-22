@@ -24,7 +24,7 @@ from psychopy.localization import _translate
 from psychopy.experiment import py2js
 
 excludeComponents = ['BaseComponent', 'BaseVisualComponent',  # templates only
-                     'EyetrackerComponent', 'UnknownComponent']  # this one isn't ready yet
+                     'EyetrackerComponent']  # this one isn't ready yet
 
 # try to remove old pyc files in case they're detected as components
 pycFiles = glob.glob(join(split(__file__)[0], "*.pyc"))
