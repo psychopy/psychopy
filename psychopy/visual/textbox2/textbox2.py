@@ -443,7 +443,7 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
                                       + font.descender/2)
 
         # convert the vertices to stimulus units
-        self.vertices = vertices / self._pixelScaling
+        self._rawVerts = vertices / self._pixelScaling
 
         # thisW = current[0] - glyph.advance[0] + glyph.size[0] * alphaCorrection
         # calculate final self.size and tightBox
@@ -589,9 +589,10 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
             self._anchorOffsetX = 0
         else:
             raise ValueError('Unexpected error for _anchorX')
-        self.vertices += (self._anchorOffsetX, self._anchorOffsetY)
+        self.vertices = self._rawVerts + (self._anchorOffsetX, self._anchorOffsetY)
 
-        vertsPix = convertToPix(vertices=self.vertices, pos=self.pos,
+        vertsPix = convertToPix(vertices=self.vertices,
+                                pos=self.pos,
                              win=self.win, units=self.units)
         self.__dict__['verticesPix'] = vertsPix
 
