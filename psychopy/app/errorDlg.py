@@ -133,12 +133,19 @@ class ErrorMsgDialog(wx.Dialog):
     def onCopyDetails(self, event):
         """Copy the contents of the details text box to the clipboard. This is
         to allow the user to paste the traceback into an email, forum post,
-        issue ticket, etc. to report the error to the developers.
+        issue ticket, etc. to report the error to the developers. If there is a
+        selection range, only that text will be copied.
 
         """
+        # check if we have a selection
+        start, end = self.txtErrorOutput.GetSelection()
+        if start != end:
+            txt = self.txtErrorOutput.GetStringSelection()
+        else:
+            txt = self.txtErrorOutput.GetValue()
+
         if wx.TheClipboard.Open():
-            wx.TheClipboard.SetData(
-                wx.TextDataObject(self.txtErrorOutput.GetValue()))
+            wx.TheClipboard.SetData(wx.TextDataObject(txt))
             wx.TheClipboard.Close()
 
         event.Skip()

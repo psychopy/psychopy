@@ -23,7 +23,7 @@ from pathlib import Path
 from subprocess import Popen, PIPE
 
 from psychopy import experiment
-from psychopy.app.utils import PsychopyPlateBtn, PsychopyToolbar
+from psychopy.app.utils import PsychopyPlateBtn, PsychopyToolbar, FrameSwitcher
 from psychopy.constants import PY3
 from psychopy.localization import _translate
 from psychopy.app.stdOutRich import StdOutRich
@@ -79,6 +79,16 @@ class RunnerFrame(wx.Frame, ThemeMixin):
 
         self.Bind(wx.EVT_CLOSE, self.onClose)
         self.theme = app.theme
+
+    @property
+    def filename(self):
+        if self.panel.currentSelection or self.panel.currentSelection == 0:
+            return self.panel.expCtrl.GetItem(self.panel.currentSelection).Text
+
+    def Close(self, event=None):
+        self.app.runner = None
+        self.app.updateWindowMenu()
+        super(self).Close(self)
 
     def addTask(self, evt=None, fileName=None):
         self.panel.addTask(fileName=fileName)
@@ -163,30 +173,18 @@ class RunnerFrame(wx.Frame, ThemeMixin):
                 self.Bind(wx.EVT_MENU, item['func'], fileItem)
                 if item['label'].lower() in eachMenu['separators']:
                     eachMenu['menu'].AppendSeparator()
-
-        # Get list of themes
-        themePath = self.GetTopLevelParent().app.prefs.paths['themes']
-        self.themeList = {}
-        for themeFile in os.listdir(themePath):
-            try:
-                # Load theme from json file
-                with open(os.path.join(themePath, themeFile), "rb") as fp:
-                    theme = json.load(fp)
-                # Add themes to list only if min spec is defined
-                base = theme['base']
-                if all(key in base for key in ['bg', 'fg', 'font']):
-                    self.themeList[themeFile.replace('.json', '')] = []
-            except:
-                pass
         # Add Theme Switcher
         self.themesMenu = ThemeSwitcher(self)
         viewMenu.AppendSubMenu(self.themesMenu,
                            _translate("Themes"))
+        # Add frame switcher
+        self.windowMenu = FrameSwitcher(self)
 
         # Create menus
         self.runnerMenu.Append(fileMenu, 'File')
         self.runnerMenu.Append(viewMenu, 'View')
         self.runnerMenu.Append(runMenu, 'Run')
+        self.runnerMenu.Append(self.windowMenu, 'Window')
 
     def onURL(self, evt):
         """Open link in default browser."""
@@ -382,49 +380,54 @@ class RunnerPanel(wx.Panel, ScriptProcess, ThemeMixin):
     def _applyAppTheme(self, target=None):
         if target == None:
             target = self
-
+        ThemeMixin._applyAppTheme(self, self)
         self.alertsCtrl._applyAppTheme()
         self.stdoutCtrl._applyAppTheme()
         ThemeMixin._applyAppTheme(self.expCtrl)
-        target.SetBackgroundColour(ThemeMixin.appColors['frame_bg'])
-        target.SetForegroundColour(ThemeMixin.appColors['text'])
-
-        buttons = {
-            self.plusBtn: {'main': 'addExp32.png'},
-            self.negBtn: {'main':'removeExp32.png'},
-            self.runBtn: {'main':'run32.png'},
-            self.stopBtn: {'main':'stop32.png'},
-            self.onlineBtn: {'main':'globe32.png', 'emblem':'run16.png'},
-            self.onlineDebugBtn: {'main':'globe32.png', 'emblem':'bug16.png'},
-        }
+        for btn in [self.plusBtn, self.negBtn, self.runBtn, self.stopBtn, self.onlineBtn, self.onlineDebugBtn]:
+            btn.SetBackgroundColour(ThemeMixin.appColors['panel_bg'])
 
     def makeButtons(self):
         # Set buttons
         icons = self.app.iconCache  # type: IconCache
         self.plusBtn = icons.makeBitmapButton(
                 parent=self,
-                name='addExp.png', size=32,
-                tip=_translate("Add experiment to list"))
+                filename='addExp.png',
+                name='addExp',
+                tip=_translate(
+                        "Add experiment to list"),
+                size=32)
         self.negBtn = icons.makeBitmapButton(
                 parent=self,
-                name='removeExp.png', size=32,
-                tip=_translate("Remove experiment to list"))
+                filename='removeExp.png',
+                name='removeExp',
+                tip=_translate(
+                        "Remove experiment to list"),
+                size=32)
         self.runBtn = icons.makeBitmapButton(
-                parent=self,
-                name='run.png', size=32,
-                tip=_translate("Run the current script in Python"))
+                parent=self, filename='run.png',
+                name='run',
+                tip=_translate(
+                        "Run the current script in Python"),
+                size=32)
         self.stopBtn = icons.makeBitmapButton(
-                parent=self,
-                name='stop.png', size=32,
-                tip=_translate("Stop task"))
+                parent=self, filename='stop.png',
+                name='stop',
+                tip=_translate("Stop task"),
+                size=32)
         self.onlineBtn = icons.makeBitmapButton(
                 parent=self,
-                name='globe.png', size=32, emblem='run',
-                tip=_translate("Run PsychoJS task from Pavlovia"))
+                filename='globe.png',
+                emblem='run', tip=_translate(
+                        "Run PsychoJS task from Pavlovia"), size=32)
         self.onlineDebugBtn = icons.makeBitmapButton(
                 parent=self,
-                name='globe.png', size=32, emblem='bug',
-                tip=_translate("Run PsychoJS task in local debug mode"))
+                filename='globe.png',
+                name='globe',
+                emblem='bug',
+                tip=_translate(
+                        "Run PsychoJS task in local debug mode"),
+                size=32)
 
         # Bind events to buttons
         self.Bind(wx.EVT_BUTTON, self.addTask, self.plusBtn)
@@ -650,6 +653,7 @@ class RunnerPanel(wx.Panel, ScriptProcess, ThemeMixin):
             self.currentFile = None
             self.currentExperiment = None
             self.currentProject = None
+        self.app.updateWindowMenu()
 
     def onItemSelected(self, evt):
         """Set currentSelection to index of currently selected list item."""
@@ -668,6 +672,7 @@ class RunnerPanel(wx.Panel, ScriptProcess, ThemeMixin):
             self.onlineBtn.Disable()
             self.onlineDebugBtn.Disable()
         self.updateAlerts()
+        self.app.updateWindowMenu()
 
     def updateAlerts(self):
         prev = sys.stdout
@@ -700,6 +705,7 @@ class RunnerPanel(wx.Panel, ScriptProcess, ThemeMixin):
         self.stopBtn.Disable()
         self.onlineBtn.Disable()
         self.onlineDebugBtn.Disable()
+        self.app.updateWindowMenu()
 
     def onDoubleClick(self, evt):
         self.currentSelection = evt.Index

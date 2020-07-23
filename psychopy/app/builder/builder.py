@@ -46,7 +46,7 @@ from psychopy.tools.filetools import mergeFolder
 from .dialogs import (DlgComponentProperties, DlgExperimentProperties,
                       DlgCodeComponentProperties, DlgLoopProperties)
 from ..utils import (PsychopyToolbar, PsychopyPlateBtn, WindowFrozen,
-                     FileDropTarget)
+                     FileDropTarget, FrameSwitcher)
 
 from psychopy.experiment import components
 from builtins import str
@@ -353,16 +353,15 @@ class BuilderFrame(wx.Frame, ThemeMixin):
         menu = self.viewMenu
 
         item = menu.Append(wx.ID_ANY,
-                           _translate("&Open Coder view\t%s") % keys[
-                               'switchToCoder'],
+                           _translate("Open Coder view"),
                            _translate("Open a new Coder view"))
         self.Bind(wx.EVT_MENU, self.app.showCoder, item)
 
         item = menu.Append(wx.ID_ANY,
-                           _translate("&Open Runner view\t%s") % keys[
-                               'switchToRunner'],
+                           _translate("Open Runner view"),
                            _translate("Open the Runner view"))
         self.Bind(wx.EVT_MENU, self.app.showRunner, item)
+        menu.AppendSeparator()
 
         item = menu.Append(wx.ID_ANY,
                            _translate("&Toggle readme\t%s") % self.app.keys[
@@ -467,6 +466,11 @@ class BuilderFrame(wx.Frame, ThemeMixin):
         self.pavloviaMenu = pavlovia_ui.menu.PavloviaMenu(parent=self)
         menuBar.Append(self.pavloviaMenu, _translate("Pavlovia.org"))
 
+        # ---_window---#000000#FFFFFF-----------------------------------------
+        self.windowMenu = FrameSwitcher(self)
+        menuBar.Append(self.windowMenu,
+                    _translate("Window"))
+
         # ---_help---#000000#FFFFFF-------------------------------------------
         self.helpMenu = wx.Menu()
         menuBar.Append(self.helpMenu, _translate('&Help'))
@@ -535,6 +539,7 @@ class BuilderFrame(wx.Frame, ThemeMixin):
             # Show Runner if hidden
             if self.app.runner is not None:
                 self.app.showRunner()
+        self.app.updateWindowMenu()
 
     def quit(self, event=None):
         """quit the app
@@ -570,6 +575,7 @@ class BuilderFrame(wx.Frame, ThemeMixin):
         self.resetUndoStack()
         self.setIsModified(False)
         self.updateAllViews()
+        self.app.updateWindowMenu()
 
     def fileOpen(self, event=None, filename=None, closeCurrent=True):
         """Open a FileDialog, then load the file if possible.
@@ -622,6 +628,7 @@ class BuilderFrame(wx.Frame, ThemeMixin):
         except Exception as e:  # failed for
             self.project = None
             print(e)
+        self.app.updateWindowMenu()
 
     def fileSave(self, event=None, filename=None):
         """Save file, revert to SaveAs if the file hasn't yet been saved
@@ -2086,6 +2093,10 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
         shortName = name
         for redundant in ['component', 'Component', "ButtonBox"]:
             shortName = shortName.replace(redundant, "")
+        # Convert from CamelCase to Title Case for button label
+        label = shortName
+        for c in "".join(c if c.isupper() else "" for c in name[1:]):
+            label = label.replace(c, "\n"+c)
         # set size
         size = 48
         # get tooltip
@@ -2096,7 +2107,7 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
         btn = iconCache.getComponentButton(
                 parent=self,
                 name=name,
-                label=shortName,
+                label=label,
                 size=size,
                 tip=thisTip,
         )
@@ -2613,12 +2624,8 @@ class FlowPanel(wx.ScrolledWindow):
         self.draw()
         self.frame.SetStatusText("")
         self.btnInsertRoutine.SetLabel(_translate('Insert Routine'))
-        self.btnInsertRoutine.SetLabelColor(wx.Colour(cs['fbtns_txt']))
-        self.btnInsertRoutine.SetBackgroundColour(wx.Colour(cs['fbtns_face']))
         self.btnInsertRoutine.Update()
         self.btnInsertLoop.SetLabel(_translate('Insert Loop'))
-        self.btnInsertLoop.SetLabelColor(wx.Colour(cs['fbtns_txt']))
-        self.btnInsertLoop.SetBackgroundColour(wx.Colour(cs['fbtns_face']))
         self.btnInsertRoutine.Update()
 
     def ConvertEventCoords(self, event):
