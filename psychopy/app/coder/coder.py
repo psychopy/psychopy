@@ -1166,13 +1166,16 @@ class CoderFrame(wx.Frame, ThemeMixin):
 
         # Create editor notebook
         #todo: Why is editor default background not same as usual frame backgrounds?
-        self.notebook = aui.AuiNotebook(self.pnlMain, -1, size=wx.Size(480, 600))
+        self.notebook = aui.AuiNotebook(
+            self.pnlMain, -1, size=wx.Size(480, 600),
+            agwStyle=aui.AUI_NB_TAB_MOVE | aui.AUI_NB_CLOSE_ON_ACTIVE_TAB)
+
         #self.notebook.SetArtProvider(PsychopyTabArt())
         # Add editor panel
         self.paneManager.AddPane(self.notebook, aui.AuiPaneInfo().
                                  Name("Editor").
                                  Caption(_translate("Editor")).
-                                 BestSize((600,600)).
+                                 BestSize((600, 600)).
                                  Center().PaneBorder(False).  # 'center panes' expand
                                  CloseButton(False).
                                  MaximizeButton(True))
