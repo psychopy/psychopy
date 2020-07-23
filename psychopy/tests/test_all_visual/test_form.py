@@ -167,13 +167,14 @@ class Test_Form(object):
             assert self.survey._getScrollOffset() == [0., posZeroOffset][idx]
 
     def test_screen_status(self):
-        assert self.survey._inRange(self.survey.formElements['question'][0])
+        assert self.survey._inRange(self.survey._itemCtrls[0]['question'])
         if constants.PY3:
             with pytest.raises(AssertionError):
-                assert self.survey._inRange(self.survey.formElements['question'][3])
+                assert self.survey._inRange(self.survey._itemCtrls[3]['question'])
 
     def test_get_data(self):
-        self.survey = Form(self.win, items=self.questions, size=(1.0, 0.3), pos=(0.0, 0.0), autoLog=False)
+        self.survey = Form(self.win, items=self.questions, size=(1.0, 0.3),
+                           pos=(0.0, 0.0), autoLog=False)
         data = self.survey.getData()
         assert set(data['questions']) == {'What is your gender?',
                                           'How much you like running',
