@@ -401,7 +401,7 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
         Tuple
             The position of the response object
         """
-        pos = (
+        pos = (self.rightEdge
                - ((item['responseWidth'] * self.size[0]) / 2)
                - self._scrollBarSize[0]
                - self.itemPadding
