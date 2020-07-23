@@ -1146,7 +1146,6 @@ class CoderFrame(wx.Frame, ThemeMixin):
         self.sourceAsst.SetCloseButton(1, False)
 
         # Create editor notebook
-        #todo: Why is editor default background not same as usual frame backgrounds?
         self.notebook = aui.AuiNotebook(self.pnlMain, -1, size=wx.Size(480, 600))
         #self.notebook.SetArtProvider(PsychopyTabArt())
         # Add editor panel
@@ -2652,6 +2651,7 @@ class CoderFrame(wx.Frame, ThemeMixin):
         # updating sourceAsst will incl fileBrowser and sourcetree
         ThemeMixin._applyAppTheme(self.sourceAsst)
         ThemeMixin._applyAppTheme(self.notebook)
+        self.notebook.Refresh()
         if hasattr(self, 'shelf'):
             ThemeMixin._applyAppTheme(self.shelf)
         self.Update()
