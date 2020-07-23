@@ -46,6 +46,7 @@ class RunnerFrame(wx.Frame, ThemeMixin):
                                           )
 
         self.app = app
+        self.paths = self.app.prefs.paths
         self.frameType = 'runner'
         self.app.trackFrame(self)
 
@@ -62,6 +63,13 @@ class RunnerFrame(wx.Frame, ThemeMixin):
         self.runnerMenu = wx.MenuBar()
         self.makeMenu()
         self.SetMenuBar(self.runnerMenu)
+
+        # create icon
+        if sys.platform != 'darwin':
+            # doesn't work on darwin and not necessary: handled by app bundle
+            iconFile = os.path.join(self.paths['resources'], 'runner.ico')
+            if os.path.isfile(iconFile):
+                self.SetIcon(wx.Icon(iconFile, wx.BITMAP_TYPE_ICO))
 
         self.mainSizer = wx.BoxSizer(wx.VERTICAL)
         self.mainSizer.Add(self.panel, 1, wx.EXPAND | wx.ALL)
