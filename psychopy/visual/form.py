@@ -298,17 +298,24 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
             logging.exp(
                     u"Question text: {}".format(item['itemText']))
 
+        if item['type'] == 'heading':
+            letterScale = 1.5
+            bold = True
+        else:
+            letterScale = 1.0
+            bold = False
         w = self._getItemRenderedWidth(item['itemWidth'])
         question = psychopy.visual.TextBox2(
                 self.win,
                 text=item['itemText'],
                 units=self.units,
-                letterHeight=self.textHeight,
+                letterHeight=self.textHeight * letterScale,
                 anchor='center-left',
                 size=[w, 0.05],
                 autoLog=False,
                 color=item['itemColor'],
                 editable=False,
+                bold=bold,
                 font='Arial')
 
         questionHeight = self._getQuestionHeight(question)
@@ -353,7 +360,7 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
         if item['type'].lower() == 'free text':
             respCtrl, respHeight = self._makeTextBox(item, pos)
         elif item['type'].lower() in ['heading', 'description']:
-            respCtrl, respHeight = None, 0
+            respCtrl, respHeight = None, self.textHeight
         elif item['type'].lower() in ['rating', 'slider', 'choice', 'radio']:
             respCtrl, respHeight = self._makeSlider(item, pos)
 
@@ -476,7 +483,6 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
         respHeight
             The height of the response object as type float
         """
-        # TODO: Use new textbox when complete
         resp = psychopy.visual.TextBox2(self.win,
                                         text='',
                                         pos=pos,
@@ -751,7 +757,7 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
             else:
                 thisItem['response'] = responseCtrl.text
             if thisItem['response'] in [None,'']:
-                # todo : handle required items here
+                # todo : handle required items here (e.g. ending with * ?)
                 nIncomplete += 1
             # get RT if available
             if hasattr(responseCtrl, 'getRT'):
