@@ -2488,6 +2488,7 @@ class CoderFrame(wx.Frame, ThemeMixin):
         # show/hide the output window (from the view menu control)
         if value is None:
             value = self.outputChk.IsChecked()
+        self.outputChk.Check(value)
         if value:
             # show the pane
             self.prefs['showOutput'] = True
