@@ -2093,6 +2093,10 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
         shortName = name
         for redundant in ['component', 'Component', "ButtonBox"]:
             shortName = shortName.replace(redundant, "")
+        # Convert from CamelCase to Title Case for button label
+        label = shortName
+        for c in "".join(c if c.isupper() else "" for c in name[1:]):
+            label = label.replace(c, "\n"+c)
         # set size
         size = 48
         # get tooltip
@@ -2103,7 +2107,7 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
         btn = iconCache.getComponentButton(
                 parent=self,
                 name=name,
-                label=shortName,
+                label=label,
                 size=size,
                 tip=thisTip,
         )
@@ -2625,12 +2629,8 @@ class FlowPanel(wx.ScrolledWindow):
         self.draw()
         self.frame.SetStatusText("")
         self.btnInsertRoutine.SetLabel(_translate('Insert Routine'))
-        self.btnInsertRoutine.SetLabelColor(wx.Colour(cs['text']))
-        self.btnInsertRoutine.SetBackgroundColour(wx.Colour(cs['frame_bg']))
         self.btnInsertRoutine.Update()
         self.btnInsertLoop.SetLabel(_translate('Insert Loop'))
-        self.btnInsertLoop.SetLabelColor(wx.Colour(cs['text']))
-        self.btnInsertLoop.SetBackgroundColour(wx.Colour(cs['frame_bg']))
         self.btnInsertRoutine.Update()
 
     def ConvertEventCoords(self, event):
