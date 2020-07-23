@@ -1137,6 +1137,7 @@ class CoderFrame(wx.Frame, ThemeMixin):
         self.sourceAsst = aui.AuiNotebook(
             self.pnlMain,
             wx.ID_ANY,
+            size = wx.Size(350, 600),
             agwStyle=aui.AUI_NB_CLOSE_ON_ALL_TABS |
                      aui.AUI_NB_TAB_SPLIT |
                      aui.AUI_NB_TAB_MOVE)
@@ -1146,9 +1147,10 @@ class CoderFrame(wx.Frame, ThemeMixin):
         # Add source assistant panel
         self.paneManager.AddPane(self.sourceAsst,
                                  aui.AuiPaneInfo().
-                                 BestSize((250, 600)).
-                                 Floatable(True).
-                                 BottomDockable(True).TopDockable(True).
+                                 BestSize((350, 600)).
+                                 FloatingSize((350, 600)).
+                                 Floatable(False).
+                                 BottomDockable(False).TopDockable(False).
                                  CloseButton(False).PaneBorder(False).
                                  Name("SourceAsst").
                                  Caption(_translate("Source Assistant")).
@@ -1175,7 +1177,9 @@ class CoderFrame(wx.Frame, ThemeMixin):
         self.paneManager.AddPane(self.notebook, aui.AuiPaneInfo().
                                  Name("Editor").
                                  Caption(_translate("Editor")).
-                                 BestSize((600, 600)).
+                                 BestSize((480, 600)).
+                                 Floatable(False).
+                                 Movable(False).
                                  Center().PaneBorder(False).  # 'center panes' expand
                                  CloseButton(False).
                                  MaximizeButton(True))
@@ -1233,7 +1237,8 @@ class CoderFrame(wx.Frame, ThemeMixin):
                                  Name("Shelf").
                                  Caption(_translate("Shelf")).
                                  BestSize((600, 250)).PaneBorder(False).
-                                 Floatable(True).
+                                 Floatable(False).
+                                 Movable(True).
                                  BottomDockable(True).TopDockable(True).
                                  CloseButton(False).
                                  Bottom().Show(self.prefs['showOutput']))
