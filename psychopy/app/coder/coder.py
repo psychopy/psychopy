@@ -2205,7 +2205,6 @@ class CoderFrame(wx.Frame, ThemeMixin):
         self.toolbar.EnableTool(self.cdrBtnRunner.Id, isExp)
         self.toolbar.EnableTool(self.cdrBtnRun.Id, isExp)
 
-
     def fileOpen(self, event=None, filename=None):
         if not filename:
             # get path of current file (empty if current file is '')
