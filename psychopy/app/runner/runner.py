@@ -23,7 +23,7 @@ from pathlib import Path
 from subprocess import Popen, PIPE
 
 from psychopy import experiment
-from psychopy.app.utils import PsychopyPlateBtn, PsychopyToolbar
+from psychopy.app.utils import PsychopyPlateBtn, PsychopyToolbar, FrameSwitcher
 from psychopy.constants import PY3
 from psychopy.localization import _translate
 from psychopy.app.stdOutRich import StdOutRich
@@ -46,6 +46,7 @@ class RunnerFrame(wx.Frame, ThemeMixin):
                                           )
 
         self.app = app
+        self.paths = self.app.prefs.paths
         self.frameType = 'runner'
         self.app.trackFrame(self)
 
@@ -63,6 +64,13 @@ class RunnerFrame(wx.Frame, ThemeMixin):
         self.makeMenu()
         self.SetMenuBar(self.runnerMenu)
 
+        # create icon
+        if sys.platform != 'darwin':
+            # doesn't work on darwin and not necessary: handled by app bundle
+            iconFile = os.path.join(self.paths['resources'], 'runner.ico')
+            if os.path.isfile(iconFile):
+                self.SetIcon(wx.Icon(iconFile, wx.BITMAP_TYPE_ICO))
+
         self.mainSizer = wx.BoxSizer(wx.VERTICAL)
         self.mainSizer.Add(self.panel, 1, wx.EXPAND | wx.ALL)
         self.SetSizerAndFit(self.mainSizer)
@@ -71,6 +79,16 @@ class RunnerFrame(wx.Frame, ThemeMixin):
 
         self.Bind(wx.EVT_CLOSE, self.onClose)
         self.theme = app.theme
+
+    @property
+    def filename(self):
+        if self.panel.currentSelection or self.panel.currentSelection == 0:
+            return self.panel.expCtrl.GetItem(self.panel.currentSelection).Text
+
+    def Close(self, event=None):
+        self.app.runner = None
+        self.app.updateWindowMenu()
+        super(self).Close(self)
 
     def addTask(self, evt=None, fileName=None):
         self.panel.addTask(fileName=fileName)
@@ -155,30 +173,18 @@ class RunnerFrame(wx.Frame, ThemeMixin):
                 self.Bind(wx.EVT_MENU, item['func'], fileItem)
                 if item['label'].lower() in eachMenu['separators']:
                     eachMenu['menu'].AppendSeparator()
-
-        # Get list of themes
-        themePath = self.GetTopLevelParent().app.prefs.paths['themes']
-        self.themeList = {}
-        for themeFile in os.listdir(themePath):
-            try:
-                # Load theme from json file
-                with open(os.path.join(themePath, themeFile), "rb") as fp:
-                    theme = json.load(fp)
-                # Add themes to list only if min spec is defined
-                base = theme['base']
-                if all(key in base for key in ['bg', 'fg', 'font']):
-                    self.themeList[themeFile.replace('.json', '')] = []
-            except:
-                pass
         # Add Theme Switcher
         self.themesMenu = ThemeSwitcher(self)
         viewMenu.AppendSubMenu(self.themesMenu,
                            _translate("Themes"))
+        # Add frame switcher
+        self.windowMenu = FrameSwitcher(self)
 
         # Create menus
         self.runnerMenu.Append(fileMenu, 'File')
         self.runnerMenu.Append(viewMenu, 'View')
         self.runnerMenu.Append(runMenu, 'Run')
+        self.runnerMenu.Append(self.windowMenu, 'Window')
 
     def onURL(self, evt):
         """Open link in default browser."""
@@ -647,6 +653,7 @@ class RunnerPanel(wx.Panel, ScriptProcess, ThemeMixin):
             self.currentFile = None
             self.currentExperiment = None
             self.currentProject = None
+        self.app.updateWindowMenu()
 
     def onItemSelected(self, evt):
         """Set currentSelection to index of currently selected list item."""
@@ -665,6 +672,7 @@ class RunnerPanel(wx.Panel, ScriptProcess, ThemeMixin):
             self.onlineBtn.Disable()
             self.onlineDebugBtn.Disable()
         self.updateAlerts()
+        self.app.updateWindowMenu()
 
     def updateAlerts(self):
         prev = sys.stdout
@@ -697,6 +705,7 @@ class RunnerPanel(wx.Panel, ScriptProcess, ThemeMixin):
         self.stopBtn.Disable()
         self.onlineBtn.Disable()
         self.onlineDebugBtn.Disable()
+        self.app.updateWindowMenu()
 
     def onDoubleClick(self, evt):
         self.currentSelection = evt.Index
