@@ -211,6 +211,12 @@ class PrefPropGrid(wx.Panel):
     def __del__(self):
         pass
 
+    def setSelection(self, page):
+        """Select the page."""
+        # set the page
+        self.lstPrefPages.Focus(1)
+        self.lstPrefPages.Select(page)
+
     def addPage(self, label, name, sections=(), bitmap=None):
         """Add a page to the property grid manager."""
 
@@ -367,6 +373,7 @@ class PrefPropGrid(wx.Panel):
                         pass
 
         self.proPrefs.SetSplitterLeft()
+        self.setSelection(0)
 
     def setPrefVal(self, section, name, value):
         """Set the value of a preference."""
