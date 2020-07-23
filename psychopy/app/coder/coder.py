@@ -559,8 +559,15 @@ class CodeEditor(BaseCodeEditor, CodeEditorFoldingMixin, ThemeMixin):
         # caret info, these are updated by calling updateCaretInfo()
         self.indentSize = self.GetIndent()
         self.caretCurrentPos = self.GetCurrentPos()
-        self.caretVisible, self.caretColumn, self.caretLine = \
-            self.PositionToXY(self.caretCurrentPos)
+        self.caretVisible, caretColumn, caretLine = self.PositionToXY(
+            self.caretCurrentPos)
+
+        if self.caretVisible:
+            self.caretColumn = caretColumn
+            self.caretLine = caretLine
+        else:
+            self.caretLine = self.GetCurrentLine()
+            self.caretColumn = self.GetLineLength(self.caretLine)
 
         # where does the line text start?
         self.caretLineIndentCol = \
@@ -869,8 +876,16 @@ class CodeEditor(BaseCodeEditor, CodeEditorFoldingMixin, ThemeMixin):
         """
         self.indentSize = self.GetIndent()
         self.caretCurrentPos = self.GetCurrentPos()
-        self.caretVisible, self.caretColumn, self.caretLine = \
-            self.PositionToXY(self.caretCurrentPos)
+        self.caretVisible, caretColumn, caretLine = self.PositionToXY(
+            self.caretCurrentPos)
+
+        if self.caretVisible:
+            self.caretColumn = caretColumn
+            self.caretLine = caretLine
+        else:
+            self.caretLine = self.GetCurrentLine()
+            self.caretColumn = self.GetLineLength(self.caretLine)
+
         self.caretLineIndentCol = \
             self.GetColumn(self.GetLineIndentPosition(self.caretLine))
         self.caretLineIndentLevel = self.caretLineIndentCol / self.indentSize
