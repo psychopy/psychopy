@@ -1130,19 +1130,23 @@ class CoderFrame(wx.Frame, ThemeMixin):
         # Create menus and status bar
         self.makeMenus()
         self.makeStatusBar()
-        #self.statusBar.SetStatusText("PsychoPy v{}".format(psychopy.__version__), 3)
         self.fileMenu = self.editMenu = self.viewMenu = None
         self.helpMenu = self.toolsMenu = None
 
         # Create source assistant notebook
-        self.sourceAsst = aui.AuiNotebook(self.pnlMain, wx.ID_ANY, agwStyle=aui.AUI_NB_CLOSE_ON_ALL_TABS)
-        #self.sourceAsst.SetArtProvider(PsychopyTabArt())
+        self.sourceAsst = aui.AuiNotebook(
+            self.pnlMain,
+            wx.ID_ANY,
+            agwStyle=aui.AUI_NB_CLOSE_ON_ALL_TABS |
+                     aui.AUI_NB_TAB_SPLIT |
+                     aui.AUI_NB_TAB_MOVE)
+
         self.structureWindow = SourceTreePanel(self.sourceAsst, self)
         self.fileBrowserWindow = FileBrowserPanel(self.sourceAsst, self)
         # Add source assistant panel
         self.paneManager.AddPane(self.sourceAsst,
                                  aui.AuiPaneInfo().
-                                 BestSize((600, 600)).
+                                 BestSize((250, 600)).
                                  Floatable(True).
                                  BottomDockable(True).TopDockable(True).
                                  CloseButton(False).PaneBorder(False).
