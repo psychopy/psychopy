@@ -1127,7 +1127,7 @@ class CoderFrame(wx.Frame, ThemeMixin):
         # Add source assistant panel
         self.paneManager.AddPane(self.sourceAsst,
                                  aui.AuiPaneInfo().
-                                 BestSize((600, 600)).
+                                 BestSize((300, 600)).
                                  Floatable(True).
                                  BottomDockable(True).TopDockable(True).
                                  CloseButton(False).PaneBorder(False).
