@@ -143,7 +143,7 @@ class BuilderFrame(wx.Frame, ThemeMixin):
         # create icon
         if sys.platform != 'darwin':
             # doesn't work on darwin and not necessary: handled by app bundle
-            iconFile = os.path.join(self.paths['resources'], 'psychopy.ico')
+            iconFile = os.path.join(self.paths['resources'], 'builder.ico')
             if os.path.isfile(iconFile):
                 self.SetIcon(wx.Icon(iconFile, wx.BITMAP_TYPE_ICO))
 
