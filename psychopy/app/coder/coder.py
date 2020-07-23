@@ -1127,7 +1127,7 @@ class CoderFrame(wx.Frame, ThemeMixin):
         # Add source assistant panel
         self.paneManager.AddPane(self.sourceAsst,
                                  aui.AuiPaneInfo().
-                                 BestSize((600, 600)).
+                                 BestSize((300, 600)).
                                  Floatable(True).
                                  BottomDockable(True).TopDockable(True).
                                  CloseButton(False).PaneBorder(False).
@@ -1146,7 +1146,6 @@ class CoderFrame(wx.Frame, ThemeMixin):
         self.sourceAsst.SetCloseButton(1, False)
 
         # Create editor notebook
-        #todo: Why is editor default background not same as usual frame backgrounds?
         self.notebook = aui.AuiNotebook(self.pnlMain, -1, size=wx.Size(480, 600))
         #self.notebook.SetArtProvider(PsychopyTabArt())
         # Add editor panel
@@ -2488,6 +2487,7 @@ class CoderFrame(wx.Frame, ThemeMixin):
         # show/hide the output window (from the view menu control)
         if value is None:
             value = self.outputChk.IsChecked()
+        self.outputChk.Check(value)
         if value:
             # show the pane
             self.prefs['showOutput'] = True
@@ -2651,6 +2651,7 @@ class CoderFrame(wx.Frame, ThemeMixin):
         # updating sourceAsst will incl fileBrowser and sourcetree
         ThemeMixin._applyAppTheme(self.sourceAsst)
         ThemeMixin._applyAppTheme(self.notebook)
+        self.notebook.Refresh()
         if hasattr(self, 'shelf'):
             ThemeMixin._applyAppTheme(self.shelf)
         self.Update()

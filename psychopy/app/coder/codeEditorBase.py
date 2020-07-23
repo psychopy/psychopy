@@ -79,6 +79,10 @@ class BaseCodeEditor(wx.stc.StyledTextCtrl, ThemeMixin):
         self.MarkerDefine(wx.stc.STC_MARKNUM_FOLDERMIDTAIL,
                           wx.stc.STC_MARK_TCORNER, "white", "#808080")
 
+        # Set what kind of events will trigger a modified event
+        self.SetModEventMask(wx.stc.STC_MOD_DELETETEXT |
+                             wx.stc.STC_MOD_INSERTTEXT)
+
         # Bind context menu
         self.Bind(wx.EVT_CONTEXT_MENU, self.OnContextMenu)
 
