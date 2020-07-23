@@ -147,6 +147,9 @@ class BaseShapeStim(BaseVisualStim, ColorMixin, ContainerMixin):
                 and fillColor is None
                 and color is not None):
             self.color = color
+        else:
+            self.fillColor = fillColor
+            self.lineColor = lineColor
 
         # Other stuff
         self.depth = depth
