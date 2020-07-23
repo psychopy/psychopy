@@ -275,17 +275,6 @@ class PsychoPyApp(wx.App, themes.ThemeMixin):
         # on a mac, don't exit when the last frame is deleted, just show menu
         if sys.platform == 'darwin':
             self.menuFrame = MenuFrame(parent=None, app=self)
-        # get preferred view(s) from prefs and previous view
-        if self.prefs.app['defaultView'] == 'last':
-            mainFrame = self.prefs.appData['lastFrame']
-        else:
-            # configobjValidate should take care of this situation
-            allowed = ['last', 'coder', 'builder', 'both']
-            if self.prefs.app['defaultView'] in allowed:
-                mainFrame = self.prefs.app['defaultView']
-            else:
-                self.prefs.app['defaultView'] = 'both'
-                mainFrame = 'both'
         # fetch prev files if that's the preference
         if self.prefs.coder['reloadPrevFiles']:
             scripts = self.prefs.appData['coder']['prevFiles']
@@ -296,31 +285,6 @@ class PsychoPyApp(wx.App, themes.ThemeMixin):
             exps = self.prefs.appData['builder']['prevFiles']
         else:
             exps = []
-
-        # then override the prev files by command options and passed files
-        if len(sys.argv) > 1:
-            if sys.argv[1] == __name__:
-                # program was executed as "python.exe psychopyApp.py %1'
-                args = sys.argv[2:]
-            else:
-                # program was executed as "psychopyApp.py %1'
-                args = sys.argv[1:]
-            # choose which frame to start with
-            if args[0] in ['builder', '--builder', '-b']:
-                mainFrame = 'builder'
-                args = args[1:]  # can remove that argument
-            elif args[0] in ['coder', '--coder', '-c']:
-                mainFrame = 'coder'
-                args = args[1:]  # can remove that argument
-            # did we get .py or .psyexp files?
-            elif args[0][-7:] == '.psyexp':
-                mainFrame = 'builder'
-                exps = [args[0]]
-            elif args[0][-3:] == '.py':
-                mainFrame = 'coder'
-                scripts = [args[0]]
-        else:
-            args = []
 
         self.dpi = int(wx.GetDisplaySize()[0] /
                        float(wx.GetDisplaySizeMM()[0]) * 25.4)
@@ -357,12 +321,41 @@ class PsychoPyApp(wx.App, themes.ThemeMixin):
         # create both frame for coder/builder as necess
         if splash:
             splash.SetText(_translate("  Creating frames..."))
-        # Show runner if set to use it
-        if self.prefs.general['useRunner']:
+
+        # Decide which windows to create
+        extMap = {'psyexp': 'builder',
+                  'psyrun': 'runner'}
+        if len(sys.argv) > 1:
+            if sys.argv[1] == __name__:
+                # program was executed as "python.exe psychopyApp.py %1'
+                args = sys.argv[2:]
+            else:
+                # program was executed as "psychopyApp.py %1'
+                args = sys.argv[1:]
+            # choose which frame to start with
+            if args[0] in ['builder', '--builder', '-b']:
+                view = 'builder'
+                args = args[1:]  # can remove that argument
+            elif args[0] in ['coder', '--coder', '-c']:
+                view = 'coder'
+                args = args[1:]  # can remove that argument
+            # did we get .py or .psyexp files?
+            else:
+                # If filename, get extension and set view accordingly
+                _, ext = os.path.splitext(args)
+                if ext in extMap:
+                    view = extMap[ext]
+                else:
+                    view = 'coder'
+        else:
+            args = []
+            view = self.prefs.app['defaultView']
+        # Create windows
+        if view in ['all', 'runner']:
             self.showRunner()
-        if mainFrame in ['both', 'coder']:
+        if view in ['all', 'coder']:
             self.showCoder(fileList=scripts)
-        if mainFrame in ['both', 'builder']:
+        if view in ['all', 'builder']:
             self.showBuilder(fileList=exps)
 
         # if darwin, check for inaccessible keyboard
