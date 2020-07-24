@@ -1819,6 +1819,14 @@ class RoutineCanvas(wx.ScrolledWindow):
         name = component.params['name'].val
         # get size based on text
         w, h = self.GetFullTextExtent(name)[0:2]
+        if w > self.iconXpos - self.dpi/5:
+            # If width is greater than space available, split word at point calculated by average letter width
+            splitAt = int(
+                (self.iconXpos - self.dpi/5)
+                / (w/len(name))
+            )
+            name = name[:splitAt] + "\n" + name[splitAt:]
+            w = self.iconXpos - self.dpi/5
         # draw text
         # + x position of icon (left side)
         # - half width of icon (including whitespace around it)
