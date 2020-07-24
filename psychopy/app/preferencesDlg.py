@@ -819,7 +819,6 @@ class PreferencesDlg(wx.Dialog):
                 doc = coder.shelf.GetPage(ii)
                 doc.theme = prefs.app['theme']
 
-
     def OnApplyClicked(self, event):
         """Apply button clicked, this makes changes to the UI without leaving
         the preference dialog. This can be used to see the effects of setting

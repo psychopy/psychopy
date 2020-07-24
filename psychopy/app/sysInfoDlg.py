@@ -194,9 +194,16 @@ class SystemInfoDialog(wx.Dialog):
 
     def OnCopy(self, event):
         """Copy system information to clipboard."""
+
+        # check if we have a selection
+        start, end = self.txtSystemInfo.GetSelection()
+        if start != end:
+            txt = self.txtSystemInfo.GetStringSelection()
+        else:
+            txt = self.txtSystemInfo.GetValue()
+
         if wx.TheClipboard.Open():
-            wx.TheClipboard.SetData(
-                wx.TextDataObject(self.txtSystemInfo.GetValue()))
+            wx.TheClipboard.SetData(wx.TextDataObject(txt))
             wx.TheClipboard.Close()
 
         event.Skip()

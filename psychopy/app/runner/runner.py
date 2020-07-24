@@ -429,7 +429,7 @@ class RunnerPanel(wx.Panel, ScriptProcess, ThemeMixin):
 
 
     def _applyAppTheme(self, target=None):
-        if target == None:
+        if target is None:
             target = self
         ThemeMixin._applyAppTheme(self, self)
         self.alertsCtrl._applyAppTheme()

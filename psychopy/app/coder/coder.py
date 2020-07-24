@@ -559,8 +559,15 @@ class CodeEditor(BaseCodeEditor, CodeEditorFoldingMixin, ThemeMixin):
         # caret info, these are updated by calling updateCaretInfo()
         self.indentSize = self.GetIndent()
         self.caretCurrentPos = self.GetCurrentPos()
-        self.caretVisible, self.caretColumn, self.caretLine = \
-            self.PositionToXY(self.caretCurrentPos)
+        self.caretVisible, caretColumn, caretLine = self.PositionToXY(
+            self.caretCurrentPos)
+
+        if self.caretVisible:
+            self.caretColumn = caretColumn
+            self.caretLine = caretLine
+        else:
+            self.caretLine = self.GetCurrentLine()
+            self.caretColumn = self.GetLineLength(self.caretLine)
 
         # where does the line text start?
         self.caretLineIndentCol = \
@@ -869,8 +876,16 @@ class CodeEditor(BaseCodeEditor, CodeEditorFoldingMixin, ThemeMixin):
         """
         self.indentSize = self.GetIndent()
         self.caretCurrentPos = self.GetCurrentPos()
-        self.caretVisible, self.caretColumn, self.caretLine = \
-            self.PositionToXY(self.caretCurrentPos)
+        self.caretVisible, caretColumn, caretLine = self.PositionToXY(
+            self.caretCurrentPos)
+
+        if self.caretVisible:
+            self.caretColumn = caretColumn
+            self.caretLine = caretLine
+        else:
+            self.caretLine = self.GetCurrentLine()
+            self.caretColumn = self.GetLineLength(self.caretLine)
+
         self.caretLineIndentCol = \
             self.GetColumn(self.GetLineIndentPosition(self.caretLine))
         self.caretLineIndentLevel = self.caretLineIndentCol / self.indentSize
@@ -1115,21 +1130,27 @@ class CoderFrame(wx.Frame, ThemeMixin):
         # Create menus and status bar
         self.makeMenus()
         self.makeStatusBar()
-        #self.statusBar.SetStatusText("PsychoPy v{}".format(psychopy.__version__), 3)
         self.fileMenu = self.editMenu = self.viewMenu = None
         self.helpMenu = self.toolsMenu = None
 
         # Create source assistant notebook
-        self.sourceAsst = aui.AuiNotebook(self.pnlMain, wx.ID_ANY, agwStyle=aui.AUI_NB_CLOSE_ON_ALL_TABS)
-        #self.sourceAsst.SetArtProvider(PsychopyTabArt())
+        self.sourceAsst = aui.AuiNotebook(
+            self.pnlMain,
+            wx.ID_ANY,
+            size = wx.Size(350, 600),
+            agwStyle=aui.AUI_NB_CLOSE_ON_ALL_TABS |
+                     aui.AUI_NB_TAB_SPLIT |
+                     aui.AUI_NB_TAB_MOVE)
+
         self.structureWindow = SourceTreePanel(self.sourceAsst, self)
         self.fileBrowserWindow = FileBrowserPanel(self.sourceAsst, self)
         # Add source assistant panel
         self.paneManager.AddPane(self.sourceAsst,
                                  aui.AuiPaneInfo().
-                                 BestSize((300, 600)).
-                                 Floatable(True).
-                                 BottomDockable(True).TopDockable(True).
+                                 BestSize((350, 600)).
+                                 FloatingSize((350, 600)).
+                                 Floatable(False).
+                                 BottomDockable(False).TopDockable(False).
                                  CloseButton(False).PaneBorder(False).
                                  Name("SourceAsst").
                                  Caption(_translate("Source Assistant")).
@@ -1146,13 +1167,19 @@ class CoderFrame(wx.Frame, ThemeMixin):
         self.sourceAsst.SetCloseButton(1, False)
 
         # Create editor notebook
-        self.notebook = aui.AuiNotebook(self.pnlMain, -1, size=wx.Size(480, 600))
+        #todo: Why is editor default background not same as usual frame backgrounds?
+        self.notebook = aui.AuiNotebook(
+            self.pnlMain, -1, size=wx.Size(480, 600),
+            agwStyle=aui.AUI_NB_TAB_MOVE | aui.AUI_NB_CLOSE_ON_ACTIVE_TAB)
+
         #self.notebook.SetArtProvider(PsychopyTabArt())
         # Add editor panel
         self.paneManager.AddPane(self.notebook, aui.AuiPaneInfo().
                                  Name("Editor").
                                  Caption(_translate("Editor")).
-                                 BestSize((600,600)).
+                                 BestSize((480, 600)).
+                                 Floatable(False).
+                                 Movable(False).
                                  Center().PaneBorder(False).  # 'center panes' expand
                                  CloseButton(False).
                                  MaximizeButton(True))
@@ -1168,6 +1195,7 @@ class CoderFrame(wx.Frame, ThemeMixin):
         #self.Bind(wx.EVT_FIND_CLOSE, self.OnFindClose)
         self.Bind(wx.EVT_END_PROCESS, self.onProcessEnded)
 
+        self._applyAppTheme()
         # take files from arguments and append the previously opened files
         filename = ""
         if files not in [None, [], ()]:
@@ -1210,7 +1238,8 @@ class CoderFrame(wx.Frame, ThemeMixin):
                                  Name("Shelf").
                                  Caption(_translate("Shelf")).
                                  BestSize((600, 250)).PaneBorder(False).
-                                 Floatable(True).
+                                 Floatable(False).
+                                 Movable(True).
                                  BottomDockable(True).TopDockable(True).
                                  CloseButton(False).
                                  Bottom().Show(self.prefs['showOutput']))
@@ -1233,8 +1262,7 @@ class CoderFrame(wx.Frame, ThemeMixin):
         else:
             self.SetMinSize(wx.Size(400, 600))  # min size for whole window
             self.Fit()
-        # Update panes
-        self._applyAppTheme()
+        # Update panes PsychopyToolbar
         isExp = filename.endswith(".py") or filename.endswith(".psyexp")
         self.toolbar.EnableTool(self.cdrBtnRunner.Id, isExp)
         self.toolbar.EnableTool(self.cdrBtnRun.Id, isExp)
@@ -2182,12 +2210,12 @@ class CoderFrame(wx.Frame, ThemeMixin):
             self.Show()  # if the user had closed the frame it might be hidden
         if readonly:
             self.currentDoc.SetReadOnly(True)
-        self._applyAppTheme()
+        self.currentDoc._applyAppTheme()
         isExp = filename.endswith(".py") or filename.endswith(".psyexp")
+
         self.toolbar.EnableTool(self.cdrBtnRunner.Id, isExp)
         self.toolbar.EnableTool(self.cdrBtnRun.Id, isExp)
         self.app.updateWindowMenu()
-
 
     def fileOpen(self, event=None, filename=None):
         if not filename:
@@ -2642,10 +2670,6 @@ class CoderFrame(wx.Frame, ThemeMixin):
         """Overrides theme change from ThemeMixin.
         Don't call - this is called at the end of theme.setter"""
         ThemeMixin._applyAppTheme(self)  # handles most recursive setting
-
-        self.toolbar.ClearTools()
-        self.toolbar.makeTools()
-
         ThemeMixin._applyAppTheme(self.toolbar)
         ThemeMixin._applyAppTheme(self.statusBar)
         # updating sourceAsst will incl fileBrowser and sourcetree
