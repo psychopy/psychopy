@@ -567,10 +567,12 @@ class PsychoPyApp(wx.App, themes.ThemeMixin):
         from . import coder
         if self.coder is None:
             title = "PsychoPy3 Coder (IDE) (v%s)"
+            wx.BeginBusyCursor()
             self.coder = coder.CoderFrame(None, -1,
                                           title=title % self.version,
                                           files=fileList, app=self)
             self.updateWindowMenu()
+            wx.EndBusyCursor()
         else:
             # Set output window and standard streams
             self.coder.setOutputWindow(True)
@@ -580,6 +582,7 @@ class PsychoPyApp(wx.App, themes.ThemeMixin):
 
     def newBuilderFrame(self, event=None, fileName=None):
         # have to reimport because it is ony local to __init__ so far
+        wx.BeginBusyCursor()
         from .builder.builder import BuilderFrame
         title = "PsychoPy3 Experiment Builder (v%s)"
         self.builder = BuilderFrame(None, -1,
@@ -589,6 +592,7 @@ class PsychoPyApp(wx.App, themes.ThemeMixin):
         self.builder.Raise()
         self.SetTopWindow(self.builder)
         self.updateWindowMenu()
+        wx.EndBusyCursor()
         return self.builder
 
     def showBuilder(self, event=None, fileList=()):
@@ -618,11 +622,13 @@ class PsychoPyApp(wx.App, themes.ThemeMixin):
         # have to reimport because it is only local to __init__ so far
         from .runner.runner import RunnerFrame
         title = "PsychoPy3 Experiment Runner (v{})".format(self.version)
+        wx.BeginBusyCursor()
         self.runner = RunnerFrame(parent=None,
                              id=-1,
                              title=title,
                              app=self)
         self.updateWindowMenu()
+        wx.EndBusyCursor()
         return self.runner
 
     def OnDrop(self, x, y, files):
