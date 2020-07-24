@@ -362,6 +362,7 @@ class FrameSwitcher(wx.Menu):
     def Update(self):
         """Set items according to which windows are open"""
         for item in self.GetMenuItems():
+            self.RemoveItem(0)
             self.DestroyItem(item)
 
         # Determine whether to show standard buttons based on open state
