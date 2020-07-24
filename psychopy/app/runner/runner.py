@@ -261,6 +261,7 @@ class RunnerFrame(wx.Frame, ThemeMixin):
             newPath = dlg.GetPath()
             with open(newPath, 'r') as file:
                 experiments = json.load(file)
+            self.panel.expCtrl.DeleteAllItems()
             for exp in experiments:
                 self.panel.addTask(fileName=os.path.join(exp['path'], exp['file']))
             self.listname = newPath
