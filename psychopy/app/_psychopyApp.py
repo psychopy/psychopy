@@ -342,7 +342,7 @@ class PsychoPyApp(wx.App, themes.ThemeMixin):
             # did we get .py or .psyexp files?
             else:
                 # If filename, get extension and set view accordingly
-                _, ext = os.path.splitext(args)
+                _, ext = os.path.splitext(args[0])
                 if ext in extMap:
                     view = extMap[ext]
                 else:
