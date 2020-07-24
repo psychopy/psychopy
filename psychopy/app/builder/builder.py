@@ -1565,6 +1565,14 @@ class RoutineCanvas(wx.ScrolledWindow):
                 pass
             if event.LeftUp():
                 pass
+        elif event.Moving():
+            try:
+                x, y = self.ConvertEventCoords(event)
+                id = self.pdc.FindObjectsByBBox(x, y)[0]
+                component = self.componentFromID[id]
+                self.frame.SetStatusText("Component: "+component.params['name'].val)
+            except IndexError:
+                self.frame.SetStatusText("")
 
     def showContextMenu(self, component, xy):
         menu = wx.Menu()
