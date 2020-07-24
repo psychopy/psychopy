@@ -1565,6 +1565,14 @@ class RoutineCanvas(wx.ScrolledWindow):
                 pass
             if event.LeftUp():
                 pass
+        elif event.Moving():
+            try:
+                x, y = self.ConvertEventCoords(event)
+                id = self.pdc.FindObjectsByBBox(x, y)[0]
+                component = self.componentFromID[id]
+                self.frame.SetStatusText("Component: "+component.params['name'].val)
+            except IndexError:
+                self.frame.SetStatusText("")
 
     def showContextMenu(self, component, xy):
         menu = wx.Menu()
@@ -1736,6 +1744,7 @@ class RoutineCanvas(wx.ScrolledWindow):
         font = self.GetFont()
         font.SetPointSize(size)
         dc.SetFont(font)
+        self.SetFont(font)
 
     def drawStatic(self, dc, component, yPosTop, yPosBottom):
         """draw a static (ISI) component box"""
@@ -1818,12 +1827,24 @@ class RoutineCanvas(wx.ScrolledWindow):
         name = component.params['name'].val
         # get size based on text
         w, h = self.GetFullTextExtent(name)[0:2]
+        if w > self.iconXpos - self.dpi/5:
+            # If width is greater than space available, split word at point calculated by average letter width
+            maxLen = int(
+                (self.iconXpos - self.GetFullTextExtent("...")[0] - self.dpi/5)
+                / (w/len(name))
+            )
+            splitAt = int(maxLen/2)
+            name = name[:splitAt] + "..." + name[-splitAt:]
+            w = self.iconXpos - self.dpi/5
         # draw text
-        _base = (self.iconSize, self.iconSize, 10)[self.drawSize]
-        x = self.iconXpos - self.dpi // 10 - w + _base
+        # + x position of icon (left side)
+        # - half width of icon (including whitespace around it)
+        # - FULL width of text
+        # + slight adjustment for whitespace
+        x = self.iconXpos - thisIcon.GetWidth()/2 - w + thisIcon.GetWidth()/3
         _adjust = (5, 5, -2)[self.drawSize]
         y = yPos + thisIcon.GetHeight() // 2 - h // 2 + _adjust
-        dc.DrawText(name, x - 20, y)
+        dc.DrawText(name, x, y)
         fullRect.Union(wx.Rect(x - 20, y, w, h))
 
         # deduce start and stop times if possible
