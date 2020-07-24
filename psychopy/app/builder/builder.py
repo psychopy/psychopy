@@ -1736,6 +1736,7 @@ class RoutineCanvas(wx.ScrolledWindow):
         font = self.GetFont()
         font.SetPointSize(size)
         dc.SetFont(font)
+        self.SetFont(font)
 
     def drawStatic(self, dc, component, yPosTop, yPosBottom):
         """draw a static (ISI) component box"""
@@ -1819,11 +1820,14 @@ class RoutineCanvas(wx.ScrolledWindow):
         # get size based on text
         w, h = self.GetFullTextExtent(name)[0:2]
         # draw text
-        _base = (self.iconSize, self.iconSize, 10)[self.drawSize]
-        x = self.iconXpos - self.dpi // 10 - w + _base
+        # + x position of icon (left side)
+        # - half width of icon (including whitespace around it)
+        # - FULL width of text
+        # + slight adjustment for whitespace
+        x = self.iconXpos - thisIcon.GetWidth()/2 - w + thisIcon.GetWidth()/3
         _adjust = (5, 5, -2)[self.drawSize]
         y = yPos + thisIcon.GetHeight() // 2 - h // 2 + _adjust
-        dc.DrawText(name, x - 20, y)
+        dc.DrawText(name, x, y)
         fullRect.Union(wx.Rect(x - 20, y, w, h))
 
         # deduce start and stop times if possible
