@@ -245,12 +245,14 @@ class PsychopyToolbar(wx.ToolBar, ThemeMixin):
                                  "Color Picker -> clipboard",
                                  self.frame.app.colorPicker)
             self.AddSeparator()
-            self.frame.cdrBtnRunner = self.addPsychopyTool('runner', 'Runner', 'runnerScript',
-                                                        "Send experiment to Runner",
-                                                        self.frame.runFile)
-            self.frame.cdrBtnRun = self.addPsychopyTool('run', 'Run', 'runScript',
-                                                        "Run experiment",
-                                                        self.frame.runFile)
+            self.frame.cdrBtnRunner = self.addPsychopyTool(
+                    'runner', 'Runner', 'runnerScript',
+                    "Send experiment to Runner",
+                    self.frame.runFile)
+            self.frame.cdrBtnRun = self.addPsychopyTool(
+                    'run', 'Run', 'runScript',
+                    "Run experiment",
+                    self.frame.runFile)
             self.AddSeparator()
             pavButtons.addPavloviaTools(
                 buttons=['pavloviaSync', 'pavloviaSearch', 'pavloviaUser'])
