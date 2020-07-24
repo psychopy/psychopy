@@ -1168,7 +1168,6 @@ class CoderFrame(wx.Frame, ThemeMixin):
         #self.Bind(wx.EVT_FIND_CLOSE, self.OnFindClose)
         self.Bind(wx.EVT_END_PROCESS, self.onProcessEnded)
 
-        self._applyAppTheme()
         # take files from arguments and append the previously opened files
         filename = ""
         if files not in [None, [], ()]:
@@ -1215,7 +1214,7 @@ class CoderFrame(wx.Frame, ThemeMixin):
                                  BottomDockable(True).TopDockable(True).
                                  CloseButton(False).
                                  Bottom().Show(self.prefs['showOutput']))
-
+        self._applyAppTheme()
         self.unitTestFrame = None
 
         # Link to Runner output
