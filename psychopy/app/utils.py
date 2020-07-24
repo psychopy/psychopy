@@ -26,6 +26,7 @@ from . import pavlovia_ui
 from . import icons
 from .themes import ThemeMixin
 from psychopy.tools.versionchooser import _translate
+import psychopy
 
 
 class FileDropTarget(wx.FileDropTarget):
