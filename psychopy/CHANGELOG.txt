@@ -16,6 +16,30 @@ Changelog
 CHANGES, which are identified in this dark red text, typically indicate things that alter the PsychoPy behaviour in a way that could break compatibility. Be especially wary of those!
 
 
+PsychoPy 2020.2
+----------------
+
+NEW FEATURES:
+
+- Form components now work online and support (in both lab-based and online versions):
+  - free text
+  - ratings and sliders
+  - choice boxes (radio buttons)
+  - descriptions (no response)
+  - headings
+- New look, including dark mode, customizable themes and new flat buttons (you
+  can choose a Classic theme to get the old buttons back for comfort)
+- Improved Runner:
+  - Builder/Coder provide options to run directly (Ctrl-R) and Runner only then
+    used to show stdout
+  - more visible how to save/open Runner filelists
+  - Runner filelists saved as `.psyrun` files and can be loaded into PsychoPy
+    with a double-click
+
+FIXES:
+
+- so many!
+
 PsychoPy 2020.1
 ----------------
 
