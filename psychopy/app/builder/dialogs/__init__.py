@@ -485,12 +485,24 @@ class _BaseParamsDlg(wx.Dialog):
         if self.__class__ != DlgExperimentProperties:
             self.mainSizer.Add(self.ctrls,  # ctrls is the notebook of params
                                proportion=1, flag=wx.EXPAND | wx.ALL, border=5)
-        categNames = sorted(categs)
-        if 'Basic' in categNames:
-            # move it to be the first category we see
-            categNames.insert(0, categNames.pop(categNames.index('Basic')))
+
+        # get categories in order
+        categNamesRemaining = sorted(categs.keys())
+        if 'Basic' in categNamesRemaining:
+            categNamesRemaining.remove('Basic')
+        categNames = ['Basic']
+        for thisParamName in self.order:
+            thisParam = self.params[thisParamName]
+            if thisParam.categ not in categNames:
+                categNames.append(thisParam.categ)
+                categNamesRemaining.remove(thisParam.categ)
+        # then add any remaining, not specified within an order
+        categNames.extend(categNamesRemaining)
+
         # move into _localized after merge branches:
         categLabel = {'Basic': _translate('Basic'),
+                      'Color': _translate('Color'),
+                      'Layout': _translate('Layout'),
                       'Data': _translate('Data'),
                       'Screen': _translate('Screen'),
                       'Dots': _translate('Dots'),
