@@ -639,7 +639,9 @@ class FontManager(object):
             this = self.getFontNamesSimilar(name)
             if this:
                 return this
-        raise MissingFontError("Failed to find any of the default fonts")
+        raise MissingFontError("Failed to find any of the default fonts. "
+                               "Existing fonts: {}"
+                               .format(list(self._available_fontInfo)))
 
     def getFontFamilyNames(self):
         """Returns a list of the available font family names.
