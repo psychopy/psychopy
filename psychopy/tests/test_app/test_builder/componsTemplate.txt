@@ -350,9 +350,7 @@ BrushComponent.syncScreenRefresh.updates:None
 BrushComponent.syncScreenRefresh.val:True
 BrushComponent.syncScreenRefresh.valType:bool
 CodeComponent.order:['name', 'Code Type', 'Before Experiment', 'Begin Experiment', 'Begin Routine', 'Each Frame', 'End Routine', 'End Experiment', 'Before JS Experiment', 'Begin JS Experiment', 'Begin JS Routine', 'Each JS Frame', 'End JS Routine', 'End JS Experiment']
-CodeComponent.Before Experiment.default:# This code will run before the experiment window is opened, after importing all of the necessary packages 
-
-
+CodeComponent.Before Experiment.default:
 CodeComponent.Before Experiment.allowedLabels:[]
 CodeComponent.Before Experiment.allowedTypes:[]
 CodeComponent.Before Experiment.allowedUpdates:[]
@@ -363,9 +361,7 @@ CodeComponent.Before Experiment.label:BeforeExperiment
 CodeComponent.Before Experiment.readOnly:False
 CodeComponent.Before Experiment.staticUpdater:None
 CodeComponent.Before Experiment.updates:constant
-CodeComponent.Before Experiment.val:# This code will run before the experiment window is opened, after importing all of the necessary packages 
-
-
+CodeComponent.Before Experiment.val:
 CodeComponent.Before Experiment.valType:extendedCode
 CodeComponent.Before JS Experiment.default:
 CodeComponent.Before JS Experiment.allowedLabels:[]
@@ -380,9 +376,7 @@ CodeComponent.Before JS Experiment.staticUpdater:None
 CodeComponent.Before JS Experiment.updates:constant
 CodeComponent.Before JS Experiment.val:
 CodeComponent.Before JS Experiment.valType:extendedCode
-CodeComponent.Begin Experiment.default:# This code will run before the experiment starts, after the window is opened and your other components are initialised but before the experiment timer starts
-
-
+CodeComponent.Begin Experiment.default:
 CodeComponent.Begin Experiment.allowedLabels:[]
 CodeComponent.Begin Experiment.allowedTypes:[]
 CodeComponent.Begin Experiment.allowedUpdates:[]
@@ -393,9 +387,7 @@ CodeComponent.Begin Experiment.label:Begin Experiment
 CodeComponent.Begin Experiment.readOnly:False
 CodeComponent.Begin Experiment.staticUpdater:None
 CodeComponent.Begin Experiment.updates:constant
-CodeComponent.Begin Experiment.val:# This code will run before the experiment starts, after the window is opened and your other components are initialised but before the experiment timer starts
-
-
+CodeComponent.Begin Experiment.val:
 CodeComponent.Begin Experiment.valType:extendedCode
 CodeComponent.Begin JS Experiment.default:
 CodeComponent.Begin JS Experiment.allowedLabels:[]
@@ -423,9 +415,7 @@ CodeComponent.Begin JS Routine.staticUpdater:None
 CodeComponent.Begin JS Routine.updates:constant
 CodeComponent.Begin JS Routine.val:
 CodeComponent.Begin JS Routine.valType:extendedCode
-CodeComponent.Begin Routine.default:# This code will run at the start of the routine containing this component, after starting the necessary timers but before loading components
-
-
+CodeComponent.Begin Routine.default:
 CodeComponent.Begin Routine.allowedLabels:[]
 CodeComponent.Begin Routine.allowedTypes:[]
 CodeComponent.Begin Routine.allowedUpdates:[]
@@ -436,9 +426,7 @@ CodeComponent.Begin Routine.label:Begin Routine
 CodeComponent.Begin Routine.readOnly:False
 CodeComponent.Begin Routine.staticUpdater:None
 CodeComponent.Begin Routine.updates:constant
-CodeComponent.Begin Routine.val:# This code will run at the start of the routine containing this component, after starting the necessary timers but before loading components
-
-
+CodeComponent.Begin Routine.val:
 CodeComponent.Begin Routine.valType:extendedCode
 CodeComponent.Code Type.default:'Auto->JS'
 CodeComponent.Code Type.allowedLabels:[]
@@ -453,9 +441,7 @@ CodeComponent.Code Type.staticUpdater:None
 CodeComponent.Code Type.updates:None
 CodeComponent.Code Type.val:Auto->JS
 CodeComponent.Code Type.valType:str
-CodeComponent.Each Frame.default:# This code will run on each frame refresh during the routine containing this component, after iterating the frame but before the screen flip
-
-
+CodeComponent.Each Frame.default:
 CodeComponent.Each Frame.allowedLabels:[]
 CodeComponent.Each Frame.allowedTypes:[]
 CodeComponent.Each Frame.allowedUpdates:[]
@@ -466,9 +452,7 @@ CodeComponent.Each Frame.label:Each Frame
 CodeComponent.Each Frame.readOnly:False
 CodeComponent.Each Frame.staticUpdater:None
 CodeComponent.Each Frame.updates:constant
-CodeComponent.Each Frame.val:# This code will run on each frame refresh during the routine containing this component, after iterating the frame but before the screen flip
-
-
+CodeComponent.Each Frame.val:
 CodeComponent.Each Frame.valType:extendedCode
 CodeComponent.Each JS Frame.default:
 CodeComponent.Each JS Frame.allowedLabels:[]
@@ -483,9 +467,7 @@ CodeComponent.Each JS Frame.staticUpdater:None
 CodeComponent.Each JS Frame.updates:constant
 CodeComponent.Each JS Frame.val:
 CodeComponent.Each JS Frame.valType:extendedCode
-CodeComponent.End Experiment.default:# This code will run at the end of the experiment, just before saving the data and closing the window
-
-
+CodeComponent.End Experiment.default:
 CodeComponent.End Experiment.allowedLabels:[]
 CodeComponent.End Experiment.allowedTypes:[]
 CodeComponent.End Experiment.allowedUpdates:[]
@@ -496,9 +478,7 @@ CodeComponent.End Experiment.label:End Experiment
 CodeComponent.End Experiment.readOnly:False
 CodeComponent.End Experiment.staticUpdater:None
 CodeComponent.End Experiment.updates:constant
-CodeComponent.End Experiment.val:# This code will run at the end of the experiment, just before saving the data and closing the window
-
-
+CodeComponent.End Experiment.val:
 CodeComponent.End Experiment.valType:extendedCode
 CodeComponent.End JS Experiment.default:
 CodeComponent.End JS Experiment.allowedLabels:[]
@@ -526,9 +506,7 @@ CodeComponent.End JS Routine.staticUpdater:None
 CodeComponent.End JS Routine.updates:constant
 CodeComponent.End JS Routine.val:
 CodeComponent.End JS Routine.valType:extendedCode
-CodeComponent.End Routine.default:# This code will run at the end of the routine containing this component, after breaking the frame loop but before resetting the timer
-
-
+CodeComponent.End Routine.default:
 CodeComponent.End Routine.allowedLabels:[]
 CodeComponent.End Routine.allowedTypes:[]
 CodeComponent.End Routine.allowedUpdates:[]
@@ -539,9 +517,7 @@ CodeComponent.End Routine.label:End Routine
 CodeComponent.End Routine.readOnly:False
 CodeComponent.End Routine.staticUpdater:None
 CodeComponent.End Routine.updates:constant
-CodeComponent.End Routine.val:# This code will run at the end of the routine containing this component, after breaking the frame loop but before resetting the timer
-
-
+CodeComponent.End Routine.val:
 CodeComponent.End Routine.valType:extendedCode
 CodeComponent.disabled.default:False
 CodeComponent.disabled.allowedLabels:[]
@@ -5041,7 +5017,7 @@ RatingScaleComponent.customize_everything.readOnly:False
 RatingScaleComponent.customize_everything.staticUpdater:None
 RatingScaleComponent.customize_everything.updates:constant
 RatingScaleComponent.customize_everything.val:
-RatingScaleComponent.customize_everything.valType:str
+RatingScaleComponent.customize_everything.valType:extendedStr
 RatingScaleComponent.disabled.default:False
 RatingScaleComponent.disabled.allowedLabels:[]
 RatingScaleComponent.disabled.allowedTypes:[]
@@ -6683,7 +6659,7 @@ TextComponent.text.updates:constant
 TextComponent.text.val:Any text
 
 including line breaks
-TextComponent.text.valType:str
+TextComponent.text.valType:extendedStr
 TextComponent.units.default:'from exp settings'
 TextComponent.units.allowedLabels:[]
 TextComponent.units.allowedTypes:[]
@@ -6710,6 +6686,424 @@ TextComponent.wrapWidth.staticUpdater:None
 TextComponent.wrapWidth.updates:constant
 TextComponent.wrapWidth.val:
 TextComponent.wrapWidth.valType:code
+TextboxComponent.order:['font', 'color', 'fillColor', 'anchor']
+TextboxComponent.anchor.default:'center'
+TextboxComponent.anchor.allowedLabels:[]
+TextboxComponent.anchor.allowedTypes:[]
+TextboxComponent.anchor.allowedUpdates:None
+TextboxComponent.anchor.allowedVals:['center', 'top-center', 'bottom-center', 'center-left', 'center-right', 'top-left', 'top-right', 'bottom-left', 'bottom-right']
+TextboxComponent.anchor.categ:Layout
+TextboxComponent.anchor.hint:Should text anchor to the top, center or bottom of the box?
+TextboxComponent.anchor.label:Anchor
+TextboxComponent.anchor.readOnly:False
+TextboxComponent.anchor.staticUpdater:None
+TextboxComponent.anchor.updates:constant
+TextboxComponent.anchor.val:center
+TextboxComponent.anchor.valType:str
+TextboxComponent.autoLog.default:True
+TextboxComponent.autoLog.allowedLabels:[]
+TextboxComponent.autoLog.allowedTypes:[]
+TextboxComponent.autoLog.allowedUpdates:None
+TextboxComponent.autoLog.allowedVals:[]
+TextboxComponent.autoLog.categ:Data
+TextboxComponent.autoLog.hint:Automatically record all changes to this in the log file
+TextboxComponent.autoLog.label:Auto Log
+TextboxComponent.autoLog.readOnly:False
+TextboxComponent.autoLog.staticUpdater:None
+TextboxComponent.autoLog.updates:constant
+TextboxComponent.autoLog.val:True
+TextboxComponent.autoLog.valType:bool
+TextboxComponent.bold.default:False
+TextboxComponent.bold.allowedLabels:[]
+TextboxComponent.bold.allowedTypes:[]
+TextboxComponent.bold.allowedUpdates:None
+TextboxComponent.bold.allowedVals:[]
+TextboxComponent.bold.categ:Format
+TextboxComponent.bold.hint:Should text be bold?
+TextboxComponent.bold.label:Bold
+TextboxComponent.bold.readOnly:False
+TextboxComponent.bold.staticUpdater:None
+TextboxComponent.bold.updates:constant
+TextboxComponent.bold.val:False
+TextboxComponent.bold.valType:bool
+TextboxComponent.borderColor.default:None
+TextboxComponent.borderColor.allowedLabels:[]
+TextboxComponent.borderColor.allowedTypes:[]
+TextboxComponent.borderColor.allowedUpdates:['constant', 'set every repeat', 'set every frame']
+TextboxComponent.borderColor.allowedVals:[]
+TextboxComponent.borderColor.categ:Color
+TextboxComponent.borderColor.hint:Textbox border colour
+TextboxComponent.borderColor.label:Border Colour
+TextboxComponent.borderColor.readOnly:False
+TextboxComponent.borderColor.staticUpdater:None
+TextboxComponent.borderColor.updates:constant
+TextboxComponent.borderColor.val:None
+TextboxComponent.borderColor.valType:str
+TextboxComponent.color.default:[1, 1, 1, 1]
+TextboxComponent.color.allowedLabels:[]
+TextboxComponent.color.allowedTypes:[]
+TextboxComponent.color.allowedUpdates:['constant', 'set every repeat', 'set every frame']
+TextboxComponent.color.allowedVals:[]
+TextboxComponent.color.categ:Color
+TextboxComponent.color.hint:Color of this stimulus (e.g. $[1,1,0], red ); Right-click to bring up a color-picker (rgb only)
+TextboxComponent.color.label:Letter color
+TextboxComponent.color.readOnly:False
+TextboxComponent.color.staticUpdater:None
+TextboxComponent.color.updates:constant
+TextboxComponent.color.val:[1, 1, 1, 1]
+TextboxComponent.color.valType:str
+TextboxComponent.colorSpace.default:'rgb'
+TextboxComponent.colorSpace.allowedLabels:[]
+TextboxComponent.colorSpace.allowedTypes:[]
+TextboxComponent.colorSpace.allowedUpdates:None
+TextboxComponent.colorSpace.allowedVals:['rgb', 'dkl', 'lms', 'hsv']
+TextboxComponent.colorSpace.categ:Color
+TextboxComponent.colorSpace.hint:Choice of color space for the color (rgb, dkl, lms, hsv)
+TextboxComponent.colorSpace.label:Color space
+TextboxComponent.colorSpace.readOnly:False
+TextboxComponent.colorSpace.staticUpdater:None
+TextboxComponent.colorSpace.updates:constant
+TextboxComponent.colorSpace.val:rgb
+TextboxComponent.colorSpace.valType:str
+TextboxComponent.disabled.default:False
+TextboxComponent.disabled.allowedLabels:[]
+TextboxComponent.disabled.allowedTypes:[]
+TextboxComponent.disabled.allowedUpdates:None
+TextboxComponent.disabled.allowedVals:[]
+TextboxComponent.disabled.categ:Testing
+TextboxComponent.disabled.hint:Disable this component
+TextboxComponent.disabled.label:Disable component
+TextboxComponent.disabled.readOnly:False
+TextboxComponent.disabled.staticUpdater:None
+TextboxComponent.disabled.updates:None
+TextboxComponent.disabled.val:False
+TextboxComponent.disabled.valType:bool
+TextboxComponent.durationEstim.default:
+TextboxComponent.durationEstim.allowedLabels:[]
+TextboxComponent.durationEstim.allowedTypes:[]
+TextboxComponent.durationEstim.allowedUpdates:None
+TextboxComponent.durationEstim.allowedVals:[]
+TextboxComponent.durationEstim.categ:Basic
+TextboxComponent.durationEstim.hint:(Optional) expected duration (s), purely for representing in the timeline
+TextboxComponent.durationEstim.label:Expected duration (s)
+TextboxComponent.durationEstim.readOnly:False
+TextboxComponent.durationEstim.staticUpdater:None
+TextboxComponent.durationEstim.updates:None
+TextboxComponent.durationEstim.val:
+TextboxComponent.durationEstim.valType:code
+TextboxComponent.editable.default:False
+TextboxComponent.editable.allowedLabels:[]
+TextboxComponent.editable.allowedTypes:[]
+TextboxComponent.editable.allowedUpdates:None
+TextboxComponent.editable.allowedVals:[]
+TextboxComponent.editable.categ:Basic
+TextboxComponent.editable.hint:Should textbox be editable?
+TextboxComponent.editable.label:Editable?
+TextboxComponent.editable.readOnly:False
+TextboxComponent.editable.staticUpdater:None
+TextboxComponent.editable.updates:constant
+TextboxComponent.editable.val:False
+TextboxComponent.editable.valType:bool
+TextboxComponent.fillColor.default:None
+TextboxComponent.fillColor.allowedLabels:[]
+TextboxComponent.fillColor.allowedTypes:[]
+TextboxComponent.fillColor.allowedUpdates:['constant', 'set every repeat', 'set every frame']
+TextboxComponent.fillColor.allowedVals:[]
+TextboxComponent.fillColor.categ:Color
+TextboxComponent.fillColor.hint:Textbox background colour
+TextboxComponent.fillColor.label:Fill Colour
+TextboxComponent.fillColor.readOnly:False
+TextboxComponent.fillColor.staticUpdater:None
+TextboxComponent.fillColor.updates:constant
+TextboxComponent.fillColor.val:None
+TextboxComponent.fillColor.valType:str
+TextboxComponent.flipHoriz.default:False
+TextboxComponent.flipHoriz.allowedLabels:[]
+TextboxComponent.flipHoriz.allowedTypes:[]
+TextboxComponent.flipHoriz.allowedUpdates:None
+TextboxComponent.flipHoriz.allowedVals:[]
+TextboxComponent.flipHoriz.categ:Layout
+TextboxComponent.flipHoriz.hint:horiz = left-right reversed; vert = up-down reversed; $var = variable
+TextboxComponent.flipHoriz.label:Flip horizontal
+TextboxComponent.flipHoriz.readOnly:False
+TextboxComponent.flipHoriz.staticUpdater:None
+TextboxComponent.flipHoriz.updates:constant
+TextboxComponent.flipHoriz.val:False
+TextboxComponent.flipHoriz.valType:bool
+TextboxComponent.flipVert.default:False
+TextboxComponent.flipVert.allowedLabels:[]
+TextboxComponent.flipVert.allowedTypes:[]
+TextboxComponent.flipVert.allowedUpdates:None
+TextboxComponent.flipVert.allowedVals:[]
+TextboxComponent.flipVert.categ:Layout
+TextboxComponent.flipVert.hint:horiz = left-right reversed; vert = up-down reversed; $var = variable
+TextboxComponent.flipVert.label:Flip vertical
+TextboxComponent.flipVert.readOnly:False
+TextboxComponent.flipVert.staticUpdater:None
+TextboxComponent.flipVert.updates:constant
+TextboxComponent.flipVert.val:False
+TextboxComponent.flipVert.valType:bool
+TextboxComponent.font.default:'Arial'
+TextboxComponent.font.allowedLabels:[]
+TextboxComponent.font.allowedTypes:[]
+TextboxComponent.font.allowedUpdates:['constant', 'set every repeat', 'set every frame']
+TextboxComponent.font.allowedVals:[]
+TextboxComponent.font.categ:Format
+TextboxComponent.font.hint:The font name (e.g. Comic Sans)
+TextboxComponent.font.label:Font
+TextboxComponent.font.readOnly:False
+TextboxComponent.font.staticUpdater:None
+TextboxComponent.font.updates:constant
+TextboxComponent.font.val:Arial
+TextboxComponent.font.valType:str
+TextboxComponent.italic.default:False
+TextboxComponent.italic.allowedLabels:[]
+TextboxComponent.italic.allowedTypes:[]
+TextboxComponent.italic.allowedUpdates:None
+TextboxComponent.italic.allowedVals:[]
+TextboxComponent.italic.categ:Format
+TextboxComponent.italic.hint:Should text be italic?
+TextboxComponent.italic.label:Italic
+TextboxComponent.italic.readOnly:False
+TextboxComponent.italic.staticUpdater:None
+TextboxComponent.italic.updates:constant
+TextboxComponent.italic.val:False
+TextboxComponent.italic.valType:bool
+TextboxComponent.languageStyle.default:'LTR'
+TextboxComponent.languageStyle.allowedLabels:[]
+TextboxComponent.languageStyle.allowedTypes:[]
+TextboxComponent.languageStyle.allowedUpdates:None
+TextboxComponent.languageStyle.allowedVals:['LTR', 'RTL', 'Arabic']
+TextboxComponent.languageStyle.categ:Layout
+TextboxComponent.languageStyle.hint:Handle right-to-left (RTL) languages and Arabic reshaping
+TextboxComponent.languageStyle.label:Language style
+TextboxComponent.languageStyle.readOnly:False
+TextboxComponent.languageStyle.staticUpdater:None
+TextboxComponent.languageStyle.updates:None
+TextboxComponent.languageStyle.val:LTR
+TextboxComponent.languageStyle.valType:str
+TextboxComponent.letterHeight.default:0.1
+TextboxComponent.letterHeight.allowedLabels:[]
+TextboxComponent.letterHeight.allowedTypes:[]
+TextboxComponent.letterHeight.allowedUpdates:['constant', 'set every repeat', 'set every frame']
+TextboxComponent.letterHeight.allowedVals:[]
+TextboxComponent.letterHeight.categ:Basic
+TextboxComponent.letterHeight.hint:Specifies the height of the letter (the width is then determined by the font)
+TextboxComponent.letterHeight.label:Letter height
+TextboxComponent.letterHeight.readOnly:False
+TextboxComponent.letterHeight.staticUpdater:None
+TextboxComponent.letterHeight.updates:constant
+TextboxComponent.letterHeight.val:0.1
+TextboxComponent.letterHeight.valType:code
+TextboxComponent.lineSpacing.default:1.0
+TextboxComponent.lineSpacing.allowedLabels:[]
+TextboxComponent.lineSpacing.allowedTypes:[]
+TextboxComponent.lineSpacing.allowedUpdates:None
+TextboxComponent.lineSpacing.allowedVals:[]
+TextboxComponent.lineSpacing.categ:Format
+TextboxComponent.lineSpacing.hint:Defines the space between lines
+TextboxComponent.lineSpacing.label:Line Spacing
+TextboxComponent.lineSpacing.readOnly:False
+TextboxComponent.lineSpacing.staticUpdater:None
+TextboxComponent.lineSpacing.updates:constant
+TextboxComponent.lineSpacing.val:1.0
+TextboxComponent.lineSpacing.valType:num
+TextboxComponent.name.default:text
+TextboxComponent.name.allowedLabels:[]
+TextboxComponent.name.allowedTypes:[]
+TextboxComponent.name.allowedUpdates:None
+TextboxComponent.name.allowedVals:[]
+TextboxComponent.name.categ:Basic
+TextboxComponent.name.hint:Name of this component (alpha-numeric or _, no spaces)
+TextboxComponent.name.label:Name
+TextboxComponent.name.readOnly:False
+TextboxComponent.name.staticUpdater:None
+TextboxComponent.name.val:text
+TextboxComponent.name.valType:code
+TextboxComponent.opacity.default:1
+TextboxComponent.opacity.allowedLabels:[]
+TextboxComponent.opacity.allowedTypes:[]
+TextboxComponent.opacity.allowedUpdates:['constant', 'set every repeat', 'set every frame']
+TextboxComponent.opacity.allowedVals:[]
+TextboxComponent.opacity.categ:Color
+TextboxComponent.opacity.hint:Opacity of the stimulus (1=opaque, 0=fully transparent, 0.5=translucent)
+TextboxComponent.opacity.label:Opacity
+TextboxComponent.opacity.readOnly:False
+TextboxComponent.opacity.staticUpdater:None
+TextboxComponent.opacity.updates:constant
+TextboxComponent.opacity.val:1
+TextboxComponent.opacity.valType:code
+TextboxComponent.ori.default:0
+TextboxComponent.ori.allowedLabels:[]
+TextboxComponent.ori.allowedTypes:[]
+TextboxComponent.ori.allowedUpdates:['constant', 'set every repeat', 'set every frame']
+TextboxComponent.ori.allowedVals:[]
+TextboxComponent.ori.categ:Layout
+TextboxComponent.ori.hint:Orientation of this stimulus (in deg)
+TextboxComponent.ori.label:Orientation
+TextboxComponent.ori.readOnly:False
+TextboxComponent.ori.staticUpdater:None
+TextboxComponent.ori.updates:constant
+TextboxComponent.ori.val:0
+TextboxComponent.ori.valType:code
+TextboxComponent.padding.default:None
+TextboxComponent.padding.allowedLabels:[]
+TextboxComponent.padding.allowedTypes:[]
+TextboxComponent.padding.allowedUpdates:['constant', 'set every repeat', 'set every frame']
+TextboxComponent.padding.allowedVals:[]
+TextboxComponent.padding.categ:Layout
+TextboxComponent.padding.hint:Defines the space between text and the textbox border
+TextboxComponent.padding.label:Padding
+TextboxComponent.padding.readOnly:False
+TextboxComponent.padding.staticUpdater:None
+TextboxComponent.padding.updates:constant
+TextboxComponent.padding.val:None
+TextboxComponent.padding.valType:code
+TextboxComponent.pos.default:(0, 0)
+TextboxComponent.pos.allowedLabels:[]
+TextboxComponent.pos.allowedTypes:[]
+TextboxComponent.pos.allowedUpdates:['constant', 'set every repeat', 'set every frame']
+TextboxComponent.pos.allowedVals:[]
+TextboxComponent.pos.categ:Basic
+TextboxComponent.pos.hint:Position of this stimulus (e.g. [1,2] )
+TextboxComponent.pos.label:Position [x,y]
+TextboxComponent.pos.readOnly:False
+TextboxComponent.pos.staticUpdater:None
+TextboxComponent.pos.updates:constant
+TextboxComponent.pos.val:(0, 0)
+TextboxComponent.pos.valType:code
+TextboxComponent.saveStartStop.default:True
+TextboxComponent.saveStartStop.allowedLabels:[]
+TextboxComponent.saveStartStop.allowedTypes:[]
+TextboxComponent.saveStartStop.allowedUpdates:None
+TextboxComponent.saveStartStop.allowedVals:[]
+TextboxComponent.saveStartStop.categ:Data
+TextboxComponent.saveStartStop.hint:Store the onset/offset times in the data file (as well as in the log file).
+TextboxComponent.saveStartStop.label:Save onset/offset times
+TextboxComponent.saveStartStop.readOnly:False
+TextboxComponent.saveStartStop.staticUpdater:None
+TextboxComponent.saveStartStop.updates:None
+TextboxComponent.saveStartStop.val:True
+TextboxComponent.saveStartStop.valType:bool
+TextboxComponent.size.default:(0, 0)
+TextboxComponent.size.allowedLabels:[]
+TextboxComponent.size.allowedTypes:[]
+TextboxComponent.size.allowedUpdates:['constant', 'set every repeat', 'set every frame']
+TextboxComponent.size.allowedVals:[]
+TextboxComponent.size.categ:Basic
+TextboxComponent.size.hint:Size of this stimulus (either a single value or x,y pair, e.g. 2.5, [1,2] 
+TextboxComponent.size.label:Size [w,h]
+TextboxComponent.size.readOnly:False
+TextboxComponent.size.staticUpdater:None
+TextboxComponent.size.updates:constant
+TextboxComponent.size.val:(0, 0)
+TextboxComponent.size.valType:code
+TextboxComponent.startEstim.default:
+TextboxComponent.startEstim.allowedLabels:[]
+TextboxComponent.startEstim.allowedTypes:[]
+TextboxComponent.startEstim.allowedUpdates:None
+TextboxComponent.startEstim.allowedVals:[]
+TextboxComponent.startEstim.categ:Basic
+TextboxComponent.startEstim.hint:(Optional) expected start (s), purely for representing in the timeline
+TextboxComponent.startEstim.label:Expected start (s)
+TextboxComponent.startEstim.readOnly:False
+TextboxComponent.startEstim.staticUpdater:None
+TextboxComponent.startEstim.updates:None
+TextboxComponent.startEstim.val:
+TextboxComponent.startEstim.valType:code
+TextboxComponent.startType.default:'time (s)'
+TextboxComponent.startType.allowedLabels:[]
+TextboxComponent.startType.allowedTypes:[]
+TextboxComponent.startType.allowedUpdates:None
+TextboxComponent.startType.allowedVals:['time (s)', 'frame N', 'condition']
+TextboxComponent.startType.categ:Basic
+TextboxComponent.startType.hint:How do you want to define your start point?
+TextboxComponent.startType.label:start type
+TextboxComponent.startType.readOnly:False
+TextboxComponent.startType.staticUpdater:None
+TextboxComponent.startType.updates:None
+TextboxComponent.startType.val:time (s)
+TextboxComponent.startType.valType:str
+TextboxComponent.startVal.default:0.0
+TextboxComponent.startVal.allowedLabels:[]
+TextboxComponent.startVal.allowedTypes:[]
+TextboxComponent.startVal.allowedUpdates:None
+TextboxComponent.startVal.allowedVals:[]
+TextboxComponent.startVal.categ:Basic
+TextboxComponent.startVal.hint:When does the component start?
+TextboxComponent.startVal.label:Start
+TextboxComponent.startVal.readOnly:False
+TextboxComponent.startVal.staticUpdater:None
+TextboxComponent.startVal.updates:None
+TextboxComponent.startVal.val:0.0
+TextboxComponent.startVal.valType:code
+TextboxComponent.stopType.default:'duration (s)'
+TextboxComponent.stopType.allowedLabels:[]
+TextboxComponent.stopType.allowedTypes:[]
+TextboxComponent.stopType.allowedUpdates:None
+TextboxComponent.stopType.allowedVals:['duration (s)', 'duration (frames)', 'time (s)', 'frame N', 'condition']
+TextboxComponent.stopType.categ:Basic
+TextboxComponent.stopType.hint:How do you want to define your end point?
+TextboxComponent.stopType.label:stop type
+TextboxComponent.stopType.readOnly:False
+TextboxComponent.stopType.staticUpdater:None
+TextboxComponent.stopType.updates:None
+TextboxComponent.stopType.val:duration (s)
+TextboxComponent.stopType.valType:str
+TextboxComponent.stopVal.default:1.0
+TextboxComponent.stopVal.allowedLabels:[]
+TextboxComponent.stopVal.allowedTypes:[]
+TextboxComponent.stopVal.allowedUpdates:[]
+TextboxComponent.stopVal.allowedVals:[]
+TextboxComponent.stopVal.categ:Basic
+TextboxComponent.stopVal.hint:When does the component end? (blank is endless)
+TextboxComponent.stopVal.label:Stop
+TextboxComponent.stopVal.readOnly:False
+TextboxComponent.stopVal.staticUpdater:None
+TextboxComponent.stopVal.updates:constant
+TextboxComponent.stopVal.val:1.0
+TextboxComponent.stopVal.valType:code
+TextboxComponent.syncScreenRefresh.default:True
+TextboxComponent.syncScreenRefresh.allowedLabels:[]
+TextboxComponent.syncScreenRefresh.allowedTypes:[]
+TextboxComponent.syncScreenRefresh.allowedUpdates:None
+TextboxComponent.syncScreenRefresh.allowedVals:[]
+TextboxComponent.syncScreenRefresh.categ:Data
+TextboxComponent.syncScreenRefresh.hint:Synchronize times with screen refresh (good for visual stimuli and responses based on them)
+TextboxComponent.syncScreenRefresh.label:Sync timing with screen refresh
+TextboxComponent.syncScreenRefresh.readOnly:True
+TextboxComponent.syncScreenRefresh.staticUpdater:None
+TextboxComponent.syncScreenRefresh.updates:None
+TextboxComponent.syncScreenRefresh.val:True
+TextboxComponent.syncScreenRefresh.valType:bool
+TextboxComponent.text.default:'Any text\n\nincluding line breaks'
+TextboxComponent.text.allowedLabels:[]
+TextboxComponent.text.allowedTypes:[]
+TextboxComponent.text.allowedUpdates:['constant', 'set every repeat', 'set every frame']
+TextboxComponent.text.allowedVals:[]
+TextboxComponent.text.categ:Basic
+TextboxComponent.text.hint:The text to be displayed
+TextboxComponent.text.label:Text
+TextboxComponent.text.readOnly:False
+TextboxComponent.text.staticUpdater:None
+TextboxComponent.text.updates:constant
+TextboxComponent.text.val:Any text
+
+including line breaks
+TextboxComponent.text.valType:str
+TextboxComponent.units.default:'from exp settings'
+TextboxComponent.units.allowedLabels:[]
+TextboxComponent.units.allowedTypes:[]
+TextboxComponent.units.allowedUpdates:None
+TextboxComponent.units.allowedVals:['from exp settings', 'deg', 'cm', 'pix', 'norm', 'height', 'degFlatPos', 'degFlat']
+TextboxComponent.units.categ:Layout
+TextboxComponent.units.hint:Units of dimensions for this stimulus
+TextboxComponent.units.label:Units
+TextboxComponent.units.readOnly:False
+TextboxComponent.units.staticUpdater:None
+TextboxComponent.units.updates:None
+TextboxComponent.units.val:from exp settings
+TextboxComponent.units.valType:str
 UnknownComponent.order:['name']
 UnknownComponent.disabled.default:False
 UnknownComponent.disabled.allowedLabels:[]
