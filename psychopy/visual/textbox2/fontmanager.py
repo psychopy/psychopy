@@ -42,20 +42,20 @@ font_family_aliases = set([
 #  OS Font paths
 X11FontDirectories = [
     # an old standard installation point
-    "/usr/X11R6/lib/X11/fonts/TTF/",
+    "/usr/X11R6/lib/X11/fonts/TTF",
     "/usr/X11/lib/X11/fonts",
     # here is the new standard location for fonts
-    "/usr/share/fonts/",
+    "/usr/share/fonts",
     # documented as a good place to install new fonts
-    "/usr/local/share/fonts/",
+    "/usr/local/share/fonts",
     # common application, not really useful
-    "/usr/lib/openoffice/share/fonts/truetype/",
+    "/usr/lib/openoffice/share/fonts/truetype",
 ]
 
 OSXFontDirectories = [
     "/Library/Fonts/",
-    "/Network/Library/Fonts/",
-    "/System/Library/Fonts/",
+    "/Network/Library/Fonts",
+    "/System/Library/Fonts",
     # fonts installed via MacPorts
     "/opt/local/share/fonts"
     ""
