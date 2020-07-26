@@ -21,6 +21,7 @@ import OpenGL.GL as gl
 
 from ..basevisual import BaseVisualStim, ColorMixin, ContainerMixin
 from psychopy.tools.attributetools import attributeSetter
+from psychopy.tools.arraytools import val2array
 from psychopy.tools.monitorunittools import convertToPix
 from .fontmanager import FontManager, GLFont
 from .. import shaders
@@ -80,7 +81,7 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
                  anchor='center',
                  alignment='left',
                  fillColor=None,
-                 borderWidth=0,
+                 borderWidth=1,
                  borderColor=None,
                  flipHoriz=False,
                  flipVert=False,
@@ -152,15 +153,18 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
         self.text = text
         # box border and fill
         w, h = self.size
-        self.box = Rect(win, pos=pos,
-                        width=w, height=h, units=units,
-                        lineWidth=borderWidth, lineColor=borderColor, fillColor=fillColor,
-                        autoLog=False)
+        self.box = Rect(
+                win, pos=pos,
+                width=w, height=h, units=units,
+                lineWidth=borderWidth, lineColor=borderColor,
+                fillColor=fillColor,
+                autoLog=False)
         # also bounding box (not normally drawn but gives tight box around chrs)
-        self.boundingBox = Rect(win, pos=pos,
-                        width=w, height=h, units=units,
-                        lineWidth=1, lineColor='lightgray', fillColor=None,
-                        autoLog=False)
+        self.boundingBox = Rect(
+                win, pos=pos,
+                width=w, height=h, units=units,
+                lineWidth=1, lineColor=None, fillColor=None,
+                autoLog=False)
         self._requested = {
             'lineColor': borderColor,
             'lineRGB': self.box.lineRGB,
@@ -238,61 +242,10 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
 
         self._needVertexUpdate = True
 
-        # Vertical position of bottom edge of first line, relative to center of box
-        # if self._alignY == 'top':
-        #     self._alignOffsetY = (
-        #         - font.ascender / self._pixelScaling  # Move down so top of first line == top of box
-        #         + self.size[1] / 2  # Move up by half the box size to get from center to top
-        #         - self.padding  # Move down to give padding
-        #     )
-        # elif self._alignY == 'center':
-        #     self._alignOffsetY = (
-        #         - font.ascender / self._pixelScaling  # Move down so top of first line == center of box
-        #         + font.height / self._pixelScaling * len(self._lineLenChars) / 2  # Move up by half of total text height
-        #     )
-        # elif self._alignY == 'bottom':
-        #     self._alignOffsetY = (
-        #         - font.ascender / self._pixelScaling  # Move down so top of first line == bottom of box
-        #         + font.height / self._pixelScaling  * len(self._lineLenChars)  # Move up by total text height
-        #         - self.size[1] / 2  # Move down by half the box size to get from center to bottom
-        #         + self.padding # Move up to give padding
-        #     )
-        # else:
-        #     raise ValueError('Unexpected error for _alignY')
-        #
-        # if self._alignX == 'left':
-        #     self._alignOffsetX = (
-        #         - self.size[0]/2  # Move left by half the box size to get from center to left
-        #         + self.padding  # Move right to give padding
-        #     ) + self._anchorOffsetX # Scale & anchor
-        # elif self._alignX == 'center':
-        #     self._alignOffsetX = (
-        #        0
-        #        # todo:Move left by half of total text width
-        #     ) + self._anchorOffsetX  # Scale & anchor
-        # elif self._alignX == 'right':
-        #     self._alignOffsetX = (
-        #         self.size[0]/2  # Move right by half the box size to get from center to right
-        #         - self.padding  # Move left to give padding
-        #         # todo:Move left by total text width (and anchor the the right/center, somehow)
-        #     ) + self._anchorOffsetX  # Scale & anchor
-        # else:
-        #     raise ValueError('Unexpected error for _alignX')
-
     @attributeSetter
     def text(self, text):
         self.__dict__['text'] = text
         self._layout()
-
-    # @property
-    # def caretIndex(self):
-    #     if 'caretIndex' not in self.__dict__ or self.__dict__['caretIndex'] is None:
-    #         self.__dict__['caretIndex'] = len(self.text)
-    #     return self.__dict__['caretIndex']
-    #
-    # @caretIndex.setter
-    # def caretIndex(self, newIndex):
-    #     self.__dict__['caretIndex'] = newIndex
 
     def _layout(self):
         """Layout the text, calculating the vertex locations
@@ -745,6 +698,37 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
     def getText(self):
         """Returns the current text in the box"""
         return self.text
+
+    @attributeSetter
+    def pos(self, value):
+        """The position of the center of the TextBox in the stimulus
+        :ref:`units <units>`
+
+        `value` should be an :ref:`x,y-pair <attrib-xy>`.
+        :ref:`Operations <attrib-operations>` are also supported.
+
+        Example::
+
+            stim.pos = (0.5, 0)  # Set slightly to the right of center
+            stim.pos += (0.5, -1)  # Increment pos rightwards and upwards.
+                Is now (1.0, -1.0)
+            stim.pos *= 0.2  # Move stim towards the center.
+                Is now (0.2, -0.2)
+
+        Tip: If you need the position of stim in pixels, you can obtain
+        it like this:
+
+            from psychopy.tools.monitorunittools import posToPix
+            posPix = posToPix(stim)
+        """
+        self.__dict__['pos'] = val2array(value, False, False)
+        try:
+            self.box.pos = (self.__dict__['pos'] +
+                            (self._anchorOffsetX, self._anchorOffsetY))
+        except AttributeError:
+            pass  # may not be created yet, which is fine
+        self._needVertexUpdate = True
+        self._needUpdate = True
 
 
 class Caret(ColorMixin):

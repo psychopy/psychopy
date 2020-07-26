@@ -314,6 +314,7 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
                 size=[w, 0.05],
                 autoLog=False,
                 color=item['itemColor'],
+                borderWidth=1,
                 editable=False,
                 bold=bold,
                 font='Arial')
@@ -483,14 +484,19 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
         respHeight
             The height of the response object as type float
         """
-        resp = psychopy.visual.TextBox2(self.win,
-                                        text='',
-                                        pos=pos,
-                                        size=(item['responseWidth'] * 2, .25),
-                                        units=self.units,
-                                        color='white',
-                                        font='Arial',
-                                        editable=True)
+        resp = psychopy.visual.TextBox2(
+                self.win,
+                text='',
+                pos=pos,
+                size=(item['responseWidth'], .25),
+                letterHeight=self.textHeight,
+                units=self.units,
+                color='white',
+                font='Arial',
+                editable=True,
+                borderColor='orange',
+                fillColor='lightgray',
+        )
 
         respHeight = resp.size[1] / 2
         return resp, respHeight
