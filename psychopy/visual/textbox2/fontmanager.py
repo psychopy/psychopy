@@ -23,7 +23,9 @@ import OpenGL.GL as gl
 import glob
 
 from psychopy import logging
+from psychopy import prefs
 from psychopy.constants import PY3
+from psychopy.exceptions import MissingFontError
 
 if PY3:
     unichr = chr
@@ -58,6 +60,8 @@ OSXFontDirectories = [
     "/opt/local/share/fonts"
     ""
 ]
+
+
 
 
 def unicode(s, fmt='utf-8'):
@@ -611,6 +615,7 @@ class FontManager(object):
     _available_fontInfo = {}
 
     def __init__(self, monospaceOnly=False):
+        self.addFontDirectory(prefs.paths['resources'])
         # if FontManager.freetype_import_error:
         #    raise Exception('Appears the freetype library could not load.
         #       Error: %s'%(str(FontManager.freetype_import_error)))
@@ -628,6 +633,13 @@ class FontManager(object):
         S += ("Available: {} see fonts.getFontFamilyNames()\n"
               .format(len(self.getFontFamilyNames())))
         return S
+
+    def getDefaultSansFont(self):
+        for name in ['Verdana', 'DejaVu Sans', 'Bitstream Vera Sans', 'Tahoma']:
+            this = self.getFontNamesSimilar(name)
+            if this:
+                return this
+        raise MissingFontError("Failed to find any of the default fonts")
 
     def getFontFamilyNames(self):
         """Returns a list of the available font family names.
@@ -661,9 +673,8 @@ class FontManager(object):
         if not style_dict:
             similar = self.getFontNamesSimilar(fontName)
             if len(similar) == 0:
-                raise ValueError("Font {} was requested but that font wasn't "
-                                 "found. Need to install?"
-                                 .format(repr(fontName)))
+                logging.warning("Font {} was requested. No similar font found."
+                return self.getDefaultSansFont()
             elif len(similar) == 1:
                 logging.warning("Font {} was requested. Exact match wasn't "
                                 "found but we will proceed with {}?"
