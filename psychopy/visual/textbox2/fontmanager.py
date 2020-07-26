@@ -567,20 +567,24 @@ def findSystemFonts():
     :return: list of strings
     """
     if sys.platform == 'win32':
-        # for windows matplotlib uses windows registry to find folder
-        from matplotlib import font_manager
-        return font_manager.findSystemFonts()
+        searchPaths = []  # just leave it to matplotlib as below
     elif sys.platform == 'darwin':
         # on mac matplotlib doesn't include 'ttc' files (which are fine)
-        paths = OSXFontDirectories
+        searchPaths = OSXFontDirectories
     elif sys.platform.startswith('linux'):
-        paths = X11FontDirectories
+        searchPaths = X11FontDirectories
+    # search those folders
     fontPaths = []
-    for thisFolder in paths:
+    for thisFolder in searchPaths:
         for thisExt in ['ttf', 'otf', 'ttc', 'dfont']:
             fontPaths.extend(glob.glob("{}{}*.{}".format(
                 thisFolder, os.path.sep, thisExt)))
-    return fontPaths
+    # if we failed let matplotlib have a go
+    if fontPaths:
+        return fontPaths
+    else:
+        from matplotlib import font_manager
+        return font_manager.findSystemFonts()
 
 
 class FontManager(object):
