@@ -673,7 +673,7 @@ class FontManager(object):
         if not style_dict:
             similar = self.getFontNamesSimilar(fontName)
             if len(similar) == 0:
-                logging.warning("Font {} was requested. No similar font found."
+                logging.warning("Font {} was requested. No similar font found.")
                 return self.getDefaultSansFont()
             elif len(similar) == 1:
                 logging.warning("Font {} was requested. Exact match wasn't "
