@@ -12,7 +12,7 @@
 import os
 import sys
 
-__version__ = '2020.1.3'
+__version__ = '2020.2.0dev1'
 __license__ = 'GNU GPLv3 (or more recent equivalent)'
 __author__ = 'Jonathan Peirce'
 __author_email__ = 'jon.peirce@gmail.com'
@@ -67,4 +67,3 @@ try:
     import readline
 except ImportError:
     pass  # all that will happen is the stderr/stdout might get redirected
-

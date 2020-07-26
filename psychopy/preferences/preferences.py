@@ -11,7 +11,7 @@ import platform
 from psychopy.constants import PY3
 from pkg_resources import parse_version
 import shutil
-
+import json
 
 try:
     import configobj
@@ -132,37 +132,40 @@ class Preferences(object):
 
         # Find / copy themes
         self.paths['themes'] = join(self.paths['userPrefsDir'], 'themes')
-        baseThemes = join(self.paths['appDir'], 'coder', 'themes')
+        baseThemes = join(self.paths['appDir'], 'themes')
+        baseAppThemes = join(self.paths['appDir'], 'themes', 'app')
         # avoid silent fail-to-launch-app if bad permissions:
-        if os.path.exists(self.paths['userPrefsDir']):
-            try:
-                if not os.access(self.paths['userPrefsDir'],
-                                 os.W_OK | os.R_OK):
-                    raise OSError
-                tmp = os.path.join(self.paths['userPrefsDir'], '.tmp')
-                with open(tmp, 'w') as fileh:
-                    fileh.write('')
-                open(tmp).read()
-                os.remove(tmp)
-                msg = 'PsychoPy3 error: need read-write permissions for `%s` - `%s`'
-            except Exception as err:  # OSError, WindowsError, ...?
-                msg = 'PsychoPy3 error: need read-write permissions for `%s` - `%s`'
-                sys.exit(msg % (self.paths['userPrefsDir'], err))
-            # Create themes folder in user space if not one already
-            try:
-                os.makedirs(self.paths['themes'])
-            except OSError as err:
-                if err.errno != errno.EEXIST:
-                    raise
-            # Make sure all the base themes are present in user's folder
-            try:
-                for file in os.listdir(baseThemes):
-                    shutil.copyfile(
-                        join(baseThemes, file),
-                        join(self.paths['themes'], file)
+
+        try:
+            os.makedirs(self.paths['userPrefsDir'])
+        except OSError as err:
+            if err.errno != errno.EEXIST:
+                raise
+        # Create themes folder in user space if not one already
+        try:
+            os.makedirs(self.paths['themes'])
+        except OSError as err:
+            if err.errno != errno.EEXIST:
+                raise
+        try:
+            os.makedirs(join(self.paths['themes'], "app"))
+        except OSError as err:
+            if err.errno != errno.EEXIST:
+                raise
+        # Make sure all the base themes are present in user's folder
+        #try:
+        for file in os.listdir(baseThemes):
+            if file.endswith('.json'):
+                shutil.copyfile(
+                    join(baseThemes, file),
+                    join(self.paths['themes'], file)
+                )
+        for file in os.listdir(baseAppThemes):
+            if file.endswith('.json'):
+                shutil.copyfile(
+                    join(baseAppThemes, file),
+                    join(self.paths['themes'], "app", file)
                     )
-            except:
-                pass
 
     def loadAll(self):
         """Load the user prefs and the application data
@@ -198,10 +201,6 @@ class Preferences(object):
 
         # keybindings:
         self.keys = self.userPrefsCfg['keyBindings']
-        # darkmode paths
-        self.paths['resources'] = join(self.paths['resources'],
-                                       'classic' if self.app['iconset'] == 'classic'
-                                       else ('light', 'dark')[self.app['darkmode']])
 
     def loadUserPrefs(self):
         """load user prefs, if any; don't save to a file because doing so

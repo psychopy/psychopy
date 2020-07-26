@@ -13,15 +13,12 @@ import re
 import os
 
 from . import dialogs
-from psychopy import localization
+from psychopy import localization, prefs
 from psychopy.localization import _translate
 from pkg_resources import parse_version
 from psychopy import sound
 from psychopy.app.utils import getSystemFonts
 import collections
-
-# this will be overridden by the size of the scrolled panel making the prefs
-dlgSize = (600, 500)
 
 # labels mappings for display:
 _localized = {
@@ -166,6 +163,7 @@ class PrefPropGrid(wx.Panel):
         wx.Panel.__init__(
             self, parent, id=id, pos=pos, size=size, style=style, name=name)
         bSizer1 = wx.BoxSizer(wx.HORIZONTAL)
+        self.app = wx.GetApp()
 
         self.lstPrefPages = wx.ListCtrl(
             self, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize,
@@ -213,6 +211,12 @@ class PrefPropGrid(wx.Panel):
     def __del__(self):
         pass
 
+    def setSelection(self, page):
+        """Select the page."""
+        # set the page
+        self.lstPrefPages.Focus(1)
+        self.lstPrefPages.Select(page)
+
     def addPage(self, label, name, sections=(), bitmap=None):
         """Add a page to the property grid manager."""
 
@@ -223,11 +227,7 @@ class PrefPropGrid(wx.Panel):
             if s not in self.sections.keys():
                 self.sections[s] = dict()
 
-        nbBitmap = wx.Bitmap(
-            os.path.join(
-                self.GetTopLevelParent().app.prefs.paths['resources'],
-                bitmap),
-            wx.BITMAP_TYPE_ANY)
+        nbBitmap = self.app.iconCache.getBitmap(bitmap)
         if nbBitmap.IsOk():
             self.prefsImages.Add(nbBitmap)
 
@@ -373,6 +373,7 @@ class PrefPropGrid(wx.Panel):
                         pass
 
         self.proPrefs.SetSplitterLeft()
+        self.setSelection(0)
 
     def setPrefVal(self, section, name, value):
         """Set the value of a preference."""
@@ -782,7 +783,7 @@ class PreferencesDlg(wx.Dialog):
                                                         message=msg,
                                                         type='Info',
                                                         title=title)
-                        resp = warnDlg.ShowModal()
+                        warnDlg.ShowModal()
                         return
                     if type(newVal) != list:
                         self.prefsCfg[sectionName][prefName] = [newVal]
@@ -802,6 +803,7 @@ class PreferencesDlg(wx.Dialog):
         self.populatePrefs()
 
         # after validation, update the UI
+        self.app.theme = self.app.theme
         self.updateCoderUI()
 
     def updateCoderUI(self):
@@ -812,10 +814,10 @@ class PreferencesDlg(wx.Dialog):
             # apply settings over document pages
             for ii in range(coder.notebook.GetPageCount()):
                 doc = coder.notebook.GetPage(ii)
-                doc.theme = doc.coder.prefs['theme']
+                doc.theme = prefs.app['theme']
             for ii in range(coder.shelf.GetPageCount()):
                 doc = coder.shelf.GetPage(ii)
-                doc.theme = doc.prefs['theme']
+                doc.theme = prefs.app['theme']
 
     def OnApplyClicked(self, event):
         """Apply button clicked, this makes changes to the UI without leaving

@@ -13,36 +13,36 @@ class PavloviaButtons:
 
     def __init__(self, frame, toolbar, tbSize):
         self.frame = frame
+        self.app = frame.app
         self.toolbar = toolbar
         self.tbSize = tbSize
         self.btnHandles = {}
 
     def addPavloviaTools(self, buttons=[]):
-        rc = self.frame.app.prefs.paths['resources']
 
         info = {}
         info['pavloviaRun'] = {
-            'emblem': 'run16.png',
+            'emblem': 'run',
             'func': self.frame.onPavloviaRun,
             'label': _translate('Run online'),
             'tip': _translate('Run the study online (with pavlovia.org)')}
         info['pavloviaSync'] = {
-            'emblem': 'sync_green16.png',
+            'emblem': 'greensync',
             'func': self.frame.onPavloviaSync,
             'label': _translate('Sync online'),
             'tip': _translate('Sync with web project (at pavlovia.org)')}
         info['pavloviaSearch'] = {
-            'emblem': 'magnifier16.png',
+            'emblem': 'magnifier',
             'func': self.onPavloviaSearch,
             'label': _translate('Search Pavlovia.org'),
             'tip': _translate('Find existing studies online (at pavlovia.org)')}
         info['pavloviaUser'] = {
-            'emblem': 'user16.png',
+            'emblem': 'user',
             'func': self.onPavloviaUser,
             'label': _translate('Log in to Pavlovia'),
             'tip': _translate('Log in to (or create user at) Pavlovia.org')}
         info['pavloviaProject'] = {
-            'emblem': 'info16.png',
+            'emblem': 'info',
             'func': self.onPavloviaProject,
             'label': _translate('View project'),
             'tip': _translate('View details of this project')}
@@ -55,17 +55,11 @@ class PavloviaButtons:
             btnFunc = info[buttonName]['func']
             label = info[buttonName]['label']
             tip = info[buttonName]['tip']
-            btnImage = icons.combineImageEmblem(
-                    main=join(rc, 'globe%i.png' % self.tbSize),
-                    emblem=join(rc, emblem), pos='bottom_right')
-
-            if 'phoenix' in wx.PlatformInfo:
-                self.btnHandles[buttonName] = self.toolbar.AddTool(
-                        wx.ID_ANY, label, btnImage, tip)
-            else:
-                self.btnHandles[buttonName] = self.toolbar.AddSimpleTool(
-                        wx.ID_ANY, btnImage, label, tip)
-
+            self.btnHandles[buttonName] = self.app.iconCache.makeBitmapButton(
+                    parent=self,
+                    filename='globe.png', label=label, name=buttonName,
+                    emblem=emblem,
+                    toolbar=self.toolbar, tip=tip, size=self.tbSize)
             self.toolbar.Bind(wx.EVT_TOOL, btnFunc, self.btnHandles[buttonName])
 
     def onPavloviaSync(self, evt=None):

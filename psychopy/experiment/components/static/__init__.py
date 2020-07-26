@@ -131,6 +131,21 @@ class StaticComponent(BaseComponent):
         self.writeParamUpdates(buff)
         code = "%(name)s.complete()  # finish the static period\n"
         buff.writeIndented(code % self.params)
+        # Calculate stop time
+        if self.params['stopType'].val == 'time (s)':
+            code = "%(name)s.tStop = %(stopVal)s  # record stop time\n"
+        elif self.params['stopType'].val == 'duration (s)':
+            code = "%(name)s.tStop = %(name)s.tStart + %(stopVal)s  # record stop time\n"
+        elif self.params['stopType'].val == 'duration (frames)':
+            code = "%(name)s.tStop = %(name)s.tStart + %(stopVal)s*frameDur  # record stop time\n"
+        elif self.params['stopType'].val == 'frame N':
+            code = "%(name)s.tStop = %(stopVal)s*frameDur  # record stop time\n"
+        else:
+            msg = ("Couldn't deduce end point for startType=%(startType)s, "
+                   "stopType=%(stopType)s")
+            raise Exception(msg % self.params)
+        # Store stop time
+        buff.writeIndented(code % self.params)
         # to get out of the if statement
         buff.setIndentLevel(-1, relative=True)
 

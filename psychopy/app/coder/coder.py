@@ -15,6 +15,7 @@ from builtins import range
 import wx
 import wx.stc
 import wx.richtext
+from psychopy.app.themes._themes import ThemeSwitcher
 from wx.html import HtmlEasyPrinting
 
 import wx.lib.agw.aui as aui  # some versions of phoenix
@@ -32,18 +33,16 @@ import textwrap
 from . import psychoParser
 from .. import stdOutRich, dialogs
 from .. import pavlovia_ui
-from psychopy import logging
+from psychopy import logging, prefs
 from psychopy.localization import _translate
-from ..utils import FileDropTarget, PsychopyToolbar, PsychopyTabArt, PsychopyDockArt
-from psychopy.app.style import cLib, cs
+from ..utils import FileDropTarget, PsychopyToolbar, FrameSwitcher
 from psychopy.projects import pavlovia
 import psychopy.app.pavlovia_ui.menu
 from psychopy.app.coder.codeEditorBase import BaseCodeEditor
 from psychopy.app.coder.fileBrowser import FileBrowserPanel
 from psychopy.app.coder.sourceTree import SourceTreePanel
-from psychopy.app.coder.styling import StylerMixin, PsychopyPyShell
+from psychopy.app.themes import ThemeMixin
 from psychopy.app.coder.folding import CodeEditorFoldingMixin
-from psychopy.app.icons import combineImageEmblem
 from ..plugin_manager import PluginManagerFrame
 from psychopy.app.errorDlg import ErrorMsgDialog
 
@@ -97,6 +96,19 @@ def fromPickle(filename):
     return contents
 
 
+class PsychopyPyShell(wx.py.shell.Shell, ThemeMixin):
+    '''Simple class wrapper for Pyshell which uses the Psychopy ThemeMixin'''
+    def __init__(self, coder):
+        msg = _translate('PyShell in PsychoPy - type some commands!')
+        wx.py.shell.Shell.__init__(self, coder.shelf, -1, introText=msg + '\n\n', style=wx.BORDER_NONE)
+        self.prefs = coder.prefs
+        self.paths = coder.paths
+        self.app = coder.app
+
+        # Set theme to match code editor
+        self._applyAppTheme()
+
+
 class Printer(HtmlEasyPrinting):
     """bare-bones printing, no control over anything
 
@@ -107,7 +119,7 @@ class Printer(HtmlEasyPrinting):
         HtmlEasyPrinting.__init__(self)
 
     def GetHtmlText(self, text):
-        "Simple conversion of text."
+        """Simple conversion of text."""
 
         text = text.replace('&', '&amp;')
         text = text.replace('<P>', '&#60;P&#62;')
@@ -123,8 +135,14 @@ class Printer(HtmlEasyPrinting):
         return html_text
 
     def Print(self, text, doc_name):
-        self.SetHeader(doc_name)
-        self.PrintText('<HR>' + self.GetHtmlText(text), doc_name)
+        self.SetStandardFonts(size=prefs.coder['codeFontSize'], normal_face="",
+                              fixed_face=prefs.coder['codeFont'])
+
+        _, fname = os.path.split(doc_name)
+        self.SetHeader("Page @PAGENUM@ of @PAGESCNT@ - " + fname +
+                       " (@DATE@ @TIME@)<HR>")
+        # use <tt> tag since we're dealing with old school HTML here
+        self.PrintText("<tt>" + self.GetHtmlText(text) + '</tt>', doc_name)
 
 
 class ScriptThread(threading.Thread):
@@ -495,7 +513,7 @@ class UnitTestFrame(wx.Frame):
         self.Destroy()
 
 
-class CodeEditor(BaseCodeEditor, CodeEditorFoldingMixin, StylerMixin):
+class CodeEditor(BaseCodeEditor, CodeEditorFoldingMixin, ThemeMixin):
     """Code editor class for the Coder GUI.
     """
     def __init__(self, parent, ID, frame,
@@ -509,7 +527,6 @@ class CodeEditor(BaseCodeEditor, CodeEditorFoldingMixin, StylerMixin):
         self.prefs = self.coder.prefs
         self.paths = self.coder.paths
         self.app = self.coder.app
-        self.sourceAsstScroll = 0  # keep track of scrolling
         self.SetViewWhiteSpace(self.coder.appData['showWhitespace'])
         self.SetViewEOL(self.coder.appData['showEOLs'])
         self.Bind(wx.EVT_DROP_FILES, self.coder.filesDropped)
@@ -533,7 +550,6 @@ class CodeEditor(BaseCodeEditor, CodeEditorFoldingMixin, StylerMixin):
         # with this document. This makes sure the tree maintains it's state when
         # moving between documents.
         self.expandedItems = {}
-        self.sourceAsstScroll = 0
 
         # show the long line edge guide, enabled if >0
         self.edgeGuideColumn = self.coder.prefs['edgeGuideColumn']
@@ -545,8 +561,15 @@ class CodeEditor(BaseCodeEditor, CodeEditorFoldingMixin, StylerMixin):
         # caret info, these are updated by calling updateCaretInfo()
         self.indentSize = self.GetIndent()
         self.caretCurrentPos = self.GetCurrentPos()
-        self.caretVisible, self.caretColumn, self.caretLine = \
-            self.PositionToXY(self.caretCurrentPos)
+        self.caretVisible, caretColumn, caretLine = self.PositionToXY(
+            self.caretCurrentPos)
+
+        if self.caretVisible:
+            self.caretColumn = caretColumn
+            self.caretLine = caretLine
+        else:
+            self.caretLine = self.GetCurrentLine()
+            self.caretColumn = self.GetLineLength(self.caretLine)
 
         # where does the line text start?
         self.caretLineIndentCol = \
@@ -575,14 +598,17 @@ class CodeEditor(BaseCodeEditor, CodeEditorFoldingMixin, StylerMixin):
         self.AutoCompSetIgnoreCase(True)
         self.AutoCompSetAutoHide(True)
         self.AutoCompStops('. ')
+        self.openBrackets = 0
 
         # better font rendering and less flicker on Windows by using Direct2D
         # for rendering instead of GDI
         if wx.Platform == '__WXMSW__':
             self.SetTechnology(3)
 
-        # prevent flickering on update
-        self.SetDoubleBuffered(True)
+        # double buffered better rendering except if retina
+        self.SetDoubleBuffered(self.coder.IsDoubleBuffered())
+
+        self.theme = self.app.prefs.app['theme']
 
     def setFonts(self):
         """Make some styles,  The lexer defines what each style is used for,
@@ -605,8 +631,7 @@ class CodeEditor(BaseCodeEditor, CodeEditorFoldingMixin, StylerMixin):
         faces['comment'] = self.coder.prefs['codeFont']
 
         # apply the theme to the lexer
-        self.theme = self.coder.prefs['theme']
-        #applyStyleSpec(self, self.coder.prefs['theme'], self.GetLexer(), faces)
+        self.theme = self.coder.app.prefs.app['theme']
 
     def setLexerFromFileName(self):
         """Set the lexer to one that best matches the file name."""
@@ -665,21 +690,35 @@ class CodeEditor(BaseCodeEditor, CodeEditorFoldingMixin, StylerMixin):
 
     def OnKeyReleased(self, event):
         """Called after a key is released."""
-        keyCode = event.GetKeyCode()
-        _mods = event.GetModifiers()
-        if keyCode == ord('.'):
-            if self.AUTOCOMPLETE:
-                # A dot was entered, get suggestions if part of a qualified name
-                wx.CallAfter(self.ShowAutoCompleteList)  # defer
+
+        if hasattr(self.coder, "useAutoComp"):
+            keyCode = event.GetKeyCode()
+            _mods = event.GetModifiers()
+            if keyCode == ord('.'):
+                if self.coder.useAutoComp:
+                    # A dot was entered, get suggestions if part of a qualified name
+                    wx.CallAfter(self.ShowAutoCompleteList)  # defer
+                else:
+                    self.coder.SetStatusText(
+                        'Press Ctrl+Space to show code completions', 0)
+            elif keyCode == ord('9') and wx.MOD_SHIFT == _mods:
+                # A left bracket was entered, check if there is a calltip available
+                if self.coder.useAutoComp:
+                    if not self.CallTipActive():
+                        wx.CallAfter(self.ShowCalltip)
+
+                    self.openBrackets += 1
+                else:
+                    self.coder.SetStatusText(
+                        'Press Ctrl+Space to show calltip', 0)
+            elif keyCode == ord('0') and wx.MOD_SHIFT == _mods:  # close if brace matches
+                if self.CallTipActive():
+                    self.openBrackets -= 1
+                    if self.openBrackets <= 0:
+                        self.CallTipCancel()
+                        self.openBrackets = 0
             else:
-                self.coder.SetStatusText(
-                    'Press Ctrl+Space to show code completions', 0)
-        elif keyCode == ord('9') and wx.MOD_SHIFT == _mods:
-            # A left bracket was entered, check if there is a calltip available
-            if not self.CallTipActive():
-                wx.CallAfter(self.ShowCalltip)
-        else:
-            self.coder.SetStatusText('', 0)
+                self.coder.SetStatusText('', 0)
 
         event.Skip()
 
@@ -725,6 +764,7 @@ class CodeEditor(BaseCodeEditor, CodeEditorFoldingMixin, StylerMixin):
                 self.AutoCompCancel()  # close the auto completion list
             if self.CallTipActive():
                 self.CallTipCancel()
+                self.openBrackets = 0
 
         elif keyCode == wx.WXK_RETURN: # and not self.AutoCompActive():
             if not self.AutoCompActive():
@@ -734,6 +774,10 @@ class CodeEditor(BaseCodeEditor, CodeEditorFoldingMixin, StylerMixin):
                 self.smartIdentThisLine()
                 self.analyseScript()
                 return  # so that we don't reach the skip line at end
+
+            if self.CallTipActive():
+                self.CallTipCancel()
+                self.openBrackets = 0
 
         # quote line
         elif keyCode == ord("'"):
@@ -834,8 +878,16 @@ class CodeEditor(BaseCodeEditor, CodeEditorFoldingMixin, StylerMixin):
         """
         self.indentSize = self.GetIndent()
         self.caretCurrentPos = self.GetCurrentPos()
-        self.caretVisible, self.caretColumn, self.caretLine = \
-            self.PositionToXY(self.caretCurrentPos)
+        self.caretVisible, caretColumn, caretLine = self.PositionToXY(
+            self.caretCurrentPos)
+
+        if self.caretVisible:
+            self.caretColumn = caretColumn
+            self.caretLine = caretLine
+        else:
+            self.caretLine = self.GetCurrentLine()
+            self.caretColumn = self.GetLineLength(self.caretLine)
+
         self.caretLineIndentCol = \
             self.GetColumn(self.GetLineIndentPosition(self.caretLine))
         self.caretLineIndentLevel = self.caretLineIndentCol / self.indentSize
@@ -900,8 +952,6 @@ class CodeEditor(BaseCodeEditor, CodeEditorFoldingMixin, StylerMixin):
         # scan the AST for objects we care about
         if hasattr(self.coder, 'structureWindow'):
             self.coder.structureWindow.refresh()
-            self.coder.structureWindow.srcTree.SetScrollPos(
-                self.sourceAsstScroll, wx.VERTICAL)
 
     def setLexer(self, lexer=None):
         """Lexer is a simple string (e.g. 'python', 'html')
@@ -911,9 +961,9 @@ class CodeEditor(BaseCodeEditor, CodeEditorFoldingMixin, StylerMixin):
         try:
             lex = getattr(wx.stc, "STC_LEX_%s" % (lexer.upper()))
         except AttributeError:
-            logging.warn("Unknown lexer %r. Using 'python'." % lexer)
-            lex = wx.stc.STC_LEX_PYTHON
-            lexer = 'python'
+            logging.warn("Unknown lexer %r. Using plain text." % lexer)
+            lex = wx.stc.STC_LEX_NULL
+            lexer = 'null'
         # then actually set it
         self.SetLexer(lex)
         self.setFonts()
@@ -979,6 +1029,9 @@ class CodeEditor(BaseCodeEditor, CodeEditorFoldingMixin, StylerMixin):
                 start = 0
                 loc = textstring.find(findstring, start)
 
+        # Adjust for offset
+        loc += 2
+
         # was it still not found?
         if loc == -1:
             dlg = dialogs.MessageDialog(self, message=_translate(
@@ -995,11 +1048,11 @@ class CodeEditor(BaseCodeEditor, CodeEditorFoldingMixin, StylerMixin):
             if loc == -1:
                 wx.CallAfter(findDlg.SetFocus)
                 return
-            else:
-                findDlg.Close()
+            # else:
+            #     findDlg.Close()
 
 
-class CoderFrame(wx.Frame):
+class CoderFrame(wx.Frame, ThemeMixin):
 
     def __init__(self, parent, ID, title, files=(), app=None):
         self.app = app  # type: PsychoPyApp
@@ -1031,6 +1084,10 @@ class CoderFrame(wx.Frame):
                           (self.appData['winX'], self.appData['winY']),
                           size=(self.appData['winW'], self.appData['winH']))
 
+        # detect retina displays (then don't use double-buffering)
+        self.isRetina = self.GetContentScaleFactor() != 1
+        self.SetDoubleBuffered(not self.isRetina)
+
         # create a panel which the aui manager can hook onto
         szr = wx.BoxSizer(wx.VERTICAL)
         self.pnlMain = wx.Panel(self)
@@ -1043,7 +1100,7 @@ class CoderFrame(wx.Frame):
         if sys.platform == 'darwin':
             pass  # doesn't work and not necessary - handled by app bundle
         else:
-            iconFile = os.path.join(self.paths['resources'], 'psychopy.ico')
+            iconFile = os.path.join(self.paths['resources'], 'coder.ico')
             if os.path.isfile(iconFile):
                 self.SetIcon(wx.Icon(iconFile, wx.BITMAP_TYPE_ICO))
         # NB not the same as quit - just close the window
@@ -1069,52 +1126,62 @@ class CoderFrame(wx.Frame):
 
         # Setup pane and art managers
         self.paneManager = aui.AuiManager(self.pnlMain, aui.AUI_MGR_DEFAULT | aui.AUI_MGR_RECTANGLE_HINT)
-        self._art = PsychopyDockArt()
-        self.paneManager.SetArtProvider(self._art)
         # Create toolbar
         self.toolbar = PsychopyToolbar(self)
+        self.SetToolBar(self.toolbar)
         # Create menus and status bar
         self.makeMenus()
         self.makeStatusBar()
-        self.statusBar.SetStatusText("PsychoPy v{}".format(psychopy.__version__), 3)
         self.fileMenu = self.editMenu = self.viewMenu = None
         self.helpMenu = self.toolsMenu = None
 
         # Create source assistant notebook
-        self.sourceAsst = aui.AuiNotebook(self.pnlMain, wx.ID_ANY)
-        self.sourceAsst.SetArtProvider(PsychopyTabArt())
+        self.sourceAsst = aui.AuiNotebook(
+            self.pnlMain,
+            wx.ID_ANY,
+            size = wx.Size(350, 600),
+            agwStyle=aui.AUI_NB_CLOSE_ON_ALL_TABS |
+                     aui.AUI_NB_TAB_SPLIT |
+                     aui.AUI_NB_TAB_MOVE)
+
         self.structureWindow = SourceTreePanel(self.sourceAsst, self)
         self.fileBrowserWindow = FileBrowserPanel(self.sourceAsst, self)
         # Add source assistant panel
         self.paneManager.AddPane(self.sourceAsst,
                                  aui.AuiPaneInfo().
-                                 BestSize((600, 600)).
-                                 Floatable(True).
-                                 BottomDockable(True).TopDockable(True).
+                                 BestSize((350, 600)).
+                                 FloatingSize((350, 600)).
+                                 Floatable(False).
+                                 BottomDockable(False).TopDockable(False).
                                  CloseButton(False).PaneBorder(False).
                                  Name("SourceAsst").
                                  Caption(_translate("Source Assistant")).
                                  Left().Show(self.prefs['showSourceAsst']))
         # Add structure page to source assistant
+        self.structureWindow.SetName("Structure")
         self.sourceAsst.AddPage(self.structureWindow, "Structure")
-        self.sourceAsst.SetPageBitmap(0, wx.Bitmap(
-            os.path.join(self.paths['resources'], 'coderclass16.png'),
-            wx.BITMAP_TYPE_PNG))
         # Add file browser page to source assistant
+        self.fileBrowserWindow.SetName("FileBrowser")
         self.sourceAsst.AddPage(self.fileBrowserWindow, "File Browser")
-        self.sourceAsst.SetPageBitmap(1, wx.Bitmap(
-            os.path.join(self.paths['resources'], 'folder-open16.png'),
-            wx.BITMAP_TYPE_PNG))
+
+        # remove close buttons
+        self.sourceAsst.SetCloseButton(0, False)
+        self.sourceAsst.SetCloseButton(1, False)
 
         # Create editor notebook
         #todo: Why is editor default background not same as usual frame backgrounds?
-        self.notebook = aui.AuiNotebook(self.pnlMain, -1, size=wx.Size(480, 600))
-        self.notebook.SetArtProvider(PsychopyTabArt())
+        self.notebook = aui.AuiNotebook(
+            self.pnlMain, -1, size=wx.Size(480, 600),
+            agwStyle=aui.AUI_NB_TAB_MOVE | aui.AUI_NB_CLOSE_ON_ACTIVE_TAB)
+
+        #self.notebook.SetArtProvider(PsychopyTabArt())
         # Add editor panel
         self.paneManager.AddPane(self.notebook, aui.AuiPaneInfo().
                                  Name("Editor").
                                  Caption(_translate("Editor")).
-                                 BestSize((600,600)).
+                                 BestSize((480, 600)).
+                                 Floatable(False).
+                                 Movable(False).
                                  Center().PaneBorder(False).  # 'center panes' expand
                                  CloseButton(False).
                                  MaximizeButton(True))
@@ -1127,10 +1194,11 @@ class CoderFrame(wx.Frame):
         self.Bind(wx.EVT_DROP_FILES, self.filesDropped)
         self.Bind(wx.EVT_FIND, self.OnFindNext)
         self.Bind(wx.EVT_FIND_NEXT, self.OnFindNext)
-        self.Bind(wx.EVT_FIND_CLOSE, self.OnFindClose)
+        #self.Bind(wx.EVT_FIND_CLOSE, self.OnFindClose)
         self.Bind(wx.EVT_END_PROCESS, self.onProcessEnded)
 
         # take files from arguments and append the previously opened files
+        filename = ""
         if files not in [None, [], ()]:
             for filename in files:
                 if not os.path.isfile(filename):
@@ -1138,8 +1206,8 @@ class CoderFrame(wx.Frame):
                 self.setCurrentDoc(filename, keepHidden=True)
 
         # Create shelf notebook
-        self.shelf = aui.AuiNotebook(self.pnlMain, wx.ID_ANY, size=wx.Size(600, 600), style=wx.BORDER_NONE)
-        self.shelf.SetArtProvider(PsychopyTabArt())
+        self.shelf = aui.AuiNotebook(self.pnlMain, wx.ID_ANY, size=wx.Size(600, 600), agwStyle=aui.AUI_NB_CLOSE_ON_ALL_TABS)
+        #self.shelf.SetArtProvider(PsychopyTabArt())
         # Create shell
         self._useShell = None
         if haveCode:
@@ -1160,25 +1228,28 @@ class CoderFrame(wx.Frame):
                 self.shell = PsychopyPyShell(self)
                 self._useShell = 'pyshell'
             # Add shell to output pane
+            self.shell.SetName("PythonShell")
             self.shelf.AddPage(self.shell, _translate('Shell'))
-            self.shelf.SetPageBitmap(0, wx.Bitmap(
-                os.path.join(self.paths['resources'], 'coderpython16.png'),
-                wx.BITMAP_TYPE_PNG))
+            # Hide close button
+            for i in range(self.shelf.GetPageCount()):
+                self.shelf.SetCloseButton(i, False)
         # Add shelf panel
         self.paneManager.AddPane(self.shelf,
                                  aui.AuiPaneInfo().
                                  Name("Shelf").
                                  Caption(_translate("Shelf")).
                                  BestSize((600, 250)).PaneBorder(False).
-                                 Floatable(True).
+                                 Floatable(False).
+                                 Movable(True).
                                  BottomDockable(True).TopDockable(True).
                                  CloseButton(False).
                                  Bottom().Show(self.prefs['showOutput']))
-        # Update panes
-        self.paneManager.Update()
+        self._applyAppTheme()
         self.unitTestFrame = None
 
         # Link to Runner output
+        if self.app.runner is None:
+            self.app.newRunnerFrame()
         self.outputWindow = self.app.runner.stdOut
         self.outputWindow.write(_translate('Welcome to PsychoPy3!') + '\n')
         self.outputWindow.write("v%s\n" % self.app.version)
@@ -1192,12 +1263,26 @@ class CoderFrame(wx.Frame):
         else:
             self.SetMinSize(wx.Size(400, 600))  # min size for whole window
             self.Fit()
-            self.paneManager.Update()
+        # Update panes PsychopyToolbar
+        isExp = filename.endswith(".py") or filename.endswith(".psyexp")
+        self.toolbar.EnableTool(self.cdrBtnRunner.Id, isExp)
+        self.toolbar.EnableTool(self.cdrBtnRun.Id, isExp)
+        self.paneManager.Update()
 
         self.sourceAsstChk.Check(
-            self.paneManager.GetPane('SourceAsst').IsShown())
+            self.paneManager.GetPane('SourceAsst').IsShown()
+        )
+        #self.chkShowAutoComp.Check(self.prefs['autocomplete'])
         self.SendSizeEvent()
         self.app.trackFrame(self)
+
+    @property
+    def useAutoComp(self):
+        """Show autocomplete while typing."""
+        return self.prefs['autocomplete']
+
+    def GetAuiManager(self):
+        return self.paneManager
 
     def outputContextMenu(self, event):
         """Custom context menu for output window.
@@ -1467,20 +1552,37 @@ class CoderFrame(wx.Frame):
         menu = self.viewMenu
         menuBar.Append(self.viewMenu, _translate('&View'))
 
-        # Get list of themes
-        themePath = self.GetTopLevelParent().app.prefs.paths['themes']
-        self.themeList = {}
-        for themeFile in os.listdir(themePath):
-            try:
-                # Load theme from json file
-                with open(os.path.join(themePath, themeFile), "rb") as fp:
-                    theme = json.load(fp)
-                # Add themes to list only if min spec is defined
-                base = theme['base']
-                if all(key in base for key in ['bg', 'fg', 'font']):
-                    self.themeList[themeFile.replace('.json', '')] = []
-            except:
-                pass
+        # Frame switcher (legacy
+        item = menu.Append(wx.ID_ANY,
+                           _translate("Go to Builder view"),
+                           _translate("Go to the Builder view"))
+        self.Bind(wx.EVT_MENU, self.app.showBuilder, id=item.GetId())
+
+        key = self.app.keys['switchToRunner']
+        item = menu.Append(wx.ID_ANY,
+                           _translate("Open Runner view"),
+                           _translate("Open the Runner view"))
+        self.Bind(wx.EVT_MENU, self.app.showRunner, item)
+        menu.AppendSeparator()
+        # Panel switcher
+        self.panelsMenu = wx.Menu()
+        menu.AppendSubMenu(self.panelsMenu,
+                           _translate("Panels"))
+        # output window
+        key = keyCodes['toggleOutputPanel']
+        hint = _translate("Shows the output and shell panes (and starts "
+                          "capturing stdout)")
+        self.outputChk = self.panelsMenu.AppendCheckItem(
+            wx.ID_ANY, _translate("&Output/Shell\t%s") % key, hint)
+        self.outputChk.Check(self.prefs['showOutput'])
+        self.Bind(wx.EVT_MENU, self.setOutputWindow, id=self.outputChk.GetId())
+        # source assistant
+        hint = "Hide/show the source assistant pane."
+        self.sourceAsstChk = self.panelsMenu.AppendCheckItem(wx.ID_ANY,
+                                                  "Source Assistant",
+                                                  hint)
+        self.Bind(wx.EVT_MENU, self.setSourceAsst,
+                  id=self.sourceAsstChk.GetId())
 
         # indent guides
         key = keyCodes['toggleIndentGuides']
@@ -1508,63 +1610,13 @@ class CoderFrame(wx.Frame):
             hint)
         self.showEOLsChk.Check(self.appData['showEOLs'])
         self.Bind(wx.EVT_MENU, self.setShowEOLs, id=self.showEOLsChk.GetId())
+        menu.AppendSeparator()
         # Theme Switcher
-        self.themesMenu = wx.Menu()
+        self.themesMenu = ThemeSwitcher(self)
         menu.AppendSubMenu(self.themesMenu,
-                           _translate("Themes..."))
-        for theme in self.themeList:
-            self.themeList[theme] = self.themesMenu.Append(wx.ID_ANY, _translate(theme))
-            self.Bind(wx.EVT_MENU, self.switchTheme, self.themeList[theme])
+                           _translate("Themes"))
 
-        menu.AppendSeparator()
-        # output window
-        key = keyCodes['toggleOutputPanel']
-        hint = _translate("Shows the output and shell panes (and starts "
-                          "capturing stdout)")
-        self.outputChk = menu.AppendCheckItem(wx.ID_ANY,
-                                              _translate("Show &Output/Shell\t%s") % key,
-                                              hint)
-        self.outputChk.Check(self.prefs['showOutput'])
-        self.Bind(wx.EVT_MENU, self.setOutputWindow, id=self.outputChk.GetId())
-        # source assistant
-        hint = "Hide/show the source structure pane."
-        self.sourceAsstChk = menu.AppendCheckItem(wx.ID_ANY,
-                                                  "Source Structure",
-                                                  hint)
-        self.Bind(wx.EVT_MENU, self.setSourceAsst,
-                  id=self.sourceAsstChk.GetId())
-
-        hint = "Hide/show file browser pane."
-        self.fileBrowserChk = menu.AppendCheckItem(wx.ID_ANY,
-                                                  "File Browser",
-                                                  hint)
-        self.Bind(wx.EVT_MENU, self.setFileBrowser,
-                  id=self.fileBrowserChk.GetId())
-
-        menu.AppendSeparator()
-
-        key = self.app.keys['switchToBuilder']
-        item = menu.Append(wx.ID_ANY,
-                           _translate("Go to &Builder view\t%s") % key,
-                           _translate("Go to the Builder view"))
-        self.Bind(wx.EVT_MENU, self.app.showBuilder, id=item.GetId())
-
-        key = self.app.keys['switchToRunner']
-        item = menu.Append(wx.ID_ANY,
-                           _translate("&Open Runner view\t%s") % key,
-                           _translate("Open the Runner view"))
-        self.Bind(wx.EVT_MENU, self.app.showRunner, item)
-
-        # self.viewMenu.Append(self.IDs.openShell,
-        #   "Go to &IPython Shell\t%s" %self.app.keys['switchToShell'],
-        #   "Go to a shell window for interactive commands")
-        # self.Bind(wx.EVT_MENU,  self.app.showShell, id=self.IDs.openShell)
-        # self.viewMenu.Append(self.IDs.openIPythonNotebook,
-        #   "Go to &IPython notebook",
-        #   "Open an IPython notebook (unconnected in a browser)")
-        # self.Bind(wx.EVT_MENU, self.app.openIPythonNotebook,
-        #    id=self.IDs.openIPythonNotebook)
-
+        # ---_demos---#000000#FFFFFF------------------------------------------
         self.demosMenu = wx.Menu()
         self.demos = {}
         menuBar.Append(self.demosMenu, _translate('&Demos'))
@@ -1629,6 +1681,11 @@ class CoderFrame(wx.Frame):
         # ---_projects---#000000#FFFFFF---------------------------------------
         self.pavloviaMenu = psychopy.app.pavlovia_ui.menu.PavloviaMenu(parent=self)
         menuBar.Append(self.pavloviaMenu, _translate("Pavlovia.org"))
+
+        # ---_window---#000000#FFFFFF-----------------------------------------
+        self.windowMenu = FrameSwitcher(self)
+        menuBar.Append(self.windowMenu,
+                    _translate("Window"))
 
         # ---_help---#000000#FFFFFF-------------------------------------------
         self.helpMenu = wx.Menu()
@@ -1847,19 +1904,12 @@ class CoderFrame(wx.Frame):
         old = event.GetOldSelection()
         new = event.GetSelection()
         self.currentDoc = self.notebook.GetPage(new)
+        self.app.updateWindowMenu()
         self.setFileModified(self.currentDoc.UNSAVED)
         self.SetLabel('%s - PsychoPy Coder' % self.currentDoc.filename)
 
-        # scroll the source tree to where it was before for this document,
-        # prevents it from jumping around annoyingly
         if hasattr(self, 'structureWindow'):
-            # get the old source assist scroll position, save it
-            if old > -1 and old < self.notebook.GetPageCount()-1:
-                self.notebook.GetPage(old).sourceAsstScroll = \
-                    self.structureWindow.GetScrollVert()
             self.currentDoc.analyseScript()
-            self.structureWindow.srcTree.SetScrollPos(
-                wx.VERTICAL, self.currentDoc.sourceAsstScroll)
 
         self.statusBar.SetStatusText(self.currentDoc.getFileType(), 2)
 
@@ -1909,12 +1959,12 @@ class CoderFrame(wx.Frame):
             self.OnFindOpen(event)
             return
         self.currentDoc.DoFindNext(self.findData, self.findDlg)
-        if self.findDlg is not None:
-            self.OnFindClose(None)
+        # if self.findDlg is not None:
+        #     self.OnFindClose(None)
 
-    def OnFindClose(self, event):
-        self.findDlg.Destroy()
-        self.findDlg = None
+    # def OnFindClose(self, event):
+    #     self.findDlg.Destroy()
+    #     self.findDlg = None
 
     def OnFileHistory(self, evt=None):
         # get the file based on the menu ID
@@ -2024,6 +2074,7 @@ class CoderFrame(wx.Frame):
         self.app.forgetFrame(self)
         self.Destroy()
         self.app.coder = None
+        self.app.updateWindowMenu()
 
     def filePrint(self, event=None):
         pr = Printer()
@@ -2056,13 +2107,18 @@ class CoderFrame(wx.Frame):
             # give the user a chance to save his file.
             self.UNSAVED = True
 
-        if doc == self.currentDoc:
+        if doc == self.currentDoc and hasattr(self, 'cdrBtnSave'):
             self.cdrBtnSave.Enable(doc.UNSAVED)
 
         self.statusBar.SetStatusText(_translate('Analyzing code'))
         if hasattr(self, 'structureWindow'):
             self.currentDoc.analyseScript()
         self.statusBar.SetStatusText('')
+
+    @property
+    def filename(self):
+        if self.currentDoc:
+            return self.currentDoc.filename
 
     def findDocID(self, filename):
         # find the ID of the current doc
@@ -2124,18 +2180,17 @@ class CoderFrame(wx.Frame):
                 self.fileHistory.AddFileToHistory(filename)
             else:
                 # set name for an untitled document
-                filename = shortName = 'untitled.py'
+                filename = 'untitled.py'
                 allFileNames = self.getOpenFilenames()
                 n = 1
                 while filename in allFileNames:
-                    filename = shortName = 'untitled%i.py' % n
+                    filename = 'untitled%i.py' % n
                     n += 1
 
                 # create modification time for in memory document
                 self.currentDoc.fileModTime = time.ctime()
 
             self.currentDoc.EmptyUndoBuffer()
-            #self.currentDoc.SetScrollWidth(p.GetClientSize().width)
 
             path, shortName = os.path.split(filename)
             self.notebook.AddPage(p, shortName)
@@ -2162,6 +2217,12 @@ class CoderFrame(wx.Frame):
             self.Show()  # if the user had closed the frame it might be hidden
         if readonly:
             self.currentDoc.SetReadOnly(True)
+        self.currentDoc._applyAppTheme()
+        isExp = filename.endswith(".py") or filename.endswith(".psyexp")
+
+        self.toolbar.EnableTool(self.cdrBtnRunner.Id, isExp)
+        self.toolbar.EnableTool(self.cdrBtnRun.Id, isExp)
+        self.app.updateWindowMenu()
 
     def fileOpen(self, event=None, filename=None):
         if not filename:
@@ -2215,8 +2276,9 @@ class CoderFrame(wx.Frame):
         If the ``filename`` is ``None`` then the ``doc``'s current filename
         is used or a dlg is presented to get a new filename.
         """
-        if self.currentDoc.AutoCompActive():
-            self.currentDoc.AutoCompCancel()
+        if hasattr(self.currentDoc, 'AutoCompActive'):
+            if self.currentDoc.AutoCompActive():
+                self.currentDoc.AutoCompCancel()
 
         if doc is None:
             doc = self.currentDoc
@@ -2385,6 +2447,7 @@ class CoderFrame(wx.Frame):
 
     def runFile(self, event=None):
         """Open Runner for running the script."""
+
         fullPath = self.currentDoc.filename
         filename = os.path.split(fullPath)[1]
         # does the file need saving before running?
@@ -2401,9 +2464,11 @@ class CoderFrame(wx.Frame):
                 self.fileSave(None)  # save then run
             elif resp == wx.ID_NO:
                 pass  # just run
-
         self.app.runner.addTask(fileName=fullPath)
         self.app.showRunner()
+        if event:
+            if event.Id == self.cdrBtnRun.Id:
+                self.app.runner.panel.runFile(fileName=fullPath)
 
     def copy(self, event):
         foc = self.FindFocus()
@@ -2457,6 +2522,7 @@ class CoderFrame(wx.Frame):
         # show/hide the output window (from the view menu control)
         if value is None:
             value = self.outputChk.IsChecked()
+        self.outputChk.Check(value)
         if value:
             # show the pane
             self.prefs['showOutput'] = True
@@ -2467,27 +2533,6 @@ class CoderFrame(wx.Frame):
             self.paneManager.GetPane('Shelf').Hide()
         self.app.prefs.saveUserPrefs()  # includes a validation
         self.paneManager.Update()
-
-    def switchTheme(self, event):
-        # Switch theme for coder view
-
-        # Use menu item Id to find value
-        newVal = [item.ItemLabel
-                  for item in self.themesMenu.GetMenuItems()
-                  if item.GetId() == event.GetId()]
-        # Update user prefs
-        self.app.prefs.userPrefsCfg['coder']['theme'] = newVal[0]
-        self.app.prefs.userPrefsCfg.write()
-        # Apply new theme to coder view
-        for ii in range(self.notebook.GetPageCount()):
-            doc = self.notebook.GetPage(ii)
-            doc.theme = newVal[0]
-        for ii in range(self.shelf.GetPageCount()):
-            doc = self.shelf.GetPage(ii)
-            doc.theme = newVal[0]
-        # Apply new theme to runner view
-        self.app.runner.stdOut.theme = newVal[0]
-        self.app.runner.alerts.theme = newVal[0]
 
     def setShowIndentGuides(self, event):
         # show/hide the source assistant (from the view menu control)
@@ -2522,15 +2567,20 @@ class CoderFrame(wx.Frame):
             self.prefs['showSourceAsst'] = True
         self.paneManager.Update()
 
-    def setFileBrowser(self, event):
-        # show/hide the source file browser
-        if not self.fileBrowserChk.IsChecked():
-            self.paneManager.GetPane("FileBrowser").Hide()
-            self.prefs['showFileBrowser'] = False
-        else:
-            self.paneManager.GetPane("FileBrowser").Show()
-            self.prefs['showFileBrowser'] = True
-        self.paneManager.Update()
+    # def setAutoComplete(self, event=None):
+    #     # show/hide the source assistant (from the view menu control)
+    #     self.prefs['autocomplete'] = self.useAutoComp = \
+    #         self.chkShowAutoComp.IsChecked()
+
+    # def setFileBrowser(self, event):
+    #     # show/hide the source file browser
+    #     if not self.fileBrowserChk.IsChecked():
+    #         self.paneManager.GetPane("FileBrowser").Hide()
+    #         self.prefs['showFileBrowser'] = False
+    #     else:
+    #         self.paneManager.GetPane("FileBrowser").Show()
+    #         self.prefs['showFileBrowser'] = True
+    #     self.paneManager.Update()
 
     def analyseCodeNow(self, event):
         self.statusBar.SetStatusText(_translate('Analyzing code'))
@@ -2577,7 +2627,8 @@ class CoderFrame(wx.Frame):
         # changes the document flag, updates save buttons
         self.currentDoc.UNSAVED = isModified
         # disabled when not modified
-        self.cdrBtnSave.Enable(isModified)
+        if hasattr(self, 'cdrBtnSave'):
+            self.cdrBtnSave.Enable(isModified)
         # self.fileMenu.Enable(self.fileMenu.FindItem('&Save\tCtrl+S"'),
         #     isModified)
 
@@ -2586,7 +2637,8 @@ class CoderFrame(wx.Frame):
         self.onIdle(event=None)
         self.scriptProcess = None
         self.scriptProcessID = None
-        self.toolbar.EnableTool(self.IDs.cdrBtnRun, True)
+        self.toolbar.EnableTool(self.cdrBtnRun.Id, True)
+        self.toolbar.EnableTool(self.cdrBtnRunner.Id, True)
 
     def onURL(self, evt):
         """decompose the URL of a file and line number"""
@@ -2621,4 +2673,16 @@ class CoderFrame(wx.Frame):
         # TODO: update user icon on button to user avatar
         pass
 
-
+    def _applyAppTheme(self, target=None):
+        """Overrides theme change from ThemeMixin.
+        Don't call - this is called at the end of theme.setter"""
+        ThemeMixin._applyAppTheme(self)  # handles most recursive setting
+        ThemeMixin._applyAppTheme(self.toolbar)
+        ThemeMixin._applyAppTheme(self.statusBar)
+        # updating sourceAsst will incl fileBrowser and sourcetree
+        ThemeMixin._applyAppTheme(self.sourceAsst)
+        ThemeMixin._applyAppTheme(self.notebook)
+        self.notebook.Refresh()
+        if hasattr(self, 'shelf'):
+            ThemeMixin._applyAppTheme(self.shelf)
+        self.Update()

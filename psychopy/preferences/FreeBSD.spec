@@ -45,9 +45,12 @@
     # Modifier keys for shutdown keys
     shutdownKeyModifiers = list(default=list())
     # What to do if gamma-correction not possible
+    # What to do if gamma-correction not possible
     gammaErrorPolicy = option('abort', 'warn', default='abort')
     # Add plugin names here to load when a PsychoPy session starts.
     startUpPlugins = list(default=list())
+    # Should the Builder and Coder "run" buttons add the experiment to runner view or skip straight to running it?
+    useRunner = boolean(default='True')
 
 # Application settings, applied to coder, builder, & prefs windows
 [app]
@@ -67,10 +70,8 @@
     locale = string(default='')
     # Show an error dialog when PsychoPy encounters an unhandled internal error.
     errorDialog = boolean(default='True')
-    # Dark mode
-    darkmode = boolean(default='False')
-    # Icons
-    iconset = option('modern', 'classic', default='modern')
+    # Theme
+    theme = string(default='PsychopyLight')
 
 # Settings for the Coder window
 [coder]
@@ -88,12 +89,12 @@
     lineSpacing = integer(0, 64, default=4)
     # Long line edge guide, specify zero to disable
     edgeGuideColumn = integer(0, 65536, default=80)
-    # Color theme to use for syntax highlighting
-    theme = string(default='PsychopyLight')
     # activate the source assistant panel
     showSourceAsst = boolean(default=True)
     # activate the output and shell panels
     showOutput = boolean(default=True)
+    # Show code completion suggestion and calltips automatically when typing.
+    autocomplete = boolean(default=True)
     # reload previously opened files after start
     reloadPrevFiles = boolean(default=True)
     # for coder shell window, which shell to use
@@ -103,12 +104,14 @@
 [builder]
     # whether to automatically reload a previously open experiment
     reloadPrevExp = boolean(default=False)
+    # Default to when writing code components
+    codeComponentLanguage = option('Py', 'JS', 'Both', 'Auto->JS', default='Auto->JS')
     # if False will create scripts with an 'easier' but more cluttered namespace
     unclutteredNamespace = boolean(default=False)
     # folder names for custom components; expects a comma-separated list
     componentsFolders = list(default=list('/Users/Shared/PsychoPy3/components'))
     # a list of components to hide (eg, because you never use them)
-    hiddenComponents = list(default=list('PatchComponent'))
+    hiddenComponents = list(default=list('PatchComponent', 'UnknownComponent'))
     # where the Builder demos are located on this computer (after unpacking)
     unpackedDemosDir = string(default='')
     # name of the folder where subject data should be saved (relative to the script)
@@ -209,6 +212,8 @@
     compileScript = string(default='F5')
     # launch a script, Builder or Coder, or run unit-tests
     runScript = string(default='Ctrl+R')
+    # launch a script, Builder or Coder, or run unit-tests
+    runnerScript = string(default='Ctrl+Shift+R')
     # attempt to interrupt and halt a running script
     stopScript = string(default='Ctrl+.')
 

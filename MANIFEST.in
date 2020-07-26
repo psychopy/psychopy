@@ -3,6 +3,7 @@ recursive-include psychopy *.txt
 recursive-include psychopy *.zip
 
 recursive-include psychopy *.png
+recursive-include psychopy/app/themes *.json
 recursive-include psychopy/app/Resources *.icns
 recursive-include psychopy/app/Resources *.ico
 recursive-include psychopy/app/Resources *.ttf

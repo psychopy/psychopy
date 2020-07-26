@@ -57,7 +57,7 @@ class TextComponent(BaseVisualComponent):
         # params
         _allow3 = ['constant', 'set every repeat', 'set every frame']  # list
         self.params['text'] = Param(
-            text, valType='str', allowedTypes=[],
+            text, valType='extendedStr', allowedTypes=[],
             updates='constant', allowedUpdates=_allow3[:],  # copy the list
             hint=_translate("The text to be displayed"),
             label=_localized['text'])

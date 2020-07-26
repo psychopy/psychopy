@@ -30,7 +30,8 @@ _localized = {'Items': _translate('Items'),
 class FormComponent(BaseComponent):
     """A class for presenting a survey as a Builder component"""
 
-    categories = ['Stimuli', 'Responses']
+    categories = ['Responses']
+    targets = ['PsychoPy', 'PsychoJS']
 
     def __init__(self, exp, parentName,
                  name='form',
@@ -113,7 +114,6 @@ class FormComponent(BaseComponent):
             label=_localized['Data Format'])
 
     def writeInitCode(self, buff):
-
         inits = getInitVals(self.params)
         # build up an initialization string for Form():
         initStr = ("win.allowStencil = True\n"
@@ -126,11 +126,26 @@ class FormComponent(BaseComponent):
                    "    itemPadding={Item Padding})\n".format(**inits))
         buff.writeIndented(initStr)
 
+    def writeInitCodeJS(self, buff):
+        inits = getInitVals(self.params)
+        # build up an initialization string for Form():
+        initStr = ("{name} = visual.Form(win=win, name='{name}',\n"
+                   "    items={Items},\n"
+                   "    textHeight={Text Height},\n"
+                   "    randomize={Randomize},\n"
+                   "    size={Size},\n"
+                   "    pos={Pos},\n"
+                   "    itemPadding={Item Padding});\n".format(**inits))
+        buff.writeIndented(initStr)
+
     def writeRoutineStartCode(self, buff):
         pass
 
     def writeFrameCode(self, buff):
         buff.writeIndented("%(name)s.draw()\n" % (self.params))
+
+    def writeFrameCodeJS(self, buff):
+        buff.writeIndented("%(name)s.draw();\n" % (self.params))
 
     def writeRoutineEndCode(self, buff):
         if self.params['Data Format'] == 'rows':
@@ -142,9 +157,28 @@ class FormComponent(BaseComponent):
         elif self.params['Data Format'] == 'columns':
             code = ("{name}Data = {name}.getData()\n"
                     "for dataTypes in {name}Data.keys():\n"
-                    "    for index, items in enumerate({name}Data[dataTypes]):\n"
-                    "        thisExp.addData('{name}.' + str(index), items)\n"
+                    "    for thisIndex, thisItem in enumerate({name}Data[dataTypes]):\n"
+                    "        thisExp.addData('{name}.' + str(thisIndex), thisItem)\n"
                     "    thisExp.nextEntry()\n".format(**self.params))
         buff.writeIndented(code)
 
-
+    def writeRoutineEndCodeJS(self, buff):
+        if self.params['Data Format'] == 'rows':
+            code = ("while ({name}Data['questions']) {{\n"
+                    "    for (var dataType, _pj_c = 0, _pj_a = {name}Data.keys(), _pj_b = _pj_a.length; (_pj_c < _pj_b); _pj_c += 1) {{\n"
+                    "        dataType = _pj_a[_pj_c];\n"
+                    "        thisExp.addData(dataType, {name}Data[dataType].popleft());\n"
+                    "        }}\n"
+                    "    thisExp.nextEntry();\n"
+                    "}}\n".format(**self.params))
+        elif self.params['Data Format'] == 'columns':
+            code = ("formData = form.getData();\n"
+                    "for (var dataType, _pj_c = 0, _pj_a = formData.keys(), _pj_b = _pj_a.length; (_pj_c < _pj_b); _pj_c += 1) {{\n"
+                    "    dataType = _pj_a[_pj_c];\n"
+                    "    for (var ii = 0, _pj_d = formData[dataType].length; (ii < _pj_d); ii += 1) {{\n"
+                    "        thisItem = formData[dataType][ii];\n"
+                    "        thisExp.addData(('form.'+index.toString()), thisItem);\n"
+                    "    }}\n"
+                    "    thisExp.nextEntry();\n"
+                    "}}\n".format(**self.params))
+        buff.writeIndented(code)

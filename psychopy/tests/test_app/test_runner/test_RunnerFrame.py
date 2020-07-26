@@ -15,7 +15,7 @@ class Test_RunnerFrame(object):
 
     def test_RunnerFrame(self):
         self.runner = self.app.newRunnerFrame()
-        self.runner.showRunner()
+        self.app.showRunner()
 
     def test_addFile(self):
         self.runner.addTask(fileName=self.tempFile)
