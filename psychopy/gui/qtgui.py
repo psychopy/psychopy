@@ -432,17 +432,20 @@ class DlgFromDict(Dlg):
 
     def __init__(self, dictionary, title='', fixed=None, order=None,
                  tip=None, screen=-1, sortKeys=True, copyDict=False,
-                 labels=None, show=True, **kwargs):
+                 labels=None, show=True,
+                 sort_keys=None, copy_dict=None):
 
         # We allowed for snake_case parameters in previous releases. This needs
         # to end soon.
-        if 'sort_keys' in kwargs:
-            sortKeys = kwargs['sort_keys']
-            logging.warning("Parameter 'sort_keys' is deprecated. Use 'sortKeys' instead.")
+        if sort_keys:
+            sortKeys = sort_keys
+            logging.warning("Parameter 'sort_keys' is deprecated. "
+                            "Use 'sortKeys' instead.")
 
-        if 'copy_dict' in kwargs:
-            copyDict = kwargs['copy_dict']
-            logging.warning("Parameter 'copy_dict' is deprecated. Use 'copyDict' instead.")
+        if copy_dict:
+            copyDict = copy_dict
+            logging.warning("Parameter 'copy_dict' is deprecated. "
+                            "Use 'copyDict' instead.")
         
         # We don't explicitly check for None identity
         # for backward-compatibility reasons.
