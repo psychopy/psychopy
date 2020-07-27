@@ -436,7 +436,7 @@ class PsychoPyApp(wx.App, themes.ThemeMixin):
             if v('3.0') <= v(wx.version()) <v('4.0'):
                 _Showgui_Hack()  # returns ~immediately, no display
                 # focus stays in never-land, so bring back to the app:
-                if mainFrame in ['both', 'builder']:
+                if prefs.app['defaultView'] in ['all', 'builder', 'coder', 'runner']:
                     self.showBuilder()
                 else:
                     self.showCoder()
