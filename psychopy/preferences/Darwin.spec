@@ -231,12 +231,8 @@
     toggleOutputPanel = string(default='Ctrl+Shift+O')
     #Builder: rename an existing routine
     renameRoutine = string(default='Ctrl+Shift+R')
-    # switch to Builder window from Coder
-    switchToBuilder = string(default='Ctrl+L')
-    # switch to Coder window from Builder
-    switchToCoder = string(default='Ctrl+L')
-    # switch to Runner
-    switchToRunner = string(default='Ctrl+Alt+R')
+    # switch between windows
+    cycleWindows = string(default='Ctrl+L')
     # increase display size in Flow
     largerFlow = string(default='Ctrl+=')
     # decrease display size in Flow

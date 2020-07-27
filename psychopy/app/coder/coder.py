@@ -1555,7 +1555,6 @@ class CoderFrame(wx.Frame, ThemeMixin):
                            _translate("Go to the Builder view"))
         self.Bind(wx.EVT_MENU, self.app.showBuilder, id=item.GetId())
 
-        key = self.app.keys['switchToRunner']
         item = menu.Append(wx.ID_ANY,
                            _translate("Open Runner view"),
                            _translate("Open the Runner view"))

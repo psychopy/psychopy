@@ -99,13 +99,13 @@ class MenuFrame(wx.Frame, themes.ThemeMixin):
         self.menuBar.Append(self.viewMenu, _translate('&View'))
         mtxt = _translate("&Open Builder view\t%s")
         self.app.IDs.openBuilderView = self.viewMenu.Append(wx.ID_ANY,
-                             mtxt % self.app.keys['switchToBuilder'],
+                             mtxt,
                              _translate("Open a new Builder view")).GetId()
         self.Bind(wx.EVT_MENU, self.app.showBuilder,
                   id=self.app.IDs.openBuilderView)
         mtxt = _translate("&Open Coder view\t%s")
         self.app.IDs.openCoderView = self.viewMenu.Append(wx.ID_ANY,
-                             mtxt % self.app.keys['switchToCoder'],
+                             mtxt,
                              _translate("Open a new Coder view")).GetId()
         self.Bind(wx.EVT_MENU, self.app.showCoder,
                   id=self.app.IDs.openCoderView)
@@ -561,6 +561,12 @@ class PsychoPyApp(wx.App, themes.ThemeMixin):
         for frame in self.getAllFrames():
             if hasattr(frame, "windowMenu"):
                 frame.windowMenu.Update()
+
+    def cycleFrames(self, event=None):
+        """Cycle through list of open windows"""
+        i = self.getAllFrames().index(self.GetTopWindow())
+        self.SetTopWindow(self.getAllFrames()[i-1])
+
 
     def showCoder(self, event=None, fileList=None):
         # have to reimport because it is only local to __init__ so far
