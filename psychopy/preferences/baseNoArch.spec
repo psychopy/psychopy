@@ -204,7 +204,7 @@
     # launch a script, Builder or Coder, or run unit-tests
     runScript = string(default='Ctrl+R')
     # launch a script, Builder or Coder, or run unit-tests
-    runnerScript = string(default='Ctrl+Shift+R')
+    runnerScript = string(default='Ctrl+Alt+R')
     # attempt to interrupt and halt a running script
     stopScript = string(default='Ctrl+.')
 

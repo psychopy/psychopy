@@ -196,7 +196,6 @@ class Preferences(object):
         self.builder = self.userPrefsCfg['builder']
         self.hardware = self.userPrefsCfg['hardware']
         self.connections = self.userPrefsCfg['connections']
-        self.keys = self.userPrefsCfg['keyBindings']
         self.appData = self.appDataCfg
 
         # keybindings:
