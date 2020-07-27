@@ -22,6 +22,7 @@ from pkg_resources import parse_version
 
 OK = wx.ID_OK
 
+thisVer = parse_version(wx.__version__)
 
 def ensureWxApp():
     # make sure there's a wxApp prior to showing a gui, e.g., for expInfo
@@ -30,12 +31,13 @@ def ensureWxApp():
         wx.Dialog(None, -1)  # not shown; FileDialog gives same exception
         return True
     except wx._core.PyNoAppError:
-        if parse_version(wx.__version__) < parse_version('2.9'):
+        if thisVer < parse_version('2.9'):
             return wx.PySimpleApp()
-        elif parse_version(wx.__version__) >= parse_version('4.0'):
-            raise Exception("wx>=4.0 clashes with pyglet and making it unsafe "
-                            "as a PsychoPy gui helper. Please install PyQt (4 or 5)"
-                            " or wxPython3 instead.")
+        elif thisVer >= parse_version('4.0') and thisVer < parse_version(4.1):
+            raise Exception(
+                    "wx>=4.0 clashes with pyglet and making it unsafe "
+                    "as a PsychoPy gui helper. Please install PyQt (4 or 5)"
+                    " or wxPython3 instead.")
         else:
             return wx.App(False)
 
@@ -292,7 +294,7 @@ class DlgFromDict(Dlg):
         # app = ensureWxApp() done by Dlg
         super().__init__(title)
 
-        if copy_dict:
+        if copyDict:
             self.dictionary = dictionary.copy()
         else:
             self.dictionary = dictionary
