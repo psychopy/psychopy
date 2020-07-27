@@ -1054,10 +1054,10 @@ class BuilderFrame(wx.Frame, ThemeMixin):
                 return  # save file before compiling script
 
         self.stdoutFrame.addTask(fileName=self.filename)
-        self.app.showRunner()
         if event:
             if event.Id == self.bldrBtnRun.Id:
-                self.app.runner.panel.runFile(fileName=self.filename)
+                self.app.runner.panel.runLocal(event)
+        self.app.showRunner()
 
     def onCopyRoutine(self, event=None):
         """copy the current routine from self.routinePanel
