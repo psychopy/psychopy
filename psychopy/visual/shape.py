@@ -152,7 +152,7 @@ class BaseShapeStim(BaseVisualStim, ColorMixin, ContainerMixin):
         self.depth = depth
         self.ori = numpy.array(ori, float)
         self.size = numpy.array([0.0, 0.0]) + size  # make sure that it's 2D
-        if vertices is not ():  # flag for when super-init'ing a ShapeStim
+        if vertices != ():  # flag for when super-init'ing a ShapeStim
             self.vertices = vertices  # call attributeSetter
         self.autoDraw = autoDraw  # call attributeSetter
 

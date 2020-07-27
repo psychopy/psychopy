@@ -556,8 +556,8 @@ class ThemeMixin:
 
     def _setCodeColors(self, spec):
         """To be called from _psychopyApp only"""
-        if not self.GetTopWindow() == self:
-            psychopy.logging.warning("This function should only be called from _psychopyApp")
+        #if not self.GetTopWindow() == self:
+        #    psychopy.logging.warning("This function should only be called from _psychopyApp")
 
         base = spec['base']
         base['font'] = self.extractFont(base['font'])
