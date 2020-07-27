@@ -21,6 +21,7 @@ import numpy as np
 import freetype as ft
 import OpenGL.GL as gl
 import glob
+from pathlib import Path
 
 from psychopy import logging
 from psychopy import prefs
@@ -30,17 +31,8 @@ from psychopy.exceptions import MissingFontError
 if PY3:
     unichr = chr
 
-font_family_aliases = set([
-    'serif',
-    'sans-serif',
-    'sans serif',
-    'cursive',
-    'fantasy',
-    'monospace',
-    'sans'])
-
 #  OS Font paths
-X11FontDirectories = [
+_X11FontDirectories = [
     # an old standard installation point
     "/usr/X11R6/lib/X11/fonts/TTF",
     "/usr/X11/lib/X11/fonts",
@@ -52,7 +44,7 @@ X11FontDirectories = [
     "/usr/lib/openoffice/share/fonts/truetype",
 ]
 
-OSXFontDirectories = [
+_OSXFontDirectories = [
     "/Library/Fonts/",
     "/Network/Library/Fonts",
     "/System/Library/Fonts",
@@ -61,7 +53,7 @@ OSXFontDirectories = [
     ""
 ]
 
-
+supportedExtensions = ['ttf', 'otf', 'ttc', 'dfont']
 
 
 def unicode(s, fmt='utf-8'):
@@ -561,24 +553,35 @@ class TextureGlyph:
             return 0
 
 
-def findSystemFonts():
-    """Returns a list of available font names in the system folders
+def findFontFiles(folders=(), recursive=True):
+    """Search for font files in the folder (or system folders)
 
-    :return: list of strings
+    Parameters
+    ----------
+    folders: iterable
+        folders to search. If empty then search typical system folders
+
+    Returns
+    -------
+    list of pathlib.Path objects
     """
     if sys.platform == 'win32':
         searchPaths = []  # just leave it to matplotlib as below
     elif sys.platform == 'darwin':
         # on mac matplotlib doesn't include 'ttc' files (which are fine)
-        searchPaths = OSXFontDirectories
+        searchPaths = _OSXFontDirectories
     elif sys.platform.startswith('linux'):
-        searchPaths = X11FontDirectories
+        searchPaths = _X11FontDirectories
     # search those folders
     fontPaths = []
     for thisFolder in searchPaths:
-        for thisExt in ['ttf', 'otf', 'ttc', 'dfont']:
-            fontPaths.extend(glob.glob("{}{}*.{}".format(
-                thisFolder, os.path.sep, thisExt)))
+        thisFolder = Path(thisFolder)
+        for thisExt in supportedExtensions:
+            if recursive:
+                fontPaths.extend(thisFolder.rglob("*.{}".format(thisExt)))
+            else:
+                fontPaths.extend(thisFolder.glob("*.{}".format(thisExt)))
+
     # if we failed let matplotlib have a go
     if fontPaths:
         return fontPaths
@@ -614,9 +617,9 @@ class FontManager(object):
 
     """
     freetype_import_error = None
-    fontDict = {}
+    _glFonts = {}
     fontStyles = []
-    _available_fontInfo = {}
+    _fontInfos = {}  # JWP: dict of name:FontInfo objects
 
     def __init__(self, monospaceOnly=False):
         self.addFontDirectory(prefs.paths['resources'])
@@ -629,8 +632,8 @@ class FontManager(object):
 
     def __str__(self):
         S = "Loaded:\n"
-        if len(self.fontDict):
-            for name in self.fontDict:
+        if len(self._glFonts):
+            for name in self._glFonts:
                 S += "  {}\n".format(name)
         else:
             S += "None\n"
@@ -639,24 +642,26 @@ class FontManager(object):
         return S
 
     def getDefaultSansFont(self):
+        """Load and return the FontInfo for the first found default font"""
         for name in ['Verdana', 'DejaVu Sans', 'Bitstream Vera Sans', 'Tahoma']:
             this = self.getFontNamesSimilar(name)
             if this:
+                font = self.addFontFile(this)
                 return this
         raise MissingFontError("Failed to find any of the default fonts. "
                                "Existing fonts: {}"
-                               .format(list(self._available_fontInfo)))
+                               .format(list(self._fontInfos)))
 
     def getFontFamilyNames(self):
         """Returns a list of the available font family names.
         """
-        return list(self._available_fontInfo.keys())
+        return list(self._fontInfos.keys())
 
     def getFontStylesForFamily(self, family_name):
         """For the given family, a list of style names supported is
         returned.
         """
-        style_dict = self._available_fontInfo.get(family_name)
+        style_dict = self._fontInfos.get(family_name)
         if style_dict:
             return list(style_dict.keys())
 
@@ -675,7 +680,7 @@ class FontManager(object):
         """
         if type(fontName) != bytes:
             fontName = bytes(fontName, sys.getfilesystemencoding())
-        style_dict = self._available_fontInfo.get(fontName)
+        style_dict = self._fontInfos.get(fontName)
         if not style_dict:
             similar = self.getFontNamesSimilar(fontName)
             if len(similar) == 0:
@@ -685,7 +690,7 @@ class FontManager(object):
                 logging.warning("Font {} was requested. Exact match wasn't "
                                 "found but we will proceed with {}?"
                                 .format(repr(fontName), repr(similar[0])))
-                style_dict = self._available_fontInfo.get(similar[0])
+                style_dict = self._fontInfos.get(similar[0])
             else:  # more than 1 alternatives. Which to use?
                 raise ValueError("Font {} was requested. Exact match wasn't "
                                  "found, but maybe one of these was intended:"
@@ -704,27 +709,33 @@ class FontManager(object):
     def getFontNamesSimilar(self, fontName):
         if type(fontName) != bytes:
             fontName = bytes(fontName, sys.getfilesystemencoding())
-        allNames = list(self._available_fontInfo)
+        allNames = list(self._fontInfos)
         similar = [this for this in allNames if
                    (fontName.lower() in this.lower())]
         return similar
 
     def addFontFile(self, fontPath, monospaceOnly=False):
-        """
-        Add a Font File to the FontManger font search space. The
+        """Add a Font File to the FontManger font search space. The
         fontPath must be a valid path including the font file name.
         Relative paths can be used, with the current working directory being
         the origin.
 
         If monospaceOnly is True, the font file will only be added if it is a
-        monospace font (as only monospace fonts are currently supported by
-        TextBox).
+        monospace font.
 
         Adding a Font to the FontManager is not persistent across runs of
         the script, so any extra font paths need to be added each time the
         script starts.
         """
-        return self.addFontFiles((fontPath,), monospaceOnly)
+        fi_list = set()
+        if os.path.isfile(fontPath) and os.path.exists(fontPath):
+            face = ft.Face(str(fontPath))
+            if monospaceOnly:
+                if face.is_fixed_width:
+                    fi_list.add(self._createFontInfo(fontPath, face))
+            else:
+                fi_list.add(self._createFontInfo(fontPath, face))
+        return fi_list
 
     def addFontFiles(self, fontPaths, monospaceOnly=False):
         """ Add a list of font files to the FontManger font search space.
@@ -733,8 +744,7 @@ class FontManager(object):
         working directory being the origin.
 
         If monospaceOnly is True, each font file will only be added if it is
-        a monospace font (as only monospace fonts are currently supported by
-        TextBox).
+        a monospace font.
 
         Adding fonts to the FontManager is not persistent across runs of
         the script, so any extra font paths need to be added each time the
@@ -743,14 +753,7 @@ class FontManager(object):
 
         fi_list = []
         for fp in fontPaths:
-            if os.path.isfile(fp) and os.path.exists(fp):
-                face = ft.Face(fp)
-                if monospaceOnly:
-                    if face.is_fixed_width:
-                        fi_list.append(self._createFontInfo(fp, face))
-                else:
-                    fi_list.append(self._createFontInfo(fp, face))
-
+            self.addFontFile(fp, monospaceOnly)
         self.fontStyles.sort()
 
         return fi_list
@@ -770,18 +773,7 @@ class FontManager(object):
         the script, so any extra font paths need to be added each time the
         script starts.
         """
-
-        from os import walk
-
-        fontPaths = []
-        for (dirpath, dirnames, filenames) in walk(fontDir):
-            ttf_files = [os.path.join(dirpath, fname)
-                         for fname in filenames
-                         if fname.lower().endswith('.ttf')]
-            fontPaths.extend(ttf_files)
-            if not recursive:
-                break
-
+        fontPaths = findFontFiles([fontDir], recursive=recursive)
         return self.addFontFiles(fontPaths)
 
     # Class methods for FontManager below this comment should not need to be
@@ -801,17 +793,17 @@ class FontManager(object):
             return False
         fontInfo = fontInfos[0]
         identifier = "{}_{}".format(str(fontInfo), size)
-        glFont = self.fontDict.get(identifier)
+        glFont = self._glFonts.get(identifier)
         if glFont is None:
             glFont = GLFont(fontInfo.path, size)
-            self.fontDict[identifier] = glFont
+            self._glFonts[identifier] = glFont
 
         return glFont
 
     def updateFontInfo(self, monospaceOnly=False):
-        self._available_fontInfo.clear()
+        self._fontInfos.clear()
         del self.fontStyles[:]
-        fonts_found = findSystemFonts()
+        fonts_found = findFontFiles()
         self.addFontFiles(fonts_found, monospaceOnly)
 
     def booleansFromStyleName(self, style):
@@ -834,6 +826,7 @@ class FontManager(object):
         return bold, italic
 
     def _createFontInfo(self, fp, fface):
+        """"""
         fns = (fface.family_name, fface.style_name)
         if fns in self.fontStyles:
             pass
@@ -841,7 +834,7 @@ class FontManager(object):
             self.fontStyles.append(
                 (fface.family_name, fface.style_name))
 
-        styles_for_font_dict = self._available_fontInfo.setdefault(
+        styles_for_font_dict = FontManager._fontInfos.setdefault(
             fface.family_name, {})
         fonts_for_style = styles_for_font_dict.setdefault(fface.style_name, [])
         fi = FontInfo(fp, fface)
@@ -850,12 +843,12 @@ class FontManager(object):
 
     def __del__(self):
         self.font_store = None
-        if self.fontDict:
-            self.fontDict.clear()
-            self.fontDict = None
-        if self._available_fontInfo:
-            self._available_fontInfo.clear()
-            self._available_fontInfo = None
+        if self._glFonts:
+            self._glFonts.clear()
+            self._glFonts = None
+        if self._fontInfos:
+            self._fontInfos.clear()
+            self._fontInfos = None
 
 
 class FontInfo(object):
