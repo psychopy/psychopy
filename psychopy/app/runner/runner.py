@@ -271,16 +271,14 @@ class RunnerFrame(wx.Frame, ThemeMixin):
     def onClose(self, event=None):
         """Define Frame closing behavior."""
         self.app.runner = None
-        self.app.forgetFrame(self)
-        self.Destroy()
-        self.app.updateWindowMenu()
-
         allFrames = self.app.getAllFrames()
         lastFrame = len(allFrames) == 1
         if lastFrame:
             self.onQuit()
         else:
             self.Hide()
+        self.app.forgetFrame(self)
+        self.app.updateWindowMenu()
 
     def onQuit(self, evt=None):
         sys.stderr = sys.stdout = sys.__stdout__
