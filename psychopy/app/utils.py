@@ -414,7 +414,8 @@ class FrameSwitcher(wx.Menu):
                     wx.ID_ANY, spec['label'], spec['label']
                 )
                 self.Bind(wx.EVT_MENU, spec['method'], self.itemFrames[key])
-            elif key in self.itemFrames:
+            elif any(isinstance(frame, spec['class']) for frame in self.frames)\
+                    and key in self.itemFrames:
                 self.DestroyItem(self.itemFrames[key])
                 del self.itemFrames[key]
 
