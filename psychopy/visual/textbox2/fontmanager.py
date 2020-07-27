@@ -692,7 +692,7 @@ class FontManager(object):
             similar = self.getFontNamesSimilar(fontName)
             if len(similar) == 0:
                 logging.warning("Font {} was requested. No similar font found.")
-                return self.getDefaultSansFont()
+                return [self.getDefaultSansFont()]
             elif len(similar) == 1:
                 logging.warning("Font {} was requested. Exact match wasn't "
                                 "found but we will proceed with {}?"
