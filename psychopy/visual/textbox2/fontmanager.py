@@ -645,7 +645,11 @@ class FontManager(object):
         """Load and return the FontInfo for the first found default font"""
         for name in ['Verdana', 'DejaVu Sans', 'Bitstream Vera Sans', 'Tahoma']:
             these = self.getFontsMatching(name, fallback=False)
-            if these:
+            # if str or Path then get a FontInfo object
+            if type(these) in [str, Path]:
+                these = self.addFontFiles(these)
+            # if we have something then return
+            if these and type(these):
                 font = self.addFontFiles(these)
                 return these
         raise MissingFontError("Failed to find any of the default fonts. "
