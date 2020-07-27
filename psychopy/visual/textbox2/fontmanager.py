@@ -644,7 +644,7 @@ class FontManager(object):
     def getDefaultSansFont(self):
         """Load and return the FontInfo for the first found default font"""
         for name in ['Verdana', 'DejaVu Sans', 'Bitstream Vera Sans', 'Tahoma']:
-            these = self.getFontsMatching(name)
+            these = self.getFontsMatching(name, fallback=False)
             if these:
                 font = self.addFontFiles(these)
                 return these
@@ -672,7 +672,7 @@ class FontManager(object):
         return self.fontStyles
 
     def getFontsMatching(self, fontName, bold=False, italic=False,
-                         fontStyle=None):
+                         fontStyle=None, fallback=True):
         """
         Returns the list of FontInfo instances that match the provided
         fontName and style information. If no matching fonts are
@@ -682,6 +682,8 @@ class FontManager(object):
             fontName = bytes(fontName, sys.getfilesystemencoding())
         style_dict = self._fontInfos.get(fontName)
         if not style_dict:
+            if not fallback:
+                return None
             similar = self.getFontNamesSimilar(fontName)
             if len(similar) == 0:
                 logging.warning("Font {} was requested. No similar font found.")
