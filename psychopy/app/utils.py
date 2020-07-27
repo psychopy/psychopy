@@ -354,8 +354,8 @@ class FrameSwitcher(wx.Menu):
         self.parent = parent
         self.app = parent.app
         # Listen for window switch
-        item = self.Append(wx.ID_MDI_WINDOW_NEXT, _translate("&Next Window\t%s") % self.app.keys['cycleWindows'], _translate("&Next Window\t%s") % self.app.keys['cycleWindows'])
-        self.Bind(wx.EVT_MENU, self.app.cycleWindows, item)
+        self.next = self.Append(wx.ID_MDI_WINDOW_NEXT, _translate("&Next Window\t%s") % self.app.keys['cycleWindows'], _translate("&Next Window\t%s") % self.app.keys['cycleWindows'])
+        self.Bind(wx.EVT_MENU, self.app.cycleWindows, self.next)
         self.AppendSeparator()
         # Define prereqs
         self.minItemSpec = [
@@ -372,6 +372,7 @@ class FrameSwitcher(wx.Menu):
 
     def Update(self):
         """Set items according to which windows are open"""
+        self.next.Enable(len(self.frames)>1)
         # Edit items to match frames
         for frame in self.itemFrames:
             item = self.itemFrames[frame]
