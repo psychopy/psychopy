@@ -353,6 +353,11 @@ class FrameSwitcher(wx.Menu):
         wx.Menu.__init__(self)
         self.parent = parent
         self.app = parent.app
+        # Listen for window switch
+        item = self.Append(wx.ID_MDI_WINDOW_NEXT, _translate("&Next Window\t%s") % self.app.keys['cycleWindows'], _translate("&Next Window\t%s") % self.app.keys['cycleWindows'])
+        self.Bind(wx.EVT_MENU, self.app.cycleWindows, item)
+        self.AppendSeparator()
+        # Define prereqs
         self.minItemSpec = [
             {'label': "Builder", 'class': psychopy.app.builder.BuilderFrame, 'method': self.app.showBuilder},
             {'label': "Coder", 'class': psychopy.app.coder.CoderFrame, 'method': self.app.showCoder},
