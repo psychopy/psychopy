@@ -333,7 +333,7 @@ class GLFont:
         self.filename = filename
         self.size = size
         self.glyphs = {}
-        face = ft.Face(filename)
+        face = ft.Face(str(filename))  # ft.Face doesn't support Pathlib yet
         face.set_char_size(int(self.size * self.scale))
         self.info = FontInfo(filename, face)
         self._dirty = False
@@ -383,7 +383,7 @@ class GLFont:
             note = "{} glyphs".format(nMax)
         logging.debug("Preloading {} for Texture Font {}"
                       .format(note, self.name))
-        face = ft.Face(self.filename)
+        face = ft.Face(str(self.filename))  # ft.Face doesn't support Pathlib
 
         chrs = (list(face.get_chars()))[:nMax]
         charcodes = [unichr(c[1]) for c in chrs]
@@ -402,7 +402,7 @@ class GLFont:
             Set of characters to be represented
         """
         if face is None:
-            face = ft.Face(self.filename)
+            face = ft.Face(str(self.filename))  # doesn't support Pathlib yet
 
         # if current glyph is same as last then maybe blank glyph?
         lastGlyph = None
@@ -644,10 +644,10 @@ class FontManager(object):
     def getDefaultSansFont(self):
         """Load and return the FontInfo for the first found default font"""
         for name in ['Verdana', 'DejaVu Sans', 'Bitstream Vera Sans', 'Tahoma']:
-            this = self.getFontNamesSimilar(name)
-            if this:
-                font = self.addFontFile(this)
-                return this
+            these = self.getFontsMatching(name)
+            if these:
+                font = self.addFontFiles(these)
+                return these
         raise MissingFontError("Failed to find any of the default fonts. "
                                "Existing fonts: {}"
                                .format(list(self._fontInfos)))
