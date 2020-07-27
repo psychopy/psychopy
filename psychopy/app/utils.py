@@ -352,6 +352,12 @@ class FrameSwitcher(wx.Menu):
     def __init__(self, parent):
         wx.Menu.__init__(self)
         self.parent = parent
+        self.app = parent.app
+        self.minItemSpec = [
+            {'label': "Builder", 'class': psychopy.app.builder.BuilderFrame, 'method': self.app.showBuilder},
+            {'label': "Coder", 'class': psychopy.app.coder.CoderFrame, 'method': self.app.showCoder},
+            {'label': "Runner", 'class': psychopy.app.runner.RunnerFrame, 'method': self.app.showRunner},
+        ]
         self.itemFrames = {}
         self.Update()
 
@@ -361,48 +367,54 @@ class FrameSwitcher(wx.Menu):
 
     def Update(self):
         """Set items according to which windows are open"""
-        for item in self.GetMenuItems():
-            self.DestroyItem(item)
+        # Edit items to match frames
+        for frame in self.itemFrames:
+            item = self.itemFrames[frame]
+            if not item or frame in ['NewCoder', 'NewRunner', 'NewBuilder']:
+                continue
+            if frame not in self.frames \
+                    or frame == self.Window:
+                # Delete unused items
+                self.DestroyItem(item)
+                self.itemFrames[frame] = None
+            else:
+                # Rename item
+                if frame.filename:
+                    self.itemFrames[frame].SetItemLabel(
+                        type(frame).__name__.replace("Frame", "") + ": " + os.path.basename(frame.filename)
+                    )
+                else:
+                    self.itemFrames[frame].SetItemLabel(
+                        type(frame).__name__.replace("Frame", "")
+                    )
+        self.itemFrames = {key: self.itemFrames[key] for key in self.itemFrames if self.itemFrames[key] is not None}
 
-        # Determine whether to show standard buttons based on open state
-        showBuilder = not any(isinstance(frame, psychopy.app.builder.BuilderFrame) and hasattr(frame, 'filename')
-                             for frame in self.parent.app.getAllFrames())
-        showCoder = not any(isinstance(frame, psychopy.app.coder.CoderFrame) and hasattr(frame, 'filename')
-                             for frame in self.parent.app.getAllFrames())
-        showRunner = not any(isinstance(frame, psychopy.app.runner.RunnerFrame) and hasattr(frame, 'filename')
-                            for frame in self.parent.app.getAllFrames())
-        # Add standard buttons
-        if showBuilder and not isinstance(self.parent, psychopy.app.builder.BuilderFrame):
-            self.builderBtn = self.Append(wx.ID_ANY,
-                                          _translate("Builder"),
-                                          _translate("Builder View"))
-            self.Bind(wx.EVT_MENU, self.parent.app.showBuilder, self.builderBtn)
-        if showCoder and not isinstance(self.parent, psychopy.app.coder.CoderFrame):
-            self.coderBtn = self.Append(wx.ID_ANY,
-                                          _translate("Coder"),
-                                          _translate("Coder View"))
-            self.Bind(wx.EVT_MENU, self.parent.app.showCoder, self.coderBtn)
-        if showRunner and not isinstance(self.parent, psychopy.app.runner.RunnerFrame):
-            self.runnerBtn = self.Append(wx.ID_ANY,
-                                        _translate("Runner"),
-                                        _translate("Runner View"))
-            self.Bind(wx.EVT_MENU, self.parent.app.showRunner, self.runnerBtn)
-
-        # Make buttons for each open file
+        # Make new items if needed
         for frame in self.frames:
-            if hasattr(frame, "filename") and frame != self.parent:
+            if frame not in self.itemFrames and not frame == self.Window:
                 if frame.filename:
                     label = type(frame).__name__.replace("Frame", "") + ": " + os.path.basename(frame.filename)
                 else:
                     label = type(frame).__name__.replace("Frame", "")
-                item = self.Append(wx.ID_ANY,
-                            _translate(label),
-                            _translate(label))
-                self.itemFrames[item.GetId()] = frame
-                self.Bind(wx.EVT_MENU, self.showFrame, item)
+                self.itemFrames[frame] = self.Append(wx.ID_ANY, label, label)
+                self.Bind(wx.EVT_MENU, self.showFrame, self.itemFrames[frame])
+
+        # Add creator options if no windows of given type exist
+        for spec in self.minItemSpec:
+            key = "New"+spec['label']
+            if not any(isinstance(frame, spec['class']) for frame in self.frames)\
+                    and key not in self.itemFrames:
+                self.itemFrames[key] = self.Append(
+                    wx.ID_ANY, spec['label'], spec['label']
+                )
+                self.Bind(wx.EVT_MENU, spec['method'], self.itemFrames[key])
+            elif key in self.itemFrames:
+                self.DestroyItem(self.itemFrames[key])
+                del self.itemFrames[key]
 
     def showFrame(self, event):
-        frame = self.itemFrames[event.Id]
+        itemFrames = event.EventObject.itemFrames
+        frame = [key for key in itemFrames if itemFrames[key].Id == event.Id][0]
         frame.Show(True)
         frame.Raise()
         self.parent.app.SetTopWindow(frame)

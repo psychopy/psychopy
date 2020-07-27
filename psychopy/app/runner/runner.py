@@ -87,11 +87,6 @@ class RunnerFrame(wx.Frame, ThemeMixin):
         if self.panel.currentSelection or self.panel.currentSelection == 0:
             return self.panel.expCtrl.GetItem(self.panel.currentSelection).Text
 
-    def Close(self, event=None):
-        self.app.runner = None
-        self.app.updateWindowMenu()
-        super(self).Close(self)
-
     def addTask(self, evt=None, fileName=None):
         self.panel.addTask(fileName=fileName)
 
@@ -275,9 +270,13 @@ class RunnerFrame(wx.Frame, ThemeMixin):
 
     def onClose(self, event=None):
         """Define Frame closing behavior."""
+        self.app.runner = None
+        self.app.forgetFrame(self)
+        self.Destroy()
+        self.app.updateWindowMenu()
+
         allFrames = self.app.getAllFrames()
         lastFrame = len(allFrames) == 1
-
         if lastFrame:
             self.onQuit()
         else:
