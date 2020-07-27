@@ -20,25 +20,33 @@ from psychopy.constants import PY3
 
 __author__ = 'Jon Peirce, David Bridges, Anthony Haffey'
 
+_REQUIRED = -12349872349873  # an unlikely int
 
 # a dict of known fields with their default vals
-knownFields = {'index': None,  # optional field to index into the rows
-               'itemText': 'default question',  # (question used until 2020.2)
-               'itemColor': 'white',
-               'itemWidth': 0.8,  # fraction of the form
-               'type': 'rating',  # type of response box (see below)
-               'options': ('Yes', 'No'),  # for choice box
-               'ticks': (1, 2, 3, 4, 5, 6, 7), 'tickLabels': None,
-               # for rating/slider
-               'responseWidth': 0.8,  # fraction of the form
-               'responseColor': 'white',
-               'layout': 'horiz',  # can be vert or horiz
-               }
-knownRespTypes = {'heading', 'description',  # no responses
-                  'rating', 'slider',  # slider is continuous
-                  'free text',
-                  'choice', 'radio'  # synonyms (radio was used until v2020.2)
-                  }
+_knownFields = {
+    'index': None,  # optional field to index into the rows
+    'itemText': _REQUIRED,  # (question used until 2020.2)
+    'itemColor': 'white',
+    'itemWidth': 0.8,  # fraction of the form
+    'type': _REQUIRED,  # type of response box (see below)
+    'options': ('Yes', 'No'),  # for choice box
+    'ticks': (1, 2, 3, 4, 5, 6, 7), 'tickLabels': None,
+    # for rating/slider
+    'responseWidth': 0.8,  # fraction of the form
+    'responseColor': 'white',
+    'layout': 'horiz',  # can be vert or horiz
+}
+_knownRespTypes = {
+    'heading', 'description',  # no responses
+    'rating', 'slider',  # slider is continuous
+    'free text',
+    'choice', 'radio'  # synonyms (radio was used until v2020.2)
+}
+_synonyms = {
+    'itemText': 'questionText',
+    'choice': 'radio',
+    'free text': 'textBox'
+}
 
 class Form(BaseVisualStim, ContainerMixin, ColorMixin):
     """A class to add Forms to a `psycopy.visual.Window`
@@ -146,22 +154,48 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
         List of dicts
             A list of dicts, where each list entry is a dict containing all fields for a single Form item
         """
+        def _checkSynonyms(items, fieldNames):
+            """Checks for updated names for fields (i.e. synonyms)"""
+            replacedFields = set()
+            for field in _synonyms:
+                synonym = _synonyms[field]
+                for item in items:
+                    if synonym in item:
+                        # convert to new name
+                        item[field] = item[synonym]
+                        del item[synonym]
+                        replacedFields.add(field)
+            for field in replacedFields:
+                fieldNames.add(field)
+                fieldNames.remove(_synonyms[field])
+                logging.warning("Form {} included field no longer used {}. "
+                                "Replacing with new name '{}'"
+                                .format(self.name, _synonyms[field], field))
+
+        def _checkRequiredFields(fieldNames):
+            """Checks for required headings (do this after checking synonyms)"""
+            for hdr in _knownFields:
+                # is it required and/or present?
+                if _knownFields[hdr] == _REQUIRED and hdr not in fieldNames:
+                    raise ValueError("Missing header ({}) in Form ({}). "
+                                     "Headers found were: {}"
+                                     .format(hdr, self.name, fieldNames))
+
 
         def _checkTypes(types):
             """A nested function for testing the number of options given
 
             Raises ValueError if n Options not > 1
             """
-            itemDiff = set([types]) - set(knownRespTypes)
+            itemDiff = set([types]) - set(_knownRespTypes)
 
             if len(itemDiff) > 0:
-                msg = ("In Forms, {} is not allowed. You can only use type {}. "
-                       "Please amend your item types in your item list"
-                       .format(itemDiff, knownRespTypes))
+                msg = ("In Forms, {} is not allowed. You can only use types {}."
+                       " Please amend your item types in your item list"
+                       .format(itemDiff, _knownRespTypes))
                 if self.autoLog:
                     logging.error(msg)
                 raise ValueError(msg)
-
 
         def _addDefaultItems(items):
             """
@@ -177,18 +211,24 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
                 return (field in d and d[field] not in [None, ''])
 
             missingHeaders = []
-            defaultValues = knownFields
+            defaultValues = _knownFields
             for index, item in enumerate(items):
                 defaultValues['index'] = index
                 for header in defaultValues:
                     # if header is missing of val is None or ''
                     if not isPresent(item, header):
-                        if 'item' in header:  # try old name:
-                            oldHeader = header.replace('item', 'question')
-                            if isPresent(item, oldHeader):
-                                item[header] = item[oldHeader]
-                                continue
+                        oldHeader = header.replace('item', 'question')
+                        if isPresent(item, oldHeader):
+                            item[header] = item[oldHeader]
+                            logging.warning(
+                                "{} is a deprecated heading for Forms. "
+                                "Use {} instead"
+                                .format(oldHeader, header)
+                            )
+                            continue
+
                         item[header] = defaultValues[header]
+                        missingHeaders.append(header)
 
             msg = "Using default values for the following headers: {}".format(
                 missingHeaders)
@@ -200,15 +240,16 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
 
         if not isinstance(items, list):
             # items is a conditions file
-            items, returnFieldNames = importConditions(items,
-                                                       returnFieldNames=True)
-            # Add default values if headers are missing
-            _addDefaultItems(items)
-        else:
-            # items is a list of dicts
+            items, fieldNames = importConditions(items, returnFieldNames=True)
+        else:  # we already have a list so lets find the fieldnames
+            fieldNames = set()
             for item in items:
-                # Add default values if headers are missing
-                _addDefaultItems(items)
+                fieldNames = fieldNames.union(item)
+
+        _checkSynonyms(items, fieldNames)
+        _checkRequiredFields(fieldNames)
+        # Add default values if entries missing
+        _addDefaultItems(items)
 
         # Convert options to list of strings
         for idx, item in enumerate(items):
@@ -428,12 +469,14 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
             The height of the response object as type float
         """
         # Slider dict
+
         sliderType = {'slider': {'ticks': range(0, len(item['options'])),
                                  'style': 'slider', 'granularity': 0},
                       'rating': {'ticks': range(0, len(item['options'])),
                                  'style': 'rating', 'granularity': 1},
                       'choice': {'ticks': None,
                                  'style': 'radio', 'granularity': 1}}
+        sliderType['radio'] = sliderType['choice']  # synonyms
 
         # Get height of response object
         respHeight = self._getSliderHeight(item)
