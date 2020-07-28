@@ -53,8 +53,6 @@
 [app]
     # display tips when starting PsychoPy
     showStartupTips = boolean(default='True')
-    # Should the Builder and Coder "run" buttons skip straight to running the file?
-    skipToRun = boolean(default='False')
     # size of icons in the Coder and Builder toolbars (top of window)
     largeIcons = boolean(default='True')
     # what windows to display when PsychoPy starts
@@ -110,7 +108,7 @@
     # folder names for custom components; expects a comma-separated list
     componentsFolders = list(default=list('/Users/Shared/PsychoPy3/components'))
     # a list of components to hide (eg, because you never use them)
-    hiddenComponents = list(default=list('PatchComponent'))
+    hiddenComponents = list(default=list('PatchComponent', 'UnknownComponent'))
     # where the Builder demos are located on this computer (after unpacking)
     unpackedDemosDir = string(default='')
     # name of the folder where subject data should be saved (relative to the script)
@@ -211,6 +209,8 @@
     compileScript = string(default='F5')
     # launch a script, Builder or Coder, or run unit-tests
     runScript = string(default='Ctrl+R')
+    # launch a script, Builder or Coder, or run unit-tests
+    runnerScript = string(default='Ctrl+Shift+R')
     # attempt to interrupt and halt a running script
     stopScript = string(default='Ctrl+.')
 

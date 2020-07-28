@@ -562,6 +562,13 @@ class PsychoPyApp(wx.App, themes.ThemeMixin):
         table = wx.AcceleratorTable(entries)
         return table
 
+    def updateWindowMenu(self):
+        """Update items within Window menu to reflect open windows"""
+        # Update checks on menus in all frames
+        for frame in self.getAllFrames():
+            if hasattr(frame, "windowMenu"):
+                frame.windowMenu.Update()
+
     def showCoder(self, event=None, fileList=None):
         # have to reimport because it is only local to __init__ so far
         from . import coder
@@ -570,6 +577,7 @@ class PsychoPyApp(wx.App, themes.ThemeMixin):
             self.coder = coder.CoderFrame(None, -1,
                                           title=title % self.version,
                                           files=fileList, app=self)
+            self.updateWindowMenu()
         else:
             # Set output window and standard streams
             self.coder.setOutputWindow(True)
@@ -587,6 +595,7 @@ class PsychoPyApp(wx.App, themes.ThemeMixin):
         self.builder.Show(True)
         self.builder.Raise()
         self.SetTopWindow(self.builder)
+        self.updateWindowMenu()
         return self.builder
 
     def showBuilder(self, event=None, fileList=()):
@@ -620,6 +629,7 @@ class PsychoPyApp(wx.App, themes.ThemeMixin):
                              id=-1,
                              title=title,
                              app=self)
+        self.updateWindowMenu()
         return self.runner
 
     def OnDrop(self, x, y, files):

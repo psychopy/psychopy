@@ -34,3 +34,6 @@ class NoGitError(DependencyError):
 
 class ConditionsImportError(Exception):
     pass
+
+class MissingFontError(Exception):
+    pass

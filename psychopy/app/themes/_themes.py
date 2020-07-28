@@ -125,7 +125,7 @@ class ThemeMixin:
             target.SetBackgroundColour(ThemeMixin.appColors['frame_bg'])
             # Clear tools
             target.ClearTools()
-            # # Redraw tools
+            # Redraw tools
             target.makeTools()
 
         def applyToStatusBar(target):
@@ -346,8 +346,6 @@ class ThemeMixin:
 
         if hasattr(target, 'Refresh'):
             target.Refresh()
-        if hasattr(target, 'Update'):
-            target.Update()
         if hasattr(target, '_mgr'):
             target._mgr.Update()
 
@@ -484,7 +482,7 @@ class ThemeMixin:
             })
         return tags
 
-    def hex2rgb(self, hex, base=(0, 0, 0, 0)):
+    def hex2rgb(self, hex, base=(0, 0, 0, 255)):
         if not isinstance(hex, str):
             return base
         # Make hex code case irrelevant
@@ -502,7 +500,7 @@ class ThemeMixin:
         r = hexkeys[hex[1]] * 16 + hexkeys[hex[2]]
         g = hexkeys[hex[3]] * 16 + hexkeys[hex[4]]
         b = hexkeys[hex[5]] * 16 + hexkeys[hex[6]]
-        return wx.Colour(r, g, b, 1)
+        return wx.Colour(r, g, b, 255)
 
     def shiftColour(self, col, offset=15):
         """Shift colour up or down by a set amount"""
@@ -556,8 +554,8 @@ class ThemeMixin:
 
     def _setCodeColors(self, spec):
         """To be called from _psychopyApp only"""
-        if not self.GetTopWindow() == self:
-            psychopy.logging.warning("This function should only be called from _psychopyApp")
+        #if not self.GetTopWindow() == self:
+        #    psychopy.logging.warning("This function should only be called from _psychopyApp")
 
         base = spec['base']
         base['font'] = self.extractFont(base['font'])
@@ -784,12 +782,15 @@ class IconCache:
             self._loadBitmap(name, theme, emblem=emblem, size=size)
         return IconCache._bitmaps[identifier]
 
-    def makeBitmapButton(self, parent, name, theme=None, size=None, emblem=None,
-                         toolbar=None, tip=None, label="",
-                         tbKind=wx.ITEM_NORMAL):
+    def makeBitmapButton(self, parent, filename,
+                         name="",  # name of Component e.g. TextComponent
+                         label="", # label on the button, often short name
+                         emblem=None,
+                         toolbar=None, tip=None, size=None,
+                         tbKind=wx.ITEM_NORMAL, theme=None):
         if theme is None:
             theme = ThemeMixin.icons
-        bmp = self.getBitmap(name, theme, size, emblem)
+        bmp = self.getBitmap(filename, theme, size, emblem)
         if toolbar:
             if 'phoenix' in wx.PlatformInfo:
                 button = toolbar.AddTool(wx.ID_ANY, label=label,
@@ -801,16 +802,16 @@ class IconCache:
                                                kind=tbKind)
         else:
             button = wx.Button(parent, wx.ID_ANY,
-                               label=label, style=wx.NO_BORDER)
+                               label=label, name=name, style=wx.NO_BORDER)
             button.SetBitmap(bmp)
             button.SetBitmapPosition(wx.TOP)
             button.SetBackgroundColour(ThemeMixin.appColors['frame_bg'])
             # just for regular buttons (not toolbar objects) we can re-use
-            buttonInfo = {'btn':button,
-                          'name':name,
-                          'size':size,
-                          'emblem':emblem,
-                          'theme':theme}
+            buttonInfo = {'btn': button,
+                          'filename': filename,
+                          'size': size,
+                          'emblem': emblem,
+                          'theme': theme}
             self._buttons.append(buttonInfo)
 
             if tip:
@@ -818,15 +819,17 @@ class IconCache:
 
         return button
 
-    def getComponentButton(self, parent, name, theme=None, size=None, emblem=None,
-                         tip="", label="",):
+    def getComponentButton(self, parent, name, label,
+                           theme=None, size=None, emblem=None,
+                           tip=""):
         """Checks in the experiment.components.iconFiles for filename and
         loads it into a wx.Bitmap"""
         if name in components.iconFiles:
             filename = components.iconFiles[name]
-            btn = self.makeBitmapButton(parent=parent,
-                                        name=filename, size=size,
-                                        label=label, tip=tip)
+            btn = self.makeBitmapButton(
+                    parent=parent,
+                    filename=filename, name=name, label=label,
+                    tip=tip, size=size)
             return btn
 
     def getComponentBitmap(self, name, size=None):
@@ -847,7 +850,7 @@ class IconCache:
         if theme.icons != IconCache._lastIcons:
             for thisBtn in IconCache._buttons:
                 if thisBtn['btn']:  # Check that button hasn't been deleted
-                    newBmp = self.getBitmap(name=thisBtn['name'],
+                    newBmp = self.getBitmap(name=thisBtn['filename'],
                                             size=thisBtn['size'],
                                             theme=theme.icons,
                                             emblem=thisBtn['emblem'])
@@ -956,32 +959,35 @@ class PsychopyDockArt(aui.AuiDefaultDockArt):
 
 
 class ThemeSwitcher(wx.Menu):
-    """Class to make a submenu for switching theme, meaning that the menu will always be the same across frames."""
+    """Class to make a submenu for switching theme, meaning that the menu will
+    always be the same across frames."""
     def __init__(self, frame):
         # Get list of themes
-        themePath = prefs.paths['themes']
+        themePath = Path(prefs.paths['themes'])
         themeList = {}
-        for themeFile in os.listdir(themePath):
-            path = os.path.join(themePath, themeFile)
-            if os.path.isfile(path):
-                try:
-                    with open(path, "rb") as fp:
-                        theme = json.load(fp)
-                        # Add themes to list only if min spec is defined
-                        base = theme['base']
-                        if all(key in base for key in ['bg', 'fg', 'font']):
-                            themeList[themeFile.replace('.json', '')] = []
-                except (FileNotFoundError, IsADirectoryError):
-                    pass
+        for themeFile in themePath.glob("*.json"):
+            try:
+                with open(themeFile, "rb") as fp:
+                    theme = json.load(fp)
+                    # Add themes to list only if min spec is defined
+                    base = theme['base']
+                    if all(key in base for key in ['bg', 'fg', 'font']):
+                        themeList[themeFile.stem] = []
+            except (FileNotFoundError, IsADirectoryError):
+                pass
         # Make menu
         wx.Menu.__init__(self)
         # Make buttons
         for theme in themeList:
-            item = self.Append(wx.ID_ANY, _translate(theme))
+            item = self.AppendRadioItem(wx.ID_ANY, _translate(theme))
             frame.Bind(wx.EVT_MENU, frame.app.onThemeChange, item)
+            if item.ItemLabel.lower() == ThemeMixin.codetheme.lower():
+                item.Check(True)
+            else:
+                item.Check(False)
         self.AppendSeparator()
         # Add Theme Folder button
-        item = self.Append(wx.ID_ANY, _translate("Open theme folder..."))
+        item = self.Append(wx.ID_ANY, _translate("Open theme folder"))
         frame.Bind(wx.EVT_MENU, self.openThemeFolder, item)
 
     def openThemeFolder(self, event):

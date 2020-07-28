@@ -46,7 +46,7 @@ from psychopy.tools.filetools import mergeFolder
 from .dialogs import (DlgComponentProperties, DlgExperimentProperties,
                       DlgCodeComponentProperties, DlgLoopProperties)
 from ..utils import (PsychopyToolbar, PsychopyPlateBtn, WindowFrozen,
-                     FileDropTarget)
+                     FileDropTarget, FrameSwitcher)
 
 from psychopy.experiment import components
 from builtins import str
@@ -143,7 +143,7 @@ class BuilderFrame(wx.Frame, ThemeMixin):
         # create icon
         if sys.platform != 'darwin':
             # doesn't work on darwin and not necessary: handled by app bundle
-            iconFile = os.path.join(self.paths['resources'], 'psychopy.ico')
+            iconFile = os.path.join(self.paths['resources'], 'builder.ico')
             if os.path.isfile(iconFile):
                 self.SetIcon(wx.Icon(iconFile, wx.BITMAP_TYPE_ICO))
 
@@ -353,16 +353,15 @@ class BuilderFrame(wx.Frame, ThemeMixin):
         menu = self.viewMenu
 
         item = menu.Append(wx.ID_ANY,
-                           _translate("&Open Coder view\t%s") % keys[
-                               'switchToCoder'],
+                           _translate("Open Coder view"),
                            _translate("Open a new Coder view"))
         self.Bind(wx.EVT_MENU, self.app.showCoder, item)
 
         item = menu.Append(wx.ID_ANY,
-                           _translate("&Open Runner view\t%s") % keys[
-                               'switchToRunner'],
+                           _translate("Open Runner view"),
                            _translate("Open the Runner view"))
         self.Bind(wx.EVT_MENU, self.app.showRunner, item)
+        menu.AppendSeparator()
 
         item = menu.Append(wx.ID_ANY,
                            _translate("&Toggle readme\t%s") % self.app.keys[
@@ -393,7 +392,7 @@ class BuilderFrame(wx.Frame, ThemeMixin):
         # Add Theme Switcher
         self.themesMenu = ThemeSwitcher(self)
         menu.AppendSubMenu(self.themesMenu,
-                               _translate("Themes..."))
+                               _translate("Themes"))
 
 
         # ---_experiment---#000000#FFFFFF-------------------------------------
@@ -467,6 +466,11 @@ class BuilderFrame(wx.Frame, ThemeMixin):
         self.pavloviaMenu = pavlovia_ui.menu.PavloviaMenu(parent=self)
         menuBar.Append(self.pavloviaMenu, _translate("Pavlovia.org"))
 
+        # ---_window---#000000#FFFFFF-----------------------------------------
+        self.windowMenu = FrameSwitcher(self)
+        menuBar.Append(self.windowMenu,
+                    _translate("Window"))
+
         # ---_help---#000000#FFFFFF-------------------------------------------
         self.helpMenu = wx.Menu()
         menuBar.Append(self.helpMenu, _translate('&Help'))
@@ -535,6 +539,7 @@ class BuilderFrame(wx.Frame, ThemeMixin):
             # Show Runner if hidden
             if self.app.runner is not None:
                 self.app.showRunner()
+        self.app.updateWindowMenu()
 
     def quit(self, event=None):
         """quit the app
@@ -570,6 +575,7 @@ class BuilderFrame(wx.Frame, ThemeMixin):
         self.resetUndoStack()
         self.setIsModified(False)
         self.updateAllViews()
+        self.app.updateWindowMenu()
 
     def fileOpen(self, event=None, filename=None, closeCurrent=True):
         """Open a FileDialog, then load the file if possible.
@@ -622,6 +628,7 @@ class BuilderFrame(wx.Frame, ThemeMixin):
         except Exception as e:  # failed for
             self.project = None
             print(e)
+        self.app.updateWindowMenu()
 
     def fileSave(self, event=None, filename=None):
         """Save file, revert to SaveAs if the file hasn't yet been saved
@@ -1047,9 +1054,10 @@ class BuilderFrame(wx.Frame, ThemeMixin):
                 return  # save file before compiling script
 
         self.stdoutFrame.addTask(fileName=self.filename)
+        if event:
+            if event.Id == self.bldrBtnRun.Id:
+                self.app.runner.panel.runLocal(event)
         self.app.showRunner()
-        if prefs.app['skipToRun']:
-            self.app.runner.panel.runFile(fileName=self.filename)
 
     def onCopyRoutine(self, event=None):
         """copy the current routine from self.routinePanel
@@ -1557,6 +1565,14 @@ class RoutineCanvas(wx.ScrolledWindow):
                 pass
             if event.LeftUp():
                 pass
+        elif event.Moving():
+            try:
+                x, y = self.ConvertEventCoords(event)
+                id = self.pdc.FindObjectsByBBox(x, y)[0]
+                component = self.componentFromID[id]
+                self.frame.SetStatusText("Component: "+component.params['name'].val)
+            except IndexError:
+                self.frame.SetStatusText("")
 
     def showContextMenu(self, component, xy):
         menu = wx.Menu()
@@ -1728,6 +1744,7 @@ class RoutineCanvas(wx.ScrolledWindow):
         font = self.GetFont()
         font.SetPointSize(size)
         dc.SetFont(font)
+        self.SetFont(font)
 
     def drawStatic(self, dc, component, yPosTop, yPosBottom):
         """draw a static (ISI) component box"""
@@ -1810,12 +1827,24 @@ class RoutineCanvas(wx.ScrolledWindow):
         name = component.params['name'].val
         # get size based on text
         w, h = self.GetFullTextExtent(name)[0:2]
+        if w > self.iconXpos - self.dpi/5:
+            # If width is greater than space available, split word at point calculated by average letter width
+            maxLen = int(
+                (self.iconXpos - self.GetFullTextExtent("...")[0] - self.dpi/5)
+                / (w/len(name))
+            )
+            splitAt = int(maxLen/2)
+            name = name[:splitAt] + "..." + name[-splitAt:]
+            w = self.iconXpos - self.dpi/5
         # draw text
-        _base = (self.iconSize, self.iconSize, 10)[self.drawSize]
-        x = self.iconXpos - self.dpi // 10 - w + _base
+        # + x position of icon (left side)
+        # - half width of icon (including whitespace around it)
+        # - FULL width of text
+        # + slight adjustment for whitespace
+        x = self.iconXpos - thisIcon.GetWidth()/2 - w + thisIcon.GetWidth()/3
         _adjust = (5, 5, -2)[self.drawSize]
         y = yPos + thisIcon.GetHeight() // 2 - h // 2 + _adjust
-        dc.DrawText(name, x - 20, y)
+        dc.DrawText(name, x, y)
         fullRect.Union(wx.Rect(x - 20, y, w, h))
 
         # deduce start and stop times if possible
@@ -2085,6 +2114,10 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
         shortName = name
         for redundant in ['component', 'Component', "ButtonBox"]:
             shortName = shortName.replace(redundant, "")
+        # Convert from CamelCase to Title Case for button label
+        label = shortName
+        for c in "".join(c if c.isupper() else "" for c in name[1:]):
+            label = label.replace(c, "\n"+c)
         # set size
         size = 48
         # get tooltip
@@ -2095,10 +2128,15 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
         btn = iconCache.getComponentButton(
                 parent=self,
                 name=name,
-                label=shortName,
+                label=label,
                 size=size,
                 tip=thisTip,
         )
+        # btn will be none if a favorite is not found (e.g. user has multiple
+        # versions of psychopy installed
+        if btn is None:
+            return
+        # then set up positioning etc
         btn.SetBitmapPosition(wx.TOP)
         self.componentFromID[btn.GetId()] = name
         # use btn.bind instead of self.Bind in oder to trap event here
@@ -2612,12 +2650,8 @@ class FlowPanel(wx.ScrolledWindow):
         self.draw()
         self.frame.SetStatusText("")
         self.btnInsertRoutine.SetLabel(_translate('Insert Routine'))
-        self.btnInsertRoutine.SetLabelColor(wx.Colour(cs['fbtns_txt']))
-        self.btnInsertRoutine.SetBackgroundColour(wx.Colour(cs['fbtns_face']))
         self.btnInsertRoutine.Update()
         self.btnInsertLoop.SetLabel(_translate('Insert Loop'))
-        self.btnInsertLoop.SetLabelColor(wx.Colour(cs['fbtns_txt']))
-        self.btnInsertLoop.SetBackgroundColour(wx.Colour(cs['fbtns_face']))
         self.btnInsertRoutine.Update()
 
     def ConvertEventCoords(self, event):
