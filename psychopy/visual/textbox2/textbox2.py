@@ -250,6 +250,7 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
     def _layout(self):
         """Layout the text, calculating the vertex locations
         """
+        maxW = self._requestedSize[0]
 
         text = self.text + "\n"
         text = text.replace('<i>', codes['ITAL_START'])
@@ -276,7 +277,10 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
         self._lineWidths = []  # width in stim units of each line
 
         self._lineHeight = font.height * self.lineSpacing
-        lineMax = (self.size[0] - self.padding) * self._pixelScaling
+        if self._requestedSize[0] is None:
+            lineMax = float('inf')
+        else:
+            lineMax = (self._requestedSize[0] - self.padding) * self._pixelScaling
         current = [0, 0]
         fakeItalic = 0.0
         fakeBold = 0.0
@@ -400,9 +404,9 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
 
         # thisW = current[0] - glyph.advance[0] + glyph.size[0] * alphaCorrection
         # calculate final self.size and tightBox
-        if self.size[0] == -1:
+        if self.size[0] is None:
             self.size[0] = max(self._lineWidths)
-        if self.size[1] == -1:
+        if self.size[1] == None:
             self.size[1] = ((lineN + 1) * self._lineHeight / self._pixelScaling
                             + self.padding * 2)
 
