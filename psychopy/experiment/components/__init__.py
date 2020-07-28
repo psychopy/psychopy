@@ -219,7 +219,7 @@ def getInitVals(params, target="PsychoPy"):
         elif name in ['pos', 'fieldPos']:
             inits[name].val = '[0,0]'
             inits[name].valType = 'code'
-        elif name is 'color':
+        elif name == 'color':
             inits[name].val = 'white'
             inits[name].valType = 'str'
         elif name in ['ori', 'sf', 'size', 'height', 'letterHeight',
@@ -276,6 +276,9 @@ def getInitVals(params, target="PsychoPy"):
         elif name == 'marker_value':
             inits[name].val = 'Value'
             inits[name].valType = 'str'
+        elif name == 'buttonRequired':
+            inits[name].val = "True"
+            inits[name].valType = 'code'
         else:
             print("I don't know the appropriate default value for a '%s' "
                   "parameter. Please email the mailing list about this error" %
