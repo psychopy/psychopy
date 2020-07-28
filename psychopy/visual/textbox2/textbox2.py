@@ -322,6 +322,7 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
 
         wordLen = 0
         charsThisLine = 0
+        wordsThisLine = 0
         lineN = 0
         for i, charcode in enumerate(text):
 
@@ -397,15 +398,17 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
                 lineWidth = lineWPix / self._pixelScaling + self.padding * 2
                 self._lineWidths.append(lineWidth)
                 charsThisLine = 0
+                wordsThisLine = 0
             elif charcode in wordBreaks:
                 wordLen = 0
                 charsThisLine += 1
+                wordsThisLine += 1
             elif printable:
                 wordLen += 1
                 charsThisLine += 1
 
-            # end line with auto-wrap
-            if current[0] >= lineMax and wordLen > 0:
+            # end line with auto-wrap on space
+            if current[0] >= lineMax and wordLen > 0 and wordsThisLine:
                 # move the current word to next line
                 lineBreakPt = vertices[(i - wordLen + 1) * 4, 0]
                 wordWidth = current[0] - lineBreakPt
