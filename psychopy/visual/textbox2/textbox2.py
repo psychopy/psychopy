@@ -88,6 +88,39 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
                  editable=False,
                  name='',
                  autoLog=None):
+        """
+
+        Parameters
+        ----------
+        win
+        text
+        font
+        pos
+        units
+        letterHeight
+        size : Specifying None gets the default size for this type of unit.
+            Specifying [None, None] gets a TextBox that's expandable in both
+            dimensions. Specifying [0.75, None] gets a textbox that expands in the
+            length but fixed at 0.75 units in the width
+        color
+        colorSpace
+        contrast
+        opacity
+        bold
+        italic
+        lineSpacing
+        padding
+        anchor
+        alignment
+        fillColor
+        borderWidth
+        borderColor
+        flipHoriz
+        flipVert
+        editable
+        name
+        autoLog
+        """
 
         BaseVisualStim.__init__(self, win, units=units, name=name)
         self.win = win
@@ -111,8 +144,8 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
                 self.letterHeight, pos=0, units=scaleUnits, win=self.win)
         self._pixelScaling = self._pixLetterHeight / self.letterHeight
         if size is None:
-            size = [defaultBoxWidth[units], -1]
-        self._requestedSize = size  # (-1 in either dim means not constrained)
+            size = [defaultBoxWidth[units], None]
+        self._requestedSize = size  # (None in either dim means not constrained)
         self.size = size  # but this will be updated later to actual size
         self.bold = bold
         self.italic = italic
@@ -250,7 +283,6 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
     def _layout(self):
         """Layout the text, calculating the vertex locations
         """
-        maxW = self._requestedSize[0]
 
         text = self.text + "\n"
         text = text.replace('<i>', codes['ITAL_START'])
@@ -277,10 +309,8 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
         self._lineWidths = []  # width in stim units of each line
 
         self._lineHeight = font.height * self.lineSpacing
-        if self._requestedSize[0] is None:
-            lineMax = float('inf')
-        else:
-            lineMax = (self._requestedSize[0] - self.padding) * self._pixelScaling
+
+        lineMax = (self.size[0] - self.padding) * self._pixelScaling
         current = [0, 0]
         fakeItalic = 0.0
         fakeBold = 0.0
