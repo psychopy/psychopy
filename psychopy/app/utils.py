@@ -364,13 +364,13 @@ class FrameSwitcher(wx.Menu):
             {'label': "Runner", 'class': psychopy.app.runner.RunnerFrame, 'method': self.app.showRunner},
         ]
         self.itemFrames = {}
-        self.Update()
+        self.updateFrames()
 
     @property
     def frames(self):
         return self.parent.app.getAllFrames()
 
-    def Update(self):
+    def updateFrames(self):
         """Set items according to which windows are open"""
         self.next.Enable(len(self.frames)>1)
         # Edit items to match frames
@@ -425,7 +425,7 @@ class FrameSwitcher(wx.Menu):
         frame.Show(True)
         frame.Raise()
         self.parent.app.SetTopWindow(frame)
-        self.Update()
+        self.updateFrames()
 
     def nextWindow(self, event=None):
         """Cycle through list of open windows"""
@@ -435,3 +435,4 @@ class FrameSwitcher(wx.Menu):
             i -= 1
         self.frames[i].Raise()
         self.frames[i].Show()
+        self.updateFrames()

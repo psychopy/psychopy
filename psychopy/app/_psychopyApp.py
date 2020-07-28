@@ -560,7 +560,7 @@ class PsychoPyApp(wx.App, themes.ThemeMixin):
         # Update checks on menus in all frames
         for frame in self.getAllFrames():
             if hasattr(frame, "windowMenu"):
-                frame.windowMenu.Update()
+                frame.windowMenu.updateFrames()
 
     def showCoder(self, event=None, fileList=None):
         # have to reimport because it is only local to __init__ so far
