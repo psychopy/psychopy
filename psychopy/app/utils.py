@@ -434,4 +434,4 @@ class FrameSwitcher(wx.Menu):
         while self.frames[i] == current:
             i -= 1
         self.frames[i].Raise()
-
+        self.frames[i].Show()
