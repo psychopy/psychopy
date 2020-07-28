@@ -353,17 +353,24 @@ class FrameSwitcher(wx.Menu):
         wx.Menu.__init__(self)
         self.parent = parent
         self.app = parent.app
+        self.itemFrames = {}
         # Listen for window switch
         self.next = self.Append(wx.ID_MDI_WINDOW_NEXT, _translate("&Next Window\t%s") % self.app.keys['cycleWindows'], _translate("&Next Window\t%s") % self.app.keys['cycleWindows'])
         self.Bind(wx.EVT_MENU, self.nextWindow, self.next)
         self.AppendSeparator()
-        # Define prereqs
+        # Add creator options
         self.minItemSpec = [
             {'label': "Builder", 'class': psychopy.app.builder.BuilderFrame, 'method': self.app.showBuilder},
             {'label': "Coder", 'class': psychopy.app.coder.CoderFrame, 'method': self.app.showCoder},
             {'label': "Runner", 'class': psychopy.app.runner.RunnerFrame, 'method': self.app.showRunner},
         ]
-        self.itemFrames = {}
+        for spec in self.minItemSpec:
+            if not isinstance(self.Window, spec['class']):
+                item = self.Append(
+                    wx.ID_ANY, spec['label'], spec['label']
+                )
+                self.Bind(wx.EVT_MENU, spec['method'], item)
+        self.AppendSeparator()
         self.updateFrames()
 
     @property
@@ -373,15 +380,23 @@ class FrameSwitcher(wx.Menu):
     def updateFrames(self):
         """Set items according to which windows are open"""
         self.next.Enable(len(self.frames)>1)
+        # Make new items if needed
+        for frame in self.frames:
+            if frame not in self.itemFrames:
+                if frame.filename:
+                    label = type(frame).__name__.replace("Frame", "") + ": " + os.path.basename(frame.filename)
+                else:
+                    label = type(frame).__name__.replace("Frame", "")
+                self.itemFrames[frame] = self.AppendRadioItem(wx.ID_ANY, label, label)
+                self.Bind(wx.EVT_MENU, self.showFrame, self.itemFrames[frame])
         # Edit items to match frames
         for frame in self.itemFrames:
             item = self.itemFrames[frame]
-            if not item or frame in ['NewCoder', 'NewRunner', 'NewBuilder']:
+            if not item:
                 continue
-            if frame not in self.frames \
-                    or frame == self.Window:
-                # Delete unused items
-                self.DestroyItem(item)
+            if frame not in self.frames:
+                # Disable unused items
+                item.Enable(False)
                 self.itemFrames[frame] = None
             else:
                 # Rename item
@@ -393,31 +408,8 @@ class FrameSwitcher(wx.Menu):
                     self.itemFrames[frame].SetItemLabel(
                         type(frame).__name__.replace("Frame", "")
                     )
+            item.Check(frame == self.Window)
         self.itemFrames = {key: self.itemFrames[key] for key in self.itemFrames if self.itemFrames[key] is not None}
-
-        # Make new items if needed
-        for frame in self.frames:
-            if frame not in self.itemFrames and not frame == self.Window:
-                if frame.filename:
-                    label = type(frame).__name__.replace("Frame", "") + ": " + os.path.basename(frame.filename)
-                else:
-                    label = type(frame).__name__.replace("Frame", "")
-                self.itemFrames[frame] = self.Append(wx.ID_ANY, label, label)
-                self.Bind(wx.EVT_MENU, self.showFrame, self.itemFrames[frame])
-
-        # Add creator options if no windows of given type exist
-        for spec in self.minItemSpec:
-            key = "New"+spec['label']
-            if not any(isinstance(frame, spec['class']) for frame in self.frames)\
-                    and key not in self.itemFrames:
-                self.itemFrames[key] = self.Append(
-                    wx.ID_ANY, spec['label'], spec['label']
-                )
-                self.Bind(wx.EVT_MENU, spec['method'], self.itemFrames[key])
-            elif any(isinstance(frame, spec['class']) for frame in self.frames)\
-                    and key in self.itemFrames:
-                self.DestroyItem(self.itemFrames[key])
-                del self.itemFrames[key]
 
     def showFrame(self, event=None):
         itemFrames = event.EventObject.itemFrames
