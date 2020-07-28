@@ -26,8 +26,8 @@ logging.exp("{:.3f}: preloaded {} chars".format(c.getTime(), nChars))
 
 
 txt1 = TextBox2(win, color='black', colorSpace='named', text='Toptastic', font='Times',
-                pos=(0, 0.0), letterHeight=2, units='cm',
-                size=[10, 10],
+                pos=(0, 0.0), letterHeight=0.1, units='height',
+                size=[1, 1],
                 anchor='right-bottom',
                 borderColor='red',
                 fillColor='slategrey',
