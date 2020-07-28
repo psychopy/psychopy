@@ -24,7 +24,7 @@ from past.builtins import basestring
 from collections import deque
 
 from psychopy.contrib.lazy_import import lazy_import
-from psychopy import colors
+from psychopy import colors, event
 import math
 from psychopy.clock import monotonicClock
 
@@ -574,6 +574,8 @@ class Window(object):
 
         atexit.register(close_on_exit)
 
+        self._mouse = event.Mouse(win=self)
+
     def __del__(self):
         if self._closed is False:
             self.close()
@@ -904,6 +906,8 @@ class Window(object):
         # make sure the object still exists or get another
         object = None
         while object is None and self._editableChildren:  # not found an object yet
+            if ii is None or ii < 0:  # None if not yet set one, <0 if all gone
+                return None
             objectRef = self._editableChildren[ii]  # extract the weak reference
             object = objectRef()  # get the actual object (None if deleted)
             if not object:
@@ -917,14 +921,21 @@ class Window(object):
     @currentEditable.setter
     def currentEditable(self, editable):
         """Keeps the current editable stored as a weak ref"""
+        lastEditable = self.currentEditable
+        if lastEditable is not None and lastEditable is not editable:
+            lastEditable.hasFocus = False
+        # we want both the weakref and the actual object
         if not isinstance(editable, weakref.ref):
             thisRef = weakref.ref(editable)
         else:
             thisRef = editable
+            editable = thisRef()
+        # then get/set index in list
         if thisRef not in self._editableChildren:
-            self._currentEditableIndex = self.addEditable(editable)
+            self._currentEditableIndex = self.addEditable(thisRef)
         else:
             self._currentEditableIndex = self._editableChildren.index(thisRef)
+        editable.hasFocus = True
 
     def addEditable(self, editable):
         """Adds an editable element to the screen (something to which
@@ -935,10 +946,11 @@ class Window(object):
         :param editable:
         :return:
         """
-        if self._currentEditableIndex is None:
-            self._currentEditableIndex = 0
         self._editableChildren.append(weakref.ref(editable))
         ii = len(self._editableChildren)-1  # the index of appended item
+        # if this is the first editable obj then make it the
+        if len(self._editableChildren) == 1:
+            self.currentEditable = editable
         return ii
 
     def nextEditable(self, chars=''):
@@ -1013,6 +1025,14 @@ class Window(object):
 
         # disable lighting
         self.useLights = False
+
+        # Check for mouse clicks on editables
+        if hasattr(self, '_editableChildren'):  # Make sure _editableChildren has actually been created
+            for thisObj in self._editableChildren:
+                if isinstance(thisObj, weakref.ref):
+                    thisObj = thisObj()  # Solidify weakref
+                if self._mouse.isPressedIn(thisObj):
+                    self.currentEditable = thisObj
 
         flipThisFrame = self._startOfFlip()
         if self.useFBO and flipThisFrame:
@@ -1216,6 +1236,8 @@ class Window(object):
         for _ in range(flips - 1):
             self.flip(clearBuffer=False)
         self.flip(clearBuffer=clearBuffer)
+
+
 
     def setBuffer(self, buffer, clear=True):
         """Choose which buffer to draw to ('left' or 'right').
