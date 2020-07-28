@@ -346,8 +346,6 @@ class ThemeMixin:
 
         if hasattr(target, 'Refresh'):
             target.Refresh()
-        #if hasattr(target, 'Update'): # Using .Update() caused code editors to always think there were changes made
-        #    target.Update()
         if hasattr(target, '_mgr'):
             target._mgr.Update()
 
@@ -484,7 +482,7 @@ class ThemeMixin:
             })
         return tags
 
-    def hex2rgb(self, hex, base=(0, 0, 0, 0)):
+    def hex2rgb(self, hex, base=(0, 0, 0, 255)):
         if not isinstance(hex, str):
             return base
         # Make hex code case irrelevant
@@ -502,7 +500,7 @@ class ThemeMixin:
         r = hexkeys[hex[1]] * 16 + hexkeys[hex[2]]
         g = hexkeys[hex[3]] * 16 + hexkeys[hex[4]]
         b = hexkeys[hex[5]] * 16 + hexkeys[hex[6]]
-        return wx.Colour(r, g, b, 1)
+        return wx.Colour(r, g, b, 255)
 
     def shiftColour(self, col, offset=15):
         """Shift colour up or down by a set amount"""
@@ -556,8 +554,8 @@ class ThemeMixin:
 
     def _setCodeColors(self, spec):
         """To be called from _psychopyApp only"""
-        if not self.GetTopWindow() == self:
-            psychopy.logging.warning("This function should only be called from _psychopyApp")
+        #if not self.GetTopWindow() == self:
+        #    psychopy.logging.warning("This function should only be called from _psychopyApp")
 
         base = spec['base']
         base['font'] = self.extractFont(base['font'])
@@ -853,9 +851,9 @@ class IconCache:
             for thisBtn in IconCache._buttons:
                 if thisBtn['btn']:  # Check that button hasn't been deleted
                     newBmp = self.getBitmap(name=thisBtn['filename'],
-                                        size=thisBtn['size'],
-                                        theme=theme.icons,
-                                        emblem=thisBtn['emblem'])
+                                            size=thisBtn['size'],
+                                            theme=theme.icons,
+                                            emblem=thisBtn['emblem'])
                     thisBtn['btn'].SetBitmap(newBmp)
                     thisBtn['btn'].SetBitmapCurrent(newBmp)
                     thisBtn['btn'].SetBitmapPressed(newBmp)
@@ -961,7 +959,8 @@ class PsychopyDockArt(aui.AuiDefaultDockArt):
 
 
 class ThemeSwitcher(wx.Menu):
-    """Class to make a submenu for switching theme, meaning that the menu will always be the same across frames."""
+    """Class to make a submenu for switching theme, meaning that the menu will
+    always be the same across frames."""
     def __init__(self, frame):
         # Get list of themes
         themePath = Path(prefs.paths['themes'])

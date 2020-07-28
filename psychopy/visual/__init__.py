@@ -27,6 +27,7 @@ from .text import TextStim
 from .form import Form
 from .button import ButtonStim
 from .brush import Brush
+from .textbox2.textbox2 import TextBox2
 # window, should always be loaded first
 from .window import Window, getMsPerFrame, openWindows
 

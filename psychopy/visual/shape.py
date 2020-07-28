@@ -143,16 +143,19 @@ class BaseShapeStim(BaseVisualStim, ColorMixin, ContainerMixin):
 
         # if the fillColor and lineColor are not set but color is
         # then the user probably wants color applied to both
-        if (lineColor==(1.0, 1.0, 1.0)
+        if (lineColor is (1.0, 1.0, 1.0)  # check if exactly as the default arg
                 and fillColor is None
                 and color is not None):
             self.color = color
+        else:
+            self.fillColor = fillColor
+            self.lineColor = lineColor
 
         # Other stuff
         self.depth = depth
         self.ori = numpy.array(ori, float)
         self.size = numpy.array([0.0, 0.0]) + size  # make sure that it's 2D
-        if vertices is not ():  # flag for when super-init'ing a ShapeStim
+        if vertices != ():  # flag for when super-init'ing a ShapeStim
             self.vertices = vertices  # call attributeSetter
         self.autoDraw = autoDraw  # call attributeSetter
 

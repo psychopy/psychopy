@@ -491,6 +491,8 @@ class _BaseParamsDlg(wx.Dialog):
             categNames.insert(0, categNames.pop(categNames.index('Basic')))
         # move into _localized after merge branches:
         categLabel = {'Basic': _translate('Basic'),
+                      'Color': _translate('Color'),
+                      'Layout': _translate('Layout'),
                       'Data': _translate('Data'),
                       'Screen': _translate('Screen'),
                       'Dots': _translate('Dots'),

@@ -1243,7 +1243,7 @@ class CoderFrame(wx.Frame, ThemeMixin):
                                  BottomDockable(True).TopDockable(True).
                                  CloseButton(False).
                                  Bottom().Show(self.prefs['showOutput']))
-
+        self._applyAppTheme()
         self.unitTestFrame = None
 
         # Link to Runner output
@@ -2457,10 +2457,10 @@ class CoderFrame(wx.Frame, ThemeMixin):
             elif resp == wx.ID_NO:
                 pass  # just run
         self.app.runner.addTask(fileName=fullPath)
-        self.app.showRunner()
         if event:
             if event.Id == self.cdrBtnRun.Id:
-                self.app.runner.panel.runFile(fileName=fullPath)
+                self.app.runner.panel.runLocal(event)
+        self.app.showRunner()
 
     def copy(self, event):
         foc = self.FindFocus()
