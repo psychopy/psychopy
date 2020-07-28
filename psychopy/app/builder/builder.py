@@ -501,10 +501,6 @@ class BuilderFrame(wx.Frame, ThemeMixin):
         menu.Append(wx.ID_ABOUT, _translate(
             "&About..."), _translate("About PsychoPy"))
         self.Bind(wx.EVT_MENU, self.app.showAbout, id=wx.ID_ABOUT)
-
-        menu.AppendSeparator()
-        menu.AppendSeparator()
-
         item = menu.Append(wx.ID_ANY,
                            _translate("&News..."),
                            _translate("News"))
