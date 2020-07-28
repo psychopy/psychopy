@@ -41,8 +41,8 @@ class VisualSystemHD(window.Window):
     rendering is implemented in the base `Window` class.
 
     """
-    def __init__(self, monoscopic=False, lensCorrection=True, model='vshd',
-                 *args, **kwargs):
+    def __init__(self, monoscopic=False, lensCorrection=True, distCoef=None,
+                 model='vshd', *args, **kwargs):
         """
         Parameters
         ----------
@@ -55,9 +55,12 @@ class VisualSystemHD(window.Window):
             pipeline.
         lensCorrection : bool
             Apply lens correction (barrel distortion) to the output.
+        distCoef : float
+            Distortion coefficient for barrel distortion. If `None`, the
+            recommended value will be used.
         model : str
             VisualSystemHD model in use. This value is used to configure the
-            display.
+            display. Cannot be changed after initialization.
 
         """
         # warn if given `useFBO`
@@ -80,9 +83,14 @@ class VisualSystemHD(window.Window):
                 'diopterMin': -7.,  # minimum diopter value for the display
                 'diopterMax': 5,  # maximum diopter value for the display
                 'scrHeightM': 9.6 * 1200. / 1e-6,  # screen height in meters
-                'scrWidthM': 9.6 * 1920. / 1e-6  # screen width in meters
+                'scrWidthM': 9.6 * 1920. / 1e-6,  # screen width in meters
+                'distCoef': 0.02
             }
         }[self._model]
+
+        # distortion coefficent
+        self._distCoef = \
+            self._hwDesc['distCoef'] if distCoef is None else float(distCoef)
 
         # diopter settings for each eye, needed to compute actual FOV
         self._diopters = {'left': 1., 'right': 1.}
@@ -126,6 +134,20 @@ class VisualSystemHD(window.Window):
     @lensCorrection.setter
     def lensCorrection(self, value):
         self._lensCorrection = value
+
+    @property
+    def distCoef(self):
+        """Distortion coefficient (`float`)."""
+        return self._distCoef
+
+    @distCoef.setter
+    def distCoef(self, value):
+        if isinstance(value, (float, int,)):
+            self._distCoef = float(value)
+        elif value is None:
+            self._distCoef = self._hwDesc['distCoef']
+        else:
+            raise ValueError('Invalid value for `distCoef`.')
 
     @property
     def diopters(self):
@@ -233,25 +255,16 @@ class VisualSystemHD(window.Window):
         self._warpVAOs = {}
         for eye in ('left', 'right'):
             # setup vertex arrays for the output quad
-            # aspect = self._bufferViewports[eye][2] / self._bufferViewports[eye][3]
+            bufferW, bufferH = self._bufferViewports[eye][2:]
+            aspect = bufferW / bufferH
             vertices, texCoord, normals, faces = gt.createMeshGrid(
                 (2.0, 2.0), subdiv=256, tessMode='radial')
 
-            vertices[:, 0] *= 0.5
-
             # recompute vertex positions
-            vertices[:, :2] = mt.lensCorrection(
-                vertices[:, :2], coefK=(.2, 0.1), distCenter=(0.0, 0.0))
+            vertices[:, :2] = mt.lensCorrectionSpherical(
+                vertices[:, :2], coefK=-.02, aspect=aspect)
 
-            # normalize
-            w = np.max(vertices[:, 0]) - np.min(vertices[:, 0])
-            h = np.max(vertices[:, 1]) - np.min(vertices[:, 1])
-            vertices[:, 0] *= (1.0 / w)
-            vertices[:, 1] *= 2.0 * (1.0 / h)
-
-            # transform to the side of the screen
-            vertices[:, 0] += 0.5 if eye == 'right' else -0.5
-
+            # create the VAO for the eye buffer
             vertexVBO = gt.createVBO(vertices, usage=GL.GL_DYNAMIC_DRAW)
             texCoordVBO = gt.createVBO(texCoord, usage=GL.GL_DYNAMIC_DRAW)
             indexBuffer = gt.createVBO(
@@ -406,6 +419,13 @@ class VisualSystemHD(window.Window):
         GL.glBindTexture(GL.GL_TEXTURE_2D,
                          self._eyeBuffers[eye]['frameTexture'])
 
+        GL.glEnable(GL.GL_SCISSOR_TEST)
+        # set the viewport and scissor rect for the buffer
+        frameW, frameH = self._bufferViewports[eye][2:]
+
+        offset = 0 if eye == 'left' else frameW
+        self.viewport = self.scissor = (offset, 0, frameW, frameH)
+
         GL.glMatrixMode(GL.GL_PROJECTION)
         GL.glLoadIdentity()
         GL.glOrtho(-1, 1, -1, 1, -1, 1)
@@ -413,8 +433,15 @@ class VisualSystemHD(window.Window):
         GL.glLoadIdentity()
 
         # blit the quad covering the side of the display the eye is viewing
+        if self.lensCorrection:
+            gt.drawVAO(self._warpVAOs[eye])
+        else:
+            self._renderFBO()
 
-        gt.drawVAO(self._warpVAOs[eye])
+        # reset
+        GL.glDisable(GL.GL_SCISSOR_TEST)
+        self.viewport = self.scissor = \
+            (0, 0, self.frameBufferSize[0], self.frameBufferSize[1])
 
     def _startOfFlip(self):
         """Custom :py:class:`~Rift._startOfFlip` for HMD rendering. This
