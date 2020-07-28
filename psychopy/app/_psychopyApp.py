@@ -562,15 +562,6 @@ class PsychoPyApp(wx.App, themes.ThemeMixin):
             if hasattr(frame, "windowMenu"):
                 frame.windowMenu.Update()
 
-    def cycleWindows(self, event=None):
-        """Cycle through list of open windows"""
-        current = event.EventObject.Window
-        frames = self.getAllFrames()
-        i = frames.index(current)
-        while frames[i] == current:
-            i -= 1
-        frames[i].Raise()
-
     def showCoder(self, event=None, fileList=None):
         # have to reimport because it is only local to __init__ so far
         from . import coder

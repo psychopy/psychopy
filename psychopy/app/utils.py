@@ -355,7 +355,7 @@ class FrameSwitcher(wx.Menu):
         self.app = parent.app
         # Listen for window switch
         self.next = self.Append(wx.ID_MDI_WINDOW_NEXT, _translate("&Next Window\t%s") % self.app.keys['cycleWindows'], _translate("&Next Window\t%s") % self.app.keys['cycleWindows'])
-        self.Bind(wx.EVT_MENU, self.app.cycleWindows, self.next)
+        self.Bind(wx.EVT_MENU, self.nextWindow, self.next)
         self.AppendSeparator()
         # Define prereqs
         self.minItemSpec = [
@@ -419,11 +419,19 @@ class FrameSwitcher(wx.Menu):
                 self.DestroyItem(self.itemFrames[key])
                 del self.itemFrames[key]
 
-    def showFrame(self, event):
+    def showFrame(self, event=None):
         itemFrames = event.EventObject.itemFrames
         frame = [key for key in itemFrames if itemFrames[key].Id == event.Id][0]
         frame.Show(True)
         frame.Raise()
         self.parent.app.SetTopWindow(frame)
         self.Update()
+
+    def nextWindow(self, event=None):
+        """Cycle through list of open windows"""
+        current = event.EventObject.Window
+        i = self.frames.index(current)
+        while self.frames[i] == current:
+            i -= 1
+        self.frames[i].Raise()
 
