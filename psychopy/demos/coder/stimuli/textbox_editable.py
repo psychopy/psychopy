@@ -25,18 +25,19 @@ logging.exp("{:.3f}: preloaded {} chars".format(c.getTime(), nChars))
 # arial.saveToCache()  # can't yet retrieve the font but it's interesting to see!
 
 
-txt1 = TextBox2(win, color='red', colorSpace='named', text='Toptastic', font='Times',
-                pos=(-0.1, 0.1), letterHeight=0.1, units='height',
-                anchor='left',
+txt1 = TextBox2(win, color='black', colorSpace='named', text='Toptastic', font='Times',
+                pos=(0, 0.0), letterHeight=2, units='cm',
+                size=[10, 10],
+                anchor='right-bottom',
                 borderColor='red',
-                fillColor='lightgrey',
+                fillColor='slategrey',
                 editable=True)
 txt1.draw()
 
 x, y = 0, -5
 
 txt2 = TextBox2(win, color='blue', text=loremIpsum, font='Arial',
-            pos=(x, y), anchor='center', size=(20, -1), units='cm',
+            pos=(x, y), anchor='bottom', size=(20, None), units='cm',
             lineSpacing=1.1,
             letterHeight=1.,
             borderColor='white',
@@ -49,13 +50,13 @@ logging.exp("{:.3f}: drew altered Arial text".format(c.getTime()))
 win.flip()
 logging.exp("{:.3f}: drew TextBox Times (no preload)".format(c.getTime()))
 
-stims = [txt1, txt2, ]
+stims = [txt1, txt2]
 win.flip()
 for frame in range(1000):
-    # txt2.pos += 0.1
+    txt2.pos += 0.01
     for stim in stims:
         stim.draw()
-    if event.getKeys():
+    if 'escape' in event.getKeys():
         core.quit()
 
     win.flip()
