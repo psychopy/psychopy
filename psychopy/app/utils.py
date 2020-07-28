@@ -405,7 +405,7 @@ class FrameSwitcher(wx.Menu):
                     )
                 else:
                     self.itemFrames[frame].SetItemLabel(
-                        type(frame).__name__.replace("Frame", "")
+                        type(frame).__name__.replace("Frame", "") + ": None"
                     )
             item.Check(frame == self.Window)
         self.itemFrames = {key: self.itemFrames[key] for key in self.itemFrames if self.itemFrames[key] is not None}
