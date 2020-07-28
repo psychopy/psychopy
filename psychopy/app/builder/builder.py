@@ -2873,6 +2873,7 @@ class FlowPanel(wx.ScrolledWindow):
                             comp = thisComp
                             icon = thisIcon
                             break  # we've found a Routine so stop looking
+                self.frame.routinePanel.setCurrentRoutine(comp)
                 try:
                     self._menuComponentID = icon
                     xy = wx.Point(x + self.GetPosition()[0],
