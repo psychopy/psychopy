@@ -397,7 +397,6 @@ class FrameSwitcher(wx.Menu):
             if frame not in self.frames:
                 # Disable unused items
                 item.Enable(False)
-                self.itemFrames[frame] = None
             else:
                 # Rename item
                 if frame.filename:
