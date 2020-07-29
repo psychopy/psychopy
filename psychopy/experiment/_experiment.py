@@ -834,6 +834,7 @@ class Experiment(object):
                         if thisFile:
                             resources.append(thisFile)
 
+        # Add files from additional resources box
         val = self.settings.params['Resources'].val
         # - everything here can be deleted once gen file has been run
         val = val.replace("\"", "")
@@ -847,6 +848,10 @@ class Experiment(object):
             thisFile = getPaths(thisEntry)
             if thisFile:
                 resources.append(thisFile)
+        # Check for any resources not in experiment path
+        for res in resources:
+            if srcRoot not in res['abs']:
+                psychopy.logging.warning("{} is not in the experiment path and so will not be copied to Pavlovia".format(res['rel']))
 
         return resources
 
