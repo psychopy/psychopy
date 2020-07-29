@@ -283,7 +283,7 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
         """Layout the text, calculating the vertex locations
         """
 
-        text = self.text + "\n"
+        text = self.text
         text = text.replace('<i>', codes['ITAL_START'])
         text = text.replace('</i>', codes['ITAL_END'])
         text = text.replace('<b>', codes['BOLD_START'])
@@ -604,17 +604,21 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
         self.__dict__['verticesPix'] = vertsPix
 
         # tight bounding box
-        L = self.vertices[:, 0].min()
-        R = self.vertices[:, 0].max()
-        B = self.vertices[:, 1].min()
-        T = self.vertices[:, 1].max()
-        tightW = R-L
-        Xmid = (R+L)/2
-        tightH = T-B
-        Ymid = (T+B)/2
-        # for the tight box anchor offset is included in vertex calcs
-        self.boundingBox.size = tightW, tightH
-        self.boundingBox.pos = self.pos + (Xmid, Ymid)
+        if self.vertices.shape[0] < 1:  # editable box with no letters?
+            self.boundingBox.size = 0, 0
+            self.boundingBox.pos = self.pos
+        else:
+            L = self.vertices[:, 0].min()
+            R = self.vertices[:, 0].max()
+            B = self.vertices[:, 1].min()
+            T = self.vertices[:, 1].max()
+            tightW = R-L
+            Xmid = (R+L)/2
+            tightH = T-B
+            Ymid = (T+B)/2
+            # for the tight box anchor offset is included in vertex calcs
+            self.boundingBox.size = tightW, tightH
+            self.boundingBox.pos = self.pos + (Xmid, Ymid)
         # box (larger than bounding box) needs anchor offest adding
         self.box.pos = self.pos + (boxOffsetX, boxOffsetY)
         self.box.size = self.size  # this might have changed from _requested
