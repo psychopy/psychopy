@@ -283,7 +283,7 @@ class SettingsComponent(object):
             hint=_translate("Place the HTML files will be saved locally "),
             label="Output path", categ='Online')
         self.params['Resources'] = Param(
-            '[]', valType='str', allowedTypes=[],
+            '[]', valType='list', allowedTypes=[],
             hint=_translate("Any additional resources needed"),
             label="Additional Resources", categ='Online')
         self.params['Completed URL'] = Param(
