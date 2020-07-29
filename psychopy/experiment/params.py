@@ -247,6 +247,8 @@ def toList(val):
     -------
     A list of entries in the string value
     """
+    if type(val) == list:
+        return val  # already a list. Nothing to do
     # we really just need to check if they need parentheses
     stripped = val.strip()
     if utils.scriptTarget == "PsychoJS":

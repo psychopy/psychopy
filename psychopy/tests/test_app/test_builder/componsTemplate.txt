@@ -350,9 +350,7 @@ BrushComponent.syncScreenRefresh.updates:None
 BrushComponent.syncScreenRefresh.val:True
 BrushComponent.syncScreenRefresh.valType:bool
 CodeComponent.order:['name', 'Code Type', 'Before Experiment', 'Begin Experiment', 'Begin Routine', 'Each Frame', 'End Routine', 'End Experiment', 'Before JS Experiment', 'Begin JS Experiment', 'Begin JS Routine', 'Each JS Frame', 'End JS Routine', 'End JS Experiment']
-CodeComponent.Before Experiment.default:# This code will run before the experiment window is opened, after importing all of the necessary packages 
-
-
+CodeComponent.Before Experiment.default:
 CodeComponent.Before Experiment.allowedLabels:[]
 CodeComponent.Before Experiment.allowedTypes:[]
 CodeComponent.Before Experiment.allowedUpdates:[]
@@ -363,9 +361,7 @@ CodeComponent.Before Experiment.label:BeforeExperiment
 CodeComponent.Before Experiment.readOnly:False
 CodeComponent.Before Experiment.staticUpdater:None
 CodeComponent.Before Experiment.updates:constant
-CodeComponent.Before Experiment.val:# This code will run before the experiment window is opened, after importing all of the necessary packages 
-
-
+CodeComponent.Before Experiment.val:
 CodeComponent.Before Experiment.valType:extendedCode
 CodeComponent.Before JS Experiment.default:
 CodeComponent.Before JS Experiment.allowedLabels:[]
@@ -380,9 +376,7 @@ CodeComponent.Before JS Experiment.staticUpdater:None
 CodeComponent.Before JS Experiment.updates:constant
 CodeComponent.Before JS Experiment.val:
 CodeComponent.Before JS Experiment.valType:extendedCode
-CodeComponent.Begin Experiment.default:# This code will run before the experiment starts, after the window is opened and your other components are initialised but before the experiment timer starts
-
-
+CodeComponent.Begin Experiment.default:
 CodeComponent.Begin Experiment.allowedLabels:[]
 CodeComponent.Begin Experiment.allowedTypes:[]
 CodeComponent.Begin Experiment.allowedUpdates:[]
@@ -393,9 +387,7 @@ CodeComponent.Begin Experiment.label:Begin Experiment
 CodeComponent.Begin Experiment.readOnly:False
 CodeComponent.Begin Experiment.staticUpdater:None
 CodeComponent.Begin Experiment.updates:constant
-CodeComponent.Begin Experiment.val:# This code will run before the experiment starts, after the window is opened and your other components are initialised but before the experiment timer starts
-
-
+CodeComponent.Begin Experiment.val:
 CodeComponent.Begin Experiment.valType:extendedCode
 CodeComponent.Begin JS Experiment.default:
 CodeComponent.Begin JS Experiment.allowedLabels:[]
@@ -423,9 +415,7 @@ CodeComponent.Begin JS Routine.staticUpdater:None
 CodeComponent.Begin JS Routine.updates:constant
 CodeComponent.Begin JS Routine.val:
 CodeComponent.Begin JS Routine.valType:extendedCode
-CodeComponent.Begin Routine.default:# This code will run at the start of the routine containing this component, after starting the necessary timers but before loading components
-
-
+CodeComponent.Begin Routine.default:
 CodeComponent.Begin Routine.allowedLabels:[]
 CodeComponent.Begin Routine.allowedTypes:[]
 CodeComponent.Begin Routine.allowedUpdates:[]
@@ -436,9 +426,7 @@ CodeComponent.Begin Routine.label:Begin Routine
 CodeComponent.Begin Routine.readOnly:False
 CodeComponent.Begin Routine.staticUpdater:None
 CodeComponent.Begin Routine.updates:constant
-CodeComponent.Begin Routine.val:# This code will run at the start of the routine containing this component, after starting the necessary timers but before loading components
-
-
+CodeComponent.Begin Routine.val:
 CodeComponent.Begin Routine.valType:extendedCode
 CodeComponent.Code Type.default:'Auto->JS'
 CodeComponent.Code Type.allowedLabels:[]
@@ -453,9 +441,7 @@ CodeComponent.Code Type.staticUpdater:None
 CodeComponent.Code Type.updates:None
 CodeComponent.Code Type.val:Auto->JS
 CodeComponent.Code Type.valType:str
-CodeComponent.Each Frame.default:# This code will run on each frame refresh during the routine containing this component, after iterating the frame but before the screen flip
-
-
+CodeComponent.Each Frame.default:
 CodeComponent.Each Frame.allowedLabels:[]
 CodeComponent.Each Frame.allowedTypes:[]
 CodeComponent.Each Frame.allowedUpdates:[]
@@ -466,9 +452,7 @@ CodeComponent.Each Frame.label:Each Frame
 CodeComponent.Each Frame.readOnly:False
 CodeComponent.Each Frame.staticUpdater:None
 CodeComponent.Each Frame.updates:constant
-CodeComponent.Each Frame.val:# This code will run on each frame refresh during the routine containing this component, after iterating the frame but before the screen flip
-
-
+CodeComponent.Each Frame.val:
 CodeComponent.Each Frame.valType:extendedCode
 CodeComponent.Each JS Frame.default:
 CodeComponent.Each JS Frame.allowedLabels:[]
@@ -483,9 +467,7 @@ CodeComponent.Each JS Frame.staticUpdater:None
 CodeComponent.Each JS Frame.updates:constant
 CodeComponent.Each JS Frame.val:
 CodeComponent.Each JS Frame.valType:extendedCode
-CodeComponent.End Experiment.default:# This code will run at the end of the experiment, just before saving the data and closing the window
-
-
+CodeComponent.End Experiment.default:
 CodeComponent.End Experiment.allowedLabels:[]
 CodeComponent.End Experiment.allowedTypes:[]
 CodeComponent.End Experiment.allowedUpdates:[]
@@ -496,9 +478,7 @@ CodeComponent.End Experiment.label:End Experiment
 CodeComponent.End Experiment.readOnly:False
 CodeComponent.End Experiment.staticUpdater:None
 CodeComponent.End Experiment.updates:constant
-CodeComponent.End Experiment.val:# This code will run at the end of the experiment, just before saving the data and closing the window
-
-
+CodeComponent.End Experiment.val:
 CodeComponent.End Experiment.valType:extendedCode
 CodeComponent.End JS Experiment.default:
 CodeComponent.End JS Experiment.allowedLabels:[]
@@ -526,9 +506,7 @@ CodeComponent.End JS Routine.staticUpdater:None
 CodeComponent.End JS Routine.updates:constant
 CodeComponent.End JS Routine.val:
 CodeComponent.End JS Routine.valType:extendedCode
-CodeComponent.End Routine.default:# This code will run at the end of the routine containing this component, after breaking the frame loop but before resetting the timer
-
-
+CodeComponent.End Routine.default:
 CodeComponent.End Routine.allowedLabels:[]
 CodeComponent.End Routine.allowedTypes:[]
 CodeComponent.End Routine.allowedUpdates:[]
@@ -539,9 +517,7 @@ CodeComponent.End Routine.label:End Routine
 CodeComponent.End Routine.readOnly:False
 CodeComponent.End Routine.staticUpdater:None
 CodeComponent.End Routine.updates:constant
-CodeComponent.End Routine.val:# This code will run at the end of the routine containing this component, after breaking the frame loop but before resetting the timer
-
-
+CodeComponent.End Routine.val:
 CodeComponent.End Routine.valType:extendedCode
 CodeComponent.disabled.default:False
 CodeComponent.disabled.allowedLabels:[]
@@ -5538,6 +5514,19 @@ SettingsComponent.Monitor.staticUpdater:None
 SettingsComponent.Monitor.updates:None
 SettingsComponent.Monitor.val:testMonitor
 SettingsComponent.Monitor.valType:str
+SettingsComponent.Resources.default:[]
+SettingsComponent.Resources.allowedLabels:[]
+SettingsComponent.Resources.allowedTypes:[]
+SettingsComponent.Resources.allowedUpdates:None
+SettingsComponent.Resources.allowedVals:[]
+SettingsComponent.Resources.categ:Online
+SettingsComponent.Resources.hint:Any additional resources needed
+SettingsComponent.Resources.label:Additional Resources
+SettingsComponent.Resources.readOnly:False
+SettingsComponent.Resources.staticUpdater:None
+SettingsComponent.Resources.updates:None
+SettingsComponent.Resources.val:[]
+SettingsComponent.Resources.valType:list
 SettingsComponent.Save csv file.default:False
 SettingsComponent.Save csv file.allowedLabels:[]
 SettingsComponent.Save csv file.allowedTypes:[]
