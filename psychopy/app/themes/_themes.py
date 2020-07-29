@@ -160,7 +160,7 @@ class ThemeMixin:
                 page._applyAppTheme()
 
         def applyToCodeEditor(target):
-            spec = ThemeMixin.codeColors
+            spec = ThemeMixin.codeColors.copy()
             base = spec['base']
             # Override base font with user spec if present
             prefkey = 'outputFont' if isinstance(target, wx.py.shell.Shell) else 'codeFont'

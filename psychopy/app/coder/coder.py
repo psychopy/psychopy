@@ -2461,7 +2461,8 @@ class CoderFrame(wx.Frame, ThemeMixin):
         if event:
             if event.Id == self.cdrBtnRun.Id:
                 self.app.runner.panel.runLocal(event)
-        self.app.showRunner()
+            else:
+                self.app.showRunner()
 
     def copy(self, event):
         foc = self.FindFocus()

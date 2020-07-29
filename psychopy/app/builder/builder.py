@@ -1057,7 +1057,8 @@ class BuilderFrame(wx.Frame, ThemeMixin):
         if event:
             if event.Id == self.bldrBtnRun.Id:
                 self.app.runner.panel.runLocal(event)
-        self.app.showRunner()
+            else:
+                self.app.showRunner()
 
     def onCopyRoutine(self, event=None):
         """copy the current routine from self.routinePanel
@@ -2872,6 +2873,7 @@ class FlowPanel(wx.ScrolledWindow):
                             comp = thisComp
                             icon = thisIcon
                             break  # we've found a Routine so stop looking
+                self.frame.routinePanel.setCurrentRoutine(comp)
                 try:
                     self._menuComponentID = icon
                     xy = wx.Point(x + self.GetPosition()[0],
