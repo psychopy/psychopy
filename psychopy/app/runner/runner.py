@@ -75,8 +75,10 @@ class RunnerFrame(wx.Frame, ThemeMixin):
         self.mainSizer.Add(self.panel, 1, wx.EXPAND | wx.ALL)
         self.SetSizerAndFit(self.mainSizer)
         self.appData = self.app.prefs.appData['runner']
-        self.loadTaskList()
-
+        # Load previous tasks
+        for filePath in self.appData['taskList']:
+            if os.path.exists(filePath):
+                self.addTask(fileName=filePath)
         self.Bind(wx.EVT_CLOSE, self.onClose)
         self.theme = app.theme
 
@@ -205,15 +207,63 @@ class RunnerFrame(wx.Frame, ThemeMixin):
         wx.EndBusyCursor()
 
     def saveTaskList(self, evt=None):
-        """Save task list to appData."""
-        self.appData['taskList'] = self.taskList
-        self.app.prefs.saveAppData()
+        """Save task list as psyrun file."""
+        if hasattr(self, 'listname'):
+            filename = self.listname
+        else:
+            filename = "untitled.psyrun"
+        initPath, filename = os.path.split(filename)
+
+        _w = "PsychoPy task lists (*.psyrun)|*.psyrun|Any file (*.*)|*"
+        if sys.platform != 'darwin':
+            _w += '.*'
+        wildcard = _translate(_w)
+        dlg = wx.FileDialog(
+            self, message=_translate("Save task list as ..."), defaultDir=initPath,
+            defaultFile=filename, style=wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT,
+            wildcard=wildcard)
+
+        if dlg.ShowModal() == wx.ID_OK:
+            newPath = dlg.GetPath()
+            # actually save
+            experiments = []
+            for i in range(self.panel.expCtrl.GetItemCount()):
+                experiments.append(
+                    {'path': self.panel.expCtrl.GetItem(i,1).Text,
+                     'file': self.panel.expCtrl.GetItem(i,0).Text}
+                )
+            with open(newPath, 'w') as file:
+                json.dump(experiments, file)
+            self.listname = newPath
+
+        try:  # this seems correct on PC, but not on mac
+            dlg.destroy()
+        except Exception:
+            pass
 
     def loadTaskList(self, evt=None):
         """Load saved task list from appData."""
-        for filePath in self.appData['taskList']:
-            if os.path.exists(filePath):
-                self.addTask(fileName=filePath)
+        if hasattr(self, 'listname'):
+            filename = self.listname
+        else:
+            filename = "untitled.psyrun"
+        initPath, filename = os.path.split(filename)
+
+        _w = "PsychoPy task lists (*.psyrun)|*.psyrun|Any file (*.*)|*"
+        if sys.platform != 'darwin':
+            _w += '.*'
+        wildcard = _translate(_w)
+        dlg = wx.FileDialog(
+            self, message=_translate("Open task list ..."), defaultDir=initPath,
+            defaultFile=filename, style=wx.FD_OPEN | wx.FD_FILE_MUST_EXIST,
+            wildcard=wildcard)
+        if dlg.ShowModal() == wx.ID_OK:
+            newPath = dlg.GetPath()
+            with open(newPath, 'r') as file:
+                experiments = json.load(file)
+            for exp in experiments:
+                self.panel.addTask(fileName=os.path.join(exp['path'], exp['file']))
+            self.listname = newPath
 
     def clearTasks(self, evt=None):
         """Clear all items from the panels expCtrl ListCtrl."""
