@@ -81,13 +81,46 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
                  anchor='center',
                  alignment='left',
                  fillColor=None,
-                 borderWidth=1,
+                 borderWidth=2,
                  borderColor=None,
                  flipHoriz=False,
                  flipVert=False,
                  editable=False,
                  name='',
                  autoLog=None):
+        """
+
+        Parameters
+        ----------
+        win
+        text
+        font
+        pos
+        units
+        letterHeight
+        size : Specifying None gets the default size for this type of unit.
+            Specifying [None, None] gets a TextBox that's expandable in both
+            dimensions. Specifying [0.75, None] gets a textbox that expands in the
+            length but fixed at 0.75 units in the width
+        color
+        colorSpace
+        contrast
+        opacity
+        bold
+        italic
+        lineSpacing
+        padding
+        anchor
+        alignment
+        fillColor
+        borderWidth
+        borderColor
+        flipHoriz
+        flipVert
+        editable
+        name
+        autoLog
+        """
 
         BaseVisualStim.__init__(self, win, units=units, name=name)
         self.win = win
@@ -111,17 +144,18 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
                 self.letterHeight, pos=0, units=scaleUnits, win=self.win)
         self._pixelScaling = self._pixLetterHeight / self.letterHeight
         if size is None:
-            size = [defaultBoxWidth[units], -1]
-        self._requestedSize = size  # (-1 in either dim means not constrained)
+            size = [defaultBoxWidth[units], None]
+        self._requestedSize = size  # (None in either dim means not constrained)
         self.size = size  # but this will be updated later to actual size
         self.bold = bold
         self.italic = italic
         self.lineSpacing = lineSpacing
         if padding is None:
-            padding = defaultLetterHeight[units] / 2.0
+            padding = letterHeight / 2.0
         self.padding = padding
         self.glFont = None  # will be set by the self.font attribute setter
         self.font = font
+
         # once font is set up we can set the shader (depends on rgb/a of font)
         if self.glFont.atlas.format == 'rgb':
             global rgbShader
@@ -132,38 +166,37 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
             self.shader = alphaShader = shaders.Shader(
                     shaders.vertSimple, shaders.fragTextBox2alpha)
         self._needVertexUpdate = False  # this will be set True during layout
+
         # standard stimulus params
         self.pos = pos
-        self.posPix = convertToPix(vertices=[0, 0],
-                                   pos=self.pos,
-                                   units=self.units,
-                                   win=self.win)
         self.ori = 0.0
         self.depth = 0.0
         # used at render time
         self._lines = None  # np.array the line numbers for each char
         self._colors = None
-
         self.flipHoriz = flipHoriz
         self.flipVert = flipVert
         # params about positioning (after layout has occurred)
         self.anchor = anchor  # 'center', 'top_left', 'bottom-center'...
         self.alignment = alignment
-        # then layout the text (setting text triggers _layout())
-        self.text = text
+
         # box border and fill
         w, h = self.size
+        self.borderWidth = borderWidth
+        self.borderColor = borderColor
+        self.fillColor = fillColor
+
         self.box = Rect(
-                win, pos=pos,
-                width=w, height=h, units=units,
+                win, pos=self.pos,
+                units=units,
                 lineWidth=borderWidth, lineColor=borderColor,
-                fillColor=fillColor,
+                fillColor=fillColor, opacity=self.opacity,
                 autoLog=False)
         # also bounding box (not normally drawn but gives tight box around chrs)
         self.boundingBox = Rect(
-                win, pos=pos,
-                width=w, height=h, units=units,
-                lineWidth=1, lineColor=None, fillColor=None,
+                win, pos=self.pos,
+                units=units,
+                lineWidth=1, lineColor=None, fillColor='white', opacity=0.1,
                 autoLog=False)
         self._requested = {
             'lineColor': borderColor,
@@ -172,9 +205,8 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
             'fillColor': fillColor,
             'fillRGB': self.box.fillRGB
         }
-        self.borderWidth = borderWidth
-        self.borderColor = borderColor
-        self.fillColor = fillColor
+        # then layout the text (setting text triggers _layout())
+        self.text = text
 
         # caret
         self.editable = editable
@@ -276,7 +308,12 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
         self._lineWidths = []  # width in stim units of each line
 
         self._lineHeight = font.height * self.lineSpacing
-        lineMax = (self.size[0] - self.padding) * self._pixelScaling
+
+        if np.isnan(self._requestedSize[0]):
+            lineMax = float('inf')
+        else:
+            lineMax = (self._requestedSize[0] - self.padding) * self._pixelScaling
+
         current = [0, 0]
         fakeItalic = 0.0
         fakeBold = 0.0
@@ -288,6 +325,7 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
 
         wordLen = 0
         charsThisLine = 0
+        wordsThisLine = 0
         lineN = 0
         for i, charcode in enumerate(text):
 
@@ -363,15 +401,17 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
                 lineWidth = lineWPix / self._pixelScaling + self.padding * 2
                 self._lineWidths.append(lineWidth)
                 charsThisLine = 0
+                wordsThisLine = 0
             elif charcode in wordBreaks:
                 wordLen = 0
                 charsThisLine += 1
+                wordsThisLine += 1
             elif printable:
                 wordLen += 1
                 charsThisLine += 1
 
-            # end line with auto-wrap
-            if current[0] >= lineMax and wordLen > 0:
+            # end line with auto-wrap on space
+            if current[0] >= lineMax and wordLen > 0 and wordsThisLine:
                 # move the current word to next line
                 lineBreakPt = vertices[(i - wordLen + 1) * 4, 0]
                 wordWidth = current[0] - lineBreakPt
@@ -400,9 +440,9 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
 
         # thisW = current[0] - glyph.advance[0] + glyph.size[0] * alphaCorrection
         # calculate final self.size and tightBox
-        if self.size[0] == -1:
-            self.size[0] = max(self._lineWidths)
-        if self.size[1] == -1:
+        if np.isnan(self._requestedSize[0]):
+            self.size[0] = max(self._lineWidths) + self.padding*2
+        if np.isnan(self._requestedSize[1]):
             self.size[1] = ((lineN + 1) * self._lineHeight / self._pixelScaling
                             + self.padding * 2)
 
@@ -418,6 +458,8 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
             self._updateVertices()
         if self.fillColor is not None or self.borderColor is not None:
             self.box.draw()
+
+        # self.boundingBox.draw()  # could draw for debug purposes
         gl.glPushMatrix()
         self.win.setScale('pix')
 
@@ -523,30 +565,42 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
         if self._anchorY == 'top':
             self._anchorOffsetY = (-font.ascender / self._pixelScaling
                                    - self.padding)
+            boxOffsetY = - self.size[1] / 2.0
         elif self._anchorY == 'center':
             self._anchorOffsetY = (
                     self.size[1] / 2
                     - (font.height / 2 - font.descender) / self._pixelScaling
-                    - self.padding)
+                    - self.padding
+            )
+            boxOffsetY = 0
         elif self._anchorY == 'bottom':
             self._anchorOffsetY = (
-                        self.size[1] / 2 - font.descender / self._pixelScaling)
+                    self.size[1]
+                    - (font.height / 2 + font.ascender) / self._pixelScaling
+            )
+            # self._anchorOffsetY = (-font.ascender / self._pixelScaling
+            #                        - self.padding)
+            boxOffsetY = + (self.size[1]) / 2.0
         else:
-            raise ValueError('Unexpected error for _anchorY')
+            raise ValueError('Unexpected value for _anchorY')
 
+        # calculate anchor offsets (text begins on left=0, box begins center=0)
         if self._anchorX == 'right':
-            self._anchorOffsetX = - (self.size[0] - self.padding) / 1.0
+            self._anchorOffsetX = - self.size[0] + self.padding
+            boxOffsetX = - self.size[0] / 2.0
         elif self._anchorX == 'center':
-            self._anchorOffsetX = - (self.size[0] - self.padding) / 2.0
+            self._anchorOffsetX = - self.size[0] / 2.0 + self.padding
+            boxOffsetX = 0
         elif self._anchorX == 'left':
-            self._anchorOffsetX = 0
+            self._anchorOffsetX = 0 + self.padding
+            boxOffsetX = + self.size[0] / 2.0
         else:
-            raise ValueError('Unexpected error for _anchorX')
+            raise ValueError('Unexpected value for _anchorX')
         self.vertices = self._rawVerts + (self._anchorOffsetX, self._anchorOffsetY)
 
         vertsPix = convertToPix(vertices=self.vertices,
                                 pos=self.pos,
-                             win=self.win, units=self.units)
+                                win=self.win, units=self.units)
         self.__dict__['verticesPix'] = vertsPix
 
         # tight bounding box
@@ -558,8 +612,13 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
         Xmid = (R+L)/2
         tightH = T-B
         Ymid = (T+B)/2
-        self.box.size = tightW, tightH
-        self.box.pos = Xmid, Ymid
+        # for the tight box anchor offset is included in vertex calcs
+        self.boundingBox.size = tightW, tightH
+        self.boundingBox.pos = self.pos + (Xmid, Ymid)
+        # box (larger than bounding box) needs anchor offest adding
+        self.box.pos = self.pos + (boxOffsetX, boxOffsetY)
+        self.box.size = self.size  # this might have changed from _requested
+
         self._needVertexUpdate = False
 
     def _onText(self, chr):
