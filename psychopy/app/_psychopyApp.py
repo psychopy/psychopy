@@ -452,7 +452,7 @@ class PsychoPyApp(wx.App, themes.ThemeMixin):
         if not self.prefs.app['debugMode']:
             logging.console.setLevel(logging.INFO)
         # Runner captures standard streams until program closed
-        if not self.testMode:
+        if self.runner and not self.testMode:
             sys.stdout = self.runner.stdOut
             sys.stderr = self.runner.stdOut
 
