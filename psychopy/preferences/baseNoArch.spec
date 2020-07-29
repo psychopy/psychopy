@@ -42,8 +42,6 @@
     shutdownKeyModifiers = list(default=list())
     # What to do if gamma-correction not possible
     gammaErrorPolicy = option('abort', 'warn', default='abort')
-    # Should the Builder and Coder "run" buttons add the experiment to runner view or skip straight to running it?
-    useRunner = boolean(default='True')
 
 # Application settings, applied to coder, builder, & prefs windows
 [app]
@@ -52,7 +50,7 @@
     # size of icons in the Coder and Builder toolbars (top of window)
     largeIcons = boolean(default='True')
     # what windows to display when PsychoPy starts
-    defaultView = option('last', 'builder', 'coder', 'both', default='last')
+    defaultView = option('builder', 'coder', 'runner', 'all', default='all')
     # reset preferences to defaults on next restart of PsychoPy
     resetPrefs = boolean(default='False') # default must be False!
     # save any unsaved preferences before closing the window
