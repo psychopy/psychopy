@@ -427,15 +427,16 @@ class RunnerPanel(wx.Panel, ScriptProcess, ThemeMixin):
         self._applyAppTheme()
 
     def _applyAppTheme(self, target=None):
-        if target is None:
+        if target == None:
             target = self
         ThemeMixin._applyAppTheme(self, self)
         self.alertsCtrl._applyAppTheme()
         self.stdoutCtrl._applyAppTheme()
         ThemeMixin._applyAppTheme(self.expCtrl)
-        for btn in [self.plusBtn, self.negBtn, self.runBtn, self.stopBtn,
-                    self.onlineBtn, self.onlineDebugBtn]:
-            btn.SetBackgroundColour(ThemeMixin.appColors['panel_bg'])
+        for btn in self.buttonSizer.GetChildren():
+            if btn.Window:
+                btn = btn.Window
+                btn.SetBackgroundColour(ThemeMixin.appColors['panel_bg'])
 
     def makeButtons(self):
         # Set buttons
@@ -447,29 +448,50 @@ class RunnerPanel(wx.Panel, ScriptProcess, ThemeMixin):
                 tip=_translate(
                         "Add experiment to list"),
                 size=32)
+        self.Bind(wx.EVT_BUTTON, self.addTask, self.plusBtn)
         self.negBtn = icons.makeBitmapButton(
                 parent=self,
                 filename='removeExp.png',
                 name='removeExp',
                 tip=_translate(
-                        "Remove experiment to list"),
+                        "Remove experiment from list"),
                 size=32)
+        self.Bind(wx.EVT_BUTTON, self.removeTask, self.negBtn)
+        self.saveBtn = icons.makeBitmapButton(
+            parent=self,
+            filename='filesaveas.png',
+            name='saveTasks',
+            tip=_translate(
+                "Save task list to a file"),
+            size=32)
+        self.Bind(wx.EVT_BUTTON, self.parent.saveTaskList, self.saveBtn)
+        self.loadBtn = icons.makeBitmapButton(
+            parent=self,
+            filename='fileopen.png',
+            name='loadTasks',
+            tip=_translate(
+                "Load tasks from a file"),
+            size=32)
+        self.Bind(wx.EVT_BUTTON, self.parent.loadTaskList, self.loadBtn)
         self.runBtn = icons.makeBitmapButton(
                 parent=self, filename='run.png',
                 name='run',
                 tip=_translate(
                         "Run the current script in Python"),
                 size=32)
+        self.Bind(wx.EVT_BUTTON, self.runLocal, self.runBtn)
         self.stopBtn = icons.makeBitmapButton(
                 parent=self, filename='stop.png',
                 name='stop',
                 tip=_translate("Stop task"),
                 size=32)
+        self.Bind(wx.EVT_BUTTON, self.stopTask, self.stopBtn)
         self.onlineBtn = icons.makeBitmapButton(
                 parent=self,
                 filename='globe.png',
                 emblem='run', tip=_translate(
                         "Run PsychoJS task from Pavlovia"), size=32)
+        self.Bind(wx.EVT_BUTTON, self.runOnline, self.onlineBtn)
         self.onlineDebugBtn = icons.makeBitmapButton(
                 parent=self,
                 filename='globe.png',
@@ -478,23 +500,17 @@ class RunnerPanel(wx.Panel, ScriptProcess, ThemeMixin):
                 tip=_translate(
                         "Run PsychoJS task in local debug mode"),
                 size=32)
-
-        # Bind events to buttons
-        self.Bind(wx.EVT_BUTTON, self.addTask, self.plusBtn)
-        self.Bind(wx.EVT_BUTTON, self.removeTask, self.negBtn)
-        self.Bind(wx.EVT_BUTTON, self.runLocal, self.runBtn)
-        self.Bind(wx.EVT_BUTTON, self.stopTask, self.stopBtn)
-        self.Bind(wx.EVT_BUTTON, self.runOnline, self.onlineBtn)
         self.Bind(wx.EVT_BUTTON, self.runOnlineDebug, self.onlineDebugBtn)
-
-        self.buttonSizer.Add(self.plusBtn, 0, wx.ALL | wx.ALIGN_TOP, 5)
-        self.buttonSizer.Add(self.negBtn, 0, wx.ALL | wx.ALIGN_TOP, 5)
-        self.buttonSizer.AddStretchSpacer()
-        self.buttonSizer.AddMany([(self.runBtn, 0, wx.ALL, 5),
-                                  (self.stopBtn, 0, wx.ALL, 5),
-                                  (self.onlineBtn, 0, wx.ALL, 5),
-                                  (self.onlineDebugBtn, 0, wx.ALL, 5),
-                                  ])
+        # Add buttons to sizer
+        self.buttonSizer.AddMany([(self.plusBtn, 0, wx.ALL | wx.ALIGN_TOP, 5),
+                                      (self.negBtn, 0, wx.ALL | wx.ALIGN_TOP, 5),
+                                      (self.saveBtn, 0, wx.ALL, 5),
+                                      (self.loadBtn, 0, wx.ALL, 5),
+                                      (self.runBtn, 0, wx.ALL, 5),
+                                      (self.stopBtn, 0, wx.ALL, 5),
+                                      (self.onlineBtn, 0, wx.ALL, 5),
+                                      (self.onlineDebugBtn, 0, wx.ALL, 5),
+                                      ])
         self.stopBtn.Disable()
         self.SetSizerAndFit(self.mainSizer)
         self.SetMinSize(self.Size)
