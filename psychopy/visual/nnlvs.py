@@ -37,7 +37,7 @@ vshdModels = {
         'diopterMax': 5,  # maximum diopter value for the display
         'scrHeightM': 9.6 * 1200. / 1e-6,  # screen height in meters
         'scrWidthM': 9.6 * 1920. / 1e-6,  # screen width in meters
-        'distCoef': 0.02  # depends on screen size and aspect ratio
+        'distCoef': 0.02  # distortion coef. depends on screen size
     }
 }
 
@@ -61,7 +61,7 @@ class VisualSystemHD(window.Window):
 
     """
     def __init__(self, monoscopic=False, lensCorrection=True, distCoef=None,
-                 directDraw=False, model='vshd', *args, **kwargs):
+                 directDraw=False, hwModel='vshd', *args, **kwargs):
         """
         Parameters
         ----------
@@ -85,9 +85,9 @@ class VisualSystemHD(window.Window):
             instead of creating separate buffer. This saves video memory but
             does not permit barrel distortion or monoscopic rendering. If
             `False`, drawing is done with two FBOs containing each eye's image.
-        model : str
-            VisualSystemHD model in use. This value is used to configure the
-            display. Cannot be changed after initialization.
+        hwModel : str
+            VisualSystemHD hardware model in use. This value is used to
+            configure the display. Cannot be changed after initialization.
 
         """
         # warn if given `useFBO`
@@ -107,7 +107,7 @@ class VisualSystemHD(window.Window):
 
         # hardware information for a given model of the display, used for
         # configuration
-        self._model = model
+        self._model = hwModel
         self._hwDesc = vshdModels[self._model]
 
         # distortion coefficent
