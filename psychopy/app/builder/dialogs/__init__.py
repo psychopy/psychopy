@@ -163,7 +163,7 @@ class ParamCtrls(object):
             self.valueCtrl.SetValue(param.val)
         elif param.valType == 'fileList':
             self.valueCtrl = FileListCtrl(parent,
-                                          choices=[],
+                                          choices=param.val,
                                           size=wx.Size(self.valueWidth, 100)
                                           )
         elif len(param.allowedVals) > 1:
