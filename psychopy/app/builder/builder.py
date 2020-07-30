@@ -292,7 +292,10 @@ class BuilderFrame(wx.Frame, ThemeMixin):
             wx.ID_PREFERENCES,
             _translate("&Preferences\t%s") % keys['preferences'])
         self.Bind(wx.EVT_MENU, self.app.showPrefs, item)
-
+        menu.AppendSeparator()
+        msg = _translate("Close PsychoPy Builder")
+        item = menu.Append(wx.ID_ANY, msg)
+        self.Bind(wx.EVT_MENU, self.closeFrame, id=item.GetId())
         self.fileMenu.AppendSeparator()
         self.fileMenu.Append(wx.ID_EXIT,
                              _translate("&Quit\t%s") % keys['quit'],
@@ -315,37 +318,6 @@ class BuilderFrame(wx.Frame, ThemeMixin):
         self.Bind(wx.EVT_MENU, self.redo, id=wx.ID_REDO)
         menu.Append(wx.ID_PASTE, _translate("&Paste\t%s") % keys['paste'])
         self.Bind(wx.EVT_MENU, self.paste, id=wx.ID_PASTE)
-
-        # ---_tools ---#000000#FFFFFF-----------------------------------------
-        self.toolsMenu = wx.Menu()
-        menuBar.Append(self.toolsMenu, _translate('&Tools'))
-        menu = self.toolsMenu
-        item = menu.Append(wx.ID_ANY,
-                           _translate("Monitor Center"),
-                           _translate("To set information about your monitor"))
-        self.Bind(wx.EVT_MENU, self.app.openMonitorCenter, item)
-
-        item = menu.Append(wx.ID_ANY,
-                           _translate("Compile\t%s") % keys['compileScript'],
-                           _translate("Compile the exp to a script"))
-        self.Bind(wx.EVT_MENU, self.compileScript, item)
-        item = menu.Append(wx.ID_ANY,
-                           _translate("Run\t%s") % keys['runScript'],
-                           _translate("Run the current script"))
-        self.Bind(wx.EVT_MENU, self.runFile, item)
-
-        menu.AppendSeparator()
-        item = menu.Append(wx.ID_ANY,
-                           _translate("PsychoPy updates..."),
-                           _translate("Update PsychoPy to the latest, or a "
-                                      "specific, version"))
-        self.Bind(wx.EVT_MENU, self.app.openUpdater, item)
-        if hasattr(self.app, 'benchmarkWizard'):
-            item = menu.Append(wx.ID_ANY,
-                               _translate("Benchmark wizard"),
-                               _translate("Check software & hardware, generate "
-                                          "report"))
-            self.Bind(wx.EVT_MENU, self.app.benchmarkWizard, item)
 
         # ---_view---#000000#FFFFFF-------------------------------------------
         self.viewMenu = wx.Menu()
@@ -394,6 +366,36 @@ class BuilderFrame(wx.Frame, ThemeMixin):
         menu.AppendSubMenu(self.themesMenu,
                                _translate("Themes"))
 
+        # ---_tools ---#000000#FFFFFF-----------------------------------------
+        self.toolsMenu = wx.Menu()
+        menuBar.Append(self.toolsMenu, _translate('&Tools'))
+        menu = self.toolsMenu
+        item = menu.Append(wx.ID_ANY,
+                           _translate("Monitor Center"),
+                           _translate("To set information about your monitor"))
+        self.Bind(wx.EVT_MENU, self.app.openMonitorCenter, item)
+
+        item = menu.Append(wx.ID_ANY,
+                           _translate("Compile\t%s") % keys['compileScript'],
+                           _translate("Compile the exp to a script"))
+        self.Bind(wx.EVT_MENU, self.compileScript, item)
+        item = menu.Append(wx.ID_ANY,
+                           _translate("Run\t%s") % keys['runScript'],
+                           _translate("Run the current script"))
+        self.Bind(wx.EVT_MENU, self.runFile, item)
+
+        menu.AppendSeparator()
+        item = menu.Append(wx.ID_ANY,
+                           _translate("PsychoPy updates..."),
+                           _translate("Update PsychoPy to the latest, or a "
+                                      "specific, version"))
+        self.Bind(wx.EVT_MENU, self.app.openUpdater, item)
+        if hasattr(self.app, 'benchmarkWizard'):
+            item = menu.Append(wx.ID_ANY,
+                               _translate("Benchmark wizard"),
+                               _translate("Check software & hardware, generate "
+                                          "report"))
+            self.Bind(wx.EVT_MENU, self.app.benchmarkWizard, item)
 
         # ---_experiment---#000000#FFFFFF-------------------------------------
         self.expMenu = wx.Menu()
@@ -499,10 +501,6 @@ class BuilderFrame(wx.Frame, ThemeMixin):
         menu.Append(wx.ID_ABOUT, _translate(
             "&About..."), _translate("About PsychoPy"))
         self.Bind(wx.EVT_MENU, self.app.showAbout, id=wx.ID_ABOUT)
-
-        menu.AppendSeparator()
-        menu.AppendSeparator()
-
         item = menu.Append(wx.ID_ANY,
                            _translate("&News..."),
                            _translate("News"))
@@ -698,7 +696,8 @@ class BuilderFrame(wx.Frame, ThemeMixin):
         expPath, expName = os.path.split(self.filename)
         if htmlPath is None:
             htmlPath = self._getHtmlPath(self.filename)
-
+        if not htmlPath:
+            return
         dlg = ExportFileDialog(self, wx.ID_ANY,
                                title=_translate("Export HTML file"),
                                filePath=htmlPath,
@@ -1057,7 +1056,8 @@ class BuilderFrame(wx.Frame, ThemeMixin):
         if event:
             if event.Id == self.bldrBtnRun.Id:
                 self.app.runner.panel.runLocal(event)
-        self.app.showRunner()
+            else:
+                self.app.showRunner()
 
     def onCopyRoutine(self, event=None):
         """copy the current routine from self.routinePanel
@@ -1213,7 +1213,11 @@ class BuilderFrame(wx.Frame, ThemeMixin):
 
     def onPavloviaSync(self, evt=None):
         if self._getExportPref('on sync'):
-            self.fileExport(htmlPath=self._getHtmlPath(self.filename))
+            htmlPath = self._getHtmlPath(self.filename)
+            if htmlPath:
+                self.fileExport(htmlPath=htmlPath)
+            else:
+                return
 
         self.enablePavloviaButton(['pavloviaSync', 'pavloviaRun'], False)
         try:
@@ -2872,6 +2876,7 @@ class FlowPanel(wx.ScrolledWindow):
                             comp = thisComp
                             icon = thisIcon
                             break  # we've found a Routine so stop looking
+                self.frame.routinePanel.setCurrentRoutine(comp)
                 try:
                     self._menuComponentID = icon
                     xy = wx.Point(x + self.GetPosition()[0],
