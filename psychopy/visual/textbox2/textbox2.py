@@ -87,7 +87,8 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
                  flipVert=False,
                  editable=False,
                  name='',
-                 autoLog=None):
+                 autoLog=None,
+                 onTextCallback=None):
         """
 
         Parameters
@@ -129,6 +130,7 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
         self.color = color
         self.contrast = contrast
         self.opacity = opacity
+        self.onTextCallback = onTextCallback
 
         # first set params needed to create font (letter sizes etc)
         if letterHeight is None:
@@ -646,6 +648,8 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
         txt = self.text
         self.text = txt[:self.caret.index] + chr + txt[self.caret.index:]
         self.caret.index += 1
+        if self.onTextCallback:
+            self.onTextCallback()
 
     def _onCursorKeys(self, key):
         """Called by the window when cursor/del/backspace... are received"""
