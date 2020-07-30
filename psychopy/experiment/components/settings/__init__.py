@@ -43,6 +43,7 @@ _localized = {'expName': _translate("Experiment name"),
               'Enable Escape':  _translate("Enable Escape key"),
               'Experiment info':  _translate("Experiment info"),
               'Data filename':  _translate("Data filename"),
+              'Data file delimiter':  _translate("Data file delimeter"),
               'Full-screen window':  _translate("Full-screen window"),
               'Window size (pixels)':  _translate("Window size (pixels)"),
               'Screen': _translate('Screen'),
@@ -100,7 +101,7 @@ class SettingsComponent(object):
                  blendMode='avg',
                  saveXLSXFile=False, saveCSVFile=False,
                  saveWideCSVFile=True, savePsydatFile=True,
-                 savedDataFolder='',
+                 savedDataFolder='', savedDataDelim='auto',
                  useVersion='',
                  filename=None, exportHTML='on Sync'):
         self.type = 'Settings'
@@ -241,6 +242,12 @@ class SettingsComponent(object):
             hint=_translate("Code to create your custom file name base. Don"
                             "'t give a file extension - this will be added."),
             label=_localized["Data filename"], categ='Data')
+        self.params['Data file delimiter'] = Param(
+            savedDataDelim, valType='str',
+            allowedVals=['auto', 'comma', 'semicolon', 'tab'],
+            hint=_translate("What symbol should the data file use to separate columns? ""Auto"" will select a delimiter automatically from the filename."),
+            label=_translate("Data file delimiter"), categ='Data'
+        )
         self.params['Save log file'] = Param(
             saveLogFile, valType='bool', allowedTypes=[],
             hint=_translate("Save a detailed log (more detailed than the "
@@ -807,7 +814,8 @@ class SettingsComponent(object):
         buff.writeIndented("# these shouldn't be strictly necessary "
                            "(should auto-save)\n")
         if self.params['Save wide csv file'].val:
-            buff.writeIndented("thisExp.saveAsWideText(filename+'.csv')\n")
+            buff.writeIndented("thisExp.saveAsWideText(filename+'.csv', "
+                               "delim={})\n".format(self.params['Data file delimiter']))
         if self.params['Save psydat file'].val:
             buff.writeIndented("thisExp.saveAsPickle(filename)\n")
         if self.params['Save log file'].val:
