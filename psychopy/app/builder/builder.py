@@ -1212,7 +1212,11 @@ class BuilderFrame(wx.Frame, ThemeMixin):
 
     def onPavloviaSync(self, evt=None):
         if self._getExportPref('on sync'):
-            self.fileExport(htmlPath=self._getHtmlPath(self.filename))
+            htmlPath = self._getHtmlPath(self.filename)
+            if htmlPath:
+                self.fileExport(htmlPath=htmlPath)
+            else:
+                return
 
         self.enablePavloviaButton(['pavloviaSync', 'pavloviaRun'], False)
         try:
