@@ -301,23 +301,6 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
         """
         return size * self.size[0] - (self.itemPadding * 2)
 
-    def _responseTextWrap(self, item):
-        """
-        Returns width for each response label text based on responseWidth
-        and N responses given for item.
-
-        Parameters
-        ----------
-        item : dict
-            The dict entry for a single item
-
-        Returns
-        -------
-        float
-            Wrap width for response label text
-        """
-        return (item['responseWidth'] * self.size[0]) / (len(item['options']))
-
     def _setQuestion(self, item):
         """Creates TextStim object containing question
 
@@ -356,7 +339,7 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
                 size=[w, None],  # expand height with text
                 autoLog=False,
                 color=item['itemColor'],
-                padding=0,
+                padding=0,  # handle this by padding between items
                 borderWidth=1,
                 borderColor=None,  # add borderColor to help debug
                 editable=False,
@@ -453,6 +436,10 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
         """
         # Slider dict
 
+        def _sliderLabelWidths():
+            return (item['responseWidth'] * self.size[0]) \
+                   / (len(item['options']))
+
         sliderType = {'slider': {'ticks': range(0, len(item['options'])),
                                  'style': 'slider', 'granularity': 0},
                       'rating': {'ticks': range(0, len(item['options'])),
@@ -461,39 +448,53 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
                                  'style': 'radio', 'granularity': 1}}
         sliderType['radio'] = sliderType['choice']  # synonyms
 
-        # Get height of response object
-        respHeight = self._getSliderHeight(item)
-
         # Set radio button layout
         if item['layout'] == 'horiz':
-            respSize = ((item['responseWidth'])
-                        * self.size[0]
-                        - self._scrollBarSize[0]
-                        - self.itemPadding,
-                        0.03)
+            w = (item['responseWidth'] * self.size[0]
+                - self._scrollBarSize[0] - self.itemPadding)*0.8
+            h = 0.03
         elif item['layout'] == 'vert':
-            respSize = (0.03, respHeight)
+            # for vertical take into account the nOptions
+            w = 0.03
+            h = self.textHeight*len(item['options'])
             item['options'].reverse()
 
         # Create Slider
+        x = pos[0] - self._scrollBarSize[0] - self.itemPadding
         resp = psychopy.visual.Slider(
                 self.win,
-                pos=pos, size=respSize,
+                pos=(x, 0),  # NB y pos is irrelevant here - handled later
+                size=(w, h),
                 ticks=sliderType[item['type'].lower()]['ticks'],
                 labels=[i.strip(' ') for i in item['options']],
                 units=self.units,
                 labelHeight=self.textHeight,
-                labelWrapWidth=self._responseTextWrap(item),
+                labelWrapWidth=_sliderLabelWidths(),
                 granularity=sliderType[item['type'].lower()]['granularity'],
                 flip=True,
                 style=sliderType[item['type'].lower()]['style'],
                 autoLog=False,
                 color=item['responseColor'])
 
-        # store virtual pos to combine with scroll bar for actual pos
-        resp._baseY = self._currentVirtualY - resp.size[1]/2
+        if item['layout'] == 'horiz':
+            h += self.textHeight*2
 
-        return resp, respHeight
+        # store virtual pos to combine with scroll bar for actual pos
+        resp._baseY = self._currentVirtualY - h/2 - self.itemPadding
+
+        return resp, h
+
+    def _getItemHeight(self, item, ctrl=None):
+        """Returns the full height of the item to be inserted in the form"""
+        if type(ctrl) == psychopy.visual.TextBox2:
+            return ctrl.size[1]
+        if type(ctrl) == psychopy.visual.Slider:
+            # Set radio button layout
+            if item['layout'] == 'horiz':
+                return 0.03
+            elif item['layout'] == 'vert':
+                # for vertical take into account the nOptions
+                return ctrl.labelHeight*len(item['options'])
 
     def _makeTextBox(self, item, pos):
         """Creates TextBox object for Form class
@@ -513,19 +514,23 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
         respHeight
             The height of the response object as type float
         """
+        w = (item['responseWidth']*self.size[0]
+             - self.itemPadding - self._scrollBarSize[0])
+        x = self.rightEdge-self.itemPadding-self._scrollBarSize[0]
         resp = psychopy.visual.TextBox2(
                 self.win,
                 text='',
-                pos=(self.rightEdge-self.itemPadding, 0),
-                size=(item['responseWidth'], .25),
+                pos=(x, 0),  # y pos irrelevant now (handled by scrollbar)
+                size=(w, None),
                 letterHeight=self.textHeight,
                 units=self.units,
-                anchor = 'top-right',
-                color='white',
+                anchor='top-right',
+                color='#101010',
                 font='Arial',
                 editable=True,
-                borderColor='orange',
-                fillColor='lightgray',
+                borderColor='DarkGray',
+                fillColor='LightGray',
+                onTextCallback=self._doLayoutAgain,
         )
 
         respHeight = resp.size[1]
@@ -533,39 +538,6 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
         resp._baseY = self._currentVirtualY
 
         return resp, respHeight
-
-    def _getSliderHeight(self, item):
-        """Takes response items and calculates height of response object
-        based on the size of the textstim bounding box
-
-        Parameters
-        ----------
-        item : dict
-            The dict entry for a single item
-
-        Returns
-        -------
-        float
-            The height of the response object
-        """
-        longest = max(item['options'], key=len)  # Get longest response item
-        longestIndex = item['options'].index(longest)  # index longest item
-        tempText = TextStim(self.win,
-                            item['options'][longestIndex],
-                            height=self.textHeight,
-                            wrapWidth=self._responseTextWrap(item),
-                            units=self.units)
-        size = tempText.boundingBox[1]
-        del (tempText)
-
-        # set response height from layout
-        if item['layout'] == 'vert':
-            respHeight = len(item['options']) * size
-        elif item['layout'] == 'horiz':
-            respHeight = size
-
-        # return size converted to height units
-        return respHeight / self.win.size[1]
 
     def _setScrollBar(self):
         """Creates Slider object for scrollbar
@@ -624,12 +596,11 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
             Offset position of items proportionate to scroll bar
         """
         sizeOffset = (1 - self.scrollbar.markerPos) * (
-                    self.size[1] - self.itemPadding)
+                    self.size[1] + self.itemPadding)
         maxItemPos = self._currentVirtualY
         if maxItemPos > -self.size[1]:
             return 0
-        return (maxItemPos - (
-                    self.scrollbar.markerPos * maxItemPos) + sizeOffset)
+        return (maxItemPos - (self.scrollbar.markerPos * maxItemPos) + sizeOffset)
 
     def _doLayout(self):
         """Define layout of form"""
@@ -650,11 +621,23 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
 
             # go on to next line if together they're too wide
             if item['itemWidth'] + item['responseWidth'] > 1:
-                self._currentVirtualY -= questionHeight
+                # response on next line
+                self._currentVirtualY -= questionHeight + self.itemPadding
 
             # set up the response object
             response, respHeight = self._setResponse(item, question)
-            self._currentVirtualY -= respHeight
+            # go on to next line if together they're too wide
+            if item['itemWidth'] + item['responseWidth'] > 1:
+                # response on next line
+                self._currentVirtualY -= respHeight + self.itemPadding
+            else:
+                # response on same line
+                self._currentVirtualY -= (
+                        max(questionHeight, respHeight) + self.itemPadding
+                )
+
+        # a hack because form didn't have enough space at bottom!
+        self._currentVirtualY -= respHeight*4
 
         # position a slider on right-hand edge
         self.scrollbar = self._setScrollBar()
@@ -665,6 +648,44 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
 
         if self.autoLog:
             logging.info("Layout set for Form: {}.".format(self.name))
+
+    def _doLayoutAgain(self):
+        """This needs to be done when editable textboxes change their size
+        because everything below them needs to move too"""
+
+        self._currentVirtualY = self.topEdge - self.itemPadding
+        # For each question, create textstim and rating scale
+        for item in self.items:
+            question = item['itemCtrl']
+            response = item['responseCtrl']
+
+            # update item baseY
+            question._baseY = self._currentVirtualY
+            # and get height to update current Y
+            questionHeight = self._getItemHeight(item=item, ctrl=question)
+            # go on to next line if together they're too wide
+            if item['itemWidth'] + item['responseWidth'] > 1:
+                # response on next line
+                self._currentVirtualY -= questionHeight + self.itemPadding
+
+            # update response baseY
+            if not response:
+                continue
+            response._baseY = self._currentVirtualY
+            # and get height to update current Y
+            respHeight = self._getItemHeight(item=item, ctrl=response)
+            # go on to next line if together they're too wide
+            if item['itemWidth'] + item['responseWidth'] > 1:
+                # response on next line
+                self._currentVirtualY -= respHeight + self.itemPadding
+            else:
+                # response on same line
+                self._currentVirtualY -= (
+                    max(questionHeight, respHeight) + self.itemPadding
+                )
+
+        # a hack because form didn't have enough space at bottom!
+        self._currentVirtualY -= respHeight*4
 
     def _setDecorations(self):
         """Sets Form decorations i.e., Border and scrollbar"""

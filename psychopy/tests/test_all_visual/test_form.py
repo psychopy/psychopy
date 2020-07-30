@@ -105,7 +105,7 @@ class Test_Form(object):
         options = ['a', 'b', 'c']
         for size in [.2, .3, .4]:
             item = {"responseWidth": size, "options": options}
-            assert self.survey._responseTextWrap(item) == size * self.survey.size[0] / len(options)
+            assert self.survey._sliderLabelWidths(item) == size * self.survey.size[0] / len(options)
 
     def test_set_questions(self):
         survey = Form(self.win, items=[self.genderItem], size=(1.0, 0.3), pos=(0.0, 0.0), autoLog=False)
