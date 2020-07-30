@@ -1,0 +1,23 @@
+{
+  "text": "white",
+  "frame_bg": ["black"],
+  "docker_bg": "#800080",
+  "docker_fg": "white",
+  "panel_bg": ["lighter","black"],
+  "tab_bg": ["lighter","black"],
+  "bmpbutton_bg_hover": ["red"],
+  "bmpbutton_fg_hover": "white",
+  "txtbutton_bg_hover": "red",
+  "txtbutton_fg_hover": "white",
+  "rt_timegrid": ["white"],
+  "rt_comp": "blue",
+  "rt_comp_force": "orange",
+  "rt_comp_disabled":"grey",
+  "rt_static": ["red", 75],
+  "rt_static_disabled": ["grey", 75],
+  "fl_routine_fg": ["lighter","white"],
+  "fl_routine_bg_slip": "blue",
+  "fl_routine_bg_nonslip": "green",
+  "fl_flowline_bg": ["white"],
+  "fl_flowline_fg": ["black"]
+}
