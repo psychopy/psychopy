@@ -5526,7 +5526,7 @@ SettingsComponent.Resources.readOnly:False
 SettingsComponent.Resources.staticUpdater:None
 SettingsComponent.Resources.updates:None
 SettingsComponent.Resources.val:[]
-SettingsComponent.Resources.valType:list
+SettingsComponent.Resources.valType:fileList
 SettingsComponent.Save csv file.default:False
 SettingsComponent.Save csv file.allowedLabels:[]
 SettingsComponent.Save csv file.allowedTypes:[]

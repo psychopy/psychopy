@@ -197,6 +197,8 @@ class Param(object):
             return "%s" %(toList(self.val))
         elif self.valType == 'fixedList':
             return "{}".format(self.val)
+        elif self.valType == 'fileList':
+            return "{}".format(self.val)
         elif self.valType == 'bool':
             return "%s" % self.val
         else:
