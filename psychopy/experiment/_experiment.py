@@ -836,14 +836,6 @@ class Experiment(object):
 
         # Add files from additional resources box
         val = self.settings.params['Resources'].val
-        # - everything here can be deleted once gen file has been run
-        val = val.replace("\"", "")
-        val = val.split(",")
-        if val[0].startswith("["):
-            val[0] = val[0].replace("[", "")
-        if val[-1].endswith("]"):
-            val[-1] = val[-1].replace("]", "")
-        # -
         for thisEntry in val:
             thisFile = getPaths(thisEntry)
             if thisFile:
