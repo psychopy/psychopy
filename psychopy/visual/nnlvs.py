@@ -27,14 +27,33 @@ except ImportError:
 reportNDroppedFrames = 5
 
 
+# ------------------------------------------------------------------------------
+# Configurations for the model of VSHD
+#
+
+vshdModels = {
+    'vshd': {
+        'diopterMin': -7.,  # minimum diopter value for the display
+        'diopterMax': 5,  # maximum diopter value for the display
+        'scrHeightM': 9.6 * 1200. / 1e-6,  # screen height in meters
+        'scrWidthM': 9.6 * 1920. / 1e-6,  # screen width in meters
+        'distCoef': 0.02  # depends on screen size and aspect ratio
+    }
+}
+
+
+# ------------------------------------------------------------------------------
+# Window subclass class for VSHD hardware
+#
+
 class VisualSystemHD(window.Window):
     """Class provides support for NordicNeuralLab's VisualSystemHD(tm) fMRI
     display hardware.
 
-    Use this class in-place of the window class for use with the VSHD hardware.
-    Ensure that the VSHD headset display output is configured in extended
-    desktop mode. Extended desktops are only supported on Windows and Linux
-    systems.
+    Use this class in-place of the `Window` class for use with the VSHD
+    hardware. Ensure that the VSHD headset display output is configured in
+    extended desktop mode (eg. nVidia Surround). Extended desktops are only
+    supported on Windows and Linux systems.
 
     The VSHD is capable of both 2D and stereoscopic 3D rendering. You can select
     which eye to draw to by calling `setBuffer`, much like how stereoscopic
@@ -42,7 +61,7 @@ class VisualSystemHD(window.Window):
 
     """
     def __init__(self, monoscopic=False, lensCorrection=True, distCoef=None,
-                 model='vshd', *args, **kwargs):
+                 directDraw=False, model='vshd', *args, **kwargs):
         """
         Parameters
         ----------
@@ -54,10 +73,18 @@ class VisualSystemHD(window.Window):
             only 2D stimuli as it uses a less memory intensive rendering
             pipeline.
         lensCorrection : bool
-            Apply lens correction (barrel distortion) to the output.
+            Apply lens correction (barrel distortion) to the output. The amount
+            of distortion applied can be specified using `distCoef`. If `False`,
+            no distortion will be applied to the output and the entire display
+            will be used.
         distCoef : float
             Distortion coefficient for barrel distortion. If `None`, the
             recommended value will be used.
+        directDraw : bool
+            Direct drawing mode. Stimuli are drawn directly to the back buffer
+            instead of creating separate buffer. This saves video memory but
+            does not permit barrel distortion or monoscopic rendering. If
+            `False`, drawing is done with two FBOs containing each eye's image.
         model : str
             VisualSystemHD model in use. This value is used to configure the
             display. Cannot be changed after initialization.
@@ -71,22 +98,17 @@ class VisualSystemHD(window.Window):
         # call up a new window object
         super(VisualSystemHD, self).__init__(*args, **kwargs)
 
+        # direct draw mode
+        self._directDraw = directDraw
+
         # is monoscopic mode enabled?
-        self._monoscopic = monoscopic
-        self._lensCorrection = lensCorrection
+        self._monoscopic = monoscopic and not self._directDraw
+        self._lensCorrection = lensCorrection and not self._directDraw
 
         # hardware information for a given model of the display, used for
         # configuration
         self._model = model
-        self._hwDesc = {
-            'vshd': {
-                'diopterMin': -7.,  # minimum diopter value for the display
-                'diopterMax': 5,  # maximum diopter value for the display
-                'scrHeightM': 9.6 * 1200. / 1e-6,  # screen height in meters
-                'scrWidthM': 9.6 * 1920. / 1e-6,  # screen width in meters
-                'distCoef': 0.02
-            }
-        }[self._model]
+        self._hwDesc = vshdModels[self._model]
 
         # distortion coefficent
         self._distCoef = \
@@ -102,7 +124,9 @@ class VisualSystemHD(window.Window):
         # viewports for each buffer
         self._bufferViewports = dict()
         self._bufferViewports['left'] = (0, 0, bufferWidth, bufferHieght)
-        self._bufferViewports['right'] = self._bufferViewports['left']
+        self._bufferViewports['right'] = \
+            (bufferWidth if self._directDraw else 0,
+             0, bufferWidth, bufferHieght)
         self._bufferViewports['back'] = \
             (0, 0, self.frameBufferSize[0], self.frameBufferSize[1])
 
@@ -251,7 +275,12 @@ class VisualSystemHD(window.Window):
         return ((actualFOV - predFOV) * predFOV) * 100.
 
     def _setupLensCorrection(self):
-        """Setup the VAOs needed for lens correction."""
+        """Setup the VAOs needed for lens correction.
+        """
+        # don't create warp mesh if direct draw enabled
+        if self._directDraw:
+            return
+
         self._warpVAOs = {}
         for eye in ('left', 'right'):
             # setup vertex arrays for the output quad
@@ -280,6 +309,9 @@ class VisualSystemHD(window.Window):
     def _setupEyeBuffers(self):
         """Setup additional buffers for rendering content to each eye.
         """
+        if self._directDraw:  # don't create additional buffers is direct draw
+            return
+
         def createFramebuffer(width, height):
             """Function for setting up additional buffer"""
             # create a new framebuffer
@@ -377,23 +409,23 @@ class VisualSystemHD(window.Window):
 
         # don't change the buffer if same, but allow clearing
         if buffer != self.buffer:
-            # handle when the back buffer is selected
-            if buffer == 'back':
-                if self.useFBO:
-                    GL.glBindFramebuffer(
-                        GL.GL_FRAMEBUFFER,
-                        self._eyeBuffers[buffer]['frameBuffer'])
+            if not self._directDraw:
+                # handle when the back buffer is selected
+                if buffer == 'back':
+                    if self.useFBO:
+                        GL.glBindFramebuffer(
+                            GL.GL_FRAMEBUFFER,
+                            self._eyeBuffers[buffer]['frameBuffer'])
+                    else:
+                        GL.glBindFramebuffer(GL.GL_FRAMEBUFFER, 0)
                 else:
-                    GL.glBindFramebuffer(GL.GL_FRAMEBUFFER, 0)
-            else:
-                GL.glBindFramebuffer(
-                    GL.GL_FRAMEBUFFER, self._eyeBuffers[buffer]['frameBuffer'])
+                    GL.glBindFramebuffer(
+                        GL.GL_FRAMEBUFFER, self._eyeBuffers[buffer]['frameBuffer'])
 
-            self.buffer = buffer  # set buffer string
+            self.viewport = self.scissor = self._bufferViewports[buffer]
 
             GL.glEnable(GL.GL_SCISSOR_TEST)
-            # set the viewport and scissor rect for the buffer
-            self.viewport = self.scissor = self._bufferViewports[buffer]
+            self.buffer = buffer  # set buffer string
 
         if clear:
             self.setColor(self.color)  # clear the buffer to the window color
@@ -457,6 +489,10 @@ class VisualSystemHD(window.Window):
         """
         # nop if we are still setting up the window
         if not hasattr(self, '_eyeBuffers'):
+            return True
+
+        # direct draw being used, don't do FBO blit
+        if self._directDraw:
             return True
 
         # Switch off multi-sampling
