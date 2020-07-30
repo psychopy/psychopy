@@ -147,7 +147,6 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
         self._pixelScaling = self._pixLetterHeight / self.letterHeight
         if size is None:
             size = [defaultBoxWidth[units], None]
-        self._requestedSize = size  # (None in either dim means not constrained)
         self.size = size  # but this will be updated later to actual size
         self.bold = bold
         self.italic = italic
