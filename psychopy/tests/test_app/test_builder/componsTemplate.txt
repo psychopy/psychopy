@@ -5514,6 +5514,19 @@ SettingsComponent.Monitor.staticUpdater:None
 SettingsComponent.Monitor.updates:None
 SettingsComponent.Monitor.val:testMonitor
 SettingsComponent.Monitor.valType:str
+SettingsComponent.Resources.default:[]
+SettingsComponent.Resources.allowedLabels:[]
+SettingsComponent.Resources.allowedTypes:[]
+SettingsComponent.Resources.allowedUpdates:None
+SettingsComponent.Resources.allowedVals:[]
+SettingsComponent.Resources.categ:Online
+SettingsComponent.Resources.hint:Any additional resources needed
+SettingsComponent.Resources.label:Additional Resources
+SettingsComponent.Resources.readOnly:False
+SettingsComponent.Resources.staticUpdater:None
+SettingsComponent.Resources.updates:None
+SettingsComponent.Resources.val:[]
+SettingsComponent.Resources.valType:fileList
 SettingsComponent.Save csv file.default:False
 SettingsComponent.Save csv file.allowedLabels:[]
 SettingsComponent.Save csv file.allowedTypes:[]
