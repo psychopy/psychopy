@@ -1910,6 +1910,7 @@ class DlgExperimentProperties(_BaseParamsDlg):
 class FileListCtrl(wx.ListBox):
     def __init__(self, parent, choices=[], size=None):
         wx.ListBox.__init__(self)
+        parent.Bind(wx.EVT_DROP_FILES, self.addItem)
         self.Create(id=wx.ID_ANY, parent=parent, choices=choices, size=size, style=wx.LB_EXTENDED | wx.LB_HSCROLL)
         self.addBtn = wx.Button(parent, -1, size=wx.Size(20,20), label="+")
         self.addBtn.Bind(wx.EVT_BUTTON, self.addItem)
@@ -1931,6 +1932,11 @@ class FileListCtrl(wx.ListBox):
                 return 0
             filename = dlg.GetPaths()
             self.InsertItems(filename, 0)
+        else:
+            fileList = event.GetFiles()
+            for filename in fileList:
+                if os.path.isfile(filename):
+                    self.InsertItems(filename, 0)
 
     def removeItem(self, event):
         i = self.GetSelections()
