@@ -108,17 +108,19 @@ class Test_Form(object):
             item = {"responseWidth": size, "options": options}
 
     def test_set_questions(self):
-        survey = Form(self.win, items=[self.genderItem], size=(1.0, 0.3), pos=(0.0, 0.0), autoLog=False)
-        textStim, questionHeight, questionWidth = survey._setQuestion(self.genderItem)
+        survey = Form(self.win, items=[self.genderItem], size=(1.0, 0.3),
+                      pos=(0.0, 0.0), autoLog=False)
+        ctrl, h, w = survey._setQuestion(self.genderItem)
 
-        assert type(textStim) == TextBox2
+        assert type(ctrl) == TextBox2
         assert type(questionHeight) in [float, np.float64]
         assert type(questionWidth) in [float, np.float64]
 
     def test_set_response(self):
-        survey = Form(self.win, items=[self.genderItem], size=(1.0, 0.3), pos=(0.0, 0.0), autoLog=False)
-        textStim, questionHeight, questionWidth = survey._setQuestion(self.genderItem)
-        sliderStim, respHeight = survey._setResponse(self.genderItem, textStim)
+        survey = Form(self.win, items=[self.genderItem], size=(1.0, 0.3),
+                      pos=(0.0, 0.0), autoLog=False)
+        ctrl, h, w = survey._setQuestion(self.genderItem)
+        sliderStim, respHeight = survey._setResponse(self.genderItem)
 
         assert type(sliderStim) == Slider
         assert type(respHeight) in [float, np.float64]
