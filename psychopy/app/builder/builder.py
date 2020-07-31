@@ -382,7 +382,7 @@ class BuilderFrame(wx.Frame, ThemeMixin):
         self.bldrRun = menu.Append(wx.ID_ANY,
                            _translate("Run\t%s") % keys['runScript'],
                            _translate("Run the current script"))
-        self.Bind(wx.EVT_MENU, self.runFile, self.bldrItemRun)
+        self.Bind(wx.EVT_MENU, self.runFile, self.bldrRun, id=self.bldrRun)
         item = menu.Append(wx.ID_ANY,
                            _translate("Send to runner\t%s") % keys['runnerScript'],
                            _translate("Send current script to runner"))
@@ -1057,7 +1057,7 @@ class BuilderFrame(wx.Frame, ThemeMixin):
 
         self.stdoutFrame.addTask(fileName=self.filename)
         if event:
-            if event.EventObject in [self.bldrBtnRun, self.bldrRun]:
+            if event.Id in [self.bldrBtnRun.Id, self.bldrRun.Id]:
                 self.app.runner.panel.runLocal(event)
             else:
                 self.app.showRunner()

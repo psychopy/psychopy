@@ -2468,7 +2468,7 @@ class CoderFrame(wx.Frame, ThemeMixin):
                 pass  # just run
         self.app.runner.addTask(fileName=fullPath)
         if event:
-            if event.EventObject in [self.cdrBtnRun, self.IDs.cdrRun]:
+            if event.Id in [self.cdrBtnRun.Id, self.IDs.cdrRun]:
                 self.app.runner.panel.runLocal(event)
             else:
                 self.app.showRunner()
