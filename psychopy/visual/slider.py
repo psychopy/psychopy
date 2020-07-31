@@ -638,3 +638,26 @@ class Slider(MinimalStim):
             # marker must be smalle than a "tick" circle
             self.marker.size = self._tickL * 0.7
             self.marker.fillColor = "DarkRed"
+
+        if 'scrollbar' in style:
+            # make it more like a slider using a box instead of line an format it in scrollbar colours
+            self.line = Rect(self.win, units=self.units,
+                             pos=self.pos,
+                             width=self.size[0],
+                             height=self.size[1],
+                             fillColor='DarkGray',
+                             lineColor='DarkGray',
+                             autoLog=False)
+            if self.horiz:
+                markerW = self.size[0] * 0.1
+                markerH = self.size[1] * 0.8
+            else:
+                markerW = self.size[0] * 0.8
+                markerH = self.size[1] * 0.1
+
+            self.marker = Rect(self.win, units=self.units,
+                               width=markerW,
+                               height=markerH,
+                               fillColor='LightGray',
+                               lineColor='LightGray',
+                               autoLog=False)

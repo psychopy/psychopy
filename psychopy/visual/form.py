@@ -114,6 +114,14 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
         self.itemPadding = itemPadding
         self.scrollSpeed = self.setScrollSpeed(self.items, 4)
         self.units = units
+        # Set default colours
+        self.colorScheme = {
+            'red': [242, 84, 91],
+            'blue': [102, 102, 110],
+            'light': [132, 132, 140],
+            'mid': [102, 102, 110],
+            'dark': [72, 72, 80]
+        }
 
         self.textHeight = textHeight
         self._scrollBarSize = (0.016, size[1])
@@ -534,7 +542,7 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
                 color='#101010',
                 font='Arial',
                 editable=True,
-                borderColor='DarkGray',
+                borderColor='White',
                 fillColor='LightGray',
                 onTextCallback=self._layoutY,
         )
@@ -556,7 +564,7 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
         return psychopy.visual.Slider(win=self.win,
                                       size=self._scrollBarSize,
                                       ticks=[0, 1],
-                                      style='slider',
+                                      style='scrollbar',
                                       pos=(self.rightEdge - .008, self.pos[1]),
                                       autoLog=False)
 
@@ -573,6 +581,8 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
                                     pos=self.pos,
                                     width=self.size[0],
                                     height=self.size[1],
+                                    fillColor='DarkGrey',
+                                    lineColor='DarkGrey',
                                     autoLog=False)
 
     def _setAperture(self):
