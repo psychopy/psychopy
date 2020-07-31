@@ -7,9 +7,10 @@
 # Distributed under the terms of the GNU General Public License (GPL).
 from __future__ import division
 from collections import deque
+import ast  # for doing safe literal_eval
 import psychopy
 from .text import TextStim
-from psychopy.data.utils import importConditions
+from psychopy.data.utils import importConditions, listFromString
 from psychopy.visual.basevisual import (BaseVisualStim,
                                         ContainerMixin,
                                         ColorMixin)
@@ -30,7 +31,8 @@ _knownFields = {
     'itemWidth': 0.8,  # fraction of the form
     'type': _REQUIRED,  # type of response box (see below)
     'options': ('Yes', 'No'),  # for choice box
-    'ticks': (1, 2, 3, 4, 5, 6, 7), 'tickLabels': None,
+    'ticks': (1, 2, 3, 4, 5, 6, 7),
+    'tickLabels': None,
     # for rating/slider
     'responseWidth': 0.8,  # fraction of the form
     'responseColor': 'white',
@@ -47,6 +49,7 @@ _synonyms = {
     'choice': 'radio',
     'free text': 'textBox'
 }
+
 
 class Form(BaseVisualStim, ContainerMixin, ColorMixin):
     """A class to add Forms to a `psycopy.visual.Window`
@@ -156,6 +159,7 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
         """
         def _checkSynonyms(items, fieldNames):
             """Checks for updated names for fields (i.e. synonyms)"""
+
             replacedFields = set()
             for field in _synonyms:
                 synonym = _synonyms[field]
@@ -253,12 +257,12 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
 
         # Convert options to list of strings
         for idx, item in enumerate(items):
-            if PY3:
-                if isinstance(item['options'], str):
-                    items[idx]['options'] = item['options'].split(',')
-            else:  # Python2
-                if isinstance(item['options'], basestring):
-                    items[idx]['options'] = item['options'].split(',')
+            if item['ticks']:
+                item['ticks'] = listFromString(item['ticks'])
+            if 'tickLabels' in item and item['tickLabels']:
+                item['tickLabels'] = listFromString(item['tickLabels'])
+            if 'options' in item and item['options']:
+                item['options'] = listFromString(item['options'])
 
         # Check types
         [_checkTypes(item['type']) for item in items]
@@ -377,9 +381,9 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
             The height of the response object as type float
         """
         if self.autoLog:
-            logging.exp("Response type: {}".format(item['type']))
-            logging.exp("Response layout: {}".format(item['layout']))
-            logging.exp(u"Response options: {}".format(item['options']))
+            logging.info(
+                    "Adding response to Form type: {}, layout: {}, options: {}"
+                    .format(item['type'], item['layout'], item['options']))
 
         if item['type'].lower() == 'free text':
             respCtrl, respHeight = self._makeTextBox(item)
@@ -413,14 +417,37 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
         def _sliderLabelWidths():
             return (item['responseWidth'] * self.size[0]) \
                    / (len(item['options']))
+        kind = item['type'].lower()
 
-        sliderType = {'slider': {'ticks': range(0, len(item['options'])),
-                                 'style': 'slider', 'granularity': 0},
-                      'rating': {'ticks': range(0, len(item['options'])),
-                                 'style': 'rating', 'granularity': 1},
-                      'choice': {'ticks': None,
-                                 'style': 'radio', 'granularity': 1}}
-        sliderType['radio'] = sliderType['choice']  # synonyms
+        # what are the ticks for the scale/slider?
+        if item['type'].lower() in ['radio', 'choice']:
+            ticks = None
+            tickLabels = item['tickLabels'] or item['options'] or item['ticks']
+            granularity = 1
+            style = 'radio'
+        else:
+            if item['ticks']:
+                ticks = item['ticks']
+            elif item['options']:
+                ticks = range(0, len(item['options']))
+
+            else:
+                raise ValueError("We don't appear to have either options or "
+                                 "ticks for item '{}' of {}."
+                                 .format(item['itemText'], self.name))
+            # how to label those ticks
+            if item['tickLabels']:
+                tickLabels = [i.strip(' ') for i in item['tickLabels']]
+            elif 'options' in item and item['options']:
+                tickLabels = [i.strip(' ') for i in item['options']]
+            else:
+                tickLabels = None
+            # style/granularity
+            if kind == 'slider':
+                granularity = 0
+            else:
+                granularity = 1
+            style = kind
 
         # Create x position of response object
         xPos = (self.rightEdge
@@ -444,14 +471,14 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
                 self.win,
                 pos=(x, 0),  # NB y pos is irrelevant here - handled later
                 size=(w, h),
-                ticks=sliderType[item['type'].lower()]['ticks'],
-                labels=[i.strip(' ') for i in item['options']],
+                ticks=ticks,
+                labels=tickLabels,
                 units=self.units,
                 labelHeight=self.textHeight,
                 labelWrapWidth=_sliderLabelWidths(),
-                granularity=sliderType[item['type'].lower()]['granularity'],
+                granularity=granularity,
                 flip=True,
-                style=sliderType[item['type'].lower()]['style'],
+                style=style,
                 autoLog=False,
                 color=item['responseColor'])
 
