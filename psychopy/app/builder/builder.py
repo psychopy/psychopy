@@ -696,7 +696,8 @@ class BuilderFrame(wx.Frame, ThemeMixin):
         expPath, expName = os.path.split(self.filename)
         if htmlPath is None:
             htmlPath = self._getHtmlPath(self.filename)
-
+        if not htmlPath:
+            return
         dlg = ExportFileDialog(self, wx.ID_ANY,
                                title=_translate("Export HTML file"),
                                filePath=htmlPath,
