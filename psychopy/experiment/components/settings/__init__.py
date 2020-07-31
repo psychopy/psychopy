@@ -289,6 +289,10 @@ class SettingsComponent(object):
             'html', valType='str', allowedTypes=[],
             hint=_translate("Place the HTML files will be saved locally "),
             label="Output path", categ='Online')
+        self.params['Resources'] = Param(
+            [], valType='fileList', allowedTypes=[],
+            hint=_translate("Any additional resources needed"),
+            label="Additional Resources", categ='Online')
         self.params['Completed URL'] = Param(
             '', valType='str',
             hint=_translate("Where should participants be redirected after the experiment on completion\n"

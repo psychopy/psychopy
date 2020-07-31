@@ -197,6 +197,8 @@ class Param(object):
             return "%s" %(toList(self.val))
         elif self.valType == 'fixedList':
             return "{}".format(self.val)
+        elif self.valType == 'fileList':
+            return "{}".format(self.val)
         elif self.valType == 'bool':
             return "%s" % self.val
         else:
@@ -247,6 +249,8 @@ def toList(val):
     -------
     A list of entries in the string value
     """
+    if type(val) == list:
+        return val  # already a list. Nothing to do
     # we really just need to check if they need parentheses
     stripped = val.strip()
     if utils.scriptTarget == "PsychoJS":
