@@ -37,7 +37,8 @@ vshdModels = {
         'diopterMax': 5,  # maximum diopter value for the display
         'scrHeightM': 9.6 * 1200. / 1e-6,  # screen height in meters
         'scrWidthM': 9.6 * 1920. / 1e-6,  # screen width in meters
-        'distCoef': -0.02  # distortion coef. depends on screen size
+        'distCoef': -0.02,  # distortion coef. depends on screen size
+        'resolution': (1920, 1200)  # resolution fo the display
     }
 }
 
@@ -137,7 +138,8 @@ class VisualSystemHD(window.Window):
         # extents of the barrel distortion needed to compute FOV after
         # distortion
         self._distExtents = {
-            'left':
+            'left': np.array([[-1, 0], [1, 0], [0, 1], [0, -1]]),
+            'right': np.array([[-1, 0], [1, 0], [0, 1], [0, -1]])
         }
 
         # if we are using an FBO, keep a reference to its handles
@@ -247,6 +249,14 @@ class VisualSystemHD(window.Window):
         eye = self.buffer if eye is None else eye
         return (self._diopters[eye] / 4.) + 1.
 
+    def _getScreenFOV(self, eye, direction='horizontal', degrees=True):
+        """Compute the FOV of the the display."""
+        if direction not in ('horizontal', 'vertical'):
+            raise ValueError("Invalid `direction` specified, must be "
+                             "'horizontal' or 'vertical'.")
+
+        # todo: figure this out
+
     def _getPredictedFOV(self, size, eye=None):
         """Get the predicted vertical FOV of the display for a given eye.
 
@@ -282,13 +292,13 @@ class VisualSystemHD(window.Window):
 
     def _getWarpExtents(self, eye):
         """Get the horizontal and vertical extents of the barrel distortion in
-        normalized device coordinates. This can be used to determine the FOV
-        along each axis after barrel distortion.
+        normalized device coordinates. This is used to determine the FOV along
+        each axis after barrel distortion.
 
         Parameters
         ----------
         eye : str
-            Eye to compute the FOV for.
+            Eye to compute the extents for.
 
         Returns
         -------
@@ -344,6 +354,9 @@ class VisualSystemHD(window.Window):
             self._warpVAOs[eye] = gt.createVAO(attribBuffers,
                                                indexBuffer=indexBuffer,
                                                legacy=True)
+
+            # get the extents of the warping
+            self._distExtents[eye] = self._getWarpExtents(eye)
 
     def _setupEyeBuffers(self):
         """Setup additional buffers for rendering content to each eye.
