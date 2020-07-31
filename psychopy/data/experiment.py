@@ -301,9 +301,9 @@ class ExperimentHandler(_ComparisonMixin):
         """
         # set default delimiter if none given
         delimOptions = {
-                'comma', ",",
-                'semicolon', ";",
-                'tab', "\t"
+                'comma': ",",
+                'semicolon': ";",
+                'tab': "\t"
             }
         if delim == 'auto':
             delim = genDelimiter(fileName)
