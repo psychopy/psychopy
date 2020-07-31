@@ -37,7 +37,7 @@ vshdModels = {
         'diopterMax': 5,  # maximum diopter value for the display
         'scrHeightM': 9.6 * 1200. / 1e-6,  # screen height in meters
         'scrWidthM': 9.6 * 1920. / 1e-6,  # screen width in meters
-        'distCoef': 0.02  # distortion coef. depends on screen size
+        'distCoef': -0.02  # distortion coef. depends on screen size
     }
 }
 
@@ -133,6 +133,12 @@ class VisualSystemHD(window.Window):
         # create render targets for each eye buffer
         self.buffer = None
         self._eyeBuffers = dict()
+
+        # extents of the barrel distortion needed to compute FOV after
+        # distortion
+        self._distExtents = {
+            'left':
+        }
 
         # if we are using an FBO, keep a reference to its handles
         if self.useFBO:
@@ -274,6 +280,39 @@ class VisualSystemHD(window.Window):
 
         return ((actualFOV - predFOV) * predFOV) * 100.
 
+    def _getWarpExtents(self, eye):
+        """Get the horizontal and vertical extents of the barrel distortion in
+        normalized device coordinates. This can be used to determine the FOV
+        along each axis after barrel distortion.
+
+        Parameters
+        ----------
+        eye : str
+            Eye to compute the FOV for.
+
+        Returns
+        -------
+        ndarray
+            2d array of coordinates [+X, -X, +Y, -Y] of the extents of the
+            barrel distortion.
+
+        """
+        coords = np.array([
+            [-1.0,  0.0],
+            [ 1.0,  0.0],
+            [ 0.0,  1.0],
+            [ 0.0, -1.0]])
+
+        try:
+            bufferW, bufferH = self._bufferViewports[eye][2:]
+        except KeyError:
+            raise ValueError("Invalid eye buffer specified.")
+
+        warpedCoords = mt.lensCorrectionSpherical(
+            coords, self._distCoef, bufferW / bufferH)
+
+        return warpedCoords
+
     def _setupLensCorrection(self):
         """Setup the VAOs needed for lens correction.
         """
@@ -291,7 +330,7 @@ class VisualSystemHD(window.Window):
 
             # recompute vertex positions
             vertices[:, :2] = mt.lensCorrectionSpherical(
-                vertices[:, :2], coefK=-.02, aspect=aspect)
+                vertices[:, :2], coefK=self.distCoef, aspect=aspect)
 
             # create the VAO for the eye buffer
             vertexVBO = gt.createVBO(vertices, usage=GL.GL_DYNAMIC_DRAW)
