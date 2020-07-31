@@ -199,13 +199,16 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
                 units=units,
                 lineWidth=1, lineColor=None, fillColor='white', opacity=0.1,
                 autoLog=False)
-        self._requested = {
-            'lineColor': borderColor,
-            'lineRGB': self.box.lineRGB,
-            'lineWidth': borderWidth,
-            'fillColor': fillColor,
-            'fillRGB': self.box.fillRGB
+        self._pallette = {
+            False: { # If no focus
+                'lineColor': borderColor,
+                'lineRGB': self.box.lineRGB,
+                'lineWidth': borderWidth,
+                'fillColor': fillColor,
+                'fillRGB': self.box.fillRGB
+            }
         }
+        self.palletteShift()
         # then layout the text (setting text triggers _layout())
         self.text = text
 
@@ -217,6 +220,10 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
             self.win.addEditable(self)
 
         self.autoLog = autoLog
+
+    @property
+    def pallette(self):
+        return self._pallette[self.hasFocus]
 
     @attributeSetter
     def font(self, fontName, italic=False, bold=False):
@@ -690,91 +697,45 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
 
     @hasFocus.setter
     def hasFocus(self, state):
-        if state:
-            # Double border width
-            if self._requested['lineWidth'] is None:
-                self.box.setLineWidth(5*2) # Use 1 as base if border width is none
-            else:
-                self.box.setLineWidth(max(self._requested['lineWidth'], 5) * 2)
-            self.borderWidth = self.box.lineWidth
-            # Darken border
-            if self._requested['lineColor'] is None:
-                # Use window colour as base if border colour is none
-                self.box.setLineColor(
-                        [max(c - 0.05, 0.05) for c in self.win.color])
-            else:
-                self.box.setLineColor(
-                        [max(c - 0.05, 0.05) for c in self._requested['lineRGB']],
-                        colorSpace='rgb')
-            self.borderColor = self.box.lineColor
-            # Lighten background
-            if self._requested['fillColor'] is None:
-                # Use window colour as base if fill colour is none
-                self.box.color = [
-                    min(c+0.05, 0.95) for c in self.win.color
-                ]
-            else:
-                self.box.color = [
-                    min(c+0.05, 0.95) for c in self._requested['fillRGB']
-                ]
-            self.fillColor = self.box.fillColor
-            # Redraw text box
-            self.draw()
-            # Show caret
-            self.caret.setOpacity(self.opacity)
-        else:
-            # Set box properties back to their original values
-            self.box.setLineWidth(self._requested['lineWidth'])
-            self.borderWidth = self.box.lineWidth
-            self.box.setLineColor(self._requested['lineColor'],
-                                  colorSpace=self.colorSpace)
-            self.borderColor = self.box.lineColor
-            self.box.setFillColor(self._requested['fillColor'],
-                                  colorSpace=self.colorSpace)
-            self.fillColor = self.box.fillColor
-            self.box.draw()
-            # Hide caret
-            self.caret.setOpacity(0)
         # Store focus
         self._hasFocus = state
-
-    @property
-    def hasFocus(self):
-        return self._hasFocus
-
-    @hasFocus.setter
-    def hasFocus(self, state):
-        # todo : shouldn't calculate these on change do it once and store
-        if state:
-            # Adjust fill colour
-            if self._requested['fillColor'] is None:
-                # Check whether background is light or dark
-                self.fillColor = 'white' if np.mean(self.win.rgb) < 0 else 'black'
-                self.box.setOpacity(0.1)
-            elif self.box.fillColorSpace in ['rgb', 'dkl', 'lms', 'hsv']:
-                self.fillColor = [c + 0.1 * \
-                                 (1 if np.mean(self._fillColor) < 0.5 else -1)
-                for c in self.fillColor]
-            elif self.box.colorSpace in ['rgb255', 'named']:
-                self.fillColor = [c + 30 * \
-                                 (1 if np.mean(self._fillColor) < 127 else -1)
-                                  for c in self.fillColor]
-            elif self.box.colorSpace in ['hex']:
-                self.fillColor = [c + 30 * \
-                                 (1 if np.mean(self.box.fillRGB) < 127 else -1)
-                                  for c in self.box.fillRGB]
-            self.draw()
-        else:
-            # Set box properties back to their original values
-            self.fillColor = self._requested['fillColor']
-            self.box.opacity = self.opacity
-            self.box.draw()
-        # Store focus
-        self._hasFocus = state
+        print(self.pallette)
+        # Border width
+        self.box.setLineWidth(self.pallette['lineWidth']) # Use 1 as base if border width is none
+        self.borderWidth = self.box.lineWidth
+        # Border colour
+        self.box.setLineColor(self.pallette['lineColor'])
+        self.borderColor = self.box.lineColor
+        # Background
+        self.box.color = self.pallette['fillColor']
+        self.fillColor = self.box.fillColor
+        # Redraw text box
+        self.draw()
 
     def getText(self):
         """Returns the current text in the box"""
         return self.text
+
+    def palletteShift(self):
+        pal = self._pallette[False].copy()
+        # Double border width
+        if pal['lineWidth']:
+            pal['lineWidth'] = max(pal['lineWidth'], 5) * 2
+        else:
+            pal['lineWidth'] = 5 * 2
+        # Darken border
+        if pal['lineColor']:
+            pal['lineColor'] = [max(c - 0.05, 0.05) for c in pal['lineRGB']]
+        else:
+            # Use window colour as base if border colour is none
+            pal['lineColor'] = [max(c - 0.05, 0.05) for c in self.win.color]
+        # Lighten background
+        if pal['fillColor']:
+            pal['fillColor'] = [min(c + 0.05, 0.95) for c in pal['fillRGB']]
+        else:
+            # Use window colour as base if fill colour is none
+            pal['fillColor'] = [min(c + 0.05, 0.95) for c in self.win.color]
+        self._pallette[True] = pal
 
     @attributeSetter
     def pos(self, value):
