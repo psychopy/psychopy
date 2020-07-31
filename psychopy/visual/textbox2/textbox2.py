@@ -87,7 +87,8 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
                  flipVert=False,
                  editable=False,
                  name='',
-                 autoLog=None):
+                 autoLog=None,
+                 onTextCallback=None):
         """
 
         Parameters
@@ -129,6 +130,7 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
         self.color = color
         self.contrast = contrast
         self.opacity = opacity
+        self.onTextCallback = onTextCallback
 
         # first set params needed to create font (letter sizes etc)
         if letterHeight is None:
@@ -145,7 +147,6 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
         self._pixelScaling = self._pixLetterHeight / self.letterHeight
         if size is None:
             size = [defaultBoxWidth[units], None]
-        self._requestedSize = size  # (None in either dim means not constrained)
         self.size = size  # but this will be updated later to actual size
         self.bold = bold
         self.italic = italic
@@ -283,7 +284,7 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
         """Layout the text, calculating the vertex locations
         """
 
-        text = self.text + "\n"
+        text = self.text
         text = text.replace('<i>', codes['ITAL_START'])
         text = text.replace('</i>', codes['ITAL_END'])
         text = text.replace('<b>', codes['BOLD_START'])
@@ -327,6 +328,7 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
         charsThisLine = 0
         wordsThisLine = 0
         lineN = 0
+
         for i, charcode in enumerate(text):
 
             printable = True  # unless we decide otherwise
@@ -451,6 +453,16 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
             self.glFont.upload()
             self.glFont._dirty = False
         self._needVertexUpdate = True
+
+    def _getStartingVertices(self):
+        """Returns vertices for a single non-printing char as a proxy
+        (needed to get location for caret when there are no actual chars)"""
+        glyph = self.glFont["A"]  # just to get height
+        yTop = 0
+        yBot = yTop - glyph.size[1]
+        x = 0
+        theseVertices = np.array([[x, yTop], [x, yBot], [x, yBot], [x, yTop]])
+        return theseVertices
 
     def draw(self):
         """Draw the text to the back buffer"""
@@ -604,17 +616,21 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
         self.__dict__['verticesPix'] = vertsPix
 
         # tight bounding box
-        L = self.vertices[:, 0].min()
-        R = self.vertices[:, 0].max()
-        B = self.vertices[:, 1].min()
-        T = self.vertices[:, 1].max()
-        tightW = R-L
-        Xmid = (R+L)/2
-        tightH = T-B
-        Ymid = (T+B)/2
-        # for the tight box anchor offset is included in vertex calcs
-        self.boundingBox.size = tightW, tightH
-        self.boundingBox.pos = self.pos + (Xmid, Ymid)
+        if self.vertices.shape[0] < 1:  # editable box with no letters?
+            self.boundingBox.size = 0, 0
+            self.boundingBox.pos = self.pos
+        else:
+            L = self.vertices[:, 0].min()
+            R = self.vertices[:, 0].max()
+            B = self.vertices[:, 1].min()
+            T = self.vertices[:, 1].max()
+            tightW = R-L
+            Xmid = (R+L)/2
+            tightH = T-B
+            Ymid = (T+B)/2
+            # for the tight box anchor offset is included in vertex calcs
+            self.boundingBox.size = tightW, tightH
+            self.boundingBox.pos = self.pos + (Xmid, Ymid)
         # box (larger than bounding box) needs anchor offest adding
         self.box.pos = self.pos + (boxOffsetX, boxOffsetY)
         self.box.size = self.size  # this might have changed from _requested
@@ -631,6 +647,8 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
         txt = self.text
         self.text = txt[:self.caret.index] + chr + txt[self.caret.index:]
         self.caret.index += 1
+        if self.onTextCallback:
+            self.onTextCallback()
 
     def _onCursorKeys(self, key):
         """Called by the window when cursor/del/backspace... are received"""
@@ -852,10 +870,12 @@ class Caret(ColorMixin):
     def row(self):
         """What row is caret on?"""
         # Check that index is with range of all character indices
-        if self.index >= len(self.textbox._lineNs):
-            self.index = len(self.textbox._lineNs) - 1
+        if len(self.textbox._lineNs) == 0:  # no chars at all
+            return 0
+        elif self.index >= len(self.textbox._lineNs):
+            self.index = len(self.textbox._lineNs)
         # Get line of index
-        return self.textbox._lineNs[self.index]
+        return self.textbox._lineNs[self.index-1]
     @row.setter
     def row(self, value):
         """Use line to index conversion to set index according to row value"""
@@ -863,15 +883,15 @@ class Caret(ColorMixin):
         charsIn = self.char
         # If new row is more than total number of rows, move to end of current row
         if value >= len(self.textbox._lineLenChars):
-            value = len(self.textbox._lineLenChars)-1
-            charsIn = self.textbox._lineLenChars[value]-1
+            value = len(self.textbox._lineLenChars)
+            charsIn = self.textbox._lineLenChars[value]
         # If new row is less than 0, move to beginning of first row
         if value < 0:
             value = 0
             charsIn = 0
         # If charsIn is more than number of chars in new row, send it to end of row
         if charsIn > self.textbox._lineLenChars[value]:
-            charsIn = self.textbox._lineLenChars[value]-1
+            charsIn = self.textbox._lineLenChars[value]
         # Set new index in new row
         self.index = sum(self.textbox._lineLenChars[:value]) + charsIn
         # Redraw caret at new row
@@ -881,7 +901,7 @@ class Caret(ColorMixin):
     def char(self):
         """What character within current line is caret on?"""
         # Check that index is with range of all character indices
-        self.index = min(self.index, len(self.textbox._lineNs) - 1)
+        self.index = min(self.index, len(self.textbox._lineNs))
         self.index = max(self.index, 0)
         # Get first index of line, subtract from index to get char
         return self.index - sum(self.textbox._lineLenChars[:self.row])
@@ -894,7 +914,7 @@ class Caret(ColorMixin):
                 value = 0
             else:
                 self.row -= 1
-                value = self.textbox._lineLenChars[self.row]-1
+                value = self.textbox._lineLenChars[self.row]
         # If value exceeds row length, set value to beginning of next row
         if value >= self.textbox._lineLenChars[self.row]:
             self.row += 1
@@ -907,25 +927,30 @@ class Caret(ColorMixin):
     def vertices(self):
         textbox = self.textbox
         # check we have a caret index
-        if self.index is None or self.index > len(textbox._lineNs)-1:
-            self.index = len(textbox._lineNs)-1
+        if self.index is None or self.index > len(textbox._lineNs):
+            self.index = len(textbox._lineNs)
         if self.index < 0:
             self.index = 0
         # get the verts of character next to caret (chr is the next one so use
         # left edge unless last index then use the right of prev chr)
         # lastChar = [bottLeft, topLeft, **bottRight**, **topRight**]
-        ii = self.index
-        chrVerts = textbox.vertices[range(ii * 4, ii * 4 + 4)]  # Get vertices of character at this index
-        if self.index >= len(textbox._lineNs):  # caret is after last chr
-            x = chrVerts[2, 0]  # x-coord of left edge (of final char)
+        ii = self.index-1
+        if textbox.vertices.shape[0] == 0:
+            verts = self.textbox._getStartingVertices()
+            verts[:,1] = verts[:,1] / float(textbox._pixelScaling)
+            verts[:,1] = verts[:,1] + float(textbox._anchorOffsetY)
         else:
-            x = chrVerts[1, 0]  # x-coord of right edge
-        # the y locations are the top and bottom of this line
-        y1 = textbox._lineBottoms[self.row] / textbox._pixelScaling
-        y2 = textbox._lineTops[self.row] / textbox._pixelScaling
+            chrVerts = textbox.vertices[range(ii * 4, ii * 4 + 4)]
+            if self.index >= len(textbox._lineNs):  # caret is after last chr
+                x = chrVerts[2, 0]  # x-coord of left edge (of final char)
+            else:
+                x = chrVerts[1, 0]  # x-coord of right edge
+            # the y locations are the top and bottom of this line
+            y1 = textbox._lineBottoms[self.row] / textbox._pixelScaling
+            y2 = textbox._lineTops[self.row] / textbox._pixelScaling
+            # char x pos has been corrected for anchor already but lines haven't
+            verts = (np.array([[x, y1], [x, y2]])
+                     + (0, textbox._anchorOffsetY))
 
-        # char x pos has been corrected for anchor already but lines haven't
-        verts = (np.array([[x, y1], [x, y2]])
-                 + (0, textbox._anchorOffsetY))
         return convertToPix(vertices=verts, pos=textbox.pos,
                             win=textbox.win, units=textbox.units)

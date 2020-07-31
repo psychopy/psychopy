@@ -1285,7 +1285,7 @@ class BaseVisualStim(MinimalStim, WindowMixin, LegacyVisualMixin):
         """
         array = numpy.array
         value = val2array(value)  # Check correct user input
-        self._requestedSize = value  # to track whether we're using a default
+        self._requestedSize = copy.copy(value)  # to track whether we're using a default
         # None --> set to default
         if value is None:
             # Set the size to default (e.g. to the size of the loaded image
