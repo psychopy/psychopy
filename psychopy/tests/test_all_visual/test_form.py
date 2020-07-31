@@ -113,8 +113,8 @@ class Test_Form(object):
         ctrl, h, w = survey._setQuestion(self.genderItem)
 
         assert type(ctrl) == TextBox2
-        assert type(questionHeight) in [float, np.float64]
-        assert type(questionWidth) in [float, np.float64]
+        assert type(h) in [float, np.float64]
+        assert type(w) in [float, np.float64]
 
     def test_set_response(self):
         survey = Form(self.win, items=[self.genderItem], size=(1.0, 0.3),
