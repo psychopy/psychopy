@@ -379,11 +379,14 @@ class BuilderFrame(wx.Frame, ThemeMixin):
                            _translate("Compile\t%s") % keys['compileScript'],
                            _translate("Compile the exp to a script"))
         self.Bind(wx.EVT_MENU, self.compileScript, item)
-        item = menu.Append(wx.ID_ANY,
+        self.bldrRun = menu.Append(wx.ID_ANY,
                            _translate("Run\t%s") % keys['runScript'],
                            _translate("Run the current script"))
+        self.Bind(wx.EVT_MENU, self.runFile, self.bldrItemRun)
+        item = menu.Append(wx.ID_ANY,
+                           _translate("Send to runner\t%s") % keys['runnerScript'],
+                           _translate("Send current script to runner"))
         self.Bind(wx.EVT_MENU, self.runFile, item)
-
         menu.AppendSeparator()
         item = menu.Append(wx.ID_ANY,
                            _translate("PsychoPy updates..."),
@@ -1054,7 +1057,7 @@ class BuilderFrame(wx.Frame, ThemeMixin):
 
         self.stdoutFrame.addTask(fileName=self.filename)
         if event:
-            if event.Id == self.bldrBtnRun.Id:
+            if event.EventObject in [self.bldrBtnRun, self.bldrRun]:
                 self.app.runner.panel.runLocal(event)
             else:
                 self.app.showRunner()

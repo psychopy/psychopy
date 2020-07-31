@@ -1597,6 +1597,10 @@ class CoderFrame(wx.Frame, ThemeMixin):
                                       _translate("Run\t%s") % keyCodes['runScript'],
                                       _translate("Run the current script")).GetId()
         self.Bind(wx.EVT_MENU, self.runFile, id=self.IDs.cdrRun)
+        item = menu.Append(wx.ID_ANY,
+                                      _translate("Send to runner\t%s") % keyCodes['runnerScript'],
+                                      _translate("Send current script to runner")).GetId()
+        self.Bind(wx.EVT_MENU, self.runFile, id=item)
 
         menu.AppendSeparator()
         item = menu.Append(wx.ID_ANY,
@@ -2464,7 +2468,7 @@ class CoderFrame(wx.Frame, ThemeMixin):
                 pass  # just run
         self.app.runner.addTask(fileName=fullPath)
         if event:
-            if event.Id == self.cdrBtnRun.Id:
+            if event.EventObject in [self.cdrBtnRun, self.IDs.cdrRun]:
                 self.app.runner.panel.runLocal(event)
             else:
                 self.app.showRunner()
