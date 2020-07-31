@@ -569,9 +569,11 @@ class SettingsComponent(object):
                     "import * as core from './lib/core{version}.js';\n"
                     "import {{ TrialHandler }} from './lib/data{version}.js';\n"
                     "import {{ Scheduler }} from './lib/util{version}.js';\n"
-                    "import * as util from './lib/util{version}.js';\n"
                     "import * as visual from './lib/visual{version}.js';\n"
                     "import * as sound from './lib/sound{version}.js';\n"
+                    "import * as util from './lib/util{version}.js';\n"
+                    "// some helper functions in PsychoPy/Python style\n"
+                    "import {{ randint, round, sum }} from './lib/util{version}.js';\n"
                     "\n").format(version=versionStr)
             buff.writeIndentedLines(code)
 

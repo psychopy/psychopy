@@ -37,7 +37,11 @@ namesJS['cos'] = 'Math.cos'
 namesJS['tan'] = 'Math.tan'
 namesJS['pi'] = 'Math.PI'
 namesJS['rand'] = 'Math.random'
-namesJS['random'] = 'Math.random'
+namesJS['sqrt'] = 'Math.sqrt'
+namesJS['abs'] = 'Math.abs'
+namesJS['randint'] = 'util.randint'
+namesJS['round'] = 'util.round'  # better than Math.round, supports n DPs arg
+namesJS['sum'] = 'util.sum'
 
 
 class TupleTransformer(ast.NodeTransformer):
