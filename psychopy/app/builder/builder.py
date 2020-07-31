@@ -379,11 +379,14 @@ class BuilderFrame(wx.Frame, ThemeMixin):
                            _translate("Compile\t%s") % keys['compileScript'],
                            _translate("Compile the exp to a script"))
         self.Bind(wx.EVT_MENU, self.compileScript, item)
-        item = menu.Append(wx.ID_ANY,
+        self.bldrRun = menu.Append(wx.ID_ANY,
                            _translate("Run\t%s") % keys['runScript'],
                            _translate("Run the current script"))
+        self.Bind(wx.EVT_MENU, self.runFile, self.bldrRun, id=self.bldrRun)
+        item = menu.Append(wx.ID_ANY,
+                           _translate("Send to runner\t%s") % keys['runnerScript'],
+                           _translate("Send current script to runner"))
         self.Bind(wx.EVT_MENU, self.runFile, item)
-
         menu.AppendSeparator()
         item = menu.Append(wx.ID_ANY,
                            _translate("PsychoPy updates..."),
@@ -696,7 +699,8 @@ class BuilderFrame(wx.Frame, ThemeMixin):
         expPath, expName = os.path.split(self.filename)
         if htmlPath is None:
             htmlPath = self._getHtmlPath(self.filename)
-
+        if not htmlPath:
+            return
         dlg = ExportFileDialog(self, wx.ID_ANY,
                                title=_translate("Export HTML file"),
                                filePath=htmlPath,
@@ -1053,7 +1057,7 @@ class BuilderFrame(wx.Frame, ThemeMixin):
 
         self.stdoutFrame.addTask(fileName=self.filename)
         if event:
-            if event.Id == self.bldrBtnRun.Id:
+            if event.Id in [self.bldrBtnRun.Id, self.bldrRun.Id]:
                 self.app.runner.panel.runLocal(event)
             else:
                 self.app.showRunner()
@@ -1212,7 +1216,11 @@ class BuilderFrame(wx.Frame, ThemeMixin):
 
     def onPavloviaSync(self, evt=None):
         if self._getExportPref('on sync'):
-            self.fileExport(htmlPath=self._getHtmlPath(self.filename))
+            htmlPath = self._getHtmlPath(self.filename)
+            if htmlPath:
+                self.fileExport(htmlPath=htmlPath)
+            else:
+                return
 
         self.enablePavloviaButton(['pavloviaSync', 'pavloviaRun'], False)
         try:

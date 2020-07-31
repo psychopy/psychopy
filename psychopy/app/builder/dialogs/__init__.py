@@ -155,6 +155,11 @@ class ParamCtrls(object):
                                          name=fieldName,
                                          size=wx.Size(self.valueWidth, -1))
             self.valueCtrl.SetValue(param.val)
+        elif param.valType == 'fileList':
+            self.valueCtrl = FileListCtrl(parent,
+                                          choices=param.val,
+                                          size=wx.Size(self.valueWidth, 100)
+                                          )
         elif len(param.allowedVals) > 1:
             # there are limited options - use a Choice control
             # use localized text or fall through to non-localized,
@@ -768,7 +773,10 @@ class _BaseParamsDlg(wx.Dialog):
             sizer.Add(ctrls.typeCtrl, (currRow, 3), flag=_flag)
         # different flag for the value control (expand)
         _flag = wx.EXPAND | wx.ALL
-        sizer.Add(ctrls.valueCtrl, (currRow, 1), border=5, flag=_flag)
+        if hasattr(ctrls.valueCtrl, '_szr'):
+            sizer.Add(ctrls.valueCtrl._szr, (currRow, 1), border=5, flag=_flag)
+        else:
+            sizer.Add(ctrls.valueCtrl, (currRow, 1), border=5, flag=_flag)
 
         # use monospace font to signal code:
         if fieldName != 'name' and hasattr(ctrls.valueCtrl, 'GetFont'):
@@ -1894,6 +1902,48 @@ class DlgExperimentProperties(_BaseParamsDlg):
         else:
             self.OK = False
         return wx.ID_OK
+
+class FileListCtrl(wx.ListBox):
+    def __init__(self, parent, choices=[], size=None):
+        wx.ListBox.__init__(self)
+        parent.Bind(wx.EVT_DROP_FILES, self.addItem)
+        self.Create(id=wx.ID_ANY, parent=parent, choices=choices, size=size, style=wx.LB_EXTENDED | wx.LB_HSCROLL)
+        self.addBtn = wx.Button(parent, -1, size=wx.Size(20,20), label="+")
+        self.addBtn.Bind(wx.EVT_BUTTON, self.addItem)
+        self.subBtn = wx.Button(parent, -1, size=wx.Size(20,20), label="-")
+        self.subBtn.Bind(wx.EVT_BUTTON, self.removeItem)
+
+        self._szr = wx.BoxSizer(wx.HORIZONTAL)
+        self.btns = wx.BoxSizer(wx.VERTICAL)
+        self.btns.AddMany((self.addBtn, self.subBtn))
+        self._szr.AddMany((self, self.btns))
+
+    def addItem(self, event):
+        if event.GetEventObject() == self.addBtn:
+            _wld = "Any file (*.*)|*"
+            dlg = wx.FileDialog(self, message=_translate("Specify file ..."),
+                                style=wx.FD_OPEN | wx.FD_FILE_MUST_EXIST | wx.FD_MULTIPLE,
+                                wildcard=_translate(_wld))
+            if dlg.ShowModal() != wx.ID_OK:
+                return 0
+            filename = dlg.GetPaths()
+            self.InsertItems(filename, 0)
+        else:
+            fileList = event.GetFiles()
+            for filename in fileList:
+                if os.path.isfile(filename):
+                    self.InsertItems(filename, 0)
+
+    def removeItem(self, event):
+        i = self.GetSelections()
+        if isinstance(i, int):
+            i = [i]
+        items = [item for index, item in enumerate(self.Items)
+                 if index not in i]
+        self.SetItems(items)
+
+    def GetValue(self):
+        return self.Items
 
 
 def _relpath(path, start='.'):
