@@ -130,6 +130,13 @@ class Test_utilsClass:
         assert len(conds) == 6
         assert len(list(conds[0].keys())) == 6
 
+def test_listFromString():
+    assert ['yes', 'no'] == utils.listFromString("yes, no")
+    assert ['yes', 'no'] == utils.listFromString("[yes, no]")
+    assert ['yes', 'no'] == utils.listFromString("(yes, no)")
+    assert ['yes', 'no'] == utils.listFromString("'yes', 'no'")
+    assert ['yes', 'no'] == utils.listFromString("['yes', 'no']")
+    assert ['yes', 'no'] == utils.listFromString("('yes', 'no')")
 
 if __name__ == '__main__':
     pytest.main()

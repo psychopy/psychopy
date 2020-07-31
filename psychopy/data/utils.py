@@ -10,6 +10,7 @@ from builtins import range
 from past.builtins import basestring
 import os
 import re
+import ast
 import pickle
 import time
 import codecs
@@ -166,6 +167,30 @@ def indicesFromString(indsString):
         return inds
     except Exception:
         pass
+
+
+def listFromString(val):
+    """Take a string that looks like a list (with commas and/or [] and make
+    an actual python list"""
+    if type(val) == list:
+        return val  # nothing to do
+    if type(val) != str:
+        raise ValueError("_strToList requires a string as its input")
+    # try to evaluate with ast (works for "'yes,'no'" or "['yes', 'no']")
+    try:
+        iterable = ast.literal_eval(val)
+        if type(iterable) == tuple:
+            iterable = list(iterable)
+        return iterable
+    except ValueError:
+        pass  # e.g. "yes, no" won't work. We'll go on and try another way
+
+    val = val.strip()  # in case there are spaces
+    if val.startswith(('[', '(')) and val.endswith((']', ')')):
+        val = val[1:-1]
+    asList = val.split(",")
+    asList = [this.strip() for this in asList]
+    return asList
 
 
 def importConditions(fileName, returnFieldNames=False, selection=""):
