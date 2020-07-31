@@ -479,7 +479,7 @@ class GLFont:
             #     if kerning.x != 0:
             #         g.kerning[charcode] = kerning.x / self.scale
 
-        logging.info("TextBox2 loaded {} chars with {} blanks and {} valid"
+        logging.debug("TextBox2 loaded {} chars with {} blanks and {} valid"
                      .format(len(charcodes), nBlanks, len(charcodes) - nBlanks))
 
     def saveToCache(self):
