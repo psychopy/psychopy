@@ -6,8 +6,7 @@
 # Copyright (C) 2002-2018 Jonathan Peirce (C) 2019 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 from __future__ import division
-from collections import deque
-import ast  # for doing safe literal_eval
+import copy
 import psychopy
 from .text import TextStim
 from psychopy.data.utils import importConditions, listFromString
@@ -754,11 +753,9 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
 
         Returns
         -------
-        dict
-            A dictionary storing lists of questions, response ratings and response times
+        list
+            list of dicts
         """
-        formData = {'itemIndex': deque([]), 'questions': deque([]),
-                    'ratings': deque([]), 'rt': deque([])}
         nIncomplete = 0
         nIncompleteRequired = 0
         for thisItem in self.items:
@@ -778,8 +775,41 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
                 thisItem['rt'] = responseCtrl.getRT()
             else:
                 thisItem['rt'] = None
-        self.complete = (nIncomplete==0)
-        return self.items
+        self.complete = (nIncomplete == 0)
+        return copy.copy(self.items)  # don't want users unwittingly changing orig
+
+    def addDataToExp(self, exp, itemsAs='rows'):
+        """Gets the current Form data and inserts into an
+        :class:`~psychopy.experiment.ExperimentHandler` object either as rows
+        or as columns
+
+        Parameters
+        ----------
+        exp : :class:`~psychopy.experiment.ExperimentHandler`
+        itemsAs: 'rows','cols' (or 'columns')
+
+        Returns
+        -------
+
+        """
+        data = self.getData()  # will be a copy of data (we can trash it)
+        asCols = itemsAs.lower() in ['cols', 'columns']
+        # iterate over items and fields within each item
+            # iterate all items and all fields before calling nextEntry
+        for thisItem in data:  # data is a list of dicts
+            for ii, fieldName in enumerate(thisItem):
+                if asCols:  # for columns format, we need index for item
+                    columnName = "{}[{}].{}".format(self.name, ii, fieldName)
+                else:
+                    columnName = "{}.{}".format(self.name, fieldName)
+                exp.addData(columnName, thisItem[fieldName])
+                # finished field
+            if not asCols:  # for rows format we add a newline each item
+                exp.nextEntry()
+            # finished item
+        # finished form
+        if asCols:  # for cols format we add a newline each item
+            exp.nextEntry()
 
     def formComplete(self):
         """Checks all Form items for a response
