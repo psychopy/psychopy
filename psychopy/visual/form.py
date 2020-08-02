@@ -749,12 +749,13 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
         self.aperture.disable()
 
     def getData(self):
-        """Extracts form questions, response ratings and response times from Form items
+        """Extracts form questions, response ratings and response times from
+        Form items
 
         Returns
         -------
         list
-            list of dicts
+            A copy of the data as a list of dicts
         """
         nIncomplete = 0
         nIncompleteRequired = 0
