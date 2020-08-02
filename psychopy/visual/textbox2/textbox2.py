@@ -26,7 +26,6 @@ from psychopy.tools.monitorunittools import convertToPix
 from .fontmanager import FontManager, GLFont
 from .. import shaders
 from ..rect import Rect
-from ..line import Line
 from ... import core
 
 allFonts = FontManager()
@@ -290,6 +289,8 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
     def _layout(self):
         """Layout the text, calculating the vertex locations
         """
+        def getLineWidthFromPix(pixVal):
+            return pixVal / self._pixelScaling + self.padding * 2
 
         text = self.text
         text = text.replace('<i>', codes['ITAL_START'])
@@ -407,8 +408,7 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
                 lineN += 1
                 charsThisLine += 1
                 self._lineLenChars.append(charsThisLine)
-                lineWidth = lineWPix / self._pixelScaling + self.padding * 2
-                self._lineWidths.append(lineWidth)
+                self._lineWidths.append(getLineWidthFromPix(lineWPix))
                 charsThisLine = 0
                 wordsThisLine = 0
             elif charcode in wordBreaks:
@@ -430,8 +430,7 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
                 # update line values
                 self._lineNs[i - wordLen + 1: i + 1] += 1
                 self._lineLenChars.append(charsThisLine - wordLen)
-                self._lineWidths.append(
-                        lineBreakPt / self._pixelScaling + self.padding * 2)
+                self._lineWidths.append(getLineWidthFromPix(lineBreakPt))
                 lineN += 1
                 # and set current to correct location
                 current[0] = wordWidth
@@ -443,6 +442,9 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
                 self._lineBottoms.append(current[1] + font.descender)
                 self._lineTops.append(current[1] + self._lineHeight
                                       + font.descender/2)
+
+        # finally add length of this (unfinished) line
+        self._lineWidths.append(getLineWidthFromPix(current[0]))
 
         # convert the vertices to stimulus units
         self._rawVerts = vertices / self._pixelScaling
