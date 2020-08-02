@@ -703,10 +703,10 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
         self.box.setLineWidth(self.pallette['lineWidth']) # Use 1 as base if border width is none
         self.borderWidth = self.box.lineWidth
         # Border colour
-        self.box.setLineColor(self.pallette['lineColor'])
+        self.box.setLineColor(self.pallette['lineColor'], colorSpace='rgb')
         self.borderColor = self.box.lineColor
         # Background
-        self.box.color = self.pallette['fillColor']
+        self.box.setLineColor(self.pallette['fillColor'], colorSpace='rgb')
         self.fillColor = self.box.fillColor
         # Redraw text box
         self.draw()

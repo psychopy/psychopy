@@ -123,7 +123,8 @@ class FormComponent(BaseComponent):
                    "    randomize={Randomize},\n"
                    "    size={Size},\n"
                    "    pos={Pos},\n"
-                   "    itemPadding={Item Padding})\n".format(**inits))
+                   "    itemPadding={Item Padding},"
+                   ")\n".format(**inits))
         buff.writeIndented(initStr)
 
     def writeInitCodeJS(self, buff):
@@ -150,6 +151,8 @@ class FormComponent(BaseComponent):
     def writeRoutineEndCode(self, buff):
         # save data, according to row/col format
         buff.writeIndented("{name}.addDataToExp(thisExp, {Data Format})\n"
+                           .format(**self.params))
+        buff.writeIndented("{name}.autodraw = False\n"
                            .format(**self.params))
 
     def writeRoutineEndCodeJS(self, buff):

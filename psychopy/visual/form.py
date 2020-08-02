@@ -771,7 +771,7 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
         nIncomplete = 0
         nIncompleteRequired = 0
         for thisItem in self.items:
-            if 'responseCtrl' not in thisItem:
+            if 'responseCtrl' not in thisItem or not thisItem['responseCtrl']:
                 continue  # maybe a heading or similar
             responseCtrl = thisItem['responseCtrl']
             # get response if available
