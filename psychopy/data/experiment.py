@@ -300,14 +300,15 @@ class ExperimentHandler(_ComparisonMixin):
 
         """
         # set default delimiter if none given
+        delimOptions = {
+                'comma': ",",
+                'semicolon': ";",
+                'tab': "\t"
+            }
         if delim == 'auto':
             delim = genDelimiter(fileName)
-        elif delim in ['comma', 'semicolon', 'tab']:
-            delim = {
-                'comma', ",",
-                'semicolon', ";",
-                'tab', "\t"
-            }[delim]
+        elif delim in delimOptions:
+            delim = delimOptions[delim]
 
         if appendFile is None:
             appendFile = self.appendFiles
