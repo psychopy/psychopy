@@ -699,7 +699,6 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
     def hasFocus(self, state):
         # Store focus
         self._hasFocus = state
-        print(self.pallette)
         # Border width
         self.box.setLineWidth(self.pallette['lineWidth']) # Use 1 as base if border width is none
         self.borderWidth = self.box.lineWidth

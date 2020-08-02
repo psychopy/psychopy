@@ -15,6 +15,7 @@ from psychopy.visual.basevisual import (BaseVisualStim,
                                         ColorMixin)
 from psychopy import logging
 from random import shuffle
+from pathlib import Path
 
 from psychopy.constants import PY3
 
@@ -107,6 +108,7 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
         self.autoLog = autoLog
         self.name = name
         self.randomize = randomize
+        self._itemsFile = Path(items)
         self.items = self.importItems(items)
         self.size = size
         self.pos = pos
@@ -169,7 +171,7 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
                         del item[synonym]
                         replacedFields.add(field)
             for field in replacedFields:
-                fieldNames.add(field)
+                fieldNames.append(field)
                 fieldNames.remove(_synonyms[field])
                 logging.warning("Form {} included field no longer used {}. "
                                 "Replacing with new name '{}'"
@@ -185,17 +187,19 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
                                      .format(hdr, self.name, fieldNames))
 
 
-        def _checkTypes(types):
+        def _checkTypes(types, itemText):
             """A nested function for testing the number of options given
 
             Raises ValueError if n Options not > 1
             """
             itemDiff = set([types]) - set(_knownRespTypes)
 
-            if len(itemDiff) > 0:
-                msg = ("In Forms, {} is not allowed. You can only use types {}."
-                       " Please amend your item types in your item list"
-                       .format(itemDiff, _knownRespTypes))
+            for incorrItemType in itemDiff:
+                if incorrItemType == _REQUIRED:
+                    msg = ("Item {} in items file '{}' is missing a required "
+                           "value for it's response type. Permitted types are "
+                           "{}.".format(itemText, self._itemsFile,
+                                        _knownRespTypes))
                 if self.autoLog:
                     logging.error(msg)
                 raise ValueError(msg)
@@ -264,7 +268,7 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
                 item['options'] = listFromString(item['options'])
 
         # Check types
-        [_checkTypes(item['type']) for item in items]
+        [_checkTypes(item['type'], item['itemText']) for item in items]
         # Check N options > 1
         # Randomise items if requested
         if self.randomize:
@@ -436,9 +440,9 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
                                  .format(item['itemText'], self.name))
             # how to label those ticks
             if item['tickLabels']:
-                tickLabels = [i.strip(' ') for i in item['tickLabels']]
+                tickLabels = [str(i).strip() for i in item['tickLabels']]
             elif 'options' in item and item['options']:
-                tickLabels = [i.strip(' ') for i in item['options']]
+                tickLabels = [str(i).strip() for i in item['options']]
             else:
                 tickLabels = None
             # style/granularity
@@ -683,7 +687,7 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
                 self._currentVirtualY -= respHeight + self.itemPadding
 
         # a hack because form didn't have enough space at bottom!
-        self._currentVirtualY -= respHeight*2
+        self._currentVirtualY -= respHeight*3
 
         self._setDecorations()  # choose whether show/hide scroolbar
 
