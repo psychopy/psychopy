@@ -38,6 +38,11 @@ _knownFields = {
     'responseColor': 'white',
     'layout': 'horiz',  # can be vert or horiz
 }
+_doNotSave = [
+    'itemCtrl', 'responseCtrl',  # these genuinely can't be save
+    'itemColor', 'options', 'ticks', 'tickLabels',  # not useful?
+    'responseWidth', 'responseColor', 'layout',
+]
 _knownRespTypes = {
     'heading', 'description',  # no responses
     'rating', 'slider',  # slider is continuous
@@ -788,7 +793,7 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
             else:
                 thisItem['rt'] = None
         self._complete = (nIncomplete == 0)
-        return copy.copy(self.items)  # don't want users unwittingly changing orig
+        return copy.copy(self.items)  # don't want users changing orig
 
     def addDataToExp(self, exp, itemsAs='rows'):
         """Gets the current Form data and inserts into an
@@ -807,9 +812,11 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
         data = self.getData()  # will be a copy of data (we can trash it)
         asCols = itemsAs.lower() in ['cols', 'columns']
         # iterate over items and fields within each item
-            # iterate all items and all fields before calling nextEntry
+        # iterate all items and all fields before calling nextEntry
         for thisItem in data:  # data is a list of dicts
             for ii, fieldName in enumerate(thisItem):
+                if fieldName in _doNotSave:
+                    continue
                 if asCols:  # for columns format, we need index for item
                     columnName = "{}[{}].{}".format(self.name, ii, fieldName)
                 else:
