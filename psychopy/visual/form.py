@@ -108,7 +108,6 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
         self.autoLog = autoLog
         self.name = name
         self.randomize = randomize
-        self._itemsFile = Path(items)
         self.items = self.importItems(items)
         self.size = size
         self.pos = pos
@@ -130,7 +129,7 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
                 "Form currently only formats correctly using height units. "
                 "Please change the units in Experiment Settings to 'height'")
 
-        self.complete = False
+        self._complete = False
 
         # Create layout of form
         self._createItemCtrls()
@@ -196,9 +195,14 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
 
             for incorrItemType in itemDiff:
                 if incorrItemType == _REQUIRED:
-                    msg = ("Item {} in items file '{}' is missing a required "
-                           "value for it's response type. Permitted types are "
-                           "{}.".format(itemText, self._itemsFile,
+                    if self._itemsFile:
+                        itemsFileStr =  ("in items file '{}'"
+                                         .format(self._itemsFile))
+                    else:
+                        itemsFileStr = ""
+                    msg = ("Item {}{} is missing a required "
+                           "value for its response type. Permitted types are "
+                           "{}.".format(itemText, itemsFileStr,
                                         _knownRespTypes))
                 if self.autoLog:
                     logging.error(msg)
@@ -247,11 +251,14 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
 
         if not isinstance(items, list):
             # items is a conditions file
+            self._itemsFile = Path(items)
             items, fieldNames = importConditions(items, returnFieldNames=True)
         else:  # we already have a list so lets find the fieldnames
             fieldNames = set()
             for item in items:
                 fieldNames = fieldNames.union(item)
+            fieldNames = list(fieldNames)  # convert to list at the end
+            self._itemsFile = None
 
         _checkSynonyms(items, fieldNames)
         _checkRequiredFields(fieldNames)
@@ -772,7 +779,7 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
                 thisItem['response'] = responseCtrl.getRating()
             else:
                 thisItem['response'] = responseCtrl.text
-            if thisItem['response'] in [None,'']:
+            if thisItem['response'] in [None, '']:
                 # todo : handle required items here (e.g. ending with * ?)
                 nIncomplete += 1
             # get RT if available
@@ -780,7 +787,7 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
                 thisItem['rt'] = responseCtrl.getRT()
             else:
                 thisItem['rt'] = None
-        self.complete = (nIncomplete == 0)
+        self._complete = (nIncomplete == 0)
         return copy.copy(self.items)  # don't want users unwittingly changing orig
 
     def addDataToExp(self, exp, itemsAs='rows'):
@@ -817,12 +824,12 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
             exp.nextEntry()
 
     def formComplete(self):
-        """Checks all Form items for a response
-
-        Returns
-        -------
-        bool
-            True if all items contain a response, False otherwise.
+        """Deprecated in version 2020.2. Please use the Form.complete property
         """
-        self.getData()
         return self.complete
+
+    @property
+    def complete(self):
+        """A read-only property to determine if the current form is complete"""
+        self.getData()
+        return self._complete
