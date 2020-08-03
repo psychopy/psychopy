@@ -117,6 +117,7 @@ class PsychopyToolbar(wx.ToolBar, ThemeMixin):
         wx.ToolBar.__init__(self, frame)
         self.frame = frame
         self.app = self.frame.app
+        self._needMakeTools = True
         # Configure toolbar appearance
         self.SetWindowStyle(wx.TB_HORIZONTAL | wx.NO_BORDER | wx.TB_FLAT | wx.TB_NODIVIDER)
         #self.SetBackgroundColour(ThemeMixin.appColors['frame_bg'])
@@ -352,6 +353,10 @@ class FrameSwitcher(wx.Menu):
         wx.Menu.__init__(self)
         self.parent = parent
         self.itemFrames = {}
+
+        self.builderBtn = None
+        self.coderBtn = None
+        self.runnerBtn = None
         self.Update()
 
     @property
@@ -360,45 +365,56 @@ class FrameSwitcher(wx.Menu):
 
     def Update(self):
         """Set items according to which windows are open"""
-        for item in self.GetMenuItems():
-            self.DestroyItem(item)
+        if sys.platform == 'win32':  # on mac DestroyItem segfaults. Linux?
+            for item in self.GetMenuItems():
+                self.DestroyItem(item)
 
-        # Determine whether to show standard buttons based on open state
-        showBuilder = not any(isinstance(frame, psychopy.app.builder.BuilderFrame) and hasattr(frame, 'filename')
-                             for frame in self.parent.app.getAllFrames())
-        showCoder = not any(isinstance(frame, psychopy.app.coder.CoderFrame) and hasattr(frame, 'filename')
-                             for frame in self.parent.app.getAllFrames())
-        showRunner = not any(isinstance(frame, psychopy.app.runner.RunnerFrame) and hasattr(frame, 'filename')
-                            for frame in self.parent.app.getAllFrames())
+            # Determine whether to show standard buttons based on open state
+            # only needed
+            showBuilder = not any(isinstance(frame, psychopy.app.builder.BuilderFrame) and hasattr(frame, 'filename')
+                                 for frame in self.parent.app.getAllFrames())
+            showCoder = not any(isinstance(frame, psychopy.app.coder.CoderFrame) and hasattr(frame, 'filename')
+                                 for frame in self.parent.app.getAllFrames())
+            showRunner = not any(isinstance(frame, psychopy.app.runner.RunnerFrame) and hasattr(frame, 'filename')
+                                for frame in self.parent.app.getAllFrames())
+        else:
+            # on mac/linux we won't show one per frame, just the std buttons
+            showRunner = showCoder = showBuilder = True
+
         # Add standard buttons
         if showBuilder and not isinstance(self.parent, psychopy.app.builder.BuilderFrame):
             self.builderBtn = self.Append(wx.ID_ANY,
                                           _translate("Builder"),
                                           _translate("Builder View"))
             self.Bind(wx.EVT_MENU, self.parent.app.showBuilder, self.builderBtn)
-        if showCoder and not isinstance(self.parent, psychopy.app.coder.CoderFrame):
+        if showCoder and not isinstance(self.parent,
+                                        psychopy.app.coder.CoderFrame):
             self.coderBtn = self.Append(wx.ID_ANY,
-                                          _translate("Coder"),
-                                          _translate("Coder View"))
+                                        _translate("Coder"),
+                                        _translate("Coder View"))
             self.Bind(wx.EVT_MENU, self.parent.app.showCoder, self.coderBtn)
-        if showRunner and not isinstance(self.parent, psychopy.app.runner.RunnerFrame):
+        if showRunner and not isinstance(self.parent,
+                                         psychopy.app.runner.RunnerFrame):
             self.runnerBtn = self.Append(wx.ID_ANY,
-                                        _translate("Runner"),
-                                        _translate("Runner View"))
+                                         _translate("Runner"),
+                                         _translate("Runner View"))
             self.Bind(wx.EVT_MENU, self.parent.app.showRunner, self.runnerBtn)
 
         # Make buttons for each open file
-        for frame in self.frames:
-            if hasattr(frame, "filename") and frame != self.parent:
-                if frame.filename:
-                    label = type(frame).__name__.replace("Frame", "") + ": " + os.path.basename(frame.filename)
-                else:
+        # While only win32 can safely DestroyItem, only do this on win32
+        if sys.platform == 'win32':
+            for frame in self.frames:
+                if hasattr(frame, "filename") and frame != self.parent:
+                    if frame.filename:
+                        filenameAddition = ": " + os.path.basename(frame.filename)
+                    else:
+                        filenameAddition = ""
                     label = type(frame).__name__.replace("Frame", "")
-                item = self.Append(wx.ID_ANY,
-                            _translate(label),
-                            _translate(label))
-                self.itemFrames[item.GetId()] = frame
-                self.Bind(wx.EVT_MENU, self.showFrame, item)
+                    item = self.Append(wx.ID_ANY,
+                                       _translate(label) + filenameAddition,
+                                       _translate(label) + filenameAddition)
+                    self.itemFrames[item.GetId()] = frame
+                    self.Bind(wx.EVT_MENU, self.showFrame, item)
 
     def showFrame(self, event):
         frame = self.itemFrames[event.Id]
@@ -406,4 +422,3 @@ class FrameSwitcher(wx.Menu):
         frame.Raise()
         self.parent.app.SetTopWindow(frame)
         self.Update()
-

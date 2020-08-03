@@ -1953,6 +1953,7 @@ class CoderFrame(wx.Frame, ThemeMixin):
         win = wx.Window.FindFocus()
         self.findDlg = wx.FindReplaceDialog(win, self.findData, "Find",
                                             wx.FR_NOWHOLEWORD)
+        self.findDlg.Bind(wx.EVT_FIND_CLOSE, self.OnFindClose)
         self.findDlg.Show()
 
     def OnFindNext(self, event):
@@ -1964,9 +1965,8 @@ class CoderFrame(wx.Frame, ThemeMixin):
         # if self.findDlg is not None:
         #     self.OnFindClose(None)
 
-    # def OnFindClose(self, event):
-    #     self.findDlg.Destroy()
-    #     self.findDlg = None
+    def OnFindClose(self, event):
+        self.findDlg = None
 
     def OnFileHistory(self, evt=None):
         # get the file based on the menu ID

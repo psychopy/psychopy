@@ -26,7 +26,6 @@ from psychopy.tools.monitorunittools import convertToPix
 from .fontmanager import FontManager, GLFont
 from .. import shaders
 from ..rect import Rect
-from ..line import Line
 from ... import core
 
 allFonts = FontManager()
@@ -68,7 +67,7 @@ wordBreaks = " -\n"  # what about ",."?
 
 class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
     def __init__(self, win, text, font,
-                 pos=(0, 0), units='pix', letterHeight=None,
+                 pos=(0, 0), units=None, letterHeight=None,
                  size=None,
                  color=(1.0, 1.0, 1.0),
                  colorSpace='rgb',
@@ -125,7 +124,6 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
 
         BaseVisualStim.__init__(self, win, units=units, name=name)
         self.win = win
-
         self.colorSpace = colorSpace
         self.color = color
         self.contrast = contrast
@@ -134,19 +132,20 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
 
         # first set params needed to create font (letter sizes etc)
         if letterHeight is None:
-            self.letterHeight = defaultLetterHeight[units]
+            self.letterHeight = defaultLetterHeight[self.units]
         else:
             self.letterHeight = letterHeight
+
         # self._pixLetterHeight helps get font size right but not final layout
-        if 'deg' in units:  # treat deg, degFlat or degFlatPos the same
+        if 'deg' in self.units:  # treat deg, degFlat or degFlatPos the same
             scaleUnits = 'deg'  # scale units are just for font resolution
         else:
-            scaleUnits = units
+            scaleUnits = self.units
         self._pixLetterHeight = convertToPix(
                 self.letterHeight, pos=0, units=scaleUnits, win=self.win)
         self._pixelScaling = self._pixLetterHeight / self.letterHeight
         if size is None:
-            size = [defaultBoxWidth[units], None]
+            size = [defaultBoxWidth[self.units], None]
         self.size = size  # but this will be updated later to actual size
         self.bold = bold
         self.italic = italic
@@ -189,14 +188,14 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
 
         self.box = Rect(
                 win, pos=self.pos,
-                units=units,
+                units=self.units,
                 lineWidth=borderWidth, lineColor=borderColor,
                 fillColor=fillColor, opacity=self.opacity,
                 autoLog=False)
         # also bounding box (not normally drawn but gives tight box around chrs)
         self.boundingBox = Rect(
                 win, pos=self.pos,
-                units=units,
+                units=self.units,
                 lineWidth=1, lineColor=None, fillColor='white', opacity=0.1,
                 autoLog=False)
         self._pallette = {
@@ -290,6 +289,8 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
     def _layout(self):
         """Layout the text, calculating the vertex locations
         """
+        def getLineWidthFromPix(pixVal):
+            return pixVal / self._pixelScaling + self.padding * 2
 
         text = self.text
         text = text.replace('<i>', codes['ITAL_START'])
@@ -407,8 +408,7 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
                 lineN += 1
                 charsThisLine += 1
                 self._lineLenChars.append(charsThisLine)
-                lineWidth = lineWPix / self._pixelScaling + self.padding * 2
-                self._lineWidths.append(lineWidth)
+                self._lineWidths.append(getLineWidthFromPix(lineWPix))
                 charsThisLine = 0
                 wordsThisLine = 0
             elif charcode in wordBreaks:
@@ -430,8 +430,7 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
                 # update line values
                 self._lineNs[i - wordLen + 1: i + 1] += 1
                 self._lineLenChars.append(charsThisLine - wordLen)
-                self._lineWidths.append(
-                        lineBreakPt / self._pixelScaling + self.padding * 2)
+                self._lineWidths.append(getLineWidthFromPix(lineBreakPt))
                 lineN += 1
                 # and set current to correct location
                 current[0] = wordWidth
@@ -443,6 +442,9 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
                 self._lineBottoms.append(current[1] + font.descender)
                 self._lineTops.append(current[1] + self._lineHeight
                                       + font.descender/2)
+
+        # finally add length of this (unfinished) line
+        self._lineWidths.append(getLineWidthFromPix(current[0]))
 
         # convert the vertices to stimulus units
         self._rawVerts = vertices / self._pixelScaling
@@ -699,15 +701,14 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
     def hasFocus(self, state):
         # Store focus
         self._hasFocus = state
-        print(self.pallette)
         # Border width
         self.box.setLineWidth(self.pallette['lineWidth']) # Use 1 as base if border width is none
         self.borderWidth = self.box.lineWidth
         # Border colour
-        self.box.setLineColor(self.pallette['lineColor'])
+        self.box.setLineColor(self.pallette['lineColor'], colorSpace='rgb')
         self.borderColor = self.box.lineColor
         # Background
-        self.box.color = self.pallette['fillColor']
+        self.box.setLineColor(self.pallette['fillColor'], colorSpace='rgb')
         self.fillColor = self.box.fillColor
         # Redraw text box
         self.draw()
