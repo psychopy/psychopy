@@ -62,9 +62,7 @@ class FormComponent(BaseComponent):
         # params
         self.order = ['name',
                       'Items',
-                      'Text Height',
                       'Size', 'Pos',
-                      'Item Padding',
                       'Data Format',
                       'Randomize',
                       ]
@@ -96,7 +94,8 @@ class FormComponent(BaseComponent):
             textHeight, valType='code', allowedTypes=[],
             updates='constant',
             hint=_translate("The size of the item text for Form"),
-            label=_localized['Text Height'])
+            label=_localized['Text Height'],
+            categ="Appearance")
 
         self.params['Randomize'] = Param(
             randomize, valType='bool', allowedTypes=[],
@@ -109,13 +108,15 @@ class FormComponent(BaseComponent):
                 updates='constant', allowedVals=knownStyles,
                 hint=_translate(
                         "Styles determine the appearance of the form"),
-                label=_localized['Style'])
+                label=_localized['Style'],
+                categ="Appearance")
 
         self.params['Item Padding'] = Param(
             itemPadding, valType='code', allowedTypes=[],
             updates='constant',
             hint=_translate("The padding or space between items."),
-            label=_localized['Item Padding'])
+            label=_localized['Item Padding'],
+            categ="Appearance")
 
         self.params['Data Format'] = Param(
             'rows', valType='str', allowedTypes=[],
