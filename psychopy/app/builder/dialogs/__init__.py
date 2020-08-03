@@ -21,11 +21,6 @@ import wx
 
 import psychopy.experiment.utils
 
-try:
-    from wx.lib.agw import flatnotebook
-except ImportError:  # was here wx<4.0:
-    from wx.lib import flatnotebook
-
 from ... import dialogs
 from .. import experiment
 from .. validators import NameValidator, CodeSnippetValidator
@@ -479,14 +474,9 @@ class _BaseParamsDlg(wx.Dialog):
 
         # create main sizer
         self.mainSizer = wx.BoxSizer(wx.VERTICAL)
-        agwStyle = flatnotebook.FNB_NO_X_BUTTON
-        if hasattr(flatnotebook, "FNB_NAV_BUTTONS_WHEN_NEEDED"):
-            # not available in wxPython 2.8
-            agwStyle |= flatnotebook.FNB_NAV_BUTTONS_WHEN_NEEDED
-        if hasattr(flatnotebook, "FNB_NO_TAB_FOCUS"):
-            # not available in wxPython 2.8.10
-            agwStyle |= flatnotebook.FNB_NO_TAB_FOCUS
-        self.ctrls = flatnotebook.FlatNotebook(self, style=agwStyle)
+
+        self.ctrls = wx.Notebook(self)
+
         if self.__class__ != DlgExperimentProperties:
             self.mainSizer.Add(self.ctrls,  # ctrls is the notebook of params
                                proportion=1, flag=wx.EXPAND | wx.ALL, border=5)
