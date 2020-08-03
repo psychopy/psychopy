@@ -391,12 +391,13 @@ class FrameSwitcher(wx.Menu):
         for frame in self.frames:
             if hasattr(frame, "filename") and frame != self.parent:
                 if frame.filename:
-                    label = type(frame).__name__.replace("Frame", "") + ": " + os.path.basename(frame.filename)
+                    filenameAddition = ": " + os.path.basename(frame.filename)
                 else:
-                    label = type(frame).__name__.replace("Frame", "")
+                    filenameAddition = ""
+                label = type(frame).__name__.replace("Frame", "")
                 item = self.Append(wx.ID_ANY,
-                            _translate(label),
-                            _translate(label))
+                            _translate(label)+filenameAddition,
+                            _translate(label)+filenameAddition)
                 self.itemFrames[item.GetId()] = frame
                 self.Bind(wx.EVT_MENU, self.showFrame, item)
 
@@ -406,4 +407,3 @@ class FrameSwitcher(wx.Menu):
         frame.Raise()
         self.parent.app.SetTopWindow(frame)
         self.Update()
-
