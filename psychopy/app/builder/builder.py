@@ -172,19 +172,24 @@ class BuilderFrame(wx.Frame, ThemeMixin):
         self.updateReadme()
 
         # control the panes using aui manager
-        self._mgr = aui.AuiManager(self)
+        self._mgr = aui.AuiManager(
+            self,
+            aui.AUI_MGR_DEFAULT | aui.AUI_MGR_RECTANGLE_HINT)
+
         #self._mgr.SetArtProvider(PsychopyDockArt())
         #self._art = self._mgr.GetArtProvider()
         # Create panels
         self._mgr.AddPane(self.routinePanel,
                           aui.AuiPaneInfo().
                           Name("Routines").Caption("Routines").CaptionVisible(True).
+                          Floatable(False).
                           CloseButton(False).MaximizeButton(True).PaneBorder(False).
                           Center())  # 'center panes' expand
         rtPane = self._mgr.GetPane('Routines')
         self._mgr.AddPane(self.componentButtons,
                           aui.AuiPaneInfo().
                           Name("Components").Caption("Components").CaptionVisible(True).
+                          Floatable(False).
                           RightDockable(True).LeftDockable(True).
                           CloseButton(False).PaneBorder(False))
         compPane = self._mgr.GetPane('Components')
@@ -192,6 +197,7 @@ class BuilderFrame(wx.Frame, ThemeMixin):
                           aui.AuiPaneInfo().
                           Name("Flow").Caption("Flow").CaptionVisible(True).
                           BestSize((8 * self.dpi, 2 * self.dpi)).
+                          Floatable(False).
                           RightDockable(True).LeftDockable(True).
                           CloseButton(False).PaneBorder(False))
         flowPane = self._mgr.GetPane('Flow')
