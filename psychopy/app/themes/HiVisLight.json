@@ -1,6 +1,7 @@
 {
   "app": "contrast_white",
   "icons": "light",
+  "info": "High-contrast light theme for maximum visibility",
   "base": {
     "fg": "#030308",
     "bg": "#FFFFFF",

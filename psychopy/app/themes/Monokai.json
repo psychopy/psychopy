@@ -1,6 +1,7 @@
 {
   "app": "dark",
   "icons": "dark",
+  "info": "Popular dark theme with lots of code colours",
   "base": {
     "fg": "#F8F8F2",
     "bg": "#0F0F0F",

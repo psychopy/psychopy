@@ -1,6 +1,7 @@
 {
   "app": "light",
   "icons": "light",
+  "info": "Psychopy's default look",
   "base": {
     "fg": "#000000",
     "bg": "#FFFFFF",
