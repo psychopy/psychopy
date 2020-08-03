@@ -2700,4 +2700,5 @@ class CoderFrame(wx.Frame, ThemeMixin):
         self.notebook.Refresh()
         if hasattr(self, 'shelf'):
             ThemeMixin._applyAppTheme(self.shelf)
-        self.Update()
+        if sys.platform == 'win32':
+            self.Update()  # kills mac. Not sure about linux
