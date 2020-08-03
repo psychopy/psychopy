@@ -199,6 +199,8 @@ class TrialHandler(object):
         nReps = self.params['nReps'].val
         if nReps in ['None', None, 'none', '']:
             nReps = 'undefined'
+        elif isinstance(nReps, str):
+            nReps = nReps.strip("$")
 
         code = ("\nfunction {funName}LoopBegin(thisScheduler) {{\n"
                 "  // set up handler to look after randomisation of conditions etc\n"
