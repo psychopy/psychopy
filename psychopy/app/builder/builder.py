@@ -2327,8 +2327,10 @@ class FavoriteComponents(object):
         """Defines Default Favorite Components"""
         # set those that are favorites by default
         for comp in ('ImageComponent', 'KeyboardComponent',
-                     'SoundComponent', 'TextComponent'):
-            if comp not in self.currentLevels:
+                     'SoundComponent', 'TextComponent',
+                     'MouseComponent', 'SliderComponent',
+                     ):
+            if comp not in self.currentLevels or self.currentLevels[comp] != 0:
                 self.currentLevels[comp] = self.threshold
         for comp in self.panel.components:
             if comp not in self.currentLevels:

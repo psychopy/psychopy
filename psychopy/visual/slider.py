@@ -637,3 +637,4 @@ class Slider(MinimalStim):
             self.tickLines.elementMask = 'circle'
             # marker must be smalle than a "tick" circle
             self.marker.size = self._tickL * 0.7
+            self.marker.fillColor = "DarkRed"

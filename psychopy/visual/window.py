@@ -545,6 +545,9 @@ class Window(object):
 
         self.refreshThreshold = 1.0  # initial val needed by flip()
 
+        self._editableChildren = []
+        self._currentEditableIndex = None
+
         # over several frames with no drawing
         self._monitorFrameRate = None
         # for testing when to stop drawing a stim:
@@ -562,8 +565,6 @@ class Window(object):
         if self.autoLog:
             logging.exp("Created %s = %s" % (self.name, str(self)))
 
-        self._editableChildren = []
-        self._currentEditableIndex = None
         # Make sure this window's close method is called when exiting, even in
         # the event of an error we should be able to restore the original gamma
         # table. Note that a reference to this window object will live in this
