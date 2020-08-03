@@ -2264,6 +2264,8 @@ class CoderFrame(wx.Frame, ThemeMixin):
         filename = doc.filename
         if not os.path.exists(filename):
             return True
+        if not os.path.isabs(filename):
+            return True
         actualModTime = os.path.getmtime(filename)
         expectedModTime = doc.fileModTime
         if actualModTime != expectedModTime:
