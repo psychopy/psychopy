@@ -2494,10 +2494,12 @@ class CoderFrame(wx.Frame, ThemeMixin):
             foc.Paste()
 
     def undo(self, event):
-        self.currentDoc.Undo()
+        if self.currentDoc:
+            self.currentDoc.Undo()
 
     def redo(self, event):
-        self.currentDoc.Redo()
+        if self.currentDoc:
+            self.currentDoc.Redo()
 
     def commentSelected(self, event):
         self.currentDoc.commentLines()
