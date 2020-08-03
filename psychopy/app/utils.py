@@ -117,6 +117,7 @@ class PsychopyToolbar(wx.ToolBar, ThemeMixin):
         wx.ToolBar.__init__(self, frame)
         self.frame = frame
         self.app = self.frame.app
+        self._needMakeTools = True
         # Configure toolbar appearance
         self.SetWindowStyle(wx.TB_HORIZONTAL | wx.NO_BORDER | wx.TB_FLAT | wx.TB_NODIVIDER)
         #self.SetBackgroundColour(ThemeMixin.appColors['frame_bg'])

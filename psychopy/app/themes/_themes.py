@@ -129,6 +129,11 @@ class ThemeMixin:
                 target.ClearTools()
                 # Redraw tools
                 target.makeTools()
+            else:
+                # otherwise make the tools the first time but not again
+                if hasattr(target, '_needMakeTools') and target._needMakeTools:
+                    target.makeTools()
+                    self._needMakeTools = False
 
         def applyToStatusBar(target):
             target.SetBackgroundColour(cLib['white'])
