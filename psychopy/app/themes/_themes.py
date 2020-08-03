@@ -985,7 +985,17 @@ class ThemeSwitcher(wx.Menu):
                 pass
         # Make menu
         wx.Menu.__init__(self)
-        # Make buttons
+        # Make priority theme buttons
+        priority = ["PsychopyDark", "PsychopyLight", "ClassicDark", "Classic"]
+        for theme in priority:
+            tooltip = themeList.pop(theme)
+            item = self.AppendRadioItem(wx.ID_ANY, _translate(theme), tooltip)
+            frame.Bind(wx.EVT_MENU, frame.app.onThemeChange, item)
+            if item.ItemLabel.lower() == ThemeMixin.codetheme.lower():
+                item.Check(True)
+            else:
+                item.Check(False)
+        # Make other theme buttons
         for theme in themeList:
             item = self.AppendRadioItem(wx.ID_ANY, _translate(theme), help=themeList[theme])
             frame.Bind(wx.EVT_MENU, frame.app.onThemeChange, item)
