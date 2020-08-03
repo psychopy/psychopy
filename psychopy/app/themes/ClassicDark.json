@@ -1,6 +1,7 @@
 {
   "app": "dark",
   "icons": "classic",
+  "info": "A dark version of Psychopy's pre-2020.2 look",
   "base": {
     "fg": "#FFFFFF",
     "bg": "#75757D",
