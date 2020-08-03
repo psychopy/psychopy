@@ -559,7 +559,7 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
                 letterHeight=self.textHeight,
                 units=self.units,
                 anchor='top-right',
-                color='#FFFFFF',
+                color=self.colorScheme['fg'],
                 colorSpace=self.colorScheme['space'],
                 font='Arial',
                 editable=True,
@@ -893,17 +893,17 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
         self._style = style
         if style == 'light':
             self.colorScheme = {
-                'space': 'rgb255', # Colour space
-                'em': [242, 84, 91],  # emphasis
-                'bg': [132, 132, 140],  # background
-                'fg': [0, 0, 0],  # foreground
+                'space': 'hex', # Colour space
+                'em': '#F2545B',  # emphasis
+                'bg': '#F2F2F2',  # background
+                'fg': '#000000',  # foreground
             }
 
         if style == 'dark':
             self.colorScheme = {
-                'space': 'rgb255',  # Colour space
-                'em': [242, 84, 91],  # emphasis
-                'bg': [102, 102, 110],  # background
-                'fg': [132, 132, 140],  # foreground
+                'space': 'hex',  # Colour space
+                'em': '#F2545B',  # emphasis
+                'bg': '#66666E',  # background
+                'fg': '#F2F2F2',  # foreground
             }
 
