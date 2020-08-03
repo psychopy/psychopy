@@ -1,7 +1,7 @@
 {
   "app": "contrast_black",
   "icons": "dark",
-  "info": "High-contrast light theme for maximum visibility",
+  "info": "High-contrast dark theme for maximum visibility",
   "base": {
     "fg": "#F2F2F2",
     "bg": "#000000",
