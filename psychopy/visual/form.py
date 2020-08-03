@@ -6,8 +6,7 @@
 # Copyright (C) 2002-2018 Jonathan Peirce (C) 2019 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 from __future__ import division
-from collections import deque
-import ast  # for doing safe literal_eval
+import copy
 import psychopy
 from .text import TextStim
 from psychopy.data.utils import importConditions, listFromString
@@ -16,6 +15,7 @@ from psychopy.visual.basevisual import (BaseVisualStim,
                                         ColorMixin)
 from psychopy import logging
 from random import shuffle
+from pathlib import Path
 
 from psychopy.constants import PY3
 
@@ -38,6 +38,11 @@ _knownFields = {
     'responseColor': 'white',
     'layout': 'horiz',  # can be vert or horiz
 }
+_doNotSave = [
+    'itemCtrl', 'responseCtrl',  # these genuinely can't be save
+    'itemColor', 'options', 'ticks', 'tickLabels',  # not useful?
+    'responseWidth', 'responseColor', 'layout',
+]
 _knownRespTypes = {
     'heading', 'description',  # no responses
     'rating', 'slider',  # slider is continuous
@@ -97,6 +102,7 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
                  textHeight=.02,
                  size=(.5, .5),
                  pos=(0, 0),
+                 style='dark',
                  itemPadding=0.05,
                  units='height',
                  randomize=False,
@@ -114,6 +120,8 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
         self.itemPadding = itemPadding
         self.scrollSpeed = self.setScrollSpeed(self.items, 4)
         self.units = units
+        # Set default colours
+        self.style = style
 
         self.textHeight = textHeight
         self._scrollBarSize = (0.016, size[1])
@@ -129,7 +137,7 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
                 "Form currently only formats correctly using height units. "
                 "Please change the units in Experiment Settings to 'height'")
 
-        self.complete = False
+        self._complete = False
 
         # Create layout of form
         self._createItemCtrls()
@@ -139,6 +147,8 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
 
     def __repr__(self, complete=False):
         return self.__str__(complete=complete)  # from MinimalStim
+
+    knownStyles = ['light', 'dark']
 
     def importItems(self, items):
         """Import items from csv or excel sheet and convert to list of dicts.
@@ -170,7 +180,7 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
                         del item[synonym]
                         replacedFields.add(field)
             for field in replacedFields:
-                fieldNames.add(field)
+                fieldNames.append(field)
                 fieldNames.remove(_synonyms[field])
                 logging.warning("Form {} included field no longer used {}. "
                                 "Replacing with new name '{}'"
@@ -186,17 +196,24 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
                                      .format(hdr, self.name, fieldNames))
 
 
-        def _checkTypes(types):
+        def _checkTypes(types, itemText):
             """A nested function for testing the number of options given
 
             Raises ValueError if n Options not > 1
             """
             itemDiff = set([types]) - set(_knownRespTypes)
 
-            if len(itemDiff) > 0:
-                msg = ("In Forms, {} is not allowed. You can only use types {}."
-                       " Please amend your item types in your item list"
-                       .format(itemDiff, _knownRespTypes))
+            for incorrItemType in itemDiff:
+                if incorrItemType == _REQUIRED:
+                    if self._itemsFile:
+                        itemsFileStr =  ("in items file '{}'"
+                                         .format(self._itemsFile))
+                    else:
+                        itemsFileStr = ""
+                    msg = ("Item {}{} is missing a required "
+                           "value for its response type. Permitted types are "
+                           "{}.".format(itemText, itemsFileStr,
+                                        _knownRespTypes))
                 if self.autoLog:
                     logging.error(msg)
                 raise ValueError(msg)
@@ -244,11 +261,14 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
 
         if not isinstance(items, list):
             # items is a conditions file
+            self._itemsFile = Path(items)
             items, fieldNames = importConditions(items, returnFieldNames=True)
         else:  # we already have a list so lets find the fieldnames
             fieldNames = set()
             for item in items:
                 fieldNames = fieldNames.union(item)
+            fieldNames = list(fieldNames)  # convert to list at the end
+            self._itemsFile = None
 
         _checkSynonyms(items, fieldNames)
         _checkRequiredFields(fieldNames)
@@ -265,7 +285,7 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
                 item['options'] = listFromString(item['options'])
 
         # Check types
-        [_checkTypes(item['type']) for item in items]
+        [_checkTypes(item['type'], item['itemText']) for item in items]
         # Check N options > 1
         # Randomise items if requested
         if self.randomize:
@@ -437,9 +457,9 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
                                  .format(item['itemText'], self.name))
             # how to label those ticks
             if item['tickLabels']:
-                tickLabels = [i.strip(' ') for i in item['tickLabels']]
+                tickLabels = [str(i).strip() for i in item['tickLabels']]
             elif 'options' in item and item['options']:
-                tickLabels = [i.strip(' ') for i in item['options']]
+                tickLabels = [str(i).strip() for i in item['options']]
             else:
                 tickLabels = None
             # style/granularity
@@ -481,6 +501,14 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
                 style=style,
                 autoLog=False,
                 color=item['responseColor'])
+        resp.line.lineColorSpace = self.colorScheme['space']
+        resp.line.lineColor = self.colorScheme['fg']
+        resp.line.fillColorSpace = self.colorScheme['space']
+        resp.line.fillColor = self.colorScheme['fg']
+        resp.marker.lineColorSpace = self.colorScheme['space']
+        resp.marker.lineColor = self.colorScheme['em']
+        resp.marker.fillColorSpace = self.colorScheme['space']
+        resp.marker.fillColor = self.colorScheme['em']
 
         if item['layout'] == 'horiz':
             h += self.textHeight*2
@@ -531,11 +559,13 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
                 letterHeight=self.textHeight,
                 units=self.units,
                 anchor='top-right',
-                color='#101010',
+                color=self.colorScheme['fg'],
+                colorSpace=self.colorScheme['space'],
                 font='Arial',
                 editable=True,
-                borderColor='DarkGray',
-                fillColor='LightGray',
+                borderColor=self.colorScheme['fg'],
+                borderWidth=1,
+                fillColor=self.colorScheme['bg'],
                 onTextCallback=self._layoutY,
         )
 
@@ -553,12 +583,22 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
         psychopy.visual.slider.Slider
             The Slider object for scroll bar
         """
-        return psychopy.visual.Slider(win=self.win,
+        scroll = psychopy.visual.Slider(win=self.win,
                                       size=self._scrollBarSize,
                                       ticks=[0, 1],
                                       style='slider',
                                       pos=(self.rightEdge - .008, self.pos[1]),
                                       autoLog=False)
+        scroll.line.lineColorSpace = self.colorScheme['space']
+        scroll.line.lineColor = self.colorScheme['bg']
+        scroll.line.fillColorSpace = self.colorScheme['space']
+        scroll.line.fillColor = self.colorScheme['bg']
+        scroll.marker.lineColorSpace = self.colorScheme['space']
+        scroll.marker.lineColor = self.colorScheme['em']
+        scroll.marker.fillColorSpace = self.colorScheme['space']
+        scroll.marker.fillColor = self.colorScheme['em']
+
+        return scroll
 
     def _setBorder(self):
         """Creates border using Rect
@@ -573,6 +613,10 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
                                     pos=self.pos,
                                     width=self.size[0],
                                     height=self.size[1],
+                                    fillColorSpace=self.colorScheme['space'],
+                                    fillColor=self.colorScheme['bg'],
+                                    lineColorSpace=self.colorScheme['space'],
+                                    lineColor=self.colorScheme['bg'],
                                     autoLog=False)
 
     def _setAperture(self):
@@ -684,7 +728,7 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
                 self._currentVirtualY -= respHeight + self.itemPadding
 
         # a hack because form didn't have enough space at bottom!
-        self._currentVirtualY -= respHeight*2
+        self._currentVirtualY -= respHeight*3
 
         self._setDecorations()  # choose whether show/hide scroolbar
 
@@ -750,19 +794,18 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
         self.aperture.disable()
 
     def getData(self):
-        """Extracts form questions, response ratings and response times from Form items
+        """Extracts form questions, response ratings and response times from
+        Form items
 
         Returns
         -------
-        dict
-            A dictionary storing lists of questions, response ratings and response times
+        list
+            A copy of the data as a list of dicts
         """
-        formData = {'itemIndex': deque([]), 'questions': deque([]),
-                    'ratings': deque([]), 'rt': deque([])}
         nIncomplete = 0
         nIncompleteRequired = 0
         for thisItem in self.items:
-            if 'responseCtrl' not in thisItem:
+            if 'responseCtrl' not in thisItem or not thisItem['responseCtrl']:
                 continue  # maybe a heading or similar
             responseCtrl = thisItem['responseCtrl']
             # get response if available
@@ -770,7 +813,7 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
                 thisItem['response'] = responseCtrl.getRating()
             else:
                 thisItem['response'] = responseCtrl.text
-            if thisItem['response'] in [None,'']:
+            if thisItem['response'] in [None, '']:
                 # todo : handle required items here (e.g. ending with * ?)
                 nIncomplete += 1
             # get RT if available
@@ -778,16 +821,89 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
                 thisItem['rt'] = responseCtrl.getRT()
             else:
                 thisItem['rt'] = None
-        self.complete = (nIncomplete==0)
-        return self.items
+        self._complete = (nIncomplete == 0)
+        return copy.copy(self.items)  # don't want users changing orig
 
-    def formComplete(self):
-        """Checks all Form items for a response
+    def addDataToExp(self, exp, itemsAs='rows'):
+        """Gets the current Form data and inserts into an
+        :class:`~psychopy.experiment.ExperimentHandler` object either as rows
+        or as columns
+
+        Parameters
+        ----------
+        exp : :class:`~psychopy.experiment.ExperimentHandler`
+        itemsAs: 'rows','cols' (or 'columns')
 
         Returns
         -------
-        bool
-            True if all items contain a response, False otherwise.
+
         """
-        self.getData()
+        data = self.getData()  # will be a copy of data (we can trash it)
+        asCols = itemsAs.lower() in ['cols', 'columns']
+        # iterate over items and fields within each item
+        # iterate all items and all fields before calling nextEntry
+        for thisItem in data:  # data is a list of dicts
+            for ii, fieldName in enumerate(thisItem):
+                if fieldName in _doNotSave:
+                    continue
+                if asCols:  # for columns format, we need index for item
+                    columnName = "{}[{}].{}".format(self.name, ii, fieldName)
+                else:
+                    columnName = "{}.{}".format(self.name, fieldName)
+                exp.addData(columnName, thisItem[fieldName])
+                # finished field
+            if not asCols:  # for rows format we add a newline each item
+                exp.nextEntry()
+            # finished item
+        # finished form
+        if asCols:  # for cols format we add a newline each item
+            exp.nextEntry()
+
+    def formComplete(self):
+        """Deprecated in version 2020.2. Please use the Form.complete property
+        """
         return self.complete
+
+    @property
+    def complete(self):
+        """A read-only property to determine if the current form is complete"""
+        self.getData()
+        return self._complete
+
+    @property
+    def style(self):
+        return self._style
+
+    @style.setter
+    def style(self, style):
+        """Sets some predefined styles or use these to create your own.
+
+        If you fancy creating and including your own styles that would be great!
+
+        Parameters
+        ----------
+        style: string
+
+            Known styles currently include:
+
+                'light': black text on a light background
+                'dark': white text on a dark background
+
+        """
+        self._style = style
+        if style == 'light':
+            self.colorScheme = {
+                'space': 'hex', # Colour space
+                'em': '#F2545B',  # emphasis
+                'bg': '#F2F2F2',  # background
+                'fg': '#000000',  # foreground
+            }
+
+        if style == 'dark':
+            self.colorScheme = {
+                'space': 'hex',  # Colour space
+                'em': '#F2545B',  # emphasis
+                'bg': '#66666E',  # background
+                'fg': '#F2F2F2',  # foreground
+            }
+
