@@ -102,6 +102,7 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
                  textHeight=.02,
                  size=(.5, .5),
                  pos=(0, 0),
+                 style='dark',
                  itemPadding=0.05,
                  units='height',
                  randomize=False,
@@ -120,13 +121,7 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
         self.scrollSpeed = self.setScrollSpeed(self.items, 4)
         self.units = units
         # Set default colours
-        self.colorScheme = {
-            'red': [242, 84, 91],
-            'blue': [102, 102, 110],
-            'light': [132, 132, 140],
-            'mid': [102, 102, 110],
-            'dark': [72, 72, 80]
-        }
+        self.style = style
 
         self.textHeight = textHeight
         self._scrollBarSize = (0.016, size[1])
@@ -504,6 +499,14 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
                 style=style,
                 autoLog=False,
                 color=item['responseColor'])
+        resp.line.lineColorSpace = self.colorScheme['space']
+        resp.line.lineColor = self.colorScheme['fg']
+        resp.line.fillColorSpace = self.colorScheme['space']
+        resp.line.fillColor = self.colorScheme['fg']
+        resp.marker.lineColorSpace = self.colorScheme['space']
+        resp.marker.lineColor = self.colorScheme['em']
+        resp.marker.fillColorSpace = self.colorScheme['space']
+        resp.marker.fillColor = self.colorScheme['em']
 
         if item['layout'] == 'horiz':
             h += self.textHeight*2
@@ -554,11 +557,13 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
                 letterHeight=self.textHeight,
                 units=self.units,
                 anchor='top-right',
-                color='#101010',
+                color='#FFFFFF',
+                colorSpace=self.colorScheme['space'],
                 font='Arial',
                 editable=True,
-                borderColor='White',
-                fillColor='LightGray',
+                borderColor=self.colorScheme['fg'],
+                borderWidth=1,
+                fillColor=self.colorScheme['bg'],
                 onTextCallback=self._layoutY,
         )
 
@@ -576,12 +581,22 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
         psychopy.visual.slider.Slider
             The Slider object for scroll bar
         """
-        return psychopy.visual.Slider(win=self.win,
+        scroll = psychopy.visual.Slider(win=self.win,
                                       size=self._scrollBarSize,
                                       ticks=[0, 1],
-                                      style='scrollbar',
+                                      style='slider',
                                       pos=(self.rightEdge - .008, self.pos[1]),
                                       autoLog=False)
+        scroll.line.lineColorSpace = self.colorScheme['space']
+        scroll.line.lineColor = self.colorScheme['bg']
+        scroll.line.fillColorSpace = self.colorScheme['space']
+        scroll.line.fillColor = self.colorScheme['bg']
+        scroll.marker.lineColorSpace = self.colorScheme['space']
+        scroll.marker.lineColor = self.colorScheme['em']
+        scroll.marker.fillColorSpace = self.colorScheme['space']
+        scroll.marker.fillColor = self.colorScheme['em']
+
+        return scroll
 
     def _setBorder(self):
         """Creates border using Rect
@@ -596,8 +611,10 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
                                     pos=self.pos,
                                     width=self.size[0],
                                     height=self.size[1],
-                                    fillColor='DarkGrey',
-                                    lineColor='DarkGrey',
+                                    fillColorSpace=self.colorScheme['space'],
+                                    fillColor=self.colorScheme['bg'],
+                                    lineColorSpace=self.colorScheme['space'],
+                                    lineColor=self.colorScheme['bg'],
                                     autoLog=False)
 
     def _setAperture(self):
@@ -850,3 +867,41 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
         """A read-only property to determine if the current form is complete"""
         self.getData()
         return self._complete
+
+    @property
+    def style(self):
+        return self._style
+
+    @style.setter
+    def style(self, style):
+        """Sets some predefined styles or use these to create your own.
+
+        If you fancy creating and including your own styles that would be great!
+
+        Parameters
+        ----------
+        style: string
+
+            Known styles currently include:
+
+                'light': black text on a light background
+                'dark': white text on a dark background
+
+        """
+        self._style = style
+        if style == 'light':
+            self.colorScheme = {
+                'space': 'rgb255', # Colour space
+                'em': [242, 84, 91],  # emphasis
+                'bg': [132, 132, 140],  # background
+                'fg': [0, 0, 0],  # foreground
+            }
+
+        if style == 'dark':
+            self.colorScheme = {
+                'space': 'rgb255',  # Colour space
+                'em': [242, 84, 91],  # emphasis
+                'bg': [102, 102, 110],  # background
+                'fg': [132, 132, 140],  # foreground
+            }
+
