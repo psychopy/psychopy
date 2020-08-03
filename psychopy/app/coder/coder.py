@@ -46,6 +46,11 @@ from psychopy.app.coder.folding import CodeEditorFoldingMixin
 
 try:
     import jedi
+    if jedi.__version__ < "0.15":
+        logging.error(
+                "Need a newer version of package `jedi`. Currently using {}"
+                .format(jedi.__version__)
+        )
     _hasJedi = True
 except ImportError:
     logging.error(
@@ -809,7 +814,14 @@ class CodeEditor(BaseCodeEditor, CodeEditorFoldingMixin, ThemeMixin):
         """Show a calltip at the current caret position."""
         if _hasJedi and self.getFileType() == 'Python':
             self.coder.SetStatusText('Retrieving calltip, please wait ...', 0)
-            foundRefs = jedi.Script(self.getTextUptoCaret()).get_signatures()
+            thisObj = jedi.Script(self.getTextUptoCaret())
+            if hasattr(thisObj, 'get_signatures'):
+                foundRefs = thisObj.get_signatures()
+            elif hasattr(thisObj, 'call_signatures'):
+                # call_signatures deprecated in jedi 0.16.0 (2020)
+                foundRefs = thisObj.call_signatures()
+            else:
+                foundRefs = None
             self.coder.SetStatusText('', 0)
 
             if foundRefs:
@@ -2688,4 +2700,5 @@ class CoderFrame(wx.Frame, ThemeMixin):
         self.notebook.Refresh()
         if hasattr(self, 'shelf'):
             ThemeMixin._applyAppTheme(self.shelf)
-        self.Update()
+        if sys.platform == 'win32':
+            self.Update()  # kills mac. Not sure about linux
