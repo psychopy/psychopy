@@ -123,10 +123,12 @@ class ThemeMixin:
         # Define subfunctions to handle different object types
         def applyToToolbar(target):
             target.SetBackgroundColour(ThemeMixin.appColors['frame_bg'])
-            # Clear tools
-            target.ClearTools()
-            # Redraw tools
-            target.makeTools()
+            if sys.platform == 'win32':
+                # on mac ClearTools seg faults. Not sure what happens on linux
+                # Clear tools
+                target.ClearTools()
+                # Redraw tools
+                target.makeTools()
 
         def applyToStatusBar(target):
             target.SetBackgroundColour(cLib['white'])
