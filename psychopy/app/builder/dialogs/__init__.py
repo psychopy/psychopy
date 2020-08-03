@@ -143,7 +143,7 @@ class ParamCtrls(object):
             self.valueCtrl = wx.CheckListBox(parent, -1, pos=wx.DefaultPosition,
                                              size=wx.Size(100, 200),
                                              choices=param.allowedVals)
-            self.valueCtrl.SetCheckedStrings(param.val)
+            self.valueCtrl.SetCheckedStrings([param.val])
         elif param.valType == 'bool':
             # only True or False - use a checkbox
             self.valueCtrl = wx.CheckBox(parent,

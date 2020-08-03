@@ -148,6 +148,8 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
     def __repr__(self, complete=False):
         return self.__str__(complete=complete)  # from MinimalStim
 
+    knownStyles = ['light', 'dark']
+
     def importItems(self, items):
         """Import items from csv or excel sheet and convert to list of dicts.
         Will also accept a list of dicts.

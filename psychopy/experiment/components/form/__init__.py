@@ -9,6 +9,7 @@ from __future__ import absolute_import, print_function
 
 from os import path
 from psychopy.experiment.components import Param, getInitVals, _translate, BaseComponent
+from psychopy.visual import form
 
 __author__ = 'Jon Peirce, David Bridges, Anthony Haffey'
 
@@ -22,10 +23,12 @@ _localized = {'Items': _translate('Items'),
               'Text Height': _translate('Text Height'),
               'Size': _translate('Size'),
               'Pos': _translate('Pos'),
+              'Style': _translate('Styles'),
               'Item Padding': _translate('Item Padding'),
               'Data Format': _translate('Data Format'),
               'Randomize': _translate('Randomize')
               }
+knownStyles = form.Form.knownStyles
 
 class FormComponent(BaseComponent):
     """A class for presenting a survey as a Builder component"""
@@ -40,6 +43,7 @@ class FormComponent(BaseComponent):
                  randomize=False,
                  size=(1, .7),
                  pos=(0, 0),
+                 style='dark',
                  itemPadding=0.05,
                  startType='time (s)', startVal='0.0',
                  stopType='duration (s)', stopVal='',
@@ -99,6 +103,13 @@ class FormComponent(BaseComponent):
             updates='constant',
             hint=_translate("Do you want to randomize the order of your questions?"),
             label=_localized['Randomize'])
+
+        self.params['Style'] = Param(
+                style, valType='fixedList',
+                updates='constant', allowedVals=knownStyles,
+                hint=_translate(
+                        "Styles determine the appearance of the form"),
+                label=_localized['Style'])
 
         self.params['Item Padding'] = Param(
             itemPadding, valType='code', allowedTypes=[],
