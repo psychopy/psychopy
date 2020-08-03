@@ -26,7 +26,6 @@ from psychopy.tools.monitorunittools import convertToPix
 from .fontmanager import FontManager, GLFont
 from .. import shaders
 from ..rect import Rect
-from ..line import Line
 from ... import core
 
 allFonts = FontManager()
@@ -68,7 +67,7 @@ wordBreaks = " -\n"  # what about ",."?
 
 class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
     def __init__(self, win, text, font,
-                 pos=(0, 0), units='pix', letterHeight=None,
+                 pos=(0, 0), units=None, letterHeight=None,
                  size=None,
                  color=(1.0, 1.0, 1.0),
                  colorSpace='rgb',
@@ -125,7 +124,6 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
 
         BaseVisualStim.__init__(self, win, units=units, name=name)
         self.win = win
-
         self.colorSpace = colorSpace
         self.color = color
         self.contrast = contrast
@@ -134,19 +132,20 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
 
         # first set params needed to create font (letter sizes etc)
         if letterHeight is None:
-            self.letterHeight = defaultLetterHeight[units]
+            self.letterHeight = defaultLetterHeight[self.units]
         else:
             self.letterHeight = letterHeight
+
         # self._pixLetterHeight helps get font size right but not final layout
-        if 'deg' in units:  # treat deg, degFlat or degFlatPos the same
+        if 'deg' in self.units:  # treat deg, degFlat or degFlatPos the same
             scaleUnits = 'deg'  # scale units are just for font resolution
         else:
-            scaleUnits = units
+            scaleUnits = self.units
         self._pixLetterHeight = convertToPix(
                 self.letterHeight, pos=0, units=scaleUnits, win=self.win)
         self._pixelScaling = self._pixLetterHeight / self.letterHeight
         if size is None:
-            size = [defaultBoxWidth[units], None]
+            size = [defaultBoxWidth[self.units], None]
         self.size = size  # but this will be updated later to actual size
         self.bold = bold
         self.italic = italic
@@ -189,23 +188,26 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
 
         self.box = Rect(
                 win, pos=self.pos,
-                units=units,
+                units=self.units,
                 lineWidth=borderWidth, lineColor=borderColor,
                 fillColor=fillColor, opacity=self.opacity,
                 autoLog=False)
         # also bounding box (not normally drawn but gives tight box around chrs)
         self.boundingBox = Rect(
                 win, pos=self.pos,
-                units=units,
+                units=self.units,
                 lineWidth=1, lineColor=None, fillColor='white', opacity=0.1,
                 autoLog=False)
-        self._requested = {
-            'lineColor': borderColor,
-            'lineRGB': self.box.lineRGB,
-            'lineWidth': borderWidth,
-            'fillColor': fillColor,
-            'fillRGB': self.box.fillRGB
+        self._pallette = {
+            False: { # If no focus
+                'lineColor': borderColor,
+                'lineRGB': self.box.lineRGB,
+                'lineWidth': borderWidth,
+                'fillColor': fillColor,
+                'fillRGB': self.box.fillRGB
+            }
         }
+        self.palletteShift()
         # then layout the text (setting text triggers _layout())
         self.text = text
 
@@ -217,6 +219,10 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
             self.win.addEditable(self)
 
         self.autoLog = autoLog
+
+    @property
+    def pallette(self):
+        return self._pallette[self.hasFocus]
 
     @attributeSetter
     def font(self, fontName, italic=False, bold=False):
@@ -283,6 +289,8 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
     def _layout(self):
         """Layout the text, calculating the vertex locations
         """
+        def getLineWidthFromPix(pixVal):
+            return pixVal / self._pixelScaling + self.padding * 2
 
         text = self.text
         text = text.replace('<i>', codes['ITAL_START'])
@@ -400,8 +408,7 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
                 lineN += 1
                 charsThisLine += 1
                 self._lineLenChars.append(charsThisLine)
-                lineWidth = lineWPix / self._pixelScaling + self.padding * 2
-                self._lineWidths.append(lineWidth)
+                self._lineWidths.append(getLineWidthFromPix(lineWPix))
                 charsThisLine = 0
                 wordsThisLine = 0
             elif charcode in wordBreaks:
@@ -423,8 +430,7 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
                 # update line values
                 self._lineNs[i - wordLen + 1: i + 1] += 1
                 self._lineLenChars.append(charsThisLine - wordLen)
-                self._lineWidths.append(
-                        lineBreakPt / self._pixelScaling + self.padding * 2)
+                self._lineWidths.append(getLineWidthFromPix(lineBreakPt))
                 lineN += 1
                 # and set current to correct location
                 current[0] = wordWidth
@@ -436,6 +442,9 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
                 self._lineBottoms.append(current[1] + font.descender)
                 self._lineTops.append(current[1] + self._lineHeight
                                       + font.descender/2)
+
+        # finally add length of this (unfinished) line
+        self._lineWidths.append(getLineWidthFromPix(current[0]))
 
         # convert the vertices to stimulus units
         self._rawVerts = vertices / self._pixelScaling
@@ -690,91 +699,44 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
 
     @hasFocus.setter
     def hasFocus(self, state):
-        if state:
-            # Double border width
-            if self._requested['lineWidth'] is None:
-                self.box.setLineWidth(5*2) # Use 1 as base if border width is none
-            else:
-                self.box.setLineWidth(max(self._requested['lineWidth'], 5) * 2)
-            self.borderWidth = self.box.lineWidth
-            # Darken border
-            if self._requested['lineColor'] is None:
-                # Use window colour as base if border colour is none
-                self.box.setLineColor(
-                        [max(c - 0.05, 0.05) for c in self.win.color])
-            else:
-                self.box.setLineColor(
-                        [max(c - 0.05, 0.05) for c in self._requested['lineRGB']],
-                        colorSpace='rgb')
-            self.borderColor = self.box.lineColor
-            # Lighten background
-            if self._requested['fillColor'] is None:
-                # Use window colour as base if fill colour is none
-                self.box.color = [
-                    min(c+0.05, 0.95) for c in self.win.color
-                ]
-            else:
-                self.box.color = [
-                    min(c+0.05, 0.95) for c in self._requested['fillRGB']
-                ]
-            self.fillColor = self.box.fillColor
-            # Redraw text box
-            self.draw()
-            # Show caret
-            self.caret.setOpacity(self.opacity)
-        else:
-            # Set box properties back to their original values
-            self.box.setLineWidth(self._requested['lineWidth'])
-            self.borderWidth = self.box.lineWidth
-            self.box.setLineColor(self._requested['lineColor'],
-                                  colorSpace=self.colorSpace)
-            self.borderColor = self.box.lineColor
-            self.box.setFillColor(self._requested['fillColor'],
-                                  colorSpace=self.colorSpace)
-            self.fillColor = self.box.fillColor
-            self.box.draw()
-            # Hide caret
-            self.caret.setOpacity(0)
         # Store focus
         self._hasFocus = state
-
-    @property
-    def hasFocus(self):
-        return self._hasFocus
-
-    @hasFocus.setter
-    def hasFocus(self, state):
-        # todo : shouldn't calculate these on change do it once and store
-        if state:
-            # Adjust fill colour
-            if self._requested['fillColor'] is None:
-                # Check whether background is light or dark
-                self.fillColor = 'white' if np.mean(self.win.rgb) < 0 else 'black'
-                self.box.setOpacity(0.1)
-            elif self.box.fillColorSpace in ['rgb', 'dkl', 'lms', 'hsv']:
-                self.fillColor = [c + 0.1 * \
-                                 (1 if np.mean(self._fillColor) < 0.5 else -1)
-                for c in self.fillColor]
-            elif self.box.colorSpace in ['rgb255', 'named']:
-                self.fillColor = [c + 30 * \
-                                 (1 if np.mean(self._fillColor) < 127 else -1)
-                                  for c in self.fillColor]
-            elif self.box.colorSpace in ['hex']:
-                self.fillColor = [c + 30 * \
-                                 (1 if np.mean(self.box.fillRGB) < 127 else -1)
-                                  for c in self.box.fillRGB]
-            self.draw()
-        else:
-            # Set box properties back to their original values
-            self.fillColor = self._requested['fillColor']
-            self.box.opacity = self.opacity
-            self.box.draw()
-        # Store focus
-        self._hasFocus = state
+        # Border width
+        self.box.setLineWidth(self.pallette['lineWidth']) # Use 1 as base if border width is none
+        self.borderWidth = self.box.lineWidth
+        # Border colour
+        self.box.setLineColor(self.pallette['lineColor'], colorSpace='rgb')
+        self.borderColor = self.box.lineColor
+        # Background
+        self.box.setLineColor(self.pallette['fillColor'], colorSpace='rgb')
+        self.fillColor = self.box.fillColor
+        # Redraw text box
+        self.draw()
 
     def getText(self):
         """Returns the current text in the box"""
         return self.text
+
+    def palletteShift(self):
+        pal = self._pallette[False].copy()
+        # Double border width
+        if pal['lineWidth']:
+            pal['lineWidth'] = max(pal['lineWidth'], 5) * 2
+        else:
+            pal['lineWidth'] = 5 * 2
+        # Darken border
+        if pal['lineColor']:
+            pal['lineColor'] = [max(c - 0.05, 0.05) for c in pal['lineRGB']]
+        else:
+            # Use window colour as base if border colour is none
+            pal['lineColor'] = [max(c - 0.05, 0.05) for c in self.win.color]
+        # Lighten background
+        if pal['fillColor']:
+            pal['fillColor'] = [min(c + 0.05, 0.95) for c in pal['fillRGB']]
+        else:
+            # Use window colour as base if fill colour is none
+            pal['fillColor'] = [min(c + 0.05, 0.95) for c in self.win.color]
+        self._pallette[True] = pal
 
     @attributeSetter
     def pos(self, value):

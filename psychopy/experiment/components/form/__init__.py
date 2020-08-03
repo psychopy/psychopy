@@ -123,7 +123,8 @@ class FormComponent(BaseComponent):
                    "    randomize={Randomize},\n"
                    "    size={Size},\n"
                    "    pos={Pos},\n"
-                   "    itemPadding={Item Padding})\n".format(**inits))
+                   "    itemPadding={Item Padding},"
+                   ")\n".format(**inits))
         buff.writeIndented(initStr)
 
     def writeInitCodeJS(self, buff):
@@ -148,37 +149,13 @@ class FormComponent(BaseComponent):
         buff.writeIndented("%(name)s.draw();\n" % (self.params))
 
     def writeRoutineEndCode(self, buff):
-        if self.params['Data Format'] == 'rows':
-            code = ("{name}Data = {name}.getData()\n"
-                    "while {name}Data['questions']:\n"
-                    "    for dataTypes in {name}Data.keys():\n"
-                    "        thisExp.addData(dataTypes, {name}Data[dataTypes].popleft())\n"
-                    "    thisExp.nextEntry()\n".format(**self.params))
-        elif self.params['Data Format'] == 'columns':
-            code = ("{name}Data = {name}.getData()\n"
-                    "for dataTypes in {name}Data.keys():\n"
-                    "    for thisIndex, thisItem in enumerate({name}Data[dataTypes]):\n"
-                    "        thisExp.addData('{name}.' + str(thisIndex), thisItem)\n"
-                    "    thisExp.nextEntry()\n".format(**self.params))
-        buff.writeIndented(code)
+        # save data, according to row/col format
+        buff.writeIndented("{name}.addDataToExp(thisExp, {Data Format})\n"
+                           .format(**self.params))
+        buff.writeIndented("{name}.autodraw = False\n"
+                           .format(**self.params))
 
     def writeRoutineEndCodeJS(self, buff):
-        if self.params['Data Format'] == 'rows':
-            code = ("while ({name}Data['questions']) {{\n"
-                    "    for (var dataType, _pj_c = 0, _pj_a = {name}Data.keys(), _pj_b = _pj_a.length; (_pj_c < _pj_b); _pj_c += 1) {{\n"
-                    "        dataType = _pj_a[_pj_c];\n"
-                    "        thisExp.addData(dataType, {name}Data[dataType].popleft());\n"
-                    "        }}\n"
-                    "    thisExp.nextEntry();\n"
-                    "}}\n".format(**self.params))
-        elif self.params['Data Format'] == 'columns':
-            code = ("formData = form.getData();\n"
-                    "for (var dataType, _pj_c = 0, _pj_a = formData.keys(), _pj_b = _pj_a.length; (_pj_c < _pj_b); _pj_c += 1) {{\n"
-                    "    dataType = _pj_a[_pj_c];\n"
-                    "    for (var ii = 0, _pj_d = formData[dataType].length; (ii < _pj_d); ii += 1) {{\n"
-                    "        thisItem = formData[dataType][ii];\n"
-                    "        thisExp.addData(('form.'+index.toString()), thisItem);\n"
-                    "    }}\n"
-                    "    thisExp.nextEntry();\n"
-                    "}}\n".format(**self.params))
-        buff.writeIndented(code)
+        # save data, according to row/col format
+        buff.writeIndented("{name}.addDataToExp(thisExp, {Data Format});\n"
+                           .format(**self.params))
