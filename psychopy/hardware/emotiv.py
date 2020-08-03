@@ -28,7 +28,7 @@ import websocket
 import ssl
 import time
 from pathlib import Path
-import logging
+import logging  # NB this is the Python built-in logging not PsychoPy's
 import pandas as pd
 # Set up logging for websockets library
 
@@ -40,7 +40,6 @@ logger.addHandler(fh)
 
 MS_SEC_THRESHOLD = 1E+10  # if timestamp is greater than this it is in ms
 EEG_ON = os.environ.get('CORTEX_DATA', False)
-
 
 
 if platform == "linux" or platform == "linux2":
