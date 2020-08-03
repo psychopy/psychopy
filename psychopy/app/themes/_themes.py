@@ -335,12 +335,12 @@ class ThemeMixin:
             else:
                 # if not then use our own recursive method to search
                 if hasattr(c, 'Window') and c.Window is not None:
-                    self._applyAppTheme(c.Window)
+                    ThemeMixin._applyAppTheme(c.Window)
                 elif hasattr(c, 'Sizer') and c.Sizer is not None:
-                    self._applyAppTheme(c.Sizer)
+                    ThemeMixin._applyAppTheme(c.Sizer)
                 # and then apply
                 # try:
-                #     self._applyAppTheme(c)
+                #     ThemeMixin._applyAppTheme(c)
                 # except AttributeError:
                 #     pass
 
