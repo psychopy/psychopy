@@ -44,6 +44,8 @@ from psychopy.app.coder.fileBrowser import FileBrowserPanel
 from psychopy.app.coder.sourceTree import SourceTreePanel
 from psychopy.app.themes import ThemeMixin
 from psychopy.app.coder.folding import CodeEditorFoldingMixin
+from ..plugin_manager import PluginManagerFrame
+from psychopy.app.errorDlg import ErrorMsgDialog
 
 try:
     import jedi
@@ -1385,6 +1387,8 @@ class CoderFrame(wx.Frame, ThemeMixin):
         item = menu.Append(wx.ID_PREFERENCES,
                            msg % keyCodes['preferences'])
         self.Bind(wx.EVT_MENU, self.app.showPrefs, id=item.GetId())
+        item = menu.Append(wx.NewId(), "Plug&ins")
+        self.Bind(wx.EVT_MENU, self.pluginManager, id=item.GetId())
         # -------------Close coder frame
         menu.AppendSeparator()
         msg = _translate("Close PsychoPy Coder")
@@ -1960,6 +1964,10 @@ class CoderFrame(wx.Frame, ThemeMixin):
                     self.app.newBuilderFrame(filename)
                 else:
                     self.setCurrentDoc(filename)
+
+    def pluginManager(self, evt=None, value=True):
+        """Show the plugin manger frame."""
+        PluginManagerFrame(self).ShowModal()
 
     def OnFindOpen(self, event):
         # open the find dialog if not already open
