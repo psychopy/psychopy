@@ -569,9 +569,9 @@ class SettingsComponent(object):
                     "import * as core from './lib/core{version}.js';\n"
                     "import {{ TrialHandler }} from './lib/data{version}.js';\n"
                     "import {{ Scheduler }} from './lib/util{version}.js';\n"
-                    "import * as util from './lib/util{version}.js';\n"
                     "import * as visual from './lib/visual{version}.js';\n"
                     "import * as sound from './lib/sound{version}.js';\n"
+                    "import * as util from './lib/util{version}.js';\n"
                     "//some handy aliases as in the psychopy scripts;\n"
                     "const {{ abs, sin, cos, PI: pi, sqrt }} = Math;\n"
                     "\n").format(version=versionStr)
