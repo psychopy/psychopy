@@ -62,6 +62,7 @@ defaultBoxWidth = {'cm': 15.0,
 
 wordBreaks = " -\n"  # what about ",."?
 
+END_OF_THIS_LINE = 983349843
 
 # If text is ". " we don't want to start next line with single space?
 
@@ -445,6 +446,7 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
 
         # finally add length of this (unfinished) line
         self._lineWidths.append(getLineWidthFromPix(current[0]))
+        self._lineLenChars.append(charsThisLine)
 
         # convert the vertices to stimulus units
         self._rawVerts = vertices / self._pixelScaling
@@ -666,9 +668,9 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
         elif key == 'MOTION_DOWN':
             self.caret.row += 1
         elif key == 'MOTION_RIGHT':
-            self.caret.index += 1
+            self.caret.char += 1
         elif key == 'MOTION_LEFT':
-            self.caret.index -= 1
+            self.caret.char -= 1
         elif key == 'MOTION_BACKSPACE':
             self.text = self.text[:self.caret.index-1] + self.text[self.caret.index:]
             self.caret.index -= 1
@@ -681,7 +683,7 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
         elif key == 'MOTION_BEGINNING_OF_LINE':
             self.caret.char = 0
         elif key == 'MOTION_END_OF_LINE':
-            self.caret.char = -1
+            self.caret.char = END_OF_THIS_LINE
         elif key == 'MOTION_NEXT_PAGE':
             pass
         elif key == 'MOTION_PREVIOUS_PAGE':
@@ -834,30 +836,35 @@ class Caret(ColorMixin):
         # Check that index is with range of all character indices
         if len(self.textbox._lineNs) == 0:  # no chars at all
             return 0
-        elif self.index >= len(self.textbox._lineNs):
+        elif self.index > len(self.textbox._lineNs):
             self.index = len(self.textbox._lineNs)
         # Get line of index
-        return self.textbox._lineNs[self.index-1]
+        if self.index >= len(self.textbox._lineNs):
+            return self.textbox._lineNs[-1]
+        else:
+            return self.textbox._lineNs[self.index]
     @row.setter
     def row(self, value):
         """Use line to index conversion to set index according to row value"""
         # Figure out how many characters into previous row the cursor was
         charsIn = self.char
-        # If new row is more than total number of rows, move to end of current row
-        if value >= len(self.textbox._lineLenChars):
-            value = len(self.textbox._lineLenChars)
-            charsIn = self.textbox._lineLenChars[value]
+        nRows = len(self.textbox._lineLenChars)
+        # If new row is more than total number of rows, move to end of last row
+        if value >= nRows:
+            value = nRows
+            charsIn = self.textbox._lineLenChars[-1]
         # If new row is less than 0, move to beginning of first row
-        if value < 0:
+        elif value < 0:
             value = 0
             charsIn = 0
-        # If charsIn is more than number of chars in new row, send it to end of row
-        if charsIn > self.textbox._lineLenChars[value]:
+        elif value == nRows-1 and charsIn > self.textbox._lineLenChars[value]:
+            # last row last char
             charsIn = self.textbox._lineLenChars[value]
+        elif charsIn > self.textbox._lineLenChars[value]-1:
+            # end of a middle row (account for the newline)
+            charsIn = self.textbox._lineLenChars[value]-1
         # Set new index in new row
         self.index = sum(self.textbox._lineLenChars[:value]) + charsIn
-        # Redraw caret at new row
-        self.draw()
 
     @property
     def char(self):
@@ -871,41 +878,52 @@ class Caret(ColorMixin):
     def char(self, value):
         """Set character within row"""
         # If setting char to less than 0, move to last char on previous line
+        row = self.row
         if value < 0:
-            if self.row == 0:
+            if row == 0:
                 value = 0
             else:
-                self.row -= 1
-                value = self.textbox._lineLenChars[self.row]
-        # If value exceeds row length, set value to beginning of next row
-        if value >= self.textbox._lineLenChars[self.row]:
-            self.row += 1
+                row -= 1
+                value = self.textbox._lineLenChars[row]-1  # end of that row
+        elif row >= len(self.textbox._lineLenChars)-1 and \
+                value >= self.textbox._lineLenChars[-1]:
+            # this is the last row
+            row = len(self.textbox._lineLenChars)-1
+            value = self.textbox._lineLenChars[-1]
+        elif value == END_OF_THIS_LINE:
+            value = self.textbox._lineLenChars[row]-1
+        elif value >= self.textbox._lineLenChars[row]:
+            # end of this row (not the last) so go to next
+            row += 1
             value = 0
-        self.index = self.textbox._lineLenChars[:self.row] + value
-        # Redraw caret at new char
-        self.draw()
+        # then calculate index
+        if row:  # if not on first row
+            self.index = sum(self.textbox._lineLenChars[:row]) + value
+        else:
+            self.index = value
 
     @property
     def vertices(self):
         textbox = self.textbox
         # check we have a caret index
-        if self.index is None or self.index > len(textbox._lineNs):
-            self.index = len(textbox._lineNs)
+        if self.index is None or self.index > len(textbox.text):
+            self.index = len(textbox.text)
         if self.index < 0:
             self.index = 0
         # get the verts of character next to caret (chr is the next one so use
         # left edge unless last index then use the right of prev chr)
         # lastChar = [bottLeft, topLeft, **bottRight**, **topRight**]
-        ii = self.index-1
+        ii = self.index
         if textbox.vertices.shape[0] == 0:
             verts = self.textbox._getStartingVertices()
             verts[:,1] = verts[:,1] / float(textbox._pixelScaling)
             verts[:,1] = verts[:,1] + float(textbox._anchorOffsetY)
         else:
-            chrVerts = textbox.vertices[range(ii * 4, ii * 4 + 4)]
             if self.index >= len(textbox._lineNs):  # caret is after last chr
+                chrVerts = textbox.vertices[range((ii-1) * 4, (ii-1) * 4 + 4)]
                 x = chrVerts[2, 0]  # x-coord of left edge (of final char)
             else:
+                chrVerts = textbox.vertices[range(ii * 4, ii * 4 + 4)]
                 x = chrVerts[1, 0]  # x-coord of right edge
             # the y locations are the top and bottom of this line
             y1 = textbox._lineBottoms[self.row] / textbox._pixelScaling
