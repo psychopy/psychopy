@@ -10,6 +10,7 @@ from __future__ import absolute_import, print_function
 # from future import standard_library
 # standard_library.install_aliases()
 import json
+from past.builtins import unicode
 from builtins import chr
 from builtins import range
 import wx
@@ -240,6 +241,8 @@ class UnitTestFrame(wx.Frame):
         def write(self, inStr):
             self.MoveEnd()  # always 'append' text rather than 'writing' it
             for thisLine in inStr.splitlines(True):
+                if not isinstance(thisLine, unicode):
+                    thisLine = unicode(thisLine)
                 if thisLine.startswith('OK'):
                     self.BeginBold()
                     self.BeginTextColour(self.good)
@@ -339,10 +342,10 @@ class UnitTestFrame(wx.Frame):
             "&Close tests panel\t%s") % self.app.keys['close'])
         self.Bind(wx.EVT_MENU, self.onCloseTests, id=wx.ID_CLOSE)
         _switch = self.app.keys['switchToCoder']
-        self.menuTests.Append(self.IDs.openCoderView,
+        self.menuTests.Append(wx.ID_ANY,
                               _translate("Go to &Coder view\t%s") % _switch,
                               _translate("Go to the Coder view"))
-        self.Bind(wx.EVT_MENU, self.app.showCoder, id=self.IDs.openCoderView)
+        self.Bind(wx.EVT_MENU, self.app.showCoder)
         # -------------quit
         self.menuTests.AppendSeparator()
         _quit = self.app.keys['quit']
@@ -351,7 +354,7 @@ class UnitTestFrame(wx.Frame):
                               _translate("Terminate PsychoPy"))
         self.Bind(wx.EVT_MENU, self.app.quit, id=wx.ID_EXIT)
         item = self.menuTests.Append(
-            wx.ID_PREFERENCES, text=_translate("&Preferences"))
+            wx.ID_PREFERENCES, _translate("&Preferences"))
         self.Bind(wx.EVT_MENU, self.app.showPrefs, item)
         self.SetMenuBar(menuBar)
 
@@ -2481,9 +2484,11 @@ class CoderFrame(wx.Frame, ThemeMixin):
             elif resp == wx.ID_NO:
                 pass  # just run
         self.app.runner.addTask(fileName=fullPath)
+        self.app.runner.Raise()
         if event:
             if event.Id in [self.cdrBtnRun.Id, self.IDs.cdrRun]:
                 self.app.runner.panel.runLocal(event)
+                self.Raise()
             else:
                 self.app.showRunner()
 
