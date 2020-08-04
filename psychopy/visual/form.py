@@ -120,7 +120,6 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
         self.itemPadding = itemPadding
         self.scrollSpeed = self.setScrollSpeed(self.items, 4)
         self.units = units
-        # Set default colours
         self.style = style
 
         self.textHeight = textHeight
@@ -891,7 +890,16 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
 
         """
         self._style = style
-        if style == 'light':
+        # Default colours
+        self.colorScheme = {
+            'space': 'hex',  # Colour space
+            'em': '#F2545B',  # emphasis
+            'bg': '#888888',  # background
+            'fg': '#FFFFFF',  # foreground
+        }
+        print(style)
+        print(style == 'light')
+        if 'light' in style:
             self.colorScheme = {
                 'space': 'hex', # Colour space
                 'em': '#F2545B',  # emphasis
@@ -899,11 +907,10 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
                 'fg': '#000000',  # foreground
             }
 
-        if style == 'dark':
+        if 'dark' in style:
             self.colorScheme = {
                 'space': 'hex',  # Colour space
                 'em': '#F2545B',  # emphasis
                 'bg': '#66666E',  # background
                 'fg': '#F2F2F2',  # foreground
             }
-

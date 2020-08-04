@@ -135,6 +135,7 @@ class FormComponent(BaseComponent):
                    "    randomize={Randomize},\n"
                    "    size={Size},\n"
                    "    pos={Pos},\n"
+                   "    style={Style},\n"
                    "    itemPadding={Item Padding},"
                    ")\n".format(**inits))
         buff.writeIndented(initStr)
@@ -148,6 +149,7 @@ class FormComponent(BaseComponent):
                    "    randomize={Randomize},\n"
                    "    size={Size},\n"
                    "    pos={Pos},\n"
+                   "    style={Style},\n"
                    "    itemPadding={Item Padding});\n".format(**inits))
         buff.writeIndented(initStr)
 
