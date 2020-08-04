@@ -1,6 +1,7 @@
 {
   "app": "light",
   "icons": "classic",
+  "info": "Psychopy's pre-2020.2 look",
   "base": {
     "fg": "#000000",
     "bg": "#FFFFFF",

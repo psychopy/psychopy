@@ -284,3 +284,11 @@ class MovieComponent(BaseVisualComponent):
                     "    continueRoutine = false;\n"
                     "}}\n".format(**self.params))
             buff.writeIndentedLines(code)
+
+    def writeRoutineEndCode(self, buff):
+        # always stop at the end of the routine. (should this be a param?)
+        buff.writeIndentedLines("{name}.stop()\n".format(**self.params))
+
+    def writeRoutineEndCodeJS(self, buff):
+        # always stop at the end of the routine. (should this be a param?)
+        buff.writeIndentedLines("{name}.stop();\n".format(**self.params))

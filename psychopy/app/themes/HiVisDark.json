@@ -1,34 +1,35 @@
 {
-  "app": "contrast_white",
-  "icons": "light",
+  "app": "contrast_black",
+  "icons": "dark",
+  "info": "High-contrast dark theme for maximum visibility",
   "base": {
-    "fg": "#030308",
-    "bg": "#FFFFFF",
+    "fg": "#F2F2F2",
+    "bg": "#000000",
     "font": ["Consolas", "Monaco", "Lucida Console"]
   },
   "margin": {
-    "fg": "",
-    "bg": "#FFFFFF",
+    "fg": "#F2F2F2",
+    "bg": "#000000",
     "font": ""
   },
   "caret": {
     "fg": "#F46E75",
-    "bg": "#F2F2F2",
+    "bg": "#000000",
     "font": ""
   },
   "select": {
-    "fg": "#FFFFFF",
-    "bg": "#75757D",
+    "fg": "",
+    "bg": "#7C7C86",
     "font": ""
   },
   "indent": {
-    "fg": "#F2F2F2",
-    "bg": "#F2F2F2",
+    "fg": "#7C7C86",
+    "bg": "#7C7C86",
     "font": ""
   },
   "brace": {
     "fg": "",
-    "bg": "#F2F2F2",
+    "bg": "#7C7C86",
     "font": ""
   },
   "operator": {
@@ -37,7 +38,7 @@
     "font": ""
   },
   "keyword": {
-    "fg": "#F2545B",
+    "fg": "#F46E75",
     "bg": "",
     "font": ""
   },
@@ -47,7 +48,7 @@
     "font": ["italic","bold"]
   },
   "controlchar": {
-    "fg": "#F2545B",
+    "fg": "#F46E75",
     "bg": "",
     "font": ""
   },
@@ -57,37 +58,37 @@
     "font": ""
   },
   "num": {
-    "fg": "#F2545B",
+    "fg": "#F46E75",
     "bg": "",
     "font": ""
   },
   "char": {
-    "fg": "#F2545B",
+    "fg": "#F46E75",
     "bg": "",
     "font": ""
   },
   "str": {
-    "fg": "#F2545B",
+    "fg": "#F46E75",
     "bg": "",
     "font": ""
   },
   "openstr": {
-    "fg": "#F2545B",
+    "fg": "#F46E75",
     "bg": "#F2F2F2",
     "font": ""
   },
   "infix": {
-    "fg": "#F2545B",
+    "fg": "#F46E75",
     "bg": "",
     "font": ""
   },
   "openinfix": {
-    "fg": "#F2545B",
-    "bg": "#F2F2F2",
+    "fg": "#F46E75",
+    "bg": "#7C7C86",
     "font": ""
   },
   "decorator": {
-    "fg": "#F2545B",
+    "fg": "#F46E75",
     "bg": "",
     "font": "bold"
   },
@@ -102,37 +103,37 @@
     "font": ""
   },
   "comment": {
-    "fg": "#800080",
+    "fg": "#F1D302",
     "bg": "",
     "font": ""
   },
   "commentblock": {
-    "fg": "#800080",
-    "bg": "#F2F2F2",
+    "fg": "#F1D302",
+    "bg": "#7C7C86",
     "font": ""
   },
   "commentkw": {
-    "fg": "#800080",
+    "fg": "#F1D302",
     "bg": "",
     "font": ""
   },
   "commenterror": {
-    "fg": "#800080",
+    "fg": "#F1D302",
     "bg": "",
     "font": ""
   },
   "documentation": {
-    "fg": "#800080",
+    "fg": "#F1D302",
     "bg": "",
     "font": ""
   },
   "documentation2": {
-    "fg": "#800080",
+    "fg": "#F1D302",
     "bg": "",
     "font": ""
   },
   "whitespace": {
-    "fg": "#F2F2F2",
+    "fg": "#7C7C86",
     "bg": "",
     "font": ""
   },

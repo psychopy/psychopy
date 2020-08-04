@@ -1,20 +1,21 @@
 {
-  "app": "dark",
-  "icons": "dark",
+  "app": "contrast_white",
+  "icons": "light",
+  "info": "High-contrast light theme for maximum visibility",
   "base": {
-    "fg": "#DCDCDC",
-    "bg": "#1E1E1E",
+    "fg": "#030308",
+    "bg": "#FFFFFF",
     "font": ["Consolas", "Monaco", "Lucida Console"]
   },
   "margin": {
     "fg": "",
-    "bg": "#264F78",
+    "bg": "#FFFFFF",
     "font": ""
   },
   "caret": {
-    "fg": "",
-    "bg": "",
-    "font": "bold"
+    "fg": "#F46E75",
+    "bg": "#F2F2F2",
+    "font": ""
   },
   "select": {
     "fg": "#FFFFFF",
@@ -22,117 +23,117 @@
     "font": ""
   },
   "indent": {
-    "fg": "#264F78",
-    "bg": "",
+    "fg": "#F2F2F2",
+    "bg": "#F2F2F2",
     "font": ""
   },
   "brace": {
     "fg": "",
-    "bg": "#ff3333",
+    "bg": "#F2F2F2",
     "font": ""
   },
   "operator": {
-    "fg": "#687687",
+    "fg": "",
     "bg": "",
     "font": ""
   },
   "keyword": {
-    "fg": "#569CD6",
+    "fg": "#F2545B",
     "bg": "",
     "font": ""
   },
   "keyword2": {
-    "fg": "#569CD6",
+    "fg": "",
     "bg": "",
-    "font": ""
+    "font": ["italic","bold"]
   },
   "controlchar": {
-    "fg": "",
+    "fg": "#F2545B",
     "bg": "",
     "font": ""
   },
   "id": {
-    "fg": "#B4CEA8",
+    "fg": "",
     "bg": "",
     "font": ""
   },
   "num": {
-    "fg": "#B5CEA8",
+    "fg": "#F2545B",
     "bg": "",
     "font": ""
   },
   "char": {
-    "fg": "#D69D85",
+    "fg": "#F2545B",
     "bg": "",
     "font": ""
   },
   "str": {
-    "fg": "#D69D85",
+    "fg": "#F2545B",
     "bg": "",
     "font": ""
   },
   "openstr": {
-    "fg": "#ff3333",
-    "bg": "",
+    "fg": "#F2545B",
+    "bg": "#F2F2F2",
     "font": ""
   },
   "infix": {
-    "fg": "",
+    "fg": "#F2545B",
     "bg": "",
     "font": ""
   },
   "openinfix": {
-    "fg": "",
-    "bg": "#ff3333",
+    "fg": "#F2545B",
+    "bg": "#F2F2F2",
     "font": ""
   },
   "decorator": {
-    "fg": "#",
+    "fg": "#F2545B",
     "bg": "",
-    "font": ""
+    "font": "bold"
   },
   "class": {
-    "fg": "#4EC9B0",
+    "fg": "",
     "bg": "",
     "font": ""
   },
   "def": {
-    "fg": "#70727E",
+    "fg": "",
     "bg": "",
     "font": ""
   },
   "comment": {
-    "fg": "#608B4E",
+    "fg": "#800080",
     "bg": "",
     "font": ""
   },
   "commentblock": {
-    "fg": "#608B4E",
-    "bg": "",
+    "fg": "#800080",
+    "bg": "#F2F2F2",
     "font": ""
   },
   "commentkw": {
-    "fg": "#608B4E",
+    "fg": "#800080",
     "bg": "",
     "font": ""
   },
   "commenterror": {
-    "fg": "#608B4E",
+    "fg": "#800080",
     "bg": "",
     "font": ""
   },
   "documentation": {
-    "fg": "#608B4E",
+    "fg": "#800080",
     "bg": "",
     "font": ""
   },
   "documentation2": {
-    "fg": "#608B4E",
+    "fg": "#800080",
     "bg": "",
     "font": ""
   },
   "whitespace": {
-    "fg": "",
+    "fg": "#F2F2F2",
     "bg": "",
     "font": ""
   },

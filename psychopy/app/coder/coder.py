@@ -10,6 +10,7 @@ from __future__ import absolute_import, print_function
 # from future import standard_library
 # standard_library.install_aliases()
 import json
+from past.builtins import unicode
 from builtins import chr
 from builtins import range
 import wx
@@ -46,6 +47,11 @@ from psychopy.app.coder.folding import CodeEditorFoldingMixin
 
 try:
     import jedi
+    if jedi.__version__ < "0.15":
+        logging.error(
+                "Need a newer version of package `jedi`. Currently using {}"
+                .format(jedi.__version__)
+        )
     _hasJedi = True
 except ImportError:
     logging.error(
@@ -235,6 +241,8 @@ class UnitTestFrame(wx.Frame):
         def write(self, inStr):
             self.MoveEnd()  # always 'append' text rather than 'writing' it
             for thisLine in inStr.splitlines(True):
+                if not isinstance(thisLine, unicode):
+                    thisLine = unicode(thisLine)
                 if thisLine.startswith('OK'):
                     self.BeginBold()
                     self.BeginTextColour(self.good)
@@ -334,10 +342,10 @@ class UnitTestFrame(wx.Frame):
             "&Close tests panel\t%s") % self.app.keys['close'])
         self.Bind(wx.EVT_MENU, self.onCloseTests, id=wx.ID_CLOSE)
         _switch = self.app.keys['switchToCoder']
-        self.menuTests.Append(self.IDs.openCoderView,
+        self.menuTests.Append(wx.ID_ANY,
                               _translate("Go to &Coder view\t%s") % _switch,
                               _translate("Go to the Coder view"))
-        self.Bind(wx.EVT_MENU, self.app.showCoder, id=self.IDs.openCoderView)
+        self.Bind(wx.EVT_MENU, self.app.showCoder)
         # -------------quit
         self.menuTests.AppendSeparator()
         _quit = self.app.keys['quit']
@@ -346,7 +354,7 @@ class UnitTestFrame(wx.Frame):
                               _translate("Terminate PsychoPy"))
         self.Bind(wx.EVT_MENU, self.app.quit, id=wx.ID_EXIT)
         item = self.menuTests.Append(
-            wx.ID_PREFERENCES, text=_translate("&Preferences"))
+            wx.ID_PREFERENCES, _translate("&Preferences"))
         self.Bind(wx.EVT_MENU, self.app.showPrefs, item)
         self.SetMenuBar(menuBar)
 
@@ -809,7 +817,14 @@ class CodeEditor(BaseCodeEditor, CodeEditorFoldingMixin, ThemeMixin):
         """Show a calltip at the current caret position."""
         if _hasJedi and self.getFileType() == 'Python':
             self.coder.SetStatusText('Retrieving calltip, please wait ...', 0)
-            foundRefs = jedi.Script(self.getTextUptoCaret()).get_signatures()
+            thisObj = jedi.Script(self.getTextUptoCaret())
+            if hasattr(thisObj, 'get_signatures'):
+                foundRefs = thisObj.get_signatures()
+            elif hasattr(thisObj, 'call_signatures'):
+                # call_signatures deprecated in jedi 0.16.0 (2020)
+                foundRefs = thisObj.call_signatures()
+            else:
+                foundRefs = None
             self.coder.SetStatusText('', 0)
 
             if foundRefs:
@@ -2264,6 +2279,8 @@ class CoderFrame(wx.Frame, ThemeMixin):
         filename = doc.filename
         if not os.path.exists(filename):
             return True
+        if not os.path.isabs(filename):
+            return True
         actualModTime = os.path.getmtime(filename)
         expectedModTime = doc.fileModTime
         if actualModTime != expectedModTime:
@@ -2467,9 +2484,11 @@ class CoderFrame(wx.Frame, ThemeMixin):
             elif resp == wx.ID_NO:
                 pass  # just run
         self.app.runner.addTask(fileName=fullPath)
+        self.app.runner.Raise()
         if event:
             if event.Id in [self.cdrBtnRun.Id, self.IDs.cdrRun]:
                 self.app.runner.panel.runLocal(event)
+                self.Raise()
             else:
                 self.app.showRunner()
 
@@ -2492,10 +2511,12 @@ class CoderFrame(wx.Frame, ThemeMixin):
             foc.Paste()
 
     def undo(self, event):
-        self.currentDoc.Undo()
+        if self.currentDoc:
+            self.currentDoc.Undo()
 
     def redo(self, event):
-        self.currentDoc.Redo()
+        if self.currentDoc:
+            self.currentDoc.Redo()
 
     def commentSelected(self, event):
         self.currentDoc.commentLines()
@@ -2688,4 +2709,5 @@ class CoderFrame(wx.Frame, ThemeMixin):
         self.notebook.Refresh()
         if hasattr(self, 'shelf'):
             ThemeMixin._applyAppTheme(self.shelf)
-        self.Update()
+        if sys.platform == 'win32':
+            self.Update()  # kills mac. Not sure about linux
