@@ -1895,10 +1895,7 @@ class CoderFrame(wx.Frame, ThemeMixin):
                                         checkSave=False)
                     self.showingReloadDialog = False
                     self.statusBar.SetStatusText('')
-                    try:
-                        dlg.destroy()
-                    except Exception:
-                        pass
+                    dlg.Destroy()
                 self.fileStatusLastChecked = time.time()
 
     def pageChanged(self, event):
@@ -1927,10 +1924,7 @@ class CoderFrame(wx.Frame, ThemeMixin):
                                 checkSave=False)
                 self.setFileModified(False)
             self.statusBar.SetStatusText('')
-            try:
-                dlg.destroy()
-            except Exception:
-                pass
+            dlg.Destroy()
 
     def filesDropped(self, event):
         fileList = event.GetFiles()
@@ -2297,10 +2291,7 @@ class CoderFrame(wx.Frame, ThemeMixin):
                                             type='Warning')
                 if dlg.ShowModal() != wx.ID_YES:
                     failToSave = True
-                try:
-                    dlg.destroy()
-                except Exception:
-                    pass
+                dlg.Destroy()
             if os.path.exists(filename) and not os.access(filename, os.W_OK):
                 msg = _translate("File '%s' lacks write-permission:\n"
                                  "Will try save-as instead.")
@@ -2309,10 +2300,7 @@ class CoderFrame(wx.Frame, ThemeMixin):
                                             type='Info')
                 dlg.ShowModal()
                 failToSave = True
-                try:
-                    dlg.destroy()
-                except Exception:
-                    pass
+                dlg.Destroy()
             try:
                 if failToSave:
                     raise IOError
@@ -2379,10 +2367,7 @@ class CoderFrame(wx.Frame, ThemeMixin):
             # JRG: 'doc.filename' should = newPath = dlg.getPath()
             doc.fileModTime = os.path.getmtime(doc.filename)
 
-        try:  # this seems correct on PC, but can raise errors on mac
-            dlg.destroy()
-        except Exception:
-            pass
+        dlg.Destroy()
 
     def fileClose(self, event, filename=None, checkSave=True):
         if self.currentDoc is None:

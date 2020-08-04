@@ -681,10 +681,7 @@ class BuilderFrame(wx.Frame, ThemeMixin):
             self.fileSave(event=None, filename=newPath)
             self.filename = newPath
             returnVal = 1
-        try:  # this seems correct on PC, but not on mac
-            dlg.destroy()
-        except Exception:
-            pass
+        dlg.Destroy()
 
         self.updateWindowTitle()
         return returnVal

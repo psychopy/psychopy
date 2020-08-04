@@ -231,10 +231,7 @@ class RunnerFrame(wx.Frame, ThemeMixin):
                 json.dump(experiments, file)
             self.listname = newPath
 
-        try:  # this seems correct on PC, but not on mac
-            dlg.destroy()
-        except Exception:
-            pass
+        dlg.Destroy()
 
     def loadTaskList(self, evt=None):
         """Load saved task list from appData."""
