@@ -288,10 +288,13 @@ class BuilderFrame(wx.Frame, ThemeMixin):
         self.Bind(wx.EVT_MENU, self.fileSaveAs, id=wx.ID_SAVEAS)
         self.Bind(wx.EVT_MENU, self.fileOpen, id=wx.ID_OPEN)
         self.Bind(wx.EVT_MENU, self.commandCloseFrame, id=wx.ID_CLOSE)
+        self.fileMenu.AppendSeparator()
         item = menu.Append(
             wx.ID_PREFERENCES,
             _translate("&Preferences\t%s") % keys['preferences'])
         self.Bind(wx.EVT_MENU, self.app.showPrefs, item)
+        item = menu.Append(wx.NewId(), "Plug&ins")
+        self.Bind(wx.EVT_MENU, self.pluginManager, item)
         menu.AppendSeparator()
         msg = _translate("Close PsychoPy Builder")
         item = menu.Append(wx.ID_ANY, msg)
@@ -719,6 +722,10 @@ class BuilderFrame(wx.Frame, ThemeMixin):
         """returns the filename without path or extension
         """
         return os.path.splitext(os.path.split(self.filename)[1])[0]
+
+    def pluginManager(self, evt=None, value=True):
+        """Show the plugin manger frame."""
+        PluginManagerFrame(self).ShowModal()
 
     def updateReadme(self):
         """Check whether there is a readme file in this folder and try to show
