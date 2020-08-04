@@ -831,22 +831,21 @@ class SettingsComponent(object):
         buff.writeIndentedLines(code)
 
     def writeEndCodeJS(self, buff):
-
-        endLoopInteration = ("\nfunction endLoopIteration(thisScheduler, loop) {\n"
+        endLoopInteration = ("\nfunction endLoopIteration(thisScheduler, currentLoop) {\n"
                     "  // ------Prepare for next entry------\n"
                     "  return function () {\n"
-                    "    if (typeof loop !== 'undefined') {\n"
+                    "    if (typeof currentLoop !== 'undefined') {\n"
                     "      // ------Check if user ended loop early------\n"
-                    "      if (loop.finished) {\n"
+                    "      if (currentLoop.finished) {\n"
                     "        // Check for and save orphaned data\n"
                     "        if (psychoJS.experiment.isEntryEmpty()) {\n"
-                    "          psychoJS.experiment.nextEntry(loop);\n"
+                    "          psychoJS.experiment.nextEntry(currentLoop);\n"
                     "        }\n"
                     "      thisScheduler.stop();\n"
                     "      } else {\n"
-                    "        const thisTrial = loop.getCurrentTrial();\n"
+                    "        const thisTrial = currentLoop.getCurrentTrial();\n"
                     "        if (typeof thisTrial === 'undefined' || !('isTrials' in thisTrial) || thisTrial.isTrials) {\n"
-                    "          psychoJS.experiment.nextEntry(loop);\n"
+                    "          psychoJS.experiment.nextEntry(currentLoop);\n"
                     "        }\n"
                     "      }\n"
                     "    return Scheduler.Event.NEXT;\n"
@@ -855,9 +854,9 @@ class SettingsComponent(object):
                     "}\n")
         buff.writeIndentedLines(endLoopInteration)
 
-        recordLoopIterationFunc = ("\nfunction importConditions(trials) {\n"
+        recordLoopIterationFunc = ("\nfunction importConditions(currentLoop) {\n"
                     "  return function () {\n"
-                    "    psychoJS.importAttributes(trials.getCurrentTrial());\n"
+                    "    psychoJS.importAttributes(currentLoop.getCurrentTrial());\n"
                     "    return Scheduler.Event.NEXT;\n"
                     "    };\n"
                     "}\n")
