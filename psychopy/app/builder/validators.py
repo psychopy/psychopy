@@ -203,7 +203,7 @@ class CodeSnippetValidator(BaseValidator):
             code = experiment.getCodeFromParamStr(val)
             try:
                 names = compile(code, '', 'exec').co_names
-            except SyntaxError as e:
+            except (SyntaxError, TypeError) as e:
                 # empty '' compiles to a syntax error, ignore
                 if not code.strip() == '':
                     _highlightParamVal(parent, True)
