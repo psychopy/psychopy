@@ -901,8 +901,6 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
             'bg': '#888888',  # background
             'fg': '#FFFFFF',  # foreground
         }
-        print(style)
-        print(style == 'light')
         if 'light' in style:
             self.colorScheme = {
                 'space': 'hex', # Colour space
