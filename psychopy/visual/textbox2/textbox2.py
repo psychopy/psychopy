@@ -20,7 +20,7 @@ import numpy as np
 import OpenGL.GL as gl
 
 from ..basevisual import BaseVisualStim, ColorMixin, ContainerMixin
-from psychopy.tools.attributetools import attributeSetter
+from psychopy.tools.attributetools import attributeSetter, setAttribute
 from psychopy.tools.arraytools import val2array
 from psychopy.tools.monitorunittools import convertToPix
 from .fontmanager import FontManager, GLFont
@@ -768,6 +768,23 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
             pass  # may not be created yet, which is fine
         self._needVertexUpdate = True
         self._needUpdate = True
+
+    def setText(self, text=None, log=None):
+        """Usually you can use 'stim.attribute = value' syntax instead,
+        but use this method if you need to suppress the log message.
+        """
+        setAttribute(self, 'text', text, log)
+
+    def setHeight(self, height, log=None):
+        """Usually you can use 'stim.attribute = value' syntax instead,
+        but use this method if you need to suppress the log message. """
+        setAttribute(self, 'height', height, log)
+
+    def setFont(self, font, log=None):
+        """Usually you can use 'stim.attribute = value' syntax instead,
+        but use this method if you need to suppress the log message.
+        """
+        setAttribute(self, 'font', font, log)
 
 
 class Caret(ColorMixin):
