@@ -27,7 +27,7 @@ _REQUIRED = -12349872349873  # an unlikely int
 _knownFields = {
     'index': None,  # optional field to index into the rows
     'itemText': _REQUIRED,  # (question used until 2020.2)
-    'itemColor': 'white',
+    'itemColor': 'fg',
     'itemWidth': 0.8,  # fraction of the form
     'type': _REQUIRED,  # type of response box (see below)
     'options': ('Yes', 'No'),  # for choice box
@@ -35,7 +35,7 @@ _knownFields = {
     'tickLabels': None,
     # for rating/slider
     'responseWidth': 0.8,  # fraction of the form
-    'responseColor': 'white',
+    'responseColor': 'fg',
     'layout': 'horiz',  # can be vert or horiz
 }
 _doNotSave = [
@@ -113,6 +113,7 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
         self.win = win
         self.autoLog = autoLog
         self.name = name
+        self.style = style
         self.randomize = randomize
         self.items = self.importItems(items)
         self.size = size
@@ -120,7 +121,7 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
         self.itemPadding = itemPadding
         self.scrollSpeed = self.setScrollSpeed(self.items, 4)
         self.units = units
-        self.style = style
+
 
         self.textHeight = textHeight
         self._scrollBarSize = (0.016, size[1])
@@ -246,8 +247,11 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
                                 .format(oldHeader, header)
                             )
                             continue
-
-                        item[header] = defaultValues[header]
+                        # Default to colour scheme if specified
+                        if defaultValues[header] in ['fg', 'bg', 'em']:
+                            item[header] = self.colorScheme[defaultValues[header]]
+                        else:
+                            item[header] = defaultValues[header]
                         missingHeaders.append(header)
 
             msg = "Using default values for the following headers: {}".format(
