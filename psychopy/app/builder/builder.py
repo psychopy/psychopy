@@ -2122,9 +2122,11 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
         for redundant in ['component', 'Component', "ButtonBox"]:
             shortName = shortName.replace(redundant, "")
         # Convert from CamelCase to Title Case for button label
-        label = shortName
-        for c in "".join(c if c.isupper() else "" for c in name[1:]):
-            label = label.replace(c, "\n"+c)
+        label = ""
+        for i, c in enumerate(shortName):
+            if c.isupper() and i > 0:
+                label += "\n"
+            label += c
         # set size
         size = 48
         # get tooltip
