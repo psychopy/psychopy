@@ -12,6 +12,7 @@ from __future__ import absolute_import, division, print_function
 
 from builtins import object
 from past.builtins import basestring
+from pathlib import Path
 
 # Ensure setting pyglet.options['debug_gl'] to False is done prior to any
 # other calls to pyglet or pyglet submodules, otherwise it may not get picked
@@ -808,7 +809,7 @@ class TextureMixin(object):
             intensity[artifactIdx] = 0
 
         else:
-            if isinstance(tex, basestring):
+            if isinstance(tex, (basestring, Path)):
                 # maybe tex is the name of a file:
                 filename = findImageFile(tex)
                 if not filename:
@@ -1285,7 +1286,7 @@ class BaseVisualStim(MinimalStim, WindowMixin, LegacyVisualMixin):
         """
         array = numpy.array
         value = val2array(value)  # Check correct user input
-        self._requestedSize = value  # to track whether we're using a default
+        self._requestedSize = copy.copy(value)  # to track whether we're using a default
         # None --> set to default
         if value is None:
             # Set the size to default (e.g. to the size of the loaded image

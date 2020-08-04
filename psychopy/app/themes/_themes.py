@@ -123,10 +123,17 @@ class ThemeMixin:
         # Define subfunctions to handle different object types
         def applyToToolbar(target):
             target.SetBackgroundColour(ThemeMixin.appColors['frame_bg'])
-            # Clear tools
-            target.ClearTools()
-            # Redraw tools
-            target.makeTools()
+            if sys.platform == 'win32':
+                # on mac ClearTools seg faults. Not sure what happens on linux
+                # Clear tools
+                target.ClearTools()
+                # Redraw tools
+                target.makeTools()
+            else:
+                # otherwise make the tools the first time but not again
+                if hasattr(target, '_needMakeTools') and target._needMakeTools:
+                    target.makeTools()
+                    self._needMakeTools = False
 
         def applyToStatusBar(target):
             target.SetBackgroundColour(cLib['white'])
@@ -160,7 +167,7 @@ class ThemeMixin:
                 page._applyAppTheme()
 
         def applyToCodeEditor(target):
-            spec = ThemeMixin.codeColors
+            spec = ThemeMixin.codeColors.copy()
             base = spec['base']
             # Override base font with user spec if present
             prefkey = 'outputFont' if isinstance(target, wx.py.shell.Shell) else 'codeFont'
@@ -335,19 +342,17 @@ class ThemeMixin:
             else:
                 # if not then use our own recursive method to search
                 if hasattr(c, 'Window') and c.Window is not None:
-                    self._applyAppTheme(c.Window)
+                    ThemeMixin._applyAppTheme(c.Window)
                 elif hasattr(c, 'Sizer') and c.Sizer is not None:
-                    self._applyAppTheme(c.Sizer)
+                    ThemeMixin._applyAppTheme(c.Sizer)
                 # and then apply
                 # try:
-                #     self._applyAppTheme(c)
+                #     ThemeMixin._applyAppTheme(c)
                 # except AttributeError:
                 #     pass
 
         if hasattr(target, 'Refresh'):
             target.Refresh()
-        #if hasattr(target, 'Update'): # Using .Update() caused code editors to always think there were changes made
-        #    target.Update()
         if hasattr(target, '_mgr'):
             target._mgr.Update()
 
@@ -484,7 +489,7 @@ class ThemeMixin:
             })
         return tags
 
-    def hex2rgb(self, hex, base=(0, 0, 0, 0)):
+    def hex2rgb(self, hex, base=(0, 0, 0, 255)):
         if not isinstance(hex, str):
             return base
         # Make hex code case irrelevant
@@ -502,7 +507,7 @@ class ThemeMixin:
         r = hexkeys[hex[1]] * 16 + hexkeys[hex[2]]
         g = hexkeys[hex[3]] * 16 + hexkeys[hex[4]]
         b = hexkeys[hex[5]] * 16 + hexkeys[hex[6]]
-        return wx.Colour(r, g, b, 1)
+        return wx.Colour(r, g, b, 255)
 
     def shiftColour(self, col, offset=15):
         """Shift colour up or down by a set amount"""
@@ -556,8 +561,8 @@ class ThemeMixin:
 
     def _setCodeColors(self, spec):
         """To be called from _psychopyApp only"""
-        if not self.GetTopWindow() == self:
-            psychopy.logging.warning("This function should only be called from _psychopyApp")
+        #if not self.GetTopWindow() == self:
+        #    psychopy.logging.warning("This function should only be called from _psychopyApp")
 
         base = spec['base']
         base['font'] = self.extractFont(base['font'])
@@ -853,9 +858,9 @@ class IconCache:
             for thisBtn in IconCache._buttons:
                 if thisBtn['btn']:  # Check that button hasn't been deleted
                     newBmp = self.getBitmap(name=thisBtn['filename'],
-                                        size=thisBtn['size'],
-                                        theme=theme.icons,
-                                        emblem=thisBtn['emblem'])
+                                            size=thisBtn['size'],
+                                            theme=theme.icons,
+                                            emblem=thisBtn['emblem'])
                     thisBtn['btn'].SetBitmap(newBmp)
                     thisBtn['btn'].SetBitmapCurrent(newBmp)
                     thisBtn['btn'].SetBitmapPressed(newBmp)
@@ -961,7 +966,8 @@ class PsychopyDockArt(aui.AuiDefaultDockArt):
 
 
 class ThemeSwitcher(wx.Menu):
-    """Class to make a submenu for switching theme, meaning that the menu will always be the same across frames."""
+    """Class to make a submenu for switching theme, meaning that the menu will
+    always be the same across frames."""
     def __init__(self, frame):
         # Get list of themes
         themePath = Path(prefs.paths['themes'])
@@ -973,14 +979,25 @@ class ThemeSwitcher(wx.Menu):
                     # Add themes to list only if min spec is defined
                     base = theme['base']
                     if all(key in base for key in ['bg', 'fg', 'font']):
-                        themeList[themeFile.stem] = []
+                            themeList[themeFile.stem] = theme['info'] if "info" in theme else ""
+
             except (FileNotFoundError, IsADirectoryError):
                 pass
         # Make menu
         wx.Menu.__init__(self)
-        # Make buttons
+        # Make priority theme buttons
+        priority = ["PsychopyDark", "PsychopyLight", "ClassicDark", "Classic"]
+        for theme in priority:
+            tooltip = themeList.pop(theme)
+            item = self.AppendRadioItem(wx.ID_ANY, _translate(theme), tooltip)
+            frame.Bind(wx.EVT_MENU, frame.app.onThemeChange, item)
+            if item.ItemLabel.lower() == ThemeMixin.codetheme.lower():
+                item.Check(True)
+            else:
+                item.Check(False)
+        # Make other theme buttons
         for theme in themeList:
-            item = self.AppendRadioItem(wx.ID_ANY, _translate(theme))
+            item = self.AppendRadioItem(wx.ID_ANY, _translate(theme), help=themeList[theme])
             frame.Bind(wx.EVT_MENU, frame.app.onThemeChange, item)
             if item.ItemLabel.lower() == ThemeMixin.codetheme.lower():
                 item.Check(True)

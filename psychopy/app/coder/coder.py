@@ -10,6 +10,7 @@ from __future__ import absolute_import, print_function
 # from future import standard_library
 # standard_library.install_aliases()
 import json
+from past.builtins import unicode
 from builtins import chr
 from builtins import range
 import wx
@@ -48,6 +49,11 @@ from psychopy.app.errorDlg import ErrorMsgDialog
 
 try:
     import jedi
+    if jedi.__version__ < "0.15":
+        logging.error(
+                "Need a newer version of package `jedi`. Currently using {}"
+                .format(jedi.__version__)
+        )
     _hasJedi = True
 except ImportError:
     logging.error(
@@ -237,6 +243,8 @@ class UnitTestFrame(wx.Frame):
         def write(self, inStr):
             self.MoveEnd()  # always 'append' text rather than 'writing' it
             for thisLine in inStr.splitlines(True):
+                if not isinstance(thisLine, unicode):
+                    thisLine = unicode(thisLine)
                 if thisLine.startswith('OK'):
                     self.BeginBold()
                     self.BeginTextColour(self.good)
@@ -336,10 +344,10 @@ class UnitTestFrame(wx.Frame):
             "&Close tests panel\t%s") % self.app.keys['close'])
         self.Bind(wx.EVT_MENU, self.onCloseTests, id=wx.ID_CLOSE)
         _switch = self.app.keys['switchToCoder']
-        self.menuTests.Append(self.IDs.openCoderView,
+        self.menuTests.Append(wx.ID_ANY,
                               _translate("Go to &Coder view\t%s") % _switch,
                               _translate("Go to the Coder view"))
-        self.Bind(wx.EVT_MENU, self.app.showCoder, id=self.IDs.openCoderView)
+        self.Bind(wx.EVT_MENU, self.app.showCoder)
         # -------------quit
         self.menuTests.AppendSeparator()
         _quit = self.app.keys['quit']
@@ -348,7 +356,7 @@ class UnitTestFrame(wx.Frame):
                               _translate("Terminate PsychoPy"))
         self.Bind(wx.EVT_MENU, self.app.quit, id=wx.ID_EXIT)
         item = self.menuTests.Append(
-            wx.ID_PREFERENCES, text=_translate("&Preferences"))
+            wx.ID_PREFERENCES, _translate("&Preferences"))
         self.Bind(wx.EVT_MENU, self.app.showPrefs, item)
         self.SetMenuBar(menuBar)
 
@@ -811,7 +819,14 @@ class CodeEditor(BaseCodeEditor, CodeEditorFoldingMixin, ThemeMixin):
         """Show a calltip at the current caret position."""
         if _hasJedi and self.getFileType() == 'Python':
             self.coder.SetStatusText('Retrieving calltip, please wait ...', 0)
-            foundRefs = jedi.Script(self.getTextUptoCaret()).get_signatures()
+            thisObj = jedi.Script(self.getTextUptoCaret())
+            if hasattr(thisObj, 'get_signatures'):
+                foundRefs = thisObj.get_signatures()
+            elif hasattr(thisObj, 'call_signatures'):
+                # call_signatures deprecated in jedi 0.16.0 (2020)
+                foundRefs = thisObj.call_signatures()
+            else:
+                foundRefs = None
             self.coder.SetStatusText('', 0)
 
             if foundRefs:
@@ -822,7 +837,7 @@ class CodeEditor(BaseCodeEditor, CodeEditorFoldingMixin, ThemeMixin):
                         textwrap.wrap(calltipText, 76))  # 80 cols after indent
                     y, x = foundRefs[0].bracket_start
                     self.CallTipShow(
-                        self.XYToPosition(x + 1, y - 1), calltipText)
+                        self.XYToPosition(x + 1, y + 1), calltipText)
 
     def MacOpenFile(self, evt):
         logging.debug('PsychoPyCoder: got MacOpenFile event')
@@ -1197,6 +1212,7 @@ class CoderFrame(wx.Frame, ThemeMixin):
         #self.Bind(wx.EVT_FIND_CLOSE, self.OnFindClose)
         self.Bind(wx.EVT_END_PROCESS, self.onProcessEnded)
 
+        self._applyAppTheme()
         # take files from arguments and append the previously opened files
         filename = ""
         if files not in [None, [], ()]:
@@ -1373,6 +1389,11 @@ class CoderFrame(wx.Frame, ThemeMixin):
         self.Bind(wx.EVT_MENU, self.app.showPrefs, id=item.GetId())
         item = menu.Append(wx.NewId(), "Plug&ins")
         self.Bind(wx.EVT_MENU, self.pluginManager, id=item.GetId())
+        # -------------Close coder frame
+        menu.AppendSeparator()
+        msg = _translate("Close PsychoPy Coder")
+        item = menu.Append(wx.ID_ANY, msg)
+        self.Bind(wx.EVT_MENU, self.closeFrame, id=item.GetId())
         # -------------quit
         menu.AppendSeparator()
         menu.Append(wx.ID_EXIT,
@@ -1500,53 +1521,6 @@ class CoderFrame(wx.Frame, ThemeMixin):
         self.Bind(wx.EVT_MENU, self.onSetCWDFromBrowse, id=item.GetId())
         menu.Append(wx.ID_ANY, "Change working directory to ...", sm)
 
-        # menu.Append(ID_UNFOLDALL, "Unfold All\tF3",
-        #   "Unfold all lines", wx.ITEM_NORMAL)
-        # self.Bind(wx.EVT_MENU,  self.unfoldAll, id=ID_UNFOLDALL)
-        # ---_tools---#000000#FFFFFF------------------------------------------
-        self.toolsMenu = wx.Menu()
-        menu = self.toolsMenu
-        menuBar.Append(self.toolsMenu, _translate('&Tools'))
-        item = menu.Append(wx.ID_ANY,
-                           _translate("Monitor Center"),
-                           _translate("To set information about your monitor"))
-        self.Bind(wx.EVT_MENU, self.app.openMonitorCenter, id=item.GetId())
-        # self.analyseAutoChk = self.toolsMenu.AppendCheckItem(self.IDs.analyzeAuto,
-        #   "Analyse on file save/open",
-        #   "Automatically analyse source (for autocomplete etc...).
-        #   Can slow down the editor on a slow machine or with large files")
-        # self.Bind(wx.EVT_MENU,  self.setAnalyseAuto, id=self.IDs.analyzeAuto)
-        # self.analyseAutoChk.Check(self.prefs['analyseAuto'])
-        # self.toolsMenu.Append(self.IDs.analyzeNow,
-        #   "Analyse now\t%s" %self.app.keys['analyseCode'],
-        #   "Force a reananalysis of the code now")
-        # self.Bind(wx.EVT_MENU,  self.analyseCodeNow, id=self.IDs.analyzeNow)
-
-        self.IDs.cdrRun = menu.Append(wx.ID_ANY,
-                                      _translate("Run\t%s") % keyCodes['runScript'],
-                                      _translate("Run the current script")).GetId()
-        self.Bind(wx.EVT_MENU, self.runFile, id=self.IDs.cdrRun)
-
-        menu.AppendSeparator()
-        item = menu.Append(wx.ID_ANY,
-                           _translate("PsychoPy updates..."),
-                           _translate("Update PsychoPy to the latest, or a specific, version"))
-        self.Bind(wx.EVT_MENU, self.app.openUpdater, id=item.GetId())
-        item = menu.Append(wx.ID_ANY,
-                           _translate("Benchmark wizard"),
-                           _translate("Check software & hardware, generate report"))
-        self.Bind(wx.EVT_MENU, self.app.benchmarkWizard, id=item.GetId())
-        item = menu.Append(wx.ID_ANY,
-                           _translate("csv from psydat"),
-                           _translate("Create a .csv file from an existing .psydat file"))
-        self.Bind(wx.EVT_MENU, self.app.csvFromPsydat, id=item.GetId())
-
-        if self.appPrefs['debugMode']:
-            item = menu.Append(wx.ID_ANY,
-                               _translate("Unit &testing...\tCtrl-T"),
-                               _translate("Show dialog to run unit tests"))
-        self.Bind(wx.EVT_MENU, self.onUnitTests, id=item.GetId())
-
         # ---_view---#000000#FFFFFF-------------------------------------------
         self.viewMenu = wx.Menu()
         menu = self.viewMenu
@@ -1615,6 +1589,57 @@ class CoderFrame(wx.Frame, ThemeMixin):
         self.themesMenu = ThemeSwitcher(self)
         menu.AppendSubMenu(self.themesMenu,
                            _translate("Themes"))
+
+        # menu.Append(ID_UNFOLDALL, "Unfold All\tF3",
+        #   "Unfold all lines", wx.ITEM_NORMAL)
+        # self.Bind(wx.EVT_MENU,  self.unfoldAll, id=ID_UNFOLDALL)
+        # ---_tools---#000000#FFFFFF------------------------------------------
+        self.toolsMenu = wx.Menu()
+        menu = self.toolsMenu
+        menuBar.Append(self.toolsMenu, _translate('&Tools'))
+        item = menu.Append(wx.ID_ANY,
+                           _translate("Monitor Center"),
+                           _translate("To set information about your monitor"))
+        self.Bind(wx.EVT_MENU, self.app.openMonitorCenter, id=item.GetId())
+        # self.analyseAutoChk = self.toolsMenu.AppendCheckItem(self.IDs.analyzeAuto,
+        #   "Analyse on file save/open",
+        #   "Automatically analyse source (for autocomplete etc...).
+        #   Can slow down the editor on a slow machine or with large files")
+        # self.Bind(wx.EVT_MENU,  self.setAnalyseAuto, id=self.IDs.analyzeAuto)
+        # self.analyseAutoChk.Check(self.prefs['analyseAuto'])
+        # self.toolsMenu.Append(self.IDs.analyzeNow,
+        #   "Analyse now\t%s" %self.app.keys['analyseCode'],
+        #   "Force a reananalysis of the code now")
+        # self.Bind(wx.EVT_MENU,  self.analyseCodeNow, id=self.IDs.analyzeNow)
+
+        self.IDs.cdrRun = menu.Append(wx.ID_ANY,
+                                      _translate("Run\t%s") % keyCodes['runScript'],
+                                      _translate("Run the current script")).GetId()
+        self.Bind(wx.EVT_MENU, self.runFile, id=self.IDs.cdrRun)
+        item = menu.Append(wx.ID_ANY,
+                                      _translate("Send to runner\t%s") % keyCodes['runnerScript'],
+                                      _translate("Send current script to runner")).GetId()
+        self.Bind(wx.EVT_MENU, self.runFile, id=item)
+
+        menu.AppendSeparator()
+        item = menu.Append(wx.ID_ANY,
+                           _translate("PsychoPy updates..."),
+                           _translate("Update PsychoPy to the latest, or a specific, version"))
+        self.Bind(wx.EVT_MENU, self.app.openUpdater, id=item.GetId())
+        item = menu.Append(wx.ID_ANY,
+                           _translate("Benchmark wizard"),
+                           _translate("Check software & hardware, generate report"))
+        self.Bind(wx.EVT_MENU, self.app.benchmarkWizard, id=item.GetId())
+        item = menu.Append(wx.ID_ANY,
+                           _translate("csv from psydat"),
+                           _translate("Create a .csv file from an existing .psydat file"))
+        self.Bind(wx.EVT_MENU, self.app.csvFromPsydat, id=item.GetId())
+
+        if self.appPrefs['debugMode']:
+            item = menu.Append(wx.ID_ANY,
+                               _translate("Unit &testing...\tCtrl-T"),
+                               _translate("Show dialog to run unit tests"))
+        self.Bind(wx.EVT_MENU, self.onUnitTests, id=item.GetId())
 
         # ---_demos---#000000#FFFFFF------------------------------------------
         self.demosMenu = wx.Menu()
@@ -1951,6 +1976,7 @@ class CoderFrame(wx.Frame, ThemeMixin):
         win = wx.Window.FindFocus()
         self.findDlg = wx.FindReplaceDialog(win, self.findData, "Find",
                                             wx.FR_NOWHOLEWORD)
+        self.findDlg.Bind(wx.EVT_FIND_CLOSE, self.OnFindClose)
         self.findDlg.Show()
 
     def OnFindNext(self, event):
@@ -1962,9 +1988,8 @@ class CoderFrame(wx.Frame, ThemeMixin):
         # if self.findDlg is not None:
         #     self.OnFindClose(None)
 
-    # def OnFindClose(self, event):
-    #     self.findDlg.Destroy()
-    #     self.findDlg = None
+    def OnFindClose(self, event):
+        self.findDlg = None
 
     def OnFileHistory(self, evt=None):
         # get the file based on the menu ID
@@ -2262,6 +2287,8 @@ class CoderFrame(wx.Frame, ThemeMixin):
         filename = doc.filename
         if not os.path.exists(filename):
             return True
+        if not os.path.isabs(filename):
+            return True
         actualModTime = os.path.getmtime(filename)
         expectedModTime = doc.fileModTime
         if actualModTime != expectedModTime:
@@ -2465,10 +2492,13 @@ class CoderFrame(wx.Frame, ThemeMixin):
             elif resp == wx.ID_NO:
                 pass  # just run
         self.app.runner.addTask(fileName=fullPath)
-        self.app.showRunner()
+        self.app.runner.Raise()
         if event:
-            if event.Id == self.cdrBtnRun.Id:
-                self.app.runner.panel.runFile(fileName=fullPath)
+            if event.Id in [self.cdrBtnRun.Id, self.IDs.cdrRun]:
+                self.app.runner.panel.runLocal(event)
+                self.Raise()
+            else:
+                self.app.showRunner()
 
     def copy(self, event):
         foc = self.FindFocus()
@@ -2489,10 +2519,12 @@ class CoderFrame(wx.Frame, ThemeMixin):
             foc.Paste()
 
     def undo(self, event):
-        self.currentDoc.Undo()
+        if self.currentDoc:
+            self.currentDoc.Undo()
 
     def redo(self, event):
-        self.currentDoc.Redo()
+        if self.currentDoc:
+            self.currentDoc.Redo()
 
     def commentSelected(self, event):
         self.currentDoc.commentLines()
@@ -2685,4 +2717,5 @@ class CoderFrame(wx.Frame, ThemeMixin):
         self.notebook.Refresh()
         if hasattr(self, 'shelf'):
             ThemeMixin._applyAppTheme(self.shelf)
-        self.Update()
+        if sys.platform == 'win32':
+            self.Update()  # kills mac. Not sure about linux

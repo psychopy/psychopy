@@ -295,6 +295,10 @@ class BuilderFrame(wx.Frame, ThemeMixin):
         self.Bind(wx.EVT_MENU, self.app.showPrefs, item)
         item = menu.Append(wx.NewId(), "Plug&ins")
         self.Bind(wx.EVT_MENU, self.pluginManager, item)
+        menu.AppendSeparator()
+        msg = _translate("Close PsychoPy Builder")
+        item = menu.Append(wx.ID_ANY, msg)
+        self.Bind(wx.EVT_MENU, self.closeFrame, id=item.GetId())
         self.fileMenu.AppendSeparator()
         self.fileMenu.Append(wx.ID_EXIT,
                              _translate("&Quit\t%s") % keys['quit'],
@@ -317,37 +321,6 @@ class BuilderFrame(wx.Frame, ThemeMixin):
         self.Bind(wx.EVT_MENU, self.redo, id=wx.ID_REDO)
         menu.Append(wx.ID_PASTE, _translate("&Paste\t%s") % keys['paste'])
         self.Bind(wx.EVT_MENU, self.paste, id=wx.ID_PASTE)
-
-        # ---_tools ---#000000#FFFFFF-----------------------------------------
-        self.toolsMenu = wx.Menu()
-        menuBar.Append(self.toolsMenu, _translate('&Tools'))
-        menu = self.toolsMenu
-        item = menu.Append(wx.ID_ANY,
-                           _translate("Monitor Center"),
-                           _translate("To set information about your monitor"))
-        self.Bind(wx.EVT_MENU, self.app.openMonitorCenter, item)
-
-        item = menu.Append(wx.ID_ANY,
-                           _translate("Compile\t%s") % keys['compileScript'],
-                           _translate("Compile the exp to a script"))
-        self.Bind(wx.EVT_MENU, self.compileScript, item)
-        item = menu.Append(wx.ID_ANY,
-                           _translate("Run\t%s") % keys['runScript'],
-                           _translate("Run the current script"))
-        self.Bind(wx.EVT_MENU, self.runFile, item)
-
-        menu.AppendSeparator()
-        item = menu.Append(wx.ID_ANY,
-                           _translate("PsychoPy updates..."),
-                           _translate("Update PsychoPy to the latest, or a "
-                                      "specific, version"))
-        self.Bind(wx.EVT_MENU, self.app.openUpdater, item)
-        if hasattr(self.app, 'benchmarkWizard'):
-            item = menu.Append(wx.ID_ANY,
-                               _translate("Benchmark wizard"),
-                               _translate("Check software & hardware, generate "
-                                          "report"))
-            self.Bind(wx.EVT_MENU, self.app.benchmarkWizard, item)
 
         # ---_view---#000000#FFFFFF-------------------------------------------
         self.viewMenu = wx.Menu()
@@ -396,6 +369,39 @@ class BuilderFrame(wx.Frame, ThemeMixin):
         menu.AppendSubMenu(self.themesMenu,
                                _translate("Themes"))
 
+        # ---_tools ---#000000#FFFFFF-----------------------------------------
+        self.toolsMenu = wx.Menu()
+        menuBar.Append(self.toolsMenu, _translate('&Tools'))
+        menu = self.toolsMenu
+        item = menu.Append(wx.ID_ANY,
+                           _translate("Monitor Center"),
+                           _translate("To set information about your monitor"))
+        self.Bind(wx.EVT_MENU, self.app.openMonitorCenter, item)
+
+        item = menu.Append(wx.ID_ANY,
+                           _translate("Compile\t%s") % keys['compileScript'],
+                           _translate("Compile the exp to a script"))
+        self.Bind(wx.EVT_MENU, self.compileScript, item)
+        self.bldrRun = menu.Append(wx.ID_ANY,
+                           _translate("Run\t%s") % keys['runScript'],
+                           _translate("Run the current script"))
+        self.Bind(wx.EVT_MENU, self.runFile, self.bldrRun, id=self.bldrRun)
+        item = menu.Append(wx.ID_ANY,
+                           _translate("Send to runner\t%s") % keys['runnerScript'],
+                           _translate("Send current script to runner"))
+        self.Bind(wx.EVT_MENU, self.runFile, item)
+        menu.AppendSeparator()
+        item = menu.Append(wx.ID_ANY,
+                           _translate("PsychoPy updates..."),
+                           _translate("Update PsychoPy to the latest, or a "
+                                      "specific, version"))
+        self.Bind(wx.EVT_MENU, self.app.openUpdater, item)
+        if hasattr(self.app, 'benchmarkWizard'):
+            item = menu.Append(wx.ID_ANY,
+                               _translate("Benchmark wizard"),
+                               _translate("Check software & hardware, generate "
+                                          "report"))
+            self.Bind(wx.EVT_MENU, self.app.benchmarkWizard, item)
 
         # ---_experiment---#000000#FFFFFF-------------------------------------
         self.expMenu = wx.Menu()
@@ -501,10 +507,6 @@ class BuilderFrame(wx.Frame, ThemeMixin):
         menu.Append(wx.ID_ABOUT, _translate(
             "&About..."), _translate("About PsychoPy"))
         self.Bind(wx.EVT_MENU, self.app.showAbout, id=wx.ID_ABOUT)
-
-        menu.AppendSeparator()
-        menu.AppendSeparator()
-
         item = menu.Append(wx.ID_ANY,
                            _translate("&News..."),
                            _translate("News"))
@@ -700,7 +702,8 @@ class BuilderFrame(wx.Frame, ThemeMixin):
         expPath, expName = os.path.split(self.filename)
         if htmlPath is None:
             htmlPath = self._getHtmlPath(self.filename)
-
+        if not htmlPath:
+            return
         dlg = ExportFileDialog(self, wx.ID_ANY,
                                title=_translate("Export HTML file"),
                                filePath=htmlPath,
@@ -1060,10 +1063,12 @@ class BuilderFrame(wx.Frame, ThemeMixin):
                 return  # save file before compiling script
 
         self.stdoutFrame.addTask(fileName=self.filename)
-        self.app.showRunner()
+        self.app.runner.Raise()
         if event:
-            if event.Id == self.bldrBtnRun.Id:
-                self.app.runner.panel.runFile(fileName=self.filename)
+            if event.Id in [self.bldrBtnRun.Id, self.bldrRun.Id]:
+                self.app.runner.panel.runLocal(event)
+            else:
+                self.app.showRunner()
 
     def onCopyRoutine(self, event=None):
         """copy the current routine from self.routinePanel
@@ -1219,7 +1224,11 @@ class BuilderFrame(wx.Frame, ThemeMixin):
 
     def onPavloviaSync(self, evt=None):
         if self._getExportPref('on sync'):
-            self.fileExport(htmlPath=self._getHtmlPath(self.filename))
+            htmlPath = self._getHtmlPath(self.filename)
+            if htmlPath:
+                self.fileExport(htmlPath=htmlPath)
+            else:
+                return
 
         self.enablePavloviaButton(['pavloviaSync', 'pavloviaRun'], False)
         try:
@@ -2121,9 +2130,11 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
         for redundant in ['component', 'Component', "ButtonBox"]:
             shortName = shortName.replace(redundant, "")
         # Convert from CamelCase to Title Case for button label
-        label = shortName
-        for c in "".join(c if c.isupper() else "" for c in name[1:]):
-            label = label.replace(c, "\n"+c)
+        label = ""
+        for i, c in enumerate(shortName):
+            if c.isupper() and i > 0:
+                label += "\n"
+            label += c
         # set size
         size = 48
         # get tooltip
@@ -2326,8 +2337,10 @@ class FavoriteComponents(object):
         """Defines Default Favorite Components"""
         # set those that are favorites by default
         for comp in ('ImageComponent', 'KeyboardComponent',
-                     'SoundComponent', 'TextComponent'):
-            if comp not in self.currentLevels:
+                     'SoundComponent', 'TextComponent',
+                     'MouseComponent', 'SliderComponent',
+                     ):
+            if comp not in self.currentLevels or self.currentLevels[comp] != 0:
                 self.currentLevels[comp] = self.threshold
         for comp in self.panel.components:
             if comp not in self.currentLevels:
@@ -2878,6 +2891,7 @@ class FlowPanel(wx.ScrolledWindow):
                             comp = thisComp
                             icon = thisIcon
                             break  # we've found a Routine so stop looking
+                self.frame.routinePanel.setCurrentRoutine(comp)
                 try:
                     self._menuComponentID = icon
                     xy = wx.Point(x + self.GetPosition()[0],

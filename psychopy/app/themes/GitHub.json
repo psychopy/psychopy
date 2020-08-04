@@ -1,6 +1,7 @@
 {
   "app": "light",
   "icons": "light",
+  "info": "Light theme modelled after the styling used by GitHub",
   "base": {
     "fg": "#333333",
     "bg": "#FFFFFF",

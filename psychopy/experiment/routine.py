@@ -253,7 +253,7 @@ class Routine(list):
 
         # create the frame loop for this routine
 
-        code = ("\nfunction %(name)sRoutineBegin(trials) {\n" % self.params)
+        code = ("\nfunction %(name)sRoutineBegin(snapshot) {\n" % self.params)
         buff.writeIndentedLines(code)
         buff.setIndentLevel(1, relative=True)
         buff.writeIndentedLines("return function () {\n")
@@ -308,7 +308,7 @@ class Routine(list):
 
         # write code for each frame
 
-        code = ("\nfunction %(name)sRoutineEachFrame(trials) {\n" % self.params)
+        code = ("\nfunction %(name)sRoutineEachFrame(snapshot) {\n" % self.params)
         buff.writeIndentedLines(code)
         buff.setIndentLevel(1, relative=True)
         buff.writeIndentedLines("return function () {\n")
@@ -383,7 +383,7 @@ class Routine(list):
         # can we use non-slip timing?
         maxTime, useNonSlip = self.getMaxTime()
 
-        code = ("\nfunction %(name)sRoutineEnd(trials) {\n" % self.params)
+        code = ("\nfunction %(name)sRoutineEnd(snapshot) {\n" % self.params)
         buff.writeIndentedLines(code)
         buff.setIndentLevel(1, relative=True)
         buff.writeIndentedLines("return function () {\n")

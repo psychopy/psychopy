@@ -65,7 +65,6 @@ class ScriptProcess(object):
 
     def runFile(self, event=None, fileName=None):
         """Begin new process to run experiment."""
-        self.app.showRunner()
         fullPath = fileName.replace('.psyexp', '_lastrun.py')
         wx.BeginBusyCursor()
 
@@ -133,7 +132,7 @@ class ScriptProcess(object):
         buff = self._stdoutThread.getBuffer()
         self.app.runner.stdOut.write(buff)
         self.app.runner.stdOut.flush()
-        self.app.runner.showRunner()
+        self.app.runner.Show()
 
         self.scriptProcess = None
         self.Bind(wx.EVT_IDLE, None)
