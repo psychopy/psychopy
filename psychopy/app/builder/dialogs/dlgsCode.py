@@ -13,14 +13,11 @@ from builtins import str
 
 import keyword
 import wx
+# import wx.lib.agw.aui as aui
 from collections import OrderedDict
 from psychopy.experiment.components.code import CodeComponent
 from ...themes import ThemeMixin
 
-try:
-    from wx.lib.agw import flatnotebook
-except ImportError:  # was here wx<4.0:
-    from wx.lib import flatnotebook
 
 from psychopy.constants import PY3
 
@@ -41,7 +38,7 @@ class DlgCodeComponentProperties(wx.Dialog):
               | wx.DIALOG_NO_PARENT)
 
     def __init__(self, frame, title, params, order,
-                 helpUrl=None, suppressTitles=True, size=wx.DefaultSize,
+                 helpUrl=None, suppressTitles=True, size=(800,400),
                  style=_style, editing=False, depends=[],
                  timeout=None):
 
@@ -49,7 +46,9 @@ class DlgCodeComponentProperties(wx.Dialog):
         localizedTitle = title.replace(' Properties',
                                        _translate(' Properties'))
         wx.Dialog.__init__(self, None, -1, localizedTitle,
-                           size=size, style=style)
+                           size=size, style=self._style)
+        self.SetTitle(localizedTitle)  # use localized title
+        # self.panel = wx.Panel(self)
         self.frame = frame
         self.app = frame.app
         self.helpUrl = helpUrl
@@ -58,8 +57,6 @@ class DlgCodeComponentProperties(wx.Dialog):
         self.title = title
         self.timeout = timeout
         self.warningsDict = {}  # to store warnings for all fields
-        # keep localized title to update dialog's properties later.
-        self.localizedTitle = localizedTitle
         self.codeBoxes = {}
         self.tabs = OrderedDict()
 
@@ -68,15 +65,12 @@ class DlgCodeComponentProperties(wx.Dialog):
             makeValid = self.frame.exp.namespace.makeValid
             self.params['name'].val = makeValid(params['name'].val)
 
-        agwStyle = flatnotebook.FNB_NO_X_BUTTON
-        if hasattr(flatnotebook, "FNB_NAV_BUTTONS_WHEN_NEEDED"):
-            # not available in wxPython 2.8
-            agwStyle |= flatnotebook.FNB_NAV_BUTTONS_WHEN_NEEDED
-        if hasattr(flatnotebook, "FNB_NO_TAB_FOCUS"):
-            # not available in wxPython 2.8.10
-            agwStyle |= flatnotebook.FNB_NO_TAB_FOCUS
-        self.codeNotebook = flatnotebook.FlatNotebook(self, wx.ID_ANY,
-                                                      style=agwStyle)
+        self.codeNotebook = wx.Notebook(self)
+        # in AUI notebook the labels are blurry on retina mac
+        #   and the close-tab buttons are hard to kill
+        #   self.codeNotebook = aui.AuiNotebook(self)
+        # in FlatNoteBook the tab controls (left,right,close) are ugly on mac
+        #   and also can't be killed
 
         openToPage = None
         tabN = -1
@@ -142,10 +136,9 @@ class DlgCodeComponentProperties(wx.Dialog):
         self.okButton.SetDefault()
         self.cancelButton = wx.Button(self, wx.ID_CANCEL,
                                       _translate(" Cancel "))
-        self.__set_properties()
         self.__do_layout()
         if openToPage is None:
-            openToPage = 0
+            openToPage = 1
         self.codeNotebook.SetSelection(openToPage)
         self.Update()
         self.Bind(wx.EVT_BUTTON, self.helpButtonHandler, self.helpButton)
@@ -383,11 +376,6 @@ class DlgCodeComponentProperties(wx.Dialog):
         Issue a form validation on name change.
         """
         self.Validate()
-
-    def __set_properties(self):
-
-        self.SetTitle(self.localizedTitle)  # use localized title
-        self.SetSize((640, 480))
 
     def __do_layout(self, show=False):
         self.updateVisibleCode()

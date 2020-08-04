@@ -80,7 +80,7 @@ class TextboxComponent(BaseVisualComponent):
         self.params['opacity'].categ = "Color"
 
         self.params['text'] = Param(
-            text, valType='str', allowedTypes=[],
+            text, valType='extendedStr', allowedTypes=[],
             updates='constant', allowedUpdates=_allow3[:],  # copy the list
             hint=_translate("The text to be displayed"),
             label=_localized['text'])
@@ -190,29 +190,24 @@ class TextboxComponent(BaseVisualComponent):
         if self.params['units'].val == 'from exp settings':
             unitsStr = ""
         else:
-            unitsStr = "units=%(units)s,\n" % self.params
+            unitsStr = "units=%(units)s," % self.params
         # do writing of init
         # replaces variable params with sensible defaults
         inits = getInitVals(self.params, 'PsychoPy')
         code = (
             "%(name)s = visual.TextBox2(\n"
-            "     win, %(text)s, %(font)s,"
-            "     pos=%(pos)s,\n"
-            "     " + unitsStr +
+            "     win, text=%(text)s, font=%(font)s,\n"
+            "     pos=%(pos)s," + unitsStr +
             "     letterHeight=%(letterHeight)s,\n"
             "     size=%(size)s,\n"
-            "     color=%(color)s,\n"
-            "     colorSpace=%(colorSpace)s,\n"
+            "     color=%(color)s, colorSpace=%(colorSpace)s,\n"
             "     opacity=%(opacity)s,\n"
-            "     bold=%(bold)s,\n"
-            "     italic=%(italic)s,\n"
+            "     bold=%(bold)s, italic=%(italic)s,\n"
             "     lineSpacing=%(lineSpacing)s,\n"
             "     padding=%(padding)s,\n"
             "     anchor=%(anchor)s,\n"
-            "     fillColor=%(fillColor)s,\n"
-            "     borderColor=%(borderColor)s,\n"
-            "     flipHoriz=%(flipHoriz)s,\n"
-            "     flipVert=%(flipVert)s,\n"
+            "     fillColor=%(fillColor)s, borderColor=%(borderColor)s,\n"
+            "     flipHoriz=%(flipHoriz)s, flipVert=%(flipVert)s,\n"
             "     editable=%(editable)s,\n"
             "     name='%(name)s',\n"
             "     autoLog=%(autoLog)s,\n"

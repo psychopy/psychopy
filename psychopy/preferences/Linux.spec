@@ -206,7 +206,7 @@
     # convert a Builder .psyexp script into a python script and open it in the Coder
     compileScript = string(default='F5')
     # launch a script, Builder or Coder, or run unit-tests
-    runScript = string(default='Ctrl+R')
+    runScript = string(default='Ctrl+Shift+R')
     # launch a script, Builder or Coder, or run unit-tests
     runnerScript = string(default='Ctrl+Alt+R')
     # attempt to interrupt and halt a running script

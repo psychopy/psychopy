@@ -564,7 +564,8 @@ class Slider(MinimalStim):
                 'triangleMarker': the marker is a triangle
                 'slider': looks more like an application slider control
                 'whiteOnBlack': a sort of color-inverse rating scale
-                'labels45' the text is rotated by 45 degrees
+                'labels45': the text is rotated by 45 degrees
+                'scrollbar': looks like a scrollbar for a window
 
             Styles can be combined in a list e.g. `['whiteOnBlack','labels45']`
 
@@ -637,3 +638,4 @@ class Slider(MinimalStim):
             self.tickLines.elementMask = 'circle'
             # marker must be smalle than a "tick" circle
             self.marker.size = self._tickL * 0.7
+            self.marker.fillColor = "DarkRed"

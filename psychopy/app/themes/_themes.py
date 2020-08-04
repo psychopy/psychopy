@@ -123,10 +123,17 @@ class ThemeMixin:
         # Define subfunctions to handle different object types
         def applyToToolbar(target):
             target.SetBackgroundColour(ThemeMixin.appColors['frame_bg'])
-            # Clear tools
-            target.ClearTools()
-            # Redraw tools
-            target.makeTools()
+            if sys.platform == 'win32':
+                # on mac ClearTools seg faults. Not sure what happens on linux
+                # Clear tools
+                target.ClearTools()
+                # Redraw tools
+                target.makeTools()
+            else:
+                # otherwise make the tools the first time but not again
+                if hasattr(target, '_needMakeTools') and target._needMakeTools:
+                    target.makeTools()
+                    self._needMakeTools = False
 
         def applyToStatusBar(target):
             target.SetBackgroundColour(cLib['white'])
@@ -335,12 +342,12 @@ class ThemeMixin:
             else:
                 # if not then use our own recursive method to search
                 if hasattr(c, 'Window') and c.Window is not None:
-                    self._applyAppTheme(c.Window)
+                    ThemeMixin._applyAppTheme(c.Window)
                 elif hasattr(c, 'Sizer') and c.Sizer is not None:
-                    self._applyAppTheme(c.Sizer)
+                    ThemeMixin._applyAppTheme(c.Sizer)
                 # and then apply
                 # try:
-                #     self._applyAppTheme(c)
+                #     ThemeMixin._applyAppTheme(c)
                 # except AttributeError:
                 #     pass
 
@@ -972,14 +979,25 @@ class ThemeSwitcher(wx.Menu):
                     # Add themes to list only if min spec is defined
                     base = theme['base']
                     if all(key in base for key in ['bg', 'fg', 'font']):
-                        themeList[themeFile.stem] = []
+                            themeList[themeFile.stem] = theme['info'] if "info" in theme else ""
+
             except (FileNotFoundError, IsADirectoryError):
                 pass
         # Make menu
         wx.Menu.__init__(self)
-        # Make buttons
+        # Make priority theme buttons
+        priority = ["PsychopyDark", "PsychopyLight", "ClassicDark", "Classic"]
+        for theme in priority:
+            tooltip = themeList.pop(theme)
+            item = self.AppendRadioItem(wx.ID_ANY, _translate(theme), tooltip)
+            frame.Bind(wx.EVT_MENU, frame.app.onThemeChange, item)
+            if item.ItemLabel.lower() == ThemeMixin.codetheme.lower():
+                item.Check(True)
+            else:
+                item.Check(False)
+        # Make other theme buttons
         for theme in themeList:
-            item = self.AppendRadioItem(wx.ID_ANY, _translate(theme))
+            item = self.AppendRadioItem(wx.ID_ANY, _translate(theme), help=themeList[theme])
             frame.Bind(wx.EVT_MENU, frame.app.onThemeChange, item)
             if item.ItemLabel.lower() == ThemeMixin.codetheme.lower():
                 item.Check(True)
