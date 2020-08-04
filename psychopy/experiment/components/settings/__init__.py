@@ -572,6 +572,8 @@ class SettingsComponent(object):
                     "import * as util from './lib/util{version}.js';\n"
                     "import * as visual from './lib/visual{version}.js';\n"
                     "import * as sound from './lib/sound{version}.js';\n"
+                    "//some handy aliases as in the psychopy scripts;\n"
+                    "const {{ abs, sin, cos, PI: pi, sqrt }} = Math;\n"
                     "\n").format(version=versionStr)
             buff.writeIndentedLines(code)
 
