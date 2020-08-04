@@ -1056,6 +1056,7 @@ class BuilderFrame(wx.Frame, ThemeMixin):
                 return  # save file before compiling script
 
         self.stdoutFrame.addTask(fileName=self.filename)
+        self.app.runner.Raise()
         if event:
             if event.Id in [self.bldrBtnRun.Id, self.bldrRun.Id]:
                 self.app.runner.panel.runLocal(event)

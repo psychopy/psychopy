@@ -2484,9 +2484,11 @@ class CoderFrame(wx.Frame, ThemeMixin):
             elif resp == wx.ID_NO:
                 pass  # just run
         self.app.runner.addTask(fileName=fullPath)
+        self.app.runner.Raise()
         if event:
             if event.Id in [self.cdrBtnRun.Id, self.IDs.cdrRun]:
                 self.app.runner.panel.runLocal(event)
+                self.Raise()
             else:
                 self.app.showRunner()
 
