@@ -27,7 +27,6 @@ from . import icons
 from .themes import ThemeMixin
 from psychopy.tools.versionchooser import _translate
 
-
 class FileDropTarget(wx.FileDropTarget):
     """On Mac simply setting a handler for the EVT_DROP_FILES isn't enough.
     Need this too.
@@ -122,11 +121,7 @@ class PsychopyToolbar(wx.ToolBar, ThemeMixin):
         self.SetWindowStyle(wx.TB_HORIZONTAL | wx.NO_BORDER | wx.TB_FLAT | wx.TB_NODIVIDER)
         #self.SetBackgroundColour(ThemeMixin.appColors['frame_bg'])
         # Set icon size (16 for win/linux small mode, 32 for everything else
-        if (sys.platform == 'win32' or sys.platform.startswith('linux')) \
-                and not self.frame.appPrefs['largeIcons']:
-            self.iconSize = 16
-        else:
-            self.iconSize = 32  # mac: 16 either doesn't work, or looks bad
+        self.iconSize = 32  # mac: 16 either doesn't work, or looks bad
         self.SetToolBitmapSize((self.iconSize, self.iconSize))
         # OS-dependent tool-tips
         ctrlKey = 'Ctrl+'
@@ -352,73 +347,80 @@ class FrameSwitcher(wx.Menu):
     def __init__(self, parent):
         wx.Menu.__init__(self)
         self.parent = parent
+        self.app = parent.app
         self.itemFrames = {}
-
-        self.builderBtn = None
-        self.coderBtn = None
-        self.runnerBtn = None
-        self.Update()
+        # Listen for window switch
+        self.next = self.Append(wx.ID_MDI_WINDOW_NEXT,
+                                _translate("&Next Window\t%s") % self.app.keys['cycleWindows'],
+                                _translate("&Next Window\t%s") % self.app.keys['cycleWindows'])
+        self.Bind(wx.EVT_MENU, self.nextWindow, self.next)
+        self.AppendSeparator()
+        # Add creator options
+        self.minItemSpec = [
+            {'label': "Builder", 'class': psychopy.app.builder.BuilderFrame, 'method': self.app.showBuilder},
+            {'label': "Coder", 'class': psychopy.app.coder.CoderFrame, 'method': self.app.showCoder},
+            {'label': "Runner", 'class': psychopy.app.runner.RunnerFrame, 'method': self.app.showRunner},
+        ]
+        for spec in self.minItemSpec:
+            if not isinstance(self.Window, spec['class']):
+                item = self.Append(
+                    wx.ID_ANY, spec['label'], spec['label']
+                )
+                self.Bind(wx.EVT_MENU, spec['method'], item)
+        self.AppendSeparator()
+        self.updateFrames()
 
     @property
     def frames(self):
         return self.parent.app.getAllFrames()
 
-    def Update(self):
+    def updateFrames(self):
         """Set items according to which windows are open"""
-        if sys.platform == 'win32':  # on mac DestroyItem segfaults. Linux?
-            for item in self.GetMenuItems():
-                self.DestroyItem(item)
-
-            # Determine whether to show standard buttons based on open state
-            # only needed
-            showBuilder = not any(isinstance(frame, psychopy.app.builder.BuilderFrame) and hasattr(frame, 'filename')
-                                 for frame in self.parent.app.getAllFrames())
-            showCoder = not any(isinstance(frame, psychopy.app.coder.CoderFrame) and hasattr(frame, 'filename')
-                                 for frame in self.parent.app.getAllFrames())
-            showRunner = not any(isinstance(frame, psychopy.app.runner.RunnerFrame) and hasattr(frame, 'filename')
-                                for frame in self.parent.app.getAllFrames())
-        else:
-            # on mac/linux we won't show one per frame, just the std buttons
-            showRunner = showCoder = showBuilder = True
-
-        # Add standard buttons
-        if showBuilder and not isinstance(self.parent, psychopy.app.builder.BuilderFrame):
-            self.builderBtn = self.Append(wx.ID_ANY,
-                                          _translate("Builder"),
-                                          _translate("Builder View"))
-            self.Bind(wx.EVT_MENU, self.parent.app.showBuilder, self.builderBtn)
-        if showCoder and not isinstance(self.parent,
-                                        psychopy.app.coder.CoderFrame):
-            self.coderBtn = self.Append(wx.ID_ANY,
-                                        _translate("Coder"),
-                                        _translate("Coder View"))
-            self.Bind(wx.EVT_MENU, self.parent.app.showCoder, self.coderBtn)
-        if showRunner and not isinstance(self.parent,
-                                         psychopy.app.runner.RunnerFrame):
-            self.runnerBtn = self.Append(wx.ID_ANY,
-                                         _translate("Runner"),
-                                         _translate("Runner View"))
-            self.Bind(wx.EVT_MENU, self.parent.app.showRunner, self.runnerBtn)
-
-        # Make buttons for each open file
-        # While only win32 can safely DestroyItem, only do this on win32
-        if sys.platform == 'win32':
-            for frame in self.frames:
-                if hasattr(frame, "filename") and frame != self.parent:
-                    if frame.filename:
-                        filenameAddition = ": " + os.path.basename(frame.filename)
-                    else:
-                        filenameAddition = ""
+        self.next.Enable(len(self.frames) > 1)
+        # Make new items if needed
+        for frame in self.frames:
+            if frame not in self.itemFrames:
+                if frame.filename:
+                    label = type(frame).__name__.replace("Frame", "") + ": " + os.path.basename(frame.filename)
+                else:
                     label = type(frame).__name__.replace("Frame", "")
-                    item = self.Append(wx.ID_ANY,
-                                       _translate(label) + filenameAddition,
-                                       _translate(label) + filenameAddition)
-                    self.itemFrames[item.GetId()] = frame
-                    self.Bind(wx.EVT_MENU, self.showFrame, item)
+                self.itemFrames[frame] = self.AppendRadioItem(wx.ID_ANY, label, label)
+                self.Bind(wx.EVT_MENU, self.showFrame, self.itemFrames[frame])
+        # Edit items to match frames
+        for frame in self.itemFrames:
+            item = self.itemFrames[frame]
+            if not item:
+                continue
+            if frame not in self.frames:
+                # Disable unused items
+                item.Enable(False)
+            else:
+                # Rename item
+                if frame.filename:
+                    self.itemFrames[frame].SetItemLabel(
+                        type(frame).__name__.replace("Frame", "") + ": " + os.path.basename(frame.filename)
+                    )
+                else:
+                    self.itemFrames[frame].SetItemLabel(
+                        type(frame).__name__.replace("Frame", "") + ": None"
+                    )
+            item.Check(frame == self.Window)
+        self.itemFrames = {key: self.itemFrames[key] for key in self.itemFrames if self.itemFrames[key] is not None}
 
-    def showFrame(self, event):
-        frame = self.itemFrames[event.Id]
+    def showFrame(self, event=None):
+        itemFrames = event.EventObject.itemFrames
+        frame = [key for key in itemFrames if itemFrames[key].Id == event.Id][0]
         frame.Show(True)
         frame.Raise()
         self.parent.app.SetTopWindow(frame)
-        self.Update()
+        self.updateFrames()
+
+    def nextWindow(self, event=None):
+        """Cycle through list of open windows"""
+        current = event.EventObject.Window
+        i = self.frames.index(current)
+        while self.frames[i] == current:
+            i -= 1
+        self.frames[i].Raise()
+        self.frames[i].Show()
+        self.updateFrames()

@@ -104,12 +104,12 @@ class FormComponent(BaseComponent):
             label=_localized['Randomize'])
 
         self.params['Style'] = Param(
-                style, valType='fixedList',
-                updates='constant', allowedVals=knownStyles,
-                hint=_translate(
-                        "Styles determine the appearance of the form"),
-                label=_localized['Style'],
-                categ="Appearance")
+            style, valType='fixedList',
+            updates='constant', allowedVals=knownStyles,
+            hint=_translate(
+                    "Styles determine the appearance of the form"),
+            label=_localized['Style'],
+            categ="Appearance")
 
         self.params['Item Padding'] = Param(
             itemPadding, valType='code', allowedTypes=[],
@@ -143,15 +143,17 @@ class FormComponent(BaseComponent):
     def writeInitCodeJS(self, buff):
         inits = getInitVals(self.params)
         # build up an initialization string for Form():
-        initStr = ("{name} = visual.Form(win=win, name='{name}',\n"
-                   "    items={Items},\n"
-                   "    textHeight={Text Height},\n"
-                   "    randomize={Randomize},\n"
-                   "    size={Size},\n"
-                   "    pos={Pos},\n"
-                   "    style={Style},\n"
-                   "    itemPadding={Item Padding});\n".format(**inits))
-        buff.writeIndented(initStr)
+        initStr = ("{name} = new visual.Form({{\n"
+                   "  win : psychoJS.window, name:'{name}',\n"
+                   "  items : {Items},\n"
+                   "  textHeight : {Text Height},\n"
+                   "  randomize : {Randomize},\n"
+                   "  size : {Size},\n"
+                   "  pos : {Pos},\n"
+                   "  style : {Style},\n"
+                   "  itemPadding : {Item Padding}\n"
+                   "}});\n".format(**inits))
+        buff.writeIndentedLines(initStr)
 
     def writeRoutineStartCode(self, buff):
         pass
