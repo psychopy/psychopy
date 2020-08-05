@@ -11,7 +11,7 @@
 from __future__ import absolute_import, print_function
 
 from psychopy import logging
-import psychopy.plugins as plugins
+# import psychopy.plugins as plugins
 from ._base import BaseBackend
 
 # Keep track of currently installed window backends. When a window is loaded,
@@ -53,7 +53,18 @@ def getBackend(win, *args, **kwargs):
             "definition to match that `winType`.".format(win.winType))
 
     # resolve and get the object the fqn points to
-    Backend = plugins.resolveObjectFromName(useBackend, __name__)
+    # Backend = plugins.resolveObjectFromName(useBackend, __name__)
+
+    if win.winType == 'pyglet':
+        from .pygletbackend import PygletBackend as Backend
+    elif win.winType == 'glfw':
+        from .glfwbackend import GLFWBackend as Backend
+    elif win.winType == 'pygame':
+        from .pygamebackend import PygameBackend as Backend
+    else:
+        raise AttributeError("User requested Window with winType='{}' but "
+                             "there is no backend definition to match that "
+                             "winType.".format(win.winType))
 
     # Check if Backend is valid subclass of `BaseBackend`. If not, it should not
     # be used as a backend.

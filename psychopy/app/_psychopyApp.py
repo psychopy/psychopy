@@ -40,7 +40,7 @@ try:
 except ImportError:  # if it's not there locally, try the wxPython lib.
     import wx.lib.agw.advancedsplash as AS
 
-from .plugin_manager import saveStartUpPluginsConfig
+# from .plugin_manager import saveStartUpPluginsConfig
 
 from psychopy.localization import _translate
 # NB keep imports to a minimum here because splash screen has not yet shown
@@ -779,7 +779,7 @@ class PsychoPyApp(wx.App, themes.ThemeMixin):
         self.prefs.appData['coder']['prevFiles'] = []
 
         # write plugins config if changed during the session
-        saveStartUpPluginsConfig()
+        # saveStartUpPluginsConfig()
 
         for frame in self.getAllFrames():
             try:
