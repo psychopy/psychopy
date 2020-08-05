@@ -845,7 +845,9 @@ class _BaseParamsDlg(wx.Dialog):
             _tip = _translate("Go to online help about this component")
             helpBtn.SetToolTip(wx.ToolTip(_tip))
             helpBtn.Bind(wx.EVT_BUTTON, self.onHelp)
-            buttons.Add(helpBtn, 0, flag=wx.LEFT | wx.ALL, border=3)
+            buttons.Add(helpBtn, 0,
+                        flag=wx.LEFT | wx.ALL | wx.ALIGN_CENTER_VERTICAL,
+                        border=3)
         self.OKbtn = wx.Button(self, wx.ID_OK, _translate(" OK "))
         # intercept OK button if a loop dialog, in case file name was edited:
         if type(self) == DlgLoopProperties:
@@ -857,15 +859,23 @@ class _BaseParamsDlg(wx.Dialog):
 
         buttons.AddStretchSpacer()
         if sys.platform == 'darwin':
-            buttons.Add(CANCEL, 0, wx.ALL | wx.RIGHT, border=3)
-            buttons.Add(self.OKbtn, 0, wx.ALL | wx.RIGHT, border=3)
+            buttons.Add(CANCEL, 0,
+                        wx.ALL | wx.RIGHT | wx.ALIGN_CENTER_VERTICAL,
+                        border=3)
+            buttons.Add(self.OKbtn, 0,
+                        wx.ALL | wx.RIGHT | wx.ALIGN_CENTER_VERTICAL,
+                        border=3)
         else:
-            buttons.Add(self.OKbtn, 0, wx.ALL | wx.RIGHT, border=3)
-            buttons.Add(CANCEL, 0, wx.ALL | wx.RIGHT, border=3)
+            buttons.Add(self.OKbtn, 0,
+                        wx.ALL | wx.RIGHT | wx.ALIGN_CENTER_VERTICAL,
+                        border=3)
+            buttons.Add(CANCEL, 0,
+                        wx.ALL | wx.RIGHT | wx.ALIGN_CENTER_VERTICAL,
+                        border=3)
 
         # buttons.Realize()
         # add to sizer
-        self.mainSizer.Add(buttons, flag=wx.ALL | wx.EXPAND, border=2)
+        self.mainSizer.Add(buttons, flag=wx.ALL | wx.EXPAND, border=3)
         self.SetSizerAndFit(self.mainSizer)
         self.mainSizer.Layout()
         # move the position to be v near the top of screen and
@@ -1871,7 +1881,8 @@ class DlgExperimentProperties(_BaseParamsDlg):
             helpBtn = wx.Button(self, wx.ID_HELP, _translate(" Help "))
             helpBtn.SetHelpText(_translate("Get help about this component"))
             helpBtn.Bind(wx.EVT_BUTTON, self.onHelp)
-            buttons.Add(helpBtn)
+            buttons.Add(helpBtn, 0,
+                        wx.ALL | wx.RIGHT | wx.ALIGN_CENTER_VERTICAL, border=3)
 
         self.OKbtn = wx.Button(self, wx.ID_OK, _translate(" OK "))
         self.OKbtn.SetDefault()
@@ -1879,11 +1890,15 @@ class DlgExperimentProperties(_BaseParamsDlg):
 
         buttons.AddStretchSpacer()
         if sys.platform == 'darwin':
-            buttons.Add(CANCEL, 0, wx.ALL | wx.RIGHT, border=3)
-            buttons.Add(self.OKbtn, 0, wx.ALL | wx.RIGHT, border=3)
+            buttons.Add(CANCEL, 0,
+                        wx.ALL | wx.RIGHT | wx.ALIGN_CENTER_VERTICAL, border=3)
+            buttons.Add(self.OKbtn, 0,
+                        wx.ALL | wx.RIGHT | wx.ALIGN_CENTER_VERTICAL, border=3)
         else:
-            buttons.Add(self.OKbtn, 0, wx.ALL | wx.RIGHT, border=3)
-            buttons.Add(CANCEL, 0, wx.ALL | wx.RIGHT, border=3)
+            buttons.Add(self.OKbtn, 0,
+                        wx.ALL | wx.RIGHT | wx.ALIGN_CENTER_VERTICAL, border=3)
+            buttons.Add(CANCEL, 0,
+                        wx.ALL | wx.RIGHT | wx.ALIGN_CENTER_VERTICAL, border=3)
 
         self.mainSizer.Add(self.ctrls, proportion=1, flag=wx.EXPAND)
         self.mainSizer.Add(buttons, border=3,

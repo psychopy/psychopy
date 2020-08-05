@@ -10,6 +10,7 @@
 
 from __future__ import absolute_import, division, print_function
 from builtins import str
+import sys
 
 import keyword
 import wx
@@ -17,7 +18,6 @@ import wx
 from collections import OrderedDict
 from psychopy.experiment.components.code import CodeComponent
 from ...themes import ThemeMixin
-
 
 from psychopy.constants import PY3
 
@@ -411,10 +411,24 @@ class DlgCodeComponentProperties(wx.Dialog):
         buttonSizer = wx.BoxSizer(wx.HORIZONTAL)
         mainSizer.Add(nameSizer)
         mainSizer.Add(self.codeNotebook, 1, wx.EXPAND | wx.ALL, 10)
-        buttonSizer.Add(self.helpButton, 0, wx.RIGHT, 10)
-        buttonSizer.Add(self.okButton, 0, wx.LEFT, 10)
-        buttonSizer.Add(self.cancelButton, 0, 0, 0)
-        mainSizer.Add(buttonSizer, 0, wx.ALL | wx.ALIGN_RIGHT, 5)
+
+        buttonSizer.Add(self.helpButton, 0,
+                        wx.ALL | wx.RIGHT | wx.ALIGN_CENTER_VERTICAL, 10)
+        buttonSizer.AddStretchSpacer()
+        if sys.platform == 'darwin':
+            buttonSizer.Add(self.cancelButton, 0,
+                            wx.ALL | wx.RIGHT | wx.ALIGN_CENTER_VERTICAL,
+                            border=3)
+            buttonSizer.Add(self.okButton, 0,
+                            wx.ALL | wx.RIGHT | wx.ALIGN_CENTER_VERTICAL,
+                            border=3)
+        else:
+            buttonSizer.Add(self.okButton, 0,
+                            wx.ALL | wx.RIGHT | wx.ALIGN_CENTER_VERTICAL, border=3)
+            buttonSizer.Add(self.cancelButton, 0,
+                            wx.ALL | wx.RIGHT | wx.ALIGN_CENTER_VERTICAL, border=3)
+
+        mainSizer.Add(buttonSizer, 0, wx.ALL | wx.RIGHT | wx.EXPAND, 5)
         self.SetSizer(mainSizer)
         self.Layout()
         self.Center()
