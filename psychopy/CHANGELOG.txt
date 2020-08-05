@@ -16,6 +16,60 @@ Changelog
 CHANGES, which are identified in this dark red text, typically indicate things that alter the PsychoPy behaviour in a way that could break compatibility. Be especially wary of those!
 
 
+PsychoPy 2020.2
+-----------------
+
+NEW FEATURES:
+
+- New look, including dark mode, customizable themes and new flat buttons (you can choose a Classic theme to get the old buttons back for comfort)
+- Now have an class for /editable/ text called **TextBox2**:
+
+  - very fast rendering (faster than the original TextStim)once the font characters are uploaded
+  - supports an editable flag which allows it to pick up text input to the window including full unicode support for your keyboard
+  - you can apply (fake) bold and italics within the text using <i></i> and <b></b>
+  - if multiple editable TextBoxes are onscreen together you can tab between them
+
+- **Form** components now work online and support (in both lab-based and online versions):
+
+  - free text
+  - ratings and sliders
+  - choice boxes (radio buttons)
+  - descriptions (no response)
+  - headings
+
+- Improved Coder:
+
+  - call-tips for code and better auto-completion
+  - view the folders and the structure of the current file
+
+- Improved Runner:
+
+  - Builder/Coder provide options to run directly (Ctrl-R) and Runner only then used to show stdout
+  - more visible how to save/open Runner filelists
+  - Runner filelists saved as `.psyrun` files and can be loaded into PsychoPy with a double-click
+
+- Online studies don't need to use html folder. Keep everything where it is! If resources aren't found automatically (and you would have put them in to the Resources folder) you can now add them to the ExperimentSettings>Online>AdditionalResources
+- Added support for Emotive and BrainProducts EEG hardware
+- CSV data outputs now have an option to set the delimitter (e.g. `;` or `\t` rather than `,`)
+- Brush component now has an option to allow drawing without having to hold down the mouse button #2980
+
+CHANGES:
+
+- _PsychoJS_ code now uses the same syntax for loop termination as _PsychoPy_ allowing either `nameOfLoop.finished=true` or `currentLoop.finished=true`
+- Python 2.7 is no longer supported. We recommend Python versions 3.6 or 3.7 (3.8 is not tested likely to work)
+
+FIXES:
+
+- Various compatibility fixes for JS code from PsychoPy
+
+  - loop termination now working the same as Python and correctly auto-translated
+  - movies *should* now restart correctly, at least on browsers that support the seek behavior
+  - randint is now included and imported in all scripts
+  - sin, cos, pi etc are also imported in all scripts
+
+- support for wxPython 4.1
+- so many more small fixes!
+
 PsychoPy 2020.1
 ----------------
 
