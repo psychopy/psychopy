@@ -121,11 +121,7 @@ class PsychopyToolbar(wx.ToolBar, ThemeMixin):
         self.SetWindowStyle(wx.TB_HORIZONTAL | wx.NO_BORDER | wx.TB_FLAT | wx.TB_NODIVIDER)
         #self.SetBackgroundColour(ThemeMixin.appColors['frame_bg'])
         # Set icon size (16 for win/linux small mode, 32 for everything else
-        if (sys.platform == 'win32' or sys.platform.startswith('linux')) \
-                and not self.frame.appPrefs['largeIcons']:
-            self.iconSize = 16
-        else:
-            self.iconSize = 32  # mac: 16 either doesn't work, or looks bad
+        self.iconSize = 32  # mac: 16 either doesn't work, or looks bad
         self.SetToolBitmapSize((self.iconSize, self.iconSize))
         # OS-dependent tool-tips
         ctrlKey = 'Ctrl+'

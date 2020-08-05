@@ -45,7 +45,6 @@
     # Modifier keys for shutdown keys
     shutdownKeyModifiers = list(default=list())
     # What to do if gamma-correction not possible
-    # What to do if gamma-correction not possible
     gammaErrorPolicy = option('abort', 'warn', default='abort')
     # Add plugin names here to load when a PsychoPy session starts.
     startUpPlugins = list(default=list())
@@ -56,8 +55,6 @@
 [app]
     # display tips when starting PsychoPy
     showStartupTips = boolean(default='True')
-    # size of icons in the Coder and Builder toolbars (top of window)
-    largeIcons = boolean(default='True')
     # what windows to display when PsychoPy starts
     defaultView = option('builder', 'coder', 'runner', 'all', default='all')
     # reset preferences to defaults on next restart of PsychoPy
