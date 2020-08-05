@@ -9,13 +9,13 @@
 
 from psychopy import logging
 from psychopy.tools.attributetools import attributeSetter, setAttribute
-from psychopy.visual.basevisual import WindowMixin, ColorMixin
-from psychopy.visual.helpers import setColor
+from .basevisual import WindowMixin, ColorMixin
+from .helpers import setColor
 import psychopy.tools.mathtools as mt
 import psychopy.tools.gltools as gt
 import psychopy.tools.arraytools as at
 import psychopy.tools.viewtools as vt
-import psychopy.visual.shaders as _shaders
+from . import shaders as _shaders
 
 import os
 from io import StringIO
