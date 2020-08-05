@@ -286,7 +286,7 @@ class SettingsComponent(object):
         #     hint=_translate("The ID of this project (e.g. 5bqpc)"),
         #     label="OSF Project ID", categ='Online')
         self.params['HTML path'] = Param(
-            'html', valType='str', allowedTypes=[],
+            '', valType='str', allowedTypes=[],
             hint=_translate("Place the HTML files will be saved locally "),
             label="Output path", categ='Online')
         self.params['Resources'] = Param(

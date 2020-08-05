@@ -9,6 +9,7 @@
 """
 
 from __future__ import absolute_import, division, print_function
+import sys
 
 from builtins import map
 from builtins import str
@@ -837,15 +838,16 @@ class _BaseParamsDlg(wx.Dialog):
             self.nameOKlabel.SetForegroundColour(wx.RED)
             self.mainSizer.Add(self.nameOKlabel, 0, flag=wx.ALIGN_CENTRE|wx.ALL, border=3)
         # add buttons for OK and Cancel
-        buttons = wx.StdDialogButtonSizer()
+        buttons = wx.BoxSizer(wx.HORIZONTAL)
         # help button if we know the url
         if self.helpUrl != None:
             helpBtn = wx.Button(self, wx.ID_HELP, _translate(" Help "))
             _tip = _translate("Go to online help about this component")
             helpBtn.SetToolTip(wx.ToolTip(_tip))
             helpBtn.Bind(wx.EVT_BUTTON, self.onHelp)
-            buttons.Add(helpBtn, 0, flag=wx.ALIGN_LEFT | wx.ALL, border=3)
-            buttons.AddSpacer(12)
+            buttons.Add(helpBtn, 0,
+                        flag=wx.LEFT | wx.ALL | wx.ALIGN_CENTER_VERTICAL,
+                        border=3)
         self.OKbtn = wx.Button(self, wx.ID_OK, _translate(" OK "))
         # intercept OK button if a loop dialog, in case file name was edited:
         if type(self) == DlgLoopProperties:
@@ -853,12 +855,27 @@ class _BaseParamsDlg(wx.Dialog):
         self.OKbtn.SetDefault()
 
         self.doValidate()  # disables OKbtn if bad name, syntax error, etc
-        buttons.Add(self.OKbtn, 0, wx.ALL, border=3)
         CANCEL = wx.Button(self, wx.ID_CANCEL, _translate(" Cancel "))
-        buttons.Add(CANCEL, 0, wx.ALL, border=3)
-        buttons.Realize()
+
+        buttons.AddStretchSpacer()
+        if sys.platform == 'darwin':
+            buttons.Add(CANCEL, 0,
+                        wx.ALL | wx.RIGHT | wx.ALIGN_CENTER_VERTICAL,
+                        border=3)
+            buttons.Add(self.OKbtn, 0,
+                        wx.ALL | wx.RIGHT | wx.ALIGN_CENTER_VERTICAL,
+                        border=3)
+        else:
+            buttons.Add(self.OKbtn, 0,
+                        wx.ALL | wx.RIGHT | wx.ALIGN_CENTER_VERTICAL,
+                        border=3)
+            buttons.Add(CANCEL, 0,
+                        wx.ALL | wx.RIGHT | wx.ALIGN_CENTER_VERTICAL,
+                        border=3)
+
+        # buttons.Realize()
         # add to sizer
-        self.mainSizer.Add(buttons, flag=wx.ALL, border=2)
+        self.mainSizer.Add(buttons, flag=wx.ALL | wx.EXPAND, border=3)
         self.SetSizerAndFit(self.mainSizer)
         self.mainSizer.Layout()
         # move the position to be v near the top of screen and
@@ -1859,22 +1876,33 @@ class DlgExperimentProperties(_BaseParamsDlg):
         """
         # add buttons for help, OK and Cancel
         self.mainSizer = wx.BoxSizer(wx.VERTICAL)
-        buttons = wx.StdDialogButtonSizer()
+        buttons = wx.BoxSizer()
         if self.helpUrl is not None:
             helpBtn = wx.Button(self, wx.ID_HELP, _translate(" Help "))
             helpBtn.SetHelpText(_translate("Get help about this component"))
             helpBtn.Bind(wx.EVT_BUTTON, self.onHelp)
-            buttons.Add(helpBtn, 0, border=3)
+            buttons.Add(helpBtn, 0,
+                        wx.ALL | wx.RIGHT | wx.ALIGN_CENTER_VERTICAL, border=3)
+
         self.OKbtn = wx.Button(self, wx.ID_OK, _translate(" OK "))
         self.OKbtn.SetDefault()
-        buttons.Add(self.OKbtn, 0, border=3)
         CANCEL = wx.Button(self, wx.ID_CANCEL, _translate(" Cancel "))
-        buttons.Add(CANCEL, 0, border=3)
 
-        buttons.Realize()
-        self.ctrls.Fit()
+        buttons.AddStretchSpacer()
+        if sys.platform == 'darwin':
+            buttons.Add(CANCEL, 0,
+                        wx.ALL | wx.RIGHT | wx.ALIGN_CENTER_VERTICAL, border=3)
+            buttons.Add(self.OKbtn, 0,
+                        wx.ALL | wx.RIGHT | wx.ALIGN_CENTER_VERTICAL, border=3)
+        else:
+            buttons.Add(self.OKbtn, 0,
+                        wx.ALL | wx.RIGHT | wx.ALIGN_CENTER_VERTICAL, border=3)
+            buttons.Add(CANCEL, 0,
+                        wx.ALL | wx.RIGHT | wx.ALIGN_CENTER_VERTICAL, border=3)
+
         self.mainSizer.Add(self.ctrls, proportion=1, flag=wx.EXPAND)
-        self.mainSizer.Add(buttons, border=3, flag=wx.ALL | wx.ALIGN_RIGHT)
+        self.mainSizer.Add(buttons, border=3,
+                           flag=wx.ALL | wx.RIGHT | wx.EXPAND)
         self.SetSizerAndFit(self.mainSizer)
 
         # move the position to be v near the top of screen and to the
