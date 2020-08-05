@@ -12,7 +12,7 @@
 import os
 import sys
 
-__version__ = '2020.2.0b1'
+__version__ = '2020.2.0dev1'
 __license__ = 'GNU GPLv3 (or more recent equivalent)'
 __author__ = 'Jonathan Peirce'
 __author_email__ = 'jon.peirce@gmail.com'
@@ -23,7 +23,7 @@ __git_sha__ = 'n/a'
 __build_platform__ = 'n/a'
 
 __all__ = ["gui", "misc", "visual", "core",
-           "event", "data", "sound", "microphone", "plugins"]
+           "event", "data", "sound", "microphone"]
 
 # for developers the following allows access to the current git sha from
 # their repository
