@@ -1295,14 +1295,7 @@ class BuilderFrame(wx.Frame, ThemeMixin):
         """
         feedbackTime = 1500
         colour = {0: "red", -1: "red", 1: "green"}
-
-        if sys.platform == 'win32' or sys.platform.startswith('linux'):
-            if self.appPrefs['largeIcons']:
-                toolbarSize = 32
-            else:
-                toolbarSize = 16
-        else:
-            toolbarSize = 32  # mac: 16 either doesn't work, or looks ba
+        toolbarSize = 32
 
         # Store original
         origBtn = self.btnHandles['pavloviaSync'].NormalBitmap
@@ -2005,10 +1998,7 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
         self.frame = frame
         self.app = frame.app
         self.dpi = self.app.dpi
-        if self.app.prefs.app['largeIcons']:
-            panelWidth = 3 * 48 + 50
-        else:
-            panelWidth = 3 * 24 + 50
+        panelWidth = 3 * 48 + 50
         scrolledpanel.ScrolledPanel.__init__(self,
                                              frame,
                                              id,
@@ -2050,10 +2040,7 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
             # Set button background and link to onhover functions
             #sectionBtn.Bind(wx.EVT_ENTER_WINDOW, self.onHover)
             #sectionBtn.Bind(wx.EVT_LEAVE_WINDOW, self.offHover)
-            if self.app.prefs.app['largeIcons']:
-                self.panels[categ] = wx.FlexGridSizer(cols=1)
-            else:
-                self.panels[categ] = wx.FlexGridSizer(cols=2)
+            self.panels[categ] = wx.FlexGridSizer(cols=1)
             self.sizer.Add(sectionBtn, flag=wx.EXPAND)
             self.sizerList.append(sectionBtn)
             self.sizer.Add(self.panels[categ], flag=wx.ALIGN_CENTER)
@@ -2090,10 +2077,7 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
         self.Update()
 
     def on_resize(self, event):
-        if self.app.prefs.app['largeIcons']:
-            cols = self.GetClientSize()[0] // self._maxBtnWidth
-        else:
-            cols = self.GetClientSize()[0] // self._maxBtnWidth
+        cols = self.GetClientSize()[0] // self._maxBtnWidth
         for category in list(self.panels.values()):
             category.SetCols(max(1, cols))
 
