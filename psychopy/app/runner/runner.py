@@ -286,11 +286,6 @@ class RunnerFrame(wx.Frame, ThemeMixin):
         self.app.quit(evt)
 
     def checkSave(self):
-        try:
-            self.saveTaskList()
-        except Exception as e:
-            print("##### Task List not saved correctly. #####\n")
-            print(e)
         return True
 
     def viewBuilder(self, evt):
