@@ -27,6 +27,7 @@ _localized = {
     'app': _translate('App'),
     'builder': "Builder",  # not localized
     'coder': "Coder",  # not localized
+    'runner': "Runner",
     'hardware': _translate('Hardware'),
     'connections': _translate('Connections'),
     'keyBindings': _translate('Key bindings'),
@@ -132,8 +133,7 @@ _localized = {
     'projectsOpen': _translate('open projects'),
     'projectsNew': _translate('new projects'),
     # pref wxChoice lists:
-    'last': _translate('same as last session'),
-    'both': _translate('both Builder & Coder'),
+    'all': _translate('Builder, Coder and Runner'),
     'keep': _translate('same as in the file'),  # line endings
     # not translated:
     'pix': 'pix',

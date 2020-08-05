@@ -101,13 +101,13 @@ class MenuFrame(wx.Frame, themes.ThemeMixin):
         self.menuBar.Append(self.viewMenu, _translate('&View'))
         mtxt = _translate("&Open Builder view\t%s")
         self.app.IDs.openBuilderView = self.viewMenu.Append(wx.ID_ANY,
-                             mtxt % self.app.keys['switchToBuilder'],
+                             mtxt,
                              _translate("Open a new Builder view")).GetId()
         self.Bind(wx.EVT_MENU, self.app.showBuilder,
                   id=self.app.IDs.openBuilderView)
         mtxt = _translate("&Open Coder view\t%s")
         self.app.IDs.openCoderView = self.viewMenu.Append(wx.ID_ANY,
-                             mtxt % self.app.keys['switchToCoder'],
+                             mtxt,
                              _translate("Open a new Coder view")).GetId()
         self.Bind(wx.EVT_MENU, self.app.showCoder,
                   id=self.app.IDs.openCoderView)
@@ -277,17 +277,6 @@ class PsychoPyApp(wx.App, themes.ThemeMixin):
         # on a mac, don't exit when the last frame is deleted, just show menu
         if sys.platform == 'darwin':
             self.menuFrame = MenuFrame(parent=None, app=self)
-        # get preferred view(s) from prefs and previous view
-        if self.prefs.app['defaultView'] == 'last':
-            mainFrame = self.prefs.appData['lastFrame']
-        else:
-            # configobjValidate should take care of this situation
-            allowed = ['last', 'coder', 'builder', 'both']
-            if self.prefs.app['defaultView'] in allowed:
-                mainFrame = self.prefs.app['defaultView']
-            else:
-                self.prefs.app['defaultView'] = 'both'
-                mainFrame = 'both'
         # fetch prev files if that's the preference
         if self.prefs.coder['reloadPrevFiles']:
             scripts = self.prefs.appData['coder']['prevFiles']
@@ -298,31 +287,6 @@ class PsychoPyApp(wx.App, themes.ThemeMixin):
             exps = self.prefs.appData['builder']['prevFiles']
         else:
             exps = []
-
-        # then override the prev files by command options and passed files
-        if len(sys.argv) > 1:
-            if sys.argv[1] == __name__:
-                # program was executed as "python.exe psychopyApp.py %1'
-                args = sys.argv[2:]
-            else:
-                # program was executed as "psychopyApp.py %1'
-                args = sys.argv[1:]
-            # choose which frame to start with
-            if args[0] in ['builder', '--builder', '-b']:
-                mainFrame = 'builder'
-                args = args[1:]  # can remove that argument
-            elif args[0] in ['coder', '--coder', '-c']:
-                mainFrame = 'coder'
-                args = args[1:]  # can remove that argument
-            # did we get .py or .psyexp files?
-            elif args[0][-7:] == '.psyexp':
-                mainFrame = 'builder'
-                exps = [args[0]]
-            elif args[0][-3:] == '.py':
-                mainFrame = 'coder'
-                scripts = [args[0]]
-        else:
-            args = []
 
         self.dpi = int(wx.GetDisplaySize()[0] /
                        float(wx.GetDisplaySizeMM()[0]) * 25.4)
@@ -359,12 +323,41 @@ class PsychoPyApp(wx.App, themes.ThemeMixin):
         # create both frame for coder/builder as necess
         if splash:
             splash.SetText(_translate("  Creating frames..."))
-        # Show runner if set to use it
-        if self.prefs.general['useRunner']:
+
+        # Decide which windows to create
+        extMap = {'psyexp': 'builder',
+                  'psyrun': 'runner'}
+        if len(sys.argv) > 1:
+            if sys.argv[1] == __name__:
+                # program was executed as "python.exe psychopyApp.py %1'
+                args = sys.argv[2:]
+            else:
+                # program was executed as "psychopyApp.py %1'
+                args = sys.argv[1:]
+            # choose which frame to start with
+            if args[0] in ['builder', '--builder', '-b']:
+                view = 'builder'
+                args = args[1:]  # can remove that argument
+            elif args[0] in ['coder', '--coder', '-c']:
+                view = 'coder'
+                args = args[1:]  # can remove that argument
+            # did we get .py or .psyexp files?
+            else:
+                # If filename, get extension and set view accordingly
+                _, ext = os.path.splitext(args[0])
+                if ext in extMap:
+                    view = extMap[ext]
+                else:
+                    view = 'coder'
+        else:
+            args = []
+            view = self.prefs.app['defaultView']
+        # Create windows
+        if view in ['all', 'runner']:
             self.showRunner()
-        if mainFrame in ['both', 'coder']:
+        if view in ['all', 'coder']:
             self.showCoder(fileList=scripts)
-        if mainFrame in ['both', 'builder']:
+        if view in ['all', 'builder']:
             self.showBuilder(fileList=exps)
 
         # if darwin, check for inaccessible keyboard
@@ -445,7 +438,7 @@ class PsychoPyApp(wx.App, themes.ThemeMixin):
             if v('3.0') <= v(wx.version()) <v('4.0'):
                 _Showgui_Hack()  # returns ~immediately, no display
                 # focus stays in never-land, so bring back to the app:
-                if mainFrame in ['both', 'builder']:
+                if prefs.app['defaultView'] in ['all', 'builder', 'coder', 'runner']:
                     self.showBuilder()
                 else:
                     self.showCoder()
@@ -461,7 +454,7 @@ class PsychoPyApp(wx.App, themes.ThemeMixin):
         if not self.prefs.app['debugMode']:
             logging.console.setLevel(logging.INFO)
         # Runner captures standard streams until program closed
-        if not self.testMode:
+        if self.runner and not self.testMode:
             sys.stdout = self.runner.stdOut
             sys.stderr = self.runner.stdOut
 
@@ -569,17 +562,19 @@ class PsychoPyApp(wx.App, themes.ThemeMixin):
         # Update checks on menus in all frames
         for frame in self.getAllFrames():
             if hasattr(frame, "windowMenu"):
-                frame.windowMenu.Update()
+                frame.windowMenu.updateFrames()
 
     def showCoder(self, event=None, fileList=None):
         # have to reimport because it is only local to __init__ so far
         from . import coder
         if self.coder is None:
             title = "PsychoPy3 Coder (IDE) (v%s)"
+            wx.BeginBusyCursor()
             self.coder = coder.CoderFrame(None, -1,
                                           title=title % self.version,
                                           files=fileList, app=self)
             self.updateWindowMenu()
+            wx.EndBusyCursor()
         else:
             # Set output window and standard streams
             self.coder.setOutputWindow(True)
@@ -589,6 +584,7 @@ class PsychoPyApp(wx.App, themes.ThemeMixin):
 
     def newBuilderFrame(self, event=None, fileName=None):
         # have to reimport because it is ony local to __init__ so far
+        wx.BeginBusyCursor()
         from .builder.builder import BuilderFrame
         title = "PsychoPy3 Experiment Builder (v%s)"
         self.builder = BuilderFrame(None, -1,
@@ -598,6 +594,7 @@ class PsychoPyApp(wx.App, themes.ThemeMixin):
         self.builder.Raise()
         self.SetTopWindow(self.builder)
         self.updateWindowMenu()
+        wx.EndBusyCursor()
         return self.builder
 
     def showBuilder(self, event=None, fileList=()):
@@ -627,11 +624,13 @@ class PsychoPyApp(wx.App, themes.ThemeMixin):
         # have to reimport because it is only local to __init__ so far
         from .runner.runner import RunnerFrame
         title = "PsychoPy3 Experiment Runner (v{})".format(self.version)
+        wx.BeginBusyCursor()
         self.runner = RunnerFrame(parent=None,
                              id=-1,
                              title=title,
                              app=self)
         self.updateWindowMenu()
+        wx.EndBusyCursor()
         return self.runner
 
     def OnDrop(self, x, y, files):

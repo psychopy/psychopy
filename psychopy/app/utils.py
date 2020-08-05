@@ -27,7 +27,6 @@ from . import icons
 from .themes import ThemeMixin
 from psychopy.tools.versionchooser import _translate
 
-
 class FileDropTarget(wx.FileDropTarget):
     """On Mac simply setting a handler for the EVT_DROP_FILES isn't enough.
     Need this too.
@@ -352,19 +351,34 @@ class FrameSwitcher(wx.Menu):
     def __init__(self, parent):
         wx.Menu.__init__(self)
         self.parent = parent
+        self.app = parent.app
         self.itemFrames = {}
-
-        self.builderBtn = None
-        self.coderBtn = None
-        self.runnerBtn = None
-        self.Update()
+        # Listen for window switch
+        self.next = self.Append(wx.ID_MDI_WINDOW_NEXT, _translate("&Next Window\t%s") % self.app.keys['cycleWindows'], _translate("&Next Window\t%s") % self.app.keys['cycleWindows'])
+        self.Bind(wx.EVT_MENU, self.nextWindow, self.next)
+        self.AppendSeparator()
+        # Add creator options
+        self.minItemSpec = [
+            {'label': "Builder", 'class': psychopy.app.builder.BuilderFrame, 'method': self.app.showBuilder},
+            {'label': "Coder", 'class': psychopy.app.coder.CoderFrame, 'method': self.app.showCoder},
+            {'label': "Runner", 'class': psychopy.app.runner.RunnerFrame, 'method': self.app.showRunner},
+        ]
+        for spec in self.minItemSpec:
+            if not isinstance(self.Window, spec['class']):
+                item = self.Append(
+                    wx.ID_ANY, spec['label'], spec['label']
+                )
+                self.Bind(wx.EVT_MENU, spec['method'], item)
+        self.AppendSeparator()
+        self.updateFrames()
 
     @property
     def frames(self):
         return self.parent.app.getAllFrames()
 
-    def Update(self):
+    def updateFrames(self):
         """Set items according to which windows are open"""
+        self.next.Enable(len(self.frames)>1)
         if sys.platform == 'win32':  # on mac DestroyItem segfaults. Linux?
             for item in self.GetMenuItems():
                 self.DestroyItem(item)
@@ -404,21 +418,37 @@ class FrameSwitcher(wx.Menu):
         # While only win32 can safely DestroyItem, only do this on win32
         if sys.platform == 'win32':
             for frame in self.frames:
-                if hasattr(frame, "filename") and frame != self.parent:
-                    if frame.filename:
-                        filenameAddition = ": " + os.path.basename(frame.filename)
-                    else:
-                        filenameAddition = ""
-                    label = type(frame).__name__.replace("Frame", "")
-                    item = self.Append(wx.ID_ANY,
-                                       _translate(label) + filenameAddition,
-                                       _translate(label) + filenameAddition)
-                    self.itemFrames[item.GetId()] = frame
-                    self.Bind(wx.EVT_MENU, self.showFrame, item)
+                if frame not in self.itemFrames:
+                        if frame.filename:
+                            filenameAddition = ": " + os.path.basename(frame.filename)
+                        else:
+                            filenameAddition = ""
+                        label = type(frame).__name__.replace("Frame", "")
+                        self.itemFrames[frame] = self.AppendRadioItem(
+                                        wx.ID_ANY,
+                                        _translate(label) + filenameAddition,
+                                        _translate(label) + filenameAddition)
+                        self.Bind(wx.EVT_MENU, self.showFrame, self.itemFrames[frame])
+                        item = self.Append(wx.ID_ANY,
+                                           _translate(label) + filenameAddition,
+                                           _translate(label) + filenameAddition)
+                        self.itemFrames[item.GetId()] = frame
+                        self.Bind(wx.EVT_MENU, self.showFrame, item)
 
-    def showFrame(self, event):
-        frame = self.itemFrames[event.Id]
+    def showFrame(self, event=None):
+        itemFrames = event.EventObject.itemFrames
+        frame = [key for key in itemFrames if itemFrames[key].Id == event.Id][0]
         frame.Show(True)
         frame.Raise()
         self.parent.app.SetTopWindow(frame)
-        self.Update()
+        self.updateFrames()
+
+    def nextWindow(self, event=None):
+        """Cycle through list of open windows"""
+        current = event.EventObject.Window
+        i = self.frames.index(current)
+        while self.frames[i] == current:
+            i -= 1
+        self.frames[i].Raise()
+        self.frames[i].Show()
+        self.updateFrames()

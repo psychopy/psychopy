@@ -75,8 +75,10 @@ class RunnerFrame(wx.Frame, ThemeMixin):
         self.mainSizer.Add(self.panel, 1, wx.EXPAND | wx.ALL)
         self.SetSizerAndFit(self.mainSizer)
         self.appData = self.app.prefs.appData['runner']
-        self.loadTaskList()
-
+        # Load previous tasks
+        for filePath in self.appData['taskList']:
+            if os.path.exists(filePath):
+                self.addTask(fileName=filePath)
         self.Bind(wx.EVT_CLOSE, self.onClose)
         self.theme = app.theme
 
@@ -84,11 +86,6 @@ class RunnerFrame(wx.Frame, ThemeMixin):
     def filename(self):
         if self.panel.currentSelection or self.panel.currentSelection == 0:
             return self.panel.expCtrl.GetItem(self.panel.currentSelection).Text
-
-    def Close(self, event=None):
-        self.app.runner = None
-        self.app.updateWindowMenu()
-        super(self).Close(self)
 
     def addTask(self, evt=None, fileName=None):
         self.panel.addTask(fileName=fileName)
@@ -205,15 +202,61 @@ class RunnerFrame(wx.Frame, ThemeMixin):
         wx.EndBusyCursor()
 
     def saveTaskList(self, evt=None):
-        """Save task list to appData."""
-        self.appData['taskList'] = self.taskList
-        self.app.prefs.saveAppData()
+        """Save task list as psyrun file."""
+        if hasattr(self, 'listname'):
+            filename = self.listname
+        else:
+            filename = "untitled.psyrun"
+        initPath, filename = os.path.split(filename)
+
+        _w = "PsychoPy task lists (*.psyrun)|*.psyrun|Any file (*.*)|*"
+        if sys.platform != 'darwin':
+            _w += '.*'
+        wildcard = _translate(_w)
+        dlg = wx.FileDialog(
+            self, message=_translate("Save task list as ..."), defaultDir=initPath,
+            defaultFile=filename, style=wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT,
+            wildcard=wildcard)
+
+        if dlg.ShowModal() == wx.ID_OK:
+            newPath = dlg.GetPath()
+            # actually save
+            experiments = []
+            for i in range(self.panel.expCtrl.GetItemCount()):
+                experiments.append(
+                    {'path': self.panel.expCtrl.GetItem(i,1).Text,
+                     'file': self.panel.expCtrl.GetItem(i,0).Text}
+                )
+            with open(newPath, 'w') as file:
+                json.dump(experiments, file)
+            self.listname = newPath
+
+        dlg.Destroy()
 
     def loadTaskList(self, evt=None):
         """Load saved task list from appData."""
-        for filePath in self.appData['taskList']:
-            if os.path.exists(filePath):
-                self.addTask(fileName=filePath)
+        if hasattr(self, 'listname'):
+            filename = self.listname
+        else:
+            filename = "untitled.psyrun"
+        initPath, filename = os.path.split(filename)
+
+        _w = "PsychoPy task lists (*.psyrun)|*.psyrun|Any file (*.*)|*"
+        if sys.platform != 'darwin':
+            _w += '.*'
+        wildcard = _translate(_w)
+        dlg = wx.FileDialog(
+            self, message=_translate("Open task list ..."), defaultDir=initPath,
+            defaultFile=filename, style=wx.FD_OPEN | wx.FD_FILE_MUST_EXIST,
+            wildcard=wildcard)
+        if dlg.ShowModal() == wx.ID_OK:
+            newPath = dlg.GetPath()
+            with open(newPath, 'r') as file:
+                experiments = json.load(file)
+            self.panel.expCtrl.DeleteAllItems()
+            for exp in experiments:
+                self.panel.addTask(fileName=os.path.join(exp['path'], exp['file']))
+            self.listname = newPath
 
     def clearTasks(self, evt=None):
         """Clear all items from the panels expCtrl ListCtrl."""
@@ -224,13 +267,15 @@ class RunnerFrame(wx.Frame, ThemeMixin):
 
     def onClose(self, event=None):
         """Define Frame closing behavior."""
+        self.app.runner = None
         allFrames = self.app.getAllFrames()
         lastFrame = len(allFrames) == 1
-
         if lastFrame:
             self.onQuit()
         else:
             self.Hide()
+        self.app.forgetFrame(self)
+        self.app.updateWindowMenu()
 
     def onQuit(self, evt=None):
         sys.stderr = sys.stdout = sys.__stdout__
@@ -238,11 +283,6 @@ class RunnerFrame(wx.Frame, ThemeMixin):
         self.app.quit(evt)
 
     def checkSave(self):
-        try:
-            self.saveTaskList()
-        except Exception as e:
-            print("##### Task List not saved correctly. #####\n")
-            print(e)
         return True
 
     def viewBuilder(self, evt):
@@ -376,6 +416,7 @@ class RunnerPanel(wx.Panel, ScriptProcess, ThemeMixin):
         self.makeButtons()
         self._applyAppTheme()
 
+
     def _applyAppTheme(self, target=None):
         if target is None:
             target = self
@@ -383,9 +424,10 @@ class RunnerPanel(wx.Panel, ScriptProcess, ThemeMixin):
         self.alertsCtrl._applyAppTheme()
         self.stdoutCtrl._applyAppTheme()
         ThemeMixin._applyAppTheme(self.expCtrl)
-        for btn in [self.plusBtn, self.negBtn, self.runBtn, self.stopBtn,
-                    self.onlineBtn, self.onlineDebugBtn]:
-            btn.SetBackgroundColour(ThemeMixin.appColors['panel_bg'])
+        for btn in self.buttonSizer.GetChildren():
+            if btn.Window:
+                btn = btn.Window
+                btn.SetBackgroundColour(ThemeMixin.appColors['panel_bg'])
 
     def makeButtons(self):
         # Set buttons
@@ -397,29 +439,50 @@ class RunnerPanel(wx.Panel, ScriptProcess, ThemeMixin):
                 tip=_translate(
                         "Add experiment to list"),
                 size=32)
+        self.Bind(wx.EVT_BUTTON, self.addTask, self.plusBtn)
         self.negBtn = icons.makeBitmapButton(
                 parent=self,
                 filename='removeExp.png',
                 name='removeExp',
                 tip=_translate(
-                        "Remove experiment to list"),
+                        "Remove experiment from list"),
                 size=32)
+        self.Bind(wx.EVT_BUTTON, self.removeTask, self.negBtn)
+        self.saveBtn = icons.makeBitmapButton(
+            parent=self,
+            filename='filesaveas.png',
+            name='saveTasks',
+            tip=_translate(
+                "Save task list to a file"),
+            size=32)
+        self.Bind(wx.EVT_BUTTON, self.parent.saveTaskList, self.saveBtn)
+        self.loadBtn = icons.makeBitmapButton(
+            parent=self,
+            filename='fileopen.png',
+            name='loadTasks',
+            tip=_translate(
+                "Load tasks from a file"),
+            size=32)
+        self.Bind(wx.EVT_BUTTON, self.parent.loadTaskList, self.loadBtn)
         self.runBtn = icons.makeBitmapButton(
                 parent=self, filename='run.png',
                 name='run',
                 tip=_translate(
                         "Run the current script in Python"),
                 size=32)
+        self.Bind(wx.EVT_BUTTON, self.runLocal, self.runBtn)
         self.stopBtn = icons.makeBitmapButton(
                 parent=self, filename='stop.png',
                 name='stop',
                 tip=_translate("Stop task"),
                 size=32)
+        self.Bind(wx.EVT_BUTTON, self.stopTask, self.stopBtn)
         self.onlineBtn = icons.makeBitmapButton(
                 parent=self,
                 filename='globe.png',
                 emblem='run', tip=_translate(
                         "Run PsychoJS task from Pavlovia"), size=32)
+        self.Bind(wx.EVT_BUTTON, self.runOnline, self.onlineBtn)
         self.onlineDebugBtn = icons.makeBitmapButton(
                 parent=self,
                 filename='globe.png',
@@ -428,23 +491,17 @@ class RunnerPanel(wx.Panel, ScriptProcess, ThemeMixin):
                 tip=_translate(
                         "Run PsychoJS task in local debug mode"),
                 size=32)
-
-        # Bind events to buttons
-        self.Bind(wx.EVT_BUTTON, self.addTask, self.plusBtn)
-        self.Bind(wx.EVT_BUTTON, self.removeTask, self.negBtn)
-        self.Bind(wx.EVT_BUTTON, self.runLocal, self.runBtn)
-        self.Bind(wx.EVT_BUTTON, self.stopTask, self.stopBtn)
-        self.Bind(wx.EVT_BUTTON, self.runOnline, self.onlineBtn)
         self.Bind(wx.EVT_BUTTON, self.runOnlineDebug, self.onlineDebugBtn)
-
-        self.buttonSizer.Add(self.plusBtn, 0, wx.ALL | wx.ALIGN_TOP, 5)
-        self.buttonSizer.Add(self.negBtn, 0, wx.ALL | wx.ALIGN_TOP, 5)
-        self.buttonSizer.AddStretchSpacer()
-        self.buttonSizer.AddMany([(self.runBtn, 0, wx.ALL, 5),
-                                  (self.stopBtn, 0, wx.ALL, 5),
-                                  (self.onlineBtn, 0, wx.ALL, 5),
-                                  (self.onlineDebugBtn, 0, wx.ALL, 5),
-                                  ])
+        # Add buttons to sizer
+        self.buttonSizer.AddMany([(self.plusBtn, 0, wx.ALL | wx.ALIGN_TOP, 5),
+                                      (self.negBtn, 0, wx.ALL | wx.ALIGN_TOP, 5),
+                                      (self.saveBtn, 0, wx.ALL, 5),
+                                      (self.loadBtn, 0, wx.ALL, 5),
+                                      (self.runBtn, 0, wx.ALL, 5),
+                                      (self.stopBtn, 0, wx.ALL, 5),
+                                      (self.onlineBtn, 0, wx.ALL, 5),
+                                      (self.onlineDebugBtn, 0, wx.ALL, 5),
+                                      ])
         self.stopBtn.Disable()
         self.SetSizerAndFit(self.mainSizer)
         self.SetMinSize(self.Size)
