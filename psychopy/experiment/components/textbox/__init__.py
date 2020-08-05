@@ -236,9 +236,15 @@ class TextboxComponent(BaseVisualComponent):
                 "  win: psychoJS.window,\n"
                 "  name: '%(name)s',\n"
                 "  text: %(text)s,\n"
-                "  font: %(font)s,\n" + unitsStr +
-                "  pos: %(pos)s, height: %(letterHeight)s,"
-                "  opacity: %(opacity)s,")
+                "  font: %(font)s,\n" 
+                "  pos: %(pos)s, letterHeight: %(letterHeight)s,\n"
+                "  size: %(size)s," + unitsStr +
+                "  color: %(color)s, colorSpace: %(colorSpace)s,\n"
+                "  fillColor: %(fillColor)s, borderColor: %(borderColor)s,\n"
+                "  bold: %(bold)s, italic: %(italic)s,\n"
+                "  opacity: %(opacity)s,\n"
+                "  padding: %(padding)s,\n"
+                "  anchor: %(anchor)s,\n")
         buff.writeIndentedLines(code % inits)
 
         depth = -self.getPosInRoutine()
