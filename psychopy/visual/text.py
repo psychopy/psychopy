@@ -26,6 +26,7 @@ GL = pyglet.gl
 
 import psychopy  # so we can get the __path__
 from psychopy import logging
+from psychopy.preferences import prefs
 
 # tools must only be imported *after* event or MovieStim breaks on win32
 # (JWP has no idea why!)
@@ -46,11 +47,14 @@ except ImportError:
 
 import numpy
 
+havePygame = False
 try:
-    import pygame
-    havePygame = True
+    if prefs.general['winType'] == 'pygame':
+        import pygame
+        havePygame = True
 except Exception:
     havePygame = False
+
 
 defaultLetterHeight = {'cm': 1.0,
                        'deg': 1.0,

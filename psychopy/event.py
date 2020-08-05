@@ -25,22 +25,25 @@ from psychopy.preferences import prefs
 
 # try to import pyglet & pygame and hope the user has at least one of them!
 try:
-    from pygame import mouse, locals, joystick, display
-    import pygame.key
-    import pygame.event as evt
-    havePygame = True
+    havePygame = havePyglet = haveGLFW = False
+    winType = prefs.general['winType']
+    if winType == 'pygame':
+        from pygame import mouse, locals, joystick, display
+        import pygame.key
+        import pygame.event as evt
+        havePygame = True
+    elif winType == 'pyglet':
+        import pyglet
+        havePyglet = True
+    elif winType == 'glfw':
+        import glfw
+        haveGLFW = True
+    else:
+        raise KeyError(
+            "Unsupported `winType` '{}' in preferences.".format(winType))
 except ImportError:
-    havePygame = False
-try:
-    import pyglet
-    havePyglet = True
-except ImportError:
-    havePyglet = False
-try:
-    import glfw
-    haveGLFW = True
-except ImportError:
-    haveGLFW = False
+    winType = prefs.general['winType']
+    raise KeyError("Failed to import '{}' in `psychopy.events`.".format(winType))
 
 if havePygame:
     usePygame = True  # will become false later if win not initialised

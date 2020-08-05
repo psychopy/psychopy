@@ -36,25 +36,30 @@ from __future__ import absolute_import, print_function
 
 from builtins import range
 from builtins import object
-try:
-    import pygame.joystick
-    havePygame = True
-except Exception:
-    havePygame = False
+from psychopy.preferences import prefs
 
+# try to import pyglet & pygame and hope the user has at least one of them!
 try:
-    from pyglet import input as pyglet_input  # pyglet 1.2+
-    from pyglet import app as pyglet_app
-    havePyglet = True
-except Exception:
-    havePyglet = False
-
-try:
-    import glfw
-    haveGLFW = True
+    havePygame = havePyglet = haveGLFW = False
+    winType = prefs.general['winType']
+    if winType == 'pygame':
+        import pygame.joystick
+        havePygame = True
+    elif winType == 'pyglet':
+        from pyglet import input as pyglet_input  # pyglet 1.2+
+        from pyglet import app as pyglet_app
+        havePyglet = True
+    elif winType == 'glfw':
+        import glfw
+        haveGLFW = True
+    else:
+        raise KeyError(
+            "Unsupported `winType` '{}' in preferences.".format(winType))
 except ImportError:
-    print("failed to import GLFW.")
-    haveGLFW = False
+    winType = prefs.general['winType']
+    raise KeyError(
+        "Failed to import '{}' in `psychopy.hardware.joystick`.".format(winType))
+
 
 from psychopy import logging, visual
 backend = 'pyglet'  # 'pyglet' or 'pygame'

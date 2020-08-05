@@ -33,6 +33,7 @@ if sys.platform == 'win32':
 # These classes do not have any optional outside dependencies and are unlikely
 # to fail when being imported.
 #
+
 from psychopy.visual import filters
 from psychopy.visual.backends import gamma
 
@@ -96,12 +97,16 @@ from .stim3d import BoxStim
 from .stim3d import PlaneStim
 from .stim3d import ObjMeshStim
 
+# warping and framepacking
+from .windowwarp import Warper
+from .windowframepack import ProjectorFramePacker
+
 # ------------------------------------------------------------------------------
 # Extended Visual Classes
 #
 # These classes have optional third-party dependencies and may fail to load if
 # they are not present or supported on the platform. These modules are lazy
-# loaded.
+# loaded so they don't crash the import process if they are not available.
 #
 
 lazyImports = """
