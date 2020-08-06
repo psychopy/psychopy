@@ -1638,7 +1638,7 @@ class CoderFrame(wx.Frame, ThemeMixin):
             item = menu.Append(wx.ID_ANY,
                                _translate("Unit &testing...\tCtrl-T"),
                                _translate("Show dialog to run unit tests"))
-        self.Bind(wx.EVT_MENU, self.onUnitTests, id=item.GetId())
+            self.Bind(wx.EVT_MENU, self.onUnitTests, id=item.GetId())
 
         # ---_demos---#000000#FFFFFF------------------------------------------
         self.demosMenu = wx.Menu()
