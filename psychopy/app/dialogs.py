@@ -57,11 +57,16 @@ class MessageDialog(wx.Dialog):
             self.Bind(wx.EVT_BUTTON, self.onButton, id=wx.ID_YES)
             self.Bind(wx.EVT_BUTTON, self.onButton, id=wx.ID_NO)
 #            self.Bind(wx.EVT_CLOSE, self.onEscape)
-            btnSizer.Add(self.noBtn, wx.ALIGN_LEFT)
-            btnSizer.Add((60, 20), 0, wx.EXPAND)
-            btnSizer.Add(self.cancelBtn, wx.ALIGN_RIGHT)
-            btnSizer.Add((5, 20), 0)
-            btnSizer.Add(self.yesBtn, wx.ALIGN_RIGHT)
+            btnSizer.Add(self.noBtn, 0,
+                         wx.ALL | wx.LEFT | wx.ALIGN_CENTER_VERTICAL,
+                         border=3)
+            btnSizer.AddStretchSpacer()
+            btnSizer.Add(self.cancelBtn, 0,
+                         wx.ALL | wx.RIGHT | wx.ALIGN_CENTER_VERTICAL,
+                         border=3)
+            btnSizer.Add(self.yesBtn, 0,
+                         wx.ALL | wx.RIGHT | wx.ALIGN_CENTER_VERTICAL,
+                         border=3)
         elif type == 'Query':  # we need Yes,No
             self.yesBtn = wx.Button(self, wx.ID_YES, _translate('Yes'))
             self.yesBtn.SetDefault()
@@ -69,17 +74,24 @@ class MessageDialog(wx.Dialog):
             self.Bind(wx.EVT_BUTTON, self.onButton, id=wx.ID_YES)
             self.Bind(wx.EVT_BUTTON, self.onButton, id=wx.ID_NO)
 #            self.Bind(wx.EVT_CLOSE, self.onEscape)
-            btnSizer.Add(self.noBtn, wx.ALIGN_RIGHT)
-            btnSizer.Add(self.yesBtn, wx.ALIGN_RIGHT)
+            btnSizer.Add(self.noBtn, 0,
+                         wx.ALL | wx.RIGHT | wx.ALIGN_CENTER_VERTICAL,
+                         border=3)
+            btnSizer.Add(self.yesBtn, 0,
+                         wx.ALL | wx.RIGHT | wx.ALIGN_CENTER_VERTICAL,
+                         border=3)
         elif type == 'Info':  # just an OK button
             self.okBtn = wx.Button(self, wx.ID_OK, _translate('OK'))
             self.okBtn.SetDefault()
             self.Bind(wx.EVT_BUTTON, self.onButton, id=wx.ID_OK)
-            btnSizer.Add(self.okBtn, wx.ALIGN_RIGHT)
+            btnSizer.Add(self.okBtn, 0,
+                         wx.ALL | wx.RIGHT | wx.ALIGN_CENTER_VERTICAL,
+                         border=3)
         else:
             raise NotImplementedError('Message type %s unknown' % type)
         # configure sizers and fit
-        sizer.Add(btnSizer, flag=wx.ALIGN_RIGHT | wx.ALL, border=5)
+        sizer.Add(btnSizer,
+                  flag=wx.ALL | wx.EXPAND, border=5)
         self.Center()
         self.SetSizerAndFit(sizer)
         self.timeout = timeout

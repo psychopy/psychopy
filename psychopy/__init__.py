@@ -12,7 +12,7 @@
 import os
 import sys
 
-__version__ = '2020.2.0b1'
+__version__ = '2020.2.0'
 __license__ = 'GNU GPLv3 (or more recent equivalent)'
 __author__ = 'Jonathan Peirce'
 __author_email__ = 'jon.peirce@gmail.com'
@@ -45,20 +45,6 @@ if 'installing' not in locals():
     for pathName in prefs.general['paths']:
         sys.path.append(pathName)
 
-    # from psychopy.plugins import scanPlugins, loadPlugin
-    from psychopy import logging
-    # scanPlugins()  # scan system for installed plugins
-
-    # load plugins on startup
-    # if 'startUpPlugins' in prefs.general.keys():
-    #     if prefs.general['startUpPlugins']:
-    #         for plugin in prefs.general['startUpPlugins']:
-    #             #try:
-    #             loadPlugin(plugin)
-                #except:  # broad catch-all for errors
-                #    logging.error(
-                #        "Failed to load plugin `{}` on startup.".format(plugin))
-
     from psychopy.tools.versionchooser import useVersion, ensureMinimal
 
 # import readline here to get around an issue with sounddevice
@@ -67,3 +53,4 @@ try:
     import readline
 except ImportError:
     pass  # all that will happen is the stderr/stdout might get redirected
+

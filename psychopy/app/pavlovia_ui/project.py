@@ -223,13 +223,13 @@ class DetailsPanel(scrlpanel.ScrolledPanel):
         #                border=5)
         if not noTitle:
             self.sizer.Add(self.title, border=5,
-                           flag=wx.ALL | wx.ALIGN_CENTER)
+                           flag=wx.ALL | wx.CENTER)
         self.sizer.Add(self.url, border=5,
-                       flag=wx.ALL | wx.ALIGN_CENTER)
+                       flag=wx.ALL | wx.CENTER)
         self.sizer.Add(self.localFolderCtrl, border=5,
                              flag=wx.ALL | wx.EXPAND),
         self.sizer.Add(self.browseLocalBtn, border=5,
-                             flag=wx.ALL | wx.ALIGN_LEFT)
+                             flag=wx.ALL | wx.LEFT)
         self.sizer.Add(self.tags, border=5, flag=wx.ALL | wx.EXPAND)
         self.sizer.Add(self.visibility, border=5, flag=wx.ALL | wx.EXPAND)
         self.sizer.Add(wx.StaticLine(self, -1, style=wx.LI_HORIZONTAL),
@@ -239,7 +239,7 @@ class DetailsPanel(scrlpanel.ScrolledPanel):
         self.sizer.Add(wx.StaticLine(self, -1, style=wx.LI_HORIZONTAL),
                        flag=wx.ALL | wx.EXPAND)
         self.sizer.Add(self.syncButton,
-                       flag=wx.ALL | wx.ALIGN_RIGHT, border=5)
+                       flag=wx.ALL | wx.RIGHT, border=5)
         self.sizer.Add(self.syncPanel, border=5, proportion=1,
                        flag=wx.ALL | wx.RIGHT | wx.EXPAND)
 

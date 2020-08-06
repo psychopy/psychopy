@@ -174,6 +174,9 @@ Section "PsychoPy" SEC01
   !insertmacro APP_ASSOCIATE "psyexp" "PsychoPy.experiment" "PsychoPy Experiment" "$AppDir\Resources\psychopy.ico,0" \
      "Open with PsychoPy" "$\"$INSTDIR\python.exe$\" $\"$AppDir\psychopyApp.py$\" $\"%1$\""
 
+  !insertmacro APP_ASSOCIATE "psyrun" "PsychoPy.runner" "PsychoPy Runner List" "$AppDir\Resources\psychopy.ico,0" \
+     "Open with PsychoPy" "$\"$INSTDIR\python.exe$\" $\"$AppDir\psychopyApp.py$\" $\"%1$\""
+
 ; Update Windows Path
   ;add to path variable
   ${EnvVarUpdate} $0 "PATH" "A" "$PRODUCT_REGISTRY_ROOT" "$INSTDIR"

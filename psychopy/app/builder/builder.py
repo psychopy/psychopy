@@ -2518,7 +2518,6 @@ class ExportFileDialog(wx.Dialog):
         btn = wx.Button(self, wx.ID_CANCEL)
         btn.SetHelpText("The Cancel button cancels the dialog. (Crazy, huh?)")
         btnsizer.AddButton(btn)
-        btnsizer.Realize()
 
         sizer.Add(btnsizer, 0, wx.ALL, 5)
 
