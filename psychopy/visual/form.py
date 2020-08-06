@@ -724,14 +724,11 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
             if oneLine:
                 # response on same line - work out which is bigger
                 self._currentVirtualY -= (
-                    max(questionHeight, respHeight) + self.itemPadding
+                    max(questionHeight, respHeight) + self.itemPadding*2
                 )
             else:
                 # response on next line
-                self._currentVirtualY -= respHeight + self.itemPadding
-
-        # a hack because form didn't have enough space at bottom!
-        self._currentVirtualY -= respHeight*3
+                self._currentVirtualY -= respHeight + self.itemPadding*2
 
         self._setDecorations()  # choose whether show/hide scroolbar
 
