@@ -173,5 +173,5 @@ class FormComponent(BaseComponent):
 
     def writeRoutineEndCodeJS(self, buff):
         # save data, according to row/col format
-        buff.writeIndented("{name}.addDataToExp(thisExp, {Data Format});\n"
+        buff.writeIndented("{name}.addDataToExp(psychoJS.experiment, {Data Format});\n"
                            .format(**self.params))
