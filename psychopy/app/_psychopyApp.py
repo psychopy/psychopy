@@ -351,7 +351,7 @@ class PsychoPyApp(wx.App, themes.ThemeMixin):
                 # If filename, get extension and set view accordingly
                 _, ext = os.path.splitext(args[0])
                 if ext.strip(".") in extMap:
-                    view = extMap[ext]
+                    view = extMap[ext.strip(".")]
                 else:
                     view = 'coder'
         else:
