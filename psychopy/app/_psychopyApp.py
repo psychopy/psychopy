@@ -326,7 +326,9 @@ class PsychoPyApp(wx.App, themes.ThemeMixin):
 
         # Decide which windows to create
         extMap = {'psyexp': 'builder',
-                  'psyrun': 'runner'}
+                  'py': 'coder',
+                  'psyrun': 'runner'
+                  }
         if len(sys.argv) > 1:
             if sys.argv[1] == __name__:
                 # program was executed as "python.exe psychopyApp.py %1'
@@ -341,11 +343,14 @@ class PsychoPyApp(wx.App, themes.ThemeMixin):
             elif args[0] in ['coder', '--coder', '-c']:
                 view = 'coder'
                 args = args[1:]  # can remove that argument
+            elif args[0] in ['runner', '--runner', '-r']:
+                view = 'runner'
+                args = args[1:]
             # did we get .py or .psyexp files?
             else:
                 # If filename, get extension and set view accordingly
                 _, ext = os.path.splitext(args[0])
-                if ext in extMap:
+                if ext.strip(".") in extMap:
                     view = extMap[ext]
                 else:
                     view = 'coder'
