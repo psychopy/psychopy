@@ -648,12 +648,11 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
         float
             Offset position of items proportionate to scroll bar
         """
-        sizeOffset = (1 - self.scrollbar.markerPos) * (
-                    self.size[1] + self.itemPadding)
-        maxItemPos = self._currentVirtualY
+        sizeOffset = (1-self.scrollbar.markerPos) * self.size[1]
+        maxItemPos = self._currentVirtualY - self.size[1]
         if maxItemPos > -self.size[1]:
             return 0
-        return (maxItemPos - (self.scrollbar.markerPos * maxItemPos) + sizeOffset)
+        return maxItemPos*(1- self.scrollbar.markerPos) + sizeOffset
 
     def _createItemCtrls(self):
         """Define layout of form"""
@@ -724,11 +723,11 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
             if oneLine:
                 # response on same line - work out which is bigger
                 self._currentVirtualY -= (
-                    max(questionHeight, respHeight) + self.itemPadding*2
+                    max(questionHeight, respHeight) + self.itemPadding
                 )
             else:
                 # response on next line
-                self._currentVirtualY -= respHeight + self.itemPadding*2
+                self._currentVirtualY -= respHeight + self.itemPadding
 
         self._setDecorations()  # choose whether show/hide scroolbar
 
