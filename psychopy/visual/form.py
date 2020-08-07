@@ -567,7 +567,7 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
                 font='Arial',
                 editable=True,
                 borderColor=self.colorScheme['fg'],
-                borderWidth=1,
+                borderWidth=2,
                 fillColor=self.colorScheme['bg'],
                 onTextCallback=self._layoutY,
         )
@@ -648,12 +648,11 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
         float
             Offset position of items proportionate to scroll bar
         """
-        sizeOffset = (1 - self.scrollbar.markerPos) * (
-                    self.size[1] + self.itemPadding)
-        maxItemPos = self._currentVirtualY
+        sizeOffset = (1-self.scrollbar.markerPos) * self.size[1]
+        maxItemPos = self._currentVirtualY - self.size[1]
         if maxItemPos > -self.size[1]:
             return 0
-        return (maxItemPos - (self.scrollbar.markerPos * maxItemPos) + sizeOffset)
+        return maxItemPos*(1- self.scrollbar.markerPos) + sizeOffset
 
     def _createItemCtrls(self):
         """Define layout of form"""
@@ -729,9 +728,6 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
             else:
                 # response on next line
                 self._currentVirtualY -= respHeight + self.itemPadding
-
-        # a hack because form didn't have enough space at bottom!
-        self._currentVirtualY -= respHeight*3
 
         self._setDecorations()  # choose whether show/hide scroolbar
 
@@ -896,23 +892,23 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
         self._style = style
         # Default colours
         self.colorScheme = {
-            'space': 'hex',  # Colour space
-            'em': '#F2545B',  # emphasis
-            'bg': '#888888',  # background
-            'fg': '#FFFFFF',  # foreground
+            'space': 'rgb',  # Colour space
+            'em': [0.89, -0.35, -0.28],  # emphasis
+            'bg': [0,0,0],  # background
+            'fg': [1,1,1],  # foreground
         }
         if 'light' in style:
             self.colorScheme = {
-                'space': 'hex', # Colour space
-                'em': '#F2545B',  # emphasis
-                'bg': '#F2F2F2',  # background
-                'fg': '#000000',  # foreground
+                'space': 'rgb', # Colour space
+                'em': [0.89, -0.35, -0.28],  # emphasis
+                'bg': [0.89,0.89,0.89],  # background
+                'fg': [-1,-1,-1],  # foreground
             }
 
         if 'dark' in style:
             self.colorScheme = {
-                'space': 'hex',  # Colour space
-                'em': '#F2545B',  # emphasis
-                'bg': '#66666E',  # background
-                'fg': '#F2F2F2',  # foreground
+                'space': 'rgb',  # Colour space
+                'em': [0.89, -0.35, -0.28],  # emphasis
+                'bg': [-0.19,-0.19,-0.14],  # background
+                'fg': [0.89,0.89,0.89],  # foreground
             }

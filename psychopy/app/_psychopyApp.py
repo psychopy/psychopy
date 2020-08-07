@@ -13,6 +13,7 @@ from builtins import object
 profiling = False  # turning on will save profile files in currDir
 
 import sys
+import argparse
 import platform
 import psychopy
 from psychopy import prefs
@@ -287,6 +288,7 @@ class PsychoPyApp(wx.App, themes.ThemeMixin):
             exps = self.prefs.appData['builder']['prevFiles']
         else:
             exps = []
+        runlist = []
 
         self.dpi = int(wx.GetDisplaySize()[0] /
                        float(wx.GetDisplaySizeMM()[0]) * 25.4)
@@ -324,40 +326,38 @@ class PsychoPyApp(wx.App, themes.ThemeMixin):
         if splash:
             splash.SetText(_translate("  Creating frames..."))
 
-        # Decide which windows to create
-        extMap = {'psyexp': 'builder',
-                  'psyrun': 'runner'}
-        if len(sys.argv) > 1:
-            if sys.argv[1] == __name__:
-                # program was executed as "python.exe psychopyApp.py %1'
-                args = sys.argv[2:]
-            else:
-                # program was executed as "psychopyApp.py %1'
-                args = sys.argv[1:]
-            # choose which frame to start with
-            if args[0] in ['builder', '--builder', '-b']:
-                view = 'builder'
-                args = args[1:]  # can remove that argument
-            elif args[0] in ['coder', '--coder', '-c']:
-                view = 'coder'
-                args = args[1:]  # can remove that argument
-            # did we get .py or .psyexp files?
-            else:
-                # If filename, get extension and set view accordingly
-                _, ext = os.path.splitext(args[0])
-                if ext in extMap:
-                    view = extMap[ext]
-                else:
-                    view = 'coder'
-        else:
-            args = []
-            view = self.prefs.app['defaultView']
+        # Parse incoming call
+        parser = argparse.ArgumentParser(prog=self)
+        parser.add_argument('--builder', dest='builder', action="store_true")
+        parser.add_argument('-b', dest='builder', action="store_true")
+        parser.add_argument('--coder', dest='coder', action="store_true")
+        parser.add_argument('-c', dest='coder', action="store_true")
+        parser.add_argument('--runner', dest='runner', action="store_true")
+        parser.add_argument('-r', dest='runner', action="store_true")
+        view, args = parser.parse_known_args(sys.argv)
+        print(args)
+        # Check from filetype if any windows need to be open
+        if any(arg.endswith('.psyexp') for arg in args):
+            view.builder = True
+            exps = [file for file in args if file.endswith('.psyexp')]
+        if any(arg.endswith('.psyrun') for arg in args):
+            view.runner = True
+            runlist = [file for file in args if file.endswith('.psyrun')]
+        # If still no window specified, use default from prefs
+        if not any(getattr(view, key) for key in ['builder', 'coder', 'runner']):
+            if self.prefs.app['defaultView'] in view:
+                setattr(view, self.prefs.app['defaultView'], True)
+            elif self.prefs.app['defaultView'] == 'all':
+                view.builder = True
+                view.coder = True
+                view.runner = True
+
         # Create windows
-        if view in ['all', 'runner']:
-            self.showRunner()
-        if view in ['all', 'coder']:
+        if view.runner:
+            self.showRunner(fileList=runlist)
+        if view.coder:
             self.showCoder(fileList=scripts)
-        if view in ['all', 'builder']:
+        if view.builder:
             self.showBuilder(fileList=exps)
 
         # if darwin, check for inaccessible keyboard
@@ -612,7 +612,7 @@ class PsychoPyApp(wx.App, themes.ThemeMixin):
             thisFrame.Raise()
             self.SetTopWindow(thisFrame)
 
-    def showRunner(self, event=None):
+    def showRunner(self, event=None, fileList=[]):
         if not self.runner:
             self.runner = self.newRunnerFrame()
         if not self.testMode:
