@@ -29,6 +29,7 @@ _localized = {'text': _translate('Text'),
               'anchor': _translate('Anchor'),
               'fillColor': _translate('Fill Colour'),
               'borderColor': _translate('Border Colour'),
+              'borderWidth': _translate('Border Width'),
               'editable': _translate('Editable?'),
               'autoLog': _translate('Auto Log')
               }
@@ -50,7 +51,7 @@ class TextboxComponent(BaseVisualComponent):
                  stopType='duration (s)', stopVal=1.0,
                  startEstim='', durationEstim='',
                  languageStyle='LTR', fillColor=None,
-                 borderColor=None,
+                 borderColor=None, borderWidth=0,
                  flipHoriz=False,
                  flipVert=False,
                  editable=False, autoLog=True):
@@ -166,6 +167,12 @@ class TextboxComponent(BaseVisualComponent):
             hint=_translate("Textbox border colour"),
             label=_localized['borderColor'],
             categ='Color')
+        self.params['borderWidth'] = Param(
+            borderWidth, valType='num', allowedTypes=[],
+            updates='constant', allowedUpdates=_allow3[:],
+            hint=_translate("Textbox border width"),
+            label=_localized['borderWidth'],
+            categ='Format')
         self.params['editable'] = Param(
             editable, valType='bool', allowedTypes=[],
             updates='constant',
@@ -199,7 +206,7 @@ class TextboxComponent(BaseVisualComponent):
             "     win, text=%(text)s, font=%(font)s,\n"
             "     pos=%(pos)s," + unitsStr +
             "     letterHeight=%(letterHeight)s,\n"
-            "     size=%(size)s,\n"
+            "     size=%(size)s, borderWidth=%(borderWidth)s,\n"
             "     color=%(color)s, colorSpace=%(colorSpace)s,\n"
             "     opacity=%(opacity)s,\n"
             "     bold=%(bold)s, italic=%(italic)s,\n"
