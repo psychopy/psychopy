@@ -51,7 +51,7 @@ class TextboxComponent(BaseVisualComponent):
                  stopType='duration (s)', stopVal=1.0,
                  startEstim='', durationEstim='',
                  languageStyle='LTR', fillColor=None,
-                 borderColor=None, borderWidth=0,
+                 borderColor=None, borderWidth=2,
                  flipHoriz=False,
                  flipVert=False,
                  editable=False, autoLog=True):
