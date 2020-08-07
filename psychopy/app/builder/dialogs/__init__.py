@@ -485,7 +485,21 @@ class _BaseParamsDlg(wx.Dialog):
         if 'Basic' in categNames:
             # move it to be the first category we see
             categNames.insert(0, categNames.pop(categNames.index('Basic')))
-        # move into _localized after merge branches:
+
+        # get categories in order
+        categNamesRemaining = sorted(categs.keys())
+        if 'Basic' in categNamesRemaining:
+            categNamesRemaining.remove('Basic')
+        categNames = ['Basic']
+        # add categ names in the params order list
+        for thisParamName in self.order:
+            thisParam = self.params[thisParamName]
+            if thisParam.categ and thisParam.categ not in categNames:
+                categNames.append(thisParam.categ)
+        for thisCategName in categNamesRemaining:
+            if thisCategName not in categNames:
+                categNames.append(thisCategName)
+
         categLabel = {'Basic': _translate('Basic'),
                       'Color': _translate('Color'),
                       'Layout': _translate('Layout'),
