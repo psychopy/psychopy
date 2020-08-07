@@ -31,6 +31,7 @@ except ImportError:
 import copy
 import sys
 import os
+import re
 
 from psychopy import logging
 
@@ -274,6 +275,128 @@ class LegacyVisualMixin(object):
         """DEPRECATED. Depth is now controlled simply by drawing order.
         """
         self.__dict__['depth'] = value
+
+
+class ColorHandler(object):
+    """A class to store colour details, knows what colour space it's in and can supply colours in any space"""
+    names = {
+        'red': [1,-1,-1],
+        'green': [-1,1,-1],
+        'blue': [-1,-1,1]
+    }
+
+    _255 = '\d|\d\d|1\d\d|2[0-4]\d|25[0-5]'
+    spaces = {
+        'named': re.compile("|".join(list(names))), # A named colour space
+        'hex': re.compile('#[\dabcdefABCDEF]{6}'), # Hex (#F2545B)
+        'hexa': re.compile('#[\dabcdefABCDEF]{8}'), # Hex + alpha (#F2545B1E)
+        'rgb0': re.compile('[\[\(].*,.*,.*[\]\)]'), # RGB from -1 to 1 ([0.89, -0.35, -0.28])
+        'rgba0': re.compile('[\[\(].*,.*,.*,.*[\]\)]'),  # RGB + alpha from -1 to 1 ([0.89, -0.35, -0.28, -0.76])
+        'rgb1': re.compile('[\[\(].*,.*,.*[\]\)]'),  # RGB from 0 to 1 ([0.95, 0.32, 0.36])
+        'rgba1': re.compile('[\[\(].*,.*,.*,.*[\]\)]'),  # RGB + alpha from 0 to 1 ([0.95, 0.32, 0.36, 0.12])
+        'rgb255': re.compile('[\[\(]'+_255+','+_255+','+_255+'[\]\)]'), # RGB from 0 to 255 ([242, 84, 91])
+        'rgba255': re.compile('[\[\(]'+_255+','+_255+','+_255+','+_255+'[\]\)]') # RGB + alpha from 0 to 255 ([242, 84, 91, 30])
+    }
+
+    examples = {
+        'named': 'red',
+        'hex': '#F2545B',
+        'hexa': '#F2545B1E',
+        'rgb0': [0.89, -0.35, -0.28],
+        'rgba0': [0.89, -0.35, -0.28, -0.76],
+        'rgb1': [0.95, 0.32, 0.36],
+        'rgba1': [0.95, 0.32, 0.36, 0.12],
+        'rgb255': [242, 84, 91],
+        'rgba255': [242, 84, 91, 30]
+    }
+
+    def __init__(self, color, space=None):
+        if color is None:
+            space = 'rgba0'
+            color = [-1, -1, -1, -1]
+
+        if self.getSpace(color) == 'str':
+            self._requested = color.strip("[]()").split(",")
+        else:
+            self._requested = color
+        self._requestedSpace = space if space else self.getSpace(self._requested)
+
+    @staticmethod
+    def convertColor(color, old=None, new=None):
+        """Convert from one colour space to another
+        old : str indicating the colour space you are converting from. If None, will use ColorHandler.getSpace()
+        new : str or list of str indicating the colour space or spaces you are converting to. If None, will create a
+        dict with all spaces in.
+
+        Call `ColorHandler.spaces` for a list of valid space strings.
+        """
+
+        # Detect/validate old colour space
+        oldSpace = old if old else ColorHandler.getSpace(color)
+        if oldSpace is None or oldSpace not in ColorHandler.spaces:
+            return None
+        # List of alpha variants
+        alphaList = {
+            'rgba0': 'rgb0',
+            'rgba1': 'rgb1',
+            'rgba255': 'rgb255',
+            'hexa': 'hex'
+        }
+
+    @staticmethod
+    def getSpace(color):
+        """Find what colour space a colour is from"""
+        possible = [space for space in ColorHandler.spaces
+         if ColorHandler.spaces[space].fullmatch(str(color))]
+
+        return possible
+
+        # if len(possible) == 1:
+        #     return possible[0]
+        # elif any('rgb' in s for s in possible):
+        #     # Check if we have alpha
+        #     alpha = bool(['rgba0', 'rgba1', 'rgba255'])
+        #     # Make sure color is a list
+        #     if isinstance(color, str):
+        #         color = color.strip("[]()").split(",")
+        #     color = list(color)
+        #     # What kind of rgb is it?
+        #     if not all(c >= -1 and c <= 1 for c in color):
+        #         # rgb0 or rgb1
+        #         if any(c < 0 for c in color):
+        #             # rgb0
+        #             return 'rgba0' if alpha else 'rgb0'
+        #         else:
+        #             # Could still be rgb0, but assume rgb1 and warn user
+        #             logging.warning("Colour %{}s is assumed to be rgb from 0 to 1, but could be rgb from -1 to 1. "
+        #                             "Please specify ""colorSpace"" to be certain colour is interpreted correctly.")
+        #     elif all(isinstance(c, int) and c>=0 and c<=255 for c in color):
+        #         # rgb255
+        #         return 'rgba255' if alpha else 'rgb255'
+        #     else:
+        #         # Invalid rgb
+        #         return None
+        # else:
+        #     # Invalid
+        #     return None
+
+
+    @staticmethod
+    def getAlpha(color):
+        """Retrieve the alpha value from a colour"""
+        space = ColorHandler.getSpace(color)
+        # Colour spaces which include alpha
+        if space in ['rgba0', 'rgba1', 'rgba255']:
+            return color[-1]
+        elif space in ['hexa']:
+            return color[-2:]
+        # Colour spaces which do not include alpha
+        if space in ['rgb0', 'rgb1']:
+            return 1
+        elif space in ['rgb255']:
+            return 255
+        elif space in ['hex']:
+            return 'FF'
 
 
 class ColorMixin(object):
