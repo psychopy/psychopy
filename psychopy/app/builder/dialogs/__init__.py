@@ -494,7 +494,7 @@ class _BaseParamsDlg(wx.Dialog):
         # add categ names in the params order list
         for thisParamName in self.order:
             thisParam = self.params[thisParamName]
-            if thisParam.categ not in categNames:
+            if thisParam.categ and thisParam.categ not in categNames:
                 categNames.append(thisParam.categ)
         for thisCategName in categNamesRemaining:
             if thisCategName not in categNames:
