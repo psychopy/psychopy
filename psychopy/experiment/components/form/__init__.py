@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2020 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 from __future__ import absolute_import, print_function
@@ -173,5 +173,5 @@ class FormComponent(BaseComponent):
 
     def writeRoutineEndCodeJS(self, buff):
         # save data, according to row/col format
-        buff.writeIndented("{name}.addDataToExp(thisExp, {Data Format});\n"
+        buff.writeIndented("{name}.addDataToExp(psychoJS.experiment, {Data Format});\n"
                            .format(**self.params))

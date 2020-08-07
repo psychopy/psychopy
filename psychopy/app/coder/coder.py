@@ -602,7 +602,9 @@ class CodeEditor(BaseCodeEditor, CodeEditorFoldingMixin, ThemeMixin):
                 self.caretLine + 1, self.caretColumn + 1), 1)
 
         # calltips
-        self.CallTipSetBackground('#fffdcc')
+        self.CallTipSetBackground(ThemeMixin.codeColors['base']['bg'])
+        self.CallTipSetForeground(ThemeMixin.codeColors['base']['fg'])
+        self.CallTipSetForegroundHighlight(ThemeMixin.codeColors['select']['fg'])
         self.AutoCompSetIgnoreCase(True)
         self.AutoCompSetAutoHide(True)
         self.AutoCompStops('. ')
@@ -1638,7 +1640,7 @@ class CoderFrame(wx.Frame, ThemeMixin):
             item = menu.Append(wx.ID_ANY,
                                _translate("Unit &testing...\tCtrl-T"),
                                _translate("Show dialog to run unit tests"))
-        self.Bind(wx.EVT_MENU, self.onUnitTests, id=item.GetId())
+            self.Bind(wx.EVT_MENU, self.onUnitTests, id=item.GetId())
 
         # ---_demos---#000000#FFFFFF------------------------------------------
         self.demosMenu = wx.Menu()

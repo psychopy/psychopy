@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2020 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 # This file by Andrew Schofield
 
@@ -75,7 +75,7 @@ class NoiseStimComponent(BaseVisualComponent):
 
         self.type = 'NoiseStim'
         self.url = "http://www.psychopy.org/builder/components/NoiseStim.html"
-        self.order = ['tex', 'mask']
+        self.order = ['noiseOri', 'mask']
 
         # params
 
@@ -92,7 +92,7 @@ class NoiseStimComponent(BaseVisualComponent):
             updates='constant',
             allowedUpdates=['constant', 'set every repeat', 'set every frame'],
             hint=_translate("Orientation of this stimulus (in deg)"),
-            label=_localized['ori'],categ="Advanced")
+            label=_localized['ori'], categ="Advanced")
 
         msg = _translate("An image to define the alpha mask (ie shape)- "
                          "gauss, circle... or a filename (including path)")
@@ -157,7 +157,7 @@ class NoiseStimComponent(BaseVisualComponent):
             updates='constant',
             allowedUpdates=[],
             hint=msg,
-            label=_localized['noiseType'], categ=" Noise")
+            label=_localized['noiseType'], categ="Noise")
 
         msg = _translate("Apply filter to noise sample? "
                          "[Butterworth, Gabor, Isoptopic]. A filter with parameters taken from "
@@ -169,7 +169,7 @@ class NoiseStimComponent(BaseVisualComponent):
             updates='constant',
             allowedUpdates=[],
             hint=msg,
-            label=_localized['filter'], categ=" Noise")
+            label=_localized['filter'], categ="Noise")
             
         msg = _translate("Which image component should be randomised? "
                          "[Amplitude,Phase]. Randomizing amplitude will keep the phase spectrum of "
@@ -279,7 +279,7 @@ class NoiseStimComponent(BaseVisualComponent):
             updates='constant',
             allowedUpdates=['constant', 'set every repeat', 'set every frame'],
             hint=msg,
-            label=_localized['noiseClip'], categ=" Noise")
+            label=_localized['noiseClip'], categ="Noise")
 
         msg = _translate("How to update noise if not otherwise required by other changes (none, repeat, N-frames, Seconds)")
         self.params['noiseNewSample'] = Param(
@@ -287,7 +287,7 @@ class NoiseStimComponent(BaseVisualComponent):
             updates='constant',
             allowedUpdates=[],
             hint=msg,
-            label=_localized['noiseNewSample'], categ=" Noise")
+            label=_localized['noiseNewSample'], categ="Noise")
 
         msg = _translate("How often to update noise (in frames or seconds) - can be a variable, ignored if any noise characteristic is updating on every frame")
         self.params['noiseNewSampleWhen'] = Param(
@@ -295,7 +295,7 @@ class NoiseStimComponent(BaseVisualComponent):
             updates='constant',
             allowedUpdates=[],
             hint=msg,
-            label=_localized['noiseNewSampleWhen'], categ=" Noise")
+            label=_localized['noiseNewSampleWhen'], categ="Noise")
 
         msg = _translate("OpenGL Blendmode [avg, add (avg is most common mode in PsychoPy, add is used if you want to generate the sum of two components)]")
         self.params['blendmode'] = Param(

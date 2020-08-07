@@ -169,6 +169,9 @@ class ThemeMixin:
         def applyToCodeEditor(target):
             spec = ThemeMixin.codeColors.copy()
             base = spec['base']
+            # Set margin size according to text size
+            if not isinstance(target, wx.py.shell.Shell):
+                target.SetMarginWidth(0, 4 * prefs.coder['codeFontSize'])
             # Override base font with user spec if present
             prefkey = 'outputFont' if isinstance(target, wx.py.shell.Shell) else 'codeFont'
             if prefs.coder[prefkey].lower() != "From Theme...".lower():
