@@ -40,7 +40,7 @@ _knownFields = {
 }
 _doNotSave = [
     'itemCtrl', 'responseCtrl',  # these genuinely can't be save
-    'itemColor', 'options', 'ticks', 'tickLabels',  # not useful?
+    'itemColor', 'itemWidth', 'options', 'ticks', 'tickLabels',  # not useful?
     'responseWidth', 'responseColor', 'layout',
 ]
 _knownRespTypes = {
@@ -845,8 +845,8 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
         asCols = itemsAs.lower() in ['cols', 'columns']
         # iterate over items and fields within each item
         # iterate all items and all fields before calling nextEntry
-        for thisItem in data:  # data is a list of dicts
-            for ii, fieldName in enumerate(thisItem):
+        for ii, thisItem in enumerate(data):  # data is a list of dicts
+            for fieldName in thisItem:
                 if fieldName in _doNotSave:
                     continue
                 if asCols:  # for columns format, we need index for item
