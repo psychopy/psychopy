@@ -172,7 +172,7 @@ class TextboxComponent(BaseVisualComponent):
             updates='constant', allowedUpdates=_allow3[:],
             hint=_translate("Textbox border width"),
             label=_localized['borderWidth'],
-            categ='Format')
+            categ='Layout')
         self.params['editable'] = Param(
             editable, valType='bool', allowedTypes=[],
             updates='constant',
