@@ -32,6 +32,7 @@ import copy
 import sys
 import os
 import re
+from math import floor
 
 from psychopy import logging
 
@@ -277,126 +278,294 @@ class LegacyVisualMixin(object):
         self.__dict__['depth'] = value
 
 
-class ColorHandler(object):
+class Color(object):
     """A class to store colour details, knows what colour space it's in and can supply colours in any space"""
     names = {
-        'red': [1,-1,-1],
-        'green': [-1,1,-1],
-        'blue': [-1,-1,1]
+        'red': [1,-1,-1,1],
+        'green': [-1,1,-1,1],
+        'blue': [-1,-1,1,1]
     }
-
-    _255 = '\d|\d\d|1\d\d|2[0-4]\d|25[0-5]'
+    # Shorthand for common regexpressions
+    _255 = '(\d|\d\d|1\d\d|2[0-4]\d|25[0-5])'
+    _1 = '(0|1|0\.\d*)'
+    _lbrace = '[\[\(]\s*'
+    _rbrace = '\s*[\]\)]'
+    # Dict of regexpressions for different formats
     spaces = {
+        'invis': re.compile('None'), # Fully transparent
         'named': re.compile("|".join(list(names))), # A named colour space
         'hex': re.compile('#[\dabcdefABCDEF]{6}'), # Hex (#F2545B)
         'hexa': re.compile('#[\dabcdefABCDEF]{8}'), # Hex + alpha (#F2545B1E)
-        'rgb0': re.compile('[\[\(].*,.*,.*[\]\)]'), # RGB from -1 to 1 ([0.89, -0.35, -0.28])
-        'rgba0': re.compile('[\[\(].*,.*,.*,.*[\]\)]'),  # RGB + alpha from -1 to 1 ([0.89, -0.35, -0.28, -0.76])
-        'rgb1': re.compile('[\[\(].*,.*,.*[\]\)]'),  # RGB from 0 to 1 ([0.95, 0.32, 0.36])
-        'rgba1': re.compile('[\[\(].*,.*,.*,.*[\]\)]'),  # RGB + alpha from 0 to 1 ([0.95, 0.32, 0.36, 0.12])
-        'rgb255': re.compile('[\[\(]'+_255+','+_255+','+_255+'[\]\)]'), # RGB from 0 to 255 ([242, 84, 91])
-        'rgba255': re.compile('[\[\(]'+_255+','+_255+','+_255+','+_255+'[\]\)]') # RGB + alpha from 0 to 255 ([242, 84, 91, 30])
+        'rgb': re.compile(_lbrace+'\-?'+_1+',\s*'+'\-?'+_1+',\s*'+'\-?'+_1+_rbrace), # RGB from -1 to 1 ([0.89, -0.35, -0.28])
+        'rgba': re.compile(_lbrace+'\-?'+_1+',\s*'+'\-?'+_1+',\s*'+'\-?'+_1+',\s*'+'\-?'+_1+_rbrace),  # RGB + alpha from -1 to 1 ([0.89, -0.35, -0.28, -0.76])
+        'rgb1': re.compile(_lbrace+_1+',\s*'+_1+',\s*'+_1+_rbrace),  # RGB from 0 to 1 ([0.95, 0.32, 0.36])
+        'rgba1': re.compile(_lbrace+_1+',\s*'+_1+',\s*'+_1+',\s*'+_1+_rbrace),  # RGB + alpha from 0 to 1 ([0.95, 0.32, 0.36, 0.12])
+        'rgb255': re.compile(_lbrace+_255+',\s*'+_255+',\s*'+_255+_rbrace), # RGB from 0 to 255 ([242, 84, 91])
+        'rgba255': re.compile(_lbrace+_255+',\s*'+_255+',\s*'+_255+',\s*'+_255+_rbrace) # RGB + alpha from 0 to 255 ([242, 84, 91, 30])
     }
-
+    # Dict of examples of Psychopy Red at 12% opacity in different formats
     examples = {
+        'invis': None,
         'named': 'red',
         'hex': '#F2545B',
         'hexa': '#F2545B1E',
-        'rgb0': [0.89, -0.35, -0.28],
-        'rgba0': [0.89, -0.35, -0.28, -0.76],
+        'rgb': [0.89, -0.35, -0.28],
+        'rgba': [0.89, -0.35, -0.28, -0.76],
         'rgb1': [0.95, 0.32, 0.36],
         'rgba1': [0.95, 0.32, 0.36, 0.12],
         'rgb255': [242, 84, 91],
         'rgba255': [242, 84, 91, 30]
     }
+    # Dict of colour spaces with alpha and their sans-alpha variant
+    alphas = {
+        'rgba': 'rgb',
+        'rgba1': 'rgb1',
+        'rgba255': 'rgb255',
+        'hexa': 'hex'
+    }
 
-    def __init__(self, color, space=None):
-        if color is None:
-            space = 'rgba0'
-            color = [-1, -1, -1, -1]
-
-        if self.getSpace(color) == 'str':
-            self._requested = color.strip("[]()").split(",")
-        else:
-            self._requested = color
+    def __init__(self, color=None, space=None):
+        # Store colour and space (or defaults, if none given)
+        self._requested = color if color else [-1, -1, -1, -1]
         self._requestedSpace = space if space else self.getSpace(self._requested)
 
-    @staticmethod
-    def convertColor(color, old=None, new=None):
-        """Convert from one colour space to another
-        old : str indicating the colour space you are converting from. If None, will use ColorHandler.getSpace()
-        new : str or list of str indicating the colour space or spaces you are converting to. If None, will create a
-        dict with all spaces in.
-
-        Call `ColorHandler.spaces` for a list of valid space strings.
-        """
-
-        # Detect/validate old colour space
-        oldSpace = old if old else ColorHandler.getSpace(color)
-        if oldSpace is None or oldSpace not in ColorHandler.spaces:
-            return None
-        # List of alpha variants
-        alphaList = {
-            'rgba0': 'rgb0',
-            'rgba1': 'rgb1',
-            'rgba255': 'rgb255',
-            'hexa': 'hex'
+        # Dict of converters to rgb
+        _tofranca = {
+            'invis': Color.invis_to,
+            'named': Color.named_to,
+            'hex': Color.hex_to,
+            'hexa': Color.hex_to,
+            'rgb': Color.rgb_to,
+            'rgba': Color.rgb_to,
+            'rgb1': Color.rgb1_to,
+            'rgba1': Color.rgb1_to,
+            'rgb255': Color.rgb255_to,
+            'rgba255': Color.rgb255_to
         }
+        # Dict of converters from rgb
+        _fromfranca = {
+            'invis': Color.to_invis,
+            'named': Color.to_named,
+            'hex': Color.to_hex,
+            'hexa': Color.to_hexa,
+            'rgb': Color.to_rgb,
+            'rgba': Color.to_rgba,
+            'rgb1': Color.to_rgb1,
+            'rgba1': Color.to_rgba1,
+            'rgb255': Color.to_rgb255,
+            'rgba255': Color.to_rgba255
+        }
+
+        # Do conversions
+        self.rgba = _tofranca[self._requestedSpace](self._requested)
+        for key in _fromfranca:
+            self.__dict__[key] = _fromfranca[key](self.rgba)
 
     @staticmethod
     def getSpace(color):
         """Find what colour space a colour is from"""
-        possible = [space for space in ColorHandler.spaces
-         if ColorHandler.spaces[space].fullmatch(str(color))]
+        possible = [space for space in Color.spaces
+                    if Color.spaces[space].fullmatch(str(color))]
+        if len(possible) == 1:
+            return possible[0]
+        # Defaults for values which meet multiple colour spaces
+        if possible == ['rgb', 'rgb1']:
+            return 'rgb1'
+        else:
+            return None
 
-        return possible
-
-        # if len(possible) == 1:
-        #     return possible[0]
-        # elif any('rgb' in s for s in possible):
-        #     # Check if we have alpha
-        #     alpha = bool(['rgba0', 'rgba1', 'rgba255'])
-        #     # Make sure color is a list
-        #     if isinstance(color, str):
-        #         color = color.strip("[]()").split(",")
-        #     color = list(color)
-        #     # What kind of rgb is it?
-        #     if not all(c >= -1 and c <= 1 for c in color):
-        #         # rgb0 or rgb1
-        #         if any(c < 0 for c in color):
-        #             # rgb0
-        #             return 'rgba0' if alpha else 'rgb0'
-        #         else:
-        #             # Could still be rgb0, but assume rgb1 and warn user
-        #             logging.warning("Colour %{}s is assumed to be rgb from 0 to 1, but could be rgb from -1 to 1. "
-        #                             "Please specify ""colorSpace"" to be certain colour is interpreted correctly.")
-        #     elif all(isinstance(c, int) and c>=0 and c<=255 for c in color):
-        #         # rgb255
-        #         return 'rgba255' if alpha else 'rgb255'
-        #     else:
-        #         # Invalid rgb
-        #         return None
-        # else:
-        #     # Invalid
-        #     return None
-
+    # -------------------------
 
     @staticmethod
-    def getAlpha(color):
-        """Retrieve the alpha value from a colour"""
-        space = ColorHandler.getSpace(color)
-        # Colour spaces which include alpha
-        if space in ['rgba0', 'rgba1', 'rgba255']:
-            return color[-1]
-        elif space in ['hexa']:
-            return color[-2:]
-        # Colour spaces which do not include alpha
-        if space in ['rgb0', 'rgb1']:
-            return 1
-        elif space in ['rgb255']:
-            return 255
-        elif space in ['hex']:
-            return 'FF'
+    def invis_to(color):
+        # Validate
+        if color:
+            return None
+        # Invisible is always the same value
+        return [0,0,0,-1]
+
+    @staticmethod
+    def named_to(color):
+        # Validate
+        if str(color) not in Color.names:
+            return None
+        # Retrieve named colour
+        return Color.names[str(color)]
+
+    @staticmethod
+    def rgb_to(color):
+        # Validate
+        if not Color.spaces['rgb'].fullmatch(str(color)) \
+                and not Color.spaces['rgba'].fullmatch(str(color)):
+            return None
+        if isinstance(color, str):
+            color = [float(n) for n in color.strip('[]()').split(',')]
+        # Append alpha, if not present
+        if len(color) == 4:
+            return color
+        elif len(color) == 3:
+            return color.append(1)
+        else:
+            return None
+
+    @staticmethod
+    def rgb255_to(color):
+        # Validate
+        if not Color.spaces['rgb255'].fullmatch(str(color)) \
+                and not Color.spaces['rgba255'].fullmatch(str(color)):
+            return None
+        if isinstance(color, str):
+            color = [float(n) for n in color.strip('[]()').split(',')]
+        # Iterate through values and do conversion
+        flatList = [2 * (val / 255 - 0.5) for val in color]
+        # Append alpha, if not present
+        if len(flatList) == 4:
+            return flatList
+        elif len(flatList) == 3:
+            flatList.append(1)
+            return flatList
+        else:
+            return None
+
+    @staticmethod
+    def rgb1_to(color):
+        # Validate
+        if not Color.spaces['rgb1'].fullmatch(str(color)) \
+                and not Color.spaces['rgba1'].fullmatch(str(color)):
+            return None
+        if isinstance(color, str):
+            color = [float(n) for n in color.strip('[]()').split(',')]
+        # Iterate through values and do conversion
+        flatList = [2 * (val - 0.5) for val in color]
+        # Append alpha, if not present
+        if len(flatList) == 4:
+            return flatList
+        elif len(flatList) == 3:
+            flatList.append(1)
+            return flatList
+        else:
+            return None
+
+    @staticmethod
+    def hex_to(color):
+        # Convert strings to list
+        if Color.spaces['hexa'].fullmatch(str(color)):
+            colorList = [color[i - 2:i] for i in [3, 5, 7, 9]]
+        elif  Color.spaces['hex'].fullmatch(str(color)):
+            colorList = [color[i-2:i] for i in [3,5,7]]
+        else:
+            # Validate
+            return None
+        # Map hex letters to corresponding values in rgb255
+        hexmap = {'a':10, 'b':11, 'c':12, 'd':13, 'e':14, 'f':15}
+        # Create adjustment for different digits
+        adj = {0:16, 1:1}
+        flatList = []
+        for val in colorList:
+            # Iterate through individual values
+            flat = 0
+            for i, v in enumerate(val):
+                if re.match('\d', str(v)):
+                    flat += int(v)*adj[i]
+                elif re.match('[abcdef]', str(v).lower()):
+                    flat += hexmap[v]*adj[i]
+            flatList.append(flat)
+        return Color.rgb255_to(flatList)
+
+    # ----------------------
+
+    @staticmethod
+    def to_invis(color):
+        # Validate
+        if not Color.spaces['rgba'].fullmatch(str(color)):
+            return None
+
+        return None
+
+    @staticmethod
+    def to_named(color):
+        # Validate
+        if not Color.spaces['rgba'].fullmatch(str(color)):
+            return None
+        if isinstance(color, str):
+            color = [float(n) for n in color.strip('[]()').split(',')]
+
+        possible = [nm for nm in Color.names if Color.names[nm] == color]
+        if len(possible) == 1:
+            return possible[0]
+        else:
+            return None
+
+    @staticmethod
+    def to_rgba(color):
+        # Validate
+        if not Color.spaces['rgba'].fullmatch(str(color)):
+            return None
+        if isinstance(color, str):
+            color = [float(n) for n in color.strip('[]()').split(',')]
+        return color
+
+    @staticmethod
+    def to_rgb(color):
+        return Color.to_rgba(color)[:-1]
+
+    @staticmethod
+    def to_rgba255(color):
+        # Validate
+        if not Color.spaces['rgba'].fullmatch(str(color)):
+            return None
+        if isinstance(color, str):
+            color = [float(n) for n in color.strip('[]()').split(',')]
+
+        # Iterate through values and do conversion
+        return [int(255*(val+1)/2) for val in color]
+
+    @staticmethod
+    def to_rgb255(color):
+        return Color.to_rgba255(color)[:-1]
+
+    @staticmethod
+    def to_rgba1(color):
+        # Validate
+        if not Color.spaces['rgba'].fullmatch(str(color)):
+            return None
+        if isinstance(color, str):
+            color = [float(n) for n in color.strip('[]()').split(',')]
+
+        # Iterate through values and do conversion
+        return [(val + 1) / 2 for val in color]
+
+    @staticmethod
+    def to_rgb1(color):
+        return Color.to_rgba1(color)[:-1]
+
+    @staticmethod
+    def to_hexa(color):
+        # Validate
+        if not Color.spaces['rgba'].fullmatch(str(color)):
+            return None
+        if isinstance(color, str):
+            color = [float(n) for n in color.strip('[]()').split(',')]
+        # Convert to 255
+        color = Color.to_rgba255(color)
+        # Map rgb255 values to corresponding letters in hex
+        hexmap = {10:'a', 11:'b', 12:'c', 13:'d', 14:'e', 15:'f'}
+        # Iterate and do conversion
+        flatList = ['#']
+        for val in color:
+            dig1 = int(floor(val/16))
+            flatList.append(
+                str(dig1) if dig1<=9 else hexmap[dig1]
+            )
+            dig2 = int(val % 16)
+            flatList.append(
+                str(dig2) if dig2 <= 9 else hexmap[dig2]
+            )
+        return "".join(flatList)
+
+    @staticmethod
+    def to_hex(color):
+        return Color.to_hexa(color)[:-2]
 
 
 class ColorMixin(object):
