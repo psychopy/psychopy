@@ -605,7 +605,7 @@ class Color(object):
                 if re.match('\d', str(v)):
                     flat += int(v)*adj[i]
                 elif re.match('[abcdef]', str(v).lower()):
-                    flat += hexmap[v]*adj[i]
+                    flat += hexmap[str(v).lower()]*adj[i]
             flatList.append(flat)
         return Color.rgb255_to(flatList)
 
@@ -644,7 +644,8 @@ class Color(object):
 
     @staticmethod
     def to_rgb(color):
-        return Color.to_rgba(color)[:-1]
+        col = Color.to_rgba(color)
+        return col[:-1] if col else None
 
     @staticmethod
     def to_rgba255(color):
@@ -659,7 +660,8 @@ class Color(object):
 
     @staticmethod
     def to_rgb255(color):
-        return Color.to_rgba255(color)[:-1]
+        col = Color.to_rgba255(color)
+        return col[:-1] if col else None
 
     @staticmethod
     def to_rgba1(color):
@@ -674,7 +676,8 @@ class Color(object):
 
     @staticmethod
     def to_rgb1(color):
-        return Color.to_rgba1(color)[:-1]
+        col = Color.to_rgba1(color)
+        return col[:-1] if col else None
 
     @staticmethod
     def to_hexa(color):
@@ -702,7 +705,8 @@ class Color(object):
 
     @staticmethod
     def to_hex(color):
-        return Color.to_hexa(color)[:-2]
+        col = Color.to_hexa(color)
+        return col[:-2] if col else None
 
 
 class AdvancedColor(Color):
