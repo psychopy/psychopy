@@ -365,6 +365,8 @@ class Color(object):
         # Defaults for values which meet multiple colour spaces
         if possible == ['rgb', 'rgb1']:
             return 'rgb1'
+        elif possible == ['rgba', 'rgba1']:
+            return 'rgba1'
         else:
             return None
 
@@ -468,7 +470,7 @@ class Color(object):
     @staticmethod
     def to_invis(color):
         # Validate
-        if not Color.getSpace(color) == 'rgba':
+        if not Color.getSpace(color) in ['rgba','rgba1']:
             return None
 
         return None
@@ -476,7 +478,7 @@ class Color(object):
     @staticmethod
     def to_named(color):
         # Validate
-        if not Color.getSpace(color) == 'rgba':
+        if not Color.getSpace(color) in ['rgba','rgba1']:
             return None
         if isinstance(color, str):
             color = [float(n) for n in color.strip('[]()').split(',')]
@@ -490,7 +492,7 @@ class Color(object):
     @staticmethod
     def to_rgba(color):
         # Validate
-        if not Color.getSpace(color) == 'rgba':
+        if not Color.getSpace(color) in ['rgba','rgba1']:
             return None
         if isinstance(color, str):
             color = [float(n) for n in color.strip('[]()').split(',')]
@@ -503,7 +505,7 @@ class Color(object):
     @staticmethod
     def to_rgba255(color):
         # Validate
-        if not Color.getSpace(color) == 'rgba':
+        if not Color.getSpace(color) in ['rgba','rgba1']:
             return None
         if isinstance(color, str):
             color = [float(n) for n in color.strip('[]()').split(',')]
@@ -518,7 +520,7 @@ class Color(object):
     @staticmethod
     def to_rgba1(color):
         # Validate
-        if not Color.getSpace(color) == 'rgba':
+        if not Color.getSpace(color) in ['rgba','rgba1']:
             return None
         if isinstance(color, str):
             color = [float(n) for n in color.strip('[]()').split(',')]
@@ -533,7 +535,7 @@ class Color(object):
     @staticmethod
     def to_hexa(color):
         # Validate
-        if not Color.getSpace(color) == 'rgba':
+        if not Color.getSpace(color) in ['rgba','rgba1']:
             return None
         if isinstance(color, str):
             color = [float(n) for n in color.strip('[]()').split(',')]
