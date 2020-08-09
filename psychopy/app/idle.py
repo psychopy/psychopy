@@ -17,7 +17,7 @@ from psychopy import prefs, logging
 from psychopy.constants import NOT_STARTED, STARTED, SKIP, FINISHED
 from . import connections
 from psychopy.tools import versionchooser as vc
-
+from ..app import pavlovia_ui
 _t0 = time.time()
 
 
@@ -72,6 +72,12 @@ tasks['updateVersionChooser'] = {
 tasks['showNews'] = {
     'status': NOT_STARTED,
     'func': connections.showNews,
+    'tstart': None, 'tEnd': None,
+    'thread': False,
+}
+tasks['getPavloviaUser'] = {
+    'status': NOT_STARTED,
+    'func': pavlovia_ui.menu.PavloviaMenu.setUser,
     'tstart': None, 'tEnd': None,
     'thread': False,
 }

@@ -44,8 +44,8 @@ class PavloviaMenu(wx.Menu):
         lastPavUser = PavloviaMenu.appData['pavloviaUser']
         if pavlovia.knownUsers and (lastPavUser not in pavlovia.knownUsers):
             lastPavUser = None
-        if lastPavUser and not PavloviaMenu.currentUser:
-            self.setUser(PavloviaMenu.appData['pavloviaUser'])
+        # if lastPavUser and not PavloviaMenu.currentUser:
+        #     self.setUser(PavloviaMenu.appData['pavloviaUser'])
         for name in self.knownUsers:
             self.addToSubMenu(name, self.userMenu, self.onSetUser)
         self.userMenu.AppendSeparator()
@@ -81,9 +81,14 @@ class PavloviaMenu(wx.Menu):
         user = self.userMenu.GetLabelText(event.GetId())
         self.setUser(user)
 
-    def setUser(self, user):
-        if user == PavloviaMenu.currentUser:
+    def setUser(self, user=None):
+
+        if user is None and PavloviaMenu.appData['pavloviaUser']:
+            user = PavloviaMenu.appData['pavloviaUser']
+
+        if user in [PavloviaMenu.currentUser, None]:
             return  # nothing to do here. Move along please.
+
         PavloviaMenu.currentUser = user
         PavloviaMenu.appData['pavloviaUser'] = user
         if user in pavlovia.knownUsers:
@@ -97,8 +102,8 @@ class PavloviaMenu(wx.Menu):
         else:
             self.onLogInPavlovia()
 
-        if self.searchDlg:
-            self.searchDlg.updateUserProjs()
+        if PavloviaMenu.searchDlg:
+            PavloviaMenu.searchDlg.updateUserProjs()
 
     def onSync(self, event):
         retVal = syncProject(parent=self.parent, project=self.parent.project)
