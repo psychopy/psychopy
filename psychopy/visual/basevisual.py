@@ -277,6 +277,19 @@ class LegacyVisualMixin(object):
         """
         self.__dict__['depth'] = value
 
+# Dict of examples of Psychopy Red at 12% opacity in different formats
+color_examples = {
+    'invis': None,
+    'named': 'red',
+    'hex': '#F2545B',
+    'hexa': '#F2545B1E',
+    'rgb': [0.89, -0.35, -0.28],
+    'rgba': [0.89, -0.35, -0.28, -0.76],
+    'rgb1': [0.95, 0.32, 0.36],
+    'rgba1': [0.95, 0.32, 0.36, 0.12],
+    'rgb255': [242, 84, 91],
+    'rgba255': [242, 84, 91, 30]
+}
 
 class Color(object):
     """A class to store colour details, knows what colour space it's in and can supply colours in any space"""
@@ -303,26 +316,7 @@ class Color(object):
         'rgb255': re.compile(_lbrace+_255+',\s*'+_255+',\s*'+_255+_rbrace), # RGB from 0 to 255 ([242, 84, 91])
         'rgba255': re.compile(_lbrace+_255+',\s*'+_255+',\s*'+_255+',\s*'+_255+_rbrace) # RGB + alpha from 0 to 255 ([242, 84, 91, 30])
     }
-    # Dict of examples of Psychopy Red at 12% opacity in different formats
-    examples = {
-        'invis': None,
-        'named': 'red',
-        'hex': '#F2545B',
-        'hexa': '#F2545B1E',
-        'rgb': [0.89, -0.35, -0.28],
-        'rgba': [0.89, -0.35, -0.28, -0.76],
-        'rgb1': [0.95, 0.32, 0.36],
-        'rgba1': [0.95, 0.32, 0.36, 0.12],
-        'rgb255': [242, 84, 91],
-        'rgba255': [242, 84, 91, 30]
-    }
-    # Dict of colour spaces with alpha and their sans-alpha variant
-    alphas = {
-        'rgba': 'rgb',
-        'rgba1': 'rgb1',
-        'rgba255': 'rgb255',
-        'hexa': 'hex'
-    }
+    del _255, _1, _lbrace, _rbrace
 
     def __init__(self, color=None, space=None):
         # Store colour and space (or defaults, if none given)
@@ -395,8 +389,7 @@ class Color(object):
     @staticmethod
     def rgb_to(color):
         # Validate
-        if not Color.spaces['rgb'].fullmatch(str(color)) \
-                and not Color.spaces['rgba'].fullmatch(str(color)):
+        if Color.getSpace(color) in ['rgb', 'rgba']:
             return None
         if isinstance(color, str):
             color = [float(n) for n in color.strip('[]()').split(',')]
@@ -411,8 +404,7 @@ class Color(object):
     @staticmethod
     def rgb255_to(color):
         # Validate
-        if not Color.spaces['rgb255'].fullmatch(str(color)) \
-                and not Color.spaces['rgba255'].fullmatch(str(color)):
+        if not Color.getSpace(color) in ['rgb255', 'rgba255']:
             return None
         if isinstance(color, str):
             color = [float(n) for n in color.strip('[]()').split(',')]
@@ -430,8 +422,7 @@ class Color(object):
     @staticmethod
     def rgb1_to(color):
         # Validate
-        if not Color.spaces['rgb1'].fullmatch(str(color)) \
-                and not Color.spaces['rgba1'].fullmatch(str(color)):
+        if not Color.getSpace(color) in ['rgb1', 'rgba1']:
             return None
         if isinstance(color, str):
             color = [float(n) for n in color.strip('[]()').split(',')]
@@ -449,9 +440,9 @@ class Color(object):
     @staticmethod
     def hex_to(color):
         # Convert strings to list
-        if Color.spaces['hexa'].fullmatch(str(color)):
+        if Color.getSpace(color) in ['hexa']:
             colorList = [color[i - 2:i] for i in [3, 5, 7, 9]]
-        elif  Color.spaces['hex'].fullmatch(str(color)):
+        elif Color.getSpace(color) in ['hex']:
             colorList = [color[i-2:i] for i in [3,5,7]]
         else:
             # Validate
@@ -477,7 +468,7 @@ class Color(object):
     @staticmethod
     def to_invis(color):
         # Validate
-        if not Color.spaces['rgba'].fullmatch(str(color)):
+        if not Color.getSpace(color) == 'rgba':
             return None
 
         return None
@@ -485,7 +476,7 @@ class Color(object):
     @staticmethod
     def to_named(color):
         # Validate
-        if not Color.spaces['rgba'].fullmatch(str(color)):
+        if not Color.getSpace(color) == 'rgba':
             return None
         if isinstance(color, str):
             color = [float(n) for n in color.strip('[]()').split(',')]
@@ -499,7 +490,7 @@ class Color(object):
     @staticmethod
     def to_rgba(color):
         # Validate
-        if not Color.spaces['rgba'].fullmatch(str(color)):
+        if not Color.getSpace(color) == 'rgba':
             return None
         if isinstance(color, str):
             color = [float(n) for n in color.strip('[]()').split(',')]
@@ -512,7 +503,7 @@ class Color(object):
     @staticmethod
     def to_rgba255(color):
         # Validate
-        if not Color.spaces['rgba'].fullmatch(str(color)):
+        if not Color.getSpace(color) == 'rgba':
             return None
         if isinstance(color, str):
             color = [float(n) for n in color.strip('[]()').split(',')]
@@ -527,7 +518,7 @@ class Color(object):
     @staticmethod
     def to_rgba1(color):
         # Validate
-        if not Color.spaces['rgba'].fullmatch(str(color)):
+        if not Color.getSpace(color) == 'rgba':
             return None
         if isinstance(color, str):
             color = [float(n) for n in color.strip('[]()').split(',')]
@@ -542,7 +533,7 @@ class Color(object):
     @staticmethod
     def to_hexa(color):
         # Validate
-        if not Color.spaces['rgba'].fullmatch(str(color)):
+        if not Color.getSpace(color) == 'rgba':
             return None
         if isinstance(color, str):
             color = [float(n) for n in color.strip('[]()').split(',')]
