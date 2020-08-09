@@ -300,7 +300,7 @@ class Color(object):
     }
     # Shorthand for common regexpressions
     _255 = '(\d|\d\d|1\d\d|2[0-4]\d|25[0-5])'
-    _1 = '(0|1|0\.\d*)'
+    _1 = '(0|1|1.0*|0\.\d*)'
     _lbrace = '[\[\(]\s*'
     _rbrace = '\s*[\]\)]'
     # Dict of regexpressions for different formats
