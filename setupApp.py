@@ -105,6 +105,7 @@ packages = ['wx', 'psychopy',
             'questplus',
             'metapensiero.pj', 'dukpy', 'macropy',
             'jedi',
+            'psychtoolbox',
             ]
 
 if sys.version_info.major >= 3:
