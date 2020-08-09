@@ -530,7 +530,7 @@ class Color(object):
         if str(color) not in Color.names:
             return None
         # Retrieve named colour
-        return Color.names[str(color)]
+        return Color.names[str(color).lower()]
 
     @staticmethod
     def rgb_to(color):
