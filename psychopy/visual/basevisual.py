@@ -280,7 +280,7 @@ class LegacyVisualMixin(object):
 # Dict of examples of Psychopy Red at 12% opacity in different formats
 color_examples = {
     'invis': None,
-    'named': 'red',
+    'named': 'crimson',
     'hex': '#F2545B',
     'hexa': '#F2545B1E',
     'rgb': [0.89, -0.35, -0.28],
@@ -626,12 +626,15 @@ class Color(object):
             return None
         if isinstance(color, str):
             color = [float(n) for n in color.strip('[]()').split(',')]
-
-        possible = [nm for nm in Color.names if Color.names[nm] == color]
-        if len(possible) == 1:
+        # Round all values to 2 decimal places to find approximate matches
+        approxNames = {col: [round(val,2) for val in Color.names[col]]
+                       for col in Color.names}
+        approxColor = [round(val,2) for val in color]
+        # Get matches
+        possible = [nm for nm in approxNames if approxNames[nm] == approxColor]
+        # Return the first match
+        if possible:
             return possible[0]
-        else:
-            return None
 
     @staticmethod
     def to_rgba(color):
