@@ -131,7 +131,7 @@ class PsychopyToolbar(wx.ToolBar, ThemeMixin):
         self.keys = {k: self.frame.app.keys[k].replace('Ctrl+', ctrlKey)
                 for k in self.frame.app.keys}
         self.keys['none'] = ''
-        self.makeTools()  # will be done when theme is applied
+        # self.makeTools()  # will be done when theme is applied
         # Finished setup. Make it happen
 
     def makeTools(self):
