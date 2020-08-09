@@ -559,6 +559,56 @@ class Color(object):
         return Color.to_hexa(color)[:-2]
 
 
+class AdvancedColor(Color):
+    # Shorthand for common regexpressions
+    _255 = '(\d|\d\d|1\d\d|2[0-4]\d|25[0-5])'
+    _1 = '(0|1|0\.\d*)'
+    _lbrace = '[\[\(]\s*'
+    _rbrace = '\s*[\]\)]'
+    # Dict of regexpressions for different formats
+    advancedSpaces = {
+
+    }
+    del _255, _1, _lbrace, _rbrace
+
+    def __init__(self, color=None, space=None):
+        # Store colour and space (or defaults, if none given)
+        self._requested = color if color else [-1, -1, -1, -1]
+        self._requestedSpace = space if space else self.getSpace(self._requested)
+        # If requested colour is in basic colour space, just initialise basic colour
+        if self._requestedSpace in Color.spaces:
+            Color.__init__(self, self._requested, self._requestedSpace)
+        else:
+            # Dict of converters to rgb
+            _tofranca = {
+
+            }
+            # Dict of converters from rgb
+            _fromfranca = {
+
+            }
+            # Do conversions
+            self.rgba = _tofranca[self._requestedSpace](self._requested)
+            Color.__init__(self, self.rgba)
+            for key in _fromfranca:
+                self.__dict__[key] = _fromfranca[key](self.rgba)
+
+    @staticmethod
+    def getSpace(color):
+        """Overrides Color.getSpace, drawing from a much more comprehensive library of colour spaces"""
+        # If colour is in basic space, use function from basic class
+        if Color.getSpace(color):
+            return Color.getSpace(color)
+        # If colour is advanced, check advanced spaces
+        possible = [space for space in AdvancedColor.advancedSpaces
+                    if AdvancedColor.advancedSpaces.fullmatch(str(color))]
+        if len(possible) == 1:
+            return possible[0]
+        # Defaults for values which meet multiple colour spaces
+        else:
+            return None
+
+
 class ColorMixin(object):
     """Mixin class for visual stim that need color and or contrast.
     """
