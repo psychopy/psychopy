@@ -484,14 +484,17 @@ class Color(object):
                     if color_spaces[space].fullmatch(str(color))]
         if len(possible) == 1:
             return possible[0]
-        # Defaults for values which meet multiple colour spaces
-        if possible == ['rgb', 'rgb1']\
-                or possible == ['rgba', 'rgba1']\
-                or possible == ['rgb', 'rgb1', 'rgb255']\
-                or possible == ['rgba', 'rgba1', 'rgb255']:
-            return 'rgb'
         elif debug:
             return possible
+        # Defaults for values which meet multiple colour spaces
+        if 'rgba' in possible:
+            return 'rgba'
+        elif 'rgb' in possible:
+            return 'rgb'
+        elif 'rgba255' in possible:
+            return 'rgba255'
+        elif 'rgb255' in possible:
+            return 'rgb255'
         else:
             return None
 
