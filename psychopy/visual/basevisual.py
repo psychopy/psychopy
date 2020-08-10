@@ -500,17 +500,20 @@ class Color(object):
             self.__dict__[key] = _fromfranca[key](self.rgba)
 
     @staticmethod
-    def getSpace(color):
+    def getSpace(color, debug=False):
         """Find what colour space a colour is from"""
         possible = [space for space in Color.spaces
                     if Color.spaces[space].fullmatch(str(color))]
         if len(possible) == 1:
             return possible[0]
         # Defaults for values which meet multiple colour spaces
-        if possible == ['rgb', 'rgb1']:
+        if possible == ['rgb', 'rgb1']\
+                or possible == ['rgba', 'rgba1']\
+                or possible == ['rgb', 'rgb1', 'rgb255']\
+                or possible == ['rgba', 'rgba1', 'rgb255']:
             return 'rgb1'
-        elif possible == ['rgba', 'rgba1']:
-            return 'rgba1'
+        elif debug:
+            return possible
         else:
             return None
 
