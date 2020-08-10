@@ -32,7 +32,7 @@ import copy
 import sys
 import os
 import re
-from math import floor
+from math import floor, fsum
 
 from psychopy import logging
 
@@ -288,7 +288,9 @@ color_examples = {
     'rgb1': (0.95, 0.32, 0.36),
     'rgba1': (0.95, 0.32, 0.36, 0.12),
     'rgb255': (242, 84, 91),
-    'rgba255': (242, 84, 91, 30)
+    'rgba255': (357, 65, 95, 30),
+    'hsv': (357, 65, 95),
+    'hsva': (357, 65, 95, 12),
 }
 # Dict of named colours
 color_names = {
@@ -442,6 +444,8 @@ color_names = {
     }
 # Shorthand for common regexpressions
 _255 = '(\d|\d\d|1\d\d|2[0-4]\d|25[0-5])'
+_360 = '(\d|\d\d|[12]\d\d|3[0-5]\d|360)'
+_100 = '(\d|\d\d|100)'
 _1 = '(0|1|1.0*|0\.\d*)'
 _lbr = '[\[\(]\s*'
 _rbr = '\s*[\]\)]'
@@ -449,14 +453,16 @@ _rbr = '\s*[\]\)]'
 color_spaces = {
     'invis': re.compile('None'), # Fully transparent
     'named': re.compile("|".join(list(color_names))), # A named colour space
-    'hex': re.compile('#[\dabcdefABCDEF]{6}'), # Hex (#F2545B)
-    'hexa': re.compile('#[\dabcdefABCDEF]{8}'), # Hex + alpha (#F2545B1E)
-    'rgb': re.compile(_lbr+'\-?'+_1+',\s*'+'\-?'+_1+',\s*'+'\-?'+_1+_rbr), # RGB from -1 to 1 ([0.89, -0.35, -0.28])
-    'rgba': re.compile(_lbr+'\-?'+_1+',\s*'+'\-?'+_1+',\s*'+'\-?'+_1+',\s*'+'\-?'+_1+_rbr),  # RGB + alpha from -1 to 1 ([0.89, -0.35, -0.28, -0.76])
-    'rgb1': re.compile(_lbr+_1+',\s*'+_1+',\s*'+_1+_rbr),  # RGB from 0 to 1 ([0.95, 0.32, 0.36])
-    'rgba1': re.compile(_lbr+_1+',\s*'+_1+',\s*'+_1+',\s*'+_1+_rbr),  # RGB + alpha from 0 to 1 ([0.95, 0.32, 0.36, 0.12])
-    'rgb255': re.compile(_lbr+_255+',\s*'+_255+',\s*'+_255+_rbr), # RGB from 0 to 255 ([242, 84, 91])
-    'rgba255': re.compile(_lbr+_255+',\s*'+_255+',\s*'+_255+',\s*'+_255+_rbr) # RGB + alpha from 0 to 255 ([242, 84, 91, 30])
+    'hex': re.compile('#[\dabcdefABCDEF]{6}'), # Hex
+    'hexa': re.compile('#[\dabcdefABCDEF]{8}'), # Hex + alpha
+    'rgb': re.compile(_lbr+'\-?'+_1+',\s*'+'\-?'+_1+',\s*'+'\-?'+_1+_rbr), # RGB from -1 to 1
+    'rgba': re.compile(_lbr+'\-?'+_1+',\s*'+'\-?'+_1+',\s*'+'\-?'+_1+',\s*'+'\-?'+_1+_rbr),  # RGB + alpha from -1 to 1
+    'rgb1': re.compile(_lbr+_1+',\s*'+_1+',\s*'+_1+_rbr),  # RGB from 0 to 1
+    'rgba1': re.compile(_lbr+_1+',\s*'+_1+',\s*'+_1+',\s*'+_1+_rbr),  # RGB + alpha from 0 to 1
+    'rgb255': re.compile(_lbr+_255+',\s*'+_255+',\s*'+_255+_rbr), # RGB from 0 to 255
+    'rgba255': re.compile(_lbr+_255+',\s*'+_255+',\s*'+_255+',\s*'+_255+_rbr), # RGB + alpha from 0 to 255
+    'hsv': re.compile(_lbr+_360+'\°?'+',\s*'+_100+'\%?'+',\s*'+_100+'\%?'+_rbr), # HSV with hue from 0 to 260 and saturation/vibrancy from 0 to 100
+    'hsva': re.compile(_lbr+_360+'\°?'+',\s*'+_100+'\%?'+',\s*'+_100+'\%?'+',\s*'+_100+'\%?'+_rbr), # HSV with hue from 0 to 260 and saturation/vibrancy from 0 to 100 + alpha from 0 to 100
 }
 advanced_spaces = {
 
@@ -497,6 +503,29 @@ class Color(object):
             return 'rgb255'
         else:
             return None
+
+    @staticmethod
+    def hue2rgb255(hue):
+        # Work out what segment of the colour wheel we're in
+        seg = floor(hue / 60)
+        seg = seg if seg % 6 else 0
+        # Define values for when a value is decreasing / increasing in a segment
+        _up = (hue % 60) * (255 / 60)
+        _down = 255 - _up
+        _mov = _down if seg%2 else _up # Even segments are down, odd are up
+        # Calculate rgb according to segment
+        if seg == 0:
+            return (255, _mov, 0,)
+        if seg == 1:
+            return (_mov, 255, 0,)
+        if seg == 2:
+            return (0, 255, _mov,)
+        if seg == 3:
+            return (0, _mov, 255,)
+        if seg == 4:
+            return (_mov, 0, 255,)
+        if seg == 5:
+            return (255, 0, _mov,)
 
     # Lingua franca is rgba
     @property
@@ -653,6 +682,42 @@ class Color(object):
             self.rgba = None
         # Retrieve named colour
         self.rgba = color_names[str(color).lower()]
+
+    @property
+    def hsv(self):
+        delta = max(self.rgb255) - min(self.rgb255)
+        saturation = max(self.rgb255)/delta if max(self.rgb255)>0 else 0
+
+
+        return None
+    @hsv.setter
+    def hsv(self, color):
+        # based on method in
+        # http://en.wikipedia.org/wiki/HSL_and_HSV#Converting_to_RGB
+
+        # Validate
+        if 'hsv' not in Color.getSpace(color, debug=True) and 'hsva' not in Color.getSpace(color, debug=True):
+            return None
+        if isinstance(color, str):
+            color = [float(n) for n in color.strip('[]()').split(',')]
+        if isinstance(color, list):
+            color = tuple(color)
+
+        # Extract values
+        alpha = None
+        if len(color) == 3:
+            hue, saturation, vibrancy = color
+        if len(color) == 4:
+            hue, saturation, vibrancy, alpha = color
+
+        # Convert hue
+        splitHue = Color.hue2rgb255(hue)
+        # Apply saturation
+        #postSat = tuple((h - 85) * saturation/100 + 85 for h in splitHue)
+        # Apply luminance
+        #postVibr = tuple(h*vibrancy/100 for h in postSat)
+        # Append alpha
+        self.rgba255 = splitHue + (alpha,) if alpha else splitHue + (255,)
 
 
 class AdvancedColor(Color):
