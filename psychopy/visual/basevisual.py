@@ -685,7 +685,28 @@ class Color(object):
 
     @property
     def hsva(self):
-        return None
+        # Based on https://www.geeksforgeeks.org/program-change-rgb-color-model-hsv-color-model/
+        red, green, blue, alpha = self.rgba1
+        cmax = max(red, green, blue)
+        cmin = min(red, green, blue)
+        delta = cmax - cmin
+        # Calculate hue
+        if cmax == 0 and cmin == 0:
+            return (0, 0, 0, alpha)
+        if cmax == red:
+            hue = (60 * ((green - blue) / delta) + 360) % 360
+        elif cmax == green:
+            hue = (60 * ((blue - red) / delta) + 120) % 360
+        elif cmax == blue:
+            hue = (60 * ((red - green) / delta) + 240) % 360
+        # Calculate saturation
+        if cmax == 0:
+            saturation = 0
+        else:
+            saturation = (delta / cmax) * 100
+        # Calculate vibrancy
+        vibrancy = cmax * 100
+        return (hue, saturation, vibrancy, alpha)
     @hsva.setter
     def hsva(self, color):
         # based on method in
