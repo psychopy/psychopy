@@ -467,37 +467,8 @@ class Color(object):
         self._requested = color if color else [-1, -1, -1, -1]
         self._requestedSpace = space if space else self.getSpace(self._requested)
 
-        # Dict of converters to rgb
-        _tofranca = {
-            'invis': Color.invis_to,
-            'named': Color.named_to,
-            'hex': Color.hex_to,
-            'hexa': Color.hex_to,
-            'rgb': Color.rgb_to,
-            'rgba': Color.rgb_to,
-            'rgb1': Color.rgb1_to,
-            'rgba1': Color.rgb1_to,
-            'rgb255': Color.rgb255_to,
-            'rgba255': Color.rgb255_to
-        }
-        # Dict of converters from rgb
-        _fromfranca = {
-            'invis': Color.to_invis,
-            'named': Color.to_named,
-            'hex': Color.to_hex,
-            'hexa': Color.to_hexa,
-            'rgb': Color.to_rgb,
-            'rgba': Color.to_rgba,
-            'rgb1': Color.to_rgb1,
-            'rgba1': Color.to_rgba1,
-            'rgb255': Color.to_rgb255,
-            'rgba255': Color.to_rgba255
-        }
-
         # Do conversions
-        self.rgba = _tofranca[self._requestedSpace](self._requested)
-        for key in _fromfranca:
-            self.__dict__[key] = _fromfranca[key](self.rgba)
+        self.hex = self._requested
 
     @staticmethod
     def getSpace(color, debug=False):
@@ -511,83 +482,108 @@ class Color(object):
                 or possible == ['rgba', 'rgba1']\
                 or possible == ['rgb', 'rgb1', 'rgb255']\
                 or possible == ['rgba', 'rgba1', 'rgb255']:
-            return 'rgb1'
+            return 'rgb'
         elif debug:
             return possible
         else:
             return None
 
-    # -------------------------
-
-    @staticmethod
-    def invis_to(color):
+    # Lingua franca is rgba
+    @property
+    def rgba(self):
+        return self._franca
+    @rgba.setter
+    def rgba(self, color):
         # Validate
-        if color:
-            return None
-        # Invisible is always the same value
-        return [0,0,0,-1]
-
-    @staticmethod
-    def named_to(color):
-        # Validate
-        if str(color) not in Color.names:
-            return None
-        # Retrieve named colour
-        return Color.names[str(color).lower()]
-
-    @staticmethod
-    def rgb_to(color):
-        # Validate
-        if Color.getSpace(color) in ['rgb', 'rgba']:
-            return None
+        if not Color.getSpace(color) in ['rgba', 'rgb']:
+            self._franca = None
+            return
         if isinstance(color, str):
             color = [float(n) for n in color.strip('[]()').split(',')]
+        if isinstance(color, list):
+            color = tuple(color)
         # Append alpha, if not present
         if len(color) == 4:
-            return color
+            self._franca = color
         elif len(color) == 3:
-            return color.append(1)
+            self._franca = color + (1,)
         else:
-            return None
+            self._franca = None
 
-    @staticmethod
-    def rgb255_to(color):
+    @property
+    def rgb(self):
+        if self.rgba:
+            return self.rgba[:-1]
+    @rgb.setter
+    def rgb(self, color):
+        self.rgba = color
+
+    @property
+    def rgba255(self):
+        # Iterate through values and do conversion
+        if self.rgba:
+            return tuple(int(255*(val+1)/2) for val in self.rgba)
+    @rgba255.setter
+    def rgba255(self, color):
         # Validate
         if not Color.getSpace(color) in ['rgb255', 'rgba255']:
-            return None
+            self.rgba = None
         if isinstance(color, str):
             color = [float(n) for n in color.strip('[]()').split(',')]
         # Iterate through values and do conversion
-        flatList = [2 * (val / 255 - 0.5) for val in color]
-        # Append alpha, if not present
-        if len(flatList) == 4:
-            return flatList
-        elif len(flatList) == 3:
-            flatList.append(1)
-            return flatList
-        else:
-            return None
+        self.rgba = tuple(2 * (val / 255 - 0.5) for val in color)
 
-    @staticmethod
-    def rgb1_to(color):
+    @property
+    def rgb255(self):
+        if self.rgba255:
+            return self.rgba255[:-1]
+    @rgb255.setter
+    def rgb255(self, color):
+        self.rgba255 = color
+
+    @property
+    def rgba1(self):
+        # Iterate through values and do conversion
+        if self.rgba:
+            return [(val + 1) / 2 for val in self.rgba]
+    @rgba1.setter
+    def rgba1(self, color):
         # Validate
         if not Color.getSpace(color) in ['rgb1', 'rgba1']:
             return None
         if isinstance(color, str):
             color = [float(n) for n in color.strip('[]()').split(',')]
         # Iterate through values and do conversion
-        flatList = [2 * (val - 0.5) for val in color]
-        # Append alpha, if not present
-        if len(flatList) == 4:
-            return flatList
-        elif len(flatList) == 3:
-            flatList.append(1)
-            return flatList
-        else:
-            return None
+        self.rgba = tuple(2 * (val - 0.5) for val in color)
 
-    @staticmethod
-    def hex_to(color):
+    @property
+    def rgb1(self):
+        if self.rgba1:
+            return self.rgba1[:-1]
+    @rgb1.setter
+    def rgb1(self, color):
+        self.rgba1 = color
+
+    @property
+    def hexa(self):
+        if not self.rgba255:
+            return None
+        # Map rgb255 values to corresponding letters in hex
+        hexmap = {10: 'a', 11: 'b', 12: 'c', 13: 'd', 14: 'e', 15: 'f'}
+        # Iterate and do conversion
+        flatList = ['#']
+        for val in self.rgba255:
+            dig1 = int(floor(val / 16))
+            flatList.append(
+                str(dig1) if dig1 <= 9 else hexmap[dig1]
+            )
+            dig2 = int(val % 16)
+            flatList.append(
+                str(dig2) if dig2 <= 9 else hexmap[dig2]
+            )
+        return "".join(flatList)
+    @hexa.setter
+    def hexa(self, color):
         # Convert strings to list
         if Color.getSpace(color) in ['hexa']:
             colorList = [color[i - 2:i] for i in [3, 5, 7, 9]]
@@ -595,7 +591,8 @@ class Color(object):
             colorList = [color[i-2:i] for i in [3,5,7]]
         else:
             # Validate
-            return None
+            self.rgba = None
+            return
         # Map hex letters to corresponding values in rgb255
         hexmap = {'a':10, 'b':11, 'c':12, 'd':13, 'e':14, 'f':15}
         # Create adjustment for different digits
@@ -610,109 +607,42 @@ class Color(object):
                 elif re.match('[abcdef]', str(v).lower()):
                     flat += hexmap[str(v).lower()]*adj[i]
             flatList.append(flat)
-        return Color.rgb255_to(flatList)
+        self.rgba255 = flatList
 
-    # ----------------------
+    @property
+    def hex(self):
+        if self.hexa:
+            return self.hexa[:-2]
+    @hex.setter
+    def hex(self, color):
+        self.hexa = color
 
-    @staticmethod
-    def to_invis(color):
-        # Validate
-        if not Color.getSpace(color) in ['rgba','rgba1']:
-            return None
-
+    @property
+    def invis(self):
         return None
+    @invis.setter
+    def invis(self, color):
+        # Invisible is always the same value
+        self.rgba = (0, 0, 0, -1)
 
-    @staticmethod
-    def to_named(color):
-        # Validate
-        if not Color.getSpace(color) in ['rgba','rgba1']:
-            return None
-        if isinstance(color, str):
-            color = [float(n) for n in color.strip('[]()').split(',')]
+    @property
+    def named(self):
         # Round all values to 2 decimal places to find approximate matches
-        approxNames = {col: [round(val,2) for val in Color.names[col]]
+        approxNames = {col: [round(val, 2) for val in Color.names[col]]
                        for col in Color.names}
-        approxColor = [round(val,2) for val in color]
+        approxColor = [round(val, 2) for val in self.rgba]
         # Get matches
         possible = [nm for nm in approxNames if approxNames[nm] == approxColor]
         # Return the first match
         if possible:
             return possible[0]
-
-    @staticmethod
-    def to_rgba(color):
+    @named.setter
+    def named(self, color):
         # Validate
-        if not Color.getSpace(color) in ['rgba','rgba1']:
-            return None
-        if isinstance(color, str):
-            color = [float(n) for n in color.strip('[]()').split(',')]
-        return color
-
-    @staticmethod
-    def to_rgb(color):
-        col = Color.to_rgba(color)
-        return col[:-1] if col else None
-
-    @staticmethod
-    def to_rgba255(color):
-        # Validate
-        if not Color.getSpace(color) in ['rgba','rgba1']:
-            return None
-        if isinstance(color, str):
-            color = [float(n) for n in color.strip('[]()').split(',')]
-
-        # Iterate through values and do conversion
-        return [int(255*(val+1)/2) for val in color]
-
-    @staticmethod
-    def to_rgb255(color):
-        col = Color.to_rgba255(color)
-        return col[:-1] if col else None
-
-    @staticmethod
-    def to_rgba1(color):
-        # Validate
-        if not Color.getSpace(color) in ['rgba','rgba1']:
-            return None
-        if isinstance(color, str):
-            color = [float(n) for n in color.strip('[]()').split(',')]
-
-        # Iterate through values and do conversion
-        return [(val + 1) / 2 for val in color]
-
-    @staticmethod
-    def to_rgb1(color):
-        col = Color.to_rgba1(color)
-        return col[:-1] if col else None
-
-    @staticmethod
-    def to_hexa(color):
-        # Validate
-        if not Color.getSpace(color) in ['rgba','rgba1']:
-            return None
-        if isinstance(color, str):
-            color = [float(n) for n in color.strip('[]()').split(',')]
-        # Convert to 255
-        color = Color.to_rgba255(color)
-        # Map rgb255 values to corresponding letters in hex
-        hexmap = {10:'a', 11:'b', 12:'c', 13:'d', 14:'e', 15:'f'}
-        # Iterate and do conversion
-        flatList = ['#']
-        for val in color:
-            dig1 = int(floor(val/16))
-            flatList.append(
-                str(dig1) if dig1<=9 else hexmap[dig1]
-            )
-            dig2 = int(val % 16)
-            flatList.append(
-                str(dig2) if dig2 <= 9 else hexmap[dig2]
-            )
-        return "".join(flatList)
-
-    @staticmethod
-    def to_hex(color):
-        col = Color.to_hexa(color)
-        return col[:-2] if col else None
+        if str(color) not in Color.names:
+            self.rgba = None
+        # Retrieve named colour
+        self.rgba = Color.names[str(color).lower()]
 
 
 class AdvancedColor(Color):
