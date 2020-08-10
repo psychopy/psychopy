@@ -458,6 +458,9 @@ color_spaces = {
     'rgb255': re.compile(_lbr+_255+',\s*'+_255+',\s*'+_255+_rbr), # RGB from 0 to 255 ([242, 84, 91])
     'rgba255': re.compile(_lbr+_255+',\s*'+_255+',\s*'+_255+',\s*'+_255+_rbr) # RGB + alpha from 0 to 255 ([242, 84, 91, 30])
 }
+advanced_spaces = {
+
+}
 
 
 class Color(object):
@@ -468,8 +471,11 @@ class Color(object):
         self._requested = color if color else None
         self._requestedSpace = space if space else self.getSpace(self._requested)
 
-        # Do conversions
-        self.__setattr__(self._requestedSpace, self._requested)
+        # Convert to lingua franca
+        if self._requestedSpace:
+            self.__setattr__(self._requestedSpace, self._requested)
+        else:
+            self.rgba = None
 
     @staticmethod
     def getSpace(color, debug=False):
@@ -647,54 +653,21 @@ class Color(object):
 
 
 class AdvancedColor(Color):
-    # Shorthand for common regexpressions
-    _255 = '(\d|\d\d|1\d\d|2[0-4]\d|25[0-5])'
-    _1 = '(0|1|0\.\d*)'
-    _lbrace = '[\[\(]\s*'
-    _rbrace = '\s*[\]\)]'
-    # Dict of regexpressions for different formats
-    advancedSpaces = {
-
-    }
-    del _255, _1, _lbrace, _rbrace
-
-    def __init__(self, color=None, space=None):
-        # Store colour and space (or defaults, if none given)
-        self._requested = color if color else [-1, -1, -1, -1]
-        self._requestedSpace = space if space else self.getSpace(self._requested)
-        # If requested colour is in basic colour space, just initialise basic colour
-        if self._requestedSpace in Color.spaces:
-            Color.__init__(self, self._requested, self._requestedSpace)
-        else:
-            # Dict of converters to rgb
-            _tofranca = {
-
-            }
-            # Dict of converters from rgb
-            _fromfranca = {
-
-            }
-            # Do conversions
-            self.rgba = _tofranca[self._requestedSpace](self._requested)
-            Color.__init__(self, self.rgba)
-            for key in _fromfranca:
-                self.__dict__[key] = _fromfranca[key](self.rgba)
-
     @staticmethod
-    def getSpace(color):
+    def getSpace(color, debug=False):
         """Overrides Color.getSpace, drawing from a much more comprehensive library of colour spaces"""
         # If colour is in basic space, use function from basic class
         if Color.getSpace(color):
             return Color.getSpace(color)
         # If colour is advanced, check advanced spaces
-        possible = [space for space in AdvancedColor.advancedSpaces
-                    if AdvancedColor.advancedSpaces.fullmatch(str(color))]
+        possible = [space for space in advanced_spaces
+                    if advanced_spaces[space].fullmatch(str(color))]
         if len(possible) == 1:
             return possible[0]
         # Defaults for values which meet multiple colour spaces
-        else:
-            return None
-
+        # Return full list if in debug mode
+        elif debug:
+            return possible
 
 class ColorMixin(object):
     """Mixin class for visual stim that need color and or contrast.
