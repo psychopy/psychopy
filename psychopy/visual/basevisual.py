@@ -473,7 +473,7 @@ class Color(object):
 
         # Convert to lingua franca
         if self._requestedSpace:
-            self.__setattr__(self._requestedSpace, self._requested)
+            setattr(self, self._requestedSpace, self._requested)
         else:
             self.rgba = None
 
@@ -556,7 +556,7 @@ class Color(object):
     @rgba1.setter
     def rgba1(self, color):
         # Validate
-        if not Color.getSpace(color) in ['rgb1', 'rgba1']:
+        if not Color.getSpace(color) in ['rgb', 'rgba', 'rgb1', 'rgba1']:
             return None
         if isinstance(color, str):
             color = [float(n) for n in color.strip('[]()').split(',')]
@@ -569,7 +569,7 @@ class Color(object):
             return self.rgba1[:-1]
     @rgb1.setter
     def rgb1(self, color):
-        self.rgba1 = color
+        self.rgba1 = tuple(2 * (val - 0.5) for val in color)
 
     @property
     def hexa(self):
