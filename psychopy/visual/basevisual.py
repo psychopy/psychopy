@@ -684,14 +684,10 @@ class Color(object):
         self.rgba = color_names[str(color).lower()]
 
     @property
-    def hsv(self):
-        delta = max(self.rgb255) - min(self.rgb255)
-        saturation = max(self.rgb255)/delta if max(self.rgb255)>0 else 0
-
-
+    def hsva(self):
         return None
-    @hsv.setter
-    def hsv(self, color):
+    @hsva.setter
+    def hsva(self, color):
         # based on method in
         # http://en.wikipedia.org/wiki/HSL_and_HSV#Converting_to_RGB
 
@@ -702,22 +698,28 @@ class Color(object):
             color = [float(n) for n in color.strip('[]()').split(',')]
         if isinstance(color, list):
             color = tuple(color)
-
         # Extract values
-        alpha = None
         if len(color) == 3:
             hue, saturation, vibrancy = color
+            alpha255 = None
         if len(color) == 4:
             hue, saturation, vibrancy, alpha = color
-
+            alpha255 = alpha/100*255
         # Convert hue
-        splitHue = Color.hue2rgb255(hue)
-        # Apply saturation
-        #postSat = tuple((h - 85) * saturation/100 + 85 for h in splitHue)
-        # Apply luminance
-        #postVibr = tuple(h*vibrancy/100 for h in postSat)
-        # Append alpha
-        self.rgba255 = splitHue + (alpha,) if alpha else splitHue + (255,)
+        hue255 = Color.hue2rgb255(hue)
+        # Get value to move towards as saturation decreases
+        vibrancy255 = vibrancy/100*255
+        # Adjust by vibrancy and saturation
+        all255 = tuple(h+(vibrancy255-h)*(saturation/100) for h in hue255)
+        # Apply via rgba255
+        self.rgba255 = all255 + (alpha255,) if alpha255 else all255 + (255,)
+    @property
+    def hsv(self):
+        if self.hsva:
+            return self.hsva[:-1]
+    @hsv.setter
+    def hsv(self, color):
+        self.hsva = color
 
 
 class AdvancedColor(Color):
