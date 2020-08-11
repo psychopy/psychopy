@@ -919,7 +919,10 @@ class AdvancedColor(Color):
         if len(possible) == 1:
             return possible[0]
         # Append basic colour spaces and check again
-        possible += Color.getSpace(color, debug=True)
+        basic = Color.getSpace(color, debug=True)
+        if isinstance(basic, str):
+            basic = [basic]
+        possible += basic
         if possible and len(possible) == 1:
             return possible[0]
         # Return full list if in debug mode
