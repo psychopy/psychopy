@@ -461,8 +461,8 @@ color_spaces = {
     'rgba1': re.compile(_lbr+_1+',\s*'+_1+',\s*'+_1+',\s*'+_1+_rbr),  # RGB + alpha from 0 to 1
     'rgb255': re.compile(_lbr+_255+',\s*'+_255+',\s*'+_255+_rbr), # RGB from 0 to 255
     'rgba255': re.compile(_lbr+_255+',\s*'+_255+',\s*'+_255+',\s*'+_255+_rbr), # RGB + alpha from 0 to 255
-    'hsv': re.compile(_lbr+_360+'\°?'+',\s*'+_100+'\%?'+',\s*'+_100+'\%?'+_rbr), # HSV with hue from 0 to 260 and saturation/vibrancy from 0 to 100
-    'hsva': re.compile(_lbr+_360+'\°?'+',\s*'+_100+'\%?'+',\s*'+_100+'\%?'+',\s*'+_100+'\%?'+_rbr), # HSV with hue from 0 to 260 and saturation/vibrancy from 0 to 100 + alpha from 0 to 100
+    'hsv': re.compile(_lbr+_360+'\°?'+',\s*'+_1+',\s*'+_1+_rbr), # HSV with hue from 0 to 260 and saturation/vibrancy from 0 to 100
+    'hsva': re.compile(_lbr+_360+'\°?'+',\s*'+_1+',\s*'+_1+',\s*'+_1+_rbr), # HSV with hue from 0 to 260 and saturation/vibrancy from 0 to 100 + alpha from 0 to 100
 }
 advanced_spaces = {
 
@@ -703,9 +703,9 @@ class Color(object):
         if cmax == 0:
             saturation = 0
         else:
-            saturation = (delta / cmax) * 100
+            saturation = (delta / cmax)
         # Calculate vibrancy
-        vibrancy = cmax * 100
+        vibrancy = cmax
         return (hue, saturation, vibrancy, alpha)
     @hsva.setter
     def hsva(self, color):
@@ -725,13 +725,13 @@ class Color(object):
             alpha255 = None
         if len(color) == 4:
             hue, saturation, vibrancy, alpha = color
-            alpha255 = alpha/100*255
+            alpha255 = alpha*255
         # Convert hue
         hue255 = Color.hue2rgb255(hue)
         # Get value to move towards as saturation decreases
-        vibrancy255 = vibrancy/100*255
+        vibrancy255 = vibrancy*255
         # Adjust by vibrancy and saturation
-        all255 = tuple(h+(vibrancy255-h)*(saturation/100) for h in hue255)
+        all255 = tuple(h+(vibrancy255-h)*(saturation) for h in hue255)
         # Apply via rgba255
         self.rgba255 = all255 + (alpha255,) if alpha255 else all255 + (255,)
     @property
