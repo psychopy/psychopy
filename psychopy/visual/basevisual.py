@@ -491,6 +491,8 @@ class Color(object):
     @staticmethod
     def getSpace(color, debug=False):
         """Find what colour space a colour is from"""
+        if isinstance(color, Color):
+            return color._requestedSpace
         possible = [space for space in color_spaces
                     if color_spaces[space].fullmatch(str(color))]
         if len(possible) == 1:
@@ -906,6 +908,8 @@ class AdvancedColor(Color):
     @staticmethod
     def getSpace(color, debug=False):
         """Overrides Color.getSpace, drawing from a much more comprehensive library of colour spaces"""
+        if isinstance(color, AdvancedColor):
+            return color._requestedSpace
         # Check for advanced colours spaces
         possible = [space for space in advanced_spaces
                     if advanced_spaces[space].fullmatch(str(color))]
