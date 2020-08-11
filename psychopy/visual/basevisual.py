@@ -848,8 +848,9 @@ class Color(object):
     def lms(self, color):
         self.lmsa = color
 
+_rec = '(\-4\.5|\-4\.4\d*|\-4\.[0-4]\d*|\-[0-3]\.\d*|\-[0-3]|0|0\.\d*|1|1\.0)' # -4.5 to 1
 advanced_spaces = {
-    'rec709TF': re.compile(_lbr+'\-?'+_1+',\s*'+'\-?'+_1+',\s*'+'\-?'+_1+_rbr), # rec709TF adjusted RGB from -1 to 1
+    'rec709TF': re.compile(_lbr+_rec+',\s*'+_rec+',\s*'+_rec+_rbr), # rec709TF adjusted RGB from -1 to 1
     'srgbTF': re.compile(_lbr+'\-?'+_1+',\s*'+'\-?'+_1+',\s*'+'\-?'+_1+_rbr), # srgbTF from -1 to 1
 }
 
@@ -895,6 +896,27 @@ class AdvancedColor(Color):
                          if c >= 0.018
                          else 4.5 * c
                          for c in self.rgb)
+    @rec709TF.setter
+    def rec709TF(self, color):
+        # Validate
+        if 'rec709TF' not in AdvancedColor.getSpace(color, debug=True) and 'rec709TFa' not in AdvancedColor.getSpace(color, debug=True):
+            self._franca = None
+            return
+        if isinstance(color, str):
+            color = [float(n) for n in color.strip('[]()').split(',')]
+        if isinstance(color, list):
+            color = tuple(color)
+        # Check for alpha
+        if len(color) == 4:
+            alpha = color[-1]
+            color = color[:-1]
+        elif len(color) == 3:
+            alpha = 1
+        # Do conversion
+        self.rgba = tuple(((c + 0.099)/1.099)**(1/0.45)
+                         if c >= 1.099 * 0.018 ** 0.45 - 0.099
+                         else c / 4.5
+                         for c in color) + (alpha,)
 
     @property
     def srgbTF(self):
