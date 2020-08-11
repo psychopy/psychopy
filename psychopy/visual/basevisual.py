@@ -577,7 +577,7 @@ class Color(object):
 
     @property
     def brightness(self):
-        return sum(self.rgb)/3
+        return sum(self.rgb1)/3
     @brightness.setter
     def brightness(self, value):
         adj = value-self.brightness
