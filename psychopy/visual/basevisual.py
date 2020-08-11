@@ -463,6 +463,8 @@ color_spaces = {
     'rgba255': re.compile(_lbr+_255+',\s*'+_255+',\s*'+_255+',\s*'+_255+_rbr), # RGB + alpha from 0 to 255
     'hsv': re.compile(_lbr+_360+'\°?'+',\s*'+_1+',\s*'+_1+_rbr), # HSV with hue from 0 to 260 and saturation/vibrancy from 0 to 100
     'hsva': re.compile(_lbr+_360+'\°?'+',\s*'+_1+',\s*'+_1+',\s*'+_1+_rbr), # HSV with hue from 0 to 260 and saturation/vibrancy from 0 to 100 + alpha from 0 to 100
+    'lms': re.compile(_lbr+'\-?'+_1+',\s*'+'\-?'+_1+',\s*'+'\-?'+_1+_rbr), # LMS from -1 to 1
+    'lmsa': re.compile(_lbr+'\-?'+_1+',\s*'+'\-?'+_1+',\s*'+'\-?'+_1+',\s*'+'\-?'+_1+_rbr), # LMS + alpha from -1 to 1
 }
 advanced_spaces = {
 
@@ -472,10 +474,17 @@ advanced_spaces = {
 class Color(object):
     """A class to store colour details, knows what colour space it's in and can supply colours in any space"""
 
-    def __init__(self, color=None, space=None):
+    def __init__(self, color=None, space=None, conematrix=None):
         # Store requested colour and space (or defaults, if none given)
         self._requested = color if color else None
         self._requestedSpace = space if space else self.getSpace(self._requested)
+
+        # Set matrix for cone conversion
+        if conematrix:
+            self.conematrix = conematrix
+        else:
+            # Set _conematrix specifically as undefined, rather than just setting to default
+            self._conematrix = None
 
         # Convert to lingua franca
         if self._requestedSpace:
@@ -743,6 +752,84 @@ class Color(object):
     @hsv.setter
     def hsv(self, color):
         self.hsva = color
+
+    @property
+    def conematrix(self):
+        if self._conematrix is None:
+            # If _conematrix has been directly set to None, set to default
+            self.conematrix = None
+        return self._conematrix
+    @conematrix.setter
+    def conematrix(self, value):
+        # Default matrix
+        def default():
+            # Set default cone matrix and print warning
+            logging.warning('This monitor has not been color-calibrated. '
+                            'Using default LMS conversion matrix.')
+            return numpy.asarray([
+                # L        M        S
+                [4.97068857, -4.14354132, 0.17285275],  # R
+                [-0.90913894, 2.15671326, -0.24757432],  # G
+                [-0.03976551, -0.14253782, 1.18230333]])  # B
+        if not value or not isinstance(value, numpy.ndarray):
+            self._conematrix = default()
+        elif not value.size == 9:
+            self._conematrix = default()
+        else:
+            self._conematrix = value
+
+    @property
+    def lmsa(self):
+        """Convert from RGB to cone space (LMS).
+
+        Requires a conversion matrix, which will be generated from generic
+        Sony Trinitron phosphors if not supplied (note that you will not get
+        an accurate representation of the color space unless you supply a
+        conversion matrix)
+        """
+        if self._conematrix is None:
+            self.conematrix = None
+        # its easier to use in the other orientation!
+        rgb_3xN = numpy.transpose(self.rgb)
+        rgb_to_cones = numpy.linalg.inv(self.conematrix)
+        lms = numpy.dot(rgb_to_cones, rgb_3xN)
+        return tuple(numpy.transpose(lms))  # return in the shape we received it
+    @lmsa.setter
+    def lmsa(self, color):
+        """Convert from cone space (Long, Medium, Short) to RGB.
+
+        Requires a conversion matrix, which will be generated from generic
+        Sony Trinitron phosphors if not supplied (note that you will not get
+        an accurate representation of the color space unless you supply a
+        conversion matrix)
+        """
+        # Validate
+        if 'lms' not in Color.getSpace(color, debug=True) and 'lmsa' not in Color.getSpace(color, debug=True):
+            return None
+        if isinstance(color, str):
+            color = [float(n) for n in color.strip('[]()').split(',')]
+        if isinstance(color, list):
+            color = tuple(color)
+
+        # Get alpha
+        if len(color) == 4:
+            alpha = color[-1]
+            color = color[:-1]
+        elif len(color) == 3:
+            alpha = 1
+
+        # its easier to use in the other orientation!
+        lms_3xN = numpy.transpose(color)
+        rgb = numpy.dot(self.conematrix, lms_3xN)
+        self.rgba = tuple(numpy.transpose(rgb)) + (alpha,)  # return in the shape we received it
+
+    @property
+    def lms(self):
+        if self.lmsa:
+            return self.lmsa[:-1]
+    @lms.setter
+    def lms(self, color):
+        self.lmsa = color
 
 
 class AdvancedColor(Color):
