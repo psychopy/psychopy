@@ -4,39 +4,28 @@
 from __future__ import absolute_import, print_function
 
 from past.builtins import basestring
-from psychopy.tools.colorspacetools import dkl2rgb, lms2rgb, hsv2rgb  # pylint: disable=W0611
-import numpy
+from psychopy.visual import basevisual as vis
 
 
 def hex2rgb255(hexColor):
     """Convert a hex color string (e.g. "#05ff66") into an rgb triplet
     ranging from 0:255
     """
-    if hexColor[0] == '#':
-        hexColor = hexColor[1:]
-    elif hexColor[0:2].lower() == '0x':
-        hexColor = hexColor[2:]
-    if len(hexColor) == 3:
-        hexColor = hexColor[0] + '0' + hexColor[1] + '0' + hexColor[2] + '0'
-
-    rgb = (int(hexColor[0:2], 16),
-           int(hexColor[2:4], 16),
-           int(hexColor[4:6], 16))
-
-    return rgb
+    col = vis.Color(hexColor)
+    if len(hexColor.strip('#')) == 6:
+        return col.rgb255
+    elif len(hexColor.strip('#')) == 8:
+        return col.rgba255
 
 
 def isValidColor(color):
     """check color validity (equivalent to existing checks in _setColor)
     """
-    try:
-        color = float(color)
+    col = vis.Color(color)
+    if col.rgb:
         return True
-    except Exception:
-        if isinstance(color, basestring) and len(color):
-            return (color.lower() in list(colors255.keys())
-                    or color[0] == '#' or color[0:2] == '0x')
-        return type(color) in [tuple, list, numpy.ndarray] or not color
+    else:
+        return False
 
 
 """140 colors defined by most modern browsers (originally the standard colors
