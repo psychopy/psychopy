@@ -20,6 +20,7 @@ class DocumentTreePanel(wx.Panel):
 
     Documents are displayed in a tree where root items are folders and files
     appear under them. Clicking on files will switch to them in the editor.
+    Files and folders are automatically sorted by name in the view.
 
     """
     def __init__(self, parent, frame):

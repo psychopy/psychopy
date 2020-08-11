@@ -2419,6 +2419,10 @@ class CoderFrame(wx.Frame, ThemeMixin):
 
         dlg.Destroy()
 
+        # update the document panel
+        if hasattr(self, "documentWindow"):
+            self.documentWindow.createDocTree()
+
     def fileClose(self, event, filename=None, checkSave=True):
         """Event called when an editor tab is closing."""
         if self.currentDoc is None:
