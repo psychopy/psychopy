@@ -558,7 +558,8 @@ class Color(object):
     # Lingua franca is rgba
     @property
     def rgba(self):
-        return self._franca
+        if hasattr(self, '_franca'):
+            return self._franca
     @rgba.setter
     def rgba(self, color):
         # Validate
@@ -865,8 +866,8 @@ class AdvancedColor(Color):
         if len(possible) == 1:
             return possible[0]
         # Append basic colour spaces and check again
-        possible += list(Color.getSpace(color))
-        if len(possible) == 1:
+        possible += Color.getSpace(color, debug=True)
+        if possible and len(possible) == 1:
             return possible[0]
         # Return full list if in debug mode
         if debug:
@@ -932,7 +933,7 @@ class AdvancedColor(Color):
         return tuple(c / 12.92
                      if c <= 0.04045
                      else ((c + 0.055) / 1.055) ** 2.4
-                     for c in color)
+                     for c in color) + (alpha,)
 
 
 class ColorMixin(object):
