@@ -721,6 +721,9 @@ class Color(object):
         # Calculate hue
         if cmax == 0 and cmin == 0:
             return (0, 0, 0, alpha)
+        elif delta == 0:
+            return (0, 0, sum(self.rgb1)/3, alpha)
+
         if cmax == red:
             hue = (60 * ((green - blue) / delta) + 360) % 360
         elif cmax == green:
