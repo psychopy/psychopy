@@ -488,6 +488,9 @@ class Color(object):
         else:
             self.rgba = None
 
+    def __str__(self):
+        return "<" + self.__class__.__module__ + "." + self.__class__.__name__ + ": " + str(self.rgba) + ">"
+
     @staticmethod
     def getSpace(color, debug=False):
         """Find what colour space a colour is from"""
