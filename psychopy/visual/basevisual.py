@@ -615,7 +615,7 @@ class Color(object):
     def rgba1(self):
         # Iterate through values and do conversion
         if self.rgba:
-            return [(val + 1) / 2 for val in self.rgba]
+            return tuple((val + 1) / 2 for val in self.rgba)
     @rgba1.setter
     def rgba1(self, color):
         # Validate
