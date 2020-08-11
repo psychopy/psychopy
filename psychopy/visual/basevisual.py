@@ -492,17 +492,19 @@ class Color(object):
             return possible[0]
         elif debug:
             return possible
-        # Defaults for values which meet multiple colour spaces
-        if 'rgba' in possible:
-            return 'rgba'
-        elif 'rgb' in possible:
-            return 'rgb'
-        elif 'rgba255' in possible:
-            return 'rgba255'
-        elif 'rgb255' in possible:
-            return 'rgb255'
-        else:
-            return None
+        # Preferred values in cases of conflict
+        priority = [
+            'rgba',
+            'rgb',
+            'rgba255',
+            'rgba255',
+            'hexa'
+        ]
+        for space in priority:
+            if space in possible:
+                return space
+        # If all else fails, return None
+        return None
 
     @staticmethod
     def hue2rgb255(hue):
