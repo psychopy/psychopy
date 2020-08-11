@@ -9,7 +9,6 @@ from __future__ import absolute_import, print_function
 
 # from future import standard_library
 # standard_library.install_aliases()
-import json
 from past.builtins import unicode
 from builtins import chr
 from builtins import range
@@ -31,7 +30,6 @@ import pickle
 import time
 import textwrap
 
-from . import psychoParser
 from .. import stdOutRich, dialogs
 from .. import pavlovia_ui
 from psychopy import logging, prefs
@@ -46,7 +44,6 @@ from psychopy.app.coder.documentTree import DocumentTreePanel
 from psychopy.app.themes import ThemeMixin
 from psychopy.app.coder.folding import CodeEditorFoldingMixin
 # from ..plugin_manager import PluginManagerFrame
-from psychopy.app.errorDlg import ErrorMsgDialog
 
 try:
     import jedi
@@ -2423,6 +2420,7 @@ class CoderFrame(wx.Frame, ThemeMixin):
         dlg.Destroy()
 
     def fileClose(self, event, filename=None, checkSave=True):
+        """Event called when an editor tab is closing."""
         if self.currentDoc is None:
             # so a coder window with no files responds like the builder window
             # to self.keys.close
@@ -2472,6 +2470,7 @@ class CoderFrame(wx.Frame, ThemeMixin):
         # return 1
 
     def fileClosed(self, event):
+        """Event called when a tab is closed."""
         if hasattr(self, 'documentWindow'):
             wx.CallAfter(self.documentWindow.createDocTree)
 
