@@ -851,8 +851,10 @@ class Color(object):
 
 _rec = '(\-4\.5|\-4\.4\d*|\-4\.[0-4]\d*|\-[0-3]\.\d*|\-[0-3]|0|0\.\d*|1|1\.0)' # -4.5 to 1
 advanced_spaces = {
-    'rec709TF': re.compile(_lbr+_rec+',\s*'+_rec+',\s*'+_rec+_rbr), # rec709TF adjusted RGB from -1 to 1
-    'srgbTF': re.compile(_lbr+'\-?'+_1+',\s*'+'\-?'+_1+',\s*'+'\-?'+_1+_rbr), # srgbTF from -1 to 1
+    'rec709TF': re.compile(_lbr+_rec+',\s*'+_rec+',\s*'+_rec+_rbr), # rec709TF adjusted RGB from -4.5 to 1 + alpha from 0 to 1
+    'rec709TFa': re.compile(_lbr+_rec+',\s*'+_rec+',\s*'+_rec+',\s*'+_1+_rbr), # rec709TF adjusted RGB from -4.5 to 1 + alpha from 0 to 1
+    'srgbTF': re.compile(_lbr+'\-?'+_1+',\s*'+'\-?'+_1+',\s*'+'\-?'+_1+_rbr), # srgbTF from -1 to 1 + alpha from 0 to 1
+    'srgbTFa': re.compile(_lbr+'\-?'+_1+',\s*'+'\-?'+_1+',\s*'+'\-?'+_1+',\s*'+_1+_rbr), # srgbTF from -1 to 1 + alpha from 0 to 1
 }
 
 
@@ -885,7 +887,7 @@ class AdvancedColor(Color):
                 return space
 
     @property
-    def rec709TF(self):
+    def rec709TFa(self):
         """Apply the Rec. 709 transfer function (or gamma) to linear RGB values.
 
             This transfer function is defined in the ITU-R BT.709 (2015) recommendation
@@ -896,9 +898,9 @@ class AdvancedColor(Color):
             return tuple(1.099 * c ** 0.45 - 0.099
                          if c >= 0.018
                          else 4.5 * c
-                         for c in self.rgb)
-    @rec709TF.setter
-    def rec709TF(self, color):
+                         for c in self.rgb) + (self.rgba1[-1],)
+    @rec709TFa.setter
+    def rec709TFa(self, color):
         # Validate
         if 'rec709TF' not in AdvancedColor.getSpace(color, debug=True) and 'rec709TFa' not in AdvancedColor.getSpace(color, debug=True):
             self._franca = None
@@ -920,15 +922,23 @@ class AdvancedColor(Color):
                          for c in color) + (alpha,)
 
     @property
-    def srgbTF(self):
+    def rec709TF(self):
+        if self.rec709TFa:
+            return self.rec709TFa[:-1]
+    @rec709TF.setter
+    def rec709TF(self, color):
+        self.rec709TFa = color
+
+    @property
+    def srgbTFa(self):
         """Apply sRGB transfer function (or gamma) to linear RGB values."""
         # applies the sRGB transfer function (linear RGB -> sRGB)
         return tuple(c * 12.92
                      if c <= 0.0031308
                      else (1.0 + 0.055) * c ** (1.0 / 2.4) - 0.055
-                     for c in self.rgb)
-    @srgbTF.setter
-    def srgbTF(self, color):
+                     for c in self.rgb) + (self.rgba1[-1],)
+    @srgbTFa.setter
+    def srgbTFa(self, color):
         # Validate
         if 'srgbTF' not in AdvancedColor.getSpace(color, debug=True) and 'srgbTFa' not in AdvancedColor.getSpace(color, debug=True):
             self._franca = None
@@ -948,6 +958,14 @@ class AdvancedColor(Color):
                      if c <= 0.04045
                      else ((c + 0.055) / 1.055) ** 2.4
                      for c in color) + (alpha,)
+
+    @property
+    def srgbTF(self):
+        if self.srgbTFa:
+            return self.srgbTFa[:-1]
+    @srgbTF.setter
+    def srgbTF(self, color):
+        self.srgbTFa = color
 
 
 class ColorMixin(object):
