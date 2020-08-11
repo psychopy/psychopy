@@ -42,6 +42,7 @@ import psychopy.app.pavlovia_ui.menu
 from psychopy.app.coder.codeEditorBase import BaseCodeEditor
 from psychopy.app.coder.fileBrowser import FileBrowserPanel
 from psychopy.app.coder.sourceTree import SourceTreePanel
+from psychopy.app.coder.documentTree import DocumentTreePanel
 from psychopy.app.themes import ThemeMixin
 from psychopy.app.coder.folding import CodeEditorFoldingMixin
 # from ..plugin_manager import PluginManagerFrame
@@ -1083,6 +1084,7 @@ class CoderFrame(wx.Frame, ThemeMixin):
         self.fileStatusCheckInterval = 5 * 60  # sec
         self.showingReloadDialog = False
         self.btnHandles = {}  # stores toolbar buttons so they can be altered
+        self.coderFrameLoaded = False
 
         # we didn't have the key or the win was minimized/invalid
         if self.appData['winH'] == 0 or self.appData['winW'] == 0:
@@ -1160,6 +1162,7 @@ class CoderFrame(wx.Frame, ThemeMixin):
 
         self.structureWindow = SourceTreePanel(self.sourceAsst, self)
         self.fileBrowserWindow = FileBrowserPanel(self.sourceAsst, self)
+        self.documentWindow = DocumentTreePanel(self.sourceAsst, self)
         # Add source assistant panel
         self.paneManager.AddPane(self.sourceAsst,
                                  aui.AuiPaneInfo().
@@ -1177,10 +1180,14 @@ class CoderFrame(wx.Frame, ThemeMixin):
         # Add file browser page to source assistant
         self.fileBrowserWindow.SetName("FileBrowser")
         self.sourceAsst.AddPage(self.fileBrowserWindow, "File Browser")
+        # Add document browser
+        self.documentWindow.SetName("Documents")
+        self.sourceAsst.AddPage(self.documentWindow, "Documents")
 
         # remove close buttons
         self.sourceAsst.SetCloseButton(0, False)
         self.sourceAsst.SetCloseButton(1, False)
+        self.sourceAsst.SetCloseButton(2, False)
 
         # Create editor notebook
         #todo: Why is editor default background not same as usual frame backgrounds?
@@ -1203,6 +1210,7 @@ class CoderFrame(wx.Frame, ThemeMixin):
         # Link functions
         self.notebook.SetDropTarget(FileDropTarget(targetFrame=self.pnlMain))
         self.notebook.Bind(aui.EVT_AUINOTEBOOK_PAGE_CLOSE, self.fileClose)
+        self.notebook.Bind(aui.EVT_AUINOTEBOOK_PAGE_CLOSED, self.fileClosed)
         self.notebook.Bind(aui.EVT_AUINOTEBOOK_PAGE_CHANGED, self.pageChanged)
         self.SetDropTarget(FileDropTarget(targetFrame=self.pnlMain))
         self.Bind(wx.EVT_DROP_FILES, self.filesDropped)
@@ -1292,6 +1300,9 @@ class CoderFrame(wx.Frame, ThemeMixin):
         #self.chkShowAutoComp.Check(self.prefs['autocomplete'])
         self.SendSizeEvent()
         self.app.trackFrame(self)
+
+        self.coderFrameLoaded = True
+        self.documentWindow.createDocTree()
 
     @property
     def useAutoComp(self):
@@ -1950,6 +1961,9 @@ class CoderFrame(wx.Frame, ThemeMixin):
             self.statusBar.SetStatusText('')
             dlg.Destroy()
 
+        if hasattr(self, 'documentWindow'):
+            self.documentWindow.selectDocument(self.currentDoc.filename)
+
     def filesDropped(self, event):
         fileList = event.GetFiles()
         for filename in fileList:
@@ -2226,6 +2240,9 @@ class CoderFrame(wx.Frame, ThemeMixin):
             self.currentDoc.SetFocus()
             self.statusBar.SetStatusText(self.currentDoc.getFileType(), 2)
 
+            if hasattr(self, 'documentWindow') and self.coderFrameLoaded:
+                self.documentWindow.createDocTree()
+
         self.SetLabel('%s - PsychoPy Coder' % self.currentDoc.filename)
         #if len(self.getOpenFilenames()) > 0:
         if hasattr(self, 'structureWindow'):
@@ -2243,6 +2260,10 @@ class CoderFrame(wx.Frame, ThemeMixin):
         if hasattr(self, 'cdrBtnRunner'):
             self.toolbar.EnableTool(self.cdrBtnRunner.Id, isExp)
             self.toolbar.EnableTool(self.cdrBtnRun.Id, isExp)
+
+        if hasattr(self, 'documentWindow') and self.coderFrameLoaded:
+            self.documentWindow.selectDocument(filename)
+
         self.app.updateWindowMenu()
 
     def fileOpen(self, event=None, filename=None):
@@ -2449,6 +2470,12 @@ class CoderFrame(wx.Frame, ThemeMixin):
             # set to current file status
             self.setFileModified(self.currentDoc.UNSAVED)
         # return 1
+
+    def fileClosed(self, event):
+        if hasattr(self, 'documentWindow'):
+            wx.CallAfter(self.documentWindow.createDocTree)
+
+        event.Skip()
 
     def fileCloseAll(self, event, checkSave=True):
         """Close all files open in the editor."""

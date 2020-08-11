@@ -147,6 +147,7 @@ class ThemeMixin:
             tabIcons = {
                 "Structure": "coderclass16.png",
                 "FileBrowser": "folder-open16.png",
+                "Documents": "fileunknown16.png",
                 "PythonShell": "coderpython16.png"
             }
             target.SetArtProvider(PsychopyTabArt())
