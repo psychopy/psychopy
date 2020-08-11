@@ -117,7 +117,7 @@ class DocumentTreePanel(wx.Panel):
                 pathName, fileName = os.path.split(docPath)
             else:
                 fileName = docPath
-                pathName = '[Untitled]'
+                pathName = 'Untitled'
 
             # check if a folder is
             if pathName not in docTree.keys():
@@ -147,7 +147,7 @@ class DocumentTreePanel(wx.Panel):
                     item, img,
                     wx.TreeItemIcon_Normal)
 
-                if pathName != 'untitled':
+                if pathName != 'Untitled':
                     fullPath = os.path.join(pathName, fileName)
                 else:
                     fullPath = fileName
