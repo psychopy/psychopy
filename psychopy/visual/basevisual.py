@@ -929,8 +929,22 @@ class AdvancedColor(Color):
                      for c in self.rgb)
     @srgbTF.setter
     def srgbTF(self, color):
+        # Validate
+        if 'srgbTF' not in AdvancedColor.getSpace(color, debug=True) and 'srgbTFa' not in AdvancedColor.getSpace(color, debug=True):
+            self._franca = None
+            return
+        if isinstance(color, str):
+            color = [float(n) for n in color.strip('[]()').split(',')]
+        if isinstance(color, list):
+            color = tuple(color)
+        # Check for alpha
+        if len(color) == 4:
+            alpha = color[-1]
+            color = color[:-1]
+        elif len(color) == 3:
+            alpha = 1
         # do the inverse (sRGB -> linear RGB)
-        return tuple(c / 12.92
+        self.rgba = tuple(c / 12.92
                      if c <= 0.04045
                      else ((c + 0.055) / 1.055) ** 2.4
                      for c in color) + (alpha,)
