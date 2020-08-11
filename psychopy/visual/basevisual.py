@@ -466,9 +466,6 @@ color_spaces = {
     'lms': re.compile(_lbr+'\-?'+_1+',\s*'+'\-?'+_1+',\s*'+'\-?'+_1+_rbr), # LMS from -1 to 1
     'lmsa': re.compile(_lbr+'\-?'+_1+',\s*'+'\-?'+_1+',\s*'+'\-?'+_1+',\s*'+'\-?'+_1+_rbr), # LMS + alpha from -1 to 1
 }
-advanced_spaces = {
-
-}
 
 
 class Color(object):
@@ -851,23 +848,70 @@ class Color(object):
     def lms(self, color):
         self.lmsa = color
 
+advanced_spaces = {
+    'rec709TF': re.compile(_lbr+'\-?'+_1+',\s*'+'\-?'+_1+',\s*'+'\-?'+_1+_rbr), # rec709TF adjusted RGB from -1 to 1
+    'srgbTF': re.compile(_lbr+'\-?'+_1+',\s*'+'\-?'+_1+',\s*'+'\-?'+_1+_rbr), # srgbTF from -1 to 1
+}
+
 
 class AdvancedColor(Color):
     @staticmethod
     def getSpace(color, debug=False):
         """Overrides Color.getSpace, drawing from a much more comprehensive library of colour spaces"""
-        # If colour is in basic space, use function from basic class
-        if Color.getSpace(color):
-            return Color.getSpace(color)
-        # If colour is advanced, check advanced spaces
+        # Check for advanced colours spaces
         possible = [space for space in advanced_spaces
                     if advanced_spaces[space].fullmatch(str(color))]
         if len(possible) == 1:
             return possible[0]
-        # Defaults for values which meet multiple colour spaces
+        # Append basic colour spaces and check again
+        possible += list(Color.getSpace(color))
+        if len(possible) == 1:
+            return possible[0]
         # Return full list if in debug mode
-        elif debug:
+        if debug:
             return possible
+        # Preferred values in cases of conflict
+        priority = [
+            'rgba',
+            'rgb',
+            'rgba255',
+            'rgba255',
+            'hexa'
+        ]
+        for space in priority:
+            if space in possible:
+                return space
+
+    @property
+    def rec709TF(self):
+        """Apply the Rec. 709 transfer function (or gamma) to linear RGB values.
+
+            This transfer function is defined in the ITU-R BT.709 (2015) recommendation
+            document (http://www.itu.int/rec/R-REC-BT.709-6-201506-I/en) and is
+            commonly used with HDTV televisions.
+            """
+        if self.rgb:
+            return tuple(1.099 * c ** 0.45 - 0.099
+                         if c >= 0.018
+                         else 4.5 * c
+                         for c in self.rgb)
+
+    @property
+    def srgbTF(self):
+        """Apply sRGB transfer function (or gamma) to linear RGB values."""
+        # applies the sRGB transfer function (linear RGB -> sRGB)
+        return tuple(c * 12.92
+                     if c <= 0.0031308
+                     else (1.0 + 0.055) * c ** (1.0 / 2.4) - 0.055
+                     for c in self.rgb)
+    @srgbTF.setter
+    def srgbTF(self, color):
+        # do the inverse (sRGB -> linear RGB)
+        return tuple(c / 12.92
+                     if c <= 0.04045
+                     else ((c + 0.055) / 1.055) ** 2.4
+                     for c in color)
+
 
 class ColorMixin(object):
     """Mixin class for visual stim that need color and or contrast.
