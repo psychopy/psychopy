@@ -753,10 +753,11 @@ class Color(object):
     @named.setter
     def named(self, color):
         # Validate
-        if str(color) not in color_names:
+        if str(color).lower() not in color_names:
             self.rgba = None
-        # Retrieve named colour
-        self.rgba = color_names[str(color).lower()]
+        else:
+            # Retrieve named colour
+            self.rgba = color_names[str(color).lower()]
 
     @property
     def hsva(self):
