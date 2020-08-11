@@ -553,7 +553,49 @@ class Color(object):
             setattr(self, self._requestedSpace, self._requested)
         else:
             self.rgba = None
+    # ---adjusters---
+    @property
+    def contrast(self):
+        '''Distance from mid grey in rgb (-1 to 1)'''
+        return sum(self.rgb)/3
+    @contrast.setter
+    def contrast(self, value):
+        norm = tuple(c/self.contrast for c in self.rgb)
+        self.rgba = tuple(max(min(c*value,1),-1) for c in norm) + (self.alpha,)
 
+    @property
+    def saturation(self):
+        '''Saturation in hsv (0 to 1)'''
+        return self.hsv[1]
+    @contrast.setter
+    def saturation(self, value):
+        h,s,v,a = self.hsva
+        s += value
+        s = min(s, 1)
+        s = max(s, 0)
+        self.hsva = (h, s, v, a)
+
+    @property
+    def brightness(self):
+        return sum(self.rgb)/3
+    @brightness.setter
+    def brightness(self, value):
+        adj = value-self.brightness
+        self.rgba1 = tuple(
+            max(min(c+adj, 1),0)
+            for c in self.rgb1
+        ) + (self.alpha,)
+
+    @property
+    def alpha(self):
+        return self.rgba[-1]
+    @alpha.setter
+    def alpha(self, value):
+        value = min(value,1)
+        value = max(value,0)
+        self.rgba = self.rgb + (value,)
+
+    #---spaces---
     # Lingua franca is rgba
     @property
     def rgba(self):
