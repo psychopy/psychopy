@@ -497,10 +497,11 @@ class Color(object):
 
     def __repr__(self):
         """If colour is printed, it will display its class and value"""
-        if self.named:
-            return "<" + self.__class__.__module__ + "." + self.__class__.__name__ + ": " + self.named + ">"
-        elif self.rgba:
-            return "<" + self.__class__.__module__ + "." + self.__class__.__name__ + ": " + str(tuple(round(c,2) for c in self.rgba)) + ">"
+        if self.rgba:
+            if self.named:
+                return "<" + self.__class__.__module__ + "." + self.__class__.__name__ + ": " + self.named + ">"
+            else:
+                return "<" + self.__class__.__module__ + "." + self.__class__.__name__ + ": " + str(tuple(round(c,2) for c in self.rgba)) + ">"
         else:
             return "<" + self.__class__.__module__ + "." + self.__class__.__name__ + ": " + "Invalid" + ">"
 
