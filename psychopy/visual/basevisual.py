@@ -483,7 +483,7 @@ class Color(object):
         self._requestedSpace = space if space else self.getSpace(self._requested)
 
         # Set matrix for cone conversion
-        if conematrix:
+        if conematrix is not None:
             self.conematrix = conematrix
         else:
             # Set _conematrix specifically as undefined, rather than just setting to default
@@ -497,6 +497,10 @@ class Color(object):
 
     def __str__(self):
         return "<" + self.__class__.__module__ + "." + self.__class__.__name__ + ": " + str(self.rgba) + ">"
+
+    def copy(self):
+        """Return a duplicate of this colour"""
+        return self.__class__(self._requested, self._requestedSpace, self.conematrix)
 
     @staticmethod
     def getSpace(color, debug=False):
