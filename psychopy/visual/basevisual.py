@@ -540,6 +540,32 @@ class Color(object):
         else:
             return False
 
+    #--operators---
+    def __add__(self, other):
+        if not isinstance(other, Color):
+            if Color.getSpace(other):
+                # Convert to a color if valid
+                other = Color(other)
+            elif AdvancedColor.getSpace(other):
+                # Convert to an advanced color if valid
+                other = AdvancedColor(other)
+            elif isinstance(other, int) or isinstance(other, float):
+                out = self.copy()
+                out.brightness += other
+                return out
+            else:
+                raise ValueError ("unsupported operand type(s) for +: '"
+                                  + self.__class__.__name__ +"' and '"
+                                  + other.__class__.__name__ + "'")
+        if isinstance(other, Color):
+            # If both are colours, average the two and sum their alphas
+            alpha = min(self.rgba[-1] + other.rgba[-1], 1)
+            rgb = [None, None, None]
+            for c in range(3):
+                rgb[c] = (self.rgb[c] + other.rgb[c])/2
+            return Color(rgb+[alpha,])
+
+
     def copy(self):
         """Return a duplicate of this colour"""
         return self.__class__(self._requested, self._requestedSpace, self.conematrix)
@@ -625,7 +651,10 @@ class Color(object):
         return sum(self.rgb)/3
     @contrast.setter
     def contrast(self, value):
-        norm = tuple(c/self.contrast for c in self.rgb)
+        if self.contrast:
+            norm = tuple(c/self.contrast for c in self.rgb)
+        else:
+            norm = self.rgb
         self.rgba = tuple(max(min(c*value,1),-1) for c in norm) + (self.alpha,)
 
     @property
