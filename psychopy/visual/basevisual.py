@@ -471,6 +471,12 @@ class Color(object):
     """A class to store colour details, knows what colour space it's in and can supply colours in any space"""
 
     def __init__(self, color=None, space=None, conematrix=None):
+        if isinstance(color, Color) or isinstance(color, AdvancedColor):
+            self._requested = color._requested
+            self._requestedSpace = color._requestedSpace
+            self.conematrix = color.conematrix
+            self.rgba = color.rgba
+            return
         # Store requested colour and space (or defaults, if none given)
         self._requested = color if color else None
         self._requestedSpace = space if space else self.getSpace(self._requested)
@@ -839,7 +845,7 @@ class Color(object):
                 [4.97068857, -4.14354132, 0.17285275],  # R
                 [-0.90913894, 2.15671326, -0.24757432],  # G
                 [-0.03976551, -0.14253782, 1.18230333]])  # B
-        if not value or not isinstance(value, numpy.ndarray):
+        if not isinstance(value, numpy.ndarray):
             self._conematrix = default()
         elif not value.size == 9:
             self._conematrix = default()
