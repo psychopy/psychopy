@@ -496,7 +496,43 @@ class Color(object):
             self.rgba = None
 
     def __str__(self):
+        """If colour is printed, it will display its class and RGBA value"""
         return "<" + self.__class__.__module__ + "." + self.__class__.__name__ + ": " + str(self.rgba) + ">"
+
+    # ---rich comparisons---
+    def __eq__(self, target):
+        """== will compare RGBA values, rounded to 2dp"""
+        if isinstance(target, Color):
+            return (round(c,2) for c in self.rgba) == (round(c,2) for c in target.rgba)
+        else:
+            return False
+    def __ne__(self, target):
+        """!= will return the opposite of =="""
+        return not self == target
+    def __lt__(self, target):
+        """< will compare brightness"""
+        if isinstance(target, Color):
+            return self.brightness < target.brightness
+        else:
+            return False
+    def __le__(self, target):
+        """<= will compare brightness"""
+        if isinstance(target, Color):
+            return self.brightness <= target.brightness
+        else:
+            return False
+    def __gt__(self, target):
+        """> will compare brightness"""
+        if isinstance(target, Color):
+            return self.brightness > target.brightness
+        else:
+            return False
+    def __ge__(self, target):
+        """>= will compare brightness"""
+        if isinstance(target, Color):
+            return self.brightness >= target.brightness
+        else:
+            return False
 
     def copy(self):
         """Return a duplicate of this colour"""
