@@ -497,7 +497,12 @@ class Color(object):
 
     def __str__(self):
         """If colour is printed, it will display its class and RGBA value"""
-        return "<" + self.__class__.__module__ + "." + self.__class__.__name__ + ": " + str(self.rgba) + ">"
+        if self.named:
+            return "<" + self.__class__.__module__ + "." + self.__class__.__name__ + ": " + self.named + ">"
+        elif self.rgba:
+            return "<" + self.__class__.__module__ + "." + self.__class__.__name__ + ": " + str(tuple(round(c,2) for c in self.rgba)) + ">"
+        else:
+            return "<" + self.__class__.__module__ + "." + self.__class__.__name__ + ": " + "Invalid" + ">"
 
     # ---rich comparisons---
     def __eq__(self, target):
