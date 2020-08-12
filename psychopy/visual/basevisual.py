@@ -496,7 +496,7 @@ class Color(object):
             self.rgba = None
 
     def __repr__(self):
-        """If colour is printed, it will display its class and RGBA value"""
+        """If colour is printed, it will display its class and value"""
         if self.named:
             return "<" + self.__class__.__module__ + "." + self.__class__.__name__ + ": " + self.named + ">"
         elif self.rgba:
