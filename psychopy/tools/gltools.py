@@ -85,7 +85,7 @@ __all__ = [
     'bindTexture',
     'unbindTexture',
     'createCubeMap',
-    'TexCubeMap',
+    'TexCubeMapInfo',
     'getModelViewMatrix',
     'getProjectionMatrix',
     'maxSamples',
@@ -1641,8 +1641,8 @@ class RenderbufferInfo(object):
         'width',
         'height',
         'internalFormat',
-        'samples',
-        'multiSample',  # boolean, check if a texture is multisample
+        '_samples',
+        '_multiSample',  # boolean, check if a texture is multisample
         'userData']  # dictionary for user defined data
 
     def __init__(self, name, target, width, height, internalFormat, samples,
@@ -2252,16 +2252,16 @@ def createCubeMap(width, height, target=GL.GL_TEXTURE_CUBE_MAP, level=0,
 
     GL.glBindTexture(target, 0)
 
-    tex = TexCubeMap(name=texId,
-                     target=target,
-                     width=width,
-                     height=height,
-                     internalFormat=internalFormat,
-                     level=level,
-                     pixelFormat=pixelFormat,
-                     dataType=dataType,
-                     unpackAlignment=unpackAlignment,
-                     texParams=texParams)
+    tex = TexCubeMapInfo(name=texId,
+                         target=target,
+                         width=width,
+                         height=height,
+                         internalFormat=internalFormat,
+                         level=level,
+                         pixelFormat=pixelFormat,
+                         dataType=dataType,
+                         unpackAlignment=unpackAlignment,
+                         texParams=texParams)
 
     return tex
 
@@ -2337,7 +2337,7 @@ class TexImage2DMultisampleInfo(object):
                  'target',
                  '_name',
                  'internalFormat',
-                 'samples',
+                 '_samples',
                  'multisample',
                  '_texParams',
                  '_isBound',
@@ -2482,7 +2482,7 @@ def createTexImage2DMultisample(width, height,
             width, height))
 
     # determine if the 'samples' value is valid
-    maxSamples = getMaxSamples()
+    maxSamples = maxSamples()
     if (samples & (samples - 1)) != 0:
         raise ValueError('Invalid number of samples, must be power-of-two.')
     elif samples <= 0 or samples > maxSamples:
