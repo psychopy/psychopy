@@ -1579,7 +1579,8 @@ class Window(object):
             # buffer name is valid
             self._buffer = self._readBuffer = self._drawBuffer = buffer
         except KeyError:
-            raise "Unknown buffer '%s' requested in Window.setBuffer" % buffer
+            raise ValueError(
+                "Unknown buffer '%s' requested in Window.setBuffer" % buffer)
 
         if isinstance(useBuffer, int):  # built-in GL names i.e. GL_BACK
             GL.glBindFramebuffer(GL.GL_FRAMEBUFFER, 0)

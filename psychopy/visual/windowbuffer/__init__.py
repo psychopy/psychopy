@@ -124,8 +124,8 @@ class WindowBuffer(object):
 
         # if fullscreen, adjust the screen width so that it is as wide as the
         # window, this ensures that the projection is correct in all cases
-        if not self.win._isFullScr:
-            self.scrWidthM = (self.size[0] / scrWidthPIX) * self.scrWidthM
+        #if not self.win._isFullScr:
+        #    self.scrWidthM = (self.size[0] / scrWidthPIX) * self.scrWidthM
 
         # clipping planes
         self._nearClip = -1
