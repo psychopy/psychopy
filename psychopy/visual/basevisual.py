@@ -559,11 +559,13 @@ class Color(object):
                                   + other.__class__.__name__ + "'")
         if isinstance(other, Color):
             # If both are colours, average the two and sum their alphas
-            alpha = min(self.rgba[-1] + other.rgba[-1], 1)
+            alpha = min(self.alpha + other.alpha, 1)
             rgb = [None, None, None]
+            selfWeight = self.alpha/(self.alpha+other.alpha)
+            otherWeight = other.alpha/(self.alpha+other.alpha)
             for c in range(3):
-                rgb[c] = (self.rgb[c] + other.rgb[c])/2
-            return Color(rgb+[alpha,])
+                rgb[c] = self.rgb1[c]*selfWeight + other.rgb1[c]*otherWeight
+            return Color(rgb+[alpha], 'rgba1')
 
 
     def copy(self):
@@ -682,12 +684,12 @@ class Color(object):
 
     @property
     def alpha(self):
-        return self.rgba[-1]
+        return self.rgba1[-1]
     @alpha.setter
     def alpha(self, value):
         value = min(value,1)
         value = max(value,0)
-        self.rgba = self.rgb + (value,)
+        self.rgba1 = self.rgb1 + (value,)
 
     #---spaces---
     # Lingua franca is rgba
