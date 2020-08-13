@@ -480,7 +480,9 @@ class Color(object):
             return
         # Store requested colour and space (or defaults, if none given)
         self._requested = color if color else None
-        self._requestedSpace = space if space else self.getSpace(self._requested)
+        self._requestedSpace = space \
+            if space and space in self.getSpace(self._requested, debug=True) \
+            else self.getSpace(self._requested)
 
         # Set matrix for cone conversion
         if conematrix is not None:
