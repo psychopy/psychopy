@@ -919,7 +919,17 @@ class PsychoPyApp(wx.App, themes.ThemeMixin):
         prefs.app['theme'] = value
         self._currentThemeSpec = themes.ThemeMixin.spec
         codeFont = themes.ThemeMixin.codeColors['base']['font']
-        self._codeFont.SetFaceName(codeFont)
+
+        # On OSX 10.15 Catalina at least calling SetFaceName with 'AppleSystemUIFont' fails.
+        # So this fix checks to see if changing the font name invalidates the font.
+        # if so rollback to the font before attempted change.
+        # Note that wx.Font uses referencing and copy-on-write so we need to force creation of a copy
+        # witht he wx.Font() call. Otherwise you just get reference to the font that gets borked by SetFaceName()
+        # -Justin Ales
+        beforesetface = wx.Font(self._codeFont)
+        success = self._codeFont.SetFaceName(codeFont)
+        if not (success):
+            self._codeFont = beforesetface
         # Apply theme
         self._applyAppTheme()
 
