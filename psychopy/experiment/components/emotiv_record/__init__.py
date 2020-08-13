@@ -12,7 +12,7 @@ from psychopy.localization import _translate
 CORTEX_OBJ = 'cortex_obj'
 
 thisFolder = path.abspath(path.dirname(__file__))
-iconFile = path.join(thisFolder, 'emotiv48.png')
+iconFile = path.join(thisFolder, 'emotiv_record.png')
 tooltip = _translate('Initialize EMOTIV hardware connection')
 
 
@@ -25,7 +25,8 @@ class EmotivRecordingComponent(BaseComponent):  # or (VisualComponent)
             startEstim='', durationEstim='',
             saveStartStop=False
         )
-        self.exp.requirePsychopyLibs(['emotiv'])
+        self.exp.requireImport(importName='emotiv',
+                               importFrom='psychopy.hardware')
         self.type = 'EmotivRecording'
 
     def writeInitCode(self, buff):

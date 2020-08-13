@@ -2,13 +2,14 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2020 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 from __future__ import absolute_import, print_function
 
 from os import path
 from psychopy.experiment.components import Param, getInitVals, _translate, BaseComponent
+from psychopy.visual import form
 
 __author__ = 'Jon Peirce, David Bridges, Anthony Haffey'
 
@@ -22,10 +23,12 @@ _localized = {'Items': _translate('Items'),
               'Text Height': _translate('Text Height'),
               'Size': _translate('Size'),
               'Pos': _translate('Pos'),
+              'Style': _translate('Styles'),
               'Item Padding': _translate('Item Padding'),
               'Data Format': _translate('Data Format'),
               'Randomize': _translate('Randomize')
               }
+knownStyles = form.Form.knownStyles
 
 class FormComponent(BaseComponent):
     """A class for presenting a survey as a Builder component"""
@@ -40,6 +43,7 @@ class FormComponent(BaseComponent):
                  randomize=False,
                  size=(1, .7),
                  pos=(0, 0),
+                 style=['dark'],
                  itemPadding=0.05,
                  startType='time (s)', startVal='0.0',
                  stopType='duration (s)', stopVal='',
@@ -58,9 +62,7 @@ class FormComponent(BaseComponent):
         # params
         self.order = ['name',
                       'Items',
-                      'Text Height',
                       'Size', 'Pos',
-                      'Item Padding',
                       'Data Format',
                       'Randomize',
                       ]
@@ -92,7 +94,8 @@ class FormComponent(BaseComponent):
             textHeight, valType='code', allowedTypes=[],
             updates='constant',
             hint=_translate("The size of the item text for Form"),
-            label=_localized['Text Height'])
+            label=_localized['Text Height'],
+            categ="Appearance")
 
         self.params['Randomize'] = Param(
             randomize, valType='bool', allowedTypes=[],
@@ -100,11 +103,20 @@ class FormComponent(BaseComponent):
             hint=_translate("Do you want to randomize the order of your questions?"),
             label=_localized['Randomize'])
 
+        self.params['Style'] = Param(
+            style, valType='fixedList',
+            updates='constant', allowedVals=knownStyles,
+            hint=_translate(
+                    "Styles determine the appearance of the form"),
+            label=_localized['Style'],
+            categ="Appearance")
+
         self.params['Item Padding'] = Param(
             itemPadding, valType='code', allowedTypes=[],
             updates='constant',
             hint=_translate("The padding or space between items."),
-            label=_localized['Item Padding'])
+            label=_localized['Item Padding'],
+            categ="Appearance")
 
         self.params['Data Format'] = Param(
             'rows', valType='str', allowedTypes=[],
@@ -123,20 +135,25 @@ class FormComponent(BaseComponent):
                    "    randomize={Randomize},\n"
                    "    size={Size},\n"
                    "    pos={Pos},\n"
-                   "    itemPadding={Item Padding})\n".format(**inits))
+                   "    style={Style},\n"
+                   "    itemPadding={Item Padding},"
+                   ")\n".format(**inits))
         buff.writeIndented(initStr)
 
     def writeInitCodeJS(self, buff):
         inits = getInitVals(self.params)
         # build up an initialization string for Form():
-        initStr = ("{name} = visual.Form(win=win, name='{name}',\n"
-                   "    items={Items},\n"
-                   "    textHeight={Text Height},\n"
-                   "    randomize={Randomize},\n"
-                   "    size={Size},\n"
-                   "    pos={Pos},\n"
-                   "    itemPadding={Item Padding});\n".format(**inits))
-        buff.writeIndented(initStr)
+        initStr = ("{name} = new visual.Form({{\n"
+                   "  win : psychoJS.window, name:'{name}',\n"
+                   "  items : {Items},\n"
+                   "  textHeight : {Text Height},\n"
+                   "  randomize : {Randomize},\n"
+                   "  size : {Size},\n"
+                   "  pos : {Pos},\n"
+                   "  style : {Style},\n"
+                   "  itemPadding : {Item Padding}\n"
+                   "}});\n".format(**inits))
+        buff.writeIndentedLines(initStr)
 
     def writeRoutineStartCode(self, buff):
         pass
@@ -148,37 +165,13 @@ class FormComponent(BaseComponent):
         buff.writeIndented("%(name)s.draw();\n" % (self.params))
 
     def writeRoutineEndCode(self, buff):
-        if self.params['Data Format'] == 'rows':
-            code = ("{name}Data = {name}.getData()\n"
-                    "while {name}Data['questions']:\n"
-                    "    for dataTypes in {name}Data.keys():\n"
-                    "        thisExp.addData(dataTypes, {name}Data[dataTypes].popleft())\n"
-                    "    thisExp.nextEntry()\n".format(**self.params))
-        elif self.params['Data Format'] == 'columns':
-            code = ("{name}Data = {name}.getData()\n"
-                    "for dataTypes in {name}Data.keys():\n"
-                    "    for thisIndex, thisItem in enumerate({name}Data[dataTypes]):\n"
-                    "        thisExp.addData('{name}.' + str(thisIndex), thisItem)\n"
-                    "    thisExp.nextEntry()\n".format(**self.params))
-        buff.writeIndented(code)
+        # save data, according to row/col format
+        buff.writeIndented("{name}.addDataToExp(thisExp, {Data Format})\n"
+                           .format(**self.params))
+        buff.writeIndented("{name}.autodraw = False\n"
+                           .format(**self.params))
 
     def writeRoutineEndCodeJS(self, buff):
-        if self.params['Data Format'] == 'rows':
-            code = ("while ({name}Data['questions']) {{\n"
-                    "    for (var dataType, _pj_c = 0, _pj_a = {name}Data.keys(), _pj_b = _pj_a.length; (_pj_c < _pj_b); _pj_c += 1) {{\n"
-                    "        dataType = _pj_a[_pj_c];\n"
-                    "        thisExp.addData(dataType, {name}Data[dataType].popleft());\n"
-                    "        }}\n"
-                    "    thisExp.nextEntry();\n"
-                    "}}\n".format(**self.params))
-        elif self.params['Data Format'] == 'columns':
-            code = ("formData = form.getData();\n"
-                    "for (var dataType, _pj_c = 0, _pj_a = formData.keys(), _pj_b = _pj_a.length; (_pj_c < _pj_b); _pj_c += 1) {{\n"
-                    "    dataType = _pj_a[_pj_c];\n"
-                    "    for (var ii = 0, _pj_d = formData[dataType].length; (ii < _pj_d); ii += 1) {{\n"
-                    "        thisItem = formData[dataType][ii];\n"
-                    "        thisExp.addData(('form.'+index.toString()), thisItem);\n"
-                    "    }}\n"
-                    "    thisExp.nextEntry();\n"
-                    "}}\n".format(**self.params))
-        buff.writeIndented(code)
+        # save data, according to row/col format
+        buff.writeIndented("{name}.addDataToExp(psychoJS.experiment, {Data Format});\n"
+                           .format(**self.params))

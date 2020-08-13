@@ -27,6 +27,7 @@ _localized = {
     'app': _translate('App'),
     'builder': "Builder",  # not localized
     'coder': "Coder",  # not localized
+    'runner': "Runner",
     'hardware': _translate('Hardware'),
     'connections': _translate('Connections'),
     'keyBindings': _translate('Key bindings'),
@@ -132,8 +133,7 @@ _localized = {
     'projectsOpen': _translate('open projects'),
     'projectsNew': _translate('new projects'),
     # pref wxChoice lists:
-    'last': _translate('same as last session'),
-    'both': _translate('both Builder & Coder'),
+    'all': _translate('Builder, Coder and Runner'),
     'keep': _translate('same as in the file'),  # line endings
     # not translated:
     'pix': 'pix',
@@ -210,6 +210,12 @@ class PrefPropGrid(wx.Panel):
 
     def __del__(self):
         pass
+
+    def setSelection(self, page):
+        """Select the page."""
+        # set the page
+        self.lstPrefPages.Focus(1)
+        self.lstPrefPages.Select(page)
 
     def addPage(self, label, name, sections=(), bitmap=None):
         """Add a page to the property grid manager."""
@@ -367,6 +373,7 @@ class PrefPropGrid(wx.Panel):
                         pass
 
         self.proPrefs.SetSplitterLeft()
+        self.setSelection(0)
 
     def setPrefVal(self, section, name, value):
         """Set the value of a preference."""
@@ -811,7 +818,6 @@ class PreferencesDlg(wx.Dialog):
             for ii in range(coder.shelf.GetPageCount()):
                 doc = coder.shelf.GetPage(ii)
                 doc.theme = prefs.app['theme']
-
 
     def OnApplyClicked(self, event):
         """Apply button clicked, this makes changes to the UI without leaving

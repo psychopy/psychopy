@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2020 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 """A Backend class defines the core low-level functions required by a Window
@@ -124,6 +124,7 @@ class GLFWBackend(BaseBackend):
 
     """
     GL = pyglet.gl  # use Pyglet's OpenGL interface for now, should use PyOpenGL
+    winTypeName = 'glfw'
 
     def __init__(self, win, *args, **kwargs):
         """Set up the backend window according the params of the PsychoPy win

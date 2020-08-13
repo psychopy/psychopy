@@ -4,7 +4,7 @@
 """Classes and functions for the coder file browser pane."""
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2020 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 from __future__ import absolute_import, print_function
@@ -212,28 +212,38 @@ class FileBrowserPanel(wx.Panel):
         # Redraw toolbar buttons
         self.newFolderTool = iconCache.makeBitmapButton(
                 self,
-                name='foldernew', size=iconSize,
-                label=_translate('New Folder'),
-                tip=_translate("Create a new folder in the current folder"),
-                toolbar=self.toolBar)
-        self.renameTool = iconCache.makeBitmapButton(
-                self,
-                name='rename', size=iconSize,
-                label=_translate('Rename'),
-                tip=_translate("Rename the selected folder or file"),
-                toolbar=self.toolBar)
-        self.deleteTool = iconCache.makeBitmapButton(
-                self,
-                name='delete', size=iconSize,
-                label=_translate('Delete'),
-                tip=_translate("Delete the selected folder or file"),
-                toolbar=self.toolBar)
-        self.gotoTool = iconCache.makeBitmapButton(
-                self,
-                name='goto', size=iconSize,
-                label=_translate('Goto'),
-                tip=_translate("Jump to another folder"),
+                filename='foldernew',
+                name='foldernew',
+                label=_translate(
+                        'New Folder'),
                 toolbar=self.toolBar,
+                tip=_translate(
+                        "Create a new folder in the current folder"),
+                size=iconSize)
+        self.renameTool = iconCache.makeBitmapButton(
+                self, filename='rename',
+                name='rename',
+                label=_translate('Rename'),
+                toolbar=self.toolBar,
+                tip=_translate(
+                        "Rename the selected folder or file"),
+                size=iconSize)
+        self.deleteTool = iconCache.makeBitmapButton(
+                self, filename='delete',
+                name='delete',
+                label=_translate('Delete'),
+                toolbar=self.toolBar,
+                tip=_translate(
+                        "Delete the selected folder or file"),
+                size=iconSize)
+        self.gotoTool = iconCache.makeBitmapButton(
+                self, filename='goto',
+                name='goto',
+                label=_translate('Goto'),
+                toolbar=self.toolBar,
+                tip=_translate(
+                        "Jump to another folder"),
+                size=iconSize,
                 tbKind=wx.ITEM_DROPDOWN)
         # create the dropdown menu for goto
         self.gotoMenu = wx.Menu()

@@ -14,7 +14,7 @@ from psychopy.experiment.components import (BaseComponent, Param, getInitVals,
 from ..emotiv_record import CORTEX_OBJ
 
 thisFolder = path.abspath(path.dirname(__file__))
-iconFile = path.join(thisFolder, 'marker48.png')
+iconFile = path.join(thisFolder, 'emotiv_marking.png')
 tooltip = _translate('Mark a period of EEG')
 
 _localized = {
@@ -64,8 +64,8 @@ class EmotivMarkingComponent(BaseComponent):  # or (VisualComponent)
             label=_localized["stop_marker"])
 
         self.type = 'EmotivMarking'
-        self.exp.requirePsychopyLibs(['emotiv'])
-        self.exp.requirePsychopyLibs(['visual'])
+        self.exp.requireImport(importName='emotiv',
+                               importFrom='psychopy.hardware')
         self.order += ['marker_label', 'marker_value', 'stop_marker']
 
     def writeInitCode(self, buff):

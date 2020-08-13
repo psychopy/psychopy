@@ -251,7 +251,7 @@ class ExperimentHandler(_ComparisonMixin):
 
     def saveAsWideText(self,
                        fileName,
-                       delim=None,
+                       delim='auto',
                        matrixOnly=False,
                        appendFile=None,
                        encoding='utf-8-sig',
@@ -300,8 +300,15 @@ class ExperimentHandler(_ComparisonMixin):
 
         """
         # set default delimiter if none given
-        if delim is None:
+        delimOptions = {
+                'comma': ",",
+                'semicolon': ";",
+                'tab': "\t"
+            }
+        if delim == 'auto':
             delim = genDelimiter(fileName)
+        elif delim in delimOptions:
+            delim = delimOptions[delim]
 
         if appendFile is None:
             appendFile = self.appendFiles

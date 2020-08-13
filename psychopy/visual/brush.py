@@ -6,7 +6,7 @@ Inspired by rockNroll87q - https://github.com/rockNroll87q/pyDrawing
 """
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2020 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 from __future__ import absolute_import, print_function
@@ -28,6 +28,7 @@ class Brush(MinimalStim):
                  lineColorSpace='rgb',
                  opacity=1.0,
                  closeShape=False,
+                 buttonRequired=True,
                  name=None,
                  depth=0,
                  autoLog=True,
@@ -45,6 +46,7 @@ class Brush(MinimalStim):
         self.lineWidth = lineWidth
         self.opacity = opacity
         self.closeShape = closeShape
+        self.buttonRequired = buttonRequired
         self.pointer = event.Mouse(win=self.win)
         self.shapes = []
         self.brushPos = []
@@ -102,9 +104,12 @@ class Brush(MinimalStim):
         Returns
         -------
         Bool
-            True if left mouse button is pressed, False otherwise.
+            True if left mouse button is pressed or if no button press is required, otherwise False.
         """
-        return self.pointer.getPressed()[0] == 1
+        if self.buttonRequired:
+            return self.pointer.getPressed()[0] == 1
+        else:
+            return True
 
     def onBrushDown(self):
         """
@@ -177,3 +182,14 @@ class Brush(MinimalStim):
             Opacity range(0, 1)
         """
         self.opacity = value
+
+    def setButtonRequired(self, value):
+        """
+        Sets whether or not a button press is needed to draw the line..
+
+        Parameters
+        ----------
+        value
+            Button press required (True or False).
+        """
+        self.buttonRequired = value

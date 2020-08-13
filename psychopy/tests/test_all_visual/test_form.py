@@ -8,11 +8,12 @@ import pytest
 from pandas import DataFrame
 from psychopy.visual.window import Window
 from psychopy.visual.form import Form
-from psychopy.visual.text import TextStim
+from psychopy.visual.textbox2.textbox2 import TextBox2
 from psychopy.visual.slider import Slider
 from psychopy import constants
 import shutil
 from tempfile import mkdtemp
+import numpy as np
 
 
 class Test_Form(object):
@@ -71,7 +72,8 @@ class Test_Form(object):
                       "h": "white"
                         }]
 
-        wrongOptions = [{"questionText": "What is your gender?",
+        # this doesn't include a itemText or questionText so should get an err
+        missingHeader = [{"qText": "What is your gender?",
                       "questionWidth": 0.7,
                       "type": "radio",
                       "responseWidth": 0.3,
@@ -81,14 +83,10 @@ class Test_Form(object):
                       "questionColor": "white",
                       "responseColor": "white"}]
 
-        reducedHeaders = [{"questionText": "What is your gender?"}]
 
         # Check options for list of dicts
         with pytest.raises(ValueError):
-            self.survey = Form(self.win, items=wrongOptions, size=(1.0, 0.3), pos=(0.0, 0.0), autoLog=False)
-
-        # Check default values are applied
-        self.survey = Form(self.win, items=reducedHeaders, size=(1.0, 0.3), pos=(0.0, 0.0), autoLog=False)
+            self.survey = Form(self.win, items=missingHeader, size=(1.0, 0.3), pos=(0.0, 0.0), autoLog=False)
 
         # Check csv
         self.survey = Form(self.win, items=self.fileName_csv,
@@ -97,11 +95,6 @@ class Test_Form(object):
         self.survey = Form(self.win, items=self.fileName_xlsx,
                            size=(1.0, 0.3), pos=(0.0, 0.0), randomize=False, autoLog=False)
 
-    def test_randomize_items(self):
-        assert self.questions == self.survey.items
-        self.survey.randomize = True
-        assert self.questions != self.survey.randomizeItems(self.questions)
-
     def test_set_scroll_speed(self):
         items = 2
         for multipliers in [1,2,3,4]:
@@ -109,31 +102,28 @@ class Test_Form(object):
             assert self.survey.setScrollSpeed([0] * items, multipliers) == items * multipliers
             assert self.survey.setScrollSpeed([0] * items, multipliers) == items * multipliers
 
-    def test_question_text_wrap(self):
-        for size in [.2, .3, .4]:
-            assert self.survey._questionTextWrap(size) == size * self.survey.size[0] - (self.survey.itemPadding * 2)
-
     def test_response_text_wrap(self):
         options = ['a', 'b', 'c']
         for size in [.2, .3, .4]:
             item = {"responseWidth": size, "options": options}
-            assert self.survey._responseTextWrap(item) == size * self.survey.size[0] / len(options)
 
     def test_set_questions(self):
-        survey = Form(self.win, items=[self.genderItem], size=(1.0, 0.3), pos=(0.0, 0.0), autoLog=False)
-        textStim, questionHeight, questionWidth = survey._setQuestion(self.genderItem)
+        survey = Form(self.win, items=[self.genderItem], size=(1.0, 0.3),
+                      pos=(0.0, 0.0), autoLog=False)
+        ctrl, h, w = survey._setQuestion(self.genderItem)
 
-        assert type(textStim) == TextStim
-        assert type(questionHeight) == float
-        assert type(questionWidth) == float
+        assert type(ctrl) == TextBox2
+        assert type(h) in [float, np.float64]
+        assert type(w) in [float, np.float64]
 
     def test_set_response(self):
-        survey = Form(self.win, items=[self.genderItem], size=(1.0, 0.3), pos=(0.0, 0.0), autoLog=False)
-        textStim, questionHeight, questionWidth = survey._setQuestion(self.genderItem)
-        sliderStim, respHeight = survey._setResponse(self.genderItem, textStim)
+        survey = Form(self.win, items=[self.genderItem], size=(1.0, 0.3),
+                      pos=(0.0, 0.0), autoLog=False)
+        ctrl, h, w = survey._setQuestion(self.genderItem)
+        sliderStim, respHeight = survey._setResponse(self.genderItem)
 
         assert type(sliderStim) == Slider
-        assert type(respHeight) == float
+        assert type(respHeight) in [float, np.float64]
 
     def test_form_size(self):
         assert self.survey.size[0] == (1.0, 0.3)[0]  # width
@@ -158,30 +148,23 @@ class Test_Form(object):
     def test_form_units(self):
         assert self.survey.units == 'height'
 
-    def test_scroll_offset(self):
-        for idx, positions in enumerate([1, 0]):  # 1 is start position
-            self.survey.scrollbar.markerPos = positions
-            posZeroOffset = (self.survey.size[1]
-                             - self.survey.itemPadding
-                             + min(self.survey._baseYpositions))
-            assert self.survey._getScrollOffset() == [0., posZeroOffset][idx]
-
     def test_screen_status(self):
-        assert self.survey._inRange(self.survey.formElements['question'][0])
-        if constants.PY3:
-            with pytest.raises(AssertionError):
-                assert self.survey._inRange(self.survey.formElements['question'][3])
+        """Test whether the object is visible"""
+        assert self.survey._inRange(self.survey.items[0]['itemCtrl'])
 
     def test_get_data(self):
-        self.survey = Form(self.win, items=self.questions, size=(1.0, 0.3), pos=(0.0, 0.0), autoLog=False)
+        self.survey = Form(self.win, items=self.questions, size=(1.0, 0.3),
+                           pos=(0.0, 0.0), autoLog=False)
         data = self.survey.getData()
-        assert set(data['questions']) == {'What is your gender?',
-                                          'How much you like running',
-                                          'How much you like cake',
-                                          'How much you like programming',}
-        assert set(data['ratings']) == {None}
-        assert set(data['rt']) == {None}
-        assert set(data['itemIndex']) == {0, 1, 2, 3}
+        Qs = [this['itemText'] for this in data]
+        indices = [item['index'] for item in data]
+        assert Qs == ['What is your gender?',
+                      'How much you like running',
+                      'How much you like cake',
+                      'How much you like programming',]
+        assert all([item['response'] is None for item in data])
+        assert all([item['rt'] is None for item in data])
+        assert list(indices) == list(range(4))
 
     def teardown_class(self):
         shutil.rmtree(self.temp_dir)
@@ -191,4 +174,5 @@ class Test_Form(object):
 if __name__ == "__main__":
     test = Test_Form()
     test.setup_class()
+    test.test_get_data()
     test.teardown_class()

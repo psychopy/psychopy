@@ -2,13 +2,14 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2020 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 """Dialog classes for the Builder, including ParamCtrls
 """
 
 from __future__ import absolute_import, division, print_function
+import sys
 
 from builtins import map
 from builtins import str
@@ -20,11 +21,6 @@ import re
 import wx
 
 import psychopy.experiment.utils
-
-try:
-    from wx.lib.agw import flatnotebook
-except ImportError:  # was here wx<4.0:
-    from wx.lib import flatnotebook
 
 from ... import dialogs
 from .. import experiment
@@ -115,7 +111,7 @@ class ParamCtrls(object):
                 options = vc._versionFilter(vc.versionOptions(local=False), wx.__version__)
                 versions = vc._versionFilter(vc.availableVersions(local=False), wx.__version__)
                 param.allowedVals = (options + [''] + versions)
-        if fieldName in ['text', 'customize_everything', 'customize']:
+        if param.valType == 'extendedStr':
             # for text input we need a bigger (multiline) box
             if fieldName == 'customize_everything':
                 sx, sy = 300, 400
@@ -124,14 +120,8 @@ class ParamCtrls(object):
             else:
                 sx, sy = 100, 200
             # set viewer small, then it SHOULD increase with wx.aui control
-            self.valueCtrl = CodeBox(parent, -1, pos=wx.DefaultPosition,
-                                     size=wx.Size(sx, sy), style=0,
-                                     prefs=appPrefs, codeType='txt')
-            if fieldName == 'text':
-                # Hide margin for textbox
-                self.valueCtrl.SetMarginWidth(0,0)
-            if len(param.val):
-                self.valueCtrl.AddText(str(param.val))
+            self.valueCtrl = wx.TextCtrl(parent, -1, value=str(param.val), pos=wx.DefaultPosition,
+                                     size=wx.Size(sx, sy), style=wx.TE_MULTILINE)
             if fieldName == 'text':
                 self.valueCtrl.SetFocus()
         elif fieldName == 'Experiment info':
@@ -161,6 +151,11 @@ class ParamCtrls(object):
                                          name=fieldName,
                                          size=wx.Size(self.valueWidth, -1))
             self.valueCtrl.SetValue(param.val)
+        elif param.valType == 'fileList':
+            self.valueCtrl = FileListCtrl(parent,
+                                          choices=param.val,
+                                          size=wx.Size(self.valueWidth, 100)
+                                          )
         elif len(param.allowedVals) > 1:
             # there are limited options - use a Choice control
             # use localized text or fall through to non-localized,
@@ -480,14 +475,9 @@ class _BaseParamsDlg(wx.Dialog):
 
         # create main sizer
         self.mainSizer = wx.BoxSizer(wx.VERTICAL)
-        agwStyle = flatnotebook.FNB_NO_X_BUTTON
-        if hasattr(flatnotebook, "FNB_NAV_BUTTONS_WHEN_NEEDED"):
-            # not available in wxPython 2.8
-            agwStyle |= flatnotebook.FNB_NAV_BUTTONS_WHEN_NEEDED
-        if hasattr(flatnotebook, "FNB_NO_TAB_FOCUS"):
-            # not available in wxPython 2.8.10
-            agwStyle |= flatnotebook.FNB_NO_TAB_FOCUS
-        self.ctrls = flatnotebook.FlatNotebook(self, style=agwStyle)
+
+        self.ctrls = wx.Notebook(self)
+
         if self.__class__ != DlgExperimentProperties:
             self.mainSizer.Add(self.ctrls,  # ctrls is the notebook of params
                                proportion=1, flag=wx.EXPAND | wx.ALL, border=5)
@@ -495,8 +485,24 @@ class _BaseParamsDlg(wx.Dialog):
         if 'Basic' in categNames:
             # move it to be the first category we see
             categNames.insert(0, categNames.pop(categNames.index('Basic')))
-        # move into _localized after merge branches:
+
+        # get categories in order
+        categNamesRemaining = sorted(categs.keys())
+        if 'Basic' in categNamesRemaining:
+            categNamesRemaining.remove('Basic')
+        categNames = ['Basic']
+        # add categ names in the params order list
+        for thisParamName in self.order:
+            thisParam = self.params[thisParamName]
+            if thisParam.categ and thisParam.categ not in categNames:
+                categNames.append(thisParam.categ)
+        for thisCategName in categNamesRemaining:
+            if thisCategName not in categNames:
+                categNames.append(thisCategName)
+
         categLabel = {'Basic': _translate('Basic'),
+                      'Color': _translate('Color'),
+                      'Layout': _translate('Layout'),
                       'Data': _translate('Data'),
                       'Screen': _translate('Screen'),
                       'Dots': _translate('Dots'),
@@ -764,7 +770,7 @@ class _BaseParamsDlg(wx.Dialog):
             ctrls.valueCtrl.Bind(wx.EVT_KEY_UP, self.doValidate)
 
         # add the controls to the sizer
-        _flag = wx.LEFT | wx.RIGHT
+        _flag = wx.LEFT | wx.RIGHT | wx.ALIGN_CENTER_VERTICAL
         sizer.Add(ctrls.nameCtrl, (currRow, 0), border=5, flag=_flag)
         if ctrls.updateCtrl:
             sizer.Add(ctrls.updateCtrl, (currRow, 2), flag=_flag)
@@ -772,7 +778,10 @@ class _BaseParamsDlg(wx.Dialog):
             sizer.Add(ctrls.typeCtrl, (currRow, 3), flag=_flag)
         # different flag for the value control (expand)
         _flag = wx.EXPAND | wx.ALL
-        sizer.Add(ctrls.valueCtrl, (currRow, 1), border=5, flag=_flag)
+        if hasattr(ctrls.valueCtrl, '_szr'):
+            sizer.Add(ctrls.valueCtrl._szr, (currRow, 1), border=5, flag=_flag)
+        else:
+            sizer.Add(ctrls.valueCtrl, (currRow, 1), border=5, flag=_flag)
 
         # use monospace font to signal code:
         if fieldName != 'name' and hasattr(ctrls.valueCtrl, 'GetFont'):
@@ -843,15 +852,16 @@ class _BaseParamsDlg(wx.Dialog):
             self.nameOKlabel.SetForegroundColour(wx.RED)
             self.mainSizer.Add(self.nameOKlabel, 0, flag=wx.ALIGN_CENTRE|wx.ALL, border=3)
         # add buttons for OK and Cancel
-        buttons = wx.StdDialogButtonSizer()
+        buttons = wx.BoxSizer(wx.HORIZONTAL)
         # help button if we know the url
         if self.helpUrl != None:
             helpBtn = wx.Button(self, wx.ID_HELP, _translate(" Help "))
             _tip = _translate("Go to online help about this component")
             helpBtn.SetToolTip(wx.ToolTip(_tip))
             helpBtn.Bind(wx.EVT_BUTTON, self.onHelp)
-            buttons.Add(helpBtn, 0, flag=wx.ALIGN_LEFT | wx.ALL, border=3)
-            buttons.AddSpacer(12)
+            buttons.Add(helpBtn, 0,
+                        flag=wx.LEFT | wx.ALL | wx.ALIGN_CENTER_VERTICAL,
+                        border=3)
         self.OKbtn = wx.Button(self, wx.ID_OK, _translate(" OK "))
         # intercept OK button if a loop dialog, in case file name was edited:
         if type(self) == DlgLoopProperties:
@@ -859,12 +869,27 @@ class _BaseParamsDlg(wx.Dialog):
         self.OKbtn.SetDefault()
 
         self.doValidate()  # disables OKbtn if bad name, syntax error, etc
-        buttons.Add(self.OKbtn, 0, wx.ALL, border=3)
         CANCEL = wx.Button(self, wx.ID_CANCEL, _translate(" Cancel "))
-        buttons.Add(CANCEL, 0, wx.ALL, border=3)
-        buttons.Realize()
+
+        buttons.AddStretchSpacer()
+        if sys.platform == 'darwin':
+            buttons.Add(CANCEL, 0,
+                        wx.ALL | wx.RIGHT | wx.ALIGN_CENTER_VERTICAL,
+                        border=3)
+            buttons.Add(self.OKbtn, 0,
+                        wx.ALL | wx.RIGHT | wx.ALIGN_CENTER_VERTICAL,
+                        border=3)
+        else:
+            buttons.Add(self.OKbtn, 0,
+                        wx.ALL | wx.RIGHT | wx.ALIGN_CENTER_VERTICAL,
+                        border=3)
+            buttons.Add(CANCEL, 0,
+                        wx.ALL | wx.RIGHT | wx.ALIGN_CENTER_VERTICAL,
+                        border=3)
+
+        # buttons.Realize()
         # add to sizer
-        self.mainSizer.Add(buttons, flag=wx.ALL, border=2)
+        self.mainSizer.Add(buttons, flag=wx.ALL | wx.EXPAND, border=3)
         self.SetSizerAndFit(self.mainSizer)
         self.mainSizer.Layout()
         # move the position to be v near the top of screen and
@@ -1865,22 +1890,33 @@ class DlgExperimentProperties(_BaseParamsDlg):
         """
         # add buttons for help, OK and Cancel
         self.mainSizer = wx.BoxSizer(wx.VERTICAL)
-        buttons = wx.StdDialogButtonSizer()
+        buttons = wx.BoxSizer()
         if self.helpUrl is not None:
             helpBtn = wx.Button(self, wx.ID_HELP, _translate(" Help "))
             helpBtn.SetHelpText(_translate("Get help about this component"))
             helpBtn.Bind(wx.EVT_BUTTON, self.onHelp)
-            buttons.Add(helpBtn, 0, border=3)
+            buttons.Add(helpBtn, 0,
+                        wx.ALL | wx.RIGHT | wx.ALIGN_CENTER_VERTICAL, border=3)
+
         self.OKbtn = wx.Button(self, wx.ID_OK, _translate(" OK "))
         self.OKbtn.SetDefault()
-        buttons.Add(self.OKbtn, 0, border=3)
         CANCEL = wx.Button(self, wx.ID_CANCEL, _translate(" Cancel "))
-        buttons.Add(CANCEL, 0, border=3)
 
-        buttons.Realize()
-        self.ctrls.Fit()
+        buttons.AddStretchSpacer()
+        if sys.platform == 'darwin':
+            buttons.Add(CANCEL, 0,
+                        wx.ALL | wx.RIGHT | wx.ALIGN_CENTER_VERTICAL, border=3)
+            buttons.Add(self.OKbtn, 0,
+                        wx.ALL | wx.RIGHT | wx.ALIGN_CENTER_VERTICAL, border=3)
+        else:
+            buttons.Add(self.OKbtn, 0,
+                        wx.ALL | wx.RIGHT | wx.ALIGN_CENTER_VERTICAL, border=3)
+            buttons.Add(CANCEL, 0,
+                        wx.ALL | wx.RIGHT | wx.ALIGN_CENTER_VERTICAL, border=3)
+
         self.mainSizer.Add(self.ctrls, proportion=1, flag=wx.EXPAND)
-        self.mainSizer.Add(buttons, border=3, flag=wx.ALL | wx.ALIGN_RIGHT)
+        self.mainSizer.Add(buttons, border=3,
+                           flag=wx.ALL | wx.RIGHT | wx.EXPAND)
         self.SetSizerAndFit(self.mainSizer)
 
         # move the position to be v near the top of screen and to the
@@ -1898,6 +1934,50 @@ class DlgExperimentProperties(_BaseParamsDlg):
         else:
             self.OK = False
         return wx.ID_OK
+
+class FileListCtrl(wx.ListBox):
+    def __init__(self, parent, choices=[], size=None):
+        wx.ListBox.__init__(self)
+        parent.Bind(wx.EVT_DROP_FILES, self.addItem)
+        if type(choices) == str:
+            choices = data.utils.listFromString(choices)
+        self.Create(id=wx.ID_ANY, parent=parent, choices=choices, size=size, style=wx.LB_EXTENDED | wx.LB_HSCROLL)
+        self.addBtn = wx.Button(parent, -1, size=wx.Size(20,20), label="+")
+        self.addBtn.Bind(wx.EVT_BUTTON, self.addItem)
+        self.subBtn = wx.Button(parent, -1, size=wx.Size(20,20), label="-")
+        self.subBtn.Bind(wx.EVT_BUTTON, self.removeItem)
+
+        self._szr = wx.BoxSizer(wx.HORIZONTAL)
+        self.btns = wx.BoxSizer(wx.VERTICAL)
+        self.btns.AddMany((self.addBtn, self.subBtn))
+        self._szr.AddMany((self, self.btns))
+
+    def addItem(self, event):
+        if event.GetEventObject() == self.addBtn:
+            _wld = "Any file (*.*)|*"
+            dlg = wx.FileDialog(self, message=_translate("Specify file ..."),
+                                style=wx.FD_OPEN | wx.FD_FILE_MUST_EXIST | wx.FD_MULTIPLE,
+                                wildcard=_translate(_wld))
+            if dlg.ShowModal() != wx.ID_OK:
+                return 0
+            filename = dlg.GetPaths()
+            self.InsertItems(filename, 0)
+        else:
+            fileList = event.GetFiles()
+            for filename in fileList:
+                if os.path.isfile(filename):
+                    self.InsertItems(filename, 0)
+
+    def removeItem(self, event):
+        i = self.GetSelections()
+        if isinstance(i, int):
+            i = [i]
+        items = [item for index, item in enumerate(self.Items)
+                 if index not in i]
+        self.SetItems(items)
+
+    def GetValue(self):
+        return self.Items
 
 
 def _relpath(path, start='.'):

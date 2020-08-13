@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2020 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 """utility classes for the Builder
@@ -19,12 +19,13 @@ import sys
 import wx
 import wx.lib.agw.aui as aui
 from wx.lib import platebtn
+
+import psychopy
 from psychopy import logging
 from . import pavlovia_ui
 from . import icons
 from .themes import ThemeMixin
 from psychopy.tools.versionchooser import _translate
-
 
 class FileDropTarget(wx.FileDropTarget):
     """On Mac simply setting a handler for the EVT_DROP_FILES isn't enough.
@@ -115,15 +116,12 @@ class PsychopyToolbar(wx.ToolBar, ThemeMixin):
         wx.ToolBar.__init__(self, frame)
         self.frame = frame
         self.app = self.frame.app
+        self._needMakeTools = True
         # Configure toolbar appearance
         self.SetWindowStyle(wx.TB_HORIZONTAL | wx.NO_BORDER | wx.TB_FLAT | wx.TB_NODIVIDER)
         #self.SetBackgroundColour(ThemeMixin.appColors['frame_bg'])
         # Set icon size (16 for win/linux small mode, 32 for everything else
-        if (sys.platform == 'win32' or sys.platform.startswith('linux')) \
-                and not self.frame.appPrefs['largeIcons']:
-            self.iconSize = 16
-        else:
-            self.iconSize = 32  # mac: 16 either doesn't work, or looks bad
+        self.iconSize = 32  # mac: 16 either doesn't work, or looks bad
         self.SetToolBitmapSize((self.iconSize, self.iconSize))
         # OS-dependent tool-tips
         ctrlKey = 'Ctrl+'
@@ -199,8 +197,14 @@ class PsychopyToolbar(wx.ToolBar, ThemeMixin):
                     shortcut='compileScript',
                     tooltip=_translate("Compile to script"),
                     func=self.frame.compileScript)  # Compile
-            self.frame.bldrBtnRun = self.addPsychopyTool(
+            self.frame.bldrBtnRunner = self.addPsychopyTool(
                     name='runner',
+                    label=_translate('Runner'),
+                    shortcut='runnerScript',
+                    tooltip=_translate("Send experiment to Runner"),
+                    func=self.frame.runFile)  # Run
+            self.frame.bldrBtnRun = self.addPsychopyTool(
+                    name='run',
                     label=_translate('Run'),
                     shortcut='runScript',
                     tooltip=_translate("Run experiment"),
@@ -210,7 +214,7 @@ class PsychopyToolbar(wx.ToolBar, ThemeMixin):
         elif frame.__class__.__name__ == 'CoderFrame':
             self.addPsychopyTool('filenew', 'New', 'new',
                                  "Create new experiment file",
-                                 self.frame.app.newBuilderFrame)  # New
+                                 self.frame.fileNew)  # New
             self.addPsychopyTool('fileopen', 'Open', 'open',
                                  "Open an existing experiment file",
                                  self.frame.fileOpen)  # Open
@@ -237,9 +241,13 @@ class PsychopyToolbar(wx.ToolBar, ThemeMixin):
                                  "Color Picker -> clipboard",
                                  self.frame.app.colorPicker)
             self.AddSeparator()
+            self.frame.cdrBtnRunner = self.addPsychopyTool(
+                    'runner', 'Runner', 'runnerScript',
+                    "Send experiment to Runner",
+                    self.frame.runFile)
             self.frame.cdrBtnRun = self.addPsychopyTool(
-                    'runner', 'Run', 'runScript',
-                                                         "Run experiment",
+                    'run', 'Run', 'runScript',
+                    "Run experiment",
                     self.frame.runFile)
             self.AddSeparator()
             pavButtons.addPavloviaTools(
@@ -251,12 +259,14 @@ class PsychopyToolbar(wx.ToolBar, ThemeMixin):
                         emblem=None):
         if not name.endswith('.png'):
             name += '.png'
-        item = self.app.iconCache.makeBitmapButton(
-                parent=self,
-                name=name, emblem=emblem, size=self.iconSize,
-                label=_translate(label + " [%s]") % self.keys[shortcut],
-                tip=tooltip,
-                toolbar=self)
+        item = self.app.iconCache.makeBitmapButton(parent=self, filename=name,
+                                                   name=label,
+                                                   label=_translate(
+                                                       label + " [%s]") %
+                                                         self.keys[shortcut],
+                                                   emblem=emblem, toolbar=self,
+                                                   tip=tooltip,
+                                                   size=self.iconSize)
         # Bind function
         self.Bind(wx.EVT_TOOL, func, item)
         return item
@@ -330,3 +340,87 @@ class PsychopyScrollbar(wx.ScrollBar):
             range=1,
             pageSize=vsz
         )
+
+
+class FrameSwitcher(wx.Menu):
+    """Menu for switching between different frames"""
+    def __init__(self, parent):
+        wx.Menu.__init__(self)
+        self.parent = parent
+        self.app = parent.app
+        self.itemFrames = {}
+        # Listen for window switch
+        self.next = self.Append(wx.ID_MDI_WINDOW_NEXT,
+                                _translate("&Next Window\t%s") % self.app.keys['cycleWindows'],
+                                _translate("&Next Window\t%s") % self.app.keys['cycleWindows'])
+        self.Bind(wx.EVT_MENU, self.nextWindow, self.next)
+        self.AppendSeparator()
+        # Add creator options
+        self.minItemSpec = [
+            {'label': "Builder", 'class': psychopy.app.builder.BuilderFrame, 'method': self.app.showBuilder},
+            {'label': "Coder", 'class': psychopy.app.coder.CoderFrame, 'method': self.app.showCoder},
+            {'label': "Runner", 'class': psychopy.app.runner.RunnerFrame, 'method': self.app.showRunner},
+        ]
+        for spec in self.minItemSpec:
+            if not isinstance(self.Window, spec['class']):
+                item = self.Append(
+                    wx.ID_ANY, spec['label'], spec['label']
+                )
+                self.Bind(wx.EVT_MENU, spec['method'], item)
+        self.AppendSeparator()
+        self.updateFrames()
+
+    @property
+    def frames(self):
+        return self.parent.app.getAllFrames()
+
+    def updateFrames(self):
+        """Set items according to which windows are open"""
+        self.next.Enable(len(self.frames) > 1)
+        # Make new items if needed
+        for frame in self.frames:
+            if frame not in self.itemFrames:
+                if frame.filename:
+                    label = type(frame).__name__.replace("Frame", "") + ": " + os.path.basename(frame.filename)
+                else:
+                    label = type(frame).__name__.replace("Frame", "")
+                self.itemFrames[frame] = self.AppendRadioItem(wx.ID_ANY, label, label)
+                self.Bind(wx.EVT_MENU, self.showFrame, self.itemFrames[frame])
+        # Edit items to match frames
+        for frame in self.itemFrames:
+            item = self.itemFrames[frame]
+            if not item:
+                continue
+            if frame not in self.frames:
+                # Disable unused items
+                item.Enable(False)
+            else:
+                # Rename item
+                if frame.filename:
+                    self.itemFrames[frame].SetItemLabel(
+                        type(frame).__name__.replace("Frame", "") + ": " + os.path.basename(frame.filename)
+                    )
+                else:
+                    self.itemFrames[frame].SetItemLabel(
+                        type(frame).__name__.replace("Frame", "") + ": None"
+                    )
+            item.Check(frame == self.Window)
+        self.itemFrames = {key: self.itemFrames[key] for key in self.itemFrames if self.itemFrames[key] is not None}
+
+    def showFrame(self, event=None):
+        itemFrames = event.EventObject.itemFrames
+        frame = [key for key in itemFrames if itemFrames[key].Id == event.Id][0]
+        frame.Show(True)
+        frame.Raise()
+        self.parent.app.SetTopWindow(frame)
+        self.updateFrames()
+
+    def nextWindow(self, event=None):
+        """Cycle through list of open windows"""
+        current = event.EventObject.Window
+        i = self.frames.index(current)
+        while self.frames[i] == current:
+            i -= 1
+        self.frames[i].Raise()
+        self.frames[i].Show()
+        self.updateFrames()
