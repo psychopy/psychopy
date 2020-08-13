@@ -293,6 +293,7 @@ color_examples = {
 }
 # Dict of named colours
 color_names = {
+        "none": (0, 0, 0, -1),
         "aliceblue": (0.882352941176471, 0.945098039215686, 1, 1.0),
         "antiquewhite": (0.96078431372549, 0.843137254901961, 0.686274509803922, 1.0),
         "aqua": (-1, 1, 1, 1.0),
@@ -450,7 +451,6 @@ _lbr = '[\[\(]\s*'
 _rbr = '\s*[\]\)]'
 # Dict of regexpressions for different formats
 color_spaces = {
-    'invis': re.compile('None'), # Fully transparent
     'named': re.compile("|".join(list(color_names))), # A named colour space
     'hex': re.compile('#[\dabcdefABCDEF]{6}'), # Hex
     'hexa': re.compile('#[\dabcdefABCDEF]{8}'), # Hex + alpha
@@ -495,7 +495,7 @@ class Color(object):
         if self._requestedSpace:
             setattr(self, self._requestedSpace, self._requested)
         else:
-            self.rgba = None
+            self.named = None
 
     def __repr__(self):
         """If colour is printed, it will display its class and value"""
@@ -581,10 +581,11 @@ class Color(object):
             return color._requestedSpace
         possible = [space for space in color_spaces
                     if color_spaces[space].fullmatch(str(color))]
-        if len(possible) == 1:
-            return possible[0]
-        elif debug:
+        if debug:
             return possible
+        elif len(possible) == 1:
+            return possible[0]
+
         # Preferred values in cases of conflict
         priority = [
             'rgba',
@@ -647,7 +648,7 @@ class Color(object):
         if self._requestedSpace:
             setattr(self, self._requestedSpace, self._requested)
         else:
-            self.rgba = None
+            self.named = None
     # ---adjusters---
     @property
     def contrast(self):
@@ -703,7 +704,7 @@ class Color(object):
     def rgba(self, color):
         # Validate
         if not Color.getSpace(color) in ['rgba', 'rgb']:
-            self._franca = None
+            self.named = None
             return
         if isinstance(color, str):
             color = [float(n) for n in color.strip('[]()').split(',')]
@@ -715,7 +716,7 @@ class Color(object):
         elif len(color) == 3:
             self._franca = color + (1,)
         else:
-            self._franca = None
+            self.named = None
 
     @property
     def rgb(self):
@@ -825,14 +826,6 @@ class Color(object):
         self.hexa = color
 
     @property
-    def invis(self):
-        return None
-    @invis.setter
-    def invis(self, color):
-        # Invisible is always the same value
-        self.rgba = (0, 0, 0, -1)
-
-    @property
     def named(self):
         # Round all values to 2 decimal places to find approximate matches
         approxNames = {col: [round(val, 2) for val in color_names[col]]
@@ -847,7 +840,7 @@ class Color(object):
     def named(self, color):
         # Validate
         if str(color).lower() not in color_names:
-            self.rgba = None
+            self.named = None
         else:
             # Retrieve named colour
             self.rgba = color_names[str(color).lower()]
