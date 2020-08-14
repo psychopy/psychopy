@@ -287,9 +287,9 @@ color_examples = {
     'rgb1': (0.95, 0.32, 0.36),
     'rgba1': (0.95, 0.32, 0.36, 0.12),
     'rgb255': (242, 84, 91),
-    'rgba255': (357, 65, 95, 30),
-    'hsv': (357, 65, 95),
-    'hsva': (357, 65, 95, 12),
+    'rgba255': (242, 84, 91, 30),
+    'hsv': (357, 0.65, 0.95),
+    'hsva': (357, 0.65, 0.95, 0.12),
 }
 # Dict of named colours
 color_names = {
@@ -460,8 +460,8 @@ color_spaces = {
     'rgba1': re.compile(_lbr+_1+',\s*'+_1+',\s*'+_1+',\s*'+_1+_rbr),  # RGB + alpha from 0 to 1
     'rgb255': re.compile(_lbr+_255+',\s*'+_255+',\s*'+_255+_rbr), # RGB from 0 to 255
     'rgba255': re.compile(_lbr+_255+',\s*'+_255+',\s*'+_255+',\s*'+_255+_rbr), # RGB + alpha from 0 to 255
-    'hsv': re.compile(_lbr+_360+'\°?'+',\s*'+_1+',\s*'+_1+_rbr), # HSV with hue from 0 to 260 and saturation/vibrancy from 0 to 100
-    'hsva': re.compile(_lbr+_360+'\°?'+',\s*'+_1+',\s*'+_1+',\s*'+_1+_rbr), # HSV with hue from 0 to 260 and saturation/vibrancy from 0 to 100 + alpha from 0 to 100
+    'hsv': re.compile(_lbr+_360+'\°?'+',\s*'+_1+',\s*'+_1+_rbr), # HSV with hue from 0 to 360 and saturation/vibrancy from 0 to 1
+    'hsva': re.compile(_lbr+_360+'\°?'+',\s*'+_1+',\s*'+_1+',\s*'+_1+_rbr), # HSV with hue from 0 to 360 and saturation/vibrancy from 0 to 1 + alpha from 0 to 1
     'lms': re.compile(_lbr+'\-?'+_1+',\s*'+'\-?'+_1+',\s*'+'\-?'+_1+_rbr), # LMS from -1 to 1
     'lmsa': re.compile(_lbr+'\-?'+_1+',\s*'+'\-?'+_1+',\s*'+'\-?'+_1+',\s*'+'\-?'+_1+_rbr), # LMS + alpha from -1 to 1
 }
@@ -580,7 +580,7 @@ class Color(object):
         if isinstance(color, Color):
             return color._requestedSpace
         possible = [space for space in color_spaces
-                    if color_spaces[space].fullmatch(str(color))]
+                    if color_spaces[space].fullmatch(str(color).lower())]
         if debug:
             return possible
         elif len(possible) == 1:
