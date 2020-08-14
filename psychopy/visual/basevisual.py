@@ -660,7 +660,7 @@ class Color(object):
             norm = tuple(c/self.contrast for c in self.rgb)
         else:
             norm = self.rgb
-        self.rgba = tuple(max(min(c*value,1),-1) for c in norm) + (self.alpha,)
+        self.rgba = tuple(max(min(c*value,1),-1) for c in norm) + (self.rgba[-1],)
 
     @property
     def saturation(self):
