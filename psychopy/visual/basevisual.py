@@ -666,7 +666,7 @@ class Color(object):
     def saturation(self):
         '''Saturation in hsv (0 to 1)'''
         return self.hsv[1]
-    @contrast.setter
+    @saturation.setter
     def saturation(self, value):
         h,s,v,a = self.hsva
         s += value
