@@ -269,3 +269,132 @@ def pix2deg(pixels, monitor, correctFlat=False):
         raise ValueError(msg % monitor.name)
     cmSize = pixels * float(scrWidthCm) / scrSizePix[0]
     return cm2deg(cmSize, monitor, correctFlat)
+
+
+class Position(object):
+    def __init__(self, vert, units, win, monitor, pos=(0, 0), correctFlat=False):
+        self._requested = vert
+        self._requestedUnits = units
+
+        self.win = win
+        if not isinstance(monitor, monitors.Monitor):
+            msg = ("Vertex calculation requires a monitors.Monitor object as the second "
+                   "argument but received %s")
+            raise ValueError(msg % str(type(monitor)))
+        if not monitor.getSizePix():
+            msg = "Monitor %s has no known size in pixels (SEE MONITOR CENTER)"
+            raise ValueError(msg % self.monitor.name)
+        if not monitor.getWidth():
+            msg = "Monitor %s has no known width in cm (SEE MONITOR CENTER)"
+            raise ValueError(msg % self.monitor.name)
+        if self.monitor.getDistance() is None:
+            msg = "Monitor %s has no known distance (SEE MONITOR CENTER)"
+            raise ValueError(msg % self.monitor.name)
+        self.monitor = monitor
+        self.pos = pos
+        self.correctFlat = correctFlat
+
+        setattr(self, self._requestedUnits, self._requested)
+
+    @property
+    def pix(self):
+        return self._franca
+
+    @pix.setter
+    def pix(self, value):
+        self._franca = value
+
+    @property
+    def deg(self):
+        """Convert size in pixels to size in degrees for a given Monitor object
+        """
+        # get monitor dimensions
+        dist = self.monitor.getDistance()
+        if self.correctFlat:
+            return np.degrees(np.arctan(old_div(self.cm, dist)))
+        else:
+            return old_div(self.cm, (dist * 0.017455))
+    @deg.setter
+    def deg(self, value):
+        """Convert size in degrees to size in pixels for a given Monitor object.
+
+        If `correctFlat == False` then the screen will be treated as if all
+        points are equal distance from the eye. This means that each "degree"
+        will be the same size irrespective of its position.
+
+        If `correctFlat == True` then the `degrees` argument must be an Nx2 matrix
+        for X and Y values (the two cannot be calculated separately in this case).
+
+        With `correctFlat == True` the positions may look strange because more
+        eccentric vertices will be spaced further apart.
+        """
+        # get monitor params and raise error if necess
+        scrWidthCm = self.monitor.getWidth()
+        scrSizePix = self.monitor.getSizePix()
+
+        # get monitor dimensions
+        dist = self.monitor.getDistance()
+
+        if self.correctFlat:
+            rads = radians(degrees)
+            cmXY = np.zeros(rads.shape, 'd')  # must be a double (not float)
+            if rads.shape == (2,):
+                x, y = rads
+                cmXY[0] = hypot(dist, tan(y) * dist) * tan(x)
+                cmXY[1] = hypot(dist, tan(x) * dist) * tan(y)
+            elif len(rads.shape) > 1 and rads.shape[1] == 2:
+                cmXY[:, 0] = hypot(dist, tan(rads[:, 1]) * dist) * tan(rads[:, 0])
+                cmXY[:, 1] = hypot(dist, tan(rads[:, 0]) * dist) * tan(rads[:, 1])
+            else:
+                msg = ("If using deg2cm with correctedFlat==True then degrees "
+                       "arg must have shape [N,2], not %s")
+                raise ValueError(msg % (repr(rads.shape)))
+            self.cm = cmXY
+        else:
+            # the size of 1 deg at screen centre
+            self.cm = np.array(degrees) * dist * 0.017455
+
+    @property
+    def cm(self):
+        """Convert size in pixels to size in cm for a given Monitor object
+        """
+        # get monitor params and raise error if necess
+        scrWidthCm = self.monitor.getWidth()
+        scrSizePix = self.monitor.getSizePix()
+        return self.pix * float(scrWidthCm) / scrSizePix[0]
+
+    @cm.setter
+    def cm(self, value):
+        # get monitor params and raise error if necess
+        scrWidthCm = self.monitor.getWidth()
+        scrSizePix = self.monitor.getSizePix()
+        self.pix = value * scrSizePix[0] / float(scrWidthCm)
+
+    @property
+    def norm(self):
+        if self.win.useRetina:
+            return self.pix * 4.0 / self.win.size[1] - self.pos
+        else:
+            return self.pix * 2.0 / self.win.size[1] - self.pos
+
+
+    @norm.setter
+    def norm(self, value):
+        if self.win.useRetina:
+            self.pix =  (self.pos + value) * self.win.size / 4.0
+        else:
+            self.pix =  (self.pos + value) * self.win.size / 2.0
+
+    @property
+    def height(self):
+        if self.win.useRetina:
+            return self.pix * 2.0 / self.win.size[1] - self.pos
+        else:
+            return self.pix / self.win.size[1] - self.pos
+
+    @height.setter
+    def height(self, value):
+        if self.win.useRetina:
+            self.pix = (self.pos + value) * self.win.size[1] / 2.0
+        else:
+            self.pix = (self.pos + value) * self.win.size[1]
