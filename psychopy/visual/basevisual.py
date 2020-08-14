@@ -653,7 +653,7 @@ class Color(object):
     @property
     def contrast(self):
         '''Distance from mid grey in rgb (-1 to 1)'''
-        return sum(self.rgb)/3
+        return abs(sum(self.rgb)/3)
     @contrast.setter
     def contrast(self, value):
         if self.contrast:
