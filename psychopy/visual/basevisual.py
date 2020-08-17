@@ -638,22 +638,22 @@ class Color(object):
             self.named = None
 
     def validate(self, color, against=None, enforce=None):
-        # Get possible colour spaces
-        possible = Color.getSpace(color)
-        if isinstance(possible, str):
-            possible = [possible]
         # If not checking against anything, check against everything
         if not against:
             against = list(colorSpaces)
         # If looking for a string, convert from other forms it could be in
         if enforce == str:
-            color = str(color)
+            color = str(color).lower()
         # If looking for a tuple, convert from other forms it could be in
         if enforce == tuple:
             if isinstance(color, str):
                 color = [float(n) for n in color.strip('[]()').split(',')]
             if isinstance(color, list):
                 color = tuple(color)
+        # Get possible colour spaces
+        possible = Color.getSpace(color)
+        if isinstance(possible, str):
+            possible = [possible]
         # Return if any matches
         for space in possible:
             if space in against:
@@ -882,7 +882,7 @@ class Color(object):
         # http://en.wikipedia.org/wiki/HSL_and_HSV#Converting_to_RGB
 
         # Validate
-        color = self.validate(self, color.lower(), against=['hsva', 'hsv'], enforce=tuple)
+        color = self.validate(self, color, against=['hsva', 'hsv'], enforce=tuple)
         if not color:
             return
         # Extract values
