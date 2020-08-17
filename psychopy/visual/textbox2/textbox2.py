@@ -246,7 +246,6 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
             False: value,
             True: pal
         }
-        print(self._pallette)
 
     @attributeSetter
     def font(self, fontName, italic=False, bold=False):
@@ -815,12 +814,13 @@ class Caret(ColorMixin):
             Caret colour
     """
 
-    def __init__(self, textbox, color, width):
+    def __init__(self, textbox, color, width, colorSpace='rgb'):
         self.textbox = textbox
         self.index = len(textbox.text)  # start off at the end
         self.autoLog = False
         self.width = width
         self.units = textbox.units
+        self.colorSpace = colorSpace
         self.color = color
 
     @attributeSetter
