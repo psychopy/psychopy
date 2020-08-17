@@ -990,7 +990,7 @@ class AdvancedColor(Color):
     @staticmethod
     def getSpace(color, debug=False):
         """Overrides Color.getSpace, drawing from a much more comprehensive library of colour spaces"""
-        if isinstance(color, AdvancedColor):
+        if isinstance(color, Color):
             return color._requestedSpace
         # Check for advanced colours spaces
         possible = [space for space in advancedSpaces
