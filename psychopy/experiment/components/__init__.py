@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2020 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 """Extensible set of components for the PsychoPy Builder view
@@ -23,9 +23,10 @@ from ..params import Param
 from psychopy.localization import _translate
 from psychopy.experiment import py2js
 
-
 excludeComponents = ['BaseComponent', 'BaseVisualComponent',  # templates only
                      'EyetrackerComponent']  # this one isn't ready yet
+
+pluginComponents = {}  # components registered by loaded plugins
 
 # try to remove old pyc files in case they're detected as components
 pycFiles = glob.glob(join(split(__file__)[0], "*.pyc"))
@@ -60,6 +61,10 @@ def getAllComponents(folderList=(), fetchIcons=True):
         userComps = getComponents(folder)
         for thisKey in userComps:
             components[thisKey] = userComps[thisKey]
+
+    # add components registered by plugins that have been loaded
+    components.update(pluginComponents)
+
     return components
 
 
@@ -220,7 +225,7 @@ def getInitVals(params, target="PsychoPy"):
         elif name in ['pos', 'fieldPos']:
             inits[name].val = '[0,0]'
             inits[name].valType = 'code'
-        elif name is 'color':
+        elif name == 'color':
             inits[name].val = 'white'
             inits[name].valType = 'str'
         elif name in ['ori', 'sf', 'size', 'height', 'letterHeight',
@@ -271,6 +276,15 @@ def getInitVals(params, target="PsychoPy"):
         elif name == 'noiseType':
             inits[name].val = 'Binary'
             inits[name].valType = 'str'
+        elif name == 'marker_label':
+            inits[name].val = 'Label'
+            inits[name].valType = 'str'
+        elif name == 'marker_value':
+            inits[name].val = 'Value'
+            inits[name].valType = 'str'
+        elif name == 'buttonRequired':
+            inits[name].val = "True"
+            inits[name].valType = 'code'
         else:
             print("I don't know the appropriate default value for a '%s' "
                   "parameter. Please email the mailing list about this error" %

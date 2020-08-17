@@ -2,13 +2,15 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2020 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 from __future__ import absolute_import, print_function
 
 from builtins import str
 from os import path
+
+from psychopy import prefs
 from psychopy.experiment.components import BaseComponent, Param, _translate
 from psychopy.alerts import alerttools
 
@@ -38,19 +40,13 @@ class CodeComponent(BaseComponent):
     """An event class for inserting arbitrary code into Builder experiments"""
 
     def __init__(self, exp, parentName, name='code',
-                 beforeExp="# This code will run before the experiment window is opened, after importing all of the "
-                           "necessary packages \n\n",
-                 beginExp="# This code will run before the experiment starts, after the window is opened and your other "
-                          "components are initialised but before the experiment timer starts\n\n",
-                 beginRoutine="# This code will run at the start of the routine containing this component, after "
-                              "starting the necessary timers but before loading components\n\n",
-                 eachFrame="# This code will run on each frame refresh during the routine containing this component, "
-                           "after iterating the frame but before the screen flip\n\n",
-                 endRoutine="# This code will run at the end of the routine containing this component, after breaking "
-                            "the frame loop but before resetting the timer\n\n",
-                 endExperiment="# This code will run at the end of the experiment, just before saving the data and "
-                               "closing the window\n\n",
-                 codeType="Auto->JS", translator="manual"):
+                 beforeExp="",
+                 beginExp="",
+                 beginRoutine="",
+                 eachFrame="",
+                 endRoutine="",
+                 endExperiment="",
+                 codeType=None, translator="manual"):
         super(CodeComponent, self).__init__(exp, parentName, name)
         self.type = 'Code'
         self.targets = ['PsychoPy', 'PsychoJS']
@@ -63,6 +59,8 @@ class CodeComponent(BaseComponent):
                       'Before JS Experiment', 'Begin JS Experiment', 'Begin JS Routine',
                       'Each JS Frame', 'End JS Routine', 'End JS Experiment',
                       ]
+        if not codeType:
+            codeType = prefs.builder['codeComponentLanguage']
 
         msg = _translate("Display Python or JS Code")
         self.params['Code Type'] = Param(

@@ -4,7 +4,7 @@
 # To build simple dialogues etc. (requires pyqt4)
 #
 #  Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2020 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 from __future__ import absolute_import, print_function
@@ -432,17 +432,20 @@ class DlgFromDict(Dlg):
 
     def __init__(self, dictionary, title='', fixed=None, order=None,
                  tip=None, screen=-1, sortKeys=True, copyDict=False,
-                 labels=None, show=True, **kwargs):
+                 labels=None, show=True,
+                 sort_keys=None, copy_dict=None):
 
         # We allowed for snake_case parameters in previous releases. This needs
         # to end soon.
-        if 'sort_keys' in kwargs:
-            sortKeys = kwargs['sort_keys']
-            logging.warning("Parameter 'sort_keys' is deprecated. Use 'sortKeys' instead.")
+        if sort_keys:
+            sortKeys = sort_keys
+            logging.warning("Parameter 'sort_keys' is deprecated. "
+                            "Use 'sortKeys' instead.")
 
-        if 'copy_dict' in kwargs:
-            copyDict = kwargs['copy_dict']
-            logging.warning("Parameter 'copy_dict' is deprecated. Use 'copyDict' instead.")
+        if copy_dict:
+            copyDict = copy_dict
+            logging.warning("Parameter 'copy_dict' is deprecated. "
+                            "Use 'copyDict' instead.")
         
         # We don't explicitly check for None identity
         # for backward-compatibility reasons.
@@ -623,16 +626,15 @@ def aboutDlg(title=_translate("About Experiment"), prompt=None):
 def hideWindow(win):
     global wasMouseVisible
     if win.winHandle._visible is True:
-        win.winHandle.set_visible(False)
+        wasMouseVisible = win.mouseVisible
+        win.setMouseVisible(True, log=False)
         win.winHandle.minimize()
-        wasMouseVisible = win.winHandle._mouse_visible
-        win.winHandle.set_mouse_visible(True)
 
 
 def showWindow(win):
     global wasMouseVisible
     if win.winHandle._visible is False:
-        win.winHandle.set_mouse_visible(wasMouseVisible)
+        win.setMouseVisible(wasMouseVisible, log=False)
         win.winHandle.maximize()
         win.winHandle.set_visible(True)
         win.winHandle.activate()

@@ -7,7 +7,7 @@
 """
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2020 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 import wx
@@ -16,11 +16,13 @@ import sys
 from pkg_resources import parse_version
 from psychopy.constants import PY3
 from psychopy import logging
+from psychopy import prefs
+from ..themes import ThemeMixin
 
 from psychopy.localization import _translate
 
 
-class BaseCodeEditor(wx.stc.StyledTextCtrl):
+class BaseCodeEditor(wx.stc.StyledTextCtrl, ThemeMixin):
     """Provides base class for code editors
        See the wxPython demo styledTextCtrl 2.
     """
@@ -78,6 +80,10 @@ class BaseCodeEditor(wx.stc.StyledTextCtrl):
                           wx.stc.STC_MARK_BOXMINUSCONNECTED, "white", "#808080")
         self.MarkerDefine(wx.stc.STC_MARKNUM_FOLDERMIDTAIL,
                           wx.stc.STC_MARK_TCORNER, "white", "#808080")
+
+        # Set what kind of events will trigger a modified event
+        self.SetModEventMask(wx.stc.STC_MOD_DELETETEXT |
+                             wx.stc.STC_MOD_INSERTTEXT)
 
         # Bind context menu
         self.Bind(wx.EVT_CONTEXT_MENU, self.OnContextMenu)
@@ -383,3 +389,95 @@ class BaseCodeEditor(wx.stc.StyledTextCtrl):
     @edgeGuideColumn.setter
     def edgeGuideColumn(self, value):
         self.SetEdgeColumn(value)
+
+    # def _applyAppTheme(self, target=None):
+    #     """Overrides theme change from ThemeMixin.
+    #     Don't call - this is called at the end of theme.setter"""
+    #     # ThemeMixin._applyAppTheme()  # only needed for children
+    #     spec = ThemeMixin.codeColors
+    #     base = spec['base']
+    #
+    #     # Check for language specific spec
+    #     if self.GetLexer() in self.lexers:
+    #         lexer = self.lexers[self.GetLexer()]
+    #     else:
+    #         lexer = 'invlex'
+    #     if lexer in spec:
+    #         # If there is lang specific spec, delete subkey...
+    #         lang = spec[lexer]
+    #         del spec[lexer]
+    #         #...and append spec to root, overriding any generic spec
+    #         spec.update({key: lang[key] for key in lang})
+    #     else:
+    #         lang = {}
+    #
+    #     # Override base font with user spec if present
+    #     key = 'outputFont' if isinstance(self, wx.py.shell.Shell) else 'codeFont'
+    #     if prefs.coder[key] != "From theme...":
+    #         base['font'] = prefs.coder[key]
+    #
+    #     # Pythonise the universal data (hex -> rgb, tag -> wx int)
+    #     invalid = []
+    #     for key in spec:
+    #         # Check that key is in tag list and full spec is defined, discard if not
+    #         if key in self.tags \
+    #                 and all(subkey in spec[key] for subkey in ['bg', 'fg', 'font']):
+    #             spec[key]['bg'] = self.hex2rgb(spec[key]['bg'], base['bg'])
+    #             spec[key]['fg'] = self.hex2rgb(spec[key]['fg'], base['fg'])
+    #             if not spec[key]['font']:
+    #                 spec[key]['font'] = base['font']
+    #             spec[key]['size'] = int(self.prefs['codeFontSize'])
+    #         else:
+    #             invalid += [key]
+    #     for key in invalid:
+    #         del spec[key]
+    #     # Set style for undefined lexers
+    #     for key in [getattr(wx._stc, item) for item in dir(wx._stc) if item.startswith("STC_LEX")]:
+    #         self.StyleSetBackground(key, base['bg'])
+    #         self.StyleSetForeground(key, base['fg'])
+    #         self.StyleSetSpec(key, "face:%(font)s,size:%(size)d" % base)
+    #     # Set style from universal data
+    #     for key in spec:
+    #         if self.tags[key] is not None:
+    #             self.StyleSetBackground(self.tags[key], spec[key]['bg'])
+    #             self.StyleSetForeground(self.tags[key], spec[key]['fg'])
+    #             self.StyleSetSpec(self.tags[key], "face:%(font)s,size:%(size)d" % spec[key])
+    #     # Apply keywords
+    #     for level, val in self.lexkw.items():
+    #         self.SetKeyWords(level, " ".join(val))
+    #
+    #     # Make sure there's some spec for margins
+    #     if 'margin' not in spec:
+    #         spec['margin'] = base
+    #     # Set margin colours to match linenumbers if set
+    #     if 'margin' in spec:
+    #         mar = spec['margin']['bg']
+    #     else:
+    #         mar = base['bg']
+    #     self.SetFoldMarginColour(True, mar)
+    #     self.SetFoldMarginHiColour(True, mar)
+    #
+    #     # Make sure there's some spec for caret
+    #     if 'caret' not in spec:
+    #         spec['caret'] = base
+    #     # Set caret colour
+    #     self.SetCaretForeground(spec['caret']['fg'])
+    #     self.SetCaretLineBackground(spec['caret']['bg'])
+    #     self.SetCaretWidth(1 + ('bold' in spec['caret']['font']))
+    #
+    #     # Make sure there's some spec for selection
+    #     if 'select' not in spec:
+    #         spec['select'] = base
+    #         spec['select']['bg'] = self.shiftColour(base['bg'], 30)
+    #     # Set selection colour
+    #     self.SetSelForeground(True, spec['select']['fg'])
+    #     self.SetSelBackground(True, spec['select']['bg'])
+    #
+    #     # Set wrap point
+    #     self.edgeGuideColumn = self.prefs['edgeGuideColumn']
+    #     self.edgeGuideVisible = self.edgeGuideColumn > 0
+    #
+    #     # Set line spacing
+    #     spacing = min(int(self.prefs['lineSpacing'] / 2), 64) # Max out at 64
+    #     self.SetExtraAscent(spacing)
+    #     self.SetExtraDescent(spacing)

@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2020 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 from __future__ import absolute_import, print_function
@@ -13,7 +13,7 @@ from psychopy.experiment.components import BaseVisualComponent, Param, getInitVa
 
 # the absolute path to the folder containing this path
 thisFolder = path.abspath(path.dirname(__file__))
-iconFile = path.join(thisFolder, 'envgrating.png')
+iconFile = path.join(thisFolder, 'envelopegrating.png')
 tooltip = _translate('Envelope Grating: present cyclic textures including 2nd order envelope stimuli, prebuilt or from a '
                      'file')
 

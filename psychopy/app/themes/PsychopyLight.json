@@ -1,0 +1,149 @@
+{
+  "app": "light",
+  "icons": "light",
+  "info": "Psychopy's default look",
+  "base": {
+    "fg": "#000000",
+    "bg": "#FFFFFF",
+    "font": ["Consolas", "Monaco", "Lucida Console"]
+  },
+  "margin": {
+    "fg": "",
+    "bg": "#F2F2F2",
+    "font": ""
+  },
+  "caret": {
+    "fg": "#F46E75",
+    "bg": "#F2F2F2",
+    "font": "bold"
+  },
+  "select": {
+    "fg": "#FFFFFF",
+    "bg": "#75757D",
+    "font": ""
+  },
+  "indent": {
+    "fg": "#D4D4D4",
+    "bg": "#D4D4D4",
+    "font": ""
+  },
+  "brace": {
+    "fg": "",
+    "bg": "#F2F2F2",
+    "font": ""
+  },
+  "operator": {
+    "fg": "",
+    "bg": "",
+    "font": ""
+  },
+  "keyword": {
+    "fg": "#F2545B",
+    "bg": "",
+    "font": ""
+  },
+  "keyword2": {
+    "fg": "#02A9EA",
+    "bg": "",
+    "font": "italic,bold"
+  },
+  "controlchar": {
+    "fg": "",
+    "bg": "",
+    "font": ""
+  },
+  "id": {
+    "fg": "",
+    "bg": "",
+    "font": ""
+  },
+  "num": {
+    "fg": "#028EC5",
+    "bg": "",
+    "font": ""
+  },
+  "char": {
+    "fg": "#75757D",
+    "bg": "",
+    "font": ""
+  },
+  "str": {
+    "fg": "#75757D",
+    "bg": "",
+    "font": ""
+  },
+  "openstr": {
+    "fg": "#75757D",
+    "bg": "#f2f2f2",
+    "font": ""
+  },
+  "infix": {
+    "fg": "#f2545b",
+    "bg": "",
+    "font": ""
+  },
+  "openinfix": {
+    "fg": "#f2545b",
+    "bg": "#f2f2f2",
+    "font": ""
+  },
+  "decorator": {
+    "fg": "#EC9703",
+    "bg": "",
+    "font": ""
+  },
+  "class": {
+    "fg": "",
+    "bg": "",
+    "font": ""
+  },
+  "def": {
+    "fg": "",
+    "bg": "",
+    "font": ""
+  },
+  "comment": {
+    "fg": "#39A141",
+    "bg": "",
+    "font": ""
+  },
+  "commentblock": {
+    "fg": "#39A141",
+    "bg": "#f2f2f2",
+    "font": ""
+  },
+  "commentkw": {
+    "fg": "#39A141",
+    "bg": "",
+    "font": ""
+  },
+  "commenterror": {
+    "fg": "#39A141",
+    "bg": "",
+    "font": ""
+  },
+  "documentation": {
+    "fg": "#205C25",
+    "bg": "",
+    "font": ""
+  },
+  "documentation2": {
+    "fg": "#205C25",
+    "bg": "",
+    "font": ""
+  },
+  "whitespace": {
+    "fg": "#D4D4D4",
+    "bg": "",
+    "font": "bold"
+  },
+  "python": {
+
+  },
+  "c++": {
+
+  },
+  "r": {
+
+  }
+}

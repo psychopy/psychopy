@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2020 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 """Error dialog for showing unhandled exceptions that occur within the PsychoPy
@@ -133,12 +133,19 @@ class ErrorMsgDialog(wx.Dialog):
     def onCopyDetails(self, event):
         """Copy the contents of the details text box to the clipboard. This is
         to allow the user to paste the traceback into an email, forum post,
-        issue ticket, etc. to report the error to the developers.
+        issue ticket, etc. to report the error to the developers. If there is a
+        selection range, only that text will be copied.
 
         """
+        # check if we have a selection
+        start, end = self.txtErrorOutput.GetSelection()
+        if start != end:
+            txt = self.txtErrorOutput.GetStringSelection()
+        else:
+            txt = self.txtErrorOutput.GetValue()
+
         if wx.TheClipboard.Open():
-            wx.TheClipboard.SetData(
-                wx.TextDataObject(self.txtErrorOutput.GetValue()))
+            wx.TheClipboard.SetData(wx.TextDataObject(txt))
             wx.TheClipboard.Close()
 
         event.Skip()
@@ -207,7 +214,7 @@ def exceptionCallback(exc_type, exc_value, exc_traceback):
     if not isErrorDialogVisible():
         # format the traceback text
         tbText = ''.join(traceback.format_exception(
-            exc_type, exc_value, exc_traceback, limit=8))
+            exc_type, exc_value, exc_traceback))
         _error_dlg = ErrorMsgDialog(None, tbText)
 
         # show the dialog

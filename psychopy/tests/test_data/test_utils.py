@@ -130,6 +130,17 @@ class Test_utilsClass:
         assert len(conds) == 6
         assert len(list(conds[0].keys())) == 6
 
+def test_listFromString():
+    assert ['yes', 'no'] == utils.listFromString("yes, no")
+    assert ['yes', 'no'] == utils.listFromString("[yes, no]")
+    assert ['yes', 'no'] == utils.listFromString("(yes, no)")
+    assert ['yes', 'no'] == utils.listFromString("'yes', 'no'")
+    assert ['yes', 'no'] == utils.listFromString("['yes', 'no']")
+    assert ['yes', 'no'] == utils.listFromString("('yes', 'no')")
+    # this should be returned without ast.literal_eval being used
+    assert ['yes', 'no'] == utils.listFromString(('yes', 'no'))
+    # this would create a syntax error in ast.literal_eval
+    assert ["Don't", "Do"] == utils.listFromString("Don't, Do")
 
 if __name__ == '__main__':
     pytest.main()

@@ -3,7 +3,7 @@
 
 """
 Part of the PsychoPy library
-Copyright (C) 2002-2018 Jonathan Peirce (C) 2019 Open Science Tools Ltd.
+Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2020 Open Science Tools Ltd.
 Distributed under the terms of the GNU General Public License (GPL).
 """
 
@@ -130,6 +130,21 @@ class StaticComponent(BaseComponent):
         buff.setIndentLevel(+1, relative=True)  # entered an if statement
         self.writeParamUpdates(buff)
         code = "%(name)s.complete()  # finish the static period\n"
+        buff.writeIndented(code % self.params)
+        # Calculate stop time
+        if self.params['stopType'].val == 'time (s)':
+            code = "%(name)s.tStop = %(stopVal)s  # record stop time\n"
+        elif self.params['stopType'].val == 'duration (s)':
+            code = "%(name)s.tStop = %(name)s.tStart + %(stopVal)s  # record stop time\n"
+        elif self.params['stopType'].val == 'duration (frames)':
+            code = "%(name)s.tStop = %(name)s.tStart + %(stopVal)s*frameDur  # record stop time\n"
+        elif self.params['stopType'].val == 'frame N':
+            code = "%(name)s.tStop = %(stopVal)s*frameDur  # record stop time\n"
+        else:
+            msg = ("Couldn't deduce end point for startType=%(startType)s, "
+                   "stopType=%(stopType)s")
+            raise Exception(msg % self.params)
+        # Store stop time
         buff.writeIndented(code % self.params)
         # to get out of the if statement
         buff.setIndentLevel(-1, relative=True)

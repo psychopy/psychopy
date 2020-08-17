@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2020 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 """Helper functions in PsychoPy for interacting with Pavlovia.org
@@ -910,6 +910,8 @@ class PavloviaProject(dict):
             elif this.change_type == 'R':  # only if git rename had been called?
                 changeDict['renamed'].append((this.rename_from, this.rename_to))
             elif this.change_type == 'M':
+                changeDict['changed'].append(this.b_path)
+            elif this.change_type == 'U':
                 changeDict['changed'].append(this.b_path)
             else:
                 raise ValueError("Found an unexpected change_type '{}' in gitpython Diff".format(this.change_type))

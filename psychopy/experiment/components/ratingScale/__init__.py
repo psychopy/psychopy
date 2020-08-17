@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2020 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 from __future__ import absolute_import, print_function
@@ -196,7 +196,7 @@ class RatingScaleComponent(BaseComponent):
 
         # customization:
         self.params['customize_everything'] = Param(
-            customize_everything, valType='str', allowedTypes=[],
+            customize_everything, valType='extendedStr', allowedTypes=[],
             updates='constant', allowedUpdates=[], categ="Custom",
             hint=_translate("Use this text to create the rating scale as you"
                             " would in a code component; overrides all"

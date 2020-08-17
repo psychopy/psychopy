@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2020 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 """
@@ -203,7 +203,7 @@ class CodeSnippetValidator(BaseValidator):
             code = experiment.getCodeFromParamStr(val)
             try:
                 names = compile(code, '', 'exec').co_names
-            except SyntaxError as e:
+            except (SyntaxError, TypeError) as e:
                 # empty '' compiles to a syntax error, ignore
                 if not code.strip() == '':
                     _highlightParamVal(parent, True)

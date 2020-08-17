@@ -342,7 +342,7 @@ def test_invertMatrix():
 
         assert isAffine(m)  # must always be TRUE
 
-        inv = invertMatrix(m, homogeneous=True)
+        inv = invertMatrix(m)
 
         # check if we have identity
         assert np.allclose(np.matmul(inv, m), ident)

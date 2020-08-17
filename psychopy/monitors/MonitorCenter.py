@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2020 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 from __future__ import absolute_import, print_function
@@ -988,7 +988,7 @@ class MainFrame(wx.Frame):
                 self.photom.getNeedsCalibrateZero()):
             # prompt user if we need a dark calibration for the device
             if self.photom.getNeedsCalibrateZero():
-                dlg = wx.Dialog(self, title=_translate(
+                wx.Dialog(self, title=_translate(
                     'Dark calibration of ColorCAL'))
                 msg = _translate('Your ColorCAL needs to be calibrated first.'
                                  ' Please block all light from getting into '
@@ -1062,7 +1062,6 @@ class MainFrame(wx.Frame):
         if lumsPost != None:
             for gun in range(4):  # includes lum,r,g,b
                 lums = lumsPost[gun, :]
-                gamma = gammaGrid[gun, 2]
                 gamma = gammaGrid[gun, 2]
                 minLum = min(lums)
                 maxLum = max(lums)

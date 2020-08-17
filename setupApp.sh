@@ -15,9 +15,9 @@ python setup.py sdist --format=zip
 # then handle the mac app bundle
 rm psychopy/prefSite.cfg
 
-declare -a pythons=("python2" "python3")
-declare -a names=("PsychoPy3_PY2" "PsychoPy3")
-declare -a todo=(1) # or  (1 0) to do both
+declare -a pythons=("python3.6")
+declare -a names=("PsychoPy3")
+declare -a todo=(0) # or  (1 0) to do both
 
 for i in todo; do
     # mount the disk image and delete previous copy of app

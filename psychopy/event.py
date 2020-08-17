@@ -6,7 +6,7 @@ pygame to be installed).
 See demo_mouse.py and i{demo_joystick.py} for examples
 """
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2020 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 # 01/2011 modified by Dave Britton to get mouse event timing
@@ -793,15 +793,13 @@ class Mouse(object):
         at (0, 0) to prevent it from going off the screen and getting lost!
         You can still use getRel() in that case.
         """
-        if usePygame:
+        if self.win:  # use default window if we don't have one
+            self.win.setMouseVisible(visible)
+        elif usePygame:
             mouse.set_visible(visible)
-        else:
-            if self.win:  # use default window if we don't have one
-                w = self.win.winHandle
-            else:
-                plat = _default_display_
-
-                w = plat.get_windows()[0]
+        else:  # try communicating with window directly?
+            plat = _default_display_
+            w = plat.get_windows()[0]
             w.set_mouse_visible(visible)
 
     def clickReset(self, buttons=(0, 1, 2)):

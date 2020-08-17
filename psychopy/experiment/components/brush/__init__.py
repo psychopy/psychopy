@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2020 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 from __future__ import absolute_import, print_function
@@ -22,6 +22,7 @@ _localized = {'lineColorSpace': _translate('Line color-space'),
               'lineColor': _translate('Line color'),
               'lineWidth': _translate('Line width'),
               'opacity': _translate('Opacity'),
+              'buttonRequired':_translate('Press button')
               }
 
 class BrushComponent(BaseVisualComponent):
@@ -32,6 +33,7 @@ class BrushComponent(BaseVisualComponent):
     def __init__(self, exp, parentName, name='brush',
                  lineColor='$[1,1,1]', lineColorSpace='rgb',
                  lineWidth=1.5, opacity=1,
+                 buttonRequired=True,
                  startType='time (s)', startVal=0.0,
                  stopType='duration (s)', stopVal=1.0,
                  startEstim='', durationEstim=''):
@@ -45,7 +47,7 @@ class BrushComponent(BaseVisualComponent):
         self.url = "http://www.psychopy.org/builder/components/brush.html"
         self.exp.requirePsychopyLibs(['visual'])
         self.targets = ['PsychoPy', 'PsychoJS']
-        self.order = ['lineWidth', 'opacity']
+        self.order = ['lineWidth', 'opacity', 'buttonRequired']
 
         del self.params['color']  # because color is defined by lineColor
         del self.params['colorSpace']
@@ -83,12 +85,19 @@ class BrushComponent(BaseVisualComponent):
 
         msg = _translate("The line opacity")
         self.params['opacity'] = Param(
-            opacity, valType='str',
-            allowedVals=[],
+            opacity, valType='code', allowedTypes=[],
             updates='constant',
             allowedUpdates=['constant', 'set every repeat'],
             hint=msg,
             label=_localized['opacity'])
+
+        msg = _translate("Whether a button needs to be pressed to draw (True/False)")
+        self.params['buttonRequired'] = Param(
+            buttonRequired, valType='code', allowedTypes=[],
+            updates='constant',
+            allowedUpdates=['constant', 'set every repeat'],
+            hint=msg,
+            label=_localized['buttonRequired'], categ='Advanced')
 
     def writeInitCode(self, buff):
         params = getInitVals(self.params)
@@ -96,11 +105,13 @@ class BrushComponent(BaseVisualComponent):
                 "   lineWidth={lineWidth},\n"
                 "   lineColor={lineColor},\n"
                 "   lineColorSpace={lineColorSpace},\n"
-                "   opacity={opacity})").format(name=params['name'],
+                "   opacity={opacity},\n"
+                "   buttonRequired={buttonRequired})").format(name=params['name'],
                                                 lineWidth=params['lineWidth'],
                                                 lineColor=params['lineColor'],
                                                 lineColorSpace=params['lineColorSpace'],
-                                                opacity=params['opacity'])
+                                                opacity=params['opacity'],
+                                                buttonRequired=params['buttonRequired'])
         buff.writeIndentedLines(code)
 
     def writeInitCodeJS(self, buff):

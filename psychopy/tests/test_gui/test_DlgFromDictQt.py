@@ -28,22 +28,22 @@ class TestDlgFromDictQt(object):
         assert dlg.windowTitle() == self.title
 
     def test_sort_keys_true(self):
-        dlg = DlgFromDict(self.d, sort_keys=True, show=False)
+        dlg = DlgFromDict(self.d, sortKeys=True, show=False)
         keys = list(self.d.copy().keys())
         keys.sort()
         assert keys == dlg._keys
 
     def test_sort_keys_false(self):
-        dlg = DlgFromDict(self.d, sort_keys=False, show=False)
+        dlg = DlgFromDict(self.d, sortKeys=False, show=False)
         keys = list(self.d.copy().keys())
         assert keys == dlg._keys
 
     def test_copy_dict_true(self):
-        dlg = DlgFromDict(self.d, copy_dict=True, show=False)
+        dlg = DlgFromDict(self.d, copyDict=True, show=False)
         assert self.d is not dlg.dictionary
 
     def test_copy_dict_false(self):
-        dlg = DlgFromDict(self.d, copy_dict=False, show=False)
+        dlg = DlgFromDict(self.d, copyDict=False, show=False)
         assert self.d is dlg.dictionary
 
     def test_order_list(self):
