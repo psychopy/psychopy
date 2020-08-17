@@ -483,6 +483,9 @@ class Color(object):
         self._requestedSpace = space \
             if space and space in self.getSpace(self._requested, debug=True) \
             else self.getSpace(self._requested)
+        if isinstance(self._requestedSpace, (list, type(None))):
+            logging.error("Color space could not be determined by values supplied, please specify a color space.")
+            return
 
         # Set matrix for cone conversion
         if conematrix is not None:
