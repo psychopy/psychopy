@@ -22,7 +22,7 @@ from past.builtins import basestring
 from collections import deque
 
 from psychopy.contrib.lazy_import import lazy_import
-from psychopy import colors
+from psychopy import colors, event
 import math
 from psychopy.visual.windowbuffer import WindowBuffer
 from psychopy.visual.warp import NullWarp

@@ -2482,12 +2482,12 @@ def createTexImage2DMultisample(width, height,
             width, height))
 
     # determine if the 'samples' value is valid
-    maxSamples = maxSamples()
+    maximum = maxSamples()
     if (samples & (samples - 1)) != 0:
         raise ValueError('Invalid number of samples, must be power-of-two.')
-    elif samples <= 0 or samples > maxSamples:
+    elif samples <= 0 or samples > maximum:
         raise ValueError('Invalid number of samples, must be <{}.'.format(
-            maxSamples))
+            maximum))
 
     colorTexId = GL.GLuint()
     GL.glGenTextures(1, ctypes.byref(colorTexId))
