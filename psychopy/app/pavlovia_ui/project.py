@@ -494,6 +494,7 @@ def syncProject(parent, project=None, closeFrameWhenDone=False):
             return 0
 
     # a sync will be necessary so set the target to Runner stdout
+    parent.app.showRunner()
     syncFrame = parent.app.runner.stdOut
 
     if project._newRemote:
