@@ -277,7 +277,7 @@ class LegacyVisualMixin(object):
         self.__dict__['depth'] = value
 
 # Dict of examples of Psychopy Red at 12% opacity in different formats
-color_examples = {
+colorExamples = {
     'invis': None,
     'named': 'crimson',
     'hex': '#F2545B',
@@ -292,7 +292,7 @@ color_examples = {
     'hsva': (357, 0.65, 0.95, 0.12),
 }
 # Dict of named colours
-color_names = {
+colorNames = {
         "none": (0, 0, 0, -1),
         "aliceblue": (0.882352941176471, 0.945098039215686, 1, 1.0),
         "antiquewhite": (0.96078431372549, 0.843137254901961, 0.686274509803922, 1.0),
@@ -450,8 +450,8 @@ _1 = '(0|1|1.0*|0\.\d*)'
 _lbr = '[\[\(]\s*'
 _rbr = '\s*[\]\)]'
 # Dict of regexpressions for different formats
-color_spaces = {
-    'named': re.compile("|".join(list(color_names))), # A named colour space
+colorSpaces = {
+    'named': re.compile("|".join(list(colorNames))), # A named colour space
     'hex': re.compile('#[\dabcdefABCDEF]{6}'), # Hex
     'hexa': re.compile('#[\dabcdefABCDEF]{8}'), # Hex + alpha
     'rgb': re.compile(_lbr+'\-?'+_1+',\s*'+'\-?'+_1+',\s*'+'\-?'+_1+_rbr), # RGB from -1 to 1
@@ -579,8 +579,8 @@ class Color(object):
         """Find what colour space a colour is from"""
         if isinstance(color, Color):
             return color._requestedSpace
-        possible = [space for space in color_spaces
-                    if color_spaces[space].fullmatch(str(color).lower())]
+        possible = [space for space in colorSpaces
+                    if colorSpaces[space].fullmatch(str(color).lower())]
         if debug:
             return possible
         elif len(possible) == 1:
@@ -828,8 +828,8 @@ class Color(object):
     @property
     def named(self):
         # Round all values to 2 decimal places to find approximate matches
-        approxNames = {col: [round(val, 2) for val in color_names[col]]
-                       for col in color_names}
+        approxNames = {col: [round(val, 2) for val in colorNames[col]]
+                       for col in colorNames}
         approxColor = [round(val, 2) for val in self.rgba]
         # Get matches
         possible = [nm for nm in approxNames if approxNames[nm] == approxColor]
@@ -839,11 +839,11 @@ class Color(object):
     @named.setter
     def named(self, color):
         # Validate
-        if str(color).lower() not in color_names:
+        if str(color).lower() not in colorNames:
             self.named = None
         else:
             # Retrieve named colour
-            self.rgba = color_names[str(color).lower()]
+            self.rgba = colorNames[str(color).lower()]
 
     @property
     def hsva(self):
@@ -986,7 +986,7 @@ class Color(object):
         self.lmsa = color
 
 _rec = '(\-4\.5|\-4\.4\d*|\-4\.[0-4]\d*|\-[0-3]\.\d*|\-[0-3]|0|0\.\d*|1|1\.0)' # -4.5 to 1
-advanced_spaces = {
+advancedSpaces = {
     'rec709TF': re.compile(_lbr+_rec+',\s*'+_rec+',\s*'+_rec+_rbr), # rec709TF adjusted RGB from -4.5 to 1 + alpha from 0 to 1
     'rec709TFa': re.compile(_lbr+_rec+',\s*'+_rec+',\s*'+_rec+',\s*'+_1+_rbr), # rec709TF adjusted RGB from -4.5 to 1 + alpha from 0 to 1
     'srgbTF': re.compile(_lbr+'\-?'+_1+',\s*'+'\-?'+_1+',\s*'+'\-?'+_1+_rbr), # srgbTF from -1 to 1 + alpha from 0 to 1
@@ -1001,8 +1001,8 @@ class AdvancedColor(Color):
         if isinstance(color, AdvancedColor):
             return color._requestedSpace
         # Check for advanced colours spaces
-        possible = [space for space in advanced_spaces
-                    if advanced_spaces[space].fullmatch(str(color))]
+        possible = [space for space in advancedSpaces
+                    if advancedSpaces[space].fullmatch(str(color))]
         if len(possible) == 1:
             return possible[0]
         # Append basic colour spaces and check again
