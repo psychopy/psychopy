@@ -104,28 +104,31 @@ class WindowBuffer(object):
 
         # screen/monitor parameters, needed for computing various projections,
         # not expected to change over the course of the application runtime
-        scrDistCM = self.win.scrDistCM
-        scrWidthCM = self.win.scrWidthCM
-        scrWidthPIX = self.win.scrWidthPIX
         if self.win.scrDistCM is not None:
-            self.scrDistM = scrDistCM / 100.0
+            self.scrDistM = self.win.scrDistCM / 100.0
         else:
             self.scrDistM = 0.5  # default if nothing provided
 
         if self.win.scrWidthCM is not None:
-            self.scrWidthM = scrWidthCM / 100.0
+            self.scrWidthM = self.win.scrWidthCM / 100.0
         else:
-            self.scrWidthM = 0.5
+            self.scrWidthM = 0.5  # same as above, use defualt
 
-        # viewports and buffer size
+        if self.win.scrWidthPIX is not None:
+            # pixels not specified, just use the window size (for now)
+            self.scrWidthPIX = self.win.scrWidthPIX
+        else:
+            self.scrWidthPIX = self.win.frameBufferSize[0]
+
+            # viewports and buffer size
         self._viewport = np.asarray(viewport, dtype=int)
         self._scissor = np.array(self._viewport, dtype=int)
         self._size = np.array(self.viewport[2:])
 
         # if fullscreen, adjust the screen width so that it is as wide as the
         # window, this ensures that the projection is correct in all cases
-        #if not self.win._isFullScr:
-        #    self.scrWidthM = (self.size[0] / scrWidthPIX) * self.scrWidthM
+        if not self.win._isFullScr:
+            self.scrWidthM = (self.size[0] / self.scrWidthPIX) * self.scrWidthM
 
         # clipping planes
         self._nearClip = -1

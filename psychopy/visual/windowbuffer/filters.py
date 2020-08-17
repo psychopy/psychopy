@@ -437,8 +437,7 @@ class LensCorrectionFilter(RectilinearFilter):
 
         # recompute vertex positions
         vertices[:, :2] = mathtools.lensCorrection(
-            vertices[:, :2], coefK=(0.5, 0.1), distCenter=(0.1, 0.0),
-            normalize=self._normalize)
+            vertices[:, :2], coefK=(0.5, 0.1), distCenter=(0.1, 0.0))
 
         self._vertexVBO = gltools.createVBO(vertices, usage=GL.GL_DYNAMIC_DRAW)
         self._texCoordVBO = gltools.createVBO(texCoord, usage=GL.GL_DYNAMIC_DRAW)
@@ -490,7 +489,7 @@ class LensCorrectionFilter(RectilinearFilter):
             ptrBuffer[:, :] = self.vertIdentity
             ptrBuffer[:, :2] = mathtools.lensCorrection(
                 ptrBuffer[:, :2], coefK=self._coefK,
-                distCenter=self._distCenter, normalize=self._normalize)
+                distCenter=self._distCenter)
             gltools.unmapBuffer(self._vertexVBO)
             self._recomputeDistortion = False
 
