@@ -716,7 +716,7 @@ class Color(object):
     @rgba.setter
     def rgba(self, color):
         # Validate
-        color = self.validate(self, color, against=['rgb', 'rgba'], enforce=tuple)
+        color = self.validate(color, against=['rgb', 'rgba'], enforce=tuple)
         if not color:
             return
         # Append alpha, if not present
@@ -743,7 +743,7 @@ class Color(object):
     @rgba255.setter
     def rgba255(self, color):
         # Validate
-        color = self.validate(self, color, against=['rgb255', 'rgba255'], enforce=tuple)
+        color = self.validate(color, against=['rgb255', 'rgba255'], enforce=tuple)
         if not color:
             return
         # Iterate through values and do conversion
@@ -765,7 +765,7 @@ class Color(object):
     @rgba1.setter
     def rgba1(self, color):
         # Validate
-        color = self.validate(self, color, against=['rgb1', 'rgba1'], enforce=tuple)
+        color = self.validate(color, against=['rgb1', 'rgba1'], enforce=tuple)
         if not color:
             return
         # Iterate through values and do conversion
@@ -800,7 +800,7 @@ class Color(object):
     @hexa.setter
     def hexa(self, color):
         # Validate
-        color = self.validate(self, color, against=['hex', 'hexa'], enforce=str)
+        color = self.validate(color, against=['hex', 'hexa'], enforce=str)
         if not color:
             return
         # Convert strings to list
@@ -843,7 +843,7 @@ class Color(object):
     @named.setter
     def named(self, color):
         # Validate
-        color = self.validate(self, color.lower(), against=['named'], enforce=str)
+        color = self.validate(color=color.lower(), against=['named'], enforce=str)
         if not color:
             return
         # Retrieve named colour
@@ -882,7 +882,7 @@ class Color(object):
         # http://en.wikipedia.org/wiki/HSL_and_HSV#Converting_to_RGB
 
         # Validate
-        color = self.validate(self, color, against=['hsva', 'hsv'], enforce=tuple)
+        color = self.validate(color, against=['hsva', 'hsv'], enforce=tuple)
         if not color:
             return
         # Extract values
@@ -955,7 +955,7 @@ class Color(object):
         conversion matrix)
         """
         # Validate
-        color = self.validate(self, color.lower(), against=['lms', 'lmsa'], enforce=tuple)
+        color = self.validate(color.lower(), against=['lms', 'lmsa'], enforce=tuple)
         if not color:
             return
         # Get alpha
@@ -1045,7 +1045,7 @@ class AdvancedColor(Color):
     @rec709TFa.setter
     def rec709TFa(self, color):
         # Validate
-        color = self.validate(self, color, against=['rec709TF', 'rec709TFa'], enforce=tuple)
+        color = self.validate(color, against=['rec709TF', 'rec709TFa'], enforce=tuple)
         if not color:
             return
         # Check for alpha
@@ -1079,7 +1079,7 @@ class AdvancedColor(Color):
     @srgbTFa.setter
     def srgbTFa(self, color):
         # Validate
-        color = self.validate(self, color, against=['srgbTF', 'srgbTFa'], enforce=tuple)
+        color = self.validate(color, against=['srgbTF', 'srgbTFa'], enforce=tuple)
         if not color:
             return
         # Check for alpha
