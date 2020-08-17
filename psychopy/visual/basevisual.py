@@ -1004,6 +1004,31 @@ class AdvancedColor(Color):
         else:
             return possible[0]
 
+    def validate(self, color, against=None, enforce=None):
+        # If not checking against anything, check against everything
+        if not against:
+            against = list(advancedSpaces)
+        # If looking for a string, convert from other forms it could be in
+        if enforce == str:
+            color = str(color).lower()
+        # If looking for a tuple, convert from other forms it could be in
+        if enforce == tuple:
+            if isinstance(color, str):
+                color = [float(n) for n in color.strip('[]()').split(',')]
+            if isinstance(color, list):
+                color = tuple(color)
+        # Get possible colour spaces
+        possible = AdvancedColor.getSpace(color)
+        if isinstance(possible, str):
+            possible = [possible]
+        # Return if any matches
+        for space in possible:
+            if space in against:
+                return color
+        # If no matches...
+        self.named = None
+        return None
+
     @property
     def rec709TFa(self):
         """Apply the Rec. 709 transfer function (or gamma) to linear RGB values.
@@ -1020,13 +1045,9 @@ class AdvancedColor(Color):
     @rec709TFa.setter
     def rec709TFa(self, color):
         # Validate
-        if 'rec709TF' not in AdvancedColor.getSpace(color, debug=True) and 'rec709TFa' not in AdvancedColor.getSpace(color, debug=True):
-            self._franca = None
+        color = self.validate(self, color, against=['rec709TF', 'rec709TFa'], enforce=tuple)
+        if not color:
             return
-        if isinstance(color, str):
-            color = [float(n) for n in color.strip('[]()').split(',')]
-        if isinstance(color, list):
-            color = tuple(color)
         # Check for alpha
         if len(color) == 4:
             alpha = color[-1]
@@ -1058,13 +1079,9 @@ class AdvancedColor(Color):
     @srgbTFa.setter
     def srgbTFa(self, color):
         # Validate
-        if 'srgbTF' not in AdvancedColor.getSpace(color, debug=True) and 'srgbTFa' not in AdvancedColor.getSpace(color, debug=True):
-            self._franca = None
+        color = self.validate(self, color, against=['srgbTF', 'srgbTFa'], enforce=tuple)
+        if not color:
             return
-        if isinstance(color, str):
-            color = [float(n) for n in color.strip('[]()').split(',')]
-        if isinstance(color, list):
-            color = tuple(color)
         # Check for alpha
         if len(color) == 4:
             alpha = color[-1]
