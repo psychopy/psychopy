@@ -471,6 +471,11 @@ class Color(object):
     """A class to store colour details, knows what colour space it's in and can supply colours in any space"""
 
     def __init__(self, color=None, space=None, conematrix=None):
+        self.set(color=color, space=space, conematrix=conematrix)
+
+    def set(self, color=None, space=None, conematrix=None):
+        """Set the colour of this object - essentially the same as what happens on creation, but without
+        having to initialise a new object"""
         # If input is a Color object, duplicate all settings
         if isinstance(color, Color):
             self._requested = color._requested
@@ -612,33 +617,6 @@ class Color(object):
             return (_mov, 0, 255,)
         if seg == 5:
             return (255, 0, _mov,)
-
-    def set(self, color=None, space=None, conematrix=None):
-        """Set the colour of this object - essentially the same as what happens on creation, but without
-        having to initialise a new object"""
-        # If input is a Color object, duplicate all settings
-        if isinstance(color, Color):
-            self._requested = color._requested
-            self._requestedSpace = color._requestedSpace
-            self.conematrix = color.conematrix
-            self.rgba = color.rgba
-            return
-        # Store requested colour and space (or defaults, if none given)
-        self._requested = color if color else None
-        self._requestedSpace = space if space else self.getSpace(self._requested)
-
-        # Set matrix for cone conversion
-        if conematrix:
-            self.conematrix = conematrix
-        else:
-            # Set _conematrix specifically as undefined, rather than just setting to default
-            self._conematrix = None
-
-        # Convert to lingua franca
-        if self._requestedSpace:
-            setattr(self, self._requestedSpace, self._requested)
-        else:
-            self.named = None
 
     def validate(self, color, against=None, enforce=None):
         # If not checking against anything, check against everything
