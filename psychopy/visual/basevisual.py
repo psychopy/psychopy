@@ -581,24 +581,11 @@ class Color(object):
             return color._requestedSpace
         possible = [space for space in colorSpaces
                     if colorSpaces[space].fullmatch(str(color).lower())]
-        if debug:
+        # Return full list if debug or multiple, else return first value
+        if debug or len(possible) > 1:
             return possible
-        elif len(possible) == 1:
+        else:
             return possible[0]
-
-        # Preferred values in cases of conflict
-        priority = [
-            'rgba',
-            'rgb',
-            'rgba255',
-            'rgba255',
-            'hexa'
-        ]
-        for space in priority:
-            if space in possible:
-                return space
-        # If all else fails, return None
-        return None
 
     @staticmethod
     def hue2rgb255(hue):
@@ -649,6 +636,32 @@ class Color(object):
             setattr(self, self._requestedSpace, self._requested)
         else:
             self.named = None
+
+    def validate(self, color, against=None, enforce=None):
+        # Get possible colour spaces
+        possible = Color.getSpace(color)
+        if isinstance(possible, str):
+            possible = [possible]
+        # If not checking against anything, check against everything
+        if not against:
+            against = list(colorSpaces)
+        # If looking for a string, convert from other forms it could be in
+        if enforce == str:
+            color = str(color)
+        # If looking for a tuple, convert from other forms it could be in
+        if enforce == tuple:
+            if isinstance(color, str):
+                color = [float(n) for n in color.strip('[]()').split(',')]
+            if isinstance(color, list):
+                color = tuple(color)
+        # Return if any matches
+        for space in possible:
+            if space in against:
+                return color
+        # If no matches...
+        self.named = None
+        return None
+
     # ---adjusters---
     @property
     def contrast(self):
@@ -703,13 +716,9 @@ class Color(object):
     @rgba.setter
     def rgba(self, color):
         # Validate
-        if not Color.getSpace(color) in ['rgba', 'rgb']:
-            self.named = None
+        color = self.validate(self, color, against=['rgb', 'rgba'], enforce=tuple)
+        if not color:
             return
-        if isinstance(color, str):
-            color = [float(n) for n in color.strip('[]()').split(',')]
-        if isinstance(color, list):
-            color = tuple(color)
         # Append alpha, if not present
         if len(color) == 4:
             self._franca = color
@@ -734,10 +743,9 @@ class Color(object):
     @rgba255.setter
     def rgba255(self, color):
         # Validate
-        if not Color.getSpace(color) in ['rgb255', 'rgba255']:
-            self.rgba = None
-        if isinstance(color, str):
-            color = [float(n) for n in color.strip('[]()').split(',')]
+        color = self.validate(self, color, against=['rgb255', 'rgba255'], enforce=tuple)
+        if not color:
+            return
         # Iterate through values and do conversion
         self.rgba = tuple(2 * (val / 255 - 0.5) for val in color)
 
@@ -757,10 +765,9 @@ class Color(object):
     @rgba1.setter
     def rgba1(self, color):
         # Validate
-        if not Color.getSpace(color) in ['rgb', 'rgba', 'rgb1', 'rgba1']:
-            return None
-        if isinstance(color, str):
-            color = [float(n) for n in color.strip('[]()').split(',')]
+        color = self.validate(self, color, against=['rgb1', 'rgba1'], enforce=tuple)
+        if not color:
+            return
         # Iterate through values and do conversion
         self.rgba = tuple(2 * (val - 0.5) for val in color)
 
@@ -792,15 +799,12 @@ class Color(object):
         return "".join(flatList)
     @hexa.setter
     def hexa(self, color):
-        # Convert strings to list
-        if Color.getSpace(color) in ['hexa']:
-            colorList = [color[i - 2:i] for i in [3, 5, 7, 9]]
-        elif Color.getSpace(color) in ['hex']:
-            colorList = [color[i-2:i] for i in [3,5,7]]
-        else:
-            # Validate
-            self.rgba = None
+        # Validate
+        color = self.validate(self, color, against=['hex', 'hexa'], enforce=str)
+        if not color:
             return
+        # Convert strings to list
+        colorList = [color[i - 2:i] for i in [3, 5, 7, 9] if color[i - 2:i]]
         # Map hex letters to corresponding values in rgb255
         hexmap = {'a':10, 'b':11, 'c':12, 'd':13, 'e':14, 'f':15}
         # Create adjustment for different digits
@@ -839,11 +843,11 @@ class Color(object):
     @named.setter
     def named(self, color):
         # Validate
-        if str(color).lower() not in colorNames:
-            self.named = None
-        else:
-            # Retrieve named colour
-            self.rgba = colorNames[str(color).lower()]
+        color = self.validate(self, color.lower(), against=['named'], enforce=str)
+        if not color:
+            return
+        # Retrieve named colour
+        self.rgba = colorNames[str(color).lower()]
 
     @property
     def hsva(self):
@@ -878,12 +882,9 @@ class Color(object):
         # http://en.wikipedia.org/wiki/HSL_and_HSV#Converting_to_RGB
 
         # Validate
-        if 'hsv' not in Color.getSpace(color, debug=True) and 'hsva' not in Color.getSpace(color, debug=True):
-            return None
-        if isinstance(color, str):
-            color = [float(n) for n in color.strip('[]()').split(',')]
-        if isinstance(color, list):
-            color = tuple(color)
+        color = self.validate(self, color.lower(), against=['hsva', 'hsv'], enforce=tuple)
+        if not color:
+            return
         # Extract values
         if len(color) == 3:
             hue, saturation, vibrancy = color
@@ -958,20 +959,15 @@ class Color(object):
         conversion matrix)
         """
         # Validate
-        if 'lms' not in Color.getSpace(color, debug=True) and 'lmsa' not in Color.getSpace(color, debug=True):
-            return None
-        if isinstance(color, str):
-            color = [float(n) for n in color.strip('[]()').split(',')]
-        if isinstance(color, list):
-            color = tuple(color)
-
+        color = self.validate(self, color.lower(), against=['lms', 'lmsa'], enforce=tuple)
+        if not color:
+            return
         # Get alpha
         if len(color) == 4:
             alpha = color[-1]
             color = color[:-1]
         elif len(color) == 3:
             alpha = 1
-
         # its easier to use in the other orientation!
         lms_3xN = numpy.transpose(color)
         rgb = numpy.dot(self.conematrix, lms_3xN)
@@ -1003,29 +999,14 @@ class AdvancedColor(Color):
         # Check for advanced colours spaces
         possible = [space for space in advancedSpaces
                     if advancedSpaces[space].fullmatch(str(color))]
-        if len(possible) == 1:
-            return possible[0]
-        # Append basic colour spaces and check again
+        # Append basic colour spaces
         basic = Color.getSpace(color, debug=True)
-        if isinstance(basic, str):
-            basic = [basic]
         possible += basic
-        if possible and len(possible) == 1:
-            return possible[0]
-        # Return full list if in debug mode
-        if debug:
+        # Return full list if debug or multiple, else return first value
+        if debug or len(possible) > 1:
             return possible
-        # Preferred values in cases of conflict
-        priority = [
-            'rgba',
-            'rgb',
-            'rgba255',
-            'rgba255',
-            'hexa'
-        ]
-        for space in priority:
-            if space in possible:
-                return space
+        else:
+            return possible[0]
 
     @property
     def rec709TFa(self):
