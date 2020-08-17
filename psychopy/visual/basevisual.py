@@ -886,12 +886,8 @@ class Color(object):
         if not color:
             return
         # Extract values
-        if len(color) == 3:
-            hue, saturation, vibrancy = color
-            alpha255 = None
-        if len(color) == 4:
-            hue, saturation, vibrancy, alpha = color
-            alpha255 = alpha*255
+        hue, saturation, vibrancy, *alpha = color
+        alpha255 = alpha[0] * 255 if alpha else None
         # Convert hue
         hue255 = Color.hue2rgb255(hue)
         # Get value to move towards as saturation decreases
