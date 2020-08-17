@@ -608,9 +608,9 @@ class ProjectRecreator(wx.Dialog):
         mainSizer = wx.BoxSizer(wx.VERTICAL)
         buttonSizer = wx.BoxSizer(wx.HORIZONTAL)
         buttonSizer.Add(wx.Button(self, id=wx.ID_OK, label=_translate("OK")),
-                      1, wx.ALL | wx.ALIGN_RIGHT, 5)
+                      1, wx.ALL, 5)
         buttonSizer.Add(wx.Button(self, id=wx.ID_CANCEL, label=_translate("Cancel")),
-                      1, wx.ALL | wx.ALIGN_RIGHT, 5)
+                      1, wx.ALL, 5)
         mainSizer.Add(msg, 1, wx.ALL, 5)
         mainSizer.Add(self.radioCtrl, 1, wx.ALL | wx.ALIGN_CENTER_HORIZONTAL, 5)
         mainSizer.Add(buttonSizer, 1, wx.ALL | wx.ALIGN_RIGHT, 1)
