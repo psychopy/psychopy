@@ -777,7 +777,7 @@ class Color(object):
             return self.rgba1[:-1]
     @rgb1.setter
     def rgb1(self, color):
-        self.rgba1 = tuple(2 * (val - 0.5) for val in color)
+        self.rgba1 = color
 
     @property
     def hexa(self):
