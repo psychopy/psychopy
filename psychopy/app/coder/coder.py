@@ -115,6 +115,10 @@ class PsychopyPyShell(wx.py.shell.Shell, ThemeMixin):
         self._applyAppTheme()
 
     def GetContextMenu(self):
+        """Override original method (wx.py.shell.Shell.GetContextMenu)
+        to localize context menu.  Simply added _translate() to
+        original code.
+        """
         menu = wx.Menu()
         menu.Append(self.ID_UNDO, _translate("Undo"))
         menu.Append(self.ID_REDO, _translate("Redo"))
