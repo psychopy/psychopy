@@ -1315,6 +1315,103 @@ class ColorMixin(object):
         return desiredRGB
 
 
+class ColorArray(object):
+    def __init__(self, array, space, handler='basic', conematrix=None):
+        self.set(array, space, handler='basic', conematrix=None)
+
+    def set(self, array, space, handler='basic', conematrix=None):
+        # Validate
+        if isinstance(array, numpy.ndarray):
+            # If numpy, convert to list of tuple
+            new = [[[]]*len(array[0])]*len(array)
+            for row in range(len(array)):
+                for col in range(len(array[row])):
+                    new[row][col] = tuple(float(c) for c in array[row][col])
+                    if space in ['rgb255', 'rgba255']:
+                        new[row][col] = tuple(int(c) for c in array[row][col])
+            array = new
+        if not isinstance(array, list):
+            return
+        if not all(isinstance(row, list) for row in array):
+            return
+        if not all(all(isinstance(cell, tuple) for cell in row) for row in array):
+            return
+
+        if handler in ['color', 'basic', Color]:
+            self.handler = Color()
+        elif handler in ['advanced', AdvancedColor]:
+            self.handler = AdvancedColor(conematrix=conematrix)
+        elif isinstance(handler, Color):
+            self.handler = handler
+        else:
+            return
+
+        self._franca = [[[]]*len(array[0])]*len(array)
+        for row in range(len(array)):
+            for col in range(len(array[row])):
+                self.handler.set(array[row][col], space)
+                self._franca[row][col] = self.handler.rgba
+        self._cache = {}
+
+    def get(self, space):
+        out = [[[]]*len(self._franca[0])]*len(self._franca)
+        for row in range(len(self._franca)):
+            for col in range(len(self._franca[row])):
+                self.handler.set(self._franca[row][col], 'rgba')
+                out[row][col] = getattr(self.handler, space)
+        return out
+
+    @property
+    def rgba(self):
+        if 'rgba' not in self._cache:
+            self._cache['rgba'] = self.get('rgba')
+        return self._cache['rgba']
+    @property
+    def rgb(self):
+        if 'rgb' not in self._cache:
+            self._cache['rgb'] = self.get('rgb')
+        return self._cache['rgb']
+    @property
+    def rgba1(self):
+        if 'rgba1' not in self._cache:
+            self._cache['rgba1'] = self.get('rgba1')
+        return self._cache['rgba1']
+    @property
+    def rgb1(self):
+        if 'rgb1' not in self._cache:
+            self._cache['rgb1'] = self.get('rgb1')
+        return self._cache['rgb1']
+    @property
+    def rgba255(self):
+        if 'rgba255' not in self._cache:
+            self._cache['rgba255'] = self.get('rgba255')
+        return self._cache['rgba255']
+    @property
+    def rgb255(self):
+        if 'rgb255' not in self._cache:
+            self._cache['rgb255'] = self.get('rgb255')
+        return self._cache['rgb255']
+    @property
+    def hsva(self):
+        if 'hsva' not in self._cache:
+            self._cache['hsva'] = self.get('hsva')
+        return self._cache['hsva']
+    @property
+    def hsv(self):
+        if 'hsv' not in self._cache:
+            self._cache['hsv'] = self.get('hsv')
+        return self._cache['hsv']
+    @property
+    def hexa(self):
+        if 'hexa' not in self._cache:
+            self._cache['hexa'] = self.get('hexa')
+        return self._cache['hexa']
+    @property
+    def hex(self):
+        if 'hex' not in self._cache:
+            self._cache['hex'] = self.get('hex')
+        return self._cache['hex']
+
 class ContainerMixin(object):
     """Mixin class for visual stim that have verticesPix attrib
     and .contains() methods.
