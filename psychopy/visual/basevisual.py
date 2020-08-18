@@ -483,7 +483,6 @@ class Color(object):
         if isinstance(color, Color):
             self._requested = color._requested
             self._requestedSpace = color._requestedSpace
-            self.conematrix = color.conematrix
             self.rgba = color.rgba
             return
         # Store requested colour and space (or defaults, if none given)
@@ -576,7 +575,7 @@ class Color(object):
 
     def copy(self):
         """Return a duplicate of this colour"""
-        return self.__class__(self._requested, self._requestedSpace, self.conematrix)
+        return self.__class__(self._requested, self._requestedSpace)
 
     @staticmethod
     def getSpace(color, debug=False):
