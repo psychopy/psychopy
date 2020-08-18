@@ -10,6 +10,8 @@ from __future__ import absolute_import, division, print_function
 from builtins import str
 from builtins import object
 
+from psychopy.app.colorpicker import PsychoColorPicker
+
 profiling = False  # turning on will save profile files in currDir
 
 import sys
@@ -673,29 +675,9 @@ class PsychoPyApp(wx.App, themes.ThemeMixin):
         Note: units are psychopy -1..+1 rgb units to three decimal places,
         preserving 24-bit color.
         """
-        class ColorPicker(wx.Panel):
-
-            def __init__(self, parent):
-                wx.Panel.__init__(self, parent, wx.ID_ANY)
-                rgb = 'None'
-                dlg = wx.ColourDialog(self)
-                dlg.GetColourData().SetChooseFull(True)
-                if dlg.ShowModal() == wx.ID_OK:
-                    data = dlg.GetColourData()
-                    rgb = data.GetColour().Get(includeAlpha=False)
-                    rgb = map(lambda x: "%.3f" %
-                              ((x - 127.5) / 127.5), list(rgb))
-                    rgb = '[' + ','.join(rgb) + ']'
-                    # http://wiki.wxpython.org/AnotherTutorial#wx.TheClipboard
-                    if wx.TheClipboard.Open():
-                        wx.TheClipboard.Clear()
-                        wx.TheClipboard.SetData(wx.TextDataObject(str(rgb)))
-                        wx.TheClipboard.Close()
-                dlg.Destroy()
-                parent.newRBG = rgb
         frame = wx.Frame(None, wx.ID_ANY, "Color picker",
                          size=(0, 0))  # not shown
-        ColorPicker(frame)
+        PsychoColorPicker(frame)
         newRBG = frame.newRBG
         frame.Destroy()
         return newRBG  # string
