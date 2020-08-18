@@ -462,19 +462,17 @@ colorSpaces = {
     'rgba255': re.compile(_lbr+_255+',\s*'+_255+',\s*'+_255+',\s*'+_255+_rbr), # RGB + alpha from 0 to 255
     'hsv': re.compile(_lbr+_360+'\°?'+',\s*'+_1+',\s*'+_1+_rbr), # HSV with hue from 0 to 360 and saturation/vibrancy from 0 to 1
     'hsva': re.compile(_lbr+_360+'\°?'+',\s*'+_1+',\s*'+_1+',\s*'+_1+_rbr), # HSV with hue from 0 to 360 and saturation/vibrancy from 0 to 1 + alpha from 0 to 1
-    'lms': re.compile(_lbr+'\-?'+_1+',\s*'+'\-?'+_1+',\s*'+'\-?'+_1+_rbr), # LMS from -1 to 1
-    'lmsa': re.compile(_lbr+'\-?'+_1+',\s*'+'\-?'+_1+',\s*'+'\-?'+_1+',\s*'+'\-?'+_1+_rbr), # LMS + alpha from -1 to 1
 }
 
 
 class Color(object):
     """A class to store colour details, knows what colour space it's in and can supply colours in any space"""
 
-    def __init__(self, color=None, space=None, conematrix=None):
+    def __init__(self, color=None, space=None):
         self._cache = {}
-        self.set(color=color, space=space, conematrix=conematrix)
+        self.set(color=color, space=space)
 
-    def set(self, color=None, space=None, conematrix=None):
+    def set(self, color=None, space=None):
         """Set the colour of this object - essentially the same as what happens on creation, but without
         having to initialise a new object"""
         if isinstance(color, numpy.ndarray):
@@ -496,13 +494,6 @@ class Color(object):
         if isinstance(self._requestedSpace, (list, type(None))):
             logging.error("Color space could not be determined by values supplied, please specify a color space.")
             return
-
-        # Set matrix for cone conversion
-        if conematrix is not None:
-            self.conematrix = conematrix
-        else:
-            # Set _conematrix specifically as undefined, rather than just setting to default
-            self._conematrix = None
 
         # Convert to lingua franca
         if self._requestedSpace:
@@ -915,93 +906,27 @@ class Color(object):
     def hsv(self, color):
         self.hsva = color
 
-    @property
-    def conematrix(self):
-        if self._conematrix is None:
-            # If _conematrix has been directly set to None, set to default
-            self.conematrix = None
-        return self._conematrix
-    @conematrix.setter
-    def conematrix(self, value):
-        # Default matrix
-        def default():
-            # Set default cone matrix and print warning
-            logging.warning('This monitor has not been color-calibrated. '
-                            'Using default LMS conversion matrix.')
-            return numpy.asarray([
-                # L        M        S
-                [4.97068857, -4.14354132, 0.17285275],  # R
-                [-0.90913894, 2.15671326, -0.24757432],  # G
-                [-0.03976551, -0.14253782, 1.18230333]])  # B
-        if not isinstance(value, numpy.ndarray):
-            self._conematrix = default()
-        elif not value.size == 9:
-            self._conematrix = default()
-        else:
-            self._conematrix = value
-
-    @property
-    def lmsa(self):
-        """Convert from RGB to cone space (LMS).
-
-        Requires a conversion matrix, which will be generated from generic
-        Sony Trinitron phosphors if not supplied (note that you will not get
-        an accurate representation of the color space unless you supply a
-        conversion matrix)
-        """
-        if 'lmsa' not in self._cache:
-            if self._conematrix is None:
-                self.conematrix = None
-            # its easier to use in the other orientation!
-            rgb_3xN = numpy.transpose(self.rgb)
-            rgb_to_cones = numpy.linalg.inv(self.conematrix)
-            lms = numpy.dot(rgb_to_cones, rgb_3xN)
-            self._cache['lmsa'] = tuple(numpy.transpose(lms))  # return in the shape we received it
-        return self._cache['lmsa']
-    @lmsa.setter
-    def lmsa(self, color):
-        """Convert from cone space (Long, Medium, Short) to RGB.
-
-        Requires a conversion matrix, which will be generated from generic
-        Sony Trinitron phosphors if not supplied (note that you will not get
-        an accurate representation of the color space unless you supply a
-        conversion matrix)
-        """
-        # Validate
-        color = self.validate(color.lower(), against=['lms', 'lmsa'], enforce=tuple)
-        if not color:
-            return
-        # Get alpha
-        if len(color) == 4:
-            alpha = color[-1]
-            color = color[:-1]
-        elif len(color) == 3:
-            alpha = 1
-        # its easier to use in the other orientation!
-        lms_3xN = numpy.transpose(color)
-        rgb = numpy.dot(self.conematrix, lms_3xN)
-        self.rgba = tuple(numpy.transpose(rgb)) + (alpha,)  # return in the shape we received it
-        # Clear outdated values from cache
-        self._cache = {}
-
-    @property
-    def lms(self):
-        if self.lmsa:
-            return self.lmsa[:-1]
-    @lms.setter
-    def lms(self, color):
-        self.lmsa = color
-
 _rec = '(\-4\.5|\-4\.4\d*|\-4\.[0-4]\d*|\-[0-3]\.\d*|\-[0-3]|0|0\.\d*|1|1\.0)' # -4.5 to 1
 advancedSpaces = {
     'rec709TF': re.compile(_lbr+_rec+',\s*'+_rec+',\s*'+_rec+_rbr), # rec709TF adjusted RGB from -4.5 to 1 + alpha from 0 to 1
     'rec709TFa': re.compile(_lbr+_rec+',\s*'+_rec+',\s*'+_rec+',\s*'+_1+_rbr), # rec709TF adjusted RGB from -4.5 to 1 + alpha from 0 to 1
     'srgbTF': re.compile(_lbr+'\-?'+_1+',\s*'+'\-?'+_1+',\s*'+'\-?'+_1+_rbr), # srgbTF from -1 to 1 + alpha from 0 to 1
     'srgbTFa': re.compile(_lbr+'\-?'+_1+',\s*'+'\-?'+_1+',\s*'+'\-?'+_1+',\s*'+_1+_rbr), # srgbTF from -1 to 1 + alpha from 0 to 1
+    'lms': re.compile(_lbr + '\-?' + _1 + ',\s*' + '\-?' + _1 + ',\s*' + '\-?' + _1 + _rbr),  # LMS from -1 to 1
+    'lmsa': re.compile(_lbr + '\-?' + _1 + ',\s*' + '\-?' + _1 + ',\s*' + '\-?' + _1 + ',\s*' + '\-?' + _1 + _rbr),  # LMS + alpha from -1 to 1
 }
 
 
 class AdvancedColor(Color):
+    def __init__(self, color, space, conematrix=None):
+        Color.__init__(self, color, space)
+        # Set matrix for cone conversion
+        if conematrix is not None:
+            self.conematrix = conematrix
+        else:
+            # Set _conematrix specifically as undefined, rather than just setting to default
+            self._conematrix = None
+
     @staticmethod
     def getSpace(color, debug=False):
         """Overrides Color.getSpace, drawing from a much more comprehensive library of colour spaces"""
@@ -1128,6 +1053,87 @@ class AdvancedColor(Color):
     @srgbTF.setter
     def srgbTF(self, color):
         self.srgbTFa = color
+
+    @property
+    def conematrix(self):
+        if self._conematrix is None:
+            # If _conematrix has been directly set to None, set to default
+            self.conematrix = None
+        return self._conematrix
+
+    @conematrix.setter
+    def conematrix(self, value):
+        # Default matrix
+        def default():
+            # Set default cone matrix and print warning
+            logging.warning('This monitor has not been color-calibrated. '
+                            'Using default LMS conversion matrix.')
+            return numpy.asarray([
+                # L        M        S
+                [4.97068857, -4.14354132, 0.17285275],  # R
+                [-0.90913894, 2.15671326, -0.24757432],  # G
+                [-0.03976551, -0.14253782, 1.18230333]])  # B
+
+        if not isinstance(value, numpy.ndarray):
+            self._conematrix = default()
+        elif not value.size == 9:
+            self._conematrix = default()
+        else:
+            self._conematrix = value
+
+    @property
+    def lmsa(self):
+        """Convert from RGB to cone space (LMS).
+
+        Requires a conversion matrix, which will be generated from generic
+        Sony Trinitron phosphors if not supplied (note that you will not get
+        an accurate representation of the color space unless you supply a
+        conversion matrix)
+        """
+        if 'lmsa' not in self._cache:
+            if self._conematrix is None:
+                self.conematrix = None
+            # its easier to use in the other orientation!
+            rgb_3xN = numpy.transpose(self.rgb)
+            rgb_to_cones = numpy.linalg.inv(self.conematrix)
+            lms = numpy.dot(rgb_to_cones, rgb_3xN)
+            self._cache['lmsa'] = tuple(numpy.transpose(lms))  # return in the shape we received it
+        return self._cache['lmsa']
+
+    @lmsa.setter
+    def lmsa(self, color):
+        """Convert from cone space (Long, Medium, Short) to RGB.
+
+        Requires a conversion matrix, which will be generated from generic
+        Sony Trinitron phosphors if not supplied (note that you will not get
+        an accurate representation of the color space unless you supply a
+        conversion matrix)
+        """
+        # Validate
+        color = self.validate(color.lower(), against=['lms', 'lmsa'], enforce=tuple)
+        if not color:
+            return
+        # Get alpha
+        if len(color) == 4:
+            alpha = color[-1]
+            color = color[:-1]
+        elif len(color) == 3:
+            alpha = 1
+        # its easier to use in the other orientation!
+        lms_3xN = numpy.transpose(color)
+        rgb = numpy.dot(self.conematrix, lms_3xN)
+        self.rgba = tuple(numpy.transpose(rgb)) + (alpha,)  # return in the shape we received it
+        # Clear outdated values from cache
+        self._cache = {}
+
+    @property
+    def lms(self):
+        if self.lmsa:
+            return self.lmsa[:-1]
+
+    @lms.setter
+    def lms(self, color):
+        self.lmsa = color
 
 
 class ColorMixin(object):
