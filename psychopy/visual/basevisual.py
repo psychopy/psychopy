@@ -471,6 +471,7 @@ class Color(object):
     """A class to store colour details, knows what colour space it's in and can supply colours in any space"""
 
     def __init__(self, color=None, space=None, conematrix=None):
+        self._cache = {}
         self.set(color=color, space=space, conematrix=conematrix)
 
     def set(self, color=None, space=None, conematrix=None):
@@ -590,7 +591,7 @@ class Color(object):
         possible = [space for space in colorSpaces
                     if colorSpaces[space].fullmatch(str(color).lower())]
         # Return full list if debug or multiple, else return first value
-        if debug or len(possible) > 1:
+        if debug or not len(possible) == 1:
             return possible
         else:
             return possible[0]
@@ -707,6 +708,8 @@ class Color(object):
             self._franca = color + (1,)
         else:
             self.named = None
+        # Clear outdated values from cache
+        self._cache = {}
 
     @property
     def rgb(self):
@@ -718,9 +721,11 @@ class Color(object):
 
     @property
     def rgba255(self):
-        # Iterate through values and do conversion
-        if self.rgba:
-            return tuple(int(255*(val+1)/2) for val in self.rgba)
+        if not self.rgba:
+            return None
+        if 'rgba255' not in self._cache:
+            self._cache['rgba255'] = tuple(int(255*(val+1)/2) for val in self.rgba)
+        return self._cache['rgba255']
     @rgba255.setter
     def rgba255(self, color):
         # Validate
@@ -729,6 +734,8 @@ class Color(object):
             return
         # Iterate through values and do conversion
         self.rgba = tuple(2 * (val / 255 - 0.5) for val in color)
+        # Clear outdated values from cache
+        self._cache = {}
 
     @property
     def rgb255(self):
@@ -741,8 +748,11 @@ class Color(object):
     @property
     def rgba1(self):
         # Iterate through values and do conversion
-        if self.rgba:
-            return tuple((val + 1) / 2 for val in self.rgba)
+        if not self.rgba:
+            return
+        if 'rgba1' not in self._cache:
+            self._cache['rgba1'] = tuple((val + 1) / 2 for val in self.rgba)
+        return self._cache['rgba1']
     @rgba1.setter
     def rgba1(self, color):
         # Validate
@@ -751,6 +761,8 @@ class Color(object):
             return
         # Iterate through values and do conversion
         self.rgba = tuple(2 * (val - 0.5) for val in color)
+        # Clear outdated values from cache
+        self._cache = {}
 
     @property
     def rgb1(self):
@@ -763,21 +775,23 @@ class Color(object):
     @property
     def hexa(self):
         if not self.rgba255:
-            return None
-        # Map rgb255 values to corresponding letters in hex
-        hexmap = {10: 'a', 11: 'b', 12: 'c', 13: 'd', 14: 'e', 15: 'f'}
-        # Iterate and do conversion
-        flatList = ['#']
-        for val in self.rgba255:
-            dig1 = int(floor(val / 16))
-            flatList.append(
-                str(dig1) if dig1 <= 9 else hexmap[dig1]
-            )
-            dig2 = int(val % 16)
-            flatList.append(
-                str(dig2) if dig2 <= 9 else hexmap[dig2]
-            )
-        return "".join(flatList)
+            return
+        if 'hexa' not in self._cache:
+            # Map rgb255 values to corresponding letters in hex
+            hexmap = {10: 'a', 11: 'b', 12: 'c', 13: 'd', 14: 'e', 15: 'f'}
+            # Iterate and do conversion
+            flatList = ['#']
+            for val in self.rgba255:
+                dig1 = int(floor(val / 16))
+                flatList.append(
+                    str(dig1) if dig1 <= 9 else hexmap[dig1]
+                )
+                dig2 = int(val % 16)
+                flatList.append(
+                    str(dig2) if dig2 <= 9 else hexmap[dig2]
+                )
+            self._cache['hexa'] = "".join(flatList)
+        return self._cache['hexa']
     @hexa.setter
     def hexa(self, color):
         # Validate
@@ -801,6 +815,8 @@ class Color(object):
                     flat += hexmap[str(v).lower()]*adj[i]
             flatList.append(flat)
         self.rgba255 = flatList
+        # Clear outdated values from cache
+        self._cache = {}
 
     @property
     def hex(self):
@@ -812,15 +828,19 @@ class Color(object):
 
     @property
     def named(self):
-        # Round all values to 2 decimal places to find approximate matches
-        approxNames = {col: [round(val, 2) for val in colorNames[col]]
-                       for col in colorNames}
-        approxColor = [round(val, 2) for val in self.rgba]
-        # Get matches
-        possible = [nm for nm in approxNames if approxNames[nm] == approxColor]
-        # Return the first match
-        if possible:
-            return possible[0]
+        if 'named' not in self._cache:
+            # Round all values to 2 decimal places to find approximate matches
+            approxNames = {col: [round(val, 2) for val in colorNames[col]]
+                           for col in colorNames}
+            approxColor = [round(val, 2) for val in self.rgba]
+            # Get matches
+            possible = [nm for nm in approxNames if approxNames[nm] == approxColor]
+            # Return the first match
+            if possible:
+                self._cache['named'] = possible[0]
+            else:
+                self._cache['named'] = None
+        return self._cache['named']
     @named.setter
     def named(self, color):
         # Validate
@@ -829,34 +849,38 @@ class Color(object):
             return
         # Retrieve named colour
         self.rgba = colorNames[str(color).lower()]
+        # Clear outdated values from cache
+        self._cache = {}
 
     @property
     def hsva(self):
         # Based on https://www.geeksforgeeks.org/program-change-rgb-color-model-hsv-color-model/
-        red, green, blue, alpha = self.rgba1
-        cmax = max(red, green, blue)
-        cmin = min(red, green, blue)
-        delta = cmax - cmin
-        # Calculate hue
-        if cmax == 0 and cmin == 0:
-            return (0, 0, 0, alpha)
-        elif delta == 0:
-            return (0, 0, sum(self.rgb1)/3, alpha)
+        if 'hsva' not in self._cache:
+            red, green, blue, alpha = self.rgba1
+            cmax = max(red, green, blue)
+            cmin = min(red, green, blue)
+            delta = cmax - cmin
+            # Calculate hue
+            if cmax == 0 and cmin == 0:
+                return (0, 0, 0, alpha)
+            elif delta == 0:
+                return (0, 0, sum(self.rgb1)/3, alpha)
 
-        if cmax == red:
-            hue = (60 * ((green - blue) / delta) + 360) % 360
-        elif cmax == green:
-            hue = (60 * ((blue - red) / delta) + 120) % 360
-        elif cmax == blue:
-            hue = (60 * ((red - green) / delta) + 240) % 360
-        # Calculate saturation
-        if cmax == 0:
-            saturation = 0
-        else:
-            saturation = (delta / cmax)
-        # Calculate vibrancy
-        vibrancy = cmax
-        return (hue, saturation, vibrancy, alpha)
+            if cmax == red:
+                hue = (60 * ((green - blue) / delta) + 360) % 360
+            elif cmax == green:
+                hue = (60 * ((blue - red) / delta) + 120) % 360
+            elif cmax == blue:
+                hue = (60 * ((red - green) / delta) + 240) % 360
+            # Calculate saturation
+            if cmax == 0:
+                saturation = 0
+            else:
+                saturation = (delta / cmax)
+            # Calculate vibrancy
+            vibrancy = cmax
+            self._cache['hsva'] = (hue, saturation, vibrancy, alpha)
+        return self._cache['hsva']
     @hsva.setter
     def hsva(self, color):
         # based on method in
@@ -877,6 +901,8 @@ class Color(object):
         all255 = tuple(h+(vibrancy255-h)*(saturation) for h in hue255)
         # Apply via rgba255
         self.rgba255 = all255 + (alpha255,) if alpha255 else all255 + (255,)
+        # Clear outdated values from cache
+        self._cache = {}
     @property
     def hsv(self):
         if self.hsva:
@@ -919,13 +945,15 @@ class Color(object):
         an accurate representation of the color space unless you supply a
         conversion matrix)
         """
-        if self._conematrix is None:
-            self.conematrix = None
-        # its easier to use in the other orientation!
-        rgb_3xN = numpy.transpose(self.rgb)
-        rgb_to_cones = numpy.linalg.inv(self.conematrix)
-        lms = numpy.dot(rgb_to_cones, rgb_3xN)
-        return tuple(numpy.transpose(lms))  # return in the shape we received it
+        if 'lmsa' not in self._cache:
+            if self._conematrix is None:
+                self.conematrix = None
+            # its easier to use in the other orientation!
+            rgb_3xN = numpy.transpose(self.rgb)
+            rgb_to_cones = numpy.linalg.inv(self.conematrix)
+            lms = numpy.dot(rgb_to_cones, rgb_3xN)
+            self._cache['lmsa'] = tuple(numpy.transpose(lms))  # return in the shape we received it
+        return self._cache['lmsa']
     @lmsa.setter
     def lmsa(self, color):
         """Convert from cone space (Long, Medium, Short) to RGB.
@@ -949,6 +977,8 @@ class Color(object):
         lms_3xN = numpy.transpose(color)
         rgb = numpy.dot(self.conematrix, lms_3xN)
         self.rgba = tuple(numpy.transpose(rgb)) + (alpha,)  # return in the shape we received it
+        # Clear outdated values from cache
+        self._cache = {}
 
     @property
     def lms(self):
@@ -1018,11 +1048,15 @@ class AdvancedColor(Color):
             document (http://www.itu.int/rec/R-REC-BT.709-6-201506-I/en) and is
             commonly used with HDTV televisions.
             """
-        if self.rgb:
-            return tuple(1.099 * c ** 0.45 - 0.099
+        if not self.rgb:
+            return
+        if 'rec709TFa' not in self._cache:
+            self._cache['rec709TFa'] = tuple(1.099 * c ** 0.45 - 0.099
                          if c >= 0.018
                          else 4.5 * c
                          for c in self.rgb) + (self.rgba1[-1],)
+        return self._cache['rec709TFa']
+
     @rec709TFa.setter
     def rec709TFa(self, color):
         # Validate
@@ -1040,6 +1074,8 @@ class AdvancedColor(Color):
                          if c >= 1.099 * 0.018 ** 0.45 - 0.099
                          else c / 4.5
                          for c in color) + (alpha,)
+        # Clear outdated values from cache
+        self._cache = {}
 
     @property
     def rec709TF(self):
@@ -1053,10 +1089,14 @@ class AdvancedColor(Color):
     def srgbTFa(self):
         """Apply sRGB transfer function (or gamma) to linear RGB values."""
         # applies the sRGB transfer function (linear RGB -> sRGB)
-        return tuple(c * 12.92
-                     if c <= 0.0031308
-                     else (1.0 + 0.055) * c ** (1.0 / 2.4) - 0.055
-                     for c in self.rgb) + (self.rgba1[-1],)
+        if not self.rgb:
+            return
+        if 'srgbTFa' not in self._cache:
+            self._cache['srgbTFa'] = tuple(c * 12.92
+                         if c <= 0.0031308
+                         else (1.0 + 0.055) * c ** (1.0 / 2.4) - 0.055
+                         for c in self.rgb) + (self.rgba1[-1],)
+        return self._cache['srgbTFa']
     @srgbTFa.setter
     def srgbTFa(self, color):
         # Validate
@@ -1074,6 +1114,8 @@ class AdvancedColor(Color):
                      if c <= 0.04045
                      else ((c + 0.055) / 1.055) ** 2.4
                      for c in color) + (alpha,)
+        # Clear outdated values from cache
+        self._cache = {}
 
     @property
     def srgbTF(self):
