@@ -477,6 +477,10 @@ class Color(object):
     def set(self, color=None, space=None, conematrix=None):
         """Set the colour of this object - essentially the same as what happens on creation, but without
         having to initialise a new object"""
+        if isinstance(color, numpy.ndarray):
+            color = tuple(float(c) for c in color)
+        if space in ['rgb255', 'rgba255']:
+            color = tuple(int(c) for c in color)
         # If input is a Color object, duplicate all settings
         if isinstance(color, Color):
             self._requested = color._requested
@@ -485,7 +489,7 @@ class Color(object):
             self.rgba = color.rgba
             return
         # Store requested colour and space (or defaults, if none given)
-        self._requested = color if color else None
+        self._requested = color if color is not None else None
         self._requestedSpace = space \
             if space and space in self.getSpace(self._requested, debug=True) \
             else self.getSpace(self._requested)
