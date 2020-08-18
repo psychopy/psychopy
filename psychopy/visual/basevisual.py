@@ -838,7 +838,7 @@ class Color(object):
     @named.setter
     def named(self, color):
         # Validate
-        color = self.validate(color=color.lower(), against=['named'], enforce=str)
+        color = self.validate(color=str(color).lower(), against=['named'], enforce=str)
         if not color:
             return
         # Retrieve named colour
@@ -1109,7 +1109,7 @@ class AdvancedColor(Color):
         conversion matrix)
         """
         # Validate
-        color = self.validate(color.lower(), against=['lms', 'lmsa'], enforce=tuple)
+        color = self.validate(str(color).lower(), against=['lms', 'lmsa'], enforce=tuple)
         if not color:
             return
         # Get alpha
