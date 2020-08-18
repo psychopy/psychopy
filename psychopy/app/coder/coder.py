@@ -1578,9 +1578,9 @@ class CoderFrame(wx.Frame, ThemeMixin):
         self.outputChk.Check(self.prefs['showOutput'])
         self.Bind(wx.EVT_MENU, self.setOutputWindow, id=self.outputChk.GetId())
         # source assistant
-        hint = "Hide/show the source assistant pane."
+        hint = _translate("Hide/show the source assistant pane.")
         self.sourceAsstChk = self.panelsMenu.AppendCheckItem(wx.ID_ANY,
-                                                  "Source Assistant",
+                                                  _translate("Source Assistant"),
                                                   hint)
         self.Bind(wx.EVT_MENU, self.setSourceAsst,
                   id=self.sourceAsstChk.GetId())

@@ -243,11 +243,11 @@ class PsychopyToolbar(wx.ToolBar, ThemeMixin):
             self.AddSeparator()
             self.frame.cdrBtnRunner = self.addPsychopyTool(
                     'runner', _translate('Runner'), 'runnerScript',
-                    "Send experiment to Runner",
+                    _translate("Send experiment to Runner"),
                     self.frame.runFile)
             self.frame.cdrBtnRun = self.addPsychopyTool(
                     'run', _translate('Run'), 'runScript',
-                    "Run experiment",
+                    _translate("Run experiment"),
                     self.frame.runFile)
             self.AddSeparator()
             pavButtons.addPavloviaTools(
