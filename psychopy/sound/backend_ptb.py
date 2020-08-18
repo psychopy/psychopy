@@ -486,7 +486,7 @@ class SoundPTB(_SoundBase):
                                      volume=self.volume)
         else:
             self.track.stop()
-            self.track.fill_buffer(self.sndArr, start_index=1)
+            self.track.fill_buffer(self.sndArr)
 
     def _channelCheck(self, array):
         """Checks whether stream has fewer channels than data. If True, ValueError"""
