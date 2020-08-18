@@ -1317,7 +1317,10 @@ class ColorMixin(object):
 
 class ColorArray(object):
     def __init__(self, array, space, handler='basic', conematrix=None):
+        self._franca = []
+        self._cache = {}
         self.set(array, space, handler='basic', conematrix=None)
+
 
     def set(self, array, space, handler='basic', conematrix=None):
         # Validate
@@ -1332,10 +1335,6 @@ class ColorArray(object):
             array = new
         if not isinstance(array, list):
             return
-        if not all(isinstance(row, list) for row in array):
-            return
-        if not all(all(isinstance(cell, tuple) for cell in row) for row in array):
-            return
 
         if handler in ['color', 'basic', Color]:
             self.handler = Color()
@@ -1345,7 +1344,9 @@ class ColorArray(object):
             self.handler = handler
         else:
             return
-
+        # If 1d
+        if not isinstance(array[0], list):
+            array = [array]
         self._franca = [[[]]*len(array[0])]*len(array)
         for row in range(len(array)):
             for col in range(len(array[row])):
