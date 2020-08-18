@@ -114,6 +114,25 @@ class PsychopyPyShell(wx.py.shell.Shell, ThemeMixin):
         # Set theme to match code editor
         self._applyAppTheme()
 
+    def GetContextMenu(self):
+        menu = wx.Menu()
+        menu.Append(self.ID_UNDO, _translate("Undo"))
+        menu.Append(self.ID_REDO, _translate("Redo"))
+
+        menu.AppendSeparator()
+
+        menu.Append(self.ID_CUT, _translate("Cut"))
+        menu.Append(self.ID_COPY, _translate("Copy"))
+        menu.Append(wx.py.frame.ID_COPY_PLUS, _translate("Copy With Prompts"))
+        menu.Append(self.ID_PASTE, _translate("Paste"))
+        menu.Append(wx.py.frame.ID_PASTE_PLUS, _translate("Paste And Run"))
+        menu.Append(self.ID_CLEAR, _translate("Clear"))
+
+        menu.AppendSeparator()
+
+        menu.Append(self.ID_SELECTALL, _translate("Select All"))
+        return menu
+
 
 class Printer(HtmlEasyPrinting):
     """bare-bones printing, no control over anything
@@ -1067,29 +1086,6 @@ class CodeEditor(BaseCodeEditor, CodeEditorFoldingMixin, ThemeMixin):
                 return
             # else:
             #     findDlg.Close()
-
-class LocalizedShell(wx.py.shell.Shell):
-    """This class replaces context menu of wx.py.shell.Shell
-       to enable translation.
-    """
-    def GetContextMenu(self):
-        menu = wx.Menu()
-        menu.Append(self.ID_UNDO, _translate("Undo"))
-        menu.Append(self.ID_REDO, _translate("Redo"))
-
-        menu.AppendSeparator()
-
-        menu.Append(self.ID_CUT, _translate("Cut"))
-        menu.Append(self.ID_COPY, _translate("Copy"))
-        menu.Append(wx.py.frame.ID_COPY_PLUS, _translate("Copy With Prompts"))
-        menu.Append(self.ID_PASTE, _translate("Paste"))
-        menu.Append(wx.py.frame.ID_PASTE_PLUS, _translate("Paste And Run"))
-        menu.Append(self.ID_CLEAR, _translate("Clear"))
-
-        menu.AppendSeparator()
-
-        menu.Append(self.ID_SELECTALL, _translate("Select All"))
-        return menu
 
 
 class CoderFrame(wx.Frame, ThemeMixin):
