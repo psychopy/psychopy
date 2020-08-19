@@ -675,12 +675,10 @@ class PsychoPyApp(wx.App, themes.ThemeMixin):
         Note: units are psychopy -1..+1 rgb units to three decimal places,
         preserving 24-bit color.
         """
-        frame = wx.Frame(None, wx.ID_ANY, "Color picker",
-                         size=(0, 0))  # not shown
-        PsychoColorPicker(frame)
-        newRBG = frame.newRBG
-        frame.Destroy()
-        return newRBG  # string
+        PsychoColorPicker(self.coder)
+        #newRBG = frame.newRBG
+        #frame.Destroy()
+        #return newRBG  # string
 
     def openMonitorCenter(self, event):
         from psychopy.monitors import MonitorCenter
