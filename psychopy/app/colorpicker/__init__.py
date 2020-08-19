@@ -23,13 +23,13 @@ class PsychoColorPicker(wx.Dialog, ThemeMixin):
                            size=wx.Size(640, 500), style=wx.DEFAULT_DIALOG_STYLE)
         # Set main params
         self.color = Color((0,0,0,1), 'rgba')
-        self.sizer = wx.BoxSizer(orient=wx.VERTICAL)
+        self.sizer = wx.GridBagSizer()
         # Add colourful top bar
         self.preview = ColorPreview(color=self.color, parent=self)
-        self.sizer.Add(self.preview)
+        self.sizer.Add(self.preview, pos=(0,0))
         # Add notebook of controls
         self.ctrls = aui.AuiNotebook(self, wx.ID_ANY, size=wx.Size(640, 500))
-        self.sizer.Add(self.ctrls, wx.EXPAND)
+        self.sizer.Add(self.ctrls, pos=(0,1))
         self.ctrls.AddPage(ColorPage(self.ctrls, self, 'rgba'), 'RGB (-1 to 1)')
         self.ctrls.AddPage(ColorPage(self.ctrls, self, 'rgba1'), 'RGB (0 to 1)')
         self.ctrls.AddPage(ColorPage(self.ctrls, self, 'rgba255'), 'RGB (0 to 255)')
@@ -42,7 +42,7 @@ class PsychoColorPicker(wx.Dialog, ThemeMixin):
         self.sdbControlsCancel = wx.Button(self, wx.ID_CANCEL)
         sdbControls.AddButton(self.sdbControlsCancel)
         sdbControls.Realize()
-        self.sizer.Add(sdbControls, 0, wx.EXPAND, 5)
+        self.sizer.Add(sdbControls, pos=(1,1))
 
         self.SetSizer(self.sizer)
         self._applyAppTheme()
@@ -119,7 +119,7 @@ class PsychoColorPicker(wx.Dialog, ThemeMixin):
 
 class ColorPreview(wx.Window):
     def __init__(self, color, parent):
-        wx.Window.__init__(self, parent, size=(640,100))
+        wx.Window.__init__(self, parent, size=(100,400))
         self.SetBackgroundColour(ThemeMixin.appColors['frame_bg'])
         self.parent = parent
         self.color = color
@@ -151,7 +151,7 @@ class ColorPreview(wx.Window):
 
 class ColorPage(wx.Window, ThemeMixin):
     def __init__(self, parent, dlg, space):
-        wx.Window.__init__(self, parent, size=wx.Size(640, 500))
+        wx.Window.__init__(self, parent, size=wx.Size(400, 400))
         self.dlg = dlg
         self.space = space
         self.sizer = wx.BoxSizer(wx.VERTICAL)
@@ -171,7 +171,7 @@ class ColorPage(wx.Window, ThemeMixin):
                 ColorControl(parent=self, id=wx.ID_ANY, name="Red", value=0.5, min=0, max=1, interval=0.01),
                 ColorControl(parent=self, id=wx.ID_ANY, name="Green", value=0.5, min=0, max=1, interval=0.01),
                 ColorControl(parent=self, id=wx.ID_ANY, name="Blue", value=0.5, min=0, max=1, interval=0.01)]
-            if space == 'rgba':
+            if space == 'rgba1':
                 self.ctrls.append(
                     ColorControl(parent=self, id=wx.ID_ANY, name="Alpha", value=1, min=0, max=1, interval=0.01))
         elif space in ['rgb255', 'rgba255']:
@@ -179,7 +179,7 @@ class ColorPage(wx.Window, ThemeMixin):
                 ColorControl(parent=self, id=wx.ID_ANY, name="Red", value=127, min=0, max=255, interval=0.01),
                 ColorControl(parent=self, id=wx.ID_ANY, name="Green", value=127, min=0, max=255, interval=0.01),
                 ColorControl(parent=self, id=wx.ID_ANY, name="Blue", value=127, min=0, max=255, interval=0.01)]
-            if space == 'rgba':
+            if space == 'rgba255':
                 self.ctrls.append(
                     ColorControl(parent=self, id=wx.ID_ANY, name="Alpha", value=255, min=0, max=255, interval=0.01))
         elif space in ['hsv', 'hsva']:
@@ -187,7 +187,7 @@ class ColorPage(wx.Window, ThemeMixin):
                 ColorControl(parent=self, id=wx.ID_ANY, name="Hue", value=180, min=0, max=360, interval=0.01),
                 ColorControl(parent=self, id=wx.ID_ANY, name="Saturation", value=0.5, min=0, max=1, interval=0.01),
                 ColorControl(parent=self, id=wx.ID_ANY, name="Vividness", value=0.5, min=0, max=1, interval=0.01)]
-            if space == 'rgba':
+            if space == 'hsva':
                 self.ctrls.append(
                     ColorControl(parent=self, id=wx.ID_ANY, name="Alpha", value=1, min=0, max=1, interval=0.01))
 
@@ -210,7 +210,7 @@ class ColorPage(wx.Window, ThemeMixin):
 class ColorControl(wx.Panel):
     def __init__(self, parent=None, row=0, id=None, name="", value=0, min=-1, max=1, interval=0.01):
         rowh = 30
-        wx.Panel.__init__(self, parent, id=id, size=(640, rowh), style=wx.BORDER_NONE, name=name)
+        wx.Panel.__init__(self, parent, id=id, size=(400, rowh), style=wx.BORDER_NONE, name=name)
         # Store attributes
         self.color = parent.dlg.color
         self.parent = parent
@@ -221,11 +221,11 @@ class ColorControl(wx.Panel):
         self.sizer = wx.GridBagSizer()
         self.SetSizer(self.sizer)
         # Make label
-        self.label = wx.StaticText(parent=self, label=name, size=(50,rowh), style=wx.ALIGN_RIGHT)
+        self.label = wx.StaticText(parent=self, label=name, size=(100,rowh), style=wx.ALIGN_RIGHT)
         self.sizer.Add(self.label, pos=(0, 0))
         self.sizer.AddGrowableCol(0, 0.25)
         # Make slider
-        self.slider = wx.Slider(self, name=name, minValue=0, maxValue=255, size=(400, rowh))
+        self.slider = wx.Slider(self, name=name, minValue=0, maxValue=255, size=(200, rowh))
         self.slider.Bind(wx.EVT_COMMAND_SCROLL_CHANGED, self.onChange)
         self.sizer.Add(self.slider, pos=(0, 1))
         self.sizer.AddGrowableCol(1, 0.5)
@@ -246,7 +246,10 @@ class ColorControl(wx.Panel):
 
     @property
     def value(self):
-        return self._value
+        if self.max - self.min > 2:
+            return round(self._value)
+        else:
+            return self._value
     @value.setter
     def value(self, val):
         if val > self.max:
