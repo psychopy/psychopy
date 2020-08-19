@@ -207,6 +207,10 @@ class CountdownTimer(Clock):
         return self._timeAtLastReset - getTime()
 
     def reset(self, t=None):
+        """Reset the time on the clock. With no args, time will be set to the
+        time used for last reset (or start time if no previous resets). If a 
+        float is received, this will be the new time on the clock.
+        """
         if t is None:
             Clock.reset(self, self._countdown_duration)
         else:
