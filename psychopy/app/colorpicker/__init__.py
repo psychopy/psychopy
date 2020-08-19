@@ -30,7 +30,11 @@ class PsychoColorPicker(wx.Dialog, ThemeMixin):
         # Add notebook of controls
         self.ctrls = aui.AuiNotebook(self, wx.ID_ANY, size=wx.Size(640, 500))
         self.sizer.Add(self.ctrls, wx.EXPAND)
-        self.ctrls.AddPage(RGBcontrols(self.ctrls, self), 'RGB')
+        self.ctrls.AddPage(ColorPage(self.ctrls, self, 'rgba'), 'RGB (-1 to 1)')
+        self.ctrls.AddPage(ColorPage(self.ctrls, self, 'rgba1'), 'RGB (0 to 1)')
+        self.ctrls.AddPage(ColorPage(self.ctrls, self, 'rgba255'), 'RGB (0 to 255)')
+        self.ctrls.AddPage(ColorPage(self.ctrls, self, 'hsva'), 'HSV')
+
         # Standard controls
         sdbControls = wx.StdDialogButtonSizer()
         self.sdbControlsOK = wx.Button(self, wx.ID_OK)
@@ -40,7 +44,6 @@ class PsychoColorPicker(wx.Dialog, ThemeMixin):
         sdbControls.Realize()
         self.sizer.Add(sdbControls, 0, wx.EXPAND, 5)
 
-        #self.SetSizerAndFit(self.sizer)
         self.SetSizer(self.sizer)
         self._applyAppTheme()
         self._applyAppTheme(self.ctrls)
@@ -146,109 +149,120 @@ class ColorPreview(wx.Window):
         self.dc.DrawRectangle(0, 0, self.GetSize()[0], self.GetSize()[1])
 
 
-class RGBcontrols(wx.Window, ThemeMixin):
-    def __init__(self, parent, dlg):
+class ColorPage(wx.Window, ThemeMixin):
+    def __init__(self, parent, dlg, space):
         wx.Window.__init__(self, parent, size=wx.Size(640, 500))
         self.dlg = dlg
-        self.sizer = wx.GridBagSizer(vgap=10, hgap=20)
+        self.space = space
+        self.sizer = wx.BoxSizer(wx.VERTICAL)
+        self.sizer.AddSpacer(15)
         rowh = 30
+        self.ctrls = []
+        if space in ['rgb', 'rgba']:
+            self.ctrls = [
+                ColorControl(parent=self, id=wx.ID_ANY, name="Red", value=0, min=-1, max=1, interval=0.01),
+                ColorControl(parent=self, id=wx.ID_ANY, name="Green", value=0, min=-1, max=1, interval=0.01),
+                ColorControl(parent=self, id=wx.ID_ANY, name="Blue", value=0, min=-1, max=1, interval=0.01)]
+            if space == 'rgba':
+                self.ctrls.append(
+                    ColorControl(parent=self, id=wx.ID_ANY, name="Alpha", value=1, min=-1, max=1, interval=0.01))
+        elif space in ['rgb1', 'rgba1']:
+            self.ctrls = [
+                ColorControl(parent=self, id=wx.ID_ANY, name="Red", value=0.5, min=0, max=1, interval=0.01),
+                ColorControl(parent=self, id=wx.ID_ANY, name="Green", value=0.5, min=0, max=1, interval=0.01),
+                ColorControl(parent=self, id=wx.ID_ANY, name="Blue", value=0.5, min=0, max=1, interval=0.01)]
+            if space == 'rgba':
+                self.ctrls.append(
+                    ColorControl(parent=self, id=wx.ID_ANY, name="Alpha", value=1, min=0, max=1, interval=0.01))
+        elif space in ['rgb255', 'rgba255']:
+            self.ctrls = [
+                ColorControl(parent=self, id=wx.ID_ANY, name="Red", value=127, min=0, max=255, interval=0.01),
+                ColorControl(parent=self, id=wx.ID_ANY, name="Green", value=127, min=0, max=255, interval=0.01),
+                ColorControl(parent=self, id=wx.ID_ANY, name="Blue", value=127, min=0, max=255, interval=0.01)]
+            if space == 'rgba':
+                self.ctrls.append(
+                    ColorControl(parent=self, id=wx.ID_ANY, name="Alpha", value=255, min=0, max=255, interval=0.01))
+        elif space in ['hsv', 'hsva']:
+            self.ctrls = [
+                ColorControl(parent=self, id=wx.ID_ANY, name="Hue", value=180, min=0, max=360, interval=0.01),
+                ColorControl(parent=self, id=wx.ID_ANY, name="Saturation", value=0.5, min=0, max=1, interval=0.01),
+                ColorControl(parent=self, id=wx.ID_ANY, name="Vividness", value=0.5, min=0, max=1, interval=0.01)]
+            if space == 'rgba':
+                self.ctrls.append(
+                    ColorControl(parent=self, id=wx.ID_ANY, name="Alpha", value=1, min=0, max=1, interval=0.01))
 
-        # Control red
-        self.sizer.Add(wx.StaticText(parent=self, label="Red", size=(-1,rowh), style=wx.ALIGN_RIGHT), pos=(0,0))
-        self.redSld = wx.Slider(self, name="Red", minValue=0, maxValue=255, size=(440, rowh))
-        self.redSld.Bind(wx.EVT_COMMAND_SCROLL_CHANGED, self.onChange)
-        self.sizer.Add(self.redSld, pos=(0, 1))
-        self.redCtrl = wx.SpinCtrl(self, name="Red", min=0, max=255, size=(100,rowh-5))
-        self.redCtrl.Bind(wx.EVT_SPINCTRL, self.onChange)
-        self.sizer.Add(self.redCtrl, pos=(0, 2))
-
-        # Control green
-        self.sizer.Add(wx.StaticText(parent=self, label="Green", size=(-1,rowh), style=wx.ALIGN_RIGHT), pos=(1,0))
-        self.greenSld = wx.Slider(self, name="Green", minValue=0, maxValue=255, size=(440, rowh))
-        self.greenSld.Bind(wx.EVT_COMMAND_SCROLL_CHANGED, self.onChange)
-        self.sizer.Add(self.greenSld, pos=(1, 1))
-        self.greenCtrl = wx.SpinCtrl(self, name="Green", min=0, max=255, size=(100,rowh-5))
-        self.greenCtrl.Bind(wx.EVT_SPINCTRL, self.onChange)
-        self.sizer.Add(self.greenCtrl, pos=(1, 2))
-
-
-        # Control blue
-        self.sizer.Add(wx.StaticText(parent=self, label="Blue", size=(-1,rowh), style=wx.ALIGN_RIGHT), pos=(2,0))
-        self.blueSld = wx.Slider(self, name="Blue", minValue=0, maxValue=255, size=(440, rowh))
-        self.blueSld.Bind(wx.EVT_COMMAND_SCROLL_CHANGED, self.onChange)
-        self.sizer.Add(self.blueSld, pos=(2, 1))
-        self.blueCtrl = wx.SpinCtrl(self, name="Blue", min=0, max=255, size=(100,rowh-5))
-        self.blueCtrl.Bind(wx.EVT_SPINCTRL, self.onChange)
-        self.sizer.Add(self.blueCtrl, pos=(2, 2))
-
-
-        # Control alpha
-        self.sizer.Add(wx.StaticText(parent=self, label="Alpha", size=(-1,rowh), style=wx.ALIGN_RIGHT), pos=(3,0))
-        self.alphaSld = wx.Slider(self, name="Alpha", minValue=0, maxValue=255, size=(440, rowh))
-        self.alphaSld.Bind(wx.EVT_COMMAND_SCROLL_CHANGED, self.onChange)
-        self.sizer.Add(self.alphaSld, pos=(3, 1))
-        self.alphaCtrl = wx.SpinCtrl(self, name="Alpha", min=0, max=255, size=(100,rowh-5))
-        self.alphaCtrl.Bind(wx.EVT_SPINCTRL, self.onChange)
-        self.sizer.Add(self.alphaCtrl, pos=(3, 2))
-
-        # Control space
-        self.sizer.Add(wx.StaticText(parent=self, label="Space:", size=(-1,rowh), style=wx.ALIGN_RIGHT), pos=(4,0))
-        self.spaceCtrl = wx.Choice(parent=self, choices=['rgb255', 'rgb1', 'rgb'], size=(100, rowh-5), name="Space")
-        self.spaceCtrl.SetSelection(2)
-        self.spaceCtrl.Bind(wx.EVT_CHOICE, self.spaceChange)
-        self.sizer.Add(self.spaceCtrl, pos=(4,1))
-
-        self.sizer.AddGrowableCol(1)
-        self.sizer.AddGrowableRow(4)
-
+        self.sizer.AddMany(self.ctrls)
         self.SetSizer(self.sizer)
-        self.onOpen()
+        #self.onOpen()
 
     def _applyAppTheme(self, target=None):
         self.SetBackgroundColour(ThemeMixin.appColors['tab_bg'])
 
     def onOpen(self):
-        space = ('rgba255', 'rgba1', 'rgba')[self.spaceCtrl.GetSelection()]
-        r, g, b, a = getattr(self.dlg.color, space)
-        self.redSld.SetValue(r)
-        self.greenSld.SetValue(g)
-        self.blueSld.SetValue(b)
-        self.alphaSld.SetValue(a)
+        col = getattr(self.dlg.color, self.space)
+        for i in range(len(col)):
+            self.ctrls[i].value = col[i]
+
+    def onChange(self):
+        col = tuple(ctrl.value for ctrl in self.ctrls)
+        self.dlg.setColor(col, self.space)
+
+class ColorControl(wx.Panel):
+    def __init__(self, parent=None, row=0, id=None, name="", value=0, min=-1, max=1, interval=0.01):
+        rowh = 30
+        wx.Panel.__init__(self, parent, id=id, size=(640, rowh), style=wx.BORDER_NONE, name=name)
+        # Store attributes
+        self.color = parent.dlg.color
+        self.parent = parent
+        self.min = min
+        self.max = max
+        self.interval=0.01
+        # Make sizer
+        self.sizer = wx.GridBagSizer()
+        self.SetSizer(self.sizer)
+        # Make label
+        self.label = wx.StaticText(parent=self, label=name, size=(50,rowh), style=wx.ALIGN_RIGHT)
+        self.sizer.Add(self.label, pos=(0, 0))
+        self.sizer.AddGrowableCol(0, 0.25)
+        # Make slider
+        self.slider = wx.Slider(self, name=name, minValue=0, maxValue=255, size=(400, rowh))
+        self.slider.Bind(wx.EVT_COMMAND_SCROLL_CHANGED, self.onChange)
+        self.sizer.Add(self.slider, pos=(0, 1))
+        self.sizer.AddGrowableCol(1, 0.5)
+        # Make spinner
+        self.spinner = wx.SpinCtrl(self, name=name, min=min, max=max, size=(100,rowh-5))
+        self.spinner.Bind(wx.EVT_SPIN_UP, self.spinUp)
+        self.spinner.Bind(wx.EVT_SPIN_UP, self.spinDown)
+        self.spinner.Bind(wx.EVT_SPINCTRL, self.onChange)
+        self.sizer.Add(self.spinner, pos=(0, 2))
+        self.sizer.AddGrowableCol(2, 0.25)
+        # Set value
+        self.value = value
+
+    def spinUp(self, event):
+        self.value += self.interval
+    def spinDown(self, event):
+        self.value -= self.interval
+
+    @property
+    def value(self):
+        return self._value
+    @value.setter
+    def value(self, val):
+        if val > self.max:
+            val = self.max
+        if val < self.min:
+            val = self.min
+        self._value = val
+        self.spinner.SetValue(val)
+        propVal = (val-self.min) / (self.max-self.min)
+        self.slider.SetValue(propVal*255)
+        self.parent.onChange()
 
     def onChange(self, event):
         obj = event.GetEventObject()
-        val = obj.GetValue()
-        space = ('rgba255', 'rgba1', 'rgba')[self.spaceCtrl.GetSelection()]
-        r,g,b,a = getattr(self.dlg.color, space)
-        if obj in [self.redSld, self.redCtrl]:
-            r = val
-            self.redSld.SetValue(val)
-            self.redCtrl.SetValue(val)
-        if obj in [self.greenSld, self.greenCtrl]:
-            g = val
-            self.greenSld.SetValue(val)
-            self.greenCtrl.SetValue(val)
-        if obj in [self.blueSld, self.blueCtrl]:
-            b = val
-            self.blueSld.SetValue(val)
-            self.blueCtrl.SetValue(val)
-        if obj in [self.alphaSld, self.alphaCtrl]:
-            a = val
-            self.alphaSld.SetValue(val)
-            self.alphaCtrl.SetValue(val)
-        self.dlg.setColor((r,g,b,a), space)
-
-    def spaceChange(self, event):
-        obj = event.GetEventObject()
-        space = ['rgba255', 'rgba1', 'rgba'][obj.GetSelection()]
-        val = getattr(self.dlg.color, space)
-        max = getattr(Color((1, 1, 1, 1), 'rgba1'), space)
-        min = getattr(Color((0, 0, 0, 0), 'rgba1'), space)
-        sliders = [self.redSld, self.greenSld, self.blueSld, self.alphaSld]
-        for i in range(len(sliders)):
-            sliders[i].SetRange(min[i], max[i])
-            sliders[i].SetValue(val[i])
-        spinners = [self.redCtrl, self.greenCtrl, self.blueCtrl, self.alphaCtrl]
-        for i in range(len(spinners)):
-            spinners[i].SetRange(min[i], max[i])
-            spinners[i].SetValue(val[i])
+        if obj == self.slider:
+            propVal = obj.GetValue()/255
+            self.value = self.min + (self.max-self.min)*propVal
+        if obj == self.spinner:
+            self.value = obj.GetValue()
