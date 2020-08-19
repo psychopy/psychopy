@@ -621,11 +621,14 @@ class Color(object):
         if enforce == str:
             color = str(color).lower()
         # If looking for a tuple, convert from other forms it could be in
-        if enforce == tuple:
+        if enforce == tuple or enforce == (tuple, int):
             if isinstance(color, str):
                 color = [float(n) for n in color.strip('[]()').split(',')]
             if isinstance(color, list):
                 color = tuple(color)
+        # If enforcing multiple
+        if enforce == (tuple, int):
+            color = tuple(int(round(c)) for c in color)
         # Get possible colour spaces
         possible = Color.getSpace(color)
         if isinstance(possible, str):
@@ -723,7 +726,7 @@ class Color(object):
     @rgba255.setter
     def rgba255(self, color):
         # Validate
-        color = self.validate(color, against=['rgb255', 'rgba255'], enforce=tuple)
+        color = self.validate(color, against=['rgb255', 'rgba255'], enforce=(tuple, int))
         if not color:
             return
         # Iterate through values and do conversion
@@ -894,7 +897,7 @@ class Color(object):
         # Adjust by vibrancy and saturation
         all255 = tuple(h+(vibrancy255-h)*(saturation) for h in hue255)
         # Apply via rgba255
-        self.rgba255 = all255 + (alpha255,) if alpha255 else all255 + (255,)
+        self.rgba255 = all255 + (alpha255,) if alpha255 is not None else all255 + (255,)
         # Clear outdated values from cache
         self._cache = {}
     @property
