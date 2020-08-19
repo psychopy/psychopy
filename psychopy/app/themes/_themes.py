@@ -15,10 +15,12 @@ from psychopy import logging
 import psychopy
 from ...experiment import components
 import json
-from matplotlib import font_manager
+
+if sys.platform=='win32':
+    from matplotlib import font_manager
+    fm = font_manager.FontManager()
 
 thisFolder = Path(__file__).parent
-fm = font_manager.FontManager()
 iconsPath = Path(prefs.paths['resources'])
 
 try:
@@ -548,10 +550,11 @@ class ThemeMixin:
         else:
             finalFont = [wx.SystemSettings.GetFont(wx.SYS_ANSI_FIXED_FONT).GetFaceName()]
         # Cycle through font names, stop at first valid font
-        for font in fontList:
-            if fm.findfont(font) not in fm.defaultFont.values():
-                finalFont = [font] + bold + italic
-                break
+        if sys.platform == 'win32':
+            for font in fontList:
+                if fm.findfont(font) not in fm.defaultFont.values():
+                    finalFont = [font] + bold + italic
+                    break
 
         return ','.join(finalFont)
 
