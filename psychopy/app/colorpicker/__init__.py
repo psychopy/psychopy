@@ -216,7 +216,7 @@ class ColorControl(wx.Panel):
         self.parent = parent
         self.min = min
         self.max = max
-        self.interval=0.01
+        self.interval=interval
         # Make sizer
         self.sizer = wx.GridBagSizer()
         self.SetSizer(self.sizer)
