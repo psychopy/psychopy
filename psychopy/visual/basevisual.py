@@ -895,7 +895,7 @@ class Color(object):
         # Get value to move towards as saturation decreases
         vibrancy255 = vibrancy*255
         # Adjust by vibrancy and saturation
-        all255 = tuple(h+(vibrancy255-h)*(saturation) for h in hue255)
+        all255 = tuple(h+(vibrancy255-h)*(1-saturation) for h in hue255)
         # Apply via rgba255
         self.rgba255 = all255 + (alpha255,) if alpha255 is not None else all255 + (255,)
         # Clear outdated values from cache
