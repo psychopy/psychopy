@@ -176,12 +176,12 @@ class ColorPage(wx.Window, ThemeMixin):
                     ColorControl(parent=self, id=wx.ID_ANY, name="Alpha", value=1, min=0, max=1, interval=0.01))
         elif space in ['rgb255', 'rgba255']:
             self.ctrls = [
-                ColorControl(parent=self, id=wx.ID_ANY, name="Red", value=127, min=0, max=255, interval=0.01),
-                ColorControl(parent=self, id=wx.ID_ANY, name="Green", value=127, min=0, max=255, interval=0.01),
-                ColorControl(parent=self, id=wx.ID_ANY, name="Blue", value=127, min=0, max=255, interval=0.01)]
+                ColorControl(parent=self, id=wx.ID_ANY, name="Red", value=127, min=0, max=255, interval=1),
+                ColorControl(parent=self, id=wx.ID_ANY, name="Green", value=127, min=0, max=255, interval=1),
+                ColorControl(parent=self, id=wx.ID_ANY, name="Blue", value=127, min=0, max=255, interval=1)]
             if space == 'rgba255':
                 self.ctrls.append(
-                    ColorControl(parent=self, id=wx.ID_ANY, name="Alpha", value=255, min=0, max=255, interval=0.01))
+                    ColorControl(parent=self, id=wx.ID_ANY, name="Alpha", value=255, min=0, max=255, interval=1))
         elif space in ['hsv', 'hsva']:
             self.ctrls = [
                 ColorControl(parent=self, id=wx.ID_ANY, name="Hue", value=180, min=0, max=360, interval=0.01),
@@ -190,6 +190,16 @@ class ColorPage(wx.Window, ThemeMixin):
             if space == 'hsva':
                 self.ctrls.append(
                     ColorControl(parent=self, id=wx.ID_ANY, name="Alpha", value=1, min=0, max=1, interval=0.01))
+        elif space in ['hex', 'hexa']:
+            self.ctrls = [
+                ColorControl(parent=self, id=wx.ID_ANY, name="Red", value=127, min=0, max=255, interval=1),
+                ColorControl(parent=self, id=wx.ID_ANY, name="Green", value=127, min=0, max=255, interval=1),
+                ColorControl(parent=self, id=wx.ID_ANY, name="Blue", value=127, min=0, max=255, interval=1)]
+            if space == 'hexa':
+                self.ctrls.append(
+                    ColorControl(parent=self, id=wx.ID_ANY, name="Alpha", value=255, min=0, max=255, interval=1))
+            for ctrl in self.ctrls:
+                ctrl.spinner.SetBase(16)
 
         self.sizer.AddMany(self.ctrls)
         self.SetSizer(self.sizer)
@@ -204,6 +214,11 @@ class ColorPage(wx.Window, ThemeMixin):
             self.ctrls[i].value = col[i]
 
     def onChange(self):
+        if self.space in ['hex', 'hexa']:
+            col = tuple(ctrl.value for ctrl in self.ctrls)
+            self.dlg.setColor(col, 'rgba255')
+            return
+
         col = tuple(ctrl.value for ctrl in self.ctrls)
         self.dlg.setColor(col, self.space)
 
@@ -269,3 +284,8 @@ class ColorControl(wx.Panel):
             self.value = self.min + (self.max-self.min)*propVal
         if obj == self.spinner:
             self.value = obj.GetValue()
+
+class HexControl(ColorControl):
+    def __init__(self, parent=None, row=0, id=None, name="", value=0):
+        ColorControl.__init__(self, parent=parent, row=row, id=id, name=name, value=value, min=0, max=255, interval=1)
+        self.spinner.SetBase(16)
