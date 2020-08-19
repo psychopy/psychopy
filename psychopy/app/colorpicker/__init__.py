@@ -7,152 +7,51 @@
 
 import wx
 import wx.lib.agw.cubecolourdialog as ccd
+from wx.adv import PseudoDC
 from wx.lib.embeddedimage import PyEmbeddedImage
 from psychopy.app.colorpicker.hsv import HSVColorPicker
 from psychopy.app.colorpicker.chip import ColorChip
+from psychopy.app.themes import ThemeMixin
+from psychopy.visual.basevisual import Color, AdvancedColor
+import wx.lib.agw.aui as aui
 
 
-class PsychoColorPicker(wx.Dialog):
+class PsychoColorPicker(wx.Dialog, ThemeMixin):
 
     def __init__(self, parent):
         wx.Dialog.__init__(self, parent, id=wx.ID_ANY, title=u"Color Picker", pos=wx.DefaultPosition,
                            size=wx.Size(640, 500), style=wx.DEFAULT_DIALOG_STYLE)
-
-        self._color = [0.0, 0.0, 0.0]
-        self._colorClipped = [0.5, 0.5, 0.5]
-
-        self.SetSizeHints(wx.DefaultSize, wx.DefaultSize)
-
-        sbColorPicker = wx.BoxSizer(wx.VERTICAL)
-
-        sbTopPanel = wx.BoxSizer(wx.HORIZONTAL)
-
-        sbColorSpace = wx.BoxSizer(wx.VERTICAL)
-
-        self.nbColorSpace = wx.Notebook(self, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, 0)
-
-        self.pnlHSV = HSVColorPicker(self.nbColorSpace, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, 0)
-        self.nbColorSpace.AddPage(self.pnlHSV, u" HSV ", True)
-
-        sbColorSpace.Add(self.nbColorSpace, 1, wx.EXPAND | wx.TOP | wx.BOTTOM | wx.LEFT, 5)
-
-        sbTopPanel.Add(sbColorSpace, 1, wx.EXPAND, 5)
-
-        sbOutput = wx.BoxSizer(wx.VERTICAL)
-
-        fraPreview = wx.StaticBoxSizer(wx.StaticBox(self, wx.ID_ANY, u" Preview "), wx.VERTICAL)
-
-        self.pnlPreview = ColorChip(fraPreview.GetStaticBox(), wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize,
-                                    wx.BORDER_SUNKEN | wx.TAB_TRAVERSAL)
-
-        fraPreview.Add(self.pnlPreview, 1, wx.EXPAND | wx.ALL, 5)
-
-        sbOutput.Add(fraPreview, 1, wx.EXPAND | wx.LEFT, 5)
-
-        fraColor = wx.StaticBoxSizer(wx.StaticBox(self, wx.ID_ANY, u" Output RGB "), wx.VERTICAL)
-
-        sbColor = wx.FlexGridSizer(3, 2, 0, 0)
-        sbColor.AddGrowableCol(1)
-        sbColor.SetFlexibleDirection(wx.HORIZONTAL)
-        sbColor.SetNonFlexibleGrowMode(wx.FLEX_GROWMODE_SPECIFIED)
-
-        self.lblRed = wx.StaticText(fraColor.GetStaticBox(), wx.ID_ANY, u"Red", wx.DefaultPosition, wx.DefaultSize, 0)
-        self.lblRed.Wrap(-1)
-
-        sbColor.Add(self.lblRed, 0, wx.ALL | wx.ALIGN_RIGHT | wx.ALIGN_CENTER_VERTICAL, 5)
-
-        self.spnColorRed = wx.SpinCtrlDouble(fraColor.GetStaticBox(), wx.ID_ANY, wx.EmptyString, wx.DefaultPosition,
-                                             wx.DefaultSize, wx.SP_ARROW_KEYS, -1, 1, 0, 0.01)
-        self.spnColorRed.SetDigits(3)
-        sbColor.Add(self.spnColorRed, 0, wx.ALL | wx.TOP | wx.RIGHT | wx.LEFT, 2)
-
-        self.lblGreen = wx.StaticText(fraColor.GetStaticBox(), wx.ID_ANY, u"Green", wx.DefaultPosition, wx.DefaultSize, 0)
-        self.lblGreen.Wrap(-1)
-
-        sbColor.Add(self.lblGreen, 0, wx.ALL | wx.ALIGN_RIGHT | wx.ALIGN_CENTER_VERTICAL, 5)
-
-        self.spnColorGreen = wx.SpinCtrlDouble(fraColor.GetStaticBox(), wx.ID_ANY, wx.EmptyString, wx.DefaultPosition,
-                                               wx.DefaultSize, wx.SP_ARROW_KEYS, -1, 1, 0, 0.01)
-        self.spnColorGreen.SetDigits(3)
-        sbColor.Add(self.spnColorGreen, 0, wx.TOP | wx.RIGHT | wx.LEFT, 2)
-
-        self.lblBlue = wx.StaticText(fraColor.GetStaticBox(), wx.ID_ANY, u"Blue", wx.DefaultPosition, wx.DefaultSize, 0)
-        self.lblBlue.Wrap(-1)
-
-        sbColor.Add(self.lblBlue, 0, wx.ALL | wx.ALIGN_RIGHT | wx.ALIGN_CENTER_VERTICAL, 5)
-
-        self.spnColorBlue = wx.SpinCtrlDouble(fraColor.GetStaticBox(), wx.ID_ANY, wx.EmptyString, wx.DefaultPosition,
-                                              wx.DefaultSize, wx.SP_ARROW_KEYS, -1, 1, 0, 0.01)
-        self.spnColorBlue.SetDigits(3)
-        sbColor.Add(self.spnColorBlue, 0, wx.ALL, 2)
-
-        fraColor.Add(sbColor, 0, wx.TOP | wx.RIGHT | wx.LEFT | wx.EXPAND, 5)
-
-        sbRGBOptions = wx.BoxSizer(wx.HORIZONTAL)
-
-        self.chkNormalized = wx.CheckBox(fraColor.GetStaticBox(), wx.ID_ANY, u"Rescale [0:1]", wx.DefaultPosition,
-                                         wx.DefaultSize, 0)
-        self.chkNormalized.SetToolTip(u"Rescale output values between 0 and 1, useful for OpenGL functions.")
-
-        sbRGBOptions.Add(self.chkNormalized, 0, wx.ALL | wx.EXPAND, 5)
-
-        self.chkClip = wx.CheckBox(fraColor.GetStaticBox(), wx.ID_ANY, u"Clip Range", wx.DefaultPosition,
-                                   wx.DefaultSize, 0)
-        self.chkClip.SetToolTip(u"Clip color values to be representable on the display.")
-
-        sbRGBOptions.Add(self.chkClip, 1, wx.ALL | wx.EXPAND, 5)
-
-        fraColor.Add(sbRGBOptions, 0, wx.ALL | wx.EXPAND, 5)
-
-        sbOutput.Add(fraColor, 0, wx.EXPAND | wx.TOP | wx.LEFT, 5)
-
-        fraValues = wx.StaticBoxSizer(wx.StaticBox(self, wx.ID_ANY, u" Output Options "), wx.VERTICAL)
-
-        rdoInsertColor = wx.RadioButton(fraValues.GetStaticBox(), id=wx.ID_ANY, label="Insert text at selection")
-        rdoClipboardColor = wx.RadioButton(fraValues.GetStaticBox(), id=wx.ID_ANY, label="Copy text to clipboard")
-        rdoClipboardColor.SetValue(True)
-        fraValues.Add(rdoClipboardColor, 0, wx.ALL | wx.EXPAND, 5)
-        fraValues.Add(rdoInsertColor, 0, wx.ALL | wx.EXPAND, 5)
-
-        sbOutput.Add(fraValues, 0, wx.EXPAND | wx.TOP | wx.LEFT, 5)
-
-        sbTopPanel.Add(sbOutput, 0, wx.EXPAND | wx.TOP | wx.BOTTOM | wx.RIGHT, 5)
-
-        sbColorPicker.Add(sbTopPanel, 1, wx.ALL | wx.EXPAND, 5)
-
-        self.stlFrame = wx.StaticLine(self, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.LI_HORIZONTAL)
-        sbColorPicker.Add(self.stlFrame, 0, wx.EXPAND | wx.RIGHT | wx.LEFT, 10)
-
+        # Set main params
+        self.color = Color((0,0,0,1), 'rgba')
+        self.sizer = wx.BoxSizer(orient=wx.VERTICAL)
+        # Add colourful top bar
+        self.preview = ColorPreview(color=self.color, parent=self)
+        self.sizer.Add(self.preview)
+        # Add notebook of controls
+        self.ctrls = aui.AuiNotebook(self, wx.ID_ANY, size=wx.Size(640, 500))
+        self.sizer.Add(self.ctrls, wx.EXPAND)
+        self.ctrls.AddPage(RGBcontrols(self.ctrls, self), 'RGB')
+        # Standard controls
         sdbControls = wx.StdDialogButtonSizer()
         self.sdbControlsOK = wx.Button(self, wx.ID_OK)
         sdbControls.AddButton(self.sdbControlsOK)
         self.sdbControlsCancel = wx.Button(self, wx.ID_CANCEL)
         sdbControls.AddButton(self.sdbControlsCancel)
         sdbControls.Realize()
+        self.sizer.Add(sdbControls, 0, wx.EXPAND, 5)
 
-        sbColorPicker.Add(sdbControls, 0, wx.ALIGN_RIGHT | wx.ALL | wx.EXPAND, 5)
+        #self.SetSizerAndFit(self.sizer)
+        self.SetSizer(self.sizer)
+        self._applyAppTheme()
+        self._applyAppTheme(self.ctrls)
 
-        self.SetSizer(sbColorPicker)
         self.Layout()
-
         self.Centre(wx.BOTH)
+        self.Show(True)
 
-        # Connect Events
-        self.nbColorSpace.Bind(wx.EVT_NOTEBOOK_PAGE_CHANGED, self.OnPageChanged)
-        self.spnColorRed.Bind(wx.EVT_SPINCTRLDOUBLE, self.OnRedChanged)
-        self.spnColorRed.Bind(wx.EVT_TEXT_ENTER, self.OnRedChanged)
-        self.spnColorGreen.Bind(wx.EVT_SPINCTRLDOUBLE, self.OnGreenChanged)
-        self.spnColorGreen.Bind(wx.EVT_TEXT_ENTER, self.OnGreenChanged)
-        self.spnColorBlue.Bind(wx.EVT_SPINCTRLDOUBLE, self.OnBlueChanged)
-        self.spnColorBlue.Bind(wx.EVT_TEXT_ENTER, self.OnBlueChanged)
-        self.chkNormalized.Bind(wx.EVT_CHECKBOX, self.OnNormalizedChecked)
-        self.chkClip.Bind(wx.EVT_CHECKBOX, self.OnClipChecked)
-        self.sdbControlsCancel.Bind(wx.EVT_BUTTON, self.OnCancel)
-        self.sdbControlsOK.Bind(wx.EVT_BUTTON, self.OnOK)
-
-        # needs to be called after creating the window to ensure client areas
-        # are the correct size after sizing
-        self.pnlHSV.realize()
+    def setColor(self, color, space):
+        self.color.set(color, space)
+        self.preview.color = self.color
 
     def __del__(self):
         pass
@@ -214,3 +113,142 @@ class PsychoColorPicker(wx.Dialog):
 
     def OnOK(self, event):
         event.Skip()
+
+class ColorPreview(wx.Window):
+    def __init__(self, color, parent):
+        wx.Window.__init__(self, parent, size=(640,100))
+        self.SetBackgroundColour(ThemeMixin.appColors['frame_bg'])
+        self.parent = parent
+        self.color = color
+        self.Bind(wx.EVT_PAINT, self.onPaint)
+
+    @property
+    def color(self):
+        return self._color
+    @color.setter
+    def color(self, value):
+        self._color = value
+        self.Refresh()
+
+    def onPaint(self, event):
+        self.pdc = wx.PaintDC(self)
+        self.dc = wx.GCDC(self.pdc)
+        self.pdc.SetBrush(wx.Brush(ThemeMixin.appColors['panel_bg']))
+        self.pdc.SetPen(wx.Pen(ThemeMixin.appColors['panel_bg']))
+        w = 10
+        h = 10
+        for x in range(0, self.GetSize()[0], w*2):
+            for y in range(0+(x%2)*h, self.GetSize()[1], h*2):
+                self.pdc.DrawRectangle(x, y, w, h)
+                self.pdc.DrawRectangle(x+w, y+h, w, h)
+        self.dc.SetBrush(wx.Brush(self.color.rgba255, wx.BRUSHSTYLE_TRANSPARENT))
+        self.dc.SetPen(wx.Pen(self.color.rgba255, wx.PENSTYLE_TRANSPARENT))
+        self.dc.DrawRectangle(0, 0, self.GetSize()[0], self.GetSize()[1])
+
+
+class RGBcontrols(wx.Window, ThemeMixin):
+    def __init__(self, parent, dlg):
+        wx.Window.__init__(self, parent, size=wx.Size(640, 500))
+        self.dlg = dlg
+        self.sizer = wx.GridBagSizer(vgap=10, hgap=20)
+        rowh = 30
+
+        # Control red
+        self.sizer.Add(wx.StaticText(parent=self, label="Red", size=(-1,rowh), style=wx.ALIGN_RIGHT), pos=(0,0))
+        self.redSld = wx.Slider(self, name="Red", minValue=0, maxValue=255, size=(440, rowh))
+        self.redSld.Bind(wx.EVT_COMMAND_SCROLL_CHANGED, self.onChange)
+        self.sizer.Add(self.redSld, pos=(0, 1))
+        self.redCtrl = wx.SpinCtrl(self, name="Red", min=0, max=255, size=(100,rowh-5))
+        self.redCtrl.Bind(wx.EVT_SPINCTRL, self.onChange)
+        self.sizer.Add(self.redCtrl, pos=(0, 2))
+
+        # Control green
+        self.sizer.Add(wx.StaticText(parent=self, label="Green", size=(-1,rowh), style=wx.ALIGN_RIGHT), pos=(1,0))
+        self.greenSld = wx.Slider(self, name="Green", minValue=0, maxValue=255, size=(440, rowh))
+        self.greenSld.Bind(wx.EVT_COMMAND_SCROLL_CHANGED, self.onChange)
+        self.sizer.Add(self.greenSld, pos=(1, 1))
+        self.greenCtrl = wx.SpinCtrl(self, name="Green", min=0, max=255, size=(100,rowh-5))
+        self.greenCtrl.Bind(wx.EVT_SPINCTRL, self.onChange)
+        self.sizer.Add(self.greenCtrl, pos=(1, 2))
+
+
+        # Control blue
+        self.sizer.Add(wx.StaticText(parent=self, label="Blue", size=(-1,rowh), style=wx.ALIGN_RIGHT), pos=(2,0))
+        self.blueSld = wx.Slider(self, name="Blue", minValue=0, maxValue=255, size=(440, rowh))
+        self.blueSld.Bind(wx.EVT_COMMAND_SCROLL_CHANGED, self.onChange)
+        self.sizer.Add(self.blueSld, pos=(2, 1))
+        self.blueCtrl = wx.SpinCtrl(self, name="Blue", min=0, max=255, size=(100,rowh-5))
+        self.blueCtrl.Bind(wx.EVT_SPINCTRL, self.onChange)
+        self.sizer.Add(self.blueCtrl, pos=(2, 2))
+
+
+        # Control alpha
+        self.sizer.Add(wx.StaticText(parent=self, label="Alpha", size=(-1,rowh), style=wx.ALIGN_RIGHT), pos=(3,0))
+        self.alphaSld = wx.Slider(self, name="Alpha", minValue=0, maxValue=255, size=(440, rowh))
+        self.alphaSld.Bind(wx.EVT_COMMAND_SCROLL_CHANGED, self.onChange)
+        self.sizer.Add(self.alphaSld, pos=(3, 1))
+        self.alphaCtrl = wx.SpinCtrl(self, name="Alpha", min=0, max=255, size=(100,rowh-5))
+        self.alphaCtrl.Bind(wx.EVT_SPINCTRL, self.onChange)
+        self.sizer.Add(self.alphaCtrl, pos=(3, 2))
+
+        # Control space
+        self.sizer.Add(wx.StaticText(parent=self, label="Space:", size=(-1,rowh), style=wx.ALIGN_RIGHT), pos=(4,0))
+        self.spaceCtrl = wx.Choice(parent=self, choices=['rgb255', 'rgb1', 'rgb'], size=(100, rowh-5), name="Space")
+        self.spaceCtrl.SetSelection(2)
+        self.spaceCtrl.Bind(wx.EVT_CHOICE, self.spaceChange)
+        self.sizer.Add(self.spaceCtrl, pos=(4,1))
+
+        self.sizer.AddGrowableCol(1)
+        self.sizer.AddGrowableRow(4)
+
+        self.SetSizer(self.sizer)
+        self.onOpen()
+
+    def _applyAppTheme(self, target=None):
+        self.SetBackgroundColour(ThemeMixin.appColors['tab_bg'])
+
+    def onOpen(self):
+        space = ('rgba255', 'rgba1', 'rgba')[self.spaceCtrl.GetSelection()]
+        r, g, b, a = getattr(self.dlg.color, space)
+        self.redSld.SetValue(r)
+        self.greenSld.SetValue(g)
+        self.blueSld.SetValue(b)
+        self.alphaSld.SetValue(a)
+
+    def onChange(self, event):
+        obj = event.GetEventObject()
+        val = obj.GetValue()
+        space = ('rgba255', 'rgba1', 'rgba')[self.spaceCtrl.GetSelection()]
+        r,g,b,a = getattr(self.dlg.color, space)
+        if obj in [self.redSld, self.redCtrl]:
+            r = val
+            self.redSld.SetValue(val)
+            self.redCtrl.SetValue(val)
+        if obj in [self.greenSld, self.greenCtrl]:
+            g = val
+            self.greenSld.SetValue(val)
+            self.greenCtrl.SetValue(val)
+        if obj in [self.blueSld, self.blueCtrl]:
+            b = val
+            self.blueSld.SetValue(val)
+            self.blueCtrl.SetValue(val)
+        if obj in [self.alphaSld, self.alphaCtrl]:
+            a = val
+            self.alphaSld.SetValue(val)
+            self.alphaCtrl.SetValue(val)
+        self.dlg.setColor((r,g,b,a), space)
+
+    def spaceChange(self, event):
+        obj = event.GetEventObject()
+        space = ['rgba255', 'rgba1', 'rgba'][obj.GetSelection()]
+        val = getattr(self.dlg.color, space)
+        max = getattr(Color((1, 1, 1, 1), 'rgba1'), space)
+        min = getattr(Color((0, 0, 0, 0), 'rgba1'), space)
+        sliders = [self.redSld, self.greenSld, self.blueSld, self.alphaSld]
+        for i in range(len(sliders)):
+            sliders[i].SetRange(min[i], max[i])
+            sliders[i].SetValue(val[i])
+        spinners = [self.redCtrl, self.greenCtrl, self.blueCtrl, self.alphaCtrl]
+        for i in range(len(spinners)):
+            spinners[i].SetRange(min[i], max[i])
+            spinners[i].SetValue(val[i])
