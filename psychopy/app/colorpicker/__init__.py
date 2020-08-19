@@ -9,10 +9,13 @@ import wx
 import wx.lib.agw.cubecolourdialog as ccd
 from wx.adv import PseudoDC
 from wx.lib.embeddedimage import PyEmbeddedImage
+from wx.lib.buttons import GenButton
+from wx.lib.scrolledpanel import ScrolledPanel
+
 from psychopy.app.colorpicker.hsv import HSVColorPicker
 from psychopy.app.colorpicker.chip import ColorChip
 from psychopy.app.themes import ThemeMixin
-from psychopy.visual.basevisual import Color, AdvancedColor
+from psychopy.visual.basevisual import Color, AdvancedColor, colorNames
 import wx.lib.agw.aui as aui
 
 
@@ -20,7 +23,7 @@ class PsychoColorPicker(wx.Dialog, ThemeMixin):
 
     def __init__(self, parent):
         wx.Dialog.__init__(self, parent, id=wx.ID_ANY, title=u"Color Picker", pos=wx.DefaultPosition,
-                           size=wx.Size(640, 500), style=wx.DEFAULT_DIALOG_STYLE)
+                           style=wx.DEFAULT_DIALOG_STYLE)
         # Set main params
         self.color = Color((0,0,0,1), 'rgba')
         self.sizer = wx.GridBagSizer()
@@ -28,23 +31,30 @@ class PsychoColorPicker(wx.Dialog, ThemeMixin):
         self.preview = ColorPreview(color=self.color, parent=self)
         self.sizer.Add(self.preview, pos=(0,0))
         # Add notebook of controls
-        self.ctrls = aui.AuiNotebook(self, wx.ID_ANY, size=wx.Size(640, 500))
+        self.ctrls = aui.AuiNotebook(self, wx.ID_ANY, size=wx.Size(400, 400))
         self.sizer.Add(self.ctrls, pos=(0,1))
         self.ctrls.AddPage(ColorPage(self.ctrls, self, 'rgba'), 'RGB (-1 to 1)')
         self.ctrls.AddPage(ColorPage(self.ctrls, self, 'rgba1'), 'RGB (0 to 1)')
         self.ctrls.AddPage(ColorPage(self.ctrls, self, 'rgba255'), 'RGB (0 to 255)')
         self.ctrls.AddPage(ColorPage(self.ctrls, self, 'hsva'), 'HSV')
+        self.ctrls.AddPage(ColorPage(self.ctrls, self, 'hexa'), 'Hex')
+        # Add array of named colours
+        self.presets = ColorPresets(parent=self)
+        self.sizer.Add(self.presets, pos=(0,2))
 
-        # Standard controls
-        sdbControls = wx.StdDialogButtonSizer()
-        self.sdbControlsOK = wx.Button(self, wx.ID_OK)
-        sdbControls.AddButton(self.sdbControlsOK)
-        self.sdbControlsCancel = wx.Button(self, wx.ID_CANCEL)
-        sdbControls.AddButton(self.sdbControlsCancel)
-        sdbControls.Realize()
-        self.sizer.Add(sdbControls, pos=(1,1))
 
-        self.SetSizer(self.sizer)
+        self.sizer.AddGrowableCol(1)
+
+        # # Standard controls
+        # sdbControls = wx.StdDialogButtonSizer()
+        # self.sdbControlsOK = wx.Button(self, wx.ID_OK)
+        # sdbControls.AddButton(self.sdbControlsOK)
+        # self.sdbControlsCancel = wx.Button(self, wx.ID_CANCEL)
+        # sdbControls.AddButton(self.sdbControlsCancel)
+        # sdbControls.Realize()
+        # self.sizer.Add(sdbControls, pos=(1,0))
+
+        self.SetSizerAndFit(self.sizer)
         self._applyAppTheme()
         self._applyAppTheme(self.ctrls)
 
@@ -148,10 +158,32 @@ class ColorPreview(wx.Window):
         self.dc.SetPen(wx.Pen(self.color.rgba255, wx.PENSTYLE_TRANSPARENT))
         self.dc.DrawRectangle(0, 0, self.GetSize()[0], self.GetSize()[1])
 
+class ColorPresets(ScrolledPanel):
+    def __init__(self, parent):
+        ScrolledPanel.__init__(self, parent, size=(120,400), style=wx.VSCROLL | wx.BORDER_NONE)
+        self.sizer = wx.GridBagSizer()
+        self.parent = parent
+        for i in range(len(colorNames)):
+            color = list(colorNames)[i]
+            btn = GenButton(self, size=(100, 30),
+                               label=color, name=color)
+            btn.SetOwnBackgroundColour(Color(color, 'named').rgba255)
+            btn.SetBezelWidth(0)
+            btn.SetUseFocusIndicator(False)
+            btn.colorData = color
+            #btn.SetBackgroundColour(wx.Colour(Color(color, 'named').rgba1))
+            btn.Bind(wx.EVT_BUTTON, self.onClick)
+            self.sizer.Add(btn, pos=(i,0))
+        self.SetSizer(self.sizer)
+        self.SetupScrolling()
+
+    def onClick(self, event):
+        self.parent.setColor(event.GetEventObject().colorData, 'named')
+
 
 class ColorPage(wx.Window, ThemeMixin):
     def __init__(self, parent, dlg, space):
-        wx.Window.__init__(self, parent, size=wx.Size(400, 400))
+        wx.Window.__init__(self, parent)
         self.dlg = dlg
         self.space = space
         self.sizer = wx.BoxSizer(wx.VERTICAL)
@@ -225,7 +257,7 @@ class ColorPage(wx.Window, ThemeMixin):
 class ColorControl(wx.Panel):
     def __init__(self, parent=None, row=0, id=None, name="", value=0, min=-1, max=1, interval=0.01):
         rowh = 30
-        wx.Panel.__init__(self, parent, id=id, size=(400, rowh), style=wx.BORDER_NONE, name=name)
+        wx.Panel.__init__(self, parent, id=id, style=wx.BORDER_NONE, name=name)
         # Store attributes
         self.color = parent.dlg.color
         self.parent = parent
@@ -236,7 +268,7 @@ class ColorControl(wx.Panel):
         self.sizer = wx.GridBagSizer()
         self.SetSizer(self.sizer)
         # Make label
-        self.label = wx.StaticText(parent=self, label=name, size=(100,rowh), style=wx.ALIGN_RIGHT)
+        self.label = wx.StaticText(parent=self, label=name, size=(75,rowh), style=wx.ALIGN_RIGHT)
         self.sizer.Add(self.label, pos=(0, 0))
         self.sizer.AddGrowableCol(0, 0.25)
         # Make slider
@@ -245,7 +277,7 @@ class ColorControl(wx.Panel):
         self.sizer.Add(self.slider, pos=(0, 1))
         self.sizer.AddGrowableCol(1, 0.5)
         # Make spinner
-        self.spinner = wx.SpinCtrl(self, name=name, min=min, max=max, size=(100,rowh-5))
+        self.spinner = wx.SpinCtrl(self, name=name, min=min, max=max, size=(75,rowh-5))
         self.spinner.Bind(wx.EVT_SPIN_UP, self.spinUp)
         self.spinner.Bind(wx.EVT_SPIN_UP, self.spinDown)
         self.spinner.Bind(wx.EVT_SPINCTRL, self.onChange)
