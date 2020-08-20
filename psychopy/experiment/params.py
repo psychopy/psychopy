@@ -160,7 +160,13 @@ class Param(object):
             if isinstance(self.val, basestring):
                 codeWanted = utils.unescapedDollarSign_re.search(self.val)
                 if codeWanted:
-                    return "%s" % getCodeFromParamStr(self.val)
+                    if utils.scriptTarget == 'PsychoJS':
+                        valJS = py2js.expression2js(self.val.strip('$'))
+                        if self.val != valJS:
+                            logging.debug("Rewriting with py2js: {} -> {}".format(self.val, valJS))
+                        return valJS
+                    else:
+                        return "%s" % getCodeFromParamStr(self.val)
                 else:  # str wanted
                     # remove \ from all \$
                     s = repr(re.sub(r"[\\]\$", '$', self.val))
