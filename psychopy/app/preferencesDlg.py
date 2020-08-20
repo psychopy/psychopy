@@ -805,6 +805,7 @@ class PreferencesDlg(wx.Dialog):
         # after validation, update the UI
         self.app.theme = self.app.theme
         self.updateCoderUI()
+        self.updateBuilderUI()
 
     def updateCoderUI(self):
         """Update the Coder UI (eg. fonts, themes, etc.) from prefs."""
@@ -818,6 +819,11 @@ class PreferencesDlg(wx.Dialog):
             for ii in range(coder.shelf.GetPageCount()):
                 doc = coder.shelf.GetPage(ii)
                 doc.theme = prefs.app['theme']
+
+    def updateBuilderUI(self):
+        builder = self.app.builder
+        if builder is not None:
+            builder.layoutPanes()
 
     def OnApplyClicked(self, event):
         """Apply button clicked, this makes changes to the UI without leaving
