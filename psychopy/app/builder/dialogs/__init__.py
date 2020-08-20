@@ -515,7 +515,8 @@ class _BaseParamsDlg(wx.Dialog):
                       'Save': _translate('Save'),
                       'Online':_translate('Online'),
                       'Testing':_translate('Testing'),
-                      'Audio':_translate('Audio')}
+                      'Audio':_translate('Audio'),
+                      'Format':_translate('Format')}
         for categName in categNames:
             theseParams = categs[categName]
             page = wx.Panel(self.ctrls, -1)
@@ -1131,14 +1132,14 @@ class _BaseParamsDlg(wx.Dialog):
             if used and not sameOldName:
                 msg = _translate(
                     "That name is in use (it's a %s). Try another name.")
-                return msg % namespace._localized[used], False
+                return msg % _translate(used), False
             elif not namespace.isValid(newName):  # valid as a var name
                 msg = _translate("Name must be alpha-numeric or _, no spaces")
                 return msg, False
             # warn but allow, chances are good that its actually ok
             elif namespace.isPossiblyDerivable(newName):
                 msg = namespace.isPossiblyDerivable(newName)
-                return namespace._localized[msg], True
+                return msg, True
             else:
                 return "", True
 

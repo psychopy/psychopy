@@ -25,7 +25,7 @@ from psychopy import logging
 from . import pavlovia_ui
 from . import icons
 from .themes import ThemeMixin
-from psychopy.tools.versionchooser import _translate
+from psychopy.localization import _translate
 
 class FileDropTarget(wx.FileDropTarget):
     """On Mac simply setting a handler for the EVT_DROP_FILES isn't enough.
@@ -213,41 +213,41 @@ class PsychopyToolbar(wx.ToolBar, ThemeMixin):
             pavButtons.addPavloviaTools()
         elif frame.__class__.__name__ == 'CoderFrame':
             self.addPsychopyTool('filenew', _translate('New'), 'new',
-                                 "Create new experiment file",
+                                 _translate("Create new experiment file"),
                                  self.frame.fileNew)  # New
             self.addPsychopyTool('fileopen', _translate('Open'), 'open',
-                                 "Open an existing experiment file",
+                                 _translate("Open an existing experiment file"),
                                  self.frame.fileOpen)  # Open
             self.frame.cdrBtnSave = \
                 self.addPsychopyTool('filesave', _translate('Save'), 'save',
-                                     "Save current experiment file",
+                                     _translate("Save current experiment file"),
                                      self.frame.fileSave)  # Save
             self.addPsychopyTool('filesaveas', _translate('Save As...'), 'saveAs',
-                                 "Save current experiment file as...",
+                                 _translate("Save current experiment file as..."),
                                  self.frame.fileSaveAs)  # SaveAs
             self.frame.cdrBtnUndo = \
                 self.addPsychopyTool('undo', _translate('Undo'), 'undo',
-                                     "Undo last action",
+                                     _translate("Undo last action"),
                                      self.frame.undo)  # Undo
             self.frame.cdrBtnRedo = \
                 self.addPsychopyTool('redo', _translate('Redo'), 'redo',
-                                     "Redo last action",
+                                     _translate("Redo last action"),
                                      self.frame.redo)  # Redo
             self.AddSeparator()  # Seperator
             self.addPsychopyTool('monitors', _translate('Monitor Center'), 'none',
-                                 "Monitor settings and calibration",
+                                 _translate("Monitor settings and calibration"),
                                  self.frame.app.openMonitorCenter)
             self.addPsychopyTool('color', _translate('Color Picker'), 'none',
-                                 "Color Picker -> clipboard",
+                                 _translate("Color Picker -> clipboard"),
                                  self.frame.app.colorPicker)
             self.AddSeparator()
             self.frame.cdrBtnRunner = self.addPsychopyTool(
                     'runner', _translate('Runner'), 'runnerScript',
-                    "Send experiment to Runner",
+                    _translate("Send experiment to Runner"),
                     self.frame.runFile)
             self.frame.cdrBtnRun = self.addPsychopyTool(
                     'run', _translate('Run'), 'runScript',
-                    "Run experiment",
+                    _translate("Run experiment"),
                     self.frame.runFile)
             self.AddSeparator()
             pavButtons.addPavloviaTools(
