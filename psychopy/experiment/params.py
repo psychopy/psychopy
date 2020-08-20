@@ -238,7 +238,7 @@ def getCodeFromParamStr(val):
     out = re.sub(r"[\\]\$", '$', tmp2)  # remove \ from all \$
     if utils.scriptTarget=='PsychoJS':
         out = py2js.expression2js(out)
-    return out
+    return out if out else ''
 
 
 def toList(val):
