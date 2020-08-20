@@ -48,7 +48,6 @@ _localized = {
     'shutdownKeyModifiers': _translate("shutdown key modifier keys"),
     'gammaErrorPolicy': _translate("gammaErrorPolicy"),
     'startUpPlugins': _translate("start up plugins"),
-    'useRunner': _translate("use Runner"),
     # pref labels in App section
     'showStartupTips': _translate("show start-up tips"),
     'defaultView': _translate("default view"),
@@ -168,6 +167,7 @@ _localized = {
     'switchToCoder': _translate('switch to Coder'),
     'switchToRunner': _translate('switch to Runner'),
     'projectsLogIn': _translate('login to projects')
+    'useRunner': _translate("use Runner"),
 }
 # add pre-translated names-of-langauges, for display in locale pref:
 _localized.update(localization.locname)
