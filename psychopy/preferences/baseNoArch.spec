@@ -44,8 +44,6 @@
     gammaErrorPolicy = option('abort', 'warn', default='abort')
     # Add plugin names here to load when a PsychoPy session starts.
     startUpPlugins = list(default=list())
-    # Should the Builder and Coder "run" buttons add the experiment to runner view or skip straight to running it?
-    useRunner = boolean(default='True')
 
 # Application settings, applied to coder, builder, & prefs windows
 [app]
