@@ -139,9 +139,9 @@ setup(
                   CFBundleShortVersionString = version,  # must be in X.X.X format
                   CFBundleVersion            = version,
                   CFBundleExecutable         = "PsychoPy",
-                  CFBundleIdentifier         = "org.opensciencetools.PsychoPy",
+                  CFBundleIdentifier         = "org.opensciencetools.psychopy",
                   CFBundleLicense            = "GNU GPLv3+",
-                  NSHumanReadableCopyright   = "Open Science Tools Ltd.",
+                  NSHumanReadableCopyright   = "Open Science Tools Limited",
                   CFBundleDocumentTypes=[dict(CFBundleTypeExtensions=['*'],
                                               CFBundleTypeRole='Editor')],
                   LSEnvironment=dict(PATH="/usr/local/git/bin:/usr/local/bin:"
@@ -157,7 +157,7 @@ setup(
 # 'lib' to the rpath as well. These were fine for the packaged
 # framework python but the libs in an app bundle are different.
 # So, create symlinks so they appear in the same place as in framework python
-rpath = "dist/PsychoPy3.app/Contents/Resources/"
+rpath = "dist/PsychoPy.app/Contents/Resources/"
 for libPath in opencvLibs:
     libname = os.path.split(libPath)[-1]
     realPath = "../../Frameworks/"+libname  # relative path (w.r.t. the fake)

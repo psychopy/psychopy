@@ -8,7 +8,7 @@ version=${version:-$defVersion}
 echo "Building $version"
 
 sudo rm -r build
-sudo rm -r dist/PsychoPy*.app  # the previous version
+sudo rm -r dist/PsychoPy*.app #the previous version
 sudo rm -r ../dist/PsychoPy*.app  # the previous version in outer location
 
 python setup.py sdist --format=zip
