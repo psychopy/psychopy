@@ -23,7 +23,6 @@ import subprocess
 import imghdr
 from ..themes import ThemeMixin
 from psychopy.localization import _translate
-from psychopy.localization import _translate
 
 # enums for file types
 FOLDER_TYPE_NORMAL = 0
