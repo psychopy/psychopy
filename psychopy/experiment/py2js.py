@@ -21,6 +21,7 @@ if PY3:
     from io import StringIO
 else:
     from StringIO import StringIO
+from psychopy.experiment.py2js_transpiler import translatePythonToJavaScript
 
 
 class NamesJS(dict):
@@ -106,6 +107,14 @@ def expression2js(expr):
                 continue
             node.id = namesJS[node.id]
     jsStr = unparse(syntaxTree).strip()
+    if not any(ch in jsStr for ch in ("=",";","\n")):
+        try:
+            jsStr = translatePythonToJavaScript(jsStr)
+            if jsStr.endswith(';\n'):
+                jsStr = jsStr[:-2]
+        except:
+            # If translation fails, just use old translation
+            pass
     return jsStr
 
 def snippet2js(expr):
