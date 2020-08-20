@@ -693,6 +693,12 @@ class PreferencesDlg(wx.Dialog):
                             labels=labels,
                             values=[i for i in range(len(labels))],
                             value=default, helpText=helpText)
+                    if prefName == 'builderLayout':
+                        item = self.proPrefs.sections[sectionName][prefName]
+                        for i in range(len(item.GetChoices())):
+                            choice = item.GetChoices()[i]
+                            icon = self.app.iconCache.getBitmap(choice.Text)
+                            choice.SetBitmap(icon)
                 # # lists are given a property that can edit and reorder items
                 elif thisSpec.startswith('list'):  # list
                     self.proPrefs.addStringArrayItem(
