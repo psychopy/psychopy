@@ -42,7 +42,7 @@ for i in todo; do
     rm -r dist/${names[$i]}.app/Contents/Resources/lib/python2.7/matplotlib/tests
     # strip all other architectures from binaries and move both to ../dist
     echo "stripping i386 using ditto"
-    ditto --rsrc --arch x86_64 dist/PsychoPy3.app ../dist/${names[$i]}.app
+    ditto --arch x86_64 dist/${names[$i]}.app ../dist/${names[$i]}.app
     mv dist/${names[$i]}.app ../dist/${names[$i]}__fat.app
 
     # mount the disk image and delete previous copy of app
