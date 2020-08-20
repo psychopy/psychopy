@@ -181,7 +181,7 @@ class RunnerFrame(wx.Frame, ThemeMixin):
         self.runnerMenu.Append(fileMenu, _translate('File'))
         self.runnerMenu.Append(viewMenu, _translate('View'))
         self.runnerMenu.Append(runMenu, _translate('Run'))
-        self.runnerMenu.Append(self.windowMenu, 'Window')
+        self.runnerMenu.Append(self.windowMenu, _translate('Window'))
 
     def onURL(self, evt):
         """Open link in default browser."""
