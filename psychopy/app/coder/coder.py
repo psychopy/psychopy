@@ -1196,7 +1196,7 @@ class CoderFrame(wx.Frame, ThemeMixin):
                                  CloseButton(False).PaneBorder(False).
                                  Name("SourceAsst").
                                  Caption(_translate("Source Assistant")).
-                                 Left().Show(self.prefs['showSourceAsst']))
+                                 Left())
         # Add structure page to source assistant
         self.structureWindow.SetName("Structure")
         self.sourceAsst.AddPage(self.structureWindow, "Structure")
@@ -1283,7 +1283,7 @@ class CoderFrame(wx.Frame, ThemeMixin):
                                  Movable(True).
                                  BottomDockable(True).TopDockable(True).
                                  CloseButton(False).
-                                 Bottom().Show(self.prefs['showOutput']))
+                                 Bottom())
         self._applyAppTheme()
         self.unitTestFrame = None
 
@@ -1310,11 +1310,10 @@ class CoderFrame(wx.Frame, ThemeMixin):
         if hasattr(self, 'cdrBtnRunner'):
             self.toolbar.EnableTool(self.cdrBtnRunner.Id, isExp)
             self.toolbar.EnableTool(self.cdrBtnRun.Id, isExp)
+        # Hide panels as specified
+        self.paneManager.GetPane("SourceAsst").Show(self.prefs['showSourceAsst'])
+        self.paneManager.GetPane("Shelf").Show(self.prefs['showOutput'])
         self.paneManager.Update()
-
-        self.sourceAsstChk.Check(
-            self.paneManager.GetPane('SourceAsst').IsShown()
-        )
         #self.chkShowAutoComp.Check(self.prefs['autocomplete'])
         self.SendSizeEvent()
         self.app.trackFrame(self)
@@ -1582,6 +1581,7 @@ class CoderFrame(wx.Frame, ThemeMixin):
         self.sourceAsstChk = self.panelsMenu.AppendCheckItem(wx.ID_ANY,
                                                   _translate("Source Assistant"),
                                                   hint)
+        self.sourceAsstChk.Check(self.prefs['showSourceAsst'])
         self.Bind(wx.EVT_MENU, self.setSourceAsst,
                   id=self.sourceAsstChk.GetId())
 

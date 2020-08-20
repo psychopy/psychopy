@@ -80,9 +80,9 @@
     lineSpacing = integer(0, 64, default=4)
     # Long line edge guide, specify zero to disable
     edgeGuideColumn = integer(0, 65536, default=80)
-    # activate the source assistant panel
+    # Set the source assistant panel to be visible by default
     showSourceAsst = boolean(default=True)
-    # activate the output and shell panels
+    # Set the output/shell to be visible by default
     showOutput = boolean(default=True)
     # Show code completion suggestion and calltips automatically when typing.
     autocomplete = boolean(default=True)
