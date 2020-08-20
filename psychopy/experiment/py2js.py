@@ -109,13 +109,13 @@ def expression2js(expr):
     jsStr = unparse(syntaxTree).strip()
     if not any(ch in jsStr for ch in ("=",";","\n")):
         try:
-            valJS = translatePythonToJavaScript(jsStr)
-            if valJS.endswith(';\n'):
-                valJS = valJS[:-2]
+            jsStr = translatePythonToJavaScript(jsStr)
+            if jsStr.endswith(';\n'):
+                jsStr = jsStr[:-2]
         except:
             # If translation fails, just use old translation
-            valJS = jsStr
-    return valJS
+            pass
+    return jsStr
 
 def snippet2js(expr):
     """Convert several lines (e.g. a Code Component) Python to JS"""
