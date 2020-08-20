@@ -108,9 +108,13 @@ def expression2js(expr):
             node.id = namesJS[node.id]
     jsStr = unparse(syntaxTree).strip()
     if not any(ch in jsStr for ch in ("=",";","\n")):
-        valJS = translatePythonToJavaScript(jsStr)
-        if valJS.endswith(';\n'):
-            valJS = valJS[:-2]
+        try:
+            valJS = translatePythonToJavaScript(jsStr)
+            if valJS.endswith(';\n'):
+                valJS = valJS[:-2]
+        except:
+            # If translation fails, just use old translation
+            valJS = jsStr
     return valJS
 
 def snippet2js(expr):
