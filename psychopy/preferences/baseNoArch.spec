@@ -26,8 +26,6 @@
     winType = option('pyglet', 'pygame', 'glfw', default='pyglet')
     # the default units for windows and visual stimuli
     units = option('deg', 'norm', 'cm', 'pix', 'height', default='norm')
-    # full screen is best for accurate timing
-    fullscr = boolean(default='False')
     # enable subjects to use the mouse and GUIs during experiments
     allowGUI = boolean(default='True')
     # 'version' is for internal usage, not for the user
