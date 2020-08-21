@@ -531,7 +531,7 @@ class CodeBox(BaseCodeEditor, ThemeMixin):
         else:
             color = (255, 255, 255, 255)
         self.StyleSetBackground(wx.stc.STC_STYLE_DEFAULT, color)
-        self.setupStyles()  # then reset fonts again on top of that color
+        self._applyAppTheme()
 
     def OnMarginClick(self, evt):
         # fold and unfold as needed

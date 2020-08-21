@@ -131,6 +131,11 @@ class MovieStim3(BaseVisualStim, ContainerMixin, TextureMixin):
             from psychopy import sound
             self.sound = sound
 
+        # set autoLog (now that params have been initialised)
+        self.autoLog = autoLog
+        if autoLog:
+            logging.exp("Created %s = %s" % (self.name, str(self)))
+
         self._videoClock = Clock()
         self.loadMovie(self.filename)
         self.setVolume(volume)
@@ -144,10 +149,6 @@ class MovieStim3(BaseVisualStim, ContainerMixin, TextureMixin):
             self.size = val2array(size)
         self.ori = ori
         self._updateVertices()
-        # set autoLog (now that params have been initialised)
-        self.autoLog = autoLog
-        if autoLog:
-            logging.exp("Created %s = %s" % (self.name, str(self)))
 
     def reset(self):
         self._numpyFrame = None
