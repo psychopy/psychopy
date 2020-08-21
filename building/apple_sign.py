@@ -1,9 +1,10 @@
 from pathlib import Path
 import subprocess
 import re
-import time, sys
+import time, sys, os
 import argparse
 import shutil
+import dmgbuild
 
 thisFolder = Path(__file__).parent
 
@@ -13,7 +14,7 @@ with Path().home()/ 'keys/apple_psychopy3_app_specific' as p:
     PWORD = p.read_text().strip()
 
 ENTITLEMENTS = thisFolder / "entitlements.plist"
-BUNDLE_ID = "org.opensciencetools.PsychoPy3"
+BUNDLE_ID = "org.opensciencetools.psychopy"
 USERNAME = "admin@opensciencetools.org"
 
 # handy resources for info:
@@ -37,11 +38,12 @@ class AppSigner:
 
     def signAll(self):
         # remove files that we know will fail the signing:
-        for filename in signer.appFile.glob("**/Frameworks/SDL*"):
+        for filename in self.appFile.glob("**/Frameworks/SDL*"):
             shutil.rmtree(filename)
-        for filename in signer.appFile.glob("**/Frameworks/eyelink*"):
+        for filename in self.appFile.glob("**/Frameworks/eyelink*"):
             shutil.rmtree(filename)
 
+        # this never really worked - probably the files signed in wrong order?
         # find all the included dylibs
         print('Signing dylibs:', end='')
         files = list(self.appFile.glob('**/*.dylib'))
@@ -54,31 +56,37 @@ class AppSigner:
         # PyQt
         files.extend(self.appFile.glob('**/Versions/5/Qt*'))
         files.extend(self.appFile.glob('**/Contents/MacOS/QtWebEngineProcess'))
+        files.extend(self.appFile.glob('**/Resources/lib/python3.6/lib-dynload/*.so'))
+        files.extend(self.appFile.glob('**/Frameworks/Python.framework/Versions/3.6/Python'))
+        files.extend(self.appFile.glob('**/Frameworks/Python.framework'))
+        files.extend(self.appFile.glob('**/Contents/MacOS/python'))
+
         # ready? Let's do this!
         t0 = time.time()
         for filename in files:
             print('.', end='')
             sys.stdout.flush()
-            self.signSingleFile(filename, verbose=False, removeFailed=False)
+            if filename.exists():  # might have been removed since glob
+                self.signSingleFile(filename, verbose=False, removeFailed=True)
         print(f'...done signing dylibs in {time.time()-t0:.03f}s')
+
         # then sign the outer app file
         print('Signing app')
         sys.stdout.flush()
-        # t0 = time.time()
-        # self.signSingleFile(self.appFile, removeFailed=False)
-        # print(f'...done signing app in {time.time()-t0:.03f}s')
-        # sys.stdout.flush()
+        t0 = time.time()
+        self.signSingleFile(self.appFile, removeFailed=False)
+        print(f'...done signing app in {time.time()-t0:.03f}s')
+        sys.stdout.flush()
 
     def signSingleFile(self, filename, removeFailed=False, verbose=True,
                        appFile=False):
-        cmd = ['codesign',
+        cmd = ['codesign', str(filename),
                '--sign',  IDENTITY,
                '--entitlements', str(ENTITLEMENTS),
                '--force',
                '--timestamp',
-               #'--deep',  # probably not needed for libs but maybe if Framework?
+               # '--deep',  # not recommended although used in most demos
                '--options', 'runtime',
-               str(filename),
                ]
         cmdStr = ' '.join(cmd)
         if verbose:
@@ -91,9 +99,10 @@ class AppSigner:
         if (exitcode != 0 or 'failed' in output) and removeFailed:
             Path(filename).unlink()
             print(f"REMOVED FILE {filename}: failed to codesign")
-        return self.signCheck(filename, verbose=False)
+        return self.signCheck(filename, verbose=False, removeFailed=removeFailed)
 
-    def signCheck(self, filepath=None, verbose=False, strict=True):
+    def signCheck(self, filepath=None, verbose=False, strict=True,
+                  removeFailed=False):
         """Checks whether a file is signed and returns a list of warnings"""
         if not filepath:
             filepath = self.appFile
@@ -116,6 +125,9 @@ class AppSigner:
             print(filepath)
             for line in warnings:
                 print("  ", line)
+            if removeFailed:
+                Path(filepath).unlink()
+                print(f"REMOVED FILE {filepath}: failed to codesign")
         return warnings
 
     def upload(self, fileToNotarize):
@@ -139,21 +151,8 @@ class AppSigner:
 
     @property
     def dmgFile(self):
-        if self._dmgFile:
-            return self._dmgFile
-        print("Opening disk image for app")
-        dmgTemplate = thisFolder/"../../dist/StandalonePsychoPy3_tmpl.dmg"
-        exitcode, output = subprocess.getstatusoutput(
-                "hdiutil detach '/Volumes/PsychoPy' -quiet")
-        exitcode, output = subprocess.getstatusoutput(
-                f"hdiutil attach '{dmgTemplate.resolve()}'")
-#    echo "Opening disk image for app"
-#    hdiutil detach "/Volumes/PsychoPy" -quiet
-#    hdiutil attach "../dist/StandalonePsychoPy3_tmpl.dmg"
-#    osascript -e "set Volume 0.2"
-#    say -v Karen "password"
-#    sudo rm -R /Volumes/PsychoPy/PsychoPy3*
-
+        if not self._dmgFile:
+            self._dmgFile = self._buildDMG()
         return self._dmgFile
 
     @property
@@ -211,14 +210,59 @@ class AppSigner:
         exitcode, output = subprocess.getstatusoutput(cmdStr)
         print(f"exitcode={exitcode}: {output}")
 
+    def dmgBuild(self):
+        dmgFilename = str(self.appFile).replace(".app", "_rw.dmg")
+        print(f"building dmg file: {dmgFilename}")
+        # remove previous file if it's there
+        if Path(dmgFilename).exists():
+            os.remove(dmgFilename)
+        # then build new one
 
-if __name__ == "__main__":
+        icon = (thisFolder.parent /
+                'psychopy/app/Resources/psychopy.icns').resolve()
+        background = (thisFolder / "dmg722x241.tiff").resolve()
+        dmgbuild.build_dmg(
+                filename=dmgFilename,
+                volume_name=f'PsychoPy {self.version}',
+                settings={
+                    'format': 'UDRW',
+                    'files': [str(self.appFile)],
+                    'symlinks': { 'Applications': '/Applications' },
+                    'size': '3g',  # but maybe irrelevant in UDRW mode?
+                    'badge_icon': str(icon),
+                    'background': None,  # background
+                    'icon_size': 128,
+                    'icon_locations': {
+                        'PsychoPy.app': (150, 160),
+                        'Applications': (350, 160)
+                    },
+                    'window_rect': ((600, 600), (500, 400)),
+                },
+        )
+        self._dmgFile = dmgFilename
+        return dmgFilename
+
+    def dmgCompress(self):
+        dmgFinalFilename = str(self.appFile).replace(".app", f"_{self.version}.dmg")
+        # remove previous file if it's there
+        if Path(dmgFinalFilename).exists():
+            os.remove(dmgFinalFilename)
+
+        cmdStr = f"hdiutil convert {self._dmgFile} " \
+                 f"-format UDZO " \
+                 f"-o {dmgFinalFilename}"
+        exitcode, output = subprocess.getstatusoutput(cmdStr)
+        print(output)
+        return dmgFinalFilename
+
+def main():
+
     with open(thisFolder.parent / "version") as f:
         defaultVersion = f.read().strip()
     parser = argparse.ArgumentParser(description="Codesigning PsychoPy.app")
     parser.add_argument("--app", help=("Path to the app bundle, "
                                        "assumed to be in dist/"),
-                        action='store', required=False, default="PsychoPy3.app")
+                        action='store', required=False, default="PsychoPy.app")
     parser.add_argument("--version", help="Version of the app",
                         action='store', required=False, default=defaultVersion)
     parser.add_argument("--file", help="path for a single file to be signed",
@@ -236,13 +280,36 @@ if __name__ == "__main__":
                            version=args.version)
         signer.signAll()
         # signer.signSingleFile(signer.appFile, removeFailed=False, verbose=True)
+
+        # print("calling deepsign.py")
+        # cmdStr = (f"python {thisFolder / 'deepsign.py'} "
+        #           f"--signing_identity={IDENTITY} "
+        #           f"--bundle_path={distFolder / args.app} "
+        #           f"--entitlements={ENTITLEMENTS.resolve()}"
+        #           )
+        # exitcode, output = subprocess.getstatusoutput(cmdStr)
+        # print(output)
         signer.signCheck(verbose=False)
 
-        # signer.upload(signer.zipFile)
-        # signer.awaitNotarized()
-        # signer.staple(signer.appFile)
+        NOTARIZE = True
 
-        # make dmg and repeat
-        # signer.upload(signer.dmgFile)
-        # signer.awaitNotarized()
-        # signer.staple(signer.dmgFile)
+        if NOTARIZE:
+            signer.upload(signer.zipFile)
+
+            # notarize and staple
+            signer.awaitNotarized()
+            signer.staple(signer.appFile)
+
+        signer.dmgBuild()
+        dmgFile = signer.dmgCompress()
+        signer.signSingleFile(dmgFile, removeFailed=False, verbose=True)
+
+        if NOTARIZE:
+            signer.upload(dmgFile)
+            # notarize and staple
+            signer.awaitNotarized()
+            signer.staple(dmgFile)
+
+
+if __name__ == "__main__":
+    main()
