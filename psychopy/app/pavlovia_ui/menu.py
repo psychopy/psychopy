@@ -49,26 +49,26 @@ class PavloviaMenu(wx.Menu):
         for name in self.knownUsers:
             self.addToSubMenu(name, self.userMenu, self.onSetUser)
         self.userMenu.AppendSeparator()
-        item = self.userMenu.Append(wx.ID_ANY,
+        self.loginBtn = self.userMenu.Append(wx.ID_ANY,
                                     _translate("Log in to Pavlovia...\t{}")
                                     .format(keys['pavlovia_logIn']))
-        parent.Bind(wx.EVT_MENU, self.onLogInPavlovia, id=item.GetId())
+        parent.Bind(wx.EVT_MENU, self.onLogInPavlovia, id=self.loginBtn.GetId())
         self.AppendSubMenu(self.userMenu, _translate("User"))
 
         # search
-        item = self.Append(wx.ID_ANY,
+        self.searchBtn = self.Append(wx.ID_ANY,
                            _translate("Search Pavlovia\t{}")
                            .format(keys['projectsFind']))
-        parent.Bind(wx.EVT_MENU, self.onSearch, id=item.GetId())
+        parent.Bind(wx.EVT_MENU, self.onSearch, id=self.searchBtn.GetId())
 
         # new
-        item = self.Append(wx.ID_ANY,
+        self.newBtn = self.Append(wx.ID_ANY,
                            _translate("New...\t{}").format(keys['projectsNew']))
-        parent.Bind(wx.EVT_MENU, self.onNew, id=item.GetId())
+        parent.Bind(wx.EVT_MENU, self.onNew, id=self.newBtn.GetId())
 
-        item = self.Append(wx.ID_ANY,
+        self.syncBtn = self.Append(wx.ID_ANY,
                            _translate("Sync\t{}").format(keys['projectsSync']))
-        parent.Bind(wx.EVT_MENU, self.onSync, id=item.GetId())
+        parent.Bind(wx.EVT_MENU, self.onSync, id=self.syncBtn.GetId())
 
     def addToSubMenu(self, name, menu, function):
         item = menu.Append(wx.ID_ANY, name)

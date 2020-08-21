@@ -1151,6 +1151,8 @@ class CoderFrame(wx.Frame, ThemeMixin):
         self.makeStatusBar()
         self.fileMenu = self.editMenu = self.viewMenu = None
         self.helpMenu = self.toolsMenu = None
+        self.pavloviaMenu.syncBtn.Enable(bool(self.filename))
+        self.pavloviaMenu.newBtn.Enable(bool(self.filename))
 
         # Create source assistant notebook
         self.sourceAsst = aui.AuiNotebook(
@@ -2246,6 +2248,9 @@ class CoderFrame(wx.Frame, ThemeMixin):
         if hasattr(self, 'cdrBtnRunner'):
             self.toolbar.EnableTool(self.cdrBtnRunner.Id, isExp)
             self.toolbar.EnableTool(self.cdrBtnRun.Id, isExp)
+        # update menu items
+        self.pavloviaMenu.syncBtn.Enable(bool(self.filename))
+        self.pavloviaMenu.newBtn.Enable(bool(self.filename))
         self.app.updateWindowMenu()
 
     def fileOpen(self, event=None, filename=None):
