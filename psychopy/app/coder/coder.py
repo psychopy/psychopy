@@ -1104,6 +1104,7 @@ class CoderFrame(wx.Frame, ThemeMixin):
         self.paths = self.app.prefs.paths
         self.IDs = self.app.IDs
         self.currentDoc = None
+        self.project = None
         self.ignoreErrors = False
         self.fileStatusLastChecked = time.time()
         self.fileStatusCheckInterval = 5 * 60  # sec
@@ -1174,6 +1175,8 @@ class CoderFrame(wx.Frame, ThemeMixin):
         self.makeStatusBar()
         self.fileMenu = self.editMenu = self.viewMenu = None
         self.helpMenu = self.toolsMenu = None
+        self.pavloviaMenu.syncBtn.Enable(bool(self.filename))
+        self.pavloviaMenu.newBtn.Enable(bool(self.filename))
 
         # Create source assistant notebook
         self.sourceAsst = aui.AuiNotebook(
@@ -1285,6 +1288,8 @@ class CoderFrame(wx.Frame, ThemeMixin):
                                  CloseButton(False).
                                  Bottom())
         self._applyAppTheme()
+        if 'pavloviaSync' in self.btnHandles:
+            self.toolbar.EnableTool(self.btnHandles['pavloviaSync'].Id, bool(self.filename))
         self.unitTestFrame = None
 
         # Link to Runner output
@@ -2270,6 +2275,11 @@ class CoderFrame(wx.Frame, ThemeMixin):
         if hasattr(self, 'cdrBtnRunner'):
             self.toolbar.EnableTool(self.cdrBtnRunner.Id, isExp)
             self.toolbar.EnableTool(self.cdrBtnRun.Id, isExp)
+        if 'pavloviaSync' in self.btnHandles:
+            self.toolbar.EnableTool(self.btnHandles['pavloviaSync'].Id, bool(self.filename))
+        # update menu items
+        self.pavloviaMenu.syncBtn.Enable(bool(self.filename))
+        self.pavloviaMenu.newBtn.Enable(bool(self.filename))
         self.app.updateWindowMenu()
 
     def fileOpen(self, event=None, filename=None):
