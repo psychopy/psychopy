@@ -161,7 +161,7 @@ class Window(object):
                  rgb=None,
                  dkl=None,
                  lms=None,
-                 fullscr=None,
+                 fullscr=True,
                  allowGUI=None,
                  monitor=None,
                  bitsMode=None,
@@ -357,9 +357,6 @@ class Window(object):
             self.scrWidthPIX = None
         else:
             self.scrWidthPIX = scrSize[0]
-
-        if fullscr is None:
-            fullscr = prefs.general['fullscr']
         self._isFullScr = fullscr
 
         if units is None:
