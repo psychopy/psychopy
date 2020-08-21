@@ -17,7 +17,6 @@ from psychopy import logging
 from psychopy.constants import PY3
 from psychopy.experiment.components import BaseComponent, Param, _translate
 from psychopy.experiment import CodeGenerationException, valid_var_re
-from psychopy.experiment.py2js import expression2js
 from pkgutil import find_loader
 
 # Check for psychtoolbox
@@ -307,8 +306,7 @@ class KeyboardComponent(BaseComponent):
         if allowedKeysIsVar:
             # if it looks like a variable, check that the variable is suitable
             # to eval at run-time
-            allowedKeys = expression2js(allowedKeys)
-            #logging.error("Variables for allowKeys aren't supported for JS yet")
+            logging.error("Variables for allowKeys aren't supported for JS yet")
             #code = ("# AllowedKeys looks like a variable named `%s`\n"
             #        "if not '%s' in locals():\n"
             #        "    logging.error('AllowedKeys variable `%s` is not defined.')\n"
