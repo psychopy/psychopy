@@ -166,7 +166,7 @@ _localized = {
     'switchToBuilder': _translate('switch to Builder'),
     'switchToCoder': _translate('switch to Coder'),
     'switchToRunner': _translate('switch to Runner'),
-    'projectsLogIn': _translate('login to projects')
+    'projectsLogIn': _translate('login to projects'),
     'useRunner': _translate("use Runner"),
 }
 # add pre-translated names-of-langauges, for display in locale pref:
