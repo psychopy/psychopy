@@ -40,7 +40,7 @@ class TextboxComponent(BaseVisualComponent):
     """
     categories = ['Stimuli', 'Responses']
     targets = ['PsychoPy', 'PsychoJS']
-    def __init__(self, exp, parentName, name='text',
+    def __init__(self, exp, parentName, name='textbox',
                  # effectively just a display-value
                  text=_translate('Any text\n\nincluding line breaks'),
                  font='Arial', units='from exp settings', bold=False, italic=False,
