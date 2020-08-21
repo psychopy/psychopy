@@ -108,7 +108,8 @@ class PavloviaMenu(wx.Menu):
 
     def onSync(self, event):
         retVal = syncProject(parent=self.parent, project=self.parent.project)
-        self.parent.gitFeedback(retVal)
+        if hasattr(self.parent, 'gitFeedback'):
+            self.parent.gitFeedback(retVal)
 
     def onSearch(self, event):
         PavloviaMenu.searchDlg = SearchFrame(app=self.parent.app)
