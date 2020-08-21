@@ -1265,6 +1265,8 @@ class CoderFrame(wx.Frame, ThemeMixin):
                                  CloseButton(False).
                                  Bottom().Show(self.prefs['showOutput']))
         self._applyAppTheme()
+        if 'pavloviaSync' in self.btnHandles:
+            self.toolbar.EnableTool(self.btnHandles['pavloviaSync'].Id, bool(self.filename))
         self.unitTestFrame = None
 
         # Link to Runner output
@@ -2249,6 +2251,8 @@ class CoderFrame(wx.Frame, ThemeMixin):
         if hasattr(self, 'cdrBtnRunner'):
             self.toolbar.EnableTool(self.cdrBtnRunner.Id, isExp)
             self.toolbar.EnableTool(self.cdrBtnRun.Id, isExp)
+        if 'pavloviaSync' in self.btnHandles:
+            self.toolbar.EnableTool(self.btnHandles['pavloviaSync'].Id, bool(self.filename))
         # update menu items
         self.pavloviaMenu.syncBtn.Enable(bool(self.filename))
         self.pavloviaMenu.newBtn.Enable(bool(self.filename))
