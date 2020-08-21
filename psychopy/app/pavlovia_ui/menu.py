@@ -100,7 +100,8 @@ class PavloviaMenu(wx.Menu):
                                 "connection")
                 return
         else:
-            self.onLogInPavlovia()
+            if hasattr(self, 'onLogInPavlovia'):
+                self.onLogInPavlovia()
 
         if PavloviaMenu.searchDlg:
             PavloviaMenu.searchDlg.updateUserProjs()

@@ -1081,6 +1081,7 @@ class CoderFrame(wx.Frame, ThemeMixin):
         self.paths = self.app.prefs.paths
         self.IDs = self.app.IDs
         self.currentDoc = None
+        self.project = None
         self.ignoreErrors = False
         self.fileStatusLastChecked = time.time()
         self.fileStatusCheckInterval = 5 * 60  # sec
