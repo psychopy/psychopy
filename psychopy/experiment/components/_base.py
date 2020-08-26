@@ -27,7 +27,7 @@ class BaseComponent(object):
     """A template for components, defining the methods to be overridden"""
     # override the categories property below
     # an attribute of the class, determines the section in the components panel
-    categories = ['Basic']
+    categories = ['Custom']
     targets = ['PsychoPy']
 
     def __init__(self, exp, parentName, name='',
