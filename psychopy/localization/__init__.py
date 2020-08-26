@@ -164,8 +164,12 @@ _localized = {
 
     # for BaseVisualComponent:
     'units': _translate('Units'),
-    'color': _translate('Color'),
-    'colorSpace': _translate('Color space'),
+    'color': _translate('Foreground Color'),
+    'colorSpace': _translate('Foreground Color Space'),
+    'fillColor': _translate('Fill Color'),
+    'fillColorSpace': _translate('Fill Color Space'),
+    'borderColor': _translate('Border Color'),
+    'borderColorSpace': _translate('Border Color Space'),
     'opacity': _translate('Opacity'),
     'pos': _translate('Position [x,y]'),
     'ori': _translate('Orientation'),
