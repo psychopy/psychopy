@@ -366,7 +366,7 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
                     u"0123456789",
                     ))
             AVOID_BOL = "".join((
-                    u".,:;!?)}]", 
+                    u".,:;!?)}] ", 
                     u"゛゜", # voiced and semivoiced sound marks
                     u"、。，．・ー：；",  # punctuation marks
                     u"？！", # question and exclamation marks
