@@ -163,7 +163,7 @@ _localized = {
     'durationEstim': _translate('Expected duration (s)'),
 
     # for BaseVisualComponent:
-    'units': _translate('Units'),
+    'units': _translate('Spatial Units'),
     'color': _translate('Foreground Color'),
     'colorSpace': _translate('Foreground Color Space'),
     'fillColor': _translate('Fill Color'),
