@@ -52,6 +52,7 @@ class ButtonComponent(TextboxComponent):
         self.type = 'Button'
         self.url = "http://www.psychopy.org/builder/components/button.html"
         self.targets = ['PsychoPy', 'PsychoJS']
+        self.order = ['callback', 'forceEndRoutine', 'enabled']
 
         _allow3 = ['constant', 'set every repeat', 'set every frame']  # list
         self.params['callback'] = Param(
