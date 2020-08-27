@@ -35,14 +35,14 @@ class ButtonComponent(TextboxComponent):
     categories = ['Responses']
     targets = ['PsychoPy', 'PsychoJS']
     def __init__(self, exp, parentName, name='button', text="", font='Arial',
-                 pos=(0, 0), units='pix', size=None, lineHeight=None,
+                 pos=(0, 0), units='pix', size=None, lineHeight=None, letterHeight=None,
                  color='white', colorSpace='named',
                  fillColor=(-0.98, 0.32, 0.84), fillColorSpace='rgb',
                  borderWidth=1, borderColor='white', borderColorSpace='named',
                  enabled=True, callback="", forceEndRoutine=True,
                  autoLog=False):
         TextboxComponent.__init__(self, exp, parentName, name=name, text=text, font=font,
-                                  pos=pos, size=size, units=units,
+                                  pos=pos, size=size, units=units, letterHeight=letterHeight,
                                   color=color, colorSpace=colorSpace,
                                   fillColor=fillColor,
                                   borderWidth=borderWidth, borderColor=borderColor,
@@ -85,7 +85,7 @@ class ButtonComponent(TextboxComponent):
         inits = getInitVals(self.params, 'PsychoPy')
 
         code = ("%(name)s = visual.ButtonStim(win, '%(name)s', %(text)s, font=%(font)s,\n"
-                "   pos=%(pos)s, units=%(units)s, size=%(size)s,\n"
+                "   pos=%(pos)s, units=%(units)s, size=%(size)s, letterHeight=%(letterHeight)s,\n"
                 "   color=%(color)s, colorSpace=%(colorSpace)s,\n"
                 "   fillColor=%(fillColor)s, fillColorSpace=%(fillColorSpace)s,\n"
                 "   borderWidth=%(borderWidth)s, borderColor=%(borderColor)s, borderColorSpace=%(borderColorSpace)s,\n"
