@@ -139,6 +139,11 @@ class ThemeMixin:
             if hasattr(target, 'GetAuiManager'):
                 target.GetAuiManager().SetArtProvider(PsychopyDockArt())
                 target.GetAuiManager().Update()
+            for menu in target.GetMenuBar().GetMenus():
+                for submenu in menu[0].MenuItems:
+                    if isinstance(submenu.SubMenu, ThemeSwitcher):
+                        submenu.SubMenu._applyAppTheme()
+
 
         def applyToPanel(target):
             target.SetBackgroundColour(ThemeMixin.appColors['panel_bg'])
@@ -989,19 +994,12 @@ class ThemeSwitcher(wx.Menu):
         for theme in priority:
             tooltip = themeList.pop(theme)
             item = self.AppendRadioItem(wx.ID_ANY, _translate(theme), tooltip)
+            # Bind to theme change method
             frame.Bind(wx.EVT_MENU, frame.app.onThemeChange, item)
-            if item.ItemLabel.lower() == ThemeMixin.codetheme.lower():
-                item.Check(True)
-            else:
-                item.Check(False)
         # Make other theme buttons
         for theme in themeList:
             item = self.AppendRadioItem(wx.ID_ANY, _translate(theme), help=themeList[theme])
             frame.Bind(wx.EVT_MENU, frame.app.onThemeChange, item)
-            if item.ItemLabel.lower() == ThemeMixin.codetheme.lower():
-                item.Check(True)
-            else:
-                item.Check(False)
         self.AppendSeparator()
         # Add Theme Folder button
         item = self.Append(wx.ID_ANY, _translate("Open theme folder"))
@@ -1009,3 +1007,8 @@ class ThemeSwitcher(wx.Menu):
 
     def openThemeFolder(self, event):
         subprocess.call("explorer %(themes)s" % prefs.paths, shell=True)
+
+    def _applyAppTheme(self):
+        for item in self.GetMenuItems():
+            if item.IsRadio():  # This means it will not attempt to check the separator
+                item.Check(item.ItemLabel.lower() == ThemeMixin.codetheme.lower())

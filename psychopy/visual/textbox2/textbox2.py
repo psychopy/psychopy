@@ -150,7 +150,7 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
         self.italic = italic
         self.lineSpacing = lineSpacing
         if padding is None:
-            padding = letterHeight / 2.0
+            padding = self.letterHeight / 2.0
         self.padding = padding
         self.glFont = None  # will be set by the self.font attribute setter
         self.font = font
