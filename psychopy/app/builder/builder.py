@@ -1181,11 +1181,6 @@ class BuilderFrame(wx.Frame, ThemeMixin):
         """Defines compile script button behavior"""
         fullPath = self.filename.replace('.psyexp', '.py')
         self.generateScript(experimentPath=fullPath, exp=self.exp)
-
-        if self.app.prefs.general['useRunner']:
-            self.app.showRunner()
-            self.stdoutFrame.stdOut.flush()
-
         self.app.showCoder()  # make sure coder is visible
         self.app.coder.fileNew(filepath=fullPath)
         self.app.coder.fileReload(event=None, filename=fullPath)
