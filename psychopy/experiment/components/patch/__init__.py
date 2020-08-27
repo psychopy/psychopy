@@ -54,7 +54,7 @@ class PatchComponent(BaseVisualComponent):
         msg = _translate("The image to be displayed - 'sin','sqr'... or a "
                          "filename (including path)")
         self.params['image'] = Param(
-            image, valType='str', allowedTypes=[], cate='Basic',
+            image, valType='str', allowedTypes=[], categ='Basic',
             updates='constant',
             allowedUpdates=['constant', 'set every repeat', 'set every frame'],
             hint=msg,
