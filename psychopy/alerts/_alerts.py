@@ -7,6 +7,8 @@ import yaml
 import os
 import sys
 
+from psychopy.localization import _translate
+
 
 """
 The Alerts module is used for generating alerts during PsychoPy integrity checks.
@@ -115,9 +117,9 @@ class AlertEntry(object):
             self.name = None
 
         if strFields:
-            self.msg = catalog.alert[code]['msg'].format(**strFields)
+            self.msg = _translate(catalog.alert[code]['msg']).format(**strFields)
         else:
-            self.msg = catalog.alert[code]['msg']
+            self.msg = _translate(catalog.alert[code]['msg'])
 
         if trace:
             self.trace = ''.join(traceback.format_exception(

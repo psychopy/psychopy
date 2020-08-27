@@ -44,8 +44,6 @@
     gammaErrorPolicy = option('abort', 'warn', default='abort')
     # Add plugin names here to load when a PsychoPy session starts.
     startUpPlugins = list(default=list())
-    # Should the Builder and Coder "run" buttons add the experiment to runner view or skip straight to running it?
-    useRunner = boolean(default='True')
 
 # Application settings, applied to coder, builder, & prefs windows
 [app]
@@ -82,9 +80,9 @@
     lineSpacing = integer(0, 64, default=4)
     # Long line edge guide, specify zero to disable
     edgeGuideColumn = integer(0, 65536, default=80)
-    # activate the source assistant panel
+    # Set the source assistant panel to be visible by default
     showSourceAsst = boolean(default=True)
-    # activate the output and shell panels
+    # Set the output/shell to be visible by default
     showOutput = boolean(default=True)
     # Show code completion suggestion and calltips automatically when typing.
     autocomplete = boolean(default=True)

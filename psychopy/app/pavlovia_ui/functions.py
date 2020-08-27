@@ -98,15 +98,15 @@ def showCommitDialog(parent, project, initMsg="", infoStream=None):
     if not changeList:
         return 0
 
-    changeInfo = "Changes to commit:\n"
+    changeInfo = _translate("Changes to commit:\n")
     for categ in ['untracked', 'changed', 'deleted', 'renamed']:
         changes = changeDict[categ]
         if categ == 'untracked':
             categ = 'New'
         if changes:
-            changeInfo += "\t{}: {} files\n".format(categ.title(), len(changes))
+            changeInfo += _translate("\t{}: {} files\n").format(categ.title(), len(changes))
     
-    dlg = PavloviaCommitDialog(parent, id=wx.ID_ANY, title="Committing changes", changeInfo=changeInfo)
+    dlg = PavloviaCommitDialog(parent, id=wx.ID_ANY, title=_translate("Committing changes"), changeInfo=changeInfo)
 
     retVal = dlg.ShowCommitDlg()
     commitMsg = dlg.getCommitMsg()
