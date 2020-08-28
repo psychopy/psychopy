@@ -236,7 +236,7 @@ class DlgConditions(wx.Dialog):
             rowLabel.SetForegroundColour(darkgrey)
             if sys.platform == 'darwin':
                 self.SetWindowVariant(variant=wx.WINDOW_VARIANT_NORMAL)
-        labelBox.Add(rowLabel, 1, flag=wx.ALIGN_RIGHT | wx.ALIGN_BOTTOM)
+        labelBox.Add(rowLabel, 1, flag=wx.ALIGN_BOTTOM)
         self.sizer.Add(labelBox, 1, flag=wx.ALIGN_CENTER)
         lastRow = []
         for col in range(self.cols):

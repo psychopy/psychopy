@@ -787,7 +787,11 @@ class _BaseParamsDlg(wx.Dialog):
         # use monospace font to signal code:
         if fieldName != 'name' and hasattr(ctrls.valueCtrl, 'GetFont'):
             if self.params[fieldName].valType == 'code':
-                ctrls.valueCtrl.SetFont(self.app._codeFont)
+                try:
+                    ctrls.valueCtrl.SetFont(self.app._codeFont)
+                except:
+                    logging.error("Failed to set font {}"
+                                  .format(self.app._codeFont))
             elif self.params[fieldName].valType == 'str':
                 ctrls.valueCtrl.Bind(wx.EVT_KEY_UP, self.checkCodeWanted)
                 try:
