@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2020 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 """Dialog classes for the Builder, including ParamCtrls
@@ -485,7 +485,21 @@ class _BaseParamsDlg(wx.Dialog):
         if 'Basic' in categNames:
             # move it to be the first category we see
             categNames.insert(0, categNames.pop(categNames.index('Basic')))
-        # move into _localized after merge branches:
+
+        # get categories in order
+        categNamesRemaining = sorted(categs.keys())
+        if 'Basic' in categNamesRemaining:
+            categNamesRemaining.remove('Basic')
+        categNames = ['Basic']
+        # add categ names in the params order list
+        for thisParamName in self.order:
+            thisParam = self.params[thisParamName]
+            if thisParam.categ and thisParam.categ not in categNames:
+                categNames.append(thisParam.categ)
+        for thisCategName in categNamesRemaining:
+            if thisCategName not in categNames:
+                categNames.append(thisCategName)
+
         categLabel = {'Basic': _translate('Basic'),
                       'Color': _translate('Color'),
                       'Layout': _translate('Layout'),
@@ -501,7 +515,8 @@ class _BaseParamsDlg(wx.Dialog):
                       'Save': _translate('Save'),
                       'Online':_translate('Online'),
                       'Testing':_translate('Testing'),
-                      'Audio':_translate('Audio')}
+                      'Audio':_translate('Audio'),
+                      'Format':_translate('Format')}
         for categName in categNames:
             theseParams = categs[categName]
             page = wx.Panel(self.ctrls, -1)
@@ -772,7 +787,11 @@ class _BaseParamsDlg(wx.Dialog):
         # use monospace font to signal code:
         if fieldName != 'name' and hasattr(ctrls.valueCtrl, 'GetFont'):
             if self.params[fieldName].valType == 'code':
-                ctrls.valueCtrl.SetFont(self.app._codeFont)
+                try:
+                    ctrls.valueCtrl.SetFont(self.app._codeFont)
+                except:
+                    logging.error("Failed to set font {}"
+                                  .format(self.app._codeFont))
             elif self.params[fieldName].valType == 'str':
                 ctrls.valueCtrl.Bind(wx.EVT_KEY_UP, self.checkCodeWanted)
                 try:
@@ -1113,14 +1132,14 @@ class _BaseParamsDlg(wx.Dialog):
             if used and not sameOldName:
                 msg = _translate(
                     "That name is in use (it's a %s). Try another name.")
-                return msg % namespace._localized[used], False
+                return msg % _translate(used), False
             elif not namespace.isValid(newName):  # valid as a var name
                 msg = _translate("Name must be alpha-numeric or _, no spaces")
                 return msg, False
             # warn but allow, chances are good that its actually ok
             elif namespace.isPossiblyDerivable(newName):
                 msg = namespace.isPossiblyDerivable(newName)
-                return namespace._localized[msg], True
+                return msg, True
             else:
                 return "", True
 

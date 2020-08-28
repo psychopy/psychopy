@@ -152,7 +152,7 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
         self.italic = italic
         self.lineSpacing = lineSpacing
         if padding is None:
-            padding = letterHeight / 2.0
+            padding = self.letterHeight / 2.0
         self.padding = padding
         self.glFont = None  # will be set by the self.font attribute setter
         self.font = font
@@ -192,23 +192,20 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
                 units=self.units,
                 lineWidth=borderWidth, lineColor=borderColor,
                 fillColor=fillColor, opacity=self.opacity,
-                autoLog=False)
+                autoLog=False, fillColorSpace=self.colorSpace)
         # also bounding box (not normally drawn but gives tight box around chrs)
         self.boundingBox = Rect(
                 win, pos=self.pos,
                 units=self.units,
-                lineWidth=1, lineColor=None, fillColor='white', opacity=0.1,
+                lineWidth=1, lineColor=None, fillColor=fillColor, opacity=0.1,
                 autoLog=False)
-        self._pallette = {
-            False: { # If no focus
+        self.pallette = { # If no focus
                 'lineColor': borderColor,
                 'lineRGB': self.box.lineRGB,
                 'lineWidth': borderWidth,
                 'fillColor': fillColor,
                 'fillRGB': self.box.fillRGB
-            }
         }
-        self.palletteShift()
         # then layout the text (setting text triggers _layout())
         self.text = text
 
@@ -224,6 +221,31 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
     @property
     def pallette(self):
         return self._pallette[self.hasFocus]
+
+    @pallette.setter
+    def pallette(self, value):
+        pal = {}
+        # Double border width
+        if value['lineWidth']:
+            pal['lineWidth'] = max(value['lineWidth'], 2) * 2
+        else:
+            pal['lineWidth'] = 5 * 2
+        # Darken border
+        if value['lineColor']:
+            pal['lineRGB'] = pal['lineColor'] = [max(c - 0.05, 0.05) for c in value['lineRGB']]
+        else:
+            # Use window colour as base if border colour is none
+            pal['lineRGB'] = pal['lineColor'] = [max(c - 0.05, 0.05) for c in self.win.color]
+        # Lighten background
+        if value['fillColor']:
+            pal['fillRGB'] = pal['fillColor'] = [min(c + 0.05, 0.95) for c in value['fillRGB']]
+        else:
+            # Use window colour as base if fill colour is none
+            pal['fillRGB'] = pal['fillColor'] = [min(c + 0.05, 0.95) for c in self.win.color]
+        self._pallette = {
+            False: value,
+            True: pal
+        }
 
     @attributeSetter
     def font(self, fontName, italic=False, bold=False):
@@ -477,6 +499,16 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
 
     def draw(self):
         """Draw the text to the back buffer"""
+        # Border width
+        self.box.setLineWidth(self.pallette['lineWidth']) # Use 1 as base if border width is none
+        #self.borderWidth = self.box.lineWidth
+        # Border colour
+        self.box.setLineColor(self.pallette['lineRGB'], colorSpace='rgb')
+        #self.borderColor = self.box.lineColor
+        # Background
+        self.box.setFillColor(self.pallette['fillRGB'], colorSpace='rgb')
+        #self.fillColor = self.box.fillColor
+
         if self._needVertexUpdate:
             self._updateVertices()
         if self.fillColor is not None or self.borderColor is not None:
@@ -703,42 +735,12 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
     def hasFocus(self, state):
         # Store focus
         self._hasFocus = state
-        # Border width
-        self.box.setLineWidth(self.pallette['lineWidth']) # Use 1 as base if border width is none
-        self.borderWidth = self.box.lineWidth
-        # Border colour
-        self.box.setLineColor(self.pallette['lineColor'], colorSpace='rgb')
-        self.borderColor = self.box.lineColor
-        # Background
-        self.box.setLineColor(self.pallette['fillColor'], colorSpace='rgb')
-        self.fillColor = self.box.fillColor
         # Redraw text box
         self.draw()
 
     def getText(self):
         """Returns the current text in the box"""
         return self.text
-
-    def palletteShift(self):
-        pal = self._pallette[False].copy()
-        # Double border width
-        if pal['lineWidth']:
-            pal['lineWidth'] = max(pal['lineWidth'], 5) * 2
-        else:
-            pal['lineWidth'] = 5 * 2
-        # Darken border
-        if pal['lineColor']:
-            pal['lineColor'] = [max(c - 0.05, 0.05) for c in pal['lineRGB']]
-        else:
-            # Use window colour as base if border colour is none
-            pal['lineColor'] = [max(c - 0.05, 0.05) for c in self.win.color]
-        # Lighten background
-        if pal['fillColor']:
-            pal['fillColor'] = [min(c + 0.05, 0.95) for c in pal['fillRGB']]
-        else:
-            # Use window colour as base if fill colour is none
-            pal['fillColor'] = [min(c + 0.05, 0.95) for c in self.win.color]
-        self._pallette[True] = pal
 
     @attributeSetter
     def pos(self, value):
@@ -812,21 +814,23 @@ class Caret(ColorMixin):
             Caret colour
     """
 
-    def __init__(self, textbox, color, width):
+    def __init__(self, textbox, color, width, colorSpace='rgb'):
         self.textbox = textbox
         self.index = len(textbox.text)  # start off at the end
         self.autoLog = False
         self.width = width
         self.units = textbox.units
+        self.colorSpace = colorSpace
         self.color = color
 
     @attributeSetter
     def color(self, color):
-        ColorMixin.setColor(self, color)
-        if self.colorSpace not in ['rgb', 'dkl', 'lms', 'hsv']:
-            self._desiredRGB = self.rgb / 127.5 - 1
-        else:
-            self._desiredRGB = self.rgb
+        self.setColor(color)
+        self._desiredRGB = [0.89, -0.35, -0.28]
+        # if self.colorSpace not in ['rgb', 'dkl', 'lms', 'hsv']:
+        #     self._desiredRGB = [c / 127.5 - 1 for c in self.rgb]
+        # else:
+        #     self._desiredRGB = self.rgb
 
     def draw(self):
         if not self.visible:

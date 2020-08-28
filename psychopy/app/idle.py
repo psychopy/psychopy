@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2020 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 from __future__ import absolute_import, division, print_function
@@ -17,7 +17,7 @@ from psychopy import prefs, logging
 from psychopy.constants import NOT_STARTED, STARTED, SKIP, FINISHED
 from . import connections
 from psychopy.tools import versionchooser as vc
-
+from ..app import pavlovia_ui
 _t0 = time.time()
 
 
@@ -72,6 +72,12 @@ tasks['updateVersionChooser'] = {
 tasks['showNews'] = {
     'status': NOT_STARTED,
     'func': connections.showNews,
+    'tstart': None, 'tEnd': None,
+    'thread': False,
+}
+tasks['getPavloviaUser'] = {
+    'status': NOT_STARTED,
+    'func': pavlovia_ui.menu.PavloviaMenu.setUser,
     'tstart': None, 'tEnd': None,
     'thread': False,
 }

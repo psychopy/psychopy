@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2020 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 import wx
@@ -44,31 +44,31 @@ class PavloviaMenu(wx.Menu):
         lastPavUser = PavloviaMenu.appData['pavloviaUser']
         if pavlovia.knownUsers and (lastPavUser not in pavlovia.knownUsers):
             lastPavUser = None
-        if lastPavUser and not PavloviaMenu.currentUser:
-            self.setUser(PavloviaMenu.appData['pavloviaUser'])
+        # if lastPavUser and not PavloviaMenu.currentUser:
+        #     self.setUser(PavloviaMenu.appData['pavloviaUser'])
         for name in self.knownUsers:
             self.addToSubMenu(name, self.userMenu, self.onSetUser)
         self.userMenu.AppendSeparator()
-        item = self.userMenu.Append(wx.ID_ANY,
+        self.loginBtn = self.userMenu.Append(wx.ID_ANY,
                                     _translate("Log in to Pavlovia...\t{}")
                                     .format(keys['pavlovia_logIn']))
-        parent.Bind(wx.EVT_MENU, self.onLogInPavlovia, id=item.GetId())
+        parent.Bind(wx.EVT_MENU, self.onLogInPavlovia, id=self.loginBtn.GetId())
         self.AppendSubMenu(self.userMenu, _translate("User"))
 
         # search
-        item = self.Append(wx.ID_ANY,
+        self.searchBtn = self.Append(wx.ID_ANY,
                            _translate("Search Pavlovia\t{}")
                            .format(keys['projectsFind']))
-        parent.Bind(wx.EVT_MENU, self.onSearch, id=item.GetId())
+        parent.Bind(wx.EVT_MENU, self.onSearch, id=self.searchBtn.GetId())
 
         # new
-        item = self.Append(wx.ID_ANY,
+        self.newBtn = self.Append(wx.ID_ANY,
                            _translate("New...\t{}").format(keys['projectsNew']))
-        parent.Bind(wx.EVT_MENU, self.onNew, id=item.GetId())
+        parent.Bind(wx.EVT_MENU, self.onNew, id=self.newBtn.GetId())
 
-        item = self.Append(wx.ID_ANY,
+        self.syncBtn = self.Append(wx.ID_ANY,
                            _translate("Sync\t{}").format(keys['projectsSync']))
-        parent.Bind(wx.EVT_MENU, self.onSync, id=item.GetId())
+        parent.Bind(wx.EVT_MENU, self.onSync, id=self.syncBtn.GetId())
 
     def addToSubMenu(self, name, menu, function):
         item = menu.Append(wx.ID_ANY, name)
@@ -81,9 +81,14 @@ class PavloviaMenu(wx.Menu):
         user = self.userMenu.GetLabelText(event.GetId())
         self.setUser(user)
 
-    def setUser(self, user):
-        if user == PavloviaMenu.currentUser:
+    def setUser(self, user=None):
+
+        if user is None and PavloviaMenu.appData['pavloviaUser']:
+            user = PavloviaMenu.appData['pavloviaUser']
+
+        if user in [PavloviaMenu.currentUser, None]:
             return  # nothing to do here. Move along please.
+
         PavloviaMenu.currentUser = user
         PavloviaMenu.appData['pavloviaUser'] = user
         if user in pavlovia.knownUsers:
@@ -95,14 +100,16 @@ class PavloviaMenu(wx.Menu):
                                 "connection")
                 return
         else:
-            self.onLogInPavlovia()
+            if hasattr(self, 'onLogInPavlovia'):
+                self.onLogInPavlovia()
 
-        if self.searchDlg:
-            self.searchDlg.updateUserProjs()
+        if PavloviaMenu.searchDlg:
+            PavloviaMenu.searchDlg.updateUserProjs()
 
     def onSync(self, event):
         retVal = syncProject(parent=self.parent, project=self.parent.project)
-        self.parent.gitFeedback(retVal)
+        if hasattr(self.parent, 'gitFeedback'):
+            self.parent.gitFeedback(retVal)
 
     def onSearch(self, event):
         PavloviaMenu.searchDlg = SearchFrame(app=self.parent.app)

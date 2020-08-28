@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2020 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 from __future__ import absolute_import, print_function
@@ -98,15 +98,15 @@ def showCommitDialog(parent, project, initMsg="", infoStream=None):
     if not changeList:
         return 0
 
-    changeInfo = "Changes to commit:\n"
+    changeInfo = _translate("Changes to commit:\n")
     for categ in ['untracked', 'changed', 'deleted', 'renamed']:
         changes = changeDict[categ]
         if categ == 'untracked':
             categ = 'New'
         if changes:
-            changeInfo += "\t{}: {} files\n".format(categ.title(), len(changes))
+            changeInfo += _translate("\t{}: {} files\n").format(categ.title(), len(changes))
     
-    dlg = PavloviaCommitDialog(parent, id=wx.ID_ANY, title="Committing changes", changeInfo=changeInfo)
+    dlg = PavloviaCommitDialog(parent, id=wx.ID_ANY, title=_translate("Committing changes"), changeInfo=changeInfo)
 
     retVal = dlg.ShowCommitDlg()
     commitMsg = dlg.getCommitMsg()

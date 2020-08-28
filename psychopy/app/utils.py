@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2020 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 """utility classes for the Builder
@@ -25,7 +25,7 @@ from psychopy import logging
 from . import pavlovia_ui
 from . import icons
 from .themes import ThemeMixin
-from psychopy.tools.versionchooser import _translate
+from psychopy.localization import _translate
 
 class FileDropTarget(wx.FileDropTarget):
     """On Mac simply setting a handler for the EVT_DROP_FILES isn't enough.
@@ -131,7 +131,7 @@ class PsychopyToolbar(wx.ToolBar, ThemeMixin):
         self.keys = {k: self.frame.app.keys[k].replace('Ctrl+', ctrlKey)
                 for k in self.frame.app.keys}
         self.keys['none'] = ''
-        self.makeTools()  # will be done when theme is applied
+        # self.makeTools()  # will be done when theme is applied
         # Finished setup. Make it happen
 
     def makeTools(self):
@@ -177,7 +177,7 @@ class PsychopyToolbar(wx.ToolBar, ThemeMixin):
                         shortcut='redo',
                         tooltip=_translate("Redo last action"),
                         func=self.frame.redo)  # Redo
-            self.AddSeparator() # Seperator
+            self.AddSeparator()  # Seperator
             self.addPsychopyTool(
                     name='monitors',
                     label=_translate('Monitor Center'),
@@ -212,42 +212,42 @@ class PsychopyToolbar(wx.ToolBar, ThemeMixin):
             self.AddSeparator()  # Seperator
             pavButtons.addPavloviaTools()
         elif frame.__class__.__name__ == 'CoderFrame':
-            self.addPsychopyTool('filenew', 'New', 'new',
-                                 "Create new experiment file",
+            self.addPsychopyTool('filenew', _translate('New'), 'new',
+                                 _translate("Create new experiment file"),
                                  self.frame.fileNew)  # New
-            self.addPsychopyTool('fileopen', 'Open', 'open',
-                                 "Open an existing experiment file",
+            self.addPsychopyTool('fileopen', _translate('Open'), 'open',
+                                 _translate("Open an existing experiment file"),
                                  self.frame.fileOpen)  # Open
             self.frame.cdrBtnSave = \
-                self.addPsychopyTool('filesave', 'Save', 'save',
-                                     "Save current experiment file",
+                self.addPsychopyTool('filesave', _translate('Save'), 'save',
+                                     _translate("Save current experiment file"),
                                      self.frame.fileSave)  # Save
-            self.addPsychopyTool('filesaveas', 'Save As...', 'saveAs',
-                                 "Save current experiment file as...",
+            self.addPsychopyTool('filesaveas', _translate('Save As...'), 'saveAs',
+                                 _translate("Save current experiment file as..."),
                                  self.frame.fileSaveAs)  # SaveAs
             self.frame.cdrBtnUndo = \
-                self.addPsychopyTool('undo', 'Undo', 'undo',
-                                     "Undo last action",
+                self.addPsychopyTool('undo', _translate('Undo'), 'undo',
+                                     _translate("Undo last action"),
                                      self.frame.undo)  # Undo
             self.frame.cdrBtnRedo = \
-                self.addPsychopyTool('redo', 'Redo', 'redo',
-                                     "Redo last action",
+                self.addPsychopyTool('redo', _translate('Redo'), 'redo',
+                                     _translate("Redo last action"),
                                      self.frame.redo)  # Redo
             self.AddSeparator()  # Seperator
-            self.addPsychopyTool('monitors', 'Monitor Center', 'none',
-                                 "Monitor settings and calibration",
+            self.addPsychopyTool('monitors', _translate('Monitor Center'), 'none',
+                                 _translate("Monitor settings and calibration"),
                                  self.frame.app.openMonitorCenter)
-            self.addPsychopyTool('color', 'Color Picker', 'none',
-                                 "Color Picker -> clipboard",
+            self.addPsychopyTool('color', _translate('Color Picker'), 'none',
+                                 _translate("Color Picker -> clipboard"),
                                  self.frame.app.colorPicker)
             self.AddSeparator()
             self.frame.cdrBtnRunner = self.addPsychopyTool(
-                    'runner', 'Runner', 'runnerScript',
-                    "Send experiment to Runner",
+                    'runner', _translate('Runner'), 'runnerScript',
+                    _translate("Send experiment to Runner"),
                     self.frame.runFile)
             self.frame.cdrBtnRun = self.addPsychopyTool(
-                    'run', 'Run', 'runScript',
-                    "Run experiment",
+                    'run', _translate('Run'), 'runScript',
+                    _translate("Run experiment"),
                     self.frame.runFile)
             self.AddSeparator()
             pavButtons.addPavloviaTools(
@@ -261,9 +261,9 @@ class PsychopyToolbar(wx.ToolBar, ThemeMixin):
             name += '.png'
         item = self.app.iconCache.makeBitmapButton(parent=self, filename=name,
                                                    name=label,
-                                                   label=_translate(
-                                                       label + " [%s]") %
-                                                         self.keys[shortcut],
+                                                   label=("%s [%s]" % (
+                                                       label,
+                                                       self.keys[shortcut])),
                                                    emblem=emblem, toolbar=self,
                                                    tip=tooltip,
                                                    size=self.iconSize)

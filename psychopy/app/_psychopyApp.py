@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2020 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 from __future__ import absolute_import, division, print_function
@@ -13,6 +13,7 @@ from builtins import object
 profiling = False  # turning on will save profile files in currDir
 
 import sys
+import argparse
 import platform
 import psychopy
 from psychopy import prefs
@@ -287,6 +288,7 @@ class PsychoPyApp(wx.App, themes.ThemeMixin):
             exps = self.prefs.appData['builder']['prevFiles']
         else:
             exps = []
+        runlist = []
 
         self.dpi = int(wx.GetDisplaySize()[0] /
                        float(wx.GetDisplaySizeMM()[0]) * 25.4)
@@ -324,76 +326,39 @@ class PsychoPyApp(wx.App, themes.ThemeMixin):
         if splash:
             splash.SetText(_translate("  Creating frames..."))
 
-        # Decide which windows to create
-        extMap = {'psyexp': 'builder',
-                  'psyrun': 'runner'}
-        if len(sys.argv) > 1:
-            if sys.argv[1] == __name__:
-                # program was executed as "python.exe psychopyApp.py %1'
-                args = sys.argv[2:]
-            else:
-                # program was executed as "psychopyApp.py %1'
-                args = sys.argv[1:]
-            # choose which frame to start with
-            if args[0] in ['builder', '--builder', '-b']:
-                view = 'builder'
-                args = args[1:]  # can remove that argument
-            elif args[0] in ['coder', '--coder', '-c']:
-                view = 'coder'
-                args = args[1:]  # can remove that argument
-            # did we get .py or .psyexp files?
-            else:
-                # If filename, get extension and set view accordingly
-                _, ext = os.path.splitext(args[0])
-                if ext in extMap:
-                    view = extMap[ext]
-                else:
-                    view = 'coder'
-        else:
-            args = []
-            view = self.prefs.app['defaultView']
+        # Parse incoming call
+        parser = argparse.ArgumentParser(prog=self)
+        parser.add_argument('--builder', dest='builder', action="store_true")
+        parser.add_argument('-b', dest='builder', action="store_true")
+        parser.add_argument('--coder', dest='coder', action="store_true")
+        parser.add_argument('-c', dest='coder', action="store_true")
+        parser.add_argument('--runner', dest='runner', action="store_true")
+        parser.add_argument('-r', dest='runner', action="store_true")
+        view, args = parser.parse_known_args(sys.argv)
+        print(args)
+        # Check from filetype if any windows need to be open
+        if any(arg.endswith('.psyexp') for arg in args):
+            view.builder = True
+            exps = [file for file in args if file.endswith('.psyexp')]
+        if any(arg.endswith('.psyrun') for arg in args):
+            view.runner = True
+            runlist = [file for file in args if file.endswith('.psyrun')]
+        # If still no window specified, use default from prefs
+        if not any(getattr(view, key) for key in ['builder', 'coder', 'runner']):
+            if self.prefs.app['defaultView'] in view:
+                setattr(view, self.prefs.app['defaultView'], True)
+            elif self.prefs.app['defaultView'] == 'all':
+                view.builder = True
+                view.coder = True
+                view.runner = True
+
         # Create windows
-        if view in ['all', 'runner']:
-            self.showRunner()
-        if view in ['all', 'coder']:
+        if view.runner:
+            self.showRunner(fileList=runlist)
+        if view.coder:
             self.showCoder(fileList=scripts)
-        if view in ['all', 'builder']:
+        if view.builder:
             self.showBuilder(fileList=exps)
-
-        # if darwin, check for inaccessible keyboard
-        if sys.platform == 'darwin':
-            from psychopy.hardware import keyboard
-            if keyboard.macPrefsBad:
-                title = _translate("Mac keyboard security")
-                if platform.mac_ver()[0] < '10.15':
-                    settingName = 'Accessibility'
-                    setting = 'Privacy_Accessibility'
-                else:
-                    setting = 'Privacy_ListenEvent'
-                    settingName = 'Input Monitoring'
-                msg = _translate("To use high-precision keyboard timing you should "
-                      "enable {} for PsychoPy in System Preferences. "
-                      "Shall we go there (and you can drag PsychoPy app into "
-                      "the box)?"
-                      ).format(settingName)
-                dlg = dialogs.MessageDialog(title=title,
-                                            message=msg,
-                                            type='Query')
-                resp = dlg.ShowModal()
-                if resp == wx.ID_YES:
-                    from AppKit import NSWorkspace
-                    from Foundation import NSURL
-
-                    sys_pref_link = (
-                        'x-apple.systempreferences:'
-                        'com.apple.preference.security?'
-                        '{}'.format(setting))
-
-                    # create workspace object
-                    workspace = NSWorkspace.sharedWorkspace()
-
-                    # Open System Preference
-                    workspace.openURL_(NSURL.URLWithString_(sys_pref_link))
 
         # send anonymous info to www.psychopy.org/usage.php
         # please don't disable this, it's important for PsychoPy's development
@@ -612,7 +577,7 @@ class PsychoPyApp(wx.App, themes.ThemeMixin):
             thisFrame.Raise()
             self.SetTopWindow(thisFrame)
 
-    def showRunner(self, event=None):
+    def showRunner(self, event=None, fileList=[]):
         if not self.runner:
             self.runner = self.newRunnerFrame()
         if not self.testMode:
@@ -919,7 +884,17 @@ class PsychoPyApp(wx.App, themes.ThemeMixin):
         prefs.app['theme'] = value
         self._currentThemeSpec = themes.ThemeMixin.spec
         codeFont = themes.ThemeMixin.codeColors['base']['font']
-        self._codeFont.SetFaceName(codeFont)
+
+        # On OSX 10.15 Catalina at least calling SetFaceName with 'AppleSystemUIFont' fails.
+        # So this fix checks to see if changing the font name invalidates the font.
+        # if so rollback to the font before attempted change.
+        # Note that wx.Font uses referencing and copy-on-write so we need to force creation of a copy
+        # witht he wx.Font() call. Otherwise you just get reference to the font that gets borked by SetFaceName()
+        # -Justin Ales
+        beforesetface = wx.Font(self._codeFont)
+        success = self._codeFont.SetFaceName(codeFont)
+        if not (success):
+            self._codeFont = beforesetface
         # Apply theme
         self._applyAppTheme()
 

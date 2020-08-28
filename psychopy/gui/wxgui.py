@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2020 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 """To build simple dialogues etc. (requires wxPython)
@@ -33,7 +33,7 @@ def ensureWxApp():
     except wx._core.PyNoAppError:
         if thisVer < parse_version('2.9'):
             return wx.PySimpleApp()
-        elif thisVer >= parse_version('4.0') and thisVer < parse_version(4.1):
+        elif thisVer >= parse_version('4.0') and thisVer < parse_version('4.1'):
             raise Exception(
                     "wx>=4.0 clashes with pyglet and making it unsafe "
                     "as a PsychoPy gui helper. Please install PyQt (4 or 5)"

@@ -15,10 +15,12 @@ from psychopy import logging
 import psychopy
 from ...experiment import components
 import json
-from matplotlib import font_manager
+
+if sys.platform=='win32':
+    from matplotlib import font_manager
+    fm = font_manager.FontManager()
 
 thisFolder = Path(__file__).parent
-fm = font_manager.FontManager()
 iconsPath = Path(prefs.paths['resources'])
 
 try:
@@ -123,17 +125,10 @@ class ThemeMixin:
         # Define subfunctions to handle different object types
         def applyToToolbar(target):
             target.SetBackgroundColour(ThemeMixin.appColors['frame_bg'])
-            if sys.platform == 'win32':
-                # on mac ClearTools seg faults. Not sure what happens on linux
-                # Clear tools
-                target.ClearTools()
-                # Redraw tools
-                target.makeTools()
-            else:
-                # otherwise make the tools the first time but not again
-                if hasattr(target, '_needMakeTools') and target._needMakeTools:
-                    target.makeTools()
-                    self._needMakeTools = False
+            # Clear tools
+            target.ClearTools()
+            # Redraw tools
+            target.makeTools()
 
         def applyToStatusBar(target):
             target.SetBackgroundColour(cLib['white'])
@@ -144,6 +139,11 @@ class ThemeMixin:
             if hasattr(target, 'GetAuiManager'):
                 target.GetAuiManager().SetArtProvider(PsychopyDockArt())
                 target.GetAuiManager().Update()
+            for menu in target.GetMenuBar().GetMenus():
+                for submenu in menu[0].MenuItems:
+                    if isinstance(submenu.SubMenu, ThemeSwitcher):
+                        submenu.SubMenu._applyAppTheme()
+
 
         def applyToPanel(target):
             target.SetBackgroundColour(ThemeMixin.appColors['panel_bg'])
@@ -169,6 +169,9 @@ class ThemeMixin:
         def applyToCodeEditor(target):
             spec = ThemeMixin.codeColors.copy()
             base = spec['base']
+            # Set margin size according to text size
+            if not isinstance(target, wx.py.shell.Shell):
+                target.SetMarginWidth(0, 4 * prefs.coder['codeFontSize'])
             # Override base font with user spec if present
             prefkey = 'outputFont' if isinstance(target, wx.py.shell.Shell) else 'codeFont'
             if prefs.coder[prefkey].lower() != "From Theme...".lower():
@@ -552,10 +555,11 @@ class ThemeMixin:
         else:
             finalFont = [wx.SystemSettings.GetFont(wx.SYS_ANSI_FIXED_FONT).GetFaceName()]
         # Cycle through font names, stop at first valid font
-        for font in fontList:
-            if fm.findfont(font) not in fm.defaultFont.values():
-                finalFont = [font] + bold + italic
-                break
+        if sys.platform == 'win32':
+            for font in fontList:
+                if fm.findfont(font) not in fm.defaultFont.values():
+                    finalFont = [font] + bold + italic
+                    break
 
         return ','.join(finalFont)
 
@@ -990,19 +994,12 @@ class ThemeSwitcher(wx.Menu):
         for theme in priority:
             tooltip = themeList.pop(theme)
             item = self.AppendRadioItem(wx.ID_ANY, _translate(theme), tooltip)
+            # Bind to theme change method
             frame.Bind(wx.EVT_MENU, frame.app.onThemeChange, item)
-            if item.ItemLabel.lower() == ThemeMixin.codetheme.lower():
-                item.Check(True)
-            else:
-                item.Check(False)
         # Make other theme buttons
         for theme in themeList:
             item = self.AppendRadioItem(wx.ID_ANY, _translate(theme), help=themeList[theme])
             frame.Bind(wx.EVT_MENU, frame.app.onThemeChange, item)
-            if item.ItemLabel.lower() == ThemeMixin.codetheme.lower():
-                item.Check(True)
-            else:
-                item.Check(False)
         self.AppendSeparator()
         # Add Theme Folder button
         item = self.Append(wx.ID_ANY, _translate("Open theme folder"))
@@ -1010,3 +1007,8 @@ class ThemeSwitcher(wx.Menu):
 
     def openThemeFolder(self, event):
         subprocess.call("explorer %(themes)s" % prefs.paths, shell=True)
+
+    def _applyAppTheme(self):
+        for item in self.GetMenuItems():
+            if item.IsRadio():  # This means it will not attempt to check the separator
+                item.Check(item.ItemLabel.lower() == ThemeMixin.codetheme.lower())
