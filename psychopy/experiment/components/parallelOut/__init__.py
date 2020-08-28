@@ -11,6 +11,8 @@ from builtins import super  # provides Py3-style super() using python-future
 from os import path
 from psychopy.experiment.components import BaseComponent, Param, _translate
 from psychopy import prefs
+from psychopy.localization import _localized as __localized
+_localized = __localized.copy()
 
 # the absolute path to the folder containing this path
 thisFolder = path.abspath(path.dirname(__file__))
@@ -18,10 +20,10 @@ iconFile = path.join(thisFolder, 'parallelOut.png')
 tooltip = _translate('Parallel out: send signals from the parallel port')
 
 # only use _localized values for label values, nothing functional:
-_localized = {'address': _translate('Port address'),
-              'startData': _translate("Start data"),
-              'stopData': _translate("Stop data"),
-              'syncScreen': _translate('Sync to screen')}
+_localized.update({'address': _translate('Port address'),
+                   'startData': _translate("Start data"),
+                   'stopData': _translate("Stop data"),
+                   'syncScreen': _translate('Sync to screen')})
 
 
 class ParallelOutComponent(BaseComponent):
@@ -56,24 +58,24 @@ class ParallelOutComponent(BaseComponent):
         msg = _translate("Parallel port to be used (you can change these "
                          "options in preferences>general)")
         self.params['address'] = Param(
-            address, valType='str', allowedVals=addressOptions,
+            address, valType='str', allowedVals=addressOptions, categ='Hardware',
             hint=msg,
             label=_localized['address'])
 
         self.params['startData'] = Param(
-            startData, valType='code', allowedTypes=[],
+            startData, valType='code', allowedTypes=[], categ='Data',
             hint=_translate("Data to be sent at 'start'"),
             label=_localized['startData'])
 
         self.params['stopData'] = Param(
-            stopData, valType='code', allowedTypes=[],
+            stopData, valType='code', allowedTypes=[], categ='Data',
             hint=_translate("Data to be sent at 'end'"),
             label=_localized['stopData'])
 
         msg = _translate("If the parallel port data relates to visual "
                          "stimuli then sync its pulse to the screen refresh")
         self.params['syncScreen'] = Param(
-            syncScreen, valType='bool',
+            syncScreen, valType='bool', categ='Data',
             allowedVals=[True, False],
             updates='constant', allowedUpdates=[],
             hint=msg,

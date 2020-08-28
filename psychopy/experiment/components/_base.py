@@ -53,32 +53,32 @@ class BaseComponent(object):
         msg = _translate(
             "Name of this component (alpha-numeric or _, no spaces)")
         self.params['name'] = Param(
-            name, valType='code',
+            name, valType='code', categ='Basic',
             hint=msg,
             label=_localized['name'])
 
         msg = _translate("How do you want to define your start point?")
         self.params['startType'] = Param(
-            startType, valType='str',
+            startType, valType='str', categ='Basic',
             allowedVals=['time (s)', 'frame N', 'condition'],
             hint=msg,
             label=_localized['startType'])
 
         msg = _translate("How do you want to define your end point?")
         self.params['stopType'] = Param(
-            stopType, valType='str',
+            stopType, valType='str', categ='Basic',
             allowedVals=['duration (s)', 'duration (frames)', 'time (s)',
                          'frame N', 'condition'],
             hint=msg,
             label=_localized['stopType'])
 
         self.params['startVal'] = Param(
-            startVal, valType='code', allowedTypes=[],
+            startVal, valType='code', allowedTypes=[], categ='Basic',
             hint=_translate("When does the component start?"),
             label=_localized['startVal'])
 
         self.params['stopVal'] = Param(
-            stopVal, valType='code', allowedTypes=[],
+            stopVal, valType='code', allowedTypes=[], categ='Basic',
             updates='constant', allowedUpdates=[],
             hint=_translate("When does the component end? (blank is endless)"),
             label=_localized['stopVal'])
@@ -86,22 +86,22 @@ class BaseComponent(object):
         msg = _translate("(Optional) expected start (s), purely for "
                          "representing in the timeline")
         self.params['startEstim'] = Param(
-            startEstim, valType='code', allowedTypes=[],
+            startEstim, valType='code', allowedTypes=[], categ='Basic',
             hint=msg,
             label=_localized['startEstim'])
 
         msg = _translate("(Optional) expected duration (s), purely for "
                          "representing in the timeline")
         self.params['durationEstim'] = Param(
-            durationEstim, valType='code', allowedTypes=[],
+            durationEstim, valType='code', allowedTypes=[], categ='Basic',
             hint=msg,
             label=_localized['durationEstim'])
 
         msg = _translate("Store the onset/offset times in the data file "
                          "(as well as in the log file).")
         self.params['saveStartStop'] = Param(
-            saveStartStop, valType='bool', allowedTypes=[],
-            hint=msg, categ="Data",
+            saveStartStop, valType='bool', allowedTypes=[], categ='Data',
+            hint=msg,
             label=_translate('Save onset/offset times'))
 
         msg = _translate("Synchronize times with screen refresh (good for "
@@ -593,42 +593,78 @@ class BaseVisualComponent(BaseComponent):
 
         msg = _translate("Units of dimensions for this stimulus")
         self.params['units'] = Param(
-            units, valType='str',
+            units, valType='str', categ='Layout',
             allowedVals=['from exp settings', 'deg', 'cm', 'pix', 'norm',
                          'height', 'degFlatPos', 'degFlat'],
             hint=msg,
             label=_localized['units'])
 
-        msg = _translate("Color of this stimulus (e.g. $[1,1,0], red );"
+        msg = _translate("Foreground color of this stimulus (e.g. $[1,1,0], red );"
                          " Right-click to bring up a color-picker (rgb only)")
         self.params['color'] = Param(
-            color, valType='str', allowedTypes=[],
+            color, valType='str', allowedTypes=[], categ='Appearance',
             updates='constant',
             allowedUpdates=['constant', 'set every repeat', 'set every frame'],
             hint=msg,
             label=_localized['color'])
 
-        msg = _translate("Opacity of the stimulus (1=opaque, 0=fully "
-                         "transparent, 0.5=translucent)")
-        self.params['opacity'] = Param(
-            opacity, valType='code', allowedTypes=[],
-            updates='constant',
-            allowedUpdates=['constant', 'set every repeat', 'set every frame'],
-            hint=msg,
-            label=_localized['opacity'])
-
-        msg = _translate(
-            "Choice of color space for the color (rgb, dkl, lms, hsv)")
+        msg = _translate("In what format (color space) have you specified "
+                         "the foreground color? (rgb, dkl, lms, hsv)")
         self.params['colorSpace'] = Param(
-            colorSpace, valType='str',
+            colorSpace, valType='str', categ='Appearance',
             allowedVals=['rgb', 'dkl', 'lms', 'hsv'],
             updates='constant',
             hint=msg,
             label=_localized['colorSpace'])
 
+        msg = _translate("Fill color of this stimulus (e.g. $[1,1,0], red );"
+                         " Right-click to bring up a color-picker (rgb only)")
+        self.params['fillColor'] = Param(
+            color, valType='str', allowedTypes=[], categ='Appearance',
+            updates='constant',
+            allowedUpdates=['constant', 'set every repeat', 'set every frame'],
+            hint=msg,
+            label=_localized['fillColor'])
+
+        msg = _translate("In what format (color space) have you specified "
+                         "the fill color? (rgb, dkl, lms, hsv)")
+        self.params['fillColorSpace'] = Param(
+            colorSpace, valType='str', categ='Appearance',
+            allowedVals=['rgb', 'dkl', 'lms', 'hsv'],
+            updates='constant',
+            hint=msg,
+            label=_localized['fillColorSpace'])
+
+        msg = _translate("Color of this stimulus (e.g. $[1,1,0], red );"
+                         " Right-click to bring up a color-picker (rgb only)")
+        self.params['borderColor'] = Param(
+            color, valType='str', allowedTypes=[], categ='Appearance',
+            updates='constant',
+            allowedUpdates=['constant', 'set every repeat', 'set every frame'],
+            hint=msg,
+            label=_localized['borderColor'])
+
+        msg = _translate("In what format (color space) have you specified "
+                         "the border color? (rgb, dkl, lms, hsv)")
+        self.params['borderColorSpace'] = Param(
+            colorSpace, valType='str', categ='Appearance',
+            allowedVals=['rgb', 'dkl', 'lms', 'hsv'],
+            updates='constant',
+            hint=msg,
+            label=_localized['borderColorSpace'])
+
+        msg = _translate("Opacity of the stimulus (1=opaque, 0=fully "
+                         "transparent, 0.5=translucent)")
+        self.params['opacity'] = Param(
+            opacity, valType='code', allowedTypes=[], categ='Appearance',
+            updates='constant',
+            allowedUpdates=['constant', 'set every repeat', 'set every frame'],
+            hint=msg,
+            label=_localized['opacity'])
+
         msg = _translate("Position of this stimulus (e.g. [1,2] )")
         self.params['pos'] = Param(
-            pos, valType='code', allowedTypes=[],
+            pos, valType='code', allowedTypes=[], categ='Layout',
             updates='constant',
             allowedUpdates=['constant', 'set every repeat', 'set every frame'],
             hint=msg,
@@ -637,14 +673,14 @@ class BaseVisualComponent(BaseComponent):
         msg = _translate("Size of this stimulus (either a single value or "
                          "x,y pair, e.g. 2.5, [1,2] ")
         self.params['size'] = Param(
-            size, valType='code', allowedTypes=[],
+            size, valType='code', allowedTypes=[], categ='Layout',
             updates='constant',
             allowedUpdates=['constant', 'set every repeat', 'set every frame'],
             hint=msg,
             label=_localized['size'])
 
         self.params['ori'] = Param(
-            ori, valType='code', allowedTypes=[],
+            ori, valType='code', allowedTypes=[], categ='Layout',
             updates='constant',
             allowedUpdates=['constant', 'set every repeat', 'set every frame'],
             hint=_translate("Orientation of this stimulus (in deg)"),
