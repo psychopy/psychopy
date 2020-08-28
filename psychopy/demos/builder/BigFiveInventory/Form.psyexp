@@ -197,19 +197,7 @@
     </Routine>
   </Routines>
   <Flow>
-    <LoopInitiator loopType="TrialHandler" name="trials">
-      <Param name="Selected rows" val="" valType="str" updates="None"/>
-      <Param name="conditions" val="None" valType="str" updates="None"/>
-      <Param name="conditionsFile" val="" valType="str" updates="None"/>
-      <Param name="endPoints" val="[0, 1]" valType="num" updates="None"/>
-      <Param name="isTrials" val="True" valType="bool" updates="None"/>
-      <Param name="loopType" val="random" valType="str" updates="None"/>
-      <Param name="nReps" val="0" valType="code" updates="None"/>
-      <Param name="name" val="trials" valType="code" updates="None"/>
-      <Param name="random seed" val="" valType="code" updates="None"/>
-    </LoopInitiator>
     <Routine name="demog"/>
-    <LoopTerminator name="trials"/>
     <Routine name="Main"/>
   </Flow>
 </PsychoPy2experiment>
