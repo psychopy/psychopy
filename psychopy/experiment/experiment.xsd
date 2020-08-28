@@ -18,6 +18,7 @@
        <xsd:enumeration value="extendedCode"/>
        <xsd:enumeration value="num"/>
        <xsd:enumeration value="str"/>
+       <xsd:enumeration value="extendedStr"/>
        <xsd:enumeration value="int"/>
        <xsd:enumeration value="list"/>
        <xsd:enumeration value="fixedList"/>
