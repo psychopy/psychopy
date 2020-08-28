@@ -84,7 +84,7 @@ class MouseComponent(BaseComponent):
         msg = _translate("What should the values of mouse.time should be "
                          "relative to?")
         self.params['timeRelativeTo'] = Param(
-            timeRelativeTo, valType='str', categ='Timing',
+            timeRelativeTo, valType='str', categ='Data',
             allowedVals=['mouse onset', 'experiment', 'routine'],
             updates='constant',
             hint=msg,

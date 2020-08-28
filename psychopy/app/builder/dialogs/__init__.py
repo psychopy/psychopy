@@ -483,7 +483,7 @@ class _BaseParamsDlg(wx.Dialog):
                                proportion=1, flag=wx.EXPAND | wx.ALL, border=5)
         # Sort category names
         allCategNames = sorted(categs)
-        firstCategs = ['Basic', 'Appearance', 'Layout', 'Formatting', 'Texture', 'Data', 'Timing']
+        firstCategs = ['Basic', 'Appearance', 'Layout', 'Formatting', 'Texture', 'Data']
         lastCategs = ['Custom', 'Hardware', 'Testing']
         bonusCategs = [nm for nm in allCategNames if nm not in firstCategs+lastCategs]
         categNames = [nm for nm in firstCategs if nm in allCategNames] \

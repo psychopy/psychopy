@@ -113,7 +113,7 @@ class JoyButtonsComponent(BaseComponent):
             "A reaction time to a visual stimulus should be based on when "
             "the screen flipped")
         self.params['syncScreenRefresh'] = Param(
-            syncScreenRefresh, valType='bool', categ='Timing',
+            syncScreenRefresh, valType='bool', categ='Data',
             updates='constant',
             hint=msg,
             label=_localized['syncScreenRefresh'])

@@ -96,7 +96,7 @@ class cedrusButtonBoxComponent(KeyboardComponent):
         msg = _translate('According to Cedrus the response box timer has '
                          'a drift - use with caution!')
         self.params['useBoxTimer'] = Param(
-            getReleaseTime, valType='bool', allowedVals=[True, False], categ='Timing',
+            getReleaseTime, valType='bool', allowedVals=[True, False], categ='Hardware',
             updates='constant', allowedUpdates=[],
             hint=msg,
             label=_localized['useBoxTimer'])
