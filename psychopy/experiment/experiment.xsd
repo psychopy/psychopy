@@ -65,6 +65,7 @@
   <xsd:group name="ComponentGroup">
     <xsd:choice>
       <xsd:element name="ApertureComponent" type="Component"/>
+      <xsd:element name="ButtonComponent" type="Component"/>
       <xsd:element name="cedrusButtonBoxComponent" type="Component"/>
       <xsd:element name="CodeComponent" type="Component"/>
       <xsd:element name="DotsComponent" type="Component"/>
