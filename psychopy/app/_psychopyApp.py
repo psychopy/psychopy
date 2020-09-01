@@ -334,8 +334,8 @@ class PsychoPyApp(wx.App, themes.ThemeMixin):
         parser.add_argument('-c', dest='coder', action="store_true")
         parser.add_argument('--runner', dest='runner', action="store_true")
         parser.add_argument('-r', dest='runner', action="store_true")
+        parser.add_argument('-x', dest='direct', action='store_true')
         view, args = parser.parse_known_args(sys.argv)
-        print(args)
         # Check from filetype if any windows need to be open
         if any(arg.endswith('.psyexp') for arg in args):
             view.builder = True
@@ -359,6 +359,10 @@ class PsychoPyApp(wx.App, themes.ThemeMixin):
             self.showCoder(fileList=scripts)
         if view.builder:
             self.showBuilder(fileList=exps)
+        if view.direct:
+            self.showRunner()
+            for exp in [file for file in args if file.endswith('.psyexp') or file.endswith('.py')]:
+                self.runner.panel.runFile(exp)
 
         # send anonymous info to www.psychopy.org/usage.php
         # please don't disable this, it's important for PsychoPy's development
