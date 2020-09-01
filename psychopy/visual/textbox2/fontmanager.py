@@ -742,6 +742,10 @@ class FontManager(object):
                 logging.warning("Font Manager failed to load file {}"
                                 .format(fontPath))
                 return
+            if face.family_name is None:
+                logging.warning("{} doesn't have valid font family name"
+                                .format(fontPath))
+                return
             if monospaceOnly:
                 if face.is_fixed_width:
                     fi_list.add(self._createFontInfo(fontPath, face))
