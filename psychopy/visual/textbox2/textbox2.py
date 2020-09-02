@@ -205,7 +205,7 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
                 'fillRGB': self.box.fillRGB
         }
         # then layout the text (setting text triggers _layout())
-        self.text = text
+        self.text = text if text is not None else ""
 
         # caret
         self.editable = editable
