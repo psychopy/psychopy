@@ -13,6 +13,8 @@ from builtins import super  # provides Py3-style super() using python-future
 from os import path
 from psychopy.experiment.components import BaseComponent, Param, getInitVals, _translate
 from psychopy.sound._base import knownNoteNames
+from psychopy.localization import _localized as __localized
+_localized = __localized.copy()
 
 # the absolute path to the folder containing this path
 thisFolder = path.abspath(path.dirname(__file__))
@@ -20,9 +22,9 @@ iconFile = path.join(thisFolder, 'sound.png')
 tooltip = _translate('Sound: play recorded files or generated sounds',)
 
 # only use _localized values for label values, nothing functional:
-_localized = {'sound': _translate('Sound'),
-              'volume': _translate('Volume'),
-              'syncScreenRefresh': _translate('sync RT with screen')}
+_localized.update({'sound': _translate('Sound'),
+                   'volume': _translate('Volume'),
+                   'syncScreenRefresh': _translate('Sync Start With Screen')})
 
 
 class SoundComponent(BaseComponent):
@@ -55,13 +57,13 @@ class SoundComponent(BaseComponent):
         hnt = _translate("A sound can be a note name (e.g. A or Bf), a number"
                          " to specify Hz (e.g. 440) or a filename")
         self.params['sound'] = Param(
-            sound, valType='str', allowedTypes=[], updates='constant',
+            sound, valType='str', allowedTypes=[], updates='constant', categ='Basic',
             allowedUpdates=['constant', 'set every repeat'],
             hint=hnt,
             label=_localized['sound'])
         _allowed = ['constant', 'set every repeat', 'set every frame']
         self.params['volume'] = Param(
-            volume, valType='code', allowedTypes=[], updates='constant',
+            volume, valType='code', allowedTypes=[], updates='constant', categ='Playback',
             allowedUpdates=_allowed[:],  # use a copy
             hint=_translate("The volume (in range 0 to 1)"),
             label=_localized["volume"])
@@ -69,12 +71,12 @@ class SoundComponent(BaseComponent):
             "A reaction time to a sound stimulus should be based on when "
             "the screen flipped")
         self.params['syncScreenRefresh'] = Param(
-            syncScreenRefresh, valType='bool',
+            syncScreenRefresh, valType='bool', categ='Basic',
             updates='constant',
             hint=msg,
             label=_localized['syncScreenRefresh'])
         self.params['hamming'] = Param(
-            True, valType='bool', updates='constant',
+            True, valType='bool', updates='constant', categ='Playback',
             hint=_translate(
                   "For tones we can apply a Hamming window to prevent 'clicks' that "
                   "are caused by a sudden onset. This delays onset by roughly 1ms."),
