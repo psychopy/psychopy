@@ -7,6 +7,7 @@ import shutil
 import dmgbuild
 
 thisFolder = Path(__file__).parent
+finalDistFolder = thisFolder.parent.parent/'dist'
 
 with Path().home()/ 'keys/apple_ost_id' as p:
     IDENTITY = p.read_text().strip()
@@ -16,6 +17,8 @@ with Path().home()/ 'keys/apple_psychopy3_app_specific' as p:
 ENTITLEMENTS = thisFolder / "entitlements.plist"
 BUNDLE_ID = "org.opensciencetools.psychopy"
 USERNAME = "admin@opensciencetools.org"
+
+NOTARIZE = True
 
 # handy resources for info:
 #
@@ -34,7 +37,7 @@ class AppSigner:
         self.destination = destination
         self._zipFile = None #'/Users/lpzjwp/code/psychopy/git/dist/PsychoPy3_2020.2.3.zip'
         self._appNotarizeUUID = None #'4f48ef26-8cf2-499b-a3ad-4b788c19e11e'
-        self._dmgFile = None
+        self._dmgBuildFile = None
 
     def signAll(self):
         # remove files that we know will fail the signing:
@@ -151,9 +154,9 @@ class AppSigner:
 
     @property
     def dmgFile(self):
-        if not self._dmgFile:
-            self._dmgFile = self._buildDMG()
-        return self._dmgFile
+        if not self._dmgBuildFile:
+            self._dmgBuildFile = self._buildDMG()
+        return self._dmgBuildFile
 
     @property
     def zipFile(self):
@@ -212,6 +215,7 @@ class AppSigner:
 
     def dmgBuild(self):
         dmgFilename = str(self.appFile).replace(".app", "_rw.dmg")
+        appName = self.appFile.name
         print(f"building dmg file: {dmgFilename}")
         # remove previous file if it's there
         if Path(dmgFilename).exists():
@@ -239,21 +243,32 @@ class AppSigner:
                     'window_rect': ((600, 600), (500, 400)),
                 },
         )
-        self._dmgFile = dmgFilename
         return dmgFilename
 
+    def dmgStapleInside(self):
+        dmgFilename = str(self.appFile).replace(".app", "_rw.dmg")
+        appName = self.appFile.name
+        """Staple the notarization to the app inside the r/w dmg file"""
+        # staple the file inside the dmg
+        cmdStr = f"hdiutil detach /Volumes/PsychoPy -quiet"
+        exitcode, output = subprocess.getstatusoutput(cmdStr)
+        cmdStr = f"hdiutil attach '{dmgFilename}'"
+        exitcode, output = subprocess.getstatusoutput(cmdStr)
+        self.staple(f"'/Volumes/PsychoPy {self.version}/{appName}'")
+
     def dmgCompress(self):
-        dmgFinalFilename = str(self.appFile).replace(".app", f"_{self.version}.dmg")
+        dmgFinalFilename = finalDistFolder/(f"StandalonePsychoPy3-{self.version}-MacOS.dmg")
         # remove previous file if it's there
         if Path(dmgFinalFilename).exists():
             os.remove(dmgFinalFilename)
 
-        cmdStr = f"hdiutil convert {self._dmgFile} " \
+        cmdStr = f"hdiutil convert {self._dmgBuildFile} " \
                  f"-format UDZO " \
                  f"-o {dmgFinalFilename}"
         exitcode, output = subprocess.getstatusoutput(cmdStr)
         print(output)
         return dmgFinalFilename
+
 
 def main():
 
@@ -291,16 +306,19 @@ def main():
         # print(output)
         signer.signCheck(verbose=False)
 
-        NOTARIZE = True
-
         if NOTARIZE:
             signer.upload(signer.zipFile)
-
+            # build the read/writable dmg file while waiting for notarize
+            signer.dmgBuild()
             # notarize and staple
             signer.awaitNotarized()
-            signer.staple(signer.appFile)
+            signer.dmgStapleInside()
+            # signer.staple(signer.appFile)
+        else:
+            # just build the dmg
+            signer.dmgBuild()
 
-        signer.dmgBuild()
+
         dmgFile = signer.dmgCompress()
         signer.signSingleFile(dmgFile, removeFailed=False, verbose=True)
 
