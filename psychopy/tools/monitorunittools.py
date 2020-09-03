@@ -276,7 +276,7 @@ class DummyMonitor(object):
     def getDistance(self):
         return 50
     def getSizePix(self):
-        return 1920
+        return (1920, 1080)
     def getWidth(self):
         return 50
 
