@@ -341,13 +341,13 @@ class Position(object):
             against = [against]
         # Do validation
         for space in against:
+            # Enforce int for int-only spaces
+            if space in ['pix']:
+                pos = [int(p) for p in pos]
             if coordSpaces[space].fullmatch(str(pos)):
                 # Convert from str if needed
                 if isinstance(pos, str) and space in ['pix', 'deg', 'cm', 'norm', 'height']:
                     pos = [float(n) for n in pos.strip('[]()').split(',')]
-                # Enforce int for int-only spaces
-                if space in ['pix']:
-                    pos = [int(p) for p in pos]
                 # Enforce tuple
                 if isinstance(pos, list):
                     pos = tuple(pos)
