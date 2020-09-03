@@ -450,9 +450,11 @@ class Position(object):
     @property
     def norm(self):
         if self.win.useRetina:
-            return self.pix * 4.0 / self.win.size[1] - self.pos
+            return (self.pix[0] * 2.0 / self.win.size[0],
+                    self.pix[1] * 2.0 / self.win.size[1])
         else:
-            return self.pix * 2.0 / self.win.size[1] - self.pos
+            return (self.pix[0] / self.win.size[0],
+                    self.pix[1] / self.win.size[1])
 
 
     @norm.setter
