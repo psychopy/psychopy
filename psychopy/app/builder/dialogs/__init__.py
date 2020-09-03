@@ -122,7 +122,7 @@ class ParamCtrls(object):
                 sx, sy = 100, 200
             # set viewer small, then it SHOULD increase with wx.aui control
             self.valueCtrl = wx.TextCtrl(parent, -1, value=str(param.val), pos=wx.DefaultPosition,
-                                     size=wx.Size(sx, sy), style=wx.TE_MULTILINE)
+                                         size=wx.Size(sx, sy), style=wx.TE_MULTILINE)
             if fieldName == 'text':
                 self.valueCtrl.SetFocus()
         elif fieldName == 'Experiment info':
