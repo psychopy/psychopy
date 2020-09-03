@@ -321,6 +321,8 @@ class Position(object):
         # If not checking against anything, check against everything
         if not against:
             against = list(coordSpaces)
+        if not isinstance(against, (list, tuple)):
+            against = [against]
         # Do validation
         for space in against:
             if coordSpaces[space].fullmatch(str(pos)):
@@ -394,7 +396,7 @@ class Position(object):
         eccentric vertices will be spaced further apart.
         """
         # Validate
-        value = self.validate(value, 'pix', True)
+        value = self.validate(value, 'deg', True)
         if not value:
             return
 
@@ -436,7 +438,7 @@ class Position(object):
     @cm.setter
     def cm(self, value):
         # Validate
-        value = self.validate(value, 'pix', True)
+        value = self.validate(value, 'cm', True)
         if not value:
             return
 
@@ -456,7 +458,7 @@ class Position(object):
     @norm.setter
     def norm(self, value):
         # Validate
-        value = self.validate(value, 'pix', True)
+        value = self.validate(value, 'norm', True)
         if not value:
             return
 
@@ -475,7 +477,7 @@ class Position(object):
     @height.setter
     def height(self, value):
         # Validate
-        value = self.validate(value, 'pix', True)
+        value = self.validate(value, 'height', True)
         if not value:
             return
 
