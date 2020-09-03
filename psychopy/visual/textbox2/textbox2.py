@@ -142,6 +142,9 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
             scaleUnits = self.units
         self._pixLetterHeight = convertToPix(
                 self.letterHeight, pos=0, units=scaleUnits, win=self.win)
+        if isinstance(self._pixLetterHeight, np.ndarray):
+            # If pixLetterHeight is an array, take the Height value
+            self._pixLetterHeight = self._pixLetterHeight[1]
         self._pixelScaling = self._pixLetterHeight / self.letterHeight
         if size is None:
             size = [defaultBoxWidth[self.units], None]
