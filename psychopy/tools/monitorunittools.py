@@ -447,9 +447,8 @@ class Position(object):
         """Convert size in pixels to size in cm for a given Monitor object
         """
         # get monitor params and raise error if necess
-        scrWidthCm = self.monitor.getWidth()
-        scrSizePix = self.monitor.getSizePix()
-        return self.pix * float(scrWidthCm) / scrSizePix[0]
+        cmRatio = self.monitor.getWidth() / self.monitor.getSizePix()[0]
+        return tuple(c * cmRatio for c in self.pix)
 
     @cm.setter
     def cm(self, value):
@@ -459,9 +458,8 @@ class Position(object):
             return
 
         # get monitor params and raise error if necess
-        scrWidthCm = self.monitor.getWidth()
-        scrSizePix = self.monitor.getSizePix()
-        self.pix = value * scrSizePix[0] / float(scrWidthCm)
+        cmRatio = self.monitor.getSizePix()[0] / self.monitor.getWidth()
+        self.pix = tuple(c * cmRatio for c in value)
 
     @property
     def norm(self):
