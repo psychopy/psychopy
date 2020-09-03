@@ -111,7 +111,8 @@ class ParamCtrls(object):
                 options = vc._versionFilter(vc.versionOptions(local=False), wx.__version__)
                 versions = vc._versionFilter(vc.availableVersions(local=False), wx.__version__)
                 param.allowedVals = (options + [''] + versions)
-        if param.valType == 'extendedStr':
+        if (param.valType == 'extendedStr'
+                or fieldName == 'text'):  # because text used to be 'str' until 2020.2
             # for text input we need a bigger (multiline) box
             if fieldName == 'customize_everything':
                 sx, sy = 300, 400
