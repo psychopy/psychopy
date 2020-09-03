@@ -308,9 +308,14 @@ class Position(object):
         # if self.monitor.getDistance() is None:
         #     msg = "Monitor %s has no known distance (SEE MONITOR CENTER)"
         #     raise ValueError(msg % self.monitor.name)
-
-
         setattr(self, self._requestedUnits, self._requested)
+
+    def __repr__(self):
+        """If colour is printed, it will display its class and value"""
+        if self.pix:
+            return "<" + self.__class__.__module__ + "." + self.__class__.__name__ + ": " + str(self.pix) + ">"
+        else:
+            return "<" + self.__class__.__module__ + "." + self.__class__.__name__ + ": " + "Invalid" + ">"
 
     def validate(self, pos, against=None, set=False):
         # If not checking against anything, check against everything
