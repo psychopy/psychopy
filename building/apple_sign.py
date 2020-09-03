@@ -117,7 +117,7 @@ class AppSigner:
             print(cmdStr)
         exitcode, output = subprocess.getstatusoutput(cmdStr)
         if verbose:
-            print(f"exitcode={exitcode}: {output}")
+            print(f"Checking that codesign worked: {output}")
 
         # check for warnings
         warnings=[]
@@ -142,7 +142,7 @@ class AppSigner:
         cmdStr += f"-p {PWORD}"
         t0 = time.time()
         exitcode, output = subprocess.getstatusoutput(cmdStr)
-        if not 'No errors uploading' in output:
+        if (exitcode == 0) and not ('No errors uploading' in output):
             print(f'[Error] Upload failed: {output}')
             exit(1)
         m = re.match('.*RequestUUID = (.*)\n', output, re.S)
@@ -171,7 +171,7 @@ class AppSigner:
             cmdStr = f'/usr/bin/ditto -c -k --keepParent {self.appFile} {zipFilename}'
             print(cmdStr)
             exitcode, output = subprocess.getstatusoutput(cmdStr)
-            if exitcode==0:
+            if exitcode == 0:
                 print(f"Done creating zip in {time.time()-t0:.03f}s")
             else:
                 print(output)
@@ -206,6 +206,9 @@ class AppSigner:
         print(cmdStr)
         exitcode, output = subprocess.getstatusoutput(cmdStr)
         print(f"exitcode={exitcode}: {output}")
+        if exitcode != 0:
+            print('*********Staple failed*************')
+            exit(1)
 
     def checkAppleLogFile(self):
         cmdStr = f"xcrun altool --notarization-info {self._appNotarizeUUID} -u {USERNAME} -p {PWORD}"
@@ -254,19 +257,29 @@ class AppSigner:
         exitcode, output = subprocess.getstatusoutput(cmdStr)
         cmdStr = f"hdiutil attach '{dmgFilename}'"
         exitcode, output = subprocess.getstatusoutput(cmdStr)
-        self.staple(f"'/Volumes/PsychoPy {self.version}/{appName}'")
+        volName = output.split('\t')[-1]
+        self.staple(f"'{volName}/{appName}'")
+        cmdStr = f"hdiutil detach '{volName}' -quiet"
+        exitcode, output = subprocess.getstatusoutput(cmdStr)
+        if exitcode != 0:
+            print(f'*********Failed to detach {volName} (wrong name?) *************')
+            exit(1)
 
     def dmgCompress(self):
-        dmgFinalFilename = finalDistFolder/(f"StandalonePsychoPy3-{self.version}-MacOS.dmg")
+        dmgFilename = str(self.appFile).replace(".app", "_rw.dmg")
+        dmgFinalFilename = finalDistFolder/(f"StandalonePsychoPy-{self.version}-macOS.dmg")
         # remove previous file if it's there
         if Path(dmgFinalFilename).exists():
             os.remove(dmgFinalFilename)
 
-        cmdStr = f"hdiutil convert {self._dmgBuildFile} " \
+        cmdStr = f"hdiutil convert {dmgFilename} " \
                  f"-format UDZO " \
                  f"-o {dmgFinalFilename}"
         exitcode, output = subprocess.getstatusoutput(cmdStr)
         print(output)
+        if exitcode != 0:
+            print(f'****Failed to compress {dmgFilename} to {dmgFinalFilename} (is it not ejected?) ****')
+            exit(1)
         return dmgFinalFilename
 
 
@@ -294,7 +307,6 @@ def main():
         signer = AppSigner(appFile=distFolder/args.app,
                            version=args.version)
         signer.signAll()
-        # signer.signSingleFile(signer.appFile, removeFailed=False, verbose=True)
 
         # print("calling deepsign.py")
         # cmdStr = (f"python {thisFolder / 'deepsign.py'} "
@@ -313,11 +325,9 @@ def main():
             # notarize and staple
             signer.awaitNotarized()
             signer.dmgStapleInside()
-            # signer.staple(signer.appFile)
         else:
             # just build the dmg
             signer.dmgBuild()
-
 
         dmgFile = signer.dmgCompress()
         signer.signSingleFile(dmgFile, removeFailed=False, verbose=True)
