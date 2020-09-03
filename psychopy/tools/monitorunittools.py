@@ -272,6 +272,22 @@ def pix2deg(pixels, monitor, correctFlat=False):
     cmSize = pixels * float(scrWidthCm) / scrSizePix[0]
     return cm2deg(cmSize, monitor, correctFlat)
 
+class DummyMonitor(object):
+    def getDistance(self):
+        return 50
+    def getSizePix(self):
+        return 1920
+    def getWidth(self):
+        return 50
+
+class DummyWin(object):
+    @property
+    def size(self):
+        return (1920, 1080)
+    @property
+    def useRetina(self):
+        return False
+
 # Shorthand for common regexpressions
 _lbr = '[\[\(]\s*'
 _rbr = '\s*[\]\)]'
