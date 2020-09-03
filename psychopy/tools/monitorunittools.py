@@ -13,7 +13,9 @@ from __future__ import absolute_import, division, print_function
 from builtins import str
 from past.utils import old_div
 from psychopy import monitors
+from psychopy import logging
 import numpy as np
+import re
 from numpy import array, sin, cos, tan, pi, radians, degrees, hypot
 
 # Maps supported coordinate unit type names to the function that converts
@@ -270,31 +272,84 @@ def pix2deg(pixels, monitor, correctFlat=False):
     cmSize = pixels * float(scrWidthCm) / scrSizePix[0]
     return cm2deg(cmSize, monitor, correctFlat)
 
+# Shorthand for common regexpressions
+_lbr = '[\[\(]\s*'
+_rbr = '\s*[\]\)]'
+_float = '\d*.?\d*?'
+_int = '\d*(.0*)?'
+_360 = '(\d|\d\d|[12]\d\d|3[0-5]\d|360)'
+# Dict of regexpressions for different formats
+coordSpaces = {
+    'pix': re.compile(_lbr+'\-?'+_int+',\s*'+'\-?'+_int+_rbr),
+    'deg': re.compile(_lbr+'\-?'+_360+',\s*'+'\-?'+_360+_rbr),
+    'cm': re.compile(_lbr+'\-?'+_float+',\s*'+'\-?'+_float+_rbr),
+    'norm': re.compile(_lbr+'\-?'+_float+',\s*'+'\-?'+_float+_rbr),
+    'height': re.compile(_lbr+'\-?'+_float+',\s*'+'\-?'+_float+_rbr),
+}
 
 class Position(object):
-    def __init__(self, vert, units, win, monitor, pos=(0, 0), correctFlat=False):
-        self._requested = vert
+    def __init__(self, pos, units, win=None, monitor=None, correctFlat=False):
+        self._requested = pos
         self._requestedUnits = units
 
         self.win = win
-        if not isinstance(monitor, monitors.Monitor):
-            msg = ("Vertex calculation requires a monitors.Monitor object as the second "
-                   "argument but received %s")
-            raise ValueError(msg % str(type(monitor)))
-        if not monitor.getSizePix():
-            msg = "Monitor %s has no known size in pixels (SEE MONITOR CENTER)"
-            raise ValueError(msg % self.monitor.name)
-        if not monitor.getWidth():
-            msg = "Monitor %s has no known width in cm (SEE MONITOR CENTER)"
-            raise ValueError(msg % self.monitor.name)
-        if self.monitor.getDistance() is None:
-            msg = "Monitor %s has no known distance (SEE MONITOR CENTER)"
-            raise ValueError(msg % self.monitor.name)
         self.monitor = monitor
-        self.pos = pos
         self.correctFlat = correctFlat
+        # if not isinstance(monitor, monitors.Monitor):
+        #     msg = ("Vertex calculation requires a monitors.Monitor object as the second "
+        #            "argument but received %s")
+        #     raise ValueError(msg % str(type(monitor)))
+        # if not monitor.getSizePix():
+        #     msg = "Monitor %s has no known size in pixels (SEE MONITOR CENTER)"
+        #     raise ValueError(msg % self.monitor.name)
+        # if not monitor.getWidth():
+        #     msg = "Monitor %s has no known width in cm (SEE MONITOR CENTER)"
+        #     raise ValueError(msg % self.monitor.name)
+        # if self.monitor.getDistance() is None:
+        #     msg = "Monitor %s has no known distance (SEE MONITOR CENTER)"
+        #     raise ValueError(msg % self.monitor.name)
+
 
         setattr(self, self._requestedUnits, self._requested)
+
+    def validate(self, pos, against=None, set=False):
+        # If not checking against anything, check against everything
+        if not against:
+            against = list(coordSpaces)
+        # Do validation
+        for space in against:
+            if coordSpaces[space].fullmatch(str(pos)):
+                # Convert from str if needed
+                if isinstance(pos, str) and space in ['pix', 'deg', 'cm', 'norm', 'height']:
+                    pos = [float(n) for n in pos.strip('[]()').split(',')]
+                # Enforce int for int-only spaces
+                if space in ['pix']:
+                    pos = [int(p) for p in pos]
+                # Enforce tuple
+                if isinstance(pos, list):
+                    pos = tuple(pos)
+
+                # Check for monitor if needed
+                if space in ['deg', 'cm']:
+                    if set and not self.monitor:
+                        msg = "Position cannot be specified in " + space + " with no monitor specified."
+                        logging.error(msg)
+                        raise NameError(msg)
+                    elif not self.monitor:
+                        logging.warning("Position could not be calculated in " + space + " with no monitor specified.")
+                        return None
+                # Check for window if needed
+                if space in ['norm', 'height']:
+                    if set and not self.win:
+                        msg = "Position cannot be specified in " + space + " with no window specified."
+                        logging.error(msg)
+                        raise NameError(msg)
+                    elif not self.monitor:
+                        logging.warning("Position could not be calculated in " + space + " with no window specified.")
+                        return None
+
+                # If it makes it this far, pos is valid
+                return pos
 
     @property
     def pix(self):
@@ -302,6 +357,11 @@ class Position(object):
 
     @pix.setter
     def pix(self, value):
+        # Validate
+        value = self.validate(value, 'pix', True)
+        if not value:
+            return
+
         self._franca = value
 
     @property
@@ -328,6 +388,11 @@ class Position(object):
         With `correctFlat == True` the positions may look strange because more
         eccentric vertices will be spaced further apart.
         """
+        # Validate
+        value = self.validate(value, 'pix', True)
+        if not value:
+            return
+
         # get monitor params and raise error if necess
         scrWidthCm = self.monitor.getWidth()
         scrSizePix = self.monitor.getSizePix()
@@ -365,6 +430,11 @@ class Position(object):
 
     @cm.setter
     def cm(self, value):
+        # Validate
+        value = self.validate(value, 'pix', True)
+        if not value:
+            return
+
         # get monitor params and raise error if necess
         scrWidthCm = self.monitor.getWidth()
         scrSizePix = self.monitor.getSizePix()
@@ -380,6 +450,11 @@ class Position(object):
 
     @norm.setter
     def norm(self, value):
+        # Validate
+        value = self.validate(value, 'pix', True)
+        if not value:
+            return
+
         if self.win.useRetina:
             self.pix =  (self.pos + value) * self.win.size / 4.0
         else:
@@ -394,6 +469,11 @@ class Position(object):
 
     @height.setter
     def height(self, value):
+        # Validate
+        value = self.validate(value, 'pix', True)
+        if not value:
+            return
+
         if self.win.useRetina:
             self.pix = (self.pos + value) * self.win.size[1] / 2.0
         else:
