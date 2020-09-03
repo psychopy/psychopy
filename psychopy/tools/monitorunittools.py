@@ -463,16 +463,18 @@ class Position(object):
             return
 
         if self.win.useRetina:
-            self.pix =  (self.pos + value) * self.win.size / 4.0
+            self.pix = (value[0] * self.win.size[0] / 2.0,
+                        value[1] * self.win.size[1] / 2.0)
         else:
-            self.pix =  (self.pos + value) * self.win.size / 2.0
+            self.pix = (value[0] * self.win.size[0],
+                        value[1] * self.win.size[1])
 
     @property
     def height(self):
         if self.win.useRetina:
-            return self.pix * 2.0 / self.win.size[1] - self.pos
+            return tuple(c * 2.0 / self.win.size[1] for c in self.pix)
         else:
-            return self.pix / self.win.size[1] - self.pos
+            return tuple(c / self.win.size[1] for c in self.pix)
 
     @height.setter
     def height(self, value):
@@ -482,6 +484,6 @@ class Position(object):
             return
 
         if self.win.useRetina:
-            self.pix = (self.pos + value) * self.win.size[1] / 2.0
+            self.pix = tuple(self.win.size[1] * c / 2.0 for c in value)
         else:
-            self.pix = (self.pos + value) * self.win.size[1]
+            self.pix = tuple(self.win.size[1] * c for c in value)
