@@ -105,7 +105,7 @@ class QmixPumpComponent(BaseComponent):
             label=_localized['switchValveWhenDone'])
 
         self.params['syncToScreen'] = Param(
-            syncToScreen, valType='bool', categ='Timing',
+            syncToScreen, valType='bool', categ='Basic',
             allowedVals=[True, False],
             hint=_translate('Sync pump onset to the screen refresh'),
             label=_localized['syncToScreen'])

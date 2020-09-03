@@ -86,7 +86,7 @@ class JoystickComponent(BaseComponent):
         msg = _translate("What should the values of joystick.time should be "
                          "relative to?")
         self.params['timeRelativeTo'] = Param(
-            timeRelativeTo, valType='str', categ='Timing',
+            timeRelativeTo, valType='str', categ='Data',
             allowedVals=['joystick onset', 'experiment', 'routine'],
             updates='constant',
             hint=msg,

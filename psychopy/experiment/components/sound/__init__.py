@@ -24,7 +24,7 @@ tooltip = _translate('Sound: play recorded files or generated sounds',)
 # only use _localized values for label values, nothing functional:
 _localized.update({'sound': _translate('Sound'),
                    'volume': _translate('Volume'),
-                   'syncScreenRefresh': _translate('sync RT with screen')})
+                   'syncScreenRefresh': _translate('Sync Start With Screen')})
 
 
 class SoundComponent(BaseComponent):
@@ -71,7 +71,7 @@ class SoundComponent(BaseComponent):
             "A reaction time to a sound stimulus should be based on when "
             "the screen flipped")
         self.params['syncScreenRefresh'] = Param(
-            syncScreenRefresh, valType='bool', categ='Timing',
+            syncScreenRefresh, valType='bool', categ='Basic',
             updates='constant',
             hint=msg,
             label=_localized['syncScreenRefresh'])

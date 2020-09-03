@@ -75,7 +75,7 @@ class ParallelOutComponent(BaseComponent):
         msg = _translate("If the parallel port data relates to visual "
                          "stimuli then sync its pulse to the screen refresh")
         self.params['syncScreen'] = Param(
-            syncScreen, valType='bool', categ='Timing',
+            syncScreen, valType='bool', categ='Data',
             allowedVals=[True, False],
             updates='constant', allowedUpdates=[],
             hint=msg,
