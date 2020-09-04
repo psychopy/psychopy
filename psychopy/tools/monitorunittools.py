@@ -16,7 +16,7 @@ from psychopy import monitors
 from psychopy import logging
 import numpy as np
 import re
-from numpy import array, sin, cos, tan, pi, radians, degrees, hypot
+from numpy import array, sin, cos, tan, pi, radians, degrees, hypot, arctan
 
 # Maps supported coordinate unit type names to the function that converts
 # the given unit type to PsychoPy OpenGL pix unit space.
@@ -396,9 +396,10 @@ class Position(object):
         # get monitor dimensions
         dist = self.monitor.getDistance()
         if self.correctFlat:
-            return np.degrees(np.arctan(old_div(self.cm, dist)))
+            #return np.degrees(np.arctan(old_div(self.cm, dist)))
+            return tuple((c*360)/(pi*dist**2) for c in self.cm)
         else:
-            return old_div(self.cm, (dist * 0.017455))
+            return tuple(arctan(c/(2*dist))*2 for c in self.cm)
     @deg.setter
     def deg(self, value):
         """Convert size in degrees to size in pixels for a given Monitor object.
@@ -418,31 +419,27 @@ class Position(object):
         if not value:
             return
 
-        # get monitor params and raise error if necess
-        scrWidthCm = self.monitor.getWidth()
-        scrSizePix = self.monitor.getSizePix()
-
         # get monitor dimensions
         dist = self.monitor.getDistance()
 
         if self.correctFlat:
-            rads = radians(degrees)
-            cmXY = np.zeros(rads.shape, 'd')  # must be a double (not float)
-            if rads.shape == (2,):
-                x, y = rads
-                cmXY[0] = hypot(dist, tan(y) * dist) * tan(x)
-                cmXY[1] = hypot(dist, tan(x) * dist) * tan(y)
-            elif len(rads.shape) > 1 and rads.shape[1] == 2:
-                cmXY[:, 0] = hypot(dist, tan(rads[:, 1]) * dist) * tan(rads[:, 0])
-                cmXY[:, 1] = hypot(dist, tan(rads[:, 0]) * dist) * tan(rads[:, 1])
-            else:
-                msg = ("If using deg2cm with correctedFlat==True then degrees "
-                       "arg must have shape [N,2], not %s")
-                raise ValueError(msg % (repr(rads.shape)))
-            self.cm = cmXY
+            self.cm = tuple(dist**2 * pi * c / 360 for c in value)
+            # rads = tuple(radians(c) for c in value)
+            # cmXY = np.zeros(rads.shape, 'd')  # must be a double (not float)
+            # if rads.shape == (2,):
+            #     x, y = rads
+            #     cmXY[0] = hypot(dist, tan(y) * dist) * tan(x)
+            #     cmXY[1] = hypot(dist, tan(x) * dist) * tan(y)
+            # elif len(rads.shape) > 1 and rads.shape[1] == 2:
+            #     cmXY[:, 0] = hypot(dist, tan(rads[:, 1]) * dist) * tan(rads[:, 0])
+            #     cmXY[:, 1] = hypot(dist, tan(rads[:, 0]) * dist) * tan(rads[:, 1])
+            # else:
+            #     msg = ("If using deg2cm with correctedFlat==True then degrees "
+            #            "arg must have shape [N,2], not %s")
+            #     raise ValueError(msg % (repr(rads.shape)))
+            # self.cm = cmXY
         else:
-            # the size of 1 deg at screen centre
-            self.cm = np.array(degrees) * dist * 0.017455
+            self.cm = tuple(tan(c/2) * dist*2 for c in value)
 
     @property
     def cm(self):
