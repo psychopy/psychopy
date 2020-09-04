@@ -293,7 +293,7 @@ _lbr = '[\[\(]\s*'
 _rbr = '\s*[\]\)]'
 _float = '\d*.?\d*?'
 _int = '\d*(.0*)?'
-_360 = '(\d|\d\d|[12]\d\d|3[0-5]\d|360)'
+_360 = '(\d|\d\d|[12]\d\d|3[0-5]\d|360).?\d*?'
 # Dict of regexpressions for different formats
 coordSpaces = {
     'pix': re.compile(_lbr+'\-?'+_int+',\s*'+'\-?'+_int+_rbr),
