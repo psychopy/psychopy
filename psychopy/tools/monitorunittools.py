@@ -305,13 +305,7 @@ coordSpaces = {
 
 class Vector(object):
     def __init__(self, pos, units, win=None, monitor=None, correctFlat=False):
-        self._requested = pos
-        self._requestedUnits = units
-        self._franca = None
-
-        self.win = win
-        self.monitor = monitor
-        self.correctFlat = correctFlat
+        self.set(pos, units, win=None, monitor=None, correctFlat=False)
         # if not isinstance(monitor, monitors.Monitor):
         #     msg = ("Vertex calculation requires a monitors.Monitor object as the second "
         #            "argument but received %s")
@@ -325,6 +319,17 @@ class Vector(object):
         # if self.monitor.getDistance() is None:
         #     msg = "Monitor %s has no known distance (SEE MONITOR CENTER)"
         #     raise ValueError(msg % self.monitor.name)
+
+
+    def set(self, pos, units, win=None, monitor=None, correctFlat=False):
+        self._requested = pos
+        self._requestedUnits = units
+        self._franca = None
+
+        self.win = win
+        self.monitor = monitor
+        self.correctFlat = correctFlat
+
         setattr(self, self._requestedUnits, self._requested)
 
     def __repr__(self):
