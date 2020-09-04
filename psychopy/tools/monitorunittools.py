@@ -303,7 +303,7 @@ coordSpaces = {
     'height': re.compile(_lbr+'\-?'+_float+',\s*'+'\-?'+_float+_rbr),
 }
 
-class Position(object):
+class Vector(object):
     def __init__(self, pos, units, win=None, monitor=None, correctFlat=False):
         self._requested = pos
         self._requestedUnits = units
@@ -358,20 +358,20 @@ class Position(object):
                 # Check for monitor if needed
                 if space in ['deg', 'cm']:
                     if set and not self.monitor:
-                        msg = "Position cannot be specified in " + space + " with no monitor specified."
+                        msg = "Vector cannot be specified in " + space + " with no monitor specified."
                         logging.error(msg)
                         raise NameError(msg)
                     elif not self.monitor:
-                        logging.warning("Position could not be calculated in " + space + " with no monitor specified.")
+                        logging.warning("Vector could not be calculated in " + space + " with no monitor specified.")
                         return None
                 # Check for window if needed
                 if space in ['norm', 'height']:
                     if set and not self.win:
-                        msg = "Position cannot be specified in " + space + " with no window specified."
+                        msg = "Vector cannot be specified in " + space + " with no window specified."
                         logging.error(msg)
                         raise NameError(msg)
                     elif not self.monitor:
-                        logging.warning("Position could not be calculated in " + space + " with no window specified.")
+                        logging.warning("Vector could not be calculated in " + space + " with no window specified.")
                         return None
 
                 # If it makes it this far, pos is valid
