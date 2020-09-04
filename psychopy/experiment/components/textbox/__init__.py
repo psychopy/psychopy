@@ -224,6 +224,7 @@ class TextboxComponent(BaseVisualComponent):
                 "  bold: %(bold)s, italic: %(italic)s,\n"
                 "  opacity: %(opacity)s,\n"
                 "  padding: %(padding)s,\n"
+                "  editable: %(editable)s,\n"
                 "  anchor: %(anchor)s,\n")
         buff.writeIndentedLines(code % inits)
 
