@@ -16,7 +16,7 @@ from psychopy import monitors
 from psychopy import logging
 import numpy as np
 import re
-from numpy import array, sin, cos, tan, pi, radians, degrees, hypot, arctan
+from numpy import array, sin, cos, tan, pi, radians, degrees, hypot, arctan, abs
 
 # Maps supported coordinate unit type names to the function that converts
 # the given unit type to PsychoPy OpenGL pix unit space.
@@ -404,6 +404,19 @@ class Vector(object):
 
                 # If it makes it this far, pos is valid
                 return pos
+
+    @property
+    def magnitude(self):
+        """Return magnitude of vector (i.e. length of the line from vector to (0,0)"""
+        return hypot(abs(self.pix[0]), abs(self.pix[1]))
+
+    @property
+    def direction(self):
+        """Return direction of vector (i.e. angle between vector and the horizontal plane"""
+        if self.pix[0] == 0:
+            return 90
+        deg = degrees(arctan(self.pix[1]/self.pix[0]))
+        return deg
 
     @property
     def pix(self):
