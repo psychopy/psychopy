@@ -223,6 +223,8 @@ class Experiment(object):
                 self_copy._currentRoutine = entry
                 if hasattr(entry, 'writeInitCodeJS'):
                     entry.writeInitCodeJS(script)
+                if hasattr(entry, 'writePreCodeJS'):
+                    entry.writePreCode(script)
 
             # create globalClock etc
             code = ("// Create some handy timers\n"
