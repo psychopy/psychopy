@@ -307,6 +307,7 @@ class Position(object):
     def __init__(self, pos, units, win=None, monitor=None, correctFlat=False):
         self._requested = pos
         self._requestedUnits = units
+        self._franca = None
 
         self.win = win
         self.monitor = monitor
