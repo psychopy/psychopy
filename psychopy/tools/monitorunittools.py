@@ -333,6 +333,34 @@ class Vector(object):
             return "<" + self.__class__.__module__ + "." + self.__class__.__name__ + ": " + str(self.pix) + ">"
         else:
             return "<" + self.__class__.__module__ + "." + self.__class__.__name__ + ": " + "Invalid" + ">"
+    # ---operations---
+    def _canOperate(self, other):
+        if not isinstance(other, Vector):
+            raise TypeError("unsupported operand type(s) for -: '"+type(self).__name__+"' and '"+type(other).__name__+"'")
+            if not self.pix and other.pix:
+                raise ValueError("Vector operation could not be performed as one or both Vectors have a value of None")
+            if not self.win == other.win \
+                or not self.monitor == other.monitor \
+                or not self.correctFlat == other.correctFlat:
+                raise ValueError("Vectors must share the same window, monitor and correctFlat setting to operate upon one another")
+            # If no errors hit, return True
+            return True
+    def __add__(self, other):
+        if self._canOperate(other):
+            return Vector((self.pix[0]+other.pix[0], self.pix[1]+other.pix[1]),
+                          'pix', win=self.win, monitor=self.monitor, correctFlat=self.correctFlat)
+    def __sub__(self, other):
+        if self._canOperate(other):
+            return Vector((self.pix[0]-other.pix[0], self.pix[1]-other.pix[1]),
+                            'pix', win=self.win, monitor=self.monitor, correctFlat=self.correctFlat)
+    def __mul__(self, other):
+        if self._canOperate(other):
+            return Vector((self.pix[0]*other.pix[0], self.pix[1]*other.pix[1]),
+                          'pix', win=self.win, monitor=self.monitor, correctFlat=self.correctFlat)
+    def __truediv__(self, other):
+        if self._canOperate(other):
+            return Vector((self.pix[0]/other.pix[0], self.pix[1]/other.pix[1]),
+                          'pix', win=self.win, monitor=self.monitor, correctFlat=self.correctFlat)
 
     def validate(self, pos, against=None, set=False):
         # If not checking against anything, check against everything
