@@ -1,16 +1,13 @@
-BIG FIVE INVENTORY (BFI) - Form Class Demonstration
+﻿BIG FIVE INVENTORY (BFI) - Form Class Demonstration
 ---------------------------------------------------
 
 The experiment:
 
-    The Big Five Inventory is a 44-item inventory that measures an individual on the Big Five Factors (dimensions) of
-personality (Goldberg, 1993), namely Openness, Conscientiousness, Extraversion, Agreeableness and Neuroticism.
-Each of the factors is then further divided into personality facets. See the link in the reference section.
+    The Big Five Inventory is a 44-item inventory that measures an individual on the Big Five Factors (dimensions) of personality (Goldberg, 1993), namely Openness, Conscientiousness, Extraversion, Agreeableness and Neuroticism. Each of the factors is then further divided into personality facets. See the link in the reference section.
 
 Analysing your data:
 
-    Read the pdf in the reference section for advice on scoring your personality scale. In general, you will take the average
-score for each personality factor for use in your analysis. Do not forget about the reverse scored items!
+    Read the pdf in the reference section for advice on scoring your personality scale. In general, you will take the average score for each personality factor for use in your analysis. Do not forget about the reverse scored items!
 
 References:
 
