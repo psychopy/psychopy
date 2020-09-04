@@ -383,7 +383,7 @@ class ThemeMixin:
                  'break', 'local', 'global'],
                 0: ['NA']
             }
-        elif self.GetLexer == stc.STC_LEX_CPP:
+        elif self.GetLexer() == stc.STC_LEX_CPP:
             # C/C++
             keywords = baseC
             if hasattr(self, 'filename'):
