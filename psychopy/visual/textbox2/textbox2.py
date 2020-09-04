@@ -131,12 +131,14 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
         self.opacity = opacity
         self.onTextCallback = onTextCallback
 
+        if units=='norm':
+            raise NotImplemented("TextBox2 doesn't support 'norm' units at the "
+                                 "moment. Use 'height' units instead")
         # first set params needed to create font (letter sizes etc)
         if letterHeight is None:
             self.letterHeight = defaultLetterHeight[self.units]
         else:
             self.letterHeight = letterHeight
-
         # self._pixLetterHeight helps get font size right but not final layout
         if 'deg' in self.units:  # treat deg, degFlat or degFlatPos the same
             scaleUnits = 'deg'  # scale units are just for font resolution
