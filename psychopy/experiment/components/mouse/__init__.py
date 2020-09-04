@@ -586,8 +586,8 @@ class MouseComponent(BaseComponent):
 
         if store == 'final':
 
-            code = ("const xys = {name}.getPos();\n"
-                    "const buttons = {name}.getPressed();\n")
+            code = ("let xys = {name}.getPos();\n"
+                    "let buttons = {name}.getPressed();\n")
 
             if currLoop.type != 'StairHandler':
                 code += (
