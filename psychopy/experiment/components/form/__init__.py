@@ -166,15 +166,28 @@ class FormComponent(BaseComponent):
             cond += " and "
         if self.params['stopVal']:
             cond += "t < %(startVal)s+%(stopVal)s"
-        cond += ":\n"
+        cond += ":\n        "
         if not self.params['stopVal'] and not self.params['startVal']:
             cond = ""
         buff.writeIndented((cond +
-                           "        %(name)s.draw()\n") % (self.params))
+                           "%(name)s.draw()\n") % (self.params))
 
     def writeFrameCodeJS(self, buff):
-        buff.writeIndented("if t > %(start)s and t < %(stop)s:"
-                           "    %(name)s.draw();\n" % (self.params))
+        code = "if (("
+        if self.params['startVal']:
+            code += "(t > %(startVal)s)"
+        if self.params['stopVal'] and self.params['startVal']:
+            code += " && "
+        if self.params['stopVal']:
+            code += "(t < %(startVal)s+%(stopVal)s)"
+        code += ")) {\n      "
+        if not self.params['stopVal'] and not self.params['startVal']:
+            code = ""
+        code += "%(name)s.draw();\n"
+        if self.params['stopVal'] or self.params['startVal']:
+            code += "    }\n"
+        buff.writeIndented(code % (self.params))
+
 
     def writeRoutineEndCode(self, buff):
         # save data, according to row/col format
