@@ -378,9 +378,8 @@ class Vector(object):
             # Convert from str if needed
             if isinstance(pos, str) and space in ['pix', 'deg', 'cm', 'norm', 'height']:
                 pos = [float(n) for n in pos.strip('[]()').split(',')]
-            # Convert from str if needed
-            if isinstance(pos, str) and space in ['pix', 'deg', 'cm', 'norm', 'height']:
-                pos = [float(n) for n in pos.strip('[]()').split(',')]
+            if not len(pos) == 2:
+                return None
             # Enforce int for int-only spaces
             if space in ['pix']:
                 pos = [int(p) for p in pos]
