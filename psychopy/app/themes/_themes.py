@@ -390,7 +390,7 @@ class ThemeMixin:
                 if self.filename.endswith('.js'):
                     # JavaScript
                     keywords = {
-                        0: ['var', 'let', 'import', 'function', 'if', 'else', 'return', 'struct', 'for', 'while', 'do',
+                        0: ['var', 'const', 'let', 'import', 'function', 'if', 'else', 'return', 'struct', 'for', 'while', 'do',
                             'finally', 'throw', 'try', 'switch', 'case', 'break'],
                         1: ['null', 'false', 'true']
                     }
