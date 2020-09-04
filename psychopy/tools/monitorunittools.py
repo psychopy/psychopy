@@ -305,7 +305,7 @@ coordSpaces = {
 
 class Vector(object):
     def __init__(self, pos, units, win=None, monitor=None, correctFlat=False):
-        self.set(pos, units, win=None, monitor=None, correctFlat=False)
+        self.set(pos, units, win, monitor, correctFlat)
         # if not isinstance(monitor, monitors.Monitor):
         #     msg = ("Vertex calculation requires a monitors.Monitor object as the second "
         #            "argument but received %s")
