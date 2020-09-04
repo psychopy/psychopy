@@ -341,17 +341,19 @@ class Position(object):
             against = [against]
         # Do validation
         for space in against:
+            # Convert from str if needed
+            if isinstance(pos, str) and space in ['pix', 'deg', 'cm', 'norm', 'height']:
+                pos = [float(n) for n in pos.strip('[]()').split(',')]
+            # Convert from str if needed
+            if isinstance(pos, str) and space in ['pix', 'deg', 'cm', 'norm', 'height']:
+                pos = [float(n) for n in pos.strip('[]()').split(',')]
             # Enforce int for int-only spaces
             if space in ['pix']:
                 pos = [int(p) for p in pos]
-            if coordSpaces[space].fullmatch(str(pos)):
-                # Convert from str if needed
-                if isinstance(pos, str) and space in ['pix', 'deg', 'cm', 'norm', 'height']:
-                    pos = [float(n) for n in pos.strip('[]()').split(',')]
-                # Enforce tuple
-                if isinstance(pos, list):
-                    pos = tuple(pos)
-
+            # Enforce tuple
+            if isinstance(pos, list):
+                pos = tuple(pos)
+            if coordSpaces[space].fullmatch(f'({pos[0]:.20f}, {pos[1]:.20f})'):
                 # Check for monitor if needed
                 if space in ['deg', 'cm']:
                     if set and not self.monitor:
