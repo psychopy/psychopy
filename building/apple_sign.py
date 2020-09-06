@@ -230,7 +230,7 @@ class AppSigner:
         background = (thisFolder / "dmg722x241.tiff").resolve()
         dmgbuild.build_dmg(
                 filename=dmgFilename,
-                volume_name=f'PsychoPy {self.version}',
+                volume_name=f'PsychoPy-{self.version}',  # avoid spaces
                 settings={
                     'format': 'UDRW',
                     'files': [str(self.appFile)],
