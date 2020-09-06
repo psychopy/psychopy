@@ -25,6 +25,7 @@ import codecs
 import xml.etree.ElementTree as xml
 from xml.dom import minidom
 from copy import deepcopy
+from pathlib import Path
 
 import psychopy
 from psychopy import data, __version__, logging
@@ -750,6 +751,11 @@ class Experiment(object):
             :return: dict of 'asb' and 'rel' paths or None
             """
             thisFile = {}
+            # NB: Pathlib might be neater here but need to be careful
+            # e.g. on mac:
+            #    Path('C:/test/test.xlsx').is_absolute() returns False
+            #    Path('/folder/file.xlsx').relative_to('/Applications') gives error
+            #    but os.path.relpath('/folder/file.xlsx', '/Applications') correctly uses ../
             if len(filePath) > 2 and (filePath[0] == "/" or filePath[1] == ":")\
                     and os.path.isfile(filePath):
                 thisFile['abs'] = filePath
@@ -775,16 +781,19 @@ class Experiment(object):
                     filePath = filePath.strip('$')
                     filePath = eval(filePath)
                 except NameError:
-                    # List files in director and get condition files
+                    # List files in directory and get condition files
                     if 'xlsx' in filePath or 'xls' in filePath or 'csv' in filePath:
                         # Get all xlsx and csv files
-                        expPath = self.expPath
-                        if 'html' in self.expPath:  # Get resources from parent directory i.e, original exp path
-                            expPath = self.expPath.split('html')[0]
-                        fileList = (
-                        [getPaths(condFile) for condFile in os.listdir(expPath)
-                         if len(condFile.split('.')) > 1
-                         and condFile.split('.')[1] in ['xlsx', 'xls', 'csv']])
+                        expFolder = Path(self.filename).parent
+                        spreadsheets = []
+                        for pattern in ['*.xlsx', '*.xls',
+                                        '*.csv', '*.tsv']:
+                            # NB potentially make this search recursive with
+                            # '**/*.xlsx' but then need to exclude 'data/*.xlsx'
+                            spreadsheets.extend(expFolder.glob(pattern))
+
+                        fileList = [getPaths(str(condFile)) for condFile in
+                                    spreadsheets]
                         return fileList
             paths = []
             # does it look at all like an excel file?
@@ -845,7 +854,9 @@ class Experiment(object):
         # Check for any resources not in experiment path
         for res in resources:
             if srcRoot not in res['abs']:
-                psychopy.logging.warning("{} is not in the experiment path and so will not be copied to Pavlovia".format(res['rel']))
+                psychopy.logging.warning("{} is not in the experiment path and "
+                                         "so will not be copied to Pavlovia"
+                                         .format(res['rel']))
 
         return resources
 
