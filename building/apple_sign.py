@@ -262,7 +262,9 @@ class AppSigner:
         cmdStr = f"hdiutil detach '{volName}' -quiet"
         exitcode, output = subprocess.getstatusoutput(cmdStr)
         if exitcode != 0:
+            print(output)
             print(f'*********Failed to detach {volName} (wrong name?) *************')
+            print(f'cmdStr was: {cmdStr}')
             exit(1)
 
     def dmgCompress(self):
