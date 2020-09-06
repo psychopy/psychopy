@@ -786,41 +786,39 @@ class Experiment(object):
                         # Get all xlsx and csv files
                         expFolder = Path(self.filename).parent
                         spreadsheets = []
-                        for pattern in ['*.xlsx', '*.xls',
-                                        '*.csv', '*.tsv']:
+                        for pattern in ['*.xlsx', '*.xls', '*.csv', '*.tsv']:
                             # NB potentially make this search recursive with
                             # '**/*.xlsx' but then need to exclude 'data/*.xlsx'
                             spreadsheets.extend(expFolder.glob(pattern))
+                        files = []
+                        for condFile in spreadsheets:
+                            # call the function recursively for each excel file
+                            files.extend(findPathsInFile(str(condFile)))
+                        return files
 
-                        fileList = [getPaths(str(condFile)) for condFile in
-                                    spreadsheets]
-                        return fileList
             paths = []
+            # is it a file?
+            thisFile = getPaths(filePath)  # get the abs/rel paths
+            # does it exist?
+            if not thisFile:
+                return paths
+            # OK, this file itself is valid so add to resources
+            if thisFile not in paths:
+                paths.append(thisFile)
             # does it look at all like an excel file?
             if (not isinstance(filePath, basestring)
                     or not os.path.splitext(filePath)[1] in ['.csv', '.xlsx',
                                                              '.xls']):
                 return paths
-            thisFile = getPaths(filePath)
-            # does it exist?
-            if not thisFile:
-                return paths
-            # this file itself is valid so add to resources if not already
-            if thisFile not in paths:
-                paths.append(thisFile)
             conds = data.importConditions(thisFile['abs'])  # load the abs path
             for thisCond in conds:  # thisCond is a dict
                 for param, val in list(thisCond.items()):
                     if isinstance(val, basestring) and len(val):
-                        subFile = getPaths(val)
-                    else:
-                        subFile = None
-                    if subFile:
-                        paths.append(subFile)
-                        # if it's a possible conditions file then recursive
-                        if thisFile['abs'][-4:] in ["xlsx", ".xls", ".csv"]:
-                            contained = findPathsInFile(subFile['abs'])
-                            paths.extend(contained)
+                        # only add unique entries (can't use set() on a dict)
+                        for thisFile in findPathsInFile(val):
+                            if thisFile not in paths:
+                                paths.append(thisFile)
+
             return paths
 
         resources = []
@@ -841,8 +839,8 @@ class Experiment(object):
                             thisFile = getPaths(thisParam)
                         elif isinstance(thisParam.val, basestring):
                             thisFile = getPaths(thisParam.val)
-                        # then check if it's a valid path
-                        if thisFile:
+                        # then check if it's a valid path and not yet included
+                        if thisFile and thisFile not in resources:
                             resources.append(thisFile)
 
         # Add files from additional resources box
