@@ -46,7 +46,7 @@ for i in todo; do
     ditto --arch x86_64 dist/${names[$i]}__fat.app dist/${names[$i]}.app
 
     # built and stripped. Now mac codesign
-    python building/apple_sign.py --app "${names[$i]}.app"
+    ${pythons[$i]} building/apple_sign.py --app "${names[$i]}.app"
 
     # mount the disk image and delete previous copy of app
 #    echo "cp -R ${names[$i]}.app /Volumes/PsychoPy"
