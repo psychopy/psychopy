@@ -295,7 +295,7 @@ _float = '\d*.?\d*?'
 _int = '\d*(.0*)?'
 _360 = '(\d|\d\d|[12]\d\d|3[0-5]\d|360).?\d*?'
 # Dict of regexpressions for different formats
-coordSpaces = {
+vectorSpaces = {
     'pix': re.compile(_lbr+'\-?'+_int+',\s*'+'\-?'+_int+_rbr),
     'deg': re.compile(_lbr+'\-?'+_360+',\s*'+'\-?'+_360+_rbr),
     'cm': re.compile(_lbr+'\-?'+_float+',\s*'+'\-?'+_float+_rbr),
@@ -370,7 +370,7 @@ class Vector(object):
     def validate(self, pos, against=None, set=False):
         # If not checking against anything, check against everything
         if not against:
-            against = list(coordSpaces)
+            against = list(vectorSpaces)
         if not isinstance(against, (list, tuple)):
             against = [against]
         # Do validation
@@ -386,7 +386,7 @@ class Vector(object):
             # Enforce tuple
             if isinstance(pos, list):
                 pos = tuple(pos)
-            if coordSpaces[space].fullmatch(f'({pos[0]:.20f}, {pos[1]:.20f})'):
+            if vectorSpaces[space].fullmatch(f'({pos[0]:.20f}, {pos[1]:.20f})'):
                 # Check for monitor if needed
                 if space in ['deg', 'cm']:
                     if set and not self.monitor:
