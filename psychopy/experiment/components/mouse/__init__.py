@@ -423,7 +423,7 @@ class MouseComponent(BaseComponent):
             buff.writeIndented(code)
             buff.setIndentLevel(1, relative=True)
             dedentAtEnd += 1
-            buff.writeIndented("prevButtonState = buttons;\n")
+            buff.writeIndented("prevButtonState = _mouseButtons;\n")
             code = ("if (_mouseButtons.reduce( (e, acc) => (e+acc) ) > 0) { // state changed to a new click\n")
             buff.writeIndentedLines(code % self.params)
             buff.setIndentLevel(1, relative=True)
