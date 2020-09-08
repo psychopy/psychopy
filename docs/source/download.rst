@@ -33,8 +33,8 @@ For the easiest installation download and install the Standalone package.
     }
     else if (navigator.platform == 'MacIntel') {
       osLabel = clientInfo.os.name+" "+clientInfo.os.version;
-      filename = '  Standalone PsychoPy '+version+' for MacOS';
-      url = 'https://github.com/psychopy/psychopy/releases/download/'+version+'/StandalonePsychoPy3-'+version+'-MacOS.dmg';
+      filename = '  Standalone PsychoPy '+version+' for macOS';
+      url = 'https://github.com/psychopy/psychopy/releases/download/'+version+'/StandalonePsychoPy-'+version+'-macOS.dmg';
     }
     else {
       osLabel = clientInfo.os.name+" ("+clientInfo.cpu.architecture+")";
