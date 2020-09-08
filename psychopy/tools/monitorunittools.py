@@ -429,6 +429,9 @@ class Vector(object):
             return Vector((self.pix[0]/other.pix[0], self.pix[1]/other.pix[1]),
                           'pix', win=self.win, monitor=self.monitor, correctFlat=self.correctFlat)
 
+    def copy(self):
+        return self.__class__(self._requested, self._requestedUnits, self.win, self.monitor, self.correctFlat)
+
     def validate(self, pos, against=None, set=False):
         # If not checking against anything, check against everything
         if not against:
