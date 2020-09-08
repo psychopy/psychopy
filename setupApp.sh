@@ -7,9 +7,9 @@ read -p "Version (def=$defVersion):" version
 version=${version:-$defVersion}
 echo "Building $version"
 
-sudo rm -r build
-sudo rm -r dist/PsychoPy*.app #the previous version
-sudo rm -r ../dist/PsychoPy*.app  # the previous version in outer location
+rm -r build
+rm -r dist/PsychoPy*.app #the previous version
+rm -r ../dist/PsychoPy*.app  # the previous version in outer location
 
 python setup.py sdist --format=zip
 # then handle the mac app bundle
@@ -46,7 +46,7 @@ for i in todo; do
     ditto --arch x86_64 dist/${names[$i]}__fat.app dist/${names[$i]}.app
 
     # built and stripped. Now mac codesign
-    python building/apple_sign.py --app "${names[$i]}.app"
+    ${pythons[$i]} building/apple_sign.py --app "${names[$i]}.app"
 
     # mount the disk image and delete previous copy of app
 #    echo "cp -R ${names[$i]}.app /Volumes/PsychoPy"

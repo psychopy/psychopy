@@ -4,6 +4,7 @@
 # Part of the PsychoPy library
 # Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2020 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
+import glob
 import json
 
 from psychopy.app.themes._themes import ThemeSwitcher
@@ -108,6 +109,7 @@ class RunnerFrame(wx.Frame, ThemeMixin):
         fileMenu = wx.Menu()
         viewMenu = wx.Menu()
         runMenu = wx.Menu()
+        demosMenu = wx.Menu()
 
         # Menu items
         fileMenuItems = [
@@ -157,10 +159,22 @@ class RunnerFrame(wx.Frame, ThemeMixin):
              'func': self.panel.runOnline},
             ]
 
+        demosMenuItems = [
+            {'id': wx.ID_ANY,
+             'label': _translate("Builder Demos"),
+             'status': _translate("Loading builder demos"),
+             'func': self.loadBuilderDemos},
+            {'id': wx.ID_ANY,
+             'label': _translate("Coder Demos"),
+             'status': _translate("Loading coder demos"),
+             'func': self.loadCoderDemos},
+        ]
+
         menus = [
             {'menu': fileMenu, 'menuItems': fileMenuItems, 'separators': ['clear all', 'load list']},
             {'menu': viewMenu, 'menuItems': viewMenuItems, 'separators': []},
             {'menu': runMenu, 'menuItems': runMenuItems, 'separators': []},
+            {'menu': demosMenu, 'menuItems': demosMenuItems, 'separators': []},
         ]
 
         # Add items to menus
@@ -181,6 +195,7 @@ class RunnerFrame(wx.Frame, ThemeMixin):
         self.runnerMenu.Append(fileMenu, _translate('File'))
         self.runnerMenu.Append(viewMenu, _translate('View'))
         self.runnerMenu.Append(runMenu, _translate('Run'))
+        self.runnerMenu.Append(demosMenu, _translate('Demos'))
         self.runnerMenu.Append(self.windowMenu, _translate('Window'))
 
     def onURL(self, evt):
@@ -308,6 +323,65 @@ class RunnerFrame(wx.Frame, ThemeMixin):
 
     def showRunner(self):
         self.app.showRunner()
+
+    def loadBuilderDemos(self, event):
+        """Load Builder demos"""
+        self.panel.expCtrl.DeleteAllItems()
+        unpacked = self.app.prefs.builder['unpackedDemosDir']
+        if not unpacked:
+            return
+        # list available demos
+        demoList = sorted(glob.glob(os.path.join(unpacked, '*')))
+        demos = {wx.NewIdRef(): demoList[n]
+                 for n in range(len(demoList))}
+        for thisID in demos:
+            junk, shortname = os.path.split(demos[thisID])
+            if (shortname.startswith('_') or
+                    shortname.lower().startswith('readme.')):
+                continue  # ignore 'private' or README files
+            for file in os.listdir(demos[thisID]):
+                if file.endswith('.psyexp'):
+                    self.addTask(fileName=os.path.join(demos[thisID], file))
+
+    def loadCoderDemos(self, event):
+        """Load Coder demos"""
+        self.panel.expCtrl.DeleteAllItems()
+        _localized = {'basic': _translate('basic'),
+                      'input': _translate('input'),
+                      'stimuli': _translate('stimuli'),
+                      'experiment control': _translate('exp control'),
+                      'iohub': 'ioHub',  # no translation
+                      'hardware': _translate('hardware'),
+                      'timing': _translate('timing'),
+                      'misc': _translate('misc')}
+        folders = glob.glob(os.path.join(self.paths['demos'], 'coder', '*'))
+        for folder in folders:
+            # if it isn't a folder then skip it
+            if (not os.path.isdir(folder)):
+                continue
+            # otherwise create a submenu
+            folderDisplayName = os.path.split(folder)[-1]
+            if folderDisplayName.startswith('_'):
+                continue  # don't include private folders
+            if folderDisplayName in _localized:
+                folderDisplayName = _localized[folderDisplayName]
+
+            # find the files in the folder (search two levels deep)
+            demoList = glob.glob(os.path.join(folder, '*.py'))
+            demoList += glob.glob(os.path.join(folder, '*', '*.py'))
+            demoList += glob.glob(os.path.join(folder, '*', '*', '*.py'))
+
+            demoList.sort()
+
+            for thisFile in demoList:
+                shortname = thisFile.split(os.path.sep)[-1]
+                if shortname == "run.py":
+                    # file is just "run" so get shortname from directory name
+                    # instead
+                    shortname = thisFile.split(os.path.sep)[-2]
+                elif shortname.startswith('_'):
+                    continue  # remove any 'private' files
+                self.addTask(fileName=thisFile)
 
     @property
     def taskList(self):
