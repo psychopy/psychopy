@@ -350,9 +350,59 @@ class Vector(object):
             return "<" + self.__class__.__module__ + "." + self.__class__.__name__ + ": " + str(self.pix) + ">"
         else:
             return "<" + self.__class__.__module__ + "." + self.__class__.__name__ + ": " + "Invalid" + ">"
+    #--rich comparisons---
+    def __eq__(self, target):
+        """== will compare position in pix"""
+        if isinstance(target, type(self)):
+            return self.pix == target.pix
+        elif isinstance(target, (list, tuple)):
+            # If input is a list or tuple, compare values against each space
+            for space in vectorSpaces:
+                if getattr(self, space) == tuple(target):
+                    return True
+        else:
+            return False
+    def __ne__(self, target):
+        """!= will return the opposite of =="""
+        return not self == target
+    def __lt__(self, target):
+        """< will compare magnitude"""
+        if isinstance(target, type(self)):
+            return self.magnitude < target.magnitude
+        elif isinstance(target, (int, float)):
+            return self.magnitude < target
+        else:
+            return False
+    def __le__(self, target):
+        """<= will compare magnitude"""
+        if isinstance(target, type(self)):
+            return self.magnitude <= target.magnitude
+        elif isinstance(target, (int, float)):
+            return self.magnitude <= target
+        else:
+            return False
+    def __gt__(self, target):
+        """> will compare magnitude"""
+        if isinstance(target, type(self)):
+            return self.magnitude > target.magnitude
+        elif isinstance(target, (int, float)):
+            return self.magnitude > target
+        else:
+            return False
+    def __ge__(self, target):
+        """>= will compare magnitude"""
+        if isinstance(target, type(self)):
+            return self.magnitude >= target.magnitude
+        elif isinstance(target, (int, float)):
+            return self.magnitude >= target
+        else:
+            return False
+
     # ---operations---
     def _canOperate(self, other):
-        if not isinstance(other, Vector):
+        if isinstance(other, type(self)):
+            return True
+        else:
             raise TypeError("unsupported operand type(s) for -: '"+type(self).__name__+"' and '"+type(other).__name__+"'")
             if not self.pix and other.pix:
                 raise ValueError("Vector operation could not be performed as one or both Vectors have a value of None")
