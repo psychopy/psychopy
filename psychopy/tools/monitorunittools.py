@@ -384,7 +384,7 @@ class Vector(object):
             if space in ['pix']:
                 pos = [int(p) for p in pos]
             # Enforce tuple
-            if isinstance(pos, list):
+            if isinstance(pos, (list, np.ndarray)):
                 pos = tuple(pos)
             if vectorSpaces[space].fullmatch(f'({pos[0]:.20f}, {pos[1]:.20f})'):
                 # Check for monitor if needed
