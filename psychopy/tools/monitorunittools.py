@@ -321,7 +321,19 @@ class Vector(object):
         #     raise ValueError(msg % self.monitor.name)
 
 
-    def set(self, pos, units, win=None, monitor=None, correctFlat=False):
+    def set(self, pos, units=None, win=None, monitor=None, correctFlat=False):
+        # If input is a Vector object, duplicate all settings
+        if isinstance(pos, type(self)):
+            pos = getattr(pos, pos._requestedUnits)
+            units = pos._requestedUnits
+            win = pos.win
+            monitor = pos.monitor
+            correctFlat = pos.correctFlat
+        # Require units spec
+        if units not in vectorSpaces:
+            logging.warning("Not units found. Please specify units for Vector object, or supply set command with an instance of "+type(self).__name__)
+            return
+        # Set values
         self._requested = pos
         self._requestedUnits = units
         self._franca = None
