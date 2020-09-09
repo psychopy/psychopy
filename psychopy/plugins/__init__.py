@@ -21,6 +21,7 @@ import pkg_resources
 from psychopy import logging
 from psychopy.preferences import prefs
 import psychopy.experiment.components as components
+import psychopy.app as app
 
 # Keep track of plugins that have been loaded. Keys are plugin names and values
 # are their entry point mappings.
@@ -925,7 +926,7 @@ def _registerWindowBackend(attr, ep):
     backend.winTypes.update(foundBackends)  # update installed backends
 
 
-def _registerBuilderComponent(ep):
+def _registerBuilderComponent(ep, updatePanel=True):
     """Register a PsychoPy builder component module.
 
     This function is called by :func:`loadPlugin` when encountering an entry
@@ -944,8 +945,13 @@ def _registerBuilderComponent(ep):
 
     Parameters
     ----------
-    module : ModuleType
+    ep : ModuleType
         Module containing the builder component to register.
+    updatePanel : bool
+        Update Builder's component icon tray after registering the component.
+        This can be disabled to prevent the tray from updating when loading a
+        series of plugins to avoid unneeded updates to the GUI. The panel can be
+        updated after the last plugin is loaded.
 
     """
     if not inspect.ismodule(ep):  # not a module
@@ -982,3 +988,12 @@ def _registerBuilderComponent(ep):
         # assign the module categories to the Component
         if not hasattr(components.pluginComponents[attrib], 'categories'):
             components.pluginComponents[attrib].categories = ['Custom']
+
+    # update the components panel after loading
+    if updatePanel:
+        # Only bother doing this when Builder has been loaded, since it will be
+        # done automatically when next time its created.
+        builder = app.getAppFrame('builder')
+        if builder is not None:
+            builder.componentButtons.buildComponentsList()
+
