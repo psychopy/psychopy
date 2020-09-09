@@ -16,7 +16,7 @@ from past.utils import old_div
 import numpy
 from psychopy import logging
 from psychopy.tools.coordinatetools import sph2cart
-from psychopy.visual import basevisual as vis
+from psychopy.colors import Color, AdvancedColor
 
 
 def unpackColors(colors):  # used internally, not exported by __all__
@@ -78,7 +78,7 @@ def srgbTF(rgb, reverse=False, **kwargs):
 
     """
 
-    col = vis.AdvancedColor(tuple(rgb))
+    col = AdvancedColor(tuple(rgb))
     if len(rgb) == 3:
         return unpackColors(col.srgbTF)
     elif len(rgb) == 4:
@@ -105,7 +105,7 @@ def rec709TF(rgb, **kwargs):
 
     """
 
-    col = vis.AdvancedColor(tuple(rgb))
+    col = AdvancedColor(tuple(rgb))
     if len(rgb) == 3:
         return unpackColors(col.rec709TF)
     elif len(rgb) == 4:
@@ -391,7 +391,7 @@ def hsv2rgb(hsv_Nx3):
     # based on method in
     # http://en.wikipedia.org/wiki/HSL_and_HSV#Converting_to_RGB
 
-    col = vis.Color(tuple(hsv_Nx3), 'hsv')
+    col = Color(tuple(hsv_Nx3), 'hsv')
     if len(hsv_Nx3) == 3:
         return unpackColors(col.rgb)
     elif len(hsv_Nx3) == 4:
@@ -411,7 +411,7 @@ def lms2rgb(lms_Nx3, conversionMatrix=None):
 
     """
 
-    col = vis.Color(tuple(lms_Nx3), 'lms')
+    col = Color(tuple(lms_Nx3), 'lms')
     if len(lms_Nx3) == 3:
         return unpackColors(col.rgb)
     elif len(lms_Nx3) == 4:
@@ -467,7 +467,7 @@ def rgb2lms(rgb_Nx3, conversionMatrix=None):
         lms_Nx3 = rgb2lms(rgb_Nx3(el,az,radius), conversionMatrix)
 
     """
-    col = vis.Color(tuple(rgb_Nx3))
+    col = Color(tuple(rgb_Nx3))
     if len(rgb_Nx3) == 3:
         return unpackColors(col.lms)
     elif len(rgb_Nx3) == 4:
