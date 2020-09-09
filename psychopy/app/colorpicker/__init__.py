@@ -38,6 +38,7 @@ class PsychoColorPicker(wx.Dialog, ThemeMixin):
         self.ctrls.AddPage(ColorPage(self.ctrls, self, 'rgba255'), 'RGB (0 to 255)')
         self.ctrls.AddPage(ColorPage(self.ctrls, self, 'hsva'), 'HSV')
         self.ctrls.AddPage(ColorPage(self.ctrls, self, 'hexa'), 'Hex')
+        self.ctrls.Bind(aui.EVT_AUINOTEBOOK_PAGE_CHANGED, self.onPageChanged)
         # Add array of named colours
         self.presets = ColorPresets(parent=self)
         self.sizer.Add(self.presets, pos=(0,2))
@@ -83,8 +84,8 @@ class PsychoColorPicker(wx.Dialog, ThemeMixin):
     #     wheelBMP.SetMask(mask)
     #     dc.DrawBitmap(wheelBMP, 0, 0, True)
 
-    def OnPageChanged(self, event):
-        event.Skip()
+    def onPageChanged(self, event):
+        event.EventObject.GetPage(event.Selection).onOpen()
 
     def updateColorPicker(self, rgb):
         """Update the color picker dialog from a color picker page.
@@ -179,6 +180,7 @@ class ColorPresets(ScrolledPanel):
 
     def onClick(self, event):
         self.parent.setColor(event.GetEventObject().colorData, 'named')
+        self.parent.ctrls.GetCurrentPage().onOpen()
 
 
 class ColorPage(wx.Window, ThemeMixin):
@@ -241,7 +243,12 @@ class ColorPage(wx.Window, ThemeMixin):
         self.SetBackgroundColour(ThemeMixin.appColors['tab_bg'])
 
     def onOpen(self):
-        col = getattr(self.dlg.color, self.space)
+        if self.space =='hex':
+            col = self.dlg.color.rgb255
+        elif self.space == 'hexa':
+            col = self.dlg.color.rgba255
+        else:
+            col = getattr(self.dlg.color, self.space)
         for i in range(len(col)):
             self.ctrls[i].value = col[i]
 
