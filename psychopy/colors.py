@@ -247,6 +247,10 @@ class Color(object):
         else:
             return "<" + self.__class__.__module__ + "." + self.__class__.__name__ + ": " + "Invalid" + ">"
 
+    def __bool__(self):
+        """Determines truth value of object"""
+        return bool(self.rgba)
+
     # ---rich comparisons---
     def __eq__(self, target):
         """== will compare RGBA values, rounded to 2dp"""
