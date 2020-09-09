@@ -29,10 +29,10 @@ class PsychoColorPicker(wx.Dialog, ThemeMixin):
         self.sizer = wx.GridBagSizer()
         # Add colourful top bar
         self.preview = ColorPreview(color=self.color, parent=self)
-        self.sizer.Add(self.preview, pos=(0,0))
+        self.sizer.Add(self.preview, pos=(0,0), span=wx.GBSpan(2,1), border=5, flag=wx.RIGHT | wx.EXPAND)
         # Add notebook of controls
         self.ctrls = aui.AuiNotebook(self, wx.ID_ANY, size=wx.Size(400, 400))
-        self.sizer.Add(self.ctrls, pos=(0,1))
+        self.sizer.Add(self.ctrls, pos=(0,1), border=5, flag=wx.ALL)
         self.ctrls.AddPage(ColorPage(self.ctrls, self, 'rgba'), 'RGB (-1 to 1)')
         self.ctrls.AddPage(ColorPage(self.ctrls, self, 'rgba1'), 'RGB (0 to 1)')
         self.ctrls.AddPage(ColorPage(self.ctrls, self, 'rgba255'), 'RGB (0 to 255)')
@@ -41,20 +41,32 @@ class PsychoColorPicker(wx.Dialog, ThemeMixin):
         self.ctrls.Bind(aui.EVT_AUINOTEBOOK_PAGE_CHANGED, self.onPageChanged)
         # Add array of named colours
         self.presets = ColorPresets(parent=self)
-        self.sizer.Add(self.presets, pos=(0,2))
+        self.sizer.Add(self.presets, pos=(0,2), border=5, flag=wx.ALL)
+        # Add buttons
+        self.buttons = wx.BoxSizer(wx.HORIZONTAL)
+        self.closeButton = wx.Button(self, label="Cancel")
+        self.closeButton.Bind(wx.EVT_BUTTON, self.Close)
+        self.buttons.Add(self.closeButton, border=5, flag=wx.ALL)
+        # Add insert buttons
+        # self.insertValueButton = wx.Button(self, label="Insert As Value")
+        # self.insertValueButton.Bind(wx.EVT_BUTTON, self.insertValue)
+        # self.buttons.Add(self.insertValueButton, border=5, flag=wx.ALL)
+        # self.insertObjectButton = wx.Button(self, label="Insert As Object")
+        # self.insertObjectButton.Bind(wx.EVT_BUTTON, self.insertObject)
+        # self.buttons.Add(self.insertObjectButton, border=5, flag=wx.ALL)
+        # Add copy buttons
+        self.copyValueButton = wx.Button(self, label="Copy As Value")
+        self.copyValueButton.Bind(wx.EVT_BUTTON, self.copyValue)
+        self.buttons.Add(self.copyValueButton, border=5, flag=wx.ALL)
+        self.copyObjectButton = wx.Button(self, label="Copy As Object")
+        self.copyObjectButton.Bind(wx.EVT_BUTTON, self.copyObject)
+        self.buttons.Add(self.copyObjectButton, border=5, flag=wx.ALL)
 
+        self.sizer.Add(self.buttons, pos=(1,1), span=wx.GBSpan(1,2), border=5, flag=wx.ALL | wx.ALIGN_RIGHT)
 
+        # Configure sizer
+        self.sizer.AddGrowableRow(0)
         self.sizer.AddGrowableCol(1)
-
-        # # Standard controls
-        # sdbControls = wx.StdDialogButtonSizer()
-        # self.sdbControlsOK = wx.Button(self, wx.ID_OK)
-        # sdbControls.AddButton(self.sdbControlsOK)
-        # self.sdbControlsCancel = wx.Button(self, wx.ID_CANCEL)
-        # sdbControls.AddButton(self.sdbControlsCancel)
-        # sdbControls.Realize()
-        # self.sizer.Add(sdbControls, pos=(1,0))
-
         self.SetSizerAndFit(self.sizer)
         self._applyAppTheme()
         self._applyAppTheme(self.ctrls)
@@ -66,6 +78,26 @@ class PsychoColorPicker(wx.Dialog, ThemeMixin):
     def setColor(self, color, space):
         self.color.set(color, space)
         self.preview.color = self.color
+
+    def insertValue(self, event):
+        print(self.color)
+
+    def insertObject(self, event):
+        print(self.color)
+
+    def copyValue(self, event):
+        if wx.TheClipboard.Open():
+            wx.TheClipboard.SetData(wx.TextDataObject(
+                str(getattr(self.color, self.ctrls.GetCurrentPage().space))
+            ))
+            wx.TheClipboard.Close()
+
+    def copyObject(self, event):
+        if wx.TheClipboard.Open():
+            wx.TheClipboard.SetData(wx.TextDataObject(
+                "Color("+str(getattr(self.color, self.ctrls.GetCurrentPage().space))+", "+self.ctrls.GetCurrentPage().space+")"
+            ))
+            wx.TheClipboard.Close()
 
     def __del__(self):
         pass
@@ -130,7 +162,7 @@ class PsychoColorPicker(wx.Dialog, ThemeMixin):
 
 class ColorPreview(wx.Window):
     def __init__(self, color, parent):
-        wx.Window.__init__(self, parent, size=(100,400))
+        wx.Window.__init__(self, parent, size=(100,-1))
         self.SetBackgroundColour(ThemeMixin.appColors['frame_bg'])
         self.parent = parent
         self.color = color
@@ -234,7 +266,6 @@ class ColorPage(wx.Window, ThemeMixin):
                     ColorControl(parent=self, id=wx.ID_ANY, name="Alpha", value=255, min=0, max=255, interval=1))
             for ctrl in self.ctrls:
                 ctrl.spinner.SetBase(16)
-
         self.sizer.AddMany(self.ctrls)
         self.SetSizer(self.sizer)
         #self.onOpen()
