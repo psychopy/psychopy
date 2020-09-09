@@ -4,7 +4,6 @@
 from __future__ import absolute_import, print_function
 
 from past.builtins import basestring
-from psychopy.visual import basevisual as vis
 from past.builtins import basestring
 from psychopy.tools.coordinatetools import sph2cart
 from psychopy import logging
@@ -886,7 +885,7 @@ def hex2rgb255(hexColor):
     """Convert a hex color string (e.g. "#05ff66") into an rgb triplet
     ranging from 0:255
     """
-    col = vis.Color(hexColor)
+    col = Color(hexColor)
     if len(hexColor.strip('#')) == 6:
         return col.rgb255
     elif len(hexColor.strip('#')) == 8:
@@ -895,7 +894,7 @@ def hex2rgb255(hexColor):
 def isValidColor(color):
     """check color validity (equivalent to existing checks in _setColor)
     """
-    col = vis.Color(color)
+    col = Color(color)
     if col.rgb:
         return True
     else:
