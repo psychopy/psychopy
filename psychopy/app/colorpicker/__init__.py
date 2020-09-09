@@ -209,6 +209,8 @@ class ColorPage(wx.Window, ThemeMixin):
                     ColorControl(parent=self, id=wx.ID_ANY, name="Alpha", value=255, min=0, max=255, interval=1))
             for ctrl in self.ctrls:
                 ctrl.spinner.SetBase(16)
+        self.valCtrl = ColorValue(self)
+        self.sizer.Add(self.valCtrl, border=15, flag=wx.ALL | wx.ALIGN_CENTER)
         self.sizer.AddMany(self.ctrls)
         self.SetSizer(self.sizer)
         #self.onOpen()
@@ -234,6 +236,25 @@ class ColorPage(wx.Window, ThemeMixin):
 
         col = tuple(ctrl.value for ctrl in self.ctrls)
         self.dlg.setColor(col, self.space)
+
+
+class ColorValue(wx.TextCtrl):
+    def __init__(self, parent=None):
+        self.parent = parent
+        self.space = parent.space
+        self.color = parent.dlg.color
+        wx.TextCtrl.__init__(self, parent=self.parent, value=str(getattr(self.color, self.space)), style=wx.TE_RICH, size=(250, -1))
+        self.Bind(wx.EVT_TEXT, self.onChange)
+
+    def onChange(self, event):
+        obj = event.EventObject
+        if self.space in Color.getSpace(event.String, True):
+            self.SetStyle(0, len(event.String), wx.TextAttr(wx.Colour((0, 0, 0))))
+            self.parent.dlg.setColor(event.String, self.space)
+            self.parent.onChange()
+        else:
+            self.SetStyle(0, len(event.String), wx.TextAttr(wx.Colour((255,0,0))))
+
 
 class ColorControl(wx.Panel):
     def __init__(self, parent=None, row=0, id=None, name="", value=0, min=-1, max=1, interval=0.01):
