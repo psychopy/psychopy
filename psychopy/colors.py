@@ -885,7 +885,7 @@ def hex2rgb255(hexColor):
     """Convert a hex color string (e.g. "#05ff66") into an rgb triplet
     ranging from 0:255
     """
-    col = Color(hexColor)
+    col = Color(hexColor, 'hex')
     if len(hexColor.strip('#')) == 6:
         return col.rgb255
     elif len(hexColor.strip('#')) == 8:
