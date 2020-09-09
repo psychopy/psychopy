@@ -99,66 +99,9 @@ class PsychoColorPicker(wx.Dialog, ThemeMixin):
             ))
             wx.TheClipboard.Close()
 
-    def __del__(self):
-        pass
-
-    def OnEraseBackground(self, event):
-        pass
-
-    # def DrawHSVWheel(self, event):
-    #     dc = wx.AutoBufferedPaintDC(self.pnlColorWheel)
-    #     dc.SetBackground(wx.Brush(self.pnlColorWheel.GetParent().GetBackgroundColour()))
-    #
-    #     sz = self.pnlColorWheel.GetClientSize()
-    #     dc.Clear()
-    #     wheelBMP = ccd.HSVWheelImage.GetBitmap()
-    #     mask = wx.Mask(wheelBMP, wx.Colour(192, 192, 192))
-    #     wheelBMP.SetMask(mask)
-    #     dc.DrawBitmap(wheelBMP, 0, 0, True)
-
     def onPageChanged(self, event):
         event.EventObject.GetPage(event.Selection).onOpen()
 
-    def updateColorPicker(self, rgb):
-        """Update the color picker dialog from a color picker page.
-
-        Parameters
-        ----------
-        rgb : array_like
-            RGB values to display in the spin controls and preview.
-
-        """
-        self._color = list(rgb)
-        self._colorClipped = [(c + 1.) / 2. for c in self._color]
-        previewColor = wx.Colour([int(c * 255.) for c in self._colorClipped])
-        self.pnlPreview.setColor(previewColor)
-        self.spnColorRed.SetValue(self._color[0])
-        self.spnColorGreen.SetValue(self._color[1])
-        self.spnColorBlue.SetValue(self._color[2])
-
-    def OnRedChanged(self, event):
-        newColor = [self.spnColorRed.GetValue(), self._color[1], self._color[2]]
-        self.updateColorPicker(newColor)
-
-    def OnGreenChanged(self, event):
-        newColor = [self._color[0], self.spnColorGreen.GetValue(), self._color[2]]
-        self.updateColorPicker(newColor)
-
-    def OnBlueChanged(self, event):
-        newColor = [self._color[0], self._color[1], self.spnColorBlue.GetValue()]
-        self.updateColorPicker(newColor)
-
-    def OnNormalizedChecked(self, event):
-        event.Skip()
-
-    def OnClipChecked(self, event):
-        event.Skip()
-
-    def OnCancel(self, event):
-        event.Skip()
-
-    def OnOK(self, event):
-        event.Skip()
 
 class ColorPreview(wx.Window):
     def __init__(self, color, parent):
