@@ -15,7 +15,7 @@ from wx.lib.scrolledpanel import ScrolledPanel
 from psychopy.app.colorpicker.hsv import HSVColorPicker
 from psychopy.app.colorpicker.chip import ColorChip
 from psychopy.app.themes import ThemeMixin
-from psychopy.visual.basevisual import Color, AdvancedColor, colorNames
+from psychopy.colors import Color, AdvancedColor, colorNames
 import wx.lib.agw.aui as aui
 
 
