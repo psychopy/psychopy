@@ -400,7 +400,7 @@ class PsychoPyApp(wx.App, themes.ThemeMixin):
         # wx-windows on some platforms (Mac 10.9.4) with wx-3.0:
         v = parse_version
         if sys.platform == 'darwin':
-            if v('3.0') <= v(wx.version()) <v('4.0'):
+            if v('3.0') <= v(wx.version()) < v('4.0'):
                 _Showgui_Hack()  # returns ~immediately, no display
                 # focus stays in never-land, so bring back to the app:
                 if prefs.app['defaultView'] in ['all', 'builder', 'coder', 'runner']:
@@ -422,6 +422,10 @@ class PsychoPyApp(wx.App, themes.ThemeMixin):
         if self.runner and not self.testMode:
             sys.stdout = self.runner.stdOut
             sys.stderr = self.runner.stdOut
+
+        # load startup plugins (doesn't do anything yet)
+        # if splash:
+        #     splash.SetText(_translate("  Loading plugins..."))
 
         return True
 

@@ -2272,10 +2272,10 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
     def buildComponentsList(self, evt=None):
         """Build the component buttons.
 
-        This function handles creating the icon tray at when the applications
+        This function handles creating the icon tray when the applications
         starts. This function can be called to refresh the list if plugins
-        registering Builder components have been loaded after `loadPlugin` was
-        called.
+        registering Builder components have been registered if `loadPlugin`
+        was called while the app is running.
 
         Parameters
         ----------
@@ -2315,6 +2315,7 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
         # within the main sizer
         self.sizerList = []
 
+        # add sub-windows to sizer
         for categ in categories:
             if categ in _localized:
                 label = _localized[categ]
@@ -2328,7 +2329,7 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
             sectionBtn.Bind(wx.EVT_LEFT_DOWN, self.onSectionBtn)
             sectionBtn.Bind(wx.EVT_RIGHT_DOWN, self.onSectionBtn)
 
-            # Set button background and link to onhover functions
+            # Set button background and link to onHover functions
             #sectionBtn.Bind(wx.EVT_ENTER_WINDOW, self.onHover)
             #sectionBtn.Bind(wx.EVT_LEAVE_WINDOW, self.offHover)
             self.panels[categ] = wx.FlexGridSizer(cols=1)
