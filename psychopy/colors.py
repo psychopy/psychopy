@@ -894,8 +894,7 @@ def hex2rgb255(hexColor):
 def isValidColor(color):
     """check color validity (equivalent to existing checks in _setColor)
     """
-    col = Color(color)
-    if col.rgb:
+    if len(Color.getSpace(color, True)):
         return True
     else:
         return False
