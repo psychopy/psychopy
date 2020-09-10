@@ -27,13 +27,10 @@ start :
 stop : 
     Governs the duration for which the stimulus is presented. See :ref:`startStop` for details.
 
-units : **None**, 'norm', 'cm', 'deg' or 'pix'
-    If None then the current units of the :class:`~psychopy.visual.Window` will be used.
-    See :ref:`units` for explanation of other options.
-    
-nDots : int
-    number of dots to be generated
-    
+Layout
+======
+How should the stimulus be laid out? Padding, margins, size, position, etc.
+
 fieldPos : (x,y) or [x,y]
     specifying the location of the centre of the stimulus.
     
@@ -42,7 +39,21 @@ fieldSize : a single value, specifying the diameter of the field
     
 fieldShape : 
     Defines the shape of the field in which the dots appear. For a circular field the nDots represents the `average` number of dots per frame, but on each frame this may vary a little.
-    
+
+spatial units : **None**, 'norm', 'cm', 'deg' or 'pix'
+    If None then the current units of the :class:`~psychopy.visual.Window` will be used.
+    See :ref:`units` for explanation of other options.
+
+Dots
+====
+Parameters unique to the Dots component
+
+coherence : float
+    fraction moving in the signal direction on any one frame
+
+nDots : int
+    number of dots to be generated
+
 dotSize
     Always specified in pixels
     
