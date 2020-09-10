@@ -78,6 +78,9 @@ class PsychoColorPicker(wx.Dialog, ThemeMixin):
     def setColor(self, color, space):
         self.color.set(color, space)
         self.preview.color = self.color
+        for i in range(self.ctrls.GetPageCount()):
+            page = self.ctrls.GetPage(i)
+            page.setColor(self.color)
 
     def insertValue(self, event):
         print(self.color)
@@ -210,7 +213,7 @@ class ColorPage(wx.Window, ThemeMixin):
             for ctrl in self.ctrls:
                 ctrl.spinner.SetBase(16)
         self.valCtrl = ColorValue(self)
-        self.sizer.Add(self.valCtrl, border=15, flag=wx.ALL | wx.ALIGN_CENTER)
+        self.sizer.Add(self.valCtrl, border=5, flag=wx.ALL | wx.ALIGN_CENTER)
         self.sizer.AddMany(self.ctrls)
         self.SetSizer(self.sizer)
         #self.onOpen()
@@ -218,13 +221,17 @@ class ColorPage(wx.Window, ThemeMixin):
     def _applyAppTheme(self, target=None):
         self.SetBackgroundColour(ThemeMixin.appColors['tab_bg'])
 
-    def onOpen(self):
+    def setColor(self, color):
+        # Update value control
+        self.valCtrl.ChangeValue(str(getattr(color, self.space)))
+        # Get values from color
         if self.space =='hex':
-            col = self.dlg.color.rgb255
+            col = color.rgb255
         elif self.space == 'hexa':
-            col = self.dlg.color.rgba255
+            col = color.rgba255
         else:
-            col = getattr(self.dlg.color, self.space)
+            col = getattr(color, self.space)
+        # Apply values to relevant controls
         for i in range(len(col)):
             self.ctrls[i].value = col[i]
 
@@ -247,11 +254,9 @@ class ColorValue(wx.TextCtrl):
         self.Bind(wx.EVT_TEXT, self.onChange)
 
     def onChange(self, event):
-        obj = event.EventObject
         if self.space in Color.getSpace(event.String, True):
             self.SetStyle(0, len(event.String), wx.TextAttr(wx.Colour((0, 0, 0))))
             self.parent.dlg.setColor(event.String, self.space)
-            self.parent.onChange()
         else:
             self.SetStyle(0, len(event.String), wx.TextAttr(wx.Colour((255,0,0))))
 
@@ -263,6 +268,7 @@ class ColorControl(wx.Panel):
         # Store attributes
         self.color = parent.dlg.color
         self.parent = parent
+        self.dlg = parent.dlg
         self.min = min
         self.max = max
         self.interval=interval
@@ -309,15 +315,18 @@ class ColorControl(wx.Panel):
         self.spinner.SetValue(val)
         propVal = (val-self.min) / (self.max-self.min)
         self.slider.SetValue(propVal*255)
-        self.parent.onChange()
 
     def onChange(self, event):
+        # # If event was supplied by setting the value programatically, ignore this
+        # if isinstance(event, wx.CommandEvent):
+        #     return
         obj = event.GetEventObject()
         if obj == self.slider:
             propVal = obj.GetValue()/255
             self.value = self.min + (self.max-self.min)*propVal
         if obj == self.spinner:
             self.value = obj.GetValue()
+        self.parent.onChange()
 
 class HexControl(ColorControl):
     def __init__(self, parent=None, row=0, id=None, name="", value=0):
