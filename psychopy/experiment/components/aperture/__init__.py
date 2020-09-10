@@ -10,6 +10,8 @@ from builtins import super  # provides Py3-style super() using python-future
 
 from os import path
 from psychopy.experiment.components import BaseVisualComponent, getInitVals, _translate
+from psychopy.localization import _localized as __localized
+_localized = __localized.copy()
 
 __author__ = 'Jeremy Gray, Jon Peirce'
 # March 2011; builder-component for Yuri Spitsyn's visual.Aperture class
@@ -52,10 +54,14 @@ class ApertureComponent(BaseVisualComponent):
         self.params['size'].label = _translate("Size")
         self.params['pos'].hint = _translate("Where is the aperture centred?")
 
-        # inherited from _visual component but not needed
+        # Remove BaseVisual params which are not needed
         del self.params['ori']
         del self.params['color']
         del self.params['colorSpace']
+        del self.params['fillColor']
+        del self.params['fillColorSpace']
+        del self.params['borderColor']
+        del self.params['borderColorSpace']
         del self.params['opacity']
 
     def writeInitCode(self, buff):

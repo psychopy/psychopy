@@ -70,8 +70,9 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
     def __init__(self, win, text, font,
                  pos=(0, 0), units=None, letterHeight=None,
                  size=None,
-                 color=(1.0, 1.0, 1.0),
-                 colorSpace='rgb',
+                 color=(1.0, 1.0, 1.0), colorSpace='rgb',
+                 fillColor=None, fillColorSpace=None,
+                 borderWidth=2, borderColor=None, borderColorSpace=None,
                  contrast=1,
                  opacity=1.0,
                  bold=False,
@@ -80,9 +81,6 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
                  padding=None,  # gap between box and text
                  anchor='center',
                  alignment='left',
-                 fillColor=None,
-                 borderWidth=2,
-                 borderColor=None,
                  flipHoriz=False,
                  flipVert=False,
                  editable=False,
@@ -131,12 +129,14 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
         self.opacity = opacity
         self.onTextCallback = onTextCallback
 
+        if units=='norm':
+            raise NotImplemented("TextBox2 doesn't support 'norm' units at the "
+                                 "moment. Use 'height' units instead")
         # first set params needed to create font (letter sizes etc)
         if letterHeight is None:
             self.letterHeight = defaultLetterHeight[self.units]
         else:
             self.letterHeight = letterHeight
-
         # self._pixLetterHeight helps get font size right but not final layout
         if 'deg' in self.units:  # treat deg, degFlat or degFlatPos the same
             scaleUnits = 'deg'  # scale units are just for font resolution
@@ -144,6 +144,9 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
             scaleUnits = self.units
         self._pixLetterHeight = convertToPix(
                 self.letterHeight, pos=0, units=scaleUnits, win=self.win)
+        if isinstance(self._pixLetterHeight, np.ndarray):
+            # If pixLetterHeight is an array, take the Height value
+            self._pixLetterHeight = self._pixLetterHeight[1]
         self._pixelScaling = self._pixLetterHeight / self.letterHeight
         if size is None:
             size = [defaultBoxWidth[self.units], None]
@@ -152,7 +155,7 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
         self.italic = italic
         self.lineSpacing = lineSpacing
         if padding is None:
-            padding = letterHeight / 2.0
+            padding = self.letterHeight / 2.0
         self.padding = padding
         self.glFont = None  # will be set by the self.font attribute setter
         self.font = font
@@ -207,7 +210,7 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
                 'fillRGB': self.box.fillRGB
         }
         # then layout the text (setting text triggers _layout())
-        self.text = text
+        self.text = text if text is not None else ""
 
         # caret
         self.editable = editable

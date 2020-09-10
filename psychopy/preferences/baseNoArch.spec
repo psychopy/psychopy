@@ -44,8 +44,6 @@
     gammaErrorPolicy = option('abort', 'warn', default='abort')
     # Add plugin names here to load when a PsychoPy session starts.
     startUpPlugins = list(default=list())
-    # Should the Builder and Coder "run" buttons add the experiment to runner view or skip straight to running it?
-    useRunner = boolean(default='True')
 
 # Application settings, applied to coder, builder, & prefs windows
 [app]
@@ -82,9 +80,9 @@
     lineSpacing = integer(0, 64, default=4)
     # Long line edge guide, specify zero to disable
     edgeGuideColumn = integer(0, 65536, default=80)
-    # activate the source assistant panel
+    # Set the source assistant panel to be visible by default
     showSourceAsst = boolean(default=True)
-    # activate the output and shell panels
+    # Set the output/shell to be visible by default
     showOutput = boolean(default=True)
     # Show code completion suggestion and calltips automatically when typing.
     autocomplete = boolean(default=True)
@@ -109,8 +107,8 @@
     unpackedDemosDir = string(default='')
     # name of the folder where subject data should be saved (relative to the script)
     savedDataFolder = string(default='data')
-    # Panels arrangement: topFlow = Flow on top, Components on left
-    topFlow = boolean(default=False)
+    # Panels arrangement: Should Flow be on the top or bottom, and should Components be on the left or right?
+    builderLayout = option('FlowBottom_CompRight','FlowBottom_CompLeft','FlowTop_CompRight','FlowTop_CompLeft',default='FlowBottom_CompRight')
     # Display text in a floating window that describes the experiment
     alwaysShowReadme = boolean(default=True)
     # Upper limit on how many components can be in favorites

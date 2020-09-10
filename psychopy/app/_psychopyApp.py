@@ -360,41 +360,6 @@ class PsychoPyApp(wx.App, themes.ThemeMixin):
         if view.builder:
             self.showBuilder(fileList=exps)
 
-        # if darwin, check for inaccessible keyboard
-        if sys.platform == 'darwin':
-            from psychopy.hardware import keyboard
-            if keyboard.macPrefsBad:
-                title = _translate("Mac keyboard security")
-                if platform.mac_ver()[0] < '10.15':
-                    settingName = 'Accessibility'
-                    setting = 'Privacy_Accessibility'
-                else:
-                    setting = 'Privacy_ListenEvent'
-                    settingName = 'Input Monitoring'
-                msg = _translate("To use high-precision keyboard timing you should "
-                      "enable {} for PsychoPy in System Preferences. "
-                      "Shall we go there (and you can drag PsychoPy app into "
-                      "the box)?"
-                      ).format(settingName)
-                dlg = dialogs.MessageDialog(title=title,
-                                            message=msg,
-                                            type='Query')
-                resp = dlg.ShowModal()
-                if resp == wx.ID_YES:
-                    from AppKit import NSWorkspace
-                    from Foundation import NSURL
-
-                    sys_pref_link = (
-                        'x-apple.systempreferences:'
-                        'com.apple.preference.security?'
-                        '{}'.format(setting))
-
-                    # create workspace object
-                    workspace = NSWorkspace.sharedWorkspace()
-
-                    # Open System Preference
-                    workspace.openURL_(NSURL.URLWithString_(sys_pref_link))
-
         # send anonymous info to www.psychopy.org/usage.php
         # please don't disable this, it's important for PsychoPy's development
         self._latestAvailableVersion = None

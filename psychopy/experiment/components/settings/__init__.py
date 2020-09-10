@@ -43,7 +43,7 @@ _localized = {'expName': _translate("Experiment name"),
               'Enable Escape':  _translate("Enable Escape key"),
               'Experiment info':  _translate("Experiment info"),
               'Data filename':  _translate("Data filename"),
-              'Data file delimiter':  _translate("Data file delimeter"),
+              'Data file delimiter':  _translate("Data file delimiter"),
               'Full-screen window':  _translate("Full-screen window"),
               'Window size (pixels)':  _translate("Window size (pixels)"),
               'Screen': _translate('Screen'),
@@ -602,10 +602,12 @@ class SettingsComponent(object):
         # else:
         #     saveType = "EXPERIMENT_SERVER"
         #     projID = 'undefined'
+        loggingNumericLevel = getattr(logging,
+                                      self.params['logging level'].val.upper())
         code = template.format(
                         params=self.params,
                         name=self.params['expName'].val,
-                        loggingLevel=self.params['logging level'].val.upper(),
+                        loggingNumericLevel=loggingNumericLevel,
                         setRedirectURL=setRedirectURL,
                         version=version,
                         )
