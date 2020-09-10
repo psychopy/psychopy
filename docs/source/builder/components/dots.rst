@@ -27,6 +27,19 @@ start :
 stop : 
     Governs the duration for which the stimulus is presented. See :ref:`startStop` for details.
 
+Appearance
+==========
+How should the stimulus look? Colour, borders, etc.
+
+dot color :
+    See :ref:`colorspaces`
+
+dot color space : rgb, dkl or lms
+    See :ref:`colorspaces`
+
+opacity :
+    Vary the transparency, from 0.0 = invisible to 1.0 = opaque
+
 Layout
 ======
 How should the stimulus be laid out? Padding, margins, size, position, etc.
@@ -71,6 +84,9 @@ signalDots :
     
 noiseDots : *'direction'*, 'position' or 'walk'
     Determines the behaviour of the noise dots, taken directly from Scase et al's (1996) categories. For 'position', noise dots take a random position every frame. For 'direction' noise dots follow a random, but constant direction. For 'walk' noise dots vary their direction every frame, but keep a constant speed.
+
+dot refresh rule : repeat, none
+    When should the sample of dots be refreshed?
 
 .. seealso::
     

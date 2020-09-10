@@ -13,14 +13,18 @@ start : float or integer
 
 stop : 
     When the aperture stops having its effect. See :ref:`startStop` for details.
-    
+
+Layout
+======
+How should the stimulus be laid out? Padding, margins, size, position, etc.
+
 pos : [X,Y]
     The position of the centre of the aperture, in the units specified by the stimulus or window.
     
 size : integer
     The size controls how big the aperture will be, in pixels, default = 120
 
-units : pix
+spatial units : pix
     What units to use (currently only pix).
 
 .. seealso::
