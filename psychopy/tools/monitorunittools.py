@@ -446,15 +446,15 @@ class Vector(object):
             # If supplied with a single value, duplicate it
             if isinstance(pos, (int, float)):
                 pos = (pos, pos)
-            # If None, default to 0
-            if pos == None:
-                pos = (0,0)
             # Enforce int for int-only spaces
             if space in ['pix']:
                 pos = [int(p) for p in pos]
             # Enforce tuple
             if isinstance(pos, (list, np.ndarray)):
                 pos = tuple(pos)
+            # If None, default to 0
+            if pos == None:
+                pos = (0,0)
             if vectorSpaces[space].fullmatch(f'({pos[0]:.20f}, {pos[1]:.20f})'):
                 # Check for monitor if needed
                 if space in ['deg', 'cm']:
