@@ -283,7 +283,7 @@ class DummyMonitor(object):
 class DummyWin(object):
     @property
     def size(self):
-        return (1920, 1080)
+        return (1920, 1080, 1000)
     @property
     def useRetina(self):
         return False
@@ -296,11 +296,11 @@ _int = '\d*(.0*)?'
 _360 = '(\d|\d\d|[12]\d\d|3[0-5]\d|360).?\d*?'
 # Dict of regexpressions for different formats
 vectorSpaces = {
-    'pix': re.compile(_lbr+'\-?'+_int+',\s*'+'\-?'+_int+_rbr),
-    'deg': re.compile(_lbr+'\-?'+_360+',\s*'+'\-?'+_360+_rbr),
-    'cm': re.compile(_lbr+'\-?'+_float+',\s*'+'\-?'+_float+_rbr),
-    'norm': re.compile(_lbr+'\-?'+_float+',\s*'+'\-?'+_float+_rbr),
-    'height': re.compile(_lbr+'\-?'+_float+',\s*'+'\-?'+_float+_rbr),
+    'pix': re.compile(_lbr+'('+'\-?'+_int+',\s*'+')*'+'\-?'+_int+_rbr),
+    'deg': re.compile(_lbr+'('+'\-?'+_360+',\s*'+')*'+'\-?'+_360+_rbr),
+    'cm': re.compile(_lbr+'('+'\-?'+_float+',\s*'+')*'+'\-?'+_float+_rbr),
+    'norm': re.compile(_lbr+'('+'\-?'+_float+',\s*'+')*'+'\-?'+_float+_rbr),
+    'height': re.compile(_lbr+'('+'\-?'+_float+',\s*'+')*'+'\-?'+_float+_rbr),
 }
 
 class Vector(object):
@@ -397,6 +397,9 @@ class Vector(object):
             return self.magnitude >= target
         else:
             return False
+    def __len__(self):
+        """Will return number of dimensions"""
+        return self.dimensions
 
     # ---operations---
     def _canOperate(self, other):
@@ -409,33 +412,28 @@ class Vector(object):
                     or not self.correctFlat == other.correctFlat:
                 raise ValueError(
                     "Vectors must share the same window, monitor and correctFlat setting to operate upon one another")
+            if not self.dimensions == other.dimensions:
+                raise ValueError("Vectors must have the same number of dimensions in order to operate upon one another")
             # If no errors hit, return True
             return True
         else:
             raise TypeError("unsupported operand type(s) for -: '"+type(self).__name__+"' and '"+type(other).__name__+"'")
-            if not self.pix and other.pix:
-                raise ValueError("Vector operation could not be performed as one or both Vectors have a value of None")
-            if not self.win == other.win \
-                or not self.monitor == other.monitor \
-                or not self.correctFlat == other.correctFlat:
-                raise ValueError("Vectors must share the same window, monitor and correctFlat setting to operate upon one another")
-            # If no errors hit, return True
-            return True
+
     def __add__(self, other):
         if self._canOperate(other):
-            return Vector((self.pix[0]+other.pix[0], self.pix[1]+other.pix[1]),
+            return Vector(tuple(self.pix[i]+other.pix[i] for i in range(self.dimensions)),
                           'pix', win=self.win, monitor=self.monitor, correctFlat=self.correctFlat)
     def __sub__(self, other):
         if self._canOperate(other):
-            return Vector((self.pix[0]-other.pix[0], self.pix[1]-other.pix[1]),
+            return Vector(tuple(self.pix[i]-other.pix[i] for i in range(self.dimensions)),
                             'pix', win=self.win, monitor=self.monitor, correctFlat=self.correctFlat)
     def __mul__(self, other):
         if self._canOperate(other):
-            return Vector((self.pix[0]*other.pix[0], self.pix[1]*other.pix[1]),
+            return Vector(tuple(self.pix[i]*other.pix[i] for i in range(self.dimensions)),
                           'pix', win=self.win, monitor=self.monitor, correctFlat=self.correctFlat)
     def __truediv__(self, other):
         if self._canOperate(other):
-            return Vector((self.pix[0]/other.pix[0], self.pix[1]/other.pix[1]),
+            return Vector(tuple(self.pix[i]/other.pix[i] for i in range(self.dimensions)),
                           'pix', win=self.win, monitor=self.monitor, correctFlat=self.correctFlat)
 
     def copy(self):
@@ -452,9 +450,9 @@ class Vector(object):
             # Convert from str if needed
             if isinstance(pos, str) and space in ['pix', 'deg', 'cm', 'norm', 'height']:
                 pos = [float(n) for n in pos.strip('[]()').split(',')]
-            # If supplied with a single value, duplicate it
+            # If supplied with a single value, add braces
             if isinstance(pos, (int, float)):
-                pos = (pos, pos)
+                pos = (pos,)
             # Enforce int for int-only spaces
             if space in ['pix']:
                 pos = [int(p) for p in pos]
@@ -464,7 +462,7 @@ class Vector(object):
             # If None, default to 0
             if pos == None:
                 pos = (0,0)
-            if vectorSpaces[space].fullmatch(f'({pos[0]:.20f}, {pos[1]:.20f})'):
+            if vectorSpaces[space].fullmatch('('+ ', '.join([f'{pos[i]:.20f}' for i in range(self.dimensions)]) +')'):
                 # Check for monitor if needed
                 if space in ['deg', 'cm']:
                     if set and not self.monitor:
@@ -486,6 +484,28 @@ class Vector(object):
 
                 # If it makes it this far, pos is valid
                 return pos
+
+    @property
+    def dimensions(self):
+        if isinstance(self._requested, (list, tuple, np.ndarray)):
+            return len(self._requested)
+        elif isinstance(self._requested, (int, float, type(None))):
+            return 1
+    @dimensions.setter
+    def dimensions(self, value):
+        # Check that there aren't more dimensions than the window has (assume 3 if no window is set)
+        if hasattr(self, 'win'):
+            maxdim = len(self.win.size)
+        else:
+            maxdim = 3
+        if value > maxdim:
+            raise ValueError("Vector has more dimensions than are supported by the window")
+
+        # Adjust values to fit if dimensions is set manually
+        if value > len(self.pix):
+            self.pix = self.pix + (0,)*(value - self.pix)
+        if value < len(self.pix):
+            self.pix = self.pix[:value]
 
     @property
     def magnitude(self):
@@ -587,13 +607,15 @@ class Vector(object):
     @property
     def norm(self):
         if self.win.useRetina:
-            return (self.pix[0] * 2.0 / self.win.size[0],
-                    self.pix[1] * 2.0 / self.win.size[1])
+            return tuple(
+                self.pix[i] * 2.0 / self.win.size[i]
+                for i in range(self.dimensions)
+            )
         else:
-            return (self.pix[0] / self.win.size[0],
-                    self.pix[1] / self.win.size[1])
-
-
+            return tuple(
+                self.pix[i] / self.win.size[i]
+                for i in range(self.dimensions)
+            )
     @norm.setter
     def norm(self, value):
         # Validate
@@ -602,11 +624,15 @@ class Vector(object):
             return
 
         if self.win.useRetina:
-            self.pix = (value[0] * self.win.size[0] / 2.0,
-                        value[1] * self.win.size[1] / 2.0)
+            self.pix = tuple(
+                value[i] * self.win.size[i] / 2.0
+                for i in range(self.dimensions)
+            )
         else:
-            self.pix = (value[0] * self.win.size[0],
-                        value[1] * self.win.size[1])
+            self.pix = tuple(
+                value[i] * self.win.size[i]
+                for i in range(self.dimensions)
+            )
 
     @property
     def height(self):
