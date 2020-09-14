@@ -401,6 +401,15 @@ class Vector(object):
     # ---operations---
     def _canOperate(self, other):
         if isinstance(other, type(self)):
+            # If operating with a Vector
+            if not self.pix and other.pix:
+                raise ValueError("Vector operation could not be performed as one or both Vectors have a value of None")
+            if not self.win == other.win \
+                    or not self.monitor == other.monitor \
+                    or not self.correctFlat == other.correctFlat:
+                raise ValueError(
+                    "Vectors must share the same window, monitor and correctFlat setting to operate upon one another")
+            # If no errors hit, return True
             return True
         else:
             raise TypeError("unsupported operand type(s) for -: '"+type(self).__name__+"' and '"+type(other).__name__+"'")
