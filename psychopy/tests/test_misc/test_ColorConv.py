@@ -37,7 +37,9 @@ def test_HSV_RGB():
        [ 1. ,  -1. ,  1. ],
        [ 1. ,  -1. ,  0.],
        [ 1. ,  -1. ,  -1. ]])
-    RGB = hsv2rgb(HSV)
+    RGB = numpy.array(
+       [hsv2rgb(hsv) for hsv in HSV]
+    )
     assert numpy.allclose(RGB,expectedRGB,0.0001)
 
 if __name__=='__main__':
