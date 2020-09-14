@@ -16,8 +16,8 @@ from psychopy import monitors
 from psychopy import logging
 import numpy as np
 import re
-from numpy import array, sin, cos, tan, pi, radians, degrees, arctan, abs
-from math import hypot
+from numpy import array, sin, cos, tan, pi, radians, hypot, degrees, arctan, abs
+from math import hypot as hypot3d
 
 # Maps supported coordinate unit type names to the function that converts
 # the given unit type to PsychoPy OpenGL pix unit space.
@@ -527,7 +527,7 @@ class Vector(object):
     @property
     def magnitude(self):
         """Return magnitude of vector (i.e. length of the line from vector to (0,0) in pixels)"""
-        return hypot(*self.pix)
+        return hypot3d(*self.pix)
     @magnitude.setter
     def magnitude(self, value):
         """Extend Vector in current direction"""
@@ -548,7 +548,7 @@ class Vector(object):
         if self.dimensions == 3:
             x = degrees(arctan(self.pix[1]/self.pix[0])) if self.pix[0] != 0 else 90 # Angle from x axis (y is opp, x is adj)
             y = degrees(arctan(self.pix[0]/self.pix[1])) if self.pix[1] != 0 else 90 # Angle from y axis (x is opp, y is adj)
-            z = degrees(arctan(self.pix[2]/hypot(*self.pix[:2]))) if hypot(*self.pix[:2]) != 0 else 90 # Angle from z axis (z is opp, hyp(x,y) is adj)
+            z = degrees(arctan(self.pix[2]/hypot3d(*self.pix[:2]))) if hypot3d(*self.pix[:2]) != 0 else 90 # Angle from z axis (z is opp, hyp(x,y) is adj)
             return (x,y,z)
 
     @property
