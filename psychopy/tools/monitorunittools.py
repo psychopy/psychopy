@@ -16,7 +16,8 @@ from psychopy import monitors
 from psychopy import logging
 import numpy as np
 import re
-from numpy import array, sin, cos, tan, pi, radians, degrees, hypot, arctan, abs
+from numpy import array, sin, cos, tan, pi, radians, degrees, arctan, abs
+from math import hypot
 
 # Maps supported coordinate unit type names to the function that converts
 # the given unit type to PsychoPy OpenGL pix unit space.
