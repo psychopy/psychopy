@@ -532,7 +532,7 @@ class Vector(object):
     def magnitude(self, value):
         """Extend Vector in current direction"""
         # Divide by current magnitude
-        root = tuple(p/self.magnitude for p in self.pix)
+        root = tuple(p/self.magnitude if self.magnitude else 0 for p in self.pix)
         self.pix = tuple(r*value for r in root)
 
     @property
