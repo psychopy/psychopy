@@ -28,6 +28,12 @@ from .. import shaders
 from ..rect import Rect
 from ... import core
 
+try:
+    import uniseg.linebreak
+    _has_uniseg = True
+except:
+    _has_uniseg = False
+
 allFonts = FontManager()
 
 # compile global shader programs later (when we're certain a GL context exists)
@@ -61,6 +67,7 @@ defaultBoxWidth = {'cm': 15.0,
                    'pixels': 500}
 
 wordBreaks = " -\n"  # what about ",."?
+
 
 END_OF_THIS_LINE = 983349843
 
@@ -355,30 +362,9 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
         else:
             alphaCorrection = 1
 
-        customWrapping = True # False to use original wrapping
-
-        if customWrapping:
-            AVOID_EOL = "".join((
-                    u"({[`", # opening parenthesis and quotation marks
-                    u"（〔［｛〈《「『【",
-                    u"‘“〝≪",
-                    u"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz",
-                    u"0123456789",
-                    ))
-            AVOID_BOL = "".join((
-                    u".,:;!?)}] ", 
-                    u"゛゜", # voiced and semivoiced sound marks
-                    u"、。，．・ー：；",  # punctuation marks
-                    u"？！", # question and exclamation marks
-                    u"）〕］｝〉》」』】", # closing parenthesis and quotation marks
-                    u"’”〟≫",
-                    u"‐ー", # hyphen and prolonged sound mark
-                    u"ヽヾゝゞ", # ditto marks
-                    u"′″",  
-                    u"ぁぃぅぇぉっゃゅょゎ",  # small Hiragana
-                    u"ァィゥェォッャュョヮヵヶ",  # small Katakana
-                    ))
-            extend = False
+        if _has_uniseg:
+            # Allow hanging
+            hanging = False
 
             i_all = 0
             lineN = 0
@@ -388,26 +374,7 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
             vertices_list = []
             texcoords_list = []
             
-            # split text into segments
-            seg = list(text)
-            avoid = [None] * len(text)
-            i = 0
-            z = len(seg)
-            while i < z:
-                c = seg[i]
-                if c[-1] in AVOID_EOL and i+1 < z:  # should not be at the EOL
-                    seg[i+1] = c + seg[i+1]  # combine with next character
-                    avoid[i+1] = 'E'
-                    del seg[i], avoid[i] # remove combined character
-                    z -= 1 # decrease N of segments
-                elif c[0] in AVOID_BOL and 0 <= i-1:  #  should not be at the BOL
-                    seg[i-1] = seg[i-1] + c  # combine with previous character
-                    avoid[i-1] = 'B'
-                    del seg[i], avoid[i] # remove combined character
-                    z -= 1 # decrease N of segments
-                    i -= 1 # adjust index
-                else:
-                    i += 1  # check next character
+            seg = list(uniseg.linebreak.line_break_units(text))
             
             # calc segment width
             for i in range(len(seg)):
@@ -482,16 +449,16 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
                     if seg[i][-1] == '\n':
                         i+=1 # increment index to include \n to current line
                         break
-                    # if extend=True, break line if line_width is equal or 
+                    # if hanging=True, break line if line_width is equal or 
                     # greater than lineMax.
-                    if extend and lineMax <= line_width:
+                    if hanging and lineMax <= line_width:
                         break
                     # concatenate next segment
                     line_width += segwidth_list[i]
                     # if line_width is greater than lineMax,
-                    # break if extend=False or the segment is not labeled as
+                    # break if hanging=False or the segment is not labeled as
                     # "avod beggining of the line".
-                    if lineMax < line_width and (not extend or avoid[i] != 'B'):
+                    if lineMax < line_width and not hanging: #(not hanging or avoid[i] != 'B'):
                         break
                 else:
                     # if for sentence finished without break, all segments 
@@ -500,7 +467,7 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
                 p = max(1, i)
                 # concatenate segments and remove from segment list
                 lines.append("".join(seg[:p]))
-                del seg[:p], avoid[:p], segwidth_list[:p]
+                del seg[:p], segwidth_list[:p] #, avoid[:p]
 
             if lines:
                 for line in lines:
