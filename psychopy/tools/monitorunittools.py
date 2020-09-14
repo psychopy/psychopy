@@ -509,16 +509,24 @@ class Vector(object):
 
     @property
     def magnitude(self):
-        """Return magnitude of vector (i.e. length of the line from vector to (0,0)"""
-        return hypot(abs(self.pix[0]), abs(self.pix[1]))
+        """Return magnitude of vector (i.e. length of the line from vector to (0,0) in pixels)"""
+        return hypot(*self.pix)
 
     @property
     def direction(self):
         """Return direction of vector (i.e. angle between vector and the horizontal plane"""
-        if self.pix[0] == 0:
-            return 90
-        deg = degrees(arctan(self.pix[1]/self.pix[0]))
-        return deg
+        deg = []
+        if self.dimensions < 2:
+            return 0 # With only 1 dimension, y is essentially zero, so angle is always 0
+        if self.dimensions == 2:
+            x = degrees(arctan(self.pix[1]/self.pix[0])) if self.pix[0] != 0 else 90 # Angle from x axis (y is opp, x is adj)
+            y = degrees(arctan(self.pix[0]/self.pix[1])) if self.pix[1] != 0 else 90 # Angle from y axis (x is opp, y is adj)
+            return (x, y)
+        if self.dimensions == 3:
+            x = degrees(arctan(self.pix[1]/self.pix[0])) if self.pix[0] != 0 else 90 # Angle from x axis (y is opp, x is adj)
+            y = degrees(arctan(self.pix[0]/self.pix[1])) if self.pix[1] != 0 else 90 # Angle from y axis (x is opp, y is adj)
+            z = degrees(arctan(self.pix[2]/hypot(*self.pix[:2]))) if hypot(*self.pix[:2]) != 0 else 90 # Angle from z axis (z is opp, hyp(x,y) is adj)
+            return (x,y,z)
 
     @property
     def pix(self):
