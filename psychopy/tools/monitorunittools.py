@@ -421,18 +421,34 @@ class Vector(object):
             raise TypeError("unsupported operand type(s) for -: '"+type(self).__name__+"' and '"+type(other).__name__+"'")
 
     def __add__(self, other):
+        if isinstance(other, (int, float)):
+            out = self.copy()
+            out.magnitude += other
+            return out
         if self._canOperate(other):
             return Vector(tuple(self.pix[i]+other.pix[i] for i in range(self.dimensions)),
                           'pix', win=self.win, monitor=self.monitor, correctFlat=self.correctFlat)
     def __sub__(self, other):
+        if isinstance(other, (int, float)):
+            out = self.copy()
+            out.magnitude -= other
+            return out
         if self._canOperate(other):
             return Vector(tuple(self.pix[i]-other.pix[i] for i in range(self.dimensions)),
                             'pix', win=self.win, monitor=self.monitor, correctFlat=self.correctFlat)
     def __mul__(self, other):
+        if isinstance(other, (int, float)):
+            out = self.copy()
+            out.magnitude *= other
+            return out
         if self._canOperate(other):
             return Vector(tuple(self.pix[i]*other.pix[i] for i in range(self.dimensions)),
                           'pix', win=self.win, monitor=self.monitor, correctFlat=self.correctFlat)
     def __truediv__(self, other):
+        if isinstance(other, (int, float)):
+            out = self.copy()
+            out.magnitude /= other
+            return out
         if self._canOperate(other):
             return Vector(tuple(self.pix[i]/other.pix[i] for i in range(self.dimensions)),
                           'pix', win=self.win, monitor=self.monitor, correctFlat=self.correctFlat)
