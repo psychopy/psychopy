@@ -15,7 +15,6 @@ from psychopy import logging
 
 # Dict of examples of Psychopy Red at 12% opacity in different formats
 colorExamples = {
-    'invis': None,
     'named': 'crimson',
     'hex': '#F2545B',
     'hexa': '#F2545B1E',
