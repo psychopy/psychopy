@@ -1,5 +1,4 @@
 from psychopy.colors import Color, colorSpaces
-import numpy
 
 # Define expected values for different spaces
 expectedHSV = [

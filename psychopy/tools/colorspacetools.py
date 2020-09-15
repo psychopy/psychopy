@@ -12,7 +12,6 @@ from __future__ import absolute_import, division, print_function
 __all__ = ['srgbTF', 'rec709TF', 'cielab2rgb', 'cielch2rgb', 'dkl2rgb',
            'dklCart2rgb', 'rgb2dklCart', 'hsv2rgb', 'rgb2lms', 'lms2rgb']
 
-from past.utils import old_div
 import numpy
 from psychopy import logging
 
@@ -39,7 +38,7 @@ def srgbTF(rgb, reverse=False, **kwargs):
 
     """
 
-    col = AdvancedColor(tuple(rgb))
+    col = AdvancedColor(tuple(rgb), 'rgb')
     if len(rgb) == 3:
         return unpackColors(col.srgbTF)
     elif len(rgb) == 4:
@@ -66,7 +65,7 @@ def rec709TF(rgb, **kwargs):
 
     """
 
-    col = AdvancedColor(tuple(rgb))
+    col = AdvancedColor(tuple(rgb), 'rgb')
     if len(rgb) == 3:
         return unpackColors(col.rec709TF)
     elif len(rgb) == 4:

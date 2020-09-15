@@ -44,7 +44,7 @@ from psychopy.visual.helpers import (pointInPolygon, polygonsOverlap,
                                      setColor, findImageFile)
 from psychopy.tools.typetools import float_uint8
 from psychopy.tools.arraytools import makeRadialMatrix
-from psychopy.tools.colorspacetools import dkl2rgb, lms2rgb, hsv2rgb  # pylint: disable=W0611
+from psychopy.tools.colorspacetools import dkl2rgb, lms2rgb  # pylint: disable=W0611
 
 from . import globalVars
 
