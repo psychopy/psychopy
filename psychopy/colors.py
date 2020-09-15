@@ -181,8 +181,8 @@ colorNames = {
     }
 # Shorthand for common regexpressions
 _255 = '(\d|\d\d|1\d\d|2[0-4]\d|25[0-5])'
-_360 = '((\d|\d\d|[12]\d\d|3[0-5]\d)\.\d*|360|360\.0*)'
-_100 = '((\d|\d\d)\.\d*|100|100\.0*)'
+_360 = '((\d|\d\d|[12]\d\d|3[0-5]\d)(\.\d)*|360|360\.0*)'
+_100 = '((\d|\d\d)(\.\d)*|100|100\.0*)'
 _1 = '(0|1|1.0*|0\.\d*)'
 _lbr = '[\[\(]\s*'
 _rbr = '\s*[\]\)]'
@@ -255,7 +255,7 @@ class Color(object):
     def __eq__(self, target):
         """== will compare RGBA values, rounded to 2dp"""
         if isinstance(target, Color):
-            return (round(c,2) for c in self.rgba) == (round(c,2) for c in target.rgba)
+            return tuple(round(c,2) for c in self.rgba) == tuple(round(c,2) for c in target.rgba)
         else:
             return False
     def __ne__(self, target):
