@@ -10,6 +10,7 @@ import numpy
 import pytest
 import shutil
 from tempfile import mkdtemp
+from psychopy.colors import colorExamples
 
 """Each test class creates a context subclasses _baseVisualTest to run a series
 of tests on a single graphics context (e.g. pyglet with shaders)
@@ -755,6 +756,30 @@ class _baseVisualTest(object):
         assert (1000/150.0) < msPFavg < (1000/40.0), \
             "Your frame period is %.1fms which suggests you aren't syncing to the frame" %msPFavg
 
+class TestColorMixin(object):
+    @classmethod
+    def test_color(self):
+        # Test that color can be set in all spaces
+        for space in colorExamples:
+            col = colorExamples[space]
+            self.colorSpace = space
+            self.color = col
+
+    @classmethod
+    def test_fillColor(self):
+        # Test that color can be set in all spaces
+        for space in colorExamples:
+            col = colorExamples[space]
+            self.fillColorSpace = space
+            self.fillColor = col
+
+    @classmethod
+    def test_borderColor(self):
+        # Test that color can be set in all spaces
+        for space in colorExamples:
+            col = colorExamples[space]
+            self.borderColorSpace = space
+            self.borderColor = col
 
 #create different subclasses for each context/backend
 class TestPygletNorm(_baseVisualTest):
