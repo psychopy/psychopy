@@ -13,8 +13,7 @@ from __future__ import absolute_import, division, print_function
 from builtins import object
 from past.builtins import basestring
 from pathlib import Path
-from statistics import mean
-from psychopy.colors import Color, AdvancedColor, colorSpaces, advancedSpaces
+from psychopy.colors import Color, AdvancedColor, colorSpaces
 
 # Ensure setting pyglet.options['debug_gl'] to False is done prior to any
 # other calls to pyglet or pyglet submodules, otherwise it may not get picked
@@ -287,7 +286,7 @@ class ColorMixin(object):
     """
 
     @property
-    def foreColor(self):
+    def foreColor(self, value):
         """Foreground color of the stimulus
 
         Value should be one of:
@@ -345,15 +344,12 @@ class ColorMixin(object):
         if isinstance(value, Color):
             # If supplied with a color object, set as that
             self._foreColor = value
-        elif self.colorSpace in Color.getSpace(value, True) or 'named' in Color.getSpace(value, True):
+        elif self.colorSpace in Color.getSpace(value, True):
             # If supplied with a valid color, use it to make a color object
             self._foreColor = Color(value, self.colorSpace)
         elif self.colorSpace in AdvancedColor.getSpace(value, True):
             # If supplied with a valid advanced color, use it to make an advanced color object and print tip.
             self._foreColor = AdvancedColor(value, self.colorSpace)
-        else:
-            self._foreColor = Color()
-            logging.error(f"'{value}' is not a valid {self.colorSpace} color")
     @property
     def color(self):
         """Alternative way of setting foreColor"""
@@ -371,15 +367,12 @@ class ColorMixin(object):
         if isinstance(value, Color):
             # If supplied with a color object, set as that
             self._fillColor = value
-        elif self.colorSpace in Color.getSpace(value, True) or 'named' in Color.getSpace(value, True):
+        elif self.colorSpace in Color.getSpace(value, True):
             # If supplied with a valid color, use it to make a color object
             self._fillColor = Color(value, self.colorSpace)
         elif self.colorSpace in AdvancedColor.getSpace(value, True):
             # If supplied with a valid advanced color, use it to make an advanced color object and print tip.
             self._fillColor = AdvancedColor(value, self.colorSpace)
-        else:
-            self._fillColor = Color()
-            logging.error(f"'{value}' is not a valid {self.colorSpace} color")
     @property
     def backColor(self):
         """Alternative way of setting fillColor"""
@@ -397,15 +390,12 @@ class ColorMixin(object):
         if isinstance(value, Color):
             # If supplied with a color object, set as that
             self._borderColor = value
-        elif self.colorSpace in Color.getSpace(value, True) or 'named' in Color.getSpace(value, True):
+        elif self.colorSpace in Color.getSpace(value, True):
             # If supplied with a valid color, use it to make a color object
             self._borderColor = Color(value, self.colorSpace)
         elif self.colorSpace in AdvancedColor.getSpace(value, True):
             # If supplied with a valid advanced color, use it to make an advanced color object and print tip.
             self._borderColor = AdvancedColor(value, self.colorSpace)
-        else:
-            self._borderColor = Color()
-            logging.error(f"'{value}' is not a valid {self.colorSpace} color")
     @property
     def lineColor(self):
         """Alternative way of setting borderColor"""
@@ -444,7 +434,7 @@ class ColorMixin(object):
             return 'rgba'
     @colorSpace.setter
     def colorSpace(self, value):
-        if value in colorSpaces or value in advancedSpaces:
+        if value in colorSpaces:
             self._colorSpace = value
         else:
             logging.error(f"'{value}' is not a valid color space")
@@ -480,14 +470,13 @@ class ColorMixin(object):
         """
         if hasattr(self, '_foreColor'):
             self._foreColor.contrast *= value
-        elif hasattr(self, '_fillColor'):
-            self._fillColor.contrast *= value
         else:
             logging.warning(f"Attempt to set contrast on object {self.name}, which has no color.")
 
-    def setForeColor(self, color, colorSpace=None, operation='', log=None):
-        """Hard setter for foreColor, allows suppression of the log message, simultaneous colorSpace setting and
-        calls update methods.
+    def setColor(self, color, colorSpace=None, operation='', log=None):
+        """Usually you can use 'stim.attribute = value' syntax instead,
+        but use this method if you need to suppress the log message
+        and/or set colorSpace simultaneously.
         """
         if colorSpace is not None:
             self.colorSpace = colorSpace
@@ -499,48 +488,6 @@ class ColorMixin(object):
             self.foreColor -= color
         else:
             logging.error(f"Operation '{operation}' not recognised.")
-        # Trigger color update for components like Textbox which have different behaviours for a hard setter
-        self.updateColors()
-    def setColor(self, color, colorSpace=None, operation='', log=None):
-        self.setForeColor(color, colorSpace=colorSpace, operation=operation, log=log)
-
-    def setFillColor(self, color, colorSpace=None, operation='', log=None):
-        """Hard setter for fillColor, allows suppression of the log message, simultaneous colorSpace setting and
-        calls update methods.
-        """
-        if colorSpace is not None:
-            self.colorSpace = colorSpace
-        if operation in ['', '=']:
-            self.fillColor = color
-        elif operation in ['+']:
-            self.fillColor += color
-        elif operation in ['-']:
-            self.fillColor -= color
-        else:
-            logging.error(f"Operation '{operation}' not recognised.")
-        # Trigger color update for components like Textbox which have different behaviours for a hard setter
-        self.updateColors()
-    def setBackColor(self, color, colorSpace=None, operation='', log=None):
-        self.setFillColor(color, colorSpace=colorSpace, operation=operation, log=log)
-
-    def setBorderColor(self, color, colorSpace=None, operation='', log=None):
-        """Hard setter for fillColor, allows suppression of the log message, simultaneous colorSpace setting and
-        calls update methods.
-        """
-        if colorSpace is not None:
-            self.colorSpace = colorSpace
-        if operation in ['', '=']:
-            self.borderColor = color
-        elif operation in ['+']:
-            self.borderColor += color
-        elif operation in ['-']:
-            self.borderColor -= color
-        else:
-            logging.error(f"Operation '{operation}' not recognised.")
-        # Trigger color update for components like Textbox which have different behaviours for a hard setter
-        self.updateColors()
-    def setLineColor(self, color, colorSpace=None, operation='', log=None):
-        self.setBorderColor(color, colorSpace=colorSpace, operation=operation, log=log)
 
     def setContrast(self, newContrast, operation='', log=None):
         """Usually you can use 'stim.attribute = value' syntax instead,
@@ -564,11 +511,6 @@ class ColorMixin(object):
         col = Color(rgb, colorSpace)
         col.contrast *= contrast
         return col.rgb
-
-    def updateColors(self):
-        """Placeholder method to update colours when set externally, for example updating the `pallette` attribute of
-        a textbox"""
-        return
 
 
 class ContainerMixin(object):
@@ -1338,39 +1280,24 @@ class BaseVisualStim(MinimalStim, WindowMixin, LegacyVisualMixin):
                    ". Set autoLog to True only at the end of __init__())")
             logging.warning(msg % (self.__class__.__name__))
 
-    @property
-    def opacity(self):
+    @attributeSetter
+    def opacity(self, value):
         """Determines how visible the stimulus is relative to background
 
         The value should be a single float ranging 1.0 (opaque) to 0.0
         (transparent). :ref:`Operations <attrib-operations>` are supported.
         Precisely how this is used depends on the :ref:`blendMode`.
         """
-        alphas = []
-        if hasattr(self, '_foreColor'):
-            alphas.append(self._foreColor.alpha)
-        if hasattr(self, '_fillColor'):
-            alphas.append(self._fillColor.alpha)
-        if hasattr(self, '_borderColor'):
-            alphas.append(self._borderColor.alpha)
-        if alphas:
-            return mean(alphas)
-        else:
-            return 1
-    @opacity.setter
-    def opacity(self, value):
-        # Setting opacity as a single value makes all colours the same opacity
-        if hasattr(self, '_foreColor'):
-            self._foreColor.alpha = value
-        if hasattr(self, '_fillColor'):
-            self._fillColor.alpha = value
-        if hasattr(self, '_borderColor'):
-            self._borderColor.alpha = value
+        self.__dict__['opacity'] = value
 
-    def updateOpacity(self):
-        """Placeholder method to update colours when set externally, for example updating the `pallette` attribute of
-        a textbox"""
-        return
+        if not 0 <= value <= 1 and self.autoLog:
+            logging.warning('Setting opacity outside range 0.0 - 1.0'
+                            ' has no additional effect')
+
+        # opacity is coded by the texture, if not using shaders
+        if hasattr(self, 'useShaders') and not self.useShaders:
+            if hasattr(self, 'mask'):
+                self.mask = self.mask  # call attributeSetter
 
     @attributeSetter
     def ori(self, value):
@@ -1512,19 +1439,10 @@ class BaseVisualStim(MinimalStim, WindowMixin, LegacyVisualMixin):
         setAttribute(self, 'ori', newOri, log, operation)
 
     def setOpacity(self, newOpacity, operation='', log=None):
-        """Hard setter for opacity, allows the suppression of log messages and calls the update method
+        """Usually you can use 'stim.attribute = value' syntax instead,
+        but use this method if you need to suppress the log message
         """
-        if operation in ['', '=']:
-            self.opacity = newOpacity
-        elif operation in ['+']:
-            self.opacity += newOpacity
-        elif operation in ['-']:
-            self.opacity -= newOpacity
-        else:
-            logging.error(f"Operation '{operation}' not recognised.")
-        # Trigger color update for components like Textbox which have different behaviours for a hard setter
-        self.updateOpacity()
-
+        setAttribute(self, 'opacity', newOpacity, log, operation)
 
     def _set(self, attrib, val, op='', log=None):
         """DEPRECATED since 1.80.04 + 1.
