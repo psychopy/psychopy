@@ -19,6 +19,7 @@ from psychopy.experiment.utils import CodeGenerationException
 from psychopy.experiment.utils import unescapedDollarSign_re
 from psychopy.experiment.params import getCodeFromParamStr
 from psychopy.alerts import alerttools
+from psychopy.colors import colorSpaces
 
 from psychopy.localization import _translate, _localized
 
@@ -598,7 +599,7 @@ class BaseVisualComponent(BaseComponent):
         msg = _translate("Foreground color of this stimulus (e.g. $[1,1,0], red );"
                          " Right-click to bring up a color-picker (rgb only)")
         self.params['color'] = Param(
-            color, valType='str', allowedTypes=[], categ='Appearance',
+            color, valType='color', allowedTypes=[], categ='Appearance',
             updates='constant',
             allowedUpdates=['constant', 'set every repeat', 'set every frame'],
             hint=msg,
@@ -608,7 +609,7 @@ class BaseVisualComponent(BaseComponent):
                          "the foreground color? (rgb, dkl, lms, hsv)")
         self.params['colorSpace'] = Param(
             colorSpace, valType='str', categ='Appearance',
-            allowedVals=['rgb', 'dkl', 'lms', 'hsv'],
+            allowedVals=list(colorSpaces),
             updates='constant',
             hint=msg,
             label=_localized['colorSpace'])
@@ -616,7 +617,7 @@ class BaseVisualComponent(BaseComponent):
         msg = _translate("Fill color of this stimulus (e.g. $[1,1,0], red );"
                          " Right-click to bring up a color-picker (rgb only)")
         self.params['fillColor'] = Param(
-            color, valType='str', allowedTypes=[], categ='Appearance',
+            color, valType='color', allowedTypes=[], categ='Appearance',
             updates='constant',
             allowedUpdates=['constant', 'set every repeat', 'set every frame'],
             hint=msg,
@@ -626,7 +627,7 @@ class BaseVisualComponent(BaseComponent):
                          "the fill color? (rgb, dkl, lms, hsv)")
         self.params['fillColorSpace'] = Param(
             colorSpace, valType='str', categ='Appearance',
-            allowedVals=['rgb', 'dkl', 'lms', 'hsv'],
+            allowedVals=list(colorSpaces),
             updates='constant',
             hint=msg,
             label=_localized['fillColorSpace'])
@@ -634,7 +635,7 @@ class BaseVisualComponent(BaseComponent):
         msg = _translate("Color of this stimulus (e.g. $[1,1,0], red );"
                          " Right-click to bring up a color-picker (rgb only)")
         self.params['borderColor'] = Param(
-            color, valType='str', allowedTypes=[], categ='Appearance',
+            color, valType='color', allowedTypes=[], categ='Appearance',
             updates='constant',
             allowedUpdates=['constant', 'set every repeat', 'set every frame'],
             hint=msg,
@@ -644,7 +645,7 @@ class BaseVisualComponent(BaseComponent):
                          "the border color? (rgb, dkl, lms, hsv)")
         self.params['borderColorSpace'] = Param(
             colorSpace, valType='str', categ='Appearance',
-            allowedVals=['rgb', 'dkl', 'lms', 'hsv'],
+            allowedVals=list(colorSpaces),
             updates='constant',
             hint=msg,
             label=_localized['borderColorSpace'])
