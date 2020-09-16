@@ -1301,7 +1301,7 @@ class BaseVisualStim(MinimalStim, WindowMixin, LegacyVisualMixin):
         if hasattr(self, '_fillColor'):
             alphas.append(self._fillColor.alpha)
         if hasattr(self, '_borderColor'):
-            alphas.append(self._boderColor.alpha)
+            alphas.append(self._borderColor.alpha)
         return mean(alphas)
     @opacity.setter
     def opacity(self, value):
