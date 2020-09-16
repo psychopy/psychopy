@@ -82,7 +82,8 @@ class SliderComponent(BaseVisualComponent):
         self.targets = ['PsychoPy', 'PsychoJS']
 
         # params
-        self.order.extend(['size', 'pos',
+        self.order.extend(['name',
+                      'size', 'pos',
                       'ticks', 'labels',  'granularity',
                       'font','flip','color','styles',
                       ])
@@ -181,7 +182,7 @@ class SliderComponent(BaseVisualComponent):
                    "    size={size}, pos={pos}, units={units},\n"
                    "    labels={labels}, ticks={ticks},\n"
                    "    granularity={granularity}, style={styles},\n"
-                   "    color={color}, colorSpace={colorSpace}, font={font},\n"
+                   "    color={color}, font={font},\n"
                    "    flip={flip}, depth={depth})\n"
                    .format(**inits))
         buff.writeIndented(initStr)
