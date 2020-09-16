@@ -13,6 +13,7 @@ from __future__ import absolute_import, division, print_function
 from builtins import object
 from past.builtins import basestring
 from pathlib import Path
+from statistics import mean
 from psychopy.colors import Color, AdvancedColor, colorSpaces
 
 # Ensure setting pyglet.options['debug_gl'] to False is done prior to any
@@ -1286,24 +1287,31 @@ class BaseVisualStim(MinimalStim, WindowMixin, LegacyVisualMixin):
                    ". Set autoLog to True only at the end of __init__())")
             logging.warning(msg % (self.__class__.__name__))
 
-    @attributeSetter
-    def opacity(self, value):
+    @property
+    def opacity(self):
         """Determines how visible the stimulus is relative to background
 
         The value should be a single float ranging 1.0 (opaque) to 0.0
         (transparent). :ref:`Operations <attrib-operations>` are supported.
         Precisely how this is used depends on the :ref:`blendMode`.
         """
-        self.__dict__['opacity'] = value
-
-        if not 0 <= value <= 1 and self.autoLog:
-            logging.warning('Setting opacity outside range 0.0 - 1.0'
-                            ' has no additional effect')
-
-        # opacity is coded by the texture, if not using shaders
-        if hasattr(self, 'useShaders') and not self.useShaders:
-            if hasattr(self, 'mask'):
-                self.mask = self.mask  # call attributeSetter
+        alphas = []
+        if hasattr(self, '_foreColor'):
+            alphas.append(self._foreColor.alpha)
+        if hasattr(self, '_fillColor'):
+            alphas.append(self._fillColor.alpha)
+        if hasattr(self, '_borderColor'):
+            alphas.append(self._boderColor.alpha)
+        return mean(alphas)
+    @opacity.setter
+    def opacity(self, value):
+        # Setting opacity as a single value makes all colours the same opacity
+        if hasattr(self, '_foreColor'):
+            self._foreColor.alpha = value
+        if hasattr(self, '_fillColor'):
+            self._fillColor.alpha = value
+        if hasattr(self, '_borderColor'):
+            self._boderColor.alpha = value
 
     @attributeSetter
     def ori(self, value):
