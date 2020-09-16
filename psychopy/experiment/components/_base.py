@@ -457,12 +457,9 @@ class BaseComponent(object):
             loggingStr = ''
 
         if target == 'PsychoPy':
-            if params[paramName].valType == 'color':
-                buff.writeIndented(f"# Set {paramName} for {compName}\n"
-                                   f"{compName}.set{paramCaps}({val}, colorSpace={params['colorSpace']}{loggingStr}){endStr}\n")
-            elif paramName == 'opacity':
-                buff.writeIndented(f"# Set opacity for {compName}\n"
-                                   f"{compName}.setOpacity({val})\n")
+            if paramName == 'color':
+                buff.writeIndented(f"{compName}.setColor({params['color']}, colorSpace={params['colorSpace']}")
+                buff.write(f"{loggingStr}){endStr}\n")
             elif paramName == 'sound':
                 stopVal = params['stopVal'].val
                 if stopVal in ['', None, -1, 'None']:
@@ -573,9 +570,8 @@ class BaseVisualComponent(BaseComponent):
     categories = ['Stimuli']
 
     def __init__(self, exp, parentName, name='',
-                 units='from exp settings',
-                 colorSpace='rgb', color='white', fillColor='None', borderColor='None',
-                 pos=(0, 0), size=(0, 0), ori=0, opacity=1,
+                 units='from exp settings', color='$[1,1,1]',
+                 pos=(0, 0), size=(0, 0), ori=0, colorSpace='rgb', opacity=1,
                  startType='time (s)', startVal='',
                  stopType='duration (s)', stopVal='',
                  startEstim='', durationEstim='',
@@ -621,20 +617,38 @@ class BaseVisualComponent(BaseComponent):
         msg = _translate("Fill color of this stimulus (e.g. $[1,1,0], red );"
                          " Right-click to bring up a color-picker (rgb only)")
         self.params['fillColor'] = Param(
-            fillColor, valType='color', allowedTypes=[], categ='Appearance',
+            color, valType='color', allowedTypes=[], categ='Appearance',
             updates='constant',
             allowedUpdates=['constant', 'set every repeat', 'set every frame'],
             hint=msg,
             label=_localized['fillColor'])
 
+        msg = _translate("In what format (color space) have you specified "
+                         "the fill color? (rgb, dkl, lms, hsv)")
+        self.params['fillColorSpace'] = Param(
+            colorSpace, valType='str', categ='Appearance',
+            allowedVals=list(colorSpaces),
+            updates='constant',
+            hint=msg,
+            label=_localized['fillColorSpace'])
+
         msg = _translate("Color of this stimulus (e.g. $[1,1,0], red );"
                          " Right-click to bring up a color-picker (rgb only)")
         self.params['borderColor'] = Param(
-            borderColor, valType='color', allowedTypes=[], categ='Appearance',
+            color, valType='color', allowedTypes=[], categ='Appearance',
             updates='constant',
             allowedUpdates=['constant', 'set every repeat', 'set every frame'],
             hint=msg,
             label=_localized['borderColor'])
+
+        msg = _translate("In what format (color space) have you specified "
+                         "the border color? (rgb, dkl, lms, hsv)")
+        self.params['borderColorSpace'] = Param(
+            colorSpace, valType='str', categ='Appearance',
+            allowedVals=list(colorSpaces),
+            updates='constant',
+            hint=msg,
+            label=_localized['borderColorSpace'])
 
         msg = _translate("Opacity of the stimulus (1=opaque, 0=fully "
                          "transparent, 0.5=translucent)")
@@ -670,7 +684,6 @@ class BaseVisualComponent(BaseComponent):
             label=_localized['ori'])
 
         self.params['syncScreenRefresh'].readOnly = True
-        self.order.extend(['units', 'colorSpace'])
 
     def integrityCheck(self):
         """
