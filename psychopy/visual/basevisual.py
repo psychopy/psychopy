@@ -286,7 +286,7 @@ class ColorMixin(object):
     """
 
     @property
-    def foreColor(self, value):
+    def foreColor(self):
         """Foreground color of the stimulus
 
         Value should be one of:
@@ -350,6 +350,8 @@ class ColorMixin(object):
         elif self.colorSpace in AdvancedColor.getSpace(value, True):
             # If supplied with a valid advanced color, use it to make an advanced color object and print tip.
             self._foreColor = AdvancedColor(value, self.colorSpace)
+        else:
+            logging.error(f"'{value}' is not a valid {self.colorSpace} color")
     @property
     def color(self):
         """Alternative way of setting foreColor"""
@@ -373,6 +375,8 @@ class ColorMixin(object):
         elif self.colorSpace in AdvancedColor.getSpace(value, True):
             # If supplied with a valid advanced color, use it to make an advanced color object and print tip.
             self._fillColor = AdvancedColor(value, self.colorSpace)
+        else:
+            logging.error(f"'{value}' is not a valid {self.colorSpace} color")
     @property
     def backColor(self):
         """Alternative way of setting fillColor"""
@@ -396,6 +400,8 @@ class ColorMixin(object):
         elif self.colorSpace in AdvancedColor.getSpace(value, True):
             # If supplied with a valid advanced color, use it to make an advanced color object and print tip.
             self._borderColor = AdvancedColor(value, self.colorSpace)
+        else:
+            logging.error(f"'{value}' is not a valid {self.colorSpace} color")
     @property
     def lineColor(self):
         """Alternative way of setting borderColor"""
