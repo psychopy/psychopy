@@ -13,6 +13,7 @@ from __future__ import absolute_import, division, print_function
 from builtins import object
 from past.builtins import basestring
 from pathlib import Path
+from psychopy.colors import Color, AdvancedColor, colorSpaces
 
 # Ensure setting pyglet.options['debug_gl'] to False is done prior to any
 # other calls to pyglet or pyglet submodules, otherwise it may not get picked
@@ -283,12 +284,10 @@ class LegacyVisualMixin(object):
 class ColorMixin(object):
     """Mixin class for visual stim that need color and or contrast.
     """
-    # def __init__(self):
-    #    super(ColorStim, self).__init__()
 
-    @attributeSetter
-    def color(self, value):
-        """Color of the stimulus
+    @property
+    def foreColor(self, value):
+        """Foreground color of the stimulus
 
         Value should be one of:
             + string: to specify a :ref:`colorNames`. Any of the standard
@@ -338,11 +337,75 @@ class ColorMixin(object):
             stim.colorSpace = 'rgb255'
             stim.color = (0, 128, 255)
         """
-        self.setColor(
-            value, log=False)  # logging already done by attributeSettter
+        if hasattr(self, '_foreColor'):
+            return getattr(self._foreColor, self.colorSpace)
+    @foreColor.setter
+    def foreColor(self, value):
+        if isinstance(value, Color):
+            # If supplied with a color object, set as that
+            self._foreColor = value
+        elif self.colorSpace in Color.getSpace(value, True):
+            # If supplied with a valid color, use it to make a color object
+            self._foreColor = Color(value, self.colorSpace)
+        elif self.colorSpace in AdvancedColor.getSpace(value, True):
+            # If supplied with a valid advanced color, use it to make an advanced color object and print tip.
+            self._foreColor = AdvancedColor(value, self.colorSpace)
+    @property
+    def color(self):
+        """Alternative way of setting foreColor"""
+        return self.foreColor
+    @color.setter
+    def color(self, value):
+        self.foreColor = value
 
-    @attributeSetter
-    def colorSpace(self, value):
+    @property
+    def fillColor(self):
+        if hasattr(self, '_foreColor'):
+            return getattr(self._fillColor, self.colorSpace)
+    @fillColor.setter
+    def fillColor(self, value):
+        if isinstance(value, Color):
+            # If supplied with a color object, set as that
+            self._fillColor = value
+        elif self.colorSpace in Color.getSpace(value, True):
+            # If supplied with a valid color, use it to make a color object
+            self._fillColor = Color(value, self.colorSpace)
+        elif self.colorSpace in AdvancedColor.getSpace(value, True):
+            # If supplied with a valid advanced color, use it to make an advanced color object and print tip.
+            self._fillColor = AdvancedColor(value, self.colorSpace)
+    @property
+    def backColor(self):
+        """Alternative way of setting fillColor"""
+        return self.fillColor
+    @backColor.setter
+    def backColor(self, value):
+        self.fillColor = value
+
+    @property
+    def borderColor(self):
+        if hasattr(self, '_foreColor'):
+            return getattr(self._borderColor, self.colorSpace)
+    @fillColor.setter
+    def borderColor(self, value):
+        if isinstance(value, Color):
+            # If supplied with a color object, set as that
+            self._borderColor = value
+        elif self.colorSpace in Color.getSpace(value, True):
+            # If supplied with a valid color, use it to make a color object
+            self._borderColor = Color(value, self.colorSpace)
+        elif self.colorSpace in AdvancedColor.getSpace(value, True):
+            # If supplied with a valid advanced color, use it to make an advanced color object and print tip.
+            self._borderColor = AdvancedColor(value, self.colorSpace)
+    @property
+    def lineColor(self):
+        """Alternative way of setting borderColor"""
+        return self.borderColor
+    @lineColor.setter
+    def lineColor(self, value):
+        self.borderColor = value
+
+    @property
+    def colorSpace(self):
         """The name of the color space currently being used
 
         Value should be: a string or None
@@ -365,9 +428,22 @@ class ColorMixin(object):
             # Make it light green again
             stim.color = (128, 255, 128)
         """
-        self.__dict__['colorSpace'] = value
-
-    @attributeSetter
+        if hasattr(self, '_colorSpace'):
+            return self._colorSpace
+        else:
+            return 'rgba'
+    @colorSpace.setter
+    def colorSpace(self, value):
+        if value in colorSpaces:
+            self._colorSpace = value
+        else:
+            logging.error(f"'{value}' is not a valid color space")
+    # ---legacy functions---
+    @property
+    def contrast(self):
+        if hasattr(self, '_foreColor'):
+            return self._foreColor.contrast
+    @contrast.setter
     def contrast(self, value):
         """A value that is simply multiplied by the color
 
@@ -392,72 +468,49 @@ class ColorMixin(object):
             stim.contrast =  1.2  # increases contrast
             stim.contrast = -1.2  # inverts with increased contrast
         """
-        self.__dict__['contrast'] = value
-
-        # If we don't have shaders we need to rebuild the stimulus
-        if hasattr(self, 'useShaders'):
-            if not self.useShaders:
-                # we'll need to update the textures for the stimulus
-                # (sometime before drawing but not now)
-                if self.__class__.__name__ == 'TextStim':
-                    self.text = self.text  # call attributeSetter
-                # GratingStim, RadialStim, ImageStim etc
-                elif hasattr(self, '_needTextureUpdate'):
-                    self._needTextureUpdate = True
-                elif (hasattr(self, 'fillColor')  # a derivative of shapestim
-                        or self.__class__.__name__ == 'DotStim'):
-                    pass  # no need for shaders or rebuilding
-                elif self.autoLog:
-                    logging.warning('Tried to set contrast while useShaders '
-                                    '= False but stimulus was not rebuilt. '
-                                    'Contrast might remain unchanged. {}'
-                                    .format(self))
-        elif self.autoLog:
-            logging.warning('Contrast was set on class where useShaders was '
-                            'undefined. Contrast might remain unchanged')
+        if hasattr(self, '_foreColor'):
+            self._foreColor.contrast *= value
+        else:
+            logging.warning(f"Attempt to set contrast on object {self.name}, which has no color.")
 
     def setColor(self, color, colorSpace=None, operation='', log=None):
         """Usually you can use 'stim.attribute = value' syntax instead,
         but use this method if you need to suppress the log message
         and/or set colorSpace simultaneously.
         """
-        # NB: the setColor helper function! Not this function itself :-)
-        setColor(self, color, colorSpace=colorSpace, operation=operation,
-                 rgbAttrib='rgb',  # or 'fillRGB' etc
-                 colorAttrib='color')
-        if self.__class__.__name__ == 'TextStim' and not self.useShaders:
-            self._needSetText = True
-        logAttrib(self, log, 'color',
-                  value='%s (%s)' % (self.color, self.colorSpace))
+        if colorSpace is not None:
+            self.colorSpace = colorSpace
+        if operation in ['', '=']:
+            self.foreColor = color
+        elif operation in ['+']:
+            self.foreColor += color
+        elif operation in ['-']:
+            self.foreColor -= color
+        else:
+            logging.error(f"Operation '{operation}' not recognised.")
 
     def setContrast(self, newContrast, operation='', log=None):
         """Usually you can use 'stim.attribute = value' syntax instead,
         but use this method if you need to suppress the log message
         """
-        setAttribute(self, 'contrast', newContrast, log, operation)
+        if newContrast is not None:
+            self.contrast = newContrast
+        if operation in ['', '=']:
+            self.contrast = newContrast
+        elif operation in ['+']:
+            self.contrast += newContrast
+        elif operation in ['-']:
+            self.contrast -= newContrast
+        else:
+            logging.error(f"Operation '{operation}' not recognised.")
 
     def _getDesiredRGB(self, rgb, colorSpace, contrast):
         """ Convert color to RGB while adding contrast.
         Requires self.rgb, self.colorSpace and self.contrast
         """
-        # Ensure that we work on 0-centered color (to make negative contrast
-        # values work)
-        if colorSpace not in ['rgb', 'dkl', 'lms', 'hsv']:
-            rgb = rgb / 127.5 - 1
-
-        # Convert to RGB in range 0:1 and scaled for contrast
-        # NB glColor will clamp it to be 0-1 (whether or not we use FBO)
-        desiredRGB = (rgb * contrast + 1) / 2.0
-        if not self.win.useFBO:
-            # Check that boundaries are not exceeded. If we have an FBO that
-            # can handle this
-            if numpy.any(desiredRGB > 1.0) or numpy.any(desiredRGB < 0):
-                msg = ('Desired color %s (in RGB 0->1 units) falls '
-                       'outside the monitor gamut. Drawing blue instead')
-                logging.warning(msg % desiredRGB)
-                desiredRGB = [0.0, 0.0, 1.0]
-
-        return desiredRGB
+        col = Color(rgb, colorSpace)
+        col.contrast *= contrast
+        return col.rgb
 
 
 class ContainerMixin(object):
