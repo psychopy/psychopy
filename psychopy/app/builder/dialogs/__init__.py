@@ -192,6 +192,10 @@ class ParamCtrls(object):
                 logging.flush()
                 index = 0
             self.valueCtrl.SetSelection(index)
+        elif param.valType == 'color':
+            val = str(param.val)
+            self.valueCtrl = wx.TextCtrl(parent, -1, val, name=fieldName,
+                                         size=wx.Size(self.valueWidth, -1))
         else:
             # create the full set of ctrls
             val = str(param.val)

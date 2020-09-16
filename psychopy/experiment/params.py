@@ -20,6 +20,7 @@ from __future__ import absolute_import, print_function
 # from future import standard_library
 from past.builtins import basestring
 from builtins import object
+from psychopy.colors import Color
 
 import re
 
@@ -208,6 +209,12 @@ class Param(object):
         elif self.valType == 'bool':
             if utils.scriptTarget == "PsychoJS":
                 return ("%s" % self.val).lower()  # make True -> "true"
+            else:
+                return "%s" % self.val
+        elif self.valType == 'color':
+            space = Color.getSpace(self.val, True)
+            if not space or 'named' in space or 'hex' in space or 'hexa' in space:
+                return "'%s'" % self.val
             else:
                 return "%s" % self.val
         else:
