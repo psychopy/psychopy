@@ -95,9 +95,7 @@ class TextComponent(BaseVisualComponent):
             label=_localized['languageStyle'])
 
         del self.params['fillColor']
-        del self.params['fillColorSpace']
         del self.params['borderColor']
-        del self.params['borderColorSpace']
 
     def writeInitCode(self, buff):
         # do we need units code?

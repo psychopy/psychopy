@@ -97,9 +97,7 @@ class MovieComponent(BaseVisualComponent):
         del self.params['color']
         del self.params['colorSpace']
         del self.params['fillColor']
-        del self.params['fillColorSpace']
         del self.params['borderColor']
-        del self.params['borderColorSpace']
 
     def _writeCreationCode(self, buff, useInits):
         # This will be called by either self.writeInitCode() or

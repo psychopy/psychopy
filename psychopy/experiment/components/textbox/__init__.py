@@ -72,11 +72,11 @@ class TextboxComponent(BaseVisualComponent):
                                             durationEstim=durationEstim)
         self.type = 'Textbox'
         self.url = "http://www.psychopy.org/builder/components/text.html"
-        self.order = [  # controls both tab order and params within tabs
+        self.order.extend([  # controls both tab order and params within tabs
             "font", # Format tab
             "color", "fillColor",  # Color tab next
             "anchor",  # Layout tab
-                      ]
+                      ])
         # params
         _allow3 = ['constant', 'set every repeat', 'set every frame']  # list
         self.params['color'].label = _translate("Text Color")
