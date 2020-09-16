@@ -46,18 +46,9 @@ class BrushComponent(BaseVisualComponent):
         self.url = "http://www.psychopy.org/builder/components/brush.html"
         self.exp.requirePsychopyLibs(['visual'])
         self.targets = ['PsychoPy', 'PsychoJS']
-        self.order = ['lineWidth', 'opacity', 'buttonRequired']
+        self.order.extend(['lineWidth', 'opacity', 'buttonRequired'])
 
         # params
-        msg = _translate("Fill color of this brush; Right-click to bring"
-                         " up a color-picker (rgb only)")
-        self.params['lineColor'] = Param(
-            lineColor, valType='str', allowedTypes=[], categ='Appearance',
-            updates='constant',
-            allowedUpdates=['constant', 'set every repeat'],
-            hint=msg,
-            label=_localized['lineColor'])
-
         msg = _translate("Width of the brush's line (always in pixels and limited to 10px max width)")
         self.params['lineWidth'] = Param(
             lineWidth, valType='code', allowedTypes=[], categ='Appearance',
@@ -65,15 +56,6 @@ class BrushComponent(BaseVisualComponent):
             allowedUpdates=['constant', 'set every repeat'],
             hint=msg,
             label=_localized['lineWidth'])
-
-        msg = _translate("Choice of color space for the fill color "
-                         "(rgb, dkl, lms, hsv)")
-        self.params['lineColorSpace'] = Param(
-            lineColorSpace, valType='str', categ='Appearance',
-            allowedVals=['rgb', 'dkl', 'lms', 'hsv'],
-            updates='constant',
-            hint=msg,
-            label=_localized['fillColorSpace'])
 
         msg = _translate("The line opacity")
         self.params['opacity'].hint=msg
@@ -88,11 +70,8 @@ class BrushComponent(BaseVisualComponent):
 
         # Remove BaseVisual params which are not needed
         del self.params['color']  # because color is defined by lineColor
-        del self.params['colorSpace']
-        del self.params['fillColor']
-        del self.params['fillColorSpace']
+        self.params['fillColor'].label = _localized['lineColor']
         del self.params['borderColor']
-        del self.params['borderColorSpace']
         del self.params['size']  # because size determined by lineWidth
         del self.params['ori']
         del self.params['pos']
@@ -102,13 +81,13 @@ class BrushComponent(BaseVisualComponent):
         params = getInitVals(self.params)
         code = ("{name} = visual.Brush(win=win, name='{name}',\n"
                 "   lineWidth={lineWidth},\n"
-                "   lineColor={lineColor},\n"
-                "   lineColorSpace={lineColorSpace},\n"
+                "   lineColor={fillColor},\n"
+                "   lineColorSpace={colorSpace},\n"
                 "   opacity={opacity},\n"
                 "   buttonRequired={buttonRequired})").format(name=params['name'],
                                                 lineWidth=params['lineWidth'],
-                                                lineColor=params['lineColor'],
-                                                lineColorSpace=params['lineColorSpace'],
+                                                fillColor=params['fillColor'],
+                                                colorSpace=params['colorSpace'],
                                                 opacity=params['opacity'],
                                                 buttonRequired=params['buttonRequired'])
         buff.writeIndentedLines(code)

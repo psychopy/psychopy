@@ -82,11 +82,11 @@ class SliderComponent(BaseVisualComponent):
         self.targets = ['PsychoPy', 'PsychoJS']
 
         # params
-        self.order = ['name',
+        self.order.extend(['name',
                       'size', 'pos',
                       'ticks', 'labels',  'granularity',
                       'font','flip','color','styles',
-                      ]
+                      ])
 
         # normal params:
         # = the usual as inherited from BaseVisual plus:
@@ -166,9 +166,7 @@ class SliderComponent(BaseVisualComponent):
                 label=_localized['storeHistory'])
 
         del self.params['fillColor']
-        del self.params['fillColorSpace']
         del self.params['borderColor']
-        del self.params['borderColorSpace']
 
     def writeInitCode(self, buff):
 

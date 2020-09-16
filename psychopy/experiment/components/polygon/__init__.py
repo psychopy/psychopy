@@ -39,8 +39,8 @@ class PolygonComponent(BaseVisualComponent):
 
     def __init__(self, exp, parentName, name='polygon', interpolate='linear',
                  units='from exp settings',
-                 lineColor='$[1,1,1]', lineColorSpace='rgb', lineWidth=1,
-                 fillColor='$[1,1,1]', fillColorSpace='rgb',
+                 lineColor='$[1,1,1]', colorSpace='rgb', lineWidth=1,
+                 fillColor='$[1,1,1]',
                  shape='triangle', nVertices=4,
                  pos=(0, 0), size=(0.5, 0.5), ori=0,
                  startType='time (s)', startVal=0.0,
@@ -87,8 +87,6 @@ class PolygonComponent(BaseVisualComponent):
             hint=msg,
             label=_localized['shape'])
 
-        self.params['lineColorSpace'] = self.params['borderColorSpace']
-        del self.params['borderColorSpace']
         self.params['lineColor'] = self.params['borderColor']
         del self.params['borderColor']
 
@@ -117,7 +115,6 @@ class PolygonComponent(BaseVisualComponent):
             "[w,h] of the ellipse that the polygon sits on!! ")
 
         del self.params['color']
-        del self.params['colorSpace']
 
     def writeInitCode(self, buff):
         # do we need units code?
@@ -163,8 +160,9 @@ class PolygonComponent(BaseVisualComponent):
                     " size=%(size)s,\n" % inits)
 
         code += ("    ori=%(ori)s, pos=%(pos)s,\n"
-                 "    lineWidth=%(lineWidth)s, lineColor=%(lineColor)s, lineColorSpace=%(lineColorSpace)s,\n"
-                 "    fillColor=%(fillColor)s, fillColorSpace=%(fillColorSpace)s,\n"
+                 "    colorSpace=%(colorSpace)s,\n"
+                 "    lineWidth=%(lineWidth)s, lineColor=%(lineColor)s,\n"
+                 "    fillColor=%(fillColor)s,\n"
                  "    opacity=%(opacity)s, " % inits)
 
         depth = -self.getPosInRoutine()
