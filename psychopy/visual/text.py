@@ -33,6 +33,7 @@ from psychopy.tools.monitorunittools import cm2pix, deg2pix, convertToPix
 from psychopy.tools.attributetools import attributeSetter, setAttribute
 from psychopy.visual.basevisual import (BaseVisualStim, ColorMixin,
     ContainerMixin)
+from psychopy.colors import Color
 
 # for displaying right-to-left (possibly bidirectional) text correctly:
 from bidi import algorithm as bidi_algorithm # sufficient for Hebrew
@@ -208,21 +209,19 @@ class TextStim(BaseVisualStim, ColorMixin, ContainerMixin):
 
         # Color stuff
         self.colorSpace = colorSpace
+        self.color = color
         if rgb != None:
-            msg = ("Use of rgb arguments to stimuli are deprecated. Please "
+            logging.warning("Use of rgb arguments to stimuli are deprecated. Please "
                    "use color and colorSpace args instead")
-            logging.warning(msg)
-            self.setColor(rgb, colorSpace='rgb', log=False)
-        else:
-            self.setColor(color, log=False)
-
+            self.color = Color(rgb, 'rgb')
+        print(self._foreColor)
         self.__dict__['fontFiles'] = []
         self.fontFiles = list(fontFiles)  # calls attributeSetter
         self.setHeight(height, log=False)  # calls setFont() at some point
         # calls attributeSetter without log
         setAttribute(self, 'wrapWidth', wrapWidth, log=False)
-        self.__dict__['opacity'] = float(opacity)
-        self.__dict__['contrast'] = float(contrast)
+        self.opacity = float(opacity)
+        self.contrast = float(contrast)
         # self.width and self._fontHeightPix get set with text and
         # calcSizeRendered is called
         self.setText(text, log=False)
@@ -381,10 +380,7 @@ class TextStim(BaseVisualStim, ColorMixin, ContainerMixin):
                 anchor_x=self.anchorHoriz,
                 anchor_y=self.anchorVert,  # the point we rotate around
                 align=self.alignText,
-                color = (int(127.5 * self.rgb[0] + 127.5),
-                      int(127.5 * self.rgb[1] + 127.5),
-                      int(127.5 * self.rgb[2] + 127.5),
-                      int(255 * self.opacity)),
+                color = self._foreColor.rgba255,
                 multiline=True, width=self._wrapWidthPix)  # width of the frame
             self.width = self._pygletTextObj.width
             self._fontHeightPix = self._pygletTextObj.height
@@ -812,10 +808,7 @@ class TextStim(BaseVisualStim, ColorMixin, ContainerMixin):
 
         if self.useShaders:  # then rgb needs to be set as glColor
             # setup color
-            desiredRGB = self._getDesiredRGB(
-                self.rgb, self.colorSpace, self.contrast)
-            GL.glColor4f(desiredRGB[0], desiredRGB[1],
-                         desiredRGB[2], self.opacity)
+            GL.glColor4f(*self._foreColor.rgba1)
 
             GL.glUseProgram(self.win._progSignedTexFont)
             # GL.glUniform3iv(GL.glGetUniformLocation(
@@ -824,7 +817,7 @@ class TextStim(BaseVisualStim, ColorMixin, ContainerMixin):
             #  # set the texture to be texture unit 0
             GL.glUniform3f(
                 GL.glGetUniformLocation(self.win._progSignedTexFont, b"rgb"),
-                desiredRGB[0], desiredRGB[1], desiredRGB[2])
+                *self._foreColor.rgb1)
 
         else:  # color is set in texture, so set glColor to white
             GL.glColor4f(1, 1, 1, 1)
