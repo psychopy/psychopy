@@ -255,6 +255,8 @@ class Color(object):
         """== will compare RGBA values, rounded to 2dp"""
         if isinstance(target, Color):
             return tuple(round(c,2) for c in self.rgba) == tuple(round(c,2) for c in target.rgba)
+        elif target == None:
+            return self.named == 'none'
         else:
             return False
     def __ne__(self, target):
