@@ -82,9 +82,9 @@ class BaseShapeStim(BaseVisualStim, ColorMixin, ContainerMixin):
                  units='',
                  lineWidth=1.5,
                  lineColor=None,
-                 lineColorSpace=None,
+                 lineColorSpace='named',
                  fillColor=None,
-                 fillColorSpace=None,
+                 fillColorSpace='named',
                  vertices=((-0.5, 0), (0, +0.5), (+0.5, 0)),
                  closeShape=True,
                  pos=(0, 0),
@@ -112,6 +112,7 @@ class BaseShapeStim(BaseVisualStim, ColorMixin, ContainerMixin):
         super(BaseShapeStim, self).__init__(win, units=units,
                                             name=name, autoLog=False)
 
+        self.contrast = contrast
         self.opacity = opacity
         self.pos = numpy.array(pos, float)
         self.closeShape = closeShape
@@ -122,6 +123,7 @@ class BaseShapeStim(BaseVisualStim, ColorMixin, ContainerMixin):
         self.colorSpace = colorSpace
         self.fillColor = fillColor
         self.lineColor = lineColor
+
         if color != None and fillColor == None and lineColor == None:
             # if the fillColor and lineColor are not set but color is, the user probably wants color applied to both
             self.fillColor = color
@@ -131,12 +133,12 @@ class BaseShapeStim(BaseVisualStim, ColorMixin, ContainerMixin):
             logging.warning("Use of rgb arguments to stimuli are deprecated."
                             " Please use color and colorSpace args instead")
             self.setLineColor(lineRGB, colorSpace='rgb', log=None)
+
         if fillRGB is not None:
             # Override with RGB if set
             logging.warning("Use of rgb arguments to stimuli are deprecated."
                             " Please use color and colorSpace args instead")
             self.setFillColor(fillRGB, colorSpace='rgb', log=None)
-        self.contrast = contrast
 
         # Other stuff
         self.depth = depth
@@ -361,14 +363,18 @@ class BaseShapeStim(BaseVisualStim, ColorMixin, ContainerMixin):
 
         GL.glEnableClientState(GL.GL_VERTEX_ARRAY)
         if nVerts > 2:  # draw a filled polygon first
-            if self._fillColor != None:
+            if self.fillRGB is not None:
+                # convert according to colorSpace
+                fillRGB = self._fillColor.rgb255
                 # then draw
-                GL.glColor4f(*self._fillColor.rgba1)
+                GL.glColor4f(fillRGB[0], fillRGB[1], fillRGB[2], self.opacity)
                 GL.glDrawArrays(GL.GL_POLYGON, 0, nVerts)
-        if self._borderColor != None and self.lineWidth != 0.0:
+        if self.lineRGB is not None and self.lineWidth != 0.0:
+            lineRGB = self._getDesiredRGB(
+                self.lineRGB, self.lineColorSpace, self.contrast)
             # then draw
             GL.glLineWidth(self.lineWidth)
-            GL.glColor4f(*self._borderColor.rgba1)
+            GL.glColor4f(lineRGB[0], lineRGB[1], lineRGB[2], self.opacity)
             if self.closeShape:
                 GL.glDrawArrays(GL.GL_LINE_LOOP, 0, nVerts)
             else:
@@ -418,10 +424,10 @@ class ShapeStim(BaseShapeStim):
                  units='',
                  lineWidth=1.5,
                  lineColor='white',
-                 lineColorSpace=None,
+                 lineColorSpace='rgb',
                  colorSpace='rgb',
                  fillColor=None,
-                 fillColorSpace=None,
+                 fillColorSpace='rgb',
                  vertices=((-0.5, 0), (0, +0.5), (+0.5, 0)),
                  windingRule=None,  # default GL.GLU_TESS_WINDING_ODD
                  closeShape=True,  # False for a line
@@ -444,7 +450,6 @@ class ShapeStim(BaseShapeStim):
         super(ShapeStim, self).__init__(win,
                                         units=units,
                                         lineWidth=lineWidth,
-                                        colorSpace=colorSpace,
                                         lineColor=lineColor,
                                         lineColorSpace=lineColorSpace,
                                         fillColor=fillColor,
@@ -465,10 +470,6 @@ class ShapeStim(BaseShapeStim):
         self.closeShape = closeShape
         self.windingRule = windingRule
         self.vertices = vertices
-        # Appearance
-        self.colorSpace = colorSpace
-        self.fillColor = fillColor
-        self.borderColor = lineColor
 
         # remove deprecated params (from ShapeStim.__init__):
         self._initParams = self._initParamsOrig
@@ -589,14 +590,14 @@ class ShapeStim(BaseShapeStim):
                 self.verticesPix.shape[0] > 2 and
                 self._fillColor != None):
             GL.glVertexPointer(2, GL.GL_DOUBLE, 0, self.verticesPix.ctypes)
-            GL.glColor4f(*self._fillColor.rgba1)
+            GL.glColor4f(*self._fillColor.rgba255)
             GL.glDrawArrays(GL.GL_TRIANGLES, 0, self.verticesPix.shape[0])
 
         # draw the border (= a line connecting the non-tesselated vertices)
         if self._borderColor != None and self.lineWidth:
             GL.glVertexPointer(2, GL.GL_DOUBLE, 0, self._borderPix.ctypes)
             GL.glLineWidth(self.lineWidth)
-            GL.glColor4f(*self._borderColor.rgba1)
+            GL.glColor4f(*self._borderColor.rgba255)
             if self.closeShape:
                 gl_line = GL.GL_LINE_LOOP
             else:
