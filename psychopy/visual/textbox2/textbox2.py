@@ -127,6 +127,7 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
         self.colorSpace = colorSpace
         self.color = color
         self.contrast = contrast
+        self.opacity = opacity
         self.onTextCallback = onTextCallback
 
         if units=='norm':
@@ -189,7 +190,6 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
         self.borderWidth = borderWidth
         self.borderColor = borderColor
         self.fillColor = fillColor
-        self.opacity = opacity
 
         self.box = Rect(
                 win, pos=self.pos,
@@ -204,16 +204,21 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
                 units=self.units,
                 lineWidth=1, lineColor=None, fillColor=self._fillColor, opacity=0.1,
                 autoLog=False)
+        self.pallette = { # If no focus
+                'lineColor': self._borderColor,
+                'lineWidth': borderWidth,
+                'fillColor': self._fillColor,
+        }
         # then layout the text (setting text triggers _layout())
         self.text = text if text is not None else ""
 
         # caret
         self.editable = editable
-        self.caret = Caret(self, color=self.color, colorSpace=colorSpace, width=5)
+        self.caret = Caret(self, color=self.color, width=5)
         self._hasFocus = False
         if editable:  # may yet gain focus if the first editable obj
             self.win.addEditable(self)
-        self.updateColors()
+
         self.autoLog = autoLog
 
     @property
@@ -248,17 +253,6 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
             False: value,
             True: pal
         }
-
-    def updateColors(self):
-        self.pallette = { # If no focus
-                'lineColor': self._borderColor,
-                'lineWidth': self.borderWidth,
-                'fillColor': self._fillColor,
-        }
-        self._layout()
-
-    def updateOpacity(self):
-        self.updateColors()
 
     @attributeSetter
     def font(self, fontName, italic=False, bold=False):
@@ -333,6 +327,7 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
         text = text.replace('</i>', codes['ITAL_END'])
         text = text.replace('<b>', codes['BOLD_START'])
         text = text.replace('</b>', codes['BOLD_END'])
+        rgb = self._foreColor.rgb255
         font = self.glFont
 
         # the vertices are initially pix (natural for freetype)
@@ -429,7 +424,8 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
 
             vertices[i * 4:i * 4 + 4] = theseVertices
             self._texcoords[i * 4:i * 4 + 4] = texcoords
-            self._colors[i*4 : i*4+4, :] = self._foreColor.rgba1
+            self._colors[i*4 : i*4+4, :3] = rgb
+            self._colors[i*4 : i*4+4, 3] = self.opacity
             self._lineNs[i] = lineN
             current[0] = current[0] + glyph.advance[0] + fakeBold / 2
             current[1] = current[1] + glyph.advance[1]
@@ -746,6 +742,8 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
     def hasFocus(self, state):
         # Store focus
         self._hasFocus = state
+        # Redraw text box
+        self.draw()
 
     def getText(self):
         """Returns the current text in the box"""
@@ -832,13 +830,25 @@ class Caret(ColorMixin):
         self.colorSpace = colorSpace
         self.color = color
 
+    @attributeSetter
+    def color(self, color):
+        self.setColor(color)
+        self._desiredRGB = [0.89, -0.35, -0.28]
+        # if self.colorSpace not in ['rgb', 'dkl', 'lms', 'hsv']:
+        #     self._desiredRGB = [c / 127.5 - 1 for c in self.rgb]
+        # else:
+        #     self._desiredRGB = self.rgb
+
     def draw(self):
         if not self.visible:
             return
         if core.getTime() % 1 > 0.6:  # Flash every other second
             return
         gl.glLineWidth(self.width)
-        gl.glColor4f(*self._foreColor.rgba1)
+        rgb = self._desiredRGB
+        gl.glColor4f(
+            rgb[0], rgb[1], rgb[2], self.textbox.opacity
+        )
         gl.glBegin(gl.GL_LINES)
         gl.glVertex2f(self.vertices[0, 0], self.vertices[0, 1])
         gl.glVertex2f(self.vertices[1, 0], self.vertices[1, 1])
