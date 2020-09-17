@@ -683,3 +683,11 @@ class Vector(object):
             self.pix = tuple(self.win.size[1] * c / 2.0 for c in value)
         else:
             self.pix = tuple(self.win.size[1] * c for c in value)
+
+class Coordinate(Vector):
+    def __init__(self, pos, units, win=None, monitor=None, correctFlat=False):
+        Vector.__init__(self, pos, units, win, monitor, correctFlat)
+
+class Size(Vector):
+    def __init__(self, pos, units, win=None, monitor=None, correctFlat=False):
+        Vector.__init__(self, pos, units, win, monitor, correctFlat)
