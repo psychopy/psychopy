@@ -1302,7 +1302,10 @@ class BaseVisualStim(MinimalStim, WindowMixin, LegacyVisualMixin):
             alphas.append(self._fillColor.alpha)
         if hasattr(self, '_borderColor'):
             alphas.append(self._borderColor.alpha)
-        return mean(alphas)
+        if alphas:
+            return mean(alphas)
+        else:
+            return
     @opacity.setter
     def opacity(self, value):
         # Setting opacity as a single value makes all colours the same opacity
