@@ -363,18 +363,14 @@ class BaseShapeStim(BaseVisualStim, ColorMixin, ContainerMixin):
 
         GL.glEnableClientState(GL.GL_VERTEX_ARRAY)
         if nVerts > 2:  # draw a filled polygon first
-            if self.fillRGB is not None:
-                # convert according to colorSpace
-                fillRGB = self._fillColor.rgb255
+            if self._fillColor != None:
                 # then draw
-                GL.glColor4f(fillRGB[0], fillRGB[1], fillRGB[2], self.opacity)
+                GL.glColor4f(*self._fillColor.rgba255)
                 GL.glDrawArrays(GL.GL_POLYGON, 0, nVerts)
-        if self.lineRGB is not None and self.lineWidth != 0.0:
-            lineRGB = self._getDesiredRGB(
-                self.lineRGB, self.lineColorSpace, self.contrast)
+        if self._borderColor != None and self.lineWidth != 0.0:
             # then draw
             GL.glLineWidth(self.lineWidth)
-            GL.glColor4f(lineRGB[0], lineRGB[1], lineRGB[2], self.opacity)
+            GL.glColor4f(*self._borderColor.rgba255)
             if self.closeShape:
                 GL.glDrawArrays(GL.GL_LINE_LOOP, 0, nVerts)
             else:
