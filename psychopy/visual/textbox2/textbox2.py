@@ -27,6 +27,7 @@ from .fontmanager import FontManager, GLFont
 from .. import shaders
 from ..rect import Rect
 from ... import core
+from ...colors import Color
 
 allFonts = FontManager()
 
@@ -193,21 +194,20 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
         self.box = Rect(
                 win, pos=self.pos,
                 units=self.units,
-                lineWidth=borderWidth, lineColor=borderColor,
-                fillColor=fillColor, opacity=self.opacity,
-                autoLog=False, fillColorSpace=self.colorSpace)
+                colorSpace=self.colorSpace,
+                lineWidth=borderWidth, lineColor=self._borderColor,
+                fillColor=self._fillColor, opacity=self.opacity,
+                autoLog=False)
         # also bounding box (not normally drawn but gives tight box around chrs)
         self.boundingBox = Rect(
                 win, pos=self.pos,
                 units=self.units,
-                lineWidth=1, lineColor=None, fillColor=fillColor, opacity=0.1,
+                lineWidth=1, lineColor=None, fillColor=self._fillColor, opacity=0.1,
                 autoLog=False)
         self.pallette = { # If no focus
-                'lineColor': borderColor,
-                'lineRGB': self.box.lineRGB,
+                'lineColor': self._borderColor,
                 'lineWidth': borderWidth,
-                'fillColor': fillColor,
-                'fillRGB': self.box.fillRGB
+                'fillColor': self._fillColor,
         }
         # then layout the text (setting text triggers _layout())
         self.text = text if text is not None else ""
@@ -235,16 +235,20 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
             pal['lineWidth'] = 5 * 2
         # Darken border
         if value['lineColor']:
-            pal['lineRGB'] = pal['lineColor'] = [max(c - 0.05, 0.05) for c in value['lineRGB']]
+            pal['lineColor'] = value['lineColor'].copy()
+            pal['lineColor'].contrast += 0.05
+            pal['lineColor'].alpha += 0.5
         else:
             # Use window colour as base if border colour is none
-            pal['lineRGB'] = pal['lineColor'] = [max(c - 0.05, 0.05) for c in self.win.color]
+            pal['lineColor'] = Color([max(c - 0.05, 0.05) for c in self.win.color], 'rgb')
         # Lighten background
         if value['fillColor']:
-            pal['fillRGB'] = pal['fillColor'] = [min(c + 0.05, 0.95) for c in value['fillRGB']]
+            pal['fillColor'] = value['fillColor'].copy()
+            pal['fillColor'].contrast += 0.05
+            pal['fillColor'].alpha += 0.5
         else:
             # Use window colour as base if fill colour is none
-            pal['fillRGB'] = pal['fillColor'] = [min(c + 0.05, 0.95) for c in self.win.color]
+            pal['fillColor'] = Color([min(c + 0.05, 0.95) for c in self.win.color], 'rgb')
         self._pallette = {
             False: value,
             True: pal
@@ -323,7 +327,7 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
         text = text.replace('</i>', codes['ITAL_END'])
         text = text.replace('<b>', codes['BOLD_START'])
         text = text.replace('</b>', codes['BOLD_END'])
-        rgb = self._getDesiredRGB(self.rgb, self.colorSpace, self.contrast)
+        rgb = self._foreColor.rgb255
         font = self.glFont
 
         # the vertices are initially pix (natural for freetype)
@@ -503,13 +507,13 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
     def draw(self):
         """Draw the text to the back buffer"""
         # Border width
-        self.box.setLineWidth(self.pallette['lineWidth']) # Use 1 as base if border width is none
+        self.box.lineWidth = self.pallette['lineWidth']
         #self.borderWidth = self.box.lineWidth
         # Border colour
-        self.box.setLineColor(self.pallette['lineRGB'], colorSpace='rgb')
+        self.box.borderColor = self.pallette['lineColor']
         #self.borderColor = self.box.lineColor
         # Background
-        self.box.setFillColor(self.pallette['fillRGB'], colorSpace='rgb')
+        self.box.fillColor = self.pallette['fillColor']
         #self.fillColor = self.box.fillColor
 
         if self._needVertexUpdate:
