@@ -62,9 +62,11 @@ class ScriptProcess(object):
         self.scriptProcess = None
         self._stdoutThread = None
         self.Bind(wx.EVT_END_PROCESS, self.onProcessEnded)
+        self.running = False
 
     def runFile(self, event=None, fileName=None):
         """Begin new process to run experiment."""
+        self.running = True
         fullPath = fileName.replace('.psyexp', '_lastrun.py')
         wx.BeginBusyCursor()
 
@@ -123,6 +125,7 @@ class ScriptProcess(object):
 
     def onProcessEnded(self, event=None):
         """Perform when script has finished running."""
+        self.running = False
         try:
             wx.EndBusyCursor()
         except wx._core.wxAssertionError:
