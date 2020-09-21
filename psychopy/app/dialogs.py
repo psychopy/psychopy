@@ -536,12 +536,12 @@ class ListWidget(GlobSizer):
         """
         GlobSizer.__init__(self, hgap=2, vgap=2)
         self.parent = parent
-        self.value = value or [{}]
-        if type(value) != list or len(value) < 1:
+        self.value = value if value else [{"Field":"", "Default": ""}]
+        if type(value) != list:
             msg = 'The initial value for a ListWidget must be a list of dicts'
             raise AttributeError(msg)
         # sort fieldNames using order information where possible
-        allNames = list(value[0].keys())
+        allNames = list(self.value[0].keys())
         self.fieldNames = []
         if order is None:
             order = []
@@ -562,12 +562,13 @@ class ListWidget(GlobSizer):
 
     def createGrid(self):
         row = 0
-        for col, field in enumerate(self.fieldNames):
-            self.Add(wx.StaticText(self.parent, -1, label=_translate(field)),
-                     (row, col), flag=wx.ALL)
-        for entry in self.value:
-            row += 1
-            self.addEntryCtrls(row, entry)
+        if len(self.fieldNames) > 0:
+            for col, field in enumerate(self.fieldNames):
+                self.Add(wx.StaticText(self.parent, -1, label=_translate(field)),
+                         (row, col), flag=wx.ALL)
+            for entry in self.value:
+                row += 1
+                self.addEntryCtrls(row, entry)
         self.Layout()
 
     def addEntryCtrls(self, row, entry):
