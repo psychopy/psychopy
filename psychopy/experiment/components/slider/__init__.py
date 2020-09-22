@@ -177,13 +177,15 @@ class SliderComponent(BaseVisualComponent):
         if inits['units'].val == 'from exp settings':
             inits['units'].val = None
 
+        inits['depth'] = -self.getPosInRoutine()
+
         # build up an initialization string for Slider():
         initStr = ("{name} = visual.Slider(win=win, name='{name}',\n"
                    "    size={size}, pos={pos}, units={units},\n"
                    "    labels={labels}, ticks={ticks},\n"
                    "    granularity={granularity}, style={styles},\n"
                    "    color={color}, font={font},\n"
-                   "    flip={flip})\n"
+                   "    flip={flip}, depth={depth})\n"
                    .format(**inits))
         buff.writeIndented(initStr)
 
@@ -222,6 +224,8 @@ class SliderComponent(BaseVisualComponent):
         inits['styles'].val += ','
         inits['styles'].val = py2js.expression2js(inits['styles'].val)
 
+        inits['depth'] = -self.getPosInRoutine()
+
         # build up an initialization string for Slider():
         initStr = ("{name} = new visual.Slider({{\n"
                    "  win: psychoJS.window, name: '{name}',\n"
@@ -229,7 +233,7 @@ class SliderComponent(BaseVisualComponent):
                    "  labels: {labels}, ticks: {ticks},\n"
                    "  granularity: {granularity}, style: {styles},\n"
                    "  color: new util.Color({color}), \n"
-                   "  fontFamily: {font}, bold: true, italic: false, \n"
+                   "  fontFamily: {font}, bold: true, italic: false, depth: {depth}, \n"
                    ).format(**inits)
         initStr += ("  flip: {flip},\n"
                     "}});\n\n").format(flip=boolConverter[inits['flip'].val])
