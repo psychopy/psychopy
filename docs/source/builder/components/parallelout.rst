@@ -19,8 +19,9 @@ Start :
 Stop :
     Governs the duration for which the stimulus is presented. See :ref:`startStop` for details.
 
-Port address : select the appropriate option
-    You need to know the address of the parallel port you wish to write to. The options that appear in this drop-down list are determined by the application preferences. You can add your particular port there if you prefer.
+Data
+====
+What information to save, how to lay it out and when to save it.
 
 Start data : 0-255
     When the start time/condition occurs this value will be sent to the parallel port. The value is given as a byte (a value from 0-255) controlling the 8 data pins of the parallel port.
@@ -30,6 +31,13 @@ Stop data : 0-255
 
 Sync to screen : boolean
     If true then the parallel port will be sent synchronised to the next screen refresh, which is ideal if it should indicate the onset of a visual stimulus. If set to False then the data will be set on the parallel port immediately.
+
+Hardware
+========
+Parameters for controlling hardware.
+
+Port address : select the appropriate option
+    You need to know the address of the parallel port you wish to write to. The options that appear in this drop-down list are determined by the application preferences. You can add your particular port there if you prefer.
 
 .. seealso::
 

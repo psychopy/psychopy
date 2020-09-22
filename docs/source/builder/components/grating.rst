@@ -21,14 +21,25 @@ Start :
 Stop :
     Governs the duration for which the stimulus is presented. See :ref:`startStop` for details.
 
-Color :  
+Appearance
+==========
+How should the stimulus look? Colour, borders, etc.
+
+blend mode : average, add
+    How should colours blend when overlayed onto something? Should colours be averaged, or added?
+
+foreground color :
     See :doc:`../../general/colours`
 
-Color space : rgb, dkl or lms
+foreground color space : rgb, dkl or lms
     See :doc:`../../general/colours`
     
 Opacity : 0-1
     Can be used to create semi-transparent gratings
+
+Layout
+======
+How should the stimulus be laid out? Padding, margins, size, position, etc.
     
 Orientation : degrees
     The orientation of the entire patch (texture and mask) in degrees.
@@ -42,8 +53,9 @@ Size : [sizex, sizey] or a single value (applied to x and y)
 Units : deg, cm, pix, norm, or inherit from window
     See :doc:`../../general/units`
 
-Advanced Settings
-+++++++++++++++++++
+Texture
+=======
+Control how the stimulus handles textures.
 
 Texture: a filename, a standard name (sin, sqr) or a variable giving a numpy array
     This specifies the image that will be used as the *texture* for the visual patch. 
