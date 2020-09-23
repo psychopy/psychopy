@@ -9,7 +9,7 @@ from psychopy.tools.coordinatetools import sph2cart
 from psychopy import logging
 import re
 import numpy
-from math import floor, fsum, hypot
+from math import floor, fsum
 
 from psychopy import logging
 
@@ -618,7 +618,7 @@ class Color(object):
                 saturation = (delta / cmax)
             # Calculate vibrancy
             vibrancy = cmax
-            self._cache['hsva'] = (round(hue), saturation, vibrancy, alpha)
+            self._cache['hsva'] = (hue, saturation, vibrancy, alpha)
         return self._cache['hsva']
     @hsva.setter
     def hsva(self, color):
@@ -632,14 +632,12 @@ class Color(object):
         # Extract values
         hue, saturation, vibrancy, *alpha = color
         alpha255 = alpha[0] * 255 if alpha else None
-        # Calculate pure hue
-        pureHue = self.hue2rgb255(hue)
-        # Apply value
-        hueVal = tuple(h*vibrancy for h in pureHue)
-        # Get desired value in 255
-        vibrancy255 = vibrancy * 255
-        # Apply saturation
-        all255 = tuple(round(h+(vibrancy255-h)*(1-saturation)) for h in hueVal)
+        # Convert hue
+        hue255 = Color.hue2rgb255(hue)
+        # Get value to move towards as saturation decreases
+        vibrancy255 = vibrancy*255
+        # Adjust by vibrancy and saturation
+        all255 = tuple(h+(vibrancy255-h)*(1-saturation) for h in hue255)
         # Apply via rgba255
         self.rgba255 = all255 + (alpha255,) if alpha255 is not None else all255 + (255,)
         # Clear outdated values from cache

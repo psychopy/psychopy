@@ -24,9 +24,9 @@ Items : List of dicts or csv / xlsx file
     A list of dicts or csv file should have the following key, value pairs / column headers:
         *index*
             The item index as a number
-        *questionText*
+        *itemText*
             The item question string
-        *questionWidth*
+        *itemWidth*
             The question width between 0 : 1
         *type*
             The type of rating e.g., 'radio', 'rating', 'slider'
@@ -36,33 +36,58 @@ Items : List of dicts or csv / xlsx file
             A sequence of tick labels for options e.g., yes, no
         *layout*
             Response object layout e.g., 'horiz' or 'vert'
-        *questionColor*
+        *itemColor*
             The question text font color
         *responseColor*
             The response object color
 
-    Missing column headers will be replaced by default entries. The default entries are:
+    Missing column headers will be replaced by default entries, with the exception of `itemText` and `type`, which are required. The default entries are:
         *index*
             0 (increments for each item)
-        *questionText*
-            Default question
-        *questionWidth*
+        *itemWidth*
             0.7
-        *type*
-            rating
         *responseWidth*
             0.3
         *options*
             Yes, No
         *layout*
             horiz
-        *questionColor*
-            white
+        *itemColor*
+            from style
         *responseColor*
-            white
+            from style
 
-Text height : float
-    Text height of the Form elements (i.e., question and response text).
+Data format : menu
+    Choose whether to store items data by column or row in your datafile.
+
+randomize : bool
+        Randomize order of Form elements
+
+Appearance
+==========
+How should the stimulus look? Color, borders, etc.
+
+style : light, dark
+    The overall colors to be used for items in your forms - this sets foreground, background and emphasis colors to pre-defined values.
+
+border color : color
+    See :ref:`colorspaces`
+
+border color space : rgb, dkl, lms, hsv
+    See :ref:`colorspaces`
+
+fill color : color
+    See :ref:`colorspaces`
+
+fill color space : rgb, dkl, lms, hsv
+    See :ref:`colorspaces`
+
+opacity :
+    Vary the transparency, from 0.0 = invisible to 1.0 = opaque
+
+Layout
+======
+How should the stimulus be laid out? Padding, margins, size, position, etc.
 
 Size : [X,Y]
     Size of the stimulus, to be specified in 'height' units.
@@ -73,11 +98,12 @@ Pos : [X,Y]
 Item padding : float
     Space or padding between Form elements (i.e., question and response text), to be specified in 'height' units.
 
-Data format : menu
-    Choose whether to store items data by column or row in your datafile.
+Formatting
+==========
+Formatting text
 
-randomize : bool
-        Randomize order of Form elements
+Text height : float
+    Text height of the Form elements (i.e., question and response text).
 
 .. seealso::
 

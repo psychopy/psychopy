@@ -857,6 +857,7 @@ class RatingScale(MinimalStim):
         self.markerColor = markerColor
         self.markerYpos = self.offsetVert + self.markerOffsetVert
         # save initial state, restore on reset
+        self.markerColorOriginal = markerColor
 
     def _initTextElements(self, win, scale, textColor,
                           textFont, textSize, showValue, tickMarks):
@@ -902,6 +903,16 @@ class RatingScale(MinimalStim):
                     self.labels.append(txtStim)
         self.origScaleDescription = scale
         self.setDescription(scale)  # do last
+
+    def _setMarkerColor(self, color):
+        """Set the fill color or color of the marker"""
+        try:
+            self.marker.setFillColor(color, log=False)
+        except AttributeError:
+            try:
+                self.marker.setColor(color, log=False)
+            except Exception:
+                pass
 
     def setDescription(self, scale=None, log=True):
         """Method to set the brief description (scale).
@@ -1144,13 +1155,8 @@ class RatingScale(MinimalStim):
         if self.noResponse == False:
             # fix the marker position on the line
             if not self.markerPosFixed:
-                try:
-                    self.marker.setFillColor('DarkGray', log=False)
-                except AttributeError:
-                    try:
-                        self.marker.setColor('DarkGray', log=False)
-                    except Exception:
-                        pass
+                self._setMarkerColor('DarkGray')
+
                 # drop it onto the line
                 self.marker.setPos((0, -.012), ('+', '-')[self.flipVert],
                                    log=False)
@@ -1331,8 +1337,8 @@ class RatingScale(MinimalStim):
                 labels.setColor(self.textColor, log=False)
         self.noResponse = True
         # restore in case it turned gray, etc
-        self.resetMarker = str(self.marker)
-        self.resetMarker = self.resetMarker.replace('Window(...)', 'self.win')
+        self.markerColor = self.markerColorOriginal
+        self._setMarkerColor(self.markerColor)
         # placed by subject or markerStart: show on screen
         self.markerPlaced = False
         # placed by subject is actionable: show value, singleClick
