@@ -89,15 +89,25 @@ class PsychoColorPicker(wx.Dialog, ThemeMixin):
 
     def copyValue(self, event):
         if wx.TheClipboard.Open():
+            # Get color rounded
+            col = getattr(self.color, self.ctrls.GetCurrentPage().space)
+            if isinstance(col, tuple):
+                col = tuple(round(c, 2) for c in col)
+            # Copy to clipboard
             wx.TheClipboard.SetData(wx.TextDataObject(
-                str(getattr(self.color, self.ctrls.GetCurrentPage().space))
+                str(col)
             ))
             wx.TheClipboard.Close()
 
     def copyObject(self, event):
         if wx.TheClipboard.Open():
+            # Get color rounded
+            col = getattr(self.color, self.ctrls.GetCurrentPage().space)
+            if isinstance(col, tuple):
+                col = tuple(round(c, 2) for c in col)
+            # Copy to clipboard
             wx.TheClipboard.SetData(wx.TextDataObject(
-                "Color("+str(getattr(self.color, self.ctrls.GetCurrentPage().space))+", "+self.ctrls.GetCurrentPage().space+")"
+                "Color("+str(col)+", "+self.ctrls.GetCurrentPage().space+")"
             ))
             wx.TheClipboard.Close()
 
@@ -216,8 +226,12 @@ class ColorPage(wx.Window, ThemeMixin):
         self.SetBackgroundColour(ThemeMixin.appColors['tab_bg'])
 
     def setColor(self, color):
+        # Get color rounded
+        col = getattr(color, self.space)
+        if isinstance(col, tuple):
+            col = tuple(round(c, 2) for c in col)
         # Update value control
-        self.valCtrl.ChangeValue(str(getattr(color, self.space)))
+        self.valCtrl.ChangeValue(str(col))
         # Get values from color
         if self.space =='hex':
             col = color.rgb255
