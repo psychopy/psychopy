@@ -111,6 +111,9 @@ class PsychoColorPicker(wx.Dialog, ThemeMixin):
             ))
             wx.TheClipboard.Close()
 
+    def Close(self, event):
+        self.Destroy()
+
 
 class ColorPreview(wx.Window):
     def __init__(self, color, parent):
