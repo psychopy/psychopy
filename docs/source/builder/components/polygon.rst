@@ -31,6 +31,7 @@ shape : line, triangle, rectangle, cross, star, regular polygon
 num vertices : int
     The number of vertices for your shape (2 gives a line, 3 gives a triangle,... a large number results in a circle/ellipse).
     It is not (currently) possible to vary the number of vertices dynamically.
+
 Appearance
 ==========
 How should the stimulus look? Colour, borders, etc.

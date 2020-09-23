@@ -28,7 +28,7 @@ but you should also be aware of the following:
 .. toctree::
     :maxdepth: 1
 
-	cautions
+    cautions
     status
     tech
 	

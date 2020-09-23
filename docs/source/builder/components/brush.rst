@@ -1,7 +1,7 @@
 .. _brush:
 
 Brush Component
---------------
+---------------
 
 The Brush component is a freehand drawing tool.
 

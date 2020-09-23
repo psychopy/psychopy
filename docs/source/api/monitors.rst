@@ -32,10 +32,6 @@ You might also want to fetch the :class:`~psychopy.monitors.Photometer` class fo
 ------------------------------------
 .. autofunction:: psychopy.monitors.getAllMonitors
 
-:func:`findPR650`
-------------------------------------
-.. autofunction:: psychopy.monitors.findPR650 
-
 :func:`getLumSeriesPR650`
 ------------------------------------
 .. autofunction:: psychopy.monitors.getLumSeriesPR650
