@@ -618,7 +618,7 @@ class Color(object):
                 saturation = (delta / cmax)
             # Calculate vibrancy
             vibrancy = cmax
-            self._cache['hsva'] = (hue, saturation, vibrancy, alpha)
+            self._cache['hsva'] = (round(hue), saturation, vibrancy, alpha)
         return self._cache['hsva']
     @hsva.setter
     def hsva(self, color):
