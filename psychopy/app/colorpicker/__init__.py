@@ -43,7 +43,7 @@ class PsychoColorPicker(wx.Dialog, ThemeMixin):
         self.sizer.Add(self.presets, pos=(0,2), border=5, flag=wx.ALL)
         # Add buttons
         self.buttons = wx.BoxSizer(wx.HORIZONTAL)
-        self.closeButton = wx.Button(self, label="Cancel")
+        self.closeButton = wx.Button(self, label="Close")
         self.closeButton.Bind(wx.EVT_BUTTON, self.Close)
         self.buttons.Add(self.closeButton, border=5, flag=wx.ALL)
         # Add insert buttons
