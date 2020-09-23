@@ -318,11 +318,13 @@ class ColorControl(wx.Panel):
         # if isinstance(event, wx.CommandEvent):
         #     return
         obj = event.GetEventObject()
-        if obj == self.slider:
-            propVal = obj.GetValue()/255
-            self.value = self.min + (self.max-self.min)*propVal
-        if obj == self.spinner:
-            self.value = obj.GetValue()
+        if hasattr(self, 'slider'):
+            if obj == self.slider:
+                propVal = obj.GetValue()/255
+                self.value = self.min + (self.max-self.min)*propVal
+        if hasattr(self, 'spinner'):
+            if obj == self.spinner:
+                self.value = obj.GetValue()
         self.parent.onChange()
 
 class HexControl(ColorControl):
