@@ -38,7 +38,6 @@ class PsychoColorPicker(wx.Dialog, ThemeMixin):
         self.ctrls.AddPage(ColorPage(self.ctrls, self, 'rgba255'), 'RGB (0 to 255)')
         self.ctrls.AddPage(ColorPage(self.ctrls, self, 'hsva'), 'HSV')
         self.ctrls.AddPage(ColorPage(self.ctrls, self, 'hexa'), 'Hex')
-        self.ctrls.Bind(aui.EVT_AUINOTEBOOK_PAGE_CHANGED, self.onPageChanged)
         # Add array of named colours
         self.presets = ColorPresets(parent=self)
         self.sizer.Add(self.presets, pos=(0,2), border=5, flag=wx.ALL)
@@ -102,9 +101,6 @@ class PsychoColorPicker(wx.Dialog, ThemeMixin):
             ))
             wx.TheClipboard.Close()
 
-    def onPageChanged(self, event):
-        event.EventObject.GetPage(event.Selection).onOpen()
-
 
 class ColorPreview(wx.Window):
     def __init__(self, color, parent):
@@ -158,8 +154,6 @@ class ColorPresets(ScrolledPanel):
 
     def onClick(self, event):
         self.parent.setColor(event.GetEventObject().colorData, 'named')
-        self.parent.ctrls.GetCurrentPage().onOpen()
-
 
 class ColorPage(wx.Window, ThemeMixin):
     def __init__(self, parent, dlg, space):
