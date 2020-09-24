@@ -47,6 +47,11 @@ class TestDisabledComponents(object):
         assert '___each_frame___' in script
         assert '___end_routine___' in script
         assert '___end_experiment___' in script
+        # Check py code is in the right order
+        assert script.find('___before_experiment___') < script.find('___begin_experiment___') < script.find('___begin_routine___') < script.find('___each_frame___') < script.find('___end_routine___') < script.find('___end_experiment___')
+        assert script.find('___before_experiment___') < script.find('visual.Window') < script.find('___begin_experiment___') < script.find('continueRoutine = True')
+        assert script.find('continueRoutine = True') < script.find('___begin_routine___') < script.find('while continueRoutine:') < script.find('___each_frame___')
+        assert script.find('thisComponent.setAutoDraw(False)') < script.find('___end_routine___') < script.find('routineTimer.reset()') < script.find('___end_experiment___')
 
         # Check js code from each tab exists
         outfile = os.path.join(self.temp_dir, 'outfile.js')
