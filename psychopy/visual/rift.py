@@ -56,118 +56,119 @@ reportNDroppedFrames = 5
 # Look-up tables for PsychXR/LibOVR constants
 #
 
-# Controller types supported by PsychXR
-RIFT_CONTROLLER_TYPES = {
-    'Xbox': libovr.CONTROLLER_TYPE_XBOX,
-    'Remote': libovr.CONTROLLER_TYPE_REMOTE,
-    'Touch': libovr.CONTROLLER_TYPE_TOUCH,
-    'LeftTouch': libovr.CONTROLLER_TYPE_LTOUCH,
-    'RightTouch': libovr.CONTROLLER_TYPE_RTOUCH,
-    'Object0': libovr.CONTROLLER_TYPE_OBJECT0,
-    'Object1': libovr.CONTROLLER_TYPE_OBJECT1,
-    'Object2': libovr.CONTROLLER_TYPE_OBJECT2,
-    'Object3': libovr.CONTROLLER_TYPE_OBJECT3,
-    libovr.CONTROLLER_TYPE_XBOX: 'Xbox',
-    libovr.CONTROLLER_TYPE_REMOTE: 'Remote',
-    libovr.CONTROLLER_TYPE_TOUCH: 'Touch',
-    libovr.CONTROLLER_TYPE_LTOUCH: 'LeftTouch',
-    libovr.CONTROLLER_TYPE_RTOUCH: 'RightTouch',
-    libovr.CONTROLLER_TYPE_OBJECT0: 'Object0',
-    libovr.CONTROLLER_TYPE_OBJECT1: 'Object1',
-    libovr.CONTROLLER_TYPE_OBJECT2: 'Object2',
-    libovr.CONTROLLER_TYPE_OBJECT3: 'Object3'
-}
+if _HAS_PSYCHXR_:
+    # Controller types supported by PsychXR
+    RIFT_CONTROLLER_TYPES = {
+        'Xbox': libovr.CONTROLLER_TYPE_XBOX,
+        'Remote': libovr.CONTROLLER_TYPE_REMOTE,
+        'Touch': libovr.CONTROLLER_TYPE_TOUCH,
+        'LeftTouch': libovr.CONTROLLER_TYPE_LTOUCH,
+        'RightTouch': libovr.CONTROLLER_TYPE_RTOUCH,
+        'Object0': libovr.CONTROLLER_TYPE_OBJECT0,
+        'Object1': libovr.CONTROLLER_TYPE_OBJECT1,
+        'Object2': libovr.CONTROLLER_TYPE_OBJECT2,
+        'Object3': libovr.CONTROLLER_TYPE_OBJECT3,
+        libovr.CONTROLLER_TYPE_XBOX: 'Xbox',
+        libovr.CONTROLLER_TYPE_REMOTE: 'Remote',
+        libovr.CONTROLLER_TYPE_TOUCH: 'Touch',
+        libovr.CONTROLLER_TYPE_LTOUCH: 'LeftTouch',
+        libovr.CONTROLLER_TYPE_RTOUCH: 'RightTouch',
+        libovr.CONTROLLER_TYPE_OBJECT0: 'Object0',
+        libovr.CONTROLLER_TYPE_OBJECT1: 'Object1',
+        libovr.CONTROLLER_TYPE_OBJECT2: 'Object2',
+        libovr.CONTROLLER_TYPE_OBJECT3: 'Object3'
+    }
 
-# Button types supported by PsychXR
-RIFT_BUTTON_TYPES = {
-    "A": libovr.BUTTON_A,
-    "B": libovr.BUTTON_B,
-    "RThumb": libovr.BUTTON_RTHUMB,
-    "RShoulder": libovr.BUTTON_RSHOULDER,
-    "X": libovr.BUTTON_X,
-    "Y": libovr.BUTTON_Y,
-    "LThumb": libovr.BUTTON_LTHUMB,
-    "LShoulder": libovr.BUTTON_LSHOULDER,
-    "Up": libovr.BUTTON_UP,
-    "Down": libovr.BUTTON_DOWN,
-    "Left": libovr.BUTTON_LEFT,
-    "Right": libovr.BUTTON_RIGHT,
-    "Enter": libovr.BUTTON_ENTER,
-    "Back": libovr.BUTTON_BACK,
-    "VolUp": libovr.BUTTON_VOLUP,
-    "VolDown": libovr.BUTTON_VOLDOWN,
-    "Home": libovr.BUTTON_HOME,
-}
+    # Button types supported by PsychXR
+    RIFT_BUTTON_TYPES = {
+        "A": libovr.BUTTON_A,
+        "B": libovr.BUTTON_B,
+        "RThumb": libovr.BUTTON_RTHUMB,
+        "RShoulder": libovr.BUTTON_RSHOULDER,
+        "X": libovr.BUTTON_X,
+        "Y": libovr.BUTTON_Y,
+        "LThumb": libovr.BUTTON_LTHUMB,
+        "LShoulder": libovr.BUTTON_LSHOULDER,
+        "Up": libovr.BUTTON_UP,
+        "Down": libovr.BUTTON_DOWN,
+        "Left": libovr.BUTTON_LEFT,
+        "Right": libovr.BUTTON_RIGHT,
+        "Enter": libovr.BUTTON_ENTER,
+        "Back": libovr.BUTTON_BACK,
+        "VolUp": libovr.BUTTON_VOLUP,
+        "VolDown": libovr.BUTTON_VOLDOWN,
+        "Home": libovr.BUTTON_HOME,
+    }
 
-# Touch types supported by PsychXR
-RIFT_TOUCH_TYPES = {
-    "A": libovr.TOUCH_A,
-    "B": libovr.TOUCH_B,
-    "RThumb": libovr.TOUCH_RTHUMB,
-    "RThumbRest": libovr.TOUCH_RTHUMBREST,
-    "RThumbUp": libovr.TOUCH_RTHUMBUP,
-    "RIndexPointing": libovr.TOUCH_RINDEXPOINTING,
-    "X": libovr.TOUCH_X,
-    "Y": libovr.TOUCH_Y,
-    "LThumb": libovr.TOUCH_LTHUMB,
-    "LThumbRest": libovr.TOUCH_LTHUMBREST,
-    "LThumbUp": libovr.TOUCH_LTHUMBUP,
-    "LIndexPointing": libovr.TOUCH_LINDEXPOINTING
-}
+    # Touch types supported by PsychXR
+    RIFT_TOUCH_TYPES = {
+        "A": libovr.TOUCH_A,
+        "B": libovr.TOUCH_B,
+        "RThumb": libovr.TOUCH_RTHUMB,
+        "RThumbRest": libovr.TOUCH_RTHUMBREST,
+        "RThumbUp": libovr.TOUCH_RTHUMBUP,
+        "RIndexPointing": libovr.TOUCH_RINDEXPOINTING,
+        "X": libovr.TOUCH_X,
+        "Y": libovr.TOUCH_Y,
+        "LThumb": libovr.TOUCH_LTHUMB,
+        "LThumbRest": libovr.TOUCH_LTHUMBREST,
+        "LThumbUp": libovr.TOUCH_LTHUMBUP,
+        "LIndexPointing": libovr.TOUCH_LINDEXPOINTING
+    }
 
-# Tracked device identifiers
-RIFT_TRACKED_DEVICE_TYPES = {
-    "HMD": libovr.TRACKED_DEVICE_TYPE_HMD,
-    "LTouch": libovr.TRACKED_DEVICE_TYPE_LTOUCH,
-    "RTouch": libovr.TRACKED_DEVICE_TYPE_RTOUCH,
-    "Touch": libovr.TRACKED_DEVICE_TYPE_TOUCH,
-    "Object0": libovr.TRACKED_DEVICE_TYPE_OBJECT0,
-    "Object1": libovr.TRACKED_DEVICE_TYPE_OBJECT1,
-    "Object2": libovr.TRACKED_DEVICE_TYPE_OBJECT2,
-    "Object3": libovr.TRACKED_DEVICE_TYPE_OBJECT3
-}
+    # Tracked device identifiers
+    RIFT_TRACKED_DEVICE_TYPES = {
+        "HMD": libovr.TRACKED_DEVICE_TYPE_HMD,
+        "LTouch": libovr.TRACKED_DEVICE_TYPE_LTOUCH,
+        "RTouch": libovr.TRACKED_DEVICE_TYPE_RTOUCH,
+        "Touch": libovr.TRACKED_DEVICE_TYPE_TOUCH,
+        "Object0": libovr.TRACKED_DEVICE_TYPE_OBJECT0,
+        "Object1": libovr.TRACKED_DEVICE_TYPE_OBJECT1,
+        "Object2": libovr.TRACKED_DEVICE_TYPE_OBJECT2,
+        "Object3": libovr.TRACKED_DEVICE_TYPE_OBJECT3
+    }
 
-# Tracking origin types
-RIFT_TRACKING_ORIGIN_TYPE = {
-    "floor": libovr.TRACKING_ORIGIN_FLOOR_LEVEL,
-    "eye": libovr.TRACKING_ORIGIN_EYE_LEVEL
-}
+    # Tracking origin types
+    RIFT_TRACKING_ORIGIN_TYPE = {
+        "floor": libovr.TRACKING_ORIGIN_FLOOR_LEVEL,
+        "eye": libovr.TRACKING_ORIGIN_EYE_LEVEL
+    }
 
-# Performance hud modes
-RIFT_PERF_HUD_MODES = {
-    'PerfSummary': libovr.PERF_HUD_PERF_SUMMARY,
-    'LatencyTiming': libovr.PERF_HUD_LATENCY_TIMING,
-    'AppRenderTiming': libovr.PERF_HUD_APP_RENDER_TIMING,
-    'CompRenderTiming': libovr.PERF_HUD_COMP_RENDER_TIMING,
-    'AswStats': libovr.PERF_HUD_ASW_STATS,
-    'VersionInfo': libovr.PERF_HUD_VERSION_INFO,
-    'Off': libovr.PERF_HUD_OFF
-}
+    # Performance hud modes
+    RIFT_PERF_HUD_MODES = {
+        'PerfSummary': libovr.PERF_HUD_PERF_SUMMARY,
+        'LatencyTiming': libovr.PERF_HUD_LATENCY_TIMING,
+        'AppRenderTiming': libovr.PERF_HUD_APP_RENDER_TIMING,
+        'CompRenderTiming': libovr.PERF_HUD_COMP_RENDER_TIMING,
+        'AswStats': libovr.PERF_HUD_ASW_STATS,
+        'VersionInfo': libovr.PERF_HUD_VERSION_INFO,
+        'Off': libovr.PERF_HUD_OFF
+    }
 
-# stereo debug hud modes
-RIFT_STEREO_DEBUG_HUD_MODES = {
-    'Off': libovr.DEBUG_HUD_STEREO_MODE_OFF,
-    'Quad': libovr.DEBUG_HUD_STEREO_MODE_QUAD,
-    'QuadWithCrosshair': libovr.DEBUG_HUD_STEREO_MODE_QUAD_WITH_CROSSHAIR,
-    'CrosshairAtInfinity': libovr.DEBUG_HUD_STEREO_MODE_CROSSHAIR_AT_INFINITY
-}
+    # stereo debug hud modes
+    RIFT_STEREO_DEBUG_HUD_MODES = {
+        'Off': libovr.DEBUG_HUD_STEREO_MODE_OFF,
+        'Quad': libovr.DEBUG_HUD_STEREO_MODE_QUAD,
+        'QuadWithCrosshair': libovr.DEBUG_HUD_STEREO_MODE_QUAD_WITH_CROSSHAIR,
+        'CrosshairAtInfinity': libovr.DEBUG_HUD_STEREO_MODE_CROSSHAIR_AT_INFINITY
+    }
 
-# Boundary types
-RIFT_BOUNDARY_TYPE = {
-    'PlayArea': libovr.BOUNDARY_PLAY_AREA,
-    'Outer': libovr.BOUNDARY_OUTER
-}
+    # Boundary types
+    RIFT_BOUNDARY_TYPE = {
+        'PlayArea': libovr.BOUNDARY_PLAY_AREA,
+        'Outer': libovr.BOUNDARY_OUTER
+    }
 
-# mirror modes
-RIFT_MIRROR_MODES = {
-    'left': libovr.MIRROR_OPTION_LEFT_EYE_ONLY,
-    'right': libovr.MIRROR_OPTION_RIGHT_EYE_ONLY,
-    'distortion': libovr.MIRROR_OPTION_POST_DISTORTION,
-    'default': libovr.MIRROR_OPTION_DEFAULT
-}
+    # mirror modes
+    RIFT_MIRROR_MODES = {
+        'left': libovr.MIRROR_OPTION_LEFT_EYE_ONLY,
+        'right': libovr.MIRROR_OPTION_RIGHT_EYE_ONLY,
+        'distortion': libovr.MIRROR_OPTION_POST_DISTORTION,
+        'default': libovr.MIRROR_OPTION_DEFAULT
+    }
 
-# eye types
-RIFT_EYE_TYPE = {'left': libovr.EYE_LEFT, 'right': libovr.EYE_RIGHT}
+    # eye types
+    RIFT_EYE_TYPE = {'left': libovr.EYE_LEFT, 'right': libovr.EYE_RIGHT}
 
 # ------------------------------------------------------------------------------
 # LibOVR Error Handler

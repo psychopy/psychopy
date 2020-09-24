@@ -30,8 +30,5 @@ Useful functions
 Device classes
 ---------------------------
 
-.. autoclass:: pyxid2.ResponseDevice
-	:members:
-
 .. autoclass:: pyxid2.XidDevice
 	:members:

@@ -602,12 +602,10 @@ class SettingsComponent(object):
         # else:
         #     saveType = "EXPERIMENT_SERVER"
         #     projID = 'undefined'
-        loggingNumericLevel = getattr(logging,
-                                      self.params['logging level'].val.upper())
         code = template.format(
                         params=self.params,
                         name=self.params['expName'].val,
-                        loggingNumericLevel=loggingNumericLevel,
+                        loggingLevel=self.params['logging level'].val.upper(),
                         setRedirectURL=setRedirectURL,
                         version=version,
                         )

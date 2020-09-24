@@ -1,7 +1,7 @@
 .. _screenshots:
 
 Screenshots
-=====================================
+~~~~~~~~~~~~~
 
 A few screenshots are provided here to give you a flavour, but it's easier to download the software and run the demos (from the demos menus in each view) to see the variety of stimuli that can be generated. 
 

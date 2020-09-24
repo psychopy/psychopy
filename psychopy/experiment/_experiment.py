@@ -225,7 +225,7 @@ class Experiment(object):
                 if hasattr(entry, 'writeInitCodeJS'):
                     entry.writeInitCodeJS(script)
                 if hasattr(entry, 'writePreCodeJS'):
-                    entry.writePreCode(script)
+                    entry.writePreCodeJS(script)
 
             # create globalClock etc
             code = ("// Create some handy timers\n"

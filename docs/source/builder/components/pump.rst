@@ -1,4 +1,4 @@
-.. _pump:
+.. _pumpComponent:
 
 Pump Component
 --------------
