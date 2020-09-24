@@ -12,8 +12,6 @@ from wx.lib.embeddedimage import PyEmbeddedImage
 from wx.lib.buttons import GenButton
 from wx.lib.scrolledpanel import ScrolledPanel
 
-from psychopy.app.colorpicker.hsv import HSVColorPicker
-from psychopy.app.colorpicker.chip import ColorChip
 from psychopy.app.themes import ThemeMixin
 from psychopy.colors import Color, AdvancedColor, colorNames
 import wx.lib.agw.aui as aui
@@ -175,7 +173,6 @@ class ColorPage(wx.Window, ThemeMixin):
         self.space = space
         self.sizer = wx.BoxSizer(wx.VERTICAL)
         self.sizer.AddSpacer(15)
-        rowh = 30
         self.ctrls = []
         if space in ['rgb', 'rgba']:
             self.ctrls = [
