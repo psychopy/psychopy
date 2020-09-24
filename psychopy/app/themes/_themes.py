@@ -383,14 +383,14 @@ class ThemeMixin:
                  'break', 'local', 'global'],
                 0: ['NA']
             }
-        elif self.GetLexer == stc.STC_LEX_CPP:
+        elif self.GetLexer() == stc.STC_LEX_CPP:
             # C/C++
             keywords = baseC
             if hasattr(self, 'filename'):
                 if self.filename.endswith('.js'):
                     # JavaScript
                     keywords = {
-                        0: ['var', 'let', 'import', 'function', 'if', 'else', 'return', 'struct', 'for', 'while', 'do',
+                        0: ['var', 'const', 'let', 'import', 'function', 'if', 'else', 'return', 'struct', 'for', 'while', 'do',
                             'finally', 'throw', 'try', 'switch', 'case', 'break'],
                         1: ['null', 'false', 'true']
                     }

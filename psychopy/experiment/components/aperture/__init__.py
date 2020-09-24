@@ -10,6 +10,8 @@ from builtins import super  # provides Py3-style super() using python-future
 
 from os import path
 from psychopy.experiment.components import BaseVisualComponent, getInitVals, _translate
+from psychopy.localization import _localized as __localized
+_localized = __localized.copy()
 
 __author__ = 'Jeremy Gray, Jon Peirce'
 # March 2011; builder-component for Yuri Spitsyn's visual.Aperture class
@@ -52,34 +54,39 @@ class ApertureComponent(BaseVisualComponent):
         self.params['size'].label = _translate("Size")
         self.params['pos'].hint = _translate("Where is the aperture centred?")
 
-        # inherited from _visual component but not needed
+        # Remove BaseVisual params which are not needed
         del self.params['ori']
         del self.params['color']
         del self.params['colorSpace']
+        del self.params['fillColor']
+        del self.params['fillColorSpace']
+        del self.params['borderColor']
+        del self.params['borderColorSpace']
         del self.params['opacity']
 
     def writeInitCode(self, buff):
+        # do writing of init
+        inits = getInitVals(self.params)
+
         # do we need units code?
         if self.params['units'].val == 'from exp settings':
             unitsStr = ""
         else:
-            unitsStr = "units=%(units)s, " % self.params
+            unitsStr = f"units={inits['units']},"
 
-        # do writing of init
-        inits = getInitVals(self.params)
-
-        code = ("%(name)s = visual.Aperture(\n"
-                "    win=win, name='%(name)s',\n"
-                "    " + unitsStr + "size=%(size)s, pos=%(pos)s)\n"
-                "%(name)s.disable()  # disable until its actually used\n")
-        buff.writeIndentedLines(code % inits)
+        code = (f"{inits['name']} = visual.Aperture(\n"
+                f"    win=win, name='{inits['name']}',\n"
+                f"    {unitsStr} size={inits['size']}, pos={inits['pos']})\n"
+                f"{inits['name']}.disable()  # disable until its actually used\n")
+        buff.writeIndentedLines(code)
 
     def writeFrameCode(self, buff):
         """Only activate the aperture for the required frames
         """
-
-        buff.writeIndented("\n")
-        buff.writeIndented("# *%s* updates\n" % (self.params['name']))
+        params = self.params
+        code = (f"\n"
+                f"# *{params['name']}* updates\n")
+        buff.writeIndented(code)
         # writes an if statement to determine whether to draw etc
         self.writeStartTestCode(buff)
         buff.writeIndented("%(name)s.enabled = True\n" % self.params)

@@ -29,6 +29,9 @@ Routine start value : any
 
 Frame start value : any
     The variable can take any value at the beginning of a frame, or during a condition bases on Start and/or Stop.
+Data
+====
+What information to save, how to lay it out and when to save it.
 
 Save exp start value : bool
     Choose whether or not to save the experiment start value to your data file.
@@ -40,8 +43,8 @@ Save frame value : bool and drop=down menu
     Frame values are contained within a list for each trial, and discarded at the end of each trial.
     Choose whether or not to take the first, last or average variable values from the frame container, and save to your data file.
 
-Save routine start value : bool
+Save routine end value : bool
     Choose whether or not to save the routine end value to your data file.
 
-Save exp start value : bool
+Save exp end value : bool
     Choose whether or not to save the experiment end value to your data file.

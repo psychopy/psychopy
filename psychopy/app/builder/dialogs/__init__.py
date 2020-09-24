@@ -111,7 +111,8 @@ class ParamCtrls(object):
                 options = vc._versionFilter(vc.versionOptions(local=False), wx.__version__)
                 versions = vc._versionFilter(vc.availableVersions(local=False), wx.__version__)
                 param.allowedVals = (options + [''] + versions)
-        if param.valType == 'extendedStr':
+        if (param.valType == 'extendedStr'
+                or fieldName == 'text'):  # because text used to be 'str' until 2020.2
             # for text input we need a bigger (multiline) box
             if fieldName == 'customize_everything':
                 sx, sy = 300, 400
@@ -121,7 +122,7 @@ class ParamCtrls(object):
                 sx, sy = 100, 200
             # set viewer small, then it SHOULD increase with wx.aui control
             self.valueCtrl = wx.TextCtrl(parent, -1, value=str(param.val), pos=wx.DefaultPosition,
-                                     size=wx.Size(sx, sy), style=wx.TE_MULTILINE)
+                                         size=wx.Size(sx, sy), style=wx.TE_MULTILINE)
             if fieldName == 'text':
                 self.valueCtrl.SetFocus()
         elif fieldName == 'Experiment info':
@@ -481,24 +482,14 @@ class _BaseParamsDlg(wx.Dialog):
         if self.__class__ != DlgExperimentProperties:
             self.mainSizer.Add(self.ctrls,  # ctrls is the notebook of params
                                proportion=1, flag=wx.EXPAND | wx.ALL, border=5)
-        categNames = sorted(categs)
-        if 'Basic' in categNames:
-            # move it to be the first category we see
-            categNames.insert(0, categNames.pop(categNames.index('Basic')))
-
-        # get categories in order
-        categNamesRemaining = sorted(categs.keys())
-        if 'Basic' in categNamesRemaining:
-            categNamesRemaining.remove('Basic')
-        categNames = ['Basic']
-        # add categ names in the params order list
-        for thisParamName in self.order:
-            thisParam = self.params[thisParamName]
-            if thisParam.categ and thisParam.categ not in categNames:
-                categNames.append(thisParam.categ)
-        for thisCategName in categNamesRemaining:
-            if thisCategName not in categNames:
-                categNames.append(thisCategName)
+        # Sort category names
+        allCategNames = sorted(categs)
+        firstCategs = ['Basic', 'Appearance', 'Layout', 'Formatting', 'Texture', 'Data']
+        lastCategs = ['Custom', 'Hardware', 'Testing']
+        bonusCategs = [nm for nm in allCategNames if nm not in firstCategs+lastCategs]
+        categNames = [nm for nm in firstCategs if nm in allCategNames] \
+                     + bonusCategs \
+                     + [nm for nm in lastCategs if nm in allCategNames]
 
         categLabel = {'Basic': _translate('Basic'),
                       'Color': _translate('Color'),

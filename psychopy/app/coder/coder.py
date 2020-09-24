@@ -2515,6 +2515,8 @@ class CoderFrame(wx.Frame, ThemeMixin):
                 self.fileSave(None)  # save then run
             elif resp == wx.ID_NO:
                 pass  # just run
+        if self.app.runner == None:
+            self.app.showRunner()
         self.app.runner.addTask(fileName=fullPath)
         self.app.runner.Raise()
         if event:

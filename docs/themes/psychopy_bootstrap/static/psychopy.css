@@ -10,6 +10,24 @@
 @import url("https://use.fontawesome.com/releases/v5.6.3/css/fontawesome.css");
 @import url("https://use.fontawesome.com/releases/v5.6.3/css/fontawesome.css");
 @import url("https://fonts.googleapis.com/css?family=Indie+Flower");
+@import url("https://fonts.googleapis.com/css?family=Arvo");
+
+:root {
+    --black: #000000;
+    --midgrey: #66666e;
+    --lightgrey: #acacb0;
+    --white: #f2f2f2;
+    --red: #f2545b;
+    --blue: #02a9ea;
+    --green: #6ccc74;
+    --orange: #ec9703;
+    --yellow: #f1d302;
+    --purple: #c3bef7;
+
+    --f1: "sans-serif"
+    --f2: "Arvo"
+    --f3: "Indie Flower"
+}
 
 body {
     padding-top: 54px;
