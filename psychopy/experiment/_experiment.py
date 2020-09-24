@@ -221,11 +221,11 @@ class Experiment(object):
             # routine init sections
             for entry in self_copy.flow:
                 # NB each entry is a routine or LoopInitiator/Terminator
+                if hasattr(entry, 'writePreCodeJS'):
+                    entry.writePreCodeJS(script)
                 self_copy._currentRoutine = entry
                 if hasattr(entry, 'writeInitCodeJS'):
                     entry.writeInitCodeJS(script)
-                if hasattr(entry, 'writePreCodeJS'):
-                    entry.writePreCodeJS(script)
 
             # create globalClock etc
             code = ("// Create some handy timers\n"
