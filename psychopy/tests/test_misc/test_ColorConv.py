@@ -25,7 +25,7 @@ tykes = [
 ]
 
 # Begin test
-if __name__=='__main__':
+def test_ColorSets():
     for colorSet in sets:
         # Construct matrix of space pairs
         spaceMatrix = []
@@ -38,7 +38,7 @@ if __name__=='__main__':
             closeEnough = all(abs(col1.rgba[i]-col2.rgba[i])<0.02 for i in range(4))
             # Check setters
             assert col1 == col2 or closeEnough
-
+def test_ColorTykes():
     for colorSet in tykes:
         for space in colorSet:
             assert bool(Color(colorSet[space], space))
