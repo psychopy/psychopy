@@ -117,8 +117,9 @@ class ScriptProcess(object):
         newOutput = self._stdoutThread.getBuffer()
         if newOutput:
             sys.stdout.write(newOutput)
-        returnVal = self.scriptProcess.poll()
-        if returnVal is not None:
+        if (self.scriptProcess is None
+                or self.scriptProcess.poll() is not None):
+            # no script or poll() sent a returncode (None means still running)
             self.onProcessEnded()
         else:
             time.sleep(0.1)  # let's not check too often
@@ -130,6 +131,9 @@ class ScriptProcess(object):
             wx.EndBusyCursor()
         except wx._core.wxAssertionError:
             pass
+        self.scriptProcess = None
+        self.Bind(wx.EVT_IDLE, None)
+        # handle stdout
         self._stdoutThread.exit = True
         time.sleep(0.1)  # give time for the buffers to finish writing?
         buff = self._stdoutThread.getBuffer()
@@ -137,6 +141,4 @@ class ScriptProcess(object):
         self.app.runner.stdOut.flush()
         self.app.runner.Show()
 
-        self.scriptProcess = None
-        self.Bind(wx.EVT_IDLE, None)
         print("##### Experiment ended. #####\n")
