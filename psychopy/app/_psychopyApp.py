@@ -349,6 +349,9 @@ class PsychoPyApp(wx.App, themes.ThemeMixin):
         if not any(getattr(view, key) for key in ['builder', 'coder', 'runner']):
             if self.prefs.app['defaultView'] in view:
                 setattr(view, self.prefs.app['defaultView'], True)
+                if self.prefs.app['defaultView'] == 'runner':
+                    # Display Builder along with Runner to path seg error, temporary fix
+                    view.builder = True
             elif self.prefs.app['defaultView'] == 'all':
                 view.builder = True
                 view.coder = True
