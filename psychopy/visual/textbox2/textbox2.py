@@ -363,9 +363,6 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
             alphaCorrection = 1
 
         if _has_uniseg:
-            # Allow hanging
-            hanging = False
-
             i_all = 0
             lineN = 0
             charwidth_list = []
@@ -374,6 +371,7 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
             vertices_list = []
             texcoords_list = []
             
+            # segment text using uniseg.linebreak module
             seg = list(uniseg.linebreak.line_break_units(text))
             
             # calc segment width
@@ -449,16 +447,10 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
                     if seg[i][-1] == '\n':
                         i+=1 # increment index to include \n to current line
                         break
-                    # if hanging=True, break line if line_width is equal or 
-                    # greater than lineMax.
-                    if hanging and lineMax <= line_width:
-                        break
                     # concatenate next segment
                     line_width += segwidth_list[i]
-                    # if line_width is greater than lineMax,
-                    # break if hanging=False or the segment is not labeled as
-                    # "avod beggining of the line".
-                    if lineMax < line_width and not hanging: #(not hanging or avoid[i] != 'B'):
+                    # break if line_width is greater than lineMax
+                    if lineMax < line_width:
                         break
                 else:
                     # if for sentence finished without break, all segments 
