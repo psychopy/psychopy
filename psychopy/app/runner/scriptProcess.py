@@ -117,7 +117,10 @@ class ScriptProcess(object):
         newOutput = self._stdoutThread.getBuffer()
         if newOutput:
             sys.stdout.write(newOutput)
-        returnVal = self.scriptProcess.poll()
+        if self.scriptProcess != None:
+            returnVal = self.scriptProcess.poll()
+        else:
+            returnVal = None
         if returnVal is not None:
             self.onProcessEnded()
         else:
