@@ -117,9 +117,11 @@ class ScriptProcess(object):
         newOutput = self._stdoutThread.getBuffer()
         if newOutput:
             sys.stdout.write(newOutput)
-        if (self.scriptProcess is None
-                or self.scriptProcess.poll() is not None):
-            # no script or poll() sent a returncode (None means still running)
+        if self.scriptProcess != None:
+            returnVal = self.scriptProcess.poll()
+        else:
+            returnVal = None
+        if returnVal is not None:
             self.onProcessEnded()
         else:
             time.sleep(0.1)  # let's not check too often
