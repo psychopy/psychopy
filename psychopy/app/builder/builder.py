@@ -711,6 +711,10 @@ class BuilderFrame(wx.Frame, ThemeMixin):
         self.generateScript(experimentPath=exportPath,
                             exp=self.exp,
                             target="PsychoJS")
+        # Open exported files
+        self.app.showCoder()
+        self.app.coder.fileOpen(filename=exportPath)
+        self.app.coder.fileOpen(filename=htmlPath)
 
     def getShortFilename(self):
         """returns the filename without path or extension
