@@ -87,6 +87,14 @@ class Routine(list):
             if hasattr(thisCompon, 'writePreCode'):
                 thisCompon.writePreCode(buff)
 
+    def writePreCodeJS(self, buff):
+        """This is start of the script (before window is created)
+        """
+        for thisCompon in self:
+            # check just in case; try to ensure backwards compatibility _base
+            if hasattr(thisCompon, 'writePreCodeJS'):
+                thisCompon.writePreCodeJS(buff)
+
     def writeStartCode(self, buff):
         """This is start of the *experiment* (after window is created)
         """
