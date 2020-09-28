@@ -35,7 +35,7 @@ class TextComponent(BaseVisualComponent):
                  # effectively just a display-value
                  text=_translate('Any text\n\nincluding line breaks'),
                  font='Arial', units='from exp settings',
-                 color='white', colorSpace='rgb',
+                 color='white', colorSpace='named',
                  pos=(0, 0), letterHeight=0.1, ori=0,
                  startType='time (s)', startVal=0.0,
                  stopType='duration (s)', stopVal=1.0,
