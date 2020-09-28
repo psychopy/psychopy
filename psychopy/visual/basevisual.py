@@ -480,6 +480,8 @@ class ColorMixin(object):
         """
         if hasattr(self, '_foreColor'):
             self._foreColor.contrast *= value
+        elif hasattr(self, '_fillColor'):
+            self._fillColor.contrast *= value
         else:
             logging.warning(f"Attempt to set contrast on object {self.name}, which has no color.")
 
@@ -1308,7 +1310,7 @@ class BaseVisualStim(MinimalStim, WindowMixin, LegacyVisualMixin):
         if alphas:
             return mean(alphas)
         else:
-            return
+            return 1
     @opacity.setter
     def opacity(self, value):
         # Setting opacity as a single value makes all colours the same opacity
