@@ -6,7 +6,7 @@ from psychopy.scripts import psyexpCompile
 from psychopy.tests.utils import TESTS_DATA_PATH
 
 
-class TestDisabledComponents(object):
+class TestComponents(object):
     def setup(self):
         self.temp_dir = mkdtemp()
 
