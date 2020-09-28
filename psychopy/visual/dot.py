@@ -508,11 +508,7 @@ class DotStim(BaseVisualStim, ColorMixin, ContainerMixin):
             CPCD = ctypes.POINTER(ctypes.c_double)
             GL.glVertexPointer(2, GL.GL_DOUBLE, 0,
                                self.verticesPix.ctypes.data_as(CPCD))
-            desiredRGB = self._getDesiredRGB(self.rgb, self.colorSpace,
-                                             self.contrast)
-
-            GL.glColor4f(desiredRGB[0], desiredRGB[1], desiredRGB[2],
-                         self.opacity)
+            GL.glColor4f(*self._foreColor.rgba1)
             GL.glEnableClientState(GL.GL_VERTEX_ARRAY)
             GL.glDrawArrays(GL.GL_POINTS, 0, self.nDots)
             GL.glDisableClientState(GL.GL_VERTEX_ARRAY)
