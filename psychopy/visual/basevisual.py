@@ -352,6 +352,7 @@ class ColorMixin(object):
             # If supplied with a valid advanced color, use it to make an advanced color object and print tip.
             self._foreColor = AdvancedColor(value, self.colorSpace)
         else:
+            self._foreColor = Color()
             logging.error(f"'{value}' is not a valid {self.colorSpace} color")
     @property
     def color(self):
@@ -377,6 +378,7 @@ class ColorMixin(object):
             # If supplied with a valid advanced color, use it to make an advanced color object and print tip.
             self._fillColor = AdvancedColor(value, self.colorSpace)
         else:
+            self._fillColor = Color()
             logging.error(f"'{value}' is not a valid {self.colorSpace} color")
     @property
     def backColor(self):
@@ -402,6 +404,7 @@ class ColorMixin(object):
             # If supplied with a valid advanced color, use it to make an advanced color object and print tip.
             self._borderColor = AdvancedColor(value, self.colorSpace)
         else:
+            self._borderColor = Color()
             logging.error(f"'{value}' is not a valid {self.colorSpace} color")
     @property
     def lineColor(self):
