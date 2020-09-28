@@ -214,7 +214,6 @@ class TextStim(BaseVisualStim, ColorMixin, ContainerMixin):
             logging.warning("Use of rgb arguments to stimuli are deprecated. Please "
                    "use color and colorSpace args instead")
             self.color = Color(rgb, 'rgb')
-        print(self._foreColor)
         self.__dict__['fontFiles'] = []
         self.fontFiles = list(fontFiles)  # calls attributeSetter
         self.setHeight(height, log=False)  # calls setFont() at some point
