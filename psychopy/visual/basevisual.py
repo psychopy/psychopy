@@ -345,7 +345,7 @@ class ColorMixin(object):
         if isinstance(value, Color):
             # If supplied with a color object, set as that
             self._foreColor = value
-        elif self.colorSpace in Color.getSpace(value, True):
+        elif self.colorSpace in Color.getSpace(value, True) or 'named' in Color.getSpace(value, True):
             # If supplied with a valid color, use it to make a color object
             self._foreColor = Color(value, self.colorSpace)
         elif self.colorSpace in AdvancedColor.getSpace(value, True):
@@ -371,7 +371,7 @@ class ColorMixin(object):
         if isinstance(value, Color):
             # If supplied with a color object, set as that
             self._fillColor = value
-        elif self.colorSpace in Color.getSpace(value, True):
+        elif self.colorSpace in Color.getSpace(value, True) or 'named' in Color.getSpace(value, True):
             # If supplied with a valid color, use it to make a color object
             self._fillColor = Color(value, self.colorSpace)
         elif self.colorSpace in AdvancedColor.getSpace(value, True):
@@ -397,7 +397,7 @@ class ColorMixin(object):
         if isinstance(value, Color):
             # If supplied with a color object, set as that
             self._borderColor = value
-        elif self.colorSpace in Color.getSpace(value, True):
+        elif self.colorSpace in Color.getSpace(value, True) or 'named' in Color.getSpace(value, True):
             # If supplied with a valid color, use it to make a color object
             self._borderColor = Color(value, self.colorSpace)
         elif self.colorSpace in AdvancedColor.getSpace(value, True):
