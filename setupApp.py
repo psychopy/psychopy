@@ -104,7 +104,7 @@ packages = ['wx', 'psychopy',
             'badapted', 'darc_toolbox',  # adaptive methods from Ben Vincent
             'questplus',
             'metapensiero.pj', 'dukpy', 'macropy',
-            'jedi',
+            'jedi','parso',
             'psychtoolbox',
             'freetype', 'h5py',
             ]
