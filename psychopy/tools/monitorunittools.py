@@ -290,18 +290,18 @@ class DummyWin(object):
         return False
 
 # Shorthand for common regexpressions
-_lbr = '[\[\(]\s*'
-_rbr = '\s*[\]\)]'
-_float = '\d*.?\d*?'
-_int = '\d*(.0*)?'
-_360 = '(\d|\d\d|[12]\d\d|3[0-5]\d|360).?\d*?'
+_lbr = r'[\[\(]\s*'
+_rbr = r'\s*[\]\)]'
+_float = r'\d*.?\d*?'
+_int = r'\d*(.0*)?'
+_360 = r'(\d|\d\d|[12]\d\d|3[0-5]\d|360).?\d*?'
 # Dict of regexpressions for different formats
 vectorSpaces = {
-    'pix': re.compile(_lbr+'('+'\-?'+_int+',\s*'+')*'+'\-?'+_int+_rbr),
-    'deg': re.compile(_lbr+'('+'\-?'+_360+',\s*'+')*'+'\-?'+_360+_rbr),
-    'cm': re.compile(_lbr+'('+'\-?'+_float+',\s*'+')*'+'\-?'+_float+_rbr),
-    'norm': re.compile(_lbr+'('+'\-?'+_float+',\s*'+')*'+'\-?'+_float+_rbr),
-    'height': re.compile(_lbr+'('+'\-?'+_float+',\s*'+')*'+'\-?'+_float+_rbr),
+    'pix': re.compile(_lbr+r'('+r'\-?'+_int+r',\s*'+r')*'+r'\-?'+_int+_rbr),
+    'deg': re.compile(_lbr+r'('+r'\-?'+_360+r',\s*'+r')*'+r'\-?'+_360+_rbr),
+    'cm': re.compile(_lbr+r'('+r'\-?'+_float+r',\s*'+r')*'+r'\-?'+_float+_rbr),
+    'norm': re.compile(_lbr+r'('+r'\-?'+_float+r',\s*'+r')*'+r'\-?'+_float+_rbr),
+    'height': re.compile(_lbr+r'('+r'\-?'+_float+r',\s*'+r')*'+r'\-?'+_float+_rbr),
 }
 
 class Vector(object):
