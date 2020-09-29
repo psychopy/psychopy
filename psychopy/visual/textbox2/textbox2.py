@@ -327,7 +327,6 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
         text = text.replace('</i>', codes['ITAL_END'])
         text = text.replace('<b>', codes['BOLD_START'])
         text = text.replace('</b>', codes['BOLD_END'])
-        rgb = self._foreColor.rgb255
         font = self.glFont
 
         # the vertices are initially pix (natural for freetype)
@@ -424,8 +423,7 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
 
             vertices[i * 4:i * 4 + 4] = theseVertices
             self._texcoords[i * 4:i * 4 + 4] = texcoords
-            self._colors[i*4 : i*4+4, :3] = rgb
-            self._colors[i*4 : i*4+4, 3] = self.opacity
+            self._colors[i*4 : i*4+4, :] = self._foreColor.rgba1
             self._lineNs[i] = lineN
             current[0] = current[0] + glyph.advance[0] + fakeBold / 2
             current[1] = current[1] + glyph.advance[1]
@@ -830,25 +828,13 @@ class Caret(ColorMixin):
         self.colorSpace = colorSpace
         self.color = color
 
-    @attributeSetter
-    def color(self, color):
-        self.setColor(color)
-        self._desiredRGB = [0.89, -0.35, -0.28]
-        # if self.colorSpace not in ['rgb', 'dkl', 'lms', 'hsv']:
-        #     self._desiredRGB = [c / 127.5 - 1 for c in self.rgb]
-        # else:
-        #     self._desiredRGB = self.rgb
-
     def draw(self):
         if not self.visible:
             return
         if core.getTime() % 1 > 0.6:  # Flash every other second
             return
         gl.glLineWidth(self.width)
-        rgb = self._desiredRGB
-        gl.glColor4f(
-            rgb[0], rgb[1], rgb[2], self.textbox.opacity
-        )
+        gl.glColor4f(*self._foreColor.rgba1)
         gl.glBegin(gl.GL_LINES)
         gl.glVertex2f(self.vertices[0, 0], self.vertices[0, 1])
         gl.glVertex2f(self.vertices[1, 0], self.vertices[1, 1])
