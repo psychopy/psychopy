@@ -20,6 +20,7 @@ from psychopy import logging, colors
 
 # tools must only be imported *after* event or MovieStim breaks on win32
 # (JWP has no idea why!)
+from psychopy.colors import Color
 from psychopy.tools.arraytools import val2array
 from psychopy.tools.attributetools import setAttribute
 from psychopy.tools.filetools import pathToString
@@ -171,7 +172,7 @@ def setTexIfNoShaders(obj):
             obj._needTextureUpdate = True
 
 
-def setColor(obj, color, colorSpace=None, operation='',
+def setColor(obj, color, colorSpace='rgb', operation='',
              rgbAttrib='rgb',  # or 'fillRGB' etc
              colorAttrib='color',  # or 'fillColor' etc
              colorSpaceAttrib=None,  # e.g. 'colorSpace' or 'fillColorSpace'
@@ -197,121 +198,37 @@ def setColor(obj, color, colorSpace=None, operation='',
     if colorSpaceAttrib is None:
         colorSpaceAttrib = colorAttrib + 'Space'
 
-    # Handle strings and returns immediately as operations, colorspace etc.
-    # does not apply here.
-    if isinstance(color, basestring):
-        if operation not in ('', None):
-            raise TypeError('Cannot do operations on named or hex color')
-        if color.lower() in colors.colors255:
-            # set rgb, color and colorSpace
-            setattr(obj, rgbAttrib,
-                    np.array(colors.colors255[color.lower()], float))
-            obj.__dict__[colorSpaceAttrib] = 'named'  # e.g. 3rSpace='named'
-            obj.__dict__[colorAttrib] = color  # e.g. obj.color='red'
-            setTexIfNoShaders(obj)
-            return
-        elif color[0] == '#' or color[0:2] == '0x':
-            # e.g. obj.rgb=[0,0,0]
-            setattr(obj, rgbAttrib, np.array(colors.hex2rgb255(color)))
-            obj.__dict__[colorSpaceAttrib] = 'hex'  # eg obj.colorSpace='hex'
-            obj.__dict__[colorAttrib] = color  # eg Qr='#000000'
-            setTexIfNoShaders(obj)
-            return
-        else:
-            # we got a string, but it isn't in the list of named colors and
-            # doesn't work as a hex
-            raise AttributeError(
-                "PsychoPy can't interpret the color string '%s'" % color)
+    # Convert valid colours
+    if isinstance(color, (list, tuple, str)):
+        color = Color(color, colorSpace)
+    # Convert single integers
+    if isinstance(color, (float, int)):
+        color = Color((color, color, color), colorSpace)
+    # Iterate through arrays
+    if isinstance(color, np.ndarray):
+        for eachCol in color:
+            setColor(obj, eachCol, colorSpace, operation, rgbAttrib, colorAttrib, colorSpaceAttrib, log)
+        return
+    # Color must be a Color object by now
+    if not isinstance(color, Color):
+        raise ValueError("color could not be coerced to Color object")
 
+    # Do transformations
+    if operation in ('', None):
+        pass
+    elif operation == '+':
+        color = Color(getattr(obj, colorAttrib), colorSpace) + color
+    elif operation == '*':
+        color = Color(getattr(obj, colorAttrib), colorSpace) * color
+    elif operation == '-':
+        color = Color(getattr(obj, colorAttrib), colorSpace) - color
+    elif operation == '/':
+        color = Color(getattr(obj, colorAttrib), colorSpace) / color
     else:
-        # If it wasn't a string, do check and conversion of scalars,
-        # sequences and other stuff.
-        color = val2array(color, length=3)  # enforces length 1 or 3
+        raise ValueError(f'Unsupported value "{operation}" for operation when setting {colorAttrib} in {colorSpace}')
 
-        if color is None:
-            setattr(obj, rgbAttrib, None)  # e.g. obj.rgb=[0,0,0]
-            obj.__dict__[colorSpaceAttrib] = None  # e.g. obj.colorSpace='hex'
-            obj.__dict__[colorAttrib] = None  # e.g. obj.color='#000000'
-            setTexIfNoShaders(obj)
-
-    # at this point we have a numpy array of 3 vals
-    # check if colorSpace is given and use obj.colorSpace if not
-    if colorSpace is None:
-        colorSpace = getattr(obj, colorSpaceAttrib)
-        # using previous color space - if we got this far in the
-        # _stColor function then we haven't been given a color name -
-        # we don't know what color space to use.
-        if colorSpace in ('named', 'hex'):
-            logging.error("If you setColor with a numeric color value then"
-                          " you need to specify a color space, e.g. "
-                          "setColor([1,1,-1],'rgb'), unless you used a "
-                          "numeric value previously in which case PsychoPy "
-                          "will reuse that color space.)")
-            return
-    # check whether combining sensible colorSpaces (e.g. can't add things to
-    # hex or named colors)
-    if operation != '' and getattr(obj, colorSpaceAttrib) in ['named', 'hex']:
-        msg = ("setColor() cannot combine ('%s') colors "
-               "within 'named' or 'hex' color spaces")
-        raise AttributeError(msg % operation)
-    elif operation != '' and colorSpace != getattr(obj, colorSpaceAttrib):
-        msg = ("setColor cannot combine ('%s') colors"
-               " from different colorSpaces (%s,%s)")
-        raise AttributeError(msg % (operation, obj.colorSpace, colorSpace))
-    else:  # OK to update current color
-        if colorSpace == 'named':
-            # operations don't make sense for named
-            obj.__dict__[colorAttrib] = color
-        else:
-            setAttribute(obj, colorAttrib, color, log=False,
-                         operation=operation, stealth=True)
-    # get window (for color conversions)
-    if colorSpace in ['dkl', 'lms']:  # only needed for these spaces
-        if hasattr(obj, 'dkl_rgb'):
-            win = obj  # obj is probably a Window
-        elif hasattr(obj, 'win'):
-            win = obj.win  # obj is probably a Stimulus
-        else:
-            win = None
-            logging.error("_setColor() is being applied to something"
-                          " that has no known Window object")
-    # convert new obj.color to rgb space
-    newColor = getattr(obj, colorAttrib)
-    if colorSpace in ['rgb', 'rgb255']:
-        setattr(obj, rgbAttrib, newColor)
-    elif colorSpace == 'dkl':
-        if (win.dkl_rgb is None or
-                np.all(win.dkl_rgb == np.ones([3, 3]))):
-            dkl_rgb = None
-        else:
-            dkl_rgb = win.dkl_rgb
-        setattr(obj, rgbAttrib, colors.dkl2rgb(
-            np.asarray(newColor).transpose(), dkl_rgb))
-    elif colorSpace == 'lms':
-        if (win.lms_rgb is None or
-                np.all(win.lms_rgb == np.ones([3, 3]))):
-            lms_rgb = None
-        elif win.monitor.getPsychopyVersion() < '1.76.00':
-            logging.error("The LMS calibration for this monitor was carried"
-                          " out before version 1.76.00."
-                          " We would STRONGLY recommend that you repeat the "
-                          "color calibration before using this color space "
-                          "(contact Jon for further info).")
-            lms_rgb = win.lms_rgb
-        else:
-            lms_rgb = win.lms_rgb
-        setattr(obj, rgbAttrib, colors.lms2rgb(newColor, lms_rgb))
-    elif colorSpace == 'hsv':
-        setattr(obj, rgbAttrib, colors.hsv2rgb(np.asarray(newColor)))
-    elif colorSpace is None:
-        pass  # probably using named colors?
-    else:
-        logging.error('Unknown colorSpace: %s' % colorSpace)
-    # store name of colorSpace for future ref and for drawing
-    obj.__dict__[colorSpaceAttrib] = colorSpace
-    # if needed, set the texture too
-    setTexIfNoShaders(obj)
-
+    setattr(obj, colorSpaceAttrib, colorSpace)
+    setattr(obj, colorAttrib, color)
 
 # set for groupFlipVert:
 immutables = {int, float, str, tuple, int, bool,
