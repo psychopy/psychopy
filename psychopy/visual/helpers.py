@@ -204,11 +204,6 @@ def setColor(obj, color, colorSpace='rgb', operation='',
     # Convert single integers
     if isinstance(color, (float, int)):
         color = Color((color, color, color), colorSpace)
-    # Iterate through arrays
-    if isinstance(color, np.ndarray):
-        for eachCol in color:
-            setColor(obj, eachCol, colorSpace, operation, rgbAttrib, colorAttrib, colorSpaceAttrib, log)
-        return
     # Color must be a Color object by now
     if not isinstance(color, Color):
         raise ValueError("color could not be coerced to Color object")
