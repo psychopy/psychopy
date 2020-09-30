@@ -21,6 +21,8 @@ from psychopy.constants import PY3
 
 __author__ = 'Jon Peirce, David Bridges, Anthony Haffey'
 
+from ..colors import Color
+
 _REQUIRED = -12349872349873  # an unlikely int
 
 # a dict of known fields with their default vals
@@ -366,7 +368,8 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
                 pos=(self.leftEdge+self.itemPadding, 0),  # y pos irrelevant
                 size=[w, None],  # expand height with text
                 autoLog=False,
-                color=item['itemColor'],
+                color=item['itemColor'] if item['itemColor'] else self.colorScheme['fg'],
+                fillColor=self.colorScheme['bg'],
                 padding=0,  # handle this by padding between items
                 borderWidth=1,
                 borderColor=None,  # add borderColor to help debug
@@ -505,13 +508,9 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
                 style=style,
                 autoLog=False,
                 color=item['responseColor'])
-        resp.line.lineColorSpace = self.colorScheme['space']
         resp.line.lineColor = self.colorScheme['fg']
-        resp.line.fillColorSpace = self.colorScheme['space']
         resp.line.fillColor = self.colorScheme['fg']
-        resp.marker.lineColorSpace = self.colorScheme['space']
         resp.marker.lineColor = self.colorScheme['em']
-        resp.marker.fillColorSpace = self.colorScheme['space']
         resp.marker.fillColor = self.colorScheme['em']
 
         if item['layout'] == 'horiz':
@@ -564,7 +563,7 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
                 units=self.units,
                 anchor='top-right',
                 color=self.colorScheme['fg'],
-                colorSpace=self.colorScheme['space'],
+                colorSpace=self.colorSpace,
                 font='Arial',
                 editable=True,
                 borderColor=self.colorScheme['fg'],
@@ -593,13 +592,9 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
                                       style='slider',
                                       pos=(self.rightEdge - .008, self.pos[1]),
                                       autoLog=False)
-        scroll.line.lineColorSpace = self.colorScheme['space']
         scroll.line.lineColor = self.colorScheme['bg']
-        scroll.line.fillColorSpace = self.colorScheme['space']
         scroll.line.fillColor = self.colorScheme['bg']
-        scroll.marker.lineColorSpace = self.colorScheme['space']
         scroll.marker.lineColor = self.colorScheme['em']
-        scroll.marker.fillColorSpace = self.colorScheme['space']
         scroll.marker.fillColor = self.colorScheme['em']
 
         return scroll
@@ -617,10 +612,9 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
                                     pos=self.pos,
                                     width=self.size[0],
                                     height=self.size[1],
-                                    fillColorSpace=self.colorScheme['space'],
-                                    fillColor=self.colorScheme['bg'],
-                                    lineColorSpace=self.colorScheme['space'],
-                                    lineColor=self.colorScheme['bg'],
+                                    colorSpace=self.colorSpace,
+                                    fillColor=self.fillColor if self.fillColor else self.colorScheme['bg'],
+                                    lineColor=self.color if self.color else self.colorScheme['bg'],
                                     autoLog=False)
 
     def _setAperture(self):
@@ -893,23 +887,20 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
         self._style = style
         # Default colours
         self.colorScheme = {
-            'space': 'rgb',  # Colour space
-            'em': [0.89, -0.35, -0.28],  # emphasis
-            'bg': [0,0,0],  # background
-            'fg': [1,1,1],  # foreground
+            'em': Color([0.89, -0.35, -0.28], 'rgb'),  # emphasis
+            'bg': Color([0,0,0], 'rgb'),  # background
+            'fg': Color([1,1,1], 'rgb'),  # foreground
         }
         if 'light' in style:
             self.colorScheme = {
-                'space': 'rgb', # Colour space
-                'em': [0.89, -0.35, -0.28],  # emphasis
-                'bg': [0.89,0.89,0.89],  # background
-                'fg': [-1,-1,-1],  # foreground
+                'em': Color([0.89, -0.35, -0.28], 'rgb'),  # emphasis
+                'bg': Color([0.89,0.89,0.89], 'rgb'),  # background
+                'fg': Color([-1,-1,-1], 'rgb'),  # foreground
             }
 
         if 'dark' in style:
             self.colorScheme = {
-                'space': 'rgb',  # Colour space
-                'em': [0.89, -0.35, -0.28],  # emphasis
-                'bg': [-0.19,-0.19,-0.14],  # background
-                'fg': [0.89,0.89,0.89],  # foreground
+                'em': Color([0.89, -0.35, -0.28], 'rgb'),  # emphasis
+                'bg': Color([-0.19,-0.19,-0.14], 'rgb'),  # background
+                'fg': Color([0.89,0.89,0.89], 'rgb'),  # foreground
             }
