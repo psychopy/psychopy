@@ -191,8 +191,7 @@ class BuilderFrame(wx.Frame, ThemeMixin):
                           Name("Components").Caption("Components").CaptionVisible(True).
                           Floatable(False).
                           RightDockable(True).LeftDockable(True).
-                          CloseButton(False).PaneBorder(False).
-                          Right())
+                          CloseButton(False).PaneBorder(False))
         compPane = self._mgr.GetPane('Components')
         self._mgr.AddPane(self.flowPanel,
                           aui.AuiPaneInfo().
@@ -200,14 +199,9 @@ class BuilderFrame(wx.Frame, ThemeMixin):
                           BestSize((8 * self.dpi, 2 * self.dpi)).
                           Floatable(False).
                           RightDockable(True).LeftDockable(True).
-                          CloseButton(False).PaneBorder(False).
-                          Bottom())
+                          CloseButton(False).PaneBorder(False))
         flowPane = self._mgr.GetPane('Flow')
-        # Arrange panes
-        if self.prefs['topFlow']:
-            flowPane.Top()
-            compPane.Left()
-            rtPane.CenterPane()
+        self.layoutPanes()
         rtPane.CaptionVisible(True)
         # tell the manager to 'commit' all the changes just made
         self._mgr.Update()
@@ -723,6 +717,10 @@ class BuilderFrame(wx.Frame, ThemeMixin):
         self.generateScript(experimentPath=exportPath,
                             exp=self.exp,
                             target="PsychoJS")
+        # Open exported files
+        self.app.showCoder()
+        self.app.coder.fileOpen(filename=exportPath)
+        self.app.coder.fileOpen(filename=htmlPath)
 
     def getShortFilename(self):
         """returns the filename without path or extension
@@ -868,6 +866,24 @@ class BuilderFrame(wx.Frame, ThemeMixin):
         self.flowPanel.draw()
         self.routinePanel.redrawRoutines()
         self.updateWindowTitle()
+
+    def layoutPanes(self):
+        # Get panes
+        flowPane = self._mgr.GetPane('Flow')
+        compPane = self._mgr.GetPane('Components')
+        rtPane = self._mgr.GetPane('Routines')
+        # Arrange panes according to prefs
+        if 'FlowBottom' in self.prefs['builderLayout']:
+            flowPane.Bottom()
+        elif 'FlowTop' in self.prefs['builderLayout']:
+            flowPane.Top()
+        if 'CompRight' in self.prefs['builderLayout']:
+            compPane.Right()
+        if 'CompLeft' in self.prefs['builderLayout']:
+            compPane.Left()
+        rtPane.Center()
+        # Commit
+        self._mgr.Update()
 
     def updateWindowTitle(self, newTitle=None):
         """Defines behavior to update window Title
@@ -1187,11 +1203,6 @@ class BuilderFrame(wx.Frame, ThemeMixin):
         """Defines compile script button behavior"""
         fullPath = self.filename.replace('.psyexp', '.py')
         self.generateScript(experimentPath=fullPath, exp=self.exp)
-
-        if self.app.prefs.general['useRunner']:
-            self.app.showRunner()
-            self.stdoutFrame.stdOut.flush()
-
         self.app.showCoder()  # make sure coder is visible
         self.app.coder.fileNew(filepath=fullPath)
         self.app.coder.fileReload(event=None, filename=fullPath)

@@ -24,7 +24,7 @@ Tracking the entire path of the mouse during a period
 Parameters
 ~~~~~~~~~~~~~~
 
-Name : string
+name : string
     Everything in a PsychoPy experiment needs a unique name. The name should contain only letters, numbers and underscores (no punctuation marks or spaces).
 
 start : 
@@ -36,14 +36,27 @@ stop :
 Force End Routine on Press
     If this box is checked then the :ref:`Routine <Routines>` will end as soon as one of the mouse buttons is pressed.
 
-Save Mouse State
+Data
+====
+What information to save, how to lay it out and when to save it.
+
+save mouse state
     How often do you need to save the state of the mouse? Every time the subject presses a mouse button, at the end of the trial, or every single frame?
     Note that the text output for cases where you store the mouse data repeatedly per trial (e.g. every press or every frame) is likely to be very hard to interpret, so you may then need to analyse your data using the psydat file (with python code) instead.
     Hopefully in future releases the output of the text file will be improved.
 
-Time Relative To
+time relative to
     Whenever the mouse state is saved (e.g. on button press or at end of trial) a time is saved too. Do you want this time to be relative to start of the :ref:`Routine <Routines>`, or the start of the whole experiment?
-        
+
+new clicks only : bool
+    Store only new clicks
+
+clickable stimuli : list
+    List of stimulus names within the same routine which can be clicked on
+
+store params for clicked : list
+    List of parameter names to store from stimuli which are clicked on
+
 .. seealso::
     
     API reference for :mod:`~psychopy.event.Mouse`

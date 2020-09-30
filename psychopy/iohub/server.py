@@ -225,10 +225,10 @@ class udpServer(DatagramServer):
             return True
         elif request_type == 'DEV_RPC':
             dclass = request.pop(0)
-            if isinstance(dclass, unicode):
+            if not isinstance(dclass, unicode):
                 dclass = unicode(dclass, 'utf-8')
             dmethod = request.pop(0)
-            if isinstance(dmethod, unicode):
+            if not isinstance(dmethod, unicode):
                 dmethod = unicode(dmethod, 'utf-8')
             args = None
             kwargs = None

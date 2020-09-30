@@ -111,7 +111,8 @@ class ParamCtrls(object):
                 options = vc._versionFilter(vc.versionOptions(local=False), wx.__version__)
                 versions = vc._versionFilter(vc.availableVersions(local=False), wx.__version__)
                 param.allowedVals = (options + [''] + versions)
-        if param.valType == 'extendedStr':
+        if (param.valType == 'extendedStr'
+                or fieldName == 'text'):  # because text used to be 'str' until 2020.2
             # for text input we need a bigger (multiline) box
             if fieldName == 'customize_everything':
                 sx, sy = 300, 400
@@ -121,7 +122,7 @@ class ParamCtrls(object):
                 sx, sy = 100, 200
             # set viewer small, then it SHOULD increase with wx.aui control
             self.valueCtrl = wx.TextCtrl(parent, -1, value=str(param.val), pos=wx.DefaultPosition,
-                                     size=wx.Size(sx, sy), style=wx.TE_MULTILINE)
+                                         size=wx.Size(sx, sy), style=wx.TE_MULTILINE)
             if fieldName == 'text':
                 self.valueCtrl.SetFocus()
         elif fieldName == 'Experiment info':
@@ -481,24 +482,14 @@ class _BaseParamsDlg(wx.Dialog):
         if self.__class__ != DlgExperimentProperties:
             self.mainSizer.Add(self.ctrls,  # ctrls is the notebook of params
                                proportion=1, flag=wx.EXPAND | wx.ALL, border=5)
-        categNames = sorted(categs)
-        if 'Basic' in categNames:
-            # move it to be the first category we see
-            categNames.insert(0, categNames.pop(categNames.index('Basic')))
-
-        # get categories in order
-        categNamesRemaining = sorted(categs.keys())
-        if 'Basic' in categNamesRemaining:
-            categNamesRemaining.remove('Basic')
-        categNames = ['Basic']
-        # add categ names in the params order list
-        for thisParamName in self.order:
-            thisParam = self.params[thisParamName]
-            if thisParam.categ and thisParam.categ not in categNames:
-                categNames.append(thisParam.categ)
-        for thisCategName in categNamesRemaining:
-            if thisCategName not in categNames:
-                categNames.append(thisCategName)
+        # Sort category names
+        allCategNames = sorted(categs)
+        firstCategs = ['Basic', 'Appearance', 'Layout', 'Formatting', 'Texture', 'Data']
+        lastCategs = ['Custom', 'Hardware', 'Testing']
+        bonusCategs = [nm for nm in allCategNames if nm not in firstCategs+lastCategs]
+        categNames = [nm for nm in firstCategs if nm in allCategNames] \
+                     + bonusCategs \
+                     + [nm for nm in lastCategs if nm in allCategNames]
 
         categLabel = {'Basic': _translate('Basic'),
                       'Color': _translate('Color'),
@@ -515,7 +506,8 @@ class _BaseParamsDlg(wx.Dialog):
                       'Save': _translate('Save'),
                       'Online':_translate('Online'),
                       'Testing':_translate('Testing'),
-                      'Audio':_translate('Audio')}
+                      'Audio':_translate('Audio'),
+                      'Format':_translate('Format')}
         for categName in categNames:
             theseParams = categs[categName]
             page = wx.Panel(self.ctrls, -1)
@@ -786,7 +778,11 @@ class _BaseParamsDlg(wx.Dialog):
         # use monospace font to signal code:
         if fieldName != 'name' and hasattr(ctrls.valueCtrl, 'GetFont'):
             if self.params[fieldName].valType == 'code':
-                ctrls.valueCtrl.SetFont(self.app._codeFont)
+                try:
+                    ctrls.valueCtrl.SetFont(self.app._codeFont)
+                except:
+                    logging.error("Failed to set font {}"
+                                  .format(self.app._codeFont))
             elif self.params[fieldName].valType == 'str':
                 ctrls.valueCtrl.Bind(wx.EVT_KEY_UP, self.checkCodeWanted)
                 try:
@@ -1127,14 +1123,14 @@ class _BaseParamsDlg(wx.Dialog):
             if used and not sameOldName:
                 msg = _translate(
                     "That name is in use (it's a %s). Try another name.")
-                return msg % namespace._localized[used], False
+                return msg % _translate(used), False
             elif not namespace.isValid(newName):  # valid as a var name
                 msg = _translate("Name must be alpha-numeric or _, no spaces")
                 return msg, False
             # warn but allow, chances are good that its actually ok
             elif namespace.isPossiblyDerivable(newName):
                 msg = namespace.isPossiblyDerivable(newName)
-                return namespace._localized[msg], True
+                return msg, True
             else:
                 return "", True
 

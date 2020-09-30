@@ -166,13 +166,19 @@ Section "PsychoPy" SEC01
   CreateDirectory "$SMPROGRAMS\$ICONS_GROUP"
   CreateShortCut "$SMPROGRAMS\$ICONS_GROUP\${PRODUCT_NAME}.lnk" \
       "$INSTDIR\pythonw.exe" "$\"$AppDir\psychopyApp.py$\"" "$AppDir\Resources\psychopy.ico"
+  CreateShortCut "$SMPROGRAMS\$ICONS_GROUP\${PRODUCT_NAME} Runner.lnk" \
+      "$INSTDIR\pythonw.exe" "$\"$AppDir\psychopyApp.py$\" --runner" "$AppDir\Resources\runner.ico"
+  CreateShortCut "$SMPROGRAMS\$ICONS_GROUP\${PRODUCT_NAME} Builder.lnk" \
+      "$INSTDIR\pythonw.exe" "$\"$AppDir\psychopyApp.py$\" --builder" "$AppDir\Resources\builder.ico"
+  CreateShortCut "$SMPROGRAMS\$ICONS_GROUP\${PRODUCT_NAME} Coder.lnk" \
+      "$INSTDIR\pythonw.exe" "$\"$AppDir\psychopyApp.py$\" --coder"  "$AppDir\Resources\coder.ico"
   !insertmacro MUI_STARTMENU_WRITE_END
 
 ; File Associations
   !insertmacro APP_ASSOCIATE "psyexp" "PsychoPy.experiment" "PsychoPy Experiment" "$AppDir\Resources\builder.ico,0" \
      "Open with PsychoPy" "$\"$INSTDIR\python.exe$\" $\"$AppDir\psychopyApp.py$\" $\"%1$\""
-  !insertmacro APP_ASSOCIATE "py" "PsychoPy.experiment" "PsychoPy Experiment" "$AppDir\Resources\coder.ico,0" \
-     "Open with PsychoPy" "$\"$INSTDIR\python.exe$\" $\"$AppDir\psychopyApp.py$\" $\"%1$\""
+  ; !insertmacro APP_ASSOCIATE "py" "PsychoPy.script" "PsychoPy Experiment" "$AppDir\Resources\coder.ico,0" \
+  ;    "Open with PsychoPy" "$\"$INSTDIR\python.exe$\" $\"$AppDir\psychopyApp.py$\" $\"%1$\""
   !insertmacro APP_ASSOCIATE "psyrun" "PsychoPy.runner" "PsychoPy Runner List" "$AppDir\Resources\runner.ico,0" \
      "Open with PsychoPy" "$\"$INSTDIR\python.exe$\" $\"$AppDir\psychopyApp.py$\" $\"%1$\""
 

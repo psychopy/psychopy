@@ -62,9 +62,11 @@ class ScriptProcess(object):
         self.scriptProcess = None
         self._stdoutThread = None
         self.Bind(wx.EVT_END_PROCESS, self.onProcessEnded)
+        self.running = False
 
     def runFile(self, event=None, fileName=None):
         """Begin new process to run experiment."""
+        self.running = True
         fullPath = fileName.replace('.psyexp', '_lastrun.py')
         wx.BeginBusyCursor()
 
@@ -115,18 +117,23 @@ class ScriptProcess(object):
         newOutput = self._stdoutThread.getBuffer()
         if newOutput:
             sys.stdout.write(newOutput)
-        returnVal = self.scriptProcess.poll()
-        if returnVal is not None:
+        if (self.scriptProcess is None
+                or self.scriptProcess.poll() is not None):
+            # no script or poll() sent a returncode (None means still running)
             self.onProcessEnded()
         else:
             time.sleep(0.1)  # let's not check too often
 
     def onProcessEnded(self, event=None):
         """Perform when script has finished running."""
+        self.running = False
         try:
             wx.EndBusyCursor()
         except wx._core.wxAssertionError:
             pass
+        self.scriptProcess = None
+        self.Bind(wx.EVT_IDLE, None)
+        # handle stdout
         self._stdoutThread.exit = True
         time.sleep(0.1)  # give time for the buffers to finish writing?
         buff = self._stdoutThread.getBuffer()
@@ -134,6 +141,4 @@ class ScriptProcess(object):
         self.app.runner.stdOut.flush()
         self.app.runner.Show()
 
-        self.scriptProcess = None
-        self.Bind(wx.EVT_IDLE, None)
         print("##### Experiment ended. #####\n")
