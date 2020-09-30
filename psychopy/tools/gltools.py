@@ -1140,7 +1140,7 @@ class FramebufferInfo(object):
     with the actual configuration of the referenced OpenGL object.
 
     """
-    __slots__ = ['name', 'target', 'attachments', 'sRGB', '_isBound',
+    __slots__ = ['name', 'target', 'attachments', '_sRGB', '_isBound',
                  'userData', 'sizeHint']
 
     def __init__(self, name=0, target=GL.GL_FRAMEBUFFER, sizeHint=None,
@@ -1164,7 +1164,7 @@ class FramebufferInfo(object):
         self.name = name
         self.target = target
         self.attachments = dict()
-        self.sRGB = sRGB
+        self._sRGB = sRGB
         self.userData = dict() if userData is None else userData
         self._isBound = False
         self.sizeHint = np.array(sizeHint, dtype=int)
@@ -1173,6 +1173,26 @@ class FramebufferInfo(object):
         """`True` if the framebuffer was previously bound using the `bindFBO`
         function."""
         return self._isBound
+
+    @property
+    def depthBuffer(self):
+        """Depth buffer attached to this framebuffer."""
+        return self.getDepthBuffer()
+
+    @property
+    def stencilBuffer(self):
+        """Stencil buffer attached to this framebuffer."""
+        return self.getStencilBuffer()
+
+    @property
+    def sRGB(self):
+        """`True` if sRGB is enabled for color drawing operations, set when
+        the FBO is bound."""
+        return self._sRGB
+
+    @sRGB.setter
+    def sRGB(self, value):
+        self._sRGB = value
 
     def getColorBuffer(self, idx=0):
         """Get the color buffer attachment.
@@ -1184,7 +1204,7 @@ class FramebufferInfo(object):
 
         Returns
         -------
-        TexImage2D, Renderbuffer or `None`
+        TexImage2DInfo, RenderbufferInfo or TexImage2DMultisampleInfo
             Descriptor for the attachment. Gives `None` if there is no color
             attachment at `idx`.
 
@@ -1201,7 +1221,7 @@ class FramebufferInfo(object):
 
         Returns
         -------
-        TexImage2D or Renderbuffer
+        TexImage2DInfo, RenderbufferInfo or TexImage2DMultisampleInfo
             Descriptor for the attachment. Gives `None` if there is no depth
             attachment.
 
@@ -1218,7 +1238,7 @@ class FramebufferInfo(object):
 
         Returns
         -------
-        TexImage2D or Renderbuffer
+        TexImage2DInfo, RenderbufferInfo or TexImage2DMultisampleInfo
             Descriptor for the attachment. Gives `None` if there is no stencil
             attachment.
 
@@ -1261,7 +1281,7 @@ def createFBO(attachments=None, sizeHint=None, sRGB=False, bindAfter=False):
         Enable sRGB mode when the FBO is bound.
     bindAfter : bool
         Bind the framebuffer afterwards. If `False`, the last framebuffer
-        state will be used.
+        state will remain current.
 
     Returns
     -------
@@ -2204,9 +2224,9 @@ def createCubeMap(width, height, target=GL.GL_TEXTURE_CUBE_MAP, level=0,
     target : :obj:`int`
         The target texture should only be `GL_TEXTURE_CUBE_MAP`.
     width : :obj:`int`
-        Texture width in pixels.
+        Texture width in pixels for each face.
     height : :obj:`int`
-        Texture height in pixels.
+        Texture height in pixels for each face.
     level : :obj:`int`
         LOD number of the texture.
     internalFormat : :obj:`int`
@@ -4552,7 +4572,8 @@ def createPlane(size=(1., 1.)):
     return vertices, texCoords, normals, faces
 
 
-def createMeshGridFromArrays(xvals, yvals, zvals=None, tessMode='diag', computeNormals=True):
+def createMeshGridFromArrays(xvals, yvals, zvals=None, tessMode='diag',
+                             computeNormals=True):
     """Create a mesh grid using coordinates from arrays.
 
     Generates a mesh using data in provided in 2D arrays of vertex coordinates.
@@ -4937,7 +4958,8 @@ def createBox(size=(1., 1., 1.), flipFaces=False):
     return vertices, texCoords, normals, faces
 
 
-def transformMeshPosOri(vertices, normals, pos=(0., 0., 0.), ori=(0., 0., 0., 1.)):
+def transformMeshPosOri(vertices, normals, pos=(0., 0., 0.),
+                        ori=(0., 0., 0., 1.)):
     """Transform a mesh.
 
     Transform mesh vertices and normals to a new position and orientation using
@@ -5200,7 +5222,7 @@ def getOpenGLInfo():
 
 def maxSamples():
     """Get the maximum number of samples supported by the current graphics
-    device used by the context.
+    device used by the context. Retrieves the value of `GL_MAX_SAMPLES`.
 
     Returns
     -------
@@ -5212,7 +5234,8 @@ def maxSamples():
 
 
 def quadBuffersSupported():
-    """Check if the hardware support quad-buffered stereo.
+    """Check if the hardware support quad-buffered stereo, checks if
+    `GL_STEREO==1`.
 
     Returns
     -------
