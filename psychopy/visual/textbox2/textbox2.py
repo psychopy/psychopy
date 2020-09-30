@@ -214,7 +214,7 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
 
         # caret
         self.editable = editable
-        self.caret = Caret(self, color=self.color, width=5)
+        self.caret = Caret(self, color=self.color, colorSpace=colorSpace, width=5)
         self._hasFocus = False
         if editable:  # may yet gain focus if the first editable obj
             self.win.addEditable(self)
