@@ -126,7 +126,7 @@ class Aperture(MinimalStim, ContainerMixin):
                 pos=pos, size=size, autoLog=False)
         else:
             self._shape = BaseShapeStim(
-                win=self.win, vertices=vertices, fillColor=1, lineColor=None,
+                win=self.win, vertices=vertices, fillColor='white', lineColor=None,
                 interpolate=False, pos=pos, size=size, autoLog=False)
             self.vertices = self._shape.vertices
             self._needVertexUpdate = True
