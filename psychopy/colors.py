@@ -221,6 +221,9 @@ class Color(object):
             self._requestedSpace = color._requestedSpace
             self.rgba = color.rgba
             return
+        # if supplied a named color, ignore color space
+        if 'named' in self.getSpace(color, True):
+            space = 'named'
         # Store requested colour and space (or defaults, if none given)
         self._requested = color if color is not None else None
         self._requestedSpace = space \
