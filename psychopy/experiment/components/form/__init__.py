@@ -59,6 +59,7 @@ class FormComponent(BaseVisualComponent):
             startEstim=startEstim, durationEstim=durationEstim)
 
         # these are defined by the BaseVisual but we don't want them
+        del self.params['color']
         del self.params['ori']
         del self.params['units']  # we only support height units right now
 
@@ -121,10 +122,6 @@ class FormComponent(BaseVisualComponent):
         initStr = ("win.allowStencil = True\n"
                    "{name} = visual.Form(win=win, name='{name}',\n"
                    "    items={Items},\n"
-                   "    colorSpace={colorSpace},\n"
-                   "    foreColor={color},\n"
-                   "    fillColor={fillColor},\n"
-                   "    borderColor={borderColor},\n"
                    "    textHeight={Text Height},\n"
                    "    randomize={Randomize},\n"
                    "    size={size},\n"

@@ -523,13 +523,9 @@ class ElementArrayStim(MinimalStim, TextureMixin, ColorMixin):
         self.win.setScale('pix')
 
         cpcd = ctypes.POINTER(ctypes.c_double)
-        RGBAs = numpy.zeros([len(self.verticesPix), 4], 'd')
-        v = 0
-        while v < len(self.verticesPix):
-            for col in self.colors:
-                RGBAs[v,:] = col.rgba1
-                v += 1
-        RGBAs = RGBAs.reshape([len(self.verticesPix), 1, 4]).repeat(4, 1)
+        RGBAs = numpy.zeros([len(self.colors), 4], 'd')
+        for i, col in enumerate(self.colors):
+            RGBAs[i,:] = col.rgba1
         GL.glColorPointer(4, GL.GL_DOUBLE, 0,
                           RGBAs.ctypes.data_as(cpcd))
         GL.glVertexPointer(3, GL.GL_DOUBLE, 0,
