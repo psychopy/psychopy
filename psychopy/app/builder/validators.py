@@ -238,6 +238,16 @@ class CodeSnippetValidator(BaseValidator):
                             msg = msg.format(name, self.displayName)
                             OK = True
 
+                    for newName in names:
+                        namespace = parent.frame.exp.namespace
+                        if newName in namespace.user or newName in namespace.builder:
+                            continue
+                        used = namespace.exists(newName)
+                        sameAsOldName = bool(newName == parent.params['name'].val)
+                        if used and not sameAsOldName:
+                            msg = _translate("Variable name $%s is in use (by %s). Try another name.") % (newName, _translate(used))
+                            # let the user continue if this is what they intended
+                            OK = True
 
         parent.warningsDict[field] = msg
         return msg, OK
