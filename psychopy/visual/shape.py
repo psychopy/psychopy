@@ -82,9 +82,9 @@ class BaseShapeStim(BaseVisualStim, ColorMixin, ContainerMixin):
                  units='',
                  lineWidth=1.5,
                  lineColor=None,
-                 lineColorSpace='named',
+                 lineColorSpace=None,
                  fillColor=None,
-                 fillColorSpace='named',
+                 fillColorSpace=None,
                  vertices=((-0.5, 0), (0, +0.5), (+0.5, 0)),
                  closeShape=True,
                  pos=(0, 0),
@@ -365,7 +365,7 @@ class BaseShapeStim(BaseVisualStim, ColorMixin, ContainerMixin):
         if nVerts > 2:  # draw a filled polygon first
             if self._fillColor != None:
                 # then draw
-                GL.glColor4f(*self._fillColor.rgba255)
+                GL.glColor4f(*self._fillColor.rgba1)
                 GL.glDrawArrays(GL.GL_POLYGON, 0, nVerts)
         if self._borderColor != None and self.lineWidth != 0.0:
             # then draw
@@ -586,14 +586,14 @@ class ShapeStim(BaseShapeStim):
                 self.verticesPix.shape[0] > 2 and
                 self._fillColor != None):
             GL.glVertexPointer(2, GL.GL_DOUBLE, 0, self.verticesPix.ctypes)
-            GL.glColor4f(*self._fillColor.rgba255)
+            GL.glColor4f(*self._fillColor.rgba1)
             GL.glDrawArrays(GL.GL_TRIANGLES, 0, self.verticesPix.shape[0])
 
         # draw the border (= a line connecting the non-tesselated vertices)
         if self._borderColor != None and self.lineWidth:
             GL.glVertexPointer(2, GL.GL_DOUBLE, 0, self._borderPix.ctypes)
             GL.glLineWidth(self.lineWidth)
-            GL.glColor4f(*self._borderColor.rgba255)
+            GL.glColor4f(*self._borderColor.rgba1)
             if self.closeShape:
                 gl_line = GL.GL_LINE_LOOP
             else:
