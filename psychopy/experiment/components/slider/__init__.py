@@ -82,8 +82,7 @@ class SliderComponent(BaseVisualComponent):
         self.targets = ['PsychoPy', 'PsychoJS']
 
         # params
-        self.order.extend(['name',
-                      'size', 'pos',
+        self.order.extend(['size', 'pos',
                       'ticks', 'labels',  'granularity',
                       'font','flip','color','styles',
                       ])
