@@ -370,7 +370,7 @@ class BaseShapeStim(BaseVisualStim, ColorMixin, ContainerMixin):
         if self._borderColor != None and self.lineWidth != 0.0:
             # then draw
             GL.glLineWidth(self.lineWidth)
-            GL.glColor4f(*self._borderColor.rgba255)
+            GL.glColor4f(*self._borderColor.rgba1)
             if self.closeShape:
                 GL.glDrawArrays(GL.GL_LINE_LOOP, 0, nVerts)
             else:
