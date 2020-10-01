@@ -614,7 +614,7 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
                                     height=self.size[1],
                                     colorSpace=self.colorSpace,
                                     fillColor=self.fillColor if self.fillColor else self.colorScheme['bg'],
-                                    lineColor=self.color if self.color else self.colorScheme['bg'],
+                                    lineColor=self.borderColor if self.borderColor else self.colorScheme['bg'],
                                     autoLog=False)
 
     def _setAperture(self):
