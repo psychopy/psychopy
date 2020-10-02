@@ -127,7 +127,6 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
         self.colorSpace = colorSpace
         self.color = color
         self.contrast = contrast
-        self.opacity = opacity
         self.onTextCallback = onTextCallback
 
         if units=='norm':
@@ -190,6 +189,7 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
         self.borderWidth = borderWidth
         self.borderColor = borderColor
         self.fillColor = fillColor
+        self.opacity = opacity
 
         self.box = Rect(
                 win, pos=self.pos,
@@ -204,11 +204,7 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
                 units=self.units,
                 lineWidth=1, lineColor=None, fillColor=self._fillColor, opacity=0.1,
                 autoLog=False)
-        self.pallette = { # If no focus
-                'lineColor': self._borderColor,
-                'lineWidth': borderWidth,
-                'fillColor': self._fillColor,
-        }
+        self.updateColors()
         # then layout the text (setting text triggers _layout())
         self.text = text if text is not None else ""
 
@@ -253,6 +249,16 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
             False: value,
             True: pal
         }
+
+    def updateColors(self):
+        self.pallette = { # If no focus
+                'lineColor': self._borderColor,
+                'lineWidth': self.borderWidth,
+                'fillColor': self._fillColor,
+        }
+
+    def updateOpacity(self):
+        self.updateColors()
 
     @attributeSetter
     def font(self, fontName, italic=False, bold=False):
