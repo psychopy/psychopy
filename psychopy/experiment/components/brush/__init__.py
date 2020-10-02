@@ -136,7 +136,7 @@ class BrushComponent(BaseVisualComponent):
 
         buff.writeIndentedLines(code)
         # add reset function
-        code = ("{name}Reset = function() {{\n"
+        code = ("{name}Reset = {name}.reset = function() {{\n"
                 "  if ({name}Shapes.length > 0) {{\n"
                 "    for (let shape of {name}Shapes) {{\n"
                 "      shape.setAutoDraw(false);\n"
