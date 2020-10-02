@@ -466,6 +466,10 @@ class ShapeStim(BaseShapeStim):
         self.closeShape = closeShape
         self.windingRule = windingRule
         self.vertices = vertices
+        # Appearance
+        self.colorSpace = colorSpace
+        self.fillColor = fillColor
+        self.borderColor = lineColor
 
         # remove deprecated params (from ShapeStim.__init__):
         self._initParams = self._initParamsOrig
