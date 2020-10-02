@@ -141,6 +141,7 @@ _localized = {
     'audioDevice': _translate("audio device"),
     'parallelPorts': _translate("parallel ports"),
     'qmixConfiguration': _translate("Qmix configuration"),
+    'highDPI': _translate('Try to support display high DPI'),
     # pref labels in Connections section
     'proxy': _translate('proxy'),
     'autoProxy': _translate('auto-proxy'),
