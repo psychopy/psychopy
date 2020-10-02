@@ -225,8 +225,9 @@ def getInitVals(params, target="PsychoPy"):
         elif name in ['pos', 'fieldPos']:
             inits[name].val = '[0,0]'
             inits[name].valType = 'code'
-        elif inits[name].valType == 'color':
-            inits[name].val = None
+        elif name == 'color':
+            inits[name].val = 'white'
+            inits[name].valType = 'color'
         elif name in ['ori', 'sf', 'size', 'height', 'letterHeight',
                       'lineColor', 'fillColor', 'lineWidth',
                       'phase', 'opacity',
