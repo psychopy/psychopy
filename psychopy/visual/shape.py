@@ -112,7 +112,6 @@ class BaseShapeStim(BaseVisualStim, ColorMixin, ContainerMixin):
         super(BaseShapeStim, self).__init__(win, units=units,
                                             name=name, autoLog=False)
 
-        self.contrast = contrast
         self.opacity = opacity
         self.pos = numpy.array(pos, float)
         self.closeShape = closeShape
@@ -123,7 +122,6 @@ class BaseShapeStim(BaseVisualStim, ColorMixin, ContainerMixin):
         self.colorSpace = colorSpace
         self.fillColor = fillColor
         self.lineColor = lineColor
-
         if color != None and fillColor == None and lineColor == None:
             # if the fillColor and lineColor are not set but color is, the user probably wants color applied to both
             self.fillColor = color
@@ -133,12 +131,12 @@ class BaseShapeStim(BaseVisualStim, ColorMixin, ContainerMixin):
             logging.warning("Use of rgb arguments to stimuli are deprecated."
                             " Please use color and colorSpace args instead")
             self.setLineColor(lineRGB, colorSpace='rgb', log=None)
-
         if fillRGB is not None:
             # Override with RGB if set
             logging.warning("Use of rgb arguments to stimuli are deprecated."
                             " Please use color and colorSpace args instead")
             self.setFillColor(fillRGB, colorSpace='rgb', log=None)
+        self.contrast = contrast
 
         # Other stuff
         self.depth = depth
@@ -420,10 +418,10 @@ class ShapeStim(BaseShapeStim):
                  units='',
                  lineWidth=1.5,
                  lineColor='white',
-                 lineColorSpace='rgb',
+                 lineColorSpace=None,
                  colorSpace='rgb',
                  fillColor=None,
-                 fillColorSpace='rgb',
+                 fillColorSpace=None,
                  vertices=((-0.5, 0), (0, +0.5), (+0.5, 0)),
                  windingRule=None,  # default GL.GLU_TESS_WINDING_ODD
                  closeShape=True,  # False for a line
@@ -446,6 +444,7 @@ class ShapeStim(BaseShapeStim):
         super(ShapeStim, self).__init__(win,
                                         units=units,
                                         lineWidth=lineWidth,
+                                        colorSpace=colorSpace,
                                         lineColor=lineColor,
                                         lineColorSpace=lineColorSpace,
                                         fillColor=fillColor,
