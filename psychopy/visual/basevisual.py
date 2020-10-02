@@ -1319,7 +1319,7 @@ class BaseVisualStim(MinimalStim, WindowMixin, LegacyVisualMixin):
         if hasattr(self, '_fillColor'):
             self._fillColor.alpha = value
         if hasattr(self, '_borderColor'):
-            self._boderColor.alpha = value
+            self._borderColor.alpha = value
 
     @attributeSetter
     def ori(self, value):
