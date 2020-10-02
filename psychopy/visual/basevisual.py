@@ -524,6 +524,11 @@ class ColorMixin(object):
         col.contrast *= contrast
         return col.rgb
 
+    def updateColors(self):
+        """Placeholder method to update colours when set externally, for example updating the `pallette` attribute of
+        a textbox"""
+        return
+
 
 class ContainerMixin(object):
     """Mixin class for visual stim that have verticesPix attrib
@@ -1320,6 +1325,11 @@ class BaseVisualStim(MinimalStim, WindowMixin, LegacyVisualMixin):
             self._fillColor.alpha = value
         if hasattr(self, '_borderColor'):
             self._borderColor.alpha = value
+
+    def updateOpacity(self):
+        """Placeholder method to update colours when set externally, for example updating the `pallette` attribute of
+        a textbox"""
+        return
 
     @attributeSetter
     def ori(self, value):
