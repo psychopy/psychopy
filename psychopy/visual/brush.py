@@ -80,7 +80,7 @@ class Brush(MinimalStim):
                                      closeShape=self.closeShape,
                                      lineWidth=self.lineWidth,
                                      lineColor=self.lineColor,
-                                     lineColorSpace=self.lineColorSpace,
+                                     colorSpace=self.lineColorSpace,
                                      opacity=self.opacity,
                                      autoLog=False,
                                      autoDraw=True))
