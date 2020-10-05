@@ -320,7 +320,9 @@ class Color(object):
 
     def copy(self):
         """Return a duplicate of this colour"""
-        return self.__class__(self._requested, self._requestedSpace)
+        dupe = self.__class__(self._requested, self._requestedSpace)
+        dupe.rgba = self.rgba
+        return dupe
 
     @staticmethod
     def getSpace(color, debug=False):
