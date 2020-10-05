@@ -91,10 +91,10 @@ class ImageStim(BaseVisualStim, ContainerMixin, ColorMixin, TextureMixin):
         self.depth = depth
 
         # color and contrast etc
-        self.contrast = float(contrast)
-        self.opacity = float(opacity)
         self.colorSpace = colorSpace  # omit decorator
         self.color = color
+        self.contrast = float(contrast)
+        self.opacity = float(opacity)
         # does an rgb pedestal make sense for an image?
         self.rgbPedestal = [0, 0, 0]
 
