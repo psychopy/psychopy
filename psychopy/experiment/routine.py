@@ -303,6 +303,13 @@ class Routine(list):
                     "    thisComponent.status = PsychoJS.Status.NOT_STARTED;\n"
                     "   });\n"
                     "\nreturn Scheduler.Event.NEXT;\n" % self.params)
+        # are we done yet?
+        code = ("// check if the Routine should terminate\n"
+                "if (!continueRoutine) {"
+                "  // a component has requested a forced-end of Routine\n"
+                "  return Scheduler.Event.NEXT;\n"
+                "}\n")
+        buff.writeIndentedLines(code)
 
         buff.writeIndentedLines(code)
         buff.setIndentLevel(-1, relative=True)
