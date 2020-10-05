@@ -181,7 +181,7 @@ class SliderComponent(BaseVisualComponent):
                    "    size={size}, pos={pos}, units={units},\n"
                    "    labels={labels}, ticks={ticks},\n"
                    "    granularity={granularity}, style={styles},\n"
-                   "    color={color}, font={font},\n"
+                   "    color={color}, colorSpace={colorSpace}, font={font},\n"
                    "    flip={flip}, depth={depth})\n"
                    .format(**inits))
         buff.writeIndented(initStr)
