@@ -204,7 +204,6 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
                 units=self.units,
                 lineWidth=1, lineColor=None, fillColor=self._fillColor, opacity=0.1,
                 autoLog=False)
-        self.updateColors()
         # then layout the text (setting text triggers _layout())
         self.text = text if text is not None else ""
 
@@ -214,7 +213,7 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
         self._hasFocus = False
         if editable:  # may yet gain focus if the first editable obj
             self.win.addEditable(self)
-
+        self.updateColors()
         self.autoLog = autoLog
 
     @property
@@ -256,6 +255,7 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
                 'lineWidth': self.borderWidth,
                 'fillColor': self._fillColor,
         }
+        self._layout()
 
     def updateOpacity(self):
         self.updateColors()
