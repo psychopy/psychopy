@@ -254,18 +254,18 @@ class DotStim(BaseVisualStim, ColorMixin, ContainerMixin):
         self.element = element
         self.dotLife = dotLife
         self.signalDots = signalDots
-        self.opacity = float(opacity)
-        self.contrast = float(contrast)
 
         self.useShaders = False  # not needed for dots?
-        self.colorSpace = colorSpace
         if rgb != None:
             logging.warning("Use of rgb arguments to stimuli are deprecated."
                             " Please use color and colorSpace args instead")
-            self.setColor(rgb, colorSpace='rgb', log=False)
+            self.colorSpace = 'rgba'
+            self.color = rgb
         else:
-            self.setColor(color, log=False)
-
+            self.colorSpace = colorSpace
+            self.color = color
+        self.opacity = float(opacity)
+        self.contrast = float(contrast)
         self.depth = depth
 
         # initialise the dots themselves - give them all random dir and then
