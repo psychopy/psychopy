@@ -458,14 +458,11 @@ class BaseComponent(object):
 
         if target == 'PsychoPy':
             if params[paramName].valType == 'color':
-                buff.writeIndented(f"# Set colors for {compName}\n"
-                                   f"{compName}.colorSpace = {params['colorSpace']}\n"
-                                   f"{compName}.{paramName} = {val}\n"
-                                   f"{compName}.updateColors()\n")
+                buff.writeIndented(f"# Set {paramName} for {compName}\n"
+                                   f"{compName}.set{paramCaps}({val}, colorSpace={params['colorSpace']}{loggingStr}){endStr}\n")
             elif paramName == 'opacity':
                 buff.writeIndented(f"# Set opacity for {compName}\n"
-                                   f"{compName}.opacity = {val}\n"
-                                   f"{compName}.updateOpacity()\n")
+                                   f"{compName}.setOpacity({val})\n")
             elif paramName == 'sound':
                 stopVal = params['stopVal'].val
                 if stopVal in ['', None, -1, 'None']:
