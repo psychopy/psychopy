@@ -249,14 +249,14 @@ class Slider(MinimalStim, ColorMixin):
         else:
             lineSize = self._lineW, self._lineL
             tickSize = self._tickL, self._lineW
-        self.line = GratingStim(win=self.win, pos=self.pos, color=self._foreColor, colorSpace=self.colorSpace,
+        self.line = GratingStim(win=self.win, pos=self.pos, color=self.color, colorSpace=self.colorSpace,
                                 size=lineSize, sf=0, units=self.units,
                                 autoLog=False)
         self.tickLines = ElementArrayStim(win=self.win, units=self.units,
                                           nElements=len(self.ticks),
                                           xys=self.tickLocs,
                                           elementMask=None,
-                                          colors=self._foreColor, colorSpace = self.colorSpace,
+                                          colors=self.color, colorSpace = self.colorSpace,
                                           sizes=tickSize, sfs=0,
                                           autoLog=False)
 
@@ -286,7 +286,7 @@ class Slider(MinimalStim, ColorMixin):
 
                 obj = TextStim(self.win, label, font=self.font,
                                anchorHoriz=alignHoriz, anchorVert=alignVert,
-                               units=self.units, color=self._foreColor, colorSpace=self.colorSpace,
+                               units=self.units, color=self.color,
                                pos=self.labelLocs[tickN, :],
                                height=self.labelHeight, 
                                wrapWidth=self.labelWrapWidth,
