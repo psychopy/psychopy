@@ -485,10 +485,9 @@ class ColorMixin(object):
         else:
             logging.warning(f"Attempt to set contrast on object {self.name}, which has no color.")
 
-    def setColor(self, color, colorSpace=None, operation='', log=None):
-        """Usually you can use 'stim.attribute = value' syntax instead,
-        but use this method if you need to suppress the log message
-        and/or set colorSpace simultaneously.
+    def setForeColor(self, color, colorSpace=None, operation='', log=None):
+        """Hard setter for foreColor, allows suppression of the log message, simultaneous colorSpace setting and
+        calls update methods.
         """
         if colorSpace is not None:
             self.colorSpace = colorSpace
@@ -500,6 +499,48 @@ class ColorMixin(object):
             self.foreColor -= color
         else:
             logging.error(f"Operation '{operation}' not recognised.")
+        # Trigger color update for components like Textbox which have different behaviours for a hard setter
+        self.updateColors()
+    def setColor(self, color, colorSpace=None, operation='', log=None):
+        self.setForeColor(color, colorSpace=None, operation='', log=None)
+
+    def setFillColor(self, color, colorSpace=None, operation='', log=None):
+        """Hard setter for fillColor, allows suppression of the log message, simultaneous colorSpace setting and
+        calls update methods.
+        """
+        if colorSpace is not None:
+            self.colorSpace = colorSpace
+        if operation in ['', '=']:
+            self.fillColor = color
+        elif operation in ['+']:
+            self.fillColor += color
+        elif operation in ['-']:
+            self.fillColor -= color
+        else:
+            logging.error(f"Operation '{operation}' not recognised.")
+        # Trigger color update for components like Textbox which have different behaviours for a hard setter
+        self.updateColors()
+    def setBackColor(self, color, colorSpace=None, operation='', log=None):
+        self.setFillColor(color, colorSpace=None, operation='', log=None)
+
+    def setBorderColor(self, color, colorSpace=None, operation='', log=None):
+        """Hard setter for fillColor, allows suppression of the log message, simultaneous colorSpace setting and
+        calls update methods.
+        """
+        if colorSpace is not None:
+            self.colorSpace = colorSpace
+        if operation in ['', '=']:
+            self.borderColor = color
+        elif operation in ['+']:
+            self.borderColor += color
+        elif operation in ['-']:
+            self.borderColor -= color
+        else:
+            logging.error(f"Operation '{operation}' not recognised.")
+        # Trigger color update for components like Textbox which have different behaviours for a hard setter
+        self.updateColors()
+    def setLineColor(self, color, colorSpace=None, operation='', log=None):
+        self.setBorderColor(color, colorSpace=None, operation='', log=None)
 
     def setContrast(self, newContrast, operation='', log=None):
         """Usually you can use 'stim.attribute = value' syntax instead,
@@ -1471,10 +1512,19 @@ class BaseVisualStim(MinimalStim, WindowMixin, LegacyVisualMixin):
         setAttribute(self, 'ori', newOri, log, operation)
 
     def setOpacity(self, newOpacity, operation='', log=None):
-        """Usually you can use 'stim.attribute = value' syntax instead,
-        but use this method if you need to suppress the log message
+        """Hard setter for opacity, allows the suppression of log messages and calls the update method
         """
-        setAttribute(self, 'opacity', newOpacity, log, operation)
+        if operation in ['', '=']:
+            self.opacity = newOpacity
+        elif operation in ['+']:
+            self.opacity += newOpacity
+        elif operation in ['-']:
+            self.opacity -= newOpacity
+        else:
+            logging.error(f"Operation '{operation}' not recognised.")
+        # Trigger color update for components like Textbox which have different behaviours for a hard setter
+        self.updateOpacity()
+
 
     def _set(self, attrib, val, op='', log=None):
         """DEPRECATED since 1.80.04 + 1.
