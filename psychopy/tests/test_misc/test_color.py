@@ -1,4 +1,10 @@
+import os
+import shutil
+from tempfile import mkdtemp
 from psychopy.colors import Color, colorSpaces
+from psychopy.tests.utils import TESTS_DATA_PATH
+import importlib
+from psychopy.scripts import psyexpCompile
 
 # Define expected values for different spaces
 sets = [
@@ -42,3 +48,19 @@ def test_ColorTykes():
     for colorSet in tykes:
         for space in colorSet:
             assert bool(Color(colorSet[space], space))
+
+def test_ComponentColors():
+    # Setup temp directory
+    temp_root = mkdtemp()
+    temp_dir = os.path.join(temp_root, 'colorTest')
+    psyexpDir = os.path.join(TESTS_DATA_PATH, 'componentColorsExperiment')
+    shutil.copytree(psyexpDir, temp_dir)
+    # Compile experiment
+    inFile = os.path.join(temp_dir, 'colour.psyexp')
+    outFile = os.path.join(temp_dir, 'colour.py')
+    psyexpCompile.compileScript(infile=inFile, outfile=outFile)
+    spec = importlib.util.spec_from_file_location("colour.py", outFile)
+    # Run experiment
+    runner = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(runner)
+
