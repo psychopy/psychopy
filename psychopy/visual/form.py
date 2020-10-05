@@ -100,6 +100,10 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
     def __init__(self,
                  win,
                  name='default',
+                 colorSpace='rgb',
+                 fillColor=None,
+                 borderColor=None,
+                 foreColor='white',
                  items=None,
                  textHeight=.02,
                  size=(.5, .5),
@@ -125,6 +129,11 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
         self.units = units
         self.depth = 0
 
+        # Appearance
+        self.colorSpace = colorSpace
+        self.fillColor = fillColor
+        self.foreColor = foreColor
+        self.borderColor = borderColor
 
         self.textHeight = textHeight
         self._scrollBarSize = (0.016, size[1])
@@ -368,6 +377,7 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
                 pos=(self.leftEdge+self.itemPadding, 0),  # y pos irrelevant
                 size=[w, None],  # expand height with text
                 autoLog=False,
+                colorSpace=self.colorSpace,
                 color=item['itemColor'] if item['itemColor'] else self.colorScheme['fg'],
                 fillColor=self.colorScheme['bg'],
                 padding=0,  # handle this by padding between items
@@ -507,6 +517,7 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
                 flip=True,
                 style=style,
                 autoLog=False,
+                colorSpace=self.colorSpace,
                 color=item['responseColor'])
         resp.line.lineColor = self.colorScheme['fg']
         resp.line.fillColor = self.colorScheme['fg']
