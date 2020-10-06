@@ -219,8 +219,8 @@ class TextStim(BaseVisualStim, ColorMixin, ContainerMixin):
         self.setHeight(height, log=False)  # calls setFont() at some point
         # calls attributeSetter without log
         setAttribute(self, 'wrapWidth', wrapWidth, log=False)
-        self.opacity = float(opacity)
-        self.contrast = float(contrast)
+        self.opacity = opacity
+        self.contrast = contrast
         # self.width and self._fontHeightPix get set with text and
         # calcSizeRendered is called
         self.setText(text, log=False)
@@ -379,7 +379,7 @@ class TextStim(BaseVisualStim, ColorMixin, ContainerMixin):
                 anchor_x=self.anchorHoriz,
                 anchor_y=self.anchorVert,  # the point we rotate around
                 align=self.alignText,
-                color = self._foreColor.rgba255,
+                color = self._foreColor.rgb255+(round(self._foreColor.alpha*255),),
                 multiline=True, width=self._wrapWidthPix)  # width of the frame
             self.width = self._pygletTextObj.width
             self._fontHeightPix = self._pygletTextObj.height
@@ -505,17 +505,12 @@ class TextStim(BaseVisualStim, ColorMixin, ContainerMixin):
                 anchor_x=self.anchorHoriz,
                 anchor_y=self.anchorVert,  # the point we rotate around
                 align=self.alignText,
-                color = (int(127.5 * self.rgb[0] + 127.5),
-                      int(127.5 * self.rgb[1] + 127.5),
-                      int(127.5 * self.rgb[2] + 127.5),
-                      int(255 * self.opacity)),
+                color = self._foreColor.rgb255+(round(self._foreColor.alpha*255),),
                 multiline=True, width=self._wrapWidthPix)  # width of the frame
             self.width = self._pygletTextObj.width
         else:
             self._surf = self._font.render(value, self.antialias,
-                                           [desiredRGB[0] * 255,
-                                            desiredRGB[1] * 255,
-                                            desiredRGB[2] * 255])
+                                           [self._foreColor.rgb255])
             self.width, self._fontHeightPix = self._surf.get_size()
             if self.antialias:
                 smoothing = GL.GL_LINEAR
@@ -776,6 +771,9 @@ class TextStim(BaseVisualStim, ColorMixin, ContainerMixin):
                                                    win=self.win)
         self._needVertexUpdate = False
         return self.__dict__['posPix']
+
+    def updateOpacity(self):
+        self._setTextShaders(value=self.text)
 
     def draw(self, win=None):
         """
