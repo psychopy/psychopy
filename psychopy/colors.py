@@ -665,6 +665,8 @@ advancedSpaces = {
     'srgbTFa': re.compile(_lbr+r'\-?'+_1+r',\s*'+r'\-?'+_1+r',\s*'+r'\-?'+_1+r',\s*'+_1+_rbr), # srgbTF from -1 to 1 + alpha from 0 to 1
     'lms': re.compile(_lbr + r'\-?' + _1 + r',\s*' + r'\-?' + _1 + r',\s*' + r'\-?' + _1 + _rbr),  # LMS from -1 to 1
     'lmsa': re.compile(_lbr + r'\-?' + _1 + r',\s*' + r'\-?' + _1 + r',\s*' + r'\-?' + _1 + r',\s*' + r'\-?' + _1 + _rbr),  # LMS + alpha from -1 to 1
+    'dkl': re.compile(_lbr + r'\-?' + r'\d*.?\d*' + r',\s*' + r'\-?' + r'\d*.?\d*' + r',\s*' + r'\-?' + r'\d*.?\d*' + _rbr), # DKL placeholder: Accepts any values
+    'dkla': re.compile(_lbr + r'\-?' + r'\d*.?\d*' + r',\s*' + r'\-?' + r'\d*.?\d*' + r',\s*' + r'\-?' + r'\d*.?\d*' + r',\s*' + r'\-?' + r'\d*.?\d*' + _rbr) # DKLA placeholder: Accepts any values
 }
 
 
@@ -885,6 +887,28 @@ class AdvancedColor(Color):
     @lms.setter
     def lms(self, color):
         self.lmsa = color
+
+    @property
+    def dkla(self):
+        self._cache['dkla'] = None
+        return self._cache['dkla']
+    @dkla.setter
+    def dkla(self, color):
+        d, k, l, *a = color
+        nd = numpy.zeros(3)
+        nd[:] = [d,k,l]
+        self.rgb = tuple( dkl2rgb(nd) )
+        if a:
+            self.alpha = a[0]
+        # Clear outdated values from cache
+        self._cache = {}
+    @property
+    def dkl(self):
+        return self.dkla[:-1]
+    @dkl.setter
+    def dkl(self, color):
+        self.dkla = color
+
 
 """----------Legacy-----------------"""
 # Old reference tables
