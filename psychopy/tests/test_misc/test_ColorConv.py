@@ -21,7 +21,7 @@ sets = [
 ]
 # A few values which are likely to mess things up
 tykes = [
-
+    {'rgba': ( 1.00,  1.00,  1.00, 0.50), 'rgba255': (255, 255, 255, 0.50), 'hsva': (  0, 0.00, 1.00, 0.50)} # Make sure opacities work in every space
 ]
 
 # Begin test
