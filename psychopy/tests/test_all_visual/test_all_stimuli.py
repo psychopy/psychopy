@@ -360,10 +360,11 @@ class _baseVisualTest(object):
     def test_hexColors(self):
         win = self.win
         circle = visual.Circle(win, fillColor='#0000FF',
+                               colorSpace='hex',
                                lineColor=None,
                                size=2* self.scaleFactor)
         circle.draw()
-        grat = visual.GratingStim(win, ori=20, color='#00AAFF',
+        grat = visual.GratingStim(win, ori=20, color='#00AAFF', colorSpace='hex',
             pos=[0.6 * self.scaleFactor, -0.6 * self.scaleFactor],
             sf=3.0 / self.scaleFactor, size=2 * self.scaleFactor,
             interpolate=True)
@@ -580,7 +581,7 @@ class _baseVisualTest(object):
     def test_radial(self):
         win = self.win
         #using init
-        wedge = visual.RadialStim(win, tex='sqrXsqr', color=1,size=2*self.scaleFactor,
+        wedge = visual.RadialStim(win, tex='sqrXsqr', color=(1,1,1), colorSpace='rgb', size=2*self.scaleFactor,
             visibleWedge=[0, 45], radialCycles=2, angularCycles=2, interpolate=False)
         wedge.draw()
         thresh = 15  # there are often a slight interpolation differences
@@ -739,7 +740,7 @@ class _baseVisualTest(object):
         win = self.win
         win.flip()
         rs = visual.RatingScale(win, low=0, high=1, precision=100, size=3, pos=(0,-.4),
-                        labels=[' ', ' '], scale=' ',
+                        labels=[' ', ' '], scale=' ', colorSpace='hex',
                         marker='glow', markerStart=0.7, markerColor='darkBlue', autoLog=False)
         "{}".format(rs) #check that str(xxx) is working
         rs.draw()
@@ -769,7 +770,7 @@ class TestPygletHexColor(_baseVisualTest):
     @classmethod
     def setup_class(self):
         self.win = visual.Window([128,128], winType='pyglet', pos=[50,50],
-                                 color="#FF0099",
+                                 color="#FF0099", colorSpace='hex',
                                  allowStencil=True, autoLog=False)
         self.contextName='normHexbackground'
         self.scaleFactor=1#applied to size/pos values
