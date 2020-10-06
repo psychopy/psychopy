@@ -890,22 +890,31 @@ class AdvancedColor(Color):
 
     @property
     def dkla(self):
-        self._cache['dkla'] = None
-        return self._cache['dkla']
+        if 'dkla' in self._cache:
+            return self._cache['dkla']
+        else:
+            logging.error(f"Conversion *to* dkl is not supported, dkl values can only be retrieved when Color was originally specified in dkl")
     @dkla.setter
     def dkla(self, color):
+        # Extract values and convert to numpy
         d, k, l, *a = color
         nd = numpy.zeros(3)
         nd[:] = [d,k,l]
+        # Do conversion
         self.rgb = tuple( dkl2rgb(nd) )
         if a:
             self.alpha = a[0]
-        # Clear outdated values from cache
-        self._cache = {}
+        else:
+            self.alpha = 1
+        # Cache values
+        self._cache = {'dkl': (d, k, l),
+                       'dkla': (d, k, l, a)}
     @property
     def dkl(self):
-        if self.dkla:
-            return self.dkla[:-1]
+        if 'dkl' in self._cache:
+            return self._cache['dkl']
+        else:
+            logging.error(f"Conversion *to* dkl is not supported, dkl values can only be retrieved when Color was originally specified in dkl")
     @dkl.setter
     def dkl(self, color):
         self.dkla = color
