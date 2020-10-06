@@ -904,7 +904,8 @@ class AdvancedColor(Color):
         self._cache = {}
     @property
     def dkl(self):
-        return self.dkla[:-1]
+        if self.dkla:
+            return self.dkla[:-1]
     @dkl.setter
     def dkl(self, color):
         self.dkla = color
