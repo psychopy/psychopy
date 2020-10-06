@@ -319,7 +319,7 @@ class _baseVisualTest(object):
         imageStim.draw()
         utils.compareScreenshot('greyscaleLowContr_%s.png' %(self.contextName), win)
         win.flip()
-        imageStim.color = 1
+        imageStim.color = [1,1,1]
         imageStim.contrast = 0.1#should have identical effect to color=0.1
         imageStim.draw()
         utils.compareScreenshot('greyscaleLowContr_%s.png' %(self.contextName), win)
