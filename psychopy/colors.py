@@ -240,6 +240,19 @@ class Color(object):
         else:
             self.named = None
 
+    def render(self, space='rgb'):
+        if space not in colorSpaces and space not in advancedSpaces:
+            raise ValueError(f"{space} is not a valid color space")
+        adj = []
+        for val in self.rgb:
+            val = val * self.contrast
+            val = max(val, -1)
+            val = min(val, 1)
+            adj.append(val)
+        buffer = self.copy()
+        buffer.rgb = adj
+        return getattr(buffer, space)
+
     def __repr__(self):
         """If colour is printed, it will display its class and value"""
         if self.rgba:
@@ -323,6 +336,7 @@ class Color(object):
         """Return a duplicate of this colour"""
         dupe = self.__class__(self._requested, self._requestedSpace)
         dupe.rgba = self.rgba
+        dupe.contrast = self.contrast
         return dupe
 
     @staticmethod
