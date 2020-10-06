@@ -627,7 +627,7 @@ class Color(object):
         # Apply saturation
         all255 = tuple(round(h + (vibrancy255 - h) * (1 - saturation)) for h in hueVal)
         # Apply via rgba255
-        self.rgb255 = all255 + (alpha,) if alpha else all255
+        self.rgb255 = all255 + (alpha[0],) if alpha else all255
         # Clear outdated values from cache
         self._cache = {}
 
