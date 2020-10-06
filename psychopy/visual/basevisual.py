@@ -14,7 +14,7 @@ from builtins import object
 from past.builtins import basestring
 from pathlib import Path
 from statistics import mean
-from psychopy.colors import Color, AdvancedColor, colorSpaces
+from psychopy.colors import Color, AdvancedColor, colorSpaces, advancedSpaces
 
 # Ensure setting pyglet.options['debug_gl'] to False is done prior to any
 # other calls to pyglet or pyglet submodules, otherwise it may not get picked
@@ -444,7 +444,7 @@ class ColorMixin(object):
             return 'rgba'
     @colorSpace.setter
     def colorSpace(self, value):
-        if value in colorSpaces:
+        if value in colorSpaces or value in advancedSpaces:
             self._colorSpace = value
         else:
             logging.error(f"'{value}' is not a valid color space")
@@ -502,7 +502,7 @@ class ColorMixin(object):
         # Trigger color update for components like Textbox which have different behaviours for a hard setter
         self.updateColors()
     def setColor(self, color, colorSpace=None, operation='', log=None):
-        self.setForeColor(color, colorSpace=None, operation='', log=None)
+        self.setForeColor(color, colorSpace=colorSpace, operation=operation, log=log)
 
     def setFillColor(self, color, colorSpace=None, operation='', log=None):
         """Hard setter for fillColor, allows suppression of the log message, simultaneous colorSpace setting and
@@ -521,7 +521,7 @@ class ColorMixin(object):
         # Trigger color update for components like Textbox which have different behaviours for a hard setter
         self.updateColors()
     def setBackColor(self, color, colorSpace=None, operation='', log=None):
-        self.setFillColor(color, colorSpace=None, operation='', log=None)
+        self.setFillColor(color, colorSpace=colorSpace, operation=operation, log=log)
 
     def setBorderColor(self, color, colorSpace=None, operation='', log=None):
         """Hard setter for fillColor, allows suppression of the log message, simultaneous colorSpace setting and
@@ -540,7 +540,7 @@ class ColorMixin(object):
         # Trigger color update for components like Textbox which have different behaviours for a hard setter
         self.updateColors()
     def setLineColor(self, color, colorSpace=None, operation='', log=None):
-        self.setBorderColor(color, colorSpace=None, operation='', log=None)
+        self.setBorderColor(color, colorSpace=colorSpace, operation=operation, log=log)
 
     def setContrast(self, newContrast, operation='', log=None):
         """Usually you can use 'stim.attribute = value' syntax instead,
