@@ -204,8 +204,9 @@ colorSpaces = {
 class Color(object):
     """A class to store colour details, knows what colour space it's in and can supply colours in any space"""
 
-    def __init__(self, color=None, space=None):
+    def __init__(self, color=None, space=None, contrast=None):
         self._cache = {}
+        self.contrast = contrast if isinstance(contrast, (int, float)) else 1
         self.set(color=color, space=space)
 
     def set(self, color=None, space=None):
@@ -389,40 +390,28 @@ class Color(object):
         return None
 
     # ---adjusters---
-    @property
-    def contrast(self):
-        '''Distance from mid grey in rgb (-1 to 1)'''
-        return abs(sum(self.rgb)/3)
-    @contrast.setter
-    def contrast(self, value):
-        if self.contrast:
-            norm = tuple(c/self.contrast for c in self.rgb)
-        else:
-            norm = self.rgb
-        self.rgba = tuple(max(min(c*value,1),-1) for c in norm) + (self.rgba[-1],)
+    # @property
+    # def saturation(self):
+    #     '''Saturation in hsv (0 to 1)'''
+    #     return self.hsv[1]
+    # @saturation.setter
+    # def saturation(self, value):
+    #     h,s,v,a = self.hsva
+    #     s += value
+    #     s = min(s, 1)
+    #     s = max(s, 0)
+    #     self.hsva = (h, s, v, a)
 
-    @property
-    def saturation(self):
-        '''Saturation in hsv (0 to 1)'''
-        return self.hsv[1]
-    @saturation.setter
-    def saturation(self, value):
-        h,s,v,a = self.hsva
-        s += value
-        s = min(s, 1)
-        s = max(s, 0)
-        self.hsva = (h, s, v, a)
-
-    @property
-    def brightness(self):
-        return sum(self.rgb1)/3
-    @brightness.setter
-    def brightness(self, value):
-        adj = value-self.brightness
-        self.rgba1 = tuple(
-            max(min(c+adj, 1),0)
-            for c in self.rgb1
-        ) + (self.alpha,)
+    # @property
+    # def brightness(self):
+    #     return sum(self.rgb1)/3
+    # @brightness.setter
+    # def brightness(self, value):
+    #     adj = value-self.brightness
+    #     self.rgba1 = tuple(
+    #         max(min(c+adj, 1),0)
+    #         for c in self.rgb1
+    #     ) + (self.alpha,)
 
     @property
     def alpha(self):
