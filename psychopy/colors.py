@@ -179,25 +179,25 @@ colorNames = {
         "yellowgreen": (0.207843137254902, 0.607843137254902, -0.607843137254902, 1.0)
     }
 # Shorthand for common regexpressions
-_255 = '(\d|\d\d|1\d\d|2[0-4]\d|25[0-5])'
-_360 = '((\d|\d\d|[12]\d\d|3[0-5]\d)(\.\d)*|360|360\.0*)'
-_100 = '((\d|\d\d)(\.\d)*|100|100\.0*)'
-_1 = '(0|1|1.0*|0\.\d*)'
-_lbr = '[\[\(]\s*'
-_rbr = '\s*[\]\)]'
+_255 = r'(\d|\d\d|1\d\d|2[0-4]\d|25[0-5])'
+_360 = r'((\d|\d\d|[12]\d\d|3[0-5]\d)(\.\d)*|360|360\.0*)'
+_100 = r'((\d|\d\d)(\.\d)*|100|100\.0*)'
+_1 = r'(0|1|1.0*|0\.\d*)'
+_lbr = r'[\[\(]\s*'
+_rbr = r'\s*[\]\)]'
 # Dict of regexpressions for different formats
 colorSpaces = {
     'named': re.compile("|".join(list(colorNames))), # A named colour space
-    'hex': re.compile('#[\dabcdefABCDEF]{6}'), # Hex
-    'hexa': re.compile('#[\dabcdefABCDEF]{8}'), # Hex + alpha
-    'rgb': re.compile(_lbr+'\-?'+_1+',\s*'+'\-?'+_1+',\s*'+'\-?'+_1+_rbr), # RGB from -1 to 1
-    'rgba': re.compile(_lbr+'\-?'+_1+',\s*'+'\-?'+_1+',\s*'+'\-?'+_1+',\s*'+'\-?'+_1+_rbr),  # RGB + alpha from -1 to 1
-    'rgb1': re.compile(_lbr+_1+',\s*'+_1+',\s*'+_1+_rbr),  # RGB from 0 to 1
-    'rgba1': re.compile(_lbr+_1+',\s*'+_1+',\s*'+_1+',\s*'+_1+_rbr),  # RGB + alpha from 0 to 1
-    'rgb255': re.compile(_lbr+_255+',\s*'+_255+',\s*'+_255+_rbr), # RGB from 0 to 255
-    'rgba255': re.compile(_lbr+_255+',\s*'+_255+',\s*'+_255+',\s*'+_255+_rbr), # RGB + alpha from 0 to 255
-    'hsv': re.compile(_lbr+_360+'\°?'+',\s*'+_1+',\s*'+_1+_rbr), # HSV with hue from 0 to 360 and saturation/vibrancy from 0 to 1
-    'hsva': re.compile(_lbr+_360+'\°?'+',\s*'+_1+',\s*'+_1+',\s*'+_1+_rbr), # HSV with hue from 0 to 360 and saturation/vibrancy from 0 to 1 + alpha from 0 to 1
+    'hex': re.compile(r'#[\dabcdefABCDEF]{6}'), # Hex
+    'hexa': re.compile(r'#[\dabcdefABCDEF]{8}'), # Hex + alpha
+    'rgb': re.compile(_lbr+r'\-?'+_1+r',\s*'+r'\-?'+_1+r',\s*'+r'\-?'+_1+_rbr), # RGB from -1 to 1
+    'rgba': re.compile(_lbr+r'\-?'+_1+r',\s*'+r'\-?'+_1+r',\s*'+r'\-?'+_1+r',\s*'+r'\-?'+_1+_rbr),  # RGB + alpha from -1 to 1
+    'rgb1': re.compile(_lbr+_1+r',\s*'+_1+r',\s*'+_1+_rbr),  # RGB from 0 to 1
+    'rgba1': re.compile(_lbr+_1+r',\s*'+_1+r',\s*'+_1+r',\s*'+_1+_rbr),  # RGB + alpha from 0 to 1
+    'rgb255': re.compile(_lbr+_255+r',\s*'+_255+r',\s*'+_255+_rbr), # RGB from 0 to 255
+    'rgba255': re.compile(_lbr+_255+r',\s*'+_255+r',\s*'+_255+r',\s*'+_255+_rbr), # RGB + alpha from 0 to 255
+    'hsv': re.compile(_lbr+_360+r'\°?'+r',\s*'+_1+r',\s*'+_1+_rbr), # HSV with hue from 0 to 360 and saturation/vibrancy from 0 to 1
+    'hsva': re.compile(_lbr+_360+r'\°?'+r',\s*'+_1+r',\s*'+_1+r',\s*'+_1+_rbr), # HSV with hue from 0 to 360 and saturation/vibrancy from 0 to 1 + alpha from 0 to 1
 }
 
 
@@ -221,6 +221,9 @@ class Color(object):
             self._requestedSpace = color._requestedSpace
             self.rgba = color.rgba
             return
+        # if supplied a named color, ignore color space
+        if 'named' in self.getSpace(color, True):
+            space = 'named'
         # Store requested colour and space (or defaults, if none given)
         self._requested = color if color is not None else None
         self._requestedSpace = space \
@@ -652,14 +655,14 @@ class Color(object):
     def hsv(self, color):
         self.hsva = color
 
-_rec = '(\-4\.5|\-4\.4\d*|\-4\.[0-4]\d*|\-[0-3]\.\d*|\-[0-3]|0|0\.\d*|1|1\.0)' # -4.5 to 1
+_rec = r'(\-4\.5|\-4\.4\d*|\-4\.[0-4]\d*|\-[0-3]\.\d*|\-[0-3]|0|0\.\d*|1|1\.0)' # -4.5 to 1
 advancedSpaces = {
-    'rec709TF': re.compile(_lbr+_rec+',\s*'+_rec+',\s*'+_rec+_rbr), # rec709TF adjusted RGB from -4.5 to 1 + alpha from 0 to 1
-    'rec709TFa': re.compile(_lbr+_rec+',\s*'+_rec+',\s*'+_rec+',\s*'+_1+_rbr), # rec709TF adjusted RGB from -4.5 to 1 + alpha from 0 to 1
-    'srgbTF': re.compile(_lbr+'\-?'+_1+',\s*'+'\-?'+_1+',\s*'+'\-?'+_1+_rbr), # srgbTF from -1 to 1 + alpha from 0 to 1
-    'srgbTFa': re.compile(_lbr+'\-?'+_1+',\s*'+'\-?'+_1+',\s*'+'\-?'+_1+',\s*'+_1+_rbr), # srgbTF from -1 to 1 + alpha from 0 to 1
-    'lms': re.compile(_lbr + '\-?' + _1 + ',\s*' + '\-?' + _1 + ',\s*' + '\-?' + _1 + _rbr),  # LMS from -1 to 1
-    'lmsa': re.compile(_lbr + '\-?' + _1 + ',\s*' + '\-?' + _1 + ',\s*' + '\-?' + _1 + ',\s*' + '\-?' + _1 + _rbr),  # LMS + alpha from -1 to 1
+    'rec709TF': re.compile(_lbr+_rec+r',\s*'+_rec+r',\s*'+_rec+_rbr), # rec709TF adjusted RGB from -4.5 to 1 + alpha from 0 to 1
+    'rec709TFa': re.compile(_lbr+_rec+r',\s*'+_rec+r',\s*'+_rec+r',\s*'+_1+_rbr), # rec709TF adjusted RGB from -4.5 to 1 + alpha from 0 to 1
+    'srgbTF': re.compile(_lbr+r'\-?'+_1+r',\s*'+r'\-?'+_1+r',\s*'+r'\-?'+_1+_rbr), # srgbTF from -1 to 1 + alpha from 0 to 1
+    'srgbTFa': re.compile(_lbr+r'\-?'+_1+r',\s*'+r'\-?'+_1+r',\s*'+r'\-?'+_1+r',\s*'+_1+_rbr), # srgbTF from -1 to 1 + alpha from 0 to 1
+    'lms': re.compile(_lbr + r'\-?' + _1 + r',\s*' + r'\-?' + _1 + r',\s*' + r'\-?' + _1 + _rbr),  # LMS from -1 to 1
+    'lmsa': re.compile(_lbr + r'\-?' + _1 + r',\s*' + r'\-?' + _1 + r',\s*' + r'\-?' + _1 + r',\s*' + r'\-?' + _1 + _rbr),  # LMS + alpha from -1 to 1
 }
 
 

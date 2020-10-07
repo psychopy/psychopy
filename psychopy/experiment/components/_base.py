@@ -355,7 +355,7 @@ class BaseComponent(object):
             code = (f"frameRemains = {params['stopVal']} "
                     f" - psychoJS.window.monitorFramePeriod * 0.75;"
                     f"  // most of one frame period left\n"
-                    f"if ({params['name']}.status === PsychoJS.Status.STARTED "
+                    f"if (({params['name']}.status === PsychoJS.Status.STARTED || {params['name']}.status === PsychoJS.Status.FINISHED) "
                     f"&& t >= frameRemains) {{\n")
         # duration in time (s)
         elif (self.params['stopType'].val == 'duration (s)' and

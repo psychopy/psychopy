@@ -170,6 +170,10 @@ class MinimalStim(object):
             # remove from autodraw lists
             toDrawDepths.pop(toDraw.index(self))  # remove from depths
             toDraw.remove(self)  # remove from draw list
+            # Remove from editable list (if present)
+            for c in self.win._editableChildren:
+                if c() == self:
+                    self.win._editableChildren.remove(c)
             self.status = STOPPED
 
     def setAutoDraw(self, value, log=None):
