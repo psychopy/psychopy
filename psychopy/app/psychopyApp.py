@@ -8,6 +8,7 @@
 from __future__ import absolute_import, print_function
 
 import sys
+import psychopy.app
 
 # fix macOS locale-bug on startup: sets locale to LC_ALL (must be defined!)
 import psychopy.locale_setup  # noqa
@@ -25,8 +26,9 @@ def start_app():
     if '--no-splash' in sys.argv:
         showSplash = False
         del sys.argv[sys.argv.index('--no-splash')]
-    app = PsychoPyApp(0, showSplash=showSplash)
-    app.MainLoop()
+
+    # register the handle within the PsychoPy app module
+    psychopy.app.startApp(False, showSplash)
 
 
 def main():
