@@ -62,7 +62,6 @@ __all__ = ['normalize',
            'accumQuat',
            'fixTangentHandedness',
            'articulate',
-           'matrixAngle',
            'forwardProject',
            'reverseProject']
 
@@ -612,8 +611,8 @@ def distance(v0, v1, out=None, dtype=None):
     elif v0.ndim == v1.ndim == 1:
         dist = np.sqrt(np.sum(np.square(v1 - v0)))
     elif v0.ndim == 1 and v1.ndim == 2:
-        dist = np.zeros((v0.shape[0],), dtype=dtype) if out is None else out
-        dist[:] = np.sqrt(np.sum(np.square(v1 - v0), axis=1))
+        dist = np.zeros((v1.shape[0],), dtype=dtype) if out is None else out
+        dist[:] = np.sqrt(np.sum(np.square(v0 - v1), axis=1))
     else:
         raise ValueError("Input arguments have invalid dimensions.")
 
@@ -1243,7 +1242,28 @@ def computeBBoxCorners(extents, dtype=None):
     ndarray
         8x4 array of points defining the corners of the bounding box.
 
+    Examples
+    --------
+    Compute the corner points of a bounding box::
+
+        minExtent = [-1, -1, -1]
+        maxExtent = [1, 1, 1]
+        corners = computeBBoxCorners([minExtent, maxExtent])
+
+        # [[ 1.  1.  1.  1.]
+        #  [-1.  1.  1.  1.]
+        #  [ 1. -1.  1.  1.]
+        #  [-1. -1.  1.  1.]
+        #  [ 1.  1. -1.  1.]
+        #  [-1.  1. -1.  1.]
+        #  [ 1. -1. -1.  1.]
+        #  [-1. -1. -1.  1.]]
+
     """
+    extents = np.asarray(extents, dtype=dtype)
+
+    assert extents.shape == (2, 3,)
+
     corners = np.zeros((8, 4), dtype=dtype)
     idx = np.arange(0, 8)
     corners[:, 0] = np.where(idx[:] & 1, extents[0, 0], extents[1, 0])
@@ -2299,7 +2319,7 @@ def applyQuat(q, points, out=None, dtype=None):
         axis = [0., 0., -1.]
         angle = -90.0
         rotMat = rotationMatrix(axis, angle)[:3, :3]  # rotation sub-matrix only
-        rotQuat = quatFromAxisAngle(axis, angle, degrees=True)
+        rotQuat = quatFromAxisAngle(angle, axis, degrees=True)
         points = [[1., 0., 0.], [0., -1., 0.]]
         isClose = np.allclose(applyMatrix(rotMat, points),  # True
                               applyQuat(rotQuat, points))
@@ -2810,43 +2830,6 @@ def rotationMatrix(angle, axis=(0., 0., -1.), out=None, dtype=None):
     R[:, :] += 0.0  # remove negative zeros
 
     return R
-
-
-def matrixAngle(r, degrees=True, dtype=None):
-    """Get the rotation angle of an extant rotation matrix.
-
-    Parameters
-    ----------
-    m : array_like
-        Rotation matrix (2x2, 3x3, 4x4) with orthogonal rotation group.
-    degrees : bool
-        Return rotation angle in degrees. If `False`, this function will return
-        the angle in radians.
-    dtype : dtype or str, optional
-        Data type for computations can either be 'float32' or 'float64'. If
-        `out` is specified, the data type of `out` is used and this argument is
-        ignored. If `out` is not provided, 'float64' is used by default.
-
-    Returns
-    -------
-    float
-        Rotation angle in degrees or radians.
-
-    Examples
-    --------
-    Getting the angle of rotation from a rotation matrix::
-
-        r = rotationMatrix(90., normalize((1, 2, 3)))
-        angle = matrixAngle(r)  # 90.0
-
-    """
-    dtype = np.float64 if dtype is None else np.dtype(dtype).type
-    r = np.asarray(r, dtype=dtype)
-
-    r = r[:3, :3] if r.shape == (4, 4) or r.shape == (3, 4) else r
-    theta = np.arccos((np.sum(np.diagonal(r), dtype=dtype) - 1) / 2., dtype=dtype)
-
-    return np.degrees(theta, dtype=dtype) if degrees else theta
 
 
 def translationMatrix(t, out=None, dtype=None):
