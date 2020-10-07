@@ -3044,6 +3044,11 @@ def concatenate(matrices, out=None, dtype=None):
     --------
     * multMatrix : Chain multiplication of matrices.
 
+    Notes
+    -----
+    * This function should only be used for combining transformation matrices.
+      Use `multMatrix` for general matrix chain multiplication.
+
     Examples
     --------
     Create an SRT (scale, rotate, and translate) matrix to convert model-space
