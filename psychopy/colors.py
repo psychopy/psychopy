@@ -216,6 +216,8 @@ class Color(object):
             color = tuple(float(c) for c in color)
         if space in ['rgb255', 'rgba255']:
             color = tuple(int(c) for c in color)
+        if isinstance(color, (int, float)):
+            color = (color, color, color)
         # If input is a Color object, duplicate all settings
         if isinstance(color, Color):
             self._requested = color._requested
@@ -388,6 +390,7 @@ class Color(object):
                 color = [float(n) for n in color.strip('[]()').split(',')]
             if isinstance(color, list):
                 color = tuple(color)
+
         # If enforcing multiple
         if enforce == (tuple, int):
             color = tuple(int(round(c)) for c in color)
