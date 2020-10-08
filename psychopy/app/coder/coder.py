@@ -52,6 +52,7 @@ try:
                 .format(jedi.__version__)
         )
     _hasJedi = True
+    jedi.settings.fast_parser = True
 except ImportError:
     logging.error(
         "Package `jedi` not installed, code auto-completion and calltips will "
@@ -586,8 +587,11 @@ class CodeEditor(BaseCodeEditor, CodeEditorFoldingMixin, ThemeMixin):
         # give a little space between the margin and text
         self.SetMarginLeft(4)
 
-        # caret info, these are updated by calling updateCaretInfo()
+        # whitespace information
         self.indentSize = self.GetIndent()
+        self.newlines = '/n'
+
+        # caret info, these are updated by calling updateCaretInfo()
         self.caretCurrentPos = self.GetCurrentPos()
         self.caretVisible, caretColumn, caretLine = self.PositionToXY(
             self.caretCurrentPos)
@@ -686,32 +690,29 @@ class CodeEditor(BaseCodeEditor, CodeEditorFoldingMixin, ThemeMixin):
         else:
             filen = self.filename
 
-        # get the extension, if any
-        fsplit = filen.split('.')
-        if len(fsplit) > 1:   # has enough splits to have an extension
-            ext = fsplit[-1]
-        else:
-            ext = 'txt'  # assume a text file if we're able to open it
-
-        if ext in ('py', 'pyx', 'pxd', 'pxi',):  # python/cython files
+        # python/cython files
+        if any([filen.endswith(i) for i in (
+                'py', 'pyx', 'pxd', 'pxi')]):
             return 'Python'
-        elif ext in ('html',):  # html file
+        elif filen.endswith('html'):  # html file
             return 'HTML'
-        elif ext in ('cpp', 'c', 'h', 'mex', 'hpp'):  # c-like file
+        elif any([filen.endswith(i) for i in (
+                'cpp', 'c', 'h', 'mex', 'hpp')]):  # c-like file
             return 'C/C++'
-        elif ext in ('glsl', 'vert', 'frag'):  # OpenGL shader program
+        elif any([filen.endswith(i) for i in (
+                'glsl', 'vert', 'frag')]):  # OpenGL shader program
             return 'GLSL'
-        elif ext in ('m',):  # MATLAB
+        elif filen.endswith('m'):  # MATLAB
             return 'MATLAB'
-        elif ext in ('ino',):  # Arduino
+        elif filen.endswith('ino'):  # Arduino
             return 'Arduino'
-        elif ext in ('R',):  # R
+        elif filen.endswith('R'):  # R
             return 'R'
-        elif ext in ('yaml',):  # YAML
+        elif filen.endswith('yaml'):  # YAML
             return 'YAML'
-        elif ext in ('js',):  # JavaScript
+        elif filen.endswith('js'):  # JavaScript
             return 'JavaScript'
-        elif ext in ('json',):  # JSON
+        elif filen.endswith('json'):  # JSON
             return 'JSON'
         else:
             return 'Plain Text'  # default
@@ -798,6 +799,19 @@ class CodeEditor(BaseCodeEditor, CodeEditorFoldingMixin, ThemeMixin):
                 self.CallTipCancel()
                 self.openBrackets = 0
 
+        elif keyCode == wx.WXK_BACK:
+            if self.CallTipActive():
+                # check if we deleted any brackets
+                if self.GetCharAt(self.GetCurrentPos()-1) == ord('('):
+                    self.openBrackets -= 1
+                elif self.GetCharAt(self.GetCurrentPos()-1) == ord(')'):
+                    self.openBrackets += 1
+
+                # cancel the calltip if we deleted al the brackets
+                if self.openBrackets <= 0:
+                    self.CallTipCancel()
+                    self.openBrackets = 0
+
         elif keyCode == wx.WXK_RETURN: # and not self.AutoCompActive():
             if not self.AutoCompActive():
                 # process end of line and then do smart indentation
@@ -863,7 +877,7 @@ class CodeEditor(BaseCodeEditor, CodeEditorFoldingMixin, ThemeMixin):
                         textwrap.wrap(calltipText, 76))  # 80 cols after indent
                     y, x = foundRefs[0].bracket_start
                     self.CallTipShow(
-                        self.XYToPosition(x + 1, y + 1), calltipText)
+                        self.XYToPosition(x + 1, y), calltipText)
 
     def MacOpenFile(self, evt):
         logging.debug('PsychoPyCoder: got MacOpenFile event')
@@ -2262,8 +2276,8 @@ class CoderFrame(wx.Frame, ThemeMixin):
             elif isinstance(self.notebook, aui.AuiNotebook):
                 self.notebook.SetSelection(nbIndex)
             self.currentDoc.filename = filename
-
             self.currentDoc.setLexerFromFileName()  # chose the best lexer
+            #self.currentDoc.cacheAutoComplete()
 
             self.setFileModified(False)
             self.currentDoc.SetFocus()
