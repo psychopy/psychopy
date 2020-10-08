@@ -256,7 +256,10 @@ class Cortex(object):
             raise OSError(error_str.format(client_id_file_path))
         with open(client_id_file_path, 'r') as client_id_file:
             for line in client_id_file:
+                line = line.strip()
                 if line.startswith('#'):
+                    continue
+                if len(line) == 0:
                     continue
                 (key, val) = line.split(' ')
                 if key == 'client_id':
