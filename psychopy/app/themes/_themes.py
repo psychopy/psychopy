@@ -64,7 +64,8 @@ class ThemeMixin:
     lexers = {
         stc.STC_LEX_PYTHON: "python",
         stc.STC_LEX_CPP: "c++",
-        stc.STC_LEX_R: "R"
+        stc.STC_LEX_R: "R",
+        stc.STC_LEX_JSON: "json"
     }
     # these are populated and modified by PsychoPyApp.theme.setter
     spec = None
@@ -489,6 +490,24 @@ class ThemeMixin:
                 "documentation": stc.STC_C_COMMENTLINEDOC,
                 "documentation2": stc.STC_C_COMMENTDOC,
                 "whitespace": stc.STC_C_DEFAULT
+            })
+        elif self.GetLexer() == stc.STC_LEX_JSON:
+            # JSON
+            tags.update({
+                "operator": stc.STC_JSON_OPERATOR,
+                "keyword": stc.STC_JSON_KEYWORD,
+                "uri": stc.STC_JSON_URI,
+                "compactiri": stc.STC_JSON_COMPACTIRI,
+                "error": stc.STC_JSON_ERROR,
+                "espacesequence": stc.STC_JSON_ESCAPESEQUENCE,
+                "propertyname": stc.STC_JSON_PROPERTYNAME,
+                "ldkeyword": stc.STC_JSON_LDKEYWORD,
+                "num": stc.STC_JSON_NUMBER,
+                "str": stc.STC_JSON_STRING,
+                "openstr": stc.STC_JSON_STRINGEOL,
+                "comment": stc.STC_JSON_LINECOMMENT,
+                "commentblock": stc.STC_JSON_BLOCKCOMMENT,
+                "whitespace": stc.STC_JSON_DEFAULT
             })
         return tags
 
