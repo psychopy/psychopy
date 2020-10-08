@@ -14,8 +14,9 @@ from psychopy.app.coder.folding import getFolds
 
 import wx
 import wx.stc
-import os, sys
+import os
 import re
+import string
 
 
 CPP_DEFS = ['void', 'int', 'float', 'double', 'short', 'byte', 'struct', 'enum',
@@ -165,11 +166,13 @@ class SourceTreePanel(wx.Panel):
         #
         currentLexer = self.coder.currentDoc.GetLexer()
         if currentLexer == wx.stc.STC_LEX_CPP:
+            stripChars = string.whitespace
             kwrds = CPP_DEFS
         elif currentLexer == wx.stc.STC_LEX_PYTHON:
+            stripChars = string.whitespace + ':'
             kwrds = PYTHON_DEFS
         else:
-            kwrds = []
+            return  # do nothing here
 
         indent = doc.GetIndent()
         # filter out only definitions
@@ -187,7 +190,8 @@ class SourceTreePanel(wx.Panel):
             # slice off comment
             lineText = lineText.split('#')[0]
             lineTokens = [
-                tok.strip() for tok in re.split(' |\(|\)', lineText) if tok]
+                tok.strip(stripChars) for tok in re.split(
+                    ' |\(|\)', lineText) if tok]
             defType, defName = lineTokens[:2]
 
             lastItem = (defType, defName, df[1], df[0])

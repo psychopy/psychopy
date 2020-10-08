@@ -804,7 +804,9 @@ class CodeEditor(BaseCodeEditor, CodeEditorFoldingMixin, ThemeMixin):
                 event.Skip(False)
                 self.CmdKeyExecute(wx.stc.STC_CMD_NEWLINE)
                 self.smartIdentThisLine()
-                self.analyseScript()
+                # only analyse on new line if not at end of file
+                if self.GetCurrentPos() < self.GetLastPosition() - 1:
+                    self.analyseScript()
                 return  # so that we don't reach the skip line at end
 
             if self.CallTipActive():
@@ -980,17 +982,22 @@ class CodeEditor(BaseCodeEditor, CodeEditorFoldingMixin, ThemeMixin):
         """Reset the zoom level."""
         self.SetZoom(0)
 
-    # the Source Assistant and introspection functinos were broekn and removed frmo PsychoPy 1.90.0
     def analyseScript(self):
-        """Parse the abstract syntax tree for the current document.
+        """Parse the the document and update the source tree if present.
 
-        This function gets a list of functions, classes and methods in the
-        source code.
+        The script is analysed when loaded or when the user interact with it in
+        a way that can potentially change the number of lines of executable
+        code (cutting, pasting, newline, etc.)
+
+        This may get slow on larger files on older machines. So we may want to
+        change there heuristic a bit to determine when to analyse code in the
+        future.
 
         """
-        # scan the AST for objects we care about
         if hasattr(self.coder, 'structureWindow'):
+            self.coder.statusBar.SetStatusText(_translate('Analyzing code'))
             self.coder.structureWindow.refresh()
+            self.coder.statusBar.SetStatusText('')
 
     def setLexer(self, lexer=None):
         """Lexer is a simple string (e.g. 'python', 'html')
@@ -1963,8 +1970,7 @@ class CoderFrame(wx.Frame, ThemeMixin):
         self.setFileModified(self.currentDoc.UNSAVED)
         self.SetLabel('%s - PsychoPy Coder' % self.currentDoc.filename)
 
-        if hasattr(self, 'structureWindow'):
-            self.currentDoc.analyseScript()
+        self.currentDoc.analyseScript()
 
         fileType = self.currentDoc.getFileType()
         # enable run buttons if current file is a Python script
@@ -2169,10 +2175,7 @@ class CoderFrame(wx.Frame, ThemeMixin):
         if doc == self.currentDoc and hasattr(self, 'cdrBtnSave'):
             self.cdrBtnSave.Enable(doc.UNSAVED)
 
-        self.statusBar.SetStatusText(_translate('Analyzing code'))
-        if hasattr(self, 'structureWindow'):
-            self.currentDoc.analyseScript()
-        self.statusBar.SetStatusText('')
+        self.currentDoc.analyseScript()
 
     @property
     def filename(self):
@@ -2277,10 +2280,8 @@ class CoderFrame(wx.Frame, ThemeMixin):
 
         self.SetLabel('%s - PsychoPy Coder' % self.currentDoc.filename)
         #if len(self.getOpenFilenames()) > 0:
-        if hasattr(self, 'structureWindow'):
-            self.statusBar.SetStatusText(_translate('Analyzing code'))
-            self.currentDoc.analyseScript()
-            self.statusBar.SetStatusText('')
+        self.currentDoc.analyseScript()
+
         if not keepHidden:
             self.Show()  # if the user had closed the frame it might be hidden
         if readonly:
@@ -2402,8 +2403,8 @@ class CoderFrame(wx.Frame, ThemeMixin):
                 self.fileSaveAs(filename)
 
         if analyseAuto and len(self.getOpenFilenames()) > 0:
-            self.statusBar.SetStatusText(_translate('Analyzing current source code'))
             self.currentDoc.analyseScript()
+
         # reset status text
         self.statusBar.SetStatusText('')
         self.fileHistory.AddFileToHistory(filename)
@@ -2460,8 +2461,7 @@ class CoderFrame(wx.Frame, ThemeMixin):
             # update the lexer since the extension could have changed
             self.currentDoc.setLexerFromFileName()
             # re-analyse the document
-            if hasattr(self, 'structureWindow'):
-                self.currentDoc.analyseScript()
+            self.currentDoc.analyseScript()
 
             self.statusBar.SetStatusText(self.currentDoc.getFileType(), 2)
 
@@ -2568,27 +2568,39 @@ class CoderFrame(wx.Frame, ThemeMixin):
     def cut(self, event):
         self.currentDoc.Cut()  # let the text ctrl handle this
 
+    def cut(self, event):
+        foc = self.FindFocus()
+        if hasattr(foc, 'Cut'):
+            foc.Cut()
+            self.currentDoc.analyseScript()
+
     def paste(self, event):
         foc = self.FindFocus()
         if hasattr(foc, 'Paste'):
             foc.Paste()
+            self.currentDoc.analyseScript()
 
     def undo(self, event):
         if self.currentDoc:
             self.currentDoc.Undo()
+            self.currentDoc.analyseScript()
 
     def redo(self, event):
         if self.currentDoc:
             self.currentDoc.Redo()
+            self.currentDoc.analyseScript()
 
     def commentSelected(self, event):
         self.currentDoc.commentLines()
+        self.currentDoc.analyseScript()
 
     def uncommentSelected(self, event):
         self.currentDoc.uncommentLines()
+        self.currentDoc.analyseScript()
 
     def toggleComments(self, event):
         self.currentDoc.toggleCommentLines()
+        self.currentDoc.analyseScript()
 
     def bigFont(self, event):
         self.currentDoc.increaseFontSize()
@@ -2670,14 +2682,7 @@ class CoderFrame(wx.Frame, ThemeMixin):
     #     self.paneManager.Update()
 
     def analyseCodeNow(self, event):
-        self.statusBar.SetStatusText(_translate('Analyzing code'))
-        if self.currentDoc is not None:
-            self.currentDoc.analyseScript()
-        else:
-            # todo: add _translate()
-            txt = 'Open a file from the File menu, or drag one onto this app, or open a demo from the Help menu'
-
-        self.statusBar.SetStatusText(_translate('ready'))
+        self.currentDoc.analyseScript()
 
     # def setAnalyseAuto(self, event):
     #     set autoanalysis (from the check control in the tools menu)
