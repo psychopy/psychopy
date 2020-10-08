@@ -1,4 +1,4 @@
-.. _pump:
+.. _pumpComponent:
 
 Pump Component
 --------------
@@ -23,6 +23,14 @@ Start :
 Stop :
     Governs the duration for which the stimulus is presented.
 
+Sync to screen : bool
+    Whether to synchronize the pump operations (starting, stopping) to the
+    screen refresh. This ensures better synchronization with visual stimuli.
+
+Hardware
+========
+Parameters for controlling hardware.
+
 Pump index : int
     The index of the pump: The first pump's index is 0, the second pump's index is 1, etc.
     You may insert the name of a variable here to adjust this value dynamically.
@@ -43,10 +51,5 @@ Flow rate unit : ``mL/s`` or ``mL/min``
 Switch valve after dosing : bool
     Whether to switch the valve osition after the pump operation has
     finished. This can be used to ensure a sharp(er) stimulus offset.
-
-Sync to screen : bool
-    Whether to synchronize the pump operations (starting, stopping) to the
-    screen refresh. This ensures better synchronization with visual stimuli.
-
 
 .. _readme file: https://github.com/psyfood/pyqmix/blob/master/README.md

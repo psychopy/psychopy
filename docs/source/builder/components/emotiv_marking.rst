@@ -34,3 +34,12 @@ Stop Marker:
 Stop :
     Governs the duration for which the stimulus is presented. See :ref:`startStop` for details.
 
+marker label : string
+    The label assigned to this marker
+
+marker value : int
+    The value assigned to this marker
+
+stop marker : bool
+    Whether or not this is a stop marker
+
