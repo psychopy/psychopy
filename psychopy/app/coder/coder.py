@@ -9,7 +9,6 @@ from __future__ import absolute_import, print_function
 
 # from future import standard_library
 # standard_library.install_aliases()
-import json
 from past.builtins import unicode
 from builtins import chr
 from builtins import range
@@ -31,7 +30,6 @@ import pickle
 import time
 import textwrap
 
-from . import psychoParser
 from .. import stdOutRich, dialogs
 from .. import pavlovia_ui
 from psychopy import logging, prefs
@@ -45,7 +43,6 @@ from psychopy.app.coder.sourceTree import SourceTreePanel
 from psychopy.app.themes import ThemeMixin
 from psychopy.app.coder.folding import CodeEditorFoldingMixin
 # from ..plugin_manager import PluginManagerFrame
-from psychopy.app.errorDlg import ErrorMsgDialog
 
 try:
     import jedi
@@ -678,8 +675,8 @@ class CodeEditor(BaseCodeEditor, CodeEditorFoldingMixin, ThemeMixin):
                   'YAML': 'yaml',
                   'R': 'R',
                   'JavaScript': 'cpp',
+                  'JSON': 'json',
                   'Plain Text': 'null'}
-
         self.setLexer(lexers[self.getFileType()])
 
     def getFileType(self):
@@ -710,10 +707,12 @@ class CodeEditor(BaseCodeEditor, CodeEditorFoldingMixin, ThemeMixin):
             return 'Arduino'
         elif ext in ('R',):  # R
             return 'R'
-        elif ext in ('yaml',):  # R
+        elif ext in ('yaml',):  # YAML
             return 'YAML'
-        elif ext in ('js',):  # R
+        elif ext in ('js',):  # JavaScript
             return 'JavaScript'
+        elif ext in ('json',):  # JSON
+            return 'JSON'
         else:
             return 'Plain Text'  # default
 
@@ -1035,6 +1034,8 @@ class CodeEditor(BaseCodeEditor, CodeEditorFoldingMixin, ThemeMixin):
         self.SetExtraAscent(int(spacing))
         self.SetExtraDescent(int(spacing))
         self.Colourise(0, -1)
+
+        self._applyAppTheme()
 
     def onModified(self, event):
         # update the UNSAVED flag and the save icons
@@ -1965,7 +1966,14 @@ class CoderFrame(wx.Frame, ThemeMixin):
         if hasattr(self, 'structureWindow'):
             self.currentDoc.analyseScript()
 
-        self.statusBar.SetStatusText(self.currentDoc.getFileType(), 2)
+        fileType = self.currentDoc.getFileType()
+        # enable run buttons if current file is a Python script
+        if hasattr(self, 'cdrBtnRunner'):
+            isExp = fileType == 'Python'
+            self.toolbar.EnableTool(self.cdrBtnRunner.Id, isExp)
+            self.toolbar.EnableTool(self.cdrBtnRun.Id, isExp)
+
+        self.statusBar.SetStatusText(fileType, 2)
 
         # todo: reduce redundancy w.r.t OnIdle()
         if not self.expectedModTime(self.currentDoc):
@@ -2256,7 +2264,16 @@ class CoderFrame(wx.Frame, ThemeMixin):
 
             self.setFileModified(False)
             self.currentDoc.SetFocus()
-            self.statusBar.SetStatusText(self.currentDoc.getFileType(), 2)
+
+            fileType = self.currentDoc.getFileType()
+
+            # enable run buttons if current file is a Python script
+            if hasattr(self, 'cdrBtnRunner'):
+                isExp = fileType == 'Python'
+                self.toolbar.EnableTool(self.cdrBtnRunner.Id, isExp)
+                self.toolbar.EnableTool(self.cdrBtnRun.Id, isExp)
+
+            self.statusBar.SetStatusText(fileType, 2)
 
         self.SetLabel('%s - PsychoPy Coder' % self.currentDoc.filename)
         #if len(self.getOpenFilenames()) > 0:
@@ -2268,7 +2285,7 @@ class CoderFrame(wx.Frame, ThemeMixin):
             self.Show()  # if the user had closed the frame it might be hidden
         if readonly:
             self.currentDoc.SetReadOnly(True)
-        self.currentDoc._applyAppTheme()
+        #self.currentDoc._applyAppTheme()
         isExp = filename.endswith(".py") or filename.endswith(".psyexp")
 
         # if the toolbar is done then adjust buttons
@@ -2411,15 +2428,20 @@ class CoderFrame(wx.Frame, ThemeMixin):
             docId = self.findDocID(doc.filename)
         if filename is None:
             filename = doc.filename
+
         # if we have an absolute path then split it
         initPath, filename = os.path.split(filename)
         # set wildcards; need strings to appear inside _translate
         if sys.platform != 'darwin':
-            wildcard = _translate("Python scripts (*.py)|*.py|Text file "
-                                  "(*.txt)|*.txt|Any file (*.*)|*.*")
+            wildcard = _translate("Python script (*.py)|*.py|"
+                                  "JavaScript file (*.js)|*.js|"
+                                  "Text file (*.txt)|*.txt|"
+                                  "Any file (*.*)|*.*")
         else:
-            wildcard = _translate("Python scripts (*.py)|*.py|Text file "
-                                  "(*.txt)|*.txt|Any file (*.*)|*")
+            wildcard = _translate("Python script (*.py)|*.py|"
+                                  "JavaScript file (*.js)|*.js|"
+                                  "Text file (*.txt)|*.txt|"
+                                  "Any file (*.*)|*")
 
         dlg = wx.FileDialog(
             self, message=_translate("Save file as ..."), defaultDir=initPath,
@@ -2435,6 +2457,13 @@ class CoderFrame(wx.Frame, ThemeMixin):
             self.setFileModified(False)
             # JRG: 'doc.filename' should = newPath = dlg.getPath()
             doc.fileModTime = os.path.getmtime(doc.filename)
+            # update the lexer since the extension could have changed
+            self.currentDoc.setLexerFromFileName()
+            # re-analyse the document
+            if hasattr(self, 'structureWindow'):
+                self.currentDoc.analyseScript()
+
+            self.statusBar.SetStatusText(self.currentDoc.getFileType(), 2)
 
         dlg.Destroy()
 

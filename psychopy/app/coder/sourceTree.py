@@ -18,6 +18,11 @@ import os, sys
 import re
 
 
+CPP_DEFS = ['void', 'int', 'float', 'double', 'short', 'byte', 'struct', 'enum',
+            'function', 'class']  # javascript tokens
+PYTHON_DEFS = ['def', 'class']
+
+
 class SourceTreePanel(wx.Panel):
     """Panel for the source tree browser."""
     def __init__(self, parent, frame):
@@ -81,8 +86,9 @@ class SourceTreePanel(wx.Panel):
             # 'treeFolderOpened': _treeImgList.Add(
             #     wx.Bitmap(os.path.join(rc, 'folder-open16.png'), wx.BITMAP_TYPE_PNG))
         }
+        # for non-python functions
+        self._treeGfx['function'] = self._treeGfx['def']
         self.srcTree.SetImageList(self._treeImgList)
-
 
     def OnItemSelected(self, evt=None):
         """When a tree item is clicked on."""
@@ -124,7 +130,8 @@ class SourceTreePanel(wx.Panel):
             return
 
         # check if we can parse this file
-        if self.coder.currentDoc.GetLexer() not in [wx.stc.STC_LEX_PYTHON]:
+        if self.coder.currentDoc.GetLexer() not in [wx.stc.STC_LEX_PYTHON,
+                                                    wx.stc.STC_LEX_CPP]:
             self.srcTree.DeleteAllItems()
             root = self.srcTree.AddRoot(
                 'Source tree unavailable for this file type.')
@@ -148,36 +155,48 @@ class SourceTreePanel(wx.Panel):
                 foldLines.append(
                     (foldLevel, lineno, doc.GetLineText(lineno).lstrip()))
 
-        # build the trees for the given language
-        if self.coder.currentDoc.GetLexer() == wx.stc.STC_LEX_PYTHON:
-            indent = doc.GetIndent()
-            # filter out only definitions
-            defineList = []
-            lastItem = None
-            for df in foldLines:
-                lineText = doc.GetLineText(df[1]).lstrip()
-                if not (lineText.startswith('class ') or
-                        lineText.startswith('def ')):
+        # Build the trees for the given language, this is a dictionary which
+        # represents the hierarchy of the document. This system is dead simple,
+        # determining what's a function/class based on what the Scintilla lexer
+        # thinks should be folded. This is really fast and works most of the
+        # time (prefectly for Python). In the future, we may need to specify
+        # additional code to handle languages which don't have strict whitespace
+        # requirements.
+        #
+        currentLexer = self.coder.currentDoc.GetLexer()
+        if currentLexer == wx.stc.STC_LEX_CPP:
+            kwrds = CPP_DEFS
+        elif currentLexer == wx.stc.STC_LEX_PYTHON:
+            kwrds = PYTHON_DEFS
+        else:
+            kwrds = []
+
+        indent = doc.GetIndent()
+        # filter out only definitions
+        defineList = []
+        lastItem = None
+        for df in foldLines:
+            lineText = doc.GetLineText(df[1]).lstrip()
+            if not any([lineText.startswith(i) for i in kwrds]):
+                continue
+
+            if lastItem is not None:
+                if df[0] > lastItem[3] + indent:
                     continue
 
-                if lastItem is not None:
-                    if df[0] > lastItem[3] + indent:
-                        continue
+            # slice off comment
+            lineText = lineText.split('#')[0]
+            lineTokens = [
+                tok.strip() for tok in re.split(' |\(|\)', lineText) if tok]
+            defType, defName = lineTokens[:2]
 
-                # slice off comment
-                lineText = lineText.split('#')[0]
-                lineTokens = [
-                    tok.strip() for tok in re.split(' |\(|\)', lineText) if tok]
-                defType, defName = lineTokens[:2]
+            lastItem = (defType, defName, df[1], df[0])
+            defineList.append(lastItem)
 
-                lastItem = (defType, defName, df[1], df[0])
-                defineList.append(lastItem)
-
-            self.createPySourceTree(defineList, doc.GetIndent())
-
+        self.createSourceTree(defineList, doc.GetIndent())
         self.srcTree.Refresh()
 
-    def createPySourceTree(self, foldDefs, indents=4):
+    def createSourceTree(self, foldDefs, indents=4):
         """Create a Python source tree. This is called when code analysis runs
         and the document type is 'Python'.
         """
@@ -215,7 +234,8 @@ class SourceTreePanel(wx.Panel):
                 return
 
             self.srcTree.SetItemImage(
-                itemIdx, self._treeGfx[defType], wx.TreeItemIcon_Normal)
+                itemIdx, self._treeGfx.get(defType, self._treeGfx['function']),
+                wx.TreeItemIcon_Normal)
             self.srcTree.SetItemData(itemIdx, foldLine)
 
             if lookAheadLevel > foldLevel:
