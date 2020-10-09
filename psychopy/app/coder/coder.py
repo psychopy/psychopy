@@ -723,7 +723,6 @@ class CodeEditor(BaseCodeEditor, CodeEditorFoldingMixin, ThemeMixin):
 
     def OnKeyReleased(self, event):
         """Called after a key is released."""
-
         if hasattr(self.coder, "useAutoComp"):
             keyCode = event.GetKeyCode()
             _mods = event.GetModifiers()
@@ -1024,6 +1023,7 @@ class CodeEditor(BaseCodeEditor, CodeEditorFoldingMixin, ThemeMixin):
             logging.warn("Unknown lexer %r. Using plain text." % lexer)
             lex = wx.stc.STC_LEX_NULL
             lexer = 'null'
+
         # then actually set it
         self.SetLexer(lex)
         self.setFonts()
@@ -1040,8 +1040,9 @@ class CodeEditor(BaseCodeEditor, CodeEditorFoldingMixin, ThemeMixin):
             self.SetIndentationGuides(self.coder.appData['showIndentGuides'])
             self.SetProperty("fold", "1")
             self.SetProperty("tab.timmy.whinge.level", "1")
+            # don't grey out preprocessor lines
+            self.SetProperty("lexer.cpp.track.preprocessor", "0")
         elif lexer == 'R':
-            # self.SetKeyWords(0, " ".join(['function']))
             self.SetIndentationGuides(self.coder.appData['showIndentGuides'])
             self.SetProperty("fold", "1")
             self.SetProperty("tab.timmy.whinge.level", "1")
@@ -1049,8 +1050,10 @@ class CodeEditor(BaseCodeEditor, CodeEditorFoldingMixin, ThemeMixin):
             self.SetIndentationGuides(0)
             self.SetProperty("tab.timmy.whinge.level", "0")
 
-        # keep text from being squashed and hard to read
+        # deprecated in newer versions of Scintilla
         self.SetStyleBits(self.GetStyleBitsNeeded())
+
+        # keep text from being squashed and hard to read
         spacing = self.coder.prefs['lineSpacing'] / 2.
         self.SetExtraAscent(int(spacing))
         self.SetExtraDescent(int(spacing))
