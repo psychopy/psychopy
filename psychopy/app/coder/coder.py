@@ -2580,12 +2580,10 @@ class CoderFrame(wx.Frame, ThemeMixin):
         self.currentDoc.LineDuplicate()
 
     def cut(self, event):
-        self.currentDoc.Cut()  # let the text ctrl handle this
-
-    def cut(self, event):
         foc = self.FindFocus()
-        if hasattr(foc, 'Cut'):
-            foc.Cut()
+        foc.Copy()
+        if isinstance(foc, CodeEditor):
+            self.currentDoc.Cut()  # let the text ctrl handle this
             self.currentDoc.analyseScript()
 
     def paste(self, event):
