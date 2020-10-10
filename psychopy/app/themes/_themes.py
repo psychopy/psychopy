@@ -517,8 +517,7 @@ class ThemeMixin:
                 "documentation2": stc.STC_C_COMMENTDOC,
                 "whitespace": stc.STC_C_DEFAULT,
                 "preprocessor": stc.STC_C_PREPROCESSOR,
-                "preprocessorcomment": stc.STC_C_PREPROCESSORCOMMENT,
-                "preprocessorcommentdoc": stc.STC_C_PREPROCESSORCOMMENTDOC
+                "preprocessorcomment": stc.STC_C_PREPROCESSORCOMMENT
             })
         # elif self.GetLexer() == stc.STC_LEX_JSON:
         #     # JSON
