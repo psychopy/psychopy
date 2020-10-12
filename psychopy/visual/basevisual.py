@@ -1028,7 +1028,10 @@ class TextureMixin(object):
         elif pixFormat == GL.GL_RGB and wasLum and not stim.useShaders:
             # scale by rgb and convert to ubyte
             internalFormat = GL.GL_RGB
-            rgb = stim._foreColor.render('rgb')
+            if hasattr(stim, '_foreColor'):
+                rgb = stim._foreColor.rgba
+            elif hasattr(stim, '_fillColor'):
+                rgb = stim._fillColor.rgba
             # if wasImage it will also have ubyte values for the intensity
             if wasImage:
                 intensity = (intensity / 127.5) - 1.0
