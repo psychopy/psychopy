@@ -21,7 +21,7 @@ class EmotivRecordingComponent(BaseComponent):  # or (VisualComponent)
         super(EmotivRecordingComponent, self).__init__(
             exp, parentName, name=name,
             startType='time (s)', startVal=0,
-            stopType='duration (s)', stopVal="",
+            stopType='duration (s)', stopVal=1,
             startEstim='', durationEstim='',
             saveStartStop=False
         )
