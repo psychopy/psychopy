@@ -223,7 +223,7 @@ class BufferImageStim(ImageStim):
                     self.thisScale[1] * (1, -1)[self.flipVert], 1.0)
 
         # enable dynamic position, orientation, opacity; depth not working?
-        GL.glColor4f(*self._foreColor.rgba)
+        GL.glColor4f(*self._foreColor.render('rgba1'))
 
         GL.glCallList(self._listID)  # make it happen
         GL.glPopMatrix()  # return the view to previous state

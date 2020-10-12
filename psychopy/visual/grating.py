@@ -305,7 +305,7 @@ class GratingStim(BaseVisualStim, TextureMixin, ColorMixin, ContainerMixin):
         GL.glPushMatrix()  # push before the list, pop after
         win.setScale('pix')
         # the list just does the texture mapping
-        GL.glColor4f(*self._foreColor.rgba1)
+        GL.glColor4f(*self._foreColor.render('rgba1'))
 
         if self._needTextureUpdate:
             self.setTex(value=self.tex, log=False)

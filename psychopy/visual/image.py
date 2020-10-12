@@ -251,7 +251,7 @@ class ImageStim(BaseVisualStim, ContainerMixin, ColorMixin, TextureMixin):
 
         GL.glPushMatrix()  # push before the list, pop after
         win.setScale('pix')
-        GL.glColor4f(*self._foreColor.rgba255)
+        GL.glColor4f(*self._foreColor.render('rgba255'))
 
         if self._needTextureUpdate:
             self.setImage(value=self._imName, log=False)

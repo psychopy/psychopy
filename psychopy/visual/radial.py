@@ -390,7 +390,7 @@ class RadialStim(GratingStim):
         self.win.setScale('pix')
         if self.useShaders:
             # setup color
-            GL.glColor4f(*self._foreColor.rgba)
+            GL.glColor4f(*self._foreColor.render('rgba1'))
 
             # assign vertex array
             GL.glVertexPointer(2, GL.GL_DOUBLE, 0, self.verticesPix.ctypes)

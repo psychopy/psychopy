@@ -2538,7 +2538,7 @@ class Window(object):
         # if it is None then this will be done during window setup
         if self.backend is not None:
             self.backend.setCurrent()  # make sure this window is active
-            GL.glClearColor(*self._color.rgba1)
+            GL.glClearColor(*self._color.render('rgba1'))
 
     def setColor(self, color, colorSpace=None, operation='', log=None):
         """Usually you can use ``stim.attribute = value`` syntax instead,
