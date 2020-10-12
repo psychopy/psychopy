@@ -497,8 +497,6 @@ class TextStim(BaseVisualStim, ColorMixin, ContainerMixin):
     def _setTextNoShaders(self, value=None):
         """Set the text to be rendered using the current font
         """
-        desiredRGB = self._getDesiredRGB(self.rgb, self.colorSpace,
-                                         self.contrast)
         if self.win.winType in ["pyglet", "glfw"]:
             self._pygletTextObj = pyglet.text.Label(
                 self.text, self.font, int(self._heightPix*0.75),
