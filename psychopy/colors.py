@@ -216,6 +216,8 @@ class Color(object):
             color = tuple(float(c) for c in color)
         if space in ['rgb255', 'rgba255']:
             color = tuple(int(c) for c in color)
+        if isinstance(color, (int, float)):
+            color = (color, color, color)
         # If input is a Color object, duplicate all settings
         if isinstance(color, Color):
             self._requested = color._requested
@@ -239,6 +241,19 @@ class Color(object):
             setattr(self, self._requestedSpace, self._requested)
         else:
             self.named = None
+
+    def render(self, space='rgb'):
+        if space not in colorSpaces and space not in advancedSpaces:
+            raise ValueError(f"{space} is not a valid color space")
+        adj = []
+        for val in self.rgb:
+            val = val * self.contrast
+            val = max(val, -1)
+            val = min(val, 1)
+            adj.append(val)
+        buffer = self.copy()
+        buffer.rgb = adj
+        return getattr(buffer, space)
 
     def __repr__(self):
         """If colour is printed, it will display its class and value"""
@@ -323,6 +338,7 @@ class Color(object):
         """Return a duplicate of this colour"""
         dupe = self.__class__(self._requested, self._requestedSpace)
         dupe.rgba = self.rgba
+        dupe.contrast = self.contrast
         return dupe
 
     @staticmethod
@@ -374,6 +390,7 @@ class Color(object):
                 color = [float(n) for n in color.strip('[]()').split(',')]
             if isinstance(color, list):
                 color = tuple(color)
+
         # If enforcing multiple
         if enforce == (tuple, int):
             color = tuple(int(round(c)) for c in color)
