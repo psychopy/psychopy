@@ -1117,9 +1117,6 @@ class CodeEditor(BaseCodeEditor, CodeEditorFoldingMixin, ThemeMixin):
                 start = 0
                 loc = textstring.find(findstring, start)
 
-        # Adjust for offset
-        loc += 2
-
         # was it still not found?
         if loc == -1:
             dlg = dialogs.MessageDialog(self, message=_translate(
