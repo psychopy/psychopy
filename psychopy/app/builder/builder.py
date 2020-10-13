@@ -1568,7 +1568,7 @@ class RoutineCanvas(wx.ScrolledWindow):
             x, y = self.ConvertEventCoords(event)
             icons = self.pdc.FindObjectsByBBox(x, y)
             menuPos = event.GetPosition()
-            if self.app.prefs.builder['topFlow']:
+            if 'flowTop' in self.app.prefs.builder['builderLayout']:
                 # width of components panel
                 menuPos[0] += self.frame.componentButtons.GetSize()[0]
                 # height of flow panel
