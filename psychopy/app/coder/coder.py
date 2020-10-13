@@ -9,7 +9,6 @@ from __future__ import absolute_import, print_function
 
 # from future import standard_library
 # standard_library.install_aliases()
-import json
 from past.builtins import unicode
 from builtins import chr
 from builtins import range
@@ -31,7 +30,6 @@ import pickle
 import time
 import textwrap
 
-from . import psychoParser
 from .. import stdOutRich, dialogs
 from .. import pavlovia_ui
 from psychopy import logging, prefs
@@ -46,7 +44,6 @@ from psychopy.app.coder.sourceTree import SourceTreePanel
 from psychopy.app.themes import ThemeMixin
 from psychopy.app.coder.folding import CodeEditorFoldingMixin
 # from ..plugin_manager import PluginManagerFrame
-from psychopy.app.errorDlg import ErrorMsgDialog
 
 try:
     import jedi
@@ -56,6 +53,7 @@ try:
                 .format(jedi.__version__)
         )
     _hasJedi = True
+    jedi.settings.fast_parser = True
 except ImportError:
     logging.error(
         "Package `jedi` not installed, code auto-completion and calltips will "
@@ -612,8 +610,11 @@ class CodeEditor(BaseCodeEditor, CodeEditorFoldingMixin, ThemeMixin):
         # give a little space between the margin and text
         self.SetMarginLeft(4)
 
-        # caret info, these are updated by calling updateCaretInfo()
+        # whitespace information
         self.indentSize = self.GetIndent()
+        self.newlines = '/n'
+
+        # caret info, these are updated by calling updateCaretInfo()
         self.caretCurrentPos = self.GetCurrentPos()
         self.caretVisible, caretColumn, caretLine = self.PositionToXY(
             self.caretCurrentPos)
@@ -701,8 +702,8 @@ class CodeEditor(BaseCodeEditor, CodeEditorFoldingMixin, ThemeMixin):
                   'YAML': 'yaml',
                   'R': 'R',
                   'JavaScript': 'cpp',
+                  'JSON': 'json',
                   'Plain Text': 'null'}
-
         self.setLexer(lexers[self.getFileType()])
 
     def getFileType(self):
@@ -712,31 +713,30 @@ class CodeEditor(BaseCodeEditor, CodeEditorFoldingMixin, ThemeMixin):
         else:
             filen = self.filename
 
-        # get the extension, if any
-        fsplit = filen.split('.')
-        if len(fsplit) > 1:   # has enough splits to have an extension
-            ext = fsplit[-1]
-        else:
-            ext = 'txt'  # assume a text file if we're able to open it
-
-        if ext in ('py', 'pyx', 'pxd', 'pxi',):  # python/cython files
+        # python/cython files
+        if any([filen.endswith(i) for i in (
+                'py', 'pyx', 'pxd', 'pxi')]):
             return 'Python'
-        elif ext in ('html',):  # html file
+        elif filen.endswith('html'):  # html file
             return 'HTML'
-        elif ext in ('cpp', 'c', 'h', 'mex', 'hpp'):  # c-like file
+        elif any([filen.endswith(i) for i in (
+                'cpp', 'c', 'h', 'mex', 'hpp')]):  # c-like file
             return 'C/C++'
-        elif ext in ('glsl', 'vert', 'frag'):  # OpenGL shader program
+        elif any([filen.endswith(i) for i in (
+                'glsl', 'vert', 'frag')]):  # OpenGL shader program
             return 'GLSL'
-        elif ext in ('m',):  # MATLAB
+        elif filen.endswith('m'):  # MATLAB
             return 'MATLAB'
-        elif ext in ('ino',):  # Arduino
+        elif filen.endswith('ino'):  # Arduino
             return 'Arduino'
-        elif ext in ('R',):  # R
+        elif filen.endswith('R'):  # R
             return 'R'
-        elif ext in ('yaml',):  # R
+        elif filen.endswith('yaml'):  # YAML
             return 'YAML'
-        elif ext in ('js',):  # R
+        elif filen.endswith('js'):  # JavaScript
             return 'JavaScript'
+        elif filen.endswith('json'):  # JSON
+            return 'JSON'
         else:
             return 'Plain Text'  # default
 
@@ -746,7 +746,6 @@ class CodeEditor(BaseCodeEditor, CodeEditorFoldingMixin, ThemeMixin):
 
     def OnKeyReleased(self, event):
         """Called after a key is released."""
-
         if hasattr(self.coder, "useAutoComp"):
             keyCode = event.GetKeyCode()
             _mods = event.GetModifiers()
@@ -822,13 +821,28 @@ class CodeEditor(BaseCodeEditor, CodeEditorFoldingMixin, ThemeMixin):
                 self.CallTipCancel()
                 self.openBrackets = 0
 
+        elif keyCode == wx.WXK_BACK:
+            if self.CallTipActive():
+                # check if we deleted any brackets
+                if self.GetCharAt(self.GetCurrentPos()-1) == ord('('):
+                    self.openBrackets -= 1
+                elif self.GetCharAt(self.GetCurrentPos()-1) == ord(')'):
+                    self.openBrackets += 1
+
+                # cancel the calltip if we deleted al the brackets
+                if self.openBrackets <= 0:
+                    self.CallTipCancel()
+                    self.openBrackets = 0
+
         elif keyCode == wx.WXK_RETURN: # and not self.AutoCompActive():
             if not self.AutoCompActive():
                 # process end of line and then do smart indentation
                 event.Skip(False)
                 self.CmdKeyExecute(wx.stc.STC_CMD_NEWLINE)
                 self.smartIdentThisLine()
-                self.analyseScript()
+                # only analyse on new line if not at end of file
+                if self.GetCurrentPos() < self.GetLastPosition() - 1:
+                    self.analyseScript()
                 return  # so that we don't reach the skip line at end
 
             if self.CallTipActive():
@@ -885,7 +899,7 @@ class CodeEditor(BaseCodeEditor, CodeEditorFoldingMixin, ThemeMixin):
                         textwrap.wrap(calltipText, 76))  # 80 cols after indent
                     y, x = foundRefs[0].bracket_start
                     self.CallTipShow(
-                        self.XYToPosition(x + 1, y + 1), calltipText)
+                        self.XYToPosition(x + 1, y), calltipText)
 
     def MacOpenFile(self, evt):
         logging.debug('PsychoPyCoder: got MacOpenFile event')
@@ -1004,17 +1018,22 @@ class CodeEditor(BaseCodeEditor, CodeEditorFoldingMixin, ThemeMixin):
         """Reset the zoom level."""
         self.SetZoom(0)
 
-    # the Source Assistant and introspection functinos were broekn and removed frmo PsychoPy 1.90.0
     def analyseScript(self):
-        """Parse the abstract syntax tree for the current document.
+        """Parse the the document and update the source tree if present.
 
-        This function gets a list of functions, classes and methods in the
-        source code.
+        The script is analysed when loaded or when the user interact with it in
+        a way that can potentially change the number of lines of executable
+        code (cutting, pasting, newline, etc.)
+
+        This may get slow on larger files on older machines. So we may want to
+        change there heuristic a bit to determine when to analyse code in the
+        future.
 
         """
-        # scan the AST for objects we care about
         if hasattr(self.coder, 'structureWindow'):
+            self.coder.statusBar.SetStatusText(_translate('Analyzing code'))
             self.coder.structureWindow.refresh()
+            self.coder.statusBar.SetStatusText('')
 
     def setLexer(self, lexer=None):
         """Lexer is a simple string (e.g. 'python', 'html')
@@ -1027,6 +1046,7 @@ class CodeEditor(BaseCodeEditor, CodeEditorFoldingMixin, ThemeMixin):
             logging.warn("Unknown lexer %r. Using plain text." % lexer)
             lex = wx.stc.STC_LEX_NULL
             lexer = 'null'
+
         # then actually set it
         self.SetLexer(lex)
         self.setFonts()
@@ -1043,8 +1063,9 @@ class CodeEditor(BaseCodeEditor, CodeEditorFoldingMixin, ThemeMixin):
             self.SetIndentationGuides(self.coder.appData['showIndentGuides'])
             self.SetProperty("fold", "1")
             self.SetProperty("tab.timmy.whinge.level", "1")
+            # don't grey out preprocessor lines
+            self.SetProperty("lexer.cpp.track.preprocessor", "0")
         elif lexer == 'R':
-            # self.SetKeyWords(0, " ".join(['function']))
             self.SetIndentationGuides(self.coder.appData['showIndentGuides'])
             self.SetProperty("fold", "1")
             self.SetProperty("tab.timmy.whinge.level", "1")
@@ -1052,12 +1073,16 @@ class CodeEditor(BaseCodeEditor, CodeEditorFoldingMixin, ThemeMixin):
             self.SetIndentationGuides(0)
             self.SetProperty("tab.timmy.whinge.level", "0")
 
-        # keep text from being squashed and hard to read
+        # deprecated in newer versions of Scintilla
         self.SetStyleBits(self.GetStyleBitsNeeded())
+
+        # keep text from being squashed and hard to read
         spacing = self.coder.prefs['lineSpacing'] / 2.
         self.SetExtraAscent(int(spacing))
         self.SetExtraDescent(int(spacing))
         self.Colourise(0, -1)
+
+        self._applyAppTheme()
 
     def onModified(self, event):
         # update the UNSAVED flag and the save icons
@@ -1985,10 +2010,16 @@ class CoderFrame(wx.Frame, ThemeMixin):
         self.setFileModified(self.currentDoc.UNSAVED)
         self.SetLabel('%s - PsychoPy Coder' % self.currentDoc.filename)
 
-        if hasattr(self, 'structureWindow'):
-            self.currentDoc.analyseScript()
+        self.currentDoc.analyseScript()
 
-        self.statusBar.SetStatusText(self.currentDoc.getFileType(), 2)
+        fileType = self.currentDoc.getFileType()
+        # enable run buttons if current file is a Python script
+        if hasattr(self, 'cdrBtnRunner'):
+            isExp = fileType == 'Python'
+            self.toolbar.EnableTool(self.cdrBtnRunner.Id, isExp)
+            self.toolbar.EnableTool(self.cdrBtnRun.Id, isExp)
+
+        self.statusBar.SetStatusText(fileType, 2)
 
         # todo: reduce redundancy w.r.t OnIdle()
         if not self.expectedModTime(self.currentDoc):
@@ -2184,10 +2215,7 @@ class CoderFrame(wx.Frame, ThemeMixin):
         if doc == self.currentDoc and hasattr(self, 'cdrBtnSave'):
             self.cdrBtnSave.Enable(doc.UNSAVED)
 
-        self.statusBar.SetStatusText(_translate('Analyzing code'))
-        if hasattr(self, 'structureWindow'):
-            self.currentDoc.analyseScript()
-        self.statusBar.SetStatusText('')
+        self.currentDoc.analyseScript()
 
     @property
     def filename(self):
@@ -2274,24 +2302,31 @@ class CoderFrame(wx.Frame, ThemeMixin):
             elif isinstance(self.notebook, aui.AuiNotebook):
                 self.notebook.SetSelection(nbIndex)
             self.currentDoc.filename = filename
-
             self.currentDoc.setLexerFromFileName()  # chose the best lexer
+            #self.currentDoc.cacheAutoComplete()
 
             self.setFileModified(False)
             self.currentDoc.SetFocus()
-            self.statusBar.SetStatusText(self.currentDoc.getFileType(), 2)
+
+            fileType = self.currentDoc.getFileType()
+
+            # enable run buttons if current file is a Python script
+            if hasattr(self, 'cdrBtnRunner'):
+                isExp = fileType == 'Python'
+                self.toolbar.EnableTool(self.cdrBtnRunner.Id, isExp)
+                self.toolbar.EnableTool(self.cdrBtnRun.Id, isExp)
+
+            self.statusBar.SetStatusText(fileType, 2)
 
         self.SetLabel('%s - PsychoPy Coder' % self.currentDoc.filename)
         #if len(self.getOpenFilenames()) > 0:
-        if hasattr(self, 'structureWindow'):
-            self.statusBar.SetStatusText(_translate('Analyzing code'))
-            self.currentDoc.analyseScript()
-            self.statusBar.SetStatusText('')
+        self.currentDoc.analyseScript()
+
         if not keepHidden:
             self.Show()  # if the user had closed the frame it might be hidden
         if readonly:
             self.currentDoc.SetReadOnly(True)
-        self.currentDoc._applyAppTheme()
+        #self.currentDoc._applyAppTheme()
         isExp = filename.endswith(".py") or filename.endswith(".psyexp")
 
         # if the toolbar is done then adjust buttons
@@ -2408,8 +2443,8 @@ class CoderFrame(wx.Frame, ThemeMixin):
                 self.fileSaveAs(filename)
 
         if analyseAuto and len(self.getOpenFilenames()) > 0:
-            self.statusBar.SetStatusText(_translate('Analyzing current source code'))
             self.currentDoc.analyseScript()
+
         # reset status text
         self.statusBar.SetStatusText('')
         self.fileHistory.AddFileToHistory(filename)
@@ -2434,15 +2469,20 @@ class CoderFrame(wx.Frame, ThemeMixin):
             docId = self.findDocID(doc.filename)
         if filename is None:
             filename = doc.filename
+
         # if we have an absolute path then split it
         initPath, filename = os.path.split(filename)
         # set wildcards; need strings to appear inside _translate
         if sys.platform != 'darwin':
-            wildcard = _translate("Python scripts (*.py)|*.py|Text file "
-                                  "(*.txt)|*.txt|Any file (*.*)|*.*")
+            wildcard = _translate("Python script (*.py)|*.py|"
+                                  "JavaScript file (*.js)|*.js|"
+                                  "Text file (*.txt)|*.txt|"
+                                  "Any file (*.*)|*.*")
         else:
-            wildcard = _translate("Python scripts (*.py)|*.py|Text file "
-                                  "(*.txt)|*.txt|Any file (*.*)|*")
+            wildcard = _translate("Python script (*.py)|*.py|"
+                                  "JavaScript file (*.js)|*.js|"
+                                  "Text file (*.txt)|*.txt|"
+                                  "Any file (*.*)|*")
 
         dlg = wx.FileDialog(
             self, message=_translate("Save file as ..."), defaultDir=initPath,
@@ -2458,6 +2498,12 @@ class CoderFrame(wx.Frame, ThemeMixin):
             self.setFileModified(False)
             # JRG: 'doc.filename' should = newPath = dlg.getPath()
             doc.fileModTime = os.path.getmtime(doc.filename)
+            # update the lexer since the extension could have changed
+            self.currentDoc.setLexerFromFileName()
+            # re-analyse the document
+            self.currentDoc.analyseScript()
+
+            self.statusBar.SetStatusText(self.currentDoc.getFileType(), 2)
 
         dlg.Destroy()
 
@@ -2560,29 +2606,39 @@ class CoderFrame(wx.Frame, ThemeMixin):
         self.currentDoc.LineDuplicate()
 
     def cut(self, event):
-        self.currentDoc.Cut()  # let the text ctrl handle this
+        foc = self.FindFocus()
+        foc.Copy()
+        if isinstance(foc, CodeEditor):
+            self.currentDoc.Cut()  # let the text ctrl handle this
+            self.currentDoc.analyseScript()
 
     def paste(self, event):
         foc = self.FindFocus()
         if hasattr(foc, 'Paste'):
             foc.Paste()
+            self.currentDoc.analyseScript()
 
     def undo(self, event):
         if self.currentDoc:
             self.currentDoc.Undo()
+            self.currentDoc.analyseScript()
 
     def redo(self, event):
         if self.currentDoc:
             self.currentDoc.Redo()
+            self.currentDoc.analyseScript()
 
     def commentSelected(self, event):
         self.currentDoc.commentLines()
+        self.currentDoc.analyseScript()
 
     def uncommentSelected(self, event):
         self.currentDoc.uncommentLines()
+        self.currentDoc.analyseScript()
 
     def toggleComments(self, event):
         self.currentDoc.toggleCommentLines()
+        self.currentDoc.analyseScript()
 
     def bigFont(self, event):
         self.currentDoc.increaseFontSize()
@@ -2664,14 +2720,7 @@ class CoderFrame(wx.Frame, ThemeMixin):
     #     self.paneManager.Update()
 
     def analyseCodeNow(self, event):
-        self.statusBar.SetStatusText(_translate('Analyzing code'))
-        if self.currentDoc is not None:
-            self.currentDoc.analyseScript()
-        else:
-            # todo: add _translate()
-            txt = 'Open a file from the File menu, or drag one onto this app, or open a demo from the Help menu'
-
-        self.statusBar.SetStatusText(_translate('ready'))
+        self.currentDoc.analyseScript()
 
     # def setAnalyseAuto(self, event):
     #     set autoanalysis (from the check control in the tools menu)
