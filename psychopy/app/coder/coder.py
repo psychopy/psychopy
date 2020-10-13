@@ -1662,6 +1662,14 @@ class CoderFrame(wx.Frame, ThemeMixin):
         self.showEOLsChk.Check(self.appData['showEOLs'])
         self.Bind(wx.EVT_MENU, self.setShowEOLs, id=self.showEOLsChk.GetId())
         menu.AppendSeparator()
+        hint = _translate("Enable/disable line wrapping in editors.")
+        self.lineWrapChk = menu.AppendCheckItem(
+            wx.ID_ANY,
+            _translate("Line wrapping"),
+            hint)
+        self.lineWrapChk.Check(False)
+        self.Bind(wx.EVT_MENU, self.onWordWrapCheck, self.lineWrapChk)
+        menu.AppendSeparator()
         # Theme Switcher
         self.themesMenu = ThemeSwitcher(self)
         menu.AppendSubMenu(self.themesMenu,
@@ -1833,6 +1841,16 @@ class CoderFrame(wx.Frame, ThemeMixin):
         self.statusBar.SetStatusWidths([-2, 160, 160, 160])
 
         self.SetStatusBar(self.statusBar)
+
+    def onWordWrapCheck(self, event):
+        """Enable/disable word wrapping when the menu item is checked."""
+        checked = event.IsChecked()
+        for pageId in range(self.notebook.GetPageCount()):
+            page = self.notebook.GetPage(pageId)
+            page.SetWrapMode(
+                wx.stc.STC_WRAP_WORD if checked else wx.stc.STC_WRAP_NONE)
+
+        event.Skip()
 
     def onSetCWDFromEditor(self, event):
         """Set the current working directory to the location of the current file
@@ -2313,6 +2331,9 @@ class CoderFrame(wx.Frame, ThemeMixin):
                 self.toolbar.EnableTool(self.cdrBtnRunner.Id, isExp)
                 self.toolbar.EnableTool(self.cdrBtnRun.Id, isExp)
 
+            # line wrapping
+            self.currentDoc.SetWrapMode(
+                wx.stc.STC_WRAP_WORD if self.lineWrapChk.IsChecked() else wx.stc.STC_WRAP_NONE)
             self.statusBar.SetStatusText(fileType, 2)
 
         self.SetLabel('%s - PsychoPy Coder' % self.currentDoc.filename)
