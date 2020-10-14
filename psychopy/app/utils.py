@@ -41,11 +41,15 @@ class FileDropTarget(wx.FileDropTarget):
         logging.debug(
             'PsychoPyBuilder: received dropped files: %s' % filenames)
         for fname in filenames:
-            if wx.GetKeyState(wx.WXK_ALT):
-                # If holding ALT, insert filename into current coder doc
+            if isinstance(self.target, psychopy.app.coder.CoderFrame) and wx.GetKeyState(wx.WXK_ALT):
+                # If holding ALT and on coder, insert filename into current coder doc
                 if self.app.coder:
                     if self.app.coder.currentDoc:
                         self.app.coder.currentDoc.AddText(fname)
+            if isinstance(self.target, psychopy.app.runner.RunnerFrame):
+                # If on Runner, load file to run
+                self.app.showRunner()
+                self.app.runner.addTask(fileName=fname)
             elif fname.lower().endswith('.psyexp'):
                 # If they dragged on a .psyexp file, open it in in Builder
                 self.app.showBuilder()
