@@ -2020,7 +2020,19 @@ class CoderFrame(wx.Frame, ThemeMixin):
                 self.fileStatusLastChecked = time.time()
 
     def pageChanged(self, event):
+        """Event called when the user swtiches between editor tabs."""
         old = event.GetOldSelection()
+        # close any auto-complete or calltips when swtiching pages
+        if old != wx.NOT_FOUND:
+            oldPage = self.notebook.GetPage(old)
+            if hasattr(oldPage, 'CallTipActive'):
+                if oldPage.CallTipActive():
+                    oldPage.CallTipCancel()
+                    oldPage.openBrackets = 0
+            if hasattr(oldPage, 'AutoCompActive'):
+                if oldPage.AutoCompActive():
+                    oldPage.AutoCompCancel()
+
         new = event.GetSelection()
         self.currentDoc = self.notebook.GetPage(new)
         self.app.updateWindowMenu()
