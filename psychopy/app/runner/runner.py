@@ -663,7 +663,7 @@ class RunnerPanel(wx.Panel, ScriptProcess, ThemeMixin):
                 return
             filePaths = [fileName]
         else:
-            with wx.FileDialog(self, "Open task...", wildcard="*.py; *.psyexp | *.py; *.psyexp",
+            with wx.FileDialog(self, "Open task...", wildcard="Tasks (*.py;*.psyexp)|*.py;*.psyexp",
                                style=wx.FD_MULTIPLE | wx.FD_FILE_MUST_EXIST) as fileDialog:
 
                 if fileDialog.ShowModal() == wx.ID_CANCEL:
