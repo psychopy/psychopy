@@ -368,6 +368,21 @@ class SoundPTB(_SoundBase):
         self.__dict__['status'] = newStatus
 
     @property
+    def volume(self):
+        return self.__dict__['volume']
+
+    @volume.setter
+    def volume(self, newVolume):
+        self.__dict__['volume'] = newVolume
+        if 'track' in self.__dict__:
+            # Update volume of an existing track, if it exists.
+            # (BUGFIX, otherwise only the member variable is updated, but the sound
+            # volume does not change while playing - Suddha Sourav, 14.10.2020)
+            self.__dict__['track']().volume = newVolume
+        else:
+            return None
+
+    @property
     def stereo(self):
         return self.__dict__['stereo']
 
