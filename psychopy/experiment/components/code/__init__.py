@@ -209,7 +209,7 @@ class CodeComponent(BaseComponent):
 
     def writePreCodeJS(self, buff):
         if len(str(self.params['Before JS Experiment'])):
-            alerttools.checkPythonSyntax(self, 'Before Experiment')
+            alerttools.checkJavaScriptSyntax(self, 'Before JS Experiment')
             buff.writeIndentedLines(str(self.params['Before JS Experiment']) + '\n')
 
     def writeInitCode(self, buff):
