@@ -716,8 +716,7 @@ class CodeEditor(BaseCodeEditor, CodeEditorFoldingMixin, ThemeMixin):
         # lower case the file name
         filen = filen.lower()
 
-        # python/cython files
-        if any([filen.endswith(i) for i in (
+        if any([filen.endswith(i) for i in (  # python/cython files
                 '.py', '.pyx', '.pxd', '.pxi')]):
             return 'Python'
         elif filen.endswith('html'):  # html file
@@ -732,7 +731,7 @@ class CodeEditor(BaseCodeEditor, CodeEditorFoldingMixin, ThemeMixin):
             return 'MATLAB'
         elif filen.endswith('.ino'):  # Arduino
             return 'Arduino'
-        elif filen.endswith('.R'):  # R
+        elif filen.endswith('.r'):  # R
             return 'R'
         elif filen.endswith('.yaml'):  # YAML
             return 'YAML'
